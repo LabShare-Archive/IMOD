@@ -1,10 +1,12 @@
 C	  BSUBS.FOR has subroutines needed by BLEND only:
 c	  
 c	  READ_LIST
+c	  FUNCTION ONEINTRP
 c	  FASTINTERP
 c	  JOINT_TO_ROTRANS
 c	  EDGE_TO_ROTRANS
 c	  SOLVE_ROTRANS
+c	  FUNCTION STANDEV
 c	  EDGESWAP
 c	  DOEDGE
 c	  LINCOM_ROTRANS
@@ -12,8 +14,9 @@ c	  RECEN_ROTRANS
 c	  COUNTEDGES
 c	  DXYDGRINTERP
 c	  CROSSVALUE
-c	  FUNCTION ONEINTRP
-c	  FUNCTION STANDEV
+c	  XCORREDGE
+c	  PEAKFIND
+c	  FIND_BEST_SHIFTS
 c
 c
 c	  $Author$
@@ -23,6 +26,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/09/01 20:27:38  mast
+c	  Fixed bug in testing if piece list input entered
+c	
 c	  Revision 3.4  2003/12/12 20:47:42  mast
 c	  Moved FINDEDGEFUNC, SETGRIDCHARS, and LOCALMEAN to edgesubs.f
 c	
@@ -134,135 +140,316 @@ c
 
 
 
-c	  function ONEINTRP used quadratic interpolation in a real array ARRAY
+c	  function ONEINTRP used interpolation in a real array CRRAY
 c	  (dimensions NX,NY) to find the pixel value of the point at
 c	  coordinates (X,Y).  Coordinates run from 0 to NX-1.  A real value
 c	  is returned.  If the pixel is not within the array, DMEAN is returned
+c	  (from value in common).  IZPC is the piece number (numbered from 1)
+c	  The interpolation order is set from the value in common.
 c
-	function oneintrp(array,nx,ny,x,y,dmean)
+	real*4 function oneintrp(crray,nx,ny,x,y,izpc)
 c
-	real*4 array(nx,ny)
+	implicit none
+	include 'blend.inc'
+	integer*4 nx, ny,izpc
+	real*4 x,y
+	real*4 crray(nx,ny)
+	integer*4 ixp,iyp,ixpp1,ixpm1,iypp1,iypm1,ixpp2,iypp2
+	real*4 dx,dy,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
+	real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
+c
 	oneintrp=dmean
 	xp=x+1.
 	yp=y+1.
-	ixp=nint(xp)
-	iyp=nint(yp)
-	if(ixp.lt.1.or.ixp.gt.nx.or.iyp.lt.1.or.iyp.gt.ny)return
-C	  
-C	  Do quadratic interpolation
-C	  
-	DX = XP - IXP
-	DY = YP - IYP
-c	  but if on an integer boundary already, done
-	if(dx.eq.0.and.dy.eq.0.)then
-	  oneintrp=array(ixp,iyp)
-	  return
+	if (doFields) then
+	  call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &	      fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &	      ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+	  xp = xp + dx
+	  yp = yp + dy
 	endif
+	
+	if (interpOrder .le. 1) then
+c	      
+c	    Linear interpolation
 c
-	IXPP1 = MIN(NX,IXP + 1)
-	IXPM1 = MAX(1,IXP - 1)
-	IYPP1 = MIN(NY,IYP + 1)
-	IYPM1 = MAX(1,IYP - 1)
+	  IXP = XP
+	  IYP = YP
+	  IF (IXP .ge. 1 .and. IXP .le. NX .and. IYP .ge. 1 .and.
+     &	      IYP .le. NY) then
+	    DX = XP - IXP
+	    DY = YP - IYP
+	    IXPP1 = MIN(NX,IXP + 1)
+	    IYPP1 = MIN(NY,IYP + 1)
+	    oneintrp = (1. - dy) * ((1. - dx) * crray(ixp, iyp) +
+     &		dx * crray(ixpp1, iyp)) +
+     &		dy * ((1. - dx) * crray(ixp, iypp1) +
+     &		dx * crray(ixpp1, iypp1))
+	  endif
+	elseif (interpOrder .eq. 2) then
+c	      
+c	    Old quadratic interpolation
+c
+	  ixp=nint(xp)
+	  iyp=nint(yp)
+	  if(ixp.lt.1.or.ixp.gt.nx.or.iyp.lt.1.or.iyp.gt.ny)return
+	  DX = XP - IXP
+	  DY = YP - IYP
+c	    but if on an integer boundary already, done
+	  if(dx.eq.0.and.dy.eq.0.)then
+	    oneintrp=crray(ixp,iyp)
+	    return
+	  endif
+c	    
+	  IXPP1 = MIN(NX,IXP + 1)
+	  IXPM1 = MAX(1,IXP - 1)
+	  IYPP1 = MIN(NY,IYP + 1)
+	  IYPM1 = MAX(1,IYP - 1)
 C	  
-C	  Set up terms for quadratic interpolation
+C	    Set up terms for quadratic interpolation
+C	    
+	  V2 = CRRAY(IXP, IYPM1)
+	  V4 = CRRAY(IXPM1, IYP)
+	  V5 = CRRAY(IXP, IYP)
+	  V6 = CRRAY(IXPP1, IYP)
+	  V8 = CRRAY(IXP, IYPP1)
+c	    find min and max of all 5 points
+	  vmax=max(v2,v4,v5,v6,v8)
+	  vmin=min(v2,v4,v5,v6,v8)
+C	    
+	  A = (V6 + V4)*.5 - V5
+	  B = (V8 + V2)*.5 - V5
+	  C = (V6 - V4)*.5
+	  D = (V8 - V2)*.5
 C	  
-	V2 = ARRAY(IXP, IYPM1)
-	V4 = ARRAY(IXPM1, IYP)
-	V5 = ARRAY(IXP, IYP)
-	V6 = ARRAY(IXPP1, IYP)
-	V8 = ARRAY(IXP, IYPP1)
-c	  find min and max of all 5 points
-	vmax=max(v2,v4,v5,v6,v8)
-	vmin=min(v2,v4,v5,v6,v8)
-C	  
-	A = (V6 + V4)*.5 - V5
-	B = (V8 + V2)*.5 - V5
-	C = (V6 - V4)*.5
-	D = (V8 - V2)*.5
-C	  
-c	  limit the new density to between the min and max of original points
-	oneintrp = max(vmin,min(vmax
-     &	    ,A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
+c	    limit the new density to between the min and max of original points
+	  oneintrp = max(vmin,min(vmax,A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
+	else
+c	      
+c	      cubic interpolation
+c	      
+	  IXP = XP
+	  IYP = YP
+	  IF (IXP .ge. 1 .and. IXP .le. NX .and. IYP .ge. 1 .and.
+     &	      IYP .le. NY) then
+	    
+	    DX = XP - IXP
+	    DY = YP - IYP
+	    IXPP1 = MIN(NX,IXP + 1)
+	    IXPM1 = MAX(1,IXP - 1)
+	    IYPP1 = MIN(NY,IYP + 1)
+	    IYPM1 = MAX(1,IYP - 1)
+	    ixpp2 = min(nx, ixp + 2)
+	    iypp2 = min(ny, iyp + 2)
+	    
+	    dxm1 = dx-1.
+	    dxdxm1=dx*dxm1
+	    fx1=-dxm1*dxdxm1
+	    fx4=dx*dxdxm1
+	    fx2=1+dx**2*(dx-2.)
+	    fx3=dx*(1.-dxdxm1)
+	    
+	    dym1 = dy-1.
+	    dydym1=dy*dym1
+	    
+	    v1=fx1*crray(ixpm1,iypm1)+fx2*crray(ixp,iypm1)+
+     &		fx3*crray(ixpp1,iypm1)+fx4*crray(ixpp2,iypm1)
+	    v2=fx1*crray(ixpm1,iyp)+fx2*crray(ixp,iyp)+
+     &		fx3*crray(ixpp1,iyp)+fx4*crray(ixpp2,iyp)
+	    v3=fx1*crray(ixpm1,iypp1)+fx2*crray(ixp,iypp1)+
+     &		fx3*crray(ixpp1,iypp1)+fx4*crray(ixpp2,iypp1)
+	    v4=fx1*crray(ixpm1,iypp2)+fx2*crray(ixp,iypp2)+
+     &		fx3*crray(ixpp1,iypp2)+fx4*crray(ixpp2,iypp2)
+	    oneintrp=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
+     &		dy*(1.-dydym1)*v3 +dy*dydym1*v4
+	    
+	  endif
+	endif
 	return
 	end
 
 
 
 c	  FASTINTERP uses quadratic interpolation to fill a portion of an
-c	  output byte array BRRAY (dimensions NXOUT x NLINES) from pixels in
-c	  the input real array ARRAY (dimensions NXIN x NYIN).  It will fill an
+c	  output array DRRAY (dimensions NXD x NYD) from pixels in
+c	  the input real array CRRAY (dimensions NXC x NYC).  It will fill an
 c	  area within the coordinates from INDXLO to INDXHI and from INDYLO to
 c	  INDYHI, where the x coordinate of the lower left corner of the output
 c	  array is NEWPCXLL.  The transformation is specified by the
 c	  2x2 matrix AMAT and FDX and FDY, where these must be prepared so that
-c	  the coordinates in the input array (range 0 to NXIN-1 etc) are
+c	  the coordinates in the input array (range 0 to NXC-1 etc) are
 c	  obtained simply by X = A11 * INDX + A12 * INDY + DX et (i.e. no
 c	  center offsets are needed).  Pixels outside the input array are
-c	  filled with DMEAN
+c	  filled with DMEAN from common.  IZPC is the piece number.
 c
-	subroutine fastinterp(brray,nxout,nlines, array,nxin,nyin,indxlo,
-     &	    indxhi,indylo, indyhi,newpcxll,amat,fdx, fdy,dmean)
+	subroutine fastinterp(drray,nxd,nyd, crray,nxc,nyc,indxlo,
+     &	    indxhi,indylo, indyhi,newpcxll,amat,fdx, fdy,izpc)
 c
-	real*4 brray(nxout,nlines)
-	real*4 array(nxin,nyin)
-	real*4 amat(2,2),dx,dy,dmean
-c	byte bv6,bv2,bv8,bv4,bv5
-c	integer*4 iv6/0/,iv2/0/,iv8/0/,iv4/0/,iv5/0/
-c	equivalence (iv6,bv6),(iv2,bv2),(iv8,bv8),(iv4,bv4),(iv5,bv5)
+	implicit none
+	include 'blend.inc'
+	integer*4 nxd,nyd,nxc,nyc,indxlo, indxhi,indylo, indyhi
+     	integer*4 newpcxll,izpc
+	real*4 drray(nxd,nyd)
+	real*4 crray(nxc,nyc)
+	real*4 amat(2,2),dx,dy,fdx,fdy,xbase,ybase
+	integer*4 indy,iyout,indx,ixout,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
+	integer*4 ixpp2,iypp2
+	real*4 pixval,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
+	real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
 c
 	do indy=indylo,indyhi
 	  iyout=indy+1-indylo
-	  do indx=indxlo,indxhi
-	    ixout=indx+1-newpcxll
-	    pixval=dmean
-	    xp=amat(1,1)*indx+amat(1,2)*indy+fdx
-	    yp=amat(2,1)*indx+amat(2,2)*indy+fdy
-	    ixp=nint(xp)
-	    iyp=nint(yp)
-	    if(ixp.lt.1.or.ixp.gt.nxin.or.iyp.lt.1.or.iyp.gt.nyin)
-     &		go to 80
-C	  
-C	      Do quadratic interpolation
-C	  
-	    DX = XP - IXP
-	    DY = YP - IYP
-	    v5=array(ixp,iyp)
+	  xbase = amat(1,2)*indy+fdx
+	  ybase = amat(2,2)*indy+fdy
+	  if (interpOrder .le. 1) then
+c	      
+c	      Linear interpolation
 c
-c	      but if on an integer boundary already, done
+	    do indx=indxlo,indxhi
+	      ixout=indx+1-newpcxll
+	      pixval=dmean
+	      xp=amat(1,1)*indx+xbase
+	      yp=amat(2,1)*indx+ybase
+	      if (doFields) then
+		call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &		    fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &		    ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+		xp = xp + dx
+		yp = yp + dy
+	      endif
+	      IXP = XP
+	      IYP = YP
+	      IF (IXP .ge. 1 .and. IXP .lt. NXC .and. IYP .ge. 1 .and.
+     &		  IYP .lt. NYC) then
+		DX = XP - IXP
+		DY = YP - IYP
+		IXPP1 = IXP + 1
+		IYPP1 = IYP + 1
+		pixval = (1. - dy) * ((1. - dx) * crray(ixp, iyp) +
+     &		    dx * crray(ixpp1, iyp)) +
+     &		    dy * ((1. - dx) * crray(ixp, iypp1) +
+     &		    dx * crray(ixpp1, iypp1))
+	      endif
+	      drray(ixout,iyout)=pixval	      
+	    enddo
 c
-	    if(dx.eq.0.and.dy.eq.0.)then
-	      pixval=v5
-	      go to 80
-	    endif
+	  elseif (interpOrder .eq. 2) then
+c	      
+c	      Old quadratic interpolation
 c
-	    IXPP1 = MIN(NXIN,IXP + 1)
-	    IXPM1 = MAX(1,IXP - 1)
-	    IYPP1 = MIN(NYIN,IYP + 1)
-	    IYPM1 = MAX(1,IYP - 1)
-C	  
-C	      Set up terms for quadratic interpolation
-C	      
-	    V2 = ARRAY(IXP, IYPM1)
-	    V4 = ARRAY(IXPM1, IYP)
-	    V6 = ARRAY(IXPP1, IYP)
-	    V8 = ARRAY(IXP, IYPP1)
-c
-c	      find min and max of all 5 points
-c
-	    vmax=max(v2,v4,v5,v6,v8)
-	    vmin=min(v2,v4,v5,v6,v8)
-C	  
-	    A = (V6 + V4)*.5 - V5
-	    B = (V8 + V2)*.5 - V5
-	    C = (V6 - V4)*.5
-	    D = (V8 - V2)*.5
-C	  
-c	      limit the new density to between min and max of original points
-c
-	    pixval = max(vmin,min(vmax
-     &		,A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
-80	    brray(ixout,iyout)=pixval
-	  enddo
+	    do indx=indxlo,indxhi
+	      ixout=indx+1-newpcxll
+	      pixval=dmean
+	      xp=amat(1,1)*indx+xbase
+	      yp=amat(2,1)*indx+ybase
+	      if (doFields) then
+		call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &		    fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &		    ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+		xp = xp + dx
+		yp = yp + dy
+	      endif
+	      ixp=nint(xp)
+	      iyp=nint(yp)
+	      if(ixp.lt.1.or.ixp.gt.nxc.or.iyp.lt.1.or.iyp.gt.nyc)
+     &		  go to 80
+C		
+C		Do quadratic interpolation
+C		
+	      DX = XP - IXP
+	      DY = YP - IYP
+	      v5=crray(ixp,iyp)
+c		
+c		but if on an integer boundary already, done
+c		
+	      if(dx.eq.0.and.dy.eq.0.)then
+		pixval=v5
+		go to 80
+	      endif
+c		
+	      IXPP1 = MIN(NXC,IXP + 1)
+	      IXPM1 = MAX(1,IXP - 1)
+	      IYPP1 = MIN(NYC,IYP + 1)
+	      IYPM1 = MAX(1,IYP - 1)
+C		
+C		Set up terms for quadratic interpolation
+C		
+	      V2 = CRRAY(IXP, IYPM1)
+	      V4 = CRRAY(IXPM1, IYP)
+	      V6 = CRRAY(IXPP1, IYP)
+	      V8 = CRRAY(IXP, IYPP1)
+c		
+c		find min and max of all 5 points
+c		
+	      vmax=max(v2,v4,v5,v6,v8)
+	      vmin=min(v2,v4,v5,v6,v8)
+C		
+	      A = (V6 + V4)*.5 - V5
+	      B = (V8 + V2)*.5 - V5
+	      C = (V6 - V4)*.5
+	      D = (V8 - V2)*.5
+C		
+c		limit the new density to between min and max of original points
+c		
+	      pixval = max(vmin,min(vmax,
+     &		  A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
+80	      drray(ixout,iyout)=pixval
+	    enddo
+	  else
+c	      
+c	      cubic interpolation
+c	      
+	    do indx=indxlo,indxhi
+	      ixout=indx+1-newpcxll
+	      pixval=dmean
+	      xp=amat(1,1)*indx+xbase
+	      yp=amat(2,1)*indx+ybase
+	      if (doFields) then
+		call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &		    fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &		    ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+		xp = xp + dx
+		yp = yp + dy
+	      endif
+	      IXP = XP
+	      IYP = YP
+	      IF (IXP .ge. 2 .and. IXP .lt. NXC - 1 .and. IYP .ge. 2 .and.
+     &		  IYP .lt. NYC - 1) then
+
+		DX = XP - IXP
+		DY = YP - IYP
+		IXPP1 = IXP + 1
+		IXPM1 = IXP - 1
+		IYPP1 = IYP + 1
+		IYPM1 = IYP - 1
+		ixpp2 = ixp + 2
+		iypp2 = iyp + 2
+		
+		dxm1 = dx-1.
+		dxdxm1=dx*dxm1
+		fx1=-dxm1*dxdxm1
+		fx4=dx*dxdxm1
+		fx2=1+dx**2*(dx-2.)
+		fx3=dx*(1.-dxdxm1)
+		
+		dym1 = dy-1.
+		dydym1=dy*dym1
+		
+		v1=fx1*crray(ixpm1,iypm1)+fx2*crray(ixp,iypm1)+
+     &		    fx3*crray(ixpp1,iypm1)+fx4*crray(ixpp2,iypm1)
+		v2=fx1*crray(ixpm1,iyp)+fx2*crray(ixp,iyp)+
+     &		    fx3*crray(ixpp1,iyp)+fx4*crray(ixpp2,iyp)
+		v3=fx1*crray(ixpm1,iypp1)+fx2*crray(ixp,iypp1)+
+     &		    fx3*crray(ixpp1,iypp1)+fx4*crray(ixpp2,iypp1)
+		v4=fx1*crray(ixpm1,iypp2)+fx2*crray(ixp,iypp2)+
+     &		    fx3*crray(ixpp1,iypp2)+fx4*crray(ixpp2,iypp2)
+		pixval=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
+     &		    dy*(1.-dydym1)*v3 +dy*dydym1*v4
+c		
+	      endif
+	      drray(ixout,iyout)=pixval
+	    enddo
+	  endif
 	enddo
 	return
 	end
@@ -484,7 +671,7 @@ c
 	implicit none
 	include 'blend.inc'
 	integer*4 iedge,ixy,indbuf
-	integer*4 minused,ioldest,i,ix,iy,nxgr,nygr,idum1,idum2
+	integer*4 minused,ioldest,i
 c	  
 	indbuf=ibufedge(iedge,ixy)
 	if(indbuf.eq.0)then
@@ -510,35 +697,7 @@ c
 c
 c	    read edge into  buffer
 c
-	  if(needbyteswap.eq.0)then
-	    read(iunedge(ixy),rec=1+iedge)
-     &		nxgr,nygr,ixgrdstbf(ioldest),ixofsbf(ioldest)
-     &		,iygrdstbf(ioldest),iyofsbf(ioldest)
-     &		,((dxgrbf(ix,iy,ioldest),dygrbf(ix,iy,ioldest)
-     &		,ddengrbf(ix,iy,ioldest),ix=1,nxgr),iy=1,nygr)
-	  else
-	    read(iunedge(ixy),rec=1+iedge)nxgr,nygr
-	    call convert_longs(nxgr,1)
-	    call convert_longs(nygr,1)
-	    read(iunedge(ixy),rec=1+iedge)
-     &		idum1,idum2,ixgrdstbf(ioldest),ixofsbf(ioldest)
-     &		,iygrdstbf(ioldest),iyofsbf(ioldest)
-     &		,((dxgrbf(ix,iy,ioldest),dygrbf(ix,iy,ioldest)
-     &		,ddengrbf(ix,iy,ioldest),ix=1,nxgr),iy=1,nygr)
-	    call convert_longs(ixgrdstbf(ioldest),1)
-	    call convert_longs(ixofsbf(ioldest),1)
-	    call convert_longs(iygrdstbf(ioldest),1)
-	    call convert_longs(iyofsbf(ioldest),1)
-	    do iy=1,nygr
-	      call convert_floats(dxgrbf(1,iy,ioldest),nxgr)
-	      call convert_floats(dygrbf(1,iy,ioldest),nxgr)
-	      call convert_floats(ddengrbf(1,iy,ioldest),nxgr)
-	    enddo
-	  endif
-	  nxgrbf(ioldest)=nxgr
-	  nygrbf(ioldest)=nygr
-	  intxgrbf(ioldest)=intgrcopy(ixy)
-	  intygrbf(ioldest)=intgrcopy(3-ixy)
+	  call readEdgeFunc(iedge, ixy, ioldest)
 	endif
 c
 c	  mark this one as used most recently
@@ -548,6 +707,47 @@ c
 	return
 	end
 
+
+c	  READEDGEFUNC actually reads in the edge function IEDGE, direction
+c	  IXY, to the given buffer INDBUF, and swaps bytes as necessary
+c
+	subroutine readEdgeFunc(iedge, ixy, indbuf)
+	implicit none
+	include 'blend.inc'
+	integer*4 iedge,ixy,indbuf
+	integer*4 ix,iy,nxgr,nygr,idum1,idum2
+c
+	if (needbyteswap.eq.0)then
+	  read(iunedge(ixy),rec=1+iedge)
+     &	      nxgr,nygr,ixgrdstbf(indbuf),ixofsbf(indbuf)
+     &	      ,iygrdstbf(indbuf),iyofsbf(indbuf)
+     &	      ,((dxgrbf(ix,iy,indbuf),dygrbf(ix,iy,indbuf)
+     &	      ,ddengrbf(ix,iy,indbuf),ix=1,nxgr),iy=1,nygr)
+	else
+	  read(iunedge(ixy),rec=1+iedge)nxgr,nygr
+	  call convert_longs(nxgr,1)
+	  call convert_longs(nygr,1)
+	  read(iunedge(ixy),rec=1+iedge)
+     &	      idum1,idum2,ixgrdstbf(indbuf),ixofsbf(indbuf)
+     &	      ,iygrdstbf(indbuf),iyofsbf(indbuf)
+     &	      ,((dxgrbf(ix,iy,indbuf),dygrbf(ix,iy,indbuf)
+     &	      ,ddengrbf(ix,iy,indbuf),ix=1,nxgr),iy=1,nygr)
+	  call convert_longs(ixgrdstbf(indbuf),1)
+	  call convert_longs(ixofsbf(indbuf),1)
+	  call convert_longs(iygrdstbf(indbuf),1)
+	  call convert_longs(iyofsbf(indbuf),1)
+	  do iy=1,nygr
+	    call convert_floats(dxgrbf(1,iy,indbuf),nxgr)
+	    call convert_floats(dygrbf(1,iy,indbuf),nxgr)
+	    call convert_floats(ddengrbf(1,iy,indbuf),nxgr)
+	  enddo
+	endif
+	nxgrbf(indbuf)=nxgr
+	nygrbf(indbuf)=nygr
+	intxgrbf(indbuf)=intgrcopy(ixy)
+	intygrbf(indbuf)=intgrcopy(3-ixy)
+	return
+	end
 
 
 c	  DOEDGE "does" edge # IEDGE, whose direction is given by IXY.  It
@@ -583,7 +783,8 @@ c
 	integer*4 indup,ixdisp,iydisp,ixdispmid,iydispmid,lastedge
 	integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy
 	real*4 xdisp,ydisp,theta,dxedge,dyedge,dxmid,dymid,xdispl,ydispl
-	real*4 costh,sinth,xrel,yrel,thetamid
+	real*4 costh,sinth,xrel,yrel,thetamid,delIndent(2)
+	integer*4 memlow,memup,indentUse(2)
 	real*4 cosd,sind
 c	  
 c	  make list of edges to be done
@@ -740,8 +941,46 @@ c	      displacement of this frame
 	    ixdisp=nint(xrel)+lastxdisp
 	    iydisp=nint(yrel)+lastydisp
 	  endif
+c	    
+c	    Determine extra indentation if distortion corrections
 c
-	  call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
+	  delIndent(1) = 0.
+	  delIndent(2) = 0.
+	  if (doFields) then
+	    memlow = memIndex(ipiecelower(jedge,ixy))
+	    memup = memIndex(ipieceupper(jedge,ixy))
+c	      
+c	      The undistorted image moves in the direction opposite to the
+c	      field vector, so positive vectors at the right edge of the lower
+c	      piece move the border in to left and require more indent in
+c	      short direction.
+c
+	    if (ixy .eq. 1) then
+	      do iy = 1, nyField
+		delIndent(1) = max(delIndent(1), fieldDx(nxField, iy, memlow),
+     &		    -fieldDx(1, iy, memup))
+	      enddo
+	      delIndent(2) = max(0., -fieldDy(nxField, 1, memlow),
+     &		  -fieldDy(1, 1, memup), fieldDy(nxField, nyField, memlow),
+     &		  fieldDy(1, nyField, memup))
+	    else
+	      do ix = 1, nxField
+		delIndent(1) = max(delIndent(1), fieldDy(ix, nyField, memlow),
+     &		    -fieldDy(ix, 1, memup))
+	      enddo
+	      delIndent(2) = max(0., -fieldDx(1, nyField, memlow),
+     &		  -fieldDx(1, 1, memup), fieldDx(nxField, nyField, memlow),
+     &		  fieldDx(nxField, 1, memup))
+	    endif
+c	    write(*,'(1x,a,2i4,a,2f5.1)')
+c     &		char(ixy+ichar('W'))//' edge, pieces'
+c     &		,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c     &		'  extra indents:',delIndent(1),delIndent(2)
+	  endif
+c
+	  indentUse(1) = indent(1) + nint(delIndent(1))
+	  indentUse(2) = indent(2) + nint(delIndent(2))
+	  call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
      &	      ixy,ixdisp,iydisp,nxgr,nygr,igrstr,igrofs)
 	  lastxdisp=ixdisp
 	  lastydisp=iydisp
@@ -764,6 +1003,19 @@ c
      &	      ,i=1,2) ,((dxgrid(ix,iy),dygrid(ix,iy),
      &	      ddengrid(ix,iy),ix=1,nxgr),iy=1,nygr)
 c	    
+	  xrel = 0.
+	  yrel = 0.
+	  do ix = 1,nxgr
+	    do iy = 1,nygr
+	      costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
+	      xrel = xrel + costh
+	      yrel = max(yrel, costh)
+	    enddo
+	  enddo
+	  write(*,'(1x,a,2i4,a,2f6.2)')
+     &	      char(ixy+ichar('W'))//' edge, pieces'
+     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+     &	      '  mean, max vector:',xrel/(nxgr*nygr), yrel
 	  edgedone(jedge,ixy)=.true.
 	enddo
 	return
@@ -1501,6 +1753,7 @@ c	  was used
 c	  
 	noverwrote = (limvar * nvar + npixin - 1) / npixin
 	do i = 1,noverwrote
+	  if (izmemlist(i) .gt. 0) memIndex(izmemlist(i)) = -1
 	  izmemlist(i) = -1
 	  lastused(i) = 0
 	enddo
