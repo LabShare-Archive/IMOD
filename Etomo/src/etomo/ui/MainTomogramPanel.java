@@ -24,6 +24,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/04/01 00:16:07  sueh
+* <p> bug# 622 Overriding showAxisA, B, and Both.  Need to change the button
+* <p> names on the TomogramProcessPanel before calling the base class
+* <p> functions.
+* <p>
 * <p> Revision 1.7  2005/03/24 17:52:43  sueh
 * <p> bug# 621 Added Clean Up dialog.
 * <p>
@@ -263,7 +268,6 @@ public class MainTomogramPanel extends MainPanel {
   
   protected void createAxisPanelA(AxisID axisID) {
     axisPanelA = new TomogramProcessPanel((ApplicationManager) manager, axisID);
-    
   }
 
   protected void createAxisPanelB() {
@@ -310,6 +314,14 @@ public class MainTomogramPanel extends MainPanel {
   
   protected boolean AxisPanelBIsNull() {
     return axisPanelB == null;
+  }
+  
+  protected AxisProcessPanel getAxisPanelA() {
+    return axisPanelA;
+  }
+  
+  protected AxisProcessPanel getAxisPanelB() {
+    return axisPanelB;
   }
   
   protected boolean hideAxisPanelA() {

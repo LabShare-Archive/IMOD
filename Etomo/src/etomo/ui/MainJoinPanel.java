@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/02/17 02:41:41  sueh
+* <p> bug# 605 Added empty saveDisplayState().
+* <p>
 * <p> Revision 1.2  2004/11/19 23:58:44  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -85,6 +88,14 @@ public class MainJoinPanel extends MainPanel {
   }
 
   protected void createAxisPanelB() {
+  }
+  
+  protected AxisProcessPanel getAxisPanelA() {
+    return axisPanelA;
+  }
+  
+  protected AxisProcessPanel getAxisPanelB() {
+    return null;
   }
   
   /**
