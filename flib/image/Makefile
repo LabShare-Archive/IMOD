@@ -1,3 +1,11 @@
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 include ../configure
 
 PROGS = addtostack alterheader assemblevol avganova avgstack boxavg \
@@ -94,8 +102,8 @@ goodframe: goodframe.o
 header: header.o
 	$(FC) -o header header.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
-matchvol: matchvol.o
-	$(FC) -o matchvol matchvol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+matchvol: matchvol.o rotmatwarpsubs.o
+	$(FC) -o matchvol matchvol.o rotmatwarpsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
 montagesize: montagesize.o
 	$(FC) -o montagesize montagesize.o $(LDFLAGS) $(IMLIBS) $(LIBS)
@@ -109,8 +117,8 @@ mtteach: mtteach.o mtsubs.o
 newstack: newstack.o
 	$(FC) -o newstack newstack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
-rotatevol: rotatevol.o
-	$(FC) -o rotatevol rotatevol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+rotatevol: rotatevol.o rotmatwarpsubs.o
+	$(FC) -o rotatevol rotatevol.o rotmatwarpsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
 rotmont: rotmont.o
 	$(FC) -o rotmont rotmont.o $(LDFLAGS) $(IMLIBS) $(LIBS)
@@ -139,8 +147,8 @@ tomopieces: tomopieces.o
 vmstocsh: vmstocsh.o
 	$(FC) -o vmstocsh vmstocsh.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
-warpvol: warpvol.o
-	$(FC) -o warpvol warpvol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+warpvol: warpvol.o rotmatwarpsubs.o
+	$(FC) -o warpvol rotmatwarpsubs.o warpvol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
 xcorr: xcorr.o
 	$(FC) -o xcorr xcorr.o $(LDFLAGS) $(IMLIBS) $(LIBS)
@@ -166,3 +174,8 @@ install: $(PROGS)
 
 clean:
 	-\rm -f *.o *~ $(PROGS)
+
+rotatevol.o: rotmatwarp.inc
+matchvol.o: rotmatwarp.inc
+warpvol.o: rotmatwarp.inc
+rotmatwarpsubs.o: rotmatwarp.inc
