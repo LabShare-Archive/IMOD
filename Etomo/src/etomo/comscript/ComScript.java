@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/19 19:23:32  sueh
+ * <p> bug# 409 creating command when ComScript is empty
+ * <p>
  * <p> Revision 3.3  2004/04/12 16:57:24  sueh
  * <p> bug# 409 allow ComScript to function when the comscript
  * <p> file doesn't exist.
@@ -276,11 +279,12 @@ public class ComScript {
     throw (new BadComScriptException("Did not find command: " + cmdName));
   }
 
-  protected void createCommand(String cmdName) {
+  protected int createCommand(String cmdName) {
     ComScriptCommand currentScriptCommand = new ComScriptCommand();
     scriptCommands.add(currentScriptCommand);
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
+    return scriptCommands.size() - 1;
   }
   /**
    * Return the index of the specified command or -1 if the command is not
@@ -289,6 +293,9 @@ public class ComScript {
    * @return index of the command or -1 if not present
    */
   public int getScriptCommandIndex(String cmdName){
+    return getScriptCommandIndex(cmdName, false);
+  }
+  public int getScriptCommandIndex(String cmdName, boolean addNew){
     if (!commandLoaded) {
       createCommand(cmdName);
     }
@@ -297,6 +304,9 @@ public class ComScript {
       if (command.getCommand().equals(cmdName)) {
         return i;
       }
+    }
+    if (addNew) {
+      return createCommand(cmdName);
     }
     return -1;
   }
