@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/04/17 18:34:29  mast
+adding parent to window creation
+
 Revision 3.2  2003/03/26 15:56:46  mast
 Change lostFocus to focusLost
 
@@ -270,9 +273,9 @@ void imodPlugExecute(ImodView *inImodView)
 
 char *buttonLabels[] = {"Track", "Copy", "Undo", "Done", "Help"};
 char *buttonTips[] = 
-  {"Track from last to current model point - Hotkey: Spacebar",
-   "Copy and adjust contour from adjacent section - Hotkey: Apostrophe",
-   "Undo or redo last tracking operation - Hotkey: Semicolon or U", 
+  {"Track from last to current model point - Hot key: Spacebar",
+   "Copy and adjust contour from adjacent section - Hot key: Apostrophe",
+   "Undo or redo last tracking operation - Hot key: Semicolon or U", 
    "Close line tracker", "Open help window"};
 
 LineTrack::LineTrack(QWidget *parent, const char *name)
