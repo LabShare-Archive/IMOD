@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
 Revision 3.5  2004/11/04 17:10:27  mast
 libiimod.def
 
@@ -415,7 +418,7 @@ Islice *sliceGradient(Islice *sin)
       val[0] = nval[0] - val[0];
       if (val[0] < 0)
         val[0] *= -1;
-      gval[0] += val[0];
+      gval[0] = (val[0] + gval[0]) / 2;
       slicePutVal(s, i, j, gval);
     }
     sliceGetVal(s, i, j - 1, val);
