@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2005/03/09 22:46:00  sueh
+ * bug# 533 Added blend().
+ *
  * Revision 3.58  2005/03/09 18:08:05  sueh
  * bug# 533 In crossCorrelate(), if blendmont will be run, use the
  * XcorrProcessWatcher instead of the TiltxcorrProcessWatcher.
@@ -964,7 +967,7 @@ public class ProcessManager extends BaseProcessManager {
     //  Construct the command line strings
     String[] commandArray = new String[3];
 
-    String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl " + "-b 0 ";
+    String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl " + "-b 0 -q ";
     String stack = getDatasetName() + axisID.getExtension() + ".st ";
     String xform = getDatasetName() + axisID.getExtension()
       + ".ecd ";
