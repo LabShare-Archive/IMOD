@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2004/05/05 05:45:11  mast
+c	  Fixed some uninitialized variables
+c	
 c	  Revision 3.6  2003/10/03 00:59:21  mast
 c	  Changed terminology to refered to tilt angle offset
 c	
@@ -223,7 +226,8 @@ c
 	      power=powerrot
 	    endif
 	    call setgrpsize(tilt,nview,power,grpsize)
-	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 	    write(6,111)(maplist(i),i=1,nview)
 	  endif
 c	  
@@ -299,7 +303,8 @@ c
 	    power=powertilt
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 	  write(6,111)(maplist(i),i=1,nview)
 111	  format(/,' Variable mapping list:',(1x,25i3))
 	endif
@@ -382,7 +387,8 @@ c
 	    power=powermag
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 	  write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
@@ -441,7 +447,8 @@ c
 	      power=powercomp
 	    endif
 	    call setgrpsize(tilt,nview,power,grpsize)
-	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 	    write(6,111)(maplist(i),i=1,nview)
 	  endif
 	endif
@@ -530,7 +537,8 @@ c
 		  endif
 		endif
 		call setgrpsize(tilt,nview,power,grpsize)
-		call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+		call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 		write(6,111)(maplist(i),i=1,nview)
 	      endif
 	    endif
@@ -647,7 +655,8 @@ c
 	    power=poweralf
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &		,0, 1, ' ', ' ')
 	  write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
