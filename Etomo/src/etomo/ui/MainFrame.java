@@ -50,6 +50,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.16  2003/09/30 03:13:38  rickg
+ * <p> bug248 File / open now calls the correct function in the
+ * <p> AppManager (as does the MRU list opens)
+ * <p>
  * <p> Revision 2.15  2003/09/30 02:15:09  rickg
  * <p> Added message dialogs that were originally in the
  * <p> ApplicationManager
@@ -384,6 +388,8 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  Open up the file chooser in current working directory
     JFileChooser chooser =
       new JFileChooser(new File(System.getProperty("user.dir")));
+    EtomoFileFilter edfFilter = new EtomoFileFilter();
+    chooser.setFileFilter(edfFilter);
     chooser.setDialogTitle("Save etomo data file");
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
     chooser.setPreferredSize(FixedDim.fileChooser);
