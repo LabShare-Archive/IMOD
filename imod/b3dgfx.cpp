@@ -1533,9 +1533,9 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
 static void puttiffentry(short tag, short type, 
                          int length, unsigned int offset, FILE *fout)
 {
-  fwrite(&tag, sizeof(short), 1, fout);
-  fwrite(&type, sizeof(short), 1, fout);
-  fwrite(&length, sizeof(long), 1, fout);
+  fwrite(&tag, sizeof(b3dInt16), 1, fout);
+  fwrite(&type, sizeof(b3dInt16), 1, fout);
+  fwrite(&length, sizeof(b3dInt32), 1, fout);
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */
 #ifndef B3D_LITTLE_ENDIAN
@@ -1549,7 +1549,7 @@ static void puttiffentry(short tag, short type,
       break;
     }
 #endif
-  fwrite(&offset, sizeof(long), 1, fout);
+  fwrite(&offset, sizeof(b3dInt32), 1, fout);
   return;
 }
 
@@ -1558,11 +1558,11 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   FILE *fout;
   int i;
   unsigned char *pixels = NULL;
-  long xysize;
+  b3dInt32 xysize;
 
   int mapsize;
-  unsigned int *fcmapr, *fcmapg, *fcmapb;
-  unsigned long *cindex, ci;
+  b3dUInt32 *fcmapr, *fcmapg, *fcmapb;
+  b3dUInt32 *cindex, ci;
   unsigned char *pixout, tmp;
   int rpx = 0; 
   int rpy = 0;
@@ -1631,7 +1631,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
     glFlush();
-    cindex = (unsigned long *)pixels;
+    cindex = (b3dUInt32 *)pixels;
     pixout = (unsigned char *)pixels;
     for (i = 0; i < xysize; i++, cindex++){
       ci = *cindex;
@@ -1672,7 +1672,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   int i, j;
   unsigned char *pixels = NULL;
   int *lpixels;
-  long xysize, xsize, ysize;
+  int xysize, xsize, ysize;
   unsigned int pixel;
   unsigned int ifd;
   unsigned int colortable;
@@ -1825,7 +1825,6 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   pixel = 0;
   fwrite(&pixel, 4, 1, fout);
   fseek(fout, (int)ifd, SEEK_SET);
-     
   if (depth > 8 || rgbmode){
     tenum = 11;
     colortable = ifd + 2 + (tenum * 12) + 7;
@@ -1911,6 +1910,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.20  2004/06/01 01:31:42  mast
+Add include of errno.h
+
 Revision 4.19  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

@@ -835,7 +835,7 @@ void XyzWindow::DrawImage()
   int nz = win->vi->zsize;
   unsigned char **id;
   unsigned char *fdata;
-  unsigned long cyi;
+  unsigned int cyi;
   int cx, cy, cz, iz;
   int imdataxsize;
   unsigned char **imdata;
@@ -1460,7 +1460,7 @@ void XyzWindow::DrawAuto()
   float vert[2];
   unsigned short cdat;
   int x, y;
-  unsigned long pixel;
+  unsigned int pixel;
      
 
   if (!vi->ax)
@@ -1729,6 +1729,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.19  2004/07/11 18:27:53  mast
+Made it use new function for getting contour to add points
+
 Revision 4.18  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

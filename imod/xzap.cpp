@@ -2725,10 +2725,10 @@ static void zapDrawGhost(ZapStruct *zap)
 static int zapDrawAuto(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
-  unsigned long i, j;
+  unsigned int i, j;
   int x, y;
   int pixel;
-  unsigned long xsize,ysize;
+  unsigned int xsize,ysize;
   int rectsize;
 
   xsize = vi->xsize;
@@ -2872,6 +2872,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.47  2004/08/31 01:27:15  mast
+Changed info output to be in unbinned coordinates and used floor instead
+of int to avoid rounding error of negative coordinates
+
 Revision 4.46  2004/07/11 18:32:17  mast
 Fixed bug in detecting when to start new contour after autocontouring.
 Implemented light ghost option and all object ghost option.  Used new

@@ -790,7 +790,6 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
   struct MRCheader hdata;
   double min, max, mean;
   int i, j, k;
-  long xysize;
   int error= -1;
   int xmin, xmax, ymin, ymax, zmin, zmax;
   int xsize, xoff;
@@ -838,6 +837,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.12  2004/06/04 03:17:03  mast
+Added argument to openModel to keep black/white level
+
 Revision 4.11  2004/06/01 01:31:34  mast
 Remove extern int errno statement - there is an include for it
 

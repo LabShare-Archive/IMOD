@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2003/02/10 20:29:02  mast
+    autox.cpp
+
     Revision 1.1.2.3  2003/01/29 17:52:25  mast
     removed draw command after colormap change, handled in imod_info_cb.cpp
 
@@ -191,7 +194,6 @@ int xcramp_ramp(Cramp *cr)
   int  minlevel = 0, maxlevel = 255;
   float slope,   /* The slope of the ramp. */
     point;   /* Temp variable to store colormap index as float. */
-  unsigned long *pixtmp;
   unsigned char *ramppt;
   QRgb rgbtab[256];
   unsigned short cmap[256];

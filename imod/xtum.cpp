@@ -963,8 +963,8 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
 /* Scale the data in a slice */
 void TumblerWindow::scaleData(TumblerStruct *xtum, unsigned short *sdata)
 {
-  unsigned long i;
-  unsigned long xysize = xtum->slice->xsize * xtum->slice->ysize;
+  unsigned int i;
+  unsigned int xysize = xtum->slice->xsize * xtum->slice->ysize;
   float scale, offset;
    int min = 65535;
   int max = 0;
@@ -1020,7 +1020,7 @@ void TumblerWindow::drawSubArea(TumblerStruct *xtum, unsigned short *sdata,
 				    int llx, int urx)
 {
   float scale, offset;
-  unsigned long i, xysize;
+  unsigned int i, xysize;
   unsigned char *data;
   float tf, tmax, tmin;
   int xo, yo;
@@ -1314,6 +1314,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.17  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.16  2004/05/03 02:34:20  mast
 fix wobble due to truncation error near zero degrees
 

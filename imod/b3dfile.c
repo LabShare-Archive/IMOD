@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/03/28 05:08:33  mast
+    Use new unique little endian flag
+
     Revision 3.3  2003/02/28 19:45:35  mast
     cast int to short before putting it as short
 
@@ -77,7 +80,7 @@ void iputbyte(FILE *fout, unsigned char val)
      return;
 }
 
-void iputshort(FILE *fout, unsigned short val)
+void iputshort(FILE *fout, b3dUInt16 val)
 {
      unsigned char buf[2];
      
@@ -87,7 +90,7 @@ void iputshort(FILE *fout, unsigned short val)
      return;
 }
 
-void iputlong(FILE *fout, unsigned long val)
+void iputlong(FILE *fout, b3dUInt32 val)
 {
      unsigned char buf[4];
      
@@ -103,8 +106,8 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize,
 	       unsigned char *pixels)
 {
      char iname[80];
-     unsigned long xysize = xsize * ysize;
-     unsigned long i;
+     unsigned int xysize = xsize * ysize;
+     unsigned int i;
 
      /* Create an SGI rgb file */
      iputshort(fout, 474);       /* MAGIC                */
@@ -139,9 +142,9 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize,
 static void puttiffentry(short tag, short type, 
 			 int length, unsigned int offset, FILE *fout)
 {
-     fwrite(&tag, sizeof(short), 1, fout);
-     fwrite(&type, sizeof(short), 1, fout);
-     fwrite(&length, sizeof(long), 1, fout);
+     fwrite(&tag, sizeof(b3dInt16), 1, fout);
+     fwrite(&type, sizeof(b3dInt16), 1, fout);
+     fwrite(&length, sizeof(b3dInt32), 1, fout);
 #ifdef B3DFILE_BIGENDIAN
      if (length == 1)
 	  switch(type){
@@ -153,7 +156,7 @@ static void puttiffentry(short tag, short type,
 	       break;
      }
 #endif
-     fwrite(&offset, sizeof(long), 1, fout);
+     fwrite(&offset, sizeof(b3dInt16), 1, fout);
      return;
 }
 

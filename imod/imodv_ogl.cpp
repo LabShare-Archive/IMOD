@@ -1262,7 +1262,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 
 static void imodvDraw_mesh(Imesh *mesh, int style)
 {
-  unsigned long i, lsize;
+  unsigned int i, lsize;
   GLenum polyStyle, normStyle;
 
   switch(style){
@@ -1780,6 +1780,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.13  2004/06/10 00:33:28  mast
+Disbaled clipping planes, more or less, at 0 and 1000
+
 Revision 4.12  2004/06/08 15:41:24  mast
 Changes to get top/bottom stereo to work with monitor passthroughs
 

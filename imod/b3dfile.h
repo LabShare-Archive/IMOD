@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:54  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/02/07 01:03:33  mast
 a little cleanup
 
@@ -30,10 +33,10 @@ extern "C" {
 /* special file io commands. */
 int bdRGBWrite(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
-		   unsigned char *pixels, unsigned short *cmap);
+		   unsigned char *pixels, b3dUInt16 *cmap);
   void iputbyte(FILE *fout, unsigned char val);
-  void iputshort(FILE *fout, unsigned short val);
-  void iputlong(FILE *fout, unsigned long val);
+  void iputshort(FILE *fout, b3dUInt16 val);
+  void iputlong(FILE *fout, b3dUInt32 val);
 
 
 #ifdef __cplusplus
