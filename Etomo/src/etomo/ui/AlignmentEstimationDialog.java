@@ -27,6 +27,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/06/04 23:42:29  rickg
+ * <p> Added independent labels for tabs
+ * <p> Log file tab name changes
+ * <p>
  * <p> Revision 2.5  2003/05/27 17:24:03  rickg
  * <p> Rearranged align log order and added locals
  * <p>
@@ -171,8 +175,8 @@ public class AlignmentEstimationDialog
     buttonTransferFiducials.setPreferredSize(dimButton);
     panelButton.add(buttonComputeAlignment);
     panelButton.add(buttonImod);
-    panelButton.add(buttonViewResiduals);
     panelButton.add(buttonView3DModel);
+    panelButton.add(buttonViewResiduals);
     if (applicationManager.isDualAxis()) {
       buttonLayout.setColumns(5);
       panelButton.add(buttonTransferFiducials);
