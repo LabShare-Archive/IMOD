@@ -40,9 +40,16 @@ public class SolvematchmodParam
     }
     int i = 0;
     toFiducialCoordinatesFile = inputArgs[i++].getArgument();
+    setMatchBToA(toFiducialCoordinatesFile);
     fromFiducialCoordinatesFile = inputArgs[i++].getArgument();
-    fiducialMatchListA.parseString(inputArgs[i++].getArgument());
-    fiducialMatchListB.parseString(inputArgs[i++].getArgument());
+    if (matchBToA) {
+      fiducialMatchListA.parseString(inputArgs[i++].getArgument());
+      fiducialMatchListB.parseString(inputArgs[i++].getArgument());
+    }
+    else {
+      fiducialMatchListB.parseString(inputArgs[i++].getArgument());
+      fiducialMatchListA.parseString(inputArgs[i++].getArgument());
+    }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
     residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
@@ -73,20 +80,31 @@ public class SolvematchmodParam
             + String.valueOf(inputArgs.length)
             + " expected 12."));
     }
-
+    
+    //matchBToA has to be set correctly.  In case parseComScriptCommand() hasn't
+    //been called, set is here to.
+    setMatchBToA(inputArgs[0].getArgument());
+    
     //  Fill in the input argument sequence
     inputArgs[0].setArgument(toFiducialCoordinatesFile);
     scriptCommand.setInputArgument(0, inputArgs[0]);
 
     inputArgs[1].setArgument(fromFiducialCoordinatesFile);
     scriptCommand.setInputArgument(1, inputArgs[1]);
+    if (matchBToA) {
+      inputArgs[2].setArgument(fiducialMatchListA.toString());
+      scriptCommand.setInputArgument(2, inputArgs[2]);
 
-    inputArgs[2].setArgument(fiducialMatchListA.toString());
-    scriptCommand.setInputArgument(3, inputArgs[3]);
-
-    inputArgs[3].setArgument(fiducialMatchListB.toString());
-    scriptCommand.setInputArgument(3, inputArgs[3]);
-
+      inputArgs[3].setArgument(fiducialMatchListB.toString());
+      scriptCommand.setInputArgument(3, inputArgs[3]);
+    }
+    else {
+      inputArgs[2].setArgument(fiducialMatchListB.toString());
+      scriptCommand.setInputArgument(2, inputArgs[2]);
+      
+      inputArgs[3].setArgument(fiducialMatchListA.toString());
+      scriptCommand.setInputArgument(3, inputArgs[3]);
+    }
     inputArgs[4].setArgument(xAxistTilt.toString());
     scriptCommand.setInputArgument(4, inputArgs[4]);
 
@@ -112,6 +130,19 @@ public class SolvematchmodParam
     scriptCommand.setInputArgument(11, inputArgs[11]);
   }
   
+  protected void setMatchBToA(String toFile) {
+    if (toFile == null || toFile.matches("\\s*")) {
+      return;
+    }
+    if (toFile.matches("^\\s*\\S+?afid.xyz\\s*$")) {
+      matchBToA = true;
+    }
+    else if (toFile.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
+      matchBToA = false;
+    }
+    return;
+  }
+
   public void initializeDefaults() {
   }
 
