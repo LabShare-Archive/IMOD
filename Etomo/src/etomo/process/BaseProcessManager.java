@@ -24,6 +24,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2004/12/09 05:04:34  sueh
+* <p> bug# 565 Added save meta data to each msg...Done function regardless
+* <p> of success or failure.
+* <p>
 * <p> Revision 1.5  2004/12/09 04:52:54  sueh
 * <p> bug# 565 Saving meta data on each top of start function.
 * <p>
@@ -140,7 +144,7 @@ public abstract class BaseProcessManager {
     comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.isDebug());
     comScriptProcess.setDemoMode(etomoDirector.isDemo());
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
     comScriptProcess.start();
 
     // Map the thread to the correct axis
@@ -612,7 +616,7 @@ public abstract class BaseProcessManager {
     backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
     backgroundProcess.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
@@ -627,7 +631,7 @@ public abstract class BaseProcessManager {
     InteractiveSystemProgram program = new InteractiveSystemProgram(commandParam, this);
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {
@@ -658,7 +662,7 @@ public abstract class BaseProcessManager {
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
     sysProgThread.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
