@@ -1112,16 +1112,45 @@ unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
       b3dError(stderr, "ERROR: mrcGetDataMemory - Not enough memory"
                " for image data after %d sections.\n", i);
 
-      for (i = 0; i < zsize; i++)
-        if (idata[i])
-          free(idata[i]);
-      free(idata);
+      mrcFreeDataMemory(idata, 0, zsize);
       return(NULL);
     }
   }
   return(idata);
 }
 
+/* Free the data memory upon error if when reloading */
+void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize)
+{
+  int i;
+  if (contig)
+    zsize = 1;
+  for (i = 0; i < zsize; i++) {
+    if (idata[i])
+      free(idata[i]);
+  }
+  free(idata);
+}
+
+/* Return the scaling factor for taking log of complex data */
+float mrcGetComplexScale()
+{
+  return 5.0;
+}
+
+/* Compute the min and max for complex log scaling */
+float mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
+                         float *outMax)
+{
+  float minSign = 1.;
+  float kscale = mrcGetComplexScale();
+  if (inMin < 0.) {
+    minSign = -1.;
+    inMin = -inMin;
+  }
+  *outMin = minSign * (float)(log((double)(1.0 + kscale * inMin)));
+  *outMax = (float)log((double)(1.0 + kscale * inMax));
+}
 
 /*****************************************************************************/
 /* function read_mrc_byte: reads an mrc file into arrary of unsigned bytes.  */
@@ -1163,7 +1192,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   long xoff,  yoff,  zoff;   /* Offsets into image data.  */
   float conscale = 1.0f;
   float fpixel, ipixel, val;
-  float kscale = 5.0;       /* scaling value for complex numbers */
+  float kscale = mrcGetComplexScale();  /* scaling value for complex numbers */
   int seek_head, seek_line, seek_row, seek_endline, seek_endrow;
 
   short spixel = 0;
@@ -1178,15 +1207,16 @@ unsigned char **mrc_read_byte(FILE *fin,
   int white  = 255; /* value of white. */
   int imag = FALSE;
   int dsize;
-  int doscale;
+  int doscale = 0;
+  int contig = 0;
   float slope, offset, total = 0;
   char statstr[128];            /* message sent to callback function. */
   unsigned char **idata;        /* image data to return. */
   unsigned char *bdata = NULL;
-  short *sdata;
-  float *fdata;
-  unsigned char *map;
-  unsigned short *usdata;
+  b3dInt16 *sdata;
+  b3dFloat *fdata;
+  unsigned char *map = NULL;
+  b3dUInt16 *usdata;
 
   /* check input */
   if (!fin)
@@ -1206,6 +1236,7 @@ unsigned char **mrc_read_byte(FILE *fin,
     imag = li->imaginary;
     smin = li->smin;
     smax = li->smax;
+    contig = li->contig;
   }else{
     xsize = hdata->nx;
     ysize = hdata->ny;
@@ -1219,10 +1250,6 @@ unsigned char **mrc_read_byte(FILE *fin,
     smin = smax = 0;
   }
   xysize = xsize * ysize;
-
-  idata = mrcGetDataMemory(li, xysize, zsize, 1);
-  if (!idata)
-    return NULL;
 
   /*************************************/
   /* Calculate color map ramp scaling. */
@@ -1249,10 +1276,10 @@ unsigned char **mrc_read_byte(FILE *fin,
     min = (float)exp((double)min);
     max = (float)exp((double)max);
   }
-  if (hdata->mode == MRC_MODE_COMPLEX_FLOAT){
-    min = (float)log((double)(1. + kscale * min));  
-    max = (float)log((double)(1. + kscale * max));  
-  }
+  if (hdata->mode == MRC_MODE_COMPLEX_FLOAT || 
+      hdata->mode == MRC_MODE_COMPLEX_SHORT)
+    mrcComplexSminSmax(min, max, &min, &max);
+
   /* range in colormap */
   range = white - black + 1;
   if (!range) range = 1;
@@ -1291,15 +1318,25 @@ unsigned char **mrc_read_byte(FILE *fin,
   }     
 
   /********************************/  
-  /* Read image data into memory. */
+  /* Set up the data size, get scaling map if needed. */
 
   k = 0;
   rewind(fin);
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
+  if (hdata->headerSize < 1024)
+    hdata->headerSize = 1024;
   fseek(fin, hdata->headerSize, SEEK_CUR);
   switch(hdata->mode){
+  case MRC_MODE_BYTE:
+    dsize = 1;
+    doscale = (offset <= -1.0 || offset >= 1.0 ||
+               slope < 0.995 || slope > 1.005);
+    if (doscale)
+      map = get_byte_map(slope, offset, 0, 255);
+    break;
   case MRC_MODE_SHORT:
     dsize = 2;
+    map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped, 1);
+    doscale = 1;
     break;
   case MRC_MODE_FLOAT:
     dsize = 4;
@@ -1314,126 +1351,107 @@ unsigned char **mrc_read_byte(FILE *fin,
     dsize = 3;
     break;
   default:
-    dsize = 1;
+    b3dError(stderr, "ERROR: read_mrc_byte - Unsupported data mode %i\n.",
+             hdata->mode);
+    return NULL;
     break;
   }
-          
-  seek_head = dsize * zoff * hdata->nx * hdata->ny;
+   
+  /* Get the data memory */
+  idata = mrcGetDataMemory(li, xysize, zsize, 1);
+  if (!idata) {
+    if (map)
+      free(map);
+    return NULL;
+  }
+  if (doscale && !map) {
+    b3dError(stderr, "ERROR: read_mrc_byte - Could not get memory for "
+             "scaling map.\n");
+    mrcFreeDataMemory(idata, contig, zsize);
+    return NULL;
+  }
+   
+  /* Get the temporary array for a line */
+  bdata = (unsigned char *)malloc(dsize * xsize);
+  fdata = (b3dFloat *)bdata;
+  sdata = (b3dInt16 *)bdata;
+  usdata = (b3dUInt16 *)bdata;
+  if (!bdata) {
+    b3dError(stderr, "ERROR: read_mrc_byte - Could not get memory for reading"
+             " a line.");
+    mrcFreeDataMemory(idata, contig, zsize);
+    if (map)
+      free(map);
+    return NULL;
+  }
+  
+  /* compute offsets for seeking at lines and sections */
   seek_row  = dsize * yoff * hdata->nx;
   seek_line = dsize * xoff;
   seek_endline = dsize * (hdata->nx - xoff - xsize);
   seek_endrow  = dsize * (hdata->ny - yoff - ysize) * hdata->nx;
-  /* moved this up from all the individual cases below */
-  if (seek_head)
-    /* fseek(fin, seek_head ,SEEK_CUR); */
-    mrc_big_seek(fin, 0, dsize * zoff, hdata->nx * hdata->ny ,SEEK_CUR);
+  if (zoff)
+    mrc_big_seek(fin, 0, dsize * zoff, hdata->nx * hdata->ny, SEEK_CUR);
 
-  switch(hdata->mode){
-  case MRC_MODE_RGB:
-  case MRC_MODE_BYTE:
-    dsize = 1;
-    doscale = (offset <= -1.0 || offset >= 1.0 ||
-               slope < 0.995 || slope > 1.005);
-    if (MRC_MODE_RGB == hdata->mode)
-      dsize = 3;
-    else if(doscale)
-      map = get_byte_map(slope, offset, 0, 255);
+  if (func != ( void (*)() ) NULL){
+    sprintf(statstr, "\nReading Image # %3.3d",k+1); 
+    (*func)(statstr);
+  }
 
+  /* Loop on sections */
+  for (k = 0; k < zsize; k++){
     if (func != ( void (*)() ) NULL){
-      sprintf(statstr, "\nReading Image # %3.3d",k+1); 
+      sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
       (*func)(statstr);
     }
-    bdata = (unsigned char *)malloc(dsize * xsize);
-    for (k = 0; k < zsize; k++){
-      if (func != ( void (*)() ) NULL){
-        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-        (*func)(statstr);
-      }
-      pindex = 0;
-      if (seek_row)
-        fseek(fin, seek_row, SEEK_CUR);
-      for(j = yoff; j < yoff + ysize; j++){
-        if (seek_line)
-          fseek(fin, seek_line, SEEK_CUR);
+    pindex = 0;
+    if (seek_row)
+      fseek(fin, seek_row, SEEK_CUR);
 
-        fread(bdata, 1, (xsize * dsize), fin);
-        if (MRC_MODE_RGB == hdata->mode){
-          for(i = 0; i < xsize; i++,pindex++){
-            fpixel = bdata[i * 3];
-            fpixel += bdata[(i * 3) + 1];
-            fpixel += bdata[(i * 3) + 2];
-            fpixel /= 3;
-            pixel = fpixel + 0.5;
-            idata[k][pindex] = pixel;
-          }
-        }else{
-          if (doscale)
-            for(i = 0; i < xsize; i++,pindex++)
-              idata[k][pindex] = map[bdata[i]];
-          else
-            for(i = 0; i < xsize; i++,pindex++)
-              idata[k][pindex] = bdata[i];
+    /* loop on lines */
+    for(j = yoff; j < yoff + ysize; j++){
+      if (seek_line)
+        fseek(fin, seek_line, SEEK_CUR);
+      
+      /* get a line of data, amke sure it is right size */
+      if (fread(bdata, dsize, xsize, fin) != xsize) {
+        b3dError(stderr, "ERROR: read_mrc_byte - reading from file.");
+        mrcFreeDataMemory(idata, contig, zsize);
+        free(bdata);
+        if (map)
+          free(map);
+        return NULL;
+      }        
+
+      /* Do data-dependent scaling */
+      switch(hdata->mode){
+      case MRC_MODE_BYTE:
+        if (doscale)
+          for(i = 0; i < xsize; i++,pindex++)
+            idata[k][pindex] = map[bdata[i]];
+        else
+          for(i = 0; i < xsize; i++,pindex++)
+            idata[k][pindex] = bdata[i];
+        break;
+
+      case MRC_MODE_RGB:
+        for(i = 0; i < xsize; i++,pindex++){
+          fpixel = bdata[i * 3];
+          fpixel += bdata[(i * 3) + 1];
+          fpixel += bdata[(i * 3) + 2];
+          fpixel /= 3;
+          pixel = fpixel + 0.5;
+          idata[k][pindex] = pixel;
         }
-        if (seek_endline)
-          fseek(fin, seek_endline, SEEK_CUR);
-      }
-      if (seek_endrow)
-        fseek(fin, seek_endrow, SEEK_CUR);
-    }
-    free(bdata);
-    break;
+        break;
                   
-                  
-  case MRC_MODE_SHORT:
-    sdata = (short *)malloc(sizeof(short) * xsize);
-    usdata = (unsigned short *)sdata;
-    map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped,
-                        1);
-    for (k = 0; k < zsize; k++){
-      if (func != ( void (*)() ) NULL){
-        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-        (*func)(statstr);
-      }
-      pindex = 0;                     
-      if (seek_row)
-        fseek(fin, seek_row, SEEK_CUR);
-      for (j = yoff; j < yoff + ysize; j++){
-        if (seek_line)
-          fseek(fin, seek_line, SEEK_CUR);
-        fread(sdata, sizeof(short), xsize, fin);
+      case MRC_MODE_SHORT:
         for(i = 0; i < xsize; i++, pindex++){
           idata[k][pindex] = map[usdata[i]];
         }
-        if (seek_endline)
-          fseek(fin, seek_endline, SEEK_CUR);
-      }
-      if (seek_endrow)
-        fseek(fin, seek_endrow, SEEK_CUR);
-    }
-    free(sdata);
-    free(map);
-    break ;
-          
+        break ;
                   
-  case MRC_MODE_FLOAT:
-    if (func != ( void (*)() ) NULL){
-      sprintf(statstr,"\nReading Image # %3.3d\0",k+1);
-      (*func)(statstr);
-    }
-    fdata = (float *)malloc(sizeof(float) * xsize);
-    for (k = 0; k < zsize; k++){
-      if (func != ( void (*)() ) NULL){
-        sprintf(statstr, "\rReading Image # %3.3d",k+1); 
-        (*func)(statstr);
-      }
-      min *= conscale;
-      if (seek_row)
-        fseek(fin, seek_row, SEEK_CUR);
-      pindex = 0;
-      for(j = yoff; j < yoff + ysize; j++){
-        if (seek_line)
-          fseek(fin, seek_line, SEEK_CUR);
-        fread(fdata, sizeof(float), xsize, fin);
+      case MRC_MODE_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
         for(i = 0; i < xsize; i++, pindex++){
@@ -1450,90 +1468,30 @@ unsigned char **mrc_read_byte(FILE *fin,
             fpixel = 255.0;
           idata[k][pindex] = fpixel + 0.5;
         }
-        if (seek_endline)
-          fseek(fin, seek_endline, SEEK_CUR);
-      }
-      if (seek_endrow)
-        fseek(fin, seek_endrow, SEEK_CUR);
-    }
-    free(fdata);
-    break ;
+        break ;
           
-                  
-  case MRC_MODE_COMPLEX_SHORT:
-    if (imag)
-      fread( &spixel, 2, 1, fin);
-    for (k = 0; k < zsize; k++){
-      if (func != ( void (*)() ) NULL){
-        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-        (*func)(statstr);
-      }
-      pindex = 0;                     
-      if (seek_row)
-        fseek(fin, seek_row, SEEK_CUR);
-      for (j = yoff; j < yoff + ysize; j++){
-        if (seek_line)
-          fseek(fin, seek_line, SEEK_CUR);
-                    
-        for(i = xoff; i < xoff + xsize; i++, pindex++){
-          fread(&spixel, 2, 1, fin);
-          if (hdata->swapped)
-            mrc_swap_shorts(&spixel, 1);
-          fpixel = spixel;
-          if (ramptype == MRC_RAMP_EXP)
-            fpixel = (float)exp((float)fpixel);
-          if (ramptype == MRC_RAMP_LOG)
-            fpixel = (float)log((float)fpixel);
-                         
-          fpixel *= slope;
-          fpixel += offset;
+        
+      case MRC_MODE_COMPLEX_SHORT:
+        /* DNM 1/7/04: threw away existing scaling of one component and
+           made it identical to float scaling of magnitude */
+        if (hdata->swapped)
+          mrc_swap_shorts(sdata, xsize * 2);
+        for(i = 0; i < xsize; i++, pindex++){
+          fpixel = sdata[2 * i];
+          ipixel = sdata[2 * i + 1];
+          val = (fpixel * fpixel) + (ipixel * ipixel);
+          val = (float)sqrt(val);
+          val = (float)log((double)(1. + (kscale * val)));
+          fpixel = val * slope + offset;
           if (fpixel < 0)
             fpixel = 0;
           if (fpixel > 255)
             fpixel = 255;
-          idata[k][pindex] = fpixel + 0.5;
-          fread( &spixel, 2, 1, fin);
+          idata[k][pindex] = fpixel;
         }
-        if (seek_endline)
-          fseek(fin, seek_endline, SEEK_CUR);
-      }
-      if (seek_endrow)
-        fseek(fin, seek_endrow, SEEK_CUR);
-    }
-    break ;
-          
-          
-  case MRC_MODE_COMPLEX_FLOAT:
-    fdata = (float *)malloc(sizeof(float) * xsize * 2);
-    if (func != ( void (*)() ) NULL){
-      sprintf(statstr,"\nReading Image # %3.3d\0",k+1);
-      (*func)(statstr);
-    }
-    /* DNM 2/15/01: use scaling from above */
-    /*
-      kscale = 5;
-      slope = (float)log(1 + (kscale * hdata->amax));
-      if (!slope)
-      slope = 1;
-      else
-      slope = 255 / slope;
-    */
-    for (k = 0; k < zsize; k++){
-      if (func != ( void (*)() ) NULL){
-        sprintf(statstr, "\rReading Image # %3.3d",k+1); 
-        (*func)(statstr);
-      }
-      min *= conscale;
-      if (seek_row)
-        fseek(fin, seek_row, SEEK_CUR);
-      pindex = 0;
-      for(j = yoff; j < yoff + ysize; j++){
-        if (seek_line)
-          fseek(fin, seek_line, SEEK_CUR);
-
-        /* DNM: switched to reading whole line at once and
-           processing, when implemented swapping */
-        fread(fdata, 4, xsize * 2, fin);
+        break ;
+        
+      case MRC_MODE_COMPLEX_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize * 2);
         for(i = 0; i < xsize; i++, pindex++){
@@ -1541,29 +1499,31 @@ unsigned char **mrc_read_byte(FILE *fin,
           ipixel = fdata[2 * i + 1];
           val = (fpixel * fpixel) + (ipixel * ipixel);
           val = (float)sqrt(val);
-          val = (float)log(1 + (kscale * val));
+          val = (float)log((double)(1. + (kscale * val)));
           /* DNM 2/15/01: add offset */
           fpixel = val * slope + offset;
           if (fpixel < 0)
             fpixel = 0;
           if (fpixel > 255)
             fpixel = 255;
-          idata[k][pindex] = fpixel + 0.5;
+          /* 1/7/04 remove 0.5 for consistency with mrcsec */
+          idata[k][pindex] = fpixel;/* + 0.5; */
         }
-        if (seek_endline)
-          fseek(fin, seek_endline, SEEK_CUR);
+        break;
       }
-      if (seek_endrow)
-        fseek(fin, seek_endrow, SEEK_CUR);
-    }
-    free(fdata);
-    break ;
-          
-  default:
-    b3dError(stderr, "ERROR: mrc_read - Unknown Data Type\n");
-    return(NULL);
-  }
 
+      /* Finish line, section, free memory */
+      if (seek_endline)
+        fseek(fin, seek_endline, SEEK_CUR);
+    }
+    if (seek_endrow)
+      fseek(fin, seek_endrow, SEEK_CUR);
+  }
+  free(bdata);
+  if (map)
+    free(map);
+
+  /* modify header as if data were to be written (?) */
   hdata->nx = xsize;
   hdata->ny = ysize;
   hdata->nz = zsize;
@@ -2189,6 +2149,12 @@ size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
 
 /*
 $Log$
+Revision 3.12  2004/01/05 17:39:08  mast
+Split off memory allocation by mrc_read_byte into a separate routine
+that 3dmod could use for alternate loading; moved the shifting of
+load-in coordinates by piece list offset to mrc_fix_li, and renamed
+imin/imax to outmin/outmax
+
 Revision 3.11  2003/11/18 19:20:18  mast
 changes for 2GB problem on Windows
 
