@@ -1,0 +1,54 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FN
+usage = Input file with f transforms 
+tooltip = 
+manpage = 
+
+[Field = GOutputFile]
+short = goutput
+long = GOutputFile
+type = FN
+usage = Output file for g transforms (optional if input name ends in xf)
+tooltip = 
+manpage = Output file for g transforms.  If an output filename is omitted
+and the input filename ends in xf, the input filename will be used as output
+with the last letter converted from f to g.
+
+[Field = NumberToFit]
+short = nfit
+long = NumberToFit
+type = I
+usage = Number of adjacent sections to fit, 0 for global alignment, or 1 for
+fit to all sections
+tooltip = 
+manpage = 
+
+[Field = OrderOfPolynomialFit]
+short = order
+long = OrderOfPolynomialFit
+type = I
+usage = Order of the polynomial fit to the data. The default is 1 (linear fit).
+tooltip = 
+manpage = 
+
+[Field = HybridFits]
+short = mixed
+long = HybridFits
+type = I
+usage = Number of parameters to eliminate trends for with a hybrid alignment
+tooltip = Number of parameters to eliminate trends for with a hybrid alignment:
+2 for translations only, 3 for rotations also, 4 for size changes also
+manpage = 
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
