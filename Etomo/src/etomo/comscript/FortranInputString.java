@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/12 04:42:01  rickg
+ * <p> Removed diagnostic printing
+ * <p>
  * <p> Revision 3.1  2004/02/12 04:35:29  rickg
  * <p> Major parsing change to match PIP structure
  * <p>
@@ -236,7 +239,7 @@ public class FortranInputString {
     }
   }
 
-  public boolean allValuesSet(){
+  public boolean valuesSet(){
     for(int i=0; i <nParams; i++) {
       if(value[i].isInfinite()){
         return false;
