@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/04 01:00:17  sueh
+* <p> bug# 569 Fixed the check to see if working directory is empty in isValid()
+* <p>
 * <p> Revision 1.2  2004/11/19 23:33:42  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -124,10 +127,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
   protected static final String rotationTranslationString = "RotationTranslation";
   protected static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
-  protected static final String sampleProducedString = "SampleProduced";
 
   protected static final boolean defaultFullLinearTransformation = true;
-  protected static final boolean defaultSampleProduced = false;
 
   protected ArrayList sectionTableData;
   protected String rootName;
@@ -156,21 +157,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoNumber useEveryNSlices = new EtomoNumber(
       EtomoNumber.INTEGER_TYPE, "UseEveryNSlices");
   protected EtomoNumber trialBinning = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "TrialBinning");
-  //set on the successful completion of finishjoin
-  protected EtomoNumber finishjoinTrialBinning = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialBinning");
-  protected EtomoNumber finishjoinTrialSizeInX = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialSizeInX");
-  protected EtomoNumber finishjoinTrialSizeInY = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialSizeInY");
-  protected EtomoNumber finishjoinTrialShiftInX = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialShiftInX");
-  protected EtomoNumber finishjoinTrialShiftInY = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialShiftInY");
-  //state variable for join setup tab
-  protected boolean sampleProduced;
-  
+      EtomoNumber.INTEGER_TYPE, "TrialBinning");  
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -268,12 +255,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
-    finishjoinTrialBinning.store(props, prepend);
-    finishjoinTrialSizeInX.store(props, prepend);
-    finishjoinTrialSizeInY.store(props, prepend);
-    finishjoinTrialShiftInX.store(props, prepend);
-    finishjoinTrialShiftInY.store(props, prepend);
-    props.setProperty(group + sampleProducedString, Boolean.toString(sampleProduced));
     
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
@@ -406,18 +387,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return max - min + 1;
   }
   
-  public int getCoordinate(ConstEtomoNumber coordinate) {
-    return coordinate.getInteger() * finishjoinTrialBinning.getInteger();
-  }
-  
-  public int getNewShiftInX(int min, int max) {
-    return finishjoinTrialShiftInX.getInteger()
-        + (finishjoinTrialSizeInX.getInteger() + 1) / 2 - (max + min) / 2;
-  }
-
-  public int getNewShiftInY(int min, int max) {
-    return finishjoinTrialShiftInY.getInteger()
-        + (finishjoinTrialSizeInY.getInteger() + 1) / 2 - (max + min) / 2;
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
+    return coordinate.getInteger() * state.getTrialBinning().getInteger();
   }
   
   public boolean isFullLinearTransformation() {
@@ -426,10 +397,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   
   public boolean isRotationTranslationMagnification() {
     return rotationTranslationMagnification;
-  }
-  
-  public boolean isSampleProduced() {
-    return sampleProduced;
   }
   
   public boolean isRotationTranslation() {

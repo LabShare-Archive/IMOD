@@ -16,35 +16,51 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/08 21:32:04  sueh
+* <p> bug# 564 Added access to flipped.
+* <p>
 * <p> Revision 1.1  2004/12/07 22:54:07  sueh
 * <p> bug# 564 Contains state variables to be saved in the .edf file.
 * <p> </p>
 */
-public class TomogramState {
+public class TomogramState implements BaseState {
   public static  final String  rcsid =  "$Id$";
   
-  private static final String groupString = "TomogramState";
-  private static final String flippedString = "Flipped";
-  private static final boolean defaultFlipped = false;
+  private static final String groupString = "ReconstructionState";
+  EtomoBoolean flipped = new EtomoBoolean("Flipped");
+ 
   
-  boolean flipped;
-  
-  TomogramState() {
+  public TomogramState() {
     reset();
   }
   
   void reset() {
-    flipped = defaultFlipped;
+    flipped.reset();
   }
   
-  void store(Properties props) {
+  public void store(Properties props) {
     store(props, "");
   }
   
-  void store(Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    props.setProperty(group + flippedString, Boolean.toString(flipped));
+    flipped.store(props, prepend);
+  }
+
+  
+  public boolean equals(TomogramState that) {
+    if (!flipped.equals(that.flipped)) {
+      return false;
+    }
+    return true;
+  }
+  
+  protected static String createPrepend(String prepend) {
+    if (prepend == "") {
+      return groupString;
+    }
+    return prepend + "." + groupString;
   }
 
   public void load(Properties props) {
@@ -55,27 +71,10 @@ public class TomogramState {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    flipped = Boolean.valueOf(
-        props.getProperty(group + flippedString, Boolean
-            .toString(defaultFlipped))).booleanValue();
+    flipped.load(props, prepend);
   }
   
-  public boolean equals(TomogramState that) {
-    if (flipped != that.flipped) {
-      return false;
-    }
-    return true;
+  public ConstEtomoBoolean setFlipped(boolean flipped) {
+    return this.flipped.set(flipped);
   }
-  
-  public void setFlipped(boolean flipped) {
-    this.flipped = flipped;
-  }
-  
-  private static String createPrepend(String prepend) {
-    if (prepend == "") {
-      return groupString;
-    }
-    return prepend + "." + groupString;
-  }
-
 }

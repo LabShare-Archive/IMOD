@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:35:18  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.12  2004/11/16 02:28:23  sueh
 * <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
 * <p> EtomoFloat, and EtomoLong with EtomoNumber.
@@ -88,12 +91,6 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInX.reset();
     shiftInY.reset();
     trialBinning.reset();
-    finishjoinTrialBinning.reset();
-    finishjoinTrialSizeInX.reset();
-    finishjoinTrialSizeInY.reset();
-    finishjoinTrialShiftInX.reset();
-    finishjoinTrialShiftInY.reset();
-    sampleProduced = defaultSampleProduced;
   }
 
   /**
@@ -129,13 +126,6 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInY.load(props, prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
-    finishjoinTrialBinning.load(props, prepend);
-    finishjoinTrialSizeInX.load(props, prepend);
-    finishjoinTrialSizeInY.load(props, prepend);
-    finishjoinTrialShiftInX.load(props, prepend);
-    finishjoinTrialShiftInY.load(props, prepend);
-    sampleProduced = Boolean.valueOf(props.getProperty(group
-        + sampleProducedString, Boolean.toString(defaultSampleProduced))).booleanValue();
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
@@ -159,29 +149,9 @@ public class JoinMetaData extends ConstJoinMetaData {
     this.densityRefSection.set((Integer) densityRefSection);
   }
   
-  public void setFinishjoinTrialBinning(int trialBinning) {
-    finishjoinTrialBinning.set(trialBinning);
-  }
-  
-  public void setFinishjoinTrialShiftInX(int trialShiftInX) {
-    finishjoinTrialShiftInX.set(trialShiftInX);
-  }
-  
-  public void setFinishjoinTrialShiftInY(int trialShiftInY) {
-    finishjoinTrialShiftInY.set(trialShiftInY);
-  }
-  
-  public void setFinishjoinTrialSizeInX(int trialSizeInX) {
-    finishjoinTrialSizeInX.set(trialSizeInX);
-  }
-  
-  public void setFinishjoinTrialSizeInY(int trialSizeInY) {
-    finishjoinTrialSizeInY.set(trialSizeInY);
-  }
-  
   public void setUseEveryNSlices(Object useEveryNSlices) {
     this.useEveryNSlices.set((Integer) useEveryNSlices);
-  }
+  } 
   
   public void setTrialBinning(Object trialBinning) {
     this.trialBinning.set((Integer) trialBinning);
@@ -216,10 +186,6 @@ public class JoinMetaData extends ConstJoinMetaData {
   }
   public void setRotationTranslationMagnification(boolean rotationTranslationMagnification) {
     this.rotationTranslationMagnification = rotationTranslationMagnification;
-  }
-  
-  public void setSampleProduced(boolean sampleProduced) {
-    this.sampleProduced = sampleProduced;
   }
   
   public void setRotationTranslation(boolean rotationTranslation) {

@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/12/07 22:47:47  sueh
+ * <p> bug# 564 Added TomogramState member variable.
+ * <p>
  * <p> Revision 3.9  2004/12/02 18:29:29  sueh
  * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
  * <p>
@@ -324,6 +327,5 @@ public class MetaData extends ConstMetaData {
         .booleanValue();
     trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
-    state.load(props, prepend);
   }
 }

@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/12/08 21:30:21  sueh
+ * <p> bug# 564 Added access to TomogramState member variable.
+ * <p>
  * <p> Revision 3.13  2004/12/07 22:47:38  sueh
  * <p> bug# 564 Added TomogramState member variable.
  * <p>
@@ -178,7 +181,6 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected CombineParams combineParams = new CombineParams();
   protected TrimvolParam trimvolParam = new TrimvolParam();
   protected SqueezevolParam squeezevolParam = new SqueezevolParam();
-  protected TomogramState state = new TomogramState();
 
   protected int transferfidNumberViews = 5;
 
@@ -238,12 +240,8 @@ public abstract class ConstMetaData extends BaseMetaData {
         .valueOf(wholeTomogramSample));
     trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
-    state.store(props, prepend);
   }
 
-  public TomogramState getState() {
-    return state;
-  }
   public TrimvolParam getTrimvolParam() {
     return trimvolParam;
   }
@@ -638,9 +636,6 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     }
     if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
-      return false;
-    }
-    if (!state.equals(cmd.state)) {
       return false;
     }
 
