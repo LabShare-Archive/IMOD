@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.Rectangle;
 
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/11/19 23:47:18  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.7.2.4  2004/10/11 02:09:17  sueh
  * <p> bug# 520 moved responsibility for the manager member variable to child
  * <p> classes.  Used abstract functions to use this variable in the base class.
@@ -130,6 +134,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private JPanel panelProcessInfo = new JPanel();
   private JPanel panelStatus = new JPanel();
   private JPanel panelDialog = new JPanel();
+  private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
@@ -195,14 +200,25 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelRoot.setVisible(true);
   }
   
+  void saveDisplayState() {
+    lastWidth.set(getWidth());
+  }
+  
   /**
    * get panel width
    * @return
    */
   public int getWidth() {
-    Rectangle size = new Rectangle();
-    panelRoot.computeVisibleRect(size);
-    return size.width;
+    if (!lastWidth.isNull()) {
+      int width = lastWidth.getInteger();
+      lastWidth.reset();
+      return width;
+    }
+    else {
+      Rectangle size = new Rectangle();
+      panelRoot.computeVisibleRect(size);
+      return size.width;
+    }
   }
   
   /**
