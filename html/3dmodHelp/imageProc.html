@@ -75,4 +75,30 @@ filtering, pressing <B>More</B> will not have much effect and will not be the
 same as iterative filtering in 3D, because only the central slice has been
 filtered.
 <P>
+<H4>Anisotropic Diffusion</H4>
+This panel provides parameters for running an anisotropic diffusion algorithm
+programmed by Alejandro Canterero, using the Perona and Malik filtering
+method.  The <B>Edge Stopping Function</B> radio buttons allow you to choose
+between the <B>Rational edge</B> stopping function and the <B>Tukey
+biweight</B> stopping function, which correspond to options <B>-cc 2</B> and
+<B>-cc 3</B>, respectively, in <A HREF = "../man/clip.html">Clip</A>.
+The Tukey biweight will preserve more
+local structure than the rational edge stopping function.
+<P>
+The <B>Iterations</B> value controls how many iterations are run when
+<B>Apply</B> or <B>More</B> is pressed.  The total number of iterations done
+is also reported.  The routine will give the identical result if a certain
+number of iterations are done with multiple steps
+using <B>More</B> rather than all at once.
+<P>
+The <B>K</B> entry sets a threshold for the edge stopping function; when the
+number is too low virtually nothing will happen.  The rational edge function
+may require smaller values than the Tukey biweight.  The <B>unscaled</B>
+value is the number that should be specified with the <B>-k</B> option
+in <A HREF = "../man/clip.html">Clip</A> to achieve the same filtering on the
+raw data from the image file as is seen on the scaled byte data in 3dmod.
+<P>
+The <B>Lambda</B> value controls the so-called time-step; if images become
+noisier this probably needs to be reduced.
+<P>
 <A HREF="index.html">Help Index<A>
