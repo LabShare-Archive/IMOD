@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2005/03/30 23:45:19  sueh
+ * <p> bug# 622 Adding show functions to remove and restore the divider when
+ * <p> showing Axis A, B, or both.
+ * <p>
  * <p> Revision 1.12  2005/02/24 20:08:03  sueh
  * <p> Comments for dealing with java 1.5.0
  * <p>
@@ -138,7 +142,7 @@ public abstract class MainPanel extends JPanel {
   protected JLabel statusBar = new JLabel("No data set loaded");
 
   protected JPanel panelCenter = new JPanel();
-
+  
   //  These panels get instantiated as needed
   protected ScrollPanel scrollA;
   protected JScrollPane scrollPaneA;
@@ -146,6 +150,7 @@ public abstract class MainPanel extends JPanel {
   protected JScrollPane scrollPaneB;
   protected JSplitPane splitPane;
   protected BaseManager manager = null;
+  private boolean showingBothAxis = true;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
@@ -343,25 +348,28 @@ public abstract class MainPanel extends JPanel {
   }
   
   void showBothAxis() {
+    showingBothAxis = true;
     panelCenter.removeAll();
     splitPane =
       new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
     splitPane.setDividerLocation(0.5);
     splitPane.setOneTouchExpandable(true);
     panelCenter.add(splitPane);
-    fitWindow();
+    fitWindow(true);
   }
   
   void showAxisA() {
+    showingBothAxis = false;
     panelCenter.removeAll();
     panelCenter.add(scrollPaneA);
-    fitWindow();
+    fitWindow(true);
   }
   
   void showAxisB() {
+    showingBothAxis = false;
     panelCenter.removeAll();
     panelCenter.add(scrollPaneB);
-    fitWindow();
+    fitWindow(true);
   }
   
   /**
@@ -370,6 +378,24 @@ public abstract class MainPanel extends JPanel {
    *
    */
   protected void packAxis() {
+    if (!EtomoDirector.getInstance().isNewStuff()) {
+      packAxisOld();
+      return;
+    }
+    EtomoDirector.getInstance().getMainFrame().pack();
+    if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
+      splitPane.resetToPreferredSizes();
+      
+      //handle bug in Windows where divider goes all the way to the left
+      //when the frame is wider then the screen
+      if (isAxisPanelAFitScreenError()) {
+        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
+        splitPane.resetToPreferredSizes();
+      }
+    }
+  }
+  
+  protected void packAxisOld() {
     if (manager.isDualAxis()
       && !AxisPanelAIsNull()
       && !AxisPanelBIsNull()) {
@@ -405,6 +431,7 @@ public abstract class MainPanel extends JPanel {
       EtomoDirector.getInstance().getMainFrame().pack();
     }
   }
+
   
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
@@ -412,6 +439,9 @@ public abstract class MainPanel extends JPanel {
    * @return
    */
   protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
+    if (EtomoDirector.getInstance().isNewStuff()) {
+      EtomoDirector.getInstance().getMainFrame().show();
+    }
     if (axisPanel.getWidth() <= 16) {
       return true;
     }
