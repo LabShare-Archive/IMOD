@@ -89,20 +89,7 @@ set int32           = "int"
 set uint32          = "unsigned int"
 set float32         = "float"
 
-# Take care of .options file - stripping out install entry
-#
 set inargv = ($argv)
-set optlist = ()
-while ($#inargv > 0)
-    if ("$inargv[1]" == "-inst" || "$inargv[1]" == "-i") then
-        shift inargv
-    else
-        set optlist = ($optlist $inargv[1])
-    endif
-    shift inargv
-end
-
-echo $optlist >! .options
 
 #
 # Input options
@@ -713,6 +700,21 @@ end
 #
 echo $distname >! .distname
 
+# Take care of .options file - stripping out install entry
+# It had to be done with index, and down here, to work with DOS line endings
+#
+set optlist = ()
+@ ind = 1
+while ($ind <= $#inargv)
+    if ("$inargv[$ind]" == "-inst" || "$inargv[$ind]" == "-i") then
+        @ ind++
+    else
+        set optlist = ($optlist $inargv[$ind])
+    endif
+    @ ind++
+end
+echo $optlist >! .options
+
 # Test for javac and set up makefile for etomo
 #
 set javacexe = `which javac`
@@ -768,6 +770,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.38  2004/04/03 20:00:29  mast
+#  Added a .options file to retain options for dist
+#
 #  Revision 3.37  2004/01/27 05:15:51  mast
 #  Added a distribution name
 #
