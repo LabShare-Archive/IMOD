@@ -21,6 +21,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2002/12/21 00:01:07  mast
+#  Add conversion of tiltalign residual file to model
+#
 #  Revision 3.3  2002/11/04 20:45:50  mast
 #  Changed output to savework file to fix \ output under tcsh 6.12 bug,
 #  changed output to sample.com to protect \ outputs also.
@@ -53,7 +56,7 @@ if (! -d $srcdir) then
     exit 1
 endif
 
-if ($PWD == $srcdir) then
+if ("$PWD" == $srcdir) then
     echo "You should be in the directory where your data are located, not"
     echo "in the com directory."
     exit 1
@@ -163,21 +166,22 @@ while ($backup == "-1")
     echo "If you want command files and small result files to be saved to another"
     echo " directory for backup protection, enter the path name of the directory;"
     echo -n " otherwise Return: "
-    set backupdir = $<
-    if ($backupdir == "") then
+    set backupdir = "$<"
+    if ("$backupdir" == "") then
 	set backup = "0"
     else
-	if ((-d $backupdir) && (-w $backupdir)) then
+        echo $backupdir
+	if ((-d "$backupdir") && (-w "$backupdir")) then
 	    set backup = "1"
-	    if ((! -e $stackname) && (-e $backupdir/$stackname)) then
+	    if ((! -e $stackname) && (-e "$backupdir/$stackname")) then
 		echo "Creating link to $backupdir/$stackname in current directory"
-		ln -s $backupdir/$stackname .
+		ln -s "$backupdir/$stackname" .
 	    endif
 	    if ($naxis == "2")then
 		set bname = $rootname"b.st"
-		if ((! -e $bname) && (-e $backupdir/$bname)) then
+		if ((! -e $bname) && (-e "$backupdir/$bname")) then
 		    echo "Creating link to $backupdir/$bname in current directory"
-		    ln -s $backupdir/$bname .
+		    ln -s "$backupdir/$bname" .
 		endif
 	    endif
 	endif
@@ -770,7 +774,7 @@ if ($backup == "1")then
 
     cat << EOF >! $backupname
 #! /bin/csh -f
-set backupdir = $backupdir
+set backupdir = "$backupdir"
 set backuplist = ( \\
 EOF
     @ num = 0
@@ -790,8 +794,8 @@ EOF
 while (\$#backuplist > 0)
   set flnm = \$backuplist[1]
   if (-e \$flnm) then
-    if (! -e \$backupdir/\$flnm) \\cp -p \$flnm \$backupdir
-    \\find . -name \$flnm -newer \$backupdir/\$flnm -exec cp -p "{}" \$backupdir \\;
+    if (! -e "\$backupdir/\$flnm") \\cp -p \$flnm "\$backupdir"
+    \\find . -name \$flnm -newer "\$backupdir/\$flnm" -exec cp -p "{}" "\$backupdir" \\;
   endif
   shift backuplist
 end
