@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2003/09/16 03:00:16  mast
+    Changed declarations of pixel drawing routines to use new line pointers
+
     Revision 3.5  2003/02/25 19:39:24  mast
     Needed to include qgl.h instead of GL.h for windows
 
@@ -189,6 +192,8 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
      
 void b3dSnapshot(char *fname);
 
+void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
+                        int &fileno);
 void b3dAutoSnapshot(char *name, int format_type, int *limits);
 void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits);
 void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
