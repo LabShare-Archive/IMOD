@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2003/09/18 05:57:29  mast
+Add members for autocontrast targets
+
 Revision 1.4  2003/09/17 04:47:24  mast
 Added members for remembering window geometry
 
@@ -152,7 +155,7 @@ class ImodPreferences : public QObject
   char **getStyleList();
   bool styleOK(QString key);
   int *getStyleStatus();
-  QRect getInfoGeometry();
+  void setInfoGeometry();
   QRect getZapGeometry();
   void getAutoContrastTargets(int &mean, int &sd);
 
