@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2002/12/21 00:00:33  mast
+c	  Add ability to get both residual output and 3D model
+c	
 c	  Revision 3.5  2002/10/17 23:18:31  mast
 c	  Added proper error message and exit for minimum number of beads too
 c	  high in local alignments
@@ -667,11 +670,14 @@ C-----------------------------------------------------------------------
 C Error returns:
 	IF(IER.NE.0)THEN
 	  if(ier.eq.1)then
-	    call errorexit('IER=1  DG > 0', iflocal)
+	    call errorexit('IER=1  DG > 0; try changing metro factor',
+     &		iflocal)
 	  elseif(ier.eq.2)then
-	    call errorexit('IER=2  Linear search lost', iflocal)
+	    call errorexit('IER=2  Linear search lost; try changing '
+     &		//'metro factor', iflocal)
 	  elseif(ier.eq.4)then
-	    call errorexit('IER=4  Matrix non-positive definite', iflocal)
+	    call errorexit('IER=4  Matrix non-positive definite; try '
+     &		//'changing metro factor', iflocal)
 	  else
 	    WRITE(6,930)
 930	    FORMAT(/' IER=3  Iteration limit exceeded....')
@@ -1098,11 +1104,15 @@ c
      &	    ,errmean,errsd
 	if(ifresout.gt.0)then
 	  write(*,112)
+c	    
+c	    DEPENDENCY WARNING: Beadfixer relies on the # # ... line up to the
+c	    second X
+c
 112	  format(/,9x,'Projection points with large residuals',/,
-     &	      ' obj  cont  view   index coordinates    residuals',
-     &	      '    # of',/,
-     &	      '   #     #     #      X         Y        X      Y',
-     &	      '    S.D.')
+     &	      ' obj  cont  view   index coordinates      residuals',
+     &	      '        # of',/,
+     &	      '   #     #     #      X         Y        X        Y',
+     &	      '        S.D.')
 	  nord=0
 	  do jpt=1,nrealpt
 	    do i=irealstr(jpt),irealstr(jpt+1)-1
@@ -1124,7 +1134,7 @@ c
      &		      imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
      &		      ,xx(i)+xcen
      &		      ,yy(i)+ycen, xresid(i), yresid(i),errnosd
-114		  format(i4,2i6,2f10.2,3f7.2)
+114		  format(i4,2i6,2f10.2,3f9.2)
 		endif
 	      endif
 	    enddo
