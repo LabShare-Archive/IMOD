@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/08 16:23:18  mast
+c	  Added function to get a boolean into a logical variable directly
+c	
 c	  Revision 3.2  2003/06/20 23:11:39  mast
 c	  Added capability to process options all in one string
 c	
@@ -100,10 +103,13 @@ c
 	return
 	end
 
-	function PipGetLogical(option, value)
+	integer function PipGetLogical(option, value)
+	implicit none
 	character*(*) option
 	logical value
 	integer*4 intval, ierr
+	integer*4 PipGetBoolean
+
 	intval = 0
 	PipGetLogical = 0
 	ierr = PipGetBoolean(option, intval)
