@@ -626,6 +626,12 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
  */
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z)
 {
+  /* IF movieing, save the current increments as ones to movie on */
+  if (a->movie){
+      a->md->xrotm = x;
+      a->md->yrotm = y;
+      a->md->zrotm = z;
+  }
   imodv_compute_rotation(a, (float)x, (float)y, (float)z);
   imodvDraw(a);
   return;
@@ -643,17 +649,10 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   Ipoint scalePoint;
   Imod *imod;
 
-  /* IF movieing, save the current increments as ones to movie on */
-  if (a->movie){
-    if (!(a->md->xrotm || a->md->yrotm || a->md->yrotm)) {
-      a->md->xrotm = (int)x;
-      a->md->yrotm = (int)y;
-      a->md->zrotm = (int)z;
-    }
-    if (!a->wpid) {
-      a->throwFactor = 1.;
-      imodv_start_movie(a);
-    }
+  /* IF movieing, start the movie if necessary */
+  if (a->movie && !a->wpid) {
+    a->throwFactor = 1.;
+    imodv_start_movie(a);
     /*  return; */
   }
 
@@ -1036,6 +1035,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.12  2003/11/26 18:15:09  mast
+    Disable image menu entry unless byte images exist
+
     Revision 4.11  2003/11/12 18:54:52  mast
     moved quit call out, added raise call
 
