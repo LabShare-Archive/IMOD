@@ -17,9 +17,13 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2003/04/17 05:06:06  rickg
+ * <p> Initial revision
+ * <p>
  */
 public class IntermediateFileFilter extends FileFilter {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   private String fileset;
   public IntermediateFileFilter(String filesetName) {
     fileset = filesetName;
@@ -52,10 +56,10 @@ public class IntermediateFileFilter extends FileFilter {
           return true;
         }
       }
-      if(f.getAbsolutePath().endsWith(fileset + "a.rec")) {
+      if (f.getAbsolutePath().endsWith(fileset + "a.rec")) {
         return true;
       }
-      if(f.getAbsolutePath().endsWith(fileset + "b.rec")) {
+      if (f.getAbsolutePath().endsWith(fileset + "b.rec")) {
         return true;
       }
     }
