@@ -13,6 +13,7 @@ set backupname = "./savework"
 
 set single_srcname = "g5a"
 set dual_srcname = "g5"
+set seedname = "empty.seed"
 
 #  $Author$
 #
@@ -21,6 +22,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/06/03 00:02:10  mast
+#  Fix question that said "first" for both sets
+#
 #  Revision 3.6  2003/05/20 23:57:38  mast
 #  Strip spaces from exclude list
 #
@@ -562,6 +566,9 @@ EOF
 	-e s/$wipepl//\
 	<$srcfile >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
+
+    # COPY EMPTY SEED MODELS
+    \cp $srcdir/$seedname $setname.seed
 
     # GET ALIGN; WIPE OUT XYZ.FID IF SINGLE AXIS; SET OUTPUT TO .TLTXF FOR CCD
 
