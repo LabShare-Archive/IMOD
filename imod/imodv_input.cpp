@@ -102,9 +102,10 @@ static int b2y = 0;
 void imodvKeyPress(QKeyEvent *event)
 {
   ImodvApp *a = Imodv;
+  IclipPlanes *clips;
   int keysym = event->key();
   int tstep = 1;
-  int newval, fastdraw;
+  int newval, fastdraw, ip;
   float elapsed;
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
@@ -142,18 +143,19 @@ void imodvKeyPress(QKeyEvent *event)
       imodv_control(a, 1);
     }else{
       if (a->obj){
+        clips = a->imod->editGlobalClip ? 
+          &a->imod->view->clips : &a->obj->clips;
+        ip = clips->plane;
+
         /* DNM 7/31/01 remove pixsize from D */
-        qstr.sprintf("Current Object clip data = (A B C D) "
-               "= %g %g %g %g.\n",
-               a->obj->clip_normal.x,
-               a->obj->clip_normal.y,
-               a->obj->clip_normal.z / a->imod->zscale,
-               ((a->obj->clip_normal.x * 
-                 a->obj->clip_point.x) +
-                (a->obj->clip_normal.y * 
-                 a->obj->clip_point.y) +
-                (a->obj->clip_normal.z * 
-                 a->obj->clip_point.z)));
+        qstr.sprintf("Current %s clip data = (A B C D) = %g %g %g %g.\n", 
+                     a->imod->editGlobalClip ? "Global": "Object",
+                     clips->normal[ip].x,
+                     clips->normal[ip].y,
+                     clips->normal[ip].z / a->imod->zscale,
+                     ((clips->normal[ip].x * clips->point[ip].x) +
+                      (clips->normal[ip].y * clips->point[ip].y) +
+                      (clips->normal[ip].z * clips->point[ip].z)));
         imodPrintInfo(qstr.latin1());
       }
     }
@@ -567,8 +569,9 @@ void imodv_zoomd(ImodvApp *a, double zoom)
 
 static void imodv_translated(ImodvApp *a, int x, int y, int z)
 {
-  int mx, my;
+  int mx, my, ip;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
+  IclipPlanes *clips;
     
   Imod *imod;
   Imat *mat = a->mat;
@@ -613,10 +616,13 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     
     if (maskr & Qt::ControlButton){
       if (a->obj){
-        if (a->obj->clip){
-          a->obj->clip_point.x += opt.x;
-          a->obj->clip_point.y += opt.y;
-          a->obj->clip_point.z += opt.z;
+        clips = a->imod->editGlobalClip ? 
+          &a->imod->view->clips : &a->obj->clips;
+        ip = clips->plane;
+        if (clips->flags & (1 << ip)){
+          clips->point[ip].x += opt.x;
+          clips->point[ip].y += opt.y;
+          clips->point[ip].z += opt.z;
         }
       }
     }else{ 
@@ -652,13 +658,16 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 {
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
-  int m, mstrt, mend;
+  int m, mstrt, mend, ip;
   Imat *mat = a->mat;
   Imat *mato, *matp;
   double alpha, beta, gamma, gamrad;
   Ipoint normal;
   Ipoint scalePoint;
-  Imod *imod;
+  Imod *imod = a->imod;
+  IclipPlanes *clips = imod->editGlobalClip ? 
+    &imod->view->clips : &a->obj->clips;
+  ip = clips->plane;
 
   /* IF movieing, start the movie if necessary */
   if (a->movie && !a->wpid) {
@@ -710,17 +719,15 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
       imod->view->rot.z = gamma;
     }
           
-  } else {
+  } else if (clips->flags & (1 << ip)) {
 
     /* Clipping plane rotation: apply to current model only */
 
-    imod = a->imod;
-
     /* Find the normal in scaled model coordinates by scaling
        each of the components appropriately */
-    scalePoint.x = a->obj->clip_normal.x / imod->view->scale.x;
-    scalePoint.y = a->obj->clip_normal.y / imod->view->scale.y;
-    scalePoint.z = a->obj->clip_normal.z / 
+    scalePoint.x = clips->normal[ip].x / imod->view->scale.x;
+    scalePoint.y = clips->normal[ip].y / imod->view->scale.y;
+    scalePoint.z = clips->normal[ip].z / 
       (imod->view->scale.z * imod->zscale);
 
     /* get current rotation transform into viewing space */
@@ -742,11 +749,11 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
     imodMatTransform(mato, &normal, &scalePoint);
 
     /* Rescale components to get back to unscaled model normal */
-    a->obj->clip_normal.x = scalePoint.x * imod->view->scale.x;
-    a->obj->clip_normal.y = scalePoint.y * imod->view->scale.y;
-    a->obj->clip_normal.z = scalePoint.z * 
+    clips->normal[ip].x = scalePoint.x * imod->view->scale.x;
+    clips->normal[ip].y = scalePoint.y * imod->view->scale.y;
+    clips->normal[ip].z = scalePoint.z * 
       (imod->view->scale.z * imod->zscale);
-    imodPointNormalize(&(a->obj->clip_normal));
+    imodPointNormalize(&(clips->normal[ip]));
 
   }
 
@@ -1048,6 +1055,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.15  2004/05/31 23:35:26  mast
+    Switched to new standard error functions for all debug and user output
+
     Revision 4.14  2004/04/28 04:38:16  mast
     Added ability to delete current contour it it was picked
 
