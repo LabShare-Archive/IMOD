@@ -251,8 +251,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnScanHeader.setPreferredSize(UIParameters.getButtonDimension());
     btnScanHeader.setMaximumSize(UIParameters.getButtonDimension());
     spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
-
+    
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
+    btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlStackInfo.add(Box.createHorizontalGlue());
+    pnlStackInfo.add(btnScanHeader);
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlStackInfo.add(ltfPixelSize.getContainer());
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -287,13 +292,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlImageRows.add(pnlDistortionInfo);
     pnlImageRows.add(pnlMagGradientInfo);
 
-    btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
+
     pnlImageRows.setAlignmentY(Component.CENTER_ALIGNMENT);
     pnlImageParams.setLayout(new BoxLayout(pnlImageParams, BoxLayout.X_AXIS));
-    pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlImageParams.add(Box.createHorizontalGlue());
-    pnlImageParams.add(btnScanHeader);
-    pnlImageParams.add(Box.createRigidArea(FixedDim.x10_y0));
+
     pnlImageParams.add(pnlImageRows);
     pnlImageParams.add(Box.createHorizontalGlue());
     pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -1032,6 +1034,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2005/03/02 20:26:56  sueh
+ * <p> bug# 533 Temporary:  enabling montaging option when
+ * <p> EtomoDirector.newstuff is true.  Bug# 533 Added adjustedFocus.  Only
+ * <p> used with montaging and mag gradient correction.
+ * <p>
  * <p> Revision 3.22  2005/03/02 00:13:29  sueh
  * <p> bug# 611 Added mag gradients correction file.  Bug# 533 Enabled montaging.
  * <p>
