@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/06/17 16:00:53  mast
+#  Initial creation
+#
 
 # Set defaults for filename identifiers and tomopieces call
 
@@ -166,6 +169,7 @@ EOF
                 $mastercom >> $comfile
             cat <<EOF >> $comfile
 \$\\rm $imagein
+\$echo CHUNK DONE
 EOF
 
             shift ranlist
@@ -225,7 +229,11 @@ cat <<EOF >> $allname
 EOF
 
 if ($?farmout) then
-    echo '#\!/bin/csh -f' >! $rootname-parallel
+    set parallel = $rootname-parallel
+    cat <<EOF >! $parallel
+#!/bin/csh -f
+\rm -f $rootname-[0-9]*.log
+EOF
     set thishost = `hostname`
     set hostroot = $thishost:r:r:r
     set curdir = `pwd | sed "/localscratch/s//scratch\/$hostroot/"`
@@ -250,11 +258,50 @@ if ($?farmout) then
             endif
             set coms = ($coms $rootname-$numtext)
         end
-        cat <<EOF >> $rootname-parallel
+        if ($#coms > 0) then
+            cat <<EOF >> $parallel
 ssh $farmout[$proc] "cd $curdir ; subm $coms" &
 EOF
+        endif
     end
-chmod a+x $rootname-parallel
+    cat <<EOF >> $parallel
+set flags = ()
+@ num = 0
+while (\$num < $npiecetot)
+    @ num++
+    set flags = (\$flags 0)
+end
+@ numdone = 0
+@ lastdone = 0
+while (\$numdone < $npiecetot)
+    sleep 3
+    @ num = 0
+    @ numdone = 0
+    while (\$num < $npiecetot)
+        @ num++
+        if (\$flags[\$num] == 0) then
+            set numtext = \$num
+            if (\$num < 10) then
+                set numtext = 00"\$num"
+            else if (\$num < 100) then
+                set numtext = 0"\$num"
+            endif
+            if (-e $rootname-\$numtext.log) then
+                set lastline = "\`tail -1 $rootname-\$numtext.log\`"
+                if ("\$lastline" == "CHUNK DONE") set flags[\$num] = 1
+            endif
+        endif
+        if (\$flags[\$num] == 1) @ numdone++
+    end
+    
+    if (\$numdone > \$lastdone) echo \$numdone DONE SO FAR
+    @ lastdone = \$numdone
+end
+echo "ALL DONE"
+EOF
+
+
+    chmod a+x $parallel
 endif
 
 cat <<EOF
