@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -38,7 +41,6 @@ void imodvUpdateModel(ImodvApp *a);
 void imodvViewEditDialog(ImodvApp *a, int state);
 void imodvAutoStoreView(ImodvApp *a);
 void imodvViewsHelp();
-void imodvViewsDefault(bool draw);
 void imodvViewsDone();
 void imodvViewsClosing();
 void imodvViewsSave();;
@@ -48,6 +50,7 @@ void imodvViewsNew(const char *label);;
 void imodvViewsDelete(int item, int newCurrent);
 void imodvViewsLabel(const char *label, int item);;
 void imodvViewsAutostore(int state);
+void imodvViewsInitialize(struct Mod_Model *imod);
 
 #endif
 
