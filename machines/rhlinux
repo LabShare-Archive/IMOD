@@ -9,16 +9,18 @@ set Xlibdir = /usr/X11R6/lib
 set Xincdir = /usr/X11R6/include/X11
 set Mincdir = /usr/X11R6/include
 
+# DNM 7/26/02: not needed, all includes refer to <GL/...>
 set opengl_inc = /usr/include/GL
 set opengl_lib = /usr/lib
 
 # DNM 12/3/00: define directories for installing GLw includes and library
-set glwincdir = /usr/include/X11/GLw
-set glwlibdir = /usr/lib
+# DNM 7/26/02: place them internally
+set glwinst_inc_dir = $source_dir/include
+set glwinst_lib_dir = $source_dir/buildlib
 
-# add -I$opengl_inc if it's not on the system include path
-# add -I$glw_inc if using the glw installed by "make installglw"
-set c_includes =  "-I$Xincdir -I$Mincdir -I$opengl_inc -I$glwincdir"
+# add location of system glw includes if using system glw instead
+# (define glwincdir and add -I$glwincdir)
+set c_includes =  "-I$Xincdir -I$Mincdir"
 
 # add -I$opengl_lib if it's not on the system library path
 echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
