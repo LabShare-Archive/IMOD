@@ -17,6 +17,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/09 21:19:40  rickg
+ * <p> Reformat from emacs
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -147,14 +150,9 @@ public class CopyTomoComs {
 
     //  Copy the temporary stdInput to the real stdInput to get the number
     //  of array elements correct
-    System.out.println("Stdin:");
-    System.out.println(
-      "------------------------------------------------------------");
-
     String[] stdInput = new String[lineCount];
     for (int i = 0; i < lineCount; i++) {
       stdInput[i] = tempStdInput[i];
-      System.out.println(stdInput[i]);
     }
     copytomocoms.setStdInput(stdInput);
   }
