@@ -113,6 +113,8 @@ void ivwInit(ImodView *vi)
   vi->blankLine = NULL;
   vi->xybin = 1;
   vi->zbin = 1;
+  vi->flippable = 1;
+  vi->grayRGBs = 0;
 }
 
 /*
@@ -1796,7 +1798,7 @@ int ivwLoadIMODifd(ImodView *vi)
   return(0);
 }
 
-/* Process a list of multiple files from the argument list and compose an
+/* Take a list of multiple files from the argument list and compose an
    image list */
 void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
 {
@@ -1952,7 +1954,7 @@ int ivwLoadImage(ImodView *vi)
   return (ivwManageInitialFlips(vi));
 }
 
-/* Analyze an image list and set up the cache and do initial load */
+/* Process an image list and set up the cache and do initial load */
 static int ivwProcessImageList(ImodView *vi)
 {
   ImodImageFile *image;
@@ -1965,19 +1967,45 @@ static int ivwProcessImageList(ImodView *vi)
   if (!ilist->size)
     return -1;
 
-  if (!vi->li->plist) {
-     
-    /* First get minimum x, y, z sizes of all the files */
-    for (i = 0; i < ilist->size; i++) {
-      image = (ImodImageFile *)ilistItem(ilist, i);
-      if (!i || image->nx < xsize)
-        xsize = image->nx;
-      if (!i || image->ny < ysize)
-        ysize = image->ny;
-      if (!i || image->nz < zsize)
-        zsize = image->nz;
-    }     
+  /* First get minimum x, y, z sizes of all the files and count up rgbs */
+  for (i = 0; i < ilist->size; i++) {
+    image = (ImodImageFile *)ilistItem(ilist, i);
+    if (!i || image->nx < xsize)
+      xsize = image->nx;
+    if (!i || image->ny < ysize)
+      ysize = image->ny;
+    if (!i || image->nz < zsize)
+      zsize = image->nz;
 
+    /* Add to count if RGB or not, to see if all the same type */
+    if (image->format == IIFORMAT_RGB && 
+        !(image->file == IIFILE_MRC && vi->grayRGBs))
+      rgbs++;
+  }     
+
+  /* Deal with RGB files */
+  if (rgbs) {
+    if (rgbs < ilist->size) {
+      imodError(NULL, "3DMOD Error: Only %d files out of %d are "
+              "RGB type and all files must be.\n", rgbs, ilist->size);
+      exit(-1);
+    }
+               
+    if (!App->rgba) {
+      imodError(NULL, "3DMOD Error: You must not start 3dmod with "
+              "the -ci option to display RGB files.\n");
+      exit(-1);
+    }
+        
+    /* Set the flag for storing raw images with the mode, and set rgba to 
+       indicate the number of bytes being stored */
+    App->rgba = 3;
+    vi->rawImageStore = MRC_MODE_RGB;
+  }
+
+  if (!vi->li->plist) {
+
+    /* Deal with non-montage case */
     /* If maximum Z is 1 and multifile treatment in Z is allowed, set zsize
        to number of files, and cancel treatment as times */
     if (ilist->size > 1 && zsize == 1 && vi->multiFileZ >= 0) {
@@ -2005,9 +2033,6 @@ static int ivwProcessImageList(ImodView *vi)
       if (image->file != IIFILE_MRC || vi->multiFileZ > 0)
         vi->flippable = 0;
 
-      /* Add to count if RGB or not, to see if all the same type */
-      if (image->format == IIFORMAT_RGB)
-        rgbs++;
     }     
   } else {
 
@@ -2015,27 +2040,6 @@ static int ivwProcessImageList(ImodView *vi)
     mrc_fix_li(vi->li, 0, 0, 0);
     image = (ImodImageFile *)ilistItem(ilist, 0);
     ivwCheckBinning(vi, image->nx, image->ny, image->nz);
-    if (image->format == IIFORMAT_RGB)
-      rgbs = 1;
-  }
-
-  if (rgbs) {
-    if (rgbs < ilist->size) {
-      imodError(NULL, "3DMOD Error: Only %d files out of %d are "
-              "RGB type and all files must be.\n", rgbs, ilist->size);
-      exit(-1);
-    }
-               
-    if (!App->rgba) {
-      imodError(NULL, "3DMOD Error: You must not start 3dmod with "
-              "the -ci option to display RGB files.\n");
-      exit(-1);
-    }
-        
-    /* Set the flag for storing raw images with the mode, and set rgba to 
-       indicate the number of bytes being stored */
-    App->rgba = 3;
-    vi->rawImageStore = MRC_MODE_RGB;
   }
 
   if (ilist->size == 1){
@@ -2366,6 +2370,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.20  2004/01/05 17:21:39  mast
+Added binning option, cleaned up file started, reorganized file
+
 Revision 4.19  2003/12/31 05:31:30  mast
 Fix problem in getFileValue when switching files
 
