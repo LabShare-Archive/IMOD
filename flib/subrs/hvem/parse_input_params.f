@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/10/11 00:04:56  mast
+c	  Fixed bug in getting filename interactively
+c	
 c	  Revision 3.6  2003/10/10 20:43:41  mast
 c	  Added subroutine for getting input/output files
 c	
@@ -154,7 +157,7 @@ c
      &	    exitString, interactive, minArgs, numInFiles, numOutFiles, 
      &	    numOptArg, numNonOptArg)
 	implicit none
-	character*(*) options
+	character*(*) options(*)
 	character*(*) progName
 	character*(*) exitString
 	logical interactive
