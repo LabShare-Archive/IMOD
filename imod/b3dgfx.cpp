@@ -36,6 +36,7 @@ Log at end of file
 
 #include <stdlib.h>
 #include <math.h>
+#include <errno.h>
 #include <qglcolormap.h>
 #include <qdir.h>
 #include "imod.h"
@@ -1910,6 +1911,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.19  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.18  2004/03/09 15:18:02  mast
 Fixed problem that was making offset images creep
 

@@ -39,6 +39,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <errno.h>
 #include <qdir.h>
 #include "imodv_window.h"
 
@@ -375,6 +376,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.8  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.7  2003/12/30 06:32:59  mast
 Use new routine to get snapshot name
 
