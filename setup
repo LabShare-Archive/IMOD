@@ -222,7 +222,7 @@ echo "IMOD_VERSION $imod_version_name"
 # Set up defaults for makefile copying
 #
 set makefile_ext = unix
-set makefile_dirs = ($libdiaqt_dir)
+set makefile_dirs = ($libdiaqt_dir $plugsrc_dir)
 
 #
 # Set up directory names
@@ -692,12 +692,7 @@ echo "XPLAX = $xplax" >> $configure
 
 echo "# end of configure"          >> $configure
 
-
-# The default is to jumper out the plugin source
-#
-echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.$makefile_ext - DO NOT EDIT" >! $plugsrc_dir/Makefile
-cat $plugsrc_dir/Makefile.dummy >> $plugsrc_dir/Makefile
-
+# Copy makefiles for actual use or for dummy use under Cygwin-gcc
 
 foreach i ($makefile_dirs)
     echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.$makefile_ext - DO NOT EDIT" >! $i/Makefile
@@ -779,6 +774,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.42  2004/04/08 19:44:13  mast
+#  Option saving reverted due to cygwin csh bug
+#
 #  Revision 3.40  2004/04/08 17:03:07  mast
 #  Changes for amd64linux and a Qt multithread flag
 #
