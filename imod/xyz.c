@@ -34,6 +34,19 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/01/28 16:58:52  mast
+    Major enhancements: Made it use the same image drawing code as
+    the Zap window so that it would not be slow with fractional zooms; added
+    ability to display in high-resolution mode and to take snapshots of the
+    window; added ability to pan the window with the mouse; made the model
+    display have fixed line widths and symbol sizes independent of zoom; made
+    attachment to the nearest model point work just like in the Zap window;
+    added ability to riffle through images by dragging the current point
+    indicators with the mouse.
+    Note that the use of the b3dDrawGreyScalePixelsHQ routine is incompatible
+    with the now-obsolete PIXEL_DRAW_HACK required with Nvidia 0.9.5 drivers.
+    Removed non OpenGL code for readability.
+
     Revision 3.1  2001/12/17 18:51:49  mast
     Removed call to autox_build
 
@@ -1602,16 +1615,21 @@ static void xxyz_overclear(struct xxyzwin *xx)
 
 /* DNM 1/21/02: eliminate OpenGL scaling of native coordinates, make all
    model drawing routines multiply coordinates by zoom */
+/* DNM 1/28/02: moved uses of the elements of xx to after the test for zz */
 static void xxyz_draw(struct xxyzwin *xx)
 {
-     float z = xx->zoom;
-     int bx = XYZ_BSIZE + xx->xwoffset;
-     int by = XYZ_BSIZE + xx->ywoffset;
-     int bx2 = bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5));
-     int by2 = by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5));
+     float z;
+     int bx, by, bx2, by2;
+
      if (!xx)
 	  return;
      if (!xx->exposed) return;     /* DNM: avoid crashes if Zap is movieing*/
+
+     z = xx->zoom;
+     bx = XYZ_BSIZE + xx->xwoffset;
+     by = XYZ_BSIZE + xx->ywoffset;
+     bx2 = bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5));
+     by2 = by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5));
 
      xxyz_overclear(xx);
 
