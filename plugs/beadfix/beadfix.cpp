@@ -191,7 +191,8 @@ void imodPlugExecute(ImodView *inImodView)
   /*
    * This creates the plug window.
    */
-  plug->window  = new BeadFixer(NULL, "bead fixer");
+  plug->window  = new BeadFixer(imodDialogManager.parent(IMOD_DIALOG),
+                                "bead fixer");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
   plug->window->show();

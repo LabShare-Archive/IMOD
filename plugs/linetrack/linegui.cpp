@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/03/26 15:56:46  mast
+Change lostFocus to focusLost
+
 Revision 3.1  2003/02/10 20:55:40  mast
 Merge Qt source
 
@@ -255,7 +258,8 @@ void imodPlugExecute(ImodView *inImodView)
   /*
    * This creates the plug window.
    */
-  plug->window  = new LineTrack(NULL, "line tracker");
+  plug->window  = new LineTrack(imodDialogManager.parent(IMOD_DIALOG),
+                                "line tracker");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
   plug->window->show();
