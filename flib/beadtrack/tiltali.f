@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine tiltali(ifdidalign,resmean,iview)
 	include 'alivar.inc'
 c
@@ -126,8 +134,8 @@ c
 c	    
 c	    pack the xyz into the var list
 c	    
-	  if(nvarsrch+3*nrealpt.gt.min(maxmetro,maxvar))stop
-     &	      'TOO MANY VARIABLES FOR H ARRAY IN METRO'
+	  if(nvarsrch+3*nrealpt.gt.min(maxmetro,maxvar))call errorexit(
+     &	      'TOO MANY VARIABLES FOR H ARRAY IN METRO',0)
 	  
 	  nvargeom=nvarsrch
 	  do jpt=1,nrealpt-1
