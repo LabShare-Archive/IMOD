@@ -20,6 +20,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/07/01 19:26:30  rickg
+ * <p> Changed all sizes to k bytes
+ * <p> Change round to floor to prevent 1:60 times
+ * <p>
  * <p> Revision 1.1  2003/06/27 20:16:36  rickg
  * <p> Initial revision
  * <p> </p>
@@ -39,7 +43,6 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
     applicationManager = appMgr;
     axisID = id;
-
   }
 
   // The dervied class must implement this function to 
@@ -53,9 +56,13 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * @see java.lang.Runnable#run()
    */
   public void run() {
-    //  Calculate the expected file size in bytes, initialize the progress bar
-    //  and set the File object.
     try {
+      // Reset the progressBar 
+      applicationManager.setProgressBar(" ", 1, axisID);
+      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      
+      //  Calculate the expected file size in bytes, initialize the progress bar
+      //  and set the File object.
       calcFileSize();
 
       //  Wait for the output file to be created and set the process start time
@@ -130,6 +137,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       else {
         message = message + String.valueOf(seconds);
       }
+      
       applicationManager.setProgressBarValue(currentLength, message, axisID);
 
       //  TODO: need to put a fail safe in here to
