@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/04/06 04:13:28  rickg
+ * <p> Updated imageRotation to store axis separately
+ * <p>
  * <p> Revision 3.11  2004/03/24 03:02:45  rickg
  * <p> Changed spinner size to only specify spinner region.  The
  * <p> panel and label should be handled automatically
@@ -302,11 +305,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-
+    UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
+    
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
+    // Resize the standard panel buttons
+    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getButtonDimension());
+    
     // Calcute the necessary window size
     applicationManager.packMainWindow();
   }
