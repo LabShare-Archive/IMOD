@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.18  2004/01/27 05:53:54  mast
+#  Needed to define LIBEXT line better
+#
 #  Revision 3.17  2004/01/27 05:16:26  mast
 #  Start out by copying needed files from dist
 #
@@ -62,6 +65,16 @@ if ("$instlist" != "") then
         \cp dist/$i $instdir
     end
 endif
+
+#
+# Get list of install files that need renaming and copy them to install directory
+#
+set instlist = `sed -n '/INSTALL_RENAME/s/^.*= *//p' configure`
+while ($#instlist > 1)
+    \cp dist/$instlist[1] $instdir/$instlist[2]
+    shift instlist
+    shift instlist
+end
 
 #
 # Get the subdirectory to copy the libraries to, exit if not defined
