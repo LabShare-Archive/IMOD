@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/09 19:21:53  rickg
+ * <p> Removed debugging output
+ * <p>
  * <p> Revision 3.2  2004/04/08 19:11:26  rickg
  * <p> Bug #421 Make sure the UI objects are only modified in the event
  * <p> thread.
@@ -139,7 +142,7 @@ public class ProgressPanel {
     public void run() {
       progressBar.setValue(counter);
        //  Put the elapsed time into the progress bar string
-      progressBar.setString("Elapsed: "
+      progressBar.setString("Elapsed time: "
           + Utilities
             .millisToMinAndSecs(System.currentTimeMillis() - startTime));
       panel.validate();
