@@ -17,6 +17,10 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/07 17:54:08  rickg
+ * <p> Working direcotry is no longer stored in the metadata
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.2  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -150,7 +154,10 @@ public class ConstMetaData {
     // Does the working directory exist
     File workingDirectory = new File(System.getProperty("user.dir"));
     if (!workingDirectory.exists()) {
-      invalidReason = "Working directory does not exist";
+      invalidReason =
+        "Working directory: "
+          + workingDirectory.getAbsolutePath()
+          + " does not exist";
       return false;
     }
 
