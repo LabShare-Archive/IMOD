@@ -148,7 +148,9 @@ DDEESSCCRRIIPPTTIIOONN
      includes terms in x, y, x**2, y**2 and x*y).
 
   -exclude OR -ExcludeAdjacent   (Boolean entry, no value expected)
-     Exclude points adjacent to patch points from the fit.
+     Exclude points adjacent to patch points from the fit; in other words,
+     compute the polynomial fit to points that do not touch the ones being
+     replaced.
 
   -trial OR -TrialMode   (Boolean entry, no value expected)
      Analyze for replacement points without writing output image file.
@@ -189,7 +191,7 @@ DDEESSCCRRIIPPTTIIOONN
   Order of polynomial (/ for default of 2, which includes terms in
   x, y, x**2, y**2 and x*y)
 
-  0 to exclude or 1 to include points adjacent to the specified points
+  0 to exclude or 1 to include points adjacent to the points being replaced
   in the polynomial fit (/ for default of 1)
   
 HHIISSTTOORRYY
