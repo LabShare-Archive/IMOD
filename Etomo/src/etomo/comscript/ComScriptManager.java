@@ -1,11 +1,3 @@
-package etomo.comscript;
-
-import java.io.File;
-import javax.swing.JOptionPane;
-
-import etomo.ApplicationManager;
-import etomo.type.*;
-
 /**
  * <p>Description: This class provides a high level manager for loading and
  * saving particlar com scripts and extracting the parameter sets for the 
@@ -21,6 +13,10 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/04 00:46:54  rickg
+ * <p> Bug# 406 Correctly write out command when it isn't the first in the
+ * <p> script
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -61,6 +57,15 @@ import etomo.type.*;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.comscript;
+
+import java.io.File;
+
+import javax.swing.JOptionPane;
+
+import etomo.ApplicationManager;
+import etomo.type.AxisID;
+
 
 public class ComScriptManager {
   public static final String rcsid =
@@ -345,17 +350,21 @@ public class ComScriptManager {
   public NewstParam getNewstComNewstParam(AxisID axisID) {
 
     //  Get a reference to the appropriate script object
-    ComScript newst;
+    ComScript scriptNewst;
     if (axisID == AxisID.SECOND) {
-      newst = scriptNewstB;
+      scriptNewst = scriptNewstB;
     }
     else {
-      newst = scriptNewstA;
+      scriptNewst = scriptNewstA;
     }
 
     // Initialize a NewstParam object from the com script command object
     NewstParam newstParam = new NewstParam();
-    initialize(newstParam, newst, "newst", axisID);
+
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptNewst) ;
+    initialize(newstParam, scriptNewst, cmdName, axisID);
     return newstParam;
   }
 
@@ -376,8 +385,12 @@ public class ComScriptManager {
       scriptNewst = scriptNewstA;
     }
 
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptNewst) ;
+    
     // update the newst parameters
-    updateComScript(scriptNewst, newstParam, "newst", axisID);
+    updateComScript(scriptNewst, newstParam, cmdName, axisID);
   }
 
   /**
@@ -704,5 +717,24 @@ public class ComScriptManager {
       return false;
     }
     return true;
+  }
+  
+  /**
+   * Examine the com script to see whether it contains newst or newstack
+   * commands.
+   * @param comScript  The com script object to examine
+   * @return The 
+   */
+  private String newstOrNewstack(ComScript comScript){
+    String[] commands = comScript.getCommandArray();
+    for(int i = 0; i < commands.length; i++){
+      if(commands[i].equals("newst")) {
+        return "newst";
+      }
+      if(commands[i].equals("newstack")) {
+        return "newstack";
+      }
+    }
+    return "";
   }
 }
