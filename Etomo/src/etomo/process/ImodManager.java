@@ -27,6 +27,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2003/12/03 16:39:06  sueh
+ * <p> bug242 put the ImodStates into Vectors.  Allow multiple
+ * <p> ImodStates on each key
+ * <p>
  * <p> Revision 3.7  2003/12/02 23:16:40  sueh
  * <p> bug242 changed from ImodAssistant to ImodState, added
  * <p> reset() function to handle FullVolume.
@@ -224,6 +228,7 @@ public class ImodManager {
   public static final String PATCH_VECTOR_MODEL_KEY =
     new String("patchVectorModel");
   public static final String MATCH_CHECK_KEY = new String("matchCheck");
+  public static final String TRIAL_TOMOGRAM_KEY = new String("trialTomogram");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -237,6 +242,7 @@ public class ImodManager {
   private static final String trimmedVolumeKey = TRIMMED_VOLUME_KEY;
   private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
   private static final String matchCheckKey = MATCH_CHECK_KEY;
+  private static final String trialTomogramKey = TRIAL_TOMOGRAM_KEY;
 
   private boolean useMap = true;
 
@@ -360,58 +366,41 @@ public class ImodManager {
   
   //Interface
   
-  public int create(String key) {
-    Vector vector;
-    ImodState imodState;
-    key = getPrivateKey(key);
-    vector = getVector(key);
-    if (vector == null) {
-      vector = newVector(key);
-      imodMap.put(key, vector);
-    }
-    imodState = newImodState(key);
-    vector.add(imodState);
-    return vector.lastIndexOf(imodState);
+  public int create(String key) throws AxisTypeException, SystemProcessException {
+    return create(key, null, null);
   }
   
-  public int create(String key, AxisID axisID) throws SystemProcessException {
+  public int create(String key, AxisID axisID) throws AxisTypeException, SystemProcessException {
+    return create(key, axisID, null);
+  }
+  
+  public int create(String key, AxisID axisID, String datasetName) throws AxisTypeException, SystemProcessException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
     vector = getVector(key, axisID);
     if (vector == null) {
-      vector = newVector(key, axisID);
-      imodMap.put(key + axisID.getExtension(), vector);
+      vector = newVector(key, axisID, datasetName);
+      if (axisID == null) {
+        imodMap.put(key, vector);
+      }
+      else {
+        imodMap.put(key + axisID.getExtension(), vector);
+      }
     }
-    imodState = newImodState(key, axisID);
+    imodState = newImodState(key, axisID, datasetName);
     vector.add(imodState);
-    return vector.lastIndexOf(imodState);
+    return vector.lastIndexOf(imodState); 
   }
 
-  public void open(String key) throws SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState == null) {
-      create(key);
-      imodState = get(key);
-    }
-    if (imodState != null) {
-      imodState.open();
-    }
+  public void open(String key) throws AxisTypeException, SystemProcessException {
+    open(key, null, null);
     //used for:
     //openCombinedTomogram
   }
 
-  public void open(String key, AxisID axisID) throws SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      create(key, axisID);
-      imodState = get(key, axisID);
-    }
-    if (imodState != null) {
-      imodState.open();
-    }
+  public void open(String key, AxisID axisID) throws AxisTypeException, SystemProcessException {
+    open(key, axisID, null);
     //used for:
     //openCoarseAligned
     //openErasedStack
@@ -419,7 +408,7 @@ public class ImodManager {
   }
 
   public void open(String key, AxisID axisID, String model)
-    throws SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -427,22 +416,23 @@ public class ImodManager {
       imodState = get(key, axisID);
     }
     if (imodState != null) {
-      imodState.open(model);
+      if (model == null) {
+        imodState.open();
+      }
+      else {
+        imodState.open(model);
+      }
     }
     //used for:
     //openFiducialModel
   }
 
-  public boolean isOpen(String key) {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState == null) {
-      return false;
-    }
-    return imodState.isOpen();
+
+  public boolean isOpen(String key) throws AxisTypeException {
+    return isOpen(key, null);
   }
 
-  public boolean isOpen(String key, AxisID axisID) {
+  public boolean isOpen(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -452,7 +442,7 @@ public class ImodManager {
   }
 
   public void model(String key, AxisID axisID, String modelName)
-    throws SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -491,7 +481,7 @@ public class ImodManager {
     String modelName,
     boolean modelMode,
     boolean preserveContrast)
-    throws SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -508,7 +498,7 @@ public class ImodManager {
   }
 
   public void openBeadFixer(String key, AxisID axisID)
-    throws SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState.isUseModv()) {
@@ -518,16 +508,12 @@ public class ImodManager {
   }
 
 
-  public void quit(String key) throws SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState != null) {
-      imodState.quit();
-    }
+  public void quit(String key) throws AxisTypeException, SystemProcessException {
+    quit(key, null);
     //combinedTomogram.quit();
   }
 
-  public void quit(String key, AxisID axisID) throws SystemProcessException {
+  public void quit(String key, AxisID axisID) throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
@@ -536,7 +522,7 @@ public class ImodManager {
     //coarseAligned.quit();
   }
   
-  public void reset(String key, AxisID axisID) {
+  public void reset(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
@@ -562,27 +548,35 @@ public class ImodManager {
     return newVector(newImodState(key, axisID));
   }
   
+  protected Vector newVector(String key, AxisID axisID, String datasetName) {
+    return newVector(newImodState(key, axisID, datasetName));
+  }
+  
   protected ImodState newImodState(String key) {
-    return newImodState(key, AxisID.ONLY);
+    return newImodState(key, null, null);
+  }
+  
+  protected ImodState newImodState(String key, AxisID axisID) {
+    return newImodState(key, axisID, null);
   }
 
-  protected ImodState newImodState(String key, AxisID axisID) {
-    if (key.equals(RAW_STACK_KEY)) {
+  protected ImodState newImodState(String key, AxisID axisID, String datasetName) {
+    if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID);
     }
-    if (key.equals(ERASED_STACK_KEY)) {
+    if (key.equals(ERASED_STACK_KEY) && axisID != null) {
       return newErasedStack(axisID);
     }
-    if (key.equals(COARSE_ALIGNED_KEY)) {
+    if (key.equals(COARSE_ALIGNED_KEY) && axisID != null) {
       return newCoarseAligned(axisID);
     }
-    if (key.equals(FINE_ALIGNED_KEY)) {
+    if (key.equals(FINE_ALIGNED_KEY) && axisID != null) {
       return newFineAligned(axisID);
     }
-    if (key.equals(SAMPLE_KEY)) {
+    if (key.equals(SAMPLE_KEY) && axisID != null) {
       return newSample(axisID);
     }
-    if (key.equals(FULL_VOLUME_KEY)) {
+    if (key.equals(FULL_VOLUME_KEY) && axisID != null) {
       return newFullVolume(axisID);
     }
     if (key.equals(COMBINED_TOMOGRAM_KEY) && axisType == AxisType.DUAL_AXIS) {
@@ -599,6 +593,9 @@ public class ImodManager {
     }
     if (key.equals(TRIMMED_VOLUME_KEY)) {
       return newTrimmedVolume();
+    }
+    if (key.equals(TRIAL_TOMOGRAM_KEY) && axisID != null && datasetName != null) {
+      return newTrialTomogram(axisID, datasetName);
     }
     throw new IllegalArgumentException(key + " cannot be create in " + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -717,6 +714,11 @@ public class ImodManager {
     ImodState imodState = new ImodState(datasetName + ".rec");
     return imodState;
   }
+  protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
+    ImodState imodState = new ImodState(datasetName);
+    imodState.initialize(true, false, false);
+    return imodState;
+  }
   
   protected boolean isPerAxis(String key) {
     if (key.equals(COMBINED_TOMOGRAM_KEY)
@@ -740,7 +742,7 @@ public class ImodManager {
 
 
 
-  protected ImodState get(String key) {
+  protected ImodState get(String key) throws AxisTypeException {
     Vector vector = getVector(key);
     if (vector == null) {
       return null;
@@ -748,7 +750,7 @@ public class ImodManager {
     return (ImodState) vector.lastElement();
   }
   
-  protected ImodState get(String key, AxisID axisID) {
+  protected ImodState get(String key, AxisID axisID) throws AxisTypeException {
     Vector vector = getVector(key, axisID);
     if (vector == null) {
       return null;
@@ -757,13 +759,13 @@ public class ImodManager {
   }
   
 
-  protected Vector getVector(String key) {
+  protected Vector getVector(String key) throws AxisTypeException {
      Vector vector;
      if (!useMap) {
        throw new UnsupportedOperationException("This operation is not supported when useMap is false");
      }
      if (axisType == AxisType.SINGLE_AXIS && isDualAxisOnly(key)) {
-       throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+       throw new AxisTypeException(key + " cannot be found in " + axisType.toString());
      }
      if (isDualAxisOnly(key) && isPerAxis(key)) {
        throw new UnsupportedOperationException(key + " cannot be found without axisID information");
@@ -782,14 +784,17 @@ public class ImodManager {
      return (Vector) vector;
    }
   
-   protected Vector getVector(String key, AxisID axisID) {
+   protected Vector getVector(String key, AxisID axisID) throws AxisTypeException {
      Vector vector;
+     if (axisID == null) {
+       return getVector(key);
+     }
      if (!useMap) {
        throw new UnsupportedOperationException("This operation is not supported when useMap is false");
      }
      if (axisType == AxisType.SINGLE_AXIS) {
        if (isDualAxisOnly(key)) {
-         throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+         throw new AxisTypeException(key + " cannot be found in " + axisType.toString());
        }
        if (axisID != AxisID.ONLY) {
          axisID = AxisID.ONLY;
@@ -824,6 +829,7 @@ public class ImodManager {
    * Open both tomograms and their matching models
    * Ignores ImodAssistant configuration
    * @param datasetName
+   * @deprecated
    */
 
   public void matchingModel(String datasetName)
@@ -846,6 +852,7 @@ public class ImodManager {
    * already open
    * Ignores ImodAssistant configuration
    * @param axisID
+   * @deprecated
    */
   public void patchRegionModel(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -867,6 +874,7 @@ public class ImodManager {
   /**
    * Open the specified raw data stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openRawStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -881,6 +889,7 @@ public class ImodManager {
 
   /**
    * Open the specified model with on raw stack 3dmod
+   * @deprecated
    */
   public void modelRawStack(String modelName, AxisID axisID, boolean modelMode)
     throws AxisTypeException, SystemProcessException {
@@ -900,8 +909,9 @@ public class ImodManager {
 
   /**
    * Check to see if the specified raw stack is open
+   * @deprecated
    */
-  public boolean isRawStackOpen(AxisID axisID) {
+  public boolean isRawStackOpen(AxisID axisID) throws AxisTypeException {
     ImodState rawStack = selectRawStack(axisID);
     if (rawStack == null) {
       return false;
@@ -912,6 +922,7 @@ public class ImodManager {
 
   /**
    * Close the specified raw stack
+   * @deprecated
    */
   public void quitRawStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -923,6 +934,7 @@ public class ImodManager {
   /**
    * Open the specified erased data stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openErasedStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -937,6 +949,7 @@ public class ImodManager {
 
   /**
    * Open the specified model with the erased stack 3dmod
+   * @deprecated
    */
   public void modelErasedStack(String modelName, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -950,8 +963,9 @@ public class ImodManager {
 
   /**
    * Check to see if the specified erased stack is open
+   * @deprecated
    */
-  public boolean isErasedStackOpen(AxisID axisID) {
+  public boolean isErasedStackOpen(AxisID axisID) throws AxisTypeException {
     ImodState erasedStack = selectErasedStack(axisID);
     if (erasedStack == null) {
       return false;
@@ -962,6 +976,7 @@ public class ImodManager {
 
   /**
    * Close the specified erased stack
+   * @deprecated
    */
   public void quitErasedStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -973,6 +988,7 @@ public class ImodManager {
   /**
    * Open the specified coarse aligned stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openCoarseAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -987,6 +1003,7 @@ public class ImodManager {
 
   /**
    * Open the specified model with the course aligned imod
+   * @deprecated
    */
   public void modelCoarseAligned(
     String modelName,
@@ -1015,6 +1032,13 @@ public class ImodManager {
     coarseAligned.model(modelName, modelMode);
   }
 
+  /**
+   * 
+   * @param axisID
+   * @throws AxisTypeException
+   * @throws SystemProcessException
+   * @deprecated
+   */
   public void openBeadFixer(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
@@ -1024,8 +1048,9 @@ public class ImodManager {
 
   /**
    * Check to see if the specified coarsely aligned stack is open
+   * @deprecated
    */
-  public boolean isCoarseAlignedOpen(AxisID axisID) {
+  public boolean isCoarseAlignedOpen(AxisID axisID) throws AxisTypeException {
     ImodState coarseAligned = selectCoarseAligned(axisID);
     if (coarseAligned == null) {
       return false;
@@ -1035,6 +1060,7 @@ public class ImodManager {
 
   /**
    * Close the specified coarsely aligned stack
+   * @deprecated
    */
   public void quitCoarseAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1054,6 +1080,7 @@ public class ImodManager {
         + "bin"
         + File.separator;
     String commandLine = imodBinPath + "3dmod -view " + model;
+    @deprecated
    */
   public void openFiducialModel(String model, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1074,6 +1101,7 @@ public class ImodManager {
   /**
    * Open the specified fine aligned stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openFineAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1088,8 +1116,9 @@ public class ImodManager {
 
   /**
    * Check to see if the specified finely aligned stack is open
+   * @deprecated
    */
-  public boolean isFineAlignedOpen(AxisID axisID) {
+  public boolean isFineAlignedOpen(AxisID axisID) throws AxisTypeException {
     ImodState fineAligned = selectCoarseAligned(axisID);
     if (fineAligned == null) {
       return false;
@@ -1099,6 +1128,7 @@ public class ImodManager {
 
   /**
    * Close the specified finely aligned stack
+   * @deprecated
    */
   public void quitFinelyAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1110,6 +1140,7 @@ public class ImodManager {
   /**
    * Open the specified tomograph samples in 3dmod if they are not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openSample(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1129,8 +1160,9 @@ public class ImodManager {
   /**
    * Check to see if the specified sample reconstruction is open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
-  public boolean isSampleOpen(AxisID axisID) {
+  public boolean isSampleOpen(AxisID axisID) throws AxisTypeException {
     ImodState sample = selectSample(axisID);
     if (sample == null) {
       return false;
@@ -1140,6 +1172,7 @@ public class ImodManager {
 
   /**
    * Close the specifed sample reconstruction
+   * @deprecated
    */
   public void quitSample(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1151,12 +1184,12 @@ public class ImodManager {
   /**
    * Open the specified tomogram in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
   public void openFullVolume(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     if (useMap) {
-      //matching model and patch region model will not affect the
-      //default configuration of the fullVolume ImodAssistant.
+      reset(fullVolumeKey, axisID);
       open(fullVolumeKey, axisID);
       return;
     }
@@ -1172,8 +1205,9 @@ public class ImodManager {
   /**
    * Check to see if the specified tomogram is open
    * @param axisID the AxisID of the desired axis.
+   * @deprecated
    */
-  public boolean isFullVolumeOpen(AxisID axisID) {
+  public boolean isFullVolumeOpen(AxisID axisID) throws AxisTypeException {
     ImodState tomogram = selectFullVolume(axisID);
     if (tomogram == null) {
       return false;
@@ -1183,6 +1217,7 @@ public class ImodManager {
 
   /**
    * Close the specified tomogram
+   * @deprecated
    */
   public void quitFullVolume(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -1193,14 +1228,12 @@ public class ImodManager {
 
   /**
    * Open the patch vector in 3dmod if it is not already open
+   * @deprecated
    */
-  public void openPatchVectorModel() throws SystemProcessException {
-    if (useMap) {
-      open(patchVectorModelKey);
-      return;
-    }
+  public void openPatchVectorModel() throws AxisTypeException, SystemProcessException {
     //patchVectorModel.open();
     //patchVectorModel.modelMode();
+    patchVectorModel = get(patchVectorModelKey);
     patchVectorModel.setUseMode(true);
     patchVectorModel.setMode(ImodState.MODEL);
     patchVectorModel.open();
@@ -1208,8 +1241,9 @@ public class ImodManager {
 
   /**
    * Check to see if the patch vector model is open
+   * @deprecated
    */
-  public boolean ispatchVectorModelOpen() {
+  public boolean ispatchVectorModelOpen() throws AxisTypeException {
     if (useMap) {
       return isOpen(patchVectorModelKey);
     }
@@ -1218,8 +1252,9 @@ public class ImodManager {
 
   /**
    * Close the patch vector model
+   * @deprecated
    */
-  public void quitPatchVectorModel() throws SystemProcessException {
+  public void quitPatchVectorModel() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       quit(patchVectorModelKey);
       return;
@@ -1229,8 +1264,9 @@ public class ImodManager {
 
   /**
    * Open the combined tomogram in 3dmod if it is not already open
+   * @deprecated
    */
-  public void openCombinedTomogram() throws SystemProcessException {
+  public void openCombinedTomogram() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       open(combinedTomogramKey);
       return;
@@ -1240,8 +1276,9 @@ public class ImodManager {
 
   /**
    * Check to see if the combined tomogram is open
+   * @deprecated
    */
-  public boolean isCombinedTomogramOpen() {
+  public boolean isCombinedTomogramOpen() throws AxisTypeException {
     if (useMap) {
       return isOpen(combinedTomogramKey);
     }
@@ -1250,8 +1287,9 @@ public class ImodManager {
 
   /**
    * Close the combined tomogram
+   * @deprecated
    */
-  public void quitCombinedTomogram() throws SystemProcessException {
+  public void quitCombinedTomogram() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       quit(combinedTomogramKey);
       return;
@@ -1261,8 +1299,9 @@ public class ImodManager {
 
   /**
    * Open the matchcheck.mat in 3dmod if it is not already open
+   * @deprecated
    */
-  public void openMatchCheck() throws SystemProcessException {
+  public void openMatchCheck() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       open(matchCheckKey);
       return;
@@ -1272,8 +1311,9 @@ public class ImodManager {
 
   /**
    * Check to see if the matchcheck.mat is open
+   * @deprecated
    */
-  public boolean isMatchCheck() {
+  public boolean isMatchCheck() throws AxisTypeException {
     if (useMap) {
       return isOpen(matchCheckKey);
     }
@@ -1282,8 +1322,9 @@ public class ImodManager {
 
   /**
    * Close the matchcheck.mat tomogram
+   * @deprecated
    */
-  public void quitMatchCheck() throws SystemProcessException {
+  public void quitMatchCheck() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       quit(matchCheckKey);
       return;
@@ -1293,8 +1334,9 @@ public class ImodManager {
 
   /**
    * Open the trimmed volume in 3dmod if it is not already open
+   * @deprecated
    */
-  public void openTrimmedVolume() throws SystemProcessException {
+  public void openTrimmedVolume() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       open(trimmedVolumeKey);
       return;
@@ -1304,8 +1346,9 @@ public class ImodManager {
 
   /**
    * Check to see if the trimmed volume is open
+   * @deprecated
    */
-  public boolean isTrimmedVolume() {
+  public boolean isTrimmedVolume() throws AxisTypeException {
     if (useMap) {
       return isOpen(trimmedVolumeKey);
     }
@@ -1314,8 +1357,9 @@ public class ImodManager {
 
   /**
    * Close thetrimmed volume tomogram
+   * @deprecated
    */
-  public void quitTrimmedVolume() throws SystemProcessException {
+  public void quitTrimmedVolume() throws AxisTypeException, SystemProcessException {
     if (useMap) {
       quit(trimmedVolumeKey);
       return;
@@ -1336,7 +1380,7 @@ public class ImodManager {
   /**
    * Select the ImodProcess object indicated by the axisID
    */
-  private ImodState selectRawStack(AxisID axisID) {
+  private ImodState selectRawStack(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return rawStackB;
@@ -1348,7 +1392,7 @@ public class ImodManager {
 
   }
 
-  private ImodState selectErasedStack(AxisID axisID) {
+  private ImodState selectErasedStack(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return erasedStackB;
@@ -1359,7 +1403,7 @@ public class ImodManager {
       return get(erasedStackKey, axisID);
   }
 
-  private ImodState selectCoarseAligned(AxisID axisID) {
+  private ImodState selectCoarseAligned(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return coarseAlignedB;
@@ -1370,7 +1414,7 @@ public class ImodManager {
       return get(coarseAlignedKey, axisID);
   }
 
-  private ImodState selectFineAligned(AxisID axisID) {
+  private ImodState selectFineAligned(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return fineAlignedB;
@@ -1381,7 +1425,7 @@ public class ImodManager {
       return get(fineAlignedKey, axisID);
   }
 
-  private ImodState selectSample(AxisID axisID) {
+  private ImodState selectSample(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return sampleB;
@@ -1392,7 +1436,7 @@ public class ImodManager {
       return get(sampleKey, axisID);
   }
 
-  private ImodState selectFullVolume(AxisID axisID) {
+  private ImodState selectFullVolume(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return fullVolumeB;
@@ -1403,7 +1447,7 @@ public class ImodManager {
       return get(fullVolumeKey, axisID);
   }
 
-  private ImodState selectFiducialModel(AxisID axisID) {
+  private ImodState selectFiducialModel(AxisID axisID) throws AxisTypeException {
     if (!useMap) {
       if (axisID == AxisID.SECOND) {
         return fiducialModelB;
