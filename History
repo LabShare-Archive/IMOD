@@ -2,7 +2,7 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IMOD_2-7-2
 9/13/02: Fixed the way Imod was storing scale in the model header when header
-"grid" values are 1,1,1 instead of nx,ny,ny.  Beadtrack now works with this
+"grid" values are 1,1,1 instead of nx,ny,nz.  Beadtrack now works with this
 pattern of header values.  Also fixed the way scale was being reported from
 "clip info".
 
