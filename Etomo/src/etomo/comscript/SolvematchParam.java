@@ -17,6 +17,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/14 23:36:47  rickg
+ * <p> Bug #383  Initial revision
+ * <p>
  * <p> Revision 3.1  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p> </p>
@@ -153,7 +156,8 @@ public class SolvematchParam extends ConstSolvematchParam
     xAxistTilt = solvematchmod.getXAxistTilt();
     maximumResidual = solvematchmod.getResidualThreshold();
     surfacesOrModel = solvematchmod.getNSurfaces();
-    outputFile = solvematchmod.getOutputTransformationFile();
+    //  As per David force output file to be solve.xf
+    outputFile = "solvezero.xf";
     toMatchingModel = solvematchmod.getToMatchingModel();
     fromMatchingModel = solvematchmod.getFromMatchingModel();
     toTomogramOrSizeXYZ = solvematchmod.getToReconstructionFile();
