@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/10/05: IMOD_3-4-20
+2/10/05: Fixed bug in anisotropic diffusion for 64-bit machines and added
+appropriate includes to prevent other problems from implicit declarations.
+
+2/9/05: Fixed bug in anisotropic diffusion in 3dmod with non-square images.
+
+2/9/05: Fixed bug in Newstack in scaling blank images when changing mode.
+
 2/8/05: IMOD_3-4-19
 2/8/05: Added ability to rotate, stretch and scale contours as well as shift
 them in the Zap window, using same mouse buttons as in Midas.  This mode now
