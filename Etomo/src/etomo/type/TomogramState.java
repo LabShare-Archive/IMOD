@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/01/12 00:44:36  sueh
+* <p> bug# 579 Adding usedLocalAlignments.
+* <p>
 * <p> Revision 1.7  2005/01/10 23:54:23  sueh
 * <p> bug# 578 Switched member variables from EtomoBoolean to EtomoState.
 * <p> Added initialize(int) to initialize EtomoState variables to
@@ -63,9 +66,12 @@ public class TomogramState implements BaseState {
   
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
-  EtomoState madeZFactors = new EtomoState("MadeZFactors");
-  EtomoState newstFiducialessAlignment = new EtomoState("NewstFiducialessAlignment");
-  EtomoState usedLocalAlignments = new EtomoState("UsedLocalAlignments");
+  EtomoState madeZFactorsA = new EtomoState("MadeZFactorsA");
+  EtomoState madeZFactorsB = new EtomoState("MadeZFactorsB");
+  EtomoState newstFiducialessAlignmentA = new EtomoState("NewstFiducialessAlignmentA");
+  EtomoState newstFiducialessAlignmentB = new EtomoState("NewstFiducialessAlignmentB");
+  EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignmentsA");
+  EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignmentsB");
   
   public TomogramState() {
     reset();
@@ -74,17 +80,23 @@ public class TomogramState implements BaseState {
   private void reset() {
     trimvolFlipped.reset();
     squeezevolFlipped.reset();
-    madeZFactors.reset();
-    newstFiducialessAlignment.reset();
-    usedLocalAlignments.reset();
+    madeZFactorsA.reset();
+    madeZFactorsB.reset();
+    newstFiducialessAlignmentA.reset();
+    newstFiducialessAlignmentB.reset();
+    usedLocalAlignmentsA.reset();
+    usedLocalAlignmentsB.reset();
   }
   
   public void initialize(int value) {
     trimvolFlipped.set(value);
     squeezevolFlipped.set(value);
-    madeZFactors.set(value);
-    newstFiducialessAlignment.set(value);
-    usedLocalAlignments.set(value);
+    madeZFactorsA.set(value);
+    madeZFactorsB.set(value);
+    newstFiducialessAlignmentA.set(value);
+    newstFiducialessAlignmentB.set(value);
+    usedLocalAlignmentsA.set(value);
+    usedLocalAlignmentsB.set(value);
   }
   
   public void store(Properties props) {
@@ -96,9 +108,12 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.store(props, prepend);
     squeezevolFlipped.store(props, prepend);
-    madeZFactors.store(props, prepend);
-    newstFiducialessAlignment.store(props, prepend);
-    usedLocalAlignments.store(props, prepend);
+    madeZFactorsA.store(props, prepend);
+    madeZFactorsB.store(props, prepend);
+    newstFiducialessAlignmentA.store(props, prepend);
+    newstFiducialessAlignmentB.store(props, prepend);
+    usedLocalAlignmentsA.store(props, prepend);
+    usedLocalAlignmentsB.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -108,13 +123,22 @@ public class TomogramState implements BaseState {
     if (!squeezevolFlipped.equals(that.squeezevolFlipped)) {
       return false;
     }
-    if (!madeZFactors.equals(that.madeZFactors)) {
+    if (!madeZFactorsA.equals(that.madeZFactorsA)) {
       return false;
     }
-    if (!newstFiducialessAlignment.equals(that.newstFiducialessAlignment)) {
+    if (!madeZFactorsB.equals(that.madeZFactorsB)) {
       return false;
     }
-    if (!usedLocalAlignments.equals(that.usedLocalAlignments)) {
+    if (!newstFiducialessAlignmentA.equals(that.newstFiducialessAlignmentA)) {
+      return false;
+    }
+    if (!newstFiducialessAlignmentB.equals(that.newstFiducialessAlignmentB)) {
+      return false;
+    }
+    if (!usedLocalAlignmentsA.equals(that.usedLocalAlignmentsA)) {
+      return false;
+    }
+    if (!usedLocalAlignmentsB.equals(that.usedLocalAlignmentsB)) {
       return false;
     }
     return true;
@@ -137,9 +161,12 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.load(props, prepend);
     squeezevolFlipped.load(props, prepend);
-    madeZFactors.load(props, prepend);
-    newstFiducialessAlignment.load(props, prepend);
-    usedLocalAlignments.load(props, prepend);
+    madeZFactorsA.load(props, prepend);
+    madeZFactorsB.load(props, prepend);
+    newstFiducialessAlignmentA.load(props, prepend);
+    newstFiducialessAlignmentB.load(props, prepend);
+    usedLocalAlignmentsA.load(props, prepend);
+    usedLocalAlignmentsB.load(props, prepend);
   }
   
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
@@ -150,16 +177,25 @@ public class TomogramState implements BaseState {
     return this.squeezevolFlipped.set(squeezevolFlipped);
   }
   
-  public ConstEtomoNumber setMadeZFactors(boolean madeZFactors) {
-    return this.madeZFactors.set(madeZFactors);
+  public ConstEtomoNumber setMadeZFactors(AxisID axisID, boolean madeZFactors) {
+    if (axisID == AxisID.SECOND) {
+      return this.madeZFactorsB.set(madeZFactors);
+    }
+    return this.madeZFactorsA.set(madeZFactors);
   }
   
-  public ConstEtomoNumber setNewstFiducialessAlignment(boolean newstFiducialessAlignment) {
-    return this.newstFiducialessAlignment.set(newstFiducialessAlignment);
+  public ConstEtomoNumber setNewstFiducialessAlignment(AxisID axisID, boolean newstFiducialessAlignment) {
+    if (axisID == AxisID.SECOND) {
+      return this.newstFiducialessAlignmentB.set(newstFiducialessAlignment);
+    }
+    return this.newstFiducialessAlignmentA.set(newstFiducialessAlignment);
   }
   
-  public ConstEtomoNumber setUsedLocalAlignments(boolean usedLocalAlignments) {
-    return this.usedLocalAlignments.set(usedLocalAlignments);
+  public ConstEtomoNumber setUsedLocalAlignments(AxisID axisID, boolean usedLocalAlignments) {
+    if (axisID == AxisID.SECOND) {
+      return this.usedLocalAlignmentsB.set(usedLocalAlignments);
+    }
+    return this.usedLocalAlignmentsA.set(usedLocalAlignments);
   }
   
   public ConstEtomoNumber getTrimvolFlipped() {
@@ -170,16 +206,25 @@ public class TomogramState implements BaseState {
     return squeezevolFlipped;
   }
   
-  public ConstEtomoNumber getMadeZFactors() {
-    return madeZFactors;
+  public ConstEtomoNumber getMadeZFactors(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return madeZFactorsB;
+    }
+    return madeZFactorsA;
   }
   
-  public ConstEtomoNumber getNewstFiducialessAlignment() {
-    return newstFiducialessAlignment;
+  public ConstEtomoNumber getNewstFiducialessAlignment(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return newstFiducialessAlignmentB;
+    }
+    return newstFiducialessAlignmentA;
   }
   
-  public ConstEtomoNumber getUsedLocalAlignments() {
-    return usedLocalAlignments;
+  public ConstEtomoNumber getUsedLocalAlignments(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return usedLocalAlignmentsB;
+    }
+    return usedLocalAlignmentsA;
   }
   
   /**
