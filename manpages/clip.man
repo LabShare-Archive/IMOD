@@ -202,7 +202,10 @@ Specifies type of edge stopping function for diffusion: 1 for exponential
 function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 .TP
 .B -n <value>
-Input number. Use depends on process.
+Input number. Use depends on process: threshold for averaging, scaling factor
+for brightness/contrast/shadow, padding for correlations,
+iterations for anisotropic diffusion, size for
+median filter.
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -225,7 +228,9 @@ results by the number of input files.  All input images
 must be the same size.
 (Standard options for input and output size not implemented.)
 Average 2d version: Averages slices from the input file together, use
-the -n option to set a threshold such that pixels below threshold are not
+the
+.B -n
+option to set a threshold such that pixels below threshold are not
 included in the average.  Standard options are available.
 .TP
 .B brightness 
@@ -280,16 +285,20 @@ are fourier transforms, the output file will be a fourier
 transform.  
 2d correlation takes 1 or 2 slices for input and does an
 auto or cross correlation respectively.
-Select the slices with the -iz option.  Input files in this case may
+Select the slices with the 
+.B -iz 
+option.  Input files in this case may
 not be fourier transforms.  All other input types are automatically
 padded, fft transformed, correlated and inverse fft transformed.
 One or two input files can be given
 and one output file needs to be given.
 Input is automatically padded with the mean value
-unless the option -p option is given to change the pad value.
-The -n option selects the type of padding. 
-'-n 0' selects no padding 
-'-n 1' selects padding with mean value. (default)
+unless the option
+.B -p
+option is given to change the pad value. The 
+.B -n
+option selects the type of padding: '-n 0' selects no padding; '-n 1' 
+selects padding with mean value. (default)
 Float is the only output mode supported.
 Input sizes must fit fft dimensions.
 .TP
@@ -366,7 +375,7 @@ filters seem to be the most useful.
 .B info
 Print information about an image.
 All header information in the mrc file is printed to 
-standard output.  If the file isn't an mrc file the 
+standard output.  If the file is not an mrc file the 
 information is still printed with a warning that the
 file is not an mrc file.
 .TP
