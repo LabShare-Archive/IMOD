@@ -1,6 +1,6 @@
-5,5	number of local patches to solve for in X and Y
-500,500	minimum size of patches
-8,3	minimum fiducials total and on one surface if two surfaces
+5,5	NUMBER OF LOCAL PATCHES TO SOLVE FOR IN X AND Y
+500,500	MINIMUM SIZE OF PATCHES
+8,3	MINIMUM FIDUCIALS TOTAL AND ON ONE SURFACE IF TWO SURFACES
 1	1 to fix XYZ coords at global values, 0 to solve for them also
 1,0,1	1 for output of variables, XYZ coordinates, and residuals each time
 

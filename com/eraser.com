@@ -1,10 +1,10 @@
-$! THIS IS A COMMAND FILE TO RUN CCDERASER
-$!
-$! First three lines are:
-$! Input image file
-$! Output file, or blank line to rewrite into input file
-$! Model file specifying points and lines to erase
-$!
+# THIS IS A COMMAND FILE TO RUN CCDERASER
+#
+# First three lines are:
+# Input image file
+# Output file, or blank line to rewrite into input file
+# Model file specifying points and lines to erase
+#
 $ccderaser
 g5a.st
 

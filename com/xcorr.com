@@ -1,14 +1,14 @@
-$!
-$! TO RUN TILTXCORR
-$!
-$!  The first three lines are:
-$!     Input image file
-$!     Piece list for reordering Z values, or blank if none
-$!     Output file for f transforms
-$!
-$! Be sure to set the tilt angles, the tilt axis rotation, and whether to
-$! exclude a central peak due to fixed pattern noise.
-$!
+#
+# TO RUN TILTXCORR
+#
+#  The first three lines are:
+#     Input image file
+#     Piece list for reordering Z values, or blank if none
+#     Output file for f transforms
+#
+# Be sure to set the tilt angles, the tilt axis rotation, and whether to
+# exclude a central peak due to fixed pattern noise.
+#
 $tiltxcorr 
 g5a.st
 
@@ -18,10 +18,10 @@ g5a.prexf
 0	rotation angle from vertical to tilt axis
 .02,.05,0,.25	filter parameters Sigma1, Sigma2, Radius1, Radius2
 0	1 to exclude central peak due to fixed pattern noise, 0 not to
-$!
-$! YOU'LL ONLY HAVE TO FIDDLE WITH THE PARAMETERS BELOW IF SOMETHING
-$! DOESN'T WORK WELL WITH THE DEFAULTS
-$!
+#
+# YOU'LL ONLY HAVE TO FIDDLE WITH THE PARAMETERS BELOW IF SOMETHING
+# DOESN'T WORK WELL WITH THE DEFAULTS
+#
 /	Amounts to trim each edge in X and Y (/ for none)
 /	Amounts to pad each edge in X and Y (/ for 5% of size up to 20,20)
 /	Distance over which to taper image in X and Y (/ for 10% up to 100,100)

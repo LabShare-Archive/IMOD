@@ -1,9 +1,9 @@
-$! Command file for running BEADTRACK
-$! First 4 lines:
-$!   Image file
-$!   Piece list name if montage (or scrambled Z), blank line if not
-$!   Name of input model with seed objects
-$!   Name of output model
+# Command file for running BEADTRACK
+# First 4 lines:
+#   Image file
+#   Piece list name if montage (or scrambled Z), blank line if not
+#   Name of input model with seed objects
+#   Name of output model
 $beadtrack
 g5a.st
 g5a.pl
@@ -20,9 +20,9 @@ g5a.fid
 5,0	radius of beads for center of gravity, 0 for dark beads 
 1	to fill in existing gaps in seed model
 5	maximum gap to create
-$!
-$! CONTROL PARAMETER FOR EXPERTS, EXPERIMENTATION, OR SPECIAL CASES
-$!
+#
+# CONTROL PARAMETER FOR EXPERTS, EXPERIMENTATION, OR SPECIAL CASES
+#
 10,20	minimum range of tilt angles for finding axis and for finding tilts
 32,32	box size
 4	maximum beads to average
