@@ -17,6 +17,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3.2.1  2003/01/24 18:37:54  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -137,7 +140,7 @@ public class ConstMetaData {
     return invalidReason;
   }
 
-  public ConstCombineParams getCombineParams() {
+  public ConstCombineParams getConstCombineParams() {
     return combineParams;
   }
 

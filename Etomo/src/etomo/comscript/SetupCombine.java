@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.7  2003/01/06 05:51:23  rickg
  * <p> Corrected fiducial list order, it was backwards
  * <p>
@@ -54,7 +57,7 @@ public class SetupCombine {
   public SetupCombine(ConstMetaData metaData) {
 
     this.metaData = metaData;
-    ConstCombineParams combineParams = metaData.getCombineParams();
+    ConstCombineParams combineParams = metaData.getConstCombineParams();
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
