@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/01/27 18:07:05  rickg
+ * <p> Unset debug mode for tests, too much cruft
+ * <p>
  * <p> Revision 3.3  2004/01/16 20:41:22  rickg
  * <p> Open up the application manager in test mode
  * <p>
@@ -86,23 +89,27 @@ public class MRCHeaderTest extends TestCase {
     // Set the working directory to the current test directory
     String originalDirectory = System.getProperty("user.dir");
     System.setProperty("user.dir", testRoot);
-    // Check out the test header stack into the required directories
-    String[] cvsCommand = new String[5];
-    cvsCommand[0] = "cvs";
-    cvsCommand[1] = "co";
-    cvsCommand[2] = "-d";
-    cvsCommand[3] = testDirectory1;
-		cvsCommand[4] = "ImodTests/EtomoTests/vectors/headerTest.st";
-		SystemProgram cvs = new SystemProgram(cvsCommand);
-		cvs.run();
 
-	  cvsCommand[3] = testDirectory2;
-		cvs = new SystemProgram(cvsCommand);
-		cvs.run();
+    // Check out the test header stack into the required directories
+    String[] cvsCommand = new String[7];
+    cvsCommand[0] = "cvs";
+    cvsCommand[1] = "export";
+    cvsCommand[2] = "-D";
+    cvsCommand[3] = "today";    
+    cvsCommand[4] = "-d";
+    cvsCommand[5] = testDirectory1;
+    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
+    SystemProgram cvs = new SystemProgram(cvsCommand);
+    cvs.setDebug(true);
+    cvs.run();
+
+    cvsCommand[5] = testDirectory2;
+    cvs = new SystemProgram(cvsCommand);
+    cvs.run();
 		
-		//  Switch back to the original working directory
-		System.setProperty("user.dir", originalDirectory);
-    }
+    //  Switch back to the original working directory
+    System.setProperty("user.dir", originalDirectory);
+  }
 
   /**
    * @see TestCase#tearDown()
