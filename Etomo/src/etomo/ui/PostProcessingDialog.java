@@ -27,6 +27,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/12/16 02:33:05  sueh
+ * <p> bug# 564 Taking whether trimvol output and squeezevol output are flipped
+ * <p> or not when getting and setting Squeezevol parameters.
+ * <p>
  * <p> Revision 3.6  2004/12/14 21:50:57  sueh
  * <p> bug# 557 Made separate variables for x and y reduction factors to handle
  * <p> an unflipped tomogram.
@@ -208,7 +212,7 @@ public class PostProcessingDialog
     TomogramState state = applicationManager.getState();
     ConstEtomoBoolean stateFlipped = state.getTrimvolFlipped();
     if (stateFlipped.isNull()) {
-      return state.getTrimvolFlippedFromHeader();
+      return state.getBackwordCompatibleTrimvolFlipped();
     }
     else {
       return stateFlipped.is();
