@@ -20,6 +20,11 @@ else
     setenv PATH `/usr/bin/cygpath $IMOD_DIR`/bin
 endif
 
+# Specify the location of plugins if any
+#
+if (! $?IMOD_PLUGIN_DIR) setenv IMOD_PLUGIN_DIR $IMOD_DIR\\lib\\imodplug
+
+
 # Set a variable with the location of calibration/data files, in Windows format
 #
 if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR C:\\cygwin\\usr\\local\\ImodCalib

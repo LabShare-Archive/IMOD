@@ -17,6 +17,10 @@ export IMOD_DIR=${IMOD_DIR:=C:\\cygwin\\usr\\local\\IMOD}
 #
 export PATH=`cygpath $IMOD_DIR`/bin:$PATH
 
+# Specify the location of plugins if any
+#
+export IMOD_PLUGIN_DIR=${IMOD_PLUGIN_DIR:=$IMOD_DIR\\lib\\imodplug}
+
 # Set a variable with the location of calibration/data files, in Windows format
 #
 export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=C:\\cygwin\\usr\\local\\ImodCalib}
