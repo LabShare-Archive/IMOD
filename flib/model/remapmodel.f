@@ -43,6 +43,14 @@ c	  David Mastronarde  5/8/89
 c	  DNM 7/20/89  changes for new model format
 c	  DNM 2/20/90  changes to negate Z and reorder by Z
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (limsec=1000)
 	integer*4 listz(limsec),newlist(limsec),indxzlst(50*limsec)
 	include 'model.inc'
@@ -50,6 +58,11 @@ c
 c
 	character*80 modelfile,newmodel
 	logical exist,readw_or_imod
+c	  
+	integer*4 ninzlis,iobj,indobj,ipnt,nlistz,i,nnew
+	integer*4 ifreorder,ninobj,ibase,izval,newzval,indmov,itmp
+	integer*4 lastkeep,idir,idirfirst,inorder
+	real*4 xadd,yadd,zadd
 c
 91	write(*,'(1x,a,$)')'Name of input model file: '
 	read(*,'(a)')modelfile
@@ -110,16 +123,35 @@ c
      &	    'Amounts to ADD to ALL X, Y and Z coordinates: '
 	read(*,*)xadd,yadd,zadd
 c
-c	  see if there are any Z's out of order: add up +1 or -1 for each
-c	  difference between successive Z's
+c	  see if there are any Z's out of order: find direction between
+c	  first retained Z's and make sure all other intervals match
 c	  
-	idiffsum=0
-	do i=2,nlistz
-	  idiffsum=idiffsum+sign(1,newlist(i)-newlist(i-1))
+	inorder=1
+	idirfirst=0
+	lastkeep=0
+	do i=1,nlistz
+	  if(newlist(i).lt.-999.or.newlist(i).gt.-990)then
+c	      
+c	      if this is a retained Z and there is a previous one
+c	      get the sign of the interval
+c
+	    if(lastkeep.gt.0)then
+	      idir=sign(1,newlist(i)-newlist(lastkeep))
+c		
+c		store the sign the first time, compare after that
+c
+	      if(idirfirst.eq.0)then
+		idirfirst=idir
+	      elseif(idir.ne.idirfirst)then
+		inorder=0
+	      endif
+	    endif
+	    lastkeep=i
+	  endif
 	enddo
 c
 	ifreorder=0
-	if(idiffsum+1.lt.nlistz)then
+	if(inorder.eq.0)then
 	  write(*,'(1x,a,/,a,/,a,$)')'Your new Z''s are not in'//
      &	      ' monotonically increasing order.',
      &	      ' Enter 1 or -1 to reorder points in each object'//
@@ -153,7 +185,7 @@ c
 		indobj=indobj+1
 	      else
 c		  
-c		  of delete point by moving rest of pointers in object down
+c		  or delete point by moving rest of pointers in object down
 c
 		ninobj=ninobj-1
 		do indmov=indobj,ninobj
