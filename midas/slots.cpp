@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:49:57  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/26 23:20:33  mast
 using new library
 
@@ -540,8 +543,8 @@ void MidasSlots::control_help()
      "blue dashed line.\n"
      "\tRotation, magnification, and stretch will occur around the "
      "center of rotation, which is marked by the yellow star.  You can "
-     "use Ctrl-Middle-Mouse-Button to move this center to a point that "
-     "you want to keep fixed during further changes of the "
+     "use "CTRL_STRING"-Middle-Mouse-Button to move this center to a point "
+     "that you want to keep fixed during further changes of the "
      "transformation.\n"
      "\nFile Menu Items:\n",
      "\tLoad Transforms: will load transforms from a file.  If the set "
@@ -692,13 +695,13 @@ void MidasSlots::mouse_help()
      "mouse radially away from or toward the center of rotation.  "
      "The current section will expand or shrink by a corresponding "
      "amount relative to the reference section.\n\n"
-     "Ctrl - Left Button: Shift zoomed-up image in window.\n"
+     CTRL_STRING" - Left Button: Shift zoomed-up image in window.\n"
      "\tWhen the whole image does not fit in the window, press and hold "
-     "the Ctrl key, press and hold the mouse button, and move the "
+     "the "CTRL_STRING" key, press and hold the mouse button, and move the "
      "mouse to drag the image to the desired position in the window.\n\n"
-     "Ctrl - Middle Button: Move the center of rotation and stretch.\n"
+     CTRL_STRING" - Middle Button: Move the center of rotation and stretch.\n"
      "\tPosition the mouse at the desired center of rotation, press and "
-     "hold the Ctrl key, and click the mouse button to specify "
+     "hold the "CTRL_STRING" key, and click the mouse button to specify "
      "the new position."
      "\n\n",
      NULL);
@@ -1451,6 +1454,10 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   int bwinc = 3;
   int coninc = (bwinc + 1) / 2;
   int keysym = event->key();
+  int keypad = event->state() & Keypad;
+
+  convertNumLock(keysym, keypad);
+
   switch(keysym) {
 
   case Key_Minus:
@@ -1463,7 +1470,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
 
     // No separate keypad keys in QT; they are a state flag
   case Key_Left:
-    if (event->state() & Keypad) {
+    if (keypad) {
       VW->xtrans -= transtep;
       VW->midasGL->draw();
     } else
@@ -1471,7 +1478,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Key_Right:
-    if (event->state() & Keypad) {
+    if (keypad) {
       VW->xtrans += transtep;
       VW->midasGL->draw();
     } else
@@ -1479,7 +1486,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Key_Down:
-    if (event->state() & Keypad) {
+    if (keypad) {
       VW->ytrans -= transtep;
       VW->midasGL->draw();
     } else
@@ -1487,7 +1494,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Key_Up:
-    if (event->state() & Keypad) {
+    if (keypad) {
       VW->ytrans += transtep;
       VW->midasGL->draw();
     } else
@@ -1549,6 +1556,9 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     show_cur();
     break;
 
+#ifdef Q_OS_MACX
+  case Qt::Key_Help:
+#endif
   case Key_Insert:
     show_overlay();
     break;
@@ -1774,3 +1784,29 @@ void MidasSlots::backup_current_mat()
   VW->backup_edgedy = VW->edgedy[VW->edgeind * 2 + VW->xory];
 }
 
+/* Convert numeric keypad keys that come through as numbers because NumLock is
+   on to the named keys */
+/* But also turn off keypad on Mac if they are arrow keys */
+static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End, 
+                             Qt::Key_Down, Qt::Key_Next, Qt::Key_Left,
+                             Qt::Key_Right, Qt::Key_Home, Qt::Key_Up,
+                             Qt::Key_Prior};
+static int numLockKeys[10] = {Qt::Key_Period, Qt::Key_0, Qt::Key_1, Qt::Key_2,
+                              Qt::Key_3, Qt::Key_4,
+                              Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9};
+void MidasSlots::convertNumLock(int &keysym, int &keypad)
+{
+  if (!keypad)
+    return;
+  for (int i = 0; i < 10; i++)
+    if (keysym == numLockKeys[i]) {
+      keysym = keypadKeys[i];
+      return;
+    }
+#ifdef Q_OS_MACX
+  if (keysym == Qt::Key_Left || keysym == Qt::Key_Right || 
+      keysym == Qt::Key_Up || keysym == Qt::Key_Down)
+    keypad = 0;
+#endif
+  return;
+}
