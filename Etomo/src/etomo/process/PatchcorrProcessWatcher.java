@@ -13,7 +13,11 @@ package etomo.process;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/03/22 23:45:55  sueh
+ * <p> $bug# 83 process watcher for patchcorr.  Watches patch.out.  Nsections is set to
+ * <p> $the total number of positions.
+ * <p> $$ </p>
  */
 
 import java.io.IOException;
@@ -38,6 +42,11 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
    */
   protected void initializeProgressBar() {
+    if (nSections == Integer.MIN_VALUE) {
+      applicationManager.setProgressBar("Combine: patchcorr", 1, axisID);
+      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      return;
+    }
     applicationManager.setProgressBar(
       "Combine: patchcorr",
       nSections,
