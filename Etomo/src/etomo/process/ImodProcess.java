@@ -20,6 +20,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/26 17:05:05  sueh
+ * <p> bug# 320 Commented out code - no functional change.
+ * <p> Experimenting with a fix for this bug.
+ * <p>
  * <p> Revision 3.5  2004/04/22 23:26:11  rickg
  * <p> Switched getIMODBinPath method
  * <p>
@@ -147,7 +151,6 @@ public class ImodProcess {
   private boolean useModv = false;
   private boolean outputWindowID = true;
   private File workingDirectory = null;
-  //long datasetLastModfied = Long.MIN_VALUE;
 
   private Thread imodThread;
 
@@ -185,7 +188,6 @@ public class ImodProcess {
    */
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
-    //datasetLastModfied = Long.MIN_VALUE;
   }
 
   /**
@@ -206,11 +208,6 @@ public class ImodProcess {
    */
   public void open() throws SystemProcessException {
     if (isRunning()) {
-      //File dataset = new File(workingDirectory, datasetName);
-      //if (datasetLastModfied != dataset.lastModified()) {
-        //raise3dmod();
-        //return;
-      //}
       raise3dmod();
       return;
     }
@@ -249,8 +246,6 @@ public class ImodProcess {
 
     //  Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
-    //File dataset = new File(workingDirectory, datasetName);
-    //datasetLastModfied = dataset.lastModified();
     imodThread.start();
 
     //  Check the stderr of the 3dmod process for the windowID and the
