@@ -28,7 +28,20 @@ import etomo.util.Utilities;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:59:11  sueh
+ * <p> $bug# 508 Watches combine.com.  Runs monitors for child .com
+ * <p> $processes that have monitors.  For other child .com processes, starts
+ * <p> $a progress bar and displays the process name.  Uses the combine.log
+ * <p> $file to figure out when child process is running.  Uses
+ * <p> $CombineComscriptState to figure out which child .com processes are
+ * <p> $valid.  Also uses CombineComscriptState to know which dialog pane
+ * <p> $to tell ApplicationManager to set.  Does not inherit
+ * <p> $LogFileProcessMonitor.  Figures out when the process ends by
+ * <p> $watching the combine.log or by setKill() being called by another object.
+ * <p> $Provides information to other objects about the status of the combine
+ * <p> $process.
+ * <p> $$ </p>
  */
 public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor {
   public static final String rcsid = "$$Id$$";
@@ -127,15 +140,20 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private void getCurrentSection()
     throws NumberFormatException, IOException {
     String line;
+    String matchString = combineComscriptState.getComscriptMatchString();
     while ((line = logFileReader.readLine()) != null) {
       int index = -1;
-      if ((index = line.indexOf("running ")) != -1
-        || (index = line.indexOf("Running ")) != -1) {
-        String[] fields = line.substring(index).split("\\s+");
-        if (fields.length > 1) {
-          String comscriptName = fields[1];
-          setCurrentChildCommand(comscriptName);
-          runCurrentChildMonitor();
+      System.out.println("line=" + line);
+      if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1) &&
+          line.matches(matchString)) {
+        String[] fields = line.split("\\s+");
+        for (int i = 0; i < fields.length; i++) {
+          System.out.println("fields[i]=" + fields[i]);
+          if (fields[i].matches(matchString)) {
+            String comscriptName = fields[i];
+            setCurrentChildCommand(comscriptName);
+            runCurrentChildMonitor();
+          }          
         }
       }
       else if (line.startsWith("ERROR:")) {
@@ -157,6 +175,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    * @param comscriptName
    */
   private void setCurrentChildCommand(String comscriptName) {
+    System.out.println("comscriptName=" + comscriptName);
     String childCommandName =
       comscriptName.substring(0, comscriptName.indexOf(".com"));
     applicationManager.progressBarDone(axisID);
