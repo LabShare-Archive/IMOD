@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/04: Fixed problem causing crashes when opening 3dmod with no image, possibly
+caused by reorganizations on 1/9/04.
+
 3/22/04: IMOD_3-2-8
 3/21/04: Added magnification gradient correction to Newstack and Xfmodel.
 Added a program, Extractmagrad, to extract intensity information from the
@@ -18,7 +21,8 @@ to Copytomocoms, ability to specify a distortion field and apply it when
 generating prealigned and aligned stack, an option for binning the prealigned
 stack, entries for new options to Tiltxcorr for using subareas and doing 
 cumulative correlations, a button for rerunning Beadtrack with the fiducial
-model as a seed.
+model as a seed.  Also fixed problem with two matchorwarp command lines being
+issued to matchorwarp.com when using a temporary directory.
 
 3/12/04: Fixed problem in tumbler window with Z size changes coming from Y 
 value instead.
