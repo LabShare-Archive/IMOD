@@ -16,6 +16,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/12 23:28:13  rickg
+ * <p> removed -f from tcsh executation (allows for user modifications to be
+ * <p> used within etomo execution)
+ * <p>
  * <p> Revision 2.3  2003/05/12 01:21:33  rickg
  * <p> Added explici tcsh call to copytomocoms
  * <p>
@@ -229,7 +233,7 @@ public class RunComScript extends Thread {
    */
   private void execCsh(String[] commands)
     throws IOException, SystemProcessException {
-    csh = new SystemProgram("tcsh -e");
+    csh = new SystemProgram("tcsh -ef");
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
