@@ -144,9 +144,13 @@ void imodv_close(void);
 void imodv_new_model(Imod *mod);
 int  imodv_main(int argc, char **argv, int styleSet);
 void imodvSetCaption();
+void imodvDrawImodImages();
 
 /*
 $Log$
+Revision 3.5  2003/02/27 23:11:24  mast
+Changes for using Qt timing functions
+
 Revision 3.4  2003/02/10 20:41:55  mast
 Merge Qt source
 
