@@ -30,6 +30,9 @@ import etomo.ApplicationManager;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.2  2003/10/17 22:27:24  sueh
+* <p> Bug317 selected, disabled text is now visible
+* <p>
 * <p> Revision 1.1  2003/10/17 01:56:50  sueh
 * <p> Bug317 added new class - multiline button that disables correctly
 * <p> </p>
@@ -172,10 +175,8 @@ public class MultiLineToggleButton extends JToggleButton {
     else if (property == DISABLED_SELECTED_TEXT_COLOR_PROPERTY) {
       return new ColorUIResource(102,102,102);
     }
-    //This should never happen
     else {
-      assert(property == ENABLED_UNSELECTED_TEXT_COLOR_PROPERTY);
-      return new ColorUIResource(0,0,0); 
+      throw new IllegalArgumentException(property);
     }
   }
     
