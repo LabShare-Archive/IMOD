@@ -1,10 +1,18 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
 	subroutine solve_wo_outliers(xr,ndat,ncol,maxdrop,critprob,
      &	    critabs, elimmin, idrop,ndrop,a,dxyz,cenloc,devavg,devsd,
      &	    devmax, ipntmax, devxyzmax)
 	implicit none
         include 'statsize.inc'
 	integer maxerr
-	parameter (maxerr = 1000)
+	parameter (maxerr = 10000)
 	integer*4 idrop(*)
         real*4 xr(msiz,*)
         real*4 a(3,*),dxyz(3),devxyz(3),devxyzmax(3),cenloc(3),centmp(3)
