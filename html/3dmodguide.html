@@ -4,7 +4,7 @@
   <title>3dmod Introduction</title>
 </head>
 <body>
-<h2 align="center">Introduction to 3dmod, Version 3.3.4<br>
+<h2 align="center">Introduction to 3dmod, Version 3.5.2<br>
 </h2>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
@@ -12,20 +12,20 @@ Cells</h3>
 <h3>Table of Contents</h3>
 <ul>
   <br>
-  <a href="#Model Organization">Model Organization</a> <br>
-  <a href="#Starting 3dmod"> Starting 3dmod</a> <br>
-  <a href="#Information Window">The Information Window</a> <br>
-  <a href="#Zap Window">The Zap Window</a> <br>
-  <a href="#Object Edit">The Object Edit Dialog</a> <br>
-  <a href="#Modeling in Zap">Modeling in the Zap Window</a> <br>
-  <a href="#Zap Toolbar">The Zap Toolbar</a> <br>
-  <a href="#Common Hot Keys">Most Frequently Used Hot Keys</a> <br>
-  <a href="#XYZ Window">The XYZ Window</a> <br>
-  <a href="#Slicer Window">The Slicer Window</a> <br>
-  <a href="#Setting Z-scale">Setting Z-scale and Pixel Size</a> <br>
-  <a href="#Viewing Model">Viewing the Model in 3D</a> <br>
-  <a href="#Skinning Model">Putting a skin on model data</a> <br>
-  <a href="#Advanced Topics">Advanced topics</a>
+  <a href="#Model%20Organization">Model Organization</a> <br>
+  <a href="#Starting%203dmod"> Starting 3dmod</a> <br>
+  <a href="#Information%20Window">The Information Window</a> <br>
+  <a href="#Zap%20Window">The Zap Window</a> <br>
+  <a href="#Object%20Edit">The Object Edit Dialog</a> <br>
+  <a href="#Modeling%20in%20Zap">Modeling in the Zap Window</a> <br>
+  <a href="#Zap%20Toolbar">The Zap Toolbar</a> <br>
+  <a href="#Common%20Hot%20Keys">Most Frequently Used Hot Keys</a> <br>
+  <a href="#XYZ%20Window">The XYZ Window</a> <br>
+  <a href="#Slicer%20Window">The Slicer Window</a> <br>
+  <a href="#Setting%20Z-scale">Setting Z-scale and Pixel Size</a> <br>
+  <a href="#Viewing%20Model">Viewing the Model in 3D</a> <br>
+  <a href="#Skinning%20Model">Putting a skin on model data</a> <br>
+  <a href="#Advanced%20Topics">Advanced topics</a>
 </ul>
 <hr>
 <a name="Model Organization"> <dd>
@@ -187,7 +187,8 @@ the name of the current model file shown on the right. The peg
 button allows you to keep the Info Window on top of windows from all
 other programs. The raise button (two up arrows) will bring all of
 the windows of the current 3dmod above windows from other programs.
-The buttons with the curved arrows will undo or redo changes to the model.
+The buttons with the curved arrows will undo or redo changes to the
+model.
 The "Show point" button will be explained in a moment.
 </p>
 <p>Below these buttons are a set of controls called spin boxes, which
@@ -244,7 +245,8 @@ continuously updated until you release the button. In other words,
 these sliders are continuously active, or "hot". Sometimes the program
 will not perform well when a slider is continuously active, such as
 with very large images or models. You can keep a slider from being
-hot by holding down the C<!>trl key (Apple key on the Macintosh). When
+hot by holding down the C<!---->trl key (Apple key on the Macintosh).
+When
 you do this, the numeric value will be continuously displayed but the
 image will not be updated until you release the slider.
 </p>
@@ -528,7 +530,12 @@ information there about the image and window size. </li>
   <li>Finally, there is a Help button to open a window with help for
 all
 features of the Zap window. Almost all image windows and dialog boxes
-have a Help button to provide window-specific information. </li>
+have a Help button to provide window-specific information.&nbsp; The
+help system is being converted to a set of html files that are
+browseable.&nbsp; Here is the <a href="3dmodHelp/zap.html">help page</a>
+for the Zap window, and here is an <a href="3dmodHelp/index.html">index</a>
+to the pages available so far.<br>
+  </li>
 </ul>
 <p>
 <a name="Common Hot Keys"><dd>
@@ -681,7 +688,7 @@ because these values are used for calculating length, surface area
 or volume from object, contour or mesh data.
 To adjust these fields in the model header
 select the Model Header menu item from the Edit menu in the
-3dmod <a href="#Information Window">Information Window</a>.
+3dmod <a href="#Information%20Window">Information Window</a>.
 </p>
 <p>The Z-Scale is the ratio of the thickness between successive images
 to the pixel size. Its two most common uses are to adjust for
@@ -964,7 +971,8 @@ next contour. </li>
 between
 sessions
 of 3dmod, such as the assignment of
-the three mouse buttons. Use the Edit-Options menu entry to open the
+the three mouse buttons and the type of file that will be snapshot with
+Shift-S. Use the Edit-Options menu entry to open the
 3dmod Preferences dialog box. </li>
   <li><b>Automated modeling.</b> There are two facilities for automated
 modeling.
@@ -995,9 +1003,12 @@ window
 with a hot key, you can open two dialog boxes that will help you
 collect a series of snapshots for making movies. The Edit-Movies
 entry in the menu of the 3dmod Info Window opens a box for capturing
-movies from the Zap window, and the File-Movies entry in the menu of
+movies from the Zap window; here is the <a
+ href="3dmodHelp/imageMovie.html">help page</a>.&nbsp; The File-Movies
+entry in the menu of
 the Model View Window opens a box for making movies of the model
-view.&nbsp; The latter also has an option for capturing a very high
+view; here is that <a href="3dmodHelp/modelMovie.html">help page</a>.&nbsp;
+The latter also has an option for capturing a very high
 resolution snapshot of the model view that can be used for making
 figures.<br>
   </li>
@@ -1016,7 +1027,21 @@ the views you switch between them easily.<br>
 advanced
 editing features, including ones to move or copy contours from one
 object to another, and ones to break and
-join contours. </li>
+join contours (see the help for <a href="3dmodHelp/contourMove.html">contour
+moving</a> and <a href="3dmodHelp/contourJoin.html">contour joining</a>).</li>
+  <li><span style="font-weight: bold;">Multiple selected
+contours.&nbsp; </span>It is possible to select more than one contour;
+this is useful for several operations such as deleting, moving, or
+joining contours.&nbsp; Multiple selection is done with the Ctrl key
+(Apple on the Macintosh), such as Ctrl and first mouse button to add a
+contour to the set of selected ones, and Ctrl-A to select all contours
+on a section in the current object.</li>
+  <li><span style="font-weight: bold;">Image processing dialog.</span>&nbsp;
+The Edit-Image-Process menu entry opens a dialog box that allows you to
+process one section of the image.&nbsp; You can take an FFT or apply a
+number of filters such as Fourier filtering, smoothing, and median
+filtering; here is the <a href="3dmodHelp/imageProc.html">help page</a>.<br>
+  </li>
   <li><b>Tooltips.</b> If you leave the mouse over a button or other
 control
 for over half a second, a tooltip will appear for that control. </li>
