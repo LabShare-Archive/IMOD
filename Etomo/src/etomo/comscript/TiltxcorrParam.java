@@ -16,6 +16,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/03/12 21:19:24  sueh
+ * <p> bug# 373 Changed UpdateComScriptCommand() - removed XMinAndMax,
+ * <p> YMinAndMax from comscript when they are blank.
+ * <p>
  * <p> Revision 3.5  2004/03/12 21:00:46  sueh
  * <p> bug# 373 Changed parseComScriptCommand() - copied data to tiltFile,
  * <p> firstTiltAngle, tiltIncrement, filterSigma1, filterSigma2, filterRadius1, filterRadius2.
@@ -322,7 +326,7 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("ExcludeCentralPeak");
     }
-    if (bordersInXandY.valuesSet()) {
+    if (bordersInXandY.valuesSet() && !bordersInXandY.isDefault()) {
       scriptCommand.setValue("BordersInXandY", bordersInXandY.toString());
     }
     else {
@@ -341,13 +345,13 @@ public class TiltxcorrParam
       scriptCommand.deleteKey("YMinAndMax");
     }
 
-    if (padsInXandY.valuesSet()) {
+    if (padsInXandY.valuesSet() && !padsInXandY.isDefault()) {
       scriptCommand.setValue("PadsInXandY", padsInXandY.toString());
     }
     else {
       scriptCommand.deleteKey("PadsInXandY");
     }
-    if (tapersInXandY.valuesSet()) {
+    if (tapersInXandY.valuesSet() && !tapersInXandY.isDefault()) {
       scriptCommand.setValue("TapersInXandY", tapersInXandY.toString());
     }
     else {
@@ -377,7 +381,7 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("TestOutput");
     }
-    if (startingEndingViews.valuesSet()) {
+    if (startingEndingViews.valuesSet() && !startingEndingViews.isDefault()) {
       scriptCommand.setValue(
         "StartingEndingViews",
         startingEndingViews.toString());
