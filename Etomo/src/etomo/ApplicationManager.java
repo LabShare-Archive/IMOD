@@ -89,6 +89,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.121  2005/01/21 22:05:55  sueh
+ * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+ * <p> class.  Moved the set/get of tranferfid metadata fields to TransferfidPanel.
+ * <p> get/setParameters.  Clarifying EtomoNumber: using isNull() in stead of
+ * <p> isSet().
+ * <p>
  * <p> Revision 3.120  2005/01/14 02:57:30  sueh
  * <p> bug# 511 Added saveDialog() and getDialog().  In done functions, added a
  * <p> check for exit state ==  save to avoid changing the process state or asking
@@ -3888,7 +3894,6 @@ public class ApplicationManager extends BaseManager {
         return;
       }
       setThreadName(threadName, axisID);
-      mainPanel.startProgressBar("MTF Filter", axisID);
     }
   }
 
