@@ -50,6 +50,14 @@ c	  1995: switch to tri-quadratic interpolation, allow real center coords
 c	  DNM 2/26/01: add temporary directory entry and semi-unique filenames
 c	  DNM 11/6/01: fixed problem with output array size not being respected
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
 	parameter (inpdim=200,limdim=10000,lmcube=limdim/inpdim)
 	parameter (limout=(inpdim*3)/2)
 	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
@@ -182,8 +190,11 @@ c	  volume, store the starting index coordinates
 c
 	do i=1,3
 	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) stop
-     &	      'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS'
+	  if(ncubes(i).gt.lmcube) then
+	    print *,'ERROR: ROTATEVOL - TOO MANY CUBES IN LONGEST',
+     &		' DIRECTION TO FIT IN ARRAYS'
+	    call exit(1)
+	  endif
 	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
 	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
 	  ind=0
@@ -418,7 +429,7 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	print *,'read error'
+99	print *, 'ERROR: ROTATEVOL - reading file'
 	call exit(1)
 	end
 
