@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.2  2003/08/26 15:36:49  rickg
+# Added comments
+#
 # Revision 2.1  2003/08/10 01:21:59  mast
 # Changing to dummy/real Makefiles
 #
@@ -34,6 +37,11 @@ CLASSPATH = bin
 
 CLASS_FILES = $(CLASSPATH)/etomo/ApplicationManager.class
 JAR_FILE = jar_dir/etomo.jar
+TEST_JAR_FILE = jar_dir/etomoTest.jar
+
+JUNIT_HOME = /usr/local/junit
+TESTPATH = $(JUNIT_HOME)/junit.jar
+
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui etomo.util
 
@@ -42,12 +50,16 @@ JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
-all: $(JAR_FILE)
+all: $(JAR_FILE) testjarfile tests
 	echo "Make completed."
 
 $(JAR_FILE): cpimages compile
 	mkdir -p jar_dir
 	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+
+testjarfile: cpimages testcompile
+	mkdir -p jar_dir
+	jar  -cvmf TEST_MANIFEST.MF $(TEST_JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
 	if (! (-e $(CLASSPATH)))  mkdir $(CLASSPATH)
@@ -56,6 +68,9 @@ cpimages:
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
+	
+testcompile: 
+	$(JAVAC) -classpath $(TESTPATH) $(SOURCEPATH)/etomo/EtomoTests.java
 
 install: $(JAR_FILE)
 	$(CP) $(JAR_FILE) $(INSTBINDIR)
@@ -63,7 +78,8 @@ install: $(JAR_FILE)
 	$(CP) scripts/etomo $(INSTBINDIR)
 
 
-tests: $(CLASS_FILES) $(TEST_BIN)
+tests: testjarfile
+	java -classpath $(TESTPATH):$(TEST_JAR_FILE) junit.textui.TestRunner etomo.EtomoTests
 	echo "Make tests completed"
 
 javadocs:
