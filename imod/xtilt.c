@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/MainW.h>
 #include <Xm/Frame.h>
@@ -751,12 +759,14 @@ static void xtiltDrawGraphics(struct imod_xtilt_struct *xtilt)
 	  ury /= 2; ury -= 20;
      }
 
+     /* DNM 1/20/02: add slice argument to graphics calls; make it -1 to 
+	prevent image re-use */
      b3dDrawGreyScalePixelsSubArea
 	  (xtilt->image, image, xtilt->xsize, xtilt->ysize,
 	   xtilt->xtrans, xtilt->ytrans,
 	   0,0, urx, ury,
 	   xtilt->rampbase, xtilt->zoom,
-	   &(xtilt->xo), &(xtilt->yo));
+	   &(xtilt->xo), &(xtilt->yo), -1);
      
 
      if (xtilt->stereo){
@@ -772,7 +782,7 @@ static void xtiltDrawGraphics(struct imod_xtilt_struct *xtilt)
 		     xtilt->width,
 		     xtilt->height,
 		     xtilt->rampbase, xtilt->zoom,
-		     &(xtilt->xso), &(xtilt->yso));
+		     &(xtilt->xso), &(xtilt->yso), -1);
 	  else
 	       b3dDrawGreyScalePixelsSubArea
 		    (xtilt->image, nimage,
@@ -784,7 +794,7 @@ static void xtiltDrawGraphics(struct imod_xtilt_struct *xtilt)
 		     xtilt->height,
 
 		     xtilt->rampbase, xtilt->zoom,
-		     &(xtilt->xso), &(xtilt->yso));
+		     &(xtilt->xso), &(xtilt->yso), -1);
      }
      
      return;

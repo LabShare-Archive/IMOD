@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/MainW.h>
 #include <Xm/Frame.h>
@@ -1103,13 +1111,15 @@ void xtumDrawImage(struct imod_xtum_struct *xtum)
      
      if (xtum->highres)
 	  zoom = 1;
-		     
+
+     /* DNM 1/20/02: add slice argument to graphics calls; make it -1 to 
+	prevent image re-use */
      b3dDrawGreyScalePixelsSubArea
 	  (xtum->image, data, 
 	   xtum->slice->xsize, xtum->slice->ysize,
 	   0, 0, 0, 0, width, xtum->height,
 	   xtum->vi->rampbase, zoom,
-	   &xo, &yo);
+	   &xo, &yo, -1);
 
      if (xtum->stereo){
 	  fdata = xtum->stslice->data.f;
@@ -1134,7 +1144,7 @@ void xtumDrawImage(struct imod_xtum_struct *xtum)
 		xtum->slice->xsize, xtum->slice->ysize,
 		0, 0, width, 0, xtum->width, xtum->height,
 		xtum->vi->rampbase, zoom,
-		&xo, &yo);
+		&xo, &yo, -1);
      }
 
      return;
