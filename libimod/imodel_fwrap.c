@@ -1,79 +1,25 @@
-/*****************************************************************************
- *                                                                           *
- *   FILE: imodel_fwrap.c                                                    *
- *                                                                           *
- *   PURPOSE: Load an IMOD model file from Wimp fortran code.                *
- *            Define F77FUNCAP, F77STRING to make for VMS.                   *
- *                                                                           *
- *   HISTORY:                                                                *
- *       Version 1.0                                 *
- *                                       *
- *       James Kremer  kremer@boulder.colorado.edu               *
- *****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine         *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+/*
+ *   FILE: imodel_fwrap.c
+ *
+ *   PURPOSE: Load an IMOD model file from Fortran code.
+ *            Define F77FUNCAP, F77STRING to make for VMS.
+ *
+ *  Original author: James Kremer
+ *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ */
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.12  2004/06/17 17:48:12  mast
-Added calls to set zscale and rotation
-
-Revision 3.11  2003/10/24 03:03:04  mast
-change to use correct f-to-c string converter
-
-Revision 3.10  2003/08/08 16:25:17  mast
-Added functions to get object name and # of objects
-
-Revision 3.9  2003/07/31 22:07:42  mast
-Complete set of object views before writing so new objects have the same
-properties in all views
-
-Revision 3.8  2003/07/17 14:27:24  mast
-Set point size and object flags in current view as well as object itself
-
-Revision 3.7  2003/06/10 23:20:38  mast
-Add call to set symbol size and type
-
-Revision 3.6  2003/02/21 23:58:10  mast
-Open files in binary mode
-
-Revision 3.5  2002/07/20 23:25:46  mast
-Make getimodhead return image origin values so that programs can get
-back to index coordinates of full-sized volume
-
-Revision 3.4  2002/07/07 20:10:57  mast
-Added getimodscales to return scaling factors for getting between model
-and index coordinates
-
-Revision 3.3  2002/05/20 15:53:39  mast
-Added ability to set scattered point size, and get arrays of contour
-time and surface values
-
-Revision 3.2  2001/12/05 15:59:19  mast
-Provide a function so that Wimp model reading routines can read VMS floats
-
+Log at end of file
 */
+
 #include <stdio.h>
 #include <math.h>
 #include "imodel.h"
@@ -126,6 +72,7 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define getimodsurfaces  GETIMODSURFACES
 #define getimodobjname  GETIMODOBJNAME
 #define getimodobjsize  GETIMODOBJSIZE
+#define getimodnesting  GETIMODNESTING
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -157,6 +104,7 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define getimodsurfaces  getimodsurfaces_
 #define getimodobjname  getimodobjname_
 #define getimodobjsize  getimodobjsize_
+#define getimodnesting  getimodnesting_
 #endif
 
 typedef struct
@@ -225,7 +173,6 @@ int getimod (int ibase[],     /* index into coord array */
   struct Mod_Contour *cont;
   FILE *fin;
   char *cfilename;
-  int i;
   int ob, co, pt;
   int ncontour = 0;
   int npoints = 0;
@@ -591,7 +538,6 @@ int getimodscales(float *ximscale, float *yimscale, float *zimscale)
 
 int getimodflags(int *flags, int *limflags)
 {
-  Iobj *obj;
   int i;
 
   if (!Fimod)
@@ -947,15 +893,15 @@ int writeimod(
 #define OBJ_EMPTY    -2
 #define OBJ_HAS_DATA -1
 
-static float Wmod_Colors[9][3]  =   { 0.90, 0.82, 0.37,  /* Dim Yellow  */
-                                      0.54, 0.51, 0.01,  /* Olive Brown */
-                                      0.94, 0.49, 0.0,   /* Orange      */
-                                      1.00, 0.0,  0.0,   /* Red         */
-                                      0.0,  1.0,  0.0,   /* Green       */
-                                      0.0,  0.0,  1.0,   /* Blue        */
-                                      1.0,  1.0,  0.0,   /* Yellow      */
-                                      1.0,  0.0,  1.0,   /* Magenta     */
-                                      0.0,  1.0,  1.0    /* Cyan        */
+static float Wmod_Colors[9][3]  =   { {0.90, 0.82, 0.37},  /* Dim Yellow  */
+                                      {0.54, 0.51, 0.01},  /* Olive Brown */
+                                      {0.94, 0.49, 0.0},   /* Orange      */
+                                      {1.00, 0.0,  0.0},   /* Red         */
+                                      {0.0,  1.0,  0.0},   /* Green       */
+                                      {0.0,  0.0,  1.0},   /* Blue        */
+                                      {1.0,  1.0,  0.0},   /* Yellow      */
+                                      {1.0,  0.0,  1.0},   /* Magenta     */
+                                      {0.0,  1.0,  1.0}    /* Cyan        */
 };
 
 int putimod (int ibase[],     /* index into coord array */
@@ -1295,3 +1241,166 @@ int getimodobjsize()
   return Fimod->objsize;
 }
 
+/*
+ * Return information about nested contours for object ob
+ * Only inside information is returned if inOnly is nonzero
+ * level is filled with nesting level or 0 if no inside/outside contours
+ * inCont and outCont are filled with the inside and outside contours from
+ * the nesting analysis
+ * inIndex and outIndex are filled with indices into these arrays for each 
+ * contour
+ * arraySize specifies limiting size of ALL arrays, but if inCont is nonzero
+ * then outCont and outIndex do not need to be arrays
+ */
+int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex, 
+                   int *inCont, int *outIndex, int *outCont, int *arraySize)
+{
+  Iobj *obj;
+  Icont **scancont;
+  Ipoint *pmin, *pmax;
+  Nesting *nests, *nest;
+  int *contz;
+  int *numatz;
+  int **contatz;
+  int *zlist;
+  int *nestind;
+  int co;
+  int zmin,zmax;
+  int indz;
+  int nummax, intot, outtot;
+  int  kis, lis, zlsize;
+  int numnests = 0;
+  int eco;
+  int numwarn = -1;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 && *ob > Fimod->objsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  obj = &Fimod->obj[*ob - 1];
+  if (*arraySize <= obj->contsize)
+    return(FWRAP_ERROR_FILE_TO_BIG);
+  if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, 
+                             &zmin, &zmax, &zlsize, &nummax))
+    return(FWRAP_ERROR_MEMORY);
+
+  /* Allocate lists of mins, max's, and scan contours */
+  pmin = (Ipoint *)malloc(obj->contsize * sizeof(Ipoint));
+  pmax = (Ipoint *)malloc(obj->contsize * sizeof(Ipoint));
+  scancont = (Icont **)malloc(obj->contsize * sizeof (Icont *)); 
+  nestind = (int *)malloc(obj->contsize * sizeof(int));
+  if (!pmin || !pmax || !scancont || !nestind)
+    return(FWRAP_ERROR_MEMORY);
+
+  /* Get mins, maxes, scan contours */
+  for (co = 0; co < obj->contsize; co++) {
+    level[co] = 0;
+    nestind[co] = -1;
+    if (obj->cont[co].psize) {
+      imodel_contour_mm(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
+      scancont[co] = imodel_contour_scan(&(obj->cont[co]));
+    }
+  }
+
+  /* Loop on contours to find inside and oiutside pairs */
+  for (indz = 0; indz < zmax + 1 - zmin; indz++) {
+    for (kis = 0; kis < numatz[indz] - 1; kis++) {
+      co = contatz[indz][kis];
+      if (!obj->cont[co].psize)
+        continue;
+      for (lis = kis + 1; lis < numatz[indz]; lis++) {
+        eco = contatz[indz][lis];
+        if (!obj->cont[eco].psize)
+          continue;
+
+        if (imodContourCheckNesting(co, eco, scancont, pmin, pmax, &nests,
+                                    nestind, &numnests, &numwarn))
+          return(FWRAP_ERROR_MEMORY);
+      }
+    }
+  }
+
+  /* Analyze inside and outside contours to determine level */
+  imodContourNestLevels(nests, nestind, numnests);
+
+  intot = 0;
+  outtot = 0;
+  inIndex[0] = 1;
+  if (! *inOnly)
+    outIndex[0] = 1;
+
+  /* Fill arrays with the inside and outside lists and indexes to lists */
+  for (co = 0; co < obj->contsize; co++) {
+    if (nestind[co] >= 0) {
+      nest = &nests[nestind[co]];
+      if (intot + nest->ninside >= *arraySize || 
+          outtot + nest->noutside >= *arraySize)
+        return(FWRAP_ERROR_FILE_TO_BIG);
+      for (lis = 0; lis < nest->ninside; lis++)
+        inCont[intot++] = nest->inside[lis] + 1;
+      if (! *inOnly)
+        for (lis = 0; lis < nest->noutside; lis++)
+          outCont[outtot++] = nest->outside[lis] + 1;
+      level[co] = nest->level;
+    }
+    inIndex[co + 1] = intot + 1;
+    if (! *inOnly)
+      outIndex[co + 1] = outtot + 1;
+  }
+
+  /* clean up everything */
+  imodContourFreeNests(nests, numnests);
+  for (co = 0; co < obj->contsize; co++)
+    imodContourDelete(scancont[co]);
+  imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
+  free(nestind);
+  free(scancont);
+  free(pmin);
+  free(pmax);
+
+  return FWRAP_NOERROR;
+}
+
+/*
+$Log$
+Revision 3.13  2004/09/21 20:11:26  mast
+Changes for new clipping plane structure
+
+Revision 3.12  2004/06/17 17:48:12  mast
+Added calls to set zscale and rotation
+
+Revision 3.11  2003/10/24 03:03:04  mast
+change to use correct f-to-c string converter
+
+Revision 3.10  2003/08/08 16:25:17  mast
+Added functions to get object name and # of objects
+
+Revision 3.9  2003/07/31 22:07:42  mast
+Complete set of object views before writing so new objects have the same
+properties in all views
+
+Revision 3.8  2003/07/17 14:27:24  mast
+Set point size and object flags in current view as well as object itself
+
+Revision 3.7  2003/06/10 23:20:38  mast
+Add call to set symbol size and type
+
+Revision 3.6  2003/02/21 23:58:10  mast
+Open files in binary mode
+
+Revision 3.5  2002/07/20 23:25:46  mast
+Make getimodhead return image origin values so that programs can get
+back to index coordinates of full-sized volume
+
+Revision 3.4  2002/07/07 20:10:57  mast
+Added getimodscales to return scaling factors for getting between model
+and index coordinates
+
+Revision 3.3  2002/05/20 15:53:39  mast
+Added ability to set scattered point size, and get arrays of contour
+time and surface values
+
+Revision 3.2  2001/12/05 15:59:19  mast
+Provide a function so that Wimp model reading routines can read VMS floats
+
+*/
