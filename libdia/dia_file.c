@@ -27,6 +27,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/DialogS.h>
 #include <Xm/SelectioB.h>
@@ -54,23 +62,32 @@ void Dia_filecallback(Widget w, XtPointer client_data, XtPointer call_data)
 	  (XmFileSelectionBoxCallbackStruct *) call_data;
      
      switch(data->reason){
-	case 1: /* help */
+	case XmCR_HELP: /* help */
 	  dia_puts(file->reason);
 	  break;
 
-	case 31:
+	case XmCR_OK:
 	  XmStringGetLtoR(data->value, XmSTRING_DEFAULT_CHARSET, 
 			  &(file->filename));
 	  len = strlen(file->filename);
 
-	  if (file->filename[len - 1] != '/')
+          /* DNM 12/2/02: test for string length too 
+             also, free name and reset to null if it is unsuitable*/
+	  if (len > 0 && file->filename[len - 1] != '/')
 	       file->done[0] = 1;
-	  else
+	  else {
 	       dia_puts("No file selected!");
+               XtFree(file->filename);
+               file->filename = NULL;
+          }
 	  break;
 
-	default:
+	case XmCR_CANCEL:
 	  file->done[0] = 2;
+          break;
+
+	default:
+	  file->done[0] = -1;
 	  break;
      }
      return;
@@ -83,6 +100,8 @@ static void quit_cb(Widget w, XtPointer client_data, XtPointer call_data)
      file->done[0] = 3;
 }
 
+/* dia_filename returns with a pointer to an X-allocated string that should
+   be freed with XtFree, or with NULL if the user cancelled */
 char *dia_filename(char *reason)
 {
      static Widget dialog = 0;
@@ -103,9 +122,10 @@ char *dia_filename(char *reason)
      file.done   = &done;
      file.filename = NULL;
 
+     /* DNM 12/2/02: put the reason in the title (obviating help) */
      XtSetArg(args[0], XmNvisual, dia_getvisual());
      dialog = XtVaCreatePopupShell
-	  ("Filename", topLevelShellWidgetClass, Dia_toplevel, 
+	  (reason, topLevelShellWidgetClass, Dia_toplevel, 
 	   XmNvisual, dia_getvisual(),
 	   NULL);
      fsbw = XmCreateFileSelectionBox
