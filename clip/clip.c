@@ -1,63 +1,20 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  clip -- Command Line Image Proccesing
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.9  2004/07/07 19:25:29  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.8  2004/04/22 19:07:56  mast
-Zeroed out number of extra header bytes in output file to fixe problems
-with headers that have extra data that is not being copied.
-
-Revision 3.7  2004/01/16 18:09:02  mast
-Added splitrgb and joinrgb options
-
-Revision 3.6  2003/10/24 03:09:26  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.5  2002/11/05 23:25:26  mast
-*** empty log message ***
-
-Revision 3.4  2002/11/05 23:24:46  mast
-Change to call copyright function
-
-Revision 3.3  2002/07/31 20:11:27  mast
-Changed copyright to use defined variable
-
-Revision 3.2  2002/06/26 16:47:22  mast
-Allowed writing to swapped files
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -89,26 +46,28 @@ void usage(void)
   fprintf(stderr, "\tbrighten    - Increase or decrease brightness.\n");
   fprintf(stderr, "\tcolor       - add false color.\n");
   fprintf(stderr, "\tcontrast    - Increase or decrease contrast.\n");
-#ifndef NOFFTLIB
   fprintf(stderr, "\tcorrelation - do a auto/cross correlation.\n");
-#endif
-  fprintf(stderr, "\tedge        - make an edge map.\n");
+  fprintf(stderr, "\tgradient    - Compute gradient as in 3dmod.\n");
+  fprintf(stderr, "\tgraham      - Apply Graham filter as in 3dmod.\n");
   fprintf(stderr, "\tinfo        - print information to stdout.\n");
-#ifndef NOFFTLIB
   fprintf(stderr, "\tfft         - do a fft or inverse fft transform.\n");
   fprintf(stderr, "\tfilter      - do a bandpass filter.\n");
-#endif
   fprintf(stderr, "\tflip        - rotate image by 90 deg. steps.\n");
   /*     fprintf(stderr, "\tpeak        - find peaks in image.\n"); */
   fprintf(stderr, "\tjoinrgb     - Join 3 byte files into an RGB file.\n");
+  fprintf(stderr, "\tlaplacian   - Apply Laplacian filter as in 3dmod.\n");
+  fprintf(stderr, "\tmedian      - Do median filtering.\n");
+  fprintf(stderr, "\tprewitt     - Apply Prewitt filter as in 3dmod.\n");
   fprintf(stderr, "\tresize      - cut out and/or pad image data.\n");
   fprintf(stderr, "\trotation    - rotate image\n");
   fprintf(stderr, "\tshadow      - Increase or decrease image shadows.\n");
-  fprintf(stderr, "\tsharpen     - Sharpen/blur image.\n");
+  fprintf(stderr, "\tsharpen     - Sharpen image as in 3dmod.\n");
+  fprintf(stderr, "\tsmooth      - Smooth image as in 3dmod.\n");
+  fprintf(stderr, "\tsobel       - Apply Sobel filter as in 3dmod.\n");
   fprintf(stderr, "\tsplitrgb    - Split RGB image file into 3 byte files.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
   fprintf(stderr, "\ttranslate   - translate image.\n");
-  fprintf(stderr, "\tzoom        - magnifiy image.\n");
+  fprintf(stderr, "\tzoom        - magnify image.\n");
   fprintf(stderr, "\noptions:\n");
   fprintf(stderr, "\t[-v]  view output data.\n");
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
@@ -201,32 +160,35 @@ int main( int argc, char *argv[] )
   if (!strncmp( argv[1], "contrast", 3))
     process = IP_CONTRAST;
 
-#ifndef NOFFTLIB
   if (!strncmp( argv[1], "correlation", 3))
     process = IP_CORRELATE; 
-#endif
 
-  if (!strncmp( argv[1], "edge", 3))
-    process = IP_EDGE;
   if (!strncmp( argv[1], "info", 3)){
     process = IP_INFO;
     procout = FALSE;
   }
 
-#ifndef NOFFTLIB
   if (!strncmp( argv[1], "fft", 3))
     process = IP_FFT;
   if (!strncmp( argv[1], "filter", 3))
     process = IP_FILTER;
-  
-#endif
 
   if (!strncmp( argv[1], "flip", 4))
     process = IP_FLIP;
+  if (!strncmp( argv[1], "gradient", 4))
+    process = IP_GRADIENT;
+  if (!strncmp( argv[1], "graham", 4))
+    process = IP_GRAHAM;
+  if (!strncmp( argv[1], "laplacian", 2))
+    process = IP_LAPLACIAN;
+  if (!strncmp( argv[1], "median", 2))
+    process = IP_MEDIAN;
   if (!strncmp( argv[1], "peak", 3)){
     process = IP_PEAK;
     procout = FALSE;
   }
+  if (!strncmp( argv[1], "prewitt", 2))
+    process = IP_PREWITT;
   if (!strncmp( argv[1], "resize", 3))
     process = IP_RESIZE;
   if (!strncmp( argv[1], "rotate", 3))
@@ -235,6 +197,10 @@ int main( int argc, char *argv[] )
     process = IP_SHADOW;
   if (!strncmp( argv[1], "sharpen", 4))
     process = IP_SHARPEN;
+  if (!strncmp( argv[1], "smooth", 2))
+    process = IP_SMOOTH;
+  if (!strncmp( argv[1], "sobel", 2))
+    process = IP_SOBEL;
   if (!strncmp( argv[1], "stat", 3)){
     process = IP_STAT;
     procout = FALSE;
@@ -495,26 +461,25 @@ int main( int argc, char *argv[] )
     retval = grap_average(&hin, &hin2, &hout, &opt);
     break;
   case IP_BRIGHTNESS:
-    retval = clip_brightness(&hin, &hout, &opt);
+  case IP_CONTRAST:
+  case IP_SHADOW:
+    retval = clip_scaling(&hin, &hout, &opt, process);
     break;
   case IP_COLOR:
     retval = grap_color(&hin, &hout, &opt);
     break;
-  case IP_CONTRAST:
-    retval = clip_contrast(&hin, &hout, &opt);
-    break;
-#ifndef NOFFTLIB
   case IP_CORRELATE:
     retval = grap_corr(&hin, &hin2, &hout, &opt);
     break;
-#endif
-  case IP_EDGE:
-    retval = clipEdge(&hin, &hout, &opt);
+  case IP_GRADIENT:
+  case IP_GRAHAM:
+  case IP_PREWITT:
+  case IP_SOBEL:
+    retval = clipEdge(&hin, &hout, &opt, process);
     break;
   case IP_INFO:
     retval = mrc_head_print(&hin);
     break;
-#ifndef NOFFTLIB
   case IP_FFT:
     retval = clip_fft(&hin, &hout, &opt);
     break;
@@ -522,12 +487,19 @@ int main( int argc, char *argv[] )
     opt.dim = 2;
     retval = clip_bandpass_filter(&hin, &hout, &opt);
     break;
-#endif
   case IP_FLIP:
     retval = grap_flip(&hin, &hout, &opt);
     break;
   case IP_JOINRGB:
     retval = clip_joinrgb(&hin, &hin2, &hout, &opt);
+    break;
+  case IP_LAPLACIAN:
+  case IP_SMOOTH:
+  case IP_SHARPEN:
+    retval = clip_convolve(&hin, &hout, &opt, process);
+    break;
+  case IP_MEDIAN:
+    retval = clipMedian(&hin, &hout, &opt);
     break;
   case IP_PEAK:
     retval = puts("peak: future function\n");
@@ -537,12 +509,6 @@ int main( int argc, char *argv[] )
     break;
   case IP_ROTATE:
     retval = grap_rotate(&hin, &hout, &opt);
-    break;
-  case IP_SHADOW:
-    retval = clip_shadow(&hin, &hout, &opt);
-    break;
-  case IP_SHARPEN:
-    retval = clip_sharpen(&hin, &hout, &opt);
     break;
   case IP_SPLITRGB:
     retval = clip_splitrgb(&hin, &opt);
@@ -628,3 +594,35 @@ int *clipMakeSecList(char *clst, int *nofsecs)
   }
   return(secs);
 }
+
+/*
+$Log$
+Revision 3.10  2004/11/04 17:04:21  mast
+Switched to producing and using non-mirrored FFTs
+
+Revision 3.9  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.8  2004/04/22 19:07:56  mast
+Zeroed out number of extra header bytes in output file to fixe problems
+with headers that have extra data that is not being copied.
+
+Revision 3.7  2004/01/16 18:09:02  mast
+Added splitrgb and joinrgb options
+
+Revision 3.6  2003/10/24 03:09:26  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.5  2002/11/05 23:25:26  mast
+*** empty log message ***
+
+Revision 3.4  2002/11/05 23:24:46  mast
+Change to call copyright function
+
+Revision 3.3  2002/07/31 20:11:27  mast
+Changed copyright to use defined variable
+
+Revision 3.2  2002/06/26 16:47:22  mast
+Allowed writing to swapped files
+
+*/
