@@ -4,14 +4,16 @@
  * Functions callable from fortran.
  *
  * define nothing to run on big-endian Unix and convert VMS data 
- * define F77FUNCAP to run on VMS and convert big-endian Unix data
+ * define OLD_F77FUNCAP to run on VMS and convert big-endian Unix data
  * define SWAP_IEEE_FLOATS to run on Unix and convert between little- and
  *        big-endian Unix data (i.e., with IEEE floats)
+ * define F77FUNCAP for capitalized function names
  * define G77__HACK if the g77 compiler generates names with two __
  * 
  * July 2000: CER worked out changes needed for running under Linux with g77
  * August 2000: DNM integrated these changes into master code
  * Note: not tested under VMS
+ * October 2003: DNM switched meaning of F77FUNCAP to work on Windows/Intel
  */
 
 #include <imodconfig.h>
@@ -20,7 +22,7 @@
 
 #define convert_shorts CONVERT_SHORTS
 #define convert_longs  CONVERT_LONGS
-#define convert_ufloats CONVERT_FLOATS
+#define convert_floats CONVERT_FLOATS
 
 #else
 
@@ -128,7 +130,7 @@ void convert_floats(unsigned char *data, int *amt)
 
 #endif
 
-#ifdef F77FUNCAP
+#ifdef OLD_F77FUNCAP
 
 /* If VMS: To convert floats from big-endian IEEE to little-endian VMS */
 
