@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/09/25 21:09:36  mast
+Switched to sections numbered from 1 not 0
+
 Revision 3.2  2003/04/17 20:56:55  mast
 Changes for Mac key problems
 
@@ -227,6 +230,8 @@ int MidasSlots::save_transforms()
   if (!VW->didsave && !stat(VW->xname, &buf)) {
     filename = (char *)malloc(strlen(VW->xname) + 2);
     sprintf(filename, "%s~", VW->xname);
+    if (!stat(filename, &buf))
+      remove(filename);
     if (rename(VW->xname, filename)) {
       midas_error("Error renaming existing file to", filename, 0);
       free(filename);
@@ -241,6 +246,7 @@ int MidasSlots::save_transforms()
 
     /* If error writing, rename old file back, and reset the filename */
     if (renamedold) {
+      remove(VW->xname);
       rename(filename, VW->xname);
       free(filename);
     }
