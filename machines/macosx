@@ -129,6 +129,7 @@ ranlib $lib_dir/libdl.a
 set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
 set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
 set midas_target = `echo $send_target | sed '/imod/s/imodsendevent/midas/g'`
+set assist_target = `echo $send_target | sed '/imod/s/imodsendevent/imodqtassist/g'`
 set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
 
 # Tell plugins where imod is
@@ -174,6 +175,12 @@ setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 \$IMOD_DIR/bin/${send_target} \$*
 EOF
 
+cat <<EOF >! $qtassist_dir/runqtassist
+#!/bin/csh -f
+setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+\$IMOD_DIR/bin/${assist_target} \$*
+EOF
+
 cat <<EOF >! $midas_dir/runmidas
 #!/bin/csh -f
 setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
@@ -188,8 +195,8 @@ else
 endif
 EOF
 
-chmod +x $imod_dir/runimod $imod_dir/runimodv 
-chmod +x $midas_dir/runmidas $sendevent_dir/runsendevent
+chmod +x $imod_dir/runimod $imod_dir/runimodv $qtassist_dir/runqtassist
+chmod +x $midas_dir/runmidas $sendevent_dir/runsendevent 
 
 cat << EOF  >! $midas_qconf
 

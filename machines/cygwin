@@ -235,6 +235,7 @@ set binext = .exe
 # Start Qt include files
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
+echo LIBS += qassistantclient.lib >! $qtassist_qconf
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
@@ -246,19 +247,16 @@ RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib qassistantclient.lib
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 EOF
 
-# Manage imodhelp for the qmake without having to delete a good one
-if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
-
-set qdir = ($midas_dir $imod_dir $sendevent_dir)
-set qpro = (midas.pro imod.pro imodsendevent.pro)
-set warn = (warn_on warn_off warn_on)
+set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist)
+set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro)
+set warn = (warn_on warn_off warn_on warn_on)
 @ i = 0
-while ($i < 3)
+while ($i < 4)
     @ i++
 
     echo "INCLUDEPATH += ..\include ." >> $qdir[$i]/qconfigure
@@ -298,13 +296,6 @@ EOF
         endif
     endif
 end
-
-\find $imod_dir -name imodhelp.h -size 0 -exec \rm -f '{}' \;
-
-# take care of dependencies on version
-#
-\find $imod_dir -name 'imod.o*' ! -newer .version -exec \rm -f '{}' \;
-\find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
 # Make new project files for 3dmod and midas if needed
 # set QMAKESPEC here for msvc, now that real makefiles are done
@@ -354,7 +345,7 @@ EOF
     echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
 else
     set makefile_ext = dummy
-    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir)
+    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir)
 endif
 
 

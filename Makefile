@@ -176,6 +176,7 @@ all : configure clibs
 	cd imod      ; $(MAKE) all
 	cd imodutil  ; $(MAKE) all
 	cd sendevent ; $(MAKE) all
+	cd qtassist  ; $(MAKE) all
 	cd mrc       ; $(MAKE) all
 	cd clip      ; $(MAKE) all
 	cd midas     ; $(MAKE) all
@@ -198,6 +199,7 @@ install : configure man
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd sendevent ; $(MAKE) $@
+	cd qtassist  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
@@ -239,6 +241,7 @@ clean : configure
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd sendevent ; $(MAKE) $@
+	cd qtassist  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
@@ -276,6 +279,7 @@ cleanqt : configure
 	cd imod      ; $(MAKE) clean
 	cd midas     ; $(MAKE) clean
 	cd sendevent ; $(MAKE) clean
+	cd qtassist  ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
 	cd flib/ndasda ; $(MAKE) clean
@@ -358,6 +362,7 @@ cleansrc : ALWAYS
 	\find machines -type f -name "*~" -exec rm "{}" \;
 	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
+	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
@@ -386,6 +391,8 @@ csrc : ALWAYS
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
+	qtassist/*.h qtassist/*.cpp qtassist/imodqtassist.pro \
+	qtassist/Makefile.dummy \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
@@ -428,6 +435,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.42  2004/10/24 21:27:25  mast
+#  Changes for addition of libcfft version of libifft
+#
 #  Revision 3.41  2004/08/31 02:23:48  mast
 #  Moved copying of .version to VERSION from dist to install (packMacApps)
 #
