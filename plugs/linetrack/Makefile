@@ -1,7 +1,5 @@
 include ../../configure
 
-MAKELIBSO = $(MAKELIB)
-
 # Debug attempt?
 # ld -shared -all -L/druid/lib -show_unref -no_unresolved -o linetrack.so linetrack.o reducepts.o linegui.o -limod -lXm -lX11 -lXt -lftn -lm -lc /usr/lib/crtn.o
 #
@@ -9,7 +7,7 @@ MAKELIBSO = $(MAKELIB)
 
 PLUGS = linetrack.so
 
-OBJS  = linetrack.o linesubs.o reducepts.o linegui.o conttrack.o
+OBJS  = linetrack.o linesubs.o reducepts.o linegui.o conttrack.o moc_linegui.o
 
 
 all : $(PLUGS)
@@ -20,8 +18,9 @@ install : $(PLUGS)
 linetrack.so : $(OBJS)
 	$(MAKEF77PLUGIN) linetrack.so $(OBJS)
 
-#linegui.o : linegui.c
-#	$(CC) $(CFLAGS) -I/home/kremer/src/IMOD/include -c linegui.c
+moc_linegui.cpp : linegui.h
+	$(MOC) linegui.h -o moc_linegui.cpp
+
 
 # Debug
 #linetrack.o : linetrack.f
@@ -32,8 +31,5 @@ clean :
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*.so" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
+	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
-
-
-
-
