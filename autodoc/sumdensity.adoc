@@ -3,7 +3,7 @@ Pip=1
 
 [Field = Image file]
 short=image
-long=Image file
+long=ImageFile
 type=FN
 usage=Input image file
 tooltip=
