@@ -3,150 +3,9 @@
 *   a) use corresponding points in two sections to obtain a transformation
 *      between the sections, or
 *   b) transform the points in the model to match a new alignment of images
+c	  
+c   For more details, see man page
 *
-*	  To solve for transforms, the model objects should consist of
-*   corresponding points in two or more successive sections.  The program
-*   considers each pair of successive sections independently.  If an object
-*   contains two points in the same section, the program will take the point
-*   whose Z value is closer to that of the other section in the pair.
-*
-*	The program can "edit" an existing list of f transforms (transforms
-*   that relate each section to the previous one).  That is, the model may
-*   have points from only a few sections, or one may specify which sections to
-*   find transforms for, and the program will output a list containing new
-*   transforms for those sections and transforms from the existing list for
-*   the rest.
-*
-*	In solving for transforms, the model can be built on unaligned images
-*   or on images that have been aligned with a previously existing set of
-*   transforms.  In the latter case, the program will request the name of the
-*   appropriate file of g transforms used to align the images.
-*
-*	A model that was built on unaligned images can be transformed to match
-*   with aligned images.  A model built on aligned images can be
-*   back-transformed to match the raw, unaligned images, or it can be
-*   transformed to match a new alignment of the images.  In all of these
-*   cases, the program will ask for the files with the appropriate sets of g
-*   transforms. 
-*	  
-*       When the program solves for the transformation between a pair of
-*   sections, it applies the transformation to the points on the second
-*   section of the pair, and computes the displacement, or deviation, between
-*   each point and the corresponding point on the first section of the pair.
-*   It then reports the mean deviation for all of the points, the maximum
-*   deviation, and the object number of the point with maximum deviation.
-*   In addition, you may elect to have a complete report of the deviations of
-*   all points for particularly bad sections.  If you choose this option, you
-*   control which sections are reported by specifying criterion values for the
-*   mean and maximum deviations; the full report will be made for any sections
-*   with mean or maximum deviations greater than the respective criteria.
-*
-*	If the images are montaged, this is specified by entering the
-*   the name of the file of piece coordinates.  The Z values in this list of
-*   pieces are used to establish the correspondence between Z values in the
-*   model and transform number in the list of transforms.  If the image is
-*   missing some sections, the program will detect this fact and ask whether
-*   the transform lists contain a transform only for each existing section or
-*   a transform for each section number, including the missing sections.  The
-*   choice here will be applied both to lists of existing transforms that are
-*   read in and to the list that is computed by the program, if any.  In either
-*   case, if there are model objects that bridge a gap over missing
-*   sections, the program can compute a transform between the sections on
-*   either side of the gap.
-*	  
-*	  Instead of solving for transforms between pairs of adjacent sections,
-*  the typical mode of operation, the program can solve for transforms between
-*  a single specified section and each other section.  To use this feature,
-*  enter "-999" when the program requests a list of sections to find transforms
-*  for.  Next enter the number of the single section; a transform will be found
-*  relating each other section to that single section.  Then enter the true
-*  list of sections to find transforms for.
-*
-*	  It is possible to find the X/Y translation alone that best aligns
-*  the set of points on a section to those on a previous section.  The
-*  resulting transformations (which involve no rotations or size changes)
-*  can be used in a second stage of model alignment to remove progressive
-*  shifts in position while retaining trends in size and rotation.  To obtain
-*  translations only, enter 2 rather than 0 when specifying that you want
-*  to find transformation.
-*	  
-*	  It is also possible to find the translation and rotation alone that
-*  best aligns two sections.  The resulting transformations (which involve no
-*  size changes) can be used in a second stage of model alignment to remove
-*  progressive shifts in position and rotations while retaining trends in size.
-*  To obtain translations and rotations only, enter 3 rather than 0 when
-*  specifying that you want to find transformation.
-c
-c	  Just to round out the options, you can also enter 4 to obtain
-c  transformations that include translation, rotation, and magnification change
-c  but no stretch.
-*	  
-c	  ENTRIES TO THE PROGRAM
-c	  
-c	  Name of image file that model was built on, or blank line to enter
-c	  center coordinates instead
-c	  
-c	  IF you entered an image file name, next enter the name of a piece
-c	  list file if the image is a montage, otherwise enter a blank line
-c	  
-c	  OR if you did not enter an image file, next enter the X and Y index
-c	  coordinates of the center of the image (NX/2, NY/2)
-c	  
-c	  IF there are gaps in the Z values described by the piece list, next
-c	  enter 0 if transform files have transforms only for the Z values
-c	  that exist, or 1 if they have transforms for all Z values
-c	  
-c	  Name of model file
-c	  
-c	  Enter one of:
-c	  -1 to back-transform the model to fit a raw image stack
-c	  0 to find linear transformations
-c	  1 to transform the model with a set of transformations
-c	  2 to find X/Y translations only
-c	  3 to find translations and rotations
-c	  4 to find translation, ratation, and mag change
-c	  
-c	  IF you entered any option other than -1 to back-transform, next enter
-c	  0 if the model was built on raw sections, or the sections that you
-c	  want to further transform; or 1 if the model was built on pre-aligned
-c	  sections and you want to reference transforms to the raw sections
-c	  
-c	  IF you are back-transforming OR if you entered 1 to the last query,
-c	  next enter the file name of the g transforms used to pre-align the 
-c	  sections
-c	  
-c	  IF you are transforming or back-transforming the model, next enter
-c	  the name of the output model file.  This is the final entry for
-c	  option -1
-c
-c	  IF you are transforming, enter the name of the file with transforms
-c	  to apply; this is the final entry for option 1
-c	  
-c	  IF you finding transforms instead, continue with the following
-c	  entries:
-c	  
-c	  Name of file with existing f transforms to be replaced by any
-c	  transforms that are solved for
-c	  
-c	  Name of output file for new f transforms
-c	  
-c	  A list of section numbers to find transforms for (the second section
-c	  of each pair, sections numbered from zero), or / to find transforms
-c	  for all sections with data in the model, or -999 to find transforms
-c	  of all sections relative to a single section
-c	  
-c	  IF you entered -999, next enter:
-c	  .  The number of the single section
-c	  .  The real list of transforms to find sections for, or / for all
-c	  
-c	  1 for complete reports of the deviations for each point on sections
-c	  with bad fits, or 0 for no detailed reports
-c	  
-c	  IF you entered 1, then enter a criterion for the mean deviation and
-c	  a criterion for the maximum deviation; a complete report will be 
-c	  given for any section that exceeds either criterion.
-c
-c
 *	  David Mastronarde 1988
 c	  DNM 7/20/89  changes for new model format
 c	  DNM 1/10/90  have it transform only existing model points, not all
@@ -165,6 +24,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/12/12 20:37:52  mast
+c	  Preliminary checkin with PIP conversion and distortion correction
+c	
 c	  Revision 3.2  2003/10/26 15:31:48  mast
 c	  switch from long prints to formatted writes for Intel compiler
 c	
@@ -206,8 +68,9 @@ c
 	integer*4 nundefine,iobj,ipt,iz,nfgin,indind,izmin,izmax,ibase
 	integer*4 lastsec,npnts,iobject,ninobj,ipnt,isol,ipntmax,j
 	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
-	real*4 xdev,ydev,devpnt,devavg,xx,yy
-	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz
+	real*4 xdev,ydev,devpnt,devavg,xx,yy,xlast,ylast,xnew,ynew
+	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz, ifBack, iter
+	logical done
 	real*4 atan2d
 c
 	integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
@@ -246,11 +109,12 @@ c
 	modelfile = ' '
 	xcen = 0.
 	ycen = 0.
+	ifBack = 0
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
 	call PipReadOrParseOptions(options, numOptions, 'xfmodel',
-     &	    'ERROR: XFMODEL - ', .true., 3, 1, 1, numOptArg,
+     &	    'ERROR: XFMODEL - ', .true., 2, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 
@@ -401,16 +265,28 @@ c
 
 	  if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
 	  if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
-	  if (PipGetString('BackTransform', oldxfgfile) .eq. 0) then
-	    if (ifxfmod .ne. 0) call errorexit('You cannot enter both'
-     &		//' -back and -xform or -distort')
+	  if (PipGetString('PrealignTransforms', oldxfgfile) .eq. 0)
+     &	      ifprealign = 1
+c	    
+c	    if back-transform, first check for legality if not distorting
+c	    and set the filename into oldxfgfile if -xform used
+c
+
+	  if (PipGetBoolean('BackTransform', ifBack) .eq. 0 .and.
+     &	      idfFile .eq. ' ') then
+	    if (oldxffile .eq. ' ' .and. oldxfgfile .eq. ' ') call errorexit(
+     &		'You must enter -xform, -prealign, or -distort with -back')
+	    if (oldxffile .ne. ' ' .and. oldxfgfile .ne. ' ') call errorexit(
+     &		'You cannot enter both -xform and -prealign with -back')
 	    ifxfmod = -1
-	    ifprealign = 1
+	    if (oldxffile .ne. ' ') oldxfgfile = oldxffile
 	  endif
-	  if (iftrans + ifrotrans + ifmagrot .gt. 1 .or. (iftrans +
-     &	      ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0))
-     &	      call errorexit('Only one of -trans, -rottrans, -magrot,'//
-     &	      '-back or -distort, and -xform may be entered')
+c
+	  if (iftrans + ifrotrans + ifmagrot .gt. 1) call errorexit
+     &	      ('Only one of -trans, -rottrans, -magrot may be entered')
+	  if (iftrans + ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0)
+     &	      call errorexit('You cannot both find transforms '//
+     &	      'and transform a model')
 	  if (iftrans .ne. 0) ifxfmod = 2
 	  if (ifrotrans .ne. 0) ifxfmod = 3
 	  if (ifmagrot .ne. 0) ifxfmod = 4
@@ -446,11 +322,6 @@ c
 	iffullrpt = 0
 	ntofind=0
 	if (pipinput) then
-	  if (PipGetString('PrealignTransforms', oldxfgfile) .eq. 0)then
-	    if (ifxfmod .lt. 0) call errorexit('You cannot specify '//
-     &		'both -prealign and -back')
-	    ifprealign = 1
-	  endif
 	  if (PipGetInOutFile('OutputFile', 2, ' ', newxffile) .ne. 0)
      &	      call errorexit('NO OUTPUT FILE SPECIFIED')
 	  if(ifxfmod.eq.0)then
@@ -469,10 +340,18 @@ c
 	      call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
      &		  idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
      &		  iyGridStrt, yGridIntrv, nyGrid)
+c		
+c		insist on binning unless situation is unambiguous, and convert
+c		the distortion field by the difference in binning
 c
-	      if (PipGetInteger('BinningOfImages', iBinning) .ne. 0)
-     &		  call errorexit
-     &		  ('FOR NOW, YOU MUST SPECIFY BINNING OF IMAGES')
+	      if (PipGetInteger('BinningOfImages', iBinning) .ne. 0) then
+		if (2. * xcen .le. idfNx * idfBinning .and.
+     &		    2. * ycen .le. idfNy * idfBinning) call errorexit
+     &		    ('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
+     &		    'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
+	      endif
+	      if (iBinning .le. 0) call errorexit
+     &		  ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
 	      if (iBinning .ne. idfBinning) then
 		binRatio = idfBinning / float(iBinning)
 		ixGridStrt = nint(ixGridStrt * binRatio)
@@ -635,15 +514,40 @@ c
 	endif
 	if(ifxfmod.ne.0)then
 	  if (ifDistort .ne. 0) then
-c	    
-c	    undistort the model
-c	      
 	    do i=1,n_point
-	      call interpolateGrid(p_coord(1,i), p_coord(2,i), fieldDx,
-     &		  fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
-     &		  iyGridStrt, yGridIntrv, dx, dy)
-	      p_coord(1,i) = p_coord(1,i) - dx
-	      p_coord(2,i) = p_coord(2,i) - dy
+	      if (ifBack .eq. 0) then
+c	    
+c		  undistort the model - find point that distorts to the 
+c		  given model point
+c	      
+		iter = 1
+		xlast = p_coord(1,i)
+		ylast = p_coord(2,i)
+		done = .false.
+		do while (iter .lt. 10 .and. .not.done)
+		  call interpolateGrid(xlast, ylast, fieldDx,
+     &		      fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
+     &		      iyGridStrt, yGridIntrv, dx, dy)
+		  xnew = p_coord(1,i) - dx
+		  ynew = p_coord(2,i) - dy
+		  done = abs(xnew - xlast) .lt. 0.01 .and.
+     &		      abs(ynew - ylast) .lt. 0.01
+		  xlast = xnew
+		  ylast = ynew
+		  iter = iter + 1
+		enddo	
+		p_coord(1,i) = xnew
+		p_coord(2,i) = ynew
+	      else
+c		  
+c		  or redistort the model
+c		  
+		call interpolateGrid(p_coord(1,i), p_coord(2,i), fieldDx,
+     &		    fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
+     &		    iyGridStrt, yGridIntrv, dx, dy)
+		p_coord(1,i) = p_coord(1,i) + dx
+		p_coord(2,i) = p_coord(2,i) + dy
+	      endif
 	    enddo
 c	      
 c	      if there was prealignment and no new transforms, get the 
@@ -961,77 +865,3 @@ c
 	call write_wmod(newmodel)
 	return
 	end
-
-
-
-	subroutine readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
-     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
-     &	    iyGridStrt, yGridIntrv, nyGrid)
-	character*(*) idfFile
-	integer*4  idfBinning, idfNx, idfNy, lmGrid
-	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
-	real*4 xGridIntrv, yGridIntrv, pixelIdf
-	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
-c	  
-	integer*4 idfVersion, i, j
-c	  
-	call dopen(14, idfFile, 'ro', 'f')
-	read(14, *) idfVersion
-	if (idfVersion .eq. 1) then
-	  read(14, *)idfNx, idfNy, idfBinning, pixelIdf
-	  read(14, *)ixGridStrt, xGridIntrv, nxGrid, iyGridStrt,
-     &	      yGridIntrv, nyGrid
-	  if (nxGrid .gt. lmGrid .or. nyGrid .gt. lmGrid) then
-	    print *
-	    print *,'ERROR: readDistortions - too many grid points for arrays'
-	    call exit(1)
-	  endif
-	  do j = 1, nyGrid
-	    read(14, *)(fieldDx(i, j), fieldDy(i,j), i = 1, nxGrid)
-	  enddo
-	else
-	  print *
-	  print *,'ERROR: readDistortions - version',idfVersion,
-     &	      ' of idf file not recognized'
-	  call exit(1)
-	endif
-	close(14)
-	return
-	end
-
-	subroutine interpolateGrid(x, y, dxGrid, dyGrid, ixgDim,
-     &	    nxGrid, nyGrid, ixGridStrt, xGridIntrv, iyGridStrt,
-     &	    yGridIntrv, dx, dy)
-	implicit none
-	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
-	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
-	real*4 xGridIntrv, yGridIntrv, x, y, dx, dy
-	real*4 xgrid,ygrid,fx1,fx,fy1,fy,c00,c10,c01,c11
-	integer*4 ixg,iyg,ixg1,iyg1
-
-	xgrid = 1. + (x - ixGridStrt) / xGridIntrv
-	ixg=xgrid
-	ixg=max(1,min(nxGrid-1,ixg))
-	fx1=max(0.,min(1.,xgrid-ixg))		!NO EXTRAPOLATIONS ALLOWED
-	fx=1.-fx1
-	ixg1=ixg+1
-	ygrid = 1. + (y - iyGridStrt) / yGridIntrv
-	iyg=ygrid
-	iyg=max(1,min(nyGrid-1,iyg))
-	fy1=max(0.,min(1.,ygrid-iyg))
-	fy=1.-fy1
-	iyg1=iyg+1
-	c00=fx*fy
-	c10=fx1*fy
-	c01=fx*fy1
-	c11=fx1*fy1
-c	  
-c	  interpolate
-c
-	dx = c00*dxGrid(ixg,iyg) + c10*dxGrid(ixg1,iyg)
-     &	    + c01*dxGrid(ixg,iyg1) + c11*dxGrid(ixg1,iyg1)
-	dy = c00*dyGrid(ixg,iyg) + c10*dyGrid(ixg1,iyg)
-     &	    + c01*dyGrid(ixg,iyg1) + c11*dyGrid(ixg1,iyg1)
-	return
-	end
-
