@@ -86,6 +86,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2004/05/07 19:54:45  sueh
+ * <p> bug# 33 adding error processing to
+ * <p> imodGetRubberbandCoordinates()
+ * <p>
  * <p> Revision 3.49  2004/05/06 20:22:33  sueh
  * <p> bug# 33 added getRubberbandCoordinates()
  * <p>
@@ -3458,15 +3462,11 @@ public class ApplicationManager {
     if (tomogramCombinationDialog == null) {
       return;
     }
-    boolean binBy2 = tomogramCombinationDialog.getBinBy2(fromTab);
-    int toTab;
-      if (fromTab == TomogramCombinationDialog.SETUP_TAB) {
-         toTab = TomogramCombinationDialog.INITIAL_TAB;
-      }
-      else {
-        toTab = TomogramCombinationDialog.SETUP_TAB;
-      }
-      tomogramCombinationDialog.setBinBy2(toTab, binBy2);
+    tomogramCombinationDialog.synchronize(
+      fromTab,
+      TomogramCombinationDialog.MATCHING_MODEL_FIELDS);
+    updateCombineCom();
+    boolean binBy2 = tomogramCombinationDialog.isBinBy2(fromTab);
     try {
       if (binBy2) {
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
@@ -3515,8 +3515,12 @@ public class ApplicationManager {
   /**
    * Open the patch region models in tomogram being matched to
    */
-  public void imodPatchRegionModel() {
+  public void imodPatchRegionModel(int fromTab) {
     try {
+      tomogramCombinationDialog.synchronize(
+        fromTab,
+        TomogramCombinationDialog.PATCH_REGION_MODEL_FIELDS);
+      updateCombineCom();
       CombineParams combineParams = new CombineParams();
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (combineParams.getMatchBtoA()) {
@@ -3601,11 +3605,9 @@ public class ApplicationManager {
     else {
       if (exitState == DialogExitState.POSTPONE) {
         // Update the com script and metadata info from the tomgram combination
-        // dialog box.  Since there are mutliple pages and scripts associated
+        // dialog box.  Since there are multiple pages and scripts associated
         // with the postpone button get the ones that are appropriate
-        if (!updateCombineCom()) {
-          return;
-        }
+        updateCombineCom();
         if (tomogramCombinationDialog.isCombinePanelEnabled()) {
           if (!updateSolvematchshiftCom()) {
             return;
@@ -3659,10 +3661,10 @@ public class ApplicationManager {
    * @param tomogramCombinationDialog the calling dialog.
    */
   public void createCombineScripts() {
-    if (!updateCombineCom()) {
-      return;
-    }
+    int fromTab = TomogramCombinationDialog.SETUP_TAB;
     mainFrame.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
+    tomogramCombinationDialog.synchronize(fromTab);
+    updateCombineCom();
     try {
       processMgr.setupCombineScripts(metaData);
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -3685,71 +3687,54 @@ public class ApplicationManager {
     // Reload the initial and final match paramaters from the newly created
     // scripts
     isDataParamDirty = true;
-
-    loadSolvematchShift();
+    
+    if (tomogramCombinationDialog.isUseMatchingModels(fromTab)) {
+      loadSolvematchMod();
+    }
+    else {
+      loadSolvematchShift();
+    }
     loadPatchcorr();
     loadMatchorwarp();
     tomogramCombinationDialog.enableCombineTabs(true);
-    tomogramCombinationDialog.setUseMatchingModels(
-      TomogramCombinationDialog.INITIAL_TAB, tomogramCombinationDialog
-        .getUseMatchingModels(TomogramCombinationDialog.SETUP_TAB));
     mainFrame.stopProgressBar(AxisID.ONLY);
-  }
-
-  /**
-   * Update the combine parameters from the calling dialog
-   * @param tomogramCombinationDialog the calling dialog.
-   * @return true if the combine parameters are sucessfully updated or if the 
-   * parameters have not changed.  If the combine parameters are invalid a
-   * message dialog describing the invalid parameters is presented to the user.
-   */
-  private boolean updateCombineCom() {
-    return updateCombineCom(TomogramCombinationDialog.NO_TAB);
   }
 
   /**
    * Update the combine parameters from the a specified tab of the calling 
    * dialog
+   * assumes that the dialog is synchronized
    * @param tomogramCombinationDialog the calling dialog.
-   * @return true if the combine parameters are sucessfully updated or if the 
-   * parameters have not changed.  If the combine parameters are invalid a
-   * message dialog describing the invalid parameters is presented to the user.
    */
-  private boolean updateCombineCom(int copyFromTab) {
+  private void updateCombineCom() {
     if (tomogramCombinationDialog == null) {
       mainFrame
         .openMessageDialog(
           "Can not update combine.com without an active tomogram combination dialog",
           "Program logic error");
-      return false;
+      return;
     }
 
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
-      if (copyFromTab != TomogramCombinationDialog.NO_TAB) {
-        tomogramCombinationDialog.getCombineParams(copyFromTab, combineParams);
-      }
       if (!combineParams.isValid()) {
         mainFrame.openMessageDialog(combineParams.getInvalidReasons(),
-          "Invlaid combine parameters");
-        return false;
+          "Invalid combine parameters");
+        return;
       }
     }
     catch (NumberFormatException except) {
       mainFrame.openMessageDialog(except.getMessage(), "Number format error");
-      return false;
+      return;
     }
 
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      if (copyFromTab != TomogramCombinationDialog.NO_TAB) {
-        tomogramCombinationDialog.setCombineParams(combineParams);
-      }
       isDataParamDirty = true;
     }
-    return true;
+    return;
   }
 
   /**
@@ -3923,17 +3908,21 @@ public class ApplicationManager {
   /**
    * Initiate the combine process from the beginning
    */
-  public void combine(int copyFromTab) {
+  public void combine(int fromTab) {
+    if (fromTab == TomogramCombinationDialog.SETUP_TAB) {
+      tomogramCombinationDialog.synchronize(fromTab, false);
+    }
+    else {
+      tomogramCombinationDialog.synchronize(fromTab);
+    }
+    if (tomogramCombinationDialog.isUseMatchingModels(fromTab)) {
+      modelCombine(fromTab);
+      return;
+    }
+    updateCombineCom();
+    
     if (updateSolvematchshiftCom() && updatePatchcorrCom()
-        && updateMatchorwarpCom(false)) {
-
-      if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
-        tomogramCombinationDialog.setUseMatchingModels(
-          TomogramCombinationDialog.SETUP_TAB, tomogramCombinationDialog
-            .getUseMatchingModels(copyFromTab));
-        updateCombineCom(copyFromTab);
-      }
-
+        && updateMatchorwarpCom(false)) {      
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
@@ -3958,24 +3947,25 @@ public class ApplicationManager {
     }
   }
 
-  public void modelCombine() {
-    modelCombine(TomogramCombinationDialog.NO_TAB);
-  }
-
   /**
    * Initiate the combine process using solvematchmod
    */
-  public void modelCombine(int copyFromTab) {
+  public void modelCombine(int fromTab) {
+    if (fromTab == TomogramCombinationDialog.SETUP_TAB) {
+      tomogramCombinationDialog.synchronize(fromTab, false);
+    }
+    else {
+      tomogramCombinationDialog.synchronize(fromTab);
+    }
+    updateCombineCom();
+    if (!tomogramCombinationDialog.isUseMatchingModels(fromTab)) {
+      combine(fromTab);
+      return;
+    }
+
     if (updateSolvematchmodCom() && updatePatchcorrCom()
         && updateMatchorwarpCom(false)) {
-
-      if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
-        tomogramCombinationDialog.setUseMatchingModels(
-          TomogramCombinationDialog.SETUP_TAB, tomogramCombinationDialog
-            .getUseMatchingModels(copyFromTab));
-        updateCombineCom(copyFromTab);
-      }
-
+                
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
@@ -4006,14 +3996,9 @@ public class ApplicationManager {
   /**
    * Execute the matchvol1 com script and put patchcorr in the execution queue 
    */
-  public void matchvol1(int copyFromTab) {
-    if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
-      tomogramCombinationDialog.setUseMatchingModels(
-        TomogramCombinationDialog.SETUP_TAB, tomogramCombinationDialog
-          .getUseMatchingModels(copyFromTab));
-      updateCombineCom(copyFromTab);
-    }
-
+  public void matchvol1(int fromTab) {
+    tomogramCombinationDialog.synchronize(fromTab);
+    updateCombineCom();
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
@@ -4051,9 +4036,10 @@ public class ApplicationManager {
   /**
    * Initiate the combine process from patchcorr step
    */
-  public void patchcorrCombine() {
-    if (updatePatchcorrCom() && updateMatchorwarpCom(false)
-        && updateCombineCom(TomogramCombinationDialog.FINAL_TAB)) {
+  public void patchcorrCombine(int fromTab) {
+    if (updatePatchcorrCom() && updateMatchorwarpCom(false)) {
+      tomogramCombinationDialog.synchronize(fromTab);
+      updateCombineCom();
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
