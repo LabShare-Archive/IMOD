@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/04 23:42:02  rickg
+ * <p> Keep kill button grey out until a process is running
+ * <p>
  * <p> Revision 2.6  2003/05/27 08:49:12  rickg
  * <p> Determinant progress bar now takes a string
  * <p>
@@ -210,39 +213,56 @@ public class AxisProcessPanel implements ContextMenu {
 
     if (command.equals(procCtlPreProc.getName())) {
       applicationManager.openPreProcDialog(axisID);
+      unSelectAll();
+      procCtlPreProc.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlCoarseAlign.getName())) {
       applicationManager.openCoarseAlignDialog(axisID);
+      unSelectAll();
+      procCtlCoarseAlign.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlFiducialModel.getName())) {
       applicationManager.openFiducialModelDialog(axisID);
+      unSelectAll();
+      procCtlFiducialModel.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlFineAlignment.getName())) {
       applicationManager.openFineAlignmentDialog(axisID);
+      unSelectAll();
+      procCtlFineAlignment.setSelected(true);
       return;
     }
     if (command.equals(procCtlTomogramPositioning.getName())) {
       applicationManager.openTomogramPositioningDialog(axisID);
+      unSelectAll();
+      procCtlTomogramPositioning.setSelected(true);
+      return;
     }
 
     if (command.equals(procCtlTomogramGeneration.getName())) {
       applicationManager.openTomogramGenerationDialog(axisID);
+      unSelectAll();
+      procCtlTomogramGeneration.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlTomogramCombination.getName())) {
       applicationManager.openTomogramCombinationDialog();
+      unSelectAll();
+      procCtlTomogramCombination.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlPostProcessing.getName())) {
       applicationManager.openPostProcessingDialog();
+      unSelectAll();
+      procCtlPostProcessing.setSelected(true);
       return;
     }
   }
@@ -391,6 +411,17 @@ public class AxisProcessPanel implements ContextMenu {
     }
   }
 
+  private void unSelectAll() {
+    procCtlPreProc.setSelected(false);
+    procCtlCoarseAlign.setSelected(false);
+    procCtlFiducialModel.setSelected(false);
+    procCtlFineAlignment.setSelected(false);
+    procCtlTomogramPositioning.setSelected(false);
+    procCtlTomogramGeneration.setSelected(false);
+    procCtlTomogramCombination.setSelected(false);
+    procCtlPostProcessing.setSelected(false);
+  }
+  
   /**
    * Right mouse button context menu
    */
