@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/01/05 20:12:17  sueh
+ * <p> bug# 567 Made ProjectionStretch advanced only.
+ * <p>
  * <p> Revision 3.13  2005/01/05 20:07:20  sueh
  * <p> bug# 567 Added ProjectionStretch checkbox to the global tab.
  * <p>
@@ -913,6 +916,8 @@ public class TiltalignPanel {
       badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
       params.setLocalXStretchNondefaultGroup(ltfLocalXstretchNonDefaultGroups
           .getText());
+      //params needs to have other values set before it can set OutputZFactorFile
+      params.setOutputZFactorFile();
     }
     catch (FortranInputSyntaxException except) {
       String message = badParameter + " " + except.getMessage();
