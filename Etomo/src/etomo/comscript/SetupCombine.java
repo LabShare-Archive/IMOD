@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/08 23:57:11  rickg
+ * <p> Added remaining parameters for stdin sequence to script
+ * <p>
  * <p> Revision 1.2  2002/09/30 23:45:21  rickg
  * <p> Reformatted after emacs trashed it
  * <p>
@@ -58,6 +61,9 @@ public class SetupCombine {
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
       }
+      else {
+        tempStdInput[lineCount++] = "";
+      }
     }
     else {
       tempStdInput[lineCount++] = "b";
@@ -65,7 +71,9 @@ public class SetupCombine {
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
       }
-
+      else {
+        tempStdInput[lineCount++] = "";
+      }
     }
 
     //  Fiducial surfaces / use model
@@ -120,43 +128,20 @@ public class SetupCombine {
     //
     //  Copy the temporary stdInput to the real stdInput to get the number
     //  of array elements correct
-    System.out.println("Stdin:");
-    System.out.println(
-      "------------------------------------------------------------");
-
     String[] stdInput = new String[lineCount];
     for (int i = 0; i < lineCount; i++) {
       stdInput[i] = tempStdInput[i];
-      System.out.println(stdInput[i]);
     }
     setupcombine.setStdInput(stdInput);
-
   }
 
   public int run() throws IOException {
     int exitValue;
 
     //  Execute the script
+    setupcombine.enableDebug(true);
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
-
-    System.out.println("Stdout:");
-    System.out.println(
-      "------------------------------------------------------------");
-    String[] stdout = setupcombine.getStdOutput();
-    for (int i = 0; i < stdout.length; i++) {
-      System.out.println(stdout[i]);
-    }
-    System.out.println("");
-
-    System.out.println("Stderr:");
-    System.out.println(
-      "------------------------------------------------------------");
-    String[] stderr = setupcombine.getStdError();
-    for (int i = 0; i < stderr.length; i++) {
-      System.out.println(stderr[i]);
-    }
-    System.out.println("");
 
     //  FIXME we really need to find out what the exception/error condition was
     if (exitValue != 0) {
