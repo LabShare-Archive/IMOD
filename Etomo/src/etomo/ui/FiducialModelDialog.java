@@ -23,6 +23,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/07 17:50:37  rickg
+ * <p> Added beadtrack and track.log to context menu
+ * <p>
  * <p> Revision 2.1  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -73,11 +76,11 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   BeadtrackPanel panelBeadtrack;
 
-  private JButton buttonTrack =
-    new JButton("<html><b>Track fiducial<br>seed model</b>");
+  private JToggleButton buttonTrack =
+    new JToggleButton("<html><b>Track fiducial<br>seed model</b>");
 
-  JButton buttonFixModel =
-    new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
+  JToggleButton buttonFixModel =
+    new JToggleButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
 
   public FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
