@@ -155,6 +155,7 @@ install : configure man
 	cd com       ; $(MAKE) $@
 	cd html      ; $(MAKE) $@
 	cd Etomo	 ; $(MAKE) $@
+	./packMacApps
 #
 # Install under cygwin
 #
@@ -375,6 +376,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.20  2003/09/18 20:48:10  mast
+#  Added entry to clean everything that depends on Qt
+#
 #  Revision 3.19  2003/09/03 00:37:29  mast
 #  Change to ./setup in cygdist
 #
