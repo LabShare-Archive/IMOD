@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.2  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -81,7 +84,7 @@ int main( int argc, char *argv[])
   
   if (imodBackupFile(argv[++i])) {
     fprintf(stdout, "ERROR: imod2patch - renaming existing output file "
-            "to %s\~n", argv[i]);
+            "to %s\n", argv[i]);
     exit(1);
   }
   
