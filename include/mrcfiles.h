@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2004/01/08 06:43:05  mast
+    Added functions for complex scaling
+
     Revision 3.6  2004/01/05 17:26:17  mast
     Renamed imin/imax to outmin/outmax; changed mrcRead... from void to int
     for error returns, and eliminated mode-specific calls
@@ -333,7 +336,7 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
                                    int pixsize);
   void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize);
   float mrcGetComplexScale();
-  float mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
+  void mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
                            float *outMax);
 
 unsigned char **read_mrc_byte(FILE *fin, struct MRCheader *hdata, 

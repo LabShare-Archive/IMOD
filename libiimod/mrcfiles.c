@@ -1139,7 +1139,7 @@ float mrcGetComplexScale()
 }
 
 /* Compute the min and max for complex log scaling */
-float mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
+void mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
                          float *outMax)
 {
   float minSign = 1.;
@@ -2149,6 +2149,10 @@ size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
 
 /*
 $Log$
+Revision 3.13  2004/01/08 06:40:52  mast
+Fixed complex scaling and rewrote mrc_read_byte to split into cases just for
+processing each line
+
 Revision 3.12  2004/01/05 17:39:08  mast
 Split off memory allocation by mrc_read_byte into a separate routine
 that 3dmod could use for alternate loading; moved the shifting of
