@@ -20,4 +20,6 @@ $patchcrawl3d  56 20 56   3  2  5   36  988  10  72  36  988 \
  10 g5a.rec g5b.mat patch.out \
  solve.xf g5b.rec 36,36,36,36 boundary_model
 #
+# Make a patch vector model
+$patch2imod patch.out patch_vector.mod
 $if (-e savework-file) savework-file
