@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 1.2  2003/11/27 06:08:01  mast
 Fixed bug in copying image that made it work only for square images
 
@@ -83,11 +86,15 @@ added a Copy button.
 #include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
 #include "../../imod/control.h"
+#include "../../imod/xzap.h"
+#include "../../imod/preferences.h"
 #else
 #include "imod.h"
 #include "control.h"
 #endif
 #include "linegui.h"
+#include "xzap.h"
+#include "preferences.h"
 
 #ifndef LINE_PLUGIN
 static char *imodPlugInfo(int *type);
@@ -141,8 +148,12 @@ typedef struct
   int   copyfit;
   int   copiedco;
   int   copysize;
+  int   left;
+  int   top;
 
 }PlugData;
+
+static void setDefaults();
 
 #ifdef F77FUNCAP
 #define linetrack_ LINETRACK
@@ -181,6 +192,22 @@ void conttrack_(unsigned char *image, int *nx, int *ny,
 
 static PlugData thisPlug = { 0, 0 };
 
+// A function to set or reset the interface defaults
+static void setDefaults()
+{
+  PlugData *plug = &thisPlug;
+  plug->ksize    = 7;
+  plug->knum     = 30;
+  plug->sigma    = 2.5f;
+  plug->h        = 7.0f;
+  plug->ifdark   = 1;
+  plug->stepsize = 3.0f;
+  plug->redtol   = 0.3f;
+  plug->offset   = 0.0f;
+  plug->copytol  = 3;
+  plug->copypool = 5;
+  plug->copyfit  = 5;
+}
 
 /*
  * Called by the imod plugin load function. 
@@ -247,11 +274,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
  *  see imodplug.h for a list of support functions.
  */
 
+#define MAX_SETTINGS 13
 void imodPlugExecute(ImodView *inImodView)
 {
   PlugData *plug;
   static int first = 1;
+  int numVals;
   plug = &thisPlug;
+  double values[MAX_SETTINGS];
 
   if (plug->window){
     plug->window->raise();
@@ -279,19 +309,27 @@ void imodPlugExecute(ImodView *inImodView)
   plug->copiedco = -1;
 
   if (first) {
-    plug->ksize    = 7;
-    plug->knum     = 30;
-    plug->sigma    = 2.5f;
-    plug->h        = 7.0f;
-    plug->ifdark   = 1;
-    plug->stepsize = 3.0f;
-    plug->redtol   = 0.3f;
-    plug->offset   = 0.0f;
-    plug->copytol  = 3;
-    plug->copypool = 5;
-    plug->copyfit  = 5;
+    setDefaults();
+
+    // Get window position and values from settings the first time
+    numVals = ImodPrefs->getGenericSettings("LineTracker", values, MAX_SETTINGS);
+    if (numVals > 12 ) {
+      plug->left = (int)values[0];
+      plug->top = (int)values[1];
+      plug->ksize    = (int)values[2];
+      plug->knum     = (int)values[3];
+      plug->sigma    = (float)values[4];
+      plug->h        = (float)values[5];
+      plug->ifdark   = (int)values[6];
+      plug->stepsize = (float)values[7];
+      plug->redtol   = (float)values[8];
+      plug->offset   = (float)values[9];
+      plug->copytol  = (int)values[10];
+      plug->copypool = (int)values[11];
+      plug->copyfit  = (int)values[12];
+      // Future values test on numVals
+    }
   }
-  first = 0;
 
   /*
    * This creates the plug window.
@@ -300,21 +338,30 @@ void imodPlugExecute(ImodView *inImodView)
                                 "line tracker");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
+
+  if (!first || numVals > 12) {
+    zapLimitWindowPos(plug->window->width(), plug->window->height(), 
+                      plug->left, plug->top);
+    plug->window->move(plug->left, plug->top);
+  }
+  first = 0;
+
   plug->window->show();
 }
 
 
 // The constructor for the window class
 
-char *buttonLabels[] = {"Track", "Copy", "Undo", "Done", "Help"};
+char *buttonLabels[] = {"Track", "Copy", "Undo", "Reset", "Done", "Help"};
 char *buttonTips[] = 
   {"Track from last to current model point - Hot key: Spacebar",
    "Copy and adjust contour from adjacent section - Hot key: Apostrophe",
    "Undo or redo last tracking operation - Hot key: Semicolon or U", 
-   "Close line tracker", "Open help window"};
+   "Reset parameters to built-in default values", "Close line tracker",
+   "Open help window"};
 
 LineTrack::LineTrack(QWidget *parent, const char *name)
-  : DialogFrame(parent, 5, buttonLabels, buttonTips, true, "Line Tracker", "",
+  : DialogFrame(parent, 6, 2, buttonLabels, buttonTips, true, "Line Tracker", "",
                 name)
 {
   PlugData *plug = &thisPlug;
@@ -379,11 +426,17 @@ void LineTrack::makeEditRow(int row, char *label, int *iPtr, float *fPtr,
   str = tip;
   QToolTip::add(mEdit[row], str);
 
-  // Fill the edit with the right kind of value
-  if (isInt)
-    str.sprintf("%d", *iPtr);
+  fillinValue(row);
+}
+
+// Put the current value into a row's edit box , using the right kind of value
+void LineTrack::fillinValue(int row)
+{
+  QString str;
+  if (mIsInt[row])
+    str.sprintf("%d", *mIntPtr[row]);
   else
-    str.sprintf("%g", *fPtr);
+    str.sprintf("%g", *mFloatPtr[row]);
   mEdit[row]->setText(str);
 }
 
@@ -635,6 +688,7 @@ void LineTrack::undo()
 // Respond to an action button
 void LineTrack::buttonPressed(int which)
 {
+  int i;
   switch (which) {
   case 0:
     track(1);
@@ -645,10 +699,17 @@ void LineTrack::buttonPressed(int which)
   case 2:
     undo();
     break;
+
   case 3:
+    setDefaults();
+    for (i = 0; i < 10; i++)
+      fillinValue(i);
+    break;
+
+  case 4:
     close();
     break;
-  case 4:
+  case 5:
     dia_vasmsg
       ("Line Track Plugin Help\n\n",
        "Line Track will create points along a line between "
@@ -706,6 +767,25 @@ void LineTrack::buttonPressed(int which)
 void LineTrack::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &thisPlug;
+  double values[MAX_SETTINGS];
+  QRect pos = ivwRestorableGeometry(plug->window);
+  values[0] = pos.left();
+  values[1] = pos.top();
+  plug->top = pos.top();
+  plug->left = pos.left();
+  values[2] = plug->ksize;
+  values[3] = plug->knum;
+  values[4] = plug->sigma;
+  values[5] = plug->h;
+  values[6] = plug->ifdark;
+  values[7] = plug->stepsize;
+  values[8] = plug->redtol;
+  values[9] = plug->offset;
+  values[10] = plug->copytol;
+  values[11] = plug->copypool;
+  values[12] = plug->copyfit;
+  ImodPrefs->saveGenericSettings("LineTracker", MAX_SETTINGS, values);
+
   imodDialogManager.remove((QWidget *)plug->window);
 
   plug->view = NULL;
