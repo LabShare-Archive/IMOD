@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/04 23:13:29  mast
+    Read mat1 and mat3 the old way if a flag is not set
+
     Revision 3.1  2002/09/03 20:04:46  mast
     Changed to read and write mat1 and mat3 in object view structures as
     bytes to avoid endian problems
@@ -258,7 +261,7 @@ int imodViewModelRead(Imod *imod)
 			 imodGetBytes(fin, (unsigned char *)&ov->mat1, 4);     
 			 imodGetInts(fin, (int *)&ov->mat2, 1);     
 			 imodGetBytes(fin, (unsigned char *)&ov->mat3, 4);     
-		    }
+		    } else
 			 imodGetInts(fin, (int *)&ov->mat1, 3);     
 
 		    bytesRead += 67;
