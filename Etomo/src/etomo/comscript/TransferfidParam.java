@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.io.File;
+
 /**
  * <p>Description: </p>
  *
@@ -13,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/13 16:54:40  rickg
+ * <p> Modified command to run on windows/cygwin
+ * <p>
  * <p> Revision 2.1  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -54,16 +59,22 @@ public class TransferfidParam {
   int centerViewA = 0; // 0 => default selected by script
   int centerViewB = 0;
 
+  File IMODDirectory;
+
   boolean createLog = false;
 
-  public TransferfidParam() {
+  public TransferfidParam(File IMOD_DIR) {
+    IMODDirectory = IMOD_DIR;
   }
 
   /**
    * Get the command string specified by the current state
    */
   public String getCommandString() {
-    StringBuffer commandLine = new StringBuffer("tcsh -ec ' transferfid ");
+    String IMODBinPath =
+      IMODDirectory.getAbsolutePath() + File.separator + "bin" + File.separator;
+    StringBuffer commandLine =
+      new StringBuffer("tcsh -f " + IMODBinPath + "transferfid ");
 
     if (bToA) {
       commandLine.append("-b ");
@@ -105,7 +116,6 @@ public class TransferfidParam {
     }
 
     commandLine.append(datasetName);
-		commandLine.append("'");
     return commandLine.toString();
   }
 
