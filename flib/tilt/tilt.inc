@@ -27,7 +27,7 @@ c	  intordxtilt  order for interpolating X-tilted slice
 c
         parameter (limstack=19000000)
 c        parameter (limstack=2200000)
-	parameter (limmask=1000)
+	parameter (limmask=4096)
 	parameter (limview=720,limwidth=20000)
 	parameter (limwpos=400,limwarp=40000)
 	COMMON /BUFFER/NSTACK,maxstack,ARRAY(limstack)
