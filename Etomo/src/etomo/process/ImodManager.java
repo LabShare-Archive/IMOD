@@ -1,4 +1,6 @@
 package etomo.process;
+import java.io.File;
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -21,6 +23,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.21  2003/10/30 23:36:02  rickg
+ * <p> Bug# 343 Open patch vector model in model mode
+ * <p>
  * <p> Revision 2.20  2003/10/14 23:44:04  rickg
  * <p> Bug# 285 Fixed select mapping for fine aligned tomogram
  * <p>
@@ -123,532 +128,542 @@ import etomo.type.ConstMetaData;
  * <p> </p>
  */
 public class ImodManager {
-  public static final String rcsid =
-    "$Id$";
+	public static final String rcsid =
+		"$Id$";
 
-  private ApplicationManager applicationManager;
-  private AxisType axisType;
-  private String datasetName;
+	private ApplicationManager applicationManager;
+	private AxisType axisType;
+	private String datasetName;
 
-  private ImodProcess rawStackA;
-  private ImodProcess rawStackB;
-  private ImodProcess erasedStackA;
-  private ImodProcess erasedStackB;
+	private ImodProcess rawStackA;
+	private ImodProcess rawStackB;
+	private ImodProcess erasedStackA;
+	private ImodProcess erasedStackB;
 
-  private ImodProcess coarseAlignedA;
-  private ImodProcess coarseAlignedB;
-  private ImodProcess fineAlignedA;
-  private ImodProcess fineAlignedB;
-  private ImodProcess sampleA;
-  private ImodProcess sampleB;
-  private ImodProcess fullVolumeA;
-  private ImodProcess fullVolumeB;
-  private ImodProcess combinedTomogram;
-  private ImodProcess patchVectorModel;
-  private ImodProcess matchCheck;
-  private ImodProcess trimmedVolume;
+	private ImodProcess coarseAlignedA;
+	private ImodProcess coarseAlignedB;
+	private ImodProcess fineAlignedA;
+	private ImodProcess fineAlignedB;
+	private ImodProcess sampleA;
+	private ImodProcess sampleB;
+	private ImodProcess fullVolumeA;
+	private ImodProcess fullVolumeB;
+	private ImodProcess combinedTomogram;
+	private ImodProcess patchVectorModel;
+	private ImodProcess matchCheck;
+	private ImodProcess trimmedVolume;
 
-  private Thread fiducialModelA;
-  private Thread fiducialModelB;
-  /**
-   * Default constructor
-   * @param metaData this class is used to initialize the
-   * dataset name and axisType of the data to used in imod.
-   */
-  public ImodManager(ApplicationManager appMgr, ConstMetaData metaData) {
-    applicationManager = appMgr;
+	private Thread fiducialModelA;
+	private Thread fiducialModelB;
+	/**
+	 * Default constructor
+	 * @param metaData this class is used to initialize the
+	 * dataset name and axisType of the data to used in imod.
+	 */
+	public ImodManager(ApplicationManager appMgr, ConstMetaData metaData) {
+		applicationManager = appMgr;
 
-    axisType = metaData.getAxisType();
-    datasetName = metaData.getDatasetName();
+		axisType = metaData.getAxisType();
+		datasetName = metaData.getDatasetName();
+		File imodDir = applicationManager.getIMODDirectory();
 
-    //  Initialize the necessary ImodProcesses
-    if (axisType == AxisType.SINGLE_AXIS) {
-      rawStackA = new ImodProcess(datasetName + ".st");
-      erasedStackA = new ImodProcess(datasetName + "_fixed.st");
-      coarseAlignedA = new ImodProcess(datasetName + ".preali");
-      fineAlignedA = new ImodProcess(datasetName + ".ali");
-      sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
-      fullVolumeA = new ImodProcess(datasetName + "_full.rec");
-      fullVolumeA.setSwapYZ(true);
-      combinedTomogram = fullVolumeA;
-    }
-    else {
-      rawStackA = new ImodProcess(datasetName + "a.st");
-      rawStackB = new ImodProcess(datasetName + "b.st");
-      erasedStackA = new ImodProcess(datasetName + "a_fixed.st");
-      erasedStackB = new ImodProcess(datasetName + "b_fixed.st");
-      coarseAlignedA = new ImodProcess(datasetName + "a.preali");
-      coarseAlignedB = new ImodProcess(datasetName + "b.preali");
-      fineAlignedA = new ImodProcess(datasetName + "a.ali");
-      fineAlignedB = new ImodProcess(datasetName + "b.ali");
-      sampleA = new ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
-      sampleB = new ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
-      fullVolumeA = new ImodProcess(datasetName + "a.rec");
-      fullVolumeA.setSwapYZ(true);
-      fullVolumeB = new ImodProcess(datasetName + "b.rec");
-      fullVolumeB.setSwapYZ(true);
-      combinedTomogram = new ImodProcess("sum.rec");
-      combinedTomogram.setSwapYZ(true);
-      patchVectorModel = new ImodProcess("patch_vector.mod");
-      patchVectorModel.setModelView(true);
-      matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
-      matchCheck.setFillCache(true);
-    }
-    trimmedVolume = new ImodProcess(datasetName + ".rec");
-  }
+		//  Initialize the necessary ImodProcesses
+		if (axisType == AxisType.SINGLE_AXIS) {
+			rawStackA = new ImodProcess(datasetName + ".st", imodDir);
+			erasedStackA = new ImodProcess(datasetName + "_fixed.st", imodDir);
+			coarseAlignedA = new ImodProcess(datasetName + ".preali", imodDir);
+			fineAlignedA = new ImodProcess(datasetName + ".ali", imodDir);
+			sampleA =
+				new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod", imodDir);
+			fullVolumeA = new ImodProcess(datasetName + "_full.rec", imodDir);
+			fullVolumeA.setSwapYZ(true);
+			combinedTomogram = fullVolumeA;
+		}
+		else {
+			rawStackA = new ImodProcess(datasetName + "a.st", imodDir);
+			rawStackB = new ImodProcess(datasetName + "b.st", imodDir);
+			erasedStackA = new ImodProcess(datasetName + "a_fixed.st", imodDir);
+			erasedStackB = new ImodProcess(datasetName + "b_fixed.st", imodDir);
+			coarseAlignedA = new ImodProcess(datasetName + "a.preali", imodDir);
+			coarseAlignedB = new ImodProcess(datasetName + "b.preali", imodDir);
+			fineAlignedA = new ImodProcess(datasetName + "a.ali", imodDir);
+			fineAlignedB = new ImodProcess(datasetName + "b.ali", imodDir);
+			sampleA =
+				new ImodProcess(
+					"topa.rec mida.rec bota.rec",
+					"tomopitcha.mod",
+					imodDir);
+			sampleB =
+				new ImodProcess(
+					"topb.rec midb.rec botb.rec",
+					"tomopitchb.mod",
+					imodDir);
+			fullVolumeA = new ImodProcess(datasetName + "a.rec", imodDir);
+			fullVolumeA.setSwapYZ(true);
+			fullVolumeB = new ImodProcess(datasetName + "b.rec", imodDir);
+			fullVolumeB.setSwapYZ(true);
+			combinedTomogram = new ImodProcess("sum.rec", imodDir);
+			combinedTomogram.setSwapYZ(true);
+			patchVectorModel = new ImodProcess("patch_vector.mod", imodDir);
+			patchVectorModel.setModelView(true);
+			matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec", imodDir);
+			matchCheck.setFillCache(true);
+		}
+		trimmedVolume = new ImodProcess(datasetName + ".rec", imodDir);
+	}
 
-  /**
-   * Open the specified raw data stack in 3dmod if it is not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openRawStack(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess rawStack = selectRawStack(axisID);
-    rawStack.open();
-  }
+	/**
+	 * Open the specified raw data stack in 3dmod if it is not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openRawStack(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess rawStack = selectRawStack(axisID);
+		rawStack.open();
+	}
 
-  /**
-   * Open the specified model with on raw stack 3dmod
-   */
-  public void modelRawStack(String modelName, AxisID axisID, boolean modelMode)
-    throws AxisTypeException, SystemProcessException {
-    // Make sure there is an imod with right course aligned data set that
-    // is already open
-    openRawStack(axisID);
-    ImodProcess rawStack = selectRawStack(axisID);
-    rawStack.openModel(modelName);
-    if (modelMode) {
-      rawStack.modelMode();
-    }
-    else {
-      rawStack.movieMode();
-    }
+	/**
+	 * Open the specified model with on raw stack 3dmod
+	 */
+	public void modelRawStack(String modelName, AxisID axisID, boolean modelMode)
+		throws AxisTypeException, SystemProcessException {
+		// Make sure there is an imod with right course aligned data set that
+		// is already open
+		openRawStack(axisID);
+		ImodProcess rawStack = selectRawStack(axisID);
+		rawStack.openModel(modelName);
+		if (modelMode) {
+			rawStack.modelMode();
+		}
+		else {
+			rawStack.movieMode();
+		}
 
-  }
+	}
 
-  /**
-   * Check to see if the specified raw stack is open
-   */
-  public boolean isRawStackOpen(AxisID axisID) {
-    ImodProcess rawStack = selectRawStack(axisID);
-    if (rawStack == null) {
-      return false;
-    }
-    return rawStack.isRunning();
-  }
+	/**
+	 * Check to see if the specified raw stack is open
+	 */
+	public boolean isRawStackOpen(AxisID axisID) {
+		ImodProcess rawStack = selectRawStack(axisID);
+		if (rawStack == null) {
+			return false;
+		}
+		return rawStack.isRunning();
+	}
 
-  /**
-   * Close the specified raw stack
-   */
-  public void quitRawStack(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess rawStack = selectRawStack(axisID);
-    rawStack.quit();
-  }
+	/**
+	 * Close the specified raw stack
+	 */
+	public void quitRawStack(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess rawStack = selectRawStack(axisID);
+		rawStack.quit();
+	}
 
-  /**
-   * Open the specified erased data stack in 3dmod if it is not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openErasedStack(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess erasedStack = selectErasedStack(axisID);
-    erasedStack.open();
-  }
+	/**
+	 * Open the specified erased data stack in 3dmod if it is not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openErasedStack(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess erasedStack = selectErasedStack(axisID);
+		erasedStack.open();
+	}
 
-  /**
-   * Open the specified model with the erased stack 3dmod
-   */
-  public void modelErasedStack(String modelName, AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    // Make sure there is an imod with right course aligned data set that
-    // is already open
-    openErasedStack(axisID);
-    ImodProcess erasedStack = selectErasedStack(axisID);
-    erasedStack.openModel(modelName);
-  }
+	/**
+	 * Open the specified model with the erased stack 3dmod
+	 */
+	public void modelErasedStack(String modelName, AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		// Make sure there is an imod with right course aligned data set that
+		// is already open
+		openErasedStack(axisID);
+		ImodProcess erasedStack = selectErasedStack(axisID);
+		erasedStack.openModel(modelName);
+	}
 
-  /**
-   * Check to see if the specified erased stack is open
-   */
-  public boolean isErasedStackOpen(AxisID axisID) {
-    ImodProcess erasedStack = selectErasedStack(axisID);
-    if (erasedStack == null) {
-      return false;
-    }
-    return erasedStack.isRunning();
-  }
+	/**
+	 * Check to see if the specified erased stack is open
+	 */
+	public boolean isErasedStackOpen(AxisID axisID) {
+		ImodProcess erasedStack = selectErasedStack(axisID);
+		if (erasedStack == null) {
+			return false;
+		}
+		return erasedStack.isRunning();
+	}
 
-  /**
-   * Close the specified erased stack
-   */
-  public void quitErasedStack(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess erasedStack = selectErasedStack(axisID);
-    erasedStack.quit();
-  }
+	/**
+	 * Close the specified erased stack
+	 */
+	public void quitErasedStack(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess erasedStack = selectErasedStack(axisID);
+		erasedStack.quit();
+	}
 
-  /**
-   * Open the specified coarse aligned stack in 3dmod if it is not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openCoarseAligned(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess coarseAligned = selectCoarseAligned(axisID);
-    coarseAligned.open();
-  }
+	/**
+	 * Open the specified coarse aligned stack in 3dmod if it is not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openCoarseAligned(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess coarseAligned = selectCoarseAligned(axisID);
+		coarseAligned.open();
+	}
 
-  /**
-   * Open the specified model with the course aligned imod
-   */
-  public void modelCoarseAligned(
-    String modelName,
-    AxisID axisID,
-    boolean modelMode)
-    throws AxisTypeException, SystemProcessException {
-    // Make sure there is an 3dmod with right coarse aligned data set that
-    // is already open
-    openCoarseAligned(axisID);
-    ImodProcess coarseAligned = selectCoarseAligned(axisID);
-    coarseAligned.openModel(modelName);
-    coarseAligned.modelMode();
-    if (modelMode) {
-      coarseAligned.modelMode();
-    }
-    else {
-      coarseAligned.movieMode();
-    }
-  }
+	/**
+	 * Open the specified model with the course aligned imod
+	 */
+	public void modelCoarseAligned(
+		String modelName,
+		AxisID axisID,
+		boolean modelMode)
+		throws AxisTypeException, SystemProcessException {
+		// Make sure there is an 3dmod with right coarse aligned data set that
+		// is already open
+		openCoarseAligned(axisID);
+		ImodProcess coarseAligned = selectCoarseAligned(axisID);
+		coarseAligned.openModel(modelName);
+		coarseAligned.modelMode();
+		if (modelMode) {
+			coarseAligned.modelMode();
+		}
+		else {
+			coarseAligned.movieMode();
+		}
+	}
 
-  /**
-   * Check to see if the specified coarsely aligned stack is open
-   */
-  public boolean isCoarseAlignedOpen(AxisID axisID) {
-    ImodProcess coarseAligned = selectCoarseAligned(axisID);
-    if (coarseAligned == null) {
-      return false;
-    }
-    return coarseAligned.isRunning();
-  }
+	/**
+	 * Check to see if the specified coarsely aligned stack is open
+	 */
+	public boolean isCoarseAlignedOpen(AxisID axisID) {
+		ImodProcess coarseAligned = selectCoarseAligned(axisID);
+		if (coarseAligned == null) {
+			return false;
+		}
+		return coarseAligned.isRunning();
+	}
 
-  /**
-   * Close the specified coarsely aligned stack
-   */
-  public void quitCoarseAligned(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess coarseAligned = selectCoarseAligned(axisID);
-    coarseAligned.quit();
-  }
+	/**
+	 * Close the specified coarsely aligned stack
+	 */
+	public void quitCoarseAligned(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess coarseAligned = selectCoarseAligned(axisID);
+		coarseAligned.quit();
+	}
 
-  /**
-   * Open the 3D fiducial model in imodv
-   */
-  public void openFiducialModel(String model, AxisID axisID) {
+	/**
+	 * Open the 3D fiducial model in imodv
+	 */
+	public void openFiducialModel(String model, AxisID axisID) {
 
-    if (axisID == AxisID.SECOND) {
-      if (fiducialModelB != null && fiducialModelB.isAlive()) {
-        return;
-      }
-    }
-    else {
-      if (fiducialModelA != null && fiducialModelA.isAlive()) {
-        return;
-      }
-    }
+		if (axisID == AxisID.SECOND) {
+			if (fiducialModelB != null && fiducialModelB.isAlive()) {
+				return;
+			}
+		}
+		else {
+			if (fiducialModelA != null && fiducialModelA.isAlive()) {
+				return;
+			}
+		}
 
-    SystemProgram imodv = new SystemProgram("3dmod -view " + model);
-    imodv.setDebug(applicationManager.isDebug());
-    Thread fiducialModel = new Thread(imodv);
-    fiducialModel.start();
+		SystemProgram imodv = new SystemProgram("3dmod -view " + model);
+		imodv.setDebug(applicationManager.isDebug());
+		Thread fiducialModel = new Thread(imodv);
+		fiducialModel.start();
 
-    if (axisID == AxisID.SECOND) {
-      fiducialModelB = fiducialModel;
-    }
-    else {
-      fiducialModelA = fiducialModel;
-    }
-  }
+		if (axisID == AxisID.SECOND) {
+			fiducialModelB = fiducialModel;
+		}
+		else {
+			fiducialModelA = fiducialModel;
+		}
+	}
 
-  /**
-   * Open the specified fine aligned stack in 3dmod if it is not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openFineAligned(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess fineAligned = selectFineAligned(axisID);
-    fineAligned.open();
-  }
+	/**
+	 * Open the specified fine aligned stack in 3dmod if it is not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openFineAligned(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess fineAligned = selectFineAligned(axisID);
+		fineAligned.open();
+	}
 
-  /**
-   * Check to see if the specified finely aligned stack is open
-   */
-  public boolean isFineAlignedOpen(AxisID axisID) {
-    ImodProcess fineAligned = selectCoarseAligned(axisID);
-    if (fineAligned == null) {
-      return false;
-    }
-    return fineAligned.isRunning();
-  }
+	/**
+	 * Check to see if the specified finely aligned stack is open
+	 */
+	public boolean isFineAlignedOpen(AxisID axisID) {
+		ImodProcess fineAligned = selectCoarseAligned(axisID);
+		if (fineAligned == null) {
+			return false;
+		}
+		return fineAligned.isRunning();
+	}
 
-  /**
-   * Close the specified finely aligned stack
-   */
-  public void quitFinelyAligned(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess fineAligned = selectCoarseAligned(axisID);
-    fineAlignedB.quit();
-  }
+	/**
+	 * Close the specified finely aligned stack
+	 */
+	public void quitFinelyAligned(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess fineAligned = selectCoarseAligned(axisID);
+		fineAlignedB.quit();
+	}
 
-  /**
-   * Open the specified tomograph samples in 3dmod if they are not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openSample(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess sample = selectSample(axisID);
-    sample.open();
-    sample.modelMode();
-  }
+	/**
+	 * Open the specified tomograph samples in 3dmod if they are not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openSample(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess sample = selectSample(axisID);
+		sample.open();
+		sample.modelMode();
+	}
 
-  /**
-   * Check to see if the specified sample reconstruction is open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public boolean isSampleOpen(AxisID axisID) {
-    ImodProcess sample = selectSample(axisID);
-    if (sample == null) {
-      return false;
-    }
-    return sample.isRunning();
-  }
+	/**
+	 * Check to see if the specified sample reconstruction is open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public boolean isSampleOpen(AxisID axisID) {
+		ImodProcess sample = selectSample(axisID);
+		if (sample == null) {
+			return false;
+		}
+		return sample.isRunning();
+	}
 
-  /**
-   * Close the specifed sample reconstruction
-   */
-  public void quitSample(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess sample = selectSample(axisID);
-    sample.quit();
-  }
+	/**
+	 * Close the specifed sample reconstruction
+	 */
+	public void quitSample(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess sample = selectSample(axisID);
+		sample.quit();
+	}
 
-  /**
-   * Open the specified tomogram in 3dmod if it is not already open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public void openFullVolume(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess fullVolume = selectFullVolume(axisID);
-    // Remove any model references that may be left over from earlier matching
-    // or patch region model instances
-    fullVolume.setModelName("");
-    fullVolume.open();
-  }
+	/**
+	 * Open the specified tomogram in 3dmod if it is not already open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public void openFullVolume(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess fullVolume = selectFullVolume(axisID);
+		// Remove any model references that may be left over from earlier matching
+		// or patch region model instances
+		fullVolume.setModelName("");
+		fullVolume.open();
+	}
 
-  /**
-   * Open both tomograms and their matching models
-   * @param datasetName
-   */
-  public void matchingModel(String datasetName)
-    throws AxisTypeException, SystemProcessException {
-    fullVolumeA.open();
-    fullVolumeA.openModel(datasetName + "a.matmod");
-    fullVolumeA.modelMode();
+	/**
+	 * Open both tomograms and their matching models
+	 * @param datasetName
+	 */
+	public void matchingModel(String datasetName)
+		throws AxisTypeException, SystemProcessException {
+		fullVolumeA.open();
+		fullVolumeA.openModel(datasetName + "a.matmod");
+		fullVolumeA.modelMode();
 
-    fullVolumeB.open();
-    fullVolumeB.openModel(datasetName + "b.matmod");
-    fullVolumeB.modelMode();
-  }
+		fullVolumeB.open();
+		fullVolumeB.openModel(datasetName + "b.matmod");
+		fullVolumeB.modelMode();
+	}
 
-  /**
-   * Open the patch region model and the volume being matched to if it is not
-   * already open
-   * @param axisID
-   */
-  public void patchRegionModel(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    if (axisID == AxisID.SECOND) {
-      fullVolumeB.open();
-      fullVolumeB.openModel("patch_region.mod");
-      fullVolumeB.modelMode();
-    }
-    else {
-      fullVolumeA.open();
-      fullVolumeA.openModel("patch_region.mod");
-      fullVolumeA.modelMode();
-    }
-  }
+	/**
+	 * Open the patch region model and the volume being matched to if it is not
+	 * already open
+	 * @param axisID
+	 */
+	public void patchRegionModel(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		if (axisID == AxisID.SECOND) {
+			fullVolumeB.open();
+			fullVolumeB.openModel("patch_region.mod");
+			fullVolumeB.modelMode();
+		}
+		else {
+			fullVolumeA.open();
+			fullVolumeA.openModel("patch_region.mod");
+			fullVolumeA.modelMode();
+		}
+	}
 
-  /**
-   * Check to see if the specified tomogram is open
-   * @param axisID the AxisID of the desired axis.
-   */
-  public boolean isFullVolumeOpen(AxisID axisID) {
-    ImodProcess tomogram = selectFullVolume(axisID);
-    if (tomogram == null) {
-      return false;
-    }
-    return tomogram.isRunning();
-  }
+	/**
+	 * Check to see if the specified tomogram is open
+	 * @param axisID the AxisID of the desired axis.
+	 */
+	public boolean isFullVolumeOpen(AxisID axisID) {
+		ImodProcess tomogram = selectFullVolume(axisID);
+		if (tomogram == null) {
+			return false;
+		}
+		return tomogram.isRunning();
+	}
 
-  /**
-   * Close the specified tomogram
-   */
-  public void quitFullVolume(AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    checkAxisID(axisID);
-    ImodProcess tomogram = selectFullVolume(axisID);
-    tomogram.quit();
-  }
+	/**
+	 * Close the specified tomogram
+	 */
+	public void quitFullVolume(AxisID axisID)
+		throws AxisTypeException, SystemProcessException {
+		checkAxisID(axisID);
+		ImodProcess tomogram = selectFullVolume(axisID);
+		tomogram.quit();
+	}
 
-  /**
-   * Open the patch vector in 3dmod if it is not already open
-   */
-  public void openPatchVectorModel() throws SystemProcessException {
-    patchVectorModel.open();
-    patchVectorModel.modelMode();
-  }
+	/**
+	 * Open the patch vector in 3dmod if it is not already open
+	 */
+	public void openPatchVectorModel() throws SystemProcessException {
+		patchVectorModel.open();
+		patchVectorModel.modelMode();
+	}
 
-  /**
-   * Check to see if the patch vector model is open
-   */
-  public boolean ispatchVectorModelOpen() {
-    return patchVectorModel.isRunning();
-  }
+	/**
+	 * Check to see if the patch vector model is open
+	 */
+	public boolean ispatchVectorModelOpen() {
+		return patchVectorModel.isRunning();
+	}
 
-  /**
-   * Close the patch vector model
-   */
-  public void quitPatchVectorModel() throws SystemProcessException {
-    patchVectorModel.quit();
-  }
+	/**
+	 * Close the patch vector model
+	 */
+	public void quitPatchVectorModel() throws SystemProcessException {
+		patchVectorModel.quit();
+	}
 
-  /**
-   * Open the combined tomogram in 3dmod if it is not already open
-   */
-  public void openCombinedTomogram() throws SystemProcessException {
-    combinedTomogram.open();
-  }
+	/**
+	 * Open the combined tomogram in 3dmod if it is not already open
+	 */
+	public void openCombinedTomogram() throws SystemProcessException {
+		combinedTomogram.open();
+	}
 
-  /**
-   * Check to see if the combined tomogram is open
-   */
-  public boolean isCombinedTomogramOpen() {
-    return combinedTomogram.isRunning();
-  }
+	/**
+	 * Check to see if the combined tomogram is open
+	 */
+	public boolean isCombinedTomogramOpen() {
+		return combinedTomogram.isRunning();
+	}
 
-  /**
-   * Close the combined tomogram
-   */
-  public void quitCombinedTomogram() throws SystemProcessException {
-    combinedTomogram.quit();
-  }
+	/**
+	 * Close the combined tomogram
+	 */
+	public void quitCombinedTomogram() throws SystemProcessException {
+		combinedTomogram.quit();
+	}
 
-  /**
-   * Open the matchcheck.mat in 3dmod if it is not already open
-   */
-  public void openMatchCheck() throws SystemProcessException {
-    matchCheck.open();
-  }
+	/**
+	 * Open the matchcheck.mat in 3dmod if it is not already open
+	 */
+	public void openMatchCheck() throws SystemProcessException {
+		matchCheck.open();
+	}
 
-  /**
-   * Check to see if the matchcheck.mat is open
-   */
-  public boolean isMatchCheck() {
-    return matchCheck.isRunning();
-  }
+	/**
+	 * Check to see if the matchcheck.mat is open
+	 */
+	public boolean isMatchCheck() {
+		return matchCheck.isRunning();
+	}
 
-  /**
-   * Close the matchcheck.mat tomogram
-   */
-  public void quitMatchCheck() throws SystemProcessException {
-    matchCheck.quit();
-  }
+	/**
+	 * Close the matchcheck.mat tomogram
+	 */
+	public void quitMatchCheck() throws SystemProcessException {
+		matchCheck.quit();
+	}
 
-  /**
-   * Open the trimmed volume in 3dmod if it is not already open
-   */
-  public void openTrimmedVolume() throws SystemProcessException {
-    trimmedVolume.open();
-  }
+	/**
+	 * Open the trimmed volume in 3dmod if it is not already open
+	 */
+	public void openTrimmedVolume() throws SystemProcessException {
+		trimmedVolume.open();
+	}
 
-  /**
-   * Check to see if the trimmed volume is open
-   */
-  public boolean isTrimmedVolume() {
-    return trimmedVolume.isRunning();
-  }
+	/**
+	 * Check to see if the trimmed volume is open
+	 */
+	public boolean isTrimmedVolume() {
+		return trimmedVolume.isRunning();
+	}
 
-  /**
-   * Close thetrimmed volume tomogram
-   */
-  public void quitTrimmedVolume() throws SystemProcessException {
-    trimmedVolume.quit();
-  }
+	/**
+	 * Close thetrimmed volume tomogram
+	 */
+	public void quitTrimmedVolume() throws SystemProcessException {
+		trimmedVolume.quit();
+	}
 
-  /**
-   * Check the axisID argument to see if it is valid given the axisType of the
-   * object.
-   */
-  private void checkAxisID(AxisID axisID) throws AxisTypeException {
-    if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
-      throw new AxisTypeException("Second axis requested in a single axis data set");
-    }
-  }
+	/**
+	 * Check the axisID argument to see if it is valid given the axisType of the
+	 * object.
+	 */
+	private void checkAxisID(AxisID axisID) throws AxisTypeException {
+		if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
+			throw new AxisTypeException("Second axis requested in a single axis data set");
+		}
+	}
 
-  /**
-   * Select the ImodProcess object indicated by the axisID
-   */
-  private ImodProcess selectRawStack(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return rawStackB;
-    }
-    return rawStackA;
-  }
+	/**
+	 * Select the ImodProcess object indicated by the axisID
+	 */
+	private ImodProcess selectRawStack(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return rawStackB;
+		}
+		return rawStackA;
+	}
 
-  private ImodProcess selectErasedStack(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return erasedStackB;
-    }
-    return erasedStackA;
-  }
+	private ImodProcess selectErasedStack(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return erasedStackB;
+		}
+		return erasedStackA;
+	}
 
-  private ImodProcess selectCoarseAligned(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return coarseAlignedB;
-    }
-    return coarseAlignedA;
-  }
+	private ImodProcess selectCoarseAligned(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return coarseAlignedB;
+		}
+		return coarseAlignedA;
+	}
 
-  private ImodProcess selectFineAligned(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return fineAlignedB;
-    }
-    return fineAlignedA;
-  }
+	private ImodProcess selectFineAligned(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return fineAlignedB;
+		}
+		return fineAlignedA;
+	}
 
-  private ImodProcess selectSample(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return sampleB;
-    }
-    return sampleA;
-  }
+	private ImodProcess selectSample(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return sampleB;
+		}
+		return sampleA;
+	}
 
-  private ImodProcess selectFullVolume(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return fullVolumeB;
-    }
-    return fullVolumeA;
-  }
+	private ImodProcess selectFullVolume(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return fullVolumeB;
+		}
+		return fullVolumeA;
+	}
 
 }
