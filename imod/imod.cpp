@@ -173,7 +173,7 @@ int main( int argc, char *argv[])
 	cmdLineStyle = strdup(argv[i + 1]);
     }
     
-    if (!strcmp("-imodv", argv[1]) || !strcmp("-view", argv[1]))
+    if (!strcmp("-imodv", argv[i]) || !strcmp("-view", argv[i]))
       doImodv = 1;
   }
 
@@ -871,6 +871,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.11  2003/04/17 21:48:44  mast
+simplify -imodv option processing
+
 Revision 4.10  2003/04/11 18:15:59  mast
 Fix exiting logic to not exit after calling Qt exit
 
