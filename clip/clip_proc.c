@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/04/22 19:08:45  mast
+Added error checks and returns on mrc I/O calls
+
 Revision 3.5  2004/01/17 20:32:33  mast
 Remove unneeded rewind
 
@@ -921,6 +924,7 @@ int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
   for (i = 0; i < 3; i++)
     mrc_slice_free(srgb[i]);
   mrc_slice_free(s);
+  return(0);
 }
 
 /*
@@ -1019,6 +1023,7 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
     mrc_slice_free(srgb[i]);
   }
   mrc_slice_free(s);
+  return(0);
 }
 
 int clip2d_average(struct MRCheader *hin, struct MRCheader *hout, 
