@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/23 22:13:47  rickg
+ * <p> Removed any extensions from log file labels in context menu
+ * <p>
  * <p> Revision 2.2  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -92,9 +95,9 @@ public class TomogramPositioningDialog
     new JToggleButton("<html><b>Execute tomopitch</b>");
 
   private LabeledTextField ltfTiltAngleOffset =
-    new LabeledTextField("Tilt angle offset: ");
+    new LabeledTextField("Add to all angles: ");
   private LabeledTextField ltfTiltAxisZShift =
-    new LabeledTextField("Tilt axis z shift: ");
+    new LabeledTextField("Shift up: ");
   private LabeledTextField ltfTiltAxisXShift =
     new LabeledTextField("Tilt axis x shift: ");
   private JToggleButton buttonAlign =
