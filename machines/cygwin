@@ -136,11 +136,6 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
-#
-# Do not use multiple threads in plax programs
-#
-echo '#define QTPLAX_NO_THREAD' >> $hconfigure
-
 
 #
 # Tell fortran routines how to swap bytes too, and set # of bytes per

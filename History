@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/26/03: IMOD_3-0-24
+10/26/03: Many changes for compiling under Windows with Intel compilers and
+for building tomograms with programs not compiled under Cygwin.  The Fortran
+graphics programs work; 3dmod can now read Tiff files and tof2mrc can 
+use the Tiff library to read tiff files; the line tracker also works after 
+being converted to an internal module that calls a standard library.
+
 10/10/03: IMOD_3-0-23
 10/10/03: Reorganized code for Rotatevol, Matchvol, and Warpvol to eliminate
 duplicate code, converted them to PIP input, and added an option for linear
