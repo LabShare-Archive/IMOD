@@ -53,6 +53,7 @@ Log at the end of file
 #include "imod_client_message.h"
 #include "preferences.h"
 #include "form_startup.h"
+#include "imod_assistant.h"
 #include "b3dicon.xpm"
 
 /******************************* Globals *************************************/
@@ -218,6 +219,7 @@ int main( int argc, char *argv[])
   b3dSetStoreError(1);
 
   ImodPrefs = new ImodPreferences(cmdLineStyle);
+  ImodHelp = new ImodAssistant("html/3dmodHelp");
 
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QImage(b3dicon));
@@ -775,6 +777,8 @@ void imod_exit(int retcode)
   imodDialogManager.close();         // Remaining imod dialog windows
   if (ImodPrefs)                     // Now save settings after windows get to 
     ImodPrefs->saveSettings();       // specify settings
+  if (ImodHelp)
+    delete ImodHelp;
   // It did NOT work to use qApp->closeAllWindows after this
   if (!loopStarted)
     exit(retcode);
@@ -962,6 +966,14 @@ bool imodDebug(char key)
   return (Imod_debug && debugKeys && (strchr(debugKeys, key) != NULL));
 }
 
+/* Show a help page in Qt Assistant; set absolute to true to provide a full
+   path instead of a path relative to IMOD_DIR/html/3dmodHelp */
+void imodShowHelpPage(const char *page, bool absolute)
+{
+  if (ImodHelp)
+    ImodHelp->showPage(page, absolute);
+}
+
 /***********************************************************************
  * Core application plugin lookup functions.
  *
@@ -1008,6 +1020,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.44  2004/11/21 05:58:29  mast
+Added call to open imodv windows, and -DT to throw away model
+
 Revision 4.43  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
