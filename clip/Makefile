@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:05  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/27 15:59:17  mast
 #  Add dependency on .version file
 #
@@ -24,7 +27,7 @@ all : clip
 clip : $(OBJS)
 	@echo "Making clip: libifft is in the flib source code."
 	$(FLCC) -o clip $(OBJS) $(LDFLAGS)  \
-	-liimod -lifft $(TIFFLIBS) $(LIBS) $(F77LIBS)
+	-limod -liimod -lifft $(TIFFLIBS) $(LIBS) $(F77LIBS)
 
 install : clip
 	strip clip

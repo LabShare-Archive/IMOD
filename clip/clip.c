@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/07/31 20:11:27  mast
+    Changed copyright to use defined variable
+
     Revision 3.2  2002/06/26 16:47:22  mast
     Allowed writing to swapped files
 
@@ -52,11 +55,9 @@ void usage(void)
 
      fprintf(stderr, 
 	     "%s: Command Line Image Processing. %s, %s %s\n",
-	     VERSION_NAME,
-	     name, __DATE__, __TIME__);
-     fprintf(stderr, "Copyright (C) %s Boulder Laboratory for 3-Dimensional",
-	     COPYRIGHT_YEARS);
-     fprintf(stderr,"Fine Structure,\n Regents of the Univ. of Colorado\n");
+	     name,
+	     VERSION_NAME, __DATE__, __TIME__);
+     imodCopyright();
      fprintf(stderr, "----------------------------------------------------\n");
 
      fprintf(stderr, "%s usage:\n", name);
