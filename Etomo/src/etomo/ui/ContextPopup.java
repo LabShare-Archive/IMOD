@@ -28,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/04 23:39:50  rickg
+ * <p> Added independent labels for tabs
+ * <p>
  * <p> Revision 2.6  2003/05/27 08:54:52  rickg
  * <p> Added constructor to open tabbed editor pane
  * <p>
@@ -72,7 +75,9 @@ public class ContextPopup {
   private JMenuItem[] manPageItem;
   private JMenuItem[] logFileItem;
   private JMenuItem tomoGuideItem = new JMenuItem("Tomography Guide ...");
-  private JMenuItem modelGuideItem = new JMenuItem("Imod Users Guide ...");
+  private JMenuItem modelGuideItem = new JMenuItem("IMOD Users Guide ...");
+  private JMenuItem it3dmodGuide = new JMenuItem("3dmod Users Guide ...");
+  private JMenuItem etomoGuideItem = new JMenuItem("Etomo Users Guide ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -123,19 +128,7 @@ public class ContextPopup {
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
-
-        if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + tomoGuideLocation);
-          manpage.setVisible(true);
-        }
-
-        if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "guide.html");
-          manpage.setVisible(true);
-        }
-
+        globalItemAction(actionEvent, tomoGuideLocation);
         contextMenu.setVisible(false);
       }
     };
@@ -187,18 +180,7 @@ public class ContextPopup {
           }
         }
 
-        //  Search the standard items
-        if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + tomoGuideLocation);
-          manpage.setVisible(true);
-        }
-
-        if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "guide.html");
-          manpage.setVisible(true);
-        }
+        globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the menu
         contextMenu.setVisible(false);
@@ -275,17 +257,7 @@ public class ContextPopup {
         }
 
         //  Search the standard items
-        if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + tomoGuideLocation);
-          manpage.setVisible(true);
-        }
-
-        if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "guide.html");
-          manpage.setVisible(true);
-        }
+        globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the  the menu
         contextMenu.setVisible(false);
@@ -385,17 +357,7 @@ public class ContextPopup {
         }
 
         //  Search the standard items
-        if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + tomoGuideLocation);
-          manpage.setVisible(true);
-        }
-
-        if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-          HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "guide.html");
-          manpage.setVisible(true);
-        }
+        globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the  the menu
         contextMenu.setVisible(false);
@@ -419,6 +381,10 @@ public class ContextPopup {
     tomoGuideItem.addActionListener(actionListener);
     contextMenu.add(modelGuideItem);
     modelGuideItem.addActionListener(actionListener);
+    contextMenu.add(it3dmodGuide);
+    it3dmodGuide.addActionListener(actionListener);
+    contextMenu.add(etomoGuideItem);
+    etomoGuideItem.addActionListener(actionListener);
   }
 
   /**
@@ -435,6 +401,39 @@ public class ContextPopup {
       manPageItem[i].addActionListener(actionListener);
       contextMenu.add(manPageItem[i]);
       manPageName[i] = manPage[i];
+    }
+  }
+
+  /**
+   * Open the appropriate file if the event is one of the global menu items 
+   * @param actionEvent
+   * @param tomoGuideLocation
+   */
+  private void globalItemAction(
+    ActionEvent actionEvent,
+    String tomoGuideLocation) {
+    if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + tomoGuideLocation);
+      manpage.setVisible(true);
+    }
+
+    if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "guide.html");
+      manpage.setVisible(true);
+    }
+
+    if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "3dmodguide.html");
+      manpage.setVisible(true);
+    }
+
+    if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "UsingEtomo.html");
+      manpage.setVisible(true);
     }
   }
 
