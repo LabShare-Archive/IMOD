@@ -41,6 +41,7 @@ class LineTrack : public DialogFrame
   void help();
   void makeEditRow(int row, char *label, int *iPtr, float *fPtr, bool isInt,
                    float min, float max, char *tip);
+  void fillinValue(int row);
   QSignalMapper *mMapper;
   QGridLayout *mGrid;
   ToolEdit *mEdit[MAX_EDIT_BOXES];
