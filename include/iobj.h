@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/11/05 19:15:51  mast
+    Include local files with quotes, not brackets
+
     Revision 3.3  2004/09/21 20:09:30  mast
     Added clean surface call
 
@@ -55,8 +58,7 @@
 #define IMOD_OBJFLAG_WILD (1l << 4)  /* No constraints on contour data       */
 #define IMOD_OBJFLAG_OUT  (1l << 5)  /* Look at data outside contour         */
 #define IMOD_OBJFLAG_SCAT (1l << 9)  /* Scatterd points, don't connect.      */
-#define IMOD_OBJFLAG_VIRT (1l << 12) /* Each point in contour represents the */
-                                     /* center of a virtual contour or mesh. */
+
 /* What/how to draw                                                          */
 #define IMOD_OBJFLAG_2DPOINT (1l << 6)  /* Turns points off in 2d.           */
 #define IMOD_OBJFLAG_3DPOINT (1l << 7)  /* Turns points on in 3d.            */
@@ -79,7 +81,6 @@
 
 #define iobjClose(flag) (((~(flag)) & IMOD_OBJFLAG_OPEN) && iobjConnect(flag))
 #define iobjOpen(flag)  ((iobjConnect(flag)) && ((flag) & IMOD_OBJFLAG_OPEN))
-#define iobjVirtual(flag) ((flag)  & IMOD_OBJFLAG_VIRT) 
 #define iobjFill(flag)    ((flag)  & IMOD_OBJFLAG_FILL)
 #define iobjOff(flag)     ((flag)  & IMOD_OBJFLAG_OFF )
 #define iobjMesh(flag)    ((flag)  & IMOD_OBJFLAG_MESH)
@@ -132,52 +133,47 @@
 extern "C" {
 #endif
 
-Iobj *imodObjectsNew(int size);
-Iobj *imodObjectNew (void);
-int   imodObjectDelete(Iobj *obj);
-int   imodObjectsDelete(Iobj *obj, int size);
-int   imodObjectCopy(Iobj *from, Iobj *to);
-Iobj *imodObjectGet(Imod *imod);
-Iobj *imodObjectGetFirst(Imod *imod);
-Iobj *imodObjectGetNext(Imod *imod);
+  Iobj *imodObjectsNew(int size);
+  Iobj *imodObjectNew (void);
+  int   imodObjectDelete(Iobj *obj);
+  int   imodObjectsDelete(Iobj *obj, int size);
+  int   imodObjectCopy(Iobj *from, Iobj *to);
+  Iobj *imodObjectDup(Iobj *obj);
+  Iobj *imodObjectGet(Imod *imod);
+  Iobj *imodObjectGetFirst(Imod *imod);
+  Iobj *imodObjectGetNext(Imod *imod);
 
 
-int   imodObjectSort(Iobj *obj);
-int   imodObjectAddContour(Iobj *obj, Icont *ncont);
-Icont *imodObjectGetContour(Iobj *inObject, int inIndex);
-int   imodObjectSkin(Iobj *obj, Ipoint *scale);
-void  imodObjectDefault(Iobj *obj);
+  int   imodObjectSort(Iobj *obj);
+  int   imodObjectAddContour(Iobj *obj, Icont *ncont);
+  int   imodObjectInsertContour(Iobj *obj, Icont *ncont, int index);
+  Icont *imodObjectGetContour(Iobj *inObject, int inIndex);
+  int   imodObjectSkin(Iobj *obj, Ipoint *scale);
+  void  imodObjectDefault(Iobj *obj);
 
-float imodObjectVolume(Iobj *obj);
-Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes);
-int   imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur);
-int   imodObjectRemoveContour(Iobj *obj, int index);
-void  imodObjectCleanSurf(Iobj *obj);
+  float imodObjectVolume(Iobj *obj);
+  Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes);
+  int   imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur);
+  int   imodObjectRemoveContour(Iobj *obj, int index);
+  void  imodObjectCleanSurf(Iobj *obj);
 
-int   imodObjectGetMaxContour(Iobj *inObject);
-char *imodObjectGetName(Iobj *inObject);
-int   imodObjectSetName(Iobj *inObject, char *inName);
-int   imodObjectGetValue(Iobj *inObject, int inValueType);
-void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue);
-void  imodObjectGetColor(Iobj *inObject,
-			 float *outRed, float *outGreen, float *outBlue);
-void  imodObjectSetColor(Iobj *inObject,
-                         float inRed, float inGreen, float inBlue);
+  int   imodObjectGetMaxContour(Iobj *inObject);
+  char *imodObjectGetName(Iobj *inObject);
+  int   imodObjectSetName(Iobj *inObject, char *inName);
+  int   imodObjectGetValue(Iobj *inObject, int inValueType);
+  void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue);
+  void  imodObjectGetColor(Iobj *inObject,
+                           float *outRed, float *outGreen, float *outBlue);
+  void  imodObjectSetColor(Iobj *inObject,
+                           float inRed, float inGreen, float inBlue);
 
-Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex);
-int    imodObjectAddMesh(Iobj *inObject, Imesh *inMesh);
+  Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex);
+  int    imodObjectAddMesh(Iobj *inObject, Imesh *inMesh);
 
-/* defunct */
-int   imodObjectVirtIn(Iobj *obj);
-int   imodObjectVirtOut(Iobj *obj);
+  /* internal calls */
 
-int   imod_object_write_ascii(Iobj *obj, char *filename);
-Iobj *imodel_object_get(Imod *mod);     
-int   imodel_object_centroid(Iobj *obj, struct Mod_Point *rcp);
-Iobj *imodObjectCreateThresholdData
-(unsigned char **idata, int nx, int ny, int nz,  
-double highthresh, double lowthresh, 
-int dim, int minsize, int maxsize);
+  Iobj *imodel_object_get(Imod *mod);     
+  int   imodel_object_centroid(Iobj *obj, struct Mod_Point *rcp);
 
 #ifdef __cplusplus
 }
