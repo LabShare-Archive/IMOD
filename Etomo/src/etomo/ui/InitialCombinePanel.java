@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2003/10/15 19:15:52  rickg
+ * <p> Bug# 299 Moved buttons up
+ * <p>
  * <p> Revision 1.10  2003/06/05 04:42:37  rickg
  * <p> Label change for view match shift results
  * <p>
@@ -67,9 +70,10 @@ public class InitialCombinePanel implements ContextMenu {
     new LabeledTextField("Residual Threshold: ");
 
   private JPanel pnlModelSelect = new JPanel();
+  private JCheckBox cbUseModel =
+    new JCheckBox("Use models of corresponding points, not cross-correlation");
   private JButton btnImodMatchModels =
     new JButton("<html><b>Create Matching Models in 3dmod</b>");
-  private JCheckBox cbUseModel = new JCheckBox("Model based initial match");
 
   private JPanel pnlButton = new JPanel();
   private JButton btnMatchcheck =
@@ -86,11 +90,11 @@ public class InitialCombinePanel implements ContextMenu {
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     //  Get the current text height from one of the 
-    double height = ltfFiducialMatchListA.getLabelPreferredSize().getHeight();
+    double height = cbUseModel.getPreferredSize().getHeight();
 
     //  Set the button sizes
     Dimension dimButton = new Dimension();
-    dimButton.setSize(10 * height, 3 * height);
+    dimButton.setSize(7 * height, 2 * height);
     btnImodMatchModels.setPreferredSize(dimButton);
     btnImodMatchModels.setMaximumSize(dimButton);
     btnMatchcheck.setPreferredSize(dimButton);
@@ -122,10 +126,10 @@ public class InitialCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlRoot.add(pnlSolvematch);
-		pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlButton);
-		pnlRoot.add(Box.createVerticalGlue());
-		
+    pnlRoot.add(Box.createVerticalGlue());
+
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnImodMatchModels.addActionListener(buttonAction);
@@ -231,7 +235,7 @@ public class InitialCombinePanel implements ContextMenu {
     if (event.getActionCommand().equals(btnMatchcheck.getActionCommand())) {
       applicationManager.imodMatchCheck();
     }
-    
+
     if (event.getActionCommand().equals(btnRestart.getActionCommand())) {
       if (cbUseModel.isSelected()) {
         applicationManager.modelCombine();
