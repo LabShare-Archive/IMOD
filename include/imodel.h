@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2002/09/04 23:13:10  mast
+    Add a flag to indicate mat and mat3 are stored as bytes
+
     Revision 3.6  2002/09/03 20:06:14  mast
     Changed mat1 and mat3 in object this time; last time was in object view
 
@@ -286,20 +289,6 @@ typedef struct
      UINT        nl;
      IlabelItem *label;
 }Ilabel;
-
-Ilabel *imodLabelNew(void);
-void    imodLabelDelete(Ilabel *label);
-void    imodLabelName(Ilabel *label, char *val);
-void    imodLabelItemAdd(Ilabel *label, char *val, int index);
-void    imodLabelItemMove(Ilabel *label, int to_index, int from_index);
-void    imodLabelItemDelete(Ilabel *label, int index);
-char   *imodLabelItemGet(Ilabel *label, int index);
-void    imodLabelPrint(Ilabel *lab, FILE *fout);
-int     imodLabelWrite(Ilabel *lab, FILE *fout);
-Ilabel *imodLabelRead(FILE *fin, int *err);
-int     imodLabelMatch(Ilabel *label, char *tstr);
-int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
-int     ilabelMatchReg(char *exp, char *str);
 
 /*
  * Contours are an array of points describing an open or closed contour.
@@ -631,6 +620,23 @@ int   imodGetBytes(FILE *fp, unsigned char *buf, int size);
 int   imodPutBytes(FILE *fp, unsigned char *buf, int size);
 int   imodPutByte(FILE *fp,  unsigned char *dat);
 void  imodFromVmsFloats(unsigned char *data, int amt);
+
+/*****************************************************************************/
+/* ilabel.c functions                                                     */
+/*****************************************************************************/
+Ilabel *imodLabelNew(void);
+void    imodLabelDelete(Ilabel *label);
+void    imodLabelName(Ilabel *label, char *val);
+void    imodLabelItemAdd(Ilabel *label, char *val, int index);
+void    imodLabelItemMove(Ilabel *label, int to_index, int from_index);
+void    imodLabelItemDelete(Ilabel *label, int index);
+char   *imodLabelItemGet(Ilabel *label, int index);
+void    imodLabelPrint(Ilabel *lab, FILE *fout);
+int     imodLabelWrite(Ilabel *lab, FILE *fout);
+Ilabel *imodLabelRead(FILE *fin, int *err);
+int     imodLabelMatch(Ilabel *label, char *tstr);
+int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
+int     ilabelMatchReg(char *exp, char *str);
 
 #ifdef __cplusplus
 }
