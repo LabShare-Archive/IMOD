@@ -36,6 +36,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/08/19 02:56:21  sueh
+ * <p> bug# 508 Added a way to set the don't run volcombine checkbox
+ * <p> Added:
+ * <p> setRunVolcombine(boolean runVolcombine)
+ * <p>
  * <p> Revision 3.11  2004/07/21 00:20:05  sueh
  * <p> bug# 507 added isRunVolcombine()
  * <p>
@@ -403,6 +408,10 @@ public class TomogramCombinationDialog
   
   public void setRunVolcombine(boolean runVolcombine) {
     pnlFinal.setRunVolcombine(runVolcombine);
+  }
+  
+  public void setBinningWarning(boolean binningWarning) {
+    pnlSetup.setBinningWarning(binningWarning);
   }
 
   /**
