@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/13 21:09:54  mast
+    Added message handler to process external ClientMessage events for opening
+    and saving model files.
+
     Revision 3.2  2002/05/20 15:34:04  mast
     Made time index modeling be the default for a new object (or new model)
     if multiple files are open
@@ -1155,6 +1159,7 @@ static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call)
 
 void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
 {
+     int OKtoFreeString = 0;
      XClientMessageEvent *cmEvent = (XClientMessageEvent *)event;
      if (event->type != ClientMessage) {
 	  /* fprintf(stderr, "received non client message\n"); */
@@ -1181,6 +1186,7 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
      if (cmEvent->format == 32 && packets_left) {
 	  if (message_string)
 	       free(message_string);
+	  message_string = NULL;
 	  packets_left = 0;
 	  fprintf(stderr, "imodHandleClientMessage: received a new action"
 		  " message when still expecting more byte packets\n");
@@ -1215,10 +1221,16 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
      }
 
      /* Execute the action */
-     /* Each individual action is responsible for free the string or knowing
-	if it has been freed already */
+     /* Each individual action is responsible for setting message_string NULL 
+	if it has been freed already, and for setting OKtoFreeString if
+        a string may still need freeing */
      switch (message_action) {
 	case MESSAGE_OPEN_MODEL:
+	  if (!message_string) {
+	       fprintf(stderr, "imodHandleClientMessage: no filename sent"
+		       " with command to open model\n", message_action);
+	       break;
+	  }
 	  imod_file_cb(w, (XtPointer)1, NULL);
 	  message_string = NULL;
 	  break;
@@ -1231,6 +1243,18 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
 	  imod_win_cb(w, (XtPointer)4, NULL);
 	  break;
 
+	default:
+	  fprintf(stderr, "imodHandleClientMessage: action %d not recognized\n"
+		  , message_action);
+	  OKtoFreeString = 1;
+	  break;
+     }
+     if (message_string) {
+	  free(message_string);
+	  if (!OKtoFreeString)
+	       fprintf(stderr, "imodHandleClientMessage: received a string "
+		       "for an action that is\n not supposed to have one\n");
+	  message_string = NULL;
      }
      message_action = MESSAGE_NO_ACTION;
 }
