@@ -19,6 +19,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2004/07/02 16:47:32  sueh
+ * bug# 490 added watchFileName.  Moving watchFile to backup
+ * in run().
+ *
  * Revision 3.8  2004/04/28 19:58:55  rickg
  * bug #429 logfile rename functionality moved to Utilities
  *
@@ -300,13 +304,15 @@ public class ComScriptProcess
       
       if (watchedFileName != null) {
         File watchedFile = new File(workingDirectory, watchedFileName);
-        File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
-        try {
-          Utilities.renameFile(watchedFile, oldWatchedFile);
-        }
-        catch (IOException except) {
-          except.printStackTrace();
-          System.err.println(except.getMessage());
+        if (watchedFile.exists()) {
+          File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
+          try {
+            Utilities.renameFile(watchedFile, oldWatchedFile);
+          }
+          catch (IOException except) {
+            except.printStackTrace();
+            System.err.println(except.getMessage());
+          }
         }
       }
 
