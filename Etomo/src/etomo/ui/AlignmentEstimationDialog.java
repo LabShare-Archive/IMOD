@@ -27,6 +27,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/27 17:24:03  rickg
+ * <p> Rearranged align log order and added locals
+ * <p>
  * <p> Revision 2.4  2003/05/27 08:48:24  rickg
  * <p> Tabbed window for align log
  * <p>
@@ -247,36 +250,42 @@ public class AlignmentEstimationDialog
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
-    String[] logWindowLabel = {"align", "transferfid"};
     Vector logFileLabel = new Vector(2);
-    String[] alignLabels = {
-    "align errors",
-    "align solution",
-    "align angles",
-    "align locals",
-    "complete log",
-    "align residual",
-    "align mappings",
-    "align coordinates",};
+    String[] logWindowLabel = { "align", "transferfid" };
+
+    if (axisID != AxisID.ONLY) {
+      logWindowLabel[0] = "align Axis: " + axisID.getExtension();
+    }
+
+    String[] alignLabels =
+      {
+        "errors",
+        "solution",
+        "surface angles",
+        "locals",
+        "complete log",
+        "large residual",
+        "mappings",
+        "fiducial coordinates" };
     logFileLabel.add(alignLabels);
-    String[] transferfidLabels = {"transferfid"};
+    String[] transferfidLabels = { "transferfid" };
     logFileLabel.add(transferfidLabels);
 
     Vector logFile = new Vector(2);
     String[] logFileList = new String[8];
-    logFileList[0] = "alignError" + axisID.getExtension() + ".log";
-    logFileList[1] = "alignSolution" + axisID.getExtension() + ".log";
-    logFileList[2] = "alignAngles" + axisID.getExtension() + ".log";
-    logFileList[3] = "alignLocals" + axisID.getExtension() + ".log";
+    logFileList[0] = "taError" + axisID.getExtension() + ".log";
+    logFileList[1] = "taSolution" + axisID.getExtension() + ".log";
+    logFileList[2] = "taAngles" + axisID.getExtension() + ".log";
+    logFileList[3] = "taLocals" + axisID.getExtension() + ".log";
     logFileList[4] = "align" + axisID.getExtension() + ".log";
-    logFileList[5] = "alignResiduals" + axisID.getExtension() + ".log";
-    logFileList[6] = "alignMappings" + axisID.getExtension() + ".log";
-    logFileList[7] = "alignCoordinates" + axisID.getExtension() + ".log";
+    logFileList[5] = "taResiduals" + axisID.getExtension() + ".log";
+    logFileList[6] = "taMappings" + axisID.getExtension() + ".log";
+    logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
 
     logFile.add(logFileList);
-    String[] tfLogFile = {"transferfid.log"};
+    String[] tfLogFile = { "transferfid.log" };
     logFile.add(tfLogFile);
-    
+
     ContextPopup contextPopup =
       new ContextPopup(
         rootPanel,
