@@ -955,6 +955,7 @@ InputFile1 $setname.prexg
 InputFile2 $setname.tltxf
 OutputFile ${setname}_fid.xf
 \$\\cp ${setname}_fid.xf $setname.xf
+\$\\cp  $setname.tlt ${setname}_fid.tlt
 EOF
     endif
     cat >> $dstfile <<EOF
@@ -1265,6 +1266,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.26  2004/03/30 19:46:28  mast
+#  Added mtffilter, rearranged directions at end.
+#
 #  Revision 3.25  2004/03/20 15:30:12  mast
 #  Added mag gradient option
 #
