@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/07/22 22:15:19  rickg
+ * <p> Add erased stack management
+ * <p>
  * <p> Revision 2.13  2003/06/05 21:15:51  rickg
  * <p> Open sample in model mode
  * <p>
@@ -191,15 +194,18 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified model with the course aligned 3dmod
+   * Open the specified model with on raw stack 3dmod
    */
-  public void modelRawStack(String modelName, AxisID axisID)
+  public void modelRawStack(String modelName, AxisID axisID,  boolean modelMode)
     throws AxisTypeException, SystemProcessException {
     // Make sure there is an imod with right course aligned data set that
     // is already open
     openRawStack(axisID);
     ImodProcess rawStack = selectRawStack(axisID);
     rawStack.openModel(modelName);
+    if(modelMode) {
+      rawStack.modelMode();
+    }
   }
 
   /**
@@ -289,6 +295,7 @@ public class ImodManager {
     openCoarseAligned(axisID);
     ImodProcess coarseAligned = selectCoarseAligned(axisID);
     coarseAligned.openModel(modelName);
+    coarseAligned.modelMode();
   }
 
   /**
@@ -441,10 +448,12 @@ public class ImodManager {
     if (axisID == AxisID.SECOND) {
       tomogramB.open();
       tomogramB.openModel("patch_region.mod");
+      tomogramB.modelMode();
     }
     else {
       tomogramA.open();
       tomogramA.openModel("patch_region.mod");
+      tomogramA.modelMode();
     }
   }
 
