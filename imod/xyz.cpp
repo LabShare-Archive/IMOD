@@ -51,6 +51,7 @@ Log at end of file
 #include "autox.h"
 #include "imod_edit.h"
 #include "imod_workprocs.h"
+#include "preferences.h"
 
 #define XYZ_BSIZE 11
 #define GRAB_LENGTH 7
@@ -137,6 +138,7 @@ int xxyz_open(ImodView *vi)
 
   xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, 
 			   (void *)xx);
+  imodDialogManager.add((QWidget *)xx->dialog, IMOD_IMAGE);
   
   // This one we can resize before showing, since there is no toolbar size
   // that needs to get corrected
@@ -229,6 +231,7 @@ void XyzWindow::closeEvent (QCloseEvent * e )
 {
   struct xxyzwin *xx = mXyz;
   ivwRemoveControl(mXyz->vi, mXyz->ctrl);
+  imodDialogManager.remove((QWidget *)xx->dialog);
 
   /* DNM 11/17/01: stop x and y movies when close window */
   imodMovieXYZT(xx->vi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
@@ -1668,32 +1671,21 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
-  button1 = event->state() & Qt::LeftButton ? 1 : 0;
-  button2 = event->state() & Qt::MidButton ? 1 : 0;
-  button3 = event->state() & Qt::RightButton ? 1 : 0;
+  button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
 
-  switch(event->button()) {
-  case Qt::LeftButton:
-    if ((button2) || (button3))
-        break;
+  if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
     mXyz->whichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
-    break;
 
-  case Qt::MidButton:
-    if ((button1) || (button3))
-      break;
+  } else if (event->button() == ImodPrefs->actualButton(2) &&
+	     !button1 && !button3) {
     mWin->B2Press(event->x(), event->y());
-    break;
 
-  case Qt::RightButton:
-    if ((button1) || (button2))
-      break;
+  } else if (event->button() == ImodPrefs->actualButton(3) &&
+	     !button1 && !button2) {
     mWin->B3Press(event->x(), event->y());
-    break;
-
-  default:
-    break;
   }
 
   mXyz->lmx = event->x();
@@ -1703,7 +1695,7 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
 void XyzGL::mouseReleaseEvent( QMouseEvent * event )
 {
   mMousePressed = false;
-  if (event->button() == Qt::LeftButton) {
+  if (event->button() == ImodPrefs->actualButton(1)) {
       if (but1downt.elapsed() > 250)
         return;
       mWin->B1Press(event->x(), event->y());
@@ -1718,9 +1710,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
-  button1 = event->state() & Qt::LeftButton ? 1 : 0;
-  button2 = event->state() & Qt::MidButton ? 1 : 0;
-  button3 = event->state() & Qt::RightButton ? 1 : 0;
+  button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3) && but1downt.elapsed() > 250)
     mWin->B1Drag(event->x(), event->y());
@@ -1735,6 +1727,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.6  2003/03/13 01:14:46  mast
+Pass Ctrl R on to default keys
+
 Revision 4.5  2003/03/12 21:35:23  mast
 Test if no CIImage is returned and give error message
 

@@ -58,6 +58,7 @@ Log at end of file
 #include "imod_edit.h"
 #include "imod_workprocs.h"
 #include "dia_qtutils.h"
+#include "preferences.h"
 
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
@@ -236,6 +237,7 @@ void zapClosing(ZapStruct *zap)
   if (movieSnapLock && zap->movieSnapCount)
     movieSnapLock = 0;
   ivwRemoveControl(zap->vi, zap->ctrl);
+  imodDialogManager.remove((QWidget *)zap->qtWindow);
 
   // What for?  flush any events that might refer to this zap
   imod_info_input();     
@@ -741,6 +743,7 @@ int imod_zap_open(struct ViewInfo *vi)
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (void *)zap);
+  imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE);
 
   /* 1/28/03: this call is needed to get the toolbar size hint right */
   imod_info_input();
@@ -1148,15 +1151,14 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
   ivwControlPriority(zap->vi, zap->ctrl);
-  
-  button1 = event->stateAfter() & Qt::LeftButton ? 1 : 0;
-  button2 = event->stateAfter() & Qt::MidButton ? 1 : 0;
-  button3 = event->stateAfter() & Qt::RightButton ? 1 : 0;
+
+  button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
 
   /* fprintf(stderr, "click at %d %d\n", event->x(), event->y()); */
 
-  switch(event->button()){
-    case Qt::LeftButton:
+  if (event->button() == ImodPrefs->actualButton(1)) {
       but1downt.start();
       firstmx = event->x();
       firstmy = event->y();
@@ -1164,23 +1166,18 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
         zapButton1(zap, firstmx, firstmy);
       else
         firstdrag = 1;
-      break;
-    case Qt::MidButton:
-      if ((button1) || (button3))
-        break;
+      
+  } else if (event->button() == ImodPrefs->actualButton(2) &&
+	     !button1 && !button3) {
       zapButton2(zap, event->x(), event->y());
-      break;
-    case Qt::RightButton:
-      if ((button1) || (button2))
-        break;
+
+  } else if (event->button() == ImodPrefs->actualButton(3) &&
+	     !button1 && !button2) {
       zapButton3(zap, event->x(), event->y(), 
                  event->state() & Qt::ControlButton);
-      break;
-    default:
-      break;
-    }
-    zap->lmx = event->x();
-    zap->lmy = event->y();
+  }
+  zap->lmx = event->x();
+  zap->lmy = event->y();
 
 }
 
@@ -1188,7 +1185,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   ivwControlPriority(zap->vi, zap->ctrl);
-  if (event->button() == Qt::LeftButton){
+  if (event->button() == ImodPrefs->actualButton(1)){
     if (dragband) {
       dragband = 0;
       zapSetCursor(zap, zap->mousemode);
@@ -1205,7 +1202,8 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   }
  
   // Button 2 and band moving, release te band
-  if ((event->button() == Qt::MidButton) && zap->rubberband && moveband) {
+  if ((event->button() == ImodPrefs->actualButton(2))
+      && zap->rubberband && moveband) {
     moveband = 0;
     zapSetCursor(zap, zap->mousemode);
     if (zap->hqgfxsave)
@@ -1213,7 +1211,8 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->hqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if ((event->button() == Qt::MidButton) && zap->drawCurrentOnly) {
+  } else if ((event->button() == ImodPrefs->actualButton(2))
+	     && zap->drawCurrentOnly) {
     zap->drawCurrentOnly = 0;
     zapDraw(zap);
   }
@@ -1231,9 +1230,10 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 
   ivwControlPriority(zap->vi, zap->ctrl);
   
-  button1 = event->state() & Qt::LeftButton ? 1 : 0;
-  button2 = (event->state() & Qt::MidButton) || insertDown ? 1 : 0;
-  button3 = event->state() & Qt::RightButton ? 1 : 0;
+  button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = (event->state() & ImodPrefs->actualButton(2)) 
+    || insertDown ? 1 : 0;
+  button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
   /*  fprintf(stderr, "mb  %d|%d|%d\n", button1, button2, button3); */
 
   if ( (button1) && (!button2) && (!button3)){
@@ -2277,8 +2277,8 @@ void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                          int *imPtSize)
 {
   // These two will be user preferences
-  int minModSize = 4;
-  int minImSize = 4;
+  int minModSize = ImodPrefs->minCurrentModPtSize();
+  int minImSize = ImodPrefs->minCurrentImPtSize();
   int symSize = 0;
 
   // Set sizes to minima
@@ -2592,6 +2592,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.11  2003/03/13 01:20:08  mast
+Convert numlock keypad keys so num lock can be on
+
 Revision 4.10  2003/03/12 21:35:23  mast
 Test if no CIImage is returned and give error message
 

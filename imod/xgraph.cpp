@@ -31,26 +31,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 1.1.2.4  2003/01/29 01:34:31  mast
-    implement colormaps
-
-    Revision 1.1.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.2  2003/01/10 23:41:28  mast
-    clean up warnings
-
-    Revision 1.1.2.1  2003/01/02 15:45:09  mast
-    changes for new controller key callback
-
-    Revision 3.1.2.1  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include <math.h>
@@ -75,6 +56,7 @@
 #include "imod_display.h"
 #include "b3dgfx.h"
 #include "control.h"
+#include "preferences.h"
 
 
 #include "lowres.bits"
@@ -135,6 +117,7 @@ int xgraphOpen(struct ViewInfo *vi)
 
   xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
 			    (void *)xg);
+  imodDialogManager.add((QWidget *)xg->dialog, IMOD_IMAGE);
   xg->dialog->show();
 
   return(0);
@@ -426,6 +409,7 @@ void GraphWindow::externalKeyEvent ( QKeyEvent * e, int released)
 void GraphWindow::closeEvent ( QCloseEvent * e )
 {
   ivwRemoveControl(mGraph->vi, mGraph->ctrl);
+  imodDialogManager.remove((QWidget *)this);
   if (mGraph->data)
     free(mGraph->data);
   free(mGraph);
@@ -785,7 +769,7 @@ void GraphGL::resizeGL( int wdth, int hght )
 void GraphGL::mousePressEvent(QMouseEvent * e )
 {
   ivwControlPriority(mGraph->vi, mGraph->ctrl);
-  if (e->stateAfter() & Qt::LeftButton)
+  if (e->stateAfter() & ImodPrefs->actualButton(1))
     setxyz(mGraph, e->x(), e->y());
 }
 
@@ -818,3 +802,28 @@ void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
   imodDraw(xg->vi, IMOD_DRAW_XYZ);
   return;
 }
+
+/*
+    $Log$
+    Revision 4.1  2003/02/10 20:29:02  mast
+    autox.cpp
+
+    Revision 1.1.2.4  2003/01/29 01:34:31  mast
+    implement colormaps
+
+    Revision 1.1.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 1.1.2.2  2003/01/10 23:41:28  mast
+    clean up warnings
+
+    Revision 1.1.2.1  2003/01/02 15:45:09  mast
+    changes for new controller key callback
+
+    Revision 3.1.2.1  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/

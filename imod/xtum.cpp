@@ -31,32 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.3  2003/03/12 21:35:23  mast
-Test if no CIImage is returned and give error message
-
-Revision 4.2  2003/02/27 19:40:46  mast
-remove slow floor() calls
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.3  2003/01/29 01:34:08  mast
-implement colormaps
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/10 23:47:49  mast
-Qt version and many general fixes and enhancements
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/01/28 16:53:10  mast
-Added slice argument to calls to b3dDrawGreyScalePixelsSubArea
-
+Log at end of file
 */
 
 #include <math.h>
@@ -207,6 +182,7 @@ int xtumOpen(struct ViewInfo *vi)
   xtum->dialog->setCaption(imodCaption("Imod Tumbler"));
   xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
                                (void *)xtum);
+  imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
   xtum->dialog->show();
      
   return(0);
@@ -662,6 +638,7 @@ void TumblerWindow::closeEvent ( QCloseEvent * e )
 {
   TumblerStruct *xtum = mTum;
   ivwRemoveControl(xtum->vi, xtum->ctrl);
+  imodDialogManager.remove((QWidget *)xtum->dialog);
   sliceFree(xtum->slice);
   sliceFree(xtum->stslice);
   sliceFree(xtum->bwslice);
@@ -1380,3 +1357,34 @@ void TumblerGL::paintGL()
   mTum->dialog->drawBBox(mTum);
   mTum->dialog->drawBorder(mTum);
 }
+
+/*
+$Log$
+Revision 4.4  2003/03/13 01:20:08  mast
+Convert numlock keypad keys so num lock can be on
+
+Revision 4.3  2003/03/12 21:35:23  mast
+Test if no CIImage is returned and give error message
+
+Revision 4.2  2003/02/27 19:40:46  mast
+remove slow floor() calls
+
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.3  2003/01/29 01:34:08  mast
+implement colormaps
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/10 23:47:49  mast
+Qt version and many general fixes and enhancements
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/01/28 16:53:10  mast
+Added slice argument to calls to b3dDrawGreyScalePixelsSubArea
+
+*/

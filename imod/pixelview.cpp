@@ -32,39 +32,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.4  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.3  2003/01/06 15:49:46  mast
-Use imodCaption
-
-Revision 1.1.2.2  2003/01/04 03:48:41  mast
-Qt version
-
-Revision 1.1.2.1  2003/01/02 15:45:09  mast
-changes for new controller key callback
-
-Revision 3.3.2.1  2002/12/12 01:22:09  mast
-*** empty log message ***
-
-Revision 3.4  2002/12/10 21:07:44  mast
-Changed the flag that it tested on so that it would draw when time changed
-and float option was on
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/11/27 03:23:00  mast
-Changed argument 3 of draw_cb and close_cb from long to int to avoid 
-warnings
-
-Revision 3.1  2002/11/25 19:24:49  mast
-Made it add itself to list of controls to be redraw to prevent excessive
-redraws; restructured calls for external drawing and closing accordingly,
-and made it raise itself when it redraws
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -107,6 +75,7 @@ int open_pixelview(struct ViewInfo *vi)
   PixelViewDialog->setCaption(imodCaption("Imod Pixel View"));
 
   ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
+  imodDialogManager.add((QWidget *)PixelViewDialog, IMOD_IMAGE);
 
   // Adjust for the buttons that are too large if the current file is ints
   // The minimum size setting of the buttons will keep this from getting
@@ -264,6 +233,7 @@ void PixelView::buttonPressed(int pos)
 void PixelView::closeEvent ( QCloseEvent * e )
 {
   ivwRemoveControl(App->cvi, ctrl);
+  imodDialogManager.remove((QWidget *)PixelViewDialog);
   PixelViewDialog = NULL;
   e->accept();
 }
@@ -291,3 +261,40 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 }
 
 
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.4  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.3  2003/01/06 15:49:46  mast
+Use imodCaption
+
+Revision 1.1.2.2  2003/01/04 03:48:41  mast
+Qt version
+
+Revision 1.1.2.1  2003/01/02 15:45:09  mast
+changes for new controller key callback
+
+Revision 3.3.2.1  2002/12/12 01:22:09  mast
+*** empty log message ***
+
+Revision 3.4  2002/12/10 21:07:44  mast
+Changed the flag that it tested on so that it would draw when time changed
+and float option was on
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.2  2002/11/27 03:23:00  mast
+Changed argument 3 of draw_cb and close_cb from long to int to avoid 
+warnings
+
+Revision 3.1  2002/11/25 19:24:49  mast
+Made it add itself to list of controls to be redraw to prevent excessive
+redraws; restructured calls for external drawing and closing accordingly,
+and made it raise itself when it redraws
+
+*/

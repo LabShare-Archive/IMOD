@@ -53,6 +53,7 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "xcramp.h"
 #include "imod_edit.h"
+#include "preferences.h"
 
 
 /* internal functions. */
@@ -300,6 +301,7 @@ static void slicerClose_cb(ImodView *vi, void *client, int junk)
 void slicerClosing(SlicerStruct *ss)
 {
   ivwRemoveControl(ss->vi, ss->ctrl);      
+  imodDialogManager.remove((QWidget *)ss->qtWindow);
   b3dFreeCIImage(ss->image);
   imodMatDelete(ss->mat);
   free(ss);
@@ -374,6 +376,7 @@ int sslice_open(struct ViewInfo *vi)
 	
   ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
                                (void *)ss);
+  imodDialogManager.add((QWidget *)ss->qtWindow, IMOD_IMAGE);
 
   // Set up cursor
   if (ss->mousemode == IMOD_MMODEL)
@@ -600,13 +603,13 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
 
-  if (event->stateAfter() & Qt::LeftButton)
+  if (event->stateAfter() & ImodPrefs->actualButton(1))
     slicer_attach_point(ss, event->x(), event->y());
 
-  if (event->stateAfter() & Qt::MidButton)
+  if (event->stateAfter() & ImodPrefs->actualButton(2))
     slicer_insert_point(ss, event->x(), event->y());
   
-  if (event->stateAfter() & Qt::RightButton)
+  if (event->stateAfter() & ImodPrefs->actualButton(3))
     slicer_modify_point(ss, event->x(), event->y());
 }
 
@@ -1856,6 +1859,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.9  2003/03/13 01:34:07  mast
+Fixed initialization of distance variable in attach function
+
 Revision 4.8  2003/03/13 01:20:08  mast
 Convert numlock keypad keys so num lock can be on
 
