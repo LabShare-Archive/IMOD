@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2004/01/05 18:03:50  mast
+    renamed vw to vi
+
     Revision 3.4  2003/09/16 02:10:55  mast
     Added working array because displayed image data cannot be used directly
 
@@ -72,6 +75,7 @@ class IProcWindow : public DialogFrame
   ~IProcWindow() {};
 
   public slots:
+  void buttonClicked(int which);
   void buttonPressed(int which);
   void edgeSelected(int which);
   void filterSelected(int which);
