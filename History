@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/10/03: Reorganized code for Rotatevol, Matchvol, and Warpvol to eliminate
+duplicate code, converted them to PIP input, and added an option for linear
+interpolation for each.  Modified scripts command files for combine operation
+to use the new input method, and to use linear interpolation when making the
+first matching volume.  Added an option for linear interpolation to 
+Matchorwarp.
+
 10/8/03: Modified PIP to read newly invented "autodoc" files to determine
 program options and generate manual pages sections.
 
