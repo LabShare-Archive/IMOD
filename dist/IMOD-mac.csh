@@ -2,8 +2,8 @@
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
-# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
-# or set IMOD_DIR before sourcing this file
+# It assumes that IMOD is located in /Applications - if not, modify IMOD_DIR
+# here or set IMOD_DIR before sourcing this file
 #
 # Source this file from the user's .cshrc or from a system cshrc file
 # by inserting mac.cshrc (if /etc/csh.login has an absolute path-setting 
@@ -12,7 +12,7 @@
 #
 # Set IMOD_DIR if it is not set already
 #
-if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
+if (! $?IMOD_DIR) setenv IMOD_DIR /Applications/IMOD
 
 #
 # Put the IMOD programs on the path
