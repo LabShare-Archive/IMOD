@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
 Revision 3.8  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -339,8 +342,7 @@ static void zapClose(ZapWindow *zap)
   XtPopdown(zap->dialog);
   zap->popup = False;
 
-  if (zap->image)
-    free(zap->image);
+  b3dFreeCIImage (zap->image);
   zap->ctrl  = 0;
   zap->image = NULL;
   zap->winx  = zap->winy = 0;
