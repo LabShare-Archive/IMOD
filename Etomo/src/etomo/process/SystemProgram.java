@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/11/19 23:25:59  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.9.2.4  2004/10/18 19:10:42  sueh
  * <p> bug# 520 Added getCommandLine().
  * <p>
@@ -308,7 +311,7 @@ public class SystemProgram implements Runnable {
       cmdInputStream.close();
 
       if (debug) {
-        System.err.println("Done writting to process stdin");
+        System.err.println("Done writing to process stdin");
         if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
           System.err.println(
