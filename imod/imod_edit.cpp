@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/10/01 05:05:54  mast
+change to rationalize location of ivw functions
+
 Revision 4.2  2003/02/14 01:14:30  mast
 cleanup unused variables
 
@@ -116,7 +119,7 @@ int imod_redraw(ImodView *vw)
 
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
-int imod_obj_nearest(struct Mod_Object *obj, 
+int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
                      struct Mod_Index *index,
                      struct Mod_Point *pnt,
                      float selsize)
@@ -127,47 +130,83 @@ int imod_obj_nearest(struct Mod_Object *obj,
   int distance = -1;
   int temp_distance;
   int ctime;
-  int cz = (int)(pnt->z + 0.5f);
+  int cz = (int)floor(pnt->z + 0.5);
   int twod = 0;
+  double rad, delz;
+  Ipoint scale;
     
   /* Don't report points not in our time. DNM - unless time is 0*/
-  ivwGetTime(App->cvi, &ctime);
+  ivwGetTime(vi, &ctime);
     
   /* Ignore Z value if 2d image. */
-  twod = (!(App->cvi->dim & 4));
+  twod = (!(vi->dim & 4));
     
+  scale.x = scale.y = 1.;
+  scale.z = ((vi->imod->zscale > 0. ? vi->imod->zscale : 1.) * vi->zbin) /
+    vi->xybin;
+
   for (i = 0; i < obj->contsize; i++){
         
     cont = &(obj->cont[i]);
     if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->type) &&
-        (cont->type != ctime)) continue;
+        (cont->type != ctime))
+      continue;
+    if (!cont->psize)
+      continue;
         
-    for(pindex = 0; pindex < cont->psize; pindex++){
+    if ((obj->pdrawsize || cont->sizes) && !twod) {
+
+      // If there could be 3D points, then allow attachment to any point
+      // that should be visible on the plane
+      for(pindex = 0; pindex < cont->psize; pindex++){
+        
+        if ((fabs((double)(pnt->x - cont->pts[pindex].x)) < selsize) &&
+            (fabs((double)(pnt->y - cont->pts[pindex].y)) < selsize)) {
             
-      if ((twod) || ( cz == ((int)(cont->pts[pindex].z + 0.5f))))
-                
-        if ((  (pnt->x - cont->pts[pindex].x) < selsize)
-            && (  (cont->pts[pindex].x - pnt->x) < selsize)
-            && (  (pnt->y - cont->pts[pindex].y) < selsize) 
-            && (  (cont->pts[pindex].y - pnt->y) < selsize))
-          {
+          // get radius of point and maximum Z difference that will work
+          rad = imodPointGetSize(obj, cont, pindex) / vi->xybin;
+          delz = 0.5;
+          if (rad > 1.)
+            delz = sqrt(rad * rad - 1.) / scale.z;
+
+          if (fabs((double)(cont->pts[pindex].z - cz)) <= delz) {
+
+            temp_distance = imodPoint3DScaleDistance(&(cont->pts[pindex]),
+                                                     pnt, &scale);
                         
-            temp_distance = imod_distance( &(cont->pts[pindex].x),
-                                           &(cont->pts[pindex].y),
-                                           pnt);
-                        
-            if (distance == -1){
-              distance = temp_distance;
-              index->contour = i;
-              index->point   = pindex;
-            }
-                        
-            if (distance > temp_distance){
+            if (distance == -1 || distance > temp_distance){
               distance = temp_distance;
               index->contour = i;
               index->point   = pindex;
             }
           }
+        }
+      }    
+
+    } else {
+
+      // Skip contour if not wild and Z does not match
+      if (!twod && !(cont->flags & ICONT_WILD) && 
+          ( cz != (int)floor(cont->pts->z + 0.5)))
+        continue;
+
+      for(pindex = 0; pindex < cont->psize; pindex++){
+        
+        if ((twod || cz == (int)floor(cont->pts[pindex].z + 0.5)) &&
+            (fabs((double)(pnt->x - cont->pts[pindex].x)) < selsize) &&
+            (fabs((double)(pnt->y - cont->pts[pindex].y)) < selsize)) {
+            
+          temp_distance = imod_distance( &(cont->pts[pindex].x),
+                                         &(cont->pts[pindex].y),
+                                         pnt);
+                        
+          if (distance == -1 || distance > temp_distance){
+            distance = temp_distance;
+            index->contour = i;
+            index->point   = pindex;
+          }
+        }
+      }
     }
   }
   return(distance);
@@ -229,3 +268,88 @@ void imod_contour_move(int ob)
 }
 
 
+// Add an item to the selection list
+void imodSelectionListAdd(ImodView *vi, Iindex newIndex)
+{
+  int multiObject = 0;    // Placekeeper for possible argument/preference
+  Iindex *index;
+  int i;
+
+  // Clear list if a different object is given and multiobject not allowed
+  if (ilistSize(vi->selectionList) && !multiObject) {
+    index = (Iindex *)ilistFirst(vi->selectionList);
+    if (index->object != newIndex.object)
+      imodSelectionListClear(vi);
+  }
+
+  // create list if it does not exist
+  if (!vi->selectionList) {
+    vi->selectionList = ilistNew(sizeof(Iindex), 4);
+    if (!vi->selectionList) 
+      return;    // ERROR
+  }
+
+  // Look through list to see if contour is already there and update point
+  for (i = 0; i < ilistSize(vi->selectionList); i++) {
+    index = (Iindex *)ilistItem(vi->selectionList, i);
+    if (index->object == newIndex.object && 
+        index->contour == newIndex.contour) {
+      index->point = newIndex.point;
+      /*imodPrintStderr("update %d %d %d\n", newIndex.object, newIndex.contour,
+        newIndex.point);*/
+      return;
+    }
+  }
+
+  // Add index to list
+  /*imodPrintStderr("adding %d %d %d\n", newIndex.object, newIndex.contour,
+    newIndex.point); */
+  ilistAppend(vi->selectionList, &newIndex);
+  /*index = (Iindex *)ilistFirst(vi->selectionList);
+  while (index) {
+    imodPrintStderr("%d %d %d\n", index->object, index->contour, index->point);
+    index = (Iindex *)ilistNext(vi->selectionList);
+    } */
+
+}
+
+// Clear the selection list: returns the number previously on the list
+int imodSelectionListClear(ImodView *vi)
+{
+  int retval = ilistSize(vi->selectionList);
+  ilistDelete(vi->selectionList);
+  vi->selectionList = NULL;
+  return retval;
+}
+
+// If object-contour is on selection list, return point number; otherwise -2
+int imodSelectionListQuery(ImodView *vi, int ob, int co)
+{
+  Iindex *index;
+  int i;
+
+  for (i = 0; i < ilistSize(vi->selectionList); i++) {
+    index = (Iindex *)ilistItem(vi->selectionList, i);
+    if (index->object == ob && index->contour == co) {
+      //imodPrintStderr("Query returns %d\n", index->point);
+      return index->point;
+    }
+  }
+  return -2;
+}
+
+void imodSelectionListRemove(ImodView *vi, int ob, int co)
+{
+  Iindex *index;
+  int i;
+
+  for (i = 0; i < ilistSize(vi->selectionList); i++) {
+    index = (Iindex *)ilistItem(vi->selectionList, i);
+    if (index->object == ob && index->contour == co) {
+      ilistRemove(vi->selectionList, i);
+      /* imodPrintStderr("Removing item %d, leaves %d\n", i, 
+         ilistSize(vi->selectionList)); */
+      return;
+    }
+  }
+}
