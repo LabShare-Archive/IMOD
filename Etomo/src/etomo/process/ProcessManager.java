@@ -29,6 +29,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.25  2003/10/05 21:32:49  rickg
+ * <p> Bug# 256
+ * <p> Generalized BackgroundProcess starting
+ * <p>
  * <p> Revision 2.24  2003/10/01 18:16:54  rickg
  * <p> Update demo mode to work with process monitor structure
  * <p>
@@ -639,6 +643,361 @@ public class ProcessManager {
   }
 
   /**
+   * Run the comand specified by the argument string
+   */
+  public String test(String commandLine) {
+    //TODO: move to trimVolume format
+
+    BackgroundProcess command = new BackgroundProcess(commandLine, this);
+    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    command.setDebug(appManager.isDebug());
+    command.start();
+
+    if (appManager.isDebug()) {
+      System.err.println("Started " + commandLine);
+      System.err.println("  Name: " + command.getName());
+    }
+    return command.getName();
+  }
+
+  //
+  //  Generalized process management methods
+  //
+
+  /**
+   * Start an arbtrary command as an unmanaged background thread
+   */
+  private void startSystemProgramThread(String command) {
+
+    // Initialize the SystemProgram object
+    SystemProgram sysProgram = new SystemProgram(command);
+    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    sysProgram.setDebug(appManager.isDebug());
+
+    //  Start the system program thread
+    Thread sysProgThread = new Thread(sysProgram);
+    sysProgThread.start();
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println(
+        "  working directory: " + System.getProperty("user.dir"));
+    }
+  }
+
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param axisID
+   * @return
+   */
+  private ComScriptProcess startComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID)
+    throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    //  Run the script as a thread in the background
+    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
+    comScriptProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    comScriptProcess.setDebug(appManager.isDebug());
+    comScriptProcess.setDemoMode(appManager.isDemo());
+    comScriptProcess.start();
+
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + comScriptProcess.getName());
+    }
+
+    Thread processMonitorThread = null;
+    // Replace the process monitor with a DemoProcessMonitor if demo mode is on 
+    if (appManager.isDemo()) {
+      processMonitor =
+        new DemoProcessMonitor(
+          appManager,
+          axisID,
+          command,
+          comScriptProcess.getDemoTime());
+    }
+
+    //	Start the process monitor thread if a runnable process is provided
+    if (processMonitor != null) {
+      // Wait for the started flag within the comScriptProcess, this ensures
+      // that log file has already been moved
+      while (!comScriptProcess.isStarted()) {
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+          break;
+        }
+      }
+      processMonitorThread = new Thread(processMonitor);
+      processMonitorThread.start();
+    }
+
+    // Map the thread to the correct axis
+    mapThreadAxis(comScriptProcess, processMonitorThread, axisID);
+    return comScriptProcess;
+  }
+
+  /**
+   * A message specifying that a com script has finished execution
+   * @param script the ComScriptProcess execution object that finished
+   * @param exitValue the exit value for the com script
+   */
+  public void msgComScriptDone(ComScriptProcess script, int exitValue) {
+    if (exitValue != 0) {
+      String[] stdError = script.getStdError();
+      String[] combined;
+      //    Is the last string "Killed"
+      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+        combined = new String[1];
+        combined[0] = "<html>Terminated: " + script.getScriptName();
+      }
+      else {
+        String[] message = script.getErrorMessage();
+        combined = new String[message.length + stdError.length + 5];
+        int j = 0;
+        combined[j++] = "<html>Com script failed: " + script.getScriptName();
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Log file errors:</U>";
+
+        for (int i = 0; i < message.length; i++, j++) {
+          combined[j] = message[i];
+        }
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          combined[j] = stdError[i];
+        }
+      }
+      appManager.openMessageDialog(
+        combined,
+        script.getScriptName() + " terminated");
+    }
+    else {
+      // Script specific post processing
+
+      if (script.getScriptName().equals("aligna.com")) {
+        generateAlignLogs(AxisID.FIRST);
+      }
+      if (script.getScriptName().equals("alignb.com")) {
+        generateAlignLogs(AxisID.SECOND);
+      }
+      if (script.getScriptName().equals("align.com")) {
+        generateAlignLogs(AxisID.ONLY);
+      }
+
+      String[] warningMessages = script.getWarningMessage();
+      String[] dialogMessage;
+      if (warningMessages != null && warningMessages.length > 0) {
+        dialogMessage = new String[warningMessages.length + 2];
+        dialogMessage[0] = "Com script: " + script.getScriptName();
+        dialogMessage[1] = "<html><U>Warnings:</U>";
+        int j = 2;
+        for (int i = 0; i < warningMessages.length; i++) {
+          dialogMessage[j++] = warningMessages[i];
+        }
+        appManager.openMessageDialog(
+          dialogMessage,
+          script.getScriptName() + " warnings");
+      }
+
+    }
+
+    appManager.processDone(script.getName(), exitValue);
+
+    // Interrupt the process monitor and nulll out the appropriate references
+    if (threadAxisA == script) {
+      if (processMonitorA != null) {
+        processMonitorA.interrupt();
+        processMonitorA = null;
+      }
+      threadAxisA = null;
+    }
+    if (threadAxisB == script) {
+      if (processMonitorB != null) {
+        processMonitorB.interrupt();
+        processMonitorB = null;
+      }
+      threadAxisB = null;
+    }
+  }
+
+  /**
+   * Start a managed background process
+   * @param command
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private BackgroundProcess startBackgroundProcess(
+    String command,
+    AxisID axisID)
+    throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
+    backgroundProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    backgroundProcess.setDemoMode(appManager.isDemo());
+    backgroundProcess.setDebug(appManager.isDebug());
+    backgroundProcess.start();
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + backgroundProcess.getName());
+    }
+
+    mapThreadAxis(backgroundProcess, null, AxisID.ONLY);
+    return backgroundProcess;
+  }
+
+  /**
+   * A message specifying that a background process has finished execution
+   * @param script the BackgroundProcess execution object that finished
+   * @param exitValue the exit value for the process
+   */
+  public void msgBackgroundProcessDone(
+    BackgroundProcess process,
+    int exitValue) {
+
+    //  Check to see if the exit value is non-zero
+    if (exitValue != 0) {
+      String[] stdError = process.getStdError();
+      String[] message;
+
+      // Is the last string "Killed"
+      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+        message = new String[1];
+        message[0] = "<html>Terminated: " + process.getCommandLine();
+      }
+      else {
+        int j = 0;
+        message = new String[stdError.length + 3];
+        message[j++] = "<html>Command failed: " + process.getCommandLine();
+        message[j++] = "  ";
+        message[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          message[j] = stdError[i];
+        }
+      }
+      appManager.openMessageDialog(
+        message,
+        process.getCommand() + " terminated");
+    }
+
+    // Another possible error message source is ERROR: in the stdout stream
+    String[] stdOutput = process.getStdOutput();
+    ArrayList errors = new ArrayList();
+    boolean foundError = false;
+    for (int i = 0; i < stdOutput.length; i++) {
+      if (!foundError) {
+        int index = stdOutput[i].indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(stdOutput[i]);
+        }
+      }
+      else {
+        errors.add(stdOutput[i]);
+      }
+    }
+    String[] errorMessage =
+      (String[]) errors.toArray(new String[errors.size()]);
+
+    if (errorMessage.length > 0) {
+      appManager.openMessageDialog(errorMessage, "Background Process Error");
+    }
+
+    // Command succeeded, check to see if we need to show any application
+    // specific info
+    else {
+      if (process.getCommandLine().equals(transferfidCommandLine)) {
+        handleTransferfidMessage(process);
+      }
+    }
+    appManager.processDone(process.getName(), exitValue);
+  }
+
+  /**
+   * Unique case to parse the output of transferfid and save it to a file
+   * @param process
+   */
+  private void handleTransferfidMessage(BackgroundProcess process) {
+    try {
+
+      //  Write the standard output to a the log file
+      String[] stdOutput = process.getStdOutput();
+      BufferedWriter fileBuffer =
+        new BufferedWriter(
+          new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
+
+      for (int i = 0; i < stdOutput.length; i++) {
+        fileBuffer.write(stdOutput[i]);
+        fileBuffer.newLine();
+      }
+      fileBuffer.close();
+
+      //  Show a dialog box to the user
+      String[] message = new String[stdOutput.length + 1];
+      int j = 0;
+      message[j++] = "<html><U>" + process.getCommand() + ": output</U>";
+      for (int i = 0; i < stdOutput.length; i++, j++) {
+        message[j] = stdOutput[i];
+      }
+
+      appManager.openMessageDialog(message, "Transferfid output");
+    }
+    catch (IOException except) {
+      appManager.openMessageDialog(
+        except.getMessage(),
+        "Transferfid log error");
+    }
+  }
+  /**
+   * Save the thread reference for the appropriate axis
+   * @param thread
+   * @param axisID
+   */
+  private void mapThreadAxis(
+    SystemProcessInterface thread,
+    Thread processMonitor,
+    AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      threadAxisB = thread;
+      processMonitorB = processMonitor;
+    }
+    else {
+      threadAxisA = thread;
+      processMonitorA = processMonitor;
+    }
+  }
+
+  /**
+   * Check to see if specified axis is busy, throw a system a 
+   * ProcessProcessException if it is.
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private void isAxisBusy(AxisID axisID) throws SystemProcessException {
+    // Check to make sure there is not another process already running on this
+    // axis.
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+    else {
+      if (threadAxisA != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+  }
+
+  /**
    * Kill the thread for the specified axis
    */
   public void kill(AxisID axisID) {
@@ -724,356 +1083,4 @@ public class ProcessManager {
     return children;
   }
 
-  /**
-   * Run the comand specified by the argument string
-   */
-  public String test(String commandLine) {
-    BackgroundProcess command = new BackgroundProcess(commandLine, this);
-    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    command.setDebug(appManager.isDebug());
-    command.start();
-
-    if (appManager.isDebug()) {
-      System.err.println("Started " + commandLine);
-      System.err.println("  Name: " + command.getName());
-    }
-    return command.getName();
-  }
-
-  /**
-   * A message specifying that a background process has finished execution
-   * @param script the BackgroundProcess execution object that finished
-   * @param exitValue the exit value for the process
-   */
-  public void msgBackgroundProcessDone(
-    BackgroundProcess process,
-    int exitValue) {
-
-    //  Check to see if the exit value is non-zero
-    if (exitValue != 0) {
-      String[] stdError = process.getStdError();
-      String[] message;
-
-      // Is the last string "Killed"
-      if (stdError[stdError.length - 1].trim().equals("Killed")) {
-        message = new String[1];
-        message[0] = "<html>Terminated: " + process.getCommandLine();
-      }
-      else {
-        int j = 0;
-        message = new String[stdError.length + 3];
-        message[j++] = "<html>Command failed: " + process.getCommandLine();
-        message[j++] = "  ";
-        message[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          message[j] = stdError[i];
-        }
-      }
-      appManager.openMessageDialog(
-        message,
-        process.getCommand() + " terminated");
-    }
-
-    // Another possible error message source is ERROR: in the stdout stream
-    String[] stdOutput = process.getStdOutput();
-    ArrayList errors = new ArrayList();
-    boolean foundError = false;
-    for (int i = 0; i < stdOutput.length; i++) {
-      if (!foundError) {
-        int index = stdOutput[i].indexOf("ERROR:");
-        if (index != -1) {
-          foundError = true;
-          errors.add(stdOutput[i]);
-        }
-      }
-      else {
-        errors.add(stdOutput[i]);
-      }
-    }
-    String[] errorMessage =
-      (String[]) errors.toArray(new String[errors.size()]);
-
-    if (errorMessage.length > 0) {
-      appManager.openMessageDialog(errorMessage, "Background Process Error");
-    }
-
-    // Command succeeded, check to see if we need to show any application
-    // specific info
-    else {
-      if (process.getCommandLine().equals(transferfidCommandLine)) {
-        handleTransferfidMessage(process);
-      }
-    }
-    appManager.processDone(process.getName(), exitValue);
-  }
-
-  /**
-   * A message specifying that a com script has finished execution
-   * @param script the ComScriptProcess execution object that finished
-   * @param exitValue the exit value for the com script
-   */
-  public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-    if (exitValue != 0) {
-      String[] stdError = script.getStdError();
-      String[] combined;
-      //    Is the last string "Killed"
-      if (stdError[stdError.length - 1].trim().equals("Killed")) {
-        combined = new String[1];
-        combined[0] = "<html>Terminated: " + script.getScriptName();
-      }
-      else {
-        String[] message = script.getErrorMessage();
-        combined = new String[message.length + stdError.length + 5];
-        int j = 0;
-        combined[j++] = "<html>Com script failed: " + script.getScriptName();
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Log file errors:</U>";
-
-        for (int i = 0; i < message.length; i++, j++) {
-          combined[j] = message[i];
-        }
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          combined[j] = stdError[i];
-        }
-      }
-      appManager.openMessageDialog(
-        combined,
-        script.getScriptName() + " terminated");
-    }
-    else {
-      // Script specific post processing
-
-      if (script.getScriptName().equals("aligna.com")) {
-        generateAlignLogs(AxisID.FIRST);
-      }
-      if (script.getScriptName().equals("alignb.com")) {
-        generateAlignLogs(AxisID.SECOND);
-      }
-      if (script.getScriptName().equals("align.com")) {
-        generateAlignLogs(AxisID.ONLY);
-      }
-
-      String[] warningMessages = script.getWarningMessage();
-      String[] dialogMessage;
-      if (warningMessages != null && warningMessages.length > 0) {
-        dialogMessage = new String[warningMessages.length + 2];
-        dialogMessage[0] = "Com script: " + script.getScriptName();
-        dialogMessage[1] = "<html><U>Warnings:</U>";
-        int j = 2;
-        for (int i = 0; i < warningMessages.length; i++) {
-          dialogMessage[j++] = warningMessages[i];
-        }
-        appManager.openMessageDialog(
-          dialogMessage,
-          script.getScriptName() + " warnings");
-      }
-
-    }
-
-    appManager.processDone(script.getName(), exitValue);
-
-    // Interrupt the process monitor and nulll out the appropriate references
-    if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
-      }
-      threadAxisA = null;
-    }
-    if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
-      }
-      threadAxisB = null;
-    }
-
-  }
-
-  //  Internal utility functions
-
-  /**
-   * Start an arbtrary command as an unmanaged background thread
-   */
-  private void startSystemProgramThread(String command) {
-
-    // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(command);
-    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    sysProgram.setDebug(appManager.isDebug());
-
-    //  Start the system program thread
-    Thread sysProgThread = new Thread(sysProgram);
-    sysProgThread.start();
-    if (appManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println(
-        "  working directory: " + System.getProperty("user.dir"));
-    }
-  }
-
-  /**
-   * Start a managed command script for the specified axis
-   * @param command
-   * @param axisID
-   * @return
-   */
-  private ComScriptProcess startComScript(
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
-    //  Run the script as a thread in the background
-    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
-    comScriptProcess.setWorkingDirectory(
-      new File(System.getProperty("user.dir")));
-    comScriptProcess.setDebug(appManager.isDebug());
-    comScriptProcess.setDemoMode(appManager.isDemo());
-    comScriptProcess.start();
-
-    if (appManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + comScriptProcess.getName());
-    }
-
-    Thread processMonitorThread = null;
-    // Replace the process monitor with a DemoProcessMonitor if demo mode is on 
-    if (appManager.isDemo()) {
-      processMonitor =
-        new DemoProcessMonitor(
-          appManager,
-          axisID,
-          command,
-          comScriptProcess.getDemoTime());
-    }
-
-    //	Start the process monitor thread if a runnable process is provided
-    if (processMonitor != null) {
-      // Wait for the started flag within the comScriptProcess, this ensures
-      // that log file has already been moved
-      while (!comScriptProcess.isStarted()) {
-        try {
-          Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
-          break;
-        }
-      }
-      processMonitorThread = new Thread(processMonitor);
-      processMonitorThread.start();
-    }
-
-    // Map the thread to the correct axis
-    mapThreadAxis(comScriptProcess, processMonitorThread, axisID);
-    return comScriptProcess;
-  }
-
-  /**
-   * Start a managed background process
-   * @param command
-   * @param axisID
-   * @throws SystemProcessException
-   */
-  private BackgroundProcess startBackgroundProcess(
-    String command,
-    AxisID axisID)
-    throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
-    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
-    backgroundProcess.setWorkingDirectory(
-      new File(System.getProperty("user.dir")));
-    backgroundProcess.setDemoMode(appManager.isDemo());
-    backgroundProcess.setDebug(appManager.isDebug());
-    backgroundProcess.start();
-    if (appManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + backgroundProcess.getName());
-    }
-
-    mapThreadAxis(backgroundProcess, null, AxisID.ONLY);
-    return backgroundProcess;
-  }
-
-  /**
-   * Unique case to parse the output of transferfid and save it to a file
-   * @param process
-   */
-  private void handleTransferfidMessage(BackgroundProcess process) {
-    try {
-
-      //  Write the standard output to a the log file
-      String[] stdOutput = process.getStdOutput();
-      BufferedWriter fileBuffer =
-        new BufferedWriter(
-          new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
-
-      for (int i = 0; i < stdOutput.length; i++) {
-        fileBuffer.write(stdOutput[i]);
-        fileBuffer.newLine();
-      }
-      fileBuffer.close();
-
-      //  Show a dialog box to the user
-      String[] message = new String[stdOutput.length + 1];
-      int j = 0;
-      message[j++] = "<html><U>" + process.getCommand() + ": output</U>";
-      for (int i = 0; i < stdOutput.length; i++, j++) {
-        message[j] = stdOutput[i];
-      }
-
-      appManager.openMessageDialog(message, "Transferfid output");
-    }
-    catch (IOException except) {
-      appManager.openMessageDialog(
-        except.getMessage(),
-        "Transferfid log error");
-    }
-  }
-
-  /**
-   * Save the thread reference for the appropriate axis
-   * @param thread
-   * @param axisID
-   */
-  private void mapThreadAxis(
-    SystemProcessInterface thread,
-    Thread processMonitor,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      threadAxisB = thread;
-      processMonitorB = processMonitor;
-    }
-    else {
-      threadAxisA = thread;
-      processMonitorA = processMonitor;
-    }
-  }
-
-  /**
-   * Check to see if specified axis is busy, throw a system a 
-   * ProcessProcessException if it is.
-   * @param axisID
-   * @throws SystemProcessException
-   */
-  private void isAxisBusy(AxisID axisID) throws SystemProcessException {
-    // Check to make sure there is not another process already running on this
-    // axis.
-    if (axisID == AxisID.SECOND) {
-      if (threadAxisB != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
-      }
-    }
-    else {
-      if (threadAxisA != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
-      }
-    }
-  }
 }
