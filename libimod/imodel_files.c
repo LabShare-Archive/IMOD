@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/09/04 23:12:50  mast
+    Read mat1 and mat3 the old way if a new flag is not set.  Set the flag
+    when writing a file.
+
     Revision 3.3  2002/09/03 20:05:14  mast
     Changed some casts in the mat1 and mat3 calls
 
@@ -1208,7 +1212,7 @@ int imodWriteAscii(Imod *imod)
 }
 
 
-imodFgetline(FILE *fp, char s[],int limit)
+int imodFgetline(FILE *fp, char s[],int limit)
 {
      int c, i, length;
      
