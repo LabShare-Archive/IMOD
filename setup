@@ -579,7 +579,7 @@ runmidas.extra = \\cp -f runmidas $inst_bin_dir/midas
 EOF
 
         cat << EOF >> $imod_qconf
-3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
+3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
     endif
 
@@ -650,6 +650,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.16  2003/04/26 04:26:34  mast
+#  fix 3dmodv link
+#
 #  Revision 3.15  2003/04/25 03:27:19  mast
 #  Changes for 3dmod naem change
 #
