@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/31/03: IMOD_3-0-13
+7/31/03: Changed the call used to iconify dialog boxes along with the info
+or model view window because the old way didn't work under RedHat 9 or on the 
+SGI under Qt 3.1.
+
+7/31/03: Fixed remaining problems created by new treatment of "views", and
+improved handling of object views, so that object views are deleted along with
+objects, they are properly extracted by imodextract, and they are dealt with
+as well as possible in imodjoin.
+
+7/29/03: Modified newst to test for MRC file rather than for text file, and to
+run temporary script files with csh, to make it work on Windows.
+
 7/16/03: Fixed problem with the 3D model of fiducials created by Tiltalign 
 cause by the "view" changes of 6/26/03, and changed 3dmodv back to recomputing
 scaling and center for the current view when first displaying a model.
