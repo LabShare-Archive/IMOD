@@ -35,12 +35,23 @@ CP        = \\cp
 FIND      = \\find
 EOF
 
+#
+# Set up special flags for 64 bit
+#
+set m64flags =
+set libflags =
+if ($m64bit == true) then
+    set m64flags = "-m64"
+    set libflags = "-fPIC"
+    set include_flags = "$include_flags -I/usr/lib64"
+endif
+
 set wrapper = ""
 
 if ($shared_libs != false) then
 	echo "AR      = ld"                 >> $configure
 	echo "ARCPP   = g++"                >> $configure
-	echo "ARFLAGS = $flags -shared -o "    >> $configure
+	echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = so"                 >> $configure
 	#
@@ -149,17 +160,6 @@ if ($compiler == intel) then
 else
 	set optimization = "-O3 -w"
 	if ($debug == true) set optimization = "-ggdb -O0"
-endif
-
-#
-# Set up special flags for 64 bit
-#
-set m64flags =
-set libflags =
-if ($m64bit == true) then
-    set m64flags = "-m64"
-    set libflags = "-fPIC"
-    set include_flags = "$include_flags -I/usr/lib64"
 endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
