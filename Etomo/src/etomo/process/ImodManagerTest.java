@@ -34,7 +34,7 @@ public class ImodManagerTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     String[] args = new String[1];
-    args[0] = new String("");
+    args[0] = new String("--test");
     applicationManager = new ApplicationManager(args);
     metaData = new MetaData();
   }
@@ -53,11 +53,9 @@ public class ImodManagerTest extends TestCase {
   public ImodManagerTest(String arg0) {
     super(arg0);
   }
-  
-
 
   //Regression test
-  
+
   final public void testImodManager() throws AxisTypeException {
     Tester tester;
     //Test single axis
@@ -175,7 +173,6 @@ public class ImodManagerTest extends TestCase {
     tester.equals(imodManager.get("trimmedVolume"));
   }
 
-
   private void setupNewSample(Tester tester) {
     //sample.modelMode();
     tester.modelMode();
@@ -192,8 +189,7 @@ public class ImodManagerTest extends TestCase {
     tester.setUseModv(true);
     tester.setOutputWindowID(false);
   }
-  
-  
+
   private void setUpSingle() {
     datasetName = datasetNameSingle;
     metaData.setDatasetName(datasetName);
@@ -203,8 +199,7 @@ public class ImodManagerTest extends TestCase {
     datasetName = datasetNameDual;
     metaData.setDatasetName(datasetName);
     metaData.setAxisType(AxisType.DUAL_AXIS);
-  } 
-
+  }
 
   private Tester newTester(String name) {
     return newTester(name, AxisType.SINGLE_AXIS, AxisID.ONLY);
@@ -397,10 +392,11 @@ public class ImodManagerTest extends TestCase {
       return null;
     }
   }
-  
+
   //testOpen and testModel functions mirror ImodManager's open and model functions
-  
-  private void testOpen(Tester tester, String key, AxisID axisID) throws AxisTypeException, SystemProcessException {
+
+  private void testOpen(Tester tester, String key, AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.open(key, axisID);
     assertTrue(imodManager.isOpen(key, axisID));
@@ -409,15 +405,17 @@ public class ImodManagerTest extends TestCase {
     imodManager.quit(key, axisID);
   }
 
-  private void testOpen(Tester tester, String key) throws AxisTypeException, SystemProcessException {
+  private void testOpen(Tester tester, String key)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.open(key);
     assertTrue(imodManager.isOpen(key));
     tester.equals(imodManager.get(key));
     imodManager.quit(key);
   }
-  
-  private void testOpen(Tester tester, String key, AxisID axisID, String model) throws AxisTypeException, SystemProcessException {
+
+  private void testOpen(Tester tester, String key, AxisID axisID, String model)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.open(key, axisID, model);
     assertTrue(imodManager.isOpen(key, axisID));
@@ -426,12 +424,14 @@ public class ImodManagerTest extends TestCase {
     imodManager.quit(key, axisID);
   }
 
-  private void testModel(Tester tester,
+  private void testModel(
+    Tester tester,
     String key,
     AxisID axisID,
     String modelName,
     boolean modelMode,
-    boolean preserveContrast) throws AxisTypeException, SystemProcessException {
+    boolean preserveContrast)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.model(key, axisID, modelName, modelMode, preserveContrast);
     assertTrue(imodManager.isOpen(key, axisID));
@@ -440,11 +440,13 @@ public class ImodManagerTest extends TestCase {
     imodManager.quit(key, axisID);
   }
 
-  private void testModel(Tester tester,
+  private void testModel(
+    Tester tester,
     String key,
     AxisID axisID,
     String modelName,
-    boolean modelMode) throws AxisTypeException, SystemProcessException {
+    boolean modelMode)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.model(key, axisID, modelName, modelMode);
     assertTrue(imodManager.isOpen(key, axisID));
@@ -453,10 +455,12 @@ public class ImodManagerTest extends TestCase {
     imodManager.quit(key, axisID);
   }
 
-  private void testModel(Tester tester,
+  private void testModel(
+    Tester tester,
     String key,
     AxisID axisID,
-    String modelName) throws AxisTypeException, SystemProcessException {
+    String modelName)
+    throws AxisTypeException, SystemProcessException {
     ImodManager imodManager = new ImodManager(applicationManager, metaData);
     imodManager.model(key, axisID, modelName);
     assertTrue(imodManager.isOpen(key, axisID));
@@ -464,8 +468,6 @@ public class ImodManagerTest extends TestCase {
     imodManager.openBeadFixer(key, axisID);
     imodManager.quit(key, axisID);
   }
-  
-
 
   /**
       * Tester has an interface similar to ImodProcess.  It sets variables and checks
@@ -477,17 +479,15 @@ public class ImodManagerTest extends TestCase {
   private class Tester {
 
     //Member variables mirror ImodAssistant
-    
+
     private String datasetName = "";
     private boolean swapYZ = false;
     private boolean modelView = false;
     private boolean fillCache = false;
     private boolean useModv = false;
-    private boolean preserveContrast = false;   
+    private boolean preserveContrast = false;
     private String modelName = "";
     private String mode = ImodState.MOVIE;
-
-    
 
     public String toString() {
       return getClass().getName() + "[" + paramString() + "]";
@@ -522,7 +522,6 @@ public class ImodManagerTest extends TestCase {
       setModelName(modelName);
     }
 
-
     public void equals(ImodState imodState) {
       assertTrue(imodState.getDatasetName().equals(datasetName));
       assertTrue(imodState.getModelName().equals(modelName));
@@ -534,7 +533,6 @@ public class ImodManagerTest extends TestCase {
       assertEquals(imodState.isPreserveContrast(), preserveContrast);
     }
 
-
     private void print(String key, ImodState imodState) {
       if (key == "modelName") {
         System.out.println("imodState:");
@@ -544,16 +542,16 @@ public class ImodManagerTest extends TestCase {
       else if (key == "mode") {
         System.out.println("imodState:");
         System.out.println(key + "=" + imodState.getMode());
-        System.out.println("this: " + key + "=" + mode);      }
+        System.out.println("this: " + key + "=" + mode);
+      }
       else if (key == "useModv") {
-        System.out.println(key + ": imodState=" + imodState.isUseModv() + ", this=" + useModv);
+        System.out.println(
+          key + ": imodState=" + imodState.isUseModv() + ", this=" + useModv);
       }
     }
 
-
     //Interface mirrors ImodProcess
-    
-    
+
     public void setSwapYZ(boolean swapYZ) {
       this.swapYZ = swapYZ;
     }
@@ -589,7 +587,7 @@ public class ImodManagerTest extends TestCase {
     public void movieMode() {
       setMode(false);
     }
-    
+
     public void setMode(boolean modelMode) {
       if (modelMode) {
         mode = ImodState.MODEL;
@@ -603,8 +601,6 @@ public class ImodManagerTest extends TestCase {
       this.modelName = new String(modelName);
     }
 
-
   }
-
 
 }
