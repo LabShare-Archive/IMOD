@@ -156,10 +156,15 @@ type = B
 usage = Back-transform or re-distort model
 tooltip =
 manpage = If no distortion field is involved, apply the inverse of the
-transforms specified by PrealignTransforms or XformsToApply.  Either
+transforms specified by -prealign or -xforms.  Either
 of these two options may be used to specify transforms, but not both.  If
-a distortion field is specified, this option can be used to transform a model
-built on undistorted images to match original images.
+a distortion field or mag gradient is specified, this option can be used to
+transform a model
+built on undistorted images to match original images.  In this case, 
+prealignment transforms will be treated differently depending on how they
+are specified: with -xforms, the model will be back-transformed to match
+the raw images; with -prealign, the model will be transformed to match
+prealigned but distorted images.
 
 [Field = DistortionField]
 short = distort
@@ -180,6 +185,19 @@ tooltip =
 manpage = The camera binning at which images were taken.  This entry may be
 required when undistorting if the program cannot deduce the binning
 unambiguously.
+
+[Field = GradientFile]
+short  = gradient
+long = GradientFile
+type = FN
+usage = File with magnification gradients to be applied for each Z value
+tooltip = 
+manpage = File with magnification gradients to be applied for each image.
+This should be a file listing the tilt angle, the percent magnification change
+per micron of Z height, and the degrees of rotation per micron of Z height
+for each image, such as is produced by Extractmaggrad.  The mag gradient
+correction is applied before a distortion field correction and before any
+transformations.
 
 [Field = ParameterFile]
 short = param
