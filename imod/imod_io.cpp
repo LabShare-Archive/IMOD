@@ -63,7 +63,7 @@ Log at end of file
 #include "preferences.h"
 
 //  Module private functions
-static void initModelData(Imod *newModel);
+static void initModelData(Imod *newModel, bool keepBW);
 static char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
@@ -463,7 +463,7 @@ Imod *LoadModelFile(char *filename) {
 /* DNM 9/12/02: deleted old version of imod_io_image_reload */
 // openModel    opens a IMOD model specified by modeFilename
 //
-int openModel(char *modelFilename) {
+int openModel(char *modelFilename, bool keepBW) {
   Imod *tmod;
   int err;
   int answer;
@@ -484,7 +484,7 @@ int openModel(char *modelFilename) {
 
   /* DNM 9/12/03: need to check checksum here, not in load model routines */
   if (tmod){
-    initModelData(tmod);
+    initModelData(tmod, keepBW);
     tmod->csum = imodChecksum(tmod);
   }
   else {
@@ -502,9 +502,7 @@ int openModel(char *modelFilename) {
 //  initModelData initializes the global ImodApp structure (App) with the new
 //  model information and frees the old model data structures
 //
-//  FIXME this should really return a resut code, some of the functions called
-//    appear that they can fail.
-static void initModelData(Imod *newModel) {
+static void initModelData(Imod *newModel, bool keepBW) {
 	      
   /* DNM 1/23/03: no longer free or allocate object colors */
   /* DNM: no longer causes a crash once we notify imodv of the
@@ -512,17 +510,14 @@ static void initModelData(Imod *newModel) {
   imodFree(App->cvi->imod);
 	       
   Model = App->cvi->imod = newModel;
-  App->cvi->black = App->cvi->imod->blacklevel;
-  App->cvi->white = App->cvi->imod->whitelevel;
 
-  /* DNM: unneeded with call to imod_cmap? */
-  /* for (ob = 0; ob < newModel->objsize; ob++)
-     if (App->depth <= 8)
-     newModel->obj[ob].fgcolor = App->objbase - ob;
-     else
-     newModel->obj[ob].fgcolor = App->objbase + ob;
-  */
+  /* DNM 6/3/04: avoid two draws by keeping levels in the first place */
+  if (!keepBW) {
+    App->cvi->black = App->cvi->imod->blacklevel;
+    App->cvi->white = App->cvi->imod->whitelevel;
+  }
 
+  /* DNM 6/3/04: removed commented out code on setting object colors */
   if (!App->rgba)
     imod_cmap(App->cvi->imod);	  
 
@@ -539,8 +534,10 @@ static void initModelData(Imod *newModel) {
 
   if (!App->cvi->fakeImage)
     ivwTransModel(App->cvi);
+
   /* DNM: check wild flags here, after any changes in model */
   ivwCheckWildFlag(newModel);
+
   /* DNM: model should never start out in model mode! */
   imod_set_mmode(IMOD_MMOVIE);
 
@@ -841,6 +838,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.11  2004/06/01 01:31:34  mast
+Remove extern int errno statement - there is an include for it
+
 Revision 4.10  2004/01/06 16:53:35  mast
 Use proper test for when to use mrc_read_byte
 
