@@ -40,6 +40,7 @@ Log at end of file
 #include <qlabel.h>
 #include <qcheckbox.h>
 #include <qpushbutton.h>
+#include <qbuttongroup.h>
 #include <qradiobutton.h>
 #include <qlayout.h>
 #include <qvbox.h>
@@ -1147,9 +1148,9 @@ static void mkScalar_cb(int index)
   layout1->addLayout(meshSliders->getLayout());
   QObject::connect(meshSliders, SIGNAL(sliderChanged(int, int, bool)),
                    &imodvObjed, SLOT(meshLevelSlot(int, int, bool)));
-  QToolTip::add((QWidget *)matSliders->getSlider(0), "Set low end of "
+  QToolTip::add((QWidget *)meshSliders->getSlider(0), "Set low end of "
                 "contrast ramp for displaying normal magnitudes");
-  QToolTip::add((QWidget *)matSliders->getSlider(1), "Set high end of "
+  QToolTip::add((QWidget *)meshSliders->getSlider(1), "Set high end of "
                 "contrast ramp for displaying normal magnitudes");
 
   finalSpacer(oef->control, layout1);
@@ -1362,8 +1363,7 @@ static void fixMove_cb()
 /*****************************************************************************
  * The subsets edit field
  *****************************************************************************/
-// Worried about spacing with a group box, so manage radio behavior manually
-QRadioButton *subsetButtons[6];
+
 static char *subsetLabels[6] = {  "Show all ON objects", 
   "Current object only", 
   "Current surface only", 
@@ -1374,33 +1374,34 @@ static char *subsetLabels[6] = {  "Show all ON objects",
 
 void ImodvObjed::subsetSlot(int which)
 {
-  subsetButtons[Imodv->current_subset]->blockSignals(true);
-  subsetButtons[Imodv->current_subset]->setChecked(false);
-  subsetButtons[Imodv->current_subset]->blockSignals(false);
   Imodv->current_subset = which;
   imodvDraw(Imodv);
 }
 
 static void mkSubsets_cb(int index)
 {
+  QRadioButton *subsetButton;
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
   diaLabel("Show subset of model:", oef->control, layout1);
 
-  QSignalMapper *mapper = new QSignalMapper(oef->control);
-  QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed, SLOT(subsetSlot(int)));
+  QButtonGroup *group = new QButtonGroup(1, Qt::Vertical, oef->control);
+  group->hide();
+  
+  QObject::connect(group, SIGNAL(clicked(int)), &imodvObjed, 
+		   SLOT(subsetSlot(int)));
 
   for (int i = 0; i < 6; i++) {
-    subsetButtons[i] = new QRadioButton(subsetLabels[i], oef->control);
-    layout1->addWidget(subsetButtons[i]);
-    subsetButtons[i]->setFocusPolicy(QWidget::NoFocus);
-    mapper->setMapping(subsetButtons[i], i);
-    QObject::connect(subsetButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
+    subsetButton = new QRadioButton(subsetLabels[i], oef->control);
+    group->insert(subsetButton);
+    layout1->addWidget(subsetButton);
+    subsetButton->setFocusPolicy(QWidget::NoFocus);
   }
 
-  subsetButtons[Imodv->current_subset]->setChecked(true);
+  diaSetGroup(group, Imodv->current_subset);
+
   finalSpacer(oef->control, layout1);
 }
 
@@ -1591,6 +1592,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.9  2003/04/15 05:23:47  mast
+Added tooltips
+
 Revision 4.8  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
