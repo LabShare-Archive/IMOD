@@ -26,6 +26,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/01/10 23:56:32  sueh
+ * <p> bug# 578 Modified isSqueezevolFlipped() and isTrimvolFlipped().
+ * <p>
  * <p> Revision 3.8  2005/01/08 01:55:32  sueh
  * <p> bug# 578 Calling all backword compatible functions in TomogramState
  * <p> "getBackwordCompatible...".
@@ -234,7 +237,7 @@ public class PostProcessingDialog
   public boolean isTrimvolFlipped() {
     TomogramState state = applicationManager.getState();
     if (!state.getTrimvolFlipped().isSet()) {
-      return state.getBackwordCompatibleTrimvolFlipped();
+      return state.getBackwardCompatibleTrimvolFlipped();
     }
     return state.getTrimvolFlipped().is();
   }
