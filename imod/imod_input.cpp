@@ -763,6 +763,159 @@ void inputFindMaxValue(ImodView *vw)
   return;
 }
 
+static void findMaxCentroid(ImodView *vw, int search)
+{
+  int mx, my;
+  int  x,  y, ix, iy, nedge;
+  float maxx, maxy;
+  float maxpixval, pixval, edge,sum, radsq;
+  float edgeWidth = 1.5;
+  float radius = 5.2;
+  int ipolar = -1;
+  int look = (int)(2. * (radius + edgeWidth) + 2.);
+  float radCrit = radius * radius;
+  float edgeCrit = (radius + edgeWidth) * (radius + edgeWidth);
+  double xsum, ysum, wsum, wsum2;
+
+  maxpixval = -1.e30;
+  mx = (int)(vw->xmouse);
+  my = (int)(vw->ymouse);
+  for (x = mx - search; x <= mx + search; x++) {
+    for (y = my - search; y <= my + search; y++){
+
+      // Get edge
+      sum = 0.;
+      nedge = 0;
+      for (iy = y - look; iy <= y + look; iy++) {
+        for (ix = x - look; ix <= x + look; ix++) {
+          radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) +
+            (iy + 0.5 - y);
+          if (radsq > radCrit && radsq <= edgeCrit) {
+            nedge++;
+            sum += ivwGetFileValue(vw, ix, iy, (int)vw->zmouse);
+          }
+        }
+      }
+      edge = sum / nedge;
+      imodPrintStderr("At %d %d  edge %.1f  %d pix", x, y, edge, nedge);
+
+      nedge = 0;
+      wsum = xsum = ysum = wsum2 = 0.;
+      for (iy = y - look; iy <= y + look; iy++) {
+        for (ix = x - look; ix <= x + look; ix++) {
+          radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) *
+            (iy + 0.5 - y);
+          if (radsq <= radCrit) {
+            pixval = ivwGetFileValue(vw, ix, iy, (int)vw->zmouse) - edge;
+            wsum2 += pixval;
+            if (ipolar * pixval > 0.) {
+              xsum += ix * pixval;
+              ysum += iy * pixval;
+              wsum += pixval;
+              nedge++;
+            }
+          }
+        }
+      }
+      imodPrintStderr("wsum2 %.0f  x %.2f  y %.2f  %d pix\n"
+                      , wsum2, xsum / wsum, ysum/wsum, nedge);
+      if (wsum != 0. && wsum2 * ipolar > maxpixval) {
+         maxpixval = wsum2 * ipolar;
+         maxx = xsum/wsum + 0.5;
+         maxy = ysum/wsum + 0.5;
+      }
+    }
+  }
+  if (maxpixval < -1.e29) 
+    return;
+  vw->xmouse = maxx;
+  vw->ymouse = maxy;
+
+  imodPrintStderr("Pixel %g %g %g = %g\n", 
+         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, maxpixval);
+
+  imodDraw(vw, IMOD_DRAW_XYZ);
+  return;
+
+}
+
+static void findMaxCorrelation(ImodView *vw, int search)
+{
+#define BOXCOR_SIZE 20
+  int mx, my;
+  int  x,  y, ix, iy, nedge;
+  float maxx, maxy;
+  float maxpixval, pixval, edge,sum, radsq;
+  float edgeWidth = 1.5;
+  float radius = 5.2;
+  int ipolar = -1;
+  int look = (int)(2. * (radius + edgeWidth) + 2.);
+  float radCrit = radius * radius;
+  float edgeCrit = (radius + edgeWidth) * (radius + edgeWidth);
+  double xsum, ysum, wsum, wsum2;
+
+  maxpixval = -1.e30;
+  mx = (int)(vw->xmouse);
+  my = (int)(vw->ymouse);
+  for (x = mx - search; x <= mx + search; x++) {
+    for (y = my - search; y <= my + search; y++){
+
+      // Get edge
+      sum = 0.;
+      nedge = 0;
+      for (iy = y - look; iy <= y + look; iy++) {
+        for (ix = x - look; ix <= x + look; ix++) {
+          radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) +
+            (iy + 0.5 - y);
+          if (radsq > radCrit && radsq <= edgeCrit) {
+            nedge++;
+            sum += ivwGetFileValue(vw, ix, iy, (int)vw->zmouse);
+          }
+        }
+      }
+      edge = sum / nedge;
+      imodPrintStderr("At %d %d  edge %.1f  %d pix", x, y, edge, nedge);
+
+      nedge = 0;
+      wsum = xsum = ysum = wsum2 = 0.;
+      for (iy = y - look; iy <= y + look; iy++) {
+        for (ix = x - look; ix <= x + look; ix++) {
+          radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) *
+            (iy + 0.5 - y);
+          if (radsq <= radCrit) {
+            pixval = ivwGetFileValue(vw, ix, iy, (int)vw->zmouse) - edge;
+            wsum2 += pixval;
+            if (ipolar * pixval > 0.) {
+              xsum += ix * pixval;
+              ysum += iy * pixval;
+              wsum += pixval;
+              nedge++;
+            }
+          }
+        }
+      }
+      imodPrintStderr("wsum2 %.0f  x %.2f  y %.2f  %d pix\n"
+                      , wsum2, xsum / wsum, ysum/wsum, nedge);
+      if (wsum != 0. && wsum2 * ipolar > maxpixval) {
+         maxpixval = wsum2 * ipolar;
+         maxx = xsum/wsum + 0.5;
+         maxy = ysum/wsum + 0.5;
+      }
+    }
+  }
+  if (maxpixval < -1.e29) 
+    return;
+  vw->xmouse = maxx;
+  vw->ymouse = maxy;
+
+  imodPrintStderr("Pixel %g %g %g = %g\n", 
+         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, maxpixval);
+
+  imodDraw(vw, IMOD_DRAW_XYZ);
+  return;
+
+}
+
 void inputNewObject(ImodView *vw)
 {
   Iobj *obj;
@@ -941,6 +1094,13 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
           
   case Qt::Key_F:
+    if (event->state() & Qt::ControlButton) {
+      if (shifted)
+        findMaxCentroid(vw, 5);
+      else
+        findMaxCentroid(vw, 0);
+      break;
+    }
     if (shifted)
       inputFindMaxValue(vw);
     else
@@ -1206,6 +1366,10 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.17  2004/07/11 18:29:52  mast
+Consolidated code for new contour or surface and used new function
+for getting the contour to add points to
+
 Revision 4.16  2003/12/18 22:44:43  mast
 Disable A hot key for fake or raw image
 
