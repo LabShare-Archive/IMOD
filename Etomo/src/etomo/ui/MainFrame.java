@@ -1,11 +1,13 @@
 package etomo.ui;
 
 import java.awt.AWTEvent;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -45,6 +47,12 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/02/07 22:42:52  sueh
+ * <p> bug# 594 Removed setWindowMenuLabels(ConstHashedArray).  Adding
+ * <p> functions to call WindowSwitch.add, remove, and rename().  In
+ * <p> setCurrentManager(), removing everything from rootPanel before adding
+ * <p> result of WindowSwitch.getPanel().
+ * <p>
  * <p> Revision 3.15  2005/01/27 00:11:49  sueh
  * <p> bug# 543 For Ctrl-F (fit window) call MainPanel.fitWindow() with force set to
  * <p> true, to cause a fit window with autofit off.
@@ -303,7 +311,12 @@ import etomo.util.UniqueKey;
  */
 public class MainFrame extends JFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
+  
+  private static final int estimatedMenuHeight = 60;
+  private static final int extraScreenWidthMultiplier = 2;
+  private static final Dimension frameBorder = new Dimension(10, 48);
 
+  //private JPanel contentPane;
   private JPanel rootPanel;
   private MainPanel mainPanel = null;
 
@@ -362,8 +375,19 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     setTitle("eTomo");
 
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    Dimension screenSize = toolkit.getScreenSize();
+    screenSize.height -= estimatedMenuHeight;
+    screenSize.width *= extraScreenWidthMultiplier;
+    Dimension rootPanelSize = new Dimension(screenSize);
+    rootPanelSize.height -= frameBorder.height;
+    rootPanelSize.width -= frameBorder.width;
+
     rootPanel = (JPanel) getContentPane();
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
+    rootPanel.setLayout(new BorderLayout());
+    rootPanel.setMaximumSize(rootPanelSize);
+
+    //rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
     //  add the context menu to all of the main window objects
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -381,7 +405,8 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
       mainPanel.repaint();
     }
-    pack();
+    //pack();
+    mainPanel.fitWindow();
   }
 
   //  Right mouse button context menu
