@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/03/26 23:06:42  mast
+only check status of a style once
+
 Revision 1.2  2003/03/26 22:49:09  mast
 Change style handling to use list of styles
 
@@ -42,6 +45,7 @@ int hotSliderKey();
 #endif
 
 #define MAXZOOMS 18
+#define MAX_GEOMETRIES 10
 
 // Define this to use a list of styles to exclude rather than ones to include
 //#define EXCLUDE_STYLES
@@ -100,7 +104,9 @@ typedef struct imod_pref_struct
   QString autosaveDir;    // Location to save autosave file
   QString autosaveDirDflt;
   bool autosaveDirChgd;
-
+  bool rememberGeom;
+  bool rememberGeomDflt;
+  bool rememberGeomChgd;
 } ImodPrefStruct;
 
 
@@ -136,6 +142,8 @@ class ImodPreferences : public QObject
   char **getStyleList();
   bool styleOK(QString key);
   int *getStyleStatus();
+  QRect getInfoGeometry();
+  QRect getZapGeometry();
 
   public slots:
     void donePressed();
@@ -154,6 +162,11 @@ class ImodPreferences : public QObject
   MouseForm *mMouseForm;
   int mCurrentTab;
   int mTimerID;
+  int mGeomImageXsize[MAX_GEOMETRIES];
+  int mGeomImageYsize[MAX_GEOMETRIES];
+  QRect mGeomInfoWin[MAX_GEOMETRIES];
+  QRect mGeomZapWin[MAX_GEOMETRIES];
+  int mGeomLastSaved;
 };
 
 extern ImodPreferences *ImodPrefs;
