@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2004/04/26 00:21:35  rickg
+ * Comment change
+ *
  * Revision 3.7  2004/04/22 23:32:24  rickg
  * bug #391 Added processing for non fid aligne
  * Added runCommand private method
@@ -879,11 +882,13 @@ public class ProcessManager {
    * @return String
    */
   public String volcombine() throws SystemProcessException {
+    VolcombineProcessMonitor volcombineProcessMonitor = new VolcombineProcessMonitor(
+      appManager, AxisID.ONLY);
     //  Create the required combine command
     String command = "volcombine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null,
+    ComScriptProcess comScriptProcess = startComScript(command, volcombineProcessMonitor,
       AxisID.ONLY);
     return comScriptProcess.getName();
 
