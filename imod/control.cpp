@@ -58,6 +58,7 @@ typedef struct imodv_dialog
   QWidget *widget;
   int iconified;
   int dlgClass;
+  QRect geometry;
 } ImodvDialog;
 
 /* Global resident instances of dialog managers for imod and imodv */
@@ -406,6 +407,7 @@ void DialogManager::hide()
       dia->iconified = 0;
     else {
       dia->iconified = 1;
+      dia->geometry = dia->widget->geometry();
 
       // This was showMinimized for everyone originally; worked fine on
       // Windows and Linux under Qt 3.0.5, didn't work on SGI because the boxes
@@ -430,8 +432,10 @@ void DialogManager::show()
   ImodvDialog *dia;
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
-    if (dia->iconified)
+    if (dia->iconified) {
       dia->widget->showNormal();
+      dia->widget->setGeometry(dia->geometry);
+    }
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
 }
@@ -463,6 +467,10 @@ void DialogManager::raise(int dlgClass)
 
 /*
 $Log$
+Revision 4.7  2003/08/01 01:01:29  mast
+Switch from showMinimized to hide (except on Mac) because it didn't work
+under RedHat 9.0
+
 Revision 4.6  2003/05/23 02:45:46  mast
 Added a function to raise managed windows
 
