@@ -80,6 +80,7 @@ lib32		Installation directory for n32 libraries on an SGI
 
 Other files in top directory:
 History         Has the complete history of changes
+installqtlib    Does post-install copying of libraries and startup files
 Makefile        Master Makefile for build
 original_dates  Has the dates of all files before incorporation into CVS
 packMacApps     For a Mac install, puts Qt programs into .app directories
