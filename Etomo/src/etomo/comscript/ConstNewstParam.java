@@ -16,6 +16,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/13 01:04:08  rickg
+ * <p> Updated for PIP based newstack
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -98,8 +101,8 @@ public class ConstNewstParam {
   /**
    * @return Returns the contrastBlackWhite.
    */
-  public FortranInputString getContrastBlackWhite() {
-    return contrastBlackWhite;
+  public String getContrastBlackWhite() {
+    return contrastBlackWhite.toString();
   }
   /**
    * @return Returns the distortionField.
@@ -137,6 +140,7 @@ public class ConstNewstParam {
   public int getImagesAreBinned() {
     return imagesAreBinned;
   }
+  
   /**
    * Backward compatibility with pre PIP structure, just return the first input
    * file
@@ -145,6 +149,16 @@ public class ConstNewstParam {
   public String getInputFile() {
     return (String) inputFile.get(0);
   }
+  
+  /**
+   * Create a defensive copy of the internal object inputFile
+   * @return
+   */
+  public Vector getInputFiles() {
+    Vector copy = new Vector(inputFile);
+    return copy;
+  }
+  
   /**
    * @return Returns the linearInterpolation.
    */
@@ -157,12 +171,14 @@ public class ConstNewstParam {
   public int getModeToOutput() {
     return modeToOutput;
   }
+  
   /**
    * @return Returns the numberToOutput.
    */
   public Vector getNumberToOutput() {
     return numberToOutput;
   }
+  
   /**
    * @return Returns the offsetsInXandY.
    */
@@ -170,12 +186,13 @@ public class ConstNewstParam {
     StringBuffer buffer = new StringBuffer();
     for(Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
       buffer.append((String) i.next());
-      if(i.hasNext()) {
-        buffer.append(",");
-      }
+      buffer.append(",");
     }
+    // Remove the trailing comma
+    buffer.deleteCharAt(buffer.length()-1);
     return buffer.toString();
   }
+  
   /**
    * Backward compatibility with pre PIP structure, just return the first ouput
    * file
@@ -184,6 +201,16 @@ public class ConstNewstParam {
   public String getOutputFile() {
     return (String) outputFile.get(0);
   }
+  
+  /**
+   * Create a defensive copy of the internal object inputFile
+   * @return
+   */
+  public Vector getOutputFiles() {
+    Vector copy = new Vector(outputFile);
+    return copy;
+  }
+  
   /**
    * @return Returns the parameterFile.
    */
@@ -206,8 +233,10 @@ public class ConstNewstParam {
    * @return Returns the sectionsToRead.
    */
   public Vector getSectionsToRead() {
-    return sectionsToRead;
+    Vector copy = new Vector(sectionsToRead);
+    return copy;
   }
+ 
   /**
    * @return Returns the sizeToOutputInXandY.
    */
@@ -217,8 +246,8 @@ public class ConstNewstParam {
   /**
    * @return Returns the testLimits.
    */
-  public FortranInputString getTestLimits() {
-    return testLimits;
+  public String getTestLimits() {
+    return testLimits.toString();
   }
   /**
    * @return Returns the transformFile.
