@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/03/12 20:57:55  sueh
+ * <p> bug# 373 Changed reset().
+ * <p>
  * <p> Revision 3.4  2004/03/12 19:59:48  sueh
  * <p> bug# 412 added absoluteCosineStretch, cumulativeCorreslation, noCosineStretch,
  * <p> testOutput, xMinAndMax, yMinAndMax, reset()
@@ -176,7 +179,7 @@ public class ConstTiltxcorrParam {
     return filterSigma2;
   }
   public String getBordersInXandY() {
-    return bordersInXandY.toString();
+    return bordersInXandY.toString(true);
   }
   public String getXMinString() {
     return xMinAndMax.toString(0);
@@ -191,10 +194,10 @@ public class ConstTiltxcorrParam {
     return yMinAndMax.toString(1);
   }
   public String getPadsInXandY() {
-    return padsInXandY.toString();
+    return padsInXandY.toString(true);
   }
   public String getTaperPercent() {
-    return tapersInXandY.toString();
+    return tapersInXandY.toString(true);
   }
   public boolean isCumulativeCorrelation() {
     return cumulativeCorrelation;
@@ -206,7 +209,7 @@ public class ConstTiltxcorrParam {
     return noCosineStretch;
   }
   public String getStartingEndingViews() {
-    return startingEndingViews.toString();
+    return startingEndingViews.toString(true);
   }
   public boolean getExcludeCentralPeak() {
     return excludeCentralPeak;
