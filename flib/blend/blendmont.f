@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/10/24 03:46:15  mast
+c	  switch to calling routine to make backup edf file
+c	
 c	  Revision 3.6  2003/10/10 20:43:18  mast
 c	  Used new subroutine for getting input/output files
 c	
@@ -118,7 +121,7 @@ c
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
 	integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
-	integer*4 PipGetNonOptionArg
+	integer*4 PipGetNonOptionArg,PipGetInOutFile
 c	  
 c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c
