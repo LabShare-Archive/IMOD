@@ -22,150 +22,6 @@ import etomo.comscript.TrimvolParam;
  *
  * @version $Revision$
  *
- * <p> $Log$
- * <p> Revision 3.19  2005/01/25 22:07:48  sueh
- * <p> Converting useZFactors to EtomoBoolean2.
- * <p>
- * <p> Revision 3.18  2005/01/21 23:06:48  sueh
- * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
- * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
- * <p> transferfid values.  Removed initializeTransferfidParam() and added
- * <p> getTransferfidParamAFields() and getTransferfidParamBFields() to get/set
- * <p> storable fields in TransferfidParam.
- * <p>
- * <p> Revision 3.17  2005/01/12 00:42:45  sueh
- * <p> bug# 579 Make the reset value on useZFactors true.
- * <p>
- * <p> Revision 3.16  2005/01/11 18:07:27  sueh
- * <p> bug# 578 Added useZFactors.
- * <p>
- * <p> Revision 3.15  2004/12/14 21:45:05  sueh
- * <p> bug# 572:  Removing state object from meta data and managing it with a
- * <p> manager class.  All state variables saved after a process is run belong in
- * <p> the state object.
- * <p>
- * <p> Revision 3.14  2004/12/08 21:30:21  sueh
- * <p> bug# 564 Added access to TomogramState member variable.
- * <p>
- * <p> Revision 3.13  2004/12/07 22:47:38  sueh
- * <p> bug# 564 Added TomogramState member variable.
- * <p>
- * <p> Revision 3.12  2004/12/02 18:29:16  sueh
- * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
- * <p>
- * <p> Revision 3.11  2004/11/19 23:33:52  sueh
- * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- * <p>
- * <p> Revision 3.10.4.4  2004/11/19 00:15:59  sueh
- * <p> bug# 520 Changed the file extension to contain the period.
- * <p>
- * <p> Revision 3.10.4.3  2004/10/11 02:07:25  sueh
- * <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
- * <p> item wasn't working because it was validating the propertyUserDir of the
- * <p> current manager, not the parent of the edf file being opened.  Now able
- * <p> to pass in the edf file to get the parent from to use in validation.
- * <p>
- * <p> Revision 3.10.4.2  2004/10/01 19:47:26  sueh
- * <p> bug# 520 provide a standard way to get the identifier of a meta data file
- * <p> (getName).  Define a new join string that will go in the menu.  Set a file
- * <p> extension value.
- * <p>
- * <p> Revision 3.10.4.1  2004/09/29 19:23:26  sueh
- * <p> bug# 520 Added base class BaseMetaData.  Made
- * <p> latestRevisionNumber static.  Moved revision functionality to base class.
- * <p> Moved axisType and invalid reason to base class.  Moved store()
- * <p> functions to this class.  Implemented Storable with abstract load
- * <p> functions.
- * <p>
- * <p> Revision 3.10  2004/06/22 02:01:52  sueh
- * <p> bug# 441 added TrimvolParam, updated equals().
- * <p>
- * <p> Revision 3.9  2004/06/01 18:54:49  rickg
- * <p> Bug #391 whole tomogram sampling state implementation
- * <p>
- * <p> Revision 3.8  2004/05/25 23:57:49  sueh
- * <p> bug# 355 Change isValid() so it can be used with setup dialog
- * <p> or a .edf file.  Tell the user to check the .edf file, when necessary.
- * <p>
- * <p> Revision 3.7  2004/05/25 23:23:40  rickg
- * <p> Bug #391 method refactor
- * <p>
- * <p> Revision 3.6  2004/04/06 03:00:40  rickg
- * <p> Updated imageRotation to store axis separately
- * <p>
- * <p> Revision 3.5  2004/02/24 18:52:22  sueh
- * <p> bug# 385 initialized binning to null
- * <p>
- * <p> Revision 3.4  2004/02/20 23:44:45  sueh
- * <p> bug# 386 added distortionFile and binning
- * <p>
- * <p> Revision 3.3  2004/02/07 03:10:10  sueh
- * <p> bug# 169 Created dataset validation function that returns
- * <p> the valid directory
- * <p>
- * <p> Revision 3.2  2003/12/23 21:53:16  sueh
- * <p> bug# 371 Remove validation test for b stack.
- * <p>
- * <p> Revision 3.1  2003/12/08 22:31:16  sueh
- * <p> bug# 169 adding a new function isDatasetNameValid.
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.11  2003/10/28 02:23:59  sueh
- * <p> bug267
- * <p>
- * <p> Revision 2.10  2003/10/23 23:04:59  sueh
- * <p> bug267 removing prints
- * <p>
- * <p> Revision 2.9  2003/10/23 22:34:35  sueh
- * <p> bug267 removing prints
- * <p>
- * <p> Revision 2.8  2003/10/23 19:11:16  sueh
- * <p> bug267 look for stack in the working directory and the
- * <p> backup directory when validating directories.
- * <p>
- * <p> Revision 2.7  2003/10/06 22:35:18  sueh
- * <p> transferfidNumberViews needs a default because there is
- * <p> no conscript
- * <p>
- * <p> Revision 2.6  2003/09/26 19:46:16  sueh
- * <p> bug223 removed task marks
- * <p>
- * <p> Revision 2.5  2003/09/26 19:43:48  sueh
- * <p> bug223 no field should be persistant.  Changed MetaData.
- * <p> Added TransferfidNumberViews.
- * <p> Changed the done fine allignment and open fine allignment functions
- * <p> to work with MetaData
- * <p>
- * <p> Revision 2.4  2003/05/12 01:24:24  rickg
- * <p> Return invalid working directory in reason
- * <p>
- * <p> Revision 2.3  2003/05/07 17:54:08  rickg
- * <p> Working direcotry is no longer stored in the metadata
- * <p> System property user.dir now defines the working directory
- * <p>
- * <p> Revision 2.2  2003/04/24 17:46:54  rickg
- * <p> Changed fileset name to dataset name
- * <p>
- * <p> Revision 2.1  2003/03/18 23:47:20  rickg
- * <p> Changed method name to get CombineParams reference
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.3.2.1  2003/01/24 18:37:54  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.3  2002/10/08 23:53:42  rickg
- * <p> getCombineParams now returns a ConstCombineParam object
- * <p>
- * <p> Revision 1.2  2002/09/30 23:48:32  rickg
- * <p> Reformatted after emacs trashed it
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 public abstract class ConstMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
@@ -181,13 +37,16 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected ViewType viewType = ViewType.SINGLE_VIEW;
 
   protected double pixelSize = Double.NaN;
-  protected boolean useLocalAlignments = true;
+  protected boolean useLocalAlignmentsA = true;
+  protected boolean useLocalAlignmentsB = true;
   protected double fiducialDiameter = Double.NaN;
   protected float imageRotationA = Float.NaN;
   protected float imageRotationB = Float.NaN;
   protected int binning = Integer.MIN_VALUE;
-  protected boolean fiducialessAlignment = false;
-  protected boolean wholeTomogramSample = false;
+  protected boolean fiducialessAlignmentA = false;
+  protected boolean fiducialessAlignmentB = false;
+  protected boolean wholeTomogramSampleA = false;
+  protected boolean wholeTomogramSampleB = false;
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -195,7 +54,8 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
   protected String excludeProjectionsB = "";
-  protected EtomoBoolean2 useZFactors = new EtomoBoolean2("UseZFactors");
+  protected EtomoBoolean2 useZFactorsA = new EtomoBoolean2("UseZFactorsA");
+  protected EtomoBoolean2 useZFactorsB = new EtomoBoolean2("UseZFactorsB");
 
   protected boolean comScriptsCreated = false;
 
@@ -210,7 +70,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     
   public ConstMetaData() {
     fileExtension = ".edf";
-    useZFactors.setDisplayValue(true);
+    useZFactorsA.setDisplayValue(true);
+    useZFactorsB.setDisplayValue(true);
   }
 
   /**
@@ -236,8 +97,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + "ViewType", viewType.toString());
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignments", String
-        .valueOf(useLocalAlignments));
+    props.setProperty(group + "UseLocalAlignmentsA", String
+        .valueOf(useLocalAlignmentsA));
+    props.setProperty(group + "UseLocalAlignmentsB", String
+        .valueOf(useLocalAlignmentsB));
     props.setProperty(group + "FiducialDiameter", String
         .valueOf(fiducialDiameter));
     props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
@@ -253,13 +116,18 @@ public abstract class ConstMetaData extends BaseMetaData {
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
-    props.setProperty(group + "FiducialessAlignment", String
-        .valueOf(fiducialessAlignment));
-    props.setProperty(group + "WholeTomogramSample", String
-        .valueOf(wholeTomogramSample));
+    props.setProperty(group + "FiducialessAlignmentA", String
+        .valueOf(fiducialessAlignmentA));
+    props.setProperty(group + "FiducialessAlignmentB", String
+        .valueOf(fiducialessAlignmentB));
+    props.setProperty(group + "WholeTomogramSampleA", String
+        .valueOf(wholeTomogramSampleA));
+    props.setProperty(group + "WholeTomogramSampleB", String
+        .valueOf(wholeTomogramSampleB));
     trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
-    useZFactors.store(props, prepend);
+    useZFactorsA.store(props, prepend);
+    useZFactorsB.store(props, prepend);
     transferfidParamA.store(props, prepend);
     transferfidParamB.store(props, prepend);
   }
@@ -322,12 +190,18 @@ public abstract class ConstMetaData extends BaseMetaData {
     return pixelSize;
   }
 
-  public boolean getUseLocalAlignments() {
-    return useLocalAlignments;
+  public boolean getUseLocalAlignments(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useLocalAlignmentsB;
+    }
+    return useLocalAlignmentsA;
   }
   
-  public ConstEtomoNumber getUseZFactors() {
-    return useZFactors;
+  public ConstEtomoNumber getUseZFactors(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useZFactorsB;
+    }
+    return useZFactorsA;
   }
 
   public double getFiducialDiameter() {
@@ -365,12 +239,18 @@ public abstract class ConstMetaData extends BaseMetaData {
     return comScriptsCreated;
   }
 
-  public boolean isFiducialessAlignment() {
-    return fiducialessAlignment;
+  public boolean isFiducialessAlignment(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fiducialessAlignmentB;
+    }
+    return fiducialessAlignmentA;
   }
-
-  public boolean isWholeTomogramSample() {
-    return wholeTomogramSample;
+  
+  public boolean isWholeTomogramSample(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return wholeTomogramSampleB;
+    }
+    return wholeTomogramSampleA;
   }
 
   public ConstCombineParams getConstCombineParams() {
@@ -628,7 +508,9 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     if (!(pixelSize == cmd.getPixelSize()))
       return false;
-    if (!(useLocalAlignments == cmd.getUseLocalAlignments()))
+    if (!(useLocalAlignmentsA == cmd.getUseLocalAlignments(AxisID.FIRST)))
+      return false;
+    if (!(useLocalAlignmentsB == cmd.getUseLocalAlignments(AxisID.SECOND)))
       return false;
     if (!(fiducialDiameter == cmd.getFiducialDiameter()))
       return false;
@@ -638,7 +520,9 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     if (!(binning == cmd.getBinning()))
       return false;
-    if (!(fiducialessAlignment == cmd.isFiducialessAlignment()))
+    if (!(fiducialessAlignmentA == cmd.isFiducialessAlignment(AxisID.FIRST)))
+      return false;
+    if (!(fiducialessAlignmentB == cmd.isFiducialessAlignment(AxisID.SECOND)))
       return false;
 
     // TODO tilt angle spec needs to be more complete
@@ -665,5 +549,154 @@ public abstract class ConstMetaData extends BaseMetaData {
 
     return true;
   }
-
 }
+
+/**
+ * <p> $Log$
+ * <p> Revision 3.20  2005/02/15 21:05:30  sueh
+ * <p> bug# 603 Removed SectionType (single or serial sections).
+ * <p>
+ * <p> Revision 3.19  2005/01/25 22:07:48  sueh
+ * <p> Converting useZFactors to EtomoBoolean2.
+ * <p>
+ * <p> Revision 3.18  2005/01/21 23:06:48  sueh
+ * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
+ * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
+ * <p> transferfid values.  Removed initializeTransferfidParam() and added
+ * <p> getTransferfidParamAFields() and getTransferfidParamBFields() to get/set
+ * <p> storable fields in TransferfidParam.
+ * <p>
+ * <p> Revision 3.17  2005/01/12 00:42:45  sueh
+ * <p> bug# 579 Make the reset value on useZFactors true.
+ * <p>
+ * <p> Revision 3.16  2005/01/11 18:07:27  sueh
+ * <p> bug# 578 Added useZFactors.
+ * <p>
+ * <p> Revision 3.15  2004/12/14 21:45:05  sueh
+ * <p> bug# 572:  Removing state object from meta data and managing it with a
+ * <p> manager class.  All state variables saved after a process is run belong in
+ * <p> the state object.
+ * <p>
+ * <p> Revision 3.14  2004/12/08 21:30:21  sueh
+ * <p> bug# 564 Added access to TomogramState member variable.
+ * <p>
+ * <p> Revision 3.13  2004/12/07 22:47:38  sueh
+ * <p> bug# 564 Added TomogramState member variable.
+ * <p>
+ * <p> Revision 3.12  2004/12/02 18:29:16  sueh
+ * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
+ * <p>
+ * <p> Revision 3.11  2004/11/19 23:33:52  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 3.10.4.4  2004/11/19 00:15:59  sueh
+ * <p> bug# 520 Changed the file extension to contain the period.
+ * <p>
+ * <p> Revision 3.10.4.3  2004/10/11 02:07:25  sueh
+ * <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
+ * <p> item wasn't working because it was validating the propertyUserDir of the
+ * <p> current manager, not the parent of the edf file being opened.  Now able
+ * <p> to pass in the edf file to get the parent from to use in validation.
+ * <p>
+ * <p> Revision 3.10.4.2  2004/10/01 19:47:26  sueh
+ * <p> bug# 520 provide a standard way to get the identifier of a meta data file
+ * <p> (getName).  Define a new join string that will go in the menu.  Set a file
+ * <p> extension value.
+ * <p>
+ * <p> Revision 3.10.4.1  2004/09/29 19:23:26  sueh
+ * <p> bug# 520 Added base class BaseMetaData.  Made
+ * <p> latestRevisionNumber static.  Moved revision functionality to base class.
+ * <p> Moved axisType and invalid reason to base class.  Moved store()
+ * <p> functions to this class.  Implemented Storable with abstract load
+ * <p> functions.
+ * <p>
+ * <p> Revision 3.10  2004/06/22 02:01:52  sueh
+ * <p> bug# 441 added TrimvolParam, updated equals().
+ * <p>
+ * <p> Revision 3.9  2004/06/01 18:54:49  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
+ * <p> Revision 3.8  2004/05/25 23:57:49  sueh
+ * <p> bug# 355 Change isValid() so it can be used with setup dialog
+ * <p> or a .edf file.  Tell the user to check the .edf file, when necessary.
+ * <p>
+ * <p> Revision 3.7  2004/05/25 23:23:40  rickg
+ * <p> Bug #391 method refactor
+ * <p>
+ * <p> Revision 3.6  2004/04/06 03:00:40  rickg
+ * <p> Updated imageRotation to store axis separately
+ * <p>
+ * <p> Revision 3.5  2004/02/24 18:52:22  sueh
+ * <p> bug# 385 initialized binning to null
+ * <p>
+ * <p> Revision 3.4  2004/02/20 23:44:45  sueh
+ * <p> bug# 386 added distortionFile and binning
+ * <p>
+ * <p> Revision 3.3  2004/02/07 03:10:10  sueh
+ * <p> bug# 169 Created dataset validation function that returns
+ * <p> the valid directory
+ * <p>
+ * <p> Revision 3.2  2003/12/23 21:53:16  sueh
+ * <p> bug# 371 Remove validation test for b stack.
+ * <p>
+ * <p> Revision 3.1  2003/12/08 22:31:16  sueh
+ * <p> bug# 169 adding a new function isDatasetNameValid.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.11  2003/10/28 02:23:59  sueh
+ * <p> bug267
+ * <p>
+ * <p> Revision 2.10  2003/10/23 23:04:59  sueh
+ * <p> bug267 removing prints
+ * <p>
+ * <p> Revision 2.9  2003/10/23 22:34:35  sueh
+ * <p> bug267 removing prints
+ * <p>
+ * <p> Revision 2.8  2003/10/23 19:11:16  sueh
+ * <p> bug267 look for stack in the working directory and the
+ * <p> backup directory when validating directories.
+ * <p>
+ * <p> Revision 2.7  2003/10/06 22:35:18  sueh
+ * <p> transferfidNumberViews needs a default because there is
+ * <p> no conscript
+ * <p>
+ * <p> Revision 2.6  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
+ * <p> Revision 2.5  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
+ * <p> Revision 2.4  2003/05/12 01:24:24  rickg
+ * <p> Return invalid working directory in reason
+ * <p>
+ * <p> Revision 2.3  2003/05/07 17:54:08  rickg
+ * <p> Working direcotry is no longer stored in the metadata
+ * <p> System property user.dir now defines the working directory
+ * <p>
+ * <p> Revision 2.2  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
+ * <p> Revision 2.1  2003/03/18 23:47:20  rickg
+ * <p> Changed method name to get CombineParams reference
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.3.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2002/10/08 23:53:42  rickg
+ * <p> getCombineParams now returns a ConstCombineParam object
+ * <p>
+ * <p> Revision 1.2  2002/09/30 23:48:32  rickg
+ * <p> Reformatted after emacs trashed it
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+*/

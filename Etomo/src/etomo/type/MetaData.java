@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/02/15 21:05:46  sueh
+ * <p> bug# 603 Removed SectionType (single or serial sections).
+ * <p>
  * <p> Revision 3.14  2005/01/21 23:28:50  sueh
  * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
  * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
@@ -145,8 +148,10 @@ public class MetaData extends ConstMetaData {
     revisionNumber = "";
     distortionFile = "";
     binning = 1;
-    useLocalAlignments = true;
-    useZFactors.reset();
+    useLocalAlignmentsA = true;
+    useLocalAlignmentsB = true;
+    useZFactorsA.reset();
+    useZFactorsB.reset();
   }
 
   /**
@@ -215,12 +220,22 @@ public class MetaData extends ConstMetaData {
     this.pixelSize = pixelSize;
   }
 
-  public void setUseLocalAlignments(boolean state) {
-    useLocalAlignments = state;
+  public void setUseLocalAlignments(AxisID axisID, boolean state) {
+    if (axisID == AxisID.SECOND) {
+      useLocalAlignmentsB = state;
+    }
+    else {
+      useLocalAlignmentsA = state;
+    }
   }
   
-  public void setUseZFactors(boolean useZFactors) {
-    this.useZFactors.set(useZFactors);
+  public void setUseZFactors(AxisID axisID, boolean useZFactors) {
+    if (axisID == AxisID.SECOND) {
+      this.useZFactorsB.set(useZFactors);
+    }
+    else {
+      this.useZFactorsA.set(useZFactors);
+    }
   }
 
   public void setFiducialDiameter(double fiducialDiameter) {
@@ -264,12 +279,22 @@ public class MetaData extends ConstMetaData {
     combineParams = combine;
   }
 
-  public void setFiducialessAlignment(boolean state) {
-    fiducialessAlignment = state;
+  public void setFiducialessAlignment(AxisID axisID, boolean state) {
+    if (axisID == AxisID.SECOND) {
+      fiducialessAlignmentB = state;
+    }
+    else {
+      fiducialessAlignmentA = state;
+    }
   }
 
-  public void setWholeTomogramSample(boolean state) {
-    wholeTomogramSample = state;
+  public void setWholeTomogramSample(AxisID axisID, boolean state) {
+    if (axisID == AxisID.SECOND) {
+      wholeTomogramSampleB = state;
+    }
+    else {
+      wholeTomogramSampleA = state;
+    }
   }
 
 
@@ -311,8 +336,11 @@ public class MetaData extends ConstMetaData {
     pixelSize = Double.parseDouble(props
         .getProperty(group + "PixelSize", "0.0"));
 
-    useLocalAlignments = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignments", "false"))
+    useLocalAlignmentsA = Boolean.valueOf(
+        props.getProperty(group + "UseLocalAlignmentsA", "false"))
+        .booleanValue();
+    useLocalAlignmentsB = Boolean.valueOf(
+        props.getProperty(group + "UseLocalAlignmentsB", "false"))
         .booleanValue();
     fiducialDiameter = Double.parseDouble(props.getProperty(group
         + "FiducialDiameter", "0.0"));
@@ -337,15 +365,22 @@ public class MetaData extends ConstMetaData {
     binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
         .toString(binning)));
 
-    fiducialessAlignment = Boolean.valueOf(
-        props.getProperty(group + "FiducialessAlignment", "false"))
+    fiducialessAlignmentA = Boolean.valueOf(
+        props.getProperty(group + "FiducialessAlignmentA", "false"))
         .booleanValue();
-    wholeTomogramSample = Boolean.valueOf(
-        props.getProperty(group + "WholeTomogramSample", "false"))
+    fiducialessAlignmentB = Boolean.valueOf(
+        props.getProperty(group + "FiducialessAlignmentB", "false"))
+        .booleanValue();
+    wholeTomogramSampleA = Boolean.valueOf(
+        props.getProperty(group + "WholeTomogramSampleA", "false"))
+        .booleanValue();
+    wholeTomogramSampleB = Boolean.valueOf(
+        props.getProperty(group + "WholeTomogramSampleB", "false"))
         .booleanValue();
     trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
-    useZFactors.load(props, prepend);
+    useZFactorsA.load(props, prepend);
+    useZFactorsB.load(props, prepend);
     transferfidParamA.load(props, prepend);
     transferfidParamB.load(props, prepend);
   }
