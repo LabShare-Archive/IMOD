@@ -256,6 +256,13 @@ else
 
 endif
 
+# Convert backslashes in default directory, make sure it is still one word
+#
+if ("$defdir" != "")then
+    set defdir = `\echo "$defdir" | sed '/\\/s//\//g'`
+    set defdir = "$defdir"
+endif
+
 # LOOP ON TOMOS
 
 @ nxmax = 0
@@ -286,6 +293,12 @@ while ($itomo <= $ntomo)
 
     # DECOMPOSE FILENAME INTO HEADER, ROOT AND TAIL
 
+    # First convert backslashes, quoting to retain them, then
+    # copy variable again with quotes to reduce to one word, needed for :t
+    #
+    set namein = `\echo "$namein" | sed '/\\/s//\//g'`
+    set namein = "$namein"
+
     set tail = "$namein:t"
     set header = ""
     if ("$tail" == "$namein") then
@@ -297,11 +310,12 @@ while ($itomo <= $ntomo)
 
     # COMPOSE FILENAMES FOR SOURCE AND FLIPPED FILES, GET SIZE
     # Source file needs its backslashes converted and must be quoted in header
+    # All backslash conversions must use system echo!  tcsh strips at \c
 
     if ("$tail" == "$root") then
-        set recsource = `echo "$header$root.$defsrcext" | sed '/\\/s//\//g'`
+        set recsource = "$header$root.$defsrcext"
     else
-        set recsource = `echo "$header$tail" | sed '/\\/s//\//g'`
+        set recsource = "$header$tail"
     endif
     if (-e "$recsource") then
         set size = `header "$recsource" | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
@@ -719,6 +733,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.7  2004/12/06 02:56:55  mast
+#  Fixed bug in converting backslashes in input files
+#
 #  Revision 3.6  2004/11/29 05:31:03  mast
 #  Determine an output file mode from the density reference section and pass
 #  it into info file (version 4 now)
