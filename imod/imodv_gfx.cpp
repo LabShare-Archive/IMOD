@@ -206,13 +206,15 @@ void imodvPaintGL()
 
   case IMODV_STEREO_HW:
 
-    // 6/6/04: Eliminated clears because the main clear should do both buffers
+    // 6/8/04: The second clear may be superfluous, let stereo routine decide
     a->stereo *= -1;
     stereoDrawBuffer(GL_BACK_RIGHT);
+    imodvStereoClear();
     imodvDraw_models(a);
 
     a->stereo *= -1;
     stereoDrawBuffer(GL_BACK_LEFT);
+    imodvStereoClear();
     imodvDraw_models(a);
     break;
 
@@ -364,6 +366,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.10  2004/06/06 21:28:44  mast
+Eliminated stereo clears in hardware stereo case
+
 Revision 4.9  2004/06/01 01:31:09  mast
 Add include of errno.h
 
