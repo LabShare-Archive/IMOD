@@ -3,7 +3,7 @@
 
   <property name="appname" value="etomo"/>
   <property name="classpath" value="/usr/local/junit/junit.jar"/>
-
+  <property name="packages" value="etomo,etomo.comscript,etomo.process,etomo.storage,etomo.type,etomo.ui,etomo.util"/>
   <target name="compile">
     <mkdir dir="bin" />
     <javac srcdir="src/etomo/"
@@ -11,5 +11,17 @@
       <classpath path="${classpath}"/>
     </javac>
   </target>
+
+  <target name="etomo-docs">
+  	<javadoc packagenames="bin.etomo.*"
+  	  sourcepath="src/etomo"
+  	  destdir="doc/javadoc"
+  	  author="true"
+  	  version="true"
+  	  use="true"
+  	  verbose="true" >
+    </javadoc>
+  </target>
+           
 </project>
 
