@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2004/05/25 23:21:55  rickg
+ * Bug #391 midas now opens the image rotated by the tilt axis
+ * angle
+ *
  * Revision 3.9  2004/05/21 02:16:26  sueh
  * bug# 83 adding VolcombineProcessMonitor to volcombine()
  *
@@ -526,7 +530,7 @@ public class ProcessManager {
 
   /**
    * Setup the fiducial alignment files
-   * If the exist copy the _fid.xf to .xf
+   * If they exist copy the _fid.xf to .xf
    * Copy _fid.tlt to .tlt
    * @param axisID
    */
@@ -534,15 +538,23 @@ public class ProcessManager {
     String workingDirectory = System.getProperty("user.dir");
     String axisDataset = appManager.getDatasetName() + axisID.getExtension();
 
+    File xf = new File(workingDirectory, axisDataset + ".xf");
     if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
       File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
-      File xf = new File(workingDirectory, axisDataset + ".xf");
       Utilities.copyFile(fidXF, xf);
     }
+    else {
+      // attempt delete the current .xf so that it is not accidentally used
+      xf.delete();
+    }
+    File tlt = new File(workingDirectory, axisDataset + ".tlt");
     if (Utilities.fileExists(appManager.getMetaData(), "_fid.tlt", axisID)) {
       File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
-      File tlt = new File(workingDirectory, axisDataset + ".tlt");
       Utilities.copyFile(fidTlt, tlt);
+    }
+    else{
+      // attempt delete the current .tlt so that it is not accidentally used
+      tlt.delete();
     }
   }
 
