@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.1.0<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.3.4<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -21,6 +21,7 @@
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
 <BR><A HREF = "#COARSE ALIGNMENT">5. COARSE ALIGNMENT BY CROSS-CORRELATION</A>
+<BR><A HREF = "#Fiducialless Quick">5.1 Making a Quick Tomogram with Correlation Alignment</A>
 <BR><A HREF = "#GETTING FIDUCIAL">6. FIDUCIAL MODEL GENERATION</A>
 <BR><A HREF = "#Reseeding Model">6.1. Using Beadtrack to Extend a Model</A>
 <BR><A HREF = "#Transferring Fiducial">6.2. Getting Fiducials for a Second Axis</A>
@@ -34,9 +35,13 @@
 <BR><A HREF = "#Residual Model Output">7.7. Residual Model Output</A>
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
 <BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples with Z Shift or X-axis Tilt</A>
+<BR><A HREF = "Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
 <BR><A HREF = "#TOMOGRAM GENERATION">9. TOMOGRAM GENERATION</A>
-<BR><A HREF = "#Radial filter">9.1 Filtering and Tomogram Resolution</A>
-<BR><A HREF = "#Making Trial Tomograms">9.2. Making Trial Tomograms</A>
+<BR><A HREF = "Radial filter">9.1. Tomogram Resolution and the Need for Filtering</A>
+<BR><A HREF = "Filtering Options">9.2. Filtering Options</A>
+<BR><A HREF = "Filtering Guidelines">9.3. Filtering Guidelines</A>
+<BR><A HREF = "Building Tomogram">9.4. Building the Tomogram</A>
+<BR><A HREF = "#Making Trial Tomograms">9.5. Making Trial Tomograms</A>
 <BR><A HREF = "#TOMOGRAM COMBINATION">10. COMBINING TWO TOMOGRAMS</A>
 <BR><A HREF = "#Setting Up">10.1. Setting Up</A>
 <BR><A HREF = "#Temporary Combining Storage">10.2. Using Temporary Storage for Combining</A>
@@ -109,14 +114,14 @@ the graphical interface programs,
 eTomo,
 3dmod, and Midas.
 However, many other programs in the IMOD package number coordinates
-from 0, which was to original convention for MRC files.
+from 0, which was the original convention for MRC files.
 If you work exclusively within eTomo, you need not be concerned
 about this; but if you run other programs in the package you need to
 be aware of this problem.
 When a program refers to "view numbers", these are always numbered from
 1; but when a program refers to "section numbers" or "Z values", there
 is a good chance that they are numbered from 0.  The most important
-example is the program <A HREF = "man/newst.html">Newst</A>, which is
+example is the program <A HREF = "man/newstack.html">Newstack</A>, which is
 often used for rearranging or extracting sections from a stack.
 
 <P>
@@ -212,6 +217,9 @@ remove the zero entry in the <B>Log offset</B> box in the <B>Tomogram
 Generation Panel</B>; if your images are in arbitrarily scaled
 units, you may need to remove that entry or at least adjust the offset value
 that is added so that all values will be positive before taking the log.
+If your data were derived from unsigned 16-bit integers and have had 32768
+subtracted from them for storage as signed integers in the MRC file, the
+programs will try to detect this and set the base to 32768.
 <P>
      If electron density appears as white in your images, 
 <A HREF = "man/beadtrack.html">Beadtrack</A> will
@@ -266,9 +274,9 @@ whether the data are single or dual axis.
 
 <LI> Scan Header: Push this button to attempt to retrieve the pixel
 size and image rotation from the image file header.  This will work
-with data from SerialEM on the Tecnai; otherwise, pixel size will be
-available only if the regular MRC file header specifies the pixel spacing
-in Angstroms.
+with data from SerialEM on the Tecnai as well as with files using David
+Agard's extended header format, which is also used in the FEI
+tomography acquisition software.
 
 <LI> Pixel size and Fiducial diameter: These values are used only by
 <A HREF = "man/beadtrack.html">Beadtrack</A>.  If you do not know the
@@ -285,14 +293,23 @@ images be rotated clockwise from their current orientation, or -90 to have
 them rotated counterclockwise.  This will determine the orientation of the
 resulting tomogram.
 
+<LI> Image distortion field file: Use this to select a distortion field 
+file for correction of imaging distortion, if appropriate.  If the environment
+variable IMOD_CALIB_DIR is defined, eTomo will open the file chooser at
+$IMOD_CALIB_DIR/Distortion.  Once a distortion field has been defined, it will
+be used when generating the coarse aligned and final aligned stacks.
+
+<LI> Binning: This entry is relevant only if using distortion field
+corrections and is needed to specify the binning at which
+images were acquired on the CCD camera.
+
 <LI> Tilt angles: eTomo provides three choices for getting the initial
 tilt angles that are needed by <A HREF = "man/beadtrack.html">Beadtrack</A>,
 <A HREF = "man/tiltalign.html">Tiltalign</A>, and
 <A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  First, the angles can be
 extracted from the extended header in the image file.  This will
-work with files produced by SerialEM, as well as files with David
-Agard's extended header format, which is also used in the FEI
-tomography acquisition software.
+work with files produced by SerialEM, as well as with files using the
+Agard extended header format.
 Second, you can specify the starting, ending, and increment tilt angles.
 Third, you can supply a file with the tilt angles, one per line.
 A file
@@ -333,6 +350,9 @@ to find the pitch of the section from a model on the three regions
 <LI><B>Tomogram Generation</B>: uses newst.com to run 
 <A HREF = "man/newstack.html">Newstack</A> to make an aligned stack
 <BR>
+ optionally uses mtffilter.com to run <A HREF =
+"man/mtffilter.html">Mtffilter</A> to filter the aligned stack.
+<BR>
  uses tilt.com to run <A HREF = "man/tilt.html">Tilt</A> to generate a tomogram
 </UL>
 
@@ -363,7 +383,7 @@ the Extra Topics section for more details.
 </H3></A>
 <P>
 X-rays and other flaws in CCD camera images can produce extreme low or
-high values that ruin the contrast when you view the images in 3dmod,
+high values that ruin the contrast when you view the images in <A HREF = "man/3dmod.html">3dmod</A>,
 and can also give undesirable artifacts in the reconstruction.  These
 defects can be wiped out with <A HREF = "man/ccderaser.html">Ccderaser</A>,
 which finds X-rays in two ways.  It looks for "peaks", or pixels whose
@@ -398,7 +418,11 @@ images into a file named "setname_fixed.st".  If you are satisfied
 with the result, press the <B>Use Fixed Stack</B> button to rename
 the original file to "setname_orig.st" and replace it with the fixed stack.
 <P>
-If your images have features that do not get corrected by the
+If you find that some X-rays are too large to be removed with the default
+parameters, increase the <B>Maximum radius</B> to encompass these large
+X-rays and try again.
+<P>
+If your images have other features that do not get corrected by the
 automatic X-ray removal, you can specify the pixels to erase in a
 model file.  Press the <B>Advanced</B> button to reveal the controls
 for this option, and see the man page for 
@@ -435,13 +459,67 @@ transformations determined on the first step.  Go to the pairs of
 views that showed problems, and use the left mouse button to translate
 each pair of images into alignment.  When you toggle between a pair of
 images, you should see the section appear to tilt around an axis in
-the middle.  If you have a big magnification change, you could also
+the middle.  The tilt axis should appear to be vertical because 
+<A HREF = "man/midas.html">Midas</A> applies a global rotation to the images,
+starting with the value in the <B>Tilt axis rotation</B> text box on 
+the <B>Coarse Alignment</B> panel.
+If you have a big magnification change, you could also
 correct for this using the right mouse button while holding the Shift
 key down.
 <P>
 After fixing and saving transformations, you must generate a new coarse 
 aligned stack.
-
+<P>
+The coarse aligned stack will be used for tracking the fiducial model, and
+there might be cases where you want to work with binned images for this
+procedure.  You can set a binning for this stack by pressing the
+<B>Advanced</B> button then adjusting the entry for 
+<B>Coarse aligned image stack binning</B> before generating the stack.
+If you change your mind after starting to work on a fiducial model, you can go
+back to this panel, change the binning, and generate a new prealigned stack.
+The existing model will load correctly onto the stack with the new binning;
+just be sure to save the model after doing this and eventually run the fine
+alignment, which will synchronize
+all information about the pixel size.
+<P>
+<A Name = "Fiducialless Quick"><H4>
+5.1 Making a Quick Tomogram with Correlation Alignment
+</A></H4>
+It is possible to generate a tomogram using only the coarse alignment from
+cross-correlation.  This could be used to get a tomogram quickly to see
+whether it is worth doing the fiducial alignment, or if the tilt series was
+just for scanning purposes, or if there are no fiducials.  This section
+describes a
+simple procedure for getting a tomogram quickly; for more detail on how to get
+as good a tomogram as possible from this procedure, see
+<A HREF = "tomoExtra.html#Fiducialless Tomogram">Making a Tomogram with 
+Correlation Alignment</A> in the Extra Topics section.
+<OL>
+<LI>Press <B>Calculate cross-correlation</B>.
+<LI>Check <B>Fiducialless alignment</B>
+<LI>Press <B>Done</B>.  There is no need to make a coarse aligned stack in
+this panel because its tilt axis is not vertical.
+<LI>Press <B>Done</B> on the <B>Tomogram Positioning</B> panel to get to the
+<B>Tomogram Generation</B> panel.
+<LI>Adjust the <B>Tilt axis rotation</B> if it does not match the values that
+you usually get for rotation angle in a fiducial alignment solution at this
+magnification.
+<LI>Select an appropriate binning, then press <B>Generate Full Aligned
+Stack</B>.  The speed of tomogram computation is roughly proportional to the 
+cube of the binning.
+<LI>Press <B>View Full Aligned Stack</B> and check the alignment.  If
+something needs to be fixed, press <B>Postpone</B>. then <B>Coarse
+Alignment</B>, then <B>Fix Alignment with Midas</B>.  After fixing the
+alignment, come back to the <B>Tomogram Generation</B> panel.
+<LI>Set an appropriate <B>Tomogram thickness in Z</B>.  Thickness is specified
+in unbinned pixels so that its value is independent of the selected binning.
+<LI>Press <B>Generate Tomogram</B>.
+</OL>
+<P>
+If you need to set the position of a tomogram built with fiducialless
+alignment, see the <A HREF = "tomoExtra.html#Fiducialless Tomogram">Extra
+Topics</A> section.  It is recommended that you NOT do this if you plan to go
+back and do the fiducial alignment procedure.
 <P>
 <A NAME = "GETTING FIDUCIAL"><H3>
 6. FIDUCIAL MODEL GENERATION
@@ -510,16 +588,16 @@ because of ambiguity, you should uncheck <B>Fill seed model gaps</B>.
 <B>Minimum # of views for tilt alignment</B> (in Advanced).
 </OL>
 <P>
-Press <B>Track Fiducial Seed Model</B>  Open the track.log file and
+Press <B>Track Fiducial Seed Model</B>.  Open the track.log file and
 skip to the end to see a summary of which beads
 could not be tracked completely.
 If several beads fail to track past a particular view, you might want to
 add that view to the list of views to be skipped and rerun the tracking.
 <P>
 Next press <B>Fix Fiducial Model Using Bead Fixer</B> to read the new
-fiducial model into <A HREF = "man/3dmod.html">3dmod</A>,
-and activate the Bead Fixer
-under the "Special" menu.  This will allow you to jump from one gap in
+fiducial model into <A HREF = "man/3dmod.html">3dmod</A>.  The Bead Fixer
+dialog box will appear.
+This will allow you to jump from one gap in
 the data to the next and fill in missing points if appropriate.  It is
 acceptable for some of the points to be missing on some of the views.  If too
 few of the points can be extended all the way to the first or last views, you
@@ -536,22 +614,23 @@ and allow Beadtrack to track those beads as far as possible.
 Sometimes you will want to have <A HREF =
 "man/beadtrack.html">Beadtrack</A>
 start with an existing
-fiducial model instead of a seed model.  For example, you might extend
-some fiducials past a view where they failed to track then try to get
+fiducial model instead of a seed model.  This is especially helpful when there
+are a large number of beads that failed to track.  For example, you might
+extend some fiducials past a view where they failed to track then try to get
 <A HREF = "man/beadtrack.html">Beadtrack</A> to track them the rest
 of the way,
 or you might want to add fiducials when you realize that you
-need to use local alignments.
-<pre>
-     mv setname.seed setname_orig.seed
-     cp setname.fid setname.seed
-</pre>
-If you have already left some gaps in the model
-because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
+need to use local alignments.  To use the existing fiducial model as a seed for
+another run, go to Advanced mode and press <B>Use Fiducial Model as Seed</B>.
+Your original seed model will be renamed to 
+setname_orig.seed the first time that you do this.
 Then just press <B>Track Fiducial Seed Model</B> again.  You can
 repeat
-this sequence as many times as needed; just omit the first step above
-to preserve your original seed model.
+this sequence as many times as needed.
+This procedure will tend to fill in gaps in the model, which is usually
+appropriate.
+However, if you have already left some gaps in the model
+because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 
 <P>
 <A NAME = "Transferring Fiducial"><H4>
@@ -614,7 +693,7 @@ and set the alignment as well as possible in <A HREF =
 <P>
 If the transfer operation still fails, you
 can run <A HREF = "man/3dmod.html">3dmod</A>
- on both stacks at once and add some initial points to the second seed
+on both stacks at once and add some initial points to the second seed
 model in the same order that they occur in the first fiducial model.  It
 is helpful to open one of the images in the Slicer window and rotate
 it by 90 degrees with the Z slider.  You
@@ -634,7 +713,7 @@ represent projections of a solid body tilted around the Y axis, as well as to
 refine the projection angles.  In order to transform the images, one needs to
 determine the rotation, translation, and scaling (magnification) to be applied
 to each image.  It is also possible to solve for variables which will correct
-for distortions of the specimen.
+for linear distortions of the specimen.
 <P>
 <A NAME = "Running Tiltalign"><H4>
 7.1. Running Tiltalign
@@ -657,8 +736,8 @@ when grouping views together.  The parameters that initially appear
 in the <B>Global Variables</B> page of the 
 <B>Fine Alignment</B> panel provide for this kind of alignment.  
 At a later stage, typically after fixing
-fiducials, you would include distortion and
-group the tilt angles as appropriate.
+fiducials, you would group the tilt angles as appropriate and possibly include 
+distortion.
 <P>
 Before computing an alignment for the first time, check the following
 settings in the <B>General</B> parameter page:
@@ -667,7 +746,7 @@ settings in the <B>General</B> parameter page:
 that should be kept out of groupings with adjacent
 views.  See the discussion of the corresponding entry to 
 <A HREF = "man/beadtrack.html">Beadtrack</A> under
-<A HREF = "#Getting Fiducial"> Fiducial Model Generation </A>
+<A HREF = "#Getting Fiducial"> Fiducial Model Generation </A>.
 <LI> <B>List of views to exclude</B>.  Add to or adjust the views to be
 excluded, if necessary, in this text box.  Again, if you entered 
 <B>Views to exclude</B> in the eTomo Setup
@@ -735,14 +814,20 @@ in a later processing step.
 <P>
 You can open the <B>Large Residual</B> page to see the list of
 fiducials with the largest errors, but it is easier to deal with this
-information by opening the Bead Fixer from the "Special" menu in 
-<A HREF = "man/3dmod.html">3dmod</A> and pressing the button to 
-<B>Open a Tiltalign Log File</B>.
+information from the Bead Fixer dialog in
+<A HREF = "man/3dmod.html">3dmod</A>, which is opened when you press
+<B>View/Edit Fiducial Model</B>.  In the Bead Fixer, press 
+<B>Open a Tiltalign Log File</B> and select the appropriate log file.
 Examine the points in turn by pressing the <B>Go to Next Big Residual</B>
 button (or the apostrophe hot key), paying particular attention to ones with
 errors greater than 2 pixels.  Adjust point positions in the
-model, if appropriate.  Be sure to save the model before recomputing the
-alignment, and reread the log file into Bead Fixer afterwards.
+model, if appropriate.  When you want to recompute the alignment after fixing
+some points, you can press <B>Save & Run Tiltalign</B>, which will save the
+model, rerun <A HREF = "man/tiltalign.html">Tiltalign</A>, and read in the new
+log file.  There is one trap to this convenience button: Bead Fixer has no way
+of knowing if you have changed parameters in eTomo, so when you do change
+alignment parameters, you must compute the alignment through the button in
+eTomo instead.
 <P>
 You could also open the <B>Fiducial Coordinates</B> page to see the 3D
 coordinates that have been solved for the fiducials, but it is easier to
@@ -756,9 +841,9 @@ when local alignments are to be used.
 
 <P>
 <A NAME = "Background Grouping"><H4>
-7.2. Background on Grouping Variables and Solving for Distortion
+7.2. Background on Grouping Variables and Solving for Linear Distortion
 </A></H4>
-     Before you get into trying to solve for distortion and grouping
+     Before you get into trying to solve for linear distortion and grouping
 variables, you should be aware of several points.  First, the grouping of
 variables can be done in two different ways.  In one way, the particular
 parameter will change linearly from the first view in one group to the first
@@ -951,7 +1036,7 @@ parameters page.
 <LI> The default number of patches, 5 by 5, is appropriate 
 for unbinned data from a CCD camera up to 2000 pixels square.  For smaller
 images, the numbers could be reduced, although this is not essential since
-there is no harm in have more and fewer patches than necessary.  For
+there is no harm in having more patches than necessary.  For
 larger images, the numbers should definitely be increased.  A default patch
 size of about 750 pixels is desirable for unbinned data from a CCD camera.
 Assuming 50% overlap between patches, the number of patches in a dimension
@@ -976,7 +1061,7 @@ If many of your local
 patches needed to be much larger than the desired patch size to contain the
 required number of fiducials, then you are probably not getting the full
 benefit from local alignments.
-One sign of this is a tendency for the larger areas tend to have bigger errors.
+One sign of this is a tendency for the larger areas to have bigger errors.
 You need either to reduce the number of
 fiducials required or to track more fiducials.  First try reducing the
 <B>Minimum number of fiducials</B> to "6,2".  If this still gives relatively
@@ -1049,7 +1134,7 @@ degrees), you may need double the expected section thickness.
 <LI> Press <B>Create Sample Tomograms</B>.  Three samples will be generated,
 named top.rec, mid.rec, and bot.rec (or topa.rec, etc.)
 <LI> Press <B>Create Boundary Models</B>.  This will 
-load all 3 sample tomograms into 3dmod and set up the proper filename for
+load all 3 sample tomograms into <A HREF = "man/3dmod.html">3dmod</A> and set up the proper filename for
 the boundary model.
 Model each edge of the section by drawing a line along
 the boundary in one of the slices for a tomogram sample.
@@ -1089,7 +1174,8 @@ will be used in the <B>Tomogram Generation</B> panel, after you press
 <A NAME = "Doing Tilted Samples"><H4>
 8.1. Redoing Samples with Z Shift or X-axis Tilt
 </A></H4>
-If your initial samples do not contain the entire section, there are several
+If your initial samples do not contain the entire section, which can easily
+happen when fiducials are on only one surface, there are several
 different courses of action.  The simplest is to increase the sample
 thickness and recreate the sample tomograms.  However, you could choose to
 shift the section up or down instead.  To do this, estimate the amount that
@@ -1104,40 +1190,61 @@ To do this, follow these steps:
 <OL>
 <LI> Press <B>Postpone</B> to close the <B>Tomogram Positioning</B> panel,
 then open the <B>Tomogram Generation</B> panel.  
-<LI> Insert the estimated X-axis tilt inthe text box then press
+<LI> Insert the estimated X-axis tilt in the text box then press
 <B>Postpone</B> to close this panel.
 <LI> Reopen the <B>Tomogram Positioning</B> panel and recreate the samples.
 </OL>
+<P>
+<A NAME = "Whole Tomogram Positioning"><H4>
+8.2. Positioning with a Whole Tomogram
+</A></H4>
+For situations where the 3 samples at fixed positions are unsuitable, there is
+an option to draw lines in a whole tomogram instead.  A whole tomogram can be
+generated quite quickly with binning of 3 or 4.  To use this option, check
+<B>Use whole tomogram</B> and select the desired binning, then press
+<B>Create Whole Tomogram</B>.  When it is done and you press <B>Create
+Boundary Model</B>, the tomogram will be presented in the top-down, X/Y view.
+You now need to create pairs of lines delineating
+the top and bottom of the specimen in at least 2 (preferably 3) locations in
+Y.  The lines do not need to be perfectly horizontal (i.e., confined to one
+plane in Y) and the two lines of a pair do not need to be at identical
+locations.  See the man page for <A HREF = "man/tomopitch.html">Tomopitch</A>
+for more details on acceptable boundary lines.
+You have 3 options:
+<OL>
+<LI>Scroll through the X/Y planes in the Zap window and draw each line by
+depositing points on
+the left and right sides of the tomogram at appropriate Z levels.
+<LI>Open a Slicer window, scroll in Z to one surface of the specimen,
+and adjust X and Y rotation angles until the surface is flat.  Draw lines
+just outside the surface.  Go to the other surface and repeat.
+<LI>Flip the tomogram to show the X/Z planes that ordinarily appear with 
+3 samples.  Pick slices where the lines can be drawn and draw them as usual.
+Be sure to start a
+new contour for each line, since this will not happen
+automatically in this situation as it does with 3 samples.
+</OL>
+In each of these cases it is helpful to open the model view window before
+starting to monitor the location of the lines.
 
 <P>
 <A NAME = "TOMOGRAM GENERATION"><H3>
 9. TOMOGRAM GENERATION
 </A></H3>
-The first step in this process is to build the final stack
-by pressing <B>Create Full Aligned Stack</B>.  Then insert the desired
-values for <B>Tomogram thickness</B> and <B>X-axis tilt</B> based on the
-recommendations from 
-<A HREF = "man/tomopitch.html">Tomopitch</A>.  If there was already an
-X-axis tilt when the samples were run, be sure to <B>add</B> to the existing
-value.
-
-<P>
-<A NAME = "Radial filter"><H4>
-9.1 Filtering and Tomogram Resolution
-</A></H4>
-The filter parameters on the <B>Tomogram Generation</B> panel can be adjusted
-to control the noise in the reconstruction.  In R-weighted backprojection,
-each horizontal line of input data is filtered to weight each spatial
-frequency proportional to its radius in Fourier space.  This is radial
-weighting, and the filter is referred to as a radial filter.  When graphed,
-it is simply a straight line through the origin.  In order to
-filter out high frequencies in the reconstruction, a cutoff frequency is
-defined at which the filter changes from a rising line to a falling Gaussian
-curve.  The rate of the falloff is determined by the sigma (standard
-deviation) of the Gaussian.  The frequencies are expressed in cycles
+The tomogram generation process involves several steps at which
+filtering can be applied to the data, and the appearance and interpretability
+of the resulting tomogram depends on the choice of filtering.
+All of this filtering involves the preferential attenuation of high spatial
+frequencies, i.e., low pass filtering.  This kind of filtering reduces the 
+noise in the reconstruction because noise becomes increasingly important at
+higher spatial frequencies.  
+Spatial frequencies are expressed in cycles
 per pixel, ranging from 0 to 0.5, the highest spatial frequency that can be
 represented in a digital image.
-<P>
+
+<A NAME = "Radial filter"><H4>
+9.1. Tomogram Resolution and the Need for Filtering
+</A></H4>
 The noise or graininess in a reconstruction from
 well-aligned data arises from two main sources:
 noise 
@@ -1184,31 +1291,115 @@ of views is comparable to the section thickness in pixels.  This makes
 intuitive sense if one thinks of the projections as providing information
 needed to solve for densities in the volume, since then the number of
 measurements will match the number of unknowns.
+
+<A NAME = "Filtering Options"><H4>
+9.2. Filtering Options
+</A></H4>
+The first step with a choice that affects filtering of the data is the
+generation of the aligned stack, which can be done with either cubic or
+linear interpolation.  Although the default cubic interpolation does
+attenuate the highest frequencies to some extent, linear interpolation has a
+noticeably greater filtering effect.  The effect is broad-band and mild: it
+becomes significant at frequencies as low as 0.2 cycle/pixel but even the
+highest frequencies are attenuated by only a factor of about 2-3, rather than
+eliminated as in most filtering.  Linear interpolation is a good first stage
+for filtering when the data are particularly noisy, such as in cryotomography.
 <P>
+After the aligned stack is made, it can be filtered explicitly with a
+two-dimensional Gaussian filter in Fourier space.  Spatial frequencies up to a
+specified cutoff radius are unaffected, and beyond that radius they are
+attenuated by multiplying with a Gaussian curve that starts at 1.0 at the
+cutoff radius and falls off with a specified sigma value (standard deviation).
+The Gaussian falls to 0.61, 0.14, and 0.01 at 1, 2, and 3 sigmas, respectively.
+The advantage of filtering the aligned stack is that it will reduce noise in
+both dimensions; the disadvantage is that it requires an extra computational
+step.
+<P>
+The third stage at which filtering can be applied is during the
+backprojection.  
+In R-weighted backprojection,
+each horizontal line of input data is filtered to weight each spatial
+frequency proportional to its radius in Fourier space.  This is radial
+weighting, and the filter is referred to as a radial filter.  When graphed,
+it is simply a straight line through the origin.  In order to
+filter out high frequencies in the reconstruction, a cutoff frequency is
+defined at which the filter changes from a rising line to a falling Gaussian
+curve.  The rate of the falloff is again determined by the sigma
+of the Gaussian.  The advantage of filtering at this stage is that it adds no
+extra steps because it is incorporated in the R-weighting.  However, it is only
+a one-dimensional filter.  This makes it well suited for reducing the
+artifacts and noise due to the limitations on angular sampling, but less
+well-suited for dealing with other noise because it fails to filter noise in
+the Y direction.  Indeed, experiments with noisy model data indicate that 
+optimal 2D filtering of the aligned stack gives a more faithful reproduction
+of the original structure than does radial filtering in the backprojection
+with the same cutoff and sigma values.
+
+<A NAME = "Filtering Guidelines"><H4>
+9.3. Filtering Guidelines
+</A></H4>
 These various considerations motivate the following guidelines:
 <UL>
-<LI> The default filter, with a cutoff of 0.35 and a rolloff of 0.05
-cycle/pixel, is generally adequate when the section thickness in pixels is
-up to 2 times the number of views.
+<LI> The default filter for both the 2D and radial filtering, with a cutoff of
+0.35 and a rolloff of 0.05 cycle/pixel, is generally adequate when the section
+thickness in pixels is
+up to 2 times the number of views and the input data are not very noisy.
+With the default filter, it will not make much difference whether you use 2D
+filtering or the radial filter.
 <LI> The cutoff can be made higher, such as 0.4 or 0.45, if the ratio of
 thickness to projections is close to 1, and if the input data are not very
 noisy.  This may not make much difference for unbinned data from a CCD
 camera but could be worthwhile for higher resolution binned CCD images or
 data from film. 
 <LI> If the ratio of thickness to number of views is higher than two, the
-data should probably be filtered more than the default.  Reduce the cutoff
-and the rolloff values in tandem; e.g., useful pairs of values are 0.3 and
-0.04, or 0.25 and 0.03.
-<LI> If the input data are particularly noisy, the filter cutoff may need to 
+data should probably be filtered more than the default.  Do this filtering
+in 2D instead of with the radial filter.  Reduce the cutoff
+frequency to values like 0.3 and 0.25.  Do not reduce the rolloff as this will
+produce more ringing and ripples; in fact, it may be advantageous to increase
+the rolloff value so that 3 sigmas are still reached at 0.5 cycle/pixel (e.g.,
+to 0.065 for a cutoff of 0.3, or 0.08 for a cutoff of 0.25).
+<LI> If the input data are particularly noisy, linear interpolation should be
+used, and the filter cutoff may need to 
 be set lower than the previous points would suggest.
+<LI>If you decide to bin the aligned stack to deal with excessive noise and
+limited resolution, the filtering requirements will be
+much reduced. 
 </UL>
 These guidelines are just a starting point, and the best approach may be to
 experiment with different filter settings to find the best balance between
 reduced graininess and sharpness of features in the tomogram.
 
+<A NAME = "Building Tomogram"><H4>
+9.4. Building the Tomogram
+</A></H4>
+The first step when you get to the <B>Tomogram Generation</B> page is to
+generate the aligned stack.
+First select linear interpolation if desired for this step.
+Notice that you can also select a binning of the aligned stack at this stage;
+if you made a
+binned-down whole tomogram for positioning, be sure to reset the binning to 1.
+Press <B>Create Full Aligned Stack</B>.
+<P>
+If you decide to use 2D filtering, set the cutoff radius and sigma values
+and press <B>Filter</B>.  You can press <B>View Filtered Stack</B> to see the
+result.  You can change parameters and filter again, or press
+<B>Use Filtered Stack</B> to replace the aligned stack
+with the filtered version.
+<P>
+In the <B>Tilt Parameters</B> section,
+insert the desired
+values for <B>Tomogram thickness</B> and <B>X-axis tilt</B> based on the
+recommendations from 
+<A HREF = "man/tomopitch.html">Tomopitch</A>.  If there was already an
+X-axis tilt when the samples were run, be sure to <B>add</B> to the existing
+value.
+Adjust the radial filter parameters as appropriate.  If you did 2D filtering,
+you should set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
+data.  
+Press <B>Generate Tomogram</B>.
 <P>
 <A NAME = "Making Trial Tomograms"><H4>
-9.2. Making Trial Tomograms
+9.5. Making Trial Tomograms
 </A></H4>
 
 In Advanced mode, the <B>Tomogram Generation</B> panel has a set of
@@ -1220,8 +1411,8 @@ reducing the thickness, entering a <B>Tomogram width in X</B> that is
 less than that of the
 projection images, specifying a <B>First slice in Y</B> and a 
 <B>Last slice in Y</B>, or some combination of these three changes.
-You can even enter an <B>X offset</B> or a <B>Z offset</B> to shift
-the subset away from the center in X or Z.
+You can even enter an <B>X offset</B> to shift
+the subset away from the center in X.
 <P>  
 In any case, to make a
 trial tomogram, enter a name in the <B>Trial tomogram filename</B>
@@ -1240,9 +1431,12 @@ tomogram to be the final output of the tomogram generation step.
 <P>
 There is also an entry for <B>Tilt angle offset</B> in Advanced mode,
 which will rotate the reconstruction about the Y axis just as the
-angle offset will in the Fine Alignmnet step.  This is useful when
-doing an alignment without fiducials.  Do not use this entry when
-working on a dual-axis tomogram.
+angle offset will in the Fine Alignment step.  In addition, there is
+an entry for <B>Z offset</B> that has the same effect as the 
+<B>Z shift</B> specified earlier.  These entries are useful when
+doing an alignment without fiducials.  Do not use them when
+working on a dual-axis tomogram, because they will make the initial
+matching be incorrect when you go to combine the two tomograms.
 
 <P>
 <A NAME = "TOMOGRAM COMBINATION"><H3>
@@ -1261,16 +1455,9 @@ The main programs or shell scripts being run, and the essential
 steps in combining are:
 <UL>
 <LI> <A HREF = "man/solvematch.html">Solvematch</A>:
- Use the coordinates of the fiducials from tilt alignment
-to determine the 3-D rotation and distortion between the two tomograms.
-<LI> <A HREF = "man/matchshifts.html">Matchshifts</A>:
- Project a zero-degree view of each tomogram, rotate one,
-and use 2-D cross-correlation to find shifts in X and Y.  Then extract a
-small volume from each tomogram (one of which is rotated) and use 3-D
-cross-correlation to find shifts in X, Y and Z.  Extract an adjacent
-small volume to check whether it gives a similar correlation.
-These operations and
-the preceding one are run by solvematchshifts.com.
+Use the coordinates of the fiducials from tilt alignment
+to determine the 3-D rotation, distortion, and shift between the two tomograms.
+This operation is run by solvematchshifts.com.
 <LI> <A HREF = "man/matchvol.html">Matchvol</A>:
  Using this initial alignment, generate an initial matching
 volume from one of the tomograms.  This operation is run by matchvol1.com
@@ -1318,7 +1505,11 @@ the other one should be matched to that one.
 <LI> If you have fiducials on only one surface, note whether one tomogram
 is upside down relative to the other, and select the appropriate radio
 button to indicate that fiducials are on one side and whether the tomograms
-are inverted relative to each or not.
+are inverted relative to each other or not.  Notice that there are also
+options for using models of corresponding points either alone or together with
+fiducials; for details on using these options see
+<A HREF = "tomoExtra.html#Fiducialless Combine">
+Combining Tomograms with Few or No Fiducials</A> in the Extra Topics section.
 <LI> 
 Enter the lists of corresponding fiducial points in the <B>Corresponding
 fiducial list</B> text boxes.  Specifically, enter the list of points from "a" which
@@ -1369,7 +1560,7 @@ tomogram that are outside the bounds of the other tomogram;
 take care of this limitation.
 <LI> Examine the tomogram being matched TO and determine the first and last
 slices that contain useful information for cross-correlating the tomograms
-(i.e., are inside the section over most of the area).
+(i.e., are inside the section over at least half of the area).
 Ignore the gold particles; there is
 too much empty space around them.  Enter these slice numbers in the <B>Z
 axis min</B> and <B>Z axis max</B> text boxes.
@@ -1382,7 +1573,11 @@ This is generally appropriate, but you may wish to change this by going to
 the <B>Final Match</B> page, switching to Advanced mode, and specifying two
 layers of patches in Z.  Adjust the size of the patches in Z if necessary so
 that it is at least 30% smaller than the range allowed for the patches in Z.
-
+<P>
+If you have noisy tomograms, you should probably use linear interpolation
+(instead of the default quadratic) for making the final matching volume with
+<A HREF = "man/matchorwarp.html">Matchorwarp</A>.  To do this, go to Advanced
+mode on the <B>Final Match</B> page and select <B>Use linear interpolation</B>.
 <P>
 <A NAME = "Temporary Combining Storage"><H4>
 10.2. Using Temporary Storage for Combining
@@ -1394,7 +1589,11 @@ number of temporary files, and considerable time can be saved by placing these
 files on a local disk instead of writing and reading them across a network.
 To use this feature, make an entry in the <B>Temporary directory</B> text
 box (/tmp, /usr/tmp,
-or other appropriate scratch directory).
+or other appropriate scratch directory).  If you may need to access this
+directory from other machines, do not use /tmp or /usr/tmp, and specify the
+scratch directory in a way that will be recognized from another machine.
+(In the BL3DEMC, that means using /scratch/machine_name instead of
+/localscratch).  
 Whatever directory you specify must exist already and you must
 have permission to write to it.  By default,
 the command files will build the final
@@ -1419,8 +1618,9 @@ Press <B>Create Combine Scripts</B> to generate the command files based on
 the parameters in the <B>Setup</B> page.  After this, the <B>Initial
 Match</B> and <B>Final Match</B> pages will be accessible, and you can go to
 them to adjust parameters if
-you have special needs based on prior experience.  Changing parameters in
-the setup page will not have any effect unless you recreate the command files.
+you have special needs based on prior experience.  Some parameters can also
+be changed from the setup page, but some parameter changes there
+will not have any effect unless you recreate the command files.
 <P>
 Check free disk space (df -k). Typically, you need 3 times as much free
 space as one tomogram occupies.  You may need to delete the aligned tilt
@@ -1456,10 +1656,11 @@ actions described below.
 </A></H4>
 If the combine operation fails right away, this is probably because of a bad
 correspondence between fiducial points, but might also occur with large
-volumes that have substantial distortion between the two tomograms.  To
-distinguish these two situations, examine the mean and maximum
-residuals in the solvematchshift log file (or in the solvematchmod log file,
-if you used models of corresponding points).  If the mean is fairly large
+volumes that have substantial nonlinear distortion between the two tomograms.
+To distinguish these two situations, examine the solvematch log file, which 
+will usually offer some advice based on the mean and maximum
+residuals of the fit between points.
+If the mean is fairly large
 (around 4 as opposed to 1), and the maximum is not very large (less than
 20), this is a sign that the fiducial positions do not fit a linear
 transformation very well because of
@@ -1477,35 +1678,15 @@ When this happens,
 you should change the <B>Corresponding fiducial lists</B> 
 so that they specify only a few points which you are sure correspond.
 <P>
-If solvematchshift runs for a while then stops, then 
+If you have a data set where the alignment was run on an older version
+of IMOD (before 3.2.21), solvematch.com will run a script,
 <A HREF = "man/matchshifts.html">Matchshifts</A>
-thinks that it failed to find the proper shift
-between the two tomograms.  This can happen if the displacement between them
-is particularly
-large or if the information in them is sparse.  To check for this possibility, 
-<A HREF = "man/matchshifts.html">Matchshifts</A> produces two small
-volumes just adjacent to the ones it used to determine 3D
-displacements, and uses cross-correlation to find the shift between
-them.  If this shift is too high, the combine processing stops.  You
-should then look at the two volumes by pressing 
-<B>Examine Match Check Volumes</B> 
-to see whether the volumes differ in position by just a few pixels or
-are very different.  If the position is seems to be within a few pixels,
-you can just resume
-processing with the <B>Restart at Matchvol1</B> button.
-<P>
-If the check volumes do not match up, then 
-<A HREF = "man/matchshifts.html">Matchshifts</A> failed, and you have to
-make models of corresponding points.  Press 
-<B>Create Matching Models in 3dmod</B> to load both tomograms with
-appropriate filenames set up.
-Model 3-5 corresponding points, as described in the man page for
-<A HREF = "man/solvematch.html">Solvematch</A>.  If you are
-marking gold particles, put the model point on the section with the strongest
-white side bands around the black bead.  Save the models, check 
-<B>Use models of corresponding points</B>, and press 
-<B>Restart Combine</B>.  This
-time it will run solvematchmod.com and results will be in solvematchmod.log.
+to find the shift
+between the two tomograms.  This operation can fail.  If so, the easiest thing
+to do is to rerun the fine alignment for both axes, so that
+the fiducial coordinate files will contain the information that 
+<A HREF = "man/solvematch.html">Solvematch</A> needs to find the shifts
+directly.
 
 <P>
 <A NAME = "Patch Problems in Combining"><H4>
@@ -1551,7 +1732,7 @@ model with contours enclosing the regions with good patches, or to modify
 such a model if you have already made one.  To do this while looking at the
 patch vector model, press <B>Create/Edit Patch Region Model</B>, which
 will load the tomogram being matched to into
-a separate 3dmod,
+a separate <A HREF = "man/3dmod.html">3dmod</A>,
 and try to correlate positions between the tomogram and the patch vector model.
 Be sure to check <B>Use Patch Region Model</B>, then press 
 <B>Restart at Matchorwarp</B>.  If <A HREF =
@@ -1631,18 +1812,30 @@ bytes.  This shell script can run
 to find optimal contrast settings for
 converting it to bytes, runs Newstack to make the final byte file, and can
 also use "clip flipyz" to swap the Y and Z dimensions of the data, which
-will make the final volume easier to work with in 3dmod.  All of these
+will make the final volume easier to work with in <A HREF = "man/3dmod.html">3dmod</A>.  All of these
 operations are performed with the default settings when you open the panel.
+<P>
+If you want to trim the volume in X and Y, you can use the rubberband feature
+in the Zap window to draw a box around the region of interest and then have
+eTomo collect this information.  
+Press <B>3dmod Full Volume</B> to load the tomogram into <A HREF = "man/3dmod.html">3dmod</A>.  In <A HREF = "man/3dmod.html">3dmod</A>, 
+press the
+dotted rectangle in the Zap toolbar to turn on the rubberband.  Press the
+firstmouse button at the upper left corner of the desired area, and hold it
+down while dragging to the lower right corner.  After the rubberband is set,
+press <B>Get XY Volume Range from 3dmod</B> in the eTomo
+<B>Post-processing</B> panel to fill in the <B>X min</B>, <B>X max</B>, 
+<B>Y min</B>, and <B>Y max</B> text boxes.
 <P>
 If you
 simply convert a tomogram to bytes without a contrast setting, then the
 contrast range for features of interest can be quite compressed and it can be
-difficult to adjust contrast for viewing in 3dmod.  You can avoid this problem
+difficult to adjust contrast for viewing in <A HREF = "man/3dmod.html">3dmod</A>.  You can avoid this problem
 by saturating the intensities of gold particles (and other irrelevant features
 like stain precipitate) when converting to bytes.  There are two different
 methods for determining a good contrast scaling.
 <P>
-First, load the tomogram into 3dmod to determine the starting and
+First, load the tomogram into <A HREF = "man/3dmod.html">3dmod</A> to determine the starting and
 ending slices of a range that excludes features whose intensity can be
 saturated.  Findcontrast will ignore areas within 10% of the edges of these
 slices.  Select the <B>Find scaling from sections</B> radio button and 
@@ -1654,9 +1847,9 @@ Change the entries in the <B>Volume Range</B> section as desired.
 <P>
 If the automatic contrast limits are unsatisfactory, you can select
 the <B>Scale to match contrast</B> radio button instead and find the
-appropriate settings in 3dmod.
+appropriate settings in <A HREF = "man/3dmod.html">3dmod</A>.
 The simplest
-way to do this is to adjust the Black and White sliders in 3dmod to
+way to do this is to adjust the Black and White sliders in <A HREF = "man/3dmod.html">3dmod</A> to
 give the desired brightness and contrast
 and enter the values in the <B>black</B> and <B>white</B> text boxes.  
 However, this could truncate intensities inappropriately.  
@@ -1678,19 +1871,21 @@ considerably with no perceptible loss of image detail.  The shell script
 provides an easy interface for scaling a volume down by
 interpolation using 
 <A HREF = "man/matchvol.html">Matchvol</A>.  Since resolution is worse in the direction
-perpendicular to the plane of the section (the Y direction in an unflipped
+perpendicular to the plane of the section (the Z direction in the flipped
 tomogram), it could be appropriate to squeeze the volume more in that
 dimension.  For example, if the CCD camera provides no useful information
-above 0.8 of Nyquist, an overall reduction by 1.25 would be appropriate, 
-and a reduction 1.3 times higher in the Y dimension would also be appropriate
+above 0.8 of Nyquist, an overall reduction by 1.2 or 1.25 would be
+appropriate, and a reduction 1.3 times higher in the Z dimension would also be
+appropriate
 given the extra point-spread in that dimension in a tomographic
 reconstruction.  The size of the volume can be reduced by a factor of 2.5 
 with:
 <BR><CODE>
-   squeezevol -f 1.25 -y 1.62 setname.rec setname.sqz
+   squeezevol -f 1.25 -z 1.62 setname.rec setname.sqz
 <BR></CODE>
-Note that if you have already flipped the volume, you would use "-z"
-instead of "-y".  If you choose anistropic squeezing, you need to
+Note that if you did not flip the volume in the trimming step,
+you would use "-y"
+instead of "-z".  If you choose anistropic squeezing, you need to
 increase the Z-scale that you use for viewing models built on that
 volume
 by the amount of extra squeezing in that dimension.  For example, if
@@ -1718,7 +1913,7 @@ If you want a copy of one
 of the aligned tilt series, then before cleaning up, reduce this stack
 to bytes and float the intensities with:
 <BR><CODE>
-     newst -mo 0 -fl 2 setname.ali name_of_tilt_series_file
+     newstack -mo 0 -fl 2 setname.ali name_of_tilt_series_file
 <BR></CODE>
 <P>
 Finally, archive and delete the raw image stacks.  If you lack the
