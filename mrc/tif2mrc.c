@@ -346,6 +346,11 @@ int main( int argc, char *argv[])
 
   /* Write out mrcheader */
   mrcfp = fopen(argv[argc - 1], "w");
+  if (!mrcfp){
+    perror("tif2mrc");
+    fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
+    exit(2);
+  }
   mrc_head_new(&hdata, xsize, ysize, argc - i - 1, mode);
   mrc_head_write(mrcfp, &hdata);
 
