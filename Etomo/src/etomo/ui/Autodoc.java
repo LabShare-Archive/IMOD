@@ -25,6 +25,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2003/12/31 02:01:36  sueh
+* <p> $bug# 372 fixed environment variable names
+* <p> $
 * <p> $Revision 1.3  2003/12/31 01:24:44  sueh
 * <p> $bug# 372 added autodoc data storage and retrieval
 * <p> $
@@ -81,6 +84,10 @@ public class Autodoc implements AttributeInterface {
 
   public String getName() {
     return fileName;
+  }
+  
+  public File getFile() {
+    return file;
   }
 
   public Section addSection(Token type, Token name) {
@@ -227,7 +234,7 @@ public class Autodoc implements AttributeInterface {
     if (errorMessage != null) {
       throw new FileNotFoundException(errorMessage);
     }
-    parser = new AutodocParser(this, file);
+    parser = new AutodocParser(this);
     if (testMode) {
       //parser.testStreamTokenizer(false);
       //parser.testStreamTokenizer(true);
@@ -237,10 +244,10 @@ public class Autodoc implements AttributeInterface {
       //parser.testAutodocTokenizer(true);
       //parser.testPreprocessor(false);
       //parser.testPreprocessor(true);
-      parser.testParser(false);
-      //parser.testParser(true);
-      //parser.testParser(false, true);
-      //parser.testParser(true, true);
+      parser.test(false);
+      //parser.test(true);
+      //parser.test(false, true);
+      //parser.test(true, true);
 
     }
     else {
