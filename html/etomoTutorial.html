@@ -393,11 +393,10 @@ using the program Newst, or Newstack. The output file created is
 BBa.preali. One can view  the prealigned stack by pressing the <b>View
 Aligned Stack in 3dmod </b>button. Large image shifts can be edited
 manually using the the interactive program, Midas. This is not an issue
-with this data set; see the <a
- href="tomoguide.html/#COARSE%20ALIGNMENT">COARSE ALIGNMENT</a> section
-of the Tomography Guide for details. Once you are satisfied with the
-prealigned stack, press the <b>Done</b> button to proceed to the next
-step.</p>
+with this data set; see the <a href="tomoguide.html/#COARSE%20ALIGNMENT">COARSE
+ALIGNMENT</a> section of the Tomography Guide for details. Once you are
+satisfied with the prealigned stack, press the <b>Done</b> button to
+proceed to the next step.</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--><!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></b></span></p>
@@ -521,7 +520,7 @@ that is split into three sections: the first section will allow you to
 open the log files associated with the current process, the second
 section will allow you to open up the man pages associated with the
 current processes, and the final menu section opens the general  help
-guides. &nbsp;Select aligna.log to open the log file.&nbsp;<b><!--[endif]--> <o:p></o:p></b>This
+guides. &nbsp;Select "Align axis:a log file" to open the log file.&nbsp;<b><!--[endif]--> <o:p></o:p></b>This
 will open a tabbed file that contains the complete log and short
 sections from this log file. <br>
 The <span style="font-weight: bold;">Errors</span> tab contains a mean
@@ -587,7 +586,7 @@ expanded by  a factor of 10 in order  to distinguish it from the  actual
 model point, because  displacements are often very small (<u>&lt;</u> 2
 pixels). In large (&gt;2k  x 2k) images the residual model will often
 show large displacements  in one area but not in other areas. In these
-cases,  the residual model helps  to make decisions if local alignments
+cases, the residual model helps  to make decisions if local alignments
 are needed.  In this example, local alignments   are not needed. It is
 common to have larger  residuals at the higher extreme tilts. Leave
 3dmod open for the next several  steps.</p>
@@ -619,9 +618,9 @@ You&#8217;ll probably be able to see that the model point is not centered
 properly on   the gold. &nbsp;<span style="">&nbsp; </span>If   you
 click &#8216;<b>Move Point by Residual</b>&#8217; in the<b> Bead Fixer</b> dialog box,
 it will   move the model point by the recommended amount. This works
-most of the time, but if the recommendation looks wrong, you can move
-it by hand by centering   the cursor over the middle of the gold bead
-and then clicking the right mouse button.<br>
+most of the time, but if the recommendation looks wrong, you can move it
+by hand by centering   the cursor over the middle of the gold bead and
+then clicking the right mouse button.<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
@@ -719,8 +718,8 @@ reconstruction that is much thicker than the original section.</p>
 <br>
 </div>
 <p class="MsoNormal">This command file first extracts and    aligns a
-60 pixel sliver from the top, middle, and bottom of the image stack.
-The program then uses these samples to create 10 slices of the
+60 pixel sliver from the top, middle, and bottom of the image stack. The
+program then uses these samples to create 10 slices of the
 reconstruction from the top, middle, and bottom of   the aligned stack.
 These output files are named topa.rec, mida.rec, bota.rec.</p>
 <h1 style=""><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></h1>
@@ -1001,15 +1000,15 @@ using a 3D cross-correlation. Selecting <span style="font-weight: bold;">Medium<
 patches works well for most data sets.&nbsp;When specifying the limits
 of the volume from which the patches will be extracted, it is important
 to look at the tomogram being matched to. Using the entire Z axis range
-will almost never work, and even for the X and Y axes it may not be
-good to use the defaults.&nbsp; To find the limits, press the '<span
+will almost never work, and even for the X and Y axes it may not be good
+to use the defaults.&nbsp; To find the limits, press the '<span
  style="font-weight: bold;">3dmod Volume A</span>' button at the bottom
 of the panel. &nbsp;This will open BBa.rec in 3dmod. Step through the
 images and decide what range of the X axis, Y axis and Z axis contains
-useful information that you would  like to keep in the reconstruction.
-In this example, defaults were kept for  the X and Y axis, but the Z
-axis (in the flipped tomogram) was set to select slices that contained
-biological material (within the section range 23-68). </p>
+useful information for matching up the volumes. In this example,
+defaults were kept for  the X and Y axis, but the Z axis (in the
+flipped tomogram) was set to select slices that contained biological
+material (within the section range 23-68). </p>
 <p class="MsoNormal" align="center"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--> <o:p></o:p></p>
 <p class="MsoNormal">Sometimes, this will not eliminate &#8220;extraneous&#8221;
 material to allow the two axes to combine. In that case, you have to
@@ -1017,12 +1016,12 @@ make a patch     region model. To make a patch region model, check the
 box "Use patch region model file" and press the "<span
  style="font-weight: bold;">Create/Edit Patch Region Model</span>"
 button to open up the axis that is being matched to.    In model mode,
-trace closed contours around the areas that contain biological  
+trace closed contours around the areas that contain biological
 material. Do this  every 5 sections or so in the tomogram. Save the
 model, which is named patch_region.mod. Creating the patch region model
 is particularly useful   when reconstructing data sets that have large
-amounts of resin or open areas   in the images.&nbsp; &nbsp;This
-example data set does not need a patch region model.&nbsp;</p>
+amounts of resin or open areas   in the images.&nbsp; &nbsp;This example
+data set does not need a patch region model.&nbsp;</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<br>
 When the parameters for the <span style="font-weight: bold;">Setup
 panel</span> have been entered, press "<span style="font-weight: bold;">Create
