@@ -12,10 +12,13 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/10 23:50:23  sueh
+* <p> bug# 578 A class containing the current Imod version.
+* <p> </p>
 */
 public class ImodVersion {
   public static  final String  rcsid =  "$Id$";
   
-  public static final String CURRENT_VERSION = "3.4.17";
+  public static final String CURRENT_VERSION = "3.4.16";
 }
