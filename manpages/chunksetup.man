@@ -56,6 +56,14 @@ background, then the script exits.  Each machine must have access to the
 current directory.  If the directory path includes "localscratch" this will
 be replaced by "scratch/hostname" where "hostname" is the name of the current
 machine.  (This works for the scratch filesystem at the BL3DEMC.)
+If you need to use temporary files with parallel processing, then you should
+define a variable at the top of your command file:
+.br
+$set tmpext `hostname`.$$
+.br
+and end your temporary file names with ".$tmpext".  The script includes a
+loop to watch the log files for completion and report on how many chunks are
+done periodically.
 
 .SS Options
 .TP
