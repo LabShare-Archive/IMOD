@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.3  2003/07/31 22:54:17  rickg
  * <p> 2GB fix.  An intermediate setp in the fileSize calculation over
  * <p> flowed the temporay int that was created.
@@ -78,7 +81,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     if (tiltParam.hasSlice()) {
       nY =
         (tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart())
-          / tiltParam.getIdxSliceIncr();
+          / tiltParam.getIncrSlice();
     }
     if (tiltParam.hasMode()) {
       switch (tiltParam.getMode()) {
