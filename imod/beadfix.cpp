@@ -45,6 +45,7 @@
 #include <qtoolbutton.h>
 #include <qhbox.h>
 #include <qlayout.h>
+#include <qdir.h>
 
 /*#include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
@@ -60,6 +61,7 @@
 #include "beadfix.h"
 #include "pegged.xpm"
 #include "unpegged.xpm"
+#include "imod_input.h"
 
 
 // 2) Declare the internal functions as static
@@ -126,6 +128,10 @@ typedef struct
 
 
 static PlugData thisPlug = { 0, 0 };
+
+#define ERROR_NO_IMOD_DIR -64352
+// Place for qalign thread to leave its exit code
+static alignExitCode;
 
 /*
  * Called by the imod plugin load function. 
@@ -264,10 +270,11 @@ void BeadFixer::openFile()
   plug->filename = strdup(qname.latin1());
   reread(0);
 
-  if (plug->fp != NULL)
+  if (plug->fp != NULL) {
     rereadBut->setEnabled(true);    
-  if (plug->fp != NULL)
     nextLocalBut->setEnabled(true);    
+    runAlignBut->setEnabled(true);
+  }
 
   return;
 }
@@ -860,6 +867,9 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QCheckBox *box;
   QString qstr;
   PlugData *plug = &thisPlug;
+  mRunningAlign = false;
+  mTopTimerID = 0;
+  mStayOnTop = false;
 
   int width2 = fontMetrics().width("Move Point by Residual");
   int width = fontMetrics().width("Open Tiltalign Log File");
@@ -891,10 +901,18 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
   QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
 
-  button = diaPushButton("Open Tiltalign Log File", this, mLayout);
-  connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
-  button->setFixedWidth(width);
-  QToolTip::add(button, "Select an alignment log file to open");
+  openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
+  connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
+  openFileBut->setFixedWidth(width);
+  QToolTip::add(openFileBut, "Select an alignment log file to open");
+
+#ifdef QT_THREAD_SUPPORT
+  runAlignBut = diaPushButton("Save && Run Tiltalign", this, mLayout);
+  connect(runAlignBut, SIGNAL(clicked()), this, SLOT(runAlign()));
+  runAlignBut->setFixedWidth(width);
+  runAlignBut->setEnabled(false);
+  QToolTip::add(runAlignBut, "Save model and run Tiltalign");
+#endif
 
   rereadBut = diaPushButton("Reread Log File", this, mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
@@ -1026,8 +1044,13 @@ void BeadFixer::buttonPressed(int which)
 void BeadFixer::keepOnTop(bool state)
 {
 #ifdef STAY_ON_TOP_HACK
-  if (mTopTimerID)
+  mStayOnTop = state;
+
+  // Only kill the timer if it is not needed for tiltalign thread
+  if (mTopTimerID && !(state || mRunningAlign)) {
     killTimer(mTopTimerID);
+    mTopTimerID = 0;
+  }
   if (state)
     mTopTimerID = startTimer(200);
 #else
@@ -1045,9 +1068,63 @@ void BeadFixer::keepOnTop(bool state)
 #endif
 }
 
+// Timer event to keep window on top in Linux, or watch for tiltalign done
 void BeadFixer::timerEvent(QTimerEvent *e)
 {
-  raise();
+  if (mStayOnTop)
+    raise();
+#ifdef QT_THREAD_SUPPORT
+
+  // Check if tiltalign is done, clean up and reenable buttons
+  if (mRunningAlign) {
+    if (mTaThread->running())
+      return;
+    if (alignExitCode == ERROR_NO_IMOD_DIR)
+      wprint("\aCannot run tiltalign; IMOD_DIR not defined.");
+    else if (alignExitCode) 
+      wprint("\aError (return code %d) running tiltalign.", alignExitCode);
+    delete mTaThread;
+    mRunningAlign = false;
+    if (!mStayOnTop && mTopTimerID) {
+      killTimer(mTopTimerID);
+      mTopTimerID = 0;
+    }
+    reread(0);
+    rereadBut->setEnabled(true);
+    openFileBut->setEnabled(true);
+    runAlignBut->setEnabled(true);
+    nextResBut->setEnabled(true);
+    nextLocalBut->setEnabled(true);
+  }
+#endif
+}
+
+// Routine to run tilalign: it needs to start the thread to make the
+// system call, start a timer to watch results, and disable buttons
+void BeadFixer::runAlign()
+{
+  PlugData *plug = &thisPlug;
+  if (mRunningAlign || !plug->filename)
+    return;
+#ifdef QT_THREAD_SUPPORT
+  inputSaveModel(plug->view);
+  mTaThread = new AlignThread;
+  if (plug->fp != NULL)
+    fclose(plug->fp);
+  plug->fp = NULL;
+  mTaThread->start();
+  alignExitCode = 0;
+
+  // Kill timer if no longer needed
+  if (!mStayOnTop)
+    mTopTimerID = startTimer(200);
+  mRunningAlign = true;
+  rereadBut->setEnabled(false);
+  openFileBut->setEnabled(false);
+  runAlignBut->setEnabled(false);
+  nextResBut->setEnabled(false);
+  nextLocalBut->setEnabled(false);
+#endif
 }
 
 // The window is closing, remove from manager
@@ -1085,8 +1162,36 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+// Thread to run tiltalign provided that IMOD_DIR is defined
+void AlignThread::run()
+{
+  PlugData *plug = &thisPlug;
+  QString comStr, fileStr, vmsStr;
+  int dotPos;
+  char *imodDir = getenv("IMOD_DIR");
+  char *cshell = getenv("IMD_CSHELL");
+  if (!imodDir) {
+    alignExitCode = ERROR_NO_IMOD_DIR;
+    return;
+  }
+  if (!cshell)
+    cshell = "tcsh";
+  fileStr = plug->filename;
+  dotPos = fileStr.findRev('.');
+  if (dotPos > 0)
+    fileStr.truncate(dotPos);
+  vmsStr = QString(imodDir) + "/bin/vmstocsh";
+  comStr.sprintf("%s %s < %s.com | %s -ef", 
+                 (QDir::convertSeparators(vmsStr)).latin1(),
+                 plug->filename, fileStr.latin1(), cshell);
+  alignExitCode = system(comStr.latin1());
+}
+
 /*
     $Log$
+    Revision 1.4  2004/04/29 00:28:40  mast
+    Added button to keep window on top
+
     Revision 1.3  2004/03/30 18:56:26  mast
     Added hot key for next local set
 
