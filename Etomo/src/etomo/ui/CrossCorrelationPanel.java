@@ -21,6 +21,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/02/05 04:49:22  rickg
+ * <p> Added tiltxcorr border, simplified layout
+ * <p>
  * <p> Revision 3.3  2004/01/30 01:30:26  sueh
  * <p> bug# 373 split filter parameters into four fields, changed
  * <p> tiltxcorrParam function calls
@@ -87,13 +90,11 @@ public class CrossCorrelationPanel implements ContextMenu {
   private LabeledTextField ltfOutputFile =
     new LabeledTextField("Output file: ");
   private LabeledTextField ltfFilterSigma1 =
-    new LabeledTextField("Sigma for low-frequency: ");
-  private LabeledTextField ltfFilterSigma2 =
-    new LabeledTextField("Sigma for rolloff: ");
-  private LabeledTextField ltfFilterRadius1 =
-    new LabeledTextField("Left cutoff radius: ");
+    new LabeledTextField("Low frequency rolloff sigma: ");
   private LabeledTextField ltfFilterRadius2 =
-    new LabeledTextField("Right cutoff radius: ");
+    new LabeledTextField("High frequency cutoff radius: ");
+  private LabeledTextField ltfFilterSigma2 =
+    new LabeledTextField("High frequency rolloff sigma: ");
 
   private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
   private LabeledTextField ltfPadPercent =
@@ -118,11 +119,9 @@ public class CrossCorrelationPanel implements ContextMenu {
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfFilterSigma1.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlAdvanced.add(ltfFilterSigma2.getContainer());
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlAdvanced.add(ltfFilterRadius1.getContainer());
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfFilterRadius2.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfFilterSigma2.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(Box.createHorizontalGlue());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -161,9 +160,8 @@ public class CrossCorrelationPanel implements ContextMenu {
     ltfInputFile.setText(tiltXcorrParams.getInputFile());
     ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
     ltfFilterSigma1.setText(tiltXcorrParams.getFilterSigma1());
-    ltfFilterSigma2.setText(tiltXcorrParams.getFilterSigma2());
-    ltfFilterRadius1.setText(tiltXcorrParams.getFilterRadius1());
     ltfFilterRadius2.setText(tiltXcorrParams.getFilterRadius2());
+    ltfFilterSigma2.setText(tiltXcorrParams.getFilterSigma2());
     ltfTrim.setText(tiltXcorrParams.getBordersInXandY());
     ltfPadPercent.setText(tiltXcorrParams.getPadsInXandY());
     ltfTaperPercent.setText(tiltXcorrParams.getTaperPercent());
@@ -183,15 +181,12 @@ public class CrossCorrelationPanel implements ContextMenu {
       currentParam = ltfFilterSigma1.getLabel();
       tiltXcorrParams.setFilterSigma1(
         Double.parseDouble(ltfFilterSigma1.getText()));
-      currentParam = ltfFilterSigma2.getLabel();
-      tiltXcorrParams.setFilterSigma2(
-        Double.parseDouble(ltfFilterSigma2.getText()));
-      currentParam = ltfFilterRadius1.getLabel();
-      tiltXcorrParams.setFilterRadius1(
-        Double.parseDouble(ltfFilterRadius1.getText()));
       currentParam = ltfFilterRadius2.getLabel();
       tiltXcorrParams.setFilterRadius2(
         Double.parseDouble(ltfFilterRadius2.getText()));
+      currentParam = ltfFilterSigma2.getLabel();
+      tiltXcorrParams.setFilterSigma2(
+        Double.parseDouble(ltfFilterSigma2.getText()));
       currentParam = ltfTrim.getLabel();
       tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
       currentParam = ltfPadPercent.getLabel();
@@ -267,17 +262,13 @@ public class CrossCorrelationPanel implements ContextMenu {
     if (text != null) {
       ltfFilterSigma1.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "FilterSigma2");
-    if (text != null) {
-      ltfFilterSigma2.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    text = TooltipFormatter.getText(autodoc, "FilterRadius1");
-    if (text != null) {
-      ltfFilterRadius1.setToolTipText(tooltipFormatter.setText(text).format());
-    }
     text = TooltipFormatter.getText(autodoc, "FilterRadius2");
     if (text != null) {
       ltfFilterRadius2.setToolTipText(tooltipFormatter.setText(text).format());
+    }
+    text = TooltipFormatter.getText(autodoc, "FilterSigma2");
+    if (text != null) {
+      ltfFilterSigma2.setToolTipText(tooltipFormatter.setText(text).format());
     }
     text = TooltipFormatter.getText(autodoc, "BordersInXandY");
     if (text != null) {
