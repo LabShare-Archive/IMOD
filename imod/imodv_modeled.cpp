@@ -88,7 +88,7 @@ void imodvModeledHelp()
      "\tThe \"Internal name\" text box allows you to enter a name that is "
      "stored in the Imod model, separate from the filename.\n\n"
      "\tThe \"Pixel size\" text box allows you to set the pixel size of "
-     "the model, which needed for extracting quantitative information.  "
+     "the model, which is needed for extracting quantitative information.  "
      "Enter a number then the units of measurement.  Available units are "
      "km, m, cm, um, nm, A, and pm.\n",
      NULL);
