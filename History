@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-8
+12/3/02: Changes to prevent multiple file dialog boxes from appearing in
+Imod with unpredictable results.
+
+11/30/02: Made many changes to give clean compilation with g++ compiler.
+
 11/29/02: Improved new visual selection logic in imodv so that it would
 work again on an O2.
 
