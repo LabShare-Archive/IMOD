@@ -83,6 +83,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.110  2004/12/09 04:46:29  sueh
+ * <p> bug# 565 Removed isParamFileDirty.  Saved meta data and process track
+ * <p> in done function.
+ * <p>
  * <p> Revision 3.109  2004/12/08 21:16:14  sueh
  * <p> bug# 564 Changed get and set Input and Output File functions to get and set
  * <p> Input and Output FileName to avoid confusion with new getOutputFile()
@@ -1220,7 +1224,7 @@ public class ApplicationManager extends BaseManager {
     openProcessingPanel();
     //  Free the dialog
     setupDialog = null;
-    saveMetaData();
+    saveTestParamFile();
   }
 
   /**
