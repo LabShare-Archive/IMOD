@@ -9,7 +9,33 @@ import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
 /**
-* <p>Description:</p>
+* <p>Description:
+* Creates the following primative tokens: EOL, EOF, ALPHANUM (the largest
+* possible alphanumeric string), SYMBOL (a character matching one of the
+* following: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).  Everything else is called
+* WHITESPACE and returned as the largest possible string.
+* 
+* To Use:
+* construct with a file.
+* call initialize().
+* call next() to get the next token, until the end of file is reached.
+* 
+* Testing:
+* Do not call initialize() when testing.
+* Call test() to test this class.
+* Call testStreamTokenizer() to test the StreamTokenizer.
+* 
+* 
+* Possible Upgrades:
+* The StreamTokenizer could be initialized differently and/or the set of symbols
+* could be overridden.
+* 
+* New functions:
+* initialize(StreamTokenizer)
+* initialize(StreamTokenizer, String symbols)
+* initialize(String symbols)
+* 
+* </p>
 *
 * <p>Copyright: Copyright © 2002, 2003</p>
 *
@@ -22,6 +48,9 @@ import java.io.FileNotFoundException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2003/12/23 21:34:17  sueh
+* <p> $bug# 372 Reformatting.  Fixing test function.
+* <p> $
 * <p> $Revision 1.1  2003/12/22 23:50:52  sueh
 * <p> $bug# 372 creates primative tokens
 * <p> $$ </p>
@@ -32,7 +61,7 @@ public class PrimativeTokenizer {
 
   private File file;
   private StreamTokenizer tokenizer = null;
-  public static final String SYMBOLS =
+  private String symbols =
     new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
   Token token = new Token();
   boolean nextTokenFound = false;
@@ -42,10 +71,19 @@ public class PrimativeTokenizer {
     this.file = file;
   }
 
+  /**
+   * @return the current token
+   */
   public final Token getToken() {
     return token;
   }
 
+  /**
+   * Must be called before the first call to next().
+   * 
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
   public void initialize() throws FileNotFoundException, IOException {
     initializeStreamTokenizer();
     tokenizer.nextToken();
@@ -61,6 +99,11 @@ public class PrimativeTokenizer {
     tokenizer.eolIsSignificant(true);
   }
 
+  /**
+   * Tokenizes a file.
+   * @return the next token found.
+   * @throws IOException
+   */
   public Token next() throws IOException {
     //System.out.println("in Primative.next");
     boolean found = false;
@@ -88,7 +131,7 @@ public class PrimativeTokenizer {
         token.set(Token.ALPHANUM, tokenizer.sval);
         found = true;
       }
-      else if (SYMBOLS.indexOf(tokenizer.ttype) != -1) {
+      else if (symbols.indexOf(tokenizer.ttype) != -1) {
         token.set(Token.SYMBOL, (char) tokenizer.ttype);
         found = true;
       }
@@ -117,7 +160,39 @@ public class PrimativeTokenizer {
     }
     return token;
   }
+  
+  public final String getSymbols() {
+    return symbols;
+  }
 
+  /**
+   * Tests this object.  Prints result to System.out.
+   * @param tokens If true, prints each token.  If false, prints the text.
+   * @throws IOException
+   */
+  public void test(boolean tokens) throws IOException {
+    initialize();
+    Token token;
+    do {
+      token = next();
+      if (tokens) {
+        System.out.println(token.toString());
+      }
+      else if (token.is(Token.EOL)) {
+        System.out.println();
+      }
+      else if (!token.is(Token.EOF)) {
+        System.out.print(token.getValue());
+      }
+    }
+    while (!token.is(Token.EOF));
+  }
+
+  /**
+   * Tests the StreamTokenizer.  Prints result to System.out.
+   * @param tokens If true, prints each token.  If false, prints the text.
+   * @throws IOException
+   */
   public void testStreamTokenizer(boolean tokens) throws IOException {
     initializeStreamTokenizer();
     if (tokens) {
