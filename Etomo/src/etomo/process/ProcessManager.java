@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.27  2003/10/06 21:59:52  rickg
+ * <p> split mapAxisThread and mapAxisProcessMonitor
+ * <p>
  * <p> Revision 2.26  2003/10/05 21:55:08  rickg
  * <p> Changed method order to clarify structure
  * <p>
@@ -382,6 +385,7 @@ public class ProcessManager {
 
     BackgroundProcess backgroundProcess =
       startBackgroundProcess(transferfidParam.getCommandString(), axisID);
+    transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
 
