@@ -19,6 +19,11 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/12/14 21:47:48  sueh
+ * <p> bug# 572:  Removing state object from meta data and managing it with a
+ * <p> manager class.  All state variables saved after a process is run belong in
+ * <p> the state object.
+ * <p>
  * <p> Revision 3.10  2004/12/07 22:47:47  sueh
  * <p> bug# 564 Added TomogramState member variable.
  * <p>
@@ -126,6 +131,7 @@ public class MetaData extends ConstMetaData {
     revisionNumber = "";
     distortionFile = "";
     binning = 1;
+    useZFactors.set(false);
   }
 
   /**
@@ -197,6 +203,10 @@ public class MetaData extends ConstMetaData {
 
   public void setUseLocalAlignments(boolean state) {
     useLocalAlignments = state;
+  }
+  
+  public void setUseZFactors(boolean useZFactors) {
+    this.useZFactors.set(useZFactors);
   }
 
   public void setFiducialDiameter(double fiducialDiameter) {
@@ -327,5 +337,6 @@ public class MetaData extends ConstMetaData {
         .booleanValue();
     trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
+    useZFactors.load(props, prepend);
   }
 }

@@ -23,6 +23,11 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/12/14 21:45:05  sueh
+ * <p> bug# 572:  Removing state object from meta data and managing it with a
+ * <p> manager class.  All state variables saved after a process is run belong in
+ * <p> the state object.
+ * <p>
  * <p> Revision 3.14  2004/12/08 21:30:21  sueh
  * <p> bug# 564 Added access to TomogramState member variable.
  * <p>
@@ -175,6 +180,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
   protected String excludeProjectionsB = "";
+  protected EtomoBoolean useZFactors = new EtomoBoolean("UseZFactors");
 
   protected boolean comScriptsCreated = false;
 
@@ -240,6 +246,7 @@ public abstract class ConstMetaData extends BaseMetaData {
         .valueOf(wholeTomogramSample));
     trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
+    useZFactors.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -302,6 +309,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public boolean getUseLocalAlignments() {
     return useLocalAlignments;
+  }
+  
+  public EtomoBoolean getUseZFactors() {
+    return useZFactors;
   }
 
   public double getFiducialDiameter() {
