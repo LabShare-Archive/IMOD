@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/09/23 23:58:42  sueh
+ * <p> bug#237 moved XrayReplacement to Advanced
+ * <p>
  * <p> Revision 2.8  2003/09/09 17:14:09  rickg
  * <p> Changed replace text to commit
  * <p>
@@ -128,10 +131,10 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox cbIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JToggleButton btnErase = new JToggleButton("<html><b>Erase stack</b>");
-  private JButton btnViewErased = new JButton("<html><b>View erased stack</b>");
+  private JToggleButton btnErase = new JToggleButton("<html><b>Create fixed stack</b>");
+  private JButton btnViewErased = new JButton("<html><b>View fixed stack</b>");
   private JToggleButton btnReplaceRawStack =
-    new JToggleButton("<html><b>Commit raw stack</b>");
+    new JToggleButton("<html><b>Use fixed stack</b>");
 
   /**
    * Default constructor
