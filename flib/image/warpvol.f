@@ -27,6 +27,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/07/24 17:35:38  mast
+c	  Added progress output
+c	
 c	  Revision 3.4  2003/10/10 20:37:06  mast
 c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
 c	  Converted to PIP/autodoc input and added linear interpolation option.
@@ -71,7 +74,7 @@ c
 	integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1,numDone
 	real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
 	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
-	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder
+	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
 	real*4 baseInt
 c
 	logical pipinput
@@ -220,8 +223,55 @@ c
 	    enddo
 	  enddo
 	enddo
-	call setup_cubes_scratch(devmx, filein, tempdir, tempext, tim)
+c	  
+c	  Get provisional setup of cubes then find actual limits of input
+c	  cubes with this setup
+c
+	nExtra = 0
+	call setup_cubes_scratch(devmx, nExtra, ' ', tempdir, tempext, tim)
+c
+	do izcube=1,ncubes(3)
+	  do ixcube=1,ncubes(1)
+	    do iycube=1,ncubes(2)
+c		
+c		back-transform the corner coordinates of the output cube to
+c		find the limiting index coordinates of the input cube
+c		
+	      do i=1,3
+		inmin(i)=100000
+		inmax(i)=-100000
+	      enddo
+	      do ifx=0,16
+		do ify=0,16
+		  do ifz=0,16
+		    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16.-cxout
+		    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16.-cyout
+		    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16.-czout
+		    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &			zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
+     &			zcen,minv,cxyzin) 
+		    do i=1,3
+		      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
+     &			  minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
+		      inmin(i)=max(0,min(inmin(i),ival-2))
+		      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
+c			
+c			See if any extra pixels are needed in input
+c
+		      nExtra = max(nExtra, inmax(i) + 1 - inmin(i) - inpdim)
+		    enddo
+		  enddo
+		enddo
+	      enddo
+	    enddo
+	  enddo
+	enddo
 
+	print *,nextra,' extra pixels needed in cubes for second setup'
+c	  
+c	  Get setup again for real this time
+c
+	call setup_cubes_scratch(devmx, nExtra, filein, tempdir, tempext, tim)
 c	  
 c	  loop on layers of cubes in Z, do all I/O to complete layer
 c	  
@@ -246,20 +296,20 @@ c
 		inmin(i)=100000
 		inmax(i)=-100000
 	      enddo
-	      do ifx=0,1
-		do ify=0,1
-		  do ifz=0,1
-		    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)-cxout
-		    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)-cyout
-		    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)-czout
+	      do ifx=0,16
+		do ify=0,16
+		  do ifz=0,16
+		    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16-cxout
+		    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16-cyout
+		    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16-czout
 		    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
      &			zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
      &			zcen,minv,cxyzin) 
 		    do i=1,3
 		      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
      &			  minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-		      inmin(i)=max(0,min(inmin(i),ival-1))
-		      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+1))
+		      inmin(i)=max(0,min(inmin(i),ival-2))
+		      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
 		    enddo
 		  enddo
 		enddo
