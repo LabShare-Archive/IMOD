@@ -89,6 +89,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.86  2004/06/30 17:27:36  rickg
+ * <p> Bug #488 Rotation.xf not being updated correctly, now done anytime
+ * <p> the fiducialless parameters are updated.
+ * <p>
  * <p> Revision 3.85  2004/06/30 00:16:25  sueh
  * <p> bug# 487 adding checkUpdateFiducialModel(), which compares
  * <p> the current and previous binning in Coarse Align.  This function
@@ -5514,14 +5518,13 @@ public class ApplicationManager {
   
   protected void checkUpdateFiducialModel(AxisID axisID) {
     nextProcess = "";
-    FidXyz fidXyz =
-      new FidXyz(metaData.getDatasetName() + axisID.getExtension() + "fid.xyz");
-    MRCHeader mrcHeader =
-      new MRCHeader(
-        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+    FidXyz fidXyz = getFidXyz(axisID);
+    MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
     try {
       fidXyz.read();
-      mrcHeader.read();
+      prealiHeader.read();
+      rawstackHeader.read();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -5534,8 +5537,16 @@ public class ApplicationManager {
     if (!fidXyz.exists()) {
       return;
     }
-
-    if (fidXyz.getPixelSize() != mrcHeader.getXPixelSpacing()) {
+    //if fidXyz.getPixelSize() is 1, then the binning used in align.com must
+    //have been 1, if the preali binning is also 1, then no error message should
+    //be sent.  preali binning is preali pixel spacing / .st pixel spacing
+    boolean fidXyzPixelSizeSet = fidXyz.isPixelSizeSet();
+    if (!fidXyzPixelSizeSet) {
+      if (Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()) == 1) {
+        return;
+      }
+    }
+    if (!fidXyzPixelSizeSet || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
       mainFrame.openMessageDialog(
         "The prealigned image stack binning has changed.  You must:\n    1. Go "
         + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
@@ -5545,6 +5556,16 @@ public class ApplicationManager {
         "Prealigned image stack binning has changed");
       return;
     }
+  }
+  
+  public FidXyz getFidXyz(AxisID axisID) {
+    return new FidXyz(
+      metaData.getDatasetName() + axisID.getExtension() + "fid.xyz");
+  }
+  
+  public MRCHeader getMrcHeader(AxisID axisID, String filename) {
+    return new MRCHeader(
+      metaData.getDatasetName() + axisID.getExtension() + filename);
   }
   
 }
