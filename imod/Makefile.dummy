@@ -8,10 +8,6 @@ mkargv : mkargv.o
 imodhelp.h : imodhelp mkargv
 	./mkargv imodhelp imodhelp.h "Imod_help_text[]"
 
-3dmod.dsp : imod.pro
-	qmake -t vcapp -o 3dmod.dsp imod.pro
-	echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
-
 install	:
 	$(CP) $(VCEXEDIR)/3dmod.exe $(INSTBINDIR)
 	$(CP) 3dmodbg $(INSTBINDIR)

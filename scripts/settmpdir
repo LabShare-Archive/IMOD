@@ -1,5 +1,6 @@
 # This is a file to be sourced by csh scripts to set tmpdir
 # The heirarchy is to use IMOD_TMPDIR
+set tmpdir = /usr/tmp
 if ($?IMOD_TMPDIR) then
     if (-w "$IMOD_TMPDIR") then
         set checkspace = ($IMOD_TMPDIR)
@@ -12,5 +13,5 @@ if ($?IMOD_TMPDIR) then
 endif
 if (! -w "$tmpdir") set tmpdir = /tmp
 if (! -w "$tmpdir") set tmpdir = .
-set cygthere = `uname | sed -n '/CYGWIN/'d`
+set cygthere = `uname | sed -n '/CYGWIN/p'`
 if ($cygthere != "") set tmpdir = `cygpath -m "$tmpdir"`
