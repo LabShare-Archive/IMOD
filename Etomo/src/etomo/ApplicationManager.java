@@ -88,6 +88,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.118  2005/01/10 23:18:33  sueh
+ * <p> bug# 578 Initializing TomogramState.  Changing enableZFactor() to not
+ * <p> need backward compatibility information on newstFiducialessAlignment.
+ * <p>
  * <p> Revision 3.117  2005/01/08 00:28:05  sueh
  * <p> bug# 578 Added enableZFactors() to enable useZFactors checkbox in
  * <p> tomogram generation.  Set commandMode in NewstParam so
@@ -3220,23 +3224,41 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
-  public void enableZFactors(AxisID axisID) {
+  public void enableTiltParameters(AxisID axisID) {
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
       return;
     }
-    if (!state.getMadeZFactors().isSet() ) {
-      if (!state.getNewstFiducialessAlignment().isSet()) {
-        tomogramGenerationDialog.enableUseZFactors(false);
-      }
-      else {
-        tomogramGenerationDialog.enableUseZFactors(state.getBackwordCompatibleMadeZFactors(axisID)
-            && !state.getNewstFiducialessAlignment().is());
-      }
+    boolean madeZFactors = false;
+    boolean newstFiducialessAlignment = false;
+    boolean usedLocalAlignments = false;
+    //madeZFactors
+    if (state.getMadeZFactors().isSet()) {
+      madeZFactors = state.getMadeZFactors().is();
     }
     else {
-    tomogramGenerationDialog.enableUseZFactors(state.getMadeZFactors().is()
-        && !state.getNewstFiducialessAlignment().is());}
+      madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
+    }
+    //newstFiducialessAlignment
+    if (state.getNewstFiducialessAlignment().isSet()) {
+      newstFiducialessAlignment = state.getNewstFiducialessAlignment().is();
+    }
+    else {
+      newstFiducialessAlignment = tomogramGenerationDialog.isFiducialessAlignment();
+    }
+    //usedLocalAlignments
+    if (state.getUsedLocalAlignments().isSet()) {
+      usedLocalAlignments = state.getUsedLocalAlignments().is();
+    }
+    else {
+      usedLocalAlignments = state
+          .getBackwardCompatibleUsedLocalAlignments(axisID);
+    }
+    //enable parameters
+    tomogramGenerationDialog.enableUseZFactors(madeZFactors
+        && !newstFiducialessAlignment);
+    tomogramGenerationDialog.enableUseLocalAlignment(usedLocalAlignments
+        && !newstFiducialessAlignment);
   }
 
   /**
@@ -3305,7 +3327,7 @@ public class ApplicationManager extends BaseManager {
     //  Set the fidcialess state and tilt axis angle
     tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment());
     tomogramGenerationDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
-    enableZFactors(axisID);
+    enableTiltParameters(axisID);
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
