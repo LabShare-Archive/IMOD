@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
@@ -83,6 +92,7 @@ void imod_usage(char *name)
      printf("         -rgb  Display images in 24-bit color, not with colormap.\n");
      printf("         -C #  Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n");
      printf("         -xyz  Open xyz window first.\n");
+     printf("         -S    Open slicer window first.\n");
      printf("         -x min,max  Load in sub image.\n");
      printf("         -y min,max  Load in sub image.\n");
      printf("         -z min,max  Load in sub image.\n");
@@ -112,7 +122,9 @@ int main( int argc, char *argv[])
      FILE *mfin       = NULL;
      char *plistfname = NULL;
      int xyzwinopen   = FALSE;
+     int sliceropen   = FALSE;
      int loadinfo     = FALSE;
+     int new_model_created = FALSE;
      int i      = 0;
      int vers;
      int flipit = 0;
@@ -129,6 +141,7 @@ int main( int argc, char *argv[])
      int nframey = 0;
      int overx = 0;
      int overy = 0;
+     Iobj *obj;
 
      /* Initialize data. */
      App = &app;
@@ -317,6 +330,10 @@ int main( int argc, char *argv[])
 		    sscanf(argv[++i], "%d%*c%d", &overx, &overy);
 		    break;
 
+		  case 'S':
+		    sliceropen = TRUE;
+		    break;
+
 		  default:
 		    break;
 
@@ -348,6 +365,7 @@ int main( int argc, char *argv[])
 	       /* This creates a new model in Model */
 	       imod_open(NULL);
 	       lastimage = argc - 2;
+	       new_model_created = TRUE;
 	  } else {
 	       
 	       /*
@@ -463,10 +481,18 @@ int main( int argc, char *argv[])
 	  /* This creates a new model in Model */
 	  imod_open(NULL);
 	  Imod_filename[0] = 0x00;
+	  new_model_created = TRUE;
      }
 
      Model->mousemode = IMOD_MMOVIE;
      vi.imod = Model;
+
+     /* DNM 5/16/02: if multiple image files, set time flag by default */
+     if (new_model_created) {
+	  obj = imodObjectGet(vi.imod);
+	  if (vi.nt)
+	       obj->flags |= IMOD_OBJFLAG_TIME;
+     }
 
      /* DNM: set this now in case image load is interrupted */
      Model->csum = imodChecksum(Model);
@@ -591,8 +617,10 @@ int main( int argc, char *argv[])
 
      /*********************************/
      /* Open up default Image Window. */
-     if (xyzwinopen)
+     if (xyzwinopen && !vi.rawImageStore)
 	  xxyz_open(&vi);
+     else if (sliceropen && !vi.rawImageStore)
+	  sslice_open(&vi);
      else
 	  imod_zap_open(&vi); 
      if (Imod_debug)  puts("zap or xyz opened");
