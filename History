@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-4
+3/26/03: Implemented stored preferences in Imod for style, font, mouse and 
+hot slider behavior, beeps, tooltips, contrast step size, window iconifying
+behavior, model autosave control, and custom zooms.  Made all open windows
+respond correctly to changes in font size.
+
+3/25/03: Refined the logic for getting large amounts of image memory in Imod 
+and improved error detection and reporting when there is insufficient memory to
+flip stack.
+
+3/21/03: Fixed reporting of bad displacement from Matchshifts, and standardized
+error reporting from Matchorwarp and Trimvol.
+
 IMOD_3-0-3
 3/19/03: Changed the color selector window to use a GL widget to display the
 current color since color selections in regular widgets are limited on the SGI.
