@@ -319,9 +319,9 @@ changing values or 6 for values all the same within a group),
 or 7 or 8 to automap and fix two tilt angles (7 for linearly changing values
 or 8 for values all the same within a group)
 
-enum.no.tooltip = Do not solve for tilt angles.
-enum.all.tooltip = Solve for each tilt angle independently.
-enum.group.tooltip = Group views to solve for fewer tilt angle variables.
+enum.0.tooltip = Do not solve for tilt angles.
+enum.2.tooltip = Solve for each tilt angle independently.
+enum.5.tooltip = Group views to solve for fewer tilt angle variables.
 
 [Field = TiltFixedView]
 short = 
@@ -430,9 +430,9 @@ manpage = Type of magnification solution: 0 to fix all magnifications at 1.0,
 magnification variables, or 3 or 4 for automapping of variables (3 for
 linearly changing values or 4 for values all the same within a group).
 
-enum.no.tooltip = Do not solve for magnifications.
-enum.all.tooltip = Solve for magnification at each view independently.
-enum.group.tooltip = Group views to solve for fewer magnification variables.
+enum.0.tooltip = Do not solve for magnifications.
+enum.1.tooltip = Solve for magnification at each view independently.
+enum.3.tooltip = Group views to solve for fewer magnification variables.
 
 [Field = MagDefaultGrouping]
 short = 
@@ -745,8 +745,8 @@ manpage = 0 to omit surface analysis, or 1 or 2 to fit points to one or two
 surfaces and derive a surface angles and recommended tilt angle offset.  This
 entry has no effect on the global alignment solution.
 
-enum.one.tooltip = Fit one plane to all points to find angles of section.
-enum.two.tooltip = Divide points into two groups and fit two planes to find
+enum.1.tooltip = Fit one plane to all points to find angles of section.
+enum.2.tooltip = Divide points into two groups and fit two planes to find
 angles of section.
 
 [Field = MetroFactor]
