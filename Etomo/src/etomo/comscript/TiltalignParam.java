@@ -18,6 +18,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/12/06 15:22:30  rickg
+ * <p> Comment where to fix
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:24:17  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -51,7 +54,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
-      inputArgs = getInputArguments(scriptCommand);
+      inputArgs = getComScriptArguments(scriptCommand);
     }
     catch (BadComScriptException except) {
       throw (except);
@@ -340,13 +343,13 @@ public class TiltalignParam extends ConstTiltalignParam {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
-      inputArgs = getInputArguments(scriptCommand);
+      inputArgs = getComScriptArguments(scriptCommand);
     }
     catch (BadComScriptException except) {
       throw (except);
     }
 
-    inputArgs = updateInputArgs(inputArgs);
+    inputArgs = putComScriptArguments(inputArgs);
     scriptCommand.setInputArguments(inputArgs);
   }
 
@@ -916,7 +919,7 @@ public class TiltalignParam extends ConstTiltalignParam {
    * allocated array since the number of elements may be different than the
    * input parameter.
    */
-  private ComScriptInputArg[] updateInputArgs(ComScriptInputArg[] inputArgs) {
+  private ComScriptInputArg[] putComScriptArguments(ComScriptInputArg[] inputArgs) {
     ArrayList inputArgList = new ArrayList();
 
     //  Fill in the input argument sequence, the srcListCount variable
@@ -1161,7 +1164,8 @@ public class TiltalignParam extends ConstTiltalignParam {
    * name of the command and the appropriate number of input arguments.
    * @param scriptCommand the ComScriptCommand containing the tiltalign command
    */
-  private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
+  private ComScriptInputArg[] getComScriptArguments(
+    ComScriptCommand scriptCommand)
     throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
