@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2005/02/17 19:26:04  sueh
+ * bug# 606 Pass AxisID when setting and getting makeZFactors,
+ * newstFiducialessAlignment, and usedLocalAlignments.
+ *
  * Revision 3.54  2005/02/12 01:28:02  sueh
  * bug# 601 Calling handleTransferfidMessage() from errorProcess().
  *
@@ -608,6 +612,7 @@ import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.ConstNewstParam;
@@ -751,6 +756,21 @@ public class ProcessManager extends BaseProcessManager {
       prenewstProcessMonitor, axisID);
     return comScriptProcess.getName();
   }
+  
+  public String preblend(AxisID axisID) throws SystemProcessException {
+    //  Create the required tiltalign command
+    String command = BlendmontParam
+        .getCommandFileName(BlendmontParam.PREBLEND_MODE)
+        + axisID.getExtension() + ".com";
+    //  Start the com script in the background
+    BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
+      appManager, axisID);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        blendmontProcessMonitor, axisID);
+    return comScriptProcess.getName();
+  }
 
   /**
    * Generate the XG transform file for  
@@ -870,6 +890,23 @@ public class ProcessManager extends BaseProcessManager {
     String stack = getDatasetName() + axisID.getExtension() + ".st ";
     String xform = getDatasetName() + axisID.getExtension()
       + ".prexf ";
+
+    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
+      + options + stack + xform;
+
+    //  Start the system program thread
+    startSystemProgramThread(commandLine);
+  }
+  
+  public void midasEdges(AxisID axisID) {
+
+    //  Construct the command line strings
+    String[] commandArray = new String[3];
+
+    String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl " + "-b 0 ";
+    String stack = getDatasetName() + axisID.getExtension() + ".st ";
+    String xform = getDatasetName() + axisID.getExtension()
+      + ".ecd ";
 
     String commandLine = ApplicationManager.getIMODBinPath() + "midas "
       + options + stack + xform;
