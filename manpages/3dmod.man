@@ -32,14 +32,24 @@ be set.
 
 The model must be in the IMOD model format.  Images can be in the MRC
 image format; in the TIFF format, if the appropriate TIFF library is
-available; or in any of the formats supported by the Qt image-reading
-function, which include JPEG, PNG, PPM, and BMP.  MRC files of almost any
+available; in any of the formats supported by the Qt image-reading
+function, which include JPEG, PNG, PPM, and BMP; or in a "raw" format where
+data are packed sequentially as in MRC files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
 16-bit integer, or color; they may be organized in strips or in tiles.
 TIFF files with various kinds of compression can
 be read, depending on the
-capabilities of the libraries on the system.  When multiple files are read
+capabilities of the libraries on the system.  
+Raw files can be read if their dimensions, data type, and header size are
+defined.  This information can be provided with the options
+.B -r, -t,
+and
+.B -H
+or through a dialog box that is brought up when a 
+file is encountered that cannot be read by other means.
+
+When multiple files are read
 in, they do not need to be the same mode or even the same format (except that
 if any file is an RGB file, all files must be.)
 Images are loaded
@@ -55,11 +65,12 @@ Starting a movie through the images will eventually load as much data as
 will fit into the cache.  In addition, there is a dialog box to fill the
 cache in various ways, available through the Edit-Image-Cache Filler menu
 entry.  Several other restrictions on image files exist.
-If any TIFF files are loaded and the cache is used,
+If any files other than MRC-type (MRC or raw) are loaded and the cache is used,
 the image volume cannot be flipped (Y and Z exchanged) unless it is fully
 loaded into the cache.  The Pixel View
 window, high-resolution mode in the Graph window, and the f and F hot keys
-for finding pixel values will all give zeros for a TIFF file.  If RGB files are
+for finding pixel values will all give zeros for a non-MRC type file.
+If RGB files are
 loaded, only the Zap and Model View windows can be opened.
 
 Two windows will open upon startup: the Information Window 
@@ -135,6 +146,17 @@ in X and Y and by
 in Z.  Omit 
 .B nz
 for no binning in Z.  
+.TP
+.B -s <min,max>
+The 
+.B -s
+option will scale image intensities linearly so that the min and max values
+will be displayed as black (0) and white (255) on the screen.  Without this
+option, intensities are scaled between the minimum and maximum intensities in
+the image file.  Images can be rescaled after 3dmod is running using the
+menu entry Edit-Image-Reload.  If raw image files are being read, entering 
+this option will set the scaling limits for these files and prevent them from
+being scanned for their minimum and maximum values.
 .TP
 .B -xyz
 This option causes the default image window to be the
@@ -252,6 +274,28 @@ in the X direction and
 in the Y direction.  Enter negative numbers to get space (gutters) between
 the pieces.
 .TP
+.B -r <nx,ny,nz>
+Set the size for raw image files to
+.I nx
+in X,
+.I ny
+in Y, and
+.I nz
+in Z.  This entry will be applied to all raw files and will prevent the Raw
+Image Description dialog from being brought up for any raw files.
+.TP
+.B -t <value>
+Specify the type of raw files using a value corresponding to an MRC mode:
+0 for unsigned bytes, 1 for signed
+16-bit integers, 2 for 32-bit floating point, 4 for complex (pairs of floating
+point numbers), or 16 for color files stored as R-G-B triplets of bytes.
+.TP
+.B -H <value>
+Set the size of the header to be skipped, in bytes, for raw image files.
+.TP
+.B -w
+Swap bytes when reading raw image files.
+.TP
 .B -f
 Load file as individual frames, overriding montage information in the image
 file header.  It is possible for an image file to have piece coordinates stored
@@ -288,14 +332,6 @@ poorly under Qt.
 Display an RGB-mode MRC file in gray-scale rather than in color.  If the 
 list of files being loaded includes a color TIFF file, all files will be 
 displayed in color regardless of this option.
-.TP
-.B -s <min,max>
-The 
-.B -s
-option will scale image intensities linearly so that the min and max values
-will be displayed as black (0) and white (255) on the screen.  Without this
-option, intensities are scaled between the minimum and maximum intensities in
-the image file.  Images can be rescaled after 3dmod is running using the
 .TP
 .B -view   -modv
 .br
@@ -386,7 +422,7 @@ top of all other windows, including windows from other programs.  The
 toolbutton with two up arrows can be used to raise all of the windows
 of the current 3dmod above windows from other programs.
 .TP
-.I Undo/Rdeo Buttons
+.I Undo/Redo Buttons
 The toolbuttons with
 the backward and forward arrows can be used to undo modeling actions and to
 redo actions that were undone,

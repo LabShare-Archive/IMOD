@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/2/04: Added ability for 3dmod to read raw image files; properties can be
+defined with command-line options and/or in a dialog box that comes up when
+a file cannot be read otherwise.
+
+12/1/04: Dragging with Ctrl and first mouse button will now add any contours
+in the current object that the cursor crosses to the multiple selection.
+
+11/30/04: eTomo now presents an option for reducing vertically and
+horizontally oriented amplitudes in Combinefft, to avoid crosshatched noise
+in combined tomograms.
+
+11/29/04: Fixed bug that prevented binning large images in newstack.
+
+11/29/04: Added ability for 3dmod to read in images and take snapshots in any
+of the file formats supported by Qt's QImage class (e.g., PNG, JPEG, PNM).
+The snapshot format can be selected in place of an RGB snapshot in the
+preferences dialog, and JPEG quality can also be set.
+
 11/28/04: IMOD_3-4-13
 11/28/04: Revised serial tomogram joining guide for eTomo interface.
 
