@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2003/09/24 16:20:37  mast
+Add include of imodconfig.h and add resending message for debug output
+
 Revision 1.3  2003/09/24 15:05:58  mast
 Switched to ::exit(), set selection mode false, added retry
 
@@ -152,19 +155,30 @@ int main(int argc, char **argv)
   interval = (int)(1000. * timeout + 0.5);
   if (interval > 0) {
 
-    // If this hack is defined, divide the total timeout into intervals of this
-    // length and retry sending message
+    // If this hack is defined and > 0, divide the total timeout into intervals 
+    // of this length and retry sending message
 #ifdef SENDEVENT_RETRY_HACK
-    retryLimit = interval / SENDEVENT_RETRY_HACK;
-    if (!retryLimit)
-      retryLimit = 1;
-    interval = SENDEVENT_RETRY_HACK;
+    if (SENDEVENT_RETRY_HACK > 0) {
+      retryLimit = interval / SENDEVENT_RETRY_HACK;
+      if (!retryLimit)
+        retryLimit = 1;
+      interval = SENDEVENT_RETRY_HACK;
+    }
 #endif
     a.startTimer(interval);
   }
+
   if (debugOut)
     fprintf(stderr, "Imodsendevent sending: %s\n", qstr.latin1());
   cb->setText(qstr);
+
+  // If the hack is defined as zero, just process events and set the text again
+#ifdef SENDEVENT_RETRY_HACK
+  if (SENDEVENT_RETRY_HACK == 0) {
+    qApp->processEvents();
+    cb->setText(qstr);
+  }
+#endif
 
   return a.exec();
 
