@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/03/13 02:25:47  sueh
+ * <p> bug# 373 Added toString(boolean defaultIsBlank) - turns "/" into ""
+ * <p>
  * <p> Revision 3.8  2004/03/12 20:58:19  sueh
  * <p> bug# 373 Added setDefault().
  * <p>
@@ -121,6 +124,10 @@ public class FortranInputString {
     for (int i = 0; i < maximum.length; i++) {
       maximum[i] = max;
     }
+  }
+  
+  public int size() {
+    return nParams;
   }
 
   /**
