@@ -142,7 +142,6 @@ EXPORTS
 	ilistPush
 	imodLabelItemMove
 	imodel_object_get
-	DelPoint
 	PIPINITIALIZE
 	imodContourUnique
 	imodMeshAddVert
