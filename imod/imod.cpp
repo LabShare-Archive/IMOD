@@ -192,11 +192,13 @@ int main( int argc, char *argv[])
     }
   }
 
+#ifndef _WIN32
   /* if no input files, print help stuff */
   if (argc < 2){
     imod_usage(argv[0]);
     exit(1);
   }
+#endif
 
   /* Open the Qt application */
   
@@ -869,6 +871,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.6  2003/02/28 01:31:08  mast
+fixing include fiddles
+
 Revision 4.5  2003/02/27 23:07:13  mast
 fiddling with includes some more
 
