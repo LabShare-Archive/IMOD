@@ -868,7 +868,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   if (Imod_debug)
     fprintf(stderr, "key %x, state %x\n", keysym, event->state());
-  if (testMetaKey(event))
+  if (inputTestMetaKey(event))
     return;
 
   inputConvertNumLock(keysym, keypad);
@@ -2608,6 +2608,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.17  2003/04/18 20:08:55  mast
+Reject the Ctrl (meta) key on the Mac
+
 Revision 4.16  2003/04/17 19:06:50  mast
 various changes for Mac
 

@@ -1521,7 +1521,7 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   int keysym = event->key();
   int state = event->state();
 
-  if (testMetaKey(event))
+  if (inputTestMetaKey(event))
     return;
   
   // Start with this at 1: set to 0 if NOT handled
@@ -1732,6 +1732,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.10  2003/04/18 20:06:28  mast
+Reject the Ctrl (meta) key on the Mac
+
 Revision 4.9  2003/04/17 18:43:38  mast
 adding parent to window creation
 

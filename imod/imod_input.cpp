@@ -819,7 +819,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int shifted = event->state() & Qt::ShiftButton;
   int bwStep = ImodPrefs->getBwStep();
 
-  if (testMetaKey(event))
+  if (inputTestMetaKey(event))
     return;
   inputConvertNumLock(keysym, keypad);
 
@@ -1182,7 +1182,7 @@ void inputConvertNumLock(int &keysym, int &keypad)
 }
 
 /* For Mac, allow modules to discard keys if the Ctrl key is down */
-bool testMetaKey(QKeyEvent *event)
+bool inputTestMetaKey(QKeyEvent *event)
 {
 #ifdef Q_OS_MACX
   if (event->state() & Qt::MetaButton) {
@@ -1196,6 +1196,9 @@ bool testMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.9  2003/04/18 20:08:18  mast
+Implement function to reject Ctrl key and give message on Mac
+
 Revision 4.8  2003/04/17 19:27:13  mast
 keypad workaround for Mac
 

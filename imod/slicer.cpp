@@ -448,7 +448,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int ob, co, pt, axis;
   Icont *cont;
 
-  if (testMetaKey(event))
+  if (inputTestMetaKey(event))
     return;
 
   inputConvertNumLock(keysym, keypad);
@@ -2035,6 +2035,11 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.14  2003/04/18 20:07:36  mast
+Implement limit checks when filling data array to minimize the time spent
+when the window is much larger than the image and speed up lowres
+filling.  Also reject the Ctrl (meta) key on the Mac.
+
 Revision 4.13  2003/04/17 20:11:56  mast
 resolve merge conflict
 

@@ -465,7 +465,7 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   int newdata = 1;
   float xrot, yrot, zrot;
   
-  if (testMetaKey(event))
+  if (inputTestMetaKey(event))
     return;
 
   inputConvertNumLock(key, keypad);
@@ -1369,6 +1369,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.9  2003/04/18 20:06:21  mast
+Reject the Ctrl (meta) key on the Mac
+
 Revision 4.8  2003/04/17 18:43:38  mast
 adding parent to window creation
 
