@@ -96,6 +96,7 @@ void ivwInit(ImodView *vi)
   vi->fp         = NULL;
 
   vi->imageList  = NULL;
+  vi->selectionList = NULL;
 
   vi->movieInterval = 17L;
   vi->timers = new ImodWorkproc(vi);
@@ -2434,6 +2435,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.28  2004/10/27 20:37:39  mast
+Changed cache dumper to take ImodImageFile and only dump for MRC file
+
 Revision 4.27  2004/10/22 22:18:04  mast
 Added functions for dumping file system cache after each section is
 loaded, works in Linux only
