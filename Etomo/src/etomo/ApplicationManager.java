@@ -77,6 +77,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.90  2003/11/06 21:41:27  sueh
+ * <p> bug348 imodFineAlign(AsixID): removed calls to
+ * <p> setFineAlignmentState() for processTrack and mainFrame.
+ * <p>
  * <p> Revision 2.89  2003/11/05 20:31:48  rickg
  * <p> Bug #292 Added preserve contrast seed model and residual model
  * <p> opens
@@ -647,8 +651,6 @@ public class ApplicationManager {
    * Close message from the setup dialog window
    */
   public void doneSetupDialog() {
-    //SUEH 271
-    System.out.println("in doneSetupDialog");
     if (setupDialog == null) {
       mainFrame.openMessageDialog(
         "Can not update metadata parameters without an active setup dialog",

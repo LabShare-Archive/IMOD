@@ -41,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.15  2003/10/24 00:34:28  sueh
+ * <p> Bug271 Prevent dataset name from being "."
+ * <p>
  * <p> Revision 2.14  2003/10/23 23:07:44  sueh
  * <p> bug271 added isValid() to contain all SetupDialog validation
  * <p>
@@ -438,12 +441,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   public boolean isValid() {
-    //SUEH 271
-    System.out.println("in isValid");
     String errorMessageTitle = new String("Setup Dialog Error");
     String datasetText = ltfDataset.getText();
-    //SUEH 271
-    System.out.println("datasetText=" + datasetText);    
+   
     if (datasetText.equals("")) {
       applicationManager.openMessageDialog(
         "Dataset name has not been entered",
