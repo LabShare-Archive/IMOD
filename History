@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/9/04: Changed Solvematch to work with the absolute fiducial coordinates now
+being produced by Tiltalign; added a solvematch.com command file to replace
+the two variations, and modified Setupcombine to work with it.  Made Tiltalign
+put a pixel size in the fiducial files so that different binning situations
+could be handled properly.  Changed Matchshifts so that it will simply copy
+a transform file produced by Solvematch if it already has shifts.
+
+6/9/04: Moved the Z clipping planes in model view far out when the sliders 
+are at 0 and 1000, to prevent clipping of highly zoomed models.
+
+6/5/04: Added an option to raw2mrc to convert 32-bit integers to 16-bit
+integers, fixed a problem with dm2mrc and added options to dm2mrc to control
+the treatment of unsigned and 32-bit integer data, specifically so that
+data can be put into a signed 16-bit format if it fits there.
+
 6/4/04: IMOD_3-2-19
 6/4/04: When align.com is run outside of eTomo, eTomo will now show the updated
 log file.
