@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:36:24  rickg
+ * <p> Task tags moved to bugzilla, reformat
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -553,7 +556,7 @@ public class CCDEraserPanel implements ContextMenu {
     btnViewErased.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "Commit the raw stack with the output from ccderaser.  "
+      "Use the raw stack with the output from ccderaser.  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
         + "your data you must commit the raw stack when you are satisfied with"
