@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2002/10/14 22:44:27  rickg
+ * <p> Added combine to execute section of doneCombine
+ * <p>
  * <p> Revision 1.13  2002/10/14 19:04:18  rickg
  * <p> openMessageDialog made public
  * <p>
@@ -176,6 +179,9 @@ public class ApplicationManager {
         }
         dialogFinished = true;
         isDataParamDirty = true;
+
+        //  Initialize a new IMOD manager
+        imodManager = new ImodManager(metaData);
       }
       else {
         String[] errorMessage = new String[2];
@@ -778,8 +784,13 @@ public class ApplicationManager {
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
-              imodManager.quitCoarseAligned(AxisID.FIRST);
-              imodManager.quitCoarseAligned(AxisID.SECOND);
+              if(isDualAxis()) {
+                imodManager.quitCoarseAligned(AxisID.FIRST);
+                imodManager.quitCoarseAligned(AxisID.SECOND);
+              }
+              else {
+                imodManager.quitCoarseAligned(AxisID.ONLY);
+              }
             }
           }
         }
@@ -1009,8 +1020,13 @@ public class ApplicationManager {
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
-              imodManager.quitSample(AxisID.FIRST);
-              imodManager.quitSample(AxisID.SECOND);
+              if(isDualAxis()) {
+                imodManager.quitSample(AxisID.FIRST);
+                imodManager.quitSample(AxisID.SECOND);
+              }
+              else {
+               imodManager.quitSample(AxisID.FIRST);
+              } 
             }
           }
         }
