@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/10/11 00:04:21  mast
+#  Switched to new input method for matchvol and used linear interpolation
+#
 #  Revision 3.5  2003/06/20 20:04:59  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -311,7 +314,8 @@ echo "Displacement between check volumes is $displ in X Y Z, total $checkerror"
 @ errdiff = `echo "$checkerror $MAXERROR" | awk '{print int(100. * ($1 - $2))}'`
 if ($errdiff > 0) then
     echo "ERROR: MATCHSHIFTS - measured displacement between check volumes is $checkerror"
-    echo "To see if this is a problem, run:  imod $checkfile1 $checkfile2"
+    echo "To see if this is a problem, run:  3dmod -Y $checkfile1 $checkfile2"
+    echo In eTomo, press \"View Match Check Volumes\"
     goto clean
 endif
 
