@@ -37,9 +37,20 @@
   <target name="dist" depends="jar">
   	<mkdir dir="${dist}/${DSTAMP}/bin" />
     <copy file="scripts/etomo" todir="${dist}/${DSTAMP}/bin"></copy>
+    <exec executable="chmod" >
+    	<arg value="755" />
+    	<arg path="${dist}/${DSTAMP}/bin/etomo" />
+    </exec>
+	<copy file="scripts/install-etomo.sh" todir="${dist}/${DSTAMP}"></copy>
+    <exec executable="chmod" >
+    	<arg value="755" />
+    	<arg path="${dist}/${DSTAMP}/install-etomo.sh" />
+    </exec>
+
     <copy file="${jar-dir}/etomo-${DSTAMP}.jar" 
    	  tofile="${dist}/${DSTAMP}/bin/etomo.jar"></copy>
    	<copy file ="doc/Using Etomo.html" todir="${dist}/${DSTAMP}"></copy>
+
 	<exec executable="cp">
 		<arg value="-a"/>
 		<arg path="/usr/local/java/jre" />
