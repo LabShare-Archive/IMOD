@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/03/19 19:38:20  mast
+Change the color panel to a GL widget
+
 Revision 3.1  2003/02/10 20:57:02  mast
 Merge Qt source
 
@@ -40,6 +43,7 @@ Initial creation
 
 class MultiSlider;
 class QFrame;
+class ColorSelectorGL;
 
 class ColorSelector : public DialogFrame
 {
@@ -79,7 +83,7 @@ class ColorSelector : public DialogFrame
     int mCurrentRGB[3];
     MultiSlider *mSliders;
     QFrame *mColorBox;
-    QGLWidget *mGLw;
+    ColorSelectorGL *mGLw;
 };
 
 class ColorSelectorGL : public QGLWidget
@@ -90,7 +94,9 @@ class ColorSelectorGL : public QGLWidget
   ~ColorSelectorGL() {};
  protected:
   void paintGL();
+  void timerEvent(QTimerEvent *e);
 
  private:
   int *mRGB;
+  bool mFirstDraw;
 };

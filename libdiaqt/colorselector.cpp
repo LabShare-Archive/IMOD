@@ -198,16 +198,30 @@ ColorSelectorGL::ColorSelectorGL(int *currentRGB, QWidget * parent,
   : QGLWidget(parent, name)
 {
   mRGB = currentRGB;
+  mFirstDraw = true;
 }
 
 void ColorSelectorGL::paintGL()
 {
   glClearColor(mRGB[0] / 255., mRGB[1] / 255., mRGB[2] / 255., 0.);
   glClear(GL_COLOR_BUFFER_BIT);
+  if (mFirstDraw) {
+    startTimer(10);
+    mFirstDraw = false;
+  }
+}
+
+void ColorSelectorGL::timerEvent(QTimerEvent *e)
+{
+  killTimers();
+  updateGL();
 }
 
 /*
 $Log$
+Revision 1.5  2003/03/24 17:43:24  mast
+Changes in definitions of hotflags
+
 Revision 1.4  2003/03/20 23:40:19  mast
 Eliminate frame around GL widget to get it full width on SGI
 
