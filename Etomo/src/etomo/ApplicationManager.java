@@ -31,6 +31,7 @@ import etomo.comscript.SolvematchshiftParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
+import etomo.comscript.TomopitchParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfproductParam;
@@ -81,6 +82,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2004/04/26 18:36:52  rickg
+ * <p> bug #426 Added full image code, fixed order of com script
+ * <p> loading for tomogram positioning
+ * <p>
  * <p> Revision 3.36  2004/04/26 17:15:54  sueh
  * <p> bug# 83 removing generic progress bar from patchcorr
  * <p>
@@ -2292,6 +2297,9 @@ public class ApplicationManager {
 
     comScriptMgr.loadTilt(axisID);
     tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
+    
+    comScriptMgr.loadTomopitch(axisID);
+    //tomogramPositioningDialog.setTomopitch(comScriptMgr.getTomopitchParam(axisID));
 
     //  Set the fidcialess state
     tomogramPositioningDialog.setFiducialessAlignment(metaData
@@ -2469,7 +2477,7 @@ public class ApplicationManager {
    * @param axisID
    */
   public void imodFullSample(AxisID axisID) {
-    String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
+    String tomopitchModelName = "tomopitch" + axisID.getExtension() + "mod";
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
       imodManager.model(ImodManager.FULL_VOLUME_KEY,axisID, tomopitchModelName);
@@ -2488,8 +2496,7 @@ public class ApplicationManager {
   }
   
   /**
-   * Run the tomopitch com script for the specified axis
-   * @param axisID
+   * 
    */
   public void tomopitch(AxisID axisID) {
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
@@ -2595,6 +2602,47 @@ public class ApplicationManager {
     }
     return true;
   }
+  
+  /**
+   * Update the tomopitch{|a|b}.com file with sample parameters for the specified
+   * axis
+   */
+  private boolean updateTomopitchCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramPositioningDialog = tomogramPositioningDialogB;
+    }
+    else {
+      tomogramPositioningDialog = tomogramPositioningDialogA;
+    }
+
+    // Make sure that we have an active positioning dialog
+    if (tomogramPositioningDialog == null) {
+      mainFrame.openMessageDialog(
+        "Can not update tomopitch.com without an active positioning dialog",
+        "Program logic error");
+      return false;
+    }
+
+    // Get the current tilt parameters, make any user changes and save the
+    // parameters back to the tilt{|a|b}.com
+    try {
+      TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
+      //tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
+      comScriptMgr.saveTomopitch(tomopitchParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tomopitch Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage, "Tomopitch Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
 
   /**
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
