@@ -33,6 +33,14 @@ c	  the number of bytes of extra header.  This is essential to allow
 c	  big enough extra headers, but it means values in the true locations
 c	  of ispg and nbsym will not be treated correctly.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
 	DIMENSION INXYZ(3),MXYZ(3),LXYZ(3),LABELS(1),NXYZST(3)
 	DIMENSION TITLE(1),CELL(6),EXTRA(1),MCRS(3),delta(3),delt(3)
@@ -48,6 +56,7 @@ C
 	character*80 string80
 	character*28 string28
 	equivalence (istuff,stuff)
+	logical nbytes_and_flags
 c	SAVE /IMGCOM/
 C
 C Read header
@@ -977,7 +986,27 @@ c
 	if (mbsym.eq.0) return
 	call qseek(j,1,1+nbhdr,1)
 	call qread(j,jbsym,mbsym,ier)
-	if(mrcflip(j))call convert_shorts(jbsym,mbsym/2)
+	if(mrcflip(j))then
+c	    
+c	    DNM 2/3/02: if swapping, need to find out if nint and nreal
+c	    represent nbytes and flags, in which case swap them all as shorts
+c	    Otherwise, swap them as nint longs and nreal floats
+c	    
+	  call move(idat,stuff(11,j),4)
+	  nints = idat(1)
+	  nreal = idat(2)
+	  if(nbytes_and_flags(nints,nreal).or.(nints+nreal.eq.0))then
+	    call convert_shorts(jbsym,mbsym/2)
+	  else
+	    indconv=1
+	    do  i=1,mbsym/(nints+nreal)
+	      if(nints.gt.0)call convert_longs(jbsym(indconv),nints)
+	      indconv=indconv+nints
+	      if(nreal.gt.0)call convert_floats(jbsym(indconv),nreal)
+	      indconv=indconv+nreal
+	    enddo
+	  endif
+	endif
 c	call move(jbsym,ibsym(1,j),mbsym)
 	return
 C	  
