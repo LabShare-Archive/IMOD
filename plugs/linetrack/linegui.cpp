@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/05/12 19:13:06  mast
+Fix hot key spelling
+
 Revision 3.3  2003/04/17 18:34:29  mast
 adding parent to window creation
 
@@ -87,8 +90,11 @@ typedef struct
   int    csection;
   int    xsize, ysize, zsize;
 
-  unsigned char *idata;
-  int            idataSize;
+  unsigned char *idata;    /* Image array for contiguous slice */
+  int   idataXsize;        /* Current sizes for array */
+  int   idataYsize;  
+  int   idataSec;          /* Current section in array */
+  int   idataFlipped;      /* Flag for whether model was flipped */
 
   int   cmax;
   int   ksize;   /* Kernal size   */
@@ -235,7 +241,8 @@ void imodPlugExecute(ImodView *inImodView)
   plug->undoCont  = NULL;
   plug->tmpCont   = imodContourNew();
   plug->idata     = NULL;
-  plug->idataSize = 0;
+  plug->idataXsize = 0;
+  plug->idataYsize = 0;
 
   plug->cmax     = CONTOUR_POINT_MAX;
   plug->ifreplace= 1;
@@ -385,10 +392,11 @@ void LineTrack::valueEntered(int which)
 // Track or copy operation
 void LineTrack::track(int client)
 {
-  unsigned char *image;
+  unsigned char **image;
+  unsigned char *datap;
   int npoint, maxpoint, curpt, iffail, closecont;
   Ipoint *pts;
-  int copytol, curx, cury, curz, i;
+  int copytol, curx, cury, curz, i, j, flipped;
   float zdiff;
   Icont *tmpcont;
   float *p_copy;
@@ -424,8 +432,35 @@ void LineTrack::track(int client)
     return;
   }
 
+  // Create data array if size does not match
+  if (plug->xsize != plug->idataXsize || plug->ysize != plug->idataYsize) {
+    if (plug->idata)
+      free(plug->idata);
+    plug->idata = (unsigned char *)malloc(plug->xsize * plug->ysize);
+    if (!plug->idata) {
+      plug->idataXsize = 0;
+      wprint("\aLine Track failed to get memory for image data.\n");
+      return;
+    }
+    plug->idataXsize = plug->xsize;
+    plug->idataYsize = plug->ysize;
+    plug->idataSec = -1;
+  }
+
+  // Fill the data array if the section or flipping has changed
+  ivwGetLocation(plug->view, &curx, &cury, &curz);
+  flipped = imodGetFlipped(theModel);
+  
+  if (curz != plug->idataSec || flipped != plug->idataFlipped) {
+    datap = plug->idata;
+    for (j = 0; j < plug->ysize; j++)
+      for (i = 0; i < plug->ysize; i++)
+        *datap++ = image[j][i];
+  }
+  plug->idataSec = curz;
+  plug->idataFlipped = flipped;
+
   if (copytol != 0){
-    ivwGetLocation(plug->view, &curx, &cury, &curz);
     zdiff = plug->cont->pts->z - curz;
     if (zdiff < 0) zdiff = -zdiff;
     if (zdiff > 1.01 || zdiff < 0.99) {
@@ -480,7 +515,7 @@ void LineTrack::track(int client)
   free(plug->cont->pts);
   plug->cont->pts = pts;
   if(copytol == 0) {
-    linetrack_(image, &plug->xsize, &plug->ysize,
+    linetrack_(plug->idata, &plug->xsize, &plug->ysize,
                (float *)pts, &maxpoint, &curpt , &npoint,
                &plug->ksize,
                &plug->knum,
@@ -504,7 +539,7 @@ void LineTrack::track(int client)
       return;
     }
 
-    conttrack_(image, &plug->xsize, &plug->ysize,
+    conttrack_(plug->idata, &plug->xsize, &plug->ysize,
                (float *)pts, &maxpoint, &curpt, p_copy, &npoint,
                &plug->ksize,
                &plug->knum,
