@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Scale.h>
@@ -606,6 +614,22 @@ int autox_build(Autox *ax)
      if (!ax)
 	  return(-1);
      autox_build_cb(NULL,(XtPointer)ax->vw, NULL);
+     return(0);
+}
+
+int autox_next(Autox *ax)
+{
+     if (!ax)
+	  return(-1);
+     autox_next_cb(NULL,(XtPointer)ax->vw, NULL);
+     return(0);
+}
+
+int autox_smooth(Autox *ax)
+{
+     if (!ax)
+	  return(-1);
+     autox_smooth_cb(NULL,(XtPointer)ax->vw, NULL);
      return(0);
 }
 
