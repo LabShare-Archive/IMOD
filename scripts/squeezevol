@@ -1,5 +1,14 @@
 #! /bin/csh -f
 
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+
 set pn = "squeezevol"
 set factor = 1.6
 set tempdir = ""
@@ -82,7 +91,9 @@ set squeezex = `echo $xs | awk '{print 1. / $1}'`
 set squeezey = `echo $ys | awk '{print 1. / $1}'`
 set squeezez = `echo $zs | awk '{print 1. / $1}'`
 
-matchvol <<HERESTRING
+echo "Squeezing the volume with matchvol..."
+
+matchvol <<HERESTRING | tail -1
 $argv[1]
 $argv[2]
 $tempdir
