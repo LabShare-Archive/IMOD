@@ -90,7 +90,7 @@ type = I
 usage = Storage mode of output file; 0 for byte, 1 for integer, 2 for real
 tooltip = 
 manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
-integer, or 2 for 13-bit floating point.  The default is the mode of the first
+integer, or 2 for 32-bit floating point.  The default is the mode of the first
 input file.
 
 [Field = OffsetsInXandY]
