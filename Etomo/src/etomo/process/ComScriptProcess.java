@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2004/08/06 23:00:44  sueh
+ * bug# 508 Base class for BackgroundComScriptProcess.
+ * Changing functions and variables needed by
+ * BackgroundComScriptProcess from private to protected.
+ *
  * Revision 3.12  2004/07/13 17:26:11  sueh
  * bug# 429 moving fix to Utilities
  *
@@ -298,31 +303,7 @@ public class ComScriptProcess
     }
     else {
 
-      // Rename the logfile so that any log file monitor does not get confused
-      // by an existing log file
-      String logFileName = parseBaseName(name, ".com") + ".log";
-      File logFile = new File(workingDirectory, logFileName);
-      File oldLog = new File(workingDirectory, logFileName + "~");
-      try {
-        Utilities.renameFile(logFile, oldLog);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        System.err.println(except.getMessage());
-      }
-      
-      if (watchedFileName != null) {
-        File watchedFile = new File(workingDirectory, watchedFileName);
-        File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
-        try {
-          Utilities.renameFile(watchedFile, oldWatchedFile);
-        }
-        catch (IOException except) {
-          except.printStackTrace();
-          System.err.println(except.getMessage());
-        }
-      }
-
+      renameFiles();
       //  Covert the com script to a sequence of csh commands
       String[] commands;
       try {
@@ -367,11 +348,42 @@ public class ComScriptProcess
         errorMessage[0] = except2.getMessage();
       }
     }
-
+    
     // Send a message back to the ProcessManager that this thread is done.
     //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
     done = true;
+  }
+  
+  protected void renameFiles() {
+    renameFiles(name, watchedFileName, workingDirectory);
+  }
+  
+  static protected void renameFiles(String name, String watchedFileName, File workingDirectory) {
+    // Rename the logfile so that any log file monitor does not get confused
+    // by an existing log file
+    String logFileName = parseBaseName(name, ".com") + ".log";
+    File logFile = new File(workingDirectory, logFileName);
+    File oldLog = new File(workingDirectory, logFileName + "~");
+    try {
+      Utilities.renameFile(logFile, oldLog);
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      System.err.println(except.getMessage());
+    }
+      
+    if (watchedFileName != null) {
+      File watchedFile = new File(workingDirectory, watchedFileName);
+      File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
+      try {
+        Utilities.renameFile(watchedFile, oldWatchedFile);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        System.err.println(except.getMessage());
+      }
+    }
   }
 
   /**
@@ -457,7 +469,7 @@ public class ComScriptProcess
    * Extract the basename from a filename given the filename and the expected
    * extension.
    */
-  protected String parseBaseName(String filename, String extension) {
+  static protected String parseBaseName(String filename, String extension) {
     int idxExtension = filename.indexOf(extension);
     String base = null;
     if (idxExtension > 0)
@@ -542,21 +554,39 @@ public class ComScriptProcess
   }
 
   /**
-   * Parse the log file for errors. Since the fortran code is not smart enough
-   * handle formatted output we need find ERROR: in the middle of the output
-   * stream. The error report starts with the ERROR: text instead of the whole
-   * line.
+   * call parseError with the name member variable
+   * @return
+   * @throws IOException
    */
-  private String[] parseError() throws IOException {
+  protected String[] parseError() throws IOException {
+    ArrayList errors = parseError(name, true);
+    return (String[]) errors.toArray(new String[errors.size()]);
+  }
+  
+  /**
+    * Parse the log file for errors. Since the fortran code is not smart enough
+    * handle formatted output we need find ERROR: in the middle of the output
+    * stream. The error report starts with the ERROR: text instead of the whole
+    * line.
+    */
+  protected ArrayList parseError(String name, boolean mustExist) 
+      throws IOException {
+        
+    ArrayList errors = new ArrayList();
+    
+    File file = 
+        new File(workingDirectory.getAbsolutePath(), 
+        parseBaseName(name, ".com") + ".log");
+    if (!file.exists() && !mustExist) {
+      return errors;
+    }
+    
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
-        + "/" + parseBaseName(name, ".com") + ".log");
+    InputStream fileStream = new FileInputStream(file);
 
     BufferedReader fileReader = new BufferedReader(new InputStreamReader(
       fileStream));
 
-    ArrayList errors = new ArrayList();
     String line;
     boolean foundError = false;
     while ((line = fileReader.readLine()) != null) {
@@ -572,7 +602,7 @@ public class ComScriptProcess
       }
     }
     fileReader.close();
-    return (String[]) errors.toArray(new String[errors.size()]);
+    return errors;
   }
 
   /**
