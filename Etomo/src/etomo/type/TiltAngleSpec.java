@@ -16,6 +16,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:28:21  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -34,8 +37,8 @@ public class TiltAngleSpec implements Storable {
     "$Id$";
 
   TiltAngleType type = TiltAngleType.EXTRACT;
-  double rangeMin = -90;
-  double rangeMax = 90;
+  double rangeMin = -60;
+  double rangeMax = 60;
   double rangeStep = 1;
   double tiltAngles[];
   String tiltAngleFilename = "";

@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import etomo.type.TiltAngleType;
 import etomo.type.TiltAngleSpec;
+import etomo.ui.TooltipFormatter;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/05/07 23:38:36  rickg
+ * <p> Added tooltips to object as well as panel
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -54,7 +58,7 @@ public class TiltAngleDialogPanel {
   private LabeledTextField ltfAngleStep = new LabeledTextField("Step:");
 
   private JRadioButton rbTiltAngleFile =
-    new JRadioButton("Tilt angles in existing rawtilt file");
+    new JRadioButton("Tilt angles in existing rawtlt file");
 
   private ButtonGroup bgTiltAngleSource = new ButtonGroup();
 
@@ -143,14 +147,26 @@ public class TiltAngleDialogPanel {
     enableTiltAngleSpecifyFields(rbTiltAngleSpecify.isSelected() & enable);
   }
 
-  void setToolTipText(String text) {
-    panelTiltAngleSource.setToolTipText(text);
-    rbTiltAngleExtract.setToolTipText(text);
-    rbTiltAngleSpecify.setToolTipText(text);
-    rbTiltAngleFile.setToolTipText(text);
-    ltfAngleMax.setToolTipText(text);
-    ltfAngleMin.setToolTipText(text);
-    ltfAngleStep.setToolTipText(text);
+  void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text = "Specify the source of the view tilt angles";
+    panelTiltAngleSource.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Select the Extract option if the extended header of the "
+        + "raw data stack contains the angles";
+    rbTiltAngleExtract.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Select the Specify option if you wish to manually "
+        + "specify the tilt angles in the edit boxes below";
+    rbTiltAngleSpecify.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Starting tilt angle of the series";
+    ltfAngleMin.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Ending tilt angle of the series";
+    ltfAngleMax.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Tilt increment between views";
+    ltfAngleStep.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Select the File option if the tilt angles already exist "
+        + "in a *.rawtlt file";
+    rbTiltAngleFile.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   //  Set the state of the text fields depending upon the radio button state

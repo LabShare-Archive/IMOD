@@ -42,6 +42,13 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/10/08 22:03:21  sueh
+ * <p> Bug263
+ * <p> UI Changes
+ * <p> Removed data source from Setup dialog.  Removed setDataSource() from MetaData.
+ * <p> DataSource is always the default (CCD) in ConstMetaData
+ * <p> Grayed out ViewType.
+ * <p>
  * <p> Revision 2.9  2003/10/08 21:11:41  sueh
  * <p> bug262
  * <p> UI Change
@@ -601,23 +608,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // set the pixel size if available
     double xPixelSize = header.getXPixelSize();
     double yPixelSize = header.getYPixelSize();
-    if (Double.isNaN(xPixelSize) || Double.isNaN(xPixelSize)) {
+    if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
       applicationManager.openMessageDialog(
-        "Unable to read pixel size, enter manually",
-        "Pixel sizes are missing");
+        "Pixel size is not defined in the image file header",
+        "Pixel size is missing");
       return;
     }
 
     if (xPixelSize != yPixelSize) {
       applicationManager.openMessageDialog(
         "X & Y pixels sizes are different, don't know what to do",
-        "Pixel size are different");
+        "Pixel sizes are different");
       return;
     }
     if (xPixelSize == 1.0) {
       applicationManager.openMessageDialog(
         "X & Y pixels sizes are not defined",
-        "Pixel size are not defined");
+        "Pixel sizes are not defined");
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
@@ -651,7 +658,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   private void setToolTipText() {
-    String line1, line2, line3, line4, line5, line6, line7, line8;
+    String line1, line2, line3, line4;
     line1 = "<html>Enter the name of view data file(s). You can<br>";
     line2 = "also select the view data file  by pressing the<br>";
     line3 = "folder button.";
@@ -670,6 +677,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     btnBackupDirectory.setToolTipText(line1 + line2);
+    
+    line1 = "<html>Attempt to extract pixel size and tilt axis rotation<br>";
+    line2 = "angle from data stack";
+    btnScanHeader.setToolTipText(line1 + line2);
 //SUEH 263
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
@@ -689,7 +700,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlSectionType.setToolTipText(line1 + line2);
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
-
+    
     line1 = "<html>Enter the view image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
 
@@ -701,19 +712,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
-
-    line1 = "<html>Specify the source of the view tilt angles";
-    line2 = "<ul><li>Select the Extract option if the raw image stack<br>";
-    line3 = "contains the tilt angle data";
-    line4 = "<li>Select the Specify option if you wish to manually<br>";
-    line5 = "specify the tilt angles in the edit boxes below";
-    line6 = "<li>Select the File option if the tilt angles already exist<br>";
-    line7 = "in a *.rawtilt file.</ul>";
-    tiltAnglesA.setToolTipText(
-      line1 + line2 + line3 + line4 + line5 + line6 + line7);
-    tiltAnglesB.setToolTipText(
-      line1 + line2 + line3 + line4 + line5 + line6 + line7);
-
+    
+    tiltAnglesA.setToolTipText();
+    tiltAnglesB.setToolTipText();
+    
     line1 =
       "<html>Enter the view images to <b>exclude</b> from the processing<br>";
     line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
@@ -722,7 +724,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
     ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
 
-    line1 = "<html>The button will setup the processing for existing<br>";
+    line1 = "<html>This button will setup the processing for existing<br>";
     line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
     line3 = "the existing command scripts.</b>";
     buttonPostpone.setToolTipText(line1 + line2 + line3);
@@ -730,7 +732,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This button will create a new set of command scripts<br>";
     line2 = "overwriting any of the same name in the specified working<br>";
     line3 = "directory.  Be sure to save the data file after creating the<br>";
-    line4 = "command script if you wish keep the results.";
+    line4 = "command script if you wish to keep the results.";
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
   }
 
