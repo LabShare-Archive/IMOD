@@ -85,10 +85,9 @@ int main( int argc, char *argv[])
 
 
   if (argc < 3){
-       fprintf(stderr, "Tif2mrc Version 2.0 %s %s\n" , __DATE__, __TIME__);
-       fprintf(stderr, "Copyright (C)1994-2001 Boulder Laboratory for\n");
-       fprintf(stderr,
-	       "3-Dimensional Fine Structure, University of Colorado.\n"); 
+       fprintf(stderr, "Tif2mrc Version %s %s %s\n" , VERSION_NAME,
+	       __DATE__, __TIME__);
+       imodCopyright();
        fprintf(stderr,
 	       "Usage: %s [options] <tiff files...> <mrcfile>\n"
 	       , argv[0]);

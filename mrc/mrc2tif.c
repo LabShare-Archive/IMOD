@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,10 +52,8 @@ main(int argc, char *argv[])
      int *buf;
 
      if (argc != 3){
-	  fprintf(stderr, 
-		  "%s version 1.0 Copyright (C)1996 Boulder Laboratory for\n"
-		  "3-Dimensional Fine Structure, University of Colorado.\n",
-		  argv[0]);
+	  fprintf(stderr, "%s version %s \n", argv[0], VERSION_NAME);
+	  imodCopyright();
 	  fprintf(stderr, "%s [mrc file] [tiff name/root]\n\n", argv[0]);
 	  fprintf(stderr, "A series of tiff files will be created "
 		  "with the prefix [tiff root name]\n"

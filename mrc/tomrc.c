@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /* To compile:  cc tomrc.c -o readimage -limage */
 
@@ -61,9 +69,7 @@ main(argc,argv)
 
      if (argc < 3){
 	  fprintf(stderr, "tomrc version 1.0 %s, %s\n",__DATE__,__TIME__);
-	  fprintf(stderr, "Copyright (C)1994 Boulder Laboratory for\n");
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n"); 
+	  imodCopyright();
 	  fprintf(stderr, "Converts SGI rgb or bw files to mrc format.\n");
 	  fprintf(stderr, "Usage: tomrc [-c] [-x #] [-y #] [infiles.rgb...] [outfile.mrc]\n");
 	  fprintf(stderr, "Options:\n");

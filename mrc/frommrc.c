@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,14 +108,12 @@ main(int argc, char *argv[])
 
      if (argc != 3){
 	  fprintf(stderr, 
-		  "%s version 1.0 Copyright (C)1994 Boulder Laboratory for\n", 
-		  argv[0]);
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n");
+		  "%s version 1.0\n",  argv[0]);
+	  imodCopyright();
 	  fprintf(stderr, "%s [mrc file] [rgb name/root]\n\n", argv[0]);
-	  fprintf(stderr, "A series of rgb files will be created");
+	  fprintf(stderr, "A series of rgb files will be created ");
 	  fprintf(stderr, "with the prefix [rgb root name]\n");
-	  fprintf(stderr, "and with the suffex nnn.rgb,");
+	  fprintf(stderr, "and with the suffex nnn.rgb, ");
 	  fprintf(stderr, "where nnn is the z number.\n");
 	  exit(1);
      }

@@ -28,6 +28,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /* System include files */
 #include <stdio.h> 
@@ -124,9 +132,7 @@ main( int argc, char *argv[])
 
      if (argc < 2){
 	  fprintf(stderr, "mrcv version 1.11 %s %s\n", __DATE__,__TIME__);
-	  fprintf(stderr, "Copyright (C)1994 Boulder Laboratory for\n");
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n"); 
+	  imodCopyright();
 	  fprintf(stderr, 
 		  "%s: Usage, %s [-r] [-f] [-n] [-q] [-b] [-h]\n", 
 		  argv[0], argv[0]);
@@ -278,9 +284,7 @@ main( int argc, char *argv[])
 
      if (Verbose){
 	  printf("MRC View, Version 1.0 %s \n", __DATE__);
-	  fprintf(stderr, "Copyright (C)1994 Boulder Laboratory for\n");
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n"); 
+	  imodCopyright();
      }
 
      Mrcv_vi = &vi;

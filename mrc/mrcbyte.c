@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include "mrcfiles.h"
@@ -72,10 +80,8 @@ main( int argc, char *argv[] )
 
      if (argc < 2){
 	  fprintf(stderr, 
-		  "%s version 2.0 Copyright (C)2001 Boulder Laboratory for\n", 
-		  argv[0]);
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n");
+		  "%s version %s\n", argv[0], VERSION_NAME);
+	  imodCopyright();
 	  mrcbyte_help(argv[0]);
 	  exit(-1);
      }
