@@ -1,5 +1,9 @@
 package etomo.comscript;
 
+import etomo.type.ConstEtomoBoolean;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean;
+import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 
 /**
@@ -16,6 +20,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/10/14 20:30:43  rickg
  * <p> Bug#279  Label layout and name changes
  * <p>
@@ -45,402 +52,615 @@ public class ConstTiltalignParam {
   public static final String rcsid =
     "$Id$";
 
+  public static final int FIXED_OPTION = 0;
+  public static final int NONE_OPTION = FIXED_OPTION;
+  public static final int AUTOMAPPED_OPTION = 3;
+  public static final int TILT_AUTOMAPPED_OPTION = 5;
+  
+  protected static final String modelFileString = "ModelFile";
+  protected static final String imageFileString = "ImageFile";
+  protected static final String outputModelFileString = "OutputModelFile";
+  protected static final String outputResidualFileString = "OutputResidualFile";
+  protected static final String outputModelAndResidualString = "OutputModelAndResidual";
+  protected static final String outputFidXYZFileString = "OutputFidXYZFile";
+  protected static final String outputTiltFileString = "OutputTiltFile";
+  protected static final String outputTransformFileString = "OutputTransformFile";
+  protected static final String outputZFactorFileString = "OutputZFactorFile";
+  protected static final String includeStartEndIncString = "IncludeStartEndInc";
+  protected static final String includeListString = "IncludeList";
+  protected static final String excludeListString = "ExcludeList";
+  protected static final String separateGroupString = "SeparateGroup";
+  protected static final String firstTiltAngleShortString = "first";
+  protected static final String tiltIncrementShortString = "increment";
+  protected static final String tiltFileShortString = "tiltFile";
+  protected static final String rotNondefaultGroupString = "RotNondefaultGroup";
+  protected static final String localRotNondefaultGroupString = "LocalRotNondefaultGroup";
+  protected static final String tiltNondefaultGroupString = "TiltNondefaultGroup";
+  protected static final String localTiltNondefaultGroupString = "LocalTiltNondefaultGroup";
+  protected static final String magNondefaultGroupString = "MagNondefaultGroup";
+  protected static final String localMagNondefaultGroupString = "LocalMagNondefaultGroup";
+  protected static final String xStretchNondefaultGroupString = "XStretchNondefaultGroup";
+  protected static final String localXStretchNondefaultGroupString = "LocalXStretchNondefaultGroup";
+  protected static final String skewNondefaultGroupString = "SkewNondefaultGroup";
+  protected static final String localSkewNondefaultGroupString = "LocalSkewNondefaultGroup";
+  protected static final String outputLocalFileString = "OutputLocalFile";
+  protected static final String numberOfLocalPatchesXandYString = "NumberOfLocalPatchesXandY";
+  protected static final String minSizeOrOverlapXandYString = "MinSizeOrOverlapXandY";
+  protected static final String minFidsTotalAndEachSurfaceString = "MinFidsTotalAndEachSurface";
+  
+  protected static final String modelFileExtension = ".3dmod";
+  protected static final String residualFileExtension = ".resid";
+  protected static final boolean[] nondefaultGroupIntegerType = { true, true, true };
+  protected static final int nondefaultGroupSize = 3;
+  
+  private static final int tiltAllOption = 2;
+  private static final int allOption = 1;
+  private static final int[] optionValidValues = { FIXED_OPTION, allOption, AUTOMAPPED_OPTION };
+  private static final int[] tiltOptionValidValues = { FIXED_OPTION, tiltAllOption, TILT_AUTOMAPPED_OPTION };
+  private static final int[] distortionOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
+  private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
+  private static final int[] localTiltOptionValidValues = { FIXED_OPTION, TILT_AUTOMAPPED_OPTION };
+  private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
+  
   protected String modelFile;
   protected String imageFile;
-  protected FortranInputString imageParameters;
-  protected String imodFiducialPosFile;
-  protected String asciiFiducialPosFile;
-  protected String tiltAngleSolutionFile;
-  protected String transformSolutionFile;
-
-  protected int solutionType;
-  protected int includeExcludeType;
-  protected StringList includeExcludeList;
-  //  what is a better name for this parameter
-  //  projected image rotation?
-  protected double initialImageRotation;
-  protected int rotationAngleSolutionType;
-
-  protected int nSeparateViewGroups;
-  protected StringList separateViewGroups;
-
+  protected String outputModelFile;
+  protected String outputResidualFile;
+  protected String outputFidXYZFile;
+  protected String outputTiltFile;
+  protected String outputTransformFile;
+  protected String outputZFactorFile;
+  protected StringList includeStartEndInc;
+  protected StringList includeList;
+  protected StringList excludeList;
+  protected EtomoNumber rotationAngle;
+  protected StringList separateGroup;
   protected TiltAngleSpec tiltAngleSpec;
-  protected double tiltAngleOffset;
-
-  protected TiltalignSolution tiltAngleSolution;
-  protected TiltalignSolution magnificationSolution;
-  protected TiltalignSolution compressionSolution;
-
-  protected int distortionSolutionType;
-  protected TiltalignSolution xstretchSolution;
-  protected TiltalignSolution skewSolution;
-
-  protected double residualThreshold;
-  protected int nSurfaceAnalysis;
-  protected FortranInputString minimizationParams;
-
-  protected double tiltAxisZShift;
-  protected double tiltAxisXShift;
-
-  // Local alignment parameters
-  protected boolean localAlignments;
-  protected String localTransformFile;
-  protected FortranInputString nLocalPatches;
-  protected FortranInputString minLocalPatchSize;
-  protected FortranInputString minLocalFiducials;
-  protected boolean fixLocalFiducialCoodinates;
-  protected FortranInputString localOutputSelection;
-
-  protected TiltalignSolution localRotationSolution;
-  protected TiltalignSolution localTiltSolution;
-  protected TiltalignSolution localMagnificationSolution;
-
-  protected int localDistortionSolutionType;
-  protected TiltalignSolution localXstretchSolution;
-  protected TiltalignSolution localSkewSolution;
+  protected EtomoNumber angleOffset;
+  protected EtomoBoolean projectionStretch;
+  protected EtomoNumber rotOption;
+  protected EtomoNumber rotDefaultGrouping;
+  protected FortranInputString[] rotNondefaultGroup;
+  protected EtomoNumber rotationFixedView;
+  protected EtomoNumber localRotOption;
+  protected EtomoNumber localRotDefaultGrouping;
+  protected FortranInputString[] localRotNondefaultGroup;
+  protected EtomoNumber tiltOption;
+  protected EtomoNumber tiltDefaultGrouping;
+  protected FortranInputString[] tiltNondefaultGroup;
+  protected EtomoNumber localTiltOption;
+  protected EtomoNumber localTiltDefaultGrouping;
+  protected FortranInputString[] localTiltNondefaultGroup;
+  protected EtomoNumber magReferenceView;
+  protected EtomoNumber magOption;
+  protected EtomoNumber magDefaultGrouping;
+  protected FortranInputString[] magNondefaultGroup;
+  protected EtomoNumber localMagOption;
+  protected EtomoNumber localMagDefaultGrouping;
+  protected FortranInputString[] localMagNondefaultGroup;
+  protected EtomoNumber xStretchOption;
+  protected EtomoNumber xStretchDefaultGrouping;
+  protected FortranInputString[] xStretchNondefaultGroup;
+  protected EtomoNumber localXStretchOption;
+  protected EtomoNumber localXStretchDefaultGrouping;
+  protected FortranInputString[] localXStretchNondefaultGroup;
+  protected EtomoNumber skewOption;
+  protected EtomoNumber skewDefaultGrouping;
+  protected FortranInputString[] skewNondefaultGroup;
+  protected EtomoNumber localSkewOption;
+  protected EtomoNumber localSkewDefaultGrouping;
+  protected FortranInputString[] localSkewNondefaultGroup;
+  protected EtomoNumber residualReportCriterion;
+  protected EtomoNumber surfacesToAnalyze;
+  protected EtomoNumber metroFactor;
+  protected EtomoNumber maximumCycles;
+  protected EtomoNumber axisZShift;
+  protected EtomoBoolean localAlignments;
+  protected String outputLocalFile;
+  protected FortranInputString numberOfLocalPatchesXandY;
+  protected FortranInputString minSizeOrOverlapXandY;
+  protected FortranInputString minFidsTotalAndEachSurface;
 
   public ConstTiltalignParam() {
-    imageParameters = new FortranInputString(6);
-    boolean[] temp = { true, true, true, true, true, true };
-    imageParameters.setIntegerType(temp);
-
-    includeExcludeList = new StringList(0);
-    separateViewGroups = new StringList(0);
-
-    tiltAngleSpec = new TiltAngleSpec();
-
-    tiltAngleSolution = new TiltalignSolution();
-    magnificationSolution = new TiltalignSolution();
-    compressionSolution = new TiltalignSolution();
-    xstretchSolution = new TiltalignSolution();
-    skewSolution = new TiltalignSolution();
-
-    minimizationParams = new FortranInputString(2);
-    minimizationParams.setIntegerType(1, true);
-
-    nLocalPatches = new FortranInputString(2);
-    nLocalPatches.setIntegerType(0, true);
-    nLocalPatches.setIntegerType(1, true);
-
-    minLocalPatchSize = new FortranInputString(2);
-
-    minLocalFiducials = new FortranInputString(2);
-    minLocalFiducials.setIntegerType(0, true);
-    minLocalFiducials.setIntegerType(1, true);
-
-    localOutputSelection = new FortranInputString(3);
-    localOutputSelection.setIntegerType(0, true);
-    localOutputSelection.setIntegerType(1, true);
-    localOutputSelection.setIntegerType(2, true);
-
-    localRotationSolution = new TiltalignSolution();
-    localTiltSolution = new TiltalignSolution();
-    localMagnificationSolution = new TiltalignSolution();
-    localXstretchSolution = new TiltalignSolution();
-    localSkewSolution = new TiltalignSolution();
+    rotationAngle = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
+    tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
+    angleOffset = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
+    projectionStretch = new EtomoBoolean("ProjectionStretch");
+    projectionStretch.setDefault(false).setDisplayDefault(true);
+    rotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotOption");
+    rotOption.setValidValues(optionValidValues).setResetValue(AUTOMAPPED_OPTION);
+    rotDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotDefaultGrouping");
+    rotationFixedView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
+    localRotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalRotOption");
+    localRotOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
+    localRotDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalRotDefaultGrouping");
+    localRotDefaultGrouping.setResetValue(6);
+    tiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "TiltOption");
+    tiltOption.setValidValues(tiltOptionValidValues).setResetValue(tiltAllOption);
+    tiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "tiltDefaultGrouping");
+    tiltDefaultGrouping.setResetValue(5);
+    localTiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
+    localTiltOption.setValidValues(localTiltOptionValidValues).setResetValue(TILT_AUTOMAPPED_OPTION);
+    localTiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalTiltDefaultGrouping");
+    localTiltDefaultGrouping.setResetValue(6);
+    magReferenceView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagReferenceView");
+    magOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagOption");
+    magOption.setValidValues(optionValidValues).setResetValue(allOption);
+    magDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagDefaultGrouping");
+    localMagOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
+    localMagOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
+    localMagDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagDefaultGrouping");
+    localMagDefaultGrouping.setResetValue(7);
+    xStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XStretchOption");
+    xStretchOption.setValidValues(distortionOptionValidValues).setResetValue(NONE_OPTION);
+    xStretchDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XStretchDefaultGrouping");
+    xStretchDefaultGrouping.setResetValue(7);
+    localXStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
+    localXStretchOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
+    localXStretchDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalXStretchDefaultGrouping");
+    localXStretchDefaultGrouping.setResetValue(7);
+    skewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SkewOption");
+    skewOption.setValidValues(distortionOptionValidValues).setResetValue(NONE_OPTION);
+    skewDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SkewDefaultGrouping");
+    skewDefaultGrouping.setResetValue(11);
+    localSkewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalSkewOption");
+    localSkewOption.setValidValues(optionValidValues).setResetValue(AUTOMAPPED_OPTION);
+    localSkewDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalSkewDefaultGrouping");
+    localSkewDefaultGrouping.setResetValue(11);
+    residualReportCriterion = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ResidualReportCriterion");
+    surfacesToAnalyze = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SurfacesToAnalyze");
+    surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
+    metroFactor = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "MetroFactor");
+    maximumCycles = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MaximumCycles");
+    maximumCycles.setDefault(500).setDisplayDefault(true);
+    axisZShift = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
+    localAlignments = new EtomoBoolean("LocalAlignments");
+    localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER);
+    reset();
+  }
+  
+  protected void reset() {
+    modelFile = "";
+    imageFile = "";
+    outputModelFile = "";
+    outputResidualFile = "";
+    outputFidXYZFile = "";
+    outputTiltFile = "";
+    outputTransformFile = "";
+    outputZFactorFile = "";
+    includeStartEndInc = new StringList();
+    includeList = new StringList();
+    excludeList = new StringList();
+    rotationAngle.reset();
+    separateGroup = new StringList();
+    tiltAngleSpec.reset();
+    angleOffset.reset();
+    projectionStretch.reset();
+    rotOption.reset();
+    rotDefaultGrouping.reset();
+    rotNondefaultGroup = null;
+    rotationFixedView.reset();
+    localRotOption.reset();
+    localRotDefaultGrouping.reset();
+    localRotNondefaultGroup = null;
+    tiltOption.reset();
+    tiltDefaultGrouping.reset();
+    tiltNondefaultGroup = null;
+    localTiltOption.reset();
+    localTiltDefaultGrouping.reset();
+    localTiltNondefaultGroup = null;
+    magReferenceView.reset();
+    magOption.reset();
+    magDefaultGrouping.reset();
+    magNondefaultGroup = null;
+    localMagOption.reset();
+    localMagDefaultGrouping.reset();
+    localMagNondefaultGroup = null;
+    xStretchOption.reset();
+    xStretchDefaultGrouping.reset();
+    xStretchNondefaultGroup = null;
+    localXStretchOption.reset();
+    localXStretchDefaultGrouping.reset();
+    localXStretchNondefaultGroup = null;
+    skewOption.reset();
+    skewDefaultGrouping.reset();
+    skewNondefaultGroup = null;
+    localSkewOption.reset();
+    localSkewDefaultGrouping.reset();
+    localSkewNondefaultGroup = null;
+    residualReportCriterion.reset();
+    surfacesToAnalyze.reset();
+    metroFactor.reset();
+    maximumCycles.reset();
+    axisZShift.reset();
+    localAlignments.reset();
+    outputLocalFile = "";
+    numberOfLocalPatchesXandY = new FortranInputString(2);
+    numberOfLocalPatchesXandY.setIntegerType(new boolean[] {true, true});
+    minSizeOrOverlapXandY = new FortranInputString(2);
+    minFidsTotalAndEachSurface = new FortranInputString(2);
+    minFidsTotalAndEachSurface.setIntegerType(new boolean[] {true, true});
+  }
+  
+  protected String validate() {
+    StringBuffer invalidReason = new StringBuffer();
+    if (!rotOption.isValid()) {
+      invalidReason.append(rotOption.getInvalidReason() + "\n");
+    }
+    if (!localRotOption.isValid()) {
+      invalidReason.append(localRotOption.getInvalidReason() + "\n");
+    }
+    if (!tiltOption.isValid()) {
+      invalidReason.append(tiltOption.getInvalidReason() + "\n");
+    }
+    if (!localTiltOption.isValid()) {
+      invalidReason.append(localTiltOption.getInvalidReason() + "\n");
+    }
+    if (!magOption.isValid()) {
+      invalidReason.append(magOption.getInvalidReason() + "\n");
+    }
+    if (!localMagOption.isValid()) {
+      invalidReason.append(localMagOption.getInvalidReason() + "\n");
+    }
+    if (!xStretchOption.isValid()) {
+      invalidReason.append(xStretchOption.getInvalidReason() + "\n");
+    }
+    if (!localXStretchOption.isValid()) {
+      invalidReason.append(localXStretchOption.getInvalidReason() + "\n");
+    }
+    if (!skewOption.isValid()) {
+      invalidReason.append(skewOption.getInvalidReason() + "\n");
+    }
+    if (!localSkewOption.isValid()) {
+      invalidReason.append(localSkewOption.getInvalidReason() + "\n");
+    }
+    if (!surfacesToAnalyze.isValid()) {
+      invalidReason.append(surfacesToAnalyze.getInvalidReason() + "\n");
+    }
+    return invalidReason.toString();
   }
 
-  public String getModelFile() {
-    return modelFile;
+  public boolean isExcludeListAvailable() {
+    return includeStartEndInc.getNElements() == 0 && includeList.getNElements() == 0;
   }
 
+  
+  
+  /**
+   * @return Returns the angleOffset.
+   */
+  public ConstEtomoNumber getAngleOffset() {
+    return angleOffset;
+  }
+  /**
+   * @return Returns the axisZShift.
+   */
+  public ConstEtomoNumber getAxisZShift() {
+    return axisZShift;
+  }
+  /**
+   * @return Returns the excludeList.
+   */
+  public String getExcludeList() {
+    return excludeList.toString();
+  }
+  /**
+   * @return Returns the imageFile.
+   */
   public String getImageFile() {
     return imageFile;
   }
-
-  public String getImageParameters() {
-    return imageParameters.toString();
+  /**
+   * @return Returns the localAlignments.
+   */
+  public ConstEtomoBoolean getLocalAlignments() {
+    return localAlignments;
   }
-
-  public String getIMODFiducialPosFile() {
-    return imodFiducialPosFile;
+  /**
+   * @return Returns the localMagDefaultGrouping.
+   */
+  public ConstEtomoNumber getLocalMagDefaultGrouping() {
+    return localMagDefaultGrouping;
   }
-
-  public String getAsciiFiducialPosFile() {
-    return asciiFiducialPosFile;
+  /**
+   * @return Returns the localMagNondefaultGroup.
+   */
+  public String getLocalMagNondefaultGroup() {
+    return ParamUtilities.valueOf(localMagNondefaultGroup);
   }
-
-  public String getTiltAngleSolutionFile() {
-    return tiltAngleSolutionFile;
+  /**
+   * @return Returns the localMagOption.
+   */
+  public ConstEtomoNumber getLocalMagOption() {
+    return localMagOption;
   }
-
-  public String getTransformSolutionFile() {
-    return transformSolutionFile;
+  /**
+   * @return Returns the localRotDefaultGrouping.
+   */
+  public ConstEtomoNumber getLocalRotDefaultGrouping() {
+    return localRotDefaultGrouping;
   }
-
-  public int getSolutionType() {
-    return solutionType;
+  /**
+   * @return Returns the localRotNondefaultGroup.
+   */
+  public String getLocalRotNondefaultGroup() {
+    return ParamUtilities.valueOf(localRotNondefaultGroup);
   }
-
-  public int getIncludeExcludeType() {
-    return includeExcludeType;
+  /**
+   * @return Returns the localRotOption.
+   */
+  public ConstEtomoNumber getLocalRotOption() {
+    return localRotOption;
   }
-
-  public String getIncludeExcludeList() {
-    return includeExcludeList.toString();
+  /**
+   * @return Returns the localSkewDefaultGrouping.
+   */
+  public ConstEtomoNumber getLocalSkewDefaultGrouping() {
+    return localSkewDefaultGrouping;
   }
-
-  public double getInitialImageRotation() {
-    return initialImageRotation;
+  /**
+   * @return Returns the localSkewNondefaultGroup.
+   */
+  public String getLocalSkewNondefaultGroup() {
+    return ParamUtilities.valueOf(localSkewNondefaultGroup);
   }
-
-  public int getRotationAngleSolutionType() {
-    return rotationAngleSolutionType;
+  /**
+   * @return Returns the localSkewOption.
+   */
+  public ConstEtomoNumber getLocalSkewOption() {
+    return localSkewOption;
   }
-
-  public int getNSeparateViewGroups() {
-    return nSeparateViewGroups;
+  /**
+   * @return Returns the localTiltDefaultGrouping.
+   */
+  public ConstEtomoNumber getLocalTiltDefaultGrouping() {
+    return localTiltDefaultGrouping;
   }
-
-  public String getSeparateViewGroups() {
-    return separateViewGroups.toString();
+  /**
+   * @return Returns the localTiltNondefaultGroup.
+   */
+  public String getLocalTiltNondefaultGroup() {
+    return ParamUtilities.valueOf(localTiltNondefaultGroup);
   }
-
+  /**
+   * @return Returns the localTiltOption.
+   */
+  public ConstEtomoNumber getLocalTiltOption() {
+    return localTiltOption;
+  }
+  /**
+   * @return Returns the localXStretchDefaultGrouping.
+   */
+  public ConstEtomoNumber getLocalXStretchDefaultGrouping() {
+    return localXStretchDefaultGrouping;
+  }
+  /**
+   * @return Returns the localXStretchNondefaultGroup.
+   */
+  public String getLocalXStretchNondefaultGroup() {
+    return ParamUtilities.valueOf(localXStretchNondefaultGroup);
+  }
+  /**
+   * @return Returns the localXStretchOption.
+   */
+  public ConstEtomoNumber getLocalXStretchOption() {
+    return localXStretchOption;
+  }
+  /**
+   * @return Returns the magDefaultGrouping.
+   */
+  public ConstEtomoNumber getMagDefaultGrouping() {
+    return magDefaultGrouping;
+  }
+  /**
+   * @return Returns the magNondefaultGroup.
+   */
+  public String getMagNondefaultGroup() {
+    return ParamUtilities.valueOf(magNondefaultGroup);
+  }
+  /**
+   * @return Returns the magOption.
+   */
+  public ConstEtomoNumber getMagOption() {
+    return magOption;
+  }
+  /**
+   * @return Returns the magReferenceView.
+   */
+  public ConstEtomoNumber getMagReferenceView() {
+    return magReferenceView;
+  }
+  /**
+   * @return Returns the maximumCycles.
+   */
+  public ConstEtomoNumber getMaximumCycles() {
+    return maximumCycles;
+  }
+  /**
+   * @return Returns the metroFactor.
+   */
+  public ConstEtomoNumber getMetroFactor() {
+    return metroFactor;
+  }
+  /**
+   * @return Returns the minFidsTotalAndEachSurface.
+   */
+  public String getMinFidsTotalAndEachSurface() {
+    return minFidsTotalAndEachSurface.toString(true);
+  }
+  /**
+   * @return Returns the minSizeOrOverlapXandY.
+   */
+  public String getMinSizeOrOverlapXandY() {
+    return minSizeOrOverlapXandY.toString(true);
+  }
+  /**
+   * @return Returns the modelFile.
+   */
+  public String getModelFile() {
+    return modelFile;
+  }
+  /**
+   * @return Returns the numberOfLocalPatchesXandY.
+   */
+  public String getNumberOfLocalPatchesXandY() {
+    return numberOfLocalPatchesXandY.toString(true);
+  }
+  /**
+   * @return Returns the outputFidXYZFile.
+   */
+  public String getOutputFidXYZFile() {
+    return outputFidXYZFile;
+  }
+  /**
+   * @return Returns the outputLocalFile.
+   */
+  public String getOutputLocalFile() {
+    return outputLocalFile;
+  }
+  /**
+   * @return Returns the outputModelFile.
+   */
+  public String getOutputModelFile() {
+    return outputModelFile;
+  }
+  /**
+   * @return Returns the outputResidualFile.
+   */
+  public String getOutputResidualFile() {
+    return outputResidualFile;
+  }
+  /**
+   * @return Returns the outputTiltFile.
+   */
+  public String getOutputTiltFile() {
+    return outputTiltFile;
+  }
+  /**
+   * @return Returns the outputTransformFile.
+   */
+  public String getOutputTransformFile() {
+    return outputTransformFile;
+  }
+  /**
+   * @return Returns the outputZFactorFile.
+   */
+  public String getOutputZFactorFile() {
+    return outputZFactorFile;
+  }
+  /**
+   * @return Returns the projectionStretch.
+   */
+  public ConstEtomoBoolean getProjectionStretch() {
+    return projectionStretch;
+  }
+  /**
+   * @return Returns the residualReportCriterion.
+   */
+  public ConstEtomoNumber getResidualReportCriterion() {
+    return residualReportCriterion;
+  }
+  /**
+   * @return Returns the rotationAngle.
+   */
+  public ConstEtomoNumber getRotationAngle() {
+    return rotationAngle;
+  }
+  /**
+   * @return Returns the rotationFixedView.
+   */
+  public ConstEtomoNumber getRotationFixedView() {
+    return rotationFixedView;
+  }
+  /**
+   * @return Returns the rotDefaultGrouping.
+   */
+  public ConstEtomoNumber getRotDefaultGrouping() {
+    return rotDefaultGrouping;
+  }
+  /**
+   * @return Returns the rotNondefaultGroup.
+   */
+  public FortranInputString[] getRotNondefaultGroup() {
+    return rotNondefaultGroup;
+  }
+  /**
+   * @return Returns the rotOption.
+   */
+  public ConstEtomoNumber getRotOption() {
+    return rotOption;
+  }
+  /**
+   * @return Returns the separateGroup.
+   */
+  public String getSeparateGroup() {
+    return separateGroup.toString();
+  }
+  /**
+   * @return Returns the skewDefaultGrouping.
+   */
+  public ConstEtomoNumber getSkewDefaultGrouping() {
+    return skewDefaultGrouping;
+  }
+  /**
+   * @return Returns the skewNondefaultGroup.
+   */
+  public String getSkewNondefaultGroup() {
+    return ParamUtilities.valueOf(skewNondefaultGroup);
+  }
+  /**
+   * @return Returns the skewOption.
+   */
+  public ConstEtomoNumber getSkewOption() {
+    return skewOption;
+  }
+  /**
+   * @return Returns the surfacesToAnalyze.
+   */
+  public ConstEtomoNumber getSurfacesToAnalyze() {
+    return surfacesToAnalyze;
+  }
+  /**
+   * @return Returns the tiltAngleSpec.
+   */
   public TiltAngleSpec getTiltAngleSpec() {
     return tiltAngleSpec;
   }
-
-  public double getTiltAngleOffset() {
-    return tiltAngleOffset;
+  /**
+   * @return Returns the tiltDefaultGrouping.
+   */
+  public ConstEtomoNumber getTiltDefaultGrouping() {
+    return tiltDefaultGrouping;
   }
-
-  public int getTiltAngleSolutionType() {
-    return tiltAngleSolution.type;
+  /**
+   * @return Returns the tiltNondefaultGroup.
+   */
+  public String getTiltNondefaultGroup() {
+    return ParamUtilities.valueOf(tiltNondefaultGroup);
   }
-
-  public String getTiltAngleSolutionParams() {
-    return tiltAngleSolution.params.toString();
+  /**
+   * @return Returns the tiltOption.
+   */
+  public ConstEtomoNumber getTiltOption() {
+    return tiltOption;
   }
-
-  public int getTiltAngleSolutionGroupSize() {
-    return tiltAngleSolution.params.getInt(0);
+  /**
+   * @return Returns the xStretchDefaultGrouping.
+   */
+  public ConstEtomoNumber getXStretchDefaultGrouping() {
+    return xStretchDefaultGrouping;
   }
-
-  public String getTiltAngleSolutionAdditionalGroups() {
-    return tiltAngleSolution.additionalGroups.toString();
+  /**
+   * @return Returns the xStretchNondefaultGroup.
+   */
+  public String getXStretchNondefaultGroup() {
+    return ParamUtilities.valueOf(xStretchNondefaultGroup);
   }
-
-  public String getMagnificationSolutionReferenceView() {
-    return magnificationSolution.referenceView.toString();
+  /**
+   * @return Returns the xStretchOption.
+   */
+  public ConstEtomoNumber getXStretchOption() {
+    return xStretchOption;
   }
-
-  public int getMagnificationSolutionType() {
-    return magnificationSolution.type;
-  }
-
-  public String getMagnificationSolutionParams() {
-    return magnificationSolution.params.toString();
-  }
-
-  public int getMagnificationSolutionGroupSize() {
-    return magnificationSolution.params.getInt(0);
-  }
-
-  public String getMagnificationSolutionAdditionalGroups() {
-    return magnificationSolution.additionalGroups.toString();
-  }
-
-  public String getCompressionSolutionReferenceView() {
-    return compressionSolution.referenceView.toString();
-  }
-
-  public int getCompressionSolutionType() {
-    return compressionSolution.type;
-  }
-
-  public String getCompressionSolutionParams() {
-    return compressionSolution.params.toString();
-  }
-
-  public int getCompressionSolutionGroupSize() {
-    return compressionSolution.params.getInt(0);
-  }
-
-  public String getCompressionSolutionAdditionalGroups() {
-    return compressionSolution.additionalGroups.toString();
-  }
-
-  public int getDistortionSolutionType() {
-    return distortionSolutionType;
-  }
-
-  public int getXstretchSolutionType() {
-    return xstretchSolution.type;
-  }
-
-  public String getXstretchSolutionParams() {
-    return xstretchSolution.params.toString();
-  }
-
-  public int getXstretchSolutionGroupSize() {
-    return xstretchSolution.params.getInt(0);
-  }
-
-  public String getXstretchSolutionAdditionalGroups() {
-    return xstretchSolution.additionalGroups.toString();
-  }
-
-  public int getSkewSolutionType() {
-    return skewSolution.type;
-  }
-
-  public String getSkewSolutionParams() {
-    return skewSolution.params.toString();
-  }
-
-  public int getSkewSolutionGroupSize() {
-    return skewSolution.params.getInt(0);
-  }
-
-  public String getSkewSolutionAdditionalGroups() {
-    return skewSolution.additionalGroups.toString();
-  }
-
-  public double getResidualThreshold() {
-    return residualThreshold;
-  }
-
-  public int getNSurfaceAnalysis() {
-    return nSurfaceAnalysis;
-  }
-
-  public String getMinimizationParams() {
-    return minimizationParams.toString();
-  }
-
-  public double getMetroFactor() {
-    return minimizationParams.getDouble(0);
-  }
-
-  public int getCycleLimit() {
-    return minimizationParams.getInt(1);
-  }
-
-  public double getTiltAxisZShift() {
-    return tiltAxisZShift;
-  }
-
-  public double getTiltAxisXShift() {
-    return tiltAxisXShift;
-  }
-
-  public boolean getLocalAlignments() {
-    return localAlignments;
-  }
-
-  public String getLocalTransformFile() {
-    return localTransformFile;
-  }
-
-  public String getNLocalPatches() {
-    return nLocalPatches.toString();
-  }
-
-  public String getMinLocalPatchSize() {
-    return minLocalPatchSize.toString();
-  }
-
-  public String getMinLocalFiducials() {
-    return minLocalFiducials.toString();
-  }
-
-  public boolean getFixLocalFiducialCoodinates() {
-    return fixLocalFiducialCoodinates;
-  }
-
-  public String getLocalOutputSelection() {
-    return localOutputSelection.toString();
-  }
-
-  public int getLocalRotationSolutionType() {
-    return localRotationSolution.type;
-  }
-  public int getLocalRotationSolutionGroupSize() {
-    return localRotationSolution.params.getInt(0);
-  }
-
-  public String getLocalRotationSolutionParams() {
-    return localRotationSolution.params.toString();
-  }
-
-  public String getLocalRotationAdditionalGroups() {
-    return localRotationSolution.additionalGroups.toString();
-  }
-
-  public int getLocalTiltSolutionType() {
-    return localTiltSolution.type;
-  }
-
-  public int getLocalTiltSolutionGroupSize() {
-    return localTiltSolution.params.getInt(0);
-  }
-
-  public String getLocalTiltSolutionParams() {
-    return localTiltSolution.params.toString();
-  }
-
-  public String getLocalTiltAdditionalGroups() {
-    return localTiltSolution.additionalGroups.toString();
-  }
-
-  public String getLocalMagnificationSolutionReferenceView() {
-    return localMagnificationSolution.referenceView.toString();
-  }
-
-  public int getLocalMagnificationSolutionType() {
-    return localMagnificationSolution.type;
-  }
-
-  public String getLocalMagnificationSolutionParams() {
-    return localMagnificationSolution.params.toString();
-  }
-
-  public int getLocalMagnificationSolutionGroupSize() {
-    return localMagnificationSolution.params.getInt(0);
-  }
-
-  public String getLocalMagnificationSolutionAdditionalGroups() {
-    return localMagnificationSolution.additionalGroups.toString();
-  }
-
-  public String getLocalMagnificationAdditionalGroups() {
-    return localMagnificationSolution.additionalGroups.toString();
-  }
-
-  public int getLocalDistortionSolutionType() {
-    return localDistortionSolutionType;
-  }
-
-  public int getLocalXstretchSolutionType() {
-    return localXstretchSolution.type;
-  }
-
-  public String getLocalXstretchSolutionParams() {
-    return localXstretchSolution.params.toString();
-  }
-
-  public int getLocalXstretchSolutionGroupSize() {
-    return localXstretchSolution.params.getInt(0);
-  }
-
-  public String getLocalXstretchSolutionAdditionalGroups() {
-    return localXstretchSolution.additionalGroups.toString();
-  }
-
-  public int getLocalSkewSolutionType() {
-    return localSkewSolution.type;
-  }
-
-  public String getLocalSkewSolutionParams() {
-    return localSkewSolution.params.toString();
-  }
-
-  public int getLocalSkewSolutionGroupSize() {
-    return localSkewSolution.params.getInt(0);
-  }
-
-  public String getLocalSkewSolutionAdditionalGroups() {
-    return localSkewSolution.additionalGroups.toString();
-  }
-
+  
 }
