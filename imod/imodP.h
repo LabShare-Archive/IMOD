@@ -1,6 +1,6 @@
 /*  IMOD VERSION 2.50
  *
- *  imod.h -- Main header file for imod.
+ *  imodP.h -- Main header file for imod - private functions
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -239,11 +239,6 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 #define IMOD_MIN_INDEX  16
 
 
-
-/****************************************************************************/
-/* Public functions that can be used via plugin.                            */
-#include <imod.h>
-
 /****************************************************************************/
 /* Private functions for internal imod use.                                 */
 
@@ -253,41 +248,16 @@ char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 QString imodCaption(char *intro);
 
-unsigned char **ivwGetCurrentSection(ImodView *iv);
-unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
-                                    int xsize, int ysize, int mode);
-int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
-                       int inNullvalue, int *cacheSum);
-int ivwInitCache(ImodView *vi);
-
-void ivwBindMouse(ImodView *vw);
-
-int  ivwScale(ImodView *vw);
-int  ivwFlip(ImodView *vw);
-void ivwInit(ImodView *vi);
-int  ivwPointVisible(ImodView *vw, Ipoint *pnt);
-float ivwGetFileValue(ImodView *vw, int cx, int cy, int cz);
-
-int  imodImageFileDesc(FILE *fin);
-int  ivwLoadImage(ImodView *iv);
-void ivwFlushCache(ImodView *vi);
-int  ivwSetScale(ImodView *vi);
-void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, 
-		      int lastimage);
-
-void ivwTransModel(ImodView *iv);
-void ivwSetModelTrans(ImodView *iv);
-void ivwFlipModel(ImodView *iv);
-void ivwCheckWildFlag(Imod *imod);
-void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
-void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
-
 
 #endif     
 
 
 /*
 $Log$
+Revision 3.18  2003/09/16 02:47:41  mast
+Added variables and changed declarations for accessing images from line
+pointers
+
 Revision 3.17  2003/09/13 04:31:08  mast
 Add a define for the size of the global array with model filename
 
