@@ -588,17 +588,17 @@ int grap_color(struct MRCheader *hin, struct MRCheader *hout,
       pixel = pixin * opt->red;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 
       pixel = pixin * opt->green;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 	       
       pixel = pixin * opt->blue;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 
     }
   }
@@ -650,17 +650,17 @@ int clip2d_color(struct MRCheader *hin, struct MRCheader *hout,
       pixel = pixin * opt->red;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 
       pixel = pixin * opt->green;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 	       
       pixel = pixin * opt->blue;
       if (pixel > 255.0) pixel = 255.0;
       bdata = pixel + 0.5;
-      fwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
     }
     sliceFree(slice);
   }

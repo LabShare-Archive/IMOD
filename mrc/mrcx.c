@@ -27,57 +27,60 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 /* 
-*
-* PURPOSE....:
-*   To convert an MRC file in VAX format to/from big endian/IEEE format, or
-*   a file in big endian IEEE to/from little endian IEEE format. Byte,
-*   float (4 byte), short int (2 byte), complex float (8 byte), RGB (3 byte),
-*   and complex short (4 byte) types are supported.
-*
-* REVISIONS..:
-*   Ross Dargahi     April 1990
-*
-*   Jim Kremer       Modified July 1993 for HVEM 3D mrc files.
-*                    Modified September 1993 for loading in HVEM extra data.
-*
-*                    Rewrote and renamed program to mrcx.  Program now uses
-*                    the mrcfiles library. Feb 1994
-*                    Jan   1995.  Byte data converted inplace is skipped.
-*                                 Large images don't crash program.
-*                    April 1995   Added bit mode 9-15.
-*                                 Fixed bug that didn't copy byte data.
-*                    Nov   1995   Fixed bug that destroyed header if data 
-*                                 type was unknown.
-*
-*  David Mastronarde Oct   2000   Rewrote to handle either VMS/Unix or
-*                                 big/little IEEE conversions, and to detect
-*                                 which direction to do the conversion in.
-*                                 Eliminated bit modes as hopeless.
-******************************************************************************/
+ *
+ * PURPOSE....:
+ *   To convert an MRC file in VAX format to/from big endian/IEEE format, or
+ *   a file in big endian IEEE to/from little endian IEEE format. Byte,
+ *   float (4 byte), short int (2 byte), complex float (8 byte), RGB (3 byte),
+ *   and complex short (4 byte) types are supported.
+ *
+ * REVISIONS..:
+ *   Ross Dargahi     April 1990
+ *
+ *   Jim Kremer       Modified July 1993 for HVEM 3D mrc files.
+ *                    Modified September 1993 for loading in HVEM extra data.
+ *
+ *                    Rewrote and renamed program to mrcx.  Program now uses
+ *                    the mrcfiles library. Feb 1994
+ *                    Jan   1995.  Byte data converted inplace is skipped.
+ *                                 Large images don't crash program.
+ *                    April 1995   Added bit mode 9-15.
+ *                                 Fixed bug that didn't copy byte data.
+ *                    Nov   1995   Fixed bug that destroyed header if data 
+ *                                 type was unknown.
+ *
+ *  David Mastronarde Oct   2000   Rewrote to handle either VMS/Unix or
+ *                                 big/little IEEE conversions, and to detect
+ *                                 which direction to do the conversion in.
+ *                                 Eliminated bit modes as hopeless.
+ ******************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.4  2003/03/28 05:07:51  mast
-    Use new unique little endian flag
+$Log$
+Revision 3.5  2003/10/24 02:28:42  mast
+strip directory from program name and/or use routine to make backup file
 
-    Revision 3.3  2003/02/21 22:22:34  mast
-    Changed all types to use new b3d types
+Revision 3.4  2003/03/28 05:07:51  mast
+Use new unique little endian flag
 
-    Revision 3.2  2002/07/31 20:16:35  mast
-    *** empty log message ***
+Revision 3.3  2003/02/21 22:22:34  mast
+Changed all types to use new b3d types
 
-    Revision 3.1  2002/07/31 20:07:33  mast
-    Changes to accommodate new or old style MRC headers
+Revision 3.2  2002/07/31 20:16:35  mast
+*** empty log message ***
+
+Revision 3.1  2002/07/31 20:07:33  mast
+Changes to accommodate new or old style MRC headers
 
 */
 
 /******************************************************************************
-*   Include Files
-******************************************************************************/
+ *   Include Files
+ ******************************************************************************/
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -88,249 +91,255 @@
 #include <mrcfiles.h>
 #include "b3dutil.h"
 
+#ifdef WIN32_BIGFILE
+#define fseek b3dFseek 
+#define fread b3dFread 
+#define fwrite b3dFwrite 
+#endif
+
 /* prototypes */
 void convertBytes(FILE  *fp, b3dUByte *buffer, int   noBytes, int direction); 
 void convertShorts(FILE  *fp, b3dUByte *buffer, int   noShorts, int direction);
 void convertFloats(FILE  *fp, b3dUByte *buffer, int   noFloats, int direction);
 void convertLongs(FILE  *fp, b3dUByte *buffer, int   noLongs, int direction); 
 void convertBody(void (*convertFunc)(), struct MRCheader *header, int size,
-		 int factor, int direction, FILE *infp, FILE *outfp);
+                 int factor, int direction, FILE *infp, FILE *outfp);
 void convertHeader(void (*floatFunc)(), int nextra, struct MRCheader  *header,
-		   FILE *infp, FILE *outfp, int direction, char *cmap);
+                   FILE *infp, FILE *outfp, int direction, char *cmap);
 
 
 main( int argc, char *argv[])
 {
-     void  (*convertFunc)();
-     void  (*floatFunc)();
-     struct MRCheader hdata;
-     struct MRCheader hconv;
-     struct MRCheader *hout;
-     int error;
-     int   factor;
-     int   size;
-     int   tonative;
-     int   swapieee;
-     FILE  *fin, *fout;
-     int   i;
-     int   inplace;
-     unsigned char bdata;
-     long int filesize, datasize;
-     char *progname = imodProgName(argv[0]);
+  void  (*convertFunc)();
+  void  (*floatFunc)();
+  struct MRCheader hdata;
+  struct MRCheader hconv;
+  struct MRCheader *hout;
+  int error;
+  int   factor;
+  int   size;
+  int   tonative;
+  int   swapieee;
+  FILE  *fin, *fout;
+  int   i;
+  int   inplace;
+  unsigned char bdata;
+  long int filesize, datasize;
+  char *progname = imodProgName(argv[0]);
 
 #ifdef SWAP_IEEE_FLOATS
-     swapieee = TRUE;
+  swapieee = TRUE;
 #else
-     swapieee = FALSE;
+  swapieee = FALSE;
 #endif
 
 #ifndef B3D_LITTLE_ENDIAN
-     if (argc < 2){
-	  fprintf(stderr, "Usage: %s [-vms|-ieee] filename [optional output filename]\n",
-		  progname);
+  if (argc < 2){
+    fprintf(stderr, "Usage: %s [-vms|-ieee] filename [optional output filename]\n",
+            progname);
 #ifdef SWAP_IEEE_FLOATS
-	  fprintf(stderr, "options: choose only one, default is -ieee.\n");
+    fprintf(stderr, "options: choose only one, default is -ieee.\n");
 #else
-	  fprintf(stderr, "options: choose only one, default is -vms.\n");
+    fprintf(stderr, "options: choose only one, default is -vms.\n");
 #endif
-	  fprintf(stderr, "\t-vms   convert between VMS and IEEE format\n");
-	  fprintf(stderr, "\t-ieee  swap bytes in IEEE format only\n");
-	  exit(1);
-     }
+    fprintf(stderr, "\t-vms   convert between VMS and IEEE format\n");
+    fprintf(stderr, "\t-ieee  swap bytes in IEEE format only\n");
+    exit(1);
+  }
 
-     i = 1;
-     if (argv[1][0] == '-'){
-	  if (argv[1][1] == 'v'){
-	       swapieee = FALSE;
-	       i = 2;
-	  }else{
-	       if (argv[1][1] == 'i'){
-		    swapieee = TRUE;
-		    i = 2;
-	       }
-	  }
-     }
+  i = 1;
+  if (argv[1][0] == '-'){
+    if (argv[1][1] == 'v'){
+      swapieee = FALSE;
+      i = 2;
+    }else{
+      if (argv[1][1] == 'i'){
+        swapieee = TRUE;
+        i = 2;
+      }
+    }
+  }
 
-     if (i >= argc){
-	  fprintf(stderr, "%s: Usage [-vms|-ieee] [filename] [optional output filename]\n",
-		  progname);
-	  exit(1);
-     }
+  if (i >= argc){
+    fprintf(stderr, "%s: Usage [-vms|-ieee] [filename] [optional output filename]\n",
+            progname);
+    exit(1);
+  }
 #else
-     if (argc < 2 || argc > 3 || argv[1][0] == '-') {
-	  fprintf(stderr, "%s: Usage [filename] [opt filename]\n",
-		  progname);
-	  fprintf(stderr, "There is no option to convert VMS data on this machine.\n");
-	  exit(1);
-     }
-     i = 1;
+  if (argc < 2 || argc > 3 || argv[1][0] == '-') {
+    fprintf(stderr, "%s: Usage [filename] [opt filename]\n",
+            progname);
+    fprintf(stderr, "There is no option to convert VMS data on this machine.\n");
+    exit(1);
+  }
+  i = 1;
 #endif
      
-     fin = fopen(argv[i], "rb");
-     if (fin == NULL){
-	  fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
-	  exit(10);
-     }
-     i++;
+  fin = fopen(argv[i], "rb");
+  if (fin == NULL){
+    fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
+    exit(10);
+  }
+  i++;
 
-     if (i >= argc){
-	  inplace = TRUE;
-	  fout = fopen(argv[i-1], "rb+");
-     }
-     else{
-	  fout = fopen(argv[i], "wb");
-	  inplace = FALSE;
-     }
+  if (i >= argc){
+    inplace = TRUE;
+    fout = fopen(argv[i-1], "rb+");
+  }
+  else{
+    fout = fopen(argv[i], "wb");
+    inplace = FALSE;
+  }
 
-     if (fout == NULL){
-	  fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
-	  exit(10);
-     }
+  if (fout == NULL){
+    fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
+    exit(10);
+  }
 
-     if (swapieee)
-	  floatFunc = convertLongs;
-     else
-	  floatFunc = convertFloats;
+  if (swapieee)
+    floatFunc = convertLongs;
+  else
+    floatFunc = convertFloats;
 
-     if (fread(&hdata, 56, 4, fin) == 0){
-	  fprintf(stderr, "%s: Error Reading header.\n", progname);
-	  exit(-1);
-     }
+  if (fread(&hdata, 56, 4, fin) == 0){
+    fprintf(stderr, "%s: Error Reading header.\n", progname);
+    exit(-1);
+  }
 
-     hdata.swapped = 0;
+  hdata.swapped = 0;
 
-     /* Test for byte-swapped data with image size and the map numbers */
-     if (hdata.nx <= 0 || hdata.nx > 60000 ||
-	 hdata.ny <= 0 || hdata.ny > 60000 ||
-	 hdata.nz <= 0 || hdata.nz > 60000 ||
-	 hdata.mapc < 0 || hdata.mapc > 4 ||
-	 hdata.mapr < 0 || hdata.mapr > 4 ||
-	 hdata.maps < 0 || hdata.maps > 4) {
+  /* Test for byte-swapped data with image size and the map numbers */
+  if (hdata.nx <= 0 || hdata.nx > 60000 ||
+      hdata.ny <= 0 || hdata.ny > 60000 ||
+      hdata.nz <= 0 || hdata.nz > 60000 ||
+      hdata.mapc < 0 || hdata.mapc > 4 ||
+      hdata.mapr < 0 || hdata.mapr > 4 ||
+      hdata.maps < 0 || hdata.maps > 4) {
 
-	  /* Mark data as swapped and do the swaps of critical data */
-	  hdata.swapped = 1;
-	  mrc_swap_longs(&hdata.nx, 10);
-	  mrc_swap_longs(&hdata.mapc, 3);
-	  mrc_swap_longs(&hdata.next, 1);
-	  mrc_swap_shorts(&hdata.nint, 4);
-	  mrc_swap_longs(&hdata.nlabl, 1);
+    /* Mark data as swapped and do the swaps of critical data */
+    hdata.swapped = 1;
+    mrc_swap_longs(&hdata.nx, 10);
+    mrc_swap_longs(&hdata.mapc, 3);
+    mrc_swap_longs(&hdata.next, 1);
+    mrc_swap_shorts(&hdata.nint, 4);
+    mrc_swap_longs(&hdata.nlabl, 1);
 
-     }
-     if (hdata.nx <= 0 || hdata.nx > 60000 ||
-	 hdata.ny <= 0 || hdata.ny > 60000 ||
-	 hdata.nz <= 0 || hdata.nz > 60000 ||
-	 hdata.mapc < 0 || hdata.mapc > 4 ||
-	 hdata.mapr < 0 || hdata.mapr > 4 ||
-	 hdata.maps < 0 || hdata.maps > 4 ||
-	 hdata.mode > 16 || hdata.mode < 0) {
-	  fprintf(stderr, "%s: This is not an MRC file, even after "
-		  "swapping bytes in header.\n", progname);
-	  
-	  exit(-1);
-     }
+  }
+  if (hdata.nx <= 0 || hdata.nx > 60000 ||
+      hdata.ny <= 0 || hdata.ny > 60000 ||
+      hdata.nz <= 0 || hdata.nz > 60000 ||
+      hdata.mapc < 0 || hdata.mapc > 4 ||
+      hdata.mapr < 0 || hdata.mapr > 4 ||
+      hdata.maps < 0 || hdata.maps > 4 ||
+      hdata.mode > 16 || hdata.mode < 0) {
+    fprintf(stderr, "%s: This is not an MRC file, even after "
+            "swapping bytes in header.\n", progname);
+      
+    exit(-1);
+  }
 
-     hdata.headerSize = 1024;
-     hdata.headerSize += hdata.next;
-     tonative = hdata.swapped;
-     datasize = hdata.nx * hdata.ny * hdata.nz;
-     fseek(fin, 0, SEEK_END);
-     filesize = ftell(fin);
-     switch(hdata.mode){
-	case MRC_MODE_BYTE:
-	  convertFunc = convertBytes;
-	  size = 1;
-	  factor = 1;
-	  break;
-	  
-	case MRC_MODE_SHORT:
-	  datasize *= sizeof(short);
-	  convertFunc = convertShorts;
-	  size = sizeof(short);
-	  factor = 1;
-	  break;
-	  
-	case MRC_MODE_FLOAT:
-	  datasize *= sizeof(float);
-	  convertFunc = floatFunc;
-	  size = sizeof(float);
-	  factor = 1;
-	  break;
-	  
-	case MRC_MODE_COMPLEX_SHORT:
-	  datasize *= 2 * sizeof(short);
-	  convertFunc = convertShorts;
-	  size = sizeof(short);
-	  factor = 2;
-	  break;
-	  
-	case MRC_MODE_COMPLEX_FLOAT:
-	  datasize *= 2 * sizeof(float);
-	  convertFunc = floatFunc;
-	  size = sizeof(float);
-	  factor = 2;
-	  break;
-	  
-	case MRC_MODE_RGB:
-	  datasize *= 3;
-	  convertFunc = convertBytes;
-	  size = 1;
-	  factor = 3;
-	  break;
+  hdata.headerSize = 1024;
+  hdata.headerSize += hdata.next;
+  tonative = hdata.swapped;
+  datasize = hdata.nx * hdata.ny * hdata.nz;
+  fseek(fin, 0, SEEK_END);
+  filesize = ftell(fin);
+  switch(hdata.mode){
+  case MRC_MODE_BYTE:
+    convertFunc = convertBytes;
+    size = 1;
+    factor = 1;
+    break;
+      
+  case MRC_MODE_SHORT:
+    datasize *= sizeof(short);
+    convertFunc = convertShorts;
+    size = sizeof(short);
+    factor = 1;
+    break;
+      
+  case MRC_MODE_FLOAT:
+    datasize *= sizeof(float);
+    convertFunc = floatFunc;
+    size = sizeof(float);
+    factor = 1;
+    break;
+      
+  case MRC_MODE_COMPLEX_SHORT:
+    datasize *= 2 * sizeof(short);
+    convertFunc = convertShorts;
+    size = sizeof(short);
+    factor = 2;
+    break;
+      
+  case MRC_MODE_COMPLEX_FLOAT:
+    datasize *= 2 * sizeof(float);
+    convertFunc = floatFunc;
+    size = sizeof(float);
+    factor = 2;
+    break;
+      
+  case MRC_MODE_RGB:
+    datasize *= 3;
+    convertFunc = convertBytes;
+    size = 1;
+    factor = 3;
+    break;
 
-	default:
-	  fprintf(stderr, "%s: data type %d unsupported.\n",
-		  progname, hdata.mode);
-	  exit(-1);
-	  break;
-     }
+  default:
+    fprintf(stderr, "%s: data type %d unsupported.\n",
+            progname, hdata.mode);
+    exit(-1);
+    break;
+  }
 
-     datasize += hdata.headerSize;
-     if (filesize < datasize || filesize > datasize + 511){
-	  fprintf(stderr, "mrcx: Warning input file is %d bytes, "
-		  "expected size is %d.\n", filesize, datasize);
-     }
-     rewind(fin);
+  datasize += hdata.headerSize;
+  if (filesize < datasize || filesize > datasize + 511){
+    fprintf(stderr, "mrcx: Warning input file is %d bytes, "
+            "expected size is %d.\n", filesize, datasize);
+  }
+  rewind(fin);
 
 #ifdef B3D_LITTLE_ENDIAN
-     if (tonative)
-	  printf("Converting big-endian IEEE to little-endian IEEE.\n");
-     else
-	  printf("Converting little-endian IEEE to big-endian IEEE.\n");
+  if (tonative)
+    printf("Converting big-endian IEEE to little-endian IEEE.\n");
+  else
+    printf("Converting little-endian IEEE to big-endian IEEE.\n");
 #else
-     if (swapieee) {
-	  if (tonative)
-	       printf("Converting little-endian IEEE to big-endian IEEE.\n");
-	  else
-	       printf("Converting big-endian IEEE to little-endian IEEE.\n");
-     } else {
-	  if (tonative)
-	       printf("Converting little-endian VMS to big-endian IEEE.\n");
-	  else
-	       printf("Converting big-endian IEEE to little-endian VMS.\n");
-     }
+  if (swapieee) {
+    if (tonative)
+      printf("Converting little-endian IEEE to big-endian IEEE.\n");
+    else
+      printf("Converting big-endian IEEE to little-endian IEEE.\n");
+  } else {
+    if (tonative)
+      printf("Converting little-endian VMS to big-endian IEEE.\n");
+    else
+      printf("Converting big-endian IEEE to little-endian VMS.\n");
+  }
 #endif
 
 
-     convertHeader(floatFunc, hdata.next, &hconv, fin, fout, tonative, 
-		   &hdata.cmap[0]);
+  convertHeader(floatFunc, hdata.next, &hconv, fin, fout, tonative, 
+                &hdata.cmap[0]);
 
-     fwrite(&hconv, 56, 4, fout);
+  fwrite(&hconv, 56, 4, fout);
      
-     for (i = 0; i < MRC_NLABELS; i++)
-	  fwrite(hconv.labels[i], MRC_LABEL_SIZE, 1,fout);
+  for (i = 0; i < MRC_NLABELS; i++)
+    fwrite(hconv.labels[i], MRC_LABEL_SIZE, 1,fout);
 
-     if (hdata.next)
-	  fwrite(hconv.symops, hdata.next, 1, fout);
+  if (hdata.next)
+    fwrite(hconv.symops, hdata.next, 1, fout);
 
 
-     if (!inplace || convertFunc != convertBytes)
-	  convertBody(convertFunc, &hdata, size, factor, tonative, fin, fout);
+  if (!inplace || convertFunc != convertBytes)
+    convertBody(convertFunc, &hdata, size, factor, tonative, fin, fout);
      
-     fclose(fin);
-     if (!inplace)
-	  fclose(fout);
-     exit(0);
-     return(0);
+  fclose(fin);
+  if (!inplace)
+    fclose(fout);
+  exit(0);
+  return(0);
 }
 
 
@@ -340,15 +349,15 @@ main( int argc, char *argv[])
 
 
 void convertBody(void (*convertFunc)(),
-		 struct MRCheader *header,
-		 int size,
-		 int factor,
-		 int direction,
-		 FILE *infp,
-		 FILE *outfp)
+                 struct MRCheader *header,
+                 int size,
+                 int factor,
+                 int direction,
+                 FILE *infp,
+                 FILE *outfp)
 
-/*sets up the image data conversion and writes the converted data to the 
-output file*/
+     /*sets up the image data conversion and writes the converted data to the 
+       output file*/
 
 {
   unsigned long lcv;       
@@ -358,15 +367,15 @@ output file*/
   int i;
 
   if (size == 1){
-       size = header->nx * header->ny * header->nz;
-       for(i = 0; i < size; i++){
-	    if (! fread(&(pix), 1,1,infp)){
-		  perror("Error copying data ");
-		  return;
-	     }
-	    fwrite(&(pix), 1, 1, outfp);
-       }
-       return;
+    size = header->nx * header->ny * header->nz;
+    for(i = 0; i < size; i++){
+      if (! fread(&(pix), 1,1,infp)){
+        perror("Error copying data ");
+        return;
+      }
+      fwrite(&(pix), 1, 1, outfp);
+    }
+    return;
   }
 
   scanLine = (b3dUByte *)malloc(header->nx * size * factor);
@@ -374,10 +383,10 @@ output file*/
   scans = header->ny * header->nz;
 
   for (lcv = 0; lcv < scans; lcv++)
-   {
-     (*convertFunc)(infp, scanLine, header->nx * factor, direction);
-     fwrite(scanLine, size, header->nx * factor, outfp);
-   }
+    {
+      (*convertFunc)(infp, scanLine, header->nx * factor, direction);
+      fwrite(scanLine, size, header->nx * factor, outfp);
+    }
 
   free(scanLine);
 
@@ -387,19 +396,19 @@ output file*/
 
 /*****************************************************************************/
 void convertBytes(FILE  *fp,        /*file to read from*/
-		  b3dUByte *buffer, /*buffer to write the converted values to*/
-		  int   noBytes,    /*number of bytes to convert*/
-		  int   direction)  /*conversion direction*/
+                  b3dUByte *buffer, /*buffer to write the converted values to*/
+                  int   noBytes,    /*number of bytes to convert*/
+                  int   direction)  /*conversion direction*/
 
-/*converts byte data.*/
+     /*converts byte data.*/
 
 {
   /* Read in data */
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
-   {
-     fprintf(stderr, "Read Failed While Reading Byte Quantities\n");
-   }
+    {
+      fprintf(stderr, "Read Failed While Reading Byte Quantities\n");
+    }
 
 } /*convertBytes*/
 
@@ -407,17 +416,17 @@ void convertBytes(FILE  *fp,        /*file to read from*/
 
 /*****************************************************************************/
 void convertFloats(FILE  *fp,       /*file to read from*/
-		   b3dUByte *buffer,/*buffer to write the converted values to*/
-		   int   noFloats,  /*number of floats to convert*/
-		   int   direction) /*conversion direction*/
+                   b3dUByte *buffer,/*buffer to write the converted values to*/
+                   int   noFloats,  /*number of floats to convert*/
+                   int   direction) /*conversion direction*/
 
-/*
-Converts a floating point number in vax floating point representation to IEEE
-representation and vica versa. A vax floating point no is bias 128 with
-exponents ranging from -127 to 127 the number is stored little endian. An IEEE
-float is point no is bias 127 with exponents ranging form -126 to 128, the
-number is typically stored big endian.
-*/
+     /*
+       Converts a floating point number in vax floating point representation to IEEE
+       representation and vica versa. A vax floating point no is bias 128 with
+       exponents ranging from -127 to 127 the number is stored little endian. An IEEE
+       float is point no is bias 127 with exponents ranging form -126 to 128, the
+       number is typically stored big endian.
+     */
 
 {
   b3dUByte exp;
@@ -428,9 +437,9 @@ number is typically stored big endian.
   noBytes = noFloats * sizeof(float);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
-   {
-     fprintf(stderr, "Read Failed While Reading Float Quantities\n");
-   }
+    {
+      fprintf(stderr, "Read Failed While Reading Float Quantities\n");
+    }
 
   /*When converting from vax floating to IEEE floating, it must be noted 
    *that vax float exponents range from -127 to 127 whilst IEEE exponents
@@ -444,156 +453,156 @@ number is typically stored big endian.
    *converting from big endian to little endian and vice versa*/ 
 
   for (lcv = 0; lcv < noBytes; lcv += sizeof(float))
-   {
-     if (direction) /* FROM_VAX */
-      {
-        if ((exp = (buffer[lcv+1] << 1) | (buffer[lcv] >> 7 & 0x01)) > 3 && 
-            exp != 0)
-           buffer[lcv+1] -= 1;
-        else if (exp <= 3 && exp != 0)  /*must zero out the mantissa*/
-         {
-           /*we want manitssa 0 & exponent 1*/
+    {
+      if (direction) /* FROM_VAX */
+        {
+          if ((exp = (buffer[lcv+1] << 1) | (buffer[lcv] >> 7 & 0x01)) > 3 && 
+              exp != 0)
+            buffer[lcv+1] -= 1;
+          else if (exp <= 3 && exp != 0)  /*must zero out the mantissa*/
+            {
+              /*we want manitssa 0 & exponent 1*/
 
-           buffer[lcv] = 0x80;
-           buffer[lcv+1] &= 0x80;
-           buffer[lcv+2] = buffer[lcv+3] = 0;
-         }
+              buffer[lcv] = 0x80;
+              buffer[lcv+1] &= 0x80;
+              buffer[lcv+2] = buffer[lcv+3] = 0;
+            }
        
-        temp = buffer[lcv];
-        buffer[lcv] = buffer[lcv+1];
-        buffer[lcv+1] = temp;
-      }
-     else  /*TO_VAX*/
-      {
-        if ((exp = (buffer[lcv] << 1) | (buffer[lcv+1] >> 7 & 0x01)) < 253 &&
-            exp != 0)
-           buffer[lcv] += 1;
-        else if (exp >= 253) /*must also max out the exp & mantissa*/
-         {
-           /*we want manitssa all 1 & exponent 255*/
+          temp = buffer[lcv];
+          buffer[lcv] = buffer[lcv+1];
+          buffer[lcv+1] = temp;
+        }
+      else  /*TO_VAX*/
+        {
+          if ((exp = (buffer[lcv] << 1) | (buffer[lcv+1] >> 7 & 0x01)) < 253 &&
+              exp != 0)
+            buffer[lcv] += 1;
+          else if (exp >= 253) /*must also max out the exp & mantissa*/
+            {
+              /*we want manitssa all 1 & exponent 255*/
 
-           buffer[lcv] |= 0x7F;
-           buffer[lcv+1] = 0xFF; 
-           buffer[lcv+2] = buffer[lcv+3] = 0xFF;
-         }
+              buffer[lcv] |= 0x7F;
+              buffer[lcv+1] = 0xFF; 
+              buffer[lcv+2] = buffer[lcv+3] = 0xFF;
+            }
 
-        temp = buffer[lcv];
-        buffer[lcv] = buffer[lcv+1];
-        buffer[lcv+1] = temp;
-      }
+          temp = buffer[lcv];
+          buffer[lcv] = buffer[lcv+1];
+          buffer[lcv+1] = temp;
+        }
       
-     if (((direction  && exp > 3) || 
-         (!direction  && exp < 253)) && exp != 0)
-      {
-        temp = buffer[lcv+2];
-        buffer[lcv+2] = buffer[lcv+3];
-        buffer[lcv+3] = temp;
-      }
-   }
+      if (((direction  && exp > 3) || 
+           (!direction  && exp < 253)) && exp != 0)
+        {
+          temp = buffer[lcv+2];
+          buffer[lcv+2] = buffer[lcv+3];
+          buffer[lcv+3] = temp;
+        }
+    }
 
 } /*convertFloats*/
 
 /******************************************************************************/
 void convertHeader(void (*floatFunc)(),
-		   int nextra,
-		   struct MRCheader  *header,  /*MRC header structure*/
-		   FILE         *infp,        /*input file pointer*/
-		   FILE         *outfp,       /*input file pointer*/
-		   int direction,
-		   char *cmap)
+                   int nextra,
+                   struct MRCheader  *header,  /*MRC header structure*/
+                   FILE         *infp,        /*input file pointer*/
+                   FILE         *outfp,       /*input file pointer*/
+                   int direction,
+                   char *cmap)
 
 {
-     int lcv;
-     b3dUByte extra;
+  int lcv;
+  b3dUByte extra;
 
-     convertLongs(infp, (b3dUByte *)&header->nx, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->ny, 1, direction);
-     convertLongs(infp, (b3dUByte*)&header->nz, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->nx, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->ny, 1, direction);
+  convertLongs(infp, (b3dUByte*)&header->nz, 1, direction);
      
-     convertLongs(infp, (b3dUByte*)&header->mode, 1, direction);
+  convertLongs(infp, (b3dUByte*)&header->mode, 1, direction);
 
-     convertLongs(infp, (b3dUByte *)&header->nxstart, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->nystart, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->nzstart, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->mx, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->my, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->mz, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->xlen, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->ylen, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->zlen, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->alpha, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->beta, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->gamma, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->mapc, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->mapr, 1, direction);
-     convertLongs(infp, (b3dUByte *)&header->maps, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->amin, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->amax, 1, direction);
-     floatFunc(infp, (b3dUByte *)&header->amean, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->ispg, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->nsymbt, 1, direction);
-     /*     convertLongs(infp, (b3dUByte *)header->extra, 16, direction); */
-     convertLongs(infp, (b3dUByte *)&header->next, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->creatid, 1, direction);
-     convertBytes(infp, (b3dUByte *)&header->blank, 30, direction);
-     convertShorts(infp, (b3dUByte *)&header->nint, 4, direction);
-     floatFunc(infp, (b3dUByte *)&header->min2, 6, direction);
+  convertLongs(infp, (b3dUByte *)&header->nxstart, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->nystart, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->nzstart, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->mx, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->my, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->mz, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->xlen, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->ylen, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->zlen, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->alpha, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->beta, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->gamma, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->mapc, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->mapr, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->maps, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->amin, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->amax, 1, direction);
+  floatFunc(infp, (b3dUByte *)&header->amean, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->ispg, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->nsymbt, 1, direction);
+  /*     convertLongs(infp, (b3dUByte *)header->extra, 16, direction); */
+  convertLongs(infp, (b3dUByte *)&header->next, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->creatid, 1, direction);
+  convertBytes(infp, (b3dUByte *)&header->blank, 30, direction);
+  convertShorts(infp, (b3dUByte *)&header->nint, 4, direction);
+  floatFunc(infp, (b3dUByte *)&header->min2, 6, direction);
 
-     convertShorts(infp, (b3dUByte *)&header->idtype, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->lens, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->idtype, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->lens, 1, direction);
 
-     convertShorts(infp, (b3dUByte *)&header->nd1, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->nd2, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->vd1, 1, direction);
-     convertShorts(infp, (b3dUByte *)&header->vd2, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->nd1, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->nd2, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->vd1, 1, direction);
+  convertShorts(infp, (b3dUByte *)&header->vd2, 1, direction);
 
-     floatFunc(infp, (b3dUByte *)header->tiltangles, 6, direction);
+  floatFunc(infp, (b3dUByte *)header->tiltangles, 6, direction);
 
-     if (cmap[0] != 'M' || cmap[1] != 'A' || cmap[2] != 'P') {
-	  /* Old-style header, swap wavelength then origin data */
-	  convertShorts(infp, (b3dUByte *)&header->xorg, 6, direction);
-	  floatFunc(infp, (b3dUByte *)&header->cmap[0], 3, direction);
-	  printf("Preserving old-style MRC header.\n");
-     } else {
-	  /* new style, swap floats and retain cmap; flip stamp */
-	  floatFunc(infp, (b3dUByte *)&header->xorg, 1, direction);
-	  floatFunc(infp, (b3dUByte *)&header->yorg, 1, direction);
-	  floatFunc(infp, (b3dUByte *)&header->zorg, 1, direction);
-	  convertBytes(infp, (b3dUByte *)&header->cmap[0], 8, direction);
-	  floatFunc(infp, (b3dUByte *)&header->rms, 1, direction);
-	  header->stamp[0] = (header->stamp[0] == 17) ? 68 : 17;
-     }
-     convertLongs(infp, (b3dUByte *)&header->nlabl, 1, direction);
+  if (cmap[0] != 'M' || cmap[1] != 'A' || cmap[2] != 'P') {
+    /* Old-style header, swap wavelength then origin data */
+    convertShorts(infp, (b3dUByte *)&header->xorg, 6, direction);
+    floatFunc(infp, (b3dUByte *)&header->cmap[0], 3, direction);
+    printf("Preserving old-style MRC header.\n");
+  } else {
+    /* new style, swap floats and retain cmap; flip stamp */
+    floatFunc(infp, (b3dUByte *)&header->xorg, 1, direction);
+    floatFunc(infp, (b3dUByte *)&header->yorg, 1, direction);
+    floatFunc(infp, (b3dUByte *)&header->zorg, 1, direction);
+    convertBytes(infp, (b3dUByte *)&header->cmap[0], 8, direction);
+    floatFunc(infp, (b3dUByte *)&header->rms, 1, direction);
+    header->stamp[0] = (header->stamp[0] == 17) ? 68 : 17;
+  }
+  convertLongs(infp, (b3dUByte *)&header->nlabl, 1, direction);
 
 
-     for (lcv = 0; lcv < MRC_NLABELS; lcv++){
-	  convertBytes(infp, (b3dUByte *)header->labels[lcv], MRC_LABEL_SIZE, 
-		       direction);  
-	  header->labels[lcv][MRC_LABEL_SIZE] = '\0';
-     }
+  for (lcv = 0; lcv < MRC_NLABELS; lcv++){
+    convertBytes(infp, (b3dUByte *)header->labels[lcv], MRC_LABEL_SIZE, 
+                 direction);  
+    header->labels[lcv][MRC_LABEL_SIZE] = '\0';
+  }
 
-     /* THIS WILL NOT WORK WITH DATA CONSISTING OF INTEGERS AND REALS */
-     if (nextra > 0){
-	  header->symops = (b3dUByte *)malloc(nextra);
-	  convertShorts(infp, (b3dUByte *)header->symops, 
-		       nextra/2, direction);  
-	  if (nextra % 2)
-	       convertBytes(infp, (b3dUByte *)header->symops + nextra - 1, 1, 
-			    direction);
-     }
+  /* THIS WILL NOT WORK WITH DATA CONSISTING OF INTEGERS AND REALS */
+  if (nextra > 0){
+    header->symops = (b3dUByte *)malloc(nextra);
+    convertShorts(infp, (b3dUByte *)header->symops, 
+                  nextra/2, direction);  
+    if (nextra % 2)
+      convertBytes(infp, (b3dUByte *)header->symops + nextra - 1, 1, 
+                   direction);
+  }
      
-     header->fp = outfp;
+  header->fp = outfp;
      
 } /*convertheader*/
 
 
 /******************************************************************************/
 void convertLongs(FILE  *fp,        /*file to read from*/
-		  b3dUByte *buffer, /*buffer to write the converted values to*/
-		  int   noLongs,    /*number of longwords to convert*/
-		  int   direction)  /*conversion direction*/
+                  b3dUByte *buffer, /*buffer to write the converted values to*/
+                  int   noLongs,    /*number of longwords to convert*/
+                  int   direction)  /*conversion direction*/
 
-/*converts a vax longword to a "unix" long word*/
+     /*converts a vax longword to a "unix" long word*/
 
 {
   b3dUInt32  lcv;
@@ -605,9 +614,9 @@ void convertLongs(FILE  *fp,        /*file to read from*/
   noBytes = noLongs * sizeof(long);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
-   {
-     fprintf(stderr, "mrcx: Read Failed While Reading Long Quantities\n");
-   }
+    {
+      fprintf(stderr, "mrcx: Read Failed While Reading Long Quantities\n");
+    }
 
   /* DNM 3/16/01: discovered that the code here did nothing on a little-endian
      machine!  Switch to call library routine */
@@ -617,11 +626,11 @@ void convertLongs(FILE  *fp,        /*file to read from*/
 
 /******************************************************************************/
 void convertShorts(FILE  *fp,       /*file to read from*/
-		   b3dUByte *buffer,/*buffer to write the converted values to*/
-		   int   noShorts,  /*number of shortwords to convert*/
-		   int   direction) /*conversion direction*/
+                   b3dUByte *buffer,/*buffer to write the converted values to*/
+                   int   noShorts,  /*number of shortwords to convert*/
+                   int   direction) /*conversion direction*/
 
-/*converts a vax shortword to a "unix" shortword*/
+     /*converts a vax shortword to a "unix" shortword*/
 
 {
   b3dUInt32   lcv;
@@ -633,9 +642,9 @@ void convertShorts(FILE  *fp,       /*file to read from*/
   noBytes = noShorts * sizeof(short);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
-   {
-     fprintf(stderr, "mrcx: Read Failed While Reading Short Quantities\n");
-   }
+    {
+      fprintf(stderr, "mrcx: Read Failed While Reading Short Quantities\n");
+    }
 
   /* DNM 3/16/01: discovered that the code here did nothing on a little-endian
      machine!  Switch to call library routine */

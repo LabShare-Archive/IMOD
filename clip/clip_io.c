@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/14 01:01:18  mast
+    Fixed output of scale factors in header output to correspond to proper
+    usage, and fixed attempt to adjust zlen when overwriting or appending
+
     Revision 3.1  2002/06/26 16:48:52  mast
     Fixed problems with header being reinitialized when appending or
     overwriting to an output file
@@ -176,8 +180,10 @@ int set_output_options(struct Grap_options *opt, struct MRCheader *hout)
 	       dsize = 3;
 	  
 	  mrc_head_write(hout->fp, hout);
-	  fseek(hout->fp, hout->headerSize + 
-		(hout->nx * hout->ny * z * dsize),0);
+	  /* fseek(hout->fp, hout->headerSize + 
+         (hout->nx * hout->ny * z * dsize),0); */
+      mrc_big_seek(hout->fp, hout->headerSize,
+                   hout->nx * hout->ny, z * dsize, 0);
      }
      return(z);
 }
