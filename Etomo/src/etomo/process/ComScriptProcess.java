@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/04/19 22:01:12  rickg
+ * bug# 115 Remove all text before ERROR: string
+ *
  * Revision 3.4  2004/04/16 01:51:41  sueh
  * bug# 409 added ProcessName
  *
@@ -618,7 +621,8 @@ public class ComScriptProcess
       if (index != -1) {
         nextLineIsWarning = false;
         int trimIndex = line.trim().indexOf("PIP WARNING:");
-        if (trimIndex != -1 && line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
+        if (trimIndex != -1
+          && line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
           nextLineIsWarning = true;
         }
         errors.add(line.substring(index));
