@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/05 16:02:06  mast
+    Add declaration of imodFromVmsFloats in imodel_files.c
+
 */
 
 #ifndef IMODEL_H
@@ -288,8 +291,8 @@ typedef struct Mod_Contour
      /* data below is written to file                     */
      UINT    psize;  /* Number of points.                 */
      UINT    flags;  /* Default 0 means use object flags. */
-     INT     type;   /* Set to 0, internal use.           */
-     INT     surf;   /* Surface # / or time value.        */
+     INT     type;   /* Time index.                       */
+     INT     surf;   /* Surface number.                   */
 
      Ilabel  *label;
 /*     Istore store;*/
