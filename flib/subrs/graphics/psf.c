@@ -1,6 +1,6 @@
 /*   psf.c  -  Fortran interface for postscript fuctions. 
  *
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
  */                                                                           
@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/01/21 18:19:28  mast
+Allow IMOD_PS_FONT to be set to set the font
+
 Revision 3.2  2004/11/05 18:53:39  mast
 Include local files with quotes, not brackets
 
@@ -45,6 +48,10 @@ typedef struct
 #define vector VECTOR
 #define frame  FRAME
 #define wtstr  WTSTR
+#define pscircle PSCIRCLE
+#define pslinewidth PSLINEWIDTH
+#define pstriangle PSTRIANGLE
+#define psquadrangle PSQUADRANGLE
 #else
 #define psopen psopen_
 #define psclose psclose_
@@ -53,6 +60,10 @@ typedef struct
 #define vector vector_
 #define frame  frame_
 #define wtstr  wtstr_
+#define pscircle pscircle_
+#define pslinewidth pslinewidth_
+#define pstriangle pstriangle_
+#define psquadrangle psquadrangle_
 #endif
 
 #include "ps.h"
@@ -97,6 +108,11 @@ int psopen(
   return(0);
 }
 
+void pslinewidth(float *width)
+{
+  double dw = *width;
+  PSsetLineWidth(ps, dw);
+}
 
 void point(float *ix, float *iy)
 {
@@ -117,6 +133,36 @@ void vector(float *ix, float *iy)
   double x = *ix;
   double y = *iy;
   PSdrawVector(ps, x, y);
+}
+
+void pscircle(float *ix, float *iy, float *irad, int *fill)
+{
+  double x = *ix;
+  double y = *iy;
+  double rad = *irad;
+  PSdrawCircle(ps, x, y, rad, *fill);
+}
+
+void pstriangle(float *ix, float *iy, int *fill)
+{
+  double x[3], y[3];
+  int i;
+  for (i = 0; i < 3; i++) {
+    x[i] = ix[i];
+    y[i] = iy[i];
+  }
+  PSdrawTriangle(ps, x, y, *fill);
+}
+
+void psquadrangle(float *ix, float *iy, int *fill)
+{
+  double x[4], y[4];
+  int i;
+  for (i = 0; i < 4; i++) {
+    x[i] = ix[i];
+    y[i] = iy[i];
+  }
+  PSdrawQuadrangle(ps, x, y, *fill);
 }
 
 void frame(){PSpage(ps);}
