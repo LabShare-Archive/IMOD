@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/12/19 00:30:05  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.4  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -146,21 +149,18 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       panelFiducialModelB.setVisible(false);
     }
 
-    //  Set the window to the default state in case the calling function doesn't
-    setAdvanced(isAdvanced);
-
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     panelFiducialModel.addMouseListener(mouseAdapter);
 
-    pack();
+    //  Set the advanced state to the default, this also calls pack()
+    setAdvanced(isAdvanced);
   }
 
   /**
    * Set the advanced state for the dialog box
    */
   public void setAdvanced(boolean state) {
-    //isAdvanced = state;
     panelBeadtrackA.setAdvanced(state);
     panelBeadtrackB.setAdvanced(state);
     pack();
@@ -168,11 +168,12 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   /**
    * Set the advanced state for the dialog box
-   */
+   *
   public boolean getAdvanced() {
     return isAdvanced;
   }
-
+    */
+  
   /**
    * Set the parameters for the specified beadtrack panel
    */
