@@ -46,6 +46,7 @@ Log at end of file
 
 #include "imodv.h"
 #include "imod.h"
+#include "imod_object_edit.h"
 #include "imod_display.h"
 #include "imodv_gfx.h"
 #include "imodv_stereo.h"
@@ -200,9 +201,10 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   imodViewStore(a->imod, 0);
   if (!a->imod->cview)
     imodViewModelDefault(a->imod, a->imod->view);
-  else 
+  else {
     imodViewUse(a->imod);
-
+    imodvDrawImodImages();
+  }
   return;
 }
 
@@ -537,8 +539,10 @@ void imodv_new_model(Imod *mod)
      
   if (!mod->cview){
     imodViewModelDefault(mod, mod->view);
-  }else
+  }else {
     imodViewUse(mod);
+    imodvDrawImodImages();
+  }
   imodvSelectModel(Imodv, 0);
 }
 
@@ -562,8 +566,20 @@ void imodvSetCaption()
   a->mainWin->setCaption(str);
 }
 
+// To call imodDraw if not in standalone mode
+void imodvDrawImodImages()
+{
+  if (Imodv->standalone)
+    return;
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imod_object_edit_draw();
+}
+
 /*
 $Log$
+Revision 4.2  2003/02/27 17:42:38  mast
+Remove include of unistd for windows
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
