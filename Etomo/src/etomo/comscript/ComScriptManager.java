@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/03/04 00:08:37  sueh
+ * <p> bug# 533 Added getBlendmontParamFromTiltxcorr(),
+ * <p> getGotoParamFromTiltxcorr(), saveXcorr(BlendmontParam),
+ * <p> saveXcorr(GotoParam).
+ * <p>
  * <p> Revision 3.23  2005/02/23 18:48:09  sueh
  * <p> bug# 607 Fix problem: Etomo unable to exit because of null pointer
  * <p> exception.
@@ -225,6 +230,8 @@ public class ComScriptManager {
   private ComScript scriptTiltB;
   private ComScript scriptMTFFilterA;
   private ComScript scriptMTFFilterB;
+  private ComScript scriptPreblendA;
+  private ComScript scriptPreblendB;
   // The solvematch com script replaces the functionality of the
   // solvematchshift and solvematchmod com scripts
   private ComScript scriptSolvematch;
@@ -405,6 +412,19 @@ public class ComScriptManager {
       scriptPrenewstA = loadComScript("prenewst", axisID, true);
     }
   }
+  
+  public void loadPreblend(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptPreblendB = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.PREBLEND_MODE), axisID, true);
+    }
+    else {
+      scriptPreblendA = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.PREBLEND_MODE), axisID, true);
+    }
+  }
+
 
   /**
    * Get the newstack parameters from the specified prenewst script object
@@ -432,6 +452,25 @@ public class ComScriptManager {
     initialize(prenewstParam, scriptPrenewst, cmdName, axisID);
     return prenewstParam;
   }
+  
+  public BlendmontParam getPreblendParam(AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript scriptPreblend;
+    if (axisID == AxisID.SECOND) {
+      scriptPreblend = scriptPreblendB;
+    }
+    else {
+      scriptPreblend = scriptPreblendA;
+    }
+
+    // Initialize a BlendmontParam object from the com script command object
+    BlendmontParam preblendParam = new BlendmontParam(appManager.getMetaData()
+        .getDatasetName(), axisID, BlendmontParam.PREBLEND_MODE);
+    initialize(preblendParam, scriptPreblend, BlendmontParam.COMMAND_NAME, axisID);
+    return preblendParam;
+  }
+
 
   /**
    * Save the specified prenewst com script updating the newst parameters
@@ -449,12 +488,33 @@ public class ComScriptManager {
     else {
       scriptPrenewst = scriptPrenewstA;
     }
-
-    // Implementation note: since the name of the command newst was changed to
-    // newstack we need to figure out which one it is before calling initialize.
-    String cmdName = newstOrNewstack(scriptPrenewst);
-    updateComScript(scriptPrenewst, prenewstParam, cmdName, axisID);
   }
+
+  public void savePreblend(BlendmontParam blendmontParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptPreblend;
+    if (axisID == AxisID.SECOND) {
+      scriptPreblend = scriptPreblendB;
+    }
+    else {
+      scriptPreblend = scriptPreblendA;
+    }
+    updateComScript(scriptPreblend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
+  }
+  
+  public void savePrenewst(BlendmontParam preblendParam, AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript scriptPreblend;
+    if (axisID == AxisID.SECOND) {
+      scriptPreblend = scriptPreblendB;
+    }
+    else {
+      scriptPreblend = scriptPreblendA;
+    }
+    updateComScript(scriptPreblend, preblendParam, BlendmontParam.COMMAND_NAME, axisID);
+  }
+
 
   /**
    * Load the specified track com script
