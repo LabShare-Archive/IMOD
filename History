@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/04: Added workaround to Windows problem reading internal strings that 
+could be numbers or filenames.
+
+8/12/04: Added an option -multadd to Newstack to scale by multiplying by a 
+factor then adding a constant.
+
+8/12/04: Added message to make slicer window report its angles, and made
+slicer give a slice that is invariant to the relative binning in X/Y and Z.
+
+8/11/04: Added error checking on image rotation and other fields of eTomo setup
+page so copytomocoms will not hang when rotation is left blank.
+
 8/4/04: IMOD_3-4-4
 8/4/04: Fixed display bug in Midas on AMD64 (in 3.3).
 
