@@ -187,4 +187,6 @@ LIBS += -ldl -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 
-
+#
+# Set up to copy qt lib for a distribution
+echo 'QTINSTLIBDIR = lib' >> $configure

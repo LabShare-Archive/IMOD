@@ -1,3 +1,4 @@
+#!/bin/csh
 ###########################################################################
 # SGI running IRIX 6
 #
@@ -8,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/03/28 23:53:41  mast
+#  new version of Plax
+#
 #  Revision 3.4  2003/03/18 19:27:08  mast
 #  Add hack definition for keeping window on top
 #
@@ -210,3 +214,7 @@ LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff
 LIBS += -lm
 INCLUDEPATH += .
 EOF
+
+#
+# Set up to copy qt lib for a distribution
+echo 'QTINSTLIBDIR = lib' >> $configure

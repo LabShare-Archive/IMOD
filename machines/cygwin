@@ -1,3 +1,4 @@
+#!/bin/csh
 #############################################################################
 # Intel running Cygwin/Windows
 #
@@ -185,3 +186,7 @@ echo VCEXEDIR = $vcexedir >> $configure
 # set up make files for things built by VisualC
 set makefile_ext = dummy
 set makefile_dirs = ($imod_dir $midas_dir $sendevent_dir $plugsrc_dir $libdiaqt_dir)
+
+#
+# Set up to copy qt lib to bin dir for a distribution
+echo 'QTINSTLIBDIR = bin' >> $configure
