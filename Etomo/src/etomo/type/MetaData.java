@@ -19,6 +19,13 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/01/21 23:28:50  sueh
+ * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
+ * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
+ * <p> transferfid values.  Removed initializeTransferfidParam() and added
+ * <p> getTransferfidParamAFields() and getTransferfidParamBFields() to get/set
+ * <p> storable fields in TransferfidParam.
+ * <p>
  * <p> Revision 3.13  2005/01/12 00:43:43  sueh
  * <p> bug# 579 Reusing useLocalAlignments, which isn't being used for anything
  * <p> Reseting useLocalAlignments to true;
@@ -204,10 +211,6 @@ public class MetaData extends ConstMetaData {
     viewType = vt;
   }
 
-  public void setSectionType(SectionType st) {
-    sectionType = st;
-  }
-
   public void setPixelSize(double pixelSize) {
     this.pixelSize = pixelSize;
   }
@@ -305,8 +308,6 @@ public class MetaData extends ConstMetaData {
         "Not Set"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType",
         "Single View"));
-    sectionType = SectionType.fromString(props.getProperty(group
-        + "SectionType", "Single"));
     pixelSize = Double.parseDouble(props
         .getProperty(group + "PixelSize", "0.0"));
 

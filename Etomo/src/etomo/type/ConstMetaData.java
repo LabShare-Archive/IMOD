@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/01/25 22:07:48  sueh
+ * <p> Converting useZFactors to EtomoBoolean2.
+ * <p>
  * <p> Revision 3.18  2005/01/21 23:06:48  sueh
  * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
  * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
@@ -176,7 +179,6 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected DataSource dataSource = DataSource.CCD;
   protected ViewType viewType = ViewType.SINGLE_VIEW;
-  protected SectionType sectionType = SectionType.SINGLE;
 
   protected double pixelSize = Double.NaN;
   protected boolean useLocalAlignments = true;
@@ -232,7 +234,6 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + "DataSource", dataSource.toString());
     props.setProperty(group + "AxisType", axisType.toString());
     props.setProperty(group + "ViewType", viewType.toString());
-    props.setProperty(group + "SectionType", sectionType.toString());
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
     props.setProperty(group + "UseLocalAlignments", String
@@ -315,10 +316,6 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public ViewType getViewType() {
     return viewType;
-  }
-
-  public SectionType getSectionType() {
-    return sectionType;
   }
 
   public double getPixelSize() {
@@ -628,8 +625,6 @@ public abstract class ConstMetaData extends BaseMetaData {
     if (axisType != cmd.getAxisType())
       return false;
     if (!viewType.equals(cmd.getViewType()))
-      return false;
-    if (!sectionType.equals(cmd.getSectionType()))
       return false;
     if (!(pixelSize == cmd.getPixelSize()))
       return false;
