@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/09/28 15:12:29  mast
+Move clipping plane functions to iplane
+
 Revision 3.7  2004/09/21 20:12:26  mast
 Changes for multiple and global clip planes, added clip functions
 
@@ -570,13 +573,19 @@ int imodIMNXRead(Imod *imod)
   int  lbuf = imodGetInt(fin);
 
   IrefImage *ref = (IrefImage *)malloc(sizeof(IrefImage));
-  imodGetFloats(fin, (float *)ref, 18);
+  if (!ref)
+    return -1;
+
+  /* 12/23/04: stopped reading/writing across structure boundaries */
+  imodGetFloats(fin, &ref->oscale.x, 3);
+  imodGetFloats(fin, &ref->otrans.x, 3);
+  imodGetFloats(fin, &ref->orot.x, 3);
+  imodGetFloats(fin, &ref->cscale.x, 3);
+  imodGetFloats(fin, &ref->ctrans.x, 3);
+  imodGetFloats(fin, &ref->crot.x, 3);
   imod->refImage = ref;
      
-  /* Bug fix for models made from manali stacks pre V1.3 */
-  if (ref->ctrans.z != 0.0f)
-    if ( (ref->ctrans.z/ref->ctrans.z) != 1.0)
-      ref->ctrans.z = 0.0f;
+  /* 12/23/04: "Bug fix for models made from manali stacks pre V1.3" was bug */
 
   return(0);
 }
@@ -584,12 +593,17 @@ int imodIMNXRead(Imod *imod)
 int imodIMNXWrite(Imod *imod)
 {
   int id = ID_IMNX;
-  if (!imod->refImage) return -1;
+  if (!imod->refImage) 
+    return -1;
 
   imodPutInt(imod->file, &id);
   id = SIZE_IMNX;
   imodPutInt(imod->file, &id);
-
-  imodPutFloats(imod->file, (float *)imod->refImage, 18);
+  imodPutFloats(imod->file, &imod->refImage->oscale.x, 3);
+  imodPutFloats(imod->file, &imod->refImage->otrans.x, 3);
+  imodPutFloats(imod->file, &imod->refImage->orot.x, 3);
+  imodPutFloats(imod->file, &imod->refImage->cscale.x, 3);
+  imodPutFloats(imod->file, &imod->refImage->ctrans.x, 3);
+  imodPutFloats(imod->file, &imod->refImage->crot.x, 3);
   return(0);
 }
