@@ -20,6 +20,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/13 22:41:08  rickg
+ * <p> Bug #376 Allow for spaces in the filename.  Needed to call the
+ * <p> string array version of SystemProgram
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -69,6 +73,7 @@ public class MRCHeader {
   private double yPixelSize = Double.NaN;
   private double zPixelSize = Double.NaN;
   private double imageRotation = Double.NaN;
+  private int binning = Integer.MIN_VALUE;
 
   public MRCHeader(String name) {
     filename = new String(name);
@@ -142,13 +147,9 @@ public class MRCHeader {
         zPixelSize = Double.parseDouble(tokens[6]);
       }
 
-      // Parse the rotation angle
-      if (stdOutput[i].startsWith("          Tilt axis rotation angle")) {
-        String[] tokens = stdOutput[i].split("\\s+");
-        if (tokens.length > 6) {
-          imageRotation = Double.parseDouble(tokens[6]);
-        }
-      }
+      // Parse the rotation angle and/or binning from the comment section
+      parseTiltAxis(stdOutput[i]);
+      parseBinning(stdOutput[i]);
     }
   }
   /**
@@ -228,5 +229,38 @@ public class MRCHeader {
   public double getZPixelSize() {
     return zPixelSize;
   }
-
+  
+  /**
+   * Return the binning value found in the header or Ingeter.MIN_VALUE if
+   * no binning value was found
+   */
+  public int getBinning(){
+    return binning;
+  }
+  
+  private void parseTiltAxis(String line) {
+    if(line.matches(".*Tilt axis angle =.*")){
+      String[] tokens = line.split("\\s+");
+      if (tokens.length > 5) {
+        imageRotation = 
+          Double.parseDouble(tokens[5].substring(0, tokens[5].length()-1));
+      }
+      return;
+    }
+    if (line.startsWith("          Tilt axis rotation angle")) {
+      String[] tokens = line.split("\\s+");
+      if (tokens.length > 6) {
+        imageRotation = Double.parseDouble(tokens[6]);
+      }
+    }
+  }
+  
+  private void parseBinning(String line){
+    if(line.matches(".*, binning =.*")){
+      String[] tokens = line.split("\\s+");
+      if (tokens.length > 8) {
+        binning = Integer.parseInt(tokens[8]);
+      }
+    }
+  }
 }
