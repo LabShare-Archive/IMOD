@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2004/12/14 21:38:39  sueh
+ * bug# 572:  Removing state object from meta data and managing it with a
+ * manager class.  All state variables saved after a process is run belong in
+ * the state object.
+ *
  * Revision 3.45  2004/12/09 04:57:40  sueh
  * bug# 565 Save meta data in functions which to not call a start... function
  * and may been preceded by a change in meta data.  Don't do this for
@@ -576,6 +581,7 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
+import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 
@@ -1201,9 +1207,9 @@ public class ProcessManager extends BaseProcessManager {
    * Run squeezevol
    */
   public String squeezeVolume(ConstSqueezevolParam squeezevolParam)
-    throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(squeezevolParam
-      .getCommandLine(), AxisID.ONLY);
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        squeezevolParam, AxisID.ONLY);
     return backgroundProcess.getName();
   }
 
@@ -1377,7 +1383,10 @@ public class ProcessManager extends BaseProcessManager {
         return;
       }
       if (commandName.equals(TrimvolParam.getName())) {
-        appManager.getState().setFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
+        appManager.getState().setTrimvolFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
+      }
+      else if (commandName.equals(SqueezevolParam.getName())) {
+        appManager.getState().setSqueezevolFlipped(command.getBooleanValue(SqueezevolParam.FLIPPED));
       }
     }
   }
