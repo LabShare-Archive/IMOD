@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/06/10 22:59:59  rickg
+ * <p> Changes to match full implementation in progress
+ * <p>
  * <p> Revision 2.3  2003/05/23 21:26:47  rickg
  * <p> Implemented radial filter parameters
  * <p>
@@ -66,7 +69,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
     for (int i = argIndex; i < nInputArgs; i++) {
       // split the line into the parameter name and the rest of the line
-      String[] tokens = inputArgs[i].getArgument().split("\\s+", 2);
+      String[] tokens = inputArgs[i].getArgument().split("\\s+", 0);
 
       if (tokens[0].equals("DONE")) {
         foundDone = true;
@@ -156,9 +159,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("RADIAL")) {
-        String[] numberPair = tokens[1].trim().split("\\s+");
-        radialBandwidth = Double.parseDouble(numberPair[0]);
-        radialFalloff = Double.parseDouble(numberPair[1]);
+        radialBandwidth = Double.parseDouble(tokens[1]);
+        radialFalloff = Double.parseDouble(tokens[2]);
         useRadialWeightingFunction = true;
       }
 
@@ -169,7 +171,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("SUBSETSTART")) {
-        subsetStart = tokens[1];
+        idxXSubsetStart = Integer.parseInt(tokens[1]);
+        idxYSubsetStart = Integer.parseInt(tokens[2]);
         useSubsetStart = true;
       }
 
@@ -219,7 +222,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
     if (useFullImage) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("FULLIMAGE " + fullImage);
+      newArg.setArgument(
+        "FULLIMAGE "
+          + String.valueOf(fullImageX)
+          + " "
+          + String.valueOf(fullImageY));
       cmdLineArgs.add(newArg);
     }
 
@@ -265,13 +272,21 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
     if (useScale) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("SCALE " + scale);
+      newArg.setArgument(
+        "SCALE "
+          + String.valueOf(scaleFLevel)
+          + " "
+          + String.valueOf(scaleCoeff));
       cmdLineArgs.add(newArg);
     }
 
     if (useSubsetStart) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("SUBSETSTART " + subsetStart);
+      newArg.setArgument(
+        "SUBSETSTART "
+          + String.valueOf(idxXSubsetStart)
+          + " "
+          + String.valueOf(idxYSubsetStart));
       cmdLineArgs.add(newArg);
     }
 
@@ -383,13 +398,15 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     radialFalloff = value;
   }
 
-  public void setSubsetStart(String params) {
-    subsetStart = params;
+  public void setSubsetStart(int xStart, int yStart) {
+    idxXSubsetStart = xStart;
+    idxYSubsetStart = yStart;
     useSubsetStart = true;
   }
 
-  public void setScale(String params) {
-    scale = params;
+  public void setScale(double fLevel, double coef) {
+    scaleCoeff = coef;
+    scaleFLevel = fLevel;
     useScale = true;
   }
 
