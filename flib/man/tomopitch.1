@@ -24,6 +24,13 @@ DDEESSCCRRIIPPTTIIOONN
   extend them in X, if necessary, to within 5% of each edge of the
   tomogram).
 
+  As an alternative to making a separate model file for each sample,
+  you can load all of the samples into imod together and make a single
+  model file, creating a pair of contours at each different time index.
+  Make this model file be the sole entry to Tomopitch, and it will
+  analyze each if the time indexes separately, the same as if they were
+  in separate files.
+
   The program analyzes the model file for each tomogram sample
   separately.  It  determines what rotation is required to make the
   section be flat.  It reports the upward shift needed to center the
@@ -52,4 +59,5 @@ DDEESSCCRRIIPPTTIIOONN
 
 HHIISSTTOORRYY
   Written by David Mastronarde, January 2000
+  5/20/01: Added analysis of single file with multiple time indexes
 

@@ -119,6 +119,9 @@ DDEESSCCRRIIPPTTIIOONN
        --xxyyzz   This option causes the default image window to be
               the XYZ window instead of the ZaP window.
 
+       --SS     This option causes a slicer window instead of the
+              ZaP window to be opened when the program starts.
+
        --YY     This option causes the image data to be flipped
               after it has been loaded.  This allows one to model
               image planes that are normal to the Y-axis.  The
