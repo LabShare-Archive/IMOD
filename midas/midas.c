@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/08/19 04:46:10  mast
+    Changed number of columns in edge number text box to 4
+
 */
 
 #include <stdio.h>
@@ -102,12 +105,8 @@ static void usage(void)
 {
      char *pname = "midas";
 
-     fprintf(stderr,
-	     "%s version %s"
-	     " Copyright (C) 1995-2001 Boulder Laboratory for\n",
-	     pname, MIDAS_VERSION_STRING);
-     fprintf(stderr,
-	     "3-Dimensional Fine Structure, University of Colorado.\n");
+     fprintf(stderr, "%s version %s\n", pname, MIDAS_VERSION_STRING);
+     imodCopyright();
      fprintf(stderr, "Usage: %s [x opts] [options] <mrc filename> "
 	     "[transform filename]\n", pname);
      fprintf(stderr, "options:\n");
