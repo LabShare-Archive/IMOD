@@ -28,6 +28,11 @@ The color is a standard Qt color name.
 Set the initial size of the model view area of the window.  This is useful if
 you want to take snapshots at a specific size.
 .TP
+.B -E <keys>
+Open the windows specified by the key letters, which are the same as the
+hot keys for opening windows (m, O, C, L, B, M, V, I), plus D for
+depth cue and S for stereo.
+.TP
 .B -D
 Run in debug mode with diagnostic output and without becoming a background
 process.
@@ -119,6 +124,14 @@ Print model transformations to standard output.
 .TP
 .B D
 Delete the current contour if it was selected with the third mouse button
+(active only when program is started as 3dmod).
+.TP
+.B Ctrl-Z
+Undo the last change to the model
+(active only when program is started as 3dmod).
+.TP
+.B Ctrl-Y
+Redo a change that was undone
 (active only when program is started as 3dmod).
 .P
 Use the online help for more information on using 3dmodv.

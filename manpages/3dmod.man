@@ -300,13 +300,27 @@ the image file.  Images can be rescaled after 3dmod is running using the
 Either option will run 3dmod in model view mode, the same as using the command
 3dmodv to start the program.  Only 3dmodv(1) options are allowed in this case.
 .TP
+.B -E <keys>
+Open the windows specified by the key letters: t for Object Type, l for Object
+Color, h for Model Header, o for Model Offset, s for Surf/Cont/Point, v for
+Contour Move, c for Contour Copy, a for Auto Contour, b for Contour Break, j
+for contour Join, p for Image Process, r for Image Reload, f for Image Cache
+Filler, u for Tumbler, x for Pixel View.
+If the 
+.B -V
+option is given, then model view dialog boxes can also be opened with key
+letters the same as their hot keys (m, O, C, L, B, M, V, I), or with D for
+depth cue and S for stereo.
+.TP
 .B -W
 Output the window ID of the 3dmod Information Window and do not put 3dmod
 in the background automatically.
 .TP
 .B -D
 Run in debug mode with diagnostic output and without becoming a background
-process.
+process.  Key letters can be added after the D (but with no intervening
+spaces) to turn on specific debugging output; e.g., u for undo, z for zap,
+c for control, k for keystrikes.
 
 .SH User Interface Features
 A large number of dialog boxes can be opened from the menus of the Information
@@ -363,6 +377,13 @@ The toolbutton with the pushpin can be used to keep the Information Window on
 top of all other windows, including windows from other programs.  The
 toolbutton with two up arrows can be used to raise all of the windows
 of the current 3dmod above windows from other programs.
+.TP
+.I Undo/Rdeo Buttons
+The toolbuttons with
+the backward and forward arrows can be used to undo modeling actions and to
+redo actions that were undone,
+respectively.  The traditional hot keys, Ctrl-Z and Ctrl-Y, can also be used
+for this purpose.  Virtually every model change can be undone.
 .TP 
 .I The Model Selection Display Controls.
 The current 
@@ -388,7 +409,7 @@ using hot keys.
 .B ]/[
 \- Go to the next/previous Point.
 .TP
-.I The Show point Checkbox
+.I The Show Checkbox
 This checkbox controls whether the new current model point will be
 displayed in image windows when the object, contour, or point is
 changed using the spin boxes just described.  By default, image
@@ -462,10 +483,11 @@ and
 .I Model mode.
 The model can't be edited with keys and mouse buttons while in movie mode.
 When 3dmod first opens a new model it switches to movie mode.  
-.TP
-.I The Menu bar
-Menus for 3dmod are selected by holding down the left mouse 
-button while inside the information window.  Some menus have
+
+.SH The Menu bar
+Menu items for 3dmod are selected from the menu at the top of the
+information window, or at the top of the screen on a Macintosh.
+Some menus have
 keyboard shortcuts (hot keys, shown in parentheses).  
 Menu entries with ... open a
 dialog box, control window, or display window.
@@ -510,8 +532,8 @@ Object
 
 Surface
    New       Create a new contour with a new surface number.  (N)
-   Go To...  Select a different surface with a slider in the
-                Contour Type window.
+   Go To...  Select a different surface in the Surf/Cont/Point
+                window.
    Move...   Move contours in a surface to a different object or 
                 a different surface using the Contour Move window.
    Delete    Delete the current surface, i.e. all contours with the
@@ -583,7 +605,7 @@ Movies...    Open window to control movie limits in X, Y, Z and
 .I Special menu
 .fi
 This menu provides access to plugins found by 3dmod when it starts, as well
-as internal modules that provide special fatures.  The latter
+as internal modules that provide special features.  The latter
 include the Bead Fixer
 to assist with correcting models of fiducial markers for aligning tilt series,
 and the Line Tracker, which performs semi-automated modeling of linear
@@ -647,7 +669,7 @@ If the rubber band is on and the button is held down while the pointer is near
 the band, one can drag the whole band to a new position.
 .TP
 Third mouse button
-In movie mode, the this button starts the movie through sections in the
+In movie mode, this button starts the movie through sections in the
 reverse direction.
 In model mode, the selected point is modified to be at the current
 location.
@@ -686,10 +708,12 @@ N  -  Create a new contour with a new surface number
 Delete - Delete current model point
 D  -  Delete current contour
 M  -  Move contour to selected object
-b  -  Build a contour while in auto contour mode
+J  -  Join two selected contours
+Ctrl-Z - Undo a change in the model
+Ctrl-Y - Redo a change that was undone
 m  -  Toggle model edit mode and movie mode
 t  -  Toggle model drawing on/off
-T  -  Toggle point cursor on/off
+T  -  Toggle current point marker on/off
 g  -  Toggle previous contour ghost draw mode
 s  -  Save Model File
 f  -  Print current pixel value in information window
@@ -707,6 +731,9 @@ S  -  Snapshot image in window to RGB file
 Ctrl-S - Snapshot image in window to TIFF file
 Ctrl-A - Select all contours in current object on section or 
            within the rubberband
+b  -  Build a contour while in auto contour mode
+a  -  Advance to and fill next section when auto contouring
+u  -  Smooth a filled area when auto contouring
 i  -  Toggle the modeling direction
 Z  -  Toggle auto section advance on and off
 B  -  Toggle rubber band on and off
