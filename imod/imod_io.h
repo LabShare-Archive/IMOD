@@ -33,6 +33,16 @@
     $Revision$
 
     $Log$
+
+    Revision 4.2.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 4.2.2.1  2002/12/05 16:23:52  mast
+    No changes - CVS detected as modified in branch
+
+    Revision 4.3  2002/12/03 15:54:35  mast
+    Added define for read cancel
+
     Revision 4.2  2002/12/01 16:51:34  mast
     Changes to eliminate warnings on SGI
 
@@ -53,10 +63,6 @@
 #ifndef IMOD_IO_H
 #define IMOD_IO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define IMOD_IO_SUCCESS 0
 #define IMOD_IO_SAVE_ERROR 1
 #define IMOD_IO_SAVE_CANCEL 2
@@ -68,29 +74,22 @@ extern "C" {
 #define IMOD_IO_READ_CANCEL 8
 #define IMOD_IO_UNIMPLEMENTED_ERROR 99
 
-  extern char Statstring[128];
-  extern char Inputstring[128];
-
-  /* Functions */
-  int imodIOGetError(void);
-  char *imodIOGetErrorString(void);
-  int createNewModel(char *mdoelFilename);
-  int openModel(char *modelFilename);
-  Imod *LoadModel(FILE *mfin);
-  int SaveModel(struct Mod_Model *mod);
-  int SaveasModel(struct Mod_Model *mod);
-  int SaveModelQuit(Imod *mod);
-  int imod_model_changed(Imod *imodel);
-  void imod_cleanup_autosave(void);
-  int imod_autosave(struct Mod_Model *mod);
-  int SaveImage(struct ViewInfo *vi);
-  int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li);
-  unsigned char **imod_io_image_load(ImodImageFile *im,
-                                     struct LoadInfo *li,
-                                     void (*func)(char *));
-
-#ifdef __cplusplus
-}
-#endif
+/* Functions */
+int imodIOGetError(void);
+char *imodIOGetErrorString(void);
+int createNewModel(char *mdoelFilename);
+int openModel(char *modelFilename);
+Imod *LoadModel(FILE *mfin);
+int SaveModel(struct Mod_Model *mod);
+int SaveasModel(struct Mod_Model *mod);
+int SaveModelQuit(Imod *mod);
+int imod_model_changed(Imod *imodel);
+void imod_cleanup_autosave(void);
+int imod_autosave(struct Mod_Model *mod);
+int SaveImage(struct ViewInfo *vi);
+int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li);
+unsigned char **imod_io_image_load(ImodImageFile *im,
+                                   struct LoadInfo *li,
+                                   void (*func)(char *));
 
 #endif /* IMOD_IO_H */
