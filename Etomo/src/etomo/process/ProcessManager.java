@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2004/07/13 23:06:09  sueh
+ * bug# 405 get a list of child processes instead of one.  This
+ * will speed things up when there are sibling processes.
+ *
  * Revision 3.23  2004/07/12 22:35:39  sueh
  * bug# 405 get the command name correctly for Linux and
  * Windows
@@ -1506,8 +1510,8 @@ public class ProcessManager {
    */
   protected String getChildProcess(String processID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
-    //ps -el: get all processes in the computer
-    SystemProgram ps = new SystemProgram("ps -el");
+    //ps -l: get user processes on this terminal
+    SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1573,8 +1577,8 @@ public class ProcessManager {
    */
   private String[] getChildProcessList(String processID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
-    //ps -el: get all processes in the computer
-    SystemProgram ps = new SystemProgram("ps -el");
+    //ps -l: get user processes on this terminal
+    SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1615,7 +1619,7 @@ public class ProcessManager {
       if (fields[idxPPID].equals(processID)
         && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
-        Utilities.debugPrint(
+          Utilities.debugPrint(
           "child found:PID="
             + fields[idxPID]
             + ",PPID="
