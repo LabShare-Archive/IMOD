@@ -32,44 +32,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.10  2003/01/30 00:45:15  mast
-Make sliders hot by default
-
-Revision 1.1.2.9  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.8  2003/01/23 20:12:10  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.7  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.6  2002/12/30 06:49:50  mast
-rationalizing dialogs as widgets and using dialog list
-
-Revision 1.1.2.5  2002/12/27 17:49:30  mast
-Clean up unused variables
-
-Revision 1.1.2.4  2002/12/27 01:21:04  mast
-Qt version
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.1.2.1  2002/12/07 01:22:49  mast
-Added argument to window tilte generator
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include <sys/types.h>
@@ -127,7 +90,7 @@ static void setClip_cb(void);
 static void mkClip_cb(int index);
 static void mkMove_cb(int index);
 static void mkSubsets_cb(int index);
-static void optionSetFlags (UINT *flag);
+static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
 
 
@@ -197,7 +160,7 @@ ImodvObjed::ImodvObjed(QObject *parent, const char *name)
 
 static unsigned int onTestFlags, offTestFlags, passSetFlags, passClearFlags;
 static unsigned int failSetFlags, failClearFlags;
-static void optionSetFlags (unsigned int *flag)
+static void optionSetFlags (b3dUInt32 *flag)
 {
   if (( (*flag & onTestFlags) || !onTestFlags) && 
       ( !(*flag & offTestFlags) || !offTestFlags)) {
@@ -1597,3 +1560,46 @@ int hotSliderKey()
 {
   return Qt::Key_Control;
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.10  2003/01/30 00:45:15  mast
+Make sliders hot by default
+
+Revision 1.1.2.9  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.8  2003/01/23 20:12:10  mast
+switch from button pressed to clicked
+
+Revision 1.1.2.7  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.6  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
+Revision 1.1.2.5  2002/12/27 17:49:30  mast
+Clean up unused variables
+
+Revision 1.1.2.4  2002/12/27 01:21:04  mast
+Qt version
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.1.2.1  2002/12/07 01:22:49  mast
+Added argument to window tilte generator
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
