@@ -13,7 +13,7 @@ set MAXMEMORY = 8.e7   # Memory size for ffts = 4000 * MAXPIXELS
 set TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 set TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
 set MINOVERLAP = 10     # Minimum overlap between pieces
-set MATCHSHIFTXZ = 56   # size of 3-D box in X and Z for matchshifts
+set MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
 set MATCHSHIFTY  = (40 60 76 90)      # Y sizes per increment of Y dimension
 set MATCHSHIFTINC = 100
 
@@ -286,6 +286,10 @@ else
     @ msy = $msy1 + ($deltay * $deltamsy ) / $MATCHSHIFTINC
 endif
 
+# Set the size in X and Z, not bigger than 1/4 of X dimension
+@ msxz = $MATCHSHIFTXZ
+if ($msxz > $nx / 4) @ msxz = $nx / 4
+
 # Get patch model file
 
 set modeltext = "gibberish"
@@ -421,7 +425,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/$corrtext2/s/.*	/$corrlist2	/g"\
     -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
     -e "/$surftext/s/.*	/$modsurf	/g"\
-    -e "/matchshifts.*64 32 64/s/64 32 64/$MATCHSHIFTXZ $msy $MATCHSHIFTXZ/"\
+    -e "/matchshifts.*64 32 64/s/64 32 64/$msxz $msy $msxz/"\
 	<$srcdir/$matchshift | cat >$matchshift
 
 sed -e s/$from_srcname/$fromname/g\
@@ -605,6 +609,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.13  2003/10/11 00:05:52  mast
+#  Changes for new input methods for matchvol/warpvol
+#
 #  Revision 3.12  2003/05/23 00:38:25  mast
 #  Move creation of temporary directory into sub-command files
 #
