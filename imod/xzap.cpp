@@ -1985,7 +1985,9 @@ void zapPrintInfo(ZapStruct *zap)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt;
-  int ixcen, iycen, ixofs, iyofs;
+  int ixcen, iycen, ixofs, iyofs, imx, imy;
+  int bin = zap->vi->xybin;
+
   ivwControlPriority(zap->vi, zap->ctrl);
   ImodInfoWin->raise();
   if (zap->rubberband) {
@@ -1995,24 +1997,32 @@ void zapPrintInfo(ZapStruct *zap)
     zapGetixy(zap, 0, 0, &xl, &yt);
     zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
   }
-  ixl = (int)(xl + 0.5);
-  ixr = (int)(xr - 0.5);
-  iyb = (int)(yb + 0.5);
-  iyt = (int)(yt - 0.5);
+  ixl = (int)floor(xl + 0.5);
+  ixr = (int)floor(xr - 0.5);
+  iyb = (int)floor(yb + 0.5);
+  iyt = (int)floor(yt - 0.5);
+  imx = ixr + 1 - ixl;
+  imy = iyt + 1 - iyb;
+  ixl *= bin;
+  iyb *= bin;
+  ixr = ixr * bin + bin - 1;
+  iyt = iyt * bin + bin - 1;
+  if (bin > 1)
+    wprint("Unbinned: ");
   wprint("(%d,%d) to (%d,%d); ", ixl + 1, iyb + 1, ixr + 1, iyt + 1);
   ixcen = (ixr + 1 + ixl)/2;
   iycen = (iyt + 1 + iyb)/2;
-  ixofs = ixcen - zap->vi->xsize/2;
-  iyofs = iycen - zap->vi->ysize/2;
+  ixofs = ixcen - bin * zap->vi->xsize/2;
+  iyofs = iycen - bin * zap->vi->ysize/2;
   wprint("Center (%d,%d)\n", ixcen + 1, iycen + 1);
-  wprint("To excise: newst -si %d,%d -of %d,%d\n", ixr + 1 - ixl, 
+  wprint("To excise: newstack -si %d,%d -of %d,%d\n", ixr + 1 - ixl, 
          iyt + 1 - iyb, ixofs, iyofs);
   if (zap->rubberband) 
     wprint("Rubberband: %d x %d; ", zap->bandurx - 1 - zap->bandllx, 
            zap->bandury - 1 - zap->bandlly);
   else
     wprint("Window: %d x %d;   ", zap->winx, zap->winy);
-  wprint("Image: %d x %d\n", ixr + 1 - ixl, iyt + 1 - iyb);
+  wprint("Image: %d x %d\n", imx, imy);
 }
 
 // Some routines for controlling window size and keeping the window on the
@@ -2191,10 +2201,10 @@ void zapReportRubberband()
     if (zap->rubberband) {
       zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
       zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
-      ixl = (int)(xl + 0.5);
-      ixr = (int)(xr - 0.5);
-      iyb = (int)(yb + 0.5);
-      iyt = (int)(yt - 0.5);
+      ixl = (int)floor(xl + 0.5);
+      ixr = (int)floor(xr - 0.5);
+      iyb = (int)floor(yb + 0.5);
+      iyt = (int)floor(yt - 0.5);
       if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
           iyb > zap->vi->ysize - 2)
         continue;
@@ -2862,6 +2872,11 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.46  2004/07/11 18:32:17  mast
+Fixed bug in detecting when to start new contour after autocontouring.
+Implemented light ghost option and all object ghost option.  Used new
+functions for getting contour to add points to and setting new contour time.
+
 Revision 4.45  2004/07/10 23:30:49  mast
 FIxed subset area for autocontrast, made ghost have object line thickness
 
