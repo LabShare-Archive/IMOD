@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.3  2002/07/20 23:28:14  mast
 Store image origin in model's refImage.otrans so programs can get back
 to index corrdinates of full-sized volume
@@ -61,6 +64,8 @@ char Ivw_string[64];
 int  ivwLoadIMODifd(ImodView *iv);
 int  ifioLoadIMODifd(ImodView *iv);
 int  ivwPlistBlank(ImodView *iv, int cz);
+
+static int loadingImage = 0;
 
 /*
  *
@@ -649,6 +654,12 @@ int ivwFlip(ImodView *vw)
     return(-1);
   }
 
+  /* DNM 12/10/02: if loading image, flip the axis but defer until done */
+  if (loadingImage) {
+    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
+    return (1);
+  }
+
   oymouse = (int)(vw->ymouse + 0.5f);
   ozmouse = (int)(vw->zmouse + 0.5f);
 
@@ -663,11 +674,7 @@ int ivwFlip(ImodView *vw)
   /* Not using the cache, all image data is in main memory. */
   if (vw->fakeImage) {
     /* DNM: skip through to end if fake image, but still flip it */
-    if (vw->li->axis == 2){
-      vw->li->axis = 3;
-    }else{
-      vw->li->axis = 2;
-    }
+    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
 
   } else if (!vw->vmSize){
     if (vw->li->contig){
@@ -715,7 +722,7 @@ int ivwFlip(ImodView *vw)
       /* 
        * All image data is in memory but it isn't contiguous 
        */
-    }else{
+    } else {
       /* Get memory for image data */
       idata = (unsigned char **)malloc(nz * sizeof(unsigned char *));
       if (idata == (unsigned char **)NULL)
@@ -748,12 +755,7 @@ int ivwFlip(ImodView *vw)
         free(vw->idata[k]);
     }
 
-
-    if (vw->li->axis == 2){
-      vw->li->axis = 3;
-    }else{
-      vw->li->axis = 2;
-    }
+    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
 
     free(vw->idata);
     vw->idata = idata;
@@ -764,11 +766,8 @@ int ivwFlip(ImodView *vw)
     /*
      *  Image data is cached from disk.
      */
-    if (vw->li->axis == 2 ){
-      vw->li->axis = 3;
-    }else{
-      vw->li->axis = 2;
-    }
+    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
+
     /* tell image's to flipaxis */
           
     if ((vw->nt) && (vw->imageList)){
@@ -1611,11 +1610,14 @@ int ivwLoadImage(ImodView *iv)
     iv->image->ury = iv->li->ymax;
     iv->image->urz = iv->li->zmax;
 
+    loadingImage = 1;
     if (ivwLoadMrc(iv)){
       fprintf(stderr, "Imod: Error loading image data.\n");
+      loadingImage = 0;
           
       return(-1);
     }
+    loadingImage = 0;
      
 
     if (App->depth == 8)
