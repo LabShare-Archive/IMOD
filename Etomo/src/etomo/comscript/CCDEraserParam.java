@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/07/25 22:51:51  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -81,7 +84,7 @@ public class CCDEraserParam
       inputFile = scriptCommand.getValue("InputFile");
       outputFile = scriptCommand.getValue("OutputFile");
       modelFile = scriptCommand.getValue("ModelFile");
-      globalReplacementList = scriptCommand.getValue("AllSectionsObjects");
+      globalReplacementList = scriptCommand.getValue("AllSectionObjects");
       localReplacementList = scriptCommand.getValue("LineObjects");
       borderPixels = scriptCommand.getValue("BorderSize");
       polynomialOrder = scriptCommand.getValue("PolynomialOrder");
@@ -214,10 +217,10 @@ public class CCDEraserParam
     }
 
     if (!globalReplacementList.equals("")) {
-      scriptCommand.setValue("AllSectionsObjects", globalReplacementList);
+      scriptCommand.setValue("AllSectionObjects", globalReplacementList);
     }
     else {
-      scriptCommand.deleteKey("AllSectionsObjects");
+      scriptCommand.deleteKey("AllSectionObjects");
     }
 
     if (!localReplacementList.equals("")) {
