@@ -9,6 +9,11 @@
 // Set the buttons to fit the font
 void imodvViewsForm::init()
 {
+    setFontDependentWidths();
+}
+
+void imodvViewsForm::setFontDependentWidths()
+{
     int width = newButton->fontMetrics().width(newButton->text());
     int width2 = saveButton->fontMetrics().width(saveButton->text());
     if (width < width2)
@@ -192,4 +197,9 @@ void imodvViewsForm::keyPressEvent( QKeyEvent * e )
 void imodvViewsForm::keyReleaseEvent( QKeyEvent * e )
 {
     imodvKeyRelease(e);
+}
+
+void imodvViewsForm::fontChange( const QFont & oldFont )
+{
+    setFontDependentWidths();
 }

@@ -5,6 +5,28 @@
 ** update this file, preserving your code. Create an init() slot in place of
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
+void imodvControlForm::init()
+{
+    mNearPressed = false;
+    mFarPressed = false;
+    mPerspectivePressed = false;
+    mZscalePressed = false;
+    mRatePressed = false;
+    mCtrlPressed = false;
+    setFontDependentWidths();
+}
+
+void imodvControlForm::setFontDependentWidths()
+{
+    int width;
+    width =( (2 * 6 + 3) * scaleLineEdit->fontMetrics().width("888888")) / (2 * 6);
+    scaleLineEdit->setFixedWidth(width);
+    width =( (2 * 7+ 3) * XLineEdit->fontMetrics().width("8888888")) / (2 * 7);
+    XLineEdit->setFixedWidth(width);
+    YLineEdit->setFixedWidth(width);
+    ZLineEdit->setFixedWidth(width);
+}
+
 
 // Routines to display slider labels, and record the value displayed
 void imodvControlForm::displayFarLabel( int value )
@@ -293,22 +315,6 @@ void imodvControlForm::rateReleased()
     rateChanged(mRateDisplayed);
 }
 
-void imodvControlForm::init()
-{
-    int width;
-    mNearPressed = false;
-    mFarPressed = false;
-    mPerspectivePressed = false;
-    mZscalePressed = false;
-    mRatePressed = false;
-    mCtrlPressed = false;
-    width =( (2 * 6 + 3) * scaleLineEdit->fontMetrics().width("888888")) / (2 * 6);
-    scaleLineEdit->setFixedWidth(width);
-    width =( (2 * 7+ 3) * XLineEdit->fontMetrics().width("8888888")) / (2 * 7);
-    XLineEdit->setFixedWidth(width);
-    YLineEdit->setFixedWidth(width);
-    ZLineEdit->setFixedWidth(width);
-}
 
 // Key event: send quit signal if an escape, keep track of control key, and pass on to imodv_input
 void imodvControlForm::keyPressEvent( QKeyEvent * e )
@@ -333,4 +339,9 @@ void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
         releaseKeyboard();
   }
   imodvKeyRelease(e);
+}
+
+void imodvControlForm::fontChange( const QFont & oldFont )
+{
+    setFontDependentWidths();
 }

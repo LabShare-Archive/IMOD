@@ -17,13 +17,17 @@ void MovieController::init()
     diaSetGroup(snapshotGroup, 0);
     diaSetGroup(extentGroup, 0);
     diaSetGroup(axisGroup, 2);
-    rateLineEdit->setMaximumWidth(fontMetrics().width("8888.888"));
     connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this,
 	    SLOT(sliderChanged(int, int, bool)));
     QToolTip::add(mSliders->getSlider(0), "Set starting section of movie range");
     QToolTip::add(mSliders->getSlider(1), "Set ending section of movie range");
     QToolTip::add(mSliders->getSlider(2), 
 		  "Set spacing between sections shown during movie");
+}
+
+void MovieController::setFontDependentWidths()
+{
+    rateLineEdit->setMaximumWidth(fontMetrics().width("8888.888"));
 }
 
 // Pass on actions directly to imod_moviecon
@@ -129,4 +133,9 @@ void MovieController::keyPressEvent( QKeyEvent * e )
 void MovieController::keyReleaseEvent( QKeyEvent * e )
 {
     ivwControlKey(1, e);
+}
+
+void MovieController::fontChange( const QFont & oldFont )
+{
+    setFontDependentWidths();
 }

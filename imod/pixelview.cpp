@@ -119,24 +119,32 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   connect(mapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
 
   // Make the buttons - put them in array in order of right-handed coordinates
-  // Fixed widths do not work well
   width = (int)(1.2 * labXY->fontMetrics().width("-88888"));
   for (i = 0; i < PV_ROWS; i++) {
     for (j = 0; j < PV_COLS; j++) {
       mButtons[i][j] = new QPushButton("8", this);
       mButtons[i][j]->setFocusPolicy(NoFocus);
-      // This at least lets them resize smaller
-      mButtons[i][j]->setMinimumWidth(width);
       layout->addWidget(mButtons[i][j], PV_ROWS - 1 - i, j + 1);
       mapper->setMapping(mButtons[i][j], i * PV_COLS + j);
       connect(mButtons[i][j], SIGNAL(pressed()), mapper, SLOT(map()));
     }
   }
+  setButtonWidths();
 
   // Get the default background color, initial minimum/maximum rows
   mGrayColor = mButtons[0][0]->paletteBackgroundColor();
   mMinRow = -1;
   mMaxRow = -1;
+}
+
+void PixelView::setButtonWidths()
+{
+  // Fixed widths do not work well
+  // This at least lets them resize smaller
+  int width = (int)(1.2 * fontMetrics().width("-88888"));
+  for (int i = 0; i < PV_ROWS; i++)
+    for (int j = 0; j < PV_COLS; j++)
+      mButtons[i][j]->setMinimumWidth(width);
 }
 
 void PixelView::update()
@@ -263,6 +271,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/03/24 17:56:46  mast
+Register with dialogManager so it can be parked with info window
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -91,11 +94,15 @@ class ContourJoin : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QLabel *mSet1Label;
   QLabel *mSet2Label;
+  QPushButton *mButton1;
+  QPushButton *mButton2;
   void join();
+  void setFontDependentWidths();
 };
 
 class ContourBreak : public ContourFrame
@@ -113,13 +120,17 @@ class ContourBreak : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QLabel *mObjContLabel;
   QLabel *mSet1Label;
   QLabel *mSet2Label;
+  QPushButton *mButton1;
+  QPushButton *mButton2;
   void setLabels();
   void breakCont();
+  void setFontDependentWidths();
 };
 
 /* Entries from the rest of imod */

@@ -408,6 +408,7 @@
 </includes>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>storePressed()</slot>
     <slot>revertPressed()</slot>
     <slot>newPressed()</slot>
@@ -426,6 +427,7 @@
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
+    <slot>fontChange( const QFont &amp; oldFont )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

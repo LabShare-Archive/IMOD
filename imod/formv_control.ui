@@ -1243,6 +1243,8 @@
     <variable>bool mRatePressed</variable>
 </variables>
 <slots>
+    <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>displayFarLabel( int value )</slot>
     <slot>displayNearLabel( int value )</slot>
     <slot>displayPerspectiveLabel( int value )</slot>
@@ -1283,9 +1285,9 @@
     <slot>zScalePressed()</slot>
     <slot>ratePressed()</slot>
     <slot>rateReleased()</slot>
-    <slot>init()</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
+    <slot>fontChange( const QFont &amp; oldFont )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

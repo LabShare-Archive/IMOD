@@ -123,7 +123,6 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
 
   mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
-  //mZoomEdit->setFixedWidth(ZOOM_WIDTH);
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
@@ -155,22 +154,20 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // Section edit box
   mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
-  // mSectionEdit->setFixedWidth(SECTION_WIDTH);
   mSectionEdit->setFocusPolicy(QWidget::ClickFocus);
   mSectionEdit->setAlignment(Qt::AlignRight);
   connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
   connect(mSectionEdit, SIGNAL(focusLost()), this, SLOT(newSection()));
   
   // Info and help buttons
-  QPushButton *button = new QPushButton("I", mToolBar, "I button");
-  button->setFixedWidth(15);
-  button->setFocusPolicy(QWidget::NoFocus);
-  connect(button, SIGNAL(clicked()), this, SLOT(info()));
+  mInfoButton = new QPushButton("I", mToolBar, "I button");
+  mInfoButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
 
-  button = new QPushButton("Help", mToolBar, "Help button");
-  button->setFixedWidth((int)(1.2 *fontMetrics().width("Help")));
-  button->setFocusPolicy(QWidget::NoFocus);
-  connect(button, SIGNAL(clicked()), this, SLOT(help()));
+  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
+  setFontDependentWidths();
 
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
@@ -213,8 +210,14 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
 ZapWindow::~ZapWindow()
 {
-
 }
+
+void ZapWindow::setFontDependentWidths()
+{
+  mInfoButton->setFixedWidth((int)(10. + fontMetrics().width("I")));
+  mHelpButton->setFixedWidth((int)(1.2 *fontMetrics().width("Help")));
+}
+
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
@@ -417,6 +420,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/03/07 15:49:26  mast
+Put z section slider under hot slider control
+
 Revision 4.3  2003/03/03 22:28:02  mast
 Pass on all mouse move events with the pressed flag to allow tracking
 

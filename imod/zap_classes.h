@@ -51,6 +51,7 @@ class QLabel;
 class QToolBar;
 class QSignalMapper;
 class QSlider;
+class QPushButton;
 
 struct zapwin;
 class ZapGL;
@@ -92,10 +93,12 @@ class ZapWindow : public QMainWindow
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
+    void fontChange(const QFont &oldFont) {setFontDependentWidths();};
 
  private:
     void setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
                            int index);
+    void setFontDependentWidths();
 
     struct zapwin *mZap;
     QToolButton *mToggleButs[5];
@@ -104,6 +107,8 @@ class ZapWindow : public QMainWindow
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
     QSlider *mSecSlider;
+    QPushButton *mInfoButton;
+    QPushButton *mHelpButton;
     bool mSecPressed;
     int mDisplayedSection;
     bool mCtrlPressed;
@@ -135,6 +140,9 @@ protected:
 
 /*
 $Log$
+Revision 4.2  2003/03/07 15:49:11  mast
+Put z section slider under hot slider control
+
 Revision 4.1  2003/02/10 20:41:56  mast
 Merge Qt source
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/10 23:49:19  mast
 clean up unused call
 
@@ -41,6 +44,7 @@ class PixelView: public QWidget
 	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~PixelView() {};
   void update();
+  void setButtonWidths();
 
   public slots:
     void buttonPressed(int pos);
@@ -49,6 +53,7 @@ class PixelView: public QWidget
     void closeEvent ( QCloseEvent * e );
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
+    void fontChange(const QFont &oldFont) {setButtonWidths();};
 
  private:
     QLabel *mBotLabels[PV_COLS];

@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>193</width>
-            <height>242</height>
+            <width>202</width>
+            <height>249</height>
         </rect>
     </property>
     <property name="caption">
@@ -525,6 +525,7 @@
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>axisSelected( int which )</slot>
     <slot>sliderChanged( int which, int value, bool dragging )</slot>
     <slot>upPressed()</slot>
@@ -542,6 +543,7 @@
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
+    <slot>fontChange( const QFont &amp; oldFont )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

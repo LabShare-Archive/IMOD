@@ -39,6 +39,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/03 22:14:34  mast
+cleanup
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 
@@ -161,23 +164,20 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
 
   QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
 
-  int width = (int)(1.2 * fontMetrics().width("Set 2"));
-  button = new QPushButton("Set 1", this);
-  grid->addWidget(button, 0, 0);
-  button->setFocusPolicy(NoFocus);
-  button->setFixedWidth(width);
-  connect(button, SIGNAL(pressed()), this, SLOT(set1Pressed()));
-  QToolTip::add(button, "Set first or only break point in contour");
+  mButton1 = new QPushButton("Set 1", this);
+  grid->addWidget(mButton1, 0, 0);
+  mButton1->setFocusPolicy(NoFocus);
+  connect(mButton1, SIGNAL(pressed()), this, SLOT(set1Pressed()));
+  QToolTip::add(mButton1, "Set first or only break point in contour");
 
   mSet1Label = new QLabel(" ", this);
   grid->addWidget(mSet1Label, 0, 1);
 
-  button = new QPushButton("Set 2", this);
-  grid->addWidget(button, 1, 0);
-  button->setFocusPolicy(NoFocus);
-  button->setFixedWidth(width);
-  connect(button, SIGNAL(pressed()), this, SLOT(set2Pressed()));
-  QToolTip::add(button, "Set second break point in contour");
+  mButton2 = new QPushButton("Set 2", this);
+  grid->addWidget(mButton2, 1, 0);
+  mButton2->setFocusPolicy(NoFocus);
+  connect(mButton2, SIGNAL(pressed()), this, SLOT(set2Pressed()));
+  QToolTip::add(mButton2, "Set second break point in contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
@@ -185,8 +185,22 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
   setCaption(imodCaption("Imod Break Contours"));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
+  setFontDependentWidths();
   setLabels();
   show();
+}
+
+void ContourBreak::setFontDependentWidths()
+{
+  int width = (int)(1.2 * fontMetrics().width("Set 2"));
+  mButton1->setFixedWidth(width);
+  mButton2->setFixedWidth(width);
+}
+
+void ContourBreak::fontChange( const QFont & oldFont )
+{
+  setFontDependentWidths();
+  DialogFrame::fontChange(oldFont);
 }
 
 // Set the labels based on current indexes
@@ -472,23 +486,20 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   diaLabel("Select contours to join:", this, mLayout);
   QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
 
-  int width = (int)(1.2 * fontMetrics().width("Set 2"));
-  button = new QPushButton("Set 1", this);
-  grid->addWidget(button, 0, 0);
-  button->setFocusPolicy(NoFocus);
-  button->setFixedWidth(width);
-  connect(button, SIGNAL(pressed()), this, SLOT(set1Pressed()));
-  QToolTip::add(button, "Set join point in first contour");
+  mButton1 = new QPushButton("Set 1", this);
+  grid->addWidget(mButton1, 0, 0);
+  mButton1->setFocusPolicy(NoFocus);
+  connect(mButton1, SIGNAL(pressed()), this, SLOT(set1Pressed()));
+  QToolTip::add(mButton1, "Set join point in first contour");
 
   mSet1Label = new QLabel(" ", this);
   grid->addWidget(mSet1Label, 0, 1);
 
-  button = new QPushButton("Set 2", this);
-  grid->addWidget(button, 1, 0);
-  button->setFocusPolicy(NoFocus);
-  button->setFixedWidth(width);
-  connect(button, SIGNAL(pressed()), this, SLOT(set2Pressed()));
-  QToolTip::add(button, "Set join point in second contour");
+  mButton2 = new QPushButton("Set 2", this);
+  grid->addWidget(mButton2, 1, 0);
+  mButton2->setFocusPolicy(NoFocus);
+  connect(mButton2, SIGNAL(pressed()), this, SLOT(set2Pressed()));
+  QToolTip::add(mButton2, "Set join point in second contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
@@ -496,9 +507,23 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   setCaption(imodCaption("Imod Join Contours"));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
+  setFontDependentWidths();
   setlabel(mSet1Label, cojoin.i1);
   setlabel(mSet2Label, cojoin.i2);
   show();
+}
+
+void ContourJoin::setFontDependentWidths()
+{
+  int width = (int)(1.2 * fontMetrics().width("Set 2"));
+  mButton1->setFixedWidth(width);
+  mButton2->setFixedWidth(width);
+}
+
+void ContourJoin::fontChange( const QFont & oldFont )
+{
+  setFontDependentWidths();
+  DialogFrame::fontChange(oldFont);
 }
 
 // Set the current index for either set, but if the objects don't

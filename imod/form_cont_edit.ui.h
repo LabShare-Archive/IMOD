@@ -12,6 +12,11 @@ void ContSurfPoint::init()
 {
     mCtrlPressed = false;
     mSliderPressed = false;
+    setFontDependentWidths();
+}
+
+void ContSurfPoint::setFontDependentWidths()
+{
    pointSizeEdit->setMinimumWidth(fontMetrics().width("  888.8-Default "));
 }
 
@@ -258,4 +263,9 @@ void ContSurfPoint::keyReleaseEvent( QKeyEvent * e )
 	releaseKeyboard();
     }
     ivwControlKey(1, e);
+}
+
+void ContSurfPoint::fontChange( const QFont & oldFont )
+{
+    setFontDependentWidths();
 }
