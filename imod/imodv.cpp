@@ -32,64 +32,16 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.11  2003/01/29 17:50:58  mast
-Fork now happens before imodv_main is called
-
-Revision 1.1.2.10  2003/01/29 01:29:42  mast
-add call for imod to close imodv
-
-Revision 1.1.2.9  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.8  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.7  2003/01/01 05:46:29  mast
-changes for qt version of stereo
-
-Revision 1.1.2.6  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.5  2002/12/17 22:28:20  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.4  2002/12/17 18:42:22  mast
-Qt version, incorporating ximodv startup code
-
-Revision 1.1.2.3  2002/12/14 05:41:08  mast
-Got qxt startup in the right place
-
-Revision 1.1.2.2  2002/12/06 21:58:40  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/05 16:28:37  mast
-Open a qxt application
-
-Revision 3.5  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.4  2002/11/30 06:07:22  mast
-Corrected tables after addition of true-15 visual
-
-Revision 3.3  2002/11/27 03:29:45  mast
-Made it look for both single and double buffer visuals as long as they
-are both RGB or both color index.  Added a true 15 visual, better than
-pseudo 12 (present on O2).
-
-Revision 3.2  2002/09/04 00:24:48  mast
-Added CVS header.  Changed to getting visuals then passing them to GLw.
-
+Log at end of file
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
-#include <unistd.h>
 #include "imodv_window.h"
 #include <qapplication.h>
+#include <qdir.h>
 #include "dia_qtutils.h"
 
 #include "imodv.h"
@@ -394,7 +346,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
   a->nm = n;
   a->cm = 0;
   for(i = 0; i < n; i++){
-    a->mod[i] = imodRead(fname[i]);
+    a->mod[i] = imodRead((char *)(QDir::convertSeparators(QString(fname[i]))).
+      latin1());
     if (!a->mod[i]){
       fprintf(stderr, "Error loading %s\n", fname[i]);
       return(-1);
@@ -608,3 +561,57 @@ void imodvSetCaption()
 
   a->mainWin->setCaption(str);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.11  2003/01/29 17:50:58  mast
+Fork now happens before imodv_main is called
+
+Revision 1.1.2.10  2003/01/29 01:29:42  mast
+add call for imod to close imodv
+
+Revision 1.1.2.9  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.8  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
+Revision 1.1.2.7  2003/01/01 05:46:29  mast
+changes for qt version of stereo
+
+Revision 1.1.2.6  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.5  2002/12/17 22:28:20  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.4  2002/12/17 18:42:22  mast
+Qt version, incorporating ximodv startup code
+
+Revision 1.1.2.3  2002/12/14 05:41:08  mast
+Got qxt startup in the right place
+
+Revision 1.1.2.2  2002/12/06 21:58:40  mast
+*** empty log message ***
+
+Revision 1.1.2.1  2002/12/05 16:28:37  mast
+Open a qxt application
+
+Revision 3.5  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.4  2002/11/30 06:07:22  mast
+Corrected tables after addition of true-15 visual
+
+Revision 3.3  2002/11/27 03:29:45  mast
+Made it look for both single and double buffer visuals as long as they
+are both RGB or both color index.  Added a true 15 visual, better than
+pseudo 12 (present on O2).
+
+Revision 3.2  2002/09/04 00:24:48  mast
+Added CVS header.  Changed to getting visuals then passing them to GLw.
+
+*/
