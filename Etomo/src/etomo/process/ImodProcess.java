@@ -1,6 +1,6 @@
 package etomo.process;
 
-/*
+/**
  * <p>Description: ImodProcess opens an instance of imod with the specfied stack
  * projection stack(s) and possibly model files.  Model files can also be
  * loaded and changed after the process has started.</p>
@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/09/25 22:17:17  rickg
+ * <p> Corrected a sendevent comment
+ * <p>
  * <p> Revision 2.13  2003/08/25 22:18:39  rickg
  * <p> Removed errant model opening for the tomogram where a matching
  * <p> or patch region model had been previously opened
