@@ -35,6 +35,7 @@ Log at end of file
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <qdir.h>
 #include <qtimer.h>
@@ -43,6 +44,7 @@ Log at end of file
 #include "imod.h"
 #include "imodv.h"
 #include "imod_io.h"
+#include "xcramp.h"
 #include "imod_info_cb.h"
 #include "imod_info.h"
 #include "imod_input.h"
@@ -186,6 +188,7 @@ bool ImodClipboard::executeMessage()
 {
   int returnValue;
   int succeeded = 1;
+  int oldBlack, oldWhite;
   QString convName;
 
   if (debugMode)
@@ -202,6 +205,7 @@ bool ImodClipboard::executeMessage()
   switch (message_action) {
 
   case MESSAGE_OPEN_MODEL:
+  case MESSAGE_OPEN_KEEP_BW:
     if (!message_string) {
       fprintf(stderr, "imodExecuteMessage: no filename sent"
               " with command to open model\n");
@@ -215,10 +219,21 @@ bool ImodClipboard::executeMessage()
     sendResponse(1);
     inputRaiseWindows();
 
+    oldBlack = App->cvi->black;
+    oldWhite = App->cvi->white;
     returnValue = openModel((char *)convName.latin1());
     if(returnValue == IMOD_IO_SUCCESS) {
       wprint("%s loaded.\n", 
         (QDir::convertSeparators(QString(Imod_filename))).latin1());
+
+      // Reset the black and white levels if message says to
+      if (message_action == MESSAGE_OPEN_KEEP_BW) {
+	  App->cvi->black = App->cvi->imod->blacklevel = oldBlack;
+	  App->cvi->white = App->cvi->imod->whitelevel = oldWhite;
+	  xcramp_setlevels(App->cvi->cramp, App->cvi->black,
+			   App->cvi->white);
+	  imod_info_setbw(App->cvi->black, App->cvi->white);
+      }
     }
     else if(returnValue == IMOD_IO_SAVE_ERROR) {
       wprint("Error Saving Model. New model not loaded.\n");
@@ -269,7 +284,10 @@ bool ImodClipboard::executeMessage()
     break;
 
   case MESSAGE_MODEL_MODE:
-    imod_set_mmode(IMOD_MMODEL);
+    if (message_string && !atoi(message_string))
+      imod_set_mmode(IMOD_MMOVIE);
+    else
+      imod_set_mmode(IMOD_MMODEL);
     break;
 
   default:
@@ -299,6 +317,9 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.5  2003/06/04 23:42:33  mast
+Add message to go to model mode
+
 Revision 4.4  2003/05/23 02:45:29  mast
 Add message to raise windows, make open model raise windows also
 
