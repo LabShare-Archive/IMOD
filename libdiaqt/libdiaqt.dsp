@@ -25,7 +25,7 @@ CFG=diaqt - Win32 Release
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
 # PROP Scc_LocalPath ""
-CPP=cl.exe
+CPP=xicl6.exe
 RSC=rc.exe
 
 !IF  "$(CFG)" == "diaqt - Win32 Release"
@@ -45,7 +45,7 @@ RSC=rc.exe
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BSC32 /nologo
-LIB32=link.exe -lib
+LIB32=xilink6.exe -lib
 # ADD LIB32 /nologo /out:"..\buildlib\libdiaqt.lib"
 
 !ELSEIF  "$(CFG)" == "diaqt - Win32 Debug"
@@ -65,7 +65,7 @@ LIB32=link.exe -lib
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BSC32 /nologo
-LIB32=link.exe -lib
+LIB32=xilink6.exe -lib
 # ADD LIB32 /nologo /out:"..\buildlib\libdiaqt.lib"
 
 !ENDIF 
@@ -92,6 +92,10 @@ SOURCE=dia_qtutils.cpp
 # Begin Source File
 
 SOURCE=dialog_frame.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\floatspinbox.cpp
 # End Source File
 # Begin Source File
 
@@ -198,6 +202,10 @@ InputPath=..\include\dialog_frame.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\floatspinbox.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\multislider.h
 
 !IF  "$(CFG)" == "diaqt - Win32 Release"
@@ -258,6 +266,35 @@ InputPath=..\include\tooledit.h
 !ENDIF 
 
 # End Source File
+# Begin Source File
+
+SOURCE=..\include\floatspinbox.h
+
+!IF  "$(CFG)" == "diaqt - Win32 Release"
+
+USERDEP__TOOLE="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
+InputPath=..\include\floatspinbox.h
+
+"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "diaqt - Win32 Debug"
+
+USERDEP__TOOLE="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
+InputPath=..\include\floatspinbox.h
+
+"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -294,6 +331,10 @@ SOURCE=..\include\moc_multislider.cpp
 # Begin Source File
 
 SOURCE=..\include\moc_tooledit.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\moc_floatspinbox.cpp
 # End Source File
 # End Group
 # End Target
