@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -23,106 +24,184 @@ import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
 
 /**
- * <p>Description: </p>
- *
- * <p>Copyright: Copyright (c) 2002</p>
- *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
+ * <p>
+ * Description:
+ * </p>
+ * 
+ * <p>
+ * Copyright: Copyright (c) 2002
+ * </p>
+ * 
+ * <p>
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Colorado
+ * </p>
+ * 
  * @author $Author$
- *
+ * 
  * @version $Revision$
- *
- * <p> $Log$
- * <p> Revision 2.13  2003/10/14 22:53:55  rickg
- * <p> Bug #286 Label changes
+ * 
  * <p>
- * <p> Revision 2.12  2003/10/02 18:57:47  sueh
- * <p> bug236 added testing:
- * <p> NewstParamTest
- * <p> ComScriptTest
+ * $Log$
  * <p>
- * <p> Removed marks
+ * Revision 2.14 2003/10/14 23:45:01 rickg
  * <p>
- * <p> Revision 2.11  2003/09/29 23:34:57  sueh
- * <p> bug236 Added UseLinearInterpolation to
- * <p> TomogramGenerationDialog.
+ * Bug# 285 Added view aligned stack button
  * <p>
- * <p> UseLinearInterpolation:
- * <p> check box
- * <p> Advanced
- * <p> newst -linear
  * <p>
- * <p> Files:
- * <p> ComScriptManager.java
- * <p> ConstNewstParam.java
- * <p> NewstParam.java
- * <p> TomogramGenerationDialog.java
- * <p> ApplicationManager.java
+ * Revision 2.13 2003/10/14 22:53:55 rickg
  * <p>
- * <p> Revision 2.10  2003/09/08 22:51:25  rickg
- * <p> Added commit test volume action
+ * Bug #286 Label changes
  * <p>
- * <p> Revision 2.9  2003/09/08 05:47:09  rickg
- * <p> Added trial tilt
- * <p> Output for a single axis tomogram is changed to
- * <p> dataset_full.rec
  * <p>
- * <p> Revision 2.8  2003/06/25 22:14:57  rickg
- * <p> Constructed a panel for the tilt parameters
+ * Revision 2.12 2003/10/02 18:57:47 sueh
  * <p>
- * <p> Revision 2.7  2003/06/23 23:26:59  rickg
- * <p> Added advanced options/parameters
+ * bug236 added testing:
  * <p>
- * <p> Revision 2.6  2003/05/23 22:14:11  rickg
- * <p> Removed any extensions from log file labels in context menu
+ * NewstParamTest
  * <p>
- * <p> Revision 2.5  2003/05/23 21:26:55  rickg
- * <p> *** empty log message ***
+ * ComScriptTest
  * <p>
- * <p> Revision 2.4  2003/04/28 23:25:25  rickg
- * <p> Changed visible imod references to 3dmod
  * <p>
- * <p> Revision 2.3  2003/04/24 17:46:54  rickg
- * <p> Changed fileset name to dataset name
+ * Removed marks
  * <p>
- * <p> Revision 2.2  2003/03/02 23:30:41  rickg
- * <p> Combine layout in progress
  * <p>
- * <p> Revision 2.1  2003/01/24 21:04:18  rickg
- * <p> AxisID bug fix from single buttonAction function
+ * Revision 2.11 2003/09/29 23:34:57 sueh
  * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
+ * bug236 Added UseLinearInterpolation to
  * <p>
- * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
- * <p> Single window GUI layout initial revision
+ * TomogramGenerationDialog.
  * <p>
- * <p> Revision 1.6  2002/12/19 17:45:22  rickg
- * <p> Implemented advanced dialog state processing
- * <p> including:
- * <p> default advanced state set on start up
- * <p> advanced button management now handled by
- * <p> super class
  * <p>
- * <p> Revision 1.5  2002/12/19 00:30:26  rickg
- * <p> app manager and root pane moved to super class
+ * UseLinearInterpolation:
  * <p>
- * <p> Revision 1.4  2002/11/14 21:18:37  rickg
- * <p> Added anchors into the tomoguide
- * <p>t
- * <p> Revision 1.3  2002/10/17 22:40:22  rickg
- * <p> Added fileset name to window title
- * <p> this reference removed applicationManager messages
+ * check box
  * <p>
- * <p> Revision 1.2  2002/10/07 22:31:18  rickg
- * <p> removed unused imports
- * <p> reformat after emacs trashed it
+ * Advanced
  * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
+ * newst -linear
+ * <p>
+ * <p>
+ * Files:
+ * <p>
+ * ComScriptManager.java
+ * <p>
+ * ConstNewstParam.java
+ * <p>
+ * NewstParam.java
+ * <p>
+ * TomogramGenerationDialog.java
+ * <p>
+ * ApplicationManager.java
+ * <p>
+ * <p>
+ * Revision 2.10 2003/09/08 22:51:25 rickg
+ * <p>
+ * Added commit test volume action
+ * <p>
+ * <p>
+ * Revision 2.9 2003/09/08 05:47:09 rickg
+ * <p>
+ * Added trial tilt
+ * <p>
+ * Output for a single axis tomogram is changed to
+ * <p>
+ * dataset_full.rec
+ * <p>
+ * <p>
+ * Revision 2.8 2003/06/25 22:14:57 rickg
+ * <p>
+ * Constructed a panel for the tilt parameters
+ * <p>
+ * <p>
+ * Revision 2.7 2003/06/23 23:26:59 rickg
+ * <p>
+ * Added advanced options/parameters
+ * <p>
+ * <p>
+ * Revision 2.6 2003/05/23 22:14:11 rickg
+ * <p>
+ * Removed any extensions from log file labels in context menu
+ * <p>
+ * <p>
+ * Revision 2.5 2003/05/23 21:26:55 rickg
+ * <p>
+ * *** empty log message ***
+ * <p>
+ * <p>
+ * Revision 2.4 2003/04/28 23:25:25 rickg
+ * <p>
+ * Changed visible imod references to 3dmod
+ * <p>
+ * <p>
+ * Revision 2.3 2003/04/24 17:46:54 rickg
+ * <p>
+ * Changed fileset name to dataset name
+ * <p>
+ * <p>
+ * Revision 2.2 2003/03/02 23:30:41 rickg
+ * <p>
+ * Combine layout in progress
+ * <p>
+ * <p>
+ * Revision 2.1 2003/01/24 21:04:18 rickg
+ * <p>
+ * AxisID bug fix from single buttonAction function
+ * <p>
+ * <p>
+ * Revision 2.0 2003/01/24 20:30:31 rickg
+ * <p>
+ * Single window merge to main branch
+ * <p>
+ * <p>
+ * Revision 1.6.2.1 2003/01/24 18:43:37 rickg
+ * <p>
+ * Single window GUI layout initial revision
+ * <p>
+ * <p>
+ * Revision 1.6 2002/12/19 17:45:22 rickg
+ * <p>
+ * Implemented advanced dialog state processing
+ * <p>
+ * including:
+ * <p>
+ * default advanced state set on start up
+ * <p>
+ * advanced button management now handled by
+ * <p>
+ * super class
+ * <p>
+ * <p>
+ * Revision 1.5 2002/12/19 00:30:26 rickg
+ * <p>
+ * app manager and root pane moved to super class
+ * <p>
+ * <p>
+ * Revision 1.4 2002/11/14 21:18:37 rickg
+ * <p>
+ * Added anchors into the tomoguide
+ * <p>
+ * t
+ * <p>
+ * Revision 1.3 2002/10/17 22:40:22 rickg
+ * <p>
+ * Added fileset name to window title
+ * <p>
+ * this reference removed applicationManager messages
+ * <p>
+ * <p>
+ * Revision 1.2 2002/10/07 22:31:18 rickg
+ * <p>
+ * removed unused imports
+ * <p>
+ * reformat after emacs trashed it
+ * <p>
+ * <p>
+ * Revision 1.1 2002/09/09 22:57:02 rickg
+ * <p>
+ * Initial CVS entry, basic functionality not including combining
+ * <p>
+ * </p>
  */
 public class TomogramGenerationDialog
   extends ProcessDialog
@@ -137,7 +216,7 @@ public class TomogramGenerationDialog
   private JCheckBox chkBoxUseLinearInterpolation =
     new JCheckBox("Use linear interpolation");
 
-	private JPanel pnlAlignedStack = new JPanel();
+  private JPanel pnlAlignedStack = new JPanel();
   private JToggleButton btnNewst =
     new JToggleButton("<html><b>Create Full<br>Aligned Stack</b>");
   private JButton btn3dmodFull =
@@ -179,21 +258,26 @@ public class TomogramGenerationDialog
 
   private JPanel pnlTrial = new JPanel();
   private JPanel pnlTrialTomogramName = new JPanel();
+  private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
   private JComboBox cmboTrialTomogramName = new JComboBox();
+
   private Vector trialTomogramList = new Vector();
 
   private JPanel pnlTrialButtons = new JPanel();
   private JButton btnTrial =
     new JButton("<html><b>Generate Trial Tomogram</b>");
   private JButton btn3dmodTrial =
-    new JButton("<html><b>View Trial Tomogram In 3dmod</b>");
-  private JToggleButton btnCommit =
-    new JToggleButton("<html><b>Commit Current Trial Tomogram</b>");
+    new JButton("<html><b>View Trial in 3dmod</b>");
+  private JToggleButton btnUseTrial =
+    new JToggleButton("<html><b>Use Current Trial Tomogram</b>");
 
   private JToggleButton btnTilt =
-    new JToggleButton("<html><b>Generate<br>Tomogram</b>");
+    new JToggleButton("<html><b>Generate Tomogram</b>");
   private JButton btn3dmodTomogram =
-    new JButton("<html><b>View Tomogram<br>In 3dmod</b>");
+    new JButton("<html><b>View Tomogram In 3dmod</b>");
+
+  private MultiLineToggleButton btnDeleteStacks =
+    new MultiLineToggleButton("<html><b>Delete Aligned Image Stacks</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -203,61 +287,67 @@ public class TomogramGenerationDialog
     buttonExecute.setText("Done");
 
     chkBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
+    chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
+    //btnTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
+    //btn3dmodTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
+    //btnUseTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btn3dmodTomogram.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnDeleteStacks.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    btnNewst.setPreferredSize(FixedDim.button2Line);
-    btnNewst.setMaximumSize(FixedDim.button2Line);
-    btnNewst.addActionListener(new TomogramGenerationActionListener(this));
-		btn3dmodFull.setPreferredSize(FixedDim.button2Line);
-		btn3dmodFull.setMaximumSize(FixedDim.button2Line);
-		btn3dmodFull.addActionListener(new TomogramGenerationActionListener(this));
-		pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
-		pnlAlignedStack.add(btnNewst);
-		pnlAlignedStack.add(Box.createRigidArea(FixedDim.x10_y0));
-		pnlAlignedStack.add(btn3dmodFull);
-		
+    //  Set the button sizes
+    Dimension dimButton = UIParameters.getButtonDimension();
+    btnNewst.setPreferredSize(dimButton);
+    btnNewst.setMaximumSize(dimButton);
+    btn3dmodFull.setPreferredSize(dimButton);
+    btn3dmodFull.setMaximumSize(dimButton);
+    btnTrial.setPreferredSize(dimButton);
+    btnTrial.setMaximumSize(dimButton);
+    btn3dmodTrial.setPreferredSize(dimButton);
+    btn3dmodTrial.setMaximumSize(dimButton);
+    btnUseTrial.setPreferredSize(dimButton);
+    btnUseTrial.setMaximumSize(dimButton);
+    btnTilt.setPreferredSize(dimButton);
+    btnTilt.setMaximumSize(dimButton);
+    btn3dmodTomogram.setPreferredSize(dimButton);
+    btn3dmodTomogram.setMaximumSize(dimButton);
+    btnDeleteStacks.setPreferredSize(dimButton);
+    btnDeleteStacks.setMaximumSize(dimButton);
+
+    // Bind the buttons to the action listener
+    ButtonListener tomogramGenerationListener = new ButtonListener(this);
+    btnNewst.addActionListener(tomogramGenerationListener);
+    btn3dmodFull.addActionListener(tomogramGenerationListener);
+    btnTrial.addActionListener(tomogramGenerationListener);
+    btn3dmodTrial.addActionListener(tomogramGenerationListener);
+    btnUseTrial.addActionListener(tomogramGenerationListener);
+    btnTilt.addActionListener(tomogramGenerationListener);
+    btn3dmodTomogram.addActionListener(tomogramGenerationListener);
+    btnDeleteStacks.addActionListener(tomogramGenerationListener);
+
+    // Layout the newst button panel
+    pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
+    pnlAlignedStack.add(btnNewst);
+    pnlAlignedStack.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlAlignedStack.add(btn3dmodFull);
+
+    // Layout the trial panel
     pnlTrial.setLayout(new BoxLayout(pnlTrial, BoxLayout.Y_AXIS));
     pnlTrial.setBorder(new EtchedBorder("Trial Mode").getBorder());
     cmboTrialTomogramName.setEditable(true);
     pnlTrialTomogramName.setLayout(
       new BoxLayout(pnlTrialTomogramName, BoxLayout.X_AXIS));
-    pnlTrialTomogramName.add(new JLabel("Trial tomogram filename: "));
+    pnlTrialTomogramName.add(lblTrialTomogramName);
     pnlTrialTomogramName.add(cmboTrialTomogramName);
 
     pnlTrialButtons.setLayout(new BoxLayout(pnlTrialButtons, BoxLayout.X_AXIS));
     pnlTrialButtons.add(btnTrial);
     pnlTrialButtons.add(btn3dmodTrial);
-    pnlTrialButtons.add(btnCommit);
+    pnlTrialButtons.add(btnUseTrial);
 
     pnlTrial.add(pnlTrialTomogramName);
     pnlTrial.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTrial.add(pnlTrialButtons);
-
-    btnTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnTrial.setPreferredSize(FixedDim.button2Line);
-    btnTrial.setMaximumSize(FixedDim.button2Line);
-    btnTrial.addActionListener(new TomogramGenerationActionListener(this));
-
-    btn3dmodTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btn3dmodTrial.setPreferredSize(FixedDim.button2Line);
-    btn3dmodTrial.setMaximumSize(FixedDim.button2Line);
-    btn3dmodTrial.addActionListener(new TomogramGenerationActionListener(this));
-
-    btnCommit.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnCommit.setPreferredSize(FixedDim.button2Line);
-    btnCommit.setMaximumSize(FixedDim.button2Line);
-    btnCommit.addActionListener(new TomogramGenerationActionListener(this));
-
-    btnTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnTilt.setPreferredSize(FixedDim.button2Line);
-    btnTilt.setMaximumSize(FixedDim.button2Line);
-    btnTilt.addActionListener(new TomogramGenerationActionListener(this));
-
-    btn3dmodTomogram.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btn3dmodTomogram.setPreferredSize(FixedDim.button2Line);
-    btn3dmodTomogram.setMaximumSize(FixedDim.button2Line);
-    btn3dmodTomogram.addActionListener(new TomogramGenerationActionListener(this));
-
-    chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     layoutTiltPanel();
     layoutNewstPanel();
@@ -275,6 +365,8 @@ public class TomogramGenerationDialog
     pnlTilt.add(btnTilt);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTilt.add(btn3dmodTomogram);
+    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTilt.add(btnDeleteStacks);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
 
     rootPanel.add(pnlTilt);
@@ -462,6 +554,7 @@ public class TomogramGenerationDialog
 
   /**
    * Return the selected trial tomogram name
+   * 
    * @return
    */
   public String getTrialTomogramName() {
@@ -555,16 +648,15 @@ public class TomogramGenerationDialog
   /**
    * Right mouse button context menu
    */
-
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "newst", "tilt", "3dmod" };
+    String[] manPagelabel = { "Newst", "Tilt", "3dmod" };
     String[] manPage = { "newst.html", "tilt.html", "3dmod.html" };
 
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-    logFileLabel[0] = "newst";
-    logFileLabel[1] = "tilt";
+    logFileLabel[0] = "Newst";
+    logFileLabel[1] = "Tilt";
     logFile = new String[2];
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
@@ -607,9 +699,9 @@ public class TomogramGenerationDialog
     if (command.equals(btnNewst.getActionCommand())) {
       applicationManager.newst(axisID);
     }
-		else if (command.equals(btn3dmodFull.getActionCommand())) {
-			applicationManager.imodFineAlign(axisID);
-		}
+    else if (command.equals(btn3dmodFull.getActionCommand())) {
+      applicationManager.imodFineAlign(axisID);
+    }
     else if (command.equals(btnTrial.getActionCommand())) {
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
@@ -632,7 +724,7 @@ public class TomogramGenerationDialog
     else if (command.equals(btn3dmodTrial.getActionCommand())) {
       applicationManager.imodTestVolume(axisID);
     }
-    else if (command.equals(btnCommit.getActionCommand())) {
+    else if (command.equals(btnUseTrial.getActionCommand())) {
       applicationManager.commitTestVolume(axisID);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
@@ -641,13 +733,16 @@ public class TomogramGenerationDialog
     else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       applicationManager.imodFullVolume(axisID);
     }
+    else if (command.equals(btnDeleteStacks.getActionCommand())) {
+      applicationManager.deleteAlignedStacks(axisID);
+    }
   }
 
-  private class TomogramGenerationActionListener implements ActionListener {
+  private class ButtonListener implements ActionListener {
 
     TomogramGenerationDialog adaptee;
 
-    TomogramGenerationActionListener(TomogramGenerationDialog adaptee) {
+    ButtonListener(TomogramGenerationDialog adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -663,23 +758,38 @@ public class TomogramGenerationDialog
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     text =
+      "Make aligned stack with linear instead of cubic interpolation to "
+        + "reduce noise.";
+    chkBoxUseLinearInterpolation.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
       "Generate the complete aligned stack for input into the tilt process."
         + "  This runs the newst.com script.";
     btnNewst.setToolTipText(tooltipFormatter.setText(text).format());
 
+    text = "Open the complete aligned stack in 3dmod";
+    btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
+
     text =
-      "This parameter specifies the thickness in pixels (along the z-axis) of"
-        + " the reconstructed volume.";
+      "Thickness, in pixels, along the z-axis of the reconstructed volume.";
     ltfTomoThickness.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "These parameters allow a limited part of the map to be reconstructed and"
-        + "are useful for test purposes. A slab from column specified by First "
-        + "slice to the column Last slice (that is, along the medium axis, "
-        + "perpendicular to the tilt axis) of the volume is reconstructed, at "
-        + "intervals of Slice step.  Slices are numbered from 0.";
+      "The first slice in the Y dimension to include in the reconstructed "
+        + " volume.  Slices are numbered from 0, a last slice must also "
+        + "be specified.";
     ltfSliceStart.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "The last slice in the Y dimension to include in the reconstructed "
+        + " volume.  Slices are numbered from 0, a first slice must also "
+        + "be specified.";
     ltfSliceStop.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Step between slices in the Y dimension.  A first and last slice must "
+        + "also be entered. Default is 1.";
     ltfSliceStep.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
@@ -688,15 +798,15 @@ public class TomogramGenerationDialog
     ltfTomoWidth.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "This parameter allows one to shift the reconstructed slice in X ."
-        + "  If XOFFSET is positive, the slice will be shifted to the right, "
-        + "and the output will contain the left part of the whole potentially "
-        + "reconstructable area";
+      "Amount to shift the reconstructed slices in X before output.  A "
+        + "positive offset will shift the slice to the right, and the "
+        + "output will contain the left part of the whole potentially "
+        + "reconstructable area.";
     ltfXOffset.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "This parameter allows one to shift the reconstructed slice Z before "
-        + "it is output.  If ZOFFSET is positive, the slice is shifted upward.";
+      "Amount to shift the reconstructed slices in Z before output.  A "
+        + "positive offset will shift the slice upward.";
     ltfZOffset.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
@@ -711,31 +821,32 @@ public class TomogramGenerationDialog
     ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "This parameters allows an offset (in degrees) to be applied to all "
-        + "tilt angles.  A positive value rotates reconstructed sections "
-        + "anticlockwise.  If you specify this parameter you must also specify "
-        + "the tilt axis offset.";
+      "Offset in degrees to apply to the tilt angles; a positive offset will "
+        + "rotate the reconstructed slices counterclockwise.  Do not use "
+        + "this option for a tomogram that is part of a dual-axis series.";
     ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "These parameters control the radial weighting function.  The radial "
-        + "weighting function is linear away from the origin for a distance of "
-        + "Radial max in reciprocal space followed by a gaussian fall-off of "
-        + "s.d.  Radial falloff.  The distances may be specified either as "
-        + "pixels (values greater than 1) or as frequencies (cycles/pixel) in "
-        + "Fourier space  (values < 1).  Both parameters must be specified if "
-        + "either is specified.";
-    ltfRadialFallOff.setToolTipText(tooltipFormatter.setText(text).format());
+      "The spatial frequency at which to switch from the R-weighted radial "
+        + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
+        + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.";
     ltfRadialMax.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "This line allows a linear change of density in the reconstructed image "
-        + "according to the formula ARRAY(I)=(ARRAY(I)+FLEVL)*SCALE.  After "
-        + "the reconstruction is complete, the program will output the scale "
-        + "values that would make the data range from 10 to 245.  Both "
-        + "parameters must be specified if either is specified.";
-    ltfDensityScale.setToolTipText(tooltipFormatter.setText(text).format());
+      "The sigma value of a Gaussian which determines how fast the radial "
+        + "filter falls off at spatial frequencies above the cutoff frequency."
+        + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
+        + "cutoff and a falloff must be entered ";
+    ltfRadialFallOff.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Amount to add to reconstructed density values before multiplying by"
+        + " the scale factor and outputting the values.";
     ltfDensityOffset.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "Amount to multiply reconstructed density values by, after adding the "
+        + "offset value.";
+    ltfDensityScale.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "This parameter allows one to generate a reconstruction using the "
@@ -751,7 +862,7 @@ public class TomogramGenerationDialog
       tooltipFormatter.setText(text).format());
 
     text =
-      "Compute the tomogram from the full aligned stack.  This runs"
+      "Compute the tomogram from the full aligned stack.  This runs "
         + "the tilt.com script.";
     btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -759,13 +870,33 @@ public class TomogramGenerationDialog
     btn3dmodTomogram.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "Use linear interpolation rather than the default, cubic interpolation, "
-        + "when transforming images.  Linear interpolation is more "
-        + "suitable when images are very noisy, but cubic interpolation "
-        + "will preserve fine detail better when noise is not an issue. "
-        + "Images are transformed when the -xform, -expand, or -rotate "
-        + "option is entered.";
-    chkBoxUseLinearInterpolation.setToolTipText(
+      "Current name of trial tomogram, which will be generated, viewed, or"
+        + " used by the buttons below.";
+    lblTrialTomogramName.setToolTipText(
       tooltipFormatter.setText(text).format());
+    cmboTrialTomogramName.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Compute a trial tomogram with the current parameters, using the "
+        + "filename in the \" Trial tomogram filename \" box.";
+    btnTrial.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "View the trial tomogram whose name is shown in \"Trial "
+        + "tomogram filename\" box.";
+    btn3dmodTrial.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Rename the trial tomogram whose name is shown in the \"Trial "
+        + "tomogram filename\" box to be the final tomogram.";
+    btnUseTrial.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Delete the pre-aligned and aligned stack for this axis.  Once the "
+        + "tomogram is calculated these intermediate files are not used and can be "
+        + ""
+        + "deleted to free up disk space.";
+    btnDeleteStacks.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
