@@ -126,9 +126,11 @@ void DLL_EX_IM imodPuts(const char *message);
 /* Call with a keyevent to execute 3dmod hot keys */
 void DLL_EX_IM imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
-/* Show a help page in Qt Assistant; set absolute to true to provide a full
-   path instead of a path relative to IMOD_DIR/html/3dmodHelp */
-void DLL_EX_IM imodShowHelpPage(const char *page, bool absolute = false);
+/* Show a help page in Qt Assistant; provide a full
+ * path if the path is not relative to IMOD_DIR/html/3dmodHelp
+ * Returns 1 for error, 0 for success 
+ */
+int DLL_EX_IM imodShowHelpPage(const char *page);
 
 
 /*****************************************************************************/
@@ -137,6 +139,9 @@ void DLL_EX_IM imodShowHelpPage(const char *page, bool absolute = false);
 
 /*
     $Log$
+    Revision 3.9  2004/11/22 00:22:48  mast
+    Added definition for showing help page
+
     Revision 3.8  2004/09/24 18:10:04  mast
     Added new definition for plugins that can execute messages
 
