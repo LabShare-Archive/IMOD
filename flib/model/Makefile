@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.2  2003/09/06 00:02:06  mast
 #  Added resamplemod
 #
@@ -24,7 +27,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  checkmtmod$(E) joinmodel$(E) mtsmooth$(E) reducemtmod$(E) xfinterstack$(E) \
  clipmodel$(E) mtmodel$(E) remapmodel$(E) mtlengths$(E) contourmod$(E)\
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
- refinematch$(E) findwarp$(E)\
+ refinematch$(E) findwarp$(E) sumdensity$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E)
 
 LIBS = $(FORTCLIBS)
@@ -126,6 +129,9 @@ repackseed$(E): repackseed.$(O)
 
 resamplemod$(E): resamplemod.$(O)
 	$(FC) -o resamplemod resamplemod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+sumdensity$(E): sumdensity.$(O)
+	$(FC) -o sumdensity sumdensity.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
