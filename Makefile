@@ -291,7 +291,7 @@ cygdist : ALWAYS
 ##################################################################
 # Make the full IMOD source distribution
 #
-src : cleansrc csrc fsrc
+src : configure cleansrc csrc fsrc
 	if (-e $(ARCDIR)_src/$(ARCDIR)_src/) /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/
 	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
 	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src
@@ -353,6 +353,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.11  2003/04/17 19:29:19  mast
+#  Mac has no .so, ignore error in dist
+#
 #  Revision 3.10  2003/03/28 05:49:47  mast
 #  include .xpm's in make src
 #
