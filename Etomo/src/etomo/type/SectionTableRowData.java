@@ -17,6 +17,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:39:39  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.10  2004/11/17 02:23:18  sueh
 * <p> bug# 520 Added a copy constructor.
 * <p>
@@ -75,8 +78,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     sampleBottomEnd.reset();
     sampleTopStart.reset();
     sampleTopEnd.reset();
-    finalStart = 1;
-    finalEnd = zMax;
+    finalStart.reset();
+    finalEnd.reset();
     rotationAngleX.reset();
     rotationAngleY.reset();
     rotationAngleZ.reset();
@@ -99,6 +102,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     yMax.load(props, prepend);
     zMax = Integer.parseInt(props.getProperty(group + zMaxString,
         Integer.toString(Integer.MIN_VALUE)));
+    finalEnd.setRecommendedValue(zMax);
     String sectionName = props.getProperty(group + sectionString, null);
     if (sectionName != null) {
       section = new File(sectionName);
@@ -107,10 +111,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     sampleBottomEnd.load(props, prepend);
     sampleTopStart.load(props, prepend);
     sampleTopEnd.load(props, prepend);
-    finalStart = Integer.parseInt(props.getProperty(group + finalStartString,
-        Integer.toString(Integer.MIN_VALUE)));
-    finalEnd = Integer.parseInt(props.getProperty(group + finalEndString,
-        Integer.toString(zMax)));
+    finalStart.load(props, prepend);
+    finalEnd.load(props, prepend);
     rotationAngleX.load(props, prepend);
     rotationAngleY.load(props, prepend);
     rotationAngleZ.load(props, prepend);
@@ -138,43 +140,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   
   public void setZMax(int zMax) {
     this.zMax = zMax;
-    finalEnd = zMax;
-  }
-  
-  public int parseInt(String value, String valueName) {
-    invalidReason = null;
-    int intValue;
-    if (value == null || !value.matches("\\S+")) {
-      return Integer.MIN_VALUE;
-    }
-    try {
-      intValue = Integer.parseInt(value);
-    }
-    catch (NumberFormatException e) {
-      e.printStackTrace();
-      invalidReason = new StringBuffer("Row " + rowNumber + ":  " + valueName
-          + " must be an integer.");
-      return Integer.MIN_VALUE;
-    }
-    return intValue;
-  }
-
-  public double parseDouble(String value, String valueName) {
-    invalidReason = null;
-    double doubleValue;
-    if (value == null || !value.matches("\\S+")) {
-      return Double.NaN;
-    }
-    try {
-      doubleValue = Double.parseDouble(value);
-    }
-    catch (NumberFormatException e) {
-      e.printStackTrace();
-      invalidReason = new StringBuffer("Row " + rowNumber + ":  " + valueName
-          + " must be a number.");
-      return Double.NaN;
-    }
-    return doubleValue;
+    finalEnd.setRecommendedValue(zMax);
   }
 
   public ConstEtomoNumber setSampleBottomStart(String sampleBottomStart) {
@@ -193,31 +159,23 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     return this.sampleTopEnd.set(sampleTopEnd);
   }
   
-  public boolean setFinalStart(String finalStart) {
-    this.finalStart = parseInt(finalStart, finalStartName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public ConstEtomoNumber setFinalStart(String finalStart) {
+    return this.finalStart.set(finalStart);
   }
   
-  public boolean setFinalEnd(String finalEnd) {
-    this.finalEnd = parseInt(finalEnd, finalEndName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public ConstEtomoNumber setFinalEnd(String finalEnd) {
+    return this.finalEnd.set(finalEnd);
   }
   
-  public boolean setRotationAngleX(String rotationAngleX) {
-    return this.rotationAngleX.set(rotationAngleX).isValid();
+  public ConstEtomoNumber setRotationAngleX(String rotationAngleX) {
+    return this.rotationAngleX.set(rotationAngleX);
   }
   
-  public boolean setRotationAngleY(String rotationAngleY) {
-    return this.rotationAngleY.set(rotationAngleY).isValid();
+  public ConstEtomoNumber setRotationAngleY(String rotationAngleY) {
+    return this.rotationAngleY.set(rotationAngleY);
   }
   
-  public boolean setRotationAngleZ(String rotationAngleZ) {
-    return this.rotationAngleZ.set(rotationAngleZ).isValid();
+  public ConstEtomoNumber setRotationAngleZ(String rotationAngleZ) {
+    return this.rotationAngleZ.set(rotationAngleZ);
   }
 }
