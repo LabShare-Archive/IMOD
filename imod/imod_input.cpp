@@ -60,7 +60,7 @@ Log at end of file
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
 
-static void inputRaiseWindows()
+void inputRaiseWindows()
 {
   QWidgetList  *list = QApplication::topLevelWidgets();
   QWidgetListIt it( *list );  // iterate over the widgets
@@ -1167,6 +1167,10 @@ int inputConvertNumLock(int keysym)
 
 /*
 $Log$
+Revision 4.5  2003/03/13 01:17:25  mast
+Add function to convert numlocked keypad keys, and add function and
+hotkey to raise all windows
+
 Revision 4.4  2003/03/12 06:35:35  mast
 Modified inputInsertPoint to work like the xyz window insert in terms of
 times and creating a new contour; modified inputModifyPoint to respect time
