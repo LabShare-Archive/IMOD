@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -30,9 +31,12 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2003/03/18 23:41:07  rickg
+ * <p> Restructured for both model and non model based combines
+ * <p>
  * <p> </p>
  */
-public class InitialCombinePanel {
+public class InitialCombinePanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -109,6 +113,10 @@ public class InitialCombinePanel {
     btnRestart.addActionListener(buttonAction);
     CheckBoxActionListener checkboxAction = new CheckBoxActionListener(this);
     cbUseModel.addActionListener(checkboxAction);
+
+    // Mouse listener for context menu
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    pnlRoot.addMouseListener(mouseAdapter);
   }
 
   public Container getContainer() {
@@ -165,6 +173,28 @@ public class InitialCombinePanel {
     solvematchmodParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
     solvematchmodParam.setResidualThreshold(
       Double.parseDouble(ltfResidulThreshold.getText()));
+  }
+
+  /**
+   * Right mouse btn context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "solvematch", "matchshifts" };
+    String[] manPage = { "solvematch.html", "matchshifts.html" };
+    String[] logFileLabel =
+      { "transferfid", "solvematchshift", "solvematchmod" };
+    String[] logFile =
+      { "transferfid.log", "solvematchshift.log", "solvematchmod.log" };
+
+    ContextPopup contextPopup =
+      new ContextPopup(
+        pnlRoot,
+        mouseEvent,
+        "Initial Problems in Combinging",
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   /**
