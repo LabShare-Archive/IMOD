@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.22  2003/04/16 00:13:54  rickg
+ * <p> Trimvol in progress
+ * <p>
  * <p> Revision 2.21  2003/04/14 23:57:18  rickg
  * <p> Trimvol management changes
  * <p>
@@ -2319,26 +2322,43 @@ public class ApplicationManager {
       postProcessingDialog = new PostProcessingDialog(this);
     }
 
+    // Rename the full reconstruction volume so that it does not get written
+    // over
+    if ((metaData.getAxisType() == AxisType.SINGLE_AXIS)
+      && (!fullReconRename())) {
+      String[] detailedMessage = new String[2];
+      detailedMessage[0] = "Unable to rename the output from tilt to full.rec";
+      detailedMessage[1] = "Does the reconstruction file exist yet?";
+      openMessageDialog(detailedMessage, "File rename error");
+      //Close the dialog
+      return;
+    }
+
     TrimvolParam trimvolParam = new TrimvolParam();
-    if(metaData.getAxisType()) {
+    String inputFile = "";
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      inputFile = "full.rec";
+    }
+    else {
+      inputFile = "sum.rec";
     }
     try {
-      trimvolParam.setDefaultRange("sum.rec");
+      trimvolParam.setDefaultRange(inputFile);
     }
     catch (InvalidParameterException except) {
       String[] detailedMessage = new String[4];
       detailedMessage[0] = "Unable to set trimvol range";
-      detailedMessage[1] = "Are both tomograms computed and available?";
+      detailedMessage[1] = "Does the reconstruction file exist yet?";
       detailedMessage[2] = "";
       detailedMessage[3] = except.getMessage();
 
-      openMessageDialog(detailedMessage, "Invalid parameter: " + recFileName);
+      openMessageDialog(detailedMessage, "Invalid parameter: " + inputFile);
       //Close the dialog
       return;
     }
     catch (IOException except) {
       except.printStackTrace();
-      openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
+      openMessageDialog(except.getMessage(), "IO Error: " + inputFile);
       //Close the dialog
       return;
     }
@@ -2346,6 +2366,32 @@ public class ApplicationManager {
     postProcessingDialog.setTrimvolParams(trimvolParam);
 
     mainFrame.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
+   * Rename the reconstruction output from tilt for the case of a single axis
+   * tomogram
+   */
+  private boolean fullReconRename() {
+
+    File fullReconstruction =
+      new File(metaData.getWorkingDirectory(), "full.rec");
+    File finalReconstuction =
+      new File(
+        metaData.getWorkingDirectory(),
+        metaData.getFilesetName() + ".rec");
+
+    //  If neither of the files exist return false
+    if ((!fullReconstruction.exists()) && (!finalReconstuction.exists())) {
+      return false;
+    }
+
+    // If fileset.rec exists and full.rec doesn't move fileset.rec to full.rec
+    // otherwise just return true
+    if (finalReconstuction.exists() && (!fullReconstruction.exists())) {
+      return finalReconstuction.renameTo(fullReconstruction);
+    }
+    return true;
   }
 
   /**
@@ -2374,6 +2420,36 @@ public class ApplicationManager {
   }
 
   /**
+   * open the full volume in imod
+   */
+  public void imodFullVolume() {
+    try {
+      imodManager.openFullVolume();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on the full tomogram");
+    }
+  }
+
+  /**
+   * Open the trimmed volume in imod
+   */
+  public void imodTrimmedVolume() {
+    try {
+      imodManager.openTrimmedVolume();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on the trimmed tomogram");
+    }
+  }
+
+  /**
    *  Execute trimvol
    */
   public void trimVolume() {
@@ -2387,9 +2463,17 @@ public class ApplicationManager {
     // Get the trimvol parameters from the panel
     TrimvolParam trimvolParam = new TrimvolParam();
     postProcessingDialog.getTrimvolParams(trimvolParam);
-    trimvolParam.setInputFile("sum.rec");
-    String fileSetName = metaData.getFilesetName();
-    trimvolParam.setOutputFile(fileSetName + ".rec");
+
+    //  Set the appropriate input and output files
+    String inputFile = "";
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      inputFile = "full.rec";
+    }
+    else {
+      inputFile = "sum.rec";
+    }
+    trimvolParam.setInputFile(inputFile);
+    trimvolParam.setOutputFile(metaData.getFilesetName() + ".rec");
 
     // Start the trimvol process
     String threadName = processMgr.trimVolume(trimvolParam);
