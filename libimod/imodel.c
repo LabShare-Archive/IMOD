@@ -637,7 +637,7 @@ int imodPrevObject(Imod *mod)
   Iobj *obj;
   Icont *cont;
 
-  if ((imod == NULL) || (imod->objsize == 0))
+  if ((mod == NULL) || (mod->objsize == 0))
     return(-1);
   /* If no object selected or if object is # 0, leave index alone*/
   if (mod->cindex.object <= 0)
@@ -842,7 +842,7 @@ int   imodNextContour(Imod *imod)
   if (imod == NULL)
     return(-1);
 
-  obj = imodObjectGet(mod);
+  obj = imodObjectGet(imod);
 
   /* if no object selected, forget it. */
   if (!obj)
@@ -1487,6 +1487,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.15  2005/03/20 19:56:43  mast
+Documenting and eliminating duplicate functions
+
 Revision 3.14  2004/12/03 17:26:00  mast
 Changed behavior of imodDeletePoint, removed DelPoint
 
