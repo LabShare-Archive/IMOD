@@ -86,16 +86,8 @@ if ((-e tilta.com) && (-e tiltb.com)) then
     # This ugliness is for Cygwin Windows, with nobinmode not set
     set xaxisa = `grep -i xaxistilt $tilta | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
     set xaxisb = `grep -i xaxistilt $tiltb | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
-    if ("$xaxisa" == "") then
-        set xaxisa = "xaxistilt 0."
-        echo " "
-        echo "WARNING: NO XAXISTILT ENTRY IN tilta.com, TILT OF 0. ASSUMED"
-    endif
-    if ("$xaxisb" == "") then
-        set xaxisb = "xaxistilt 0."
-        echo " "
-        echo "WARNING: NO XAXISTILT ENTRY IN tiltb.com, TILT OF 0. ASSUMED"
-    endif
+    if ("$xaxisa" == "") set xaxisa = "xaxistilt 0."
+    if ("$xaxisb" == "") set xaxisb = "xaxistilt 0."
 else
     echo " "
     echo2 "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
@@ -622,6 +614,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.17  2004/04/24 03:37:36  mast
+#  Added check for xaxistilt lines and warning if they are not there
+#
 #  Revision 3.16  2004/01/13 20:02:06  mast
 #  ($<) does not work in true csh on SGI, so make wordlist in two steps
 #
