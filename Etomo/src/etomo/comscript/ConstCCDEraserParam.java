@@ -14,6 +14,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -29,14 +32,27 @@ public class ConstCCDEraserParam {
   public static final String rcsid =
     "$Id$";
 
-  protected String inputFile;
-  protected String outputFile;
-  protected String modelFile;
-  protected String globalReplacementList;
-  protected String localReplacementList;
-  protected String borderPixels;
-  protected String polynomialOrder;
-  protected boolean includeAdjacentPoints;
+  protected String inputFile = "";
+  protected String outputFile = "";
+
+  protected boolean findPeaks = false;
+  protected String peakCriterion = "";
+  protected String diffCriterion = "";
+  protected String growCriterion = "";
+  protected String scanCriterion = "";
+  protected String edgeExclusion = "";
+  protected String maximumRadius = "";
+  protected String outerRadius = "";
+  protected String xyScanSize = "";
+  protected String pointModel = "";
+  protected boolean trialMode;
+  
+  protected String modelFile = "";
+  protected String globalReplacementList = "";
+  protected String localReplacementList = "";
+  protected String borderPixels = "";
+  protected String polynomialOrder = "";
+  protected boolean includeAdjacentPoints = true;
 
   public boolean isValid() {
     boolean valid = true;
@@ -79,5 +95,83 @@ public class ConstCCDEraserParam {
   public boolean getIncludeAdjacentPoints() {
     return includeAdjacentPoints;
   }
+
+  /**
+   * @return
+   */
+  public String getDiffCriterion() {
+    return diffCriterion;
+  }
+
+  /**
+   * @return
+   */
+  public String getEdgeExclusion() {
+    return edgeExclusion;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isFindPeaks() {
+    return findPeaks;
+  }
+
+  /**
+   * @return
+   */
+  public String getGrowCriterion() {
+    return growCriterion;
+  }
+
+  /**
+   * @return
+   */
+  public String getMaximumRadius() {
+    return maximumRadius;
+  }
+
+  /**
+   * @return
+   */
+  public String getOuterRadius() {
+    return outerRadius;
+  }
+
+  /**
+   * @return
+   */
+  public String getPeakCriterion() {
+    return peakCriterion;
+  }
+
+  /**
+   * @return
+   */
+  public String getPointModel() {
+    return pointModel;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isTrialMode() {
+    return trialMode;
+  }
+
+  /**
+   * @return
+   */
+  public String getXyScanSize() {
+    return xyScanSize;
+  }
+
+  /**
+   * @return
+   */
+  public String getScanCriterion() {
+    return scanCriterion;
+  }
+
 
 }
