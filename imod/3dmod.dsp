@@ -40,9 +40,8 @@ RSC=rc.exe
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "tmp"
-# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD CPP /nologo /MD /O1 /I "..\include" /I "." /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
+# ADD CPP /nologo /MD /W1 /O1 /I "..\include" /I "." /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -63,9 +62,8 @@ LINK32=link.exe
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
-# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD CPP /nologo /MDd /Z7 /Od /I "..\include" /I "." /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
+# ADD CPP /nologo /MDd /W1 /Z7 /Od /I "..\include" /I "." /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -99,6 +97,10 @@ SOURCE=b3dfile.c
 # Begin Source File
 
 SOURCE=b3dgfx.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=beadfix.cpp
 # End Source File
 # Begin Source File
 
@@ -382,7 +384,40 @@ SOURCE=b3dicon.xpm
 # End Source File
 # Begin Source File
 
+SOURCE=beadfix.h
+
+!IF  "$(CFG)" == "3dmod - Win32 Release"
+
+USERDEP__BEADF="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing beadfix.h...
+InputPath=beadfix.h
+
+"tmp\moc_beadfix.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc beadfix.h -o tmp\moc_beadfix.cpp
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "3dmod - Win32 Debug"
+
+USERDEP__BEADF="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing beadfix.h...
+InputPath=beadfix.h
+
+"tmp\moc_beadfix.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc beadfix.h -o tmp\moc_beadfix.cpp
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=control.h
+# End Source File
+# Begin Source File
+
+SOURCE=controlP.h
 # End Source File
 # Begin Source File
 
@@ -687,6 +722,10 @@ SOURCE=imodplug.h
 # End Source File
 # Begin Source File
 
+SOURCE=imodplugP.h
+# End Source File
+# Begin Source File
+
 SOURCE=imodv.h
 # End Source File
 # Begin Source File
@@ -872,6 +911,14 @@ InputPath=imodv_window.h
 # End Source File
 # Begin Source File
 
+SOURCE=imodview.h
+# End Source File
+# Begin Source File
+
+SOURCE=imodviewP.h
+# End Source File
+# Begin Source File
+
 SOURCE=iproc.h
 
 !IF  "$(CFG)" == "3dmod - Win32 Release"
@@ -1009,6 +1056,10 @@ InputPath=slicer_classes.h
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=special_module.h
 # End Source File
 # Begin Source File
 
@@ -2095,6 +2146,10 @@ SOURCE=tmp\formv_views.cpp
 # Begin Source File
 
 SOURCE=tmp\formv_views.h
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\moc_beadfix.cpp
 # End Source File
 # Begin Source File
 
