@@ -1,8 +1,9 @@
+#!/bin/csh
 #############################################################################
 #
 set c_includes = '-I$(QTDIR)/include'
 
-echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
+echo 'LDFLAGS = -L$(LIBDIR) -dynamic' >> $configure
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -23,16 +24,16 @@ CP        = \\cp
 FIND      = \\find
 EOF
 
-set shared_libs = false
+#set shared_libs = false
 
 set wrapper = ""
 
 if ($shared_libs != false) then
-	echo "AR      = ld"                 >> $configure
-	echo "ARCPP   = g++"                >> $configure
-	echo "ARFLAGS = $flags -shared -o"    >> $configure
+	echo "AR      = c++"                 >> $configure
+	echo "ARCPP   = c++"                >> $configure
+	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -o"    >> $configure
 	echo "RANLIB    = true"                     >> $configure
-	echo "LIBEXT  = so"                 >> $configure
+	echo "LIBEXT  = dylib"                 >> $configure
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
@@ -43,7 +44,10 @@ endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = g++ $flags -shared -o" >> $configure
+
+set fort_cpplibs = -lstdc++
+
+# defer MAKELIBSO and MAKEF77PLUGIN to setup file
 
 
 echo "CLIBS   = -lc -lm" >> $configure
@@ -52,11 +56,8 @@ echo 'FORTCLIBS = '  >> $configure
 
 echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
 
-echo 'IMODCC    = $(CC)'              >> $configure
-echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
-set fort_cpplibs = -lstdc++
 
 # 
 # tell the C routines which way to swap floats
@@ -65,11 +66,12 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
+echo '#define GLU_QUADRIC_HACK' >> $hconfigure
 
 
 
 set optimization = "-O3 -w"
-if ($debug == true) set optimization = "-ggdb -O0"
+if ($debug == true) set optimization = "-g -O0"
 
 #
 #
@@ -93,29 +95,79 @@ echo 'RGBPROGS = '  >> $configure
 #
 #   default is to assume tifflib does not exist
 #
-set tifflibs = false
-if ($tifflibs == default) set tifflibs = true
+if ($tifflibs == default) set tifflibs = false
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt
 #
 set fbpswitch       = fbpswitch-pc.inc
 
+
+# Set the string for the "ctrl" key
+#
+set ctrl_string = Apple
+
 #
 # Set up things for Qt include files
 #
+
+# get target executable name pattern from sendevent
+#
+(cd $sendevent_dir ; qmake imodsendevent.pro)
+set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
+set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/imod/g'`
+set midas_target = `echo $imod_target | sed '/imod/s/imod/midas/g'`
+set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
+
+# Tell plugins where imod is
+#
+set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
+echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs -o" >> $configure
+echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o" >> $configure
+
+# make script files to run programs
+#
+cat <<EOF >! $imod_dir/runimod
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D' || "\$i" == '-W') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${imod_target} \$*
+else
+    \$IMOD_DIR/bin/${imod_target} \$* &
+endif
+EOF
+
+echo 'imod -view $* &' >! $imod_dir/runimodv
+
+echo '$IMOD_DIR/bin/'"$send_target"' $*' >! $sendevent_dir/runsendevent
+
+cat <<EOF >! $midas_dir/runmidas
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${midas_target} \$*
+else
+    \$IMOD_DIR/bin/${midas_target} \$* &
+endif
+EOF
+
+chmod +x $imod_dir/runimod $imod_dir/runimodv 
+chmod +x $midas_dir/runmidas $sendevent_dir/runsendevent
+
 cat << EOF  >! $midas_qconf
 DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 
 cat << EOF >! $imod_qconf
 LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff
-LIBS += -lm
+LIBS += -ldl -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 
-#
-# skip the plugins
-#
-set makefile_dirs = $libdiaqt_dir
-\cp $plugsrc_dir/Makefile.dummy $plugsrc_dir/Makefile
+
