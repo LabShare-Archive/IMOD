@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/05/20 15:34:04  mast
+    Made time index modeling be the default for a new object (or new model)
+    if multiple files are open
+
     Revision 3.1  2001/12/17 18:45:54  mast
     Added calls for cache filling
 
@@ -59,13 +63,18 @@ void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 void imod_file_cb(Widget w, XtPointer client, XtPointer call);
 static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call);
 
+static int message_action = MESSAGE_NO_ACTION;
+static int packets_left = 0;
+static int message_index;
+static char *message_string = NULL;
+
 void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 {
      int item = (int)client;
      int mode,ob;
      struct Mod_Model   *tmod = NULL;
      XmString filename;
-     char *filestr;
+     char *filestr = NULL;
      int namelen;
      Iobj *obj;
 
@@ -143,7 +152,11 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 	  imod_cleanup_autosave();
 
 	  /*	  mode = App->cvi->imod->mousemode; */
-	  tmod = (Imod *)LoadModel((FILE *)NULL);
+
+	  /* DNM 9/12/02: use the filename from a client message */
+	  if (message_action == MESSAGE_OPEN_MODEL)
+	       filestr = message_string;
+	  tmod = (Imod *)LoadModel((FILE *)NULL, filestr);
 
 	  if (tmod){
 	      
@@ -1139,3 +1152,86 @@ static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call)
      limits[3] = App->cvi->ysize;
      b3dSnapshot_TIF(filename, 0, limits, data);
 }
+
+void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
+{
+     XClientMessageEvent *cmEvent = (XClientMessageEvent *)event;
+     if (event->type != ClientMessage) {
+	  /* fprintf(stderr, "received non client message\n"); */
+	  return;
+     }
+     
+     /* fprintf(stderr, "got client message\n"); */
+
+     if (cmEvent->format == 16) {
+	  fprintf(stderr, "imodHandleClientMessage: received message in "
+		  "16-bit format\n");
+	  return;
+     }
+
+     /* If it is a string packet, and we are not expecting one, forget it */
+     if (cmEvent->format == 8 && !packets_left) {
+	  fprintf(stderr, "imodHandleClientMessage: received byte packet when"
+		  " not expecting one\n");
+	  return;
+     }
+
+     /* If it is an action packet and we are still expecting some string
+	packets, clear out the last action */
+     if (cmEvent->format == 32 && packets_left) {
+	  if (message_string)
+	       free(message_string);
+	  packets_left = 0;
+	  fprintf(stderr, "imodHandleClientMessage: received a new action"
+		  " message when still expecting more byte packets\n");
+     }
+
+     if (cmEvent->format == 32) {
+
+	  /* action message: get the action type and number of packets */
+	  message_action = cmEvent->data.l[0];
+	  packets_left = cmEvent->data.l[1];
+	  if (packets_left) {
+
+	       /* If there are packets coming, allocate memory, set up index,
+		  and return */
+	       message_string = (char *)malloc(20 * packets_left);
+	       message_index = 0;
+	       if (!message_string) {
+		    fprintf(stderr, "imodHandleClientMessage: failure to "
+			    "obtain memory for %d packets\n", packets_left);
+		    packets_left = 0;
+		    message_action = MESSAGE_NO_ACTION;
+	       }
+	       return;
+	  }
+     } else {
+
+	  /* string packet: add it to the string */
+	  memcpy(&message_string[message_index], cmEvent->data.b, 20);
+	  message_index += 20;
+	  if (--packets_left)
+	       return;
+     }
+
+     /* Execute the action */
+     /* Each individual action is responsible for free the string or knowing
+	if it has been freed already */
+     switch (message_action) {
+	case MESSAGE_OPEN_MODEL:
+	  imod_file_cb(w, (XtPointer)1, NULL);
+	  message_string = NULL;
+	  break;
+
+	case MESSAGE_SAVE_MODEL:
+	  imod_file_cb(w, (XtPointer)2, NULL);
+	  break;
+
+	case MESSAGE_VIEW_MODEL:
+	  imod_win_cb(w, (XtPointer)4, NULL);
+	  break;
+
+     }
+     message_action = MESSAGE_NO_ACTION;
+}
+
