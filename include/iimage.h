@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/11/30 03:47:10  mast
+Declared new function to add check functions
+
 Revision 3.4  2004/11/05 18:52:53  mast
 Include local files with quotes, not brackets
 
@@ -32,6 +35,7 @@ extern "C" {
 #define IIFILE_TIFF    1
 #define IIFILE_MRC     2
 #define IIFILE_QIMAGE  3
+#define IIFILE_RAW     4
 
 #define IIFORMAT_LUMINANCE 0
 #define IIFORMAT_RGB       1
@@ -119,6 +123,12 @@ extern "C" {
   int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
              int file, int format, int type);
   int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection);
+
+  /* Declarations for specific file types needed by other modules */
+  int iiTIFFCheck(ImodImageFile *inFile);
+  int iiMRCCheck(ImodImageFile *inFile);
+  int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
 
 #ifdef __cplusplus
 }
