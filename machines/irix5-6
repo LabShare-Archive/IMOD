@@ -188,7 +188,7 @@ cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
 LIBS += -L$lib_dir -liimod -limod -ldiaqt -lifft -ltiff -ltrack
-LIBS += -lm
+LIBS += -lqassistantclient -lm
 INCLUDEPATH += .
 EOF
 
@@ -201,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.26  2004/11/09 17:52:56  mast
+#  Start using multithreaded library
+#
 #  Revision 3.25  2004/11/07 23:07:56  mast
 #  Added libifft to 3dmod build
 #
