@@ -9,6 +9,33 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.8  2003/01/30 05:50:42  mast
+#  add variable MAKELIBCPP for.cpp library under RH 8.0
+#
+#  Revision 3.5.2.7  2003/01/29 06:14:17  mast
+#  Fix output to imod's qconfigure under RH 8.0
+#
+#  Revision 3.5.2.6  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
+#  Revision 3.5.2.5  2002/12/06 22:08:30  mast
+#  *** empty log message ***
+#
+#  Revision 3.5.2.4  2002/12/06 17:36:51  mast
+#  *** empty log message ***
+#
+#  Revision 3.5.2.3  2002/12/06 17:20:04  mast
+#  *** empty log message ***
+#
+#  Revision 3.5.2.2  2002/12/06 17:16:33  mast
+#  *** empty log message ***
+#
+#  Revision 3.5.2.1  2002/12/05 18:10:04  mast
+#  *** empty log message ***
+#
+#  Revision 3.5  2002/11/05 23:28:44  mast
+#  Added variables for the lab name
+#
 #  Revision 3.4  2002/09/10 03:29:13  mast
 #  Eliminate links in include for nimp_source:model.inc and
 #  stat_source:statsize.inc, since these are gone from programs
@@ -35,7 +62,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2002'
+set imod_copyright    = '1994-2003'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -72,6 +99,11 @@ set imsubsobj       = '*.o'
 set tiltalilib      =
 set tilt_dir        = flib/tilt
 set fbpswitch       = fbpswitch-def.inc
+set midas_dir       = midas
+set imod_dir        = imod
+set midas_qconf     = midas/qconfigure
+set imod_qconf      = imod/qconfigure
+
 
 #
 # Input options
@@ -166,7 +198,6 @@ cat << EOF >! $hconfigure
 #define COPYRIGHT_YEARS "$imod_copyright"
 #define LAB_NAME1 "$lab_name1"
 #define LAB_NAME2 "$lab_name2"
-#define DRAW_OpenGL 1
 EOF
 
 #
@@ -278,13 +309,17 @@ echo "FIND    = find"          	  >> $configure
 
 # define how to make libraries - see specific machines for shared libs
 echo "AR      = ar"               >> $configure
+echo "ARCPP   = ar"               >> $configure
 echo "ARFLAGS = r"                >> $configure
 echo 'LDFLAGS = -L$(LIBDIR)'      >> $configure
 echo "RANLIB  = ranlib"           >> $configure
 echo 'MAKELIB = $(AR) $(ARFLAGS)' >> $configure
 
+# MAKELIBCPP needs to be defined to make a library from cpp files.
+
 # MAKELIBSO needs to be defined to describe how to make a .so plugin
 # from .o files; all systems are OK with MAKELIB for shared libraries
+
 
 # Basic C libraries, used to build almost all programs, C and Fortran; but
 # the Fortran Makefiles use FORTCLIBS
@@ -461,6 +496,7 @@ echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
 echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
+echo 'MOC = $(QTDIR)/bin/moc'     >> $configure
 echo "# end of configure"          >> $configure
 
 echo "#endif"                      >> $hconfigure
@@ -484,6 +520,33 @@ mkdir -p $inst_dir/com
 mkdir -p $inst_dir/html/man
 mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
+
+#
+# manage qconfigure files
+#
+echo INCLUDEPATH += $inc_dir >> $midas_qconf
+echo LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff >> $midas_qconf
+echo target.path = $inst_bin_dir >> $midas_qconf
+
+# echo gives two \\ in tcsh 6.12 under RH 8.0 so use cat
+#
+cat <<EOF >> $imod_qconf
+INCLUDEPATH += $inc_dir
+target.path = $inst_bin_dir
+imodv.path = $inst_bin_dir
+unix:imodv.extra = \\rm -f $inst_bin_dir/imodv ; ln -s $inst_bin_dir/imod $inst_bin_dir/imodv
+EOF
+
+if ($debug == true) then
+    echo CONFIG += debug warn_on >> $midas_qconf
+    echo CONFIG += debug warn_off >> $imod_qconf
+else
+    echo CONFIG += release warn_off >> $midas_qconf
+    echo CONFIG += release warn_off >> $imod_qconf
+endif
+
+(cd $midas_dir ; qmake midas.pro)
+(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s imod imodv)
 
 exit
 

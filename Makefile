@@ -20,7 +20,7 @@
 #############################################################################
 # BUILD AND INSTALLATION INSTRUCTIONS:
 #
-# SIMPLE CASE OF OLD 32-BIT CODE UNDER IRIX 6.0 - 6.2, OR PC UNDER LINUX:
+# SIMPLE CASE OF PC UNDER LINUX:
 #
 # 1. "setup -i [install directory]" to set the install directory.
 #
@@ -33,9 +33,9 @@
 #
 # 1. "setup -m irix6-32 -tiff -i [install directory]" 
 #
-# 2. "make libs"     to make the old 32-bit libraries
+# 2. "make o32libs"     to make the old 32-bit libraries
 #
-# 3. "make installlibs"    to install the libraries
+# 3. "make installo32libs"    to install the libraries
 #
 # 4. "make cleanlibs"     to clean directories for new make
 #
@@ -72,6 +72,12 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2.2.1  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
+#  Revision 3.2  2002/07/30 05:35:51  mast
+#  Changes to include GLw in standard build
+#
 #  Revision 3.1  2001/12/06 15:26:28  mast
 #  Added History to make src
 #
@@ -123,7 +129,7 @@ default : all
 #
 # Make all the fortran programs then all the C programs.
 #
-all : configure installglw clibs
+all : configure clibs
 	cd flib      ; $(MAKE) all
 	cd imod      ; $(MAKE) all
 	cd imodutil  ; $(MAKE) all
@@ -141,10 +147,10 @@ configure : setup .version
 #
 # Install cstuff
 #
-install : configure installglw man
+install : configure man
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
-	cd libdia    ; $(MAKE) $@
+	cd libdiaqt  ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
@@ -169,10 +175,10 @@ man : configure ALWAYS
 installclibs : configure
 	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
-	cd libdia    ; $(MAKE) install
+	cd libdiaqt  ; $(MAKE) install
 
 installlibs : installclibs
-	cd flib; $(MAKE) $@
+	cd flib; $(MAKE) install
 
 #
 # Clean up our mess.
@@ -180,7 +186,7 @@ installlibs : installclibs
 clean : configure
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
-	cd libdia    ; $(MAKE) $@
+	cd libdiaqt  ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
@@ -193,7 +199,6 @@ clean : configure
 	cd flib/man  ; $(MAKE) $@
 	cd com       ; $(MAKE) $@
 	cd html      ; $(MAKE) $@
-	cd GLw       ; $(MAKE) $@
 	(cd include ; \find . -type f -name "GLw*.h" -exec rm "{}" \;)
 	(cd buildlib ; \find . -type f -name "libGLw.a" -exec rm "{}" \;)
 	\find . -type f -name "configure" -exec rm "{}" \;
@@ -206,36 +211,44 @@ clean : configure
 cleanclibs : configure
 	cd libimod   ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
-	cd libdia    ; $(MAKE) clean
+	cd libdiaqt  ; $(MAKE) clean
 
 cleanlibs : cleanclibs
 	cd flib; $(MAKE) $@
 
 #
-# Shortcut for making c libs only, helps for debugging.
+# Shortcut for making libs only, helps for debugging.
 #
 clibs : configure
 	cd libimod   ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
-	cd libdia    ; $(MAKE) all
+	cd libdiaqt  ; $(MAKE) all
 
 libs : clibs
 	cd flib; $(MAKE) $@
+
+#
+# Use these entries for old 32-bit build under irix to skip libdiaqt
+#
+o32clibs : configure
+	cd libimod   ; $(MAKE) all
+	cd libiimod  ; $(MAKE) all
+
+o32libs : o32clibs
+	cd flib; $(MAKE) $@
+
+installo32clibs : configure
+	cd libimod   ; $(MAKE) install
+	cd libiimod  ; $(MAKE) install
+
+installo32libs : installo32clibs
+	cd flib; $(MAKE) install
 
 #CER
 #CER Shortcut for making FORTRAN libs only
 #CER
 flibs: configure
 	cd flib; $(MAKE) libs
-
-glw  : configure
-	cd GLw  ; $(MAKE)
-
-installglw : configure
-	cd GLw  ; $(MAKE) install
-
-cleanglw : configure
-	cd GLw  ;  $(MAKE) clean
 
 #
 # Make the full software distribution.  Be sure SETUP_OPTIONS is set if 
@@ -267,6 +280,8 @@ cleansrc : ALWAYS
 	if (-e $(ARCNAME)_src.tar) /bin/rm -rf $(ARCNAME)_src.tar	
 	\find dist -type f -name "*~" -exec rm "{}" \;
 	\find machines -type f -name "*~" -exec rm "{}" \;
+	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
+	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
 	(cd com ; make clean)
@@ -279,17 +294,17 @@ csrc : ALWAYS
 	cp Makefile setup README History .version original_dates $(ARCDIR)_src/
 	tar cBf - \
 	machines \
-	lib*/*.[ch] libdia/*.symbol lib*/Makefile \
-	GLw/*.[ch] GLw/Makefile* GLw/README \
+	lib*/*.[ch] lib*/*.cpp lib*/Makefile \
 	USFFTlib/*/*.a \
-	imod/*.[ch] imod/Makefile imod/imodhelp imod/*.bits imod/README \
+	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
+	imod/*.bits imod/*.png imod/README \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/Makefile  \
+	midas/*.[ch] midas/*.cpp midas/midas.pro  \
 	html/*.* html/Makefile \
 	dist scripts com manpages \
-	plugs/*/*.[chf] plugs/*/Makefile plugs/Makefile \
+	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile plugs/Makefile \
 	devkit/*.[ch] devkit/*++ devkit/README devkit/Makefile \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
 
