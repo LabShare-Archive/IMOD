@@ -171,6 +171,7 @@ INCLUDEPATH += ..\include .
 LIBS += libdiaqt.lib libimod.lib libiimod.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
 QMAKE_LFLAGS_DEBUG += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+RC_FILE = 3dmod.rc
 EOF
 
 if ($debug == true) then
