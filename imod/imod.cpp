@@ -904,7 +904,7 @@ void imodError(FILE *out, const char *format, ...)
 void imodPrintInfo(const char *message)
 {
 #ifdef _WIN32
-  dia_puts(message);
+  dia_puts((char *)message);
 #else
   printf(message);
 #endif
@@ -957,6 +957,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.26  2003/11/01 18:12:16  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.25  2003/10/01 05:13:56  mast
 Added functions for rationalizing plugin compilation
 
