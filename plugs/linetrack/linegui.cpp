@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:55:40  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/27 00:35:53  mast
 Qt version
 
@@ -330,7 +333,7 @@ void LineTrack::makeEditRow(int row, char *label, int *iPtr, float *fPtr,
   mMapper->setMapping(mEdit[row], row);
   connect(mEdit[row], SIGNAL(returnPressed()), mMapper, SLOT(map()));
   connect(mEdit[row], SIGNAL(returnPressed()), this, SLOT(setFocus()));
-  connect(mEdit[row], SIGNAL(lostFocus()), mMapper, SLOT(map()));
+  connect(mEdit[row], SIGNAL(focusLost()), mMapper, SLOT(map()));
   str = tip;
   QToolTip::add(mEdit[row], str);
 
