@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/03/14 15:54:29  mast
+    New function to keep window on top
+
     Revision 3.3  2003/02/27 19:33:51  mast
     Add function to manage menus based on current state
 
@@ -110,6 +113,7 @@ class InfoWindow : public QMainWindow
     void closeEvent ( QCloseEvent * e );
     void showEvent(QShowEvent *e);
     void hideEvent(QHideEvent *e);
+    void timerEvent(QTimerEvent *e);
 
  private:
   QPopupMenu *mFileMenu;
@@ -128,6 +132,7 @@ class InfoWindow : public QMainWindow
   QTextEdit *mStatusEdit;
   QTimer *mHideTimer;
   bool mMinimized;
+  int mTopTimerID;
 };
 
 /* GLOBAL FUNCTIONS */
