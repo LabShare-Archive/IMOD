@@ -84,6 +84,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.64  2004/06/02 23:49:59  rickg
+ * <p> Bug #391 only update the rotation.xf if the mode is fiducialess
+ * <p>
  * <p> Revision 3.62  2004/06/01 18:53:48  rickg
  * <p> Bug #391 whole tomogram sampling state implementation
  * <p>
@@ -4370,6 +4373,28 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(messages, "Rubberband Coordinates");
     }
     return results;
+  }
+  
+  /**
+   * calls ProcessManager.generateAlignLogs() when the ta files are out of date
+   * @param commandName
+   * @param axisID
+   * @return true if any log files where changed
+   */
+  public boolean updateLog(String commandName, AxisID axisID) {
+    String alignLogName = "align" + axisID.getExtension() + ".log";
+    File alignLog = new File(System.getProperty("user.dir"), alignLogName);
+    String taErrorLogName = "taError" + axisID.getExtension() + ".log";
+    File taErrorLog = new File(System.getProperty("user.dir"), taErrorLogName);
+    if (!alignLog.exists()) {
+      return false;
+    }
+    if (!taErrorLog.exists()
+      || taErrorLog.lastModified() < alignLog.lastModified()) {
+      processMgr.generateAlignLogs(axisID);
+      return true;
+    }
+    return false;
   }
 
   /**
