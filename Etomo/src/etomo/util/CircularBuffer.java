@@ -14,6 +14,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:45:05  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -78,8 +81,10 @@ public final class CircularBuffer {
    * Search the list to see if the specified object is on it
    */
   public int search(Object obj) {
+    Object bufferObj = null;
     for (int i = 0; i < buffer.size(); i++) {
-      if (buffer.get(i).equals(obj)) {
+      bufferObj = buffer.get(i);
+      if (bufferObj != null && bufferObj.equals(obj)) {
         return i;
       }
     }
