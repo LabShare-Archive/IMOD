@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.17  2004/07/22 18:16:45  mast
+#  Change to better sed command for stripping Ctrl M
+#
 #  Revision 3.16  2004/07/08 22:54:18  mast
 #  Switched some echos to \echo to dodge Cygwin tcsh bug
 #
@@ -338,14 +341,37 @@ endif
 # Get image sizes
 #
 set nxyz =  `header $imagea | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+if ($#nxyz < 3) then
+    echo "ERROR: $pn - reading image size from header of $imagea"
+    exit 1
+endif
 @ nxa = $nxyz[1]
 @ nya = $nxyz[2]
 @ nza = $nxyz[3]
 
 set nxyz =  `header $imageb | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+if ($#nxyz < 3) then
+    echo "ERROR: $pn - reading image size from header of $imageb"
+    exit 1
+endif
 @ nxb = $nxyz[1]
 @ nyb = $nxyz[2]
 @ nzb = $nxyz[3]
+
+#
+# Check pixel size
+#
+set pixela = `header $imagea | sed -n '/Pixel spacing.*\.\./s///p'`
+set pixelb = `header $imageb | sed -n '/Pixel spacing.*\.\./s///p'`
+if ($#pixela < 1 || $#pixelb < 1) then
+    echo "ERROR: $pn - reading pixel size from image file headers"
+    exit 1
+endif
+if ($pixela[1] != $pixelb[1]) then
+    echo "ERROR: $pn - pixel sizes do not match:"
+    echo "  $imagea = $pixela[1], $imageb = $pixelb[1]"
+    exit 1
+endif
 
 #
 # Set the number of reductions by 2 needed to get image size to 512 or less
