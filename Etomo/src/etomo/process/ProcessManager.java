@@ -20,6 +20,16 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.32  2004/08/24 20:41:55  sueh
+ * bug# 508 running killProcessAndDescendants() causes a delay.  If
+ * BackgroundComScriptProcess.kill() is called before
+ * killProcessAndDescendents(), it pops up an message box immediately
+ * and then pauses for 4 to 8 seconds before it displays the message and
+ * OK button.  Calling kill() after killProcessAndDescendants() puts the
+ * delay before the message box is popped up, which is more like the
+ * behavior of other dialogs.  It also makes more sense to kill the monitor
+ * after killing the processes.
+ *
  * Revision 3.31  2004/08/23 23:41:48  sueh
  * bug# 508 passed watched file into BackgroundComScriptPRocess
  * the same way it is passed to ComScriptPRocess.  remove 
@@ -1538,7 +1548,7 @@ public class ProcessManager {
     killProcessAndDescendants(processID);
     
     if (thread instanceof BackgroundComScriptProcess) {
-      ((BackgroundComScriptProcess) thread).kill();
+      ((BackgroundComScriptProcess) thread).killMonitor();
     }
 
     /*
