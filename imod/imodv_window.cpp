@@ -97,7 +97,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mEditMenu->setAccel(SHIFT + Key_V, VEDIT_MENU_VIEWS);
   mEditMenu->insertItem("&Image...", VEDIT_MENU_IMAGE);
   mEditMenu->setAccel(SHIFT + Key_I, VEDIT_MENU_IMAGE);
-  mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, !standAlone);
+  mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, imodvByteImagesExist() != 0);
   connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editMenuSlot(int)));
 
   // View menu
@@ -315,6 +315,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.8  2003/11/12 18:52:20  mast
+Add include of imodv since quit moved there
+
 Revision 4.7  2003/08/01 00:13:30  mast
 Make event reports happen in debug mode
 

@@ -254,7 +254,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_I:
-    if (state & Qt::ShiftButton && !a->standalone)
+    if (state & Qt::ShiftButton && imodvByteImagesExist())
       imodvImageEditDialog(Imodv, 1);
     break;
 
@@ -1036,6 +1036,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.11  2003/11/12 18:54:52  mast
+    moved quit call out, added raise call
+
     Revision 4.10  2003/11/04 04:43:49  mast
     Implement new method for constant rotation speed
 
