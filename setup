@@ -334,21 +334,6 @@ switch($target_computer)
                 goto macosx
                 breaksw
 
-	# OSF1 V3.2 17 alpha
-	case *__OSF1__V3.2__*:
-		echo $target_computer is alpha running OSF1
-		set machine = alphaosf
-		goto alphaosf
-		breaksw
-
-        # Alpha Linux (running SuSE 7.1 axp)
-	# added by HmK 30/07/2001
-        case alpha__Linux__*__*:
-                echo $target_computer is ALPHA running Linux
-                set machine = alphalinux
-                goto alphalinux
-                breaksw
-
 	default:
 		echo WARNING: no definition for $target_computer
 		echo $target_computer error
@@ -497,14 +482,6 @@ goto standard_defines
 #
 solaris:
 source machines/solaris
-
-goto standard_defines
-
-#############################################################################
-# Alpha running SuSE Linux 7.1 axp
-# added by HmK 30/07/2001
-alphalinux:
-source machines/alphalinux
 
 goto standard_defines
 
@@ -805,6 +782,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.49  2005/01/06 15:54:15  mast
+#  Update copyright
+#
 #  Revision 3.48  2004/12/22 05:50:19  mast
 #  Added qtassist, consolidated management of dependent file before and after
 #  qmake is run to avoid duplication between here and cygwin
