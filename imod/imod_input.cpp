@@ -40,6 +40,7 @@ Log at end of file
 #include <qwidgetlist.h>
 #include <qevent.h>
 #include <qnamespace.h>
+#include "dia_qtutils.h"
 #include "xgraph.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -287,6 +288,8 @@ static void newContourOrSurface(ImodView *vw, int surface)
     imodel_contour_newsurf(obj, cont);
 
   ivwSetNewContourTime(vw, obj, cont);
+  if (imodSelectionListClear(vw))
+    imod_setxyzmouse();
   imod_info_setocp();
 }
 
@@ -314,7 +317,7 @@ void inputNextObject(ImodView *vw)
 
   /*  Drop tests for object in this and next function, setxyzmouse works OK 
       with no  object */
-
+  imodSelectionListClear(vw);
   imod_setxyzmouse();
 }
 
@@ -322,6 +325,7 @@ void inputPrevObject(ImodView *vw)
 {
   imodPrevObject(vw->imod);
   inputKeepContourAtSameTime(vw);
+  imodSelectionListClear(vw);
   imod_setxyzmouse();
 }
 
@@ -627,15 +631,49 @@ void inputDeleteContour(ImodView *vw)
      contour */
   Iobj *obj = imodObjectGet(vw->imod);
   int conew = vw->imod->cindex.contour -1;
+  int numDel, i, delFlag = 2876351;
+  Iindex *index;
+  QString qstr;
 
-  if (imodContourGet(vw->imod)){
+  if (!ilistSize(vw->selectionList)) {
+    if (!imodContourGet(vw->imod))
+      return;
     DelContour(vw->imod, vw->imod->cindex.contour);
-    if (conew < 0 && obj->contsize > 0)
-      conew = 0;
-    vw->imod->cindex.contour = conew;
-    imod_setxyzmouse();
+
+  } else {
+
+    // Multiple selection: first count and confirm if > 2 to delete
+    numDel = 0;
+    for (i = 0; i < ilistSize(vw->selectionList); i++) {
+      index = (Iindex *)ilistItem(vw->selectionList, i);
+      if (index->object =  vw->imod->cindex.object)
+        numDel++;
+    }
+    qstr.sprintf("Are you sure you want to delete these %d contours?", numDel);
+    if (numDel > 2 && !dia_ask((char *)qstr.latin1()))
+      return;
+
+    // Go through again and set flags for deletion
+    for (i = 0; i < ilistSize(vw->selectionList); i++) {
+      index = (Iindex *)ilistItem(vw->selectionList, i);
+      if (index->object =  vw->imod->cindex.object)
+        obj->cont[index->contour].flags = delFlag;
+    }
+
+    // Loop backwards through object removing flagged contours
+    for (i = obj->contsize - 1; i >= 0; i--) {
+      if (obj->cont[i].flags == delFlag) {
+        DelContour(vw->imod, i);
+        conew = i - 1;
+      }
+    }
   }
-  return;
+
+  if (conew < 0 && obj->contsize > 0)
+    conew = 0;
+  vw->imod->cindex.contour = conew;
+  imodSelectionListClear(vw);
+  imod_setxyzmouse();
 }
 
 /* Truncate contour at the current point */
@@ -781,6 +819,8 @@ void inputNewObject(ImodView *vw)
   if (vw->nt)
     obj->flags |= IMOD_OBJFLAG_TIME;
 
+  if (imodSelectionListClear(vw))
+    imod_setxyzmouse();
   imod_info_setocp();
   imod_cmap(vw->imod);
   return;
@@ -864,6 +904,12 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_J:
+    if (shifted) 
+      imodContEditJoin(vw);
+    else
+      handled = 0;
+    break;
+
   case Qt::Key_Next:
     if (!keypad)
       inputPrevz(vw);
@@ -871,7 +917,6 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       handled = 0;
     break;
 
-  case Qt::Key_K:
   case Qt::Key_Prior:
     if (!keypad)
       inputNextz(vw);
@@ -975,12 +1020,10 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     inputNewObject(vw);
     break;
 
-  case Qt::Key_H:
   case Qt::Key_1:
     inputPrevTime(vw);
     break;
 
-  case Qt::Key_L:
   case Qt::Key_2:
     inputNextTime(vw);
     break;
@@ -1206,6 +1249,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.19  2004/09/21 20:28:44  mast
+Backed out an erroneous checkin
+
 Revision 4.17  2004/07/11 18:29:52  mast
 Consolidated code for new contour or surface and used new function
 for getting the contour to add points to
