@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/03: Modified tomopitch to take lines drawn on a whole tomogram,
+fixed a problem with using separate model files, and fixed the way angles are 
+computed so that large angles will be correct.
+
+11/13/03: Made locked Slicer window respond to PageUp, PageDown, and arrow
+keys by moving the current point inside the window without affecting the global
+current point.
+
+11/12/03: Made 3dmod remember size and position of model view window for
+repeated opening of window in one session of 3dmod.
+
+11/12/03: Added ability for 3dmodv to receive messages for raising itself and
+quitting.
+
 11/8/03: IMOD_3-1-1
 11/8/03: Setup/makefile files needed to package build correctly
 
