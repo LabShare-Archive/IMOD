@@ -1,6 +1,7 @@
 /*  IMOD VERSION 2.7.2
  *
- *  imod_client_message.c   Used to handles X client messages - now QClipboard changes
+ *  imod_client_message.c   Used to handle X client messages - 
+ *                             now QClipboard changes
  *
  *  Original author: David Mastronarde   email: mast@colorado.edu
  */
@@ -44,6 +45,8 @@ Log at end of file
 #include <qclipboard.h>
 #include "imod.h"
 #include "imodv.h"
+#include "imodv_input.h"
+#include "imodv_window.h"
 #include "imod_io.h"
 #include "xcramp.h"
 #include "imod_info_cb.h"
@@ -113,7 +116,11 @@ void ImodClipboard::clipTimeout()
     disconnect(mClipTimer);
     delete mClipTimer;
     mClipTimer = NULL;
-    imod_quit();
+    if (ImodvClosed || !Imodv->standalone)
+      imod_quit();
+    else
+      imodvQuit();
+
   } else {
     
     // Otherwise, execute the message
@@ -149,7 +156,7 @@ void ImodClipboard::clipHackTimeout()
 bool ImodClipboard::handleMessage()
 {
   int index, newStamp;
-  if (!ImodInfoWin)
+  if (!ImodInfoWin && ImodvClosed)
     return false;
 
   // get the text from the clipboard
@@ -173,7 +180,7 @@ bool ImodClipboard::handleMessage()
   text = text.replace(QRegExp("  *"), " ");
 
   // Return false if this is not our info window ID
-  if ((text.left(index)).toInt() != (unsigned int)ImodInfoWin->winId())
+  if ((text.left(index)).toInt() != ourWindowID())
     return false;
 
   // Return false if it is our own string
@@ -221,104 +228,121 @@ bool ImodClipboard::executeMessage()
   }
   
   /* Execute the action */
-  switch (message_action) {
+  if (ImodvClosed || !Imodv->standalone) {
+    switch (message_action) {
 
-  case MESSAGE_OPEN_MODEL:
-  case MESSAGE_OPEN_KEEP_BW:
-    if (!message_string) {
-      fprintf(stderr, "imodExecuteMessage: no filename sent"
-              " with command to open model\n");
-      succeeded = 0;
-      break;
-    }
+    case MESSAGE_OPEN_MODEL:
+    case MESSAGE_OPEN_KEEP_BW:
+      if (!message_string) {
+        fprintf(stderr, "imodExecuteMessage: no filename sent"
+                " with command to open model\n");
+        succeeded = 0;
+        break;
+      }
     
-    // Since this could open a dialog with an indefinite delay, just send
-    // the OK signal now
-    succeeded = -1;
-    sendResponse(1);
-    inputRaiseWindows();
+      // Since this could open a dialog with an indefinite delay, just send
+      // the OK signal now
+      succeeded = -1;
+      sendResponse(1);
+      inputRaiseWindows();
 
-    oldBlack = App->cvi->black;
-    oldWhite = App->cvi->white;
-    returnValue = openModel((char *)convName.latin1());
-    if(returnValue == IMOD_IO_SUCCESS) {
-      wprint("%s loaded.\n", 
-        (QDir::convertSeparators(QString(Imod_filename))).latin1());
+      oldBlack = App->cvi->black;
+      oldWhite = App->cvi->white;
+      returnValue = openModel((char *)convName.latin1());
+      if(returnValue == IMOD_IO_SUCCESS) {
+        wprint("%s loaded.\n", 
+               (QDir::convertSeparators(QString(Imod_filename))).latin1());
 
-      // Reset the black and white levels if message says to
-      if (message_action == MESSAGE_OPEN_KEEP_BW) {
+        // Reset the black and white levels if message says to
+        if (message_action == MESSAGE_OPEN_KEEP_BW) {
 	  App->cvi->black = App->cvi->imod->blacklevel = oldBlack;
 	  App->cvi->white = App->cvi->imod->whitelevel = oldWhite;
 	  xcramp_setlevels(App->cvi->cramp, App->cvi->black,
 			   App->cvi->white);
 	  imod_info_setbw(App->cvi->black, App->cvi->white);
+        }
       }
-    }
-    else if(returnValue == IMOD_IO_SAVE_ERROR) {
-      wprint("Error Saving Model. New model not loaded.\n");
-    }
-    else if(returnValue == IMOD_IO_SAVE_CANCEL) {
-      wprint("Operation cancelled. New model not loaded.\n");
-    }
+      else if(returnValue == IMOD_IO_SAVE_ERROR) {
+        wprint("Error Saving Model. New model not loaded.\n");
+      }
+      else if(returnValue == IMOD_IO_SAVE_CANCEL) {
+        wprint("Operation cancelled. New model not loaded.\n");
+      }
 
-    // The model does not exist yet.  Try creating a new model.
-    else if(returnValue == IMOD_IO_DOES_NOT_EXIST) {
-      returnValue = createNewModel((char *)convName.latin1());
-      if(returnValue == IMOD_IO_SUCCESS) {
+      // The model does not exist yet.  Try creating a new model.
+      else if(returnValue == IMOD_IO_DOES_NOT_EXIST) {
+        returnValue = createNewModel((char *)convName.latin1());
+        if(returnValue == IMOD_IO_SUCCESS) {
         
-        wprint("New model %s created.\n", 
-          (QDir::convertSeparators(QString(Imod_filename))).latin1());
+          wprint("New model %s created.\n", 
+                 (QDir::convertSeparators(QString(Imod_filename))).latin1());
+        }
+        else {
+          wprint("Could not create a new model %s.\n", message_string);
+        }
+      }
+      else if(returnValue == IMOD_IO_NO_ACCESS_ERROR) {
+        wprint("Error opening model. Check file permissions\n.");
       }
       else {
-        wprint("Could not create a new model %s.\n", message_string);
+        wprint("Unknown return code, new model not loaded!!\n");
       }
+      break;
+
+    case MESSAGE_SAVE_MODEL:
+      succeeded = -1;
+      sendResponse(1);
+      App->cvi->imod->blacklevel = App->cvi->black;
+      App->cvi->imod->whitelevel = App->cvi->white;
+      returnValue = SaveModel(App->cvi->imod);
+      break;
+
+    case MESSAGE_VIEW_MODEL:
+      imod_autosave(App->cvi->imod);
+      imodv_open();
+      break;
+
+    case MESSAGE_QUIT:
+      //    imod_quit();
+      break;
+
+    case MESSAGE_RAISE_WINDOWS:
+      inputRaiseWindows();
+      break;
+
+    case MESSAGE_MODEL_MODE:
+      if (message_string && !atoi(message_string))
+        imod_set_mmode(IMOD_MMOVIE);
+      else
+        imod_set_mmode(IMOD_MMODEL);
+      break;
+
+    case MESSAGE_OPEN_BEADFIXER:
+      imodPlugOpenByName("Bead Fixer");
+      break;
+
+    default:
+      fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
+              , message_action);
+      succeeded = 0;
     }
-    else if(returnValue == IMOD_IO_NO_ACCESS_ERROR) {
-      wprint("Error opening model. Check file permissions\n.");
+  } else {
+
+    // Messages for 3dmodv
+    switch (message_action) {
+    case MESSAGE_QUIT:
+      break;
+
+    case MESSAGE_RAISE_WINDOWS:
+      imodvInputRaise();
+      break;
+
+    default:
+      fprintf(stderr, "imodExecuteMessage: action %d not recognized by"
+              " 3dmodv\n" , message_action);
+      succeeded = 0;
     }
-    else {
-      wprint("Unknown return code, new model not loaded!!\n");
-    }
-    break;
-
-  case MESSAGE_SAVE_MODEL:
-    succeeded = -1;
-    sendResponse(1);
-    App->cvi->imod->blacklevel = App->cvi->black;
-    App->cvi->imod->whitelevel = App->cvi->white;
-    returnValue = SaveModel(App->cvi->imod);
-    break;
-
-  case MESSAGE_VIEW_MODEL:
-    imod_autosave(App->cvi->imod);
-    imodv_open();
-    break;
-
-  case MESSAGE_QUIT:
-    //    imod_quit();
-    break;
-
-  case MESSAGE_RAISE_WINDOWS:
-    inputRaiseWindows();
-    break;
-
-  case MESSAGE_MODEL_MODE:
-    if (message_string && !atoi(message_string))
-      imod_set_mmode(IMOD_MMOVIE);
-    else
-      imod_set_mmode(IMOD_MMODEL);
-    break;
-
-  case MESSAGE_OPEN_BEADFIXER:
-    imodPlugOpenByName("Bead Fixer");
-    break;
-
-  default:
-    fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
-            , message_action);
-    succeeded = 0;
   }
-
   if (message_string)
     free(message_string);
   message_string = NULL;
@@ -336,15 +360,24 @@ void ImodClipboard::sendResponse(int succeeded)
   if (succeeded < 0)
     succeeded = lastResponse;
   lastResponse = succeeded;
-  str.sprintf("%u %s", (unsigned int)ImodInfoWin->winId(), 
-    succeeded ? "OK" : "ERROR");
+  str.sprintf("%u %s", ourWindowID(), succeeded ? "OK" : "ERROR");
   QClipboard *cb = QApplication::clipboard();
   cb->setSelectionMode(false);
   cb->setText(str);
 }
 
+unsigned int ImodClipboard::ourWindowID()
+{
+  if (ImodvClosed || !Imodv->standalone)
+    return (unsigned int)ImodInfoWin->winId();
+  return (unsigned int)Imodv->mainWin->winId();
+}
+
 /*
 $Log$
+Revision 4.9  2003/10/02 01:30:09  mast
+Added message to open bead fixer
+
 Revision 4.8  2003/09/24 16:20:05  mast
 Remove multiple spaces in message before processing, and keep track of
 and send last response if a message is repeated
