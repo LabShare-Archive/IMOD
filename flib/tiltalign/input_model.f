@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2004/06/17 17:47:56  mast
+c	  Reset zscale and rotation of 3d fiducial model
+c	
 c	  Revision 3.9  2004/06/10 05:39:35  mast
 c	  Return a pixel size to main program
 c	
@@ -46,16 +49,16 @@ c
 	subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &	    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
      &	    iwhichout, xcen, ycen,xdelt,listz,mapfiletoview,nfileviews,
-     &	    modelfile,iupoint, iuangle, iuxtilt)
+     &	    modelfile,pointfile, iuangle, iuxtilt)
 c	  
 	implicit none
 	real*4 xx(*),yy(*),xcen,ycen
 	integer*4 isecview(*),irealstr(*),ninreal(*),imodobj(*),imodcont(*)
 	integer*4 mapfiletoview(*),maxprojpt,maxreal,nview,nprojpt,nrealpt
-	integer*4 iwhichout, iupoint,iuangle,iuxtilt,nfileviews
-	character*(*) modelfile
+	integer*4 iwhichout, iuangle,iuxtilt,nfileviews
+	character*(*) modelfile,pointfile
 c
-	character*80 solufile,anglefile,pointfile
+	character*80 solufile,anglefile
 	logical stereopair,exist,readw_or_imod
 	integer getimodhead,getimodscales,getimodmaxes
 c
@@ -163,14 +166,9 @@ c
 c	  
 c	  get name of files for angle list output and 3-D point output
 c	  
-	iupoint=0
 	write(*,'(1x,a)')'Enter file name for ASCII list of'//
      &	    ' solved X-Y-Z coordinates (Return for none)'
 	read(5,'(a)')pointfile
-	if(pointfile.ne.' ')then
-	  call dopen(8,pointfile,'new','f')
-	  iupoint=8
-	endif
 c
 	iuangle=0
 	write(*,'(1x,a)')'Enter name of output file for list of'//
@@ -275,8 +273,18 @@ c
 	      enddo
 	      if(inlist.gt.0)then
 c
-c		  if so, tentatively add index coordinates to list
-c
+c		  if so, tentatively add index coordinates to list but first
+c		  check for two points on same view
+c		  
+		do i = nprojpt + 1, nprojtmp
+		  if (.not.stereopair .and. inlist .eq. isecview(i)) then
+		    call objtocont(iobject,obj_color,ibase,ninobj)
+		    write(*,'(/,a,i5,a,i4,ai5)')
+     &			'ERROR: TILTALIGN - TWO POINTS ON VIEW',
+     &			iz + 1,' IN CONTOUR', ninobj,' OF OBJECT',ibase
+		    call exit(1)
+		  endif
+		enddo
 		nprojtmp=nprojtmp+1
 		if(nprojtmp.gt.maxprojpt)call errorexit(
      &		  'TOO MANY PROJECTION POINTS FOR ARRAYS',0)
