@@ -8,6 +8,7 @@ set SAMPLESIZE = 10               # Size of sample aligned stack
 @ BORDERSTEP2 = 1000              # threshold for linearly increasing size
 @ BORDERFAC = 10                  # controls linear increase of border size
 set CCDBORDERFAC = 2.0            # extra size of border for CCD images
+set RESIDUAL_SCALE = 10           # scaling for tiltalign residuals
 set backupname = "./savework"
 
 set single_srcname = "g5a"
@@ -20,6 +21,10 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/11/04 20:45:50  mast
+#  Changed output to savework file to fix \ output under tcsh 6.12 bug,
+#  changed output to sample.com to protect \ outputs also.
+#
 #  Revision 3.2  2002/05/20 19:12:01  mast
 #  Changes to have tomopitch operate on one model file
 #
@@ -581,6 +586,10 @@ EOF
     if ($filmccd != "F")then
 	cat >> $dstfile <<EOF
 #
+# CONVERT RESIDUAL FILE TO MODEL
+#
+\$patch2imod -s $RESIDUAL_SCALE $setname.resid $setname.resmod
+#
 # COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS
 #
 \$xfproduct
@@ -589,7 +598,7 @@ $setname.tltxf
 $setname.xf
 EOF
     endif
-    set backuplist = ($backuplist $setname.xf $setname.tlt)
+    set backuplist = ($backuplist $setname.xf $setname.tlt $setname.resid $setname.resmod $setname.3Dmod)
     if ($naxis == "2") set backuplist = ($backuplist $setname"fid.xyz")
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
