@@ -9,6 +9,7 @@ import etomo.type.AxisID;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
@@ -26,6 +27,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/02/24 23:49:36  rickg
+ * <p> Panel layout for combination dialog
+ * <p> Changed borders
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:42:55  rickg
  * <p> Swtiched checkbox to jcheckbox
  * <p>
@@ -109,9 +114,13 @@ public class SetupCombinePanel implements ContextMenu {
   private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel panelButton = new JPanel();
-  private JToggleButton buttonImodVolumeA = new JToggleButton("Imod volume A");
-  private JToggleButton buttonImodVolumeB = new JToggleButton("Imod volume B");
-  private JButton buttonCreate = new JButton("Create combine script");
+  private JToggleButton buttonImodVolumeA =
+    new JToggleButton("<html><b>Imod volume A</b>");
+  private JToggleButton buttonImodVolumeB =
+    new JToggleButton("<html><b>Imod volume B</b>");
+  private JButton buttonCreate =
+    new JButton("<html><b>Create combine scripts</b>");
+  private JButton buttonCombine = new JButton("<html><b>Start combine</b>");
 
   /**
    * Default constructor
@@ -193,13 +202,33 @@ public class SetupCombinePanel implements ContextMenu {
     buttonImodVolumeA.addActionListener(actionListener);
     buttonImodVolumeB.addActionListener(actionListener);
     buttonCreate.addActionListener(actionListener);
+    buttonCombine.addActionListener(actionListener);
+
+    //  Set the button sizes
+    double height = ltfFiducialMatchListA.getLabelPreferredSize().getHeight();
+    Dimension dimButton = new Dimension();
+    dimButton.setSize(10 * height, 3 * height);
+    buttonImodVolumeA.setSize(dimButton);
+    buttonImodVolumeA.setMaximumSize(dimButton);
+    buttonImodVolumeB.setSize(dimButton);
+    buttonImodVolumeB.setMaximumSize(dimButton);
+    buttonCreate.setSize(dimButton);
+    buttonCreate.setMaximumSize(dimButton);
+    buttonCombine.setSize(dimButton);
+    buttonCombine.setMaximumSize(dimButton);
 
     //  Button panel
-    panelButton.setLayout(new GridLayout(1, 2, 30, 10));
+    panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.X_AXIS));
+    panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonImodVolumeA);
+    panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonImodVolumeB);
+    panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonCreate);
-
+    panelButton.add(Box.createHorizontalGlue());
+    panelButton.add(buttonCombine);
+    panelButton.add(Box.createHorizontalGlue());
+    
     panelToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
     contentPane.setBorder(brdrContent.getBorder());
@@ -348,6 +377,10 @@ public class SetupCombinePanel implements ContextMenu {
     if (command.equals(buttonCreate.getActionCommand())) {
       applicationManager.createCombineScripts();
     }
+    if (command.equals(buttonCombine.getActionCommand())) {
+      applicationManager.combine();
+    }
+
   }
 
   /**

@@ -1,6 +1,7 @@
 package etomo;
 
 import java.io.*;
+
 import etomo.util.InvalidParameterException;
 import java.awt.*;
 import javax.swing.*;
@@ -26,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.9  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -224,6 +228,9 @@ public class ApplicationManager {
   //  The ProcessManager manages the execution of com scripts
   private ProcessManager processMgr = new ProcessManager(this);
   private ProcessTrack processTrack = new ProcessTrack();
+  
+  // Control variable for process execution
+  private String nextProcess = "";
   private String threadNameA = "none";
   private String threadNameB = "none";
 
@@ -1732,10 +1739,8 @@ public class ApplicationManager {
           mainFrame.showBlankProcess(AxisID.ONLY);
         }
         else {
-          combine();
           processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
           mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
-          //  FIXME open up combine control panel
           openPostProcessingDialog();
         }
       }
@@ -1750,13 +1755,24 @@ public class ApplicationManager {
       && updatePatchcorrCom()
       && updateMatchorwarpCom()) {
 
-    }
-    // TODO implement: walk through each of the combine steps
-
-    /*    String threadName = processMgr.combine();
+        //  Set the next process to execute when this is finished   
+        nextProcess = "matchvol1";
+        String threadName = processMgr.solvematchshift();
         setThreadName(threadName, AxisID.FIRST);
-        mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);*/
+        tomogramCombinationDialog.showPane("Initial Match");
+        mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+    }
   }
+
+  private void matchvol1() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "patchcorr";
+    String threadName = processMgr.matchvol1();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Initial Match");
+    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
+  }
+  
 
   public void modelCombine() {
     // TODO implement
@@ -1770,6 +1786,14 @@ public class ApplicationManager {
       //TODO implement: walk through each of the combine steps
     }
   }
+  private void patchcorr() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "matchorwarp";
+    String threadName = processMgr.patchcorr();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
+  }
 
   /**
    * Initiate the combine process from matchorwarp step
@@ -1780,6 +1804,26 @@ public class ApplicationManager {
     }
   }
 
+  private void matchorwarp() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "volcombine";
+
+    String threadName = processMgr.matchorwarp();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);    
+  }
+
+  private void volcombine() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "";
+
+    String threadName = processMgr.volcombine();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);    
+  }
+  
   /**
    * Update the patchcorr.com script from the information in the tomogram
    * combination dialog box
@@ -1919,6 +1963,7 @@ public class ApplicationManager {
     catch (BadComScriptException except) {
       except.printStackTrace();
       openMessageDialog(except.getMessage(), "Can't run setupcombine");
+      return;
     }
 
     catch (IOException except) {
@@ -1926,7 +1971,23 @@ public class ApplicationManager {
       openMessageDialog(
         "Can't run setupcombine\n" + except.getMessage(),
         "Setupcombine IOException");
+        return;
     }
+    
+    // Reload the initial and final match paramaters from the newly created
+    // scripts
+    comScriptMgr.loadSolvematchshift();
+    tomogramCombinationDialog.setSolvematchshiftParams(
+      comScriptMgr.getSolvematchshift());
+
+    comScriptMgr.loadPatchcorr();
+    tomogramCombinationDialog.setPatchcrawl3DParams(
+      comScriptMgr.getPatchcrawl3D());
+
+    comScriptMgr.loadMatchorwarp();
+    tomogramCombinationDialog.setMatchorwarpParams(
+      comScriptMgr.getMatchorwarParam());
+    
   }
 
   /**
@@ -2446,7 +2507,9 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   * Return an environment variable value
+   * @param varName
+   * @return String
    */
   private String getEnvironmentVariable(String varName) {
     //  There is not a real good way to access the system environment variables
@@ -2488,7 +2551,9 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   * Open a Yes or No question dialog
+   * @param message
+   * @return boolean
    */
   private boolean openYesNoDialog(String[] message) {
     try {
@@ -2513,7 +2578,9 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   * Open a message dialog
+   * @param message
+   * @param title
    */
   public void openMessageDialog(Object message, String title) {
     JOptionPane.showMessageDialog(
@@ -2548,16 +2615,49 @@ public class ApplicationManager {
   }
 
   /**
-   * Notification message that a background process is done.
+   * Start the next process specified by the nextProcess string
+   *
+   */
+  private void startNextProcess() {
+    if(nextProcess.equals("matchvol1")) {
+      matchvol1();
+      return;
+    }
+    
+    if(nextProcess.equals("patchcorr")) {
+      patchcorr();
+      return;
+    }
+    
+    if(nextProcess.equals("matchorwarp")) {
+      matchorwarp();
+      return;
+    }
+
+    if(nextProcess.equals("volcombine")) {
+      volcombine();
+      return;
+    }
+  }
+
+  /**
+   * Notification message of the percent complete of a process
    */
   public void processProgress(String threadName, double percent) {
 
   }
 
-  public void processDone(String threadName) {
+  /**
+   * Notification message that a background process is done.
+   * @param threadName The name of the thread that has finished
+   */
+  public void processDone(String threadName, int exitValue) {
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
+      if(exitValue == 0 && !nextProcess.equals("")) {
+        startNextProcess();
+      }
     }
     else if (threadName.equals(threadNameB)) {
       mainFrame.stopProgressBar(AxisID.SECOND);
@@ -2578,6 +2678,11 @@ public class ApplicationManager {
     processMgr.interrupt(axisID);
   }
 
+  /**
+   * Map the thread name to the correct axis
+   * @param name The name of the thread to assign to the axis
+   * @param axisID The axis of the thread to be mapped 
+   */
   private void setThreadName(String name, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       threadNameB = name;

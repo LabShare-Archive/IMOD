@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/17 06:46:30  rickg
+ * <p> in progress
+ * <p>
  * <p> Revision 2.3  2003/03/07 07:22:50  rickg
  * <p> combine layout in progress
  * <p>
@@ -27,8 +30,8 @@ public class ConstSolvematchshiftParam {
 	public static final String rcsid =
 		"$Id$";
 
-	protected String tofiducialCoordinatesFile;
-	protected String fromfiducialCoordinatesFile;
+	protected String toFiducialCoordinatesFile;
+	protected String fromFiducialCoordinatesFile;
 	protected StringList fiducialMatchListA = new StringList(0);
 	protected StringList fiducialMatchListB = new StringList(0);
 	protected FortranInputString xAxistTilt = new FortranInputString(2);
@@ -56,8 +59,8 @@ public class ConstSolvematchshiftParam {
 	/**
 	 * @return String
 	 */
-	public String getFromfiducialCoordinatesFile() {
-		return fromfiducialCoordinatesFile;
+	public String getFromFiducialCoordinatesFile() {
+		return fromFiducialCoordinatesFile;
 	}
 
 	/**
@@ -84,8 +87,8 @@ public class ConstSolvematchshiftParam {
 	/**
 	 * @return String
 	 */
-	public String getTofiducialCoordinatesFile() {
-		return tofiducialCoordinatesFile;
+	public String getToFiducialCoordinatesFile() {
+		return toFiducialCoordinatesFile;
 	}
 
 	/**

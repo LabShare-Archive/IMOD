@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 
 /**
  * <p>Description: This object manages the execution of com scripts in the
@@ -27,6 +28,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/02/24 23:35:24  rickg
+ * <p> Added management of threads for each axis
+ * <p> Added interrupt method  (doesn't work well with C shell scripts)
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:46:40  rickg
  * <p> Check debug mode for messages
  * <p>
@@ -335,10 +340,80 @@ public class ProcessManager {
    * @param axisID the AxisID to run tilt on.
    */
   public String combine() {
-    //
-    //  Create the required tilt command
-    //
+    //  Create the required combine command
     String command = "combine.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the solvematchshift com file 
+   * @return String
+   */
+  public String solvematchshift() {
+    //  Create the required combine command
+    String command = "solvematchshift.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the solvematchmod com file 
+   * @return String
+   */
+  public String solvematchmod() {
+    //  Create the required combine command
+    String command = "solvematchmod.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the matchvol1 com file 
+   * @return String
+   */
+  public String matchvol1() {
+    //  Create the required combine command
+    String command = "matchvol1.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the patchcorr com file 
+   * @return String
+   */
+  public String patchcorr() {
+    //  Create the required combine command
+    String command = "patchcorr.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the matchorwarp com file 
+   * @return String
+   */
+  public String matchorwarp() {
+    //  Create the required combine command
+    String command = "matchorwarp.com";
+
+    //  Start the com script in the background
+    return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run the volcombine com file 
+   * @return String
+   */
+  public String volcombine() {
+    //  Create the required combine command
+    String command = "volcombine.com";
 
     //  Start the com script in the background
     return startComScript(command, AxisID.ONLY);
@@ -402,13 +477,14 @@ public class ProcessManager {
       appManager.openMessageDialog(message, process.getCommand() + " failed");
     }
 
-    //  Command succeeded, check to see if we need to show any application specific info
+    // Command succeeded, check to see if we need to show any application
+    // specific info
     else {
       if (process.getCommand().equals("transferfid")) {
         handleTransferfidMessage(process);
       }
     }
-    appManager.processDone(process.getName());
+    appManager.processDone(process.getName(), exitValue);
   }
 
   /**
@@ -465,7 +541,7 @@ public class ProcessManager {
     if (threadAxisB == script) {
       threadAxisB = null;
     }
-    appManager.processDone(script.getName());
+    appManager.processDone(script.getName(), exitValue);
   }
 
   //  Internal utility functions
@@ -492,6 +568,7 @@ public class ProcessManager {
     comScript.start();
 
     if (appManager.isDebug()) {
+      Calendar calendar = Calendar.getInstance();
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScript.getName());
     }

@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/07 07:22:50  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -80,7 +83,7 @@ public class ImodManager {
   private ImodProcess tomogramA;
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
-  private ImodProcess 
+  //private ImodProcess 
 
   private Thread fiducialModelA;
   private Thread fiducialModelB;

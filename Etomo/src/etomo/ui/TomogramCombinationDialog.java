@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.5  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -108,11 +111,12 @@ public class TomogramCombinationDialog extends ProcessDialog {
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
     JLabel zWarning =
       new JLabel("For all 3D parameters Z represents the depth domain");
-    zWarning.setAlignmentX(Component.CENTER_ALIGNMENT) ;
+    zWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(zWarning);
     rootPanel.add(tabbedPane);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(Box.createVerticalGlue());
+    buttonExecute.setText("Done");
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 

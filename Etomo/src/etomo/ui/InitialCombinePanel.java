@@ -92,9 +92,9 @@ public class InitialCombinePanel {
     //  Layout the button panel
     panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.X_AXIS));
     panelButton.add(Box.createHorizontalGlue());
-    panelButton.add(imodMatchModels);
-    panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonCombineRestart);
+    panelButton.add(Box.createHorizontalGlue());
+    panelButton.add(imodMatchModels);
     panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonModelCombine);
     panelButton.add(Box.createHorizontalGlue());

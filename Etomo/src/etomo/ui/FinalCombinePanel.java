@@ -338,7 +338,7 @@ public class FinalCombinePanel {
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
     cbUsePatchRegionModel.setSelected(
-      matchorwarpParam.getModelFile().equals(""));
+      !matchorwarpParam.getModelFile().equals(""));
     ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
