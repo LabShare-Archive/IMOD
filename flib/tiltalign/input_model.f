@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/01/18 00:02:52  mast
+c	  Fixed bug in model output when there are many contours with one point
+c	
 c	  Revision 3.5  2002/12/21 00:02:38  mast
 c	  Add option for getting both residual and 3D model output
 c	
@@ -299,6 +302,8 @@ c
 	    else
 	      npt_in_obj(iobject)=0
 	    endif
+	  else
+	    npt_in_obj(iobject)=0
 	  endif
 	enddo
 	irealstr(nrealpt+1)=nprojpt+1		!for convenient looping
@@ -338,18 +343,13 @@ c
 c
 	if(modelfile.eq.' ')return
 c	  
-c	  get a scattered point size
+c	  get a scattered point size (simplified 1/30/03)
 c
-	ireal=0
 	xyzmax=0.
-	do iobject=1,max_mod_obj
-	  if(npt_in_obj(iobject).gt.0.and.ireal.lt.nrealpt)then
-	    ipt=object(ibase_obj(iobject)+1)
-	    ireal=ireal+1
-	    do i=1,3
-	      xyzmax=max(xyzmax,abs(xyz(i,ireal)))
-	    enddo
-	  endif
+	do ireal = 1,nrealpt
+	  do i=1,3
+	    xyzmax=max(xyzmax,abs(xyz(i,ireal)))
+	  enddo
 	enddo
 	isize=max(3.,xyzmax/100.)
 c	  
