@@ -29,6 +29,11 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/05/27 08:45:59  rickg
+ * <p> Added new method to generate the align logs
+ * <p> Added a section to the comscript done section for scipt
+ * <p> dependent post processing
+ * <p>
  * <p> Revision 2.12  2003/05/23 14:26:35  rickg
  * <p> RunComscript renamed to ComScriptProcess
  * <p> StartComScript method returns ComScriptProcess instead
@@ -131,8 +136,8 @@ public class ProcessManager {
     "$Id$";
 
   ApplicationManager appManager;
-  ComScriptProcess threadAxisA = null;
-  ComScriptProcess threadAxisB = null;
+  SystemProcessInterface threadAxisA = null;
+  SystemProcessInterface threadAxisB = null;
   // save the transferfid command line so that we can identify when process is
   // complete.
   String transferfidCommandLine;
@@ -312,6 +317,11 @@ public class ProcessManager {
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
     transferfidCommandLine = transferfid.getCommandLine();
+    AxisID axisID = AxisID.SECOND;
+    if (!transferfidParam.isBToA()) {
+      axisID = AxisID.FIRST;
+    }
+    mapThreadAxis(transferfid, axisID);
     return transferfid.getName();
   }
 
@@ -561,6 +571,7 @@ public class ProcessManager {
     trimvol.setDemoMode(appManager.isDemo());
     trimvol.setDebug(appManager.isDebug());
     trimvol.start();
+    mapThreadAxis(trimvol, AxisID.ONLY);
     return trimvol.getName();
   }
 
@@ -571,12 +582,14 @@ public class ProcessManager {
     String processID = "";
     if (axisID == AxisID.SECOND) {
       if (threadAxisB != null) {
-        processID = threadAxisB.getCshProcessID();
+        processID = threadAxisB.getShellProcessID();
       }
     }
     else {
+      System.out.print(threadAxisA);
       if (threadAxisA != null) {
-        processID = threadAxisA.getCshProcessID();
+        processID = threadAxisA.getShellProcessID();
+        System.out.print(processID);
       }
     }
 
@@ -731,14 +744,14 @@ public class ProcessManager {
     }
     else {
       // Script specific post processing
-      
-      if(script.getScriptName().equals("aligna.com")) {
+
+      if (script.getScriptName().equals("aligna.com")) {
         generateAlignLogs(AxisID.FIRST);
       }
-      if(script.getScriptName().equals("alignb.com")) {
+      if (script.getScriptName().equals("alignb.com")) {
         generateAlignLogs(AxisID.SECOND);
       }
-      if(script.getScriptName().equals("align.com")) {
+      if (script.getScriptName().equals("align.com")) {
         generateAlignLogs(AxisID.ONLY);
       }
 
@@ -756,7 +769,7 @@ public class ProcessManager {
           dialogMessage,
           script.getScriptName() + " warnings");
       }
-      
+
     }
 
     // Null out the appropriate thread reference
@@ -851,10 +864,9 @@ public class ProcessManager {
    * @param thread
    * @param axisID
    */
-  private void mapThreadAxis(ComScriptProcess thread, AxisID axisID) {
+  private void mapThreadAxis(SystemProcessInterface thread, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       threadAxisB = thread;
-
     }
     else {
       threadAxisA = thread;
