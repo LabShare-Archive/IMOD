@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.8  2004/05/31 23:35:26  mast
+    Switched to new standard error functions for all debug and user output
+
     Revision 4.7  2004/05/17 05:01:33  mast
     Allow it to movie if only slices are changing
 
@@ -62,6 +65,7 @@
 #include "b3dgfx.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
+#include "imodv_image.h"
 #include "imodv_movie.h"
 #include "imodv_window.h"
 #include "control.h"
@@ -90,7 +94,8 @@ static struct imodvMovieDialogStruct *movie = &movieStruct;
 /* Local functions */
 static void imodvMakeMontage(int frames, int overlap);
 static void imodvMakeMovie(int frames);
-static void setstep(int index, int frame, float *start, float *step);
+static void setstep(int index, int frame, int loLim, int hiLim, float *start,
+                    float *step);
 
 
 void imodvMovieHelp()
@@ -103,11 +108,13 @@ void imodvMovieHelp()
      "the values in the right column (ending values).\n\n"
      "Press the \"Set Start\" button to set the starting values to the "
      "values of the current display, or the \"Set End\" button to set "
-     "the ending values.  You can also edit values.\n\n"
+     "the ending values.  You can also edit the values.\n\n"
      "If the model view window is opened from 3dmod, then text boxes will "
      "appear for starting and ending image slices in X, Y, and Z.  These "
      "values will be relevant if you use the Edit-Image dialog to turn on "
-     "display fo image slices in the model view window.\n\n"
+     "display of image slices in the model view window.  There are also boxes "
+     "showing the transparency of the image display and the thickness, or "
+     "number of slices displayed.\n\n"
      "Pressing the \"Make\" button will cause 3dmodv to "
      "display the number of frames given.  The rotation between the "
      "starting and ending positions will be resolved into a rotation "
@@ -166,6 +173,8 @@ void imodvMovieSetStart()
     movie->dia->setStart(7, (int)(Imodv->vi->xmouse + 1.5));
     movie->dia->setStart(8, (int)(Imodv->vi->ymouse + 1.5));
     movie->dia->setStart(9, (int)(Imodv->vi->zmouse + 1.5));
+    movie->dia->setStart(10, imodvImageGetTransparency());
+    movie->dia->setStart(11, imodvImageGetThickness());
   }
 }
 
@@ -186,6 +195,8 @@ void imodvMovieSetEnd()
     movie->dia->setEnd(7, (int)(Imodv->vi->xmouse + 1.5));
     movie->dia->setEnd(8, (int)(Imodv->vi->ymouse + 1.5));
     movie->dia->setEnd(9, (int)(Imodv->vi->zmouse + 1.5));
+    movie->dia->setEnd(10, imodvImageGetTransparency());
+    movie->dia->setEnd(11, imodvImageGetThickness());
   }
 }
 
@@ -299,26 +310,27 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->dia->show();
 }
 
-static void setstep(int index, int frame, int limit, float *start, float *step)
+static void setstep(int index, int frame, int loLim, int hiLim, float *start,
+                    float *step)
 {
   float tmin, tmax;
   movie->dia->readStartEnd(index, tmin, tmax);
 
   // If the item has a limit, make sure it is between 1 and limit
-  if (limit && tmin < 1.) {
-    tmin = 1.;
+  if (hiLim && tmin < loLim) {
+    tmin = (float)loLim;
     movie->dia->setStart(index, tmin);
   }
-  if (limit && tmin > limit) {
-    tmin = (float)limit;
+  if (hiLim && tmin > hiLim) {
+    tmin = (float)hiLim;
     movie->dia->setStart(index, tmin);
   } 
-  if (limit && tmax < 1.) {
-    tmax = 1.;
+  if (hiLim && tmax < loLim) {
+    tmax = (float)loLim;
     movie->dia->setEnd(index, tmax);
   }
-  if (limit && tmax > limit) {
-    tmax = (float)limit;
+  if (hiLim && tmax > hiLim) {
+    tmax = (float)hiLim;
     movie->dia->setEnd(index, tmax);
   }
 
@@ -346,6 +358,7 @@ static void imodvMakeMovie(int frames)
   float xtstep, ytstep, ztstep;
   float xImStart, yImStart, zImStart;
   float xImStep, yImStep, zImStep;
+  float thickStart, thickStep, transpStart, transpStep;
   double angle, delangle;
   double alpha, beta, gamma;
   Ipoint v;
@@ -358,17 +371,19 @@ static void imodvMakeMovie(int frames)
     frame = 1;
 
   xImStep = yImStep = zImStep = 0.;
-  setstep(0, frame, 0, &astart, &astep);
-  setstep(1, frame, 0, &bstart, &bstep);
-  setstep(2, frame, 0, &gstart, &gstep);
-  setstep(3, frame, 0, &xtstart, &xtstep);
-  setstep(4, frame, 0, &ytstart, &ytstep);
-  setstep(5, frame, 0, &ztstart, &ztstep);
-  setstep(6, frame, 0, &zstart, &zstep);
+  setstep(0, frame, 0, 0, &astart, &astep);
+  setstep(1, frame, 0, 0, &bstart, &bstep);
+  setstep(2, frame, 0, 0, &gstart, &gstep);
+  setstep(3, frame, 0, 0, &xtstart, &xtstep);
+  setstep(4, frame, 0, 0, &ytstart, &ytstep);
+  setstep(5, frame, 0, 0, &ztstart, &ztstep);
+  setstep(6, frame, 0, 0, &zstart, &zstep);
   if (!a->standalone) {
-    setstep(7, frame, a->vi->xsize, &xImStart, &xImStep);
-    setstep(8, frame, a->vi->ysize, &yImStart, &yImStep);
-    setstep(9, frame, a->vi->zsize, &zImStart, &zImStep);
+    setstep(7, frame, 1, a->vi->xsize, &xImStart, &xImStep);
+    setstep(8, frame, 1, a->vi->ysize, &yImStart, &yImStep);
+    setstep(9, frame, 1, a->vi->zsize, &zImStart, &zImStep);
+    setstep(10, frame, 0, 100, &transpStart, &transpStep);
+    setstep(11, frame, 1, a->vi->zsize, &thickStart, &thickStep);
   }
 
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
@@ -394,6 +409,7 @@ static void imodvMakeMovie(int frames)
     a->vi->xmouse = (int)(xImStart - 0.5);
     a->vi->ymouse = (int)(yImStart - 0.5);
     a->vi->zmouse = (int)(zImStart - 0.5);
+    imodvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
   }
 
   /* get incremental rotation matrix */
@@ -426,8 +442,8 @@ static void imodvMakeMovie(int frames)
   }
 
   /* Return if nothing is going to change */
-  if(fabs((double)delangle) < 1.e-3 && !zstep && !xtstep &&
-     !ytstep && !ztstep && !xImStep && !yImStep && !zImStep)
+  if (fabs((double)delangle) < 1.e-3 && !zstep && !xtstep && !ytstep &&
+      !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep)
     return;
 
 
@@ -468,6 +484,8 @@ static void imodvMakeMovie(int frames)
         a->vi->xmouse = (int)(xImStart + frame * xImStep - 0.5);
         a->vi->ymouse = (int)(yImStart + frame * yImStep - 0.5);
         a->vi->zmouse = (int)(zImStart + frame * zImStep - 0.5);
+        imodvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
+                                (int)(transpStart + frame * transpStep + 0.5));
       }
     }
   }
