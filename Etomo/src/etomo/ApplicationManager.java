@@ -83,6 +83,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.107  2004/12/03 20:18:50  sueh
+ * <p> bug# 556 Do not load SetupParam into combine dialog or update it in
+ * <p> volcombine if SetParam not valid (has the wrong set name) or is null.
+ * <p> Disable ReductionFactor in combine dialog if SetParam is missing or
+ * <p> invalid.
+ * <p>
  * <p> Revision 3.106  2004/12/03 02:24:49  sueh
  * <p> bug# 568 Added getTomogramMetaData() to get a writeable meta data.
  * <p>
@@ -4830,6 +4836,25 @@ public class ApplicationManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on the trimmed tomogram");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+  }
+  
+  /**
+   * Open the squeezed volume in 3dmod
+   */
+  public void imodSqueezedVolume() {
+    SqueezevolParam squeezevolParam = new SqueezevolParam();
+    try {
+      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't open 3dmod on the squeezed tomogram");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
