@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <dia.h>
@@ -362,10 +370,10 @@ static void load_model(Widget w, XtPointer client, XtPointer call)
 }
 */
 
-Imod *LoadModel(FILE *mfin)
+Imod *LoadModel(FILE *mfin, char *filename)
 {
      FILE *fin = NULL;
-     char *ff = NULL;
+     char *ff = filename;
      Imod *imod;
      
      /* Added 2.00b7:
@@ -384,8 +392,12 @@ Imod *LoadModel(FILE *mfin)
      }
      
      if (mfin == NULL){
-	  ff = Imod_filename;
-	  ff = dia_filename("Enter model file name to LOAD.");
+	  /*  ff = Imod_filename;  HUH? */
+
+	  /* DNM 9/12/02: added filename argument, only go to dialog if there
+	     is no filename passed in */
+	  if (ff == NULL)
+	       ff = dia_filename("Enter model file name to LOAD.");
 	  if (ff == NULL || ff[0] == '\0') {
 	       show_status("File not selected. Model not loaded.");
 	       return((Imod *)NULL);
@@ -573,69 +585,4 @@ unsigned char **imod_io_image_load(ImodImageFile *im,
 }
 #endif
 
-#ifdef DELETE_THIS
-/* This is not the way it is done any more */
-int imod_io_image_reload(ImodView *vi)
-{
-     int black = 0;
-     int white = 255;
-     int k;
-     struct MRCheader savehdr;
-
-     vi->li->black = vi->black;
-     vi->li->white = vi->white;
-
-     if (vi->vmSize){
-	  ivwFlushCache(vi);
-	  ivwSetScale(vi);
-     }else{
-	  if (vi->li->contig){
-	       free(vi->idata[0]);
-	  }else{
-	       for (k = 0; k < vi->zsize; k++)
-		    free(vi->idata[k]);
-	  }
-	  free(vi->idata);
-#ifndef USEIMODI
-	  /* DNM: save and restore header after call to mrc_read_byte */
-	  savehdr = *(vi->hdr);
-	  vi->idata = (unsigned char **)mrc_read_byte
-	      (vi->fp, vi->hdr, vi->li,
-		imod_imgcnt);
-	  *(vi->hdr) = savehdr;
-#else
-	  vi->idata = imod_io_image_load
-	      (vi->image, vi->li, imod_imgcnt);
-#endif
-	  if (!vi->idata){
-	       fprintf(stderr, "IMOD: Fatal error. Image LOST!\n");
-	       exit(-1);
-	  }
-	  
-	  vi->black = black;
-	  vi->white = white;
-	  
-	  imod_info_setbw(black, white);
-	  
-	  if (App->depth == 8)
-	       ivwScale(vi);
-     }
-
-#ifdef DRAW_GL
-     adjustcmap_pf(&black, &white, Rampbase);
-#else
-     xcramp_setlevels(vi->cramp,black,white);
-#endif
-
-     imod_info_setbw(black, white);
-
-     wprint ("Image reloaded.\n");
-
-     imodDraw(vi, IMOD_DRAW_IMAGE);
-     return(0);
-}
-#endif
-
-
-
-
+/* DNM 9/12/02: deleted old version of imod_io_image_reload */
