@@ -78,6 +78,96 @@ tooltip =
 manpage = X and Y coordinates of center of transformations.  The default is the
 center of the input image.
 
+[Field = InterpolationOrder]
+short = order
+long = InterpolationOrder
+type = I
+usage = Order of interpolation to use (1: linear, 2: quadratic, 3: cubic;
+default is 3)
+tooltip = 
+manpage = Order of interpolation to use: 1 for linear, 2 for quadratic (the 
+only one available before IMOD 3.6), 3 for cubic; the default is cubic when
+the program is run with PIP input and quadratic when run with sequential
+input.
+
+[Field = DistortionField]
+short = distort
+long = DistortionField
+type = FN
+usage = Image distortion field file to use for undistorting images
+tooltip = 
+manpage = Image distortion field file to use for undistorting images.  The 
+undistortion is applied when computing edge functions.
+
+[Field = ImagesAreBinned]
+short = imagebinned
+long = ImagesAreBinned
+type = I
+usage = The current binning of the images
+tooltip = 
+manpage = The current binning of the images, so that the image distortion
+field can be applied correctly.  This entry is required when doing image
+distortion corrections unless
+the program can determine the binning unambiguously from the image size.
+
+[Field = GradientFile]
+short  = gradient
+long = GradientFile
+type = FN
+usage = File with magnification gradients to be applied for each image
+tooltip = 
+manpage = File with magnification gradients to be applied for each section.
+This should be a file listing the tilt angle, the percent magnification change
+per micron of Z height, and the degrees of rotation per micron of Z height
+for each section, such as is produced by Extractmaggrad.  The mag gradient
+correction is applied before a distortion field correction and is used when
+computing edge functions.
+
+[Field = AdjustedFocus]
+short = adjusted
+long = AdjustedFocus
+type = B
+usage = Focus was adjusted for changing Z height when montage was acquired
+tooltip = 
+manpage = 
+
+[Field = AddToGradient]
+short = addgrad
+long = AddToGradient
+type = FP
+usage = Add to or set the mag and rotation gradients with the given values
+tooltip =
+manpage = The magnification gradient correction is specified by
+two parameters: % of mag change per micron of Z height, and degrees of
+rotation per micron of Z height.  If -gradient has been entered, this option
+can be used to increment the values in the gradient file for each section. 
+If -gradient has
+not been entered, the values entered here will be used for all sections; but in
+this case the -tilt option must be entered to provide additional information.
+
+[Field = TiltGeometry]
+short = tilt
+long = TiltGeometry
+type = FT
+usage = Specify pixel size, tilt axis rotation angle, and tilt angle
+tooltip =
+manpage = When magnification gradients are being corrected for, this entry 
+can be used in place of a gradient file to specify the 
+pixel size in nanometers, tilt axis rotation angle, and tilt angle to be used
+for the gradient computation.  The entry has no effect if a gradient file is
+provided.
+
+[Field = TestMode]
+short = test
+long = TestMode
+type = B
+usage = Compute overlap errors only
+tooltip =
+manpage = This entry runs the program in a special mode in which it will 
+compute edge functions and find the best shifts of the pieces for a given
+magnification gradient correction.  Output images will not be computed, 
+although an empty output file will be produced.
+
 [Field = SloppyMontage]
 short = sloppy
 long = SloppyMontage
@@ -242,7 +332,6 @@ manpage = Borders at the edge of the overlap zone in the short and long
 directions which will be excluded when finding edge functions.  The default
 size is 5 pixels in each direction for frame sizes up to 1024 pixels,
 increasing proportional to the maximum dimension of the frame above 1024.
-
 
 [Field = ParameterFile]
 short = param
