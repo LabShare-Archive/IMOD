@@ -21,6 +21,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
+import etomo.type.JoinState;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -35,6 +36,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2004/12/04 01:00:50  sueh
+ * <p> bug# 569 Fixed the check to see if working directory is empty in isValid()
+ * <p>
  * <p> Revision 1.4  2004/12/02 20:41:01  sueh
  * <p> bug# 566 Move mouse listener to the tab pane.  Filled in
  * <p> popUpContextMenu with separate menus for each tab.
@@ -286,10 +290,20 @@ public class JoinDialog implements ContextMenu {
   private final AxisID axisID;
   private final JoinManager joinManager;
 
+  /**
+   * Create JoinDialog without an .ejf file
+   * @param joinManager
+   */
   public JoinDialog(JoinManager joinManager) {
     this(joinManager, null);
   }
   
+  /**
+   * Create JoinDialog with workingDirName equal to the location of the .ejf
+   * file.
+   * @param joinManager
+   * @param workingDirName
+   */
   public JoinDialog(JoinManager joinManager, String workingDirName) {
     axisID = AxisID.ONLY;
     this.joinManager = joinManager;
@@ -297,12 +311,20 @@ public class JoinDialog implements ContextMenu {
     joinManager.packMainWindow();
   }
 
+  /**
+   * Create the root panel.
+   * @param workingDirName
+   */
   private void createRootPanel(String workingDirName) {
     rootPanel = new JPanel();
     createTabPane(workingDirName);
     rootPanel.add(tabPane);
   }
 
+  /**
+   * Create the tabbed pane.
+   * @param workingDirName
+   */
   private void createTabPane(String workingDirName) {
     tabPane = new JTabbedPane();
     TabChangeListener tabChangeListener = new TabChangeListener(this);
@@ -317,6 +339,10 @@ public class JoinDialog implements ContextMenu {
     tabPane.addTab("Join", pnlJoin.getContainer());
   }
   
+  /**
+   * Add components to the current tab
+   * @param tab
+   */
   private void addPanelComponents(int tab) {
     if (tab == SETUP_TAB) {
       addSetupPanelComponents();
@@ -329,6 +355,11 @@ public class JoinDialog implements ContextMenu {
     }
   }
   
+  /**
+   * Get rubberband coordinates and calculate a new size and shift based on
+   * the last finishjoin trial.
+   * @param coordinates
+   */
   private void setSizeAndShift(Vector coordinates) {
     if (coordinates == null) {
       return;
@@ -364,17 +395,18 @@ public class JoinDialog implements ContextMenu {
     int min;
     int max;
     ConstJoinMetaData metaData = joinManager.getMetaData();
+    JoinState state = joinManager.getState();
     if (!estXMin.isNull() && !estXMax.isNull()) {
-      min = metaData.getCoordinate(estXMin);
-      max = metaData.getCoordinate(estXMax);
+      min = metaData.getCoordinate(estXMin, state);
+      max = metaData.getCoordinate(estXMax, state);
       ltfSizeInX.setText(JoinMetaData.getSize(min, max));
-      ltfShiftInX.setText(metaData.getNewShiftInX(min, max));
+      ltfShiftInX.setText(state.getNewShiftInX(min, max));
     }
     if (!estYMin.isNull() && !estYMax.isNull()) {
-      min = metaData.getCoordinate(estYMin);
-      max = metaData.getCoordinate(estYMax);
+      min = metaData.getCoordinate(estYMin, state);
+      max = metaData.getCoordinate(estYMax,state);
       ltfSizeInY.setText(JoinMetaData.getSize(min, max));
-      ltfShiftInY.setText(metaData.getNewShiftInY(min, max));
+      ltfShiftInY.setText(state.getNewShiftInY(min, max));
     }
   }
 
@@ -1034,12 +1066,12 @@ public class JoinDialog implements ContextMenu {
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
       getMetaData(joinManager.getJoinMetaData());
-      joinManager.saveMetaData();
+      joinManager.saveTestParamFile();
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
       ConstJoinMetaData metaData = joinManager.getMetaData();
-      if (!metaData.isSampleProduced()) {
+      if (!joinManager.getState().isSampleProduced()) {
         throw new IllegalStateException("sample produced is false but Revert to Last Setup is enabled");
       }
       pnlSectionTable.deleteSections();
@@ -1052,7 +1084,7 @@ public class JoinDialog implements ContextMenu {
   }
 
   private void workingDirAction() {
-    //  Open up the file chooser in the working directory
+    //  Open up the file chooser in the current working directory
     JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
