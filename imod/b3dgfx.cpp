@@ -1377,17 +1377,19 @@ double b3dStepPixelZoom(double czoom, int step)
   int i=0;
   int zoomi;
 
+  /* DNM: czoom has been stored as a float by called.  Change it a bit in the
+    desired direction to avoid problems under Windows - instead of former
+    approach of casting to floats */
+  czoom += step * 0.001;
   if (step > 0) {
-    /* DNM: need to cast both to floats because czoom was stored as a
-       float and some comparisons can fail on PC */
     for(i = 0; i < MAXZOOMS - 1; i++)
-      if ((float)zv[i] > (float)czoom) break;
+      if (zv[i] > czoom) break;
     zoomi = (i - 1) + step;
 
   } else {
           
     for (i = MAXZOOMS - 1; i >= 0; i--)
-      if ((float)zv[i] < (float)czoom) break;
+      if (zv[i] < czoom) break;
     zoomi = (i + 1) + step;
   }
 
@@ -1828,6 +1830,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.11  2003/06/04 23:28:50  mast
+Simplify auto snapshot numbering code
+
 Revision 4.10  2003/05/05 15:06:21  mast
 Copy-fill top and right of array when drawing non-integer nonHQ zooms
 
