@@ -8,6 +8,7 @@ import javax.swing.*;
 import etomo.*;
 import etomo.type.*;
 import etomo.process.ProcessState;
+import etomo.storage.EtomoFileFilter;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/19 05:32:55  rickg
+ * <p> Label spelling correction
+ * <p>
  * <p> Revision 1.3  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -283,14 +287,13 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   void menuFileOpen_actionPerformed(ActionEvent e) {
     //
-    //  Open a file dialog box to get a
-    //
-    String cwd = System.getProperty("user.dir");
-
-    //
     //  Open up the file chooser in current working directory
     //
-    JFileChooser chooser = new JFileChooser(new File(cwd));
+    JFileChooser chooser =
+      new JFileChooser(new File(applicationManager.getWorkingDirectory()));
+    EtomoFileFilter edfFilter = new EtomoFileFilter();
+    chooser.setFileFilter(edfFilter);
+
     chooser.setDialogTitle("Open etomo data file");
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -317,7 +320,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   public boolean getTestParamFilename() {
-    String cwd = System.getProperty("user.dir");
+    String cwd = System.getProperty(applicationManager.getWorkingDirectory());
 
     //  Open up the file chooser in current working directory
     JFileChooser chooser = new JFileChooser(new File(cwd));
