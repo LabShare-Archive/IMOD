@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/02/05 04:36:44  rickg
+ * <p> Bug# 390 Initial revision
+ * <p> </p>
  */
 package etomo.ui;
 
@@ -38,6 +41,8 @@ public class PrenewstPanel {
     panelPrenewst
     .setBorder(new EtchedBorder("Newstack Parameters").getBorder());
     panelPrenewst.add(spinBinning.getContainer());
+    
+    spinBinning.setEnabled(false);
   }
 
   JPanel getPanel() {
