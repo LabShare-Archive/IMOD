@@ -18,6 +18,15 @@ c	  CROSSVALUE
 c	  FUNCTION ONEINTRP
 c	  FUNCTION STANDEV
 c
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 c	  READ_LIST get the name of a piece list file, reads the file
 c	  and returns the # of pieces NPCLIST, the min and max z values MINZPC
 c	  and MAXZPC, the piece coordinates I[XYZ]PCLIST, the optional negative
@@ -613,22 +622,11 @@ c	  has the longest time since last use), and returns the index of the
 c	  edge in the buffers in INDBUF.
 c
 	subroutine edgeswap(iedge,ixy,indbuf)
-c
-	parameter (limedge=50000,limedgbf=20,ixgdim=256,iygdim=256)
-	integer*4 ibufedge(limedge,2),iedgbflist(limedgbf)
-     &	    ,ixybflist(limedgbf),lasedguse(limedgbf),iunedge(2)
-	integer*4 nxgrbf(limedgbf),nygrbf(limedgbf)
-     &	    ,ixgrdstbf(limedgbf),iygrdstbf(limedgbf)
-     &	    ,ixofsbf(limedgbf),iyofsbf(limedgbf)
-     &	    ,intxgrbf(limedgbf),intygrbf(limedgbf)
-	integer*4 intgrcopy(2)
-	real*4 dxgrbf(ixgdim,iygdim,limedgbf)
-     &	    ,dygrbf(ixgdim,iygdim,limedgbf)
-     &	    ,ddengrbf(ixgdim,iygdim,limedgbf)
-	common /edgebf/ iunedge,jusedgct,needbyteswap,ibufedge,
-     &	    iedgbflist,ixybflist,
-     &	    lasedguse, nxgrbf ,nygrbf,ixgrdstbf,iygrdstbf, ixofsbf,
-     &	    iyofsbf,intxgrbf,intygrbf,dxgrbf,dygrbf ,ddengrbf,intgrcopy
+c	  
+	implicit none
+	include 'blend.inc'
+	integer*4 iedge,ixy,indbuf
+	integer*4 minused,ioldest,i,ix,iy,nxgr,nygr,idum1,idum2
 c	  
 	indbuf=ibufedge(iedge,ixy)
 	if(indbuf.eq.0)then
@@ -763,43 +761,34 @@ c	  find the edge functions for all of those edges, from the center
 c	  outward.  Edge functions are found, then smoothed using the other
 c	  arguments as parameters, then written to the appropriate edge file
 c
-	subroutine doedge(array,iedge,ixy,edgedone,sdcrit,devcrit,nfit,
+	subroutine doedge(iedge,ixy,edgedone,sdcrit,devcrit,nfit,
      &	    norder,nskip,docross,xcreadin,xclegacy,edgedispx,edgedispy)
 c	  
-	real*4 array(*)
+	implicit none
+	include 'blend.inc'
+c	real*4 array(*)
 	integer*4 nfit(2),nskip(2)
 	logical docross,xcreadin,xclegacy
+	integer*4 iedge,ixy,norder
+	real*4 sdcrit,devcrit
 c
-	parameter (limnpc=50000,limedge=50000)
-	integer*4 nxyzin(3),nxyzout(3)
-	integer*4 noverlap(2),nedge(2)
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
-	integer*4 iedgelower(limnpc,2),iedgeupper(limnpc,2)
-	integer*4 ipiecelower(limedge,2),ipieceupper(limedge,2)
-	integer*4 indent(2)			!minimum indent short & long
-	integer*4 intgrid(2)			!grid interval short & long
-	integer*4 iboxsiz(2)			!box size short & long
-	real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	equivalence (noverlap(1),nxoverlap)
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
-     &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
-     &	    edgelonear,edgehinear
-c	  
 	logical edgedone(limedge,2)
 	real*4 edgedispx(limedge,2),edgedispy(limedge,2)
-	integer*4 iunedge(2)
-	common /edgebf/ iunedge
-c
-	parameter (limpneg=20,ixgdim=256,iygdim=256)
+c	  
+	integer limpneg
+	parameter (limpneg=20)
 	integer*4 multcoord(limpneg),multedge(limpneg),multmp(limpneg)
      &	    ,mcotmp(limpneg),igrstr(2),igrofs(2)
 	real*4 dxgrid(ixgdim,iygdim),dygrid(ixgdim,iygdim)
 	real*4 ddengrid(ixgdim,iygdim),sdgrid(ixgdim,iygdim)
+c	  
+	integer*4 intxgrid,intygrid,nmult,intscan,ipclo,ipcup,ipc,mltco
+	integer*4 i,j,itmp,midcoord,mindiff,imult,imid,middone,indlow
+	integer*4 indup,ixdisp,iydisp,ixdispmid,iydispmid,lastedge
+	integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy
+	real*4 xdisp,ydisp,theta,dxedge,dyedge,dxmid,dymid,xdispl,ydispl
+	real*4 costh,sinth,xrel,yrel,thetamid
+	real*4 cosd,sind
 c	  
 c	  make list of edges to be done
 c
@@ -886,8 +875,8 @@ c
 	do imult=1,nmult
 	  jedge=multedge(imult)
 c	    
-	  call shuffler(array,ipiecelower(jedge,ixy),indlow)
-	  call shuffler(array,ipieceupper(jedge,ixy),indup)
+	  call shuffler(ipiecelower(jedge,ixy),indlow)
+	  call shuffler(ipieceupper(jedge,ixy),indup)
 c	    
 	  if(imult.eq.1)then
 c	  
@@ -1047,42 +1036,17 @@ c	  the edges and pieces that the point is in, or at least near
 c
 	subroutine countedges(indx,indy,xg,yg)
 c	  
-	parameter (limxypc=50,limnpc=50000,limedge=50000)
-	integer*4 inpiece(5)			!piece # of pieces point in
-	integer*4 inedge(5,2)			!edge # of edges point is in
-	integer*4 numedges(2)			!number of edges in x and y
-	real*4 xinpiece(5),yinpiece(5)		!x,y coordinates within piece
-	integer*4 inedlower(5,2),inedupper(5,2)	!list index of piece be&ab edge
-	integer*4 mappiece(limxypc,limxypc)	!map of pieces in this section
-	logical dogxforms,multng		!if doing g's, if negs in sect
-	real*4 hxcen,hycen			!coord of center of input frame
-	real*4 gxcen,gycen			!coord of output image center
-	real*4 ginv(2,3),hinv(2,3,limnpc)	!inverse of g and h xforms
-	common /edgcnt/ inpiece,inedge,numedges,xinpiece,yinpiece,
-     &	    inedlower, inedupper,mappiece,dogxforms,multng,numpieces,
-     &	    hxcen,hycen, gxcen,gycen, ginv,hinv
-c	  
-	integer*4 nxyzin(3),nxyzout(3)
-	integer*4 noverlap(2),nedge(2)
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
-	integer*4 iedgelower(limnpc,2),iedgeupper(limnpc,2)
-	integer*4 ipiecelower(limedge,2),ipieceupper(limedge,2)
-	integer*4 indent(2)			!minimum indent short & long
-	integer*4 intgrid(2)			!grid interval short & long
-	integer*4 iboxsiz(2)			!box size short & long
-	real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	equivalence (noverlap(1),nxoverlap)
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
-     &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
-     &	    edgelonear,edgehinear
+	implicit none
+	integer*4 indx,indy
+	real*4 xg,yg
+c
+	include 'blend.inc'
 c
 	logical edgeonlist,needcheck(5,2),ngframe
 	real*4 xycur(2)
+	integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe
+	integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i
+	real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
 c
 	numpieces=0
 	numedges(1)=0
@@ -1300,22 +1264,15 @@ c	  DX, DY and DDEN, and returns the coordinate in the upper piece, X2,Y2
 c	  and the average density difference DDEN
 c
 	subroutine dxydgrinterp(x1,y1,indedg,x2,y2,dden)
-c
-	parameter (limedge=50000,limedgbf=20,ixgdim=256,iygdim=256)
-	integer*4 ibufedge(limedge,2),iedgbflist(limedgbf)
-     &	    ,ixybflist(limedgbf),lasedguse(limedgbf),iunedge(2)
-	integer*4 nxgrbf(limedgbf),nygrbf(limedgbf)
-     &	    ,ixgrdstbf(limedgbf),iygrdstbf(limedgbf)
-     &	    ,ixofsbf(limedgbf),iyofsbf(limedgbf)
-     &	    ,intxgrbf(limedgbf),intygrbf(limedgbf)
-	real*4 dxgrbf(ixgdim,iygdim,limedgbf)
-     &	    ,dygrbf(ixgdim,iygdim,limedgbf)
-     &	    ,ddengrbf(ixgdim,iygdim,limedgbf)
-	integer*4 intgrcopy(2)
-	common /edgebf/ iunedge,jusedgct,needbyteswap,ibufedge,
-     &	    iedgbflist,ixybflist,
-     &	    lasedguse, nxgrbf ,nygrbf,ixgrdstbf,iygrdstbf, ixofsbf,
-     &	    iyofsbf,intxgrbf,intygrbf,dxgrbf,dygrbf ,ddengrbf,intgrcopy
+c	  
+	implicit none
+	real*4 x1,x2,y1,y2,dden
+	integer*4 indedg
+	include 'blend.inc'
+c	  
+	real*4 xingrid,yingrid,xgrid,ygrid,fx1,fx,c00,c10,c01,c11
+	real*4 fy1,fy,dxinterp,dyinterp
+	integer*4 ixg,iyg,ixg1,iyg1
 c	  
 c	  find fractional coordinate within edge grid
 c	  
@@ -1582,37 +1539,28 @@ c$$$c	print *,xpeak,ypeak
 c$$$	return
 c$$$	end
 
+c	  DNM 8/18/02: add array argument, remove hinv as argument and
+c	  access it through common
 
-	subroutine find_best_shifts(dxgridmean,dygridmean,idir,izsect,h,
-     &	    hinv, nsum,bavg,bmax,aavg,amax)
+	subroutine find_best_shifts(a,dxgridmean,dygridmean,idir,izsect,h,
+     &	    nsum,bavg,bmax,aavg,amax)
 
-	parameter (limxypc=50,limnpc=50000,limedge=50000,limsect=1000)
-	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
-	integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
-	integer*4 iedgelower(limnpc,2),iedgeupper(limnpc,2)
-	integer*4 ipiecelower(limedge,2),ipieceupper(limedge,2)
-	integer*4 indent(2)			!minimum indent short & long
-	integer*4 intgrid(2)			!grid interval short & long
-	integer*4 iboxsiz(2)			!box size short & long
-	real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	equivalence (noverlap(1),nxoverlap)
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
-     &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
-     &	    edgelonear,edgehinear
+	implicit none
+	integer*4 idir,izsect,nsum
+	real*4 bavg,bmax,aavg,amax
+	include 'blend.inc'
 c	  
-	real*4 h(2,3,*),hinv(2,3,*)
+	real*4 h(2,3,*)
 	real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
 	integer*4 indvar(limnpc)
 c	  
-	parameter (limvar=400)
+c	parameter (limvar=400)
 	real*4 a(limvar,limvar),b(limvar,2)
 	integer*4 ivarpc(limvar)
+c	  
+	integer*4 nvar,ipc,ivar,m,ixy,iedge,neighpc,neighvar,ipclo,i
+	integer*4 noverwrote
+	real*4 asum,bsum,xsum,ysum,bdist,adist
 c
 c	  The data coming in are the displacements of upper piece from
 c	  being in alignment with the lower piece if idir = 1, or the
@@ -1751,5 +1699,15 @@ c
 c	write(*,'(i3,a,2f6.2,a,2f6.2)')nsum, ' edges, mean, max '//
 c     &	    'displacement before:', bsum/nsum,bmax,', after:',asum/nsum,
 c     &	    amax
+c	  
+c	  DNM 8/18/02: invalidate pieces in memory for part of array that
+c	  was used
+c	  
+	noverwrote = (limvar * nvar + npixin - 1) / npixin
+	do i = 1,noverwrote
+	  izmemlist(i) = -1
+	  lastused(i) = 0
+	enddo
+c
 	return
 	end
