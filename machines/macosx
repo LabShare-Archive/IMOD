@@ -56,6 +56,7 @@ echo 'IMODCC    = $(CC)'              >> $configure
 echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
+set fort_cpplibs = -lstdc++
 
 # 
 # tell the C routines which way to swap floats
