@@ -92,14 +92,22 @@ c
 c	  0 to store the current result, or 1 to loop back and specify a new
 c	  .  block to include or exclude (or objects to exclude or clip)
 c	  
+c
 c	  David Mastronarde 1/11/90; modified for IMOD 4/24/97; compute cut
 c	  edges and handle coordinates better, 10/24/00.
-c	  
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 	include 'nimp_source:model.inc'
 	integer*4 listz(1000),icolelim(512),iflags(512)
 	logical exist,readw_or_imod,inside,lastinside
-	integer*4 getimodflags,getimodhead
+	integer*4 getimodflags,getimodhead,getimodscales
 	character*80 modelfile
 	character*2 inex
 	character*7 pixmic
@@ -133,7 +141,15 @@ c
      &	    ' all are closed contours'
 	pixmic='microns'
 	defscal=1.e6
+c	  
+c	  DNM 7/7/02: get image scales, and switch to exiting on error
+c
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
+	if (ierr .ne. 0 .or. ierr2 .ne. 0) then
+	  print *,'CLIPMODEL: Error getting model header'
+	  call exit(1)
+	endif
 	if(ierr.ne.0.or.abs(xyscal-defscal)/defscal.lt.1.e-5)then
 	  xyscal=1.
 	  pixmic='pixels'
@@ -150,9 +166,9 @@ c
 c	  shift the data to display coordinates before using
 c
 	do i=1,n_point
-	  p_coord(1,i)=p_coord(1,i)-xofs
-	  p_coord(2,i)=p_coord(2,i)-yofs
-	  p_coord(3,i)=p_coord(3,i)-zofs
+	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
 	enddo
 c	  
 16	write(*,'(1x,a,/,a,$)') 'Enter 0 to include or 1 to exclude'//
@@ -365,9 +381,9 @@ c
 c	  shift the data back for saving
 c
 	do i=1,n_point
-	  p_coord(1,i)=p_coord(1,i)+xofs
-	  p_coord(2,i)=p_coord(2,i)+yofs
-	  p_coord(3,i)=p_coord(3,i)+zofs
+	  p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	  p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	  p_coord(3,i)=zimscale*p_coord(3,i)+zofs
 	enddo
 c	  
 c	  now either just write model, or write point file
