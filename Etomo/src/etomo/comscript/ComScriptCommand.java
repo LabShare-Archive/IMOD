@@ -20,6 +20,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/26 23:39:26  rickg
+ * <p> remove using the iterator
+ * <p>
  * <p> Revision 3.2  2004/04/26 20:15:42  rickg
  * <p> Added interface to handle successive accumulation keywords
  * <p> untested
@@ -296,7 +299,7 @@ public class ComScriptCommand {
       ComScriptInputArg inputArg = (ComScriptInputArg) stdinArgs.get(idx);
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
       if (tokens.length < 2) {
-        throw new InvalidParameterException(tokens[0] + " has no parameters");
+        return null;
       }
       return tokens[1];
     }
