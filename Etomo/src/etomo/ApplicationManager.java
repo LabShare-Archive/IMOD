@@ -27,6 +27,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.31  2003/01/06 04:53:16  rickg
+ * <p> Set default parameters for transferfid panel and handle
+ * <p> new backwards flag for b to a
+ * <p>
  * <p> Revision 1.30  2003/01/04 00:41:00  rickg
  * <p> Implemented transferfid method
  * <p>
@@ -934,6 +938,27 @@ public class ApplicationManager {
   public void fineAlignment(AxisID axisID) {
     if (updateAlignCom()) {
       processMgr.fineAlignment(axisID);
+    }
+  }
+
+  /**
+   * Open imod with the new fidcuial model
+   */
+  public void imodViewResiduals(AxisID axisID) {
+    String fiducialModel =
+      metaData.getFilesetName() + axisID.getExtension() + ".resmod";
+    try {
+      imodManager.modelCoarseAligned(fiducialModel, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on coarse aligned stack with model: " + fiducialModel);
     }
   }
 
