@@ -42,6 +42,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/08 19:12:50  sueh
+ * <p> bug261 change changes on the screen:
+ * <p> projection -> view
+ * <p> raw stack data -> raw image stack
+ * <p>
  * <p> Revision 2.7  2003/06/03 23:28:26  rickg
  * <p> Fixed font size ltf at 5 columns for text boxes
  * <p>
@@ -152,7 +157,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private ButtonGroup bgAxisType = new ButtonGroup();
 
   private JPanel pnlViewType = new JPanel();
-  private JRadioButton rbSingleView = new JRadioButton("Single View");
+  private JRadioButton rbSingleView = new JRadioButton("Single Frame");
   private JRadioButton rbMontage = new JRadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
@@ -702,7 +707,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rbDualAxis.setToolTipText(line1 + line2);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of a single view per view or multiple views<br>";
+    line2 = "consists of a single frame per view or multiple frames<br>";
     line3 = "per view (montaged).";
     pnlViewType.setToolTipText(line1 + line2 + line3);
     rbSingleView.setToolTipText(line1 + line2 + line3);
