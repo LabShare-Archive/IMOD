@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2004/08/26 01:10:55  sueh
+ * bug# 508 removing sleep between kill ground and kill process and
+ * descendents because it appears to be unnecessary.
+ *
  * Revision 3.36  2004/08/25 23:04:16  sueh
  * bug# moved kill signal to a separate function kill(String,String)
  * sleep between kill group and kill process and descendents
@@ -1248,7 +1252,7 @@ public class ProcessManager {
     if (processMonitor != null) {
       // Wait for the started flag within the comScriptProcess, this ensures
       // that log file has already been moved
-      while (!comScriptProcess.isStarted()) {
+      while (!comScriptProcess.isStarted() && !comScriptProcess.isError()) {
         try {
           Thread.sleep(100);
         }
@@ -1279,8 +1283,11 @@ public class ProcessManager {
       String[] stdError = script.getStdError();
       String[] combined;
       //    Is the last string "Killed"
-      if ((stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+      if (stdError == null) {
+        stdError = new String[0];
+      }
+      if (stdError != null && stdError.length > 0
+        && stdError[stdError.length - 1].trim().equals("Killed")) {
         combined = new String[1];
         combined[0] = "<html>Terminated: " + script.getScriptName();
       }
