@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/07/27 06:00:43  mast
+    Added ability to convert a residual listing from Tiltalign
+
 */
 
 #include <stdio.h>
@@ -173,7 +176,6 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
 	       fprintf(stderr, "Error reading file at line %d.\n", i + 1);
 	       exit(1);
 	  }
-     puts(line);
 
 	  /* DNM 7/26/02: read in residuals as real coordinates, without a 
 	     flip */
