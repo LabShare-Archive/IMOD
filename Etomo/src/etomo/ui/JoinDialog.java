@@ -36,6 +36,9 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2005/01/10 23:54:56  sueh
+ * <p> bug# 578 Changing calls to ConstEtomoNumber.isNull() to !isSet().
+ * <p>
  * <p> Revision 1.6  2004/12/14 21:50:40  sueh
  * <p> bug# 572:  Removing state object from meta data and managing it with a
  * <p> manager class.  Bug# 565:  Save all of .ejf each time a save is done.
@@ -400,13 +403,13 @@ public class JoinDialog implements ContextMenu {
     int max;
     ConstJoinMetaData metaData = joinManager.getMetaData();
     JoinState state = joinManager.getState();
-    if (estXMin.isSet() && estXMax.isSet()) {
+    if (estXMin.isUpdateCommand() && estXMax.isUpdateCommand()) {
       min = metaData.getCoordinate(estXMin, state);
       max = metaData.getCoordinate(estXMax, state);
       ltfSizeInX.setText(JoinMetaData.getSize(min, max));
       ltfShiftInX.setText(state.getNewShiftInX(min, max));
     }
-    if (estYMin.isSet() && estYMax.isSet()) {
+    if (estYMin.isUpdateCommand() && estYMax.isUpdateCommand()) {
       min = metaData.getCoordinate(estYMin, state);
       max = metaData.getCoordinate(estYMax,state);
       ltfSizeInY.setText(JoinMetaData.getSize(min, max));
