@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
- *  iproc.c -- image processing for imod.
+/*
+ *  iproc.c -- image processing for 3dmod.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -80,6 +63,10 @@ static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
 static void fourFilt_cb();
 static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void fft_cb();
+static void mkMedian_cb(IProcWindow *win, QWidget *parent, 
+                        QVBoxLayout *layout);
+static void median_cb();
+
 
 /* The table of entries and callbacks */
 ImodIProcData proc_data[] = {
@@ -88,6 +75,7 @@ ImodIProcData proc_data[] = {
   {"edge", edge_cb, mkedge_cb, NULL},
   {"threshold", thresh_cb, mkthresh_cb, NULL},
   {"smooth", smooth_cb, NULL, "Smooth Image."},
+  {"median", median_cb, mkMedian_cb, NULL},
   {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
   {"dilation", grow_cb, NULL, "Grow Threshold Area."},
   {"erosion", shrink_cb, NULL, "Shrink Threshold Area."},
@@ -237,6 +225,52 @@ static void fft_cb()
   proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning, ix0, ix1, iy0, iy1);
 }
 
+static void median_cb()
+{
+  unsigned char *to;
+  unsigned char **from;
+  int i, j, k, z;
+  ImodIProc *ip = &proc;
+  int depth = ip->median3D ? ip->medianSize : 1;
+  int zst = B3DMAX(0, ip->idatasec - depth / 2);
+  int znd = B3DMIN(ip->vi->zsize - 1, ip->idatasec + (depth - 1) / 2);
+
+  ip->medianVol.zsize = depth = znd + 1 - zst;
+  ip->medianVol.vol = (Islice **)malloc(depth * sizeof(Islice *));
+  if (!ip->medianVol.vol)
+    return;
+
+  for (i = 0, z = zst; z <= znd; z++, i++) {
+
+    // Get a slice and get the array of pointers
+    ip->medianVol.vol[i] = sliceCreate(ip->vi->xsize, ip->vi->ysize, 
+                                       SLICE_MODE_BYTE);
+    from = ivwGetZSectionTime(ip->vi, z, ip->idatatime);
+
+    // If either is in error, clean up what is already allocated
+    if (!from || !ip->medianVol.vol[i]) {
+      for (j = 0; j <= i; j++)
+        if (ip->medianVol.vol[j])
+          sliceFree(ip->medianVol.vol[j]);
+      free(ip->medianVol.vol);
+      return;
+    }
+
+    // Copy data
+    to = ip->medianVol.vol[i]->data.b;
+    for (j = 0; j < ip->vi->ysize; j++)
+      for (k = 0; k < ip->vi->xsize; k++)
+        *to++ = from[j][k];
+  }
+
+  sliceMedianFilter(&s, &ip->medianVol, ip->medianSize);
+
+  // Clean up
+  for (j = 0; j < depth; j++)
+    sliceFree(ip->medianVol.vol[j]);
+  free(ip->medianVol.vol);
+}
+
 // Set the min and max of the static slice to full range, or actual values
 static void setSliceMinMax(bool actual)
 {
@@ -296,6 +330,8 @@ int inputIProcOpen(struct ViewInfo *vi)
       proc.fftBinning = 1;
       proc.fftScale = 0.;
       proc.fftSubset = false;
+      proc.medianSize = 3;
+      proc.median3D = true;
     }
     proc.vi = vi;
     proc.idatasec = -1;
@@ -499,6 +535,28 @@ static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   win->limitFFTbinning();
 }
 
+static void mkMedian_cb(IProcWindow *win, QWidget *parent, 
+                        QVBoxLayout *layout)
+{
+  diaLabel("Median filter", parent, layout);
+  QHBoxLayout *hLayout = new QHBoxLayout(layout);
+  QLabel *label = new QLabel("Size", parent);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  QSpinBox *sizeSpin = new QSpinBox(2, 9, 1, parent);
+  diaSetSpinBox(sizeSpin, proc.medianSize);
+  hLayout->addWidget(sizeSpin);
+  sizeSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(sizeSpin, SIGNAL(valueChanged(int)), win, 
+                   SLOT(medSizeChanged(int)));
+  QCheckBox *check = diaCheckBox("Compute median in 3D cube", parent, layout);
+  diaSetChecked(check, proc.median3D);
+  QObject::connect(check, SIGNAL(toggled(bool)), win,
+                   SLOT(med3DChanged(bool)));
+  QToolTip::add(check, "Take median in 3D cube instead of median in 2D within"
+                " this section");
+}
+
 
 /* THE WINDOW CLASS CONSTRUCTOR */
 static char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
@@ -637,6 +695,17 @@ void IProcWindow::edgeSelected(int which)
   proc.edge = which;
 }
 
+void IProcWindow::medSizeChanged(int val)
+{ 
+  setFocus();
+  proc.medianSize = val;
+}
+
+void IProcWindow::med3DChanged(bool state)
+{
+  proc.median3D = state;
+}
+
 // Respond to button click (release)
 void IProcWindow::buttonClicked(int which)
 {
@@ -684,61 +753,7 @@ void IProcWindow::buttonClicked(int which)
     break;
 
   case 6: // Help
-    dia_vasmsg
-      ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "3dmod Image Processing \n"
-       "~~~~~~~~~~~~~~~~~~~~~~~~"
-       "\n\n",
-       "Various kinds of simple filters can be applied with these "
-       "controls.  The filter will always be applied to the current "
-       "section.\n\n",
-       "Single-click in the list of filters to select the current filter "
-       "to be applied to the data; in some cases there will be further "
-       "parameters to select.\n\n"
-       "Pressing the [Apply] button will apply the current filter to the "
-       "ORIGINAL image data.  Double-clicking in the filter list is the "
-       "same as pressing the [Apply] button.\n\n"
-       "Pressing the [More] button will apply the filter to the CURRENT "
-       "image data, as modified by previous filter operations.\n\n"
-       "Pressing the [Reset] button, applying a filter to a different "
-       "section, closing the window with [Done], or flipping the data "
-       "volume will all restore the original image data for a section, "
-       "unless you press the [Save] button.  [Save] will permanently "
-       "replace the image data in memory with the processed data.\n\n",
-       "The Fourier filter is done by taking Fourier transforms and its "
-       "parameters are the \"radius\" and \"sigma\" parameters used in "
-       "several other IMOD programs.  Namely, the \"Low frequency sigma\" is "
-       "the sigma of an inverted Gaussian starting at the origin, used to "
-       "attenuate low frequencies.  Low pass filtering is done with a "
-       "Gaussian starting at the \"High-frequency cutoff\" and  "
-       "with a sigma given by the \"High-frequency falloff\".  The units are "
-       "cycles per pixel, ranging from 0 to 0.5.\n\n",
-       "To take a Fourier transform (FFT), the program will pad the image "
-       "into a square array slightly larger than the original image, taper "
-       "the image at its edges to minimize edge artifacts, take the FFT, "
-       "apply log scaling, and clip out the portion that fits into the "
-       "original image size.  For a non-square image, the FFT will thus be "
-       "isotropic (X and Y scales the same) but truncated in one dimension.  "
-       "The panel will show the range of frequencies that appear in the X "
-       "and Y dimensions.  Binning can be used to see the whole transform for "
-       "a non-square image, and also to reduce noise and execution time.  "
-       "With binning, the smaller FFT will be embedded into a black "
-       "background.\n"
-       "To do an FFT of a subregion, turn on \"Use Zap window subarea\".  If "
-       "the rubber band is on in the active Zap window, the FFT will be taken "
-       "of the area inside the rubber band.  Otherwise, the area used will be "
-       "the portion of the image showing in the window.\n"
-       "The panel also shows a scale that can be used to convert from pixels "
-       "in the FFT to frequency units.  To determine the frequency at a "
-       "location, measure the distance from the origin (at the center of the "
-       "image) to the given location.  (For example, draw a model line "
-       "between them and use \"Edit-Point-Distance\".)  Multiply the distance "
-       "in pixels times the scale to get the frequency in cycles/pixel.  "
-       "To determine the frequency in actual units such as reciprocal "
-       "nanometers, divide this frequency by the pixel size (e.g., in nm).  "
-       "To get a resolution value in real-space units, "
-       "divide the pixel size by the frequency in cycles/pixel.",
-       NULL);
+    imodShowHelpPage("imageProc.html");
     break;
   }
 }
@@ -926,6 +941,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.13  2004/11/11 15:55:34  mast
+    Changes to do FFT in a subarea
+
     Revision 4.12  2004/11/09 17:54:24  mast
     Fixed problem in running non-threaded, changed Qt version cutoff for
     setting thread priority
