@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/02/17 18:18:02  mast
+c	  Fixed a warning message
+c	
 c	  Revision 3.11  2005/02/17 17:58:04  mast
 c	  Rewrote edge function files at end and closed them so they would be
 c	  newer than the .ecd file
@@ -44,7 +47,7 @@ c	  made defaults scale up above 1024, and made it read and use the grid
 c	  spacing from the edge function file.
 c	
 c	  Revision 3.8  2003/10/30 20:00:32  mast
-c	  Needed to decalre PipGetInOutFile as integer
+c	  Needed to declare PipGetInOutFile as integer
 c	
 c	  Revision 3.7  2003/10/24 03:46:15  mast
 c	  switch to calling routine to make backup edf file
@@ -70,10 +73,13 @@ c	  Implemented include file for commons.  Put large arrays in common
 c	  to prevent stack problems.  Passed array to find_best_shifts to
 c	  reduce memory needs there.
 c	
-c
+c	  
+	implicit none
+	integer nbytes_recl_item,limneg
 	include 'recl_bytes.inc'
 	include 'blend.inc'
-	character*80 filnam,edgenam
+	character*120 filnam,edgenam
+	character*80 rootname
 	character*80 concat
 	character*4 edgeext(2)/'.xef','.yef'/
 	character*4 xcorrext/'.ecd'/
@@ -81,17 +87,13 @@ c
 	real*4 cell(6)/1.,1.,1.,0.,0.,0./
 	real*4 delta(3)
 c
-c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
-
-c
 c
 c	structure /rotrans/
 c	  real*4 theta,dx,dy,xcen,ycen
 c	end structure
-c
 c
 	integer*4 nskip(2)/1,2/			!regression position skip s&l
 	integer*4 nfit(2)/5,7/			!# to include in regression s&l
@@ -114,11 +116,12 @@ c
 	logical skipxforms
 	character dat*9, tim*8
 	real*4 edgefrac(2),title(20),distout(2),edgefrac4(3,2)
+	real*4 edgefracx,edgefracy
 	equivalence (edgefrac(1),edgefracx),(edgefrac(2),edgefracy)
 	integer*2 irray(limxypc,limxypc,limsect)
 	equivalence (array,irray)
 	logical edgedone(limedge,2),multineg(limsect),active4(3,2)
-	logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong
+	logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
 	logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
 	real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
 	real*4 edgedispx(limedge,2),edgedispy(limedge,2)
@@ -126,15 +129,53 @@ c
 	character*6 edgexcorrtext(2)/'xcorr:','edges:'/
 	real*4 gl(2,3,limsect),h(2,3,limnpc),fastf(2,3),hit(2,3),fstmp(2,3)
 c	  the former rotrans structures
-	real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),
-     &	    rnet(6)
+	real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),rnet(6)
 	integer*4 modepow(0:15)/8,15,8,0,0,0,0,0,0,9,10,11,12,13,14,15/
 	integer*4  minxwant, maxxwant
 	integer*4  minywant, maxywant
 c	  
+	character*120 idfFile, magGradFile
+	integer*4 inputBinning,idfNx, idfNy, idfBinning
+	real*4 pixelIdf, binRatio
+c	  
+	integer*4 modein,nlistz,minzpc,maxzpc,nsect,nxtotpix,nytotpix
+	integer*4 maxxpiece,maxypiece,modeout,iffloat,i,minxoverlap
+	integer*4 minyoverlap,ntrial,ifsloppy,ioptabs,nxmissing,nymissing
+	integer*4 nxtotwant,nytotwant,newxpieces,newypieces,ifoldedge
+	integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
+	integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
+	real*4 dmin,dmax,outmin,outmax,definmin
+	real*4 definmax,curinmin,curinmax,pixscale,pixadd,tsum
+	integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
+	integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
+	integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece,ioptneg
+	integer*4 indx,indy,ixneg,iyneg,nxneg,nyneg,iz,ineg,listfirst,ipchi
+	integer*4 ix,iy,nsum,ilineout,ifill,nalong,ncross,ned,ixy,lenrec,j
+	real*4 dminout,dmaxout,grandsum,tmpsum,tmean,sdcrit,devcrit,gridScale
+	integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant,ifdiddle
+	integer*4 ixout,iyout,ifrevise,norder,iedgedir,iyx,imem,jedge,numneg
+	integer*4 iwhich,neglo,negup,indlo,indup,joint,ied,iedge,ipclo,ipcup
+	integer*4 maxswing,ishift,nshiftneg,idum1,idum2,inde,nbestedge,indbest
+	real*4 erradj,errlim,dxsum,dysum,sumx,sumy,xdisp,ydisp
+	real*4 beforemean,beforemax,cursum,f12,f13,f23,f24,er1,et1,el2,et2
+	integer*4 indgl,ilis,niter,linebase,nedgesum,indedg,indlower
+	integer*4 indp1,indp2,indp3,indp4,inde12,inde13,inde34,inde24,nactivep
+	real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
+	real*4 dba,dta,ax,ay,ex,ey,wll,wlr,wul,wur,wsum,x1,y1,w1,w2,c11,c12,c21
+	real*4 xgconst,ygconst,c22,denom,fb11,fb12,fb21,fb22,x1last,y1last
+	integer*4 indpidef,indpl,indpu,ipiece1,ipiece2,iter,jndp1,jndp2,jndp3
+	real*4 dx2,dy2,x2,y2,pixval,w3,wmax,f2b11,f2b12,f2b21,f2b22,val
+	integer*4 ind12edg,ind13edg,icortyp,ind23edg,ind14edg,ind43edg
+	real*4 f3b11,f3b12,f3b21,f3b22,dden,dden12,dden13,dden23,x3,y3,x3t,y3t
+	real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
+	integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
+	real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm
+	integer*4 imodBackupFile
+	real*4 sind,cosd,oneintrp
+c	  
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipGetInteger,PipGetBoolean
+	integer*4 PipGetInteger,PipGetBoolean, PipGetThreeFloats
 	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
 	integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
 	integer*4 PipGetNonOptionArg,PipGetInOutFile
@@ -142,14 +183,19 @@ c
 c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c
 	integer numOptions
-	parameter (numOptions = 28)
+	parameter (numOptions = 36)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
      &      'imout:ImageOutputFile:FN:@plout:PieceListOutput:FN:@'//
      &      'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
      &      'float:FloatToRange:B:@xform:TransformFile:FN:@'//
-     &      'center:TransformCenterXandY:FP:@sloppy:SloppyMontage:B:@'//
+     &      'center:TransformCenterXandY:FP:@'//
+     &      'order:InterpolationOrder:I:@distort:DistortionField:FN:@'//
+     &      'imagebinned:ImagesAreBinned:I:@'//
+     &      'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
+     &      'addgrad:AddToGradient:FP:@tilt:TiltGeometry:FT:@'//
+     &      'test:TestMode:B:@sloppy:SloppyMontage:B:@'//
      &      'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
      &      'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
      &      'sections:SectionsToDo:LI:@'//
@@ -186,6 +232,12 @@ c
 	xclegacy = .false.
 	fromedge = .false.
 	xcreadin = .false.
+	doMagGrad = .false.
+	undistort = .false.
+	focusAdjusted = .false.
+	inputBinning = 1
+	interpOrder = 2
+	testMode = .false.
 c
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -294,9 +346,6 @@ c
      &	    nyoverlap)
 	if(nxpieces.le.0. or. nypieces.le.0)call errorexit
      &	    ('CHECKLIST reported 0 pieces in one direction')
-	if(nxin.ne.nxin .or. nyin.ne.nyin) call errorexit
-     &	    ('frame size and image file dimension mismatch')
-
 c
 	nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
 	nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
@@ -582,13 +631,13 @@ c	  get edge file name root, parameters if doing a new one
 c
 	if (pipinput) then
 	  ierr = PipGetBoolean('OldEdgeFunctions', ifoldedge)
-	  if (PipGetString('RootNameForEdges', filnam) .ne. 0) call
+	  if (PipGetString('RootNameForEdges', rootname) .ne. 0) call
      &	      errorexit('NO ROOT NAME FOR EDGE FUNCTIONS SPECIFIED')
 	else
 	  write(*,'(1x,a,$)')'0 for new edge files, 1 to read old ones: '
 	  read(5,*)ifoldedge
 	  write(*,'(1x,a,$)')'Root file name for edge function files: '
-	  read(5,'(a)')filnam
+	  read(5,'(a)')rootname
 	endif
 c
 	if(ifoldedge.ne.0)then
@@ -597,7 +646,7 @@ c	    for old files, open, get edge count and # of grids in X and Y
 c
 	  do ixy = 1, 2
 	    lenrec = 24 / nbytes_recl_item
-	    edgenam=concat(filnam,edgeext(ixy))
+	    edgenam=concat(rootname,edgeext(ixy))
 	    open(iunedge(ixy),file=edgenam,status='old',
      &		form='unformatted',access='direct', recl=lenrec, err=53)
 	    read(iunedge(ixy),rec=1)(nedgetmp(i,ixy), i = 1, 5)
@@ -624,7 +673,7 @@ c
 	    nxgrid(ixy) = nedgetmp(2,ixy)
 	    nygrid(ixy) = nedgetmp(3,ixy)
 	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
-	    edgenam=concat(filnam,edgeext(ixy))
+	    edgenam=concat(rootname,edgeext(ixy))
 	    open(iunedge(ixy),file=edgenam,status='old',
      &		form='unformatted',access='direct', recl=lenrec, err=53)
 	  enddo
@@ -691,7 +740,7 @@ c	      set record length to total bytes divided by system-dependent
 c	      number of bytes per item
 c
 	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
-	    edgenam=concat(filnam,edgeext(ixy))
+	    edgenam=concat(rootname,edgeext(ixy))
 	    ierr = imodBackupFile(edgenam)
 	    if(ierr.ne.0)write(6,*)' WARNING: blendmont - error renaming',
      &		  ' existing edge function file'
@@ -704,7 +753,7 @@ c	      write header record
 	endif
 c	  
 	if(xcreadin)then
-	  edgenam=concat(filnam,xcorrext)
+	  edgenam=concat(rootname,xcorrext)
 	  inquire(file=edgenam,exist=exist)
 	  if(.not.exist)then
 	    print *
@@ -734,25 +783,124 @@ c	  half of overlap above 50
      &	      ,iblend(1), iblend(2),'): '
 	  read(5,*)(iblend(i),i=1,2)
 	endif
+c	  
+c	  Do other Pip-only options,
+c	  Read in mag gradient and distortion field files if specified
+c
+	if (pipinput) then
+	  interpOrder = 3
+	  ierr = PipGetInteger('InterpolationOrder', interpOrder)
+	  ierr = PipGetLogical('AdjustedFocus', focusAdjusted)
+	  ierr = PipGetLogical('TestMode', testMode)
+	  if (PipGetString('GradientFile', filnam) .eq. 0) then
+	    doMagGrad = .true.
+	    call readMagGradients(filnam, limsect, pixelMagGrad, axisRot,
+     &		tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
+	    if (numMagGrad .ne. nlistz)
+     &		print *,'WARNING: BLENDMONT - # OF MAG GRADIENTS (',
+     &		numMagGrad,') DOES NOT MATCH # OF SECTIONS (',nlistz,')'
+	  endif
+c	    
+c	    If doing added gradients, use a tiltgeometry entry only if no
+c	    gradient file
+c	    
+	  if (PipGetTwoFloats('AddToGradient', delDmagPerUm, delRotPerUm) .eq.
+     &	      0) then
+	    if (doMagGrad) then
+	      do i = 1, numMagGrad
+		dmagPerUm(i) = dmagPerUm(i) + delDmagPerUm
+		rotPerUm(i) = rotPerUm(i) + delRotPerUm
+	      enddo
+	    else
+	      if (PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
+     &		  tiltAngles(1)) .ne. 0) call errorexit(
+     &		  '-tilt or -gradient must be entered with -add')
+	      pixelMagGrad = pixelMagGrad * 10.
+	      numMagGrad = 1
+	      dmagPerUm(1) = delDmagPerUm
+	      rotPerUm(1) = delRotPerUm
+	      doMagGrad = .true.
+	    endif
+	  endif
+c	    
+	  if (PipGetString('DistortionField', filnam) .eq. 0) then
+	    undistort = .true.
+	    call readDistortions(filnam, distDx, distDy, lmField, idfNx,
+     &		idfNy, idfBinning, pixelIdf, ixFieldStrt, xFieldIntrv, nxField,
+     &		iyFieldStrt, yFieldIntrv, nyField)
+c
+	    if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
+c		
+c		If input binning was not specified object if it is ambiguous
+c	      
+	      if (nxin .le. idfNx * idfBinning / 2 .and.
+     &		  nyin .le. idfNy * idfBinning / 2) call errorexit
+     &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
+     &		  'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
+	    endif
+	    if (inputBinning .le. 0) call errorexit
+     &		('IMAGE BINNING MUST BE A POSITIVE NUMBER')
+	    
+c		
+c	      Adjust grid start and interval and field itself for the
+c	      overall binning
+c
+	    binRatio = idfBinning / float(inputBinning)
+	    ixFieldStrt = nint(ixFieldStrt * binRatio)
+	    iyFieldStrt = nint(iyFieldStrt * binRatio)
+	    xFieldIntrv = xFieldIntrv * binRatio
+	    yFieldIntrv = yFieldIntrv * binRatio
+c		
+c	      if images are not full field, adjust grid start by half the
+c	      difference between field and image size
+c		
+	    ixFieldStrt = ixFieldStrt - nint((idfNx * binRatio -  nxin) / 2.)
+	    iyFieldStrt = iyFieldStrt - nint((idfNy * binRatio -  nyin) / 2.)
+c	      
+c	      scale field
+c
+	    do iy = 1, nyField
+	      do i = 1, nxField
+		distDx(i, iy) = distDx(i, iy) * binRatio
+		distDy(i, iy) = distDy(i, iy) * binRatio
+	      enddo
+	    enddo
+	  endif
+	endif
+	doFields = undistort .or. doMagGrad
 	call PipDone()
 c	  
 c	  initialize memory allocator
 c	  
-	jusecount=0
-	do i=1,memlim
-	  izmemlist(i)=-1
-	  lastused(i)=0
-	enddo
+	call clearShuffle()
+c	  
+c	  Set maximum load; allow one extra slot if doing fields, limit by
+c	  size of arrays
+c
 	npixin=nxin*nyin
-	limsec=min(maxsiz/npixin,memlim)
+	if (doFields) then
+	  maxload = min(maxsiz/npixin - 1, memlim, maxFields)
+	else
+	  maxload=min(maxsiz/npixin, memlim)
+	endif
+	if (maxload .lt. 2) call errorexit('IMAGES TOO LARGE FOR ARRAYS')
 	intgrcopy(1)=intgrid(1)
 	intgrcopy(2)=intgrid(2)
 c	    
 c	    loop on z: do everything within each section for maximum efficiency
 c	  
 	do ilistz=1,nlistz
+	  doingEdgeFunc = .true.
 	  izsect=listz(ilistz)
-c	do izsect=minzpc,maxzpc
+c	    
+c	    test if this section is wanted in output: if not, skip in test mode
+c	    
+	  ifwant=0
+	  do iwant=1,nzwant
+	    if(izwant(iwant).eq.izsect)ifwant=1
+	  enddo
+	  if (ifwant .eq. 0 .and. testMode) go to 92
+
 	  write(*,'(a,i4)')' working on section #',izsect
 	  call flush(6)
 	  multng=multineg(izsect+1-minzpc)
@@ -786,7 +934,7 @@ c
 c		    after each one, check memory list to see if there's any
 c		    pieces with undone lower edge in orthogonal direction
 c
-		  do imem=1,limsec
+		  do imem=1,maxload
 		    ipc=izmemlist(imem)
 		    if(ipc.gt.0)then
 		      jedge=iedgelower(ipc,iyx)
@@ -901,33 +1049,8 @@ c
 	      do joint=1,njoint(ixy)
 		do ied=1,nedonjoint(joint)
 		  iedge=listonjoint(ied,joint)
-		  if (needbyteswap.eq.0)then
-		    read(iunedge(ixy),rec=1+iedge)
-     &			nxgr,nygr,ixgrdstbf(ied),ixofsbf(ied)
-     &			,iygrdstbf(ied),iyofsbf(ied)
-     &			,((dxgrbf(ix,iy,ied),dygrbf(ix,iy,ied)
-     &			,ddengrbf(ix,iy,ied),ix=1,nxgr),iy=1,nygr)
-		  else
-		    read(iunedge(ixy),rec=1+iedge)nxgr,nygr
-		    call convert_longs(nxgr,1)
-		    call convert_longs(nygr,1)
-		    read(iunedge(ixy),rec=1+iedge)
-     &			idum1,idum2,ixgrdstbf(ied),ixofsbf(ied)
-     &			,iygrdstbf(ied),iyofsbf(ied)
-     &			,((dxgrbf(ix,iy,ied),dygrbf(ix,iy,ied)
-     &			,ddengrbf(ix,iy,ied),ix=1,nxgr),iy=1,nygr)
-		    call convert_longs(ixgrdstbf(ied),1)
-		    call convert_longs(ixofsbf(ied),1)
-		    call convert_longs(iygrdstbf(ied),1)
-		    call convert_longs(iyofsbf(ied),1)
-		    do iy=1,nygr
-		      call convert_floats(dxgrbf(1,iy,ied),nxgr)
-		      call convert_floats(dygrbf(1,iy,ied),nxgr)
-		      call convert_floats(ddengrbf(1,iy,ied),nxgr)
-		    enddo
-		  endif
-		  nxgrbf(ied)=nxgr
-		  nygrbf(ied)=nygr
+		  call readEdgeFunc(iedge, ixy, ied)
+
 		  ipclo=ipiecelower(iedge,ixy)
 		  ixpclo(ied)=ixgrdstbf(ied) +ixpclist(ipclo)
 		  iypclo(ied)=iygrdstbf(ied) +iypclist(ipclo)
@@ -1060,12 +1183,8 @@ c
 	    lasedguse(i)=0
 	  enddo 
 c	    
-c	    test if this section is wanted in output: if not, skip out
+c	    if this section is not wanted in output, skip out
 c	    
-	  ifwant=0
-	  do iwant=1,nzwant
-	    if(izwant(iwant).eq.izsect)ifwant=1
-	  enddo
 	  if(ifwant.eq.0)go to 92
 c	    
 c	    scan through all edges in this section to determine limits for when
@@ -1151,9 +1270,9 @@ c		      correlation, so here is this option.  Compute the
 c		      correlations unless doing this by edges only,
 c		      if they aren't already available
 c		      
-		    call shuffler(ipiecelower(iedge,ixy),indlow)
+		    call shuffler(ipiecelower(iedge,ixy),indlo)
 		    call shuffler(ipieceupper(iedge,ixy),indup)
-		    call xcorredge(array(indlow),array(indup),
+		    call xcorredge(array(indlo),array(indup),
      &			nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy)
 		    edgedispx(iedge,ixy)=xdisp
 		    edgedispy(iedge,ixy)=ydisp
@@ -1197,7 +1316,10 @@ c
      &		' edges, mean, max error before:', beforemean,beforemax,
      &		', after from ', edgexcorrtext(indbest),
      &		aftermean(indbest),aftermax(indbest)
-		
+	    if (testMode)write(*,'(a,i4,a,2f8.3,a,2f8.3)')' section:',
+     &		izsect,'  gradient:',dmagPerUm(min(ilistz, numMagGrad)),
+     &		rotPerUm(min(ilistz, numMagGrad)),
+     &		'  mean, max error:', aftermean(indbest),aftermax(indbest)
 	  endif
 c		
 c	    if doing g transforms, get inverse and recenter it from center
@@ -1216,6 +1338,13 @@ c
 	    hit(2,3)=hit(2,3)+(1.-hit(2,2))*gycen-hit(2,1)*gxcen
 	    call xfinvert(hit,ginv)
 	  endif
+c	    
+c	    Adjust flag for shuffler to know whether to undistort, and clear
+c	    out the undistorted pieces in memory
+c
+	  doingEdgeFunc = .false.
+	  if (doFields) call clearShuffle()
+	  if (testMode) go to 92
 c	    
 c	    if floating, need to get current input min and max
 c	    To pad edges properly, need current mean: put it into dmean
@@ -1262,7 +1391,7 @@ c
 	    do ishort=1,nshort
 	      call crossvalue(xinlong,ishort,ilong,ixfrm,iyfrm)
 	      if(mappiece(ixfrm,iyfrm).gt.0)then
-		do i=1,limsec
+		do i=1,maxload
 		  if(izmemlist(i).eq.mappiece(ixfrm,iyfrm))then
 		    lastused(i)=newuse
 		    newuse=newuse-1
@@ -1363,7 +1492,7 @@ c
 		    call fastinterp(brray,nxout,nlinesout,
      &			array(indbray),nxin,nyin,indxlo,indxhi,indylo,
      &			indyhi,newpcxll,fastf,fastf(1,3),
-     &			fastf(2,3),dmean)
+     &			fastf(2,3),inonepiece)
 		    anypixels=.true.
 c		      
 		  elseif(inframe)then
@@ -1636,7 +1765,7 @@ c
 			  call shuffler(inpiece(indpidef),indbray)
 			  pixval=oneintrp(array(indbray),nxin,nyin,
      &			      xinpiece(indpidef),yinpiece(indpidef),
-     &			      dmean)
+     &			      inpiece(indpidef))
 c			    
 c			    ONE EDGE, TWO PIECES
 c			    
@@ -1737,17 +1866,17 @@ c
 			    call shuffler(ipiece1,indbray1)
 			    call shuffler(ipiece2,indbray2)
 			    pixval=w1*oneintrp(array(indbray1),nxin,
-     &				nyin, x1,y1,dmean) +
+     &				nyin, x1,y1,ipiece1) +
      &				w2*oneintrp(array(indbray2),nxin,
-     &				nyin, x2,y2,dmean)
+     &				nyin, x2,y2,ipiece2)
 			  elseif(w1.gt.w2)then
 			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x1,y1,dmean) + w2*dden
+     &				x1,y1,ipiece1) + w2*dden
 			  else
 			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x2,y2,dmean) - w1*dden
+     &				x2,y2,ipiece2) - w1*dden
 			  endif
 c			    
 c			    THREE PIECES AND TWO EDGES
@@ -1856,35 +1985,27 @@ c
 c				
 c				divergent case
 c				
-			      call dxydgrinterp(x1,y1,ind12edg,x2,y2
-     &				  ,dden12)
-			      call dxydgrinterp(x1,y1,ind13edg,x3,y3
-     &				  ,dden13)
+			      call dxydgrinterp(x1,y1,ind12edg,x2,y2,dden12)
+			      call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
 			    elseif(icortyp.eq.2)then
 c				
 c				convergent case
 c				
-			      call dxydgrinterp(x1,y1,ind13edg,x3,y3
-     &				  ,dden13)
+			      call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
 c				
 			      if(iter.eq.1)then
-				x2=x3+ixgrdstbf(ind23edg)
-     &				    -ixofsbf(ind23edg)
-				y2=y3+iygrdstbf(ind23edg)
-     &				    -iyofsbf(ind23edg)
+				x2=x3+ixgrdstbf(ind23edg) -ixofsbf(ind23edg)
+				y2=y3+iygrdstbf(ind23edg) -iyofsbf(ind23edg)
 			      endif
-			      call dxydgrinterp(x2,y2,ind23edg,x3t,y3t
-     &				  ,dden23)
+			      call dxydgrinterp(x2,y2,ind23edg,x3t,y3t,dden23)
 			      x2=x2+x3-x3t
 			      y2=y2+y3-y3t
 			    else
 c				
 c				serial case
 c				
-			      call dxydgrinterp(x1,y1,ind12edg,x2,y2
-     &				  ,dden12)
-			      call dxydgrinterp(x2,y2,ind23edg,x3,y3
-     &				  ,dden23)
+			      call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
+			      call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
 			    endif
 c			      
 c			      solve equations for new coordinates
@@ -1918,15 +2039,15 @@ c
 			  if(w1.eq.wmax)then
 			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x1,y1,dmean)
+     &				x1,y1,ipiece1)
 			  elseif(w2.eq.wmax)then
 			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x2,y2,dmean)
+     &				x2,y2,ipiece2)
 			  else
 			    call shuffler(ipiece3,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x3,y3,dmean)
+     &				x3,y3,ipiece3)
 			  endif
 c			    
 c			    Adjust for differences in mean density: divergent
@@ -2073,28 +2194,22 @@ c
 			  iter=1
 			  do while(iter.le.niter.and.(abs(x1-x1last)
      &			      .gt.0.01 .or.abs(y1-y1last).gt.0.01))
-			    call dxydgrinterp(x1,y1,ind12edg,x2,y2
-     &				,dden12)
-			    call dxydgrinterp(x2,y2,ind23edg,x3,y3
-     &				,dden23)
+			    call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
+			    call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
 			    if(icortyp.eq.1)then
 c				
 c				divergent case
 c				
-			      call dxydgrinterp(x1,y1,ind14edg,x4,y4
-     &				  ,dden14)
+			      call dxydgrinterp(x1,y1,ind14edg,x4,y4 ,dden14)
 			    else
 c				
 c				convergent case
 c				
 			      if(iter.eq.1)then
-				x4=x3+ixgrdstbf(ind43edg)
-     &				    -ixofsbf(ind43edg)
-				y4=y3+iygrdstbf(ind43edg)
-     &				    -iyofsbf(ind43edg)
+				x4=x3+ixgrdstbf(ind43edg) -ixofsbf(ind43edg)
+				y4=y3+iygrdstbf(ind43edg) -iyofsbf(ind43edg)
 			      endif
-			      call dxydgrinterp(x4,y4,ind43edg,x3t,y3t
-     &				  ,dden43)
+			      call dxydgrinterp(x4,y4,ind43edg,x3t,y3t ,dden43)
 			      x4=x4+x3-x3t
 			      y4=y4+y3-y3t
 			    endif
@@ -2135,7 +2250,7 @@ c
 			  if(w1.eq.wmax)then
 			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x1,y1,dmean)
+     &				x1,y1,ipiece1)
 			    if(icortyp.eq.1)then
 			      pixval=pixval+(w2+w3)*dden12+w3*dden23+w4*dden14
 			    else
@@ -2145,18 +2260,17 @@ c
 			  elseif(w2.eq.wmax)then
 			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x2,y2,dmean)
+     &				x2,y2,ipiece2)
 			    if(icortyp.eq.1)then
 			      pixval=pixval+(w2+w3-1.)*dden12+w3*dden23+
      &				  w4*dden14
 			    else
-			      pixval=pixval-w1*dden12+(w3+w4)*dden23
-     &				  -w4*dden43
+			      pixval=pixval-w1*dden12+(w3+w4)*dden23-w4*dden43
 			    endif
 			  elseif(w3.eq.wmax)then
 			    call shuffler(ipiece3,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x3,y3,dmean)
+     &				x3,y3,ipiece3)
 			    if(icortyp.eq.1)then
 			      pixval=pixval+(w2+w3-1.)*dden12+(w3-1.)*dden23+
      &				  w4*dden14
@@ -2167,7 +2281,7 @@ c
 			  else
 			    call shuffler(ipiece4,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
-     &				x4,y4,dmean)
+     &				x4,y4,ipiece4)
 			    if(icortyp.eq.1)then
 			      pixval=pixval+(w2+w3)*dden12+w3*dden23
      &				  +(w4-1.)*dden14
@@ -2252,9 +2366,9 @@ c
 c	  write edge correlations if they were not read in and if they were
 c	  computed in their entirety
 c
-	if(.not.xcreadin.and.((ifsloppy.eq.1.and.shifteach).or.
-     &	    (ifsloppy.eq.0.and.shifteach.and..not.fromedge)))then
-	  edgenam=concat(filnam,xcorrext)
+	if(.not.testMode.and..not.xcreadin.and.((ifsloppy.eq.1.and.shifteach)
+     &	    .or. (ifsloppy.eq.0.and.shifteach.and..not.fromedge)))then
+	  edgenam=concat(rootname,xcorrext)
 	  call dopen(4,edgenam,'new','f')
 	  write(4,'(2i7)')nedge(1),nedge(2)
 	  write(4,'(f8.3,f9.3)')((edgedispx(i,ixy),edgedispy(i,ixy),
