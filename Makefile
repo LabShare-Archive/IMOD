@@ -273,6 +273,7 @@ dist : ALWAYS
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp -r dist/* $(ARCDIR)/
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
+	./installqtlib
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 
@@ -284,6 +285,7 @@ cygdist : ALWAYS
 	($(MAKE) cyginstall)
 	\cp -r dist/* $(ARCDIR)/
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
+	./installqtlib
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 
@@ -330,7 +332,7 @@ csrc : ALWAYS
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
-	html/*.* html/Makefile \
+	html/*.* html/Makefile html/3dmodimages \
 	dist scripts com manpages \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
@@ -353,6 +355,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.12  2003/04/29 05:25:15  mast
+#  Make src depend on configure so a fresh checkout will work for make src
+#
 #  Revision 3.11  2003/04/17 19:29:19  mast
 #  Mac has no .so, ignore error in dist
 #
