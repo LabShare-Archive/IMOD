@@ -54,6 +54,7 @@ Log at end of file
 #include "imod_input.h"
 #include "imod_client_message.h"
 #include "imodplug.h"
+#include "imod_workprocs.h"
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
@@ -216,6 +217,7 @@ bool ImodClipboard::executeMessage()
   int succeeded = 1;
   int oldBlack, oldWhite;
   QString convName;
+  int movieVal, xaxis, yaxis, zaxis, taxis;
 
   if (Imod_debug)
     wprint("Executing message\n");
@@ -311,10 +313,21 @@ bool ImodClipboard::executeMessage()
       break;
 
     case MESSAGE_MODEL_MODE:
-      if (message_string && !atoi(message_string))
-        imod_set_mmode(IMOD_MMOVIE);
-      else
+      movieVal = 1;
+      if (message_string)
+        movieVal = atoi(message_string);
+      if (movieVal > 0)
         imod_set_mmode(IMOD_MMODEL);
+      else {
+        imod_set_mmode(IMOD_MMOVIE);
+        if (movieVal < 0) {
+          xaxis = (-movieVal) & 1 ? 1 : 0;
+          yaxis = (-movieVal) & 2 ? 1 : 0;
+          zaxis = (-movieVal) & 4 ? 1 : 0;
+          taxis = (-movieVal) & 8 ? 1 : 0;
+          imodMovieXYZT(App->cvi, xaxis, yaxis, zaxis, taxis);
+        }
+      }
       break;
 
     case MESSAGE_OPEN_BEADFIXER:
@@ -375,6 +388,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.10  2003/11/12 18:48:37  mast
+Added ability to process messages in imodv
+
 Revision 4.9  2003/10/02 01:30:09  mast
 Added message to open bead fixer
 
