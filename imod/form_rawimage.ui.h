@@ -35,7 +35,11 @@ void RawImageForm::load(QString fileName, RawImageInfo *info )
 // Unload the form into the structure
 void RawImageForm::unload( RawImageInfo *info )
 {
-    info->type = dataTypeGroup->selectedId();
+    int ind = -1;
+    if (dataTypeGroup->selected())
+        ind = dataTypeGroup->id(dataTypeGroup->selected());
+    if (ind >= 0)
+        info->type = ind;
     info->nx = xSizeSpinBox->value();
     info->ny = ySizeSpinBox->value();
     info->nz = zSizeSpinBox->value();
@@ -50,7 +54,11 @@ void RawImageForm::unload( RawImageInfo *info )
 // Manage scale and swap options based on type and scan check box
 void RawImageForm::manageState()
 {
-    int which = dataTypeGroup->selectedId();
+    int which = -1;
+    if (dataTypeGroup->selected())
+        which = dataTypeGroup->id(dataTypeGroup->selected());
+    if (which < 0)
+        return;
     bool enab = which !=4 && !scanCheckBox->isChecked();
     swapCheckBox->setEnabled(which && which != 4);
     scanCheckBox->setEnabled(which != 4);

@@ -9,6 +9,7 @@ CXXFLAGS = $(LIBCFLAGS) -DEXPORT_FOR_DLL
 
 OBJS     = arrowbutton.$(O) dialog_frame.$(O) multislider.$(O) \
  colorselector.$(O) floatspinbox.$(O) dia_qtutils.$(O) tooledit.$(O) \
+ imod_assistant.$(O) moc_imod_assistant.$(O) \
  moc_arrowbutton.$(O) moc_dialog_frame.$(O) moc_multislider.$(O) \
  moc_colorselector.$(O) moc_tooledit.$(O) moc_floatspinbox.$(O) 
 
@@ -39,6 +40,9 @@ moc_tooledit.cpp : $(INCDIR)/tooledit.h
 moc_floatspinbox.cpp : $(INCDIR)/floatspinbox.h
 	$(MOC) $(INCDIR)/floatspinbox.h -o moc_floatspinbox.cpp
 
+moc_imod_assistant.cpp : $(INCDIR)/imod_assistant.h
+	$(MOC) $(INCDIR)/imod_assistant.h -o moc_imod_assistant.cpp
+
 
 install : $(LIBD)
 	$(CP) $(LIBD) $(INSTLIBDIR)
@@ -61,3 +65,4 @@ colorselector.$(O) : $(INCDIR)/colorselector.h $(INCDIR)/dialog_frame.h
 dia_qtutils.$(O) : $(INCDIR)/dia_qtutils.h
 tooledit.$(O) : $(INCDIR)/tooledit.h
 floatspinbox.$(O) : $(INCDIR)/floatspinbox.h
+imod_assistant.$(O) : $(INCDIR)/imod_assistant.h
