@@ -74,12 +74,9 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 # Fork does not work
 # Clipboard works WITHOUT the timer hack and not with it
 # GLU quadric objects seem to be context specific
-# And Qt 3.2.1 has bad problem when resizing zap to fit
 #
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define GLU_QUADRIC_HACK' >> $hconfigure
-echo '#define ZAP_RESIZETOFIT_HACK' >> $hconfigure
-
 
 set optimization = "-O3 -w"
 if ($debug == true) set optimization = "-g -O0"
