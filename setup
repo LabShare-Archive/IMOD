@@ -38,6 +38,7 @@ set flags           =
 set fallback        = 
 set swap_ieee       = true
 set no_xlibs        = false
+set distname        = ""
 
 set inst_dir        = default
 set tifflibs        = default
@@ -145,6 +146,11 @@ while($#argv > 0)
 
                 case -no_xlibs:
                         set no_xlibs = true
+                        breaksw
+                 
+                case -name:
+                        shift
+                        set distname = _$argv[1]
                         breaksw
 
 		case -h:
@@ -683,6 +689,10 @@ foreach i ($makefile_dirs)
     cat $i/Makefile.$makefile_ext >> $i/Makefile
 end
 
+# Take care of .distname file
+#
+echo $distname >! .distname
+
 # Test for javac and set up makefile for etomo
 #
 set javacexe = `which javac`
@@ -718,10 +728,11 @@ usage:
 echo "setup [options]"
 echo "Options are: -help,-h     Print this message."
 echo "             -debug,-d    Set up with debug flags."
-echo "             -machine,-m  Set target machine to one of: (irix5 | irix6-32 |" 
-echo "                          (irix6-n32 | solaris | rhlinux | alphalinux) "
+echo "             -machine,-m  Set target machine to one of: (irix6-32 |" 
+echo "                          irix6-n32 | macosx | rhlinux | cygwin) "
 echo "             -inst,-i     Set installation directory for bin and lib."
 echo "                          e.g., /usr/local/IMOD"
+echo "             -name        Set architecture name of dist file"
 echo "             -swapieee    Make Fortran code on SGI swap IEEE floats"
 echo "             -swapvms     Make Fortran code on SGI swap VMS floats"
 echo "             -shared      Make libraries shared"
@@ -729,13 +740,16 @@ echo "             -no_shared   Make libraries non-shared"
 echo "             -tiff        Link with TIFF libraries"
 echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
-echo "             -compiler    Use specified compilers (intel for rhlinux)"
+echo "             -compiler    Use specified compilers (intel or gnu for rhlinux)"
 echo "             -flags       Set flags for compilation"
 exit
 
 
 #
 #  $Log$
+#  Revision 3.36  2004/01/20 04:19:13  mast
+#  Set copyright year for new year
+#
 #  Revision 3.35  2003/12/30 17:38:02  mast
 #  changes for windows DLLs
 #
