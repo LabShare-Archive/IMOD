@@ -23,9 +23,9 @@ set hconfigure    = include/imodconfig.tmp
 set hconffinal    = include/imodconfig.h
 
 set debug           = false
-set bin_dir         = $source_dir/bin/
-set inc_dir         = $source_dir/include/
-set lib_dir         = $source_dir/buildlib/
+set bin_dir         = $source_dir/bin
+set inc_dir         = $source_dir/include
+set lib_dir         = $source_dir/buildlib
 set include_flags   = "-I. -I$inc_dir"
 set optimization    = "-O2"
 set gfx             = default
@@ -85,7 +85,8 @@ set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
 set makenondll      = '$(AR) $(ARFLAGS)'
 set modelallo       = 'model/*.$(OBJEXT)'
-
+set junit_home      = /usr/local/junit
+set class_sep       = ':'
 
 set inargv = ($argv)
 
@@ -685,6 +686,8 @@ echo "STATICRANLIB = $staticranlib" >> $configure
 echo "DLLEXT = $dllext" >> $configure
 echo "MAKENONDLL = $makenondll" >> $configure
 echo "MODELALLO = $modelallo" >> $configure
+echo "JUNIT_HOME = $junit_home" >> $configure
+echo "CLASS_SEPARATOR = $class_sep" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -782,6 +785,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.50  2005/01/17 19:32:22  mast
+#  Cleanup unused architectures
+#
 #  Revision 3.49  2005/01/06 15:54:15  mast
 #  Update copyright
 #
