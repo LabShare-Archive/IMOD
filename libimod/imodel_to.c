@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -653,7 +661,7 @@ static int pRIB_mesh(FILE *fout, Imesh *mesh, double zscale)
 {
      Ipoint cndat;
      Ipoint *cnormal;
-     unsigned long i, lsize;
+     unsigned int i, lsize;
      int first;
      Ipoint norm[3];
      Ipoint vert[3];

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <math.h>
 #include <imodel.h>
@@ -91,7 +99,7 @@ int     imodPointAdd(Icont *cont, Ipoint *pnt, int index)
 int imodel_point_add(Icont *cont, Ipoint *pnt, int index)
 {
   Ipoint ipnt, *tpts;     
-  long size;
+  int size;
   int i;
   float startz;
 

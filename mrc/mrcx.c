@@ -61,6 +61,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7.2.1  2004/07/07 19:26:21  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.7  2004/01/17 20:38:26  mast
 Add define for rewind call
 
@@ -131,7 +134,7 @@ main( int argc, char *argv[])
   int   i;
   int   inplace;
   unsigned char bdata;
-  long int filesize, datasize;
+  int filesize, datasize;
   char *progname = imodProgName(argv[0]);
 
 #ifdef SWAP_IEEE_FLOATS
@@ -367,9 +370,9 @@ void convertBody(void (*convertFunc)(),
        output file*/
 
 {
-  unsigned long lcv;       
+  unsigned int lcv;       
   b3dUByte *scanLine;  /*converted scanline*/
-  long   scans = 0;
+  int   scans = 0;
   b3dUByte  pix;
   int i;
 

@@ -92,21 +92,21 @@
 typedef struct Tiff_header {
      short byteorder;
      short version;
-     long  firstIFDoffset;
+     b3dInt32  firstIFDoffset;
 } Tf_header;
 
 typedef struct Tiff_entry {
      short  tagfield;
      short  ftype;
-     long   length;
-     long   value;
+     b3dInt32   length;
+     b3dInt32   value;
 } Tf_entry;
 
 typedef struct Image_info {
      short func;          /* MAG = 0, MESH = 1, DIFF = 2, SA = 3     */
      short mag;           /* if (MAG) divide by 1000 else just value */
      short tilt;
-     long  date;          /* seconds since Jan 1, 1970 00:00:00 GMT */
+     b3dInt32  date;          /* seconds since Jan 1, 1970 00:00:00 GMT */
      char  comment[128];
      char  extra[128];
 } Im_info;
@@ -115,19 +115,19 @@ typedef struct Tiff_info {
      Tf_header     header;
      short         numentries;
      Tf_entry      directory[TIFFENTRIES];
-     long          nextIFD;
+     b3dInt32          nextIFD;
      Im_info       imageinfo;
      ImodImageFile *iifile;
      FILE          *fp;
      unsigned char *data;
-     long          nstrip;     /* number of strips */
-     long          *stripoff;
-     long          *stripsize;
-     long          width, length;
-     long          rows_per_strip;
-     long          strip_pos;
-     long          strip_byte_counts;
-     long          BitsPerSample;
+     b3dInt32          nstrip;     /* number of strips */
+     b3dInt32          *stripoff;
+     b3dInt32          *stripsize;
+     b3dInt32          width, length;
+     b3dInt32          rows_per_strip;
+     b3dInt32          strip_pos;
+     b3dInt32          strip_byte_counts;
+     b3dInt32          BitsPerSample;
      int           PhotometricInterpretation;
      int           mode;
 } Tf_info;
@@ -153,7 +153,7 @@ int read_barf_tiff(FILE *tif_fp, unsigned char *pixels);
 int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 		     unsigned char *pixels);
 void tiff_write_entry(short tag, short type,
-		      long length, long offset, FILE *fout);
+		      b3dInt32 length, b3dInt32 offset, FILE *fout);
 
 #endif /* !__TIFF_H__ */
 

@@ -33,6 +33,14 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5.6.1  2004/09/10 19:27:52  mast
+Eliminate long variables
+
+Revision 3.5  2003/08/26 03:47:57  mast
+Added ability to cap ends of tubes, made a function to add a cap mesh, made
+the number of segments in a tube mesh be variable, and
+renamed jcont and mkcont to indicate they are specific to tubes.
+
 Revision 3.4  2003/02/27 16:57:57  mast
 change to b3dX,Y,Z
 
@@ -278,7 +286,7 @@ static float segment_separation(float l1, float u1, float l2, float u2)
 
 /* connect open contours like a surface. */
 static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
-			 unsigned long flags,
+			 unsigned int flags,
 			 int zmin, int zmax, int *contz, int *zlist, 
 			 int zlsize, int *numatz, int **contatz, Ipoint *pmin, 
 			 Ipoint *pmax)

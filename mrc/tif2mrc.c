@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /* tif2mrc [-b file] [tiff files] [mrcfile] */
 
@@ -66,7 +74,7 @@ int main( int argc, char *argv[])
   int makegray = FALSE;
   int unsign = FALSE;
   int divide = FALSE;
-  long xsize = XSIZE, ysize = YSIZE;
+  int xsize = XSIZE, ysize = YSIZE;
   int mrcxsize, mrcysize, mrcsizeset;
   int bpix;
   float mean, tmean;

@@ -53,10 +53,10 @@ static short read_short(FILE *fin)
 #endif
 }
 
-static long read_long(FILE *fin)
+static int read_long(FILE *fin)
 {
      unsigned char buf[4];
-     long ldat;
+     int ldat;
 
      fread(buf,4,1,fin);
 #ifdef __vms
@@ -141,8 +141,8 @@ HvemContour *hvem3D_read_contour(FILE *fin, int index)
 {
      HvemContour *cont;
      char   type,nrec;
-     long strtrec, inc;
-     long addr, nrecs;
+     int strtrec, inc;
+     int addr, nrecs;
      short  pln, objindex, npts;
      float  area, perim;
      int    n,x,i,j;

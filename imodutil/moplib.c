@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <math.h>
@@ -69,7 +77,7 @@ int modpaint(FILE *mfin, FILE *gfin, FILE *gfout,
   float *fidata = NULL;
 
   int psize;
-  long xypsize, xysize;
+  int xypsize, xysize;
   struct Mod_Point maxpt, minpt;
   struct MRCheader hdout;
 
@@ -200,7 +208,7 @@ int clearz(void *pdata, struct MRCheader *hdata)
   unsigned char *cdata;
   short *sdata;
   float *fdata;
-  long xysize;
+  int xysize;
 
   xysize = hdata->nx * hdata->ny;
   switch (hdata->mode)
@@ -339,7 +347,7 @@ void *mrc_readz(FILE *fin, struct MRCheader *hdata, int z)
   unsigned char *cdata;
   b3dInt16 *sdata;
   b3dInt32 *fdata;
-  long xysize;
+  int xysize;
      
   /* DNM 1/17/04: remove rewind, seek to headerSize not 1024 */
   b3dFseek(fin, hdata->headerSize, SEEK_SET);

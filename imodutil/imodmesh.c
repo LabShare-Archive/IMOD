@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.4.1  2004/07/07 19:26:21  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.4  2003/10/26 14:46:41  mast
 fixed problem in eliminating getopt
 
@@ -143,7 +146,7 @@ void main(int argc, char **argv)
   int norm  = TRUE;
   int times = TRUE;
   int capTubes = FALSE;
-  unsigned long flags = 0;
+  unsigned int flags = 0;
   double overlap = 0.0;
   int reduce = -1;
   double tol = -1.;

@@ -72,7 +72,7 @@ Log at end of file
 /*#define IMODEL_FILES_DEBUG   */
 
 static int imodel_read_v01(struct Mod_Model *mod, FILE *fin);
-static int imodel_read(Imod *imod, long version);
+static int imodel_read(Imod *imod, int version);
 static int imodel_write(struct Mod_Model *mod, FILE *fout);
 static int imodel_write_object(Iobj *obj, FILE *fout, Ipoint *scale);
 static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale);
@@ -139,7 +139,7 @@ int imodReadFile(Imod *imod)
 {
   FILE *fp;
   int error = 0;
-  long id;
+  int id;
 
   if (!imod)
     return(-1);
@@ -239,7 +239,7 @@ int imodWrite(Imod *imod, FILE *fout)
 static int imodel_write(struct Mod_Model *mod, FILE *fout)
 {
   int i, error;
-  unsigned long id;
+  unsigned int id;
   int count;
   Ipoint scale;
 
@@ -267,7 +267,7 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
   imodPutInts  (fout, &mod->cindex.object, 5);
   imodPutFloat (fout, &mod->pixsize);
   imodPutInt   (fout, &mod->units);
-  imodPutInt  (fout, (unsigned long *)&mod->csum);
+  imodPutInt  (fout, (unsigned int *)&mod->csum);
   imodPutFloats(fout, &mod->alpha, 3);
      
   for(i = 0; i < mod->objsize; i++)
@@ -291,7 +291,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
                                Ipoint *scale)
 {
   int i, error;
-  long id;
+  int id;
 
   id = ID_OBJT;
   imodPutInt(fout, &id);
@@ -356,7 +356,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
 
 static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
 {
-  long id;
+  int id;
      
   id = ID_CONT;
   imodPutInt(fout, &id);
@@ -388,7 +388,7 @@ static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
 
 static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
 {
-  long id = ID_MESH;
+  int id = ID_MESH;
   short temp = mesh->type;
   int i;
 
@@ -418,7 +418,7 @@ static int imodel_read_v01(struct Mod_Model *mod, FILE *fin)
 {
 
   int i;
-  long id;
+  int id;
      
   rewind(fin);
   id = imodGetInt(fin);
@@ -444,7 +444,7 @@ static int imodel_read_v01(struct Mod_Model *mod, FILE *fin)
   return(0);
 }
      
-static int imodel_read(Imod *imod, long version)
+static int imodel_read(Imod *imod, int version)
 {
   FILE  *fin;
   Iobj  *obj;
@@ -452,7 +452,7 @@ static int imodel_read(Imod *imod, long version)
   Imesh *mesh = NULL;
   int error;
   int ieof = FALSE;
-  long id;
+  int id;
 
   if (version == IMOD_01){
     error = imodel_read_v01(imod, imod->file);
@@ -665,7 +665,7 @@ static int imodel_read_header(Imod *imod, FILE *fin)
 static int imodel_read_object(Iobj *obj, FILE *fin)
 {
   imodGetBytes(fin, (unsigned char *)obj->name, IOBJ_STRSIZE);
-  imodGetInts(fin, (unsigned long *)obj->extra, IOBJ_EXSIZE);
+  imodGetInts(fin, (unsigned int *)obj->extra, IOBJ_EXSIZE);
   obj->contsize   = imodGetInt(fin);
   obj->flags      = imodGetInt(fin);
   obj->axis       = imodGetInt(fin);
@@ -697,7 +697,7 @@ static int imodel_read_object(Iobj *obj, FILE *fin)
 static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin)
 {
   int i, error,tmp;
-  long id;
+  int id;
 
   while(1){
     /* allow for extra chunks after model data */
@@ -757,7 +757,7 @@ static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin)
 static int imodel_read_contour_v01( struct Mod_Contour *cont, FILE *fin)
 {
   int i;
-  long id;
+  int id;
 
   while(1){
     /* allow for extra chunks after object data */
@@ -905,7 +905,7 @@ static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
 
 static int imodel_read_clip(Iobj *obj, FILE *fin)
 {
-  unsigned long size;
+  unsigned int size;
   int error = 0;
 
   size = imodGetInt(fin);
@@ -1526,6 +1526,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.12  2004/01/05 18:30:26  mast
+  Removed print statement about scaling
+
   Revision 3.11  2004/01/05 17:28:09  mast
   Added "unbinning" of model on output to undo scaling by 3dmod on input
 

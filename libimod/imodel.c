@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/04/27 21:44:47  mast
+Eliminated rotation angle fo first view from checksum
+
 Revision 3.9  2004/01/05 17:27:17  mast
 Added initialization of xybin and zbin
 
@@ -847,8 +850,6 @@ int NewPoint(struct Mod_Model *mod, struct Mod_Point *pt)
 int imodNewPoint(Imod *imod, Ipoint *pt)
 {
   struct Mod_Contour *cont;
-  struct Mod_Point *tpts;
-  long size;
 
   cont = imodContourGet(imod);
   if (!cont) return(0);

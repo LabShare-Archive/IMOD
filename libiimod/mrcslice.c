@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -1405,9 +1413,9 @@ int sliceMultConst(Islice *slice, Ival c)
 int sliceAddConst(Islice *slice, Ival c)
 {
      Ival val;
-     unsigned long i, j;
-     unsigned long xsize = slice->xsize;
-     unsigned long ysize = slice->ysize;
+     unsigned int i, j;
+     unsigned int xsize = slice->xsize;
+     unsigned int ysize = slice->ysize;
 
      if (slice->csize == 1 ){
 	  for (j = 0; j < ysize; j++){

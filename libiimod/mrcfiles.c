@@ -66,8 +66,8 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 {
   int i;
   int retval = 0;
-  long filesize;
-  long datasize;
+  int filesize;
+  int datasize;
 
   if (!fin)
     return(-1);
@@ -540,7 +540,7 @@ int mrc_write_byte(FILE *fout, struct MRCheader *hdata, unsigned char **data)
 mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
 {
   int i,j=0,k;
-  long  xysize;
+  int  xysize;
   unsigned char **bdata;
   short         **sdata;
   float         **fdata;
@@ -959,7 +959,7 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
   unsigned char *cdata;
   short *sdata;
   float *fdata;
-  long xysize;
+  int xysize;
      
   rewind(fin);
   if (hdata->headerSize < 1024) hdata->headerSize = 1024;
@@ -1193,9 +1193,9 @@ unsigned char **mrc_read_byte(FILE *fin,
   int  i, j, k;
   unsigned int ui;
   int  pindex;
-  unsigned long xysize;               /* Size of each image.       */
-  long xsize, ysize, zsize;  /* Size needed to be loaded. */
-  long xoff,  yoff,  zoff;   /* Offsets into image data.  */
+  unsigned int xysize;               /* Size of each image.       */
+  int xsize, ysize, zsize;  /* Size needed to be loaded. */
+  int xoff,  yoff,  zoff;   /* Offsets into image data.  */
   float conscale = 1.0f;
   float fpixel, ipixel, val;
   float kscale = mrcGetComplexScale();  /* scaling value for complex numbers */
@@ -2081,6 +2081,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.17  2004/04/22 19:14:19  mast
+Added error checks when writing header
+
 Revision 3.16  2004/01/21 00:56:57  mast
 Stopped freeing map from byte_map
 

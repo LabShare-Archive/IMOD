@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 02:28:42  mast
+    strip directory from program name and/or use routine to make backup file
+
     Revision 3.1  2003/02/27 20:14:38  mast
     set default upper right values to -1
 
@@ -50,9 +53,9 @@
 #define YVIEW 480
 
 struct Image_data {
-  long width;
-  long length;
-  long offset;
+  b3dInt32 width;
+  b3dInt32 length;
+  b3dInt32 offset;
 };
 
 unsigned char *tiff_read_file(FILE *fp, Tf_info *tiff);
@@ -101,11 +104,11 @@ int isit_tiff(FILE *fp)
 
 
 void tiff_write_entry(short tag, short type,
-                      long length, long offset, FILE *fout)
+                      b3dInt32 length, b3dInt32 offset, FILE *fout)
 {
   fwrite(&tag, sizeof(short), 1, fout);
   fwrite(&type, sizeof(short), 1, fout);
-  fwrite(&length, sizeof(long), 1, fout);
+  fwrite(&length, sizeof(b3dInt32), 1, fout);
 
   /* Looks like little endian has its advantages. */
   if ( M_BYTEORDER ==  BIGENDIAN){
@@ -119,7 +122,7 @@ void tiff_write_entry(short tag, short type,
         break;
       }
   }
-  fwrite(&offset, sizeof(long), 1, fout);
+  fwrite(&offset, sizeof(b3dInt32), 1, fout);
   return;
 }
 
@@ -144,8 +147,8 @@ unsigned char *tiff_read_mrc(FILE *fp, struct MRCheader *hdata)
 
 unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
 {
-  long    tiff_size;
-  long    data_size;
+  b3dInt32    tiff_size;
+  b3dInt32    data_size;
   struct  Image_data image;
   int dpos = 0;
   int i;
@@ -273,8 +276,8 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
 unsigned char *tiff_read_file(FILE *fp, Tf_info *tiff)
 {
 
-  long    tiff_size;
-  long    data_size;
+  b3dInt32    tiff_size;
+  b3dInt32    data_size;
   struct  Image_data image;
   int dpos = 0;
   int i;
@@ -461,8 +464,8 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
   unsigned short tag;
   /* DNM 8/9/01: make these unsigned per H.M. Kvasnicka */
   unsigned short type;
-  unsigned long  len;
-  unsigned long  value;
+  b3dUInt32  len;
+  b3dUInt32  value;
   int   pos;
 
   unsigned char numfields = 0;
@@ -721,7 +724,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
   }
 
 
-  tiff->stripoff = (long *)malloc(sizeof(long) * tiff->nstrip);
+  tiff->stripoff = (b3dInt32 *)malloc(sizeof(b3dInt32) * tiff->nstrip);
   if (tiff->nstrip == 1)
     tiff->stripoff[0] = tiff->strip_pos;
   else{
@@ -733,7 +736,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
     }
   }
 
-  tiff->stripsize = (long *)malloc(sizeof(long)* tiff->nstrip);
+  tiff->stripsize = (b3dInt32 *)malloc(sizeof(b3dInt32)* tiff->nstrip);
   if (tiff->nstrip == 1){
     tiff->stripsize[0] = tiff->strip_byte_counts;
   }
@@ -798,8 +801,8 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 {
   int pad;
   short tenum;
-  unsigned long int pixel, ifd;
-  unsigned long int dataSize, pixSize;
+  b3dUInt32 pixel, ifd;
+  b3dUInt32 dataSize, pixSize;
   int xysize = xsize * ysize;
   int y;
 

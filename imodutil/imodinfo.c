@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5.4.1  2004/07/07 19:26:21  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.5  2003/10/26 14:46:41  mast
 fixed problem in eliminating getopt
 
@@ -70,19 +73,19 @@ fixed exit status
 #define MINFO_POINTS   9
 #define MINFO_RATIOS   10
 
-static double info_contour_length(Icont *cont, long objflags,
+static double info_contour_length(Icont *cont, int objflags,
                                   double pixsize, double zscale);
-static double info_contour_surface_area(Icont *cont, long objflags,
+static double info_contour_surface_area(Icont *cont, int objflags,
                                         double pixsize, double zscale);
-static double info_contour_area(Icont *cont, long objflags,
+static double info_contour_area(Icont *cont, int objflags,
                                 double pixsize, double zscale);
-static double info_contour_vol(Icont *cont, long objflags,
+static double info_contour_vol(Icont *cont, int objflags,
                                double pixsize, double zscale);
 static void imodinfo_surface(Imod *imod);
 static void imodinfo_points(Imod *imod, int subarea, Ipoint ptmin,
                             Ipoint ptmax, int useclip, int verbose);
 static void imodinfo_ratios(Imod *imod);
-static int contour_stats(Icont *cont, long flags, double pixsize, 
+static int contour_stats(Icont *cont, int flags, double pixsize, 
                          double zscale);
 static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes);
 
@@ -564,8 +567,8 @@ static void imodinfo_surface(Imod *imod)
   float tvol, tsa;
   double *sa = NULL;
   double *vol = NULL;
-  unsigned long *nofc = NULL;
-  unsigned long maxsurf;
+  unsigned int *nofc = NULL;
+  unsigned int maxsurf;
 
 
   for (ob = 0; ob < imod->objsize; ob++){
@@ -585,8 +588,8 @@ static void imodinfo_surface(Imod *imod)
       free(sa);
       return;
     }
-    nofc = (unsigned long *)malloc((obj->surfsize + 1) 
-                                   * sizeof(unsigned long));
+    nofc = (unsigned int *)malloc((obj->surfsize + 1) 
+                                   * sizeof(unsigned int));
     if (!nofc){
       free(vol);
       free(sa);
@@ -1300,7 +1303,7 @@ static void imodinfo_interactive(Imod *imod)
 }
 
 
-static int contour_stats(Icont *cont, long flags, double pixsize, 
+static int contour_stats(Icont *cont, int flags, double pixsize, 
                          double zscale)
 {
   float area, cdist, odist;
@@ -1317,9 +1320,9 @@ static int contour_stats(Icont *cont, long flags, double pixsize,
     return 0;
   }
 
-  odist = info_contour_length(cont, (long)(flags | IMOD_OBJFLAG_OPEN),
+  odist = info_contour_length(cont, (int)(flags | IMOD_OBJFLAG_OPEN),
                               pixsize, zscale);
-  cdist = info_contour_length(cont, (long)(flags & ~IMOD_OBJFLAG_OPEN),
+  cdist = info_contour_length(cont, (int)(flags & ~IMOD_OBJFLAG_OPEN),
                               pixsize, zscale);
   fprintf(fout, "\t\tClosed/Open length = %g / %g\n", cdist, odist);
 
@@ -1417,7 +1420,7 @@ static double pointdist(Ipoint *p1, Ipoint *p2)
 }
 
 
-static double info_contour_length(Icont *cont, long objflags,
+static double info_contour_length(Icont *cont, int objflags,
                                   double pixsize, double zscale)
 {
   int pt;
@@ -1454,7 +1457,7 @@ static double info_contour_length(Icont *cont, long objflags,
   return(dist);
 }
 
-static double info_contour_surface_area(Icont *cont, long objflags,
+static double info_contour_surface_area(Icont *cont, int objflags,
                                         double pixsize, double zscale)
 {
   double ld;
@@ -1468,7 +1471,7 @@ static double info_contour_surface_area(Icont *cont, long objflags,
   return(ld * zscale * pixsize);
 }
 
-static double info_contour_area(Icont *cont, long objflags,
+static double info_contour_area(Icont *cont, int objflags,
                                 double pixsize, double zscale)
 {
   int pt;
@@ -1488,7 +1491,7 @@ static double info_contour_area(Icont *cont, long objflags,
   return(area);
 }
 
-static double info_contour_vol(Icont *cont, long objflags,
+static double info_contour_vol(Icont *cont, int objflags,
                                double pixsize, double zscale)
 {
   double vol = 0.0;

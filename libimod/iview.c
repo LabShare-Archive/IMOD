@@ -34,6 +34,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/07/31 21:37:00  mast
+Extracted the transfer of object data to and from an objview to functions
+Added new functions for making the list of object views complete for a
+view, and for deleting and freeing object views
+
 Revision 3.4  2003/06/27 20:14:45  mast
 Implemented new function to set default scaling of a view and added ability
 to pass image size and have it provide fallback scaling when there is no
@@ -157,7 +162,7 @@ void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
 
 int imodViewWrite(Iview *vw, FILE *fout)
 {
-  unsigned long id;
+  unsigned int id;
   int i;
   int nbwrite;
   Iobjview *ov;
@@ -199,7 +204,7 @@ int imodViewWrite(Iview *vw, FILE *fout)
 
 int imodViewModelWrite(Imod *imod)
 {
-  long i, id, bsize;
+  int i, id, bsize;
      
   if (imod->viewsize < 2)
     return -1;
@@ -498,7 +503,7 @@ void imodObjviewsFree(Imod *imod)
 int imodIMNXRead(Imod *imod)
 {
   FILE *fin  = imod->file;
-  long  lbuf = imodGetInt(fin);
+  int  lbuf = imodGetInt(fin);
 
   IrefImage *ref = (IrefImage *)malloc(sizeof(IrefImage));
   imodGetFloats(fin, (float *)ref, 18);
@@ -514,7 +519,7 @@ int imodIMNXRead(Imod *imod)
 
 int imodIMNXWrite(Imod *imod)
 {
-  long id = ID_IMNX;
+  int id = ID_IMNX;
   if (!imod->refImage) return -1;
 
   imodPutInt(imod->file, &id);

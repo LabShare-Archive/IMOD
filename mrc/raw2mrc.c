@@ -34,6 +34,12 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11.2.2  2004/07/08 22:55:03  mast
+Backport to 3.3
+
+Revision 3.13  2004/07/08 22:29:33  mast
+Had to make prewriting of header bytes us 3dFwrite too
+
 Revision 3.12  2004/07/07 19:25:31  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -133,7 +139,7 @@ main( int argc, char *argv[] )
 {
   struct MRCheader hdata;
   int    i, j, k;
-  unsigned long xysize;
+  unsigned int xysize;
   FILE   *fin;
   FILE   *fout;
   int    intype = -1;
@@ -160,7 +166,7 @@ main( int argc, char *argv[] )
   int datasize;
   float  f, pixel;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
-  long start = 0;
+  int start = 0;
   b3dByte *sbdata, sbval;
   b3dUByte *bdata, bval;
   b3dInt16 *sdata, sval;

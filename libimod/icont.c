@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <math.h>
 #include <string.h>
@@ -2641,7 +2649,7 @@ void imodContourSwap(Icont *c1, Icont *c2)
 int imodContourFindPoint(Icont *cont, Ipoint *point, int flag)
 {
   int low, high, index = -1;
-  unsigned long pt,size;
+  unsigned int pt,size;
 
   if (!cont)
     return(index);
