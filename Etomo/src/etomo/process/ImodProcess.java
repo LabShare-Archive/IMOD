@@ -21,6 +21,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2004/06/07 16:58:44  rickg
+ * <p> Bug #452 added debug output for imodsendevent since we have
+ * <p> been having diffuculty with it.
+ * <p>
  * <p> Revision 3.12  2004/05/13 20:11:21  sueh
  * <p> bug# 33 allowing imodSendAndReceive() to receive any type
  * <p> of result data
@@ -186,6 +190,7 @@ public class ImodProcess {
   private File workingDirectory = null;
   private int binning = defaultBinning;
   InteractiveSystemProgram imod = null;
+  private Vector sendArguments = new Vector();
 
   private Thread imodThread;
 
@@ -351,6 +356,15 @@ public class ImodProcess {
   }
 
   /**
+   * Places arguments to open a model on the argument list.
+   * @param newModelName
+   */
+  public void setOpenModelMessage(String newModelName) {
+    modelName = newModelName;
+    sendArguments.add(MESSAGE_OPEN_MODEL);
+    sendArguments.add(newModelName);
+  }
+  /**
    * Open a new model file
    */
   public void openModel(String newModelName) throws SystemProcessException {
@@ -359,6 +373,16 @@ public class ImodProcess {
     args[0] = MESSAGE_OPEN_MODEL;
     args[1] = newModelName;
     imodSendEvent(args);
+  }
+
+  /**
+   * Places arguments to open a model and preserve contrast on the argument
+   * list.
+   * @param newModelName
+   */
+  public void setOpenModelPreserveContrastMessage(String newModelName) {
+    sendArguments.add(MESSAGE_OPEN_KEEP_BW);
+    sendArguments.add(newModelName);
   }
 
   /**
@@ -391,6 +415,14 @@ public class ImodProcess {
     args[0] = MESSAGE_VIEW_MODEL;
     imodSendEvent(args);
   }
+  
+  /**
+   * Places arguments to set model mode on the argument list.
+   */
+  public void setModelModeMessage() {
+    sendArguments.add(MESSAGE_MODEL_MODE);
+    sendArguments.add("1");
+  }
 
   /**
    * Switch the 3dmod process to model mode
@@ -401,6 +433,14 @@ public class ImodProcess {
     String[] args = new String[1];
     args[0] = MESSAGE_MODEL_MODE;
     imodSendEvent(args);
+  }
+
+  /**
+   * Places arguments to set movie mode on the argument list.
+   */
+  public void setMovieModeMessage() {
+    sendArguments.add(MESSAGE_MODEL_MODE);
+    sendArguments.add("0");
   }
 
   /**
@@ -416,6 +456,13 @@ public class ImodProcess {
   }
 
   /**
+   * Places arguments to raise 3dmod on the argument list.
+   */
+  public void setRaise3dmodMessage() {
+    sendArguments.add(MESSAGE_RAISE);
+  }
+
+  /**
    * Raise the 3dmod window
    * 
    * @throws SystemProcessException
@@ -426,6 +473,17 @@ public class ImodProcess {
     imodSendEvent(args);
   }
   
+  /**
+   * Places arguments to open one zap window and raise 3dmod on the argument
+   * list.
+   */
+  public void setOpenZapWindowMessage() {
+    sendArguments.add(MESSAGE_ONE_ZAP_OPEN);
+  }
+  
+  /**
+   * Open one zap window and raise 3dmod.
+   */
   public void openZapWindow() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_ONE_ZAP_OPEN;
@@ -443,12 +501,37 @@ public class ImodProcess {
     imodSendEvent(args);
   }
   
+  /**
+   * Sends message requesting rubberband coordinates.
+   * Should not be used with sendMessages().
+   * @return rubberband coordinates and error messages
+   * @throws SystemProcessException
+   */
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RUBBERBAND;
     return imodSendAndReceive(args);
   }
 
+  /**
+   * Sends all messages collected in the argument list via imodSendEvent().
+   * Clears the argument list.
+   * @throws SystemProcessException
+   */
+  public void sendMessages() throws SystemProcessException {
+    if (sendArguments.size() == 0) {
+      return;
+    }
+    imodSendEvent((String[]) sendArguments.toArray(new String[sendArguments.size()]));
+    sendArguments.clear();
+  }
+  
+  /**
+   * Sends a message and then records the results found in the error stream.
+   * @param args
+   * @return
+   * @throws SystemProcessException
+   */
   protected Vector imodSendAndReceive(String[] args) throws SystemProcessException {
     Vector results = new Vector();
     imodSendEvent(args, results);
