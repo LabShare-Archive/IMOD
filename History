@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/23/02: Added ability to combine thin dual-axis reconstructions by computing
+and using only one layer of patches.  Setupcombine will set up for one layer
+of patches if the patch thickness is more than two-thirds of the available
+range in Z for patches; Refinematch and Findwarp will constrain their solutions
+appropriately.
+
+10/22/02: Fixed a bug that was causing movies to freeze because of the
+delay imposed after expose events.
+
+10/15/02: Further additions to the event-receiving code and rearrangements
+to make model I/O functions more easily accessible from the event processer.
+
 IMOD_2-7-3
 9/17/02: Added a signature code to the X events and made Imod ignore events
 without the signature.
