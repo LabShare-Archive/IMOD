@@ -529,16 +529,17 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       if (imodDebug('i'))
         imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
                         ref_white, tmp_black, tmp_white);
-      if (tmp_black < 0)
-        tmp_black = 0.;
-      tmp_white = B3DMAX(tmp_black, B3DMIN(tmp_white, 255.));
 
-      newblack = (int)(tmp_black + 0.5);
-      newwhite = (int)(tmp_white + 0.5);
+      /* DNM 3/23/05: needed to truncate only new values, not the tmp_ values
+         that will be used to keep track of consistent contrast setting */
+      newblack = (int)floor(tmp_black + 0.5);
+      newwhite = (int)floor(tmp_white + 0.5);
+      newblack = B3DMAX(0, newblack);
+      newwhite = B3DMAX(newblack, B3DMIN(newwhite, 255));
       if (imodDebug('i')) {
         int meanmap = 255 * (secData[isec].mean - newblack) / 
-          (newwhite - newblack);
-        float sdmap = 255 * (secData[isec].sd) / (newwhite - newblack);
+          B3DMAX(1, newwhite - newblack);
+        float sdmap = 255 * (secData[isec].sd) / B3DMAX(1,newwhite - newblack);
         imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap);
       }
 
@@ -783,6 +784,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.18  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.17  2005/02/12 01:35:31  mast
 Initialized clearedSd properly, prevented b/w values out of range in
 float, and called bwfloat when float is turned on to get things going
