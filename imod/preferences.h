@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2003/09/24 17:35:54  mast
+Change to routine that sets info window geometry directly
+
 Revision 1.5  2003/09/18 05:57:29  mast
 Add members for autocontrast targets
 
@@ -40,6 +43,8 @@ class QTabDialog;
 class AppearanceForm;
 class BehaviorForm;
 class MouseForm;
+class QSettings;
+typedef struct ilist_struct Ilist;
 
 #ifndef HOTSLIDER_H
 // Defines for the states: these are replicated in colorselector.cpp for now
@@ -158,6 +163,10 @@ class ImodPreferences : public QObject
   void setInfoGeometry();
   QRect getZapGeometry();
   void getAutoContrastTargets(int &mean, int &sd);
+  int saveGenericSettings(char *key, int numVals, double *values);
+  int getGenericSettings(char *key, double *values, int maxVals);
+  QSettings *getSettingsObject();
+  void recordZapGeometry();
 
   public slots:
     void donePressed();
@@ -180,7 +189,9 @@ class ImodPreferences : public QObject
   int mGeomImageYsize[MAX_GEOMETRIES];
   QRect mGeomInfoWin[MAX_GEOMETRIES];
   QRect mGeomZapWin[MAX_GEOMETRIES];
+  QRect mRecordedZapGeom;
   int mGeomLastSaved;
+  Ilist *mGenericList;
 };
 
 extern ImodPreferences *ImodPrefs;
