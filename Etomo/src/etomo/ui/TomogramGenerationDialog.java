@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/23 22:14:11  rickg
+ * <p> Removed any extensions from log file labels in context menu
+ * <p>
  * <p> Revision 2.5  2003/05/23 21:26:55  rickg
  * <p> *** empty log message ***
  * <p>
@@ -89,10 +92,20 @@ public class TomogramGenerationDialog
 
   LabeledTextField ltfTomoThickness =
     new LabeledTextField("Tomogram thickness: ");
+  LabeledTextField ltfTomoWidth = new LabeledTextField("Tomogram width: ");
+  LabeledTextField ltfXShift = new LabeledTextField("X Shift: ");
+  LabeledTextField ltfZShift = new LabeledTextField("Z Shift: ");
+  LabeledTextField ltfYStart = new LabeledTextField("First slice: ");
+  LabeledTextField ltfYStop = new LabeledTextField("Last slice: ");
+  LabeledTextField ltfYStep = new LabeledTextField("Slice step: ");
 
   LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
+  LabeledTextField ltfTiltOffset = new LabeledTextField("Tilt angle offset: ");
+  LabeledTextField ltfXTiltOffset = new LabeledTextField("X tilt offset: ");
+
   LabeledTextField ltfRadialMax = new LabeledTextField("Radial max: ");
   LabeledTextField ltfRadialFallOff = new LabeledTextField("Radial falloff: ");
+  LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
 
   JCheckBox chkBoxUseLocalAlignment = new JCheckBox("Use local alignments");
 
@@ -132,11 +145,30 @@ public class TomogramGenerationDialog
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
     panelTilt.add(ltfTomoThickness.getContainer());
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfTomoWidth.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    panelTilt.add(ltfXShift.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfZShift.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfYStart.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfYStop.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfYStep.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(ltfXAxisTilt.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfTiltOffset.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfXTiltOffset.getContainer());
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(ltfRadialMax.getContainer());
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(ltfRadialFallOff.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfLogOffset.getContainer());
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(chkBoxUseLocalAlignment);
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -202,6 +234,15 @@ public class TomogramGenerationDialog
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
+    ltfTomoWidth.setVisible(isAdvanced);
+    ltfXShift.setVisible(isAdvanced);
+    ltfZShift.setVisible(isAdvanced);
+    ltfYStart.setVisible(isAdvanced);
+    ltfYStop.setVisible(isAdvanced);
+    ltfYStep.setVisible(isAdvanced);
+    ltfTiltOffset.setVisible(isAdvanced);
+    ltfXTiltOffset.setVisible(isAdvanced);
+    ltfLogOffset.setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
 
@@ -260,6 +301,11 @@ public class TomogramGenerationDialog
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneTomogramGenerationDialog(axisID);
+  }
+
+  public void buttonAdvancedAction(ActionEvent event) {
+    super.buttonAdvancedAction(event);
+    updateAdvanced();
   }
 }
 
