@@ -31,6 +31,12 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/02 20:39:09  sueh
+ * <p> bug# 566 Changed ContextPopup to specify an anchor in both the t
+ * <p> omo guide and the join guide.  Passing in guideToAnchor to the
+ * <p> ContextPopup constructor that handles man pages and logs, and the
+ * <p> constructor that handles man pages.
+ * <p>
  * <p> Revision 3.3  2004/11/19 23:50:26  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -108,7 +114,7 @@ public class ContextPopup {
     "$Id$";
   
   public static final String TOMO_GUIDE = "tomoguide.html";
-  public static final String JOIN_GUIDE = "joinguide.html";
+  public static final String JOIN_GUIDE = "tomojoin.html";
 
   private JPopupMenu contextMenu = new JPopupMenu("Help Documents");
   private JMenuItem[] manPageItem;
@@ -205,7 +211,7 @@ public class ContextPopup {
           }
         }
 
-        globalItemAction(actionEvent, guideLocation);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor);
 
         //  Close the menu
         contextMenu.setVisible(false);
@@ -285,7 +291,7 @@ public class ContextPopup {
         }
 
           //  Search the standard items
-          globalItemAction(actionEvent, guideLocation);
+          globalItemAction(actionEvent, guideLocation, guideToAnchor);
 
           //  Close the  the menu
           contextMenu.setVisible(false);
@@ -449,6 +455,12 @@ public class ContextPopup {
     }
   }
 
+  private void globalItemAction(
+      ActionEvent actionEvent,
+      String tomoGuideLocation) {
+    globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE);
+  }
+  
   /**
    * Open the appropriate file if the event is one of the global menu items 
    * @param actionEvent
@@ -456,10 +468,15 @@ public class ContextPopup {
    */
   private void globalItemAction(
     ActionEvent actionEvent,
-    String tomoGuideLocation) {
+    String guideLocation, String guide) {
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
       HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + tomoGuideLocation);
+      if (guide.equals(TOMO_GUIDE)) {
+        manpage.openURL(imodURL + guideLocation);
+      }
+      else {
+        manpage.openURL(imodURL + TOMO_GUIDE);
+      }
       manpage.setVisible(true);
     }
 
@@ -483,7 +500,12 @@ public class ContextPopup {
     
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
       HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "tomojoin.html");
+      if (guide.equals(JOIN_GUIDE)) {
+        manpage.openURL(imodURL + guideLocation);
+      }
+      else {
+        manpage.openURL(imodURL + JOIN_GUIDE);
+      }
       manpage.setVisible(true);
     }
   }
