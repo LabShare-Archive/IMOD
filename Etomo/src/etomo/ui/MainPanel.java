@@ -37,6 +37,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2004/11/19 23:58:52  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 1.1.2.13  2004/11/19 19:38:56  sueh
  * <p> bug# 520 Added wrap functions to wrap message dialog messages.
  * <p>
@@ -184,9 +187,7 @@ public abstract class MainPanel extends JPanel {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
-    if (EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-      fitWindow();
-    }
+    fitWindow();
   }
 
   /**
@@ -369,11 +370,18 @@ public abstract class MainPanel extends JPanel {
     }
   }
   
+  public void fitWindow() {
+    fitWindow(false);
+  }
+  
   /**
    * fit window to its components and to the screen
    *
    */
-  public void fitWindow() {
+  public void fitWindow(boolean force) {
+    if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+      return;
+    }
     packAxis();
     //the mainPanel has a limited size, but the frame does not
     //if the frame has a greater height then the mainPanel + the frame's border
