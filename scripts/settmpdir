@@ -12,5 +12,5 @@ if ($?IMOD_TMPDIR) then
 endif
 if (! -w "$tmpdir") set tmpdir = /tmp
 if (! -w "$tmpdir") set tmpdir = .
-set cygthere = `which cygpath >& /dev/null`
-if (! $status) set tmpdir = `cygpath -m "$tmpdir"`
+set cygthere = `uname | sed -n '/CYGWIN/'d`
+if ($cygthere != "") set tmpdir = `cygpath -m "$tmpdir"`
