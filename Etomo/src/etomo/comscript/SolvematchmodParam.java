@@ -84,7 +84,7 @@ public class SolvematchmodParam
     inputArgs[2].setArgument(fiducialMatchListA.toString());
     scriptCommand.setInputArgument(3, inputArgs[3]);
 
-    inputArgs[3].setArgument(fiducialMatchListA.toString());
+    inputArgs[3].setArgument(fiducialMatchListB.toString());
     scriptCommand.setInputArgument(3, inputArgs[3]);
 
     inputArgs[4].setArgument(xAxistTilt.toString());
