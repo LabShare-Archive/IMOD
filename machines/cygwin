@@ -199,14 +199,19 @@ endif
 #  SGI; just define them the same as non-fallback versions.
 #
 set flags = "$flags /MD"
-cat << EOF >> $configure
-CFLAGS  = $flags $optimization $defines $include_flags $c_includes
-CXXFLAGS = $flags $optimization $defines $include_flags $c_includes
-FFLAGS  = $flags $ldfflags $optimization $include_flags
-NOOPFFLAGS = $flags $ldfflags $optimization $noop $include_flags
+set cflags = $flags $optimization $defines $include_flags $c_includes
+set fflags = $flags $ldfflags $optimization $include_flags
 
-CFALLBACK  = $flags $optimization $defines $include_flags $c_includes
-FFALLBACK  = $flags $ldfflags $optimization $include_flags
+cat << EOF >> $configure
+CFLAGS  = $cflags
+CXXFLAGS = $cflags
+FFLAGS  = $fflags
+NOOPFFLAGS = $fflags $noop
+LIBCFLAGS = $cflags
+LIBFFLAGS = $fflags
+
+CFALLBACK  = $cflags
+FFALLBACK  = $fflags
 LDFALLBACK = \$(LDFLAGS)
 NOOPFFALLBACK = \$(NOOPFFLAGS)
 EOF
@@ -261,10 +266,10 @@ while ($i < 3)
     echo "INCLUDEPATH += ..\include ." >> $qdir[$i]/qconfigure
     echo "target.path = $inst_bin_dir" >> $qdir[$i]/qconfigure
     if ($debug == true) then
-        echo CONFIG += debug warn_off >> $qdir[$i]/qconfigure
+        echo CONFIG += thread debug warn_off >> $qdir[$i]/qconfigure
         set vcexedir = Debug
     else
-        echo CONFIG += release $warn[$i] >> $qdir[$i]/qconfigure
+        echo CONFIG += thread release $warn[$i] >> $qdir[$i]/qconfigure
         set vcexedir = Release
     endif
 

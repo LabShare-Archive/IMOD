@@ -122,16 +122,24 @@ else
 	set optimization = "-O2 -woff 1174,1552"
 endif
 
-#set cflags = "$defines $optimization $include_flags $cflags"
-#echo "CFLAGS   = $defines $optimization $include_flags" >> $configure
+# 4/8/04: Use intermediate variables to simplify all the defines that are needed
+#
+set cflags = "$optimization $defines $include_flags $c_includes"
+set fflags = "$foptimization $defines $include_flags"
 
-echo "CFLAGS   = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "CXXFLAGS = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFLAGS   = $flags $foptimization $defines $include_flags" >> $configure
-echo "NOOPFFLAGS = $flags $foptimization -O0 $defines $include_flags" >> $configure
-echo "CFALLBACK   = $fallback $optimization $defines $include_flags" >> $configure
-echo "FFALLBACK   = $fallback $foptimization $defines $include_flags" >> $configure
-echo "NOOPFFALLBACK = $fallback $foptimization -O0 $defines $include_flags" >> $configure
+echo "CFLAGS   = $flags $cflags" >> $configure
+echo "CXXFLAGS = $flags $cflags" >> $configure
+echo "FFLAGS   = $flags $fflags" >> $configure
+echo "NOOPFFLAGS = $flags $fflags -O0" >> $configure
+
+# 4/8/04: Add flags for building libraries
+#
+echo "LIBCFLAGS  = $flags $cflags" >> $configure
+echo "LIBFFLAGS  = $flags $fflags" >> $configure
+
+echo "CFALLBACK   = $fallback $cflags" >> $configure
+echo "FFALLBACK   = $fallback $fflags" >> $configure
+echo "NOOPFFALLBACK = $fallback $fflags -O0" >> $configure
 
 # Pick whose floats the fortran code can swap
 if ($swap_ieee == true) then
@@ -144,9 +152,10 @@ endif
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 #
-# Do not use multiple threads in plax programs
+# Do not use multiple threads in plax programs; use single-thread library?
 #
 echo '#define QTPLAX_NO_THREAD' >> $hconfigure
+set qtthread = false
 
 #
 # Set this because ordinary geometry saving method makes windows walk up and
@@ -192,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.21  2004/01/29 04:22:27  rickg
+#  added IMOD-sgi.sh to INSTALL_FILES
+#
 #  Revision 3.20  2004/01/27 05:17:04  mast
 #  Add INSTALL_FILES and distname settings
 #
