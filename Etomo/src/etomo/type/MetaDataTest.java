@@ -1,3 +1,15 @@
+package etomo.type;
+
+import java.io.File;
+import java.io.IOException;
+
+import etomo.process.SystemProcessException;
+import etomo.storage.ParameterStore;
+import etomo.storage.Storable;
+import etomo.util.InvalidParameterException;
+import etomo.util.TestUtilites;
+import junit.framework.TestCase;
+
 /**
  * <p>Description: </p>
  * 
@@ -11,20 +23,11 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2004/04/06 03:24:31  rickg
+ * <p> Create MetaDataTest
+ * <p> </p>
  */
-
-package etomo.type;
-
-import java.io.File;
-import java.io.IOException;
-
-import etomo.process.SystemProcessException;
-import etomo.storage.ParameterStore;
-import etomo.storage.Storable;
-import etomo.util.InvalidParameterException;
-import etomo.util.TestUtilites;
-import junit.framework.TestCase;
 
 public class MetaDataTest extends TestCase {
   public static final String rcsid = "$Id$";
