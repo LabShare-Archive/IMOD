@@ -20,6 +20,7 @@ import etomo.comscript.BeadtrackParam;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
@@ -49,6 +50,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
+import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
@@ -86,6 +88,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.79  2004/06/24 20:22:05  sueh
+ * <p> bug# 482 removed loadSolvematchshift and mod functions
+ * <p>
  * <p> Revision 3.78  2004/06/24 18:43:00  sueh
  * <p> bug# 482 add loadSolvematch(boolean modelBased) to merge
  * <p> solvematchshift and mod into solvematch and add
@@ -3552,7 +3557,21 @@ public class ApplicationManager {
           loadSolvematch();
         }
         else {
-          loadSolvematch(metaData.getCombineParams().isModelBased());
+          //For backward compatibility using fiducialMatch instead of
+          //modelBased.  ModelBased was not updated when fiducialMatch was
+          //changed and ficucialMatch wasn't update when modelBased was changed.
+          //But it looks like modelBased was never changed.  In version 3.2.6
+          //CombineParam.setModelBased() was never called.  So fiducialMatch is
+          //probably correct in earlier versions.
+          boolean modelBased = false;
+          ConstCombineParams metaDataCombineParams = metaData.getCombineParams();
+          if (metaDataCombineParams.getFiducialMatch()
+            == FiducialMatch.USE_MODEL
+            || metaDataCombineParams.getFiducialMatch()
+              == FiducialMatch.USE_MODEL_ONLY) {
+            modelBased = true;
+          } 
+          loadSolvematch(modelBased);
         }
         loadPatchcorr();
         loadMatchorwarp();
