@@ -13,6 +13,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/19 19:24:46  sueh
+ * <p> bug# 409 putting text back to pre-409, handling changes in
+ * <p> ComScript
+ * <p>
  * <p> Revision 3.6  2004/04/16 01:45:25  sueh
  * <p> bug# 409 changes for mtffilter where not working for newst - fixed
  * <p>
@@ -114,6 +118,8 @@ public class ComScriptManager {
   private ComScript scriptSolvematchmod;
   private ComScript scriptPatchcorr;
   private ComScript scriptMatchorwarp;
+  private ComScript scriptTomopitchA;
+  private ComScript scriptTomopitchB;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
@@ -580,6 +586,62 @@ public class ComScriptManager {
     }
     updateComScript(scriptTilt, tiltParam, "tilt", axisID);
   }
+  
+  /**
+   * Load the specified tomopitch com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadTomopitch(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptTomopitchB = loadComScript("tomopitch", axisID, false);
+    }
+    else {
+      scriptTomopitchA = loadComScript("tomopitch", axisID, false);
+    }
+  }
+
+  /**
+   * Get the tomopitch parameters from the specified tomopitch script object
+   * @param axisID the AxisID to read.
+   * @return a TomopitchParam object that will be created and initialized
+   * with the input arguments from tomopitch in the com script.
+   */
+  public TomopitchParam getTomopitchParam(AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript tomopitch;
+    if (axisID == AxisID.SECOND) {
+      tomopitch = scriptTomopitchB;
+    }
+    else {
+      tomopitch = scriptTomopitchA;
+    }
+
+    // Initialize a TomopitchParam object from the com script command object
+    TomopitchParam tomopitchParam = new TomopitchParam();
+    initialize(tomopitchParam, tomopitch, "tomopitch", axisID);
+    return tomopitchParam;
+  }
+
+  /**
+   * Save the specified tomopitch com script updating the tomopitch parameters
+   * @param axisID the AxisID to load.
+   * @param tomopitchParam a TomopitchParam object that will be used to update
+   * tomopitch command in the tomopitch com script
+   */
+  public void saveTomopitch(TomopitchParam tomopitchParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptTomopitch;
+    if (axisID == AxisID.SECOND) {
+      scriptTomopitch = scriptTomopitchB;
+    }
+    else {
+      scriptTomopitch = scriptTomopitchA;
+    }
+    updateComScript(scriptTomopitch, tomopitchParam, "tomopitch", axisID);
+  }
+
 
   public void loadMTFFilter(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
