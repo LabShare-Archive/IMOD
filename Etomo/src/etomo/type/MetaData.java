@@ -2,7 +2,6 @@ package etomo.type;
 
 import java.util.Properties;
 
-import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.storage.Storable;
 
@@ -19,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/30 23:49:04  rickg
+ * <p> Reformatted after emacs trashed it.
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
