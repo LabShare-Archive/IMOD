@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.11  2003/10/28 02:23:59  sueh
  * <p> bug267
  * <p>
@@ -188,7 +191,28 @@ public class ConstMetaData {
   }
 
   public boolean isValid() {
+    boolean datasetNameValid = isDatasetNameValid();
+    
+    if (!datasetNameValid) {
+      return datasetNameValid;
+    }
 
+    // Is the pixel size greater than zero
+    if (pixelSize <= 0.0) {
+      invalidReason = "Pixel size is not greater than zero";
+      return false;
+    }
+
+    // Is the fiducial diameter greater than zero
+    if (fiducialDiameter <= 0.0) {
+      invalidReason = "Fiducial diameter is not greater than zero";
+      return false;
+    }
+
+    return true;
+  }
+  
+  public boolean isDatasetNameValid() {
     // Does the working directory exist
     // If is doesn't then use the backup directory.    
     File workingDir = new File(System.getProperty("user.dir"));
@@ -259,20 +283,6 @@ public class ConstMetaData {
         return false;
       }
     }
-
-    // Does the appropriate image stack exist in the working directory
-    // Is the pixel size greater than zero
-    if (pixelSize <= 0.0) {
-      invalidReason = "Pixel size is not greater than zero";
-      return false;
-    }
-
-    // Is the fiducial diameter greater than zero
-    if (fiducialDiameter <= 0.0) {
-      invalidReason = "Fiducial diameter is not greater than zero";
-      return false;
-    }
-
     return true;
   }
 
