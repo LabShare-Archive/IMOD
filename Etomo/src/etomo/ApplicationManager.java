@@ -74,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2004/03/09 22:06:56  sueh
+ * <p> bug# 407 adding IMOD_CALIB_DIR optional environment variable
+ * <p>
  * <p> Revision 3.19  2004/03/06 00:22:39  sueh
  * <p> bug# 250 changed updateCombineCom() - remove duplicate code - call
  * <p> updateCombineCom(int) with NO_TAB
@@ -4466,6 +4469,14 @@ public class ApplicationManager {
   static public File getIMODDirectory() {
     //  Return a copy of the IMODDirectory object
     return new File(IMODDirectory.getAbsolutePath());
+  }
+
+  /**
+   * Return the IMOD calibration directory
+   */
+  static public File getIMODCalibDirectory() {
+    //  Return a copy of the IMODDirectory object
+    return new File(IMODCalibDirectory.getAbsolutePath());
   }
 
   /**
