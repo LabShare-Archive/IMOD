@@ -218,7 +218,6 @@ bool ImodClipboard::executeMessage()
 {
   int returnValue;
   int succeeded = 1;
-  int oldBlack, oldWhite;
   QString convName;
   int movieVal, xaxis, yaxis, zaxis, taxis;
   int objNum, type, symbol, symSize, ptSize;
@@ -230,13 +229,6 @@ bool ImodClipboard::executeMessage()
   if (Imod_debug)
     wprint("Executing message\n");
 
-  // Convert the message string first
-  if (message_string) {
-    QDir *curdir = new QDir();
-    convName = curdir->cleanDirPath(QString(message_string));
-    delete curdir;
-  }
-  
   /* Execute the action */
   if (ImodvClosed || !Imodv->standalone) {
     switch (message_action) {
@@ -248,6 +240,12 @@ bool ImodClipboard::executeMessage()
                 " with command to open model\n");
         succeeded = 0;
         break;
+      } else {
+
+        // DNM 6/3/04: moved this down here, do it only if needed
+        QDir *curdir = new QDir();
+        convName = curdir->cleanDirPath(QString(message_string));
+        delete curdir;
       }
     
       // Since this could open a dialog with an indefinite delay, just send
@@ -256,21 +254,13 @@ bool ImodClipboard::executeMessage()
       sendResponse(1);
       inputRaiseWindows();
 
-      oldBlack = App->cvi->black;
-      oldWhite = App->cvi->white;
-      returnValue = openModel((char *)convName.latin1());
+      // DNM 6/3/04: switch to keeping BW values in the first place
+      returnValue = openModel((char *)convName.latin1(), 
+                              message_action == MESSAGE_OPEN_KEEP_BW);
       if(returnValue == IMOD_IO_SUCCESS) {
         wprint("%s loaded.\n", 
                (QDir::convertSeparators(QString(Imod_filename))).latin1());
 
-        // Reset the black and white levels if message says to
-        if (message_action == MESSAGE_OPEN_KEEP_BW) {
-	  App->cvi->black = imod->blacklevel = oldBlack;
-	  App->cvi->white = imod->whitelevel = oldWhite;
-	  xcramp_setlevels(App->cvi->cramp, App->cvi->black,
-			   App->cvi->white);
-	  imod_info_setbw(App->cvi->black, App->cvi->white);
-        }
       }
       else if(returnValue == IMOD_IO_SAVE_ERROR) {
         wprint("Error Saving Model. New model not loaded.\n");
@@ -475,6 +465,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.16  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.15  2004/05/31 02:14:58  mast
 Added message to set object properties (type, symbol, 3D point)
 
