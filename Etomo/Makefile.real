@@ -1,6 +1,6 @@
 # Makefile for building Etomo under the IMOD structure
 #
-# MOTE: that this Makefile only works if run under the IMOD directory
+# NOTE: that this Makefile only works if run under the IMOD directory
 # structure and the IMOD configure file has been defined.
 #
 # $Author$
@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.1  2003/08/10 01:21:59  mast
+# Changing to dummy/real Makefiles
+#
 # Revision 2.9  2003/08/09 23:02:40  mast
 # renamed jar directory to jar_dir to avoid bizarre failure on SGI
 #
