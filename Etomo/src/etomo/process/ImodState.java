@@ -172,6 +172,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.21  2004/11/24 18:10:45  sueh
+ * <p> $bug# 520 Added binning in XY.
+ * <p> $
  * <p> $Revision 1.20  2004/11/19 23:21:49  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -415,9 +418,13 @@ public class ImodState {
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(tempAxisID.toString());
     }
-    datasetName = datasetName1 + axisExtension + datasetExt + " " + datasetName2 + axisExtension + datasetExt + " " + datasetName3 + axisExtension + datasetExt;
+    String[] datasetNameArray = { datasetName1 + axisExtension + datasetExt,
+        datasetName2 + axisExtension + datasetExt,
+        datasetName3 + axisExtension + datasetExt };
+    datasetName = datasetNameArray[0] + " " + datasetNameArray[1] + " "
+        + datasetNameArray[2];
     initialModelName = modelName + axisExtension + modelExt;
-    process = new ImodProcess(datasetName, modelName);
+    process = new ImodProcess(datasetNameArray, modelName);
     reset();
   }
 
