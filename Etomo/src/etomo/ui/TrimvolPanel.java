@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,6 +17,7 @@ import javax.swing.JRadioButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
+import etomo.process.ImodManager;
 /**
  * <p>Description: </p>
  * 
@@ -29,6 +31,10 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 22:45:34  sueh
+ * <p> bug# 356 Changing buttons with html labels to
+ * <p> MultiLineButton and MultiLineToggleButton
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -108,6 +114,9 @@ public class TrimvolPanel {
   private MultiLineButton btnTrimvol = new MultiLineButton("<html><b>Trim Volume</b>");
   private MultiLineButton btnImodTrim =
     new MultiLineButton("<html><b>3dmod Trimmed Volume</b>");
+  private MultiLineButton btnGetCoordinates =
+    new MultiLineButton("Get XY Volume Range From 3dmod");
+  private JPanel pnlImodFull = new JPanel();
 
   /**
    * Default constructor
@@ -124,6 +133,8 @@ public class TrimvolPanel {
     btnTrimvol.setMaximumSize(dimButton);
     btnImodTrim.setPreferredSize(dimButton);
     btnImodTrim.setMaximumSize(dimButton);
+    btnGetCoordinates.setPreferredSize(dimButton);
+    btnGetCoordinates.setMaximumSize(dimButton);
 
     //  Layout the range panel
     pnlRange.setLayout(new GridLayout(3, 2));
@@ -162,8 +173,6 @@ public class TrimvolPanel {
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodFull);
-    pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnTrimvol);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodTrim);
@@ -172,6 +181,14 @@ public class TrimvolPanel {
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
     pnlTrimvol.setBorder(new BeveledBorder("Volume Trimming").getBorder());
 
+    pnlImodFull.setLayout(new BoxLayout(pnlImodFull, BoxLayout.X_AXIS));
+    btnImodFull.setAlignmentX(Component.CENTER_ALIGNMENT);
+    //pnlImodFull.add(Box.createHorizontalGlue());
+    pnlImodFull.add(btnImodFull);
+    //pnlImodFull.add(Box.createHorizontalGlue());
+    //pnlImodFull.add(btnGetCoordinates);
+    //pnlImodFull.add(Box.createHorizontalGlue());
+    pnlTrimvol.add(pnlImodFull);
     pnlTrimvol.add(pnlRange);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
@@ -191,6 +208,7 @@ public class TrimvolPanel {
     btnImodFull.addActionListener(buttonActonListener);
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
+    btnGetCoordinates.addActionListener(buttonActonListener);
 
     setToolTipText();
   }
@@ -261,6 +279,30 @@ public class TrimvolPanel {
         Integer.parseInt(ltfSectionScaleMax.getText()));
     }
   }
+  
+  public void setXYMinAndMax(Vector coordinates) {
+    if (coordinates == null) {
+      return;
+    }
+    int size = coordinates.size();
+    int index = 0;
+    if (index >= size) {
+      return;
+    }
+    ltfXMin.setText((String) coordinates.get(index++));
+    if (index >= size) {
+      return;
+    }
+    ltfXMax.setText((String) coordinates.get(index++));
+    if (index >= size) {
+      return;
+    }
+    ltfYMin.setText((String) coordinates.get(index++));
+    if (index >= size) {
+      return;
+    }
+    ltfYMax.setText((String) coordinates.get(index++));
+  }
 
   /**
    * Enable/disable the appropriate text fields for the scale section
@@ -300,6 +342,11 @@ public class TrimvolPanel {
     if (event.getActionCommand() == btnImodTrim.getActionCommand()) {
       applicationManager.imodTrimmedVolume();
     }
+    if (event.getActionCommand() == btnGetCoordinates.getActionCommand()) {
+      setXYMinAndMax(
+        applicationManager.imodGetRubberbandCoordinates(
+          ImodManager.COMBINED_TOMOGRAM_KEY));
+    }   
   }
 
   private void cbConvertToBytesAction(ActionEvent event) {
@@ -398,6 +445,12 @@ public class TrimvolPanel {
 
     text = "View the original, untrimmed volume in 3dmod.";
     btnImodFull.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "After pressing the 3dmod Full Volume button, press shift-B in the "
+        + "ZaP window.  Create a rubberband around the volume range.  Then "
+        + "press this button to retrieve X and Y coordinates";
+    this.btnGetCoordinates.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Trim the original volume with the parameters given above.";
     btnTrimvol.setToolTipText(tooltipFormatter.setText(text).format());
