@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/13/05: Increased array limits in Tiltalign and Beadtrack to allow 500
+fiducials.
+
 3/11/05: IMOD_3-6-1
 3/11/05: Added nad_eed_3d, Frangakis and Hegerl's edge-enhancing anisotropic 
 diffusion program. (In 3.5)
