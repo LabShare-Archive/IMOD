@@ -5,7 +5,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
 
-/*
+/*p
  * <p>Description: This class manages the opening, closing and sending of 
  * messages to the appropriate imod processes. This class is state based in the
  * sense that is initialized with MetaData information and uses that information
@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.20  2003/10/14 23:44:04  rickg
+ * <p> Bug# 285 Fixed select mapping for fine aligned tomogram
+ * <p>
  * <p> Revision 2.19  2003/09/08 05:45:39  rickg
  * <p> Rename single axis full volume dataset
  * <p>
@@ -513,6 +516,7 @@ public class ImodManager {
    */
   public void openPatchVectorModel() throws SystemProcessException {
     patchVectorModel.open();
+    patchVectorModel.modelMode();
   }
 
   /**
