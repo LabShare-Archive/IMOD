@@ -25,6 +25,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2002/10/22 21:38:24  rickg
+ * <p> ApplicationManager now controls both demo and debug
+ * <p> modes
+ * <p>
  * <p> Revision 1.17  2002/10/17 22:47:35  rickg
  * <p> process dialogs are now managed attributes
  * <p> setVisible calls changed to show
@@ -91,7 +95,7 @@ public class ApplicationManager {
     "$Id$";
 
   private boolean debug = true;
-  private boolean demo = true;
+  private boolean demo = false;
   
   private boolean isDataParamDirty = false;
   private String homeDirectory;
@@ -126,7 +130,9 @@ public class ApplicationManager {
   private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
   /**Construct the application*/
-  public ApplicationManager() {
+  public ApplicationManager(String[] args) {
+
+    parseCommandLine(args);
 
     //  Initialize the program settings
     initProgram();
@@ -150,12 +156,9 @@ public class ApplicationManager {
 
   /**Main method*/
   public static void main(String[] args) {
-    new ApplicationManager();
-
-    //  Parse the command line arguments
-    if (args.length > 0) {
-    }
+    new ApplicationManager(args);
   }
+
 
   /**
   * Open the setup dialog
@@ -1814,6 +1817,19 @@ public class ApplicationManager {
     ToolTipManager.sharedInstance().setDismissDelay(
       userConfig.getToolTipsDismissDelay());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
+  }
+
+  private void parseCommandLine(String[] args) {
+
+    //  Parse the command line arguments
+    if (args.length > 0) {
+      for(int i = 0; i < args.length; i++) {
+        if(args[i].equals("--demo")){
+          demo = true;
+          break ;
+        }
+      }
+    }
   }
 
   /**
