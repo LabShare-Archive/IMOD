@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/05/03 18:24:57  sueh
+ * <p> bug# 427 set TomopitchParam.ScaleFactor from binning
+ * <p>
  * <p> Revision 3.7  2004/04/29 20:25:57  sueh
  * <p> bug# 427 added commented out testing code
  * <p>
@@ -128,7 +131,7 @@ import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
 
 public class TomogramPositioningDialog extends ProcessDialog
-    implements ContextMenu {
+    implements ContextMenu, FiducialessParams {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlPosition = new JPanel();
@@ -139,7 +142,9 @@ public class TomogramPositioningDialog extends ProcessDialog
     "Sample tomogram thickness: ");
 
   private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
-
+  private LabeledTextField ltfRotation = new LabeledTextField(
+  "Tilt axis rotation:");
+  
   private JPanel pnlWholeTomogram = new JPanel();
 
   private LabeledSpinner spinBinning;
@@ -191,6 +196,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleTomoThickness
       .getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlTomoParams, ltfRotation.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, pnlWholeTomogram);
     UIUtilities.alignComponentsX(pnlTomoParams, Component.LEFT_ALIGNMENT);
 
@@ -244,8 +250,16 @@ public class TomogramPositioningDialog extends ProcessDialog
     updateUIState();
   }
 
-  public boolean getFiducialessAlignment() {
+  public boolean isFiducialessAlignment() {
     return cbFiducialess.isSelected();
+  }
+  
+  public void setTiltAxisAngle(float tiltAxisAngle) {
+    ltfRotation.setText(tiltAxisAngle);
+  }
+
+  public float getTiltAxisAngle() throws NumberFormatException {
+    return Float.parseFloat(ltfRotation.getText());
   }
 
   /**

@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/23 19:38:43  rickg
+ * <p> Method name change for opening 3dmod on the coarse
+ * <p> aligned stack
+ * <p>
  * <p> Revision 3.6  2004/04/07 21:03:10  rickg
  * <p> Fixed layout using UIUtilities
  * <p>
@@ -87,6 +91,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
@@ -96,7 +101,8 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 
-public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
+public class CoarseAlignDialog extends ProcessDialog
+    implements ContextMenu, FiducialessParams {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlCoarseAlign = new JPanel();
@@ -114,6 +120,11 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   private MultiLineToggleButton btnImod = new MultiLineToggleButton(
     "View Aligned<br>Stack In 3dmod");
 
+  private JPanel pnlFiducialess = new JPanel();
+  private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
+  private LabeledTextField ltfRotation = new LabeledTextField(
+    "Tilt axis rotation:");
+
   private MultiLineToggleButton btnMidas = new MultiLineToggleButton(
     "<html><b>Fix Alignment<br>With Midas</b>");
 
@@ -125,6 +136,11 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     pnlPrenewst = new PrenewstPanel(axisID);
     btnExecute.setText("Done");
 
+    pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlFiducialess, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlFiducialess, ltfRotation.getContainer());
+    UIUtilities.alignComponentsX(pnlFiducialess, Component.LEFT_ALIGNMENT);
+
     pnlCoarseAlign.setLayout(new BoxLayout(pnlCoarseAlign, BoxLayout.Y_AXIS));
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
@@ -135,6 +151,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
       FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign, FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnImod, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas, FixedDim.x0_y10);
 
     // Set the alignment and size of the UI objects
@@ -193,11 +210,19 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   public void setFiducialessAlignment(boolean state) {
-    pnlPrenewst.setFiducialessAlignment(state);
+    cbFiducialess.setSelected(state);
   }
 
   public boolean isFiducialessAlignment() {
-    return pnlPrenewst.isFiducialessAlignment();
+    return cbFiducialess.isSelected();
+  }
+
+  public void setTiltAxisAngle(float tiltAxisAngle) {
+    ltfRotation.setText(tiltAxisAngle);
+  }
+
+  public float getTiltAxisAngle() throws NumberFormatException {
+    return Float.parseFloat(ltfRotation.getText());
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
