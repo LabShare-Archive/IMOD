@@ -33,45 +33,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.8  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.7  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.6  2003/01/01 05:46:29  mast
-changes for qt version of stereo
-
-Revision 1.1.2.5  2002/12/23 04:57:07  mast
-Defer swapping buffers when taking a snapshot
-
-Revision 1.1.2.4  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.3  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.2  2002/12/17 17:39:52  mast
-Qt version
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.4  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.3  2002/09/04 00:25:34  mast
-Pass GLw the visuals that have been chosen already.  Rationalize single
-buffer versus double code a bit.
-
-Revision 3.2  2002/06/20 00:39:09  mast
-Making GLw use that visual didn't work under Linux, remove the change
-
-Revision 3.1  2002/06/20 00:26:58  mast
-Force GLw to use the already chosen visual when getting a drawing area
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -351,7 +313,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   GLint xoffset;
   char iname[80];
 
-  fout = fopen(fname, "w");
+  fout = fopen(fname, "wb");
   if (!fout){
     perror("imodv: error opening file ");
     return(-1);
@@ -418,3 +380,46 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   return(0);
 }
 
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.8  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.7  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
+Revision 1.1.2.6  2003/01/01 05:46:29  mast
+changes for qt version of stereo
+
+Revision 1.1.2.5  2002/12/23 04:57:07  mast
+Defer swapping buffers when taking a snapshot
+
+Revision 1.1.2.4  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.3  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.2  2002/12/17 17:39:52  mast
+Qt version
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.4  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.3  2002/09/04 00:25:34  mast
+Pass GLw the visuals that have been chosen already.  Rationalize single
+buffer versus double code a bit.
+
+Revision 3.2  2002/06/20 00:39:09  mast
+Making GLw use that visual didn't work under Linux, remove the change
+
+Revision 3.1  2002/06/20 00:26:58  mast
+Force GLw to use the already chosen visual when getting a drawing area
+
+*/
