@@ -1,124 +1,13 @@
 *************NEWSTACK.FOR**********************************************
 *   
 *   Newstack is a general stack editor to move images into, out of, or between
-*   stacks.  It can float the images to a common range or mean of density,
-*   and truncate a selected fraction of the density range to zero.
+*   stacks.  It can float the images to a common range or mean of density.
 *   It can apply a general linear transform specified as a line in a file.
 *   It can put the output into a smaller or larger array and independently
 *   recenter each image separately from the transform.  Images can be taken
 *   from multiple input files and placed into multiple output files.
 *   
-*   All inputs are prompted interactively.  The input is as follows; lines
-*   starting with IF are entered only if a particular option is selected.
-*
-*   Number of input files, or -1 to enter list of files from a file
-*
-*   IF you enter a number >0, then for each input file, enter two lines:
-*   .	File name
-*   .	list of section numbers to take from that file.  The first section is
-*   .		numbered 0 and ranges may be entered (e.g. 0-4,5,7-9)
-*
-*   OTHERWISE, IF you enter -1, then enter the name of the file with list of
-*   .		files and sections.  The format of this file should be
-*      Number of input files
-*      File name
-*      list of section numbers (first is 0!!!), ranges allowed (e.g. 0-3,5,7-9)
-*      next file and list of sections, etc.
-*
-*   Number of output files, or -1 to enter list of files from a file
-*
-*   IF you enter 1, next enter the name of the single output file.
-*
-*   OR IF you enter a number >1, then for each output file, enter two lines:
-*   .	File name
-*   .	Number of sections to put in that file
-*
-*   OR IF you enter -1, then enter the name of the file with the list of files
-*   .	and numbers of of sections.  The format of this file is:
-*      Number of output files
-*      File name
-*      number of sections to place in that file
-*      next file and number of sections, etc.
-*
-*   The X and Y dimensions of the output file, or / to take the same
-*   .	dimensions as the first input file
-*
-*   The data mode of the output file, or / to take the same mode as the first
-*   .	input file.  Mode can be 0 for bytes, 1 for 16-bit integers, 2 for 
-*   .   32-bit real numbers, or 9 to 15 for 9 to 15 bit values.
-*
-*   0 for no offsets, or 1 to apply X and Y offsets separately to each section,
-*   .   or -1 to apply the same X and Y offset to all sections
-*
-*   IF offsets are selected, next specify the X and Y center offsets of
-*      each of the sections (they need not be on separate lines), or the single
-*      offset to apply to all sections.
-*      Hint: offsets of 50,50 will take the center of the output image
-*      from the upper right quadrant of the input image.
-*
-*   0 for no transforms, or 1 to transform images using cubic interpolation, or
-*      2 to transform using bilinear interpolation
-*
-*   IF transforming is selected, next specify the file for transforms, and
-*      on a separate line, a list of lines to use in the file (first is 0!!!).
-*      Ranges are allowed here, but all must be on one line.  To have a single
-*      transform applied to all of the sections, just enter a single number.
-*
-*   0 for no floating of densities, 1 to float densities so that each section
-*	occupies the same RANGE of densities (the optimum range for the
-* 	particular data mode), 2 to float so that all sections have the same
-*	MEAN and STANDARD DEVIATION of density (which requires the input
-*	sections to be read twice), -1 to specify a single scaling that will
-c	be applied equally to all sections, -2 to scale all sections by the
-c	same amount, determined by black and white contrast settings, in order
-c	to convert to bytes with stretched contrast, 3 to SHIFT sections to
-c	the same mean value without rescaling, or 4 to SHIFT sections to the 
-c	same mean then rescale all sections by the same specified scaling.
-*	  
-*   IF single rescaling is selected with "-1", next specify the density values
-*	to which the minimum and maximum in the data file should be mapped, or
-*	just enter "/" to have them mapped to the full-scale range for the
-*	data mode, or enter "1,1" to override any scaling of data that would
-*	otherwise occur because of a change of mode.  This scaling method can
-*	be used to invert densities by entering, e.g., 255,0.
-*
-c   IF scaling by black and white contrast settings is selected with -2, next
-c	enter the black and white settings (see mrcbyte(1)).
-c
-*   OR, IF shifting and rescaling was selected with "4", next specify the
-*	density values to which the new, shifted minimum and maximum values
-*	should be mapped, or just enter "/" to have them mapped to the full-
-*	scale range for the data mode.
-*
-*   When there is a change of modes, data are rescaled optimally in most cases.
-*	If floating is not selected, the scaling is by an amount that would
-*	map the range for the input data mode into the range for the output
-*	data mode (e.g., going from mode 1 to mode 2, it would scale data up
-*       by a factor of 128).  Generally, all sections will be rescaled by
-*	the same amount, thus preserving relative differences between sections.
-*	However, if the output mode is 2 (reals), this
-*	kind of rescaling will not occur.  In general, if your input mode is
-*	real and you are outputing to bytes or integers, you need to specify
-*	some kind of floating, shifting, or scaling in order to get usable
-*	values.  These same kinds of automatic scalings upon change of mode
-*	will occur with shifting to a common mean (option 3), but here the
-*	program is more careful to apply the same scaling to all sections.
-*	To disable the scaling upon change of mode, select the "-1" floating
-*	option and enter 1,1.
-*	  
-*   At the end, the program will report how many pixels have been truncated
-*	at the low or high limits of the output range.  If this happens after
-*	shifting with a specified output range, try again with a slightly
-*	smaller range.
-*
-*   Complex data (fourier transforms) can be stacked but not otherwise  
-*   manipulated.  Don't try to change the size or center of the fft's.
-*	  
-*  The program operates on very large images by reading, operating on, and
-*	  writing strips of the image if necessary.  Images can be larger than
-*	  10K by 10K if they are not being rotated much, but when images are 
-*	  rotated by large angles (30-90 degrees), input image size may be 
-*	  limited to 4K by 4K.
+*   For all details see the man page.
 *   
 *   DNM (mast) for VAX	8/88
 *	  5/4/89 changed to float to same mean and sd rather than mean and min.
@@ -141,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2003/12/12 21:10:14  mast
+c	  windows bug fix
+c	
 c	  Revision 3.9  2003/12/12 20:25:57  mast
 c	  Initial checkin with PIP conversion and distortion correction
 c	
@@ -170,20 +62,20 @@ c	  Revision 3.1  2001/12/29 00:57:49  mast
 c	  Added an entry to -1 floating option to disable all rescaling
 c	
 	implicit none
-	integer idim,lmfil,lmsec,maxchunks,maxextra,lmGrid
-	parameter (idim=19000000,lmfil=1000,lmsec=50000,maxchunks=20)
-	parameter (maxextra=1000000)
+	integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
+	parameter (maxdim=20000000,lmfil=1000,lmsec=50000,maxchunks=20)
+	parameter (maxextra=1000000, maxtemp=1000000)
 	parameter (lmGrid = 200)
 	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 c
 c	  9/25/01: make the buffer be in common to avoid stack limit size on
 c	  the SGI
-	real*4 array(idim)
+	real*4 array(maxdim)
 	common /bigarr/ARRAY
 C   
 	integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
-	real*4 CELL2(6),cell(6), TITLE(20)
+	real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C   
 	CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
 	character*120 idfFile
@@ -216,7 +108,7 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
 	character*80 titlech
-	integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3
+	integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3,idim
 	integer*4 newmode,ifoffset,ifxform,nxforms,nlineuse,ifmean,iffloat
 	integer*4 nsum,ilis,ifil,nsecred,loadyst,loadynd,isec,isecout
 	real*4 xofsall,yofsall,fraczero,dminspec,dmaxspec,conlo,conhi
@@ -235,9 +127,11 @@ c
 	real*4 const,denoutmin,den, tmin2,tmax2,tmean2,tsumsq,avgsec
 	integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
-	integer*4 maxFieldY
+	integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
+	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*4 cosd, sind
+	external cosd, sind
 	integer*4 lnblnk
 c
 	logical pipinput
@@ -249,20 +143,21 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c
 	integer numOptions
-	parameter (numOptions = 21)
+	parameter (numOptions = 23)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'listin:ListOfInputs:FN:@listout:ListOfOutputs:FN:@'//
-     &      'sections:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
+     &      'secs:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
      &      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
-     &      'offset:OffsetsInXandY:FA:@xffile:TransformFile:FN:@'//
+     &      'offset:OffsetsInXandY:FA:@xform:TransformFile:FN:@'//
      &      'uselines:UseTransformLines:LI:@rotate:RotateByAngle:F:@'//
-     &      'expand:ExpandByFactor:F:@linear:LinearInterpolation:B:@'//
-     &      'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &      'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
+     &      'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
+     &      'contrast:ContrastBlackWhite:IP:@'//
      &      'scale:ScaleMinAndMax:FP:@distort:DistortionField:FN:@'//
-     &      'binning:BinningOfImages:I:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      'imagebinned:ImagesAreBinned:I:@test:TestLimits:IP:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -283,6 +178,9 @@ c
 	idfFile = ' '
 	rotateAngle = 0.
 	expandFactor = 0.
+	iBinning = 1
+	limdim = maxdim
+	lenTemp = maxtemp
 C   
 C	  Read in list of input files
 C   
@@ -347,6 +245,10 @@ c
 	  CALL IMOPEN(1,FILIN(i),'RO')
 	  CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 	  call imclose(1)
+	  if (i .eq. 1) then
+	    nxFirst = nx
+	    nyFirst = ny
+	  endif
 	  nlist(i) = nz
 	  do isec = 1, nz
 	    inlist(min(listot + isec, lmsec)) = isec - 1
@@ -604,14 +506,19 @@ c
 	if (pipinput) then
 	  ierr = 1 - PipGetTwoFloats('ContrastBlackWhite', conlo, conhi)
 	  ierr2 = 1 - PipGetTwoFloats('ScaleMinAndMax', dminspec, dmaxspec)
-	  if (ierr + ierr2 + 1 - PipGetInteger('FloatDensities', iffloat)
-     &	       .gt. 1) call errorexit('The -scale, -contrast,'
-     &	      //' and -float options are mutually exclusive')
-	  if (iffloat .lt. 0)call errorexit('You must use -contrast or '
-     &	      //'-scale instead of a negative -float entry')
-	  if (ierr .ne. 0) iffloat = -2
-	  if (ierr2 .ne. 0) iffloat = -1
-	  
+	  ierr3 = 1 - PipGetInteger('FloatDensities', iffloat)
+	  if (iffloat .ge. 4) then
+	    if (ierr2 .eq. 0) call errorexit
+     &		('You must enter -scale with -float 4')
+	  else
+	    if (ierr + ierr2 + ierr3 .gt. 1)
+     &		call errorexit('The -scale, -contrast, and -float '//
+     &		'options are mutually exclusive except with -float 4')
+	    if (iffloat .lt. 0)call errorexit('You must use -contrast or '
+     &		//'-scale instead of a negative -float entry')
+	    if (ierr .ne. 0) iffloat = -2
+	    if (ierr2 .ne. 0) iffloat = -1
+	  endif	  
 	else
 	  write(*,102)
 102	  format(' Enter 0 for no floating',/,8x,
@@ -642,7 +549,7 @@ c
 	    conhi=max(conhi,conlo+1.)
 	    dminspec= -conlo*255/(conhi-conlo)
 	    dmaxspec=dminspec+65025/(conhi-conlo)
-	    print *,conlo, conhi,dminspec,dmaxspec
+c	    print *,conlo, conhi,dminspec,dmaxspec
 	  endif
 	endif
 c	  
@@ -651,20 +558,34 @@ c
 	if (pipinput) then
 	  ierr = PipGetFloat('RotateByAngle', rotateAngle)
 	  ierr = PipGetFloat('ExpandByFactor', expandFactor)
-
+	  ierr = PipGetInteger('BinByFactor', iBinning)
 	  ierr = PipGetString('DistortionField', idfFile)
+	  ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
+	  limdim = min(limdim, maxdim)
+	  lenTemp = min(lenTemp, maxTemp)
+	  if (iBinning .le. 0) call errorexit
+     &	      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
 	  if (idfFile .ne. ' ') then
 	    ifDistort = 1
 	    xftext=', undistorted'
 	    call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
-     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
-     &	    iyGridStrt, yGridIntrv, nyGrid)
+     &		idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
+     &		iyGridStrt, yGridIntrv, nyGrid)
 c
-	    if (PipGetInteger('BinningOfImages', iBinning) .ne. 0)
-     &		call errorexit
-     &		('FOR NOW, YOU MUST SPECIFY BINNING OF IMAGES')
-	    if (iBinning .ne. idfBinning) then
-	      binRatio = idfBinning / float(iBinning)
+	    if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
+	      if (nxFirst .le. idfNx * idfBinning .and.
+     &		  nyFirst .le. idfNy * idfBinning) call errorexit
+     &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
+     &		  'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
+	    endif
+	    if (inputBinning .le. 0) call errorexit
+     &		('IMAGE BINNING MUST BE A POSITIVE NUMBER')
+	    if (inputBinning .ne. idfBinning .or. iBinning .ne. 1) then
+c		
+c		Adjust grid start and interval and field itself for the
+c		overall binning
+c
+	      binRatio = idfBinning / float(inputBinning * iBinning)
 	      ixGridStrt = nint(ixGridStrt * binRatio)
 	      iyGridStrt = nint(iyGridStrt * binRatio)
 	      xGridIntrv = xGridIntrv * binRatio
@@ -675,6 +596,14 @@ c
 		  fieldDy(i, iy) = fieldDy(i, iy) * binRatio
 		enddo
 	      enddo
+c		
+c		if images are not full field, adjust grid start by half the
+c		difference between field and image size, binned down
+c		
+	      ixGridStrt = ixGridStrt - nint((idfNx * idfBinning -
+     &		  nxFirst * inputBinning) / (2. * inputBinning * iBinning))
+	      iyGridStrt = iyGridStrt - nint((idfNy * idfBinning -
+     &		  nyFirst * inputBinning) / (2. * inputBinning * iBinning))
 	    endif
 c
 c	      get maximum Y deviation to adjust chunk limits with
@@ -719,14 +648,32 @@ c
 	  if (expandFactor .eq. 0.) expandFactor = 1.
 	  call xfunit(fexp, expandFactor)
 	  call xfmult(frot, fexp, fprod)
-	  print *,'transform',((fprod(i, iy),i=1,2),iy=1,3)
+c	  print *,'transform',((fprod(i, iy),i=1,2),iy=1,3)
 	  do i = 1, nxforms
 	    call xfmult(f(1,1,i), fprod, frot)
 	    call xfcopy(frot, f(1,1,i))
 	  enddo
 	endif
 	if (expandFactor .eq. 0.) expandFactor = 1.
-c
+c	  
+c	  adjust xcen, ycen and transforms if binning and allocate temp space
+c	  
+	if (iBinning .gt. 1) then
+	  do i = 1, listot
+	    xcen(i) = xcen(i) / iBinning
+	    ycen(i) = ycen(i) / iBinning
+	  enddo
+	  if (ifxform .ne. 0) then
+	    do i = 1, nxforms
+	      f(1,3,i) = f(1,3,i) / iBinning
+	      f(2,3,i) = f(2,3,i) / iBinning
+	    enddo
+	  endif
+	  idim = limdim - lenTemp
+	else
+	  idim = limdim - 1
+	endif
+c	
 	if(iffloat.gt.0)then
 	  floatxt=', floated to range'
 	  if(fraczero.ne.0.)
@@ -760,17 +707,17 @@ c
 	      CALL IMOPEN(1,FILIN(ifil),'RO')
 	      CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 C   
+c		get the binned size to read
+c		
+	      call getBinnedSize(nx, iBinning, nxbin, ixOffset)
+	      call getBinnedSize(ny, iBinning, nybin, iyOffset)
+c
 	      do ilis=1,nlist(ifil)
 		nsecred=inlist(ilis+listind(ifil)-1)
-		if(nsecred.lt.0.or.nsecred.ge.nz) then
-		  print *
-		  print *,'ERROR: NEWSTACK - SECTION',nsecred,
-     &		      ' DOES NOT EXIST IN FILE'
-		  call exit(1)
-		endif
 c		
-		call scansection(array,idim,nx,ny,nsecred,iffloat,dmin2,
-     &		    dmax2,dmean2,sdsec,loadyst,loadynd)
+		call scansection(array,idim,nxbin,nybin, iBinning, ixOffset,
+     &		    iyOffset,nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,
+     &		    loadyst,loadynd,array(idim + 1), lenTemp)
 		secmean(ilis+listind(ifil)-1)=dmean2
 c
 		if(iffloat.eq.2)then
@@ -827,6 +774,12 @@ c
 	  CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMININ,DMAXIN,DMEANIN)
           call irtsiz(1,nxyz,mxyz,nxyzst)
           call irtcel(1,cell)
+C   
+c		get the binned size to read
+c		
+	  call getBinnedSize(nx, iBinning, nxbin, ixOffset)
+	  call getBinnedSize(ny, iBinning, nybin, iyOffset)
+c	  print *,'Size and offsets X:',nxbin, ixOffset,', Y:',nybin, iyOffset
 c	    
 c	    get extra header information if any
 c
@@ -852,18 +805,18 @@ c	    get each section in input file
 c
 	  do ilis=1,nlist(ifil)
 	    nsecred=inlist(ilis+listind(ifil)-1)
-	    if(nsecred.lt.0.or.nsecred.ge.nz) then
-	      print *
-	      print *,'ERROR: NEWSTACK - SECTION',nsecred,
-     &		  ' DOES NOT EXIST IN FILE'
-	      call exit(1)
-	    endif
 c
-c	      set output characteristics from first section
+c	      set output characteristics from first section, transposing size
+c	      for 90 degree rotation and resizing as necessary
 c
 	    if(isec.eq.1)then
-	      if(nx3.le.0)nx3=nint(nx * expandFactor)
-	      if(ny3.le.0)ny3=nint(ny * expandFactor)
+	      if (abs(abs(rotateAngle) - 90.) .lt. 0.1 .and. nx3.le.0 .and.
+     &		  ny3.le.0) then
+		nx3=nint(nybin * expandFactor)
+		ny3=nint(nxbin * expandFactor)
+	      endif
+	      if(nx3.le.0)nx3=nint(nxbin * expandFactor)
+	      if(ny3.le.0)ny3=nint(nybin * expandFactor)
 	      if(newmode.lt.0)newmode=mode
 	    endif
 c
@@ -901,11 +854,20 @@ c
 c		keep delta the same by scaling cell size from change in mxyz
 c
               do i=1,3
-                CELL2(i)=mxyz2(i)*(cell(i)/mxyz(i)) / expandFactor
+                CELL2(i)=mxyz2(i)*(cell(i)/mxyz(i)) * iBinning /
+     &		    expandFactor
                 CELL2(i+3)=90.
               enddo
 	      CELL2(3)=mxyz2(3)*(cell(3)/mxyz(3))
 	      CALL IALCEL(2,CELL2)
+c		
+c		shift origin by the fraction pixel offset when binning - 
+c		a positive change is needed to indicate origin inside image
+c		
+	      call irtdel(1, delt)
+	      call irtorg(1, xorig, yorig, zorig)
+	      call ialorg(2, xorig - delt(1) * ixOffset,
+     &		  yorig - delt(1) * iyOffset, zorig)
 c
 c 7/7/00 CER: remove the encodes
 c
@@ -993,7 +955,7 @@ c	      figure out how the data will be loaded and saved; first see if
 c	      both input and output images will fit in one chunk, or if
 c	      entire input image will fit
 c
-	    linesleft=(idim-nx*ny)/nx3
+	    linesleft=(idim-nxbin*nybin)/nx3
 	    nchunk=(ny3+linesleft-1)/linesleft
 	    if(nchunk.eq.1.or.(nchunk.gt.0.and.nchunk.le.maxchunks.and.
      &		.not.rescale))then
@@ -1009,9 +971,9 @@ c
 		nLinesOut(ichunk)=nextline-lineOutSt(ichunk)
 		lineOutSt(ichunk+1)=nextline
 		lineInSt(ichunk)=0
-		nLinesIn(ichunk)=ny
+		nLinesIn(ichunk)=nybin
 	      enddo	      
-	      maxin=ny
+	      maxin=nybin
 	      ifOutChunk=1
 	    else
 c		
@@ -1037,9 +999,9 @@ c
 c			
 c			simple case of no transform
 c			
-		      IYbase = NY/2 + YCEN(isec) - (NY3/2)
+		      IYbase = NYbin/2 + YCEN(isec) - (NY3/2)
 		      IY1 = max(0,IYbase+lineOutSt(ichunk))
-		      iy2 = min(ny-1, iybase+nextline-1)
+		      iy2 = min(nybin-1, iybase+nextline-1)
 		    else
 c			
 c			transform: get input needs of 4 corners
@@ -1047,23 +1009,23 @@ c			pass and get back coordinates numbered from 1, subtract
 c			an extra 1 to get to lines numbered from 0
 c			Allow extra for distortion field Y component
 c			
-		      xci=nx/2.
-		      yci=ny/2.
+		      xci=nxbin/2.
+		      yci=nybin/2.
 		      dx = fprod(1,3)
 		      dy = fprod(2,3)
 c		      dx=f(1,3,lnu)-xcen(isec)
 c		      dy=f(2,3,lnu)-ycen(isec)
-		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+		      call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  1,lineOutSt(ichunk)+1,xp1,yp1)
-		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+		      call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  nx3,lineOutSt(ichunk)+1,xp2,yp2)
-		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+		      call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  1,nextline,xp3,yp3)
-		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+		      call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  nx3,nextline,xp4,yp4)
-		      iy1=min(ny-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
+		      iy1=min(nybin-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
      &			  maxFieldY))
-		      iy2=min(ny-1,max(0,int(max(yp1,yp2,yp3,yp4))+1 +
+		      iy2=min(nybin-1,max(0,int(max(yp1,yp2,yp3,yp4))+1 +
      &			  maxFieldY))
 		    endif
 		    lineInSt(ichunk)=iy1
@@ -1074,7 +1036,7 @@ c
 c		    Will the input and output data now fit?  Then terminate.
 c		    
 		  if(iscan.eq.2)iytest=nLinesOut(1)
-		  if(maxin*nx+iytest*nx3.le.idim)then
+		  if(maxin*nxbin+iytest*nx3.le.idim)then
 		    ifOutChunk=iscan-1
 		  else
 		    nchunk=nchunk+1
@@ -1114,8 +1076,9 @@ c
 	      loadyst=-1
 	      loadynd=-1
 	    else
-	      call scansection(array,idim,nx,ny,nsecred,0,dmin2,
-     &		  dmax2,dmeansec,sdsec,loadyst,loadynd)
+	      call scansection(array,idim,nxbin,nybin,iBinning,ixOffset,
+     &		  iyOffset,nsecred,0,dmin2,
+     &		  dmax2,dmeansec,sdsec,loadyst,loadynd,array(idim+1), lenTemp)
 	      loadynd=min(loadynd,loadyst+maxin-1)
 	    endif
 c	      
@@ -1136,14 +1099,18 @@ c
 c		    
 c		    move data down if it will fill a bottom region
 c		    
-		  nmove=(loadynd+1-needyst)*nx
-		  noff=(needyst-loadyst)*nx
+		  nmove=(loadynd+1-needyst)*nxbin
+		  noff=(needyst-loadyst)*nxbin
 		  do i=1,nmove
 		    array(i)=array(i+noff)
 		  enddo
 		  nload=needynd-loadynd
-		  call imposn(1,nsecred,loadynd+1)
-		  call irdsecl(1,array(nmove+1),nload,*99)
+c		    call imposn(1,nsecred,loadynd+1)
+c		  call irdsecl(1,array(nmove+1),nload,*99)
+		  call irdBinned(1, nsecred, array(nmove+1), nxbin,
+     &		      nload, ixOffset, iyOffset + iBinning*(loadynd + 1),
+     &		      iBinning, nxbin, nload, array(idim+1), lenTemp, ierr)
+		  if (ierr .ne. 0) go to 99
 		elseif(needyst.le.loadyst.and.needynd.ge.loadyst)then
 c		    
 c		    move data up if it will fill top
@@ -1154,15 +1121,23 @@ c
 		    array(i+noff)=array(i)
 		  enddo
 		  nload=loadyst-needyst
-		  call imposn(1,nsecred,needyst)
-		  call irdsecl(1,array,nload,*99)
+c		  call imposn(1,nsecred,needyst)
+c		  call irdsecl(1,array,nload,*99)
+		  call irdBinned(1, nsecred, array, nxbin, nload, ixOffset,
+     &		      iyOffset + iBinning*(needyst), iBinning, nxbin, nload,
+     &		      array(idim+1), lenTemp, ierr)
+		  if (ierr .ne. 0) go to 99
 		else
 c		    
 c		    otherwise just get whole needed region
 c
 		  nload=needynd+1-needyst
-		  call imposn(1,nsecred,needyst)
-		  call irdsecl(1,array,nload,*99)
+c		  call imposn(1,nsecred,needyst)
+c		  call irdsecl(1,array,nload,*99)
+		  call irdBinned(1, nsecred, array, nxbin, nload, ixOffset,
+     &		      iyOffset + iBinning*(needyst), iBinning, nxbin, nload,
+     &		      array(idim+1), lenTemp, ierr)
+		  if (ierr .ne. 0) go to 99
 		endif
 		loadyst=needyst
 		loadynd=needynd
@@ -1177,17 +1152,17 @@ c
 c		  
 c		  do transform if called for
 c		  
-		xci=nx/2.
-		yci=ny/2.-loadyst
+		xci=nxbin/2.
+		yci=nybin/2.-loadyst
 		dx=fprod(1,3)
 		dy=(ny3-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
 c		dx=f(1,3,lnu)-xcen(isec)
 c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
 		if (ifDistort .eq. 0) then
-		  call cubinterp(array,array(ibchunk),nx,nyload, nx3, nych,
+		  call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1)
 		else
-		  call undistort(array,array(ibchunk),nx,nyload, nx3, nych,
+		  call undistort(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1,
      &		      fieldDx, fieldDy, lmGrid, nxGrid, ixGridStrt, xGridIntrv,
      &		      nyGrid, iyGridStrt, yGridIntrv)
@@ -1197,15 +1172,15 @@ c
 c		  otherwise repack array into output space nx3 by ny3, with
 c		  offset as specified, using the special repack routine
 c		  
-		IXCEN = NX/2 + XCEN(isec)
+		IXCEN = NXbin/2 + XCEN(isec)
 		IX1 = IXCEN - (NX3/2)
 		IX2 = IX1 + NX3 - 1
 C		  
-		IYbase = NY/2 + YCEN(isec) - (NY3/2)
+		IYbase = NYbin/2 + YCEN(isec) - (NY3/2)
 		IY1 = IYbase+lineOutSt(ichunk)-loadyst
 		iy2 = iy1+nych-1
 c		  
-		CALL IREPAK2(array(ibchunk),ARRAY,nx,nyload,IX1,IX2,IY1,
+		CALL IREPAK2(array(ibchunk),ARRAY,nxbin,nyload,IX1,IX2,IY1,
      &		    IY2,dmeansec)
 	      endif
 c	      
@@ -1531,12 +1506,13 @@ c	  the size of ARRAY, while NX and NY are the image size.  The image
 c	  will be loaded in chunks if necessary.  LOADYST and LOADYND are the
 c	  starting and ending lines (numbered from 0) that are left in ARRAY.
 c
-	subroutine scansection(array,idim,nx,ny,nsecred,iffloat,dmin2,
-     &	    dmax2,dmean2,sdsec,loadyst,loadynd)
+	subroutine scansection(array,idim,nx,ny,nbin, ixOffset, iyOffset,
+     &	    nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,loadyst,loadynd,
+     &	    temp, lenTemp)
 	implicit none
-	integer*4 idim,nx,ny,nsecred,iffloat,loadyst,loadynd
-	real*4 array(idim),dmin2,dmax2,dmean2,sdsec
-	integer*4 maxlines,nloads,iline,iload,nlines
+	integer*4 idim,nx,ny,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp
+	real*4 array(idim),temp(lenTemp),dmin2,dmax2,dmean2,sdsec
+	integer*4 maxlines,nloads,iline,iload,nlines, ixOffset, iyOffset,ierr
 	real*4 dsum,dsumsq,tsum,tmin2,tmax2,tmean2,tsumsq,avgsec
 c	  
 c	  load in chunks if necessary, based on the maximum number
@@ -1552,8 +1528,11 @@ c
 	do iload=1,nloads
 	  nlines=ny/nloads
 	  if(iload.le.mod(ny,nloads))nlines=nlines+1
-	  call imposn(1,nsecred,iline)
-	  call irdsecl(1,array,nlines,*99)
+c	    call imposn(1,nsecred,iline)
+	  call irdBinned(1, nsecred, array, nx, nlines, ixOffset, iyOffset +
+     &	      nbin * iline, nbin, nx, nlines, temp, lenTemp, ierr)
+	  if (ierr .ne. 0) call errorexit('READING FILE')
+c	    call irdsecl(1,array,nlines,*99)
 c	    
 c	    accumulate sums for mean and sd if float 2, otherwise
 c	    just the mean
@@ -1812,3 +1791,36 @@ c
 	RETURN
 	END
 
+
+	subroutine getBinnedSize(nx, nbin, nxbin, ixOffset)
+	implicit none
+	integer*4 nx, nxbin, nbin, ixOffset
+	integer*4 irem
+c	
+c	  get rounded down binned size and remainder
+c	  
+	nxbin = nx / nbin
+	irem = nx - nbin * nxbin
+c	  
+c	  if binned size is same even/odd state as original size, increase
+c	  by 2 pixels if there is more than 1 remainder pixel
+c
+	if (mod(nx, 2) .eq. mod(nxbin, 2)) then
+	  if (irem .gt. 1) nxbin = nxbin + 2
+	else
+c	    
+c	    if there is change in even/odd state, must increase by 1 pixel
+c	    and add 1 binned pixel's worth of pixels to remainder to divide
+c	    between left and right
+c	    
+	  nxbin = nxbin + 1
+	  irem = irem + nbin
+	endif
+c
+c	  The offset is the negative of the number of non-existent pixels in
+c	  the first binned pixel
+c
+	ixOffset = 0
+	if (irem .gt. 1) ixOffset = -(nbin - irem/2)
+	return
+	end
