@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/05/20 19:48:41  mast
+#  Add transferfid
+#
 #  Revision 3.2  2002/01/13 17:40:11  mast
 #  *** empty log message ***
 #
@@ -18,7 +21,7 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid
+ dm2mrc alignlog transferfid submfg
 
 all:
 
