@@ -18,6 +18,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2003/04/16 00:14:12  rickg
+ * <p> Trimvol in progress
+ * <p>
  * <p> Revision 1.3  2003/04/14 23:56:59  rickg
  * <p> Default state of YZ swap changed to true
  * <p>
@@ -330,7 +333,14 @@ public class TrimvolParam {
     zMin = 1;
     zMax = mrcHeader.getNSections();
 
-    
+    // Check the swapped YZ state to decide which dimension to use for the 
+    // section range 
+    sectionScaleMin = 1;
+    if(swapYZ){
+      sectionScaleMax = yMax;
+    }
+    else {
+      sectionScaleMax = zMax;
+    }
   }
-
 }
