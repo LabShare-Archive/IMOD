@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.ArrayList;
+
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
 
@@ -17,14 +19,20 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/03 03:59:31  rickg
+ * <p> Added path X,Y,Z min and max attributes
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
 
 public class ConstCombineParams {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
+  protected String revisionNumber = "1.0";
+  
   protected boolean matchBtoA = true;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   protected StringList fiducialMatchListA = new StringList(0);
@@ -36,15 +44,94 @@ public class ConstCombineParams {
   protected int patchYMax = 0;
   protected int patchZMin = 0;
   protected int patchZMax = 0;
-  
+
   protected String patchRegionModel = "";
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
 
+  protected ArrayList invalidReasons = new ArrayList();
+  
   public ConstCombineParams() {
 
   }
 
+  /**
+   * Returns true if the patch boundary values have been modified
+   */
+  public boolean isPatchBoundarySet() {
+    if (patchXMin == 0
+      && patchXMax == 0
+      && patchYMin == 0
+      && patchYMax == 0
+      && patchZMin == 0
+      && patchZMax == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks the validity of the attribute values.
+   * @returns true if all entries are valid, otherwise the reasons are 
+   * available through the method getInvalidReasons.
+   */
+  public boolean isValid() {
+    boolean valid = true;
+    //  Clear any previous reasons from the list
+    invalidReasons.clear();
+
+    if(patchXMin < 1) {
+      valid = false;
+      invalidReasons.add("X min value is less than 1");
+    }
+    if(patchXMax < 1) {
+      valid = false;
+      invalidReasons.add("X max value is less than 1");
+    }
+    if(patchXMin > patchXMax) {
+      valid = false;
+      invalidReasons.add("X min value is greater than the X max value");
+    }
+
+    if(patchYMin < 1) {
+      valid = false;
+      invalidReasons.add("Y min value is less than 1");
+    }
+    if(patchYMax < 1) {
+      valid = false;
+      invalidReasons.add("Y max value is less than 1");
+    }
+    if(patchYMin > patchYMax) {
+      valid = false;
+      invalidReasons.add("Y min value is greater than the Y max value");
+    }
+
+    if(patchZMin < 1) {
+      valid = false;
+      invalidReasons.add("Z min value is less than 1");
+    }
+    if(patchZMax < 1) {
+      valid = false;
+      invalidReasons.add("ZX max value is less than 1");
+    }
+    if(patchZMin > patchZMax) {
+      valid = false;
+      invalidReasons.add("Z min value is greater than the Z max value");
+    }
+    return valid;
+  }
+  
+  /**
+   * Returns the reasons the attribute values are invalid as a string array.
+   */
+  public String[] getInvalidReasons() {
+    return (String[]) invalidReasons.toArray(new String[invalidReasons.size()]);
+  }
+
+  public String getRevisionNumber() {
+    return revisionNumber;
+  }
+  
   public boolean getMatchBtoA() {
     return matchBtoA;
   }
