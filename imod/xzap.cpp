@@ -837,6 +837,12 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->show();
   zap->popup = 1;
 
+  // 11/24/03: OS 10.3 needs to move after the show, so just put this in without
+  // checking if it would work generally
+#ifdef Q_OS_MACX
+  zap->qtWindow->move(xleft, ytop);
+#endif    
+
   if (zapDebug)
     puts("popup a zap dialog");
 
@@ -2815,6 +2821,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.36  2003/11/13 20:08:16  mast
+made spillover factor in setting zoom to a remembered window size the
+same as factor when no remembered size is available
+
 Revision 4.35  2003/10/31 01:29:24  mast
 Reset drawn area when rubber band is turned off
 
