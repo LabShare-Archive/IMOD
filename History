@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/1/03: Made it possible to kill 3dmod during image flipping operation.
+
+8/1/03: Standardized error exit in Xfproduct.
+
+8/1/03: Implemented proper thickness padding in fast backprojection code of
+Tilt, reduced Tilt's stack size so the increase is only 3-fold from previously,
+and made memory usage and data loading dynamic so that it will not use more
+than 80 MB of stack unless it needs to.
+
 7/31/03: IMOD_3-0-13
 7/31/03: Added ability to send messages to set movie mode and to load a model
 without changing black/white levels.
@@ -20,8 +29,9 @@ run temporary script files with csh, to make it work on Windows.
 cause by the "view" changes of 6/26/03, and changed 3dmodv back to recomputing
 scaling and center for the current view when first displaying a model.
 
-7/11/03: Discovered that fast backprojection needed to be padded to a nice
-thickness, and implemented a temporary fix for case of X-axis tilting.
+7/11/03: Increased stack size in Tilt, discovered that fast backprojection
+needed to be padded to a nice thickness, and implemented a temporary fix for
+case of X-axis tilting.
 
 7/10/03: Made newst able to take multiple input files and stack all sections
 from all files into one output file.
