@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/02/05 00:19:07  sueh
+ * <p> bug# 292 preserving contrast in view x-ray model, changed
+ * <p> imodXrayModel()
+ * <p>
  * <p> Revision 3.9  2004/02/04 18:12:46  sueh
  * <p> bug# 171 ask to automatically quit all running 3dmod
  * <p> programs.
@@ -3557,7 +3561,10 @@ public class ApplicationManager {
    * Open the trimmed volume in 3dmod
    */
   public void imodTrimmedVolume() {
+    TrimvolParam trimvolParam = new TrimvolParam();
+    postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
+      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam.isSwapYZ());
       //imodManager.openTrimmedVolume();
       imodManager.open(ImodManager.TRIMMED_VOLUME_KEY);
     }
