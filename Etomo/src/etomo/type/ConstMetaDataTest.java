@@ -402,7 +402,6 @@ public class ConstMetaDataTest extends TestCase {
    * Class to test for boolean isValid()
    */
   final public void testIsValid() {
-    //    System.out.println("working directory=" + System.getProperty("user.dir") + ",backupDirectory=" + testInst.getBackupDirectory());
     String invalidReason;
     //Test failures
 
