@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2002/12/01 15:36:02  mast
+#  Added a few dependencies after getting compilation with g++
+#
 #  Revision 3.4  2002/09/27 21:15:34  rickg
 #  Added new dependcies for imod_io.h and imod_client_message.*
 #
@@ -92,6 +95,7 @@ ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
 imod_moviecon.o : $(IMODVDEPS)
 imodv_objed.o : $(IMODDEPS)
 imodv_control.o : $(IMODDEPS)
+imodv_stereo.o : $(IMODDEPS)
 
 $(IMODVOBJS) : $(IMODVDEPS)
 imodv.o : $(IMODVDEPS) imod.h
