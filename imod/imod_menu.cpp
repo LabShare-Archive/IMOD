@@ -939,7 +939,8 @@ void InfoWindow::imageSlot(int item)
     return;
 
   /* DNM: only model and zap will work with raw (color) data */
-  if (App->cvi->rawImageStore && !(item == 5 || item == 4))
+  if (App->cvi->rawImageStore && 
+      !(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MODV))
     return;
      
   switch(item){
@@ -973,7 +974,8 @@ void InfoWindow::imageSlot(int item)
     break;
 
     case IMAGE_MENU_PIXEL:
-    open_pixelview(App->cvi);
+    if (!App->cvi->fakeImage)
+      open_pixelview(App->cvi);
     break;
 
     /* DNM 12/18/02 removed unused zoom command */
@@ -1053,6 +1055,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.13  2003/09/16 02:53:15  mast
+Changed to pass the memory snapshot as an array of line pointers
+
 Revision 4.12  2003/07/31 22:12:27  mast
 Autostore views when writing a model as Imod
 
