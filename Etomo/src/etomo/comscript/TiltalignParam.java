@@ -16,6 +16,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/01/21 22:46:11  sueh
+ * <p> bug# 509 bug# 591  Changed ConstEtomoNumber.
+ * <p> update(ComScriptCommand) to updateCommand(ComScriptCommand) to
+ * <p> make its function clear.
+ * <p>
  * <p> Revision 3.12  2005/01/14 23:01:52  sueh
  * <p> Changing the name of EtomoNumber.set(ComScriptCommand) to parse.
  * <p>
@@ -175,7 +180,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       tiltAngleSpec.set(scriptCommand, firstTiltAngleShortString,
           tiltIncrementShortString, tiltFileShortString);
       angleOffset.parse(scriptCommand);
-      projectionStretch.set(scriptCommand);
+      projectionStretch.parse(scriptCommand);
       rotOption.parse(scriptCommand);
       rotDefaultGrouping.parse(scriptCommand);
       rotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -249,6 +254,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     if (invalidReason != null && !invalidReason.matches("\\s*")) {
       throw new InvalidParameterException(invalidReason);
     }
+    //set fields dependent on other fields
+    setOutputLocalFile();
   }
 
   /**
@@ -450,29 +457,29 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         includeList);
     ParamUtilities.updateScriptParameter(scriptCommand, excludeListString,
         excludeList);
-    rotationAngle.updateCommand(scriptCommand);
+    rotationAngle.setInScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, separateGroupString,
         separateGroup);
     tiltAngleSpec.update(scriptCommand);
-    angleOffset.updateCommand(scriptCommand);
-    projectionStretch.update(scriptCommand);
-    rotOption.updateCommand(scriptCommand);
-    rotDefaultGrouping.updateCommand(scriptCommand);
-    rotationFixedView.updateCommand(scriptCommand);
-    tiltOption.updateCommand(scriptCommand);
-    tiltDefaultGrouping.updateCommand(scriptCommand);
-    magReferenceView.updateCommand(scriptCommand);
-    magOption.updateCommand(scriptCommand);
-    magDefaultGrouping.updateCommand(scriptCommand);
-    xStretchOption.updateCommand(scriptCommand);
-    skewOption.updateCommand(scriptCommand);
-    xStretchDefaultGrouping.updateCommand(scriptCommand);
-    skewDefaultGrouping.updateCommand(scriptCommand);
-    residualReportCriterion.updateCommand(scriptCommand);
-    surfacesToAnalyze.updateCommand(scriptCommand);
-    metroFactor.updateCommand(scriptCommand);
-    maximumCycles.updateCommand(scriptCommand);
-    axisZShift.updateCommand(scriptCommand);
+    angleOffset.setInScript(scriptCommand);
+    projectionStretch.setInScript(scriptCommand);
+    rotOption.setInScript(scriptCommand);
+    rotDefaultGrouping.setInScript(scriptCommand);
+    rotationFixedView.setInScript(scriptCommand);
+    tiltOption.setInScript(scriptCommand);
+    tiltDefaultGrouping.setInScript(scriptCommand);
+    magReferenceView.setInScript(scriptCommand);
+    magOption.setInScript(scriptCommand);
+    magDefaultGrouping.setInScript(scriptCommand);
+    xStretchOption.setInScript(scriptCommand);
+    skewOption.setInScript(scriptCommand);
+    xStretchDefaultGrouping.setInScript(scriptCommand);
+    skewDefaultGrouping.setInScript(scriptCommand);
+    residualReportCriterion.setInScript(scriptCommand);
+    surfacesToAnalyze.setInScript(scriptCommand);
+    metroFactor.setInScript(scriptCommand);
+    maximumCycles.setInScript(scriptCommand);
+    axisZShift.setInScript(scriptCommand);
     //local alignment
     localAlignments.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
@@ -486,17 +493,17 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     fixXYZCoordinates.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localOutputOptionsString, localOutputOptions);
-    localRotOption.updateCommand(scriptCommand);
-    localRotDefaultGrouping.updateCommand(scriptCommand);
-    localTiltOption.updateCommand(scriptCommand);
-    localTiltDefaultGrouping.updateCommand(scriptCommand);
-    localMagReferenceView.updateCommand(scriptCommand);
-    localMagOption.updateCommand(scriptCommand);
-    localMagDefaultGrouping.updateCommand(scriptCommand);
-    localXStretchOption.updateCommand(scriptCommand);
-    localXStretchDefaultGrouping.updateCommand(scriptCommand);
-    localSkewOption.updateCommand(scriptCommand);
-    localSkewDefaultGrouping.updateCommand(scriptCommand);
+    localRotOption.setInScript(scriptCommand);
+    localRotDefaultGrouping.setInScript(scriptCommand);
+    localTiltOption.setInScript(scriptCommand);
+    localTiltDefaultGrouping.setInScript(scriptCommand);
+    localMagReferenceView.setInScript(scriptCommand);
+    localMagOption.setInScript(scriptCommand);
+    localMagDefaultGrouping.setInScript(scriptCommand);
+    localXStretchOption.setInScript(scriptCommand);
+    localXStretchDefaultGrouping.setInScript(scriptCommand);
+    localSkewOption.setInScript(scriptCommand);
+    localSkewDefaultGrouping.setInScript(scriptCommand);
     //optional parameters
     ParamUtilities.updateScriptParameter(scriptCommand,
         outputZFactorFileString, outputZFactorFile);
@@ -808,6 +815,12 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     }
   }
 
+  public void setOutputLocalFile() {
+    if (outputLocalFile == null || outputLocalFile.matches("\\s*")) {
+      outputLocalFile = getOutputLocalFileName(datasetName, axisID);
+    }
+  }
+  
   /**
    * @param projectionStretch The projectionStretch to set.
    */

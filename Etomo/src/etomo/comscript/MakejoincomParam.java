@@ -5,9 +5,9 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -30,6 +30,11 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/21 22:42:19  sueh
+* <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+* <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+* <p> be placed in a comscript.
+* <p>
 * <p> Revision 1.5  2005/01/08 01:39:40  sueh
 * <p> bug# 578 Updated Command interface.
 * <p>
@@ -141,24 +146,28 @@ public class MakejoincomParam implements Command {
               + data.getSampleBottomEnd().toString());
         }
         //Add optional rotation angles
-        ConstEtomoNumber rotationAngleX = data.getRotationAngleX();
-        ConstEtomoNumber rotationAngleY = data.getRotationAngleY();
-        ConstEtomoNumber rotationAngleZ = data.getRotationAngleZ();
-        if (rotationAngleX.isUpdateCommand() || rotationAngleY.isUpdateCommand()
-            || rotationAngleZ.isUpdateCommand()) {
+        ScriptParameter rotationAngleX = data.getRotationAngleXParameter();
+        ScriptParameter rotationAngleY = data.getRotationAngleYParameter();
+        ScriptParameter rotationAngleZ = data.getRotationAngleZParameter();
+        if (rotationAngleX.isUseInScript() || rotationAngleY.isUseInScript()
+            || rotationAngleZ.isUseInScript()) {
           options.add("-rot");
           //all three numbers must exist
-          options.add(rotationAngleX.toString(true) + ","
-              + rotationAngleY.toString(true) + ","
-              + rotationAngleZ.toString(true));
+          StringBuffer buffer = new StringBuffer();
+          rotationAngleX.addToScript(buffer);
+          buffer.append(",");
+          rotationAngleY.addToScript(buffer);
+          buffer.append(",");
+          rotationAngleZ.addToScript(buffer);
+          options.add(buffer.toString());
         }
         options.add(data.getSection().getAbsolutePath());
       }
     }
     options.add("-tmpext");
     options.add("rot");
-    ConstEtomoNumber densityRefSection = metaData.getDensityRefSection();
-    if (densityRefSection.isUpdateCommand()) {
+    ScriptParameter densityRefSection = metaData.getDensityRefSectionParameter();
+    if (densityRefSection.isUseInScript()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
     }
