@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/09/09 21:36:00  mast
+c	  Eliminate stat_source: and nimp_source: from all includes
+c	
 c	  Revision 3.2  2002/07/07 04:39:52  mast
 c	  Add the argument for maximum number of vertices to the convexbound
 c	  call.
@@ -33,8 +36,10 @@ c
 c	  
 	newfile=.false.
 	if(modelfile.ne.' ')go to 92
-91	write(*,'(1x,a,$)')'Name of input model file: '
+91	print *,'Enter name of input model file, or Return to skip',
+     &	    ' to entering options'
 	read(5,'(a)')modelfile
+	if (modelfile .eq.' ') return
 	newfile=.true.
 c
 92	exist=readw_or_imod(modelfile)
