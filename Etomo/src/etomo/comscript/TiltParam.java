@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/23 21:26:47  rickg
+ * <p> Implemented radial filter parameters
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:24:22  rickg
  * <p> Comment update
  * <p>
@@ -69,13 +72,57 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         foundDone = true;
       }
 
+      if (tokens[0].equals("ANGLES")) {
+        for (int j = 1; j < tokens.length; j++) {
+          angles.add(tokens[j]);
+        }
+        useAngles = true;
+      }
+
+      if (tokens[0].equals("COMPFRACTION")) {
+        compressionFraction = Double.parseDouble(tokens[1]);
+        useCompressionFraction = true;
+      }
+
+      if (tokens[0].equals("COMPRESS")) {
+        compression = Double.parseDouble(tokens[1]);
+        useCompression = true;
+      }
+
+      if (tokens[0].equals("COSINTERP")) {
+        cosInterpOrder = Integer.parseInt(tokens[1]);
+        cosInterpFactor = Double.parseDouble(tokens[2]);
+        useCosInterp = true;
+      }
+
+      if (tokens[0].equals("DENSWEIGHT")) {
+        densityWeightNadjacent = tokens[1];
+        for (int j = 2; j < tokens.length; j++) {
+          densityWeights.add(tokens[j]);
+        }
+        useDensityWeight = true;
+      }
+
+      if (tokens[0].equals("EXCLUDE")) {
+        for (int j = 1; j < tokens.length; j++) {
+          exclude.add(tokens[j]);
+        }
+        useExclude = true;
+      }
+
       if (tokens[0].equals("EXCLUDELIST")) {
         excludeList.parseString(tokens[1]);
         useExcludeList = true;
       }
 
+      if (tokens[0].equals("FBPINTERP")) {
+        fastBackProjInterpOrder = Integer.parseInt(tokens[1]);
+        useFastBackProjInterpOrder = true;
+      }
+
       if (tokens[0].equals("FULLIMAGE")) {
-        fullImage = tokens[1];
+        fullImageX = Integer.parseInt(tokens[1]);
+        fullImageY = Integer.parseInt(tokens[2]);
         useFullImage = true;
       }
 
@@ -116,7 +163,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("SCALE")) {
-        scale = tokens[1];
+        scaleFLevel = Double.parseDouble(tokens[1]);
+        scaleCoeff = Double.parseDouble(tokens[2]);
         useScale = true;
       }
 
