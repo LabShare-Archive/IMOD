@@ -56,6 +56,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.10  2005/02/11 16:44:50  sueh
+* <p> $bug# 600 Adding tiltalign.
+* <p> $
 * <p> $Revision 1.9  2004/11/30 18:28:54  sueh
 * <p> $bug# 556 Added combinefft autodoc.
 * <p> $
@@ -98,6 +101,7 @@ public class Autodoc implements AttributeCollection {
   public static final String MTF_FILTER = new String("mtffilter");
   public static final String COMBINE_FFT = new String("combinefft");
   public static final String TILTALIGN = new String("tiltalign");
+  public static final String CCDERASER = new String("ccderaser");
   public static final String TEST = new String("test");
 
   private static final String fileExt = new String(".adoc");
@@ -107,6 +111,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc mtffilter = null;
   private static Autodoc combinefft = null;
   private static Autodoc tiltalign = null;
+  private static Autodoc ccderaser = null;
 
   private String fileName = null;
   private File file = null;
@@ -142,6 +147,10 @@ public class Autodoc implements AttributeCollection {
     if (name.equals(TILTALIGN)) {
       tiltalign = getAutodoc(tiltalign, name);
       return tiltalign;
+    }
+    if (name.equals(CCDERASER)) {
+      ccderaser = getAutodoc(ccderaser, name);
+      return ccderaser;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
