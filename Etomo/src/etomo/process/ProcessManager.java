@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.33  2004/08/24 20:44:09  sueh
+ * bug# 508 change BackgroundProcessMonitor.kill() to
+ * killMonitor()
+ *
  * Revision 3.32  2004/08/24 20:41:55  sueh
  * bug# 508 running killProcessAndDescendants() causes a delay.  If
  * BackgroundComScriptProcess.kill() is called before
@@ -1547,6 +1551,12 @@ public class ProcessManager {
     }
     killProcessAndDescendants(processID);
     
+    System.out.println("Finished killing processes:");
+    for (int i = 0; i < 5; i++) {
+      System.out.println("ps axl after killing process #" + i + ":");
+      getChildProcessList(processID);
+    }
+    
     if (thread instanceof BackgroundComScriptProcess) {
       ((BackgroundComScriptProcess) thread).killMonitor();
     }
@@ -1596,6 +1606,8 @@ public class ProcessManager {
     //try to prevent process from spawning with a SIGSTOP signal
     SystemProgram killShell = new SystemProgram("kill -19 " + processID);
     killShell.run();
+    System.out.println("stopped " + processID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("stopped " + processID + " at " + killShell.getRunTimestamp());
     //kill all decendents of process before killing process
     String[] childProcessIDList = null;
     do {
@@ -1611,7 +1623,8 @@ public class ProcessManager {
     //signal
     killShell = new SystemProgram("kill -9 " + processID);
     killShell.run();
-    Utilities.debugPrint("killed " + processID);
+    System.out.println("killed " + processID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("killed " + processID + " at " + killShell.getRunTimestamp());
     //record killed process
     killedList.put(processID, "");
   }
@@ -1697,7 +1710,7 @@ public class ProcessManager {
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
-
+    System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
     String header = stdout[0].trim();
@@ -1705,6 +1718,7 @@ public class ProcessManager {
     int idxPID = -1;
     int idxPPID = -1;
     int idxCMD = -1;
+    int idxPGID = -1;
     int found = 0;
     for (int i = 0; i < labels.length; i++) {
       if (labels[i].equals("PID")) {
@@ -1719,6 +1733,9 @@ public class ProcessManager {
         idxCMD = i;
         found++;
       }
+      if (labels[i].equals("PGID")) {
+        idxPGID = i;
+      }
       if (found >= 3) {
         break;
       }
@@ -1731,7 +1748,9 @@ public class ProcessManager {
     // Walk through the process list finding the PID of the children
     ArrayList childrenPID = new ArrayList();
     String[] fields;
+    System.out.println(stdout[0]);
     for (int i = 1; i < stdout.length; i++) {
+      System.out.println(stdout[i]);
       fields = stdout[i].trim().split("\\s+");
       if (fields[idxPPID].equals(processID)
         && !killedList.containsKey(fields[idxPID])) {
