@@ -13,6 +13,11 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/25 00:30:49  sueh
+ * <p> bug# 467 Comscript change!  OuterRadius is an out-of-date parameter that may
+ * <p> appear in some PIP-style comscripts.  annulusWidth is a new
+ * <p> parameter.
+ * <p>
  * <p> Revision 3.2  2004/04/12 16:48:55  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -75,25 +80,25 @@ public class CCDEraserParam
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (scriptCommand.isKeywordValuePairs()) {
-      findPeaks = scriptCommand.hasKeyword("FindPeaks");
-      peakCriterion = scriptCommand.getValue("PeakCriterion");
-      diffCriterion = scriptCommand.getValue("DiffCriterion");
-      growCriterion = scriptCommand.getValue("GrowCriterion");
-      scanCriterion = scriptCommand.getValue("ScanCriterion");
-      maximumRadius = scriptCommand.getValue("MaximumRadius");
-      annulusWidth = scriptCommand.getValue(ANNULUS_WIDTH);
-      xyScanSize = scriptCommand.getValue("XYScanSize");
-      edgeExclusion = scriptCommand.getValue("EdgeExclusionWidth");
+      findPeaks = scriptCommand.hasKeyword(FIND_PEAKS_KEY);
+      peakCriterion = scriptCommand.getValue(PEAK_CRITERION_KEY);
+      diffCriterion = scriptCommand.getValue(DIFF_CRITERION_KEY);
+      growCriterion = scriptCommand.getValue(GROW_CRITERION_KEY);
+      scanCriterion = scriptCommand.getValue(SCAN_CRITERION_KEY);
+      maximumRadius = scriptCommand.getValue(MAXIMUM_RADIUS_KEY);
+      annulusWidth = scriptCommand.getValue(ANNULUS_WIDTH_KEY);
+      xyScanSize = scriptCommand.getValue(X_Y_SCAN_SIZE_KEY);
+      edgeExclusion = scriptCommand.getValue(EDGE_EXCLUSION_WIDTH_KEY);
       pointModel = scriptCommand.getValue("PointModel");
-      trialMode = scriptCommand.hasKeyword("TrialMode");
+      trialMode = scriptCommand.hasKeyword(TRIAL_MODE_KEY);
 
-      inputFile = scriptCommand.getValue("InputFile");
-      outputFile = scriptCommand.getValue("OutputFile");
+      inputFile = scriptCommand.getValue(INPUT_FILE_KEY);
+      outputFile = scriptCommand.getValue(OUTPUT_FILE_KEY);
       modelFile = scriptCommand.getValue("ModelFile");
-      globalReplacementList = scriptCommand.getValue("AllSectionObjects");
-      localReplacementList = scriptCommand.getValue("LineObjects");
-      borderPixels = scriptCommand.getValue("BorderSize");
-      polynomialOrder = scriptCommand.getValue("PolynomialOrder");
+      globalReplacementList = scriptCommand.getValue(ALL_SECTION_OBJECTS_KEY);
+      localReplacementList = scriptCommand.getValue(LINE_OBJECTS_KEY);
+      borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
+      polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
       
       //handle out-of-date parameters
@@ -142,76 +147,76 @@ public class CCDEraserParam
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
 
-    scriptCommand.setValue("InputFile", inputFile);
+    scriptCommand.setValue(INPUT_FILE_KEY, inputFile);
 
     if (!outputFile.equals("")) {
-      scriptCommand.setValue("OutputFile", outputFile);
+      scriptCommand.setValue(OUTPUT_FILE_KEY, outputFile);
     }
     else {
-      scriptCommand.deleteKey("OutputFile");
+      scriptCommand.deleteKey(OUTPUT_FILE_KEY);
     }
 
     if (findPeaks) {
-      scriptCommand.setValue("FindPeaks", "");
+      scriptCommand.setValue(FIND_PEAKS_KEY, "");
     }
     else {
-      scriptCommand.deleteKey("FindPeaks");
+      scriptCommand.deleteKey(FIND_PEAKS_KEY);
     }
 
     if (!peakCriterion.equals("")) {
-      scriptCommand.setValue("PeakCriterion", peakCriterion);
+      scriptCommand.setValue(PEAK_CRITERION_KEY, peakCriterion);
     }
     else {
-      scriptCommand.deleteKey("PeakCriterion");
+      scriptCommand.deleteKey(PEAK_CRITERION_KEY);
     }
 
     if (!diffCriterion.equals("")) {
-      scriptCommand.setValue("DiffCriterion", diffCriterion);
+      scriptCommand.setValue(DIFF_CRITERION_KEY, diffCriterion);
     }
     else {
-      scriptCommand.deleteKey("DiffCriterion");
+      scriptCommand.deleteKey(DIFF_CRITERION_KEY);
     }
 
     if (!growCriterion.equals("")) {
-      scriptCommand.setValue("GrowCriterion", growCriterion);
+      scriptCommand.setValue(GROW_CRITERION_KEY, growCriterion);
     }
     else {
-      scriptCommand.deleteKey("GrowCriterion");
+      scriptCommand.deleteKey(GROW_CRITERION_KEY);
     }
 
     if (!scanCriterion.equals("")) {
-      scriptCommand.setValue("ScanCriterion", scanCriterion);
+      scriptCommand.setValue(SCAN_CRITERION_KEY, scanCriterion);
     }
     else {
-      scriptCommand.deleteKey("ScanCriterion");
+      scriptCommand.deleteKey(SCAN_CRITERION_KEY);
     }
 
     if (!maximumRadius.equals("")) {
-      scriptCommand.setValue("MaximumRadius", maximumRadius);
+      scriptCommand.setValue(MAXIMUM_RADIUS_KEY, maximumRadius);
     }
     else {
-      scriptCommand.deleteKey("MaximumRadius");
+      scriptCommand.deleteKey(MAXIMUM_RADIUS_KEY);
     }
 
     if (!annulusWidth.equals("")) {
-      scriptCommand.setValue(ANNULUS_WIDTH, annulusWidth);
+      scriptCommand.setValue(ANNULUS_WIDTH_KEY, annulusWidth);
     }
     else {
-      scriptCommand.deleteKey(ANNULUS_WIDTH);
+      scriptCommand.deleteKey(ANNULUS_WIDTH_KEY);
     }
 
     if (!xyScanSize.equals("")) {
-      scriptCommand.setValue("XYScanSize", xyScanSize);
+      scriptCommand.setValue(X_Y_SCAN_SIZE_KEY, xyScanSize);
     }
     else {
-      scriptCommand.deleteKey("XYScanSize");
+      scriptCommand.deleteKey(X_Y_SCAN_SIZE_KEY);
     }
 
     if (!edgeExclusion.equals("")) {
-      scriptCommand.setValue("EdgeExclusionWidth", edgeExclusion);
+      scriptCommand.setValue(EDGE_EXCLUSION_WIDTH_KEY, edgeExclusion);
     }
     else {
-      scriptCommand.deleteKey("EdgeExclusionWidth");
+      scriptCommand.deleteKey(EDGE_EXCLUSION_WIDTH_KEY);
     }
 
     if (!pointModel.equals("")) {
@@ -229,31 +234,31 @@ public class CCDEraserParam
     }
 
     if (!globalReplacementList.equals("")) {
-      scriptCommand.setValue("AllSectionObjects", globalReplacementList);
+      scriptCommand.setValue(ALL_SECTION_OBJECTS_KEY, globalReplacementList);
     }
     else {
-      scriptCommand.deleteKey("AllSectionObjects");
+      scriptCommand.deleteKey(ALL_SECTION_OBJECTS_KEY);
     }
 
     if (!localReplacementList.equals("")) {
-      scriptCommand.setValue("LineObjects", localReplacementList);
+      scriptCommand.setValue(LINE_OBJECTS_KEY, localReplacementList);
     }
     else {
-      scriptCommand.deleteKey("LineObjects");
+      scriptCommand.deleteKey(LINE_OBJECTS_KEY);
     }
 
     if (!borderPixels.equals("")) {
-      scriptCommand.setValue("BorderSize", borderPixels);
+      scriptCommand.setValue(BORDER_SIZE_KEY, borderPixels);
     }
     else {
-      scriptCommand.deleteKey("BorderSize");
+      scriptCommand.deleteKey(BORDER_SIZE_KEY);
     }
 
     if (!polynomialOrder.equals("")) {
-      scriptCommand.setValue("PolynomialOrder", polynomialOrder);
+      scriptCommand.setValue(POLYNOMIAL_ORDER_KEY, polynomialOrder);
     }
     else {
-      scriptCommand.deleteKey("PolynomialOrder");
+      scriptCommand.deleteKey(POLYNOMIAL_ORDER_KEY);
     }
 
     if (includeAdjacentPoints) {
@@ -264,10 +269,10 @@ public class CCDEraserParam
     }
 
     if (trialMode) {
-      scriptCommand.setValue("TrialMode", "");
+      scriptCommand.setValue(TRIAL_MODE_KEY, "");
     }
     else {
-      scriptCommand.deleteKey("TrialMode");
+      scriptCommand.deleteKey(TRIAL_MODE_KEY);
     }
     
     //remove out-of-date parameters

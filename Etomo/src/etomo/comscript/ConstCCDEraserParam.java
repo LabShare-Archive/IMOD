@@ -14,6 +14,10 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/06/25 00:32:00  sueh
+ * <p> bug# 467 OuterRadius is out-of-date.
+ * <p> New parameter annulusWidth
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -38,7 +42,23 @@ public class ConstCCDEraserParam {
   public static final String rcsid =
     "$Id$";
 
-  public static final String ANNULUS_WIDTH = "AnnulusWidth";
+  public static final String ANNULUS_WIDTH_KEY = "AnnulusWidth";
+  public static final String INPUT_FILE_KEY = "InputFile";
+  public static final String OUTPUT_FILE_KEY = "OutputFile";
+  public static final String FIND_PEAKS_KEY = "FindPeaks";
+  public static final String PEAK_CRITERION_KEY = "PeakCriterion";
+  public static final String DIFF_CRITERION_KEY = "DiffCriterion";
+  public static final String GROW_CRITERION_KEY = "GrowCriterion";
+  public static final String SCAN_CRITERION_KEY = "ScanCriterion";
+  public static final String MAXIMUM_RADIUS_KEY = "MaximumRadius";
+  public static final String X_Y_SCAN_SIZE_KEY = "XYScanSize";
+  public static final String EDGE_EXCLUSION_WIDTH_KEY = "EdgeExclusionWidth";
+  public static final String LINE_OBJECTS_KEY = "LineObjects";
+  public static final String ALL_SECTION_OBJECTS_KEY = "AllSectionObjects";
+  public static final String BORDER_SIZE_KEY = "BorderSize";
+  public static final String POLYNOMIAL_ORDER_KEY = "PolynomialOrder";
+  public static final String TRIAL_MODE_KEY = "TrialMode";
+  
   protected String inputFile = "";
   protected String outputFile = "";
 
