@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.56  2003/07/25 22:51:11  rickg
+ * <p> Imod model mode management changes
+ * <p> Save original stack as _orig.st
+ * <p>
  * <p> Revision 2.55  2003/07/22 22:16:15  rickg
  * <p> Erased stack methods and trial mode
  * <p>
@@ -827,16 +831,16 @@ public class ApplicationManager {
         + metaData.getDatasetName()
         + axisID.getExtension()
         + ".st";
-        
+
     File rawStack = new File(rawStackFilename);
     String rawStackRename =
-          System.getProperty("user.dir")
-            + File.separator
-            + metaData.getDatasetName()
-            + axisID.getExtension()
-            + "_orig.st";
+      System.getProperty("user.dir")
+        + File.separator
+        + metaData.getDatasetName()
+        + axisID.getExtension()
+        + "_orig.st";
     File rawRename = new File(rawStackRename);
-    
+
     String fixedStackFilename =
       System.getProperty("user.dir")
         + File.separator
@@ -849,7 +853,7 @@ public class ApplicationManager {
       openMessageDialog(
         "The erased stack doesn't exist.  Create the erased stack first",
         "Erased stack missing");
-        return;
+      return;
     }
 
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -858,12 +862,12 @@ public class ApplicationManager {
     //  Rename the fixed stack to the raw stack file name
     rawStack.renameTo(rawRename);
     fixedStack.renameTo(rawStack);
-    
-    if(imodManager.isRawStackOpen(axisID)) {
+
+    if (imodManager.isRawStackOpen(axisID)) {
       String[] message = new String[2];
       message[0] = "The replaced raw stack is still open in 3dmod";
       message[1] = "Should it be closed?";
-      if(openYesNoDialog(message)) {
+      if (openYesNoDialog(message)) {
         try {
           imodManager.quitRawStack(axisID);
         }
@@ -2202,18 +2206,35 @@ public class ApplicationManager {
       mainFrame.showBlankProcess(AxisID.ONLY);
     }
     else {
-      //  Get the user input data from the dialog box
-      if (updateCombineCom()) {
-        if (exitState == DialogExitState.POSTPONE) {
-          processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-          mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-          mainFrame.showBlankProcess(AxisID.ONLY);
+      if (exitState == DialogExitState.POSTPONE) {
+        // Update the com script and metadata info from the tomgram combination
+        // dialog box.  Since there are mutliple pages and scripts associated
+        // with the postpone button get the ones that are appropriate
+        if (!updateCombineCom()) {
+          return;
         }
-        else {
-          processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
-          mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
-          openPostProcessingDialog();
+        if (tomogramCombinationDialog.isCombinePanelEnabled()) {
+          if (!updateSolvematchshiftCom()) {
+            return;
+          }
+          if (!updateSolvematchmodCom()) {
+            return;
+          }
+          if (!updatePatchcorrCom()) {
+            return;
+          }
+          if (!updateMatchorwarpCom(false)) {
+            return;
+          }
         }
+        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+        mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+        mainFrame.showBlankProcess(AxisID.ONLY);
+      }
+      else {
+        processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
+        mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
+        openPostProcessingDialog();
       }
     }
   }
@@ -2263,9 +2284,9 @@ public class ApplicationManager {
   /**
    * Update the combine parameters from the calling dialog
    * @param tomogramCombinationDialog the calling dialog.
-   * @return true if the combine parameters are valid false otherwise.  If the
-   * combine parameters are invalid a message dialog describing the invalid
-   * parameters is presented to the user.
+   * @return true if the combine parameters are sucessfully updated or if the 
+   * parameters have not changed.  If the combine parameters are invalid a
+   * message dialog describing the invalid parameters is presented to the user.
    */
   private boolean updateCombineCom() {
     if (tomogramCombinationDialog == null) {
@@ -2274,6 +2295,7 @@ public class ApplicationManager {
         "Program logic error");
       return false;
     }
+
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
@@ -2290,8 +2312,11 @@ public class ApplicationManager {
       return false;
     }
 
-    metaData.setCombineParams(combineParams);
-    isDataParamDirty = true;
+    CombineParams originalCombineParams = metaData.getCombineParams();
+    if (!originalCombineParams.equals(combineParams)) {
+      metaData.setCombineParams(combineParams);
+      isDataParamDirty = true;
+    }
     return true;
   }
 
