@@ -51,7 +51,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapDraw(ZapStruct *zap);
-static int zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
+static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
 static void zapButton1(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton2(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
@@ -629,7 +629,9 @@ int imod_zap_open(struct ViewInfo *vi)
   /* 1/28/03: this call is needed to get the toolbar size hint right */
   imod_info_input();
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
-  QSize toolSize2 = zap->qtWindow->mToolBar2->sizeHint();
+  QSize toolSize2(0, 0);
+  if (zap->qtWindow->mToolBar2)
+    toolSize2 = zap->qtWindow->mToolBar2->sizeHint();
   toolHeight = zap->qtWindow->height() - zap->gfx->height();
 
   if (!oldGeom.width()) {
@@ -1309,7 +1311,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
  * Analyze for whether mouse is close to a corner or an edge and set flags
  * for mouse to be set properly
  */
-static int zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy)
+static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy)
 {
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
@@ -3461,6 +3463,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.65  2005/03/29 00:59:11  mast
+Made mouse change when moved over rubber band; moved time to 2nd toolbar
+
 Revision 4.64  2005/03/20 19:55:37  mast
 Eliminating duplicate functions
 
