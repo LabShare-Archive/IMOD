@@ -1,11 +1,30 @@
 #
-# Makefile for flib man pages, needed only for cleaning.  See Makefile
-# in localman directory
+# Makefile for flib man pages
 #
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
+include ../configure
 
-always :
+THERE = ../../manpages
+
+install : $(THERE)/mantohtml
+	./makedist $(THERE)
+	$(CP) *.1 $(INSTDIR)/man/cat1
+	\mv *.html $(INSTDIR)/html/man
+
+$(THERE)/mantohtml : ALWAYS
+	(cd $(THERE) ; $(CC) $(CFLAGS) -o mantohtml mantohtml.c)
 
 clean :
-	-\rm -f *.html *~
+	$(FIND) . -type f -name "*.html"   -exec rm "{}" \;
+	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
 
+ALWAYS :
 
