@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/10 20:43:18  mast
+c	  Used new subroutine for getting input/output files
+c	
 c	  Revision 3.5  2003/10/09 02:32:44  mast
 c	  Add pipdone call
 c	
@@ -107,7 +110,6 @@ c	  the former rotrans structures
 	real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),
      &	    rnet(6)
 	integer*4 modepow(0:15)/8,15,8,0,0,0,0,0,0,9,10,11,12,13,14,15/
-	integer*4 rename
 	integer*4  minxwant, maxxwant
 	integer*4  minywant, maxywant
 c	  
@@ -644,12 +646,9 @@ c	      number of bytes per item
 c
 	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
 	    edgenam=concat(filnam,edgeext(ixy))
-	    inquire(file=edgenam,exist=exist)
-	    if(exist)then
-	      ierr=rename(edgenam,concat(edgenam,'~'))
-	      if(ierr.ne.0)write(6,*)' Error attempting to rename',
+	    ierr = imodBackupFile(edgenam)
+	    if(ierr.ne.0)write(6,*)' WARNING: blendmont - renaming',
      &		  ' existing edge function file'
-	    endif
 	    open(iunedge(ixy),file=edgenam,status='new'
      &		,form='unformatted',access='direct',recl=lenrec)
 c	      write header record
