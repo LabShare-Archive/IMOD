@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2004/11/22 04:30:50  mast
+    ; on include
+
     Revision 1.2  2004/11/22 03:58:58  mast
     Got it working in Windows/Qt 3.3; added check for file existence
 
@@ -35,35 +38,22 @@ ImodAssistant *ImodHelp;
 
 ImodAssistant::ImodAssistant(const char *path, bool absolute)
 {
-  QString imodDir = QString(getenv("IMOD_DIR"));
-  char sep = QDir::separator();
-
-  // Open the assistant in qtlib if one exists, otherwise take the one on path
-  QString assPath = QDir::cleanDirPath(imodDir + sep + "qtlib");
-  if (!QFile::exists(assPath + sep + "assistant"))
-    assPath = "";
-  mAssistant = new QAssistantClient(assPath, this);
-  connect(mAssistant, SIGNAL(error(const QString&)), this, 
-          SLOT(assistantError(const QString&)));
+  mAssistant = NULL;
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
     mPath = QString(path);
   } else {
-    mPath = imodDir + sep + QString(path);
+    mPath = QString(getenv("IMOD_DIR")) + QDir::separator() + QString(path);
   }
-
-  // Hide the side bar but do not define an adp file
-#if QT_VERSION >= 0x030200
-  mAssistant->setArguments(QStringList("-hideSidebar"));
-#endif
-
 }
 
 ImodAssistant::~ImodAssistant()
 {
-  mAssistant->closeAssistant();
-  delete mAssistant;
+  if (mAssistant) {
+    mAssistant->closeAssistant();
+    delete mAssistant;
+  }
 }
 
 // Show page given an absolute or relative path
@@ -72,6 +62,27 @@ void ImodAssistant::showPage(const char *page, bool absolute)
   QString fullPath;
   QString fileOnly;
   int len;
+  char sep = QDir::separator();
+
+  // Get the assistant object the first time
+  if (!mAssistant) {
+
+    // Open the assistant in qtlib if one exists, otherwise take the one on
+    // path.  Need to check for .app on Mac
+    QString imodDir = QString(getenv("IMOD_DIR"));
+    QString assPath = QDir::cleanDirPath(imodDir + sep + "qtlib");
+    if (!QFile::exists(assPath + sep + "assistant") && 
+        !QFile::exists(assPath + sep + "assistant.app"))
+      assPath = "";
+    mAssistant = new QAssistantClient(assPath, this);
+    connect(mAssistant, SIGNAL(error(const QString&)), this, 
+            SLOT(assistantError(const QString&)));
+
+    // Hide the side bar but do not define an adp file
+#if QT_VERSION >= 0x030200
+    mAssistant->setArguments(QStringList("-hideSidebar"));
+#endif
+  }
 
   // Get full path name and clean it
   if (absolute)
@@ -98,7 +109,7 @@ void ImodAssistant::showPage(const char *page, bool absolute)
 // Report errors.  Sadly, it will not report a bad page
 void ImodAssistant::assistantError(const QString &msg)
 {
-  QString fullMsg = QString("Error opening Qt Assistant or help page:\n") +
+  QString fullMsg = QString("Error opening Qt Assistant:\n") +
     msg;
   dia_err((char *)fullMsg.latin1());
 }
