@@ -31,52 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.5  2003/01/29 17:51:36  mast
-New floating procedure implemented to avoid zap snake eating tail
-
-Revision 1.1.2.4  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.3  2003/01/23 20:03:54  mast
-rationalizing object edit update
-
-Revision 1.1.2.2  2003/01/13 01:00:49  mast
-Qt version
-
-Revision 1.1.2.1  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 3.5.2.3  2002/12/19 04:37:12  mast
-Cleanup of unused global variables and defines
-
-Revision 3.5.2.2  2002/12/09 17:42:32  mast
-remove include of zap
-
-Revision 3.5.2.1  2002/12/05 16:29:32  mast
-add include of imod_object_edit.h
-
-Revision 3.5  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.4  2002/11/25 19:21:40  mast
-In imod_info_setxyz, elimiated call to redraw pixelview; this is now
-in the control list for redrawing
-
-Revision 3.3  2002/09/27 19:54:14  rickg
-Reverted calls to LoadModel to match changes to imod_io
-Removed or commented out unreferenced variables.
-
-Revision 3.2  2002/09/13 21:08:42  mast
-Changed call to LoadModel to add NULL filename argument
-
-Revision 3.1  2002/01/29 03:10:00  mast
-Call imodDraw instead of xyz_draw after changing model/movie mode
-
+Log at end of file
 */
 
 #include <stdio.h>
@@ -96,6 +51,7 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include "imod_info_cb.h"
 #include "hotslider.h"
 #include "xcramp.h"
+#include "control.h"
 
 extern "C" {
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
@@ -161,6 +117,8 @@ void imodInfoNewOCP(int which, int value, int edited)
   }
 
   // This takes care of many updates through redraw and imod_info_setocp
+  // Set active to 0 to get new point to sync correctly
+  ivwControlActive(App->cvi, 0);
   imod_setxyzmouse();
 }
 
@@ -680,3 +638,54 @@ void imod_imgcnt(char *string)
   wprint("%s\r", string);
   imod_info_input();
 }
+
+/*
+$Log$
+Revision 4.2  2003/02/13 22:19:20  mast
+round zmouse value for display
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.5  2003/01/29 17:51:36  mast
+New floating procedure implemented to avoid zap snake eating tail
+
+Revision 1.1.2.4  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.3  2003/01/23 20:03:54  mast
+rationalizing object edit update
+
+Revision 1.1.2.2  2003/01/13 01:00:49  mast
+Qt version
+
+Revision 1.1.2.1  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
+Revision 3.5.2.3  2002/12/19 04:37:12  mast
+Cleanup of unused global variables and defines
+
+Revision 3.5.2.2  2002/12/09 17:42:32  mast
+remove include of zap
+
+Revision 3.5.2.1  2002/12/05 16:29:32  mast
+add include of imod_object_edit.h
+
+Revision 3.5  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.4  2002/11/25 19:21:40  mast
+In imod_info_setxyz, elimiated call to redraw pixelview; this is now
+in the control list for redrawing
+
+Revision 3.3  2002/09/27 19:54:14  rickg
+Reverted calls to LoadModel to match changes to imod_io
+Removed or commented out unreferenced variables.
+
+Revision 3.2  2002/09/13 21:08:42  mast
+Changed call to LoadModel to add NULL filename argument
+
+Revision 3.1  2002/01/29 03:10:00  mast
+Call imodDraw instead of xyz_draw after changing model/movie mode
+
+*/
