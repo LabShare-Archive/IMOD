@@ -48,6 +48,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2004/12/14 21:23:54  sueh
+* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+* <p> only saving metadata.  bug# 572:  Removing state object from meta data
+* <p> and managing it with a manager object.
+* <p>
 * <p> Revision 1.8  2004/12/09 04:49:42  sueh
 * <p> bug# 565 Removed isDataParamDirty.  Automatically saving to param file on exit.
 * <p> Changed saveTestParamIfNecessary() to saveTestParamOnExit().
@@ -216,8 +221,9 @@ public class JoinManager extends BaseManager {
   private JoinProcessManager processMgr;
   private JoinState state;
   
-  public JoinManager(String paramFileName) {
+  public JoinManager(String paramFileName, JoinMetaData metaData) {
     super();
+    this.metaData = metaData;
     initializeUIParameters(paramFileName);
     // Open the etomo data file if one was found on the command line
     if (!test) {
@@ -263,10 +269,6 @@ public class JoinManager extends BaseManager {
   
   protected void createMainPanel() {
     mainPanel = new MainJoinPanel(this);
-  }
-  
-  protected void createMetaData() {
-    metaData = new JoinMetaData();
   }
   
   /**
