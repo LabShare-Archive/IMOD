@@ -24,6 +24,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2004/01/27 05:37:22  mast
+c	  Left a ; on a line
+c	
 c	  Revision 3.6  2004/01/20 00:07:37  mast
 c	  Added option to apply a single transform, fixed initialization and a
 c	  problem with back-transforming with -xf
@@ -64,6 +67,7 @@ c	real*4 delt(3)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz)
 	character*120 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
+	character*120 magGradFile
 	logical gotthis,gotlast,exist,readw_or_imod
 	integer*4 getimodhead,getimodscales,getimodmaxes
 	integer*4 limpnts/4/			!min # of points for regression
@@ -80,15 +84,18 @@ c
 	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
 	real*4 xdev,ydev,devpnt,devavg,xx,yy,xlast,ylast,xnew,ynew
 	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz, ifBack, iter
-	integer*4 lineUse, lineToUse
+	integer*4 lineUse, lineToUse, ifMagGrad
 	logical done
 	real*4 atan2d
 c
 	integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
 	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
-	real*4 xGridIntrv, yGridIntrv, pixelIdf, binRatio, dx, dy
+	real*4 xGridIntrv, yGridIntrv, pixelIdf, binRatio, dx, dy, dx1, dy1
 	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
 	character*10240 stringList
+	real*4 pixelMagGrad, axisRot
+	real*4 tiltAngles(nflimit), dmagPerUm(nflimit), rotPerUm(nflimit)
+	integer*4 numMagGrad
 c	  
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -100,7 +107,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  xfmodel
 c
 	integer numOptions
-	parameter (numOptions = 21)
+	parameter (numOptions = 22)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -113,8 +120,8 @@ c
      &      'prealign:PrealignTransforms:FN:@edit:EditTransforms:FN:@'//
      &      'xforms:XformsToApply:FN:@useline:UseTransformLine:I:@'//
      &      'back:BackTransform:B:@distort:DistortionField:FN:@'//
-     &      'binning:BinningOfImages:I:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      'binning:BinningOfImages:I:@gradient:GradientFile:FN:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  set defaults
 c	  
@@ -123,6 +130,8 @@ c
 	ycen = 0.
 	ifBack = 0
 	iBinning = 1
+	ifDistort = 0
+	ifMagGrad = 0
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -269,6 +278,7 @@ c
 	oldxfgfile = ' '
 	oldxffile = ' '
 	idfFile = ' '
+	magGradFile = ' '
 	iftrans=0
 	ifrotrans=0
 	ifmagrot = 0
@@ -281,22 +291,30 @@ c
 
 	  if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
 	  if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
+	  if (PipGetString('GradientFile', magGradFile) .eq. 0) ifxfmod = 1
 	  if (PipGetString('PrealignTransforms', oldxfgfile) .eq. 0)
      &	      ifprealign = 1
 c	    
-c	    if back-transform, first check for legality if not distorting
-c	    and set the filename into oldxfgfile if -xform used
+c	    if back-transform, first check for legality
 c
-
-	  if (PipGetBoolean('BackTransform', ifBack) .eq. 0 .and.
-     &	      idfFile .eq. ' ') then
-	    if (oldxffile .eq. ' ' .and. oldxfgfile .eq. ' ') call errorexit(
-     &		'You must enter -xform, -prealign, or -distort with -back')
+	  if (PipGetBoolean('BackTransform', ifBack) .eq. 0) then
 	    if (oldxffile .ne. ' ' .and. oldxfgfile .ne. ' ') call errorexit(
      &		'You cannot enter both -xform and -prealign with -back')
-	    ifxfmod = -1
-	    ifprealign = 1
+	    if (ifxfmod + ifprealign .eq. 0)
+     &		call errorexit('You must enter -xform, -prealign,'//
+     &		' -distort or -gradient with -back')
+c	      
+c	      in any case, set filename for use in back-transform, clear out
+c	      transform filename, set flag for prealign back-transform if any
+c	      Set xfmodel -1 if xform is givem, or if preali with no
+c	      distortions; i.e. preali with distortion will retransform forward
+c	      to original (distorted) aligned stack
+c		
+	    if (oldxffile .ne. ' ' .or. (idfFile .eq. ' ' .and.
+     &		magGradFile .eq. ' ')) ifxfmod = -1
 	    if (oldxffile .ne. ' ') oldxfgfile = oldxffile
+	    oldxffile = ' '
+	    if (oldxfgfile .ne. ' ') ifprealign = 1
 	  endif
 c
 	  if (iftrans + ifrotrans + ifmagrot .gt. 1) call errorexit
@@ -309,7 +327,8 @@ c
 	  if (ifmagrot .ne. 0) ifxfmod = 4
 
 	  if (lineUse .ge. 0 .and. .not.(ifxfmod .eq. -1 .or.
-     &	      (ifxfmod .eq. 1 .and. oldxffile .ne. ' '))) call errorexit(
+     &	      (ifxfmod .eq. 1 .and. (oldxffile .ne. ' ' .or.
+     &	      oldxfgfile .ne. ' ')))) call errorexit(
      &	      'You cannot enter -useline unless you are forward or '//
      &	      'back transforming')
 
@@ -362,24 +381,24 @@ c
 	      call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
      &		  idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
      &		  iyGridStrt, yGridIntrv, nyGrid)
+c	  
+c		if the center is not yet defined, need to get it now
+c		  
+	      if (xcen .eq. 0. .and. ycen .eq. 0.) then
+		exist=readw_or_imod(modelfile)
+		if(.not.exist)go to 91
+		ierr = getimodmaxes(maxx, maxy, maxz)
+		xcen = maxx / 2.
+		ycen = maxy / 2.
+		write(*,'(a,2f8.1)')'Using model header to determine '//
+     &		    'center coordinates:', xcen, ycen
+	      endif
 c		
 c		insist on binning unless situation is unambiguous, and convert
 c		the distortion field by the difference in binning
-c
+c		
 	      if (PipGetInteger('BinningOfImages', iBinning) .ne. 0) then
-c	  
-c		  if the center is not yet defined, need to get it now
-c		  
-		if (xcen .eq. 0. .and. ycen .eq. 0.) then
-		  exist=readw_or_imod(modelfile)
-		  if(.not.exist)go to 91
-		  ierr = getimodmaxes(maxx, maxy, maxz)
-		  xcen = maxx / 2.
-		  ycen = maxy / 2.
-		  write(*,'(a,2f8.1)')'Using model header to determine '//
-     &		      'center coordinates:', xcen, ycen
-		endif
-
+		
 		if (2. * xcen .le. idfNx * idfBinning / 2 .and.
      &		    2. * ycen .le. idfNy * idfBinning / 2) call errorexit
      &		    ('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
@@ -387,6 +406,7 @@ c
 	      endif
 	      if (iBinning .le. 0) call errorexit
      &		  ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
+	      binRatio = 1.
 	      if (iBinning .ne. idfBinning) then
 		binRatio = idfBinning / float(iBinning)
 		ixGridStrt = nint(ixGridStrt * binRatio)
@@ -400,9 +420,24 @@ c
 		  enddo
 		enddo
 	      endif
-	      
+c		
+c		Need to shift field by difference between image and camera
+c		centers
+c
+	      ixGridStrt = ixGridStrt - nint(idfNx * binRatio / 2. - xcen)
+	      iyGridStrt = iyGridStrt - nint(idfNy * binRatio / 2. - ycen)
+c	      print *,ixGridStrt,ixGridStrt,xcen,ycen,idfnx,idfny,binratio
 	    endif
 	  endif
+c	    
+c	    mag gradients now
+c
+	  if (magGradFile .ne. ' ') then
+	    ifMagGrad = 1
+	    call readMagGradients(magGradFile, nflimit, pixelMagGrad, axisRot,
+     &		tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
+	  endif
+	    
 	else
 c	    
 c	    old input: get prealignment or back transforms
@@ -538,10 +573,12 @@ c
      &		  ' applied at all Z values'
 	    endif
 	  endif
+	  print *,'Back-transforming model with inverse of XGs from ',
+     &	      oldxfgfile(1:lnblnk(oldxfgfile))
 	  call transformModel(g, noldg, nflimit, xcen, ycen, indfl,
      &		listz, lineToUse, nundefine)
 	    
-	  if(ifxfmod.lt.0)then
+	  if(ifxfmod.lt.0 .and. ifDistort + ifMagGrad .eq. 0)then
 c
 c	      write out back-transformed model
 	    call rescaleWriteModel(newmodel, nundefine)
@@ -566,9 +603,21 @@ c
      &		' applied at all Z values'
 	  endif
 	endif
+c	  
+c	 TRANSFORMING/UNDISTORTING MODEL 
+c
 	if(ifxfmod.ne.0)then
-	  if (ifDistort .ne. 0) then
+	  if (ifDistort + ifMagGrad .ne. 0) then
+	    if (ifBack .ne. 0) then
+	      print *,'Redistorting model'
+	    else
+	      print *,'Undistorting model'
+	    endif
+
 	    do i=1,n_point
+	      if (ifMagGrad .ne. 0) 
+     &		  iz = max(1, min(nint(p_coord(3, i) + 1.), numMagGrad))
+
 	      if (ifBack .eq. 0) then
 c	    
 c		  undistort the model - find point that distorts to the 
@@ -579,11 +628,22 @@ c
 		ylast = p_coord(2,i)
 		done = .false.
 		do while (iter .lt. 10 .and. .not.done)
-		  call interpolateGrid(xlast, ylast, fieldDx,
+		  dx1 = 0.
+		  dy1 = 0.
+		  dx = 0.
+		  dy = 0.
+		  if (IfMagGrad .ne. 0)
+     &		      call magGradientShift(xlast, ylast, nint(2. * xcen),
+     &		      nint(2. * ycen),
+     &		      xcen, ycen, pixelMagGrad, axisRot, tiltAngles(iz),
+     &		      dmagPerUm(iz), rotPerUm(iz), dx1, dy1)
+
+		  if (ifDistort .ne. 0)
+     &		      call interpolateGrid(xlast + dx1, ylast + dy1, fieldDx,
      &		      fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
      &		      iyGridStrt, yGridIntrv, dx, dy)
-		  xnew = p_coord(1,i) - dx
-		  ynew = p_coord(2,i) - dy
+		  xnew = p_coord(1,i) - (dx + dx1)
+		  ynew = p_coord(2,i) - (dy + dy1)
 		  done = abs(xnew - xlast) .lt. 0.01 .and.
      &		      abs(ynew - ylast) .lt. 0.01
 		  xlast = xnew
@@ -596,18 +656,36 @@ c
 c		  
 c		  or redistort the model
 c		  
-		call interpolateGrid(p_coord(1,i), p_coord(2,i), fieldDx,
-     &		    fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
-     &		    iyGridStrt, yGridIntrv, dx, dy)
-		p_coord(1,i) = p_coord(1,i) + dx
-		p_coord(2,i) = p_coord(2,i) + dy
+		dx1 = 0.
+		dy1 = 0.
+		dx = 0.
+		dy = 0.
+		if (IfMagGrad .ne. 0)
+     &		    call magGradientShift(p_coord(1,i), p_coord(2,i),
+     &		    nint(2. * xcen), nint(2. * ycen),
+     &		    xcen, ycen, pixelMagGrad, axisRot, tiltAngles(iz),
+     &		    dmagPerUm(iz), rotPerUm(iz), dx1, dy1)
+
+		if (ifDistort .ne. 0)
+     &		    call interpolateGrid(p_coord(1,i) + dx1,
+     &		    p_coord(2,i) + dy1,
+     &		    fieldDx, fieldDy, lmGrid, idfNx, idfNy, ixGridstrt,
+     &		    xGridIntrv, iyGridStrt, yGridIntrv, dx, dy)
+		p_coord(1,i) = p_coord(1,i) + dx1 + dx
+		p_coord(2,i) = p_coord(2,i) + dy1 + dy
 	      endif
 	    enddo
 c	      
 c	      if there was prealignment and no new transforms, get the 
 c	      prealignment transforms back by inversion and set up to use them
 c	      
-	    if (nfgin .eq. 0 .and. ifprealign .ne. 0) then
+	    if (nfgin .ne. 0) then
+	      print *,'Transforming model with XGs from ',
+     &		  oldxffile(1:lnblnk(oldxffile))
+	    else if (nfgin .eq. 0 .and. ifprealign .ne. 0 .and.
+     &		  ifxfmod .gt. 0) then
+	      print *,'Transforming model with reinverted XGs from ',
+     &		  oldxfgfile(1:lnblnk(oldxfgfile))
 	      do indg=1,noldg
 		call xfinvert(g(1,1,indg), f(1,1,indg))
 	      enddo
