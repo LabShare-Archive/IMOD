@@ -62,6 +62,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.38  2005/03/11 01:38:28  sueh
+ * bug# 533 Added get and setBlendParams to get and set
+ * linearInterpolation in BlendmontParam.
+ *
  * Revision 3.37  2005/03/09 22:33:23  sueh
  * bug# 533 Modify the context sensitive help so that it displays blendmont
  * man pages and log files instead of newst when the view type is montage.
@@ -582,6 +586,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
     ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
+  }
+  
+  public int getBinning() {
+    return ((Integer) spinBinning.getValue()).intValue();
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object

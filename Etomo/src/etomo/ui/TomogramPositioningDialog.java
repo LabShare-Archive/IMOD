@@ -43,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/03/02 00:14:11  sueh
+ * <p> bug# 533 disabled whole tomogram for montaging.
+ * <p>
  * <p> Revision 3.24  2005/02/19 00:31:30  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.
@@ -407,6 +410,10 @@ public class TomogramPositioningDialog extends ProcessDialog
     double binning = Double.parseDouble(spinBinning.getValue().toString());
     tomopitchParam.setScaleFactor(binning);
     updateMetaData();
+  }
+  
+  public int getBinning() {
+    return ((Integer) spinBinning.getValue()).intValue();
   }
 
   /**
