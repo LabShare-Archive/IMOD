@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:45:11  rickg
  * <p> Debug messages to stderr instead of stdout
  * <p>
@@ -78,7 +81,7 @@ public class BackgroundProcess extends Thread {
   }
 
   /**
-   * Returns the workingDirectory.
+   * Returns the full command line.
    * @return File
    */
   public String getCommandLine() {
@@ -86,7 +89,7 @@ public class BackgroundProcess extends Thread {
   }
 
   /**
-   * Returns the workingDirectory.
+   * Returns command name of the process
    * @return File
    */
   public String getCommand() {
