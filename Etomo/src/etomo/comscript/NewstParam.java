@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/12 16:49:51  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.6  2004/03/13 00:31:36  rickg
  * <p> Bug# 390 Add parsing for the rest of the options
  * <p>
@@ -224,93 +227,93 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
 
     ArrayList cmdLineArgs = new ArrayList(20);
     for (Iterator i = inputFile.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-InputFile");
+      cmdLineArgs.add("-input");
       cmdLineArgs.add((String) i.next());
     }
     for (Iterator i = outputFile.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-OutputFile");
+      cmdLineArgs.add("-output");
       cmdLineArgs.add((String) i.next());
     }
     if (!fileOfInputs.equals("")) {
-      cmdLineArgs.add("-FileOfInputs");
+      cmdLineArgs.add("-fileinlist");
       cmdLineArgs.add(fileOfInputs);
     }
     if (!fileOfOutputs.equals("")) {
-      cmdLineArgs.add("-FileOfOutputs");
+      cmdLineArgs.add("-fileoutlist");
       cmdLineArgs.add(fileOfOutputs);
     }
     for (Iterator i = sectionsToRead.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-SectionsToRead");
+      cmdLineArgs.add("-secs");
       cmdLineArgs.add((String) i.next());
     }
     for (Iterator i = numberToOutput.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-NumberToOutput");
+      cmdLineArgs.add("-numout");
       cmdLineArgs.add((String) i.next());
     }
     if (sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault())) {
-      cmdLineArgs.add("-SizeToOutputInXandY");
+      cmdLineArgs.add("-size");
       cmdLineArgs.add(sizeToOutputInXandY.toString());
     }
     if (modeToOutput > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-ModeToOutput");
+      cmdLineArgs.add("-mode");
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
     for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-OffsetsInXandY");
+      cmdLineArgs.add("-offset");
       cmdLineArgs.add((String) i.next());
     }
     if (applyOffsetsFirst) {
-      cmdLineArgs.add("-ApplyOffsetsFirst");
+      cmdLineArgs.add("-applyfirst");
     }
     if (!transformFile.equals("")) {
-      cmdLineArgs.add("-TransformFile");
+      cmdLineArgs.add("-xform");
       cmdLineArgs.add(transformFile);
     }
     if (!useTransformLines.equals("")) {
-      cmdLineArgs.add("-UseTransformLines");
+      cmdLineArgs.add("-uselines");
       cmdLineArgs.add(useTransformLines);
     }
     if (!Float.isNaN(rotateByAngle)) {
-      cmdLineArgs.add("-RotateByAngle");
+      cmdLineArgs.add("-rotate");
       cmdLineArgs.add(String.valueOf(rotateByAngle));
     }
     if (!Float.isNaN(expandByFactor)) {
-      cmdLineArgs.add("-ExpandByFactor");
+      cmdLineArgs.add("-expand");
       cmdLineArgs.add(String.valueOf(expandByFactor));
     }
     if (binByFactor > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-BinByFactor");
+      cmdLineArgs.add("-bin");
       cmdLineArgs.add(String.valueOf(binByFactor));
     }
     if (linearInterpolation) {
-      cmdLineArgs.add("-LinearInterpolation");
+      cmdLineArgs.add("-linear");
     }
     if (floatDensities > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-FloatDensities");
+      cmdLineArgs.add("-float");
       cmdLineArgs.add(String.valueOf(floatDensities));
     }
     if (contrastBlackWhite.valuesSet() && (!contrastBlackWhite.isDefault())) {
-      cmdLineArgs.add("-ContrastBlackWhite");
+      cmdLineArgs.add("-contrast");
       cmdLineArgs.add(String.valueOf(contrastBlackWhite.toString()));
     }
     if (scaleMinAndMax.valuesSet() && (!scaleMinAndMax.isDefault())) {
-      cmdLineArgs.add("-ScaleMinAndMax");
+      cmdLineArgs.add("-scale");
       cmdLineArgs.add(String.valueOf(scaleMinAndMax.toString()));
     }
     if (!distortionField.equals("")) {
-      cmdLineArgs.add("-DistortionField");
+      cmdLineArgs.add("-distort");
       cmdLineArgs.add(distortionField);
     }
     if (imagesAreBinned > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-ImagesAreBinned");
+      cmdLineArgs.add("-imagebinned");
       cmdLineArgs.add(String.valueOf(imagesAreBinned));
     }
     if (testLimits.valuesSet() && (!testLimits.isDefault())) {
-      cmdLineArgs.add("-TestLimits");
+      cmdLineArgs.add("-test");
       cmdLineArgs.add(String.valueOf(testLimits.toString()));
     }
     if (!parameterFile.equals("")) {
-      cmdLineArgs.add("-ParameterFile");
+      cmdLineArgs.add("-param");
       cmdLineArgs.add(parameterFile);
     }
     int nArgs = cmdLineArgs.size();
