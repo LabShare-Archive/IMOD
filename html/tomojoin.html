@@ -114,31 +114,24 @@ rotated.
 and answer all of the questions.  Then run the command file startjoin.com.
 
 Aligning the Sample Slices
-     Load the sample file (&quot;join_name.sample&quot;) into 3dmod.  This will allow you
-to decide which slices are best for aligning, and to discern any trends in
-structure positions that need to be accounted for.  You will probably want to
-park the 3dmod and Zap windows so that they are readily available when running
-Midas.
-     Run Midas on the sample file and make the output file for transforms be
-&quot;join_name.xf&quot;.  For each section boundary, you want to load in the desired
-slice from the top of the lower section as the &quot;reference&quot; section and a slice
-from the bottom of the upper section as the &quot;current&quot; section.  (Remember that
-section numbers in Midas are one less than in 3dmod.)  Since these are
-generally not adjacent sections, you will need to turn off the &quot;Keep Curr -
-Ref diff = 1&quot; toggle button.  If you want to scroll through the sections to
-select the pair to align, an easy way to do this is first to keep that button
-selected, display the reference section (PageDown), and use the section up and
-down arrows or the &quot;a&quot; and &quot;b&quot; hotkeys to change section until you see the
-preferred section.  Then unselect the keep-difference button, display the
-current section (PageUp), and use the section arrows or &quot;a&quot; and &quot;b&quot; to find
-the desired current section.  After finding the best alignment for the first
-pair of sections, use the same procedure to move on to the next boundary.
-     Your final transform file must have only one transform that is not &quot;zero&quot;
-for each section boundary.  This means that if you become unhappy with the
-pair of sections that you are using and want to switch to a different pair,
-you should zero out the transform with the Edit menu function &quot;Reset to Unit
-Transform&quot; before switching to the new pair.  Otherwise you will end up with
-an extra transform in the file, and Finishjoin will be unable to proceed.
+     The sample slices are aligned in Midas using a special &quot;chunk&quot; alignment
+mode, in which you can adjust the alignment between chunks of slices while
+viewing any pair of slices from the chunks.  Midas must be run with the &quot;-c&quot;
+option followed by a comma-separated list of the the number of slices in each
+chunk.  To get one transform per section, include the top and bottom samples
+from each section in the same chunk.  In its final message, Makejoincom
+outputs a command line to use to run Midas with the appropriate sizes.  Run
+   midas -c size_list join_name.sample join_name.xf
+to load the sample file (&quot;join_name.sample&quot;) into Midas and make the output
+file for transforms be &quot;join_name.xf&quot;.  For each section boundary, it will
+initially show the slice from the top of the lower section as the &quot;reference
+section&quot; and the slice from the bottom of the upper section as the &quot;current
+section&quot;.  However, you are free to select another pair of slices for
+aligning, to scroll through either set up slices to assess trends in the
+structures, and to switch the pair of slices after you have started aligning.
+Use the up and down arrows on the spin boxes, or the &quot;a&quot;, &quot;b&quot;, &quot;c&quot;, and &quot;d&quot;
+hot keys to move forward and back through the slices in the two sections.
+Use the &quot;Current chunk&quot; spin box to switch to a different section boundary.
 
 Making the Final Joined Volume
      Once you have found the transformations and exited Midas, you need only to
@@ -149,7 +142,7 @@ volume.
 
      Finally, run Finishjoin with the range of sections given for each
 tomogram, for example:
- finishjoin join_name 15,89 32,95 17,82
+   finishjoin join_name 15,89 32,95 17,82
 
 Examine the joined volume (&quot;join_name.join&quot;) to see whether you want fewer or
 more slices at any of the section boundaries.  If so, modify the Finishjoin
