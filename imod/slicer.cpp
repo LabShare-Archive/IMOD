@@ -528,6 +528,8 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_Right:
   case Qt::Key_Left:
   case Qt::Key_Insert:
+  case Qt::Key_End:
+  case Qt::Key_Next:
     dodraw = 0;
     if (!(event->state() & Qt::Keypad)) {
       handled = 0;
@@ -541,6 +543,10 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
       ss->tang[lang] += 0.1;
     if (keysym == Qt::Key_Up)
       ss->tang[lang] += 0.5;
+    if (keysym == Qt::Key_End)
+      ss->tang[lang] -= 15.0;
+    if (keysym == Qt::Key_Next)
+      ss->tang[lang] += 15.0;
     if (keysym == Qt::Key_Insert)
       ss->tang[lang] = 0.0;
     if (ss->tang[lang] > maxAngle[lang])
@@ -1776,6 +1782,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.3  2003/02/27 19:27:16  mast
+Using new b3dX,Y,Z and adding argument to imodDrawModel call
+
 Revision 4.2  2003/02/12 21:39:26  mast
 Changed integer truncation method to speed up on some pentium 4's
 
