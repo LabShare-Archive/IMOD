@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/01/28 16:56:07  mast
+    Moved setting of vi->[xyz]size up before image loading so that movie
+    controller will have good sizes if it is opened while image is loading
+
     Revision 3.1  2001/12/17 18:50:42  mast
     Changed the way section usage in the cache is kept track of and added
     logic for cache filling
@@ -1343,6 +1347,15 @@ void ivwSetModelTrans(ImodView *iv)
 
      /* DNM 11/5/98: set this flag that tilt angles were properly saved */
      imod->flags |= IMODF_TILTOK;
+
+     /* DNM 7/20/02: the old values in the model seem never to be used, so
+	use otrans to store image origin information so programs can get
+	back to full volume index coordinates from info in model header.
+	Also set a new flag to indicate this info exists */
+     ref->otrans.x = iv->image->xtrans;
+     ref->otrans.y = iv->image->ytrans;
+     ref->otrans.z = iv->image->ztrans;
+     imod->flags |= IMODF_OTRANS_ORIGIN;
 
      free(iref);
 }
