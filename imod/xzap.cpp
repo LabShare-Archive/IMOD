@@ -1503,10 +1503,11 @@ void zapButton2(ZapStruct *zap, int x, int y)
         vi->zmouse = 0;
       if (vi->zmouse > vi->zsize - 1)
         vi->zmouse = vi->zsize - 1;
-               
-      imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
-    } else
-      imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+    }     
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
+    /* DNM 5/22/03: sync all but the active window when single point added */
+      //} else
+      //imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
       
     return;
   }
@@ -2628,6 +2629,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.21  2003/05/04 18:37:14  mast
+Fixing help
+
 Revision 4.20  2003/05/03 00:16:59  mast
 Fixed problem on connecting lines being drawn between non-contiguous points
 for wild contours; drawing non-wild contours separately shuld also speed
