@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2003/10/20 23:25:41  rickg
+ * <p> Bug# 253 Added convert to bytes checkbox
+ * <p>
  * <p> Revision 1.10  2003/10/16 17:05:10  rickg
  * <p> Bug# 305 Label changes, backup file filter
  * <p>
@@ -174,8 +177,7 @@ public class TrimvolPanel {
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    ScalingListener ScalingListener =
-      new ScalingListener(this);
+    ScalingListener ScalingListener = new ScalingListener(this);
     rbScaleFixed.addActionListener(ScalingListener);
     rbScaleSection.addActionListener(ScalingListener);
     cbConvertToBytes.addActionListener(ScalingListener);
@@ -184,6 +186,8 @@ public class TrimvolPanel {
     btnImodFull.addActionListener(buttonActonListener);
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
+
+    setToolTipText();
   }
 
   /**
@@ -259,8 +263,8 @@ public class TrimvolPanel {
    */
   private void setScaleState() {
 
-		rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
-		rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
+    rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
+    rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
     boolean fixedState =
       cbConvertToBytes.isSelected() && rbScaleFixed.isSelected();
     ltfFixedScaleMin.setEnabled(fixedState);
@@ -328,5 +332,72 @@ public class TrimvolPanel {
     public void actionPerformed(ActionEvent event) {
       listenee.buttonAction(event);
     }
+  }
+  /**
+  * Initialize the tooltip text
+  */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "The X coordinate on the left side to retain in the volume.";
+    ltfXMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "The X coordinate on the right side to retain in the volume.";
+    ltfXMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "The lower Y coordinate to retain in the volume.";
+    ltfYMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "The upper Y coordinate to retain in the volume.";
+    ltfYMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "The bottom Z slice to retain in the volume.";
+    ltfZMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "The top Z slice to retain in the volume.";
+    ltfZMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Scale densities to bytes with extreme densities truncated.";
+    cbConvertToBytes.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Set the scaling to match the contrast in a 3dmod display.";
+    rbScaleFixed.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the black contrast slider setting (0-254) that gives the desired "
+        + "contrast.";
+    ltfFixedScaleMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the white contrast slider setting (1-255) that gives the desired "
+        + "contrast.";
+    ltfFixedScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Set the scaling based on the range of contrast in a subset of sections. "
+        + "Exclude sections with extreme densities that can be truncated (gold "
+        + "particles).";
+    rbScaleSection.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum Z section of the subset to analyze for contrast range.";
+    ltfSectionScaleMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum Z section of the subset to analyze for contrast range.";
+    ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Flip Y and Z in the output volume so that the file does not need to be "
+        + "flipped when loaded into 3dmod.";
+    cbSwapYZ.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the original, untrimmed volume in 3dmod.";
+    btnImodFull.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Trim the original volume with the parameters given above.";
+    btnTrimvol.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the trimmed volume.";
+    btnImodTrim.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }

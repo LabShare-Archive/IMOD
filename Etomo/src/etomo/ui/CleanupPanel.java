@@ -38,6 +38,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 1.4  2003/10/16 17:07:44  rickg
+ * Bug# 305 Label changes, backup file filter
+ *
  * <p>
  * Revision 1.3 2003/05/07 17:51:45 rickg
  * <p>
@@ -97,7 +100,7 @@ public class CleanupPanel {
 
     fileChooser = new JFileChooser();
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-		fileChooser.setFileFilter(backupFileFilter);
+    fileChooser.setFileFilter(backupFileFilter);
     fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
@@ -125,19 +128,20 @@ public class CleanupPanel {
     ButtonActonListener buttonActionListener = new ButtonActonListener(this);
     btnDelete.addActionListener(buttonActionListener);
     btnRescanDir.addActionListener(buttonActionListener);
+    setToolTipText();
   }
 
   /**
-	 * @return
-	 */
+   * @return
+   */
   public Container getContainer() {
     return pnlCleanup;
   }
 
   /**
-	 * 
-	 *  
-	 */
+   * 
+   *  
+   */
   private void deleteSelected() {
     File[] deleteList = fileChooser.getSelectedFiles();
     for (int i = 0; i < deleteList.length; i++) {
@@ -154,8 +158,8 @@ public class CleanupPanel {
   }
 
   /**
-	 * @param event
-	 */
+   * @param event
+   */
   private void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnDelete.getActionCommand()) {
       deleteSelected();
@@ -166,8 +170,8 @@ public class CleanupPanel {
   }
 
   /*
-	 *  
-	 */
+   *  
+   */
   class ButtonActonListener implements ActionListener {
     CleanupPanel listenee;
 
@@ -178,5 +182,25 @@ public class CleanupPanel {
     public void actionPerformed(ActionEvent event) {
       listenee.buttonAction(event);
     }
+  }
+  /**
+  * Initialize the tooltip text
+  */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "The list of files in this text box will be deleted.";
+    fileChooser.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Select the type of files to show in the file selection box.";
+		//  TODO: is there a way to set the filter drop down tooltip?
+		
+    text = "Delete the files listed in the \"File name\" text box.";
+    btnDelete.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text =
+      "Read the directory again to update the list in the file selection box.";
+      btnRescanDir.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
