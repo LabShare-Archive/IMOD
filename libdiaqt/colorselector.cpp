@@ -31,43 +31,15 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.3  2003/03/19 19:38:11  mast
-Change the color panel to a GL widget
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:46  mast
-adding as library file
-
-Revision 1.1.2.6  2003/01/23 19:55:42  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.5  2003/01/18 00:58:37  mast
-add tooltips to dialogframe call
-
-Revision 1.1.2.4  2002/12/30 06:53:00  mast
-eliminate unused variables
-
-Revision 1.1.2.3  2002/12/30 06:36:21  mast
-parameterizing the hot slider
-
-Revision 1.1.2.2  2002/12/29 04:12:58  mast
-Recoded to inherit dialog_frame
-
-Revision 1.1.2.1  2002/12/27 01:19:47  mast
-Initial creation
-
+Log at end of file
 */
 
 /* This class provides a color selector with a smaple color panel, and three
  * sliders for adjusting red, green, and blue.  It manages the color of the
  * panel continuously during changes, and emits a signal for a new color
  * if the slider is clicked.  It will also emit signals during a drag if 
- * hotFlag is nonzero; if the key given by hotKey is up when hotFlag is 1;
- * or when it is down when hotFlag is -1.
+ * hotFlag is not 2; if the key given by hotKey is up when hotFlag is 0;
+ * or when it is down when hotFlag is 1.
  * It also emits signals when done is pressed, when it is closing, and 
  * when keys are pressed or released
  */
@@ -79,9 +51,9 @@ Initial creation
 #include "multislider.h"
 #include "colorselector.h"
 
-#define NO_HOT_SLIDER 0
-#define HOT_SLIDER_KEYUP 1
-#define HOT_SLIDER_KEYDOWN -1
+#define HOT_SLIDER_KEYUP 0
+#define HOT_SLIDER_KEYDOWN 1
+#define NO_HOT_SLIDER 2
 
 static char *sliderLabels[] = {"Red", "Green", "Blue"};
 static char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
@@ -211,6 +183,7 @@ void ColorSelector::keyPressEvent ( QKeyEvent * e )
 
 }
 
+
 void ColorSelector::keyReleaseEvent ( QKeyEvent * e )
 {
   if (e->key() == mHotKey) {
@@ -232,3 +205,37 @@ void ColorSelectorGL::paintGL()
   glClearColor(mRGB[0] / 255., mRGB[1] / 255., mRGB[2] / 255., 0.);
   glClear(GL_COLOR_BUFFER_BIT);
 }
+
+/*
+$Log$
+Revision 1.4  2003/03/20 23:40:19  mast
+Eliminate frame around GL widget to get it full width on SGI
+
+Revision 1.3  2003/03/19 19:38:11  mast
+Change the color panel to a GL widget
+
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/26 20:35:46  mast
+adding as library file
+
+Revision 1.1.2.6  2003/01/23 19:55:42  mast
+switch from button pressed to clicked
+
+Revision 1.1.2.5  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
+Revision 1.1.2.4  2002/12/30 06:53:00  mast
+eliminate unused variables
+
+Revision 1.1.2.3  2002/12/30 06:36:21  mast
+parameterizing the hot slider
+
+Revision 1.1.2.2  2002/12/29 04:12:58  mast
+Recoded to inherit dialog_frame
+
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
+*/
