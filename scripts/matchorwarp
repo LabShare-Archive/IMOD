@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/21 04:54:48  mast
+#  Added options for specifying rows and columns to exclude for findwarp,
+#  and for running in a trial mode
+#
 
 
 set patchfile = "patch.out"
@@ -68,7 +72,7 @@ while ($#argv > 2)
     case -mo*:
       set modelfile = $argv[2]
       if (! -e $modelfile)then
-	echo "${pn}: model file does not exist"
+	echo "ERROR: ${pn} - model file does not exist"
 	exit 1
       endif
       shift; shift
@@ -130,15 +134,15 @@ end
 set recfile = $argv[1]
 set matfile = $argv[2]
 if (! -e $recfile)then
-  echo "${pn}: input file $recfile does not exist"
+  echo "ERROR: ${pn} - input file $recfile does not exist"
   exit 1
 endif
 if (! -e $patchfile)then
-  echo "${pn}: input file $patchfile does not exist"
+  echo "ERROR: ${pn} - input file $patchfile does not exist"
   exit 1
 endif
 if (! -e $solvefile)then
-  echo "${pn}: input file $solvefile does not exist"
+  echo "ERROR: ${pn} - input file $solvefile does not exist"
   exit 1
 endif
 
@@ -146,7 +150,7 @@ endif
 if ($sizein == "") then
     set sizein = $matfile
     if (! -e $sizein) then
-	echo "${pn}: cannot deduce size; $matfile does not exist"
+	echo "ERROR: ${pn} - cannot deduce size; $matfile does not exist"
 	exit 1
     endif
 endif
@@ -198,13 +202,19 @@ $solvefile
 $refinefile
 $inversefile
 EOF
-    exit 0
+
+    exit $status
 
 endif
 
 # If there is an error exit, run findwarp as long as warplimit not 0
 if ($warplimit == "0" || $warplimit == "0." || $warplimit == ".0" \
-	|| $warplimit == "0.0") exit 1
+	|| $warplimit == "0.0") then
+    echo " "
+    echo "ERROR: MATCHORWARP - REFINEMATCH GAVE A MEAN RESIDUAL ERROR ABOVE $refinelimit"
+    echo "  AND WARPING IS DISABLED"
+    exit 1
+endif
 
 set warplist = `echo $warplimit | sed 's/,/ /g'`
 
@@ -251,14 +261,14 @@ $size
 $warpfile
 EOF
 
-	exit 0
+        exit $status
     endif
     shift warplist
 end
 
 # IF get out of loop, it's all over
 echo " "
-echo "MATCHORWARP: FINDWARP COULD NOT FIND WARPING WITH RESIDUAL UNDER $lastwarp"
+echo "ERROR: MATCHORWARP - FINDWARP COULD NOT FIND WARPING WITH RESIDUAL UNDER $lastwarp"
 echo "YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, ELIMINATE ROWS OR COLUMNS,"
 echo "  OR RUN FINDWARP INTERACTIVELY"
 exit 1
