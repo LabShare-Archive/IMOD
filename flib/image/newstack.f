@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2003/12/27 20:35:15  mast
+c	  Can't declare cosd and sind external, since they aren't always
+c	
 c	  Revision 3.12  2003/12/27 19:43:35  mast
 c	  Moved distortion routines into library
 c	
@@ -134,7 +137,7 @@ c
 	integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
 	integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
-	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3
+	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*4 cosd, sind
 	integer*4 lnblnk
@@ -148,14 +151,15 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c
 	integer numOptions
-	parameter (numOptions = 23)
+	parameter (numOptions = 24)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'listin:ListOfInputs:FN:@listout:ListOfOutputs:FN:@'//
      &      'secs:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
      &      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
-     &      'offset:OffsetsInXandY:FA:@xform:TransformFile:FN:@'//
+     &      'offset:OffsetsInXandY:FA:@'//
+     &      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
      &      'uselines:UseTransformLines:LI:@rotate:RotateByAngle:F:@'//
      &      'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
      &      'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
@@ -186,6 +190,7 @@ c
 	iBinning = 1
 	limdim = maxdim
 	lenTemp = maxtemp
+	applyFirst = 0
 C   
 C	  Read in list of input files
 C   
@@ -561,6 +566,7 @@ c
 c	  get new options
 c
 	if (pipinput) then
+	  ierr = PipGetBoolean('ApplyOffsetsFirst', applyFirst)
 	  ierr = PipGetFloat('RotateByAngle', rotateAngle)
 	  ierr = PipGetFloat('ExpandByFactor', expandFactor)
 	  ierr = PipGetInteger('BinByFactor', iBinning)
@@ -943,17 +949,24 @@ c
 	      rescale=.true.
 	    endif
 c	      
-c	      if transforming, get the shifts by applying the offset first
-c	      then multiplying that by the transform
+c	      if transforming, and apply first is seleted, get the shifts by
+c	      applying the offset first then multiplying that by the transform
+c	      Otherwise do it the old way, subtract offset from final xform
 c
 	    if (ifxform .ne. 0) then
 	      lnu=lineuse(isec)+1
 	      if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
      &		  'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
-	      call xfunit(frot, 1.)
-	      frot(1,3) = -xcen(isec)
-	      frot(2,3) = -ycen(isec)
-	      call xfmult(frot, f(1,1,lnu), fprod)
+	      if (applyFirst .ne. 0) then
+		call xfunit(frot, 1.)
+		frot(1,3) = -xcen(isec)
+		frot(2,3) = -ycen(isec)
+		call xfmult(frot, f(1,1,lnu), fprod)
+	      else
+		call xfcopy(f(1,1,lnu), fprod)
+		fprod(1,3) = fprod(1,3) - xcen(isec)
+		fprod(2,3) = fprod(2,3) - ycen(isec)
+	      endif
 	    endif
 c	      
 c	      figure out how the data will be loaded and saved; first see if
