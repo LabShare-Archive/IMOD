@@ -17,6 +17,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/08/22 14:58:48  mast
+c	  Used line_is_filename as workaround to Windows problem
+c	
 c	  Revision 3.2  2004/07/22 23:45:58  mast
 c	  Activated interzone option and allowed reduction > 1
 c	
@@ -51,7 +54,7 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
-	logical ina,inb,verbose,interZone,independent
+	logical ina,inb,verbose,interZone,independent,jointZone
 	real*4 dmin,dmax,dmean,acritlo,acrithi,bcritlo,bcrithi
 	integer*4 ierr,mode,iunout,i,j,nviewa,nviewb,iz,ind,iy,ix,ilook
 	real*4 tsum,tmin,tmax,delx,dely,delz,za,ya,yasq,xa,xasq,xp,yp,zp,ra,rb
@@ -78,9 +81,8 @@ c
      &      'bhighest:BHighestTilts:FP:@'//
      &      'inverse:InverseTransformFile:FN:@'//
      &      'reduce:ReductionFraction:F:@'//
-     &      'separate:SeparateReduction:B:@'//
-     &      'interzone:InterzoneReduction:B:@ring:RingWidth:F:@'//
-     &      'nslabs:NumberOfSlabsInY:I:@'//
+     &      'separate:SeparateReduction:B:@joint:JointReduction:B:@'//
+     &      'ring:RingWidth:F:@nslabs:NumberOfSlabsInY:I:@'//
      &      'radius:MinimumRadiusToReduce:F:@'//
      &      'points:MinimumPointsInRing:I:@verbose:VerboseOutput:B:@'//
      &      'weight:WeightingPower:F:@param:ParameterFile:PF:@'//
@@ -88,13 +90,13 @@ c
 c
 	weightPower = 0.
 	reduceFrac = 0.
-	numSlabs = 15
-	ringWidth = 0.06
-	radiusMin = 0.02
+	numSlabs = 1
+	ringWidth = 0.01
+	radiusMin = 0.01
 	minInRing = 30
 	filout = ' '
 	verbose = .false.
-	interZone = .false.
+	jointZone = .false.
 	independent = .false.
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -159,7 +161,8 @@ c
 	if (reduceFrac .gt. 10.) call errorexit(
      &	    'REDUCTION FRACTION MUST NOT BE BIGGER THAN 10')
 	ierr = PipGetLogical('SeparateReduction', independent)
-	ierr = PipGetLogical('InterzoneReduction', interZone)
+	ierr = PipGetLogical('JointReduction', jointZone)
+	interZone = .not.(jointZone.or.independent)
 	ierr = PipGetLogical('VerboseOutput', verbose)
 c	  
 c	  set up reduction
