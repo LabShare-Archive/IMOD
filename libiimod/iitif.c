@@ -41,6 +41,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.1  2003/02/27 17:08:23  mast
+    Set default upper coordinates to -1 rather than 0.
+
 */
 
 
@@ -70,8 +73,8 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   int doscale;
   float slope = inFile->slope;
   float offset = inFile->offset;
-  int imin = 0;
-  int imax = 255;
+  int outmin = 0;
+  int outmax = 255;
   int stripsize;
   int xmin, xmax, ymin, ymax;
   int pixsize = 1;
@@ -79,7 +82,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   unsigned char *obuf;
   unsigned char *tmp = NULL;
   unsigned char *bdata;
-  unsigned short int *usdata;
+  b3dUInt16 *usdata;
   unsigned char *map = NULL;
   uint32 rowsperstrip;
   int nread;
@@ -115,14 +118,12 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   if (byte) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
-      map = get_short_map(slope, offset, imin, imax, MRC_RAMP_LIN, 0, 
-                          1);
+      map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 1);
     } else if (inFile->type == IITYPE_USHORT) {
       pixsize = 2;
-      map = get_short_map(slope, offset, imin, imax, MRC_RAMP_LIN, 0,
-                          0);
+      map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
     } else if (doscale)
-      map = get_byte_map(slope, offset, imin, imax);
+      map = get_byte_map(slope, offset, outmin, outmax);
   } else {
     if (inFile->format == IIFORMAT_RGB)
       pixsize = 3;
@@ -183,7 +184,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
           } else {
                               
             /* Integers */
-            usdata = (unsigned short int *)tmp + ofsin;
+            usdata = (b3dUInt16 *)tmp + ofsin;
             for (i = 0; i < xout; i++)
               *obuf++ = map[*usdata++];
           }
@@ -262,7 +263,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
             } else {
                                    
               /* Integers */
-              usdata = (unsigned short int *)tmp + ofsin;
+              usdata = (b3dUInt16 *)tmp + ofsin;
               for (i = 0; i < xcopy; i++)
                 *obuf++ = map[*usdata++];
             }
@@ -321,7 +322,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
 {
   TIFF* tif;
   FILE *fp;
-  unsigned short buf;
+  b3dUInt16 buf;
   int dirnum = 1;
   uint32 val;
   uint16 bits, samples, photometric, sampleformat;
@@ -332,11 +333,11 @@ int iiTIFFCheck(ImodImageFile *inFile)
   if (!fp) return 1;
 
   rewind(fp);
-  if (fread(&buf, sizeof(unsigned short), 1, fp) < 1)
+  if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
     return(2);
   if ( (buf != 0x4949) && (buf != 0x4d4d))
     return(3);
-  if (fread(&buf, sizeof(unsigned short), 1, fp) < 1)
+  if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
     return(4);
   if ((buf != 0x002a) && (buf != 0x2a00))
     return(5);
@@ -374,7 +375,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
     inFile->type   = IITYPE_UBYTE;
     inFile->amean  = 128;
     inFile->amax   = 255;
-    inFile->imax   = 255;
+    inFile->smax   = 255;
     inFile->mode   = MRC_MODE_BYTE;
     if (samples == 3) {
       inFile->format = IIFORMAT_RGB;
@@ -390,16 +391,16 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->type   = IITYPE_SHORT;
       inFile->amean  = 0;
       inFile->amin   = -32767;
-      inFile->imin   = -32767;
+      inFile->smin   = -32767;
       inFile->amax   = 32767;
-      inFile->imax   = 32767;
+      inFile->smax   = 32767;
     } else {
       inFile->type   = IITYPE_USHORT;
       inFile->amean  = 32767;
       inFile->amin   = 0;
-      inFile->imin   = 0;
+      inFile->smin   = 0;
       inFile->amax   = 65535;
-      inFile->imax   = 65535;
+      inFile->smax   = 65535;
     }
     inFile->mode   = MRC_MODE_SHORT;
   }
