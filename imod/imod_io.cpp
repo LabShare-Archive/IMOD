@@ -674,7 +674,7 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
     return NULL;
 
   /* Loading unbinned, non RGB MRC, file */
-  if (im->file == IIFILE_MRC && im->format != IIFORMAT_RGB && 
+  if (im->file == IIFILE_MRC && !vi->rawImageStore && 
       vi->xybin * vi->zbin == 1) {
     mrchead = (struct MRCheader *)im->header;
 
@@ -843,6 +843,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.9  2004/01/05 18:01:53  mast
+Implemented full loading of non-cache images through ivwReadBinnedSection
+
 Revision 4.8  2003/09/13 04:36:06  mast
 Protected the global array with the model filename from being overrun.
 Got the model checksum at the right points to prevent unneeded requests
