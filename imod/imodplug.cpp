@@ -11,32 +11,9 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 4.5  2003/10/01 05:13:28  mast
-Changes to use special internal modules
-
-Revision 4.4  2003/04/17 19:09:33  mast
-plugs OK on Mac now
-
-Revision 4.3  2003/03/28 05:49:16  mast
-No plugs for Mac either
-
-Revision 4.2  2003/02/27 19:41:15  mast
-No plugs in windows yet
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/13 01:19:04  mast
-Qt versions
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
+
 #ifdef _WIN32
 #define NOPLUGS
 #endif
@@ -267,6 +244,23 @@ void imodPlugOpen(int item)
 }
 
 /*
+ * Open a plugin by name
+ */
+void imodPlugOpenByName(char *name)
+{
+  PlugData *pd;
+  int i, mi = ilistSize(plugList);
+
+  for(i = 0; i < mi; i++){
+    pd = (PlugData *)ilistItem(plugList, i);
+    if (!pd)
+      continue;
+    if (!strcmp(pd->name, name))
+      imodPlugOpen(i);
+  }
+}
+
+/*
  * returns the number of plugins of a given type that loaded. 
  */
 int imodPlugLoaded(int type)
@@ -466,3 +460,34 @@ int imodPlugImageHandle(char *filename)
 
 
 #endif
+
+/*
+$Log$
+Revision 4.6  2003/10/01 19:38:59  mast
+Simply code, add function for getting functions
+
+Revision 4.5  2003/10/01 05:13:28  mast
+Changes to use special internal modules
+
+Revision 4.4  2003/04/17 19:09:33  mast
+plugs OK on Mac now
+
+Revision 4.3  2003/03/28 05:49:16  mast
+No plugs for Mac either
+
+Revision 4.2  2003/02/27 19:41:15  mast
+No plugs in windows yet
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/13 01:19:04  mast
+Qt versions
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
