@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/09/19 22:57:56  rickg
+ * <p> Imod mangement is now handled through the ImodManager
+ * <p>
  * <p> Revision 1.3  2002/09/17 23:44:56  rickg
  * <p> Adding ImodManager, in progress
  * <p>
@@ -145,11 +148,7 @@ public class ApplicationManager {
         String[] errorMessage = new String[2];
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
-        JOptionPane.showMessageDialog(
-          mainFrame,
-          errorMessage,
-          "Setup Parameter Error",
-          JOptionPane.ERROR_MESSAGE);
+        openMessageDialog(errorMessage, "Setup Parameter Error");
         setupDialog.setVisible(true);
         return;
       }
@@ -173,20 +172,13 @@ public class ApplicationManager {
       }
       catch (BadComScriptException except) {
         except.printStackTrace();
-        JOptionPane.showMessageDialog(
-          mainFrame,
-          except.getMessage(),
-          "Can't run copytomocoms",
-          JOptionPane.ERROR_MESSAGE);
+        openMessageDialog(except.getMessage(), "Can't run copytomocoms");
         dialogFinished = false;
       }
-
       catch (IOException except) {
-        JOptionPane.showMessageDialog(
-          mainFrame,
+        openMessageDialog(
           "Can't run copytomocoms\n" + except.getMessage(),
-          "Copytomocoms IOException",
-          JOptionPane.ERROR_MESSAGE);
+          "Copytomocoms IOException");
         dialogFinished = false;
       }
     }
@@ -262,11 +254,45 @@ public class ApplicationManager {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.SECOND);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.SECOND);
         comScriptMgr.saveEraserCom(ccdEraserParam, AxisID.SECOND);
+
+        try {
+          if (imodManager.isRawStackOpen(AxisID.FIRST)
+            || imodManager.isRawStackOpen(AxisID.SECOND)) {
+            String[] message = new String[2];
+            message[0] = "There are raw stack imod processes open";
+            message[1] = "Should they be closed?";
+            boolean answer = openYesNoDialog(message);
+            if (answer) {
+              imodManager.quitRawStack(AxisID.FIRST);
+              imodManager.quitRawStack(AxisID.SECOND);
+            }
+          }
+        }
+        catch (Exception except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "AxisType problem");
+        }
       }
       else {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.FIRST);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.ONLY);
         comScriptMgr.saveEraserCom(ccdEraserParam, AxisID.ONLY);
+        try {
+          if (imodManager.isRawStackOpen(AxisID.ONLY)) {
+            String[] message = new String[2];
+            message[0] = "There are raw stack imod processes open";
+            message[1] = "Should they be closed?";
+            boolean answer = openYesNoDialog(message);
+            if (answer) {
+              imodManager.quitRawStack(AxisID.ONLY);
+            }
+          }
+        }
+        catch (Exception except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+
       }
       processTrack.setPreProcessingState(ProcessState.INPROGRESS);
       mainFrame.setPreProcState(ProcessState.INPROGRESS);
@@ -295,11 +321,7 @@ public class ApplicationManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        except.getMessage(),
-        "Can't open imod on raw stack",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(except.getMessage(), "Can't open imod on raw stack");
     }
   }
 
@@ -378,6 +400,7 @@ public class ApplicationManager {
 
         mainFrame.setCoarseAlignState(processTrack.getCoarseAlignmentState());
         coarseAlignDialog.dispose();
+
       }
       else {
         coarseAlignDialog.setVisible(true);
@@ -413,11 +436,9 @@ public class ApplicationManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack",
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod on coarse aligned stack");
     }
   }
 
@@ -467,11 +488,7 @@ public class ApplicationManager {
       errorMessage[0] = "Xcorr Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Xcorr Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
       return false;
     }
     catch (NumberFormatException except) {
@@ -479,11 +496,7 @@ public class ApplicationManager {
       errorMessage[0] = "Xcorr Align Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Xcorr Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
       return false;
     }
     return true;
@@ -503,9 +516,6 @@ public class ApplicationManager {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
     FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this);
-    //Dimension frmSize = mainFrame.getSize();
-    //Point loc = mainFrame.getLocation();
-    //fiducialModelDialog.setLocation(loc.x, loc.y + frmSize.height);
     Dimension size = fiducialModelDialog.getSize();
     fiducialModelDialog.setLocation(
       (screenSize.width - size.width) / 2,
@@ -568,18 +578,16 @@ public class ApplicationManager {
    * Open imod with the seed model
    */
   public void imodSeedFiducials(AxisID axisID) {
-    String seedModel = 
-    metaData.getFilesetName() + axisID.getExtension() + ".seed";
+    String seedModel =
+      metaData.getFilesetName() + axisID.getExtension() + ".seed";
     try {
       imodManager.modelCoarseAligned(seedModel, axisID);
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack with model: " + seedModel,
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod on coarse aligned stack with model: " + seedModel);
     }
   }
 
@@ -599,21 +607,18 @@ public class ApplicationManager {
    * Open imod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID) {
-    String fiducialModel = 
+    String fiducialModel =
       metaData.getFilesetName() + axisID.getExtension() + ".fid";
     try {
       imodManager.modelCoarseAligned(fiducialModel, axisID);
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack with model: " + fiducialModel,
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod on coarse aligned stack with model: " + fiducialModel);
     }
   }
-
 
   /**
    * Update the specified track com script
@@ -645,11 +650,7 @@ public class ApplicationManager {
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Beadtrack Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Beadtrack Parameter Syntax Error");
       return false;
     }
     catch (NumberFormatException except) {
@@ -657,11 +658,7 @@ public class ApplicationManager {
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Beadtrack Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Beadtrack Parameter Syntax Error");
       return false;
     }
     return true;
@@ -739,6 +736,25 @@ public class ApplicationManager {
 
         mainFrame.setAlignmentEstState(processTrack.getFineAlignmentState());
         alignmentEstimationDialog.dispose();
+
+        try {
+          if (imodManager.isCoarseAlignedOpen(AxisID.FIRST)
+            || imodManager.isCoarseAlignedOpen(AxisID.SECOND)) {
+            String[] message = new String[2];
+            message[0] = "There are coarsely aligned stack imod processes open";
+            message[1] = "Should they be closed?";
+            boolean answer = openYesNoDialog(message);
+            if (answer) {
+              imodManager.quitCoarseAligned(AxisID.FIRST);
+              imodManager.quitCoarseAligned(AxisID.SECOND);
+            }
+          }
+        }
+        catch (Exception except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+
       }
       else {
         alignmentEstimationDialog.setVisible(true);
@@ -768,11 +784,9 @@ public class ApplicationManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod on fine aligned stack",
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod on fine aligned stack");
     }
   }
 
@@ -851,11 +865,7 @@ public class ApplicationManager {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Tiltalign Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Tiltalign Parameter Syntax Error");
       return false;
     }
     catch (NumberFormatException except) {
@@ -863,11 +873,7 @@ public class ApplicationManager {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Tiltalign Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Tiltalign Parameter Syntax Error");
       return false;
     }
 
@@ -959,6 +965,25 @@ public class ApplicationManager {
         mainFrame.setTomogramPositioningState(
           processTrack.getTomogramPositioningState());
         tomogramPositioningDialog.dispose();
+
+        try {
+          if (imodManager.isSampleOpen(AxisID.FIRST)
+            || imodManager.isSampleOpen(AxisID.SECOND)) {
+            String[] message = new String[2];
+            message[0] = "There are sample reconstruction imod processes open";
+            message[1] = "Should they be closed?";
+            boolean answer = openYesNoDialog(message);
+            if (answer) {
+              imodManager.quitSample(AxisID.FIRST);
+              imodManager.quitSample(AxisID.SECOND);
+            }
+          }
+        }
+        catch (Exception except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+
       }
       else {
         tomogramPositioningDialog.setVisible(true);
@@ -984,11 +1009,9 @@ public class ApplicationManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod with the sample reconstructions",
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod with the sample reconstructions");
     }
   }
 
@@ -1034,11 +1057,7 @@ public class ApplicationManager {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Tilt Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
 
@@ -1078,11 +1097,7 @@ public class ApplicationManager {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Tiltalign Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Tiltalign Parameter Syntax Error");
       return false;
     }
 
@@ -1199,11 +1214,7 @@ public class ApplicationManager {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = currentAxis.toString();
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Tilt Parameter Syntax Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
 
@@ -1253,11 +1264,9 @@ public class ApplicationManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't open imod with the tomogram",
-        JOptionPane.ERROR_MESSAGE);
+        "Can't open imod with the tomogram");
     }
   }
 
@@ -1349,19 +1358,14 @@ public class ApplicationManager {
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        except.getMessage(),
-        "Can't run setupcombine",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(except.getMessage(), "Can't run setupcombine");
     }
 
     catch (IOException except) {
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      except.printStackTrace();
+      openMessageDialog(
         "Can't run setupcombine\n" + except.getMessage(),
-        "Setupcombine IOException",
-        JOptionPane.ERROR_MESSAGE);
+        "Setupcombine IOException");
     }
   }
 
@@ -1484,11 +1488,7 @@ public class ApplicationManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "File not found error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "File not found error");
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -1496,11 +1496,7 @@ public class ApplicationManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Test parameter file read error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Test parameter file read error");
     }
   }
 
@@ -1529,11 +1525,7 @@ public class ApplicationManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        errorMessage,
-        "Test parameter file save error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(errorMessage, "Test parameter file save error");
     }
   }
 
@@ -1563,11 +1555,7 @@ public class ApplicationManager {
     message[0] = "The setup process has not been completed";
     message[1] =
       "Complete the Setup process before opening other process dialogs";
-    JOptionPane.showMessageDialog(
-      mainFrame,
-      message,
-      "Program Operation Error",
-      JOptionPane.ERROR_MESSAGE);
+    openMessageDialog(message, "Program Operation Error");
     return;
   }
 
@@ -1583,11 +1571,7 @@ public class ApplicationManager {
         "Can not find home directory! Unable to load user preferences";
       message[1] =
         "Set HOME environment variable and restart program to fix this problem";
-      JOptionPane.showMessageDialog(
-        mainFrame,
-        message,
-        "Program Initialization Error",
-        JOptionPane.ERROR_MESSAGE);
+      openMessageDialog(message, "Program Initialization Error");
       return;
     }
 
@@ -1618,11 +1602,9 @@ public class ApplicationManager {
       userParams.load(storable);
     }
     catch (Exception except) {
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         except.getMessage(),
-        "Can't load user configuration" + userConfigFile.getAbsolutePath(),
-        JOptionPane.ERROR_MESSAGE);
+        "Can't load user configuration" + userConfigFile.getAbsolutePath());
     }
 
     //
@@ -1679,11 +1661,9 @@ public class ApplicationManager {
     Storable storable[] = new Storable[1];
     storable[0] = userConfig;
     if (!userConfigFile.canWrite()) {
-      JOptionPane.showMessageDialog(
-        mainFrame,
+      openMessageDialog(
         "Change permissions of $HOME/.etomo to allow writing",
-        "Unable to save user configuration file",
-        JOptionPane.ERROR_MESSAGE);
+        "Unable to save user configuration file");
     }
 
     if (userConfigFile.canWrite()) {
@@ -1773,5 +1753,35 @@ public class ApplicationManager {
       }
     }
     return "";
+  }
+
+  private boolean openYesNoDialog(String[] message) {
+    try {
+      int answer =
+        JOptionPane.showConfirmDialog(
+          mainFrame,
+          message,
+          "Etomo question",
+          JOptionPane.YES_NO_OPTION);
+
+      if (answer == JOptionPane.YES_OPTION) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    catch (HeadlessException except) {
+      except.printStackTrace();
+      return false;
+    }
+  }
+
+  private void openMessageDialog(Object message, String title) {
+    JOptionPane.showMessageDialog(
+      mainFrame,
+      message,
+      title,
+      JOptionPane.ERROR_MESSAGE);
   }
 }
