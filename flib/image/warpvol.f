@@ -27,6 +27,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2004/11/10 02:05:18  mast
+c	  Do two passes of allocating data into cubes to avoid overflow, and
+c	  also sample positions along edges of cubes to determine real range
+c	  needed for loading data
+c	
 c	  Revision 3.5  2004/07/24 17:35:38  mast
 c	  Added progress output
 c	
@@ -75,6 +80,7 @@ c
 	real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
 	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
 	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
+	integer*4 newExtra
 	real*4 baseInt
 c
 	logical pipinput
@@ -225,49 +231,56 @@ c
 	enddo
 c	  
 c	  Get provisional setup of cubes then find actual limits of input
-c	  cubes with this setup
+c	  cubes with this setup - loop until no new extra pixels needed
 c
 	nExtra = 0
-	call setup_cubes_scratch(devmx, nExtra, ' ', tempdir, tempext, tim)
+	newExtra = 1
+	do while (newExtra .gt. 0)
+
+	  call setup_cubes_scratch(devmx, nExtra, ' ', tempdir, tempext, tim)
 c
-	do izcube=1,ncubes(3)
-	  do ixcube=1,ncubes(1)
-	    do iycube=1,ncubes(2)
-c		
-c		back-transform the corner coordinates of the output cube to
-c		find the limiting index coordinates of the input cube
-c		
-	      do i=1,3
-		inmin(i)=100000
-		inmax(i)=-100000
-	      enddo
-	      do ifx=0,16
-		do ify=0,16
-		  do ifz=0,16
-		    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16.-cxout
-		    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16.-cyout
-		    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16.-czout
-		    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &			zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &			zcen,minv,cxyzin) 
-		    do i=1,3
-		      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
-     &			  minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-		      inmin(i)=max(0,min(inmin(i),ival-2))
-		      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
+	  newExtra = 0
+	  do izcube=1,ncubes(3)
+	    do ixcube=1,ncubes(1)
+	      do iycube=1,ncubes(2)
+c		  
+c		  back-transform the corner coordinates of the output cube to
+c		  find the limiting index coordinates of the input cube
+c		  
+		do i=1,3
+		  inmin(i)=100000
+		  inmax(i)=-100000
+		enddo
+		do ifx=0,16
+		  do ify=0,16
+		    do ifz=0,16
+		      xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16.-cxout
+		      ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16.-cyout
+		      zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16.-czout
+		      call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &			  zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
+     &			  zcen,minv,cxyzin) 
+		      do i=1,3
+			ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
+     &			    minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
+			inmin(i)=max(0,min(inmin(i),ival-2))
+			inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
 c			
-c			See if any extra pixels are needed in input
-c
-		      nExtra = max(nExtra, inmax(i) + 1 - inmin(i) - inpdim)
+c			  See if any extra pixels are needed in input
+c			  
+			newExtra = max(newExtra, inmax(i) + 1 - inmin(i) -
+     &			    inpdim)
+		      enddo
 		    enddo
 		  enddo
 		enddo
 	      enddo
 	    enddo
 	  enddo
+	  nExtra = nExtra + newExtra
 	enddo
-
-	print *,nextra,' extra pixels needed in cubes for second setup'
+c
+	print *,nextra,' extra pixels needed in cubes for final setup'
 c	  
 c	  Get setup again for real this time
 c
@@ -324,9 +337,9 @@ c
 	      if(ifempty.eq.0)then
 		do iz=inmin(3),inmax(3)
 		  call imposn(5,iz,0)
-c		    write(*,'(10i4)'),ixcube,iycube,izcube,iz,iz+1-inmin(3)
-c		    &                ,inmin(1),
-c		    &               inmax(1),inmin(2),inmax(2)
+c		  write(*,'(10i5)')ixcube,iycube,izcube,iz,iz+1-inmin(3)
+c     &		      ,inmin(1), inmax(1),inmin(2),inmax(2)
+c		  call flush(6)
 		  call irdpas(5,array(1,1,iz+1-inmin(3)),inpdim,inpdim,
      &		      inmin(1),inmax(1),inmin(2),inmax(2),*99)
 		enddo
