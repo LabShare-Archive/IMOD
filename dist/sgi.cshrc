@@ -3,4 +3,4 @@
 #
 # It assumes that IMOD is located in /usr/local - if not, modify
 
-if (-e /usr/local/IMOD/IMOD-sgi.csh) source usr/local/IMOD/IMOD-sgi.csh
+if (-e /usr/local/IMOD/IMOD-sgi.csh) source /usr/local/IMOD/IMOD-sgi.csh
