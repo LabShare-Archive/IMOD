@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/08/06 21:56:44  rickg
+ * <p> Switched stateful buttons to JToggleButton
+ * <p>
  * <p> Revision 2.6  2003/07/30 21:53:44  rickg
  * <p> Use new tooltip formatting class
  * <p>
@@ -125,7 +128,7 @@ public class CCDEraserPanel implements ContextMenu {
   private JToggleButton btnErase = new JToggleButton("<html><b>Erase stack</b>");
   private JButton btnViewErased = new JButton("<html><b>View erased stack</b>");
   private JToggleButton btnReplaceRawStack =
-    new JToggleButton("<html><b>Replace raw stack</b>");
+    new JToggleButton("<html><b>Commit raw stack</b>");
 
   /**
    * Default constructor
@@ -501,7 +504,7 @@ public class CCDEraserPanel implements ContextMenu {
       "Run ccderaser, erasing the raw stack and writing the modified stack"
         + "to the output file specified.  NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
-        + "your data you must replace the raw stack when you are satisfied with"
+        + "your data you must commit the raw stack when you are satisfied with"
         + " your ccderaser output stack.";
     btnErase.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -509,10 +512,10 @@ public class CCDEraserPanel implements ContextMenu {
     btnViewErased.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "Replace the raw stack with the output from ccderaser.  "
+      "Commit the raw stack with the output from ccderaser.  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
-        + "your data you must replace the raw stack when you are satisfied with"
+        + "your data you must commit the raw stack when you are satisfied with"
         + " your ccderaser output stack.";
     btnReplaceRawStack.setToolTipText(tooltipFormatter.setText(text).format());
   }
