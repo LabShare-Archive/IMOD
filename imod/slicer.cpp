@@ -552,11 +552,34 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_Insert:
   case Qt::Key_End:
   case Qt::Key_Next:
+  case Qt::Key_Prior:
     dodraw = 0;
-    if (!keypad) {
+    if ((keypad && keysym == Qt::Key_Prior) || 
+        (!keypad && (!ss->locked || keysym == Qt::Key_End || 
+                     keysym == Qt::Key_Insert))) {
       handled = 0;
       break;
     }
+
+    // Non-keypad keys, only if locked, move without changing global point
+    if (!keypad) {
+      if (keysym == Qt::Key_Down) 
+        ss->cy -= 1.;
+      if (keysym == Qt::Key_Left)
+        ss->cx -= 1.;
+      if (keysym == Qt::Key_Right)
+        ss->cx += 1.;
+      if (keysym == Qt::Key_Up)
+        ss->cy += 1.;
+      if (keysym == Qt::Key_Prior)
+        ss->cz += 1.;
+      if (keysym == Qt::Key_Next)
+        ss->cz -= 1.;
+      dodraw = 1;
+      break;
+    }
+
+    // Now handle keypad keys
     if (keysym == Qt::Key_Down) 
       ss->tang[lang] -= 0.5;
     if (keysym == Qt::Key_Left)
@@ -1989,6 +2012,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.19  2003/09/16 02:11:48  mast
+Changed to access image data using new line pointers
+
 Revision 4.18  2003/05/05 20:09:34  mast
 Fixed problem with positioning with first mouse button
 
