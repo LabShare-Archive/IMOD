@@ -1,6 +1,9 @@
 package etomo.ui;
 
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 import javax.swing.*;
 
 import etomo.type.TiltAngleType;
@@ -18,10 +21,14 @@ import etomo.type.TiltAngleSpec;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltAngleDialogPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panelTiltAngleSource = new JPanel();
 
@@ -31,12 +38,9 @@ public class TiltAngleDialogPanel {
   private JPanel panelTiltAngleSpecify = new JPanel();
   private JRadioButton rbTiltAngleSpecify =
     new JRadioButton("Specify range and step (degrees)");
-  private JLabel labelAngleMin = new JLabel("Min:");
-  private JTextField textFieldAngleMin = new JTextField();
-  private JLabel labelAngleMax = new JLabel("Max:");
-  private JTextField textFieldAngleMax = new JTextField();
-  private JLabel labelAngleStep = new JLabel("Step:");
-  private JTextField textFieldAngleStep = new JTextField();
+  private LabeledTextField ltfAngleMin = new LabeledTextField("Min:");
+  private LabeledTextField ltfAngleMax = new LabeledTextField("Max:");
+  private LabeledTextField ltfAngleStep = new LabeledTextField("Step:");
 
   private JRadioButton rbTiltAngleFile =
     new JRadioButton("Tilt angles in existing rawtilt file");
@@ -44,30 +48,15 @@ public class TiltAngleDialogPanel {
   private ButtonGroup bgTiltAngleSource = new ButtonGroup();
 
   TiltAngleDialogPanel() {
-    Dimension dimAngleTextPref = new Dimension(60, 20);
-    Dimension dimAngleTextMax = new Dimension(70, 20);
 
-    textFieldAngleMin.setPreferredSize(dimAngleTextPref);
-    textFieldAngleMin.setMaximumSize(dimAngleTextMax);
-    textFieldAngleMax.setPreferredSize(dimAngleTextPref);
-    textFieldAngleMax.setMaximumSize(dimAngleTextMax);
-    textFieldAngleStep.setPreferredSize(dimAngleTextPref);
-    textFieldAngleStep.setMaximumSize(dimAngleTextMax);
-
-    panelTiltAngleSpecify.setAlignmentX(0.0f);
+    panelTiltAngleSpecify.setAlignmentX(Component.LEFT_ALIGNMENT);
     panelTiltAngleSpecify.setLayout(
       new BoxLayout(panelTiltAngleSpecify, BoxLayout.X_AXIS));
-    panelTiltAngleSpecify.add(labelAngleMin);
-    panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelTiltAngleSpecify.add(textFieldAngleMin);
+    panelTiltAngleSpecify.add(ltfAngleMin.getContainer());
     panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelTiltAngleSpecify.add(labelAngleMax);
-    panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelTiltAngleSpecify.add(textFieldAngleMax);
+    panelTiltAngleSpecify.add(ltfAngleMax.getContainer());
     panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelTiltAngleSpecify.add(labelAngleStep);
-    panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelTiltAngleSpecify.add(textFieldAngleStep);
+    panelTiltAngleSpecify.add(ltfAngleStep.getContainer());
     panelTiltAngleSpecify.add(Box.createHorizontalGlue());
 
     panelTiltAngleSource.setLayout(
@@ -85,61 +74,91 @@ public class TiltAngleDialogPanel {
     bgTiltAngleSource.add(rbTiltAngleExtract);
     bgTiltAngleSource.add(rbTiltAngleSpecify);
     bgTiltAngleSource.add(rbTiltAngleFile);
+
+    TiltAngleDialogListener tiltAlignRadioButtonListener =
+      new TiltAngleDialogListener(this);
+    rbTiltAngleExtract.addActionListener(tiltAlignRadioButtonListener);
+    rbTiltAngleFile.addActionListener(tiltAlignRadioButtonListener);
+    rbTiltAngleSpecify.addActionListener(tiltAlignRadioButtonListener);
   }
 
   JPanel getPanel() {
-    return  panelTiltAngleSource;
+    return panelTiltAngleSource;
   }
 
   void setFields(TiltAngleSpec tiltAngleSpec) {
-    if(tiltAngleSpec.getType() == TiltAngleType.EXTRACT){
+    if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
       rbTiltAngleExtract.setSelected(true);
+      enableTiltAngleSpecifyFields(false);
     }
-    if(tiltAngleSpec.getType() == TiltAngleType.RANGE){
+    if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
       rbTiltAngleSpecify.setSelected(true);
+      enableTiltAngleSpecifyFields(true);
     }
-    if(tiltAngleSpec.getType() == TiltAngleType.FILE){
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
       rbTiltAngleFile.setSelected(true);
+      enableTiltAngleSpecifyFields(false);
     }
 
-    textFieldAngleMin.setText(String.valueOf(tiltAngleSpec.getRangeMin()));
-    textFieldAngleMax.setText(String.valueOf(tiltAngleSpec.getRangeMax()));
-    textFieldAngleStep.setText(String.valueOf(tiltAngleSpec.getRangeStep()));
+    ltfAngleMin.setText(String.valueOf(tiltAngleSpec.getRangeMin()));
+    ltfAngleMax.setText(String.valueOf(tiltAngleSpec.getRangeMax()));
+    ltfAngleStep.setText(String.valueOf(tiltAngleSpec.getRangeStep()));
   }
 
   void getFields(TiltAngleSpec tiltAngleSpec) {
-    if(rbTiltAngleExtract.isSelected()) {
+    if (rbTiltAngleExtract.isSelected()) {
       tiltAngleSpec.setType(TiltAngleType.EXTRACT);
     }
-    if(rbTiltAngleSpecify.isSelected()) {
+    if (rbTiltAngleSpecify.isSelected()) {
       tiltAngleSpec.setType(TiltAngleType.RANGE);
     }
-    if(rbTiltAngleFile.isSelected()) {
+    if (rbTiltAngleFile.isSelected()) {
       tiltAngleSpec.setType(TiltAngleType.FILE);
     }
-    tiltAngleSpec.setRangeMin(Double.parseDouble(textFieldAngleMin.getText()));
-    tiltAngleSpec.setRangeMax(Double.parseDouble(textFieldAngleMax.getText()));
+    tiltAngleSpec.setRangeMin(Double.parseDouble(ltfAngleMin.getText()));
+    tiltAngleSpec.setRangeMax(Double.parseDouble(ltfAngleMax.getText()));
     tiltAngleSpec.setRangeStep(
-      Double.parseDouble(textFieldAngleStep.getText()));
+      Double.parseDouble(ltfAngleStep.getText()));
   }
 
   //
   //  Walk through all of the objects applying the appropriate state
   //
   void setEnabled(boolean enable) {
+    panelTiltAngleSource.setEnabled(enable);
+    panelTiltAngleSpecify.setEnabled(enable);
     rbTiltAngleExtract.setEnabled(enable);
     rbTiltAngleFile.setEnabled(enable);
     rbTiltAngleSpecify.setEnabled(enable);
-    textFieldAngleMax.setEnabled(enable);
-    labelAngleMax.setEnabled(enable);
-    textFieldAngleMin.setEnabled(enable);
-    labelAngleMin.setEnabled(enable);
-    textFieldAngleStep.setEnabled(enable);
-    labelAngleStep.setEnabled(enable);
+    enableTiltAngleSpecifyFields(rbTiltAngleSpecify.isSelected() & enable);
   }
-
 
   void setToolTipText(String text) {
     panelTiltAngleSource.setToolTipText(text);
+  }
+
+  //  Set the state of the text fields depending upon the radio button state
+  void setRadioButtonState(ActionEvent event) {
+    enableTiltAngleSpecifyFields(
+      event.getActionCommand().equals(rbTiltAngleSpecify.getText()));
+  }
+
+  void enableTiltAngleSpecifyFields(boolean enable) {
+    ltfAngleMax.setEnabled(enable);
+    ltfAngleMin.setEnabled(enable);
+    ltfAngleStep.setEnabled(enable);
+  }
+}
+
+class TiltAngleDialogListener implements ActionListener {
+
+  TiltAngleDialogPanel adaptee;
+
+  TiltAngleDialogListener(TiltAngleDialogPanel adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.setRadioButtonState(event);
   }
 }
