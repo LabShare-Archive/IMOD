@@ -245,7 +245,7 @@ switch($target_computer)
                 goto rhlinux
                 breaksw
         # Cygwin on Intel 
-        case i686__CYGWIN_NT-5.0__*__*:
+        case i686__CYGWIN_NT-5.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows
                 set machine = cygwin
                 goto cygwin
@@ -687,6 +687,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.24  2003/09/03 00:38:36  mast
+#  Fix problem with outputting a bash if-then in a cat << EOF
+#
 #  Revision 3.23  2003/08/25 18:51:16  mast
 #  Generated scripts for set library load path before running programs
 #
