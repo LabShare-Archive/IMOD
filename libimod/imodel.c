@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2003/11/01 16:41:56  mast
+changed to use new error processing routine
+
 Revision 3.7  2003/10/24 03:02:14  mast
 move routines to new b3dutil file
 
@@ -154,6 +157,8 @@ int imodDefault(Imod *model)
   model->clipList = NULL;
   model->refImage = NULL;
   model->fileName = NULL;
+  model->xybin = 1;
+  model->zbin = 1;
   model->store    = NULL;
   return(0);
 }
@@ -1343,7 +1348,7 @@ int imodChecksum(Imod *imod)
   /* This will catch fractional values - not perfect but probably good */
   isum = sum / 1000000.;
   isum = (int)(1000. * (sum - 1000000. * isum));
-
+  /* fprintf(stderr, "checksum = %d\n", isum); */
   return (isum);
 }
 
