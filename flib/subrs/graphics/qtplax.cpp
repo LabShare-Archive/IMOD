@@ -5,6 +5,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2003/09/23 21:08:33  mast
+Made the painter be created and destroyed on each draw instead of being
+resident, eliminated code for SECOND_THREAD, and made Mac window only a
+bit smaller now that it is resizable.
+
 Revision 1.5  2003/08/29 16:59:45  mast
 Created multithreaded can of worms
 
@@ -35,7 +40,6 @@ Changes to try to help text drawingon the Mac
 #include <qpointarray.h>
 #include <qpainter.h>
 #include <qbrush.h>
-#include <qmutex.h>
 
 #define LIST_CHUNK  1024
 
@@ -60,10 +64,8 @@ static int OutListInd = 0;
 
 static char *PlaxProgName = NULL;
 static QApplication *PlaxApp = NULL;
-static PlaxThread *AppThread = NULL;
 static PlaxWindow *PlaxWidget = NULL;
 static QPainter *PlaxPainter = NULL;
-static QMutex *PlaxMutex;
 static int PlaxWidth = 5 * DEFAULT_HEIGHT / 4;
 static int PlaxHeight = DEFAULT_HEIGHT;
 static int PlaxTop = 30;
@@ -77,6 +79,11 @@ static int PlaxBrushColor = -1;
 static int PlaxNoGraph = 0;
 static int argc;
 static char **argv;
+
+#ifndef QTPLAX_NO_THREAD
+static PlaxThread *AppThread = NULL;
+static QMutex *PlaxMutex;
+#endif
 
 static int addBytesToList(char *bytes, int num);
 static int addTwoArgs(int code, int *i1, int *i2);
@@ -163,19 +170,33 @@ void PlaxWindow::customEvent ( QCustomEvent * e )
   else
     show();
 }
+void PlaxWindow::lock()
+{
+#ifndef QTPLAX_NO_THREAD
+  PlaxMutex->lock();
+#endif
+}
+void PlaxWindow::unlock()
+{
+#ifndef QTPLAX_NO_THREAD
+  PlaxMutex->unlock();
+#endif
+}
 
-// The thread class works one of two ways
+#ifndef QTPLAX_NO_THREAD
+// The thread class
 PlaxThread::PlaxThread()
 {
   QThread::start();
 }
 
-// Either start the fortran in the second thread, or start Qt App there
+// start the fortran in the second thread
 void PlaxThread::run()
 {
   realgraphicsmain_();
   ::exit(0);
 }
+#endif
 
 #define FSTRING_LEN  80
 void plax_initialize(char *string, int strsize)
@@ -185,8 +206,6 @@ void plax_initialize(char *string, int strsize)
   int i, j;
 
   PlaxProgName = f2cString(string, strsize);
-
-  PlaxMutex = new QMutex();
 
   // Get the arguments.  Fortran numbers them 0 to iargc()
   argc = iargc_() + 1;
@@ -230,7 +249,7 @@ void plax_initialize(char *string, int strsize)
     }
   }
 
-  // If no thread or Qt is in second thread, now call the Fortran main routine
+  // If no thread, now call the Fortran main routine
 #ifdef QTPLAX_NO_THREAD
   realgraphicsmain_();
   exit(0);
@@ -238,6 +257,8 @@ void plax_initialize(char *string, int strsize)
 
   // Otherwise start the Qt application and start second thread that calls
   // Fortran
+  PlaxMutex = new QMutex();
+
   if (startPlaxApp())
     exit (-1);
   AppThread = new PlaxThread();
@@ -372,9 +393,9 @@ void plax_vect(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 void plax_vectw(int *linewidth, int *cindex, 
                 int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   addSixArgs(PLAX_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
 }
 
 /* filled circle */
@@ -392,18 +413,18 @@ void plax_circo(int *cindex, int *radius, int *ix, int *iy)
 /* closed filled polygon */
 void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 {
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   if (!addTwoArgs(PLAX_POLY, cindex, size))
     addBytesToList((char *)vec, 4 * *size);
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
 }
 
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec)
 {
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   if (!addTwoArgs(PLAX_POLYO, cindex, size))
       addBytesToList((char *)vec, 4 * *size);
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
 }
 
 void plax_sctext(int *thickness,
@@ -414,11 +435,11 @@ void plax_sctext(int *thickness,
                  char *string, int strsize
                  )
 {
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   if (!addSixArgs(PLAX_SCTEXT, thickness, iysize, cindex, ix, iy, 
                   &strsize))
     addBytesToList(string, strsize);
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
 }
 
 void plax_erase()
@@ -470,13 +491,13 @@ static int addFourArgs(int code, int *i1, int *i2, int *i3, int *i4)
   if (ListSize + 5 > ListMax)
     if (allocate_list_chunk())
       return 1;
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   PlaxList[ListSize++] = code;
   PlaxList[ListSize++] = *i1;
   PlaxList[ListSize++] = *i2;
   PlaxList[ListSize++] = *i3;
   PlaxList[ListSize++] = *i4;
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
   return 0;
 }
 
@@ -485,14 +506,14 @@ static int addFiveArgs(int code, int *i1, int *i2, int *i3, int *i4, int *i5)
   if (ListSize + 6 > ListMax)
     if (allocate_list_chunk())
       return 1;
-  PlaxMutex->lock();
+  PlaxWidget->lock();
   PlaxList[ListSize++] = code;
   PlaxList[ListSize++] = *i1;
   PlaxList[ListSize++] = *i2;
   PlaxList[ListSize++] = *i3;
   PlaxList[ListSize++] = *i4;
   PlaxList[ListSize++] = *i5;
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
   return 0;
 }
 
@@ -534,7 +555,7 @@ static void draw()
   b3dInt16 *vec;
   
   PlaxPainter = new QPainter(PlaxWidget);
-  PlaxMutex->lock();
+  PlaxWidget->lock();
 
   // fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize);
   // Draw starting after the last item drawn
@@ -611,7 +632,8 @@ static void draw()
     }
 
   }
-  PlaxMutex->unlock();
+  PlaxWidget->unlock();
+  PlaxPainter->end();
   delete PlaxPainter;
   //  plax_input();
 }
