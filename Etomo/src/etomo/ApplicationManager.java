@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2004/04/06 19:04:06  rickg
+ * <p> Print out java system info at start of session
+ * <p>
  * <p> Revision 3.27  2004/04/06 17:51:03  rickg
  * <p> bug #391 basic single stage fiducialess alignment
  * <p>
@@ -633,6 +636,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.DialogExitState;
 import etomo.type.MetaData;
+import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
 import etomo.type.UserConfiguration;
 import etomo.ui.AlignmentEstimationDialog;
@@ -1182,33 +1186,21 @@ public class ApplicationManager {
         + ".ali";
 
     File fullAlignedStack = new File(fullAlignedStackFilename);
-    String renamedFullAlignedStackFilename = System.getProperty("user.dir")
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + "_orig.ali";
-    File renamedFullAlignedStack = new File(renamedFullAlignedStackFilename);
-
     String filteredFullAlignedStackFilename = System.getProperty("user.dir")
         + File.separator + metaData.getDatasetName() + axisID.getExtension()
         + "_filt.ali";
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
 
     if (!filteredFullAlignedStack.exists()) {
-      mainFrame
-        .openMessageDialog(
-          "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-          "Filtered full aligned stack missing");
+      mainFrame.openMessageDialog(
+        "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
+        "Filtered full aligned stack missing");
       return;
     }
 
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-
-    // Rename the filter full aligned stack to the full aligned stack file name
-    // and save the orginal
-    // full aligned stack to _orig.ali if that does not already exist 
-    if (!renamedFullAlignedStack.exists()) {
-      fullAlignedStack.renameTo(renamedFullAlignedStack);
-    }
+    //don't have to rename full aligned stack because it is a generated file
     filteredFullAlignedStack.renameTo(fullAlignedStack);
 
     try {
@@ -1596,7 +1588,7 @@ public class ApplicationManager {
       fiducialModelDialogA = fiducialModelDialog;
     }
 
-    updateTransferfidEnabled(fiducialModelDialog, axisID);
+    updateDialog(fiducialModelDialog, axisID);
 
     //  Load the required track{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
@@ -1608,18 +1600,47 @@ public class ApplicationManager {
     mainFrame.showProcess(fiducialModelDialog.getContainer(), axisID);
   }
 
-  private void updateTransferfidEnabled(FiducialModelDialog dialog,
-      AxisID axisID) {
-    if (axisID == AxisID.ONLY) {
+  private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
+    if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
-    dialog.setTransferfidEnabled(Utilities.fileExists(metaData, ".preali",
-      AxisID.FIRST)
-        && Utilities.fileExists(metaData, ".preali", AxisID.SECOND)
-        && Utilities.fileExists(metaData, ".fid", (axisID == AxisID.FIRST
-            ? AxisID.SECOND
-            : AxisID.FIRST)));
+    boolean prealisExist =
+      Utilities.fileExists(metaData, ".preali", AxisID.FIRST)
+        && Utilities.fileExists(metaData, ".preali", AxisID.SECOND);
+    boolean fidExists = false;
+    if (axisID == AxisID.FIRST) {
+      fidExists = Utilities.fileExists(metaData, ".fid", AxisID.SECOND);
+    }
+    else {
+      fidExists = Utilities.fileExists(metaData, ".fid", AxisID.FIRST);
+    }
+    dialog.setTransferfidEnabled(prealisExist && fidExists);
     dialog.updateEnabled();
+  }
+  
+  private void updateDialog(TomogramGenerationDialog dialog, AxisID axisID) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.updateFilter(Utilities.fileExists(metaData, ".ali", axisID));
+  }
+  
+  protected void updateDialog(ProcessName processName, AxisID axisID) {
+    if (axisID != AxisID.ONLY
+      && (processName == ProcessName.PRENEWST
+        || processName == ProcessName.TRACK)) {
+        System.out.println("update fid dialog");
+        updateDialog(fiducialModelDialogB, AxisID.SECOND);
+        updateDialog(fiducialModelDialogA, AxisID.FIRST);
+    }
+    if (processName == ProcessName.NEWST) {
+      if (axisID == AxisID.SECOND) {
+        updateDialog(tomogramGenerationDialogB, axisID);
+      }
+      else {
+        updateDialog(tomogramGenerationDialogA, axisID);
+      }
+    }
   }
 
   /**
@@ -1763,8 +1784,6 @@ public class ApplicationManager {
     fiducialModel.renameTo(seedModel);
     try {
       if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-        System.out.println("makeFiducialModelSeedModel: seedModel.getName()="
-            + seedModel.getName());
         if (seedModel.getName().equals(
           imodManager.getModelName(ImodManager.COARSE_ALIGNED_KEY, axisID))) {
           String[] message = new String[2];
@@ -1786,6 +1805,12 @@ public class ApplicationManager {
     }
 
     mainFrame.stopProgressBar(axisID);
+    if (axisID == AxisID.SECOND) {
+      updateDialog(fiducialModelDialogA, AxisID.FIRST);
+    }
+    else {
+      updateDialog(fiducialModelDialogB, AxisID.SECOND);
+    }
   }
 
   /**
@@ -2141,7 +2166,7 @@ public class ApplicationManager {
       }
       setThreadName(threadName, destAxisID);
       mainFrame.startProgressBar("Transferring fiducials", destAxisID);
-      updateTransferfidEnabled(fiducialModelDialog, destAxisID);
+      updateDialog(fiducialModelDialog, destAxisID);
     }
   }
 
@@ -2585,6 +2610,7 @@ public class ApplicationManager {
     tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
     tomogramGenerationDialog.setMTFFilterParam(comScriptMgr
       .getMTFFilterParam(axisID));
+    updateDialog(tomogramGenerationDialog, axisID);
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
 
@@ -4832,7 +4858,12 @@ public class ApplicationManager {
    * @param threadName
    *          The name of the thread that has finished
    */
-  public void processDone(String threadName, int exitValue) {
+  public void processDone(
+    String threadName,
+    int exitValue,
+    ProcessName processName,
+    AxisID axisID) {
+    System.out.println("processDone");
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
@@ -4848,12 +4879,8 @@ public class ApplicationManager {
       mainFrame.openMessageDialog("Unknown thread finished!!!", "Thread name: "
           + threadName);
     }
-
-    if (fiducialModelDialogA != null) {
-      updateTransferfidEnabled(fiducialModelDialogA, AxisID.FIRST);
-    }
-    if (fiducialModelDialogB != null) {
-      updateTransferfidEnabled(fiducialModelDialogB, AxisID.SECOND);
+    if (processName != null) {
+      updateDialog(processName, axisID);
     }
   }
 
