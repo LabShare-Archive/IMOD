@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/01/17 17:09:56  mast
+Changes for new typedefs and 2D processing scheme
+
 Revision 3.2  2005/01/07 20:07:06  mast
 Changes for new filters
 
@@ -23,7 +26,8 @@ Changes for new filters
 
 /* processes */
 enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_BRIGHTNESS, IP_COLOR, 
-      IP_CONTRAST, IP_CORRELATE, IP_FFT, IP_FILTER, IP_FLIP, IP_GRADIENT, 
+      IP_CONTRAST, IP_CORRELATE, IP_DIFFUSION, IP_FFT, IP_FILTER, IP_FLIP,
+      IP_GRADIENT, 
       IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
       IP_PREWITT,
       IP_PROJECT, IP_RESIZE, IP_ROTATE, IP_SHADOW, IP_SHARPEN, IP_SMOOTH,
@@ -103,8 +107,8 @@ int clip_get_stat3d(Istack *v,
 int grap_stat(MrcHeader *hin, ClipOptions *opt);
 int clip_convolve(MrcHeader *hin, MrcHeader *hout,
 		 ClipOptions *opt, int process);
-int clipMedian(MrcHeader *hin, MrcHeader *hout,
-               ClipOptions *opt);
+int clipMedian(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int write_vol(Islice **vol, MrcHeader *hout);
 int free_vol(Islice **vol, int z);
 

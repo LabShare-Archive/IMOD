@@ -24,6 +24,7 @@ Log at end of file
 #include <stdlib.h>
 #include "mrcfiles.h"
 #include "mrcslice.h"
+#include "sliceproc.h"
 #include "mrcspectral.h"
 #include "b3dutil.h"
 #include "clip.h"
@@ -366,6 +367,64 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
   sliceFree(slice);
   for (i = 0; i < v.zsize; i++)
     sliceFree(v.vol[i]);
+  return set_mrc_coords(opt);  
+}
+
+/*
+ * Anisotropic diffusion on slices
+ */
+int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
+{
+  int i, k, z;
+  Islice *slice;
+  double kk, lambda;
+  int iterations, CC;
+
+  if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
+      hin->mode != MRC_MODE_FLOAT) {
+    show_error("clip diffusion: only byte, integer and float modes can "
+               "be used");
+    return -1;
+  }
+
+  z = set_options(opt, hin, hout);
+  if (z < 0)
+    return(z);
+
+  /* Set the parameters supplying weird defaults */
+  if (opt->val == IP_DEFAULT)
+    opt->val = 5.;
+  iterations = B3DMAX(1, (int)opt->val);
+  if (opt->thresh == IP_DEFAULT)
+    opt->thresh = 3;
+  CC = B3DMAX(1, B3DMIN(3, (int)(opt->thresh)));
+  if (opt->weight == IP_DEFAULT)
+    opt->weight = CC == 2 ? 0.001 : 0.5;
+  kk = B3DMAX(0, opt->weight);
+  if (opt->low == IP_DEFAULT)
+    opt->low = 0.15f;
+  lambda = B3DMAX(0.001, opt->low);
+
+  /* give message, add title */
+  mrc_head_label(hout, "clip: diffusion");
+
+  printf("clip: anistropic diffusion %ld slices...\n", opt->nofsecs);
+  for (k = 0; k < opt->nofsecs; k++) {
+    slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
+                          (int)opt->cx, (int)opt->cy);
+    if (!slice){
+      show_error("clip: Error reading slice.");
+      return(-1);
+    }
+
+    if (sliceAnisoDiff(slice, opt->mode, CC, kk, lambda, iterations, 
+                       ANISO_CLEAR_AT_END))
+      return -1;
+
+    if (clipWriteSlice(slice, hout, opt, k, &z, 1))
+      return -1;
+  }
+
   return set_mrc_coords(opt);  
 }
 
@@ -1374,6 +1433,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.9  2005/01/17 17:11:02  mast
+Changes for new typedefs and 2D processing scheme
+
 Revision 3.8  2005/01/07 20:13:59  mast
 Fixed problems with filtering and scaling, added many filtering operations
 

@@ -47,6 +47,7 @@ void usage(void)
   fprintf(stderr, "\tcolor       - add false color.\n");
   fprintf(stderr, "\tcontrast    - Increase or decrease contrast.\n");
   fprintf(stderr, "\tcorrelation - do a auto/cross correlation.\n");
+  fprintf(stderr, "\tdiffusion   - Do 2-D anisotropic diffusion on slices.\n");
   fprintf(stderr, "\tgradient    - Compute gradient as in 3dmod.\n");
   fprintf(stderr, "\tgraham      - Apply Graham filter as in 3dmod.\n");
   fprintf(stderr, "\tinfo        - print information to stdout.\n");
@@ -73,6 +74,7 @@ void usage(void)
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
   fprintf(stderr, "\t[-s] Switch, [-n #] Amount; Depends on function.\n");
   fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters.\n");
+  fprintf(stderr, "\t[-cc #] [-l #] [-k #] values for anisotropic diffusion.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
   /*  fprintf(stderr, "\t[-x #,#] [-y #,#] [-z #,#] input variables.\n"); */
   fprintf(stderr, "\t[-cx #]  [-cy #]  [-cz #]  center coords.\n");
@@ -168,6 +170,8 @@ int main( int argc, char *argv[] )
 
   if (!strncmp( argv[1], "correlation", 3))
     process = IP_CORRELATE; 
+  if (!strncmp( argv[1], "diffusion", 3))
+    process = IP_DIFFUSION; 
 
   if (!strncmp( argv[1], "info", 3)){
     process = IP_INFO;
@@ -266,6 +270,7 @@ int main( int argc, char *argv[] )
       case 't':
         sscanf(argv[++i], "%f", &(opt.thresh)); break;
 
+      case 'k':
       case 'w':
         sscanf(argv[++i], "%f", &(opt.weight)); break;
 
@@ -334,6 +339,8 @@ int main( int argc, char *argv[] )
           sscanf(argv[++i], "%g", &(opt.cy)); break;
         case 'z': case 'Z':
           sscanf(argv[++i], "%g", &(opt.cz)); break;
+        case 'c': case 'C':
+          sscanf(argv[++i], "%f", &(opt.thresh)); break;
         default:
           fprintf(stderr, "%s: invalid option %s.\n",
                   progname, argv[i]);
@@ -476,6 +483,9 @@ int main( int argc, char *argv[] )
   case IP_CORRELATE:
     retval = grap_corr(&hin, &hin2, &hout, &opt);
     break;
+  case IP_DIFFUSION:
+    retval = clipDiffusion(&hin, &hout, &opt);
+    break;
   case IP_GRADIENT:
   case IP_GRAHAM:
   case IP_PREWITT:
@@ -599,6 +609,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.13  2005/01/17 17:07:15  mast
+Removed rotate, translate, zoom; used new typedefs
+
 Revision 3.12  2005/01/07 23:54:25  mast
 Fix brightness listing in usage
 
