@@ -35,12 +35,13 @@ void imodvMovieForm::init()
       bigLayout->remove(startEdits[i]);
       bigLayout->remove(endEdits[i]);
     }
-    bigLayout->remove(xSliceLabel);
-    bigLayout->remove(ySliceLabel);
-    bigLayout->remove(zSliceLabel);
+    // removing from layout was good but not available in Qt 3.0
     xSliceLabel->hide();
     ySliceLabel->hide();
     zSliceLabel->hide();
+    xSliceLabel->setMaximumHeight(1);
+    ySliceLabel->setMaximumHeight(1);
+    zSliceLabel->setMaximumHeight(1);
   }
   adjustSize();
 }  
