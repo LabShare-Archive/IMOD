@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/07/21 17:00:27  mast
+#  Output the all file list when it is used.
+#
 #  Revision 3.2  2004/06/29 03:41:48  mast
 #  Added nohup
 #
@@ -17,7 +20,7 @@
 
 nohup
 set pn = processchunks
-set nice = 10
+set nice = 18
 
 if ($#argv < 2) then
 cat <<EOF
