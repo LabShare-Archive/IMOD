@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
 Revision 1.1.2.9  2003/01/30 01:01:08  mast
 Simplify getting window the right size
 
@@ -1258,13 +1261,16 @@ static void fillImageArray(SlicerStruct *ss)
       z = zo;
       cindex = j * ss->winx;
       for(i = 0; i < isize; i++){
-        xi = (int)floor((double)x);
-        yi = (int)floor((double)y);
-        zi = (int)floor((double)(z + 0.5));
+
+        /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
+           Pentium 4 below 2.6 GHz... */
+        xi = (int)x;
+        yi = (int)y;
+        zi = (int)(z + 0.5);
                     
         if ((xi >= 0) && (xi < ss->vi->xsize) &&
             (yi >= 0) && (yi < ss->vi->ysize) &&
-            (zi >= 0) && (zi < ss->vi->zsize)){
+            (z > -0.5) && (zi < ss->vi->zsize)){
           val = (*best_GetValue)(xi, yi, zi);
                          
           if (ss->hq){ /* do quadratic interpolation. */
