@@ -121,9 +121,15 @@ void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                          int *imPtSize);
 bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int  imod_zap_open(struct ViewInfo *vi);
+void zapMaximumWindowSize(int &width, int &height);
+void zapLimitWindowSize(int &width, int &height);
+void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
 
 /*
 $Log$
+Revision 3.6  2003/09/16 02:56:21  mast
+Added an xzoom variable to keep track of actually displayed fractional zoom
+
 Revision 3.5  2003/03/12 06:38:18  mast
 Added time mismatch function
 
