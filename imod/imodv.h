@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/07/18 20:19:38  rickg
+    Changed include of GLwMDrawA to rely upon -I compiler option
+
 */
 
 #ifndef IMODV_H
@@ -75,7 +78,8 @@ typedef struct __imodv_struct
      XtWorkProcId wpid;
      Display      *display;
      Visual       *visual;
-     XVisualInfo  *visualInfo;
+     XVisualInfo  *visualInfoSB;
+     XVisualInfo  *visualInfoDB;
      int          depth;
      Colormap     cmap;
      Colormap     gcmap;
@@ -228,7 +232,8 @@ int imodvSelectModel(ImodvApp *a, int ncm);
 void imodvControlSetArot(ImodvApp *a, int newval);
 void imodvControlSetView(ImodvApp *a);
 void imodvControlUpdate(ImodvApp *a);
-void imodvSetCmap(ImodvApp *a);
+int imodvGetVisuals(ImodvApp *a);
+int imodv_init(ImodvApp *a, struct Mod_Draw *md);
 void imodvMapModel(ImodvApp *a, Imod *imod);
 void imodvMapColor(Widget w,  unsigned int color,
 		   unsigned short red,
