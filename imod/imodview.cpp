@@ -956,9 +956,10 @@ void ivwSetLocationPoint(ImodView *vw, Ipoint *pnt)
 }
 
 
+/* Test whether point is on current section - need to use floor for - values */
 int ivwPointVisible(ImodView *vw, Ipoint *pnt)
 {
-  if ((int)(vw->zmouse + 0.5) == (int)(pnt->z + 0.5))
+  if ((int)floor(vw->zmouse + 0.5) == (int)floor(pnt->z + 0.5))
     return(1);
   else
     return(0);
@@ -2068,6 +2069,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.7  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.6  2003/03/26 01:52:39  mast
 Make decision about whether to request contiguous data or not depending
 on whether data are to be flipped, and catch and report errors when flipping
