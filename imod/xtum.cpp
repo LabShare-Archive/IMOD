@@ -398,7 +398,7 @@ void TumblerWindow::help()
      "extraneous image material by setting all pixels in the volume with "
      "values below the black threshold to 0, and all pixels with values above "
      "the white threshold to 255.\n\n",
-     "Hotkeys Specific to the Tumbler Window:\n",
+     "Hot Keys Specific to the Tumbler Window:\n",
      "\ts\tToggle stereo mode.\n",
      "\tb\tToggle display of bounding box.\n",
      "\t-/=\tDecrease/Increase zoom factor.\n",
@@ -1369,6 +1369,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.11  2003/04/25 03:28:33  mast
+Changes for name change to 3dmod
+
 Revision 4.10  2003/04/18 20:16:39  mast
 Rename meta test function
 
