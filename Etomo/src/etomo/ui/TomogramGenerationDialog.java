@@ -56,6 +56,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2005/01/08 01:56:11  sueh
+ * bug# 578 Added z factors checkbox and a public function to
+ * enable/disable it.
+ *
  * Revision 3.26  2004/12/02 20:42:40  sueh
  * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * the join guide.  Need to specify the guide to anchor.
@@ -525,7 +529,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
     cbBoxUseLocalAlignment.setSelected(tiltParam.hasLocalAlignFile());
-    cbUseZFactors.setSelected(tiltParam.isUseZFactors());
+    cbUseZFactors.setSelected(applicationManager.getMetaData().getUseZFactors().is());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
@@ -687,6 +691,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       }
       tiltParam.setFiducialess(cbFiducialess.isSelected());
       tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
+      applicationManager.getTomogramMetaData().setUseZFactors(cbUseZFactors.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
