@@ -31,6 +31,6 @@ function subm () { submfg $* & }
 #
 # Aliases to run imod/3dmod and imodv/3dmodv in background
 #
-alias imod 3dmodbg
-alias 3dmod 3dmodbg
-alias imodv 3dmodv
+alias imod=3dmodbg
+alias 3dmod=3dmodbg
+alias imodv=3dmodv
