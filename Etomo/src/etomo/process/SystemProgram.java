@@ -22,6 +22,11 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/10 18:52:30  rickg
+ * <p> Added enableDebug method and functionality
+ * <p> Closed IO stream of the process when done
+ * <p> Swapped order of waitFor and process output reading
+ * <p>
  * <p> Revision 1.3  2002/09/19 21:45:19  rickg
  * <p> Removed starting process stdout message
  * <p>
@@ -256,7 +261,7 @@ public class SystemProgram implements Runnable {
       System.err.println(
         "------------------------------------------------------------");
       for (int i = 0; i < stdError.size(); i++) {
-        System.err.println(stdInput[i]);
+        System.err.println(stdError.get(i));
       }
       System.err.println("");
     }
