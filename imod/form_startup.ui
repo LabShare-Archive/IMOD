@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>395</width>
-            <height>752</height>
+            <width>403</width>
+            <height>797</height>
         </rect>
     </property>
     <property name="caption">
@@ -694,7 +694,7 @@
         </widget>
         <widget class="QCheckBox">
             <property name="name">
-                <cstring>CheckBox8</cstring>
+                <cstring>loadUnscaledBox</cstring>
             </property>
             <property name="text">
                 <string>Load model without scaling coordinates</string>
@@ -1131,6 +1131,11 @@
 <includes>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
+<variables>
+    <variable>bool mModvMode</variable>
+    <variable>int mModvSizeOption</variable>
+    <variable>int mCacheOption</variable>
+</variables>
 <slots>
     <slot>init()</slot>
     <slot>manageForModView()</slot>
