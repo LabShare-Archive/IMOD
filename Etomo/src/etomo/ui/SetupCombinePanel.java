@@ -44,6 +44,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.13  2003/10/21 23:42:54  rickg
+ * Changed imod buttons to non multiline
+ *
  * Revision 2.12  2003/10/20 18:53:30  rickg
  * Changed patch region and start combine buttons to MultilineToggles
  * Logic for checking if com scripts exist.
@@ -336,8 +339,8 @@ public class SetupCombinePanel implements ContextMenu {
     SetupCombinePatchCBListener patchCBListener =
       new SetupCombinePatchCBListener(this);
     cbPatchRegionModel.addActionListener(patchCBListener);
-    
-     //  Set the button sizes
+
+    //  Set the button sizes
     Dimension dimButton = UIParameters.getButtonDimension();
     btnImodMatchModels.setPreferredSize(dimButton);
     btnImodMatchModels.setMaximumSize(dimButton);
@@ -384,6 +387,7 @@ public class SetupCombinePanel implements ContextMenu {
     updateUseFiducialModel();
     updatePatchRegionModel();
     updateStartCombine();
+    setToolTipText();
   }
 
   public Container getContainer() {
@@ -647,4 +651,128 @@ public class SetupCombinePanel implements ContextMenu {
     }
   }
 
+  /**
+  * Initialize the tooltip text
+  */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text =
+      "Transform the B tomogram into the same orientation as the A tomogram.";
+    rbBtoA.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Transform the A tomogram into the same orientation as the B tomogram.";
+    rbAtoB.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Select this option to find the shifts between volumes with "
+        + "cross-correlation, when there are fiducials distributed in Z.";
+    rbBothSides.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Select this option to find the shifts between volumes with "
+        + "cross-correlation, when the fiducials lie on one surface and the "
+        + "tomograms are not inverted in Z with respect to each other.";
+    rbOneSide.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Select this option to find the shifts between volumes with "
+        + "cross-correlation, when the fiducials lie on one surface and the "
+        + "top of one tomogram in Z corresponds to the bottom of the other.";
+    rbOneSideInverted.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Select this option to use models of corresponding points to find the "
+        + "shifts between volumes, which you would do if cross-correlation is "
+        + "likely to fail.";
+    rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Create models of corresponding points.";
+    btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the list of fiducials in A for which you know the corresponding "
+        + "fiducial in B.  Use the point number in *fid.xyz, not the contour "
+        + "number.";
+    ltfFiducialMatchListA.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the list of fiducials in B that correspond to the ones in the "
+        + "list entered for A.  Use the point number in *fid.xyz, not the "
+        + "contour number.";
+    ltfFiducialMatchListB.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Use small patches for refining the alignment with correlation - "
+        + "appropriate for feature-rich tomogram from binned CCD camera images "
+        + "or from film.";
+    rbSmallPatch.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Use medium patches for refining the alignment with correlation - "
+        + "appropriate for feature-rich tomogram from unbinned CCD camera "
+        + "images.";
+    rbMediumPatch.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Use large patches for refining the alignment with correlation - may be "
+        + "needed for tomogram with sparse features.";
+    rbLargePatch.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Use a model with contours around the areas where patches should be "
+        + "correlated to prevent bad patches outside those areas.";
+    cbPatchRegionModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the volume being matched to and create the patch region model.";
+    btnPatchRegionModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum X coordinate for left edge of correlation patches.";
+    ltfXMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum X coordinate for right edge of correlation patches.";
+    ltfXMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum Y coordinate for upper edge of correlation patches.";
+    ltfYMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum Y coordinate for lower edge of correlation patches.";
+    ltfYMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum Z coordinate for top edge of correlation patches.";
+    ltfZMin.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum Z coordinate for bottom edge of correlation patches.";
+    ltfZMax.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Specify a directory on local disk (e.g., /usr/tmp, or /scratch/myarea) "
+        + "to avoid writing temporary files over a network.";
+    ltfTempDirectory.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "If using a temporary directory, select this option if you will want to "
+        + "examine the *.mat file that will be left in it.";
+    chkManualCleanup.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Display tomogram from axis A";
+    btnImodVolumeA.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Display tomogram from axis B";
+    btnImodVolumeB.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Run setupcombine to create the com scripts for combining, using the "
+        + "current parameters.";
+    btnCreate.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Start running the combine operation from the beginning.";
+    btnCombine.setToolTipText(tooltipFormatter.setText(text).format());
+
+  }
 }
