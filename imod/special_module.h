@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/01 05:08:32  mast
+Initial creation
+
 */
 
 #ifndef SPECIAL_CLASS_H
@@ -21,10 +24,12 @@ $Log$
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 #endif
+class QStringList;
 
 class QKeyEvent;
 typedef char *(*SpecialInfo)(int *);
 typedef void (*SpecialExecuteType)(ImodView *, int, int);
+typedef int (*SpecialExecuteMessage)(ImodView *, QStringList *, int *);
 typedef void (*SpecialExecute)(ImodView *);
 typedef int (*SpecialKeys)(ImodView *, QKeyEvent *);
 
@@ -33,6 +38,7 @@ class SpecialModule
  public:
   SpecialInfo mInfo;
   SpecialExecuteType mExecuteType;
+  SpecialExecuteMessage mExecuteMessage;
   SpecialExecute mExecute;
   SpecialKeys mKeys;
 };
