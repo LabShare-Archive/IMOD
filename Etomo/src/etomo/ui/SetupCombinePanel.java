@@ -45,6 +45,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.17  2003/11/05 19:56:58  rickg
+ * Bug# 300 Selecting matching models on setup patch now
+ * selects matching models on initial page
+ *
  * Revision 2.16  2003/11/05 19:40:47  rickg
  * Bug# 351 added warning label regarding creating scripts
  *
@@ -171,6 +175,8 @@ public class SetupCombinePanel implements ContextMenu {
   private ApplicationManager applicationManager;
   private InitialCombinePanel initialCombinePanel;
 
+	boolean matchBtoA;
+	
   private JPanel pnlRoot = new JPanel();
   private BeveledBorder brdrContent =
     new BeveledBorder("Combination Parameters");
@@ -245,6 +251,8 @@ public class SetupCombinePanel implements ContextMenu {
     applicationManager = appMgr;
     initialCombinePanel = pnlInitial;
 
+
+		
     //  Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -345,17 +353,19 @@ public class SetupCombinePanel implements ContextMenu {
     btnCombine.addActionListener(actionListener);
 
     //  Bind the radio buttons to the action listener
-    SetupCombineFiducialRBListener radioButtonListener =
-      new SetupCombineFiducialRBListener(this);
-    rbBothSides.addActionListener(radioButtonListener);
-    rbOneSide.addActionListener(radioButtonListener);
-    rbOneSideInverted.addActionListener(radioButtonListener);
-    rbUseModel.addActionListener(radioButtonListener);
+    RBMatchToListener rbMatchToListener = new RBMatchToListener(this);
+    rbAtoB.addActionListener(rbMatchToListener);
+    rbBtoA.addActionListener(rbMatchToListener);
+
+    RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
+    rbBothSides.addActionListener(rbFiducialListener);
+    rbOneSide.addActionListener(rbFiducialListener);
+    rbOneSideInverted.addActionListener(rbFiducialListener);
+    rbUseModel.addActionListener(rbFiducialListener);
 
     // Bind the patch region model check box to its action listener
-    SetupCombinePatchCBListener patchCBListener =
-      new SetupCombinePatchCBListener(this);
-    cbPatchRegionModel.addActionListener(patchCBListener);
+    CBPatchListener cbPatchListener = new CBPatchListener(this);
+    cbPatchRegionModel.addActionListener(cbPatchListener);
 
     //  Set the button sizes
     Dimension dimButton = UIParameters.getButtonDimension();
@@ -418,9 +428,11 @@ public class SetupCombinePanel implements ContextMenu {
 
     if (combineParams.getMatchBtoA()) {
       rbBtoA.setSelected(true);
+      matchBtoA = true;
     }
     else {
       rbAtoB.setSelected(true);
+      matchBtoA = false;
     }
 
     if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
@@ -566,12 +578,37 @@ public class SetupCombinePanel implements ContextMenu {
    * 
    * @param event
    */
-  private void radioButtonAction(ActionEvent event) {
-    updateUseFiducialModel();
+  private void rbMatchToAction(ActionEvent event) {
+    updateMatchTo();
   }
 
-  private void cbPatchRegionAction(ActionEvent event) {
-    updatePatchRegionModel();
+  private void updateMatchTo() {
+  	//  Swap the X and Y values if the matching state changes 
+  	if((matchBtoA && rbAtoB.isSelected()) || (!matchBtoA && rbBtoA.isSelected())) {
+  		String temp = ltfXMin.getText();
+  		ltfXMin.setText(ltfYMin.getText());
+			ltfYMin.setText(temp);
+			
+			temp = ltfXMax.getText();
+			ltfXMax.setText(ltfYMax.getText());
+			ltfYMax.setText(temp);
+  	}
+
+		if(rbAtoB.isSelected()) {
+			matchBtoA = false;
+		}
+		else {
+			matchBtoA = true;
+		}
+  }
+
+  /**
+   * Manage fiducial radio button action
+   * 
+   * @param event
+   */
+  private void rbFiducialAction(ActionEvent event) {
+    updateUseFiducialModel();
   }
 
   /**
@@ -580,6 +617,14 @@ public class SetupCombinePanel implements ContextMenu {
   private void updateUseFiducialModel() {
     btnImodMatchModels.setEnabled(rbUseModel.isSelected());
     initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
+  }
+
+  /**
+   * Manage patch region check box actions
+   * @param event
+   */
+  private void cbPatchRegionAction(ActionEvent event) {
+    updatePatchRegionModel();
   }
 
   /**
@@ -648,22 +693,35 @@ public class SetupCombinePanel implements ContextMenu {
     }
 
   }
-  class SetupCombineFiducialRBListener implements ActionListener {
+
+  class RBMatchToListener implements ActionListener {
 
     SetupCombinePanel adaptee;
-    public SetupCombineFiducialRBListener(SetupCombinePanel adaptee) {
+    public RBMatchToListener(SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.radioButtonAction(event);
+      adaptee.rbMatchToAction(event);
     }
   }
 
-  class SetupCombinePatchCBListener implements ActionListener {
+  class RBFiducialListener implements ActionListener {
 
     SetupCombinePanel adaptee;
-    public SetupCombinePatchCBListener(SetupCombinePanel adaptee) {
+    public RBFiducialListener(SetupCombinePanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.rbFiducialAction(event);
+    }
+  }
+
+  class CBPatchListener implements ActionListener {
+
+    SetupCombinePanel adaptee;
+    public CBPatchListener(SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
 
