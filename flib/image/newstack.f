@@ -77,8 +77,9 @@ c	same mean then rescale all sections by the same specified scaling.
 *   IF single rescaling is selected with "-1", next specify the density values
 *	to which the minimum and maximum in the data file should be mapped, or
 *	just enter "/" to have them mapped to the full-scale range for the
-*	data mode.  This can be used to invert densities by entering, e.g.,
-*	255,0
+*	data mode, or enter "1,1" to override any scaling of data that would
+*	otherwise occur because of a change of mode.  This scaling method can
+*	be used to invert densities by entering, e.g., 255,0.
 *
 c   IF scaling by black and white contrast settings is selected with -2, next
 c	enter the black and white settings (see mrcbyte(1)).
@@ -101,6 +102,8 @@ c
 *	values.  These same kinds of automatic scalings upon change of mode
 *	will occur with shifting to a common mean (option 3), but here the
 *	program is more careful to apply the same scaling to all sections.
+*	To disable the scaling upon change of mode, select the "-1" floating
+*	option and enter 1,1.
 *	  
 *   At the end, the program will report how many pixels have been truncated
 *	at the low or high limits of the output range.  If this happens after
@@ -130,6 +133,13 @@ c
 *   
 ************************************************************************
 *	  
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 	parameter (idim=19000000,lmfil=1000,lmsec=50000,maxchunks=20)
 	parameter (maxextra=1000000)
 	COMMON //NX,NY,NZ
@@ -313,7 +323,8 @@ c
 	  floatxt=', densities scaled'
 	  if(iffloat.eq.-1)then
 	    write(*,'(1x,a,/,a,$)')'Values to scale input file''s'//
-     &		' min and max to,','   or / to scale to maximum range: '
+     &		' min and max to,','   or / to scale to maximum range,'
+     &		//' or 1,1 to override mode scaling: '
 	    read(5,*)dminspec,dmaxspec
 	  else
 	    conlo=0
@@ -853,9 +864,12 @@ c
 c		if specified global rescale, set values that dminin and dmaxin
 c		map to, either the maximum range or the values specified
 c
-	      if(dminspec.eq.dmaxspec)then
+	      if(dminspec.eq.0.and.dmaxspec.eq.0)then
 		dminnew=0.
 		dmaxnew=optout
+	      else if(dminspec.eq.dmaxspec)then
+		dminnew=dminin
+		dmaxnew=dmaxin
 	      else
 		dminnew=dminspec
 		dmaxnew=dmaxspec
