@@ -36,6 +36,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2003/02/21 23:58:10  mast
+    Open files in binary mode
+
     Revision 3.5  2002/07/20 23:25:46  mast
     Make getimodhead return image origin values so that programs can get
     back to index coordinates of full-sized volume
@@ -94,6 +97,8 @@
 #define putimodflag  PUTIMODFLAG
 #define fromvmsfloats FROMVMSFLOATS
 #define putscatsize  PUTSCATSIZE
+#define putsymsize   PUTSYMSIZE
+#define putsymtype   PUTSYMTYPE
 #define getimodtimes  GETIMODTIMES
 #define getimodsurfaces  GETIMODSURFACES
 #else
@@ -119,6 +124,8 @@
 #define putimodflag  putimodflag_
 #define fromvmsfloats fromvmsfloats_
 #define putscatsize  putscatsize_
+#define putsymsize   putsymsize_
+#define putsymtype   putsymtype_
 #define getimodtimes  getimodtimes_
 #define getimodsurfaces  getimodsurfaces_
 #endif
@@ -138,7 +145,10 @@ static int *flags_put = NULL;
 static int maxes_put = 0;
 static int xmax_put, ymax_put, zmax_put;
 
-#define SCAT_SIZE_OFFSET 10
+#define SCAT_SIZE_FLAG  (1 << 2)
+#define SYMBOL_SIZE_FLAG (1 << 3)
+#define SYMBOL_TYPE_FLAG (1 << 4)
+#define FLAG_VALUE_SHIFT 8
 
 static char *fstrtoc(char *fstr, int flen)
 {
@@ -839,36 +849,42 @@ int writeimod(
              int   fsize)
 {
 #endif
-     int i, ob, flag;
+     int i, ob, flag, value;
      int retcode = 0;
      char *filename = fstrtoc(fname, fsize);
      if (!filename) return(FWRAP_ERROR_BAD_FILENAME);
      if (!Fimod) { free(filename); return(FWRAP_ERROR_NO_MODEL);}
 
      for (i = 0; i < nflags_put; i++) {
-	  ob = flags_put[2 * i];
-	  flag = flags_put[2 * i + 1];
-	  if (ob >= 0 && ob < Fimod->objsize)
-	       switch (flag) {
-		  case 0:
-		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
-		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
-		    break;
-		  case 1:
-		    Fimod->obj[ob].flags |= IMOD_OBJFLAG_OPEN;
-		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
-		    break;
-		  case 2:
-		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
-		    Fimod->obj[ob].flags |= IMOD_OBJFLAG_SCAT;
-		    break;
-		  default:
-		    if (flag > SCAT_SIZE_OFFSET)
-			 Fimod->obj[ob].pdrawsize = flag - SCAT_SIZE_OFFSET;
-		    break;
-	       }
+       ob = flags_put[2 * i];
+       flag = flags_put[2 * i + 1];
+       value = flag >> FLAG_VALUE_SHIFT;
+       /* printf("object %d  flag %d  value %d\n", ob, flag & 0xff, value); */
+       if (ob >= 0 && ob < Fimod->objsize)
+         switch (flag) {
+         case 0:
+           Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
+           Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+           break;
+         case 1:
+           Fimod->obj[ob].flags |= IMOD_OBJFLAG_OPEN;
+           Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+           break;
+         case 2:
+           Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
+           Fimod->obj[ob].flags |= IMOD_OBJFLAG_SCAT;
+           break;
+         default:
+           if (flag & SCAT_SIZE_FLAG)
+             Fimod->obj[ob].pdrawsize = value;
+           if (flag & SYMBOL_SIZE_FLAG)
+             Fimod->obj[ob].symsize = value;
+           if (flag & SYMBOL_TYPE_FLAG)
+             Fimod->obj[ob].symbol = value;
+           break;
+         }
      }
-
+     
      if (maxes_put) {
 	  Fimod->xmax = xmax_put;
 	  Fimod->ymax = ymax_put;
@@ -1133,7 +1149,20 @@ void fromvmsfloats(unsigned char *data, int *amt)
 /* DNM 5/15/02: put scattered point sizes out in flags with an offset */
 void putscatsize(int *objnum, int *size)
 {
-     int flag = *size + SCAT_SIZE_OFFSET;
+     int flag = (*size << FLAG_VALUE_SHIFT) | SCAT_SIZE_FLAG;
+     putimodflag(objnum, &flag);
+}
+
+/* DNM 6/7/03: Add ability to set symbol type and size */
+void putsymtype(int *objnum, int *size)
+{
+     int flag = (*size << FLAG_VALUE_SHIFT) | SYMBOL_TYPE_FLAG;
+     putimodflag(objnum, &flag);
+}
+
+void putsymsize(int *objnum, int *size)
+{
+     int flag = (*size << FLAG_VALUE_SHIFT) | SYMBOL_SIZE_FLAG;
      putimodflag(objnum, &flag);
 }
 
