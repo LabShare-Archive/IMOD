@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/06/10 20:42:07  mast
+c	  New version with automatic peak detection and PIP input
+c	
 c	  Revision 3.4  2002/09/09 21:36:00  mast
 c	  Eliminate stat_source: and nimp_source: from all includes
 c	
@@ -80,6 +83,25 @@ c
 	data options/
      &	    'input:InputFile:FN:Input image file',
      &	    'output:OutputFile:FN:Output image file',
+     &	    'find:FindPeaks:B:Find peaks a criterion # of SDs above'//
+     &	    ' or below background',
+     &	    'peak:PeakCriterion:F:Criterion # of SDs above local '//
+     &	    'mean for erasing peak',
+     &	    'diff:DiffCriterion:F:Criterion # of SDs above mean '//
+     &	    'pixel-to-pixel difference',
+     &	    'grow:GrowCriterion:F:Criterion # of SDs above mean for '//
+     &	    'adding points to peak',
+     &	    'scan:ScanCriterion:F:Criterion # of SDs for picking'//
+     &	    ' peaks in initial scan',
+     &	    'radius:MaximumRadius:F:Maximum radius of peak area to erase',
+     &	    'outer:OuterRadius:F:Outer radius of annulus to calculate'//
+     &	    ' local mean and SD in',
+     &	    'xyscan:XYScanSize:I:Size of regions to compute mean and SD '//
+     &	    'in for initial scans',
+     &	    'edge:EdgeExclusionWidth:I:Width of area to exclude on all'//
+     &	    ' edges of image',
+     &	    'points:PointModel:FN:Output model file with points '//
+     &	    'replaced in peak search',
      &	    'model:ModelFile:FN:Model file with points or lines to '//
      &	    'be erased',
      &	    'lines:LineObjects:LI:Objects that define lines to be '//
@@ -91,25 +113,6 @@ c
      &	    'border points',
      &	    'exclude:ExcludeAdjacent:B:Exclude points adjacent to '//
      &	    'patch points from the fit',
-     &	    'peaks:ErasePeaks:B:Erase peaks a criterion # of SDs above'//
-     &	    ' or below background',
-     &	    'radius:MaximumRadius:F:Maximum radius of peak area to erase',
-     &	    'outer:OuterRadius:F:Outer radius of annulus to calculate'//
-     &	    ' local mean and SD in',
-     &	    'xyscan:XYScanSize:I:Size of regions to compute mean and SD '//
-     &	    'in for initial scans',
-     &	    'edge:EdgeExclusionWidth:I:Width of area to exclude on all'//
-     &	    ' edges of image',
-     &	    'criterion:MainCriterion:F:Criterion # of SDs above local '//
-     &	    'mean for erasing peak',
-     &	    'grow:GrowCriterion:F:Criterion # of SDs above mean for '//
-     &	    'adding points to peak',
-     &	    'scan:ScanCriterion:F:Criterion # of SDs for picking'//
-     &	    ' peaks in initial scan',
-     &	    'diff:DiffCriterion:F:Criterion # of SDs above mean '//
-     &	    'pixel-to-pixel difference',
-     &	    'points:PointModel:FN:Output model file with points '//
-     &	    'replaced in peak search',
      &	    'trial:TrialMode:B:Analyze without writing output file',
      &	    'verbose::B:Print details on patches being replaced',
      &	    'param:ParameterFile:PF:Read parameter entries from file',
