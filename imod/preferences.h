@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/03/24 17:56:59  mast
+Initial creation
+
 */
 
 #ifndef IMOD_PREFERENCES_H
@@ -36,6 +39,9 @@ int hotSliderKey();
 #endif
 
 #define MAXZOOMS 18
+
+// Define this to use a list of styles to exclude rather than ones to include
+//#define EXCLUDE_STYLES
 
 // The structure of preferences.
 // For each parameter, there is a default (Dflt) and a flag for whether
@@ -124,6 +130,8 @@ class ImodPreferences : public QObject
   bool equiv(bool b1, bool b2) {return ((b1 && b2) || (!b1 && !b2));};
   void findCurrentTab();
   void userCanceled();
+  char **getStyleList();
+  bool styleOK(QString key);
 
   public slots:
     void donePressed();
