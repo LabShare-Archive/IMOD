@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 1.7  2003/04/17 23:08:38  rickg
  * <p> Initial revision
  * <p>
@@ -265,7 +268,7 @@ public class TrimvolPanel {
 
   private void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnImodFull.getActionCommand()) {
-      applicationManager.imodFullVolume();
+      applicationManager.imodCombinedTomogram();
     }
 
     if (event.getActionCommand() == btnTrimvol.getActionCommand()) {

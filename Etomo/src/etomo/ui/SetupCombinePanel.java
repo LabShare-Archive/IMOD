@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/06/05 04:43:20  rickg
+ * <p> Added create patch region model button
+ * <p>
  * <p> Revision 2.5  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -403,10 +406,10 @@ public class SetupCombinePanel implements ContextMenu {
       applicationManager.imodPatchRegionModel();
     }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
-      applicationManager.imodTomogram(AxisID.FIRST);
+      applicationManager.imodFullVolume(AxisID.FIRST);
     }
     if (command.equals(btnImodVolumeB.getActionCommand())) {
-      applicationManager.imodTomogram(AxisID.SECOND);
+      applicationManager.imodFullVolume(AxisID.SECOND);
     }
     if (command.equals(btnCreate.getActionCommand())) {
       applicationManager.createCombineScripts();
