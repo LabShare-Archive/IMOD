@@ -47,6 +47,10 @@ import etomo.comscript.SetParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2004/12/02 20:39:41  sueh
+ * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * the join guide.  Need to specify the guide to anchor.
+ *
  * Revision 3.18  2004/11/30 18:29:36  sueh
  * bug# 556 Made Reduction Factor advanced and gave it a tooltip.
  *
@@ -520,11 +524,21 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   }
   
   void setVolcombineParams(ConstSetParam setParam) {
+    if (setParam == null || !setParam.isValid()) {
+      return;
+    }
     ltfReductionFactor.setText(setParam.getValue(true));
   }
   
   void getVolcombineParams(SetParam setParam) {
+    if (setParam == null) {
+      return;
+    }
     setParam.setValue(ltfReductionFactor.getText());
+  }
+  
+  void enableReductionFactor(boolean enable) {
+    ltfReductionFactor.setEnabled(enable);
   }
 
   /**
