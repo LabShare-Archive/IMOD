@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,20 +82,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 
 	  /* Mark data as swapped and do the swaps */
 	  hdata->swapped = 1;
-	  mrc_swap_longs(&hdata->nx, 10);
-	  mrc_swap_floats(&hdata->xlen, 6);
-	  mrc_swap_longs(&hdata->mapc, 3);
-	  mrc_swap_floats(&hdata->amin, 3);
-	  mrc_swap_shorts(&hdata->ispg, 2);
-	  mrc_swap_longs(&hdata->next, 1);
-	  mrc_swap_shorts(&hdata->creatid, 1);
-	  mrc_swap_shorts(&hdata->nint, 4);
-	  mrc_swap_floats(&hdata->min2, 6);
-	  mrc_swap_shorts(&hdata->idtype, 6);
-	  mrc_swap_floats(&hdata->tiltangles[0], 6);
-	  mrc_swap_shorts(&hdata->nwave, 6);
-	  mrc_swap_floats(&hdata->zorg, 3);
-	  mrc_swap_longs(&hdata->nlabl, 1);
+	  mrc_swap_header(hdata);
 
 	  /* Test that this swapping makes values acceptable */
 	  if (hdata->nx <= 0 || hdata->nx > 60000 ||
@@ -154,22 +149,27 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 }
 
 
+
 int mrc_head_write(FILE *fout, struct MRCheader *hdata)
 {
      int i;
-     
+     struct MRCheader hcopy;
+     struct MRCheader *hptr;
+     hptr = hdata;
+
      if (!fout)
 	  return(1);
-     
+
+     /* DNM 6/26/02: copy the header and swap if needed */
      if (hdata->swapped) {
-	  fprintf(stderr, "mrc_head_write: file is read-only because it is"
-		  " byte-swapped.\n");
-	  return(-1);
+	  hcopy = *hdata;
+	  hptr = &hcopy;
+	  mrc_swap_header(&hcopy);
      }
 
      rewind(fout);
      
-     fwrite(hdata, 56, 4, fout);
+     fwrite(hptr, 56, 4, fout);
      
      for( i = 0; i < MRC_NLABELS; i++)
 	  fwrite(hdata->labels[i], MRC_LABEL_SIZE, 1,fout);
@@ -377,7 +377,24 @@ int mrc_byte_mmm( struct MRCheader *hdata, unsigned char **idata)
      return(0);
 }
 
-
+/* Swap each section of the header as appropriate for its data type */
+void mrc_swap_header(struct MRCheader *hdata)
+{
+     mrc_swap_longs(&hdata->nx, 10);
+     mrc_swap_floats(&hdata->xlen, 6);
+     mrc_swap_longs(&hdata->mapc, 3);
+     mrc_swap_floats(&hdata->amin, 3);
+     mrc_swap_shorts(&hdata->ispg, 2);
+     mrc_swap_longs(&hdata->next, 1);
+     mrc_swap_shorts(&hdata->creatid, 1);
+     mrc_swap_shorts(&hdata->nint, 4);
+     mrc_swap_floats(&hdata->min2, 6);
+     mrc_swap_shorts(&hdata->idtype, 6);
+     mrc_swap_floats(&hdata->tiltangles[0], 6);
+     mrc_swap_shorts(&hdata->nwave, 6);
+     mrc_swap_floats(&hdata->zorg, 3);
+     mrc_swap_longs(&hdata->nlabl, 1);
+}
 
 
 /*
@@ -385,6 +402,7 @@ int mrc_byte_mmm( struct MRCheader *hdata, unsigned char **idata)
  */
 
 /* stupid function: check who is using it. JRK  */
+/* 2 calls from clip_transform.c.  DNM */
 int mrc_data_new(FILE *fout, struct MRCheader *hdata)
 {
      int dsize, i;
@@ -392,10 +410,9 @@ int mrc_data_new(FILE *fout, struct MRCheader *hdata)
      short sdata = 0;
      float fdata = 0;
 
+     /* 6/26/01: change from error message to swapping fdata */
      if (hdata->swapped) {
-	  fprintf(stderr, "mrc_data_new: file is read-only because it is"
-		  " byte-swapped.\n");
-	  return(-1);
+	  mrc_swap_floats(&fdata, 1);
      }
 
      dsize = hdata->nx * hdata->ny * hdata->nz;
@@ -458,8 +475,8 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
      float         **fdata;
 
      if (hdata->swapped) {
-	  fprintf(stderr, "mrc_write_idata: file is read-only because it is"
-		  " byte-swapped.\n");
+	  fprintf(stderr, "mrc_write_idata: cannot write to a"
+		  " byte-swapped file.\n");
 	  return(-1);
      }
 
@@ -738,18 +755,12 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 		    int slice, char axis)
 {
      int dsize, csize = 1;
-     int xysize;
+     int xysize, slicesize;
      int i,j,k;
      unsigned char *data = NULL;
 
-     if (!buf)
+     if (!buf || slice < 0)
 	  return(-1);
-
-     if (hdata->swapped) {
-	  fprintf(stderr, "mrc_write_slice: file is read-only because it is"
-		  " byte-swapped.\n");
-	  return(-1);
-     }
 
      rewind(fout);
      if (hdata->headerSize < 1024) hdata->headerSize = 1024;
@@ -761,19 +772,63 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	  fprintf(stderr, "mrc_write_slice: unknown mode.\n");
 	  return(-1);
      }
+
+     /* find out the actual size of the data in case swapped, and to get
+	some error checks out of the way before getting memory */
+     switch (axis){
+	case 'x':
+	case 'X':
+	  if (slice >= hdata->nx)
+	       return(-1);
+	  slicesize = hdata->nz * hdata->ny;
+	  break;
+	  
+	case 'y':
+	case 'Y':
+	  if (slice >= hdata->ny)
+	       return(-1);
+	  slicesize = hdata->nx * hdata->nz;
+	  break;
+	  
+	case 'z':
+	case 'Z':
+	  if (slice >= hdata->nz)
+	       return(-1);
+	  slicesize = xysize;
+	  break;
+	default:
+	  fprintf(stderr, "mrc_write_slice: axis error.\n");
+	  return(-1);
+     }
+     
+
+     /* if swapped,  get memory, copy slice, and swap it in one gulp */
+     if (hdata->swapped && dsize > 1) {
+	  data = malloc(slicesize * dsize * csize);
+	  if (!data) {
+	       fprintf(stderr,
+		       "mrc_write_slice: failure to allocate memory.\n");
+	       return(-1);
+	  }
+	  memcpy(data, buf, slicesize * dsize * csize);
+	  if (dsize == 2)
+	       mrc_swap_shorts(data, slicesize * csize);
+	  else
+	       mrc_swap_floats(data, slicesize * csize);
+     }
      
      switch (axis)
 	  {
 	     case 'x':
 	     case 'X':
-	       if (slice >= hdata->nx)
-		    return(-1);
 	       fseek( fout, slice * dsize * csize, SEEK_CUR);
 	       for(k = 0; k < hdata->nz; k++){
 		    for (j = 0; j < hdata->ny; j++){
 			 if (fwrite(data, dsize * csize, 1, fout) != 1){
 			      fprintf(stderr, 
 				      "mrc_write_slice x: fwrite error.\n");
+			      if (hdata->swapped && dsize > 1)
+				   free(data);
 			      return(-1);
 			 }
 			 data += dsize * csize;
@@ -785,14 +840,14 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 
 	     case 'y':
 	     case 'Y':
-	       if (slice >= hdata->ny)
-		    return(-1);
 	       fseek( fout, slice * hdata->nx * csize * dsize, SEEK_CUR);
 	       for(k = 0; k < hdata->nz; k++){
 		    if (fwrite(data, dsize * csize, hdata->nx, fout) != 
 			hdata->nx){
 			 fprintf(stderr, "mrc_write_slice y: fwrite error.\n");
 			 return(-1);
+			 if (hdata->swapped && dsize > 1)
+			      free(data);
 		    }
 		    data += dsize * hdata->nx * csize;
 		    fseek(fout, csize * dsize * (xysize - hdata->nx), 
@@ -802,14 +857,14 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 
 	     case 'z':
 	     case 'Z':
-	       if (slice >= hdata->nz)
-		    return(-1);
 	       /*  fseek( fout, slice * hdata->nx * hdata->ny * csize * dsize, 
 		   SEEK_CUR); */
 	       mrc_big_seek( fout, 0, slice, hdata->nx * hdata->ny * 
 			     csize * dsize, SEEK_CUR);
 	       if (fwrite(data, dsize * csize, xysize, fout) != xysize){
 		    fprintf(stderr, "mrc_write_slice z: fwrite error.\n");
+		    if (hdata->swapped && dsize > 1)
+			 free(data);
 		    return(-1);
 	       }
 	       break;
@@ -818,6 +873,8 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	       fprintf(stderr, "mrc_write_slice: axis error.\n");
 	       return(-1);
 	  }
+     if (hdata->swapped && dsize > 1)
+	  free(data);
      return(0);
 }
 
