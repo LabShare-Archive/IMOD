@@ -17,9 +17,9 @@ the translation, rotation or distortion.  This means that the same amount of
 translation, rotation or distortion happens everywhere in an image.
 
 All transformation parameters can be adjusted by dragging a
-point on the with the mouse.
+point on the image with the mouse.
 The help menus describe the functions of each mouse button, as well as the
-operation of the various controls and hotkeys.
+operation of the various controls and hot keys.
 
 Midas also allows one to adjust the brightness and contrast of each image
 independently to ease comparisons.  The program can produce a copy of the
@@ -104,6 +104,22 @@ In either case, the first time that midas saves to a file, it will make a
 backup of an existing file by that name by adding ~ at the end.
 If the name of a transform file that does not yet exist is entered on the
 command line, midas will create and save into that file.
+
+.SS Using Global Rotations
+Midas can rotate all images by a common amount and allow you to adjust
+transformations in the rotated images.  This ability, invoked with the
+.B -a
+option, can be used to make the tilt axis vertical when aligning a tilt
+series.  When the program is started in this mode, there is a control for
+adjusting the global rotation angle.  There is also a check box to constrain
+translations with the mouse to the X direction, which is usually the only
+direction that needs fixing in a tilt series pre-aligned by correlation.
+This rotation provides a convenient way to look at tilted images but should
+not affect the alignment; the transformations output by the program are
+independent of the global rotation angle.  However, the X and Y translations
+that are displayed and adjusted in midas are relative to the rotated images
+and will change with the angle.  Global rotations can be used in local or
+global alignment mode.
 
 .SS Fixing Montage Overlaps
 When the pieces of a montage need to be shifted into registration with each
@@ -219,7 +235,13 @@ of the blocks for transforming the current image.  The
 larger the block
 .I size,
 the faster the display, but quality will suffer, especially for images that
-are rotated substantially.
+are rotated substantially.  A size of 0 will turn on image interpolation.
+.TP
+.B -a <angle>
+Display all images with a global rotation specified by
+.I angle.
+When the program is started with this option, the angle can be adjusted if
+necessary with a spin box control.
 .TP
 .B -D
 Run in debug mode, which means do not run the program in the background.

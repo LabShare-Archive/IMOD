@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/24/03: Implemented a better way to solve for 3D transformations when there
+are insufficient data in one dimension, and used this for Solvematch's solution
+when there are fiducials on only one surface, and for Refinematch and Findwarp
+when there is only one layer of patches.
+
+12/23/03: Changed Copytomocoms and eTomo to allow a dual axis data set to
+be started with only the first axis present.
+
 12/18/03: Implemented ability to movie in Slicer window, ability to take movie 
 snapshots automatically just as with Zap window, and an option to start a movie
 snapshot at the current position in Slicer or Zap windows.
