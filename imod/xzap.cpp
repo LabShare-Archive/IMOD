@@ -669,30 +669,24 @@ int imod_zap_open(struct ViewInfo *vi)
 {
   ZapStruct *zap;
   QString str;
+  QRect oldGeom;
   int time, tmax, len, maxlen;
   int needWinx, needWiny;
-  int deskWidth = QApplication::desktop()->width();
-  int deskHeight = QApplication::desktop()->height();
+  int maxWinx;
+  int maxWiny;
+  int newWidth, newHeight, xleft, ytop, toolHeight;
+  float newZoom;
 
   zap = (ZapStruct *)malloc(sizeof(ZapStruct));
   if (!zap) return(-1);
 
   zap->vi     = vi;
   zap->ctrl   = 0;
-  /* DNM: setting max size of the topLevelShell didn't work on the PC, so
-     let's just explicitly limit the size asked for in the image portion */
-  zap->winx = deskWidth - 20;
-  zap->winy = deskHeight - 80;
-  if (vi->xsize < zap->winx)
-    zap->winx   = vi->xsize;
-  if (vi->ysize < zap->winy)
-    zap->winy   = vi->ysize;
   zap->xtrans = zap->ytrans = 0;
   zap->ztrans = 0;
   zap->hqgfx  = 0;
   zap->hide   = 0;
   zap->zoom   = 1.0;
-  zap->xzoom  = 1.0;
   zap->data   = NULL;
   zap->image  = NULL;
   zap->ginit  = 0;
@@ -714,9 +708,6 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->startingBand = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
-
-  needWinx = zap->winx;
-  needWiny = zap->winy;
 
 
   /* Optional time section : find longest string and pass it in */
@@ -756,38 +747,89 @@ int imod_zap_open(struct ViewInfo *vi)
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (void *)zap);
-  imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE);
+  imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE, ZAP_WINDOW_TYPE);
+
+  zapMaximumWindowSize(maxWinx, maxWiny);
+
+  oldGeom = ImodPrefs->getZapGeometry();
 
   /* 1/28/03: this call is needed to get the toolbar size hint right */
   imod_info_input();
-
-  // Manage the size and position of the window
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
+  toolHeight = zap->qtWindow->height() - zap->gfx->height();
 
-  int newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
-  int newHeight = needWiny + (zap->qtWindow->height() - zap->gfx->height());
-  // If you can resize before the show, the complete geometry adjustment
-  // is not needed
-  // But is needed in windows anyway
-  QPoint pos = zap->qtWindow->pos();
-  int xleft = pos.x();
-  int ytop = pos.y();
-  if (xleft + newWidth > deskWidth - 16)
-    xleft = deskWidth - 16 - newWidth;
-  if (ytop + newHeight > deskHeight - 40)
-  ytop = deskHeight - 10 - newHeight;
-#if !defined(_WIN32) && !defined(Q_OS_MACX)
-  ytop -= 30;
-#endif
-  if (Imod_debug)
-    fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
-            "resize %d %d\n", zap->qtWindow->width(), zap->qtWindow->height(), 
-            toolSize.width(), toolSize.height(), zap->gfx->width(), 
-            zap->gfx->height(), newWidth, newHeight);
-  //  zap->qtWindow->resize( newWidth, newHeight);
-  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
+  if (!oldGeom.width()) {
 
+    // If no old geometry, adjust zoom if necessary to fit image on screen
+    while (zap->zoom * vi->xsize > 1.1 * maxWinx || 
+           zap->zoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
+      newZoom = b3dStepPixelZoom(zap->zoom, -1);
+      if (newZoom == zap->zoom)
+        break;
+      zap->zoom = newZoom;
+    }
+
+    needWinx = zap->zoom * vi->xsize;
+    needWiny = zap->zoom * vi->ysize + toolHeight;
+    zapLimitWindowSize(needWinx, needWiny);
+
+    // Make the width big enough for the toolbar, and add the difference
+    // between the window and image widget heights to get height
+    newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
+    newHeight = needWiny;
+
+    QRect pos = zap->qtWindow->geometry();
+    xleft = pos.x();
+    ytop = pos.y();
+
+    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+    if (Imod_debug)
+      fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
+              "resize %d %d\n", zap->qtWindow->width(), 
+              zap->qtWindow->height(), 
+              toolSize.width(), toolSize.height(), zap->gfx->width(), 
+              zap->gfx->height(), newWidth, newHeight);
+
+  } else {
+
+    // Existing geometry - adjust zoom either way to fit window
+    needWiny = oldGeom.height() - toolHeight;
+    needWinx = oldGeom.width();
+    if (vi->xsize < needWinx && vi->ysize < needWiny) {
+
+      // If images are too small, start big and find first zoom that fits
+      zap->zoom = (2. * needWinx) / vi->xsize;
+      while (zap->zoom * vi->xsize > 1.01 * needWinx ||
+             zap->zoom * vi->ysize > 1.01 * needWiny) {
+        newZoom = b3dStepPixelZoom(zap->zoom, -1);
+        if (newZoom == zap->zoom)
+          break;
+        zap->zoom = newZoom;
+      }
+    } else {
+
+      // If images are too big, zoom down until they almost fit
+      while (zap->zoom * vi->xsize > 1.1 * needWinx || 
+             zap->zoom * vi->ysize > 1.1 * needWiny) {
+        newZoom = b3dStepPixelZoom(zap->zoom, -1);
+        if (newZoom == zap->zoom)
+          break;
+        zap->zoom = newZoom;
+      }
+    }
+
+    xleft = oldGeom.x();
+    ytop =  oldGeom.y();
+    newWidth =  oldGeom.width();
+    newHeight =  oldGeom.height();
+  }
+
+  // On Linux (at least RH 7.3) setting geometry before the show ended up
+  // with the window having a lower top (bigger Y when geometry is read back),
+  // so set geometry after the show
   zap->qtWindow->show();
+  imod_info_input();
+  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
   zap->popup = 1;
 
   if (zapDebug)
@@ -1981,10 +2023,63 @@ void zapPrintInfo(ZapStruct *zap)
   wprint("Image: %d x %d\n", ixr + 1 - ixl, iyt + 1 - iyb);
 }
 
+// Some routines for controlling window size and keeping the window on the
+// screen.  The BORDERS are the total borders outside the window 
+// excluding frame.  The TITLE_SPACE is the amount to allow for title bar
+#define X_BORDERS 24
+#define Y_BORDERS 60
+#define TITLE_SPACE 28
+
+// Get the maximum window size = desktop minus borders
+void zapMaximumWindowSize(int &width, int &height)
+{
+  width = QApplication::desktop()->width() - X_BORDERS;
+  height = QApplication::desktop()->height() - Y_BORDERS;
+}
+
+// Limit the window size to maximum size
+void zapLimitWindowSize(int &width, int &height)
+{
+  int limh, limw;
+  zapMaximumWindowSize(limw, limh);
+  if (width > limw)
+    width = limw;
+  if (height > limh)
+    height = limh;
+}
+
+// Limit window position in system-dependent way
+void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
+{
+  int limw = QApplication::desktop()->width();
+  int limh = QApplication::desktop()->height();
+
+  // X11: spread margin equally top and bottom
+  // Windows: put extra at bottom for task bar
+  // Mac: put extra at top for menu
+  int mintop = (TITLE_SPACE + Y_BORDERS) / 2;
+#ifdef _WIN32
+  mintop = TITLE_SPACE;
+#endif
+#ifdef Q_OS_MACX
+  mintop = Y_BORDERS - 10;
+#endif
+
+  if (newdx < X_BORDERS / 2)
+    newdx = X_BORDERS / 2;
+  if (newdx + neww > limw - X_BORDERS / 2)
+    newdx = limw - X_BORDERS / 2 - neww;
+
+  if (newdy < mintop)
+    newdy = mintop;
+  if (newdy + newh > limh - (Y_BORDERS - mintop))
+    newdy = limh - (Y_BORDERS - mintop) - newh;
+}
+
 /* Resize window to fit either whole image or part in rubber band */
 static void zapResizeToFit(ZapStruct *zap)
 {
-  int width, height, neww, newh, limw, limh;
+  int width, height, neww, newh;
   int dx, dy, newdx, newdy;
   float xl, xr, yb, yt;
   width = zap->qtWindow->width();
@@ -1992,6 +2087,7 @@ static void zapResizeToFit(ZapStruct *zap)
   QRect pos = zap->qtWindow->geometry();
   dx = pos.x();
   dy = pos.y();
+  /* printf("dx %d dy %d\n", dx, dy); */
   if (zap->rubberband) {
     /* If rubberbanding, set size to size of band, and offset
        image by difference between band and window center */
@@ -2008,26 +2104,15 @@ static void zapResizeToFit(ZapStruct *zap)
     newh = (int)(zap->zoom * zap->vi->ysize + height - zap->winy);
   }
 
-  limw = QApplication::desktop()->width();
-  limh = QApplication::desktop()->height();
-  if (neww > limw - 24)
-    neww = limw - 24;
-  if (newh > limh - 50)
-    newh = limh - 50;
+  zapLimitWindowSize(neww, newh);
   newdx = dx + width / 2 - neww / 2;
   newdy = dy + height / 2 - newh / 2;
-  if (newdx < 16)
-    newdx = 16;
-  if (newdy < 40)
-    newdy = 40;
-  if (newdx + neww > limw - 8)
-    newdx = limw - 8 - neww;
-  if (newdy + newh > limh - 8)
-    newdy = limh - 8 - newh;
+  zapLimitWindowPos(neww, newh, newdx, newdy);
 
   if (zapDebug)
     fprintf(stderr, "configuring widget...");
 
+  /* printf("newdx %d newdy %d\n", newdx, newdy); */
   zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
 
   /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, add this one to take care of
@@ -2677,6 +2762,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.27  2003/09/16 02:58:39  mast
+Changed to access image data using new line pointers and adjust for
+slight changes in X zoom with fractional zooms
+
 Revision 4.26  2003/09/13 04:30:31  mast
 Switch to getting and setting geometry when resize to fit, to prevent the
 window from moving when there is no size change.
