@@ -118,10 +118,14 @@ void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
                    unsigned char flags);
 void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                          int *imPtSize);
+bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int  imod_zap_open(struct ViewInfo *vi);
 
 /*
 $Log$
+Revision 3.4  2003/03/03 22:13:38  mast
+Added variable for starting the rubber band
+
 Revision 3.3  2003/02/10 20:41:56  mast
 Merge Qt source
 
