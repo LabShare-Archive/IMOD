@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/03/01 22:06:14  sueh
+* <p> bug# 610 Set ApplicationManager.currentDialogType to null when
+* <p> displaying an empty dialog.
+* <p>
 * <p> Revision 1.5  2005/02/25 19:11:56  sueh
 * <p> working on java 1.5 fitting issues.  Added commented out override of
 * <p> packaxis().
@@ -132,7 +136,7 @@ public class MainTomogramPanel extends MainPanel {
         processTrack.getTomogramGenerationState(AxisID.SECOND));
     }
     axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
-
+    axisPanelA.setCleanUpState(processTrack.getCleanUpState());
   }
 
   /**
@@ -228,6 +232,14 @@ public class MainTomogramPanel extends MainPanel {
    */
   public void setPostProcessingState(ProcessState state) {
     axisPanelA.setPostProcessingState(state);
+  }
+  
+  /**
+   * 
+   * @param state
+   */
+  public void setCleanUpState(ProcessState state) {
+    axisPanelA.setCleanUpState(state);
   }
   
   protected void createAxisPanelA(AxisID axisID) {

@@ -12,7 +12,16 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/14 03:06:31  sueh
+* <p> bug# 511 An enumerator class the identifies the dialogs in the
+* <p> tomogram reconstruction side of Etomo.  Contains a string to be used as
+* <p> button labels.  Also contains an index to be used to find dialog related
+* <p> data in arrays.  Stored in ProcessControlPanel and ProcessDialog as way to pass the
+* <p> identifier of the dialog to generic functions in ApplicationManager (see
+* <p> saveDialog, getDialog, getAdvanced).  Used to create and maintain the
+* <p> advanced arrays, which preserve the advanced settings for each dialog.
+* <p> </p>
 */
 public class DialogType {
   public static  final String  rcsid =  "$Id$";
@@ -26,8 +35,9 @@ public class DialogType {
   private static final int tomogramGenerationIndex = 6;
   private static final int tomogramCombinationIndex = 7;
   private static final int postProcessingIndex = 8;
+  private static final int cleanUpIndex = 9;
   
-  public static final int TOTAL = postProcessingIndex + 1;
+  public static final int TOTAL = cleanUpIndex + 1;
   
   private final String name;
   private final int index;
@@ -58,6 +68,7 @@ public class DialogType {
   public static final DialogType TOMOGRAM_GENERATION = new DialogType(tomogramGenerationIndex);
   public static final DialogType TOMOGRAM_COMBINATION = new DialogType(tomogramCombinationIndex);
   public static final DialogType POST_PROCESSING = new DialogType(postProcessingIndex);
+  public static final DialogType CLEAN_UP = new DialogType(cleanUpIndex);
   
   private String toString(int index) {
     switch (index) {
@@ -79,6 +90,8 @@ public class DialogType {
       return "Tomogram Combination";
     case postProcessingIndex:
       return "Post-processing";
+    case cleanUpIndex:
+      return "Clean Up";
     }
     return "";
   }

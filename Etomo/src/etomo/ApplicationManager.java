@@ -62,6 +62,7 @@ import etomo.type.TiltAngleSpec;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.ui.AlignmentEstimationDialog;
+import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
@@ -94,7 +95,1123 @@ import etomo.util.Utilities;
  * @author $Author$
  *
  * @version $Revision$
-*/
+ * 
+ *
+ * <p> $Log$
+ * <p> Revision 3.139  2005/03/19 01:09:36  sueh
+ * <p> adding comments
+ * <p>
+ * <p> Revision 3.138  2005/03/11 01:57:22  sueh
+ * <p> bug# 612 Change nextProcess to support axis A and B.
+ * <p>
+ * <p> Revision 3.137  2005/03/11 01:31:31  sueh
+ * <p> bug# 533 Removed newst updates that where happening when Montage
+ * <p> was set.  Sending TomogramGeneration.linearInterpolation to blend.com.
+ * <p> Update blend.com in doneTomogramGeneration.
+ * <p>
+ * <p> Revision 3.136  2005/03/09 22:45:34  sueh
+ * <p> bug# 533 In newst() running blend instead of newst when doing a montage.
+ * <p>
+ * <p> Revision 3.135  2005/03/09 17:58:16  sueh
+ * <p> bug# 533 In done functions, only update newst when the view type is not
+ * <p> montage.  ProcessManager.crossCorrelate needs to know whether
+ * <p> blendmont will actually be run.
+ * <p>
+ * <p> Revision 3.134  2005/03/08 18:29:54  sueh
+ * <p> bug# 533 In midasRawStack() call midasBlendStack() instead of
+ * <p> midasRawStack() for montaging.
+ * <p>
+ * <p> Revision 3.133  2005/03/08 00:39:09  sueh
+ * <p> bug# 533 CoarseAlign(): get the preblend command file name from
+ * <p> BlendmontParam.
+ * <p>
+ * <p> Revision 3.132  2005/03/07 23:57:01  sueh
+ * <p> bug# 533 Added midasEdges to call midas for fixing edge with a montage
+ * <p> view.  Substituting preblend for prenewst in coarse align with a montage
+ * <p> view.
+ * <p>
+ * <p> Revision 3.131  2005/03/04 00:06:31  sueh
+ * <p> bug# 533 Changes for montaging only.  imodErasedStack(): add piece list
+ * <p> file to 3dmod call.  ImodManualErase():  add frames to 3dmod call.
+ * <p> UpdateXcorrCom():  Update blendmont param.  Update goto param based
+ * <p> on whether blendmont needs to be called.
+ * <p>
+ * <p> Revision 3.130  2005/03/02 23:10:57  sueh
+ * <p> bug# 533 imodXrayModel():  set frames to true if processing a montage.
+ * <p>
+ * <p> Revision 3.129  2005/03/01 22:07:03  sueh
+ * <p> bug# 610 getDialog():  test for dialogType is null and return null.
+ * <p>
+ * <p> Revision 3.128  2005/03/01 20:49:42  sueh
+ * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
+ * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
+ * <p> dialog type in ApplicationManager by setting it in each open function.
+ * <p> Changing saveDialog to saveCurrentDialog and use currentDialogType to
+ * <p> pick the dialog to save.
+ * <p>
+ * <p> Revision 3.127  2005/02/18 23:59:08  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
+ * <p> Revision 3.126  2005/02/17 19:25:44  sueh
+ * <p> bug# 606 Pass AxisID when setting and getting makeZFactors,
+ * <p> newstFiducialessAlignment, and usedLocalAlignments.
+ * <p>
+ * <p> Revision 3.125  2005/02/17 02:38:36  sueh
+ * <p> Removing print statements.
+ * <p>
+ * <p> Revision 3.124  2005/02/16 22:31:23  sueh
+ * <p> bug# 604 Added checkForSharedDirectory() to check if there is an .edf
+ * <p> file using different stacks in the directory.
+ * <p>
+ * <p> Revision 3.123  2005/02/07 21:48:17  sueh
+ * <p> bug# 594 Added isSetupChanged() to check if user has enter data into
+ * <p> Setup dialog.
+ * <p>
+ * <p> Revision 3.122  2005/01/26 04:23:18  sueh
+ * <p> bug# 83 mtfFilter():  Removed called to startProgressBar().
+ * <p>
+ * <p> Revision 3.121  2005/01/21 22:05:55  sueh
+ * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+ * <p> class.  Moved the set/get of tranferfid metadata fields to TransferfidPanel.
+ * <p> get/setParameters.  Clarifying EtomoNumber: using isNull() in stead of
+ * <p> isSet().
+ * <p>
+ * <p> Revision 3.120  2005/01/14 02:57:30  sueh
+ * <p> bug# 511 Added saveDialog() and getDialog().  In done functions, added a
+ * <p> check for exit state ==  save to avoid changing the process state or asking
+ * <p> to close 3dmods when the user only switched dialogs.
+ * <p>
+ * <p> Revision 3.119  2005/01/12 00:40:32  sueh
+ * <p> bug# 579 Renaming enableZFactors() to enableTiltParameters().  If
+ * <p> newstFiducialessAlignment isn't set, use the checkbox value on the
+ * <p> screen.
+ * <p>
+ * <p> Revision 3.118  2005/01/10 23:18:33  sueh
+ * <p> bug# 578 Initializing TomogramState.  Changing enableZFactor() to not
+ * <p> need backward compatibility information on newstFiducialessAlignment.
+ * <p>
+ * <p> Revision 3.117  2005/01/08 00:28:05  sueh
+ * <p> bug# 578 Added enableZFactors() to enable useZFactors checkbox in
+ * <p> tomogram generation.  Set commandMode in NewstParam so
+ * <p> ProcessManager.postProcess() can tell whether Full Align Stack was run.
+ * <p> Set fiducialessAlignment in NewstParam when Full Align Stack is run.
+ * <p> Pass newstParam to ProcessManager.newst() so it can be queried in
+ * <p> postProcess().
+ * <p>
+ * <p> Revision 3.116  2005/01/05 18:53:12  sueh
+ * <p> bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
+ * <p> back from updateAlignCom().
+ * <p>
+ * <p> Revision 3.115  2004/12/28 23:40:35  sueh
+ * <p> bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
+ * <p>
+ * <p> Revision 3.114  2004/12/16 02:51:52  sueh
+ * <p> bug# 559 Updating status bar with param file when ending setup dialog.
+ * <p>
+ * <p> Revision 3.113  2004/12/16 01:29:04  sueh
+ * <p> bug# check whether squeezvol output file is flipped before displaying it in
+ * <p> 3dmod.
+ * <p>
+ * <p> Revision 3.112  2004/12/14 21:21:26  sueh
+ * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+ * <p> only saving metadata.  bug# 572:  Removing state object from meta data
+ * <p> and managing it with a manager object.
+ * <p>
+ * <p> Revision 3.111  2004/12/13 19:08:19  sueh
+ * <p> bug# 565 Saving process track to edf file as well as meta data in
+ * <p> doneSetupDialog.
+ * <p>
+ * <p> Revision 3.110  2004/12/09 04:46:29  sueh
+ * <p> bug# 565 Removed isParamFileDirty.  Saved meta data and process track
+ * <p> in done function.
+ * <p>
+ * <p> Revision 3.109  2004/12/08 21:16:14  sueh
+ * <p> bug# 564 Changed get and set Input and Output File functions to get and set
+ * <p> Input and Output FileName to avoid confusion with new getOutputFile()
+ * <p> function.
+ * <p>
+ * <p> Revision 3.108  2004/12/04 01:25:59  sueh
+ * <p> bug# 557 Added imodSqueezedVolume().
+ * <p>
+ * <p> Revision 3.107  2004/12/03 20:18:50  sueh
+ * <p> bug# 556 Do not load SetupParam into combine dialog or update it in
+ * <p> volcombine if SetParam not valid (has the wrong set name) or is null.
+ * <p> Disable ReductionFactor in combine dialog if SetParam is missing or
+ * <p> invalid.
+ * <p>
+ * <p> Revision 3.106  2004/12/03 02:24:49  sueh
+ * <p> bug# 568 Added getTomogramMetaData() to get a writeable meta data.
+ * <p>
+ * <p> Revision 3.105  2004/12/02 18:23:09  sueh
+ * <p> bug# 557 Added squeezevol() and loaded sqeezevol parameters into
+ * <p> post processing dialog.
+ * <p>
+ * <p> Revision 3.104  2004/11/30 00:32:45  sueh
+ * <p> bug# 556 Adding functions to parse volcombine.
+ * <p>
+ * <p> Revision 3.103  2004/11/19 22:31:32  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 3.101.2.14  2004/11/12 22:42:54  sueh
+ * <p> bug# 520 Moved imodGetRubberbandCoordinates to base class.
+ * <p>
+ * <p> Revision 3.101.2.13  2004/10/29 01:15:02  sueh
+ * <p> bug# 520 Removing unecessary functions that provided services to
+ * <p> BaseManager.  BaseManager can use get... functions to get the
+ * <p> mainPanel, metaData, and processTrack.
+ * <p>
+ * <p> Revision 3.101.2.12  2004/10/21 17:48:01  sueh
+ * <p> bug# 520 Fixed status bar by called updateDataParameters when opening
+ * <p> the processing panel.
+ * <p>
+ * <p> Revision 3.101.2.11  2004/10/11 01:55:28  sueh
+ * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+ * <p> and progressManager to child classes.  Used abstract functions to use
+ * <p> these variables in the base classes.  This is more reliable and doesn't
+ * <p> require casting.
+ * <p>
+ * <p> Revision 3.101.2.10  2004/10/08 21:11:33  sueh
+ * <p> bug# 520 Backed out conversion from properties to user.dir.
+ * <p>
+ * <p> Revision 3.101.2.9  2004/10/08 15:36:53  sueh
+ * <p> bug# 520 Setting workingDirName instead of system property for manager
+ * <p> level working directory.
+ * <p>
+ * <p> Revision 3.101.2.8  2004/10/01 20:56:06  sueh
+ * <p> bug# 520 Moving getMetaDAta() from base class to this class.
+ * <p>
+ * <p> Revision 3.101.2.7  2004/09/29 17:27:48  sueh
+ * <p> bug# 520 Removed MainPanel pass-through functions.  Casting mainPanel
+ * <p> and other members from BaseManager to private local variables in the
+ * <p> create functions.
+ * <p>
+ * <p> Revision 3.101.2.6  2004/09/15 22:32:14  sueh
+ * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ * <p>
+ * <p> Revision 3.101.2.5  2004/09/13 16:24:54  sueh
+ * <p> bug# 520 Added isNewManager(); true if setup dialog came up.  Telling
+ * <p> EtomoDirectory the dataset name when completes successfully.
+ * <p>
+ * <p> Revision 3.101.2.4  2004/09/09 21:46:40  sueh
+ * <p> bug# 552 loading combine.com while creating combine scripts
+ * <p>
+ * <p> Revision 3.101.2.3  2004/09/08 19:20:38  sueh
+ * <p> bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
+ * <p> Calling MainFrame.show in EtomoDirector.  Moving kill() to super class.
+ * <p>
+ * <p> Revision 3.101.2.2  2004/09/07 17:49:36  sueh
+ * <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
+ * <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
+ * <p> moved exitProgram() and processing variables to BaseManager, split
+ * <p> MainPanel off from MainFrame
+ * <p>
+ * <p> Revision 3.101.2.1  2004/09/03 20:32:54  sueh
+ * <p> bug# 520 beginning to remove functions and variables that can go in
+ * <p> BaseManager - removed functions associated with the constructor, moved
+ * <p> constructor code to EtomoDirector.  Added create functions to override
+ * <p> abstract create functions in BaseManager
+ * <p>
+ * <p> Revision 3.101  2004/09/02 19:51:18  sueh
+ * <p> bug# 527 adding ImodMAnager.setOpenContour calls to
+ * <p> imodMAatchingModel()
+ * <p> bug# 541 remove unnecessary setBinning call in imodMatchingModel.
+ * <p> Don't need to set binning to its default
+ * <p>
+ * <p> Revision 3.100  2004/08/31 16:52:53  sueh
+ * <p> bug# 508 removing JUnit tests that require an X server
+ * <p>
+ * <p> Revision 3.99  2004/08/26 01:09:51  sueh
+ * <p> bug# 508 handling exiting while a background process is
+ * <p> running: adding setBackgroundThreadName() and variables
+ * <p> backgroundProcessA and backgroundProcessNameA.  Using
+ * <p> setBackgroundThreadName() in combine, matchvol1, patchcorr,
+ * <p> matchorwarp, and volcombine.  Reseting background thread
+ * <p> variables in processDone().  Adding more information to the
+ * <p> processes running dialog in exitProgram().
+ * <p>
+ * <p> Revision 3.98  2004/08/20 22:57:12  sueh
+ * <p> bug# 515 improving error handling for Setup dialog
+ * <p> Changed:
+ * <p> doneSetupDialog
+ * <p>
+ * <p> Revision 3.97  2004/08/20 21:49:27  sueh
+ * <p> bug# 508 made some private items protected so they can by
+ * <p> inherited classes.
+ * <p> Added:
+ * <p> getTest
+ * <p> Changed:
+ * <p> tomogram CombinationDialog
+ * <p> updateComdeSc
+ * <p>
+ * <p> Revision 3.96  2004/08/19 03:09:24  sueh
+ * <p> bug# 508 Added a --selftest option to tell objects to perform extra tests.
+ * <p> Used "selftest" because "test" was already taken.  Created load and
+ * <p> update functions for the combine comscript.  The update function uses
+ * <p> CombineComscriptState to set the start and end command that
+ * <p> combine.com will run. Changed the combine functions matchvol1,
+ * <p> matchorwarp, etc so that they run combine.com.  Removed combine
+ * <p> functions from startNextProcess().  Pulled together functions that had
+ * <p> been split up so they could run from either nextProcess or restart; now
+ * <p> there is no next process for combine.  Add functions to control the
+ * <p> progressBar and the TomogramCombination tab panes.
+ * <p> Added:
+ * <p> static boolean selfTest
+ * <p> getCombineComscript()
+ * <p> boolean isSelfTest()
+ * <p> loadCombineComscript()
+ * <p> matchvol1Combine()
+ * <p> showPane(String comscript, String pane)
+ * <p> startProgressBar(String label, AxisID axisID)
+ * <p> updateCombineComscriptState(int startCommand)
+ * <p> Changed:
+ * <p> combine()
+ * <p> matchorwarpCombine()
+ * <p> matchorwarpTrial()
+ * <p> openTomogramCombinationDialog()
+ * <p> parseCommandLine(String[] args)
+ * <p> patchcorrCombine()
+ * <p> startNextProcess(AxisID axisID)
+ * <p> volcombine()
+ * <p> Deleted:
+ * <p> matchorwarp(String next)
+ * <p> matchvol1()
+ * <p> patchcorr()
+ * <p> restartAtMatchvol1()
+ * <p>
+ * <p> Revision 3.95  2004/08/06 23:12:19  sueh
+ * <p> bug# 508 added commented out processMgr.combine() call
+ * <p> to combine()
+ * <p>
+ * <p> Revision 3.94  2004/08/03 18:53:45  sueh
+ * <p> bug# 519 get the correct tiltAngleSpec for axis B
+ * <p>
+ * <p> Revision 3.93  2004/08/02 23:51:31  sueh
+ * <p> bug# 519 improving error handling in
+ * <p> makeRawtltFile()
+ * <p>
+ * <p> Revision 3.92  2004/08/02 23:03:54  sueh
+ * <p> bug# 519 added makeRawtltFile(): create a new .rawtlt file from
+ * <p> starting angle, step angle, and # sections
+ * <p>
+ * <p> Revision 3.91  2004/07/24 01:56:03  sueh
+ * <p> bug# 513 change packMainWindow() to call
+ * <p> MainFrame.fitWindow() when the Basic/Advanced
+ * <p> button is pressed.  packMainWindow() is also called when
+ * <p> the Setup dialog is opened.  Calling fitWindow() doesn't cause
+ * <p> any proglems for Setup.
+ * <p>
+ * <p> Revision 3.90  2004/07/23 00:09:30  sueh
+ * <p> bug# 513 add function to get UserConfiguration
+ * <p>
+ * <p> Revision 3.89  2004/07/21 00:22:29  sueh
+ * <p> bug# 507 In startNextProcess(), checking
+ * <p> tomogramCombinationDialog before running volcombine.
+ * <p>
+ * <p> Revision 3.88  2004/07/12 17:41:07  sueh
+ * <p> bug# 492 in imodPreview: getting metadata from
+ * <p> SetupDialog.getDataset().  Also changed the metadata variable
+ * <p> name to previewMetaData to avoid confusing it with the
+ * <p> member variable metaData
+ * <p>
+ * <p> Revision 3.87  2004/07/02 00:43:43  sueh
+ * <p> bug# 487 adding public functions to get FidXyz and MRCHeader
+ * <p>
+ * <p> Revision 3.86  2004/06/30 17:27:36  rickg
+ * <p> Bug #488 Rotation.xf not being updated correctly, now done anytime
+ * <p> the fiducialless parameters are updated.
+ * <p>
+ * <p> Revision 3.85  2004/06/30 00:16:25  sueh
+ * <p> bug# 487 adding checkUpdateFiducialModel(), which compares
+ * <p> the current and previous binning in Coarse Align.  This function
+ * <p> is run when prenewst.com finishes.
+ * <p>
+ * <p> Revision 3.84  2004/06/28 22:10:29  rickg
+ * <p> Bug #470 Moved the fiducial mode file copying to the same sections
+ * <p> where the fiducialless is handled.
+ * <p>
+ * <p> Revision 3.83  2004/06/28 04:36:39  rickg
+ * <p> Bug #470 Added method to update prexf and _nonfid.xf
+ * <p>
+ * <p> Revision 3.82  2004/06/25 23:26:51  sueh
+ * <p> bug# 485 In openTomogramCombinationDialog, after loading
+ * <p> the comscripts, synchronize from initial and final tabs to setup
+ * <p> and update combineParams
+ * <p>
+ * <p> Revision 3.81  2004/06/25 21:18:31  sueh
+ * <p> bug# 486 corrected set state to inprogress calls.
+ * <p>
+ * <p> Revision 3.80  2004/06/24 21:41:39  sueh
+ * <p> bug# 482 making the call to
+ * <p> loadSolvematch(boolean modelBased) compatible with
+ * <p> previous versions of the .edf file.
+ * <p>
+ * <p> Revision 3.79  2004/06/24 20:22:05  sueh
+ * <p> bug# 482 removed loadSolvematchshift and mod functions
+ * <p>
+ * <p> Revision 3.78  2004/06/24 18:43:00  sueh
+ * <p> bug# 482 add loadSolvematch(boolean modelBased) to merge
+ * <p> solvematchshift and mod into solvematch and add
+ * <p> matchshifts
+ * <p>
+ * <p> Revision 3.77  2004/06/22 23:00:12  sueh
+ * <p> bug# 455 Added open contours to sample() and fullSample().
+ * <p> Substituted open() calls for model() calls.  Removed extra
+ * <p> model() calls.  Setting preserveContrast separately.
+ * <p>
+ * <p> Revision 3.76  2004/06/22 02:04:28  sueh
+ * <p> bug# 441 Created updateTrimvolParam() and added it to
+ * <p> trimVolume() and donePostProcessing().  Moved the logic
+ * <p> used to create input and output file names to TrimvolParam.
+ * <p>
+ * <p> Revision 3.75  2004/06/21 17:22:37  rickg
+ * <p> Bug #461 z shift is scaled by the prealigned binning
+ * <p>
+ * <p> Revision 3.74  2004/06/21 00:03:53  sueh
+ * <p> bug# 436 adding restartAtMatchvol1(), which updates later comscripts
+ * <p> and calls matchvol1().  This is necessary because
+ * <p> startNextProcess() does not need to update comscripts.
+ * <p>
+ * <p> Revision 3.73  2004/06/18 00:52:53  sueh
+ * <p> bug# 476 put the logic to check if the fixed stack exists in a
+ * <p> separate function and call it in replaceRawStack() and
+ * <p> imodErasedStack
+ * <p>
+ * <p> Revision 3.72  2004/06/17 16:23:34  sueh
+ * <p> bug# 466 in imodFullSample() turning on model mode.
+ * <p>
+ * <p> Revision 3.71  2004/06/15 20:08:49  rickg
+ * <p> Bug #383 Run solvematch instead of solvematch{shift|mod}
+ * <p>
+ * <p> Revision 3.70  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
+ * <p> Revision 3.69  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
+ * <p> Revision 3.68  2004/06/10 18:27:12  sueh
+ * <p> bug# 463 changing ImodManager.create() to newImod, using
+ * <p> ImodManager.setOpenBeadFixer() instead of openBeadFixer
+ * <p>
+ * <p> Revision 3.67  2004/06/10 18:19:13  rickg
+ * <p> Removed redudant dialog parameter fetching from mtffilter and
+ * <p> imodPatchRegionModel
+ * <p>
+ * <p> Revision 3.66  2004/06/10 17:27:53  sueh
+ * <p> bug# 462 remove ImodManager.reset() calls
+ * <p>
+ * <p> Revision 3.65  2004/06/05 00:59:36  sueh
+ * <p> bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
+ * <p> when the ta logs are out of date
+ * <p>
+ * <p> Revision 3.64  2004/06/02 23:49:59  rickg
+ * <p> Bug #391 only update the rotation.xf if the mode is fiducialess
+ * <p>
+ * <p> Revision 3.62  2004/06/01 18:53:48  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
+ * <p> Revision 3.61  2004/05/27 22:49:54  rickg
+ * <p> Bug #391 offer to close preali window for fidless case
+ * <p> standardized parameter gathering for tomogram positioning
+ * <p> logic for calling updateFiducialAlign
+ * <p>
+ * <p> Revision 3.60  2004/05/26 04:57:14  rickg
+ * <p> Bug #391 Fiducialess handling for the gneration dialog
+ * <p>
+ * <p> Revision 3.59  2004/05/26 00:00:32  sueh
+ * <p> bug# 355 validate metaData when retrieve parameters from an
+ * <p> .edf file
+ * <p>
+ * <p> Revision 3.58  2004/05/25 23:19:34  rickg
+ * <p> Bug #391 Fiducialess implementation
+ * <p>
+ * <p> Revision 3.57  2004/05/24 20:16:45  sueh
+ * <p> bug# 409 corrected .ali file names for mtffilter for single axis
+ * <p>
+ * <p> Revision 3.56  2004/05/21 21:55:13  sueh
+ * <p> bug# 443 setting the output file name in tilta.com when
+ * <p> running sample
+ * <p>
+ * <p> Revision 3.55  2004/05/21 02:21:38  sueh
+ * <p> bug# 83 removing generic progress bar
+ * <p>
+ * <p> Revision 3.54  2004/05/15 01:43:55  sueh
+ * <p> bug# 415 if saveTestParamIfNecessary() returns false, then the user
+ * <p> pressed cancel our there was a problem saving, so don't exit.
+ * <p>
+ * <p> Revision 3.53  2004/05/15 00:41:00  sueh
+ * <p> bug# 302 changing function name updateCombineParams()
+ * <p>
+ * <p> Revision 3.52  2004/05/13 20:15:10  sueh
+ * <p> bug# 33  imodGetRubberbandCoordinates() checks for rubberband data
+ * <p>
+ * <p> Revision 3.51  2004/05/11 21:11:21  sueh
+ * <p> bug# 302 Standardizing synchronization.
+ * <p> Syncing with PatchRegionModel button push.
+ * <p> UpdateCombineCom(), which updates metadata, is not necessary to
+ * <p> run scripts so it doesn't need a success return value.
+ * <p> Put syncing first in most cases.
+ * <p> Follow syncing by updateCombineCom().
+ * <p> In createCombineScripts() run either loadSolvematchShift() or
+ * <p> loadSolvematchMod(), instead of only loadSolvematchShift.
+ * <p> If MatchingModels is selected after Create scripts is done, call
+ * <p> modelCombine() from combine() and visa versa.
+ * <p>
+ * <p> Revision 3.50  2004/05/07 19:54:45  sueh
+ * <p> bug# 33 adding error processing to
+ * <p> imodGetRubberbandCoordinates()
+ * <p>
+ * <p> Revision 3.49  2004/05/06 20:22:33  sueh
+ * <p> bug# 33 added getRubberbandCoordinates()
+ * <p>
+ * <p> Revision 3.48  2004/05/05 21:24:53  sueh
+ * <p> bug #430  If changes to .seed happened more recently then .fid, do not
+ * <p> mv .fid .seed.  Otherwise backup .seed to .seed~ if not backing up
+ * <p> .seed to _orig.seed.  Ok to use fid as seed when .seed does not exist.
+ * <p> Orginal bug# 276.
+ * <p>
+ * <p> Revision 3.47  2004/05/03 22:29:21  sueh
+ * <p> bug# 416 Move Bin by 2 settings between tabs in
+ * <p> TomogramCombinationDialog.  Set binning in ImodManager.
+ * <p>
+ * <p> Revision 3.46  2004/05/03 18:04:41  sueh
+ * <p> bug# 418 adding printStackTrace for more information
+ * <p>
+ * <p> Revision 3.45  2004/04/28 22:16:57  sueh
+ * <p> bug# 320 user interaction goes in app manager
+ * <p>
+ * <p> Revision 3.44  2004/04/28 20:13:10  rickg
+ * <p> bug #429 all file renames are now handled by the utilities static
+ * <p> function to deal with the windows bug
+ * <p>
+ * <p> Revision 3.43  2004/04/28 00:47:52  sueh
+ * <p> trying delete  full aligned stack so that rename works in Windows
+ * <p>
+ * <p> Revision 3.42  2004/04/28 00:40:29  sueh
+ * <p> adding error message if rename filter file doesn't work
+ * <p>
+ * <p> Revision 3.41  2004/04/27 23:20:13  sueh
+ * <p> bug# 320 warn the user about a stale patch vector model after
+ * <p> any button press that will lead to creating a new patch vector
+ * <p> model
+ * <p>
+ * <p> Revision 3.40  2004/04/27 22:02:27  sueh
+ * <p> bug# 320 try to close the 3dmod with patch vector model before
+ * <p> running patchcorr
+ * <p>
+ * <p> Revision 3.39  2004/04/27 01:01:34  sueh
+ * <p> bug# 427 using tomopitch param when running tomopitch
+ * <p>
+ * <p> Revision 3.38  2004/04/26 21:20:32  sueh
+ * <p> bug# 427 added code for tomopitch comscript (not finished)
+ * <p>
+ * <p> Revision 3.37  2004/04/26 18:36:52  rickg
+ * <p> bug #426 Added full image code, fixed order of com script
+ * <p> loading for tomogram positioning
+ * <p>
+ * <p> Revision 3.36  2004/04/26 17:15:54  sueh
+ * <p> bug# 83 removing generic progress bar from patchcorr
+ * <p>
+ * <p> Revision 3.35  2004/04/26 00:24:59  rickg
+ * <p> bug #426 Implemented full tomogram sampling
+ * <p>
+ * <p> Revision 3.34  2004/04/24 08:05:40  rickg
+ * <p> bug #391 restructuring
+ * <p>
+ * <p> Revision 3.32  2004/04/22 23:31:33  rickg
+ * <p> bug #391 Added processing for non fid aligne
+ * <p> Added getIMODBinPath and getMetaData
+ * <p>
+ * <p> Revision 3.31  2004/04/19 19:25:04  sueh
+ * <p> bug# 409 removing prints
+ * <p>
+ * <p> Revision 3.30  2004/04/16 02:20:39  sueh
+ * <p> removing print statements
+ * <p>
+ * <p> Revision 3.29  2004/04/16 02:06:30  sueh
+ * <p> bug# 409 No longer backing up .ali during useMtfFilter.
+ * <p> Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
+ * <p> does all updates on the FiducialModelDialog - and clarified the code.
+ * <p> Create updateDialog(ProcessName) to call the specific updateDialog functions.
+ * <p> Calling updateDialog(ProcessName in processDone()
+ * <p> Added updateDialog() calls where needed.
+ * <p>
+ * <p> Revision 3.28  2004/04/06 19:04:06  rickg
+ * <p> Print out java system info at start of session
+ * <p>
+ * <p> Revision 3.27  2004/04/06 17:51:03  rickg
+ * <p> bug #391 basic single stage fiducialess alignment
+ * <p>
+ * <p> Revision 3.26  2004/03/29 21:00:48  sueh
+ * <p> bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
+ * <p> result as the full
+ * <p> aligned stack
+ * <p>
+ * <p> Revision 3.25  2004/03/24 03:08:17  rickg
+ * <p> Bug# 395 Implemented ability to create binned tomogram
+ * <p>
+ * <p> Revision 3.24  2004/03/22 23:51:23  sueh
+ * <p> bug# 83 starting the progress bar as soon as possible
+ * <p>
+ * <p> Revision 3.23  2004/03/13 00:35:05  rickg
+ * <p> Bug# 390 Add prenewst and xfproduct management
+ * <p>
+ * <p> Revision 3.22  2004/03/11 23:58:14  rickg
+ * <p> Bug #410 Newstack PIP transition
+ * <p> Formatted code
+ * <p>
+ * <p> Revision 3.21  2004/03/10 00:44:32  sueh
+ * <p> bug# 408 added getIMODCalibDirectory()
+ * <p>
+ * <p> Revision 3.20  2004/03/09 22:06:56  sueh
+ * <p> bug# 407 adding IMOD_CALIB_DIR optional environment variable
+ * <p>
+ * <p> Revision 3.19  2004/03/06 00:22:39  sueh
+ * <p> bug# 250 changed updateCombineCom() - remove duplicate code - call
+ * <p> updateCombineCom(int) with NO_TAB
+ * <p>
+ * <p> Revision 3.18  2004/03/05 18:26:55  sueh
+ * <p> bug# 250 changed patchcorrCombine() - updating CombineParams
+ * <p> changed updateCombineCom(int) - change the parameter name because
+ * <p> its only necessary when a copy to Setup is required
+ * <p>
+ * <p> Revision 3.17  2004/03/02 00:09:04  sueh
+ * <p> bug #250 added updateCombineCom(int fromTab) - update CombineParams
+ * <p> from a tab
+ * <p> changed combine - default call to combine(int copyFromTab) with NO_TAB
+ * <p> added combine(int copyFromTab) copies fields from copyFromTab to setup
+ * <p> tab.
+ * <p> modelCombine() - same as combine
+ * <p> matchvol1() - same as combine
+ * <p>
+ * <p> Revision 3.16  2004/02/27 20:10:49  sueh
+ * <p> bug# 250 changed createCombineScripts() - copied the
+ * <p> Setup Use Matching Models value into the Initial tab
+ * <p>
+ * <p> Revision 3.15  2004/02/25 22:42:23  sueh
+ * <p> bug# 403 removed unnecessary code
+ * <p>
+ * <p> Revision 3.14  2004/02/25 22:17:52  sueh
+ * <p> bug# 403 resetState() is no longer setting imodManager to
+ * <p> null
+ * <p>
+ * <p> Revision 3.13  2004/02/16 18:54:38  sueh
+ * <p> bug# 276 Added makeFiducialModelSeedModel() to copy the
+ * <p>  .seed file to the .fid file.
+ * <p>
+ * <p> Revision 3.12  2004/02/07 03:12:02  sueh
+ * <p> bug# 169 Create ImodManager just once, set metadata
+ * <p> separately, reformatted, changed imodRawStack() to
+ * <p> ImodPreview()
+ * <p>
+ * <p> Revision 3.11  2004/02/05 18:05:32  sueh
+ * <p> bug# 306 get the trimvol params from the screen and set
+ * <p> swapYZ for 3dmod
+ * <p>
+ * <p> Revision 3.10  2004/02/05 00:19:07  sueh
+ * <p> bug# 292 preserving contrast in view x-ray model, changed
+ * <p> imodXrayModel()
+ * <p>
+ * <p> Revision 3.9  2004/02/04 18:12:46  sueh
+ * <p> bug# 171 ask to automatically quit all running 3dmod
+ * <p> programs.
+ * <p>
+ * <p> Revision 3.8  2004/01/22 21:09:39  rickg
+ * <p> Get screen size in openSetupDialog instead of app init
+ * <p>
+ * <p> Revision 3.7  2004/01/17 00:14:17  rickg
+ * <p> Added a --test argument that prevents the main window from
+ * <p> opening up.
+ * <p>
+ * <p> Revision 3.6  2003/12/08 22:34:32  sueh
+ * <p> bug# 169 adding new function imodRawStack
+ * <p>
+ * <p> Revision 3.5  2003/12/05 01:25:01  sueh
+ * <p> bug242 moved getEnvironmentVariable() to Utilities
+ * <p>
+ * <p> Revision 3.4  2003/12/04 22:09:03  sueh
+ * <p> bug242 Converting to new interface.
+ * <p>
+ * <p> Revision 3.3  2003/11/26 23:36:27  rickg
+ * <p> Debug flag and getter changed to static.
+ * <p>
+ * <p> Revision 3.2  2003/11/11 00:24:52  sueh
+ * <p> Bug349 imodFixFiducials(AxisID): call
+ * <p> imodManager.openBeadFixer()
+ * <p>
+ * <p> Revision 3.1  2003/11/10 07:28:54  rickg
+ * <p> ContextPopup initialization no longer needed
+ * <p> Some more stderr printing on exceptions
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.93  2003/11/07 19:49:38  rickg
+ * <p> Don't delete preali in delete aligned stacks code.
+ * <p>
+ * <p> Revision 2.92  2003/11/07 00:52:56  rickg
+ * <p> Added test helper methods
+ * <p> Changed transferfid parameter name to indicate that it is called with
+ * <p> the destination axis
+ * <p>
+ * <p> Revision 2.91  2003/11/06 22:45:47  sueh
+ * <p> cleaning up task tags and prints
+ * <p>
+ * <p> Revision 2.90  2003/11/06 21:41:27  sueh
+ * <p> bug348 imodFineAlign(AsixID): removed calls to
+ * <p> setFineAlignmentState() for processTrack and mainFrame.
+ * <p>
+ * <p> Revision 2.89  2003/11/05 20:31:48  rickg
+ * <p> Bug #292 Added preserve contrast seed model and residual model
+ * <p> opens
+ * <p>
+ * <p> Revision 2.88  2003/11/05 20:04:05  rickg
+ * <p> Bug# 347 Message written to process monitor area
+ * <p>
+ * <p> Revision 2.87  2003/11/05 19:39:17  rickg
+ * <p> Bug# 295 Query the combination dialog instead of the metaData
+ * <p> object as to the state of the match direction for opening the patch
+ * <p> region model.
+ * <p>
+ * <p> Revision 2.86  2003/11/05 19:20:21  rickg
+ * <p> Bug# 290 Save tomo gen data when done is pressed
+ * <p>
+ * <p> Revision 2.85  2003/11/05 18:05:50  sueh
+ * <p> bug278 created backupFile(File) to backup the .edf file
+ * <p> called backupFile(File) from saveTestParamFile()
+ * <p>
+ * <p> Revision 2.84  2003/11/04 20:55:42  rickg
+ * <p> Bug #345 IMOD Diriectory supplied by a static function from 
+ * <p> ApplicationManager
+ * <p>
+ * <p> Revision 2.83  2003/10/27 23:55:41  rickg
+ * <p> Bug# 283 Added method to open the tomopitch log file
+ * <p>
+ * <p> Revision 2.82  2003/10/24 21:45:09  rickg
+ * <p> Spelling fix
+ * <p>
+ * <p> Revision 2.81  2003/10/23 23:06:13  sueh
+ * <p> bug271 called isValid() in SetupDialog
+ * <p>
+ * <p> Revision 2.80  2003/10/22 21:32:02  rickg
+ * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
+ * <p>
+ * <p> Revision 2.79  2003/10/21 23:45:05  rickg
+ * <p> Added function to delete the aligned stacks
+ * <p>
+ * <p> Revision 2.78  2003/10/21 02:34:20  sueh
+ * <p> Bug325 Pulled out generic default UI retrieval functionality and placed
+ * <p> it in ButtonHelper.
+ * <p>
+ * <p> Revision 2.77  2003/10/20 22:02:13  rickg
+ * <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
+ * <p>
+ * <p> Revision 2.76  2003/10/20 17:32:09  rickg
+ * <p> Use existence of combine com scripts
+ * <p> ConstCombineParams.scriptsCreated flag
+ * <p>
+ * <p> Revision 2.75  2003/10/17 02:00:07  sueh
+ * <p> Bug317 added new function - to retrieve default UI resources
+ * <p>
+ * <p> Revision 2.73  2003/10/10 23:17:01  sueh
+ * <p> bug251 removing marks
+ * <p>
+ * <p> Revision 2.72  2003/10/07 22:40:40  sueh
+ * <p> bug251 moved transferfid from fine alignment dialog
+ * <p> to fiducial model dialog
+ * <p>
+ * <p> Revision 2.71  2003/10/05 23:59:35  rickg
+ * <p> Bug# 252
+ * <p> Adde complete message to progresss region for shor processes
+ * <p>
+ * <p> Revision 2.70  2003/10/05 21:36:05  rickg
+ * <p> Bug# 256
+ * <p> Catch SystemProcessException for attempted multiple
+ * <p> processes in a axis
+ * <p>
+ * <p> Revision 2.69  2003/10/03 22:11:15  rickg
+ * <p> Bug# 255
+ * <p> added returns to catch sections for doneSetupDialog
+ * <p> Don't want to continue to main window if copytomocoms did not
+ * <p> succeed
+ * <p>
+ * <p> Revision 2.68  2003/10/02 18:57:46  sueh
+ * <p> bug236 added testing:
+ * <p> NewstParamTest
+ * <p> ComScriptTest
+ * <p>
+ * <p> Removed marks
+ * <p>
+ * <p> Revision 2.67  2003/09/30 03:18:43  rickg
+ * <p> Bug# 248
+ * <p> changed openTestParamFile to loadTestParamFile
+ * <p> split out resetState method
+ * <p> added logic to openExistingData use a File object or
+ * <p> open the File Dialog and drop into the setup page if it fails.
+ * <p>
+ * <p> Revision 2.66  2003/09/30 02:18:57  rickg
+ * <p> Bug 249
+ * <p> Proper New dialog behavior when not saving the EDF
+ * <p> Also moved message dialogs to the mainFrame
+ * <p>
+ * <p> Revision 2.65  2003/09/29 23:34:57  sueh
+ * <p> bug236 Added UseLinearInterpolation to
+ * <p> TomogramGenerationDialog.
+ * <p>
+ * <p> UseLinearInterpolation:
+ * <p> check box
+ * <p> Advanced
+ * <p> newst -linear
+ * <p>
+ * <p> Files:
+ * <p> ComScriptManager.java
+ * <p> ConstNewstParam.java
+ * <p> NewstParam.java
+ * <p> TomogramGenerationDialog.java
+ * <p> ApplicationManager.java
+ * <p>
+ * <p> Revision 2.64  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
+ * <p> Revision 2.63  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
+ * <p> Revision 2.62  2003/09/09 17:20:29  rickg
+ * <p> Check to see if the _orig.st stack exists, do not replace if it does.
+ * <p>
+ * <p> Revision 2.61  2003/09/08 22:18:50  rickg
+ * <p> Catch exception thrown buy ProcessManager.startComScript
+ * <p>
+ * <p> Revision 2.60  2003/09/08 05:44:47  rickg
+ * <p> Added trial tilt
+ * <p> Output for a single axis tomogram is changed to
+ * <p> dataset_full.rec
+ * <p>
+ * <p> Revision 2.59  2003/08/20 21:57:09  rickg
+ * <p> Only close imods in specified directory
+ * <p>
+ * <p> Revision 2.58  2003/08/05 21:35:22  rickg
+ * <p> Retry commit, eclipse broken?
+ * <p>
+ * <p> Revision 2.57  2003/07/28 22:53:09  rickg
+ * <p> Fixed postpone logic for combine panel.  Combine scripts
+ * <p> created flag is now reset only when the CombineParams are
+ * <p> modified.
+ * <p>
+ * <p> Combine postpone will now save combine sub script parameters
+ * <p>
+ * <p> Revision 2.56  2003/07/25 22:51:11  rickg
+ * <p> Imod model mode management changes
+ * <p> Save original stack as _orig.st
+ * <p>
+ * <p> Revision 2.55  2003/07/22 22:16:15  rickg
+ * <p> Erased stack methods and trial mode
+ * <p>
+ * <p> Revision 2.54  2003/07/01 19:24:30  rickg
+ * <p> Fixed progress bars for prenewst, newst and tomogram generation
+ * <p>
+ * <p> Revision 2.53  2003/06/27 20:33:28  rickg
+ * <p> Changed below method to public
+ * <p>
+ * <p> Revision 2.52  2003/06/27 20:23:32  rickg
+ * <p> Adde getter method for the com script manager
+ * <p>
+ * <p> Revision 2.51  2003/06/10 05:29:30  rickg
+ * <p> Data persistence behavior of the combination and post
+ * <p> processing panels now match the others.
+ * <p>
+ * <p> Revision 2.50  2003/06/10 05:15:23  rickg
+ * <p> *** empty log message ***
+ * <p>
+ * <p> Revision 2.49  2003/06/09 04:28:21  rickg
+ * <p> Set state to in progress if any thing is exected for a given
+ * <p> process panel
+ * <p>
+ * <p> Revision 2.48  2003/06/05 21:19:13  rickg
+ * <p> Explicit transferfid B to A false setting
+ * <p>
+ * <p> Revision 2.47  2003/05/27 08:42:04  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p>
+ * <p> Revision 2.46  2003/05/23 22:49:41  rickg
+ * <p> Spelling correction
+ * <p>
+ * <p> Revision 2.45  2003/05/23 14:29:11  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p>
+ * <p> Revision 2.44  2003/05/21 22:56:54  rickg
+ * <p> Initial kill implementation
+ * <p>
+ * <p> Revision 2.43  2003/05/19 22:05:31  rickg
+ * <p> Added openNewDataset method
+ * <p> unset isDataParamDirty in daving method
+ * <p>
+ * <p> Revision 2.42  2003/05/15 22:24:24  rickg
+ * <p> Reordered method sequence in opening processing panel to
+ * <p> prevent slider from taking up all of the window.
+ * <p>
+ * <p> Revision 2.41  2003/05/15 20:13:05  rickg
+ * <p> Fixed PLAF for windows
+ * <p>
+ * <p> Revision 2.40  2003/05/15 19:39:44  rickg
+ * <p> Look and feel handling
+ * <p>
+ * <p> Revision 2.39  2003/05/14 23:22:51  rickg
+ * <p> Exit if no IMOD_DIR is defined.  We can't run any of the non com scripts
+ * <p>
+ * <p> Revision 2.38  2003/05/14 21:45:27  rickg
+ * <p> New trimvol constructor for windows
+ * <p>
+ * <p> Revision 2.37  2003/05/14 14:36:08  rickg
+ * <p> Temporary change to volcombine
+ * <p>
+ * <p> Revision 2.36  2003/05/13 19:58:22  rickg
+ * <p> TransferfidParams constructed with IMODDirectory File
+ * <p>
+ * <p> Revision 2.35  2003/05/10 19:12:56  rickg
+ * <p> OS independent path implementation
+ * <p>
+ * <p> Revision 2.34  2003/05/10 18:01:56  rickg
+ * <p> Fixes to get IMOD_DIR home and current working directory
+ * <p> in a OS agnostic manner
+ * <p>
+ * <p> Revision 2.33  2003/05/09 23:25:36  rickg
+ * <p> Working change to get env vars from all OSs
+ * <p>
+ * <p> Revision 2.32  2003/05/09 17:52:59  rickg
+ * <p> include this in ImodManager constructor, needed for fiducial model calls
+ * <p>
+ * <p> Revision 2.31  2003/05/08 23:18:45  rickg
+ * <p> Added --debug option, off by default
+ * <p>
+ * <p> Revision 2.30  2003/05/08 20:14:30  rickg
+ * <p> Don't set main window location to (0,0) confuses SGI
+ * <p>
+ * <p> Revision 2.29  2003/05/08 19:58:53  rickg
+ * <p> Work around for bug in File.getParent
+ * <p>
+ * <p> Revision 2.28  2003/05/07 23:04:29  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p> Home is now read from the System properties
+ * <p>
+ * <p> Revision 2.27  2003/04/30 18:48:51  rickg
+ * <p> Changed matchcheck* to a single imod instance
+ * <p>
+ * <p> Revision 2.26  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
+ * <p> Revision 2.25  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
+ * <p> Revision 2.24  2003/04/17 23:11:26  rickg
+ * <p> Added cancel handling from post processing dialog
+ * <p>
+ * <p> Revision 2.23  2003/04/16 22:49:49  rickg
+ * <p> Trimvol implmentation
+ * <p>
+ * <p> Revision 2.22  2003/04/16 00:13:54  rickg
+ * <p> Trimvol in progress
+ * <p>
+ * <p> Revision 2.21  2003/04/14 23:57:18  rickg
+ * <p> Trimvol management changes
+ * <p>
+ * <p> Revision 2.20  2003/04/10 23:40:03  rickg
+ * <p> Initial exit function handling of imod and other processes
+ * <p> Initial openPostProcessingDialog
+ * <p>
+ * <p> Revision 2.19  2003/03/26 00:52:25  rickg
+ * <p> Added button to convert patch_vector.mod to patch.out
+ * <p>
+ * <p> Revision 2.18  2003/03/22 00:40:35  rickg
+ * <p> slovematchmod label change
+ * <p>
+ * <p> Revision 2.17  2003/03/20 21:18:55  rickg
+ * <p> Added matchshift results button/access
+ * <p>
+ * <p> Revision 2.16  2003/03/20 16:58:42  rickg
+ * <p> Added methods: imodMatchedToTomgram, matchorwarpTrial
+ * <p> Added trial mode handling to matchorwarp
+ * <p>
+ * <p> Revision 2.15  2003/03/19 00:23:04  rickg
+ * <p> Added imod patch vector model pass through
+ * <p>
+ * <p> Revision 2.14  2003/03/18 23:56:54  rickg
+ * <p> ComScript method name changes
+ * <p> Apropriate loading of combine scripts
+ * <p> Added pass through method to open matching models
+ * <p> Done not longer executes combine
+ * <p> Updated combine related methods to match new
+ * <p> combination dialog
+ * <p>
+ * <p> Revision 2.13  2003/03/18 17:03:15  rickg
+ * <p> Combine development in progress
+ * <p>
+ * <p> Revision 2.12  2003/03/18 15:01:31  rickg
+ * <p> Combine development in progress
+ * <p>
+ * <p> Revision 2.11  2003/03/18 00:32:32  rickg
+ * <p> combine development in progress
+ * <p>
+ * <p> Revision 2.10  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
+ * <p> Revision 2.9  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
+ * <p> Revision 2.8  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
+ * <p> Revision 2.7  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
+ * <p> Revision 2.6  2003/02/24 23:27:21  rickg
+ * <p> Added process interrupt method
+ * <p>
+ * <p> Revision 2.5  2003/01/30 00:43:32  rickg
+ * <p> Blank second axis panel when done with tomogram generation
+ * <p>
+ * <p> Revision 2.4  2003/01/29 15:22:58  rickg
+ * <p> Updated logic for combine step
+ * <p>
+ * <p> Revision 2.3  2003/01/28 20:42:53  rickg
+ * <p> Bug fix: save current dialog state when running align.com
+ * <p>
+ * <p> Revision 2.2  2003/01/28 00:15:29  rickg
+ * <p> Main window now remembers its size
+ * <p>
+ * <p> Revision 2.1  2003/01/27 18:12:41  rickg
+ * <p> Fixed bug from single window transition in positioning dialog
+ * <p> opening function
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.36.2.1  2003/01/24 18:27:46  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.36  2003/01/10 20:46:34  rickg
+ * <p> Added ability to view 3D fiducial models
+ * <p>
+ * <p> Revision 1.35  2003/01/10 18:39:58  rickg
+ * <p> Using existing com scripts now gives the correct
+ * <p> process state
+ * <p>
+ * <p> Revision 1.34  2003/01/10 18:33:16  rickg
+ * <p> Added test parameter filename to command line args
+ * <p>
+ * <p> Revision 1.33  2003/01/08 21:04:38  rickg
+ * <p> More descriptive error dialog when the are not
+ * <p> available for combining.
+ * <p>
+ * <p> Revision 1.32  2003/01/07 00:30:16  rickg
+ * <p> Added imodViewResidual method
+ * <p>
+ * <p> Revision 1.31  2003/01/06 04:53:16  rickg
+ * <p> Set default parameters for transferfid panel and handle
+ * <p> new backwards flag for b to a
+ * <p>
+ * <p> Revision 1.30  2003/01/04 00:41:00  rickg
+ * <p> Implemented transferfid method
+ * <p>
+ * <p> Revision 1.29  2002/12/19 00:35:20  rickg
+ * <p> Implemented persitent advanced state handling
+ * <p>
+ * <p> Revision 1.27  2002/12/11 21:26:31  rickg
+ * <p> Added font setting into user prefs setting
+ * <p>
+ * <p> Revision 1.26  2002/12/11 05:39:00  rickg
+ * <p> Added basic font change method
+ * <p>
+ * <p> Revision 1.25  2002/12/11 00:39:48  rickg
+ * <p> Basic handling of settings dialog
+ * <p> added setUserPreferences method
+ * <p>
+ * <p> Revision 1.24  2002/12/09 04:18:50  rickg
+ * <p> Better handling of current working directory, user.dir and
+ * <p> metaData always agree now.
+ * <p>
+ * <p> Revision 1.23  2002/12/05 01:21:02  rickg
+ * <p> Added isAdvanced stub
+ * <p>
+ * <p> Revision 1.22  2002/11/21 19:24:38  rickg
+ * <p> Set user.dir to current working directory
+ * <p>
+ * <p> Revision 1.21  2002/10/29 18:22:04  rickg
+ * <p> Simplified rawstack open checking
+ * <p>
+ * <p> Revision 1.20  2002/10/25 19:30:43  rickg
+ * <p> Modifies several catches to explicilty specify exception
+ * <p>
+ * <p> Revision 1.19  2002/10/24 19:52:55  rickg
+ * <p> Added command line --demo argument
+ * <p>
+ * <p> Revision 1.18  2002/10/22 21:38:24  rickg
+ * <p> ApplicationManager now controls both demo and debug
+ * <p> modes
+ * <p>
+ * <p> Revision 1.17  2002/10/17 22:47:35  rickg
+ * <p> process dialogs are now managed attributes
+ * <p> setVisible calls changed to show
+ * <p> unused variable dialogFinshed removed
+ * <p>
+ * <p> Revision 1.16  2002/10/17 16:23:04  rickg
+ * <p> Added private method to update the dependent tilt parameters when the
+ * <p> align.com parameters are changed
+ * <p>
+ * <p> Revision 1.15  2002/10/16 17:37:18  rickg
+ * <p> Construct a imodManager when a new data set is opened
+ * <p>
+ * <p> Revision 1.14  2002/10/14 22:44:27  rickg
+ * <p> Added combine to execute section of doneCombine
+ * <p>
+ * <p> Revision 1.13  2002/10/14 19:04:18  rickg
+ * <p> openMessageDialog made public
+ * <p>
+ * <p> Revision 1.12  2002/10/10 23:40:33  rickg
+ * <p> refactored createCombineScripts to setupCombineScripts
+ * <p>
+ * <p> Revision 1.11  2002/10/10 19:16:19  rickg
+ * <p> Get HOME and IMOD_DIR environement variables during
+ * <p> initialization instead of each time they requested.  Also
+ * <p> exit if they are not available.
+ * <p>
+ * <p> Revision 1.10  2002/10/09 04:29:17  rickg
+ * <p> Implemented calls to updateCombineCom
+ * <p>
+ * <p> Revision 1.9  2002/10/09 00:04:37  rickg
+ * <p> Added default patch boundary logic
+ * <p> still needs work on getting combine parameters at the correct times
+ * <p>
+ * <p> Revision 1.8  2002/10/07 22:20:21  rickg
+ * <p> removed unused imports
+ * <p>
+ * <p> Revision 1.7  2002/09/30 23:44:43  rickg
+ * <p> Started implementing updateCombineCom
+ * <p>
+ * <p> Revision 1.6  2002/09/30 22:01:29  rickg
+ * <p> Added check to verify dual axis for combination
+ * <p>
+ * <p> Revision 1.5  2002/09/20 18:56:09  rickg
+ * <p> Added private message and yes/no dialog methods
+ * <p> Check to see if the raw stack and coarsely aligned stacks should be
+ * <p> closed by the user
+ * <p>
+ * <p> Revision 1.4  2002/09/19 22:57:56  rickg
+ * <p> Imod mangement is now handled through the ImodManager
+ * <p>
+ * <p> Revision 1.3  2002/09/17 23:44:56  rickg
+ * <p> Adding ImodManager, in progress
+ * <p>
+ * <p> Revision 1.2  2002/09/13 21:29:57  rickg
+ * <p> Started updating for ImodManager
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+ */
 public class ApplicationManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
@@ -128,6 +1245,8 @@ public class ApplicationManager extends BaseManager {
   protected TomogramCombinationDialog tomogramCombinationDialog = null;
 
   private PostProcessingDialog postProcessingDialog = null;
+  
+  private CleanUpDialog cleanUpDialog = null;
   
   private MetaData metaData = null;
   private MainTomogramPanel mainPanel;
@@ -1617,6 +2736,9 @@ public class ApplicationManager extends BaseManager {
     else if (currentDialogType == DialogType.POST_PROCESSING) {
       donePostProcessing();
     }
+    else if (currentDialogType == DialogType.CLEAN_UP) {
+      doneCleanUp();
+    }
   }
   
   /**
@@ -1714,6 +2836,9 @@ public class ApplicationManager extends BaseManager {
     }
     if (postProcessingDialog != null) {
       donePostProcessing();
+    }
+    if (cleanUpDialog != null) {
+      doneCleanUp();
     }
   }
   
@@ -4393,6 +5518,26 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
+   * Open the clean up dialog
+   */
+  public void openCleanUpDialog() {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog();
+      return;
+    }
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
+    mainPanel.selectButton(AxisID.ONLY, "Clean Up");
+    if (cleanUpDialog == null) {
+      cleanUpDialog = new CleanUpDialog(this);
+    }
+    mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
    * Close the post processing dialog panel
    */
   public void donePostProcessing() {
@@ -4405,6 +5550,7 @@ public class ApplicationManager extends BaseManager {
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       postProcessingDialog = null;
+      mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
       updateTrimvolParam();
@@ -4412,16 +5558,47 @@ public class ApplicationManager extends BaseManager {
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+        mainPanel.showBlankProcess(AxisID.ONLY);
       }
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
         postProcessingDialog = null;
+        openCleanUpDialog();
+      }
+      saveTestParamFile();
+    }
+  }
+  
+  /**
+   * Close the clean up dialog panel
+   */
+  public void doneCleanUp() {
+    if (cleanUpDialog == null) {
+      mainPanel.openMessageDialog("Clean Up dialog not open",
+          "Program logic error");
+      return;
+    }
+    setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
+    DialogExitState exitState = cleanUpDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      cleanUpDialog = null;
+    }
+    else {
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setCleanUpState(ProcessState.INPROGRESS);
+        mainPanel.setCleanUpState(ProcessState.INPROGRESS);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setCleanUpState(ProcessState.COMPLETE);
+        mainPanel.setCleanUpState(ProcessState.COMPLETE);
+        cleanUpDialog = null;
       }
       saveTestParamFile();
     }
     mainPanel.showBlankProcess(AxisID.ONLY);
   }
+
 
   /**
    * Open the combined (or full) volume in 3dmod
@@ -4922,1117 +6099,5 @@ public class ApplicationManager extends BaseManager {
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
   }
+  
 }
-/**
-* <p> $Log$
-* <p> Revision 3.138  2005/03/11 01:57:22  sueh
-* <p> bug# 612 Change nextProcess to support axis A and B.
-* <p>
-* <p> Revision 3.137  2005/03/11 01:31:31  sueh
-* <p> bug# 533 Removed newst updates that where happening when Montage
-* <p> was set.  Sending TomogramGeneration.linearInterpolation to blend.com.
-* <p> Update blend.com in doneTomogramGeneration.
-* <p>
-* <p> Revision 3.136  2005/03/09 22:45:34  sueh
-* <p> bug# 533 In newst() running blend instead of newst when doing a montage.
-* <p>
-* <p> Revision 3.135  2005/03/09 17:58:16  sueh
-* <p> bug# 533 In done functions, only update newst when the view type is not
-* <p> montage.  ProcessManager.crossCorrelate needs to know whether
-* <p> blendmont will actually be run.
-* <p>
-* <p> Revision 3.134  2005/03/08 18:29:54  sueh
-* <p> bug# 533 In midasRawStack() call midasBlendStack() instead of
-* <p> midasRawStack() for montaging.
-* <p>
-* <p> Revision 3.133  2005/03/08 00:39:09  sueh
-* <p> bug# 533 CoarseAlign(): get the preblend command file name from
-* <p> BlendmontParam.
-* <p>
-* <p> Revision 3.132  2005/03/07 23:57:01  sueh
-* <p> bug# 533 Added midasEdges to call midas for fixing edge with a montage
-* <p> view.  Substituting preblend for prenewst in coarse align with a montage
-* <p> view.
-* <p>
-* <p> Revision 3.131  2005/03/04 00:06:31  sueh
-* <p> bug# 533 Changes for montaging only.  imodErasedStack(): add piece list
-* <p> file to 3dmod call.  ImodManualErase():  add frames to 3dmod call.
-* <p> UpdateXcorrCom():  Update blendmont param.  Update goto param based
-* <p> on whether blendmont needs to be called.
-* <p>
-* <p> Revision 3.130  2005/03/02 23:10:57  sueh
-* <p> bug# 533 imodXrayModel():  set frames to true if processing a montage.
-* <p>
-* <p> Revision 3.129  2005/03/01 22:07:03  sueh
-* <p> bug# 610 getDialog():  test for dialogType is null and return null.
-* <p>
-* <p> Revision 3.128  2005/03/01 20:49:42  sueh
-* <p> bug# 607 Catching Throwable in exitProgram and returning true to make
-* <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
-* <p> dialog type in ApplicationManager by setting it in each open function.
-* <p> Changing saveDialog to saveCurrentDialog and use currentDialogType to
-* <p> pick the dialog to save.
-* <p>
-* <p> Revision 3.127  2005/02/18 23:59:08  sueh
-* <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
-* <p> and localalignments.  Add them for A and B.
-* <p>
-* <p> Revision 3.126  2005/02/17 19:25:44  sueh
-* <p> bug# 606 Pass AxisID when setting and getting makeZFactors,
-* <p> newstFiducialessAlignment, and usedLocalAlignments.
-* <p>
-* <p> Revision 3.125  2005/02/17 02:38:36  sueh
-* <p> Removing print statements.
-* <p>
-* <p> Revision 3.124  2005/02/16 22:31:23  sueh
-* <p> bug# 604 Added checkForSharedDirectory() to check if there is an .edf
-* <p> file using different stacks in the directory.
-* <p>
-* <p> Revision 3.123  2005/02/07 21:48:17  sueh
-* <p> bug# 594 Added isSetupChanged() to check if user has enter data into
-* <p> Setup dialog.
-* <p>
-* <p> Revision 3.122  2005/01/26 04:23:18  sueh
-* <p> bug# 83 mtfFilter():  Removed called to startProgressBar().
-* <p>
-* <p> Revision 3.121  2005/01/21 22:05:55  sueh
-* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
-* <p> class.  Moved the set/get of tranferfid metadata fields to TransferfidPanel.
-* <p> get/setParameters.  Clarifying EtomoNumber: using isNull() in stead of
-* <p> isSet().
-* <p>
-* <p> Revision 3.120  2005/01/14 02:57:30  sueh
-* <p> bug# 511 Added saveDialog() and getDialog().  In done functions, added a
-* <p> check for exit state ==  save to avoid changing the process state or asking
-* <p> to close 3dmods when the user only switched dialogs.
-* <p>
-* <p> Revision 3.119  2005/01/12 00:40:32  sueh
-* <p> bug# 579 Renaming enableZFactors() to enableTiltParameters().  If
-* <p> newstFiducialessAlignment isn't set, use the checkbox value on the
-* <p> screen.
-* <p>
-* <p> Revision 3.118  2005/01/10 23:18:33  sueh
-* <p> bug# 578 Initializing TomogramState.  Changing enableZFactor() to not
-* <p> need backward compatibility information on newstFiducialessAlignment.
-* <p>
-* <p> Revision 3.117  2005/01/08 00:28:05  sueh
-* <p> bug# 578 Added enableZFactors() to enable useZFactors checkbox in
-* <p> tomogram generation.  Set commandMode in NewstParam so
-* <p> ProcessManager.postProcess() can tell whether Full Align Stack was run.
-* <p> Set fiducialessAlignment in NewstParam when Full Align Stack is run.
-* <p> Pass newstParam to ProcessManager.newst() so it can be queried in
-* <p> postProcess().
-* <p>
-* <p> Revision 3.116  2005/01/05 18:53:12  sueh
-* <p> bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
-* <p> back from updateAlignCom().
-* <p>
-* <p> Revision 3.115  2004/12/28 23:40:35  sueh
-* <p> bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
-* <p>
-* <p> Revision 3.114  2004/12/16 02:51:52  sueh
-* <p> bug# 559 Updating status bar with param file when ending setup dialog.
-* <p>
-* <p> Revision 3.113  2004/12/16 01:29:04  sueh
-* <p> bug# check whether squeezvol output file is flipped before displaying it in
-* <p> 3dmod.
-* <p>
-* <p> Revision 3.112  2004/12/14 21:21:26  sueh
-* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
-* <p> only saving metadata.  bug# 572:  Removing state object from meta data
-* <p> and managing it with a manager object.
-* <p>
-* <p> Revision 3.111  2004/12/13 19:08:19  sueh
-* <p> bug# 565 Saving process track to edf file as well as meta data in
-* <p> doneSetupDialog.
-* <p>
-* <p> Revision 3.110  2004/12/09 04:46:29  sueh
-* <p> bug# 565 Removed isParamFileDirty.  Saved meta data and process track
-* <p> in done function.
-* <p>
-* <p> Revision 3.109  2004/12/08 21:16:14  sueh
-* <p> bug# 564 Changed get and set Input and Output File functions to get and set
-* <p> Input and Output FileName to avoid confusion with new getOutputFile()
-* <p> function.
-* <p>
-* <p> Revision 3.108  2004/12/04 01:25:59  sueh
-* <p> bug# 557 Added imodSqueezedVolume().
-* <p>
-* <p> Revision 3.107  2004/12/03 20:18:50  sueh
-* <p> bug# 556 Do not load SetupParam into combine dialog or update it in
-* <p> volcombine if SetParam not valid (has the wrong set name) or is null.
-* <p> Disable ReductionFactor in combine dialog if SetParam is missing or
-* <p> invalid.
-* <p>
-* <p> Revision 3.106  2004/12/03 02:24:49  sueh
-* <p> bug# 568 Added getTomogramMetaData() to get a writeable meta data.
-* <p>
-* <p> Revision 3.105  2004/12/02 18:23:09  sueh
-* <p> bug# 557 Added squeezevol() and loaded sqeezevol parameters into
-* <p> post processing dialog.
-* <p>
-* <p> Revision 3.104  2004/11/30 00:32:45  sueh
-* <p> bug# 556 Adding functions to parse volcombine.
-* <p>
-* <p> Revision 3.103  2004/11/19 22:31:32  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 3.101.2.14  2004/11/12 22:42:54  sueh
-* <p> bug# 520 Moved imodGetRubberbandCoordinates to base class.
-* <p>
-* <p> Revision 3.101.2.13  2004/10/29 01:15:02  sueh
-* <p> bug# 520 Removing unecessary functions that provided services to
-* <p> BaseManager.  BaseManager can use get... functions to get the
-* <p> mainPanel, metaData, and processTrack.
-* <p>
-* <p> Revision 3.101.2.12  2004/10/21 17:48:01  sueh
-* <p> bug# 520 Fixed status bar by called updateDataParameters when opening
-* <p> the processing panel.
-* <p>
-* <p> Revision 3.101.2.11  2004/10/11 01:55:28  sueh
-* <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
-* <p> and progressManager to child classes.  Used abstract functions to use
-* <p> these variables in the base classes.  This is more reliable and doesn't
-* <p> require casting.
-* <p>
-* <p> Revision 3.101.2.10  2004/10/08 21:11:33  sueh
-* <p> bug# 520 Backed out conversion from properties to user.dir.
-* <p>
-* <p> Revision 3.101.2.9  2004/10/08 15:36:53  sueh
-* <p> bug# 520 Setting workingDirName instead of system property for manager
-* <p> level working directory.
-* <p>
-* <p> Revision 3.101.2.8  2004/10/01 20:56:06  sueh
-* <p> bug# 520 Moving getMetaDAta() from base class to this class.
-* <p>
-* <p> Revision 3.101.2.7  2004/09/29 17:27:48  sueh
-* <p> bug# 520 Removed MainPanel pass-through functions.  Casting mainPanel
-* <p> and other members from BaseManager to private local variables in the
-* <p> create functions.
-* <p>
-* <p> Revision 3.101.2.6  2004/09/15 22:32:14  sueh
-* <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
-* <p>
-* <p> Revision 3.101.2.5  2004/09/13 16:24:54  sueh
-* <p> bug# 520 Added isNewManager(); true if setup dialog came up.  Telling
-* <p> EtomoDirectory the dataset name when completes successfully.
-* <p>
-* <p> Revision 3.101.2.4  2004/09/09 21:46:40  sueh
-* <p> bug# 552 loading combine.com while creating combine scripts
-* <p>
-* <p> Revision 3.101.2.3  2004/09/08 19:20:38  sueh
-* <p> bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
-* <p> Calling MainFrame.show in EtomoDirector.  Moving kill() to super class.
-* <p>
-* <p> Revision 3.101.2.2  2004/09/07 17:49:36  sueh
-* <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
-* <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
-* <p> moved exitProgram() and processing variables to BaseManager, split
-* <p> MainPanel off from MainFrame
-* <p>
-* <p> Revision 3.101.2.1  2004/09/03 20:32:54  sueh
-* <p> bug# 520 beginning to remove functions and variables that can go in
-* <p> BaseManager - removed functions associated with the constructor, moved
-* <p> constructor code to EtomoDirector.  Added create functions to override
-* <p> abstract create functions in BaseManager
-* <p>
-* <p> Revision 3.101  2004/09/02 19:51:18  sueh
-* <p> bug# 527 adding ImodMAnager.setOpenContour calls to
-* <p> imodMAatchingModel()
-* <p> bug# 541 remove unnecessary setBinning call in imodMatchingModel.
-* <p> Don't need to set binning to its default
-* <p>
-* <p> Revision 3.100  2004/08/31 16:52:53  sueh
-* <p> bug# 508 removing JUnit tests that require an X server
-* <p>
-* <p> Revision 3.99  2004/08/26 01:09:51  sueh
-* <p> bug# 508 handling exiting while a background process is
-* <p> running: adding setBackgroundThreadName() and variables
-* <p> backgroundProcessA and backgroundProcessNameA.  Using
-* <p> setBackgroundThreadName() in combine, matchvol1, patchcorr,
-* <p> matchorwarp, and volcombine.  Reseting background thread
-* <p> variables in processDone().  Adding more information to the
-* <p> processes running dialog in exitProgram().
-* <p>
-* <p> Revision 3.98  2004/08/20 22:57:12  sueh
-* <p> bug# 515 improving error handling for Setup dialog
-* <p> Changed:
-* <p> doneSetupDialog
-* <p>
-* <p> Revision 3.97  2004/08/20 21:49:27  sueh
-* <p> bug# 508 made some private items protected so they can by
-* <p> inherited classes.
-* <p> Added:
-* <p> getTest
-* <p> Changed:
-* <p> tomogram CombinationDialog
-* <p> updateComdeSc
-* <p>
-* <p> Revision 3.96  2004/08/19 03:09:24  sueh
-* <p> bug# 508 Added a --selftest option to tell objects to perform extra tests.
-* <p> Used "selftest" because "test" was already taken.  Created load and
-* <p> update functions for the combine comscript.  The update function uses
-* <p> CombineComscriptState to set the start and end command that
-* <p> combine.com will run. Changed the combine functions matchvol1,
-* <p> matchorwarp, etc so that they run combine.com.  Removed combine
-* <p> functions from startNextProcess().  Pulled together functions that had
-* <p> been split up so they could run from either nextProcess or restart; now
-* <p> there is no next process for combine.  Add functions to control the
-* <p> progressBar and the TomogramCombination tab panes.
-* <p> Added:
-* <p> static boolean selfTest
-* <p> getCombineComscript()
-* <p> boolean isSelfTest()
-* <p> loadCombineComscript()
-* <p> matchvol1Combine()
-* <p> showPane(String comscript, String pane)
-* <p> startProgressBar(String label, AxisID axisID)
-* <p> updateCombineComscriptState(int startCommand)
-* <p> Changed:
-* <p> combine()
-* <p> matchorwarpCombine()
-* <p> matchorwarpTrial()
-* <p> openTomogramCombinationDialog()
-* <p> parseCommandLine(String[] args)
-* <p> patchcorrCombine()
-* <p> startNextProcess(AxisID axisID)
-* <p> volcombine()
-* <p> Deleted:
-* <p> matchorwarp(String next)
-* <p> matchvol1()
-* <p> patchcorr()
-* <p> restartAtMatchvol1()
-* <p>
-* <p> Revision 3.95  2004/08/06 23:12:19  sueh
-* <p> bug# 508 added commented out processMgr.combine() call
-* <p> to combine()
-* <p>
-* <p> Revision 3.94  2004/08/03 18:53:45  sueh
-* <p> bug# 519 get the correct tiltAngleSpec for axis B
-* <p>
-* <p> Revision 3.93  2004/08/02 23:51:31  sueh
-* <p> bug# 519 improving error handling in
-* <p> makeRawtltFile()
-* <p>
-* <p> Revision 3.92  2004/08/02 23:03:54  sueh
-* <p> bug# 519 added makeRawtltFile(): create a new .rawtlt file from
-* <p> starting angle, step angle, and # sections
-* <p>
-* <p> Revision 3.91  2004/07/24 01:56:03  sueh
-* <p> bug# 513 change packMainWindow() to call
-* <p> MainFrame.fitWindow() when the Basic/Advanced
-* <p> button is pressed.  packMainWindow() is also called when
-* <p> the Setup dialog is opened.  Calling fitWindow() doesn't cause
-* <p> any proglems for Setup.
-* <p>
-* <p> Revision 3.90  2004/07/23 00:09:30  sueh
-* <p> bug# 513 add function to get UserConfiguration
-* <p>
-* <p> Revision 3.89  2004/07/21 00:22:29  sueh
-* <p> bug# 507 In startNextProcess(), checking
-* <p> tomogramCombinationDialog before running volcombine.
-* <p>
-* <p> Revision 3.88  2004/07/12 17:41:07  sueh
-* <p> bug# 492 in imodPreview: getting metadata from
-* <p> SetupDialog.getDataset().  Also changed the metadata variable
-* <p> name to previewMetaData to avoid confusing it with the
-* <p> member variable metaData
-* <p>
-* <p> Revision 3.87  2004/07/02 00:43:43  sueh
-* <p> bug# 487 adding public functions to get FidXyz and MRCHeader
-* <p>
-* <p> Revision 3.86  2004/06/30 17:27:36  rickg
-* <p> Bug #488 Rotation.xf not being updated correctly, now done anytime
-* <p> the fiducialless parameters are updated.
-* <p>
-* <p> Revision 3.85  2004/06/30 00:16:25  sueh
-* <p> bug# 487 adding checkUpdateFiducialModel(), which compares
-* <p> the current and previous binning in Coarse Align.  This function
-* <p> is run when prenewst.com finishes.
-* <p>
-* <p> Revision 3.84  2004/06/28 22:10:29  rickg
-* <p> Bug #470 Moved the fiducial mode file copying to the same sections
-* <p> where the fiducialless is handled.
-* <p>
-* <p> Revision 3.83  2004/06/28 04:36:39  rickg
-* <p> Bug #470 Added method to update prexf and _nonfid.xf
-* <p>
-* <p> Revision 3.82  2004/06/25 23:26:51  sueh
-* <p> bug# 485 In openTomogramCombinationDialog, after loading
-* <p> the comscripts, synchronize from initial and final tabs to setup
-* <p> and update combineParams
-* <p>
-* <p> Revision 3.81  2004/06/25 21:18:31  sueh
-* <p> bug# 486 corrected set state to inprogress calls.
-* <p>
-* <p> Revision 3.80  2004/06/24 21:41:39  sueh
-* <p> bug# 482 making the call to
-* <p> loadSolvematch(boolean modelBased) compatible with
-* <p> previous versions of the .edf file.
-* <p>
-* <p> Revision 3.79  2004/06/24 20:22:05  sueh
-* <p> bug# 482 removed loadSolvematchshift and mod functions
-* <p>
-* <p> Revision 3.78  2004/06/24 18:43:00  sueh
-* <p> bug# 482 add loadSolvematch(boolean modelBased) to merge
-* <p> solvematchshift and mod into solvematch and add
-* <p> matchshifts
-* <p>
-* <p> Revision 3.77  2004/06/22 23:00:12  sueh
-* <p> bug# 455 Added open contours to sample() and fullSample().
-* <p> Substituted open() calls for model() calls.  Removed extra
-* <p> model() calls.  Setting preserveContrast separately.
-* <p>
-* <p> Revision 3.76  2004/06/22 02:04:28  sueh
-* <p> bug# 441 Created updateTrimvolParam() and added it to
-* <p> trimVolume() and donePostProcessing().  Moved the logic
-* <p> used to create input and output file names to TrimvolParam.
-* <p>
-* <p> Revision 3.75  2004/06/21 17:22:37  rickg
-* <p> Bug #461 z shift is scaled by the prealigned binning
-* <p>
-* <p> Revision 3.74  2004/06/21 00:03:53  sueh
-* <p> bug# 436 adding restartAtMatchvol1(), which updates later comscripts
-* <p> and calls matchvol1().  This is necessary because
-* <p> startNextProcess() does not need to update comscripts.
-* <p>
-* <p> Revision 3.73  2004/06/18 00:52:53  sueh
-* <p> bug# 476 put the logic to check if the fixed stack exists in a
-* <p> separate function and call it in replaceRawStack() and
-* <p> imodErasedStack
-* <p>
-* <p> Revision 3.72  2004/06/17 16:23:34  sueh
-* <p> bug# 466 in imodFullSample() turning on model mode.
-* <p>
-* <p> Revision 3.71  2004/06/15 20:08:49  rickg
-* <p> Bug #383 Run solvematch instead of solvematch{shift|mod}
-* <p>
-* <p> Revision 3.70  2004/06/14 23:39:53  rickg
-* <p> Bug #383 Transitioned to using solvematch
-* <p>
-* <p> Revision 3.69  2004/06/13 17:03:23  rickg
-* <p> Solvematch mid change
-* <p>
-* <p> Revision 3.68  2004/06/10 18:27:12  sueh
-* <p> bug# 463 changing ImodManager.create() to newImod, using
-* <p> ImodManager.setOpenBeadFixer() instead of openBeadFixer
-* <p>
-* <p> Revision 3.67  2004/06/10 18:19:13  rickg
-* <p> Removed redudant dialog parameter fetching from mtffilter and
-* <p> imodPatchRegionModel
-* <p>
-* <p> Revision 3.66  2004/06/10 17:27:53  sueh
-* <p> bug# 462 remove ImodManager.reset() calls
-* <p>
-* <p> Revision 3.65  2004/06/05 00:59:36  sueh
-* <p> bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
-* <p> when the ta logs are out of date
-* <p>
-* <p> Revision 3.64  2004/06/02 23:49:59  rickg
-* <p> Bug #391 only update the rotation.xf if the mode is fiducialess
-* <p>
-* <p> Revision 3.62  2004/06/01 18:53:48  rickg
-* <p> Bug #391 whole tomogram sampling state implementation
-* <p>
-* <p> Revision 3.61  2004/05/27 22:49:54  rickg
-* <p> Bug #391 offer to close preali window for fidless case
-* <p> standardized parameter gathering for tomogram positioning
-* <p> logic for calling updateFiducialAlign
-* <p>
-* <p> Revision 3.60  2004/05/26 04:57:14  rickg
-* <p> Bug #391 Fiducialess handling for the gneration dialog
-* <p>
-* <p> Revision 3.59  2004/05/26 00:00:32  sueh
-* <p> bug# 355 validate metaData when retrieve parameters from an
-* <p> .edf file
-* <p>
-* <p> Revision 3.58  2004/05/25 23:19:34  rickg
-* <p> Bug #391 Fiducialess implementation
-* <p>
-* <p> Revision 3.57  2004/05/24 20:16:45  sueh
-* <p> bug# 409 corrected .ali file names for mtffilter for single axis
-* <p>
-* <p> Revision 3.56  2004/05/21 21:55:13  sueh
-* <p> bug# 443 setting the output file name in tilta.com when
-* <p> running sample
-* <p>
-* <p> Revision 3.55  2004/05/21 02:21:38  sueh
-* <p> bug# 83 removing generic progress bar
-* <p>
-* <p> Revision 3.54  2004/05/15 01:43:55  sueh
-* <p> bug# 415 if saveTestParamIfNecessary() returns false, then the user
-* <p> pressed cancel our there was a problem saving, so don't exit.
-* <p>
-* <p> Revision 3.53  2004/05/15 00:41:00  sueh
-* <p> bug# 302 changing function name updateCombineParams()
-* <p>
-* <p> Revision 3.52  2004/05/13 20:15:10  sueh
-* <p> bug# 33  imodGetRubberbandCoordinates() checks for rubberband data
-* <p>
-* <p> Revision 3.51  2004/05/11 21:11:21  sueh
-* <p> bug# 302 Standardizing synchronization.
-* <p> Syncing with PatchRegionModel button push.
-* <p> UpdateCombineCom(), which updates metadata, is not necessary to
-* <p> run scripts so it doesn't need a success return value.
-* <p> Put syncing first in most cases.
-* <p> Follow syncing by updateCombineCom().
-* <p> In createCombineScripts() run either loadSolvematchShift() or
-* <p> loadSolvematchMod(), instead of only loadSolvematchShift.
-* <p> If MatchingModels is selected after Create scripts is done, call
-* <p> modelCombine() from combine() and visa versa.
-* <p>
-* <p> Revision 3.50  2004/05/07 19:54:45  sueh
-* <p> bug# 33 adding error processing to
-* <p> imodGetRubberbandCoordinates()
-* <p>
-* <p> Revision 3.49  2004/05/06 20:22:33  sueh
-* <p> bug# 33 added getRubberbandCoordinates()
-* <p>
-* <p> Revision 3.48  2004/05/05 21:24:53  sueh
-* <p> bug #430  If changes to .seed happened more recently then .fid, do not
-* <p> mv .fid .seed.  Otherwise backup .seed to .seed~ if not backing up
-* <p> .seed to _orig.seed.  Ok to use fid as seed when .seed does not exist.
-* <p> Orginal bug# 276.
-* <p>
-* <p> Revision 3.47  2004/05/03 22:29:21  sueh
-* <p> bug# 416 Move Bin by 2 settings between tabs in
-* <p> TomogramCombinationDialog.  Set binning in ImodManager.
-* <p>
-* <p> Revision 3.46  2004/05/03 18:04:41  sueh
-* <p> bug# 418 adding printStackTrace for more information
-* <p>
-* <p> Revision 3.45  2004/04/28 22:16:57  sueh
-* <p> bug# 320 user interaction goes in app manager
-* <p>
-* <p> Revision 3.44  2004/04/28 20:13:10  rickg
-* <p> bug #429 all file renames are now handled by the utilities static
-* <p> function to deal with the windows bug
-* <p>
-* <p> Revision 3.43  2004/04/28 00:47:52  sueh
-* <p> trying delete  full aligned stack so that rename works in Windows
-* <p>
-* <p> Revision 3.42  2004/04/28 00:40:29  sueh
-* <p> adding error message if rename filter file doesn't work
-* <p>
-* <p> Revision 3.41  2004/04/27 23:20:13  sueh
-* <p> bug# 320 warn the user about a stale patch vector model after
-* <p> any button press that will lead to creating a new patch vector
-* <p> model
-* <p>
-* <p> Revision 3.40  2004/04/27 22:02:27  sueh
-* <p> bug# 320 try to close the 3dmod with patch vector model before
-* <p> running patchcorr
-* <p>
-* <p> Revision 3.39  2004/04/27 01:01:34  sueh
-* <p> bug# 427 using tomopitch param when running tomopitch
-* <p>
-* <p> Revision 3.38  2004/04/26 21:20:32  sueh
-* <p> bug# 427 added code for tomopitch comscript (not finished)
-* <p>
-* <p> Revision 3.37  2004/04/26 18:36:52  rickg
-* <p> bug #426 Added full image code, fixed order of com script
-* <p> loading for tomogram positioning
-* <p>
-* <p> Revision 3.36  2004/04/26 17:15:54  sueh
-* <p> bug# 83 removing generic progress bar from patchcorr
-* <p>
-* <p> Revision 3.35  2004/04/26 00:24:59  rickg
-* <p> bug #426 Implemented full tomogram sampling
-* <p>
-* <p> Revision 3.34  2004/04/24 08:05:40  rickg
-* <p> bug #391 restructuring
-* <p>
-* <p> Revision 3.32  2004/04/22 23:31:33  rickg
-* <p> bug #391 Added processing for non fid aligne
-* <p> Added getIMODBinPath and getMetaData
-* <p>
-* <p> Revision 3.31  2004/04/19 19:25:04  sueh
-* <p> bug# 409 removing prints
-* <p>
-* <p> Revision 3.30  2004/04/16 02:20:39  sueh
-* <p> removing print statements
-* <p>
-* <p> Revision 3.29  2004/04/16 02:06:30  sueh
-* <p> bug# 409 No longer backing up .ali during useMtfFilter.
-* <p> Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
-* <p> does all updates on the FiducialModelDialog - and clarified the code.
-* <p> Create updateDialog(ProcessName) to call the specific updateDialog functions.
-* <p> Calling updateDialog(ProcessName in processDone()
-* <p> Added updateDialog() calls where needed.
-* <p>
-* <p> Revision 3.28  2004/04/06 19:04:06  rickg
-* <p> Print out java system info at start of session
-* <p>
-* <p> Revision 3.27  2004/04/06 17:51:03  rickg
-* <p> bug #391 basic single stage fiducialess alignment
-* <p>
-* <p> Revision 3.26  2004/03/29 21:00:48  sueh
-* <p> bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
-* <p> result as the full
-* <p> aligned stack
-* <p>
-* <p> Revision 3.25  2004/03/24 03:08:17  rickg
-* <p> Bug# 395 Implemented ability to create binned tomogram
-* <p>
-* <p> Revision 3.24  2004/03/22 23:51:23  sueh
-* <p> bug# 83 starting the progress bar as soon as possible
-* <p>
-* <p> Revision 3.23  2004/03/13 00:35:05  rickg
-* <p> Bug# 390 Add prenewst and xfproduct management
-* <p>
-* <p> Revision 3.22  2004/03/11 23:58:14  rickg
-* <p> Bug #410 Newstack PIP transition
-* <p> Formatted code
-* <p>
-* <p> Revision 3.21  2004/03/10 00:44:32  sueh
-* <p> bug# 408 added getIMODCalibDirectory()
-* <p>
-* <p> Revision 3.20  2004/03/09 22:06:56  sueh
-* <p> bug# 407 adding IMOD_CALIB_DIR optional environment variable
-* <p>
-* <p> Revision 3.19  2004/03/06 00:22:39  sueh
-* <p> bug# 250 changed updateCombineCom() - remove duplicate code - call
-* <p> updateCombineCom(int) with NO_TAB
-* <p>
-* <p> Revision 3.18  2004/03/05 18:26:55  sueh
-* <p> bug# 250 changed patchcorrCombine() - updating CombineParams
-* <p> changed updateCombineCom(int) - change the parameter name because
-* <p> its only necessary when a copy to Setup is required
-* <p>
-* <p> Revision 3.17  2004/03/02 00:09:04  sueh
-* <p> bug #250 added updateCombineCom(int fromTab) - update CombineParams
-* <p> from a tab
-* <p> changed combine - default call to combine(int copyFromTab) with NO_TAB
-* <p> added combine(int copyFromTab) copies fields from copyFromTab to setup
-* <p> tab.
-* <p> modelCombine() - same as combine
-* <p> matchvol1() - same as combine
-* <p>
-* <p> Revision 3.16  2004/02/27 20:10:49  sueh
-* <p> bug# 250 changed createCombineScripts() - copied the
-* <p> Setup Use Matching Models value into the Initial tab
-* <p>
-* <p> Revision 3.15  2004/02/25 22:42:23  sueh
-* <p> bug# 403 removed unnecessary code
-* <p>
-* <p> Revision 3.14  2004/02/25 22:17:52  sueh
-* <p> bug# 403 resetState() is no longer setting imodManager to
-* <p> null
-* <p>
-* <p> Revision 3.13  2004/02/16 18:54:38  sueh
-* <p> bug# 276 Added makeFiducialModelSeedModel() to copy the
-* <p>  .seed file to the .fid file.
-* <p>
-* <p> Revision 3.12  2004/02/07 03:12:02  sueh
-* <p> bug# 169 Create ImodManager just once, set metadata
-* <p> separately, reformatted, changed imodRawStack() to
-* <p> ImodPreview()
-* <p>
-* <p> Revision 3.11  2004/02/05 18:05:32  sueh
-* <p> bug# 306 get the trimvol params from the screen and set
-* <p> swapYZ for 3dmod
-* <p>
-* <p> Revision 3.10  2004/02/05 00:19:07  sueh
-* <p> bug# 292 preserving contrast in view x-ray model, changed
-* <p> imodXrayModel()
-* <p>
-* <p> Revision 3.9  2004/02/04 18:12:46  sueh
-* <p> bug# 171 ask to automatically quit all running 3dmod
-* <p> programs.
-* <p>
-* <p> Revision 3.8  2004/01/22 21:09:39  rickg
-* <p> Get screen size in openSetupDialog instead of app init
-* <p>
-* <p> Revision 3.7  2004/01/17 00:14:17  rickg
-* <p> Added a --test argument that prevents the main window from
-* <p> opening up.
-* <p>
-* <p> Revision 3.6  2003/12/08 22:34:32  sueh
-* <p> bug# 169 adding new function imodRawStack
-* <p>
-* <p> Revision 3.5  2003/12/05 01:25:01  sueh
-* <p> bug242 moved getEnvironmentVariable() to Utilities
-* <p>
-* <p> Revision 3.4  2003/12/04 22:09:03  sueh
-* <p> bug242 Converting to new interface.
-* <p>
-* <p> Revision 3.3  2003/11/26 23:36:27  rickg
-* <p> Debug flag and getter changed to static.
-* <p>
-* <p> Revision 3.2  2003/11/11 00:24:52  sueh
-* <p> Bug349 imodFixFiducials(AxisID): call
-* <p> imodManager.openBeadFixer()
-* <p>
-* <p> Revision 3.1  2003/11/10 07:28:54  rickg
-* <p> ContextPopup initialization no longer needed
-* <p> Some more stderr printing on exceptions
-* <p>
-* <p> Revision 3.0  2003/11/07 23:19:00  rickg
-* <p> Version 1.0.0
-* <p>
-* <p> Revision 2.93  2003/11/07 19:49:38  rickg
-* <p> Don't delete preali in delete aligned stacks code.
-* <p>
-* <p> Revision 2.92  2003/11/07 00:52:56  rickg
-* <p> Added test helper methods
-* <p> Changed transferfid parameter name to indicate that it is called with
-* <p> the destination axis
-* <p>
-* <p> Revision 2.91  2003/11/06 22:45:47  sueh
-* <p> cleaning up task tags and prints
-* <p>
-* <p> Revision 2.90  2003/11/06 21:41:27  sueh
-* <p> bug348 imodFineAlign(AsixID): removed calls to
-* <p> setFineAlignmentState() for processTrack and mainFrame.
-* <p>
-* <p> Revision 2.89  2003/11/05 20:31:48  rickg
-* <p> Bug #292 Added preserve contrast seed model and residual model
-* <p> opens
-* <p>
-* <p> Revision 2.88  2003/11/05 20:04:05  rickg
-* <p> Bug# 347 Message written to process monitor area
-* <p>
-* <p> Revision 2.87  2003/11/05 19:39:17  rickg
-* <p> Bug# 295 Query the combination dialog instead of the metaData
-* <p> object as to the state of the match direction for opening the patch
-* <p> region model.
-* <p>
-* <p> Revision 2.86  2003/11/05 19:20:21  rickg
-* <p> Bug# 290 Save tomo gen data when done is pressed
-* <p>
-* <p> Revision 2.85  2003/11/05 18:05:50  sueh
-* <p> bug278 created backupFile(File) to backup the .edf file
-* <p> called backupFile(File) from saveTestParamFile()
-* <p>
-* <p> Revision 2.84  2003/11/04 20:55:42  rickg
-* <p> Bug #345 IMOD Diriectory supplied by a static function from 
-* <p> ApplicationManager
-* <p>
-* <p> Revision 2.83  2003/10/27 23:55:41  rickg
-* <p> Bug# 283 Added method to open the tomopitch log file
-* <p>
-* <p> Revision 2.82  2003/10/24 21:45:09  rickg
-* <p> Spelling fix
-* <p>
-* <p> Revision 2.81  2003/10/23 23:06:13  sueh
-* <p> bug271 called isValid() in SetupDialog
-* <p>
-* <p> Revision 2.80  2003/10/22 21:32:02  rickg
-* <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
-* <p>
-* <p> Revision 2.79  2003/10/21 23:45:05  rickg
-* <p> Added function to delete the aligned stacks
-* <p>
-* <p> Revision 2.78  2003/10/21 02:34:20  sueh
-* <p> Bug325 Pulled out generic default UI retrieval functionality and placed
-* <p> it in ButtonHelper.
-* <p>
-* <p> Revision 2.77  2003/10/20 22:02:13  rickg
-* <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
-* <p>
-* <p> Revision 2.76  2003/10/20 17:32:09  rickg
-* <p> Use existence of combine com scripts
-* <p> ConstCombineParams.scriptsCreated flag
-* <p>
-* <p> Revision 2.75  2003/10/17 02:00:07  sueh
-* <p> Bug317 added new function - to retrieve default UI resources
-* <p>
-* <p> Revision 2.73  2003/10/10 23:17:01  sueh
-* <p> bug251 removing marks
-* <p>
-* <p> Revision 2.72  2003/10/07 22:40:40  sueh
-* <p> bug251 moved transferfid from fine alignment dialog
-* <p> to fiducial model dialog
-* <p>
-* <p> Revision 2.71  2003/10/05 23:59:35  rickg
-* <p> Bug# 252
-* <p> Adde complete message to progresss region for shor processes
-* <p>
-* <p> Revision 2.70  2003/10/05 21:36:05  rickg
-* <p> Bug# 256
-* <p> Catch SystemProcessException for attempted multiple
-* <p> processes in a axis
-* <p>
-* <p> Revision 2.69  2003/10/03 22:11:15  rickg
-* <p> Bug# 255
-* <p> added returns to catch sections for doneSetupDialog
-* <p> Don't want to continue to main window if copytomocoms did not
-* <p> succeed
-* <p>
-* <p> Revision 2.68  2003/10/02 18:57:46  sueh
-* <p> bug236 added testing:
-* <p> NewstParamTest
-* <p> ComScriptTest
-* <p>
-* <p> Removed marks
-* <p>
-* <p> Revision 2.67  2003/09/30 03:18:43  rickg
-* <p> Bug# 248
-* <p> changed openTestParamFile to loadTestParamFile
-* <p> split out resetState method
-* <p> added logic to openExistingData use a File object or
-* <p> open the File Dialog and drop into the setup page if it fails.
-* <p>
-* <p> Revision 2.66  2003/09/30 02:18:57  rickg
-* <p> Bug 249
-* <p> Proper New dialog behavior when not saving the EDF
-* <p> Also moved message dialogs to the mainFrame
-* <p>
-* <p> Revision 2.65  2003/09/29 23:34:57  sueh
-* <p> bug236 Added UseLinearInterpolation to
-* <p> TomogramGenerationDialog.
-* <p>
-* <p> UseLinearInterpolation:
-* <p> check box
-* <p> Advanced
-* <p> newst -linear
-* <p>
-* <p> Files:
-* <p> ComScriptManager.java
-* <p> ConstNewstParam.java
-* <p> NewstParam.java
-* <p> TomogramGenerationDialog.java
-* <p> ApplicationManager.java
-* <p>
-* <p> Revision 2.64  2003/09/26 19:46:16  sueh
-* <p> bug223 removed task marks
-* <p>
-* <p> Revision 2.63  2003/09/26 19:43:48  sueh
-* <p> bug223 no field should be persistant.  Changed MetaData.
-* <p> Added TransferfidNumberViews.
-* <p> Changed the done fine allignment and open fine allignment functions
-* <p> to work with MetaData
-* <p>
-* <p> Revision 2.62  2003/09/09 17:20:29  rickg
-* <p> Check to see if the _orig.st stack exists, do not replace if it does.
-* <p>
-* <p> Revision 2.61  2003/09/08 22:18:50  rickg
-* <p> Catch exception thrown buy ProcessManager.startComScript
-* <p>
-* <p> Revision 2.60  2003/09/08 05:44:47  rickg
-* <p> Added trial tilt
-* <p> Output for a single axis tomogram is changed to
-* <p> dataset_full.rec
-* <p>
-* <p> Revision 2.59  2003/08/20 21:57:09  rickg
-* <p> Only close imods in specified directory
-* <p>
-* <p> Revision 2.58  2003/08/05 21:35:22  rickg
-* <p> Retry commit, eclipse broken?
-* <p>
-* <p> Revision 2.57  2003/07/28 22:53:09  rickg
-* <p> Fixed postpone logic for combine panel.  Combine scripts
-* <p> created flag is now reset only when the CombineParams are
-* <p> modified.
-* <p>
-* <p> Combine postpone will now save combine sub script parameters
-* <p>
-* <p> Revision 2.56  2003/07/25 22:51:11  rickg
-* <p> Imod model mode management changes
-* <p> Save original stack as _orig.st
-* <p>
-* <p> Revision 2.55  2003/07/22 22:16:15  rickg
-* <p> Erased stack methods and trial mode
-* <p>
-* <p> Revision 2.54  2003/07/01 19:24:30  rickg
-* <p> Fixed progress bars for prenewst, newst and tomogram generation
-* <p>
-* <p> Revision 2.53  2003/06/27 20:33:28  rickg
-* <p> Changed below method to public
-* <p>
-* <p> Revision 2.52  2003/06/27 20:23:32  rickg
-* <p> Adde getter method for the com script manager
-* <p>
-* <p> Revision 2.51  2003/06/10 05:29:30  rickg
-* <p> Data persistence behavior of the combination and post
-* <p> processing panels now match the others.
-* <p>
-* <p> Revision 2.50  2003/06/10 05:15:23  rickg
-* <p> *** empty log message ***
-* <p>
-* <p> Revision 2.49  2003/06/09 04:28:21  rickg
-* <p> Set state to in progress if any thing is exected for a given
-* <p> process panel
-* <p>
-* <p> Revision 2.48  2003/06/05 21:19:13  rickg
-* <p> Explicit transferfid B to A false setting
-* <p>
-* <p> Revision 2.47  2003/05/27 08:42:04  rickg
-* <p> Progress bar determinant delegate methods
-* <p>
-* <p> Revision 2.46  2003/05/23 22:49:41  rickg
-* <p> Spelling correction
-* <p>
-* <p> Revision 2.45  2003/05/23 14:29:11  rickg
-* <p> Progress bar determinant delegate methods
-* <p>
-* <p> Revision 2.44  2003/05/21 22:56:54  rickg
-* <p> Initial kill implementation
-* <p>
-* <p> Revision 2.43  2003/05/19 22:05:31  rickg
-* <p> Added openNewDataset method
-* <p> unset isDataParamDirty in daving method
-* <p>
-* <p> Revision 2.42  2003/05/15 22:24:24  rickg
-* <p> Reordered method sequence in opening processing panel to
-* <p> prevent slider from taking up all of the window.
-* <p>
-* <p> Revision 2.41  2003/05/15 20:13:05  rickg
-* <p> Fixed PLAF for windows
-* <p>
-* <p> Revision 2.40  2003/05/15 19:39:44  rickg
-* <p> Look and feel handling
-* <p>
-* <p> Revision 2.39  2003/05/14 23:22:51  rickg
-* <p> Exit if no IMOD_DIR is defined.  We can't run any of the non com scripts
-* <p>
-* <p> Revision 2.38  2003/05/14 21:45:27  rickg
-* <p> New trimvol constructor for windows
-* <p>
-* <p> Revision 2.37  2003/05/14 14:36:08  rickg
-* <p> Temporary change to volcombine
-* <p>
-* <p> Revision 2.36  2003/05/13 19:58:22  rickg
-* <p> TransferfidParams constructed with IMODDirectory File
-* <p>
-* <p> Revision 2.35  2003/05/10 19:12:56  rickg
-* <p> OS independent path implementation
-* <p>
-* <p> Revision 2.34  2003/05/10 18:01:56  rickg
-* <p> Fixes to get IMOD_DIR home and current working directory
-* <p> in a OS agnostic manner
-* <p>
-* <p> Revision 2.33  2003/05/09 23:25:36  rickg
-* <p> Working change to get env vars from all OSs
-* <p>
-* <p> Revision 2.32  2003/05/09 17:52:59  rickg
-* <p> include this in ImodManager constructor, needed for fiducial model calls
-* <p>
-* <p> Revision 2.31  2003/05/08 23:18:45  rickg
-* <p> Added --debug option, off by default
-* <p>
-* <p> Revision 2.30  2003/05/08 20:14:30  rickg
-* <p> Don't set main window location to (0,0) confuses SGI
-* <p>
-* <p> Revision 2.29  2003/05/08 19:58:53  rickg
-* <p> Work around for bug in File.getParent
-* <p>
-* <p> Revision 2.28  2003/05/07 23:04:29  rickg
-* <p> System property user.dir now defines the working directory
-* <p> Home is now read from the System properties
-* <p>
-* <p> Revision 2.27  2003/04/30 18:48:51  rickg
-* <p> Changed matchcheck* to a single imod instance
-* <p>
-* <p> Revision 2.26  2003/04/28 23:25:25  rickg
-* <p> Changed visible imod references to 3dmod
-* <p>
-* <p> Revision 2.25  2003/04/24 17:46:54  rickg
-* <p> Changed fileset name to dataset name
-* <p>
-* <p> Revision 2.24  2003/04/17 23:11:26  rickg
-* <p> Added cancel handling from post processing dialog
-* <p>
-* <p> Revision 2.23  2003/04/16 22:49:49  rickg
-* <p> Trimvol implmentation
-* <p>
-* <p> Revision 2.22  2003/04/16 00:13:54  rickg
-* <p> Trimvol in progress
-* <p>
-* <p> Revision 2.21  2003/04/14 23:57:18  rickg
-* <p> Trimvol management changes
-* <p>
-* <p> Revision 2.20  2003/04/10 23:40:03  rickg
-* <p> Initial exit function handling of imod and other processes
-* <p> Initial openPostProcessingDialog
-* <p>
-* <p> Revision 2.19  2003/03/26 00:52:25  rickg
-* <p> Added button to convert patch_vector.mod to patch.out
-* <p>
-* <p> Revision 2.18  2003/03/22 00:40:35  rickg
-* <p> slovematchmod label change
-* <p>
-* <p> Revision 2.17  2003/03/20 21:18:55  rickg
-* <p> Added matchshift results button/access
-* <p>
-* <p> Revision 2.16  2003/03/20 16:58:42  rickg
-* <p> Added methods: imodMatchedToTomgram, matchorwarpTrial
-* <p> Added trial mode handling to matchorwarp
-* <p>
-* <p> Revision 2.15  2003/03/19 00:23:04  rickg
-* <p> Added imod patch vector model pass through
-* <p>
-* <p> Revision 2.14  2003/03/18 23:56:54  rickg
-* <p> ComScript method name changes
-* <p> Apropriate loading of combine scripts
-* <p> Added pass through method to open matching models
-* <p> Done not longer executes combine
-* <p> Updated combine related methods to match new
-* <p> combination dialog
-* <p>
-* <p> Revision 2.13  2003/03/18 17:03:15  rickg
-* <p> Combine development in progress
-* <p>
-* <p> Revision 2.12  2003/03/18 15:01:31  rickg
-* <p> Combine development in progress
-* <p>
-* <p> Revision 2.11  2003/03/18 00:32:32  rickg
-* <p> combine development in progress
-* <p>
-* <p> Revision 2.10  2003/03/07 07:22:49  rickg
-* <p> combine layout in progress
-* <p>
-* <p> Revision 2.9  2003/03/06 05:53:28  rickg
-* <p> Combine interface in progress
-* <p>
-* <p> Revision 2.8  2003/03/06 01:19:17  rickg
-* <p> Combine changes in progress
-* <p>
-* <p> Revision 2.7  2003/03/02 23:30:41  rickg
-* <p> Combine layout in progress
-* <p>
-* <p> Revision 2.6  2003/02/24 23:27:21  rickg
-* <p> Added process interrupt method
-* <p>
-* <p> Revision 2.5  2003/01/30 00:43:32  rickg
-* <p> Blank second axis panel when done with tomogram generation
-* <p>
-* <p> Revision 2.4  2003/01/29 15:22:58  rickg
-* <p> Updated logic for combine step
-* <p>
-* <p> Revision 2.3  2003/01/28 20:42:53  rickg
-* <p> Bug fix: save current dialog state when running align.com
-* <p>
-* <p> Revision 2.2  2003/01/28 00:15:29  rickg
-* <p> Main window now remembers its size
-* <p>
-* <p> Revision 2.1  2003/01/27 18:12:41  rickg
-* <p> Fixed bug from single window transition in positioning dialog
-* <p> opening function
-* <p>
-* <p> Revision 2.0  2003/01/24 20:30:31  rickg
-* <p> Single window merge to main branch
-* <p>
-* <p> Revision 1.36.2.1  2003/01/24 18:27:46  rickg
-* <p> Single window GUI layout initial revision
-* <p>
-* <p> Revision 1.36  2003/01/10 20:46:34  rickg
-* <p> Added ability to view 3D fiducial models
-* <p>
-* <p> Revision 1.35  2003/01/10 18:39:58  rickg
-* <p> Using existing com scripts now gives the correct
-* <p> process state
-* <p>
-* <p> Revision 1.34  2003/01/10 18:33:16  rickg
-* <p> Added test parameter filename to command line args
-* <p>
-* <p> Revision 1.33  2003/01/08 21:04:38  rickg
-* <p> More descriptive error dialog when the are not
-* <p> available for combining.
-* <p>
-* <p> Revision 1.32  2003/01/07 00:30:16  rickg
-* <p> Added imodViewResidual method
-* <p>
-* <p> Revision 1.31  2003/01/06 04:53:16  rickg
-* <p> Set default parameters for transferfid panel and handle
-* <p> new backwards flag for b to a
-* <p>
-* <p> Revision 1.30  2003/01/04 00:41:00  rickg
-* <p> Implemented transferfid method
-* <p>
-* <p> Revision 1.29  2002/12/19 00:35:20  rickg
-* <p> Implemented persitent advanced state handling
-* <p>
-* <p> Revision 1.27  2002/12/11 21:26:31  rickg
-* <p> Added font setting into user prefs setting
-* <p>
-* <p> Revision 1.26  2002/12/11 05:39:00  rickg
-* <p> Added basic font change method
-* <p>
-* <p> Revision 1.25  2002/12/11 00:39:48  rickg
-* <p> Basic handling of settings dialog
-* <p> added setUserPreferences method
-* <p>
-* <p> Revision 1.24  2002/12/09 04:18:50  rickg
-* <p> Better handling of current working directory, user.dir and
-* <p> metaData always agree now.
-* <p>
-* <p> Revision 1.23  2002/12/05 01:21:02  rickg
-* <p> Added isAdvanced stub
-* <p>
-* <p> Revision 1.22  2002/11/21 19:24:38  rickg
-* <p> Set user.dir to current working directory
-* <p>
-* <p> Revision 1.21  2002/10/29 18:22:04  rickg
-* <p> Simplified rawstack open checking
-* <p>
-* <p> Revision 1.20  2002/10/25 19:30:43  rickg
-* <p> Modifies several catches to explicilty specify exception
-* <p>
-* <p> Revision 1.19  2002/10/24 19:52:55  rickg
-* <p> Added command line --demo argument
-* <p>
-* <p> Revision 1.18  2002/10/22 21:38:24  rickg
-* <p> ApplicationManager now controls both demo and debug
-* <p> modes
-* <p>
-* <p> Revision 1.17  2002/10/17 22:47:35  rickg
-* <p> process dialogs are now managed attributes
-* <p> setVisible calls changed to show
-* <p> unused variable dialogFinshed removed
-* <p>
-* <p> Revision 1.16  2002/10/17 16:23:04  rickg
-* <p> Added private method to update the dependent tilt parameters when the
-* <p> align.com parameters are changed
-* <p>
-* <p> Revision 1.15  2002/10/16 17:37:18  rickg
-* <p> Construct a imodManager when a new data set is opened
-* <p>
-* <p> Revision 1.14  2002/10/14 22:44:27  rickg
-* <p> Added combine to execute section of doneCombine
-* <p>
-* <p> Revision 1.13  2002/10/14 19:04:18  rickg
-* <p> openMessageDialog made public
-* <p>
-* <p> Revision 1.12  2002/10/10 23:40:33  rickg
-* <p> refactored createCombineScripts to setupCombineScripts
-* <p>
-* <p> Revision 1.11  2002/10/10 19:16:19  rickg
-* <p> Get HOME and IMOD_DIR environement variables during
-* <p> initialization instead of each time they requested.  Also
-* <p> exit if they are not available.
-* <p>
-* <p> Revision 1.10  2002/10/09 04:29:17  rickg
-* <p> Implemented calls to updateCombineCom
-* <p>
-* <p> Revision 1.9  2002/10/09 00:04:37  rickg
-* <p> Added default patch boundary logic
-* <p> still needs work on getting combine parameters at the correct times
-* <p>
-* <p> Revision 1.8  2002/10/07 22:20:21  rickg
-* <p> removed unused imports
-* <p>
-* <p> Revision 1.7  2002/09/30 23:44:43  rickg
-* <p> Started implementing updateCombineCom
-* <p>
-* <p> Revision 1.6  2002/09/30 22:01:29  rickg
-* <p> Added check to verify dual axis for combination
-* <p>
-* <p> Revision 1.5  2002/09/20 18:56:09  rickg
-* <p> Added private message and yes/no dialog methods
-* <p> Check to see if the raw stack and coarsely aligned stacks should be
-* <p> closed by the user
-* <p>
-* <p> Revision 1.4  2002/09/19 22:57:56  rickg
-* <p> Imod mangement is now handled through the ImodManager
-* <p>
-* <p> Revision 1.3  2002/09/17 23:44:56  rickg
-* <p> Adding ImodManager, in progress
-* <p>
-* <p> Revision 1.2  2002/09/13 21:29:57  rickg
-* <p> Started updating for ImodManager
-* <p>
-* <p> Revision 1.1  2002/09/09 22:57:02  rickg
-* <p> Initial CVS entry, basic functionality not including combining
-* <p> </p>
-*/
