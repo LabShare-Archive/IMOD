@@ -46,6 +46,9 @@
 #include <qhbox.h>
 #include <qlayout.h>
 #include <qdir.h>
+#include <qstringlist.h>
+#include <qfile.h>
+
 
 /*#include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
@@ -415,7 +418,6 @@ int BeadFixer::getNextLine(char *line, int maxline)
 void BeadFixer::nextRes()
 {
   char line[MAXLINE];
-  char *getres;
   int inobj, incont, inpt, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i;
   int found = 0;
@@ -436,14 +438,13 @@ void BeadFixer::nextRes()
 
   do {
     offsetBefore = plug->currentLine;
-    getres = getNextLine(line, MAXLINE);
-    // wprint("%s", line);
-    if(getres == NULL || strlen(line) <3) {
+    if(getNextLine(line, MAXLINE) || strlen(line) < 3) {
       wprint("No more residuals in this list\n");
       nextResBut->setEnabled(false);    
       plug->residok=0;
       return;
     }
+    // wprint("%s", line);
     if (plug->objcont)
       sscanf(line, "%d %d %d %f %f %f %f %f", 
              &inobj, &incont, &inview, &xc, &yc, &xr, &yr, &sd);
@@ -684,7 +685,6 @@ void BeadFixer::movePoint()
 void BeadFixer::undoMove()
 {
   int obsav, cosav, ptsav;
-  int obj, cont, pt;
   int nobj, ncont;
   Iobj *ob;
   Icont *con;
@@ -782,7 +782,6 @@ void BeadFixer::nextGap()
   Iobj *ob;
   Icont *con;
   Ipoint *pts;
-  char line[MAXLINE];
 
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -1218,6 +1217,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.10  2004/06/12 00:58:11  mast
+    Switched to reading in whole file at once
+
     Revision 1.9  2004/05/11 14:17:53  mast
     Needed to put an enable of the run align button inside conditional
 
