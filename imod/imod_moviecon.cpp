@@ -30,51 +30,12 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.7  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.6  2003/01/14 22:00:26  mast
-fix aberrant character
-
-Revision 1.1.2.5  2003/01/14 21:37:55  mast
-revised help, cleaned up unused variables
-
-Revision 1.1.2.4  2003/01/14 17:05:17  mast
-Qt version
-
-Revision 1.1.2.3  2002/12/17 21:39:14  mast
-include imodconfig so NO_SYS_TIMES canbe defined
-
-Revision 1.1.2.2  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.2  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 #include <limits.h>
-#include "imodconfig.h"
-#ifndef NO_SYS_TIMES
-#include <sys/times.h>
-#ifdef FIXED_CLK_TCK
-#define USE_CLK_TCK FIXED_CLK_TCK
-#else
-#define USE_CLK_TCK CLK_TCK
-#endif
-#endif
 
 #include "form_moviecon.h"
 #include "imodv_input.h"
@@ -96,7 +57,7 @@ static float realrate, realint;
 static int looponeway;
 static int autosnap;
 static int movieCount = 0;
-static clock_t movieCurrent, movieStart, movieLast;
+static int movieCurrent, movieStart, movieLast;
 
 #define BASEINT 50.0
 #define RATEFAC 1.25992
@@ -226,12 +187,6 @@ void imcStartTimer(void)
 void imcReadTimer(void)
 {
   QString qstr;
-#ifdef NO_SYS_TIMES
-  char persec[] = "CPU sec";
-#else
-  char persec[] = "sec";
-#endif
-
   float elapsed, instrate;
 
   movieCount++;
@@ -240,14 +195,10 @@ void imcReadTimer(void)
   if (!dia || movieCurrent == movieLast)
     return;
 
-#ifdef NO_SYS_TIMES
-  elapsed = (float)(movieCurrent - movieStart) / (float)CLOCKS_PER_SEC;
-  instrate = (float)CLOCKS_PER_SEC / (float)(movieCurrent - movieLast);
-#else
-  elapsed = (float)(movieCurrent - movieStart) / (float)USE_CLK_TCK;
-  instrate = (float)USE_CLK_TCK / (float)(movieCurrent - movieLast);
-#endif
-  qstr.sprintf("Actual /%s: %5.2f (avg)  %5.2f", persec,
+  elapsed = (float)(movieCurrent - movieStart) / 1000.f;
+  instrate = 1000.f / (float)(movieCurrent - movieLast);
+
+  qstr.sprintf("Actual FPS: %5.2f (avg)  %5.2f",
 	  movieCount / elapsed, instrate);
   dia->setActualRate(qstr);
 }
@@ -415,3 +366,37 @@ void imcIncrementRate(int dir)
 {
   imcSetMovierate(view, view->movierate + dir);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.7  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.6  2003/01/14 22:00:26  mast
+fix aberrant character
+
+Revision 1.1.2.5  2003/01/14 21:37:55  mast
+revised help, cleaned up unused variables
+
+Revision 1.1.2.4  2003/01/14 17:05:17  mast
+Qt version
+
+Revision 1.1.2.3  2002/12/17 21:39:14  mast
+include imodconfig so NO_SYS_TIMES canbe defined
+
+Revision 1.1.2.2  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.2  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
