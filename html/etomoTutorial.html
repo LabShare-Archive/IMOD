@@ -3,16 +3,14 @@
  xmlns:w="urn:schemas-microsoft-com:office:word"
  xmlns="http://www.w3.org/TR/REC-html40">
 <head>
-  <meta name="Title"
- content="This is a tutorial to read when running up the sample data set, hvemuni5">
+  <meta name="Title" content="ETomo Tutorial">
   <meta name="Keywords" content="">
   <meta http-equiv="Content-Type" content="text/html; charset=macintosh">
   <meta name="ProgId" content="Word.Document">
   <meta name="Generator" content="Microsoft Word 9">
   <meta name="Originator" content="Microsoft Word 9">
   <link rel="File-List" href="filelist">
-  <title>This is a tutorial to read when running up the sample data
-set, hvemuni5</title>
+  <title>ETomo Tutorial</title>
 <!--[if gte mso 9]><xml>
  <o:DocumentProperties>
   <o:Author>HVEM Lab</o:Author>
@@ -143,22 +141,46 @@ ul
   </style>
 </head>
 <body bgcolor="white" lang="EN-US" style="">
+<h2 align="center">ETomo Tutorial for IMOD Version 3.1.0<br>
+</h2>
+<h3 align="center">Eileen O'Toole</h3>
+<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
+Cells</h3>
+<hr>
 <div class="Section1">
 <p class="MsoNormal"><span style="font-size: 14pt;"><b>I.<span style="">&nbsp;</span>Initial
 set up and viewing the raw tilt series:<o:p></o:p></b></span></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p><br>
-This tutorial contains a a small, dual-axis sample data set and a
+This tutorial contains a small, dual-axis sample data set and a
 step-by-step guide to eTomo. The tutorial is not meant to be a
 replacement for the Tomography Guide. Please refer to the more
-comprehensive Tomography Guide for additional detail about each step.
-The sample data set was chosen because you should get through the
-entire process with no problems! The Tomography Guide is a good
-reference for trouble shooting and learning more about the many
-programs that are used for computing dual-axis tomograms. &nbsp; <br>
+comprehensive <a href="tomoguide.html">Tomography Guide</a> for
+additional detail about each step. The sample data set was chosen
+because you should get through the entire process with no problems! The
+Tomography Guide is a good reference for trouble shooting and learning
+more about the many programs that are used for computing dual-axis
+tomograms. &nbsp; <br>
 </p>
 <p class="MsoNormal"><br>
-The important files that you need to start the tutorial are the two raw
-stacks, named BBa.st and BBb.st, respectively.&nbsp;<br>
+</p>
+<p class="MsoNormal">To get started, <a
+ href="http://bio3d.colorado.edu/imod/files/tutorialData.tar.gz">download</a>
+the sample data set from our web site. &nbsp;Unpack the data by typing:</p>
+<p class="MsoNormal"><br>
+&nbsp; &nbsp; &nbsp; &nbsp; <code>tar -xzf tutorialData.tar.gz<br>
+</code></p>
+<p class="MsoNormal"><br>
+<code></code></p>
+<p class="MsoNormal">or, on an SGI, you will probably need two steps:</p>
+<p class="MsoNormal"><br>
+&nbsp; &nbsp; &nbsp; &nbsp; <code>gunzip tutorialData.tar.gz</code></p>
+<p class="MsoNormal"><code>&nbsp; &nbsp;tar -xzf tutorialData.tar<br>
+</code><br>
+This will create a directory, <code>tutorialData</code>, containing
+the two raw stacks needed to start the tutorial, named BBa.st and
+BBb.st, respectively. &nbsp;There is also a subdirectory, <code>finalFiles</code>,
+containing all of the small working files left after completing the
+data set, as well a copy of the final reconstruction.<br>
 </p>
 <p class="MsoNormal"><br>
 </p>
@@ -170,11 +192,11 @@ image quality, and that you want to exclude from </span>the<span
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal">To determine if you have views that have poor
-image quality (poor focus, etc.) Read in the raw stack(s) by typing:</p>
+image quality (poor focus, etc.), read in the raw stack(s) by typing:</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--></p>
 <h1><br>
 </h1>
-<h1> 3dmod BBa.st</h1>
+<h1 style="font-weight: normal;"><code>&nbsp; &nbsp;3dmod BBa.st</code></h1>
 <h2><span style="font-size: 12pt; font-weight: normal;"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></span></h2>
 <p class="MsoNormal">Movie through the raw tilt series images by
 clicking the middle mouse button. Notice how the images jump around
@@ -195,25 +217,27 @@ stack. To do this type: </p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--></p>
 <h1><br>
 </h1>
-<h1>header BBa.st</h1>
+<h1 style="font-weight: normal;"><code>&nbsp; &nbsp;header BBa.st</code></h1>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal">If the minimum density value is a negative number
 or 0, then you probably have an extreme black pixel in your data set,
 caused by an x-ray event during collection of the dark reference. If you
 have a  high  maximum density, then you have an extreme white pixel in
 your data   set. If  an extreme value is lurking somewhere in the data
-set and a preprocessing step is needed to remove them. Please refer to
-the Pre-Processing: Removing X-Rays section of the Tomography Guide. </p>
+set and a preprocessing step is needed to remove them, please refer to
+the <a href="tomoguide.html/#PRE-PROCESSING">Pre-Processing: Removing
+X-Rays</a> section of the Tomography Guide. </p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--><!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal" style="font-weight: bold;"><font size="+1">II.<span
- style="">&nbsp; etomo Setup</span></font></p>
+ style="">&nbsp; eTomo Setup</span></font></p>
 <br>
-<b>To start eTomo, type:<br>
+To start eTomo, type:<br>
+<b><br>
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; etomo </b>(return)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; </b><code>etomo</code><br>
 <br>
 <p class="MsoNormal"><span style="color: black;"></span><o:p></o:p></p>
 <p class="MsoNormal"></p>
@@ -224,7 +248,7 @@ the Pre-Processing: Removing X-Rays section of the Tomography Guide. </p>
 </p>
 <p class="MsoNormal">When eTomo is first started, a<b> Setup panel</b>
 will come up (shown above). At this point you can either set up
-processing of   a new data set or open an exisiting data set under the <b>File</b>
+processing of   a new data set or open an existing data set under the <b>File</b>
 menu.&nbsp;<br>
 </p>
 <p class="MsoNormal"><br>
@@ -234,7 +258,7 @@ raw, tilt series (or the root name if a dual axis data set was
 collected). &nbsp;You    can enter the <b>Dataset Name</b> by clicking
 on the yellow file selection    associated with the <b>Dataset Name</b>
 field, or type in the directory  path  and file name directly in the
-field. The <b>Backup Dirctory </b>is an optional  field to save small
+field. The <b>Backup Directory </b>is an optional  field to save small
 working files every time you run a procedure.  This field  can be left
 empty if you don't wish to use a backup directory. <br>
 </p>
@@ -276,20 +300,20 @@ Details specific for the tutorial sample data set are shown above. For
 this sample data set, the <span style="font-weight: bold;">Dataset name</span>
 is BBa.st,&nbsp;  it is a dual axis set. The pixel size is 2.02 nm, the
 fiducial diameter is 10 nm  and the image rotation is -12.5 degrees.
-Tilt angles for this data set are stored are extracted from the data
+Tilt angles for this data set are stored and extracted from the data
 file.&nbsp;<span style=""> </span><br>
 </p>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b><!--[if !supportEmptyParas]--><!--[endif]--> <o:p></o:p></b></span></p>
 <p class="MsoNormal"><br>
-Press <span style="font-weight: bold;">Create Com Scripts</span> button
-to move on to the generating the tomograms. <br>
+Press the <span style="font-weight: bold;">Create Com Scripts</span>
+button to move on to generating the tomograms. <br>
 <span style="font-size: 14pt;"><b><br>
 III. eTomo Main Window</b></span></p>
 <p class="MsoNormal">The Main Window consists of several areas: on the
 left is a column of buttons (Process Control Buttons) that allow you to
 select a  particular stage of tomogram computation to work on. On the
-top is a Process    Monitor that inform you of the status of the current
-process or the last   process completed.<br>
+top is a Process    Monitor that informs you of the status of the
+current process or the last   process completed.<br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/mainwindow.png" title=""
@@ -323,7 +347,8 @@ or even in the initial dark reference can cause extreme high or low
 pixel values in your   data file. As a result, these extreme values ruin
 the contrast and can cause  artifacts in the reconstruction. <o:p></o:p><!--[if !supportEmptyParas]-->
 &nbsp;The data set in this tutorial does not require a pre-processing
-step.&nbsp; Refer to the Tomography Guide for details on this step.<br>
+step.&nbsp; Refer to the <a href="tomoguide.html">Tomography Guide</a>
+for details on this step.<br>
 <span style="font-size: 14pt;"><b><br>
 V. Coarse alignment.<o:p></o:p></b></span></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--> Press the <span
@@ -353,7 +378,7 @@ proceed with &nbsp;creating  a coarse-aligned stack.</p>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal"> Pressing the <b>Calculate Cross-Correlation</b>
-button runs the program, tiltxcorr. The program   uses cross-correlation
+button runs the program, Tiltxcorr. The program   uses cross-correlation
 to find    an initial translational alignment between   successive
 images of a tilt   series (i.e. just shifts in x and y). The output
 file, BBa.prexf, contains   a list of transforms (or recommended shifts)
@@ -361,16 +386,18 @@ that will be applied to the   image data in the next step.<span style="">&nbsp;&
 </p>
 <p class="MsoNormal"><br>
 Pressing the <b>Generate Coarse Aligned Stack </b>button will run 2
-programs:<span style="">&nbsp;&nbsp;</span> xftoxg that takes the
-transforms   created by tiltxcorr to obtain a single consistent, or
-&#8216;global&#8217; set of alignments. These new transforms  are then applied to
-the image data using the program  newst, or newstack. The output file
-created is BBa.preali. One can view  the prealigned stack by pressing
-the <b>View Aligned Stack in 3dmod </b>button. Large image shifts can
-be edited manually using the the interactive program, Midas. This is
-not an issue with this data set, see the Tomography Guide for details.
-Once you are satisfied with the prealigned  stack, press the <b>Done</b>
-button to proceed to the next step.</p>
+programs.<span style=""> &nbsp;</span> Xftoxg takes the transforms
+created by Tiltxcorr to obtain a single consistent, or &#8216;global&#8217; set of
+alignments. These new transforms  are then applied to the image data
+using the program Newst, or Newstack. The output file created is
+BBa.preali. One can view  the prealigned stack by pressing the <b>View
+Aligned Stack in 3dmod </b>button. Large image shifts can be edited
+manually using the the interactive program, Midas. This is not an issue
+with this data set; see the <a
+ href="tomoguide.html/#COARSE%20ALIGNMENT">COARSE ALIGNMENT</a> section
+of the Tomography Guide for details. Once you are satisfied with the
+prealigned stack, press the <b>Done</b> button to proceed to the next
+step.</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--><!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></b></span></p>
@@ -388,9 +415,9 @@ Using 3dmod' button. </b><br>
 <p class="MsoNormal">This will open BBa.preali in 3dmod and create an
 empty model file named BBa.seed.&nbsp;</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
-<p class="MsoNormal">Go to section 31 by pressing insert key on your
-keyboard (this will go directly to the middle section, which is often
-the 0&deg;    tilt).</p>
+<p class="MsoNormal">Go to section 31 by pressing the Insert key on
+your keyboard (this will go directly to the middle section, which is
+often the 0&deg;    tilt).</p>
 <p class="MsoNormal"></p>
 <p class="MsoNormal" align="center">&nbsp; <br>
 </p>
@@ -414,7 +441,7 @@ point is positioned in the center  of the gold bead. In my example
 this &#8216;seed&#8217; model by going to File -&gt; Save    model, or by hitting
 the hot key 's'. The model is referred to as a &#8216;seed&#8217; because it
 contains model points on only one section. The next step uses this model
-as a seed from which a complete fiducial model is built from. </p>
+as a seed from which a complete fiducial model is built. </p>
 <p class="MsoNormal" align="center"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><br>
 </p>
 <p class="MsoNormal"><b>Press the 'Track Fiducial Seed Model' process
@@ -424,7 +451,7 @@ button.</b><br>
 <p class="MsoNormal" align="center"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><img
  src="etomoImages/fiducialA2.png" title="" alt=""
  style="width: 538px; height: 523px;"> <o:p></o:p></p>
-<p class="MsoNormal">This will run the beadtrack program to find   the
+<p class="MsoNormal">This will run the Beadtrack program to find   the
 gold on all other sections. The output file created by tracka.com is
 BBa.fid, which is the completed fiducial model. This computer-generated
 model is  not perfect, and so the next procedure involves an iterative
@@ -450,17 +477,17 @@ Beadfixer:</p>
  title="" alt="" style="width: 182px; height: 394px;">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
-This brings up a new dialogue box that facilitates editing   the
-fiducial model.</p>
+This brings up a new dialog box that facilitates editing   the fiducial
+model.</p>
 <p class="MsoNormal"><br>
 Hit<b> &#8216;Go to Next Gap&#8217;</b> by clicking on the button using the left
 mouse button, or by using the spacebar as a hot key.&nbsp; This will
 attach to a point (highlighted with a yellow circle) that has a missing
-model point on an adjacent section. Use the page up or page down key to
-find the section with the missing point  and use the middle mouse
-button to add the point in the center of the gold particle. It is
-useful to increase  the magnification of the image with the &#8216;+&#8217; key and
-adjust the contrast on the sections, especially at high tilt. Repeat <b>&#8216;Go
+model point on an adjacent section. Use the Page Up or Page Down key to
+find the section with the missing point  and use the middle mouse button
+to add the point in the center of the gold particle. It is useful to
+increase the magnification of the image with the &#8216;+&#8217; key and adjust the
+contrast on the sections, especially at high tilt. Repeat <b>&#8216;Go
 to&nbsp; Next Gap&#8217;</b> until the message, &#8216;<span
  style="font-weight: bold;">no more gaps are found</span>&#8217; comes up in
 the main 3dmod window. Save the model file,&nbsp; and hit the <span
@@ -483,7 +510,7 @@ alignment</b> button at  the bottom of the<b> Fine Alignment</b> box. <br>
  alt="" style="width: 957px; height: 655px;">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
-This command file runs the program, tiltalign, to solve   for the
+This command file runs the program, Tiltalign, to solve   for the
 displacements, rotations, tilts and magnification differences in  the
 tilted views. The  program uses the position of the gold particles in
 the fiducial model and  a variable metric minimization approach to find
@@ -498,8 +525,8 @@ guides. &nbsp;Select aligna.log to open the log file.&nbsp;<b><!--[endif]--> <o:
 will open a tabbed file that contains the complete log and short
 sections from this log file. <br>
 The <span style="font-weight: bold;">Errors</span> tab contains a mean
-residual error and standard devialtion and ratio of measured values to
-total unknowns. <br>
+residual error and standard deviation and the ratio of measured values
+to total unknowns. <br>
 In my example, the first <span style="font-weight: bold;">Compute
 Alignment</span> run gave a Residual error mean of 0.351<br>
 <br>
@@ -514,7 +541,7 @@ Alignment</span> run gave a Residual error mean of 0.351<br>
 the Residual error mean to 0.2- 0.5. <br>
 </p>
 <p class="MsoNormal"><br>
-The tiltalign program also creates two models files that provide useful
+The Tiltalign program also creates two model files that provide useful
 information about the fiducial model.<span style="">&nbsp; </span>The
 first (BBa.3dmod) displays a <span style="color: black;">3-D model of
 the fiducials<o:p></o:p> based on their solved positions. </span>Fiducials
@@ -534,12 +561,12 @@ Alignment</b> box:</p>
 You should see a nice distribution of pink and green spheres across the
 field of view. Rotate the model to view edge-on by holding down   the
 number 8 key on the keypad. You will see the separation of the  two
-surfaces   with this view. Avoid using models that have a cluster of
+surfaces with this view. Avoid using models that have a cluster of
 fiducials in any  one particular region because this will skew the
-alignment. Close 3dmodv  window. <br>
+alignment. Close the 3dmodv  window. <br>
 </p>
 <p class="MsoNormal"><br>
-The second model tiltalign produces is a residual vector model.
+The second model Tiltalign produces is a residual vector model.
 &nbsp;Press the '<b>View Residual Vectors</b>' button at the bottom of
 the <b>Fine Alignment</b> box. This will open the prealigned stack in
 3dmod and display the residual   vector model on each section. </p>
@@ -556,22 +583,22 @@ the <b>Fine Alignment</b> box. This will open the prealigned stack in
 <p class="MsoNormal"><br>
 The model will show the current model point as a red X, and the
 position of the residual   as a green X. This residual  displacement is
-expanded by  10 pixels in order  to distinguish it from the  actual
+expanded by  a factor of 10 in order  to distinguish it from the  actual
 model point, because  displacements are often very small (<u>&lt;</u> 2
-pixels). In large (&gt;2k  x 2k) images the residual model will show
-often show large displacements  in one area but not in other areas. In
-these cases,  the residual model helps  to make decisions if local
-alignments are needed.  In this example, local alignments   are not
-needed. It is common to have larger  residuals at the higher extreme
-tilts. Leave 3dmod open for the next several  steps.</p>
+pixels). In large (&gt;2k  x 2k) images the residual model will often
+show large displacements  in one area but not in other areas. In these
+cases,  the residual model helps  to make decisions if local alignments
+are needed.  In this example, local alignments   are not needed. It is
+common to have larger  residuals at the higher extreme tilts. Leave
+3dmod open for the next several  steps.</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><span style="font-weight: bold;">The following
 iterative steps involve fixing fiducial points with large residuals.</span> </p>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal">In the 3dmod main window, under Special - &gt;
-Bead Fixer.    Select &#8216;Open Tiltalign Log File&#8217; in the beadfixer
-dialogue box. Select the  aligna.log file.<br>
+Bead Fixer.    Select &#8216;Open Tiltalign Log File&#8217; in the Beadfixer dialog
+box. Select the  aligna.log file.<br>
 </p>
 <p class="MsoNormal"><br>
 <br>
@@ -585,16 +612,16 @@ dialogue box. Select the  aligna.log file.<br>
  style="width: 182px; height: 394px;"> &nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoNormal"><br>
 Click<span style="">&nbsp; </span>&#8216;<b>Go to Next Big Residual</b>&#8217; in
-the <b>Bead Fixe</b>r dialogue box.</p>
+the <b>Bead Fixe</b>r dialog box.</p>
 <p class="MsoNormal">The model point that had the big residual will
-have a red arrow pointing to in the direction of the recommended move.
+have a red arrow pointing in the direction of the recommended move.
 You&#8217;ll probably be able to see that the model point is not centered
 properly on   the gold. &nbsp;<span style="">&nbsp; </span>If   you
-click &#8216;<b>Move Point by Residual</b>&#8217; in the<b> Bead Fixer</b> dialogue
-box, it will   move the model point by the recommended amount. This
-works most of the time, but if the recommendation looks wrong, you can
-move it by hand by centering   the cursor over the middle of the gold
-bead and then clicking the right mouse button.<br>
+click &#8216;<b>Move Point by Residual</b>&#8217; in the<b> Bead Fixer</b> dialog box,
+it will   move the model point by the recommended amount. This works
+most of the time, but if the recommendation looks wrong, you can move
+it by hand by centering   the cursor over the middle of the gold bead
+and then clicking the right mouse button.<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
@@ -627,10 +654,10 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 </p>
 <p class="MsoNormal">Note the Total tilt angle change (in my example,
 this value was -0.24). Put this value in the <span
- style="font-weight: bold;">Fine Alignmet Volume Position Parameters</span>
+ style="font-weight: bold;">Fine Alignment Volume Position Parameters</span>
 box under <span style="font-weight: bold;">Total tilt angle offset</span>.
 Press the&nbsp; Compute Alignment button again, then select &#8216;Reread log
-file&#8217; in the Beadfixer dialogue window. Proceed in fixing model points
+file&#8217; in the Beadfixer dialog window. Proceed in fixing model points
 with large residuals. Save the model.&nbsp; <br>
 </p>
 <p class="MsoNormal"><br>
@@ -652,26 +679,26 @@ Alignment</span> box:&nbsp;</p>
  style="font-weight: bold;">Enable</span>' &nbsp;</span><span style="">box
 in the <span style="font-weight: bold;">Distortion Solution Type</span>
 area at the bottom of the panel. This will activate solving  for two
-type of distortion: X-axis stretch and Skew. Keep the default group 
+types of distortion: X-axis stretch and Skew. Keep the default group
 size and hit the '<span style="font-weight: bold;">Compute Alignment</span>'
 button to run the alignment.<br>
 </span><b><o:p></o:p></b></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--><!--[endif]--><br>
 Return to the 3dmod windows and select, &#8216;Reread log file&#8217; in the
-Beadfixer dialogue window. Repeat fixing the new residuals that
-tiltalign came up with  after solving for distortion. Save the model
-file and Compute Alignment again.  After a few runs of running the
-alignment and checking model points in 3dmod,  the final mean residual
-should come down to 0.2-0.4.&nbsp;&nbsp; In my example, the final
-Residual error mean was 0.308.</p>
+Beadfixer dialog window. Repeat fixing the new residuals that Tiltalign
+came up with  after solving for distortion. Save the model file and
+Compute Alignment again.  After a few runs of running the alignment and
+checking model points in 3dmod,  the final mean residual should come
+down to 0.2-0.4.&nbsp;&nbsp; In my example, the final Residual error
+mean was 0.308.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/finalAerror.png"
  title="" alt="" style="width: 621px; height: 170px;"><br>
 </div>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
-<h2>VIII.<span style="">&nbsp; </span>Sampling the data set create 3
-small reconstructions</h2>
+<h2>VIII.<span style="">&nbsp; </span>Sampling the data set to create
+3 small reconstructions</h2>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <p class="MsoBodyText">The goal of the next step is to shift and rotate
 your reconstruction so that it is as flat as possible and will fit into
@@ -692,10 +719,10 @@ reconstruction that is much thicker than the original section.</p>
 <br>
 </div>
 <p class="MsoNormal">This command file first extracts and    aligns a
-10 pixel sliver from the top, middle, and bottom of the image stack. The
-program then creates a small reconstruction from the top, middle, and
-bottom of   the aligned stack. This output files are named topa.rec,
-mida.rec, bota.rec</p>
+60 pixel sliver from the top, middle, and bottom of the image stack.
+The program then uses these samples to create 10 slices of the
+reconstruction from the top, middle, and bottom of   the aligned stack.
+These output files are named topa.rec, mida.rec, bota.rec.</p>
 <h1 style=""><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></h1>
 <h1 style="">Press Create Boundary Models</h1>
 <p class="MsoNormal" align="center"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><img
@@ -708,7 +735,7 @@ define the top and bottom surfaces of each reconstruction.</span> </p>
 <p class="MsoNormal">When&nbsp; the '<span style="font-weight: bold;">Create
 Boundary Models</span>' is pressed, 3dmod will read in all three
 reconstructions at once, with the topa.rec displayed   first and viewed
-edge on. 3dmod will also read in an empty model, named tomopitcha.mod.<br>
+edge on. 3dmod will also start with an empty model, named tomopitcha.mod.<br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/TomopositionA4.png" title=""
@@ -729,9 +756,10 @@ right side of the top surface. A line will connect the two points. Hit
 2 points on the left and right sides, respectively. Toggle to the
 mid.rec and bot.rec file by hitting the arrow button to the right  of &#8216;4<sup>th</sup>
 D&#8217; at the top of the zap window. Repeat modeling the  top and bottom
-surfaces of the other two reconstructions, hitting &#8216;n&#8217; for  new contour
-for each surface. The final model should have 1 object, 6 contours, 
-and each contour should have 2 model points.&nbsp; Save this model file.</p>
+surfaces of the other two reconstructions, hitting &#8216;n&#8217; for  a new
+contour for each surface. The final model should have 1 object and 6
+contours, and each contour should have 2 model points.&nbsp; Save this
+model file.</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <h1>&nbsp;Press 'Compute Z Shift and Pitch Angles' </h1>
 <h1 align="center"><span style="font-weight: normal;"><!--[if !supportEmptyParas]--><!--[endif]--> <o:p></o:p></span></h1>
@@ -759,13 +787,13 @@ below: <br>
 calculated from all three positions. Enter the offsets to the fields
 directly below  the <span style="font-weight: bold;">Compute Z Shift
 and Pitch Angles </span>button. In my example, the "add -0.2 to total
-angle offset" in the log file (above) gives the information for <span
+angle offset" in the log file (above) gives the information for the <span
  style="font-weight: bold;">Total angle offset</span> field in eTomo
 (below). This value must be added to any existing value in this field
 (my example, -0.24 - 0.2 = -0.44). The "x-tilted lines imply added Z
-shift of 14.8" in the tomopitcha.log  file (above) gives information
-for the <span style="font-weight: bold;">Total Z shift</span> in the
-eTomo field (below). After adding these values, hit the <span
+shift of 14.8" in the tomopitcha.log  file (above) gives information for
+the <span style="font-weight: bold;">Total Z shift</span> in the eTomo
+field (below). After adding these values, hit the <span
  style="font-weight: bold;">Create Final Alignment</span> button. &nbsp;
 After the &nbsp;final alignment transforms are created, press the <span
  style="font-weight: bold;">Done</span> button to advance to the   next
@@ -860,7 +888,7 @@ generated, press <span style="font-weight: bold;">Done</span> to advance
 to the next step. <br>
 In order to combine both tilt axes <span style="color: black;">at
 least some (8-10) of the beads that you track must be the same in the
-two series. </span>To accomplish this, use the program    transferfid.</span></p>
+two series. </span>To accomplish this, use the program Transferfid.</span></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <h1>&nbsp;Press 'Transfer Fiducials From Other Axis'</h1>
 <div align="center"><span style="color: black;"><img
@@ -892,13 +920,14 @@ file from my example is:&nbsp;<br>
 </h1>
 <h1><span style="font-weight: normal;">The &nbsp;transferfid log file
 will list the fiducial correspondence between the first and second axes.
-In this   example, all 24 fiducials correspond&nbsp;</span></h1>
+In this   example, all 24 fiducials correspond:</span></h1>
 <h1><span style="font-weight: normal;"><o:p></o:p></span></h1>
 <p class="MsoNormal"><!--[if !supportEmptyParas]--></p>
-<h1>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Points in
-A: 1-24</h1>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <b>Points  in
-B: 1-24</b><br>
+<h1><code style="font-weight: normal;">&nbsp;&nbsp; &nbsp; Points in A:
+1-24</code><code><b>&nbsp;</b></code></h1>
+<h1><code><b>&nbsp; &nbsp; &nbsp;</b><span style="font-weight: normal;">Points
+in B: 1-24</span></code><br>
+</h1>
 <h1><br>
 <span style="font-weight: normal;"></span></h1>
 <h1><span style="font-weight: normal;">The output file of transferfid
@@ -925,8 +954,8 @@ the same procedure as outlined above for the Axis A set. Briefly:</p>
 tabs in the Fine Alignment box.</h1>
 <p class="MsoNormal">At this point, you will start&nbsp; the iterative
 alignment procedure as you did for the &#8216;A&#8217; set by&nbsp; editing model
-points with large residuals, saving the model, computing the alignment.<span
- style=""> When the alignment is complete, press <span
+points with large residuals, saving the model, and computing the
+alignment.<span style=""> When the alignment is complete, press <span
  style="font-weight: bold;">Done</span> and proceed with the tomogram
 generation steps. </span></p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
@@ -971,27 +1000,29 @@ fiducials (1-24) correspond.&nbsp;</p>
 using a 3D cross-correlation. Selecting <span style="font-weight: bold;">Medium</span>
 patches works well for most data sets.&nbsp;When specifying the limits
 of the volume from which the patches will be extracted, it is important
-to look at the tomogram being matched to. It is not good to always use
-the defaults.&nbsp; To find the limits, press the '<span
+to look at the tomogram being matched to. Using the entire Z axis range
+will almost never work, and even for the X and Y axes it may not be
+good to use the defaults.&nbsp; To find the limits, press the '<span
  style="font-weight: bold;">3dmod Volume A</span>' button at the bottom
 of the panel. &nbsp;This will open BBa.rec in 3dmod. Step through the
 images and decide what range of the X axis, Y axis and Z axis contains
-useful  information that you would  like to keep in the reconstruction.
+useful information that you would  like to keep in the reconstruction.
 In this example, defaults were kept for  the X and Y axis, but the Z
 axis (in the flipped tomogram) was set to select slices that contained
 biological material (within the section range 23-68). </p>
 <p class="MsoNormal" align="center"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--> <o:p></o:p></p>
 <p class="MsoNormal">Sometimes, this will not eliminate &#8220;extraneous&#8221;
 material to allow the two axes to combine. In that case, you have to
-make a patch     model. To make a patch model, open up the axis that is
-being matched to.    In model mode, trace closed contours around the
-areas that arecontain biological   material. Do this  every 5 sections
-or so in the tomogram. Save the model   as patch_region.mod. Creating
-the patch_region model is particularly useful   when reconstructing data
-sets that have large amounts of resin or open areas   in the images. If
-you do use a patch region model, check the box "use patch region model
-file". &nbsp;This example data set does not need a patch region
-model.&nbsp;</p>
+make a patch     region model. To make a patch region model, check the
+box "Use patch region model file" and press the "<span
+ style="font-weight: bold;">Create/Edit Patch Region Model</span>"
+button to open up the axis that is being matched to.    In model mode,
+trace closed contours around the areas that contain biological  
+material. Do this  every 5 sections or so in the tomogram. Save the
+model, which is named patch_region.mod. Creating the patch region model
+is particularly useful   when reconstructing data sets that have large
+amounts of resin or open areas   in the images.&nbsp; &nbsp;This
+example data set does not need a patch region model.&nbsp;</p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<br>
 When the parameters for the <span style="font-weight: bold;">Setup
 panel</span> have been entered, press "<span style="font-weight: bold;">Create
@@ -999,14 +1030,15 @@ panel</span> have been entered, press "<span style="font-weight: bold;">Create
 will run  various programs in the combine procedure.&nbsp; Press "<span
  style="font-weight: bold;">Start Combine</span>" to  begin the process
 of dual-axis tomogram combination.&nbsp; eTomo will automatically
-advance &nbsp;to the <span style="font-weight: bold;">Initial match </span>and
-finally the <span style="font-weight: bold;">Final match</span> tabs as
+advance &nbsp;to the <span style="font-weight: bold;">Initial Match </span>and
+finally the <span style="font-weight: bold;">Final Match</span> tabs as
 various programs are being run. &nbsp;<br>
 <!--[endif]--> <o:p></o:p></p>
 <p class="MsoNormal"><br>
 After tomogram combination is complete, press "<span
  style="font-weight: bold;">Open Combined Volume</span>" to view the
-final tomogram. Press Done to advance to the final step.<br>
+final tomogram. Press <span style="font-weight: bold;">Done</span> to
+advance to the final step.<br>
 </p>
 <p class="MsoNormal"><!--[if !supportEmptyParas]-->&nbsp;<!--[endif]--><o:p></o:p></p>
 <h1><font size="+1">XII. &nbsp;Post-Processing and Clean-up of
@@ -1024,8 +1056,8 @@ into one will always be called sum.rec. Open the sum.rec reconstruction
 by pressing "<b>3dmod Full Volume</b>". <span style="color: black;">Step
 through  the reconstruction and determine the &nbsp;X,Y and Z ranges
 for the final  volume. In this example, the default range for X and Y
-are used. The  Z axis (in the flipped tomogram) range as has been set
-from a Z min of 20 to a Z max of 68 to exclude  non-cellular material.
+are used. The  Z axis (in the flipped tomogram) range has been set from
+a Z min of 20 to a Z max of 68 to exclude  non-cellular material.
 Finally a scaling range is set to find the range of  slices that exclude
 the gold beads. In this example, the scaling is section based and has a
 range between slices 34 and 64. &nbsp;Press  '<b>Trim Volume</b>' button
@@ -1047,14 +1079,14 @@ Cleaning up of your files is very important! The tomogram generation
 process creates many large, intermediate files. The <span
  style="font-weight: bold;">Intermediate file cleanup</span> box lists
 what we consider intermediate, nonessential files&nbsp; that can be
-deleted. Once you are satisfied that final tomogram is truly final, you
-can select by highlighting the intermediate files and hitting the <span
- style="font-weight: bold;">Delete selected</span> button. <br>
+deleted. Once you are satisfied that the final tomogram is truly final,
+you can select by highlighting the intermediate files and hitting the <span
+ style="font-weight: bold;">Delete Selected</span> button. <br>
 <br>
 The final, dual-axis tomogram is named BB.rec and can be viewed outside
-of eTomo using the command, 3dmod BB.rec. Refer to the 3dmod Users Guide
-for information about modeling the many cellular features in the
-tomogram.<br>
+of eTomo using the command, 3dmod BB.rec. Refer to the <a
+ href="3dmodguide.html">3dmod Users Guide</a> for information about
+modeling the many cellular features in the tomogram.<br>
 <br>
 <br>
 <br>
