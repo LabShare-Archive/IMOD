@@ -89,8 +89,47 @@ DDEESSCCRRIIPPTTIIOONN
      is not run in trial mode, pixels will be replaced in the input file.
      USE REPLACEMENT OPTION WITH CAUTION.
 
+  -find OR -FindPeaks   (Boolean entry, no value expected)
+     Find and erase peaks a criterion # of SDs above or below background.
+     This option must be included for automatic removal of X-rays.
+
+  -peak OR -PeakCriterion   Floating point
+     Criterion # of SDs above local mean for erasing peak based on 
+     intensity (the default is 10 SDs).
+
+  -diff OR -DiffCriterion   Floating point
+     Criterion # of SDs above mean pixel-to-pixel difference for erasing a
+     peak based on differences (the default is 10 SDs)
+
+  -grow OR -GrowCriterion   Floating point
+     Criterion # of SDs above mean for adding points to peak (the default
+     is 4 SDs).
+
+  -scan OR -ScanCriterion   Floating point
+     Criterion # of SDs of mean of scan area for picking peaks in initial
+     scan (the default is 3 SDs).
+
+  -radius OR -MaximumRadius   Floating point
+     Maximum radius of peak area to erase (the default is 2.1 pixels).
+
+  -outer OR -OuterRadius   Floating point
+     Outer radius of annulus around a peak in which to calculate local mean
+     and SD (the default is 4.0 pixels).
+
+  -xyscan OR -XYScanSize   Integer
+     Size of regions to compute mean and SD in for initial scans (the
+     default is 100 pixels).
+
+  -edge OR -EdgeExclusionWidth   Integer
+     Width of area to exclude on all edges of image in pixels (default 0).
+
+  -points OR -PointModel   File name
+     Output model file with points replaced in peak search.  Each patch of
+     points will be in a separate contour.  Patches are sorted into
+     separate objects based on how much the peak exceeds a criterion.
+
   -model OR -ModelFile   File name
-     Model file with points or lines to be erased.
+     Input model file specifying points or lines to be erased.
 
   -lines OR -LineObjects   List of integer ranges
      List of objects that define lines to be replaced.  Ranges can be
@@ -110,45 +149,6 @@ DDEESSCCRRIIPPTTIIOONN
 
   -exclude OR -ExcludeAdjacent   (Boolean entry, no value expected)
      Exclude points adjacent to patch points from the fit.
-
-  -peaks OR -ErasePeaks   (Boolean entry, no value expected)
-     Erase peaks a criterion # of SDs above or below background.  This
-     option must be included for automatic removal of X-rays.
-
-  -radius OR -MaximumRadius   Floating point
-     Maximum radius of peak area to erase (the default is 2.1 pixels).
-
-  -outer OR -OuterRadius   Floating point
-     Outer radius of annulus around a peak in which to calculate local mean
-     and SD (the default is 4.0 pixels).
-
-  -xyscan OR -XYScanSize   Integer
-     Size of regions to compute mean and SD in for initial scans (the
-     default is 100 pixels).
-
-  -edge OR -EdgeExclusionWidth   Integer
-     Width of area to exclude on all edges of image in pixels (default 0).
-
-  -criterion OR -MainCriterion   Floating point
-     Criterion # of SDs above local mean for erasing peak (the default is
-     10 SDs).
-
-  -grow OR -GrowCriterion   Floating point
-     Criterion # of SDs above mean for adding points to peak (the default
-     is 4 SDs).
-
-  -scan OR -ScanCriterion   Floating point
-     Criterion # of SDs of mean of scan area for picking peaks in initial
-     scan (the default is 3 SDs).
-
-  -diff OR -DiffCriterion   Floating point
-     Criterion # of SDs above mean pixel-to-pixel difference for erasing a
-     peak based on differences (the default is 10 SDs)
-
-  -points OR -PointModel   File name
-     Output model file with points replaced in peak search.  Each patch of
-     points will be in a separate contour.  Patches are sorted into
-     separate objects based on how much the peak exceeds a criterion.
 
   -trial OR -TrialMode   (Boolean entry, no value expected)
      Analyze for replacement points without writing output image file.
