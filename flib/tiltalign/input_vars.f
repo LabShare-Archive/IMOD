@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2004/06/24 15:38:51  mast
+c	  Changed calls to map_vars to be compatible with PIP-input version
+c	
 c	  Revision 3.7  2004/05/05 05:45:11  mast
 c	  Fixed some uninitialized variables
 c	
@@ -34,10 +37,11 @@ c
 c
 	subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &	    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart,
-     &	    mapalfstart,tiltorig,tiltadd) 
+     &	    mapalfstart,tiltorig,tiltadd, pipinput) 
 	implicit none
 	integer*4 inputalf,nvarsrch,nvarang,nvarscl, imintilt,ncompsrch
 	integer*4 iflocal,maptiltstart,mapalfstart
+	logical pipinput
 	include 'alivar.inc'
 	integer maxgrp
 	parameter (maxgrp=20)
@@ -53,16 +57,25 @@ c
 	data disttext/'distortion','X stretch ','axis skew '/
 	character*17 lintmp,lintext(2)
 	data lintext/'3 block, 4 linear','3 linear, 4 block'/
+	character*8 distOptTmp, distOptText(2)
+	data distOptText /'XStretch', 'Skew'/
+	character*4 rotText
 	real*4 dtor/0.0174532/
 c	  
 	real*4 powertilt,powercomp,powermag,powerskew,powerdmag,power
-	real*4 powerrot,poweralf,rotstart,fixdum1,fixdum2
+	real*4 powerrot,poweralf,rotstart,fixdum1,fixdum2,defrot
 	real*4 tiltmin,origdev,fixdum
 	integer*4 i,iview,ioptrot,iref1,iflin,ioptilt,nviewfix,j,ig
 	integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
 	integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist,ioptalf
-	integer*4 ireftilt,ndmagvar,ivl,ivh
-	integer*4 nearest_view
+	integer*4 ireftilt,ndmagvar,ivl,ivh, lenOpt, ioptdmag, ioptskew
+	integer*4 nearest_view,ifpip,mapfix,ierr
+	character*1024 listString
+c
+	integer*4 PipGetInteger,PipNumberOfEntries
+	integer*4 PipGetString,PipGetFloat,PipGetBoolean
+	character*40 PrependLocal
+	character*80 concat
 c
 	powertilt=1.
 	powercomp=1.
@@ -76,60 +89,164 @@ c
 c
 	tiltadd=0.
 	nvarsrch=0
-	if(iflocal.eq.0)then
+	ifpip = 0
+	if (pipinput) ifpip = 1
+	if (pipinput .and. iflocal .eq. 0)then
+	  ierr = PipNumberOfEntries('SeparateGroup', ngsep)
+	  if (ngsep .gt. maxgrp) call errorexit
+     &	      ('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
+	  do ig =1, ngsep
+	    ierr = PipGetString('SeparateGroup', listString)
+	    call parselist(listString, ivsep(1,ig),nsepingrp(ig))
+	  enddo
+	  rotstart = 0.
+	  ierr = PipGetFloat('RotationAngle', rotstart)
+	endif
+c	  
+	if (pipinput) then
+	  ifrotfix = 0
+	  ierr = PipGetInteger('RotationFixedView', ifrotfix)
+	  ioptrot = 0
+	  ierr = PipGetInteger(PrependLocal('RotOption', iflocal), ioptrot)
+	else
+	  if(iflocal.eq.0)then
 c
-c	    set up the first search variable as a global rotation angle
-c	    and the rest as delta rotation angles of each view after first
+c	      set up the first search variable as a global rotation angle
+c	      and the rest as delta rotation angles of each view after first
 c
-	  write(*,'(1x,a,$)')
-     &	      'Initial angle of rotation in projection plane: '
-	  read(5,*)rotstart
+	    write(*,'(1x,a,$)')
+     &		'Initial angle of rotation in projection plane: '
+	    read(5,*)rotstart
 c
-	  rotstart=dtor*rotstart
-	  rot(1)=rotstart
-6	  write(*,'(1x,a,/,a,/,a,$)')'Enter 0 to find all rotations,'//
-     &	      ' -1 to find a single global rotation,',
-     &	      ' -2 to fix all rotations at the initial angle',
-     &	      ' or a positive # to fix one view at the initial angle: '
-
-	  read(5,*)ifrotfix
-	  if(ifrotfix.gt.0)ifrotfix=nearest_view(ifrotfix)
-c	    
-	  if(ifrotfix.ge.0)then
-	    if(ifrotfix.eq.0)then
-	      var(1)=rotstart
-	      varname(1)='rot all'
-	      nvarsrch=1
-	      rot(1)=rotstart
-	    else
-	      rot(ifrotfix)=rotstart
-	    endif
+	    write(*,'(1x,a,/,a,/,a,$)')'Enter 0 to find all rotations,'//
+     &		' -1 to find a single global rotation,',
+     &		' -2 to fix all rotations at the initial angle',
+     &		' or a positive # to fix one view at the initial angle: '
+	    
+	    read(5,*)ifrotfix
 c	      
-	    do i=2,nview
-	      iview=i
-	      if(i.le.ifrotfix)iview=i-1
-	      rot(iview)=rotstart
-	      nvarsrch=nvarsrch+1
-	      var(nvarsrch)=0.
-	      write(varname(nvarsrch),'(a4,i4)')'drot',mapviewtofile(iview)
-	    enddo
-	  elseif (ifrotfix.eq.-1) then
-	    ifrotfix=-2
-	    do i=1,nview
-	      maplist(i)=1
-	    enddo
-	    call analyze_maps(rot,maprot,linrot,frcrot,fixdum1,fixdum2,
-     &		0, maplist,nview, 0,0,rotstart,'rot ',var,varname,
-     &		nvarsrch,mapviewtofile)
+c	      transpose to new option list
+c	      
+	    ioptrot = 0
+	    if (ifrotfix .ge. 0) ioptrot = 1
+	    if (ifrotfix .eq. -1) ioptrot = -1
 	  else
-	    ifrotfix=-1
-	    do i=1,nview
-	      rot(i)=rotstart
-	    enddo
+c	    
+c	    local entry already had the option list
+c	    
+	    print *,'Enter -1 to solve for a single incremental rotation'
+	    print *,'      0 to fix all rotations at global value'
+	    print *,'      1 to give each view an independent incremental'
+     &		//' rotation'
+	    write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'
+     &		//' rotation variables',
+     &		'       3 or 4 for automatic mapping of groups of views '
+     &		//'(3 linear, 4 block): '
+	    read(5,*)ioptrot
 	  endif
+	endif
+
+	if (iflocal .eq. 0) then
+	  rotstart=dtor*rotstart
+	else
+	  rotstart = 0.
+	endif
+c
+	if(ifrotfix.gt.0)ifrotfix=nearest_view(ifrotfix)
+c	  
+c	  set up appropriate mapping list or read it in
+c	  set the meaning of ifrotfix =  0 for a one global rotation variable
+c	  and the others incremental to it, + for one variable fixed,
+c	  -1 for all fixed, -2 for single variable, -3 otherwise
+c	  
+	iref1=ifrotfix
+	if(iflocal.gt.1.and.ioptrot.gt.0)iref1=0
+	iflin=0
+	defrot = 0.
+c	  
+c	  All one variable - set default to true angle
+c	  
+	if(ioptrot.lt.0)then
+	  do i=1,nview
+	    maplist(i)=1
+	  enddo
+	  ifrotfix=-2
+	  defrot = rotstart
+c	    
+c	    All fixed - also set default to angle, set reference to 1
+c	    
+	elseif(ioptrot.eq.0)then
+	  do i=1,nview
+	    maplist(i)=0
+	  enddo
+	  ifrotfix=-1
+	  defrot = rotstart
+	  iref1 = 1
+c	    
+c	    All separate variables
+c	    
+	elseif(ioptrot.eq.1)then
+	  do i=1,nview
+	    maplist(i)=i
+	  enddo
+c	    
+c	    Specified mapping
+c	    5/2/02: changed irotfix (?) to iref1 and made output conditional
+c	    
+	elseif(ioptrot.eq.2)then
+	  mapfix = 0
+	  if (iref1.gt.0) mapfix = mapviewtofile(iref1)
+	  call GetMapList('rotation', 'Rot', mapfix, defrot, ifpip, iflocal,
+     &	      nview, maplist)
+c	    
+c	    automap
+c	    
+	else
+	  power=0.
+	  if(ioptrot.eq.3)then
+	    iflin=1
+	    power=powerrot
+	  endif
+	  call setgrpsize(tilt,nview,power,grpsize)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
+     &	      ,ifpip, 1, PrependLocal('RotDefaultGrouping', iflocal),
+     &	      PrependLocal('RotNondefaultGroup', iflocal))
+	  if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
+	endif
+c	  
+c	  Make sure ifrotfix = 0 means what it is supposed to
+c	  reserve a variable and pretend first one is fixed in analyze
+c	  
+	if (iflocal.gt.0 .and. ifrotfix .eq. 0) ifrotfix = -3
+	if (ifrotfix .eq. 0)then
+	  iref1 = 1
+	  nvarsrch = 1
+	endif
+	rotText = 'rot '
+	if (iflocal .eq. 0 .and. ifrotfix .ge. 0) rotText = 'drot'
+c	  
+c	  analyze map list
+c	  
+	call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
+     &	    iflin, maplist,nview, iref1,0,defrot,rotText,var,varname,
+     &	    nvarsrch,mapviewtofile)
+c	write(6,111)(maprot(i),i=1,nview)
+c	  
+c	  Fix global variable 1 or the fixed one
+c	  
+	if (ifrotfix .eq. 0)then
+	  var(1)=rotstart
+	  varname(1)='rot all'
+	  rot(1)=rotstart
+	  maprot(1) = 1
+	else if (ifrotfix .gt. 0) then
+	  rot(ifrotfix)=rotstart
+	endif
+c
+	if (.not. pipinput .and. iflocal .eq. 0) then
 c	  
 c	    Get list of views to treat separately in automapping
-c
+c	    
 	  write(*,'(1x,a,/,a,$)') 'If you are going to automap '//
      &	      'variables,'
      &	      //' enter the number of sets of views to treat separately'
@@ -141,7 +258,7 @@ c
 	    call rdlist(5,ivsep(1,ig),nsepingrp(ig))
 c	      
 c	      check legality and trim ones not in included views
-c
+c	      
 	    i=1
 	    do while(i.le.nsepingrp(ig))
 	      if(ivsep(i,ig).le.0.or.ivsep(i,ig).gt.nfileviews)then
@@ -161,81 +278,25 @@ c
 	    enddo
 c	    print *,(ivsep(i,ig),i=1,nsepingrp(ig))
 	  enddo
+	endif
+	if (iflocal .eq. 0) then
 c
 c	    get initial tilt angles for all views, convert to radians
 c	    save adjusted angles in tiltorig, then map as radians into tilt
 c	    
-	  call get_tilt_angles(nfileviews,3,tiltorig, maxview, 0)
-	  write(*,'(1x,a,$)')
-     &	      'Angle offset, i.e. amount to add to all angles: '
-	  read(5,*)tiltadd
+	  call get_tilt_angles(nfileviews,3,tiltorig, maxview, ifpip)
+	  if (pipinput) then
+	    tiltadd = 0.
+	    ierr = PipGetFloat('AngleOffset', tiltadd)
+	  else
+	    write(*,'(1x,a,$)')
+     &		'Angle offset, i.e. amount to add to all angles: '
+	    read(5,*)tiltadd
+	  endif
 	  do i=1,nfileviews
 	    tiltorig(i)=tiltorig(i)+tiltadd
 	    if(mapfiletoview(i).ne.0)tilt(mapfiletoview(i))=tiltorig(i)*dtor
 	  enddo
-	else
-c	    
-c	    when doing local, set up rotation as a mapped variable: it is done
-c	    in incremental mode so the basic value is 0.0
-c	    
-	  print *,'Enter -1 to solve for a single incremental rotation'
-	  print *,'      0 to fix all rotations at global value'
-	  print *,'      1 to give each view an independent incremental'
-     &	      //' rotation'
-	  write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'
-     &	      //' rotation variables',
-     &	      '       3 or 4 for automatic mapping of groups of views '
-     &	      //'(3 linear, 4 block): '
-	  read(5,*)ioptrot
-c	  
-c	    set up appropriate mapping list or read it in
-c	    set the meaning of ifrotfix = -1 if all fixed, -2 if all one
-c	    variable, or -3 for general mapping
-c	    
-	  iref1=ifrotfix
-	  if(iflocal.gt.1.and.ioptrot.gt.0)iref1=0
-	  iflin=0
-	  ifrotfix=-3
-	  if(ioptrot.lt.0)then
-	    do i=1,nview
-	      maplist(i)=1
-	    enddo
-	    ifrotfix=-2
-	  elseif(ioptrot.eq.0)then
-	    do i=1,nview
-	      maplist(i)=0
-	    enddo
-	    ifrotfix=-1
-	  elseif(ioptrot.eq.1)then
-	    do i=1,nview
-	      maplist(i)=i
-	    enddo
-	  elseif(ioptrot.eq.2)then
-	    print *,'For each view, enter a rotation variable #'
-c
-c	      5/2/02: changed irotfix (?) to iref1 and made output conditional
-c
-	    if (iref1.gt.0)
-     &		write(*,'(a,i4)')'   to fix the rotation of a view,'//
-     &		' give it the same variable # as view',mapviewtofile(iref1)
-	    read(5,*)(maplist(i),i=1,nview)
-	  else
-	    power=0.
-	    if(ioptrot.eq.3)then
-	      iflin=1
-	      power=powerrot
-	    endif
-	    call setgrpsize(tilt,nview,power,grpsize)
-	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-	    write(6,111)(maplist(i),i=1,nview)
-	  endif
-c	  
-c	    analyze map list
-c	  
-	  call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
-     &	      iflin, maplist,nview, iref1,0,0.,'rot ',var,varname,
-     &	      nvarsrch,mapviewtofile)
 	endif
 c	  
 c	  For tilt, set up default on increments and maps
@@ -256,17 +317,22 @@ c
 c	  
 c	  get type of mapping
 c	  
-	print *,'Enter 0 to have all tilt angles fixed'
-	print *,'      1 to vary all except one for a specified view'
-	print *,'      2 to vary all except for the view at minimum tilt'
-	print *,'      3 to vary all except for a specified view and the'
-     &	    //' one at minimum tilt'
-	write(*,'(1x,a,/,a,$)')'      4 to specify other combinations'//
-     &	    ' of variable, mapped and fixed',
-     &	    '       5-8 for automatic mapping of groups of views '//
-     &	    '(5 & 7 linear with 1 or 2','       fixed tilts, 6 & 8 '//
-     &	    'block with 1 or 2 fixed tilts): '
-	read(5,*)ioptilt
+	if (pipinput) then
+	  ioptilt = 0
+	  ierr = PipGetInteger(PrependLocal('TiltOption', iflocal), ioptilt)
+	else
+	  print *,'Enter 0 to have all tilt angles fixed'
+	  print *,'      1 to vary all except one for a specified view'
+	  print *,'      2 to vary all except for the view at minimum tilt'
+	  print *,'      3 to vary all except for a specified view and the'
+     &	      //' one at minimum tilt'
+	  write(*,'(1x,a,/,a,$)')'      4 to specify other combinations'//
+     &	      ' of variable, mapped and fixed',
+     &	      '       5-8 for automatic mapping of groups of views '//
+     &	      '(5 & 7 linear with 1 or 2','       fixed tilts, 6 & 8 '//
+     &	      'block with 1 or 2 fixed tilts): '
+	  read(5,*)ioptilt
+	endif
 c	  
 c	set up maplist appropriately or get whole map  
 c
@@ -278,19 +344,36 @@ c
 	  enddo
 	  if(ioptilt.gt.1)maplist(imintilt)=0
 	  if(ioptilt.ne.2)then
-	    write(*,'(1x,a,$)')'Number of view to fix tilt angle for: '
-	    read(5,*)nviewfix
+	    if (pipinput) then
+	      if (PipGetInteger(PrependLocal('TiltFixedView', iflocal),
+     &		  nviewfix) .ne. 0) call errorexit('YOU MUST ENTER A'//
+     &		  ' FIXED VIEW WITH THIS TILT OPTION', 0)
+	    else
+	      write(*,'(1x,a,$)')'Number of view to fix tilt angle for: '
+	      read(5,*)nviewfix
+	    endif
 	    nviewfix=nearest_view(nviewfix)
 	    maplist(nviewfix)=0
 	  endif
 	elseif(ioptilt.eq.4)then
-	  print *,'For each view, enter 0 to fix the tilt angle',
-     &	      '   or the # of a tilt variable to map its tilt angle to'
-	  read(5,*)(maplist(i),i=1,nview)
+	  if (pipinput) then
+	    call GetMapList('tilt', 'Tilt', 0, 0., ifpip, iflocal, nview,
+     &		maplist)
+	  else
+	    print *,'For each view, enter 0 to fix the tilt angle',
+     &		'   or the # of a tilt variable to map its tilt angle to'
+	    read(5,*)(maplist(i),i=1,nview)
+	  endif
 	elseif(ioptilt.ge.5)then
 	  if(ioptilt.gt.6)then
-	    write(*,'(1x,a,$)')'Second view to fix tilt angle for: '
-	    read(5,*)nviewfix
+	    if (pipinput) then
+	      if (PipGetInteger(PrependLocal('TiltSecondFixedView', iflocal),
+     &		  nviewfix) .ne. 0) call errorexit('YOU MUST ENTER A'//
+     &		  ' SECOND FIXED VIEW WITH THIS TILT OPTION', 0)
+	    else
+	      write(*,'(1x,a,$)')'Second view to fix tilt angle for: '
+	      read(5,*)nviewfix
+	    endif
 	    nviewfix=nearest_view(nviewfix)
 	  endif
 c	    
@@ -304,8 +387,9 @@ c
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
 	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-	  write(6,111)(maplist(i),i=1,nview)
+     &		,ifpip, 1, PrependLocal('TiltDefaultGrouping', iflocal),
+     &		PrependLocal('TiltNondefaultGroup', iflocal))
+	  if (.not.pipinput)write(6,111)(maplist(i),i=1,nview)
 111	  format(/,' Variable mapping list:',(1x,25i3))
 	endif
 c	  
@@ -346,22 +430,32 @@ c
 c	  get reference view to fix magnification at 1.0
 c	  
 	ireftilt=mapviewtofile(imintilt)
-	print *,
-     &	    'Enter # of reference view to fix at magnification of 1.0'
-	write(*,'(1x,a,i3,a,$)')
-     &	    '   [default =',ireftilt,', view at minimum tilt]: '
-	read(5,*)ireftilt
+	if (pipinput) then
+	  ierr = PipGetInteger(PrependLocal('MagReferenceView', iflocal),
+     &	      ireftilt)
+	else
+	  print *,
+     &	      'Enter # of reference view to fix at magnification of 1.0'
+	  write(*,'(1x,a,i3,a,$)')
+     &	      '   [default =',ireftilt,', view at minimum tilt]: '
+	  read(5,*)ireftilt
+	endif
 	ireftilt=nearest_view(ireftilt)
 c	
 c	  get type of mag variable set up
 c	
-	print *,'Enter 0 to fix all magnifications at 1.0'
-	print *,'      1 to give each view an independent magnification'
-	write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'//
-     &	    ' magnification variables',
-     &	    '       3 or 4 for automatic mapping of groups of views '//
-     &	    '(3 linear, 4 block): '
-	read(5,*)ioptmag
+	if (pipinput) then
+	  ioptmag = 0
+	  ierr = PipGetInteger(PrependLocal('MagOption', iflocal), ioptmag)
+	else
+	  print *,'Enter 0 to fix all magnifications at 1.0'
+	  print *,'      1 to give each view an independent magnification'
+	  write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'//
+     &	      ' magnification variables',
+     &	      '       3 or 4 for automatic mapping of groups of views '//
+     &	      '(3 linear, 4 block): '
+	  read(5,*)ioptmag
+	endif
 c	  
 c	  set up appropriate mapping list or read it in
 c
@@ -375,11 +469,8 @@ c
 	    maplist(i)=i
 	  enddo
 	elseif(ioptmag.eq.2)then
-	  print *,'For each view, enter a magnification variable #'
-	  write(*,'(a,i4)')'   to fix the mag of a view at 1.0,'//
-     &	      ' give it the same variable # as view',
-     &	      mapviewtofile(ireftilt)
-	  read(5,*)(maplist(i),i=1,nview)
+	  call GetMapList('magnification', 'Mag', mapviewtofile(ireftilt),
+     &	      1.0, ifpip, iflocal, nview, maplist)
 	else
 	  power=0.
 	  if(ioptmag.eq.3)then
@@ -388,8 +479,9 @@ c
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
 	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-	  write(6,111)(maplist(i),i=1,nview)
+     &		,ifpip, 1, PrependLocal('MagDefaultGrouping', iflocal),
+     &		PrependLocal('MagNondefaultGroup', iflocal))
+	  if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
 c	  analyze map list
@@ -406,9 +498,16 @@ c	  get reference view to fix compression at 1.0
 c	  
 	irefcomp=0
 	if(iflocal.eq.0)then
-	  write(*,'(1x,a,/,a,$)')'Enter # of reference view to fix at'//
-     &	      ' compression of 1.0,','   or 0 for no compression: '
-	  read(5,*)irefcomp
+	  if (pipinput) then
+	    ioptcomp = 0
+	    ierr = PipGetInteger('CompReferenceView', irefcomp)
+	    ierr = PipGetInteger('CompOption', ioptcomp)
+	    if (ioptcomp .eq. 0) irefcomp = 0
+	  else
+	    write(*,'(1x,a,/,a,$)')'Enter # of reference view to fix at'//
+     &		' compression of 1.0,','   or 0 for no compression: '
+	    read(5,*)irefcomp
+	  endif
 	endif
 	iflin=0
 	if(irefcomp.le.0)then
@@ -420,14 +519,16 @@ c
 	  irefcomp=nearest_view(irefcomp)
 c	
 c	    get type of comp variable set up
-c	
-	  print *,'Enter 1 to give each view an independent',
-     &	      ' compression'
-	  write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'
-     &	      //' compression variables',
-     &	      '       3 or 4 for automatic mapping of groups of views '//
-     &	    '(3 linear, 4 block): '
-	  read(5,*)ioptcomp
+c	    
+	  if (.not.pipinput) then
+	    print *,'Enter 1 to give each view an independent',
+     &		' compression'
+	    write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'
+     &		//' compression variables',
+     &		'       3 or 4 for automatic mapping of groups of views '//
+     &		'(3 linear, 4 block): '
+	    read(5,*)ioptcomp
+	  endif
 c	  
 c	    set up appropriate mapping list or read it in
 c
@@ -436,10 +537,8 @@ c
 	      maplist(i)=i
 	    enddo
 	  elseif(ioptcomp.eq.2)then
-	    print *,'For each view, enter a compression variable #;'
-	    write(*,'(a,i4)')'   to fix the comp of a view at 1.0,'//
-     &		' give it the same variable # as view',mapviewtofile(irefcomp)
-	    read(5,*)(maplist(i),i=1,nview)
+	    call GetMapList('compression', 'Comp', mapviewtofile(irefcomp),
+     &		1., ifpip, 0, nview, maplist)
 	  else
 	    power=0.
 	    if(ioptcomp.eq.3)then
@@ -448,8 +547,9 @@ c
 	    endif
 	    call setgrpsize(tilt,nview,power,grpsize)
 	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-	    write(6,111)(maplist(i),i=1,nview)
+     &		,ifpip, 1, PrependLocal('CompDefaultGrouping', iflocal),
+     &		PrependLocal('CompNondefaultGroup', iflocal))
+	    if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
 	  endif
 	endif
 c		
@@ -477,12 +577,21 @@ c
 	ncompsrch=nvarsrch-nvartmp
 c	  get type of distortion variable set up
 c	
-	print *,'Enter 0 to fix all lateral distortions at 0.0'
-	print *,'      1 to solve for distortion with the same '//
-     &	    'mappings for stretch and skew'
-	write(*,'(1x,a,$)')'      2 to find distortion using '//
-     &	    'different mappings for stretch and skew: '
-	read(5,*)ioptdel
+	if (pipinput) then
+	  ioptdmag = 0
+	  ioptskew = 0
+	  ierr = PipGetInteger(PrependLocal('XStretchOption', iflocal),
+     &	      ioptdmag)
+	  ierr = PipGetInteger(PrependLocal('SkewOption', iflocal), ioptskew)
+	  if (ioptskew .gt. 0 .or. ioptdmag .gt. 0)ioptdel = 2
+	else
+	  print *,'Enter 0 to fix all lateral distortions at 0.0'
+	  print *,'      1 to solve for distortion with the same '//
+     &	      'mappings for stretch and skew'
+	  write(*,'(1x,a,$)')'      2 to find distortion using '//
+     &	      'different mappings for stretch and skew: '
+	  read(5,*)ioptdel
+	endif
 c	  
 c	  get reference and dummy views for distortion: take reference on the
 c	  same side of minimum as the mag reference, but avoid the minimum tilt
@@ -498,20 +607,29 @@ c
 	power=powerdmag
 	do idist =1,2
 	  iflin=0
-	  if(ioptdel.le.0)then
+	  if(ioptdel.le.0 .or. (pipinput .and.
+     &	      ((idist .eq. 1 .and. ioptdmag .le. 0) .or.
+     &	      (idist .eq. 2 .and. ioptskew .le. 0)))) then
 	    do i=1,nview
 	      maplist(i)=0
 	    enddo
 	  else
 	    distmp=disttext(idist*min(1,ioptdel-1)+1)
 	    lintmp=lintext(idist)
+	    distOptTmp = distOptText(idist)
+	    lenOpt = lnblnk(distOptTmp)
 	    if(idist.eq.1.or.ioptdel.gt.1)then
-	      print *,'Enter 1 to give each view an independent ',distmp
-	      write(*,'(1x,a,/,a,$)')'      2 to specify other mappings'
-     &		  //' of '//distmp//' variables',
-     &		  '       3 or 4 for automatic mapping of groups of '//
-     &		  'views ('//lintmp//'): '
-	      read(5,*)ioptdist
+	      if (pipinput) then
+		ioptdist = ioptdmag
+		if (idist .eq. 2) ioptdist = ioptskew
+	      else
+		print *,'Enter 1 to give each view an independent ',distmp
+		write(*,'(1x,a,/,a,$)')'      2 to specify other mappings'
+     &		    //' of '//distmp//' variables',
+     &		    '       3 or 4 for automatic mapping of groups of '//
+     &		    'views ('//lintmp//'): '
+		read(5,*)ioptdist
+	      endif
 c	  
 c		set up appropriate mapping list or read it in
 c		
@@ -520,11 +638,8 @@ c
 		  maplist(i)=i
 		enddo
 	      elseif(ioptdist.eq.2)then
-		print *,'For each view, enter a ',distmp,' variable #'
-		write(*,'(a,i4)')'   to fix '//distmp//' of a view at'//
-     &		    ' 0.0, give it the same variable # as view',
-     &		    mapviewtofile(ireftilt)
-		read(5,*)(maplist(i),i=1,nview)
+		call GetMapList(distmp, distOptTmp, mapviewtofile(ireftilt),
+     &		    0., ifpip, iflocal, nview, maplist)
 	      else
 		if(idist.eq.1)then
 		  if(ioptdist.gt.3) iflin=1
@@ -537,9 +652,11 @@ c
 		  endif
 		endif
 		call setgrpsize(tilt,nview,power,grpsize)
-		call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-		write(6,111)(maplist(i),i=1,nview)
+		call automap(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &		    ifpip, 1, PrependLocal(concat(distOptTmp(1:lenOpt),
+     &		    'DefaultGrouping'), iflocal), PrependLocal(concat(
+     &		    distOptTmp(1:lenOpt), 'NondefaultGroup'), iflocal))
+		if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
 	      endif
 	    endif
 	  endif
@@ -617,10 +734,11 @@ c	      dumdmagfac=1./(ndmagvar-1.)
 	enddo
 c	  
 c	  get type of alpha variable set up
-c	
-	if(inputalf.eq.0)then
-	  ioptalf=0
-	else
+c	  
+	ioptalf=0
+	if (pipinput) then
+	  ierr = PipGetInteger(PrependLocal('XTiltOption', iflocal), ioptalf)
+	else if (inputalf.ne.0) then
 	  print *,'Enter 0 to fix all X-axis tilts at 0.0'
 	  print *,'      1 to give each view an independent X-axis tilt'
 	  write(*,'(1x,a,/,a,$)')'      2 to specify other mappings of'
@@ -643,11 +761,8 @@ c
 	    maplist(i)=i
 	  enddo
 	elseif(ioptalf.eq.2)then
-	  print *,'For each view, enter an X-axis tilt variable #'
-	  write(*,'(a,i4)')'   to fix the tilt of a view at 0,'//
-     &	      ' give it the same variable # as view',
-     &	      mapviewtofile(ireftilt)
-	  read(5,*)(maplist(i),i=1,nview)
+	  call GetMapList('X-axis tilt', 'XTilt', mapviewtofile(ireftilt),
+     &	      0., ifpip, iflocal, nview, maplist)
 	else
 	  power=0.
 	  if(ioptalf.eq.3)then
@@ -656,8 +771,9 @@ c
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
 	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews
-     &		,0, 1, ' ', ' ')
-	  write(6,111)(maplist(i),i=1,nview)
+     &		,ifpip, 1, PrependLocal('XTiltDefaultGrouping', iflocal),
+     &		PrependLocal('XTiltNondefaultGroup', iflocal))
+	  if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
 c	  analyze map list - fix reference at minimum tilt
@@ -667,6 +783,23 @@ c
      &	    maplist,nview, imintilt,0,0.,'Xtlt',var,varname,nvarsrch,
      &	    mapviewtofile)
 c	  
+c	  Add projection stretch variable if desired.
+c	  
+	mapProjStretch = 0
+	if (iflocal .eq. 0)then
+	  projStretch = 0.
+	  projSkew = 0.
+	  if (pipinput) then
+	    ierr = PipGetBoolean('ProjectionStretch', mapProjStretch)
+	  endif
+	  if (mapProjStretch .gt. 0) then
+	    mapProjStretch = nvarsrch + 1
+	    nvarsrch = nvarsrch + 2
+	    varname(mapProjStretch) = 'projstr '
+	    varname(mapProjStretch + 1) = 'projskew'
+	  endif
+	endif
+c
 	if(iflocal.lt.2.and.ncompsrch.ne.0.and.
      &	    (ioptilt.eq.1.or.(ioptilt.gt.1.and.nviewfix.eq.0)))
      &	    write(*,109)
@@ -677,7 +810,7 @@ c
 110	format(/,' WARNING: YOU ARE ATTEMPTING TO SOLVE FOR X-AXIS',
      &	    ' TILTS AND MORE THAN ONE',/,' ROTATION ANGLE; ',
      &	    'RESULTS WILL BE VERY UNRELIABLE')
-	if(inputalf.eq.0)then
+	if(inputalf.eq.0 .and. ifanyalf.eq.0)then
 	  write(*,101)
 101	  format(/,24x,'Variable mappings',/,' View  Rotation     Tilt',
      &	      '  (+ incr.)      Mag       Comp      Dmag      Skew')
@@ -691,26 +824,20 @@ c
 	    dump(i)='  fixed '
 	  enddo
 	  dump(3)='        '
-	  if(ifrotfix.lt.0)then
-	    call setdumpname(maprot(iv),linrot(iv),-1,varname,dump(1))
-	  elseif(ifrotfix.eq.0 .or. iv.lt.ifrotfix)then
-	    dump(1)=varname(iv)
-	  elseif(ifrotfix.gt.0.and. iv.gt.ifrotfix)then
-	    dump(1)=varname(iv-1)
-	  endif
+	  call setdumpname(maprot(iv),linrot(iv),-1,varname,1,dump(1))
 	  if(maptilt(iv).gt.0)then
-	    call setdumpname(maptilt(iv),lintilt(iv),-1,varname,dump(2))
+	    call setdumpname(maptilt(iv),lintilt(iv),-1,varname,0,dump(2))
 	    if(abs(tiltinc(iv)).gt.5.e-3.and.
      &		(iflocal.eq.0.or.incrtilt.eq.0))
      &		write(dump(3),'(a2,f6.2)') '+ ',tiltinc(iv)/dtor
 	  endif
-	  call setdumpname(mapgmag(iv),lingmag(iv),-1,varname,dump(4))
-	  call setdumpname(mapcomp(iv),lincomp(iv),-1,varname,dump(5))
-	  call setdumpname(mapdmag(iv),lindmag(iv),mapdumdmag,varname,
+	  call setdumpname(mapgmag(iv),lingmag(iv),-1,varname,0,dump(4))
+	  call setdumpname(mapcomp(iv),lincomp(iv),-1,varname,0,dump(5))
+	  call setdumpname(mapdmag(iv),lindmag(iv),mapdumdmag,varname,0,
      &	      dump(6))
-	  call setdumpname(mapskew(iv),linskew(iv),-1,varname,dump(7))
-	  call setdumpname(mapalf(iv),linalf(iv),-1,varname,dump(8))
-	  if(inputalf.eq.0)then
+	  call setdumpname(mapskew(iv),linskew(iv),-1,varname,0,dump(7))
+	  call setdumpname(mapalf(iv),linalf(iv),-1,varname,0,dump(8))
+	  if(inputalf.eq.0 .and. ifanyalf.eq.0)then
 	    write(*,'(i4,3x,a8,3x,a8,1x,a8,3x,a8,3x,a8,3x,a8,3x,a8)')
      &		mapviewtofile(iv),(dump(i),i=1,7)
 	  else
@@ -722,10 +849,10 @@ c
 	return
 	end
 
-	subroutine setdumpname(map,lin,mapdum,varname,dump)
+	subroutine setdumpname(map,lin,mapdum,varname,ifall,dump)
 	implicit none
 	character*8 varname(*), dump
-	integer*4 map,mapdum,lin
+	integer*4 map,mapdum,lin,ifall
 	if(map.eq.0)return
 	if(map.eq.mapdum)then
 	  if(lin.eq.0)then
@@ -738,6 +865,8 @@ c
 	else
 	  if(lin.eq.0)then
 	    dump=varname(map)
+	  elseif(lin.lt.0.and.ifall.ne.0)then
+	    dump=varname(map)(1:1)//varname(map)(6:8)//'+all'
 	  elseif(lin.lt.0)then
 	    dump=varname(map)(1:1)//varname(map)(6:8)//'+fix'
 	  elseif(lin.eq.mapdum)then
@@ -844,3 +973,51 @@ c$$$	end
 	enddo
 	return
 	end
+
+	character*40 function PrependLocal(string, iflocal)
+	implicit none
+	character*(*) string
+	integer*4 iflocal
+	character*80 concat
+	prependLocal = string
+	if (iflocal.ne.0) prependlocal = concat('Local', string)
+	return
+	end
+
+	subroutine GetMaplist(varname, option, iref, fixval, ifpip, iflocal,
+     &	    nview, maplist)
+	implicit none
+	character*(*) varname,option
+	integer*4 maplist(*)
+	integer*4 iflocal,ifpip,nview,i, iref, len, numEntry, numTot, numGot
+	real*4 fixval
+	character*40 mapOption
+	character*80 concat
+	character*40 PrependLocal
+	integer*4 PipNumberOfEntries, lnblnk, PipGetIntegerArray
+
+	if (ifpip .eq. 0) then
+	  len = lnblnk(varname)
+	  print *,'For each view, enter a ',varname(1:len),' variable #'
+	  if (iref .gt. 0) write(*,'(a,a,a,f4.1,a,i4)')'   to fix ',
+     &	      varname(1:len),' of a view at'
+     &	      ,fixval,' give it the same variable # as view',iref
+	  read(5,*)(maplist(i),i=1,nview)
+	else
+	  mapOption = PrependLocal(concat(option(1:lnblnk(option)),'Mapping'),
+     &	      iflocal)
+	  numEntry = 0
+	  len = PipNumberOfEntries(mapOption, numEntry)
+	  numTot = 0
+	  do i = 1,numEntry
+	    numGot = 0
+	    len = PipGetIntegerArray(mapOption, maplist(numTot + 1),
+     &		numGot, nview-numTot)
+	    numTot = numTot + numGot
+	  enddo
+	  if (numTot .lt. nview) call errorexit(
+     &	      'NOT ENOUGH MAPPING VALUES ENTERED WITH '//mapOption, 0)
+	endif
+	return
+	end
+	  
