@@ -44,7 +44,9 @@ Log at end of file
 #include <qapplication.h>
 #include <qclipboard.h>
 #include "imod.h"
+#include "imod_display.h"
 #include "imodv.h"
+#include "imodv_objed.h"
 #include "imodv_input.h"
 #include "imodv_window.h"
 #include "imod_io.h"
@@ -210,7 +212,6 @@ bool ImodClipboard::handleMessage()
   return true;
 }
 
-
 // This function performs the action after the delay is up.  It returns
 // true if the program is still to quit
 bool ImodClipboard::executeMessage()
@@ -220,6 +221,11 @@ bool ImodClipboard::executeMessage()
   int oldBlack, oldWhite;
   QString convName;
   int movieVal, xaxis, yaxis, zaxis, taxis;
+  int objNum, type, symbol, symSize, ptSize;
+  Imod *imod = App->cvi->imod;
+  Iobj *obj;
+  int symTable[] = 
+    { IOBJ_SYM_NONE, IOBJ_SYM_CIRCLE, IOBJ_SYM_SQUARE, IOBJ_SYM_TRIANGLE };
 
   if (Imod_debug)
     wprint("Executing message\n");
@@ -259,8 +265,8 @@ bool ImodClipboard::executeMessage()
 
         // Reset the black and white levels if message says to
         if (message_action == MESSAGE_OPEN_KEEP_BW) {
-	  App->cvi->black = App->cvi->imod->blacklevel = oldBlack;
-	  App->cvi->white = App->cvi->imod->whitelevel = oldWhite;
+	  App->cvi->black = imod->blacklevel = oldBlack;
+	  App->cvi->white = imod->whitelevel = oldWhite;
 	  xcramp_setlevels(App->cvi->cramp, App->cvi->black,
 			   App->cvi->white);
 	  imod_info_setbw(App->cvi->black, App->cvi->white);
@@ -296,13 +302,13 @@ bool ImodClipboard::executeMessage()
     case MESSAGE_SAVE_MODEL:
       succeeded = -1;
       sendResponse(1);
-      App->cvi->imod->blacklevel = App->cvi->black;
-      App->cvi->imod->whitelevel = App->cvi->white;
-      returnValue = SaveModel(App->cvi->imod);
+      imod->blacklevel = App->cvi->black;
+      imod->whitelevel = App->cvi->white;
+      returnValue = SaveModel(imod);
       break;
 
     case MESSAGE_VIEW_MODEL:
-      imod_autosave(App->cvi->imod);
+      imod_autosave(imod);
       imodv_open();
       break;
 
@@ -345,6 +351,74 @@ bool ImodClipboard::executeMessage()
 
     case MESSAGE_RUBBERBAND:
       zapReportRubberband();
+      break;
+
+    case MESSAGE_OBJ_PROPERTIES:
+    case MESSAGE_NEWOBJ_PROPERTIES:
+      objNum = 1;
+      type = symbol = symSize = ptSize = -1;
+      if (!message_string) {
+        fprintf(stderr, "imodExecuteMessage: no values sent with object"
+                " property command\n");
+        succeeded = 0;
+        break;
+      }
+      
+      sscanf(message_string, "%d %d %d %d %d", &objNum, &type, &symbol,
+             &symSize, &ptSize);
+
+      // Object is numbered from 1, so decrement and test for substituting
+      // current object
+      if (--objNum < 0)
+        objNum = imod->cindex.object;
+      if (objNum < 0 || objNum >= imod->objsize) {
+        fprintf(stderr, "imodExecuteMessage: illegal object # sent with object"
+                " property command\n");
+        succeeded = 0;
+        break;
+      }
+      obj = &imod->obj[objNum];
+
+      // If object has contours, skip for NEWOBJ message
+      if (obj->contsize && message_action == MESSAGE_NEWOBJ_PROPERTIES)
+        break;
+
+      // Process the changes if not -1: object type
+      if (type >= 0 && type < 3) {
+        switch (type) {
+        case 0:
+          obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
+          break;
+        case 1:
+          obj->flags |= IMOD_OBJFLAG_OPEN;
+          obj->flags &= ~IMOD_OBJFLAG_SCAT;
+          break;
+        case 2:
+          obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
+          break;
+        }
+      }
+
+      // Symbol type and filled
+      if (symbol >= 0) {
+        if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
+          obj->symbol = symTable[symbol & 7];
+        if (symbol & 8)
+          obj->symflags |= IOBJ_SYMF_FILL;
+        else
+          obj->symflags &= ~IOBJ_SYMF_FILL;
+      }
+
+      // Symbol size, 3d point size
+      if (symSize > 0)
+        obj->symsize = symSize;
+      if (ptSize >= 0)
+        obj->pdrawsize = ptSize;
+
+      // The general draw updates object edit window, but need to call 
+      // imodv object edit for it to update
+      imodDraw(App->cvi, IMOD_DRAW_MOD);
+      imodvObjedNewView();
       break;
 
     default:
@@ -401,6 +475,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.14  2004/05/28 23:29:42  mast
+Do not open a zap window until the event loop has started
+
 Revision 4.13  2004/05/05 17:32:44  mast
 Added message to get rubberband coordinates
 
