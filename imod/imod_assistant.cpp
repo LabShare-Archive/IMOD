@@ -15,6 +15,10 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2004/11/22 18:07:22  mast
+    Changed to work on Mac and to get assistant object on first time instead
+    of upon construction
+
     Revision 1.3  2004/11/22 04:30:50  mast
     ; on include
 
@@ -36,7 +40,8 @@
 
 ImodAssistant *ImodHelp;
 
-ImodAssistant::ImodAssistant(const char *path, bool absolute)
+ImodAssistant::ImodAssistant(const char *path, const char *adpFile, 
+                             bool absolute)
 {
   mAssistant = NULL;
 
@@ -46,6 +51,8 @@ ImodAssistant::ImodAssistant(const char *path, bool absolute)
   } else {
     mPath = QString(getenv("IMOD_DIR")) + QDir::separator() + QString(path);
   }
+  if (adpFile)
+    mAdp = QString(adpFile);
 }
 
 ImodAssistant::~ImodAssistant()
@@ -78,9 +85,13 @@ void ImodAssistant::showPage(const char *page, bool absolute)
     connect(mAssistant, SIGNAL(error(const QString&)), this, 
             SLOT(assistantError(const QString&)));
 
-    // Hide the side bar but do not define an adp file
+    // Hide the side bar and define the adp file if any
 #if QT_VERSION >= 0x030200
-    mAssistant->setArguments(QStringList("-hideSidebar"));
+    QStringList args;
+    args << "-hideSidebar";
+    if (!mAdp.isEmpty())
+      args << "-profile" <<  mPath + QDir::separator() + mAdp;
+    mAssistant->setArguments(args);
 #endif
   }
 
