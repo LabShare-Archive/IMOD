@@ -755,7 +755,10 @@ int imod_zap_open(struct ViewInfo *vi)
   if (xleft + newWidth > deskWidth - 16)
     xleft = deskWidth - 16 - newWidth;
   if (ytop + newHeight > deskHeight - 40)
-  ytop = deskHeight - 40 - newHeight;
+  ytop = deskHeight - 10 - newHeight;
+#ifndef WIN32
+  ytop -= 30;
+#endif
   if (Imod_debug)
     fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
             "resize %d %d\n", zap->qtWindow->width(), zap->qtWindow->height(), 
@@ -2569,6 +2572,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 19:49:39  mast
+Set geometry to stay on screen for Windows
+
 Revision 4.3  2003/02/20 16:02:15  mast
 Make current contour not display at wrong time
 
