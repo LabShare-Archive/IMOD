@@ -188,10 +188,12 @@ void inputModifyPoint(ImodView *vw)
   imodDraw(vw, IMOD_DRAW_MOD);
 }
 
+/* DNM 7/29/03: make correct nearest int tests for zmouse to avoid going 
+   outside legal limits */
 void inputNextz(ImodView *vw)
 {
-  if (vw->zmouse < (vw->zsize - 1)){
-    vw->zmouse++;
+  if ((int)(vw->zmouse + 0.5) < (vw->zsize - 1)){
+    vw->zmouse += 1.0;
     imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
@@ -199,17 +201,19 @@ void inputNextz(ImodView *vw)
 
 void inputPrevz(ImodView *vw)
 {
-  if (vw->zmouse > 0){
-    vw->zmouse--;
+  if ((int)floor(vw->zmouse + 0.5) > 0){
+    vw->zmouse -= 1.0;
     imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
 }
 
+/* DNM 7/29/03: treat Y just like X is now treated */
 void inputNexty(ImodView *vw)
 {
   if (vw->ymouse < (vw->ysize - 1)){
-    vw->ymouse++;
+    vw->ymouse += 1.0;
+    ivwBindMouse(vw);
     imodDraw(vw, IMOD_DRAW_XYZ);
   }
   return;
@@ -218,7 +222,8 @@ void inputNexty(ImodView *vw)
 void inputPrevy(ImodView *vw)
 {
   if (vw->ymouse > 0){
-    vw->ymouse--;
+    vw->ymouse -= 1.0;
+    ivwBindMouse(vw);
     imodDraw(vw, IMOD_DRAW_XYZ);
   }
   return;
@@ -1209,6 +1214,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.12  2003/06/04 23:32:47  mast
+Output integer coordinates numbered from one in f and F outputs
+
 Revision 4.11  2003/05/23 02:44:58  mast
 Raise windows in order of image then dialog
 
