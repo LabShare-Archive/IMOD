@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/01/16 20:41:22  rickg
+ * <p> Open up the application manager in test mode
+ * <p>
  * <p> Revision 3.2  2004/01/16 18:26:38  rickg
  * <p> Added checkout of testHeader to appropriate directories
  * <p>
@@ -91,12 +94,10 @@ public class MRCHeaderTest extends TestCase {
     cvsCommand[3] = testDirectory1;
 		cvsCommand[4] = "ImodTests/EtomoTests/vectors/headerTest.st";
 		SystemProgram cvs = new SystemProgram(cvsCommand);
-		cvs.setDebug(true);
 		cvs.run();
 
 	  cvsCommand[3] = testDirectory2;
 		cvs = new SystemProgram(cvsCommand);
-		cvs.setDebug(true);
 		cvs.run();
 		
 		//  Switch back to the original working directory
