@@ -1,109 +1,216 @@
 * * * * * * TOMOPIECES * * * * * *
 c	  
 c	  TOMOPIECES figures out how to chop up a tomogram into pieces so that
-c	  the Fourier transforms of each piece can be done in memory.  It is
-c	  meant to be called from the shell script SETUPCOMBINE.  It makes its
-c	  decisions based on the maximum amount of memory that should be used
-c	  for doing an FFT.
+c	  the Fourier transforms of each piece can be done in memory.
 c	  
-c	  Its one required input is the name of the tomogram file.  Optional
-c	  inputs can follow this filename on the command line: the maximum
-c	  memory to be used for FFTs (in bytes); the border size for padding
-c	  (and tapering) for extracted pieces in X and Z; the border size for
-c	  padding in Y; and the amount of overlap to generate between the
-c	  extracted pieces.
-c
-c	  It outputs the number of pieces in X and Z, the index coordinates in
-c	  X, Y, and Z required for extracting each piece with TAPEROUTVOL,
-c	  and the index coordinates required for putting the pieces back
-c	  together with ASSEMBLEVOL (first the X coordinates for each position
-c	  in X, then the Y coordinates, then the Z coordinates for each
-c	  position in Z).
+c	  See manual page for more details.
 c	  
-c	  David Mastronarde; revised for pieces in X 3/1/01
+c	  $Author$
 c
-	parameter (limpart=1000)
-	character*80 filin,filout
-	integer*4 nxyz(3),mxyz(3)
-	real*4 maxmem/4.e7/			!MAXIMUM MEMORY TO BE USED
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	implicit none
+	integer limpart
+	parameter (limpart=2000)
+	character*80 filout
+	integer*4 nxyz(3)
+	real*4 megaVox/10/			!MAXIMUM MEGAVOXELS
 	integer*4 izbackst(limpart),izbacknd(limpart),izoutst(limpart),
      &       izoutnd(limpart)
+	integer*4 iybackst(limpart),iybacknd(limpart),iyoutst(limpart),
+     &       iyoutnd(limpart)
 	integer*4 ixbackst(limpart),ixbacknd(limpart),ixoutst(limpart),
      &       ixoutnd(limpart)
 	logical toobig
-	minoverlap=4				!MINIMUM OVERLAP TO OUTPUT
-	npadxz=8				!PADDING/TAPER EXTENT IN X/Z
-	npady=4					!PADDING IN Y
-	maxpiecex=19				!MAX PIECES IN X
-	call getinout(1,filin,filout)
+	integer*4 minOverlap, nPadX, nPadY, nPadZ, maxPieceX, maxPieceY
+	integer*4 maxPieceZ, maxLayerPieces, ierr, nx, ny, nz, nxp, nyp, nzp
+	integer*4 nxextr, nyextr, nzextr, nxout, nyout, nzout, ix, iy, iz, i
+	real*4 perim, perimin, piecePerim, piecePerimin
+	integer*4 nxpmin, nypmin, nzpmin, nout, limY
+	integer*4 niceframe
+
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetFloat,PipGetInteger
+	integer*4 PipGetInOutFile
 c	  
-c	  if additional arguments are present, they are maxmem,
-c	  npadxz, npady, and minoverlap
+c	  fallbacks from ../../manpages/autodoc2man -2 2  tomopieces
 c
-	if(iargc().gt.1)then
-	  call getarg(2,filout)
-	  read(filout,*)maxmem
-	endif
-	if(iargc().gt.2)then
-	  call getarg(3,filout)
-	  read(filout,*)npadxz
-	endif
-	if(iargc().gt.3)then
-	  call getarg(4,filout)
-	  read(filout,*)npady
-	endif
-	if(iargc().gt.4)then
-	  call getarg(5,filout)
-	  read(filout,*)minoverlap
-	endif
+	integer numOptions
+	parameter (numOptions = 11)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'tomogram:TomogramOrSizeXYZ:CH:@megavox:MegaVoxels:F:@'//
+     &      'xpad:XPadding:I:@ypad:YPadding:I:@zpad:ZPadding:I:@'//
+     &      'xmaxpiece:XMaximumPieces:I:@ymaxpiece:YMaximumPieces:I:@'//
+     &      'zmaxpiece:ZMaximumPieces:I:@'//
+     &      'minoverlap:MinimumOverlap:I:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c
-	call ialprt(.false.)
-	call imopen(1,filin,'ro')
-	call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
+	minoverlap=4				!MINIMUM OVERLAP TO OUTPUT
+	npadx=8					!PADDING/TAPER EXTENT IN X
+	npadz=8					!PADDING/TAPER EXTENT IN Z
+	npady=4					!PADDING IN Y
+	maxpiecex=0				!MAX PIECES IN X
+	maxpiecey=0				!MAX PIECES IN X
+	maxpiecez=-1				!MAX PIECES IN X
+	maxLayerPieces = 19
+c	  
+c	  Pip startup: set error, parse options, do help output, get the
+c	  one obligatory argument to get size
+c
+	call PipReadOrParseOptions(options, numOptions, 'tomopieces',
+     &	    'ERROR: TOMOPIECES - ', .false., 1, 1, 0, numOptArg,
+     &	    numNonOptArg)
+	call get_nxyz(.true., 'TomogramOrSizeXYZ', 'TOMOPIECES', 1, nxyz)
+
+	ierr = PipGetFloat('MegaVoxels', megaVox)
+	ierr = PipGetInteger('MinimumOverlap', minOverlap)
+	ierr = PipGetInteger('XPadding', npadx)
+	ierr = PipGetInteger('YPadding', npady)
+	ierr = PipGetInteger('ZPadding', npadz)
+	ierr = PipGetInteger('XMaximumPieces', maxPieceX)
+	ierr = PipGetInteger('YMaximumPieces', maxPieceY)
+	ierr = PipGetInteger('ZMaximumPieces', maxPieceZ)
+	call PipDone()
+c
 	nx=nxyz(1)
 	ny=nxyz(2)
 	nz=nxyz(3)
 c	  
+c	  Set defaults very big if no maxima entered - but if X and Y maxes
+c	  are still 0, set up for 19 pieces on a layer
+c	  Also, if one is zero and one is 1, set up for the 19-piece limit
+c	  
+	if (maxPieceX .eq. 0 .and. (maxPieceY .eq. 0 .or. maxPieceY.eq.1)) then
+	  maxPieceX = maxLayerPieces
+	else if (maxPieceX .eq. 1 .and. maxPieceY .eq. 0) then
+	  maxPieceY = maxLayerPieces
+	else
+	  if (maxPieceX .le. 0) maxPieceX = nx / 2 - 1
+	  if (maxPieceY .le. 0) maxPieceY = ny / 2 - 1
+	endif
+	if (maxPieceZ .lt. 0) maxPieceZ = nz / 2 - 1
+c	  
 c	  loop on the possible pieces in X; for each one, get the padded size
 c
-	nyextr=ny
-	nyout=niceframe(2*((nyextr+1)/2+npady),2,19)
+	perimin = (10. * nx) * ny * nz
+	piecePerimin = perimin
+	nxpmin = 0
 	do nxp=1,maxpiecex
 	  nxextr=(nx+(nxp-1)*minoverlap + nxp-1)/nxp
-	  nxout=niceframe(2*((nxextr+1)/2+npadxz),2,19)
-	  nzp=1
-	  toobig=.true.
-c	    
-c	    then loop on pieces in Z, get padded size and compute padded volume
-c	    size - until it is no longer too big for maxmem
+	  nxout=niceframe(2*((nxextr+1)/2+npadx),2,19)
+c	  
+c	  loop on the possible pieces in Y
 c
-	  do while(nzp.lt.nz/2.and.toobig)
-	    nzextr=(nz+(nzp-1)*minoverlap + nzp-1)/nzp
-	    nzout=niceframe(2*((nzextr+1)/2+npadxz),2,19)
-	    if(nxout*nyout*(nzout*4.).gt.maxmem)then
-	      nzp=nzp+1
-	    else
-	      toobig=.false.
+	  limY = maxPieceY
+	  if (limY .eq. 0) limy = maxLayerPieces / nxp
+
+	  do nyp = 1, limY
+	    nyextr=(ny+(nyp-1)*minoverlap + nyp-1)/nyp
+	    nyout=niceframe(2*((nyextr+1)/2+npady),2,19)
+	    nzp=1
+	    toobig=.true.
+c	    
+c	      then loop on pieces in Z, get padded size and compute padded
+c	      volume size - until it is no longer too big for maxmem
+c
+	    do while(nzp.le. maxPieceZ .and.toobig)
+	      nzextr=(nz+(nzp-1)*minoverlap + nzp-1)/nzp
+	      nzout=niceframe(2*((nzextr+1)/2+npadz),2,19)
+	      if(float(nxout*nyout)*nzout.gt.megaVox * 1.e6)then
+		nzp=nzp+1
+	      else
+		toobig=.false.
+	      endif
+	    enddo
+c	    
+c	      compute perimeter of pieces and keep track of minimum
+c	      If total perimeter is equal, favor one with minimum individual
+c	      perimeter (at the expense of more pieces)
+c	      Of the equivalent sets when nx = nz, this favors the ones with
+c	      fewer X pieces
+c
+	    perim=float(nx*ny)*nzp + float(nx*nz)*nyp + float(ny*nz)*nxp
+	    piecePerim = nxout * nyout + nxout * nzout + nyout * nzout
+c	    print *,nxp, nyp, nzp, perim, piecePerim, nxout, nyout, nzout
+	    if (.not.toobig .and. (perim.lt.perimin .or.
+     &		(perim .eq. perimin .and. piecePerim .lt. piecePerimin))) then
+	      perimin=perim
+	      piecePerimin = piecePerim
+	      nxpmin=nxp
+	      nypmin = nyp
+	      nzpmin=nzp
 	    endif
 	  enddo
-c	    
-c	    compute perimeter of pieces and keeo track of minimum
-c
-	  perim=nx*nzp+nz*nxp
-	  if(nxp.eq.1.or.perim.lt.perimin)then
-	    perimin=perim
-	    nxpmin=nxp
-	    nzpmin=nzp
-	  endif
 	enddo
+
+	if (nxpmin .eq. 0) then
+	  print *,'ERROR: TOMOPIECES - PIECES ARE ALL TOO LARGE WITH ',
+     &	      'GIVEN MAXIMUM NUMBERS'
+	  call exit(1)
+	endif
 	nxp=nxpmin
 	nzp=nzpmin
+	nyp = nypmin
 c	  
+c	  get the starting and ending limits to extract and coordinates
+c	  for getting back from the padded volume
+	call getRanges(nx, nxp, minoverlap, npadx, ixoutst, ixoutnd,
+     &	    ixbackst, ixbacknd)
+	call getRanges(ny, nyp, minoverlap, npady, iyoutst, iyoutnd,
+     &	    iybackst, iybacknd)
+	call getRanges(nz, nzp, minoverlap, npadz, izoutst, izoutnd,
+     &	    izbackst, izbacknd)
+c	  
+	write(*,101)nxp,nyp,nzp
+101	format(3i4)
+	do iz=1,nzp
+	  do iy=1,nyp
+	    do ix=1,nxp
+	      call rangeout(ixoutst(ix),ixoutnd(ix),',',filout,nout)
+	      call rangeadd(iyoutst(iy),filout,nout)
+	      call rangeadd(iyoutnd(iy),filout,nout)
+	      call rangeadd(izoutst(iz),filout,nout)
+	      call rangeadd(izoutnd(iz),filout,nout)
+	      write(*,102)filout(1:nout)
+102	      format(a)
+	    enddo
+	  enddo
+	enddo
+	do i=1,nxp
+	  call rangeout(ixbackst(i),ixbacknd(i),',',filout,nout)
+	  write(*,102)filout(1:nout)
+	enddo
+	do i=1,nyp
+	  call rangeout(iybackst(i),iybacknd(i),',',filout,nout)
+	  write(*,102)filout(1:nout)
+	enddo
+	do i=1,nzp
+	  call rangeout(izbackst(i),izbacknd(i),',',filout,nout)
+	  write(*,102)filout(1:nout)
+	enddo
+c	  
+	call exit(0)
+	end
+
 c	  get size to extract, and size of padded output, and offset for
 c	  getting back from the padded volume
 c
+	subroutine getRanges(nx, nxp, minoverlap, npadx, ixoutst, ixoutnd,
+     &	    ixbackst, ixbacknd)
+	implicit none
+	integer*4 nx, nxp, minoverlap, npadx
+	integer*4 ixoutst(*), ixoutnd(*), ixbackst(*), ixbacknd(*)
+	integer*4 nxextr, nxout, nxbackofs, laptot, lapbase, lapextra, ip, lap
+	integer*4 lapbot, laptop, niceframe 
+c	  
 	nxextr=(nx+(nxp-1)*minoverlap + nxp-1)/nxp
-	nxout=niceframe(2*((nxextr+1)/2+npadxz),2,19)
+	nxout=niceframe(2*((nxextr+1)/2+npadx),2,19)
 	nxbackofs=(nxout-nxextr)/2
 c	  
 c	  divide the total overlap into nearly equal parts
@@ -130,69 +237,7 @@ c
 	    ixbacknd(ip)=nxbackofs+nxextr-1
 	  endif
 	enddo
-c	  
-c	  do the same in Z now
-c	  
-	nzextr=(nz+(nzp-1)*minoverlap + nzp-1)/nzp
-	nzout=niceframe(2*((nzextr+1)/2+npadxz),2,19)
-	nzbackofs=(nzout-nzextr)/2
-c	  
-c	  divide the total overlap into nearly equal parts
-c
-	laptot=nzextr*nzp-nz
-	lapbase=laptot/max(1,nzp-1)
-	lapextra=mod(laptot,max(1,nzp-1))
-	izoutst(1)=0
-	izbackst(1)=nzbackofs
-c	  
-c	  get coordinates to extract, and coordinates for reassembly
-c
-	do ip=1,nzp
-	  izoutnd(ip)=izoutst(ip)+nzextr-1
-	  if(ip.lt.nzp)then
-	    lap=lapbase
-	    if(ip.le.lapextra)lap=lap+1
-	    laptop=lap/2
-	    lapbot=lap-laptop
-	    izoutst(ip+1)=izoutst(ip)+nzextr-lap
-	    izbacknd(ip)=nzbackofs+nzextr-1-laptop
-	    izbackst(ip+1)=nzbackofs+lapbot
-	  else
-	    izbacknd(ip)=nzbackofs+nzextr-1
-	  endif
-	enddo
-c	  
-c	  get limits for Y also
-c	  
-	iyoutst=0
-	iyoutnd=ny-1
-	nybackofs=(nyout-ny)/2
-
-	write(*,101)nxp,nzp
-101	format(2i4)
-	do iz=1,nzp
-	  do ix=1,nxp
-	    call rangeout(ixoutst(ix),ixoutnd(ix),',',filout,nout)
-	    call rangeadd(iyoutst,filout,nout)
-	    call rangeadd(iyoutnd,filout,nout)
-	    call rangeadd(izoutst(iz),filout,nout)
-	    call rangeadd(izoutnd(iz),filout,nout)
-	    write(*,102)filout(1:nout)
-102	    format(a)
-	  enddo
-	enddo
-	do i=1,nxp
-	  call rangeout(ixbackst(i),ixbacknd(i),',',filout,nout)
-	  write(*,102)filout(1:nout)
-	enddo
-	call rangeout(nybackofs,nybackofs+ny-1,',',filout,nout)
-	write(*,102)filout(1:nout)
-	do i=1,nzp
-	  call rangeout(izbackst(i),izbacknd(i),',',filout,nout)
-	  write(*,102)filout(1:nout)
-	enddo
-c	  
-	call exit(0)
+	return
 	end
 
 	subroutine rangeout(izst,iznd,link,buf,nout)
