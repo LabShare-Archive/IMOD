@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/11/01 14:36:14  mast
+#  *** empty log message ***
+#
 #  Revision 3.5  2003/10/24 02:30:40  mast
 #  Changes for windows/Intel compiler
 #
@@ -32,7 +35,7 @@ E = $(BINEXT)
 MRCVOBJS  = mrcv.o mrcv_movie.o mrcv_draw.o mrcv_batch.o rgbv.o colormap.o
 
 PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
- mrctaper$(E) dm3props$(E) $(RGBPROGS)
+ mrctaper$(E) dm3props$(E) nad_eed_3d$(E) $(RGBPROGS)
 
 
 IILIBS    =  $(LIIMOD) $(LIMOD) $(TIFFLIBS)
@@ -63,6 +66,10 @@ mrctaper$(E) : mrctaper.$(O)
 
 dm3props$(E) : dm3props.$(O) 
 	$(CC) -o dm3props dm3props.$(O) $(LDFLAGS) $(IILIBS)  $(CLIBS)
+
+nad_eed_3d$(E) : nad_eed_3d.$(O) nrutil.$(O)
+	$(CC) -o nad_eed_3d nad_eed_3d.$(O) nrutil.$(O) $(LDFLAGS) $(IILIBS) \
+	 $(CLIBS)
 
 #
 # SGI only programs
