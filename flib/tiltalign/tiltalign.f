@@ -398,6 +398,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/07/28 23:02:54  mast
+c	  Needed to declare lnblnk for SGI
+c	
 c	  Revision 3.3  2002/07/28 22:42:35  mast
 c	  Changes to output a residual listing file and to standardize error
 c	  exits and output
@@ -442,7 +445,7 @@ c
 	integer*4 iallsecv(maxprojpt),iallrealstr(maxreal)
 	integer*4 indallreal(maxreal)
 c
-	logical firsttime,xyzfixed
+	logical firsttime,xyzfixed,toofewfid
 	common /functfirst/ firsttime,xyzfixed
 	integer*4 ncycle/500/,nsolve/95/
 	real*4 DTOR/0.0174532/
@@ -471,6 +474,7 @@ c
 	nlocalres=50
 	firsttime=.true.
 	xyzfixed=.false.
+	toofewfid=.false.
 	incrgmag=0
 	incrdmag=0
 	incrskew=0
@@ -1298,7 +1302,7 @@ c
 	  minsurf=min(nbot,ntop)
 	enddo
 	if(nxp.ge.4*xcen.and.nyp.ge.4*ycen)then
-	  print *,'Minimum numbers of beads are too high; cannot proceed'
+	  toofewfid=.true.
 	  go to 209
 	endif
 c	  
@@ -1391,6 +1395,10 @@ c
 209	close(7)
 	if(metroerror.ne.0)print *,'WARNING:',metroerror,
      &	    ' MINIMIZATION ERRORS OCCURRED (IER=x)'
+	if (toofewfid) call errorexit(
+     &	    'Minimum numbers of fiducials are too high - check if '//
+     &	    'there are enough fiducials on the minority surface', 0)
+
 	call exit(0)
 	end
 
