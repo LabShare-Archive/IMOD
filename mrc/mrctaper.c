@@ -24,6 +24,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -164,10 +172,11 @@ main( int argc, char *argv[] )
 	  hout.zlen = hout.nz;
 	  secofs = zmin;
      }else{
-	  if (hdata.swapped) {
+	  /* DNM 6/26/02: it it OK now */
+	  /* if (hdata.swapped) {
 	       fprintf(stderr, "%s: Cannot write to byte-swapped file.\n", argv[0]);
 	       exit(-1);
-	  }
+	       } */
 	  hptr = &hdata;
 	  fout = fin;
 	  secofs = 0;
