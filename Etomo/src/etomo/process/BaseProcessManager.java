@@ -24,6 +24,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/20 01:58:22  sueh
+* <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
+* <p>
 * <p> Revision 1.2  2004/11/19 23:17:50  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -80,10 +83,11 @@ public abstract class BaseProcessManager {
   private HashMap killedList = new HashMap();
   
   protected abstract void postProcess(ComScriptProcess script);
-  protected abstract void postProcess(BackgroundProcess process, int exitValue);
+  protected abstract void postProcess(BackgroundProcess process);
   protected abstract void errorProcess(BackgroundProcess process);
   protected abstract BaseManager getManager();
   protected abstract void postProcess(InteractiveSystemProgram program);
+  protected abstract void errorProcess(ComScriptProcess process);
   
   public BaseProcessManager() {
   }
@@ -515,6 +519,7 @@ public abstract class BaseProcessManager {
       }
       getManager().getMainPanel().openMessageDialog(combined,
           script.getScriptName() + " terminated");
+      errorProcess(script);
     }
     else {
       postProcess(script);
@@ -713,7 +718,12 @@ public abstract class BaseProcessManager {
     // Command succeeded, check to see if we need to show any application
     // specific info
     else {
-      postProcess(process, exitValue);
+      if (exitValue != 0) {
+        errorProcess(process);
+      }
+      else {
+        postProcess(process);
+      }
     }
 
     // Null the reference to the appropriate thread
