@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.Storable;
 
 /**
@@ -18,6 +20,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:33:29  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.4  2004/11/19 19:38:23  sueh
 * <p> bug# 520 Made getValue() private.
 * <p>
@@ -103,6 +108,17 @@ public abstract class ConstEtomoNumber implements Storable {
   
   public boolean isValid() {
     return invalidReason == null;
+  }
+  
+  public boolean isValid(boolean displayErrorMessage, String errorTitle) {
+    boolean valid = invalidReason == null;
+    if (!valid && displayErrorMessage) {
+      BaseManager manager = EtomoDirector.getInstance().getCurrentManager();
+      if (manager != null) {
+        manager.getMainPanel().openMessageDialog(description + ": " + invalidReason, errorTitle);
+      }
+    }
+    return valid;
   }
   
   public String getInvalidReason() {
