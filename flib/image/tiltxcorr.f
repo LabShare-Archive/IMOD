@@ -103,6 +103,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/05/20 15:45:16  mast
+c	  Increased dimension of input array to handle 4Kx4K image, reduced
+c	  dimensions of other arrays to rely on binning down to 1024
+c	
 c	  Revision 3.4  2002/05/02 22:41:51  mast
 c	  Fixed bug in which all shifts were being destrected, not just the
 c	  ones where the current view was stretched
@@ -127,7 +131,7 @@ C
 	real*4 ctfa(8193),ctfb(8193),ctfp(8193)
 	complex array(idim/2),brray(idim2/2),crray(idim2/2)
 C
-	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
+	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs),(crray(1),array(idim/4))
 c
 	character*80 filin,plfile,imfilout
         real*4 f(2,3,limview),fs(2,3),fsinv(2,3)
