@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/04: IMOD_3-2-17
+6/2/04: eTomo changes include ability to build tomogram from cross-correlation
+alignment, ability to use a whole tomogram for positioning, and 2D filtering
+of aligned stack including inverse MTF filtering.
+
+5/31/04: Changes to 3dmod: Added filename filters to 3dmod startup dialog.
+Converted plugin loading to use Qt library class, which makes plugins work on
+Windows.  Implemented functions for writing to standard error in 3dmod so that
+it could flush output under Windows, needed to make rubberband report work.
+Restored Run Tiltalign button to bead fixer.  Added a message to set the basic
+properties of an object, so that tomopitch.mod can be switched to open 
+contours.  Made Zap window start a new contour when the current time does not 
+match the time of the existing contour, even for open contours, so that
+regular 3-sample modeling can be done with open contours.
+
 5/19/04: IMOD_3-2-16  (eTomo unstable)
 5/19/04: Changed to new Qt calls on the Mac to get the 3dmod preferences file
 back to being user-specific instead of global.

@@ -90,7 +90,7 @@ usage = Density scaling factor (default 1.0)
 tooltip =
 manpage = Scaling factor for image intensities after filtering.
 
-[Field = Parameter File]
+[Field = ParameterFile]
 short=param
 long=ParameterFile
 type=PF
