@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/17/04:  Made Finsihjoin detect if there is a large rotation between sections
+and warn that a reference section entry will probably be needed.
+
+9/17/04: Rewrote Imodtrans to do a general 3D transformation from a file, to
+transform meshes correctly, to take the transformation arguments in any order
+and repeated if desired, and to handle situations with flipped data, Z-scaled
+data, and a different destination image file size.
+
+9/16/04: Made Tiltalign try several metro factors when the search fails, made it
+give an error when there is more than one point per view in a contour, and had
+it not leave an empty fid.xyz file if it fails.
+
+9/14/04: Made blendmont preserve pixel sizes.
+
 9/10/04: IMOD_3-4-8
 9/10/04: Fixed tif2mrc, mrc2tif problems on AMD64 (in 3.3).
 

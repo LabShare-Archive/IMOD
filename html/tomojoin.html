@@ -77,11 +77,14 @@ However, Makejoincom provides three other options: a tomogram can be either
 flipped or rotated into the proper orientation if it has not already been
 flipped; and a tomogram that has been flipped can be rotated by small angles.
 There are two reasons to use rotations, which are done with Rotatevol.  1) If
-a tomogram is rotated by a large angle (e.g., 90 degrees) relative to an
-adjacent section, then it might be easier to align the slices across the
-boundary if this rotation is already corrected.  2) If the surface of one
-section is pitched and can be made flat by a small rotation, then the boundary
-between sections can be made smaller by correcting this pitch.
+the surface of one section is pitched and can be made flat by a small
+rotation, then the boundary between sections can be made smaller by correcting
+this pitch.  2) If a tomogram is rotated by a large angle (e.g., 90 degrees)
+relative to an adjacent section, and if all the sections are aligned to an
+average orientation, then the final aligned result will come out at a strange
+angle.  To prevent this, you would have to set one tomogram as the reference
+for alignment in Finishjoin.  If for some reason it will not work to have one
+tomogram be the reference, then use Rotatevol to avoid this problem.
 
      If you do want to use Rotatevol, then load the section into 3dmod. Open a
 Slicer window and adjust the angles to achieve the desired rotation.  It may
@@ -195,9 +198,9 @@ file from the backup file join_name.xf~.
 Making the Final Joined Volume
      Once you have found the transformations and exited Midas, you need only to
 decide on which slices to include from each tomogram.  You might have done
-this earlier (see above), but if any of your files were rotated with
-Rotatevol, you need to pick the slices from the newly created rotated
-volume.
+this earlier (see above), but if any of your files were not yet flipped and
+were rotated with Rotatevol, you need to pick the slices from the newly
+created rotated volume.
 
      Finally, run Finishjoin with the range of sections given for each
 tomogram, for example:
@@ -211,10 +214,11 @@ output volume that is smaller in X and Y than the individual tomograms, or
 larger if necessary to compensate for big shifts between individual sections.
 The -ref option allows you to specify one of the sections as the reference to
 which the others will be aligned.  In this case, that reference section will
-not be transformed and the others will be.  This could be useful, for example,
-if you have already modeled on one section, or if you are adding another
-section to an existing set of serial sections.  Without this option, all
-tomograms will be transformed into alignment to a single average position.
+not be transformed and the others will be.  In addition to the case of large
+rotations mentioned above, this could also be useful if you have already
+modeled on one section, or if you are adding another section to an existing
+set of serial sections.  Without this option, all tomograms will be
+transformed into alignment to a single average position.
 
      Once you are done, you should be able to delete all of the intermediate
 image files that have been created.  The command file and small transform
