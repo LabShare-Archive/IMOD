@@ -1,5 +1,3 @@
-package etomo.comscript;
-
 /**
  * <p>Description: </p>
  * 
@@ -13,8 +11,14 @@ package etomo.comscript;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/03/24 18:15:18  sueh
+ * <p> $bug# 409 MTF Filter const params
+ * <p> $$ </p>
  */
+
+package etomo.comscript;
+
 public class ConstMTFFilterParam {
   public static final String rcsid = "$$Id$$";
   
@@ -22,11 +26,12 @@ public class ConstMTFFilterParam {
   String outputFile;
   String mtfFile;
   double maximumInverse;
-  double defaultMaximumInverse = 4.0;
   FortranInputString highFrequencyRadiusSigma;
+  FortranInputString inverseRolloffRadiusSigma;
   
   public ConstMTFFilterParam() {
     highFrequencyRadiusSigma = new FortranInputString(2);
+    inverseRolloffRadiusSigma = new FortranInputString(2);
     reset();
   }
   
@@ -34,8 +39,9 @@ public class ConstMTFFilterParam {
     inputFile = new String();
     outputFile = new String("datasetname_filt.ali");
     mtfFile = new String();
-    maximumInverse = defaultMaximumInverse;
+    maximumInverse = 4.0;
     highFrequencyRadiusSigma.setDefault();
+    inverseRolloffRadiusSigma.setDefault();
   }
   
   public String getOutputFile() {
@@ -45,12 +51,12 @@ public class ConstMTFFilterParam {
     return mtfFile;
   }
   public String getMaximumInverseString() {
-    if (Double.isNaN(maximumInverse)) {
-      return new String();
-    }
-    return String.valueOf(maximumInverse);
+    return ParamUtilities.getString(maximumInverse);
   }
   public String getHighFrequencyRadiusSigmaString() {
     return highFrequencyRadiusSigma.toString(true);
+  }
+  public String getInverseRolloffRadiusSigmaString() {
+    return inverseRolloffRadiusSigma.toString(true);
   }
 }
