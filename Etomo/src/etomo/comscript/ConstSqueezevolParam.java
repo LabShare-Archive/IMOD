@@ -26,6 +26,10 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/14 21:32:29  sueh
+* <p> bug# 557 Made separate variables for x and y reduction factors to handle
+* <p> an unflipped tomogram.
+* <p>
 * <p> Revision 1.2  2004/12/08 21:19:54  sueh
 * <p> bug# 564 Changed TrimvolParam set and get, input and output File
 * <p> functions to ...FileName to avoid confusion with the new getOutputFile()
@@ -36,25 +40,29 @@ import etomo.type.EtomoNumber;
 * <p> Stores parameters.
 * <p> </p>
 */
-public abstract class ConstSqueezevolParam implements Storable {
+public abstract class ConstSqueezevolParam implements Command, Storable {
   public static  final String  rcsid =  "$Id$";
   
+  public static final int FLIPPED = -1;
   protected static final String groupString = "Squeezevol";
   protected static final String linearInterpolationString = "LinearInterpolation";
   protected static final boolean defaultLinearInterpolation = false;
   private static final int commandSize = 3;
+  private static final String commandName = "squeezevol";
   
   protected EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorX");
   protected EtomoNumber reductionFactorY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorY");
   protected EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorZ");
   protected boolean linearInterpolation;
+  protected boolean flipped = false;
   private String[] commandArray = null;
+  private File outputFile;
 
   public ConstSqueezevolParam() {
+    reductionFactorX.setResetValue(1.25);
+    reductionFactorY.setResetValue(1.25);
+    reductionFactorZ.setResetValue(1.25);
     reset();
-    reductionFactorX.setRecommendedValue(1.25);
-    reductionFactorY.setRecommendedValue(1.25);
-    reductionFactorZ.setRecommendedValue(1.25);
   }
   
   protected void reset() {
@@ -83,15 +91,16 @@ public abstract class ConstSqueezevolParam implements Storable {
     String datasetName = metaData.getDatasetName();
     //try to take the trimvol output file as input
     inputFileName = TrimvolParam.getOutputFileName(datasetName);
-    if (!(new File(manager.getPropertyUserDir(), inputFileName).exists())) {
+   /* if (!(new File(manager.getPropertyUserDir(), inputFileName).exists())) {
       String[] message = { inputFileName + " does not exist.",
           "Trim volume before running squeeze volume." };
       manager.getMainPanel().openMessageDialog(message,
           "Error Running Squeezevol");
-    }
+    }*/
     options.add(inputFileName);
     //output is dataset.sqz
-    options.add(datasetName + ".sqz");
+    outputFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), datasetName + ".sqz");
+    options.add(outputFile.getName());
     return options;
   }
   
@@ -121,21 +130,66 @@ public abstract class ConstSqueezevolParam implements Storable {
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + "squeezevol";          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
   }
   
+  /**
+   * Get command array used to run command.  Not for running the command
+   * @return
+   */
   public String getCommandLine() {
     if (commandArray == null) {
-      createCommand();
+      return "";
     }
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
       buffer.append(commandArray[i] + " ");
     }
     return buffer.toString();
+  }
+  
+  /**
+   * Get command array to run
+   * @return
+   */
+  public String[] getCommandArray() {
+    createCommand();
+    return commandArray;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    switch (name) {
+    case FLIPPED:
+      return flipped;
+    }
+    return false;
+  }
+  
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
+  public String getCommandName() {
+    return commandName;
+  }
+  
+  public static String getName() {
+    return commandName;
+  }
+  
+  public int getBinning() {
+    return 1;
+  }
+
+  public int getMode() {
+    return 0;
+  }
+  
+  public File getOutputFile() {
+    return outputFile;
   }
   
   public ConstEtomoNumber getReductionFactorX() {
@@ -152,6 +206,10 @@ public abstract class ConstSqueezevolParam implements Storable {
   
   public boolean isLinearInterpolation() {
     return linearInterpolation;
+  }
+  
+  public boolean isFlipped() {
+    return flipped;
   }
   
   public boolean equals(ConstSqueezevolParam that) {
