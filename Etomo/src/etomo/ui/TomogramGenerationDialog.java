@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/10/14 22:53:55  rickg
+ * <p> Bug #286 Label changes
+ * <p>
  * <p> Revision 2.12  2003/10/02 18:57:47  sueh
  * <p> bug236 added testing:
  * <p> NewstParamTest
@@ -134,8 +137,11 @@ public class TomogramGenerationDialog
   private JCheckBox chkBoxUseLinearInterpolation =
     new JCheckBox("Use linear interpolation");
 
+	private JPanel pnlAlignedStack = new JPanel();
   private JToggleButton btnNewst =
     new JToggleButton("<html><b>Create Full<br>Aligned Stack</b>");
+  private JButton btn3dmodFull =
+    new JButton("<html><b>View Full<br>Aligned Stack</b>");
 
   private JPanel pnlTiltParams = new JPanel();
 
@@ -186,7 +192,7 @@ public class TomogramGenerationDialog
 
   private JToggleButton btnTilt =
     new JToggleButton("<html><b>Generate<br>Tomogram</b>");
-  private JButton btn3dmod =
+  private JButton btn3dmodTomogram =
     new JButton("<html><b>View Tomogram<br>In 3dmod</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
@@ -197,11 +203,18 @@ public class TomogramGenerationDialog
     buttonExecute.setText("Done");
 
     chkBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnNewst.setAlignmentX(Component.CENTER_ALIGNMENT);
+
     btnNewst.setPreferredSize(FixedDim.button2Line);
     btnNewst.setMaximumSize(FixedDim.button2Line);
     btnNewst.addActionListener(new TomogramGenerationActionListener(this));
-
+		btn3dmodFull.setPreferredSize(FixedDim.button2Line);
+		btn3dmodFull.setMaximumSize(FixedDim.button2Line);
+		btn3dmodFull.addActionListener(new TomogramGenerationActionListener(this));
+		pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
+		pnlAlignedStack.add(btnNewst);
+		pnlAlignedStack.add(Box.createRigidArea(FixedDim.x10_y0));
+		pnlAlignedStack.add(btn3dmodFull);
+		
     pnlTrial.setLayout(new BoxLayout(pnlTrial, BoxLayout.Y_AXIS));
     pnlTrial.setBorder(new EtchedBorder("Trial Mode").getBorder());
     cmboTrialTomogramName.setEditable(true);
@@ -239,10 +252,10 @@ public class TomogramGenerationDialog
     btnTilt.setMaximumSize(FixedDim.button2Line);
     btnTilt.addActionListener(new TomogramGenerationActionListener(this));
 
-    btn3dmod.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btn3dmod.setPreferredSize(FixedDim.button2Line);
-    btn3dmod.setMaximumSize(FixedDim.button2Line);
-    btn3dmod.addActionListener(new TomogramGenerationActionListener(this));
+    btn3dmodTomogram.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btn3dmodTomogram.setPreferredSize(FixedDim.button2Line);
+    btn3dmodTomogram.setMaximumSize(FixedDim.button2Line);
+    btn3dmodTomogram.addActionListener(new TomogramGenerationActionListener(this));
 
     chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -256,12 +269,12 @@ public class TomogramGenerationDialog
 
     pnlTilt.add(pnlNewstParams);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlTilt.add(btnNewst);
+    pnlTilt.add(pnlAlignedStack);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTilt.add(pnlTiltParams);
     pnlTilt.add(btnTilt);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlTilt.add(btn3dmod);
+    pnlTilt.add(btn3dmodTomogram);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
 
     rootPanel.add(pnlTilt);
@@ -477,14 +490,14 @@ public class TomogramGenerationDialog
   private void layoutTiltPanel() {
     pnlTiltParams.removeAll();
     if (isAdvanced) {
-			pnlTiltParams.add(ltfLogOffset.getContainer());
-			pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfLogOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
-			pnlTiltParams.add(ltfDensityScale.getContainer());
-			pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfDensityScale.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
-			pnlTiltParams.add(ltfDensityOffset.getContainer());
-			pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfDensityOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
       pnlTiltParams.add(ltfTomoThickness.getContainer());
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -594,6 +607,9 @@ public class TomogramGenerationDialog
     if (command.equals(btnNewst.getActionCommand())) {
       applicationManager.newst(axisID);
     }
+		else if (command.equals(btn3dmodFull.getActionCommand())) {
+			applicationManager.imodFineAlign(axisID);
+		}
     else if (command.equals(btnTrial.getActionCommand())) {
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
@@ -622,7 +638,7 @@ public class TomogramGenerationDialog
     else if (command.equals(btnTilt.getActionCommand())) {
       applicationManager.tilt(axisID);
     }
-    else if (command.equals(btn3dmod.getActionCommand())) {
+    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       applicationManager.imodFullVolume(axisID);
     }
   }
@@ -740,7 +756,7 @@ public class TomogramGenerationDialog
     btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "View the reconstructed volume in 3dmod.";
-    btn3dmod.setToolTipText(tooltipFormatter.setText(text).format());
+    btn3dmodTomogram.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "Use linear interpolation rather than the default, cubic interpolation, "
