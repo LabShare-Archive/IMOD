@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2002/10/23 15:56:23  mast
+    Blew away part of file before previous checkin
+
     Revision 3.5  2002/10/22 22:45:34  mast
     Removed some declarations from old workproc routines
 
@@ -412,13 +415,10 @@ extern int    Modeltouch;
 
 void imod_quit(void);
 
-#define USE_IMOD_CONTROL
-#ifdef USE_IMOD_CONTROL
 /* imodview.c private control functions */
 void ivwControlListDrawCancel(ImodView *iv);
 void ivwControlListDraw(ImodView *iv, int reason);
 void ivwControlListDelete(ImodView *iv);
-#endif
 
 unsigned char *ivwGetCurrentSection(ImodView *iv);
 int ivwInitCache(ImodView *vi);

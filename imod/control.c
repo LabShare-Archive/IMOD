@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -36,7 +45,6 @@
 #include "imod.h"
 
 /****************************************************************************/
-#ifdef USE_IMOD_CONTROL
 
 /* Add a control to the imodDraw command, and to the quit command.
  * the return value is used as the inCtrlId field in other control
@@ -232,5 +240,4 @@ void ivwControlListDelete(ImodView *iv)
      free(iv->ctrlist);
      iv->ctrlist = NULL;
 }
-#endif
 
