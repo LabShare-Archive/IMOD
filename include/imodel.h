@@ -54,6 +54,7 @@ Log at end of file
 #define IMOD_OBJSTRSIZE 64
 #define IOBJ_STRSIZE 64
 #define IOBJ_EXSIZE 16
+#define IMOD_CLIPSIZE  6
 
 /* Units for pixel size. */
 #define IMOD_UNIT_PIXEL 0
@@ -94,7 +95,7 @@ Log at end of file
 
 /* new data for imod version 1.2, this is an extension to V0.2 files */
 #define ID_CLIP MakeID('C', 'L', 'I', 'P')  /* object clip planes. */
-#define ID_CLPL MakeID('C', 'L', 'P', 'L') /* clip list */
+#define ID_MCLP MakeID('M', 'C', 'L', 'P') /* Model clip planes */
 #define SIZE_CLIP 28
 
 #define ID_IMAT MakeID('I', 'M', 'A', 'T')  /* object material. */
@@ -104,6 +105,7 @@ Log at end of file
 #define SIZE_IMNX 72
 
 #define ID_LABL MakeID('L', 'A', 'B', 'L')   
+#define ID_OLBL MakeID('O', 'L', 'B', 'L')   
 
 #define ID_SIZE MakeID('S', 'I', 'Z', 'E')  /* size for scattered points */
 
@@ -121,6 +123,7 @@ Log at end of file
 #define IMODF_TILTOK (1l << 15)  /* current tilt angles properly stored */
 #define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
 #define IMODF_MAT1_IS_BYTES (1l << 13)  /* mat1 and mat3 are stored as bytes */
+#define IMODF_MULTIPLE_CLIP (1l << 12)  /* multiple clip planes possible */
 
 
 /****************************** Structures ***********************************/
@@ -133,7 +136,6 @@ typedef struct Mod_Point
 }Ipoint;
 
 typedef struct {b3dFloat a, b, c, d;} Iplane;
-typedef Ilist IclipList;
 typedef Ilist *Istore;
 
 typedef struct Mod_Mesh
@@ -156,6 +158,19 @@ typedef struct Mod_Index
   b3dInt32  contour;
   b3dInt32  point;
 }Iindex;
+
+
+/* A set of clip planes, in object, view, or object view */
+typedef struct Mod_Planes
+{
+  b3dUByte count;        /* number of clip planes.            */
+  b3dUByte flags;        /* Which clip planes are on.         */
+  b3dUByte trans;        /* Transparency for clipped area     */
+  b3dUByte plane;        /* Current clip plane.               */
+  Ipoint normal[IMOD_CLIPSIZE];
+  Ipoint point[IMOD_CLIPSIZE];
+} IclipPlanes;
+
 
 /* Describes a 3D view of a model. */
 #define VIEW_WORLD_ON         1
@@ -185,15 +200,8 @@ typedef struct Mod_Object_View
   b3dUByte     linesty;             /* line draw style               */
   b3dUByte     trans;               /* transperentcy                 */
 
-  /* new extended data imod 1.2 */
-  /* chunk CLIP */
-  /* define a clipping plane. max for each object is 8. */
-  b3dUByte clip;        /* number of additional clip planes. */
-  b3dUByte clip_flags;  /* Which clip planes are on.         */
-  b3dUByte clip_trans;  /* Transperentcy for clipped area    */
-  b3dUByte clip_plane;  /* Current clip plane.               */
-  Ipoint clip_normal;
-  Ipoint clip_point;
+  /* define clipping planes. max for each object is 7. */
+  IclipPlanes clips;
 
   /* Added info IMAT */
   b3dUByte ambient;   /* Ambient multiplier to color */
@@ -235,6 +243,7 @@ typedef struct
   b3dFloat dcstart, dcend;
   b3dFloat lightx, lighty;
   b3dFloat plax;
+  IclipPlanes clips;
   Iobjview *objview;    /* properties of each object */
   b3dInt32 objvsize;       /* Number of objects properties exist for */
      
@@ -340,13 +349,8 @@ typedef struct Mod_Object
 
   /* new extended data imod 1.2 */
   /* chunk CLIP */
-  /* define a clipping plane. max for each object is 8. */
-  b3dUByte clip;        /* number of additional clip planes. */
-  b3dUByte clip_flags;  /* Which clip planes are on.         */
-  b3dUByte clip_trans;  /* Transperentcy for clipped area    */
-  b3dUByte clip_plane;  /* Current clip plane.               */
-  Ipoint clip_normal;
-  Ipoint clip_point;
+  /* define clipping planes. max for each object is 7. */
+  IclipPlanes clips;
 
   /* Added info IMAT */
   b3dUByte ambient;   /* Ambient multiplier to color */
@@ -363,6 +367,7 @@ typedef struct Mod_Object
   b3dUByte mat3b2;    /* Unused */
   b3dUByte mat3b3;    /* Unused */
 
+  Ilabel *label;      /* Labels for surfaces */
   Istore store;
 }Iobj;
 
@@ -405,10 +410,10 @@ typedef struct Mod_Model
   b3dFloat  alpha, beta, gamma;        /* rotation of model in 3-D view. */
 
   /* more runtime data */
-  b3dUInt16   color;      /* color of current object */
-  Iview   *view;
+  b3dUInt16  color;      /* color of current object */
+  Iview      *view;      /* Array of view data */
+  int        editGlobalClip;   /* Flag that global clip is selected */
 
-  IclipList  *clipList;
   IrefImage  *refImage;
   char       *fileName;
   int        xybin;       /* Binning in X and Y */
@@ -617,7 +622,7 @@ extern "C" {
   void    imodLabelItemDelete(Ilabel *label, int index);
   char   *imodLabelItemGet(Ilabel *label, int index);
   void    imodLabelPrint(Ilabel *lab, FILE *fout);
-  int     imodLabelWrite(Ilabel *lab, FILE *fout);
+  int     imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout);
   Ilabel *imodLabelRead(FILE *fin, int *err);
   int     imodLabelMatch(Ilabel *label, char *tstr);
   int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
@@ -713,6 +718,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.16  2004/09/17 19:48:19  mast
+    Document use of mat1b3 for point quality
+
     Revision 3.15  2004/04/28 05:30:00  mast
     defined world flags with bit shifts
 
