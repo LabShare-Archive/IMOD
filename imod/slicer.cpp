@@ -588,17 +588,17 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
     // Non-keypad keys, only if locked, move without changing global point
     if (!keypad) {
-      if (keysym == Qt::Key_Down) 
+      if (keysym == Qt::Key_Down && ss->cy >= 0.) 
         ss->cy -= 1.;
-      if (keysym == Qt::Key_Left)
+      if (keysym == Qt::Key_Left && ss->cx >= 0.)
         ss->cx -= 1.;
-      if (keysym == Qt::Key_Right)
+      if (keysym == Qt::Key_Right && ss->cx < ss->vi->xsize - 1)
         ss->cx += 1.;
-      if (keysym == Qt::Key_Up)
+      if (keysym == Qt::Key_Up && ss->cy < ss->vi->ysize - 1)
         ss->cy += 1.;
-      if (keysym == Qt::Key_Prior)
+      if (keysym == Qt::Key_Prior && ss->cz < ss->vi->zsize - 1)
         ss->cz += 1.;
-      if (keysym == Qt::Key_Next)
+      if (keysym == Qt::Key_Next && ss->cz > 0.)
         ss->cz -= 1.;
       dodraw = 1;
       break;
@@ -2239,6 +2239,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.22  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.21  2003/12/18 22:50:25  mast
 Implemented movieing and auot-snapshotting
 
