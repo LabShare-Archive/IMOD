@@ -317,7 +317,7 @@ Length Type         Description
 1  uchar mat1       Fill color red.
 1  uchar mat1b1     Fill color green.
 1  uchar mat1b2     Fill color blue.
-1  uchar mat1b3     Unused.
+1  uchar mat1b3     Sphere quality.
 4  uint  mat2       Set to 0, use as flags.  Unused.
 1  uchar mat3       Black level for showing normal magnitudes in mesh.
 1  uchar mat3b1     White level for showing normal magnitudes in mesh.
@@ -362,6 +362,7 @@ Length Type     Name    Description
                         Bit 2 on : Depth cue - draw with depth cue
                         Bit 3 on : Wireframe - draw wireframes, not surfaces
                         Bit 7 on : Draw lower resolution meshes
+                        Bits 8,9,10 : Global point quality
 32    char      label   ??
 -------------------------------------------------------------------
 4     float     dcstart Fog starting distance
@@ -397,7 +398,7 @@ Currently there are 67 bytes per object view, as follows:
 1     uchar 	mat1         Fill color red.
 1     uchar 	mat1b1       Fill color green.
 1     uchar 	mat1b2       Fill color blue.
-1     uchar 	mat1b3       Unused.
+1     uchar 	mat1b3       Sphere quality.
 4     uint  	mat2         Set to 0, use as flags.  Unused.
 1     uchar 	mat3         Black level for showing normal magnitudes in mesh.
 1     uchar 	mat3b1       White level for showing normal magnitudes in mesh.
