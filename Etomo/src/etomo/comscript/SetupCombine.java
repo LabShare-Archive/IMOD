@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/12 23:23:58  rickg
+ * <p> Explicitly call tcsh -ec for windows
+ * <p>
  * <p> Revision 2.5  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -76,7 +79,7 @@ public class SetupCombine {
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
-    setupcombine = new SystemProgram("tcsh -ec setupcombine");
+    setupcombine = new SystemProgram("tcsh -fc setupcombine");
 
     String[] tempStdInput = new String[15];
 
