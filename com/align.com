@@ -1,70 +1,84 @@
 # THIS IS A COMMAND FILE TO RUN TILTALIGN
 #
-# THE MOST COMMON ENTRIES TO CHANGE ARE DESCRIBED IN CAPITAL LETTERS
+####CreatedVersion#### 3.4.17
 #
-####CreatedVersion#### 3.4.4
+# To exclude views, add a line "ExcludeList view_list" with the list of views
 #
-$tiltalign
-# next line, name of fiducial model file
-g5a.fid
-# next line, name of image file, or blank line followed by NX,NY/
-g5a.st
-#1024,1024/	size and origin information; comment out if use image file
-# next line, filename for model output of X-Y-Z coordinates, or
-# a name containing ".res" for text output of residuals, 
-# a name without a "." for both outputs, or blank for neither
-g5a
-# next line, filename for text output of X-Y-Z coordinates, blank for none
-g5afid.xyz
-# next line, filename for output of tilt angles, blank for none
-g5a.tlt
-# next line, filename for solution/transform output
-g5a.xf
-1	-1 solutions only, 1 xforms only, or 0 both in output file
-3	0 do all views, 1 start, end, inc, 2 list to include, 3 list to exclude
+# To specify sets of views to be grouped separately in automapping, add a line
+# "SeparateGroup view_list" with the list of views, one line per group
 #
-# SPECIFY LIST OF VIEWS TO EXCLUDE ON THE FOLLOWING LINE OR LEAVE EMPTY
+$tiltalign -StandardInput
+ModelFile	g5a.fid
+ImageFile	g5a.st
+#ImageSizeXandY	1024,1024
+OutputModelFile	g5a.3dmod
+OutputResidualFile	g5a.resid
+OutputFidXYZFile	g5afid.xyz
+OutputTiltFile	g5a.tlt
+OutputTransformFile	g5a.xf
+OutputZFactorFile	g5a.zfac
+#ExcludeList
+RotationAngle	0.0
+FirstTiltAngle	-60.
+TiltIncrement	1.5
 #
-	!list of views to exclude
-0.0	Initial rotation angle (90 horizontal)
-0	0 to vary all rotations, or # of view to fix at initial angle
+# ADD a recommended tilt angle change to the existing AngleOffset value
 #
-# SPECIFY VIEWS TO BE GROUPED SEPARATELY ON NEXT TWO LINES
+AngleOffset	0.
+RotOption	1
+RotDefaultGrouping	5
 #
-0	# of separate sets for automapping
-#	!list of reshoots
-1	-1 to enter all tilts, 1 to specify starting & increment, 0 from file
--60,1.5	start and increment if 1
+# TiltOption 0 fixes tilts, 2 solves for all tilt angles; change to 5 to solve
+# for fewer tilts by grouping views by the amount in TiltDefaultGrouping
 #
-# *ADD* A RECOMMENDED TILT ANGLE CHANGE TO THE NUMBER ON THE NEXT LINE
+TiltOption	2
+TiltDefaultGrouping	5
+MagReferenceView	1
+MagOption	1
+MagDefaultGrouping	4
 #
-0	ANGLE OFFSET; AMOUNT TO ADD TO ALL ANGLES (DEGREES)
+# To solve for distortion, change both XStretchOption and SkewOption to 3;
+# to solve for skew only leave XStretchOption at 0
 #
-# ON THE NEXT LINE, 2 SOLVES FOR A TILT ANGLE FOR EACH VIEW
-# TO SOLVE FOR FEWER TILTS BY GROUPING VIEWS, CHANGE 2 TO 5 AND
-# UNCOMMENT THE LINE AFTER THAT
+XStretchOption	0
+SkewOption	0
+XStretchDefaultGrouping	7
+SkewDefaultGrouping	11
+# 
+# Criterion # of S.D's above mean residual to report (- for local mean)
 #
-2	0 fixed, 1/2/3 all vary but specified/minimum/both, 4 other, 5 automap
-#5,0	GROUP SIZE
-1	# of reference view with mag fixed at 1.0, or / for default
-1	0 fix all mags, 1 all independent, 2 specify mapping of mags, 3 automap
-0	0 for no compression variables, or # of view to fix at no compression
+ResidualReportCriterion	3.0
+SurfacesToAnalyze	2
+MetroFactor	.25
+MaximumCycles	1000
 #
-# TO SOLVE FOR DISTORTION, CHANGE 0 TO 2 ON NEXT LINE,
-# UNCOMMENT THE 4 LINES AFTER THAT
+# ADD a recommended amount to shift up to the existing AxisZShift value
 #
-0	0 no distortion, 1 map x-stretch and skew same, 2 map differently
-#3	1 all independent, 2 specify mapping, 3 automap (distortion/X-stretch)
-#7,0	default group size, # of separate ranges
-#3	1 all independent, 2 specify mapping, 3 automap (skew if different)
-#11,0	default group size, # of separate ranges
+AxisZShift	0.
 #
-3.	CRITERION # OF S.D.S ABOVE MEAN RESIDUAL TO REPORT (- FOR LOCAL MEAN)
-2	0 no surface analysis, 1 or 2 for analysis of 1 or 2 surfaces
-.25,1000 metro factor, limit on # of cycles
+# Set to 1 to do local alignments
 #
-# *ADD* A RECOMMENDED AMOUNT TO SHIFT UP TO THE NUMBER ON THE NEXT LINE
+LocalAlignments	0
+OutputLocalFile	g5alocal.xf
 #
-0	AMOUNT TO MOVE TILT AXIS IN Z, OR 1000 to move midpoint 
-0	Amount to move tilt axis in X from center
-0	0 TO EXIT, OR 1 TO DO LOCAL ALIGNMENTS
+# Number of local patches to solve for in X and Y
+#
+NumberOfLocalPatchesXandY	5,5
+MinSizeOrOverlapXandY	0.5,0.5
+#
+# Minimum fiducials total and on one surface if two surfaces
+#
+MinFidsTotalAndEachSurface	8,3
+FixXYZCoordinates
+LocalOutputOptions	1,0,1
+LocalRotOption	3
+LocalRotDefaultGrouping	6
+LocalTiltOption	5
+LocalTiltDefaultGrouping	6
+LocalMagReferenceView	1
+LocalMagOption	3
+LocalMagDefaultGrouping	7
+LocalXStretchOption	3
+LocalXStretchDefaultGrouping	7
+LocalSkewOption	3
+LocalSkewDefaultGrouping	11
