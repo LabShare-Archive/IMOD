@@ -8,7 +8,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.*;
 import java.net.URL;
 
-//FIXME the scrollbar does not work in this window when it is opened in a modal
+//TODO the scrollbar does not work in this window when it is opened in a modal
 //dialog box
 
 /**
@@ -24,6 +24,9 @@ import java.net.URL;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -52,7 +55,8 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
     editorPane.setEditorKit(new HTMLEditorKit());
     mainPanel = getContentPane();
     mainPanel.add(scrollPane, BorderLayout.CENTER);
-    //  FIXME setable it properties
+    //  TODO should be setable in properties, need to get from app manager some
+    // how
     setSize(625, 800);
     editorPane.addHyperlinkListener(this);
   }

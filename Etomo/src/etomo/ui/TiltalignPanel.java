@@ -34,6 +34,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -125,7 +128,7 @@ public class TiltalignPanel implements ContextMenu {
 
   private AxisID axisID;
 
-  //  FIXME need recomended default for all sub groups see (align.com)
+  //  TODO need recomended default for all sub groups see (align.com)
   private final int defaultTiltAngleType = 5;
   private final int defaultTiltAngleGroupSize = 10;
   private final int defaultMagnificationType = 3;
@@ -365,7 +368,7 @@ public class TiltalignPanel implements ContextMenu {
     }
 
     //  Magnification solution parameters
-    //  FIXME: what to do if the magnification type is not one of the cases
+    //  TODO what to do if the magnification type is not one of the cases
     //  below
     ltfMagnificationReferenceView.setText(
       params.getMagnificationSolutionReferenceView());
@@ -426,7 +429,7 @@ public class TiltalignPanel implements ContextMenu {
     }
 
     // Local rotation solution parameters
-    // FIXME: this is brittle since we are mapping a numeric value to a boolean
+    // NOTE this is brittle since we are mapping a numeric value to a boolean
     // at David's request
     solutionType = params.getLocalRotationSolutionType();
     if (solutionType == 0) {
@@ -642,7 +645,7 @@ public class TiltalignPanel implements ContextMenu {
 
       //  Get the local alignment parameters
       // Rotation pane
-      //  FIXME this only works if 0 and 5 are valid local tilt angle codes
+      // NOTE this only works if 0 and 5 are valid local tilt angle codes
       type = 0;
       if (chkLocalRotation.isSelected())
         type = defaultLocalRotationType;

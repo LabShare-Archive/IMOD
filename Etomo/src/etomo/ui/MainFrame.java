@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/01/29 15:18:19  rickg
+ * <p> Added combine state setter
+ * <p>
  * <p> Revision 2.2  2003/01/28 00:15:43  rickg
  * <p> Main window now remembers its size
  * <p>
@@ -396,9 +399,12 @@ public class MainFrame extends JFrame implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
-  //  Update the state of all the process control panels
+  /**
+   * Update the state of all the process control panels
+   * @param processTrack the process track object containing the state to be
+   * displayed
+   */
   public void updateAllProcessingStates(ProcessTrack processTrack) {
-    // FIXME should this throw an exception?
     if (axisPanelA == null) {
       return;
     }
@@ -494,7 +500,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     axisPanelA.setPostProcessingState(state);
   }
 
-  //  FIXME: Need a way to repaint the existing font
+  //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
     this.repaint();
