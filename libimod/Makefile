@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/12/30 17:28:54  mast
+#  changes for windows DLLs
+#
 #  Revision 3.5  2003/11/04 17:18:35  mast
 #  Add dependencies on b3dutil.h
 #
@@ -35,7 +38,7 @@ include ../configure
 
 LIBI   = libimod.$(DLLEXT)
 O     = $(OBJEXT)
-
+CFLAGS = $(LIBCFLAGS)
 
 IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\

@@ -5,6 +5,8 @@ include ../configure
 
 O     = $(OBJEXT)
 LIB      = libdiaqt.$(LIBEXT)
+CXXFLAGS = $(LIBCFLAGS)
+
 OBJS     = arrowbutton.$(O) dialog_frame.$(O) multislider.$(O) \
  colorselector.$(O) floatspinbox.$(O) dia_qtutils.$(O) tooledit.$(O) \
  moc_arrowbutton.$(O) moc_dialog_frame.$(O) moc_multislider.$(O) \
