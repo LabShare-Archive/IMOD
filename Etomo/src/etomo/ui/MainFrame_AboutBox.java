@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/05 16:39:35  rickg
+ * <p> Get version from imodinfo instead of 3dmod
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -54,7 +57,6 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -144,12 +146,7 @@ public class MainFrame_AboutBox extends JDialog {
 	 * Run 3dmod -h to version and copyright information.
 	 */
 	private void getImodVersion() {
-		String imodBinPath =
-			ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		String command = imodBinPath + "imodinfo";
+		String command = ApplicationManager.getIMODBinPath() + "imodinfo";
 		SystemProgram threeDmod_h = new SystemProgram(command);
 
 		threeDmod_h.run();

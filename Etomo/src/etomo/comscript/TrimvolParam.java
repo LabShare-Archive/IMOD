@@ -1,12 +1,3 @@
-package etomo.comscript;
-
-import java.io.File;
-import java.io.IOException;
-
-import etomo.ApplicationManager;
-import etomo.util.MRCHeader;
-import etomo.util.InvalidParameterException;
-
 /**
  * <p>Description: </p>
  * 
@@ -20,6 +11,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.12  2003/11/06 21:28:51  sueh
  * <p> bug307 setDefaultRange(String): Set sectionScaleMin to 1/3
  * <p> y or z max and sectionScaleMax to 2/3 y or z max.
@@ -58,9 +52,17 @@ import etomo.util.InvalidParameterException;
  * <p> In progress
  * <p> </p>
  */
+package etomo.comscript;
+
+import java.io.IOException;
+
+import etomo.ApplicationManager;
+import etomo.util.MRCHeader;
+import etomo.util.InvalidParameterException;
+
+
 public class TrimvolParam {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private int xMin = -1;
   private int xMax = -1;
@@ -99,16 +101,11 @@ public class TrimvolParam {
    * Get the command string specified by the current state
    */
   public String getCommandString() {
-    String imodBinPath =
-      ApplicationManager.getIMODDirectory().getAbsolutePath()
-        + File.separator
-        + "bin"
-        + File.separator;
-		// Do not use the -e flag for tcsh since David's scripts handle the failure 
-		// of commands and then report appropriately.  The exception to this is the
-		// com scripts which require the -e flag.  RJG: 2003-11-06  
-    StringBuffer commandLine =
-      new StringBuffer("tcsh -f " + imodBinPath + "trimvol -P ");
+    // Do not use the -e flag for tcsh since David's scripts handle the failure 
+    // of commands and then report appropriately.  The exception to this is the
+    // com scripts which require the -e flag.  RJG: 2003-11-06  
+    StringBuffer commandLine = new StringBuffer("tcsh -f "
+        + ApplicationManager.getIMODBinPath() + "trimvol -P ");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
@@ -373,7 +370,7 @@ public class TrimvolParam {
    * @param fileName The MRC iamge stack file name used to set the range
    */
   public void setDefaultRange(String fileName)
-    throws InvalidParameterException, IOException {
+      throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = new MRCHeader(fileName);
