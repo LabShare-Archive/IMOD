@@ -42,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/20 21:32:54  rickg
+ * <p> Added scan header button
+ * <p>
  * <p> Revision 2.5  2003/05/12 01:32:25  rickg
  * <p> Working directory calculation works both unix and windows now
  * <p>
@@ -302,6 +305,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDataType.add(pnlSectionType);
 
     //  Pixel & Alignment panel
+    ltfPixelSize.setColumns(5);
+    ltfFiducialDiameter.setColumns(5);
+    ltfImageRotation.setColumns(5);
     pnlPixelAndLocalAlign.setLayout(
       new BoxLayout(pnlPixelAndLocalAlign, BoxLayout.X_AXIS));
     pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
