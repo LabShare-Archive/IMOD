@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.19  2003/09/08 05:45:39  rickg
+ * <p> Rename single axis full volume dataset
+ * <p>
  * <p> Revision 2.18  2003/09/02 21:58:08  rickg
  * <p> Changed naming structure to match trial tomogram structure
  * <p>
@@ -376,7 +379,7 @@ public class ImodManager {
   public void openFineAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    ImodProcess fineAligned = selectCoarseAligned(axisID);
+    ImodProcess fineAligned = selectFineAligned(axisID);
     fineAligned.open();
   }
 
