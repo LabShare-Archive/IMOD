@@ -5,12 +5,14 @@ import java.util.*;
 
 /**
  * <p>Description: SystemProgram provides a class to execute programs under the
- * host operating system.  The class provides access to stdin, stdout and stderr
- * streams and implements the Runnable interface so that it can be threaded.</p>
+ * host operating system.  The class provides access to stdin, stdout and
+ * stderr streams and implements the Runnable interface so that it can be
+ *  threaded.</p>
  *
  * <p> If the working directory is not explicitly set then the current working
  * directory for the command is set to the system property "user.dir"
- * <p>Copyright: Copyright (c) 2002</p>
+ * 
+ * <p>Copyright: Copyright (c) 2002</p
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -20,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/09/19 21:45:19  rickg
+ * <p> Removed starting process stdout message
+ * <p>
  * <p> Revision 1.2  2002/09/17 23:32:07  rickg
  * <p> Description update
  * <p>
@@ -30,6 +35,8 @@ import java.util.*;
 public class SystemProgram implements Runnable {
   public static final String rcsid =
     "$Id$";
+
+  private boolean debug = false;
 
   /**
    * The exit value of the command
@@ -105,10 +112,28 @@ public class SystemProgram implements Runnable {
    */
   public void run() {
 
+    if (debug) {
+      System.err.println("");
+      System.err.println("command string: " + command);
+      System.err.print("working directory: ");
+      if (workingDirectory == null) {
+        System.err.println("null");
+        System.err.println(
+          "using current user.dir " + System.getProperty("user.dir"));
+      }
+      else {
+        System.err.println(workingDirectory.getAbsoluteFile());
+      }
+    }
+
     //  Setup the Process object and run the command
     Process process = null;
     try {
+      if (debug)
+        System.err.print("Exec'ing process...");
+
       if (workingDirectory == null) {
+
         File currentUserDirectory = new File(System.getProperty("user.dir"));
         process =
           Runtime.getRuntime().exec(command, null, currentUserDirectory);
@@ -117,19 +142,22 @@ public class SystemProgram implements Runnable {
         process = Runtime.getRuntime().exec(command, null, workingDirectory);
       }
 
+      if (debug)
+        System.err.println("done");
+
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
-      OutputStream cmdIn = process.getOutputStream();
-      OutputStreamWriter cmdInWriter = new OutputStreamWriter(cmdIn);
-      BufferedWriter cmdInBuffer = new BufferedWriter(cmdInWriter);
+      OutputStream cmdInputStream = process.getOutputStream();
+      BufferedWriter cmdInBuffer =
+        new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
-      InputStream cmdOut = process.getInputStream();
-      InputStreamReader cmdOutReader = new InputStreamReader(cmdOut);
-      BufferedReader cmdOutBuffer = new BufferedReader(cmdOutReader);
+      InputStream cmdOutputStream = process.getInputStream();
+      BufferedReader cmdOutputBuffer =
+        new BufferedReader(new InputStreamReader(cmdOutputStream));
 
-      InputStream cmdErr = process.getErrorStream();
-      InputStreamReader cmdErrReader = new InputStreamReader(cmdErr);
-      BufferedReader cmdErrBuffer = new BufferedReader(cmdErrReader);
+      InputStream cmdErrorStream = process.getErrorStream();
+      BufferedReader cmdErrorBuffer =
+        new BufferedReader(new InputStreamReader(cmdErrorStream));
 
       //  Write out to the program's stdin pipe each line of the
       //  stdInput array if it is not null
@@ -140,32 +168,97 @@ public class SystemProgram implements Runnable {
           cmdInBuffer.flush();
         }
       }
+      cmdInputStream.close();
+
+      if (debug) {
+        if (stdInput != null) {
+          System.err.println("Wrote to process stdin:");
+          System.err.println(
+            "------------------------------------------------------------");
+          for (int i = 0; i < stdInput.length; i++) {
+            System.err.println(stdInput[i]);
+          }
+          System.err.println("");
+        }
+        else {
+          System.err.println("No input for process stdin");
+        }
+      }
+
+      //  Wait for the process to exit
+      //  why can we read the stdout and stderr above before this completes
+      if (debug)
+        System.err.print("Waiting for process to end...");
+
+      process.waitFor();
+
+      if (debug)
+        System.err.println("done");
+
+      exitValue = process.exitValue();
+
+      if (debug)
+        System.err.println("Exit value: " + String.valueOf(exitValue));
 
       //  Read in the command's stdout and stderr
       String line;
-      while ((line = cmdOutBuffer.readLine()) != null)
+      int count = 0;
+
+      if (debug)
+        System.err.print("Reading from process stdout: ");
+
+      while ((line = cmdOutputBuffer.readLine()) != null) {
         stdOutput.add(line);
+        count++;
+      }
+      cmdOutputStream.close();
 
-      while ((line = cmdErrBuffer.readLine()) != null)
+      if (debug)
+        System.err.println(String.valueOf(count) + " lines");
+
+      if (debug)
+        System.err.print("Reading from process stderr: ");
+
+      count = 0;
+      while ((line = cmdErrorBuffer.readLine()) != null) {
         stdError.add(line);
-    }
+        count++;
+      }
+      cmdErrorStream.close();
 
+      if (debug)
+        System.err.println(String.valueOf(count) + " lines");
+
+    }
     //  FIXME need better error handling, what should be the state if an
     // exception is thrown i.e. the exitValue
+
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
 
-    try {
-      //  Wait for the process to exit
-      //  why can we read the stdout and stderr above before this completes
-      process.waitFor();
-      exitValue = process.exitValue();
-    }
     catch (InterruptedException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
+    }
+
+    if (debug) {
+      System.err.println("Read from process stdout:");
+      System.err.println(
+        "------------------------------------------------------------");
+      for (int i = 0; i < stdOutput.size(); i++) {
+        System.err.println(stdOutput.get(i));
+      }
+      System.err.println("");
+
+      System.err.println("Read from process stderr:");
+      System.err.println(
+        "------------------------------------------------------------");
+      for (int i = 0; i < stdError.size(); i++) {
+        System.err.println(stdInput[i]);
+      }
+      System.err.println("");
     }
   }
 
@@ -188,5 +281,9 @@ public class SystemProgram implements Runnable {
 
   public String getExceptionMessage() {
     return exceptionMessage;
+  }
+
+  public void enableDebug(boolean state) {
+    debug = state;
   }
 }
