@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:50:42  mast
+    Changed the way section usage in the cache is kept track of and added
+    logic for cache filling
+
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -457,10 +461,16 @@ int ivwLoadMrc(ImodView *vi)
      int t;
      struct MRCheader savehdr;
 
+     /* DNM 1/25/02: move the setting of these variable up from the bottom
+	so that movie controller is OK if it's opened before loading is done,
+	also simplify print statement */
+     vi->xsize  = xsize;
+     vi->ysize  = ysize;
+     vi->zsize  = zsize;
+     vi->xysize = xsize * ysize;
+
      sprintf(ivwStatstring, "Image size %d x %d, %d sections.\n",
-	     vi->li->xmax - vi->li->xmin + 1,
-	     vi->li->ymax - vi->li->ymin + 1,
-	     vi->li->zmax - vi->li->zmin + 1);
+	     xsize, ysize, zsize);
 
      /* Get a cache size set properly if piece list or -C entry was made */
      if (vi->li->plist || vi->vmSize)
@@ -520,11 +530,6 @@ int ivwLoadMrc(ImodView *vi)
 	       return(-1);
 	  }
      }
-
-     vi->xsize  = xsize;
-     vi->ysize  = ysize;
-     vi->zsize  = zsize;
-     vi->xysize = xsize * ysize;
 
      return(0);
 }
