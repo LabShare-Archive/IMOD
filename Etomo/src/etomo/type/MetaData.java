@@ -5,7 +5,6 @@ import java.util.Properties;
 
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
-import etomo.comscript.TrimvolParam;
 
 /**
  * <p>Description: </p>
@@ -20,6 +19,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/11/19 23:35:45  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.7.4.1  2004/09/29 19:30:10  sueh
  * <p> bug# 520 Moved Storable to BaseMetaData.  Moved store() to
  * <p> ConstMetaData and BaseMetaData.  Moved revision and axisType to
@@ -231,10 +233,6 @@ public class MetaData extends ConstMetaData {
   public void setCombineParams(CombineParams combine) {
     combineParams = combine;
   }
-  
-  public void setTrimvolParam(TrimvolParam trimvol) {
-    trimvolParam = trimvol;
-  }
 
   public void setFiducialessAlignment(boolean state) {
     fiducialessAlignment = state;
@@ -321,5 +319,6 @@ public class MetaData extends ConstMetaData {
         props.getProperty(group + "WholeTomogramSample", "false"))
         .booleanValue();
     trimvolParam.load(props, group);
+    squeezevolParam.load(props, group);
   }
 }

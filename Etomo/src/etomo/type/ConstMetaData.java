@@ -6,6 +6,7 @@ import java.util.Properties;
 import etomo.EtomoDirector;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 
@@ -22,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/11/19 23:33:52  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.10.4.4  2004/11/19 00:15:59  sueh
  * <p> bug# 520 Changed the file extension to contain the period.
  * <p>
@@ -167,6 +171,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected CombineParams combineParams = new CombineParams();
   protected TrimvolParam trimvolParam = new TrimvolParam();
+  protected SqueezevolParam squeezevolParam = new SqueezevolParam();
 
   protected int transferfidNumberViews = 5;
 
@@ -225,10 +230,15 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + "WholeTomogramSample", String
         .valueOf(wholeTomogramSample));
     trimvolParam.store(props, group);
+    squeezevolParam.store(props, group);
   }
 
   public TrimvolParam getTrimvolParam() {
     return trimvolParam;
+  }
+  
+  public SqueezevolParam getSqueezevolParam() {
+    return squeezevolParam;
   }
   
   public void initializeTransferfid(TransferfidParam param) {
@@ -614,6 +624,9 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     }
     if (!trimvolParam.equals(cmd.getTrimvolParam())) {
+      return false;
+    }
+    if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
       return false;
     }
 
