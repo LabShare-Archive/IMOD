@@ -303,8 +303,11 @@ Float is the only output mode supported.
 Input sizes must fit fft dimensions.
 .TP
 .B diffusion
-Apply 2D anisotropic diffusion to individual slices, using the Perona
-and Malik diffusion technique.  The number of iterations is specified with the
+Apply 2D anisotropic diffusion to individual slices, using the simple Perona
+and Malik diffusion technique.  The gradients in this method are simply
+pixel-to-pixel differences.  The ratio between these pixel-to-pixel
+differences and the threshold K determines how much diffusion is allowed
+between pixels.  The number of iterations is specified with the
 .B -n
 option (default 5).  The edge stopping function is selected with the
 .B -cc
@@ -460,7 +463,7 @@ well-implemented and were abandoned.
 .nf
 Jim Kremer 
 David Mastronarde
-Alejandro Cantarero programmed the anisotropic diffusion.
+The anisotropic diffusion is based on a program by Alejandro Cantarero 
 .fi
 
 .SH SEE ALSO

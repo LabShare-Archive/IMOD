@@ -76,9 +76,14 @@ same as iterative filtering in 3D, because only the central slice has been
 filtered.
 <P>
 <H4>Anisotropic Diffusion</H4>
-This panel provides parameters for running an anisotropic diffusion algorithm
-programmed by Alejandro Canterero, using the Perona and Malik filtering
-method.  The <B>Edge Stopping Function</B> radio buttons allow you to choose
+This panel provides parameters for running a simple anisotropic diffusion
+algorithm using the Perona and Malik filtering
+method, based on a program by Alejandro Canterero.  The gradients in this
+method are simply pixel-to-pixel differences.  The ratio between these
+pixel-to-pixel differences and the threshold <B>K</B> determines how much
+diffusion is allowed between pixels.
+<P>
+The <B>Edge Stopping Function</B> radio buttons allow you to choose
 between the <B>Rational edge</B> stopping function and the <B>Tukey
 biweight</B> stopping function, which correspond to options <B>-cc 2</B> and
 <B>-cc 3</B>, respectively, in <A HREF = "../man/clip.html">Clip</A>.
