@@ -8,11 +8,14 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2003/05/08 20:28:03  mast
+#  Initial creation
+#
 
 #
 # Get the subdirectory to copy the libraries to, exit if not defined
 #
-set qtlibdir = `sed -n '/QTLIBINSTDIR/s/^.*= *//p' configure`
+set qtlibdir = `sed -n '/QTINSTLIBDIR/s/^.*= *//p' configure`
 
 if ($qtlibdir == "") exit 0
 
