@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2003/10/24 02:04:25  mast
+#  Add filters for Windows line endings, change tmpdir usage
+#
 #  Revision 3.12  2003/06/20 20:09:51  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -52,7 +55,9 @@
 #
 
 # Filter for tiltxcorr
-set xcfilter = "0.03,0.05,0,0.25"
+set sigma1 = 0.03
+set sigma2 = 0.05
+set radius2 = 0.25
 
 # Number of wins more in one rotation direction than the other that will
 # make it abandon the other direction
@@ -429,20 +434,7 @@ while ($bsecind <= $nviews)
 	    # extract the rotated section from A
 	    #
 
-newstack  >! $tmperrlog <<EOF
-1
-$imagea
-$asec
-1
-$tmpimga
-$nxb,$nyb
-/
-0
-1
-$tmprot90
-0
-0
-EOF
+            newstack -sec $asec -size $nxb,$nyb -xf $tmprot90 -use 0 $imagea $tmpimga >! $tmperrlog
 	    if ($status) then
 		grep ERROR $tmperrlog
 		echo "ERROR: Transferfid - extracting rotated section from $AA"
@@ -451,20 +443,7 @@ EOF
 	    #
 	    # Stack this rotated section on top of the sec from b
 	    #
-newstack >! $tmperrlog <<EOF
-2
-$imageb
-$bsec
-$tmpimga
-0
-1
-$tmpstack
-/
-/
-0
-0
-0
-EOF
+            newstack -sec $bsec -sec 0 $imageb $tmpimga $tmpstack >! $tmperrlog
 	    if ($status) then
 		grep ERROR $tmperrlog
 		echo "ERROR: Transferfid - Stacking rotated $AA on $BB"
@@ -494,20 +473,7 @@ EOF
 		#
 		# Run tiltxcorr
 		#
-tiltxcorr  >! $tmperrlog <<EOF
-$tmpstack
-
-$tmpxcxf
-1
-0,0
-0
-$xcfilter
-0
-/
-/
-/
-/
-EOF
+tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstack $tmpxcxf >! $tmperrlog
 		if ($status) then
 		    grep ERROR $tmperrlog
 		    echo "ERROR: Transferfid - Running Tiltxcorr"
@@ -575,11 +541,7 @@ EOF
 		@ diffmin = $diff
 		@ asecbest = $asec
 		@ bsecbest = $bsec
-xfproduct >! $tmperrlog <<EOF
-$tmprot90
-$tmpxf2
-$tmpminxf
-EOF
+                xfproduct $tmprot90 $tmpxf2 $tmpminxf >! $tmperrlog
 		if ($status) then
 		    grep ERROR $tmperrlog
 		    echo "ERROR: Transferfid - Running Xfproduct"
@@ -617,22 +579,7 @@ onintr clean
 #
 echo "1 0 0 1 0 0" >! $tmptwoxf
 cat $tmpminxf >> $tmptwoxf
-newstack >! $tmperrlog <<EOF
-2
-$imageb
-$bsecbest
-$imagea
-$asecbest
-1
-$tmpstack
-/
-/
-0
-1
-$tmptwoxf
-0,1
-2
-EOF
+newstack -sec $bsecbest -sec $asecbest -xf $tmptwoxf -use 0,1 -float 2 $imageb $imagea $tmpstack >! $tmperrlog
 if ($status) then
     grep ERROR $tmperrlog
     echo "ERROR: Transferfid - Stacking two best views"
