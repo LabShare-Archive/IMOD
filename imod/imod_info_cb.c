@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2002/09/27 19:54:14  rickg
+Reverted calls to LoadModel to match changes to imod_io
+Removed or commented out unreferenced variables.
+
 Revision 3.2  2002/09/13 21:08:42  mast
 Changed call to LoadModel to add NULL filename argument
 
@@ -510,7 +514,9 @@ void imod_info_setxyz(void)
     XtVaSetValues(Imod_widget_z, XmNlabelString, str, NULL);
     XmStringFree(str);
   }
-  set_pixelview(App->cvi);
+
+  /* DNM 11/24/02: this is now called from control list */
+  /* set_pixelview(App->cvi); */
   return;
 }
 
