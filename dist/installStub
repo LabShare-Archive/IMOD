@@ -43,7 +43,7 @@ while ($#argv > 0)
 end
 
 
-set sysfiles = ""
+set sysfiles = ()
 
 # DUPLICATION ALERT: THE FOLLOWING IS COPIED FROM installIMOD
 #
@@ -86,13 +86,13 @@ if ($extract == 0) then
     echo "This script will install IMOD in $installdir and rename"
     echo "any previous version, or remove another copy of this version."
     echo ""
-    if ($sysfiles == "") then
+    if ($#sysfiles == 0) then
         echo "It will copy $scripts[1] and $scripts[2] to /etc/profile.d"
     else
         echo -n "It will edit $sysfiles[1]"
         if ($#sysfiles == 2) echo -n " and $sysfiles[2]"
-        echo " to source a startup script in $installdir/IMOD"
-        echo " unless they already appear to do so"
+        echo " to source a startup script"
+        echo " in $installdir/IMOD unless they already appear to do so"
     endif
     echo ""
     echo "You can add the option -extract to just extract the tar file and not install"
@@ -151,6 +151,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/07/04 13:47:31  mast
+#  Added details for user and made it work with spaces in directory path
+#
 #  Revision 3.5  2004/04/24 18:07:21  mast
 #  Even better awk command stops when it finds end
 #
