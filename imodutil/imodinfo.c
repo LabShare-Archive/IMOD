@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
 Revision 3.9  2004/09/28 22:20:31  mast
 Overhauled to add mesh volume computation that takes account of spacing
 between connected contours; to handle multiple clipping planes; and
@@ -188,7 +191,6 @@ int main( int argc, char *argv[])
   int nlist;
   double dist;
   double tsa, tvol;
-  char *afname = NULL;
   int errcode;
   Ipoint ptmin = {-1.e30, -1.e30, -1.e30};
   Ipoint ptmax = {1.e30, 1.e30, 1.e30};
@@ -364,11 +366,8 @@ int main( int argc, char *argv[])
     switch(mode){
 
     case MINFO_ASCII:
-      if (afname){
-        model.file = fopen(afname, "w");
-      }else{
-        model.file = stdout;
-      }
+      /* DNM 12/7/04: fixed to just assign fout to file */
+      model.file = fout;
       imodWriteAscii(&model);
       break;
 
