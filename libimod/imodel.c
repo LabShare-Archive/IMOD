@@ -491,7 +491,7 @@ int imodNewObject(Imod *mod)
  * is packed down and reallocated or freed if there are no more objects.
  * Returns -1 if there is an error.
  */
-void   imodDeleteObject(Imod *mod, int index)
+int imodDeleteObject(Imod *mod, int index)
 {
 
   int i;
@@ -1487,6 +1487,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.16  2005/03/20 20:01:13  mast
+Fixed a mod/imod problem from copying code
+
 Revision 3.15  2005/03/20 19:56:43  mast
 Documenting and eliminating duplicate functions
 

@@ -485,7 +485,7 @@ extern "C" {
   Imod *imodNew       (void);
   void  imodDelete(Imod *imod);
   int   imodNewObject (Imod *imod);
-  void  imodDeleteObject(Imod *imod, int index);
+  int   imodDeleteObject(Imod *imod, int index);
   int   imodNextObject(Imod *imod);
   int   imodPrevObject(Imod *imod);
   int   imodMoveObject(Imod *imod, int obOld, int obNew);
@@ -689,6 +689,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.22  2005/03/20 19:55:48  mast
+    Eliminating duplicate functions
+
     Revision 3.21  2004/12/06 22:00:08  mast
     Removed DelPoint
 
