@@ -134,10 +134,9 @@ void zapHelp()
      "I Hot Key below).\n"
      "\tIf multiple image files have been loaded into 3dmod, three "
      "additional controls appear.  The Time Lock button will prevent "
-     "changes in other windows  from changing the time (image file) "
+     "changes in other windows from changing the time (image file) "
      "displayed in this Zap window.  The left and right arrows will "
-     "step backward and forward in time.\n"
-     "\tPress the space bar to hide or show the tool bar.\n\n",
+     "step backward and forward in time.\n\n",
      "---------------------------------------------------------------\n",
      "\nHot Keys special to the Zap window\n\n"
      "\ti toggles the modeling direction.\n",
@@ -2629,6 +2628,11 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.20  2003/05/03 00:16:59  mast
+Fixed problem on connecting lines being drawn between non-contiguous points
+for wild contours; drawing non-wild contours separately shuld also speed
+them up.
+
 Revision 4.19  2003/04/25 03:28:33  mast
 Changes for name change to 3dmod
 
