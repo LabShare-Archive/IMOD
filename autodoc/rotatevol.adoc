@@ -64,6 +64,14 @@ tooltip =
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.
 
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
 [Field = usage]
 short = help
 long = usage

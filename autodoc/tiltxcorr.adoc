@@ -228,7 +228,7 @@ long = ParameterFile
 type = PF
 usage = Read parameter entries from file
 tooltip = 
-manpage = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
 
 [Field = usage]
 short = help
