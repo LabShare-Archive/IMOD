@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
@@ -26,6 +25,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/01 03:45:15  sueh
+* <p> bug# 520 Removed unnecessary member variable SystemProgram
+* <p> program.
+* <p>
 * <p> Revision 1.4  2004/11/24 23:03:47  sueh
 * <p> bug# 520 Add -P option to get the PID from finishjoin.
 * <p>

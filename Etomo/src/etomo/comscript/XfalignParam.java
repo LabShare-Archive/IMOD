@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 
@@ -23,6 +22,10 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/01 03:46:22  sueh
+* <p> bug# 520 Removed unnecessary member variable SystemProgram
+* <p> program.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:15:33  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
