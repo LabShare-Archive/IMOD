@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.84  2003/11/04 20:55:42  rickg
+ * <p> Bug #345 IMOD Diriectory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.83  2003/10/27 23:55:41  rickg
  * <p> Bug# 283 Added method to open the tomopitch log file
  * <p>
@@ -3650,6 +3653,7 @@ public class ApplicationManager {
 	 */
 	public void saveTestParamFile() {
 		try {
+      backupFile(paramFile);
 			ParameterStore paramStore = new ParameterStore(paramFile);
 			Storable[] storable = new Storable[2];
 			storable[0] = metaData;
@@ -4278,4 +4282,15 @@ public class ApplicationManager {
 			threadNameA = name;
 		}
 	}
+  
+  private void backupFile(File file) {
+    if (file.exists()) {
+      File backupFile = new File(file.getAbsolutePath() + "~");
+      if (!file.renameTo(backupFile)) {
+        System.err.println(
+          "Unable to backup file: " + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
+      }
+    }
+  }
+
 }
