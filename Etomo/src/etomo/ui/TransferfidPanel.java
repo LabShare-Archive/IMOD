@@ -1,9 +1,9 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Color;
 import javax.swing.*;
-import javax.swing.JCheckBox;
 import javax.swing.border.TitledBorder;
 
 import etomo.comscript.TransferfidParam;
@@ -46,7 +46,11 @@ public class TransferfidPanel {
       new TitledBorder(
         BorderFactory.createEtchedBorder(highlight, shadow),
         "Transferfid Parameters"));
+    chkRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfid.add(chkRunMidas);
+
+    //  Add a horizontal strut to keep the panel a minimum size    
+    panelTransferfid.add(Box.createHorizontalStrut(300));
     panelTransferfid.add(ltfCenterViewA.getContainer());
     panelTransferfid.add(ltfCenterViewB.getContainer());
 
@@ -62,6 +66,7 @@ public class TransferfidPanel {
     panelSearchDirection.add(rbSearchBoth);
     panelSearchDirection.add(rbSearchPlus90);
     panelSearchDirection.add(rbSearchMinus90);
+    panelSearchDirection.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfid.add(panelSearchDirection);
   }
 
@@ -78,7 +83,7 @@ public class TransferfidPanel {
     if (params.getCenterViewB() > 0) {
       ltfCenterViewB.setText(params.getCenterViewB());
     }
-    
+
     if (params.getSearchDirection() == 0) {
       rbSearchBoth.setSelected(true);
     }
@@ -102,26 +107,31 @@ public class TransferfidPanel {
     else {
       params.setCenterViewA(Integer.parseInt(ltfCenterViewA.getText()));
     }
-   if (ltfCenterViewB.getText().matches("^\\s*$")) {
+    if (ltfCenterViewB.getText().matches("^\\s*$")) {
       params.setCenterViewB(0);
     }
     else {
       params.setCenterViewB(Integer.parseInt(ltfCenterViewA.getText()));
     }
-    if(rbSearchBoth.isSelected()) {
+    if (rbSearchBoth.isSelected()) {
       params.setSearchDirection(0);
     }
-    if(rbSearchPlus90.isSelected()) {
+    if (rbSearchPlus90.isSelected()) {
       params.setSearchDirection(1);
     }
-    if(rbSearchMinus90.isSelected()) {
+    if (rbSearchMinus90.isSelected()) {
       params.setSearchDirection(-1);
     }
-    
+
   }
 
   public Container getContainer() {
     return panelTransferfid;
   }
 
+  public void setAdvanced(boolean isAdvanced) {
+    ltfCenterViewA.setVisible(isAdvanced);
+    ltfCenterViewB.setVisible(isAdvanced);
+    panelSearchDirection.setVisible(isAdvanced);
+  }
 }
