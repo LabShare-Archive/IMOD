@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/04/27 00:52:29  sueh
+ * <p> $bug# 427 adding update required parameter - vector of strings
+ * <p> $
  * <p> $Revision 1.3  2004/04/26 21:18:44  sueh
  * <p> $bug# 427 add updateParameterStrings() for Vectors
  * <p> $containing strings
@@ -93,7 +96,7 @@ public class ParamUtilities {
     if (key == null) {
       throw new NullPointerException();
     }
-    if (value != Double.NaN) {
+    if (!Double.isNaN(value)) {
       scriptCommand.setValue(key, Double.toString(value));
     }
     else {
