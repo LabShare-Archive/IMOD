@@ -153,8 +153,11 @@ void StartupForm::pfileChanged( const QString & pfile )
 void StartupForm::imageSelectClicked()
 {
     enableButtons(false);
+    // 5/30/04: need to check if this is still compatible to 3.0.5
     mImageFileList = QFileDialog::getOpenFileNames
-		     (QString::null, QString::null, 0, 0, 
+                     (mModvMode ? "Model files (*.*mod)" : 
+                      "MRC files (*.*st *.*ali *.*rec *.*mrc);;Tiff files (*.tif);;All files (*)",
+                      QString::null, 0, 0, 
 		      mModvMode ? "Select model file(s) to load" :
 		      "Select image file(s) to load");
     enableButtons(true);
@@ -172,18 +175,18 @@ void StartupForm::imageSelectClicked()
 
 void StartupForm::modelSelectClicked()
 {
+    char *filter[] = {"Model files (*.*mod *.fid)"};
     enableButtons(false);
-    mModelFile = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0,
-					      "Select model file to load");
+    mModelFile = diaOpenFileName(this, "Select model file to load", 1, filter);
     enableButtons(true);
     modelFileEdit->setText(mModelFile);
 }
 
 void StartupForm::pieceSelectClicked()
 {
+    char *filter[] = {"Piece list files (*.pl)"};
     enableButtons(false);
-    mPieceFile = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0,
-					      "Select piece list file to load");
+    mPieceFile = diaOpenFileName(this, "Select piece list file to load", 1, filter);
     enableButtons(true);
     pieceFileEdit->setText(mPieceFile);
 }

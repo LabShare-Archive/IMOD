@@ -1360,6 +1360,7 @@
     <include location="global" impldecl="in implementation">qfiledialog.h</include>
     <include location="global" impldecl="in implementation">string.h</include>
     <include location="local" impldecl="in implementation">imod.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
 <forwards>
