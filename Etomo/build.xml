@@ -1,0 +1,15 @@
+
+<project name="Etomo" default="compile" basedir=".">
+
+  <property name="appname" value="etomo"/>
+  <property name="classpath" value="/usr/local/junit/junit.jar"/>
+
+  <target name="compile">
+    <mkdir dir="bin" />
+    <javac srcdir="src/etomo/"
+           destdir="bin/" >
+      <classpath path="${classpath}"/>
+    </javac>
+  </target>
+</project>
+
