@@ -1,4 +1,4 @@
-# IMOD 3.0.5
+# IMOD 3.0.6
 #
 # MACINTOSH VERSION OF ENVIRONMENT-SETTING COMMANDS
 #
@@ -34,9 +34,9 @@ else
 endif
 
 #
-# The recommended form of the subm alias
+# A subm alias to put run command files in the background with submfg
 #
-alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo & '
+alias subm 'submfg \!* &'
 
 #
 # This command allows fast backprojection if the USFFT license file exists

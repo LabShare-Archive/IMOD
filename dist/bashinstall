@@ -1,6 +1,6 @@
-# IMOD 2.50
+# IMOD 3.0.6
 #
-# PC VERSION OF ENVIRONMENT-SETTING COMMANDS WHEN RUNNING BASH
+# PC-LINUX VERSION OF ENVIRONMENT-SETTING COMMANDS WHEN RUNNING BASH
 #
 # To use IMOD temporarily, source this file while sitting in the same 
 # directory.  The command to enter is:
@@ -18,7 +18,7 @@ IMOD_DIR=`pwd`
 #
 # This command tells the system where the IMOD programs are located.
 #
-PATH=$PATH:$IMOD_DIR/bin
+PATH=:$IMOD_DIR/bin:$PATH
 
 #
 # This command tells the system where the IMOD plugins are located.
@@ -29,15 +29,14 @@ IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
 # These commands tell the system where the IMOD libraries are located.
 #
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$IMOD_DIR/lib
+LD_LIBRARY_PATH=$IMOD_DIR/lib:$LD_LIBRARY_PATH
 
 export IMOD_DIR PATH IMOD_PLUGIN_DIR LD_LIBRARY_PATH
 
 #
-# The recommended form of the subm function
+# A subm function to put run command files in the background with submfg
 #
-function subm () { (vmstocsh < $1.com $1.log | csh -ef ; echo )& }
-
+function subm () { submfg $* & }
 
 #
 # These command allow fast backprojection if the USFFT license file exists

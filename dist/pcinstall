@@ -1,6 +1,6 @@
-# IMOD 2.50
+# IMOD 3.0.6
 #
-# PC VERSION OF ENVIRONMENT-SETTING COMMANDS
+# PC-LINUX VERSION OF ENVIRONMENT-SETTING COMMANDS
 #
 # To use IMOD temporarily, source this file while sitting in the same 
 # directory.  The command to enter is:
@@ -34,9 +34,9 @@ else
 endif
 
 #
-# The recommended form of the subm alias
+# A subm alias to put run command files in the background with submfg
 #
-alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo & '
+alias subm 'submfg \!* &'
 
 #
 # This command allows fast backprojection if the USFFT license file exists
