@@ -89,8 +89,8 @@ public class ImodManagerTest extends TestCase {
     tester.equals(imodManager.get("fullVolume"));
     //combinedTomogram
     assertEquals(
-      imodManager.get("combinedTomogram"),
-      imodManager.get("fullVolume"));
+      imodManager.get(imodManager.getPrivateKey("combinedTomogram")),
+      imodManager.get(imodManager.getPrivateKey("fullVolume")));
     //fiducialModel
     tester = newTester("fiducialModel");
     tester.equals(imodManager.get("fiducialModel"));
@@ -320,7 +320,7 @@ public class ImodManagerTest extends TestCase {
     tester.equals(imodManager.get(key, axisID));
     imodManager.openBeadFixer(key, axisID);
     imodManager.quit(key, axisID);
-    assertEquals(imodManager.get(key, axisID), imodManager.get("combinedTomogram"));
+    assertEquals(imodManager.get(key, axisID), imodManager.get(imodManager.getPrivateKey("combinedTomogram")));
     
     //Test dual
     setUpDual();
