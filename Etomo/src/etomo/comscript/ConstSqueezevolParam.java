@@ -26,6 +26,10 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/08 01:33:40  sueh
+* <p> bug# 578 Changed the names of the statics used to make variables
+* <p> available in the Command interface.  Add GET_.
+* <p>
 * <p> Revision 1.4  2004/12/16 02:12:28  sueh
 * <p> bug# 564 Implemented Command.  Saved flipped status.
 * <p>
@@ -62,9 +66,9 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
   private File outputFile;
 
   public ConstSqueezevolParam() {
-    reductionFactorX.setResetValue(1.25);
-    reductionFactorY.setResetValue(1.25);
-    reductionFactorZ.setResetValue(1.25);
+    reductionFactorX.setDisplayValue(1.25);
+    reductionFactorY.setDisplayValue(1.25);
+    reductionFactorZ.setDisplayValue(1.25);
     reset();
   }
   
