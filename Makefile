@@ -129,7 +129,7 @@ all : configure clibs
 	cd clip      ; $(MAKE) all
 	cd midas     ; $(MAKE) all
 	cd plugs     ; $(MAKE) all
-
+	cd Etomo     ; $(MAKE) all
 ##############################################################################
 # set environment variable SETUP_OPTIONS to change configuration.
 # type setup -help for list of options.
@@ -154,7 +154,7 @@ install : configure man
 	cd flib      ; $(MAKE) $@
 	cd com       ; $(MAKE) $@
 	cd html      ; $(MAKE) $@
-
+	cd Etomo	 ; $(MAKE) $@
 #
 # Install under cygwin
 #
@@ -170,7 +170,7 @@ cyginstall : configure man
 	cd flib      ; $(MAKE) $@
 	cd com       ; $(MAKE) install
 	cd html      ; $(MAKE) install
-
+	cd Etomo     ; $(MAKE) install
 #
 # Make the manual pages .1 from .man, and .html from .1, copy to directories
 #
@@ -267,7 +267,7 @@ flibs: configure
 dist : ALWAYS
 	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
 	if (! (-e $(ARCDIR)))  mkdir $(ARCDIR)
-	setup -inst $(ARCDIR) $(SETUP_OPTIONS)
+	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
@@ -355,6 +355,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.15  2003/06/20 19:34:34  mast
+#  Fixed installlibs from making entire flib
+#
 #  Revision 3.14  2003/05/08 22:07:30  mast
 #  Add installqtlib to src package
 #
