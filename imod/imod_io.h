@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.5  2004/01/05 17:57:30  mast
+    Changed imod_io_image_load to just take vi as argument
+
     Revision 4.4  2003/02/10 20:41:14  mast
     Resolve merge conflict
 
@@ -81,7 +84,7 @@
 int imodIOGetError(void);
 char *imodIOGetErrorString(void);
 int createNewModel(char *modelFilename);
-int openModel(char *modelFilename);
+int openModel(char *modelFilename, bool keepBW);
 Imod *LoadModel(FILE *mfin);
 int SaveModel(struct Mod_Model *mod);
 int SaveasModel(struct Mod_Model *mod);
