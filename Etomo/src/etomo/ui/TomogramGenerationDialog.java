@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/23 23:26:59  rickg
+ * <p> Added advanced options/parameters
+ * <p>
  * <p> Revision 2.6  2003/05/23 22:14:11  rickg
  * <p> Removed any extensions from log file labels in context menu
  * <p>
@@ -65,7 +68,7 @@ import etomo.type.AxisID;
  * <p>
  * <p> Revision 1.4  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
- * <p>
+ * <p>t
  * <p> Revision 1.3  2002/10/17 22:40:22  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -84,24 +87,29 @@ public class TomogramGenerationDialog
   public static final String rcsid =
     "$Id$";
 
-  JPanel panelTilt = new JPanel();
+  JPanel pnlTilt = new JPanel();
   BeveledBorder border = new BeveledBorder("Tomogram Generation");
 
   JToggleButton buttonNewst =
     new JToggleButton("<html><b>Create full<br>aligned stack</b>");
 
+  JPanel pnlTiltParams = new JPanel();
+  LabeledTextField ltfTomoWidth = new LabeledTextField("Tomogram width: ");
+  LabeledTextField ltfXOffset = new LabeledTextField("X Shift: ");
+
+  LabeledTextField ltfSliceStart = new LabeledTextField("First slice: ");
+  LabeledTextField ltfSliceStop = new LabeledTextField("Last slice: ");
+  LabeledTextField ltfSliceStep = new LabeledTextField("Slice step: ");
+
   LabeledTextField ltfTomoThickness =
     new LabeledTextField("Tomogram thickness: ");
-  LabeledTextField ltfTomoWidth = new LabeledTextField("Tomogram width: ");
-  LabeledTextField ltfXShift = new LabeledTextField("X Shift: ");
-  LabeledTextField ltfZShift = new LabeledTextField("Z Shift: ");
-  LabeledTextField ltfYStart = new LabeledTextField("First slice: ");
-  LabeledTextField ltfYStop = new LabeledTextField("Last slice: ");
-  LabeledTextField ltfYStep = new LabeledTextField("Slice step: ");
+  LabeledTextField ltfZOffset = new LabeledTextField("Z Shift: ");
 
   LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
-  LabeledTextField ltfTiltOffset = new LabeledTextField("Tilt angle offset: ");
-  LabeledTextField ltfXTiltOffset = new LabeledTextField("X tilt offset: ");
+  LabeledTextField ltfTiltAngleOffset =
+    new LabeledTextField("Tilt angle offset: ");
+  LabeledTextField ltfTiltAxisOffset =
+    new LabeledTextField("Tilt axis offset: ");
 
   LabeledTextField ltfRadialMax = new LabeledTextField("Radial max: ");
   LabeledTextField ltfRadialFallOff = new LabeledTextField("Radial falloff: ");
@@ -138,46 +146,21 @@ public class TomogramGenerationDialog
 
     chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    panelTilt.setBorder(border.getBorder());
-    panelTilt.setLayout(new BoxLayout(panelTilt, BoxLayout.Y_AXIS));
+    layoutTiltPanel();
 
-    panelTilt.add(buttonNewst);
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTilt.add(ltfTomoThickness.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfTomoWidth.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTilt.setBorder(border.getBorder());
+    pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
+    pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
 
-    panelTilt.add(ltfXShift.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfZShift.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfYStart.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfYStop.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfYStep.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfXAxisTilt.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfTiltOffset.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfXTiltOffset.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfRadialMax.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfRadialFallOff.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(ltfLogOffset.getContainer());
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(chkBoxUseLocalAlignment);
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTilt.add(buttonTilt);
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTilt.add(buttonImod);
-    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTilt.add(buttonNewst);
+    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTilt.add(pnlTiltParams);
+    pnlTilt.add(buttonTilt);
+    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTilt.add(buttonImod);
+    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    rootPanel.add(panelTilt);
+    rootPanel.add(pnlTilt);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
@@ -195,10 +178,35 @@ public class TomogramGenerationDialog
    * Populate the dialog box with the tilt paramaters
    */
   public void setTiltParams(ConstTiltParam tiltParam) {
-    ltfTomoThickness.setText(tiltParam.getThickness());
-    ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
-    ltfRadialMax.setText(tiltParam.getRadialBandwidth());
-    ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
+    if (tiltParam.hasWidth()) {
+      ltfTomoWidth.setText(tiltParam.getWidth());
+    }
+    if (tiltParam.hasThickness()) {
+      ltfTomoThickness.setText(tiltParam.getThickness());
+    }
+    if (tiltParam.hasShift()) {
+      ltfXOffset.setText(tiltParam.getXOffset());
+      ltfZOffset.setText(tiltParam.getZOffset());
+    }
+    if (tiltParam.hasSlice()) {
+      ltfSliceStart.setText(tiltParam.getIdxSliceStart());
+      ltfSliceStop.setText(tiltParam.getIdxSliceStop());
+      ltfSliceStep.setText(tiltParam.getIdxSliceIncr());
+    }
+    if (tiltParam.hasXAxisTilt()) {
+      ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
+    }
+    if (tiltParam.hasAngleOffsets()) {
+      ltfTiltAngleOffset.setText(tiltParam.getTiltAngleOffset());
+      ltfTiltAxisOffset.setText(tiltParam.getTiltAxisOffset());
+    }
+    if (tiltParam.hasRadialWeightingFunction()) {
+      ltfRadialMax.setText(tiltParam.getRadialBandwidth());
+      ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
+    }
+    if (tiltParam.hasLogOffset()) {
+      ltfLogOffset.setText(tiltParam.getLogShift());
+    }
     chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
   }
 
@@ -206,13 +214,92 @@ public class TomogramGenerationDialog
    * Get the tilt parameters from the requested axis panel
    */
   public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
-
+    String badParameter = "";
     try {
-      tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
-      tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
-      tiltParam.setRadialBandwidth(Double.parseDouble(ltfRadialMax.getText()));
-      tiltParam.setRadialFalloff(
-        Double.parseDouble(ltfRadialFallOff.getText()));
+
+      if (ltfTomoWidth.getText().matches("\\S+")) {
+        badParameter = ltfTomoWidth.getLabel();
+        tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
+      }
+      else {
+        tiltParam.useWidth(false);
+      }
+      
+      if (ltfXOffset.getText().matches("\\S+")
+        || ltfZOffset.getText().matches("\\S+")) {
+        badParameter = ltfXOffset.getLabel();
+        tiltParam.setXOffset(Double.parseDouble(ltfXOffset.getText()));
+        badParameter = ltfZOffset.getLabel();
+        tiltParam.setZOffset(Double.parseDouble(ltfZOffset.getText()));
+      }
+      else {
+        tiltParam.useShift(false);
+      }
+
+      if (ltfSliceStart.getText().matches("\\S+")
+        || ltfSliceStop.getText().matches("\\S+")
+        || ltfSliceStep.getText().matches("\\S+")) {
+        badParameter = ltfSliceStart.getLabel();
+        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
+        badParameter = ltfSliceStop.getLabel();
+        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
+        badParameter = ltfSliceStep.getLabel();
+        tiltParam.setIdxSliceIncr(Integer.parseInt(ltfSliceStep.getText()));
+      }
+      else {
+        tiltParam.useSlice(false);
+      }
+      
+      if (ltfTomoThickness.getText().matches("\\S+")) {
+        badParameter = ltfTomoThickness.getLabel();
+        tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
+      }
+      else {
+        tiltParam.useThickness(false);
+      }
+      
+      if (ltfXAxisTilt.getText().matches("\\S+")) {
+        badParameter = ltfXAxisTilt.getLabel();
+        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
+      }
+      else{
+        tiltParam.useXAxisTilt(false);
+      }
+
+      if (ltfTiltAngleOffset.getText().matches("\\S+")
+        || ltfTiltAxisOffset.getText().matches("\\S+")) {
+        badParameter = ltfTiltAngleOffset.getLabel();
+        tiltParam.setTiltAngleOffset(
+          Double.parseDouble(ltfTiltAngleOffset.getText()));
+        badParameter = ltfTiltAxisOffset.getLabel();
+        tiltParam.setTiltAxisOffset(
+          Double.parseDouble(ltfTiltAxisOffset.getText()));
+      }
+      else{
+        tiltParam.useAngleOffsets(false);
+      }
+
+      if (ltfRadialMax.getText().matches("\\S+")
+        || ltfRadialFallOff.getText().matches("\\S+")) {
+        badParameter = ltfRadialMax.getLabel();
+        tiltParam.setRadialBandwidth(
+          Double.parseDouble(ltfRadialMax.getText()));
+        badParameter = ltfRadialFallOff.getLabel();
+        tiltParam.setRadialFalloff(
+          Double.parseDouble(ltfRadialFallOff.getText()));
+      }
+      else {
+        tiltParam.useRadialWeightingFunction(false);
+      }
+      
+      if (ltfLogOffset.getText().matches("\\S+")) {
+        badParameter = ltfLogOffset.getLabel();
+        tiltParam.setLogShift(Double.parseDouble(ltfLogOffset.getText()));
+      }
+      else {
+        tiltParam.useLogOffset(false);
+      }
+
       if (chkBoxUseLocalAlignment.isSelected()) {
         tiltParam.setLocalAlignFile(
           applicationManager.getDatasetName()
@@ -224,8 +311,7 @@ public class TomogramGenerationDialog
       }
     }
     catch (NumberFormatException except) {
-      String message =
-        "Axis: " + axisID.getExtension() + " " + except.getMessage();
+      String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
     }
   }
@@ -234,16 +320,68 @@ public class TomogramGenerationDialog
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    ltfTomoWidth.setVisible(isAdvanced);
-    ltfXShift.setVisible(isAdvanced);
-    ltfZShift.setVisible(isAdvanced);
-    ltfYStart.setVisible(isAdvanced);
-    ltfYStop.setVisible(isAdvanced);
-    ltfYStep.setVisible(isAdvanced);
-    ltfTiltOffset.setVisible(isAdvanced);
-    ltfXTiltOffset.setVisible(isAdvanced);
-    ltfLogOffset.setVisible(isAdvanced);
+    layoutTiltPanel();
     applicationManager.packMainWindow();
+  }
+
+  private void layoutTiltPanel() {
+    pnlTiltParams.removeAll();
+    if (isAdvanced) {
+
+      pnlTiltParams.add(ltfTomoWidth.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfXOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfSliceStart.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfSliceStop.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfSliceStep.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfTomoThickness.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfZOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfXAxisTilt.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfTiltAngleOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfTiltAxisOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfRadialMax.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfRadialFallOff.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(ltfLogOffset.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+
+      pnlTiltParams.add(chkBoxUseLocalAlignment);
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    }
+    else {
+      pnlTiltParams.add(ltfTomoThickness.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfXAxisTilt.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfRadialMax.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(ltfRadialFallOff.getContainer());
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTiltParams.add(chkBoxUseLocalAlignment);
+      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    }
   }
 
   /**
