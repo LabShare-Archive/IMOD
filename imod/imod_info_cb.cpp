@@ -318,6 +318,11 @@ void imod_info_setocp(void)
 
   }
 
+  // Clear the selection list if no current contour or it is not on list
+  if (!cont || imodSelectionListQuery(App->cvi, imod->cindex.object,
+                                     imod->cindex.contour) < -1)
+    imodSelectionListClear(App->cvi);
+
   // Update dialog boxes if they are open
   imod_object_edit_draw();
   imodContEditSurfShow();
@@ -770,6 +775,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.14  2004/10/27 20:38:05  mast
+Changed calls to cache dumper to take image, not fp
+
 Revision 4.13  2004/10/22 22:16:59  mast
 Added logic to dump file system cache after each call to imod_imgcnt
 
