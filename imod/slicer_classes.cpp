@@ -144,7 +144,10 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
   mZscaleCombo->insertItem("Z-Scale Off", SLICE_ZSCALE_OFF);
   mZscaleCombo->insertItem("Z-Scale Before", SLICE_ZSCALE_BEFORE);
-  mZscaleCombo->insertItem("Z-Scale After", SLICE_ZSCALE_AFTER);
+
+  // Only allow scale after if there is no implicit scale from binning
+  if (slicer->vi->xybin == slicer->vi->zbin)
+    mZscaleCombo->insertItem("Z-Scale After", SLICE_ZSCALE_AFTER);
   mZscaleCombo->setFocusPolicy(NoFocus);
   connect(mZscaleCombo, SIGNAL(activated(int)), this, 
 	  SLOT(zScaleSelected(int)));
@@ -446,6 +449,9 @@ void SlicerCube::resizeGL( int wdth, int hght )
 
  /*
 $Log$
+Revision 4.8  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.7  2003/12/16 23:54:13  mast
 Move floatspinbox to libdiaqt
 
