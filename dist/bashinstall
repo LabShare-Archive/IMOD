@@ -36,7 +36,7 @@ export IMOD_DIR PATH IMOD_PLUGIN_DIR LD_LIBRARY_PATH
 #
 # The recommended form of the subm function
 #
-function subm () { (vmstocsh < $1.com $1.log | csh -e ; echo )& }
+function subm () { (vmstocsh < $1.com $1.log | csh -ef ; echo )& }
 
 
 #

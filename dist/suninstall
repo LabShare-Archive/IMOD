@@ -42,10 +42,9 @@ else
 endif
 
 #
-# The recommended form of the subm alias: the csh should have a -e option,
-# but this didn't work when testing on our system
+# The recommended form of the subm alias
 #
-alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh ; echo & '
+alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo & '
 
 #
 # This command allows fast backprojection if the USFFT license file exists

@@ -36,7 +36,7 @@ endif
 #
 # The recommended form of the subm alias
 #
-alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -e ; echo & '
+alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo & '
 
 #
 # This command allows fast backprojection if the USFFT license file exists
