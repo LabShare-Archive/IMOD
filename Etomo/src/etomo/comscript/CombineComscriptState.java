@@ -19,6 +19,21 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.3  2004/08/20 21:29:06  sueh
+* <p> bug# 508 Made the match string static.  Added equals() functions for
+* <p> testing.
+* <p> Added:
+* <p> String COMSCRIPT_MATCH_STRING
+* <p> String notEqualsReason
+* <p> equals(CombineComscriptState that)
+* <p> getNotEqualsReason()
+* <p> Deleted:
+* <p> String comscriptMatchString
+* <p> Changed:
+* <p> String getComscriptMatchString()
+* <p> initializeComscriptMatchString()
+* <p> selfTest(int state)
+* <p>
 * <p> $Revision 1.2  2004/08/19 20:01:55  sueh
 * <p> $bug# 508 Generated a regular expression that will match all 
 * <p> $the comscript names handled by this object.
@@ -40,6 +55,7 @@ public class CombineComscriptState implements ComscriptState {
   public static final String rcsid = "$$Id$$";
 
   public static final String COMSCRIPT_NAME = "combine";
+  public static final String COMSCRIPT_WATCHED_FILE = "combine.out";
   
   private static final String COMMANDS[] =
     {
@@ -201,6 +217,14 @@ public class CombineComscriptState implements ComscriptState {
       return null;
     }
     return WATCHED_FILES[commandIndex];
+  }
+  
+  public String getComscriptName() {
+    return COMSCRIPT_NAME;
+  }
+  
+  public String getComscriptWatchedFile() {
+    return COMSCRIPT_WATCHED_FILE;
   }
   
   /**
