@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.6  2004/04/26 23:32:13  rickg
+ * <p> $Checked for null buffers, because nio does work on 2.4 kernels
+ * <p> $not on 2.6 kernel yet
+ * <p> $
  * <p> $Revision 3.5  2004/04/26 23:19:20  rickg
  * <p> $Added buffering to the non nio file copy
  * <p> $
@@ -39,6 +43,7 @@
  * <p> $to fiducial model dialog
  * <p> $$</p>
  */
+
 package etomo.util;
 
 import java.io.BufferedInputStream;
@@ -83,16 +88,71 @@ public class Utilities {
    * @return true if the file exist
    */
   static public boolean fileExists(ConstMetaData metaData, String extension,
-    AxisID axisID) {
+      AxisID axisID) {
     String workingDirectory = System.getProperty("user.dir");
     File file = new File(workingDirectory, metaData.getDatasetName()
-      + axisID.getExtension() + extension);
+        + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
     return false;
   }
 
+	/**
+   * Rename a file working around the Windows bug
+   * This need serious work arounds because of the random failure bugs on
+   * windows.  See sun java bugs: 4017593, 4017593, 4042592
+   */
+  public static void renameFile(File source, File destination)
+      throws IOException {
+    // Delete the existing backup file if it exists, otherwise the call will
+    // fail on windows 
+    if (destination.exists()) {
+      Utilities.debugPrint(destination.getAbsolutePath() + " exists, deleting");
+      if (!destination.delete()) {
+        System.err.println("Unable to delete destination file: "
+            + destination.getAbsolutePath());
+        if (destination.exists()) {
+          System.err.println(destination.getAbsolutePath() + " still exists!");
+        }
+        else {
+          System.err
+            .println(destination.getAbsolutePath() + " does not exist!");
+        }
+      }
+    }
+
+    // Rename the existing log file
+    if (source.exists()) {
+      Utilities.debugPrint(source.getAbsolutePath() + " exists");
+
+      if (!source.renameTo(destination)) {
+        if (source.exists()) {
+          System.err.println(source.getAbsolutePath() + " still exists");
+        }
+        else {
+          System.err.println(source.getAbsolutePath() + " does not exist!");
+        }
+
+        if (destination.exists()) {
+          System.err.println(destination.getAbsolutePath() + " still exists!");
+        }
+        else {
+          System.err.println(destination.getAbsolutePath() + " does not exist");
+        }
+        System.err.println("Unable to rename log file to: "
+            + destination.getAbsolutePath());
+        String message = "Unable to rename " + source.getAbsolutePath()
+            + " to " + destination.getAbsolutePath();
+
+        throw (new IOException(message));
+      }
+    }
+  }
+
+  /**
+   * Copy a file using the fastest method available.
+   */
   public static void copyFile(File source, File destination) throws IOException {
     // Try using the nio method but if it fails fall back to BufferedFileReader/
     // BufferedFileWriter approach
@@ -117,13 +177,13 @@ public class Utilities {
       while ((byteIn = sourceBuffer.read()) != -1)
         destBuffer.write(byteIn);
     }
-    
+
     //  TODO: does each object need to be closed indivudually
-    if(sourceBuffer != null) {
+    if (sourceBuffer != null) {
       sourceBuffer.close();
     }
     sourceStream.close();
-    if(destBuffer != null) {
+    if (destBuffer != null) {
       destBuffer.close();
     }
     destStream.close();
@@ -161,7 +221,7 @@ public class Utilities {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run cmd command to find " + varName
-          + " environment variable");
+            + " environment variable");
 
         return "";
       }
@@ -191,7 +251,7 @@ public class Utilities {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run env command to find " + varName
-          + " environment variable");
+            + " environment variable");
 
         return "";
       }
