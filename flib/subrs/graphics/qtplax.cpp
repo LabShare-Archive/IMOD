@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2003/08/29 16:59:45  mast
+Created multithreaded can of worms
+
 Revision 1.4  2003/08/13 20:02:25  mast
 Eliminate empty #define statement
 
@@ -37,10 +40,10 @@ Changes to try to help text drawingon the Mac
 #define LIST_CHUNK  1024
 
 // The characters are too small even for Mac users
-// The window needs to be smaller on Mac to allow half the screen for terminal
+// The window needs to be smaller on Mac to allow more of screen for terminal
 #ifdef Q_OS_MACX
 #define TEXT_SIZE_SCALE 3.3
-#define DEFAULT_HEIGHT 512
+#define DEFAULT_HEIGHT 600
 #else
 #define TEXT_SIZE_SCALE 2.5
 #define DEFAULT_HEIGHT 640
@@ -119,7 +122,7 @@ enum {PLAX_MAPCOLOR, PLAX_BOX, PLAX_BOXO, PLAX_VECT, PLAX_VECTW, PLAX_CIRC,
 
 
 PlaxWindow::PlaxWindow(QWidget *parent, const char *name, WFlags fl) :
-  QWidget(parent, name)
+  QWidget(parent, name, fl)
 {
   setPaletteBackgroundColor("black");
 }
@@ -134,8 +137,6 @@ void PlaxWindow::closeEvent ( QCloseEvent * e )
 void PlaxWindow::paintEvent ( QPaintEvent * e)
 {
   Plax_exposed = 1;
-  if (!PlaxPainter)
-    return;
   if (e->erased())
     OutListInd = 0;
   draw();
@@ -150,11 +151,7 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
   PlaxScaleY = ((float)height()) / 1024.0f;
 
   // Make it repaint the whole thing
-  // Get a new painter to fit the new size
   OutListInd = 0;
-  if (PlaxPainter)
-    delete PlaxPainter;
-  PlaxPainter = new QPainter(PlaxWidget);
 }
 
 
@@ -176,17 +173,8 @@ PlaxThread::PlaxThread()
 // Either start the fortran in the second thread, or start Qt App there
 void PlaxThread::run()
 {
-#ifndef QTPLAX_SECOND_THREAD
   realgraphicsmain_();
   ::exit(0);
-#else
-  startPlaxApp();
-  PlaxWidget->show();
-  PlaxPainter = new QPainter(PlaxWidget);
-  PlaxApp->exec();
-
-  exit();
-#endif
 }
 
 #define FSTRING_LEN  80
@@ -247,22 +235,16 @@ void plax_initialize(char *string, int strsize)
   realgraphicsmain_();
   exit(0);
 #else
-#ifdef QTPLAX_SECOND_THREAD
-  realgraphicsmain_();
-  exit(0);
-#else
 
   // Otherwise start the Qt application and start second thread that calls
   // Fortran
   if (startPlaxApp())
     exit (-1);
   AppThread = new PlaxThread();
-  PlaxPainter = new QPainter(PlaxWidget);
 
   PlaxApp->exec();
 
   exit(0);
-#endif
 #endif
 }
 
@@ -285,27 +267,13 @@ int plax_open(void)
 
     PlaxWidget->show();
     plax_input_open();
-    PlaxPainter = new QPainter(PlaxWidget);
   } else
     PlaxWidget->show();
 
 #else
-#ifdef QTPLAX_SECOND_THREAD
-
-  // If Qt in second thread, start the application and wiat until painter
-  // appears, or send event to show window
-  if (!AppThread) {
-    AppThread = new PlaxThread();
-
-    while (!PlaxPainter) {};
-    
-  } else
-    QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
-#else
 
   // Qt in main thread: just show the widget now
   QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
-#endif
 #endif
   return 0;
 }
@@ -565,6 +533,7 @@ static void draw()
   int ind;
   b3dInt16 *vec;
   
+  PlaxPainter = new QPainter(PlaxWidget);
   PlaxMutex->lock();
 
   // fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize);
@@ -643,6 +612,7 @@ static void draw()
 
   }
   PlaxMutex->unlock();
+  delete PlaxPainter;
   //  plax_input();
 }
 
