@@ -89,6 +89,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.87  2004/07/02 00:43:43  sueh
+ * <p> bug# 487 adding public functions to get FidXyz and MRCHeader
+ * <p>
  * <p> Revision 3.86  2004/06/30 17:27:36  rickg
  * <p> Bug #488 Rotation.xf not being updated correctly, now done anytime
  * <p> the fiducialless parameters are updated.
@@ -1423,11 +1426,13 @@ public class ApplicationManager {
       return;
     }
     String key = ImodManager.PREVIEW_KEY;
-    MetaData metaData = setupDialog.getFields();
-    imodManager.setPreviewMetaData(metaData);
-    File previewWorkingDir = metaData.getValidDatasetDirectory(setupDialog.getWorkingDirectory().getAbsolutePath());
+    MetaData previewMetaData = setupDialog.getDataset();
+    imodManager.setPreviewMetaData(previewMetaData);
+    File previewWorkingDir =
+      previewMetaData.getValidDatasetDirectory(
+        setupDialog.getWorkingDirectory().getAbsolutePath());
     if (previewWorkingDir == null) {
-      mainFrame.openMessageDialog(metaData.getInvalidReason(),
+      mainFrame.openMessageDialog(previewMetaData.getInvalidReason(),
         "Raw Image Stack");
       return;
     }
