@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/28 16:47:12  mast
+    Fixed problem with movie rate counter when movie was stopped with mouse
+    button
+
 */
 
 #include <stdlib.h>
@@ -312,9 +316,12 @@ static void xinput(void)
      XEvent event_return;
      XFlush(XtDisplay(App->toplevel));
      /* DNM: need to either mask for X events in the while, or process ALL
-	types of events; use XtIMXevent or XtIMAll in both places */
-     while(XtAppPending(App->context) & XtIMAll){
-       XtAppProcessEvent(App->context, XtIMAll);
+	types of events; use (XtIMXevent | XtIMTimer) or XtIMAll in both
+	places */
+     while(XtAppPending(App->context) & XtIMXEvent){
+	  /*  fprintf(stderr, "processing X event..."); */
+	  XtAppProcessEvent(App->context, XtIMXEvent);
+	  /* fprintf(stderr, "back\n"); */
      }
      return;
 }
@@ -395,7 +402,13 @@ void imodMovieProc(XtPointer client_data, XtIntervalId *id)
      if (!show)
 	  return;
 
+     /* DNM 9/10/02: Process events before the draw to prevent expose events
+	from crashing dual-processor PC */
+     xinput();
+
+     /*  fprintf(stderr, "calling imodDraw..."); */
      imodDraw(vi, drawflag);
+     /* fprintf(stderr, "back\n"); */
 
      /* Process all events to allow the timer to fire */
      xinput();
