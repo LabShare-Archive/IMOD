@@ -48,6 +48,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:34:55  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.31  2004/11/19 00:00:01  sueh
 * <p> bug# 520 Overrode saveTestParamIfNecessary to ask to save the screen
 * <p> if fields have changed.  Added updateMetaDataFromJoinDialog to call
@@ -743,6 +746,10 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+  }
+  
+  public void abortAddSection() {
+    joinDialog.abortAddSection();
   }
 
   public void addSection(File tomogram) {
