@@ -8,7 +8,7 @@ OBJS = concat.o dopen.o getinout.o mypause.o\
  get_tilt_angles.o int_iwrite.o inv_matrix.o xfmult3d.o xfcopy3d.o xfinv3d.o\
  taperoutpad.o taperinpad.o padfill.o meanzero.o setctf.o indmap.o\
  ialsiz_sam_cel.o get_extra_header_pieces.o get_extra_header_tilts.o\
- temp_filename.o taperinvol.o
+ temp_filename.o taperinvol.o reduce_by_binning.o
 
 
 all: $(OBJS)

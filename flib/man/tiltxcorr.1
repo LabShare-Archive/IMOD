@@ -24,15 +24,21 @@ DDEESSCCRRIIPPTTIIOONN
   reliable correlation peaks.  The program also has on option to
   ignore a central peak caused by fixed pattern noise in the images,
   which can be a serious problem unless digital camera images are well
-  gain-normalized.
+  gain-normalized.  The program will reduce the size of images larger
+  than 1024 pixels in one dimension by binning them down, i.e. by
+  averaging the values in square sets of adjacent pixels (2x3, or 3x3,
+  etc).  Images are binned by the smallest factor needed to make them
+  1024 or smaller.
 
   Some notes about some of the options:
   
   Filtering: Some high pass filtering, using a small value of Sigma1
   such as 0.03, may be helpful to keep the program from being misled
   by very large scale features in the images.  If the images are
-  noisy, some high pass filtering with Sigma2 and Radius2 is
-  appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).
+  noisy, some low pass filtering with Sigma2 and Radius2 is
+  appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).  If the images
+  are binned, these values specify frequencies in the binned image, so
+  a higher cutoff (less filtering) might be appropriate.
   
   The exclusion of a central peak can be essential when there is
   fixed noise in the images.  Because one image is stretched, this
@@ -80,7 +86,7 @@ DDEESSCCRRIIPPTTIIOONN
 
   Filter parameters to filter the correlation, or / for no filter
   (Enter values of Sigma1, Sigma2, Radius1, Radius2 just as for
-  ENHANCE.  
+  ENHANCE.)
 
   1 to exclude a central correlation peak due to fixed pattern noise
   in the images, or 0 not to
