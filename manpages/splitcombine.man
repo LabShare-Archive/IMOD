@@ -38,7 +38,7 @@ The first optional argument can be used to specify a command file name other
 than volcombine.com.  The second optional argument can be used to specify
 a local temporary directory other than the default for the operating system.
 There is one other option: "-h" to get a usage statement from the program.
-.FILES
+.SH FILES
 The finishing command file deletes the sum*.rec, as well as all
 command and log files for the pieces.
 .SH AUTHOR
