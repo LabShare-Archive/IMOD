@@ -2,7 +2,6 @@ package etomo.type;
 
 import java.util.Properties;
 
-import etomo.storage.Storable;
 /**
 * <p>Description: </p>
 * 
@@ -16,7 +15,10 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/07 22:54:07  sueh
+* <p> bug# 564 Contains state variables to be saved in the .edf file.
+* <p> </p>
 */
 public class TomogramState {
   public static  final String  rcsid =  "$Id$";
@@ -63,6 +65,10 @@ public class TomogramState {
       return false;
     }
     return true;
+  }
+  
+  public void setFlipped(boolean flipped) {
+    this.flipped = flipped;
   }
   
   private static String createPrepend(String prepend) {
