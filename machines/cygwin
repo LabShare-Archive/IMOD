@@ -303,8 +303,10 @@ EOF
     set makefile_dirs = ($libdiaqt_dir)
     # Output variables for libraries to copy to bin
     #
-    echo 'DLLSOURCEDIR = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
-    echo 'DLLSTOCOPY = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
+    echo 'DLLSOURCEDIR1 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
+    echo 'DLLSTOCOPY1 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
+    echo 'DLLSOURCEDIR2 = C:/Program Files/GnuWin32/bin' >> $configure
+    echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
 else
     set makefile_ext = dummy
     set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir)
