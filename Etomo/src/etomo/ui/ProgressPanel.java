@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/26 00:20:51  rickg
+ * <p> Changed elapsed to elapsed time
+ * <p>
  * <p> Revision 3.3  2004/04/09 19:21:53  rickg
  * <p> Removed debugging output
  * <p>
@@ -79,6 +82,9 @@ public class ProgressPanel {
   private long startTime;
   private String barString;
   private String label;
+  //stopped: IMPORTANT: The stop action should turn this boolean on, all other
+  //actions, except increment should turn this off.
+  private boolean stopped = true;
 
   public ProgressPanel(String newLabel) {
     taskLabel.setText(newLabel);
@@ -91,12 +97,14 @@ public class ProgressPanel {
   }
 
   public void setLabel(String newLabel) {
+    stopped = false;
     label = newLabel;
     SwingUtilities.invokeLater(new SetLabelLater());
   }
 
   private class SetLabelLater implements Runnable {
     public void run() {
+      //System.out.println("SetLabelLater.run()");
       taskLabel.setText(label);
       panel.revalidate();
       panel.repaint();
@@ -104,6 +112,7 @@ public class ProgressPanel {
   }
 
   public void start() {
+    stopped = false;
     //  Setting the progress bar indeterminate causes it to move on its own
     counter = 0;
     startTime = System.currentTimeMillis();
@@ -112,6 +121,7 @@ public class ProgressPanel {
 
   private class StartLater implements Runnable {
     public void run() {
+      //System.out.println("StartLater.run()");
       progressBar.setIndeterminate(true);
       progressBar.setString("");
       progressBar.setStringPainted(true);
@@ -120,12 +130,14 @@ public class ProgressPanel {
   }
 
   public void stop() {
+    stopped = true;
     counter = 0;
     SwingUtilities.invokeLater(new StopLater());
   }
 
   private class StopLater implements Runnable {
     public void run() {
+      //System.out.println("StopLater.run()");
       timer.stop();
       progressBar.setValue(counter);
       progressBar.setIndeterminate(false);
@@ -135,11 +147,27 @@ public class ProgressPanel {
   }
 
   void increment() {
-    SwingUtilities.invokeLater(new IncrementLater());
+    SwingUtilities.invokeLater(new IncrementLater(stopped));
   }
 
   private class IncrementLater implements Runnable {
+    private boolean stopped = false;
+    public IncrementLater(boolean stopped) {
+      this.stopped = stopped;
+    }
     public void run() {
+      //System.out.println("IncrementLater.run()");
+      //Fixing a bug during kill process where the timer doesn't stop:  the 
+      //progress bar goes to determinate mode and increments based on the timer.
+      //
+      //If the progress bar is stopped this call should never happen.
+      //If the timer did not stop before it generated the event that caused
+      //increment to be called, then the timer will never stop.
+      //
+      //Tell the timer to stop each time this function is called incorrectly.
+      if (stopped) {
+        return;
+      }
       progressBar.setValue(counter);
        //  Put the elapsed time into the progress bar string
       progressBar.setString("Elapsed time: "
@@ -149,7 +177,6 @@ public class ProgressPanel {
       panel.repaint();
       counter++;
       timer.restart();
-
     }
   }
 
@@ -157,12 +184,14 @@ public class ProgressPanel {
    * @param n
    */
   public void setMaximum(int n) {
+    stopped = false;
     maximum = n;
     SwingUtilities.invokeLater(new SetMaximumLater());
   }
 
   private class SetMaximumLater implements Runnable {
     public void run() {
+      //System.out.println("SetMaximumLater.run()");
       progressBar.setMaximum(maximum);
       progressBar.setIndeterminate(false);
       progressBar.setStringPainted(true);
@@ -170,23 +199,27 @@ public class ProgressPanel {
   }
 
   public void setMinimum(int n) {
+    stopped = false;
     minimum = n;
     SwingUtilities.invokeLater(new SetMinimumLater());
   }
 
   private class SetMinimumLater implements Runnable {
     public void run() {
+      //System.out.println("SetMinimumLater.run()");
       progressBar.setMinimum(minimum);
     }
   }
 
   public void setValue(int n) {
+    stopped = false;
     value = n;
     SwingUtilities.invokeLater(new SetValueLater());
   }
 
   private class SetValueLater implements Runnable {
     public void run() {
+      //System.out.println("SetValueLater.run()");
       progressBar.setValue(value);
     }
   }
@@ -197,6 +230,7 @@ public class ProgressPanel {
    * @param string
    */
   public void setValue(int n, String string) {
+    stopped = false;
     value = n;
     barString = string;
     SwingUtilities.invokeLater(new SetValueAndStringLater());
@@ -204,6 +238,7 @@ public class ProgressPanel {
 
   private class SetValueAndStringLater implements Runnable {
     public void run() {
+      //System.out.println("SetValueAndStringLater.run()");
       progressBar.setValue(value);
       progressBar.setString(barString);
     }
@@ -242,6 +277,7 @@ public class ProgressPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
+      //System.out.println("actionPerformed:event=" + event);
       panel.increment();
     }
   }
