@@ -56,6 +56,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/03 00:59:35  mast
+c	  Changed terminology to refered to tilt angle offset
+c	
 c	  Revision 3.5  2002/07/21 19:31:11  mast
 c	  *** empty log message ***
 c	
@@ -301,7 +304,7 @@ c
 	enddo
 	write(6,102)slop,ang
 102	format(' slope =',f8.4,': to make level, add',f6.1,
-     &	    ' to angle offset')
+     &	    ' to total angle offset')
 	call findshift(' rotated ',yy,thkmid,ifuse,nspots)
 	if(doxtilt.eq.0.)return
 	nd=0
@@ -328,7 +331,7 @@ c
 	write(6,103)alpha,-theta
 103	format(/' The pitch between samples can be corrected with ',
      &	    'an X-axis tilt of',f7.2,/,' In this case, to make level,'
-     &	    ' add',f6.1,' to angle offset')
+     &	    ' add',f6.1,' to total angle offset')
 	call findshift('x-tilted ',yy,thkmid,ifuse,nspots)
 	return
 	end
