@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/05/07 22:29:14  rickg
+ * <p> set fill cache for matchCheck
+ * <p>
  * <p> Revision 2.8  2003/04/30 18:48:34  rickg
  * <p> Changed matchcheck* to a single imod instance
  * <p>
@@ -248,7 +251,6 @@ public class ImodManager {
    * Open the 3D fiducial model in imodv
    */
   public void openFiducialModel(String model, AxisID axisID) {
-    SystemProgram imodv;
 
     if (axisID == AxisID.SECOND) {
       if (fiducialModelB != null && fiducialModelB.isAlive()) {
@@ -261,7 +263,8 @@ public class ImodManager {
       }
     }
 
-    imodv = new SystemProgram("imodv " + model);
+    SystemProgram imodv = new SystemProgram("imodv " + model);
+    imodv.setDebug(appManager.isDebug());
     Thread fiducialModel = new Thread(imodv);
     fiducialModel.start();
 

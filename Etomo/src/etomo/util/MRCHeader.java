@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.4.2.1  2003/01/24 18:45:05  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -53,7 +56,7 @@ public class MRCHeader {
 
     // Run the header command on the filename
     SystemProgram header = new SystemProgram("header " + filename);
-    header.enableDebug(true);
+    header.setDebug(true);
     header.run();
 
     // Throw an exception if the file can not be read

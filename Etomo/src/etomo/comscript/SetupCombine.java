@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/07 22:30:06  rickg
+ * <p> Don't need to set working directory since it defaults to user.dir
+ * <p>
  * <p> Revision 2.3  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -165,7 +168,7 @@ public class SetupCombine {
     int exitValue;
 
     //  Execute the script
-    setupcombine.enableDebug(true);
+    setupcombine.setDebug(true);
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
 

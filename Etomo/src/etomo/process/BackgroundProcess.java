@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:45:11  rickg
+ * <p> Debug messages to stderr instead of stdout
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -62,7 +65,7 @@ public class BackgroundProcess extends Thread {
    * Returns the enableDebug.
    * @return boolean
    */
-  public boolean isEnableDebug() {
+  public boolean isDebug() {
     return debug;
   }
 
@@ -119,7 +122,8 @@ public class BackgroundProcess extends Thread {
   public void run() {
     SystemProgram command = new SystemProgram(commandLine);
     command.setWorkingDirectory(workingDirectory);
-
+    command.setDebug(debug);
+    
     if (demoMode) {
       try {
         sleep(3000);

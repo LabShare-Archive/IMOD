@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:44:48  rickg
+ * <p> Debug messages to stderr instead of stdout
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -59,7 +62,7 @@ public class RunComScript extends Thread {
   private File workingDirectory = null;
   private ProcessManager processManager;
   private boolean demoMode = false;
-  private boolean enableDebug = false;
+  private boolean debug = false;
   private String[] errorMessage;
   private String[] warningMessage;
   private SystemProgram vmstocsh;
@@ -192,15 +195,15 @@ public class RunComScript extends Thread {
   /**
    * Get the debug state.
    */
-  public boolean getEnableDebug() {
-    return enableDebug;
+  public boolean isDebug() {
+    return debug;
   }
 
   /**
    * Set the debug state.
    */
-  public void setEnableDebug(boolean state) {
-    enableDebug = state;
+  public void setDebug(boolean state) {
+    debug = state;
   }
 
   /**
@@ -223,7 +226,7 @@ public class RunComScript extends Thread {
     csh = new SystemProgram("csh -ef");
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
-    csh.enableDebug(enableDebug);
+    csh.setDebug(debug);
     csh.run();
 
     // Check the exit value, if it is non zero, parse the warnings and errors
@@ -246,7 +249,7 @@ public class RunComScript extends Thread {
       new SystemProgram("vmstocsh " + parseBaseName(name, ".com") + ".log");
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
-    vmstocsh.enableDebug(enableDebug);
+    vmstocsh.setDebug(debug);
     vmstocsh.run();
 
     if (vmstocsh.getExitValue() != 0) {

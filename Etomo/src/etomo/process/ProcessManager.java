@@ -13,7 +13,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
 
 /**
  * <p>Description: This object manages the execution of com scripts in the
@@ -29,6 +28,9 @@ import java.util.Calendar;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/05/07 22:27:07  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.6  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -355,6 +357,8 @@ public class ProcessManager {
     SystemProgram savePatchOut =
       new SystemProgram("mv -f patch.out patch.out~");
     savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    savePatchOut.setDebug(appManager.isDebug());
+
     savePatchOut.run();
     if (savePatchOut.getExitValue() != 0) {
       String message = "";
@@ -365,10 +369,13 @@ public class ProcessManager {
       }
       throw new SystemProcessException(message);
     }
+
     // Convert the new patchvector.mod  
     SystemProgram patch2imod =
       new SystemProgram("imod2patch patch_vector.mod patch.out");
     patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    patch2imod.setDebug(appManager.isDebug());
+
     patch2imod.run();
     if (patch2imod.getExitValue() != 0) {
       String message = "";
@@ -507,9 +514,10 @@ public class ProcessManager {
     command.setDebug(appManager.isDebug());
     command.start();
 
-    System.err.println("Started " + commandLine);
-    System.err.println("  Name: " + command.getName());
-
+    if (appManager.isDebug()) {
+      System.err.println("Started " + commandLine);
+      System.err.println("  Name: " + command.getName());
+    }
     return command.getName();
   }
 
@@ -608,8 +616,7 @@ public class ProcessManager {
   private void startSystemProgramThread(String command) {
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-
-    sysProgram.enableDebug(appManager.isDebug());
+    sysProgram.setDebug(appManager.isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
@@ -623,12 +630,11 @@ public class ProcessManager {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
     comScript.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    comScript.setEnableDebug(appManager.isDebug());
+    comScript.setDebug(appManager.isDebug());
     comScript.setDemoMode(appManager.isDemo());
     comScript.start();
 
     if (appManager.isDebug()) {
-      Calendar calendar = Calendar.getInstance();
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScript.getName());
     }

@@ -22,6 +22,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/07 22:31:59  rickg
+ * <p> Don't need to set working directory since it defaults to user.dir
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.5  2003/04/29 20:22:38  rickg
  * <p> Handles all three cases of tilt angle specification now
  * <p>
@@ -217,7 +221,7 @@ public class CopyTomoComs {
     checkTiltAngleFiles();
 
     //  Execute the script
-    copytomocoms.enableDebug(true);
+    copytomocoms.setDebug(true);
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
 
