@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/13 21:05:39  mast
+    Set up event handler for client messages, added option to output window ID
+
     Revision 3.2  2002/07/21 20:28:52  mast
     Changed imodwfname to return a string with number of image files when
     multiple files are loaded.
@@ -89,7 +92,8 @@ extern Widget Imod_widget_float;
 void imod_quit(void);
 int  SaveModelQuit(Imod *mod);
 void imod_cleanup_backup(void);
-void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event);
+XtEventHandler imodHandleClientMessage(Widget w, XtPointer client_data,
+				       XEvent *event);
 
 void imod_usage(char *name)
 {
@@ -645,7 +649,8 @@ int main( int argc, char *argv[])
      if (Imod_debug) puts("mainloop");
      imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
-     XtAddEventHandler(App->toplevel, 0, True, imodHandleClientMessage, 
+     XtAddEventHandler(App->toplevel, 0, True, 
+		       (XtEventHandler)imodHandleClientMessage,
 		       (XtPointer)App);
 
      if (print_wid)
