@@ -86,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.115  2004/12/28 23:40:35  sueh
+ * <p> bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
+ * <p>
  * <p> Revision 3.114  2004/12/16 02:51:52  sueh
  * <p> bug# 559 Updating status bar with param file when ending setup dialog.
  * <p>
@@ -2273,7 +2276,7 @@ public class ApplicationManager extends BaseManager {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateAlignCom(axisID)) {
+      if (updateAlignCom(axisID) == null) {
         return;
       }
       if (exitState == DialogExitState.POSTPONE) {
@@ -2330,14 +2333,15 @@ public class ApplicationManager extends BaseManager {
    *            AxisID identifying the axis to align.
    */
   public void fineAlignment(AxisID axisID) {
-    if (!updateAlignCom(axisID)) {
+    ConstTiltalignParam tiltalignParam = updateAlignCom(axisID);
+    if (tiltalignParam == null) {
       return;
     }
     processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
-      threadName = processMgr.fineAlignment(axisID);
+      threadName = processMgr.fineAlignment(tiltalignParam, axisID);
       metaData.setFiducialessAlignment(false);
     }
     catch (SystemProcessException e) {
@@ -2504,7 +2508,7 @@ public class ApplicationManager extends BaseManager {
    * from the alignment estimation dialog. This also updates the local
    * alignment state of the appropriate tilt files.
    */
-  private boolean updateAlignCom(AxisID axisID) {
+  private ConstTiltalignParam updateAlignCom(AxisID axisID) {
     //  Set a reference to the correct object
     AlignmentEstimationDialog fineAlignmentDialog;
     if (axisID == AxisID.SECOND) {
@@ -2517,10 +2521,11 @@ public class ApplicationManager extends BaseManager {
       mainPanel.openMessageDialog(
         "Can not update align?.com without an active alignment dialog",
         "Program logic error");
-      return false;
+      return null;
     }
+    TiltalignParam tiltalignParam;
     try {
-      TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
@@ -2534,7 +2539,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[2] = except.getMessage();
       mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
-      return false;
+      return null;
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
@@ -2542,9 +2547,9 @@ public class ApplicationManager extends BaseManager {
       errorMessage[1] = except.getMessage();
       mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
-      return false;
+      return null;
     }
-    return true;
+    return tiltalignParam;
   }
 
   /**
@@ -2667,7 +2672,7 @@ public class ApplicationManager extends BaseManager {
     }
     else {
       //  Get all of the parameters from the panel
-      if (!updateAlignCom(tomogramPositioningDialog, axisID)) {
+      if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
         return;
       }
       if (!updateSampleTiltCom(axisID)) {
@@ -2937,12 +2942,13 @@ public class ApplicationManager extends BaseManager {
   public void finalAlign(AxisID axisID) {
     //  Set a reference to the correct object
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    if (updateAlignCom(tomogramPositioningDialog, axisID)) {
+    ConstTiltalignParam tiltalignParam = updateAlignCom(tomogramPositioningDialog, axisID);
+    if (tiltalignParam != null) {
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
-        threadName = processMgr.fineAlignment(axisID);
+        threadName = processMgr.fineAlignment(tiltalignParam, axisID);
         metaData.setFiducialessAlignment(false);
       }
       catch (SystemProcessException e) {
@@ -3050,10 +3056,11 @@ public class ApplicationManager extends BaseManager {
    * from the tomogram positioning dialog. The positioning dialog is passed so
    * that the signature is different from the standard method.
    */
-  private boolean updateAlignCom(
+  private ConstTiltalignParam updateAlignCom(
     TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+    TiltalignParam tiltalignParam;
     try {
-      TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       tomogramPositioningDialog.getAlignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
     }
@@ -3064,9 +3071,9 @@ public class ApplicationManager extends BaseManager {
       errorMessage[2] = except.getMessage();
       mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
-      return false;
+      return null;
     }
-    return true;
+    return tiltalignParam;
   }
 
   /**
