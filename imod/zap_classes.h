@@ -35,6 +35,9 @@ Log at end of file
 #ifndef ZAP_CLASSES_H
 #define ZAP_CLASSES_H
 
+#define NUM_TOOLBUTTONS 6
+#define NUM_TIMEBUTTONS 1
+
 #define ZAP_TOGGLE_RESOL 0
 #define ZAP_TOGGLE_ZLOCK 1
 #define ZAP_TOGGLE_CENTER 2
@@ -102,8 +105,8 @@ class ZapWindow : public QMainWindow
                            int index);
     void setFontDependentWidths();
 
-    QToolButton *mToggleButs[5];
-    int mToggleStates[5];
+    QToolButton *mToggleButs[NUM_TOOLBUTTONS];
+    int mToggleStates[NUM_TOOLBUTTONS];
     ToolEdit *mZoomEdit;
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
@@ -141,6 +144,9 @@ protected:
 
 /*
 $Log$
+Revision 4.4  2004/05/05 17:32:00  mast
+Added rubberband definition and made mZap public
+
 Revision 4.3  2003/03/26 06:30:56  mast
 adjusting to font changes
 

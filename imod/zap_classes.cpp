@@ -89,7 +89,6 @@ static unsigned char smartCenter_bits[] = {
   0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90,
   0xf9, 0x9f, 0x01, 0x80, 0x01, 0x80, 0xff, 0xff};
 
-#define NUM_TOOLBUTTONS 6
 static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits},
@@ -139,7 +138,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < NUM_TOOLBUTTONS - 1; j++)
+  for (j = 0; j < NUM_TOOLBUTTONS - NUM_TIMEBUTTONS; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
 
   // Section slider
@@ -184,7 +183,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
     mToolBar->addSeparator();
-    setupToggleButton(mToolBar, toggleMapper, NUM_TOOLBUTTONS);
+    setupToggleButton(mToolBar, toggleMapper, NUM_TOOLBUTTONS - 1);
 
     label = new QLabel("4th D", mToolBar);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -448,6 +447,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.13  2004/05/05 17:32:16  mast
+Added rubberband tool button
+
 Revision 4.12  2004/03/26 04:58:24  mast
 Made it do a clear on first call, because of problems with 53xx Nvidia driver
 
