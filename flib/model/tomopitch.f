@@ -19,6 +19,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2004/06/15 05:44:33  mast
+c	  Generated an error messagewith more than 2 points per contour for
+c	  whole tomogram
+c	
 c	  Revision 3.9  2004/05/21 20:09:48  mast
 c	  Added "added" to X-axis tilt report
 c	
@@ -193,13 +197,9 @@ c
 	      else
 c		  
 c		  now check for whether there are multiple lines in one model
-c		  swap y and Z if y is the long dimension
+c		  2/3/05: DO NOT swap y and Z if y is the long dimension,
+c		  data are already flipped back so Z is between-slice dimension
 c
-		if (maxy .gt. maxz) then
-		  indy = 3
-		  indz = 2
-		  maxz = maxy
-		endif
 		do iobj = 1, max_mod_obj
 		  call objtocont(iobj, obj_color, imodobj, imodcont)
 		  if (npt_in_obj(iobj) .gt. 2) then
