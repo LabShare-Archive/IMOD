@@ -74,6 +74,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.70  2003/10/05 21:36:05  rickg
+ * <p> Bug# 256
+ * <p> Catch SystemProcessException for attempted multiple
+ * <p> processes in a axis
+ * <p>
  * <p> Revision 2.69  2003/10/03 22:11:15  rickg
  * <p> Bug# 255
  * <p> added returns to catch sections for doneSetupDialog
@@ -623,17 +628,17 @@ public class ApplicationManager {
           mainFrame.openMessageDialog(
             except.getMessage(),
             "Can't run copytomocoms");
-            return;
+          return;
         }
         catch (IOException except) {
           mainFrame.openMessageDialog(
             "Can't run copytomocoms\n" + except.getMessage(),
             "Copytomocoms IOException");
-            return;
+          return;
         }
       }
-			processTrack.setSetupState(ProcessState.COMPLETE);
-			metaData.setComScriptCreated(true);
+      processTrack.setSetupState(ProcessState.COMPLETE);
+      metaData.setComScriptCreated(true);
     }
 
     //  Switch the main window to the procesing panel
@@ -918,6 +923,7 @@ public class ApplicationManager {
    * @param axisID
    */
   public void replaceRawStack(AxisID axisID) {
+    mainFrame.setProgressBar("Using fixed stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed stack
     String rawStackFilename =
       System.getProperty("user.dir")
@@ -978,6 +984,7 @@ public class ApplicationManager {
         }
       }
     }
+    mainFrame.stopProgressBar(axisID);
   }
 
   /**
@@ -1614,11 +1621,11 @@ public class ApplicationManager {
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
-				String[] message = new String[2];
-				message[0] = "Can not execute transferfid command";
-				message[1] = e.getMessage();
-				mainFrame.openMessageDialog(message, "Unable to execute command");
-				return;
+        String[] message = new String[2];
+        message[0] = "Can not execute transferfid command";
+        message[1] = e.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to execute command");
+        return;
       }
       setThreadName(threadName, sourceAxisID);
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
@@ -2364,7 +2371,13 @@ public class ApplicationManager {
           System.getProperty("user.dir"),
           metaData.getDatasetName() + axisID.getExtension() + ".rec");
     }
+    mainFrame.setProgressBar(
+      "Using trial tomogram: " + trialTomogramName,
+      1,
+      axisID);
+
     trialTomogramFile.renameTo(outputFile);
+    mainFrame.stopProgressBar(axisID);
   }
 
   /**
@@ -2613,7 +2626,7 @@ public class ApplicationManager {
     if (!updateCombineCom()) {
       return;
     }
-
+    mainFrame.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
     try {
       processMgr.setupCombineScripts(metaData);
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -2644,7 +2657,7 @@ public class ApplicationManager {
     loadPatchcorr();
     loadMatchorwarp();
     tomogramCombinationDialog.enableCombineTabs(true);
-
+    mainFrame.stopProgressBar(AxisID.ONLY);
   }
 
   /**
@@ -3209,18 +3222,17 @@ public class ApplicationManager {
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
 
-
     String threadName;
     try {
       threadName = processMgr.trimVolume(trimvolParam);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-			String[] message = new String[2];
-			message[0] = "Can not execute trimvol command";
-			message[1] = e.getMessage();
-			mainFrame.openMessageDialog(message, "Unable to execute command");
-			return;
+      String[] message = new String[2];
+      message[0] = "Can not execute trimvol command";
+      message[1] = e.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to execute command");
+      return;
     }
     setThreadName(threadName, AxisID.ONLY);
     mainFrame.startProgressBar("Trimming volume", AxisID.ONLY);
@@ -3311,7 +3323,7 @@ public class ApplicationManager {
    */
   public void openNewDataset() {
     if (saveTestParamIfNecessary()) {
-			resetState();
+      resetState();
       // Open the setup dialog
       openSetupDialog();
     }
@@ -3334,44 +3346,44 @@ public class ApplicationManager {
         openProcessingPanel();
       }
       else {
-      	resetState();
-				openSetupDialog();
+        resetState();
+        openSetupDialog();
       }
     }
   }
 
-	/**
-	 * Reset the state of the application to the startup condition
-	 */
-	private void resetState() {
-		// Delete the objects associated with the current dataset
-		metaData = new MetaData();
-		paramFile = null;
+  /**
+   * Reset the state of the application to the startup condition
+   */
+  private void resetState() {
+    // Delete the objects associated with the current dataset
+    metaData = new MetaData();
+    paramFile = null;
 
-		setupDialog = null;
-		preProcDialogA = null;
-		preProcDialogB = null;
-		coarseAlignDialogA = null;
-		coarseAlignDialogB = null;
-		fiducialModelDialogA = null;
-		fiducialModelDialogB = null;
-		fineAlignmentDialogA = null;
-		fineAlignmentDialogB = null;
-		tomogramPositioningDialogA = null;
-		tomogramPositioningDialogB = null;
-		tomogramGenerationDialogA = null;
-		tomogramGenerationDialogB = null;
-		tomogramCombinationDialog = null;
-		postProcessingDialog = null;
-		settingsDialog = null;
+    setupDialog = null;
+    preProcDialogA = null;
+    preProcDialogB = null;
+    coarseAlignDialogA = null;
+    coarseAlignDialogB = null;
+    fiducialModelDialogA = null;
+    fiducialModelDialogB = null;
+    fineAlignmentDialogA = null;
+    fineAlignmentDialogB = null;
+    tomogramPositioningDialogA = null;
+    tomogramPositioningDialogB = null;
+    tomogramGenerationDialogA = null;
+    tomogramGenerationDialogB = null;
+    tomogramCombinationDialog = null;
+    postProcessingDialog = null;
+    settingsDialog = null;
 
-		comScriptMgr = new ComScriptManager(this);
-		processMgr = new ProcessManager(this);
-		processTrack = new ProcessTrack();
-		//  This will be created in the doneSetupDialog method
-		imodManager = null;
-	}
-	
+    comScriptMgr = new ComScriptManager(this);
+    processMgr = new ProcessManager(this);
+    processTrack = new ProcessTrack();
+    //  This will be created in the doneSetupDialog method
+    imodManager = null;
+  }
+
   /**
    * If the current state needs to be saved the users is queried with a dialog
    * box.
@@ -3427,8 +3439,8 @@ public class ApplicationManager {
       storable[1] = processTrack;
       paramStore.load(storable);
 
-			// FIXME  need to detect an invalid EDF file and return a false
-			 
+      // FIXME  need to detect an invalid EDF file and return a false
+
       // Set the current working directory for the application, this is the
       // path to the EDF file.  The working directory is defined by the current
       // user.dir system property.
