@@ -28,7 +28,11 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$
+ * <p> $$Log$
+ * <p> $Revision 1.9  2004/06/14 23:23:34  rickg
+ * <p> $Bug #383  Changed interface to make it clearer which direction information
+ * <p> $ is moving and what the likely use of each class of calls is.
+ * <p> $$
  * <p> Revision 1.8  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p> 
@@ -61,6 +65,19 @@ import java.util.Vector;
 
 public class ParamUtilities {
 
+  /**
+   * 
+   * @param value
+   * @return false if value is null, has a zero length, or contains only
+   *         whitespace
+   */
+  public static boolean isEmpty(String value) {
+    if (value == null || !value.matches("\\S+")) {
+      return true;
+    }
+    return false;
+  }
+  
   /**
    * Return the string representation of the int value or an empty string if the
    * value is the not present value
