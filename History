@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/11/05: IMOD_3-4-21
+2/11/05: Fixed problem of no transferfid log when there is an error.
+
+2/11/05: Fixed problems wih turning on contrast float after starting to do
+image processing on a section.
+
+2/11/05: Fixed problems with Makejoincom's handling of Windows filenames; 
+stopped eTomo join interface from running Rotatevol on everything.
+
+2/11/05: Disabled image process and reload menu items when no image or RGB
+images loaded, thus preventing crashes.
+
+2/11/05: Fixed bug in tab function in eTomo; eliminated Window menu as 
+redundant to prevent problems on Mac.
+
 2/10/05: IMOD_3-4-20
 2/10/05: Fixed bug in anisotropic diffusion for 64-bit machines and added
 appropriate includes to prevent other problems from implicit declarations.
