@@ -52,10 +52,10 @@ Log at end of file
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 static int ivwManageInitialFlips(ImodView *iv);
-char Ivw_string[64];
-int  ivwLoadIMODifd(ImodView *iv);
-int  ifioLoadIMODifd(ImodView *iv);
-int  ivwPlistBlank(ImodView *iv, int cz);
+static int ivwCheckLinePtrAllocation(ImodView *iv, int ysize);
+static int ivwGetPixelBytes(int mode);
+static int  ivwLoadIMODifd(ImodView *iv);
+static int  ivwPlistBlank(ImodView *iv, int cz);
 
 static int loadingImage = 0;
 
@@ -67,23 +67,23 @@ static int loadingImage = 0;
 
 
 /* Get the current Section, could be X or Y in future. */     
-unsigned char *ivwGetCurrentSection(ImodView *iv)
+unsigned char **ivwGetCurrentSection(ImodView *iv)
 {
   int cz = (int)(iv->zmouse + 0.5f);
   return(ivwGetZSection(iv, cz));
 }
 
-unsigned char *ivwGetCurrentZSection(ImodView *iv)
+unsigned char **ivwGetCurrentZSection(ImodView *iv)
 {
   int cz = (int)(iv->zmouse + 0.5f);
   return(ivwGetZSection(iv, cz));
 }
 
 /* Get a section at potentially different time from current time */
-unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time)
+unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time)
 {
   int oldTime;
-  unsigned char *imageData;
+  unsigned char **imageData;
 
   if (!iv) return NULL;
   if (!iv->nt) return(ivwGetZSection(iv, section));
@@ -129,22 +129,36 @@ void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr)
 /* Returns pointer to raw image data for given z section. */
 /* DNM 12/13/01: rewrote to use a use count for priority, instead of 
    rearranging the cache array every time */
-unsigned char *ivwGetZSection(ImodView *iv, int section)
+/* DNM 9/15/03: rewrote to return line pointers */
+unsigned char **ivwGetZSection(ImodView *iv, int section)
 {
   ivwSlice *tempSlicePtr = NULL;
-  int sl, slmin, minused;
+  int sl, slmin, minused, pixSize;
   int cz = section;
 
-  if (section < 0) return (NULL);
-  if (section >= iv->zsize) return(NULL);
-  if (!iv->fp) return(NULL);
-  if (iv->fakeImage) return(NULL);
+  if (section < 0 || section >= iv->zsize) 
+    return(NULL);
+  if (!iv->fp || iv->fakeImage)
+    return(NULL);
+  if (ivwPlistBlank(iv, section)) 
+    return(NULL);
 
-  if (ivwPlistBlank(iv, section)) return(NULL);
-
-  /* Plain, uncached data */
-  if (!iv->vmSize)
-    return(iv->idata[section]);
+  /* Plain, uncached data: make line pointers if not flipped */
+  if (!iv->vmSize) {
+    if (iv->li->axis == 3) {
+      return (ivwMakeLinePointers(iv, iv->idata[section], iv->xsize,
+                                  iv->ysize, iv->rawImageStore));
+    }
+    else {
+      /* If flipped, check the pointer allocation, get the */
+      if (ivwCheckLinePtrAllocation(iv, iv->ysize))
+        return(NULL);
+      pixSize = ivwGetPixelBytes(iv->rawImageStore);
+      for (sl = 0; sl < iv->ysize; sl++)
+        iv->linePtrs[sl] = iv->idata[sl] + iv->xsize * pixSize * section;
+      return (iv->linePtrs);
+    }
+  }
 
   /* Cached data: check last used one before searching */
   sl = iv->vmLastUsed;
@@ -169,7 +183,8 @@ unsigned char *ivwGetZSection(ImodView *iv, int section)
 
     /* DNM 12/12/01: add call to cache filler */
     if (icfGetAutofill())
-      return(icfDoAutofill(iv, cz));
+      return(ivwMakeLinePointers(iv, icfDoAutofill(iv, cz), iv->xsize,
+                                 iv->ysize, iv->rawImageStore));
 
     /* Find oldest slice to replace */
     minused = iv->vmCount + 1;
@@ -196,8 +211,71 @@ unsigned char *ivwGetZSection(ImodView *iv, int section)
   tempSlicePtr->used = iv->vmCount;
   iv->vmLastUsed = sl;
 
-  return (tempSlicePtr->sec->data.b);
+  return (ivwMakeLinePointers(iv, tempSlicePtr->sec->data.b, 
+                              tempSlicePtr->sec->xsize,
+                              tempSlicePtr->sec->ysize, iv->rawImageStore));
 }
+
+/* Determine size of data unit */
+static int ivwGetPixelBytes(int mode)
+{
+  switch (mode) {
+  case MRC_MODE_BYTE:
+    return 1;
+  case MRC_MODE_SHORT:
+    return 2;
+  case MRC_MODE_FLOAT:
+  case MRC_MODE_COMPLEX_SHORT:
+    return 4;
+  case MRC_MODE_COMPLEX_FLOAT:
+    return 8;
+  case MRC_MODE_RGB:
+    return 3;
+  }
+  return 1;
+}
+
+/* Allocate or reallocate if necessary to get the array big enough */
+static int ivwCheckLinePtrAllocation(ImodView *iv, int ysize)
+{
+  if (ysize > iv->linePtrMax) {
+    if (iv->linePtrMax)
+      free(iv->linePtrs);
+    iv->linePtrs = (unsigned char **)malloc (ysize * sizeof(unsigned char *));
+    if (!iv->linePtrs) {
+      iv->linePtrMax = 0;
+      return 1;
+    }
+    iv->linePtrMax = ysize;
+  }
+  return 0;
+}
+
+/* Make a list of line pointers from a contiguous data slice that is xsize by
+   ysize, of the given mode */
+unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
+                                    int xsize, int ysize, int mode)
+{
+  int i;
+  int pixSize = 1;
+
+  if (!data)
+    return (NULL);
+
+  if (ivwCheckLinePtrAllocation(iv, ysize))
+    return NULL;
+
+  pixSize = ivwGetPixelBytes(mode);
+
+  /* Make up the pointers */
+  for (i = 0; i < ysize; i++)
+    iv->linePtrs[i] = data + pixSize * xsize * i;
+  return (iv->linePtrs);
+}
+
+/*
+ * Routines for getting a value based on type of data 
+ */
 
 int (*best_ivwGetValue)(ImodView *iv, int x, int y, int z);
 
@@ -209,7 +287,10 @@ int ivwGetValue(ImodView *iv, int x, int y, int z)
 int idata_ivwGetValue(ImodView *iv, int x, int y, int z)
 {
   /* DNM: calling routine is responsible for limit checks */
-  return(iv->idata[z][x + (y * iv->xsize)]);
+  if (iv->li->axis == 3)
+    return(iv->idata[z][x + (y * iv->xsize)]);
+  else
+    return(iv->idata[y][x + (z * iv->xsize)]);
 }
 
 int fileScale_ivwGetValue(ImodView *iv, int x, int y, int z)
@@ -260,6 +341,117 @@ int fake_ivwGetValue(ImodView *iv, int x, int y, int z)
   return(0);
 }
 
+/*
+ * Routines for fast access from slicer, tumbler, and xyz
+ */
+
+/* Static variables to hold the essentials after it is set up */
+static int imdataxsize;
+static int *vmdataxsize;
+static unsigned char **imdata;
+static int imdataMax = 0;
+static int vmnullvalue;
+
+/* A global variable with the appropriate function - because I had trouble
+   returning that from the setup function */
+int (*ivwFastGetValue)(int x, int y, int z);
+
+/* The access routines */
+static int idata_GetValue(int x, int y, int z)
+{
+  return(imdata[z][x + (y * imdataxsize)]);
+}
+
+static int flipped_GetValue(int x, int y, int z)
+{
+  return(imdata[y][x + (z * imdataxsize)]);
+}
+
+static int cache_GetValue(int x, int y, int z)
+{
+  if (!imdata[z])
+    return(vmnullvalue);
+  return(imdata[z][x + (y * vmdataxsize[z])]);
+}
+
+static int fake_GetValue(int x, int y, int z)
+{
+  return(0);
+}
+
+/* To set up the tables and set the appropriate function */
+int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
+                       int inNullvalue, int *cacheSum)
+{
+  int size = vi->zsize;
+  int i, iz;
+
+  *cacheSum = 0;
+
+  if (!vi->vmSize && vi->li->axis == 2)
+    size = vi->ysize;
+
+  /* If array(s) are not big enough, get new ones */
+  if (imdataMax < size) {
+    if (imdataMax) {
+      free(imdata);
+      if (vi->vmSize)
+        free(vmdataxsize);
+    }
+    imdata = (unsigned char **) malloc(sizeof(unsigned char *) * size);
+    if (!imdata) {
+      imdataMax = 0;
+      return 1;
+    }
+    if (vi->vmSize) {
+      vmdataxsize = (int *)malloc(sizeof(int) * size);
+      if (!vmdataxsize) {
+        free(imdata);
+        imdataMax = 0;
+        return 1;
+      }
+    }
+    imdataMax = size;
+  }
+
+  if (vi->fakeImage) {
+    ivwFastGetValue = fake_GetValue;
+
+  } else if (vi->vmSize) {
+
+    /* Cached data: fill up pointers that exist */
+    for (i = 0; i < size; i++)
+      imdata[i] = NULL;
+    for (i = 0; i < vi->vmSize; i++) {
+      iz = vi->vmCache[i].cz;
+      if (iz < size && iz >= 0 &&
+          vi->vmCache[i].ct == vi->ct){
+        imdata[iz] = vi->vmCache[i].sec->data.b;
+        vmdataxsize[iz] = vi->vmCache[i].sec->xsize;
+	*cacheSum += iz;
+      }
+    }
+    
+    vmnullvalue = inNullvalue;
+    ivwFastGetValue = cache_GetValue;
+
+  } else {
+    /* for loaded data, get pointers from idata */
+
+    for (i = 0; i < size; i++)
+      imdata[i] = vi->idata[i];
+    imdataxsize = vi->xsize;
+    if (vi->li->axis == 3)
+      ivwFastGetValue = idata_GetValue;
+    else
+      ivwFastGetValue = flipped_GetValue;
+  }
+  *outImdata = imdata;
+  return 0;
+}
+
+
+
 /****************************************************************************/
 
 
@@ -308,6 +500,8 @@ void ivwInit(ImodView *vi)
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
   vi->extraObj = imodObjectNew();
+  vi->linePtrs = NULL;
+  vi->linePtrMax = 0;
 }
 
 /* After we are all done with the Cache free it.
@@ -607,6 +801,8 @@ int ivwSetScale(ImodView *vi)
 
 
 /* flip a tomogram */
+/* DNM 9/15/03: removed actual flipping code now that line pointers are
+   used to access images */
 int ivwFlip(ImodView *vw)
 {
   unsigned char **idata;
@@ -639,8 +835,7 @@ int ivwFlip(ImodView *vw)
   oymouse = (int)(vw->ymouse + 0.5f);
   ozmouse = (int)(vw->zmouse + 0.5f);
 
-  wprint("Flipping image data...");
-  imod_info_input();
+  wprint("Flipping image data.\n");
 
   /* DNM: restore data before flipping, as well as resetting when done */
   iprocRethink(vw);
@@ -649,108 +844,12 @@ int ivwFlip(ImodView *vw)
   nz = vw->ysize;
   nyz = ny * nz;
 
-  /* Not using the cache, all image data is in main memory. */
-  if (vw->fakeImage) {
-    /* DNM: skip through to end if fake image, but still flip it */
-    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
+  vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
 
-  } else if (!vw->vmSize){
-    if (vw->li->contig){
-      trow  = (unsigned char *)malloc(nx);
-      tflag = (unsigned char *)malloc(nyz);
-      idata = (unsigned char **)malloc(nz * sizeof(unsigned char *));
-          
-      if (!trow || !tflag || !idata) {
-        fprintf(stderr, "Not enough memory to flip image data.\n");
-        return(-1);
-      }
-      for (i = 0; i < nz; i++)
-        idata[i] = vw->idata[0] + (nx * ny * i);
-               
-      for(i = 0; i < nyz; i++)
-        tflag[i] = 0;
-               
-      inrow = vw->idata[0];
-      for(i = 0; i < nyz; i++){
-        if (tflag[i])
-          continue;
-        k = i;
-        nextk = ((k % ny) * nz) + (k / ny);
-        if (nextk == k){
-          tflag[k] = 1;
-          continue;
-        }
-        outrow = vw->idata[0] + (k * nx);
-        memcpy(trow, outrow,  nx);
-        kstore = k;
-        tflag[k] = 1;
-                    
-        do{
-          nextk = ((k % ny) * nz) + (k / ny );
-          inrow  = outrow;
-          outrow = vw->idata[0] + (nextk * nx);
-          if (nextk == kstore)
-            outrow = trow;
-          memcpy(inrow,  outrow, nx);
-          tflag[nextk] = 1;
-          k = nextk;
-        }while(nextk != kstore);
-        imod_info_input();
-      }
-      free(tflag);
-      free(trow);
+  if (vw->vmSize){
 
-      /* 
-       * All image data is in memory but it isn't contiguous 
-       */
-    } else {
-      /* Get memory for image data */
-      idata = (unsigned char **)malloc(nz * sizeof(unsigned char *));
-      if (idata == (unsigned char **)NULL)
-        return(-1);
-      for (i = 0; i < nz; i++)
-        idata[i] = NULL;
-      for(i = 0; i < nz; i++){
-        idata[i] = (unsigned char *)
-          malloc(nx * ny * sizeof(unsigned char));
-        if (!idata[i]){
-          fprintf(stderr, "Not enough memory to flip image data.\n");
-          /* Todo: Free Stuff */
-          for(i = 0;i < nz; i++)
-            if(idata[i])
-              free(idata[i]);
-          free(idata);
-          return(-1);
-        }
-      }
-               
-      /* copy data */
-      for(k = 0; k < nz; k++) {
-        for(j = 0; j < ny; j++)
-          for(i = 0; i < nx; i++)
-            idata[k][i + (j * nx)] 
-              = vw->idata[j][i + (k * nx)];
-        imod_info_input();
-      }
-               
-      for(k = 0; k < vw->zsize; k++)
-        free(vw->idata[k]);
-    }
-
-    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
-
-    free(vw->idata);
-    vw->idata = idata;
-    /* DNM: delete duplicate settings of new sizes and mouse */
-
-  }else{
-
-    /*
-     *  Image data is cached from disk.
-     */
-    vw->li->axis =  (vw->li->axis == 2) ? 3 : 2;
-
-    /* tell image's to flipaxis */
+    /* If Image data is cached from disk */
+    /* tell images to flipaxis */
           
     if ((vw->nt) && (vw->imageList)){
       for(t = 0; t < vw->nt; t++){
@@ -790,7 +889,6 @@ int ivwFlip(ImodView *vw)
   iprocRethink(vw);
   autox_newsize(vw);
   imod_info_float_clear(-1, -1);
-  wprint("\n");
      
   vw->ymouse = ozmouse;
   vw->zmouse = oymouse;
@@ -1668,7 +1766,7 @@ int imodImageFileDesc(FILE *fin)
 
 /* Load the IMOD image list file description. */
 #define IFDLINE_SIZE 255
-int ivwLoadIMODifd(ImodView *iv)
+static int ivwLoadIMODifd(ImodView *iv)
 {
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
   ImodImageFile *image;
@@ -1955,10 +2053,10 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
       exit(-1);
     }
         
-    /* Set the flag for storing raw images, and set rgba to indicate
-       the number of bytes being stored */
+    /* Set the flag for storing raw images with the mode, and set rgba to 
+       indicate the number of bytes being stored */
     App->rgba = 3;
-    iv->rawImageStore = 1;
+    iv->rawImageStore = MRC_MODE_RGB;
   }
 
   xsize = iv->li->xmax - iv->li->xmin + 1;
@@ -2082,6 +2180,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.10  2003/08/02 22:44:14  mast
+Made it possible to kill program during flip operation
+
 Revision 4.9  2003/06/27 19:28:04  mast
 Made the extra object when initializing view, and added function to
 pass the extra object.
