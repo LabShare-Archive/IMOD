@@ -8,11 +8,11 @@ LDFLG    = $(LDFFLAGS) $(LDFLAGS)
 PROGS = nda$(E) mtk$(E) sda$(E)
 
 NDAOBJS = nda.$(O) ndmodel.$(O) graphden.$(O) angdist.$(O) ndrandom.$(O) \
- ndsubs.$(O) ndmtkrand.$(O) ndmtksubs.$(O) convexbound.$(O) manipgraphs.$(O)
+ ndsubs.$(O) ndmtkrand.$(O) ndmtksubs.$(O) manipgraphs.$(O)
 
 MTKOBJS = mtk.$(O) mtkmodel.$(O) closedist.$(O) mtksubs.$(O) mtkrandom.$(O)\
  mtkransubs.$(O) ndmtksubs.$(O) ndmtkrand.$(O) bundledist.$(O) \
- convexbound.$(O) manipgraphs.$(O)
+ manipgraphs.$(O)
 
 SDAOBJS = sda.$(O) sdmodel.$(O) sddist.$(O) sd3dsubs.$(O) surfden.$(O) \
  kerneldens.$(O) find_points_area.$(O) ndmtksubs.$(O) ndmtkrand.$(O) \
