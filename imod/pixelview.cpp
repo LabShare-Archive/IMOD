@@ -157,10 +157,7 @@ void PixelView::update()
   float pixel;
   float minVal = 1.e38;
   float maxVal = -1.e38;
-  int floats = 1;
-
-  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT)
-    floats = 0;
+  int floats = -1;
 
   /* DNM 11/24/02: Bring window to the top */
   raise();
@@ -191,6 +188,16 @@ void PixelView::update()
 	str = "     x";
       else{
 	pixel = ivwGetFileValue(vi, x, y, (int)(vi->zmouse + 0.5));
+
+        /* First time after getting a pixel, see if floats are needed */
+        if (floats < 0) {
+          if (vi->image->mode == MRC_MODE_BYTE || 
+              vi->image->mode == MRC_MODE_SHORT)
+            floats = 0;
+          else
+            floats = 1;
+        }
+
 	if (floats)
 	  str.sprintf("%9g", pixel);
 	else
@@ -273,6 +280,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.4  2003/04/17 18:43:38  mast
 adding parent to window creation
 
