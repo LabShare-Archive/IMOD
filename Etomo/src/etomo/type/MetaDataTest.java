@@ -15,7 +15,7 @@ import junit.framework.TestCase;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2004/12/08 03:47:42  sueh
+ * <p> bug# 520 improving failure message!!!!!!!!!!!#!@$@!#%#Q$^#%&#$
+ * <p>
  * <p> Revision 3.9  2004/12/08 00:13:07  sueh
  * <p> bug# 520 Passing a relative vector to checkoutVector.
  * <p>
@@ -71,33 +74,26 @@ public class MetaDataTest extends TestCase {
   private File testDir;
 
   protected void setUp() throws Exception {
-    testDir = new File(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot), testDirectory);
+    super.setUp();
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    File checkoutDirectory = new File(
+        etomoDirector.getCurrentPropertyUserDir(), TypeTests.testRoot);
+    testDir = new File(checkoutDirectory, testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
     }
-    assertTrue(
-      testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
+    assertTrue(testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
+    
     //  Check out the test vectors from the CVS repository
-    // Set the working directory to the current test directory for this package
-    //EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    //String originalDirectory = etomoDirector.setCurrentPropertyUserDir(testDir.getAbsolutePath());
-
     for (int i = 0; i < edfList.length; i++) {
       try {
-        System.err.println("MetaDataTest.setUp");
-        TestUtilites.checkoutVector(TypeTests.testRoot, edfList[i]);
+        TestUtilites.checkoutVector(checkoutDirectory.getAbsolutePath(), testDirectory, edfList[i]);
       }
       catch (SystemProcessException except) {
-        //etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
-        fail("Error checking out test vector: " + edfList[i] + " in "
-            + TypeTests.testRoot + " in " + EtomoDirector.getInstance().getCurrentPropertyUserDir() + ",CVSROOT="
-            + Utilities.getEnvironmentVariable("CVSROOT"));
+        fail("Error checking out test vector:\n" + except.getMessage());
       }
     }
-
-    // Switch back to the original working directory
-    //etomoDirector.setCurrentPropertyUserDir(originalDirectory);
   }
   
   /*

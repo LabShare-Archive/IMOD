@@ -22,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2004/11/24 22:16:19  sueh
+ * <p> bug# 520 Getting the root test directory name from UtilTests.
+ * <p>
  * <p> Revision 3.10  2004/11/23 00:37:01  sueh
  * <p> bug# 520 Using get and setPropertyUserDir instead of Property.  Don't
  * <p> use File.separator with propertyUserDir since it may end in "/".  Construct
@@ -139,27 +142,19 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testRead() throws IOException, InvalidParameterException {
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
     TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory1);
 
-    // Set the working directory to the current test directory
-    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();
-    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory, UtilTests.testRoot).getAbsolutePath());
-
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.checkoutVector(testDirectory1, headerTestStack);
+      TestUtilites.checkoutVector(new File(EtomoDirector.getInstance()
+          .getCurrentPropertyUserDir(), UtilTests.testRoot).getAbsolutePath(),
+          testDirectory1, headerTestStack);
     }
     catch (SystemProcessException except) {
-      etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
-      fail("Error checking out test vector: " + UtilTests.testRoot + testDirectory1
-          + headerTestStack);
+      fail("Error checking out test vector:\n" + except.getMessage());
     }
-
-    // Switch back to the original working directory
-    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
 
     mrcHeader.read();
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
@@ -168,28 +163,20 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
     TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory2);
 
-    // Set the working directory to the current test directory
-    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();;
-    etomoDirector.setCurrentPropertyUserDir(originalDirectory + File.separator
-        + UtilTests.testRoot);
-
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.checkoutVector(testDirectory2, "headerTest.st");
+      TestUtilites.checkoutVector(EtomoDirector.getInstance()
+          .getCurrentPropertyUserDir()
+          + File.separator + UtilTests.testRoot, testDirectory2,
+          "headerTest.st");
     }
     catch (SystemProcessException except) {
-      etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
-      fail("Error checking out test vector: " + UtilTests.testRoot + testDirectory1
-          + headerTestStack);
+      fail("Error checking out test vector:\n" + except.getMessage());
     }
-
-    //  Switch back to the original working directory
-    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
 
     mrcWithSpaces.read();
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
