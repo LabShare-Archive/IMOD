@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/07/18 20:21:12  rickg
+    Changed include of GLwMDrawA to rely upon -I compiler option
+
 */
 
 #include <imodconfig.h>
@@ -150,6 +153,7 @@ struct Midas_view
      int lastmy;
      int mx;
      int my;
+     int mousemoving;
 
      /* current drawing area window size */
      int width;	
@@ -344,4 +348,7 @@ int nearest_section(struct Midas_view *vw, int sect, int direction);
 void set_mont_pieces(struct Midas_view *vw);
 void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 		      float *meanerr, float *amax, int *indmax,
-		      float *curerrx, float *curerry);
+		      float *curerrx, float *curerry, int localonly);
+void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
+		      float *meanerr, float *amax, int *indmax,
+		      float *curerrx, float *curerry, int localonly);
