@@ -686,8 +686,8 @@ EOF
 	        -e "/^TransformFile/s/^T/#T/"\
 	        -e "/^[# ]*SloppyMontage/s/^[# ]*//"\
 	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
-		-e "/^StartingAndEndingX/s/	.*/	$xstart $xend/"\
-		-e "/^StartingAndEndingY/s/	.*/	$ystart $yend/"\
+		-e "/^StartingAndEndingX/s/[ 	].*/	$xstart $xend/"\
+		-e "/^StartingAndEndingY/s/[ 	].*/	$ystart $yend/"\
                 -e /mrctaper/d\
 		    <$srcfile >>$dstfile
 	endif
@@ -695,9 +695,9 @@ EOF
         set srcfile = $srcdir/"xcorr"$srcext
         sed -e s/$srcname/$dstname/g\
 	    -e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltspec/"\
-	    -e "/^$tiltIncText/s/	.*/	$tiltInc/"\
+	    -e "/^$tiltIncText/s/[ 	].*/	$tiltInc/"\
 	    -e "/^$incDelText/d"\
-	    -e "/^RotationAngle/s/	.*/	$axisangle/"\
+	    -e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
 	    -e s/$setname.st/$xcsrc/\
 	    <$srcfile >>$dstfile
 	echo '$'"if (-e $backupname) $backupname" >> $dstfile
@@ -750,7 +750,7 @@ EOF
 	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
 	        -e "/^[# ]*ReadInXcorrs/s/^[# ]*//"\
 	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*//"\
-		-e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
+		-e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -795,7 +795,7 @@ EOF
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
                 -e "/^[# ]*ShiftPieces/s/^[# ]*S/$shiftopt/"\
-		-e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
+		-e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
 	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/$buildnew/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
@@ -1021,7 +1021,7 @@ EOF
             endif
         else
             sed -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/O/"\
-                -e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
+                -e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
                 -e "/if (-e/d"\
                 -e "/mrctaper/d"\
                  -e "/Command file/s//Commands/"\
@@ -1060,7 +1060,7 @@ EOF
     set dstfile = "tomopitch"$dstext
     set backuplist = ($backuplist $dstfile top$modext mid$modext bot$modext tomopitch$modext)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
-    sed -e "/^SpacingInY/s/	.*/	-$offset/"\
+    sed -e "/^SpacingInY/s/[ 	].*/	-$offset/"\
 	-e "s/\.mod/$modext/g"\
 	-e "s/\.rec/$recext/g"\
 	<$srcfile >$dstfile
@@ -1214,6 +1214,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.22  2004/03/11 21:31:27  mast
+#  Converted tiltxcorr to PIP input
+#
 #  Revision 3.21  2004/02/23 22:49:58  mast
 #  Needed to escape any / characters in distortion filename
 #
