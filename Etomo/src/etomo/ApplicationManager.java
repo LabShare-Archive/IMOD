@@ -75,6 +75,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.64  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
  * <p> Revision 2.63  2003/09/26 19:43:48  sueh
  * <p> bug223 no field should be persistant.  Changed MetaData.
  * <p> Added TransferfidNumberViews.
@@ -1949,7 +1952,10 @@ public class ApplicationManager {
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
-
+//MARK Bug236 review
+    comScriptMgr.loadNewst(axisID);
+    tomogramGenerationDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+    
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
 
@@ -2074,36 +2080,83 @@ public class ApplicationManager {
     return true;
   }
 
+
+
+
+
+
+  //MARK Bug236 review
+  /**
+   * Update the newst.com from the TomogramGenerationDialog
+   * @param axisID
+   * @return true if successful
+   */
+  private boolean updateNewstCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialog = tomogramGenerationDialogB;
+    }
+    else {
+      tomogramGenerationDialog = tomogramGenerationDialogA;
+    }
+
+    if (tomogramGenerationDialog == null) {
+      openMessageDialog(
+        "Can not update newst?.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+      tomogramGenerationDialog.getNewstParams(newstParam);
+
+      comScriptMgr.saveNewst(newstParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      openMessageDialog(errorMessage, "Newst Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
   /**
    *
    */
   public void newst(AxisID axisID) {
-    try {
-      NewstParam newstParam;
-      comScriptMgr.loadNewst(axisID);
-      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-      newstParam.setSize(",,");
-      comScriptMgr.saveNewst(newstParam, axisID);
+      if (updateNewstCom(axisID)) {
+        try {
+          NewstParam newstParam;
+          comScriptMgr.loadNewst(axisID);
+          newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+          newstParam.setSize(",,");
+          comScriptMgr.saveNewst(newstParam, axisID);
 
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+          processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+          mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
-      String threadName;
-      try {
-        threadName = processMgr.newst(axisID);
+          String threadName;
+        try {
+          threadName = processMgr.newst(axisID);
+        }
+        catch (SystemProcessException e) {
+          e.printStackTrace();
+          String[] message = new String[2];
+          message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+          message[1] = e.getMessage();
+          openMessageDialog(message, "Unable to execute com script");
+          return;
+        }
+        setThreadName(threadName, axisID);
       }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
-        message[1] = e.getMessage();
-        openMessageDialog(message, "Unable to execute com script");
-        return;
+      catch (FortranInputSyntaxException except) {
+        except.printStackTrace();
       }
-      setThreadName(threadName, axisID);
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
     }
   }
 

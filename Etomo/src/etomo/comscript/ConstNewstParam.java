@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -36,6 +39,15 @@ public class ConstNewstParam {
 
   protected boolean useOffset = false;
   protected String offset = "";
+  protected boolean useLinearInterpolation = false;
+
+  /**
+   * @return
+   */
+  //MARK Bug236 new interface: boolean isUseLinearInterpolation()
+  public boolean isUseLinearInterpolation() {
+    return useLinearInterpolation;
+  }
 
   public ConstNewstParam() {
   }
@@ -59,4 +71,5 @@ public class ConstNewstParam {
   public String getOffset() {
     return offset;
   }
+  
 }

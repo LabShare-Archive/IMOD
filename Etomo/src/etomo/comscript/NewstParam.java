@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/25 22:54:14  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.3  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>
@@ -46,6 +49,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void parseComScriptCommand(ComScriptCommand scriptCommand) {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
+    //MARK Bug236 print
+    System.out.println("in parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
+         ", useLinearInterpolation=" + useLinearInterpolation);
     reset();
 
     for (int i = 0; i < cmdLineArgs.length - 2; i++) {
@@ -64,9 +70,16 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
         transformFile = cmdLineArgs[i];
         useTransformFile = true;
       }
+      if (cmdLineArgs[i].startsWith("-l")) {
+				useLinearInterpolation = true;
+      }
     }
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
+    
+    //MARK Bug236 print
+    System.out.println("after parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
+         ", useLinearInterpolation=" + useLinearInterpolation);
   }
 
   /**
@@ -94,6 +107,10 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-xform");
       cmdLineArgs.add(transformFile);
     }
+    
+    if (useLinearInterpolation) {
+    	cmdLineArgs.add("-linear");
+    }
 
     cmdLineArgs.add(inputFile);
     cmdLineArgs.add(outputFile);
@@ -101,6 +118,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
       (String[]) cmdLineArgs.toArray(new String[nArgs]));
+      //MARK Bug236 print
+    System.out.println("in updateComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
+         ", useLinearInterpolation=" + useLinearInterpolation);
   }
 
   public void setInputFile(String filename) {
@@ -126,6 +146,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     useOffset = true;
   }
 
+//MARK Bug236 new interface: void setUseLinearInterpolation(boolean b)
+	public void setUseLinearInterpolation(boolean b) {
+		useLinearInterpolation = b;
+	}
+
   private void reset() {
     inputFile = "";
     outputFile = "";
@@ -138,5 +163,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
 
     useOffset = false;
     offset = "";
+    
+		useLinearInterpolation = false;
   }
 }

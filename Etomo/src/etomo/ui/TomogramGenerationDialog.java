@@ -18,6 +18,8 @@ import javax.swing.JToggleButton;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltParam;
+import etomo.comscript.ConstNewstParam;
+import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
 
 /**
@@ -33,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/09/08 22:51:25  rickg
+ * <p> Added commit test volume action
+ * <p>
  * <p> Revision 2.9  2003/09/08 05:47:09  rickg
  * <p> Added trial tilt
  * <p> Output for a single axis tomogram is changed to
@@ -100,7 +105,11 @@ public class TomogramGenerationDialog
     "$Id$";
 
   private JPanel pnlTilt = new JPanel();
+  private JPanel pnlNewstParams = new JPanel();
   private BeveledBorder border = new BeveledBorder("Tomogram Generation");
+  
+	private JCheckBox chkBoxUseLinearInterpolation =
+		new JCheckBox("Use linear interpolation");
 
   private JToggleButton btnNewst =
     new JToggleButton("<html><b>Create full<br>aligned stack</b>");
@@ -134,7 +143,7 @@ public class TomogramGenerationDialog
   private LabeledTextField ltfDensityScale =
     new LabeledTextField("Density scale (SCALE): ");
   private LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
-
+	
   private JCheckBox chkBoxUseLocalAlignment =
     new JCheckBox("Use local alignments");
 
@@ -162,7 +171,8 @@ public class TomogramGenerationDialog
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     buttonExecute.setText("Done");
-
+    
+		chkBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);		
     btnNewst.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnNewst.setPreferredSize(FixedDim.button2Line);
     btnNewst.setMaximumSize(FixedDim.button2Line);
@@ -213,24 +223,28 @@ public class TomogramGenerationDialog
     chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     layoutTiltPanel();
+    layoutNewstPanel();
+    
+	pnlTilt.setBorder(border.getBorder());
+	pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
+	pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
+	pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
+    
+	pnlTilt.add(pnlNewstParams);
+	pnlTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+	pnlTilt.add(btnNewst);
+	pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+	pnlTilt.add(pnlTiltParams);
+	pnlTilt.add(btnTilt);
+	pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+	pnlTilt.add(btn3dmod);
+	pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    pnlTilt.setBorder(border.getBorder());
-    pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
-
-    pnlTilt.add(btnNewst);
-    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlTilt.add(pnlTiltParams);
-    pnlTilt.add(btnTilt);
-    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlTilt.add(btn3dmod);
-    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-
-    rootPanel.add(pnlTilt);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+	rootPanel.add(pnlTilt);
+	rootPanel.add(Box.createVerticalGlue());
+	rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+	rootPanel.add(panelExitButtons);
+	rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -240,7 +254,10 @@ public class TomogramGenerationDialog
     updateAdvanced();
     setToolTipText();
   }
-
+//MARK Bug236 new interface: void setNewstParams(ConstNewstParam newstParam)
+  public void setNewstParams(ConstNewstParam newstParam) {
+	 chkBoxUseLinearInterpolation.setSelected(newstParam.isUseLinearInterpolation());
+  }
   /**
    * Populate the dialog box with the tilt paramaters
    */
@@ -281,6 +298,11 @@ public class TomogramGenerationDialog
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
     chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
+  }
+
+//MARK Bug236 new interface: void getNewstParams(NewstParam newstParam
+  public void getNewstParams(NewstParam newstParam) {
+    newstParam.setUseLinearInterpolation(chkBoxUseLinearInterpolation.isSelected());
   }
 
   /**
@@ -422,11 +444,19 @@ public class TomogramGenerationDialog
    */
   private void updateAdvanced() {
     layoutTiltPanel();
+	layoutNewstPanel();
     applicationManager.packMainWindow();
   }
+  
+	private void layoutNewstPanel() {
+		pnlNewstParams.removeAll();
+		if (isAdvanced) {
+			pnlNewstParams.add(chkBoxUseLinearInterpolation);
+		}
+	}
 
   private void layoutTiltPanel() {
-    pnlTiltParams.removeAll();
+  	pnlTiltParams.removeAll();
     if (isAdvanced) {
 
       pnlTiltParams.add(ltfTomoThickness.getContainer());
@@ -497,6 +527,7 @@ public class TomogramGenerationDialog
   /**
    * Right mouse button context menu
    */
+
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "newst", "tilt", "3dmod" };
     String[] manPage = { "newst.html", "tilt.html", "3dmod.html" };
@@ -702,5 +733,13 @@ public class TomogramGenerationDialog
 
     text = "View the reconstructed volume in 3dmod.";
     btn3dmod.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Use linear interpolation rather than the default, cubic interpolation, " +
+              "when transforming images.  Linear interpolation is more " +
+              "suitable when images are very noisy, but cubic interpolation " +
+              "will preserve fine detail better when noise is not an issue. " +
+              "Images are transformed when the -xform, -expand, or -rotate " +
+              "option is entered.";
+    chkBoxUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
