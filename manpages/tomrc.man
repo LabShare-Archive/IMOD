@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tomrc 1 2.00 BL3DFS
+.TH tomrc 1 2.00 BL3DEMC
 .SH NAME
 tomrc \- Make a mrc file from rgb image files.
 .SH SYNOPSIS

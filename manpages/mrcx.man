@@ -1,6 +1,6 @@
 .na
 .nh
-.TH MRCX 1 2.40 BL3DFS
+.TH MRCX 1 2.40 BL3DEMC
 .SH NAME
 mrcx \- Convert MRC files between different operating systems
 

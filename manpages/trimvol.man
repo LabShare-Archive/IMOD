@@ -1,6 +1,6 @@
 .na
 .nh
-.TH trimvol 1 2.30 BL3DFS
+.TH trimvol 1 2.30 BL3DEMC
 .SH NAME
 trimvol \- Trim a volume and scale it to bytes.
 .SH SYNOPSIS

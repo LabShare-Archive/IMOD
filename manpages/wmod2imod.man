@@ -1,6 +1,6 @@
 .na
 .nh
-.TH wmod2imod 1 2.20 BL3DFS
+.TH wmod2imod 1 2.20 BL3DEMC
 .SH NAME
 wmod2imod \- Make an IMOD model file from a wimp model file.
 .SH SYNOPSIS

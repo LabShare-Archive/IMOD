@@ -1,6 +1,6 @@
 .na
 .nh
-.TH squeezevol 1 2.41 BL3DFS
+.TH squeezevol 1 2.41 BL3DEMC
 .SH NAME
 squeezevol \- Reduce a volume in all dimensions by interpolation.
 .SH SYNOPSIS

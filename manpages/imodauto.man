@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodauto 1 2.02 BL3DFS
+.TH imodauto 1 2.02 BL3DEMC
 .SH NAME
 imodauto \- creates a model from an mrc image stack.
 .SH SYNOPSIS

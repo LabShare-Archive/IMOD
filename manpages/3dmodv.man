@@ -1,6 +1,6 @@
 .nh
 .na
-.TH 3dmodv 1 3.0.7 BL3DFS
+.TH 3dmodv 1 3.0.7 BL3DEMC
 .SH NAME
 3dmodv \- View an Imod model.
 .SH SYNOPSIS

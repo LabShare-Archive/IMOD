@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrcbyte 1 2.42 BL3DFS
+.TH mrcbyte 1 2.42 BL3DEMC
 .SH NAME
 mrcbyte \- Converts an MRC file into byte type data.
 .SH SYNOPSIS

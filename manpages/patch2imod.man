@@ -1,6 +1,6 @@
 .na
 .nh
-.TH patch2imod 1 2.42 BL3DFS
+.TH patch2imod 1 2.42 BL3DEMC
 .SH NAME
 patch2imod \- makes model from patch displacement or residual file
 .SH SYNOPSIS

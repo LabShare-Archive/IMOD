@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrcv 1 2.00 BL3DFS
+.TH mrcv 1 2.00 BL3DEMC
 .SH NAME
 mrcv \- View an MRC Image stack or command file.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH recombine 1 2.40 BL3DFS
+.TH recombine 1 2.40 BL3DEMC
 .SH NAME
 recombine \- Recombine an MRC file disassembled with splitmrc
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH newst 1 2.30 BL3DFS
+.TH newst 1 2.30 BL3DEMC
 .SH NAME
 newst \- Front end to the newstack program.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH matchshifts 1 2.30 BL3DFS
+.TH matchshifts 1 2.30 BL3DEMC
 .SH NAME
 matchshifts \- Find shift component of transformation between two volumes
 .SH SYNOPSIS

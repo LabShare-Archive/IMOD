@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrctaper 1 2.42 BL3DFS
+.TH mrctaper 1 2.42 BL3DEMC
 .SH NAME
 mrctaper \- Tapers edges of images between actual and filled-in values
 .SH SYNOPSIS

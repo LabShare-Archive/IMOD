@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodjoin 1 2.50 BL3DFS
+.TH imodjoin 1 2.50 BL3DEMC
 .SH NAME
 imodjoin \- Combine two or more IMOD models into one.
 .SH SYNOPSIS

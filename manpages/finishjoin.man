@@ -1,6 +1,6 @@
 .na
 .nh
-.TH finishjoin 1 2.31 BL3DFS
+.TH finishjoin 1 2.31 BL3DEMC
 .SH NAME
 finishjoin \- Join serial section tomograms after finding alignments
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH rec2imod 1 2.00 BL3DFS
+.TH rec2imod 1 2.00 BL3DEMC
 .SH NAME
 rec2imod \- Make an IMOD model file from a HVEM 3D recon file.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodsortsurf 1 2.20 BL3DFS
+.TH imodsortsurf 1 2.20 BL3DEMC
 .SH NAME
 imodsortsurf \- Sort contours into surfaces based on mesh.
 .SH SYNOPSIS

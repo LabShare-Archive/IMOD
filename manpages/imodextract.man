@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodextract 1 2.20 BL3DFS
+.TH imodextract 1 2.20 BL3DEMC
 .SH NAME
 imodextract \- Extract objects from a model into a new model.
 .SH SYNOPSIS

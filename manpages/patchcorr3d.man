@@ -1,6 +1,6 @@
 .na
 .nh
-.TH patchcorr3d 1 2.30 BL3DFS
+.TH patchcorr3d 1 2.30 BL3DEMC
 .SH NAME
 patchcorr3d \- Correlate a series of local patches from two volumes
 .SH SYNOPSIS

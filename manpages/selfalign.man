@@ -1,6 +1,6 @@
 .na
 .nh
-.TH selfalign 1 2.50 BL3DFS
+.TH selfalign 1 2.50 BL3DEMC
 .SH NAME
 selfalign \- Realign model based on fits to trajectories
 .SH SYNOPSIS

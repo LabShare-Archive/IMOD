@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrc2tif 1 2.00 BL3DFS
+.TH mrc2tif 1 2.00 BL3DEMC
 .SH NAME
 mrc2tif \- Create a series of TIFF image files from an MRC image file.
 .SH SYNOPSIS

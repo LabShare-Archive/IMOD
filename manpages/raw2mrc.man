@@ -1,6 +1,6 @@
 .na
 .nh
-.TH raw2mrc 1 2.50 BL3DFS
+.TH raw2mrc 1 2.50 BL3DEMC
 .SH NAME
 raw2mrc \- Create an MRC image stack from raw image data.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodsendevent 1 2.7.2 BL3DFS
+.TH imodsendevent 1 2.7.2 BL3DEMC
 .SH NAME
 imodsendevent \- Sends an X event with a command to 3dmod
 .SH SYNOPSIS

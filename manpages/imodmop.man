@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodmop 1 2.00 BL3DFS
+.TH imodmop 1 2.00 BL3DEMC
 .SH NAME
 imodmop -\ paint an IMOD model with image data.
 .SH SYNOPSIS

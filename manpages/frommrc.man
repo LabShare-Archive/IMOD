@@ -1,6 +1,6 @@
 .na
 .nh
-.TH FROMMRC 1 2.00 BL3DFS
+.TH FROMMRC 1 2.00 BL3DEMC
 .SH NAME
 frommrc \- Converts a mrc file to SGI rgb image files.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodtrans 1 2.00 BL3DFS
+.TH imodtrans 1 2.00 BL3DEMC
 .SH NAME
 imodtrans \- Transform an IMOD model file.
 .SH SYNOPSIS

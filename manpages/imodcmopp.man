@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodcmopp 1 2.00 BL3DFS
+.TH imodcmopp 1 2.00 BL3DEMC
 .SH NAME
 imodcmopp \- color model paint and project a tomogram.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH dm2mrc 1 2.6.3 BL3DFS
+.TH dm2mrc 1 2.6.3 BL3DEMC
 .SH NAME
 dm2mrc \- Create an MRC image stack from Digital Micrograph files.
 .SH SYNOPSIS

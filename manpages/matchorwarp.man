@@ -1,6 +1,6 @@
 .na
 .nh
-.TH matchorwarp 1 2.30 BL3DFS
+.TH matchorwarp 1 2.30 BL3DEMC
 .SH NAME
 matchorwarp \- Find registration between two volumes and transform one
 .SH SYNOPSIS

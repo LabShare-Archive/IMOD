@@ -1,6 +1,6 @@
 .na
 .nh
-.TH onepatchcorr 1 2.50 BL3DFS
+.TH onepatchcorr 1 2.50 BL3DEMC
 .SH NAME
 onepatchcorr \- Correlate a patch from two volumes at one position
 .SH SYNOPSIS

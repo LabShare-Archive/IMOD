@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodexplode 1 2.20 BL3DFS
+.TH imodexplode 1 2.20 BL3DEMC
 .SH NAME
 imodexplode \- Make an exploded model by shifting objects.
 .SH SYNOPSIS

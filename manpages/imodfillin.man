@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodfillin 1 2.6.2 BL3DFS
+.TH imodfillin 1 2.6.2 BL3DEMC
 .SH NAME
 imodfillin \- fill in missing contours in IMOD model using mesh data
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodinfo 1 2.30 BL3DFS
+.TH imodinfo 1 2.30 BL3DEMC
 .SH NAME
 imodinfo \- Prints information about IMOD files.
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imod2rib 1 2.00 BL3DFS
+.TH imod2rib 1 2.00 BL3DEMC
 .SH NAME
 imod2rib \- Make a RIB model from an IMOD model file.
 .SH SYNOPSIS
