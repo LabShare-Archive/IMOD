@@ -7,12 +7,15 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/05/23 04:41:37  mast
+#  Added repackseed
+#
 
 PROGS = convertmod model2point imavgstat solvematch xfmodel\
  boxstartend endmodel realscalemod scalemodel checkmtmod joinmodel mtsmooth\
  reducemtmod xfinterstack clipmodel mtmodel remapmodel mtlengths contourmod\
  smoothsurf reducecont fenestra ccderaser edgeeraser refinematch findwarp\
- tomopitch fiberpitch corrsearch3d repackseed
+ tomopitch fiberpitch corrsearch3d repackseed resamplemod
 
 LIBS = $(FORTCLIBS)
 
@@ -107,6 +110,9 @@ corrsearch3d: corrsearch3d.o
 
 repackseed: repackseed.o
 	$(FC) -o repackseed repackseed.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+
+resamplemod: resamplemod.o
+	$(FC) -o resamplemod resamplemod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
