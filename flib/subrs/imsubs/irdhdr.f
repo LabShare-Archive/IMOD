@@ -40,6 +40,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/06/26 00:27:01  mast
+c	  Added ability to write a header back to a byte-swapped file, except
+c	  for extra header stuff.  Changed STOP's to call exit(1)
+c	
 c	  Revision 3.3  2002/04/18 20:04:21  mast
 c	  Made itrhdr/itrextra swap bytes correctly for integer/real extra
 c	  header data; also stopped irtsym from swapping 4 times too much data
@@ -437,7 +441,7 @@ c
 c	    if nints and nreal represent nbytes and flags, swap them all as
 c	    shorts Otherwise, swap them as nints longs and nreal floats
 c	    
-	    if(ifshort.eq.1)then
+	    if(ifshorts.eq.1)then
 	      call convert_shorts(headtmp,nbread/2)
 	    else
 	      indconv=1
