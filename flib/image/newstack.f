@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.22  2004/08/12 19:09:59  mast
+c	  Added -multadd option
+c	
 c	  Revision 3.21  2004/07/13 18:56:23  mast
 c	  Exit with error message and reference to man page when reading mode 16
 c	
@@ -513,15 +516,22 @@ C
 	endif
 	if(ifxform.ne.0)then
 c	    
-c	    read transforms, set default to section list
+c	    read transforms, set default to section list unless there is just
+c	    one line in file
 c
 	  call dopen(3,xffil,'ro','f')
 	  call xfrdall(3,f,nxforms,*96)
 	  close(3)
-	  nlineuse = listot
-	  do i = 1, listot
-	    lineuse(i) = inlist(i)
-	  enddo
+	  if (nxforms .eq. 1) then
+	    nlineuse = 1
+	    lineuse(1) = 0
+	  else
+	    nlineuse = listot
+	    do i = 1, listot
+	      lineuse(i) = inlist(i)
+	    enddo
+	  endif
+c
 	  if (pipinput) then
 	    if (PipGetString('UseTransformLines', listString) .eq. 0)
      &		call parselist(listString, lineuse, nlineuse)
