@@ -15,6 +15,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.2  2003/03/28 23:54:20  mast
 #  Add ranlib to make Mac happy
 #
@@ -31,14 +34,14 @@ all: $(PROG)
 
 $(PROG): tilt.$(O) licenseusfft.$(O) $(TILTOBJS) $(FBPLIB) 
 	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O) $(TILTOBJS) \
-	$(LDFFLAGS) $(LDFLAGS) $(IMLIBS) $(FBPLIB) $(USFFTLIBS) $(FORTCLIBS)
+	 $(FBPLIB) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) $(USFFTLIBS) $(FORTCLIBS)
 
 libfbp.a: fbplib/*.f
 	(cd fbplib ; $(MAKE) )
 
 nolibfbp.a: nolibfbp.$(O)
-	$(AR) $(ARFLAGS)nolibfbp.a nolibfbp.$(O)
-	$(RANLIB) nolibfbp.a
+	$(MAKESTATICLIB)nolibfbp.a nolibfbp.$(O)
+	$(STATICRANLIB) nolibfbp.a
 
 handnox.$(O): handnox.s
 handxtilt.$(O): handxtilt.s
