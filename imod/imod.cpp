@@ -577,6 +577,7 @@ int main( int argc, char *argv[])
   if (print_wid) {
     unsigned int winID = (unsigned int)ImodInfoWin->winId();
     fprintf(stderr, "Window id = %u\n", winID);
+    fflush(stderr);    // Needed on Windows
     //wprint("Window id = %u\n", winID);
   }
 
@@ -883,6 +884,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.15  2003/04/30 23:54:41  mast
+Comment out printing window id to info window
+
 Revision 4.14  2003/04/25 00:13:33  mast
 Added cache filling option and make program name changes
 
