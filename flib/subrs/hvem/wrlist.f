@@ -1,40 +1,72 @@
 c	  WRLIST writes out the list of NLISTZ values in array LISTZ as a
 c	  series of ranges separated by commas
 c
-	subroutine wrlist(listz,nlistz)
-	integer*4 listz(*)
-	parameter (limran=200)
-	integer*4 numstr(limran),numend(limran),numout(limran)
-	character*1 charout(limran)
-c	integer*4 numstr(200),numend(200),numout(200)
-c        character*1 charout(200)
-
-	nranno=1
-	numstr(1)=listz(1)
-	do il=2,nlistz
-	  if(listz(il).ne.listz(il-1)+1)then
-	    numend(nranno)=listz(il-1)
-	    nranno=nranno+1
-	    numstr(nranno)=listz(il)
-	  endif
-	enddo
-	numend(nranno)=listz(nlistz)
-c	  
-c	  turn the list of ranges into list of outputs
+c	  $Author$
 c
-	nout=0
-	do iran=1,nranno
-	  nout=nout+1
-	  numout(nout)=numstr(iran)
-	  if(numstr(iran).lt.numend(iran))then
-	    charout(nout)='-'
-	    if(numstr(iran)+1.eq.numend(iran))charout(nout)=','
-	    nout=nout+1
-	    numout(nout)=numend(iran)
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	subroutine wrlist(listz,nlistz)
+	implicit none
+	integer*4 listz(*),nlistz
+	character*82 line
+	integer*4 index, il, numstart, numend
+
+	numstart = listz(1)
+	line = ""
+	index = 1
+	do il = 2, nlistz
+	  if (listz(il) .ne. listz(il-1) + 1) then
+	    numend = listz(il-1)
+	    call add_range_to_line(numstart, numend, line, index)
+	    numstart = listz(il)
 	  endif
-	  charout(nout)=','
 	enddo
-	charout(nout)=' '
-	write(*,'(16(i4,a1))')(numout(i),charout(i),i=1,nout)
+	numend = listz(nlistz)
+	call add_range_to_line(numstart, numend, line, index)
+	write(*,'(a)') line(1 : index - 1)
+	return
+	end  
+
+
+	subroutine add_range_to_line(numstart, numend, line, index)
+	implicit none
+	integer*4 numstart, numend, index
+	character*(*) line
+	integer*4 ncharrange, ncharend
+	character*24 rangestring
+	character*12 endstring
+c
+c	  convert the starting number, then add the ending number if it is
+c	  truly a range
+c
+	call int_iwrite(rangestring, numstart, ncharrange)
+	if (numend .gt. numstart) then
+	  call int_iwrite(endstring, numend, ncharend)
+	  rangestring(ncharrange+1 : ncharrange+1) = '-'
+	  rangestring(ncharrange+2 : ncharrange+1+ncharend) =
+     &	      endstring(1 : ncharend)
+	  ncharrange = ncharrange + 1 + ncharend
+	endif
+c	  
+c	  dump line and start new one if this range will not fit
+c
+	if (index + ncharrange .gt. 80) then
+	  write(*,'(a)') line(1 : index - 1)
+	  line = ""
+	  index = 1
+	endif
+c	  
+c	  add , unless at start of line, then add range
+c
+	if (index .gt. 1) then
+	  line(index : index) = ','
+	  index = index + 1
+	endif
+	line(index : index + ncharrange - 1) = rangestring(1 : ncharrange)
+	index = index + ncharrange
 	return
 	end
