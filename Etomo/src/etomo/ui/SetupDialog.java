@@ -42,6 +42,11 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/07 17:47:46  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p> Added method to get working directy name from current dataset
+ * <p> Fixed some tooltips
+ * <p>
  * <p> Revision 2.2  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -129,8 +134,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private JPanel panelDataSource = new JPanel();
   private TitledBorder borderDataSource;
-  private JRadioButton rbCCD = new JRadioButton("CCD");
-  private JRadioButton rbFilm = new JRadioButton("Film");
+  private JRadioButton rbCCD = new JRadioButton("Unaligned (CCD)");
+  private JRadioButton rbFilm = new JRadioButton("Well Aligned (Film)");
   private ButtonGroup bgDataSource = new ButtonGroup();
 
   private JPanel panelAxisType = new JPanel();
@@ -617,39 +622,60 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line2 = "also select the projection data file  by pressing the<br>";
     line3 = "folder button.";
     ltfDataset.setToolTipText(line1 + line2 + line3);
+    
     line1 = "<html>This button will open a file chooser dialog box<br>";
-    line2 = "allowing you to select the projection data file.<br>";
+    line2 = "allowing you to select the projection data file.";
     btnDataset.setToolTipText(line1 + line2);
+    
     line1 = "<html>Enter the name of the directory where you want the<br>";
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
     line4 = "directory to store the backups.";
     ltfBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
+    
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     buttonBackupDirectory.setToolTipText(line1 + line2);
+    
     line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "has been collected using a CCD or film.";
-    panelDataSource.setToolTipText(line1 + line2);
+    line2 = "has been collected using a CCD or film.  Even if the data are<br>";
+    line3 = "from film, select CCD unless they are already well-aligned<br>";
+    line4 = "from one projection to the next.";
+    panelDataSource.setToolTipText(line1 + line2 + line3 + line4);
+    rbCCD.setToolTipText(line1 + line2 + line3 + line4);
+    rbFilm.setToolTipText(line1 + line2 + line3 + line4);
+    
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
     panelAxisType.setToolTipText(line1 + line2);
+    rbSingleAxis.setToolTipText(line1 + line2);
+    rbDualAxis.setToolTipText(line1 + line2);
+    
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single view per projection or multiple views<br>";
     line3 = "per projection (montaged).";
     panelViewType.setToolTipText(line1 + line2 + line3);
+    rbSingleView.setToolTipText(line1 + line2 + line3);
+    rbMontage.setToolTipText(line1 + line2 + line3);
+    
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single tomogram or several serial tomograms";
     panelSectionType.setToolTipText(line1 + line2);
+    rbSingleSection.setToolTipText(line1 + line2);
+    rbSerialSection.setToolTipText(line1 + line2);
+    
     line1 = "<html>Enter the projection image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
+    
     line1 = "<html>Enter the fiducial size in nanometers here.";
     ltfFiducialDiameter.setToolTipText(line1);
+    
     line1 = "<html>Enter the projection image rotation in degrees. This is<br>";
     line2 = "the rotation (CCW positive) from the Y-axis (the tilt axis<br>";
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
+    
     line1 = "<html>Specify the source of the projection tilt angles";
     line2 = "<ul><li>Select the Extract option if the raw stack data<br>";
     line3 = "contains the tilt angle data";
@@ -661,6 +687,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       line1 + line2 + line3 + line4 + line5 + line6 + line7);
     tiltAnglesB.setToolTipText(
       line1 + line2 + line3 + line4 + line5 + line6 + line7);
+
     line1 =
       "<html>Enter the projection images to <b>exclude</b> from the processing<br>";
     line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
@@ -668,10 +695,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line4 = "four images of a 60 projection stack enter 1-4,57-60.";
     ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
     ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
+    
     line1 = "<html>The button will setup the processing for existing<br>";
     line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
     line3 = "the existing command scripts.</b>";
     buttonPostpone.setToolTipText(line1 + line2 + line3);
+    
     line1 = "<html>This button will create a new set of command scripts<br>";
     line2 = "overwriting any of the same name in the specified working<br>";
     line3 = "directory.  Be sure to save the data file after creating the<br>";
