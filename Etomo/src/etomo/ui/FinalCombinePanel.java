@@ -21,43 +21,66 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 
 /**
- * <p>Description: 
+ * <p>
+ * Description:
  * 
- * Note:
- * The Y and Z parameters are presented to the user in swapped format, all other
- * representations of those parameters are as they appear in the commands.
- * Specifically Y contains the depth dimension. 
+ * Note: The Y and Z parameters are presented to the user in swapped format,
+ * all other representations of those parameters are as they appear in the
+ * commands. Specifically Y contains the depth dimension.
  * </p>
- *
- * <p>Copyright: Copyright (c) 2002</p>
- *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
+ * 
+ * <p>
+ * Copyright: Copyright (c) 2002
+ * </p>
+ * 
+ * <p>
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Colorado
+ * </p>
+ * 
  * @author $Author$
- *
+ * 
  * @version $Revision$
- *
- * <p> $Log$
- * <p> Revision 1.14  2003/06/05 04:41:31  rickg
- * <p> Label change
+ * 
  * <p>
- * <p> Revision 1.13  2003/05/15 04:28:48  rickg
- * <p> Removed test button for volcombine
+ * $Log$
  * <p>
- * <p> Revision 1.12  2003/05/14 14:38:08  rickg
- * <p> Temporary button
+ * Revision 1.15 2003/10/15 22:45:40 rickg
  * <p>
- * <p> Revision 1.11  2003/04/09 23:37:46  rickg
- * <p> Moved CheckBoxTextPanel out
+ * Button size change
  * <p>
- * <p> Revision 1.10  2003/03/26 00:52:56  rickg
- * <p> Added button to convert patch_vector.mod to patch.out
  * <p>
- * <p> Revision 1.9  2003/03/20 17:57:10  rickg
- * <p> Fixed combined volume button size
+ * Revision 1.14 2003/06/05 04:41:31 rickg
  * <p>
- * <p> </p>
+ * Label change
+ * <p>
+ * <p>
+ * Revision 1.13 2003/05/15 04:28:48 rickg
+ * <p>
+ * Removed test button for volcombine
+ * <p>
+ * <p>
+ * Revision 1.12 2003/05/14 14:38:08 rickg
+ * <p>
+ * Temporary button
+ * <p>
+ * <p>
+ * Revision 1.11 2003/04/09 23:37:46 rickg
+ * <p>
+ * Moved CheckBoxTextPanel out
+ * <p>
+ * <p>
+ * Revision 1.10 2003/03/26 00:52:56 rickg
+ * <p>
+ * Added button to convert patch_vector.mod to patch.out
+ * <p>
+ * <p>
+ * Revision 1.9 2003/03/20 17:57:10 rickg
+ * <p>
+ * Fixed combined volume button size
+ * <p>
+ * <p>
+ * </p>
  */
 public class FinalCombinePanel implements ContextMenu {
   public static final String rcsid =
@@ -79,16 +102,16 @@ public class FinalCombinePanel implements ContextMenu {
     new LabeledTextField("Y patch size :");
   private JPanel pnlPatchsizeButtons = new JPanel();
   private JButton btnPatchsizeIncrease =
-    new JButton("<html><b>Patch size +20%</b>");
+    new JButton("<html><b>Patch Size +20%</b>");
   private JButton btnPatchsizeDecrease =
-    new JButton("<html><b>Patch size -20%</b>");
+    new JButton("<html><b>Patch Size -20%</b>");
 
   private LabeledTextField ltfXNPatches =
-    new LabeledTextField("# of X patches :");
+    new LabeledTextField("Number of X patches :");
   private LabeledTextField ltfYNPatches =
-    new LabeledTextField("# of Z patches :");
+    new LabeledTextField("Number of Z patches :");
   private LabeledTextField ltfZNPatches =
-    new LabeledTextField("# of Y patches :");
+    new LabeledTextField("Number of Y patches :");
 
   private JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField("X Low :");
@@ -99,54 +122,56 @@ public class FinalCombinePanel implements ContextMenu {
   private LabeledTextField ltfZHigh = new LabeledTextField("Y high :");
 
   private JButton btnPatchcorrRestart =
-    new JButton("<html><b>Restart at patchcorr</b>");
+    new JButton("<html><b>Restart at Patchcorr</b>");
 
   private JPanel pnlMatchorwarp = new JPanel();
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbUsePatchRegionModel =
     new JCheckBox("Use patch region model");
   private JButton btnPatchRegionModel =
-    new JButton("<html><b>Create/edit patch region model</b>");
-  private LabeledTextField ltfWarpLimit = new LabeledTextField("Warp limit: ");
+    new JButton("<html><b>Create/Edit Patch Region Model</b>");
+  private LabeledTextField ltfWarpLimit =
+    new LabeledTextField("Warping residual limits: ");
   private LabeledTextField ltfRefineLimit =
-    new LabeledTextField("Refine limit: ");
+    new LabeledTextField("Residual limit for single transform: ");
 
-  private CheckBoxTextField cbtfXLowerExclude =
-    new CheckBoxTextField("columns to exclude on left (in X): ");
-  private CheckBoxTextField cbtfXUpperExclude =
-    new CheckBoxTextField("columns to exclude on right (in X): ");
-  private CheckBoxTextField cbtfZLowerExclude =
-    new CheckBoxTextField("rows to exclude on bottom (in Y): ");
-  private CheckBoxTextField cbtfZUpperExclude =
-    new CheckBoxTextField("rows to exclude on top (in Y): ");
+  private LabeledTextField cbtfXLowerExclude =
+    new LabeledTextField("Number of columns to exclude on left (in X): ");
+  private LabeledTextField cbtfXUpperExclude =
+    new LabeledTextField("Number of columns to exclude on right (in X): ");
+  private LabeledTextField cbtfZLowerExclude =
+    new LabeledTextField("Number of rows to exclude on bottom (in Y): ");
+  private LabeledTextField cbtfZUpperExclude =
+    new LabeledTextField("Number of rows to exclude on top (in Y): ");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private JButton btnMatchorwarpRestart =
-    new JButton("<html><b>Restart at matchorwarp</b>");
+    new JButton("<html><b>Restart at Matchorwarp</b>");
   private JButton btnMatchorwarpTrial =
-    new JButton("<html><b>Matchorwarp trial run</b>");
+    new JButton("<html><b>Matchorwarp Trial Run</b>");
 
   private JPanel pnlButton = new JPanel();
 
   private JButton btnPatchVectorModel =
-    new JButton("<html><b>Examine patch vector model</b>");
+    new JButton("<html><b>Examine Patch Vector Model</b>");
   private JButton btnCommitPatchOut =
-    new JButton("<html><b>Commit new patch vector model</b>");
+    new JButton("<html><b>Replace Patch Vector Model</b>");
   private JButton btnImodMatchedTo =
-    new JButton("<html><b>Open volume being matched to</b>");
+    new JButton("<html><b>Open Volume Being Matched To</b>");
   private JButton btnImodCombined =
-    new JButton("<html><b>Open combined volume</b>");
+    new JButton("<html><b>Open Combined Volume</b>");
 
   /**
-   * Default constructor
-   * @param appMgr
-   */
+	 * Default constructor
+	 * 
+	 * @param appMgr
+	 */
   public FinalCombinePanel(ApplicationManager appMgr) {
 
     applicationManager = appMgr;
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
-    //  Get the current text height from one of the 
+    //  Get the current text height from one of the
     double height = cbUsePatchRegionModel.getPreferredSize().getHeight();
 
     //  Set the button sizes
@@ -238,13 +263,13 @@ public class FinalCombinePanel implements ContextMenu {
     pnlMatchorwarp.add(ltfRefineLimit.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    pnlMatchorwarp.add(cbtfXLowerExclude);
+    pnlMatchorwarp.add(cbtfXLowerExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfXUpperExclude);
+    pnlMatchorwarp.add(cbtfXUpperExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfZLowerExclude);
+    pnlMatchorwarp.add(cbtfZLowerExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfZUpperExclude);
+    pnlMatchorwarp.add(cbtfZUpperExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlMatchorwarpButtons.setLayout(
@@ -284,7 +309,7 @@ public class FinalCombinePanel implements ContextMenu {
     btnCommitPatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
-		
+
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
@@ -296,18 +321,20 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-   * Return the pnlRoot reference
-   * @return Container
-   */
+	 * Return the pnlRoot reference
+	 * 
+	 * @return Container
+	 */
   public Container getContainer() {
     return pnlRoot;
   }
 
   /**
-   * Set the values of the patchcrawl3D UI objects from the 
-   * ConstPatchcrawl3DParam object.
-   * @param patchrawlParam
-   */
+	 * Set the values of the patchcrawl3D UI objects from the
+	 * ConstPatchcrawl3DParam object.
+	 * 
+	 * @param patchrawlParam
+	 */
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchrawlParam) {
     ltfXPatchSize.setText(patchrawlParam.getXPatchSize());
     ltfYPatchSize.setText(patchrawlParam.getYPatchSize());
@@ -324,10 +351,11 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-   * Set the Patchcrawl3DParam object values from the UI values.
-   * @param patchrawlParam
-   * @throws NumberFormatException
-   */
+	 * Set the Patchcrawl3DParam object values from the UI values.
+	 * 
+	 * @param patchrawlParam
+	 * @throws NumberFormatException
+	 */
   public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParam)
     throws NumberFormatException {
     String badParameter = "";
@@ -369,10 +397,11 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-   * Set the values of the matchorwarp UI objects from the 
-   * ConstMatchorwarpParam object.
-   * @param matchorwarpParam
-   */
+	 * Set the values of the matchorwarp UI objects from the
+	 * ConstMatchorwarpParam object.
+	 * 
+	 * @param matchorwarpParam
+	 */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
     cbUsePatchRegionModel.setSelected(
       !matchorwarpParam.getModelFile().equals(""));
@@ -380,34 +409,27 @@ public class FinalCombinePanel implements ContextMenu {
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
     if (matchorwarpParam.getXLowerExclude() > 0) {
-      cbtfXLowerExclude.setCheckBoxSelected(true);
-      cbtfXLowerExclude.setTextField(
-        String.valueOf(matchorwarpParam.getXLowerExclude()));
+      cbtfXLowerExclude.setText(matchorwarpParam.getXLowerExclude());
     }
     if (matchorwarpParam.getXUpperExclude() > 0) {
-      cbtfXUpperExclude.setCheckBoxSelected(true);
-      cbtfXUpperExclude.setTextField(
-        String.valueOf(matchorwarpParam.getXUpperExclude()));
+      cbtfXUpperExclude.setText(matchorwarpParam.getXUpperExclude());
     }
 
     if (matchorwarpParam.getZLowerExclude() > 0) {
-      cbtfZLowerExclude.setCheckBoxSelected(true);
-      cbtfZLowerExclude.setTextField(
-        String.valueOf(matchorwarpParam.getZLowerExclude()));
+      cbtfZLowerExclude.setText(matchorwarpParam.getZLowerExclude());
     }
 
     if (matchorwarpParam.getZUpperExclude() > 0) {
-      cbtfZUpperExclude.setCheckBoxSelected(true);
-      cbtfZUpperExclude.setTextField(
-        String.valueOf(matchorwarpParam.getZUpperExclude()));
+      cbtfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
   }
 
   /**
-   * Set the MatchorwarpParam object values from the UI values.
-   * @param matchorwarpParam
-   * @throws NumberFormatException
-   */
+	 * Set the MatchorwarpParam object values from the UI values.
+	 * 
+	 * @param matchorwarpParam
+	 * @throws NumberFormatException
+	 */
   public void getMatchorwarpParams(MatchorwarpParam matchorwarpParam)
     throws NumberFormatException {
     String badParameter = "";
@@ -428,58 +450,54 @@ public class FinalCombinePanel implements ContextMenu {
       matchorwarpParam.setRefineLimit(
         Double.parseDouble(ltfRefineLimit.getText()));
 
-      badParameter = cbtfXLowerExclude.getCheckBoxLabel();
-      if (cbtfXLowerExclude.isCheckBoxSelected()) {
-        matchorwarpParam.setXLowerExclude(
-          Integer.parseInt(cbtfXLowerExclude.getTextField()));
+      badParameter = cbtfXLowerExclude.getLabel();
+      String text = cbtfXLowerExclude.getText();
+      if (text.matches("\\S+")) {
+        matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
       }
       else {
         matchorwarpParam.setXLowerExclude(0);
       }
 
-      badParameter = cbtfXUpperExclude.getCheckBoxLabel();
-      if (cbtfXUpperExclude.isCheckBoxSelected()) {
-        matchorwarpParam.setXUpperExclude(
-          Integer.parseInt(cbtfXUpperExclude.getTextField()));
+      badParameter = cbtfXUpperExclude.getLabel();
+      text = cbtfXUpperExclude.getText();
+      if (text.matches("\\S+")) {
+        matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
       }
       else {
         matchorwarpParam.setXUpperExclude(0);
       }
 
-      badParameter = cbtfZLowerExclude.getCheckBoxLabel();
-      if (cbtfZLowerExclude.isCheckBoxSelected()) {
-        matchorwarpParam.setZLowerExclude(
-          Integer.parseInt(cbtfZLowerExclude.getTextField()));
+      badParameter = cbtfZLowerExclude.getLabel();
+      text = cbtfZLowerExclude.getText();
+      if (text.matches("\\S+")) {
+        matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
       }
       else {
         matchorwarpParam.setZLowerExclude(0);
       }
 
-      badParameter = cbtfZUpperExclude.getCheckBoxLabel();
-      if (cbtfZUpperExclude.isCheckBoxSelected()) {
-        matchorwarpParam.setZUpperExclude(
-          Integer.parseInt(cbtfZUpperExclude.getTextField()));
+      badParameter = cbtfZUpperExclude.getLabel();
+      text = cbtfZUpperExclude.getText();
+      if (text.matches("\\S+")) {
+        matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
       }
       else {
         matchorwarpParam.setZUpperExclude(0);
       }
-
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
     }
-  }
-
-  /**
-   * Right mouse button context menu
-   */
+  } /**
+		 * Right mouse button context menu
+		 */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "patchcrawl3d", "matchorwarp" };
+    String[] manPagelabel = { "Patchcrawl3d", "Matchorwarp" };
     String[] manPage = { "patchcrawl3d.html", "matchorwarp.html" };
-    String[] logFileLabel = { "patchcorr", "matchorwarp", "volcombine" };
+    String[] logFileLabel = { "Patchcorr", "Matchorwarp", "Volcombine" };
     String[] logFile = { "patchcorr.log", "matchorwarp.log", "volcombine.log" };
-
     ContextPopup contextPopup =
       new ContextPopup(
         pnlRoot,
@@ -491,9 +509,9 @@ public class FinalCombinePanel implements ContextMenu {
         logFile);
   }
 
-  private void buttonAction(ActionEvent event) {
-
-    // Decrease patch sizes by 20% and then round to ints since they are in
+  private void buttonAction(ActionEvent event) { // Decrease patch sizes by 20%
+    // and then round to ints
+    // since they are in
     // pixels
     if (event
       .getActionCommand()
@@ -504,9 +522,8 @@ public class FinalCombinePanel implements ContextMenu {
         Math.round(Integer.parseInt(ltfYPatchSize.getText()) / 1.2f));
       ltfZPatchSize.setText(
         Math.round(Integer.parseInt(ltfZPatchSize.getText()) / 1.2f));
-    }
-
-    //  Increase patch sizes by 20% and then round to ints since they are in
+    } //  Increase patch sizes by 20% and then round to ints since they are
+    // in
     // pixels
     if (event
       .getActionCommand()
@@ -517,7 +534,6 @@ public class FinalCombinePanel implements ContextMenu {
         Math.round(Integer.parseInt(ltfYPatchSize.getText()) * 1.2f));
       ltfZPatchSize.setText(
         Math.round(Integer.parseInt(ltfZPatchSize.getText()) * 1.2f));
-
     }
 
     if (event
@@ -567,7 +583,6 @@ public class FinalCombinePanel implements ContextMenu {
 
   class ButtonActionListener implements ActionListener {
     FinalCombinePanel listenee;
-
     ButtonActionListener(FinalCombinePanel finalCombinePanel) {
       listenee = finalCombinePanel;
     }
