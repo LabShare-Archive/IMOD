@@ -81,12 +81,12 @@ DDEESSCCRRIIPPTTIIOONN
   
   A list of the points in series 1 for which a corresponding point in
      series 2 is known with confidence.  Ranges may be entered
-     (e.g. 1-5,7,6,-12).  Enter / if all points correspond between the
+     (e.g. 1-5,7,6,12).  Enter / if all points correspond between the
      two series.
   
   A list of the corresponding points in the second series.  The same
      number of values must be entered in this list as in the preceding
-     list.  Again,  enter / if all points correspond between the
+     list.  Again, enter / if all points correspond between the
      two series.
 
   The values of X axis tilt that were used in generating the first and
@@ -142,6 +142,16 @@ DDEESSCCRRIIPPTTIIOONN
   transformation of the corresponding point in the second tomogram.  It
   reports the mean and S.D. of these deviations, the number of the
   point with the highest deviation, and the magnitude of its deviation.
+
+  When you enter point numbers, use the numbers listed on the left in
+  the fiducial coordinate file.  These numbers may not correspond to
+  the contour numbers in the original fiducial model if some contours
+  were not included in the solution.  These numbers do not need to be
+  sequential; i.e., you can delete points from the coordinate file.
+  The program will refer to points by these numbers.  When you have
+  both fiducial coordinates and points from matching models, it will
+  refer to the latter points by the negative of their point number.
+
 
 HHIISSTTOORRYY
   Written by David Mastronarde, 1995; modified for zero shifts, 7/4/97
