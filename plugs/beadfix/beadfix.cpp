@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2003/06/29 14:23:20  mast
+    Added ability to back up to previous residual
+
     Revision 3.5  2003/06/27 20:25:11  mast
     Implemented display of residual vectors in extra object
 
@@ -395,7 +398,6 @@ void BeadFixer::nextRes()
       wprint("No more residuals in this list\n");
       nextResBut->setEnabled(false);    
       plug->residok=0;
-      clearExtraObj();
       return;
     }
     if (plug->objcont)
@@ -505,6 +507,7 @@ void BeadFixer::nextRes()
       // Make an arrow in the extra object
       con = imodContourNew();
       if (con) {
+	clearExtraObj();
         ob = ivwGetExtraObject(plug->view);
         imodPointAppend(con, --pts);
         tpt.x = pts->x + xr;
