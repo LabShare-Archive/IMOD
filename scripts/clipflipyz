@@ -1,0 +1,41 @@
+#! /bin/csh -f
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+
+nohup
+
+# runs clip flipyz
+set pn = "clipflipyz"
+
+if ($#argv < 2)then
+  echo "Usage: $pn input_file output_file"
+  exit 0
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+endif
+
+echo2 Shell PID: $$
+
+echo "Flipping Y and Z..."
+echo clip flipyz $argv[1] $argv[2]
+clip flipyz $argv[1] $argv[2]
+    if ($status) goto clean
+endif
+
+exit 0
+
+clean:
+\rm -f $argv[2]
+echo ERROR: unable to run clip flipyz $argv[1] $argv[2]
+exit 1
