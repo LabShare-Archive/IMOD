@@ -93,6 +93,8 @@ int new_view(struct Midas_view *vw)
   vw->sminin = 0;
   vw->smaxin = 0;
   vw->boxsize = INITIAL_BOX_SIZE;
+  vw->rotMode = 0;
+  vw->globalRot = 0.;
   vw->cachesize = 0;
   vw->cache = NULL;
   vw->usecount = 0;
@@ -104,6 +106,9 @@ int new_view(struct Midas_view *vw)
   vw->applytoone = 0;
   vw->difftoggle = NULL;
   vw->keepsecdiff = 1;
+  vw->mouseXonly = 0;
+  vw->ctrlPressed = 0;
+  vw->shiftPressed = 0;
   vw->midasWindow = NULL;
   for (i = 0; i < 3; i++) {
     vw->incindex[i] = 4;
@@ -387,65 +392,112 @@ Islice *getRawSlice(struct Midas_view *vw, int zval)
   return (vw->cache[oldest].sec);
 }
 
-static Islice *getXformSlice(struct Midas_view *vw, int zval, int *xformed)
+static Islice *getXformSlice(struct Midas_view *vw, int zval, int shiftOK,
+                             int *xformed)
 {
   int k;
   int minuse = vw->usecount + 1;
   int oldest = 0;
   Islice *orgSlice;
-  float *mat = vw->tr[zval].mat;
+  float mat[9]; 
+  float rmat[9];
+  int found = -1;
+  int matchshift = 0;
+  int match2x2 = 0;
   *xformed = 1;
 
-  /* search cache for transformed slice.  Do this first so that the
-     transformed slice will always get shifted by fast translations */
+  /* Get the transformation that needs to be applied */
+  tramat_copy(vw->tr[zval].mat, mat);
+  if (vw->rotMode) {
+    tramat_idmat(rmat);
+    tramat_rot(rmat, vw->globalRot);
+    if (zval == vw->cz || vw->xtype == XTYPE_XG)
+      tramat_multiply(rmat, vw->tr[zval].mat, mat);
+    else
+      tramat_copy(rmat, mat);
+  }
+
+
+  /* search cache for transformed slice.  */
   for (k = 0; k < vw->cachesize; k++) {
-    /* If it's a match, mark as not transformed and return */
     if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
       vw->cache[k].used = vw->usecount++;
-      *xformed = 0;
-      return (vw->cache[k].sec);
+
+      /* If slice is in cache, check for match of 2x2 matrix and shift terms */
+      if (fabs((double)(vw->cache[k].mat[0] - mat[0])) < 0.00001 &&
+          fabs((double)(vw->cache[k].mat[1] - mat[1])) < 0.00001 &&
+          fabs((double)(vw->cache[k].mat[3] - mat[3])) < 0.00001 &&
+          fabs((double)(vw->cache[k].mat[4] - mat[4])) < 0.00001)
+        match2x2 = 1;
+      if (fabs((double)(vw->cache[k].mat[6] - mat[6])) < 0.0001 &&
+          fabs((double)(vw->cache[k].mat[7] - mat[7])) < 0.0001)
+        matchshift = 1;
+          
+      /* All match, return slice as transformed */
+      if (match2x2 && matchshift) 
+        return (vw->cache[k].sec);
+
+      /* Shift mismatch and this is OK, copy matrix and return, mark as not
+         transformed */
+      if (match2x2 && shiftOK) {
+        *xformed = 0;
+        tramat_copy(mat, vw->cache[k].mat);
+        return (vw->cache[k].sec);
+      }
+
+      /* Otherwise break out with slice found, get original slice */
+      orgSlice = getRawSlice(vw, zval);
+      found = k;
+      break;
     }
   }
 
-  /* If it's a unit transformation, just return the raw slice and mark
-     as already transformed */
-  if (mat[0] == 1.0 && mat[4] == 1.0 && mat[1] == 0.0 && mat[3] == 0.0 &&
-      mat[6] < 0.0001 && mat[6] > -0.0001 && mat[7] < 0.0001 && 
-      mat[7] > -0.0001) {
-    *xformed = -1;
-    return (getRawSlice(vw, zval));
-  }
+  /* If need to set up a new slice in cache */
+  if (found < 0) {
 
-  /* Make sure the original slice is in cache before looking for oldest */
-  orgSlice = getRawSlice(vw, zval);
-
-  /* Find oldest slice */
-  for (k = 0; k < vw->cachesize; k++) {
-    if (vw->cache[k].used < minuse) {
-      minuse = vw->cache[k].used;
-      oldest = k;
+    /* If it's a unit transformation, just return the raw slice and mark
+       as already transformed */
+    if (mat[0] == 1.0 && mat[4] == 1.0 && mat[1] == 0.0 && mat[3] == 0.0 &&
+        fabs((double)mat[6]) < 0.0001 && fabs((double)mat[7]) < 0.0001) {
+      *xformed = -1;
+      return (getRawSlice(vw, zval));
     }
+
+    /* Make sure the original slice is in cache before looking for oldest */
+    orgSlice = getRawSlice(vw, zval);
+
+    /* Find oldest slice */
+    for (k = 0; k < vw->cachesize; k++) {
+      if (vw->cache[k].used < minuse) {
+        minuse = vw->cache[k].used;
+        oldest = k;
+      }
+    }
+
+    /* Allocate oldest spot to this slice */
+    vw->cache[oldest].zval = zval;
+    vw->cache[oldest].xformed = 1;
+    vw->cache[oldest].used = vw->usecount++;
+    found = oldest;
   }
 
-  /* Allocate oldest spot to this slice and transform raw slice */
-  vw->cache[oldest].zval = zval;
-  vw->cache[oldest].xformed = 1;
-  vw->cache[oldest].used = vw->usecount++;
-  midas_transform(orgSlice, vw->cache[oldest].sec, &vw->tr[zval]);
-  return (vw->cache[oldest].sec);
+  /* transform raw slice */
+  midas_transform(orgSlice, vw->cache[found].sec, mat);
+  tramat_copy(mat, vw->cache[found].mat);
+  return (vw->cache[found].sec);
 }
 
 /* 
  * Get a slice from the image data.
  */
-Islice *midasGetSlice(struct Midas_view *vw, int sliceType, int *xformed)
+Islice *midasGetSlice(struct Midas_view *vw, int sliceType)
 {
-  *xformed = 0;
+  int xformed;
   switch(sliceType){
   case MIDAS_SLICE_CURRENT:
-    return(getXformSlice(vw, vw->cz, xformed));
+    return(getXformSlice(vw, vw->cz, 0, &xformed));
   case MIDAS_SLICE_PREVIOUS:
-    return(getXformSlice(vw, vw->refz, xformed));
+    return(getXformSlice(vw, vw->refz, 0, &xformed));
   case MIDAS_SLICE_REFERENCE:
     return(vw->ref);
   case MIDAS_SLICE_OCURRENT:
@@ -465,11 +517,6 @@ void flush_xformed(struct Midas_view *vw)
       vw->cache[k].zval = -1;
       vw->cache[k].used = -1;
     }
-}
-
-struct Midas_transform *midasGetTrans(struct Midas_view *vw)
-{
-  return(&vw->tr[vw->cz]);
 }
 
 void midasGetSize(struct Midas_view *vw, int *xs, int *ys)
@@ -493,7 +540,7 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
   int xfd;
   unsigned char mean;
   int xsize, ysize, xysize;
-  Islice *curSlice = midasGetSlice(vw, MIDAS_SLICE_CURRENT, &xfd);
+  Islice *curSlice = getXformSlice(vw, MIDAS_SLICE_CURRENT, 1, &xfd);
 
   if (!curSlice) return(-1);
 
@@ -564,16 +611,14 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
   return(0);
 }
 
-int midas_transform(struct MRCslice *slin, 
-                    struct MRCslice *sout,
-                    struct Midas_transform *tr)
+int midas_transform(Islice *slin, Islice *sout, float *trmat)
 {
   int i, j, k, l, index;
   int ix, iy;
   int xsize, ysize;
   float *mat;
-  float ox = 0, oy = 0;
-  float xdx = 1, xdy = 0, ydx = 0, ydy = 1;
+  float ox, oy;
+  float xdx, xdy, ydx, ydy;
   float x, y;
   unsigned char umean;
   int nxa, nya, box;
@@ -581,17 +626,25 @@ int midas_transform(struct MRCslice *slin,
   float xrt, xlft, xst, xnd;
   float fx, fy;
   unsigned char *buf;
+  float xc = VW->xcenter;
+  float yc = VW->ycenter;
 
-  mat = tramat_inverse(tr->mat);
+  mat = tramat_inverse(trmat);
   if (!mat)
     return(-1);
-  tramat_getxy(mat, &ox, &oy);
+  xdx = mat[0];
+  xdy = mat[1];
+  ydx = mat[3];
+  ydy = mat[4];
+  ox = mat[6] + xc - xc * xdx - yc * ydx;
+  oy = mat[7] + yc - xc * xdy - yc * ydy;
+    /*  tramat_getxy(mat, &ox, &oy);
   tramat_getxy(mat, &xdx, &xdy);
   tramat_getxy(mat, &ydx, &ydy);
   xdx -= ox;
   xdy -= oy;
   ydx -= ox;
-  ydy -= oy;
+  ydy -= oy; */
 
   xsize = slin->xsize;
   ysize = slin->ysize;
@@ -867,14 +920,15 @@ int tramat_rot(float *mat, double angle)
 }
 
 
-int tramat_getxy(float *mat, float *x, float *y)
+/* This now needs a center defined */
+/*int tramat_getxy(float *mat, float *x, float *y)
 {
   float ox = *x, oy = *y;
 
   *x = (mat[0] * ox) + (mat[3] * oy) + mat[6]; 
   *y = (mat[1] * ox) + (mat[4] * oy) + mat[7]; 
   return 0;
-}
+} */
 
 
 int tramat_testin(float *mat, float *imat)
@@ -926,47 +980,6 @@ int tramat_testin(float *mat, float *imat)
 }
 
 
-float *tramat_oinverse(float *mat)
-{
-  /* solve equation     */
-  /* mat * imat = idmat */
-
-  float *imat;
-  float cbod, ebod;
-  imat = tramat_create();
-
-  if (mat[4] == 0){
-    imat[0] = 0;
-    imat[1] = 1 / mat[3];
-  }else{
-    cbod = (mat[3] * mat[1])/mat[4];
-    imat[0] = 1.0 / (mat[0] - cbod);
-    imat[1] =  - (mat[1] * imat[0]) / mat[4];
-  }
-
-  if (mat[3] == 0){
-    imat[3] = 0;
-    imat[4] = 1 / mat[4];
-  }else{
-    imat[3] = 1.0 / (mat[1] - ((mat[0] * mat[4])/mat[3]));
-    imat[4] =  - (mat[0] * imat[3]) / mat[3];
-  }
-
-  if (mat[0] == 0){
-    imat[7] = - (mat[6] / mat[3]);
-    imat[6] = - (mat[7] / mat[1]);
-  }else if (mat[3] == 0){
-    imat[7] = - (mat[7] / mat[4]);
-    imat[6] = - (mat[6] / mat[0]);
-  }else{
-    ebod = (mat[6] * mat[1])/mat[4];
-    imat[7] = (ebod - mat[7]) / (mat[4] - cbod);
-    imat[6] = -(mat[6] + (mat[3] * imat[7])) / mat[4];
-  }
-  return(imat);
-}
-
-
 float *tramat_inverse(float *mat)
 {
   float *imat;
@@ -993,6 +1006,24 @@ float *tramat_inverse(float *mat)
   return(imat);
 }
 
+/* Rotate a transform to new global rotation */
+void rotate_transform(float *mat, double angle)
+{
+  float rmat[9], pmat[9];
+  tramat_idmat(rmat);
+  tramat_rot(rmat, -angle);
+  tramat_multiply(rmat, mat, pmat);
+  tramat_rot(pmat, angle); 
+  tramat_copy(pmat, mat);
+}
+
+void rotate_all_transforms(struct Midas_view *vw, double angle)
+{
+  int i;
+  for (i = 0; i < vw->zsize; i++)
+    rotate_transform(vw->tr[i].mat, angle);
+}
+
 
 void transform_model(char *infname, char *outfname, struct Midas_view *vw)
 {
@@ -1017,6 +1048,7 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
   dia_puts("Finished transforming model.");
   return;
 }
+
 
 /* Check the list of piece coordinates for regularity and determine the 
    the number of pieces in the dimension and the overlap */
@@ -1635,6 +1667,10 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.5  2003/12/04 21:46:04  mast
+Limited x limits before integer truncation to avoid crashes with reset to
+unit transform
+
 Revision 3.4  2003/11/01 16:43:10  mast
 changed to put out virtually all error messages to a window
 

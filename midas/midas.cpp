@@ -50,6 +50,7 @@
 #include <qgrid.h>
 #include <qlayout.h>
 #include "arrowbutton.h"
+#include "floatspinbox.h"
 #include "dia_qtutils.h"
 #ifndef NO_IMOD_FORK
 #include <unistd.h>
@@ -80,6 +81,7 @@ static void usage(void)
      qstr += "\t-s <min,max>    set intensity scaling; min to 0 and"
        " max to 255\n";
      qstr += "\t-b <size>       set initial size for block copies\n";
+     qstr += "\t-a <angle>      rotate all images by angle.\n";
      qstr += "\t-S              use single-buffered visual\n";
      qstr += "\t-D              debug mode - do not run in background\n";
 #ifdef _WIN32
@@ -164,6 +166,11 @@ int main (int argc, char **argv)
 	vw->boxsize = atoi(argv[++i]);
 	break;
 
+      case 'a':
+	vw->globalRot = atoi(argv[++i]);
+        vw->rotMode = 1;
+	break;
+
       case 's':
 	sscanf(argv[++i], "%f%*c%f", &(vw->sminin), &(vw->smaxin));
 	break;
@@ -207,8 +214,9 @@ int main (int argc, char **argv)
   }
 	  
   if (vw->plname) {
-    if (vw->refname)
-      midas_error("You cannot use both -p and -r options.", "", 1);
+    if (vw->refname || vw->rotMode)
+      midas_error("You cannot use the -p option with the ", 
+                  (char *)(vw->rotMode ? "-a option." : "-r option."), 1);
 
     if (vw->didsave != -1)
       midas_error("The last entry on the line must be the name of"
@@ -220,6 +228,10 @@ int main (int argc, char **argv)
   }	       
 
   if (vw->refname) {
+    if (vw->rotMode)
+      dia_puts("The -a option has no effect with alignment to a "
+	      "reference section.");
+    vw->rotMode = 0;
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -gl option has no effect with alignment to a "
 	      "reference section.");
@@ -392,6 +404,18 @@ void MidasWindow::keyPressEvent ( QKeyEvent * e )
   VW->midasSlots->midas_keyinput(e);
 }
 
+void MidasWindow::keyReleaseEvent ( QKeyEvent * e )
+{
+  if (e->key() == Key_Control) {
+    VW->ctrlPressed = 0;
+    VW->midasGL->manageMouseLabel(" ");
+  }
+  if (e->key() == Key_Shift) {
+    VW->shiftPressed = 0;
+    VW->midasGL->manageMouseLabel(" ");
+  }
+}
+
 void MidasWindow::makeSeparator(QVBox *parent, int width)
 {
   QFrame *frame = new QFrame(parent);
@@ -462,7 +486,7 @@ void MidasWindow::createParameterDisplay(QVBox *col)
   
   VW->mouseLabel = new QLabel(" ", col);
   VW->mouseLabel->setAlignment(Qt::AlignCenter);
-  VW->mouseLabel->setPaletteForegroundColor(QColor("red"));
+  VW->midasGL->manageMouseLabel(" ");
 
   QSignalMapper *paramMapper = new QSignalMapper(col);
   QSignalMapper *incMapper = new QSignalMapper(col);
@@ -522,6 +546,28 @@ void MidasWindow::createParameterDisplay(QVBox *col)
     VW->anglelabel->setAlignment(Qt::AlignRight);
     QObject::connect(VW->anglescale, SIGNAL(valueChanged(int)),
 		     VW->midasSlots, SLOT(slotAngle(int)));
+
+    if (VW->rotMode) {
+      makeSeparator(col, 1);
+      QHBox *globRotBox = new QHBox(col);
+      QLabel *globLabel = new QLabel("Global rotation", globRotBox);
+      globLabel->setAlignment(Qt::AlignLeft);
+
+      VW->globRotSpin = new FloatSpinBox(1, -1800, 1800, 10, globRotBox);
+      VW->globRotSpin->setFixedWidth
+        (globLabel->fontMetrics().width("-180.0000"));
+      VW->globRotSpin->setValue((int)floor(VW->globalRot * 10. + 0.5));
+      VW->globRotSpin->setFocusPolicy(ClickFocus);
+      QObject::connect(VW->globRotSpin, SIGNAL(valueChanged(int)), 
+                       VW->midasSlots, SLOT(slotGlobRot(int)));
+
+      QCheckBox *check = new QCheckBox("Mouse shifts X only", col);
+      check->setChecked(false);
+      check->setFocusPolicy(NoFocus);
+      QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
+                       SLOT(slotConstrainMouse(bool)));
+    }
+
   } else {
     makeSeparator(col, 2);
 
@@ -664,7 +710,7 @@ void MidasWindow::createZoomBlock(QVBox *parent)
 		     SLOT(slotBlock(int)));
   
   QCheckBox *check = new QCheckBox("Interpolate", parent);
-  check->setChecked(false);
+  check->setChecked(VW->fastip == 0);
   check->setFocusPolicy(NoFocus);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotInterpolate(bool)));
@@ -750,6 +796,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.8  2003/11/01 16:43:10  mast
+    changed to put out virtually all error messages to a window
+
     Revision 3.7  2003/06/20 19:35:41  mast
     Connected top error buttons to mapper
 

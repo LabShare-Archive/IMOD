@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/05/26 01:03:08  mast
+Added label for mouse action
+
 Revision 3.3  2003/02/10 20:49:57  mast
 Merge Qt source
 
@@ -56,6 +59,7 @@ class MidasWindow;
 class MidasSlots;
 class MidasGL;
 class ToolEdit;
+class FloatSpinBox;
 
 #include <qlabel.h>
 #include <qstring.h>
@@ -101,8 +105,6 @@ class ToolEdit;
 #define MIDAS_SLICE_OCURRENT  11
 #define MIDAS_SLICE_PREVIOUS  2
 #define MIDAS_SLICE_OPREVIOUS 12
-#define MIDAS_SLICE_NEXT      3
-#define MIDAS_SLICE_ONEXT     13
 #define MIDAS_SLICE_REFERENCE 4
 
 #define INITIAL_BOX_SIZE   -1
@@ -138,6 +140,7 @@ public:
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
+  void keyReleaseEvent ( QKeyEvent * e );
 
 public slots:
 
@@ -171,6 +174,7 @@ struct Midas_cache
   int zval;     /* Section number */
   int xformed;  /* transformed or not */
   int used;     /* counter when last used */
+  float mat[9]; /* Transformation matrix */
   Islice *sec;  /* pointer to data */
 };
 
@@ -190,6 +194,8 @@ struct Midas_view
   float sminin;  /* minimum scale */
   float smaxin;  /* maximum scale */
   int cachein;   /* cache size */
+  int rotMode;   /* Flag for rotation mode */
+  double globalRot; /* Global rotation value */
 
   struct LoadInfo *li;
   struct MRCheader *hin;
@@ -315,6 +321,10 @@ struct Midas_view
   QSlider  *anglescale;
   QLabel   *anglelabel;
   QLabel   *mouseLabel;
+  FloatSpinBox *globRotSpin;
+  int      mouseXonly;    /* Flag to constrain mouse to X moves only */
+  int      ctrlPressed;
+  int      shiftPressed;
   MidasWindow *midasWindow;
   MidasSlots *midasSlots;
   MidasGL    *midasGL;
@@ -344,18 +354,16 @@ int load_transforms(struct Midas_view *vw, char *filename);
 /* transforms.cpp function prototypes                                       */
 
 Islice *getRawSlice(struct Midas_view *vw, int zval);
-Islice *midasGetSlice(struct Midas_view *vw, int sliceType, int *xformed);
+Islice *midasGetSlice(struct Midas_view *vw, int sliceType);
 void flush_xformed(struct Midas_view *vw);
-struct Midas_transform *midasGetTrans(struct Midas_view *vw);
 void midasGetSize(struct Midas_view *vw, int *xs, int *ys);
-void midasReloadCurrentSlice(struct Midas_view *vw);
      
 int new_view(struct Midas_view *vw);
 int load_view(struct Midas_view *vw, char *fname);
 int translate_slice(struct Midas_view *vw, int xt, int yt);
-int midas_transform(struct MRCslice *slin, 
-		    struct MRCslice *sout,
-		    struct Midas_transform *tr);
+int global_rot_transform(struct Midas_view *vw, Islice *slin, Islice *slout, 
+                          int zval);
+int midas_transform(Islice *slin, Islice *sout, float *trmat);
 float *tramat_create(void);
 void tramat_free(float *mat);
 int tramat_idmat(float *mat);
@@ -364,8 +372,9 @@ int tramat_multiply(float *m1, float *m2, float *out);
 int tramat_translate(float *mat, double x, double y);
 int tramat_scale(float *mat, double x, double y);
 int tramat_rot(float *mat, double angle);
-int tramat_getxy(float *mat, float *x, float *y);
 float *tramat_inverse(float *mat);
+void rotate_transform(float *mat, double angle);
+void rotate_all_transforms(struct Midas_view *vw, double angle);
 void transform_model(char *infname, char *outfname, struct Midas_view *vw);
 int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno, 
 		 int direction, int *edgeind);

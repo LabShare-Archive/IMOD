@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
+
 */
 
 #include <stdlib.h>
@@ -185,13 +188,13 @@ int save_view(struct Midas_view *vw, char *filename)
   return(0);
 }
 
+
 /* 
  * Load a transformation file, either xf or xg format.
  */
 int load_transforms(struct Midas_view *vw, char *filename)
 {
   int k, ixy, nedgex, nedgey;
-  float xc, yc, dx, dy;
   QString str = filename;
   QString qline;
 
@@ -227,9 +230,6 @@ int load_transforms(struct Midas_view *vw, char *filename)
 
   } else {		 
 		    
-    xc = (float)vw->xsize * 0.5f;
-    yc = (float)vw->ysize * 0.5f;
-	  
     for (k = 0 ; k < vw->zsize; k++){
 
       // Read a line; skip blank lines but quit loop on end of file
@@ -244,18 +244,17 @@ int load_transforms(struct Midas_view *vw, char *filename)
       sscanf(qline.latin1(), "%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c",
 	     &(vw->tr[k].mat[0]), &(vw->tr[k].mat[3]),
 	     &(vw->tr[k].mat[1]), &(vw->tr[k].mat[4]),
-	     &dx, &dy);
+	     &(vw->tr[k].mat[6]), &(vw->tr[k].mat[7]));
       vw->tr[k].mat[2] = 0.0;
       vw->tr[k].mat[5] = 0.0;
       vw->tr[k].mat[8] = 1.0;
 	       
-      /* DNM: change xc * m3 to yc *m3, yc * m1 to xc * m1 to match
-	 transformation applied on output */
-      vw->tr[k].mat[6] = dx + xc - (xc * vw->tr[k].mat[0]) 
-	- (yc * vw->tr[k].mat[3]);
-      vw->tr[k].mat[7] = dy + yc - (xc * vw->tr[k].mat[1])
-	- (yc * vw->tr[k].mat[4]);
+      /* DNM 12/16/03: no longer have to convert dx,dy for origin-centered 
+         transforms */
     }
+    
+    if (vw->rotMode)
+      rotate_all_transforms(vw, vw->globalRot);
   }
 	
   /* flush the cache of any transformed images */
@@ -273,7 +272,7 @@ int load_transforms(struct Midas_view *vw, char *filename)
 int write_transforms(struct Midas_view *vw, char *filename)
 {
   int k, ixy;
-  float dx, dy, xc, yc;
+  float mat[9];
   QString str = filename;
 
   QFile file(str);
@@ -295,22 +294,16 @@ int write_transforms(struct Midas_view *vw, char *filename)
 
   } else {
 
-    xc = (float)vw->xsize * 0.5f;
-    yc = (float)vw->ysize * 0.5f;
-	  
     for(k = 0; k < vw->zsize; k++){
-      dx = vw->tr[k].mat[6] + (xc * vw->tr[k].mat[0]) 
-	+ (yc * vw->tr[k].mat[3]) - xc;
-      dy = vw->tr[k].mat[7] + (xc * vw->tr[k].mat[1]) 
-	+ (yc * vw->tr[k].mat[4]) - yc;
+      tramat_copy(vw->tr[k].mat, mat);
+      if (vw->rotMode)
+        rotate_transform(mat, -vw->globalRot);
       str.sprintf("%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n",
-	      vw->tr[k].mat[0],
-	      vw->tr[k].mat[3],
-	      vw->tr[k].mat[1],
-	      vw->tr[k].mat[4],
-	      dx, dy);
+                  mat[0], mat[3], mat[1], mat[4], mat[6], mat[7]);
 	stream << str;
     }
+
+
   }
   file.close();
   return(0);

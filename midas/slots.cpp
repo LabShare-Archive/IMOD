@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/24 03:55:35  mast
+unknown change (untabified?)
+
 Revision 3.3  2003/09/25 21:09:36  mast
 Switched to sections numbered from 1 not 0
 
@@ -127,8 +130,8 @@ void MidasSlots::update_parameters()
   if (VW->xtype != XTYPE_MONT) {
     xc = (float)VW->xsize * 0.5f;
     yc = (float)VW->ysize * 0.5f;
-    param[3] = mat[6] + (xc * mat[0]) + (yc * mat[3]) - xc;
-    param[4] = mat[7] + (xc * mat[1]) + (yc * mat[4]) - yc;
+    param[3] = mat[6];
+    param[4] = mat[7];
     first = 0;
   } else {
     param[3] = VW->edgedx[VW->edgeind * 2 + VW->xory];
@@ -195,11 +198,7 @@ void MidasSlots::update_overlay()
 /* To transform the current slice with a new transform */
 void MidasSlots::retransform_slice()
 {
-  int xformed;
-  Islice *orgSlice = midasGetSlice(VW, MIDAS_SLICE_OCURRENT, &xformed);
-  Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT, &xformed);
-  if (!xformed)
-    midas_transform(orgSlice, curSlice, &VW->tr[VW->cz]);
+  Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
   VW->midasGL->update_slice_view();
 }
 
@@ -542,6 +541,10 @@ void MidasSlots::control_help()
      "between current and reference sections with a mouse button.\n\n"
 
      "Transformation Controls:\n",
+     "\tAt the top of this section is a line listing the actions of the "
+     "left, middle, and right mouse buttons.  The line will change when the "
+     CTRL_STRING" or Shift keys are pressed, and will also indicate the "
+     "current action when a mouse button is pressed.\n"
      "\tThe Arrow buttons allow each transformation parameter to be "
      "changed by a selected increment.  There is an additive "
      "increment for translation, an independent increment for rotation "
@@ -552,6 +555,14 @@ void MidasSlots::control_help()
      "axis is shown by the red dashed line.  If the section has already "
      "been stretched, the axis of that actual stretch is shown with a "
      "blue dashed line.\n"
+     "\tIf the program was started with \"-a\" to specify a global "
+     "rotation angle, this angle is displayed and can be adjusted with the "
+     "spin box below the stretch angle slider.  Use the up and down arrows to "
+     "adjust the angle by 1 degree, or type in a new value directly.  Select "
+     "\"Mouse shifts X only\" to constrain translation changes with the mouse "
+     "to the X direction in the rotated images.  With this constraint, it is "
+     "still possible to change the shift in Y with the arrow hot keys or the "
+     "Y translation arrow buttons.\n"
      "\tRotation, magnification, and stretch will occur around the "
      "center of rotation, which is marked by the yellow star.  You can "
      "use "CTRL_STRING"-Middle-Mouse-Button to move this center to a point "
@@ -782,9 +793,7 @@ void MidasSlots::rotate(float step)
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
-    tramat_translate(tr->mat, -VW->xcenter, -VW->ycenter);
     tramat_rot(tr->mat, step); 
-    tramat_translate(tr->mat, VW->xcenter, VW->ycenter);
   }
   update_parameters();
   retransform_slice();
@@ -830,9 +839,7 @@ void MidasSlots::scale(float step)
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
-    tramat_translate(tr->mat, -VW->xcenter, -VW->ycenter);
     tramat_scale(tr->mat, step, step); 
-    tramat_translate(tr->mat, VW->xcenter, VW->ycenter);
   }
   update_parameters();
   retransform_slice();
@@ -847,11 +854,9 @@ void MidasSlots::stretch(float step, float angle)
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
-    tramat_translate(tr->mat, -VW->xcenter, -VW->ycenter);
     tramat_rot(tr->mat, -angle);
     tramat_scale(tr->mat, step, 1.0f); 
     tramat_rot(tr->mat, angle);
-    tramat_translate(tr->mat, VW->xcenter, VW->ycenter);
   }
   update_parameters();
   retransform_slice();
@@ -1225,7 +1230,9 @@ void MidasSlots::slotBlock(int upDown)
 void MidasSlots::slotInterpolate(bool state)
 {
   VW->fastip = state ? 0 : 1;
-  retransform_slice();
+  flush_xformed(VW);
+  VW->midasGL->fill_viewdata(VW);
+  VW->midasGL->draw();
 }
 
 void MidasSlots::display_bwslider_value(QLabel *w, int white)
@@ -1461,6 +1468,22 @@ void MidasSlots::slotOverlay(bool state)
     show_cur();
 }
 
+void MidasSlots::slotGlobRot(int value)
+{
+  double newVal = value / 10.;
+  rotate_all_transforms(VW, newVal - VW->globalRot);
+  VW->globalRot = newVal;
+  flush_xformed(VW);
+  update_parameters();
+  VW->midasGL->fill_viewdata(VW);
+  VW->midasGL->draw();
+  VW->midasWindow->setFocus();
+}
+
+void MidasSlots::slotConstrainMouse(bool state)
+{
+  VW->mouseXonly = state ? 1 : 0;
+}
 
 void MidasSlots::midas_keyinput(QKeyEvent *event)
 {
@@ -1644,6 +1667,15 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotSection(-1);
     break;
 
+  case Key_Control:
+    VW->ctrlPressed = 1;
+    VW->midasGL->manageMouseLabel(" ");
+    break;
+
+  case Key_Shift:
+    VW->shiftPressed = 1;
+    VW->midasGL->manageMouseLabel(" ");
+    break;
 
   }
 }
@@ -1665,12 +1697,13 @@ void MidasSlots::mouse_shift_image()
 
 void MidasSlots::mouse_translate()
 {
-  float ddx, ddy;
+  float ddx, ddy = 0.;
   float zoom = VW->truezoom;
   float thresh = 0.2;
 
   ddx = (VW->mx - VW->lastmx) / zoom;
-  ddy = (VW->my - VW->lastmy) / zoom;
+  if (!VW->mouseXonly)
+    ddy = (VW->my - VW->lastmy) / zoom;
   if (ddx < thresh && ddx > -thresh && ddy < thresh && ddy > -thresh)
     return;
   translate(ddx, ddy);
@@ -1753,6 +1786,7 @@ void MidasSlots::mouse_stretch(unsigned int state)
     VW->lastmy = VW->my;
   }
 }
+
 
 int MidasSlots::getParamDecimals(int param)
 {
