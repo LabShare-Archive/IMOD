@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2004/05/05 05:44:49  mast
+c	  Output the 3D model with inverted Z to match tomogram
+c	
 c	  Revision 3.7  2003/01/30 20:55:11  mast
 c	  Fixed xyz model output (again)
 c	
@@ -39,7 +42,7 @@ c
 c
 	subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &	    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
-     &	    iwhichout, xcen, ycen,listz,mapfiletoview,nfileviews,
+     &	    iwhichout, xcen, ycen,xdelt,listz,mapfiletoview,nfileviews,
      &	    modelfile,iupoint, iuangle, iuxtilt)
 c	  
 	implicit none
