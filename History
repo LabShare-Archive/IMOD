@@ -1,8 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/9/03: IMOD_3-0-8 released
+5/9/03: Added new introduction to 3dmod as a separate document, revised other
+guides and man pages.
+
 5/5/03: Prevented garbage at edges of image caused by Zap Window fix on 3/5/03.
 Fixed problem with positioning slicer with left mouse button caused by
-modeling enhancements on 3/11/03.
+modeling enhancements on 3/11/03.  Fixed rounding problem that caused display
+of Z=-1 on first section in Xyz window.
 
 5/2/03: Stopped Zap window from drawing lines between non-contiguous points for
 contours that pass out of a section and back into it.
@@ -177,6 +182,7 @@ IMOD_2-7-7
 11/13/02: Prevented right mouse button drag in zap window from modifying 
 points in scattered point contours or from other sections.
 
+=============================================================================
 11/12/02: IMOD_2-7-6 released to replace 2.7.5
 11/11/02: Fixed bug in Solvematch caused by the 10/2/02 changes in the 
 routines shared with Refinematch and Findwarp.
