@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/03/26 22:48:40  mast
+Changed handling of style to prevent "already defined" messages
+
 Revision 1.1  2003/03/24 17:55:19  mast
 Initial implementation
 
@@ -57,6 +60,7 @@ Initial implementation
 ImodPreferences *ImodPrefs;
 
 #define IMOD_NAME "/imod/"
+#define MAX_STYLES 24
 
 #ifdef EXCLUDE_STYLES
 // These are the styles that crash in RH 7.3
@@ -69,6 +73,8 @@ static char *styleList[] = {"Windows", "compact",
                             "CDE", "marble", "System", "Systemalt", "riscos", 
                             "Light, 2nd revision", "Light, 3rd revision", ""};
 #endif
+static int styleStatus[MAX_STYLES];
+
 
 /* CONSTRUCTOR TO READ PREFERENCES AND FUNCTION TO SAVE UPON EXIT */
 
@@ -202,6 +208,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     QApplication::setStyle(prefs->styleKey);
   }
 
+  // Set status to 0; it will be 1 if OK after checking, -1 if not OK
+  for (i = 0; i < MAX_STYLES; i++)
+    styleStatus[i] = 0;
 }
 
 bool ImodPreferences::styleOK(QString key)
@@ -324,6 +333,11 @@ void ImodPreferences::editPrefs()
 char **ImodPreferences::getStyleList()
 {
   return &styleList[0];
+}
+
+int *ImodPreferences::getStyleStatus()
+{
+  return &styleStatus[0];
 }
 
 // When done is pressed, unload the properties, mark if any changed
