@@ -1500,9 +1500,9 @@ void iceShowHelp()
      "Point controls:\n",
      "-----------------\n",
      "It is possible to assign a size for each point.  "
-     "If the object type is scattered points, this number will "
-     "determine the size at which the particular point will be "
-     "displayed.  The units are pixels in the image file, i.e., unbinned "
+     "Any point with an individual size will be displayed as a 3D sphere of "
+     "this radius, even if the object type is not scattered points.  "
+     "The units are pixels in the image file, i.e., unbinned "
      "pixels if images are loaded in binned.  Points without a size will still"
      " be displayed at "
      "the size specified for the object as a whole.  You can "
@@ -1566,6 +1566,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.7  2004/01/05 18:21:19  mast
+Add explanation of point size being in unbinned size to help.
+
 Revision 4.6  2003/04/28 04:02:05  mast
 Fix help texton hot key
 
