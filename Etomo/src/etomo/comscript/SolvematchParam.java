@@ -17,6 +17,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/24 20:21:35  sueh
+ * <p> bug# 482 removed commented out code
+ * <p>
  * <p> Revision 3.4  2004/06/24 18:41:13  sueh
  * <p> bug# 482 modified parse functions to create functions the merge
  * <p> solvematchshift and solvematchmod together based on
@@ -127,7 +130,6 @@ public class SolvematchParam extends ConstSolvematchParam
   public void mergeSolvematchshift(ConstSolvematchshiftParam solvematchshift,
     boolean modelBased) {
     if (!modelBased) {
-
       toFiducialFile = solvematchshift.getToFiducialCoordinatesFile();
       setMatchBToA(toFiducialFile);
       fromFiducialFile = solvematchshift.getFromFiducialCoordinatesFile();
