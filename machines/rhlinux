@@ -191,3 +191,5 @@ DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
+
+echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
