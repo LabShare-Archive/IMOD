@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IMODV_H
 #define IMODV_H
@@ -35,7 +43,7 @@
 #include <X11/Xlib.h>
 #include <Xm/Xm.h>
 #include <GL/gl.h>
-#include <X11/GLw/GLwMDrawA.h>
+#include <GLwMDrawA.h>
 #include <imodconfig.h>
 
 #include <dia.h>          /* local dialog library. */

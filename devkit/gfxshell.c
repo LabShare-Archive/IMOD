@@ -14,7 +14,7 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <X11/GLw/GLwMDrawA.h>
+#include <GLwMDrawA.h>
 
 #include "imodplug.h"
 

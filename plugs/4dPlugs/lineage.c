@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  ****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
@@ -44,7 +52,7 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <X11/GLw/GLwMDrawA.h>
+#include <GLwMDrawA.h>
 
 #include <stdlib.h>
 #include <unistd.h>

@@ -33,6 +33,7 @@
     $Revision$
 
     $Log$
+
 */
 
 #ifndef B3DGFX_H
@@ -50,7 +51,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 /* Change glwM to glw to avoid using motif widgets */
-#include <X11/GLw/GLwMDrawA.h>
+#include <GLwMDrawA.h>
 #endif
 
 #ifdef DRAW_GL
