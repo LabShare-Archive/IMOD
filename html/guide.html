@@ -12,15 +12,18 @@ Cells</h3>
 <ul>
   <li><a href="#Installation">Installation</a> </li>
   <ul>
-    <li><a href="#SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a> </li>
+    <li><a href="#SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a>
+    </li>
     <li><a href="#InstallingLinuxSGI">Installing IMOD on a Linux PC or
 an SGI</a> </li>
-    <li><a href="#InstallingJavaLinux">Installing  Java on Linux PC or
+    <li><a href="#InstallingJavaLinux">Installing Java on Linux PC or
 SGI</a> </li>
     <li><a href="#InstallingMac">Installing IMOD on a Macintosh running
 OS X</a> </li>
-    <li><a href="#SettingUpWindows">Setting Up a Windows PC to Run IMOD</a> </li>
-    <li><a href="#InstallingWindows">Installing IMOD on a Windows PC</a> </li>
+    <li><a href="#SettingUpWindows">Setting Up a Windows PC to Run IMOD</a>
+    </li>
+    <li><a href="#InstallingWindows">Installing IMOD on a Windows PC</a>
+    </li>
     <li><a href="#TIFFLibrary"> TIFF Library Support</a> </li>
     <li><a href="#FastBackprojection"> Fast Backprojection Support</a> </li>
   </ul>
@@ -50,17 +53,18 @@ page. </p>
 All of the IMOD programs are available via the <a
  href="http://bio3d.colorado.edu/imod/download.html">IMOD Download Page</a>.
 &nbsp;The distribution is bundled together using the Unix tar program
-and compressed using the gzip program. <dd> <a name="SettingUpLinux"> </a>
+and compressed using the gzip program. <dd> <a name="SettingUpLinux">
+    </a>
     <p> <a name="SettingUpLinux"> </a></p>
     <h4><a name="SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a></h4>
     <a name="SettingUpLinux"> </a> The recommended configuration for
 running the IMOD software is:
-    <p> Processor:  Intel Pentium III or 4 or AMD Athlon <br>
-Video Card:  GeForce 2 MX, Geforce2 GTS, Geforce2 GTS  Ultra, GeForce3,
+    <p> Processor: Intel Pentium III or 4 or AMD Athlon <br>
+Video Card: GeForce 2 MX, Geforce2 GTS, Geforce2 GTS Ultra, GeForce3,
 GeForce 4 (64 MB or 128 MB cards preferred) <br>
-Minimum memory size:  256MB <br>
-Minimum disk size:          10 GB <br>
-Operating System:  Red Hat 7.3 or higher Workstation class installation<br>
+Minimum memory size: 256MB <br>
+Minimum disk size: 10 GB <br>
+Operating System: Red Hat 7.3 or higher Workstation class installation<br>
 Nvidia Linux device drivers and OpenGL libraries from <a
  href="http://www.nvidia.com">Nvidia</a>, at least version 3123 or
 higher. <br>
@@ -82,12 +86,13 @@ For Red Hat 7.1 - 7.3, to work with files bigger than 2 GB, version
     </ul>
     <p> <b>Nvidia installation (all systems).</b> Installing Nvidia
 drivers has recently become much easier, but here are some <a
- href="nvidia_install.txt">instructions</a> that may be helpful.  In
+ href="nvidia_install.txt">instructions</a> that may be helpful. In
 addition, here is a sample of a <a href="XF86Config9.0.txt">/etc/X11/XF86Config</a>
 file from Red Hat 9.0, set up to use a 24-inch Sony monitor. </p>
-    <p> <b>Qt 3.0.5 upgrade (Red Hat 7.3).</b> 3dmod for Red Hat 7.3 was
+    <p> <b>Qt 3.0.5 upgrade (Red Hat 7.3).</b> 3dmod for Red Hat 7.3
+was
 compiled against version 3.0.5 of Qt and will not run on the basic
-installation of 7.3.  Use <code>rpm -q qt</code> to check which version
+installation of 7.3. Use <code>rpm -q qt</code> to check which version
 is installed. <code></code> To upgrade, download <a
  href="http://bio3d.colorado.edu/imod/rh7.3/qt-3.0.5-7.14.i386.rpm">Qt
 3.0.5</a> and, as root, enter <code>rpm -Uhv qt-3.0.5*.rpm .</code> </p>
@@ -96,27 +101,28 @@ is installed. <code></code> To upgrade, download <a
     <p><b>Window manager settings (all systems).</b> To keep 3dmod from
 bogging down when it is displaying complex models, the window manager
 needs to be set to display only the outline and not the contents of
-windows when they are moved or resized.  In Red Hat 7.3, this could be
+windows when they are moved or resized. In Red Hat 7.3, this could be
 done by selecting "box" rather than "opaque" in the "Moving and
-Resizing" panel of the Gnome control center.  In Red Hat 8.0 or 9.0,
+Resizing" panel of the Gnome control center. In Red Hat 8.0 or 9.0,
 this cannot be done under Gnome but it can under KDE, by opening up the
 Control Center and selecting "Look and Feel" or "Desktop" (depending on
 KDE version), then "Window Behavior" then the "Moving" panel. </p>
     <p> <b>tcsh for large files (Red Hat 7.1 - 7.3).</b> As of IMOD
 2.6.0, programs have been compiled to work with files bigger than 2 GB.
-However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1-7.3 has
+However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1-7.3
+has
 problems with large files, and some of the IMOD shell scripts will fail
-with large      files under this tcsh. For doing tomography with large
-files, you need   to   upgrade to <code>tcsh 6.11</code>, which is
+with large files under this tcsh. For doing tomography with large
+files, you need to upgrade to <code>tcsh 6.11</code>, which is
 available as an <a
  href="http://bio3d.colorado.edu/imod/rh7.3/tcsh-6.11-3mdk.i586.rpm">rpm</a>.</p>
     <a name="InstallingLinuxSGI">
     <h4>Installing IMOD on a Linux PC or an SGI</h4>
     </a>
     <p> The easiest thing to do is to install to our recommended
-location, /usr/local/IMOD.  The following steps are used in this case.
-The specific       file names are used as an example; your copy may have
-higher version  numbers. </p>
+location, /usr/local/IMOD. The following steps are used in this case.
+The specific file names are used as an example; your copy may have
+higher version numbers. </p>
     <ol>
       <li> Log in as root or do all of these commands with sudo </li>
       <li> cd to the directory where you downloaded IMOD, and <br>
@@ -137,7 +143,12 @@ Otherwise, rename the existing directory, e.g.: <br>
 (B) On an SGI, insert the text in <code>IMOD/sgi.cshrc</code> into <code>/etc/cshrc</code>,
 specifically the command <br>
         <code>if (-e /usr/local/IMOD/IMOD-sgi.csh) source
-/usr/local/IMOD/IMOD-sgi.csh </code></li>
+/usr/local/IMOD/IMOD-sgi.csh </code><br>
+If there are any bash users, also insert the text in <code>IMOD/sgi.bashrc</code>
+into <code>/etc/profile</code>,
+specifically the command <br>
+        <code>[ -r /usr/local/IMOD/IMOD-sgi.sh ] &amp;&amp; source
+/usr/local/IMOD/IMOD-sgi.sh</code></li>
     </ol>
   </dd>
 </dl>
@@ -149,8 +160,8 @@ log back in, for these changes to take effect.<br>
   </dd>
   <dd>If you are upgrading IMOD using the above procedures, and your
 previous installation used another method for setting the environment
-variables for   users, be sure to remove whatever commands were used
-before. &nbsp;These      might have been placed in <code>/etc/cshrc</code>,<code>/usr/local/etc/cshrc</code>,
+variables for users, be sure to remove whatever commands were used
+before. &nbsp;These might have been placed in <code>/etc/cshrc</code>,<code>/usr/local/etc/cshrc</code>,
 or users' <code>.cshrc</code>, <code>.bashrc</code>, or <code>.profile</code>
 files. &nbsp;The advantage of the new procedure is that future upgrades
 will be easier, especially if the startup files change.</dd>
@@ -158,20 +169,22 @@ will be easier, especially if the startup files change.</dd>
   </dd>
   <dd>If you want to install at another location, change <code>/usr/local/IMOD</code>
 to the name of the top IMOD directory in the relevant <code>IMOD-*.*</code>
-files and in the source command placed in <code>/etc/cshrc</code> on  an
+files and in the source command placed in <code>/etc/cshrc</code> on
+an
 SGI.</dd>
 </dl>
 <dl>
   <dd>If you do not want a system wide installation, instead of step 9
 above, then under Linux, place the following in the <code>.cshrc</code>
-files of   individual users of <code>tcsh</code> (where &lt;location of
-IMOD&gt; is  the absolute path to the IMOD directory):</dd>
+files of individual users of <code>tcsh</code> (where &lt;location of
+IMOD&gt; is the absolute path to the IMOD directory):</dd>
   <dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
   <dd><code>if (-e $IMOD_DIR/IMOD-linux.csh) source
 $IMOD_DIR/IMOD-linux.csh </code></dd>
 </dl>
 <dl>
-  <dd>or, place the following in the <code>.bashrc</code> of individual
+  <dd>or, place the following in the <code>.bashrc</code> of
+individual
 users under <code>bash</code>:</dd>
   <dd><code>export IMOD_DIR=&lt;location of IMOD&gt;</code></dd>
   <dd><code>if [ -e $IMOD_DIR/IMOD-linux.sh ] ; then source
@@ -186,7 +199,7 @@ files of individual users:</dd>
 <dl>
   <dd>Finally, if you just want to try running the programs in a
 particular copy of IMOD, cd to the top IMOD directory and, on Linux
-under <code>tcsh</code>,       enter:</dd>
+under <code>tcsh</code>, enter:</dd>
   <dd> <code>setenv IMOD_DIR `pwd`</code></dd>
   <dd><code>source IMOD-linux.csh </code></dd>
 </dl>
@@ -200,7 +213,8 @@ Linux under <code>bash</code>, enter:</dd>
 installed package has placed an incompatible Qt or OpenGL library on
 your library load path. &nbsp;The sign of a problem with the Qt library
 is an error message about an undefined symbol, usually a very long
-string containing "QGLWidget". &nbsp;The top IMOD directory contains two
+string containing "QGLWidget". &nbsp;The top IMOD directory contains
+two
 files, <code>IMOD-qtconflict.sh</code> and <code>IMOD-qtconflict.csh</code>,
 that can be used to solve this problem. &nbsp;Try sourcing the
 appropriate file, then try following the directions in the file and
@@ -210,10 +224,11 @@ changes to both files and copy them to <code>/etc/profile.d</code>.<code><br>
 </dl>
 <dl>
   <dd> <a name="InstallingJavaLinux">
-    <h4>Installing  Java on Linux PC or SGI</h4>
+    <h4>Installing Java on Linux PC or SGI</h4>
     </a> Etomo is a Java 2 application and thus requires a Java runtime
-environment (JRE) with a version of 1.4 or better to be installed.  We
-recommend using the 1.4.0 or 1.4.2 series since we have encountered bugs
+environment (JRE) with a version of 1.4 or better to be installed. We
+recommend using the 1.4.0 or 1.4.2 series since we have encountered
+bugs
 in version 1.4.1 Sun's Java runtime. &nbsp;Sun's JRE version 1.4.2_2 is
 available <a
  href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_02-linux-i586.bin">here</a>
@@ -231,18 +246,17 @@ file to <code>/usr/local</code>
 and&nbsp; execute the bin by entering</p>
     <p class="western"><span style="font-family: monospace;"><code>cd
 /usr/local</code><br>
-    </span><span style="font-family: monospace;"></span></p>
+    </span></p>
     <p class="western"><span style="font-family: monospace;"><code>sh
 j2re-1_4_2_02-linux-i586.bin</code><br>
     </span></p>
     <p class="western">on the command line. &nbsp;</p>
-    <span style="font-family: monospace;"></span>
     <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_0</code>2.
 &nbsp;The IMOD startup scripts assume that the JRE is in <code>/usr/local/java</code>,
 so next create a link: </p>
     <p class="western"><span style="font-family: monospace;"><code>ln
 -s j2re1.4.2_02 java</code><br>
-    </span><span style="font-family: monospace;"></span></p>
+    </span></p>
     <span style="font-family: monospace;"><code></code></span>
     <p class="western">If you upgrade to a different JRE, then you just
 need to change the link. &nbsp;If you wish to use a different JRE than
@@ -289,14 +303,6 @@ shows up as <code> IMOD -&gt; imod_3.0.9</code>), then enter <br>
 Otherwise, rename the existing directory, e.g.: <br>
       <code>sudo mv IMOD oldIMOD</code> </li>
     <li><code> sudo ln -s imod_3.1.0 IMOD</code></li>
-    <li><code></code><code></code>If this is the first time IMOD is
-being installed, you will need to edit <code>/etc/csh.cshrc</code>,
-using sudo to invoke <code>emacs</code> or <code>pico</code>.
-&nbsp;Copy the text in <code>IMOD/mac.cshrc</code> to the end of <code>/etc/csh.login</code>,
-specifically the command <br>
-      <code>if (-e /Applications/IMOD/IMOD-mac.csh) source
-/Applications/IMOD/IMOD-mac.csh</code><br>
-    </li>
   </ol>
 If you are on a single user-machine or have administrative privileges
 from the desktop, you can use the following alternative approach:
@@ -307,25 +313,36 @@ and create the IMOD folder, e.g. <code>imod_3.1.0</code></li>
     <li>If you already have an IMOD folder in /Applications, rename it
 or move it elsewhere.</li>
     <li>Rename the new distribution to IMOD.</li>
-    <li>If this is the first time IMOD is being installed, you will
-need to edit <code>/etc/csh.cshrc</code>, using sudo to invoke <code>emacs</code>
-or <code>pico</code>. &nbsp;Copy the text in <code>IMOD/mac.cshrc</code>
-to the end of <code>/etc/csh.login</code>,    specifically the command <br>
-      <code>if (-e /Applications/IMOD/IMOD-mac.csh) source
-/Applications/IMOD/IMOD-mac.csh</code><br>
-    </li>
   </ol>
-Whichever approach you use, you will need to log out and log back in
-for these changes to take effect, or you can just <code>source
-/etc/csh.login</code>.<br>
+Whichever approach you use, you need to add some startup commands to
+the system files <code>/etc/csh.login</code> and <code>/etc/profile</code>,
+unless they are already there from a previous installation of
+IMOD.&nbsp; Use sudo to invoke <code>emacs</code> or <code>pico</code>
+on these files.&nbsp; Copy the text in <code>IMOD/mac.cshrc</code>
+to the end of <code>/etc/csh.login</code>, specifically the command <br>
+  <code>if (-e /Applications/IMOD/IMOD-mac.csh) source
+/Applications/IMOD/IMOD-mac.csh<br>
+  <br>
+  </code>Similarly, copy the text in <code>IMOD/mac.bashrc</code>
+to the end of <code>/etc/profile</code>, specifically the command <br>
+  <code>[ -r /Applications/IMOD/IMOD-mac.sh ] &amp;&amp; source
+/Applications/IMOD/IMOD-mac.sh</code><br>
+  <br>
+You will need to exit and restart Terminal for these changes to take
+effect, or you can just <code>source
+/etc/csh.login</code> (if your are running tcsh) or <code>/etc/profile</code>
+(if you are running bash).<br>
   <br>
 If you want to install at another location, change <code>/Applications/IMOD</code>
-to the name of the top IMOD directory in <code>IMOD-mac.csh</code> and
-in the source command placed in <code>/etc/csh.login.<br>
+to the name of the top IMOD directory in <code>IMOD-mac.csh<span
+ style="font-family: sans-serif;"> </span></code>and <code>IMOD-mac.sh</code>
+and in the source commands placed in <code>/etc/csh.login </code>and<code>
+/etc/profile.<br>
   </code></blockquote>
-<blockquote> Once you have verified that IMOD programs  run after
+<blockquote> Once you have verified that IMOD programs run after
 installing them, you can make some links in <code><font
- face="Helvetica, Arial, sans-serif">/usr/lib</font></code> to libraries
+ face="Helvetica, Arial, sans-serif">/usr/lib</font></code> to
+libraries
 in the IMOD directories that will allow you to start 3dmod by clicking
 on its icon. &nbsp;Run the <code>linklibs-mac </code>script by
 entering:<br>
@@ -340,7 +357,8 @@ installation procedures.<br>
   <br>
   <a name="SettingUpWindows"> </a>
   <h4><a name="SettingUpWindows">Setting Up a Windows PC to Run IMOD</a></h4>
-  <a name="SettingUpWindows"> </a> To use most of the programs in IMOD,
+  <a name="SettingUpWindows"> </a> To use most of the programs in
+IMOD,
 you could simply use <a href="http://www.winzip.com">Winzip</a> to
 unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
 top directory to IMOD, and add the IMOD\bin directory (e.g., C:\Program
@@ -357,21 +375,22 @@ create icons on the desktop and in the Start Menu, and make several
 simple entries to the Windows registry.<br>
   <br>
 Cygwin installation will work best if you are logged in as a user with
-Administrative privileges.  You can do it as Administrator, but you will
+Administrative privileges. You can do it as Administrator, but you will
 not get a home directory unless you log in as an another user.<br>
   <br>
 To install Cygwin from the package in <code>cygwinForIMOD.exe</code>:<br>
   <br>
   <ol>
-    <li>Click on the package to extract it.  Press "Browse" and select
+    <li>Click on the package to extract it. Press "Browse" and select
 a folder to unzip to that is conveniently accessed (the Desktop will
 do). &nbsp;You will get the <code>setup.exe</code> program and a <code>cygwinMaster</code>
 folder with all the packages.</li>
     <li>Click on <code>setup.exe</code></li>
     <li>Select install from a Local Directory</li>
-    <li>Set the root drive to <code>C:\cygwin</code> unless you want it
-on a different disk.  Do not install under a directory with spaces in
-its name.  In the rest of this document, C:\ is used in the examples,
+    <li>Set the root drive to <code>C:\cygwin</code> unless you want
+it
+on a different disk. Do not install under a directory with spaces in
+its name. In the rest of this document, C:\ is used in the examples,
 and you need to substitute your location if it is different.<br>
 Take the defaults for the other two selections: install for all users
 and Unix line endings.</li>
@@ -384,7 +403,8 @@ icons on the desktop and start menu.</li>
   <br>
 The installation will create a Unix-like directory tree under <code>C:\cygwin</code>,
 including a <code>/home</code> with a home directory for you the
-installing user. &nbsp;After installation you will get an icon that will
+installing user. &nbsp;After installation you will get an icon that
+will
 start up a shell under bash. <br>
   <br>
 If you want to customize your Cygwin installation instead of using our
@@ -401,7 +421,7 @@ category</span>. <br>
   </a> To install IMOD: <br>
   <br>
   <ol>
-    <li> Start a Cygwin terminal window.  You can adjust the font,
+    <li> Start a Cygwin terminal window. You can adjust the font,
 length, and background color of this window and make it the default for
 Cygwin terminals.</li>
     <li> Move your copy of the IMOD distribution to <code>/usr/local</code>
@@ -413,14 +433,16 @@ location will appear as <code>C:\cygwin\usr\local</code>.</li>
       <code>mv imod_3.1.0 IMOD </code><br>
       <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
     <li> For IMOD's man pages to work, <code>/etc/man.config</code>
-needs to not have the option "<code>NOCACHE</code>". Just copy the file <code>man.config</code>
+needs to not have the option "<code>NOCACHE</code>". Just copy the file
+      <code>man.config</code>
 from the <code>cygwinMaster</code> folder to <code>/etc</code> (<code>C:\cygwin\etc</code>).<br>
     </li>
   </ol>
 You will have to open a new Cygwin window for these changes to take
 effect. &nbsp;You can use Winzip instead to unpack IMOD, but first you
 must turn off "Tar file smart CR/LF conversion" under
-Options-Configuration-Miscellaneous, since most of the complicated shell
+Options-Configuration-Miscellaneous, since most of the complicated
+shell
 scripts will not work if they get converted to DOS line endings.<br>
   <br>
 After these steps, everything but eTomo can be run from a Cygwin
@@ -428,36 +450,39 @@ window. &nbsp;In order to run eTomo, you also need to install Java and
 define some environment variables inside Windows:<br>
   <br>
   <ol>
-    <li> To install Java, get the latest Java Run-time Environment from <a
- href="http://www.sun.com">Sun</a> or use the version provided <a
+    <li> To install Java, get the latest Java Run-time Environment from
+      <a href="http://www.sun.com">Sun</a> or use the version provided <a
  href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_02-windows-i586-p.exe">here</a>
 .</li>
-    <li> Click on the file and take the defaults to install Java.  When
+    <li> Click on the file and take the defaults to install Java. When
 you are done, you can delete any Java icons from your desktop.</li>
     <li> To define environment variables, right click My Computer,
 select Properties, Advanced, Environment Variables. Define all of these
-paths in Windows format.  Press "New" to define a variable.</li>
+paths in Windows format. Press "New" to define a variable.</li>
     <li>Under "System variables", define &nbsp;<code>IMOD_DIR</code>
 &nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code></li>
     <li>Under "User variables for username", define <code>&nbsp;HOME</code>
 &nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
     <li> You also need to add the Cygwin bin to the system path, e.g.,
 under "System variables", select <code>PATH</code>, press "Edit", and
-add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is a
+add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is
+a
 separator).</li>
   </ol>
   <br>
 Here are some optional steps:<br>
   <br>
 You can add <code>C:\cygwin\usr\local\IMOD\bin</code> to the Windows
-path, in which case you will be able to run everything but shell scripts
+path, in which case you will be able to run everything but shell
+scripts
 from a DOS window.<br>
   <br>
 To get some command files with DOS line endings you can define an
 environment variable <code>CYGWIN</code> to be&nbsp; <code>nobinmode</code>.
 This will make command files from <code>Setupcombine</code>, but not
-those from <code>Copytomocoms</code>, have DOS line endings.  If there
-is demand for this, <code>Copytomocoms</code> will be changed to produce
+those from <code>Copytomocoms</code>, have DOS line endings. If there
+is demand for this, <code>Copytomocoms</code> will be changed to
+produce
 DOS line<br>
 endings too.<br>
   <br>
@@ -468,13 +493,15 @@ edit it to say <br>
   </code>instead of<br>
 &nbsp;&nbsp; &nbsp;<code>bash --login -i</code><br>
 and change the target of your Cygwin shortcut to be this file instead
-of <code>cygwin.bat</code>. <code>Tcsh</code> has the disadvantage that
+of <code>cygwin.bat</code>. <code>Tcsh</code> has the disadvantage
+that
 it fails to preserve entries on your Windows path that have spaces in
 them, but it does filename completion of Windows filenames (starting
 with C:/) better than <code>bash</code> does.<br>
   <br>
 If you want to be able to display and print Postscript graphs from the
-Fortran graphics programs (e.g., <code>nda, mtk, mtoverlap</code>), you
+Fortran graphics programs (e.g., <code>nda, mtk, mtoverlap</code>),
+you
 can install <a
  href="http://bio3d.colorado.edu/imod/windows/gs811w32.exe">ghostscript</a>
 and <a href="http://bio3d.colorado.edu/imod/windows/gsv45w32.exe">gsview</a>
@@ -486,18 +513,18 @@ for Windows.<br>
     <h4>TIFF Library Support</h4>
     </a> The 3dmod program is able to read TIFF files on the PC or Mac,
 and will be able to read them on an SGI if the library <code>libtiff.so</code>
-is available.  Versions compiled for IRIX 6.5 assume     that the
+is available. Versions compiled for IRIX 6.5 assume that the
 library is available.
     <p> If you are trying to run a version that is compiled for the
-library but the  library is not on your system, <code>3dmod</code> and
-several other   programs  will not run until you rename a dummy library, <code>nolibtiff.so</code>,
+library but the library is not on your system, <code>3dmod</code> and
+several other programs will not run until you rename a dummy library, <code>nolibtiff.so</code>,
 to <code>libtiff.so</code>. From the top IMOD directory, do the
 following: </p>
     <pre>cd lib<br>mv nolibtiff.so libtiff.so<br></pre>
 and, on the SGI only, continue with:
     <pre>cd ../lib32<br>mv nolibtiff.so libtiff.so<br></pre>
     <p> Conversely, if you have a version that does not assume the
-library and you do have the library (whose source you  can obtain from <a
+library and you do have the library (whose source you can obtain from <a
  href="ftp://ftp.sgi.com/graphics/tiff">SGI</a>), then to use the
 library, you need to remove or rename the dummy <code>libtiff.so</code>
 in the <code>IMOD/lib</code> directory. </p>
@@ -506,44 +533,46 @@ in the <code>IMOD/lib</code> directory. </p>
     </a> The Tilt program now contains a fast backprojection algorithm
 developed by Gregory Beylkin and Kristian Sandberg at the University of
 Colorado. This method produces reconstructions 1.5-2.5 times faster,
-depending on   the computer architecture and the size of the slice being
-reconstructed (the larger, the  better).  It works    when there is tilt
+depending on the computer architecture and the size of the slice being
+reconstructed (the larger, the better). It works when there is tilt
 around the X-axis but not with local alignments. Unfortunately, the
 advantage is very small on Pentium 4 machines with our current
 distribution, compiled with gnu compilers. To take advantage of the
-algorithm, you need a license to  use the USFFT library, which is
-commercial software for doing unequally  spaced FFTs. A license  is free
+algorithm, you need a license to use the USFFT library, which is
+commercial software for doing unequally spaced FFTs. A license is free
 for non-profit organizations, but the licensing mechanism currently
-works only .  To obtain  a license, contact <a
+works only . To obtain a license, contact <a
  href="mailto:mast@colorado.edu"> David Mastronarde</a> with a request
-and a description of your institution.  Once you have  the license, you
-need to  set the environment variable USFFT2_LICENSE_FILE  to point to
-the license   file.  This is already done in the startup files supplied
-with IMOD.  The   program  will use standard backprojection if there is
+and a description of your institution. Once you have the license, you
+need to set the environment variable USFFT2_LICENSE_FILE to point to
+the license file. This is already done in the startup files supplied
+with IMOD. The program will use standard backprojection if there is
 no license. </dd>
   <dt>
     <hr><a name="Getting Started">
     <h3>Getting Started</h3>
     </a></dt>
   <dt>You will want to go through the <a href="3dmodguide.html">Introduction
-to 3dmod</a> because <code>3dmod</code> is the central graphical tool of
-the IMOD package.  Beyond this,  your initial problem may be getting
-data into a format usable by  the IMOD programs.   If you are having
-problems getting your data into a  format usable by IMOD contact us for
+to 3dmod</a> because <code>3dmod</code> is the central graphical tool
+of
+the IMOD package. Beyond this, your initial problem may be getting
+data into a format usable by the IMOD programs. If you are having
+problems getting your data into a format usable by IMOD contact us for
 help. </dt>
   <dd>
     <h4>The Image Data Format and File Conversion</h4>
-All of the IMOD programs use the <a href="mrc_format.txt">MRC   image
+All of the IMOD programs use the <a href="mrc_format.txt">MRC image
 file format</a>. We have utility programs available for converting TIFF
 files, SGI rgb files and raw data into the MRC file format.
     <p> Use the program <a href="man/tif2mrc.html">tif2mrc</a> to
-convert a series of TIFF image  files into a single MRC image file.  The <code>tif2mrc</code>
+convert a series of TIFF image files into a single MRC image file. The <code>tif2mrc</code>
 program has an option for converting 24-bit color to 8-bit grayscale
-images, and options for dealing with unsigned 16 bit images, which are a
+images, and options for dealing with unsigned 16 bit images, which are
+a
 potential problem because the MRC format supports only signed 16-bit
-images. The  following example will create a MRC file from a list of
-TIFF files (cell01.tif, cell02.tif  ...). </p>
-    <p><code> tif2mrc cell??.tif  cell.mrc </code> </p>
+images. The following example will create a MRC file from a list of
+TIFF files (cell01.tif, cell02.tif ...). </p>
+    <p><code> tif2mrc cell??.tif cell.mrc </code> </p>
     <p>See the <a href="man/tif2mrc.html">tif2mrc manual page</a> for
 more information on how to use <code>tif2mrc</code>.</p>
   </dd>
@@ -556,14 +585,14 @@ file, you can combine them into a single stack easily with the program
   <dd><br>
   </dd>
   <dd>The program <a href="man/raw2mrc.html">raw2mrc</a> is used to
-convert raw image data into the mrc format.  This program can take a
-file of  8  or   16 bit integers, IEEE float values, or 24-bit RGB
-triplets and convert    them  into an MRC image file. In MRC files, the
-data start in the lower  left  hand  corner of the image, with the data
-stored in rows.  To use <code>raw2mrc</code>,     you need to know the
-size of the images, the type of data, and the size   of  any header
-information preceding the image. &nbsp;For example, if you have  a set
-of files (cell01.em, cell02.em, ...) with 1024 x 1024 images  of signed
+convert raw image data into the mrc format. This program can take a
+file of 8 or 16 bit integers, IEEE float values, or 24-bit RGB
+triplets and convert them into an MRC image file. In MRC files, the
+data start in the lower left hand corner of the image, with the data
+stored in rows. To use <code>raw2mrc</code>, you need to know the
+size of the images, the type of data, and the size of any header
+information preceding the image. &nbsp;For example, if you have a set
+of files (cell01.em, cell02.em, ...) with 1024 x 1024 images of signed
 16-bit integers, and a header of 512 bytes, use:</dd>
   <dd><br>
   </dd>
@@ -571,47 +600,50 @@ of files (cell01.em, cell02.em, ...) with 1024 x 1024 images  of signed
   </dd>
   <dd>
     <p>If the data need to have their bytes swapped because they come a
-machine with the opposite byte ordering (e.g. SGI versus PC), use the -s
+machine with the opposite byte ordering (e.g. SGI versus PC), use the
+-s
 option. &nbsp;If you do not know the something about the image, such as
-the header    size or whether the data are unsigned or need swapping,
-you may be able  to  figure it just by trying different options for data
-types and swapping.  &nbsp;If   you do not know the header size, convert
-one file without the -o option,  load it into 3dmod, and try to see
-where the image data start. If the final  MRC image is upside down use
-the -f option in the initial conversion  or use the program <a
+the header size or whether the data are unsigned or need swapping,
+you may be able to figure it just by trying different options for data
+types and swapping. &nbsp;If you do not know the header size, convert
+one file without the -o option, load it into 3dmod, and try to see
+where the image data start. If the final MRC image is upside down use
+the -f option in the initial conversion or use the program <a
  href="man/clip.html">clip</a> to flip the image back. </p>
     <p> As of IMOD 2.6.20, our image file format was changed to conform
-to the MRC image2000 standard.  Programs now read files in either the
-new or   the old format and write files in the new format. Older
-versions of   IMOD   will  interpret these new files as having strange
-origin values.   If you  are running an older version and you have to
-work with one of these   files  (or any MRC file conforming to the new
-standard), you can fix the  origin values with: </p>
+to the MRC image2000 standard. Programs now read files in either the
+new or the old format and write files in the new format. Older
+versions of IMOD will interpret these new files as having strange
+origin values. If you are running an older version and you have to
+work with one of these files (or any MRC file conforming to the new
+standard), you can fix the origin values with: </p>
     <pre>alterheader filename<br>org<br>0,0,0<br>done<br></pre>
   </dd>
   <dd>
     <h4>The Model Format</h4>
     <p> If you already have a 3-D model and wish to view it within
 theIMOD model viewing program, <code>3dmodv</code>, you will need to
-convert the    file into the IMOD format.  See the IMOD model file
+convert the file into the IMOD format. See the IMOD model file
 format <a href="asciispec.html">ASCII</a> and <a href="binspec.html">binary
 specifications</a> if you wish to write your own conversion program.
-Model files from  the    HVEM3D program can be converted to the IMOD
-model format using the <a href="man/rec2imod.html">rec2imod</a> program. </p>
-    <p> The IMOD model format can be either binary or ASCII.  Currently
+Model files from the HVEM3D program can be converted to the IMOD
+model format using the <a href="man/rec2imod.html">rec2imod</a>
+program. </p>
+    <p> The IMOD model format can be either binary or ASCII. Currently
 supported machines can all read and write binary model files
-interchangeably, so   the   main use of the ASCII format would be to
-access the data for analysis    or  conversion by other programs. To
-convert a binary IMOD file (binary.imod)      to an ASCII  IMOD file
-(ascii.imod) use the <a href="man/imodinfo.html">imodinfo</a> command : </p>
+interchangeably, so the main use of the ASCII format would be to
+access the data for analysis or conversion by other programs. To
+convert a binary IMOD file (binary.imod) to an ASCII IMOD file
+(ascii.imod) use the <a href="man/imodinfo.html">imodinfo</a> command
+: </p>
     <p><code>imodinfo -a binary.imod &gt; ascii.imod</code> <br>
 or <br>
     <code>imodinfo -a -f ascii.imod binary.imod</code> <br>
 will both create an ASCII model file from the binary.imod model. </p>
     <p><i> There exists an older model format which was used on our
-VaxStation running the WIMP program.  The programs  written in Fortran
-use the WIMP     format internally.  They will read  models in either
-WIMP or IMOD format    and output models in IMOD format. </i> </p>
+VaxStation running the WIMP program. The programs written in Fortran
+use the WIMP format internally. They will read models in either
+WIMP or IMOD format and output models in IMOD format. </i> </p>
     <p> </p>
   </dd>
   <dt>
@@ -621,21 +653,21 @@ WIMP or IMOD format    and output models in IMOD format. </i> </p>
 </dl>
 Sometimes images in a data set are not in register with one another.
 When this happens, a series of transforms will need to be found that
-will align the whole stack of images.   This series of transformations
-is obtained    in two stages.  First, each successive pair of images is
-considered separately,    and a transform is found that aligns the
-images when applied  to the second    image in the pair. This procedure
-yields a list of transforms  that align each image to the previous
-image; the programs consistently  refer to this as a list of "f"
-transforms. If you think about it, you  will realize that simply
+will align the whole stack of images. This series of transformations
+is obtained in two stages. First, each successive pair of images is
+considered separately, and a transform is found that aligns the
+images when applied to the second image in the pair. This procedure
+yields a list of transforms that align each image to the previous
+image; the programs consistently refer to this as a list of "f"
+transforms. If you think about it, you will realize that simply
 applying these f transforms to all of the images in the stack will not
 help, because each section would be aligned to the previous one only if
 that previous one were not itself transformed. A second stage is thus
 necessary: one must obtain the transforms for each image that will
 produce an aligned stack when actually applied to the images. This list
-is consistently   referred to as a list of "g" transforms. In summary,
+is consistently referred to as a list of "g" transforms. In summary,
 "f" transforms align each section to the preceding one; "g" transforms
-align each section to the  whole stack.
+align each section to the whole stack.
 <p>There are three general methods for obtaining alignment transforms:
 manual adjustment of transformation parameters, solving for a transform
 from a set of fiducial points that correspond between two sections, and
@@ -646,57 +678,62 @@ automated search for the best fit between two images. </p>
   <dd> <a name="ManualAlignment">
     <h4>Manual Image Alignment</h4>
     </a> The program <a href="man/midas.html">midas</a> is used for
-manual alignment or manual adjustments to automated alignment of images. <code>Midas</code>
-can be used to create a transform list or to edit an  existing list;  it
+manual alignment or manual adjustments to automated alignment of
+images. <code>Midas</code>
+can be used to create a transform list or to edit an existing list; it
 can work with either "f" or "g" transform lists. To get a "g" transform
 list from an "f" transform list use the <a href="man/xftoxg.html">xftoxg</a>
-program. <code>xftoxg</code> has options to  leave long term trends in
+program. <code>xftoxg</code> has options to leave long term trends in
 the data, which are invoked by default when you call it with the <code>xf2xg</code>
 shell script. </dd>
   <dd> <a name="FiducialAlignment"> </a>
     <h4><a name="FiducialAlignment">Image Alignment using Fiducial
 Markers.</a></h4>
     <a name="FiducialAlignment"> </a> The program <a
- href="man/xfmodel.html">xfmodel</a> will create a list of xf transforms
-from a model containing fiducial points.   See the <a
- href="3dmodguide.html">Introduction to 3dmod</a> to see  how to make
+ href="man/xfmodel.html">xfmodel</a> will create a list of xf
+transforms
+from a model containing fiducial points. See the <a
+ href="3dmodguide.html">Introduction to 3dmod</a> to see how to make
 models.
     <p> Steps and Programs used in fiducial marker alignment. </p>
     <ul>
-	<li><code>imod</code> : Creates a model in which points in each contour
+      <li><code>imod</code> : Creates a model in which points in each
+contour
 are placed on adjacent sections that mark the same area on both
 sections. Note that a single contour corresponds to a single fiducial
-marker, and   the contour contains a point on each of the sections where
-the marker appears.     These are contours that pass between sections
-rather than being confined    to a single section. 	</li>
-      <li><code>xfmodel</code> : Creates a "f" transform list.  	</li>
-      <li><code>xftoxg</code> : Creates a "g" transform list, leaving in
-long term trends in the data. 	</li>
+marker, and the contour contains a point on each of the sections where
+the marker appears. These are contours that pass between sections
+rather than being confined to a single section. </li>
+      <li><code>xfmodel</code> : Creates a "f" transform list. </li>
+      <li><code>xftoxg</code> : Creates a "g" transform list, leaving
+in
+long term trends in the data. </li>
       <li><code>newstack</code> : Creates an aligned image stack. </li>
     </ul>
   </dd>
   <dd> <a name="AutomaticAlignment"> </a>
     <h4><a name="AutomaticAlignment">Automatic Image Alignment</a></h4>
     <a name="AutomaticAlignment"> </a> Several programs are used for
-automated image alignment.  The programs used are <a
+automated image alignment. The programs used are <a
  href="man/xfalign.html">xfalign</a>, <a href="man/xftoxg.html">xftoxg</a>,<a
  href="man/midas.html">midas</a> and <a href="man/newstack.html">newstack</a>.
-Xfalign is a csh script that  generates a "f" transform list using the <a
- href="man/xfsimplex.html">xfsimplex</a> program.  It can prefilter
-images using the <a href="man/enhance.html">enhance</a> program. It also
+Xfalign is a csh script that generates a "f" transform list using the <a
+ href="man/xfsimplex.html">xfsimplex</a> program. It can prefilter
+images using the <a href="man/enhance.html">enhance</a> program. It
+also
 has an option to get an initial alignment of the images by
 cross-correlation, in case images are not already roughly aligned.
     <p>Steps and programs used in automatic image alignment: </p>
     <ul>
       <li>Create a "f" transform list by using the xfalign program.<br>
         <code>xfalign cell.mrc cell.xf</code><br>
-Expect the alignment for each section to take on the order of  a minute
+Expect the alignment for each section to take on the order of a minute
 to compute. The file, cell.xf, will contain information on how to align
 adjacent images to one another. </li>
-      <li>The next step is to analyze the the file cell.xf and   the
-transforms needed to bring all of the images in alignment with  on
-another. Use the <code>xf2xg</code> shell script, an interface  to the <a
- href="man/xftoxg.html">xftoxg</a> program, to create a  global "g"
+      <li>The next step is to analyze the the file cell.xf and the
+transforms needed to bring all of the images in alignment with on
+another. Use the <code>xf2xg</code> shell script, an interface to the <a
+ href="man/xftoxg.html">xftoxg</a> program, to create a global "g"
 transform list from the "f" transform list:
         <p> <code> xf2xg cell.xf </code> </p>
         <p> </p>
@@ -704,21 +741,22 @@ transform list from the "f" transform list:
       <li>The output file from that command, cell.xg, should contain
 all of the information needed to make new aligned images from the old
 unaligned images. Use the <a href="man/newstack.html">newstack</a>
-program to create    the new aligned images.  The <a
- href="man/newst.html">newst</a> shell script   acts as a front end to
-the newstack program and allows for   easier command   line options. The
-following example will create an aligned   file newcell.mrc   from the
+program to create the new aligned images. The <a href="man/newst.html">newst</a>
+shell script acts as a front end to
+the newstack program and allows for easier command line options. The
+following example will create an aligned file newcell.mrc from the
 old cell.mrc image file.
         <p><code> newst -xform test.xg test.mrc newtest.mrc </code> </p>
         <p> If the automatic alignment is not always correct, it can be
-adjusted with the <a href="man/midas.html">midas</a> program. Start the
+adjusted with the <a href="man/midas.html">midas</a> program. Start
+the
 program with: </p>
         <p><code> midas test.mrc test.xf </code> </p>
         <p>A window will open up and you can view the alignment between
-any given pair of adjacent images.  After making adjustments for any
+any given pair of adjacent images. After making adjustments for any
 sections that are out of alignment, save the transforms and exit the
-program. Then    rerun the <code>xf2xg</code> and <code>newst</code>
-commands shown   above. </p>
+program. Then rerun the <code>xf2xg</code> and <code>newst</code>
+commands shown above. </p>
       </li>
     </ul>
     <p> For more background and explanation of the topics in this
@@ -731,11 +769,11 @@ alignment. </p>
   <hr><a name="Quantitative Information">
   <h3>Getting Quantitative Information</h3>
   </a>In order to get accurate information the fields in the model
-header have to be set properly.  See the <a href="3dmodguide.html">Introduction
+header have to be set properly. See the <a href="3dmodguide.html">Introduction
 to 3dmod</a>&nbsp;for an explanation of how to do this. Selecting the
-Edit-&gt;Object-&gt;Info or Edit-&gt;Contour-&gt;Info   menu item from
-the 3dmod Information Window      will cause the quantitative
-information to be printed out in the bottom    panel  of the window.
+Edit-&gt;Object-&gt;Info or Edit-&gt;Contour-&gt;Info menu item from
+the 3dmod Information Window will cause the quantitative
+information to be printed out in the bottom panel of the window.
   <p> Use the <a href="man/imodinfo.html">imodinfo</a> command to get
 basic information from a model and print it out to a terminal or file.
 For example:</p>
@@ -745,27 +783,28 @@ For example:</p>
   <hr><a name="Other Output">
   <h3>Output to Other Model Formats</h3>
   </a>IMOD models can be converted to a few other 3rd party formats.
-The formats     and the programs used to convert to them are listed
+The formats and the programs used to convert to them are listed
 below.
   <ul>
     <li><a href="man/imod2vrml.html">imod2vrml</a> converts to the
 Virtual Reality Modeling Language 1.0, see the <a
  href="http://www.web3d.org/vrml/vrml.htm">VRML Repository</a> for more
-information. This is the format used in many web browsers for viewing 3D
+information. This is the format used in many web browsers for viewing
+3D
 models. </li>
-    <li><a href="man/imod2rib.html">imod2rib</a> converts to  the   RIB
+    <li><a href="man/imod2rib.html">imod2rib</a> converts to the RIB
 format used by Renderman. There is a set of public domain rendering
 tools at the <a href="http://www.bmrt.org"> Blue Moon Rendering Tools</a>
 Home Page. <br>
       <i>The Renderman (R) Interface Procedures and RIB Protocol are:
 Copyright 1988,1989, Pixar. All rights reserved. RenderMan (R) is a
 registered trademark of Pixar.</i> </li>
-    <li><a href="man/imod.html">3dmod</a> can write files in  the   SYNU
+    <li><a href="man/imod.html">3dmod</a> can write files in the SYNU
 format used by the synuview program available from the <a
  href="http://www-ncmir.ucsd.edu/"> National Center for Microscopy and
 Imaging Research</a> (NCMIR). See the <a
  href="http://www-sdmir.ucsd.edu/SYNU.html">Synuview FAQ</a> </li>
-    <li><a href="man/imod.html">3dmod</a> can write files in  the   NFF
+    <li><a href="man/imod.html">3dmod</a> can write files in the NFF
 format used by <a
  href="http://www.scri.fsu.edu/%7Elyons/scian/Description.html">scian</a>.</li>
   </ul>
@@ -785,7 +824,8 @@ format used by <a
 tomograms with eTomo, including a sample data set.</li>
     <li> <a href="tomojoin.html"> Guide for joining tomograms from
 serial sections.</a> </li>
-    <li> <a href="serialalign.txt">Guide to serial section alignment.</a> </li>
+    <li> <a href="serialalign.txt">Guide to serial section alignment.</a>
+    </li>
     <br>
     <br>
   </ul>
