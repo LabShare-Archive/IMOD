@@ -33,100 +33,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:03  mast
-autox.cpp
-
-Revision 1.1.2.20  2003/02/04 19:08:29  mast
-fix syncing to model point when changing contour or point via hotkey
-
-Revision 1.1.2.19  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 1.1.2.18  2003/01/30 00:46:27  mast
-New timer logic and cleanup
-
-Revision 1.1.2.17  2003/01/29 01:49:33  mast
-changes for colormap mode, fix closing calls to ivwControl
-
-Revision 1.1.2.16  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.15  2003/01/23 20:12:47  mast
-implement variable ghost distance
-
-Revision 1.1.2.14  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 1.1.2.13  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.12  2003/01/06 15:51:17  mast
-Use imodcaption and viewport setting routines
-
-Revision 1.1.2.11  2003/01/04 03:42:05  mast
-simplified closing logic
-
-Revision 1.1.2.10  2003/01/02 15:44:19  mast
-accept key input from controller
-
-Revision 1.1.2.9  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.8  2002/12/17 18:28:47  mast
-Adding timer for second draw after resize
-
-Revision 1.1.2.7  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.6  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.5  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.4  2002/12/12 01:24:50  mast
-Added Z slider
-
-Revision 1.1.2.3  2002/12/10 16:57:34  mast
-preventing multiple draws, implementing current contour draw while dragging
-
-Revision 1.1.2.2  2002/12/09 23:23:49  mast
-Plugged image memory leak
-
-Revision 1.1.2.1  2002/12/09 17:50:33  mast
-Qt version
-
-Revision 3.9  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.8  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.7  2002/11/14 01:15:56  mast
-Prevent 3rd mouse button drag from moving scattered points or points off
-the section
-
-Revision 3.6  2002/10/22 22:41:47  mast
-Changed some debug messages for the expose timeouts
-
-Revision 3.5  2002/09/13 21:03:58  mast
-Changes to minimize crashes with Ti4600 when resizing window with R -
-elimination of interfering draws, and postpone of draw after expose events
-
-Revision 3.4  2002/07/28 22:58:42  mast
-Made I pop Info window to front and added a button to toolbar to do this
-
-Revision 3.3  2002/07/21 20:29:50  mast
-changed number of columns for section number to 4
-
-Revision 3.2  2002/01/28 16:53:59  mast
-Added section number to call to b3dDrawGreyScalePixelsHQ
-
-Revision 3.1  2001/12/17 18:52:40  mast
-Added hotkeys to do smoothing and next section in autocontouring
-
+Log at end of file
 */
 #include <stdio.h>
 #include <math.h>
@@ -2162,9 +2069,18 @@ static void zapDrawCurrentContour(ZapStruct *zap, int co, int ob)
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
   int pt;
+  int curTime = zap->timeLock ? zap->timeLock : vi->ct;
 
   if (!cont->psize)
     return;
+
+  /* DNM 2/19/03: don't draw contours from other times */
+  if (vi->nt){
+    if (iobjTime(obj->flags)){
+      if (cont->type && (curTime != cont->type))
+        return;
+    }
+  }
 
   if (iobjClose(obj->flags)){
     zapDrawContour(zap, co, ob);
@@ -2644,3 +2560,102 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
     
   return(0);
 }
+
+/*
+$Log$
+Revision 4.2  2003/02/14 01:12:47  mast
+cleanup unused variables
+
+Revision 4.1  2003/02/10 20:29:03  mast
+autox.cpp
+
+Revision 1.1.2.20  2003/02/04 19:08:29  mast
+fix syncing to model point when changing contour or point via hotkey
+
+Revision 1.1.2.19  2003/01/30 06:17:47  mast
+Add ability to change range of Z slider on image flip
+
+Revision 1.1.2.18  2003/01/30 00:46:27  mast
+New timer logic and cleanup
+
+Revision 1.1.2.17  2003/01/29 01:49:33  mast
+changes for colormap mode, fix closing calls to ivwControl
+
+Revision 1.1.2.16  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.15  2003/01/23 20:12:47  mast
+implement variable ghost distance
+
+Revision 1.1.2.14  2003/01/14 21:52:38  mast
+include new movie controller include file
+
+Revision 1.1.2.13  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 1.1.2.12  2003/01/06 15:51:17  mast
+Use imodcaption and viewport setting routines
+
+Revision 1.1.2.11  2003/01/04 03:42:05  mast
+simplified closing logic
+
+Revision 1.1.2.10  2003/01/02 15:44:19  mast
+accept key input from controller
+
+Revision 1.1.2.9  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.8  2002/12/17 18:28:47  mast
+Adding timer for second draw after resize
+
+Revision 1.1.2.7  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 1.1.2.6  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
+Revision 1.1.2.5  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 1.1.2.4  2002/12/12 01:24:50  mast
+Added Z slider
+
+Revision 1.1.2.3  2002/12/10 16:57:34  mast
+preventing multiple draws, implementing current contour draw while dragging
+
+Revision 1.1.2.2  2002/12/09 23:23:49  mast
+Plugged image memory leak
+
+Revision 1.1.2.1  2002/12/09 17:50:33  mast
+Qt version
+
+Revision 3.9  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
+Revision 3.8  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.7  2002/11/14 01:15:56  mast
+Prevent 3rd mouse button drag from moving scattered points or points off
+the section
+
+Revision 3.6  2002/10/22 22:41:47  mast
+Changed some debug messages for the expose timeouts
+
+Revision 3.5  2002/09/13 21:03:58  mast
+Changes to minimize crashes with Ti4600 when resizing window with R -
+elimination of interfering draws, and postpone of draw after expose events
+
+Revision 3.4  2002/07/28 22:58:42  mast
+Made I pop Info window to front and added a button to toolbar to do this
+
+Revision 3.3  2002/07/21 20:29:50  mast
+changed number of columns for section number to 4
+
+Revision 3.2  2002/01/28 16:53:59  mast
+Added section number to call to b3dDrawGreyScalePixelsHQ
+
+Revision 3.1  2001/12/17 18:52:40  mast
+Added hotkeys to do smoothing and next section in autocontouring
+
+*/
