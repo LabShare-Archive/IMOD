@@ -10,6 +10,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.Utilities;
@@ -29,6 +30,56 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15.2.3  2004/10/11 02:00:21  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p>
+ * <p> Revision 3.15.2.2  2004/10/08 15:45:42  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.15.2.1  2004/09/15 22:34:51  sueh
+ * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ * <p>
+ * <p> Revision 3.15  2004/08/19 01:25:44  sueh
+ * <p> Added functions to get a CombineComscriptState.  Added ComScript
+ * <p> combine.  Added functions for echo, exit, and goto in the combine
+ * <p> script.  Added new general functions to add a command to a script
+ * <p> based on the location of the previous command or command index.
+ * <p> Added a general function to delete a command based on the location of
+ * <p> the previous command.  Added general initialization functions for
+ * <p> optional command and for commands that must be located by
+ * <p> specifying the previous command.  Added a second useTemplate
+ * <p> command for the simpler case where the .com file did not change.
+ * <p> Added:
+ * <p> ComScript scriptCombine
+ * <p> deleteCommand(ComScript script, String command, AxisID axisID,
+ * <p>     String previousCommand)
+ * <p> deleteFromCombine(String command, String previousCommand)
+ * <p> getCombineComscript()
+ * <p> getEchoParamFromCombine(String previousCommand)
+ * <p> getGotoParamFromCombine()
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID, boolean optionalCommand)
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID, String previousCommand)
+ * <p> loadCombine()
+ * <p> saveCombine(EchoParam echoParam, String previousCommand)
+ * <p> saveCombine(ExitParam exitParam, int previousCommandIndex)
+ * <p> saveCombine(GotoParam gotoParam, int previousCommandIndex)
+ * <p> saveCombine(GotoParam gotoParam)
+ * <p> updateComScript(ComScript script, CommandParam params,
+ * <p>     String command, AxisID axisID, boolean addNew,
+ * <p>    int previousCommandIndex)
+ * <p> updateComScript(ComScript script, CommandParam params,
+ * <p>     String command, AxisID axisID, boolean addNew,
+ * <p>     String previousCommand)
+ * <p> useTemplate(String scriptName, AxisType axisType, AxisID axisID,
+ * <p>     boolean rename)
+ * <p> Changed:
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID)
+ * <p>
  * <p> Revision 3.14  2004/06/24 18:36:20  sueh
  * <p> bug# 482 Removing proof-of-concept test code.  Add functions
  * <p> to retrieve matchshifts from solvematchshift and add it to
@@ -1009,7 +1060,7 @@ public class ComScriptManager {
     AxisType axisType, AxisID axisID) throws BadComScriptException, IOException {
     // Read in the template file from the IMOD_DIR/com directory replacing all
     // instances of the tag g5a and g5b with the appropriate dataset name
-    String comDirectory = ApplicationManager.getIMODDirectory()
+    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
       .getAbsolutePath()
       + File.separator + "com";
 
@@ -1027,11 +1078,11 @@ public class ComScriptManager {
     // Open the appropriate output script and change the dataset name if
     // necessary.
     if (axisType == AxisType.SINGLE_AXIS) {
-      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+      script = new File(appManager.getPropertyUserDir(), scriptName + ".com");
       scriptWriter = new BufferedWriter(new FileWriter(script));
     }
     else {
-      script = new File(System.getProperty("user.dir"), scriptName
+      script = new File(appManager.getPropertyUserDir(), scriptName
         + axisID.getExtension() + ".com");
       scriptWriter = new BufferedWriter(new FileWriter(script));
       datasetName = datasetName + axisID.getExtension();
@@ -1077,7 +1128,7 @@ public class ComScriptManager {
   public void useTemplate(String scriptName, AxisType axisType, AxisID axisID, 
     boolean rename) throws BadComScriptException, IOException {
     // Copy the template file from the IMOD_DIR/com directory to the script
-    String comDirectory = ApplicationManager.getIMODDirectory()
+    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
       .getAbsolutePath()
       + File.separator + "com";
 
@@ -1090,10 +1141,10 @@ public class ComScriptManager {
     // The ouput script
     File script;
     if (axisType == AxisType.SINGLE_AXIS) {
-      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+      script = new File(appManager.getPropertyUserDir(), scriptName + ".com");
     }
     else {
-      script = new File(System.getProperty("user.dir"), scriptName
+      script = new File(appManager.getPropertyUserDir(), scriptName
         + axisID.getExtension() + ".com");
     }
     
@@ -1113,7 +1164,7 @@ public class ComScriptManager {
   private ComScript loadComScript(String scriptName, AxisID axisID,
     boolean parseComments) {
     String command = scriptName + axisID.getExtension() + ".com";
-    File comFile = new File(System.getProperty("user.dir"), command);
+    File comFile = new File(appManager.getPropertyUserDir(), command);
 
     ComScript comScript = new ComScript(comFile);
     try {
@@ -1153,7 +1204,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
 
@@ -1212,7 +1264,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
 
@@ -1225,7 +1278,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1250,7 +1304,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1260,7 +1315,8 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous index, " + previousCommandIndex
         + ", is invalid.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1310,7 +1366,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
 
@@ -1323,7 +1380,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
     
@@ -1430,7 +1488,8 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to initialize comscript for command:"
           + command;
         errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-        appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+        appManager.getMainPanel().openMessageDialog(errorMessage,
+            "ComScriptManager Error");
         return false;
       }
       
