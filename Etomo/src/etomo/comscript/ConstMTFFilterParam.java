@@ -11,26 +11,28 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$
- * <p> $Revision 1.5  2004/04/16 01:48:50  sueh
- * <p> $bug# 409 added startingAndEndingZ (Starting and Ending Views)
- * <p> $
- * <p> $Revision 1.4  2004/04/12 17:13:46  sueh
- * <p> $bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  reset()
- * <p> $should unset values, not set to comscript defaults.
- * <p> $
- * <p> $Revision 1.3  2004/03/29 20:47:47  sueh
- * <p> $bug# 409 user cannot change output file
- * <p> $
- * <p> $Revision 1.2  2004/03/25 00:43:23  sueh
- * <p> $bug# 409, bug# 418 remove default, add InverseRolloffRadiusSigma, use
- * <p> $ParamUtilities
- * <p> $
- * <p> $Revision 1.1  2004/03/24 18:15:18  sueh
- * <p> $bug# 409 MTF Filter const params
- * <p> $$ </p>
+ * <p> $$Log$$
+ * <p> Revision 1.6  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p> 
+ * <p> Revision 1.5  2004/04/16 01:48:50  sueh
+ * <p> bug# 409 added startingAndEndingZ (Starting and Ending Views)
+ * <p> 
+ * <p> Revision 1.4  2004/04/12 17:13:46  sueh
+ * <p> bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  reset()
+ * <p> should unset values, not set to comscript defaults.
+ * <p> 
+ * <p> Revision 1.3  2004/03/29 20:47:47  sueh
+ * <p> bug# 409 user cannot change output file
+ * <p> 
+ * <p> Revision 1.2  2004/03/25 00:43:23  sueh
+ * <p> bug# 409, bug# 418 remove default, add InverseRolloffRadiusSigma, use
+ * <p> ParamUtilities
+ * <p> 
+ * <p> Revision 1.1  2004/03/24 18:15:18  sueh
+ * <p> bug# 409 MTF Filter const params
+ * </p>
  */
-
 package etomo.comscript;
 
 public class ConstMTFFilterParam {
