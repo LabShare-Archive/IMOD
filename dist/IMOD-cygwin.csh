@@ -16,9 +16,9 @@ if (! $?IMOD_DIR) setenv IMOD_DIR C:\cygwin\usr\local\IMOD
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH `cygpath $IMOD_DIR`/bin:"$PATH"
+    setenv PATH `/usr/bin/cygpath $IMOD_DIR`/bin:"$PATH"
 else
-    setenv PATH `cygpath $IMOD_DIR`/bin
+    setenv PATH `/usr/bin/cygpath $IMOD_DIR`/bin
 endif
 
 #
