@@ -15,14 +15,17 @@ multiple processors.
 To use this procedure, first make a master command file (the first required 
 argument) that performs the needed operation, in the format required by
 Vmstocsh, as ordinarily run with subm.  The input file for the
-operation should be entered as INPUTFILE, and the final output of the operation
-as OUTPUTFILE.  The command file may perform multiple operations and may even
+operation in this command file should be entered as INPUTFILE, and the final 
+output of the operation
+as OUTPUTFILE.  (Note that OUTPUTFILE does not have the name of the final
+output file given on the chunksetup command line.)  The command file may
+perform multiple operations and may even
 contain INPUTFILE more than once.  If the procedure needs to produce temporary
 intermediate files, they 
 should be named ending in ".$$" (e.g., chunktemp.$$).  At the end of the 
-command file, include a line to remove the specific intermediate files, e.g.
+command file, include lines to remove the specific intermediate files, e.g.
 .br
-$rm -f *.$$
+$if (-e chunktemp.$$) rm -f chunktemp.$$
 
 When chunksetup is run, it first calls Tomopieces, which analyzes the
 dimensions of the input file to determine how to chop it up optimally.
@@ -61,9 +64,15 @@ define a variable at the top of your command file:
 .br
 $set tmpext `hostname`.$$
 .br
-and end your temporary file names with ".$tmpext".  The script includes a
+and end your temporary file names with ".$tmpext".  In this case, you should
+remove the files at the end of the command file with statements like:
+.br
+$if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
+.br
+The script includes a
 loop to watch the log files for completion and report on how many chunks are
-done periodically.
+done periodically.  It will not run the finishing command when the chunks
+are done.
 
 .SS Options
 .TP
