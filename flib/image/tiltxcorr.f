@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.16  2003/11/27 06:03:26  mast
+c	  Changed to determine binning after padding to allow large padding
+c	
 c	  Revision 3.15  2003/10/30 00:48:24  mast
 c	  Incorporated cumulative reference method of Renkin, and added ability
 c	  to correlate a subset shifted from the center
@@ -703,7 +706,7 @@ c
 	  call xfunit(f(1,1,1), 1.)
 	endif
 	do iv=1,nz
-	  call xfwrite(1,f(1,1,iv),96)
+	  call xfwrite(1,f(1,1,iv),*96)
 	enddo
 	close(1)
 	call imclose(1)
