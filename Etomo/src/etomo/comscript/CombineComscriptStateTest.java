@@ -18,7 +18,10 @@ import junit.framework.TestCase;
 *
 * @version $Revision$
 *
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.2  2004/08/20 21:37:14  sueh
+* <p> bug# 508 added log
+* <p> </p>
 */
 public class CombineComscriptStateTest extends TestCase {
   public static final String rcsid = "$$Id$$";
@@ -29,7 +32,8 @@ public class CombineComscriptStateTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
-    String[] args = {"BB.edf", "--test", "--selfTest"};
+    String[] args = 
+        {"/scratch/bebop/sueh/jUnit/BB.edf", "--test", "--selfTest"};
     testHarness = 
         ApplicationManagerTestHarness.getApplicationManagerTestHarness(args);
     assertNotNull(testHarness);
