@@ -20,6 +20,19 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4.2.3  2004/10/08 15:41:59  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.4.2.2  2004/09/07 17:51:30  sueh
+ * <p> bug# 520 getting mainFrame from ETomoDirector
+ * <p>
+ * <p> Revision 3.4.2.1  2004/09/03 20:57:52  sueh
+ * <p> bug# 520 getting app mgr from EtomoDirector
+ * <p>
+ * <p> Revision 3.4  2004/06/30 17:36:46  rickg
+ * <p> Added fiducialless capability and partial single axis handling
+ * <p>
  * <p> Revision 3.3.2.1  2004/06/30 17:32:39  rickg
  * <p> Added fiducialless capability and partial single axis handling
  * <p>
@@ -90,8 +103,9 @@ public class DataFlowTests {
     argsIn[0] = "--debug";
     argsIn[1] = System.getProperty("user.dir") + File.separator + datasetName
       + ".edf";
-    applicationManager = new ApplicationManager(argsIn);
-    mainFrame = applicationManager.getMainFrame();
+    EtomoDirector.createInstance(argsIn);
+    applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
+    mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
 

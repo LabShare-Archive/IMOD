@@ -19,7 +19,13 @@ import etomo.ui.TomogramCombinationDialog;
 *
 * @version $Revision$
 *
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/03 20:34:48  sueh
+* <p> bug# 520 adapting to changes in AppMgr constructor
+* <p>
+* <p> Revision 1.1  2004/08/20 21:52:48  sueh
+* <p> bug# 508 tests loading, updateing , and saving combine.com
+* <p> </p>
 */
 public class ApplicationManagerTestHarness extends ApplicationManager {
   public static final String rcsid = "$$Id$$";
@@ -38,7 +44,7 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
    * @param args
    */
   private ApplicationManagerTestHarness(String[] args) {
-    super(args);
+    super("");
   }
   
   public CombineComscriptState runUpdateCombineComscriptState(
