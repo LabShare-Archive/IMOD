@@ -1,5 +1,16 @@
 # THIS FILE DOES EVERYTHING FOR COMBINING VOLUMES
 #
+# INSERT OPTIONS FOR COMBINEFFT IN THE QUOTES
+#
+$set combinefft_options = ""
+#
+# TO RESTART AT A PARTICULAR PIECE, CHANGE 0 IN THE FOLLOWING "goto dopiece0"
+# TO THE DESIRED PIECE NUMBER
+#
+$goto dopiece0
+#
+$dopiece0:
+#
 $if (-e savework-file) savework-file
 #
 $echo "STATUS: RUNNING DENSMATCH TO MATCH DENSITIES"
