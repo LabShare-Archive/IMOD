@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/27 23:06:51  mast
+    Fiddling with includes some more
+
     Revision 3.2  2003/02/27 20:19:10  mast
     Changes in includes for Windows
 
@@ -69,9 +72,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef NO_IMOD_FORK
-#include <unistd.h>
-#endif
 
 #include "midas.h"
 #include <mrcc.h>
@@ -82,6 +82,9 @@
 #include <qlayout.h>
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
+#ifndef NO_IMOD_FORK
+#include <unistd.h>
+#endif
 
 struct Midas_view *VW;
 int Midas_debug = 0;
