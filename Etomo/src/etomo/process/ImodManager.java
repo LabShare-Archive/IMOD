@@ -23,6 +23,11 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/09/20 17:16:04  rickg
+ * <p> Added typed exceptions
+ * <p> Added methods to check if a particular process is open
+ * <p> Added quit methods for processes
+ * <p>
  * <p> Revision 1.3  2002/09/19 23:11:26  rickg
  * <p> Completed initial vesion to work with ImodProcess
  * <p>
@@ -248,6 +253,21 @@ public class ImodManager {
 
 
   /**
+   * Close the specified finely aligned stack
+   */
+  public void quitFinelyAligned(AxisID axisID)
+  throws AxisTypeException, SystemProcessException {
+    checkAxisID(axisID);
+    if(axisID == AxisID.SECOND) {
+      fineAlignedB.quit();
+    }
+    else {
+      fineAlignedA.quit(); 
+    }
+  }
+
+
+  /**
    * Open the specified tomograph samples in imod if they are not already open
    * @param axisID the AxisID of the desired axis.
    */
@@ -276,8 +296,23 @@ public class ImodManager {
       return sampleA.isRunning();
     }    
   }
-  
-  
+
+
+  /**
+   * Close the specifed sample reconstruction
+   */
+  public void quitSample(AxisID axisID)
+  throws AxisTypeException, SystemProcessException {
+    checkAxisID(axisID);
+    if(axisID == AxisID.SECOND) {
+      sampleB.quit();
+    }
+    else {
+      sampleA.quit(); 
+    }
+  }
+
+
   /**
    * Open the specified tomogram in imod if it is not already open
    * @param axisID the AxisID of the desired axis.
@@ -308,7 +343,22 @@ public class ImodManager {
     }    
   }
   
-  
+
+  /**
+   * Close the specified tomogram
+   */
+  public void quitTomogram(AxisID axisID)
+  throws AxisTypeException, SystemProcessException {
+    checkAxisID(axisID);
+    if(axisID == AxisID.SECOND) {
+      tomogramB.quit();
+    }
+    else {
+      tomogramA.quit(); 
+    }
+  }
+
+
   /**
    * Open the combined tomogram in imod if it is not already open
    */
@@ -326,6 +376,14 @@ public class ImodManager {
   }
   
   
+  /**
+   * Close the combined tomogram
+   */
+  public void quitCombinedTomogram(AxisID axisID)
+  throws SystemProcessException {
+    combinedTomogram.quit();
+  }
+
   private void checkAxisID(AxisID axisID) throws AxisTypeException {
     if(axisType == AxisType.SINGLE_AXIS  && axisID == AxisID.SECOND) {
       throw new AxisTypeException("Second axis requested in a single axis data set");
