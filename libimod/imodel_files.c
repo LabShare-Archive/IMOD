@@ -74,9 +74,9 @@
 static int imodel_read_v01(struct Mod_Model *mod, FILE *fin);
 static int imodel_read(Imod *imod, long version);
 static int imodel_write(struct Mod_Model *mod, FILE *fout);
-static int imodel_write_object(Iobj *obj, FILE *fout);
-static int imodel_write_contour(Icont *cont, FILE *fout);
-static int imodel_write_mesh(Imesh *mesh, FILE *fout);
+static int imodel_write_object(Iobj *obj, FILE *fout, Ipoint *scale);
+static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale);
+static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale);
 static int imodel_read_header(Imod *imod, FILE *fin);
 static int imodel_read_object(struct Mod_Object *obj, FILE *fin);
 static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin);
@@ -241,11 +241,20 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
      int i, error;
      unsigned long id;
      int count;
-     
+     Ipoint scale;
+
      rewind(fout);
      
      /* DNM 9/4/02: set flag that mat1 and mat3 are written as bytes */
      mod->flags |= IMODF_MAT1_IS_BYTES;
+
+     scale.x = mod->xybin;
+     scale.y = mod->xybin;
+     scale.z = mod->zbin;
+     if (mod->flags & IMODF_FLIPYZ) {
+       scale.z = mod->xybin;
+       scale.y = mod->zbin;
+     }
 
      id = ID_IMOD;
      imodPutInt(fout, &id);
@@ -262,7 +271,7 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
      imodPutFloats(fout, &mod->alpha, 3);
      
      for(i = 0; i < mod->objsize; i++)
-	  if (error = imodel_write_object( &(mod->obj[i]), fout))
+	  if (error = imodel_write_object( &(mod->obj[i]), fout, &scale))
 	       return(error);
      
 #ifndef IMODEL_FILES_VERSION_01
@@ -278,7 +287,8 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
      return(ferror(fout));
 }
 
-static int imodel_write_object(struct Mod_Object *obj, FILE *fout)
+static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
+                               Ipoint *scale)
 {
      int i, error;
      long id;
@@ -297,11 +307,11 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout)
 #endif        
 
      for(i = 0; i < obj->contsize; i++)
-	  if (error = imodel_write_contour( &(obj->cont[i]), fout))
+	  if (error = imodel_write_contour( &(obj->cont[i]), fout, scale))
 	       return(error);
 
      for(i = 0; i < obj->meshsize; i++)
-	  if (imodel_write_mesh( &(obj->mesh[i]), fout))
+	  if (imodel_write_mesh( &(obj->mesh[i]), fout, scale))
 	       return(-1);
 
      /* due to a bug, version 2 readers can't read extra data. 
@@ -344,7 +354,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout)
      return(0);
 }
 
-static int imodel_write_contour(Icont *cont, FILE *fout)
+static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
 {
      long id;
      
@@ -355,7 +365,12 @@ static int imodel_write_contour(Icont *cont, FILE *fout)
      id = ID_PNTS; 
      imodPutInt(fout, &id);
 #endif
-     imodPutFloats(fout, (float *)cont->pts, cont->psize * 3);
+     if (scale->x == 1.0 && scale->y == 1.0 && scale->z == 1.0)
+       imodPutFloats(fout, (float *)cont->pts, cont->psize * 3);
+     else {
+       fprintf(stderr, "scale %f %f %f\n", scale->x, scale->y, scale->z);
+       imodPutScaledPoints(fout, cont->pts, cont->psize, scale);
+     }
      
      if (cont->label)
 	  imodLabelWrite(cont->label, fout);
@@ -371,10 +386,11 @@ static int imodel_write_contour(Icont *cont, FILE *fout)
      return(ferror(fout));
 }
 
-static int imodel_write_mesh(Imesh *mesh, FILE *fout)
+static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
 {
      long id = ID_MESH;
      short temp = mesh->type;
+     int i;
 
      if (!mesh) return(0);
      imodPutInt(fout, &id);
@@ -384,7 +400,12 @@ static int imodel_write_mesh(Imesh *mesh, FILE *fout)
      imodPutShort(fout, &temp);
      temp = mesh->pad;
      imodPutShort(fout, &temp);
-     imodPutFloats(fout, (float *)mesh->vert, mesh->vsize * 3);
+     if (scale->x == 1.0 && scale->y == 1.0 && scale->z == 1.0) {
+       imodPutFloats(fout, (float *)mesh->vert, mesh->vsize * 3);
+     } else {
+       for (i = 0; i < mesh->vsize; i += 2)
+         imodPutScaledPoints(fout, &mesh->vert[i], 1, scale);
+     }
      imodPutInts(fout, mesh->list, mesh->lsize);
      return(ferror(fout));;
 }
@@ -1409,6 +1430,20 @@ int imodPutFloats(FILE *fp, float *buf, int size)
      return(ferror(fp));
 }
 
+int imodPutScaledPoints(FILE *fp, Ipoint *buf, int size, Ipoint *scale)
+{
+  float xyz[3];
+  int i, ierr;
+  for (i = 0; i < size; i++) {
+    xyz[0] = buf[i].x * scale->x;
+    xyz[1] = buf[i].y * scale->y;
+    xyz[2] = buf[i].z * scale->z;
+    ierr = imodPutFloats(fp, xyz, 3);
+    if (ierr)
+      return ierr;
+  }
+  return 0;
+}
 
 /* imod file stores ints as 4 bytes 4321 */
 int imodGetInt(FILE *fp)
@@ -1491,6 +1526,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
     $Log$
+    Revision 3.10  2003/11/01 16:41:56  mast
+    changed to use new error processing routine
+
     Revision 3.9  2003/03/28 05:08:13  mast
     Use new unique little endian flag
 
