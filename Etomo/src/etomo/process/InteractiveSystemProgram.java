@@ -15,6 +15,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:25:48  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -135,6 +138,10 @@ public class InteractiveSystemProgram implements Runnable {
     }
   }
 
+  /**
+   * Read one line from the stdout buffer if available, if one isn't available
+   * then null is returned
+   */
   public String readStdout() {
     String line = null;
     try {
@@ -149,6 +156,10 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
 
+  /**
+   * Read one line from the stderr buffer if available, if one isn't available
+   * then null is returned
+   */
   public String readStderr() {
     String line = null;
     try {
