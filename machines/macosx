@@ -132,9 +132,11 @@ echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LD
 echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o" >> $configure
 
 # make script files to run programs
+# Set DYLD_LIBRARY_PATH with qtlib before running program
 #
 cat <<EOF >! $imod_dir/runimod
 #!/bin/csh -f
+setenv DYLD_LIBRARY_PATH \$IMOD_DIR/\$IMOD_QTLIBDIR:\$DYLD_LIBRARY_PATH
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D' || "\$i" == '-W') set background = 0
@@ -148,6 +150,7 @@ EOF
 
 cat <<EOF >! $imod_dir/runimodv
 #!/bin/csh -f
+setenv DYLD_LIBRARY_PATH \$IMOD_DIR/\$IMOD_QTLIBDIR:\$DYLD_LIBRARY_PATH
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D') set background = 0
@@ -159,10 +162,15 @@ else
 endif
 EOF
 
-echo '$IMOD_DIR/bin/'"$send_target"' $*' >! $sendevent_dir/runsendevent
+cat <<EOF >! $sendevent_dir/runsendevent
+#!/bin/csh -f
+setenv DYLD_LIBRARY_PATH \$IMOD_DIR/\$IMOD_QTLIBDIR:\$DYLD_LIBRARY_PATH
+\$IMOD_DIR/bin/${send_target} \$*
+EOF
 
 cat <<EOF >! $midas_dir/runmidas
 #!/bin/csh -f
+setenv DYLD_LIBRARY_PATH \$IMOD_DIR/\$IMOD_QTLIBDIR:\$DYLD_LIBRARY_PATH
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D') set background = 0
@@ -189,5 +197,6 @@ RC_FILE = b3dicon.icns
 EOF
 
 #
-# Set up to copy qt lib for a distribution
-echo 'QTINSTLIBDIR = lib' >> $configure
+# Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
+echo 'QTINSTLIBDIR = qtlib' >> $configure
+set ld_lib_var      = DYLD_LIBRARY_PATH

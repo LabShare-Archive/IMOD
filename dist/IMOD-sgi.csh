@@ -59,3 +59,26 @@ alias subm 'submfg \!* &'
 # This command allows fast backprojection if the USFFT license file exists
 #
 setenv USFFT2_LICENSE_FILE $IMOD_DIR/license.clo
+
+#
+# Set a variable to indicate where our copy of Qt library is
+#
+setenv IMOD_QTLIBDIR $IMOD_DIR/qtlib
+
+#
+# Set up aliases so that the Qt library is put on the path just for running
+# each program, to avoid conflicts with other installed programs
+#
+alias 3dmod 'runimodqtapp 3dmod'
+alias 3dmodv 'runimodqtapp 3dmodv'
+alias imod 'runimodqtapp imod'
+alias imodv 'runimodqtapp imodv'
+alias midas 'runimodqtapp midas'
+alias imodsendevent 'runimodqtapp imodsendevent'
+alias genhstplt 'runimodqtapp genhstplt'
+alias mtpairing 'runimodqtapp mtpairing'
+alias avgstatplot 'runimodqtapp avgstatplot'
+alias mtoverlap 'runimodqtapp mtoverlap'
+alias nda 'runimodqtapp nda'
+alias sda 'runimodqtapp sda'
+alias mtk 'runimodqtapp mtk'

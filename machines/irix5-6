@@ -166,11 +166,15 @@ INCLUDEPATH += .
 EOF
 
 #
-# Set up to copy qt lib for a distribution
-echo 'QTINSTLIBDIR = lib32' >> $configure
+# Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
+echo 'QTINSTLIBDIR = qtlib' >> $configure
+set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.8  2003/05/08 20:46:04  mast
+#  *** empty log message ***
+#
 #  Revision 3.7  2003/05/08 20:23:27  mast
 #  *** empty log message ***
 #
