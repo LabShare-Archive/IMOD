@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/12/02/ IMOD_2-7-6 released to replace 2.7.5
+11/11/02: Fixed bug in Solvematch caused by the 10/2/02 changes in the 
+routines shared with Refinematch and Findwarp.
+
 11/5/02 IMOD_2-7-5 released
 11/5/02: Revised and simplified installation guide.
 
