@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/04: IMOD_3-2-14  (eTomo unstable)
+5/7/04: Fixed a problem with shifting Z introduced in Tiltalign on 5/4.
+
 5/7/04: IMOD_3-2-13  (eTomo unstable)
 5/7/04: Fixed a bug from adding the rubberband toolbutton that made it crash 
 on multiple files.  Removed Run Tiltalign button from bead fixer until eTomo
