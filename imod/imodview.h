@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/01 05:01:01  mast
+Initial creation; declarations pulled from imod.h
+
 */
 #ifndef IMODVIEW_H
 #define IMODVIEW_H
@@ -64,7 +67,7 @@ char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
 unsigned char **ivwGetZSection(ImodView *inImodView, int inSection);
 unsigned char **ivwGetCurrentZSection(ImodView *inImodView);
 unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time);
-     
+
 /* Returns grey scale value for given image coordinate. */
 int ivwGetValue(ImodView *inImodView, int inX, int inY, int inZ);
 

@@ -117,6 +117,7 @@ typedef struct ViewInfo
   int   xsize, ysize, zsize;      /* Size of idata */
   int   xysize;                   /* section size. */
   float  xmouse, ymouse, zmouse;   /* Current point in idata. */
+  int   xUnbinSize, yUnbinSize, zUnbinSize;  /* Original size of data */
 
   int   nt, ct; /* number of time frames, current time.       */
 
@@ -128,7 +129,15 @@ typedef struct ViewInfo
   int      vmSize;            /* virtual memory z-section size. */
   ivwSlice *vmCache;          /* the cache of z-section data.   */
   int      vmCount;           /* Use counter for cache */
-  int      vmLastUsed;        /* Index of last accessed section */
+  int      *cacheIndex;       /* Cross-index from sections to cache entries */
+  int      vmTdim;            /* Time dimension of cross-index */
+  int      vmTbase;           /* Base T value for lookups - 0 or 1 */
+  int      fullCacheFlipped;  /* Flag that cache was full upon flipping */
+  int      keepCacheFull;     /* Cache was not specified by user, fill it */
+  int      loadingImage;      /* Flag that data is being loaded */
+  int      doingInitialLoad;  /* and that the load is the initial one */
+  int      xybin;             /* Binning in X and Y dimensions */
+  int      zbin;              /* Binning in Z */
 
   /* Image data scaleing for gray scale images. */
   int    rampbase;
@@ -154,9 +163,10 @@ typedef struct ViewInfo
   Imod  *imod;
   Iobj  *extraObj;
 
-  /* storage for list of line pointers */
+  /* storage for list of line pointers and a blank line */
   unsigned char **linePtrs;
   int linePtrMax;
+  unsigned char *blankLine;
 
   /* Extra Window Data. */
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
@@ -256,6 +266,9 @@ void imodPrintInfo(const char *message);
 
 /*
 $Log$
+Revision 3.21  2003/12/30 06:37:03  mast
+Add multifileZ flag
+
 Revision 3.20  2003/11/01 18:12:54  mast
 add error output function
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/12/30 06:39:21  mast
+Make memreccpy globally available
+
 Revision 1.1  2003/10/01 05:01:29  mast
 Initial creation; functions pulled from imodP.h
 
@@ -27,6 +30,11 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
                        int inNullvalue, int *cacheSum);
 int ivwInitCache(ImodView *vi);
 
+/* Determines size of data unit */
+int ivwGetPixelBytes(int mode);
+int  ivwPlistBlank(ImodView *vi, int cz);
+     
+
 void ivwBindMouse(ImodView *vw);
 
 int  ivwScale(ImodView *vw);
@@ -35,9 +43,9 @@ void ivwInit(ImodView *vi);
 int  ivwPointVisible(ImodView *vw, Ipoint *pnt);
 
 int  imodImageFileDesc(FILE *fin);
+int  ivwLoadIMODifd(ImodView *vi);
 int  ivwLoadImage(ImodView *iv);
 void ivwFlushCache(ImodView *vi);
-int  ivwSetScale(ImodView *vi);
 void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, 
 		      int lastimage);
 
@@ -47,6 +55,7 @@ void ivwFlipModel(ImodView *iv);
 void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
+int ivwReadBinnedSection(ImodView *vi, char *buf, int section);
 void memreccpy
 (unsigned char *tb,             /* copy data to buffer */
  unsigned char *fb,             /* copy data from buffer */
