@@ -74,6 +74,19 @@ type = F
 usage = Maximum radius of peak area to erase
 tooltip = 
 manpage = Maximum radius of peak area to erase (the default is 2.1 pixels). 
+
+[Field = MaxPixelsInDiffPatch]
+short = maxdiff
+long = MaxPixelsInDiffPatch
+type = I
+usage = Maximum number of pixels in a patch that exceeds the difference 
+criterion
+tooltip = Maximum number of pixels in a patch that exceeds the difference 
+criterion.  Larger patches will not be replaced.  The default is 2. 
+manpage = Maximum number of pixels in a patch that exceeds the difference 
+criterion.  If the number of pixels that satisfy the criteria exceed this 
+limit, none of the pixels in the patch will be replaced.  The default is 2.
+
 [Field = OuterRadius]
 short = outer
 long = OuterRadius

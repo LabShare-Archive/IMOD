@@ -41,7 +41,9 @@ DDEESSCCRRIIPPTTIIOONN
   that deviate from the mean by yet another criterion, the difference
   criterion.  When such a pixel is found, neighboring pixels are examined
   and added to the patch of pixels to replace if their difference exceeds
-  the grow criterion.  Replacement proceeds as above.
+  the grow criterion.  If the number of pixels in the patch does not exceed
+  a specified maximum, replacement proceeds as above; otherwise the patch is
+  ignored.
 
   Two methods are used because the first method is probably more reliable
   for dealing with strong peaks that extend over several pixels, while the
