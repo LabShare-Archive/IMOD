@@ -710,7 +710,8 @@ EOF
 \$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
  -e '/$setname.*\.rec/s//$bmtarr[$ind]/' -e '/SLICE/d' -e '/WIDTH/d' \
  -e '/THICKNESS/a\\\\\\
-SLICE $slmin $slmax 1' tilt$dstext |tilt
+SLICE $slmin $slmax 1\\\\
+' tilt$dstext |tilt
 EOF
     end
 
@@ -849,6 +850,9 @@ EOF
 endif
 #
 #  $Log$
+#  Revision 3.15  2003/12/02 19:13:58  mast
+#  Added instructions for making thicker samples to sample.com
+#
 #  Revision 3.14  2003/11/18 04:00:43  mast
 #  Fix format of sed append in sample.com so it works on Mac 10.3
 #
