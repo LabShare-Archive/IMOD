@@ -91,7 +91,7 @@ void slicerHelp()
      "-------------------------------------------------------------\n",
      "\nSlicer has two dockable toolbars that may be floated as separate "
      "windows so that the image will fill the entire window area.  When they "
-     "are floated, they will still pass hotkeys on to the slicer window\n",
+     "are floated, they will still pass hot keys on to the slicer window\n",
 
      "\nThe First Toolbar\n",
      "-------------------\n",
@@ -105,7 +105,7 @@ void slicerHelp()
      "\tThe show slice button will cause lines to be draw in the "
      "XYZ and ZaP windows to show the intersection of the current "
      "slice.\n",
-     "The Z-Scale box lets you"
+     "\tThe Z-Scale box lets you "
      "control whether the volume will be displayed with Z "
      "scaling.  If you choose \"Z-Scale Before\", then the volume will be "
      "scaled before it is rotated and sliced, and thus the rotation "
@@ -2035,6 +2035,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.16  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.15  2003/04/18 20:16:39  mast
 Rename meta test function
 
