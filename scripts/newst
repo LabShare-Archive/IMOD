@@ -1,4 +1,13 @@
 #! /bin/csh -f
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 if ($#argv == 0) then
 cat <<EOF
 Usage: newst [options] input.file output.file
@@ -223,7 +232,8 @@ endif
 echo $float >> $tmpfil
 if ($float == "-1" || $float == "-2" || $float == "4") echo $minmax >> $tmpfil
 echo EOF >>$tmpfil
-sh $tmpfil
+csh $tmpfil
+if ($status) goto clean
 \rm -f $tmpfil $tmpfil2
 exit 0
 clean:
