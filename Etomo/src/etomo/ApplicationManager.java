@@ -75,6 +75,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.62  2003/09/09 17:20:29  rickg
+ * <p> Check to see if the _orig.st stack exists, do not replace if it does.
+ * <p>
  * <p> Revision 2.61  2003/09/08 22:18:50  rickg
  * <p> Catch exception thrown buy ProcessManager.startComScript
  * <p>
@@ -1347,8 +1350,8 @@ public class ApplicationManager {
       comScriptMgr.getTiltalignParam(axisID));
 
     //  Create a default transferfid object to populate the alignment dialog
-    fineAlignmentDialog.setTransferFidParams(
-      new TransferfidParam(getIMODDirectory()));
+    //MARK done initialize transferfid param from metadata on open dialog
+    fineAlignmentDialog.setTransferFidParams(getTransferfidParam());
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
 
@@ -1371,7 +1374,12 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-
+//	MARK done get param, update from dialog, update metadata, set metadata dirty bit
+		TransferfidParam transferfidParam = new TransferfidParam(getIMODDirectory());
+		fineAlignmentDialog.getTransferFidParams(transferfidParam);
+		metaData.saveTransferfid(transferfidParam);
+		isDataParamDirty = true;
+		
     DialogExitState exitState = fineAlignmentDialog.getExitState();
 
     if (exitState == DialogExitState.CANCEL) {
@@ -1541,6 +1549,12 @@ public class ApplicationManager {
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
     }
   }
+// MARK done initialize from metaData
+	private TransferfidParam getTransferfidParam() {
+		TransferfidParam param = new TransferfidParam(getIMODDirectory());
+		metaData.initializeTransferfid(param);
+		return param;
+	}
 
   /**
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
@@ -1908,7 +1922,7 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
-
+// 
     mainFrame.selectButton(axisID, "Tomogram Generation");
     if (showIfExists(tomogramGenerationDialogA,
       tomogramGenerationDialogB,

@@ -15,6 +15,10 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/09/25 16:45:24  sueh
+ * <p> bug223 Added Number of views in the search to
+ * <p> Fine Alignment button, Transfer Parameters panel.
+ * <p>
  * <p> Revision 2.5  2003/05/23 22:03:47  rickg
  * <p> Added -P to command string to get shell PID output
  * <p>
@@ -68,7 +72,8 @@ public class TransferfidParam {
   int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
   int centerViewA = 0; // 0 => default selected by script
   int centerViewB = 0;
-  int numberViews = 5;
+  //MARK done removed numberViews default from TransferfidParam
+  int numberViews;
 
   File IMODDirectory;
 

@@ -4,6 +4,8 @@ import java.io.File;
 
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
+
 /*
  * <p>Description: </p>
  *
@@ -17,6 +19,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/12 01:24:24  rickg
+ * <p> Return invalid working directory in reason
+ * <p>
  * <p> Revision 2.3  2003/05/07 17:54:08  rickg
  * <p> Working direcotry is no longer stored in the metadata
  * <p> System property user.dir now defines the working directory
@@ -46,8 +51,8 @@ import etomo.comscript.CombineParams;
 public class ConstMetaData {
   public static final String rcsid =
     "$Id$";
-
-  protected String revisionNumber = "1.4";
+//MARK done up the metadata version
+  protected String revisionNumber = "1.5";
   protected String datasetName = "";
   protected String backupDirectory = "";
 
@@ -74,9 +79,15 @@ public class ConstMetaData {
 
   protected String invalidReason = "";
 
+  protected int transferfidNumberViews;
+
   public ConstMetaData() {
   }
-
+//MARK done added initializeTransferfid
+  public void initializeTransferfid(TransferfidParam param) {
+		  	param.setNumberViews(transferfidNumberViews);
+  }
+  
   public String getRevisionNumber() {
     return revisionNumber;
   }

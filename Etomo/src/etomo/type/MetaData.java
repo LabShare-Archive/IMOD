@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
 import etomo.storage.Storable;
 
 /**
@@ -19,6 +20,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/07 17:53:59  rickg
+ * <p> Working direcotry is no longer stored in the metadata
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.3  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -91,6 +96,10 @@ public class MetaData extends ConstMetaData implements Storable {
     return combineParams;
   }
 
+	public void saveTransferfid(TransferfidParam param) {
+		// MARK done updated transferfid values in metadata
+		transferfidNumberViews = param.getNumberViews();
+	}
   /**
    * Set the backup diretory, trimming any white space from the beginning and
    * end of the string
@@ -168,6 +177,7 @@ public class MetaData extends ConstMetaData implements Storable {
     else {
       group = prepend + ".Setup.";
     }
+
     props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(
       group + "ComScriptsCreated",
@@ -198,7 +208,8 @@ public class MetaData extends ConstMetaData implements Storable {
     props.setProperty(
       group + "AxisB.ExcludeProjections",
       String.valueOf(excludeProjectionsB));
-
+      //MARK done store
+		props.setProperty(group + "TransferfidNumberViews", String.valueOf(transferfidNumberViews));
     combineParams.store(props, group);
   }
 
@@ -260,8 +271,12 @@ public class MetaData extends ConstMetaData implements Storable {
     excludeProjectionsB =
       props.getProperty(group + "AxisB.ExcludeProjections", "");
     tiltAngleSpecB.load(props, group + "AxisB");
+//MARK done load
+	transferfidNumberViews =
+			Integer.parseInt(props.getProperty(group + "TransferfidNumberViews", "5"));
 
     combineParams.load(props, group);
+    
   }
 
 }
