@@ -32,24 +32,21 @@ public class EtomoAutodoc {
     String text = null;
     Attribute attribute = section.getAttribute(tooltipAttributeName);
     if (attribute != null) {
-      text = attribute.getValue();
+      text = attribute.getUnformattedValue();
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("usage");
     if (attribute != null) {
-      text = attribute.getValue();
+      text = attribute.getUnformattedValue();
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("manpage");
     if (attribute != null) {
-      text = attribute.getValue();
-      if (text != null) {
-        return text;
-      }
+      return attribute.getUnformattedValue();
     }
     return null;
   }
@@ -62,7 +59,7 @@ public class EtomoAutodoc {
   public static String getTooltip(Section section, String enumValueName) {
     try {
       return section.getAttribute("enum").getAttribute(enumValueName)
-          .getAttribute(tooltipAttributeName).getValue();
+          .getAttribute(tooltipAttributeName).getUnformattedValue();
     }
     catch (NullPointerException e) {
       return null;
@@ -71,5 +68,9 @@ public class EtomoAutodoc {
 
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/02/11 16:44:17  sueh
+ * <p> bug# 600 Adding class which knows about key words used in the autodocs
+ * <p> and the rules for getting a tooltip.
+ * <p> </p>
  */
