@@ -20,6 +20,12 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
  * <p> Revision 2.4  2003/05/07 17:53:59  rickg
  * <p> Working direcotry is no longer stored in the metadata
  * <p> System property user.dir now defines the working directory
@@ -97,7 +103,7 @@ public class MetaData extends ConstMetaData implements Storable {
   }
 
 	public void saveTransferfid(TransferfidParam param) {
-		// MARK done updated transferfid values in metadata
+
 		transferfidNumberViews = param.getNumberViews();
 	}
   /**
@@ -208,7 +214,7 @@ public class MetaData extends ConstMetaData implements Storable {
     props.setProperty(
       group + "AxisB.ExcludeProjections",
       String.valueOf(excludeProjectionsB));
-      //MARK done store
+
 		props.setProperty(group + "TransferfidNumberViews", String.valueOf(transferfidNumberViews));
     combineParams.store(props, group);
   }
@@ -271,8 +277,8 @@ public class MetaData extends ConstMetaData implements Storable {
     excludeProjectionsB =
       props.getProperty(group + "AxisB.ExcludeProjections", "");
     tiltAngleSpecB.load(props, group + "AxisB");
-//MARK done load
-	transferfidNumberViews =
+    
+	  transferfidNumberViews =
 			Integer.parseInt(props.getProperty(group + "TransferfidNumberViews", "5"));
 
     combineParams.load(props, group);

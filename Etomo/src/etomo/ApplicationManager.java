@@ -75,6 +75,12 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.63  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
  * <p> Revision 2.62  2003/09/09 17:20:29  rickg
  * <p> Check to see if the _orig.st stack exists, do not replace if it does.
  * <p>
@@ -1350,7 +1356,7 @@ public class ApplicationManager {
       comScriptMgr.getTiltalignParam(axisID));
 
     //  Create a default transferfid object to populate the alignment dialog
-    //MARK done initialize transferfid param from metadata on open dialog
+
     fineAlignmentDialog.setTransferFidParams(getTransferfidParam());
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
@@ -1374,7 +1380,7 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-//	MARK done get param, update from dialog, update metadata, set metadata dirty bit
+    
 		TransferfidParam transferfidParam = new TransferfidParam(getIMODDirectory());
 		fineAlignmentDialog.getTransferFidParams(transferfidParam);
 		metaData.saveTransferfid(transferfidParam);
@@ -1549,7 +1555,7 @@ public class ApplicationManager {
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
     }
   }
-// MARK done initialize from metaData
+
 	private TransferfidParam getTransferfidParam() {
 		TransferfidParam param = new TransferfidParam(getIMODDirectory());
 		metaData.initializeTransferfid(param);

@@ -15,6 +15,12 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
  * <p> Revision 2.6  2003/09/25 16:45:24  sueh
  * <p> bug223 Added Number of views in the search to
  * <p> Fine Alignment button, Transfer Parameters panel.
@@ -72,7 +78,7 @@ public class TransferfidParam {
   int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
   int centerViewA = 0; // 0 => default selected by script
   int centerViewB = 0;
-  //MARK done removed numberViews default from TransferfidParam
+
   int numberViews;
 
   File IMODDirectory;

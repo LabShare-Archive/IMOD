@@ -19,6 +19,12 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/09/26 19:43:48  sueh
+ * <p> bug223 no field should be persistant.  Changed MetaData.
+ * <p> Added TransferfidNumberViews.
+ * <p> Changed the done fine allignment and open fine allignment functions
+ * <p> to work with MetaData
+ * <p>
  * <p> Revision 2.4  2003/05/12 01:24:24  rickg
  * <p> Return invalid working directory in reason
  * <p>
@@ -51,7 +57,7 @@ import etomo.comscript.TransferfidParam;
 public class ConstMetaData {
   public static final String rcsid =
     "$Id$";
-//MARK done up the metadata version
+
   protected String revisionNumber = "1.5";
   protected String datasetName = "";
   protected String backupDirectory = "";
@@ -83,7 +89,7 @@ public class ConstMetaData {
 
   public ConstMetaData() {
   }
-//MARK done added initializeTransferfid
+
   public void initializeTransferfid(TransferfidParam param) {
 		  	param.setNumberViews(transferfidNumberViews);
   }
