@@ -11,10 +11,17 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class SectionType {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -22,11 +29,9 @@ public class SectionType {
     this.name = name;
   }
 
-  public static final SectionType SINGLE = new
-    SectionType("Single");
+  public static final SectionType SINGLE = new SectionType("Single");
 
-  public static final SectionType SERIAL = new
-    SectionType("Serial");
+  public static final SectionType SERIAL = new SectionType("Serial");
 
   /**
    * Returns a string representation of the object.
@@ -41,10 +46,10 @@ public class SectionType {
    * string is not one of the possibilities from toString().
    */
   public static SectionType fromString(String name) {
-    if(name.compareToIgnoreCase(SINGLE.toString()) == 0) {
+    if (name.compareToIgnoreCase(SINGLE.toString()) == 0) {
       return SINGLE;
     }
-    if(name.compareToIgnoreCase(SERIAL.toString()) == 0) {
+    if (name.compareToIgnoreCase(SERIAL.toString()) == 0) {
       return SERIAL;
     }
     return null;

@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/10/16 17:36:24  rickg
+ * <p> reformat
+ * <p>
  * <p> Revision 1.5  2002/09/20 17:06:38  rickg
  * <p> Added typed exceptions
  * <p> Added a quit method

@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/12/11 21:27:33  rickg
+ * <p> Implemented font for user config
+ * <p>
  * <p> Revision 1.2  2002/12/11 00:36:17  rickg
  * <p> Added revision number
  * <p>

@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/01/08 00:57:04  rickg
+ * <p> Reformat
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>

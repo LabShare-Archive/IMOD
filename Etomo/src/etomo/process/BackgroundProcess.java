@@ -14,6 +14,12 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2003/01/24 18:28:09  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2003/01/08 04:00:21  rickg
+ * <p> Mods in progress
+ * <p>
  * <p> Revision 1.2  2003/01/04 00:21:29  rickg
  * <p> Methods to get the command and command line.
  * <p>
@@ -111,17 +117,10 @@ public class BackgroundProcess extends Thread {
     SystemProgram command = new SystemProgram(commandLine);
     command.setWorkingDirectory(workingDirectory);
 
-    //  Start a progress bar to keep the user informed
-    ProcessProgressDialog progress =
-      new ProcessProgressDialog(commandLine, this);
-    progress.stepTimeMS = 200;
-    progress.progressBar.setIndeterminate(true);
-    Thread progressBarThread = new Thread(progress);
-    progressBarThread.start();
-
     if (demoMode) {
       try {
         sleep(3000);
+        command.setExitValue(0);
       }
       catch (InterruptedException except) {
         except.printStackTrace();
@@ -137,11 +136,7 @@ public class BackgroundProcess extends Thread {
     stdError = command.getStdError();
     stdOutput = command.getStdOutput();
 
-    // Stop the progress bar and send a message back to the ProcessManager
-    // that this thread is done.
-    progressBarThread.interrupt();
-
-
+    // Send a message back to the ProcessManager that this thread is done.
     processManager.msgBackgroundProcessDone(this, command.getExitValue());
   }
 

@@ -12,10 +12,17 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class AxisID {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -37,14 +44,14 @@ public class AxisID {
   /**
    * Returns the extension associated with the specific AxisID.
    */
-  public String getExtension(){
-    if(this == ONLY) {
+  public String getExtension() {
+    if (this == ONLY) {
       return "";
     }
-    if(this == FIRST) {
+    if (this == FIRST) {
       return "a";
     }
-    if(this == SECOND) {
+    if (this == SECOND) {
       return "b";
     }
     return "ERROR";
@@ -55,13 +62,13 @@ public class AxisID {
    * string is not one of the possibilities from toString().
    */
   public static AxisID fromString(String name) {
-    if(name.compareToIgnoreCase(ONLY.toString()) == 0) {
+    if (name.compareToIgnoreCase(ONLY.toString()) == 0) {
       return ONLY;
     }
-    if(name.compareToIgnoreCase(FIRST.toString()) == 0) {
+    if (name.compareToIgnoreCase(FIRST.toString()) == 0) {
       return FIRST;
     }
-    if(name.compareToIgnoreCase(SECOND.toString()) == 0) {
+    if (name.compareToIgnoreCase(SECOND.toString()) == 0) {
       return SECOND;
     }
 

@@ -14,10 +14,17 @@ import java.util.ArrayList;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class NewstParam extends ConstNewstParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   /**
    * Get the parameters from the ComScriptCommand
@@ -29,25 +36,25 @@ public class NewstParam extends ConstNewstParam {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
 
-    for(int i = 0; i < cmdLineArgs.length-2; i++) {
-      if(cmdLineArgs[i].startsWith("-si")) {
-	i++;
-	size = cmdLineArgs[i];
-	useSize = true;
+    for (int i = 0; i < cmdLineArgs.length - 2; i++) {
+      if (cmdLineArgs[i].startsWith("-si")) {
+        i++;
+        size = cmdLineArgs[i];
+        useSize = true;
       }
-      if(cmdLineArgs[i].startsWith("-o")) {
-	i++;
-	offset = cmdLineArgs[i];
-	useOffset = true;
+      if (cmdLineArgs[i].startsWith("-o")) {
+        i++;
+        offset = cmdLineArgs[i];
+        useOffset = true;
       }
-      if(cmdLineArgs[i].startsWith("-x")) {
-	i++;
-	transformFile = cmdLineArgs[i];
-	useTransformFile = true;
+      if (cmdLineArgs[i].startsWith("-x")) {
+        i++;
+        transformFile = cmdLineArgs[i];
+        useTransformFile = true;
       }
     }
-    inputFile = cmdLineArgs[cmdLineArgs.length-2];
-    outputFile = cmdLineArgs[cmdLineArgs.length-1];
+    inputFile = cmdLineArgs[cmdLineArgs.length - 2];
+    outputFile = cmdLineArgs[cmdLineArgs.length - 1];
   }
 
   /**
@@ -56,22 +63,22 @@ public class NewstParam extends ConstNewstParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScript(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+    throws BadComScriptException {
     // Create a new command line argument array
 
     ArrayList cmdLineArgs = new ArrayList(20);
 
-    if(useSize) {
+    if (useSize) {
       cmdLineArgs.add("-size");
       cmdLineArgs.add(size.toString());
     }
 
-    if(useOffset) {
+    if (useOffset) {
       cmdLineArgs.add("-offset");
       cmdLineArgs.add(offset.toString());
     }
 
-    if(useTransformFile) {
+    if (useTransformFile) {
       cmdLineArgs.add("-xform");
       cmdLineArgs.add(transformFile);
     }
@@ -80,10 +87,9 @@ public class NewstParam extends ConstNewstParam {
     cmdLineArgs.add(outputFile);
 
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[])
-      cmdLineArgs.toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs(
+      (String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
-
 
   public void setInputFile(String filename) {
     inputFile = filename;

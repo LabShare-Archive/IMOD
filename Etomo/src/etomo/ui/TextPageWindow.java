@@ -17,10 +17,17 @@ import javax.swing.text.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TextPageWindow extends JFrame {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   Container mainPanel;
   String filename;
@@ -36,7 +43,7 @@ public class TextPageWindow extends JFrame {
     setSize(625, 800);
   }
 
-  public void setFile(String filename){
+  public void setFile(String filename) {
     this.filename = filename;
     setTitle(filename);
 
@@ -45,21 +52,23 @@ public class TextPageWindow extends JFrame {
       editorPane.read(reader, filename);
       editorPane.setEditable(false);
     }
-    catch(FileNotFoundException except) {
+    catch (FileNotFoundException except) {
       String[] messages = new String[2];
       messages[0] = except.getMessage();
       messages[1] = "Make sure that " + filename + " is available";
 
-      JOptionPane.showMessageDialog(null,
-	messages,
-	filename + " not found",
-	JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(
+        null,
+        messages,
+        filename + " not found",
+        JOptionPane.ERROR_MESSAGE);
     }
-    catch (IOException except){
-      JOptionPane.showMessageDialog(null,
-	except.getMessage(),
-	filename + " IO Exception",
-	JOptionPane.ERROR_MESSAGE);
+    catch (IOException except) {
+      JOptionPane.showMessageDialog(
+        null,
+        except.getMessage(),
+        filename + " IO Exception",
+        JOptionPane.ERROR_MESSAGE);
 
     }
   }

@@ -13,6 +13,12 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.4  2003/01/08 04:00:21  rickg
+ * <p> Mods in progress
+ * <p>
  * <p> Revision 1.3  2003/01/06 04:50:54  rickg
  * <p> Added command line arguments for b to a and search
  * <p> rotation directions as well as getter and setters for those
@@ -38,12 +44,12 @@ public class TransferfidParam {
   String fileSetName = "";
   boolean bToA = false;
   boolean runMidas = false;
-  int searchDirection = 0;  // 0 - both, -1 => -90, 1=> +90  
-  int centerViewA = 0;      // 0 => default selected by script
+  int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
+  int centerViewA = 0; // 0 => default selected by script
   int centerViewB = 0;
-  
+
   boolean createLog = false;
-  
+
   public TransferfidParam() {
   }
 
@@ -53,7 +59,7 @@ public class TransferfidParam {
   public String getCommandString() {
     StringBuffer commandLine = new StringBuffer("transferfid ");
 
-    if(bToA) {
+    if (bToA) {
       commandLine.append("-b ");
     }
     if (!inputImageFile.equals("")) {
@@ -80,20 +86,20 @@ public class TransferfidParam {
       commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
     }
 
-    if(searchDirection > 0) {
+    if (searchDirection > 0) {
       commandLine.append("-a 90 ");
     }
-    
-    if(searchDirection < 0) {
+
+    if (searchDirection < 0) {
       commandLine.append("-a -90 ");
     }
-    
+
     if (runMidas) {
       commandLine.append("-m ");
     }
 
     commandLine.append(fileSetName);
-    
+
     return commandLine.toString();
   }
 

@@ -15,10 +15,17 @@ import etomo.storage.Storable;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltAngleSpec implements Storable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   TiltAngleType type = TiltAngleType.EXTRACT;
   double rangeMin = -90;
@@ -41,16 +48,16 @@ public class TiltAngleSpec implements Storable {
   public void setType(TiltAngleType type) {
     this.type = type;
     // FIXME: what sort of clean do we need to do upon setting the type
-    if(type == TiltAngleType.FILE) {
+    if (type == TiltAngleType.FILE) {
 
     }
-    if(type == TiltAngleType.RANGE) {
+    if (type == TiltAngleType.RANGE) {
 
     }
-    if(type == TiltAngleType.LIST) {
+    if (type == TiltAngleType.LIST) {
 
     }
-    if(type == TiltAngleType.EXTRACT) {
+    if (type == TiltAngleType.EXTRACT) {
     }
   }
 
@@ -118,18 +125,18 @@ public class TiltAngleSpec implements Storable {
    * type specifies extract an empty string is returned.
    */
   public String getTiltAngles() {
-    if(type == TiltAngleType.FILE) {
+    if (type == TiltAngleType.FILE) {
       return tiltAngleFilename;
     }
-    if(type == TiltAngleType.RANGE) {
+    if (type == TiltAngleType.RANGE) {
       return String.valueOf(rangeMin) + "," + String.valueOf(rangeStep);
     }
-    if(type == TiltAngleType.LIST) {
+    if (type == TiltAngleType.LIST) {
       StringBuffer list = new StringBuffer();
-      for(int i = 0; i < tiltAngles.length-1; i++) {
-	list.append(String.valueOf(tiltAngles[i])+ ",");
+      for (int i = 0; i < tiltAngles.length - 1; i++) {
+        list.append(String.valueOf(tiltAngles[i]) + ",");
       }
-      list.append(String.valueOf(tiltAngles[tiltAngles.length-1]));
+      list.append(String.valueOf(tiltAngles[tiltAngles.length - 1]));
       return list.toString();
     }
     return "";
@@ -141,9 +148,9 @@ public class TiltAngleSpec implements Storable {
   public void store(Properties props) {
     store(props, "");
   }
-  public void store (Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "TiltAngle.";
     }
     else {
@@ -164,7 +171,7 @@ public class TiltAngleSpec implements Storable {
   }
   public void load(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "TiltAngle.";
     }
     else {
@@ -172,14 +179,10 @@ public class TiltAngleSpec implements Storable {
     }
     type =
       TiltAngleType.fromString(props.getProperty(group + "Type", "Extract"));
-    rangeMin =
-      Double.parseDouble(props.getProperty(group + "RangeMin", "-90"));
-    rangeMax =
-      Double.parseDouble(props.getProperty(group + "RangeMax", "90"));
-    rangeStep =
-      Double.parseDouble(props.getProperty(group + "RangeStep", "1"));
-    tiltAngleFilename =
-      props.getProperty(group + "TiltAngleFilename", "");
+    rangeMin = Double.parseDouble(props.getProperty(group + "RangeMin", "-90"));
+    rangeMax = Double.parseDouble(props.getProperty(group + "RangeMax", "90"));
+    rangeStep = Double.parseDouble(props.getProperty(group + "RangeStep", "1"));
+    tiltAngleFilename = props.getProperty(group + "TiltAngleFilename", "");
   }
 
 }

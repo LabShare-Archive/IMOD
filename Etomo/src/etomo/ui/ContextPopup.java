@@ -18,6 +18,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.3  2002/11/14 04:41:46  rickg
  * <p> Had to move imodURL inside of inner class
  * <p>

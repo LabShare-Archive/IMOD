@@ -12,30 +12,39 @@ package etomo.comscript;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class CCDEraserParam extends ConstCCDEraserParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the ccderaser command
    * and parameters.
    */
   public void initialize(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+    throws BadComScriptException {
 
     //  Check to be sure that it is a ccderaser command
-    if(! scriptCommand.getCommand().equals("ccderaser")) {
-      throw(new BadComScriptException("Not a ccderaser command"));
+    if (!scriptCommand.getCommand().equals("ccderaser")) {
+      throw (new BadComScriptException("Not a ccderaser command"));
     }
 
     //  Extract the parameters
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if(inputArgs.length != 8) {
-      throw(new BadComScriptException(
-      "Incorrect number of input arguments to ccderaser command\nGot "
-      + String.valueOf(inputArgs.length) + " expected 8."));
+    if (inputArgs.length != 8) {
+      throw (
+        new BadComScriptException(
+          "Incorrect number of input arguments to ccderaser command\nGot "
+            + String.valueOf(inputArgs.length)
+            + " expected 8."));
     }
     inputFile = inputArgs[0].getArgument();
     outputFile = inputArgs[1].getArgument();
@@ -51,19 +60,21 @@ public class CCDEraserParam extends ConstCCDEraserParam {
    * Update the script command with the
    */
   public void updateComScript(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+    throws BadComScriptException {
 
     //  Check to be sure that it is a ccderaser xommand
-    if(! scriptCommand.getCommand().equals("ccderaser")) {
-      throw(new BadComScriptException("Not a ccderaser command"));
+    if (!scriptCommand.getCommand().equals("ccderaser")) {
+      throw (new BadComScriptException("Not a ccderaser command"));
     }
 
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if(inputArgs.length != 8) {
-      throw(new BadComScriptException(
-      "Incorrect number of input arguments to ccderaser command\nGot "
-      + String.valueOf(inputArgs.length) + " expected 8."));
+    if (inputArgs.length != 8) {
+      throw (
+        new BadComScriptException(
+          "Incorrect number of input arguments to ccderaser command\nGot "
+            + String.valueOf(inputArgs.length)
+            + " expected 8."));
     }
 
     //  Fill in the input argument sequence
@@ -81,7 +92,7 @@ public class CCDEraserParam extends ConstCCDEraserParam {
     scriptCommand.setInputArgument(5, inputArgs[5]);
     inputArgs[6].setArgument(polynomialOrder);
     scriptCommand.setInputArgument(6, inputArgs[6]);
-    if(includeAdjacentPoints) {
+    if (includeAdjacentPoints) {
       inputArgs[7].setArgument("1");
     }
     else {

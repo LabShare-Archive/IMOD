@@ -17,6 +17,13 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.2  2002/10/07 22:29:51  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -25,17 +32,26 @@ public class ProcessTrack implements Storable {
   public static final String rcsid =
     "$Id$";
 
-  protected String revisionNumber = "1.1";
+  protected String revisionNumber = "2.0";
   private boolean isModified = false;
   private ProcessState setup = ProcessState.NOTSTARTED;
-  private ProcessState preProcessing = ProcessState.NOTSTARTED;
-  private ProcessState coarseAlignment = ProcessState.NOTSTARTED;
-  private ProcessState fiducialModel = ProcessState.NOTSTARTED;
-  private ProcessState fineAlignment = ProcessState.NOTSTARTED;
-  private ProcessState tomogramPositioning = ProcessState.NOTSTARTED;
-  private ProcessState tomogramGeneration = ProcessState.NOTSTARTED;
+
+  private ProcessState preProcessingA = ProcessState.NOTSTARTED;
+  private ProcessState coarseAlignmentA = ProcessState.NOTSTARTED;
+  private ProcessState fiducialModelA = ProcessState.NOTSTARTED;
+  private ProcessState fineAlignmentA = ProcessState.NOTSTARTED;
+  private ProcessState tomogramPositioningA = ProcessState.NOTSTARTED;
+  private ProcessState tomogramGenerationA = ProcessState.NOTSTARTED;
+
   private ProcessState tomogramCombination = ProcessState.NOTSTARTED;
   private ProcessState postProcessing = ProcessState.NOTSTARTED;
+
+  private ProcessState preProcessingB = ProcessState.NOTSTARTED;
+  private ProcessState coarseAlignmentB = ProcessState.NOTSTARTED;
+  private ProcessState fiducialModelB = ProcessState.NOTSTARTED;
+  private ProcessState fineAlignmentB = ProcessState.NOTSTARTED;
+  private ProcessState tomogramPositioningB = ProcessState.NOTSTARTED;
+  private ProcessState tomogramGenerationB = ProcessState.NOTSTARTED;
 
   public ProcessTrack() {
   }
@@ -56,16 +72,33 @@ public class ProcessTrack implements Storable {
     }
     props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(group + "Setup", setup.toString());
-    props.setProperty(group + "PreProcessing", preProcessing.toString());
-    props.setProperty(group + "CoarseAlignment", coarseAlignment.toString());
-    props.setProperty(group + "FiducialModel", fiducialModel.toString());
-    props.setProperty(group + "FineAlignment", fineAlignment.toString());
+
+    props.setProperty(group + "PreProcessing-A", preProcessingA.toString());
+    props.setProperty(group + "PreProcessing-B", preProcessingA.toString());
+
+    props.setProperty(group + "CoarseAlignment-A", coarseAlignmentA.toString());
+    props.setProperty(group + "CoarseAlignment-B", coarseAlignmentA.toString());
+
+    props.setProperty(group + "FiducialModel-A", fiducialModelA.toString());
+    props.setProperty(group + "FiducialModel-B", fiducialModelA.toString());
+
+    props.setProperty(group + "FineAlignment-A", fineAlignmentA.toString());
+    props.setProperty(group + "FineAlignment-B", fineAlignmentA.toString());
+
     props.setProperty(
-      group + "TomogramPositioning",
-      tomogramPositioning.toString());
+      group + "TomogramPositioning-A",
+      tomogramPositioningA.toString());
     props.setProperty(
-      group + "TomogramGeneration",
-      tomogramGeneration.toString());
+      group + "TomogramPositioning-B",
+      tomogramPositioningA.toString());
+
+    props.setProperty(
+      group + "TomogramGeneration-A",
+      tomogramGenerationA.toString());
+    props.setProperty(
+      group + "TomogramGeneration-B",
+      tomogramGenerationA.toString());
+
     props.setProperty(
       group + "TomogramCombination",
       tomogramCombination.toString());
@@ -87,33 +120,95 @@ public class ProcessTrack implements Storable {
       group = prepend + ".ProcessTrack.";
     }
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+
     setup = setup.fromString(props.getProperty(group + "Setup", "Not started"));
-    preProcessing =
-      preProcessing.fromString(
-        props.getProperty(group + "PreProcessing", "Not started"));
-    coarseAlignment =
-      coarseAlignment.fromString(
-        props.getProperty(group + "CoarseAlignment", "Not started"));
-    fiducialModel =
-      fiducialModel.fromString(
-        props.getProperty(group + "FiducialModel", "Not started"));
-    fineAlignment =
-      fineAlignment.fromString(
-        props.getProperty(group + "FineAlignment", "Not started"));
-    tomogramPositioning =
-      tomogramPositioning.fromString(
-        props.getProperty(group + "TomogramPositioning", "Not started"));
-    tomogramGeneration =
-      tomogramGeneration.fromString(
-        props.getProperty(group + "TomogramGeneration", "Not started"));
+
     tomogramCombination =
       tomogramCombination.fromString(
         props.getProperty(group + "TomogramCombination", "Not started"));
+
     postProcessing =
       postProcessing.fromString(
         props.getProperty(group + "PostProcessing", "Not started"));
-  }
 
+    // Added separate process for A and B axis for 2.0 layout
+    if (Float.parseFloat(revisionNumber) < 2.0) {
+      preProcessingA =
+        preProcessingA.fromString(
+          props.getProperty(group + "PreProcessing", "Not started"));
+      preProcessingB = preProcessingA;
+
+      coarseAlignmentA =
+        coarseAlignmentA.fromString(
+          props.getProperty(group + "CoarseAlignment", "Not started"));
+      coarseAlignmentB = coarseAlignmentA;
+
+      fiducialModelA =
+        fiducialModelA.fromString(
+          props.getProperty(group + "FiducialModel", "Not started"));
+      fiducialModelB = fiducialModelA;
+
+      fineAlignmentA =
+        fineAlignmentA.fromString(
+          props.getProperty(group + "FineAlignment", "Not started"));
+      fineAlignmentB = fineAlignmentA;
+
+      tomogramPositioningA =
+        tomogramPositioningA.fromString(
+          props.getProperty(group + "TomogramPositioning", "Not started"));
+      tomogramPositioningB = tomogramPositioningA;
+
+      tomogramGenerationA =
+        tomogramGenerationA.fromString(
+          props.getProperty(group + "TomogramGeneration", "Not started"));
+      tomogramGenerationB = tomogramGenerationA;
+    }
+    else {
+      preProcessingA =
+        preProcessingA.fromString(
+          props.getProperty(group + "PreProcessing-A", "Not started"));
+      preProcessingB =
+        preProcessingB.fromString(
+          props.getProperty(group + "PreProcessing-B", "Not started"));
+
+      coarseAlignmentA =
+        coarseAlignmentA.fromString(
+          props.getProperty(group + "CoarseAlignment-A", "Not started"));
+      coarseAlignmentB =
+        coarseAlignmentB.fromString(
+          props.getProperty(group + "CoarseAlignment-B", "Not started"));
+
+      fiducialModelA =
+        fiducialModelA.fromString(
+          props.getProperty(group + "FiducialModel-A", "Not started"));
+      fiducialModelB =
+        fiducialModelB.fromString(
+          props.getProperty(group + "FiducialModel-B", "Not started"));
+
+      fineAlignmentA =
+        fineAlignmentA.fromString(
+          props.getProperty(group + "FineAlignment-A", "Not started"));
+      fineAlignmentB =
+        fineAlignmentB.fromString(
+          props.getProperty(group + "FineAlignment-B", "Not started"));
+
+      tomogramPositioningA =
+        tomogramPositioningA.fromString(
+          props.getProperty(group + "TomogramPositioning-A", "Not started"));
+      tomogramPositioningB =
+        tomogramPositioningB.fromString(
+          props.getProperty(group + "TomogramPositioning-B", "Not started"));
+
+      tomogramGenerationA =
+        tomogramGenerationA.fromString(
+          props.getProperty(group + "TomogramGeneration-A", "Not started"));
+      tomogramGenerationB =
+        tomogramGenerationB.fromString(
+          props.getProperty(group + "TomogramGeneration-B", "Not started"));
+
+    }
+
+  }
   public String getRevisionNumber() {
     return revisionNumber;
   }
@@ -125,6 +220,31 @@ public class ProcessTrack implements Storable {
   public void resetModified() {
     isModified = false;
   }
+
+  /**
+   * Set all processes to the specfied state
+   */
+  public void setAll(ProcessState state) {
+    setup = state;
+    tomogramCombination = state;
+    postProcessing = state;
+
+    preProcessingA = state;
+    coarseAlignmentA = state;
+    fiducialModelA = state;
+    fineAlignmentA = state;
+    tomogramPositioningA = state;
+    tomogramGenerationA = state;
+
+    preProcessingB = state;
+    coarseAlignmentB = state;
+    fiducialModelB = state;
+    fineAlignmentB = state;
+    tomogramPositioningB = state;
+    tomogramGenerationB = state;
+    isModified = true;
+  }
+
   /**
    * Set the setup state
    */
@@ -137,58 +257,94 @@ public class ProcessTrack implements Storable {
     return setup;
   }
 
-  public void setPreProcessingState(ProcessState state) {
-    preProcessing = state;
+  public void setPreProcessingState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      preProcessingB = state;
+    }
+    preProcessingA = state;
     isModified = true;
   }
 
-  public ProcessState getPreProcessingState() {
-    return preProcessing;
+  public ProcessState getPreProcessingState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return preProcessingB;
+    }
+    return preProcessingA;
   }
 
-  public void setCoarseAlignmentState(ProcessState state) {
-    coarseAlignment = state;
+  public void setCoarseAlignmentState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      coarseAlignmentB = state;
+    }
+    coarseAlignmentA = state;
     isModified = true;
   }
 
-  public ProcessState getCoarseAlignmentState() {
-    return coarseAlignment;
+  public ProcessState getCoarseAlignmentState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return coarseAlignmentB;
+    }
+    return coarseAlignmentA;
   }
 
-  public void setFiducialModelState(ProcessState state) {
-    fiducialModel = state;
+  public void setFiducialModelState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      fiducialModelB = state;
+    }
+    fiducialModelA = state;
     isModified = true;
   }
 
-  public ProcessState getFiducialModelState() {
-    return fiducialModel;
+  public ProcessState getFiducialModelState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fiducialModelB;
+    }
+    return fiducialModelA;
   }
 
-  public void setFineAlignmentState(ProcessState state) {
-    fineAlignment = state;
+  public void setFineAlignmentState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentB = state;
+    }
+    fineAlignmentA = state;
     isModified = true;
   }
 
-  public ProcessState getFineAlignmentState() {
-    return fineAlignment;
+  public ProcessState getFineAlignmentState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fineAlignmentB;
+    }
+    return fineAlignmentA;
   }
 
-  public void setTomogramPositioningState(ProcessState state) {
-    tomogramPositioning = state;
+  public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      tomogramPositioningB = state;
+    }
+    tomogramPositioningA = state;
     isModified = true;
   }
 
-  public ProcessState getTomogramPositioningState() {
-    return tomogramPositioning;
+  public ProcessState getTomogramPositioningState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramPositioningB;
+    }
+    return tomogramPositioningA;
   }
 
-  public void setTomogramGenerationState(ProcessState state) {
-    tomogramGeneration = state;
+  public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationB = state;
+    }
+    tomogramGenerationA = state;
     isModified = true;
   }
 
-  public ProcessState getTomogramGenerationState() {
-    return tomogramGeneration;
+  public ProcessState getTomogramGenerationState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramGenerationB;
+    }
+    return tomogramGenerationA;
   }
 
   public void setTomogramCombinationState(ProcessState state) {
@@ -209,4 +365,13 @@ public class ProcessTrack implements Storable {
     return postProcessing;
   }
 
+  private ProcessState mapAxis(
+    AxisID axisID,
+    ProcessState processStateA,
+    ProcessState processStateB) {
+    if (axisID == AxisID.SECOND) {
+      return processStateB;
+    }
+    return processStateA;
+  }
 }

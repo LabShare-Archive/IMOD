@@ -16,6 +16,12 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8.2.1  2003/01/24 18:36:17  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.8  2002/12/31 23:14:25  rickg
+ * <p> Removed unnecessary string IMODDIR
+ * <p>
  * <p> Revision 1.7  2002/12/30 20:31:59  rickg
  * <p> Added interface to get process output
  * <p> Program execution correctly calls done message
@@ -45,7 +51,7 @@ import java.util.ArrayList;
 public class RunComScript extends Thread {
   public static final String rcsid =
     "$Id$";
-    
+
   private String name = null;
   private File workingDirectory = null;
   private ProcessManager processManager;
@@ -74,16 +80,10 @@ public class RunComScript extends Thread {
    */
   public void run() {
 
-    //  Start a progress bar to keep the user informed
-    ProcessProgressDialog progress =
-      new ProcessProgressDialog(parseBaseName(name, ".com"), this);
-    progress.stepTimeMS = 200;
-    progress.progressBar.setIndeterminate(true);
-    Thread progressBarThread = new Thread(progress);
-    progressBarThread.start();
-
     if (demoMode) {
       try {
+        csh = new SystemProgram("nothing");
+        csh.setExitValue(0);
         sleep(3000);
       }
       catch (InterruptedException except) {
@@ -97,18 +97,16 @@ public class RunComScript extends Thread {
       try {
         commands = vmsToCsh();
       }
-      catch(SystemProcessException except) {
-        progressBarThread.interrupt();
-        processManager.msgComScriptDone(this, csh.getExitValue());
+      catch (SystemProcessException except) {
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
         return;
       }
-      catch(IOException except) {
-        progressBarThread.interrupt();
+      catch (IOException except) {
         errorMessage = new String[1];
         errorMessage[0] = except.getMessage();
-        processManager.msgComScriptDone(this, csh.getExitValue());
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
         return;
-      }      
+      }
 
       // Execute the csh commands
       try {
@@ -127,20 +125,19 @@ public class RunComScript extends Thread {
         errorMessage = new String[1];
         errorMessage[0] = except.getMessage();
       }
-   
+
       // Get any warnings from the log file
-      try { 
+      try {
         warningMessage = parseWarning();
       }
-      catch(IOException except2) {
+      catch (IOException except2) {
         errorMessage = new String[1];
         errorMessage[0] = except2.getMessage();
       }
     }
 
-    // Stop the progress bar and send a message back to the ProcessManager
-    // that this thread is done.
-    progressBarThread.interrupt();
+    // Send a message back to the ProcessManager that this thread is done.
+    //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
   }
 
@@ -242,7 +239,8 @@ public class RunComScript extends Thread {
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
 
-    vmstocsh = new SystemProgram("vmstocsh " + parseBaseName(name, ".com") + ".log");
+    vmstocsh =
+      new SystemProgram("vmstocsh " + parseBaseName(name, ".com") + ".log");
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.enableDebug(enableDebug);

@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2003/01/06 05:51:23  rickg
+ * <p> Corrected fiducial list order, it was backwards
+ * <p>
  * <p> Revision 1.6  2003/01/04 00:06:08  rickg
  * <p> Swapped order for to/from fiducial mapping when
  * <p> matching from b to a.

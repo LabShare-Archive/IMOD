@@ -15,6 +15,10 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:25:48  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs messed it up
+ * <p>
  * <p> Revision 1.1  2002/09/17 23:22:58  rickg
  * <p> Complete basic operation
  * <p>

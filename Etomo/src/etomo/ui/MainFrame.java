@@ -23,6 +23,15 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9.2.2  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.9.2.1  2003/01/11 00:45:27  rickg
+ * <p> Added app icon
+ * <p>
+ * <p> Revision 1.9  2002/12/18 20:45:32  rickg
+ * <p> Advanced menu implemented
+ * <p>
  * <p> Revision 1.8  2002/12/11 21:28:29  rickg
  * <p> Implemented repaint method, doesn't work well
  * <p>
@@ -55,9 +64,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     "$Id$";
 
   private JPanel mainPanel;
-  private BorderLayout borderMain = new BorderLayout();
 
-  //
   //  Menu bar
   private final int nMRUFileMax = 10;
   private JMenuBar menuBar = new JMenuBar();
@@ -72,6 +79,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenu menuOptions = new JMenu("Options");
   private JMenuItem menuAdvanced = new JMenuItem("Advanced");
   private JMenuItem menuSettings = new JMenuItem("Settings");
+  private JMenuItem menuFitWindow = new JMenuItem("Fit Window");
 
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuHelpAbout = new JMenuItem("About");
@@ -80,150 +88,150 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   private JPanel panelCenter = new JPanel();
 
-  //
-  //  Data Set ID panel
-  //
-  private DataSetIDPanel dataSetIDPanel = new DataSetIDPanel();
+  //  These panels get instantiated as needed
+  private AxisProcessPanel axisPanelA;
+  private AxisProcessPanel axisPanelB;
 
-  //
-  //  Data Set type panel objects
-  //
-  private DataSetTypePanel dataSetTypePanel = new DataSetTypePanel();
-
-  //
-  //  Process control panels
-  //
-  private JPanel panelProcess = new JPanel();
-  private BeveledBorder borderProcesses = new BeveledBorder("Processes");
-
-  private ProcessControlPanel procCtlPanelSetup =
-    new ProcessControlPanel("Setup\n");
-  private ProcessControlPanel procCtlPanelPreProc =
-    new ProcessControlPanel("Pre-\nProcessing");
-  private ProcessControlPanel procCtlPanelCoarseAlign =
-    new ProcessControlPanel("Coarse\nAlignment");
-  private ProcessControlPanel procCtlPanelFiducialModel =
-    new ProcessControlPanel("Fiducial\nModel Gen.");
-  private ProcessControlPanel procCtlPanelAlignmentEst =
-    new ProcessControlPanel("Fine\nAlignment");
-  private ProcessControlPanel procCtlPanelTomogramPositioning =
-    new ProcessControlPanel("Tomogram\nPositioning");
-  private ProcessControlPanel procCtlPanelTomogramGeneration =
-    new ProcessControlPanel("Tomogram\nGeneration");
-  private ProcessControlPanel procCtlPanelTomogramCombination =
-    new ProcessControlPanel("Tomogram\nCombination");
-  private ProcessControlPanel procCtlPanelPostProcessing =
-    new ProcessControlPanel("Post\nProcessing");
-
-  //
   //  Application manager object
-  //
   private ApplicationManager applicationManager;
 
-  /**Construct the frame*/
+  /**
+   * Main window constructor.  This sets up the menus and status line.
+   */
   public MainFrame(ApplicationManager appManager) {
     applicationManager = appManager;
 
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
-    //setIconImage(Toolkit.getDefaultToolkit().createImage(
-    //MainFrame.class.getResource("[Your Icon]")));
+    ImageIcon iconEtomo =
+      new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
+    setIconImage(iconEtomo.getImage());
 
     setTitle("eTomo");
 
     mainPanel = (JPanel) getContentPane();
-    mainPanel.setLayout(borderMain);
+    mainPanel.setLayout(new BorderLayout());
 
-    //  Menu bar text and adapters
-    menuFileOpen.addActionListener(new menuFileOpenActionAdapter(this));
-    menuFileSave.addActionListener(new menuFileSaveActionAdapter(this));
-    menuFileSaveAs.addActionListener(new menuFileSaveAsActionAdapter(this));
-    menuFileExit.addActionListener(new menuFileExitActionAdapter(this));
+    createMenus();
 
-    menuSettings.addActionListener(new menuOptionsSettingsActionAdapter(this));
-    menuAdvanced.addActionListener(new menuOptionsAdvancedActionAdapter(this));
-    menuHelpAbout.addActionListener(new menuHelpAboutActionAdapter(this));
-
-    //  File menu
-    menuFile.add(menuFileOpen);
-    menuFile.add(menuFileSave);
-    menuFile.add(menuFileSaveAs);
-    menuFile.add(menuFileExit);
-    menuFile.addSeparator();
-
-    //  Initialize all of the MRU file menu items
-    menuFileMRUListActionAdapter mRUListActionAdapter =
-      new menuFileMRUListActionAdapter(this);
-    for (int i = 0; i < nMRUFileMax; i++) {
-      menuMRUList[i] = new JMenuItem();
-      menuMRUList[i].addActionListener(mRUListActionAdapter);
-      menuMRUList[i].setVisible(false);
-      menuFile.add(menuMRUList[i]);
-    }
-
-    menuHelp.add(menuHelpAbout);
-    menuBar.add(menuFile);
-    menuOptions.add(menuSettings);
-    setAdvancedLabel();
-
-    menuOptions.add(menuAdvanced);
-    menuBar.add(menuOptions);
-    menuBar.add(menuHelp);
-    setJMenuBar(menuBar);
-
-    createProcessControlPanel();
-
-    //
     //  Construct the main frame panel layout
-    //
-    panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.Y_AXIS));
-    panelCenter.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelCenter.add(dataSetIDPanel.getPanel());
-    panelCenter.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelCenter.add(dataSetTypePanel.getPanel());
-    panelCenter.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelCenter.add(Box.createVerticalGlue());
-    panelCenter.add(panelProcess);
-    panelCenter.add(Box.createVerticalGlue());
-    panelCenter.add(Box.createRigidArea(FixedDim.x0_y10));
-
+    panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     mainPanel.add(panelCenter, BorderLayout.CENTER);
     mainPanel.add(statusBar, BorderLayout.SOUTH);
 
     //  add the context menu to all of the main window objects
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     mainPanel.addMouseListener(mouseAdapter);
-    dataSetIDPanel.addMouseListener(mouseAdapter);
-    dataSetTypePanel.addMouseListener(mouseAdapter);
-    procCtlPanelSetup.addMouseListener(mouseAdapter);
-    procCtlPanelPreProc.addMouseListener(mouseAdapter);
-    procCtlPanelCoarseAlign.addMouseListener(mouseAdapter);
-    procCtlPanelFiducialModel.addMouseListener(mouseAdapter);
-    procCtlPanelAlignmentEst.addMouseListener(mouseAdapter);
-    procCtlPanelTomogramPositioning.addMouseListener(mouseAdapter);
-    procCtlPanelTomogramGeneration.addMouseListener(mouseAdapter);
-    procCtlPanelTomogramCombination.addMouseListener(mouseAdapter);
-    procCtlPanelPostProcessing.addMouseListener(mouseAdapter);
   }
 
   /**
-   * Update the window with the MetaData parameters
+   * Open the setup panel
    */
-  public void updateDataParameters(ConstMetaData metaData) {
-    dataSetIDPanel.setWorkingDirectory(metaData.getWorkingDirectory());
-    dataSetIDPanel.setDataSetName(metaData.getFilesetName());
-    dataSetIDPanel.setBackupDirectory(metaData.getBackupDirectory());
-    dataSetTypePanel.setAxisType(metaData.getAxisType());
-    dataSetTypePanel.setViewType(metaData.getViewType());
-    dataSetTypePanel.setSectionType(metaData.getSectionType());
+  public void openSetupPanel(SetupDialog setupDialog) {
+    panelCenter.removeAll();
+    panelCenter.add(setupDialog.getContainer());
+    pack();
+  }
 
+  /**
+   * Show the processing panel for the requested AxisType
+   */
+  public void showProcessingPanel(AxisType axisType) {
+
+    //  Delete any existing panels
+    axisPanelA = null;
+    axisPanelB = null;
+
+    panelCenter.removeAll();
+    if (axisType == AxisType.SINGLE_AXIS) {
+      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.ONLY);
+      ScrollPanel scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      JScrollPane scrollPaneA = new JScrollPane(scrollA);
+      panelCenter.add(scrollPaneA);
+    }
+    else {
+      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.FIRST);
+      ScrollPanel scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      JScrollPane scrollPaneA = new JScrollPane(scrollA);
+
+      axisPanelB = new AxisProcessPanel(applicationManager, AxisID.SECOND);
+      ScrollPanel scrollB = new ScrollPanel();
+      scrollB.add(axisPanelB.getContainer());
+      JScrollPane scrollPaneB = new JScrollPane(scrollB);
+
+      panelCenter.add(scrollPaneA);
+      panelCenter.add(scrollPaneB);
+    }
+  }
+
+  /**
+   * Show a blank processing panel
+   */
+  public void showBlankProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.eraseDialogPanel();
+    }
+    else {
+      axisPanelA.eraseDialogPanel();
+    }
+  }
+
+  /**
+   * Show the specified processing panel
+   */
+  public void showProcess(Container processPanel, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.replaceDialogPanel(processPanel);
+    }
+    else {
+      axisPanelA.replaceDialogPanel(processPanel);
+    }
+  }
+
+  /**
+   * 
+   */
+  public void startProgressBar(String name, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.startProgressBar(name);
+    }
+    else {
+      axisPanelA.startProgressBar(name);
+    }
+  }
+
+  public void stopProgressBar(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.stopProgressBar();
+    }
+    else {
+      axisPanelA.stopProgressBar();
+    }
   }
 
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public void setStatusBar(String text) {
-    statusBar.setText("Parameter file: " + text);
+  public void updateDataParameters(MetaData metaData) {
+    StringBuffer buffer = new StringBuffer();
+    if (metaData == null) {
+      buffer.append("No data set loaded");
+    }
+    else {
+      buffer.append("Data file: ");
+      buffer.append(metaData.getWorkingDirectory());
+      buffer.append("/");
+      buffer.append(metaData.getFilesetName());
+      buffer.append("   Source: ");
+      buffer.append(metaData.getDataSource().toString());
+      buffer.append("   Axis type: ");
+      buffer.append(metaData.getAxisType().toString());
+      buffer.append("   Tomograms: ");
+      buffer.append(metaData.getSectionType().toString());
+    }
+    statusBar.setText(buffer.toString());
   }
 
   /**
@@ -243,54 +251,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  /**
-   * Setup panel state control
-   */
-  public void setSetupState(ProcessState setupState) {
-    procCtlPanelSetup.setState(setupState);
-  }
-
-  /**
-   * Pre-processing panel state control
-   */
-  public void setPreProcState(ProcessState setupState) {
-    procCtlPanelPreProc.setState(setupState);
-  }
-
-  /**
-   * Coarse alignment panel state control
-   */
-  public void setCoarseAlignState(ProcessState setupState) {
-    procCtlPanelCoarseAlign.setState(setupState);
-  }
-
-  /**
-   * Fiducial model panel state control
-   */
-  public void setFiducialModelState(ProcessState setupState) {
-    procCtlPanelFiducialModel.setState(setupState);
-  }
-
-  public void setAlignmentEstState(ProcessState setupState) {
-    procCtlPanelAlignmentEst.setState(setupState);
-  }
-
-  public void setTomogramPositioningState(ProcessState setupState) {
-    procCtlPanelTomogramPositioning.setState(setupState);
-  }
-
-  public void setTomogramGenerationState(ProcessState setupState) {
-    procCtlPanelTomogramGeneration.setState(setupState);
-  }
-
-  public void setTomogramCombinationState(ProcessState setupState) {
-    procCtlPanelTomogramCombination.setState(setupState);
-  }
-
-  public void setPostProcessingState(ProcessState setupState) {
-    procCtlPanelPostProcessing.setState(setupState);
-  }
-
   void menuFileOpenAction(ActionEvent e) {
     //
     //  Open up the file chooser in current working directory
@@ -304,10 +264,11 @@ public class MainFrame extends JFrame implements ContextMenu {
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
-
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File paramFile = chooser.getSelectedFile();
-      applicationManager.openTestParamFile(paramFile);
+      if (applicationManager.openTestParamFile(paramFile)) {
+        applicationManager.openProcessingPanel();
+      }
     }
   }
 
@@ -368,22 +329,27 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   void menuFileMRUListAction(ActionEvent e) {
-    applicationManager.openTestParamFile(new File(e.getActionCommand()));
+    if (applicationManager.openTestParamFile(new File(e.getActionCommand()))) {
+      applicationManager.openProcessingPanel();
+    }
   }
 
   /**
    * Options/Settings action
    */
-  void menuOptionsSettingsAction(ActionEvent e) {
-    applicationManager.openSettingsDialog();
-  }
+  void menuOptionsAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(menuSettings.getActionCommand())) {
+      applicationManager.openSettingsDialog();
+    }
+    else if (command.equals(menuAdvanced.getActionCommand())) {
+      applicationManager.setAdvanced(!applicationManager.getAdvanced());
+      setAdvancedLabel();
+    }
+    else if (command.equals(menuFitWindow.getActionCommand())) {
+      pack();
+    }
 
-  /**
-   * Options/Advanced action
-   */
-  void menuOptionsAdvancedAction() {
-    applicationManager.setAdvanced(!applicationManager.getAdvanced());
-    setAdvancedLabel();
   }
 
   /**Help | About action performed*/
@@ -407,40 +373,103 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  //
-  //  Process button actions
-  //
-  void buttonSetupAction(ActionEvent e) {
-    applicationManager.openSetupDialog();
-  }
-  void buttonPreProcAction(ActionEvent e) {
-    applicationManager.openPreProcDialog();
-  }
-  void buttonCoarseAlignAction(ActionEvent e) {
-    applicationManager.openCoarseAlignDialog();
-  }
-  void buttonFiducialModelAction(ActionEvent e) {
-    applicationManager.openFiducialModelDialog();
-  }
-  void buttonAlignmentEstimationAction(ActionEvent e) {
-    applicationManager.openAlignmentEstimationDialog();
-  }
-  void buttonTomogramPositioningAction(ActionEvent e) {
-    applicationManager.openTomogramPositioningDialog();
-  }
-  void buttonTomogramGenerationAction(ActionEvent e) {
-    applicationManager.openTomogramGenerationDialog();
-  }
-  void buttonTomogramCombinationAction(ActionEvent e) {
-    applicationManager.openTomogramCombinationDialog();
-  }
-  void buttonPostProcessingAction(ActionEvent e) {
-    applicationManager.openPostProcessingDialog();
-  }
-
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
+  }
+
+  //  Update the state of all the process control panels
+  public void updateAllProcessingStates(ProcessTrack processTrack) {
+    // FIXME should this throw an exception?
+    if (axisPanelA == null) {
+      return;
+    }
+
+    axisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
+    axisPanelA.setCoarseAlignState(
+      processTrack.getCoarseAlignmentState(AxisID.ONLY));
+    axisPanelA.setFiducialModelState(
+      processTrack.getFiducialModelState(AxisID.ONLY));
+    axisPanelA.setFineAlignmentState(
+      processTrack.getFineAlignmentState(AxisID.ONLY));
+    axisPanelA.setTomogramPositioningState(
+      processTrack.getTomogramPositioningState(AxisID.ONLY));
+    axisPanelA.setTomogramGenerationState(
+      processTrack.getTomogramGenerationState(AxisID.ONLY));
+    axisPanelA.setTomogramCombinationState(
+      processTrack.getTomogramCombinationState());
+    if (applicationManager.isDualAxis()) {
+      axisPanelB.setPreProcState(
+        processTrack.getPreProcessingState(AxisID.SECOND));
+      axisPanelB.setCoarseAlignState(
+        processTrack.getCoarseAlignmentState(AxisID.SECOND));
+      axisPanelB.setFiducialModelState(
+        processTrack.getFiducialModelState(AxisID.SECOND));
+      axisPanelB.setFineAlignmentState(
+        processTrack.getFineAlignmentState(AxisID.SECOND));
+      axisPanelB.setTomogramPositioningState(
+        processTrack.getTomogramPositioningState(AxisID.SECOND));
+      axisPanelB.setTomogramGenerationState(
+        processTrack.getTomogramGenerationState(AxisID.SECOND));
+    }
+  }
+
+  public void setPreProcessingState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setPreProcState(state);
+    }
+    else {
+      axisPanelA.setPreProcState(state);
+    }
+  }
+
+  public void setCoarseAlignState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setCoarseAlignState(state);
+    }
+    else {
+      axisPanelA.setCoarseAlignState(state);
+    }
+  }
+
+  public void setFiducialModelState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setFiducialModelState(state);
+    }
+    else {
+      axisPanelA.setFiducialModelState(state);
+    }
+  }
+
+  public void setFineAlignmentState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setFineAlignmentState(state);
+    }
+    else {
+      axisPanelA.setFineAlignmentState(state);
+    }
+  }
+
+  public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setTomogramPositioningState(state);
+    }
+    else {
+      axisPanelA.setTomogramPositioningState(state);
+    }
+  }
+
+  public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      axisPanelB.setTomogramGenerationState(state);
+    }
+    else {
+      axisPanelA.setTomogramGenerationState(state);
+    }
+  }
+
+  public void setPostProcessingState(ProcessState state) {
+    axisPanelA.setPostProcessingState(state);
   }
 
   //  FIXME: Need a way to repaint the existing font
@@ -459,96 +488,6 @@ public class MainFrame extends JFrame implements ContextMenu {
       comps[i].repaint();
     }
   }
-  /**
-   *  Build the process control panels
-   */
-  private void createProcessControlPanel() {
-    procCtlPanelSetup.setButtonActionListener(
-      new buttonSetupActionAdapter(this));
-    procCtlPanelPreProc.setButtonActionListener(
-      new buttonPreProcActionAdapter(this));
-    procCtlPanelCoarseAlign.setButtonActionListener(
-      new buttonCoarseAlignActionAdapter(this));
-    procCtlPanelFiducialModel.setButtonActionListener(
-      new buttonFiducialModelActionAdapter(this));
-    procCtlPanelAlignmentEst.setButtonActionListener(
-      new buttonAlignmentEstimationActionAdapter(this));
-    procCtlPanelTomogramPositioning.setButtonActionListener(
-      new buttonTomogramPositioningActionAdapter(this));
-    procCtlPanelTomogramGeneration.setButtonActionListener(
-      new buttonTomogramGenerationActionAdapter(this));
-    procCtlPanelTomogramCombination.setButtonActionListener(
-      new buttonTomogramCombinationActionAdapter(this));
-    procCtlPanelPostProcessing.setButtonActionListener(
-      new buttonPostProcessingActionAdapter(this));
-
-    setToolTipText();
-
-    panelProcess.setLayout(new BoxLayout(panelProcess, BoxLayout.X_AXIS));
-
-    panelProcess.add(procCtlPanelSetup.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelPreProc.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelCoarseAlign.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelFiducialModel.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelAlignmentEst.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelTomogramPositioning.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelTomogramGeneration.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelTomogramCombination.getPanel());
-    panelProcess.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.add(procCtlPanelPostProcessing.getPanel());
-    panelProcess.add(Box.createHorizontalGlue());
-
-    panelProcess.setBorder(borderProcesses.getBorder());
-
-  }
-
-  /**
-   * Initialize the tooltip text for the main window objects
-   */
-  private void setToolTipText() {
-    procCtlPanelSetup.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the entry of the data location, name, tilt angle<br>specification and other dataset parameters.");
-    procCtlPanelPreProc.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the conversion of Digital Micrograph files, specifying<br>the CCD eraser parameters and performing the corr-<br>correlation required for coarse alignment.");
-    procCtlPanelCoarseAlign.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability to fix alignment problems using Midas.");
-    procCtlPanelFiducialModel.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the construction of the fiducial model used to<br>develop the fine alignment of the projection images");
-    procCtlPanelAlignmentEst.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the generation and examination of a finely aligned stack.");
-    procCtlPanelTomogramPositioning.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the bounding and positioning of the tomogram<br>volume and creating the final alignment parameters.");
-    procCtlPanelTomogramGeneration.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the generation of the final aligned stack and generation<br>and examination of the tomogram.");
-    procCtlPanelTomogramCombination.setToolTipText(
-      "<html>This process control panel is not yet complete<br>");
-    procCtlPanelPostProcessing.setToolTipText(
-      "<html>This process control panel is not yet complete<br>");
-
-  }
 
   private void setAdvancedLabel() {
     if (applicationManager.getAdvanced()) {
@@ -557,6 +496,50 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       menuAdvanced.setText("Advanced");
     }
+  }
+
+  /**
+   * Create the menus for the main window
+   */
+  private void createMenus() {
+    //  Menu bar text and adapters
+    menuFileOpen.addActionListener(new menuFileOpenActionAdapter(this));
+    menuFileSave.addActionListener(new menuFileSaveActionAdapter(this));
+    menuFileSaveAs.addActionListener(new menuFileSaveAsActionAdapter(this));
+    menuFileExit.addActionListener(new menuFileExitActionAdapter(this));
+
+    menuSettings.addActionListener(new menuOptionsActionAdapter(this));
+    menuFitWindow.addActionListener(new menuOptionsActionAdapter(this));
+    menuAdvanced.addActionListener(new menuOptionsActionAdapter(this));
+    menuHelpAbout.addActionListener(new menuHelpAboutActionAdapter(this));
+
+    //  File menu
+    menuFile.add(menuFileOpen);
+    menuFile.add(menuFileSave);
+    menuFile.add(menuFileSaveAs);
+    menuFile.add(menuFileExit);
+    menuFile.addSeparator();
+
+    //  Initialize all of the MRU file menu items
+    menuFileMRUListActionAdapter mRUListActionAdapter =
+      new menuFileMRUListActionAdapter(this);
+    for (int i = 0; i < nMRUFileMax; i++) {
+      menuMRUList[i] = new JMenuItem();
+      menuMRUList[i].addActionListener(mRUListActionAdapter);
+      menuMRUList[i].setVisible(false);
+      menuFile.add(menuMRUList[i]);
+    }
+
+    menuHelp.add(menuHelpAbout);
+    menuBar.add(menuFile);
+
+    menuOptions.add(menuSettings);
+    setAdvancedLabel();
+    menuOptions.add(menuAdvanced);
+    menuOptions.add(menuFitWindow);
+    menuBar.add(menuOptions);
+    menuBar.add(menuHelp);
+    setJMenuBar(menuBar);
   }
 }
 
@@ -607,25 +590,14 @@ class menuFileExitActionAdapter implements ActionListener {
   }
 }
 
-class menuOptionsSettingsActionAdapter implements ActionListener {
+class menuOptionsActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  menuOptionsSettingsActionAdapter(MainFrame adaptee) {
+  menuOptionsActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuOptionsSettingsAction(e);
-  }
-}
-
-class menuOptionsAdvancedActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  menuOptionsAdvancedActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuOptionsAdvancedAction();
+    adaptee.menuOptionsAction(e);
   }
 }
 
@@ -648,107 +620,5 @@ class menuHelpAboutActionAdapter implements ActionListener {
   }
   public void actionPerformed(ActionEvent e) {
     adaptee.menuHelpAboutAction(e);
-  }
-}
-
-//
-//  Action adapters to handle process panel events
-//
-class buttonSetupActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonSetupActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonSetupAction(e);
-  }
-}
-
-class buttonPreProcActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonPreProcActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonPreProcAction(e);
-  }
-}
-
-class buttonCoarseAlignActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonCoarseAlignActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonCoarseAlignAction(e);
-  }
-}
-
-class buttonFiducialModelActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonFiducialModelActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonFiducialModelAction(e);
-  }
-}
-
-class buttonAlignmentEstimationActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonAlignmentEstimationActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonAlignmentEstimationAction(e);
-  }
-}
-
-class buttonTomogramPositioningActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonTomogramPositioningActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramPositioningAction(e);
-  }
-}
-
-class buttonTomogramGenerationActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonTomogramGenerationActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramGenerationAction(e);
-  }
-}
-
-class buttonTomogramCombinationActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonTomogramCombinationActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramCombinationAction(e);
-  }
-}
-
-class buttonPostProcessingActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  buttonPostProcessingActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.buttonPostProcessingAction(e);
   }
 }

@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -21,6 +22,16 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.5  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -45,44 +56,46 @@ public class TomogramCombinationDialog extends ProcessDialog {
     "$Id$";
   SetupCombinePanel panelSetupCombine = new SetupCombinePanel();
 
+  private JPanel panelButton = new JPanel();
+  private JToggleButton buttonImodVolumeA = new JToggleButton("Imod volume A");
+  private JToggleButton buttonImodVolumeB = new JToggleButton("Imod volume B");
+  private JButton buttonCreate = new JButton("Create combine script");
+
   public TomogramCombinationDialog(ApplicationManager appMgr) {
-    super(appMgr);
+    super(appMgr, AxisID.FIRST);
+    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    setTitle(
-      "eTomo Tomogram Combination: " + applicationManager.getFilesetName());
+    panelButton.setLayout(new GridLayout(1, 2, 30, 10));
+    panelButton.add(buttonImodVolumeA);
+    panelButton.add(buttonImodVolumeB);
+    panelButton.add(buttonCreate);
 
+    //  Construct the main panel for this dialog panel
     rootPanel.add(panelSetupCombine.getContainer());
-    rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelButton);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //  FIXME need a better way to get the panels to be the same size in
-    //  setupcombine pane
-    // panelSetupCombine.sizePanels();
-    // pack();
+    //  Bind the buttons to the action listener
+    TomogramCombinationActionAdapter actionListener =
+      new TomogramCombinationActionAdapter(this);
+    buttonImodVolumeA.addActionListener(actionListener);
+    buttonImodVolumeB.addActionListener(actionListener);
+    buttonCreate.addActionListener(actionListener);
 
-    //  Bind the SetupCombinePanel buttons to the appropriate actions
-    panelSetupCombine.addImodAActionListener(
-      new CombineDialogImodAAdapter(this));
-
-    panelSetupCombine.addImodBActionListener(
-      new CombineDialogImodBAdapter(this));
-
-    panelSetupCombine.addCreateActionListener(
-      new CombineDialogCreateActionAdapter(this));
-
-    // Set the default advanced dialog state, also executes pack()
+    // Set the default advanced dialog state
     updateAdvanced();
-
   }
 
   /**
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    pack();
+    applicationManager.packMainWindow();
   }
 
   public void setCombineParams(ConstCombineParams combineParams) {
@@ -95,21 +108,17 @@ public class TomogramCombinationDialog extends ProcessDialog {
   }
 
   //  Action functions for setup panel buttons
-  void buttonImodAAction(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
+  void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(buttonImodVolumeA.getActionCommand())) {
       applicationManager.imodTomogram(AxisID.FIRST);
     }
-    else {
-      applicationManager.imodTomogram(AxisID.ONLY);
+    if (command.equals(buttonImodVolumeA.getActionCommand())) {
+      applicationManager.imodTomogram(AxisID.SECOND);
     }
-  }
-
-  void buttonImodBAction(ActionEvent event) {
-    applicationManager.imodTomogram(AxisID.SECOND);
-  }
-
-  void buttonCreateAction(ActionEvent event) {
-    applicationManager.createCombineScripts();
+    if (command.equals(buttonCreate.getActionCommand())) {
+      applicationManager.createCombineScripts();
+    }
   }
 
   //  Action function overides for buttons
@@ -128,43 +137,15 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.doneTomogramCombinationDialog();
   }
 
-}
-
-//  Action adapter classes
-class CombineDialogImodAAdapter implements ActionListener {
+} //  Action adapter
+class TomogramCombinationActionAdapter implements ActionListener {
 
   TomogramCombinationDialog adaptee;
-
-  public CombineDialogImodAAdapter(TomogramCombinationDialog adaptee) {
+  public TomogramCombinationActionAdapter(TomogramCombinationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonImodAAction(event);
-  }
-}
-class CombineDialogImodBAdapter implements ActionListener {
-
-  TomogramCombinationDialog adaptee;
-
-  public CombineDialogImodBAdapter(TomogramCombinationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonImodBAction(event);
-  }
-}
-
-class CombineDialogCreateActionAdapter implements ActionListener {
-
-  TomogramCombinationDialog adaptee;
-
-  public CombineDialogCreateActionAdapter(TomogramCombinationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonCreateAction(event);
+    adaptee.buttonAction(event);
   }
 }

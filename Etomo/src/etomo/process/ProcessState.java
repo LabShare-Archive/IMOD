@@ -1,6 +1,5 @@
 package etomo.process;
 
-
 // FIXME don't return null throw an exception for bad objects
 /*
  * <p>Description: </p>
@@ -14,10 +13,17 @@ package etomo.process;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:36:17  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ProcessState {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -25,12 +31,9 @@ public class ProcessState {
     this.name = name;
   }
 
-  public static final ProcessState NOTSTARTED = new
-    ProcessState("Not started");
-  public static final ProcessState INPROGRESS = new
-    ProcessState("In progress");
-  public static final ProcessState COMPLETE = new
-    ProcessState("Complete");
+  public static final ProcessState NOTSTARTED = new ProcessState("Not started");
+  public static final ProcessState INPROGRESS = new ProcessState("In progress");
+  public static final ProcessState COMPLETE = new ProcessState("Complete");
 
   /**
    * Returns a string representation of the object
@@ -39,20 +42,19 @@ public class ProcessState {
     return name;
   }
 
-
   /**
    * Takes a string representation of an ProcessState type and returns the
    * correct static object.  The string is case insensitive.  Null is returned
    * if the string is not one of the possibilities from toString().
    */
   public static ProcessState fromString(String name) {
-    if(name.compareToIgnoreCase(NOTSTARTED.toString()) == 0) {
+    if (name.compareToIgnoreCase(NOTSTARTED.toString()) == 0) {
       return NOTSTARTED;
     }
-    if(name.compareToIgnoreCase(INPROGRESS.toString()) == 0) {
+    if (name.compareToIgnoreCase(INPROGRESS.toString()) == 0) {
       return INPROGRESS;
     }
-    if(name.compareToIgnoreCase(COMPLETE.toString()) == 0) {
+    if (name.compareToIgnoreCase(COMPLETE.toString()) == 0) {
       return COMPLETE;
     }
     return null;

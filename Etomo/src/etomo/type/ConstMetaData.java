@@ -17,6 +17,12 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2002/10/08 23:53:42  rickg
+ * <p> getCombineParams now returns a ConstCombineParam object
+ * <p>
  * <p> Revision 1.2  2002/09/30 23:48:32  rickg
  * <p> Reformatted after emacs trashed it
  * <p>
@@ -195,8 +201,17 @@ public class ConstMetaData {
       }
     }
     // Is the pixel size greater than zero
+    if (pixelSize <= 0.0) {
+      invalidReason = "Pixel size is not greater than zero";
+      return false;
+    }
 
     // Is the fiducial diameter greater than zero
+    if (fiducialDiameter <= 0.0) {
+      invalidReason = "Fiducial diameter is not greater than zero";
+      return false;
+    }
+
     return true;
   }
 

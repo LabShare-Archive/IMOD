@@ -18,6 +18,12 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.4  2002/12/31 23:13:24  rickg
+ * <p> Added possible setalignmentx method
+ * <p>
  * <p> Revision 1.3  2002/12/27 05:50:37  rickg
  * <p> Set the text field maximum height to twice the largest of the
  * <p> label and text font size in points.
@@ -49,10 +55,10 @@ public class LabeledTextField {
     // font size since it is not set by default
     Dimension maxSize = textField.getMaximumSize();
     if (label.getFont().getSize() > textField.getFont().getSize()) {
-      maxSize.setSize(maxSize.getWidth(), 2*label.getFont().getSize());
+      maxSize.setSize(maxSize.getWidth(), 2 * label.getFont().getSize());
     }
     else {
-      maxSize.setSize(maxSize.getWidth(), 2*textField.getFont().getSize());
+      maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
   }
@@ -127,14 +133,14 @@ public class LabeledTextField {
   }
 
   public void setAlignmentX(float alignment) {
-    if(alignment == Component.LEFT_ALIGNMENT) {
+    if (alignment == Component.LEFT_ALIGNMENT) {
       label.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
-    if(alignment == Component.RIGHT_ALIGNMENT) {
+    if (alignment == Component.RIGHT_ALIGNMENT) {
       textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
     }
   }
-      
+
   public void setToolTipText(String toolTipText) {
     panel.setToolTipText(toolTipText);
     textField.setToolTipText(toolTipText);

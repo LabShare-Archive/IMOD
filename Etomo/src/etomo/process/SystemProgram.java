@@ -22,6 +22,12 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2003/01/24 18:36:17  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2002/12/28 00:18:23  rickg
+ * <p> Standand error output identifies itself
+ * <p>
  * <p> Revision 1.5  2002/10/10 23:39:00  rickg
  * <p> call println with the correct object for stderror output
  * <p>
@@ -226,7 +232,6 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.println(String.valueOf(count) + " lines");
 
-
       if (debug)
         System.err.print("SystemProgram: Reading from process stderr: ");
 
@@ -288,6 +293,10 @@ public class SystemProgram implements Runnable {
 
   public int getExitValue() {
     return exitValue;
+  }
+
+  public void setExitValue(int value) {
+    exitValue = value;
   }
 
   public String getExceptionMessage() {

@@ -17,13 +17,19 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2.2.1  2003/01/24 18:38:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.2  2002/12/10 23:47:37  rickg
+ * <p> Added rcsid
+ * <p>
  * <p> Revision 1.1  2002/12/09 04:14:23  rickg
  * <p> Initial revision
  * <p>
  */
 public class StackFileFilter extends FileFilter {
   public static final String rcsid = "$Id:";
-  
+
   /**
    * @see javax.swing.filechooser.FileFilter#accept(File)
    */

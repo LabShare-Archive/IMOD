@@ -16,13 +16,19 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:45:05  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/10/03 18:57:38  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 public class MRCHeaderTest extends TestCase {
   MRCHeader emptyFilename = new MRCHeader("");
   MRCHeader badFilename = new MRCHeader("non_existant_image_file");
   MRCHeader mrcHeader = new MRCHeader("tests/junk.st");
-  
+
   /**
    * Constructor for MRCHeaderTest.
    * @param arg0
@@ -53,19 +59,20 @@ public class MRCHeaderTest extends TestCase {
       emptyFilename.read();
       fail("Should rise IOException excpetion");
     }
-    catch(IOException success) {}
+    catch (IOException success) {
+    }
   }
-  
+
   public void testReadBadFilename() {
     boolean correctException = false;
     //  First test, should throw an exception because the image stack is not present
     try {
       badFilename.read();
     }
-    catch(InvalidParameterException except) {
+    catch (InvalidParameterException except) {
       correctException = true;
     }
-    catch(Exception except) {
+    catch (Exception except) {
       correctException = false;
     }
     assertTrue(correctException);

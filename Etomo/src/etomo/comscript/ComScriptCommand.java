@@ -1,6 +1,6 @@
 package etomo.comscript;
 
-import  java.util.LinkedList;
+import java.util.LinkedList;
 
 /**
  * <p>Description: This class models a single command within an IMOD com script
@@ -16,17 +16,23 @@ import  java.util.LinkedList;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class ComScriptCommand {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private String[] headerComments = new String[0];
   private String command = null;
   private String[] commandLineArgs = new String[0];
   private LinkedList comScriptInputArgs = new LinkedList();
-
 
   /**
    * Default constructor.  A zero length String array is created to represent
@@ -36,20 +42,18 @@ public class ComScriptCommand {
   public ComScriptCommand() {
   }
 
-
   /**
    * Copy constructor.
    */
-  public ComScriptCommand(ComScriptCommand src){
+  public ComScriptCommand(ComScriptCommand src) {
     headerComments = src.getHeaderComments();
     command = src.getCommand();
     commandLineArgs = src.getCommandLineArgs();
     ComScriptInputArg[] inputArgs = src.getInputArguments();
-    for(int i = 0; i < inputArgs.length; i++) {
+    for (int i = 0; i < inputArgs.length; i++) {
       comScriptInputArgs.add(inputArgs[i]);
     }
   }
-
 
   /**
    * Set the header comments, the comment block which preceeds the command line.
@@ -58,28 +62,26 @@ public class ComScriptCommand {
   public void setHeaderComments(String[] headerComments) {
     //  make a defensive copy of the array
     this.headerComments = new String[headerComments.length];
-    for(int i = 0; i < headerComments.length; i++) {
+    for (int i = 0; i < headerComments.length; i++) {
       this.headerComments[i] = headerComments[i];
     }
   }
-
 
   /**
    * Return the header comments.
    * @return a copy of the header comments as a String array.
    */
   public String[] getHeaderComments() {
-    if(headerComments == null) {
+    if (headerComments == null) {
       return null;
     }
     //  make a defensive copy of the array
     String[] safeArray = new String[headerComments.length];
-    for(int i = 0; i < headerComments.length; i++) {
+    for (int i = 0; i < headerComments.length; i++) {
       safeArray[i] = headerComments[i];
     }
     return safeArray;
   }
-
 
   /**
    * Set the command string
@@ -89,7 +91,6 @@ public class ComScriptCommand {
     this.command = command;
   }
 
-
   /**
    * Get the command string.
    * @return the command as a string.
@@ -97,7 +98,6 @@ public class ComScriptCommand {
   public String getCommand() {
     return command;
   }
-
 
   /**
    * Set the command line arguments for the script command.
@@ -107,30 +107,28 @@ public class ComScriptCommand {
   public void setCommandLineArgs(String[] commandLineArgs) {
     //  make a defensive copy of the array
     this.commandLineArgs = new String[commandLineArgs.length];
-    for(int i = 0; i < commandLineArgs.length; i++) {
+    for (int i = 0; i < commandLineArgs.length; i++) {
       this.commandLineArgs[i] = commandLineArgs[i];
     }
   }
-
 
   /**
    * Append addition arguments onto the command line argument list.
    * @param a String array containing the additional command line arguments to
    * be added.
    */
-  public void appendCommandLineArgs(String[] append){
+  public void appendCommandLineArgs(String[] append) {
     String[] existingArgs = commandLineArgs;
     commandLineArgs = new String[existingArgs.length + append.length];
 
-    for(int i = 0; i < existingArgs.length; i++) {
+    for (int i = 0; i < existingArgs.length; i++) {
       commandLineArgs[i] = existingArgs[i];
     }
 
-    for(int i = 0; i < append.length; i++) {
-      commandLineArgs[i+existingArgs.length] = append[i];
+    for (int i = 0; i < append.length; i++) {
+      commandLineArgs[i + existingArgs.length] = append[i];
     }
   }
-
 
   /**
    * Get the command line arguments.  Each argument (white space separated
@@ -138,17 +136,16 @@ public class ComScriptCommand {
    * @return a String array containing the comman line arguments.
    */
   public String[] getCommandLineArgs() {
-    if(commandLineArgs == null) {
+    if (commandLineArgs == null) {
       return null;
     }
     //  make a defensive copy of the array
     String[] safeArray = new String[commandLineArgs.length];
-    for(int i = 0; i < commandLineArgs.length; i++) {
+    for (int i = 0; i < commandLineArgs.length; i++) {
       safeArray[i] = commandLineArgs[i];
     }
     return safeArray;
   }
-
 
   /**
    * Append to the input argument to the input argument list
@@ -168,7 +165,7 @@ public class ComScriptCommand {
   public ComScriptInputArg[] getInputArguments() {
     ComScriptInputArg[] inputArgs =
       new ComScriptInputArg[comScriptInputArgs.size()];
-      return (ComScriptInputArg[]) comScriptInputArgs.toArray(inputArgs);
+    return (ComScriptInputArg[]) comScriptInputArgs.toArray(inputArgs);
   }
 
   /**
@@ -191,7 +188,7 @@ public class ComScriptCommand {
     comScriptInputArgs.clear();
 
     //  create a defensive copy of the input argument object
-    for(int i = 0; i < inputArgs.length; i++) {
+    for (int i = 0; i < inputArgs.length; i++) {
       comScriptInputArgs.add(new ComScriptInputArg(inputArgs[i]));
     }
   }

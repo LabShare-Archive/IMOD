@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/12/10 23:47:31  rickg
+ * <p> Added rcsid
+ * <p>
  * <p> Revision 1.1  2002/12/09 04:14:08  rickg
  * <p> Initial revision
  * <p>

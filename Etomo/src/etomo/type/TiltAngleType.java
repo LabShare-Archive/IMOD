@@ -14,10 +14,17 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltAngleType {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -25,14 +32,10 @@ public class TiltAngleType {
     this.name = name;
   }
 
-  public static final TiltAngleType EXTRACT = new
-    TiltAngleType("Extract");
-  public static final TiltAngleType RANGE = new
-    TiltAngleType("Range");
-  public static final TiltAngleType FILE = new
-    TiltAngleType("File");
-  public static final TiltAngleType LIST = new
-    TiltAngleType("List");
+  public static final TiltAngleType EXTRACT = new TiltAngleType("Extract");
+  public static final TiltAngleType RANGE = new TiltAngleType("Range");
+  public static final TiltAngleType FILE = new TiltAngleType("File");
+  public static final TiltAngleType LIST = new TiltAngleType("List");
 
   /**
    * Returns a string representation of the object.
@@ -47,16 +50,16 @@ public class TiltAngleType {
    * if the string is not one of the possibilities from toString().
    */
   public static TiltAngleType fromString(String name) {
-    if(name.compareToIgnoreCase(EXTRACT.toString()) == 0) {
+    if (name.compareToIgnoreCase(EXTRACT.toString()) == 0) {
       return EXTRACT;
     }
-    if(name.compareToIgnoreCase(RANGE.toString()) == 0) {
+    if (name.compareToIgnoreCase(RANGE.toString()) == 0) {
       return RANGE;
     }
-    if(name.compareToIgnoreCase(FILE.toString()) == 0) {
+    if (name.compareToIgnoreCase(FILE.toString()) == 0) {
       return FILE;
     }
-    if(name.compareToIgnoreCase(LIST.toString()) == 0) {
+    if (name.compareToIgnoreCase(LIST.toString()) == 0) {
       return LIST;
     }
 
@@ -70,14 +73,14 @@ public class TiltAngleType {
    * tilt angles, 1 for range of tilt angles.
    * @return the TiltAngleType specified by the argument.
    */
-   public static TiltAngleType parseInt(int typeSpec) {
-    if(typeSpec == -1) {
+  public static TiltAngleType parseInt(int typeSpec) {
+    if (typeSpec == -1) {
       return LIST;
     }
-    if(typeSpec == 0) {
+    if (typeSpec == 0) {
       return FILE;
     }
-    if(typeSpec == 1) {
+    if (typeSpec == 1) {
       return RANGE;
     }
     return null;
@@ -89,13 +92,13 @@ public class TiltAngleType {
    * which appears to be only used in copytomocoms.
    */
   public int toInt() {
-    if(name.equals("List")) {
+    if (name.equals("List")) {
       return -1;
     }
-    if(name.equals("File")) {
+    if (name.equals("File")) {
       return 0;
     }
-    if(name.equals("Range")) {
+    if (name.equals("Range")) {
       return 1;
     }
 

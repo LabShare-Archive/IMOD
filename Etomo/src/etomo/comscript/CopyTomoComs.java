@@ -17,6 +17,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/10 18:54:01  rickg
+ * <p> Enabled SystemProgram debugging and remove local
+ * <p> writing to stdout.
+ * <p>
  * <p> Revision 1.3  2002/10/09 21:35:44  rickg
  * <p> Removed stdout messages, can now be gotten from the enableDebug method in SystemProgram
  * <p>

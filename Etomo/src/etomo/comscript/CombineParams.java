@@ -22,6 +22,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.8  2003/01/06 05:49:40  rickg
+ * <p> Fixed fiducial list bug
+ * <p>
  * <p> Revision 1.7  2002/10/09 00:01:57  rickg
  * <p> added copy constructor
  * <p> convert whitespace strings to zero length string in set methods
@@ -84,7 +90,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setRevisionNumber(String revNumber) {
     revisionNumber = revNumber;
   }
-  
+
   public void setMatchBtoA(boolean isBtoA) {
     matchBtoA = isBtoA;
   }
@@ -228,9 +234,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Load the combine values if they are present, don't change the
     // current value if the property is not present
-    
+
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
-    
+
     matchBtoA =
       Boolean
         .valueOf(

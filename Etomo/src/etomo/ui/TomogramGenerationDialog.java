@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -21,6 +22,16 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.5  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -46,100 +57,59 @@ public class TomogramGenerationDialog
     "$Id$";
 
   JPanel panelTilt = new JPanel();
+  BeveledBorder border = new BeveledBorder("Tomogram Generation");
 
-  //  Axis A panel
-  JPanel panelTiltA = new JPanel();
-  BeveledBorder borderA = new BeveledBorder("Axis: A");
-
-  JToggleButton buttonNewstA =
+  JToggleButton buttonNewst =
     new JToggleButton("<html><b>Create full<br>aligned stack</b>");
 
-  LabeledTextField ltfTomoThicknessA =
+  LabeledTextField ltfTomoThickness =
     new LabeledTextField("Tomogram thickness: ");
 
-  LabeledTextField ltfXAxisTiltA = new LabeledTextField("X Axis Tilt: ");
+  LabeledTextField ltfXAxisTilt = new LabeledTextField("X Axis Tilt: ");
 
-  JCheckBox chkBoxUseLocalAlignmentA = new JCheckBox("Use local alignments");
+  JCheckBox chkBoxUseLocalAlignment = new JCheckBox("Use local alignments");
 
-  JToggleButton buttonTiltA =
+  JToggleButton buttonTilt =
     new JToggleButton("<html><b>Generate<br>tomogram</b>");
-  JToggleButton buttonImodA =
+  JToggleButton buttonImod =
     new JToggleButton("<html><b>View tomogram<br>in imod</b>");
 
-  //  Axis B panel
-  JPanel panelTiltB = new JPanel();
-  BeveledBorder borderB = new BeveledBorder("Axis: B");
-
-  JToggleButton buttonNewstB =
-    new JToggleButton("<html><b>Create full<br>aligned stack</b>");
-
-  LabeledTextField ltfTomoThicknessB =
-    new LabeledTextField("Tomogram thickness: ");
-
-  LabeledTextField ltfXAxisTiltB = new LabeledTextField("X Axis Tilt: ");
-
-  JCheckBox chkBoxUseLocalAlignmentB = new JCheckBox("Use local alignments");
-
-  JToggleButton buttonTiltB =
-    new JToggleButton("<html><b>Generate<br>tomogram</b>");
-  JToggleButton buttonImodB =
-    new JToggleButton("<html><b>View tomogram<br>in imod</b>");
-
-  public TomogramGenerationDialog(ApplicationManager appMgr) {
-    super(appMgr);
+  public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
+    super(appMgr, axisID);
+    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    setTitle(
-      "eTomo Tomogram Generation: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
 
-    buttonNewstA.setAlignmentX(0.5F);
-    buttonNewstA.addActionListener(new GenerationDialogNewstA(this));
-    buttonTiltA.setAlignmentX(0.5F);
-    buttonTiltA.addActionListener(new GenerationDialogTiltA(this));
-    buttonImodA.setAlignmentX(0.5F);
-    buttonImodA.addActionListener(new GenerationDialogImodA(this));
+    buttonNewst.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonNewst.setPreferredSize(FixedDim.button2Line);
+    buttonNewst.setMaximumSize(FixedDim.button2Line);
+    buttonNewst.addActionListener(new TomogramGenerationActionListener(this));
 
-    buttonNewstB.setAlignmentX(0.5F);
-    buttonNewstB.addActionListener(new GenerationDialogNewstB(this));
-    buttonTiltB.setAlignmentX(0.5F);
-    buttonTiltB.addActionListener(new GenerationDialogTiltB(this));
-    buttonImodB.setAlignmentX(0.5F);
-    buttonImodB.addActionListener(new GenerationDialogImodB(this));
+    buttonTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonTilt.setPreferredSize(FixedDim.button2Line);
+    buttonTilt.setMaximumSize(FixedDim.button2Line);
+    buttonTilt.addActionListener(new TomogramGenerationActionListener(this));
 
-    panelTiltA.setBorder(borderA.getBorder());
-    panelTiltA.setLayout(new BoxLayout(panelTiltA, BoxLayout.Y_AXIS));
-    panelTiltA.add(buttonNewstA);
-    panelTiltA.add(Box.createVerticalGlue());
-    panelTiltA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTiltA.add(ltfTomoThicknessA.getContainer());
-    panelTiltA.add(ltfXAxisTiltA.getContainer());
-    panelTiltA.add(chkBoxUseLocalAlignmentA);
-    panelTiltA.add(buttonTiltA);
-    panelTiltA.add(Box.createVerticalGlue());
-    panelTiltA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTiltA.add(buttonImodA);
-    panelTiltA.add(Box.createVerticalGlue());
-    panelTiltA.add(Box.createRigidArea(FixedDim.x0_y10));
+    buttonImod.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonImod.setPreferredSize(FixedDim.button2Line);
+    buttonImod.setMaximumSize(FixedDim.button2Line);
+    buttonImod.addActionListener(new TomogramGenerationActionListener(this));
 
-    panelTiltB.setBorder(borderB.getBorder());
-    panelTiltB.setLayout(new BoxLayout(panelTiltB, BoxLayout.Y_AXIS));
-    panelTiltB.add(buttonNewstB);
-    panelTiltB.add(Box.createVerticalGlue());
-    panelTiltB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTiltB.add(ltfTomoThicknessB.getContainer());
-    panelTiltB.add(ltfXAxisTiltB.getContainer());
-    panelTiltB.add(chkBoxUseLocalAlignmentB);
-    panelTiltB.add(buttonTiltB);
-    panelTiltB.add(Box.createVerticalGlue());
-    panelTiltB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelTiltB.add(buttonImodB);
-    panelTiltB.add(Box.createVerticalGlue());
-    panelTiltB.add(Box.createRigidArea(FixedDim.x0_y10));
+    chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    panelTilt.setLayout(new BoxLayout(panelTilt, BoxLayout.X_AXIS));
-    panelTilt.add(panelTiltA);
-    panelTilt.add(panelTiltB);
+    panelTilt.setBorder(border.getBorder());
+    panelTilt.setLayout(new BoxLayout(panelTilt, BoxLayout.Y_AXIS));
+
+    panelTilt.add(buttonNewst);
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelTilt.add(ltfTomoThickness.getContainer());
+    panelTilt.add(ltfXAxisTilt.getContainer());
+    panelTilt.add(chkBoxUseLocalAlignment);
+    panelTilt.add(buttonTilt);
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelTilt.add(buttonImod);
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
 
     rootPanel.add(panelTilt);
     rootPanel.add(Box.createVerticalGlue());
@@ -151,92 +121,52 @@ public class TomogramGenerationDialog
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    // Set the default advanced dialog state, also executes pack()
+    // Set the default advanced dialog state
     updateAdvanced();
-
   }
 
   /**
    * Populate the dialog box with the tilt paramaters
    */
-  public void setTiltParams(ConstTilt tiltParam, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-
-      ltfTomoThicknessB.setText(tiltParam.getThickness());
-      ltfXAxisTiltB.setText(tiltParam.getXAxisTilt());
-      chkBoxUseLocalAlignmentB.setSelected(tiltParam.getUseLocalAlignFile());
-    }
-    else {
-      ltfTomoThicknessA.setText(tiltParam.getThickness());
-      ltfXAxisTiltA.setText(tiltParam.getXAxisTilt());
-      chkBoxUseLocalAlignmentA.setSelected(tiltParam.getUseLocalAlignFile());
-    }
+  public void setTiltParams(ConstTilt tiltParam) {
+    ltfTomoThickness.setText(tiltParam.getThickness());
+    ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
+    chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
   }
 
   /**
    * Get the tilt parameters from the requested axis panel
    */
-  public void getTiltParams(TiltParam tiltParam, AxisID axisID)
-    throws NumberFormatException {
+  public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
 
-    String currentAxisID = "unknown";
     try {
-      if (axisID == AxisID.SECOND) {
-        currentAxisID = "Axis B:";
-        tiltParam.setThickness(Integer.parseInt(ltfTomoThicknessB.getText()));
-        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltB.getText()));
+      tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
+      tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
 
-        if (chkBoxUseLocalAlignmentB.isSelected()) {
-          tiltParam.setLocalAlignFile(
-            applicationManager.getFilesetName() + "blocal.xf");
-        }
-        else {
-          tiltParam.setLocalAlignFile("");
-        }
+      if (chkBoxUseLocalAlignment.isSelected()) {
+        tiltParam.setLocalAlignFile(
+          applicationManager.getFilesetName()
+            + axisID.getExtension()
+            + "local.xf");
       }
-
       else {
-        currentAxisID = "Axis A:";
-        tiltParam.setThickness(Integer.parseInt(ltfTomoThicknessA.getText()));
-        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltA.getText()));
-
-        if (chkBoxUseLocalAlignmentA.isSelected()) {
-          if (axisID == AxisID.ONLY) {
-            tiltParam.setLocalAlignFile(
-              applicationManager.getFilesetName() + "local.xf");
-          }
-          else {
-            tiltParam.setLocalAlignFile(
-              applicationManager.getFilesetName() + "alocal.xf");
-
-          }
-        }
-        else {
-          tiltParam.setLocalAlignFile("");
-        }
+        tiltParam.setLocalAlignFile("");
       }
     }
     catch (NumberFormatException except) {
-      String message = currentAxisID + except.getMessage();
+      String message =
+        "Axis: " + axisID.getExtension() + " " + except.getMessage();
       throw new NumberFormatException(message);
     }
-
   }
-
-  public void setEnabledB(boolean state) {
-    panelTiltB.setVisible(state);
-    pack();
-    repaint();
-  }
-
 
   /**
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    pack();
+    applicationManager.packMainWindow();
   }
-  
+
   /**
    * Right mouse button context menu
    */
@@ -246,26 +176,12 @@ public class TomogramGenerationDialog
 
     String[] logFileLabel;
     String[] logFile;
-    if (applicationManager.isDualAxis()) {
-      logFileLabel = new String[4];
-      logFileLabel[0] = "newsta";
-      logFileLabel[1] = "newstb";
-      logFileLabel[2] = "tilta";
-      logFileLabel[3] = "tiltb";
-      logFile = new String[4];
-      logFile[0] = "newsta.log";
-      logFile[1] = "newstb.log";
-      logFile[2] = "tilta.log";
-      logFile[3] = "tiltb.log";
-    }
-    else {
-      logFileLabel = new String[2];
-      logFileLabel[0] = "newst";
-      logFileLabel[1] = "tilt";
-      logFile = new String[2];
-      logFile[0] = "newst.log";
-      logFile[1] = "tilt.log";
-    }
+    logFileLabel = new String[2];
+    logFileLabel[0] = "newst" + axisID.getExtension();
+    logFileLabel[1] = "tilt";
+    logFile = new String[2];
+    logFile[0] = "newst" + axisID.getExtension() + ".log";
+    logFile[1] = "tilt" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =
       new ContextPopup(
@@ -278,140 +194,46 @@ public class TomogramGenerationDialog
         logFile);
   }
 
-  //  Button action handler methods
-  void buttonNewstA(ActionEvent event) {
-
-    if (applicationManager.isDualAxis()) {
-      applicationManager.newst(AxisID.FIRST);
+  void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(buttonNewst.getActionCommand())) {
+      applicationManager.newst(AxisID.SECOND);
     }
-    else {
-      applicationManager.newst(AxisID.ONLY);
+    else if (command.equals(buttonTilt.getActionCommand())) {
+      applicationManager.tilt(AxisID.SECOND);
     }
-  }
 
-  void buttonTiltA(ActionEvent event) {
-
-    if (applicationManager.isDualAxis()) {
-      applicationManager.tilt(AxisID.FIRST);
+    else if (command.equals(buttonImod.getActionCommand())) {
+      applicationManager.imodTomogram(AxisID.SECOND);
     }
-    else {
-      applicationManager.tilt(AxisID.ONLY);
-    }
-  }
-
-  void buttonImodA(ActionEvent event) {
-
-    if (applicationManager.isDualAxis()) {
-      applicationManager.imodTomogram(AxisID.FIRST);
-    }
-    else {
-      applicationManager.imodTomogram(AxisID.ONLY);
-    }
-  }
-
-  void buttonNewstB(ActionEvent event) {
-    applicationManager.newst(AxisID.SECOND);
-  }
-
-  void buttonTiltB(ActionEvent event) {
-    applicationManager.tilt(AxisID.SECOND);
-  }
-
-  void buttonImodB(ActionEvent event) {
-    applicationManager.imodTomogram(AxisID.SECOND);
   }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramGenerationDialog();
+    applicationManager.doneTomogramGenerationDialog(axisID);
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramGenerationDialog();
+    applicationManager.doneTomogramGenerationDialog(axisID);
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramGenerationDialog();
+    applicationManager.doneTomogramGenerationDialog(axisID);
   }
 }
 
-class GenerationDialogNewstA implements ActionListener {
+class TomogramGenerationActionListener implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
-  GenerationDialogNewstA(TomogramGenerationDialog adaptee) {
+  TomogramGenerationActionListener(TomogramGenerationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonNewstA(event);
-  }
-}
-
-class GenerationDialogTiltA implements ActionListener {
-
-  TomogramGenerationDialog adaptee;
-
-  GenerationDialogTiltA(TomogramGenerationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltA(event);
-  }
-}
-
-class GenerationDialogImodA implements ActionListener {
-
-  TomogramGenerationDialog adaptee;
-
-  GenerationDialogImodA(TomogramGenerationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonImodA(event);
-  }
-}
-
-class GenerationDialogNewstB implements ActionListener {
-
-  TomogramGenerationDialog adaptee;
-
-  GenerationDialogNewstB(TomogramGenerationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonNewstB(event);
-  }
-}
-
-class GenerationDialogTiltB implements ActionListener {
-
-  TomogramGenerationDialog adaptee;
-
-  GenerationDialogTiltB(TomogramGenerationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltB(event);
-  }
-}
-
-class GenerationDialogImodB implements ActionListener {
-
-  TomogramGenerationDialog adaptee;
-
-  GenerationDialogImodB(TomogramGenerationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonImodB(event);
+    adaptee.buttonAction(event);
   }
 }

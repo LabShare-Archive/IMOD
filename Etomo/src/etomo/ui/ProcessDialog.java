@@ -1,9 +1,12 @@
 package etomo.ui;
 
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 
 /**
@@ -21,6 +24,12 @@ import etomo.type.DialogExitState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -29,20 +38,19 @@ import etomo.type.DialogExitState;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ProcessDialog extends JDialog implements ExitButtons {
+public class ProcessDialog implements ExitButtons {
   public static final String rcsid =
     "$Id$";
 
   protected ApplicationManager applicationManager;
-  protected JPanel rootPanel;
-  
+  protected AxisID axisID;
   protected boolean isAdvanced;
-  
   protected DialogExitState exitState = DialogExitState.CANCEL;
 
-  //
+  protected Dimension rootSize = new Dimension(620, 680);
+  protected JPanel rootPanel = new JPanel();
+
   //  Exit buttons
-  //
   protected JPanel panelExitButtons = new JPanel();
   protected JButton buttonCancel = new JButton("Cancel");
   protected JButton buttonPostpone = new JButton("Postpone");
@@ -54,18 +62,16 @@ public class ProcessDialog extends JDialog implements ExitButtons {
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog(ApplicationManager appManager) {
+  public ProcessDialog(ApplicationManager appManager, AxisID axisID) {
     applicationManager = appManager;
-    rootPanel = (JPanel) getContentPane();
+    this.axisID = axisID;
 
     //  Get the default initial advanced state
     isAdvanced = applicationManager.getAdvanced();
     setAdvanced(isAdvanced);
     setToolTipText();
 
-    //
     //  Layout the buttons
-    //
     panelExitButtons.setLayout(
       new BoxLayout(panelExitButtons, BoxLayout.X_AXIS));
 
@@ -79,15 +85,22 @@ public class ProcessDialog extends JDialog implements ExitButtons {
     panelExitButtons.add(buttonAdvanced);
     panelExitButtons.add(Box.createHorizontalGlue());
 
-    //
     //  Exit action listeners
-    //
     buttonCancel.addActionListener(new buttonCancelActionAdapter(this));
     buttonPostpone.addActionListener(new buttonPostponeActionAdapter(this));
     buttonExecute.addActionListener(new buttonExecuteActionAdapter(this));
     buttonAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
   }
 
+  public Container getContainer() {
+    return rootPanel;
+  }
+
+  public void fixRootPanel(Dimension size) {
+    //    rootPanel.setMinimumSize(rootSize);
+    //    rootPanel.setPreferredSize(rootSize);
+    //    rootPanel.setMaximumSize(rootSize);
+  }
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -120,7 +133,7 @@ public class ProcessDialog extends JDialog implements ExitButtons {
    * button.  Call this method first before checking the state of isAdvanced.
    */
   public void buttonAdvancedAction(ActionEvent event) {
-    setAdvanced(! isAdvanced);
+    setAdvanced(!isAdvanced);
   }
 
   /**
@@ -128,7 +141,7 @@ public class ProcessDialog extends JDialog implements ExitButtons {
    */
   void setAdvanced(boolean state) {
     isAdvanced = state;
-    if(isAdvanced) {
+    if (isAdvanced) {
       buttonAdvanced.setText("Basic");
     }
     else {

@@ -16,6 +16,9 @@ import java.awt.event.MouseEvent;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/11/14 04:22:43  rickg
+ * <p> HTMLPage and ContextPopup now work with URLS
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>

@@ -19,6 +19,12 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -32,10 +38,6 @@ public class CCDEraserPanel implements ContextMenu {
     "$Id$";
 
   private JPanel panelCCDEraser = new JPanel();
-
-  private JLabel labelAxis = new JLabel();
-  private JButton buttonCreateModel =
-    new JButton("<html><b>Create replacement<br>model using imod</b>");
 
   private LabeledTextField ltfInputImage =
     new LabeledTextField("Input image file: ");
@@ -52,19 +54,9 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox chkboxIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JButton buttonErase = new JButton("Erase pixels");
-
-  public CCDEraserPanel(String label) {
+  public CCDEraserPanel() {
     setToolTipText();
     panelCCDEraser.setLayout(new BoxLayout(panelCCDEraser, BoxLayout.Y_AXIS));
-
-    labelAxis.setText(label);
-    panelCCDEraser.add(labelAxis);
-    panelCCDEraser.add(Box.createRigidArea(FixedDim.x0_y10));
-    buttonCreateModel.setAlignmentX((float) 0.5);
-    panelCCDEraser.add(buttonCreateModel);
-    panelCCDEraser.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelCCDEraser.add(Box.createVerticalGlue());
 
     panelCCDEraser.add(ltfInputImage.getContainer());
     panelCCDEraser.add(ltfOutputImage.getContainer());
@@ -74,14 +66,9 @@ public class CCDEraserPanel implements ContextMenu {
     panelCCDEraser.add(ltfPolynomialOrder.getContainer());
     panelCCDEraser.add(chkboxIncludeAdjacentPoints);
 
-    panelCCDEraser.add(buttonErase);
-
-    //
     //  Mouse adapter for context menu
-    //
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     panelCCDEraser.addMouseListener(mouseAdapter);
-
   }
 
   public void setParameters(ConstCCDEraserParam ccdEraserParams) {
@@ -108,7 +95,7 @@ public class CCDEraserPanel implements ContextMenu {
       chkboxIncludeAdjacentPoints.isSelected());
   }
 
-  public JPanel getPanel() {
+  public JPanel getContainer() {
     return panelCCDEraser;
   }
 
@@ -144,23 +131,9 @@ public class CCDEraserPanel implements ContextMenu {
         manPage);
   }
 
-  public void setButtonCreateModelActionListener(ActionListener actionAdapter) {
-    buttonCreateModel.addActionListener(actionAdapter);
-
-  }
-  public void setButtonErasePixelsActionListener(ActionListener actionAdapter) {
-    buttonErase.addActionListener(actionAdapter);
-  }
-
-  //
   //  ToolTip string setup
-  //
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7;
-    line1 = "<html>This button will open imod with the current CCD erase<br>";
-    line2 = "model.  This will allow you to specify additional pixels and<br>";
-    line3 = "regions to be replaced with interpolated values.";
-    buttonCreateModel.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>The input image stack filename.<br>";
     line2 = "This specifies the input image stack.  The default value of <br>";

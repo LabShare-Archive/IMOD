@@ -19,6 +19,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/22 23:25:44  rickg
+ * <p> setFilesetName method now sets the working directory as well
+ * <p> by parsing the string argument
+ * <p>
  * <p> Revision 1.3  2002/10/07 22:28:47  rickg
  * <p> removed unused imports
  * <p>

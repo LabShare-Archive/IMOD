@@ -15,11 +15,18 @@ import etomo.type.TiltAngleSpec;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class ConstTiltxcorrParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected String inputFile;
   protected String pieceListFile;
@@ -51,7 +58,7 @@ public class ConstTiltxcorrParam {
     return outputFile;
   }
 
-  public TiltAngleSpec getTiltAngleSpec(){
+  public TiltAngleSpec getTiltAngleSpec() {
     return new TiltAngleSpec(tiltAngleSpec);
   };
 

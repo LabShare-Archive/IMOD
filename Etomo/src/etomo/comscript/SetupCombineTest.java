@@ -16,11 +16,17 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/10/10 21:46:28  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 public class SetupCombineTest extends TestCase {
   MetaData testMeta = new MetaData();
-  
+
   /**
    * Constructor for SetupCombineTest.
    * @param arg0
@@ -36,7 +42,7 @@ public class SetupCombineTest extends TestCase {
     super.setUp();
     //  Need a new metdata object with the appropriate directory and image
     //  files
-    
+
   }
 
   /**

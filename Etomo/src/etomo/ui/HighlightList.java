@@ -17,10 +17,17 @@ import javax.swing.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class HighlightList {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   JPanel panel = new JPanel();
   JLabel[] labels;
@@ -29,12 +36,12 @@ public class HighlightList {
   Color unselected = new Color(128, 128, 128);
   Color selected = new Color(160, 0, 64);
 
-  public HighlightList(String[] items){
+  public HighlightList(String[] items) {
     nItems = items.length;
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     labels = new JLabel[nItems];
 
-    for(int i = 0; i < nItems; i++){
+    for (int i = 0; i < nItems; i++) {
       labels[i] = new JLabel(items[i]);
       labels[i].setText(items[i]);
       labels[i].setForeground(unselected);
@@ -48,12 +55,12 @@ public class HighlightList {
   }
 
   public void setSelected(int index) {
-    if(index >= 0 & index <nItems) {
+    if (index >= 0 & index < nItems) {
       //
       //  Deselect the current item
       //
-      if(currentSelected != -1) {
-	labels[currentSelected].setForeground(unselected);
+      if (currentSelected != -1) {
+        labels[currentSelected].setForeground(unselected);
       }
       //
       //  Select the new item
@@ -63,17 +70,17 @@ public class HighlightList {
     }
   }
 
-  public int getSelected(){
+  public int getSelected() {
     return currentSelected;
   }
 
-  public String getSelectedText(){
+  public String getSelectedText() {
     return labels[currentSelected].getText();
   }
 
   public void addMouseListener(MouseListener listener) {
     panel.addMouseListener(listener);
-    for(int i = 0; i < labels.length; i++){
+    for (int i = 0; i < labels.length; i++) {
       labels[i].addMouseListener(listener);
     }
   }

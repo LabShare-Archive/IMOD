@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2003/01/03 20:02:39  rickg
+ * <p> Reformat
+ * <p>
  * <p> Revision 1.2  2002/10/17 16:19:53  rickg
  * <p> Implemented useExcludeList flag
  * <p>

@@ -21,6 +21,12 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9.2.1  2003/01/24 18:36:17  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.9  2003/01/10 20:46:20  rickg
+ * <p> Added ability to view 3D fiducial models
+ * <p>
  * <p> Revision 1.8  2003/01/07 00:30:46  rickg
  * <p> Fixed javadoc text
  * <p>
@@ -91,7 +97,7 @@ public class ImodManager {
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
       tomogramA = new ImodProcess(filesetName + ".rec");
       tomogramA.setSwapYZ(true);
-      
+
     }
     else {
       rawStackA = new ImodProcess(filesetName + "a.st");
@@ -203,30 +209,29 @@ public class ImodManager {
    */
   public void openFiducialModel(String model, AxisID axisID) {
     SystemProgram imodv;
-    
-    if(axisID == AxisID.SECOND) {
-      if(fiducialModelB != null && fiducialModelB.isAlive()) {
-          return;
-      }
-    }
-    else {
-      if(fiducialModelA != null && fiducialModelA.isAlive()) {
+
+    if (axisID == AxisID.SECOND) {
+      if (fiducialModelB != null && fiducialModelB.isAlive()) {
         return;
       }
     }
-    
+    else {
+      if (fiducialModelA != null && fiducialModelA.isAlive()) {
+        return;
+      }
+    }
+
     imodv = new SystemProgram("imodv " + model);
     Thread fiducialModel = new Thread(imodv);
     fiducialModel.start();
-    
-    if(axisID == AxisID.SECOND) {
+
+    if (axisID == AxisID.SECOND) {
       fiducialModelB = fiducialModel;
     }
     else {
       fiducialModelA = fiducialModel;
     }
   }
-
 
   /**
    * Open the specified fine aligned stack in imod if it is not already open
@@ -308,7 +313,7 @@ public class ImodManager {
    * Check to see if the specified tomogram is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isTomogramOpen(AxisID axisID){
+  public boolean isTomogramOpen(AxisID axisID) {
     ImodProcess tomogram = selectTomogram(axisID);
     if (tomogram == null) {
       return false;

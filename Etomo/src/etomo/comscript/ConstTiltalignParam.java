@@ -16,6 +16,12 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.5  2002/12/24 01:09:41  rickg
+ * <p> Min local patch size changed to double
+ * <p>
  * <p> Revision 1.4  2002/12/18 19:07:09  rickg
  * <p> Added getters for metro factor and cycle limit
  * <p>
@@ -299,11 +305,11 @@ public class ConstTiltalignParam {
   public double getMetroFactor() {
     return minimizationParams.getDouble(0);
   }
-  
+
   public int getCycleLimit() {
     return minimizationParams.getInt(1);
   }
-  
+
   public double getTiltAxisZShift() {
     return tiltAxisZShift;
   }

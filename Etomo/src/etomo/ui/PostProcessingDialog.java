@@ -4,6 +4,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -18,6 +19,16 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.5  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.4  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -38,19 +49,17 @@ public class PostProcessingDialog extends ProcessDialog {
     "$Id$";
 
   public PostProcessingDialog(ApplicationManager appManager) {
-    super(appManager);
+    super(appManager, AxisID.ONLY);
+    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    this.setTitle(
-      "eTomo Post-processing and Trimming: "
-        + applicationManager.getFilesetName());
 
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    // Set the default advanced dialog state, also executes pack()
+    // Set the default advanced dialog state
     updateAdvanced();
 
   }
@@ -59,7 +68,7 @@ public class PostProcessingDialog extends ProcessDialog {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    pack();
+    applicationManager.packMainWindow();
   }
   //
   //  Action function overides for buttons

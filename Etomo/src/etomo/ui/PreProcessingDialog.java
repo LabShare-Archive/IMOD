@@ -22,6 +22,16 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.5  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -44,28 +54,28 @@ public class PreProcessingDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
 
-  JLabel textDM2MRC = new JLabel("No digital micrograph files detected:  ");
-  JPanel panelConvertDM2MRC = new JPanel();
-  JCheckBox chkBoxUniqueHeaders =
+  private JLabel textDM2MRC =
+    new JLabel("No digital micrograph files detected:  ");
+  private JPanel panelConvertDM2MRC = new JPanel();
+  private JCheckBox chkBoxUniqueHeaders =
     new JCheckBox("Digital Micrograph files have unique headers");
-  BeveledBorder borderDM2MRC =
+  private BeveledBorder borderDM2MRC =
     new BeveledBorder("Digital Micrograph Conversion");
 
-  JPanel panelCCDEraser = new JPanel();
-  BeveledBorder borderCCDEraser = new BeveledBorder("CCD Eraser");
-  CCDEraserPanel panelCCDEraserA = new CCDEraserPanel("Axis: A");
-  CCDEraserPanel panelCCDEraserB = new CCDEraserPanel("Axis: B");
+  CCDEraserPanel panelCCDEraser = new CCDEraserPanel();
+  private JButton buttonCreateModel =
+    new JButton("<html><b>Create replacement model using imod</b>");
+  private JButton buttonErase = new JButton("<html><b>Erase pixels</b>");
 
-  public PreProcessingDialog(ApplicationManager appManager) {
-    super(appManager);
+  public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
+    super(appManager, axisID);
+    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    setTitle("eTomo Pre-processing: " + applicationManager.getFilesetName());
 
-    //
     //  Build the digital micrograph panel
-    //
-    panelConvertDM2MRC.setLayout(new FlowLayout());
+    panelConvertDM2MRC.setLayout(
+      new BoxLayout(panelConvertDM2MRC, BoxLayout.Y_AXIS));
     panelConvertDM2MRC.setBorder(borderDM2MRC.getBorder());
     panelConvertDM2MRC.add(textDM2MRC);
     panelConvertDM2MRC.add(Box.createRigidArea(FixedDim.x20_y0));
@@ -73,75 +83,53 @@ public class PreProcessingDialog extends ProcessDialog {
     // applicationManager.isDigitalMicrographData();
     disableDM2MRC();
 
-    //
-    //  Build the CCD eraser panel
-    //
-    panelCCDEraser.setLayout(new BoxLayout(panelCCDEraser, BoxLayout.X_AXIS));
-    panelCCDEraser.setBorder(borderCCDEraser.getBorder());
-    panelCCDEraser.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelCCDEraser.add(panelCCDEraserA.getPanel());
-    panelCCDEraser.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelCCDEraser.add(panelCCDEraserB.getPanel());
-    panelCCDEraser.add(Box.createRigidArea(FixedDim.x5_y0));
-
-    //
     //  Build the base panel
-    //
     buttonExecute.setText("Done");
+    panelConvertDM2MRC.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(panelConvertDM2MRC);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(panelCCDEraser);
+
+    rootPanel.add(panelCCDEraser.getContainer());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+
+    buttonCreateModel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonCreateModel.setPreferredSize(FixedDim.button2Line);
+    buttonCreateModel.setMaximumSize(FixedDim.button2Line);
+    rootPanel.add(buttonCreateModel);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+
+    buttonErase.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonErase.setPreferredSize(FixedDim.button2Line);
+    buttonErase.setMaximumSize(FixedDim.button2Line);
+
+    rootPanel.add(buttonErase);
+
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //
     //  Bind the button action adapters to their listeners
-    //
-    panelCCDEraserA.setButtonCreateModelActionListener(
-      new PreProcDialogCreateModelAActionAdapter(this));
+    buttonCreateModel.addActionListener(new PreProcessingActionListener(this));
+    buttonErase.addActionListener(new PreProcessingActionListener(this));
 
-    panelCCDEraserB.setButtonCreateModelActionListener(
-      new PreProcDialogCreateModelBActionAdapter(this));
-
-    panelCCDEraserA.setButtonErasePixelsActionListener(
-      new PreProcDialogErasePixelsAActionAdapter(this));
-
-    panelCCDEraserB.setButtonErasePixelsActionListener(
-      new PreProcDialogErasePixelsBActionAdapter(this));
+    setToolTipText();
 
     //  Set the default advanced state for the window, this also executes
-    // pack()
     updateAdvanced();
   }
 
   /**
    * Set the parameters for the specified CCD eraser panel
    */
-  public void setCCDEraserParams(
-    ConstCCDEraserParam ccdEraserParams,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      panelCCDEraserB.setParameters(ccdEraserParams);
-    }
-    else {
-      panelCCDEraserA.setParameters(ccdEraserParams);
-    }
+  public void setCCDEraserParams(ConstCCDEraserParam ccdEraserParams) {
+    panelCCDEraser.setParameters(ccdEraserParams);
   }
 
   /**
    * Get the input parameters from the dialog box.
    */
-  public void getCCDEraserParams(
-    CCDEraserParam ccdEraserParams,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      panelCCDEraserB.getParameters(ccdEraserParams);
-    }
-    else {
-      panelCCDEraserA.getParameters(ccdEraserParams);
-    }
+  public void getCCDEraserParams(CCDEraserParam ccdEraserParams) {
+    panelCCDEraser.getParameters(ccdEraserParams);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -153,13 +141,8 @@ public class PreProcessingDialog extends ProcessDialog {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    panelCCDEraserA.setAdvanced(isAdvanced);
-    panelCCDEraserB.setAdvanced(isAdvanced);
-    pack();
-  }
-  
-  public void setEnabledB(boolean state) {
-    panelCCDEraserB.setVisible(state);
+    panelCCDEraser.setAdvanced(isAdvanced);
+    applicationManager.packMainWindow();
   }
 
   private void disableDM2MRC() {
@@ -167,28 +150,14 @@ public class PreProcessingDialog extends ProcessDialog {
     chkBoxUniqueHeaders.setSelected(false);
   }
 
-  //
-  //  Button action methods
-  //
-  void buttonCreateModelA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.imodErase(AxisID.FIRST);
+  //  Button action method
+  void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(buttonCreateModel.getActionCommand())) {
+      applicationManager.imodErase(axisID);
     }
-    else {
-      applicationManager.imodErase(AxisID.ONLY);
-    }
-  }
-
-  void buttonCreateModelB(ActionEvent event) {
-    applicationManager.imodErase(AxisID.SECOND);
-  }
-
-  void buttonErasePixelsA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.eraser(AxisID.FIRST);
-    }
-    else {
-      applicationManager.eraser(AxisID.ONLY);
+    else if (command.equals(buttonErase.getActionCommand())) {
+      applicationManager.eraser(axisID);
     }
   }
 
@@ -201,71 +170,42 @@ public class PreProcessingDialog extends ProcessDialog {
   //
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.donePreProcDialog();
+    applicationManager.donePreProcDialog(axisID);
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.donePreProcDialog();
+    applicationManager.donePreProcDialog(axisID);
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     exitState = DialogExitState.EXECUTE;
-    applicationManager.donePreProcDialog();
+    applicationManager.donePreProcDialog(axisID);
+  }
+
+  private void setToolTipText() {
+    String line1, line2, line3, line4, line5, line6, line7;
+    line1 = "<html>This button will open imod with the current CCD erase<br>";
+    line2 = "model.  This will allow you to specify additional pixels and<br>";
+    line3 = "regions to be replaced with interpolated values.";
+    buttonCreateModel.setToolTipText(line1 + line2 + line3);
+
+    line1 = "<html>This button will execute the specified erase command<br>";
+    line2 = "applying the erase model created in the previous step.";
+    buttonErase.setToolTipText(line1 + line2);
   }
 }
 
-//
-//  Action adapters
-//
-class PreProcDialogCreateModelAActionAdapter implements ActionListener {
+//  Action listener
+class PreProcessingActionListener implements ActionListener {
 
   PreProcessingDialog adaptee;
 
-  PreProcDialogCreateModelAActionAdapter(PreProcessingDialog adaptee) {
+  PreProcessingActionListener(PreProcessingDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonCreateModelA(event);
-  }
-}
-
-class PreProcDialogCreateModelBActionAdapter implements ActionListener {
-
-  PreProcessingDialog adaptee;
-
-  PreProcDialogCreateModelBActionAdapter(PreProcessingDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonCreateModelB(event);
-  }
-}
-
-class PreProcDialogErasePixelsAActionAdapter implements ActionListener {
-
-  PreProcessingDialog adaptee;
-
-  PreProcDialogErasePixelsAActionAdapter(PreProcessingDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonErasePixelsA(event);
-  }
-}
-
-class PreProcDialogErasePixelsBActionAdapter implements ActionListener {
-
-  PreProcessingDialog adaptee;
-
-  PreProcDialogErasePixelsBActionAdapter(PreProcessingDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonErasePixelsB(event);
+    adaptee.buttonAction(event);
   }
 }

@@ -24,6 +24,16 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.7  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.6  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -52,128 +62,81 @@ public class TomogramPositioningDialog
     "$Id$";
 
   private JPanel panelPosition = new JPanel();
-  private JPanel panelPositionA = new JPanel();
-  private BeveledBorder borderA = new BeveledBorder("Axis: A");
+  private BeveledBorder border = new BeveledBorder("Tomogram Positioning");
 
-  private LabeledTextField ltfSampleTomoThicknessA =
+  private LabeledTextField ltfSampleTomoThickness =
     new LabeledTextField("Sample tomogram thickness: ");
-  private JToggleButton buttonSampleA =
+  private JToggleButton buttonSample =
     new JToggleButton("<html><b>Create sample tomograms</b>");
 
-  private JToggleButton buttonCreateBoundaryA =
+  private JToggleButton buttonCreateBoundary =
     new JToggleButton("<html><b>Create boundary models</b>");
 
-  private JToggleButton buttonTomopitchA =
+  private JToggleButton buttonTomopitch =
     new JToggleButton("<html><b>Execute tomopitch</b>");
 
-  private LabeledTextField ltfTiltAngleOffsetA =
+  private LabeledTextField ltfTiltAngleOffset =
     new LabeledTextField("Tilt angle offset: ");
-  private LabeledTextField ltfTiltAxisZShiftA =
+  private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Tilt axis z shift: ");
-  private LabeledTextField ltfTiltAxisXShiftA =
+  private LabeledTextField ltfTiltAxisXShift =
     new LabeledTextField("Tilt axis x shift: ");
-  private JToggleButton buttonAlignA =
+  private JToggleButton buttonAlign =
     new JToggleButton("<html><b>Create final alignment</b>");
 
-  private JPanel panelPositionB = new JPanel();
-  private BeveledBorder borderB = new BeveledBorder("Axis: B");
-
-  private LabeledTextField ltfSampleTomoThicknessB =
-    new LabeledTextField("Sample tomogram thickness: ");
-  private JToggleButton buttonSampleB =
-    new JToggleButton("<html><b>Create sample tomograms</b>");
-
-  private JToggleButton buttonCreateBoundaryB =
-    new JToggleButton("<html><b>Create boundary models</b>");
-
-  private JToggleButton buttonTomopitchB =
-    new JToggleButton("<html><b>Execute tomopitch</b>");
-
-  private LabeledTextField ltfTiltAngleOffsetB =
-    new LabeledTextField("Tilt angle offset: ");
-  private LabeledTextField ltfTiltAxisZShiftB =
-    new LabeledTextField("Tilt axis z shift: ");
-  private LabeledTextField ltfTiltAxisXShiftB =
-    new LabeledTextField("Tilt axis x shift: ");
-  private JToggleButton buttonAlignB =
-    new JToggleButton("<html><b>Create final alignment</b>");
-
-  public TomogramPositioningDialog(ApplicationManager appMgr) {
-    super(appMgr);
+  public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
+    super(appMgr, axisID);
+    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    setTitle("eTomo Tomogram Position: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
 
-    ltfSampleTomoThicknessA.setTextPreferredSize(new Dimension(50, 20));
-    buttonSampleA.setAlignmentX(0.5F);
-    buttonCreateBoundaryA.setAlignmentX(0.5F);
-    buttonTomopitchA.setAlignmentX(0.5F);
-    buttonAlignA.setAlignmentX(0.5F);
+    ltfSampleTomoThickness.setTextPreferredSize(new Dimension(50, 20));
+    buttonSample.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonSample.setPreferredSize(FixedDim.button2Line);
+    buttonSample.setMaximumSize(FixedDim.button2Line);
 
-    buttonSampleA.addActionListener(new PositioningDialogSampleA(this));
-    buttonCreateBoundaryA.addActionListener(
-      new PositioningDialogCreateBoundaryA(this));
-    buttonTomopitchA.addActionListener(new PositioningDialogTomopitchA(this));
-    buttonAlignA.addActionListener(new PositioningDialogFinalAlignA(this));
+    buttonCreateBoundary.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonCreateBoundary.setPreferredSize(FixedDim.button2Line);
+    buttonCreateBoundary.setMaximumSize(FixedDim.button2Line);
 
-    ltfSampleTomoThicknessB.setTextPreferredSize(new Dimension(50, 20));
-    buttonSampleB.setAlignmentX(0.5F);
-    buttonCreateBoundaryB.setAlignmentX(0.5F);
-    buttonTomopitchB.setAlignmentX(0.5F);
-    buttonAlignB.setAlignmentX(0.5F);
+    buttonTomopitch.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonTomopitch.setPreferredSize(FixedDim.button2Line);
+    buttonTomopitch.setMaximumSize(FixedDim.button2Line);
 
-    buttonSampleB.addActionListener(new PositioningDialogSampleB(this));
-    buttonCreateBoundaryB.addActionListener(
-      new PositioningDialogCreateBoundaryB(this));
-    buttonTomopitchB.addActionListener(new PositioningDialogTomopitchB(this));
-    buttonAlignB.addActionListener(new PositioningDialogFinalAlignB(this));
+    buttonAlign.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonAlign.setPreferredSize(FixedDim.button2Line);
+    buttonAlign.setMaximumSize(FixedDim.button2Line);
+
+    // Bind the buttons to the action listener
+    TomogramPositioningActionListener tomogramPositioningActionListener =
+      new TomogramPositioningActionListener(this);
+    buttonSample.addActionListener(tomogramPositioningActionListener);
+    buttonCreateBoundary.addActionListener(tomogramPositioningActionListener);
+    buttonTomopitch.addActionListener(tomogramPositioningActionListener);
+    buttonAlign.addActionListener(tomogramPositioningActionListener);
 
     //  Create the primary panels
-    panelPositionA.setBorder(borderA.getBorder());
-    panelPositionA.setLayout(new BoxLayout(panelPositionA, BoxLayout.Y_AXIS));
+    panelPosition.setBorder(border.getBorder());
+    panelPosition.setLayout(new BoxLayout(panelPosition, BoxLayout.Y_AXIS));
 
-    panelPositionA.add(ltfSampleTomoThicknessA.getContainer());
-    panelPositionA.add(Box.createVerticalGlue());
-    panelPositionA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionA.add(buttonSampleA);
-    panelPositionA.add(Box.createVerticalGlue());
-    panelPositionA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionA.add(buttonCreateBoundaryA);
-    panelPositionA.add(Box.createVerticalGlue());
-    panelPositionA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionA.add(buttonTomopitchA);
-    panelPositionA.add(Box.createVerticalGlue());
-    panelPositionA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionA.add(ltfTiltAngleOffsetA.getContainer());
-    panelPositionA.add(ltfTiltAxisZShiftA.getContainer());
-    panelPositionA.add(ltfTiltAxisXShiftA.getContainer());
-    panelPositionA.add(buttonAlignA);
-
-    panelPositionB.setBorder(borderB.getBorder());
-    panelPositionB.setLayout(new BoxLayout(panelPositionB, BoxLayout.Y_AXIS));
-
-    panelPositionB.add(ltfSampleTomoThicknessB.getContainer());
-    panelPositionB.add(Box.createVerticalGlue());
-    panelPositionB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionB.add(buttonSampleB);
-    panelPositionB.add(Box.createVerticalGlue());
-    panelPositionB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionB.add(buttonCreateBoundaryB);
-    panelPositionB.add(Box.createVerticalGlue());
-    panelPositionB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionB.add(buttonTomopitchB);
-    panelPositionA.add(Box.createVerticalGlue());
-    panelPositionB.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPositionB.add(ltfTiltAngleOffsetB.getContainer());
-    panelPositionB.add(ltfTiltAxisZShiftB.getContainer());
-    panelPositionB.add(ltfTiltAxisXShiftB.getContainer());
-    panelPositionB.add(buttonAlignB);
+    panelPosition.add(ltfSampleTomoThickness.getContainer());
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(buttonSample);
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(buttonCreateBoundary);
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(buttonTomopitch);
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(ltfTiltAngleOffset.getContainer());
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(ltfTiltAxisZShift.getContainer());
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(ltfTiltAxisXShift.getContainer());
+    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelPosition.add(buttonAlign);
 
     //  Create dialog content pane
-    panelPosition.setLayout(new BoxLayout(panelPosition, BoxLayout.X_AXIS));
-    panelPosition.add(panelPositionA);
-    panelPosition.add(panelPositionB);
     rootPanel.add(panelPosition);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -184,91 +147,43 @@ public class TomogramPositioningDialog
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    // Set the default advanced dialog state, also executes pack()
+    // Set the default advanced dialog state
     updateAdvanced();
   }
 
   //  Set the tilt.com parameters that are editable in this dialog
-  public void setTiltParams(ConstTilt tiltParam, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      ltfSampleTomoThicknessB.setText(tiltParam.getThickness());
-    }
-    else {
-      ltfSampleTomoThicknessA.setText(tiltParam.getThickness());
-    }
+  public void setTiltParams(ConstTilt tiltParam) {
+    ltfSampleTomoThickness.setText(tiltParam.getThickness());
   }
 
   // Get the tilt.com parameters that 
-  public void getTiltParams(TiltParam tiltParam, AxisID axisID)
+  public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
+    try {
+      tiltParam.setThickness(
+        Integer.parseInt(ltfSampleTomoThickness.getText()));
+    }
+    catch (NumberFormatException except) {
+      String message = "Axis " + axisID.getExtension() + except.getMessage();
+      throw new NumberFormatException(message);
+    }
+  }
+
+  public void setAlignParams(ConstTiltalignParam tiltalignParam) {
+    ltfTiltAngleOffset.setText(tiltalignParam.getTiltAngleOffset());
+    ltfTiltAxisZShift.setText(tiltalignParam.getTiltAxisZShift());
+    ltfTiltAxisXShift.setText(tiltalignParam.getTiltAxisXShift());
+  }
+
+  public void getAlignParams(TiltalignParam tiltalignParam)
     throws NumberFormatException {
-    if (axisID == AxisID.SECOND) {
-      try {
-        tiltParam.setThickness(
-          Integer.parseInt(ltfSampleTomoThicknessB.getText()));
-      }
-      catch (NumberFormatException except) {
-        String message = "Axis B: " + except.getMessage();
-        throw new NumberFormatException(message);
-      }
-
+    try {
+      tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
+      tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShift.getText());
+      tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShift.getText());
     }
-    else {
-      try {
-        tiltParam.setThickness(
-          Integer.parseInt(ltfSampleTomoThicknessA.getText()));
-
-      }
-      catch (NumberFormatException except) {
-        String message = "Axis A: " + except.getMessage();
-        throw new NumberFormatException(message);
-      }
+    catch (NumberFormatException except) {
+      throw new NumberFormatException(except.getMessage());
     }
-  }
-
-  public void setAlignParams(
-    ConstTiltalignParam tiltalignParam,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      ltfTiltAngleOffsetB.setText(tiltalignParam.getTiltAngleOffset());
-      ltfTiltAxisZShiftB.setText(tiltalignParam.getTiltAxisZShift());
-      ltfTiltAxisXShiftB.setText(tiltalignParam.getTiltAxisXShift());
-    }
-    else {
-      ltfTiltAngleOffsetA.setText(tiltalignParam.getTiltAngleOffset());
-      ltfTiltAxisZShiftA.setText(tiltalignParam.getTiltAxisZShift());
-      ltfTiltAxisXShiftA.setText(tiltalignParam.getTiltAxisXShift());
-    }
-  }
-
-  public void getAlignParams(TiltalignParam tiltalignParam, AxisID axisID)
-    throws NumberFormatException {
-    if (axisID == AxisID.SECOND) {
-      try {
-        tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetB.getText());
-        tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftB.getText());
-        tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftB.getText());
-      }
-      catch (NumberFormatException except) {
-        String message = "Axis B: " + except.getMessage();
-        throw new NumberFormatException(message);
-      }
-
-    }
-    else {
-      try {
-        tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetA.getText());
-        tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftA.getText());
-        tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftA.getText());
-      }
-      catch (NumberFormatException except) {
-        String message = "Axis A: " + except.getMessage();
-        throw new NumberFormatException(message);
-      }
-    }
-  }
-
-  public void setEnabledB(boolean state) {
-    panelPositionB.setVisible(state);
   }
 
   /**
@@ -281,26 +196,12 @@ public class TomogramPositioningDialog
 
     String[] logFileLabel;
     String[] logFile;
-    if (applicationManager.isDualAxis()) {
-      logFileLabel = new String[4];
-      logFileLabel[0] = "samplea";
-      logFileLabel[1] = "sampleb";
-      logFileLabel[2] = "tomopitcha";
-      logFileLabel[3] = "tomopitchb";
-      logFile = new String[4];
-      logFile[0] = "samplea.log";
-      logFile[1] = "sampleb.log";
-      logFile[2] = "tomopitcha.log";
-      logFile[3] = "tomopitchb.log";
-    }
-    else {
-      logFileLabel = new String[2];
-      logFileLabel[0] = "sample";
-      logFileLabel[1] = "tomopitch";
-      logFile = new String[2];
-      logFile[0] = "sample.log";
-      logFile[1] = "tomopitch.log";
-    }
+    logFileLabel = new String[2];
+    logFileLabel[0] = "sample" + axisID.getExtension();
+    logFileLabel[1] = "tomopitch" + axisID.getExtension();
+    logFile = new String[2];
+    logFile[0] = "sample" + axisID.getExtension() + ".log";
+    logFile[1] = "tomopitch" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =
       new ContextPopup(
@@ -314,72 +215,42 @@ public class TomogramPositioningDialog
   }
 
   //  Button action handler methods
-  void buttonSampleA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.createSample(AxisID.FIRST);
-    }
-    else {
-      applicationManager.createSample(AxisID.ONLY);
-    }
-  }
 
-  void buttonCreateBoundaryA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.imodSample(AxisID.FIRST);
-    }
-    else {
-      applicationManager.imodSample(AxisID.ONLY);
-    }
-  }
+  void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
 
-  void buttonTomopitchA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.tomopitch(AxisID.FIRST);
+    if (command.equals(buttonSample.getActionCommand())) {
+      applicationManager.createSample(axisID);
     }
-    else {
-      applicationManager.tomopitch(AxisID.ONLY);
+
+    else if (command.equals(buttonCreateBoundary.getActionCommand())) {
+      applicationManager.imodSample(axisID);
     }
-  }
 
-  void buttonFinalAlignA(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.finalAlign(AxisID.FIRST);
+    else if (command.equals(buttonTomopitch.getActionCommand())) {
+      applicationManager.tomopitch(axisID);
     }
-    else {
-      applicationManager.finalAlign(AxisID.ONLY);
+
+    else if (command.equals(buttonAlign.getActionCommand())) {
+      applicationManager.finalAlign(axisID);
     }
-  }
 
-  void buttonSampleB(ActionEvent event) {
-    applicationManager.createSample(AxisID.SECOND);
-  }
-
-  void buttonCreateBoundaryB(ActionEvent event) {
-    applicationManager.imodSample(AxisID.SECOND);
-  }
-
-  void buttonTomopitchB(ActionEvent event) {
-    applicationManager.tomopitch(AxisID.SECOND);
-  }
-
-  void buttonFinalAlignB(ActionEvent event) {
-    applicationManager.finalAlign(AxisID.SECOND);
   }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramPositioningDialog();
+    applicationManager.doneTomogramPositioningDialog(axisID);
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramPositioningDialog();
+    applicationManager.doneTomogramPositioningDialog(axisID);
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramPositioningDialog();
+    applicationManager.doneTomogramPositioningDialog(axisID);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -388,115 +259,23 @@ public class TomogramPositioningDialog
   }
 
   void updateAdvanced() {
-    ltfTiltAxisXShiftA.setVisible(isAdvanced);
-    ltfTiltAxisXShiftB.setVisible(isAdvanced);
-    pack();
+    ltfTiltAxisXShift.setVisible(isAdvanced);
+    applicationManager.packMainWindow();
   }
 }
 
 //
 //  Action listener adapters
 //
-class PositioningDialogSampleA implements ActionListener {
+class TomogramPositioningActionListener implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
-  PositioningDialogSampleA(TomogramPositioningDialog adaptee) {
+  TomogramPositioningActionListener(TomogramPositioningDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonSampleA(event);
-  }
-}
-
-class PositioningDialogCreateBoundaryA implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogCreateBoundaryA(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonCreateBoundaryA(event);
-  }
-}
-
-class PositioningDialogTomopitchA implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogTomopitchA(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTomopitchA(event);
-  }
-}
-
-class PositioningDialogFinalAlignA implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogFinalAlignA(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonFinalAlignA(event);
-  }
-}
-
-class PositioningDialogSampleB implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogSampleB(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonSampleB(event);
-  }
-}
-
-class PositioningDialogCreateBoundaryB implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogCreateBoundaryB(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonCreateBoundaryB(event);
-  }
-}
-
-class PositioningDialogTomopitchB implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogTomopitchB(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTomopitchB(event);
-  }
-}
-
-class PositioningDialogFinalAlignB implements ActionListener {
-
-  TomogramPositioningDialog adaptee;
-
-  PositioningDialogFinalAlignB(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonFinalAlignB(event);
+    adaptee.buttonAction(event);
   }
 }

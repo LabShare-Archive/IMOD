@@ -12,10 +12,17 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:37:54  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ViewType {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -23,10 +30,8 @@ public class ViewType {
     this.name = name;
   }
 
-  public static final ViewType SINGLE_VIEW = new
-    ViewType("Single View");
-  public static final ViewType MONTAGE = new
-    ViewType("Montage");
+  public static final ViewType SINGLE_VIEW = new ViewType("Single View");
+  public static final ViewType MONTAGE = new ViewType("Montage");
 
   /**
    * Returns a string representation of the object.
@@ -41,10 +46,10 @@ public class ViewType {
    * string is not one of the possibilities from toString().
    */
   public static ViewType fromString(String name) {
-    if(name.compareToIgnoreCase(SINGLE_VIEW.toString()) == 0) {
+    if (name.compareToIgnoreCase(SINGLE_VIEW.toString()) == 0) {
       return SINGLE_VIEW;
     }
-    if(name.compareToIgnoreCase(MONTAGE.toString()) == 0) {
+    if (name.compareToIgnoreCase(MONTAGE.toString()) == 0) {
       return MONTAGE;
     }
     return null;

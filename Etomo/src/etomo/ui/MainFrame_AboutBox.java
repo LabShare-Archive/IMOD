@@ -17,6 +17,13 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -41,8 +48,8 @@ public class MainFrame_AboutBox extends JDialog implements ActionListener {
   FlowLayout flowLayout1 = new FlowLayout();
   GridLayout gridLayout1 = new GridLayout();
   String product = "IMOD GUI";
-  String version = "0.1";
-  String copyright = "Copyright (c) 2002, University of Colorado";
+  String version = "0.5";
+  String copyright = "Copyright (c) 2002,2003 University of Colorado";
   String comments = "";
   public MainFrame_AboutBox(Frame parent) {
     super(parent);

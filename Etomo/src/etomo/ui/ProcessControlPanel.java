@@ -19,6 +19,13 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -28,42 +35,40 @@ public class ProcessControlPanel {
     "$Id$";
 
   static Dimension dimPanelProcess = new Dimension(80, 130);
-  static String[] states = { "Not started", "In progress", "Complete" };
+  static String[] textStates = { "Not started", "In progress", "Complete" };
+  static Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
+  static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);
+  static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
+  static Color[] colorState =
+    { colorNotStarted, colorInProgress, colorComplete };
 
-  private JPanel panelBase = new JPanel();
-  private JTextArea textArea = new JTextArea();
-  private JButton buttonRun = new JButton("Open..");
+  private String name;
+  private JPanel panelRoot = new JPanel();
+  private JButton buttonRun = new JButton();
 
   private JPanel panelState;
-  private HighlightList highlightState = new HighlightList(states);
+  private ColoredStateText highlightState =
+    new ColoredStateText(textStates, colorState);
 
   ProcessControlPanel(String label) {
-
-    panelBase.setLayout(new BoxLayout(panelBase, BoxLayout.Y_AXIS));
-    //panelBase.setPreferredSize(dimPanelProcess);
-    //panelBase.setMaximumSize(dimPanelProcess);
-
-    textArea.setRows(2);
-    textArea.setText(label);
-    textArea.setBackground(panelBase.getBackground());
-    textArea.setEditable(false);
-    panelBase.add(textArea);
-
-    panelState = highlightState.getPanel();
-    panelState.setAlignmentX((float) 0.5);
+    name = label;
+    panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.Y_AXIS));
     highlightState.setSelected(0);
-    panelBase.add(panelState);
+    updateLabel();
+    panelRoot.add(buttonRun);
+    buttonRun.setActionCommand(label);
+  }
 
-    buttonRun.setAlignmentX((float) 0.5);
-    panelBase.add(buttonRun);
+  String getName() {
+    return name;
   }
 
   void setButtonActionListener(ActionListener actionListener) {
     buttonRun.addActionListener(actionListener);
   }
 
-  JPanel getPanel() {
-    return panelBase;
+  JPanel getContainer() {
+    return panelRoot;
   }
 
   void setState(ProcessState state) {
@@ -76,17 +81,26 @@ public class ProcessControlPanel {
     if (state == ProcessState.COMPLETE) {
       highlightState.setSelected(2);
     }
+    updateLabel();
+  }
+
+  private void updateLabel() {
+    buttonRun.setText(
+      "<HTML><CENTER>"
+        + name
+        + "<br>"
+        + highlightState.getSelectedText()
+        + "</CENTER>");
+    buttonRun.setForeground(highlightState.getSelectedColor());
   }
 
   void addMouseListener(MouseListener listener) {
-    panelBase.addMouseListener(listener);
-    textArea.addMouseListener(listener);
+    panelRoot.addMouseListener(listener);
     buttonRun.addMouseListener(listener);
   }
 
   void setToolTipText(String text) {
-    panelBase.setToolTipText(text);
-    textArea.setToolTipText(text);
+    panelRoot.setToolTipText(text);
     buttonRun.setToolTipText(text);
   }
 }

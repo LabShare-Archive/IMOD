@@ -19,6 +19,12 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.4  2002/10/09 17:28:37  rickg
+ * <p> Fixed javadoc tag
+ * <p>
  * <p> Revision 1.3  2002/10/08 23:59:22  rickg
  * <p> Added isPatchBoundarySet method
  * <p> Added basic isValid method
@@ -36,7 +42,7 @@ public class ConstCombineParams {
     "$Id$";
 
   protected String revisionNumber = "1.0";
-  
+
   protected boolean matchBtoA = true;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   protected StringList fiducialMatchListA = new StringList(0);
@@ -54,7 +60,7 @@ public class ConstCombineParams {
   protected boolean manualCleanup = false;
 
   protected ArrayList invalidReasons = new ArrayList();
-  
+
   public ConstCombineParams() {
 
   }
@@ -84,47 +90,47 @@ public class ConstCombineParams {
     //  Clear any previous reasons from the list
     invalidReasons.clear();
 
-    if(patchXMin < 1) {
+    if (patchXMin < 1) {
       valid = false;
       invalidReasons.add("X min value is less than 1");
     }
-    if(patchXMax < 1) {
+    if (patchXMax < 1) {
       valid = false;
       invalidReasons.add("X max value is less than 1");
     }
-    if(patchXMin > patchXMax) {
+    if (patchXMin > patchXMax) {
       valid = false;
       invalidReasons.add("X min value is greater than the X max value");
     }
 
-    if(patchYMin < 1) {
+    if (patchYMin < 1) {
       valid = false;
       invalidReasons.add("Y min value is less than 1");
     }
-    if(patchYMax < 1) {
+    if (patchYMax < 1) {
       valid = false;
       invalidReasons.add("Y max value is less than 1");
     }
-    if(patchYMin > patchYMax) {
+    if (patchYMin > patchYMax) {
       valid = false;
       invalidReasons.add("Y min value is greater than the Y max value");
     }
 
-    if(patchZMin < 1) {
+    if (patchZMin < 1) {
       valid = false;
       invalidReasons.add("Z min value is less than 1");
     }
-    if(patchZMax < 1) {
+    if (patchZMax < 1) {
       valid = false;
       invalidReasons.add("ZX max value is less than 1");
     }
-    if(patchZMin > patchZMax) {
+    if (patchZMin > patchZMax) {
       valid = false;
       invalidReasons.add("Z min value is greater than the Z max value");
     }
     return valid;
   }
-  
+
   /**
    * Returns the reasons the attribute values are invalid as a string array.
    */
@@ -135,7 +141,7 @@ public class ConstCombineParams {
   public String getRevisionNumber() {
     return revisionNumber;
   }
-  
+
   public boolean getMatchBtoA() {
     return matchBtoA;
   }

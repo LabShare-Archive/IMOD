@@ -12,12 +12,19 @@ package etomo.comscript;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  * <p>Title: </p>
  */
 
 public class StringList {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   String[] elements;
 
   public StringList(int nElements) {
@@ -29,7 +36,7 @@ public class StringList {
    */
   public StringList(StringList src) {
     elements = new String[src.getNElements()];
-    for(int i = 0; i < elements.length; i++) {
+    for (int i = 0; i < elements.length; i++) {
       elements[i] = src.get(i);
     }
   }
@@ -52,11 +59,11 @@ public class StringList {
   }
 
   public String toString() {
-    if(elements == null || elements.length == 0) {
+    if (elements == null || elements.length == 0) {
       return "";
     }
     StringBuffer buffer = new StringBuffer();
-    for(int i = 0; i < elements.length; i++) {
+    for (int i = 0; i < elements.length; i++) {
       buffer.append(elements[i]);
       buffer.append(" ");
     }
@@ -68,7 +75,7 @@ public class StringList {
    */
   public void parseString(String newList) {
     //  If the string is only white space set the StringList to the null set
-    if(newList.matches("\\s*")){
+    if (newList.matches("\\s*")) {
       elements = new String[0];
       return;
     }

@@ -6,6 +6,7 @@ import javax.swing.*;
 import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -20,6 +21,12 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.3  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -33,7 +40,7 @@ public class BeadtrackPanel implements ContextMenu {
     "$Id$";
 
   private JPanel panelBeadtrack = new JPanel();
-  private String logSuffix;
+  private AxisID axisID;
 
   private LabeledTextField ltfInputImage =
     new LabeledTextField("Input image file: ");
@@ -85,20 +92,13 @@ public class BeadtrackPanel implements ContextMenu {
   private LabeledTextField ltfDeletionParams =
     new LabeledTextField("Deletion residual parameters: ");
 
-  private JButton buttonTrack =
-    new JButton("<html><b>Track fiducial<br>seed model</b>");
-
   /**
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
    */
-  public BeadtrackPanel(String suffix) {
-    logSuffix = suffix;
+  public BeadtrackPanel(AxisID id) {
+    axisID = id;
     setToolTipText();
-
-    buttonTrack.setAlignmentX(0.5F);
-    buttonTrack.setPreferredSize(FixedDim.button2Line);
-    buttonTrack.setMaximumSize(FixedDim.button2Line);
 
     panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
 
@@ -129,14 +129,15 @@ public class BeadtrackPanel implements ContextMenu {
     panelBeadtrack.add(ltfSecondPassParams.getContainer());
     panelBeadtrack.add(ltfMeanResidChangeLimits.getContainer());
     panelBeadtrack.add(ltfDeletionParams.getContainer());
-    panelBeadtrack.add(buttonTrack);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     panelBeadtrack.addMouseListener(mouseAdapter);
-
   }
 
+  /**
+   * Set the field values for the panel from the ConstBeadtrackParam object
+   */
   public void setParameters(ConstBeadtrackParam beadtrackParams) {
     ltfInputImage.setText(beadtrackParams.getInputFile());
     ltfPiceListFile.setText(beadtrackParams.getPieceListFile());
@@ -170,6 +171,9 @@ public class BeadtrackPanel implements ContextMenu {
     ltfDeletionParams.setText(beadtrackParams.getDeletionParams());
   }
 
+  /**
+   * Get the field values from the panel filling in the BeadtrackParam object
+   */
   public void getParameters(BeadtrackParam beadtrackParams)
     throws FortranInputSyntaxException {
     String badParameter = "";
@@ -307,7 +311,7 @@ public class BeadtrackPanel implements ContextMenu {
     String[] manPage = { "beadtrack.html" };
     String[] logFileLabel = { "track" };
     String[] logFile = new String[1];
-    logFile[0] = "track" + logSuffix + ".log";
+    logFile[0] = "track" + axisID.getExtension() + ".log";
     //    ContextPopup contextPopup =
     new ContextPopup(
       panelBeadtrack,
@@ -319,13 +323,7 @@ public class BeadtrackPanel implements ContextMenu {
       logFile);
   }
 
-  public void setButtonTrackActionListener(ActionListener actionAdapter) {
-    buttonTrack.addActionListener(actionAdapter);
-  }
-
-  //
   //  ToolTip string setup
-  //
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7;
     line1 = "<html>New text<br>";

@@ -12,7 +12,10 @@ package etomo.util;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/10/03 19:16:02  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 public class InvalidParameterException extends Exception {
 

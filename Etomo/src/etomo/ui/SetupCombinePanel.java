@@ -7,7 +7,6 @@ import etomo.comscript.CombineParams;
 
 import java.awt.Checkbox;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
@@ -25,6 +24,12 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2003/01/08 21:40:46  rickg
+ * <p> Added transferfid.log to the context menu
+ * <p>
  * <p> Revision 1.5  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -85,10 +90,6 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfPatchRegionModel =
     new LabeledTextField("Patch region model file: ");
 
-  private JPanel panelRunIMOD = new JPanel();
-  private JToggleButton buttonImodVolumeA = new JToggleButton("Imod volume A");
-  private JToggleButton buttonImodVolumeB = new JToggleButton("Imod volume B");
-
   private JPanel panelPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
   private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
@@ -103,8 +104,6 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfTempDirectory =
     new LabeledTextField("Temporary directory: ");
   private Checkbox chkManualCleanup = new Checkbox("Manual cleanup");
-
-  private JButton buttonCreate = new JButton("Create combine script");
 
   public SetupCombinePanel() {
 
@@ -153,11 +152,6 @@ public class SetupCombinePanel implements ContextMenu {
     panelPatchParams.add(rbLargePatch);
     panelPatchParams.add(ltfPatchRegionModel.getContainer());
 
-    panelRunIMOD.setLayout(new GridLayout(1, 2, 30, 10));
-    panelRunIMOD.add(buttonImodVolumeA);
-    panelRunIMOD.add(buttonImodVolumeB);
-    panelPatchParams.add(panelRunIMOD);
-
     panelPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
     panelPatchRegion.add(ltfXMin.getContainer());
     panelPatchRegion.add(ltfYMin.getContainer());
@@ -185,7 +179,6 @@ public class SetupCombinePanel implements ContextMenu {
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
     contentPane.add(panelTempDirectory);
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(buttonCreate);
     contentPane.add(Box.createVerticalGlue());
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
 
@@ -313,7 +306,7 @@ public class SetupCombinePanel implements ContextMenu {
     String[] manPagelabel = { "matchorwarp" };
     String[] manPage = { "matchorwarp.html" };
     String[] logFileLabel = { "transferfid" };
-    String[] logFile = {"transferfid.log" };
+    String[] logFile = { "transferfid.log" };
     ContextPopup contextPopup =
       new ContextPopup(
         contentPane,
@@ -324,40 +317,5 @@ public class SetupCombinePanel implements ContextMenu {
         logFileLabel,
         logFile);
 
-  }
-
-  /**
-   * Add an action listener for the Imod Volume A button
-   */
-  void addImodAActionListener(ActionListener actionListener) {
-    buttonImodVolumeA.addActionListener(actionListener);
-  }
-
-  /**
-   * Add an action listener for the Imod Volume B button
-   */
-  void addImodBActionListener(ActionListener actionListener) {
-    buttonImodVolumeB.addActionListener(actionListener);
-  }
-
-  /**
-   * Add an action listener to the create button
-   */
-  void addCreateActionListener(ActionListener actionListener) {
-    buttonCreate.addActionListener(actionListener);
-  }
-
-  public void sizePanels() {
-    System.out.println(panelToSelector.getSize());
-    System.out.println(panelFiducialParams.getSize());
-    System.out.println(panelPatchParams.getSize());
-    // Find the current maximum panel width and resize the relationship panel
-    // to that width
-    Dimension maxSize = panelFiducialParams.getSize();
-    Dimension toSelectorSize = panelToSelector.getSize();
-    toSelectorSize.width = (int) maxSize.width;
-    panelToSelector.setPreferredSize(toSelectorSize);
-    panelToSelector.setSize(toSelectorSize);
-    System.out.println(panelToSelector.getSize());
   }
 }
