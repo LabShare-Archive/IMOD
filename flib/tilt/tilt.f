@@ -2493,6 +2493,7 @@ C real number has occured in a field where an integer is expected.
 	CHARACTER ASTER*1,BLANK*1,CARD*80,TAGS(*)*20,upcase*80
 	DATA ASTER,BLANK/'*',' '/
 	integer*4 nchar,ktag,ipoint,istar,istart,i,iend,npoint
+	integer*4 lnblnk
 
 c	  DNM: switch from Q format to using LNBLNK
 c	  12/8/03: swallow blank lines
@@ -2690,6 +2691,9 @@ c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c
 c	  $Log$
+c	  Revision 3.21  2004/10/22 03:29:31  mast
+c	  Added z factor corrections and declarations for all routines
+c	
 c	  Revision 3.20  2004/10/13 05:49:32  mast
 c	  Fixed bug in Y positioning when falling back to old-style X tilting,
 c	  Fixed fallback strategies to go to old-style with cosine stretch,
