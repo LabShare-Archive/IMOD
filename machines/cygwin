@@ -239,7 +239,7 @@ echo CONFIG += CONSOLE >! $sendevent_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib libtrack.lib libifft.lib
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 RC_FILE = 3dmod.rc
