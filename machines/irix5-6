@@ -113,6 +113,10 @@ echo 'F77LIBS   = '                  >> $configure
 #echo "F77LIBS      = -lF77 -lU77 -lI77 -lisam" >> $configure
 echo 'LIBTRACKDEF   = -lftn'                  >> $configure
 
+# Tell Blendmont how big record items are
+#
+echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+
 set foptimization = $optimization
 if ($debug == true) then
 	set optimization = "-g -fullwarn -woff 1174,1552,3201"
@@ -199,6 +203,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.28  2005/01/17 19:33:04  mast
+#  Remove shell variable from configure
+#
 #  Revision 3.27  2004/11/22 00:20:11  mast
 #  Added Qt assistant
 #
