@@ -25,6 +25,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/01/08 01:39:09  sueh
+* <p> bug# 578 Changed the names of the statics used to make variables
+* <p> available in the Command interface.  Add GET_.  Updated Command
+* <p> interface.
+* <p>
 * <p> Revision 1.7  2004/12/08 21:21:06  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p> Changed statics SHIFT_IN_X_VALUE_NAME, etc to SHIFT_IN_X.
@@ -194,7 +199,7 @@ public class FinishjoinParam implements Command {
     ConstEtomoNumber sizeInY = metaData.getSizeInY();
     this.sizeInX = sizeInX.getInteger(true);
     this.sizeInY = sizeInY.getInteger(true);
-    if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
+    if (sizeInX.isUpdateCommand() || sizeInY.isUpdateCommand()) {
       options.add("-s");
       //both numbers must exist
       options.add(sizeInX.toString(true) + "," + sizeInY.toString(true));
@@ -204,7 +209,7 @@ public class FinishjoinParam implements Command {
     ConstEtomoNumber shiftInY = metaData.getShiftInY();
     this.shiftInX = shiftInX.getInteger(true);
     this.shiftInY = shiftInY.getInteger(true);
-    if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
+    if (shiftInX.isUpdateCommand() || shiftInY.isUpdateCommand()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
@@ -218,7 +223,7 @@ public class FinishjoinParam implements Command {
       options.add(metaData.getUseEveryNSlices().toString());
       ConstEtomoNumber binning = metaData.getTrialBinning();
       this.binning = binning.getInteger(true);
-      if (binning.isSetAndNotDefault()) {
+      if (binning.isUpdateCommand()) {
         options.add("-b");
         options.add(binning.toString());
       }

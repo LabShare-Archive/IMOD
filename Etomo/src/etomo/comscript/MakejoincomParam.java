@@ -30,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/08 01:39:40  sueh
+* <p> bug# 578 Updated Command interface.
+* <p>
 * <p> Revision 1.4  2004/12/08 21:21:27  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p>
@@ -141,9 +144,8 @@ public class MakejoincomParam implements Command {
         ConstEtomoNumber rotationAngleX = data.getRotationAngleX();
         ConstEtomoNumber rotationAngleY = data.getRotationAngleY();
         ConstEtomoNumber rotationAngleZ = data.getRotationAngleZ();
-        if (rotationAngleX.isSetAndNotDefault()
-            || rotationAngleY.isSetAndNotDefault()
-            || rotationAngleZ.isSetAndNotDefault()) {
+        if (rotationAngleX.isUpdateCommand() || rotationAngleY.isUpdateCommand()
+            || rotationAngleZ.isUpdateCommand()) {
           options.add("-rot");
           //all three numbers must exist
           options.add(rotationAngleX.toString(true) + ","
@@ -156,7 +158,7 @@ public class MakejoincomParam implements Command {
     options.add("-tmpext");
     options.add("rot");
     ConstEtomoNumber densityRefSection = metaData.getDensityRefSection();
-    if (densityRefSection.isSetAndNotDefault()) {
+    if (densityRefSection.isUpdateCommand()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
     }
