@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2003/04/16 22:18:17  rickg
+ * <p> Trimvol in progress
+ * <p>
  * <p> Revision 1.5  2003/04/16 00:14:40  rickg
  * <p> Trimvol in progress
  * <p>
@@ -78,7 +81,7 @@ public class TrimvolPanel {
 
   private JPanel pnlButton = new JPanel();
   private JButton btnImodFull = new JButton("<html><b>Imod full volume</b>");
-  private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
+  private JButton btnTrimvol = new JButton("<html><b>Trim volume</b>");
   private JButton btnImodTrim = new JButton("<html><b>Imod trimmed volume</b>");
 
   /**
@@ -152,7 +155,8 @@ public class TrimvolPanel {
     pnlTrimvol.add(cbSwapYZ);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
-
+    pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
+    
     RadioButtonActonListener radioButtonActonListener =
       new RadioButtonActonListener(this);
     rbScaleFixed.addActionListener(radioButtonActonListener);
@@ -288,8 +292,8 @@ public class TrimvolPanel {
   class ButtonActonListener implements ActionListener {
     TrimvolPanel listenee;
 
-    ButtonActonListener(TrimvolPanel TrimvolPanel) {
-      listenee = TrimvolPanel;
+    ButtonActonListener(TrimvolPanel trimvolPanel) {
+      listenee = trimvolPanel;
     }
 
     public void actionPerformed(ActionEvent event) {
