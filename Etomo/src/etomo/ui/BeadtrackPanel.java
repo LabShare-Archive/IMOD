@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/10/30 01:43:44  rickg
+ * <p> Bug# 338 Remapped context menu entries
+ * <p>
  * <p> Revision 2.3  2003/10/15 01:33:59  sueh
  * <p> Bug277 added tooltips
  * <p>
@@ -56,9 +59,6 @@ public class BeadtrackPanel {
 
   private LabeledTextField ltfInputImage =
     new LabeledTextField("Input image file: ");
-    //SUEH 274
-//  private LabeledTextField ltfPiceListFile =
-//    new LabeledTextField("Piece list file: ");
   private LabeledTextField ltfSeedModelFile =
     new LabeledTextField("Seed model file: ");
   private LabeledTextField ltfOutputModelFile =
@@ -288,7 +288,6 @@ public class BeadtrackPanel {
     //ltfTiltAngleGroupParams.setVisible(state);
     //ltfTiltAngleGroups.setVisible(state);
     //chkboxFillGaps.setVisible(state);
-//SUEH 274
     ltfInputImage.setVisible(state);
 //    ltfPiceListFile.setVisible(state);
     ltfSeedModelFile.setVisible(state);

@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/30 01:43:44  rickg
+ * <p> Bug# 338 Remapped context menu entries
+ * <p>
  * <p> Revision 2.5  2003/10/28 23:35:48  rickg
  * <p> Bug# 336 Context menu label capitalization
  * <p>
@@ -65,9 +68,6 @@ public class CrossCorrelationPanel implements ContextMenu {
   private LabeledTextField ltfInputFile = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputFile =
     new LabeledTextField("Output file: ");
-    //SUEH 272
-//  private LabeledTextField ltfPieceListFile =
-//    new LabeledTextField("Piece list file: ");
   private LabeledTextField ltfFilterParams =
     new LabeledTextField("Filter parameters: ");
   private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
@@ -116,8 +116,6 @@ public class CrossCorrelationPanel implements ContextMenu {
       tiltXcorrParams.getExcludeCentralPeak());
     ltfInputFile.setText(tiltXcorrParams.getInputFile());
     ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
-    //SUEH 272
-    //ltfPieceListFile.setText(tiltXcorrParams.getPieceListFile());
     ltfFilterParams.setText(tiltXcorrParams.getFilterParams());
     ltfTrim.setText(tiltXcorrParams.getTrim());
     ltfPadPercent.setText(tiltXcorrParams.getPadPercent());
@@ -134,8 +132,6 @@ public class CrossCorrelationPanel implements ContextMenu {
       cbExcludeCentralPeak.isSelected());
     tiltXcorrParams.setInputFile(ltfInputFile.getText());
     tiltXcorrParams.setOutputFile(ltfOutputFile.getText());
-    //SUEH 272
-    //tiltXcorrParams.setPieceListFile(ltfPieceListFile.getText());
     String currentParam = "unknown";
     try {
       currentParam = ltfFilterParams.getLabel();

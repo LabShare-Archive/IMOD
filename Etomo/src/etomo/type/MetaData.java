@@ -20,6 +20,13 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/08 22:03:21  sueh
+ * <p> Bug263
+ * <p> UI Changes
+ * <p> Removed data source from Setup dialog.  Removed setDataSource() from MetaData.
+ * <p> DataSource is always the default (CCD) in ConstMetaData
+ * <p> Grayed out ViewType.
+ * <p>
  * <p> Revision 2.6  2003/09/26 19:46:16  sueh
  * <p> bug223 removed task marks
  * <p>
@@ -116,7 +123,7 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setBackupDirectory(String backupDir) {
     backupDirectory = backupDir.trim();
   }
-//SUEH 263
+
   public void setAxisType(AxisType at) {
     axisType = at;
   }
