@@ -640,6 +640,8 @@ int ivwFlip(ImodView *vw)
   ozmouse = (int)(vw->zmouse + 0.5f);
 
   wprint("Flipping image data...");
+  imod_info_input();
+
   /* DNM: restore data before flipping, as well as resetting when done */
   iprocRethink(vw);
   nx = vw->xsize;
@@ -693,6 +695,7 @@ int ivwFlip(ImodView *vw)
           tflag[nextk] = 1;
           k = nextk;
         }while(nextk != kstore);
+        imod_info_input();
       }
       free(tflag);
       free(trow);
@@ -722,11 +725,13 @@ int ivwFlip(ImodView *vw)
       }
                
       /* copy data */
-      for(k = 0; k < nz; k++)
+      for(k = 0; k < nz; k++) {
         for(j = 0; j < ny; j++)
           for(i = 0; i < nx; i++)
             idata[k][i + (j * nx)] 
               = vw->idata[j][i + (k * nx)];
+        imod_info_input();
+      }
                
       for(k = 0; k < vw->zsize; k++)
         free(vw->idata[k]);
@@ -2077,6 +2082,10 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.9  2003/06/27 19:28:04  mast
+Made the extra object when initializing view, and added function to
+pass the extra object.
+
 Revision 4.8  2003/05/06 02:19:13  mast
 Made ivwPointVisible use proper rounding in test
 
