@@ -7,7 +7,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/06/04 02:55:43  mast
+Creation for making libdiaqt a DLL
+
 */
+#include "imodconfig.h"
 
 #ifndef DLLEXPORT_H
 #define DLLEXPORT_H
