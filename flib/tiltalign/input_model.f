@@ -10,6 +10,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/20 15:55:04  mast
+c	  Fixed model output so that it works properly with points assigned to
+c	  two surfaces, and with multiple objects; also had it set object type
+c	  to scattered points and set point size appropriately.
+c	
 c	  Revision 3.1  2002/05/07 02:07:12  mast
 c	  Changes to make things work well with a subset of views
 c	
@@ -28,6 +33,7 @@ c
 c
 	character*80 solufile,anglefile,pointfile
 	logical stereopair,exist,readw_or_imod
+	integer getimodhead,getimodscales,getimodmaxes
 c
 	include 'model.inc'
 c
@@ -36,18 +42,49 @@ c
 c	  
 	integer*4 nzlist,iobject,ninobj,ipt,iz,i,j,itmp,minzval,ifspecify
 	integer*4 ninoutlist,ivstr,ivend,ivinc,ifonlist,ibase,nprojtmp
-	integer*4 inlist,mode
+	integer*4 inlist,mode,ierr,ifflip
 	real*4 xorig,yorig,zorig,xdelt,ydelt,dmin,dmax,dmean
+	real*4 xyscal,zscal,xofs,yofs,zofs
 c
 c	  read model in
 c
-10	write(*,'(1x,a,$)')'Model file: '
+	write(*,'(1x,a,$)')'Model file: '
 	read(5,'(a)')modelfile
 	exist=readw_or_imod(modelfile)
-	if(.not.exist)then
-	  print *,'bad model file, try again'
-	  go to 10
+	if(.not.exist)call errorexit('READING MODEL FILE', 0)
+c
+c	  get dimensions of file and header info on origin and delta
+c
+	print *,'Image file with matching header info'//
+     &	    ' (Return to enter nx,ny directly)'
+	read(5,'(a)')modelfile
+c
+	if(modelfile.eq.' ')then
+c	    
+c	    DNM 7/28/02: get defaults from  model header, including z size
+c	    
+	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+	  ierr=getimodscales(delta(1),delta(2),delta(3))
+	  ierr=getimodmaxes(nxyz(1),nxyz(2),nxyz(3))
+	  xorig=-xofs
+	  yorig=-yofs
+	  zorig=-zofs
+	  write(*,'(1x,a,$)')
+     &	      'nx, ny, x origin, y origin, x delta, y delta: '
+	  read(5,*)nxyz(1),nxyz(2),xorig,yorig,delta(1),delta(2)
+
+	else
+	  call ialprt(.false.)			!don't want to see header!
+	  call imopen(1,modelfile,'ro')
+	  call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
+	  call irtorg(1,xorig,yorig,zorig)
+	  call irtdel(1,delta)
+	  call imclose(1)
 	endif
+	xdelt=delta(1)
+	ydelt=delta(2)
+	xcen=nxyz(1)/2.
+	ycen=nxyz(2)/2.
 c
 c	  scan to get list of z values
 c
@@ -56,7 +93,8 @@ c
 	  ninobj=npt_in_obj(iobject)
 	  if(ninobj.gt.1)then
 	    do ipt=1,ninobj
-	      iz=nint(p_coord(3,object(ipt+ibase_obj(iobject))))
+	      iz=nint((p_coord(3,object(ipt+ibase_obj(iobject))) + 
+     &		  zorig) / delta(3))
 	      do i=1,nzlist
 		if(iz.eq.listz(i))go to 20
 	      enddo
@@ -79,50 +117,23 @@ c
 	enddo
 c
 c	  set minimum z value if any are negative, and set number of views
-c	  in file from range of z values
+c	  in file to be maximum of number acquired from model or file or
+c	  range of z values
 c
 	minzval=min(0,listz(1))
-	nfileviews=listz(nzlist)-minzval+1
 c
-c	  get dimensions of file and header info on origin and delta
-c
-	print *,'Image file with matching header info'//
-     &	    ' (Return to enter nx,ny directly)'
-	read(5,'(a)')modelfile
-c
-	if(modelfile.eq.' ')then
-	  delta(1)=1.
-	  delta(2)=1.
-	  xorig=0.
-	  yorig=0.
-	  write(*,'(1x,a,$)')
-     &	      'nx, ny, x origin, y origin, x delta, y delta: '
-	  read(5,*)nxyz(1),nxyz(2),xorig,yorig,delta(1),delta(2)
-	else
-	  call ialprt(.false.)			!don't want to see header!
-	  call imopen(1,modelfile,'ro')
-	  call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-	  call irtorg(1,xorig,yorig,zorig)
-	  call irtdel(1,delta)
-	  call imclose(1)
-c
-c	    minimum z value is determined by origin, but make it as low as
-c	    actual minimum
-c	    # of file views should be the size of file, but make it big
-c	    enough to hold all z values implied by origin
-c
-	  minzval=min(listz(1),-nint(zorig))
-	  nfileviews=max(listz(nzlist)-minzval+1,nxyz(3))
-	endif
-	xdelt=delta(1)
-	ydelt=delta(2)
-	xcen=nxyz(1)/2.
-	ycen=nxyz(2)/2.
+c	  DNM 7/12/02: now that we convert to index coordinates, we
+c	  use the minimum just computed.
+c	  # of file views should be the size of file, but make it big
+c	  enough to hold all z values actually found
 c	  
+	nfileviews=max(listz(nzlist)-minzval+1,nxyz(3))
+c
 c	  get name of file for output model
 c	  
-	write(*,'(1x,a)')'Enter file name for output model of'//
-     &	    ' solved X-Y-Z coordinates (Return for none)'
+	write(*,'(1x,a,/,a)')'Enter file name for output model of'//
+     &	    ' solved X-Y-Z coordinates,',' or a name containing .res'//
+     &	    'for a list of residuals, or Return for neither'
 	read(5,'(a)')modelfile
 c	  
 c	  get name of files for angle list output and 3-D point output
@@ -232,7 +243,7 @@ c
 c
 c		find out if the z coordinate of this point is on the list
 c
-	      iz=nint(p_coord(3,object(ipt+ibase)))
+	      iz=nint((p_coord(3,object(ipt+ibase)) + zorig) / delta(3))
 	      inlist=0
 	      do i=1,nzlist
 		if(iz.eq.listz(i))inlist=i
@@ -242,8 +253,8 @@ c
 c		  if so, tentatively add index coordinates to list
 c
 		nprojtmp=nprojtmp+1
-		if(nprojtmp.gt.maxprojpt)stop
-     &		  'TOO MANY PROJECTION POINTS FOR ARRAYS'
+		if(nprojtmp.gt.maxprojpt)call errorexit(
+     &		  'TOO MANY PROJECTION POINTS FOR ARRAYS',0)
 		xx(nprojtmp)=(p_coord(1,object(ipt+ibase))+xorig)/xdelt
      &		    -xcen
 		yy(nprojtmp)=(p_coord(2,object(ipt+ibase))+yorig)/ydelt
@@ -264,8 +275,8 @@ c	      if there are at least 2 points, take it as a real point
 c
 	    if(nprojtmp-nprojpt.ge.2)then
 	      nrealpt=nrealpt+1
-	      if(nrealpt.gt.maxreal)stop
-     &		  'TOO MANY FIDUCIAL POINTS FOR ARRAYS'
+	      if(nrealpt.gt.maxreal)call errorexit(
+     &		  'TOO MANY FIDUCIAL POINTS FOR ARRAYS',0)
 	      irealstr(nrealpt)=nprojpt+1
 	      ninreal(nrealpt)=nprojtmp-nprojpt
 	      call objtocont(iobject,obj_color,imodobj(nrealpt),
