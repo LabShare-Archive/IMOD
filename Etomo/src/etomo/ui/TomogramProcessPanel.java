@@ -29,6 +29,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/03/30 21:43:30  sueh
+ * <p> bug# 622 Temporarily hiding working with newstuff flag.
+ * <p>
  * <p> Revision 1.6  2005/03/24 17:55:06  sueh
  * <p> bug# 621 Added a button for the clean up dialog and reduced the space
  * <p> between buttons.
@@ -68,6 +71,10 @@ import etomo.type.DialogType;
  */
 public class TomogramProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
+  
+  private static final String bothAxisString = "Both";
+  private static final String axisAString = "Axis A";
+  private static final String axisBString = "Axis B";
   
   private ProcessControlPanel procCtlPreProc = new ProcessControlPanel(
       DialogType.PRE_PROCESSING);
@@ -110,6 +117,20 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   protected void buttonKillAction(ActionEvent event) {
     applicationManager.kill(axisID);
+  }
+  
+  private void buttonAxisAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    MainFrame mainFrame = EtomoDirector.getInstance().getMainFrame();
+    if (command.equals(bothAxisString)) {
+      mainFrame.showBothAxis();
+    }
+    else if (command.equals(axisAString)) {
+      mainFrame.showAxisA();
+    }
+    else if (command.equals(axisBString)) {
+      mainFrame.showAxisB();
+    }
   }
     
   /**
@@ -234,6 +255,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     ProcessButtonActionListener buttonListener = new ProcessButtonActionListener(
         this);
+    AxisButtonActionListener axisButtonListener = new AxisButtonActionListener(
+        this);
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     JPanel axisButtonPanel = new JPanel();
@@ -246,6 +269,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       btnOtherAxis = new JButton("Axis A");
     }
     if (btnOtherAxis != null ) {
+      btnOtherAxis.addActionListener(axisButtonListener);
+      btnBothAxis.addActionListener(axisButtonListener);
       axisButtonPanel.add(btnBothAxis);
       axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
       axisButtonPanel.add(btnOtherAxis);
@@ -436,6 +461,18 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
     public void actionPerformed(ActionEvent event) {
       adaptee.buttonProcessAction(event);
+    }
+  }
+  
+  class AxisButtonActionListener implements ActionListener {
+    TomogramProcessPanel adaptee;
+    
+    AxisButtonActionListener(TomogramProcessPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+    
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAxisAction(event);
     }
   }
 
