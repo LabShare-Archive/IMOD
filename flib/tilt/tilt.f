@@ -105,6 +105,14 @@ c	  reconstruction.  Put the view numbers after the EXCLUDE statement,
 c	  separated by spaces.  Use more than one EXCLUDE line if the numbers
 c	  do not all fit on one line.  You may not have both an INCLUDE and an
 c	  EXCLUDE line.
+c
+C	  EXCLUDELIST  VIEWLIST
+C	  ------
+C	  This line is an alternative way to specify views to be excluded.  The
+c	  VIEWLIST should be a list of ranges, separated by commas, and with no
+c	  embedded spaces; e.g., 1-3,54,67,85-88.  You may have any number of
+c	  EXCLUDE and EXCLUDELIST lines, but they cannot be combined with
+c	  INCLUDE lines.
 C
 C	  FBPINTERP  ORDER
 C	  ------
@@ -325,6 +333,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/02/01 15:27:31  mast
+c	  Made it write extra data periodically with PARALLEL option to partially
+c	  demangle the output file and prevent very slow reading under Linux.
+c	
 c	  Revision 1.2  2001/11/22 00:41:57  mast
 c	  Fixed computation of mean for files > 2 GPixels
 c	
@@ -1687,11 +1699,12 @@ c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 C
-	CHARACTER TAGS(31)*20,CARD*80
+	CHARACTER TAGS(32)*20,CARD*80
 	CHARACTER*80 FILIN,FILOUT
 	DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
      &	    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
-     &	    'INCLUDE','EXCLUDE','LOG','REPLICATE','ANGLES','COMPRESS',
+     &	    'INCLUDE','EXCLUDE','*EXCLUDELIST','LOG','REPLICATE',
+     &	    'ANGLES','COMPRESS',
      &	    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
      &	    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &	    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
@@ -1700,7 +1713,7 @@ C
 c	  
 	dimension ivexcl(360),repinc(360)
 c
-	NTAGS = 31
+	NTAGS = 32
 	WRITE(6,50)
 	call getinout(2,filin,filout)
 C-------------------------------------------------------------
@@ -1796,9 +1809,9 @@ C-------------------------------------------------------------
 C Begin reading in cards
 C
 1	CALL CREAD(CARD,TAGS,LABEL,*999)
-	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,
-     &	    1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,
-     &	    2600,2700,2800,2900,3000,999),LABEL
+	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
+     &	    1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
+     &	    2400,2500, 2600,2700,2800,2900,3000,999),LABEL
 C
 C TITLE card
 C100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
@@ -1891,6 +1904,16 @@ c EXCLUDE card
 	  ivexcl(nvexcl)=inum(i)
 1210	continue 
 	go to 1
+c	  
+c EXCLUDELIST card
+1250	if(nvuse.gt.0)
+     &	    stop 'Illegal to have both INCLUDE and EXCLUDE cards'
+	call parselist(card,ivexcl(nvexcl+1),nexclist)
+	do i=nvexcl+1,nvexcl+nexclist
+	  if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)
+     &	      stop 'Illegal view number in EXCLUDE list'
+	enddo
+	nvexcl=nvexcl+nexclist
 c	  
 c LOG card
 1300	iflog=1
