@@ -12,6 +12,9 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2004/05/31 23:10:56  mast
+    Added macros for exporting/importing under Windows
+
     Revision 4.2  2003/10/01 05:07:11  mast
     Split out private file
 
@@ -41,14 +44,11 @@ typedef struct ViewInfo ImodView;
 #endif
 
 /* Define macro for export of functions under Windows */
-#ifndef DLL_EX_IM
 #ifdef _WIN32
-#define DLL_EX_IM _declspec(dllexport)
+#define PLUG_EXPORT _declspec(dllexport)
 #else
-#define DLL_EX_IM
+#define PLUG_EXPORT
 #endif
-#endif
-
 
 extern "C" {
 
@@ -62,21 +62,22 @@ extern "C" {
  * Not all of imod's data structures may be initialized at the time of
  * this function call so no initialization should be done.
  */
-char DLL_EX_IM *imodPlugInfo(int *type);
+char PLUG_EXPORT *imodPlugInfo(int *type);
 
 /*
  * Generic Plugin interface.
- * IMOD will call this functions on your behalf at 
+ * 3dmod will call this functions on your behalf at 
  * well defined times.
  */
-void DLL_EX_IM imodPlugExecuteType(ImodView *inView, int inType, int inReason);
+void PLUG_EXPORT imodPlugExecuteType(ImodView *inView, int inType, 
+                                     int inReason);
 
 /* Menu execution function for plugins with the IMOD_PLUG_MENU bit set.
  * This function will be called if available, if not defined then. 
  * the following call will be made.
  * imodPlugExecuteType(inView, IMOD_PLUG_MENU, IMOD_REASON_EXECUTE);
  */
-void DLL_EX_IM imodPlugExecute(ImodView *vw);
+void PLUG_EXPORT imodPlugExecute(ImodView *vw);
 
 /* Key input callback function to be defined by plugins with the
  * IMOD_PLUG_KEYS bit set.
@@ -85,7 +86,7 @@ void DLL_EX_IM imodPlugExecute(ImodView *vw);
  * and that no other action should be taken by the imod program.
  * A zero return value indicates that imod should process the key as usual.
  */
-int DLL_EX_IM imodPlugKeys(ImodView *vw, QKeyEvent *event);
+int PLUG_EXPORT imodPlugKeys(ImodView *vw, QKeyEvent *event);
 
 }
 #endif
