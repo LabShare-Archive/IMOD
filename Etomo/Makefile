@@ -1,3 +1,7 @@
+# $Author$
+#
+# $Revision$
+
 JAVAC_EXE = javac
 #JAVAC_EXE = /usr/local/IBMJava2-13/bin/javac
 
