@@ -235,13 +235,15 @@ Calculate auto or cross correlation functions.
 3d correlation takes 1 or 2 volumes and does an
 auto or cross correlation respectively.  If the volumes
 are fourier transforms, the output file will be a fourier 
-transform. All other input types are automatically padded,
-fft transformed, correlated and inverse fft transformed.
+transform.  
 2d correlation takes 1 or 2 slices for input and does an
-auto or cross correlation respectively. Select the slices
-with the -iz option.  One or two input files can be given
+auto or cross correlation respectively.
+Select the slices with the -iz option.  Input files in this case may
+not be fourier transforms.  All other input types are automatically
+padded, fft transformed, correlated and inverse fft transformed.
+One or two input files can be given
 and one output file needs to be given.
-Input is automaticly padded with the mean value
+Input is automatically padded with the mean value
 unless the option -p option is given to change the pad value.
 The -n option selects the type of padding. 
 '-n 0' selects no padding 
@@ -262,25 +264,28 @@ fft does either a forward or inverse fft, depending
 on the input data type.  The output for a forward 
 transformation is complex float.  The input sizes
 must be a multiple of two, and must have no prime factors
-greater than 19.  The 2D output replicates and shifts the
-origin to the center. The 3D output doesn't replicate
-data on the x axis and shifts the center to x = 0,
-y = yn/2.  
+greater than 19.  Both 2D and 3D output match the format of the fft ouput
+by fftrans(1), in which no data is duplicated and the center is
+shifted to x = 0, y = ny/2.  Older fft files produced by clip, in
+which the data were replicated to the left of the Y axis, will still
+be accepted as input.
 The -s option for the 3D fft will cause a 3D fft to 
 use disk space instead of memory for intermediate
 steps.  The -s option allows for systems with limited 
-resoureces to do large fft's.  One thing to be aware of
+resources to do large fft's.  One thing to be aware of
 if using the -s option	is that the inverse fft uses the 
-input file disk space as storage, so if you have the 
-disk space, make a copy of the input fft file first.
+input file disk space as storage.
 .TP
 .B filter
-High and/or low pass filtering in frequency space.
-3D filter (In testing)
-2D filter filters an fft using the -l and -h options.  An
-fft and inverse fft is automaticly done if needed.  The
-range for -l and -h is (0=center, 1=max) Everything higher
-than -l and lower then -h is filtered.
+High and/or low pass filtering in frequency space (2D only).
+Filters an fft or an image using the -l and -h options.  An
+fft and inverse fft is automatically done if needed.  The
+units for -l and -h are cycles/pixel so they range from 0 to 0.5.
+Everything higher
+than -l and lower then -h is filtered.  The attenuation will be 0.5 at
+the given frequency; the filter factor is the product of
+1/(1+(r/l)**3) if -l is entered and 1/(1+(h/r)**3) if -h is entered,
+where r is the radius in cycles/pixel.
 .TP
 .B flip
 The flip command is just the root of several types of
@@ -317,15 +322,15 @@ input file; the padding can be changed with the -p option.
 .B rotation 
 Rotate an image (3d only).
 Rotates an image by x, y and z; where x,y and z are angles
-of rotation for the x, y and z axis.  Clockwise rotations 
-are positive, (looking away from the origin at positive
-values).
+of rotation for the x, y and z axis.  Counterclockwise rotations 
+are positive, looking down on the origin from positive
+values.
 The output filesize default is the same size as the input
 filesize. It can be changed with the ox, oy and oz flags.
 The center of rotation default is the center of the input 
 file.
 Rotation center can be changed by the cx, cy and cz flags.
-(See rotatevol(1), it works better, but is harder to use.)
+(See rotatevol(1), it works better and has similar options.)
 (2d rotation should be done with newstack)
 .TP
 .B shadows
@@ -364,11 +369,12 @@ be used to change output size.
 The cx, cy and cz values place the center of the scaling.
 The default value is the center of the input file.
 
-.SH AUTHOR
+.SH AUTHORS
 Jim Kremer 
+David Mastronarde
 
 .SH SEE ALSO
-mrcv(1), newstack(1), rotatevol(1)
+mrcv(1), newstack(1), rotatevol(1), fftrans(1)
 
 .SH BUGS
 Clip has still not been fully tested with all types of data.  Not all options

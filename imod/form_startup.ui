@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>StartupForm</class>
 <widget class="QDialog">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>802</width>
-            <height>462</height>
+            <width>794</width>
+            <height>482</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout22</cstring>
+                <cstring>layout25</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -35,7 +35,7 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout21</cstring>
+                        <cstring>layout24</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -169,6 +169,12 @@
                                     <property name="name">
                                         <cstring>pieceFileEdit</cstring>
                                     </property>
+                                    <property name="frameShape">
+                                        <enum>LineEditPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Sunken</enum>
+                                    </property>
                                 </widget>
                                 <widget class="QPushButton" row="2" column="2">
                                     <property name="name">
@@ -219,6 +225,20 @@
                                     </property>
                                 </widget>
                             </grid>
+                        </widget>
+                        <widget class="Line">
+                            <property name="name">
+                                <cstring>Line1</cstring>
+                            </property>
+                            <property name="frameShape">
+                                <enum>HLine</enum>
+                            </property>
+                            <property name="frameShadow">
+                                <enum>Sunken</enum>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
@@ -680,6 +700,23 @@
                                 </spacer>
                             </hbox>
                         </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer11</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Vertical</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Preferred</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>20</width>
+                                    <height>16</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </vbox>
                 </widget>
                 <widget class="Line">
@@ -698,7 +735,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout17</cstring>
+                        <cstring>layout18</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -815,6 +852,14 @@
                             </property>
                             <property name="text">
                                 <string>Load model without scaling coordinates</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>loadNoMirrorBox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Load FFT without mirroring data on left side</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -1139,7 +1184,7 @@
         </widget>
         <widget class="Line">
             <property name="name">
-                <cstring>Line1</cstring>
+                <cstring>line3</cstring>
             </property>
             <property name="frameShape">
                 <enum>HLine</enum>
@@ -1400,7 +1445,7 @@
     <slot>addArg( const char * arg )</slot>
     <slot returnType="char **">getArguments( int &amp; argc )</slot>
     <slot>addImageFiles()</slot>
-    <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
+    <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int mirror, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

@@ -269,6 +269,14 @@ Load multiple single-image files as files at different times (the behavior
 before IMOD 3.2.3).
 By default, such files will now become multiple sections in Z instead.
 .TP
+.B -M
+Load Fourier transform files without mirroring the data around the origin.
+By default, a complex mode input file whose X dimension is odd will be
+loaded with replication of the data on the left side of the Y axis, to
+make it easier to visualize.  This option can be used override that
+behavior if it is inappropriate for the input file or if there is not
+enough memory to show the redundant data.
+.TP
 .B -ci
 Display images in color index mode using a color table, rather than in
 24-bit color mode.  Color index mode only has 8 bits and works rather
@@ -637,8 +645,6 @@ Holding down the second mouse button will
 create additional points as the mouse moves.
 If the rubber band is on and the button is held down while the pointer is near
 the band, one can drag the whole band to a new position.
-If the Ctrl key is held down, the current contour will be shifted as a whole,
-to move the current point to the mouse position.
 .TP
 Third mouse button
 In movie mode, the this button starts the movie through sections in the
@@ -707,6 +713,7 @@ B  -  Toggle rubber band on and off
 I  -  Print information about window, image size, and offsets,
          also bring the Information Window to the front
 R  -  Resize window to size of image or rubber band
+P  -  Activate moving current contour with first mouse button
 Keypad Ins - Add point(s) in model mode, like second mouse button
 Esc - Close ZaP window
 

@@ -76,6 +76,7 @@ void StartupForm::manageForModView()
    loadFramesBox->setEnabled(!mModvMode);
    loadSepTimesBox->setEnabled(!mModvMode);
    loadUnscaledBox->setEnabled(!mModvMode);
+   loadNoMirrorBox->setEnabled(!mModvMode);
    showMontageBox->setEnabled(!mModvMode);
    xMontageLabel->setEnabled(!mModvMode);
    yMontageLabel->setEnabled(!mModvMode);
@@ -264,6 +265,8 @@ char ** StartupForm::getArguments( int & argc )
 	addArg("-T");
     if (loadUnscaledBox->isChecked())
 	addArg("-m");
+    if (loadNoMirrorBox->isChecked())
+	addArg("-M");
     
     // Binning
     xybin = binXYSpinBox->value();
@@ -366,7 +369,7 @@ void StartupForm::addImageFiles()
 void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc, 
                              int doImodv, char *plistfname, int xyzwinopen, int sliceropen, 
                              int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, 
-                             int frames, int nframex, int nframey, 
+                             int mirror, int frames, int nframex, int nframey, 
                              int overx, int overy, int overEntered )
 {
     // Imodv mode
@@ -435,6 +438,7 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     loadSepTimesBox->setChecked(vi->multiFileZ < 0);
     loadFramesBox->setChecked(frames > 0);
     loadUnscaledBox->setChecked(ImodTrans == 0);
+    loadNoMirrorBox->setChecked(mirror < 0);
     
     // Montage stuff
     mShowMontage = nframex > 0;
