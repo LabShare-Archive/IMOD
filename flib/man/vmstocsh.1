@@ -18,21 +18,26 @@ DDEESSCCRRIIPPTTIIOONN
   follow the line starting the program, just as in a VMS command file.
   If a command line to run a program is too long, it may be broken 
   into multiple lines by ending each line except the last one with a \.
-  The continuation lines should not start with a $ or %.
+  If it is necessary to have the command line itself passed to the shell
+  as multiple lines, end a line with \\ instead of \.  The command up to
+  that point will be output with the \\ converted to a \, and next line
+  will be output on a separate line.  In either case, the continuation 
+  lines should not start with a $ or %.
   
   If there is a command-line argument, that argument will be set up
   as a log file: the text output of each command will be directed
   into this log file.
   
-  The easiest way to use this program is to define the following
-  alias in your .cshrc (the ^G should be a control G character there):
+  The easiest way to use this program is through the submbg script
+  together with an alias to run submbg in the background, such as
 
-      alias subm 'vmstocsh <\!^.com \!^.log |csh ; echo ^G& '
+      alias subm 'submfg \!^ & '
 
   With this alias, if your command file is stuff.com, you can give the
   command "subm stuff" and the file will be executed in background, a 
-  log file stuff.log will be created, and the bell will ring when the
-  job is completed.
+  log file stuff.log will be created, and you will be notified when the
+  job is completed.  Type 'submfg' to see the usage statement for more
+  details.
 
 HHIISSTTOORRYY
   Written by David Mastronarde, 4/24/1995
