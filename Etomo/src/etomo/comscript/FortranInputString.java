@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/03/12 20:58:19  sueh
+ * <p> bug# 373 Added setDefault().
+ * <p>
  * <p> Revision 3.7  2004/03/12 20:01:21  sueh
  * <p> bug# 412 added setDefault(int), toString(int)
  * <p>
@@ -249,6 +252,17 @@ public class FortranInputString {
     return buffer.toString();
   }
 
+  public String toString(boolean defaultIsBlank) {
+    if (!defaultIsBlank) {
+      return toString();
+    }
+    String string = toString();
+    if (string.equals("/")) {
+      return "";
+    }
+    return string;    
+  }
+  
   public String toString(int index) {
     if (!valueSet(index)) {
       return "Uninitialized!";
