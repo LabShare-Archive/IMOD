@@ -247,13 +247,17 @@ char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 QString imodCaption(char *intro);
-
+void imodError(FILE *out, const char *format, ...);
+void imodPrintInfo(const char *message);
 
 #endif     
 
 
 /*
 $Log$
+Revision 3.19  2003/10/01 05:04:58  mast
+Changes for creation of imodviewP.h
+
 Revision 3.18  2003/09/16 02:47:41  mast
 Added variables and changed declarations for accessing images from line
 pointers
