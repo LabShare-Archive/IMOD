@@ -27,6 +27,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.6  2004/12/06 23:35:17  sueh
+* <p> Removed print statement.
+* <p>
 * <p> Revision 1.5  2004/11/24 01:02:08  sueh
 * <p> bug# 520 Added errorProcess(ComScriptProcess): turn off sample
 * <p> produced in meta data when startjoin is killed.  Moved kill background
@@ -225,10 +228,10 @@ public class JoinProcessManager extends BaseProcessManager {
       if (mode == FinishjoinParam.TRIAL_MODE) {
         JoinMetaData metaData = joinManager.getJoinMetaData();
         metaData.setFinishjoinTrialBinning(command.getBinning());
-        metaData.setFinishjoinTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X_VALUE_NAME)); 
-        metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y_VALUE_NAME));
-        metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X_VALUE_NAME));
-        metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y_VALUE_NAME));
+        metaData.setFinishjoinTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X)); 
+        metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y));
+        metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X));
+        metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y));
         joinManager.saveMetaData();
       }
     }
