@@ -69,6 +69,13 @@ DDEESSCCRRIIPPTTIIOONN
   coordinates of the patch and the displacement between the two files
   in X, Y, and Z.
 
+  The program runs onepatchcorr by telling tcsh to run the script in
+  $IMOD_DIR/bin; therefore IMOD_DIR must be defined.  If tcsh is not
+  available or you wish to run with a different shell, define the
+  environment variable IMOD_CSHELL with the name of the alternate C
+  shell, including any desired flags (the -f flag is added 
+  automatically)
+
 HHIISSTTOORRYY
   Written by David Mastronarde  7/16/01
   7/20/02: Added analysis of areas to exclude based on positions in the
