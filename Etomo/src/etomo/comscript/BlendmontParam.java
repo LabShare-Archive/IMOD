@@ -24,22 +24,27 @@ public class BlendmontParam implements CommandParam {
   
   public static final String GOTO_LABEL = "doblend";
   public static final String COMMAND_NAME = "blendmont";
+  public static final int XCORR_MODE = -1;
+  public static final int PREBLEND_MODE = -2;
   
   private AxisID axisID;
   private String datasetName;
   private EtomoBoolean2 readInXcorrs;
   private EtomoBoolean2 oldEdgeFunctions;
-  //temporary fix
-  private EtomoBoolean2 imagesAreBinned;
+  private int mode = XCORR_MODE;
   
   public BlendmontParam(String datasetName, AxisID axisID) {
+    this(datasetName, axisID, XCORR_MODE);
+  }
+  
+  public BlendmontParam(String datasetName, AxisID axisID, int mode) {
     this.datasetName = datasetName;
     this.axisID = axisID;
+    this.mode = mode;
     readInXcorrs = new EtomoBoolean2("ReadInXcorrs");
-    readInXcorrs.setUpdateAsInteger(true);
+    readInXcorrs.setDisplayAsInteger(true);
     oldEdgeFunctions = new EtomoBoolean2("OldEdgeFunctions");
-    oldEdgeFunctions.setUpdateAsInteger(true);
-    imagesAreBinned = new EtomoBoolean2("ImagesAreBinned");
+    oldEdgeFunctions.setDisplayAsInteger(true);
   }
   
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -53,7 +58,6 @@ public class BlendmontParam implements CommandParam {
   throws BadComScriptException {
     readInXcorrs.setInScript(scriptCommand);
     oldEdgeFunctions.setInScript(scriptCommand);
-    imagesAreBinned.setInScript(scriptCommand);
   }
   
   public void initializeDefaults() {
@@ -65,12 +69,15 @@ public class BlendmontParam implements CommandParam {
    * to be run
    */
   public boolean setBlendmontState() {
-    File edcFile = new File(EtomoDirector.getInstance()
+    File ecdFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".edc");
+        + ".ecd");
     File xefFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".xef");
+    File yefFile = new File(EtomoDirector.getInstance()
+        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+        + ".yef");
     File stackFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".st");
@@ -78,16 +85,36 @@ public class BlendmontParam implements CommandParam {
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".bl");
     //Read in xcorr output if it exists.
-    readInXcorrs.set(edcFile.exists());
+    readInXcorrs.set(mode == PREBLEND_MODE || ecdFile.exists());
     //Use existing edge functions, if they are up to date.
-    oldEdgeFunctions.set(!xefFile.exists()
-        || edcFile.lastModified() > xefFile.lastModified());
+    oldEdgeFunctions.set(xefFile.exists() && yefFile.exists()
+        && ecdFile.lastModified() <= xefFile.lastModified()
+        && ecdFile.lastModified() <= yefFile.lastModified());
     //If xcorr output exists and the edge functions are up to date, then don't
-    //run blendmont, unless the stack is newer then the blendmont output.
-    return !readInXcorrs.is() || !oldEdgeFunctions.is()
-        || stackFile.lastModified() > blendFile.lastModified();
+    //run blendmont, as long as the blendmont output is more recent then the
+    //stack.
+    if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists() &&
+        stackFile.lastModified() < blendFile.lastModified()) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  
+  public static String getCommandFileName(int mode) {
+    switch (mode) {
+    case PREBLEND_MODE:
+      return "preblend";
+    case XCORR_MODE:
+    default:
+      return "xcorr";
+    }
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/03/04 00:07:03  sueh
+* <p> bug# 533 Param object for the blendmont command.
+* <p> </p>
 */
