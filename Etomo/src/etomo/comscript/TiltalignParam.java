@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/12/29 01:53:12  sueh
+ * <p> bug# 567 Passing ints, doubles, and strings to set functions, instead of
+ * <p> EtomoNumber.
+ * <p>
  * <p> Revision 3.2  2004/12/29 00:01:20  sueh
  * <p> bug# 567 Placed the version of TiltalignParam for the old-style comscript
  * <p> into OldTiltalignParam.  This version updates and parses only the new
@@ -363,8 +367,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         && !solution.referenceView.isDefault(0)) {
       referenceView.set(solution.referenceView.getInt(0));
     }
-    return ParamUtilities.parse(solution.additionalGroups, nondefaultGroupSize,
-        nondefaultGroupIntegerType);
+    return ParamUtilities.parse(solution.additionalGroups, nondefaultGroupIntegerType, nondefaultGroupSize);
   }
 
   /**
@@ -456,9 +459,6 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     localSkewDefaultGrouping.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localSkewNondefaultGroupString, localSkewNondefaultGroup);
-    System.out.println("update:localAlignments="+localAlignments.toString());
-    Exception e = new Exception();
-    e.printStackTrace();
     localAlignments.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
         outputLocalFile);
@@ -518,7 +518,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setLocalMagNondefaultGroup(String localMagNondefaultGroup)
       throws FortranInputSyntaxException {
     this.localMagNondefaultGroup = ParamUtilities.parse(
-        localMagNondefaultGroup, true);
+        localMagNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -541,7 +541,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setLocalRotNondefaultGroup(String localRotNondefaultGroup)
       throws FortranInputSyntaxException {
     this.localRotNondefaultGroup = ParamUtilities.parse(
-        localRotNondefaultGroup, true);
+        localRotNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -564,7 +564,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setLocalSkewNondefaultGroup(String localSkewNondefaultGroup)
       throws FortranInputSyntaxException {
     this.localSkewNondefaultGroup = ParamUtilities.parse(
-        localSkewNondefaultGroup, true);
+        localSkewNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -587,7 +587,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setLocalTiltNondefaultGroup(String localTiltNondefaultGroup)
       throws FortranInputSyntaxException {
     this.localTiltNondefaultGroup = ParamUtilities.parse(
-        localTiltNondefaultGroup, true);
+        localTiltNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -611,7 +611,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setLocalXStretchNondefaultGroup(
       String localXStretchNondefaultGroup) throws FortranInputSyntaxException {
     this.localXStretchNondefaultGroup = ParamUtilities.parse(
-        localXStretchNondefaultGroup, true);
+        localXStretchNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -633,7 +633,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    */
   public void setMagNondefaultGroup(String magNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.magNondefaultGroup = ParamUtilities.parse(magNondefaultGroup, true);
+    this.magNondefaultGroup = ParamUtilities.parse(magNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -783,7 +783,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    * @param rotNondefaultGroup The rotNondefaultGroup to set.
    */
   public void setRotNondefaultGroup(String rotNondefaultGroup) throws FortranInputSyntaxException {
-    this.rotNondefaultGroup = ParamUtilities.parse(rotNondefaultGroup, true);
+    this.rotNondefaultGroup = ParamUtilities.parse(rotNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -812,7 +812,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    */
   public void setSkewNondefaultGroup(String skewNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.skewNondefaultGroup = ParamUtilities.parse(skewNondefaultGroup, true);
+    this.skewNondefaultGroup = ParamUtilities.parse(skewNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -841,7 +841,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    */
   public void setTiltNondefaultGroup(String tiltNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.tiltNondefaultGroup = ParamUtilities.parse(tiltNondefaultGroup, true);
+    this.tiltNondefaultGroup = ParamUtilities.parse(tiltNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
@@ -864,7 +864,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setXStretchNondefaultGroup(String stretchNondefaultGroup)
       throws FortranInputSyntaxException {
     xStretchNondefaultGroup = ParamUtilities
-        .parse(stretchNondefaultGroup, true);
+        .parse(stretchNondefaultGroup, true, nondefaultGroupSize);
   }
 
   /**
