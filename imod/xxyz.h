@@ -30,41 +30,11 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.2.2.7  2003/01/03 16:46:30  mast
-Simplified closing logic
-
-Revision 3.2.2.6  2003/01/02 15:42:49  mast
-add  variable to keep track of sections loaded in cache
-
-Revision 3.2.2.5  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 3.2.2.4  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 3.2.2.3  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 3.2.2.2  2002/12/12 02:45:56  mast
-*** empty log message ***
-
-Revision 3.2.2.1  2002/12/12 01:22:29  mast
-Changes to become Qt window
-
-Revision 3.2  2002/11/25 19:22:16  mast
-Added a structure element for control id
-
-Revision 3.1  2002/01/28 16:54:55  mast
-Added structure elements for new enhancements
-
+Log at end of file
 */
 
 #ifndef XXYZ_H
 #define XXYZ_H
-
-#define XYZ_BSIZE 8
 
 #include <qmainwindow.h>
 #include <qgl.h>
@@ -102,6 +72,8 @@ struct xxyzwin
   int lmx, lmy;           /* last mouse position for panning */
   int hq;                 /* High resolution flag */
   int whichbox;           /* box that left mouse button went down in */
+  int project;            /* Flag to project current contour into planes */
+  int mousemode;          /* Current mode for cursor */
 };
 
 
@@ -131,12 +103,11 @@ class XyzWindow : public QMainWindow
   void SetSubimage(int absStart, int winSize, int imSize, float zoom,
 		   int *drawsize, int *woffset, int *dataStart);
   void DrawGhost();
-  void DrawContour(struct Mod_Object *obj, int ob, struct Mod_Contour *cont);
-  void DrawCurrentContour(struct Mod_Object *obj, int ob, 
-			  struct Mod_Contour *cont);
+  void DrawContour(struct Mod_Object *obj, int ob, int co);
   void DrawCurrentPoint();
   void DrawCurrentLines();
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
+  void SetCursor(int mode);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -172,6 +143,40 @@ class XyzGL : public QGLWidget
 
 /* Global functions */
 int xxyz_open(struct ViewInfo *vi);
+
+/*
+$Log$
+Revision 3.3  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 3.2.2.7  2003/01/03 16:46:30  mast
+Simplified closing logic
+
+Revision 3.2.2.6  2003/01/02 15:42:49  mast
+add  variable to keep track of sections loaded in cache
+
+Revision 3.2.2.5  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 3.2.2.4  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
+Revision 3.2.2.3  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 3.2.2.2  2002/12/12 02:45:56  mast
+*** empty log message ***
+
+Revision 3.2.2.1  2002/12/12 01:22:29  mast
+Changes to become Qt window
+
+Revision 3.2  2002/11/25 19:22:16  mast
+Added a structure element for control id
+
+Revision 3.1  2002/01/28 16:54:55  mast
+Added structure elements for new enhancements
+
+*/
 
 #endif /* xxyz.h */
 
