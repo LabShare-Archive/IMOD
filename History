@@ -4,7 +4,7 @@ IMOD History
 perpendicular to the Z axis and creating points at each section or plane
 along that axis.
 
-9/4/03: Incorporated changes in Mtlengths to correct for oblique microtulues
+9/4/03: Incorporated changes in Mtlengths to correct for oblique microtubules
 in tilted sections and implemented PIP input.
 
 8/29/03: Set up and documented installation procedures on the Mac.
