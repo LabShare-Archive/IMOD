@@ -31,6 +31,10 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2003/10/15 22:46:41  rickg
+ * <p> Button size change
+ * <p> Label changes
+ * <p>
  * <p> Revision 1.11  2003/10/15 19:15:52  rickg
  * <p> Bug# 299 Moved buttons up
  * <p>
@@ -79,6 +83,8 @@ public class InitialCombinePanel implements ContextMenu {
   private JButton btnMatchcheck =
     new JButton("<html><b>View Match Check Volume</b>");
   private JButton btnRestart = new JButton("<html><b>Restart Combine</b>");
+  private MultiLineToggleButton btnMatchvolRestart =
+    new MultiLineToggleButton("<html><b>Restart at Matchvol1</b>");
 
   /**
    * Default constructor
@@ -89,18 +95,17 @@ public class InitialCombinePanel implements ContextMenu {
     applicationManager = appMgr;
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    //  Get the current text height from one of the 
-    double height = cbUseModel.getPreferredSize().getHeight();
 
     //  Set the button sizes
-    Dimension dimButton = new Dimension();
-    dimButton.setSize(7 * height, 2 * height);
+    Dimension dimButton = UIParameters.getButtonDimension();
     btnImodMatchModels.setPreferredSize(dimButton);
     btnImodMatchModels.setMaximumSize(dimButton);
     btnMatchcheck.setPreferredSize(dimButton);
     btnMatchcheck.setMaximumSize(dimButton);
     btnRestart.setPreferredSize(dimButton);
     btnRestart.setMaximumSize(dimButton);
+    btnMatchvolRestart.setPreferredSize(dimButton);
+    btnMatchvolRestart.setMaximumSize(dimButton);
 
     pnlSolvematch.setLayout(new BoxLayout(pnlSolvematch, BoxLayout.Y_AXIS));
     pnlSolvematch.setBorder(
@@ -116,6 +121,8 @@ public class InitialCombinePanel implements ContextMenu {
     pnlSolvematch.add(ltfFiducialMatchListB.getContainer());
     pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSolvematch.add(ltfResidulThreshold.getContainer());
+    pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSolvematch.add(ltfResidulThreshold.getContainer());
 
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -123,6 +130,8 @@ public class InitialCombinePanel implements ContextMenu {
     pnlButton.add(btnMatchcheck);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnRestart);
+    pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnMatchvolRestart);
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlRoot.add(pnlSolvematch);
@@ -134,6 +143,7 @@ public class InitialCombinePanel implements ContextMenu {
     ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnImodMatchModels.addActionListener(buttonAction);
     btnRestart.addActionListener(buttonAction);
+		btnMatchvolRestart.addActionListener(buttonAction);
     btnMatchcheck.addActionListener(buttonAction);
     CheckBoxActionListener checkboxAction = new CheckBoxActionListener(this);
     cbUseModel.addActionListener(checkboxAction);
@@ -243,6 +253,11 @@ public class InitialCombinePanel implements ContextMenu {
       else {
         applicationManager.combine();
       }
+    }
+    if (event
+      .getActionCommand()
+      .equals(btnMatchvolRestart.getActionCommand())) {
+      applicationManager.matchvol1();
     }
   }
 
