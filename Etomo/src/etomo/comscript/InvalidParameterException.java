@@ -1,7 +1,7 @@
 package etomo.comscript;
 
 /**
- * <p>Description: This exception is thrown when an invalida parameter or set
+ * <p>Description: This exception is thrown when an invalid parameter or set
  * of parameters is detected.  These can be detected either in a com script
  * or due to user input.</p>
  *
@@ -15,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
