@@ -30,6 +30,12 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/02/07 02:58:29  sueh
+ * <p> bug# 169 Added preview key, deprecated out-of-date
+ * <p> functions, changed the metadata load, created an open()
+ * <p> function which uses the vector index, fixed a problem in
+ * <p> create(String,AxisID,String).
+ * <p>
  * <p> Revision 3.11  2004/02/05 18:03:19  sueh
  * <p> bug# 306 added setSwapYZ - used to set swapYZ before
  * <p> opening 3dmod
@@ -586,6 +592,15 @@ public class ImodManager {
     }
     //coarseAligned.setPreserveContrast(preserveConstrast);
     //coarseAligned.model(modelName, modelMode);
+  }
+  
+  public String getModelName(String key, AxisID axisID) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return "";
+    }
+    return imodState.getModelName();
   }
 
   public void openBeadFixer(String key, AxisID axisID)
