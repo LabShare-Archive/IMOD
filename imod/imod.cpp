@@ -708,9 +708,9 @@ void imod_exit(int retcode)
   // It did NOT work to use qApp->closeAllWindows after this
   if (ImodPrefs)
     ImodPrefs->saveSettings();
-  if (loopStarted)
-    QApplication::exit(retcode);
-  exit(retcode);
+  if (!loopStarted)
+    exit(retcode);
+  QApplication::exit(retcode);
 }
 
 /* DNM 2/7/02: keep it from sending up another window if one is already up */
@@ -878,6 +878,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.9  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.8  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 
