@@ -333,6 +333,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/05/07 02:02:53  mast
+c	  Added EXCLUDELIST option
+c	
 c	  Revision 3.3  2002/02/01 15:27:31  mast
 c	  Made it write extra data periodically with PARALLEL option to partially
 c	  demangle the output file and prevent very slow reading under Linux.
@@ -585,8 +588,8 @@ c
 	      enddo
 c	      print *,'itryend,needstart,needend,lastready',itryend,
 c     &		  needstart,needend,lastready
-	      if(needend.eq.0)
-     &		  stop 'INSUFFICIENT STACK SPACE TO DO A SINGLE SLICE'
+	      if(needend.eq.0) call errorexit
+     &		  ('INSUFFICIENT STACK SPACE TO DO A SINGLE SLICE')
 c		
 c		if some are already loaded, need to shift them down
 c		
@@ -753,9 +756,9 @@ C Close files
 	recflevl=(10.*(unscmax-unscmin)/245.-unscmin)/(nviews*nreplic)
 	write(6,905)recflevl,recscale
 	WRITE(6,910)NSLICE
-	STOP
+	call exit(0)
 999	WRITE(6,920)mapuse(NV),L
-	STOP
+	call exit(1)
 C
 C
 900	FORMAT(//' STACK LOADING'
@@ -770,8 +773,8 @@ C
      &	    f12.5)
 910	FORMAT(//' Reconstruction of',I5,' slices complete.',
 	1//,1X,78('-'))
-920	FORMAT(//' ******* ERROR in reading in view',I3,' for slice'
-	1 ,I5,'  *******'/)
+920	FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
+	1 ,I5,/)
 930	FORMAT(//' Header on reconstructed map file'/
 	1        ' --------------------------------'//)
 	END
@@ -1711,7 +1714,7 @@ C
      &	    'XTILTINTERP','DONE'/
 	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
 c	  
-	dimension ivexcl(360),repinc(360)
+	dimension ivexcl(limview),repinc(limview)
 c
 	NTAGS = 32
 	WRITE(6,50)
@@ -1723,10 +1726,8 @@ C Open input projection file
 	CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
 	NVIEWS=NPXYZ(3)
 c
-	if (nviews.gt.360) then
-		print *,'Too many images in tilt series.'
-		stop
-	end if
+	if (nviews.gt.limview) call errorexit
+     &	    ('Too many images in tilt series.')
 	newangles=0
 	iftiltfile=0
 c
@@ -1832,7 +1833,8 @@ C THICKNESS card
 300	IF(NFIELDS.NE.1)GO TO 9999
 	ITHICK=INUM(1)
 	WRITE(6,301)ITHICK
-	if(ithick.gt.limmask)stop 'Thickness too high for arrays'
+	if(ithick.gt.limmask)call errorexit(
+     &	    'Thickness too high for arrays')
 	GO TO 1
 C
 C MASK card
@@ -1879,39 +1881,40 @@ c
 c MODE card
 1000	newmode=inum(1)
 	if(newmode.lt.0.or.newmode.gt.15 .or.
-     &	    (newmode.gt.2.and.newmode.lt.9))STOP 'Illegal output mode'
+     &	    (newmode.gt.2.and.newmode.lt.9))call errorexit(
+     &	    'Illegal output mode')
 	write(6,1001)newmode
 	go to 1
 C
 c INCLUDE card
-1100	if(nvexcl.gt.0)
-     &	    stop 'Illegal to have both INCLUDE and EXCLUDE cards'
+1100	if(nvexcl.gt.0)call errorexit(
+     &	    'Illegal to have both INCLUDE and EXCLUDE cards')
 	do 1110 i=1,nfields
-	  if(inum(i).lt.1.or.inum(i).gt.nviews)
-     &	      stop 'Illegal view number in INCLUDE list'
+	  if(inum(i).lt.1.or.inum(i).gt.nviews) call errorexit(
+     &	      'Illegal view number in INCLUDE list')
 	  nvuse=nvuse+1
 	  mapuse(nvuse)=inum(i)
 1110	continue 
 	go to 1
 C
 c EXCLUDE card
-1200	if(nvuse.gt.0)
-     &	    stop 'Illegal to have both INCLUDE and EXCLUDE cards'
+1200	if(nvuse.gt.0)call errorexit(
+     &	    'Illegal to have both INCLUDE and EXCLUDE cards')
 	do 1210 i=1,nfields
-	  if(inum(i).lt.1.or.inum(i).gt.nviews)
-     &	      stop 'Illegal view number in EXCLUDE list'
+	  if(inum(i).lt.1.or.inum(i).gt.nviews)call errorexit(
+     &	      'Illegal view number in EXCLUDE list')
 	  nvexcl=nvexcl+1
 	  ivexcl(nvexcl)=inum(i)
 1210	continue 
 	go to 1
 c	  
 c EXCLUDELIST card
-1250	if(nvuse.gt.0)
-     &	    stop 'Illegal to have both INCLUDE and EXCLUDE cards'
+1250	if(nvuse.gt.0)call errorexit(
+     &	    'Illegal to have both INCLUDE and EXCLUDE cards')
 	call parselist(card,ivexcl(nvexcl+1),nexclist)
 	do i=nvexcl+1,nvexcl+nexclist
-	  if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)
-     &	      stop 'Illegal view number in EXCLUDE list'
+	  if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)call errorexit(
+     &	      'Illegal view number in EXCLUDE list')
 	enddo
 	nvexcl=nvexcl+nexclist
 c	  
@@ -2017,7 +2020,8 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	idxwarp=nint(delbeta(5))
 	idywarp=nint(delbeta(6))
 	if(nxwarp*nywarp.gt.limwpos.or.nxwarp*nywarp*nviews.gt.limwarp)
-     &	    stop 'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA'
+     &	    call errorexit(
+     &	    'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA')
 	indbase=0
 	do ipos=1,nxwarp*nywarp
 	  indwarp(ipos)=indbase
@@ -2037,7 +2041,8 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	close(3)
 	write(6,2401)
 	go to 1
-2410	stop 'ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE'
+2410	call errorexit(
+     &	    'ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE')
 c	  
 c LOCALSCALE card
 2500	scalelocal=xnum(1)
@@ -2094,13 +2099,13 @@ C End of data deck
 C-------------------------------------------------------------
 C
 999	WRITE(6,48)
-	if(ifalpha.ne.0.and.abs(idelslice).ne.1)stop
-     &	    'Cannot do X axis tilt with non-consecutive slices'
-	if(nxwarp.ne.0.and.abs(idelslice).ne.1)stop
-     &	    'Cannot do local alignments with non-consecutive slices'
+	if(ifalpha.ne.0.and.abs(idelslice).ne.1)call errorexit(
+     &	    'Cannot do X axis tilt with non-consecutive slices')
+	if(nxwarp.ne.0.and.abs(idelslice).ne.1)call errorexit(
+     &	    'Cannot do local alignments with non-consecutive slices')
 	if(nxfull.eq.0.and.nyfull.eq.0.and.
-     &	    (ixsubset.ne.0.or.iysubset.ne.0))stop
-     &	    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET'
+     &	    (ixsubset.ne.0.or.iysubset.ne.0))call errorexit(
+     &	    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
 c	  
 c If NEWANGLES is 0, get angles from file header.  Otherwise check if angles OK
 c
@@ -2115,9 +2120,9 @@ c
 c
 	  call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
 c
-	  if (idtype.ne.1) stop ' Not tilt data.'
+	  if (idtype.ne.1) call errorexit( ' Not tilt data.')
 c
-	  if (nd1.ne.2) stop ' Tilt axis not along Y.'
+	  if (nd1.ne.2) call errorexit(' Tilt axis not along Y.')
 c
 	  dtheta = vd1
 	  theta = vd2
@@ -2129,14 +2134,15 @@ c
 c
 	else
 	  if(iftiltfile.eq.1.and.newangles.ne.0)then
-	    stop 'Tried to enter angles with both ANGLES and TILTFILE'
+	    call errorexit(
+     &		'Tried to enter angles with both ANGLES and TILTFILE')
 	  elseif(iftiltfile.eq.1)then
 	    write(6,*)' Tilt angles were entered from a tilt file'
 	  elseif(newangles.eq.nviews)then
 	    write(6,*)' Tilt angles were entered with ANGLES card(s)'
 	  else
-	    stop
-     &		'If using ANGLES, a value must be entered for each view'
+	    call errorexit('If using ANGLES, a value must be '//
+     &		'entered for each view')
 	  endif
 	endif
 c	  
@@ -2145,8 +2151,8 @@ c
 	    write(6,*)
      &		' Compression values were entered with COMPRESS card(s)'
 	  else
-	    stop
-     &      'If using COMPRESS, a value must be entered for each view'
+	    call errorexit('If using COMPRESS, a value must be '//
+     &		'entered for each view')
 	  endif
 	  do nv=1,nviews
 	    compress(nv)=1.+(compress(nv)-1.)/compfac
@@ -2161,12 +2167,13 @@ c
 C
 C Open output map file
 	if(islice.lt.1.or.jslice.lt.1.or.islice.gt.npxyz(2).or.
-     &	    jslice.gt.npxyz(2)) stop 'SLICE NUMBERS OUT OF RANGE'
+     &	    jslice.gt.npxyz(2)) call errorexit(
+     &	    'SLICE NUMBERS OUT OF RANGE')
 	NSLICE=(JSLICE-ISLICE)/idelslice+1
-	if(nslice.le.0)stop 'SLICE NUMBERS REVERSED'
+	if(nslice.le.0)call errorexit( 'SLICE NUMBERS REVERSED')
 	if(iwide.eq.0)iwide=npxyz(1)
-	if(iwide.gt.limwidth.and.nxwarp.ne.0)stop
-     &	    'OUTPUT SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS'
+	if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
+     &	    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
 	IF(PERP)THEN
 		NOXYZ(1)=iwide
 		NOXYZ(2)=ITHICK
@@ -2521,8 +2528,7 @@ c
 	endif
 	RETURN
 C
-9999	WRITE(6,888)
-	STOP
+9999	call errorexit('Wrong number of fields on card')
 C
 C
 48	FORMAT(//,1X,78('-'))
@@ -2578,7 +2584,6 @@ C
 3001	format(/,' X-tilting with vertical slices, if any, will have ',
      &	    'interpolation order', i2)
 
-888	FORMAT(//' ERROR ********** wrong number of fields on card'/)
 	END
 C
 C-----------------------------------------------------------------------
@@ -2608,7 +2613,7 @@ c	  DNM: switch from Q format to using LNBLNK
 	  card(1:)=card(2:)
 	enddo
 	WRITE(6,15)CARD
-15	FORMAT(/' DATA CARD ------- : ',A80) 
+15	FORMAT(/' DATA LINE ------- : ',A80) 
 C
 C Find card
 	call strupcase(upcase,card)
@@ -2620,8 +2625,8 @@ C Find card
 C
 C Unidentified tag
 	WRITE(6,20)CARD
-20	FORMAT(/' Unidentified card: ',A80)
-	STOP
+20	FORMAT(/' Unidentified line: ',A80)
+	call errorexit('Unidentified line')
 C
 C Tag found
 200	LABEL=KTAG
@@ -2678,9 +2683,9 @@ C 	----------------
 	INUM=INT(X)
 	IF(FLOAT(INUM).EQ.X)RETURN
 	WRITE(6,1)X
-1	FORMAT(//' ERROR in free format read:',F12.2,' is non-integral'
-	1)
-	STOP
+1	FORMAT(//' ERROR: TILT - in free format read, ',F12.2,
+     &	    ' is non-integral')
+	call exit(1)
 	END
 
 
@@ -2774,3 +2779,9 @@ c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 	end
 
 
+	subroutine errorexit(message)
+	character*(*) message
+	print *,' '
+	print *,'ERROR: TILT - ',message
+	call exit(1)
+	end
