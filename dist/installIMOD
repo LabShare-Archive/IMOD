@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/07/08 23:23:50  mast
+#  Added message to open new window and warning about other source lines
+#
 #  Revision 3.6  2004/07/06 16:55:20  mast
 #  Switch from link to rename for Mac
 #
@@ -232,7 +235,7 @@ else
                 echo "Adding source of startup script to $sysfil"
                 echo "# Set environment for IMOD" >> $sysfil
                 echo "" >> $sysfil
-                tail -2 $scripts[$ind] >> $sysfil
+                tail -n 2 $scripts[$ind] >> $sysfil
             else
                 echo "Source command already exists in $sysfil"
             endif
