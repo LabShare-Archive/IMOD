@@ -1,5 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-17
+7/7/02: Made Ccderaser use scale factors from the model file to get back to
+index coordinates, so now one model file can be used with image files that
+have different pixel spacings.  Also made all errors cause the program to exit
+with error status, and upgraded the title entry.
+
+7/7/02: Added a function to the model reading interface for Fortran to return
+the scale factors used to get between model to index coordinates.  Modified
+Clipmodel to use these factors, so it will now work with a model built on
+an image file with a pixel spacing other than 1.0.
+
+7/6/02: Fixed problem in nda caused by adding checks on array size.
+
+7/1/02: Fixed bug in corrsearch3d (used by patchcrawl3d) that was giving 
+slightly wrong patch displacements on the SGI and "nan" output on the PC.
+
 IMOD_2-6-16
 6/26/02: Added ability for C programs to write back to byte-swapped files also,
 so now Mrctaper and Clip work overwriting or appending to byte-swapped files.
