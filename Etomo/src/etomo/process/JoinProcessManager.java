@@ -27,6 +27,11 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.9  2004/12/14 21:38:05  sueh
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.  All state variables saved after a process is run belong in
+* <p> the state object.
+* <p>
 * <p> Revision 1.8  2004/12/09 04:54:45  sueh
 * <p> bug# 565 Removed save meta data from postPRocess and errorProcess
 * <p> functions.  It will be done more centrally.
@@ -204,14 +209,14 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(FlipyzParam.getName())) {
-      joinManager.addSection(command.getOutputFile());
+      joinManager.addSection(command.getCommandOutputFile());
     }
     else if (commandName.equals(XfalignParam.getName())) {
-      joinManager.copyXfFile(command.getOutputFile());
+      joinManager.copyXfFile(command.getCommandOutputFile());
       joinManager.enableMidas();
     }
     else if (commandName.equals(FinishjoinParam.getName())) {
-      int mode = process.getMode();
+      int mode = command.getCommandMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
         for (int i = 0; i < stdOutput.length; i++) {
@@ -234,11 +239,11 @@ public class JoinProcessManager extends BaseProcessManager {
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
         JoinState state = joinManager.getState();
-        state.setTrialBinning(command.getBinning());
-        state.setTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X));
-        state.setTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y));
-        state.setTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X));
-        state.setTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y));
+        state.setTrialBinning(command.getIntegerValue(FinishjoinParam.GET_BINNING));
+        state.setTrialSizeInX(command.getIntegerValue(FinishjoinParam.GET_SIZE_IN_X));
+        state.setTrialSizeInY(command.getIntegerValue(FinishjoinParam.GET_SIZE_IN_Y));
+        state.setTrialShiftInX(command.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_X));
+        state.setTrialShiftInY(command.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_Y));
       }
     }
   }
@@ -260,7 +265,7 @@ public class JoinProcessManager extends BaseProcessManager {
       joinManager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
-      File outputFile = command.getOutputFile();
+      File outputFile = command.getCommandOutputFile();
       //A partially created flip file can cause an error when it is opened.
       if (outputFile != null) {
         outputFile.delete();
@@ -291,7 +296,7 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(MidasParam.getName())) {
-      File outputFile = command.getOutputFile();
+      File outputFile = command.getCommandOutputFile();
       if (outputFile != null
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()
