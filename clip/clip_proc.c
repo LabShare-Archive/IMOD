@@ -396,13 +396,13 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     opt->val = 5.;
   iterations = B3DMAX(1, (int)opt->val);
   if (opt->thresh == IP_DEFAULT)
-    opt->thresh = 3;
+    opt->thresh = 2;
   CC = B3DMAX(1, B3DMIN(3, (int)(opt->thresh)));
   if (opt->weight == IP_DEFAULT)
-    opt->weight = CC == 2 ? 0.001 : 0.5;
+    opt->weight = 2.;
   kk = B3DMAX(0, opt->weight);
   if (opt->low == IP_DEFAULT)
-    opt->low = 0.15f;
+    opt->low = 0.2f;
   lambda = B3DMAX(0.001, opt->low);
 
   /* give message, add title */
@@ -1433,6 +1433,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.10  2005/01/27 05:55:17  mast
+Added anisotropic diffusion option
+
 Revision 3.9  2005/01/17 17:11:02  mast
 Changes for new typedefs and 2D processing scheme
 
