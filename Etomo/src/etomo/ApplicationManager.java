@@ -84,6 +84,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2004/06/05 00:59:36  sueh
+ * <p> bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
+ * <p> when the ta logs are out of date
+ * <p>
  * <p> Revision 3.64  2004/06/02 23:49:59  rickg
  * <p> Bug #391 only update the rotation.xf if the mode is fiducialess
  * <p>
@@ -3298,7 +3302,6 @@ public class ApplicationManager {
    */
   public void imodFullVolume(AxisID axisID) {
     try {
-      imodManager.reset(ImodManager.FULL_VOLUME_KEY, axisID);
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
     }
     catch (AxisTypeException except) {
@@ -3613,11 +3616,9 @@ public class ApplicationManager {
   public void imodMatchedToTomogram() {
     try {
       if (metaData.getCombineParams().getMatchBtoA()) {
-        imodManager.reset(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST);
         imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST);
       }
       else {
-        imodManager.reset(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND);
         imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND);
       }
     }
