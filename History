@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/5/03: Prevented garbage at edges of image caused by Zap Window fix on 3/5/03.
+Fixed problem with positioning slicer with left mouse button caused by
+modeling enhancements on 3/11/03.
+
+5/2/03: Stopped Zap window from drawing lines between non-contiguous points for
+contours that pass out of a section and back into it.
+
 IMOD_3-0-7
 4/27/03: Renamed programs to 3dmod/3dmodv, modified man page and help text.
 
