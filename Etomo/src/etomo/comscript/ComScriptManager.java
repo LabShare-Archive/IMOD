@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/01/06 17:55:40  sueh
+ * <p> bug# 567 Passing dataset name to TiltalignParam constructor to build the
+ * <p> zFactorFile name without making TiltalignParam depend on one type of
+ * <p> manager.
+ * <p>
  * <p> Revision 3.19  2005/01/05 18:54:51  sueh
  * <p> bug# 578 Create tiltalignParam with axisID.
  * <p>
@@ -372,7 +377,7 @@ public class ComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam prenewstParam = new NewstParam();
+    NewstParam prenewstParam = new NewstParam(axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -594,7 +599,7 @@ public class ComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam = new NewstParam();
+    NewstParam newstParam = new NewstParam(axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -660,7 +665,7 @@ public class ComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam();
+    TiltParam tiltParam = new TiltParam(appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID);
     return tiltParam;
   }
