@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2003/04/17 19:27:13  mast
+    keypad workaround for Mac
+
     Revision 3.6  2003/03/29 00:22:43  mast
     add forward declaration of ImodView
 
@@ -109,6 +112,7 @@ void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
 void inputConvertNumLock(int &keysym, int &keypad);
 void inputRaiseWindows();
+bool testMetaKey(QKeyEvent *event);
 
 void inputSetModelTime(ImodView *vw, int time);
 
