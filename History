@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/04: IMOD_3-4-9
+9/23/04: Fixed reference mode in Midas, broken by block mode changes.
+
 9/21/04: Added ability to use multiple clipping planes per object, and to set
 up global clipping planes also (up to 6 in each case).  Added surface labels
 that can be input in the Surface/Countour/Point window.  Added ability to
