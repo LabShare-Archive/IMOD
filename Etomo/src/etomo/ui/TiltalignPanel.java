@@ -37,6 +37,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/07/02 00:40:07  sueh
+ * <p> bug# 461 adding a connection to fid.xyz, preali header, and rawstack
+ * <p> header to the constructor.  Info from these files is required
+ * <p> to calculate z shift.  Correcting the calculation of binning
+ * <p> when caculating z shift.
+ * <p>
  * <p> Revision 3.1  2004/06/21 17:16:37  rickg
  * <p> Bug #461 z shift is scaled by the prealigned binning
  * <p>
@@ -425,9 +431,6 @@ public class TiltalignPanel {
       ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
         * Math.round(fidXyz.getPixelSize() / rawstackHeader.getXPixelSpacing()));
     }
-    //System.out.println("setParameters:fidXyz.getPixelSize()=" + fidXyz.getPixelSize() + ",rawstackHeader.getXPixelSpacing()=" + rawstackHeader.getXPixelSpacing());
-    //System.out.println("align binning=" + Math.round(fidXyz.getPixelSize() / rawstackHeader.getXPixelSpacing()));
-    //System.out.println("ltfTiltAxisZShift=" + ltfTiltAxisZShift.getText());
       
     ltfMetroFactor.setText(params.getMetroFactor());
     ltfCycleLimit.setText(params.getCycleLimit());
@@ -587,19 +590,19 @@ public class TiltalignPanel {
    */
   public void getParameters(TiltalignParam params)
     throws FortranInputSyntaxException {
-      try {
-        prealiHeader.read();
-        //raw stack won't change and doesn't really have to be read again
-        rawstackHeader.read();
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        return;
-      }
-      catch (InvalidParameterException except) {
-        except.printStackTrace();
-        return;
-      }
+    try {
+      prealiHeader.read();
+      //raw stack won't change and doesn't really have to be read again
+      rawstackHeader.read();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
     String badParameter = "";
     try {
       if (rbDualFiducialSurfaces.isSelected()) {
@@ -644,9 +647,6 @@ public class TiltalignPanel {
           / Math.round(
             prealiHeader.getXPixelSpacing()
               / rawstackHeader.getXPixelSpacing()));
-      //System.out.println("getParameters:prealiHeader.getXPixelSpacing()=" + prealiHeader.getXPixelSpacing() + ",rawstackHeader.getXPixelSpacing()=" + rawstackHeader.getXPixelSpacing());
-      //System.out.println("preali binning=" + Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
-      //System.out.println("TiltAxisZShift=" + params.getTiltAxisZShift());
 
       badParameter = ltfMetroFactor.getLabel();
       params.setMetroFactor(ltfMetroFactor.getText());
