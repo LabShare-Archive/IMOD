@@ -48,6 +48,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/05/23 14:22:38  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p> axisPanel mapping method
+ * <p>
  * <p> Revision 2.11  2003/05/19 22:10:03  rickg
  * <p> Added new to file menu
  * <p> Added tomography guide and imod guide to help menu
@@ -279,7 +283,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
     AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.startProgressBar(label);
+    axisPanel.setProgressBar(label, nSteps);
     axisPanel.setProgressBarValue(0);
   }
 
@@ -293,6 +297,17 @@ public class MainFrame extends JFrame implements ContextMenu {
     axisPanel.setProgressBarValue(value);
   }
 
+  /**
+   * Set the progress bar to the speficied value and update the string
+   * @param value
+   * @param string
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, String string, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setProgressBarValue(value, string);
+  }
+  
   /**
    *  Start the indeterminate progress bar on the specified axis 
    */

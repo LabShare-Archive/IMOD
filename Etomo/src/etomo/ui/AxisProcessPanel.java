@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/23 14:23:53  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p>
  * <p> Revision 2.4  2003/05/21 21:32:38  rickg
  * <p> Enabled kill process functionality
  * <p>
@@ -157,6 +160,14 @@ public class AxisProcessPanel implements ContextMenu {
    */  
   public void setProgressBarValue(int n) {
     progressPanel.setValue(n);
+  }
+
+  /**
+   * 
+   * @param n
+   */  
+  public void setProgressBarValue(int n, String string) {
+    progressPanel.setValue(n, string);
   }
   
   /**

@@ -21,6 +21,9 @@ import javax.swing.Timer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/05/23 14:21:27  rickg
+ * <p> Added determinant progress methods
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -77,6 +80,40 @@ public class ProgressPanel {
   public Container getContainer() {
     return panel;
   }
+
+  /**
+   * @param n
+   */
+  public void setMaximum(int n) {
+    progressBar.setMaximum(n);
+    progressBar.setIndeterminate(false);
+    progressBar.setStringPainted(true);
+  }
+
+  /**
+   * @param n
+   */
+  public void setMinimum(int n) {
+    progressBar.setMinimum(n);
+  }
+
+  /**
+   * @param n
+   */
+  public void setValue(int n) {
+    progressBar.setValue(n);
+  }
+
+  /**
+   * 
+   * @param n
+   * @param string
+   */
+  public void setValue(int n, String string) {
+    progressBar.setValue(n);
+    progressBar.setString(string);
+  }
+  
   /**
    * @return
    */
@@ -97,31 +134,6 @@ public class ProgressPanel {
   public int getValue() {
     return progressBar.getValue();
   }
-
-  /**
-   * @param n
-   */
-  public void setMaximum(int n) {
-    progressBar.setMaximum(n);
-    progressBar.setIndeterminate(false);
-  }
-
-  /**
-   * @param n
-   */
-  public void setMinimum(int n) {
-    progressBar.setMinimum(n);
-  }
-
-  /**
-   * @param n
-   */
-  public void setValue(int n) {
-    progressBar.setValue(n);
-    panel.validate();
-    panel.repaint();
-  }
-
 }
 
 class ProgressTimerActionListener implements ActionListener {
