@@ -19,6 +19,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.18  2003/11/05 20:28:42  rickg
  * <p> Bug #292 Added openPreserveContrast and openBeadfixer methods
  * <p>
@@ -124,8 +127,17 @@ public class ImodProcess {
 	private boolean swapYZ = false;
 	private boolean modelView = false;
 	private boolean fillCache = false;
+  private boolean useModv = false;
+  private boolean outputWindowID = true;
 
 	private Thread imodThread;
+
+  /**
+   * Constructor for using imodv
+   * 
+   */
+  public ImodProcess() {
+  }
 
 	/**
 	 * Dataset only constructor
@@ -178,18 +190,26 @@ public class ImodProcess {
 		windowID = "";
 
 		//  Collect the command line options
-		String options = "";
+		StringBuffer options = new StringBuffer();
+    if (outputWindowID) {
+      options.append("-W ");
+    }
+    
 		if (swapYZ) {
-			options = "-Y ";
+			options.append("-Y ");
 		}
 
 		if (modelView) {
-			options = "-V ";
+			options.append("-V ");
 		}
+    
+    if (useModv) {
+      options.append("-view ");
+    }
 
 		// Fill cache implementation
 		if (fillCache) {
-			options = "-F ";
+			options.append("-F ");
 		}
 		String imodBinPath =
 			ApplicationManager.getIMODDirectory().getAbsolutePath()
@@ -197,7 +217,8 @@ public class ImodProcess {
 				+ "bin"
 				+ File.separator;
 		String command =
-			imodBinPath + "3dmod -W " + options + datasetName + " " + modelName;
+			imodBinPath + "3dmod " + options + datasetName + " " + modelName;
+    System.out.println("command=" + command);
 		InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
 		//  Start the 3dmod program thread and wait for it to finish
@@ -228,7 +249,7 @@ public class ImodProcess {
 		}
 
 		//  If imod exited before getting the window report the problem to the user
-		if (windowID.equals("")) {
+		if (windowID.equals("") && outputWindowID) {
 			String message =
 				"3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
@@ -482,5 +503,33 @@ public class ImodProcess {
 	public void setFillCache(boolean b) {
 		fillCache = b;
 	}
+
+  /**
+   * @return
+   */
+  public boolean isUseModv() {
+    return useModv;
+  }
+
+  /**
+   * @param b
+   */
+  public void setUseModv(boolean b) {
+    useModv = b;
+  }
+  
+  /**
+   * @return
+   */
+  public boolean isOutputWindowID() {
+    return outputWindowID;
+  }
+
+  /**
+   * @param b
+   */
+  public void setOutputWindowID(boolean b) {
+    outputWindowID = b;
+  }
 
 }
