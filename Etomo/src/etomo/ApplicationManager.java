@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.40  2003/05/15 19:39:44  rickg
+ * <p> Look and feel handling
+ * <p>
  * <p> Revision 2.39  2003/05/14 23:22:51  rickg
  * <p> Exit if no IMOD_DIR is defined.  We can't run any of the non com scripts
  * <p>
@@ -3007,7 +3010,7 @@ public class ApplicationManager {
       }
       else if (osName.startsWith("Windows")) {
         lookAndFeelClassName =
-          "name:com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+          "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         if (debug) {
           System.err.println("Setting WindowsLookAndFeel");
         }
