@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/03: Implemented ability to movie in Slicer window, ability to take movie 
+snapshots automatically just as with Zap window, and an option to start a movie
+snapshot at the current position in Slicer or Zap windows.
+
+12/18/03: Disabled autocontrast hot key for non-existent or RGB images, and fixed
+problem with float on first image of a zap movie snapshot.
+
 12/17/03: Added global rotation mode to Midas so that tilt series images can
 be rotated to make the tilt axis vertical.
 
