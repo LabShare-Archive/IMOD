@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.Vector;
+
 /**
  * <p>Description: </p>
  * 
@@ -13,6 +15,11 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/02 21:52:19  sueh
+ * <p> bug# 250 changed parseComScriptCommand() - correcting parameters
+ * <p> changed updateComScriptCommand() - adding parameters
+ * <p> added borders, move reset() to const
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -140,57 +147,54 @@ public class Patchcrawl3DParam
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand) {
-    String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
+    Vector cmdLineArgs = new Vector(scriptCommand.getCommandLineLength());
     String badParameter = "";
     badParameter = "xsize";
-    int i = 0;
-    cmdLineArgs[i++] = String.valueOf(xPatchSize);
+    cmdLineArgs.add(String.valueOf(xPatchSize));
     badParameter = "ysize";
-    cmdLineArgs[i++] = String.valueOf(yPatchSize);
+    cmdLineArgs.add(String.valueOf(yPatchSize));
     badParameter = "zsize";
-    cmdLineArgs[i++] = String.valueOf(zPatchSize);
+    cmdLineArgs.add(String.valueOf(zPatchSize));
     badParameter = "nx";
-    cmdLineArgs[i++] = String.valueOf(nX);
+    cmdLineArgs.add(String.valueOf(nX));
     badParameter = "ny";
-    cmdLineArgs[i++] = String.valueOf(nY);
+    cmdLineArgs.add(String.valueOf(nY));
     badParameter = "nz";
-    cmdLineArgs[i++] = String.valueOf(nZ);
+    cmdLineArgs.add(String.valueOf(nZ));
     badParameter = "xlo";
-    cmdLineArgs[i++] = String.valueOf(xLow);
+    cmdLineArgs.add(String.valueOf(xLow));
     badParameter = "xhi";
-    cmdLineArgs[i++] = String.valueOf(xHigh);
+    cmdLineArgs.add(String.valueOf(xHigh));
     badParameter = "ylo";
-    cmdLineArgs[i++] = String.valueOf(yLow);
+    cmdLineArgs.add(String.valueOf(yLow));
     badParameter = "yhi";
-    cmdLineArgs[i++] = String.valueOf(yHigh);
+    cmdLineArgs.add(String.valueOf(yHigh));
     badParameter = "Zlo";
-    cmdLineArgs[i++] = String.valueOf(zLow);
+    cmdLineArgs.add(String.valueOf(zLow));
     badParameter = "Zhi";
-    cmdLineArgs[i++] = String.valueOf(zHigh);
+    cmdLineArgs.add(String.valueOf(zHigh));
     badParameter = "max_shift";
-    cmdLineArgs[i++] = String.valueOf(maxShift);
+    cmdLineArgs.add(String.valueOf(maxShift));
     badParameter = "filea";
-    cmdLineArgs[i++] = fileA;
+    cmdLineArgs.add(fileA);
     badParameter = "fileb";
-    cmdLineArgs[i++] = fileB;
+    cmdLineArgs.add(fileB);
     badParameter = "output_file";
-    cmdLineArgs[i++] = outputFile;
+    cmdLineArgs.add(outputFile);
     if (!transformFile.equals("")) {
       badParameter = "transform_file";
-      cmdLineArgs[i++] = transformFile;
+      cmdLineArgs.add(transformFile);
       badParameter = "original_fileb";
-      cmdLineArgs[i++] = originalFileB;
+      cmdLineArgs.add(originalFileB);
       badParameter = "borders";
-      cmdLineArgs[i++] = borders.toString();
+      cmdLineArgs.add(borders.toString());
     }
     if (!boundaryModel.equals("")) {
       badParameter = "boundary_model";
-      cmdLineArgs[i++] = boundaryModel;
+      cmdLineArgs.add(boundaryModel);
     }
-    for (int index = i; index < cmdLineArgs.length; index++) {
-      cmdLineArgs[index] = "";
-    }
-    scriptCommand.setCommandLineArgs(cmdLineArgs);
+    String[] dummyStringArray = new String[2];
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(dummyStringArray));
   }
   /**
    * Sets the fileA.
