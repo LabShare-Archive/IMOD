@@ -69,6 +69,8 @@ Log at end of file
 #include "lock.bits"
 #include "lowres.bits"
 #include "highres.bits"
+#include "image.bits"
+#include "fft.bits"
 
 static unsigned char showslice_bits[] = {
      0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x00, 0x00, 0xff, 0xef, 0xff, 0xef,
@@ -78,7 +80,8 @@ static unsigned char showslice_bits[] = {
 
 static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
   { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits}};
+    {unlock_bits, lock_bits},
+    {image_bits, fft_bits}};
 
 static QBitmap *bitmaps[MAX_SLICER_TOGGLES][2];
 static QBitmap *showBitmap;
@@ -129,7 +132,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   // Make the 2 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 2; j++)
+  for (j = 0; j < 3; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
   
   // The showslice button is simpler
@@ -140,6 +143,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   button->setPixmap(*showBitmap);
   button->setAutoRaise(AUTO_RAISE);
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
+  QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows");
   
   // The Z scale combo box
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
@@ -244,16 +248,17 @@ void SlicerWindow::setFontDependentWidths()
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
-static char *toggleTips[] = {
-  "Toggle between regular and high-resolution (interpolated) image",
-  "Lock window at current position",
-  "Show slice cutting lines in Xyz and Zap windows"};
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
 void SlicerWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
                            int ind)
 {
+  char *toggleTips[] = {
+    "Toggle between regular and high-resolution (interpolated) image",
+    "Lock window at current position",
+    "Toggle between showing image and FFT" };
+
   if (firstTime) {
     bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
     bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
@@ -449,6 +454,9 @@ void SlicerCube::resizeGL( int wdth, int hght )
 
  /*
 $Log$
+Revision 4.10  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.9  2004/08/12 17:14:43  mast
 Left out Z-scale after option when binnings differ
 
