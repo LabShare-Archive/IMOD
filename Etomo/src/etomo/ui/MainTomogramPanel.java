@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/16 02:52:32  sueh
+* <p> bug# 559 Removing everything from the status bar except the param file
+* <p> and path.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:59:02  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -71,6 +75,15 @@ public class MainTomogramPanel extends MainPanel {
   
   protected DataFileFilter getDataFileFilter() {
     return new EtomoFileFilter();
+  }
+  
+  public void saveDisplayState() {
+    if (axisPanelA != null) {
+      axisPanelA.saveDisplayState();
+    }
+    if (axisPanelB != null) {
+     axisPanelB.saveDisplayState();
+    }
   }
   
   /**
