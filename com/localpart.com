@@ -1,5 +1,5 @@
 5,5	NUMBER OF LOCAL PATCHES TO SOLVE FOR IN X AND Y
-750,750	MINIMUM SIZE OF PATCHES
+0.5,0.5	minimum size of patches (> 1) or minimum fractional overlap (< 1)
 8,3	MINIMUM FIDUCIALS TOTAL AND ON ONE SURFACE IF TWO SURFACES
 1	1 to fix XYZ coords at global values, 0 to solve for them also
 1,0,1	1 for output of variables, XYZ coordinates, and residuals each time

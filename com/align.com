@@ -9,8 +9,9 @@ g5a.fid
 g5a.st
 #1024,1024/	size and origin information; comment out if use image file
 # next line, filename for model output of X-Y-Z coordinates, or
-# a name containing ".res" for text output of residuals, or blank for neither
-
+# a name containing ".res" for text output of residuals, 
+# a name without a "." for both outputs, or blank for neither
+g5a
 # next line, filename for text output of X-Y-Z coordinates, blank for none
 g5afid.xyz
 # next line, filename for output of tilt angles, blank for none

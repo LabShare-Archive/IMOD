@@ -139,10 +139,12 @@ DDEESSCCRRIIPPTTIIOONN
 	      the X and Y origin (default is 0,0), and the X and Y delta
 	      values (default is 1,1).
 
-	  Either the name of a file to output a 3-D model of the fiducials
-	        based on their solved positions,
+	  Either a filename with an extension other than ".res" to output a
+	        3-D model of the fiducials based on their solved positions,
 	      or a filename including ".res" for a list of all residuals,
 	        which can be converted to a model with Patch2imod,
+	      or a filename with NO extension to get both outputs, one with
+	        extension .3dmod and one with extension .resid,
 	      or a blank line for neither output
 
 	  Name of file to put model of solved X-Y-Z coordinates, or a blank
@@ -184,6 +186,7 @@ DDEESSCCRRIIPPTTIIOONN
 	      or the number of the view to fix at the initial rotation angle
 	   	(and thus fix the tilt axis at that angle for that view)
 	      or -1 to solve for a single global rotation of the tilt axis
+	      or -2 to fix all rotation angles at the initial angle
 
 	  Number of sets of views to treat separately from the main set of
 	      views in any automapping of variables.  Enter 0 if you will not
@@ -345,7 +348,8 @@ DDEESSCCRRIIPPTTIIOONN
 	  Number of local patches in X and in Y in which to obtain a solution
 	      from the fiducials located in that patch
 	  
-	  Minimum size of each patch in X and Y
+	  Either the minimum size of each patch in X and Y (enter values > 1)
+              or the minimum fractional overlap between patches (values < 1)
 	  
 	  Minimum total number of fiducials, and minimum number present on each
 	      surface if two surfaces were assumed in the analysis of
