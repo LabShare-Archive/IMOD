@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2003/10/24 03:09:26  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.5  2002/11/05 23:25:26  mast
 *** empty log message ***
 
@@ -87,10 +90,12 @@ void usage(void)
 #endif
   fprintf(stderr, "\tflip        - rotate image by 90 deg. steps.\n");
   /*     fprintf(stderr, "\tpeak        - find peaks in image.\n"); */
+  fprintf(stderr, "\tjoinrgb     - Join 3 byte files into an RGB file.\n");
   fprintf(stderr, "\tresize      - cut out and/or pad image data.\n");
   fprintf(stderr, "\trotation    - rotate image\n");
   fprintf(stderr, "\tshadow      - Increase or decrease image shadows.\n");
   fprintf(stderr, "\tsharpen     - Sharpen/blur image.\n");
+  fprintf(stderr, "\tsplitrgb    - Split RGB image file into 3 byte files.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
   fprintf(stderr, "\ttranslate   - translate image.\n");
   fprintf(stderr, "\tzoom        - magnifiy image.\n");
@@ -159,6 +164,7 @@ int main( int argc, char *argv[] )
   int view    = FALSE;    /* view file at end?           */
   int procout = TRUE;     /* will process write output?. */
   int i;
+  int retval = 0;
 
   char viewcmd[1024];
   char *backupstr;
@@ -229,6 +235,13 @@ int main( int argc, char *argv[] )
 
   if (!strncmp( argv[1], "project", 3)){
     process = IP_PROJECT;
+  }
+
+  if (!strncmp( argv[1], "splitrgb", 3)){
+    process = IP_SPLITRGB;
+  }
+  if (!strncmp( argv[1], "joinrgb", 3)){
+    process = IP_JOINRGB;
   }
 
   if (process == IP_NONE){
@@ -439,7 +452,7 @@ int main( int argc, char *argv[] )
          return(-1);
          } */
 
-    }else{
+    } else if (process != IP_SPLITRGB) {
 
       /* DNm 10/20/03: swicth to calling routine for backup file */
       imodBackupFile(argv[argc - 1]);
@@ -465,79 +478,88 @@ int main( int argc, char *argv[] )
     puts("add: (future)");
     break;
   case IP_AVERAGE:
-    grap_average(&hin, &hin2, &hout, &opt);
+    retval = grap_average(&hin, &hin2, &hout, &opt);
     break;
   case IP_BRIGHTNESS:
-    clip_brightness(&hin, &hout, &opt);
+    retval = clip_brightness(&hin, &hout, &opt);
     break;
   case IP_COLOR:
-    grap_color(&hin, &hout, &opt);
+    retval = grap_color(&hin, &hout, &opt);
     break;
   case IP_CONTRAST:
-    clip_contrast(&hin, &hout, &opt);
+    retval = clip_contrast(&hin, &hout, &opt);
     break;
 #ifndef NOFFTLIB
   case IP_CORRELATE:
-    grap_corr(&hin, &hin2, &hout, &opt);
+    retval = grap_corr(&hin, &hin2, &hout, &opt);
     break;
 #endif
   case IP_EDGE:
-    clipEdge(&hin, &hout, &opt);
+    retval = clipEdge(&hin, &hout, &opt);
     break;
   case IP_INFO:
-    mrc_head_print(&hin);
+    retval = mrc_head_print(&hin);
     break;
 #ifndef NOFFTLIB
   case IP_FFT:
-    clip_fft(&hin, &hout, &opt);
+    retval = clip_fft(&hin, &hout, &opt);
     break;
   case IP_FILTER:
-    clip_bandpass_filter(&hin, &hout, &opt);
+    retval = clip_bandpass_filter(&hin, &hout, &opt);
     break;
 #endif
   case IP_FLIP:
-    grap_flip(&hin, &hout, &opt);
+    retval = grap_flip(&hin, &hout, &opt);
+    break;
+  case IP_JOINRGB:
+    retval = clip_joinrgb(&hin, &hin2, &hout, &opt);
     break;
   case IP_PEAK:
-    puts("peak: future function\n");
+    retval = puts("peak: future function\n");
     break;
   case IP_RESIZE:
-    grap_resize(&hin, &hout, &opt);
+    retval = grap_resize(&hin, &hout, &opt);
     break;
   case IP_ROTATE:
-    grap_rotate(&hin, &hout, &opt);
+    retval = grap_rotate(&hin, &hout, &opt);
     break;
   case IP_SHADOW:
-    clip_shadow(&hin, &hout, &opt);
+    retval = clip_shadow(&hin, &hout, &opt);
     break;
   case IP_SHARPEN:
-    clip_sharpen(&hin, &hout, &opt);
+    retval = clip_sharpen(&hin, &hout, &opt);
+    break;
+  case IP_SPLITRGB:
+    retval = clip_splitrgb(&hin, &opt);
     break;
   case IP_STAT:
-    grap_stat(&hin, &opt);
+    retval = grap_stat(&hin, &opt);
     break;
   case IP_TRANSLATE:
-    grap_trans(&hin, &hout, &opt);
+    retval = grap_trans(&hin, &hout, &opt);
     break;
   case IP_ZOOM:
-    if (grap_zoom(&hin, &hout, &opt))
+    if (grap_zoom(&hin, &hout, &opt)) {
       fprintf(stderr, "%s: error doing zoom.\n", progname);
+      retval = 1;
+    }
     break;
 
   default:
     fprintf(stderr, "%s error: no process selected.\n", progname);
+    retval = 1;
   }
 
+  if (retval)
+    exit(retval);
   fclose (hin.fp);
   if (procout)
     fclose (hout.fp);
 
-#ifdef __sgi
   if (view){
-    sprintf(viewcmd, "mrcv %s", argv[argc - 1]);
+    sprintf(viewcmd, "3dmod %s", argv[argc - 1]);
     system(viewcmd);
   }
-#endif
   return(0);
 }
      
