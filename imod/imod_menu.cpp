@@ -822,7 +822,7 @@ void InfoWindow::editPointSlot(int item)
   }
   case EPOINT_MENU_VALUE: /* value */
     wprint("Pixel value from file:\n (%g, %g, %g) = %g",
-           App->cvi->xmouse, App->cvi->ymouse, App->cvi->zmouse,
+           App->cvi->xmouse + 1, App->cvi->ymouse + 1, App->cvi->zmouse + 1,
            ivwGetFileValue(App->cvi, (int)App->cvi->xmouse,
                            (int)App->cvi->ymouse, (int)App->cvi->zmouse));
     break;
@@ -1005,6 +1005,9 @@ void InfoWindow::helpSlot(int item)
 
 /*
 $Log$
+Revision 4.8  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.7  2003/04/18 00:46:53  mast
 Call inputNewContour when making new contour toget times right
 
