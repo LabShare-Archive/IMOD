@@ -41,8 +41,12 @@ c	  The user can disable various strategies by specifying an
 c	  interpolation order of 0: cosine stretching by entering
 c	  "COSINTERP 0", fast backprojection by entering "FBPINTERP 0", or the
 c	  new style of X-axis tilting by entering "XTILTINTERP 0".  There are
-c	  some cases where the fast back projection might be slower than the
-c	  conventional approach (e.g., few input views).
+c	  some cases where the fast backprojection is slower than the
+c	  conventional approach (e.g., few input views).  The program attempts
+c	  to detect these cases and use conventional summation instead.  If
+c	  you use "FBPINTERP 1", you can bypass this checking and force the 
+c	  program to use fast backprojection as long as other conditions are
+c	  met.
 c
 C -----------------------------------------------------------------
 C
@@ -119,7 +123,11 @@ C	  ------
 C	  Use this line to specify the interpolation ORDER for the fast
 c	  backprojection algorithm: 1 for linear interpolation (the default),
 c	  3 for cubic spline interpolation, which will low-pass filter the
-c	  input data more, or 0 to disable fast backprojection.
+c	  input data more, or 0 to disable fast backprojection.  Entering a 
+c	  value with this option will also force the program to use fast
+c	  backprojection even if the width, thickness, and number of views
+c	  are small enough so that fast backprojection will run slower than
+c	  direct summation.
 C
 C	  FULLIMAGE XSIZE YSIZE
 C	  ------
@@ -333,6 +341,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/07/21 19:37:25  mast
+c	  Replaced STOP with call exit(1) and standardized error outputs
+c	
 c	  Revision 3.4  2002/05/07 02:02:53  mast
 c	  Added EXCLUDELIST option
 c	
@@ -1715,6 +1726,7 @@ C
 	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
 c	  
 	dimension ivexcl(limview),repinc(limview)
+	include 'fbpswitch.inc'
 c
 	NTAGS = 32
 	WRITE(6,50)
@@ -1793,7 +1805,7 @@ c......Default double-width linear interpolation in cosine stretching
 	interpfac=2
 	interpord=1
 	intordxtilt=1
-	interpfbp=1
+	interpfbp=-1
 c
 c......Default title
 	CALL DATE(DAT)
@@ -2292,7 +2304,7 @@ c
 c	  
 c	  determine if fast bp can be used
 c	  
-	fastbp=interpfbp.gt.0
+	fastbp=interpfbp.ne.0
 	if(fastbp)then
 	  fastbp=licenseusfft().eq.0
 	  if(.not.fastbp)then
@@ -2314,6 +2326,21 @@ c
 	    endif
 	  endif
 	endif
+c	  
+c	  Next check whether dimensions are below cutoff, unless the user has
+c	  entered an fbpinterp line
+c
+	if(fastbp.and.interpfbp.lt.0)then
+	  do i=1,nfbplimits
+	    if (iwide.lt.limitfbp(1,i).and.ithick.lt.limitfbp(2,i)
+     &		.and.nviews.lt.limitfbp(3,i)) fastbp = .false.
+	  enddo
+	  if(.not.fastbp)write(*,'(/,a,/,a,/)')' Fast back-projection'
+     &	      //' will not be used because it would probably be slower',
+     &	      ' for these values of width, thickness, and number'//
+     &	      ' of views'
+	endif
+	interpfbp = abs(interpfbp)
 c	  
 c	  If qualify for fast bp, set up working arrays and make sure there
 c	  is enough space.  Have to compute here items that are ordinarily
