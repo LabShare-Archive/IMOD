@@ -45,6 +45,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
+import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
@@ -82,6 +83,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.105  2004/12/02 18:23:09  sueh
+ * <p> bug# 557 Added squeezevol() and loaded sqeezevol parameters into
+ * <p> post processing dialog.
+ * <p>
  * <p> Revision 3.104  2004/11/30 00:32:45  sueh
  * <p> bug# 556 Adding functions to parse volcombine.
  * <p>
@@ -2870,6 +2875,10 @@ public class ApplicationManager extends BaseManager {
       + File.separator + logFileName));
   }
 
+  public MetaData getTomogramMetaData() {
+    return metaData;
+  }
+  
   /**
    * Compute the final alignment from the updated parameters in the
    * positioning dialog.
