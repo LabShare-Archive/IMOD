@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +45,7 @@
 static int fgetline(FILE *fp, char s[],int limit);
 struct Mod_Model *imod_from_patches(FILE *fin, float scale);
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
      int i;
      FILE *fin, *fout;
@@ -109,5 +117,6 @@ main( int argc, char *argv[])
 				 ix, iy, iz, dx, dy, dz);
 	       }
      fclose(fout);
+     exit(0);
 }
 

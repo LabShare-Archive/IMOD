@@ -36,7 +36,7 @@
 
 extern int imod_to_RIB(Imod *imod, FILE *fout);
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
      Imod *imod;
      FILE *fout  = NULL;
@@ -65,5 +65,6 @@ main( int argc, char *argv[])
 	  fprintf(stderr, "Imod2RIB: Error!\n");
      
      fclose(fout);
+     exit(0);
 }
 

@@ -284,5 +284,5 @@ int main(int argc, char **argv)
      printModel(fout, imod);
      
      fclose(fout);
-
+     exit(0);
 }
