@@ -5,7 +5,6 @@ import java.util.Vector;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.comscript.ComScriptCommand;
 import etomo.storage.Storable;
 
 /**
@@ -22,6 +21,11 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/01/22 04:11:06  sueh
+ * <p> bug# 509, bug# 591  Ignore empty in comparisons.  Change validate() to
+ * <p> ignore empty when looking at validValues.  Also in validate() fail on null
+ * <p> or empty if preventNullValue is on.
+ * <p>
  * <p> Revision 1.11  2005/01/21 23:04:12  sueh
  * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
  * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
@@ -112,24 +116,17 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final float floatNullValue = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   private static final long longNullValue = Long.MIN_VALUE;
-  
-  //Allow EtomoNumber to be blank, even when resetValue is set.
-  private static final double doubleEmptyValue = Double.MAX_VALUE;
-  private static final float floatEmptyValue = Float.MAX_VALUE;
-  public static final int integerEmptyValue = Integer.MAX_VALUE;
-  private static final long longEmptyValue = Long.MAX_VALUE;
 
   protected int type;
   protected String name;
   protected String description = null;
   protected String invalidReason = null;
-  protected boolean displayDefault = false;
   protected Number currentValue;
-  protected Number defaultValue;
-  protected Number resetValue;
+  protected Number displayValue;
   protected Number ceilingValue;
   protected Vector validValues = null;
   protected boolean preventNullValue = false;
+  protected boolean useDisplayValue = true;
 
   protected ConstEtomoNumber(int type) {
     this.type = type;
@@ -150,9 +147,10 @@ public abstract class ConstEtomoNumber implements Storable {
     name = that.name;
     description = that.description;
     currentValue = newNumber(that.currentValue);
-    defaultValue = newNumber(that.defaultValue);
-    resetValue = newNumber(that.resetValue);
+    displayValue = newNumber(that.displayValue);
     ceilingValue = newNumber(that.ceilingValue);
+    preventNullValue = that.preventNullValue;
+    useDisplayValue = that.useDisplayValue;
     if (that.validValues != null && that.validValues.size() == 0) {
       validValues = new Vector(that.validValues.size());
       for (int i = 0; i < that.validValues.size(); i++) {
@@ -169,11 +167,11 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param preventNullValue
    * @param resetValue
    */
-  protected ConstEtomoNumber(int type, String name, boolean preventNullValue, Number resetValue) {
+  protected ConstEtomoNumber(int type, String name, boolean preventNullValue, Number displayValue) {
     this.type = type;
     this.name = name;
     description = name;
-    initialize(preventNullValue, resetValue);
+    initialize(preventNullValue, displayValue);
   }
 
   public String getDescription() {
@@ -184,8 +182,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return name;
   }
   
-  public int getResetInteger() {
-    return resetValue.intValue();
+  public int getDisplayInteger() {
+    return displayValue.intValue();
   }
 
   /**
@@ -198,13 +196,13 @@ public abstract class ConstEtomoNumber implements Storable {
     if (invalidReason != null) {
       return;
     }
-    if ((isNull(currentValue) || isEmpty(currentValue)) && preventNullValue) {
+    if (isNull(currentValue) && preventNullValue) {
       StringBuffer invalidBuffer = new StringBuffer();
       invalidReason = "Invalid value:  null or empty"
           + "\nNull and empty are not allowed when preventNullValue is true.";
       return;
     }
-    if (isNull(currentValue) || isEmpty(currentValue) || validValues == null) {
+    if (isNull(currentValue) || validValues == null) {
       return;
     }
     boolean valid = false;
@@ -229,7 +227,6 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   protected Number applyCeilingValue(Number value) {
     if (value != null && !isNull(ceilingValue) && !isNull(value)
-        && !isEmpty(ceilingValue) && !isEmpty(value)
         && gt(currentValue, ceilingValue)) {
       return ceilingValue;
     }
@@ -263,8 +260,10 @@ public abstract class ConstEtomoNumber implements Storable {
   protected String paramString() {
     return ",\ntype=" + type + ",\nname=" + name + ",\ndescription="
         + description + ",\ninvalidReason=" + invalidReason + ",\ncurrentValue="
-        + currentValue + ",\ndefaultValue=" + defaultValue + ",\nresetValue="
-        + resetValue + ",\nceilingValue=" + ceilingValue;
+        + currentValue + ",\ndisplayValue="
+        + displayValue + ",\nceilingValue=" + ceilingValue
+        + ",\nuseDisplayValue=" + useDisplayValue
+        + ",\npreventNullValue=" + preventNullValue;
   }
 
   public ConstEtomoNumber setCeiling(int ceilingValue) {
@@ -272,38 +271,19 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
 
-  public ConstEtomoNumber setDefault(int defaultValue) {
-    this.defaultValue = newNumber(defaultValue);
-    return this;
-  }
-
-  public ConstEtomoNumber setDefault(String defaultValueString) {
-    StringBuffer invalidBuffer = new StringBuffer();
-    Number defaultValue = newNumber(defaultValueString, invalidBuffer);
-    if (invalidBuffer.length() == 0 && !isNull(defaultValue)) {
-      this.defaultValue = defaultValue;
-    }
-    return this;
-  }
-
-  public ConstEtomoNumber setDisplayDefault(boolean displayDefault) {
-    this.displayDefault = displayDefault;
-    return this;
-  }
-
   /**
    * Set the value will be used if the user does not set a value or there is no
    * value to load.  Also used in reset().
    * @param resetValue
    * @return
    */
-  public ConstEtomoNumber setResetValue(int resetValue) {
-    this.resetValue = newNumber(resetValue);
+  public ConstEtomoNumber setDisplayValue(int displayValue) {
+    this.displayValue = newNumber(displayValue);
     return this;
   }
   
-  public ConstEtomoNumber setResetValue(boolean resetValue) {
-    this.resetValue = newNumber(resetValue);
+  public ConstEtomoNumber setDisplayValue(boolean displayValue) {
+    this.displayValue = newNumber(displayValue);
     return this;
   }
 
@@ -313,11 +293,18 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param resetValue
    * @return
    */
-  public void setResetValue(double resetValue) {
+  public void setDisplayValue(double displayValue) {
     if (type != DOUBLE_TYPE) {
-      throw new IllegalStateException("Cannot use a double resetValue with any type but double.");
+      throw new IllegalStateException("Cannot use a double displayValue with any type but double.");
     }
-    this.resetValue = newNumber(resetValue);
+    this.displayValue = newNumber(displayValue);
+  }
+  
+  public void setDisplayValue(long displayValue) {
+    if (type != DOUBLE_TYPE && type != LONG_TYPE) {
+      throw new IllegalStateException("Cannot use a long displayValue with any type but long or double.");
+    }
+    this.displayValue = newNumber(displayValue);
   }
 
   public void setDescription(String description) {
@@ -342,7 +329,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   public void store(Properties props) {
-    if (isNull() || isEmpty()) {
+    if (isNull(currentValue)) {
       remove(props);
       return;
     }
@@ -350,7 +337,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public void store(Properties props, String prepend) {
-    if (isNull() || isEmpty()) {
+    if (isNull(currentValue)) {
       remove(props, prepend);
       return;
     }
@@ -366,19 +353,11 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   public String toString() {
-    return toString(displayDefault);
-  }
-
-  public String toString(boolean displayDefault) {
-    return toString(getValue(displayDefault));
+    return toString(getValue());
   }
 
   public int getInteger() {
-    return getInteger(displayDefault);
-  }
-
-  public int getInteger(boolean displayDefault) {
-    return getValue(displayDefault).intValue();
+    return getValue().intValue();
   }
   
   public boolean is() {
@@ -405,62 +384,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public Number getNumber() {
-    return getNumber(displayDefault);
-  }
-
-  public Number getNumber(boolean displayDefault) {
-    return newNumber(getValue(displayDefault));
-  }
-  
-  public ConstEtomoNumber updateCommand(ComScriptCommand scriptCommand) {
-    if (!isNull() && !isEmpty() && !isDefault()) {
-      scriptCommand.setValue(name, toString());
-    }
-    else {
-      scriptCommand.deleteKey(name);
-    }
-    return this;
-  }
-  
-  /**
-   * Returns true if value could be placed in a script (not null, not blank, and
-   * not default).
-   * @return
-   */
-  public boolean isUpdateCommand() {
-    if (!isNull() && !isEmpty() && !isDefault()) {
-      return true;
-    }
-    return false;
-  }
-  
-  public ConstEtomoNumber getNegation() {
-    EtomoNumber that = new EtomoNumber(this);
-    that.currentValue = newNumberMultiplied(currentValue, -1);
-    that.resetValue = newNumberMultiplied(resetValue, -1);
-    that.defaultValue = newNumberMultiplied(defaultValue, -1);
-    if (validValues == null || validValues.size() == 0) {
-      return that;
-    }
-    that.validValues = new Vector(validValues.size());
-    for (int i = 0; i < validValues.size(); i++) {
-      that.validValues
-          .add(newNumberMultiplied((Number) validValues.get(i), -1));
-    }
-    return that;
-  }
-
-  /**
-   * Returns true if defaultValue is not null and getValue() is equal to
-   * defaultValue.
-   * @return
-   */
-  protected boolean isDefault() {
-    Number value = getValue();
-    if (isNull(value) || isNull(defaultValue)) {
-      return false;
-    }
-    return equals(currentValue, defaultValue);
+    return newNumber(getValue());
   }
 
   /**
@@ -484,10 +408,6 @@ public abstract class ConstEtomoNumber implements Storable {
     return isNull(getValue());
   }
   
-  protected boolean isEmpty() {
-    return isEmpty(getValue());
-  }
-
   public boolean equals(Number value) {
     return equals(getValue(), value);
   }
@@ -500,50 +420,34 @@ public abstract class ConstEtomoNumber implements Storable {
     initialize(false, newNumber());
   }
   
-  protected void initialize(boolean preventNullValue, Number resetValue) {
-    defaultValue = newNumber();
+  protected void initialize(boolean preventNullValue, Number displayValue) {
     ceilingValue = newNumber();
-    this.resetValue = newNumber(resetValue);
+    this.displayValue = newNumber(displayValue);
     this.preventNullValue = preventNullValue;
     currentValue = newNumber();
   }
 
   /**
-   * Gets the correct value, taking resetValue and defaultValue
-   * and displayDefault into account.  Should be used every time the value is
-   * looked at, except isSet().
-   * @param displayDefault
-   * @return
-   */
-  protected Number getValue() {
-    return getValue(displayDefault);
-  }
-
-  /**
-   * Gets the correct value.
-   * If currentValue is not null, return currentValue.
-   * Otherwise, if resetValue is not null, return resetValue.
-   * Otherwise, if displayDefault is true and defaultValue is not null, return
-   * defaultValue.
+   * Gets the correct value.  Used with public toString(), is(), and get...().
+   * Also used with isNull() and equals().
+   * If currentValue is not null or useDisplayValue is false, return currentValue.
+   * Otherwise, if displayValue is not null, return displayValue.
    * Otherwise, return null;
    * @param displayDefault
    * @return
    */
-  protected Number getValue(boolean displayDefault) {
-    if (!isNull(currentValue)) {
+  protected Number getValue() {
+    if (!isNull(currentValue) || !useDisplayValue) {
       return currentValue;
     }
-    if (!isNull(resetValue)) {
-      return resetValue;
-    }
-    if (displayDefault && !isNull(defaultValue)) {
-      return defaultValue;
+    if (!isNull(displayValue)) {
+      return displayValue;
     }
     return currentValue;
   }
   
   protected String toString(Number value) {
-    if (isNull(value) || isEmpty(value)) {
+    if (isNull(value)) {
       return "";
     }
     return value.toString();
@@ -562,7 +466,7 @@ public abstract class ConstEtomoNumber implements Storable {
   
   protected Number newNumber() {
     if (preventNullValue) {
-      return newNumber(resetValue);
+      return newNumber(displayValue);
     }
     switch (type) {
     case DOUBLE_TYPE:
@@ -578,22 +482,6 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
-  protected Number newEmptyNumber() {
-    switch (type) {
-    case DOUBLE_TYPE:
-      return new Double(doubleEmptyValue);
-    case FLOAT_TYPE:
-      return new Float(floatEmptyValue);
-    case INTEGER_TYPE:
-      return new Integer(integerEmptyValue);
-    case LONG_TYPE:
-      return new Long(longEmptyValue);
-    default:
-      throw new IllegalStateException("type=" + type);
-    }
-  }
-
-
   protected Number newNumber(Number value) {
     switch (type) {
     case DOUBLE_TYPE:
@@ -677,8 +565,8 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
-  private Number newNumberMultiplied(Number number, int multiple) {
-    if (isNull(number) || isEmpty(number)) {
+  protected Number newNumberMultiplied(Number number, int multiple) {
+    if (isNull(number)) {
       return number;
     }
     switch (type) {
@@ -695,21 +583,6 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
-  protected boolean isEmpty(Number value) {
-    switch (type) {
-    case DOUBLE_TYPE:
-      return value.doubleValue() == doubleEmptyValue;
-    case FLOAT_TYPE:
-      return value.floatValue() == floatEmptyValue;
-    case INTEGER_TYPE:
-      return value.intValue() == integerEmptyValue;
-    case LONG_TYPE:
-      return value.longValue() == longEmptyValue;
-    default:
-      throw new IllegalStateException("type=" + type);
-    }
-  }
-
   protected boolean isNull(Number value) {
     switch (type) {
     case DOUBLE_TYPE:
@@ -741,7 +614,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected boolean gt(Number number, Number compValue) {
-    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
+    if (isNull(number) || isNull(compValue)) {
       return false;
     }
     switch (type) {
@@ -759,7 +632,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected boolean lt(Number number, Number compValue) {
-    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
+    if (isNull(number) || isNull(compValue)) {
       return false;
     }
     switch (type) {
@@ -780,10 +653,7 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(number) && isNull(compValue)) {
       return true;
     }
-    if (isEmpty(number) && isEmpty(compValue)) {
-      return true;
-    }
-    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
+    if (isNull(number) || isNull(compValue)) {
       return false;
     }
     switch (type) {
