@@ -43,6 +43,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/03/10 00:43:14  sueh
+ * <p> bug# 408 opening distortion file chooser in $IMOD_CALIB_DIR/Distortion, if
+ * <p> possible
+ * <p>
  * <p> Revision 3.6  2004/02/23 18:22:13  sueh
  * <p> bug# 386 Make distortion file optional
  * <p>
@@ -800,6 +804,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
+    int binning = header.getBinning();
+    if (binning == Integer.MIN_VALUE) {
+      binning = 1;
+    }
+    spnBinning.setValue(new Integer(binning));
   }
 
   private void btnViewRawStackAAction(ActionEvent event) {
