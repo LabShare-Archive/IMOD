@@ -15,12 +15,15 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:02:20  mast
+c	  Split functionality into a parselist subroutine so Tilt could call it
+c	
 c
         subroutine rdlist(iunit,list,nlist)
 c	  
 	implicit none
         integer*4 list(*),iunit,nlist
-        character*1024 line
+        character*10240 line
         read(iunit,'(a)')line
 	call parselist(line,list,nlist)
 	return
