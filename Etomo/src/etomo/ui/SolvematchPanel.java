@@ -36,6 +36,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/02/24 00:52:18  sueh
+ * <p> bug# 600 Removed unnecessary import.
+ * <p>
  * <p> Revision 3.6  2005/02/23 01:44:35  sueh
  * <p> bug# 600 Getting solvematch tooltips from autodoc.
  * <p>
@@ -399,7 +402,6 @@ public class SolvematchPanel implements InitialCombineFields {
     catch (IOException except) {
       except.printStackTrace();
     }
-    System.out.println("autodoc="+autodoc);
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, SolvematchParam.SURFACE_OR_USE_MODELS);
     if (section != null) {
       rbBothSides.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION)).format());
