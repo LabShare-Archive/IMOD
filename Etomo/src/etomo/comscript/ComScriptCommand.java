@@ -1,6 +1,9 @@
+
 package etomo.comscript;
 
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Vector;
 
 /**
  * <p>Description: This class models a single command within an IMOD com script
@@ -17,6 +20,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/05 18:15:55  sueh
+ * <p> bug# 250 add getCommandLineLength() - get the number of parameters
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -44,8 +50,7 @@ import java.util.LinkedList;
  */
 
 public class ComScriptCommand {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private boolean keywordValuePairs = false;
 
@@ -187,7 +192,7 @@ public class ComScriptCommand {
     }
     return safeArray;
   }
-  
+
   public int getCommandLineLength() {
     if (commandLineArgs == null) {
       return 0;
@@ -264,8 +269,8 @@ public class ComScriptCommand {
    */
   public boolean hasKeyword(String keyword) throws InvalidParameterException {
     if (!keywordValuePairs) {
-      throw new InvalidParameterException(
-        "Command " + command + " does not use keyword/value pairs");
+      throw new InvalidParameterException("Command " + command
+          + " does not use keyword/value pairs");
     }
     if (findKey(keyword) >= 0) {
       return true;
@@ -273,8 +278,14 @@ public class ComScriptCommand {
     return false;
   }
 
-  // TODO these need to throw appropriate exceptions
 
+  /**
+   * Returns the (first) value associated with the specified keyword or an empty
+   * string if the keyowrd is not present.
+   * @param keyword
+   * @return
+   * @throws InvalidParameterException
+   */
   public String getValue(String keyword) throws InvalidParameterException {
     int idx = findKey(keyword);
     if (idx >= 0) {
@@ -286,6 +297,30 @@ public class ComScriptCommand {
       return tokens[1];
     }
     return "";
+  }
+
+  /**
+   * Returns all of the values associate with a keyword
+   * @param keyword
+   * @return
+   */
+  public String[] getValues(String keyword) {
+    Vector values = new Vector();
+    Iterator itStdinArgs = stdinArgs.iterator();
+    while (itStdinArgs.hasNext()) {
+      ComScriptInputArg inputArg = (ComScriptInputArg) itStdinArgs.next();
+
+      String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
+      if (tokens[0].equals(keyword)) {
+        if (tokens.length > 1) {
+          values.add(tokens[1]);
+        }
+      }
+    }
+    if (values.size() > 0) {
+      return (String[]) values.toArray(new String[values.size()]);
+    }
+    return new String[0];
   }
 
   /**
@@ -305,6 +340,21 @@ public class ComScriptCommand {
       inputArg = (ComScriptInputArg) stdinArgs.get(idx);
     }
     inputArg.setArgument(keyword + "\t" + value);
+  }
+  
+  /**
+   * Sets the keyword the values specified replacing any existing values
+   * @param keyword
+   * @param values
+   */
+  public void setValues(String keyword, String[] values) {
+    deleteKeyAll(keyword);
+    ComScriptInputArg inputArg;
+    for(int i=0; i < values.length; i++){
+      inputArg = new ComScriptInputArg();
+      stdinArgs.add(inputArg);
+      inputArg.setArgument(keyword + "\t" + values[i]);
+    }
   }
 
   /**
@@ -326,6 +376,22 @@ public class ComScriptCommand {
     int idx = findKey(keyword);
     if (idx >= 0) {
       stdinArgs.remove(idx);
+    }
+  }
+  
+  /**
+   * Delete all instances of the the keyword the std input arguments
+   * @param keyword
+   */
+  public void deleteKeyAll(String keyword) {
+    Iterator itStdinArgs = stdinArgs.iterator();
+    while (itStdinArgs.hasNext()) {
+      ComScriptInputArg inputArg = (ComScriptInputArg) itStdinArgs.next();
+
+      String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
+      if (tokens[0].equals(keyword)) {
+        stdinArgs.remove(inputArg);
+      }
     }
   }
 
