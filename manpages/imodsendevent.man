@@ -15,11 +15,15 @@ option.  The second argument is a numeric code for an action.  The third is
 an optional text string, such as the name of a model file when opening a 
 model.
 .P
-Currently, 3dmod will accept four commands:
-   1  Open model file
+Currently, 3dmod will accept 7 commands:
+   1  Open model file (follow with file name)
    2  Save model file
    3  Open model view window
    4  Quit 3dmod
+   5  Raise windows (bring all widows to the front)
+   6  Switch to model or movie mode (follow with 0 for movie mode, a nonzero
+         number or nothing for model mode)
+   7  Open model file but keep current black/white levels (follow with file)
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
