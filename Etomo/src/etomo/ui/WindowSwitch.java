@@ -233,7 +233,9 @@ public class WindowSwitch {
     int oldIndex  = tabbedPane.getSelectedIndex();
     if (oldIndex != -1) {
       MainPanel oldMainPanel = (MainPanel) mainPanelList.get(oldIndex);
-      oldMainPanel.saveDisplayState();
+      if (oldMainPanel != null) {
+        oldMainPanel.saveDisplayState();
+      }
     }
     tabbedPane.removeChangeListener(tabChangeListener);
     tabbedPane.removeAll();
@@ -305,6 +307,10 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.4  2005/02/17 02:48:31  sueh
+ * <p>bug# 605 Tell a mainPanel instance that is currently being displayed to
+ * <p>save its display state before displaying another MainPanel instance.
+ * <p>
  * <p>Revision 1.3  2005/02/11 19:05:17  sueh
  * <p>bug# 594 Putting setting tab title back into rename because it doesn't
  * <p>refresh New Join  when make sample is run.  Add checks to make sure
