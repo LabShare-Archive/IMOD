@@ -34,6 +34,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:43:52  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -130,7 +133,7 @@ public class TiltalignPanel implements ContextMenu {
 
   //  TODO need recomended default for all sub groups see (align.com)
   private final int defaultTiltAngleType = 5;
-  private final int defaultTiltAngleGroupSize = 10;
+  private final int defaultTiltAngleGroupSize = 5;
   private final int defaultMagnificationType = 3;
   private final int defaultDistortionType = 2;
   private final int defaultXstretchType = 3;
