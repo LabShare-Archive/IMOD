@@ -1,6 +1,5 @@
 package etomo.process;
 import java.io.*;
-import java.util.*;
 
 /*
  * <p>Description: InteractiveSystemProgram implements a Runable class that can
@@ -16,10 +15,14 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2002/09/17 23:22:58  rickg
+ * <p> Complete basic operation
+ * <p>
  * <p> </p>
  */
 public class InteractiveSystemProgram implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   /**
    * The exit value of the command

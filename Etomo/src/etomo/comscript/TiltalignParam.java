@@ -1,13 +1,7 @@
-/*
- * (c) Copyright 2001 MyCorporation.
- * All Rights Reserved.
- */
 package etomo.comscript;
 
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import javax.swing.border.TitledBorder;
 
 import etomo.type.TiltAngleType;
 
@@ -23,10 +17,14 @@ import etomo.type.TiltAngleType;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltalignParam extends ConstTiltalignParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   /**
    * Constructor for TiltalignParam.
@@ -35,30 +33,31 @@ public class TiltalignParam extends ConstTiltalignParam {
     super();
   }
 
-
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the tiltalign command
    * and parameters.
    */
   public void initialize(ComScriptCommand scriptCommand)
-  throws BadComScriptException, FortranInputSyntaxException,
-  InvalidParameterException {
+    throws
+      BadComScriptException,
+      FortranInputSyntaxException,
+      InvalidParameterException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
     }
-    catch(BadComScriptException except) {
-      throw(except);
+    catch (BadComScriptException except) {
+      throw (except);
     }
 
     //  Read in inputArgs
     int inputLine = 0;
     modelFile = inputArgs[inputLine++].getArgument();
     imageFile = inputArgs[inputLine++].getArgument();
-    if(imageFile.matches("\\s*")) {
+    if (imageFile.matches("\\s*")) {
       imageParameters.validateAndSet(inputArgs[inputLine++].getArgument());
     }
     imodFiducialPosFile = inputArgs[inputLine++].getArgument();
@@ -68,7 +67,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     solutionType = Integer.parseInt(inputArgs[inputLine++].getArgument());
 
     includeExcludeType = Integer.parseInt(inputArgs[inputLine++].getArgument());
-    if(includeExcludeType > 0) {
+    if (includeExcludeType > 0) {
       includeExcludeList.parseString(inputArgs[inputLine++].getArgument());
     }
     initialImageRotation =
@@ -78,10 +77,10 @@ public class TiltalignParam extends ConstTiltalignParam {
 
     nAdditionalViewSets =
       Integer.parseInt(inputArgs[inputLine++].getArgument());
-    if(nAdditionalViewSets > 0) {
+    if (nAdditionalViewSets > 0) {
       additionalViewGroups = new StringList(nAdditionalViewSets);
-      for(int i = 0; i < nAdditionalViewSets; i++) {
-	additionalViewGroups.set(i, inputArgs[inputLine++].getArgument());
+      for (int i = 0; i < nAdditionalViewSets; i++) {
+        additionalViewGroups.set(i, inputArgs[inputLine++].getArgument());
       }
     }
 
@@ -95,234 +94,232 @@ public class TiltalignParam extends ConstTiltalignParam {
     try {
       //  Tilt angle solution parameters
       tiltAngleSolution.type =
-	Integer.parseInt(inputArgs[inputLine++].getArgument());
+        Integer.parseInt(inputArgs[inputLine++].getArgument());
 
       //  FIXME shouldn't be a specific integer
       //        what about others
-      if(!(tiltAngleSolution.type == 0 ||
-	   tiltAngleSolution.type == 2 ||
-	   tiltAngleSolution.type == 5) ) {
-	String message =
-	  "Don't know how to handle arbitrary tilt views yet!!!";
-	throw new InvalidParameterException(message);
+      if (!(tiltAngleSolution.type == 0
+        || tiltAngleSolution.type == 2
+        || tiltAngleSolution.type == 5)) {
+        String message = "Don't know how to handle arbitrary tilt views yet!!!";
+        throw new InvalidParameterException(message);
       }
-      if(tiltAngleSolution.type == 5) {
-	inputLine = parseGroup(tiltAngleSolution, inputArgs, inputLine);
+      if (tiltAngleSolution.type == 5) {
+        inputLine = parseGroup(tiltAngleSolution, inputArgs, inputLine);
       }
 
       //  Magnification solution parameters
       magnificationSolution.referenceView.validateAndSet(
-	inputArgs[inputLine++].getArgument());
+        inputArgs[inputLine++].getArgument());
       magnificationSolution.type =
-	Integer.parseInt(inputArgs[inputLine++].getArgument());
+        Integer.parseInt(inputArgs[inputLine++].getArgument());
       //  FIXME shouldn't be a specific integer, what about others
-      if(magnificationSolution.type == 2) {
-	String message =
-	  "Don't know how to handle arbitrary magnification views yet!!!";
-	throw new InvalidParameterException(message);
+      if (magnificationSolution.type == 2) {
+        String message =
+          "Don't know how to handle arbitrary magnification views yet!!!";
+        throw new InvalidParameterException(message);
       }
-      if(magnificationSolution.type > 2) {
-	inputLine = parseGroup(magnificationSolution, inputArgs, inputLine);
+      if (magnificationSolution.type > 2) {
+        inputLine = parseGroup(magnificationSolution, inputArgs, inputLine);
       }
 
       // Compression solution parameters
       compressionSolution.referenceView.validateAndSet(
-	inputArgs[inputLine++].getArgument());
-      if(compressionSolution.referenceView.getInt(0) > 0) {
-	compressionSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
-	//  FIXME shouldn't be a specific integer, what about others
-	if(compressionSolution.type == 2){
-	  String message =
-	    "Don't know how to handle arbitrary compression views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
-	if(compressionSolution.type > 2) {
-	  inputLine = parseGroup(compressionSolution, inputArgs, inputLine);
-	}
+        inputArgs[inputLine++].getArgument());
+      if (compressionSolution.referenceView.getInt(0) > 0) {
+        compressionSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
+        //  FIXME shouldn't be a specific integer, what about others
+        if (compressionSolution.type == 2) {
+          String message =
+            "Don't know how to handle arbitrary compression views yet!!!";
+          throw new InvalidParameterException(message);
+        }
+        if (compressionSolution.type > 2) {
+          inputLine = parseGroup(compressionSolution, inputArgs, inputLine);
+        }
       }
 
       distortionSolutionType =
-	Integer.parseInt(inputArgs[inputLine++].getArgument());
+        Integer.parseInt(inputArgs[inputLine++].getArgument());
       //  If the distortion solution type is 1 then both the xstretch and
       //  and skew parameters are stored in the xstretch solution parameters
       //  If the distortion solution type is 2 then the xstretch solution
       //  parameters are loaded now and the skew parameters are loaded in the
       //  next statement block
-      if(distortionSolutionType > 0) {
-	xstretchSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
+      if (distortionSolutionType > 0) {
+        xstretchSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
 
-	if(xstretchSolution.type == 2) {
-	  String message =
-	    "Don't know how to handle arbitrary distortion views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
+        if (xstretchSolution.type == 2) {
+          String message =
+            "Don't know how to handle arbitrary distortion views yet!!!";
+          throw new InvalidParameterException(message);
+        }
 
-	if(xstretchSolution.type > 2) {
-	  inputLine = parseGroup(xstretchSolution, inputArgs, inputLine);
-	}
+        if (xstretchSolution.type > 2) {
+          inputLine = parseGroup(xstretchSolution, inputArgs, inputLine);
+        }
       }
 
-      if(distortionSolutionType == 2) {
-	skewSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
+      if (distortionSolutionType == 2) {
+        skewSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
 
-	if(skewSolution.type == 2) {
-	  String message =
-	    "Don't know how to handle arbitrary distortion views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
+        if (skewSolution.type == 2) {
+          String message =
+            "Don't know how to handle arbitrary distortion views yet!!!";
+          throw new InvalidParameterException(message);
+        }
 
-	if(skewSolution.type > 2) {
-	  inputLine = parseGroup(skewSolution, inputArgs, inputLine);
-	}
+        if (skewSolution.type > 2) {
+          inputLine = parseGroup(skewSolution, inputArgs, inputLine);
+        }
       }
 
       reportStddevThreshold =
-	  Double.parseDouble(inputArgs[inputLine++].getArgument());
-      nSurfaceAnalysis =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
+        Double.parseDouble(inputArgs[inputLine++].getArgument());
+      nSurfaceAnalysis = Integer.parseInt(inputArgs[inputLine++].getArgument());
       minimizationParams.validateAndSet(inputArgs[inputLine++].getArgument());
 
       //  Check to see if tranformations are being computed
       //  FIXME is the test variable correct?
-      if(solutionType > 0) {
-	tiltAxisZShift =
-	  Double.parseDouble(inputArgs[inputLine++].getArgument());
-	tiltAxisXShift =
-	  Double.parseDouble(inputArgs[inputLine++].getArgument());
+      if (solutionType > 0) {
+        tiltAxisZShift =
+          Double.parseDouble(inputArgs[inputLine++].getArgument());
+        tiltAxisXShift =
+          Double.parseDouble(inputArgs[inputLine++].getArgument());
       }
 
       //  Local alignment parsing
       int localAlignmentState =
-	Integer.parseInt(inputArgs[inputLine++].getArgument());
-      if(localAlignmentState == 1) {
-	localAlignments = true;
+        Integer.parseInt(inputArgs[inputLine++].getArgument());
+      if (localAlignmentState == 1) {
+        localAlignments = true;
       }
       else {
-	localAlignments = false;
+        localAlignments = false;
       }
       //  FIXME do we always want to do this?
-      if(inputArgs.length > inputLine) {
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localTransformFile = inputArgs[inputLine++].getArgument();
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	nLocalPatches.validateAndSet(inputArgs[inputLine++].getArgument());
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	minLocalPatchSize.validateAndSet(inputArgs[inputLine++].getArgument());
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	minLocalFiducials.validateAndSet(inputArgs[inputLine++].getArgument());
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	int fixFiducialState =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
-	fixLocalFiducialCoodinates = false;
-	if(fixFiducialState == 1) {
-	  fixLocalFiducialCoodinates = true;
-	}
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localOutputSelection.validateAndSet(inputArgs[inputLine++].getArgument());
+      if (inputArgs.length > inputLine) {
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localTransformFile = inputArgs[inputLine++].getArgument();
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        nLocalPatches.validateAndSet(inputArgs[inputLine++].getArgument());
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        minLocalPatchSize.validateAndSet(inputArgs[inputLine++].getArgument());
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        minLocalFiducials.validateAndSet(inputArgs[inputLine++].getArgument());
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        int fixFiducialState =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
+        fixLocalFiducialCoodinates = false;
+        if (fixFiducialState == 1) {
+          fixLocalFiducialCoodinates = true;
+        }
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localOutputSelection.validateAndSet(
+          inputArgs[inputLine++].getArgument());
 
-	//  local rotation solution parameters
+        //  local rotation solution parameters
 
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localRotationSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
-	if(localRotationSolution.type == 2) {
-	  String message =
-	    "Don't know how to handle arbitrary local rotation views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
-	if(localRotationSolution.type > 2) {
-	  inputLine = parseGroup(localRotationSolution, inputArgs, inputLine);
-	}
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localRotationSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
+        if (localRotationSolution.type == 2) {
+          String message =
+            "Don't know how to handle arbitrary local rotation views yet!!!";
+          throw new InvalidParameterException(message);
+        }
+        if (localRotationSolution.type > 2) {
+          inputLine = parseGroup(localRotationSolution, inputArgs, inputLine);
+        }
 
-	// local tilt solution parameters
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localTiltSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
+        // local tilt solution parameters
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localTiltSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
 
-	if(!(localTiltSolution.type == 0 ||
-	     localTiltSolution.type == 2 ||
-	     localTiltSolution.type == 5) ) {
-	  String message =
-	    "Don't know how to handle arbitrary local tilt views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
-	if(localTiltSolution.type == 5) {
-	  inputLine = parseGroup(localTiltSolution, inputArgs, inputLine);
-	}
+        if (!(localTiltSolution.type == 0
+          || localTiltSolution.type == 2
+          || localTiltSolution.type == 5)) {
+          String message =
+            "Don't know how to handle arbitrary local tilt views yet!!!";
+          throw new InvalidParameterException(message);
+        }
+        if (localTiltSolution.type == 5) {
+          inputLine = parseGroup(localTiltSolution, inputArgs, inputLine);
+        }
 
-	//  local magnification solution parameters
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localMagnificationSolution.referenceView.validateAndSet(
-	  inputArgs[inputLine++].getArgument());
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localMagnificationSolution.type =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
-	//  FIXME shouldn't be a specific integer, what about others
-	if(localMagnificationSolution.type == 2) {
-	  String message =
-	  "Don't know how to handle arbitrary local magnification views yet!!!";
-	  throw new InvalidParameterException(message);
-	}
-	if(localMagnificationSolution.type > 2) {
-	  inputLine = parseGroup(localMagnificationSolution,
-	    inputArgs, inputLine);
-	}
+        //  local magnification solution parameters
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localMagnificationSolution.referenceView.validateAndSet(
+          inputArgs[inputLine++].getArgument());
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localMagnificationSolution.type =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
+        //  FIXME shouldn't be a specific integer, what about others
+        if (localMagnificationSolution.type == 2) {
+          String message =
+            "Don't know how to handle arbitrary local magnification views yet!!!";
+          throw new InvalidParameterException(message);
+        }
+        if (localMagnificationSolution.type > 2) {
+          inputLine =
+            parseGroup(localMagnificationSolution, inputArgs, inputLine);
+        }
 
-	// local distortion solution parameters
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	localDistortionSolutionType =
-	  Integer.parseInt(inputArgs[inputLine++].getArgument());
-	//  Duplicate the distortion solution type for both xstretch and skew
-	if(localDistortionSolutionType == 1) {
-	  inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	  localXstretchSolution.type =
-	    Integer.parseInt(inputArgs[inputLine++].getArgument());
-	  localSkewSolution.type = xstretchSolution.type;
-	  if(localXstretchSolution.type == 2) {
-	    String message =
-	    "Don't know how to handle arbitrary local distortion views yet!!!";
-	    throw new InvalidParameterException(message);
-	  }
-	  if(localXstretchSolution.type > 2) {
-	    inputLine = parseGroup(localXstretchSolution,
-	      inputArgs, inputLine);
-	  }
-	}
-	if(localDistortionSolutionType == 2) {
-	  inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	  localXstretchSolution.type =
-	    Integer.parseInt(inputArgs[inputLine++].getArgument());
-	  if(localXstretchSolution.type == 2) {
-	    String message =
-	    "Don't know how to handle arbitrary local distortion views yet!!!";
-	    throw new InvalidParameterException(message);
-	  }
-	  if(localXstretchSolution.type > 2) {
-	    inputLine = parseGroup(localXstretchSolution,
-	      inputArgs, inputLine);
-	  }
-	  inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	  localSkewSolution.type =
-	    Integer.parseInt(inputArgs[inputLine++].getArgument());
-	  if(localSkewSolution.type == 2) {
-	    String message =
-	    "Don't know how to handle arbitrary local distortion views yet!!!";
-	    throw new InvalidParameterException(message);
-	  }
-	  if(localSkewSolution.type > 2) {
-	    inputLine = parseGroup(localSkewSolution,
-	      inputArgs, inputLine);
-	  }
-	}
+        // local distortion solution parameters
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        localDistortionSolutionType =
+          Integer.parseInt(inputArgs[inputLine++].getArgument());
+        //  Duplicate the distortion solution type for both xstretch and skew
+        if (localDistortionSolutionType == 1) {
+          inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+          localXstretchSolution.type =
+            Integer.parseInt(inputArgs[inputLine++].getArgument());
+          localSkewSolution.type = xstretchSolution.type;
+          if (localXstretchSolution.type == 2) {
+            String message =
+              "Don't know how to handle arbitrary local distortion views yet!!!";
+            throw new InvalidParameterException(message);
+          }
+          if (localXstretchSolution.type > 2) {
+            inputLine = parseGroup(localXstretchSolution, inputArgs, inputLine);
+          }
+        }
+        if (localDistortionSolutionType == 2) {
+          inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+          localXstretchSolution.type =
+            Integer.parseInt(inputArgs[inputLine++].getArgument());
+          if (localXstretchSolution.type == 2) {
+            String message =
+              "Don't know how to handle arbitrary local distortion views yet!!!";
+            throw new InvalidParameterException(message);
+          }
+          if (localXstretchSolution.type > 2) {
+            inputLine = parseGroup(localXstretchSolution, inputArgs, inputLine);
+          }
+          inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+          localSkewSolution.type =
+            Integer.parseInt(inputArgs[inputLine++].getArgument());
+          if (localSkewSolution.type == 2) {
+            String message =
+              "Don't know how to handle arbitrary local distortion views yet!!!";
+            throw new InvalidParameterException(message);
+          }
+          if (localSkewSolution.type > 2) {
+            inputLine = parseGroup(localSkewSolution, inputArgs, inputLine);
+          }
+        }
       }
     }
-    catch(FortranInputSyntaxException except) {
+    catch (FortranInputSyntaxException except) {
       String message =
-	"Parse error in tiltalign command, standard input argument: " +
-      String.valueOf(inputLine) + "\n" + except.getMessage();
+        "Parse error in tiltalign command, standard input argument: "
+          + String.valueOf(inputLine)
+          + "\n"
+          + except.getMessage();
       throw new FortranInputSyntaxException(message, except.getNewString());
     }
 
@@ -334,21 +331,20 @@ public class TiltalignParam extends ConstTiltalignParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScript(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+    throws BadComScriptException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
     }
-    catch(BadComScriptException except) {
-      throw(except);
+    catch (BadComScriptException except) {
+      throw (except);
     }
 
     inputArgs = updateInputArgs(inputArgs);
     scriptCommand.setInputArguments(inputArgs);
   }
-
 
   //
   //  Set the values of the tiltalign parameters
@@ -409,11 +405,9 @@ public class TiltalignParam extends ConstTiltalignParam {
     nAdditionalViewSets = additionalViewGroups.getNElements();
   }
 
-
   public void setTiltAngleOffset(String newTiltAngleOffset) {
     tiltAngleOffset = Double.parseDouble(newTiltAngleOffset);
   }
-
 
   public void setTiltAngleSolutionType(int type) {
     tiltAngleSolution.type = type;
@@ -429,12 +423,13 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setTiltAngleSolutionAdditionalGroups(String list) {
     tiltAngleSolution.additionalGroups.parseString(list);
-    tiltAngleSolution.params.set(1,
+    tiltAngleSolution.params.set(
+      1,
       tiltAngleSolution.additionalGroups.getNElements());
   }
 
   public void setMagnificationReferenceView(String newReferenceView)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     magnificationSolution.referenceView.validateAndSet(newReferenceView);
   }
 
@@ -452,13 +447,13 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setMagnificationSolutionAdditionalGroups(String list) {
     magnificationSolution.additionalGroups.parseString(list);
-    magnificationSolution.params.set(1,
+    magnificationSolution.params.set(
+      1,
       magnificationSolution.additionalGroups.getNElements());
   }
 
-
   public void setCompressionReferenceView(String newReferenceView)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     compressionSolution.referenceView.validateAndSet(newReferenceView);
   }
 
@@ -476,11 +471,12 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setCompressionSolutionAdditionalGroups(String list) {
     compressionSolution.additionalGroups.parseString(list);
-    compressionSolution.params.set(1,
+    compressionSolution.params.set(
+      1,
       compressionSolution.additionalGroups.getNElements());
   }
 
-  public void setDistortionSolutionType(int type){
+  public void setDistortionSolutionType(int type) {
     distortionSolutionType = type;
   }
 
@@ -498,7 +494,8 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setXstretchSolutionAdditionalGroups(String list) {
     xstretchSolution.additionalGroups.parseString(list);
-    xstretchSolution.params.set(1,
+    xstretchSolution.params.set(
+      1,
       xstretchSolution.additionalGroups.getNElements());
   }
 
@@ -516,21 +513,19 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setSkewSolutionAdditionalGroups(String list) {
     skewSolution.additionalGroups.parseString(list);
-    skewSolution.params.set(1,
-      skewSolution.additionalGroups.getNElements());
+    skewSolution.params.set(1, skewSolution.additionalGroups.getNElements());
   }
 
   public void setReportStddevThreshold(double threshold) {
     reportStddevThreshold = threshold;
   }
 
-
   public void setNSurfaceAnalysis(String newNSurfaceAnalysis) {
     nSurfaceAnalysis = Integer.parseInt(newNSurfaceAnalysis);
   }
 
   public void setMinimizationParams(String params)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     minimizationParams.validateAndSet(params);
   }
 
@@ -559,17 +554,17 @@ public class TiltalignParam extends ConstTiltalignParam {
   }
 
   public void setNLocalPatches(String params)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     nLocalPatches.validateAndSet(params);
   }
 
   public void setMinLocalPatchSize(String params)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     minLocalPatchSize.validateAndSet(params);
   }
 
   public void setMinLocalFiducials(String params)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     minLocalFiducials.validateAndSet(params);
   }
 
@@ -578,7 +573,7 @@ public class TiltalignParam extends ConstTiltalignParam {
   }
 
   public void setLocalOutputSelection(String params)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     localOutputSelection.validateAndSet(params);
   }
 
@@ -596,7 +591,8 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setLocalRotationSolutionAdditionalGroups(String list) {
     localRotationSolution.additionalGroups.parseString(list);
-    localRotationSolution.params.set(1,
+    localRotationSolution.params.set(
+      1,
       localRotationSolution.additionalGroups.getNElements());
   }
 
@@ -614,12 +610,13 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setLocalTiltSolutionAdditionalGroups(String list) {
     localTiltSolution.additionalGroups.parseString(list);
-    localTiltSolution.params.set(1,
+    localTiltSolution.params.set(
+      1,
       localTiltSolution.additionalGroups.getNElements());
   }
 
   public void setLocalMagnificationReferenceView(String newReferenceView)
-  throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     localMagnificationSolution.referenceView.validateAndSet(newReferenceView);
   }
 
@@ -637,11 +634,12 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setLocalMagnificationSolutionAdditionalGroups(String list) {
     localMagnificationSolution.additionalGroups.parseString(list);
-    localMagnificationSolution.params.set(1,
+    localMagnificationSolution.params.set(
+      1,
       localMagnificationSolution.additionalGroups.getNElements());
   }
 
-  public void setLocalDistortionSolutionType(int type){
+  public void setLocalDistortionSolutionType(int type) {
     localDistortionSolutionType = type;
   }
 
@@ -659,7 +657,8 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setLocalXstretchSolutionAdditionalGroups(String list) {
     localXstretchSolution.additionalGroups.parseString(list);
-    localXstretchSolution.params.set(1,
+    localXstretchSolution.params.set(
+      1,
       localXstretchSolution.additionalGroups.getNElements());
   }
 
@@ -675,14 +674,12 @@ public class TiltalignParam extends ConstTiltalignParam {
     localSkewSolution.params.set(0, Integer.parseInt(size));
   }
 
-
   public void setLocalSkewSolutionAdditionalGroups(String list) {
     localSkewSolution.additionalGroups.parseString(list);
-    localSkewSolution.params.set(1,
+    localSkewSolution.params.set(
+      1,
       localSkewSolution.additionalGroups.getNElements());
   }
-
-
 
   /**
    * Return a string representation of the values in the object
@@ -704,7 +701,6 @@ public class TiltalignParam extends ConstTiltalignParam {
 
     buffer.append("\nASCII Fiducial Pos File: ");
     buffer.append(asciiFiducialPosFile);
-
 
     buffer.append("\nTilt Angle Solution File: ");
     buffer.append(tiltAngleSolutionFile);
@@ -729,7 +725,6 @@ public class TiltalignParam extends ConstTiltalignParam {
 
     buffer.append("\nN Additional View Sets: ");
     buffer.append(nAdditionalViewSets);
-
 
     buffer.append("\nadditionalViewGroups: ");
     buffer.append(additionalViewGroups);
@@ -882,32 +877,31 @@ public class TiltalignParam extends ConstTiltalignParam {
     buffer.append(localSkewSolution.additionalGroups);
 
     buffer.append("\n");
-  return buffer.toString();
+    return buffer.toString();
   }
-
 
   /**
    * Parse a FortranInputString and StringList group
    */
 
-  private int parseGroup(TiltalignSolution solution,
-			 ComScriptInputArg[] inputArgs,
-			 int inputLine)
-  throws FortranInputSyntaxException {
+  private int parseGroup(
+    TiltalignSolution solution,
+    ComScriptInputArg[] inputArgs,
+    int inputLine)
+    throws FortranInputSyntaxException {
     inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
     solution.params.validateAndSet(inputArgs[inputLine++].getArgument());
 
     int nGroups = solution.params.getInt(1);
-    if(nGroups > 0) {
+    if (nGroups > 0) {
       solution.additionalGroups = new StringList(nGroups);
-      for(int i = 0; i < nGroups; i++) {
-	inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
-	solution.additionalGroups.set(i, inputArgs[inputLine++].getArgument());
+      for (int i = 0; i < nGroups; i++) {
+        inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
+        solution.additionalGroups.set(i, inputArgs[inputLine++].getArgument());
       }
     }
     return inputLine;
   }
-
 
   /**
    * Update the inputArguments array with new parameters
@@ -929,14 +923,14 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgList.add(inputArgs[srcListCount++]);
 
     //  Sync the existing and new image file and image parameters
-    if(inputArgs[srcListCount].getArgument().matches("\\s*")) {
+    if (inputArgs[srcListCount].getArgument().matches("\\s*")) {
       inputArgs[srcListCount].setArgument("");
       inputArgList.add(inputArgs[srcListCount++]);
 
       //  Both blank followed by image parameter
-      if(imageFile.matches("\\s*")) {
-	inputArgs[srcListCount].setArgument(imageParameters);
-	inputArgList.add(inputArgs[srcListCount]);
+      if (imageFile.matches("\\s*")) {
+        inputArgs[srcListCount].setArgument(imageParameters);
+        inputArgList.add(inputArgs[srcListCount]);
       }
       srcListCount++;
     }
@@ -944,9 +938,9 @@ public class TiltalignParam extends ConstTiltalignParam {
     else {
       inputArgs[srcListCount].setArgument(imageFile);
       inputArgList.add(inputArgs[srcListCount++]);
-      if(imageFile.matches("\\s*")) {
-	ComScriptInputArg  newArg = new ComScriptInputArg();
-	newArg.setArgument(imageParameters)    ;
+      if (imageFile.matches("\\s*")) {
+        ComScriptInputArg newArg = new ComScriptInputArg();
+        newArg.setArgument(imageParameters);
       }
     }
 
@@ -972,15 +966,15 @@ public class TiltalignParam extends ConstTiltalignParam {
     int existingIncludePoints =
       Integer.parseInt(inputArgs[srcListCount].getArgument());
     //  Existing input sequence is single line
-    if(existingIncludePoints == 0) {
+    if (existingIncludePoints == 0) {
       inputArgs[srcListCount].setArgument(includeExcludeType);
       inputArgList.add(inputArgs[srcListCount++]);
 
       //  New include points is multiline
-      if(includeExcludeType > 0) {
-	ComScriptInputArg  newArg = new ComScriptInputArg();
-	newArg.setArgument(includeExcludeList.toString());
-	inputArgList.add(newArg);
+      if (includeExcludeType > 0) {
+        ComScriptInputArg newArg = new ComScriptInputArg();
+        newArg.setArgument(includeExcludeList.toString());
+        inputArgList.add(newArg);
       }
     }
     //  Existing multiline input sequence
@@ -989,9 +983,9 @@ public class TiltalignParam extends ConstTiltalignParam {
       inputArgList.add(inputArgs[srcListCount++]);
 
       //  New include points is multiline
-      if(includeExcludeType > 0) {
-	inputArgs[srcListCount].setArgument(includeExcludeList.toString());
-	inputArgList.add(inputArgs[srcListCount]);
+      if (includeExcludeType > 0) {
+        inputArgs[srcListCount].setArgument(includeExcludeList.toString());
+        inputArgList.add(inputArgs[srcListCount]);
       }
       srcListCount++;
     }
@@ -1008,7 +1002,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgs[srcListCount].setArgument(nAdditionalViewSets);
     inputArgList.add(inputArgs[srcListCount++]);
     srcListCount = srcListCount + nSrcSets;
-    for(int i = 0; i < nAdditionalViewSets; i++) {
+    for (int i = 0; i < nAdditionalViewSets; i++) {
       ComScriptInputArg viewSet = new ComScriptInputArg();
       viewSet.setArgument(additionalViewGroups.get(i));
       inputArgList.add(viewSet);
@@ -1018,26 +1012,38 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgList.add(inputArgs[srcListCount++]);
     inputArgList.add(inputArgs[srcListCount++]);
 
-
     inputArgs[srcListCount].setArgument(tiltAngleOffset);
     inputArgList.add(inputArgs[srcListCount++]);
 
     try {
-      srcListCount = replaceTiltAngleParameters(tiltAngleSolution,
-	 inputArgs, srcListCount, inputArgList);
+      srcListCount =
+        replaceTiltAngleParameters(
+          tiltAngleSolution,
+          inputArgs,
+          srcListCount,
+          inputArgList);
 
       inputArgs[srcListCount].setArgument(magnificationSolution.referenceView);
       inputArgList.add(inputArgs[srcListCount++]);
 
       srcListCount = skipExistingSolnParams(inputArgs, srcListCount);
-      updateSolution(magnificationSolution,inputArgList);
-
-      srcListCount = replaceCompressionParameters(compressionSolution,
-	inputArgs, srcListCount,inputArgList);
+      updateSolution(magnificationSolution, inputArgList);
 
       srcListCount =
-	replaceDistortionParameters(distortionSolutionType, xstretchSolution,
-	  skewSolution, inputArgs, srcListCount, inputArgList);
+        replaceCompressionParameters(
+          compressionSolution,
+          inputArgs,
+          srcListCount,
+          inputArgList);
+
+      srcListCount =
+        replaceDistortionParameters(
+          distortionSolutionType,
+          xstretchSolution,
+          skewSolution,
+          inputArgs,
+          srcListCount,
+          inputArgList);
 
       inputArgs[srcListCount].setArgument(reportStddevThreshold);
       inputArgList.add(inputArgs[srcListCount++]);
@@ -1049,26 +1055,26 @@ public class TiltalignParam extends ConstTiltalignParam {
       inputArgList.add(inputArgs[srcListCount++]);
 
       //  Axis shift parameters
-      if(existingSolutionType > -1) {
-	if(solutionType > -1) {
-	  inputArgs[srcListCount].setArgument(tiltAxisZShift);
-	  inputArgList.add(inputArgs[srcListCount++]);
-	  inputArgs[srcListCount].setArgument(tiltAxisXShift);
-	  inputArgList.add(inputArgs[srcListCount++]);
-	}
-	else {
-	  srcListCount = srcListCount + 2;
-	}
+      if (existingSolutionType > -1) {
+        if (solutionType > -1) {
+          inputArgs[srcListCount].setArgument(tiltAxisZShift);
+          inputArgList.add(inputArgs[srcListCount++]);
+          inputArgs[srcListCount].setArgument(tiltAxisXShift);
+          inputArgList.add(inputArgs[srcListCount++]);
+        }
+        else {
+          srcListCount = srcListCount + 2;
+        }
       }
       else {
-	if(solutionType > -1) {
-	  ComScriptInputArg newArg = new ComScriptInputArg();
-	  newArg.setArgument(tiltAxisZShift);
-	  inputArgList.add(newArg);
-	  newArg = new ComScriptInputArg();
-	  newArg.setArgument(tiltAxisXShift);
-	  inputArgList.add(newArg);
-	}
+        if (solutionType > -1) {
+          ComScriptInputArg newArg = new ComScriptInputArg();
+          newArg.setArgument(tiltAxisZShift);
+          inputArgList.add(newArg);
+          newArg = new ComScriptInputArg();
+          newArg.setArgument(tiltAxisXShift);
+          inputArgList.add(newArg);
+        }
       }
 
       //  Local alignments
@@ -1096,22 +1102,31 @@ public class TiltalignParam extends ConstTiltalignParam {
       srcListCount = skipExistingSolnParams(inputArgs, srcListCount);
       updateSolution(localRotationSolution, inputArgList);
 
-      srcListCount = replaceTiltAngleParameters(localTiltSolution,
-	inputArgs, srcListCount, inputArgList);
+      srcListCount =
+        replaceTiltAngleParameters(
+          localTiltSolution,
+          inputArgs,
+          srcListCount,
+          inputArgList);
 
       srcListCount = getNextNonBlankArgIndex(inputArgs, srcListCount);
       inputArgs[srcListCount].setArgument(
-	localMagnificationSolution.referenceView);
+        localMagnificationSolution.referenceView);
       inputArgList.add(inputArgs[srcListCount++]);
 
       srcListCount = skipExistingSolnParams(inputArgs, srcListCount);
       updateSolution(localMagnificationSolution, inputArgList);
 
-      srcListCount = replaceDistortionParameters(localDistortionSolutionType,
-	localXstretchSolution, localSkewSolution,
-	inputArgs, srcListCount, inputArgList);
-     }
-    catch(Exception except) {
+      srcListCount =
+        replaceDistortionParameters(
+          localDistortionSolutionType,
+          localXstretchSolution,
+          localSkewSolution,
+          inputArgs,
+          srcListCount,
+          inputArgList);
+    }
+    catch (Exception except) {
       except.printStackTrace();
       //  FIXME this should probably throw an excpetion or set a state so that
       //  some other code above a handles it
@@ -1119,22 +1134,22 @@ public class TiltalignParam extends ConstTiltalignParam {
       errorMessage[0] = "TiltalignParam Error";
       errorMessage[1] = "Existing Tiltalign parameter was incorrect";
       errorMessage[2] =
-	"The align*.com file appears to have changed inappropriately on disk";
-      errorMessage[3] = "Input string: " +
-	inputArgs[srcListCount].getArgument();
+        "The align*.com file appears to have changed inappropriately on disk";
+      errorMessage[3] =
+        "Input string: " + inputArgs[srcListCount].getArgument();
       errorMessage[4] = "Argument #: " + String.valueOf(srcListCount);
       errorMessage[5] = except.getMessage();
-      JOptionPane.showMessageDialog(null,
-	errorMessage,
-	"TiltalignParam Error",
-	JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(
+        null,
+        errorMessage,
+        "TiltalignParam Error",
+        JOptionPane.ERROR_MESSAGE);
 
     }
 
-    return (ComScriptInputArg[] )
-      inputArgList.toArray(new ComScriptInputArg[inputArgList.size()]);
+    return (ComScriptInputArg[]) inputArgList.toArray(
+      new ComScriptInputArg[inputArgList.size()]);
   }
-
 
   /**
    * Get the standand input arguments from the ComScriptCommand validating the
@@ -1145,26 +1160,28 @@ public class TiltalignParam extends ConstTiltalignParam {
     throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
-    if(! scriptCommand.getCommand().equals("tiltalign")) {
-      throw(new BadComScriptException("Not a tiltalign command"));
+    if (!scriptCommand.getCommand().equals("tiltalign")) {
+      throw (new BadComScriptException("Not a tiltalign command"));
     }
 
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if(inputArgs.length < 17) {
-      throw(new BadComScriptException(
-      "Incorrect number of input arguments to tiltalign command\nGot "
-      + String.valueOf(inputArgs.length) + " expected at least 24."));
+    if (inputArgs.length < 17) {
+      throw (
+        new BadComScriptException(
+          "Incorrect number of input arguments to tiltalign command\nGot "
+            + String.valueOf(inputArgs.length)
+            + " expected at least 24."));
     }
 
     return inputArgs;
   }
 
-
   /**
    * Generic solution parameter replacement method
    */
-  private int skipExistingSolnParams(ComScriptInputArg[] inputArgs,
+  private int skipExistingSolnParams(
+    ComScriptInputArg[] inputArgs,
     int srcListCount)
     throws InvalidParameterException, FortranInputSyntaxException {
 
@@ -1174,7 +1191,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     int existingSolutionType =
       Integer.parseInt(inputArgs[srcListCount].getArgument());
 
-    if(existingSolutionType == 2) {
+    if (existingSolutionType == 2) {
       String message = "Don't know how to handle arbitrary views yet!!!";
       throw new InvalidParameterException(message);
     }
@@ -1183,7 +1200,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     srcListCount++;
 
     //  Skip the corrent number of existing arguments
-    if(existingSolutionType > 2) {
+    if (existingSolutionType > 2) {
       FortranInputString existingParams = new FortranInputString(2);
       existingParams.validateAndSet(inputArgs[srcListCount++].getArgument());
       int nGroups = existingParams.getInt(1);
@@ -1192,36 +1209,36 @@ public class TiltalignParam extends ConstTiltalignParam {
     return srcListCount;
   }
 
-  private void updateSolution(TiltalignSolution solution,
-			      ArrayList inputArgList) {
+  private void updateSolution(
+    TiltalignSolution solution,
+    ArrayList inputArgList) {
 
     //  Add the new solution parameters to the list
     ComScriptInputArg newArg = new ComScriptInputArg();
     newArg.setArgument(solution.type);
     inputArgList.add(newArg);
 
-    if(solution.type > 2) {
+    if (solution.type > 2) {
       newArg = new ComScriptInputArg();
       newArg.setArgument(solution.params);
       inputArgList.add(newArg);
-      for(int i = 0; i < solution.params.getInt(1); i++) {
-	newArg = new ComScriptInputArg();
-	newArg.setArgument(solution.additionalGroups.get(i));
-	inputArgList.add(newArg);
+      for (int i = 0; i < solution.params.getInt(1); i++) {
+        newArg = new ComScriptInputArg();
+        newArg.setArgument(solution.additionalGroups.get(i));
+        inputArgList.add(newArg);
       }
     }
   }
 
-
-
   /**
    * Replace the tilt angle parameters
    */
-  private int replaceTiltAngleParameters(TiltalignSolution solution,
-					 ComScriptInputArg[] inputArgs,
-					 int srcListCount,
-					 ArrayList inputArgList)
-  throws InvalidParameterException, FortranInputSyntaxException {
+  private int replaceTiltAngleParameters(
+    TiltalignSolution solution,
+    ComScriptInputArg[] inputArgs,
+    int srcListCount,
+    ArrayList inputArgList)
+    throws InvalidParameterException, FortranInputSyntaxException {
 
     //  Skip over the correct number of existing tilt angle solution type
     //  and parameters, this requires parsing the existing tilt angle solution
@@ -1229,9 +1246,9 @@ public class TiltalignParam extends ConstTiltalignParam {
     srcListCount = getNextNonBlankArgIndex(inputArgs, srcListCount);
     int existingTiltSoltnType =
       Integer.parseInt(inputArgs[srcListCount].getArgument());
-    if(!(existingTiltSoltnType == 0 ||
-	 existingTiltSoltnType == 2 ||
-	 existingTiltSoltnType == 5) ) {
+    if (!(existingTiltSoltnType == 0
+      || existingTiltSoltnType == 2
+      || existingTiltSoltnType == 5)) {
       String message = "Don't know how to handle arbitrary tilt views yet!!!";
       throw new InvalidParameterException(message);
     }
@@ -1240,7 +1257,7 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgList.add(inputArgs[srcListCount++]);
 
     //  Skip the corrent number of existing arguments
-    if(existingTiltSoltnType == 5) {
+    if (existingTiltSoltnType == 5) {
       FortranInputString existingParams = new FortranInputString(2);
       existingParams.validateAndSet(inputArgs[srcListCount++].getArgument());
       int nGroups = existingParams.getInt(1);
@@ -1248,24 +1265,25 @@ public class TiltalignParam extends ConstTiltalignParam {
     }
 
     //  Add the new tilt angle parameters to the list
-    if(solution.type == 5) {
+    if (solution.type == 5) {
       ComScriptInputArg newArg = new ComScriptInputArg();
       newArg.setArgument(solution.params);
       inputArgList.add(newArg);
-      for(int i = 0; i < solution.params.getInt(1); i++) {
-	newArg = new ComScriptInputArg();
-	newArg.setArgument(solution.additionalGroups.get(i));
-	inputArgList.add(newArg);
+      for (int i = 0; i < solution.params.getInt(1); i++) {
+        newArg = new ComScriptInputArg();
+        newArg.setArgument(solution.additionalGroups.get(i));
+        inputArgList.add(newArg);
       }
     }
     return srcListCount;
   }
 
-  private int replaceCompressionParameters(TiltalignSolution solution,
-					  ComScriptInputArg[] inputArgs,
-					  int srcListCount,
-					  ArrayList inputArgList)
-  throws InvalidParameterException, FortranInputSyntaxException {
+  private int replaceCompressionParameters(
+    TiltalignSolution solution,
+    ComScriptInputArg[] inputArgs,
+    int srcListCount,
+    ArrayList inputArgList)
+    throws InvalidParameterException, FortranInputSyntaxException {
 
     //  Solution parameters, need to figure out how many
     //  lines are in the existing input subsequence
@@ -1276,40 +1294,40 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgs[srcListCount].setArgument(solution.referenceView);
     inputArgList.add(inputArgs[srcListCount++]);
 
-    if(existingCompressionReferenceView > 0) {
+    if (existingCompressionReferenceView > 0) {
       int existingSolutionType =
-	Integer.parseInt(inputArgs[srcListCount++].getArgument());
-      if(existingSolutionType == 2) {
-	String message = "Don't know how to handle arbitrary views yet!!!";
-	throw new InvalidParameterException(message);
+        Integer.parseInt(inputArgs[srcListCount++].getArgument());
+      if (existingSolutionType == 2) {
+        String message = "Don't know how to handle arbitrary views yet!!!";
+        throw new InvalidParameterException(message);
       }
 
       //  Skip the corrent number of existing arguments
-      if(existingSolutionType > 2) {
-	FortranInputString existingParams = new FortranInputString(2);
-	existingParams.validateAndSet(inputArgs[srcListCount++].getArgument());
-	int nGroups = existingParams.getInt(1);
-	srcListCount = srcListCount + nGroups;
+      if (existingSolutionType > 2) {
+        FortranInputString existingParams = new FortranInputString(2);
+        existingParams.validateAndSet(inputArgs[srcListCount++].getArgument());
+        int nGroups = existingParams.getInt(1);
+        srcListCount = srcListCount + nGroups;
       }
     }
 
     //  Check the current reference view to see if we should include any more
     //  parameters
-    if(solution.referenceView.getInt(0) > 0) {
+    if (solution.referenceView.getInt(0) > 0) {
       ComScriptInputArg newArg = new ComScriptInputArg();
       newArg.setArgument(solution.type);
       inputArgList.add(newArg);
 
       //  Add the new solution parameters to the list
-      if(solution.type > 2) {
-	newArg = new ComScriptInputArg();
-	newArg.setArgument(solution.params);
-	inputArgList.add(newArg);
-	for(int i = 0; i < solution.params.getInt(1); i++) {
-	  newArg = new ComScriptInputArg();
-	  newArg.setArgument(solution.additionalGroups.get(i));
-	  inputArgList.add(newArg);
-	}
+      if (solution.type > 2) {
+        newArg = new ComScriptInputArg();
+        newArg.setArgument(solution.params);
+        inputArgList.add(newArg);
+        for (int i = 0; i < solution.params.getInt(1); i++) {
+          newArg = new ComScriptInputArg();
+          newArg.setArgument(solution.additionalGroups.get(i));
+          inputArgList.add(newArg);
+        }
       }
     }
     return srcListCount;
@@ -1318,13 +1336,14 @@ public class TiltalignParam extends ConstTiltalignParam {
   /**
    * Replace the distortion parameters
    */
-  private int replaceDistortionParameters(int solutionType,
-					  TiltalignSolution xstretch,
-					  TiltalignSolution skew,
-					  ComScriptInputArg[] inputArgs,
-					  int srcListCount,
-					  ArrayList inputArgList)
-  throws InvalidParameterException, FortranInputSyntaxException {
+  private int replaceDistortionParameters(
+    int solutionType,
+    TiltalignSolution xstretch,
+    TiltalignSolution skew,
+    ComScriptInputArg[] inputArgs,
+    int srcListCount,
+    ArrayList inputArgList)
+    throws InvalidParameterException, FortranInputSyntaxException {
 
     srcListCount = getNextNonBlankArgIndex(inputArgs, srcListCount);
     int existingDistortionType =
@@ -1334,30 +1353,31 @@ public class TiltalignParam extends ConstTiltalignParam {
     inputArgList.add(inputArgs[srcListCount++]);
 
     // Skip the existing X stretch solution parameters
-    if(existingDistortionType > 0) {
+    if (existingDistortionType > 0) {
       srcListCount = skipExistingSolnParams(inputArgs, srcListCount);
     }
 
     // Skip the existing skew solution distortion parameters
-    if(existingDistortionType == 2) {
+    if (existingDistortionType == 2) {
       srcListCount = skipExistingSolnParams(inputArgs, srcListCount);
     }
 
     //  Update the new xstretch solution parameters
-    if(solutionType > 0) {
+    if (solutionType > 0) {
       updateSolution(xstretch, inputArgList);
     }
     //  Update the new skew solution parameters
-    if(solutionType == 2) {
+    if (solutionType == 2) {
       updateSolution(skew, inputArgList);
     }
     return srcListCount;
   }
 
-  private int getNextNonBlankArgIndex(ComScriptInputArg[] inputArgs,
+  private int getNextNonBlankArgIndex(
+    ComScriptInputArg[] inputArgs,
     int inputLine) {
 
-    while(inputArgs[inputLine].getArgument().matches("^\\s*$"))
+    while (inputArgs[inputLine].getArgument().matches("^\\s*$"))
       inputLine++;
 
     return inputLine;

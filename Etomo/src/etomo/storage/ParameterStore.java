@@ -3,8 +3,6 @@ package etomo.storage;
 import java.io.*;
 import java.util.*;
 
-import etomo.*;
-
 /*
  * <p>Description: </p>
  *
@@ -17,10 +15,14 @@ import etomo.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ParameterStore {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private File paramFile;
 
@@ -32,7 +34,6 @@ public class ParameterStore {
   public ParameterStore(File paramFile) {
     this.paramFile = paramFile;
   }
-
 
   /**
    * Save opens the given parameter file, collects the property key value
@@ -51,7 +52,7 @@ public class ParameterStore {
     //  Collect the key/value pairs from the array of storable objects
     //
     Properties props = new Properties();
-    for(int i = 0; i < storableArray.length; i++) {
+    for (int i = 0; i < storableArray.length; i++) {
       storableArray[i].store(props);
     }
 
@@ -83,11 +84,10 @@ public class ParameterStore {
     props.load(inFile);
     inFile.close();
 
-
     //
     //  Send the key/value pairs to the array of storable objects
     //
-    for(int i = 0; i < storableArray.length; i++) {
+    for (int i = 0; i < storableArray.length; i++) {
       storableArray[i].load(props);
     }
   }

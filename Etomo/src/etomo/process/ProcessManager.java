@@ -1,18 +1,14 @@
 package etomo.process;
 
 import etomo.type.AxisID;
-import etomo.type.MetaData;
 import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
-import etomo.comscript.ConstCombineParams;
 import etomo.comscript.SetupCombine;
 
 import java.io.File;
 import java.io.IOException;
-
-import javax.swing.JOptionPane;
 
 /**
  * <p>Description: This object manages the execution of com scripts in the
@@ -28,6 +24,9 @@ import javax.swing.JOptionPane;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/19 21:43:30  rickg
+ * <p> Moved imod control to ImodManager/ImodProcess objects
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -90,7 +89,6 @@ public class ProcessManager {
     startComScript(command);
   }
 
-
   /**
    * Calculate the cross-correlation for the specified axis
    * @param axisID the AxisID to cross-correlate.
@@ -116,7 +114,6 @@ public class ProcessManager {
     //  Start the com script in the background
     startComScript(command);
   }
-
 
   /**
    * Run midas on the specified raw stack
@@ -146,7 +143,6 @@ public class ProcessManager {
     startSystemProgramThread(command);
   }
 
-
   /**
   * Run the appropriate track com file for the given axis ID
   * @param axisID the AxisID to run track.com on.
@@ -160,7 +156,6 @@ public class ProcessManager {
     //  Start the com script in the background
     startComScript(command);
   }
-
 
   /**
    * Run the appropriate align com file for the given axis ID
@@ -176,7 +171,6 @@ public class ProcessManager {
     startComScript(command);
   }
 
-
   /**
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
@@ -190,7 +184,6 @@ public class ProcessManager {
     //  Start the com script in the background
     startComScript(command);
   }
-
 
   /**
    * Run the appropriate tomopitch com file for the given axis ID
@@ -233,8 +226,6 @@ public class ProcessManager {
     //  Start the com script in the background
     startComScript(command);
   }
-
-
 
   /**
    * Get the IMOD_DIR from the application manager and pass on to the calling

@@ -5,8 +5,6 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
 
-import java.io.File;
-
 /*
  * <p>Description: This class manages the opening, closing and sending of 
  * messages to the appropriate imod processes. This class is state based in the
@@ -23,6 +21,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/09/20 18:33:04  rickg
+ * <p> Added rest of quit methods
+ * <p>
  * <p> Revision 1.4  2002/09/20 17:16:04  rickg
  * <p> Added typed exceptions
  * <p> Added methods to check if a particular process is open
@@ -67,9 +68,9 @@ public class ImodManager {
   public ImodManager(ConstMetaData metaData) {
     axisType = metaData.getAxisType();
     filesetName = metaData.getFilesetName();
-    
+
     //  Initialize the necessary ImodProcesses
-    if(axisType == AxisType.SINGLE_AXIS) {
+    if (axisType == AxisType.SINGLE_AXIS) {
       rawStackA = new ImodProcess(filesetName + ".st");
       coarseAlignedA = new ImodProcess(filesetName + ".preali");
       fineAlignedA = new ImodProcess(filesetName + ".ali");
@@ -91,302 +92,276 @@ public class ImodManager {
       tomogramB = new ImodProcess(filesetName + "b.rec");
       tomogramB.setSwapYZ(true);
     }
-      
+
   }
-  
 
   /**
    * Open the specified raw data stack in imod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openRawStack(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       rawStackB.open();
     }
     else {
-      rawStackA.open(); 
+      rawStackA.open();
     }
   }
-
 
   /**
    * Open the specified model with the course aligned imod
    */
   public void modelRawStack(String modelName, AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     // Make sure there is an imod with right course aligned data set that
     // is already open
     openRawStack(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       rawStackB.openModel(modelName);
     }
     else {
       rawStackA.openModel(modelName);
-    }    
+    }
   }
-
 
   /**
    * Check to see if the specified raw stack is open
    */
-  public boolean isRawStackOpen(AxisID axisID)
-  throws AxisTypeException {
+  public boolean isRawStackOpen(AxisID axisID) throws AxisTypeException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       return rawStackB.isRunning();
     }
     else {
       return rawStackA.isRunning();
-    }    
+    }
   }
-
 
   /**
    * Close the specified raw stack model
    */
-  public void quitRawStack(AxisID axisID) 
-  throws AxisTypeException, SystemProcessException {
+  public void quitRawStack(AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       rawStackB.quit();
     }
     else {
-      rawStackA.quit(); 
+      rawStackA.quit();
     }
   }
-
 
   /**
    * Open the specified coarse aligned stack in imod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
-  public void openCoarseAligned(AxisID axisID) 
-  throws AxisTypeException, SystemProcessException {
+  public void openCoarseAligned(AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       coarseAlignedB.open();
     }
     else {
-      coarseAlignedA.open(); 
+      coarseAlignedA.open();
     }
   }
-
 
   /**
    * Open the specified model with the course aligned imod
    */
   public void modelCoarseAligned(String modelName, AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     // Make sure there is an imod with right coarse aligned data set that
     // is already open
     openCoarseAligned(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       coarseAlignedB.openModel(modelName);
     }
     else {
       coarseAlignedA.openModel(modelName);
-    }    
+    }
   }
-  
 
   /**
    * Check to see if the specified coarsely aligned stack is open
    */
-  public boolean isCoarseAlignedOpen(AxisID axisID)
-  throws AxisTypeException {
+  public boolean isCoarseAlignedOpen(AxisID axisID) throws AxisTypeException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       return coarseAlignedB.isRunning();
     }
     else {
       return coarseAlignedA.isRunning();
-    }    
+    }
   }
-
 
   /**
    * Close the specified coarsely aligned stack
    */
   public void quitCoarseAligned(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       coarseAlignedB.quit();
     }
     else {
-      coarseAlignedA.quit(); 
+      coarseAlignedA.quit();
     }
   }
-
 
   /**
    * Open the specified fine aligned stack in imod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openFineAligned(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       fineAlignedB.open();
     }
     else {
-      fineAlignedA.open(); 
+      fineAlignedA.open();
     }
   }
-
 
   /**
    * Check to see if the specified finely aligned stack is open
    */
-  public boolean isFineAlignedOpen(AxisID axisID)
-  throws AxisTypeException {
+  public boolean isFineAlignedOpen(AxisID axisID) throws AxisTypeException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       return fineAlignedB.isRunning();
     }
     else {
       return fineAlignedA.isRunning();
-    }    
+    }
   }
-
 
   /**
    * Close the specified finely aligned stack
    */
   public void quitFinelyAligned(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       fineAlignedB.quit();
     }
     else {
-      fineAlignedA.quit(); 
+      fineAlignedA.quit();
     }
   }
-
 
   /**
    * Open the specified tomograph samples in imod if they are not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openSample(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       sampleB.open();
     }
     else {
-      sampleA.open(); 
+      sampleA.open();
     }
   }
-
 
   /**
    * Check to see if the specified sample reconstruction is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isSampleOpen(AxisID axisID)
-  throws AxisTypeException {
-    if(axisID == AxisID.SECOND) {
+  public boolean isSampleOpen(AxisID axisID) throws AxisTypeException {
+    if (axisID == AxisID.SECOND) {
       return sampleB.isRunning();
     }
     else {
       return sampleA.isRunning();
-    }    
+    }
   }
-
 
   /**
    * Close the specifed sample reconstruction
    */
   public void quitSample(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       sampleB.quit();
     }
     else {
-      sampleA.quit(); 
+      sampleA.quit();
     }
   }
-
 
   /**
    * Open the specified tomogram in imod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openTomogram(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       tomogramB.open();
     }
     else {
-      tomogramA.open(); 
+      tomogramA.open();
     }
   }
-
 
   /**
    * Check to see if the specified tomogram is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isTomogramOpen(AxisID axisID)
-  throws AxisTypeException {
-    if(axisID == AxisID.SECOND) {
+  public boolean isTomogramOpen(AxisID axisID) throws AxisTypeException {
+    if (axisID == AxisID.SECOND) {
       return tomogramB.isRunning();
     }
     else {
       return tomogramA.isRunning();
-    }    
+    }
   }
-  
 
   /**
    * Close the specified tomogram
    */
   public void quitTomogram(AxisID axisID)
-  throws AxisTypeException, SystemProcessException {
+    throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       tomogramB.quit();
     }
     else {
-      tomogramA.quit(); 
+      tomogramA.quit();
     }
   }
-
 
   /**
    * Open the combined tomogram in imod if it is not already open
    */
-  public void openCombinedTomogram()
-  throws SystemProcessException {
+  public void openCombinedTomogram() throws SystemProcessException {
     combinedTomogram.open();
   }
 
-  
   /**
    * Check to see if the combined tomogram is open
    */
   public boolean isCombinedTomogramOpen() {
     return combinedTomogram.isRunning();
   }
-  
-  
+
   /**
    * Close the combined tomogram
    */
   public void quitCombinedTomogram(AxisID axisID)
-  throws SystemProcessException {
+    throws SystemProcessException {
     combinedTomogram.quit();
   }
 
   private void checkAxisID(AxisID axisID) throws AxisTypeException {
-    if(axisType == AxisType.SINGLE_AXIS  && axisID == AxisID.SECOND) {
+    if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
       throw new AxisTypeException("Second axis requested in a single axis data set");
     }
-  }  
+  }
 }
