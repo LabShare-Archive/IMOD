@@ -395,6 +395,13 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:05:19  mast
+c	  Changes to handle subset of views better: output of transforms and tilt
+c	  angles for all views in file, and interpretation of user input and all
+c	  output in terms of view numbers in file rather than in program.  Also
+c	  Changed the surface analysis output to make it more understandable and
+c	  machine readable.
+c	
 c
 	implicit none
 	include 'alivar.inc'
@@ -475,7 +482,8 @@ c
      &	    'TOO MANY VIEWS FOR ARRAYS'
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart,tiltorig,tiltadd)
+     &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart,tiltorig,
+     &	    tiltadd)
 	mapalfend=nvarsrch
 c
 	do i=1,nview
