@@ -94,6 +94,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.133  2005/03/08 00:39:09  sueh
+ * <p> bug# 533 CoarseAlign(): get the preblend command file name from
+ * <p> BlendmontParam.
+ * <p>
  * <p> Revision 3.132  2005/03/07 23:57:01  sueh
  * <p> bug# 533 Added midasEdges to call midas for fixing edge with a montage
  * <p> view.  Substituting preblend for prenewst in coarse align with a montage
@@ -2107,7 +2111,12 @@ public class ApplicationManager extends BaseManager {
     if (!updateFiducialessParams(mapCoarseAlignDialog(axisID), axisID)) {
       return;
     }
-    processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
+    }
+    else {
+      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+    }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
   }
