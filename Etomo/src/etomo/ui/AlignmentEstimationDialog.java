@@ -23,6 +23,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2003/01/08 04:00:21  rickg
+ * <p> Mods in progress
+ * <p>
  * <p> Revision 1.15  2003/01/07 00:33:00  rickg
  * <p> Changed button panel layout to grid and added
  * <p> button to view residuals in imod
@@ -96,7 +99,7 @@ public class AlignmentEstimationDialog
   private JPanel panelButtonA = new JPanel();
 
   private JToggleButton buttonComputeAlignmentA =
-    new JToggleButton("<html><b>Compute<br>alignment</b>");
+    new JToggleButton("<html><b>Compute alignment</b>");
 
   private JButton buttonImodA =
     new JButton("<html><b>View/Edit model in imod</b>");
@@ -105,7 +108,7 @@ public class AlignmentEstimationDialog
     new JButton("<html><b>View 3D model</b>");
 
   private JButton buttonViewResidualsA =
-    new JButton("<html><b>View residual<br>vectors</b>");
+    new JButton("<html><b>View residual vectors</b>");
 
   private JToggleButton buttonTransferFiducialsA =
     new JToggleButton("<html><b>Transfer fiducials to the B axis</b>");
@@ -155,7 +158,7 @@ public class AlignmentEstimationDialog
 
     buttonExecute.setText("Done");
 
-    //  Create the first panel
+    //  Create the first tiltalign panel
     GridLayout buttonLayout = new GridLayout(1, 4);
     buttonLayout.setHgap(10);
     panelButtonA.setLayout(buttonLayout);
@@ -175,28 +178,32 @@ public class AlignmentEstimationDialog
 
     panelAlignEstA.add(panelTiltalignA.getContainer());
     panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelAlignEstA.add(panelButtonA);
-
-    //  Create the second panel
-    panelButtonB.setLayout(buttonLayout);
-    panelButtonB.add(buttonComputeAlignmentB);
-    panelButtonB.add(buttonImodB);
-    panelButtonB.add(buttonViewResidualsB);
-    panelButtonB.add(buttonView3DModelB);
-
     if (applicationManager.isDualAxis()) {
-      panelButtonB.add(buttonTransferFiducialsB);
+      panelAlignEstA.add(panelTransferFid.getContainer());
+      panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
     }
 
-    buttonView3DModelB.setEnabled(false);
+    panelAlignEstA.add(panelButtonA);
 
-    panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
-    panelAlignEstB.setBorder(borderB.getBorder());
+    //  Create the second tiltalign panel
+    if (applicationManager.isDualAxis()) {
+      GridLayout buttonLayoutB = new GridLayout(1, 5);
+      panelButtonB.setLayout(buttonLayoutB);
+      panelButtonB.add(buttonComputeAlignmentB);
+      panelButtonB.add(buttonImodB);
+      panelButtonB.add(buttonViewResidualsB);
+      panelButtonB.add(buttonView3DModelB);
+      panelButtonB.add(buttonTransferFiducialsB);
 
-    panelAlignEstB.add(panelTiltalignB.getContainer());
-    panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+      buttonView3DModelB.setEnabled(false);
 
-    panelAlignEstB.add(panelButtonB);
+      panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
+      panelAlignEstB.setBorder(borderB.getBorder());
+
+      panelAlignEstB.add(panelTiltalignB.getContainer());
+      panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+      panelAlignEstB.add(panelButtonB);
+    }
 
     // Construct the alignment parameter panel from the appropriate alignment
     // estimate panels 
@@ -215,10 +222,6 @@ public class AlignmentEstimationDialog
     rootPanel.add(panelAlignEst);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    if (applicationManager.isDualAxis()) {
-      rootPanel.add(panelTransferFid.getContainer());
-      rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    }
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
@@ -243,6 +246,7 @@ public class AlignmentEstimationDialog
     updateAdvanced(isAdvanced);
     panelTiltalignA.setFirstTab();
     panelTiltalignB.setFirstTab();
+
   }
 
   public void setTiltalignParams(
