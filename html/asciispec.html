@@ -81,18 +81,35 @@ Point data follows on the next line, one line for each point.
 
 <HR>
 <H3>The mesh directive.</H3>
-# mesh directive for each mesh in current object.
+An object can have more than one mesh.  A mesh is organized into polygons,
+which are strips of triangles connecting two Z-levels of the object.
+The mesh data consist of a single list of
+unique vertices, with a normal at each vertex, plus a list of indices
+into the vertex/normal list describing how the polygons are drawn.
+Each mesh starts with a 
+mesh directive followed by the data for that mesh.  The vertex list in 
+principle could consist of just vertices, but currently files contain just
+vertex/normal pairs as indicated below:
 <p>
-<b>mesh</b> (<i>index</i>) (<i>vert size</i>) (<i>list size</i>)
+<code>
+<b>mesh</b> (<i>index</i>)
+(<i># of vertices + # of normals</i>) (<i>index list size</i>)
 <br>
-(<i>x</i>) (<i>y</i>) (<i>z</i>)
+(<i>x</i>) (<i>y</i>) (<i>z</i>)</code>     vertex
+<code>
 <br>
-(<i>x</i>) (<i>y</i>) (<i>z</i>)</code> ... for each vert
+(<i>x</i>) (<i>y</i>) (<i>z</i>)</code>     normal
+<code>
+<br>
+(<i>x</i>) (<i>y</i>) (<i>z</i>)</code>     vertex
+<code>
+<br>
+(<i>x</i>) (<i>y</i>) (<i>z</i>)</code>     normal   ... for each vertex
 <code>
 <br>
 (<i>index</i>)
 <br>
-(<i>index</i>) </code>... for each list index
+(<i>index</i>) </code>  ... for each list index
 <p>	
 negative index values give the following drawing instructions.
 <pre>
@@ -104,5 +121,15 @@ negative index values give the following drawing instructions.
 	-24  begin large convex polygon with normals.
 
 </pre>
-
+Currently, meshes in model files consist only of polygons with vertex, normal
+pairs, starting with -23 and ending with -22.  In these polygons, each set
+of 6 indices describes a triangle as follows:
+<pre>
+<i>index to normal 1</i>
+<i>index to vertex 1</i>
+<i>index to normal 2</i>
+<i>index to vertex 2</i>
+<i>index to normal 3</i>
+<i>index to vertex 3</i>
+</pre>
 </body></html>

@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-20
+7/31/02: More modifications to Clip, Matchvol, Warpvol, Taperoutvol, and
+Assemblevol to propagate a pixel size as well as all titles in the header
+through the entire tomogram combining process.
+
+7/31/02: Changed IMOD's image format to conform to MRC image2000 standard
+by moving origin information, eliminating wavelength entries, and adding
+'MAP', stamp, and rms entries.  Programs read old or new style headers, and
+output new style headers, even when writing back into an existing file.
+
 IMOD_2-6-19
 7/28/02: Added 3 fractional zooms to Imod to keep step size to a factor of
 1.4-1.6.

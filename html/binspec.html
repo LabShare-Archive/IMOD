@@ -91,7 +91,7 @@ Length Type  Name       Description
 4      float green;     
 4      float blue;      
 
-4      int   pdrawsize;   Size to draw points - 1.
+4      int   pdrawsize;   Size to draw points in 3D.
 
 1      uchar symbol;      Point Draw symbol, default is 0.
                              0 = circle, 1 = none, 2 = square, 3 = triangle,
@@ -116,31 +116,60 @@ The contour ID is (CONT = 0x434f4e54) and the basic structure is
 All point coordinates are put in the last declared object.  Empty 
 contours are allowed.
 <pre>
-Length    Type  Name      Description.
+Length    Type         Name      Description.
 ------------------------------------------------------------------------------
-4         long  psize;  Number of points in contour.
-4         long  flags;  Default 0 means use object flags.
-4         int   time;   The time index used by this contour.
-4         int   surf;   The surface index used by this contour.
-12*psize  float x,y,z   Array of point triplets.
+4         long         psize;  Number of points in contour.
+4         long         flags;  Bit 3 on : open, do not connect endpoints
+                               Bit 4 on : wild, not in one Z plane
+                               Bit 15 on : type variable contains time index
+4         int          type;   The time index used by this contour.
+4         int          surf;   The surface index used by this contour.
+12*psize  float x,y,z  pt;     Array of point triplets.
 </pre>
 
 <HR>
 <H3>The Mesh Data Structure</H3>
 The mesh ID is (MESH = 0x4d455348) and the basic structure is
 20 bytes long.  Vertex data and index data follow the mesh header.
-All data is put in the last declared object.
 
 <pre>
-Length    Type  Name    Description
+Length    Type         Name    Description
 ------------------------------------------------------------------------------
-4         int   vsize;  Size of vertex array.
-4         int   lsize;  Size of index array.
-4         long  flag;   Tells how to draw mesh. Set to 0.
-4         int   type;   Set to 0.
-4         int   pad;    Set to 0.
-12*vsize  float x,y,z   Array of points.
-4*lsize   int   index   Array of ints.
+4         int          vsize;  Size of vertex array (# of triple floats).
+4         int          lsize;  Size of index array.
+4         long         flag;   Bit 16 on  : normals have magnitudes.
+                	       Bits 20-23 are resolution : 0 for high, 
+                                  1 for lower resolution, etc.
+4         int          type;   Contains a time index or 0
+4         int          pad;    Contains a surace number or 0
+12*vsize  float x,y,z  vert;   Array of points.
+4*lsize   int          index;  Array of ints.
+</pre>
+<p>
+A point can be either a vertex position or a normal vector at a vertex.
+In current model files, <code>vert</code> consists of a sequence of 
+vertex/normal pairs; i.e. vertex, normal, vertex, normal...  The 
+<code>index</code> array has a list of indices into the <code>vert</code>
+array plus negative index values with following meanings:
+<pre>
+	-1   end of list array                
+	-20  next item on list is normal vector.
+	-21  begin concave polygon
+        -22  end polygon
+	-23  begin vertex,normal polygon pairs.
+	-24  begin large convex polygon with normals.
+
+</pre>
+Currently, meshes in model files consist only of polygons with vertex, normal
+pairs, starting with -23 and ending with -22.  In these polygons, each set
+of 6 indices describes a triangle as follows:
+<pre>
+<i>index to normal 1</i>
+<i>index to vertex 1</i>
+<i>index to normal 2</i>
+<i>index to vertex 2</i>
+<i>index to normal 3</i>
+<i>index to vertex 3</i>
 </pre>
 
 <HR>
