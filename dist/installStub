@@ -81,7 +81,7 @@ if (! -e $version/$installer) then
     exit 1
 endif
 
-mv $version/$installer .
+\mv $version/$installer .
 rmdir $version
 
 if ($extract == 1) then
@@ -91,6 +91,7 @@ endif
 
 if ($test == 0) csh $installer $packname
 
+echo " "
 echo "Cleaning up $packname and $installer"
 \rm $installer $packname
 cd ..
@@ -105,5 +106,8 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/04/24 01:03:32  mast
+#  Initial creation
+#
 
 END OF STUB
