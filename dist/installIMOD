@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/04/24 01:10:03  mast
+#  Initial creation
+#
 
 # Set the package name from the argument and check it if there is one
 #
@@ -213,7 +216,7 @@ EOF
 endif
 
 echo ""
-echo "Installation completed.  IMOD-related files in $installdir:"
+echo "Installation completed.  IMOD-related files in $installdir :"
 cd ..
 ls -l | grep -i imod
 exit 0
