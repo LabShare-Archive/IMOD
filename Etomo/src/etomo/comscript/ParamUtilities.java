@@ -29,6 +29,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.13  2004/12/29 23:32:51  sueh
+ * <p> $bug# 567 Adding the FortranInputString to parse(String...) and
+ * <p> $parse(StringList...).
+ * <p> $
  * <p> $Revision 1.12  2004/12/28 23:46:02  sueh
  * <p> $bug# 567 Add functions to handle StringList, and FortranInputString[].
  * <p> $
@@ -145,8 +149,8 @@ public class ParamUtilities {
       return "";
     }
     StringBuffer buffer = new StringBuffer(valueArray[0].toString(true));
-    for (int i = 0; i < valueArray.length; i++) {
-      buffer.append(" " + valueArray[0].toString(true));
+    for (int i = 1; i < valueArray.length; i++) {
+      buffer.append(" " + valueArray[i].toString(true));
     }
     return buffer.toString();
   }
