@@ -1,0 +1,609 @@
+#! /bin/csh -f
+# transferfid will find best matching pair of views between two tilt series
+# and transfer the fiducial model from one to make a seed model for the other
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+# Filter for tiltxcorr
+set xcfilter = "0.01,0.05,0,0.25"
+
+# Number of wins more in one rotation direction than the other that will
+# make it abandon the other direction
+@ DIRECTION_WIN_THRESH = 4
+
+# Line number of beadtrack input for input file, # of reshoot lines,
+# and bead radius when there are no reshoot lines
+@ BEADTRACK_INPUTFILE_LINE = 1
+@ BEADTRACK_RESHOOT_LINE = 7
+@ BEADTRACK_RADIUS_LINE = 13
+
+if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+onintr clean
+
+#
+# set names of temp files
+#
+set tmpdir = /usr/tmp
+set pn      = $0
+set com        = $pn:t
+set tmpstack   = $tmpdir/$com.stack.$$
+set tmpimga    = $tmpdir/$com.imga.$$
+set tmpxcxf    = $tmpdir/$com.xcxf.$$
+set tmpxfin    = $tmpdir/$com.xfin.$$
+set tmpxf1    = $tmpdir/$com.xf1.$$
+set tmpxf2    = $tmpdir/$com.xf2.$$
+set tmprot90    = $tmpdir/$com.rot90.$$
+set tmpminxf    = $tmpdir/$com.minxf.$$
+set tmptwoxf    = $tmpdir/$com.twoxf.$$
+set tmpxflog    = $tmpdir/$com.xflog.$$
+set tmpclip    = $tmpdir/$com.clip.$$
+set tmpxfmod    = $tmpdir/$com.xfmod.$$
+set tmpseed    = $tmpdir/$com.seed.$$
+set tmpfid    = $tmpdir/$com.fid.$$
+
+#
+# set default set name from current directory
+#
+set cwd = `pwd`
+set setname = $cwd:t
+
+#
+# set other defaults or values to indicate no argument was entered
+#
+set radius = ""
+@ nviews = 5
+set imagea = ""
+set imageb = ""
+set fidfile = ""
+set zeroa = ""
+set zerob = ""
+set darklight = 0
+set outfile = ""
+set pmstart = 0
+set pmend = 1
+
+while ($#argv)
+  switch ($argv[1])
+    case -s:
+      set setname = $argv[2]
+      shift; shift
+      breaksw
+    case -ia:
+      set imagea = $argv[2]
+      shift; shift
+      breaksw
+    case -ib:
+      set imageb = $argv[2]
+      shift; shift
+      breaksw
+    case -f:
+      set fidfile = $argv[2]
+      shift; shift
+      breaksw
+    case -n:
+      @ nviews = $argv[2]
+      shift; shift
+      breaksw
+    case -za:
+      @ zeroa = $argv[2]
+      shift; shift
+      breaksw
+    case -zb:
+      @ zerob = $argv[2]
+      shift; shift
+      breaksw
+    case -r:
+      set radius = $argv[2]
+      shift; shift
+      breaksw
+    case -o:
+      set outfile = $argv[2]
+      shift; shift
+      breaksw
+    case -a:
+      @ angle = $argv[2]
+      if ($angle < 0) set pmend = 0
+      if ($angle > 0) set pmstart = 1
+      shift; shift
+      breaksw
+    case -l:
+      set lightdark = 1
+      shift
+      breaksw
+    case -h:
+      goto usage
+    default:
+      echo "${pn}: bad argument $argv[1]"
+      goto usage
+  endsw
+end
+
+if ($nviews < 1) then
+    echo "The number of views to sample must be at least 1; you entered $nviews"
+    exit 1
+endif
+
+#
+# check existence of files needed
+#
+
+if (($imagea == "" || $radius == "") && (! -e tracka.com)) then
+    echo "tracka.com not found - it is needed unless you enter both "
+    echo " the A image file with -ia and the bead radius with -r"
+    exit 1
+endif
+
+if ($imageb == "" && (! -e trackb.com)) then
+    echo "trackb.com not found - it is needed unless you enter"
+    echo " the B image file with -ib"
+    exit 1
+endif
+
+set tiltfilea = ${setname}a.rawtlt
+set tiltfileb = ${setname}b.rawtlt
+if ($zeroa == "" && (! -e $tiltfilea)) then
+    echo "$tiltfilea not found - it is needed unless you enter"
+    echo " the zero-tilt view number for A with -za"
+    exit 1
+endif
+if ($zerob == "" && (! -e $tiltfileb)) then
+    echo "$tiltfileb not found - it is needed unless you enter"
+    echo " the zero-tilt view number for B with -zb"
+    exit 1
+endif
+
+#
+# Get the image file names if they don't exist already
+#
+if ($imagea == "") then
+    @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
+    @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
+    set imagea = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+endif
+
+if (! -e $imagea) then
+    echo "Image file $imagea does not exist"
+    exit 1
+endif
+
+if ($imageb == "") then
+    @ topline  = `vmstocsh < trackb.com | awk '/beadtrack/{print NR}'`
+    @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
+    set imageb = `vmstocsh < trackb.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+endif
+
+if (! -e $imageb) then
+    echo "Image file $imageb does not exist"
+    exit 1
+endif
+
+#
+# get fiducial file name and check existence
+#
+if ($fidfile == "") set fidfile = ${setname}a.fid
+if (! -e $fidfile) then
+    echo "Fiducial file $fidfile not found"
+    exit 1
+endif
+if ($outfile == "") set outfile = ${setname}b.seed
+
+#
+# Get the views with minimum tilt angles
+#
+if ($zeroa == "") then
+    set atilts = `awk '{print int(100. * $1)}' $tiltfilea`
+    @ tiltmin = 1000000
+    @ ind = 1
+    while ($ind <= $#atilts)
+	@ tilt = $atilts[$ind]
+	if ($tilt < 0) @ tilt = -($tilt)
+	if ($tilt < $tiltmin) then
+	    @ zeroa = $ind
+	    @ tiltmin = $tilt
+	endif
+	@ ind++
+    end
+endif
+
+if ($zerob == "") then
+    set btilts = `awk '{print int(100. * $1)}' $tiltfileb`
+    @ tiltmin = 1000000
+    @ ind = 1
+    while ($ind <= $#btilts)
+	@ tilt = $btilts[$ind]
+	if ($tilt < 0) @ tilt = -($tilt)
+	if ($tilt < $tiltmin) then
+	    @ zerob = $ind
+	    @ tiltmin = $tilt
+	endif
+	@ ind++
+    end
+endif
+
+#
+# Get image sizes
+#
+set nxyz =  `header $imagea | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+@ nxa = $nxyz[1]
+@ nya = $nxyz[2]
+@ nza = $nxyz[3]
+
+set nxyz =  `header $imageb | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+@ nxb = $nxyz[1]
+@ nyb = $nxyz[2]
+@ nzb = $nxyz[3]
+
+#
+# Set the number of reductions by 2 needed to get image size to 512 or less
+#
+@ size = $nxb
+if ($nyb > $size) @ size = $nyb
+@ reduce = 0
+@ sizered = $size
+while ($sizered > 512)
+    @ sizered = $sizered / 2
+    @ reduce++
+end
+
+#echo "reduce = $reduce"
+#
+# Get starting and ending section numbers
+#
+@ zeroa--
+@ zerob--
+@ asecstr = $zeroa - ($nviews / 2)
+@ asecend = $asecstr + $nviews - 1
+@ bsecstr = $zerob - ($nviews / 2)
+@ bsecend = $bsecstr + $nviews - 1
+
+#
+# Check section numbers
+# 
+if ($asecstr < 0 || $asecend >= $nza) then
+    echo "The starting or ending section numbers for A are out of range ($asecstr and $asecend)"
+    exit 1
+endif
+if ($bsecstr < 0 || $bsecend >= $nzb) then
+    echo "The starting or ending section numbers for B are out of range ($bsecstr and $bsecend)"
+    exit 1
+endif
+
+#
+# Set up lists to do sections from center out
+#
+echo "Finding the best matched pair of views in the two series:"
+
+set aseclist = ($zeroa)
+set bseclist = ($zerob)
+@ ind = 1
+@ incr = 1
+while ($ind < $nviews)
+    @ asec = $zeroa + $incr
+    @ bsec = $zerob + $incr
+    set aseclist = ($aseclist $asec)
+    set bseclist = ($bseclist $bsec)
+    if ($incr > 0) then
+	@ incr = - ($incr)
+    else
+	@ incr = 1 - ($incr)
+    endif
+    @ ind++
+end
+
+#
+# Set up scaling based on range of density in B
+#
+set densities = `header $imageb | sed -n '/mum dens/p'`
+set diffscale = `echo 1000. $densities[4] $densities[8] | awk '{print $1 / ($3 - $2)}'`
+
+#
+# Loop on section from b, section from a, and -/+90 rotations
+#
+@ diffmin = 2000000000
+@ pluswin = 0
+@ minuswin = 0
+@ bsecind = 1
+while ($bsecind <= $nviews)
+    @ bsec = $bseclist[$bsecind]
+    @ asecind = 1
+    while ($asecind <= $nviews)
+	@ asec = $aseclist[$asecind]
+	@ plusminus = $pmstart
+	set pmdiffs = ()
+	while ($plusminus <= $pmend)
+	    if ($plusminus) then
+		echo "0 -1 1 0 -1 0" >! $tmprot90
+		set pmangle = +90
+	    else
+		echo "0 1 -1 0 0 -1" >! $tmprot90
+		set pmangle = -90
+	    endif
+	    # 
+	    # extract the rotated section from A
+	    #
+
+newstack  > /dev/null <<EOF
+1
+$imagea
+$asec
+1
+$tmpimga
+$nxb,$nyb
+/
+0
+1
+$tmprot90
+0
+0
+EOF
+	    #
+	    # Stack this rotated section on top of the sec from b
+	    #
+newstack > /dev/null <<EOF
+2
+$imageb
+$bsec
+$tmpimga
+0
+1
+$tmpstack
+/
+/
+0
+0
+0
+EOF
+	    #
+	    # Run tiltxcorr
+	    #
+tiltxcorr  > /dev/null <<EOF
+$tmpstack
+
+$tmpxcxf
+1
+0,0
+0
+$xcfilter
+0
+/
+/
+/
+/
+EOF
+
+	    #
+	    # Run xfsimplex looking for rotation only
+	    #
+#	    echo "first simplex"
+	    tail -1 $tmpxcxf >! $tmpxfin
+xfsimplex <<EOF  > /dev/null
+$tmpstack
+$tmpimga
+$tmpxf1
+$tmpxfin
+,,,,,0
+3
+/
+/
+$reduce
+0
+0
+EOF
+	    #
+	    # Run xfsimplex again from there, looking for full transform
+	    #
+#echo "second simplex"
+xfsimplex  >! $tmpxflog <<EOF
+$tmpstack
+$tmpimga
+$tmpxf2
+$tmpxf1
+/
+0
+/
+/
+$reduce
+0
+0
+EOF
+
+	    # 
+	    # extract the difference from the log file
+	    # TODO: something about scaling
+	    # 
+	    set simplexout = `tail -1 $tmpxflog`
+	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
+	    @ aview = $asec + 1
+	    @ bview = $bsec + 1
+	    echo -n "A $aview  B $bview  rotation $pmangle  difference $diff"
+	    if ($diff < $diffmin) then
+		#
+		# If new minimum, save sections and real transform
+		echo '*'
+		@ diffmin = $diff
+		@ asecbest = $asec
+		@ bsecbest = $bsec
+xfproduct > /dev/null <<EOF
+$tmprot90
+$tmpxf2
+$tmpminxf
+EOF
+	    else
+		echo ' '
+	    endif
+	    #
+	    # Accumulate differences from plus and minus
+	    #
+	    set pmdiffs = ($pmdiffs $diff)
+	    @ plusminus++
+	end
+	#
+	# If there are both plus and minus, count who wins
+	# and stop doing a consistent loser
+	#
+	if ($#pmdiffs == 2) then
+	    if ($pmdiffs[1] < $pmdiffs[2]) @ minuswin++
+	    if ($pmdiffs[1] > $pmdiffs[2]) @ pluswin++
+	    if ($pluswin >= $minuswin + $DIRECTION_WIN_THRESH) set pmstart = 1
+	    if ($minuswin >= $pluswin + $DIRECTION_WIN_THRESH) set pmend = 0
+	endif
+	@ asecind++
+    end
+    @ bsecind++
+end
+
+#
+# Stack the two best sections
+#
+echo "1 0 0 1 0 0" >! $tmptwoxf
+cat $tmpminxf >> $tmptwoxf
+newstack > /dev/null <<EOF
+2
+$imageb
+$bsecbest
+$imagea
+$asecbest
+1
+$tmpstack
+/
+/
+0
+1
+$tmptwoxf
+0,1
+2
+EOF
+
+#
+# clip out the model and remap it to z = 1
+#
+clipmodel > /dev/null <<EOF
+$fidfile
+$tmpclip
+0
+0
+0
+/
+$asecbest,$asecbest
+0
+EOF
+
+remapmodel > /dev/null <<EOF
+$tmpclip
+$tmpxfmod
+1
+0,0,0
+EOF
+
+#
+# transform model then adjust its coordinates to new center
+#
+@ xadd = ($nxb - $nxa) / 2
+@ yadd = ($nyb - $nya) / 2
+xfmodel > /dev/null <<EOF
+$imagea
+
+$tmpxfmod
+1
+0
+$tmpclip
+$tmptwoxf
+EOF
+remapmodel > /dev/null <<EOF
+$tmpclip
+$tmpseed
+1
+$xadd,$yadd,0
+EOF
+
+#
+# Get the bead radius 
+# TODO: something about box size
+#
+if ($radius == "") then
+    @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
+    @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
+    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline`
+    @ reshootnum = $reshoots[1]
+    @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
+    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline`
+else
+    set radiusdark = $radius,$lightdark
+endif
+
+#
+# run beadtrack.  REALLY BAD, BUT HERE IT IS
+#
+echo "Transferring fiducials to matched view with Beadtrack:"
+beadtrack >! $tmpxflog <<EOF
+$tmpstack
+
+$tmpseed
+$tmpfid
+
+0
+0
+-1
+0,0
+7,0
+5,0
+4
+$radiusdark
+1
+5
+10,20
+48,48
+4
+7,3
+.6,1
+10
+.7,.9
+2.5
+.9,2.5
+9,5
+.04,2
+EOF
+tail -1 $tmpxflog
+#
+# Remap seed model to the section in B
+if (-e $outfile) \mv $outfile $outfile~
+remapmodel <<EOF  > /dev/null
+$tmpfid
+$outfile
+$bsecbest,-999
+0,0,0
+EOF
+
+clean:
+\rm -f $tmpdir/$com.*.$$*
+exit 0
+
+usage:
+cat <<EOF
+Usage: $pn [options]
+  Will make a fiducial seed model for axis B from the fiducial model for axis A
+  Options:
+     -s setname    Name of data set (omitting a or b, default = directory name)
+     -ia imagefile Name of axis A image file (default taken from tracka.com)
+     -ib imagefile Name of axis B image file (default taken from trackb.com)
+     -f fidmodel   Name of axis A fiducial model (default setnamea.fid)
+     -o seedmodel  Name of output file (default setnameb.seed)
+     -n #          Number of views to search to find best pair (default $nviews)
+     -za #         Number of view in A to center search around (default is 
+                      view closest to zero tilt in setnamea.rawtlt)
+     -zb #         Number of view in B to center search around (default is 
+                      view closest to zero tilt in setnameb.rawtlt)
+     -a #          Rotation direction or angle to search (+1, -1, +90, -90
+                      all work, default is to search both directions)
+     -r radius     Bead radius for Beadtrack; default is taken from tracka.com
+     -l            Search for light rather than dark beads (only works with -r)
+     -h            Help - print this usage
+EOF
+exit 1
