@@ -34,20 +34,34 @@ while ($#instlist > 1)
     shift instlist
 end
 
-#
-# Get the subdirectory to copy the libraries to, exit if not defined
+# Get the subdirectory to copy the libraries to
 #
 set qtlibdir = `sed -n '/QTINSTLIBDIR/s/^.*= *//p' configure`
 
-if ($#qtlibdir == 0) exit 0
+if ($#qtlibdir == 0) set qtlibdir = ""
+
+# Copy Qt assistant to this location, or to bin if not defined
+#
+    set assistdir = $qtlibdir
+    if ($assistdir == "") set assistdir = bin
+
+# Qt assistant could be an exe or a .app directory
+#
+if (`\find $QTDIR/bin -name 'assistant*' -print` != "") then
+    \cp -r $QTDIR/bin/assistant* $instdir/$assistdir
+else
+    echo "Qt Assistant not found in $QTDIR/bin"
+    exit 1
+endif
+
+# Done if no library location defined
+#
 if ($qtlibdir == "") exit 0
 
-#
 # Make directory, copy the real file, make the links
 #
 if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
 
-#
 # Get the library extension, but don't worry if it's not defined
 #
 set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
@@ -69,16 +83,6 @@ while ($dllnum < 100)
     endif
     @ dllnum++
 end
-
-#
-# Copy Qt assistant which could be an exe or a .app directory
-#
-if (`\find $QTDIR/bin -name 'assistant*' -print` != "") then
-    \cp -r $QTDIR/bin/assistant* $instdir/$qtlibdir
-else
-    echo "Qt Assistant not found in $QTDIR/bin"
-    exit 1
-endif
 
 #
 # grab the name of the Qt lib from the ever-useful sendevent Makefile
@@ -155,6 +159,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.23  2004/11/22 06:06:39  mast
+#  Move creation of qtlib up
+#
 #  Revision 3.22  2004/11/22 05:32:19  mast
 #  Check for existence of qassistant lib before going through loop again
 #
