@@ -75,6 +75,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/09/09 21:36:00  mast
+c	  Eliminate stat_source: and nimp_source: from all includes
+c	
 c	  Revision 3.1  2002/07/12 22:17:44  mast
 c	  Revised man page to contain instructions for extracting into separate
 c	  files; added checks on array limits, and converted STOP to
@@ -82,7 +85,7 @@ c	  call exit(1)
 c	
 c
 	include 'model.inc'
-	parameter (idim=128,izdim=128,limpcl=50000)
+	parameter (idim=256,izdim=257,limpcl=50000)
 	real*4 array(idim,idim),brray(idim,idim,izdim)
      &	    ,avgray(idim,idim,izdim)
 	integer*4 nxyz(3),mxyz(3),nxyz2(3),nxyzst(3),ind(3)
@@ -97,6 +100,7 @@ c
 	data nxyzst/0,0,0/
 	character*9 dat
 	character*8 tim
+	common /bigarr/brray,avgray
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
