@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -28,7 +31,6 @@ void light_init(void);
 void light_getparam(int param, float *outValue);
 void light_setparam(int param, double value);
 void light_move(int *x, int *y);
-int clip_obj(Iobj *obj, int flag, double zscale, double zoom);
 void light_on(Iobj *obj);
 void light_off(void);
 void imodvSetLight(Iview *vw);
