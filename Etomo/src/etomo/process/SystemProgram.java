@@ -22,6 +22,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/08 23:17:33  rickg
+ * <p> Set working directory for all cases.
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.3  2003/03/20 17:27:23  rickg
  * <p> Comment update
  * <p>
@@ -163,7 +167,7 @@ public class SystemProgram implements Runnable {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
       process = Runtime.getRuntime().exec(command, null, workingDirectory);
-      
+
       if (debug)
         System.err.println("done");
 
@@ -212,45 +216,77 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.print("SystemProgram: Waiting for process to end...");
 
-      process.waitFor();
+      //process.waitFor();
+
+      // Work around for Java 1.4.1 bug that does hangs because the ouput
+      // and standard error buffers fill
+
+      // Read in the command's stdout and stderr
+      String line;
+      int cntStdOutput = 0;
+      int cntStdError = 0;
+      boolean notDone = true;
+      while (notDone) {
+        try {
+          Thread.sleep(100);
+          exitValue = process.exitValue();
+          notDone = false;
+        }
+        catch (IllegalThreadStateException except) {
+          //  Empty anything in the ouput and error buffers
+          while ((line = cmdOutputBuffer.readLine()) != null) {
+            stdOutput.add(line);
+            cntStdOutput++;
+          }
+          while ((line = cmdErrorBuffer.readLine()) != null) {
+            stdError.add(line);
+            cntStdError++;
+          }
+        }
+        // Kill the underlying system command if we receive an interrupt exception
+        catch (InterruptedException except) {
+          if (debug) {
+            System.err.println(
+              "Received InterruptedException...destroying process");
+          }
+          process.destroy();
+          notDone = false;
+        }
+
+      }
 
       if (debug)
         System.err.println("done");
-
-      exitValue = process.exitValue();
+      //  uncomment when waitfor() works
+      //      exitValue = process.exitValue();
 
       if (debug)
         System.err.println(
           "SystemProgram: Exit value: " + String.valueOf(exitValue));
-
-      //  Read in the command's stdout and stderr
-      String line;
-      int count = 0;
 
       if (debug)
         System.err.print("SystemProgram: Reading from process stdout: ");
 
       while ((line = cmdOutputBuffer.readLine()) != null) {
         stdOutput.add(line);
-        count++;
+        cntStdOutput++;
       }
       cmdOutputStream.close();
 
       if (debug)
-        System.err.println(String.valueOf(count) + " lines");
+        System.err.println(String.valueOf(cntStdOutput) + " lines");
 
       if (debug)
         System.err.print("SystemProgram: Reading from process stderr: ");
 
-      count = 0;
       while ((line = cmdErrorBuffer.readLine()) != null) {
         stdError.add(line);
-        count++;
+        cntStdError++;
       }
       cmdErrorStream.close();
 
       if (debug)
-        System.err.println(String.valueOf(count) + " lines");
+        System.err.println(String.valueOf(cntStdError) + " lines");
 
     }
     // TODO need better error handling, what should be the state if an
@@ -259,15 +295,6 @@ public class SystemProgram implements Runnable {
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
-    }
-
-    // Kill the underlying system command if we receive an interrupt exception
-    catch (InterruptedException except) {
-      if (debug) {
-        System.err.println(
-          "Received InterruptedException...destroying process");
-      }
-      process.destroy();
     }
 
     if (debug) {
