@@ -50,6 +50,7 @@ Log at end of file
 #define MESSAGE_RUBBERBAND 10
 #define MESSAGE_OBJ_PROPERTIES 11
 #define MESSAGE_NEWOBJ_PROPERTIES 12
+#define MESSAGE_SLICER_ANGLES 13
 
 #include <qobject.h>
 #include <qstring.h>
@@ -85,6 +86,9 @@ class ImodClipboard : public QObject
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.9  2004/05/31 02:15:15  mast
+Added messages for setting object properties
+
 Revision 3.8  2004/05/05 17:32:46  mast
 Added message to get rubberband coordinates
 

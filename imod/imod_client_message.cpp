@@ -59,6 +59,7 @@ Log at end of file
 #include "imod_workprocs.h"
 #include "control.h"
 #include "xzap.h"
+#include "sslice.h"
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
@@ -349,6 +350,10 @@ bool ImodClipboard::executeMessage()
         zapReportRubberband();
         break;
 
+      case MESSAGE_SLICER_ANGLES:
+        slicerReportAngles();
+        break;
+
       case MESSAGE_OBJ_PROPERTIES:
       case MESSAGE_NEWOBJ_PROPERTIES:
         objNum = messageStrings[++arg].toInt();
@@ -471,6 +476,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.19  2004/06/22 23:59:28  mast
+Made it redo checksum after changing object type of blank model
+
 Revision 4.18  2004/06/05 00:17:43  mast
 Converted to allowing multiple actions in one message
 
