@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.49  2005/01/06 18:12:00  sueh
+ * bug# 578 In postProcess(ComScriptProcess), setting
+ * TomogramState.skewOption and xStretchOption when align is finished.
+ *
  * Revision 3.48  2005/01/05 19:56:00  sueh
  * bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
  * ComscriptState, String) and startComScript(String, Runnable, AxisID,
@@ -579,6 +583,7 @@ package etomo.process;
 
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
+import etomo.type.TomogramState;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -588,10 +593,12 @@ import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
+import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
+import etomo.comscript.NewstParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
@@ -996,17 +1003,12 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run newst on.
    */
-  public String newst(AxisID axisID) throws SystemProcessException {
-    //
-    //  Create the required newst command
-    //
-    String command = "newst" + axisID.getExtension() + ".com";
-
+  public String newst(ConstNewstParam newstParam, AxisID axisID) throws SystemProcessException {
     //  Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
       appManager, axisID);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
+    ComScriptProcess comScriptProcess = startComScript(newstParam,
       newstProcessMonitor, axisID);
     return comScriptProcess.getName();
 
@@ -1331,24 +1333,31 @@ public class ProcessManager extends BaseProcessManager {
     // nextProcess attribute of the application manager.
     // Script specific post processing
     ProcessName processName = script.getProcessName();
+    Command command = script.getCommand();
+    TomogramState state = appManager.getState();
     if (processName == ProcessName.ALIGN) {
       generateAlignLogs(script.getAxisID());
       copyFiducialAlignFiles(script.getAxisID());
-      Command command = script.getCommand();
       if (command != null) {
-        appManager.getState().setAlignSkewOption(
-            command.getIntegerValue(TiltalignParam.SKEW_OPTION_PARAM));
-        appManager.getState().setAlignXStretchOption(
-            command.getIntegerValue(TiltalignParam.X_STRETCH_OPTION_PARAM));
+        state.setMadeZFactors(command
+            .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
+        appManager.enableZFactors(script.getAxisID());
       }
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.openTomopitchLog(script.getAxisID());
     }
+    else if (processName == ProcessName.NEWST) {
+      if (command != null && command.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
+        appManager.getState().setNewstFiducialessAlignment(
+            command.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
+        appManager.enableZFactors(script.getAxisID());
+      }
+    }
   }
   
   protected void errorProcess(ComScriptProcess script) {
-    
+
   }
   
   protected void postProcess(BackgroundProcess process) {
@@ -1365,10 +1374,10 @@ public class ProcessManager extends BaseProcessManager {
         return;
       }
       if (commandName.equals(TrimvolParam.getName())) {
-        appManager.getState().setTrimvolFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
+        appManager.getState().setTrimvolFlipped(command.getBooleanValue(TrimvolParam.GET_SWAPYZ));
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
-        appManager.getState().setSqueezevolFlipped(command.getBooleanValue(SqueezevolParam.FLIPPED));
+        appManager.getState().setSqueezevolFlipped(command.getBooleanValue(SqueezevolParam.GET_FLIPPED));
       }
     }
   }
