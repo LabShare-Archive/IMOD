@@ -14,15 +14,21 @@ c	  region.  The latter feature is particularly important for getting
 c	  reliable correlation peaks.  The program also has on option to
 c	  ignore a central peak caused by fixed pattern noise in the images,
 c	  which can be a serious problem unless digital camera images are well
-c	  gain-normalized.
+c	  gain-normalized.  The program will reduce the size of images larger
+c	  than 1024 pixels in one dimension by binning them down, i.e. by
+c	  averaging the values in square sets of adjacent pixels (2x3, or 3x3,
+c	  etc).  Images are binned by the smallest factor needed to make them
+c	  1024 or smaller.
 c
 c	  Some notes about some of the options:
 c	  
 c	  Filtering: Some high pass filtering, using a small value of Sigma1
 c	  such as 0.03, may be helpful to keep the program from being misled
 c	  by very large scale features in the images.  If the images are
-c	  noisy, some high pass filtering with Sigma2 and Radius2 is
-c	  appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).
+c	  noisy, some low pass filtering with Sigma2 and Radius2 is
+c	  appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).  If the images
+c	  are binned, these values specify frequencies in the binned image, so
+c	  a higher cutoff (less filtering) might be appropriate.
 c	  
 c	  The exclusion of a central peak can be essential when there is
 c	  fixed noise in the images.  Because one image is stretched, this
@@ -70,7 +76,7 @@ c	  positive).
 c
 C	  Filter parameters to filter the correlation, or / for no filter
 C	  (Enter values of Sigma1, Sigma2, Radius1, Radius2 just as for
-c	  ENHANCE.  
+c	  ENHANCE.)
 c
 c	  1 to exclude a central correlation peak due to fixed pattern noise
 c	  in the images, or 0 not to
@@ -97,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/01/28 16:07:46  mast
+c	  Added declarations for implicit none
+c	
 c	  Revision 3.1  2002/01/10 01:44:58  mast
 c	  Increased limview to 720 and added check on number of views
 c	
@@ -135,8 +144,11 @@ c
 	real*4 dmsum,dmax,dmin,stretch,streak,xpeak,ypeak,usdx,usdy
 	real*4 dmean
 	integer*4 jx,iv,iview,kti,isout
+	integer*4 nbin,maxbinsize,nxusebin,nyusebin
 	integer*4 niceframe
 	real*4 cosd
+
+	maxbinsize=1024
 
         write(*,'(1x,a,$)')'Image input file: '
 	READ(5,101)FILIN
@@ -214,9 +226,14 @@ c
      &	    'Rotation angle FROM vertical TO the tilt axis: '
 	read(5,*)rotangle
 c
+c	  DNM 4/28/02: figure out binning now, and fix this to send setctf
+c	  approximately correct nx and ny instead of nxpad and nypad which
+c	  don't yet exist
+c	  
+	nbin=(max(nx,ny)+maxbinsize-1)/maxbinsize
 	print *,'Enter filter parameters to filter the correlation,'
      &	    //' or / for no filter'
-	call setctf(ctfp,nxpad,nypad,deltap)
+	call setctf(ctfp,nx/nbin,ny/nbin,deltap)
 c
 	ifexclude=0
 	write(*,'(1x,a,$)')'1 to exclude central correlation peak due'
@@ -237,25 +254,29 @@ c
 	endif
 	nxuse=nx-2*nxtrim
 	nyuse=ny-2*nytrim
+	nxusebin=nxuse/nbin
+	nyusebin=nyuse/nbin
 c
 	nxbord = max(5,min(20,nint(0.05*nxuse)))
 	nybord = max(5,min(20,nint(0.05*nyuse)))
 8	write(*,'(1x,a,2i4,a,$)') 'Amounts to pad images on each side '
      &	    //'in X and Y (/ for',nxbord,nybord,'): '
 	read(*,*)nxbord,nybord
-	nxpad=niceframe(nxuse+2*nxbord,2,19)
-	nypad=niceframe(nyuse+2*nybord,2,19)
+	nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
+	nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
 	if((nxpad+2)*nypad.gt.idim)then
 	  print *,'Padded image too big, try smaller borders'
 	  go to 8
 	endif
-	write(*,'(a,i5,a,i5)')' Padded size is',nxpad,' by',nypad
+	write(*,'(a,i5,a,i5)')' Padded, binned size is',nxpad,' by',nypad
 c
 	nxtap = max(5,min(100,nint(0.1*nxuse)))
 	nytap = max(5,min(100,nint(0.1*nyuse)))
 	write(*,'(1x,a,2i4,a,$)') 'Widths over which to taper images'
      &	    //' in X and Y (/ for',nxtap,nytap,'): '
 	read(*,*)nxtap,nytap
+	nxtap=nxtap/nbin
+	nytap=nytap/nbin
 
 15	izst=1
 	iznd=nz
@@ -310,14 +331,20 @@ C
 	    call irdpas(1,array,nxuse,nyuse,nxtrim,nx-nxtrim-1,nytrim,
      &		ny-nytrim-1,*99)
 	  endif
-	  call cubinterp(array,brray,nxuse,nyuse,nxuse,nyuse,fs,
-     &	      nxuse/2., nyuse/2.,0.,0. ,1.,dmean2)
-	  call taperinpad(brray,nxuse,nyuse,brray,nxpad+2,nxpad,nypad,
+c	    
+c	    bin in place
+c	    
+	  if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
+     &	      array,nxusebin, nyusebin)
+c
+	  call cubinterp(array,brray,nxusebin,nyusebin,nxusebin,nyusebin,fs,
+     &	      nxusebin/2., nyusebin/2.,0.,0. ,1.,dmean2)
+	  call taperinpad(brray,nxusebin,nyusebin,brray,nxpad+2,nxpad,nypad,
      &	      nxtap, nytap)
 c
 	  call meanzero(brray,nxpad+2,nxpad,nypad)
 c	    
-c	    get "last" into array, just pad it there
+c	    get "last" into array, just bin and pad it there
 c
 	  call imposn(1,izlast,0)
 	  if(nxtrim.eq.0.and.nytrim.eq.0)then
@@ -326,7 +353,9 @@ c
 	    call irdpas(1,array,nxuse,nyuse,nxtrim,nx-nxtrim-1,nytrim,
      &		ny-nytrim-1,*99)
 	  endif
-	  call taperinpad(array,nxuse,nyuse,array,nxpad+2,nxpad,nypad,
+	  if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
+     &	      array,nxusebin, nyusebin)
+	  call taperinpad(array,nxusebin,nyusebin,array,nxpad+2,nxpad,nypad,
      &	      nxtap, nytap)
 	  if(ifimout.ne.0)then
 	    do isout=1,2
@@ -379,10 +408,11 @@ c
 	  call peakfind(array,nxpad+2,nypad,xpeak,ypeak,radexcl,
      &	      rotangle, streak)
 	  call xfapply(fsinv,0.,0.,xpeak,ypeak,usdx,usdy)
-	  print *,'View',iview,', shifts',usdx,usdy
+	  write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts',
+     &	      nbin*usdx,nbin*usdy
 	  call flush(6)
-	  f(1,3,iview)=idir*usdx
-	  f(2,3,iview)=idir*usdy
+	  f(1,3,iview)=idir*nbin*usdx
+	  f(2,3,iview)=idir*nbin*usdy
 	  if(imfilout.ne.' ')then
 	    call packcorr(crray,array,nxpad+2,nypad)
 	    if(mode.ne.2)then
@@ -443,7 +473,7 @@ C
 
 c	  PEAKFIND finds the coordinates of the the absolute peak, XPEAK, YPEAK
 c	  in the array ARRAY, which is dimensioned to nx+2 by ny.  It fits
-c	  a paravola in to the three points around the peak in X or Y and gets
+c	  a parabola in to the three points around the peak in X or Y and gets
 c	  a much better estimate of peak location.
 c
 	subroutine peakfind(array,nxplus,nyrot,xpeak,ypeak,radexcl,
