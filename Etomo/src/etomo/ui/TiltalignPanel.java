@@ -39,6 +39,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/02/11 16:46:12  sueh
+ * <p> bug# 600 Getting tooltips from autodoc.
+ * <p>
  * <p> Revision 3.17  2005/01/26 00:06:49  sueh
  * <p> Converted ConstEtomoNumber.resetValue to displayValue.
  * <p>
@@ -1667,7 +1670,7 @@ public class TiltalignPanel {
     ltfCycleLimit.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MaximumCycles")).format());
     cbLocalAlignments.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalAlignments")).format());
     ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "NumberOfLocalPatchesXandY")).format());
-    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "NumberOfLocalPatchesXandY")).format());
+    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MinSizeOrOverlapXandY")).format());
     ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MinFidsTotalAndEachSurface")).format());
 
     //  Global variables
@@ -1679,38 +1682,26 @@ public class TiltalignPanel {
     }
     
     ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "TiltDefaultGrouping")).format());
+    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "TiltNondefaultGroup")).format());
 
-    text = "Sets of views with non-default grouping.  For each set, enter starting"
-        + " and ending view number and group size, separated by commas; "
-        + "separate multiple sets with spaces.";
-    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(text)
-        .format());
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "MagOption");
+    if (section != null) {
+      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
+      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
+      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
+    }
 
-    text = "Do not solve for magnifications.";
-    rbMagnificationFixed
-        .setToolTipText(tooltipFormatter.setText(text).format());
+    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagReferenceView")).format());
+    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagDefaultGrouping")).format());
+    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagNondefaultGroup")).format());
 
-    text = "Solve for magnification at each view independently.";
-    rbMagnificationAll.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Group views to solve for fewer magnification variables.";
-    rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "View at which magnification will be fixed at 1.0.";
-    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Grouping size for magnifications.";
-    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Sets of views with non-default grouping.  For each set, enter starting"
-        + " and ending view number and group size, separated by commas; "
-        + "separate multiple sets with spaces.";
-    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
-        text).format());
-
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "MagOption");
+    if (section != null) {
+      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
+      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
+      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
+    }
+    
     text = "Do not solve for distortions in the plane of section.";
     rbDistortionDisabled
         .setToolTipText(tooltipFormatter.setText(text).format());
@@ -1719,69 +1710,23 @@ public class TiltalignPanel {
     rbDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    text = "Solve for skew in the plane of section.";
-    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(text).format());
+    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewOption")).format());
+    ltfXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "XStretchDefaultGrouping")).format());
+    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "XStretchNondefaultGroup")).format());
+    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewDefaultGrouping")).format());
+    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewNondefaultGroup")).format());
 
-    text = "Basic grouping size for X stretch (grouping will be less at high tilt "
-        + "and more at low tilt).";
-    ltfXstretchGroupSize
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Sets of views with non-default grouping for X stretch.  For each set, "
-        + "enter starting and ending view number and group size, separated by"
-        + " commas; separate multiple sets with spaces.";
-    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Grouping size for skew angles.";
-    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Sets of views with non-default grouping for skew angles.  For each set,"
-        + " enter starting and ending view number and group size, separated by"
-        + " commas; separate multiple sets with spaces.";
-    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Solve for local in-plane rotations.";
-    cbLocalRotation.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Grouping size for local rotations.";
-    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Sets of views with non-default grouping.  For each set, enter starting"
-        + " and ending view number and group size, separated by commas; "
-        + "separate multiple sets with spaces.";
-    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
-        text).format());
-
-    text = "Solve for local changes in tilt angle.";
-    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Grouping size for local tilt angle changes.";
-    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Sets of views with non-default grouping.  For each set, enter starting"
-        + " and ending view number and group size, separated by commas; "
-        + "separate multiple sets with spaces.";
-    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
-        text).format());
-
-    text = "Solve for local changes in magnification.";
-    cbLocalMagnification
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Grouping size for local magnification changes.";
-    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter
-        .setText(text).format());
-
-    text = "Sets of views with non-default grouping.  For each set, enter starting"
-        + " and ending view number and group size, separated by commas; "
-        + "separate multiple sets with spaces";
-    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter
-        .setText(text).format());
-
+    //local
+    cbLocalRotation.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotOption")).format());
+    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotDefaultGrouping")).format());
+    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotNondefaultGroup")).format());
+    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltOption")).format());
+    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltDefaultGrouping")).format());
+    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltNondefaultGroup")).format());
+    cbLocalMagnification.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagOption")).format());
+    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagDefaultGrouping")).format());
+    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagNondefaultGroup")).format());
+    
     text = "Do not solve for local distortions in the plane of section.";
     rbLocalDistortionDisabled.setToolTipText(tooltipFormatter.setText(text)
         .format());
@@ -1790,28 +1735,11 @@ public class TiltalignPanel {
     rbLocalDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    text = "Solve for local skew in the plane of section.";
-    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Grouping size for local X stretch variables.";
-    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-    text = "Sets of views with non-default grouping for X stretch.  For each set,"
-        + " enter starting and ending view number and group size, separated by"
-        + " commas; separate multiple sets with spaces.";
-    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
-        text).format());
-
-    text = "Grouping size for local skew angle variables.";
-    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Sets of views with non-default grouping for skew angles.  For each set,"
-        + " enter starting and ending view number and group size, separated by"
-        + " commas; separate multiple sets with spaces.";
-    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(text)
-        .format());
+    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewOption")).format());
+    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalXStretchDefaultGrouping")).format());
+    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalXStretchNondefaultGroup")).format());
+    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewDefaultGrouping")).format());
+    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewNondefaultGroup")).format());
   }
 
   /**
