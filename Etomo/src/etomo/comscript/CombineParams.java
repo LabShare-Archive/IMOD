@@ -18,12 +18,15 @@ import etomo.type.FiducialMatch;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
-public class CombineParams extends ConstCombineParams
-  implements Storable {
-  public static final String rcsid = "$Id$";
+public class CombineParams extends ConstCombineParams implements Storable {
+  public static final String rcsid =
+    "$Id$";
 
   public void setMatchBtoA(boolean isBtoA) {
     matchBtoA = isBtoA;
@@ -57,16 +60,15 @@ public class CombineParams extends ConstCombineParams
     manualCleanup = isManual;
   }
 
-
   /**
    *  Insert the objects attributes into the properties object.
    */
   public void store(Properties props) {
     store(props, "");
   }
-  public void store (Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "Combine.";
     }
     else {
@@ -83,15 +85,16 @@ public class CombineParams extends ConstCombineParams
   }
   public void load(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "Combine.";
     }
     else {
       group = prepend + "Combine.";
     }
     matchBtoA =
-      Boolean.valueOf(props.getProperty(group + "MatchBtoA",
-					"true")).booleanValue();
+      Boolean
+        .valueOf(props.getProperty(group + "MatchBtoA", "true"))
+        .booleanValue();
 
   }
 

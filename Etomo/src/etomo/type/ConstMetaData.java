@@ -16,10 +16,14 @@ import etomo.comscript.CombineParams;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ConstMetaData {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected String revisionNumber = "1.2";
   protected String filesetName = "";
@@ -132,59 +136,59 @@ public class ConstMetaData {
 
     // Does the working directory exist
     File cwd = new File(workingDirectory);
-    if(!cwd.exists()) {
+    if (!cwd.exists()) {
       invalidReason = "Working directory does not exist";
       return false;
     }
 
-    if(!cwd.canRead()) {
+    if (!cwd.canRead()) {
       invalidReason = "Can't read working directory";
       return false;
     }
 
-    if(!cwd.canWrite()) {
+    if (!cwd.canWrite()) {
       invalidReason = "Can't write working directory";
       return false;
     }
 
     // Does the appropriate image stack exist in the working directory
-    if(axisType == AxisType.DUAL_AXIS) {
+    if (axisType == AxisType.DUAL_AXIS) {
       File stack = new File(workingDirectory, filesetName + "a.st");
-      if(!stack.exists()) {
-	invalidReason = filesetName +
-	  "a.st does not exist in the working directory";
-	return false;
+      if (!stack.exists()) {
+        invalidReason =
+          filesetName + "a.st does not exist in the working directory";
+        return false;
       }
 
-      if(!stack.canRead()) {
-	invalidReason = "Can't read " + filesetName + "a.st";
-	return false;
+      if (!stack.canRead()) {
+        invalidReason = "Can't read " + filesetName + "a.st";
+        return false;
       }
 
       stack = new File(workingDirectory, filesetName + "b.st");
-      if(!stack.exists()) {
-	invalidReason = filesetName +
-	  "b.st does not exist in the working directory";
-	return false;
+      if (!stack.exists()) {
+        invalidReason =
+          filesetName + "b.st does not exist in the working directory";
+        return false;
       }
 
-      if(!stack.canRead()) {
-	invalidReason = "Can't read " + filesetName + "b.st";
-	return false;
+      if (!stack.canRead()) {
+        invalidReason = "Can't read " + filesetName + "b.st";
+        return false;
       }
 
     }
     else {
       File stack = new File(workingDirectory, filesetName + ".st");
-      if(!stack.exists()) {
-	invalidReason = filesetName +
-	  ".st does not exist in the working directory";
-	return false;
+      if (!stack.exists()) {
+        invalidReason =
+          filesetName + ".st does not exist in the working directory";
+        return false;
       }
 
-      if(!stack.canRead()) {
-	invalidReason = "Can't read " + filesetName + ".st";
-	return false;
+      if (!stack.canRead()) {
+        invalidReason = "Can't read " + filesetName + ".st";
+        return false;
       }
     }
     // Is the pixel size greater than zero
