@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2002/09/10 03:29:13  mast
+#  Eliminate links in include for nimp_source:model.inc and
+#  stat_source:statsize.inc, since these are gone from programs
+#
 #  Revision 3.3  2002/07/30 05:37:26  mast
 #  Made new variables for glw install directories so that GLw could be
 #  included in a standard build
@@ -32,7 +36,8 @@
 # Global setup
 #
 set imod_copyright    = '1994-2002'
-
+set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
+set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
 set endian_dir    = include
 
@@ -153,13 +158,16 @@ set target_computer = {$UMACHINE}__{$USYSTEM}__{$URELEASE}__all
 #
 set imod_version = `sed '/\./s///g' .version`
 set imod_version_name = `cat .version`
-echo "#ifndef IMOD_CONFIG_INCLUDED"                >! $hconfigure
-echo "#define IMOD_CONFIG_INCLUDED"                >> $hconfigure
-echo "#define VERSION              $imod_version"  >> $hconfigure
-echo '#define VERSION_NAME "'"$imod_version_name"'"'  >> $hconfigure
-echo '#define COPYRIGHT_YEARS "'"$imod_copyright"'"'  >> $hconfigure
-
-echo "#define DRAW_OpenGL 1" >> $hconfigure
+cat << EOF >! $hconfigure
+#ifndef IMOD_CONFIG_INCLUDED
+#define IMOD_CONFIG_INCLUDED
+#define VERSION              $imod_version
+#define VERSION_NAME "$imod_version_name"
+#define COPYRIGHT_YEARS "$imod_copyright"
+#define LAB_NAME1 "$lab_name1"
+#define LAB_NAME2 "$lab_name2"
+#define DRAW_OpenGL 1
+EOF
 
 #
 # Copy default include file for Fortran byte-ordering
