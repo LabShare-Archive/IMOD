@@ -42,6 +42,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2004/06/25 23:24:52  sueh
+ * bug# 485 fixed warning
+ *
  * Revision 3.12  2004/06/17 21:48:18  sueh
  * bug# 474 UIUtilities.setButtonSizeAll() causes this, called
  * UIUtilities.setButtonSize(AbstractButton), since there is only
@@ -275,6 +278,7 @@ public class SetupCombinePanel
     "<html><b>Create Combine Scripts</b>");
   private MultiLineToggleButton btnCombine = new MultiLineToggleButton(
     "<html><b>Start Combine</b>");
+  private JLabel binningWarning = new JLabel();
 
   /**
    * Default constructor
@@ -329,6 +333,9 @@ public class SetupCombinePanel
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel);
     pnlPatchParams.add(pnlPatchRegionModel);
+    pnlPatchParams.add(Box.createRigidArea(FixedDim.x0_y10));
+    binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlPatchParams.add(binningWarning);
     UIUtilities.setButtonSize(btnPatchRegionModel, UIParameters.dimButton);
 
     //  Patch boundary
@@ -568,6 +575,16 @@ public class SetupCombinePanel
 
   public void setSurfacesOrModels(FiducialMatch state) {
     pnlSolvematch.setSurfacesOrModels(state);
+  }
+  
+  public void setBinningWarning(boolean binningWarning) {
+    if (binningWarning) {
+      this.binningWarning.setText(
+        "WARNING:  Coordinates must be selected from an unbinned 3dmod");
+    }
+    else {
+      this.binningWarning.setText("");
+    }
   }
 
   public boolean isBinBy2() {
