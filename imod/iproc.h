@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/09/16 02:10:55  mast
+    Added working array because displayed image data cannot be used directly
+
     Revision 3.3  2003/02/10 20:41:56  mast
     Merge Qt source
 
@@ -90,7 +93,7 @@ class IProcWindow : public DialogFrame
 typedef struct
 {
   IProcWindow   *dia;
-  ImodView      *vw;        /* image data to model                       */
+  ImodView      *vi;        /* image data to model                       */
   unsigned char *iwork;     /* Image data processing buffer.             */
   unsigned char *isaved;     /* buffer for saving original data.         */
 
