@@ -227,14 +227,33 @@ void ImageScaleWindow::computeScale()
 {
   ImodView *vi = imodImageScaleData.vi;
   float slidecur, rangecur, slidenew, rangenew;
+  float smin = vi->li->smin;
+  float smax = vi->li->smax;
+  float kscale = mrcGetComplexScale();
+  float minSign = 1.;
+
+  // Convert smin, smax to actual values used for scaling if complex
+  if (vi->image->format == IIFORMAT_COMPLEX)
+    mrcComplexSminSmax(smin, smax, &smin, &smax);
   slidecur = vi->white - vi->black;
-  rangecur = vi->li->smax - vi->li->smin;
+  rangecur = smax - smin;
   slidenew = WHITENEW - BLACKNEW;
   rangenew = slidecur * rangecur / slidenew;
-  imodImageScaleData.min = (slidenew * rangenew / 255.0f) *
-    ( (255.0f * vi->li->smin / (slidecur * rangecur)) +
-      vi->black/slidecur - BLACKNEW/slidenew );
+  imodImageScaleData.min = smin + (slidenew * rangenew / 255.0f) *
+    (vi->black/slidecur - BLACKNEW/slidenew );
   imodImageScaleData.max = imodImageScaleData.min + rangenew;
+
+  // Convert back for complex values
+  if (vi->image->format == IIFORMAT_COMPLEX) {
+    imodImageScaleData.max = (float)(exp((double)imodImageScaleData.max) -
+                                     1.) / kscale;
+    if (imodImageScaleData.min < 0.) {
+      minSign = -1.;
+      imodImageScaleData.min = -imodImageScaleData.min;
+    }
+    imodImageScaleData.min = (float)(exp((double)imodImageScaleData.min) -
+                                     1.) / (kscale * minSign);
+  }
 }
 
 void ImageScaleWindow::applyLimits()
@@ -288,25 +307,9 @@ void ImageScaleWindow::applyLimits()
   } else {
           
     /* Uncached data: free memory and reload */
-    if (vi->li->contig){
-      free(vi->idata[0]);
-    } else {
-      for (k = 0; k < vi->zsize; k++)
-        free(vi->idata[k]);
-    }
-    free(vi->idata);
+    mrcFreeDataMemory(vi->idata, vi->li->contig, vi->zsize);
 
-    /* DNM: got to reread header since it gets screwed up at end of read */
-    if (vi->image->file == IIFILE_MRC){
-      if (!vi->image->fp)
-        iiReopen(vi->image);
-      if (!vi->image->fp) {
-        imodError(NULL, "3DMOD: Fatal Error. Cannot reopen image file.\n");
-        exit(-1);
-      }
-      mrc_head_read(vi->image->fp, 
-                    (struct MRCheader *)vi->image->header);
-    }
+    /* DNM 1/7/04:  no need to reopen and reread header, image_load does it */
 
     vi->idata = imod_io_image_load(vi);
     if (!vi->idata) {
@@ -354,6 +357,10 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/01/05 18:41:38  mast
+Changed to deal with cache full mode, added error exits, prevented it
+from operating while loading is underway, and cleanup up a bit (vw to vi)
+
 Revision 4.7  2003/12/30 06:40:10  mast
 Changes for multi-file section display, to change all files when apply
 
