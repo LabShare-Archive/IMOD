@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.15  2003/07/25 22:58:23  rickg
+ * <p> Model mode management changes
+ * <p>
  * <p> Revision 2.14  2003/07/22 22:15:19  rickg
  * <p> Add erased stack management
  * <p>
@@ -115,7 +118,7 @@ public class ImodManager {
   private ImodProcess rawStackB;
   private ImodProcess erasedStackA;
   private ImodProcess erasedStackB;
-  
+
   private ImodProcess coarseAlignedA;
   private ImodProcess coarseAlignedB;
   private ImodProcess fineAlignedA;
@@ -196,16 +199,20 @@ public class ImodManager {
   /**
    * Open the specified model with on raw stack 3dmod
    */
-  public void modelRawStack(String modelName, AxisID axisID,  boolean modelMode)
+  public void modelRawStack(String modelName, AxisID axisID, boolean modelMode)
     throws AxisTypeException, SystemProcessException {
     // Make sure there is an imod with right course aligned data set that
     // is already open
     openRawStack(axisID);
     ImodProcess rawStack = selectRawStack(axisID);
     rawStack.openModel(modelName);
-    if(modelMode) {
+    if (modelMode) {
       rawStack.modelMode();
     }
+    else {
+      rawStack.movieMode();
+    }
+
   }
 
   /**
@@ -228,7 +235,6 @@ public class ImodManager {
     ImodProcess rawStack = selectRawStack(axisID);
     rawStack.quit();
   }
-
 
   /**
    * Open the specified erased data stack in 3dmod if it is not already open
@@ -288,7 +294,10 @@ public class ImodManager {
   /**
    * Open the specified model with the course aligned imod
    */
-  public void modelCoarseAligned(String modelName, AxisID axisID)
+  public void modelCoarseAligned(
+    String modelName,
+    AxisID axisID,
+    boolean modelMode)
     throws AxisTypeException, SystemProcessException {
     // Make sure there is an 3dmod with right coarse aligned data set that
     // is already open
@@ -296,6 +305,12 @@ public class ImodManager {
     ImodProcess coarseAligned = selectCoarseAligned(axisID);
     coarseAligned.openModel(modelName);
     coarseAligned.modelMode();
+    if (modelMode) {
+      coarseAligned.modelMode();
+    }
+    else {
+      coarseAligned.movieMode();
+    }
   }
 
   /**
@@ -433,9 +448,11 @@ public class ImodManager {
     throws AxisTypeException, SystemProcessException {
     tomogramA.open();
     tomogramA.openModel(datasetName + "a.matmod");
-
+    tomogramA.modelMode();
+    
     tomogramB.open();
     tomogramB.openModel(datasetName + "b.matmod");
+    tomogramB.modelMode();
   }
 
   /**
@@ -610,7 +627,7 @@ public class ImodManager {
     }
     return erasedStackA;
   }
-  
+
   private ImodProcess selectCoarseAligned(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return coarseAlignedB;
