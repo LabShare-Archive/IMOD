@@ -30,6 +30,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/02/16 18:49:13  sueh
+ * <p> bug# 276 added getModelName()
+ * <p>
  * <p> Revision 3.12  2004/02/07 02:58:29  sueh
  * <p> bug# 169 Added preview key, deprecated out-of-date
  * <p> functions, changed the metadata load, created an open()
@@ -403,6 +406,9 @@ public class ImodManager {
 
   //Interface
 
+  /**
+   * for running 3dmod from the SetupDialog
+   */
   public void setPreviewMetaData(ConstMetaData metaData) {
     if (metaDataSet) {
       return;
@@ -414,6 +420,9 @@ public class ImodManager {
   }
 
   public void setMetaData(ConstMetaData metaData) {
+    //if metaDataSet is true and the axisType is changing from dual to single,
+    //combinedTomograms will not be retrievable.  However the global isOpen()
+    //and quit() functions will work on them.
     metaDataSet = true;
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
@@ -646,7 +655,7 @@ public class ImodManager {
       }
     }
   }
-
+  
   public void reset(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
