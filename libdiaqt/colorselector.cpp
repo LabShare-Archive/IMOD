@@ -95,7 +95,7 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
 
   // Connect them: have to connect to release of Qt selector because the modal
   // box keeps the button from coming back up (maybe mixed X problem only)
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonClicked(int)));
 
   imposeColor(true, false);
 }
@@ -219,6 +219,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.6  2003/04/14 05:05:43  mast
+add initial redraw
+
 Revision 1.5  2003/03/24 17:43:24  mast
 Changes in definitions of hotflags
 
