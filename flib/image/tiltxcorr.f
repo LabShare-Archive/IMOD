@@ -103,6 +103,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2003/05/12 18:58:21  mast
+c	  Fix problem with padding mean intensity when compiled to get
+c	  correlation output file
+c	
 c	  Revision 3.9  2003/03/14 01:10:06  mast
 c	  Add argument to interpolation acll
 c	
@@ -167,17 +171,107 @@ c
 	integer*4 nxtrim,nytrim,nxuse,nyuse,nxbord,nybord,nxtap,nytap
 	integer*4 izst,iznd,kk,nout,izlast,izcur,idir,iztmp
 	real*4 dmsum,dmax,dmin,stretch,streak,xpeak,ypeak,usdx,usdy
-	real*4 dmean
-	integer*4 jx,iv,iview,kti,isout
+	real*4 dmean, radius1, radius2, sigma1, sigma2
+	integer*4 jx,iv,iview,kti,isout, ierr
 	integer*4 nbin,maxbinsize,nxusebin,nyusebin
 	integer*4 niceframe
 	real*4 cosd
 
-	maxbinsize=1024
+	integer numOptions
+	parameter (numOptions = 20)
+	character*(80 * numOptions) options(1)
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
+	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
+	integer*4 PipGetNonOptionArg, PipPrintHelp, ifpip
+	integer*4 nxytrim(2), nxypad(2), nxytap(2), izstnd(2)
+	equivalence (nxytrim(1), nxtrim), (nxytrim(2), nytrim)
+	equivalence (nxypad(1), nxpad), (nxypad(2), nypad)
+	equivalence (nxytap(1), nxtap), (nxytap(2), nytap)
+	equivalence (izstnd(1), izst), (izstnd(2), iznd)
+	options(1) =
+     &	    'input:InputFile:FN:Input image file@'//
+     &	    'piece:PieceListFile:FN:Piece file with rearranged Z'//
+     &	    ' values@'//
+     &	    'output:OutputFile:FN:Output file for transforms@'//
+     &	    'rotation:RotationAngle:F:Rotation angle from the Y'//
+     &	    ' axis to the tilt axis@'//
+     &	    'first:FirstTiltAngle:F:Tilt angle of first view in'//
+     &	    ' degrees@'//
+     &	    'increment:TiltIncrement:F:Increment between tilt angles@'//
+     &	    'tiltfile:TiltFile:FN:File with tilt angles@'//
+     &	    'angles:TiltAngles:FAM:Individual tilt angles for each'//
+     &	    ' view@'//
+     &	    'radius1:FilterRadius1:F:Left cutoff radius for filter@'//
+     &	    'radius2:FilterRadius2:F:Right cutoff radius for filter@'//
+     &	    'sigma1:FilterSigma1:F:Sigma for low-frequency'//
+     &	    ' (1 - gaussian) filter@'//
+     &	    'sigma2:FilterSigma2:F:Sigma for gaussian rolloff below'//
+     &	    ' radius1 & above radius2@'//
+     &	    'exclude:ExcludeCentralPeak:B:Exclude central peak due to'//
+     &	    ' fixed pattern noise@'//
+     &	    'border:BordersInXandY:IA:Number of pixels to trim off in'//
+     &	    ' X and in Y@'//
+     &	    'pad:PadsInXandY:IA:Number of pixels to pad images in'//
+     &	    ' X and in Y@'//
+     &	    'taper:TapersInXandY:IA:Number of pixels to taper images'//
+     &	    ' in X and in Y@'//
+     &	    'views:StartingEndingViews:IA:Starting and ending view'//
+     &	    ' number for doing subset@'//
+     &	    'test:TestOutput:FN:File to save processed images and'//
+     &	    ' correlations in@'//
+     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
+     &	    'help:usage:B:Print help output'
 
-        write(*,'(1x,a,$)')'Image input file: '
-	READ(5,101)FILIN
-101     format(a)
+c	  
+c	  set defaults here where not dependent on image size
+c	  
+	ifimout=0
+	ifexclude=0
+	nxtrim=0
+	nytrim=0
+	sigma1 = 0.
+	sigma2 = 0.
+	radius1 = 0.
+	radius2 = 0.
+	rotangle = 0.
+	imfilout = ' '
+
+	maxbinsize=1024
+	ifpip = 0
+c	  
+c	  Pip startup: set error, parse options, set flag if used
+c
+	call PipExitOnError(0, "ERROR: TILTXCORR - ")
+	call PipAllowCommaDefaults(1)
+	ierr = PipParseInput(options, numOptions, '@', numOptArg, numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+c
+	if (pipinput) then
+c	    
+c	    First action if pip used: check for help
+c
+	  if (PipGetBoolean('usage', ierr) .eq. 0) then
+	    ierr = PipPrintHelp('tiltxcorr', 0, 1, 1)
+	    call exit(0)
+	  endif
+	  ifpip = 1
+c	    
+c	    Get an input file string; or if none, look on command line
+c
+	  ierr = PipGetString('InputFile', filin)
+	  if (ierr .gt. 0) then
+	    if (numNonOptArg .eq. 0) call errorexit
+     &		('NO INPUT FILE SPECIFIED')
+	    ierr = PipGetNonOptionArg(1, filin)
+	  endif
+	else
+
+	  write(*,'(1x,a,$)')'Image input file: '
+	  READ(5,101)FILIN
+101	  format(a)
+	endif
         CALL IMOPEN(1,FILIN,'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 	IF (((NX+2)*NY.GT.idim)) call errorexit(
@@ -185,9 +279,14 @@ c
 
 	if (nz.gt.limview) call errorexit('TOO MANY VIEWS FOR ARRAYS')
 C   
-	write(*,'(1x,a,$)')'Piece list file if there is one,'//
-     &	    ' otherwise Return: '
-	read(*,101)plfile
+	if (pipinput) then
+	  plfile = ' '
+	  ierr = PipGetString('PieceListFile', plfile)
+	else
+	  write(*,'(1x,a,$)')'Piece list file if there is one,'//
+     &	      ' otherwise Return: '
+	  read(*,101)plfile
+	endif
 	call read_piece_list(plfile,ixpclist,iypclist,izpclist,npclist)
 c	  
 c	    if no pieces, set up mocklist
@@ -223,22 +322,20 @@ c
 	  call exit(1)
 	endif
 c
-        write(*,'(1x,a,$)')'Output file for transforms: '
-	READ(5,101)FILIN
-	call dopen(1,filin,'new','f')
-c	  
-	imfilout=' '
-c	write(*,'(1x,a,$)')'Correlation output file, Return for none: '
-c	read(5,101)imfilout
-c
-	ifimout=0
-	if(imfilout.ne.' ')then
-	  CALL IMOPEN(3,imfilout,'NEW')
-	  CALL ITRHDR(3,1)
-	  ifimout=1
+	if (pipinput) then
+	  ierr = PipGetString('OutputFile', filin)
+	  if (ierr .gt. 0) then
+	    if (numNonOptArg .lt. 2) call errorexit(
+     &		'NO OUTPUT FILE SPECIFIED FOR TRANSFORMS')
+	    ierr = PipGetNonOptionArg(2, filin)
+	  endif
+	else
+	  write(*,'(1x,a,$)')'Output file for transforms: '
+	  READ(5,101)FILIN
 	endif
+	call dopen(1,filin,'new','f')
 c	    
-	call get_tilt_angles(nview,3,tilt)
+	call get_tilt_angles(nview,3,tilt, limview, ifpip)
 	if(nview.ne.nz)then
 	  print *
 	  print *,'ERROR: TILTXCORR - There must be a tilt angle for'
@@ -247,36 +344,53 @@ c
 	  call exit(1)
 	endif
 c
-	write(*,'(1x,a,$)')
-     &	    'Rotation angle FROM vertical TO the tilt axis: '
-	read(5,*)rotangle
 c
 c	  DNM 4/28/02: figure out binning now, and fix this to send setctf
 c	  approximately correct nx and ny instead of nxpad and nypad which
 c	  don't yet exist
 c	  
 	nbin=(max(nx,ny)+maxbinsize-1)/maxbinsize
-	print *,'Enter filter parameters to filter the correlation,'
-     &	    //' or / for no filter'
-	call setctf(ctfp,nx/nbin,ny/nbin,deltap)
+
+	if (pipinput) then
+	  if (PipGetString('TestOutput', imfilout) .eq. 0) then
+	    CALL IMOPEN(3,imfilout,'NEW')
+	    CALL ITRHDR(3,1)
+	    ifimout=1
+	  endif
+	  ierr = PipGetFloat('RotationAngle', rotangle)
+	  ierr = PipGetFloat('FilterRadius1', radius1)
+	  ierr = PipGetFloat('FilterRadius2', radius2)
+	  ierr = PipGetFloat('FilterSigma1', sigma1)
+	  ierr = PipGetFloat('FilterSigma2', sigma2)
+	  call setctfwsr(sigma1,sigma2,radius1,radius2,ctfp,nx/nbin,
+     &	      ny/nbin,deltap)
+	  ierr = PipGetBoolean('ExcludeCentralPeak', ifexclude)
+	  ierr = PipGetIntegerArray('BordersInXandY', nxytrim, 2, 2)
+	else
+	  write(*,'(1x,a,$)')
+     &	      'Rotation angle FROM vertical TO the tilt axis: '
+	  read(5,*)rotangle
+
+	  print *,'Enter filter parameters to filter the correlation,'
+     &	      //' or / for no filter'
+	  call setctf(ctfp,nx/nbin,ny/nbin,deltap)
 c
-	ifexclude=0
-	write(*,'(1x,a,$)')'1 to exclude central correlation peak due'
-     &	    //' to fixed pattern noise, 0 not to: '
-	read(5,*)ifexclude
+	  write(*,'(1x,a,$)')'1 to exclude central correlation peak due'
+     &	      //' to fixed pattern noise, 0 not to: '
+	  read(5,*)ifexclude
+c
+	  write(*,'(1x,a,$)')
+     &	      'Amounts to trim off each side in X and Y (/ for 0,0):'
+	  read(5,*)nxtrim,nytrim
+	endif
+
 	radexcl=0.
 	if(ifexclude.eq.1) radexcl=1.1
-c
-7	nxtrim=0
-	nytrim=0
-	write(*,'(1x,a,$)')
-     &	    'Amounts to trim off each side in X and Y (/ for 0,0):'
-	read(5,*)nxtrim,nytrim
+
 	if(nxtrim.lt.0.or.nytrim.lt.0.or.nxtrim.gt.nx/2-16.or.
-     &	    nytrim.gt.ny/2-16)then
-	  print *,'Impossible amount to trim by, try again'
-	  go to 7
-	endif
+     &	    nytrim.gt.ny/2-16)call errorexit(
+     &	    'Impossible amount to trim by')
+
 	nxuse=nx-2*nxtrim
 	nyuse=ny-2*nytrim
 	nxusebin=nxuse/nbin
@@ -284,31 +398,43 @@ c
 c
 	nxbord = max(5,min(20,nint(0.05*nxuse)))
 	nybord = max(5,min(20,nint(0.05*nyuse)))
-8	write(*,'(1x,a,2i4,a,$)') 'Amounts to pad images on each side '
-     &	    //'in X and Y (/ for',nxbord,nybord,'): '
-	read(*,*)nxbord,nybord
+	if (pipinput) then
+	  ierr = PipGetIntegerArray('PadsInXandY', nxypad, 2, 2)
+	else
+	  write(*,'(1x,a,2i4,a,$)') 'Amounts to pad images on each side '
+     &	      //'in X and Y (/ for',nxbord,nybord,'): '
+	  read(*,*)nxbord,nybord
+	endif
 	nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
 	nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
-	if((nxpad+2)*nypad.gt.idim2)then
-	  print *,'Padded image too big, try smaller borders'
-	  go to 8
-	endif
+	if((nxpad+2)*nypad.gt.idim2) call errorexit(
+     &	    'Padded image too big, try less padding')
+
 	write(*,'(a,i5,a,i5)')' Padded, binned size is',nxpad,' by',nypad
 c
 	nxtap = max(5,min(100,nint(0.1*nxuse)))
 	nytap = max(5,min(100,nint(0.1*nyuse)))
-	write(*,'(1x,a,2i4,a,$)') 'Widths over which to taper images'
-     &	    //' in X and Y (/ for',nxtap,nytap,'): '
-	read(*,*)nxtap,nytap
+	if (pipinput) then
+	  ierr = PipGetIntegerArray('TapersInXandY', nxytap, 2, 2)
+	else
+	  write(*,'(1x,a,2i4,a,$)') 'Widths over which to taper images'
+     &	      //' in X and Y (/ for',nxtap,nytap,'): '
+	  read(*,*)nxtap,nytap
+	endif
 	nxtap=nxtap/nbin
 	nytap=nytap/nbin
 
-15	izst=1
+	izst=1
 	iznd=nz
-	write(*,'(1x,a,$)') 'Starting and ending views'
-     &	    //' to do (first is 1), or / for all: '
-	read(*,*)izst,iznd
-	if(izst.lt.1.or.iznd.gt.nz.or.izst.ge.iznd)go to 15
+	if (pipinput) then
+	  ierr = PipGetIntegerArray('StartingEndingViews', izstnd, 2, 2)
+	else
+	  write(*,'(1x,a,$)') 'Starting and ending views'
+     &	      //' to do (first is 1), or / for all: '
+	  read(*,*)izst,iznd
+	endif
+	izst = max(1,min(nz,izst))
+	iznd = max(izst,min(nz,iznd))
 c	  
 	do kk=1,nz
 	  call xfunit(f(1,1,kk),1.0)
