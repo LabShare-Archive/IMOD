@@ -12,15 +12,15 @@ set Mincdir = /usr/X11R6/include
 
 set Xlibdir = /usr/X11R6/lib
 
+# DNM 7/29/02: Should not be needed - includes refer to <GL/...>
 set opengl_inc = /usr/include/GL
 set opengl_lib = /usr/lib
 
 #### !!!! has sto be changed
+# DNM 7/29/02: no idea if this is the right place for system glw includes
 set glwincdir = /usr/include/GL
-set glwlibdir = /usr/lib
 set glwlibname = MesaGLwM
 
-# add -I$opengl_inc if it's not on the system include path
 set c_includes =  "-I$Xincdir -I$Mincdir -I$glwincdir"
 
 # add -I$opengl_lib if it's not on the system library path
