@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/12 04:35:29  rickg
+ * <p> Major parsing change to match PIP structure
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -116,18 +119,14 @@ public class FortranInputString {
 
     // Walk through the newValues string parsing the values
     Double[] tempValue = new Double[value.length];
-    System.err.println(newValues);
     int idxValue = 0;
     int idxStart = 0;
     while (idxStart <= newValues.length()) {
       int idxDelim = newValues.indexOf(',', idxStart);
-      System.err.println(idxDelim);
       if (idxDelim != -1) {
         String currentToken = newValues.substring(idxStart, idxDelim);
-        System.err.println("'" + currentToken + "'");
         // A default value
         if (currentToken.length() == 0) {
-          System.err.println("Found default");
           tempValue[idxValue] = new Double(Double.NaN);
         }
         else {
@@ -141,8 +140,6 @@ public class FortranInputString {
       else {
         String currentToken = newValues.substring(idxStart);
         if (currentToken.endsWith("/")) {
-          System.err.println(currentToken.substring(0, 
-          currentToken.length()));
           tempValue[idxValue] = new Double(currentToken.substring(0, 
           currentToken.length() - 1));
           rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
