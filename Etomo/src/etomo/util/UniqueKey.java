@@ -14,6 +14,9 @@ package etomo.util;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:15:20  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/28 22:19:56  sueh
 * <p> bug# 520 Clarified code by improving names for parameters.
 * <p>
@@ -34,6 +37,8 @@ public class UniqueKey {
   }
   
   private void makeUnique(HashedArray keyedStorage) {
+    //make instance unique in keyedStorage by making count one more then the
+    //largest stored key with the same name
     for (int i = 0; i < keyedStorage.size(); i++) {
       UniqueKey storedKey = (UniqueKey) keyedStorage.getKey(i);
       if (storedKey.name.equals(name)) {
