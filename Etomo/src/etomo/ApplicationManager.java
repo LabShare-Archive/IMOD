@@ -84,6 +84,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.67  2004/06/10 18:19:13  rickg
+ * <p> Removed redudant dialog parameter fetching from mtffilter and
+ * <p> imodPatchRegionModel
+ * <p>
  * <p> Revision 3.66  2004/06/10 17:27:53  sueh
  * <p> bug# 462 remove ImodManager.reset() calls
  * <p>
@@ -1324,7 +1328,7 @@ public class ApplicationManager {
       return;
     }
     try {
-      int previewNumber = imodManager.create(key, axisID);
+      int previewNumber = imodManager.newImod(key, axisID);
       imodManager.setWorkingDirectory(key, axisID, previewNumber,
         previewWorkingDir);
       imodManager.open(key, axisID, previewNumber);
@@ -1920,9 +1924,9 @@ public class ApplicationManager {
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
       + ".fid";
     try {
+      imodManager.setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
       imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
         true, false);
-      imodManager.openBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -3330,7 +3334,7 @@ public class ApplicationManager {
     }
     String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
     try {
-      imodManager.create(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
+      imodManager.newImod(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
         trialTomogramName);
       imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID);
     }
