@@ -137,6 +137,10 @@ echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
 #
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
+# For Qt 3.2 onward, need to post message twice
+#
+echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
+
 if ($compiler == intel) then
 	## -axK fails on tiltalign-beadtrack
 	set optimization = "-O2 -unroll -w"
