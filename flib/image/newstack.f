@@ -140,6 +140,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/05/20 15:59:38  mast
+c	  Changed all STOP statements to print the message then call exit(1)
+c	
 c	  Revision 3.4  2002/05/07 02:00:29  mast
 c	  Eliminate output of mean and SD from a test print statement
 c	
@@ -202,10 +205,8 @@ C
 	  read(inunit,*)nfilein
 	endif
 	listot=0
-	if(nfilein.gt.lmfil)then
-	  print *, 'TOO MANY FILES FOR ARRAYS'
-	  call exit(1)
-	endif
+	if(nfilein.gt.lmfil)call errorexit(
+     &	    'TOO MANY FILES FOR ARRAYS')
 	do i=1,nfilein
 	  if(inunit.ne.7)then
 	    if(nfilein.eq.1)then
@@ -220,10 +221,8 @@ C
 	  call rdlist(inunit,inlist(listot+1),nlist(i))
 	  listind(i)=listot+1
 	  listot=listot+nlist(i)
-	  if(listot.gt.lmsec)then
-	    print *, 'TOO MANY SECTIONS FOR ARRAYS'
-	    call exit(1)
-	  endif
+	  if(listot.gt.lmsec)call errorexit(
+     &	      'TOO MANY SECTIONS FOR ARRAYS')
 	enddo
 	close(7)
 101	FORMAT(A)
@@ -258,11 +257,8 @@ C
 	    noutot=noutot+nsecout(i)
 	  enddo
 	endif
-	if(noutot.ne.listot)then
-	  print *,
-     &	      'Number of input and output sections does not match'
-	  call exit(1)
-	endif
+	if(noutot.ne.listot)call errorexit(
+     &	      'Number of input and output sections does not match')
 c	  
 c	  get new size and mode
 c	  
@@ -320,11 +316,8 @@ C
 	    enddo
 	    nlineuse=listot
 	  endif
-	  if(nlineuse.ne.listot)then
-	    print *,
-     &		'Number of lines does not match number of sections'
-	    call exit(1)
-	  endif
+	  if(nlineuse.ne.listot)call errorexit(
+     &		'Number of lines does not match number of sections')
 	endif
 c
 c	  find out if root beer float or what
@@ -397,7 +390,9 @@ C
 	      do ilis=1,nlist(ifil)
 		nsecred=inlist(ilis+listind(ifil)-1)
 		if(nsecred.lt.0.or.nsecred.ge.nz) then
-		  print *,'SECTION',nsecred,' DOES NOT EXIST IN FILE'
+		  print *
+		  print *,'ERROR: NEWSTACK - SECTION',nsecred,
+     &		      ' DOES NOT EXIST IN FILE'
 		  call exit(1)
 		endif
 c		
@@ -484,7 +479,9 @@ c
 	  do ilis=1,nlist(ifil)
 	    nsecred=inlist(ilis+listind(ifil)-1)
 	    if(nsecred.lt.0.or.nsecred.ge.nz) then
-	      print *,'SECTION',nsecred,' DOES NOT EXIST IN FILE'
+	      print *
+	      print *,'ERROR: NEWSTACK - SECTION',nsecred,
+     &		  ' DOES NOT EXIST IN FILE'
 	      call exit(1)
 	    endif
 c
@@ -568,14 +565,10 @@ C
 c	      handle complex images here and skip out
 c
 	    if((newmode+1)/2.eq.2.or.(mode+1)/2.eq.2)then
-	      if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)then
-		print *,'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE'
-		call exit(1)
-	      endif
-	      if(nx*ny*2.gt.idim)then
-		print *, 'INPUT IMAGE TOO LARGE FOR ARRAY.'
-		call exit(1)
-	      endif
+	      if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)call errorexit(
+     &		  'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE')
+	      if(nx*ny*2.gt.idim)call errorexit(
+     &		  'INPUT IMAGE TOO LARGE FOR ARRAY.')
 	      call imposn(1,nsecred,0)
 	      call irdsec(1,array,*99)
 	      call iclcdn(array,nx,ny,1,nx,1,ny,dmin2,dmax2,dmean2)
@@ -666,11 +659,8 @@ c			pass and get back coordinates numbered from 1, subtract
 c			an extra 1 to get to lines numbered from 0
 c			
 		      lnu=lineuse(isec)+1
-		      if(lnu.le.0.or.lnu.gt.nxforms)then
-			print *,
-     &			    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS'
-			call exit(1)
-		      endif
+		      if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
+     &			    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
 		      xci=nx/2.
 		      yci=ny/2.
 		      dx=f(1,3,lnu)-xcen(isec)
@@ -702,10 +692,8 @@ c
 		enddo
 		iscan=iscan+1
 	      enddo
-	      if(ifoutchunk.lt.0)then
-		print *, ' INPUT IMAGE TOO LARGE FOR ARRAY.'
-		call exit(1)
-	      endif
+	      if(ifoutchunk.lt.0)call errorexit(
+     &		  ' INPUT IMAGE TOO LARGE FOR ARRAY.')
 	    endif
 c	    print *,'number of chunks:',nchunk
 c	    do i=1,nchunk
@@ -800,10 +788,8 @@ c
 c		  do transform if called for
 c		  
 		lnu=lineuse(isec)+1
-		if(lnu.le.0.or.lnu.gt.nxforms)then
-		  print *, 'LINE NUMBER FOR TRANSFORMOUT OF BOUNDS'
-		  call exit(1)
-		endif
+		if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
+     &		    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
 		xci=nx/2.
 		yci=ny/2.-loadyst
 		dx=f(1,3,lnu)-xcen(isec)
@@ -1104,10 +1090,8 @@ C
 103	format(' TRUNCATIONS OCCURRED:',i7,' at low end and',i7,
      &	    ' at high end of range')
 	call exit(0)
-99	print *, ' END OF IMAGE WHILE READING'
-	call exit(1)
-96	print *, 'ERROR READING TRANSFORM FILE'
-	call exit(1)
+99	call errorexit(' END OF IMAGE WHILE READING')
+96	call errorexit('ERROR READING TRANSFORM FILE')
 	END
 
 c	  
@@ -1116,7 +1100,10 @@ c	  deviation SD from data in ARRAY, dimensioned NX by NY.  It also
 c	  returns the sum in SUM and sum of squares in SUMSQ
 c
 	subroutine iclavgsd(array,nx,ny,dmin,dmax,sum,sumsq,avg,sd)
+	implicit none
 	real*4 array(*)
+	integer*4 nx,ny,iy,ibas,i,nsum
+	real*4 dmin,dmax,sum,sumsq,avg,sd,smtm,smtmsq,den
 	sum=0.
 	sumsq=0.
 	dmin=1.e10
@@ -1227,8 +1214,7 @@ c
 	loadynd=iline-1
 	loadyst=iline-nlines
 	return
-99	print *, 'READ ERROR'
-	call exit(1)
+99	call errorexit( 'READ ERROR')
 	end
 
 
@@ -1261,4 +1247,12 @@ c
 	XP = A11*DXO + A12*DYO + XCO
 	YP = A21*DXO + A22*DYO + YCO
 	return
+	end
+
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: NEWSTACK - ',message
+	call exit(1)
 	end
