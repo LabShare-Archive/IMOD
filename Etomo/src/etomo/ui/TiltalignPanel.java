@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.19  2002/12/24 01:08:08  rickg
+ * <p> Moved min local patch size to advanced
+ * <p>
  * <p> Revision 1.18  2002/12/20 01:08:19  rickg
  * <p> Spelling correction
  * <p>
@@ -253,8 +256,6 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Skew group size: ");
   private LabeledTextField ltfLocalSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
-
-  private Dimension dimLTF = new Dimension(1000, 20);
 
   public TiltalignPanel(String suffix) {
     logSuffix = suffix;
@@ -882,16 +883,12 @@ public class TiltalignPanel implements ContextMenu {
 
     panelGeneral.setLayout(new BoxLayout(panelGeneral, BoxLayout.Y_AXIS));
 
-    ltfNSurfaceAnalysis.setMaximumSize(dimLTF);
     panelGeneral.add(ltfNSurfaceAnalysis.getContainer());
-
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfResidualThreshold.setMaximumSize(dimLTF);
+
     panelResidualThreshold.setLayout(
       new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
-    ltfResidualThreshold.setPreferredSize(
-      new Dimension(300, (int) dimLTF.getHeight()));
     panelResidualThreshold.add(ltfResidualThreshold.getContainer());
     panelResidualThreshold.add(new JLabel(" s.d. relative to "));
     JRadioButton[] items = new JRadioButton[2];
@@ -912,49 +909,39 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(panelResidualThreshold);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfExcludeList.setMaximumSize(dimLTF);
     panelGeneral.add(ltfExcludeList.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfAdditionalViewGroups.setMaximumSize(dimLTF);
     panelGeneral.add(ltfAdditionalViewGroups.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfTiltAngleOffset.setMaximumSize(dimLTF);
     panelGeneral.add(ltfTiltAngleOffset.getContainer());
 
-    ltfTiltAxisZShift.setMaximumSize(dimLTF);
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfTiltAxisZShift.setMaximumSize(dimLTF);
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfMetroFactor.setMaximumSize(dimLTF);
     panelGeneral.add(ltfMetroFactor.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfCycleLimit.setMaximumSize(dimLTF);
     panelGeneral.add(ltfCycleLimit.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
     panelGeneral.add(chkLocalAlignments);
-    chkLocalAlignments.setAlignmentX(1.0F);
+    chkLocalAlignments.setAlignmentX(Container.RIGHT_ALIGNMENT);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
     LocalAlignmentsListener localAlignmentsListener =
       new LocalAlignmentsListener(this);
     chkLocalAlignments.addActionListener(localAlignmentsListener);
 
-    ltfNLocalPatches.setMaximumSize(dimLTF);
     panelGeneral.add(ltfNLocalPatches.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfMinLocalPatchSize.setMaximumSize(dimLTF);
-    panelGeneral.add(ltfMinLocalPatchSize.getContainer());
+   panelGeneral.add(ltfMinLocalPatchSize.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfMinLocalFiducials.setMaximumSize(dimLTF);
     panelGeneral.add(ltfMinLocalFiducials.getContainer());
 
     panelGeneral.add(Box.createVerticalGlue());
@@ -985,10 +972,10 @@ public class TiltalignPanel implements ContextMenu {
       items,
       tiltAngleRadioListener);
     panelTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    ltfTiltAngleGroupSize.setMaximumSize(dimLTF);
+//    ltfTiltAngleGroupSize.setMaximumSize(dimLTF);
     panelTiltAngleSolution.add(ltfTiltAngleGroupSize.getContainer());
     panelTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    ltfTiltAngleAdditionalGroups.setMaximumSize(dimLTF);
+//    ltfTiltAngleAdditionalGroups.setMaximumSize(dimLTF);
     panelTiltAngleSolution.add(ltfTiltAngleAdditionalGroups.getContainer());
 
     panelTiltAngleSolution.setBorder(
@@ -1011,14 +998,13 @@ public class TiltalignPanel implements ContextMenu {
       items,
       magnificationRadioListener);
 
-    ltfMagnificationReferenceView.setMaximumSize(dimLTF);
     panelMagnificationSolution.add(
       ltfMagnificationReferenceView.getContainer());
     panelMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    ltfMagnificationGroupSize.setMaximumSize(dimLTF);
+
     panelMagnificationSolution.add(ltfMagnificationGroupSize.getContainer());
     panelMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    ltfMagnificationAdditionalGroups.setMaximumSize(dimLTF);
+
     panelMagnificationSolution.add(
       ltfMagnificationAdditionalGroups.getContainer());
     panelMagnificationSolution.setBorder(
@@ -1030,27 +1016,19 @@ public class TiltalignPanel implements ContextMenu {
     createVariablePanel(
       panelDistortionSolution,
       chkDistortion,
-      dimLTF,
       ltfXstretchGroupSize,
       ltfXstretchAdditionalGroups,
       "Distortion solution type");
 
-    ltfSkewGroupSize.setMaximumSize(dimLTF);
     panelDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     panelDistortionSolution.add(ltfSkewGroupSize.getContainer());
 
-    ltfSkewAdditionalGroups.setMaximumSize(dimLTF);
     panelDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     panelDistortionSolution.add(ltfSkewAdditionalGroups.getContainer());
 
     DistortionCheckListener DistortionCheckListener =
       new DistortionCheckListener(this);
     chkDistortion.addActionListener(DistortionCheckListener);
-
-    /*    panelDistortionSolution.setBorder(
-          new TitledBorder(
-            BorderFactory.createEtchedBorder(highlight, shadow),
-            "Distortion solution type")); */
 
     //  Add the individual panes to the tab
     panelGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1068,7 +1046,7 @@ public class TiltalignPanel implements ContextMenu {
 
   /*  private void createCompressionTab() {
       //  Compression solution
-      ltfCompressionReferenceView.setMaximumSize(dimLTF);
+//      ltfCompressionReferenceView.setMaximumSize(dimLTF);
       panelCompressionSolution.add(ltfCompressionReferenceView.getContainer());
       JRadioButton[] items = new JRadioButton[3];
       items[0] = rbCompressionAll;
@@ -1083,9 +1061,7 @@ public class TiltalignPanel implements ContextMenu {
         "Compression solution type",
         compressionRadioListener);
   
-      ltfCompressionGroupSize.setMaximumSize(dimLTF);
       panelCompressionSolution.add(ltfCompressionGroupSize.getContainer());
-      ltfCompressionAdditionalGroups.setMaximumSize(dimLTF);
       panelCompressionSolution.add(ltfCompressionAdditionalGroups.getContainer());
       panelCompressionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
       panelCompressionSolution.add(Box.createVerticalGlue());
@@ -1103,7 +1079,6 @@ public class TiltalignPanel implements ContextMenu {
     createVariablePanel(
       panelLocalRotationSolution,
       chkLocalRotation,
-      dimLTF,
       ltfLocalRotationGroupSize,
       ltfLocalRotationAdditionalGroups,
       "Local rotation solution type");
@@ -1115,7 +1090,6 @@ public class TiltalignPanel implements ContextMenu {
     createVariablePanel(
       panelLocalTiltAngleSolution,
       chkLocalTiltAngle,
-      dimLTF,
       ltfLocalTiltAngleGroupSize,
       ltfLocalTiltAngleAdditionalGroups,
       "Local tilt angle solution type");
@@ -1128,7 +1102,6 @@ public class TiltalignPanel implements ContextMenu {
     createVariablePanel(
       panelLocalMagnificationSolution,
       chkLocalMagnification,
-      dimLTF,
       ltfLocalMagnificationGroupSize,
       ltfLocalMagnificationAdditionalGroups,
       "Local magnification solution type");
@@ -1141,14 +1114,11 @@ public class TiltalignPanel implements ContextMenu {
     createVariablePanel(
       panelLocalDistortionSolution,
       chkLocalDistortion,
-      dimLTF,
       ltfLocalXstretchGroupSize,
       ltfLocalXstretchAdditionalGroups,
       "Local distortion solution type");
 
-    ltfLocalSkewGroupSize.setMaximumSize(dimLTF);
     panelLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
-    ltfLocalSkewAdditionalGroups.setMaximumSize(dimLTF);
     panelLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     panelLocalDistortionSolution.add(
       ltfLocalSkewAdditionalGroups.getContainer());
@@ -1178,7 +1148,6 @@ public class TiltalignPanel implements ContextMenu {
   private void createVariablePanel(
     JPanel panel,
     JCheckBox checkBox,
-    Dimension dimLTF,
     LabeledTextField groupSize,
     LabeledTextField additionalGroups,
     String title) {
@@ -1186,15 +1155,16 @@ public class TiltalignPanel implements ContextMenu {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
     //  Add the check box
+//    checkBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(checkBox);
 
     //  Add the group size labeled text field
-    groupSize.setMaximumSize(dimLTF);
+//    groupSize.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(groupSize.getContainer());
-
+    
     //  Add the additional groups labeled text field
-    additionalGroups.setMaximumSize(dimLTF);
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
+//    additionalGroups.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(additionalGroups.getContainer());
 
     panel.setBorder(
