@@ -1,7 +1,5 @@
 package etomo.comscript;
 
-import java.util.HashMap;
-
 /**
  * <p>Description: </p>
  *
@@ -15,6 +13,9 @@ import java.util.HashMap;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/09 16:00:51  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.2  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>
@@ -38,14 +39,13 @@ public class CCDEraserParam
   public static final String rcsid =
     "$Id$";
 
-  HashMap parameterMap = new HashMap();
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the ccderaser command
    * and parameters.
    */
   public void parseComScript(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+    throws BadComScriptException, InvalidParameterException {
 
     //  Check to be sure that it is a ccderaser command
     if (!scriptCommand.getCommand().equals("ccderaser")) {
@@ -54,8 +54,27 @@ public class CCDEraserParam
 
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
-    if (cmdLineArgs.length > 0 && cmdLineArgs[0].equals("-StandardInput")) {
-      
+    if (scriptCommand.isKeywordValuePairs()) {
+      findPeaks = scriptCommand.hasKeyword("FindPeaks");
+      peakCriterion = scriptCommand.getValue("PeakCriterion");
+      diffCriterion = scriptCommand.getValue("DiffCriterion");
+      growCriterion = scriptCommand.getValue("GrowCriterion");
+      scanCriterion = scriptCommand.getValue("ScanCriterion");
+      maximumRadius = scriptCommand.getValue("MaximumRadius");
+      outerRadius = scriptCommand.getValue("OuterRadius");
+      xyScanSize = scriptCommand.getValue("XYScanSize");
+      edgeExclusion = scriptCommand.getValue("EdgeExclusionWidth");
+      pointModel = scriptCommand.getValue("PointModel");
+      trialMode = scriptCommand.hasKeyword("TrialMode");
+
+      inputFile = scriptCommand.getValue("InputFile");
+      outputFile = scriptCommand.getValue("OutputFile");
+      modelFile = scriptCommand.getValue("ModelFile");
+      globalReplacementList = scriptCommand.getValue("AllSectionsObjects");
+      localReplacementList = scriptCommand.getValue("LineObjects");
+      borderPixels = scriptCommand.getValue("BorderSize");
+      polynomialOrder = scriptCommand.getValue("PolynomialOrder");
+      includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
     }
     else {
       inputFile = inputArgs[0].getArgument();
@@ -79,38 +98,83 @@ public class CCDEraserParam
     if (!scriptCommand.getCommand().equals("ccderaser")) {
       throw (new BadComScriptException("Not a ccderaser command"));
     }
+    //  Switch to keyword/value pairs
+    scriptCommand.useKeywordValue();
 
-    //  Get the input arguments parameters to preserve the comments
-    ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if (inputArgs.length != 8) {
-      throw (
-        new BadComScriptException(
-          "Incorrect number of input arguments to ccderaser command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected 8."));
+    scriptCommand.setValue("InputFile", inputFile);
+    if (!outputFile.equals("")) {
+      scriptCommand.setValue("OutputFile", outputFile);
     }
 
-    //  Fill in the input argument sequence
-    // FIXME can't rely on a fixed input sequence any more
-    inputArgs[0].setArgument(inputFile);
-    scriptCommand.setInputArgument(0, inputArgs[0]);
-    inputArgs[1].setArgument(outputFile);
-    scriptCommand.setInputArgument(1, inputArgs[1]);
-    inputArgs[2].setArgument(modelFile);
-    scriptCommand.setInputArgument(3, inputArgs[3]);
-    inputArgs[3].setArgument(globalReplacementList);
-    scriptCommand.setInputArgument(3, inputArgs[3]);
-    inputArgs[4].setArgument(localReplacementList);
-    scriptCommand.setInputArgument(4, inputArgs[4]);
-    inputArgs[5].setArgument(borderPixels);
-    scriptCommand.setInputArgument(5, inputArgs[5]);
-    inputArgs[6].setArgument(polynomialOrder);
-    scriptCommand.setInputArgument(6, inputArgs[6]);
-    if (includeAdjacentPoints) {
-      inputArgs[7].setArgument("1");
+    if (findPeaks) {
+      scriptCommand.setValue("FindPeaks", "");
     }
     else {
-      inputArgs[7].setArgument("0");
+      scriptCommand.deleteKey("FindPeaks");
+    }
+
+    if (!peakCriterion.equals("")) {
+      scriptCommand.setValue("PeakCriterion", peakCriterion);
+    }
+
+    if (!diffCriterion.equals("")) {
+      scriptCommand.setValue("DiffCriterion", diffCriterion);
+    }
+
+    if (!growCriterion.equals("")) {
+      scriptCommand.setValue("GrowCriterion", growCriterion);
+    }
+
+    if (!scanCriterion.equals("")) {
+      scriptCommand.setValue("ScanCriterion", scanCriterion);
+    }
+
+    if (!maximumRadius.equals("")) {
+      scriptCommand.setValue("MaximumRadius", maximumRadius);
+    }
+
+    if (!outerRadius.equals("")) {
+      scriptCommand.setValue("OuterRadius", outerRadius);
+    }
+
+    if (!xyScanSize.equals("")) {
+      scriptCommand.setValue("XYScanSize", xyScanSize);
+    }
+
+    if (!edgeExclusion.equals("")) {
+      scriptCommand.setValue("EdgeExclusionWidth", edgeExclusion);
+    }
+
+    if (!pointModel.equals("")) {
+      scriptCommand.setValue("PointModel", pointModel);
+    }
+
+    if (!modelFile.equals("")) {
+      scriptCommand.setValue("ModelFile", modelFile);
+    }
+    if (!globalReplacementList.equals("")) {
+      scriptCommand.setValue("AllSectionsObjects", globalReplacementList);
+    }
+    if (!localReplacementList.equals("")) {
+      scriptCommand.setValue("LineObjects", localReplacementList);
+    }
+    if (!borderPixels.equals("")) {
+      scriptCommand.setValue("BorderSize", borderPixels);
+    }
+    if (!polynomialOrder.equals("")) {
+      scriptCommand.setValue("PolynomialOrder", polynomialOrder);
+    }
+    if (includeAdjacentPoints) {
+      scriptCommand.deleteKey("ExcludeAdjacent");
+    }
+    else {
+      scriptCommand.setValue("ExcludeAdjacent", "");
+    }
+    if (trialMode) {
+      scriptCommand.setValue("TrialMode", "");
+    }
+    else {
+      scriptCommand.deleteKey("TrialMode");
     }
   }
 
@@ -145,4 +209,81 @@ public class CCDEraserParam
   public void setIncludeAdjacentPoints(boolean includeAdjacentPoints) {
     this.includeAdjacentPoints = includeAdjacentPoints;
   }
+  /**
+   * @param string
+   */
+  public void setDiffCriterion(String string) {
+    diffCriterion = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setEdgeExclusion(String string) {
+    edgeExclusion = string;
+  }
+
+  /**
+   * @param b
+   */
+  public void setFindPeaks(boolean b) {
+    findPeaks = b;
+  }
+
+  /**
+   * @param string
+   */
+  public void setGrowCriterion(String string) {
+    growCriterion = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setMaximumRadius(String string) {
+    maximumRadius = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setOuterRadius(String string) {
+    outerRadius = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setPeakCriterion(String string) {
+    peakCriterion = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setPointModel(String string) {
+    pointModel = string;
+  }
+
+  /**
+   * @param b
+   */
+  public void setTrialMode(boolean b) {
+    trialMode = b;
+  }
+
+  /**
+   * @param string
+   */
+  public void setXyScanSize(String string) {
+    xyScanSize = string;
+  }
+
+  /**
+   * @param string
+   */
+  public void setScanCriterion(String string) {
+    scanCriterion = string;
+  }
+
 }
