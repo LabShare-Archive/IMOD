@@ -214,9 +214,8 @@ changes to both files and copy them to <code>/etc/profile.d</code>.<code><br>
     </a> Etomo is a Java 2 application and thus requires a Java runtime
 environment (JRE) with a version of 1.4 or better to be installed.  We
 recommend using the 1.4.0 or 1.4.2 series since we have encountered bugs
-in version 1.4.1 Sun's Java runtime. &nbsp;The startup scripts for IMOD
-3.1.0 under Linux assume that Sun's JRE version 1.4.2_2 is installed;
-this is available <a
+in version 1.4.1 Sun's Java runtime. &nbsp;Sun's JRE version 1.4.2_2 is
+available <a
  href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_02-linux-i586.bin">here</a>
 for Linux. <br>
     <br>
@@ -238,14 +237,19 @@ j2re-1_4_2_02-linux-i586.bin</code><br>
     </span></p>
     <p class="western">on the command line. &nbsp;</p>
     <span style="font-family: monospace;"></span>
-    <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_0</code>2,
-which is the recommended place to install the JRE, and is the default
-location the Etomo startup script looks for the JRE. &nbsp;If you wish
-to install the JRE in a different location or use a different JRE you
-must edit the <code>IMOD-linux.sh</code> and <code>IMOD-linux.csh</code>
-scripts in <code>/etc/profile.d</code> and define the variable
-IMOD_JAVADIR to specify the directory where the JRE you wish to use is
-installed.<br>
+    <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_0</code>2.
+&nbsp;The IMOD startup scripts assume that the JRE is in <code>/usr/local/java</code>,
+so next create a link: </p>
+    <p class="western"><span style="font-family: monospace;"><code>ln
+-s j2re1.4.2_02 java</code><br>
+    </span><span style="font-family: monospace;"></span></p>
+    <span style="font-family: monospace;"><code></code></span>
+    <p class="western">If you upgrade to a different JRE, then you just
+need to change the link. &nbsp;If you wish to use a different JRE than
+the one pointed to by <code>/usr/local/java</code>, you must edit the <code>IMOD-linux.sh</code>
+and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code>
+and define the variable IMOD_JAVADIR to specify the directory where the
+JRE you wish to use is installed.<br>
     </p>
   </dd>
   <dd>For an SGI, we recommend using version 1.4.0 of the Java runtime
