@@ -204,10 +204,7 @@ void ContSurfPoint::setSurface( int value, int maxVal )
 	diaSetSpinBox(surfaceSpinBox, 0);
     } else {
  	surfaceSpinBox->setSpecialValueText("");
-	surfaceSpinBox->blockSignals(true);
-	surfaceSpinBox->setMaxValue(maxVal);
-	surfaceSpinBox->setValue(value);
-	surfaceSpinBox->blockSignals(false);
+	diaSetSpinMMVal(surfaceSpinBox, 0, maxVal, value);
     }
     str.sprintf("/ %d", maxVal);
     surfaceLabel->setText(str);
@@ -224,10 +221,7 @@ void ContSurfPoint::setTimeIndex( int value, int maxVal )
 	timeSpinBox->setValue(0);
     } else {
 	timeSpinBox->setSpecialValueText("");
-	timeSpinBox->blockSignals(true);
-	timeSpinBox->setMaxValue(maxVal);
-	timeSpinBox->setValue(value);
-	timeSpinBox->blockSignals(false);
+	diaSetSpinMMVal(timeSpinBox, 0, maxVal, value);
     }
 }
 
@@ -236,29 +230,23 @@ void ContSurfPoint::setLabels(QString surfLabel, int noSurf,  QString contLabel,
                               QString ptLabel, int noPoint )
 {
     // We have to block signals for continuously updating text fields, apparently
-    surfaceLabelEdit->blockSignals(true);
-    contourEdit->blockSignals(true);
-    pointLabelEdit->blockSignals(true);
     surfaceLabelEdit->setEnabled(!noSurf);
     if (noSurf ) 
-	surfaceLabelEdit->setText("No Surface");
+	diaSetEditText(surfaceLabelEdit, "No Surface");
     else
-	surfaceLabelEdit->setText(surfLabel);
+	diaSetEditText(surfaceLabelEdit, surfLabel);
     
     contourEdit->setEnabled(!noCont);
     if (noCont) 
-	contourEdit->setText("No Contour");
+	diaSetEditText(contourEdit, "No Contour");
     else
-	contourEdit->setText(contLabel);
+	diaSetEditText(contourEdit, contLabel);
     
     pointLabelEdit->setEnabled(!noPoint);
     if (noPoint) 
-	pointLabelEdit->setText("No Point");
+	diaSetEditText(pointLabelEdit, "No Point");
     else
-	pointLabelEdit->setText(ptLabel);
-   surfaceLabelEdit->blockSignals(false);
-   contourEdit->blockSignals(false);
-   pointLabelEdit->blockSignals(false);
+	diaSetEditText(pointLabelEdit, ptLabel);
 }
 
 // Inform of closing

@@ -99,7 +99,11 @@ void imodvViewsForm::newLabelEntered()
     int item = viewListBox->currentItem();
     if (item < 0)
 	return;
+
+    // Even changing the item text generates an unwanted signal or two
+    viewListBox->blockSignals(true);
     viewListBox->changeItem(newLabel, item);
+    viewListBox->blockSignals(false);
     imodvViewsLabel(newLabel.latin1(), item);
 }
 

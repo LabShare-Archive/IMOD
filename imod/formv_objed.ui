@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>imodvObjedForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -561,6 +561,7 @@
     <include location="local" impldecl="in implementation">imodv_objed.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="global" impldecl="in implementation">qapplication.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">formv_objed.ui.h</include>
 </includes>
 <forwards>

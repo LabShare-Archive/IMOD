@@ -39,7 +39,7 @@ void imodvDepthcueForm::startChanged( int value )
 {
     if (!mStartPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	imodvDepthcueStart(value);
+	imodvDepthcueStartEnd(value, false, mStartPressed);
 }
 
 void imodvDepthcueForm::startPressed()
@@ -65,7 +65,7 @@ void imodvDepthcueForm::endChanged( int value )
 {
      if (!mEndPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	 imodvDepthcueEnd(value);
+	imodvDepthcueStartEnd(value, true, mEndPressed);
 }
 
 void imodvDepthcueForm::endPressed()

@@ -141,16 +141,15 @@ void imodvObjedForm::updateObject(int ob, int numObj, int drawType, int drawStyl
 				  QColor color, char *name)
 {
     updateColorBox(color);
-    objectSpinBox->setMaxValue(numObj);
-    objectSpinBox->setValue(ob);
+    diaSetSpinMMVal(objectSpinBox, 1, numObj, ob);
     objectSpinBox->setEnabled(numObj > 1);
     objectSlider->setMaxValue(numObj);
-    objectSlider->setValue(ob);
+    diaSetSlider(objectSlider, ob);
     objectSlider->setEnabled(numObj > 1);
     dataTypeComboBox->setCurrentItem(drawType);
     drawStyleComboBox->setCurrentItem(drawStyle);
     QString str = name;
-    nameLineEdit->setText(str);
+    diaSetEditText(nameLineEdit, str);
 }
 
 void imodvObjedForm::updateColorBox( QColor color )

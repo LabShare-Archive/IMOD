@@ -101,28 +101,28 @@ void imodvControlForm::nearChanged( int value )
 {
     if (!mNearPressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	imodvControlClip(IMODV_CONTROL_NEAR, value);
+	imodvControlClip(IMODV_CONTROL_NEAR, value, mNearPressed);
 }
 
 void imodvControlForm::farChanged( int value )
 {
     if (!mFarPressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	imodvControlClip(IMODV_CONTROL_FAR, value);
+	imodvControlClip(IMODV_CONTROL_FAR, value, mFarPressed);
 }
 
 void imodvControlForm::perspectiveChanged( int value )
 {
     if (!mPerspectivePressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	imodvControlClip(IMODV_CONTROL_FOVY, value);
+	imodvControlClip(IMODV_CONTROL_FOVY, value, mPerspectivePressed);
 }
 
 void imodvControlForm::zScaleChanged( int value )
 {
     if (!mZscalePressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-	imodvControlZscale(value);
+	imodvControlZscale(value, mZscalePressed);
 }
 
 // The rotation buttons
