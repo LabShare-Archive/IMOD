@@ -32,6 +32,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.10  2003/09/24 00:48:55  mast
+Switched from keeping track of geometry to keeping track of pos() and
+size() when saving and restoring positions and sizes
+
 Revision 1.9  2003/09/18 05:57:47  mast
 Add autocontrast targets
 
@@ -327,7 +331,7 @@ void ImodPreferences::saveSettings()
     }
 
     // Get the current geometries and put in table
-    mGeomInfoWin[geomInd] = QRect(ImodInfoWin->pos(), ImodInfoWin->size());
+    mGeomInfoWin[geomInd] = ivwRestorableGeometry(ImodInfoWin);
     mGeomZapWin[geomInd] = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
 
     settings.writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
@@ -756,21 +760,34 @@ void ImodPreferences::pointSizeChanged()
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
-// Return the geometry for the info window that matches current image or
+// Set the geometry for the info window that matches current image or
 // fall back to last one used
-QRect ImodPreferences::getInfoGeometry()
+void ImodPreferences::setInfoGeometry()
 {
+  static int doneOnce = 0;
   int i;
-  if (mCurrentPrefs.rememberGeom) {
-    for (i = 0; i < MAX_GEOMETRIES; i++)
-      if (App->cvi->xsize == mGeomImageXsize[i] &&
-          App->cvi->ysize == mGeomImageYsize[i])
-        return (mGeomInfoWin[i]);
-    
-    if (mGeomLastSaved >= 0)
-      return (mGeomInfoWin[mGeomLastSaved]);
-  }
-  return QRect(0, 0, 0, 0);
+  int indSave = -1;
+
+  if (doneOnce || !mCurrentPrefs.rememberGeom)
+    return;
+  doneOnce++;
+
+  for (i = 0; i < MAX_GEOMETRIES; i++)
+    if (App->cvi->xsize == mGeomImageXsize[i] &&
+        App->cvi->ysize == mGeomImageYsize[i]) {
+      indSave = i;
+      break;
+    }
+  if (indSave < 0 && mGeomLastSaved >= 0)
+    indSave = mGeomLastSaved;
+  if (indSave < 0 || !mGeomInfoWin[indSave].width() || 
+      !mGeomInfoWin[indSave].height())
+    return;
+
+  // This is not good when going between systems due to font differences
+  /* ImodInfoWin->resize(mGeomInfoWin[indSave].width(),
+     mGeomInfoWin[indSave].height()); */
+  ImodInfoWin->move(mGeomInfoWin[indSave].x(), mGeomInfoWin[indSave].y());
 }
 
 // Return the geometry for the zap window that matches current image
