@@ -59,7 +59,7 @@ in model file.
 then /usr/tmp, then /tmp if /usr/tmp does not exist.
 
 6/19/03: Made Zap window start a new contour for closed contour objects
-if user changes section while dragging with little mouse button.  Also added
+if user changes section while dragging with middle mouse button.  Also added
 Edit-Object-Break by Z to fix all contours in an object.
 
 6/16/03: Implemented new version of Ccderaser with automatic X-ray removal,
