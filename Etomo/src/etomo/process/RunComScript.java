@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/13 20:00:12  rickg
+ * <p> Added -f option to tcsh call
+ * <p>
  * <p> Revision 2.4  2003/05/12 23:28:13  rickg
  * <p> removed -f from tcsh executation (allows for user modifications to be
  * <p> used within etomo execution)
@@ -77,10 +80,12 @@ public class RunComScript extends Thread {
   private String[] warningMessage;
   private SystemProgram vmstocsh;
   private SystemProgram csh;
+  private StringBuffer cshProcessID;
 
   public RunComScript(String comScript, ProcessManager processManager) {
     this.name = comScript;
     this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
   }
 
   /**
@@ -237,6 +242,10 @@ public class RunComScript extends Thread {
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
+    ParsePID parsePID = new ParsePID(csh, cshProcessID);
+    Thread parsePIDThread = new Thread(parsePID);
+    parsePIDThread.start();
+    
     csh.run();
 
     // Check the exit value, if it is non zero, parse the warnings and errors
@@ -367,6 +376,58 @@ public class RunComScript extends Thread {
       }
     }
     return (String[]) errors.toArray(new String[errors.size()]);
+  }
+
+  private class ParsePID implements Runnable {
+    SystemProgram csh;
+    StringBuffer PID;
+    public ParsePID(SystemProgram cshProcess, StringBuffer bufPID) {
+      csh = cshProcess;
+      PID = bufPID;
+    }
+    public void run() {
+      //  Wait for the csh thread to start
+      while (!csh.isStarted()) {
+        try {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException except) {
+          return;
+        }
+      }
+      while (PID.length() == 0 && !csh.isDone()) {
+        try {
+          parsePIDString();
+          Thread.sleep(100);
+        }
+        catch (InterruptedException except) {
+          return;
+        }
+      }
+    }
+
+    private void parsePIDString() {
+      String[] stderr = csh.getStdError();
+      for (int i = 0; i < stderr.length; i++) {
+        if (stderr[i].startsWith("Shell PID:")) {
+          String[] tokens = stderr[i].split("\\s+");
+          if (tokens.length > 2) {
+            PID.append(tokens[2]);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the csh process ID if it is available
+   * @return
+   */
+  public String getCshProcessID() {
+    if(cshProcessID == null) {
+      return "";
+    }
+    return cshProcessID.toString();
   }
 
 }
