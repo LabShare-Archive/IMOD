@@ -13,6 +13,7 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -45,7 +46,6 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
-import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.106  2004/12/03 02:24:49  sueh
+ * <p> bug# 568 Added getTomogramMetaData() to get a writeable meta data.
+ * <p>
  * <p> Revision 3.105  2004/12/02 18:23:09  sueh
  * <p> bug# 557 Added squeezevol() and loaded sqeezevol parameters into
  * <p> post processing dialog.
@@ -4222,7 +4225,10 @@ public class ApplicationManager extends BaseManager {
   
   private void loadVolcombine() {
     comScriptMgr.loadVolcombine();
-    tomogramCombinationDialog.setVolcombineParams(comScriptMgr.getSetParamFromVolcombine());
+    ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+    tomogramCombinationDialog.setVolcombineParams(setParam);
+    
+    tomogramCombinationDialog.enableReductionFactor(setParam != null && setParam.isValid());
   }
 
   /**
@@ -4271,8 +4277,12 @@ public class ApplicationManager extends BaseManager {
     }
     try {
       SetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+      boolean setParamIsValid = setParam != null && setParam.isValid();
+      tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
       tomogramCombinationDialog.getVolcombineParams(setParam);
-      comScriptMgr.saveVolcombine(setParam);
+      if (setParamIsValid) {
+        comScriptMgr.saveVolcombine(setParam);
+      }
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
