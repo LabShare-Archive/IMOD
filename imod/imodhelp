@@ -58,18 +58,6 @@ DDEESSCCRRIIPPTTIIOONN
        Model View windows can be opened.
 
 
-
-
-
-BL3DFS                         2.50                             1
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
        Two windows will open upon startup: the Information Window
        and an image window.  The Information Window is the main
        control window; it has a menu bar and has indicators that
@@ -125,26 +113,13 @@ imod(1)                                                   imod(1)
               the model is automatically transformed to match the
               new sub area.
 
-
-
-BL3DFS                         2.50                             2
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
        --mm     This option overrides the model transformation
               behavior and causes the model to be loaded without
               any transformations.  The default model position
               data will be loaded.
 
        --xxyyzz   This option causes the default image window to be
-              the XYZ window instead of the ZaP window.  There
-              was a time when the XYZ window was actually more
-              useful than the ZaP window.
+              the XYZ window instead of the ZaP window.
 
        --YY     This option causes the image data to be flipped
               after it has been loaded.  This allows one to model
@@ -153,6 +128,7 @@ imod(1)                                                   imod(1)
               It is possible to flip back and forth between these
               two modeling orientations using the _E_d_i_t _I_m_a_g_e menu
               item _F_l_i_p_.
+
 
        --hh --hheellpp
               Print some quick help for imod's command line
@@ -190,18 +166,6 @@ imod(1)                                                   imod(1)
               default size equal to the total number of image z-
               planes that contain data.  The image cache can't be
               turned off, but the size can be changed with the --CC
-
-
-
-BL3DFS                         2.50                             3
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
               option.
 
        --PP <<nnxx,,nnyy>>
@@ -254,19 +218,6 @@ imod(1)                                                   imod(1)
               file on the command line is a color TIFF file, it
               will be displayed in color regardless of this
               option.
-
-
-
-
-
-BL3DFS                         2.50                             4
-
-
-
-
-
-imod(1)                                                   imod(1)
-
 
        --ss <<mmiinn,,mmaaxx>>
               The --ss option will scale image intensities linearly
@@ -322,18 +273,6 @@ IInnffoorrmmaattiioonn WWiinnddooww
               F9      Select Color map ramp # 1.
               F10     Cycle through Color map ramps, 1 - 2 - 3 - 4 - 1.
               F11     Toggle the reversed colormap.
-
-
-
-BL3DFS                         2.50                             5
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
               F12     Toggle False Color.
 
        _T_h_e _F_l_o_a_t _C_h_e_c_k_b_o_x_.
@@ -388,18 +327,6 @@ imod(1)                                                   imod(1)
                  Color...  Open requester for changing object color.
                  Type...   Edit Object type.
                  Go To...  Select the current object with a slider.
-
-
-
-BL3DFS                         2.50                             6
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
                  Move...   Move all contours from current object to another
                               object.
                  Info      Calculate volume and surface area of current object.
@@ -454,18 +381,6 @@ imod(1)                                                   imod(1)
                                   points.
                  Value         Show current voxel value from image file.
                  Go To...      Select the current point with a slider.
-
-
-
-BL3DFS                         2.50                             7
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
                  Size...       Set size of individual points.
 
               Image
@@ -519,18 +434,6 @@ ZZaaPP WWiinnddooww
        controls additional behavior.  Press the help button on
        the toolbar for help.  The space bar on the keyboard can
        toggle the toolbar visibility.
-
-
-
-
-BL3DFS                         2.50                             8
-
-
-
-
-
-imod(1)                                                   imod(1)
-
 
           The mouse buttons are assigned different functions in
        movie and model modes.  The keyboard mm key toggles between
@@ -586,18 +489,6 @@ imod(1)                                                   imod(1)
               o  -  Go to previous object
               p  -  Go to next object
               ]  -  Go to previous point
-
-
-
-BL3DFS                         2.50                             9
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
               [  -  Go to next point
               C  -  Go to next contour
               c  -  Go to previous contour
@@ -652,18 +543,6 @@ imod(1)                                                   imod(1)
               Left Arrow    -  Decrease X
               End           -  Go to Z = 1
               Home          -  Go to Z = max
-
-
-
-BL3DFS                         2.50                            10
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
               Insert        -  Go to middle Z of stack
               h,l           -  Previous,Next Time Index
               j,k           -  Previous,Next Z Index
@@ -718,22 +597,78 @@ SSlliicceerr WWiinnddooww
                           X, Y or Z axis
 
               Numeric Keypad:
-
-
-
-BL3DFS                         2.50                            11
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
               4/6  -  (Left/Right) Decrease/Increase last adjusted angle by 0.1
               2/8  -  (Down/Up) Decrease/Increase last adjusted angle by 0.5
               0    -  (Insert) Set last adjusted angle to 0
 
+
+XXYYZZ WWiinnddooww
+       The XYZ window displays three slices: through an XY plane
+       in the lower left, through a YZ plane in the lower right,
+       and through an XZ plane in the upper left.  Marker lines
+       and crosses indicate the position of the current point and
+       of the slices within the volume.  Like the ZaP window, it
+       can be resized, and the image can be zoomed with hotkeys
+       and panned with the left mouse button.  Limited modeling
+       capability is available in the XY plane.  One can movie
+       through one or more of the planes simultaneously.  In
+       addition, the marker lines can be dragged with the mouse
+       to riffle through images in a plane.
+
+
+       _H_o_t _K_e_y_s _i_n _t_h_e _X_Y_Z _W_i_n_d_o_w
+              -/=  -  Decrease/Increase zoom
+              r    -  Toggle between low and high resolution display modes
+              S    -  Snapshot to RGB file
+              Ctrl-S - Snapshot to TIFF file
+
+       _M_o_u_s_e _B_u_t_t_o_n_s _i_n _t_h_e _X_Y_Z _W_i_n_d_o_w
+               Actions in Movie Mode:
+                  Clicking the left mouse button will select the
+              current point.  In one of the three image planes,
+              this will generally change the coordinates
+              displayed in the other two planes.  Clicking in the
+              horizontal gutter region occupied by the X marker
+              line will change the current X coordinate and the
+              plane displayed in the YZ panel.  Clicking in the
+              vertical gutter region will select a new Y
+              coordinate and XZ plane.  Clicking in the upper
+              right region will select a new Z coordinate and XY
+              plane, as indicated by the crossed marker lines.
+                  Dragging with the left mouse button depressed
+              will either pan the image within the window or
+              riffle through one of the planes, depending on
+              where the mouse is when the button is first
+              pressed.  If it is in one of the image panels,
+              dragging will pan the image (provided it is larger
+              than the window.)  In the horizontal or vertical
+              gutter regions, dragging will riffle through YZ or
+              XZ planes, respectively.  In the upper right
+              region, dragging will change the XY plane; this is
+              most effective if the mouse is moved along the
+              diagonal in this region.
+                  Clicking the middle mouse button in one of the
+              image panels will start or stop a movie in the
+              forward direction in that panel.
+                  Clicking the right mouse button in one of the
+              image panels will start or stop a movie in the
+              backward direction in that panel.
+
+               Actions in Model Mode:
+                  Clicking the left mouse button near a model
+              point in the XY plane will select that point as the
+              current model point.  Clicking anywhere else will
+              cause the same result as in movie mode.
+                  Dragging with the left mouse button is the same
+              as in movie mode.
+                  Clicking with the middle mouse button in the XY
+              plane will add a point to the current contour and
+              has no effect elsewhere.
+                  Dragging with the middle mouse button depressed
+              will add a series of points to the current contour.
+                  Clicking with the right mouse button in the XY
+              plane will move the current model point to that
+              location.
 
 TTuummbblleerr WWiinnddooww
        The Tumbler Window is opened by selecting the Tumbler item
@@ -784,18 +719,6 @@ GGrraapphh WWiinnddooww
        This window graphs image intensity along the image X-axis,
        Y-axis, Z-axis or along the current contour.  A histogram
        of image intensities can also be graphed.  The type of
-
-
-
-BL3DFS                         2.50                            12
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
        graph can be chosen by using the option menu located in
        the tool bar.  The [+] and [-] buttons in the tool bar
        adjust the zoom in the drawing area.  The [LOCK] button
@@ -850,18 +773,6 @@ SSUURRFFAACCEESS,, OOPPEENN CCOONNTTOOUURRSS,, LLAABBE
        between surfaces and for visualizing contours of the
        current surface.  The Contour Move window has options for
        moving contours from one surface to another or for moving
-
-
-
-BL3DFS                         2.50                            13
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
        an entire surface to a new object.
 
        The Contour Type window has buttons for controlling two
@@ -916,18 +827,6 @@ IIMMAAGGEE LLIISSTT FFIILLEESS
        the image filename):
 
        IMAGE image_filename
-
-
-
-BL3DFS                         2.50                            14
-
-
-
-
-
-imod(1)                                                   imod(1)
-
-
        TIME time_label               [The label can be any desired text]
 
        If the first file might not exist, precede the list of
@@ -968,6 +867,7 @@ SSEEEE AALLSSOO
 
 
 
+BL3DFS                         2.50                             1
 
 
 
@@ -985,6 +885,40 @@ SSEEEE AALLSSOO
 
 
 
-BL3DFS                         2.50                            15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

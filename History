@@ -4,6 +4,9 @@ IMOD History
 dimensions were reduced so that it can do either very large images or very 
 many projections,
 
+2/1/02: In Tilt, modified the writing in the PARALLEL mode to partially
+demangle the file and prevent very slow reading under Linux.
+
 1/28/02: IMOD_2-6-8
 1/28/02: Fixed new bug in xyz drawing routine.
 
