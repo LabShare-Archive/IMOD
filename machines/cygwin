@@ -190,3 +190,8 @@ set makefile_dirs = ($imod_dir $midas_dir $sendevent_dir $plugsrc_dir $libdiaqt_
 #
 # Set up to copy qt lib to bin dir for a distribution
 echo 'QTINSTLIBDIR = bin' >> $configure
+
+#
+# Add scripts for running from command line
+echo '3dmod $* &' >! $imod_dir/3dmodbg
+echo '3dmod -view $* &' >! $imod_dir/3dmodv
