@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/13 00:30:49  rickg
+ * <p> Bug# 390 Add prenewst and xfproduct management
+ * <p>
  * <p> Revision 3.2  2004/03/12 00:04:10  rickg
  * <p> Bug #410 Newstack PIP transition
  * <p> Handle newst or newstack commands the same way
@@ -91,6 +94,8 @@ public class ComScriptManager {
   private ComScript scriptNewstB;
   private ComScript scriptTiltA;
   private ComScript scriptTiltB;
+  private ComScript scriptMTFFilterA;
+  private ComScript scriptMTFFilterB;
   private ComScript scriptSolvematchshift;
   private ComScript scriptSolvematchmod;
   private ComScript scriptPatchcorr;
@@ -560,6 +565,44 @@ public class ComScriptManager {
       scriptTilt = scriptTiltA;
     }
     updateComScript(scriptTilt, tiltParam, "tilt", axisID);
+  }
+
+  public void loadMTFFilter(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptMTFFilterB = loadComScript("mtffilter", axisID, false);
+    }
+    else {
+      scriptMTFFilterA = loadComScript("mtffilter", axisID, false);
+    }
+  }
+
+  public MTFFilterParam getMTFFilterParam(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript mtfFilter;
+    if (axisID == AxisID.SECOND) {
+      mtfFilter = scriptMTFFilterB;
+    }
+    else {
+      mtfFilter = scriptMTFFilterA;
+    }
+
+    // Initialize a TiltParam object from the com script command object
+    MTFFilterParam mtfFilterParam = new MTFFilterParam();
+    initialize(mtfFilterParam, mtfFilter, "mtffilter", axisID);
+    return mtfFilterParam;
+  }
+
+  public void saveMTFFilter(MTFFilterParam mtfFilterParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptMTFFilter;
+    if (axisID == AxisID.SECOND) {
+      scriptMTFFilter = scriptMTFFilterB;
+    }
+    else {
+      scriptMTFFilter = scriptMTFFilterA;
+    }
+    updateComScript(scriptMTFFilter, mtfFilterParam, "mtffilter", axisID);
   }
 
   /**
