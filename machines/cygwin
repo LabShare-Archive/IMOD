@@ -79,29 +79,60 @@ CP        = \\cp
 FIND      = \\find
 EOF
 
-set shared_libs = false
 
 set wrapper = ""
-# Just the static build settings now
 #
 if ($compiler == intel) then
+        if ($shared_libs == default) set shared_libs = true
 	echo "AR      = link"                 >> $configure
 	echo "ARCPP   = link"                 >> $configure
-	echo "ARFLAGS = -lib /out:"                >> $configure
+        if ($shared_libs == true) then
+        #
+        # to make dll's, set the extension, define the def files for the link 
+        # lines and provide libraries that the dll depends on, 
+        # and set the install directory to bin
+        #
+            set dllext = dll
+            echo "ARFLAGS = -dll /out:"         >> $configure
+            echo 'MAKELIBCPP = link -lib /out:' >> $configure
+            echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libimod.lib ../buildlib/libtiff.lib'   >> $configure
+            echo 'LIBIMODDEF = /def:libimod.def'     >> $configure
+            echo 'LIBIMDEF = /def:libim.def libifft.lib'         >> $configure
+            echo 'LIBHVEMDEF = /def:libhvem.def libim.lib ../../buildlib/libimod.lib'     >> $configure
+            echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
+            echo 'LIBTRACKDEF = /def:libtrack.def'   >> $configure
+            set inst_lib_dir = $inst_dir/bin
+            #
+            # Define a command for making non-dll libs still, needed for 
+            # libdnmncar because it calls back to program.
+            # Also need to make separate static libwmod, because it accesses
+            # common in the program
+            #
+            set makenondll = 'link -lib /out:'
+            set modelallo =
+            echo "LIBWMOD = libwmod.lib"  >> $configure
+        else
+            echo "ARFLAGS = -lib /out:"                >> $configure
+            echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+        endif
+        echo "LIBEXT  = lib"                  >> $configure
 	echo "RANLIB    = true"            >> $configure
-	echo "LIBEXT  = lib"                  >> $configure
         set makestaticlib = "link -lib /out:"
         set staticranlib = true
 else
+        #
+        # setup for cygwin static stuff
+        #
+        set shared_libs = false
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
 	echo "ARFLAGS = ruv "                >> $configure
 	echo "RANLIB    = ranlib"            >> $configure
 	echo "LIBEXT  = a"                  >> $configure
+        echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
-echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 echo "MAKELIBSO = g++ $flags -shared -o " >> $configure
 
 
@@ -114,7 +145,7 @@ if ($compiler == intel) then
     set ltiff = libtiff.lib
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo "IMLIBS     =  libhvem.lib libim.lib libifft.lib libimod.lib" >> $configure
+    echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libim.lib libifft.lib libimod.lib' >> $configure
     echo 'LINUXFLIBS = ' >> $configure
     echo '#define WIN32_BIGFILE' >> $hconfigure
 else
