@@ -130,6 +130,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/08/18 23:13:05  mast
+c	  Changed to call iclavgsd in library
+c	
 c	  Revision 3.2  2002/05/20 15:47:33  mast
 c	  Made the DIFF function put out a very high value when the number of
 c	  pixels evaluated falls below 1% of total pixels, to keep it from
@@ -381,7 +384,7 @@ c	  Just deal with points in central portion
 	NY2 = NY-matty
 C	  
 	CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2
-     &	    ,DMIN2,DMAX2,DMEAN2,sd2)
+     &	    ,DMIN2,DMAX2,tsum,tsumsq,DMEAN2,sd2)
 C	  
 	if(ifdist.eq.0)then
 c	    if doing simple difference measure, move array into brray
