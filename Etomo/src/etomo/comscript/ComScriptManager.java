@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/04/27 00:50:16  sueh
+ * <p> bug# 427 parse comments for tomopitch
+ * <p>
  * <p> Revision 3.8  2004/04/26 21:09:50  sueh
  * <p> bug# 427 added tomopitch
  * <p>
@@ -91,6 +94,7 @@ import javax.swing.JOptionPane;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.util.TestFiles;
 
 
 public class ComScriptManager {
@@ -124,8 +128,23 @@ public class ComScriptManager {
   private ComScript scriptTomopitchA;
   private ComScript scriptTomopitchB;
 
+  private ComScript selfTest1XcorrA1;
+  private ComScript selfTest1XcorrA2;
+  private ComScript selfTest2XcorrA1;
+  private ComScript selfTest2XcorrA2;
+  private ComScript selfTest1XcorrB1;
+  private ComScript selfTest1XcorrB2;
+  private ComScript selfTest2XcorrB1;
+  private ComScript selfTest2XcorrB2;
+  
+  private boolean selfTest = false;
+  
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
+  }
+  public ComScriptManager(ApplicationManager appManager, boolean selfTest) {
+    this.appManager = appManager;
+    this.selfTest = true;
   }
 
   /**
@@ -192,7 +211,7 @@ public class ComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadXcorr(AxisID axisID) {
-
+    loadTest(new ConstTiltxcorrParam(), axisID);
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptXcorrB = loadComScript("xcorr", axisID, true);
@@ -824,6 +843,12 @@ public class ComScriptManager {
       AxisID.ONLY);
   }
 
+  private ComScript loadComScript(
+    String scriptName,
+    AxisID axisID,
+    boolean parseComments) {
+      return loadComScript(scriptName, axisID, parseComments, -1);
+  }
   /**
    * Load the specified Com script 
    * @param scriptName
@@ -833,11 +858,26 @@ public class ComScriptManager {
   private ComScript loadComScript(
     String scriptName,
     AxisID axisID,
-    boolean parseComments) {
+    boolean parseComments, int testScriptVersion) {
 
-    String command = scriptName + axisID.getExtension() + ".com";
+    File comFile;
+    if (selfTest && testScriptVersion != -1) {
+      comFile =
+        TestFiles.getTestFiles().getComscript(
+          scriptName,
+          axisID,
+          testScriptVersion,
+          true);
+      if (comFile == null) {
+        return null;
+      }
+    }
+    else {
+      String command = scriptName + axisID.getExtension() + ".com";
 
-    File comFile = new File(System.getProperty("user.dir"), command);
+      comFile = new File(System.getProperty("user.dir"), command);
+    }
+    
     ComScript comScript = new ComScript(comFile);
     try {
       comScript.setParseComments(parseComments);
@@ -977,5 +1017,57 @@ public class ComScriptManager {
       }
     }
     return "";
+  }
+  
+  
+  protected boolean loadTest(ConstCommandParam constParam, AxisID axisID) {
+    if (!selfTest) {
+      return false;
+    }
+    if (axisID == AxisID.SECOND) {
+      selfTest1XcorrB1 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest1XcorrB2 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest2XcorrB1 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest2XcorrB2 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+    }
+    else {
+      selfTest1XcorrA1 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest1XcorrA2 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest2XcorrA1 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+      selfTest2XcorrA2 =
+        loadComScript(
+          constParam.getProcessNameString(),
+          axisID,
+          constParam.isParseComments());
+    }
+    return true;
   }
 }
