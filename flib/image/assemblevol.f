@@ -32,13 +32,23 @@ c	  Z in order by increasing X, then the files in the second row, etc.
 c	  
 c	  David Mastronarde, 3/1/01
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c	  
+	implicit none
+	integer idimin,idimout,limfiles,limran,limopen
 	parameter (idimin=2000*500, idimout=10000*500,limfiles=1000)
 	parameter (limran=100,limopen=19)
+	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 C   
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
-     &      ARRAY(idimin),TITLE(20),
-     &      NXYZ2(3),MXYZ2(3),CELL2(6),brray(idimout)
+	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
+	real*4 ARRAY(idimin),TITLE(20), CELL2(6),brray(idimout),delta(3)
 C	  
 	integer*4 ixlo(limran),ixhi(limran),iylo(limran),iyhi(limran)
 	integer*4 izlo(limran),izhi(limran)
@@ -50,6 +60,10 @@ C
 C   
 	EQUIVALENCE (NX,NXYZ)
 C   
+	integer*4 nfx,nfy,nfz,nx3,ny3,nz3,maxx,maxy,i,ifile,ix,iy,iz
+	real*4 dmin2,dmax2,dmean2,dmin,dmax,dmean,tmin,tmax,tmean,tmpmn
+	integer*4 mode,mode1,kti,izf,iunit,iyofs,ixofs,nybox,nxbox
+	integer*4 ixf,iyf
 	DATA NXYZST/0,0,0/
 c
         write(*,'(1x,a,$)')'Output file for assembled volume: '
@@ -59,14 +73,10 @@ c
 	write(*,'(1x,a,$)')'Numbers of input files in X, Y, and Z: '
 	read(5,*)nfx,nfy,nfz
 	if(nfx*nfy*nfz.gt.limfiles.or.nfx.gt.limran.or.nfy.gt.limran
-     &	    .or.nfz.gt.limran) then
-	  print *, 'TOO MANY FILES FOR ARRAYS'
-	  call exit(1)
-	endif
-	if(nfx*nfy.gt.limopen) then
-     	    print *, 'TOO MANY FILES IN X AND Y TO OPEN AT ONCE'
-	  call exit(1)
-	endif
+     &	    .or.nfz.gt.limran) call errorexit(
+     &	    'TOO MANY FILES FOR ARRAYS')
+	if(nfx*nfy.gt.limopen) call errorexit(
+     &	    'TOO MANY FILES IN X AND Y TO OPEN AT ONCE')
 c	  
 	print *,'Enter the starting and ending index coordinates '//
      &	    'for the pixels to extract',
@@ -79,42 +89,32 @@ c
 	do i=1,nfx
 	  write(*,'(1x,a,i3,a,$)')'X coordinates for file #',i,' in X: '
 	  read(5,*)ixlo(i),ixhi(i)
-	  if (ixlo(i).lt.0)then
-	    print *,'ILLEGAL COORDINATE LESS THAN ZERO'
-	    call exit(1)
-	  endif
+	  if (ixlo(i).lt.0)call errorexit(
+     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
 	  nx3=nx3+ixhi(i)+1-ixlo(i)
 	  maxx=max(maxx,ixhi(i)+1-ixlo(i))
 	enddo
 	do i=1,nfy
 	  write(*,'(1x,a,i3,a,$)')'Y coordinates for file #',i,' in Y: '
 	  read(5,*)iylo(i),iyhi(i)
-	  if (iylo(i).lt.0)then
-	    print *, 'ILLEGAL COORDINATE LESS THAN ZERO'
-	    call exit(1)
-	  endif
+	  if (iylo(i).lt.0)call errorexit(
+     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
 	  ny3=ny3+iyhi(i)+1-iylo(i)
 	  maxy=max(maxy,iyhi(i)+1-iylo(i))
 	enddo
 	do i=1,nfz
 	  write(*,'(1x,a,i3,a,$)')'Z coordinates for file #',i,' in Z: '
 	  read(5,*)izlo(i),izhi(i)
-	  if (izlo(i).lt.0)then
-	    print *,'ILLEGAL COORDINATE LESS THAN ZERO'
-	    call exit(1)
-	  endif
+	  if (izlo(i).lt.0)call errorexit(
+     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
 	  nz3=nz3+izhi(i)+1-izlo(i)
 	enddo
 c	  
-	if(nx3*ny3.gt.idimout)then
-	  print *,'OUTPUT IMAGE TOO BIG FOR ARRAY'
-	  call exit(1)
-	endif
+	if(nx3*ny3.gt.idimout)call errorexit(
+     &	    'OUTPUT IMAGE TOO BIG FOR ARRAY')
 
-	if(maxx*maxy.gt.idimin)then
-	  print *,'INPUT IMAGES TOO BIG FOR ARRAY'
-	  call exit(1)
-	endif
+	if(maxx*maxy.gt.idimin)call errorexit(
+     &	    'INPUT IMAGES TOO BIG FOR ARRAY')
 c	  
 	print *,'Enter the input file names at successive positions '//
      &	    'in X, then Y, then Z'
@@ -127,16 +127,13 @@ c
 	      read(5,101)files(ifile)
 	      call imopen(2,files(ifile),'ro')
 	      CALL IRDHDR(2,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-	      if(ifile.eq.1)then
-		mode1=mode
-	      elseif(mode.ne.mode1)then
-		print *, 'MODE MISMATCH FOR THIS FILE'
-		call exit(1)
-	      endif
-	      if(ixhi(ix).ge.nx.or.iyhi(iy).ge.ny.or.izhi(iz).ge.nz)then
-     		  print *,'UPPER COORDINATE TOO HIGH FOR THIS FILE'
-		call exit(1)
-	      endif
+	      call irtdel(2,delta)
+	      if(ifile.eq.1) mode1=mode
+	      if(mode.ne.mode1)call errorexit(
+     &		    'MODE MISMATCH FOR THIS FILE')
+	      if(ixhi(ix).ge.nx.or.iyhi(iy).ge.ny.or.izhi(iz).ge.nz)
+     &		    call errorexit(
+     &		    'UPPER COORDINATE TOO HIGH FOR THIS FILE')
 	      call imclose(2)
 	      ifile=ifile+1
 	    enddo
@@ -150,9 +147,9 @@ C
 	MXYZ2(1)=NX3
 	MXYZ2(2)=NY3
 	MXYZ2(3)=nz3
-	CELL2(1)=NX3
-	CELL2(2)=NY3
-	CELL2(3)=nz3
+	CELL2(1)=NX3*delta(1)
+	CELL2(2)=NY3*delta(2)
+	CELL2(3)=nz3*delta(3)
 	CELL2(4)=90.
 	CELL2(5)=90.
 	CELL2(6)=90.
@@ -222,12 +219,13 @@ c
 	CALL IWRHDR(1,TITLE,1,DMIN,DMAX,DMEAN)
 	CALL IMCLOSE(1)
 	call exit(0)
-99	print *, 'ASSEMBLEVOL READ ERROR'
-	call exit(1)
+99	call errorexit('READING FILE')
 	end
 
 	subroutine insert_array(array,nxbox,nybox,brray,nx3,ny3,ixofs,
      &		    iyofs)
+	implicit none
+	integer*4 nxbox,nybox,nx3,ny3,ixofs,iyofs,ix,iy
 	real*4 array(nxbox,nybox),brray(nx3,ny3)
 	do iy=1,nybox
 	  do ix=1,nxbox
@@ -235,4 +233,12 @@ c
 	  enddo
 	enddo
 	return
+	end
+
+	subroutine errorexit(message)
+	implicit none
+	character*(*) message
+	print *
+	print *,'ERROR: ASSEMBLEVOL - ',message
+	call exit(1)
 	end
