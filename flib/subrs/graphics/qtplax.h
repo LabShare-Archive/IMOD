@@ -4,9 +4,12 @@
 /* DNM 8/17/00: add this to get the flags in as needed */
 #include <imodconfig.h>
 
+#ifndef QTPLAX_NO_THREAD
 #define QT_THREAD_SUPPORT
-#include <qwidget.h>
 #include <qthread.h>
+#include <qmutex.h>
+#endif
+#include <qwidget.h>
 
 /* First color used in color index ramp */
 #define PLAX_LOWRAMP 40
@@ -85,14 +88,18 @@ class PlaxWindow : public QWidget
   PlaxWindow(QWidget *parent, const char *name = 0, 
 	     WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~PlaxWindow() {};
+  void lock();
+  void unlock();
 
  protected:
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
     void customEvent ( QCustomEvent * );
+
 };
 
+#ifndef QTPLAX_NO_THREAD
 class PlaxThread : public QThread
 {
  public:
@@ -102,5 +109,6 @@ class PlaxThread : public QThread
  protected:
   void run();
 };
+#endif
 
 #endif /* plax.h */
