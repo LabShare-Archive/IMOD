@@ -19,11 +19,20 @@ and
 .B -size.
 
 The 
-.B -xform,
 .B -expand,
-and
 .B -rotate
-options are mutually exclusive, so only one of them can be entered.
+and
+.B -xform
+options can be entered together to perform rotation and/or scaling even after
+applying alignment transformations.  The images will first be transformed
+(if
+.B -xform
+is entered), then rotated (if
+.B -rotate
+is entered, then expanded (if
+.B -expand
+is entered.
+
 
 .TP
 .B -secs <section list>
