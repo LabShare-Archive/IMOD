@@ -116,7 +116,7 @@ public class TransferfidPanel {
     ltfCenterViewB.setText(params.getCenterViewB().toString());
     ltfNumberViews.setText(params.getNumberViews().toString());
 
-    if (!params.getSearchDirection().isUpdateCommand()) {
+    if (params.getSearchDirection().isNull()) {
       rbSearchBoth.setSelected(true);
     }
     if (params.getSearchDirection().isNegative()) {
@@ -223,6 +223,12 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.1  2005/01/22 04:08:36  sueh
+ * <p> bug# 509, bug# 591  In getParameters(), set transferfid fields in MetaData
+ * <p> after updating the TransferfidParam parameter.  In setParameters(),
+ * <p> create the TransferfidParam instance, initialize it, copy fields from
+ * <p> MetaData, and then set the screen fields.
+ * <p>
 */
 
 
