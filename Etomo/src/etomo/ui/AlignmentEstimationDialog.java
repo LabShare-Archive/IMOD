@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2002/12/18 18:52:13  rickg
+ * <p> Restructured buttons and layout
+ * <p>
  * <p> Revision 1.7  2002/12/05 01:22:44  rickg
  * <p> Previous commit comment was incorrect
  * <p> Split advanced functionality from action handler
@@ -56,9 +59,7 @@ public class AlignmentEstimationDialog
 
   public static final String rcsid =
     "$Id$";
-  private ApplicationManager applicationManager;
 
-  private JPanel contentPane;
   private JPanel panelAlignEst = new JPanel();
 
   private JPanel panelAlignEstA = new JPanel();
@@ -77,7 +78,6 @@ public class AlignmentEstimationDialog
   private JToggleButton buttonView3DModelA =
     new JToggleButton("<html><b>View 3D<br>model</b>");
 
-
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
 
@@ -95,9 +95,9 @@ public class AlignmentEstimationDialog
     new JToggleButton("<html><b>View/Edit model<br>in imod<</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr) {
-    applicationManager = appMgr;
-    contentPane = (JPanel) getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    super(appMgr);
+
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle(
       "eTomo Fine Alignment Estimation: "
         + applicationManager.getFilesetName());
@@ -144,24 +144,24 @@ public class AlignmentEstimationDialog
     panelAlignEstB.add(panelTiltalignB.getContainer());
     panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
     panelAlignEstB.add(panelButtonB);
-    
+
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.X_AXIS));
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelAlignEst.add(panelAlignEstA);
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
     panelAlignEst.add(panelAlignEstB);
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
 
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    contentPane.add(panelAlignEst);
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.add(panelAlignEst);
 
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
     buttonComputeAlignmentA.addActionListener(new AlignementComputeA(this));
@@ -174,15 +174,13 @@ public class AlignmentEstimationDialog
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    contentPane.addMouseListener(mouseAdapter);
+    rootPanel.addMouseListener(mouseAdapter);
 
     // Calcute the necessary window size
     setSize(new Dimension(400, 600));
-    //FIXME: advanced state should gotten from the application manager
-    setAdvanced(appMgr.isAdvanced());
-    panelTiltalignA.setLargestTab();
-    panelTiltalignB.setLargestTab();
-    pack();
+
+    // Set the default advanced state, this also executes a pack()
+    updateAdvanced(isAdvanced);
     panelTiltalignA.setFirstTab();
     panelTiltalignB.setFirstTab();
   }
@@ -253,7 +251,7 @@ public class AlignmentEstimationDialog
 
     ContextPopup contextPopup =
       new ContextPopup(
-        contentPane,
+        rootPanel,
         mouseEvent,
         "FINAL ALIGNMENT",
         manPagelabel,
@@ -283,7 +281,6 @@ public class AlignmentEstimationDialog
 
   void buttonView3DModelAAction(ActionEvent event) {
   }
-
 
   void buttonComputeBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND);
@@ -315,20 +312,14 @@ public class AlignmentEstimationDialog
 
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    setAdvanced(isAdvanced);
+    updateAdvanced(isAdvanced);
   }
 
   //  This is a separate function so it can be called at initialization time
   //  as well as from the button action above
-  private void setAdvanced(boolean state) {
-    panelTiltalignA.setAdvanced(state);
-    panelTiltalignB.setAdvanced(state);
-    if (state) {
-      buttonAdvanced.setText("Basic");
-    }
-    else {
-      buttonAdvanced.setText("Advanced");
-    }
+  void updateAdvanced(boolean state) {
+    panelTiltalignA.setAdvanced(isAdvanced);
+    panelTiltalignB.setAdvanced(isAdvanced);
     pack();
   }
 }
