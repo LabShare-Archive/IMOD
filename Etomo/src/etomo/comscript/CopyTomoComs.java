@@ -30,6 +30,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 2.12  2003/11/04 20:56:11  rickg
+ * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ *
  * Revision 2.11  2003/11/04 00:51:59  rickg
  * Bug #345 Explicitly set path to script using IMOD_DIR
  *
@@ -135,9 +138,12 @@ public class CopyTomoComs {
 				+ "bin"
 				+ File.separator;
 
-		//  Create a new SystemProgram object for copytomocom, set the
-		//  working directory and stdin array.
-		commandLine = "tcsh -ef " + imodBinPath + "copytomocoms";
+		// Create a new SystemProgram object for copytomocom, set the
+		// working directory and stdin array.
+		// Do not use the -e flag for tcsh since David's scripts handle the failure 
+		// of commands and then report appropriately.  The exception to this is the
+		// com scripts which require the -e flag.  RJG: 2003-11-06  
+		commandLine = "tcsh -f " + imodBinPath + "copytomocoms";
 		copytomocoms = new SystemProgram(commandLine);
 
 		genStdInputSequence();

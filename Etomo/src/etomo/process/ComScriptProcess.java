@@ -25,6 +25,9 @@ import etomo.ApplicationManager;
  * 
  * <p>
  * $Log$
+ * Revision 1.12  2003/11/04 20:56:11  rickg
+ * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ *
  * Revision 1.11  2003/11/04 00:55:10  rickg
  * Bug #345 Explicitly set path to script using IMOD_DIR
  *
@@ -395,6 +398,10 @@ public class ComScriptProcess
 	 */
 	private void execCsh(String[] commands)
 		throws IOException, SystemProcessException {
+
+  	// Do not use the -e flag for tcsh since David's scripts handle the failure 
+	  // of commands and then report appropriately.  The exception to this is the
+		// com scripts which require the -e flag.  RJG: 2003-11-06  
 		csh = new SystemProgram("tcsh -ef");
 		csh.setWorkingDirectory(workingDirectory);
 		csh.setStdInput(commands);

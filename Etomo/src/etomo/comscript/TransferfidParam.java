@@ -17,6 +17,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/11/04 20:56:11  rickg
+ * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.8  2003/09/26 19:46:16  sueh
  * <p> bug223 removed task marks
  * <p>
@@ -100,8 +103,11 @@ public class TransferfidParam {
 				+ File.separator
 				+ "bin"
 				+ File.separator;
+		// Do not use the -e flag for tcsh since David's scripts handle the failure 
+		// of commands and then report appropriately.  The exception to this is the
+		// com scripts which require the -e flag.  RJG: 2003-11-06  
 		StringBuffer commandLine =
-			new StringBuffer("tcsh -ef " + imodBinPath + "transferfid -P ");
+			new StringBuffer("tcsh -f " + imodBinPath + "transferfid -P ");
 
 		if (bToA) {
 			commandLine.append("-b ");

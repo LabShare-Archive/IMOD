@@ -29,6 +29,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.10  2003/11/04 20:56:11  rickg
+ * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ *
  * Revision 2.9  2003/11/04 00:53:50  rickg
  * Bug #345 Explicitly set path to script using IMOD_DIR
  * remove -c from tcsh invokation
@@ -141,7 +144,10 @@ public class SetupCombine {
 				+ File.separator
 				+ "bin"
 				+ File.separator;
-		commandLine = "tcsh -ef " + imodBinPath + "setupcombine";
+		// Do not use the -e flag for tcsh since David's scripts handle the failure 
+		// of commands and then report appropriately.  The exception to this is the
+		// com scripts which require the -e flag.  RJG: 2003-11-06  
+		commandLine = "tcsh -f " + imodBinPath + "setupcombine";
 		setupcombine = new SystemProgram(commandLine);
 		genStdInputSequence();
 	}
