@@ -20,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/21 00:27:44  sueh
+ * <p> bug# 386 save/load distortionFile and binning
+ * <p>
  * <p> Revision 3.1  2004/02/20 23:45:37  sueh
  * <p> bug# 386 added setDistortionFile() and setBinning()
  * <p>
@@ -81,10 +84,16 @@ public class MetaData extends ConstMetaData implements Storable {
 
   public MetaData() {
     super();
+    resetToDefault();
   }
 
   public void setRevisionNumber(String revNumber) {
     revisionNumber = revNumber;
+  }
+  
+  protected void resetToDefault() {
+    distortionFile = "";
+    binning = 1;
   }
 
   /**
@@ -251,6 +260,7 @@ public class MetaData extends ConstMetaData implements Storable {
     load(props, "");
   }
   public void load(Properties props, String prepend) {
+    resetToDefault();
     String group;
     if (prepend == "") {
       group = "Setup.";
@@ -307,7 +317,7 @@ public class MetaData extends ConstMetaData implements Storable {
 			Integer.parseInt(props.getProperty(group + "TransferfidNumberViews", "5"));
 
     combineParams.load(props, group);
-    distortionFile = props.getProperty(group + "DistortionFile", "");
-    binning = Integer.parseInt(props.getProperty(group + "Binning", "1"));
+    distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
+    binning = Integer.parseInt(props.getProperty(group + "Binning", Integer.toString(binning)));
   }
 }
