@@ -119,7 +119,7 @@ file is opened after the data has been loaded.
 <p> <HR> <CENTER> 
 <A NAME = "Information Window"> 
 <H5>The 3dmod Information Window</H5></A> 
-<IMG SRC="infowin.png" ALT="3dmod Information Window"> 
+<IMG SRC="3dmodimages/infowin.png" ALT="3dmod Information Window"> 
 </CENTER> 
 
 <P> 
@@ -149,12 +149,13 @@ parameter, and lets you change that parameter either by increasing or
 decreasing it with the up and down arrow buttons, or by typing in a
 new value.  The three spin boxes on the left
 show the current model object, contour and point.
-The current model being edited above has 7 objects; the 7th object
-is currently selected.  The 7th object has 46 contours and
-the 11th contour is currently selected.  
-This contour has 65 points and the 39th point
-is the current point.  Generally, when you change object, contour, or
-point with one of these controls, the program will show the new
+The current model being edited above has 4 objects; the 4th object
+is currently selected.  The 4th object has 11 contours and
+the 5th contour is currently selected.  
+This contour has 20 points and the 10th point
+is the current point.  
+<P>Generally, when you change object, contour, or
+point with one of these spin boxes, the program will show the new
 current point in the image windows and change the section being
 displayed if necessary.  Sometimes you will not want this to happen,
 such as when you want to switch between objects without having the
@@ -163,9 +164,9 @@ point" checkbox.
 
 <P>The three spin boxes on the right are the image position controls.
 They show that the image dimensions are 572 by 378 and that
-there are 76 sections.  The current image point is at the location
-(286,178) with the origin at the lower left corner of the image.  The
-current section is number 21.  If you change the Z value, a different
+there are 78 sections.  The current image point is at the location
+(237,259) with the origin at the lower left corner of the image.  The
+current section is number 16.  If you change the Z value, a different
 section will be shown in image windows.  You can change X and Y values
 to move the current image point.  The current image point is not the
 same as the current model point.  It is marked by a cross when the
@@ -177,9 +178,12 @@ At the bottom of the Info Window are the Black and White sliders,
 which you
 can use to adjust the contrast and
 brightness of the displayed image.  Pixel values between the selected black and
-white levels are stretched out to occupy the full dynamic range of the
+white levels (147 and 234) are stretched out to occupy the full dynamic range
+of the
 display.  Moving the sliders toward each other will increase contrast,
-while moving one or both to the left will increase brightness.  These
+while moving one or both to the left will increase brightness. 
+
+<P> These
 sliders have features common to nearly all of the slider controls in
 3dmod.  Clicking to one side of the handle with the left mouse button
 will change the value by one.  Clicking with the middle mouse button
@@ -216,8 +220,23 @@ vertically to see more of the information at once.
 <CENTER>
 <A NAME = "Zap Window">
 <H5>The 3dmod Zap Window</H5></A>
-<IMG SRC="zapwin.gif" ALT="3dmod Zap Window">
 </CENTER>
+<table border="0" align="center">
+  <tbody>
+    <tr>
+      <td valign="top" align="center"><img src="3dmodimages/zapsec12.jpg" 
+            alt="Zap Window section 12">
+      <br>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/zapsec16.jpg"
+            alt="Zap Window section 16">
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
 The main image display and model editing window within 3dmod
 is the "ZaP" window.  The window name is an acronym for
 "Zoom and Pan".
@@ -233,8 +252,9 @@ This display illustrates the three kinds of model objects: closed
 contours, open contours, and scattered points.
 <UL>
 <LI>Closed contours are
-used to draw closed boundaries around features in one image plane
-(COLOR).  As the
+used to draw closed boundaries around features in one image plane.
+The light blue lines around a vesicle are an example of closed contours.
+As the
 two different slices show, a separate contour is drawn in each section
 where the feature appears.  You can draw as many separate contours as
 necessary to enclose the 
@@ -248,34 +268,54 @@ can be viewed.  Closed contours are the default when a new object is created.
 back to the starting point.  There are two cases where this is
 useful.  If only part of an extended feature in present in the images,
 you would draw an open contour in each section along the boundary of
-the object (COLOR).  The other main use is to model trajectories in
-3D, between sections.  For example, open contours are used to
-model microtubules through space as in the example images, and to track gold
+the object.  The yellow lines in the images are open contours showing the
+border of the darkly stained chromosome.
+The other main use is to model trajectories in
+3D, between sections.  In the example images, open contours are used to
+model microtubules through space, and the points are marked by green circles.
+Open contours are also used to track gold
 fiducial particles through a tilt series.
 
 <LI>Scattered points are used when you do not want connecting lines between
 the successive
 points of a contour.  Such points are usually displayed as a sphere in a 
 3D view of the model, or a circle in cross-sections such as in the ZaP window.
+In the example, a small round vesicle has been modeled simply by placing a
+scattered point on it on section 12 (magenta circle).
 A scattered point will typically show up on more than one section,
 with the circle becoming smaller away from the central section where
-the point was placed.  A cross is drawn inside the circle on the
+the point was placed (the circle is smaller on section 16).  A cross is drawn
+inside the circle on the
 central section to show that the point was drawn on that section; 
 if this does not make it clear enough you can also
 make a separate symbol be displayed only on the central section.
 </UL>
 <P>
 The type of contours in an object, and the symbols displayed at
-individual points, can be selected with the the Object Edit dialog box.
-Here are three examples.  On the left is a box for a closed contour
-object, showing the default settings for point display.  In the middle
-is a box for an open contour object that is used to track objects
+individual points, can be selected with the Object Edit dialog box.
+Here are two examples. 
+<table border="0" align="center">
+  <tbody>
+    <tr>
+      <td valign="top" align="center"><img src="3dmodimages/ioeopen.png" 
+            alt="Object Edit window for open contours">
+      <br>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/ioescatter.png"
+            alt="Object Edit window for scattered points">
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+On the left
+is a box for the open contour object that is used to track microtubules
 between sections.  A circle is selected for the symbol display, and
 the symbol size has been set to 7, so that it will be easy to see the
 symbol when there is only one point on a particular section.  On the
-right is a box for a scattered point object; here no symbol is
-selected but the sphere radius for points has been set to 5, which
-makes circles show up on 4 sections before or after the central slice.
+right is a box for the scattered point object used to model small vesicles;
+here no symbol is
+selected but the sphere radius for points has been set to 14.
 
 
 <p>
@@ -353,6 +393,10 @@ clicking or holding down the right button.
 
 <p>
 The Zap Toolbar
+<p> <HR> <CENTER> 
+<A NAME = "Zap Toolbar"> 
+<IMG SRC="3dmodimages/zaptoolbar.png" ALT="Zap window toolbar"> 
+</CENTER> 
 <P>
 The toolbar for the Zap window has a number of useful controls.
 <UL>
@@ -415,7 +459,53 @@ t          Toggle model drawing off or on
 </pre>
 </DD>
 
+
+<DD><H4>The XYZ Window</H4>
+<CENTER> 
+<A NAME = "XYZ Window"> 
+<IMG SRC="3dmodimages/xyzwin.jpg" ALT="XYZ Window"> 
+</CENTER> 
+<P>
+The XYZ Window shows not just the XY plane but also the two orthogonal
+planes, YZ and XZ.  It allows you to movie through the volume in any
+of these planes independently, and also displays the intersection of
+the model with each of the three planes.  In the example, the XY plane
+is in the lower left, the XZ plane is above it, and the YZ plane is to
+the right.
+The current image point governs which planes are
+displayed; its position is marked by a small yellow cross in each
+image panel.  You can see the large modeled vesicle in the XZ plane, and
+an oblique slice through the microtubule in the YZ plane.
+<P>
+The colored marker lines in the margins of the images also
+indicate the current point coordinates.  They contain small handles
+that can be grabbed with the mouse to riffle through the images in one
+plane.  The color of the marker line matches the color of the border
+around the image
+that is controlled by it; for example, the red line controls the plane
+selected in the upper panel.
+<P>
+The display of the model in the XY plane is essentially the same as in
+the Zap window.  In the other planes, scattered points will show up as
+circles, and other segments of contours will appear to the extent that
+they intersect the plane.
+<P>
+The XYZ Window can be zoomed with the "-" and "=" hot keys and panned
+with the mouse.
+In Movie mode, the mouse buttons behave the
+same as in the Zap Window, and they act separately in the three image
+panels
+for selecting the current image point or starting a movie in that panel.
+Basic modeling can also be done in the XY plane, again with the same
+mouse button
+functions as in the Zap window.  
+</DD>
+
 <DD><H4>The Slicer Window</H4>
+<CENTER> 
+<A NAME = "Slicer Window"> 
+<IMG SRC="3dmodimages/slicer.jpg" ALT="Slicer Window"> 
+</CENTER> 
 <P>
 The Slicer Window can display a slice at an arbitrary orientation
 through the image volume.  The orientation is set by adjusting the X,
@@ -425,7 +515,8 @@ image point and is marked by a red cross.  This center point may be
 moved either by changing the current image point in some other window,
 or by clicking on the image in this Slicer Window with any mouse button.
 
-
+<P>
+All of this power comes with a cost, in that it is 
 </DD>
 
 
