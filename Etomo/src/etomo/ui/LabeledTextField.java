@@ -19,6 +19,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/11/19 23:57:15  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.3.4.1  2004/11/19 00:21:58  sueh
  * <p> bug# 520 Added equals(String) to compare a String parameter against
  * <p> getText().
@@ -172,6 +175,13 @@ public class LabeledTextField {
    */
   public void setTextMaxmimumSize(Dimension size) {
     textField.setMaximumSize(size);
+  }
+  
+  public void setTextPreferredWidth(double minWidth) {
+    Font font = textField.getFont();
+    Dimension prefSize = textField.getPreferredSize();
+    prefSize.setSize(minWidth, prefSize.getHeight());
+    textField.setPreferredSize(prefSize);
   }
 
   /**
