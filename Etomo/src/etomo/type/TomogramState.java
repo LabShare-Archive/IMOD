@@ -23,6 +23,13 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/10 23:54:23  sueh
+* <p> bug# 578 Switched member variables from EtomoBoolean to EtomoState.
+* <p> Added initialize(int) to initialize EtomoState variables to
+* <p> NO_RESULTS_VALUE.  Removed backward compatibility function for
+* <p> newstFiducialAlignment.  EtomoState variables are necessary when the
+* <p> state information was not saved in the past.
+* <p>
 * <p> Revision 1.6  2005/01/08 01:54:43  sueh
 * <p> bug# 578 Removed alignSkewOption and alignXStretchOption.  Added
 * <p> madeZFactors and newstFiducialAlignment.  Added
@@ -58,6 +65,7 @@ public class TomogramState implements BaseState {
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
   EtomoState madeZFactors = new EtomoState("MadeZFactors");
   EtomoState newstFiducialessAlignment = new EtomoState("NewstFiducialessAlignment");
+  EtomoState usedLocalAlignments = new EtomoState("UsedLocalAlignments");
   
   public TomogramState() {
     reset();
@@ -68,6 +76,7 @@ public class TomogramState implements BaseState {
     squeezevolFlipped.reset();
     madeZFactors.reset();
     newstFiducialessAlignment.reset();
+    usedLocalAlignments.reset();
   }
   
   public void initialize(int value) {
@@ -75,6 +84,7 @@ public class TomogramState implements BaseState {
     squeezevolFlipped.set(value);
     madeZFactors.set(value);
     newstFiducialessAlignment.set(value);
+    usedLocalAlignments.set(value);
   }
   
   public void store(Properties props) {
@@ -88,6 +98,7 @@ public class TomogramState implements BaseState {
     squeezevolFlipped.store(props, prepend);
     madeZFactors.store(props, prepend);
     newstFiducialessAlignment.store(props, prepend);
+    usedLocalAlignments.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -101,6 +112,9 @@ public class TomogramState implements BaseState {
       return false;
     }
     if (!newstFiducialessAlignment.equals(that.newstFiducialessAlignment)) {
+      return false;
+    }
+    if (!usedLocalAlignments.equals(that.usedLocalAlignments)) {
       return false;
     }
     return true;
@@ -125,6 +139,7 @@ public class TomogramState implements BaseState {
     squeezevolFlipped.load(props, prepend);
     madeZFactors.load(props, prepend);
     newstFiducialessAlignment.load(props, prepend);
+    usedLocalAlignments.load(props, prepend);
   }
   
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
@@ -143,6 +158,10 @@ public class TomogramState implements BaseState {
     return this.newstFiducialessAlignment.set(newstFiducialessAlignment);
   }
   
+  public ConstEtomoNumber setUsedLocalAlignments(boolean usedLocalAlignments) {
+    return this.usedLocalAlignments.set(usedLocalAlignments);
+  }
+  
   public ConstEtomoNumber getTrimvolFlipped() {
     return trimvolFlipped;
   }
@@ -159,12 +178,16 @@ public class TomogramState implements BaseState {
     return newstFiducialessAlignment;
   }
   
+  public ConstEtomoNumber getUsedLocalAlignments() {
+    return usedLocalAlignments;
+  }
+  
   /**
    * Backward compatibility
    * function decide whether trimvol is flipped based on the header
    * @return
    */
-  public boolean getBackwordCompatibleTrimvolFlipped() {
+  public boolean getBackwardCompatibleTrimvolFlipped() {
     //If trimvol has not been run, then assume that the tomogram has not been
     //flipped.
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
@@ -196,11 +219,48 @@ public class TomogramState implements BaseState {
   
   /**
    * Backward compatibility
+   * function decide whether tiltalign was run with local alignments based
+   * file time.
+   * @return
+   */
+  public boolean getBackwardCompatibleUsedLocalAlignments(AxisID axisID) {
+    String userDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    ApplicationManager manager = (ApplicationManager) EtomoDirector.getInstance()
+        .getCurrentManager();
+    String datasetName = manager.getMetaData().getDatasetName();
+    File localXfFile = new File(userDir,
+        datasetName + axisID.getExtension() + "local.xf");
+    File transformFile = new File(userDir,
+        datasetName + axisID.getExtension() + ".tltxf");
+    if (!localXfFile.exists()) {
+      System.err.println("Assuming that local alignments where not used "
+          + "\nbecause " + localXfFile.getName() + " does not exist.");
+      return false;
+    }
+    if (!transformFile.exists()) {
+      System.err.println("Assuming that local alignments where not used "
+          + "\nbecause " + transformFile.getName() + " does not exist.");
+      return false;
+    }
+    if (localXfFile.lastModified() < transformFile.lastModified()) {
+      System.err.println("Assuming that local alignments where not used "
+          + "\nbecause " + localXfFile.getName() + " was modified before "
+          + transformFile.getName() + ".");
+      return false;
+    }
+    System.err.println("Assuming that local alignments where used "
+        + "\nbecause " + localXfFile.getName() + " was modified after "
+        + transformFile.getName() + ".");
+    return true;
+  }
+  
+  /**
+   * Backward compatibility
    * function decide whether z factors where made based on the relationship
    * between .zfac file and the .tltxf file
    * @return
    */
-  public boolean getBackwordCompatibleMadeZFactors(AxisID axisID) {
+  public boolean getBackwardCompatibleMadeZFactors(AxisID axisID) {
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
     String userDir = etomoDirector.getCurrentPropertyUserDir();
     ApplicationManager manager = (ApplicationManager) etomoDirector
