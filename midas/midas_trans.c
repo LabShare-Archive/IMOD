@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/11/25 19:12:02  mast
+    Changes to get clean compile under g++
+
     Revision 3.3  2002/08/19 04:54:47  mast
     Added declaration for solve_for_shifts
 
@@ -411,21 +414,24 @@ static Islice *getXformSlice(struct Midas_view *vw, int zval, int *xformed)
      float *mat = vw->tr[zval].mat;
      *xformed = 1;
 
+     /* search cache for transformed slice.  Do this first so that the
+	transformed slice will always get shifted by fast translations */
+     for (k = 0; k < vw->cachesize; k++) {
+       /* If it's a match, mark as not transformed and return */
+       if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
+	 vw->cache[k].used = vw->usecount++;
+	 *xformed = 0;
+	 return (vw->cache[k].sec);
+       }
+     }
+     
      /* If it's a unit transformation, just return the raw slice and mark
 	as already transformed */
      if (mat[0] == 1.0 && mat[4] == 1.0 && mat[1] == 0.0 && mat[3] == 0.0 &&
 	 mat[6] < 0.0001 && mat[6] > -0.0001 && mat[7] < 0.0001 && 
-	 mat[7] > -0.0001)
-	  return (getRawSlice(vw, zval));
-
-     /* search cache for transformed slice */
-     for (k = 0; k < vw->cachesize; k++) {
-	  /* If it's a match, mark as not transformed and return */
-	  if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
-	       vw->cache[k].used = vw->usecount++;
-	       *xformed = 0;
-	       return (vw->cache[k].sec);
-	  }
+	 mat[7] > -0.0001) {
+       *xformed = -1;
+       return (getRawSlice(vw, zval));
      }
 
      /* Make sure the original slice is in cache before looking for oldest */
@@ -508,6 +514,11 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
      Islice *curSlice = midasGetSlice(vw, MIDAS_SLICE_CURRENT, &xfd);
 
      if (!curSlice) return(-1);
+
+     /* If slice is already transformed, return now */
+     if (xfd)
+       return 0;
+
      midasGetSize(vw, &xsize, &ysize);
      xysize = xsize * ysize;
 
