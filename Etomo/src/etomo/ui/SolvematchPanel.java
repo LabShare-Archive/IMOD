@@ -33,6 +33,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/15 21:37:16  rickg
+ * <p> Bug #383 Correct synchronization of solvematch sub-panel
+ * <p>
  * <p> Revision 3.2  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -60,7 +63,7 @@ public class SolvematchPanel implements InitialCombineFields {
     "Use matching models only");
 
   private JPanel pnlImodMatchModels = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
+  private JCheckBox cbBinBy2 = new JCheckBox("Load binned by 2");
   private MultiLineButton btnImodMatchModels = new MultiLineButton(
     "<html><b>Create Matching Models in 3dmod</b>");
   private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
@@ -69,7 +72,7 @@ public class SolvematchPanel implements InitialCombineFields {
     "Corresponding fiducial list B: ");
 
   private LabeledTextField ltfResidulThreshold = new LabeledTextField(
-    "Residual Threshold: ");
+    "Limit on maximum residual: ");
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private String parentTitle;
@@ -365,30 +368,26 @@ public class SolvematchPanel implements InitialCombineFields {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
-    text = "Select this option to find the shifts between volumes with "
-      + "cross-correlation, when there are fiducials distributed in Z.";
+    text = "Select this option when there are fiducials distributed in Z.";
     rbBothSides.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Select this option to find the shifts between volumes with "
-      + "cross-correlation, when the fiducials lie on one surface and the "
+    text = "Select this option when the fiducials lie on one surface and the "
       + "tomograms are not inverted in Z with respect to each other.";
     rbOneSide.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Select this option to find the shifts between volumes with "
-      + "cross-correlation, when the fiducials lie on one surface and the "
+    text = "Select this option when the fiducials lie on one surface and the "
       + "top of one tomogram in Z corresponds to the bottom of the other.";
     rbOneSideInverted.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Select this option to use models of corresponding points to find the "
-      + "shifts between volumes, which you would do if cross-correlation is "
-      + "likely to fail.";
+    text = "Select this option to use both fiducials and models of "
+        + "corresponding points to find the transformation between tomograms.";
     rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Select this option to use ONLY models of corresponding points to"
-      + "find the shifts between volumes.";
+    text = "Select this option to use ONLY models of corresponding points to "
+        + "find the transformation between tomograms.";
     rbUseModelOnly.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Using binning by 2 when opening matching models to allow the two 3dmods "
+    text = "Use binning by 2 when opening matching models to allow the two 3dmods "
       + "to fit into the computer's memory.";
     cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -406,6 +405,9 @@ public class SolvematchPanel implements InitialCombineFields {
       + "contour number.";
     ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(text)
       .format());
-
+    
+    text = "Maximum residual allowed when fitting a 3D transformation to the "
+        + "corresponding points.";
+    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
