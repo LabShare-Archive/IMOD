@@ -1,4 +1,4 @@
-#!/bin/csh -f
+#!/bin/tcsh -f
 #
 # Stub for self-extracting IMOD installer
 # Options are -extract to extract archive and installer without installing
@@ -73,7 +73,8 @@ set irix = `uname -s | grep IRIX`
 if ($status) then
     tar xzf $packname $version/$installer
 else
-    gzcat $packname | tar x $version/$installer
+    gzcat $packname | tar xf - $version/$installer
+    echo "(Ignore possible gzcat: unexpected end of file error)"
 endif
 
 if (! -e $version/$installer) then
@@ -89,7 +90,9 @@ if ($extract == 1) then
     exit 0
 endif
 
-if ($test == 0) csh $installer $packname
+# It has to be run by tcsh for Irix; there is some bug in csh
+
+if ($test == 0) tcsh $installer $packname
 
 echo " "
 echo "Cleaning up $packname and $installer"
@@ -106,6 +109,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/04/24 03:04:50  mast
+#  Add a blank line and use \mv
+#
 #  Revision 3.1  2004/04/24 01:03:32  mast
 #  Initial creation
 #
