@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/04/08 17:03:56  mast
+#  Changed to use a separate LIBCFLAGS variable
+#
 #  Revision 3.6  2003/12/30 17:28:54  mast
 #  changes for windows DLLs
 #
@@ -43,7 +46,7 @@ CFLAGS = $(LIBCFLAGS)
 IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
-	     ilist.$(O) ilabel.$(O) b3dutil.$(O)
+	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
 
