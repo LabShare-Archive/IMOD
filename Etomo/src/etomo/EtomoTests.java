@@ -11,8 +11,9 @@ import junit.framework.TestSuite;
 
 import java.util.Enumeration;
 
-import etomo.type.TypeTests;
 import etomo.comscript.ComScriptTests;
+import etomo.process.ProcessTests;
+import etomo.type.TypeTests;
 
 /**
  * @author sueh
@@ -44,6 +45,16 @@ public class EtomoTests {
         suite.addTest((Test) test);
       }
     }
+    
+    testSuite = (TestSuite) ProcessTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();   
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+
     
     return suite;
   }
