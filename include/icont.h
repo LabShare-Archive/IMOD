@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2005/03/20 19:55:48  mast
+Eliminating duplicate functions
+
 Revision 3.3  2005/01/30 17:45:02  mast
 changes arguments to imodel_overlap_fractions
 
@@ -197,7 +200,6 @@ int imodel_contour_centroid(struct Mod_Contour *icont, struct Mod_Point *rcp,
 			    double *rtw);
 int imodel_contour_newsurf(struct Mod_Object *obj, struct Mod_Contour *cont);
 int imodel_unused_surface(struct Mod_Object *obj);
-int imodel_contour_move(void);
 
 int imodel_contour_area(struct Mod_Contour *icont);
 
