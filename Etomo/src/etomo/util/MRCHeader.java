@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2002/10/03 03:58:46  rickg
+ * <p> Initial revision, in development
+ * <p>
  */
 public class MRCHeader {
   private String filename;
@@ -29,9 +32,9 @@ public class MRCHeader {
     filename = new String(name);
   }
 
-  public void read() throws IOException {
+  public void read() throws IOException, InvalidParameterException {
 
-    if (filename == null || filename == "") {
+    if (filename == null || filename.length() == 0) {
       throw new IOException("No filename specified");
     }
 
@@ -42,11 +45,12 @@ public class MRCHeader {
     // Throw an exception if the file can not be read
     String[] stdError = header.getStdError();
     if (stdError.length > 0) {
-      String message = "";
+      String message = "header returned an erorr:\n";
       for (int i = 0; i < stdError.length; i++) {
+
         message = message + stdError[i] + "\n";
       }
-      throw new IOException(message);
+      throw new InvalidParameterException(message);
     }
 
     // Parse the output
@@ -56,15 +60,16 @@ public class MRCHeader {
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
-      if (stdOutput[i].startsWith("Number of columns, rows, section")) {
+      //  Note the initial space in the string below
+      if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 4) {
           throw new IOException(
             "Header returned less than three parameters for image size");
         }
-        nRows = Integer.parseInt(tokens[1]);
-        nColumns = Integer.parseInt(tokens[2]);
-        nSections = Integer.parseInt(tokens[3]);
+        nRows = Integer.parseInt(tokens[7]);
+        nColumns = Integer.parseInt(tokens[8]);
+        nSections = Integer.parseInt(tokens[9]);
       }
     }
   }
