@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/30 23:45:21  rickg
+ * <p> Reformatted after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -40,7 +43,7 @@ public class SetupCombine {
     setupcombine = new SystemProgram("setupcombine");
     setupcombine.setWorkingDirectory(new File(metaData.getWorkingDirectory()));
 
-    String[] tempStdInput = new String[1];
+    String[] tempStdInput = new String[15];
 
     //  compile the input sequence to setupcombine
     int lineCount = 0;
@@ -95,6 +98,25 @@ public class SetupCombine {
       tempStdInput[lineCount++] = "s";
     }
 
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMax());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMax());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
+
+    tempStdInput[lineCount++] = combineParams.patchRegionModel;
+    
+    tempStdInput[lineCount++] = combineParams.tempDirectory;
+    if(! combineParams.tempDirectory.equals("")) {
+      if(combineParams.getManualCleanup()) {
+        tempStdInput[lineCount++] = "y";
+      }
+      else {
+        tempStdInput[lineCount++] = "n";
+      }
+    }
+      
     //
     //  Copy the temporary stdInput to the real stdInput to get the number
     //  of array elements correct
@@ -108,6 +130,7 @@ public class SetupCombine {
       System.out.println(stdInput[i]);
     }
     setupcombine.setStdInput(stdInput);
+
   }
 
   public int run() throws IOException {
