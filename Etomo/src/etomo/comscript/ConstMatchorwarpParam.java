@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/06 03:46:07  sueh
+ * <p> bug# 380 added useLinearInterpolation
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -62,6 +65,10 @@ public class ConstMatchorwarpParam {
    */
   public String getModelFile() {
     return modelFile;
+  }
+  
+  public boolean isUseModelFile() {
+    return !ParamUtilities.isEmpty(modelFile);
   }
 
   /**
