@@ -50,6 +50,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:03:36  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.28  2004/11/19 00:25:55  sueh
 * <p> bug# 520 Added equals function to check whether the screen fields have
 * <p> changed since meta data was updated.  Added equalsSample to check
@@ -260,6 +263,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   
   private int curTab;
   private int mode = JoinDialog.SETUP_MODE;
+  private boolean flipping = false;
 
   /**
    * Creates the panel and table.
@@ -631,7 +635,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     case JoinDialog.SETUP_MODE:
     case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
     case JoinDialog.CHANGING_SAMPLE_MODE:
-      btnAddSection.setEnabled(true);
+      if (!flipping) {
+        btnAddSection.setEnabled(true);
+      }
       break;
     default:
       throw new IllegalStateException("mode=" + mode);
@@ -699,7 +705,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   public void enableAddSection() {
-    btnAddSection.setEnabled(true);
+    flipping = false;
+    setMode();
   }
   
   public boolean equals(ConstJoinMetaData metaData) {
@@ -829,6 +836,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       if (!readHeader(header)) {
         return;
       }
+      flipping = true;
       btnAddSection.setEnabled(false);
       if (header.getNRows() < header.getNSections()) {
         //The tomogram may not be flipped
@@ -908,7 +916,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   void addSection(File tomogram) {
-    btnAddSection.setEnabled(true);
+    flipping = false;
+    setMode();
     if (!tomogram.exists()) {
       joinManager.getMainPanel().openMessageDialog(
           tomogram.getAbsolutePath() + " does not exist.", "File Error");
