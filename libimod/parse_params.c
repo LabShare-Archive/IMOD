@@ -12,6 +12,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2003/10/10 20:38:49  mast
+Made it count real arguments properly and had it eat \r from line ends
+for Windows
+
 Revision 3.7  2003/10/08 17:20:04  mast
 Changes to work with autodoc files
 
@@ -668,7 +672,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
       
       if (linePos + optLen + (lastOpt ? 0 : 3) > 72) {
-        fprintf(out, "'\/\/\n     &      '");
+        fprintf(out, "'//\n     &      '");
         linePos = 13;
       }
       fprintf(out, "%s:%s:%s:%s", sname, lname, optTable[i].type,
