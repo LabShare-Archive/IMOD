@@ -15,6 +15,9 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/01/05 00:02:20  sueh
+ * <p> bug# 567 added widths for integer pairs and triplets
+ * <p>
  * <p> Revision 3.2  2004/12/30 18:37:51  sueh
  * <p> bug# 567 Add a 25 pixel x spacing variable.
  * <p>
@@ -61,4 +64,5 @@ public class FixedDim {
   public final static int rowNumberWidth = 30;
   public final static int integerPairWidth = 60;
   public final static int integerTripletWidth = 90;
+  public final static int fourDigitWidth = 40;
 }
