@@ -19,6 +19,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/05 00:08:00  sueh
+ * <p> bug# 567 Added setTextPreferredWidth().
+ * <p>
  * <p> Revision 3.4  2004/11/19 23:57:15  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -158,23 +161,6 @@ public class LabeledTextField {
   
   public void addKeyListener(KeyListener listener) {
     textField.addKeyListener(listener);
-  }
-  
-
-  /**
-   * Set the absolute preferred size of the text field
-   * @param size
-   */
-  public void setTextPreferredSize(Dimension size) {
-    textField.setPreferredSize(size);
-  }
-
-  /**
-   * Set the absolute maximum size of the text field
-   * @param size
-   */
-  public void setTextMaxmimumSize(Dimension size) {
-    textField.setMaximumSize(size);
   }
   
   public void setTextPreferredWidth(double minWidth) {
