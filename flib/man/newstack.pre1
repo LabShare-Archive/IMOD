@@ -158,6 +158,13 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   10K if they are not being rotated much, but when images are rotated by large
   angles (30-90 degrees), input image size may be limited to 4K by 4K.
 
+  Each linear transformation in a transform file is specified by a line with 
+  six numbers:
+    A11 A12 A21 A22 DX DY
+  where the coordinate (X, Y) is transformed to (X', Y') by:
+    X' = A11 * X + A12 * Y + DX
+    Y' = A21 * X + A22 * Y + DY
+
 HHIISSTTOORRYY
 	
 	DNM (mast) for VAX    8/88

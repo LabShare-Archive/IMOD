@@ -109,6 +109,13 @@ DDEESSCCRRIIPPTTIIOONN
   prealignment transforms, undistorted, then re-transformed by the transforms
   specified by -xform.
 
+  Each linear transformation in a transform file is specified by a line with 
+  six numbers:
+    A11 A12 A21 A22 DX DY
+  where the coordinate (X, Y) is transformed to (X', Y') by:
+    X' = A11 * X + A12 * Y + DX
+    Y' = A21 * X + A22 * Y + DY
+
 OOPPTTIIOONNSS
   Xfmodel uses the PIP package for input (see the manual page for pip(1))
   and can take input interactively only for options available when the program
