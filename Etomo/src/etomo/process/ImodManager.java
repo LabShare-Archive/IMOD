@@ -21,6 +21,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.17  2003/08/25 22:18:50  rickg
+ * <p> Removed errant model opening for the tomogram where a matching
+ * <p> or patch region model had been previously opened
+ * <p>
  * <p> Revision 2.16  2003/08/05 21:20:17  rickg
  * <p> Implemented model and movie modes where appropriate
  * <p>
@@ -128,12 +132,11 @@ public class ImodManager {
   private ImodProcess fineAlignedB;
   private ImodProcess sampleA;
   private ImodProcess sampleB;
-  private ImodProcess tomogramA;
-  private ImodProcess tomogramB;
+  private ImodProcess fullVolumeA;
+  private ImodProcess fullVolumeB;
   private ImodProcess combinedTomogram;
   private ImodProcess patchVectorModel;
   private ImodProcess matchCheck;
-  private ImodProcess fullVolume;
   private ImodProcess trimmedVolume;
 
   private Thread fiducialModelA;
@@ -156,11 +159,9 @@ public class ImodManager {
       coarseAlignedA = new ImodProcess(datasetName + ".preali");
       fineAlignedA = new ImodProcess(datasetName + ".ali");
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
-      tomogramA = new ImodProcess(datasetName + ".rec");
-      tomogramA.setSwapYZ(true);
-      fullVolume = new ImodProcess("full.rec");
-      fullVolume.setSwapYZ(true);
-
+      fullVolumeA = new ImodProcess("full.rec");
+      fullVolumeA.setSwapYZ(true);
+      combinedTomogram = fullVolumeA;
     }
     else {
       rawStackA = new ImodProcess(datasetName + "a.st");
@@ -173,17 +174,16 @@ public class ImodManager {
       fineAlignedB = new ImodProcess(datasetName + "b.ali");
       sampleA = new ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
       sampleB = new ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
-      tomogramA = new ImodProcess(datasetName + "a.rec");
-      tomogramA.setSwapYZ(true);
-      tomogramB = new ImodProcess(datasetName + "b.rec");
-      tomogramB.setSwapYZ(true);
+      fullVolumeA = new ImodProcess(datasetName + "a.rec");
+      fullVolumeA.setSwapYZ(true);
+      fullVolumeB = new ImodProcess(datasetName + "b.rec");
+      fullVolumeB.setSwapYZ(true);
       combinedTomogram = new ImodProcess("sum.rec");
       combinedTomogram.setSwapYZ(true);
       patchVectorModel = new ImodProcess("patch_vector.mod");
       patchVectorModel.setModelView(true);
       matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
       matchCheck.setFillCache(true);
-      fullVolume = combinedTomogram;
     }
     trimmedVolume = new ImodProcess(datasetName + ".rec");
   }
@@ -436,14 +436,14 @@ public class ImodManager {
    * Open the specified tomogram in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
-  public void openTomogram(AxisID axisID)
+  public void openFullVolume(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    ImodProcess tomogram = selectTomogram(axisID);
+    ImodProcess fullVolume = selectFullVolume(axisID);
     // Remove any model references that may be left over from earlier matching
     // or patch region model instances
-    tomogram.setModelName("");
-    tomogram.open();
+    fullVolume.setModelName("");
+    fullVolume.open();
   }
 
   /**
@@ -452,13 +452,13 @@ public class ImodManager {
    */
   public void matchingModel(String datasetName)
     throws AxisTypeException, SystemProcessException {
-    tomogramA.open();
-    tomogramA.openModel(datasetName + "a.matmod");
-    tomogramA.modelMode();
-    
-    tomogramB.open();
-    tomogramB.openModel(datasetName + "b.matmod");
-    tomogramB.modelMode();
+    fullVolumeA.open();
+    fullVolumeA.openModel(datasetName + "a.matmod");
+    fullVolumeA.modelMode();
+
+    fullVolumeB.open();
+    fullVolumeB.openModel(datasetName + "b.matmod");
+    fullVolumeB.modelMode();
   }
 
   /**
@@ -469,14 +469,14 @@ public class ImodManager {
   public void patchRegionModel(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     if (axisID == AxisID.SECOND) {
-      tomogramB.open();
-      tomogramB.openModel("patch_region.mod");
-      tomogramB.modelMode();
+      fullVolumeB.open();
+      fullVolumeB.openModel("patch_region.mod");
+      fullVolumeB.modelMode();
     }
     else {
-      tomogramA.open();
-      tomogramA.openModel("patch_region.mod");
-      tomogramA.modelMode();
+      fullVolumeA.open();
+      fullVolumeA.openModel("patch_region.mod");
+      fullVolumeA.modelMode();
     }
   }
 
@@ -484,8 +484,8 @@ public class ImodManager {
    * Check to see if the specified tomogram is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isTomogramOpen(AxisID axisID) {
-    ImodProcess tomogram = selectTomogram(axisID);
+  public boolean isFullVolumeOpen(AxisID axisID) {
+    ImodProcess tomogram = selectFullVolume(axisID);
     if (tomogram == null) {
       return false;
     }
@@ -495,10 +495,10 @@ public class ImodManager {
   /**
    * Close the specified tomogram
    */
-  public void quitTomogram(AxisID axisID)
+  public void quitFullVolume(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    ImodProcess tomogram = selectTomogram(axisID);
+    ImodProcess tomogram = selectFullVolume(axisID);
     tomogram.quit();
   }
 
@@ -563,27 +563,6 @@ public class ImodManager {
    */
   public void quitMatchCheck() throws SystemProcessException {
     matchCheck.quit();
-  }
-
-  /**
-   * Open the full volume in 3dmod if it is not already open
-   */
-  public void openFullVolume() throws SystemProcessException {
-    fullVolume.open();
-  }
-
-  /**
-   * Check to see if the full volume is open
-   */
-  public boolean isFullVolume() {
-    return fullVolume.isRunning();
-  }
-
-  /**
-   * Close the full volume tomogram
-   */
-  public void quitFullVolume() throws SystemProcessException {
-    fullVolume.quit();
   }
 
   /**
@@ -655,11 +634,11 @@ public class ImodManager {
     return sampleA;
   }
 
-  private ImodProcess selectTomogram(AxisID axisID) {
+  private ImodProcess selectFullVolume(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return tomogramB;
+      return fullVolumeB;
     }
-    return tomogramA;
+    return fullVolumeA;
   }
 
 }
