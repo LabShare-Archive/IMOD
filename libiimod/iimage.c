@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/01/05 17:53:54  mast
+Changed imin/imax to smin/smax and initialized axis to 3
+
 Revision 3.2  2003/11/01 16:42:15  mast
 changed to use new error processing routine
 
@@ -136,7 +139,6 @@ int  iiReopen(ImodImageFile *inFile)
 int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
 {
   float range;
-  int black = 0, white = 255;
 
   /* DNM: only modify the existing smin, smax if incoming data is useful, and
      set the min and the max to 0, 255 if they are still equal */
@@ -151,17 +153,21 @@ int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
     inFile->smax = 255;
   }
 
+  /* DNM 1/7/04: do not modify smin/smax if complex scaling, just get it
+     right for the slope and offset 
+     Also, use new routine */
+  inMin = inFile->smin;
+  inMax = inFile->smax;
+
   /* DNM 2/16/01: set scaling properly for complex mode, the same as for
      full-file reads with mrc_read_byte */
-  if (inFile->format == IIFORMAT_COMPLEX) {
-    inFile->smin = log(1.0 + 5.0 * inFile->smin);
-    inFile->smax = log(1.0 + 5.0 * inFile->smax);
-  }
+  if (inFile->format == IIFORMAT_COMPLEX)
+    mrcComplexSminSmax(inMin, inMax, &inMin, &inMax);
 
-  range = inFile->smax - inFile->smin;
+  range = inMax - inMin;
   inFile->slope = 255.0 / range;
 
-  inFile->offset = -inFile->smin * inFile->slope;
+  inFile->offset = -inMin * inFile->slope;
 
   /* printf("iiSetMM %g %g -> %g %g\n",
      inMin, inMax, inFile->slope, inFile->offset); */
