@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.3  2003/09/08 22:23:37  rickg
  * <p> Limit percentage done to between 0 and 99
  * <p>
@@ -39,7 +43,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected ApplicationManager applicationManager;
   protected AxisID axisID;
   protected long processStartTime;
-  protected BufferedReader logFileBuffer;
+  protected BufferedReader logFileReader;
   protected int nSections;
   protected int currentSection;
   protected int remainingTime;
@@ -48,6 +52,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
+  protected File logFile;
 
   protected abstract void initializeProgressBar();
   protected abstract void getCurrentSection()
@@ -64,10 +69,16 @@ public abstract class LogFileProcessMonitor implements Runnable {
   }
 
   public void run() {
+    //  Instantiate the logFile object
+    logFile =
+      new File(
+        System.getProperty("user.dir"),
+        logFileBasename + axisID.getExtension() + ".log");
+
     boolean processRunning = true;
     try {
       //  Wait for the log file to exist
-      waitForLogFile(logFileBasename);
+      waitForLogFile();
       findNSections();
       initializeProgressBar();
 
@@ -77,7 +88,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
         calcRemainingTime();
         updateProgressBar();
       }
-
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -92,25 +102,27 @@ public abstract class LogFileProcessMonitor implements Runnable {
       e.printStackTrace();
     }
 
+    //  Close the log file reader
+    try {
+      Utilities.debugPrint(
+        "LogFileProcessMonitor: Closing the log file reader for "
+          + logFile.getAbsolutePath());
+      logFileReader.close();
+    }
+    catch (IOException e1) {
+      e1.printStackTrace();
+    }
     applicationManager.progressBarDone(axisID);
-
   }
 
   /**
    * Wait for the process to start and the appropriate log file to be created 
-   * @param logFileBasename
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile(String logFileBasename)
+  private void waitForLogFile()
     throws InterruptedException, FileNotFoundException {
 
     processStartTime = System.currentTimeMillis();
-
-    // Instantiate a new log file object
-    File logFile =
-      new File(
-        System.getProperty("user.dir"),
-        logFileBasename + axisID.getExtension() + ".log");
 
     boolean newLogFile = false;
     while (!newLogFile) {
@@ -124,7 +136,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
       }
     }
     //  Open the log file
-    logFileBuffer = new BufferedReader(new FileReader(logFile));
+    logFileReader = new BufferedReader(new FileReader(logFile));
   }
 
   /**
@@ -141,7 +153,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
       String line;
-      while ((line = logFileBuffer.readLine()) != null) {
+      while ((line = logFileReader.readLine()) != null) {
         if (line.startsWith(" Number of columns, rows, sections")) {
           String[] fields = line.split("\\s+");
           if (fields.length > 9) {
