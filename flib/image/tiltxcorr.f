@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/04/29 21:56:54  mast
+c	  Added automatic binning of images down to 1024 pixels.
+c	
 c	  Revision 3.2  2002/01/28 16:07:46  mast
 c	  Added declarations for implicit none
 c	
@@ -407,9 +410,18 @@ c
 	  streak=0.25*(stretch-1.0)*nxuse
 	  call peakfind(array,nxpad+2,nypad,xpeak,ypeak,radexcl,
      &	      rotangle, streak)
-	  call xfapply(fsinv,0.,0.,xpeak,ypeak,usdx,usdy)
+c
+c	    DNM 5/2/02: only destretch the shift if the current view was
+c	    stretched.  Also, put the right sign out in the standard output
+c
+	  if (idir.gt.0)then
+	    call xfapply(fsinv,0.,0.,xpeak,ypeak,usdx,usdy)
+	  else
+	    usdx=xpeak
+	    usdy=ypeak
+	  endif
 	  write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts',
-     &	      nbin*usdx,nbin*usdy
+     &	      idir*nbin*usdx,idir*nbin*usdy
 	  call flush(6)
 	  f(1,3,iview)=idir*nbin*usdx
 	  f(2,3,iview)=idir*nbin*usdy
