@@ -6,7 +6,7 @@ short = input
 long = InputFile
 type = FN
 usage = Input image file
-tooltip = 
+tooltip = Image file to correlate.
 manpage = 
 
 [Field = PieceListFile]
@@ -22,7 +22,7 @@ short = output
 long = OutputFile
 type = FN
 usage = Output file for transforms
-tooltip = 
+tooltip = Output file for transformations.
 manpage = 
 
 [Field = RotationAngle]
@@ -115,7 +115,8 @@ short = exclude
 long = ExcludeCentralPeak
 type = B
 usage = Exclude central correlation peak due to fixed pattern noise
-tooltip = 
+tooltip = Ignore correlation peaks near (0, 0); do not use unless necessary because
+nearly aligned images can become misaligned.
 manpage = Exclude central correlation peak due to fixed pattern noise in the
 images.  This option will misalign images that are already nearly aligned.
 
@@ -124,7 +125,7 @@ short = border
 long = BordersInXandY
 type = IP
 usage = Number of pixels to trim off each edge in X and in Y
-tooltip = 
+tooltip = Pixels to trim off each side in X, and in Y; or / to use whole image.
 manpage = Number of pixels to trim off each edge in X and in Y (the default is
 to use the whole image).
 
@@ -162,7 +163,7 @@ short = pad
 long = PadsInXandY
 type = IP
 usage = Number of pixels to pad images in X and in Y
-tooltip = 
+tooltip = Padding in X, and in Y; or / for 5% of the image size up to 20 pixels.
 manpage = Number of pixels to pad images in X and in Y.  The default is 5% of
 the image dimensions up to 20 pixels.
 
@@ -171,7 +172,7 @@ short = taper
 long = TapersInXandY
 type = IP
 usage = Number of pixels to taper images in X and in Y
-tooltip = 
+tooltip = Pixels to taper in X, and in Y; or / for 10% of the image size up to 100 pixels.
 manpage = Number of pixels to taper images in X and in Y.  The default
 is 10% of the image dimensions up to 100 pixels.
 
@@ -180,7 +181,7 @@ short = views
 long = StartingEndingViews
 type = IP
 usage = Starting and ending view numbers for doing a subset of views
-tooltip = 
+tooltip = Starting and ending view numbers to correlate, or / for all views.
 manpage = 
 
 [Field = CumulativeCorrelation]
