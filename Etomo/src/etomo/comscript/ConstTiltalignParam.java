@@ -74,6 +74,7 @@ public class ConstTiltalignParam implements Command {
   public static final String LOCAL_TILT_NONDEFAULT_GROUP_KEY = "LocalTiltNondefaultGroup";
   public static final String LOCAL_MAG_OPTION_KEY = "LocalMagOption";
   public static final String LOCAL_MAG_DEFAULT_GROUPING_KEY = "LocalMagDefaultGrouping";
+  public static final String LOCAL_MAG_NONDEFAULT_GROUP_KEY = "LocalMagNondefaultGroup";
   public static final String LOCAL_SKEW_OPTION_KEY = "LocalSkewOption";
   public static final String LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY = "LocalXStretchDefaultGrouping";
   public static final String LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY = "LocalXStretchNondefaultGroup";
@@ -95,7 +96,6 @@ public class ConstTiltalignParam implements Command {
   protected static final String firstTiltAngleShortString = "first";
   protected static final String tiltIncrementShortString = "increment";
   protected static final String tiltFileShortString = "tiltFile";
-  protected static final String localMagNondefaultGroupString = "LocalMagNondefaultGroup";
   protected static final String outputLocalFileString = "OutputLocalFile";
   protected static final String localOutputOptionsString = "LocalOutputOptions";
   
@@ -766,6 +766,9 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.14  2005/02/21 22:53:57  sueh
+ * <p> bug# 600 Making parameter string statics public.
+ * <p>
  * <p> Revision 3.13  2005/02/18 01:27:23  sueh
  * <p> bug# 600 Moving parameter names to public statics, so they can be used
  * <p> for tooltips.

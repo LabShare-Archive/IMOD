@@ -92,7 +92,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
           nondefaultGroupIntegerType);
       localTiltDefaultGrouping.parse(scriptCommand);
       localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, LOCAL_MAG_DEFAULT_GROUPING_KEY, nondefaultGroupSize,
+          scriptCommand, LOCAL_TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       magReferenceView.parse(scriptCommand);
       magOption.parse(scriptCommand);
@@ -104,7 +104,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       localMagOption.parse(scriptCommand);
       localMagDefaultGrouping.parse(scriptCommand);
       localMagNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          localMagNondefaultGroupString, nondefaultGroupSize,
+          LOCAL_MAG_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       xStretchOption.parse(scriptCommand);
       xStretchDefaultGrouping.parse(scriptCommand);
@@ -414,9 +414,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     ParamUtilities.updateScriptParameter(scriptCommand,
         LOCAL_ROT_NONDEFAULT_GROUP_KEY, localRotNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        LOCAL_MAG_DEFAULT_GROUPING_KEY, localTiltNondefaultGroup);
+        LOCAL_TILT_NONDEFAULT_GROUP_KEY, localTiltNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        localMagNondefaultGroupString, localMagNondefaultGroup);
+        LOCAL_MAG_NONDEFAULT_GROUP_KEY, localMagNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
         LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY, localXStretchNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
@@ -847,6 +847,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2005/02/21 22:57:18  sueh
+ * <p> bug# 600 Making parameter name statics public.
+ * <p>
  * <p> Revision 3.15  2005/02/18 01:27:38  sueh
  * <p> bug# 600 Moving parameter names to public statics, so they can be used
  * <p> for tooltips.

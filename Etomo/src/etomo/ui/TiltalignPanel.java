@@ -1546,7 +1546,7 @@ private void setToolTipText() {
     ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY)).format());
     cbLocalMagnification.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_OPTION_KEY)).format());
     ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_NONDEFAULT_GROUP_KEY)).format());
     
     text = "Do not solve for local distortions in the plane of section.";
     rbLocalDistortionDisabled.setToolTipText(tooltipFormatter.setText(text)
@@ -1579,6 +1579,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2005/02/21 23:05:04  sueh
+ * <p> bug# 600 Making ConstTiltalignParam parameter name statics public.
+ * <p>
  * <p> Revision 3.20  2005/02/18 01:29:32  sueh
  * <p> bug# 600 Using parameter names from TiltalignParam.
  * <p>
