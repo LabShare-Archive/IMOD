@@ -46,6 +46,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/12/02 20:41:30  sueh
+ * <p> bug# 566 Added Join Guide menu item.
+ * <p>
  * <p> Revision 3.13  2004/11/19 23:58:35  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -558,7 +561,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       mainPanel.setDividerLocation(.5);
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
-      mainPanel.fitWindow();
+      mainPanel.fitWindow(true);
     }
   }
 
