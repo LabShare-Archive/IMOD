@@ -1,4 +1,7 @@
 package etomo.comscript;
+
+import java.util.ArrayList;
+
 /**
  * <p>Description: </p>
  *
@@ -12,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/23 21:26:32  rickg
+ * <p> Implemented radial filter parameters
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -34,22 +40,24 @@ public class ConstTiltParam {
 
   protected String outputFile = "";
 
-  protected String angles = "";
+  protected ArrayList angles = new ArrayList();
   protected boolean useAngles = false;
 
-  protected String compressionFraction = "";
+  protected double compressionFraction;
   protected boolean useCompressionFraction = false;
 
-  protected String compression = "";
+  protected double compression;
   protected boolean useCompression = false;
 
-  protected String cosInterpOrder = "";
-  protected boolean useCosInterpOrder = false;
+  protected int cosInterpOrder;
+  protected double cosInterpFactor;
+  protected boolean useCosInterp = false;
 
-  protected String densityWeight = "";
+  protected String densityWeightNadjacent = "";
+  protected ArrayList densityWeights = new ArrayList();
   protected boolean useDensityWeight = false;
 
-  protected String exclude = "";
+  protected ArrayList exclude = new ArrayList();
   protected boolean useExclude = false;
 
   protected StringList excludeList = new StringList(0);
@@ -58,10 +66,11 @@ public class ConstTiltParam {
   protected int fastBackProjInterpOrder;
   protected boolean useFastBackProjInterpOrder = false;
 
-  protected String fullImage = "";
+  protected int fullImageX;
+  protected int fullImageY;
   protected boolean useFullImage = false;
 
-  protected String include = "";
+  protected ArrayList include = new ArrayList();
   protected boolean useInclude = false;
 
   protected String localAlignFile = "";
@@ -79,7 +88,8 @@ public class ConstTiltParam {
   protected int mode;
   protected boolean useMode = false;
 
-  protected String offset = "";
+  protected double offsetAngle;
+  protected double offsetX;
   protected boolean useOffset = false;
 
   protected boolean parallel = false;
@@ -92,16 +102,25 @@ public class ConstTiltParam {
   protected double radialFalloff = 0.0;
   protected boolean useRadialWeightingFunction = false;
 
-  protected String scale = "";
+  protected int  nReplicate;
+  protected int  incReplicate;
+  protected boolean useReplicate = false;
+  
+  protected double scaleFLevel;
+  protected double scaleCoeff;
   protected boolean useScale = false;
 
-  protected String shift = "";
+  protected double xOffset;
+  protected double zOffset;
   protected boolean useShift = false;
 
-  protected String slice = "";
+  protected int idxSliceStart;
+  protected int idxSliceStop;
+  protected int idxSliceIncr;
   protected boolean useSlice = false;
 
-  protected String subsetStart = "";
+  protected int idxXSubsetStart;
+  protected int idxYSubsetStart;
   protected boolean useSubsetStart = false;
 
   protected int thickness;
@@ -122,8 +141,8 @@ public class ConstTiltParam {
   protected String xTiltFile = "";
   protected boolean useXTiltFile = false;
 
-  protected int xTiltOrder;
-  protected boolean useXTiltORder = false;
+  protected int xTiltInterp;
+  protected boolean useXTiltInterp = false;
 
   public String getInputFile() {
     return inputFile;
@@ -159,14 +178,6 @@ public class ConstTiltParam {
 
   public double getRadialBandwidth() {
     return radialBandwidth;
-  }
-
-  public String getSubsetStart() {
-    return subsetStart;
-  }
-
-  public String getScale() {
-    return scale;
   }
 
   public int getThickness() {
