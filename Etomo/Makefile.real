@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.4  2003/10/31 17:19:38  mast
+# *** empty log message ***
+#
 # Revision 2.3  2003/10/29 16:22:23  sueh
 # added automatic testing during build
 #
@@ -80,9 +83,8 @@ install: $(JAR_FILE)
 	chmod 755 scripts/etomo
 	$(CP) scripts/etomo $(INSTBINDIR)
 
-
 tests: testjarfile
-	java -classpath $(TESTPATH):$(TEST_JAR_FILE) junit.textui.TestRunner etomo.EtomoTests
+	java -classpath $(TESTPATH):$(TEST_JAR_FILE) -Djava.awt.headless=true junit.textui.TestRunner etomo.EtomoTests
 	echo "Make tests completed"
 
 javadocs:
