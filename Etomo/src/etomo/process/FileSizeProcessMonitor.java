@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/07/01 22:55:02  rickg
+ * <p> Added starting text to progress for slow startup scripts
+ * <p>
  * <p> Revision 1.2  2003/07/01 19:26:30  rickg
  * <p> Changed all sizes to k bytes
  * <p> Change round to floor to prevent 1:60 times
@@ -144,7 +147,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       try {
         Thread.sleep(updatePeriod);
       }
-      catch (InterruptedException exceptio) {
+      catch (InterruptedException exception) {
         fileWriting = false;
       }
     }
