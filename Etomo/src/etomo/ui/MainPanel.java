@@ -9,6 +9,7 @@ import java.awt.HeadlessException;
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -36,6 +37,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2005/04/01 00:14:07  sueh
+ * <p> bug# 622 Trying to get packAxis() to work with divider removed on A only
+ * <p> and B only.  Problem with wide window not solved.
+ * <p>
  * <p> Revision 1.13  2005/03/30 23:45:19  sueh
  * <p> bug# 622 Adding show functions to remove and restore the divider when
  * <p> showing Axis A, B, or both.
@@ -142,6 +147,9 @@ public abstract class MainPanel extends JPanel {
   protected JLabel statusBar = new JLabel("No data set loaded");
 
   protected JPanel panelCenter = new JPanel();
+  protected ScrollPanel scroll;
+  protected JScrollPane scrollPane;
+  protected JPanel axisPanel = new JPanel();
   
   //  These panels get instantiated as needed
   protected ScrollPanel scrollA;
@@ -173,6 +181,8 @@ public abstract class MainPanel extends JPanel {
   protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
   protected abstract DataFileFilter getDataFileFilter();
   public abstract void saveDisplayState();
+  protected abstract AxisProcessPanel getAxisPanelA();
+  protected abstract AxisProcessPanel getAxisPanelB();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -196,6 +206,7 @@ public abstract class MainPanel extends JPanel {
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
+    axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
 
   /**
@@ -322,53 +333,78 @@ public abstract class MainPanel extends JPanel {
     resetAxisPanels();
 
     panelCenter.removeAll();
-    if (axisType == AxisType.SINGLE_AXIS) {
-      createAxisPanelA(AxisID.ONLY);
-      scrollA = new ScrollPanel();
-      addAxisPanelA();
-      scrollPaneA = new JScrollPane(scrollA);
-      panelCenter.add(scrollPaneA);
+    if (!EtomoDirector.getInstance().isNewStuff()) {
+      if (axisType == AxisType.SINGLE_AXIS) {
+        createAxisPanelA(AxisID.ONLY);
+        scrollA = new ScrollPanel();
+        addAxisPanelA();
+        scrollPaneA = new JScrollPane(scrollA);
+        panelCenter.add(scrollPaneA);
+      }
+      else {
+        createAxisPanelA(AxisID.FIRST);
+        scrollA = new ScrollPanel();
+        addAxisPanelA();
+        scrollPaneA = new JScrollPane(scrollA);
+
+        createAxisPanelB();
+        scrollB = new ScrollPanel();
+        addAxisPanelB();
+        scrollPaneB = new JScrollPane(scrollB);
+
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
+            scrollPaneB);
+        splitPane.setDividerLocation(0.5);
+        splitPane.setOneTouchExpandable(true);
+        panelCenter.add(splitPane);
+      }
     }
     else {
-      createAxisPanelA(AxisID.FIRST);
-      scrollA = new ScrollPanel();
-      addAxisPanelA();
-      scrollPaneA = new JScrollPane(scrollA);
-
-      createAxisPanelB();
-      scrollB = new ScrollPanel();
-      addAxisPanelB();
-      scrollPaneB = new JScrollPane(scrollB);
-      splitPane =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-      splitPane.setDividerLocation(0.5);
-      splitPane.setOneTouchExpandable(true);
-      panelCenter.add(splitPane);
+      if (axisType == AxisType.SINGLE_AXIS) {
+        createAxisPanelA(AxisID.ONLY);
+        axisPanel.add(getAxisPanelA().getContainer());
+      }
+      else {
+        createAxisPanelA(AxisID.FIRST);
+        createAxisPanelB();
+        axisPanel.add(getAxisPanelA().getContainer());
+        axisPanel.add(Box.createRigidArea(FixedDim.x10_y0));
+        axisPanel.add(getAxisPanelB().getContainer());
+      }
+      scroll = new ScrollPanel();
+      scroll.add(axisPanel);
+      scrollPane = new JScrollPane(scroll);
+      panelCenter.add(scrollPane);
     }
   }
   
   void showBothAxis() {
     showingBothAxis = true;
-    panelCenter.removeAll();
-    splitPane =
+    axisPanel.removeAll();
+    /*splitPane =
       new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
     splitPane.setDividerLocation(0.5);
     splitPane.setOneTouchExpandable(true);
-    panelCenter.add(splitPane);
+    panelCenter.add(splitPane);*/
+    axisPanel.add(getAxisPanelA().getContainer());
+    axisPanel.add(Box.createRigidArea(FixedDim.x10_y0));
+    axisPanel.add(getAxisPanelB().getContainer());
     fitWindow(true);
   }
   
   void showAxisA() {
     showingBothAxis = false;
-    panelCenter.removeAll();
-    panelCenter.add(scrollPaneA);
+    axisPanel.removeAll();
+    //panelCenter.add(scrollPaneA);
+    axisPanel.add(getAxisPanelA().getContainer());
     fitWindow(true);
   }
   
   void showAxisB() {
     showingBothAxis = false;
-    panelCenter.removeAll();
-    panelCenter.add(scrollPaneB);
+    axisPanel.removeAll();
+    //panelCenter.add(scrollPaneB);
+    axisPanel.add(getAxisPanelB().getContainer());
     fitWindow(true);
   }
   
@@ -383,7 +419,7 @@ public abstract class MainPanel extends JPanel {
       return;
     }
     EtomoDirector.getInstance().getMainFrame().pack();
-    if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
+    /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
       splitPane.resetToPreferredSizes();
       
       //handle bug in Windows where divider goes all the way to the left
@@ -392,7 +428,7 @@ public abstract class MainPanel extends JPanel {
         setDividerLocation(.8); //.8 currently works.  Adjust as needed.
         splitPane.resetToPreferredSizes();
       }
-    }
+    }*/
   }
   
   protected void packAxisOld() {
