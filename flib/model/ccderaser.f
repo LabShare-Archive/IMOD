@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/06/20 20:20:29  mast
+c	  Renamed two options
+c	
 c	  Revision 3.6  2003/06/11 20:36:57  mast
 c	  Reorganize and rename a few options
 c	
@@ -83,48 +86,55 @@ c
 	integer numOptions
 	parameter (numOptions = 22)
 	character*80 options(numOptions)
-	data options/
-     &	    'input:InputFile:FN:Input image file',
-     &	    'output:OutputFile:FN:Output image file',
-     &	    'find:FindPeaks:B:Find peaks a criterion # of SDs above'//
-     &	    ' or below background',
-     &	    'peak:PeakCriterion:F:Criterion # of SDs above local '//
-     &	    'mean for erasing peak',
-     &	    'diff:DiffCriterion:F:Criterion # of SDs above mean '//
-     &	    'pixel-to-pixel difference',
-     &	    'grow:GrowCriterion:F:Criterion # of SDs above mean for '//
-     &	    'adding points to peak',
-     &	    'scan:ScanCriterion:F:Criterion # of SDs for picking'//
-     &	    ' peaks in initial scan',
-     &	    'radius:MaximumRadius:F:Maximum radius of peak area to erase',
-     &	    'outer:OuterRadius:F:Outer radius of annulus to calculate'//
-     &	    ' local mean and SD in',
-     &	    'xyscan:XYScanSize:I:Size of regions to compute mean and SD '//
-     &	    'in for initial scans',
-     &	    'edge:EdgeExclusionWidth:I:Width of area to exclude on all'//
-     &	    ' edges of image',
-     &	    'points:PointModel:FN:Output model file with points '//
-     &	    'replaced in peak search',
-     &	    'model:ModelFile:FN:Model file with points or lines to '//
-     &	    'be erased',
-     &	    'lines:LineObjects:LI:Objects that define lines to be '//
-     &	    'replaced',
-     &	    'allsec:AllSectionObjects:LI:Objects with points to be '//
-     &	    'replaced on all sections',
-     &	    'border:BorderSize:I:Size of border around points in patch',
-     &	    'order:PolynomialOrder:I:Order of polynomial to fit to '//
-     &	    'border points',
-     &	    'exclude:ExcludeAdjacent:B:Exclude points adjacent to '//
-     &	    'patch points from the fit',
-     &	    'trial:TrialMode:B:Analyze without writing output file',
-     &	    'verbose::B:Print details on patches being replaced',
-     &	    'param:ParameterFile:PF:Read parameter entries from file',
-     &	    'help:usage:B:Print help output'/
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
 	integer*4 PipGetNonOptionArg, PipPrintHelp
+        options(1) = 'input:InputFile:FN:'//
+     &	    'Input image file'
+        options(2) = 'output:OutputFile:FN:'//
+     &	    'Output image file'
+        options(3) = 'find:FindPeaks:B:'//
+     &	    'Find peaks a criterion # of SDs above or below background'
+        options(4) = 'peak:PeakCriterion:F:'//
+     &	    'Criterion # of SDs above local mean for erasing peak'
+        options(5) = 'diff:DiffCriterion:F:'//
+     &	    'Criterion # of SDs above mean pixel-to-pixel difference'
+        options(6) = 'grow:GrowCriterion:F:'//
+     &	    'Criterion # of SDs above mean for adding points to peak'
+        options(7) = 'scan:ScanCriterion:F:'//
+     &	    'Criterion # of SDs for picking peaks in initial scan'
+        options(8) = 'radius:MaximumRadius:F:'//
+     &	    'Maximum radius of peak area to erase'
+        options(9) = 'outer:OuterRadius:F:'//
+     &	    'Outer radius of annulus to calculate local mean and SD in'
+        options(10) = 'xyscan:XYScanSize:I:'//
+     &	    'Size of regions to compute mean and SD in for initial scans'
+        options(11) = 'edge:EdgeExclusionWidth:I:'//
+     &	    'Width of area to exclude on all edges of image'
+        options(12) = 'points:PointModel:FN:'//
+     &	    'Output model file with points replaced in peak search'
+        options(13) = 'model:ModelFile:FN:'//
+     &	    'Model file with points or lines to be erased'
+        options(14) = 'lines:LineObjects:LI:'//
+     &	    'Objects that define lines to be replaced'
+        options(15) = 'allsec:AllSectionObjects:LI:'//
+     &	    'Objects with points to be replaced on all sections'
+        options(16) = 'border:BorderSize:I:'//
+     &	    'Size of border around points in patch'
+        options(17) = 'order:PolynomialOrder:I:'//
+     &	    'Order of polynomial to fit to border points'
+        options(18) = 'exclude:ExcludeAdjacent:B:'//
+     &	    'Exclude points adjacent to patch points from the fit'
+        options(19) = 'trial:TrialMode:B:'//
+     &	    'Analyze without writing output file'
+        options(20) = 'verbose::B:'//
+     &	    'Print details on patches being replaced'
+        options(21) = 'param:ParameterFile:PF:'//
+     &	    'Read parameter entries from file'
+        options(22) = 'help:usage:B:'//
+     &	    'Print help output'
 c	  
 c	  Set all defaults here
 c
@@ -449,8 +459,8 @@ c
      &	      nEdgePixels, critMain, critDiff, critGrow, critScan,
      &	      radiusMax, outerRadius, nborder,iorder,ifincadj, ixfix,
      &	      iyfix, limpatch,numPatch,numPixels,ifVerbose,
-     &	      numPtOut, numPatchOut, indPatch, exceedCrit, limpatchout, ixout,
-     &	      iyout, izout, limptout)
+     &	      numPtOut, numPatchOut, indPatch, exceedCrit, limpatchout,
+     &	      ixout, iyout, izout, limptout)
 	  if (numPatch .gt. 0)write(*,102)numPixels,numPatch
 102	  format(i5,' pixels replaced in',i4,' peaks -',$)
 
@@ -515,10 +525,10 @@ c       encode(80,109,title)
 105	  format('In the output model, contours have been sorted into',i3,
      &	      ' objects based on how',/,
      &	      ' much a peak exceeds the criterion.',/,
-     &	      ' Object 1 has peaks that exceed the criterion by < 1 SD,',/,
-     &	      ' object 2 has peaks that exceed the criterion by 1 - 2 SDs,',/,
-     &	      ' object',i2,' has peaks that exceed the criterion by >',i2,
-     &	      ' SDs')
+     &	      ' Object 1 has peaks that exceed the criterion by < 1 SD,'
+     &	      ,/, ' object 2 has peaks that exceed the criterion by ',
+     &	      '1 - 2 SDs,',/, ' object ',i2,
+     &	      ' has peaks that exceed the criterion by >',i2, ' SDs')
 	endif
 
 	call exit(0)
@@ -906,7 +916,8 @@ c	  places the result in diffArr using the offsets in ixofs, iyofs
 c	  and returns the mean and standard deviation of the differences
 c
 	subroutine compute_diffs(array, nx, ny, diffArr, ixdim, iydim,
-     &	    ixStart, ixEnd, iyStart, iyEnd, ixofs, iyofs, diffAvg, diffSd)
+     &	    ixStart, ixEnd, iyStart, iyEnd, ixofs, iyofs, diffAvg,
+     &	    diffSd)
 	implicit none
 	integer*4 nx, ny,ixdim, iydim,ixStart, ixEnd, iyStart, iyEnd
 	real*4 array(nx,ny), diffArr(ixdim,iydim), diffAvg, diffSd
