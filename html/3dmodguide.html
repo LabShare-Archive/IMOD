@@ -540,7 +540,7 @@ views in other windows (including other Slicers).  Second, it allows
 you to model in the slicer without having the slice jump around.
 Third, it prevents the slow drawing in the slicer from slowing down
 the program when you want to work in or movie through other windows.
-<LI>The image thickness spin box lets you display a slicer thicker
+<LI>The image thickness spin box lets you display a slice thicker
 than 1 pixel thick.  The Slicer computes a projection through the
 number of slices that you select, effectively averaging those slices.
 <LI>The model thickness spin box lets you control the thickness of the
@@ -684,90 +684,84 @@ for that object must be recalculated in order for it to match
 the contour data.
 The <A HREF="man/imodmesh.html">imodmesh</A> program must be used
 to calculate the mesh from the contour data within a model
-since the skinning calculation cannot be done in real time with
-current computer processing.
-
+since the skinning calculation can take many seconds for large objects.
 <P>
-Here are some example uses of imodmesh, assuming that the model file is titled
-cell.imod.
+To skin the example model, this command was used:
+<br><code>imodmesh -C -t 1 -d 10 example.mod</code>
+<P>
+By default, imodmesh will construct meshes only between pairs of
+contours, which will leave holes at the top and the bottom of a closed
+contour object because
+there is nothing to connect the highest and lowest contours to.
+The "-C" option tells imodmesh to fill in these holes
+or "Cap" them off.
+<P>
+In the model view on the right, the lines of the microtubules appear
+as tubes because imodmesh created cylindical meshes around them.  It
+did this because of the
+"-t" option, which is followed by a list of open contour object numbers
+that should be given tubular meshes
+(here, just object 1).  The "-d" option is then used to specify the
+diameter of the tubes, in pixels (10).
 <p>
-All meshes by default have a hole at the top and bottom of the data;
-the program cannot know a priori if the hole should be there or not.
-The -C in the command below tells imodmesh to fill in the holes at
-the ends or "Cap" them off.
-<br><code>imodmesh -C cell.imod</code>
+It is easy to lose your meshed model if you are modeling in 3dmod,
+save the model, run imodmesh, look at the meshed model with 3dmodv,
+then continue modeling in 3dmod and save the unmeshed model again.
+There are two ways to
+avoid this problem.  You can exit from 3dmod before you run imodmesh, so
+that you will be working with the meshed model when you
+start 3dmod again.  Or, after running imodmesh, be sure to read the
+meshed model back into 3dmod with the Open Model entry in the File menu.
 <p>
 Sometimes the mesh data structure can get so large that interactive
-viewing is very slow.  The -r or -R options can be used to make a mesh
-with a lower resolution.  In the example here, points on the mesh
-will be no less than 20 pixels apart.
-<br><code>imodmesh -C -r 20 cell.imod</code>
+viewing is very slow.  There are two ways to make a mesh with a lower
+resolution, the "-R" option to skip points within contours and
+the and "-i" option to skip Z levels.  With "-R", imodmesh will skip
+points that are within a certain distance of the line 
+segments between the remaining points, thus preserving the shape of
+curves.  For example,
+<br><code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
+<br>
+Here, a new mesh is created only for object 4 (-o 4), and
+points will
+be skipped, but the surface defined by the mesh will always be within 0.75
+pixel of the original data (-R 0.75).  In addition, the "-i 2" makes
+imodmesh connect every other Z plane (i.e., at intervals of 2 in Z),
+reducing the mesh size by 2.
+<p>Each time you run imodmesh, the existing file is saved as a backup file
+with a "~" added to its name.  You can also erase all of the mesh data
+from your model using the "-e" option to imodmesh.
 <p>
-The -R option can give a more faithful rendition of a complex object because it
-removes only points that are within a certain distance of the remaining line 
-segments, thus preserving the shape of curves.  In this example, points will
-be removed, but the surface defined by the mesh will always be within 0.75
-pixel of the original data.
-<br><code>imodmesh -C -R 0.75 cell.imod</code>
-<p>If you make a mistake, don't worry, a backup file called
-cell.imod~ was made.  You can also erase all of the mesh data by
-using this last example.
-<br><code>imodmesh -e cell.imod</code>
-
-
-<DD> <H4>Quantitative Information.</H4>
-In order to get accurate information the fields in the model header
-have to be set properly.  To adjust the fields in the model header
-select the Model Header menu item from Edit menu in the
-3dmod <A HREF ="#Information Window">Information Window</A>.
-The model edit dialog will pop up.  The "Z-Scale" and the
-"Pixel Size" fields will be used for calculating length, surface area
+Imodmesh also has an option (-l) to store a low resolution mesh alongside a
+regular mesh, so that a big model can be manipulated rapidly in
+low-resolution mode then switched to high-resolution mode for studying details.
+Other commonly needed options are -s and -P to connect contours across
+gaps; see the <A HREF="man/imodmesh.html">imodmesh</A> man page for details.
+<P>
+<DD> <H4>Setting Z-scale and Pixel Size.</H4>
+In order for your model to look right in 3D, you may need to set a property
+called the "Z-scale" correctly.  Both the Z-scale and the pixel size
+must be set to get accurate quantitative information about the model,
+because these values are used for calculating length, surface area
 or volume from object, contour or mesh data.
-
-The Pixel Size field should contain the value that describes the
-dimensions used in digitizing an image along with the units.
-Units can be one of the following; nm, um, mm, m, km.  For example,
-you could enter "0.015 um" or "15 nm".
+To adjust these fields in the model header
+select the Model Header menu item from the Edit menu in the
+3dmod <A HREF ="#Information Window">Information Window</A>.
+<P>
 The Z-Scale is the ratio of the thickness between successive images
-to the Pixel Size.
+to the pixel size.  Its two most common uses are to adjust for
+section thickness in serial section reconstructions and section
+thinning
+in tomography.  For serial sections, divide the section thickness in
+nanometers by the pixel size at which the data were digitized, again
+in nanometers.  For tomograms, divide the original thickness at which
+the section was cut on the microtome (in nanometers) by the actual thickness of
+material in the tomogram (pixels of material times pixel size in nanometers).
+<P>
+The Pixel Size field should contain both a value for the size of the
+pixel in the digitized data, and the units for that value.
+Units can be one of the following; A, nm, um, mm, m, km.  For example,
+you could enter "0.015 um" or "15 nm".
 
-<p>
-Selecting the Edit->Object->Info or Edit->Contour->Info menu item from
-the 3dmod <A HREF ="#Information Window">Information Window</A> will
-cause the quantitative information to be printed out in the bottom
-panel of the 3dmod <A HREF ="#Information Window">Information Window</A>.
-
-<p>
-Use the 
-<A HREF="man/imodinfo.html">imodinfo</a> command to get basic information
-from a model and print it out to a terminal or file.
-<br><code>
-imodinfo cell.imod
-</code>
-<pre>
-# MODEL cell.imod
-# NAME  A little cell
-# PIX SCALE:  x = 1
-#             y = 1
-#             z = 9.17
-# PIX SIZE      = 0.00654
-# UNITS: um
-
-OBJECT 1
-NAME:  spindle pole
-       5 contours
-       object uses closed contours.
-       color (red, green, blue) = (0, 1, 1)
-
-       	CONTOUR #1,2,0  16 points, length = 0.464513,  area = 0.0134249
-        CONTOUR #2,2,0  14 points, length = 0.458311,  area = 0.0125642
-        CONTOUR #3,2,0  8 points,  length = 0.200755,  area = 0.00277481
-        CONTOUR #4,2,0  13 points, length = 0.313501,  area = 0.00664029
-        CONTOUR #5,2,0  9 points,  length = 0.232374,  area = 0.00272134
-
-        Total volume = 0.00228646
-        Total contour cylinder surface area = 0.10012.
-        Total mesh surface area = 0.0349499.
-</pre>
-</DD>
-<p>
+</body>
+</html>

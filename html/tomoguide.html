@@ -75,21 +75,20 @@ insert the lines:
   ...
   $label:                 (This must be on a line by itself)
 </PRE>
-     The program Vmstocsh converts a command file to a script that can be run
-by the C shell, csh.  To run command files, put the following entry in your
-.cshrc file if it is not already in the setup procedures that allow you to
-run IMOD programs:
-<BR><CODE>     alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo ^G&'
+You can run a command file with the "subm" alias, which is defined in the
+IMOD startup files:
+<BR><CODE>     alias subm 'submbg \!* &'
 <BR></CODE>
- The ^G should be a CTRL-G to get a bell when the command file finishes.  You
-could add "\!^ finished", (without the "") before the ^G to get a message
-also.  With this alias, you can say, e.g., "subm track", and a file named
+(An equivalent function is provided for bash users.)  Submbg is a shell script
+that will run one or more command
+files in sequence, creating a log file for each and reporting on their
+success or failure.  It uses the program Vmstocsh to
+converts a command file to a script that can be run
+by the C shell, csh.
+With this alias, you can enter, e.g., "subm track", and a file named
 track.com will be executed in the background, a log file will be created
 called track.log, and the bell will ring when the command file is completed.
-You can also enter "subm track." or "subm track.com".
-<P>
-     The -ef flag after csh in the alias is important to make a command file
-stop executing if one of the programs that it runs generates an error.
+You can also enter "subm track." or "subm xcorr.com prenewst".
 <P>
      If you need to interrupt a command file after you have started it, bring
 it to the foreground with "fg", then used CTRL-C to interrupt it.  If there is
@@ -187,7 +186,7 @@ after lists.
 </H4></A>
 You need to distinguish three numbering systems:
 <OL>
-<LI>The "section number" of a view is its physical location in file,
+<LI>The "section number" of a view is its physical location in the file,
 numbered from zero.  It is used when referring to sections in SerialEM or
 <A HREF = "man/newstack.html">Newstack</A>.
 
@@ -231,7 +230,7 @@ confirmation.
 2.1. Film versus CCD Images
 </H4></A>
      Some of the programs make a distinction between images from film and ones
-acquired on a CCD camera.  This is based on a virtually obsolete method of
+acquired on a CCD camera.  This is based on an obsolete method of
 digitizing from film, in which tilt images were already in good translational
 and rotational alignment after being digitized.  In general, if your images
 are already in fairly good alignment, treat them as data from "film"; whereas
@@ -410,7 +409,7 @@ model for a while).
 stack with Dm2mrc.
 <P>
      2) If there are extreme low or high values in your data file which ruin
-the contrast when you read the images into imod, you should wipe them out with
+the contrast when you read the images into 3dmod, you should wipe them out with
 <A HREF = "man/ccderaser.html">Ccderaser</A>,
  which is run by eraser.com.  See the man page for Ccderaser for
 details on how to specify the pixels to erase in a model file, which should be
@@ -529,7 +528,7 @@ turn in
 4.1. Getting a Fiducial Model
 </A></H4>
      The first step is to set up a seed model.  Run
- <A HREF = "man/imod.html">Imod</A> on the stack
+ <A HREF = "man/3dmod.html">3dmod</A> on the stack
 and pick a view near zero tilt that has good images of the
 beads.  Put one point exactly in the center of each desired bead (zoom up to 3
 or 4 to do this accurately).  Each bead should be in a separate contour;
@@ -589,7 +588,7 @@ could not be tracked completely.  To see this, use
  If several beads fail to track past a particular view, you might want to
 add that view to the list of views to be skipped and rerun the tracking.
 <P>
-     At this point, read the new model into <A HREF = "man/imod.html">Imod</A>
+     At this point, read the new model into <A HREF = "man/3dmod.html">3dmod</A>
 and activate the Bead Fixer
 plugin under the "Special" menu.  This will allow you to jump from one gap in
 the data to the next and fill in missing points if appropriate.  It is
@@ -629,7 +628,7 @@ rotational alignment between the two series manually with
 <A HREF = "man/midas.html">Midas</A>.  Do this with the command:
 <BR><CODE>    transferfid -m setname </CODE><BR>
 If the operation still fails, you
-can run <A HREF = "man/imod.html">Imod</A>
+can run <A HREF = "man/3dmod.html">3dmod</A>
  on both stacks at once and add some initial points to the second seed
 model in the same order that they occur in the first seed model.  It
 is helpful to open one of the images in the Slicer window and rotate
@@ -952,7 +951,7 @@ align.com (be sure not to have any spaces in the list).
 </OL>
 <P>
      Examine the tomogram piece in cross-section with 
-<A HREF = "man/imod.html">Imod</A>.  You will see that
+<A HREF = "man/3dmod.html">3dmod</A>.  You will see that
 you need to shift the section up or down.  If you can't see both surfaces of
 the section, either rerun <A HREF = "man/tilt.html">Tilt</A>
  with a bigger thickness, or make a large entry
@@ -1001,8 +1000,8 @@ so you may prefer to skip it completely and just use
 <A HREF = "man/tomopitch.html">Tomopitch</A>.
 <P>
      To use <A HREF = "man/tomopitch.html">Tomopitch</A>,
- first load all 3 sample tomograms into Imod with a command such as:
-<BR><CODE>    imod top.rec mid.rec bot.rec tomopitch.mod </CODE><BR>
+ first load all 3 sample tomograms into 3dmod with a command such as:
+<BR><CODE>    3dmod top.rec mid.rec bot.rec tomopitch.mod </CODE><BR>
  (use tomopitcha.mod and topa.rec, etc., for the first axis of a dual-axis 
 data set.)
 Model each edge of the section by drawing a line along
@@ -1301,7 +1300,7 @@ displacements between the two volumes in X, Y, and Z.)  If possible, you
 should examine the initial matching volume (setnameb.mat, if matching "b" to
 "a") to confirm that <A HREF = "man/matchshifts.html">Matchshifts</A>
  has failed.  To correct for this, you have to
-make models of corresponding points by loading both tomograms into Imod with
+make models of corresponding points by loading both tomograms into 3dmod with
 -Y.  Make two models, "setnamea.matmod" and "setnameb.matmod", containing 3-5
 corresponding points, as described in the man page for
  <A HREF = "man/solvematch.html">Solvematch</A>.  If you are
@@ -1331,7 +1330,7 @@ examine a model that will show the patch displacements as vectors, with
  This program will convert each displacement to a line whose length is 10
 times the actual length of the displacement.  To allow editing of this model,
 display the model without images in the Zap window using
-<CODE><BR>     imod patchvector.mod   </CODE><BR>
+<CODE><BR>     3dmod patchvector.mod   </CODE><BR>
  then open the model view window with "v".  Spin the model slowly and zoom as
 needed to see the pattern of displacement vectors.  
 <P>
@@ -1350,7 +1349,7 @@ number of bad patches in well-defined regions, it may be easiest to make a
 model with contours enclosing the regions with good patches, or to modify
 such a model if you have already made one.  To do this while looking at the
 patch vector model, you would have to load the tomogram being matched to into
-a separate Imod and make or edit the boundary contour model there, while
+a separate 3dmod and make or edit the boundary contour model there, while
 trying to correlate positions between the tomogram and the patch vector model.
 If you do make a new model of boundary contours, add the entries "-modelfile"
 and the model filename right after the "matchorwarp" line in matchorwarp.com.
@@ -1439,18 +1438,18 @@ bytes.  It can run <A HREF = "man/findcontrast.html">Findcontrast</A>
 converting it to bytes, and runs Newstack to make the final byte file. If you
 simply convert a tomogram to bytes without a contrast setting, then the
 contrast range for features of interest can be quite compressed and it can be
-difficult to adjust contrast for viewing in Imod.  You can avoid this problem
+difficult to adjust contrast for viewing in 3dmod.  You can avoid this problem
 by saturating the intensities of gold particles (and other irrelevant features
 like stain precipitate) when converting to bytes.  These instructions assume
 that your final tomogram is from a dual-axis series and is named "sum.rec".
 <P>
-     First, load sum.rec into Imod with -Y and determine the starting and
+     First, load sum.rec into 3dmod with -Y and determine the starting and
 ending slices of a range that excludes features whose intensity can be
 saturated.  Findcontrast will ignore areas within 10% of the edges of these
 slices.  If you want to trim the volume, note the first and last section that
 you want to keep, as well as limiting coordinates near the left, right,
 bottom, and top edges if you want to trim the lateral size of the volume.  All
-of these number can be Imod coordinates, numbered from 1.  For no trimming,
+of these number can be 3dmod coordinates, numbered from 1.  For no trimming,
 just enter
 <BR><CODE>   trimvol -s start,end sum.rec setname.rec <BR></CODE>
  where start and end are the starting and ending slices for finding contrast.
@@ -1463,7 +1462,7 @@ and top are the limiting coordinates on the left, right, bottom, and top of a
 section in the flipped tomogram.
 <P>
      If the automatic contrast limits are unsatisfactory, you can determine
-contrast settings in Imod by moving both contrast (Black and White) sliders to
+contrast settings in 3dmod by moving both contrast (Black and White) sliders to
 the same position.  While movieing through the data, adjust the positions of
 both sliders together until only the gold beads (and other irrelevant
 features) show up as black pixels; this slider value is the lower contrast
@@ -1475,7 +1474,7 @@ show up as white pixels; this slider value is the upper contrast limit.  Enter
 <P>
      Finally, you can also use the "-yz" flag to 
 <A HREF = "man/trimvol.html">Trimvol</A> to flip the
-tomogram, so that you no longer have to load it into Imod with -Y.
+tomogram, so that you no longer have to load it into 3dmod with -Y.
 <P>
      If your images were acquired on a CCD camera with limited spatial
 resolution, you may be able to reduce the size of the final volume
