@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.19  2004/03/22 15:32:58  mast
+c	  Changed option from MagGradientFile to GradientFile
+c	
 c	  Revision 3.18  2004/03/22 05:39:44  mast
 c	  Added mag gradient correction, applied on per-section basis prior
 c	  to distortion correction and transforms.  Fixed problem with
@@ -1733,6 +1736,9 @@ C
 	  ybase = a22*dyo + yco - a21*xcen
 
 	  if (linear .ne. 0) then
+c	      
+c	      linear interpolation
+c
 	    do ix=1,nxb
 	      xp = a11*ix + xbase
 	      yp = a21*ix + ybase
@@ -1757,6 +1763,9 @@ C
 	      endif
 	    enddo
 	  else
+c	      
+c	      cubic interpolation
+c
 	    do ix=1,nxb
 	      xp = a11*ix + xbase
 	      yp = a21*ix + ybase
@@ -1768,7 +1777,7 @@ C
 	      IXP = XP
 	      IYP = YP
 	      bray(ix,iy)=dmean
-	      IF (IXP .ge. 1 .and. IXP .lt. NXA - 1 .and. IYP .ge. 1 .and.
+	      IF (IXP .ge. 2 .and. IXP .lt. NXA - 1 .and. IYP .ge. 2 .and.
      &		  IYP .lt. NYA - 1) then
 
 		DX = XP - IXP
