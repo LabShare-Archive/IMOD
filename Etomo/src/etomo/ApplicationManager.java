@@ -89,6 +89,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.88  2004/07/12 17:41:07  sueh
+ * <p> bug# 492 in imodPreview: getting metadata from
+ * <p> SetupDialog.getDataset().  Also changed the metadata variable
+ * <p> name to previewMetaData to avoid confusing it with the
+ * <p> member variable metaData
+ * <p>
  * <p> Revision 3.87  2004/07/02 00:43:43  sueh
  * <p> bug# 487 adding public functions to get FidXyz and MRCHeader
  * <p>
@@ -5408,7 +5414,9 @@ public class ApplicationManager {
       return;
     }
     if (nextProcess.equals("volcombine")) {
-      volcombine();
+      if (tomogramCombinationDialog != null && tomogramCombinationDialog.isRunVolcombine()) {
+        volcombine();
+      }
       return;
     }
     if (nextProcess.equals("checkUpdateFiducialModel")) {
