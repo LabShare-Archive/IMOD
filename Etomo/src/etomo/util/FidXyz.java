@@ -18,7 +18,10 @@ import java.io.IOException;
 *
 * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/06/29 23:52:41  sueh
+ * <p> $bug# 487 extracting pixel size from the fid.xyz file
+ * <p> $$ </p>
  */
 
 public class FidXyz {
@@ -42,7 +45,6 @@ public class FidXyz {
       return;
     }
     exists = true;
-    pixelSize = 1;
     BufferedReader fileReader = new BufferedReader(new FileReader(fidXyzFile));
     String line = fileReader.readLine();
     fileReader.close();
@@ -65,6 +67,10 @@ public class FidXyz {
     return exists;
   }
   
+  public boolean isPixelSizeSet() {
+    return !Double.isNaN(pixelSize);
+  }
+
   public double getPixelSize() {
     return pixelSize;
   }
