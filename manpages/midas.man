@@ -121,6 +121,24 @@ that are displayed and adjusted in midas are relative to the rotated images
 and will change with the angle.  Global rotations can be used in local or
 global alignment mode.
 
+.SS Aligning Chunks of Sections
+Midas has another mode of operation that can be used to align tomograms of
+serial sections.  This is referred to as "chunk" alignment because sections
+are considered in chunks, where a chunk corresponds to all of the slices
+from one tomogram.  In this mode, all of the sections in a chunk are
+given the same transformation alignment, so there is only one transformation
+per chunk.  This mode is a variant of the local alignment mode, with the
+additional constraint that the alignment is always between adjacent pairs
+of chunks.  When adjusting the transformation between a pair of chunks, you
+can view any pair of sections from the two chunks, and you are also free to
+scroll through the slices in a chunk to discern trends in position.
+Activate this mode by specifying the number of sections in each chunk with
+the 
+.B -c
+option.  To get
+one transformation per tomogram, do not divide the slices from the top and
+bottom of tomogram into separate chunks.
+
 .SS Fixing Montage Overlaps
 When the pieces of a montage need to be shifted into registration with each
 other, blendmont(1) uses the image displacements in the overlap zones between
@@ -179,10 +197,10 @@ correctly.  Visual examination of the edges is the only way to detect and
 correct errors in the measured displacements.
 
 .SS Options
-midas accepts the standard XtToolkit command line options and
-the following additional options.
+midas accepts some Qt options (such as -style) and
+the following options.
 .TP
-.B -gl
+.B -g
 Start midas in global alignment mode.  The default is local alignment mode. 
 .TP
 .B -r <filename>
@@ -200,6 +218,11 @@ option.
 The default value is the first 
 .I section 
 which is numbered 0.
+.TP
+.B -c <list of sizes>
+Determine alignment between chunks of sections.  Enter a comma-separated list
+of the number of sections in each chunk.  The list should add up to the
+total number of sections in the image file.
 .TP
 .B -p <filename>
 Load piece coordinates for a montaged image file from the given
