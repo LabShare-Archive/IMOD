@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2003/11/18 19:20:51  mast
+    changes for 2GB problem on Windows
+
     Revision 3.4  2003/02/21 22:18:06  mast
     implement new b3d types
 
@@ -235,39 +238,39 @@ struct MRCheader
 struct LoadInfo
 {
 
-     /* Sub area to load. */
-     int xmin;      
-     int xmax;
-     int ymin;
-     int ymax;
-     int zmin;
-     int zmax;
+  /* Sub area to load. */
+  int xmin;      
+  int xmax;
+  int ymin;
+  int ymax;
+  int zmin;
+  int zmax;
+  
+  int zinc;      /* read only every 'zinc' section, future */
      
-     int zinc;      /* read only every 'zinc' section, future */
-     
-     int ramp;      /* Contrast ramp type. */
-     int scale;
-     int black;     /* Change contrast values. */
-     int white;
-     
-     int imaginary; /* For complex data. if true view i data, 
-		       else real data.  */
-
-     int axis;      /* 1=x, 2=y, 3=z , 0 = default */
-
-     float slope;
-     float offset;
-     float smin,smax; /* Scale to min and max values */
-     int contig;    /* Load idata in contigous memory */
-
-     int imin, imax; /* clamp values to imin and imax after scaling. */
-
-     int   plist;         /* Size of piece list.         */
-     float opx, opy, opz; /* origin of pieces.           */
-     float px, py, pz;    /* size of final pieced image. */
-     int   pdz; 
-          /* number of zsections that have data. */
-     int *pcoords;      /* The piece list.             */
+  int ramp;      /* Contrast ramp type. */
+  int scale;
+  int black;     /* Change contrast values. */
+  int white;
+  
+  int imaginary; /* For complex data. if true view i data, 
+                    else real data.  */
+  
+  int axis;      /* 1=x, 2=y, 3=z , 0 = default */
+  
+  float slope;
+  float offset;
+  float smin,smax; /* Scale to min and max values of input */
+  int contig;    /* Load idata in contigous memory */
+  
+  int outmin, outmax; /* clamp values to outmin and outmax after scaling. */
+  
+  int   plist;         /* Size of piece list.         */
+  float opx, opy, opz; /* origin of pieces.           */
+  float px, py, pz;    /* size of final pieced image. */
+  int   pdz; 
+  /* number of zsections that have data. */
+  int *pcoords;      /* The piece list.             */
 
 };
 
@@ -322,39 +325,25 @@ void *mrc_mread_slice(FILE *fin, struct MRCheader *hdata,
 int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata, 
 		   int slice, char axis);
 
+  unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
+                                   int pixsize);
 unsigned char **read_mrc_byte(FILE *fin, struct MRCheader *hdata, 
 			      struct LoadInfo *li);
 unsigned char **mrc_read_byte(FILE *fin, struct MRCheader *hdata, 
 			      struct LoadInfo *li,
 			      void (*func)(char *));
 
-void mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int z);
-void mrcReadZByte_Byte(struct MRCheader *hdata, struct LoadInfo *li,
-		       unsigned char *buf, int cz);
-void mrcReadYByte_Byte(struct MRCheader *hdata, struct LoadInfo *li,
-		       unsigned char *buf, int cy);
-void mrcReadZByte_Short(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cz);
-void mrcReadYByte_Short(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cy);
-void mrcReadZByte_Float(struct MRCheader *hdata, struct LoadInfo *li,
-			       int dsize,
-			       unsigned char *buf, int cz);
-void mrcReadYByte_Float(struct MRCheader *hdata, struct LoadInfo *li,
-			       int dsize,
-			       unsigned char *buf, int cy);
-void mrcReadZByte_RGB(struct MRCheader *hdata, struct LoadInfo *li,
-		       unsigned char *buf, int cz);
-void mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
 		  unsigned char *buf, int z);
-void mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
 		  unsigned char *buf, int y);
-void mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
 	      unsigned char *buf, int cz);
-void mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int cy);
-void mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
 		    unsigned char *buf, int z);
 
 
@@ -373,8 +362,8 @@ int  iiPlistLoad(char *filename, struct LoadInfo *li, int nx, int ny, int nz);
 void mrc_liso(struct MRCheader *hdata, struct LoadInfo *li);
 int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
 int get_loadinfo(struct MRCheader *hdata, struct LoadInfo *li);
-unsigned char *get_byte_map(float slope, float offset, int imin, int imax);
-unsigned char *get_short_map(float slope, float offset, int imin, int imax,
+unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax);
+unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
 			     int ramptype, int swapbytes, int signedint);
 
 
