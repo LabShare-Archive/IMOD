@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/01 21:46:35  rickg
+ * <p> Implemented load and save methods
+ * <p>
  * <p> Revision 1.2  2002/09/30 23:45:12  rickg
  * <p> Reformatted after emacs trashed it
  * <p>
@@ -54,6 +57,55 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setPatchRegionModel(String modelFileName) {
     patchRegionModel = modelFileName;
   }
+
+  /**
+   * Sets the patchXMax.
+   * @param patchXMax The patchXMax to set
+   */
+  public void setPatchXMax(int patchXMax) {
+    this.patchXMax = patchXMax;
+  }
+
+  /**
+   * Sets the patchXMin.
+   * @param patchXMin The patchXMin to set
+   */
+  public void setPatchXMin(int patchXMin) {
+    this.patchXMin = patchXMin;
+  }
+
+  /**
+   * Sets the patchYMax.
+   * @param patchYMax The patchYMax to set
+   */
+  public void setPatchYMax(int patchYMax) {
+    this.patchYMax = patchYMax;
+  }
+
+  /**
+   * Sets the patchYMin.
+   * @param patchYMin The patchYMin to set
+   */
+  public void setPatchYMin(int patchYMin) {
+    this.patchYMin = patchYMin;
+  }
+
+  /**
+   * Sets the patchZMax.
+   * @param patchZMax The patchZMax to set
+   */
+  public void setPatchZMax(int patchZMax) {
+    this.patchZMax = patchZMax;
+  }
+
+  /**
+   * Sets the patchZMin.
+   * @param patchZMin The patchZMin to set
+   */
+  public void setPatchZMin(int patchZMin) {
+    this.patchZMin = patchZMin;
+  }
+
 
   public void setTempDirectory(String directoryName) {
     tempDirectory = directoryName;
@@ -145,5 +197,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
             Boolean.toString(manualCleanup)))
         .booleanValue();
   }
+
 
 }
