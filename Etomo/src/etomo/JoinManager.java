@@ -48,6 +48,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/23 22:29:03  sueh
+* <p> bug# 520 Fixing makejoincom - shouldn't do a set mode until the process
+* <p> is finished.  Putting startProgressBar() call last is process run functions
+* <p> and removing call to stopProgressBar() to prevent incorrect starting and
+* <p> stopping
+* <p>
 * <p> Revision 1.3  2004/11/20 01:55:44  sueh
 * <p> bug# 520 Added abortAddSection() to turn on Add Section button after
 * <p> killing flipyz process.
@@ -424,6 +430,7 @@ public class JoinManager extends BaseManager {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
+      nextProcess = "";
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException");
