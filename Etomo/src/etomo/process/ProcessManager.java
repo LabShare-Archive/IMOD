@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.35  2004/08/25 21:00:03  sueh
+ * bug# 508 removing diagnostic prints and adding kill by
+ * group (killProcessGroup)
+ *
  * Revision 3.34  2004/08/25 18:35:53  sueh
  * bug# 508 print diagnostics during kill
  *
@@ -1554,6 +1558,12 @@ public class ProcessManager {
     }
     
     killProcessGroup(processID);
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+      
+    }
     killProcessAndDescendants(processID);
     
     if (thread instanceof BackgroundComScriptProcess) {
@@ -1603,10 +1613,8 @@ public class ProcessManager {
       return;
     }
     //try to prevent process from spawning with a SIGSTOP signal
-    SystemProgram killShell = new SystemProgram("kill -19 " + processID);
-    killShell.run();
-    System.out.println("stopped " + processID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("stopped " + processID + " at " + killShell.getRunTimestamp());
+    kill("-19", processID);
+
     //kill all decendents of process before killing process
     String[] childProcessIDList = null;
     do {
@@ -1620,12 +1628,16 @@ public class ProcessManager {
     } while (childProcessIDList != null);
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
-    killShell = new SystemProgram("kill -9 " + processID);
-    killShell.run();
-    System.out.println("killed " + processID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("killed " + processID + " at " + killShell.getRunTimestamp());
+    kill("-9", processID);
     //record killed process
     killedList.put(processID, "");
+  }
+  
+  private void kill(String signal, String processID) {
+    SystemProgram killShell = new SystemProgram("kill " + signal + " " + processID);
+    killShell.run();
+    System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
   }
   
   protected void killProcessGroup(String processID) {
@@ -1638,16 +1650,8 @@ public class ProcessManager {
     }
     long groupPid = pid * -1;
     String groupProcessID = Long.toString(groupPid);
-    //try to prevent process from spawning with a SIGSTOP signal
-    SystemProgram killShell = new SystemProgram("kill -19 " + groupProcessID);
-    killShell.run();
-    System.out.println("stopped group: " + groupProcessID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("stopped group: " + groupProcessID + " at " + killShell.getRunTimestamp());
-
-    killShell = new SystemProgram("kill -9 " + groupProcessID);
-    killShell.run();
-    System.out.println("killed group: " + groupProcessID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("killed group: " + groupProcessID + " at " + killShell.getRunTimestamp());
+    kill("-19", groupProcessID);
+    kill("-9", groupProcessID);
   }
 
 
