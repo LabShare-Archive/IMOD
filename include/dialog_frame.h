@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/03/24 17:43:48  mast
+Accommodate font changes
+
 Revision 3.1  2003/02/10 20:57:02  mast
 Merge Qt source
 
@@ -60,7 +63,7 @@ class DialogFrame : public QWidget
     void actionButtonPressed(int which);
 
  protected:
-  void fontChange(const QFont &oldFont);
+  virtual void fontChange(const QFont &oldFont);
   QVBoxLayout *mLayout;
   QPushButton *mButtons[BUTTON_ARRAY_MAX];
 
