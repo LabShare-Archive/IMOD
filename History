@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-4
+11/4/02: Modified setupcombine to work around a bug in tcsh 6.12 as distributed
+in Redhat 8.0
+
 10/23/02: Added ability to combine thin dual-axis reconstructions by computing
 and using only one layer of patches.  Setupcombine will set up for one layer
 of patches if the patch thickness is more than two-thirds of the available
