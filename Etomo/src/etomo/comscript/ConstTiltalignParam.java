@@ -23,6 +23,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/01/11 01:00:07  sueh
+ * <p> bug# 567 Adding storage for outputModelAndResidual, in case we want to
+ * <p> use it.
+ * <p>
  * <p> Revision 3.6  2005/01/08 01:36:02  sueh
  * <p> bug# 578 Removed getBinning() since its not needed by Command.
  * <p> Removed Command access to skewOption and xStretchOption.
@@ -116,6 +120,7 @@ public class ConstTiltalignParam implements Command {
   protected static final String numberOfLocalPatchesXandYString = "NumberOfLocalPatchesXandY";
   protected static final String minSizeOrOverlapXandYString = "MinSizeOrOverlapXandY";
   protected static final String minFidsTotalAndEachSurfaceString = "MinFidsTotalAndEachSurface";
+  protected static final String localOutputOptionsString = "LocalOutputOptions";
   
   protected static final String modelFileExtension = ".3dmod";
   protected static final String residualFileExtension = ".resid";
@@ -168,6 +173,7 @@ public class ConstTiltalignParam implements Command {
   protected EtomoNumber magOption;
   protected EtomoNumber magDefaultGrouping;
   protected FortranInputString[] magNondefaultGroup;
+  protected EtomoNumber localMagReferenceView;
   protected EtomoNumber localMagOption;
   protected EtomoNumber localMagDefaultGrouping;
   protected FortranInputString[] localMagNondefaultGroup;
@@ -193,6 +199,8 @@ public class ConstTiltalignParam implements Command {
   protected FortranInputString numberOfLocalPatchesXandY;
   protected FortranInputString minSizeOrOverlapXandY;
   protected FortranInputString minFidsTotalAndEachSurface;
+  protected EtomoBoolean fixXYZCoordinates;
+  protected FortranInputString localOutputOptions;
   
   protected AxisID axisID;
   protected String datasetName;
@@ -226,6 +234,8 @@ public class ConstTiltalignParam implements Command {
     magOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagOption");
     magOption.setValidValues(optionValidValues).setResetValue(allOption);
     magDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagDefaultGrouping");
+    magDefaultGrouping.setResetValue(4);
+    localMagReferenceView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
     localMagOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
     localMagOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
     localMagDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagDefaultGrouping");
@@ -255,6 +265,7 @@ public class ConstTiltalignParam implements Command {
     axisZShift = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
     localAlignments = new EtomoBoolean("LocalAlignments");
     localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER);
+    fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
     reset();
   }
   
@@ -320,6 +331,9 @@ public class ConstTiltalignParam implements Command {
     minSizeOrOverlapXandY = new FortranInputString(2);
     minFidsTotalAndEachSurface = new FortranInputString(2);
     minFidsTotalAndEachSurface.setIntegerType(new boolean[] {true, true});
+    fixXYZCoordinates.reset();
+    localOutputOptions = new FortranInputString(3);
+    localOutputOptions.setIntegerType(new boolean[] {true, true, true});
   }
   
   protected String validate() {
@@ -416,6 +430,13 @@ public class ConstTiltalignParam implements Command {
    */
   public String getExcludeList() {
     return excludeList.toString();
+  }
+  /**
+   * 
+   * @return
+   */
+  public ConstEtomoBoolean getFixXYZCoordinates() {
+    return fixXYZCoordinates;
   }
   /**
    * @return Returns the imageFile.
