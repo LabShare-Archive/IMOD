@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/07/21 17:00:07  mast
+#  Initial creation
+#
 
 set pn = splittilt
 set penalty = 1.33
@@ -141,9 +144,9 @@ if ("$local" == "" && $xaxistilt != "") then
     #
     set extra = `echo $slabsize $thickness $xaxistilt | \
       awk '{print int(100. * ($1 + $2 * sin(0.01745329 * $3)) / $1)}' | \
-      sed '/[^ -z]/s///g'`
+      sed '/[[:cntrl:]]/s///g'`
     set penpct = `echo $penalty | awk '{print int(100. * $1)}' | \
-        sed '/[^ -z]/s///g'`
+        sed '/[[:cntrl:]]/s///g'`
     @ extranum = $extra
     @ pennum = $penpct
 
@@ -159,7 +162,7 @@ if ("$local" == "" && $xaxistilt != "") then
             #
             set optsize = `echo $penalty $thickness $xaxistilt | \
                 awk '{print int($2 * sin(0.01745329 * $3) / ($1 - 1.))}' | \
-                sed '/[^ -z]/s///g'`
+                sed '/[[:cntrl:]]/s///g'`
             @ slabsize = $optsize
             @ maxsize = $numproc / $minslabs
             if ($slabsize > $maxsize) @ slabsize = $maxsize
@@ -173,7 +176,7 @@ endif
 @ remainder = $numslices - $numslabs * $slabsize
 
 set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
-                sed '/[^ -z]/s///g'`
+                sed '/[[:cntrl:]]/s///g'`
 if ($#topline > 1) then
     @ topnum = $topline[1]
 else
@@ -181,7 +184,7 @@ else
 endif
 @ nextline = $topnum + 2
 set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[^ -z]/s///g'`
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 
 set recroot = $recfile:r
 set templist = ()

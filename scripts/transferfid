@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.16  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
 #  Revision 3.15  2004/06/29 03:50:14  mast
 #  Added nohup
 #
@@ -269,7 +272,7 @@ endif
 if ($imagea == "") then
     @ topline  = `vmstocsh < track$src.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[^ -z]/s///g'`
+    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
 
 if (! -e $imagea) then
@@ -280,7 +283,7 @@ endif
 if ($imageb == "") then
     @ topline  = `vmstocsh < track$dst.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[^ -z]/s///g'`
+    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
 
 if (! -e $imageb) then
@@ -666,10 +669,10 @@ endif
 if ($radius == "") then
     @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
     @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
-    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[^ -z]/s///g'`
+    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[[:cntrl:]]/s///g'`
     @ reshootnum = $reshoots[1]
     @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
-    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed '/[^ -z]/s///g'`
+    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed '/[[:cntrl:]]/s///g'`
 else
     set radiusdark = $radius,$lightdark
 endif

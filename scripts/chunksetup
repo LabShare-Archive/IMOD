@@ -8,6 +8,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/06/29 02:46:36  mast
+#  Removed all parallel script code and -f option because of new
+#  processchunks script
+#
 #  Revision 3.5  2004/06/24 23:07:29  mast
 #  Made parallel script run the finish when done, and report on numbers of
 #  ones undone upon interrupt
@@ -119,7 +123,7 @@ if ("$testin" == "" || "$testout" == "") then
     exit 1
 endif
 
-set ranlist = `tomopieces -tomo $infile $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[^ -z]/s///g'`
+set ranlist = `tomopieces -tomo $infile $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
 
 if ($status) then
     echo $ranlist

@@ -23,6 +23,8 @@
 #
 # PC UNDER LINUX:
 #
+# The Qt development package (qt-devel) must be installed
+#
 # 1. "setup -i [install directory]" to set the install directory.
 #
 # 2. "make" to make all the programs.
@@ -31,12 +33,17 @@
 #
 # 4. "installqtlibs" to copy install files to install directory.  If you
 #    ran "setup" initially with the -packqt flag (which you should do If you 
-#    built against a non-default Qt library), installqtlibs" will also copy the 
-#    Qt library 
+#    built against a non-default Qt library)," installqtlibs" will also copy
+#    the Qt library 
 #
 #
 # MAC OS X:
 #
+# A developer's version of Qt must be installed and on the path, QTDIR must be
+# set in the environment, and QTDIR/lib must be on DYLD_LIBRARY_PATH.
+# g77 is also required.  Build and install the tiff libraries to avoid having
+# to build with -no_tiff.
+# 
 # 1. "setup -i [install directory]" to set the install directory.
 #
 # 2. "make" to make all the programs.
@@ -67,6 +74,9 @@
 #
 # BUILDING UNDER CYGWIN/WINDOWS WITH Visual C++ ONLY
 #
+# Basic Cygwin development packages, libtiff-devel and Microsoft Visual C++
+# are required for this build.  A development version of Qt must be installed.
+#
 # 0. If the source came from a unix tar, convert the project files with:
 #    find . -name '*.ds*' -exec unix2dos '{}' \;
 #
@@ -84,6 +94,10 @@
 #
 #
 # BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
+#
+# In addition to requirements listed above, this build requires Intel Fortran
+# and C++ compilers.  Instead of Cygwin libtiff-devel, it needs Tiff Binaries
+# from GnuWin32.
 #
 # 1. "setup -i [install directory]" to set the install directory.
 #
@@ -130,8 +144,8 @@
 SHELL    = /bin/csh
 VERSION = `sed '/[^0-9.]/s///g' .version`
 ARCNAME  = imod_$(VERSION)
-DISTNAME = `if (-e .distname) sed '/[^ -z]/s///g' .distname`
-LAST_OPTIONS = `if (-e .options) sed '/[^ -z]/s///g' .options`
+DISTNAME = `if (-e .distname) sed '/[[:cntrl:]]/s///g' .distname`
+LAST_OPTIONS = `if (-e .options) sed '/[[:cntrl]]/s///g' .options`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -408,6 +422,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.38  2004/04/24 01:03:56  mast
+#  Added self-installing file output
+#
 #  Revision 3.37  2004/04/03 21:28:56  mast
 #  simplified seds for stripping ^M in cygwin
 #

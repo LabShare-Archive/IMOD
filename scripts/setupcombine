@@ -481,7 +481,7 @@ sed -e s/$from_srcname/$fromname/g\
 
 @ megamax = $MAXPIXELS
 @ megamax /= 1000
-set ranlist = `tomopieces -tomo $recfile -mega $megamax -xpad $TAPERPADXZ -ypad $TAPERPADY -zpad $TAPERPADXZ -min $MINOVERLAP -ymax $MAXPIECEY | sed '/[^ -z]/s///g'`
+set ranlist = `tomopieces -tomo $recfile -mega $megamax -xpad $TAPERPADXZ -ypad $TAPERPADY -zpad $TAPERPADXZ -min $MINOVERLAP -ymax $MAXPIECEY | sed '/[[:cntrl:]]/s///g'`
 
 if ($status) then
     echo $ranlist
@@ -621,6 +621,10 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.23  2004/07/13 18:15:40  mast
+#  Changed to PIP format for combinefft with an option variable, added a
+#  label for each piece for a goto at the start to jump to
+#
 #  Revision 3.22  2004/06/20 15:32:30  mast
 #  Restore new solvematch and cut patch thickness to fit in limits
 #
