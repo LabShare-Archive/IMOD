@@ -47,6 +47,7 @@ Log at end of file
 
 #include "imod_cachefill.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 #include "control.h"
 
 
@@ -279,6 +280,11 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
     } else
       wprint("\nReading image file ");
 
+    /* DNM 4/18/03: process events so that text will show up and so that the
+       program can be killed */
+    imod_info_input();
+    if (App->exiting)
+      exit(0);
     nadd = 0;
 
     if (vw->li->axis != 2) {
@@ -297,8 +303,12 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
 	  continue;
 
 	nadd++;
-	if (!(nadd % 10))
+	if (!(nadd % 10)) {
 	  wprint(".");
+          imod_info_input();
+          if (App->exiting)
+            exit(0);
+        }
 
 	/* Find oldest slice in cache */
 	minused = vw->vmCount + 1;
@@ -693,6 +703,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/02/27 17:40:55  mast
 Use Qt routines for directory operations
 
