@@ -31,48 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.11  2003/01/29 01:44:29  mast
-exit by closing window
-
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/18 01:13:44  mast
-add include of dia_qtutils
-
-Revision 1.1.2.8  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.7  2003/01/06 15:53:07  mast
-eliminate unused varaiables
-
-Revision 1.1.2.6  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.5  2002/12/30 06:49:50  mast
-rationalizing dialogs as widgets and using dialog list
-
-Revision 1.1.2.4  2002/12/27 01:23:56  mast
-New background color selector
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.1  2002/12/17 18:43:58  mast
-Qt version
-
-Revision 3.2  2002/12/01 15:31:41  mast
-Changes to compile with g++; also made only one background color window
-be open at any one time.
-
-Revision 3.1  2002/11/05 23:27:46  mast
-Changed copyright notice to use defined lab name and years
-
+Log at end of file
 */
 
 #include <qfiledialog.h>
@@ -399,7 +358,7 @@ void imodvSaveModelAs()
   sprintf(nfname1, "%s~", filename);
   rename(filename, nfname1);
 
-  fout = fopen(filename, "w");
+  fout = fopen(filename, "wb");
   if (fout){
     a->imod->file = fout;
     error = imodWrite(Imodv->imod, fout);
@@ -614,3 +573,50 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 {
   imodvKeyRelease(e);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.11  2003/01/29 01:44:29  mast
+exit by closing window
+
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.9  2003/01/18 01:13:44  mast
+add include of dia_qtutils
+
+Revision 1.1.2.8  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.7  2003/01/06 15:53:07  mast
+eliminate unused varaiables
+
+Revision 1.1.2.6  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
+Revision 1.1.2.5  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
+Revision 1.1.2.4  2002/12/27 01:23:56  mast
+New background color selector
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.1  2002/12/17 18:43:58  mast
+Qt version
+
+Revision 3.2  2002/12/01 15:31:41  mast
+Changes to compile with g++; also made only one background color window
+be open at any one time.
+
+Revision 3.1  2002/11/05 23:27:46  mast
+Changed copyright notice to use defined lab name and years
+
+*/
