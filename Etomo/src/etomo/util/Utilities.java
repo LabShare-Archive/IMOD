@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.7  2004/04/28 19:57:30  rickg
+ * <p> $bug #429 Created file rename function to handle windows bug
+ * <p> $
  * <p> $Revision 3.6  2004/04/26 23:32:13  rickg
  * <p> $Checked for null buffers, because nio does work on 2.4 kernels
  * <p> $not on 2.6 kernel yet
@@ -105,6 +108,9 @@ public class Utilities {
    */
   public static void renameFile(File source, File destination)
       throws IOException {
+    if (!source.exists()) {
+      return;
+    }
     // Delete the existing backup file if it exists, otherwise the call will
     // fail on windows 
     if (destination.exists()) {
