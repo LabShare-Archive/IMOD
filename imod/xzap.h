@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef XZAP_H
 #define XZAP_H
@@ -48,6 +56,8 @@ typedef struct zapwin
      int    hqgfx, hide;
      int    hqgfxsave;           /* Place to save hqgfx when dragging */
      int    resizedraw2x;        /* Flag to draw twice after resize */
+     int    resizeSkipDraw;      /* Flag  to skip drawing during resize */
+     XtIntervalId exposeTimeOut; /* Timeouts during expose cascade */
 
      int rubberband;    /* Rubber banding flag and corner coordinates */
      int bandllx;
