@@ -2,6 +2,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.util.Vector;
 
 import etomo.ApplicationManager;
 
@@ -20,6 +21,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2004/05/03 22:22:25  sueh
+ * <p> bug# 416 added binning (-B)
+ * <p>
  * <p> Revision 3.8  2004/04/30 21:11:52  sueh
  * <p> bug# 428 add open ZaP window message
  * <p>
@@ -148,6 +152,7 @@ public class ImodProcess {
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
+  public static final String MESSAGE_RUBBERBAND = "10";
   
   private static final int defaultBinning = 1;
 
@@ -417,12 +422,43 @@ public class ImodProcess {
     args[0] = MESSAGE_OPEN_BEADFIXER;
     imodSendEvent(args);
   }
+  
+  public Vector getRubberBandCoordinates() throws SystemProcessException {
+    Vector coordinates = null;
+    String[] args = new String[1];
+    args[0] = MESSAGE_RUBBERBAND;
+    InteractiveSystemProgram imodSendEvent = imodSendEvent(args);
+    //Wait for the result
+    String line;
+    int maxCoordinates = 4;
+    coordinates = new Vector(maxCoordinates);
+    boolean interrupted = false;
+    int timeout = 0;
+    int maxTimeout = 5;
+    while (coordinates.size() < maxCoordinates && !interrupted && timeout < maxTimeout) {
+      while ((line = imodSendEvent.readStderr()) != null) {
+        String[] words = line.split("\\s+");
+        for (int i = 0; i < words.length && i < maxCoordinates; i++) {
+          coordinates.add(words[i]);
+        }
+      }
+      //  Wait a litte while for 3dmod to generate some stderr output
+      try {
+        Thread.sleep(500);
+        timeout++;
+      }
+      catch (InterruptedException e) {
+        interrupted = true;
+      }
+    }
+    return coordinates;
+  }
 
   /**
    * Send an event to 3dmod using the imodsendevent command
    */
-  private void imodSendEvent(String[] args) throws SystemProcessException {
-    if (windowID == "") {
+  private InteractiveSystemProgram imodSendEvent(String[] args) throws SystemProcessException {
+    if (windowID.equals("")) {
       throw (new SystemProcessException("No window ID available for imod"));
     }
     String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
@@ -465,6 +501,7 @@ public class ImodProcess {
 
       throw (new SystemProcessException(message));
     }
+    return imodSendEvent;
   }
 
   /**
