@@ -150,7 +150,7 @@ echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
 #
 # Use fixed CLK_TCK so code compiled on 7.1 runs on 7.0
 #
-echo '#define FIXED_CLK_TCK 100'  >> $hconfigure
+#echo '#define FIXED_CLK_TCK 100'  >> $hconfigure
 
 if ($compiler == intel) then
 	## -axK fails on tiltalign-beadtrack
