@@ -293,7 +293,7 @@ cygdist : ALWAYS
 ##################################################################
 # Make the full IMOD source distribution
 #
-src : configure cleansrc csrc fsrc
+src : configure cleansrc csrc fsrc etomosrc
 	if (-e $(ARCDIR)_src/$(ARCDIR)_src/) /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/
 	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
 	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src
@@ -323,8 +323,8 @@ csrc : ALWAYS
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/*.xpm imod/README imod/imod.dsp \
-	imod/imod.dsw imod/Makefile.dummy \
+	imod/*.bits imod/*.png imod/*.xpm imod/README imod/3dmod.dsp \
+	imod/3dmod.dsw imod/Makefile.dummy \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
@@ -351,10 +351,22 @@ fsrc :
 	*/*.[chfs] */*/*.[chfs] */*.inc */*/*.inc */*/README)\
 	| (cd $(ARCDIR)_src/flib; tar xBf -)
 
+#
+# Etomo source
+#
+etomosrc :
+	if (! (-e $(ARCDIR)_src/Etomo/)) mkdir $(ARCDIR)_src/Etomo/
+	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
+	Etomo/MANIFEST.MF Etomo/src Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
+
 ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.16  2003/08/08 05:17:03  rickg
+#  Added entries for Etomo
+#  explicitly specified ./setup because it was clashing with the system command
+#
 #  Revision 3.15  2003/06/20 19:34:34  mast
 #  Fixed installlibs from making entire flib
 #
