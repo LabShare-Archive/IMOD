@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>382</width>
+            <width>395</width>
             <height>752</height>
         </rect>
     </property>
@@ -134,6 +134,9 @@
                     <property name="name">
                         <cstring>PushButton1</cstring>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>Select...</string>
                     </property>
@@ -155,6 +158,9 @@
                     <property name="name">
                         <cstring>pieceSelectButton</cstring>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>Select...</string>
                     </property>
@@ -162,6 +168,9 @@
                 <widget class="QPushButton" row="1" column="2">
                     <property name="name">
                         <cstring>modelSelectButton</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
                     </property>
                     <property name="text">
                         <string>Select...</string>
@@ -814,6 +823,9 @@
                     <property name="minValue">
                         <number>-100</number>
                     </property>
+                    <property name="value">
+                        <number>4</number>
+                    </property>
                 </widget>
                 <widget class="QLabel">
                     <property name="name">
@@ -835,6 +847,9 @@
                     </property>
                     <property name="minValue">
                         <number>-100</number>
+                    </property>
+                    <property name="value">
+                        <number>4</number>
                     </property>
                 </widget>
                 <spacer>
@@ -1079,6 +1094,9 @@
                     <property name="text">
                         <string>OK</string>
                     </property>
+                    <property name="default">
+                        <bool>true</bool>
+                    </property>
                 </widget>
                 <spacer>
                     <property name="name">
@@ -1200,7 +1218,51 @@
         <slot>reject()</slot>
     </connection>
 </connections>
+<tabstops>
+    <tabstop>RadioButton1</tabstop>
+    <tabstop>RadioButton2</tabstop>
+    <tabstop>imageFilesEdit</tabstop>
+    <tabstop>modelFileEdit</tabstop>
+    <tabstop>pieceFileEdit</tabstop>
+    <tabstop>xFromEdit</tabstop>
+    <tabstop>xToEdit</tabstop>
+    <tabstop>yFromEdit</tabstop>
+    <tabstop>yToEdit</tabstop>
+    <tabstop>zFromEdit</tabstop>
+    <tabstop>zToEdit</tabstop>
+    <tabstop>openZapBox</tabstop>
+    <tabstop>openXYZBox</tabstop>
+    <tabstop>openSlicerBox</tabstop>
+    <tabstop>openModvBox</tabstop>
+    <tabstop>scaleFromEdit</tabstop>
+    <tabstop>scaleToEdit</tabstop>
+    <tabstop>cacheSizeEdit</tabstop>
+    <tabstop>cacheSectionsButton</tabstop>
+    <tabstop>megabyteButton</tabstop>
+    <tabstop>flipCheckBox</tabstop>
+    <tabstop>fillCacheBox</tabstop>
+    <tabstop>showRGBGrayBox</tabstop>
+    <tabstop>loadFramesBox</tabstop>
+    <tabstop>loadUnscaledBox</tabstop>
+    <tabstop>showMontageBox</tabstop>
+    <tabstop>xMontageSpinBox</tabstop>
+    <tabstop>yMontageSpinBox</tabstop>
+    <tabstop>xOverlapSpinBox</tabstop>
+    <tabstop>yOverlapSpinBox</tabstop>
+    <tabstop>defaultSizeButton</tabstop>
+    <tabstop>fullScreenButton</tabstop>
+    <tabstop>setSizeButton</tabstop>
+    <tabstop>xSizeSpinBox</tabstop>
+    <tabstop>ySizeSpinBox</tabstop>
+    <tabstop>PushButton13</tabstop>
+    <tabstop>PushButton14</tabstop>
+    <tabstop>PushButton1</tabstop>
+    <tabstop>modelSelectButton</tabstop>
+    <tabstop>pieceSelectButton</tabstop>
+</tabstops>
 <includes>
+    <include location="global" impldecl="in implementation">stdlib.h</include>
+    <include location="global" impldecl="in implementation">qfiledialog.h</include>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
 <variables>
@@ -1232,6 +1294,9 @@
     <slot>imageSelectClicked()</slot>
     <slot>modelSelectClicked()</slot>
     <slot>pieceSelectClicked()</slot>
+    <slot>addArg( const char * arg )</slot>
+    <slot returnType="char **">getArguments( int &amp; argc )</slot>
+    <slot>addImageFiles()</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

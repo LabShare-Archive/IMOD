@@ -64,6 +64,7 @@ Log at the end of file
 #include "dia_qtutils.h"
 #include "imod_client_message.h"
 #include "preferences.h"
+#include "form_startup.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -188,19 +189,12 @@ int main( int argc, char *argv[])
       exit(0);
 #endif
 
-  /* Run the program as imodv? */
-  i = strlen(argv[0]);
-  if (doImodv || argv[0][i-1] == 'v'){
-    imodv_main(argc, argv, cmdLineStyle);
-    exit(0);
-  }
-
 #ifndef _WIN32
   /* if no input files, print help stuff */
-  if (argc < 2){
+  /*  if (argc < 2){
     imod_usage(argv[0]);
     exit(1);
-  }
+    } */
 #endif
 
   /* Open the Qt application */
@@ -208,6 +202,28 @@ int main( int argc, char *argv[])
   QApplication qapp(argc, argv);
   
   ImodPrefs = new ImodPreferences(cmdLineStyle);
+
+  /* if no input files, open startup window */
+  if (argc < 2) {
+    StartupForm *startup = new StartupForm(NULL, "startup dialog", true);
+    if (startup->exec() == QDialog::Rejected) {
+      imod_usage(argv[0]);
+      exit(1);
+    }
+    
+    argv = startup->getArguments(argc);
+    /*for (i = 0; i < argc; i++)
+      fprintf(stderr, "%s ", argv[i]);
+      fprintf(stderr, "\n"); */
+    delete startup;
+  }
+
+  /* Run the program as imodv? */
+  i = strlen(argv[0]);
+  if (doImodv || argv[0][i-1] == 'v'){
+    imodv_main(argc, argv);
+    exit(0);
+  }
 
   imod_display_init(App, argv);
   mrc_init_li(&li, NULL);
@@ -884,6 +900,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.16  2003/05/12 22:07:39  mast
+had to flush stderr to get window ID to etomo on Windows
+
 Revision 4.15  2003/04/30 23:54:41  mast
 Comment out printing window id to info window
 
