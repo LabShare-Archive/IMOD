@@ -1,6 +1,7 @@
 package etomo;
 
 import java.io.*;
+import etomo.util.InvalidParameterException;
 import java.awt.*;
 import javax.swing.*;
 
@@ -25,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.19  2002/10/24 19:52:55  rickg
+ * <p> Added command line --demo argument
+ * <p>
  * <p> Revision 1.18  2002/10/22 21:38:24  rickg
  * <p> ApplicationManager now controls both demo and debug
  * <p> modes
@@ -96,7 +100,7 @@ public class ApplicationManager {
 
   private boolean debug = true;
   private boolean demo = false;
-  
+
   private boolean isDataParamDirty = false;
   private String homeDirectory;
   private String IMODDirectory;
@@ -158,7 +162,6 @@ public class ApplicationManager {
   public static void main(String[] args) {
     new ApplicationManager(args);
   }
-
 
   /**
   * Open the setup dialog
@@ -321,7 +324,6 @@ public class ApplicationManager {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.SECOND);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.SECOND);
         comScriptMgr.saveEraserCom(ccdEraserParam, AxisID.SECOND);
-
         try {
           if (imodManager.isRawStackOpen(AxisID.FIRST)
             || imodManager.isRawStackOpen(AxisID.SECOND)) {
@@ -335,10 +337,15 @@ public class ApplicationManager {
             }
           }
         }
-        catch (Exception except) {
+        catch (AxisTypeException except) {
           except.printStackTrace();
           openMessageDialog(except.getMessage(), "AxisType problem");
         }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "Problem closing raw stack");
+        }
+
       }
       else {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.FIRST);
@@ -355,9 +362,13 @@ public class ApplicationManager {
             }
           }
         }
-        catch (Exception except) {
+        catch (AxisTypeException except) {
           except.printStackTrace();
           openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "Problem closing raw stack");
         }
 
       }
@@ -384,13 +395,16 @@ public class ApplicationManager {
 
     String eraseModelName =
       metaData.getFilesetName() + axisID.getExtension() + ".erase";
-
     try {
       imodManager.modelRawStack(eraseModelName, axisID);
     }
-    catch (Exception except) {
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(except.getMessage(), "Can't open imod on raw stack");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "Axis type problem in imod erase");
     }
   }
 
@@ -507,12 +521,15 @@ public class ApplicationManager {
     try {
       imodManager.openCoarseAligned(axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
       except.printStackTrace();
-      openMessageDialog(
-        except.getMessage(),
-        "Can't open imod on coarse aligned stack");
+      openMessageDialog(except.getMessage(), "AxisType problem");
     }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "Problem opening coarse stack");
+    }
+
   }
 
   /**
@@ -668,12 +685,17 @@ public class ApplicationManager {
     try {
       imodManager.modelCoarseAligned(seedModel, axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
         "Can't open imod on coarse aligned stack with model: " + seedModel);
     }
+
   }
 
   /**
@@ -695,7 +717,11 @@ public class ApplicationManager {
     try {
       imodManager.modelCoarseAligned(fiducialModel, axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
@@ -847,9 +873,15 @@ public class ApplicationManager {
             }
           }
         }
-        catch (Exception except) {
+        catch (AxisTypeException except) {
           except.printStackTrace();
           openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          openMessageDialog(
+            except.getMessage(),
+            "Problem closing coarse stack");
         }
 
       }
@@ -882,12 +914,17 @@ public class ApplicationManager {
     try {
       imodManager.openFineAligned(axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
         "Can't open imod on fine aligned stack");
     }
+
   }
 
   /**
@@ -1095,9 +1132,15 @@ public class ApplicationManager {
             }
           }
         }
-        catch (Exception except) {
+        catch (AxisTypeException except) {
           except.printStackTrace();
           openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          openMessageDialog(
+            except.getMessage(),
+            "Problem closing sample reconstruction");
         }
 
       }
@@ -1124,12 +1167,17 @@ public class ApplicationManager {
     try {
       imodManager.openSample(axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod with the sample reconstructions");
+        "Problem opening sample reconstruction");
     }
+
   }
 
   public void tomopitch(AxisID axisID) {
@@ -1399,12 +1447,17 @@ public class ApplicationManager {
     try {
       imodManager.openTomogram(axisID);
     }
-    catch (Exception except) {
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
         "Can't open imod with the tomogram");
     }
+
   }
 
   /**
@@ -1451,10 +1504,15 @@ public class ApplicationManager {
         try {
           combineParams.setDefaultPatchBoundaries(recFileName);
         }
-        catch (Exception except) {
+        catch (InvalidParameterException except) {
+          except.printStackTrace();
           openMessageDialog(
             except.getMessage(),
-            "Error getting stack dimensions");
+            "Invalid parameter: " + recFileName);
+        }
+        catch (IOException except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
         }
       }
 
@@ -1803,10 +1861,11 @@ public class ApplicationManager {
     try {
       userParams.load(storable);
     }
-    catch (Exception except) {
+    catch (IOException except) {
       openMessageDialog(
         except.getMessage(),
-        "Can't load user configuration" + userConfigFile.getAbsolutePath());
+        "IO Exception: Can't load user configuration"
+          + userConfigFile.getAbsolutePath());
     }
 
     //
@@ -1823,10 +1882,10 @@ public class ApplicationManager {
 
     //  Parse the command line arguments
     if (args.length > 0) {
-      for(int i = 0; i < args.length; i++) {
-        if(args[i].equals("--demo")){
+      for (int i = 0; i < args.length; i++) {
+        if (args[i].equals("--demo")) {
           demo = true;
-          break ;
+          break;
         }
       }
     }
@@ -1867,7 +1926,10 @@ public class ApplicationManager {
     }
     catch (IOException except) {
       System.out.println(
-        "Could not create file:" + userConfigFile.getAbsolutePath());
+        "IOException: Could not create file:"
+          + userConfigFile.getAbsolutePath()
+          + "\n"
+          + except.getMessage());
       System.out.println(except.getMessage());
       return true;
     }
@@ -1885,8 +1947,10 @@ public class ApplicationManager {
       try {
         userParams.save(storable);
       }
-      catch (Exception excep) {
+      catch (IOException excep) {
         excep.printStackTrace();
+        openMessageDialog(
+          "IOException: unable to save user parameters\n" + excep.getMessage(), "Unable to save user parameters");
       }
     }
     return true;
