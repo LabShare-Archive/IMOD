@@ -60,7 +60,7 @@ void imodvModeledHelp()
      "\tMultiple models can be loaded with 3dmodv, either on the command "
      "line or through the File menu.  ",
      "To page through the different models use the Current ",
-     "Model # spin button box or the 9 and 0 hotkeys.\n\n",
+     "Model # spin button box or the 9 and 0 hot keys.\n\n",
      "\tThe Move radio buttons allow one to choose between ",
      "having actions move just the current model, \"One\", or ",
      "having actions move \"All\" of the models.\n\n",
@@ -69,7 +69,7 @@ void imodvModeledHelp()
      "current ",
      "model and the previous model, viewing the current ",
      "model and the next model, ",
-     "or viewing all of the models.  The 8 hotkey toggles between viewing "
+     "or viewing all of the models.  The 8 hot key toggles between viewing "
      "one and viewing all models.\n\n"
      "\tThe Edit radio buttons toggle between editing just ",
      "the current model, \"One\", and editing \"All\" of the ",
@@ -83,7 +83,7 @@ void imodvModeledHelp()
      "\tIn the Edit Controls menu, the clipping planes and perspective "
      "can be changed together, and typing a value into the [Scale] "
      "box will set all models to the same scale.  If the zoom is "
-     "changed with arrow gadgets or hotkeys, all models will change "
+     "changed with arrow buttons or hot keys, all models will change "
      "their zoom by the same amount.\n\n",
      "\tThe \"Internal name\" text box allows you to enter a name that is "
      "stored in the Imod model, separate from the filename.\n\n"
