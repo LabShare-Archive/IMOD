@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2005/03/20 19:57:33  mast
+Added ability to have multiple sections of one name; added END_SECTION
+
 Revision 1.3  2005/03/08 16:09:54  mast
 Replaced & with html code
 
@@ -64,7 +67,7 @@ int main(int argc, char *argv[])
   int fileStart[10000];
   int ind, ind1, ind2, i;
   unsigned int ui;
-  char *progname = imodProgName(argv[0]);
+  char *progname = "sourcedoc";
   bool fort77 = false;
   QString docStart = "/\\*!";
   QString docEnd = "\\*/";
@@ -74,8 +77,9 @@ int main(int argc, char *argv[])
   bool inComment, inSection;
 
   if (argc < 3) {
-    imodVersion(progname);
-    imodCopyright();
+    // It needs to run without libraries
+   /* imodVersion(progname);
+      imodCopyright(); */
     usage(progname);
   }
 
@@ -120,6 +124,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  // Don't want to make backup files anyway!
   /*if (imodBackupFile(argv[ind + 1])) {
     fprintf(stderr, "ERROR: %s - could not create backup file", progname);
     exit(3);
