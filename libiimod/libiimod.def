@@ -10,9 +10,7 @@ EXPORTS
 	mrc_getdcsize
 	mrc_fix_li
 	mrcReadZ
-	mrcReadZByte_Short
 	sliceQuadInterpolate
-	mrcReadZByte_Float
 	sliceGetValMagnitude
 	mrc_zoom
 	iiPlistLoadF
@@ -35,13 +33,13 @@ EXPORTS
 	iiMRCreadSectionByte
 	iiClose
 	loadtilts
+	mrcGetDataMemory
 	mrc_default_status
 	corr_conj
 	mrcReadSection
 	mrc_plist_li
 	sliceMultConst
 	sliceClear
-	mrcReadZByte_RGB
 	mrc_slice_mat_mult
 	sliceCreate
 	mrc_init_li
@@ -119,7 +117,6 @@ EXPORTS
 	mrc_slice_getval
 	mrc_bilinear
 	mrc_slice_translate
-	mrcReadYByte_Float
 	mrc_slice_rotate
 	mrc_big_seek
 	mrc_swap_shorts
@@ -138,13 +135,10 @@ EXPORTS
 	iiMRCreadSection
 	get_loadinfo
 	mrc_translate
-	mrcReadYByte_Byte
 	mrc_read_slice
 	sliceInit
-	mrcReadYByte_Short
 	mrc_byte_mmm
 	b3dFseek
-	mrcReadZByte_Byte
 	mrc_fft
 	mrc_slice_getvol
 	mrc_head_label
