@@ -31,7 +31,6 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
-import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
@@ -76,6 +75,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2003/11/26 23:36:27  rickg
+ * <p> Debug flag and getter changed to static.
+ * <p>
  * <p> Revision 3.2  2003/11/11 00:24:52  sueh
  * <p> Bug349 imodFixFiducials(AxisID): call
  * <p> imodManager.openBeadFixer()
@@ -829,12 +831,13 @@ public class ApplicationManager {
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
       try {
-        if (imodManager.isRawStackOpen(axisID)) {
+        if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)/*imodManager.isRawStackOpen(axisID)*/) {
           String[] message = new String[2];
           message[0] = "The raw stack is open in 3dmod";
           message[1] = "Should it be closed?";
           if (mainFrame.openYesNoDialog(message)) {
-            imodManager.quitRawStack(axisID);
+            //imodManager.quitRawStack(axisID);
+            imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
           }
         }
       }
@@ -880,7 +883,8 @@ public class ApplicationManager {
     String eraseModelName =
       metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
-      imodManager.modelRawStack(eraseModelName, axisID, true);
+      //imodManager.modelRawStack(eraseModelName, axisID, true);
+      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
@@ -976,7 +980,8 @@ public class ApplicationManager {
     String xRayModel =
       metaData.getDatasetName() + axisID.getExtension() + "_peak.mod";
     try {
-      imodManager.modelRawStack(xRayModel, axisID, false);
+      //imodManager.modelRawStack(xRayModel, axisID, false);
+      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, xRayModel, false);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -995,7 +1000,8 @@ public class ApplicationManager {
    */
   public void imodErasedStack(AxisID axisID) {
     try {
-      imodManager.openErasedStack(axisID);
+      //imodManager.openErasedStack(axisID);
+      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1057,24 +1063,26 @@ public class ApplicationManager {
     }
     fixedStack.renameTo(rawStack);
 
-    if (imodManager.isRawStackOpen(axisID)) {
-      String[] message = new String[2];
-      message[0] = "The replaced raw stack is open in 3dmod";
-      message[1] = "Should it be closed?";
-      if (mainFrame.openYesNoDialog(message)) {
-        try {
-          imodManager.quitRawStack(axisID);
-        }
-        catch (AxisTypeException e) {
-          e.printStackTrace();
-          System.err.println("Axis type exception in replaceRawStack");
-        }
-        catch (SystemProcessException e) {
-          e.printStackTrace();
-          System.err.println("System process exception in replaceRawStack");
+    try {
+      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)/*imodManager.isRawStackOpen(axisID)*/) {
+        String[] message = new String[2];
+        message[0] = "The replaced raw stack is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (mainFrame.openYesNoDialog(message)) {
+          //imodManager.quitRawStack(axisID);
+          imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
         }
       }
     }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+      System.err.println("Axis type exception in replaceRawStack");
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      System.err.println("System process exception in replaceRawStack");
+    }
+
     mainFrame.stopProgressBar(axisID);
   }
 
@@ -1212,7 +1220,8 @@ public class ApplicationManager {
    */
   public void imodAlign(AxisID axisID) {
     try {
-      imodManager.openCoarseAligned(axisID);
+      //imodManager.openCoarseAligned(axisID);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1392,7 +1401,8 @@ public class ApplicationManager {
     String seedModel =
       metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
-      imodManager.modelCoarseAligned(seedModel, axisID, true, true);
+      //imodManager.modelCoarseAligned(seedModel, axisID, true, true);
+      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true, true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -1440,8 +1450,10 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID, true, false);
-      imodManager.openBeadFixer(axisID);
+      //imodManager.modelCoarseAligned(fiducialModel, axisID, true, false);
+      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, true, false);
+      //imodManager.openBeadFixer(axisID);
+      imodManager.openBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1584,12 +1596,14 @@ public class ApplicationManager {
         // Check to see if the user wants to keep any coarse aligned imods
         // open
         try {
-          if (imodManager.isCoarseAlignedOpen(axisID)) {
+          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)/*imodManager.isCoarseAlignedOpen(axisID)*/) {
             String[] message = new String[2];
             message[0] = "The coarsely aligned stack is open in 3dmod";
             message[1] = "Should it be closed?";
             if (mainFrame.openYesNoDialog(message)) {
-              imodManager.quitCoarseAligned(axisID);
+              //imodManager.quitCoarseAligned(axisID);
+              imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+
             }
           }
         }
@@ -1649,7 +1663,8 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".resmod";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID, false, true);
+      //imodManager.modelCoarseAligned(fiducialModel, axisID, false, true);
+      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, false, true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1671,7 +1686,8 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".3dmod";
     try {
-      imodManager.openFiducialModel(fiducialModel, axisID);
+      //imodManager.openFiducialModel(fiducialModel, axisID);
+      imodManager.open(ImodManager.FIDUCIAL_MODEL_KEY, axisID, fiducialModel);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1692,7 +1708,8 @@ public class ApplicationManager {
    */
   public void imodFineAlign(AxisID axisID) {
     try {
-      imodManager.openFineAligned(axisID);
+      //imodManager.openFineAligned(axisID);
+      imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1935,12 +1952,13 @@ public class ApplicationManager {
         openTomogramGenerationDialog(axisID);
 
         try {
-          if (imodManager.isSampleOpen(axisID)) {
+          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)/*imodManager.isSampleOpen(axisID)*/) {
             String[] message = new String[2];
             message[0] = "The sample reconstruction is open in 3dmod";
             message[1] = "Should it be closed?";
             if (mainFrame.openYesNoDialog(message)) {
-              imodManager.quitSample(axisID);
+              //imodManager.quitSample(axisID);
+              imodManager.quit(ImodManager.SAMPLE_KEY, axisID);
             }
           }
         }
@@ -1996,7 +2014,8 @@ public class ApplicationManager {
    */
   public void imodSample(AxisID axisID) {
     try {
-      imodManager.openSample(axisID);
+      //imodManager.openSample(axisID);
+      imodManager.open(ImodManager.SAMPLE_KEY, axisID);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
@@ -2447,7 +2466,9 @@ public class ApplicationManager {
    */
   public void imodFullVolume(AxisID axisID) {
     try {
-      imodManager.openFullVolume(axisID);
+      //imodManager.openFullVolume(axisID);
+      imodManager.reset(ImodManager.FULL_VOLUME_KEY, axisID);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2476,10 +2497,9 @@ public class ApplicationManager {
     }
     String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
 
-    ImodProcess imodTrialTomogram = new ImodProcess(trialTomogramName);
-    imodTrialTomogram.setSwapYZ(true);
     try {
-      imodTrialTomogram.open();
+      imodManager.create(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, trialTomogramName);
+      imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -2490,6 +2510,11 @@ public class ApplicationManager {
         except.getMessage(),
         "Can't open 3dmod with the tomogram");
     }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+
   }
 
   public void commitTestVolume(AxisID axisID) {
@@ -2666,7 +2691,17 @@ public class ApplicationManager {
    */
   public void imodMatchingModel() {
     try {
-      imodManager.matchingModel(metaData.getDatasetName());
+      //imodManager.matchingModel(metaData.getDatasetName());
+      imodManager.model(
+        ImodManager.FULL_VOLUME_KEY,
+        AxisID.FIRST,
+        metaData.getDatasetName() + AxisID.FIRST.getExtension() + ".matmod",
+        true);
+      imodManager.model(
+        ImodManager.FULL_VOLUME_KEY,
+        AxisID.SECOND,
+        metaData.getDatasetName() + AxisID.SECOND.getExtension() + ".matmod",
+        true);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -2685,13 +2720,18 @@ public class ApplicationManager {
    */
   public void imodMatchCheck() {
     try {
-      imodManager.openMatchCheck();
+      //imodManager.openMatchCheck();
+      imodManager.open(ImodManager.MATCH_CHECK_KEY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainFrame.openMessageDialog(
         except.getMessage(),
         "Can't open 3dmod on matchcheck.mat or matchcheck.rec");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -2703,10 +2743,12 @@ public class ApplicationManager {
       CombineParams combineParams = new CombineParams();
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (combineParams.getMatchBtoA()) {
-        imodManager.patchRegionModel(AxisID.FIRST);
+        //imodManager.patchRegionModel(AxisID.FIRST);
+        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, "patch_region.mod", true);
       }
       else {
-        imodManager.patchRegionModel(AxisID.SECOND);
+        //imodManager.patchRegionModel(AxisID.SECOND);
+        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, "patch_region.mod", true);
       }
     }
     catch (SystemProcessException except) {
@@ -2726,13 +2768,18 @@ public class ApplicationManager {
    */
   public void imodPatchVectorModel() {
     try {
-      imodManager.openPatchVectorModel();
+      //imodManager.openPatchVectorModel();
+      imodManager.open(ImodManager.PATCH_VECTOR_MODEL_KEY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainFrame.openMessageDialog(
         except.getMessage(),
         "Can't open 3dmod on tomogram for patch vector model");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -2742,10 +2789,14 @@ public class ApplicationManager {
   public void imodMatchedToTomogram() {
     try {
       if (metaData.getCombineParams().getMatchBtoA()) {
-        imodManager.openFullVolume(AxisID.FIRST);
+        //imodManager.openFullVolume(AxisID.FIRST);
+        imodManager.reset(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST);
+        imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST);
       }
       else {
-        imodManager.openFullVolume(AxisID.SECOND);
+        //imodManager.openFullVolume(AxisID.SECOND);
+        imodManager.reset(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND);
+        imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND);
       }
     }
     catch (SystemProcessException except) {
@@ -3394,13 +3445,18 @@ public class ApplicationManager {
    */
   public void imodCombinedTomogram() {
     try {
-      imodManager.openCombinedTomogram();
+      //imodManager.openCombinedTomogram();
+      imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainFrame.openMessageDialog(
         except.getMessage(),
         "Can't open 3dmod on the trimmed tomogram");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3409,13 +3465,18 @@ public class ApplicationManager {
    */
   public void imodTrimmedVolume() {
     try {
-      imodManager.openTrimmedVolume();
+      //imodManager.openTrimmedVolume();
+      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainFrame.openMessageDialog(
         except.getMessage(),
         "Can't open 3dmod on the trimmed tomogram");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
