@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2003/09/24 20:41:41  mast
+Made it compilable without multi-thread support
+
 Revision 1.6  2003/09/23 21:08:33  mast
 Made the painter be created and destroyed on each draw instead of being
 resident, eliminated code for SECOND_THREAD, and made Mac window only a
@@ -144,6 +147,10 @@ void PlaxWindow::closeEvent ( QCloseEvent * e )
 void PlaxWindow::paintEvent ( QPaintEvent * e)
 {
   Plax_exposed = 1;
+#ifdef QTPLAX_NO_THREAD
+  if (!PlaxPainter)
+    return;
+#endif
   if (e->erased())
     OutListInd = 0;
   draw();
@@ -158,7 +165,13 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
   PlaxScaleY = ((float)height()) / 1024.0f;
 
   // Make it repaint the whole thing
+  // Get a new painter to fit the new size
   OutListInd = 0;
+#ifdef QTPLAX_NO_THREAD
+  if (PlaxPainter)
+    delete PlaxPainter;
+  PlaxPainter = new QPainter(PlaxWidget);
+#endif
 }
 
 
@@ -288,6 +301,7 @@ int plax_open(void)
 
     PlaxWidget->show();
     plax_input_open();
+    PlaxPainter = new QPainter(PlaxWidget);
   } else
     PlaxWidget->show();
 
@@ -554,7 +568,9 @@ static void draw()
   int ind;
   b3dInt16 *vec;
   
+#ifndef QTPLAX_NO_THREAD
   PlaxPainter = new QPainter(PlaxWidget);
+#endif
   PlaxWidget->lock();
 
   // fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize);
@@ -633,8 +649,10 @@ static void draw()
 
   }
   PlaxWidget->unlock();
-  PlaxPainter->end();
+  PlaxPainter->flush();
+#ifndef QTPLAX_NO_THREAD
   delete PlaxPainter;
+#endif
   //  plax_input();
 }
 
