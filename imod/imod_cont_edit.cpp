@@ -1231,9 +1231,7 @@ void imodContEditSurfShow(void)
   surf.dia->setSurface(val, max);
 
   /* Show state of ghost drawing */
-  surf.dia->setGhostState(surf.vw->ghostdist, surf.vw->ghostmode,
-                          IMOD_GHOST_NEXTSEC, IMOD_GHOST_PREVSEC, 
-                          IMOD_GHOST_SURFACE);
+  surf.dia->setGhostState(surf.vw->ghostdist, surf.vw->ghostmode);
 
   /* show closed/open state; enable for closed objects */
   closedOpen = 0;
@@ -1386,7 +1384,10 @@ void iceTimeChanged(int value)
 void iceLabelChanged(char *st, int contPoint)
 {
   Icont *cont = imodContourGet(surf.vw->imod);
-  if (!cont) 
+
+  // With no signal blocking upon setting, it was sending nulls, so skip just
+  // in case that happens
+  if (!cont || !st) 
     return;
      
   if (!cont->label)
@@ -1522,11 +1523,15 @@ void iceShowHelp()
      "the maximum number of sections that contours will be displayed as "
      "ghosts on.  For example, with a value of 3, contours will be displayed "
      "as ghosts from up to 3 sections away.  If the \"Up\" "
-     "button is on, then contours will be displayed as ghosts on "
-     "following sections; the \"Down\" button will display contours "
+     "box is checked, then contours will be displayed as ghosts on "
+     "following sections; the \"Down\" check box will display contours "
      "as ghosts on previous sections.  The \"g\" hot key will "
      "toggle "
-     "the combination selected by these buttons on and off.\n\n",
+     "the combination selected by these boxes on and off.\n\n",
+     "If \"Lighter\" box is checked, the ghost contours will be displayed "
+     "in a lighter color, otherwise they will be drawn with a darker color.  "
+     "If the \"All objects\" box is checked, ghosts will be drawn for "
+     "all objects instead of just for the current object.\n\n",
      NULL);
 
   return;
@@ -1566,6 +1571,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.9  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.8  2004/01/05 18:25:07  mast
 Improved explanation of point display; made conversion from contour to
 point multiply by the binning in X and Y.
