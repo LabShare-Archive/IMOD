@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/23 20:04:09  sueh
+ * <p> bug# 83 using initializeProgressBar() to initialize progress bar
+ * <p> before running waitForLogFile()
+ * <p>
  * <p> Revision 3.6  2004/04/23 19:36:56  sueh
  * <p> bug# 83 adding a "starting" comment when starting the process bar
  * <p>
@@ -138,7 +142,9 @@ public abstract class LogFileProcessMonitor implements Runnable {
       Utilities
         .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
             + logFile.getAbsolutePath());
-      logFileReader.close();
+      if (logFileReader != null) {
+        logFileReader.close();
+      }
     }
     catch (IOException e1) {
       e1.printStackTrace();
