@@ -77,7 +77,7 @@ endif
 cat << EOF >> $configure
 SHELL     = /bin/sh
 CP        = \\cp
-FIND      = \\find
+FIND      = /usr/bin/find
 EOF
 
 
