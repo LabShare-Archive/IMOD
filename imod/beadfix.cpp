@@ -131,7 +131,7 @@ static PlugData thisPlug = { 0, 0 };
 
 #define ERROR_NO_IMOD_DIR -64352
 // Place for qalign thread to leave its exit code
-static alignExitCode;
+static int alignExitCode;
 
 /*
  * Called by the imod plugin load function. 
@@ -1189,6 +1189,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.5  2004/05/03 19:17:43  mast
+    Added ability to run tiltalign if there is thread support
+
     Revision 1.4  2004/04/29 00:28:40  mast
     Added button to keep window on top
 
