@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/04/18 22:33:45  mast
+Allowed SENDEVENT_RETRY_HACK to be defined as zero to set data a second time
+after processing events.
+
 Revision 1.4  2003/09/24 16:20:37  mast
 Add include of imodconfig.h and add resending message for debug output
 
@@ -112,10 +116,10 @@ int main(int argc, char **argv)
 
   numArgs = argc - argIndex;
 
-  if (numArgs < 2 || numArgs > 3 ) {
+  if (numArgs < 2) {
     fprintf(stderr, "ERROR: imodsendevent - Wrong number of arguments\n"
             "   Usage: imodsendevent [-t timeout] [-D] Window_ID action "
-            "[text_string]\n");
+            "[arguments]\n");
     exit(-1);
   }
 
@@ -140,8 +144,8 @@ int main(int argc, char **argv)
   timeStr.sprintf(" %d ", timeStamp);
   timeStr = QString(argv[argIndex]) + timeStr; 
   cmdStr = QString(argv[argIndex + 1]) + " ";
-  if (numArgs > 2)
-    cmdStr += argv[argIndex + 2];
+  for (; argIndex + 2 < argc; argIndex++)
+    cmdStr += QString(argv[argIndex + 2]) + " ";
   qstr = timeStr + cmdStr;
 
   // Connect to the clipboard, start the timeout, and send the text
