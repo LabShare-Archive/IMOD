@@ -1,6 +1,7 @@
 package etomo.type;
 
 import etomo.process.ProcessState;
+
 import java.util.Properties;
 
 /*
@@ -16,6 +17,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/19 23:36:32  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.1  2004/09/29 19:31:50  sueh
  * <p> bug# 520 Added base class BaseProcessTrack.  Moved Storable to base
  * <p> class.  Moved generic load and store functions, modified functionality,
@@ -47,7 +51,7 @@ import java.util.Properties;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ProcessTrack extends BaseProcessTrack {
+public class ProcessTrack implements BaseProcessTrack {
   public static final String rcsid =
     "$Id$";
 
@@ -70,8 +74,31 @@ public class ProcessTrack extends BaseProcessTrack {
   private ProcessState tomogramPositioningB = ProcessState.NOTSTARTED;
   private ProcessState tomogramGenerationB = ProcessState.NOTSTARTED;
 
+  protected String revisionNumber;
+  protected boolean isModified = false;
+  
   public ProcessTrack() {
     revisionNumber = "2.0";
+  }
+  
+  public void store(Properties props) {
+    store(props, "");
+  }
+  
+  public void load(Properties props) {
+    load(props, "");
+  }
+  
+  public String getRevisionNumber() {
+    return revisionNumber;
+  }
+
+  public boolean isModified() {
+    return isModified;
+  }
+
+  public void resetModified() {
+    isModified = false;
   }
 
   /**
