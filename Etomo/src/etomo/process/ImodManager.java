@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2004/11/19 23:21:15  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.25.4.10  2004/11/12 22:53:32  sueh
  * <p> bug# 520 Added trial join key.
  * <p>
@@ -729,6 +732,30 @@ public class ImodManager {
     }
     imodState.setBinning(binning);
   }
+  
+  public void setBinningXY(String key, int binning) throws AxisTypeException,
+      SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      newImod(key);
+    }
+    if (imodState != null) {
+      imodState.setBinningXY(binning);
+    }
+  }
+  
+  public void setBinningXY(String key, int vectorIndex, int binning)
+  throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, vectorIndex);
+    if (imodState == null) {
+      throw new IllegalArgumentException(key + " was not created in "
+          + axisType.toString() + " at index " + vectorIndex);
+    }
+    imodState.setBinningXY(binning);
+  }
+
   
   public void setOpenContours(String key, AxisID axisID, boolean openContours)
     throws AxisTypeException, SystemProcessException {

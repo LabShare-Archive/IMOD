@@ -172,6 +172,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.20  2004/11/19 23:21:49  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 1.19.2.2  2004/09/22 22:07:52  sueh
  * <p> $bug# 520 Added getSlicerAngles().
  * <p> $
@@ -766,6 +769,10 @@ public class ImodState {
    */
   public void setBinning(int binning) {
     process.setBinning(binning);
+  }
+  
+  public void setBinningXY(int binning) {
+    process.setBinningXY(binning);
   }
   
   /**

@@ -22,6 +22,9 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2004/11/19 23:21:39  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.17.4.3  2004/10/08 15:57:43  sueh
  * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
  * <p> member variables non-static.
@@ -226,6 +229,7 @@ public class ImodProcess {
   private boolean openWithModel = true;
   private File workingDirectory = null;
   private int binning = defaultBinning;
+  private int binningXY = defaultBinning;
   InteractiveSystemProgram imod = null;
   private Vector sendArguments = new Vector();
 
@@ -325,6 +329,11 @@ public class ImodProcess {
     if (binning > defaultBinning) {
       options.append("-B " + binning + " ");
     }
+    
+    if (binningXY > defaultBinning) {
+      options.append("-b " + binningXY + " ");
+    }
+    
     StringBuffer commandBuffer =
       new StringBuffer(
         ApplicationManager.getIMODBinPath() + "3dmod " + options + datasetName);
@@ -831,6 +840,15 @@ public class ImodProcess {
     }
     else {
       this.binning = binning;
+    }
+  }
+  
+  public void setBinningXY(int binningXY) {
+    if (binningXY < defaultBinning) {
+      this.binningXY = defaultBinning;
+    }
+    else {
+      this.binningXY = binningXY;
     }
   }
 

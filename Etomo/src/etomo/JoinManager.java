@@ -48,6 +48,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/11/24 00:58:08  sueh
+* <p> bug# 520 makejoincom: set nextProcess to "" when running process
+* <p> makejoincom() throws anexception.
+* <p>
 * <p> Revision 1.4  2004/11/23 22:29:03  sueh
 * <p> bug# 520 Fixing makejoincom - shouldn't do a set mode until the process
 * <p> is finished.  Putting startProgressBar() call last is process run functions
@@ -260,7 +264,7 @@ public class JoinManager extends BaseManager {
    */
   public void imodOpen(String imodKey, int binning) {
     try {
-      imodManager.setBinning(imodKey, binning);
+      imodManager.setBinningXY(imodKey, binning);
       imodManager.open(imodKey);
     }
     catch (AxisTypeException except) {
@@ -302,7 +306,7 @@ public class JoinManager extends BaseManager {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
       }
-      imodManager.setBinning(imodKey, imodIndex, binning);
+      imodManager.setBinningXY(imodKey, imodIndex, binning);
       imodManager.open(imodKey, imodIndex, file);
     }
     catch (AxisTypeException except) {
