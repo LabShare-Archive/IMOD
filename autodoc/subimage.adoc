@@ -8,7 +8,7 @@ type = FN
 usage = Input image file to subtract images from (file A)
 tooltip = 
 manpage = Input image file to subtract images from (file A).  If this option
-is not entered, the second non-option argument will be used for this input
+is not entered, the first non-option argument will be used for this input
 file.
 
 [Field = BFileSubtractOff]
