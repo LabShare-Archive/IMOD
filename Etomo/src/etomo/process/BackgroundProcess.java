@@ -16,6 +16,9 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/11/19 23:17:18  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.1.2.5  2004/11/12 22:50:28  sueh
  * <p> bug# 520 Removed pass-through commands to Command.  Removed
  * <p> String getCommand() - using getCommandName instead.  Added
@@ -112,6 +115,7 @@ public class BackgroundProcess
   
   public BackgroundProcess(Command command, BaseProcessManager processManager) {
     this.command = command;
+    this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
@@ -218,11 +222,11 @@ public class BackgroundProcess
   public void run() {
     started = true;
     SystemProgram program;
-    if (commandLine != null) {
-      program = new SystemProgram(commandLine);
-    }
-    else if (commandArray != null) {
+    if (commandArray != null) {
       program = new SystemProgram(commandArray);
+    }
+    else if (commandLine != null) {
+      program = new SystemProgram(commandLine);
     }
     else if (command != null) {
       program = new SystemProgram(command.getCommandLine());

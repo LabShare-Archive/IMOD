@@ -17,6 +17,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/08/24 17:31:24  sueh
+ * <p> $bug# 508 speed up kill by leaving waitForProcess on interrupt.
+ * <p> $
  * <p> $Revision 1.2  2004/08/23 23:33:48  sueh
  * <p> $bug# 508 changed BackgroundProcessMonitor.isDone() to
  * <p> $isSuccessful
@@ -42,6 +45,12 @@ public class BackgroundSystemProgram extends SystemProgram {
     super(command);
     this.backgroundProcessMonitor = backgroundProcessMonitor;
   }
+  
+  public BackgroundSystemProgram(String[] command,
+      BackgroundProcessMonitor backgroundProcessMonitor) {
+      super(command);
+      this.backgroundProcessMonitor = backgroundProcessMonitor;
+    }
 
   /**
    * use process monitor to wait for a background process to finish

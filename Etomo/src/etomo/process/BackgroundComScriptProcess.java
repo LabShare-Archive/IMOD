@@ -30,6 +30,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2004/08/30 18:41:29  sueh
+ * <p> bug# 508 ProcessManager.kill() is using notifyKill() to tell this object that
+ * <p> a kill has been requested.  KillMonitor() can be private
+ * <p>
  * <p> Revision 1.7  2004/08/28 02:41:39  sueh
  * <p> bug# 508 isComScriptBusy: The output from Mac lsof is a little different.
  * <p> Stopped checking the type since the value is different on Mac; it wasn't
@@ -231,9 +235,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06 
-    csh = 
-      new BackgroundSystemProgram("tcsh -f " + runCshFile.getAbsolutePath(),
-      backgroundProcessMonitor);
+    String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
+    csh = new BackgroundSystemProgram(command, backgroundProcessMonitor);
     csh.setWorkingDirectory(workingDirectory);
     csh.setDebug(debug);
     

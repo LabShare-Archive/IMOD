@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:39:52  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.3  2004/11/12 22:45:52  sueh
 * <p> bug# 520 Added getBinning() to get the binning that a command was run
 * <p> with.  Added getIntegerValue(int) to get a miscelanious value that a
@@ -39,4 +42,5 @@ public interface Command {
   public int getMode();
   public int getBinning();
   public int getIntegerValue(int name);
+  public String[] getCommandArray();
 }

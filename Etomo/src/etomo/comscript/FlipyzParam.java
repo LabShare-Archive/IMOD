@@ -19,6 +19,9 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:57:10  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.6  2004/11/12 22:48:27  sueh
 * <p> bug# 520 Added empty getIntegerValue and getBinning.
 * <p>
@@ -43,15 +46,19 @@ public class FlipyzParam implements Command {
   public static  final String  rcsid =  "$Id$";
   
   public static final String command = "clipflipyz";
-  private StringBuffer commandLine;
+  private static final int commandSize = 3;
   private File flipFile;
+  private String[] commandArray;
   
   public FlipyzParam(File tomogram, File workingDir) {
     //TODO use array for command string
-    commandLine = new StringBuffer("tcsh -f " + BaseManager.getIMODBinPath() + command);
     ArrayList options = genOptions(tomogram, workingDir);
+    commandArray = new String[options.size() + commandSize];
+    commandArray[0] = "tcsh";
+    commandArray[1] = "-f";
+    commandArray[2] = BaseManager.getIMODBinPath() + command;          
     for (int i = 0; i < options.size(); i++) {
-      commandLine.append(" " + options.get(i));
+      commandArray[i + commandSize] = (String) options.get(i);
     }
   }
   
@@ -76,7 +83,11 @@ public class FlipyzParam implements Command {
   }
   
   public String getCommandLine() {
-    return commandLine.toString();
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i] + " ");
+    }
+    return buffer.toString();
   }
   
   public String getCommandName() {
@@ -85,6 +96,10 @@ public class FlipyzParam implements Command {
   
   public static String getName() {
     return command;
+  }
+  
+  public String[] getCommandArray() {
+    return commandArray;
   }
   
   public File getOutputFile() {
