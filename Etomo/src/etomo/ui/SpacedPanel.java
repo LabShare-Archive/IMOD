@@ -27,6 +27,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:04:29  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.5  2004/11/11 01:43:14  sueh
 * <p> bug# 520 Removed unused functions add(Component).
 * <p>
@@ -51,10 +54,18 @@ import javax.swing.border.Border;
 public class SpacedPanel {
   public static  final String  rcsid =  "$Id$";
   
-  Dimension spacing;
+  private static final int RIGID_AREA = -1;
+  public static final int HORIZONTAL_RIGID_AREA = -2;
+  public static final int VERTICAL_RIGID_AREA = -3;
+  public static final int HORIZONTAL_GLUE = -4;
+  
+
+  Dimension spacing = null;;
   boolean outerSpacing = false;
+  boolean spaceBefore = true;
   FormattedPanel panel;
   int numComponents = 0;
+  int spacingType;
   
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
@@ -70,6 +81,20 @@ public class SpacedPanel {
     this(spacing, false);
   }
   
+  SpacedPanel(int spacingType, boolean outerSpacing) {
+    this.spacingType = spacingType;
+    this.outerSpacing = outerSpacing;
+    panel = new FormattedPanel();
+    switch (spacingType) {
+    case HORIZONTAL_RIGID_AREA:
+      spacing = FixedDim.x5_y0;
+      break;
+    case VERTICAL_RIGID_AREA:
+      spacing = FixedDim.x0_y5;
+      break;
+    }
+  }
+  
   SpacedPanel(Dimension spacing, boolean outerSpacing) {
     this(spacing, outerSpacing, true);
   }
@@ -77,10 +102,9 @@ public class SpacedPanel {
   SpacedPanel(Dimension spacing, boolean outerSpacing, boolean spaceBefore) {
     this.spacing = spacing;
     this.outerSpacing = outerSpacing;
+    this.spaceBefore = spaceBefore;
+    this.spacingType = RIGID_AREA;
     panel = new FormattedPanel();
-    if (outerSpacing && spaceBefore) {
-      panel.add(Box.createRigidArea(spacing));
-    }
   }
   
   Component add(JComponent comp) {
@@ -92,6 +116,14 @@ public class SpacedPanel {
     addSpacingBefore();
     Component component = panel.add(comp);
     addSpacingAfter(spaceAfter);
+    return component;
+  }
+  
+  Component add(FormattedPanel formattedPanel) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.add(formattedPanel);
+    addSpacingAfter(true);
     return component;
   }
   
@@ -135,19 +167,29 @@ public class SpacedPanel {
     return component;
   }
   
-  void addRigidArea() {
-    panel.add(Box.createRigidArea(spacing));
-  }
-  
   private void addSpacingBefore() {
-    if ((outerSpacing && numComponents == 1) || (!outerSpacing && numComponents > 1)) {
-      panel.add(Box.createRigidArea(spacing));
+    if ((outerSpacing && numComponents == 1 && spaceBefore)
+        || (!outerSpacing && numComponents > 1)) {
+      addSpacing();
     }
   }
   
   private void addSpacingAfter(boolean spaceAfter) {
     if (spaceAfter && outerSpacing) {
+      addSpacing();
+    }
+  }
+  
+  private void addSpacing() {
+    switch (spacingType) {
+    case RIGID_AREA:
+    case HORIZONTAL_RIGID_AREA:
+    case VERTICAL_RIGID_AREA:
       panel.add(Box.createRigidArea(spacing));
+      break;
+    case HORIZONTAL_GLUE:
+      panel.addHorizontalGlue();
+      break;
     }
   }
   
