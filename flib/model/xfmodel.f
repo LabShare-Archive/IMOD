@@ -24,6 +24,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2004/03/22 05:37:17  mast
+c	  Added mag gradient corrections, resolved some problems with
+c	  back-transforming with distortion corrections.
+c	
 c	  Revision 3.7  2004/01/27 05:37:22  mast
 c	  Left a ; on a line
 c	
@@ -95,7 +99,7 @@ c
 	character*10240 stringList
 	real*4 pixelMagGrad, axisRot
 	real*4 tiltAngles(nflimit), dmagPerUm(nflimit), rotPerUm(nflimit)
-	integer*4 numMagGrad
+	integer*4 numMagGrad, lnblnk
 c	  
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
