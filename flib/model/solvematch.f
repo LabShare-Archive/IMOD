@@ -39,6 +39,14 @@ c	  sure to distribute the points in depth (rather than all on one
 c	  surface) so as to provide information on this scaling.  Here, 5 or 6
 c	  points are recommended.
 c	  
+c	  You can also use models of corresponding points alone to register
+c	  two volumes for which fiducial points from TILTALIGN are not
+c	  available.  In this case, you should have points well-distributed in
+c	  in all dimensions.  At least 8 points are recommended.  If this is to
+c	  provide the basis for the final alignment of the volumes, they should
+c	  be relatively near the 8 corners of the volume; but if the alignment
+c	  is to be refined with correlation, this is not necessary.
+c
 c	  The program needs to know how the fiducial points correspond between
 c	  the two tilt series.  If it is given a small list of points which do
 c	  correspond, it can find the rest of the correspondences and ignore
@@ -56,7 +64,7 @@ c	  be removed in this way.  If, even after removing such outliers, the
 c	  maximum residual in the linear fit is still higher than a value that
 c	  you specify, than the program will exit with an error.
 c
-c	  Inputs to the program:
+c	  Inputs to the program when fiducials from TILTALIGN are available:
 c	  
 c	  Name of file with coordinate of fiducials from the first tilt series
 c
@@ -89,28 +97,50 @@ c	  .  inverted and there are fiducials on only one surface.
 c
 c	  IF you entered 0, make the following four entries:
 c
-c	  .  Either the file name of the first tomogram, or the X, Y and Z
-c	  .    dimensions and the X, Y and Z origin of that tomogram.
-c	  .    (NOTE: the standard origin values put out by TILT are NX/2, 
-c	  .    NY/2, and 0.)
+c	  .  Either the file name or the X, Y and Z dimensions of the first
+c	  .    tomogram
 c
 c	  .  Name of model of points from the first tomogram
 c	  
-c	  .  Either the file name of the second tomogram, or the X, Y and Z
-c	  .    dimensions and X, Y and Z origin of that tomogram.
+c	  .  Either the file name or the X, Y and Z dimensions of the second
+c	  .    tomogram
 c
 c	  .  Name of model of points from the second tomogram
 c	  
 c	  Finally, enter name of file for output of the transformation, or
 c	  .  Return for none
 c
+c	  
+c	  Inputs to the program when matching models alone are being used:
+c	  
+c	  A blank line (Return) in place of the name of the first fiducial file
+c	  
+c	  The limiting value for the maximum residual
+c
+c	  Either the file name or the X, Y and Z size of the first tomogram
+c
+c	  Name of model of points from the first tomogram
+c	  
+c	  Either the file name or the X, Y and Z size of the second tomogram
+c
+c	  Name of model of points from the second tomogram
+c	  
+c	  Name of file for output of the transformation, or Return for none
+c	  
+c
 c	  The program determines the transformation and computes the deviation
 c	  between each actual point in the first tomogram and the
 c	  transformation of the corresponding point in the second tomogram.  It
 c	  reports the mean and S.D. of these deviations, the number of the
 c	  point with the highest deviation, and the magnitude of its deviation.
-c	  (The modeled points are placed in the array after the fiducial
-c	  points, so the highest numbers refer to these points.)
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 c	  David Mastronarde, 1995; modified for zero shifts, 7/4/97;
 c	  Added outlier elimination and error exit, 6/5/99
@@ -136,6 +166,9 @@ c
 	real*4 addratio,cosa,cosb,tmpy,addcrit,distmin,devavg,devsd
 	real*4 devmax,dx,dist,crit,elimmin,critabs,stoplim,xtilta,xtiltb
 	real*4 sina,sinb,dy,dz
+	integer*4 ierr,ifflip,ncolfit
+	integer*4 getimodhead,getimodscales
+	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 sind,cosd
 c	  
 c	  don't add a point if it's this much higher than the limit for
@@ -146,16 +179,30 @@ c
 c	  require at least this many points to start
 c
 	nstartmin=4
-	write(*,'(1x,a,$)') 'Name of file with 3-D fiducial'//
-     &	    ' coordinates for first tilt series: '
+c	  
+c	  initialize these items here in case no fiducials are entered
+c
+	npnta=0
+	npntb=0
+	nlista = 0
+	nlistb = 0
+        ndat=0
+	nsurf = 0
+	ncolfit = 3
+c
+	write(*,'(1x,a,/,a$)') 'Name of file with 3-D fiducial'//
+     &	    ' coordinates for first tilt series,',
+     &	    ' or Return to align with matching model files only: '
 	read(*,'(a)')filename
+	if (filename .eq. ' ')go to 40
+
 	call dopen(1,filename,'old','f')
 c
 c	  invert the Z coordinates because the tomogram built by TILT is
 c	  inverted relative to the solution produced by TILTALIGN
 c
+	ncolfit = 4
 	itry=0
-	npnta=0
 10	read(1,*,end=15)idum,(pnta(j,npnta+1),j=1,3)
 	npnta=npnta+1
 	pnta(3,npnta)=-pnta(3,npnta)
@@ -166,7 +213,7 @@ c
      &	    ' coordinates for second tilt series: '
 	read(*,'(a)')filename
 	call dopen(1,filename,'old','f')
-	npntb=0
+
 20	read(1,*,end=25)idum,(pntb(j,npntb+1),j=1,3)
 	npntb=npntb+1
 	pntb(3,npntb)=-pntb(3,npntb)
@@ -191,48 +238,47 @@ c
 	nlista=nlist
 	call rdlist(5,listcorra,nlista)
 	if(nlista.lt.nstartmin)then
-	  print *,'SOLVEMATCH NEEDS AT LEAST',nstartmin,
+	  print *
+	  print *,'ERROR: SOLVEMATCH - NEED AT LEAST',nstartmin,
      &	      ' POINTS TO GET STARTED'
 	  call exit(1)
 	endif
-	if(nlista.gt.nlist)then
-	  print *,'SOLVEMATCH: YOU HAVE ENTERED MORE NUMBERS THAN THE',
-     &	      ' MINIMUM NUMBER OF POINTS IN A AND B'
-	  call exit(1)
-	endif
+	if(nlista.gt.nlist)call errorexit(
+     &	    'YOU HAVE ENTERED MORE NUMBERS THAN THE',
+     &	      ' MINIMUM NUMBER OF POINTS IN A AND B')
 	write (*,114)nlista
 114	format('Enter a list of the corresponding points in the',
      &	    ' second series ',/,' (enter / for 1-', i3, ')')
 	nlistb=nlista
 	call rdlist(5,listcorrb,nlistb)
 	if(nlistb.ne.nlista)then
-	  print *,'SOLVEMATCH: YOU MUST HAVE THE SAME NUMBER OF '//
-     &	      'ENTRIES IN EACH LIST','YOU MADE',nlista,' AND',nlistb,
-     &	      'ENTRIES FOR LISTS A AND B'
+	  print *
+ 	  print *,'ERROR: SOLVEMATCH - YOU MUST HAVE THE SAME NUMBER '
+     &	      //' OF ENTRIES IN EACH LIST','YOU MADE',nlista,' AND',
+     &	      nlistb, 'ENTRIES FOR LISTS A AND B'
 	  call exit(1)
 	endif
 c	  
 c	  check legality and build map lists
 c	  
 	do i=1,nlista
-	  if(listcorra(i).le.0.or.listcorrb(i).le.0)then
-	    print *,'SOLVEMATCH: YOU ENTERED AN POINT NUMBER LESS '//
-     &		'THAN OR EQUAL TO ZERO'
-	    call exit(1)
-	  elseif(listcorra(i).gt.npnta)then
-	    print *,'SOLVEMATCH: YOU ENTERED A POINT NUMBER HIGHER'//
-     &		' THAN THE NUMBER OF POINTS IN A'
-	    call exit(1)
-	  elseif(listcorrb(i).gt.npntb)then
-	    print *,'SOLVEMATCH: YOU ENTERED A POINT NUMBER HIGHER'//
-     &		' THAN THE NUMBER OF POINTS IN B'
-	    call exit(1)
-	  elseif(mapab(listcorra(i)).ne.0)then
-	    print *,'SOLVEMATCH: POINT #',listcorra(i),
+	  if(listcorra(i).le.0.or.listcorrb(i).le.0)call errorexit(
+     &	      'YOU ENTERED A POINT NUMBER LESS '//
+     &		'THAN OR EQUAL TO ZERO')
+	  if(listcorra(i).gt.npnta)call errorexit(
+     &	      ' YOU ENTERED A POINT NUMBER HIGHER'//
+     &		' THAN THE NUMBER OF POINTS IN A')
+	  if(listcorrb(i).gt.npntb)call errorexit(
+     &	      ' YOU ENTERED A POINT NUMBER HIGHER'//
+     &		' THAN THE NUMBER OF POINTS IN B')
+	  if(mapab(listcorra(i)).ne.0)then
+	    print *
+	    print *,'ERROR: SOLVEMATCH - POINT #',listcorra(i),
      &		' IN A REFERRED TO TWICE'
 	    call exit(1)
 	  elseif(mapped(listcorrb(i)).ne.0)then
-	    print *,'SOLVEMATCH: POINT #',listcorrb(i),
+	    print *
+	    print *,'ERROR: SOLVEMATCH - POINT #',listcorrb(i),
      &		' IN B REFERRED TO TWICE'
 	    call exit(1)
 	  endif
@@ -262,13 +308,13 @@ c
 	  pntb(2,i)=tmpy
 	enddo
 c	  
-	write(*,'(1x,a,/,a,$)')'Maximum residual value above which '//
+40	write(*,'(1x,a,/,a,$)')'Maximum residual value above which '//
      &	    'this program should',' exit with an error: '
 	read(5,*)stoplim
+	if (npnta.eq.0) go to 50
 c       
 c       fill array for regression
 c
-        ndat=0
         do ia=1,npnta
           if(mapab(ia).ne.0)then
             ndat=ndat+1
@@ -281,7 +327,7 @@ c
 	  endif
         enddo
 c
-        print *,ndat,' pairs of fiducial points'
+	print *,ndat,' pairs of fiducial points'
 	write(*,'(1x,a,/,a,/,a,/,a,$)')'Enter 0 to solve for '//
      &	    'displacements using matching model files, or -1, 1 or 2'
      &	    ,'  to solve only for 3x3 matrix (2 if fiducials are on 2'//
@@ -290,48 +336,48 @@ c
      &	    ' or -1 if fiducials ARE on one','  surface'
      &	    //' and tomograms are inverted relative to each other): '
 	read(5,*)nsurf
-	if(nsurf.eq.0)then
+50	if(nsurf.eq.0)then
+	  iofs=ncolfit+1
 	  do model=1,2
-	    write(*,'(1x,a,i2,a)')'Enter NX, NY, NZ and X, Y, Z origin of '//
+c	      
+c	      DNM 7/20/02: Changed to just get the nx,ny,nz and not the
+c	      origin from the image file; to use model header information
+c	      to scale back to image index coordinates; and to not use or mess
+c	      up the y-z transposition variable
+c
+	    write(*,'(1x,a,i2,a)')'Enter NX, NY, NZ of '//
      &		'tomogram', model, ', or name of tomogram file'
-	    call get_nxyz_org(1,nxyz(1,model),orig(1,model))
-	    print *,(nxyz(i,model),i=1,3)
-81	    write(*,'(1x,a,i2,a,$)')
+	    call get_nxyz(1,nxyz(1,model))
+c	    print *,(nxyz(i,model),i=1,3)
+	    write(*,'(1x,a,i2,a,$)')
      &		'Name of model file from tomogram',model,': '
 	    read(*,'(a)')filename
-	    if(.not.readw_or_imod(filename))go to 81
-c	      write(*,'(1x,a,$)') '1 if Y and Z were flipped when '//
-c	      &	      'building that model (loaded -Y), or 0 if not: '
-c	      read(5,*)iftransp
-	    iftransp=0
-	    if(iftransp.eq.0)then
-	      jxyz(2)=2
-	      jxyz(3)=3
-	    else
-	      jxyz(2)=3
-	      jxyz(3)=2
-	    endif
+	    if(.not.readw_or_imod(filename))call errorexit(
+     &		'READING MODEL FILE')
+
+	    ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	    ierr = getimodscales(ximscale, yimscale, zimscale)
+	    
 	    nmodpt=0
-	    iofs=10-5*model
 	    do iobj=1,max_mod_obj
 	      do ip=1,npt_in_obj(iobj)
 		ipt=abs(object(ibase_obj(iobj)+ip))
 		nmodpt=nmodpt+1
-		do i=1,3
-		  xr(i+iofs,ndat+nmodpt)=p_coord(jxyz(i),ipt)+
-     &		      orig(i,model)- 0.5*nxyz(i,model)
-		enddo
+		xr(1+iofs,ndat+nmodpt)=(p_coord(1,ipt)-xofs)/ximscale
+     &		    - 0.5*nxyz(1,model)
+		xr(2+iofs,ndat+nmodpt)=(p_coord(2,ipt)-yofs)/yimscale
+     &		    - 0.5*nxyz(2,model)
+		xr(3+iofs,ndat+nmodpt)=(p_coord(3,ipt)-zofs)/zimscale
+     &		    - 0.5*nxyz(3,model)
 		xr(4,ndat+nmodpt)=0.
 		iorig(ndat+nmodpt)=npnta+nmodpt
 	      enddo
 	    enddo
 	    if(model.eq.1)ndata=nmodpt
+	    iofs=0
 	  enddo
-	  if(nmodpt.ne.ndata)then
-	    print *, 'SOLVEMATCH: '//
-     &		'# OF POINTS DOES NOT MATCH BETWEEN MATCHING MODELS'
-	    call exit(1)
-	  endif
+	  if(nmodpt.ne.ndata)call errorexit(
+     &		'# OF POINTS DOES NOT MATCH BETWEEN MATCHING MODELS')
 	  print *,nmodpt,' point pairs from models'
 	else
 	  nmodpt=1
@@ -425,21 +471,21 @@ c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=6,8),j=1,ndat)
 	crit=0.01
 	elimmin=3.
 	critabs=0.002
-	call solve_wo_outliers(xr,ndat,4,maxdrop,crit,critabs,elimmin,
+	call solve_wo_outliers(xr,ndat,ncolfit,maxdrop,crit,critabs,elimmin,
      &	    idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,ipntmax,
      &	    devxyzmax)
 c
 	if(ndrop.ne.0)then
 	  write(*,104)ndrop,devavg,devsd,(iorig(idrop(i)),i=1,ndrop)
 	  write(*,115)(xr(5,i),i=ndat+1-ndrop,ndat)
-104	  format(i3,' points dropped by outlier elimination; ',
+104	  format(/,i3,' points dropped by outlier elimination; ',
      &	      'residual mean =',f7.2,', SD =',f7.2,/,
      &	      ' point-pairs:',(11i6))
 115	  format(' deviations :',(11f6.1))
 	endif
 c
         write(*,101)devavg,devmax,iorig(ipntmax),(devxyzmax(i),i=1,3)
-101     format(/,' Mean residual',f8.3,',  maximum',f8.3,
+101     format(//,' Mean residual',f8.3,',  maximum',f8.3,
      &      ' at point-pair',i4,/,'  Deviations:',3f8.3)
 c
 	write(*,103)(a(i,4),i=1,3)
@@ -455,33 +501,14 @@ c
 	  write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 	  close(1)
 	endif
-	if (devmax.gt.stoplim) then
-	  print *, 'MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED'
-	  call exit(1)
-	endif
+	if (devmax.gt.stoplim) call errorexit(
+     &	    'MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
 	call exit(0)
         end
 
-c	  GET_NXYZ_ORG accepts a line of input and attempts to read it as 3
-c	  integers and 3 reals.  If this succeeds, the values are returned as
-c	  NXYZ and ORIG. If this generates an error, it then uses the line as
-c	  a filename and tries to open an MR file on unit IUNIT.  NXYZ and
-c	  ORIG are then fetched from the header.
-c
-	subroutine get_nxyz_org(iunit,nxyz,orig)
-	implicit none
-	integer*4 nxyz(3),mxyz(3),iunit,mode,i
-	real*4 orig(3),dmin,dmax,dmean
-	character*80 line
-	read(5,'(a)')line
-	if(line(1:1).eq.'/')go to 10
-	read(line,*,err=10)(nxyz(i),i=1,3),(orig(i),i=1,3)
-	return
-10	call ialprt(.false.)
-	call imopen(iunit,line,'ro')
-	call irdhdr(iunit,nxyz,mxyz,mode,dmin,dmax,dmean)
-	call irtorg(iunit,orig(1),orig(2),orig(3))
-	call imclose(iunit)
-	call ialprt(.true.)
-	return
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: SOLVEMATCH - ',message
+	call exit(1)
 	end
