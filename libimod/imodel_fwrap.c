@@ -36,6 +36,10 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/05/20 15:53:39  mast
+    Added ability to set scattered point size, and get arrays of contour
+    time and surface values
+
     Revision 3.2  2001/12/05 15:59:19  mast
     Provide a function so that Wimp model reading routines can read VMS floats
 
@@ -67,9 +71,9 @@
 #define putimod      PUTIMOD
 #define openimoddata OPENIMODDATA
 #define getimodhead  GETIMODHEAD
+#define getimodscales GETIMODSCALES
 #define getimodmaxes GETIMODMAXES
 #define putimodmaxes PUTIMODMAXES
-#define getimodhead  GETIMODHEAD
 #define getimodscat  GETIMODSCAT
 #define getimodclip  GETIMODCLIP
 #define putimodscat  PUTIMODSCAT
@@ -92,6 +96,7 @@
 #define putimod      putimod_
 #define openimoddata openimoddata_
 #define getimodhead  getimodhead_
+#define getimodscales getimodscales_
 #define getimodmaxes getimodmaxes_
 #define putimodmaxes putimodmaxes_
 #define getimodclip  getimodclip_
@@ -518,6 +523,28 @@ int getimodhead(float *um, float *zscale,
 	 *ifflip = 1;
      }else{
 	 *ifflip = 0;
+     }
+     return FWRAP_NOERROR;
+}
+
+/* Return the image file scale values used to get from model to index coords */
+int getimodscales(float *ximscale, float *yimscale, float *zimscale)
+{
+     IrefImage *iref;
+
+     if (!Fimod)
+	  return(FWRAP_ERROR_NO_MODEL);
+
+     iref = Fimod->refImage;
+	 
+     if (iref){
+	 *ximscale = iref->cscale.x;
+	 *yimscale = iref->cscale.y;
+	 *zimscale = iref->cscale.z;
+     }else{
+	 *ximscale = 1.;
+	 *yimscale = 1.;
+	 *zimscale = 1.;
      }
      return FWRAP_NOERROR;
 }
