@@ -64,8 +64,12 @@ echo "F77LIBS   = $wrapper"                  >> $configure
 #
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
+#
+# Fork does not work
+# Clipboard works WITHOUT the timer hack and not with it
+# GLU quardic objects seem to be context specific
+#
 echo '#define NO_IMOD_FORK' >> $hconfigure
-echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
 echo '#define GLU_QUADRIC_HACK' >> $hconfigure
 
 
@@ -115,7 +119,7 @@ set ctrl_string = Apple
 #
 (cd $sendevent_dir ; qmake imodsendevent.pro)
 set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
-set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/imod/g'`
+set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
 set midas_target = `echo $imod_target | sed '/imod/s/imod/midas/g'`
 set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
 
