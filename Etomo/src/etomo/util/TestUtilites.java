@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2004/04/06 22:56:56  rickg
+ * <p> Workaround for buggy cvs exports
+ * <p>
  * <p> Revision 1.2  2004/04/06 02:48:13  rickg
  * <p> Added makeDirectories method
  * <p>
@@ -26,6 +29,7 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 
@@ -35,8 +39,8 @@ public class TestUtilites {
   /**
    * Make all of the directories on on the specified path if necessary.  If the
    * path begins with the systems separator then it is an absolute path, if not
-   * it is relative to the current directory specified by the System property
-   * "user.dir". 
+   * it is relative to the current directory specified by propertyUserDir from
+   * EtomoDirector. 
    * @param newDirectory
    */
   public static void makeDirectories(String newDirectory) throws IOException {
@@ -46,7 +50,7 @@ public class TestUtilites {
       directory = new File(newDirectory);
     }
     else {
-      directory = new File(System.getProperty("user.dir"), newDirectory);
+      directory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), newDirectory);
     }
     if (!directory.exists()) {
       if (!directory.mkdirs()) {
@@ -70,7 +74,7 @@ public class TestUtilites {
       throw new InvalidParameterException(
         "vector can not contain path separators");
     }
-    File fileVector = new File(System.getProperty("user.dir") + directory,
+    File fileVector = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir() + directory,
       vector);
 
     if (fileVector.exists()) {
@@ -97,7 +101,7 @@ public class TestUtilites {
     // (CVS directory is created) instead of an export when using the -d flag
     // This is a work around to handle that case
 
-    File badDirectory = new File(System.getProperty("user.dir") + directory,
+    File badDirectory = new File(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), directory).getAbsolutePath(),
       "CVS");
     if (badDirectory.exists()) {
       String[] rmCommand = new String[3];
