@@ -692,6 +692,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->hqgfx  = 0;
   zap->hide   = 0;
   zap->zoom   = 1.0;
+  zap->xzoom  = 1.0;
   zap->data   = NULL;
   zap->image  = NULL;
   zap->ginit  = 0;
@@ -1917,10 +1918,13 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
 /********************************************************
  * conversion functions between image and window cords. */
 
+/* DNM 9/15/03: use the possibly slightly different x zoom.  This might make
+ a few tenths of a pixel difference */
+
 /* return x pos in window for given image x cord. */
 static int zapXpos(ZapStruct *zap, double x)
 {
-  return( (int)(((x - zap->xstart) * zap->zoom) 
+  return( (int)(((x - zap->xstart) * zap->xzoom) 
                 + zap->xborder));
 }
 
@@ -1935,7 +1939,7 @@ static int zapYpos(ZapStruct *zap, double y)
 static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y)
 {
   my = zap->winy - my;
-  *x = ((float)(mx - zap->xborder) / zap->zoom)
+  *x = ((float)(mx - zap->xborder) / zap->xzoom)
     + (float)zap->xstart;
   *y = ((float)(my - zap->yborder) / zap->zoom)
     + (float)zap->ystart;
@@ -2047,7 +2051,7 @@ static void zapDrawGraphics(ZapStruct *zap)
   ImodView *vi = zap->vi;
   int x, y, z;
   int time;
-  unsigned char *imageData;
+  unsigned char **imageData;
 
   ivwGetLocation(vi, &x, &y, &z);
 
@@ -2087,6 +2091,9 @@ static void zapDrawGraphics(ZapStruct *zap)
 			   vi->rampbase, 
 			   zap->zoom, zap->zoom,
 			   zap->hqgfx, zap->section);
+
+  /* DNM 9/15/03: Get the X zoom, which might be slightly different */
+  zap->xzoom = b3dGetCurXZoom();
 }
 
 static void zapDrawModel(ZapStruct *zap)
@@ -2670,6 +2677,11 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.26  2003/09/13 04:30:31  mast
+Switch to getting and setting geometry when resize to fit, to prevent the
+window from moving when there is no size change.
+Also add a hack to prevent bad drawing after resize on Mac with Qt 3.2.1
+
 Revision 4.25  2003/08/08 16:40:51  mast
 Fixed problem with current point display when model display turned off
 
