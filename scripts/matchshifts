@@ -6,6 +6,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/03/14 02:11:10  mast
+#  Made it produce two checking volumes that the user can inspect, and stopped
+#  when displacement between those volumes was too high.  Made it report last
+#  error statement and exit with error when a program has an error
+#
 #  Revision 3.2  2002/07/21 19:34:05  mast
 #  Suppressed output of all programs except Tiltxcorr
 #
@@ -292,9 +297,9 @@ set checkerror = `echo $displ | awk '{printf "%.2f", sqrt($1 * $1 + $2 * $2 + $3
 
 echo "Displacement between check volumes is $displ in X Y Z, total $checkerror"
 
-@ errdiff = `echo "$displ $MAXERROR" | awk '{print int(100. * (sqrt($1 * $1 + $2 * $2 + $3 * $3) - $4))}'`
+@ errdiff = `echo "$checkerror $MAXERROR" | awk '{print int(100. * ($1 - $2))}'`
 if ($errdiff > 0) then
-    echo "ERROR: MATCHSHIFTS - measured displacement between check volumes is $error"
+    echo "ERROR: MATCHSHIFTS - measured displacement between check volumes is $checkerror"
     echo "To see if this is a problem, run:  imod $checkfile1 $checkfile2"
     goto clean
 endif
