@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/28 19:45:35  mast
+    cast int to short before putting it as short
+
     Revision 3.2  2003/02/10 20:29:03  mast
     autox.cpp
 
@@ -56,7 +59,7 @@
 #ifdef __vms
 #define B3DFILE_LTLENDIAN
 #else
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
 #define B3DFILE_LTLENDIAN
 #else
 #define B3DFILE_BIGENDIAN

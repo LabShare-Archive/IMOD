@@ -61,6 +61,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/21 22:22:34  mast
+    Changed all types to use new b3d types
+
     Revision 3.2  2002/07/31 20:16:35  mast
     *** empty log message ***
 
@@ -116,7 +119,7 @@ main( int argc, char *argv[])
      swapieee = FALSE;
 #endif
 
-#ifndef LITTLE_ENDIAN
+#ifndef B3D_LITTLE_ENDIAN
      if (argc < 2){
 	  fprintf(stderr, "Usage: %s [-vms|-ieee] filename [optional output filename]\n",
 		  argv[0]);
@@ -283,7 +286,7 @@ main( int argc, char *argv[])
      }
      rewind(fin);
 
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
      if (tonative)
 	  printf("Converting big-endian IEEE to little-endian IEEE.\n");
      else

@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2003/03/26 01:51:27  mast
+Do not have mrc_read_byte decide when to load non-contiguous, but have it drop
+back to non-contiguous when contiguous fails
+
 Revision 3.7  2003/03/12 03:50:28  mast
 Avoid trying to allocate more than 2 GB of contiguous memory, add error
 message in contiguous allocation
@@ -467,7 +471,7 @@ void mrc_set_cmap_stamp(struct MRCheader *hdata)
   hdata->cmap[1] = 'A';
   hdata->cmap[2] = 'P';
   hdata->cmap[3] = ' ';
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
   hdata->stamp[0] = hdata->swapped ? 17 : 68;
 #else
   hdata->stamp[0] = hdata->swapped ? 68 : 17;

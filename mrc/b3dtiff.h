@@ -46,7 +46,7 @@
 #ifdef __vms
 #define M_BYTEORDER  LTLENDIAN
 #else
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
 #define M_BYTEORDER  LTLENDIAN
 #else
 #define M_BYTEORDER  BIGENDIAN

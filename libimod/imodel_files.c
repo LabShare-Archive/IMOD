@@ -59,7 +59,7 @@
 #define IMOD_DATA_SWAP
 #define IMOD_FLOAT_CONVERT
 #endif
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
 #define IMOD_DATA_SWAP
 #endif
 
@@ -1490,6 +1490,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
     $Log$
+    Revision 3.8  2003/02/27 00:34:40  mast
+    add projects' *.dsw *.dsp
+
     Revision 3.7  2003/02/21 23:58:29  mast
     Open files in binary mode
 
