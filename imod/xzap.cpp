@@ -56,6 +56,7 @@ Log at end of file
 #include "imod_moviecon.h"
 #include "autox.h"
 #include "imod_edit.h"
+#include "imod_model_edit.h"
 #include "imod_workprocs.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
@@ -64,7 +65,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapDraw(ZapStruct *zap);
-static void zapButton1(struct zapwin *zap, int x, int y);
+static void zapButton1(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton2(struct zapwin *zap, int x, int y);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
@@ -81,8 +82,8 @@ static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
 static void zapDrawTools(ZapStruct *zap);
 static void zapSetCursor(ZapStruct *zap, int mode);
-static int  zapXpos(ZapStruct *zap, double x);
-static int  zapYpos(ZapStruct *zap, double x);
+static int  zapXpos(ZapStruct *zap, float x);
+static int  zapYpos(ZapStruct *zap, float x);
 static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y);
 static int  zapPointVisable(ZapStruct *zap, Ipoint *pnt);
 static void zapAutoTranslate(ZapStruct *zap);
@@ -90,7 +91,8 @@ static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
 static void setControlAndLimits(ZapStruct *zap);
 static void zapToggleRubberband(ZapStruct *zap);
-
+static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
+static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
@@ -175,7 +177,7 @@ void zapHelp()
      "coordinates of the lower left and upper right corners, and of "
      "the center, are printed in the 3dmod info window.  There is also "
      "a fragment of a command line for extracting the image from the "
-     "stack with \"newst\".  This key also brings the Information "
+     "stack with \"newstack\".  This key also brings the Information "
      "Window to the front of the display.\n",
      "\tR resizes the window.  With the rubber band off, the window "
      "changes, "
@@ -183,6 +185,14 @@ void zapHelp()
      "current zoom.  With the rubber band on, it changes to the size "
      "of the rubber band and the image is shifted to display the area "
      "previously in the rubber band.\n",
+     "\t"CTRL_STRING"-A adds multiple contours on the current section to the "
+     "contour selection list.  Selected contours will be shown with a "
+     "distinguishable line thickness.  Only contours from the current object "
+     "that are "
+     "confined to the current section will be added.  With the rubber band "
+     "off, all eligible contours on the section will be added; with the "
+     "rubber band on, only contours completely within the rubber band will be "
+     "selected.\n",
      "\tArrow keys and the keypad: In movie mode, the arrow keys and "
      "the PageUp and PageDown keys move the current viewing point (the "
      "small cross), while the keypad keys pan the image horizontally,"
@@ -208,10 +218,18 @@ void zapHelp()
      "\tThird Button: Start movie in backward direction, or stop movie."
      "\n\n"
      "Mouse button function in model mode\n\n",
-     "\tFirst Button Click: Make the nearest model point be the current "
-     "model point.  If there is no point nearby, this detaches from the "
-     "current point and contour and selects a current viewing point "
+     "\tFirst Button Click: Make the nearest visible model point be the "
+     "current model point.  If there is no point nearby, this detaches from "
+     "the current point and contour and selects a current viewing point "
      "instead.\n",
+     "\t"CTRL_STRING" - First Button Click: Selects the nearest visible point "
+     "as the current point but also adds this contour to a list of selected "
+     "contours.  Selected contours in this list will be "
+     "displayed with a distinguishable line thickness.  If a contour is "
+     "already selected, "CTRL_STRING"-clicking on it will deselect it.  The "
+     "selection list is cleared by doing an ordinary first button selection "
+     "of any model point, or by a variety of other operations, mostly ones "
+     "that select a different contour from the current one.\n"
      "\tFirst Button Drag: Pan the image if it is larger than the "
      "window, or adjust the size of the rubber band."
      "\n"
@@ -342,10 +360,11 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       limits = NULL;
       if (zap->rubberband) {
         limits = limarr;
-        limarr[0] = zap->bandllx + 1;
-        limarr[1] = zap->winy - zap->bandury;
-        limarr[2] = zap->bandurx - 1 - zap->bandllx;
-        limarr[3] = zap->bandury - 1 - zap->bandlly;
+        zapBandImageToMouse(zap, 1);
+        limarr[0] = zap->rbMouseX0 + 1;
+        limarr[1] = zap->winy - zap->rbMouseY1;
+        limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
+        limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
       }
       if (imcGetSnapshot(zap->vi) == 1)
         b3dAutoSnapshot("zap", SnapShot_TIF, limits);
@@ -384,7 +403,7 @@ static void zapSyncImage(ZapStruct *win)
            if the position is within the borders for shifting */
         tripshift = 0;
         wsize = win->winx;
-        wposition = zapXpos(win, (double)vi->xmouse);
+        wposition = zapXpos(win, vi->xmouse);
         syncborder = (int)(wsize * BORDER_FRAC);
         if (syncborder < BORDER_MIN)
           syncborder = BORDER_MIN;
@@ -414,7 +433,7 @@ static void zapSyncImage(ZapStruct *win)
 
         /* Same for Y axis */
         wsize = win->winy;
-        wposition = zapYpos(win, (double)vi->ymouse);
+        wposition = zapYpos(win, vi->ymouse);
         syncborder = (int)(wsize * BORDER_FRAC);
         if (syncborder < BORDER_MIN)
           syncborder = BORDER_MIN;
@@ -466,28 +485,28 @@ void zapResize(ZapStruct *zap, int winx, int winy)
 
     /* Make sure the rubber band stays legal, but keep it same size
        if possible */
-    if (zap->rubberband) {
-      if (zap->bandurx >= winx) {
-        if (zap->bandurx + 1 - zap->bandllx > winx) {
-          zap->bandurx = winx - 1;
-          if (zap->bandllx > zap->bandurx - bandmin)
-            zap->bandllx = zap->bandurx - bandmin;
+    /*    if (zap->rubberband) {
+      if (zap->rbMouseX1 >= winx) {
+        if (zap->rbMouseX1 + 1 - zap->rbMouseX0 > winx) {
+          zap->rbMouseX1 = winx - 1;
+          if (zap->rbMouseX0 > zap->rbMouseX1 - bandmin)
+            zap->rbMouseX0 = zap->rbMouseX1 - bandmin;
         } else {
-          zap->bandllx -= zap->bandurx + 1 - winx;
-          zap->bandurx = winx - 1;
+          zap->rbMouseX0 -= zap->rbMouseX1 + 1 - winx;
+          zap->rbMouseX1 = winx - 1;
         }
       }
-      if (zap->bandury >= winy) {
-        if (zap->bandury + 1 - zap->bandlly > winy) {
-          zap->bandury = winy - 1;
-          if (zap->bandlly > zap->bandury - bandmin)
-            zap->bandlly = zap->bandury - bandmin;
+      if (zap->rbMouseY1 >= winy) {
+        if (zap->rbMouseY1 + 1 - zap->rbMouseY0 > winy) {
+          zap->rbMouseY1 = winy - 1;
+          if (zap->rbMouseY0 > zap->rbMouseY1 - bandmin)
+            zap->rbMouseY0 = zap->rbMouseY1 - bandmin;
         } else {
-          zap->bandlly -= zap->bandury + 1 - winy;
-          zap->bandury = winy - 1;
+          zap->rbMouseY0 -= zap->rbMouseY1 + 1 - winy;
+          zap->rbMouseY1 = winy - 1;
         }
       }
-    }
+      } */
 
     b3dFlushImage(zap->image);
   }
@@ -553,9 +572,10 @@ void zapPaint(ZapStruct *zap)
   zapDrawAuto(zap);
   if (zap->rubberband) {
     b3dColorIndex(App->endpoint);
-    b3dDrawRectangle(zap->bandllx, zap->winy - 1 - zap->bandury, 
-                     zap->bandurx - zap->bandllx, 
-                     zap->bandury - zap->bandlly);
+    zapBandImageToMouse(zap, 0);
+    b3dDrawRectangle(zap->rbMouseX0, zap->winy - 1 - zap->rbMouseY1, 
+                     zap->rbMouseX1 - zap->rbMouseX0, 
+                     zap->rbMouseY1 - zap->rbMouseY0);
   } 
   zapDrawTools(zap);
   if (zapDebug)
@@ -912,10 +932,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   static int trans = 5;
   int *limits;
   int limarr[4];
-  int rx, ix, iy;
+  int rx, ix, iy, i;
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
   int handled = 0;
+  Iindex indadd;
+  Ipoint pmin, pmax, selmin, selmax;
+  Iobj *obj;
   /* downtime.start(); */
 
   if (Imod_debug)
@@ -1064,10 +1087,47 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
     /* DNM 12/13/01: add next and smooth hotkeys to autox */
   case Qt::Key_A:
-    if (!shifted) {
+    if (event->state() & Qt::ControlButton) {
+
+      // Select all contours in current object on section or in rubberband
+      if (zap->rubberband) {
+        selmin.x = zap->rbImageX0;
+        selmax.x = zap->rbImageX1;
+        selmin.y = zap->rbImageY0;
+        selmax.y = zap->rbImageY1;
+      } else {
+        selmin.x = 0.;
+        selmax.x = vi->xsize;
+        selmin.y = 0.;
+        selmax.y = vi->ysize;
+      }
+
+      obj = imodObjectGet(vi->imod);
+      if (!obj)
+        break;
+
+      // Clear the list, set up an index to add, look for contours inside
+      // the bounding box, add them, make last one be current
+      imodSelectionListClear(vi);
+      indadd.object = vi->imod->cindex.object;
+      indadd.point = -1;
+      for (i = 0; i < obj->contsize; i++) {
+        imodContourGetBBox(&(obj->cont[i]), &pmin, &pmax);
+        indadd.contour = i;
+        if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
+            pmin.y >= selmin.y && pmax.y <= selmax.y &&
+            pmin.z >= zap->section - 0.5 && pmax.z <= zap->section + 0.5) {
+          imodSelectionListAdd(vi, indadd);
+          vi->imod->cindex = indadd;
+        }
+      }
+      imod_setxyzmouse();
+      handled = 1;
+
+    } else if (!shifted) {
       autox_next(vi->ax);
       handled = 1;
-    }
+    } 
     break;
 
   case Qt::Key_U:
@@ -1090,10 +1150,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       limits = NULL;
       if (zap->rubberband) {
         limits = limarr;
-        limarr[0] = zap->bandllx + 1;
-        limarr[1] = zap->winy - zap->bandury;
-        limarr[2] = zap->bandurx - 1 - zap->bandllx;
-        limarr[3] = zap->bandury - 1 - zap->bandlly;
+        zapBandImageToMouse(zap, 1);
+        limarr[0] = zap->rbMouseX0 + 1;
+        limarr[1] = zap->winy - zap->rbMouseY1;
+        limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
+        limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
       }
       if (shifted)
         b3dAutoSnapshot("zap", SnapShot_RGB, limits);
@@ -1224,7 +1285,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
       firstmx = event->x();
       firstmy = event->y();
       if (zap->startingBand)
-        zapButton1(zap, firstmx, firstmy);
+        zapButton1(zap, firstmx, firstmy, event->state() & Qt::ControlButton);
       else
         firstdrag = 1;
       
@@ -1254,12 +1315,13 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     firstdrag = 0;
 
     if (but1downt.elapsed() > 250) {
-        if (zap->hqgfxsave)
-          zapDraw(zap);
-        zap->hqgfxsave  = 0;
-        return;    //IS THIS RIGHT?
-      }
-    zapButton1(zap, event->x(), event->y());
+      if (zap->hqgfxsave)
+        zapDraw(zap);
+      zap->hqgfxsave  = 0;
+      return;    //IS THIS RIGHT?
+    }
+    zapButton1(zap, event->x(), event->y(),
+               event->state() & Qt::ControlButton);
   }
  
   // Button 2 and band moving, release te band
@@ -1319,34 +1381,72 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 }
 
 
+static int zapBandMinimum(ZapStruct *zap)
+{
+  int bandmin = 4;
+    // Adjust minimum size down in case image is tiny
+    if (bandmin > zap->vi->xsize * zap->xzoom + 2)
+      bandmin = zap->vi->xsize * zap->xzoom + 2;
+    if (bandmin > zap->vi->ysize * zap->zoom + 2)
+      bandmin = zap->vi->ysize * zap->zoom + 2;
+    return bandmin;
+}
+
 /* Attach to nearest point in model mode, or just modify the current 
    xmouse, ymouse values */
 
-void zapButton1(ZapStruct *zap, int x, int y)
+void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
 {
   ImodView *vi   = zap->vi;
   Imod     *imod = vi->imod;
   Ipoint pnt, *spnt;
-  Iindex index;
-  int bandmin = 4;
+  Iindex index, indSave;
+  Iindex *indp;
+  int bandmin = zapBandMinimum(zap);
   int i, temp_distance;
   int distance = -1;
-  float ix, iy;
+  float ix, iy, dx, dy;
   float selsize = IMOD_SELSIZE / zap->zoom;
 
   zapGetixy(zap, x, y, &ix, &iy);
      
   // If starting rubber band, set upper left corner, set for moving lower left
   if (zap->startingBand) {
-    zap->bandurx = x + bandmin;
-    if (zap->bandurx > zap->winx - 1)
-      zap->bandurx = zap->winx - 1;
-    zap->bandllx = zap->bandurx - bandmin;
+    
+    // Set up mouse coords then convert to image
+    zap->rbMouseX1 = x + bandmin;
+    if (zap->rbMouseX1 > zap->winx - 1)
+      zap->rbMouseX1 = zap->winx - 1;
+    zap->rbMouseX0 = zap->rbMouseX1 - bandmin;
 
-    zap->bandlly = y - bandmin;
+    zap->rbMouseY0 = y - bandmin;
     if (y < bandmin)
-      zap->bandlly = 0;
-    zap->bandury = zap->bandlly + bandmin;
+      zap->rbMouseY0 = 0;
+    zap->rbMouseY1 = zap->rbMouseY0 + bandmin;
+    zapBandMouseToImage(zap, 0);
+
+    // Does image coord need to be moved?  Do so and move mouse
+    dx = dy = 0;
+    if (zap->rbImageX0 < 0.)
+      dx = -zap->rbImageX0;
+    if (zap->rbImageX1 > zap->vi->xsize)
+      dx = zap->vi->xsize - zap->rbImageX1; 
+    if (zap->rbImageY0 < 0.)
+      dy = -zap->rbImageY0;
+    if (zap->rbImageY1 > zap->vi->ysize)
+      dy = zap->vi->ysize - zap->rbImageY1; 
+    if (dx || dy) {
+      zap->rbImageX0 += dx;
+      zap->rbImageX1 += dx;
+      zap->rbImageY0 += dy;
+      zap->rbImageY1 += dy;
+      zapBandImageToMouse(zap, 1);
+      QCursor::setPos(zap->gfx->mapToGlobal(QPoint(zap->rbMouseX0, 
+                                                   zap->rbMouseY0)));
+      firstmx = zap->rbMouseX0;
+      firstmy = zap->rbMouseY0;
+    }
+
     zap->startingBand = 0;
     zap->rubberband = 1;
     dragband = 1;
@@ -1371,26 +1471,56 @@ void zapButton1(ZapStruct *zap, int x, int y)
     pnt.z = zap->section;
     vi->xmouse = ix;
     vi->ymouse = iy;
-    vi->imod->cindex.contour = -1;
-    vi->imod->cindex.point = -1;
+    indSave = vi->imod->cindex;
+    imod->cindex.contour = -1;
+    imod->cindex.point = -1;
 
     for (i = 0; i < imod->objsize; i++){
       index.object = i;
       temp_distance = imod_obj_nearest
-        (&(vi->imod->obj[i]), &index , &pnt, selsize);
+        (vi, &(imod->obj[i]), &index , &pnt, selsize);
       if (temp_distance == -1)
         continue;
       if (distance == -1 || distance > temp_distance){
         distance      = temp_distance;
-        vi->imod->cindex.object  = index.object;
-        vi->imod->cindex.contour = index.contour;
-        vi->imod->cindex.point   = index.point;
+        imod->cindex.object  = index.object;
+        imod->cindex.contour = index.contour;
+        imod->cindex.point   = index.point;
         spnt = imodPointGet(vi->imod);
         if (spnt){
           vi->xmouse = spnt->x;
           vi->ymouse = spnt->y;
         }
       }
+    }
+
+    if (distance > -1) {
+
+      // If ctrl-select, then manage selection list
+      if (controlDown) {
+
+        // First add previous point if list is empty
+        if (!ilistSize(vi->selectionList) && indSave.contour >= 0)
+          imodSelectionListAdd(vi, indSave);
+
+        // If point not on list, add it.  If point is on list, then remove
+        // it and pop current point back to last item on list
+        if (imodSelectionListQuery(vi, imod->cindex.object, 
+                                   imod->cindex.contour) < -1)
+          imodSelectionListAdd(vi, imod->cindex);
+        else {
+          imodSelectionListRemove(vi, imod->cindex.object, 
+                                  imod->cindex.contour);
+          if (ilistSize(vi->selectionList)) {
+            indp = (Iindex *)ilistItem(vi->selectionList,
+                                       ilistSize(vi->selectionList) - 1); 
+            imod->cindex = *indp;
+          }
+        }
+      } else
+
+        // But if Ctrl not down, clear out the list
+        imodSelectionListClear(vi);
     }
 
     /* DNM: add the DRAW_XYZ flag to make it update info and Slicer */
@@ -1435,10 +1565,11 @@ void zapButton2(ZapStruct *zap, int x, int y)
   /* If rubber band is on and within criterion distance of any edge, set
      flag to move whole band and return */
   if (zap->rubberband) {
-    dxll = x - zap->bandllx;
-    dxur = x - zap->bandurx;
-    dyll = y - zap->bandlly;
-    dyur = y - zap->bandury;
+    zapBandImageToMouse(zap, 0);
+    dxll = x - zap->rbMouseX0;
+    dxur = x - zap->rbMouseX1;
+    dyll = y - zap->rbMouseY0;
+    dyur = y - zap->rbMouseY1;
     if ((dyll > 0 && dyur < 0 && (dxll < rcrit && dxll > -rcrit ||
                                   dxur < rcrit && dxur > -rcrit)) ||
         (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
@@ -1641,7 +1772,7 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 void zapB1Drag(ZapStruct *zap, int x, int y)
 {
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
-  int bandmin = 4;     /* Minimum size that the band can become */
+  int bandmin = zapBandMinimum(zap);
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
   int minedgex, minedgey;
 
@@ -1650,16 +1781,18 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   double transFac = zap->zoom < 1. ? 1. / zap->zoom : 1.;
 
   if (zap->rubberband && firstdrag) {
+
     /* First time if rubberbanding, analyze for whether close to a
        corner or an edge */
+    zapBandImageToMouse(zap, 0);    
     dminsq = rubbercrit * rubbercrit;
     minedgex = -1;
     for (i = 0; i < 4; i++)
       dragging[i] = 0;
-    dxll = firstmx - zap->bandllx;
-    dxur = firstmx - zap->bandurx;
-    dyll = firstmy - zap->bandlly;
-    dyur = firstmy - zap->bandury;
+    dxll = firstmx - zap->rbMouseX0;
+    dxur = firstmx - zap->rbMouseX1;
+    dyll = firstmy - zap->rbMouseY0;
+    dyur = firstmy - zap->rbMouseY1;
 
     /* Find distance from each corner, keep track of a min */
     distsq = dxll * dxll + dyll * dyll;
@@ -1728,35 +1861,37 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   firstdrag = 0;
      
   if (zap->rubberband && dragband) {
+
     /* Move the rubber band */
     if (dragging[0]) {
-      zap->bandllx += (x - zap->lmx);
-      if (zap->bandllx < 0)
-        zap->bandllx = 0;
-      if (zap->bandllx > zap->bandurx - bandmin)
-        zap->bandllx = zap->bandurx - bandmin;
+      zap->rbImageX0 += (x - zap->lmx) / zap->xzoom;
+      if (zap->rbImageX0 < 0)
+        zap->rbImageX0 = 0;
+      if (zap->rbImageX0 >= zap->rbImageX1)
+        zap->rbImageX0 = zap->rbImageX1 - 1;
     }
     if (dragging[1]) {
-      zap->bandurx += (x - zap->lmx);
-      if (zap->bandurx > zap->winx - 1)
-        zap->bandurx = zap->winx - 1;
-      if (zap->bandurx < zap->bandllx + bandmin)
-        zap->bandurx = zap->bandllx + bandmin;
-    }
-    if (dragging[2]) {
-      zap->bandlly += (y - zap->lmy);
-      if (zap->bandlly < 0)
-        zap->bandlly = 0;
-      if (zap->bandlly > zap->bandury - bandmin)
-        zap->bandlly = zap->bandury - bandmin;
+      zap->rbImageX1 += (x - zap->lmx) / zap->xzoom;
+      if (zap->rbImageX1 > zap->vi->xsize)
+        zap->rbImageX1 = zap->vi->xsize;
+      if (zap->rbImageX1 <= zap->rbImageX0)
+        zap->rbImageX1 = zap->rbImageX0 + 1;
     }
     if (dragging[3]) {
-      zap->bandury += (y - zap->lmy);
-      if (zap->bandury > zap->winy - 1)
-        zap->bandury = zap->winy - 1;
-      if (zap->bandury < zap->bandlly + bandmin)
-        zap->bandury = zap->bandlly + bandmin;
+      zap->rbImageY0 += (zap->lmy - y) / zap->xzoom;
+      if (zap->rbImageY0 < 0)
+        zap->rbImageY0 = 0;
+      if (zap->rbImageY0 >= zap->rbImageY1)
+        zap->rbImageY0 = zap->rbImageY1 - 1;
     }
+    if (dragging[2]) {
+      zap->rbImageY1 += (zap->lmy - y) / zap->xzoom;
+      if (zap->rbImageY1 > zap->vi->ysize)
+        zap->rbImageY1 = zap->vi->ysize;
+      if (zap->rbImageY1 <= zap->rbImageY0)
+        zap->rbImageY1 = zap->rbImageY0 + 1;
+    }
+
 
   } else {
     /* Move the image */
@@ -1776,7 +1911,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
   Iobj *obj;
   Icont *cont;
   Ipoint *lpt, cpt;
-  float ix, iy;
+  float ix, iy, idx, idy;
   double dist;
   int pt;
   int dx, dy;
@@ -1792,21 +1927,21 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
 
   if (zap->rubberband && moveband) {
     /* Moving rubber band: get desired move and constrain it to keep
-       band in the window */
-    dx = x - zap->lmx;
-    if (zap->bandllx + dx < 0)
-      dx = -zap->bandllx;
-    if (zap->bandurx + dx > zap->winx - 1)
-      dx = zap->winx - 1 - zap->bandurx;
-    dy = y - zap->lmy;
-    if (zap->bandlly + dy < 0)
-      dy = -zap->bandlly;
-    if (zap->bandury + dy > zap->winy - 1)
-      dy = zap->winy - 1 - zap->bandury;
-    zap->bandllx += dx;
-    zap->bandurx += dx;
-    zap->bandlly += dy;
-    zap->bandury += dy;
+       band in the image */
+    idx = (x - zap->lmx) / zap->xzoom;
+    idy = (zap->lmy - y) / zap->zoom;
+    if (zap->rbImageX0 + idx < 0)
+      idx = -zap->rbImageX0;
+    if (zap->rbImageX1 + idx > zap->vi->xsize)
+      idx = zap->vi->xsize - zap->rbImageX1;
+    if (zap->rbImageY0 + idy < 0)
+      idy = -zap->rbImageY0;
+    if (zap->rbImageY1 + idy > zap->vi->ysize)
+      idy = zap->vi->ysize - zap->rbImageY1;
+    zap->rbImageX0 += idx;
+    zap->rbImageX1 += idx;
+    zap->rbImageY0 += idy;
+    zap->rbImageY1 += idy;
 
     zap->hqgfxsave = zap->hqgfx;
     zap->hqgfx = 0;
@@ -1854,7 +1989,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
   if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
-  if ( dist > vi->imod->res){
+  if ( dist > scaleModelRes(vi->imod->res, zap->zoom)){
     pt = vi->imod->cindex.point;
 
     /* Insert or add point depending on insertion mode and whether at end
@@ -1937,7 +2072,7 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   lpt = &(cont->pts[vi->imod->cindex.point]);
   zapGetixy(zap, x, y, &(pt.x), &(pt.y));
   pt.z = lpt->z;
-  if (imodel_point_dist(lpt, &pt) > vi->imod->res){
+  if (imodel_point_dist(lpt, &pt) > scaleModelRes(vi->imod->res, zap->zoom)){
     ++vi->imod->cindex.point;
     lpt = &(cont->pts[vi->imod->cindex.point]);
     lpt->x = pt.x;
@@ -1956,14 +2091,14 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
  a few tenths of a pixel difference */
 
 /* return x pos in window for given image x cord. */
-static int zapXpos(ZapStruct *zap, double x)
+static int zapXpos(ZapStruct *zap, float x)
 {
   return( (int)(((x - zap->xstart) * zap->xzoom) 
                 + zap->xborder));
 }
 
 /* return y pos in window for given image y cord. */
-static int zapYpos(ZapStruct *zap, double y)
+static int zapYpos(ZapStruct *zap, float y)
 {
   return((int)(((y - zap->ystart) * zap->zoom)
                + zap->yborder));
@@ -1972,13 +2107,63 @@ static int zapYpos(ZapStruct *zap, double y)
 /* returns image cords in x,y, given mouse coords mx, my */
 static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y)
 {
-  my = zap->winy - my;
+
+  // 10/31/04: winy - 1 maps to 0, not winy, so need a -1 here
+  my = zap->winy - 1 - my;
   *x = ((float)(mx - zap->xborder) / zap->xzoom)
     + (float)zap->xstart;
   *y = ((float)(my - zap->yborder) / zap->zoom)
     + (float)zap->ystart;
   return;
 }
+
+// Convert image rubberband coordinates to outer window coordinates, with
+// optional clipping to window limits
+static void zapBandImageToMouse(ZapStruct *zap, int ifclip)
+{
+  zap->rbMouseX0 = zapXpos(zap, zap->rbImageX0) - 1;
+  zap->rbMouseX1 = zapXpos(zap, zap->rbImageX1);
+  zap->rbMouseY0 = zap->winy - 1 - zapYpos(zap, zap->rbImageY1);
+  zap->rbMouseY1 = zap->winy - zapYpos(zap, zap->rbImageY0);
+  if (ifclip) {
+    if (zap->rbMouseX0 < 0)
+      zap->rbMouseX0 = 0;
+    if (zap->rbMouseX1 >= zap->winx)
+      zap->rbMouseX1 = zap->winx - 1;
+    if (zap->rbMouseY0 < 0)
+      zap->rbMouseY0 = 0;
+    if (zap->rbMouseY1 >= zap->winy)
+      zap->rbMouseY1 = zap->winy - 1;
+  }
+  /* imodPrintStderr("Image %.1f,%.1f : %.1f,%.1f  to mouse %d,%d : %d,%d\n", 
+                  zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1,
+                  zap->rbMouseX0, zap->rbMouseY0, zap->rbMouseX1, zap->rbMouseY1); */
+}
+
+// Convert rubberband window coordinates to inside image coordinates, with
+// optional clipping to image limits
+static void zapBandMouseToImage(ZapStruct *zap, int ifclip)
+{
+  zapGetixy(zap, zap->rbMouseX0 + 1, zap->rbMouseY1 - 1, &zap->rbImageX0, 
+            &zap->rbImageY0);
+  zapGetixy(zap, zap->rbMouseX1, zap->rbMouseY0, &zap->rbImageX1, 
+            &zap->rbImageY1);
+  
+  if (ifclip) {
+    if (zap->rbImageX0 < 0)
+      zap->rbImageX0 = 0;
+    if (zap->rbImageX1 > zap->vi->xsize)
+      zap->rbImageX1 = zap->vi->xsize;
+    if (zap->rbImageY0 < 0)
+      zap->rbImageY0 = 0;
+    if (zap->rbImageY1 > zap->vi->ysize)
+      zap->rbImageY1 = zap->vi->ysize;
+  }
+  /* imodPrintStderr("Mouse %d,%d : %d,%d  to image %.1f,%.1f : %.1f,%.1f\n", 
+                  zap->rbMouseX0, zap->rbMouseY0, zap->rbMouseX1, zap->rbMouseY1,
+                  zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1); */
+}
+
 
 /* Prints window size and image coordinates in Info Window */
 void zapPrintInfo(ZapStruct *zap)
@@ -1991,8 +2176,10 @@ void zapPrintInfo(ZapStruct *zap)
   ivwControlPriority(zap->vi, zap->ctrl);
   ImodInfoWin->raise();
   if (zap->rubberband) {
-    zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
-    zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
+    xl = zap->rbImageX0;
+    yb = zap->rbImageY0;
+    xr = zap->rbImageX1;
+    yt = zap->rbImageY1;
   } else {
     zapGetixy(zap, 0, 0, &xl, &yt);
     zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
@@ -2018,8 +2205,8 @@ void zapPrintInfo(ZapStruct *zap)
   wprint("To excise: newstack -si %d,%d -of %d,%d\n", ixr + 1 - ixl, 
          iyt + 1 - iyb, ixofs, iyofs);
   if (zap->rubberband) 
-    wprint("Rubberband: %d x %d; ", zap->bandurx - 1 - zap->bandllx, 
-           zap->bandury - 1 - zap->bandlly);
+    wprint("Rubberband: %d x %d; ", zap->rbMouseX1 - 1 - zap->rbMouseX0, 
+           zap->rbMouseY1 - 1 - zap->rbMouseY0);
   else
     wprint("Window: %d x %d;   ", zap->winx, zap->winy);
   wprint("Image: %d x %d\n", imx, imy);
@@ -2096,10 +2283,13 @@ static void zapResizeToFit(ZapStruct *zap)
   if (zap->rubberband) {
     /* If rubberbanding, set size to size of band, and offset
        image by difference between band and window center */
-    neww = zap->bandurx -1 - zap->bandllx + width - zap->winx;
-    newh = zap->bandury -1 - zap->bandlly + height - zap->winy;
-    zapGetixy(zap, zap->bandllx, zap->bandlly, &xl, &yt);
-    zapGetixy(zap, zap->bandurx, zap->bandury, &xr, &yb);
+    zapBandImageToMouse(zap, 0);
+    xl = zap->rbImageX0;
+    yb = zap->rbImageY0;
+    xr = zap->rbImageX1;
+    yt = zap->rbImageY1;
+    neww = zap->rbMouseX1 -1 - zap->rbMouseX0 + width - zap->winx;
+    newh = zap->rbMouseY1 -1 - zap->rbMouseY0 + height - zap->winy;
     zap->xtrans = (int)(-(xr + xl - zap->vi->xsize) / 2);
     zap->ytrans = (int)(-(yt + yb - zap->vi->ysize) / 2);
     zap->rubberband = 0;
@@ -2135,8 +2325,10 @@ static void setControlAndLimits(ZapStruct *zap)
   float xl, xr, yb, yt;
   ivwControlPriority(zap->vi, zap->ctrl);
   if (zap->rubberband) {
-    zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
-    zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
+    xl = zap->rbImageX0;
+    yb = zap->rbImageY0;
+    xr = zap->rbImageX1;
+    yt = zap->rbImageY1;
   } else {
     zapGetixy(zap, 0, 0, &xl, &yt);
     zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
@@ -2199,12 +2391,10 @@ void zapReportRubberband()
     zap = ((ZapWindow *)objList.at(i))->mZap;
     bin = zap->vi->xybin;
     if (zap->rubberband) {
-      zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
-      zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
-      ixl = (int)floor(xl + 0.5);
-      ixr = (int)floor(xr - 0.5);
-      iyb = (int)floor(yb + 0.5);
-      iyt = (int)floor(yt - 0.5);
+      ixl = (int)floor(zap->rbImageX0 + 0.5);
+      ixr = (int)floor(zap->rbImageX1 - 0.5);
+      iyb = (int)floor(zap->rbImageY0 + 0.5);
+      iyt = (int)floor(zap->rbImageY1 - 0.5);
       if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
           iyb > zap->vi->ysize - 2)
         continue;
@@ -2395,8 +2585,8 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   Icont *cont;
   Ipoint *point;
   int pt, radius, lastX, lastY, thisX, thisY;
-  float drawsize;
-  bool lastVisible, thisVisible;
+  float drawsize, zscale;
+  bool lastVisible, thisVisible, selected;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
 
@@ -2409,12 +2599,18 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if ((!cont) || (!cont->psize))
     return;
 
+  zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
 
   /* check for contours that contian time data. */
   /* Don't draw them if the time isn't right. */
   /* DNM 6/7/01: but draw contours with time 0 regardless of time */
   if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
+
+  selected = imodSelectionListQuery(vi, ob, co) > -2;
+  if (selected)
+    b3dLineWidth(obj->linewidth2 < 3 ? 
+                 obj->linewidth2 + 2 : obj->linewidth2 / 2);
 
   /* Open or closed contour */
   // Skip if not wild and not on section
@@ -2491,7 +2687,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (iobjScat(obj->flags) || cont->sizes || obj->pdrawsize) {
     for (pt = 0; pt < cont->psize; pt++){
 
-      drawsize = imodPointGetSize(obj, cont, pt) / zap->vi->xybin;
+      drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0)
         if (zapPointVisable(zap, &(cont->pts[pt]))){
           /* DNM: make the product cast to int, not drawsize */
@@ -2506,7 +2702,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
             /* DNM: fixed this at last, but let size round
                down so circles get smaller*/
             /* draw a smaller circ if further away. */
-            delz = (cont->pts[pt].z - zap->section) * App->cvi->imod->zscale;
+            delz = (cont->pts[pt].z - zap->section) * zscale;
             if (delz < 0)
               delz = -delz;
                         
@@ -2542,6 +2738,8 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   /* Removed drawing of size 3 circles at ends of current open contour if
      first two points visible or last point visible and next to last is not */
 
+  if (selected)
+    b3dLineWidth(obj->linewidth2); 
 }
 
 /* Set the size of current and endpoint markers so that they do not conflict
@@ -2591,8 +2789,8 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
-    x = zapXpos(zap, (double)((int)vi->xmouse + 0.5));
-    y = zapYpos(zap, (double)((int)vi->ymouse + 0.5));
+    x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
+    y = zapYpos(zap, (float)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->foreground);
     b3dDrawPlus(x, y, imPtSize);
           
@@ -2746,9 +2944,9 @@ static int zapDrawAuto(ZapStruct *zap)
   /* DNM 8/11/01: make rectangle size be nearest integer and not 0 */
   rectsize = zap->zoom < 1 ? 1 : (int)(zap->zoom + 0.5);
   for (j = 0; j < ysize; j++){
-    y = zapYpos(zap,j);
+    y = zapYpos(zap,(float)j);
     for(i = 0; i < xsize; i++){
-      x = zapXpos(zap,i);
+      x = zapXpos(zap,(float)i);
       /*DNM 2/1/01: pick a dark and light color to work in rgb mode */
       if (vi->ax->data[i + (j * vi->xsize)] & AUTOX_BLACK){
         pixel = App->ghost;
@@ -2868,10 +3066,11 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 	  && cont->type && (time != cont->type));
 }
 
-
-
 /*
 $Log$
+Revision 4.48  2004/09/10 02:31:04  mast
+replaced long with int
+
 Revision 4.47  2004/08/31 01:27:15  mast
 Changed info output to be in unbinned coordinates and used floor instead
 of int to avoid rounding error of negative coordinates
