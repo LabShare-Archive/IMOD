@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2004/11/24 01:03:00  sueh
+ * bug# 520 ADded errorProcess(ComScriptProcess) and removed exitValue
+ * parameter from postProcess(BackgroundProcess).
+ *
  * Revision 3.41  2004/11/20 01:58:47  sueh
  * bug# 520 Passing exitValue to postProcess(BackgroundProcess).
  *
@@ -554,6 +558,7 @@ import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.ComscriptState;
+import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
@@ -1173,6 +1178,16 @@ public class ProcessManager extends BaseProcessManager {
     throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam
       .getCommandString(), AxisID.ONLY);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run squeezevol
+   */
+  public String squeezeVolume(ConstSqueezevolParam squeezevolParam)
+    throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(squeezevolParam
+      .getCommandLine(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
 
