@@ -86,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2004/05/13 20:15:10  sueh
+ * <p> bug# 33  imodGetRubberbandCoordinates() checks for rubberband data
+ * <p>
  * <p> Revision 3.51  2004/05/11 21:11:21  sueh
  * <p> bug# 302 Standardizing synchronization.
  * <p> Syncing with PatchRegionModel button push.
@@ -3477,7 +3480,7 @@ public class ApplicationManager {
     tomogramCombinationDialog.synchronize(
       fromTab,
       TomogramCombinationDialog.MATCHING_MODEL_FIELDS);
-    updateCombineCom();
+    updateCombineParams();
     boolean binBy2 = tomogramCombinationDialog.isBinBy2(fromTab);
     try {
       if (binBy2) {
@@ -3532,7 +3535,7 @@ public class ApplicationManager {
       tomogramCombinationDialog.synchronize(
         fromTab,
         TomogramCombinationDialog.PATCH_REGION_MODEL_FIELDS);
-      updateCombineCom();
+      updateCombineParams();
       CombineParams combineParams = new CombineParams();
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (combineParams.getMatchBtoA()) {
@@ -3619,7 +3622,7 @@ public class ApplicationManager {
         // Update the com script and metadata info from the tomgram combination
         // dialog box.  Since there are multiple pages and scripts associated
         // with the postpone button get the ones that are appropriate
-        updateCombineCom();
+        updateCombineParams();
         if (tomogramCombinationDialog.isCombinePanelEnabled()) {
           if (!updateSolvematchshiftCom()) {
             return;
@@ -3676,7 +3679,7 @@ public class ApplicationManager {
     int fromTab = TomogramCombinationDialog.SETUP_TAB;
     mainFrame.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
     tomogramCombinationDialog.synchronize(fromTab);
-    updateCombineCom();
+    updateCombineParams();
     try {
       processMgr.setupCombineScripts(metaData);
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -3718,7 +3721,7 @@ public class ApplicationManager {
    * assumes that the dialog is synchronized
    * @param tomogramCombinationDialog the calling dialog.
    */
-  private void updateCombineCom() {
+  private void updateCombineParams() {
     if (tomogramCombinationDialog == null) {
       mainFrame
         .openMessageDialog(
@@ -3931,7 +3934,7 @@ public class ApplicationManager {
       modelCombine(fromTab);
       return;
     }
-    updateCombineCom();
+    updateCombineParams();
     
     if (updateSolvematchshiftCom() && updatePatchcorrCom()
         && updateMatchorwarpCom(false)) {      
@@ -3969,7 +3972,7 @@ public class ApplicationManager {
     else {
       tomogramCombinationDialog.synchronize(fromTab);
     }
-    updateCombineCom();
+    updateCombineParams();
     if (!tomogramCombinationDialog.isUseMatchingModels(fromTab)) {
       combine(fromTab);
       return;
@@ -4010,7 +4013,7 @@ public class ApplicationManager {
    */
   public void matchvol1(int fromTab) {
     tomogramCombinationDialog.synchronize(fromTab);
-    updateCombineCom();
+    updateCombineParams();
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
@@ -4051,7 +4054,7 @@ public class ApplicationManager {
   public void patchcorrCombine(int fromTab) {
     if (updatePatchcorrCom() && updateMatchorwarpCom(false)) {
       tomogramCombinationDialog.synchronize(fromTab);
-      updateCombineCom();
+      updateCombineParams();
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
