@@ -99,6 +99,7 @@ int auto_ishole(unsigned char *data,
 		int xsize, int ysize,
 		int xmouse, int ymouse);
 int imod_auto_sort(struct Mod_Contour *cont);
-int autox_newsec(Autox *ax);
+int autox_next(Autox *ax);
+int autox_smooth(Autox *ax);
 
 #endif /* AUTOX_H */

@@ -25,7 +25,6 @@ char *Imod_hotkey_help[] = {
 "Delete\tDelete current model point.\n",
 "D\tDelete current contour.\n",
 "M\tMove contour to selected object or surface.\n",
-"b\tBuild a contour while in auto contour mode.\n",
 "m \tToggle model edit mode and movie mode.\n",
 "\n",
 "t \tToggle model drawing on/off.\n",

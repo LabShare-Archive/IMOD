@@ -154,6 +154,7 @@ typedef struct
 {
      int     cz;
      int     ct;
+     int     used;
      Islice *sec;
 
 }ivwSlice;
@@ -187,6 +188,8 @@ typedef struct ViewInfo
 
      int      vmSize;            /* virtual memory z-section size. */
      ivwSlice *vmCache;          /* the cache of z-section data.   */
+     int      vmCount;           /* Use counter for cache */
+     int      vmLastUsed;        /* Index of last accessed section */
 
      /* Image data scaleing for gray scale images. */
      int    rampbase;
@@ -413,6 +416,9 @@ void ivwSetModelTrans(ImodView *iv);
 void ivwFlipModel(ImodView *iv);
 void imodCheckWildFlag(Imod *imod);
 void ivwCheckWildFlag(Imod *imod);
+void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
+void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
+
 
 /* workprocs */
 int imodv_add_anim(void);
@@ -543,6 +549,12 @@ void imodImageScaleUpdate(ImodView *iv);
 /* imod_model_edit.c */
 int openModelEdit(ImodView *vw);
 int openModelOffset(ImodView *vw);
+
+/* imod_cachefill.c */
+int icfGetAutofill(void);
+unsigned char *icfDoAutofill(ImodView *vw, int cz);
+void imodCacheFillDialog(ImodView *vw);
+void imodCacheFill(ImodView *vw);
 
 /* imod_edit.c */
 int imod_setxyzmouse(void);

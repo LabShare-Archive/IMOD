@@ -68,10 +68,12 @@ char *Imod_menus_help[] = {
 "                Size...       Set size of individual points.\n",
 "\n",
 "\tImage -->\n",
-"\t\tProcess...     Process images by filtering.\n"
-"\t\tColormap...    Select image colormap #.\n",
-"\t\tReload...      Reload image data with current contrast.\n",
-"\t\tFlip           Exchange Y and Z dimensions of the image data.\n",
+"\t\tProcess...      Process images by filtering.\n"
+"\t\tColormap...     Select image colormap #.\n",
+"\t\tReload...       Reload image data with current contrast.\n",
+"\t\tFlip            Exchange Y and Z dimensions of the image data.\n",
+"\t\tFill Cache      Fill the image cache if there is one.\n",
+"\t\tCache Filler... Open window to control cache filling.\n",
 "\n",
 "\tMovies...\tOpen window to control range and speed of movies.\n",
 "\n",

@@ -41,8 +41,11 @@ as they are needed into an image cache.  This has various implications that
 are mentioned below.  Starting a movie through the images will eventually
 load all of the
 data into the cache, at which point the program will perform very similarly
-to the way it does without the cache.
-Several other restrictions exist.  If any TIFF or RGB-mode files are loaded,
+to the way it does without the cache.  In addition, there is a dialog box
+to fill the cache in various ways, available through the 
+Edit-Image-Cache Filler menu entry.
+Several other restrictions on image files exist.
+If any TIFF or RGB-mode files are loaded,
 the image volume cannot be flipped (Y and Z exchanged).  The Pixel View
 window, high-resolution mode in the Graph window, and the f and F hotkeys
 for finding pixel values will all give zeros for a TIFF file.  If RGB files are
@@ -409,10 +412,13 @@ Point
    Size...       Set size of individual points.
 
 Image
-   Process...    Process images by filtering.
-   Colormap...   Change color table number.
-   Reload...     Open the image scale reload requester.
-   Flip          Exchange Y and Z dimensions of the image data.
+   Process...      Process images by filtering.
+   Colormap...     Change color table number.
+   Reload...       Open the image scale reload requester.
+   Flip            Exchange Y and Z dimensions of the image data.
+   Fill Cache      Fill the cache if there is one.
+   Cache Filler... Open a dialog box to control cache filling and
+                      select autofilling.
 
 Movies...    Open window to control movie limits in X, Y, Z and
                  time.
