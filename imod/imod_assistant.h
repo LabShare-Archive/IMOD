@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.5  2004/12/24 02:11:40  mast
+    Removed absolute argument from show page
+
     Revision 1.4  2004/12/06 04:39:19  mast
     Made truly standalone, took out of library back into 3dmod
 
@@ -51,6 +54,8 @@ public slots:
 private:
   QString mPath;
   QString mAdp;
+  QString mImodDir;
+  bool mAssumedIMOD;
   QAssistantClient *mAssistant;
   QString mTitle;
 };
