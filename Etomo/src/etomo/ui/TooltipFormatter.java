@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2005/02/11 16:46:40  sueh
+ * <p> bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
+ * <p>
  * <p> Revision 3.2  2004/01/01 00:47:13  sueh
  * <p> bug# 372 Section returns null when Section is not found
  * <p>
@@ -99,5 +102,31 @@ public class TooltipFormatter {
     return htmlFormat.toString();
   }
   
-
+  /**
+   * converts from a string formatted with '\n' to an html string.  Doesn't
+   * current handle indents.  Wraps at nColumns.
+   * @return
+   */
+  public String convert() {
+    if (rawString == null) {return null;}
+    StringBuffer htmlFormat = new StringBuffer("<html>");
+    int lineIndex = 0;
+    for (int i = 0; i < rawString.length(); i++) {
+      char currentChar = rawString.charAt(i);
+      if (currentChar == '\n') {
+        htmlFormat.append("<br>");
+        lineIndex = 0;
+      }
+      else {
+        htmlFormat.append(currentChar);
+        lineIndex++;
+      }
+      if (lineIndex == nColumns) {
+        htmlFormat.append("<br>");
+        lineIndex = 0;
+      }   
+    }    
+    return htmlFormat.toString();
+  }
+  
 }
