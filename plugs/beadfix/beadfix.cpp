@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2003/07/07 21:32:49  mast
+    Fix stupid malloc/realloc problem in pointer list
+
     Revision 3.7  2003/06/29 14:34:41  mast
     Fix problem of multiple vector displays
 
@@ -220,7 +223,7 @@ void imodPlugExecute(ImodView *inImodView)
   plug->curmoved = 0;
   plug->objlook = -1;
   plug->didmove = 0;
-  plug->lookonce = 0;
+  plug->lookonce = 1;
   plug->listmax = 0;
   plug->listsize = 0;
   plug->offsetSize = 0;
@@ -890,12 +893,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   nextResBut->setEnabled(false);
   nextResBut->setFixedWidth(width);
   QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
-  backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
-  connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
-  backUpBut->setEnabled(false);
-  backUpBut->setFixedWidth(width);
-  QToolTip::add(backUpBut, "Back up to last point examined");
-
   movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
@@ -909,6 +906,12 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   undoMoveBut->setFixedWidth(width);
   QToolTip::add(undoMoveBut, 
                 "Move point back to previous position - Hot key: U");
+
+  backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
+  connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
+  backUpBut->setEnabled(false);
+  backUpBut->setFixedWidth(width);
+  QToolTip::add(backUpBut, "Back up to last point examined");
 
   box = diaCheckBox("Examine Points Once", this, mLayout);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
