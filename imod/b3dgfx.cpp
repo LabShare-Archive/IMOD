@@ -1505,10 +1505,11 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
 }
 
 /* Take a snapshot of the current window with prefix in name */
-void b3dAutoSnapshot(char *name, int format_type, int *limits)
+int b3dAutoSnapshot(char *name, int format_type, int *limits)
 {
   char fname[256];
   int fileno = 0;
+  int retval;
 
   b3dGetSnapshotName(fname, name, format_type, 3, fileno);
 
@@ -1516,16 +1517,19 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
 
   switch (format_type){
   case SnapShot_RGB:
-    b3dSnapshot_RGB(fname, App->rgba, limits);
+    retval = b3dSnapshot_RGB(fname, App->rgba, limits);
     break;
   case SnapShot_TIF:
-    b3dSnapshot_TIF(fname, App->rgba, limits, NULL);
+    retval = b3dSnapshot_TIF(fname, App->rgba, limits, NULL);
     break;
   default:
-    b3dSnapshot(fname);
+    retval = b3dSnapshot(fname);
   }
-  wprint("DONE!\n");
-  return;
+  if (retval)
+    wprint("Error!\n");
+  else
+    wprint("DONE!\n");
+  return retval;
 }
 
 /* DNM 12/24/00 changed long length, long offset to types below, to prevent
@@ -1553,7 +1557,7 @@ static void puttiffentry(short tag, short type,
   return;
 }
 
-void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
+int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 {
   FILE *fout;
   int i;
@@ -1576,7 +1580,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     if (errno)
       qerr +=  QString("System error: ") + strerror(errno);
     imodPrintStderr(qerr.latin1());
-    return;
+    return 1;
   }
 
   if (limits) {
@@ -1588,7 +1592,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   pixels = (unsigned char *)malloc(rpWidth * rpHeight * 4);
   if (!pixels){
     fclose(fout);
-    return;
+    return 1;
   }
   glPixelZoom(1.0,1.0);
   xysize = rpWidth * rpHeight;
@@ -1615,11 +1619,11 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
     mapsize = 1 << App->depth;
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapr) return;
+    if (!fcmapr) return 1;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapg) return;
+    if (!fcmapg) return 1;
     fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapb) return;
+    if (!fcmapb) return 1;
           
     for(i = 0; i < mapsize; i++){
       QColor qcolor = App->qColormap->entryColor(i);
@@ -1654,7 +1658,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   fclose(fout);
   free(pixels);
 
-  return;
+  return 0;
 }
 
 /*
@@ -1665,7 +1669,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
  * If data is non-NULL, it supplies the data already as line pointers, and
  * rgbmode should be 3 for RGB and 4 for RGBA data 
  */
-void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
+int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
                      unsigned char **data)
 {
   FILE *fout;
@@ -1698,7 +1702,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     if (errno)
       qerr +=  QString("System error: ") + strerror(errno);
     imodPrintStderr(qerr.latin1());
-    return;
+    return 1;
   }
 
   if (limits) {
@@ -1715,7 +1719,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     lpixels = (int *)pixels;
     if (!pixels){
       fclose(fout);
-      return;
+      return 1;
     }
   }
   glPixelZoom(1.0,1.0);
@@ -1732,11 +1736,11 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     depth = App->depth;
     mapsize = 1 << depth;
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapr) return;
+    if (!fcmapr) return 1;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapg) return;
+    if (!fcmapg) return 1;
     fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapb) return;
+    if (!fcmapb) return 1;
 
     for(i = 0; i < mapsize; i++){
       QColor qcolor = App->qColormap->entryColor(i);
@@ -1766,7 +1770,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     }
     if (!data)
       free(pixels);
-    return;
+    return 1;
   }
 
   ifd = xysize;
@@ -1785,7 +1789,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     }
     if (!data) 
       free(pixels);
-    return;
+    return 1;
   }
 
   if (data) {
@@ -1894,22 +1898,25 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   if (!data)
     free(pixels);
 
-  return;
+  return 0;
 }
 
 
 
-void b3dSnapshot(char *fname)
+int b3dSnapshot(char *fname)
 {
   if (SnapShotFormat == SnapShot_RGB)
-    b3dSnapshot_RGB(fname, App->rgba, NULL);
+    return(b3dSnapshot_RGB(fname, App->rgba, NULL));
   else
-    b3dSnapshot_TIF(fname, App->rgba, NULL, NULL);
+    return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL));
 }
 
 
 /*
 $Log$
+Revision 4.21  2004/09/10 02:31:03  mast
+replaced long with int
+
 Revision 4.20  2004/06/01 01:31:42  mast
 Add include of errno.h
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2003/12/30 06:33:38  mast
+    Add routine to make snapshot name
+
     Revision 3.6  2003/09/16 03:00:16  mast
     Changed declarations of pixel drawing routines to use new line pointers
 
@@ -190,13 +193,13 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 
 
      
-void b3dSnapshot(char *fname);
+int b3dSnapshot(char *fname);
 
 void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
                         int &fileno);
-void b3dAutoSnapshot(char *name, int format_type, int *limits);
-void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits);
-void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
+int b3dAutoSnapshot(char *name, int format_type, int *limits);
+int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits);
+int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
 		     unsigned char **data);
 
 
