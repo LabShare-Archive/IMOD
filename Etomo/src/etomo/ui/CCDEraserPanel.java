@@ -29,6 +29,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/22 22:17:54  rickg
+ * <p> Erase button name change
+ * <p> Correct setup of manual replacement parameters
+ * <p>
  * <p> Revision 2.3  2003/07/11 23:14:08  rickg
  * <p> Add parameter set and get for new eraser mode
  * <p>
@@ -86,7 +90,8 @@ public class CCDEraserPanel implements ContextMenu {
     new LabeledTextField("XY scan size:");
   private LabeledTextField ltfScanCriterion =
     new LabeledTextField("Scan criterion:");
-  private JButton btnFindXRays = new JButton("<html><b>Find X-rays</b>");
+  private JButton btnFindXRays =
+    new JButton("<html><b>Find X-rays (trial mode)</b>");
   private JButton btnViewXRayModel =
     new JButton("<html><b>View X-ray model</b>");
 
@@ -95,18 +100,19 @@ public class CCDEraserPanel implements ContextMenu {
     new LabeledTextField("All section replacement list: ");
   private LabeledTextField ltfLocalReplacementList =
     new LabeledTextField("Line replacement list: ");
-  private LabeledTextField ltfBorderPixels =
-    new LabeledTextField("Border pixels: ");
-  private LabeledTextField ltfPolynomialOrder =
-    new LabeledTextField("Polynomial order: ");
-  private JCheckBox chkboxIncludeAdjacentPoints =
-    new JCheckBox("Include adjacent points");
   private JButton btnCreateModel =
     new JButton("<html><b>Create manual replacement model</b>");
 
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputImage =
     new LabeledTextField("Output file: ");
+  private LabeledTextField ltfBorderPixels =
+    new LabeledTextField("Border pixels: ");
+  private LabeledTextField ltfPolynomialOrder =
+    new LabeledTextField("Polynomial order: ");
+  private JCheckBox cbIncludeAdjacentPoints =
+    new JCheckBox("Include adjacent points");
+
   private JButton btnErase = new JButton("<html><b>Erase stack</b>");
   private JButton btnViewErased = new JButton("<html><b>View erased stack</b>");
   private JButton btnReplaceRawStack =
@@ -124,7 +130,7 @@ public class CCDEraserPanel implements ContextMenu {
     pnlXRayReplacement.setLayout(
       new BoxLayout(pnlXRayReplacement, BoxLayout.Y_AXIS));
     pnlXRayReplacement.setBorder(
-      new EtchedBorder("Automatic X-ray Replacment").getBorder());
+      new EtchedBorder("Automatic X-ray Replacement").getBorder());
 
     pnlXRayReplacement.add(cbXrayReplacement);
     pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -155,18 +161,12 @@ public class CCDEraserPanel implements ContextMenu {
     pnlManualReplacement.setLayout(
       new BoxLayout(pnlManualReplacement, BoxLayout.Y_AXIS));
     pnlManualReplacement.setBorder(
-      new EtchedBorder("Manual Pixel Region Replacment").getBorder());
+      new EtchedBorder("Manual Pixel Region Replacement").getBorder());
     pnlManualReplacement.add(cbManualReplacement);
     pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlManualReplacement.add(ltfGlobalReplacementList.getContainer());
     pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlManualReplacement.add(ltfLocalReplacementList.getContainer());
-    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlManualReplacement.add(ltfBorderPixels.getContainer());
-    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlManualReplacement.add(ltfPolynomialOrder.getContainer());
-    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlManualReplacement.add(chkboxIncludeAdjacentPoints);
     pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlManualReplacement.add(btnCreateModel);
 
@@ -177,6 +177,13 @@ public class CCDEraserPanel implements ContextMenu {
     pnlCCDEraser.add(ltfInputImage.getContainer());
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlCCDEraser.add(ltfOutputImage.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfBorderPixels.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfPolynomialOrder.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(cbIncludeAdjacentPoints);
+
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.X_AXIS));
     pnlEraseButtons.add(Box.createHorizontalGlue());
@@ -250,7 +257,7 @@ public class CCDEraserPanel implements ContextMenu {
     ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
     ltfBorderPixels.setText(ccdEraserParams.getBorderPixels());
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
-    chkboxIncludeAdjacentPoints.setSelected(
+    cbIncludeAdjacentPoints.setSelected(
       ccdEraserParams.getIncludeAdjacentPoints());
 
     enableXRayReplacement();
@@ -275,7 +282,7 @@ public class CCDEraserPanel implements ContextMenu {
     ccdEraserParams.setBorderPixels(ltfBorderPixels.getText());
     ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
     ccdEraserParams.setIncludeAdjacentPoints(
-      chkboxIncludeAdjacentPoints.isSelected());
+      cbIncludeAdjacentPoints.isSelected());
     if (cbManualReplacement.isSelected()) {
       ccdEraserParams.setModelFile(
         applicationManager.getDatasetName() + axisID.getExtension() + ".erase");
@@ -313,6 +320,9 @@ public class CCDEraserPanel implements ContextMenu {
     ltfScanRegionSize.setVisible(state);
     ltfScanCriterion.setVisible(state);
     pnlManualReplacement.setVisible(state);
+    ltfBorderPixels.setVisible(state);
+    ltfPolynomialOrder.setVisible(state);
+    cbIncludeAdjacentPoints.setVisible(state);
     ltfInputImage.setVisible(state);
     ltfOutputImage.setVisible(state);
   }
@@ -353,13 +363,18 @@ public class CCDEraserPanel implements ContextMenu {
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] label = { "ccdEraser" };
     String[] manPage = { "ccderaser.html" };
+    String[] logFileLabel = { "eraser" };
+    String[] logFile = new String[1];
+    logFile[0] = "eraser" + axisID.getExtension() + ".log";
     ContextPopup contextPopup =
       new ContextPopup(
         pnlCCDEraser,
         mouseEvent,
         "Preliminary Steps",
         label,
-        manPage);
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   private void enableXRayReplacement() {
@@ -380,9 +395,6 @@ public class CCDEraserPanel implements ContextMenu {
     boolean state = cbManualReplacement.isSelected();
     ltfGlobalReplacementList.setEnabled(state);
     ltfLocalReplacementList.setEnabled(state);
-    ltfBorderPixels.setEnabled(state);
-    ltfPolynomialOrder.setEnabled(state);
-    chkboxIncludeAdjacentPoints.setEnabled(state);
     btnCreateModel.setEnabled(state);
   }
   /**
@@ -443,7 +455,7 @@ public class CCDEraserPanel implements ContextMenu {
     line4 =
       "Does this effectively increas the replacement patch by 1 pixel in all directions<br>";
     line5 = "<b>prior</b> to performing the interpolation<b>???</b>";
-    chkboxIncludeAdjacentPoints.setToolTipText(
+    cbIncludeAdjacentPoints.setToolTipText(
       line1 + line2 + line3 + line4 + line5);
 
     line1 = "<html>This button will open 3dmod with the current CCD erase<br>";
