@@ -1,6 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/17/04:  Made Finsihjoin detect if there is a large rotation between sections
+9/21/04: Added ability to use multiple clipping planes per object, and to set
+up global clipping planes also (up to 6 in each case).  Added surface labels
+that can be input in the Surface/Countour/Point window.  Added ability to
+adjust the colors of multiple objects at once.  Changed the model view object
+list window to embed checkboxes in a scrolling view, not truncate names nearly
+as much, allow 512 objects, and display colors of objects.  Fixed
+synchronization of names, on/off state, and colors between 3dmod and model
+view components.
+
+9/17/04: Made Finishjoin detect if there is a large rotation between sections
 and warn that a reference section entry will probably be needed.
 
 9/17/04: Rewrote Imodtrans to do a general 3D transformation from a file, to
@@ -8,9 +17,9 @@ transform meshes correctly, to take the transformation arguments in any order
 and repeated if desired, and to handle situations with flipped data, Z-scaled
 data, and a different destination image file size.
 
-9/16/04: Made Tiltalign try several metro factors when the search fails, made it
-give an error when there is more than one point per view in a contour, and had
-it not leave an empty fid.xyz file if it fails.
+9/16/04: Made Tiltalign try several metro factors when the search fails, made
+it give an error when there is more than one point per view in a contour, and
+had it not leave an empty fid.xyz file if it fails.
 
 9/14/04: Made blendmont preserve pixel sizes.
 
