@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 /* DNM 11-11-98: changed loops for filling in the edges after processing
@@ -100,7 +103,7 @@ int sliceByteEdgeTwo(Islice *sin, int center)
     for(j = 1; j < jmax; j++){
       Sr = (GETVAL(sin, i-1, j-1) + 
             (center * GETVAL(sin, i, j-1)) + GETVAL(sin, i+1, j-1)) -
-        (GETVAL(sin, i+1, j+1) +
+        (GETVAL(sin, i-1, j+1) +
          (center * GETVAL(sin, i, j+1)) + GETVAL(sin, i+1, j+1));
                
       Sc = (GETVAL(sin, i+1, j+1) +  center * GETVAL(sin, i+1, j) +
