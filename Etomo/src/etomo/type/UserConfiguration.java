@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/01/28 00:16:24  rickg
  * <p> Main window now remembers its size
  * <p>
@@ -49,6 +52,7 @@ public class UserConfiguration implements Storable {
   private int fontSize = 12;
   private int mainWindowWidth = 800;
   private int mainWindowHeight = 600;
+  private boolean autoFit = false;
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
@@ -101,7 +105,8 @@ public class UserConfiguration implements Storable {
         group + "EtomoDataFile" + String.valueOf(i),
         (String) MRUFileList.get());
     }
-
+    
+    props.setProperty(group + "AutoFit", String.valueOf(autoFit));
   }
 
   public void load(Properties props) {
@@ -153,6 +158,11 @@ public class UserConfiguration implements Storable {
       MRUFileList.put(
         props.getProperty("EtomoDataFile" + String.valueOf(i), ""));
     }
+    autoFit =
+      Boolean
+        .valueOf(props.getProperty(group + "AutoFit", "false"))
+        .booleanValue();
+
   }
 
   /**
@@ -315,6 +325,21 @@ public class UserConfiguration implements Storable {
    */
   public void setMainWindowWidth(int mainWindowWidth) {
     this.mainWindowWidth = mainWindowWidth;
+  }
+  
+  /**
+   * 
+   * @return
+   */
+  public boolean isAutoFit() {
+    return autoFit;
+  }
+  /**
+   * 
+   * @param autoFit
+   */
+  public void setAutoFit(boolean autoFit) {
+    this.autoFit = autoFit;
   }
 
 }
