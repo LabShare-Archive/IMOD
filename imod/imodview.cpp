@@ -500,7 +500,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   b3dInt16 *binbuf = NULL;
   ImodImageFile im;
 
-  ivwGetFileStartPos(vi->image->fp);
+  ivwGetFileStartPos(vi->image);
 
   // If there is no binning, just call the raw or byte routines
   if (vi->xybin * vi->zbin == 1) {
@@ -508,7 +508,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
       iiReadSection(vi->image, buf, section);
     else
       iiReadSectionByte(vi->image, buf, section);
-    ivwDumpFileSysCache(vi->image->fp);
+    ivwDumpFileSysCache(vi->image);
     return 0;
   }
 
@@ -562,7 +562,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   free(unbinbuf);
   if (binbuf)
     free(binbuf);
-  ivwDumpFileSysCache(vi->image->fp);
+  ivwDumpFileSysCache(vi->image);
   return 0;
 }
 
@@ -570,26 +570,26 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 static fpos_t startPos;
 #endif
 
-void ivwGetFileStartPos(FILE *fp)
+void ivwGetFileStartPos(ImodImageFile *image)
 {
 #ifdef __linux
-  if (!fp)
+  if (!image->fp || image->file != IIFILE_MRC)
     return;
-  fgetpos(fp, &startPos);
+  fgetpos(image->fp, &startPos);
 #endif
 }
 
-void ivwDumpFileSysCache(FILE *fp)
+void ivwDumpFileSysCache(ImodImageFile *image)
 {
 #ifdef __linux
   fpos_t endPos;
   int filedes;
   long long start, end;
   off_t diff;
-  if (!fp)
+  if (!image->fp || image->file != IIFILE_MRC)
     return;
-  filedes = fileno(fp);
-  fgetpos(fp, &endPos);
+  filedes = fileno(image->fp);
+  fgetpos(image->fp, &endPos);
   start = startPos.__pos;
   end = endPos.__pos;
   if (end <= start)
@@ -2434,6 +2434,10 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.27  2004/10/22 22:18:04  mast
+Added functions for dumping file system cache after each section is
+loaded, works in Linux only
+
 Revision 4.26  2004/07/13 22:29:54  mast
 Fixed bug in getting file values for flipped data leaded as a subset
 
