@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/08 17:15:24  mast
+c	  Convert to using autodoc
+c	
 c	  Revision 3.3  2003/08/09 23:21:44  mast
 c	  Converted to PIP input and fixed some error reporting.  Also made it
 c	  fall back to building new edge functions if it can't open old ones.
@@ -693,6 +696,7 @@ c	  half of overlap above 50
      &	      ,iblend(1), iblend(2),'): '
 	  read(5,*)(iblend(i),i=1,2)
 	endif
+	call PipDone()
 c	  
 c	  initialize memory allocator
 c	  
