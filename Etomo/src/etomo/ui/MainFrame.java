@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.4  2003/03/20 17:42:18  rickg
  * <p> Comment update
  * <p>
@@ -235,16 +238,19 @@ public class MainFrame extends JFrame implements ContextMenu {
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public void updateDataParameters(MetaData metaData) {
+  public void updateDataParameters(File paramFile, MetaData metaData) {
     StringBuffer buffer = new StringBuffer();
     if (metaData == null) {
       buffer.append("No data set loaded");
     }
     else {
-      buffer.append("Data file: ");
-      buffer.append(metaData.getWorkingDirectory());
-      buffer.append("/");
-      buffer.append(metaData.getDatasetName());
+      if (paramFile == null) {
+        buffer.append("Data file: NOT SAVED");
+      }
+      else {
+        buffer.append("Data file: " + paramFile.getAbsolutePath());
+      }
+
       buffer.append("   Source: ");
       buffer.append(metaData.getDataSource().toString());
       buffer.append("   Axis type: ");
@@ -277,7 +283,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  Open up the file chooser in current working directory
     //
     JFileChooser chooser =
-      new JFileChooser(new File(applicationManager.getWorkingDirectory()));
+      new JFileChooser(new File(System.getProperty("user.dir")));
     EtomoFileFilter edfFilter = new EtomoFileFilter();
     chooser.setFileFilter(edfFilter);
 
@@ -308,10 +314,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   public boolean getTestParamFilename() {
-    String cwd = applicationManager.getWorkingDirectory();
-
     //  Open up the file chooser in current working directory
-    JFileChooser chooser = new JFileChooser(new File(cwd));
+    JFileChooser chooser =
+      new JFileChooser(new File(System.getProperty("user.dir")));
     chooser.setDialogTitle("Save etomo data file");
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
     chooser.setPreferredSize(FixedDim.fileChooser);
