@@ -30,6 +30,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/03/07 22:35:04  sueh
+ * <p> bug# 399 removed deprecated code
+ * <p>
  * <p> Revision 3.14  2004/02/25 22:44:42  sueh
  * <p> bug# 403 comments - clarified setMetaData
  * <p>
@@ -256,6 +259,7 @@ public class ImodManager {
     new String("patchVectorModel");
   public static final String MATCH_CHECK_KEY = new String("matchCheck");
   public static final String TRIAL_TOMOGRAM_KEY = new String("trialTomogram");
+  public static final String MTF_FILTER_KEY = new String("mtfFilter");
   public static final String PREVIEW_KEY = new String("preview");
 
   //private keys - used with imodMap
@@ -271,6 +275,7 @@ public class ImodManager {
   private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
   private static final String matchCheckKey = MATCH_CHECK_KEY;
   private static final String trialTomogramKey = TRIAL_TOMOGRAM_KEY;
+  private static final String mtfFilterKey = MTF_FILTER_KEY;
   private static final String previewKey = PREVIEW_KEY;
 
   private boolean useMap = true;
@@ -636,6 +641,9 @@ public class ImodManager {
       && datasetName != null) {
       return newTrialTomogram(axisID, datasetName);
     }
+    if (key.equals(MTF_FILTER_KEY) && axisID != null) {
+      return newMtfFilter(axisID);
+    }
     if (key.equals(PREVIEW_KEY) && axisID != null) {
       return newPreview(axisID);
     }
@@ -674,6 +682,7 @@ public class ImodManager {
     imodMap.put(fullVolumeKey, newVector(newFullVolume(AxisID.ONLY)));
     imodMap.put(fiducialModelKey, newVector(newFiducialModel()));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
+    imodMap.put(mtfFilterKey, newVector(newMtfFilter(AxisID.ONLY)));
   }
 
   protected void loadDualAxisMap() {
@@ -724,6 +733,12 @@ public class ImodManager {
       fiducialModelKey + AxisID.SECOND.getExtension(),
       newVector(newFiducialModel()));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
+    imodMap.put(
+      mtfFilterKey + AxisID.FIRST.getExtension(),
+      newVector(newMtfFilter(AxisID.FIRST)));
+    imodMap.put(
+    mtfFilterKey + AxisID.SECOND.getExtension(),
+      newVector(newMtfFilter(AxisID.SECOND)));
   }
 
   protected ImodState newRawStack(AxisID axisID) {
@@ -789,6 +804,10 @@ public class ImodManager {
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
     ImodState imodState = new ImodState(datasetName);
     imodState.initialize(true, false, false);
+    return imodState;
+  }
+  protected ImodState newMtfFilter(AxisID axisID) {
+    ImodState imodState = new ImodState(axisID, datasetName, "_filt.ali");
     return imodState;
   }
   protected ImodState newPreview(AxisID axisID) {
