@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/02/27 20:10:49  sueh
+ * <p> bug# 250 changed createCombineScripts() - copied the
+ * <p> Setup Use Matching Models value into the Initial tab
+ * <p>
  * <p> Revision 3.15  2004/02/25 22:42:23  sueh
  * <p> bug# 403 removed unnecessary code
  * <p>
@@ -3165,6 +3169,47 @@ public class ApplicationManager {
   }
 
   /**
+   * Update the combine parameters from the a specified tab of the calling 
+   * dialog
+   * @param tomogramCombinationDialog the calling dialog.
+   * @return true if the combine parameters are sucessfully updated or if the 
+   * parameters have not changed.  If the combine parameters are invalid a
+   * message dialog describing the invalid parameters is presented to the user.
+   */
+  private boolean updateCombineCom(int fromTab) {
+    if (tomogramCombinationDialog == null) {
+      mainFrame.openMessageDialog(
+        "Can not update combine.com without an active tomogram combination dialog",
+        "Program logic error");
+      return false;
+    }
+
+    CombineParams combineParams = new CombineParams();
+    try {
+      tomogramCombinationDialog.getCombineParams(combineParams);
+      tomogramCombinationDialog.getCombineParams(fromTab, combineParams);
+      if (!combineParams.isValid()) {
+        mainFrame.openMessageDialog(
+          combineParams.getInvalidReasons(),
+          "Invlaid combine parameters");
+        return false;
+      }
+    }
+    catch (NumberFormatException except) {
+      mainFrame.openMessageDialog(except.getMessage(), "Number format error");
+      return false;
+    }
+
+    CombineParams originalCombineParams = metaData.getCombineParams();
+    if (!originalCombineParams.equals(combineParams)) {
+      metaData.setCombineParams(combineParams);
+      tomogramCombinationDialog.setCombineParams(combineParams);
+      isDataParamDirty = true;
+    }
+    return true;
+  }
+
+  /**
    * Load the solvematchshift com script into the tomogram combination dialog
    */
   public void loadSolvematchShift() {
@@ -3328,13 +3373,25 @@ public class ApplicationManager {
     return true;
   }
 
+
+
+  public void combine() {
+    combine(TomogramCombinationDialog.NO_TAB);
+  }
   /**
    * Initiate the combine process from the beginning
    */
-  public void combine() {
+  public void combine(int copyFromTab) {
     if (updateSolvematchshiftCom()
       && updatePatchcorrCom()
       && updateMatchorwarpCom(false)) {
+        
+      if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
+        tomogramCombinationDialog.setUseMatchingModels(
+          TomogramCombinationDialog.SETUP_TAB,
+          tomogramCombinationDialog.getUseMatchingModels(copyFromTab));
+        updateCombineCom(copyFromTab);
+      }
 
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -3359,14 +3416,24 @@ public class ApplicationManager {
     }
   }
 
+  public void modelCombine() {
+    modelCombine(TomogramCombinationDialog.NO_TAB);
+  }
   /**
    * Initiate the combine process using solvematchmod
    */
-  public void modelCombine() {
+  public void modelCombine(int copyFromTab) {
     if (updateSolvematchmodCom()
       && updatePatchcorrCom()
       && updateMatchorwarpCom(false)) {
-
+        
+      if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
+        tomogramCombinationDialog.setUseMatchingModels(
+          TomogramCombinationDialog.SETUP_TAB,
+          tomogramCombinationDialog.getUseMatchingModels(copyFromTab));
+        updateCombineCom(copyFromTab);
+      }
+      
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
@@ -3390,10 +3457,20 @@ public class ApplicationManager {
     }
   }
 
+  public void matchvol1() {
+    matchvol1(TomogramCombinationDialog.NO_TAB);
+  }
   /**
    * Execute the matchvol1 com script and put patchcorr in the execution queue 
    */
-  public void matchvol1() {
+  public void matchvol1(int copyFromTab) {
+    if (copyFromTab == TomogramCombinationDialog.INITIAL_TAB) {
+      tomogramCombinationDialog.setUseMatchingModels(
+        TomogramCombinationDialog.SETUP_TAB,
+        tomogramCombinationDialog.getUseMatchingModels(copyFromTab));
+      updateCombineCom(copyFromTab);
+    }
+
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
