@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/12/03 05:41:13  rickg
+ * <p> redesign in progress
+ * <p>
  * <p> Revision 1.8  2002/12/03 05:22:29  rickg
  * <p> added getLocalRotationSolutionGroupSize
  * <p>
@@ -1142,6 +1145,20 @@ public class TiltalignPanel implements ContextMenu {
     tabPane.addTab("Local Variables", panelLocalSolution);
   }
 
+  private void createVariablePanel(
+    JPanel panel,
+    JCheckBox checkBox,
+    Dimension dimLTF,
+    LabeledTextField groupSize,
+    LabeledTextField additionalGroups) {
+      
+      //  Add the check box
+      
+      //  Add the group size labeled text field
+      
+      //  Add the additional groups labeled text field
+      
+  }
 }
 class LocalAlignmentsListener implements ActionListener {
   TiltalignPanel panel;
