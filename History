@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/02: IMOD 2-6-9
+2/26/02: Made the Fortran code that reads image files test for Boulder-style
+extended header data versus data consisting of 4-byte integers and reals,
+and swap byte appropriately.  Made extracttilts able to get tilt angles if
+they are the first real numbers in an extended header.  Also improved the
+protection against misinterpreting non-Boulder image files as montages.
+
 2/26/02: The 1/25/02 change to xyzproj broke it for the SGI, so the array 
 dimensions were reduced so that it can do either very large images or very 
 many projections,
