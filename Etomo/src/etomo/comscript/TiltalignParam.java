@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/01/11 01:00:36  sueh
+ * <p> bug# 567 Getting outputModelAndResidual, in case we want to
+ * <p> use it.
+ * <p>
  * <p> Revision 3.8  2005/01/08 01:45:04  sueh
  * <p> bug# 578 Place the logic to create the z factor file into a static function.
  * <p>
@@ -187,6 +191,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       magNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           magNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
+      localMagReferenceView.set(scriptCommand);
       localMagOption.set(scriptCommand);
       localMagDefaultGrouping.set(scriptCommand);
       localMagNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -225,6 +230,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
           minSizeOrOverlapXandYString, minSizeOrOverlapXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
           minFidsTotalAndEachSurfaceString, minFidsTotalAndEachSurface);
+      fixXYZCoordinates.set(scriptCommand);
+      ParamUtilities.setParamIfPresent(scriptCommand,
+          localOutputOptionsString, localOutputOptions);
     }
     String invalidReason = validate();
     if (invalidReason != null && !invalidReason.matches("\\s*")) {
@@ -352,7 +360,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     magNondefaultGroup = setSolution(magOption, magDefaultGrouping,
         magReferenceView, oldParam.getMagnificationSolution());
     localMagNondefaultGroup = setSolution(localMagOption,
-        localMagDefaultGrouping, null, oldParam.getLocalMagnificationSolution());
+        localMagDefaultGrouping, localMagReferenceView, oldParam.getLocalMagnificationSolution());
     xStretchNondefaultGroup = setSolution(xStretchOption,
         xStretchDefaultGrouping, null, oldParam.getXstretchSolution());
     localXStretchNondefaultGroup = setSolution(localXStretchOption,
@@ -371,6 +379,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     numberOfLocalPatchesXandY = oldParam.getNLocalPatches();
     minSizeOrOverlapXandY = oldParam.getMinLocalPatchSize();
     minFidsTotalAndEachSurface = oldParam.getMinLocalFiducials();
+    fixXYZCoordinates.set(oldParam.getFixLocalFiducialCoodinates());
+    localOutputOptions = oldParam.getLocalOutputSelection();
+    //set state
     setOutputZFactorFile();
   }
 
@@ -409,6 +420,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
     ParamUtilities.updateScriptParameter(scriptCommand, modelFileString,
         modelFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, imageFileString,
+        imageFile);
     scriptCommand.deleteKey(outputModelAndResidualString);
     ParamUtilities.updateScriptParameter(scriptCommand, outputModelFileString,
         outputModelFile);
@@ -420,8 +433,6 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         outputTiltFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
         outputTransformFileString, outputTransformFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        outputZFactorFileString, outputZFactorFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
         includeStartEndIncString, includeStartEndInc);
     ParamUtilities.updateScriptParameter(scriptCommand, includeListString,
@@ -436,60 +447,69 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     projectionStretch.update(scriptCommand);
     rotOption.update(scriptCommand);
     rotDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        rotNondefaultGroupString, rotNondefaultGroup);
     rotationFixedView.update(scriptCommand);
     tiltOption.update(scriptCommand);
     tiltDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        tiltNondefaultGroupString, tiltNondefaultGroup);
     magReferenceView.update(scriptCommand);
     magOption.update(scriptCommand);
     magDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        magNondefaultGroupString, magNondefaultGroup);
     xStretchOption.update(scriptCommand);
-    xStretchDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        xStretchNondefaultGroupString, xStretchNondefaultGroup);
     skewOption.update(scriptCommand);
+    xStretchDefaultGrouping.update(scriptCommand);
     skewDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        skewNondefaultGroupString, skewNondefaultGroup);
     residualReportCriterion.update(scriptCommand);
     surfacesToAnalyze.update(scriptCommand);
     metroFactor.update(scriptCommand);
     maximumCycles.update(scriptCommand);
     axisZShift.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        minSizeOrOverlapXandYString, minSizeOrOverlapXandY);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        minFidsTotalAndEachSurfaceString, minFidsTotalAndEachSurface);
-    localRotOption.update(scriptCommand);
-    localRotDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localRotNondefaultGroupString, localRotNondefaultGroup);
-    localTiltOption.update(scriptCommand);
-    localTiltDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localTiltNondefaultGroupString, localTiltNondefaultGroup);
-    localMagOption.update(scriptCommand);
-    localMagDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localMagNondefaultGroupString, localMagNondefaultGroup);
-    localXStretchOption.update(scriptCommand);
-    localXStretchDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localXStretchNondefaultGroupString, localXStretchNondefaultGroup);
-    localSkewOption.update(scriptCommand);
-    localSkewDefaultGrouping.update(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localSkewNondefaultGroupString, localSkewNondefaultGroup);
+    //local alignment
     localAlignments.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
         outputLocalFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
         numberOfLocalPatchesXandYString, numberOfLocalPatchesXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        minSizeOrOverlapXandYString, minSizeOrOverlapXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        minFidsTotalAndEachSurfaceString, minFidsTotalAndEachSurface);
+    fixXYZCoordinates.update(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localOutputOptionsString, localOutputOptions);
+    localRotOption.update(scriptCommand);
+    localRotDefaultGrouping.update(scriptCommand);
+    localTiltOption.update(scriptCommand);
+    localTiltDefaultGrouping.update(scriptCommand);
+    localMagReferenceView.update(scriptCommand);
+    localMagOption.update(scriptCommand);
+    localMagDefaultGrouping.update(scriptCommand);
+    localXStretchOption.update(scriptCommand);
+    localXStretchDefaultGrouping.update(scriptCommand);
+    localSkewOption.update(scriptCommand);
+    localSkewDefaultGrouping.update(scriptCommand);
+    //optional parameters
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        outputZFactorFileString, outputZFactorFile);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        rotNondefaultGroupString, rotNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        tiltNondefaultGroupString, tiltNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        magNondefaultGroupString, magNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        xStretchNondefaultGroupString, xStretchNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        skewNondefaultGroupString, skewNondefaultGroup);
+    //local optional parameters
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localRotNondefaultGroupString, localRotNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localTiltNondefaultGroupString, localTiltNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localMagNondefaultGroupString, localMagNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localXStretchNondefaultGroupString, localXStretchNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        localSkewNondefaultGroupString, localSkewNondefaultGroup);
   }
 
   public void initializeDefaults() {
