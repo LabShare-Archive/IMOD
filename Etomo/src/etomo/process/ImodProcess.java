@@ -20,6 +20,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/27 22:02:58  sueh
+ * <p> bug# 320 removing test
+ * <p>
  * <p> Revision 3.6  2004/04/26 17:05:05  sueh
  * <p> bug# 320 Commented out code - no functional change.
  * <p> Experimenting with a fix for this bug.
@@ -141,6 +144,7 @@ public class ImodProcess {
   public static final String MESSAGE_MODEL_MODE = "6";
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
+  public static final String MESSAGE_ONE_ZAP_OPEN = "9";
 
   private String datasetName = "";
   private String modelName = "";
@@ -384,6 +388,12 @@ public class ImodProcess {
   public void raise3dmod() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RAISE;
+    imodSendEvent(args);
+  }
+  
+  public void openZapWindow() throws SystemProcessException {
+    String[] args = new String[1];
+    args[0] = MESSAGE_ONE_ZAP_OPEN;
     imodSendEvent(args);
   }
 
