@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/04: Added magnification gradient correction to Newstack and Xfmodel.
+Added a program, Extractmagrad, to extract intensity information from the
+image file header and compose the file of mag gradients needed by the other
+programs.
+
+3/21/04: Fixed button connections in color selector (broke 1/22/04).
+
+3/17/04: Changed Extracttilts and associated routines to work with headers
+containing intensity values.  Converted Extracttilts to PIP input and added
+options to extract stage position, magnification, or intensity.
+
 3/16/04: IMOD_3-2-7
 3/15/04: Many Etomo changes including change to using command line input
 to Copytomocoms, ability to specify a distortion field and apply it when
