@@ -5,10 +5,10 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -25,6 +25,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/01/21 22:41:57  sueh
+* <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+* <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+* <p> be placed in a comscript.
+* <p>
 * <p> Revision 1.8  2005/01/08 01:39:09  sueh
 * <p> bug# 578 Changed the names of the statics used to make variables
 * <p> available in the Command interface.  Add GET_.  Updated Command
@@ -175,8 +180,12 @@ public class FinishjoinParam implements Command {
     return commandName;
   }
   
-  public static ConstEtomoNumber getShift(String offset) {
-    return new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(offset).getNegation();
+  public static int getShift(String offset) {
+    EtomoNumber offsetNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    if (offsetNumber.set(offset).isValid()) {
+      return offsetNumber.getInteger() * -1;
+    }
+    throw new IllegalArgumentException(offsetNumber.getInvalidReason());
   }
   
   public File getCommandOutputFile() {
@@ -195,25 +204,25 @@ public class FinishjoinParam implements Command {
       options.add(metaData.getAlignmentRefSection().toString());
     }
     //Add optional size
-    ConstEtomoNumber sizeInX = metaData.getSizeInX();
-    ConstEtomoNumber sizeInY = metaData.getSizeInY();
-    this.sizeInX = sizeInX.getInteger(true);
-    this.sizeInY = sizeInY.getInteger(true);
-    if (sizeInX.isUpdateCommand() || sizeInY.isUpdateCommand()) {
+    ScriptParameter sizeInX = metaData.getSizeInXParameter();
+    ScriptParameter sizeInY = metaData.getSizeInYParameter();
+    this.sizeInX = sizeInX.getInteger();
+    this.sizeInY = sizeInY.getInteger();
+    if (sizeInX.isUseInScript() || sizeInY.isUseInScript()) {
       options.add("-s");
       //both numbers must exist
-      options.add(sizeInX.toString(true) + "," + sizeInY.toString(true));
+      options.add(sizeInX.toString() + "," + sizeInY.toString());
     }
     //Add optional offset
-    ConstEtomoNumber shiftInX = metaData.getShiftInX();
-    ConstEtomoNumber shiftInY = metaData.getShiftInY();
-    this.shiftInX = shiftInX.getInteger(true);
-    this.shiftInY = shiftInY.getInteger(true);
-    if (shiftInX.isUpdateCommand() || shiftInY.isUpdateCommand()) {
+    ScriptParameter shiftInX = metaData.getShiftInXParameter();
+    ScriptParameter shiftInY = metaData.getShiftInYParameter();
+    this.shiftInX = shiftInX.getInteger();
+    this.shiftInY = shiftInY.getInteger();
+    if (shiftInX.isUseInScript() || shiftInY.isUseInScript()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
-      options.add(shiftInX.getNegation().toString(true) + "," + shiftInY.getNegation().toString(true));
+      options.add(Integer.toString(shiftInX.getInteger() * -1) + "," + Integer.toString(shiftInY.getInteger() * -1));
     }
     if (mode == MAX_SIZE_MODE) {
       options.add("-m");
@@ -221,9 +230,9 @@ public class FinishjoinParam implements Command {
     if (mode == TRIAL_MODE) {
       options.add("-t");
       options.add(metaData.getUseEveryNSlices().toString());
-      ConstEtomoNumber binning = metaData.getTrialBinning();
-      this.binning = binning.getInteger(true);
-      if (binning.isUpdateCommand()) {
+      ScriptParameter binning = metaData.getTrialBinningParameter();
+      this.binning = binning.getInteger();
+      if (binning.isUseInScript()) {
         options.add("-b");
         options.add(binning.toString());
       }
