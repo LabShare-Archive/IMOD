@@ -1,14 +1,79 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/04: IMOD_3-2-20 (eTomo unstable, Setupcombine backed down to match 3.2.19)
+6/19/04: Mtffilter can now filter a 3D FFT, allowing inverse filtering and 
+general low-pass 3D filtering to be applied to tomograms.
+
+6/18/04: Tutorial images updated
+
+6/17/04: eTomo now accommodates the new solvematch.com, converts from old
+version of the solvematch files, and presents a new option to do the initial
+match with matching models only.
+
+6/17/04: Made Tiltalign reset the Z-scale and rotation angles of the 3D 
+fiducial model in case user rotated and stretched the actual fiducial model.
+
+6/17/04: Added a script, Chunksetup, to create command files for processing
+a large volume in chunks and reassembling the chunks.
+
+6/17/04: Fixed Smoothsurf to work with models built on image files with pixel
+sizes in the header, fixed a bug in the contour smoothing part, prevented it
+from smoothing scattered point objects and non-planar open contours, 
+converted to PIP input, provided default parameters, and revised man page to
+make it easier to see how to affect smoothing by varying parameters.
+
+6/16/04: Put some error checks into Corrsearch3d to protect against bad entries
+and patch sizes too big for the limits to be analyzed.
+
+6/15/04: Fixed problem with hot keys moving the current point beyond the range
+of the data in a locked slicer window.
+
+6/14/04: Added a -t option to subm (submfg) to get the time for each command.
+
+6/14/04: Made tomopitch generate an error for contours with more than 2 points
+when the model is from a whole tomogram.
+
+6/14/04: Added option to Ccderaser to specify width of annulus so that only
+one parameter needs to be changed when increasing maximum X-ray size.
+
+6/14/04: Added options to vary image display thickness and transparency in
+model view movie maker.  Also increased limit on number of image slices to 256.
+
+6/14/04: Converted Tomopieces to PIP input and modified it to allow division
+of volume in Y dimension; also changed Assemblevol so that it could handle
+data from large numbers of files in X and Y.
+
+6/11/04: Fixed bug in Imodjoin that made it crash on models that had not
+been through 3dmod.
+
+6/11/04: Made Refinematch exit with error if insuffient data are available.
+
+6/11/04: Improved error messages from PIP to include the option when there is
+a problem with the values entered for an option.
+
+6/11/04: Added workaround to erroneous header entries produced by FEI
+tomography software so that tilt angles can still be extracted properly.
+
+6/11/04: Copytomocoms now looks at the min and max density of the raw image
+file and if the max is negative and the min < -10000, it sets the offset for
+taking logarithms in Tilt to 32768.
+
+6/11/04: Made beadfixer read in whole log file at once and close file to 
+avoid problems under Windows.
+
 6/9/04: Changed Solvematch to work with the absolute fiducial coordinates now
-being produced by Tiltalign; added a solvematch.com command file to replace
-the two variations, and modified Setupcombine to work with it.  Made Tiltalign
-put a pixel size in the fiducial files so that different binning situations
-could be handled properly.  Changed Matchshifts so that it will simply copy
-a transform file produced by Solvematch if it already has shifts.
+being produced by Tiltalign; this plus associated changes in Tiltalign, 
+Matchshifts, and Setupcombine eliminate the need for correlation or matching
+models to be used with fiducial coordinates, and allow the initial match
+operation to be done with a single command file, solvematch.com.
 
 6/9/04: Moved the Z clipping planes in model view far out when the sliders 
 are at 0 and 1000, to prevent clipping of highly zoomed models.
+
+6/8/04: In the model view window of 3dmod, restored hardware stereo for SGIs
+and set up the top/bottom stereo mode so that it would work with external 
+devices that cause the monitor to do two overlapping scans of the top and
+bottom of the display.
 
 6/5/04: Added an option to raw2mrc to convert 32-bit integers to 16-bit
 integers, fixed a problem with dm2mrc and added options to dm2mrc to control
@@ -16,6 +81,11 @@ the treatment of unsigned and 32-bit integer data, specifically so that
 data can be put into a signed 16-bit format if it fits there.
 
 6/4/04: IMOD_3-2-19
+6/4/04: eTomo has a new processing pathway for building a tomogram from
+the cross-correlation alignment, an interface for 2D filtering
+(including inverse MTF filtering) of the aligned stack, and an option to
+build a whole binned-down tomogram for positioning.
+
 6/4/04: When align.com is run outside of eTomo, eTomo will now show the updated
 log file.
 
@@ -29,7 +99,7 @@ that was crashing it on Fedora Core 1.
 Improved problem with 3dmod crashing when it receives message to load seed 
 model.
 
-6/3/04: Made the Qt utility library be a DLL in Windows
+6/3/04: Made the Qt utility library be a DLL in Windows.
 
 6/2/04: IMOD_3-2-17
 6/2/04: eTomo changes include ability to build tomogram from cross-correlation
