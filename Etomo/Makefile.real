@@ -9,6 +9,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.6  2004/02/09 21:15:23  rickg
+# Swtiched rm and cp to explict commands instead of macros
+#
 # Revision 2.5  2004/01/22 21:08:13  rickg
 # Use headless mode when running tests.
 #
@@ -55,7 +58,7 @@ TESTPATH = $(JUNIT_HOME)/junit.jar
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui etomo.util
 
-JAVAC_OPTIONS = -verbose
+#JAVAC_OPTIONS = -verbose
 JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
@@ -65,11 +68,11 @@ all: $(JAR_FILE)
 
 $(JAR_FILE): cpimages compile
 	mkdir -p jar_dir
-	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+	jar  -cmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 testjarfile: cpimages testcompile
 	mkdir -p jar_dir
-	jar  -cvmf TEST_MANIFEST.MF $(TEST_JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+	jar  -cmf TEST_MANIFEST.MF $(TEST_JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
 	if (! (-e $(CLASSPATH)))  mkdir $(CLASSPATH)
@@ -100,6 +103,7 @@ clean:
 	rm -rf bin/etomo
 	rm -rf bin/images
 	rm -rf doc/javadocs
+	rm -rf JUnitTests
 	rm -f $(JAR_FILE)
 
 .PHONY: linecount
