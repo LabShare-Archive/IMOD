@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/10/10 20:42:42  mast
+c	  Used new subroutine for getting input/output files
+c	
 c	  Revision 3.4  2003/10/09 02:33:33  mast
 c	  converted to use autodoc
 c	
@@ -195,6 +198,7 @@ c
 	  indz=2
 	  indy=3
 	endif
+	call scale_model(0)
 c
 	if (pipinput) then
 	  ierr = PipGetFloat('ExtraLength', zadd)
