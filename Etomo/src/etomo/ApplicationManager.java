@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.23  2003/04/16 22:49:49  rickg
+ * <p> Trimvol implmentation
+ * <p>
  * <p> Revision 2.22  2003/04/16 00:13:54  rickg
  * <p> Trimvol in progress
  * <p>
@@ -2406,7 +2409,10 @@ public class ApplicationManager {
     }
 
     DialogExitState exitState = postProcessingDialog.getExitState();
-    if (exitState == DialogExitState.POSTPONE) {
+    if (exitState == DialogExitState.CANCEL) {
+      postProcessingDialog = null;
+    }
+    else if (exitState == DialogExitState.POSTPONE) {
       processTrack.setPostProcessingState(ProcessState.INPROGRESS);
       mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
     }
@@ -2416,7 +2422,6 @@ public class ApplicationManager {
       postProcessingDialog = null;
     }
     mainFrame.showBlankProcess(AxisID.ONLY);
-
   }
 
   /**
