@@ -41,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2003/12/08 22:33:51  sueh
+ * <p> bug# 169 adding ViewRawStack button for axis A and B
+ * <p>
  * <p> Revision 3.1  2003/11/10 18:50:47  sueh
  * <p> bug332 isValid(): Added call to
  * <p> TiltAngleDialogPanel.getErrorMessage() for Axis' A and B.
@@ -701,15 +704,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void btnViewRawStackAAction(ActionEvent event) {
     if (getAxisType() == AxisType.SINGLE_AXIS) {
-      applicationManager.imodRawStack(AxisID.ONLY);
+      applicationManager.imodPreview(AxisID.ONLY);
     }
     else {
-      applicationManager.imodRawStack(AxisID.FIRST);
+      applicationManager.imodPreview(AxisID.FIRST);
     }
   }
 
   private void btnViewRawStackBAction(ActionEvent event) {
-    applicationManager.imodRawStack(AxisID.SECOND);
+    applicationManager.imodPreview(AxisID.SECOND);
   }
 
   /**
