@@ -20,6 +20,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/04 00:58:22  sueh
+ * <p> bug# 569 Handling directory paths with spaces:  converting from a
+ * <p> command line to a command array to prevent the command line from
+ * <p> being split on white space.
+ * <p>
  * <p> Revision 3.1  2004/11/19 23:22:01  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -162,7 +167,7 @@ public class InteractiveSystemProgram implements Runnable {
     Process process = null;
     File outputFile = null;
     if (commandParam != null) {
-      outputFile = commandParam.getOutputFile();
+      outputFile = commandParam.getCommandOutputFile();
       outputFileLastModified.set(outputFile.lastModified());
     }
     try {
