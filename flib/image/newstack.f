@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2003/12/25 00:39:39  mast
+c	  Completed documentation and other changes
+c	
 c	  Revision 3.10  2003/12/12 21:10:14  mast
 c	  windows bug fix
 c	
@@ -1606,76 +1609,6 @@ c
 	call exit(1)
 	end
 
-	subroutine readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
-     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
-     &	    iyGridStrt, yGridIntrv, nyGrid)
-	character*(*) idfFile
-	integer*4  idfBinning, idfNx, idfNy, lmGrid
-	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
-	real*4 xGridIntrv, yGridIntrv, pixelIdf
-	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
-c	  
-	integer*4 idfVersion, i, j
-c	  
-	call dopen(14, idfFile, 'ro', 'f')
-	read(14, *) idfVersion
-	if (idfVersion .eq. 1) then
-	  read(14, *)idfNx, idfNy, idfBinning, pixelIdf
-	  read(14, *)ixGridStrt, xGridIntrv, nxGrid, iyGridStrt,
-     &	      yGridIntrv, nyGrid
-	  if (nxGrid .gt. lmGrid .or. nyGrid .gt. lmGrid) then
-	    print *
-	    print *,'ERROR: readDistortions - too many grid points for arrays'
-	    call exit(1)
-	  endif
-	  do j = 1, nyGrid
-	    read(14, *)(fieldDx(i, j), fieldDy(i,j), i = 1, nxGrid)
-	  enddo
-	else
-	  print *
-	  print *,'ERROR: readDistortions - version',idfVersion,
-     &	      ' of idf file not recognized'
-	  call exit(1)
-	endif
-	close(14)
-	return
-	end
-
-	subroutine interpolateGrid(x, y, dxGrid, dyGrid, ixgDim,
-     &	    nxGrid, nyGrid, ixGridStrt, xGridIntrv, iyGridStrt,
-     &	    yGridIntrv, dx, dy)
-	implicit none
-	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
-	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
-	real*4 xGridIntrv, yGridIntrv, x, y, dx, dy
-	real*4 xgrid,ygrid,fx1,fx,fy1,fy,c00,c10,c01,c11
-	integer*4 ixg,iyg,ixg1,iyg1
-
-	xgrid = 1. + (x - ixGridStrt) / xGridIntrv
-	ixg=xgrid
-	ixg=max(1,min(nxGrid-1,ixg))
-	fx1=max(0.,min(1.,xgrid-ixg))		!NO EXTRAPOLATIONS ALLOWED
-	fx=1.-fx1
-	ixg1=ixg+1
-	ygrid = 1. + (y - iyGridStrt) / yGridIntrv
-	iyg=ygrid
-	iyg=max(1,min(nyGrid-1,iyg))
-	fy1=max(0.,min(1.,ygrid-iyg))
-	fy=1.-fy1
-	iyg1=iyg+1
-	c00=fx*fy
-	c10=fx1*fy
-	c01=fx*fy1
-	c11=fx1*fy1
-c	  
-c	  interpolate
-c
-	dx = c00*dxGrid(ixg,iyg) + c10*dxGrid(ixg1,iyg)
-     &	    + c01*dxGrid(ixg,iyg1) + c11*dxGrid(ixg1,iyg1)
-	dy = c00*dyGrid(ixg,iyg) + c10*dyGrid(ixg1,iyg)
-     &	    + c01*dyGrid(ixg,iyg1) + c11*dyGrid(ixg1,iyg1)
-	return
-	end
 
 
 	SUBROUTINE undistort(ARRAY,BRAY,NXA,NYA,NXB,NYB,AMAT,
