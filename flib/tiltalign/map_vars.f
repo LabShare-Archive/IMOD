@@ -6,10 +6,34 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/06/24 15:38:08  mast
+c	  Changed to work with pip input
+c	
 c	  Revision 3.1  2002/05/07 02:06:54  mast
 c	  Changes to make things work well with a subset of views
 c	
 c
+c	  ANALYZE_MAPS takes a map list and other information about how to set
+c	  up a mapping and allocates variables, and mappings for getting
+c	  values from variables
+c	  GMAG is the variable array, one per view
+c	  MAPGMAP is filled with mappings to solution variables in VAR
+c	  LINGMAG is filled with mapping to second variable for linear mapping
+c	  FRCGMAG is filled with the fractions for linear mapping
+c	  FIXEDGMAG is the fixed value that is ramped to in linear mappings
+c	  FIXEDGMAG2 is a second fixed value to be ramped to for second ref
+c	  IFLIN is 1 for linear mapping, 0 for block
+c	  MAPLIST is the list of relative numbers to indicate grouping
+c	  NVIEW is the # of views in the solution
+c	  IREFTILT is the reference view to be set to zero (0 if none)
+c	  IREF2 is a second reference view to be set to zero (0 if none)
+c	  DEFVAL is a default value to fill the array with, if not -999.
+c	  NAME is a 4 character string with variable name
+c	  VAR is the solution variable array for minimization
+c	  VARNAME is an array of 8-character strings filled with map names
+c	  NVARSRCH is input with an returns number of variables in VAR
+c	  MAPVIEWTOVIEW is mapping from solution views to file views
+c	  
 	subroutine analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,
      &	    fixedgmag2,iflin,maplist,nview,ireftilt,iref2,
      &	    defval,name,var,varname,nvarsrch,mapviewtofile)
@@ -214,23 +238,38 @@ c
 	real*4 grpsize(*)
 	integer*4 mapfiletoview(*)
 	character*(*) defaultOption, nonDefaultOption
-	integer maxview,maxgrp
-	parameter (maxview=720,maxgrp=20)
-	integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),inran(maxview)
-	integer*4 ivspecstr(maxgrp),ivspecend(maxgrp),nmapspec(maxgrp)
-	common /mapsep/ ivsep,nsepingrp,ngsep
+	integer maxgrp
+	parameter (maxgrp=20)
+	integer*4 ivspecstrIn(maxgrp),ivspecendIn(maxgrp),nmapspecIn(maxgrp)
+	integer*4 nmapdef, nRanSpecIn
+c
+	call inputGroupings(nfileviews, ifpip,ifRequired,
+     &	    defaultOption, nonDefaultOption, nmapDef, ivSpecStrIn,
+     &	    ivSpecEndIn,nmapSpecIn,nRanSpecIn,maxgrp)
+	call makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &	    nmapDef, ivSpecStrIn, ivSpecEndIn,nmapSpecIn,nRanSpecIn)
+	return
+	end
+
+
+	subroutine inputGroupings(nfileviews, ifpip,ifRequired,
+     &	    defaultOption, nonDefaultOption, nmapDef, ivSpecStrIn,
+     &	    ivSpecEndIn,nmapSpecIn,nRanSpecIn,maxgrp)
+	implicit none
+	integer*4 nfileviews,ifpip,ifRequired,nMapDef,maxgrp,nRanSpecIn
+	character*(*) defaultOption, nonDefaultOption
+	integer*4 ivSpecStrIn(*),ivSpecEndIn(*),nmapSpecIn(*)
 c	  
-	integer*4 nrantrue,nranspec,iran,ivstr,ivend,nran,ir,ivar
-	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii,ierr
+	integer*4 iran,ivstr,ivend,ierr
 	integer*4 PipGetInteger, PipNumberOfEntries, PipGetThreeIntegers
 c
-	nranspec = 0
+	nRanSpecIn = 0
 	if (ifpip .eq. 0) then
 	  print *,'Enter the negative of a group size to NOT treat ',
      &	      'any views separately here.'
 	  write(*,'(1x,a,$)') 'Default group size, # of ranges'//
      &	      ' with special group sizes: '
-	  read(5,*)nmapdef,nranspec
+	  read(5,*)nmapdef,nranspecIn
 	else
 	  if (PipGetInteger(defaultOption, nmapdef) .gt. 0) then
 	    if (ifRequired .eq. 0) return
@@ -239,21 +278,23 @@ c
      &		' MUST BE ENTERED'
 	    call exit(1)
 	  endif
-	  ierr = PipNumberOfEntries(nonDefaultOption, nranspec)
+	  ierr = PipNumberOfEntries(nonDefaultOption, nRanSpecIn)
 	endif
-	nrantrue=0
-	do iran=1,nranspec
+c
+	if (nRanSpecIn .gt. maxgrp) then
+	  print *,'ERROR: AUTOMAP - TOO MANY NONDEFAULT GROUPINGS FOR ARRAYS'
+	  call exit(1)
+	endif
+c
+	do iran=1,nranspecIn
 	  if (ifpip .eq. 0) then
 	    write(*,'(1x,a,i3,a,$)')'Starting and ending views in range',
      &		iran, ', group size: '
-	    read(5,*)ivstr,ivend,nmapspec(iran)
+	    read(5,*)ivstr,ivend,nmapSpecIn(iran)
 	  else
 	    ierr = PipGetThreeIntegers(nonDefaultOption,ivstr,ivend,
-     &		nmapspec(iran))
+     &		nmapSpecIn(iran))
 	  endif
-c	    
-c	    convert and trim nonexistent views from range
-c	    
 	  if (ivstr.gt.ivend)then
 	    print *,'ERROR: AUTOMAP - Start past end of range:',ivstr, ivend
 	    call exit(1)
@@ -263,6 +304,39 @@ c
 	    print *,'ERROR: AUTOMAP - View number not in file: ',ivstr,ivend
 	    call exit(1)
 	  endif
+	  ivSpecStrIn(iran) = ivstr
+	  ivSpecEndIn(iran) = ivend
+	enddo
+	return
+	end
+
+	subroutine makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &	    nmapDef, ivSpecStrIn, ivSpecEndIn,nmapSpecIn,nRanSpecIn)
+
+	implicit none
+	integer*4 maplist(*),nview,nfileviews,nMapDef,nRanSpecIn
+	real*4 grpsize(*)
+	integer*4 mapfiletoview(*)
+	integer*4 ivspecstrin(*),ivspecendin(*),nmapspecin(*)
+	integer maxview,maxgrp
+	parameter (maxview=720,maxgrp=20)
+	integer*4 ivspecstr(maxgrp),ivspecend(maxgrp),nmapspec(maxgrp)
+	integer*4 inran(maxview)
+	integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
+	common /mapsep/ ivsep,nsepingrp,ngsep
+c	  
+	integer*4 nranspec,iran,ivstr,ivend,nran,ir,ivar
+	integer*4 ninran,iv,ig,ifsep,jj,ii,ierr
+c	  
+c	  First process special ranges
+c
+	nranspec = 0
+	do iran = 1, nRanSpecIn
+	  ivstr = ivSpecStrIn(iran)
+	  ivend = ivSpecEndIn(iran)
+c	    
+c	    convert and trim nonexistent views from range
+c	    
 	  do while(ivstr.le.ivend.and.mapfiletoview(ivstr).eq.0)
 	    ivstr=ivstr+1
 	  enddo
@@ -273,13 +347,13 @@ c
 c	    if there is still a range, add it to list
 c
 	  if(ivstr.le.ivend)then
-	    nrantrue=nrantrue+1
-	    ivspecstr(nrantrue)=mapfiletoview(ivstr)
-	    ivspecend(nrantrue)=mapfiletoview(ivend)
-c	    print *,ivspecstr(nrantrue),ivspecend(nrantrue)
+	    nranspec=nranspec+1
+	    ivspecstr(nranspec)=mapfiletoview(ivstr)
+	    ivspecend(nranspec)=mapfiletoview(ivend)
+	    nmapspec(nranspec)=nmapSpecIn(iran)
+c	    print *,ivspecstr(nranspec),ivspecend(nranspec)
 	  endif
 	enddo
-	nranspec=nrantrue
 c	  
 c	  build list of all uninterrupted ranges
 c	  
@@ -481,4 +555,30 @@ c
 	  enddo
 	endif
 	return
+	end
+
+c	  
+c	  Remap the view numbers in a separate group from file views
+c	  to internal views
+c
+	subroutine mapSeparateGroup(ivSep, nsepInGrp, mapFileToView,
+     &	    nFileViews)
+	implicit none
+	integer*4 ivSep(*),nsepInGrp, mapFileToView(*), nFileViews, i, j
+c
+	i=1
+	do while(i.le.nsepingrp)
+	  if(ivsep(i).le.0.or.ivsep(i).gt.nfileviews)call errorexit(
+     &	      'View in separate group is outside known range of '//
+     &	      'image file', 0)
+	  ivsep(i)=mapfiletoview(ivsep(i))
+	  if(ivsep(i).eq.0)then
+	    nsepingrp=nsepingrp-1
+	    do j=i,nsepingrp
+	      ivsep(j)=ivsep(j+1)
+	    enddo
+	  else
+	    i=i+1
+	  endif
+	enddo
 	end
