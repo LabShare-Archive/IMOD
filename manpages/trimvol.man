@@ -71,7 +71,7 @@ Interpret
 .B -y,
 and
 .B -z
-entries as index coordinates numbered from 0, rather than as imod coordinates
+entries as index coordinates numbered from 0, rather than as 3dmod coordinates
 numbered from 1.
 .TP
 .B -f

@@ -2,16 +2,16 @@
 .nh
 .TH imodinfo 1 2.30 BL3DFS
 .SH NAME
-imodinfo \- Prints information about imod files.
+imodinfo \- Prints information about IMOD files.
 .SH SYNOPSIS
-imodinfo [options] <imod filename>
+imodinfo [options] <IMOD filename>
 .SH DESCRIPTION
-Prints to standard output information about an imod model
+Prints to standard output information about an IMOD model
 given as the input filename.
 Types of information output varies, depending upon the options.
 Typical uses include printing out 
 lists of objects, contours and
-point data in an imod file; 
+point data in an IMOD file; 
 printing out area, lengths and centroids of contours;
 and printing out surface area and volume of objects.
 
@@ -33,7 +33,7 @@ are mutually exclusive.
 .SS Options
 .TP
 .B -a
-Print ascii readable imod output. Not all of the types
+Print ascii readable IMOD output. Not all of the types
 of data stored in a binary model are printed in an ascii
 model file, but all contour and mesh data are printed.
 .TP
@@ -126,7 +126,7 @@ Jim Kremer
 David Mastronarde
 .fi
 .SH SEE ALSO
-imod(1)
+3dmod(1)
 .SH BUGS
 Cylinder surface areas are erroneous because they do not account for the 
 obliquity of the surface; for a sphere the area will be underestimated by

@@ -4,20 +4,13 @@
 .SH NAME
 imodcmopp \- color model paint and project a tomogram.
 .SH SYNOPSIS
-imodcmopp <imod contour model> <mrc image> <mrc output file> [options]
+imodcmopp <IMOD contour model> <mrc image> <mrc output file> [options]
 .SH DESCRIPTION
 imodcmopp makes a color mrc tilt file from different projected
 views of tomographic image data contained inside of model
-contours.  The model must be in imod format and the
+contours.  The model must be in IMOD format and the
 tomogram must be in mrc format.
 The movie file is in mrc color format. Use the program
-frommrc to convert to sgi rgb files.
-.P
-imodcmopp makes a color mrc tilt file from different projected
-views of tomographic image data contained inside of model
-contours.  The model must be in imod format and the 
-tomogram must be in mrc format.
-The movie file is in mrc color format. Use the program 
 frommrc to convert to sgi rgb files.
 .SS Options
 .TP

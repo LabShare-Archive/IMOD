@@ -246,21 +246,16 @@ a MicroVax with Parallax graphics by David Mastronarde.  Jim
 Kremer then wrote a similar program in C for the SGI using first IrisGL,
 then X-windows, then OpenGL and Motif.  This was originally named Midas, but
 was renamed to Manali after Mastronarde ported the Midas program from the Vax
-to the SGI.  For the latest version of Midas,
+to the SGI.  For the next version of Midas,
 Mastronarde modified Kremer's Manali to incorporate desirable features of the
 old Midas (such as manipulation with the mouse), to implement new features 
 (such
 as caching, ability to zoom large images down, ability to read integer or
 real mode files, and treatment of a transform file the way a model file is
-treated in Imod),
-and to provide completely new controls, menus, and help windows.  This version
-will run only under OpenGL/Motif.
+treated in 3dmod),
+and to provide completely new controls, menus, and help windows.  In the latest
+version, the graphical interface was rewritten in Qt.
 .SH SEE ALSO
 xftoxg(1), imodtrans(1), newstack(1), blendmont(1)
 .SH BUGS
-The geometry management for the transformation and increment values is
-unstable and is probably not being done right.  In montage fixing mode,
-this instability can lead to multiple expose events on the PC, which have
-to be filtered out to prevent excessive redraws.
-
 Email bug reports to mast@colorado.edu.

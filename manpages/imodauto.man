@@ -10,12 +10,12 @@ imodauto creates an IMOD model from an MRC image stack using
 a simple image thresholding.  Both a low and a high threshold may be set; 
 contours are drawn around groups of pixels that are below the low threshold
 and around pixels above the high threshold.  Image data are read from the file
-and scaled to values between 0 and 255, just as when reading into imod(1).
+and scaled to values between 0 and 255, just as when reading into 3dmod(1).
 The thresholds may be specified as values either before or after this scaling.
 In addition, thresholds may be specified as absolute values or as
 multiples of the mean image intensity.  The default behavior is for thresholds
 to be interpreted as absolute values after scaling, in which
-case they will correspond to thresholds set in the imod autocontouring window.
+case they will correspond to thresholds set in the 3dmod autocontouring window.
 .P
 Typically, you would enter either a low or a high threshold, but not both.
 However, if your images have annular regions of pixels, you can get contours
@@ -111,7 +111,7 @@ Resolution or tolerance for point reduction
 when generating the final model.  Points are eliminated if they are within this
 distance of the lines connecting the remaining points, just as with the -R
 option in imodmesh(1) and the resolution feature when autocontouring in
-imod(1).  This method of point removal will preserve detail as well as
+3dmod(1).  This method of point removal will preserve detail as well as
 possible, unlike the 
 .B
 -r
@@ -140,14 +140,14 @@ i.e., 1.0,0.5,0 and 255,128,0 could both be used to specify orange.
 .TP
 .B -x
 Expand areas by one pixel before enclosing them in contours, just as in 
-imod autocontouring.
+3dmod autocontouring.
 .TP
 .B -i
 Shrink areas by one pixel before enclosing them in contours, just as in 
-imod autocontouring.
+3dmod autocontouring.
 .TP
 .B -o
-Smooth areas before enclosing them in contours.  As in imod autocontouring, 
+Smooth areas before enclosing them in contours.  As in 3dmod autocontouring, 
 this is implemented by expanding then shrinking.
 .P
 The segmentation used by imodauto is a simple threshold.
@@ -171,6 +171,6 @@ name.
 .SH AUTHORS
 Jim Kremer and David Mastronarde
 .SH SEE ALSO
-imod(1), imodv(1), imodmesh(1), contourmod(1)
+3dmod(1), 3dmodv(1), imodmesh(1), contourmod(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.

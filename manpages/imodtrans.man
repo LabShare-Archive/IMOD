@@ -2,12 +2,12 @@
 .nh
 .TH imodtrans 1 2.00 BL3DFS
 .SH NAME
-imodtrans \- Transform an imod model file.
+imodtrans \- Transform an IMOD model file.
 .SH SYNOPSIS
 imodtrans <input model> <output model> [options]
 .SH DESCRIPTION
-Applies transformations to an imod model and copies the result to a new
-imod model.
+Applies transformations to an IMOD model and copies the result to a new
+IMOD model.
 Transform parameters applied in a given order,
 first translations, then scaling, then rotations about the x-, y- and
 z-axis.

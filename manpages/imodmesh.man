@@ -2,11 +2,11 @@
 .nh
 .TH imodmesh 1 2.30 BL3DFS
 .SH NAME
-imodmesh \- create a triangle mesh from imod contour data.
+imodmesh \- create a triangle mesh from IMOD contour data.
 .SH SYNOPSIS
 imodmesh [options] <model files...>
 .SH DESCRIPTION
-imodmesh is used to create mesh data in an imod model file
+imodmesh is used to create mesh data in an IMOD model file
 from closed or open contours.  Each contour is connected to
 contours directly above and below by an algorithm that
 minimizes the total area of the triangles used to connect
@@ -24,7 +24,7 @@ outward in the proper direction along the whole surface.  If you are facing
 the surface from the side that you want to be brightly lit, contours should
 progress (point number should increase) from left to right.  If a few 
 contours are going the wrong way, you can correct them individually
-in imod with Edit-Contour-Invert.  If the entire surface is facing the wrong
+in 3dmod with Edit-Contour-Invert.  If the entire surface is facing the wrong
 way, you can invert the polarity of the surface at the level of the whole
 object; use Edit-Object-Type to define the "Front Surface" as being
 "Inside" rather than "Outside".
@@ -35,14 +35,14 @@ because it cannot use
 overlapping areas to assess whether contours should be joined.  It will pair
 up the closest contours first, which should lead to correct results in most
 cases.  If incorrect connections occur, contours can be assigned to different
-surfaces in imod, and the
+surfaces in 3dmod, and the
 .B -S
 option can be used to mesh only contours within each surface.
 
 If only some of the contours in an object need to be open, such as if the
 object is only partially cut open, then individual contours in a
 closed-contour object can be defined as open with the Edit-Contour-Type window
-in imod.  Imodmesh will properly join these open contours to each other and to
+in 3dmod.  Imodmesh will properly join these open contours to each other and to
 the closed contours in the same object.  The inside of one of these open
 contours is defined in the same way as if the contour were closed, and overlap
 of enclosed area is used to assess whether such contours should be connected,
@@ -168,7 +168,7 @@ sections will be connected.
 .TP
 .B -I
 Ignore time values and connect contours at different times.  By default,
-a model drawn on multiple image files (referred to as different times in imod)
+a model drawn on multiple image files (referred to as different times in 3dmod)
 will be meshed by connecting only contours with the same time values.  This
 option can be used to override this behavior, in case the contours contain
 inappropriate time information.
@@ -271,7 +271,7 @@ A backup file of the original model is created with the
 .SH AUTHOR
 Jim Kremer, modified by David Mastronarde <mast@colorado.edu>
 .SH SEE ALSO
-imod(1), imodv(1), reducecont(1)
+3dmod(1), 3dmodv(1), reducecont(1)
 .SH BUGS
 Only closed contours that have all of their points in one
 Z plane can be

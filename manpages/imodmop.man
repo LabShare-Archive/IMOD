@@ -2,7 +2,7 @@
 .nh
 .TH imodmop 1 2.00 BL3DFS
 .SH NAME
-imodmop -\ paint an imod model with image data.
+imodmop -\ paint an IMOD model with image data.
 .SH SYNOPSIS
 imodmop [options] <model> <image> <output file>
 .SH DESCRIPTION
@@ -21,12 +21,12 @@ Scale output by green model value.
 .B -b
 Scale output by blue model value.
 .P
-Model file is an imod model file.
+Model file is an IMOD model file.
 Input image is an mrc 3-D image file.
 Output image is the image data inside of the model.
 .SH AUTHOR
 Jim Kremer 
 .SH SEE ALSO
-imod, cmopp, xyzproj
+3dmod, cmopp, xyzproj
 .SH BUGS
 Email bug reports to mast@colorado.edu.

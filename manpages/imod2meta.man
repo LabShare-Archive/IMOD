@@ -4,11 +4,11 @@
 .SH NAME
 imod2meta \- Make a 3D META model from an IMOD model file.
 .SH SYNOPSIS
-imod2meta [options] <imod model> <meta model>
+imod2meta [options] <IMOD model> <meta model>
 .SH DESCRIPTION
-Convert an imod model file to the meta file format used
+Convert an IMOD model file to the meta file format used
 by QuickDraw 3D.  The model will have similar attributes
-set by those seen in imodv. 
+set by those seen in 3dmodv. 
 .SS Options
 None
 .SH AUTHOR

@@ -22,5 +22,5 @@ enter zero shifts for the other axes.
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
-imod(1)
+3dmod(1)
 .SH BUGS

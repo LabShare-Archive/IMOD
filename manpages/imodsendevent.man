@@ -2,25 +2,26 @@
 .nh
 .TH imodsendevent 1 2.7.2 BL3DFS
 .SH NAME
-imodsendevent \- Sends an X event with a command to imod
+imodsendevent \- Sends an X event with a command to 3dmod
 .SH SYNOPSIS
 imodsendevent Window_ID action [text_string]
 .SH DESCRIPTION
-This program will send a command to imod(1) to perform an action.  It takes
+This program will send a command to 3dmod(1) to perform an action.  It takes
 two or three arguments.  The first
-argument is a window ID, which can be obtained from xwininfo or by starting
+argument is a window ID, which can be obtained by starting
 imod with the 
 .B -W
 option.  The second argument is a numeric code for an action.  The third is
 an optional text string, such as the name of a model file when opening a 
 model.
 .P
-Currently, imod will accept three commands:
+Currently, 3dmod will accept four commands:
    1  Open model file
    2  Save model file
    3  Open model view window
+   4  Quit 3dmod
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
-imod(1)
+3dmod(1)
 .SH BUGS

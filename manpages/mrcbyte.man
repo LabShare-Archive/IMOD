@@ -10,20 +10,20 @@ mrcbyte will convert MRC files to an MRC byte type file.  The
 default is to convert the entire file with a full linear ramp
 and write the output to byte type data.  With appropriate options,
 the intensity scaling can be modified to match the scaling achieved when 
-viewing the file in imod(1).  Subsets of the image can also be copied.
-Complex data will also be scaled just as when loaded into imod, so this
+viewing the file in 3dmod(1).  Subsets of the image can also be copied.
+Complex data will also be scaled just as when loaded into 3dmod, so this
 program can be used to save a viewable form of a Fourier transform as bytes.
 .SS Options
 .TP
 .B -c <black,white>
 Specify intensity scaling to match the scaling achieved with the given
-black and white contrast settings in imod(1).
+black and white contrast settings in 3dmod(1).
 .TP
 .B -s <min,max>
 Specify an initial intensity scaling, which will scale "min" to 0 and
 "max" to 255, just as is achieved with the 
 .B -s
-option in imod.  If both
+option in 3dmod.  If both
 .B -c
 and
 .B -s
@@ -76,4 +76,4 @@ memory at once.
 .SH AUTHORS
 Jim Kremer and David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
-imod(1), trimvol(1), newstack(1)
+3dmod(1), trimvol(1), newstack(1)

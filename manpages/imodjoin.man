@@ -41,9 +41,9 @@ Jim Kremer
 David Mastronarde,  mast@colorado.edu
 .fi
 .SH SEE ALSO
-imod(1), imodextract(1)
+3dmod(1), imodextract(1)
 .SH BUGS
-If the models contain information about views saved in imodv(1), the 
+If the models contain information about views saved in 3dmodv(1), the 
 information will not be dealt with properly.  If only one model has saved
 views, make it the first model in the imodjoin command.  The program does
 not release memory occupied by unneeded objects, so memory problems could
