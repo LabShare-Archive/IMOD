@@ -495,7 +495,6 @@ echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
 echo 'MOC = $(QTDIR)/bin/moc'     >> $configure
-echo "# end of configure"          >> $configure
 
 echo "typedef $b3dbyte b3dByte;"   >> $hconfigure
 echo "typedef $ubyte b3dUByte;"    >> $hconfigure
@@ -564,6 +563,7 @@ EOF
     echo 'XPLAX = ' >> $configure
 
 endif
+echo "# end of configure"          >> $configure
 
 foreach i ($makefile_dirs)
     echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.$makefile_ext - DO NOT EDIT" >! $i/Makefile
@@ -612,6 +612,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.11  2003/03/28 23:52:48  mast
+#  Changes for adding Mac OS X and new Qt version of plax
+#
 #  Revision 3.10  2003/02/28 19:46:18  mast
 #  Do not touch imodconfig.h unless it changes
 #
