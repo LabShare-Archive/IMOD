@@ -32,6 +32,7 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
+import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
@@ -74,6 +75,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.60  2003/09/08 05:44:47  rickg
+ * <p> Added trial tilt
+ * <p> Output for a single axis tomogram is changed to
+ * <p> dataset_full.rec
+ * <p>
  * <p> Revision 2.59  2003/08/20 21:57:09  rickg
  * <p> Only close imods in specified directory
  * <p>
@@ -770,7 +776,18 @@ public class ApplicationManager {
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    String threadName = processMgr.eraser(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.eraser(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, axisID);
   }
 
@@ -782,7 +799,18 @@ public class ApplicationManager {
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    String threadName = processMgr.eraser(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.eraser(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, axisID);
   }
 
@@ -978,7 +1006,18 @@ public class ApplicationManager {
     if (updateXcorrCom(axisID)) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
       mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-      String threadName = processMgr.crossCorrelate(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.crossCorrelate(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
     }
   }
@@ -989,7 +1028,18 @@ public class ApplicationManager {
   public void coarseAlign(AxisID axisID) {
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    String threadName = processMgr.coarseAlign(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.coarseAlign(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute prenewst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, axisID);
   }
 
@@ -1175,7 +1225,18 @@ public class ApplicationManager {
     if (updateTrackCom(axisID)) {
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      String threadName = processMgr.fiducialModelTrack(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.fiducialModelTrack(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute track" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Tracking fiducials", axisID);
     }
@@ -1370,7 +1431,18 @@ public class ApplicationManager {
     }
     processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     mainFrame.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-    String threadName = processMgr.fineAlignment(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.fineAlignment(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute align" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Aligning stack", axisID);
   }
@@ -1661,7 +1733,18 @@ public class ApplicationManager {
     if (updateSampleTiltCom(axisID)) {
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      String threadName = processMgr.createSample(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.createSample(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Creating sample tomogram", axisID);
     }
@@ -1695,7 +1778,18 @@ public class ApplicationManager {
   public void tomopitch(AxisID axisID) {
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    String threadName = processMgr.tomopitch(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.tomopitch(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tomopitch" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Finding sample position", axisID);
   }
@@ -1716,7 +1810,18 @@ public class ApplicationManager {
     if (updateAlignCom(tomogramPositioningDialog, axisID)) {
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      String threadName = processMgr.fineAlignment(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.fineAlignment(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute align" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Calculating final alignment", axisID);
     }
@@ -1957,7 +2062,18 @@ public class ApplicationManager {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
-      String threadName = processMgr.newst(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.newst(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
     }
     catch (FortranInputSyntaxException except) {
@@ -1974,7 +2090,18 @@ public class ApplicationManager {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
-      String threadName = processMgr.tilt(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.tilt(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
     }
   }
@@ -1987,7 +2114,18 @@ public class ApplicationManager {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
-      String threadName = processMgr.tilt(axisID);
+      String threadName;
+      try {
+        threadName = processMgr.tilt(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, axisID);
     }
   }
@@ -2010,6 +2148,75 @@ public class ApplicationManager {
         except.getMessage(),
         "Can't open 3dmod with the tomogram");
     }
+  }
+
+  /**
+   * Open 3dmod on the current test volume
+   * @param axisID
+   */
+  public void imodTestVolume(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialog = tomogramGenerationDialogB;
+    }
+    else {
+      tomogramGenerationDialog = tomogramGenerationDialogA;
+    }
+    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
+
+    ImodProcess imodTrialTomogram = new ImodProcess(trialTomogramName);
+    imodTrialTomogram.setSwapYZ(true);
+    try {
+      imodTrialTomogram.open();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String message[] = new String[2];
+      message[0] = "Unable to open specified tomogram:" + trialTomogramName;
+      message[1] = "Does it exist in the working directory?";
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open 3dmod with the tomogram");
+    }
+  }
+
+  public void commitTestVolume(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialog = tomogramGenerationDialogB;
+    }
+    else {
+      tomogramGenerationDialog = tomogramGenerationDialogA;
+    }
+    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
+
+    //  Check to see if the trial tomogram exist
+    File trialTomogramFile =
+      new File(System.getProperty("user.dir"), trialTomogramName);
+    if (!trialTomogramFile.exists()) {
+      String message[] = new String[2];
+      message[0] = "The specified tomogram does not exist:" + trialTomogramName;
+      message[1] = "It must be calculated before commiting";
+      openMessageDialog(message, "Can't rename tomogram");
+    }
+
+    // rename the trial tomogram to the output filename of appropriate tilt.com
+    File outputFile;
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      outputFile =
+        new File(
+          System.getProperty("user.dir"),
+          metaData.getDatasetName() + "_full.rec");
+    }
+    else {
+      outputFile =
+        new File(
+          System.getProperty("user.dir"),
+          metaData.getDatasetName() + axisID.getExtension() + ".rec");
+    }
+    trialTomogramFile.renameTo(outputFile);
   }
 
   /**
@@ -2496,7 +2703,18 @@ public class ApplicationManager {
 
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
-      String threadName = processMgr.solvematchshift();
+      String threadName;
+      try {
+        threadName = processMgr.solvematchshift();
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute solvematchshift.com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, AxisID.FIRST);
       tomogramCombinationDialog.showPane("Initial Match");
       mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
@@ -2516,7 +2734,18 @@ public class ApplicationManager {
 
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
-      String threadName = processMgr.solvematchmod();
+      String threadName;
+      try {
+        threadName = processMgr.solvematchmod();
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute solvematchmod.com";
+        message[1] = e.getMessage();
+        openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
       setThreadName(threadName, AxisID.FIRST);
       tomogramCombinationDialog.showPane("Initial Match");
       mainFrame.startProgressBar("Combine: solvematchmod", AxisID.FIRST);
@@ -2532,7 +2761,18 @@ public class ApplicationManager {
 
     //  Set the next process to execute when this is finished   
     nextProcess = "patchcorr";
-    String threadName = processMgr.matchvol1();
+    String threadName;
+    try {
+      threadName = processMgr.matchvol1();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute matchvol1.com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Initial Match");
     mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
@@ -2556,7 +2796,18 @@ public class ApplicationManager {
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
-    String threadName = processMgr.patchcorr();
+    String threadName;
+    try {
+      threadName = processMgr.patchcorr();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute patchcorr.com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
     mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
@@ -2592,14 +2843,25 @@ public class ApplicationManager {
     //  Set the next process to execute when this is finished   
     nextProcess = next;
 
-    String threadName = processMgr.matchorwarp();
+    String threadName;
+    try {
+      threadName = processMgr.matchorwarp();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute matchorwarp.com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
     mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);
   }
 
   /**
-   * Exececute the volcombine com script and clear the execution queue
+   * Execute the volcombine com script and clear the execution queue
    */
   public void volcombine() {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -2607,7 +2869,18 @@ public class ApplicationManager {
     //  Set the next process to execute when this is finished   
     nextProcess = "";
 
-    String threadName = processMgr.volcombine();
+    String threadName;
+    try {
+      threadName = processMgr.volcombine();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute volcombine.com";
+      message[1] = e.getMessage();
+      openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
     mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);
