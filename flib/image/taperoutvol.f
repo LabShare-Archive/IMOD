@@ -26,13 +26,22 @@ c	  output image is too large, or if the subset is not entirely within
 c	  the input volume.
 c	  
 c	  David Mastronarde, 3/1/01
-c	
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c	  
+	implicit none
+	integer idim,NX,NY,NZ
 	parameter (idim=2500)
 	COMMON //NX,NY,NZ
 C   
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
-     &      ARRAY(idim*idim),TITLE(20),
-     &      NXYZ2(3),MXYZ2(3),CELL2(6)
+	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
+	real*4 ARRAY(idim*idim),TITLE(20), CELL2(6),delta(3)
 C	  
 	CHARACTER*80 FILIN,FILOUT,filpoint,plfile
 	character*9 dat
@@ -41,6 +50,12 @@ C
 C   
 	EQUIVALENCE (NX,NXYZ)
 C   
+	integer*4 ixlo,iylo,izlo,ixhi,izhi,iyhi,nxbox,nybox,nzbox
+	integer*4 nx3,ny3,nz3,npadx,npady,npadz,izst,iznd,mode,kti
+	integer*4 iz,izread,i
+	real*4 dmin2,dmax2,dmean2,dmin,dmax,dmean,tmin,tmax,tmean
+	real*4 atten,base,tmpmn
+	integer*4 niceframe
 	DATA NXYZST/0,0,0/
 c
         write(*,'(1x,a,$)')'Image input file: '
@@ -63,18 +78,13 @@ c
 	read(5,*)ixlo,ixhi,iylo,iyhi,izlo,izhi
 c
 	if(ixlo.lt.0.or.ixhi.ge.nx.or.iylo.lt.0.or.iyhi.ge.ny
-     &	    .or.izlo.lt.0.or.izhi.ge.nz)then
-	  print *, 'BLOCK NOT ALL INSIDE VOLUME'
-	  call exit(1)
-	endif
+     &	    .or.izlo.lt.0.or.izhi.ge.nz)call errorexit(
+     &	    'BLOCK NOT ALL INSIDE VOLUME')
 	nxbox=ixhi+1-ixlo
 	nybox=iyhi+1-iylo
 	nzbox=izhi+1-izlo
 
-	if(nxbox*nybox.gt.idim**2) then
-	  print *,'BLOCK TOO LARGE'	  
-	  call exit(1)
-	endif
+	if(nxbox*nybox.gt.idim**2) call errorexit('BLOCK TOO LARGE')
 c
 	write(*,'(1x,a,$)')'Width of pad/taper borders in X, Y, and Z: '
 	read(5,*)npadx,npady,npadz
@@ -82,21 +92,20 @@ c
 	ny3=niceframe(2*((nybox+1)/2+npady),2,19)
 	nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
 c
-	if(nx3*ny3.gt.idim**2) then
-	  print *,'PADDED BLOCK TOO LARGE'
-	  call exit (1)
-	endif
+	if(nx3*ny3.gt.idim**2) call errorexit(
+     &	    'PADDED BLOCK TOO LARGE')
 c
 	CALL IMOPEN(2,FILOUT,'NEW')
+	call irtdel(1,delta)
 	NXYZ2(1)=NX3
 	NXYZ2(2)=NY3
 	NXYZ2(3)=nz3
 	MXYZ2(1)=NX3
 	MXYZ2(2)=NY3
 	MXYZ2(3)=nz3
-	CELL2(1)=NX3
-	CELL2(2)=NY3
-	CELL2(3)=nz3
+	CELL2(1)=NX3*delta(1)
+	CELL2(2)=NY3*delta(2)
+	CELL2(3)=nz3*delta(3)
 	CELL2(4)=90.
 	CELL2(5)=90.
 	CELL2(6)=90.
@@ -141,6 +150,12 @@ c
 	CALL IWRHDR(2,TITLE,1,DMIN,DMAX,DMEAN)
 	CALL IMCLOSE(2)
 	call exit(0)
-99	print *, 'READ ERROR'
+99	call errorexit('READING FILE')
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: TAPEROUTVOL - ',message
 	call exit(1)
 	end
