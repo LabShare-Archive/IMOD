@@ -1,0 +1,75 @@
+#!/bin/csh -f
+# Script to add Qt libraries and links to a distribution file
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#  Revision 3.6  2003/05/08 21:42:35  mast
+#  Get libqt name better
+#
+#  Revision 3.5  2003/05/08 20:58:43  mast
+#  Initial creation (deleted messages while thrashing
+#
+#
+
+#
+# Get the subdirectory to copy the libraries to, exit if not defined
+#
+set qtlibdir = `sed -n '/QTINSTLIBDIR/s/^.*= *//p' configure`
+
+if ($qtlibdir == "") exit 0
+
+
+#
+# get the install directory, and grab the name of the Qt lib from the
+# ever-useful sendevent Makefile
+#
+set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
+
+set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
+
+# If the library goes to bin, it is Windows and need to copy a dll
+if ($qtlibdir == "bin") then
+    set qtlib = $qtlib[2]
+    \cp $QTDIR/lib/${qtlib}*.dll $instdir/$qtlibdir
+    exit 0
+endif
+
+set qtlib = $qtlib[1]
+
+#
+# Count up non-links and save name of real file
+#
+@ numreal = 0
+foreach i ($QTDIR/lib/$qtlib.*)
+    if ((! -l $i) && $i:e != "prl") then
+        @ numreal++
+        set realname = $i
+    endif
+end
+
+if ($numreal == 0) then
+        echo "installqtlib: Qt Library not found at $QTDIR/lib/$qtlib.*"
+        exit 1
+endif
+
+if ($numreal > 1) then
+    echo "installqtlib: $numreal real Qt libraries match $QTDIR/lib/$qtlib.*"
+    echo Cannot make links properly
+    exit 1
+endif
+
+#
+# Copy the real file, make the links
+#
+cd $instdir/$qtlibdir
+\cp $realname .
+foreach i ($QTDIR/lib/$qtlib*)
+    if (-l $i) then
+        ln -s $realname:t $i:t
+    endif
+end
