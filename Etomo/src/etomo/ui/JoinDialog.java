@@ -35,6 +35,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2004/11/19 23:56:33  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 1.1.2.34  2004/11/19 03:05:50  sueh
  * <p> bug# 520 Removed useDefault statics.  The is handled by
  * <p> ConstJoinMetaData, ConstEtomoNumber.displayDefault.
@@ -767,7 +770,7 @@ public class JoinDialog implements ContextMenu {
     return pnlSectionTable.getInvalidReason();
   }
   
-  public void getMetaData(JoinMetaData metaData) { 
+  public boolean getMetaData(JoinMetaData metaData) { 
     metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
@@ -784,7 +787,7 @@ public class JoinDialog implements ContextMenu {
     metaData.setShiftInY(ltfShiftInY.getText());
     metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
     metaData.setTrialBinning(spinTrialBinning.getValue());
-    pnlSectionTable.getMetaData(metaData);
+    return pnlSectionTable.getMetaData(metaData);
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
@@ -993,6 +996,9 @@ public class JoinDialog implements ContextMenu {
           .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
+      //Prepare for Revert:  meta data file should match the screen
+      getMetaData(joinManager.getJoinMetaData());
+      joinManager.saveMetaData();
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
