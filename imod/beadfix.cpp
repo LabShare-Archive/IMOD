@@ -84,16 +84,32 @@ BeadFixerModule::BeadFixerModule()
 
 #define MAXLINE 100
 
+// A structure to hold all of the residual data that is read in, plus what
+// local area it is in and whether it has been looked at in this run-through
 typedef struct {
   int obj;
   int cont;
   int view;
-} residpt;
+  float xcen, ycen;
+  float xres, yres;
+  float sd;
+  int lookedAt;
+  int area;
+} ResidPt;
 
+// A structure to hold data about points that have been looked at
+typedef struct {
+  int obj;
+  int cont;
+  int view;
+} LookedPt;
+
+// A structure to hold data about areas
 typedef struct {
   int areaX;
   int areaY;
-  int lastSeen;
+  int firstPt;
+  int numPts;
 } AreaData;
 
 /*
@@ -107,29 +123,29 @@ typedef struct
   char   *filename;
   FILE   *fp;
   int    ifdidgap;
-  int    residok;
   int    xsize, ysize, zsize;
   int    lastob, lastco, lastpt, lastbefore;
-  int    objcont;
+  int    objcont;                       /* Flag for new object/contour data */
   float  xresid, yresid;                /* last residual looked at */
   int    objlook, contlook, ptlook;     /* obj, cont, pt of that residual */
   int    curmoved;                      /* flag whether it has been moved */
   int    objmoved, contmoved, ptmoved;  /* obj, cont, pt of moved point */
   int    didmove;                       /* flag that a point was moved */
   Ipoint oldpt, newpt;                  /* old and new positions */
-  int    lookonce;
-  residpt *lookedlist;                  /* List of points examined */
-  int    listsize;                      /* Number of items on list */
-  int    listmax;                       /* Size allocated for list */
-  long   *offsetList;                   /* File offsets of points examined */
-  int    offsetSize;                     /* Number of file positions */
-  int    offsetMax;                     /* Size allocated for list */
+  int    lookonce;                      /* Flag for Examine once button */
+  ResidPt *residList;                   /* List of all residuals read in */
+  int    numResid;                      /* Number of point on list */ 
+  int    residMax;                      /* Allocated size of list */ 
+  int    currentRes;                    /* Current residual index */ 
+  LookedPt *lookedList;                 /* List of points examined */
+  int    numLooked;                     /* Number of items on list */
+  int    lookedMax;                     /* Size allocated for list */
   int    curArea;                       /* Current local area index */
+  int    numAreas;                      /* Number of areas */
   AreaData *areaList;                   /* Data about areas */
   int    areaMax;                       /* Size allocated */
-  QStringList qlines;                   /* A resident copy of the align log */
-  int currentLine;
-  int left, top;                        /* Last window position */
+  int    left, top;                     /* Last window position */
+  int    bell;                          /* 1 to ring bell, -1 to suppress */ 
   
 }PlugData;
 
@@ -186,7 +202,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     plug->window->nextRes();
     break;
   case Qt::Key_QuoteDbl: 
-    plug->window->nextLocal();
+    plug->window->backUp();
     break;
   case Qt::Key_Space:
     plug->window->nextGap();
@@ -234,21 +250,21 @@ void imodPlugExecute(ImodView *inImodView)
    */
   plug->filename = NULL;
   plug->ifdidgap = 0;
-  plug->residok = 0;
   plug->lastob = -1;
   plug->curmoved = 0;
   plug->objlook = -1;
   plug->didmove = 0;
   plug->lookonce = 1;
-  plug->listmax = 0;
-  plug->listsize = 0;
-  plug->offsetSize = 0;
-  plug->offsetMax = 0;
-  plug->offsetList = NULL;
+  plug->numResid = 0;
+  plug->residMax = 0;
+  plug->lookedMax = 0;
+  plug->numLooked = 0;
   plug->curArea = -1;
+  plug->numAreas = 0;
   plug->areaList = NULL;
   plug->areaMax = 0;
-  plug->currentLine = -1;
+  plug->currentRes = -1;
+  plug->bell = 0;
 
   /*
    * This creates the plug window.
@@ -291,11 +307,9 @@ void BeadFixer::openFile()
     free(plug->filename);
       
   plug->filename = strdup(qname.latin1());
-  reread(0);
-
-  if (plug->currentLine >= 0) {
+  
+  if (!reread()) {
     rereadBut->setEnabled(true);    
-    nextLocalBut->setEnabled(true);    
 #ifdef FIXER_CAN_RUN_ALIGN
     runAlignBut->setEnabled(true);
 #endif
@@ -306,8 +320,9 @@ void BeadFixer::openFile()
 
 
 /* Read or reread the tiltalign log file whose name was already obtained */
-
-void BeadFixer::reread(int skipopen)
+/* Return -1 if there is an error opening file, or 1 if there is a memory error
+   and the window will close */
+int BeadFixer::reread()
 {
   PlugData *plug = &thisPlug;
 
@@ -315,7 +330,9 @@ void BeadFixer::reread(int skipopen)
   char *arealine;
   int newstyle, oldstyle = 0;
   int found = 0;
+  int inpt;
   Iobj *xobj = ivwGetExtraObject(plug->view);
+  ResidPt *rpt;
 
   // Initialize extra object
   clearExtraObj();
@@ -323,78 +340,23 @@ void BeadFixer::reread(int skipopen)
   imodObjectSetValue(xobj, IobjFlagClosed, 0);
 
   if (plug->filename == NULL) 
-    return;
+    return -1;
 
-  if (!skipopen) {
-    plug->qlines.clear();
-    plug->currentLine = -1;
-    QFile file(QString(plug->filename));
-    if ( file.open( IO_ReadOnly ) ) {
-      wprint("Rereading file.\n");
-      QTextStream stream( &file );
-      QString line;
-      while ( !stream.atEnd() ) {
-        line = stream.readLine(); // line of text excluding '\n'
-        plug->qlines += line;
-      }
-      file.close();
-      plug->currentLine = 0;
-    }
-
-    plug->curArea = 0;
-    if (!plug->areaMax) {
-      plug->areaList = (AreaData *)malloc(10 * sizeof(AreaData));
-      if (!plug->areaList) {
-        wprint("\aMemory error in bead fixer!");
-        close();
-        return;
-      }
-      plug->areaMax = 10;
-    }
-    plug->areaList[0].areaX = 0;
-    plug->areaList[0].areaY = 0;
-    plug->areaList[0].lastSeen = -1;
-    plug->offsetSize = 0;
-    backUpBut->setEnabled(false);    
-
-  } else {
-    while (!found && getNextLine(line, MAXLINE)) {
-      arealine = strstr(line,"Doing local area");
-      if (arealine) {
-        arealine[22]=0x00;
-        wprint("Skipping to next local set, area%s.\n",
-               &arealine[16]);
-        found = 1;
-
-        // Keep track of the area data
-        plug->curArea++;
-        if (plug->curArea >= plug->areaMax) {
-          plug->areaMax += 10;
-          plug->areaList = (AreaData *)realloc(plug->areaList, 
-                                   plug->areaMax * sizeof(AreaData));
-          if (!plug->areaList) {
-            wprint("\aMemory error in bead fixer!");
-            close();
-            return;
-          }
-        }
-        sscanf(&arealine[16], "%d %d", &plug->areaList[plug->curArea].areaX, 
-               &plug->areaList[plug->curArea].areaY);
-        plug->areaList[plug->curArea].lastSeen = -1;
-      }
-    }
-    if (!found) {
-      wprint("No more local sets.\n");
-      return;
-    }
+  plug->fp = fopen(plug->filename, "r");
+  if(plug->fp == NULL) {
+    wprint("\aError opening file!\n");
+    return -1;
   }
 
-  if (plug->currentLine < 0) {
-    wprint("\aError opening %s!", plug->filename);
-    return;
-  }
+  wprint("Reading log file...");
+         
+  plug->numAreas = 0;
+  plug->numResid = 0;
+  plug->currentRes = -1;
+  plug->curArea = 0;
 
-  while(getNextLine(line, MAXLINE)) {
+  // Outer loop searching for lines at top of residuals
+  while (fgets(line, MAXLINE, plug->fp) != NULL) {
     newstyle = strstr(line,"   #     #     #      X         Y        X")
       != NULL;
     if (!newstyle)
@@ -402,81 +364,154 @@ void BeadFixer::reread(int skipopen)
         != NULL;
     if (newstyle || oldstyle) {
       plug->objcont = newstyle;
-      nextResBut->setEnabled(true);    
-      nextLocalBut->setEnabled(true);    
-      plug->residok = 1;
-      return;
+
+      // Allocate area data now
+      if (plug->numAreas >= plug->areaMax) {
+        if (plug->areaMax)
+          plug->areaList = (AreaData *)realloc
+            (plug->areaList, (plug->areaMax + 10) * sizeof(AreaData));
+        else
+          plug->areaList = (AreaData *)malloc(10 * sizeof(AreaData));
+        plug->areaMax += 10;
+        if (!plug->areaList) {
+          wprint("\aMemory error in bead fixer!\n");
+          fclose(plug->fp);
+          close();
+          return 1;
+        }
+      }
+      
+      // Set up global area 
+      if (!plug->numAreas) {
+        plug->areaList[0].areaX = 0;
+        plug->areaList[0].areaY = 0;
+        plug->areaList[0].firstPt = 0;
+        plug->areaList[0].numPts = 0;
+        plug->numAreas = 1;
+      }
+
+      // Next, loop on residual entries until a short (blank) line
+      while (fgets(line, MAXLINE, plug->fp) != NULL) {
+        if (strlen(line) < 3)
+          break;
+
+        // Allocate residual memory
+        if (plug->numResid >= plug->residMax) {
+          if (plug->residMax)
+            plug->residList = (ResidPt *)realloc
+              (plug->residList, (plug->residMax + 100) * sizeof(ResidPt));
+          else
+            plug->residList = (ResidPt *)malloc(100 * sizeof(ResidPt));
+          plug->residMax += 100;
+        }
+
+        if (!plug->residList) {
+          wprint("\aMemory error in bead fixer!");
+          fclose(plug->fp);
+          close();
+          return 1;
+        }
+
+        // Read and store data
+        rpt = &(plug->residList[plug->numResid++]);
+        if (plug->objcont)
+          sscanf(line, "%d %d %d %f %f %f %f %f", 
+                 &rpt->obj, &rpt->cont, &rpt->view, &rpt->xcen, &rpt->ycen, 
+                 &rpt->xres, &rpt->yres, &rpt->sd);
+        else {
+          sscanf(line, "%d %d %f %f %f %f %f", 
+                 &inpt, &rpt->view, &rpt->xcen, &rpt->ycen, 
+                 &rpt->xres, &rpt->yres, &rpt->sd);
+          rpt->obj = 1;
+          rpt->cont = inpt;
+        }
+        rpt->lookedAt = 0;
+        plug->areaList[plug->numAreas - 1].numPts++;
+        rpt->area = plug->numAreas - 1;
+      }
+
+      // Now look for another local area
+      found = 0;
+      while (!found && fgets(line, MAXLINE, plug->fp) != NULL) {
+        arealine = strstr(line,"Doing local area");
+        if (arealine) {
+          arealine[22]=0x00;
+          found = 1;
+          
+          sscanf(&arealine[16], "%d %d", &plug->areaList[plug->numAreas].areaX, 
+                 &plug->areaList[plug->numAreas].areaY);
+          plug->areaList[plug->numAreas].numPts = 0;
+          plug->areaList[plug->numAreas++].firstPt = plug->numResid;
+        }
+      }
+
+      // If none found, this breaks the top loop scanning for residual top line
+      if (!found)
+        break;
     }
   }
+  fclose(plug->fp);
 
-  wprint("Residual data not found\n");
-  nextResBut->setEnabled(false);    
-  nextLocalBut->setEnabled(false);    
-  plug->residok = 0;
-  return;
+  nextResBut->setEnabled(plug->numResid);
+  nextLocalBut->setEnabled(plug->numAreas > 1);
+  backUpBut->setEnabled(false);    
+  if (!plug->numResid)
+    wprint("\aResidual data not found\n");
+  else
+    wprint(" %d total residuals.\n", plug->numResid);
+  return 0;
 }
 
-// Get the string on the next line
-// This replaces the fgets for reading from the file 
-int BeadFixer::getNextLine(char *line, int maxline)
-{
-  PlugData *plug = &thisPlug;
-  if (plug->currentLine < 0 || plug->currentLine >= plug->qlines.count())
-    return 0;
-  strncpy(line, plug->qlines[plug->currentLine++], maxline);
-  line[maxline - 1] = 0x00;
-  return 1;
-}
 
 /* Jump to the next point with a big residual */
 
 void BeadFixer::nextRes()
 {
-  char line[MAXLINE];
   int inobj, incont, inpt, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i;
   int found = 0;
-  float xc, yc, xr, yr, sd, resval;
+  float  xr, yr, resval;
   Iobj *ob;
   Icont *con;
   Ipoint *pts;
   Ipoint tpt;
   float headLen = 2.5;
-  long offsetBefore;
-
+  ResidPt *rpt;
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
+
+  // Copy and reset the bell flag
+  int bell = plug->bell;
+  plug->bell = 0;
+
   ivwControlActive(plug->view, 0);
 
-  if (plug->currentLine < 0 || plug->residok == 0)
+  if (!plug->numResid || plug->currentRes >= plug->numResid)
     return;
 
+  // Coming into here, currentRes points to the last residual if any
   do {
-    offsetBefore = plug->currentLine;
-    if(!getNextLine(line, MAXLINE) || strlen(line) < 3) {
-      wprint("No more residuals in this list\n");
-      nextResBut->setEnabled(false);    
-      plug->residok=0;
+    plug->currentRes++;
+    if (plug->currentRes >= plug->numResid) {
+      wprint("\aNo more residuals!\n");
+      nextResBut->setEnabled(false);
+      nextLocalBut->setEnabled(false);
       return;
     }
-    // wprint("%s", line);
-    if (plug->objcont)
-      sscanf(line, "%d %d %d %f %f %f %f %f", 
-             &inobj, &incont, &inview, &xc, &yc, &xr, &yr, &sd);
-
-    else {
-      sscanf(line, "%d %d %f %f %f %f %f", 
-             &inpt, &inview, &xc, &yc, &xr, &yr, &sd);
-      inobj = 1;
-      incont = inpt;
-    }
+    
+    rpt = &(plug->residList[plug->currentRes]);
+    inobj = rpt->obj;
+    incont = rpt->cont;
+    inview = rpt->view;
+    xr = rpt->xres;
+    yr = rpt->yres;
 
     /* See if point is on list */
     found = 0;
-    for (i = 0; i < plug->listsize && !found; i++)
-      if (inobj == plug->lookedlist[i].obj && 
-          incont == plug->lookedlist[i].cont
-          && inview == plug->lookedlist[i].view)
+    for (i = 0; i < plug->numLooked && !found; i++)
+      if (inobj == plug->lookedList[i].obj && 
+          incont == plug->lookedList[i].cont
+          && inview == plug->lookedList[i].view)
         found = 1;
 
     /* Continue with next point if looking once and this point was found
@@ -485,20 +520,37 @@ void BeadFixer::nextRes()
 
   /* Add point to list if it wasn't found */
   if (!found) {
-    if (plug->listsize >= plug->listmax) {
-      if (plug->listmax)
-        plug->lookedlist = (residpt *)realloc
-          (plug->lookedlist, (plug->listmax + 100) * 
-           sizeof(residpt));
+    if (plug->numLooked >= plug->lookedMax) {
+      if (plug->lookedMax)
+        plug->lookedList = (LookedPt *)realloc
+          (plug->lookedList, (plug->lookedMax + 100) * sizeof(LookedPt));
       else
-        plug->lookedlist = (residpt *)malloc(100 * sizeof(residpt));
-      plug->listmax += 100;
+        plug->lookedList = (LookedPt *)malloc(100 * sizeof(LookedPt));
+      plug->lookedMax += 100;
     }
-    plug->lookedlist[plug->listsize].obj = inobj;
-    plug->lookedlist[plug->listsize].cont = incont;
-    plug->lookedlist[plug->listsize++].view = inview;
+
+    if (!plug->lookedList) {
+      wprint("\aMemory error in bead fixer!\n");
+      close();
+      return;
+    }
+    plug->lookedList[plug->numLooked].obj = inobj;
+    plug->lookedList[plug->numLooked].cont = incont;
+    plug->lookedList[plug->numLooked++].view = inview;
   }
 
+  // Adjust the area and issue message if changed; set bell unless suppressed
+  if (rpt->area != plug->curArea) {
+    wprint("Entering local area %d  %d,  %d residuals\n",
+           plug->areaList[rpt->area].areaX,
+           plug->areaList[rpt->area].areaY, plug->areaList[rpt->area].numPts);
+    plug->curArea = rpt->area;
+    nextLocalBut->setEnabled(plug->curArea < plug->numAreas - 1);
+    if (!bell)
+      bell = 1;
+  }
+
+  rpt->lookedAt = 1;
   found = 0;
   curpt=0;
   nobj = imodGetMaxObject(theModel); 
@@ -554,8 +606,13 @@ void BeadFixer::nextRes()
     if(floor((double)(pts++->z + 1.5f)) == inview) {
       imodSetIndex(theModel, obj, cont, ipt);
       resval = sqrt((double)(xr*xr + yr*yr));
-      wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
-              resval, xr, yr, sd);
+      if (bell > 0)
+        wprint("\aResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
+               resval, xr, yr, rpt->sd);
+      else
+        wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
+               resval, xr, yr, rpt->sd);
+      
       plug->xresid = xr;
       plug->yresid = yr;
       plug->objlook = obj;
@@ -569,16 +626,18 @@ void BeadFixer::nextRes()
       if (con) {
 	clearExtraObj();
         ob = ivwGetExtraObject(plug->view);
-        imodPointAppend(con, --pts);
-        tpt.x = xc + xr;
-        tpt.y = yc + yr;
-        tpt.z = pts->z;
+        tpt.x = rpt->xcen;
+        tpt.y = rpt->ycen;
+        tpt.z = (--pts)->z;
+        imodPointAppend(con, &tpt);
+        tpt.x += xr;
+        tpt.y += yr;
         imodPointAppend(con, &tpt);
         tpt.x -= 0.707 * (xr - yr) * headLen / resval;
         tpt.y -= 0.707 * (xr + yr) * headLen / resval;
         imodPointAppend(con, &tpt);
-        tpt.x = pts->x + xr;
-        tpt.y = pts->y + yr;
+        tpt.x = rpt->xcen + xr;
+        tpt.y = rpt->ycen + yr;
         imodPointAppend(con, &tpt);
         tpt.x -= 0.707 * (xr + yr) * headLen / resval;
         tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
@@ -587,23 +646,7 @@ void BeadFixer::nextRes()
       }
       ivwRedraw(plug->view);
 
-      // Keep track of starting offset for reading this point
-      if (plug->offsetSize >= plug->offsetMax) {
-        if (!plug->offsetMax)
-          plug->offsetList = (long *)malloc(100 * sizeof(long));
-        else
-          plug->offsetList = (long *)realloc(plug->offsetList, 
-                                       (100 + plug->offsetMax) * sizeof(long));
-        plug->offsetMax += 100;
-        if (!plug->offsetList) {
-          wprint("\aMemory error in bead fixer!");
-          close();
-          return;
-        }
-      }
-      plug->areaList[plug->curArea].lastSeen = plug->offsetSize;
-      plug->offsetList[plug->offsetSize++] = offsetBefore;
-      backUpBut->setEnabled(plug->offsetSize > 1);    
+      backUpBut->setEnabled(plug->currentRes > 0);    
       return;
     }
   }
@@ -611,37 +654,78 @@ void BeadFixer::nextRes()
   imodSetIndex(theModel, obsav, cosav, ptsav);
   return;
 }
+
+// Go to next local area by just setting the current point to before it
+// Suppress bell since user selected action
+void BeadFixer::nextLocal()
+{
+  PlugData *plug = &thisPlug;
+  if (plug->curArea >= plug->numAreas - 1)
+    return;
+  plug->currentRes = plug->areaList[plug->curArea + 1].firstPt - 1;
+  plug->bell = -1;
+  nextRes();
+}
  
 // Go back to last point
 void BeadFixer::backUp()
 {
   PlugData *plug = &thisPlug;
-  int i, areaX, areaY;
-  if (plug->offsetSize < 2)
+  int i, areaX, areaY, newRes;
+  ResidPt *rpt;
+  newRes = -1;
+
+  if (!plug->numResid)
     return;
 
-  // Back up offset and seek to file position before line
-  plug->offsetSize -= 2;
-  plug->currentLine = plug->offsetList[plug->offsetSize];
+  // Find the previous residual (that was looked at, if lookonce is on)
+  for (i = plug->currentRes - 1; i >= 0 && newRes < 0; i--)
+    if (!plug->lookonce || plug->residList[i].lookedAt)
+      newRes = i;
 
-  // Look for point last seen in previous area and if so, change area
-  for (i = 0; i < plug->curArea; i++) {
-    if (plug->areaList[i].lastSeen >= plug->offsetSize) {
-      plug->curArea = i;
-      areaX = plug->areaList[i].areaX;
-      areaY = plug->areaList[i].areaY;
-      if (!areaX && !areaY)
-        wprint("Backing up into global solution residuals.\n");
-      else
-        wprint("Backing up into local area %d %d.\n", areaX, areaY);
-      break;
+  if (newRes < 0) {
+    if (plug->lookonce) {
+      wprint("\aThere is no previous residual.  Try turning off \"Examine "
+             "points once\".\n");
+    } else {
+      wprint("\aThere is no previous residual.\n");
+      backUpBut->setEnabled(false);
     }
+    return;
   }
 
+  // Take current point off the examined list to allow it to be seen again
+  if (plug->currentRes < plug->numResid) {
+    rpt = &(plug->residList[plug->currentRes]);
+    for (i = 0; i < plug->numLooked; i++)
+      if (rpt->obj == plug->lookedList[i].obj && 
+          rpt->cont == plug->lookedList[i].cont
+          && rpt->view == plug->lookedList[i].view)
+        plug->lookedList[i].obj = -1;
+  }
+        
+  // Disable backup button if back to first
+  if (!newRes)
+    backUpBut->setEnabled(false);
+
+  // Give message if moved between areas, set the bell flag
+  rpt = &(plug->residList[newRes]);
+  if (rpt->area != plug->curArea) {
+    plug->curArea = rpt->area;
+    areaX = plug->areaList[rpt->area].areaX;
+    areaY = plug->areaList[rpt->area].areaY;
+    if (!areaX && !areaY)
+      wprint("Backing up into global solution residuals.\n");
+    else
+      wprint("Backing up into local area %d %d.\n", areaX, areaY);
+    plug->bell = 1;
+  }
+
+  // Point to one before desired residual
   // Turn off look once flag, set flag that there is a resid, and get residual
+  plug->currentRes = newRes - 1;
   i = plug->lookonce;
   plug->lookonce = 0;
-  plug->residok = 1;
   nextResBut->setEnabled(true);
   nextRes();
   plug->lookonce = i;
@@ -656,7 +740,7 @@ void BeadFixer::onceToggled(bool state)
 void BeadFixer::clearList()
 {
   PlugData *plug = &thisPlug;
-  plug->listsize = 0;
+  plug->numLooked = 0;
 }
 
 void BeadFixer::movePoint()
@@ -668,8 +752,9 @@ void BeadFixer::movePoint()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
-  if(plug->currentLine < 0 || plug->curmoved  || plug->objlook < 0) 
+  if(!plug->numResid || plug->curmoved  || plug->objlook < 0) 
     return;
+
   imodGetIndex(theModel, &obj, &cont, &pt);
   if (obj != plug->objlook || cont != plug->contlook || pt != plug->ptlook) {
     wprint("\aThe current point is not the same as the point with the "
@@ -709,7 +794,7 @@ void BeadFixer::undoMove()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
-  if(plug->currentLine < 0 || !plug->didmove) 
+  if(!plug->numResid || !plug->didmove) 
     return;
   imodGetIndex(theModel, &obsav, &cosav, &ptsav);
 
@@ -968,8 +1053,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
   nextLocalBut->setFixedWidth(width);
-  QToolTip::add(nextLocalBut, "Skip to residuals in next local area - "
-                "Hot key: double quote");
+  QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
 
   nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
@@ -994,7 +1078,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
   backUpBut->setEnabled(false);
   backUpBut->setFixedWidth(width);
-  QToolTip::add(backUpBut, "Back up to last point examined");
+  QToolTip::add(backUpBut, "Back up to last point examined - "
+                "Hot key: double quote");
 
   box = diaCheckBox("Examine Points Once", this, mLayout);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
@@ -1016,9 +1101,9 @@ void BeadFixer::buttonPressed(int which)
     close();
   else
     dia_vasmsg
-      ("Bead Fixer Plugin Help\n",
+      ("Bead Fixer Module Help\n",
        "--------------------------\n\n"
-       "This Plugin makes it easier to fix tilt series fiducial "
+       "This module makes it easier to fix tilt series fiducial "
        "models in two ways.  It has a function for finding the next "
        "gap or untracked place in the model and making that be the "
        "current point.  It also will read the log file from running "
@@ -1027,12 +1112,12 @@ void BeadFixer::buttonPressed(int which)
        "---------------------\n"
        "spacebar\tGo to next gap\n"
        "' (apostrophe)\tGo to next big residual\n"
-       "\" (double quote)\tGo to next local set\n"
+       "\" (double quote)\tBack up to last point\n"
        ";\t\tMove point by residual\n"
        "U\t\tUndo last moved point\n\n",
        "Toggle the pin button on to keep the bead fixer window on top of "
        "other windows\n\n",
-       "Select the Go to Next Gap button or hit the space bar key to "
+       "Press the \"Go to Next Gap\" button or hit the space bar key to "
        "move to the next gap or incomplete place in the model.  If "
        "there is a gap, the point BEFORE the gap will be displayed.  "
        "If a contour does not start on the first section, the first "
@@ -1043,44 +1128,52 @@ void BeadFixer::buttonPressed(int which)
        "beginning of the model again, detach from the current point "
        "by clicking the left mouse button far from any model point, "
        "then select the Next Gap function.\n\n"
-       "Select the Open Tiltalign Log File button to open a log "
+       "Press the \"Open Tiltalign Log File\" button to open a log "
        "file.\n\n"
-       "Select the Go to Next Big Residual button or hit the "
+       "Press the \"Go to Next Big Residual\" button or hit the "
        "apostrophe key to move to the next point in the log file "
        "with a big residual.\n\n"
        "The X and Y displacements implied by the residual are printed "
        "in the Info window.  Also, the Zap window will draw an arrow "
        "corresponding to these displacements.  If the arrow ends at the place "
        "where the point should be located (i.e., the center of the bead), "
-       "then select the Move Point by "
-       "Residual button or push the semicolon key to move the point "
+       "then press the \"Move Point by "
+       "Residual\" button or push the semicolon key to move the point "
        "by those amounts in X and Y.\n\n"
-       "After moving a point by its residual, select the Undo Move "
+       "After moving a point by its residual, press the \"Undo Move\" "
        "button or push the U key to undo the move.\n\n"
-       "Select the Reread Log File button to reread the file, or a "
+       "Press the \"Reread Log File\" button to reread the file, or a "
        "new version of it after rerunning Tiltalign.\n\n",
-       "Select the Go to Next Local Set button if you have a log file "
+       "Press the \"Save & Run Tiltalign\" button to save the model, rerun "
+       "Tiltalign, and read in the new log file.  Most buttons will be disabled "
+       "while Tiltalign is running and reenabled when it is done, so you will "
+       "be able to tell that something is happening.  If you change the "
+       "alignment parameters in eTomo, be sure to compute the next alignment "
+       "using the button in eTomo rather than this button.\n\n"
+       "Press the \"Go to Next Local Set\" button if you have a log file "
        "with a series of local alignments and want to skip to the "
        "residuals from the next local alignment.\n\n",
-       "Select the Back Up to Last Point button if you want to go back to the "
-       "last residual that you examined.  This will not necessarily be the "
+       "Select the \"Back Up to Last Point\" button if you want to go back to "
+       "the last residual that you examined.  This will not necessarily be the "
        "previous residual in the file, if you skipped over points by going to "
-       "the next local set.  However, you can then work forward through the "
+       "the next local set, or if the program skipped over points that you saw "
+       "before.  However, you can then work forward through the "
        "points that you skipped over.\n\n",
        "The program keeps a list of each point whose residual has "
-       "been examined.  If the Examine Points Once toggle is "
+       "been examined.  The list is retained when the log file is read again.  "
+       "If the \"Examine Points Once\" checkbox is "
        "selected, then any point already on the list is skipped over "
-       "when you Go to Next Big Residual.  A point is added to the "
-       "list regardless of whether Examine Points Once is selected."
-       "\n\n"
-       "Select the Clear Examined List button to empty the list of "
+       "when you \"Go to Next Big Residual\".  A point is added to the "
+       "list regardless of whether \"Examine Points Once\" is selected.  "
+       "If you turn this checkbox off, you will see every point when going "
+       "forward or backward.\n\n"
+       "Press the \"Clear Examined List\" button to empty the list of "
        "points that have been examined.  The list is not cleared when "
-       "Examine Points Once is switched on or off.  To see some "
-       "points for the second time, turn off Examine Points Once; to "
-       "see all points again, push Clear Examined List.  When you Back Up to "
-       "Last Point, you will see that point a second time, but if you move "
-       "forward again, you will skip over all of the points that you have "
-       "seen before unless you turn off Examine Points Once.\n",
+       "\"Examine Points Once\" is switched on or off.  To see some "
+       "points for the second time, turn off \"Examine Points Once\"; to "
+       "see all points again, push \"Clear Examined List\".  When you \"Back Up"
+       " to Last Point\", the current point is removed from the list so that "
+       "you will come back to it when you go forward again.\n",
        NULL);
 }
 
@@ -1133,12 +1226,11 @@ void BeadFixer::timerEvent(QTimerEvent *e)
       killTimer(mTopTimerID);
       mTopTimerID = 0;
     }
-    reread(0);
-    rereadBut->setEnabled(true);
-    openFileBut->setEnabled(true);
-    nextResBut->setEnabled(true);
-    nextLocalBut->setEnabled(true);
-    runAlignBut->setEnabled(true);
+    if (reread() <= 0) {
+      rereadBut->setEnabled(true);
+      runAlignBut->setEnabled(true);
+      openFileBut->setEnabled(true);
+    }
   }
 #endif
 }
@@ -1197,15 +1289,19 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
 
   plug->view = NULL;
   plug->window = NULL;
-  if (plug->listmax)
-    free(plug->lookedlist);
-  plug->listmax = 0;
+  if (plug->lookedMax && plug->lookedList)
+    free(plug->lookedList);
+  plug->lookedMax = 0;
   if (plug->filename)
     free(plug->filename);
-  if (plug->offsetList)
-    free(plug->offsetList);
-  if (plug->areaList)
+  plug->filename = NULL;
+  if (plug->areaList && plug->areaMax)
     free(plug->areaList);
+  plug->areaMax = 0;
+  if (plug->residList && plug->residMax)
+    free(plug->residList);
+  plug->residMax = 0;
+  
   e->accept();
 }
 
@@ -1252,6 +1348,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.14  2004/06/23 04:12:32  mast
+    Stupid change just before checking in
+
     Revision 1.13  2004/06/23 03:32:19  mast
     Changed to save and restore window position
 
