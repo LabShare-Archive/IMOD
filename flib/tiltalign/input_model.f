@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/07/28 22:54:03  mast
+c	  Applied scaling to 3-D model output
+c	
 c	  Revision 3.3  2002/07/28 22:37:52  mast
 c	  Made it scale model coordinates correctly and get scaling/origin
 c	  information from model file if image file not given.  Also
@@ -139,7 +142,8 @@ c	  get name of file for output model
 c	  
 	write(*,'(1x,a,/,a)')'Enter file name for output model of'//
      &	    ' solved X-Y-Z coordinates,',' or a name containing .res'//
-     &	    'for a list of residuals, or Return for neither'
+     &	    'for a list of residuals,',' or a name without an extension'
+     &	    //' for both outputs, or Return for neither'
 	read(5,'(a)')modelfile
 c	  
 c	  get name of files for angle list output and 3-D point output
