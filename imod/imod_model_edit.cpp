@@ -52,8 +52,7 @@ Log at end of file
 #include "imodv_modeled.h"
 #include "control.h"
 #include "preferences.h"
-
-static void imodTransXYZ(Imod *imod, Ipoint trans);
+#include "undoredo.h"
 
 /* THE MODEL HEADER DIALOG  */
 
@@ -213,7 +212,13 @@ void ModelHeaderWindow::buttonPressed(int which)
 // update them, and draw model
 void ModelHeaderWindow::valueEntered()
 {
+  int i;
+  for (i = 0; i < 3; i++)
+    mEditBox[i]->blockSignals(true);
   setFocus();
+  for (i = 0; i < 3; i++)
+    mEditBox[i]->blockSignals(false);
+  HeaderDialog.vw->undo->modelChange();
   HeaderDialog.vw->imod->zscale = mEditBox[0]->text().toFloat();
 
   HeaderDialog.vw->imod->res = atoi(mEditBox[1]->text().latin1());
@@ -223,6 +228,7 @@ void ModelHeaderWindow::valueEntered()
 
   update();
   imodvPixelChanged();
+  HeaderDialog.vw->undo->finishUnit();
   imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
 }
 
@@ -297,7 +303,7 @@ static struct
   Ipoint        applied;
   Ipoint        base;
 
-}OffsetDialog = { NULL, 0 };
+}OffsetDialog = { NULL, NULL, {0., 0., 0.}, {0., 0., 0.}};
 
 
 int openModelOffset(ImodView *vw)
@@ -320,7 +326,7 @@ int openModelOffset(ImodView *vw)
 }
 
 // Translate the model
-static void imodTransXYZ(Imod *imod, Ipoint trans)
+void imodTransXYZ(Imod *imod, Ipoint trans)
 {
   int ob, co, pt,  me, i;
   Iobj *obj;
@@ -349,6 +355,13 @@ static void imodTransXYZ(Imod *imod, Ipoint trans)
 	mesh->vert[i].z += trans.z;
       }
     }
+  }
+
+  if (OffsetDialog.dia) {
+    OffsetDialog.applied.x += trans.x;
+    OffsetDialog.applied.y += trans.y;
+    OffsetDialog.applied.z += trans.z;
+    OffsetDialog.dia->updateLabels();
   }
 }
 
@@ -399,7 +412,6 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
 void ModelOffsetWindow::buttonPressed(int which)
 {
   Ipoint offset;
-  Ipoint oldApply;
   int i;
   setFocus();
   switch (which) {
@@ -407,17 +419,14 @@ void ModelOffsetWindow::buttonPressed(int which)
     for (i = 0; i < 3; i++)
       *(&offset.x + i) = mEditBox[i]->text().toFloat();
 
-    oldApply =  OffsetDialog.applied;
-    OffsetDialog.applied.x = OffsetDialog.base.x + offset.x;
-    OffsetDialog.applied.y = OffsetDialog.base.y + offset.y;
-    OffsetDialog.applied.z = OffsetDialog.base.z + offset.z;
-    offset.x = OffsetDialog.applied.x - oldApply.x;
-    offset.y = OffsetDialog.applied.y - oldApply.y;
-    offset.z = OffsetDialog.applied.z - oldApply.z;
+    offset.x += OffsetDialog.base.x - OffsetDialog.applied.x;
+    offset.y += OffsetDialog.base.y - OffsetDialog.applied.y;
+    offset.z += OffsetDialog.base.z - OffsetDialog.applied.z;
 
+    OffsetDialog.vw->undo->modelShift(&offset);
     imodTransXYZ(OffsetDialog.vw->imod, offset);
+    OffsetDialog.vw->undo->finishUnit();
     imodDraw(OffsetDialog.vw, IMOD_DRAW_MOD);
-    updateLabels();
     break;
 
   case 1:  // revert
@@ -425,7 +434,9 @@ void ModelOffsetWindow::buttonPressed(int which)
     offset.y = -OffsetDialog.applied.y;
     offset.z = -OffsetDialog.applied.z;
     
+    OffsetDialog.vw->undo->modelShift(&offset);
     imodTransXYZ(OffsetDialog.vw->imod, offset);
+    OffsetDialog.vw->undo->finishUnit();
     OffsetDialog.base.x = OffsetDialog.base.y = OffsetDialog.base.z = 0.0;
     OffsetDialog.applied = OffsetDialog.base;
     imodDraw(OffsetDialog.vw, IMOD_DRAW_MOD);
@@ -495,6 +506,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/11/05 19:08:12  mast
+Include local files with quotes, not brackets
+
 Revision 4.8  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

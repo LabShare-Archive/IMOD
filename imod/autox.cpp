@@ -42,6 +42,7 @@ Log at end of file
 #include "autox.h"
 #include "imod_info_cb.h"
 #include "control.h"
+#include "undoredo.h"
 
 /* Local functions */
 static void auto_patch(Autox *ax, int xsize, int ysize);
@@ -251,10 +252,15 @@ void autoxBuild()
 
     // If contour is non-empty or nonexistent, get a new one
     if (!cont || cont->psize) {
+      vw->undo->contourAddition(obj->contsize);
       NewContour( vw->imod );
       cont = imodContourGet(vw->imod);
-      if (!cont)
+      if (!cont) {
+        vw->undo->flushUnit();
         break;
+      }
+    } else {
+      vw->undo->contourDataChg();
     }
 
     // Copy structure, set surface and fix time setting
@@ -274,6 +280,7 @@ void autoxBuild()
      the same points over and over */
   autox_clear(vw->ax, AUTOX_ALL);
   vw->ax->filled = 0;
+  vw->undo->finishUnit();
   imodDraw(vw, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
 }
 
@@ -876,6 +883,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 
 /*
 $Log$
+Revision 4.6  2004/07/11 18:25:39  mast
+Made it preserve time and surface and use existing empty contour
+
 Revision 4.5  2003/09/16 02:08:43  mast
 Changed to access image data using new line pointers
 

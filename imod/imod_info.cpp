@@ -396,6 +396,46 @@ void InfoWindow::timerEvent(QTimerEvent *e)
   raise();
 }
 
+void InfoWindow::openSelectedWindows(char *keys)
+{
+  if (!keys)
+    return;
+  if (strchr(keys, 't'))
+    editObjectSlot(EOBJECT_MENU_TYPE);
+  if (strchr(keys, 'C'))
+    editObjectSlot(EOBJECT_MENU_COLOR);
+  if (strchr(keys, 'h'))
+    editModelSlot(EMODEL_MENU_HEADER);
+  if (strchr(keys, 'o'))
+    editModelSlot(EMODEL_MENU_OFFSETS);
+  if (strchr(keys, 's'))
+    editSurfaceSlot(ESURFACE_MENU_GOTO);
+  if (strchr(keys, 'm'))
+    editContourSlot(ECONTOUR_MENU_MOVE);
+  if (strchr(keys, 'a'))
+    editContourSlot(ECONTOUR_MENU_AUTO);
+  if (strchr(keys, 'b'))
+    editContourSlot(ECONTOUR_MENU_BREAK);
+  if (strchr(keys, 'j'))
+    editContourSlot(ECONTOUR_MENU_JOIN);
+  if (strchr(keys, 'c'))
+    editContourSlot(ECONTOUR_MENU_COPY);
+  if (strchr(keys, 'r'))
+    editImageSlot(EIMAGE_MENU_RELOAD);
+  if (strchr(keys, 'f'))
+    editImageSlot(EIMAGE_MENU_FILLER);
+  if (strchr(keys, 'g'))
+    imageSlot(IMAGE_MENU_GRAPH);
+  if (strchr(keys, 'T'))
+    imageSlot(IMAGE_MENU_TUMBLER);
+  if (strchr(keys, 'p'))
+    imageSlot(IMAGE_MENU_PIXEL);
+  if (strchr(keys, 'l'))
+    imodPlugOpenByName("Line Track");
+  if (strchr(keys, 'B'))
+    imodPlugOpenByName("Bead Fixer");
+}
+
 
 /* 1/12/03: removed unused imod_info_force, imod_info_pending and 
    imod_info_dispatch; moved imod_info_input to imof_info_cb */
@@ -493,6 +533,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.27  2004/11/07 23:04:20  mast
+    Disabled flip and reload when processing
+
     Revision 4.26  2004/11/01 23:25:13  mast
     Added delete surface menu entry
 

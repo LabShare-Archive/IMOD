@@ -55,6 +55,7 @@ Log at end of file
 #include "autox.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 static int ivwProcessImageList(ImodView *vi);
 static int ivwManageInitialFlips(ImodView *vi);
@@ -117,6 +118,7 @@ void ivwInit(ImodView *vi)
   vi->zbin = 1;
   vi->flippable = 1;
   vi->grayRGBs = 0;
+  vi->undo = new UndoRedo(vi);
 }
 
 /*
@@ -935,12 +937,8 @@ static int ivwSetCacheSize(ImodView *vi)
    used to access images */
 int ivwFlip(ImodView *vi)
 {
-  unsigned char **idata;
-  unsigned char *trow, *tflag;
-  unsigned char *inrow, *outrow;
   int nx, ny, nz;
-  int i, j, k, t, cacheFull;
-  int kstore, nextk;
+  int i, t, cacheFull;
   unsigned int nyz;
   int oymouse, ozmouse;
 
@@ -1263,7 +1261,7 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   /* cx, cy, cz are in model file coords. */
   /* fx, fy, fz are in image file coords. */
   /* px, py, pz are in piece list coords. */
-  int fx, fy, fz, tmp;
+  int fx, fy, fz;
   FILE *fp = NULL;
   struct MRCheader *mrcheader = NULL;
 
@@ -1686,7 +1684,7 @@ int ivwLoadIMODifd(ImodView *vi)
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
   ImodImageFile *image;
   char line[IFDLINE_SIZE + 1];
-  int retcode = 0, i;
+  int i;
   struct LoadInfo *li;
   int xsize = 0, ysize = 0, zsize;
   int version = 0;
@@ -1897,7 +1895,6 @@ int ivwLoadImage(ImodView *vi)
 {
   int axisSave;
   int eret;
-  int t;
 
   if (vi->fakeImage){
     vi->xsize = vi->imod->xmax;
@@ -2005,11 +2002,8 @@ static int ivwProcessImageList(ImodView *vi)
 {
   ImodImageFile *image;
   Ilist *ilist = (Ilist *)vi->imageList;
-  int retcode = 0;
-  int eret;
-  int xsize, ysize, zsize, i, axisSave;
+  int xsize, ysize, zsize, i;
   int rgbs = 0;
-  float leftVal, cenVal;
 
   if (!ilist->size)
     return -1;
@@ -2184,7 +2178,7 @@ static int ivwManageInitialFlips(ImodView *vi)
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
 {
   int nxbin, nybin, nzbin;
-  int xmax, ymax, zmax, i;
+  int xmax, ymax, i;
 
   // Save original sizes of image
   vi->xUnbinSize  = vi->li->xmax - vi->li->xmin + 1;
@@ -2303,25 +2297,71 @@ Iobj *ivwGetExtraObject(ImodView *inImodView)
 }
 
 // Get the current contour, the last contour if it is empty, or a new contour
-Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj)
+Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
   Icont *cont = imodContourGet(vw->imod);
-  if (cont)
-    return cont;
+  int curTime = timeLock ? timeLock : vw->ct;
+  if (!cont) {
   
-  // Set index to last contour, both to use that contour if it is empty and
-  // so that its properties (surface and open/closed) are inherited if a new
-  // contour is made
-  vw->imod->cindex.contour = obj->contsize - 1;
-  cont = imodContourGet(vw->imod);
-  if (cont && !cont->psize)
-    return cont;
+    // Set index to last contour, both to use that contour if it is empty and
+    // so that its properties (surface and open/closed) are inherited if a new
+    // contour is made
+    vw->imod->cindex.contour = obj->contsize - 1;
+    cont = imodContourGet(vw->imod);
+    if (!cont || cont->psize) {
 
-  // Actually get a new contour now
-  imodNewContour(vw->imod);
-  cont = imodContourGet(vw->imod);
-  ivwSetNewContourTime(vw, obj, cont);
+      // Actually get a new contour now if last one is not empty
+      vw->undo->contourAddition(obj->contsize);
+      imodNewContour(vw->imod);
+      cont = imodContourGet(vw->imod);
+      if (!cont) {
+        vw->undo->clearUnits();
+        return NULL;
+      }
+      ivwSetNewContourTime(vw, obj, cont);
+    }
+  }
+
+  // If contour is empty and time doesn't match, 
+  // reassign it to the current or requested time
+  if (ivwTimeMismatch(vw, timeLock, obj, cont) && !cont->psize) {
+    vw->undo->contourPropChg();
+    cont->type = curTime;
+  }
+
+  // If current point index is not set, set it to end of contour
+  if (vw->imod->cindex.point < 0)
+    vw->imod->cindex.point = cont->psize - 1;
+
   return cont;
+}
+
+/* Return true if there are multiple images, contours have times in this 
+   object, this contour has a non-zero time, and this time does not match
+   current display time, which is either global time or timelock time */
+bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
+{
+  int time = timelock ? timelock : vi->ct;
+  return (vi->nt > 0 && iobjFlagTime(obj) && (cont->flags & ICONT_TYPEISTIME)
+	  && cont->type && (time != cont->type));
+}
+
+/* Inserts a point in the current contour after checking whether it makes it
+   wild, registers contour change if needed and point addition, then closes
+   the open unit */
+int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index)
+{
+  int ret;
+  if (cont->psize && (int)floor(cont->pts->z + 0.5) != (int)floor(pt->z + 0.5)
+      && !(cont->flags & ICONT_WILD))
+    vi->undo->contourPropChg();
+  vi->undo->pointAddition(index);
+  ret = InsertPoint(vi->imod, pt, index);
+  if (ret <= 0)
+    vi->undo->flushUnit();
+  else
+    vi->undo->finishUnit();
+  return ret;
 }
 
 int  ivwDraw(ImodView *inImodView, int inFlags)
@@ -2451,6 +2491,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.31  2004/11/07 22:59:52  mast
+Make binning routine global
+
 Revision 4.30  2004/11/04 17:01:31  mast
 Changes for loading FFTs with internal mirroring
 

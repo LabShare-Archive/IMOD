@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.2  2004/11/01 23:28:42  mast
 Added function to scale resolution
 
@@ -32,6 +35,7 @@ Initial creation
 #define MODELOFFSETWINDOW_H
 
 #include "dialog_frame.h"
+#include "imodel.h"
 class QLabel;
 class QLineEdit;
 class ToolEdit;
@@ -72,6 +76,7 @@ class ModelOffsetWindow : public DialogFrame
  public:
   ModelOffsetWindow(QWidget *parent, const char *name = NULL);
   ~ModelOffsetWindow() {};
+  void updateLabels();
 
   public slots:
   void buttonPressed(int which);
@@ -87,7 +92,6 @@ class ModelOffsetWindow : public DialogFrame
   QLabel *mBaseLabel[3];
   QLineEdit *mEditBox[3];
   QLabel *mAppliedLabel;
-  void updateLabels();
 };
 
 // Global functions
@@ -96,5 +100,6 @@ void imodModelEditUpdate();
 int openModelEdit(ImodView *vw);
 void setPixsizeAndUnits(Imod *imod, char *string);
 float scaleModelRes(int res, float zoom);
+void imodTransXYZ(Imod *imod, Ipoint trans);
 
 #endif

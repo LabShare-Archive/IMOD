@@ -72,6 +72,7 @@ Log at end of file
 #include "b3dgfx.h"
 #include "autox.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -81,7 +82,7 @@ Log at end of file
 
 static int obj_moveto = 0;
 /* Temporary function - may include in libimod */
-static Icont *imodContourBreakByZ(Iobj *obj, int co);
+static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co);
 
 /*
  * THE FILE MENU
@@ -102,9 +103,10 @@ void InfoWindow::fileSlot(int item)
   switch(item){
 
   case FILE_MENU_NEW: /* New */
+    App->cvi->undo->clearUnits();
     createNewModel(NULL);
     break;
-	  
+          
   case FILE_MENU_OPEN: /* open */
     //  forbid input during file dialog; swallow any pending events
     imod_info_forbid();
@@ -116,6 +118,7 @@ void InfoWindow::fileSlot(int item)
 
     if(returnValue == IMOD_IO_SUCCESS) {
       wprint("Model loaded.\n");
+      App->cvi->undo->clearUnits();
     }
     else if(returnValue == IMOD_IO_SAVE_ERROR) {
       wprint("Error Saving Model. New model not loaded.\n");
@@ -137,7 +140,7 @@ void InfoWindow::fileSlot(int item)
     App->cvi->imod->whitelevel = App->cvi->white;
     releaseKeyboard();
     if (SaveModel(App->cvi->imod));
-    /*	       wprint("Error Saving Model."); DNM: it already has message*/
+    /*         wprint("Error Saving Model."); DNM: it already has message*/
     imod_info_enable();
     break;
 
@@ -150,7 +153,7 @@ void InfoWindow::fileSlot(int item)
     SaveasModel(App->cvi->imod);
     imod_info_enable();
     break;
-	  
+          
   case FILE_MENU_TIFF:  /* Save raw image to tiff file */
     if (!App->cvi->rawImageStore)
       wprint("This option works only with color images.\n");
@@ -161,11 +164,11 @@ void InfoWindow::fileSlot(int item)
       imod_info_input();
       releaseKeyboard();
       qname = QFileDialog::getSaveFileName
-	(QString::null, QString::null, 0, 0, 
-	 "TIFF File to save section from memory:");
+        (QString::null, QString::null, 0, 0, 
+         "TIFF File to save section from memory:");
       imod_info_enable();
       if (qname.isEmpty())
-	break;
+        break;
 
       data = ivwGetCurrentZSection(App->cvi);
       limits[0] = limits[1] = 0;
@@ -206,7 +209,7 @@ void InfoWindow::fileWriteSlot(int item)
   case FWRITE_MENU_IMOD: /* write imod */
     releaseKeyboard();
     qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
-                                       "File to save as Imod:");
+                                         "File to save as Imod:");
     if (qname.isEmpty())
       break;
     fout =  fopen((QDir::convertSeparators(qname)).latin1(), "wb");
@@ -224,7 +227,7 @@ void InfoWindow::fileWriteSlot(int item)
   case FWRITE_MENU_WIMP: /* write wimp */
     releaseKeyboard();
     qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
-                                       "File to save as Wimp:");
+                                         "File to save as Wimp:");
     if (qname.isEmpty())
       break;
     fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
@@ -237,7 +240,7 @@ void InfoWindow::fileWriteSlot(int item)
   case FWRITE_MENU_NFF: /* write NFF */
     releaseKeyboard();
     qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
-                                       "File to save as NFF:");
+                                         "File to save as NFF:");
     if (qname.isEmpty())
       break;
     fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
@@ -272,7 +275,8 @@ void InfoWindow::editSlot(int item)
  */
 void InfoWindow::editModelSlot(int item)
 {
-  Imod *imod = App->cvi->imod;
+  ImodView *vi = App->cvi;
+  Imod *imod = vi->imod;
   int ob, co, detach, hasdata, obsave;
   int cosave, ptsave;
   Iobj *obj;
@@ -281,18 +285,18 @@ void InfoWindow::editModelSlot(int item)
     return;
 
   switch(item){
-    case EMODEL_MENU_HEADER: 
-    openModelEdit(App->cvi);
+  case EMODEL_MENU_HEADER: 
+    openModelEdit(vi);
     break;
-    case EMODEL_MENU_OFFSETS:
-    openModelOffset(App->cvi);
+  case EMODEL_MENU_OFFSETS:
+    openModelOffset(vi);
     break;
-    case EMODEL_MENU_CLEAN:
+  case EMODEL_MENU_CLEAN:
     /* Clean model means delete empty objects */
     if (dia_ask("Delete all empty objects?")) {
       obsave = imod->cindex.object;
-      cosave = App->cvi->imod->cindex.contour;
-      ptsave = App->cvi->imod->cindex.point;
+      cosave = vi->imod->cindex.contour;
+      ptsave = vi->imod->cindex.point;
       detach = 0;
       for (ob = imod->objsize - 1; ob >= 0; ob--){
         /* Check if object has any contours with points; but don't
@@ -307,6 +311,7 @@ void InfoWindow::editModelSlot(int item)
         }
         if (!hasdata) {
           /* delete object if it is empty */
+          vi->undo->objectRemoval(ob);
           imodFreeObject(imod, ob);
           if (ob < obsave) 
             /*If this object is less than than the current
@@ -332,10 +337,11 @@ void InfoWindow::editModelSlot(int item)
 
       /* Take care of object color map and displayed color of current
          object */
-      imodSelectionListClear(App->cvi);
-      imod_cmap(App->cvi->imod);
+      vi->undo->finishUnit();
+      imodSelectionListClear(vi);
+      imod_cmap(vi->imod);
       imod_info_setobjcolor();
-      imodDraw(App->cvi, IMOD_DRAW_RETHINK);
+      imodDraw(vi, IMOD_DRAW_RETHINK);
     }
     break;
   }
@@ -348,10 +354,7 @@ void InfoWindow::editObjectSlot(int item)
 {
   Iobj *obj;
   Icont *cont;
-  Iobj *objSave;
-  Iview *vw;
-  Iobjview obvwSave;
-  int ob,co,pt, coind, iv, obOld, obNew, idir;
+  int ob,co,pt, coind, obOld, obNew;
   float vol;
   int cosave, ptsave;
   QString qstr;
@@ -372,23 +375,24 @@ void InfoWindow::editObjectSlot(int item)
     imod_object_edit();
     imod_info_setobjcolor();
     break;
-	  
+          
   case EOBJECT_MENU_DELETE: /* Delete */
-    if (obj)
-      if (dia_ask("Delete Object?")) {
-        imodFreeObject(imod, imod->cindex.object);
-      }
+    if (!obj || !dia_ask("Delete Object?"))
+      break;
+    vi->undo->objectRemoval();
+    imodFreeObject(imod, imod->cindex.object);
+    vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
     break;
-	  
+          
   case EOBJECT_MENU_COLOR: /* Color */
     imod_info_forbid();
     imod_info_input();
     imod_info_enable();
-	  
+          
     imod_object_color(imod->cindex.object);
     break;
 
@@ -397,7 +401,7 @@ void InfoWindow::editObjectSlot(int item)
     imod_draw_window();
     imod_info_setobjcolor();
     break;
-	  
+          
   case EOBJECT_MENU_MOVE: /* move */
     imod_info_forbid();
     imod_info_input();
@@ -414,26 +418,31 @@ void InfoWindow::editObjectSlot(int item)
 
     if (imod->cindex.object > -1){
       if (!diaQInput(&obj_moveto, 1, imod->objsize, 0,
-		   "Move all contours to selected object."))
-	break;
+                     "Move all contours to selected object."))
+        break;
       /* DNM: need to set contour inside loop because each deletion
          sets it to -1; and need to not increment counter! 
          And need to not do it if it's the same object! */
       if (obj_moveto - 1 != imod->cindex.object) {
-        for(co = 0; co < (int)obj->contsize; ) {
+        for (co = 0; co < (int)obj->contsize; ) {
           imod->cindex.contour = 0;
+          vi->undo->contourMove(imod->cindex.object, 0, obj_moveto - 1,
+                                imod->obj[obj_moveto - 1].contsize);
           imod_contour_move(obj_moveto - 1);
         }
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
+        vi->undo->finishUnit();
+        
+        // DNM 11/16/04: move these up into conditional block
+        imodSelectionListClear(vi);
+        imodDraw(vi, IMOD_DRAW_MOD);
       } else
         wprint("Must select a different object to move "
-			   "contours to.\n");
+               "contours to.\n");
     }
     /* DNM: need to maintain separate object numbers for two functions */
-    /*	  vi->obj_moveto = obj_moveto; */
-    imodSelectionListClear(vi);
-    imodDraw(vi, IMOD_DRAW_MOD);
+    /*    vi->obj_moveto = obj_moveto; */
     break;
 
   case EOBJECT_MENU_INFO: /* stats */
@@ -478,7 +487,7 @@ void InfoWindow::editObjectSlot(int item)
       wprint("Object %d: Surface Area = %g%s^2.\n",
              imod->cindex.object + 1,sa,
              imodUnits(imod));
-	       
+               
     }
     break;
 
@@ -492,6 +501,7 @@ void InfoWindow::editObjectSlot(int item)
       if (!obj->cont[co].psize) {
         /* delete contour if it is empty */
         imod->cindex.contour = co;
+        vi->undo->contourRemoval();
         DelContour(imod, co);
         if (co < cosave) 
           /* And if this contour is less than than the current
@@ -509,6 +519,7 @@ void InfoWindow::editObjectSlot(int item)
       imod->cindex.point = ptsave;
     }
 
+    vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_RETHINK);
     break;
@@ -527,14 +538,12 @@ void InfoWindow::editObjectSlot(int item)
       break;
     for (coind = obj->contsize - 1; coind >= 0; coind--) {
       cont = &obj->cont[coind];
-      if (cont->psize)
-	imodContourBreakByZ(obj, coind);
+      if (cont->psize) 
+        imodContourBreakByZ(vi, obj, ob, coind);
     }
-    if (co >= 0) {
-      if (pt >= obj->cont[co].psize)
-	pt = obj->cont[co].psize - 1;
+    if (co >= 0)
       imodSetIndex(imod, ob, co, pt);
-    }
+    vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
@@ -553,39 +562,22 @@ void InfoWindow::editObjectSlot(int item)
     obNew = obOld == imod->objsize - 1 ? obOld : imod->objsize;
 
     if (!diaQInput(&obNew, 1, imod->objsize, 0,
-		   "New object number for current object."))
+                   "New object number for current object."))
       break;
 
     obNew--;
     if (obOld == obNew)
       break;
-    idir = obOld < obNew ? 1 : -1;
     
-    // Get temporary storage and complete object views
-    objSave = imodObjectNew();
-    if (!objSave || imodObjviewComplete(imod)) {
-      if (objSave)
-        free(objSave);
+    vi->undo->objectMove(obOld, obNew);
+    if (imodMoveObject(imod, obOld, obNew)) {
       wprint("\aError getting memory for moving objects\n");
+      vi->undo->flushUnit();
       break;
     }
     
-    // Copy object structures
-    imodObjectCopy(&imod->obj[obOld], objSave);
-    for (ob = obOld; ob != obNew; ob += idir)
-      imodObjectCopy(&imod->obj[ob + idir], &imod->obj[ob]);
-    imodObjectCopy(objSave, &imod->obj[obNew]);
-
-    // Copy object views
-    for (iv = 1; iv < imod->viewsize; iv++) {
-      vw = &imod->view[iv];
-      obvwSave  = vw->objview[obOld];
-      for (ob = obOld; ob != obNew; ob += idir)
-        vw->objview[ob] =  vw->objview[ob + idir];
-      vw->objview[obNew] = obvwSave;
-    }
-    free(objSave);
     imodSetIndex(imod, obNew, co, pt);
+    vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     imodvObjedNewView();
@@ -593,7 +585,7 @@ void InfoWindow::editObjectSlot(int item)
 
   default:
     break;
-	  
+          
   }
      
 }
@@ -606,7 +598,7 @@ void InfoWindow::editSurfaceSlot(int item)
   Iobj *obj;
   Icont *cont;
 
-  int co, coNew, numDel, surfDel;
+  int ob, co, pt, coNew, numDel, surfDel;
   QString qstr;
   Imod *imod = App->cvi->imod;
 
@@ -617,11 +609,11 @@ void InfoWindow::editSurfaceSlot(int item)
   case ESURFACE_MENU_NEW: /* new */
     inputNewSurface(App->cvi);
     break;
-	  
+          
   case ESURFACE_MENU_GOTO: /* go to */
     imodContEditSurf(App->cvi);
     break;
-	  
+          
   case ESURFACE_MENU_MOVE: /* move */
     imodContEditMoveDialog(App->cvi, 1);
     break;
@@ -644,23 +636,23 @@ void InfoWindow::editSurfaceSlot(int item)
       break;
 
     // Remove contours from end back, adjust current contour when deleted
-    coNew = imod->cindex.contour;
+    imodGetIndex(imod, &ob, &coNew, &pt);
     for (co = obj->contsize - 1; co >= 0; co--) {
       if (obj->cont[co].surf == surfDel) {
+        App->cvi->undo->contourRemoval(co);
         DelContour(imod, co);
-        if (coNew == co)
+        if (coNew && coNew == co)
           coNew--;
       }
     }
-    if (coNew < 0 && obj->contsize > 0)
-      coNew = 0;
-    imod->cindex.contour = coNew;
+    imodSetIndex(imod, ob, coNew, pt);
+    App->cvi->undo->finishUnit();
     imodSelectionListClear(App->cvi);
     imod_setxyzmouse();
     break;
   }
 }
-	  
+          
 /*
  * THE EDIT CONTOUR MENU
  */
@@ -682,18 +674,19 @@ void InfoWindow::editContourSlot(int item)
   case ECONTOUR_MENU_NEW: /* new */
     inputNewContour(vi);
     break;
-	  
+          
   case ECONTOUR_MENU_DELETE: /* del */
     inputDeleteContour(vi);
     break;
-	  
+          
   case ECONTOUR_MENU_MOVE: /* move */
     // 11/4/04: no longer require multiple objects
     imodContEditMoveDialog(vi, 0);
     break;
-	  
+          
   case ECONTOUR_MENU_SORT: /* sort */
     if (imod->mousemode == IMOD_MMODEL){
+      vi->undo->clearUnits();
       imodObjectSort(imodel_object_get(imod));
       imod->cindex.contour = -1;
       imod->cindex.point   = -1;
@@ -720,13 +713,13 @@ void InfoWindow::editContourSlot(int item)
     if (!cont->psize)
       return;
     obj = imodel_object_get(imod);
-    if (!obj) break;	  
+    if (!obj) break;      
     wprint("Obj: %d, Cont %d\n", 
            imod->cindex.object+1, 
            imod->cindex.contour+1);
 
     if (iobjClose(obj->flags)){
-	      
+              
       /* 2.00b7 fix added */
       if (!(cont->flags & ICONT_OPEN)){
         dist = imodContourArea(cont);
@@ -737,15 +730,15 @@ void InfoWindow::editContourSlot(int item)
       for(dist = 0.0, pt = 0; pt < (int)cont->psize-1; pt++){
         dist += imodel_point_dist(&(cont->pts[pt]), &(cont->pts[pt+1]));
       }
-	       
+               
       /* 2.00b7 fix added */
       if (!(cont->flags & ICONT_OPEN))
         dist += imodel_point_dist
           (&(cont->pts[cont->psize-1]), cont->pts);
-	       
+               
       dist *= imod->pixsize * vi->xybin;
       wprint("2D length = %g %s\n", dist, imodUnits(imod));
-	       
+               
     }
     if (iobjOpen(obj->flags)){
       Ipoint scale;
@@ -777,20 +770,21 @@ void InfoWindow::editContourSlot(int item)
   case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
     obj = imodel_object_get(imod);
     if (!obj)
-      break;	  
+      break;      
     if (!cont)
-      break;	  
+      break;      
     if (!cont->psize)
-      break;	  
+      break;      
     if (!iobjClose(obj->flags)){
       wprint("\aError: Only Closed contours can be broken by Z\n");
       break;
     }
     imodGetIndex(imod, &ob, &co, &pt);
-    cont = imodContourBreakByZ(obj, co);
-    if (pt >= (int)cont->psize)
-      pt = cont->psize - 1;
+    imodContourBreakByZ(vi, obj, ob, co);
+
+    // This takes care of point position
     imodSetIndex(imod, ob, co, pt);
+    vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
@@ -800,10 +794,14 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_INVERT: /* invert a contour */
+    if (!cont)
+      break;
+    vi->undo->contourDataChg();
     if (!imodel_contour_invert(cont)) {
       imodGetIndex(imod, &ob, &co, &pt);
       pt = (cont->psize - 1) - pt;
       imodSetIndex(imod, ob, co, pt);
+      vi->undo->finishUnit();
       imodDraw(vi, IMOD_DRAW_MOD);
     }
     break;
@@ -813,30 +811,36 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_LOOPBACK: /* Loop back to start to make complex cap */
+    if (!cont || cont->psize < 3)
+      break;
+    vi->undo->contourDataChg();
     for (ptb = cont->psize - 2; ptb > 0; ptb--)
       imodPointAppend(cont, &cont->pts[ptb]);
+    vi->undo->finishUnit();
+    imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   case ECONTOUR_MENU_FILLIN: /* fill in a contour at every z level: Open contours only */
     obj = imodel_object_get(imod);
     if (!obj)
-      break;	  
+      break;      
     if (!cont)
-      break;	  
+      break;      
     if (!cont->psize)
-      break;	  
+      break;      
     if (iobjClose(obj->flags) || iobjScat(obj->flags)){
       wprint("\aError: Only Open contours can be filled in by Z\n");
       break;
     }
     imodGetIndex(imod, &ob, &co, &pt);
     for (ptb = 0; ptb < (int)cont->psize - 1; ptb++) {
-      int zcur, znext, zfill;
+      int zcur, znext, zfill, first;
       Ipoint newPt;
       Ipoint *cur, *next;
       zcur = (int)(floor(cont->pts[ptb].z + 0.5));
       znext = (int)(floor(cont->pts[ptb + 1].z + 0.5));
       zfill = zcur;
+      first = 1;
 
       /* find points where rounded z differs by more than one */
       if (zcur - znext > 1)
@@ -844,6 +848,9 @@ void InfoWindow::editContourSlot(int item)
       else if (znext - zcur > 1)
         zfill++;
       if (zcur != zfill) {
+        if (first)
+          vi->undo->contourDataChg();
+        first = 0;
         cur = &cont->pts[ptb];
         next = &cont->pts[ptb + 1];
 
@@ -861,12 +868,13 @@ void InfoWindow::editContourSlot(int item)
     }
 
     imodSetIndex(imod, ob, co, pt);
+    vi->undo->finishUnit();
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   default:
     break;
-	  
+          
   }
      
 }
@@ -878,6 +886,7 @@ void InfoWindow::editPointSlot(int item)
 {
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
+  Icont *cont = imodContourGet(imod);
 
   if (ImodForbidLevel)
     return;
@@ -886,28 +895,30 @@ void InfoWindow::editPointSlot(int item)
   case EPOINT_MENU_DELETE: /* Delete */
     inputDeletePoint(vi);
     break;
-	  
+          
   case EPOINT_MENU_SORTDIST: /* Sort by distance */
-    if (imod->mousemode == IMOD_MMODEL){
+    if (cont && imod->mousemode == IMOD_MMODEL){
+      vi->undo->contourDataChg();
       imodel_contour_sort(imodContourGet(imod));
+      vi->undo->finishUnit();
       imodDraw(vi, IMOD_DRAW_MOD);
     }
     break;
 
   case EPOINT_MENU_SORTZ: /* Sort by Z */
     if (imod->mousemode == IMOD_MMODEL){
-      Icont *cont = imodContourGet(imod);
       if (cont)
         if (cont->psize) {
+          vi->undo->contourDataChg();
           imodel_contour_sortz(cont, 0, cont->psize - 1);
+          vi->undo->finishUnit();
           imodDraw(vi, IMOD_DRAW_MOD);
         }
     }
     break;
-	  
+          
   case EPOINT_MENU_DIST: /* dist */{
-	     
-    Icont *cont = imodContourGet(imod);
+             
     int    pt   = imod->cindex.point;
     Ipoint *cpt, *ppt;
     Ipoint scale;
@@ -926,7 +937,7 @@ void InfoWindow::editPointSlot(int item)
     scale.x = imod->xscale * vi->xybin;
     scale.y = imod->yscale * vi->xybin;
     scale.z = imod->zscale * vi->zbin;
-	     
+             
     dist2d  = imodel_point_dist(cpt, ppt);
     dist3d  = imodPoint3DScaleDistance(cpt, ppt, &scale);
 
@@ -951,7 +962,7 @@ void InfoWindow::editPointSlot(int item)
 
   default:
     break;
-	  
+          
   }
      
 }
@@ -966,7 +977,7 @@ void InfoWindow::editImageSlot(int item)
     return;
 
   switch(item){
-    case EIMAGE_MENU_PROCESS:
+  case EIMAGE_MENU_PROCESS:
     inputIProcOpen(App->cvi);
     break;
 
@@ -980,9 +991,9 @@ void InfoWindow::editImageSlot(int item)
       cmapold = cmap;
       diaQInput(&cmap, 1, MAXIMUM_RAMPS, 0, "New Colormap #");
       if (cmap == cmapold)
-	break;
+        break;
       Rampbase = App->cvi->rampbase = App->base = 
-	(cmap - 1) * RAMP_INTERVAL + RAMPBASE;
+        (cmap - 1) * RAMP_INTERVAL + RAMPBASE;
       App->objbase  = App->base + 257;
 
       // Delete old map, get new one, fill map and tell widgets
@@ -995,27 +1006,28 @@ void InfoWindow::editImageSlot(int item)
     }
     break;
 
-    case EIMAGE_MENU_RELOAD:
+  case EIMAGE_MENU_RELOAD:
     imodImageScaleDialog(App->cvi);
     break;
 
-    case EIMAGE_MENU_FLIP:
+  case EIMAGE_MENU_FLIP:
+    App->cvi->undo->clearUnits();
     /* DNM 12/10/02: if busy loading, this will defer it */
     if (ivwFlip(App->cvi))
-	break;
+      break;
     /* DNM: check wild flag here */
     ivwCheckWildFlag(App->cvi->imod);
     imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
     break;
 
-    case EIMAGE_MENU_FILLCACHE:
+  case EIMAGE_MENU_FILLCACHE:
     if (App->cvi->vmSize)
       imodCacheFill(App->cvi);
     else
       wprint("Cache is not active.\n");
     break;
 
-    case EIMAGE_MENU_FILLER:
+  case EIMAGE_MENU_FILLER:
     if (App->cvi->vmSize)
       imodCacheFillDialog(App->cvi);
     else
@@ -1053,9 +1065,9 @@ void InfoWindow::imageSlot(int item)
 
   case IMAGE_MENU_SLICER: /* slice */
     sslice_open(App->cvi);
-    /*	  cut_open(); */
+    /*    cut_open(); */
     break;
-	  
+          
   case IMAGE_MENU_TUMBLER: /* tumble */
     xtumOpen(App->cvi);
     break;
@@ -1065,24 +1077,24 @@ void InfoWindow::imageSlot(int item)
     imodv_open();
     break;
 
-    case IMAGE_MENU_ZAP:
+  case IMAGE_MENU_ZAP:
     imod_zap_open(App->cvi);
     break;
 
-    case IMAGE_MENU_XYZ:
+  case IMAGE_MENU_XYZ:
     xxyz_open(App->cvi);
     break;
 
-    case IMAGE_MENU_PIXEL:
+  case IMAGE_MENU_PIXEL:
     if (!App->cvi->fakeImage)
       open_pixelview(App->cvi);
     break;
 
     /* DNM 12/18/02 removed unused zoom command */
-	  
+          
   default:
     break;
-	  
+          
   }
 
 }
@@ -1095,13 +1107,13 @@ void InfoWindow::helpSlot(int item)
 {
 
   switch (item){
-    case HELP_MENU_MAN:
+  case HELP_MENU_MAN:
     dia_smsg(Imod_help_text);
     break;
-    case HELP_MENU_MENUS:
+  case HELP_MENU_MENUS:
     dia_smsg(Imod_menus_help);
     break;
-    case HELP_MENU_HOTKEY:
+  case HELP_MENU_HOTKEY:
     dia_smsg(Imod_hotkey_help);
     break;
 
@@ -1124,23 +1136,35 @@ void InfoWindow::helpSlot(int item)
 }
 
 /* imodContourBreakByZ will break contour number co of object obj into 
-   contours that are all coplanar in Z.  It returns the starting fragment of
-   the original contour in cont */
-static Icont *imodContourBreakByZ(Iobj *obj, int co)
+   contours that are all coplanar in Z if assess is 0.  It returns a 
+   pointer to the remnant of the original contour */
+static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 {
-  int ni, oi, zcur, zprev, ptb;
+  int ni, oi, zcur, zprev, ptb, first;
   Icont *cont2, *cont;
   cont = &obj->cont[co];
+  first = 1;
+
+  // Work from the end of the contour to the beginning looking for Z changes
   for (ptb = cont->psize - 1; ptb > 0; ptb--) {
     zcur = (int)(floor(cont->pts[ptb].z + 0.5));
     zprev = (int)(floor(cont->pts[ptb - 1].z + 0.5));
     if (zcur != zprev) {
+
+      // The first time, mark the contour as being changed
+      // Then record each added contour
+      if (first)
+        vi->undo->contourDataChg(ob, co);
+      first = 0;
+      vi->undo->contourAddition(ob, obj->contsize);
+
+      // duplicate contour and shift down back end
       cont2 = imodContourDup(cont);
       ni = 0;
       for (oi = ptb; oi < (int)cont->psize; oi++, ni++) {
-	cont2->pts[ni] = cont->pts[oi];
-	if (cont->sizes)
-	  cont2->sizes[ni] = cont->sizes[oi];
+        cont2->pts[ni] = cont->pts[oi];
+        if (cont->sizes)
+          cont2->sizes[ni] = cont->sizes[oi];
       }
       cont2->psize = ni;
       cont->psize = ptb;
@@ -1154,142 +1178,145 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 }
 
 /*
-$Log$
-Revision 4.19  2004/11/01 23:26:17  mast
-implemented surface deletion
+  $Log$
+  Revision 4.20  2004/11/04 23:30:55  mast
+  Changes for rounded button style
 
-Revision 4.18  2004/10/12 15:23:09  mast
-Fixed string when writing as NFF
+  Revision 4.19  2004/11/01 23:26:17  mast
+  implemented surface deletion
 
-Revision 4.17  2004/09/21 20:17:10  mast
-Added menu option to renumber object
+  Revision 4.18  2004/10/12 15:23:09  mast
+  Fixed string when writing as NFF
 
-Revision 4.16  2004/06/04 03:17:36  mast
-Added argument to call to open model
+  Revision 4.17  2004/09/21 20:17:10  mast
+  Added menu option to renumber object
 
-Revision 4.15  2004/01/05 18:38:13  mast
-Adjusted info outputs by binning as appropriate, and defined vi and imod
-in some menus for brevity
+  Revision 4.16  2004/06/04 03:17:36  mast
+  Added argument to call to open model
 
-Revision 4.14  2003/11/26 18:17:27  mast
-Disable image menu entries for raw or no images appropriately
+  Revision 4.15  2004/01/05 18:38:13  mast
+  Adjusted info outputs by binning as appropriate, and defined vi and imod
+  in some menus for brevity
 
-Revision 4.13  2003/09/16 02:53:15  mast
-Changed to pass the memory snapshot as an array of line pointers
+  Revision 4.14  2003/11/26 18:17:27  mast
+  Disable image menu entries for raw or no images appropriately
 
-Revision 4.12  2003/07/31 22:12:27  mast
-Autostore views when writing a model as Imod
+  Revision 4.13  2003/09/16 02:53:15  mast
+  Changed to pass the memory snapshot as an array of line pointers
 
-Revision 4.11  2003/06/20 19:46:34  mast
-Allowed break by Z to work for any kind of pbject, with better warning
+  Revision 4.12  2003/07/31 22:12:27  mast
+  Autostore views when writing a model as Imod
 
-Revision 4.10  2003/06/19 05:48:17  mast
-Added ability to break all contours in object by Z value
+  Revision 4.11  2003/06/20 19:46:34  mast
+  Allowed break by Z to work for any kind of pbject, with better warning
 
-Revision 4.9  2003/06/04 23:32:25  mast
-Output coordinates numbered from one in point value output
+  Revision 4.10  2003/06/19 05:48:17  mast
+  Added ability to break all contours in object by Z value
 
-Revision 4.8  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
+  Revision 4.9  2003/06/04 23:32:25  mast
+  Output coordinates numbered from one in point value output
 
-Revision 4.7  2003/04/18 00:46:53  mast
-Call inputNewContour when making new contour toget times right
+  Revision 4.8  2003/04/25 03:28:32  mast
+  Changes for name change to 3dmod
 
-Revision 4.6  2003/04/16 18:46:51  mast
-hide/show changes
+  Revision 4.7  2003/04/18 00:46:53  mast
+  Call inputNewContour when making new contour toget times right
 
-Revision 4.5  2003/03/28 23:51:11  mast
-changes for Mac problems
+  Revision 4.6  2003/04/16 18:46:51  mast
+  hide/show changes
 
-Revision 4.4  2003/03/24 17:58:09  mast
-Changes for new preferences capability
+  Revision 4.5  2003/03/28 23:51:11  mast
+  changes for Mac problems
 
-Revision 4.3  2003/02/27 19:29:31  mast
-Use Qt functions to manage filenames
+  Revision 4.4  2003/03/24 17:58:09  mast
+  Changes for new preferences capability
 
-Revision 4.2  2003/02/12 21:39:51  mast
-Fix problem with getting new object after deleting all objects
+  Revision 4.3  2003/02/27 19:29:31  mast
+  Use Qt functions to manage filenames
 
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
+  Revision 4.2  2003/02/12 21:39:51  mast
+  Fix problem with getting new object after deleting all objects
 
-Revision 1.1.2.11  2003/01/29 01:33:15  mast
-changes for colormap switching
+  Revision 4.1  2003/02/10 20:29:00  mast
+  autox.cpp
 
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
+  Revision 1.1.2.11  2003/01/29 01:33:15  mast
+  changes for colormap switching
 
-Revision 1.1.2.9  2003/01/23 20:07:02  mast
-add include for imod_cont_copy
+  Revision 1.1.2.10  2003/01/27 00:30:07  mast
+  Pure Qt version and general cleanup
 
-Revision 1.1.2.8  2003/01/18 01:15:56  mast
-add include for cache filler
+  Revision 1.1.2.9  2003/01/23 20:07:02  mast
+  add include for imod_cont_copy
 
-Revision 1.1.2.7  2003/01/14 21:52:38  mast
-include new movie controller include file
+  Revision 1.1.2.8  2003/01/18 01:15:56  mast
+  add include for cache filler
 
-Revision 1.1.2.6  2003/01/13 01:00:28  mast
-Qt version
+  Revision 1.1.2.7  2003/01/14 21:52:38  mast
+  include new movie controller include file
 
-Revision 1.1.2.5  2003/01/10 23:52:17  mast
-Changes for Qt version of tumbler and elimination of tilt window
+  Revision 1.1.2.6  2003/01/13 01:00:28  mast
+  Qt version
 
-Revision 1.1.2.4  2003/01/06 15:52:39  mast
-changes for Qt version of slicer and new object color routines
+  Revision 1.1.2.5  2003/01/10 23:52:17  mast
+  Changes for Qt version of tumbler and elimination of tilt window
 
-Revision 1.1.2.3  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
+  Revision 1.1.2.4  2003/01/06 15:52:39  mast
+  changes for Qt version of slicer and new object color routines
 
-Revision 1.1.2.2  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
+  Revision 1.1.2.3  2002/12/19 04:37:13  mast
+  Cleanup of unused global variables and defines
 
-Revision 1.1.2.1  2002/12/13 06:15:49  mast
-include file changes
+  Revision 1.1.2.2  2002/12/17 18:40:24  mast
+  Changes and new includes with Qt version of imodv
 
-Revision 3.10.2.2  2002/12/11 00:41:00  mast
-Prevent flipping while loading data
+  Revision 1.1.2.1  2002/12/13 06:15:49  mast
+  include file changes
 
-Revision 3.10.2.1  2002/12/05 16:23:52  mast
-No changes - CVS detected as modified in branch
+  Revision 3.10.2.2  2002/12/11 00:41:00  mast
+  Prevent flipping while loading data
 
-Revision 3.11  2002/12/03 15:49:07  mast
-consistently set the forbid-level before any potential file dialog to
-prevent multiple file dialogs from appearing; switched memory save to
-using dia_filename so that this would work there as well.
+  Revision 3.10.2.1  2002/12/05 16:23:52  mast
+  No changes - CVS detected as modified in branch
 
-Revision 3.10  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
+  Revision 3.11  2002/12/03 15:49:07  mast
+  consistently set the forbid-level before any potential file dialog to
+  prevent multiple file dialogs from appearing; switched memory save to
+  using dia_filename so that this would work there as well.
 
-Revision 3.9  2002/11/05 23:26:39  mast
-Changed copyright notice to use lab name and years
+  Revision 3.10  2002/12/01 15:34:41  mast
+  Changes to get clean compilation with g++
 
-Revision 3.8  2002/09/27 20:24:57  rickg
-Moved IO functionality into imod_io
-Move client message functionality into imod_client_message since it was no
-longer dependent upon any code in this model due to the changes to imod_io.
+  Revision 3.9  2002/11/05 23:26:39  mast
+  Changed copyright notice to use lab name and years
 
-Revision 3.7  2002/09/19 22:52:54  rickg
-Added MESSAGE_QUIT case for receiving of events.
+  Revision 3.8  2002/09/27 20:24:57  rickg
+  Moved IO functionality into imod_io
+  Move client message functionality into imod_client_message since it was no
+  longer dependent upon any code in this model due to the changes to imod_io.
 
-Revision 3.6  2002/09/17 18:52:44  mast
-Changed event handler to expect a signature (IMOD), and to give error
-messages about unexpected packets only in debig mode
+  Revision 3.7  2002/09/19 22:52:54  rickg
+  Added MESSAGE_QUIT case for receiving of events.
 
-Revision 3.5  2002/09/14 18:32:43  mast
-Eliminate unneeded argument from fprintf
+  Revision 3.6  2002/09/17 18:52:44  mast
+  Changed event handler to expect a signature (IMOD), and to give error
+  messages about unexpected packets only in debig mode
 
-Revision 3.4  2002/09/13 23:44:44  mast
-Changes after testing out most error conditions for messages
+  Revision 3.5  2002/09/14 18:32:43  mast
+  Eliminate unneeded argument from fprintf
 
-Revision 3.3  2002/09/13 21:09:54  mast
-Added message handler to process external ClientMessage events for opening
-and saving model files.
+  Revision 3.4  2002/09/13 23:44:44  mast
+  Changes after testing out most error conditions for messages
 
-Revision 3.2  2002/05/20 15:34:04  mast
-Made time index modeling be the default for a new object (or new model)
-if multiple files are open
+  Revision 3.3  2002/09/13 21:09:54  mast
+  Added message handler to process external ClientMessage events for opening
+  and saving model files.
 
-Revision 3.1  2001/12/17 18:45:54  mast
-Added calls for cache filling
+  Revision 3.2  2002/05/20 15:34:04  mast
+  Made time index modeling be the default for a new object (or new model)
+  if multiple files are open
+
+  Revision 3.1  2001/12/17 18:45:54  mast
+  Added calls for cache filling
 
 */

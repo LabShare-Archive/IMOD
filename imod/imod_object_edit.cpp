@@ -44,10 +44,12 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "imodv_objed.h"
 #include "dia_qtutils.h"
+#include "undoredo.h"
 
 static objectEditForm *Ioew_dialog;
 
 static Iobj *getObjectOrClose(void);
+static void setObjectFlag(bool state, int symflag, b3dUInt32 flag);
 
 #define MAX_SYMBOLS  4
 static int symTable[MAX_SYMBOLS] = 
@@ -110,17 +112,31 @@ void ioew_help(void)
      NULL);
 }
 
-void ioew_draw(int state)
+static void setObjectFlag(bool state, int symflag, b3dUInt32 flag)
 {
   Iobj *obj = getObjectOrClose();
   if (!obj)
     return;
-  if (state)
-    obj->flags &= ~IMOD_OBJFLAG_OFF;
-  else
-    obj->flags |= IMOD_OBJFLAG_OFF;
-
+  App->cvi->undo->objectPropChg();
+  
+  if (symflag) {
+    if (!state)
+      obj->symflags &= ~flag;
+    else
+      obj->symflags |= flag;
+  } else {
+    if (!state)
+      obj->flags &= ~flag;
+    else
+      obj->flags |= flag;
+  }
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
+void ioew_draw(int state)
+{
+  setObjectFlag(!state, 0, IMOD_OBJFLAG_OFF);
   imodvObjedNewView();
 }
 
@@ -128,28 +144,12 @@ void ioew_draw(int state)
 
 void ioew_fill(int state)
 {
-  Iobj *obj = getObjectOrClose();
-  if (!obj)
-    return;
-  if (!state)
-    obj->symflags &= ~IOBJ_SYMF_FILL;
-  else
-    obj->symflags |= IOBJ_SYMF_FILL;
-
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  setObjectFlag(state != 0, 1, IOBJ_SYMF_FILL);
 }
 
 void ioew_ends(int state)
 {
-  Iobj *obj = getObjectOrClose();
-  if (!obj)
-    return;
-  if (!state)
-    obj->symflags &= ~IOBJ_SYMF_ENDS;
-  else
-    obj->symflags |= IOBJ_SYMF_ENDS;
-     
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  setObjectFlag(state != 0, 1, IOBJ_SYMF_ENDS);
 }
 
 void ioew_linewidth(int value)
@@ -157,7 +157,9 @@ void ioew_linewidth(int value)
   Iobj *obj = getObjectOrClose();
   if (!obj)
     return;
+  App->cvi->undo->objectPropChg();
   obj->linewidth2 = value;
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
@@ -167,6 +169,7 @@ void ioew_open(int value)
   if (!obj)
     return;
 
+  App->cvi->undo->objectPropChg();
   switch (value){
   case 0:
     obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
@@ -180,23 +183,14 @@ void ioew_open(int value)
     obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
     break;
   }
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
 void ioew_surface(int value)
 {
-  Iobj *obj = getObjectOrClose();
-  if (!obj)
-    return;
-
   /* TODO: make sure this is the right polarity */
-  if (!value) {
-    obj->flags &= ~ IMOD_OBJFLAG_OUT;
-  } else {
-    obj->flags |= IMOD_OBJFLAG_OUT;
-  }
-
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  setObjectFlag(value != 0, 0, IMOD_OBJFLAG_OUT);
 }
 
 
@@ -205,7 +199,9 @@ void ioew_pointsize(int value)
   Iobj *obj = getObjectOrClose();
   if (!obj)
     return;
+  App->cvi->undo->objectPropChg();
   obj->pdrawsize = value;
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
   imodvObjedNewView();
 }
@@ -218,9 +214,11 @@ void ioew_nametext(const char *name)
     return;
 
   if (name){
+    App->cvi->undo->objectPropChg();
     for(i = 0; (i < (IMOD_STRSIZE - 1))&&(name[i]); i++)
       obj->name[i] = name[i];
     obj->name[i] = 0x00;
+    App->cvi->undo->finishUnit();
   }
   imodvObjedNewView();
 }
@@ -230,8 +228,9 @@ void ioew_symbol(int value)
   Iobj *obj = getObjectOrClose();
   if (!obj)
     return;
-
+  App->cvi->undo->objectPropChg();
   obj->symbol = symTable[value];
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
@@ -240,23 +239,16 @@ void ioew_symsize(int value)
   Iobj *obj = getObjectOrClose();
   if (!obj)
     return;
+  App->cvi->undo->objectPropChg();
   obj->symsize = value;
      
+  App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
 void ioew_time(int state)
 {
-  Iobj *obj = getObjectOrClose();
-  if (!obj)
-    return;
-
-  if (!state){
-    obj->flags &= ~IMOD_OBJFLAG_TIME;
-  }else{
-    obj->flags |= IMOD_OBJFLAG_TIME;
-  }
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  setObjectFlag(state, 0, IMOD_OBJFLAG_TIME);
 }
 
 /* 
@@ -442,18 +434,31 @@ ImodObjColor::ImodObjColor(int objNum)
 
 void ImodObjColor::newColorSlot(int red, int green, int blue)
 {
+  float fred = red / 255.0;
+  float fgreen = green / 255.;
+  float fblue = blue / 255.;
   Iobj *obj;
+
   // If the object number is now illegal, close the selector
   if (mObjNum >= (int)Model->objsize) {
     mSelector->close();
     return;
   }
 
-  // Get the new color
   obj = &(Model->obj[mObjNum]);
-  obj->red = red / 255.0;
-  obj->green = green / 255.0;
-  obj->blue = blue / 255.0;
+  if (obj->red == fred && obj->green == fgreen && obj->blue == fblue)
+    return;
+
+  // Only record an undo state the first time when hot sliding
+  if (!mSelector->hotSliding()) {
+    App->cvi->undo->objectPropChg(mObjNum);
+    App->cvi->undo->finishUnit();
+  }
+
+  // Store the new color
+  obj->red = fred;
+  obj->green = fgreen;
+  obj->blue = fblue;
 
   // This was redraw if rgba, but do it in any case because imodv might be open
   /* DNM 1/23/03: no longer free and allocate object colors */
@@ -486,6 +491,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.10  2004/09/21 20:30:07  mast
 Added calls to synchronize on/off and name changes to model view windows
 

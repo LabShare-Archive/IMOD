@@ -68,6 +68,7 @@
 #include "imod_input.h"
 #include "xzap.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 // 2) Declare the internal functions as static
 // And set them into the member variables in the constructor
@@ -247,7 +248,6 @@ void BeadFixer::openFile()
 {
   QString qname;
   char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
-  PlugData *plug = &thisPlug;
 
   qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
   
@@ -623,7 +623,6 @@ void BeadFixer::nextRes()
 // Suppress bell since user selected action
 void BeadFixer::nextLocal()
 {
-  PlugData *plug = &thisPlug;
   if (mCurArea >= mNumAreas - 1)
     return;
   mCurrentRes = mAreaList[mCurArea + 1].firstPt - 1;
@@ -634,7 +633,6 @@ void BeadFixer::nextLocal()
 // Go back to last point
 void BeadFixer::backUp()
 {
-  PlugData *plug = &thisPlug;
   int i, areaX, areaY, newRes;
   ResidPt *rpt;
   newRes = -1;
@@ -697,13 +695,11 @@ void BeadFixer::backUp()
 
 void BeadFixer::onceToggled(bool state)
 {
-  PlugData *plug = &thisPlug;
   mLookonce = state ? 1 : 0;
 }
 
 void BeadFixer::clearList()
 {
-  PlugData *plug = &thisPlug;
   mNumLooked = 0;
 }
 
@@ -732,6 +728,7 @@ void BeadFixer::movePoint()
   rpt = &(mResidList[mIndlook]);
   con = imodContourGet(theModel);
   pts = imodContourGetPoints(con);
+  plug->view->undo->pointShift();
   mOldpt = pts[pt];
   mOldpt.x = rpt->xcen;
   mOldpt.y = rpt->ycen;
@@ -739,6 +736,7 @@ void BeadFixer::movePoint()
   mNewpt.x += rpt->xres;
   mNewpt.y += rpt->yres;
   pts[pt] = mNewpt;
+  plug->view->undo->finishUnit();
   mObjmoved = mObjlook;
   mContmoved = mContlook;
   mPtmoved = mPtlook;
@@ -784,7 +782,9 @@ void BeadFixer::undoMove()
         dy = pts[mPtmoved].y - mNewpt.y;
         distsq = dx * dx + dy * dy;
         if (distsq < 100. && pts[mPtmoved].z == mNewpt.z) {
+          plug->view->undo->pointShift();
           pts[mPtmoved] = mOldpt;
+          plug->view->undo->finishUnit();
           mDidmove = 0;
           mCurmoved = 0;
           undoMoveBut->setEnabled(false);
@@ -966,7 +966,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QPushButton *button;
   QCheckBox *box;
   QString qstr;
-  PlugData *plug = &thisPlug;
   mRunningAlign = false;
   mTopTimerID = 0;
   mStayOnTop = false;
@@ -1359,6 +1358,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.19  2004/11/04 23:30:55  mast
+    Changes for rounded button style
+
     Revision 1.18  2004/09/24 17:58:01  mast
     Added ability to execute messages for opening/rereading file
 

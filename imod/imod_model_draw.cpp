@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.9  2004/11/02 20:16:34  mast
+Switched to using curpoint color for current point
+
 Revision 4.8  2004/01/05 18:36:27  mast
 Divide point size by binning
 
@@ -92,7 +95,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
 	  continue;
 	
         /* DNM 2/21/03: don't draw contours from other times */
-	if (zapTimeMismatch(vi, 0, obj, cont))
+	if (ivwTimeMismatch(vi, 0, obj, cont))
           continue;
 
 	/* todo: ghost contour ? */
@@ -119,7 +122,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
   /* draw if current contour exists and it is not at wrong time */
-  if (cont && cont->psize && !zapTimeMismatch(vi, 0, obj, cont)) { 
+  if (cont && cont->psize && !ivwTimeMismatch(vi, 0, obj, cont)) { 
     
     /* draw ends if more than one point */
     if (cont->psize > 1) {
@@ -202,7 +205,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
 
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
-    if (zapTimeMismatch(vi, 0, obj, cont))
+    if (ivwTimeMismatch(vi, 0, obj, cont))
       continue;
 
     lpt = cont->psize;
@@ -337,7 +340,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
     cont = &obj->cont[co];
     if (!cont->psize)
       continue;
-    if (zapTimeMismatch(vi, 0, obj, cont))
+    if (ivwTimeMismatch(vi, 0, obj, cont))
       continue;
 
     for (pt = 0, point = cont->pts; pt < cont->psize; pt++, point++) {

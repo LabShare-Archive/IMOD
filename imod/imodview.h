@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/07/11 18:19:38  mast
+Functions to set time of new contour and get/make contour for adding points
+
 Revision 1.3  2004/05/31 23:10:56  mast
 Added macros for exporting/importing under Windows
 
@@ -114,8 +117,9 @@ Imod DLL_EX_IM *ivwGetModel(ImodView *inImodView);
 Iobj DLL_EX_IM *ivwGetExtraObject(ImodView *inImodView);
 
 /*
- * Get the current contour or make a new one if there is none
+ * Get the current contour or make a new one if there is none, at the current
+ * time or the time indicated by timeLock
  */
-Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj);
+Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock);
 }
 #endif

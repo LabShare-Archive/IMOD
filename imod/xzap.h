@@ -69,6 +69,9 @@ typedef struct zapwin
   int    rbMouseY1;
   int    startingBand;
   int    shiftingCont; /* Flag for shifting contour */
+  int    dragAddCount; /* Number of points added and not registered for undo */
+  Iindex dragAddIndex; /* Starting obj, cont, point for first such point*/
+  int    dragAddEnd;   /* Ending or last point not registered */
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
@@ -124,7 +127,6 @@ void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
                    unsigned char flags);
 void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                          int *imPtSize);
-bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int  imod_zap_open(struct ViewInfo *vi);
 void zapMaximumWindowSize(int &width, int &height);
 void zapLimitWindowSize(int &width, int &height);
@@ -135,6 +137,9 @@ void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.12  2004/11/04 17:02:41  mast
+Changes for switching to shifting contour as a mode that is turned on
+
 Revision 3.11  2004/11/01 22:58:32  mast
 New rubberband image variables
 

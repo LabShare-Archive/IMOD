@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>InfoControls</class>
 <widget class="QWidget">
     <property name="name">
@@ -33,7 +33,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout34</cstring>
+                <cstring>layout16</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -43,7 +43,7 @@
                     <number>0</number>
                 </property>
                 <property name="spacing">
-                    <number>6</number>
+                    <number>4</number>
                 </property>
                 <widget class="QToolButton">
                     <property name="name">
@@ -81,6 +81,34 @@
                         <string></string>
                     </property>
                 </widget>
+                <widget class="QToolButton">
+                    <property name="name">
+                        <cstring>undoButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string></string>
+                    </property>
+                    <property name="iconSet">
+                        <iconset>undo.png</iconset>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
+                    </property>
+                </widget>
+                <widget class="QToolButton">
+                    <property name="name">
+                        <cstring>redoButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string></string>
+                    </property>
+                    <property name="iconSet">
+                        <iconset>redo.png</iconset>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
+                    </property>
+                </widget>
                 <widget class="QCheckBox">
                     <property name="name">
                         <cstring>showCheckBox</cstring>
@@ -97,7 +125,7 @@
                         <enum>NoFocus</enum>
                     </property>
                     <property name="text">
-                        <string>Show point</string>
+                        <string>Show</string>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Show current point when changing object, contour, or point</string>
@@ -969,12 +997,23 @@
         <receiver>InfoControls</receiver>
         <slot>autoClicked()</slot>
     </connection>
+    <connection>
+        <sender>undoButton</sender>
+        <signal>clicked()</signal>
+        <receiver>InfoControls</receiver>
+        <slot>undoClicked()</slot>
+    </connection>
+    <connection>
+        <sender>redoButton</sender>
+        <signal>clicked()</signal>
+        <receiver>InfoControls</receiver>
+        <slot>redoClicked()</slot>
+    </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">imodconfig.h</include>
+    <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">unpegged.xpm</include>
     <include location="local" impldecl="in implementation">imod_info.h</include>
-    <include location="global" impldecl="in implementation">stdio.h</include>
     <include location="global" impldecl="in implementation">qsignalmapper.h</include>
     <include location="local" impldecl="in implementation">imod_info_cb.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -1020,7 +1059,10 @@
     <slot>keepOnTopToggled( bool state )</slot>
     <slot>subareaToggled( bool state )</slot>
     <slot>autoClicked()</slot>
+    <slot>undoClicked()</slot>
+    <slot>redoClicked()</slot>
     <slot>setFloat( int state )</slot>
+    <slot>setUndoRedo( bool undoOn, bool redoOn )</slot>
     <slot>setBWSliders( int black, int white )</slot>
     <slot>setMovieModel( int which )</slot>
     <slot>updateOCP( int * newVal, int * maxVal )</slot>

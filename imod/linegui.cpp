@@ -29,51 +29,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 1.7  2004/11/05 19:08:12  mast
-Include local files with quotes, not brackets
-
-Revision 1.6  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 1.5  2004/07/11 18:26:30  mast
-Made it set contour time correctly when copying
-
-Revision 1.4  2004/06/23 03:34:14  mast
-Added ability to save and restore all settings, and a button to restore
-defaults
-
-Revision 1.3  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 1.2  2003/11/27 06:08:01  mast
-Fixed bug in copying image that made it work only for square images
-
-Revision 1.1  2003/10/25 16:16:06  mast
-convert from plugin to internal module
-
-Revision 3.5  2003/09/16 02:07:24  mast
-Changed to copy image data into a buffer using new line pointers
-
-Revision 3.4  2003/05/12 19:13:06  mast
-Fix hot key spelling
-
-Revision 3.3  2003/04/17 18:34:29  mast
-adding parent to window creation
-
-Revision 3.2  2003/03/26 15:56:46  mast
-Change lostFocus to focusLost
-
-Revision 3.1  2003/02/10 20:55:40  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/27 00:35:53  mast
-Qt version
-
-Revision 3.1  2002/08/22 05:54:47  mast
-Allocated and passed a working array to conttrack to prevent crashes,
-added a Copy button.
-
+Log at end of file
 */
 
 
@@ -108,6 +64,7 @@ added a Copy button.
 #include "linegui.h"
 #include "xzap.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 #ifndef LINE_PLUGIN
 static char *imodPlugInfo(int *type);
@@ -203,7 +160,8 @@ void conttrack_(unsigned char *image, int *nx, int *ny,
                 int   *copyfit);
 }
 
-static PlugData thisPlug = { 0, 0 };
+static PlugData thisPlug = { 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 // A function to set or reset the interface defaults
 static void setDefaults()
@@ -325,7 +283,8 @@ void imodPlugExecute(ImodView *inImodView)
     setDefaults();
 
     // Get window position and values from settings the first time
-    numVals = ImodPrefs->getGenericSettings("LineTracker", values, MAX_SETTINGS);
+    numVals = ImodPrefs->getGenericSettings("LineTracker", values, 
+                                            MAX_SETTINGS);
     if (numVals > 12 ) {
       plug->left = (int)values[0];
       plug->top = (int)values[1];
@@ -369,7 +328,7 @@ char *buttonLabels[] = {"Track", "Copy", "Undo", "Reset", "Done", "Help"};
 char *buttonTips[] = 
   {"Track from last to current model point - Hot key: Spacebar",
    "Copy and adjust contour from adjacent section - Hot key: Apostrophe",
-   "Undo or redo last tracking operation - Hot key: Semicolon or U", 
+   "Undo last modeling operation - Hot key: Semicolon or U", 
    "Reset parameters to built-in default values", "Close line tracker",
    "Open help window"};
 
@@ -569,6 +528,9 @@ void LineTrack::track(int client)
     }
     tmpcont = imodContourDup(plug->cont);
     imodGetIndex(theModel, &plug->ob, &plug->copiedco, &plug->pt);
+
+    plug->obj = imodObjectGet(theModel);
+    plug->view->undo->contourAddition(imodObjectGetMaxContour(plug->obj));
     imodNewContour(theModel);
     plug->cont = imodContourGet(theModel);
     imodContourCopy(tmpcont, plug->cont);
@@ -604,6 +566,7 @@ void LineTrack::track(int client)
   pts = (Ipoint *)malloc(npoint * sizeof(Ipoint));
   if (!pts){
     wprint("\aLineTrack memory allocation error!\n");
+    plug->view->undo->flushUnit();
     return;
   }
 
@@ -611,6 +574,8 @@ void LineTrack::track(int client)
   free(plug->cont->pts);
   plug->cont->pts = pts;
   if(copytol == 0) {
+    plug->view->undo->contourDataChg();
+
     linetrack_(plug->idata, &plug->xsize, &plug->ysize,
                (float *)pts, &maxpoint, &curpt , &npoint,
                &plug->ksize,
@@ -626,12 +591,14 @@ void LineTrack::track(int client)
                &iffail);
     if(iffail != 0){
       wprint("\aLineTrack failed to find path\n");
+      plug->view->undo->flushUnit();
     }
   } else  {
 
     p_copy = (float *)malloc(npoint * sizeof(Ipoint));
     if (!p_copy){
       wprint("\aLineTrack memory allocation error!\n");
+      plug->view->undo->flushUnit();
       return;
     }
 
@@ -654,6 +621,7 @@ void LineTrack::track(int client)
   plug->cont->psize = maxpoint;
   plug -> copysize = maxpoint;
   imodSetIndex(theModel, plug->ob, plug->co, curpt);
+  plug->view->undo->finishUnit();
   ivwDraw(plug->view, IMOD_DRAW_MOD);
   return;
 }
@@ -662,9 +630,12 @@ void LineTrack::track(int client)
 void LineTrack::undo()
 {
   PlugData *plug = &thisPlug;
+  plug->view->undo->undo();
+  return;
+
+#ifdef OLD_UNDO
   Imod *theModel = ivwGetModel(plug->view);
   Icont *cont;
-  int x, y, z;
   int ob, co, pt;
 
 
@@ -697,6 +668,7 @@ void LineTrack::undo()
       }
     }
   }
+#endif
 }
 
 
@@ -741,7 +713,7 @@ void LineTrack::buttonPressed(int which)
        "          Ctrl-Space to track from the current point "
        "and close the contour\n",
        "          Apostrophe to copy contour to current section\n",
-       "          u or Semicolon to undo last action\n",
+       "          u or Semicolon to undo last modeling action\n",
        "\nParameters:\n\n",
        "0 Light, 1 Dark Lines: Set to 0 or 1 to follow bright "
        "or dark lines.\n\n",
@@ -831,3 +803,54 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
+
+/*
+$Log$
+Revision 1.8  2004/11/09 01:19:16  mast
+Fixed problem in not allocating big enough copy array in contour copy
+
+Revision 1.7  2004/11/05 19:08:12  mast
+Include local files with quotes, not brackets
+
+Revision 1.6  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
+Revision 1.5  2004/07/11 18:26:30  mast
+Made it set contour time correctly when copying
+
+Revision 1.4  2004/06/23 03:34:14  mast
+Added ability to save and restore all settings, and a button to restore
+defaults
+
+Revision 1.3  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
+Revision 1.2  2003/11/27 06:08:01  mast
+Fixed bug in copying image that made it work only for square images
+
+Revision 1.1  2003/10/25 16:16:06  mast
+convert from plugin to internal module
+
+Revision 3.5  2003/09/16 02:07:24  mast
+Changed to copy image data into a buffer using new line pointers
+
+Revision 3.4  2003/05/12 19:13:06  mast
+Fix hot key spelling
+
+Revision 3.3  2003/04/17 18:34:29  mast
+adding parent to window creation
+
+Revision 3.2  2003/03/26 15:56:46  mast
+Change lostFocus to focusLost
+
+Revision 3.1  2003/02/10 20:55:40  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/27 00:35:53  mast
+Qt version
+
+Revision 3.1  2002/08/22 05:54:47  mast
+Allocated and passed a working array to conttrack to prevent crashes,
+added a Copy button.
+
+*/

@@ -65,6 +65,7 @@ class InfoWindow : public QMainWindow
   void manageMenus();
   void keepOnTop(bool state);
   void setFontDependentWidths();
+  void openSelectedWindows(char *keys);
 
   public slots:
   void fileSlot(int item);
@@ -113,6 +114,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.13  2004/11/01 23:25:13  mast
+    Added delete surface menu entry
+
     Revision 3.12  2004/09/21 20:17:11  mast
     Added menu option to renumber object
 

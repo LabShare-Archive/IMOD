@@ -62,6 +62,7 @@ Log at end of file
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 static void newContourOrSurface(ImodView *vw, int surface);
 
@@ -115,31 +116,26 @@ void inputInsertPoint(ImodView *vw)
 
   /* create a new contour if there is no current contour */
   if (obj && vw->imod->mousemode == IMOD_MMODEL) {
-    cont = ivwGetOrMakeContour(vw, obj);
+    cont = ivwGetOrMakeContour(vw, obj, 0);
     if (!cont)
       return;
-    
-    /* Set time of empty contour to current time */
-    if (!cont->psize && zapTimeMismatch(vw, 0, obj, cont))
-      cont->type = vw->ct;
 
     /* Add point only if at current time */
-    if (!zapTimeMismatch(vw, 0, obj, cont)) {
+    if (!ivwTimeMismatch(vw, 0, obj, cont)) {
       point.x = vw->xmouse;
       point.y = vw->ymouse;
       point.z = vw->zmouse;
       
-      pt = vw->imod->cindex.point;
-      if ((cont->psize - 1) == pt)
-	imodNewPoint(vw->imod, &point);
-      else{
-	if (vw->insertmode)
-	  InsertPoint(vw->imod, &point, pt);
-	else
-	  InsertPoint(vw->imod, &point, pt + 1);
-      }
+      // Set insertion point to next point, or to current point if inserting
+      // backwards
+      pt = vw->imod->cindex.point + 1;
+      if (pt > 0 && vw->insertmode)
+        pt--;
+
+      ivwRegisterInsertPoint(vw, cont, &point, pt);
     }
   }
+  vw->undo->finishUnit();
   imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
 }
 
@@ -147,12 +143,21 @@ void inputDeletePoint(ImodView *vw)
 {
   Icont *cont;
   if (vw->imod->mousemode == IMOD_MMODEL){
-          
-    imodDeletePoint(vw->imod);
+
+    cont = imodContourGet(vw->imod);
+    if (cont->psize == 1)
+      vw->undo->contourRemoval();
+    else
+      vw->undo->pointRemoval();
+
+    if (imodDeletePoint(vw->imod) < 0)
+      vw->undo->flushUnit();
+    else
+      vw->undo->finishUnit();
 
     /* If inserting in reverse, advance to next point unless at start
        of contour */
-    if (vw->insertmode && vw->imod->cindex.point){
+    if (vw->insertmode && vw->imod->cindex.point > 0){
       cont = imodContourGet(vw->imod);
       if (cont){
         vw->imod->cindex.point++;
@@ -172,16 +177,22 @@ void inputModifyPoint(ImodView *vw)
   Icont *cont = imodContourGet(vw->imod);
   Ipoint *point = imodPointGet(vw->imod);
      
-  if (point && cont && obj && !zapTimeMismatch(vw, 0, obj, cont) &&
+  if (point && cont && obj && !ivwTimeMismatch(vw, 0, obj, cont) &&
       vw->imod->mousemode == IMOD_MMODEL) {
+
+    
     /* DNM: if z value is changing, need to set contour's wild flag */
     if (point->z != vw->zmouse) {
       Icont *cont = imodContourGet(vw->imod);
+      if (!(cont->flags & ICONT_WILD))
+        vw->undo->contourPropChg();
       cont->flags |= ICONT_WILD;
     }
+    vw->undo->pointShift();
     point->x = vw->xmouse;
     point->y = vw->ymouse;
     point->z = vw->zmouse;
+    vw->undo->finishUnit();
   }
   imodDraw(vw, IMOD_DRAW_MOD);
 }
@@ -279,20 +290,27 @@ static void newContourOrSurface(ImodView *vw, int surface)
 {
   Iobj *obj = imodObjectGet(vw->imod);
   Icont *cont;
-  if (vw->imod->mousemode == IMOD_MMOVIE)
+  if (!obj || vw->imod->mousemode == IMOD_MMOVIE)
     return;
-  if (vw->imod->cindex.object >= 0)
-    imodNewContour(vw->imod);
+
+  // Register an object property change if there is a new surface
+  if (surface)
+    vw->undo->objectPropChg();
+  vw->undo->contourAddition(obj->contsize);
+
+  imodNewContour(vw->imod);
   cont = imodContourGet(vw->imod);
   if (surface)
     imodel_contour_newsurf(obj, cont);
 
   ivwSetNewContourTime(vw, obj, cont);
+  vw->undo->finishUnit();
   if (imodSelectionListClear(vw))
     imod_setxyzmouse();
   imod_info_setocp();
 }
 
+// Unused 11/16/04
 void inputContourDup(ImodView *vw)
 {
   Icont *cont, *ocont;
@@ -314,6 +332,7 @@ void inputContourDup(ImodView *vw)
 void inputNextObject(ImodView *vw)
 {
   imodNextObject(vw->imod);
+  inputKeepContourAtSameTime(vw);
 
   /*  Drop tests for object in this and next function, setxyzmouse works OK 
       with no  object */
@@ -329,6 +348,8 @@ void inputPrevObject(ImodView *vw)
   imod_setxyzmouse();
 }
 
+// Finds first contour in object that matches the current time and sets it as
+// current contour
 void inputKeepContourAtSameTime(ImodView *vw)
 {
   Iobj *obj;
@@ -349,8 +370,7 @@ void inputKeepContourAtSameTime(ImodView *vw)
     if (cont->type != currentTime){
       for(co = 0; co < obj->contsize; co++){
 	if (obj->cont[co].type ==  currentTime){
-	  imodSetIndex
-	    (vw->imod, objIndex, co, pointIndex);
+	  imodSetIndex (vw->imod, objIndex, co, pointIndex);
 	  break;
         }
       }
@@ -555,23 +575,22 @@ void inputNextTime(ImodView *vw)
   int time, maxtime;
 
   maxtime = ivwGetTime(vw, &time);
-  if (!maxtime) return;
+  if (!maxtime) 
+    return;
      
   time++;
   /*     inputSetModelTime(vw, time); */
   ivwSetTime(vw, time);
   imodDraw(vw, IMOD_DRAW_ALL);
-  return;
 }
 
 void inputMovieTime(ImodView *vw, int val)
 {
   int time;
   int maxtime = ivwGetTime(vw, &time);
-  if (!maxtime) return;
-  imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, 
-                MOVIE_DEFAULT, val);
-  return;
+  if (!maxtime)
+    return;
+  imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, val);
 }
 
 void inputPrevTime(ImodView *vw)
@@ -579,34 +598,29 @@ void inputPrevTime(ImodView *vw)
   int time, maxtime;
      
   maxtime = ivwGetTime(vw, &time);
-  if (!maxtime) return;
+  if (!maxtime)
+    return;
      
   time--;
   /*     inputSetModelTime(vw, time); */
   ivwSetTime(vw, time);
   imodDraw(vw, IMOD_DRAW_ALL);
-  return;
 }
 
 void inputFirstPoint(ImodView *vw)
 {
-  Icont *cont;
-
-  cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vw->imod);
   if (!cont)
     return;
   if (!cont->psize)
     return;
   vw->imod->cindex.point = 0;
   imod_setxyzmouse();
-  return;
 }
 
 void inputLastPoint(ImodView *vw)
 {
-  Icont *cont;
-
-  cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vw->imod);
   if (!cont)
     return;
   if (!cont->psize)
@@ -614,14 +628,12 @@ void inputLastPoint(ImodView *vw)
      
   vw->imod->cindex.point = cont->psize - 1;
   imod_setxyzmouse();
-  return;
 }
 
 void inputMoveObject(ImodView *vw)
 {
   imodContEditMove();
   imod_setxyzmouse();
-  return;
 }
 
 void inputDeleteContour(ImodView *vw)
@@ -631,13 +643,15 @@ void inputDeleteContour(ImodView *vw)
      contour */
   Iobj *obj = imodObjectGet(vw->imod);
   int conew = vw->imod->cindex.contour -1;
-  int numDel, i, delFlag = 2876351;
+  int numDel, i;
+  b3dUInt32 delFlag = 2876351;
   Iindex *index;
   QString qstr;
 
   if (!ilistSize(vw->selectionList)) {
     if (!imodContourGet(vw->imod))
       return;
+    vw->undo->contourRemoval();
     DelContour(vw->imod, vw->imod->cindex.contour);
 
   } else {
@@ -646,7 +660,7 @@ void inputDeleteContour(ImodView *vw)
     numDel = 0;
     for (i = 0; i < ilistSize(vw->selectionList); i++) {
       index = (Iindex *)ilistItem(vw->selectionList, i);
-      if (index->object =  vw->imod->cindex.object)
+      if (index->object ==  vw->imod->cindex.object)
         numDel++;
     }
     qstr.sprintf("Are you sure you want to delete these %d contours?", numDel);
@@ -656,19 +670,21 @@ void inputDeleteContour(ImodView *vw)
     // Go through again and set flags for deletion
     for (i = 0; i < ilistSize(vw->selectionList); i++) {
       index = (Iindex *)ilistItem(vw->selectionList, i);
-      if (index->object =  vw->imod->cindex.object)
+      if (index->object ==  vw->imod->cindex.object)
         obj->cont[index->contour].flags = delFlag;
     }
 
     // Loop backwards through object removing flagged contours
     for (i = obj->contsize - 1; i >= 0; i--) {
       if (obj->cont[i].flags == delFlag) {
+        vw->undo->contourRemoval(vw->imod->cindex.object, i);
         DelContour(vw->imod, i);
         conew = i - 1;
       }
     }
   }
-
+  vw->undo->finishUnit();
+    
   if (conew < 0 && obj->contsize > 0)
     conew = 0;
   vw->imod->cindex.contour = conew;
@@ -682,7 +698,9 @@ void inputTruncateContour(ImodView *vw)
   Icont *cont = imodContourGet(vw->imod);
   if (!cont || vw->imod->cindex.point < 0)
     return;
+  vw->undo->contourDataChg();
   cont->psize = vw->imod->cindex.point + 1;
+  vw->undo->finishUnit();
   imod_setxyzmouse();
 }
 
@@ -717,6 +735,8 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
   cont = imodContourGet(vw->imod);
   if (!cont)
     return;
+
+  vw->undo->pointShift();
   pt = &(cont->pts[vw->imod->cindex.point]);
   if (x){
     if (x > 0){
@@ -743,6 +763,16 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
           
   }
   if (z){
+    if (cont->psize > 1) {
+      /* DNM: since z is changing, need to set contour's wild flag */
+      obj = imodObjectGet(vw->imod);
+      if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
+        wprint("\aContour is no longer in one Z plane. "
+               "With this contour, you will not get a new"
+               " contour automatically when you change Z.");
+      vw->undo->contourPropChg();
+      cont->flags |= ICONT_WILD;
+    }
     if (z > 0){
       pt->z += 1.0f;
       vw->zmouse = pt->z;
@@ -758,16 +788,8 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
         vw->zmouse = 0;
       }
     }
-    if (cont->psize > 1) {
-      /* DNM: since z is changing, need to set contour's wild flag */
-      obj = imodObjectGet(vw->imod);
-      if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
-        wprint("\aContour is no longer in one Z plane. "
-               "With this contour, you will not get a new"
-               " contour automatically when you change Z.");
-      cont->flags |= ICONT_WILD;
-    }
   }
+  vw->undo->finishUnit();
   imodDraw(vw, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
   return;
 }
@@ -801,10 +823,13 @@ void inputFindMaxValue(ImodView *vw)
   return;
 }
 
+// Create a new object
 void inputNewObject(ImodView *vw)
 {
   Iobj *obj;
+  vw->undo->objectAddition(vw->imod->objsize);
   imodNewObject(vw->imod); 
+  vw->undo->finishUnit();
 
   obj = imodObjectGet(vw->imod);
 
@@ -850,6 +875,28 @@ void inputSaveModel(ImodView *vw)
   return;
 }
 
+// Do an undo or a redo
+void inputUndoRedo(ImodView *vw, bool redo)
+{
+  int err;
+  if (redo)
+    err = vw->undo->redo();
+  else
+    err = vw->undo->undo();
+  if (err == UndoRedo::NoneAvailable)
+    wprint("\aThere is no further %s information available.\n", 
+           redo ? "redo" : "undo");
+  if (err == UndoRedo::StateMismatch)
+    wprint("\aThe model has changed in a way that prevents the %s.\n",
+           redo ? "redo" : "undo");
+  if (err == UndoRedo::MemoryError)
+    wprint("\aError - insufficient memory for operation!\n");
+  if (err == UndoRedo::NoBackupItem)
+    wprint("\aError - a needed backup item was not found.\n");
+
+}
+
+
 // Until full Qt includes are used, we need the Qt:: before the keys.
 // Or maybe it's the QT_CLEAN_NAMESPACE flag after all
 
@@ -858,6 +905,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int keysym = event->key();
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
+  int ctrl = event->state() & Qt::ControlButton;
   int bwStep = ImodPrefs->getBwStep();
   int mean, sd;
 
@@ -972,7 +1020,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_D:
     if (shifted)
       inputDeleteContour(vw);
-    else if (event->state() & Qt::ControlButton)
+    else if (ctrl)
       inputTruncateContour(vw);
     else
       handled = 0;
@@ -1092,12 +1140,22 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     imodv_open();
     break;
 
+  case Qt::Key_Y:
+    if (ctrl)
+      inputUndoRedo(vw, true);
+    else
+      handled = 0;
+    break;
+
   case Qt::Key_Z:
-    imod_zap_open(vw);
+    if (ctrl)
+      inputUndoRedo(vw, false);
+    else
+      imod_zap_open(vw);
     break;
           
   case Qt::Key_R:
-    if (event->state() & Qt::ControlButton)
+    if (ctrl)
       inputRaiseWindows();
     else
       handled = 0;
@@ -1249,6 +1307,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.20  2004/11/01 23:38:06  mast
+Changes for multiple selection and deletion of multiple contours
+
 Revision 4.19  2004/09/21 20:28:44  mast
 Backed out an erroneous checkin
 

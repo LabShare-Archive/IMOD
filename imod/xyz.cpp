@@ -54,6 +54,7 @@ Log at end of file
 #include "imod_workprocs.h"
 #include "imod_moviecon.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 #define XYZ_BSIZE 11
 #define GRAB_LENGTH 7
@@ -493,17 +494,13 @@ void XyzWindow::B2Press(int x, int y)
     return;
 
   // DNM 7/10/04: switch to calling function for this
-  cont = ivwGetOrMakeContour(xx->vi, obj);
+  // 11/17/04: have it take care of modifying time of empty contour
+  cont = ivwGetOrMakeContour(xx->vi, obj, 0);
   if (!cont)
     return;
 
-  /* If contour is empty and time doesn't match, 
-     reassign it to the current time */
-  if (zapTimeMismatch(xx->vi, 0, obj, cont) && !cont->psize)
-    cont->type = xx->vi->ct;
-
   /* Now if times still don't match refuse the point */
-  if (zapTimeMismatch(xx->vi, 0, obj, cont)) {
+  if (ivwTimeMismatch(xx->vi, 0, obj, cont)) {
     wprint("\aContour time does not match current time.\n"
 	   "Set contour time to 0 to model across times.\n");
     return;
@@ -520,16 +517,11 @@ void XyzWindow::B2Press(int x, int y)
   point.x = mx;
   point.y = my;
   point.z = mz;
-  pt = xx->vi->imod->cindex.point;
+  pt = xx->vi->imod->cindex.point + 1;
 
-  if ((cont->psize - 1) == pt)
-    NewPoint(xx->vi->imod, &point);
-  else
-    InsertPoint(xx->vi->imod, &point, pt + 1);
+  ivwRegisterInsertPoint(xx->vi, cont, &point, pt);
 
-  /* For a non-closed contour, maintain the wild flag */
-  if (!iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
-    imodel_contour_check_wild(cont);
+  /* 11/71/04: deleted test to maintain wild flag, insert takes care of it */
   xx->vi->xmouse  = mx;
   xx->vi->ymouse  = my;
 
@@ -596,12 +588,14 @@ void XyzWindow::B3Press(int x, int y)
   if (!ivwPointVisible(xx->vi, &(cont->pts[pt])))
     return;
 
-  if (zapTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
     return;
 
-         
+  xx->vi->undo->pointShift();
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
+  xx->vi->undo->finishUnit();
+
   xx->vi->xmouse  = mx;
   xx->vi->ymouse  = my;
   ivwBindMouse(xx->vi);
@@ -706,7 +700,7 @@ void XyzWindow::B2Drag(int x, int y)
   if (pt < 0)
     return;
 
-  if (zapTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
     return;
 
   /* DNM: don't make closed contours wild if they're not */
@@ -722,14 +716,8 @@ void XyzWindow::B2Drag(int x, int y)
   if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
     return;
 
-  if ((cont->psize - 1) == pt)
-    NewPoint(xx->vi->imod, &point);
-  else
-    InsertPoint(xx->vi->imod, &point, pt + 1);
+  ivwRegisterInsertPoint(xx->vi, cont, &point, pt);
 
-  /* For a non-closed contour, maintain the wild flag */
-  if (!iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
-    imodel_contour_check_wild(cont);
   xx->vi->xmouse  = mx;
   xx->vi->ymouse  = my;
   ivwBindMouse(xx->vi);
@@ -777,7 +765,7 @@ void XyzWindow::B3Drag(int x, int y)
   if (pt < 0)
     return;
 
-  if (zapTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
     return;
 
   point.x = mx;
@@ -792,10 +780,13 @@ void XyzWindow::B3Drag(int x, int y)
   if (pt >= cont->psize)
     pt = cont->psize - 1;
 
+  xx->vi->imod->cindex.point = pt;
+  xx->vi->undo->pointShift();
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
   cont->pts[pt].z = mz;
-  xx->vi->imod->cindex.point = pt;
+  xx->vi->undo->finishUnit();
+
   xx->vi->xmouse  = mx;
   xx->vi->ymouse  = my;
   ivwBindMouse(xx->vi);
@@ -835,14 +826,14 @@ void XyzWindow::SetSubimage(int absStart, int winSize, int imSize,
 void XyzWindow::DrawImage()
 {
   struct xxyzwin *win = mXyz;
-  unsigned int x, y, z, i;
+  int x, y, z, i;
   int nx = win->vi->xsize;
   int ny = win->vi->ysize;
   int nz = win->vi->zsize;
   unsigned char **id;
   unsigned char *fdata;
-  unsigned int cyi;
-  int cx, cy, cz, iz;
+  int cyi;
+  int cx, cy, cz;
   int imdataxsize;
   unsigned char **imdata;
   int extraImSize;
@@ -944,7 +935,7 @@ void XyzWindow::DrawImage()
               fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
           } else {
             for (z = 0; z < nz; z++) 
-              fdata[z + y * nz] = 0.;
+              fdata[z + y * nz] = 0;
           }
       } else {
         for(z = 0; z < nz; z++) {
@@ -1105,7 +1096,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (!cont->psize)
     return;
      
-  if (zapTimeMismatch(vi, 0, obj, cont))
+  if (ivwTimeMismatch(vi, 0, obj, cont))
     return;
 
   zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
@@ -1367,7 +1358,6 @@ void XyzWindow::DrawModel()
   struct xxyzwin *xx = mXyz;
   Imod *imod = xx->vi->imod;
   Iobj *obj;
-  Icont *cont;
   int ob, co;
 
   if (imod->drawmode <= 0)
@@ -1415,7 +1405,7 @@ void XyzWindow::DrawCurrentPoint()
 
   /* Draw begin and end points of selected contour in model mode. */
   if (xx->vi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1 &&
-      !zapTimeMismatch(xx->vi, 0, obj, cont)) {
+      !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
 
     b3dColorIndex(App->bgnpoint);
     point = cont->pts;
@@ -1442,7 +1432,7 @@ void XyzWindow::DrawCurrentPoint()
   if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
           
     if ((int)floor(pnt->z + 0.5) == cz && 
-        !zapTimeMismatch(xx->vi, 0, obj, cont)) {
+        !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
       b3dColorIndex(App->curpoint);
     }else{
       b3dColorIndex(App->shadow);
@@ -1740,6 +1730,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.22  2004/11/02 20:16:34  mast
+Switched to using curpoint color for current point
+
 Revision 4.21  2004/11/01 22:56:51  mast
 Kept floating point positions, made res zoom-dependent
 

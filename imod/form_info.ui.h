@@ -43,6 +43,10 @@ void InfoControls::init()
     
     QToolTip::add(raiseButton, "Raise all 3dmod windows above other windows (hot key "
 		  CTRL_STRING"-R)");
+    QToolTip::add(undoButton, "Undo changes to model (hot key "CTRL_STRING"-Z)");
+    QToolTip::add(redoButton, "Redo changes that were undone (hot key "
+		  CTRL_STRING"-Y)");
+    
     // Get signal mappers for the combo boxes
     QSignalMapper *ocpMapper = new QSignalMapper(this);
     QSignalMapper *xyzMapper = new QSignalMapper(this);
@@ -72,6 +76,9 @@ void InfoControls::init()
     QSize hint = keepOnTopButton->sizeHint();
     raiseButton->setFixedWidth(hint.width());
     keepOnTopButton->setFixedWidth(hint.width());
+    undoButton->setFixedWidth(hint.width());
+    redoButton->setFixedWidth(hint.width());
+    setUndoRedo(false, false);
 }
 
 // Set a minimum width for spin boxes to keep arrows big
@@ -209,6 +216,16 @@ void InfoControls::autoClicked()
     imodInfoAutoContrast(mean, sd);
 }
 
+void InfoControls::undoClicked()
+{
+  inputUndoRedo(App->cvi, false); 
+}
+
+void InfoControls::redoClicked()
+{
+  inputUndoRedo(App->cvi, true); 
+}
+
 // ROUTINES FOR SETTING CONTROLS
 // Float checkbox is disabled for state < 0
 void InfoControls::setFloat( int state )
@@ -217,6 +234,13 @@ void InfoControls::setFloat( int state )
     subareaCheckBox->setEnabled(state >= 0);
     autoButton->setEnabled(state >= 0);
     diaSetChecked(floatCheckBox, state > 0);
+}
+
+// Enable the undo/ redo buttons
+void InfoControls::setUndoRedo( bool undoOn, bool redoOn )
+{
+    undoButton->setEnabled(undoOn);
+    redoButton->setEnabled(redoOn);
 }
 
 // Set the sliders with new values

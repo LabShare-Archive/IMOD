@@ -60,6 +60,7 @@ Log at end of file
 #include "imod_workprocs.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
@@ -77,11 +78,12 @@ static void setupContourShift(ZapStruct *zap);
 static void startShiftingContour(ZapStruct *zap, int x, int y);
 static void shiftContour(ZapStruct *zap, int x, int y);
 static void startMovieCheckSnap(ZapStruct *zap, int dir);
+static void registerDragAdditions(ZapStruct *zap);
 
 static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
 static void zapDrawContour(ZapStruct *zap, int co, int ob);
-static void zapDrawCurrentPoint(ZapStruct *zap, int undraw);
+static void zapDrawCurrentPoint(ZapStruct *zap);
 static void zapDrawExtraObject(ZapStruct *zap);
 static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
@@ -99,6 +101,8 @@ static void zapToggleRubberband(ZapStruct *zap);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
 
+static int dragRegisterSize = 10;
+
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
 
@@ -110,8 +114,6 @@ static int subStartX = 0;
 static int subStartY = 0;
 static int subEndX = 0;
 static int subEndY = 0;
-
-static int zapDebug = 0;
 
 void zapHelp()
 {
@@ -268,7 +270,7 @@ void zapHelp()
 static void zapClose_cb(ImodView *vi, void *client, int junk)
 {
   ZapStruct *zap = (ZapStruct *)client;
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("Sending zap window close.\n");
   zap->qtWindow->close();
 }
@@ -276,7 +278,7 @@ static void zapClose_cb(ImodView *vi, void *client, int junk)
 /* This receives a closing signal from the window */
 void zapClosing(ZapStruct *zap)
 {
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("ZapClosing received.\n");
 
   // Do cleanup
@@ -333,7 +335,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int *limits;
   int limarr[4];
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("Zap Draw\n");
 
   if (!zap) return;
@@ -476,14 +478,12 @@ static void zapSyncImage(ZapStruct *win)
 // This receives the resize events which precede paint signals
 void zapResize(ZapStruct *zap, int winx, int winy)
 {
-   int bandmin = 4;
-
   ivwControlPriority(zap->vi, zap->ctrl);
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("RESIZE: ");
 
-  if (zapDebug) {
+  if (imodDebug('z')) {
     imodPrintStderr("Size = %d x %d :", winx, winy);
     if (zap->ginit)
       imodPrintStderr("Old Size = %d x %d :", zap->winx, zap->winy);
@@ -511,7 +511,7 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   b3dBufferImage(zap->image);
   zap->ginit = 1;
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("\n");
   return;
 }
@@ -529,7 +529,7 @@ static void zapDraw(ZapStruct *zap)
 void zapPaint(ZapStruct *zap)
 {
   int ob;
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("Paint:");
 
   b3dSetCurSize(zap->winx, zap->winy);
@@ -555,7 +555,7 @@ void zapPaint(ZapStruct *zap)
   zapDrawGraphics(zap);
 
   zapDrawModel(zap);
-  zapDrawCurrentPoint(zap, 0);
+  zapDrawCurrentPoint(zap);
   zapDrawExtraObject(zap);
   zapDrawAuto(zap);
   if (zap->rubberband) {
@@ -567,7 +567,7 @@ void zapPaint(ZapStruct *zap)
                      zap->rbMouseY1 - zap->rbMouseY0);
   } 
   zapDrawTools(zap);
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("\n");
 }
 
@@ -623,6 +623,7 @@ void zapStateToggled(ZapStruct *zap, int index, int state)
   case ZAP_TOGGLE_INSERT:
     zap->insertmode = state;
     zap->vi->insertmode = zap->insertmode;
+    registerDragAdditions(zap);
     break;
 
   case ZAP_TOGGLE_RUBBER:
@@ -721,7 +722,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->shiftingCont = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
-
+  zap->dragAddCount = 0;
 
   /* Optional time section : find longest string and pass it in */
   if (vi->nt){
@@ -747,7 +748,7 @@ int imod_zap_open(struct ViewInfo *vi)
     wprint("Error opening zap window.");
     return(-1);
   }
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPuts("Got a zap window");
 
   zap->gfx = zap->qtWindow->mGLw;
@@ -782,8 +783,8 @@ int imod_zap_open(struct ViewInfo *vi)
       zap->zoom = (float)newZoom;
     }
 
-    needWinx = zap->zoom * vi->xsize;
-    needWiny = zap->zoom * vi->ysize + toolHeight;
+    needWinx = (int)(zap->zoom * vi->xsize);
+    needWiny = (int)(zap->zoom * vi->ysize) + toolHeight;
     zapLimitWindowSize(needWinx, needWiny);
 
     // Make the width big enough for the toolbar, and add the difference
@@ -849,7 +850,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->move(xleft, ytop);
 #endif    
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPuts("popup a zap dialog");
 
   /* DNM: set cursor after window created so it has model mode cursor if
@@ -931,8 +932,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   Iobj *obj;
   /* downtime.start(); */
 
-  if (Imod_debug)
-    imodPrintStderr("key %x, state %x\n", keysym, event->state());
+  /*if (Imod_debug)
+    imodPrintStderr("key %x, state %x\n", keysym, event->state()); */
   if (inputTestMetaKey(event))
     return;
 
@@ -1183,9 +1184,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         zap->sectionStep = 1;
         wprint("\aAuto-section advance turned ON\n");
       }
-    } else
-      imod_zap_open(vi);
-    handled = 1;
+      handled = 1;
+    }
     break;
 
   case Qt::Key_I:
@@ -1250,6 +1250,7 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
+  registerDragAdditions(zap);
   zap->gfx->setMouseTracking(false);
   zap->qtWindow->releaseKeyboard();
   zap->gfx->releaseMouse();
@@ -1337,10 +1338,13 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->hqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if ((event->button() == ImodPrefs->actualButton(2))
-	     && zap->drawCurrentOnly) {
-    zap->drawCurrentOnly = 0;
-    zapDraw(zap);
+  } else if ((event->button() == ImodPrefs->actualButton(2))) {
+    registerDragAdditions(zap);
+
+    if (zap->drawCurrentOnly) {
+      zap->drawCurrentOnly = 0;
+      zapDraw(zap);
+    }
   }
 }
 
@@ -1386,13 +1390,10 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 
 static int zapBandMinimum(ZapStruct *zap)
 {
-  int bandmin = 4;
-    // Adjust minimum size down in case image is tiny
-    if (bandmin > zap->vi->xsize * zap->xzoom + 2)
-      bandmin = zap->vi->xsize * zap->xzoom + 2;
-    if (bandmin > zap->vi->ysize * zap->zoom + 2)
-      bandmin = zap->vi->ysize * zap->zoom + 2;
-    return bandmin;
+  // Adjust minimum size down in case image is tiny
+  int bandmin = B3DMIN(4, (int)(zap->vi->xsize * zap->xzoom) + 2);
+  bandmin = B3DMIN(bandmin, (int)(zap->vi->ysize * zap->zoom) + 2);
+  return bandmin;
 }
 
 /* Attach to nearest point in model mode, or just modify the current 
@@ -1548,11 +1549,9 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   int   pt;
   float ix, iy;
   float lastz;
-  int time;
   int rcrit = 10;   /* Criterion for moving the whole band */
   int dxll, dxur,dyll, dyur;
   int cz, pz;
-  int curTime = zap->timeLock ? zap->timeLock : vi->ct;
 
   zapGetixy(zap, x, y, &ix, &iy);
 
@@ -1584,13 +1583,14 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   }     
 
   if (vi->imod->mousemode == IMOD_MMODEL){
+    zap->dragAddCount = 0;
     obj = imodObjectGet(vi->imod);
     if (!obj)
       return;
 
     // Get current contour; if there is none, start a new one
-    // DNM 7/10/04: switch to calling routine
-    cont = ivwGetOrMakeContour(vi, obj);
+    // DNM 7/10/04: switch to calling routine; it now fixes time of empty cont
+    cont = ivwGetOrMakeContour(vi, obj, zap->timeLock);
     if (!cont)
       return;
     point.x = ix;
@@ -1602,11 +1602,6 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     vi->xmouse = ix;
     vi->ymouse = iy;
 
-    /* If contour is empty and time doesn't match, 
-       reassign it to the current time */
-    if (zapTimeMismatch(vi, zap->timeLock, obj, cont) && !cont->psize)
-      cont->type = curTime;
-    
     /* If contours are closed and Z has changed, start a new contour */
     /* Also check for a change in time, if time data are being modeled  */
     /* and start new contour for any kind of contour */
@@ -1616,7 +1611,7 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
       cz = (int)floor(cont->pts->z + 0.5); 
       pz = (int)point.z;
       if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) ||
-          zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+          ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
         if (cont->psize == 1) {
           wprint("Started a new contour even though last "
                  "contour had only 1 pt.  ");
@@ -1625,44 +1620,42 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
           else
             wprint("\aSet contour time to 0 to model across times.\n");
         }
+        
+        vi->undo->contourAddition(obj->contsize);
         imodNewContour(vi->imod);
         cont = imodContourGet(vi->imod);
-        if (!cont)
+        if (!cont) {
+          vi->undo->flushUnit();
           return;
+        }
         ivwSetNewContourTime(vi, obj, cont);
       }
     }
 
     /* Now if times still don't match refuse the point */
-    if (zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
       wprint("\aContour time does not match current time.\n"
              "Set contour time to 0 to model across times.\n");
+      vi->undo->finishUnit();
       return;
     }
     
-    pt = vi->imod->cindex.point;
-    if (pt >= 0)
-      lastz = cont->pts[pt].z;
+    // DNM 11/17/04: Cleaned up adding point logic to set an insertion point
+    // and just call InsertPoint with it
+    // Set insertion point to next point and adjust it down if going backwards
+    pt = vi->imod->cindex.point + 1;
+    if (pt > 0)
+      lastz = cont->pts[pt - 1].z;
     else
       lastz = point.z;
 
-    /* Insert or add point depending on insertion mode and whether at end
-       of contour */
-    if ((cont->psize - 1) == pt){
-      if (zap->insertmode && cont->psize)
-        InsertPoint(vi->imod, &point, pt);
-      else
-        NewPoint(vi->imod, &point);
-    }else{
-      if (zap->insertmode)
-        InsertPoint(vi->imod, &point, pt);
-      else
-        InsertPoint(vi->imod, &point, pt + 1);
-    }
+    if (pt > 0 && zap->insertmode)
+      pt--;
+    
+    ivwRegisterInsertPoint(vi, cont, &point, pt);
 
-    /* DNM: auto section advance is based on 
-       the direction of section change between last
-       and just-inserted points */
+    /* DNM: auto section advance is based on the direction of section change 
+       between last and just-inserted points */
     if (zap->sectionStep && point.z != lastz) {
       if (point.z - lastz > 0.0)
         vi->zmouse += 1.0;
@@ -1702,12 +1695,10 @@ static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
       dsq = (lpt->x - ix) * (lpt->x - ix) +
         (lpt->y - iy) * (lpt->y - iy);
       if (dsq <= critsq) {
+        zap->vi->undo->pointRemoval(i);
         imodPointDelete(cont, i);
-        zap->vi->imod->cindex.point = i + zap->insertmode - 1;
-        if (zap->vi->imod->cindex.point < 0)
-          zap->vi->imod->cindex.point = 0;
-        if (zap->vi->imod->cindex.point >= cont->psize)
-          zap->vi->imod->cindex.point = cont->psize - 1;
+        zap->vi->imod->cindex.point = 
+          B3DMIN(cont->psize - 1, B3DMAX(i + zap->insertmode - 1, 0));
         deleted = 1;
         continue;
       }
@@ -1716,6 +1707,7 @@ static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
   }
   if (!deleted)
     return;
+  zap->vi->undo->finishUnit();
   imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
 }
 
@@ -1753,7 +1745,7 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
       return;
 
     obj = imodObjectGet(vi->imod);
-    if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
     /* If the control key is down, delete points under the cursor */
@@ -1765,8 +1757,11 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
           
     if (!zapPointVisable(zap, &(cont->pts[pt])))
       return;
+
+    vi->undo->pointShift();
     cont->pts[pt].x = ix;
     cont->pts[pt].y = iy;
+    vi->undo->finishUnit();
 
     vi->xmouse  = ix;
     vi->ymouse  = iy;
@@ -1927,7 +1922,6 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   float ix, iy, idx, idy;
   double dist;
   int pt;
-  int dx, dy;
      
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
@@ -1994,37 +1988,52 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   // DNM 6/30/04: change to start new for any kind of contour with time change
   if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
       (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
-       zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+       ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+    registerDragAdditions(zap);
     zapButton2(zap, x, y, 0);
     return;
   }
 
-  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
   if ( dist > scaleModelRes(vi->imod->res, zap->zoom)){
-    pt = vi->imod->cindex.point;
 
-    /* Insert or add point depending on insertion mode and whether at end
-       of contour ; DNM made this work the same as single insert */
-    if ((cont->psize - 1) == pt){
-      if (zap->insertmode && cont->psize)
-        InsertPoint(vi->imod, &cpt, pt);
-      else {
-        NewPoint(vi->imod, &cpt);
+    // Set insertion index to next point, or to current if drawing backwards
+    pt = vi->imod->cindex.point + 1;
+    if (pt > 0 && zap->insertmode)
+      pt--;
 
-	// Set flag for drawing current contour only in this case
-	zap->drawCurrentOnly = 1;
-      }
-    }else{
-      if (zap->insertmode)
-        InsertPoint(vi->imod, &cpt, pt);
-      else
-        InsertPoint(vi->imod, &cpt, pt + 1);
-    }
+    // Set flag for drawing current contour only if at end and going forward
+    if (!zap->insertmode && pt == cont->psize)
+      zap->drawCurrentOnly = 1;
+
+    // Register previous additions if the count is up or if the object or
+    // contour has changed
+    if (zap->dragAddCount >= dragRegisterSize || 
+        zap->dragAddIndex.object != vi->imod->cindex.object ||
+        zap->dragAddIndex.contour != vi->imod->cindex.contour)
+      registerDragAdditions(zap);
+
+    
+    // Start keeping track of delayed registrations by opening a unit and
+    // saving the indices
+    // Otherwise, if going backwards, need to increment registered first point
+    if (!zap->dragAddCount) {
+      vi->undo->getOpenUnit();
+      zap->dragAddIndex = vi->imod->cindex;
+      zap->dragAddIndex.point = pt;
+    } else if (zap->insertmode)
+      zap->dragAddIndex.point++;
+
+    
+    // Always save last point not registered and increment count
+    zap->dragAddEnd = pt;
+    zap->dragAddCount++;
 
 
-    // TODO: figure out the right flags
+    InsertPoint(vi->imod, &cpt, pt);
+
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
 }
@@ -2065,7 +2074,7 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   if (iobjScat(obj->flags))
     return;
 
-  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
   if (controlDown) {
@@ -2087,15 +2096,39 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   pt.z = lpt->z;
   if (imodel_point_dist(lpt, &pt) > scaleModelRes(vi->imod->res, zap->zoom)){
     ++vi->imod->cindex.point;
+    vi->undo->pointShift();
     lpt = &(cont->pts[vi->imod->cindex.point]);
     lpt->x = pt.x;
     lpt->y = pt.y;
     lpt->z = pt.z;
+    vi->undo->finishUnit();
     imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
   }
   return;
 }
 
+// Register accumulated additions for undo
+static void registerDragAdditions(ZapStruct *zap)
+{
+  Iindex *index = &zap->vi->imod->cindex;
+  if (!zap->dragAddCount)
+    return;
+  zap->dragAddCount = 0;
+ 
+  // If obj/cont don't match, forget it
+ if (zap->dragAddIndex.object != index->object ||
+      zap->dragAddIndex.contour != index->contour) {
+    zap->vi->undo->flushUnit();
+    return;
+  }
+
+ // Send out the additions
+  zap->vi->undo->pointAddition(B3DMIN(zap->dragAddIndex.point, index->point),
+                               B3DMAX(zap->dragAddIndex.point, index->point));
+  zap->vi->undo->finishUnit();
+}
+
+// Turn off contour shifting and reset mouse
 static void endContourShift(ZapStruct *zap)
 {
   if (!zap->shiftingCont)
@@ -2104,6 +2137,7 @@ static void endContourShift(ZapStruct *zap)
   zapSetCursor(zap, zap->mousemode);
 }
 
+// Check whether contour shifting is OK and return current contour
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
 {
   ImodView *vi = zap->vi;
@@ -2122,11 +2156,12 @@ static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
     endContourShift(zap);
   return cont;
 }
-                             
+
+// Initiate contour shifting                             
 static void setupContourShift(ZapStruct *zap)
 {
   int   pt, err;
-  Icont *cont = checkContourShift(zap, pt, err);
+  checkContourShift(zap, pt, err);
   if (err < 0)
     wprint("\aYou cannot shift scattered point or non-planar open contours."
            "To shift this contour, temporarily make the object type be "
@@ -2138,8 +2173,10 @@ static void setupContourShift(ZapStruct *zap)
   zapSetCursor(zap, zap->mousemode);
 }
 
+// Keep track of the base position for contour shifting
 static Ipoint contShiftBase;
 
+// Start the actual shift once the mouse goes down
 static void startShiftingContour(ZapStruct *zap, int x, int y)
 {
   int   pt, err;
@@ -2153,6 +2190,7 @@ static void startShiftingContour(ZapStruct *zap, int x, int y)
   contShiftBase.y = cont->pts[pt].y - iy;
 }
 
+// Shift contour upon mouse move
 static void shiftContour(ZapStruct *zap, int x, int y)
 {
   int   pt, err;
@@ -2165,10 +2203,13 @@ static void shiftContour(ZapStruct *zap, int x, int y)
 
   ix += contShiftBase.x - cont->pts[pt].x;
   iy += contShiftBase.y - cont->pts[pt].y;
+
+  zap->vi->undo->contourDataChg();
   for (pt = 0; pt < cont->psize; pt++) {
     cont->pts[pt].x += ix;
     cont->pts[pt].y += iy;
   }
+  zap->vi->undo->finishUnit();
   imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
 }
 
@@ -2392,7 +2433,7 @@ static void zapResizeToFit(ZapStruct *zap)
   newdy = dy + height / 2 - newh / 2;
   zapLimitWindowPos(neww, newh, newdx, newdy);
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("configuring widget...");
 
   /* imodPrintStderr("newdx %d newdy %d\n", newdx, newdy); */
@@ -2402,7 +2443,7 @@ static void zapResizeToFit(ZapStruct *zap)
   /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, and a second set geometry that
      was needed temporarily with Qt 3.2.1 on Mac */
 
-  if (zapDebug)
+  if (imodDebug('z'))
     imodPrintStderr("back\n");
 }
      
@@ -2463,7 +2504,6 @@ void zapReportRubberband()
   QObjectList objList;
   ZapStruct *zap;
   int i, bin;
-  float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt;
 
   imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
@@ -2562,7 +2602,6 @@ static void zapDrawModel(ZapStruct *zap)
   int ob, co;
   int surf = -1;
   Icont *cont = imodContourGet(vi->imod);
-  Iobj *xobj = vi->extraObj;
 
   if (vi->imod->drawmode <= 0)
     return;
@@ -2664,7 +2703,6 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   float delz;
   Iobj  *obj;
   Icont *cont;
-  Ipoint *point;
   int pt, radius, lastX, lastY, thisX, thisY;
   float drawsize, zscale;
   bool lastVisible, thisVisible, selected;
@@ -2685,7 +2723,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   /* check for contours that contian time data. */
   /* Don't draw them if the time isn't right. */
   /* DNM 6/7/01: but draw contours with time 0 regardless of time */
-  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
   selected = imodSelectionListQuery(vi, ob, co) > -2;
@@ -2856,7 +2894,7 @@ void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
     *imPtSize = symSize + 2;
 }
 
-static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
+static void zapDrawCurrentPoint(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
   Iobj *obj = imodObjectGet(vi->imod);
@@ -2902,7 +2940,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
       x = zapXpos(zap, pnt->x);
       y = zapYpos(zap, pnt->y);
       if (zapPointVisable(zap, pnt) && 
-	  !zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+	  !ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
         b3dColorIndex(App->curpoint);
       }else{
         b3dColorIndex(App->shadow);
@@ -2913,7 +2951,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
      
   /* draw begin/end points for current contour */
   if (cont){
-    if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
     b3dLineWidth(obj->linewidth2);
@@ -3143,18 +3181,13 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
   return(0);
 }
 
-/* Return true if there are multiple images, contours have times in this 
-   object, this contour has a non-zero time, and this time does not match
-   current display time, which is either global time or timelock time */
-bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
-{
-  int time = timelock ? timelock : vi->ct;
-  return (vi->nt > 0 && iobjFlagTime(obj) && (cont->flags & ICONT_TYPEISTIME)
-	  && cont->type && (time != cont->type));
-}
 
 /*
 $Log$
+Revision 4.52  2004/11/12 01:21:55  mast
+Made line thicknesses be 1 for current image point and band, and have
+object's thickness for current contour markers
+
 Revision 4.51  2004/11/04 17:02:41  mast
 Changes for switching to shifting contour as a mode that is turned on
 

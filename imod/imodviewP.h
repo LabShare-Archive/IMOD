@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/11/07 22:59:52  mast
+Make binning routine global
+
 Revision 1.5  2004/10/27 20:38:30  mast
 Changed arguments for cache dump routines
 
@@ -75,5 +78,8 @@ void memreccpy
  int xcpy, int ycpy, int psize, /* amount/size of data to copy. */
  int tskip, int tox, int toy,   /* to buffer offsets, skip. */
  int fskip, int fox, int foy);   /* from buffer offsets, skip. */
+
+bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
+int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
 
 #endif

@@ -451,8 +451,6 @@ void slicerReportAngles()
   QObjectList objList;
   SlicerStruct *ss;
   int i, topOne;
-  float xl, xr, yb, yt;
-  int ixl, ixr, iyb, iyt;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   if (!objList.count()) {
@@ -584,28 +582,32 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_X:
   case Qt::Key_Y:
   case Qt::Key_Z:
-    cont = imodContourGet(ss->vi->imod);
-    imodGetIndex(ss->vi->imod, &ob, &co, &pt);
-    
-    p2 = imodPointGet(ss->vi->imod);
-    if ((cont) && (p2) && (cont->psize > 1)){
-      if (pt)
-	p1 = &cont->pts[pt-1];
-      else
-	p1 = &cont->pts[pt+1];
-      axis = b3dX;
-      if (keysym == Qt::Key_Y)
-	axis = b3dY;
-      if (keysym == Qt::Key_Z)
-	axis = b3dZ;
-      if (shift){
-	p2 = &cont->pts[cont->psize - 1];
-	p1 = &cont->pts[0];
-      }
-      sliceSetAnglesFromPoints(ss, p1, p2, axis);
-      docheck = 1;
-    } else
-      dodraw = 0;
+    if (ctrl && keysym == Qt::Key_Z) {
+      handled = 0;
+    } else {
+      cont = imodContourGet(ss->vi->imod);
+      imodGetIndex(ss->vi->imod, &ob, &co, &pt);
+      
+      p2 = imodPointGet(ss->vi->imod);
+      if ((cont) && (p2) && (cont->psize > 1)){
+        if (pt)
+          p1 = &cont->pts[pt-1];
+        else
+          p1 = &cont->pts[pt+1];
+        axis = b3dX;
+        if (keysym == Qt::Key_Y)
+          axis = b3dY;
+        if (keysym == Qt::Key_Z)
+          axis = b3dZ;
+        if (shift){
+          p2 = &cont->pts[cont->psize - 1];
+          p1 = &cont->pts[0];
+        }
+        sliceSetAnglesFromPoints(ss, p1, p2, axis);
+        docheck = 1;
+      } else
+        dodraw = 0;
+    }
     break;
 
     /* DNM: add these to adjust last angle, now that input is properly
@@ -2295,6 +2297,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.25  2004/11/01 22:53:37  mast
+Changed call to get nearest point
+
 Revision 4.24  2004/08/12 17:05:17  mast
 Added message to get slicer angles
 

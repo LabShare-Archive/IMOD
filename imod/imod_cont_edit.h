@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.4  2004/11/04 17:02:41  mast
 Changes for switching to shifting contour as a mode that is turned on
 
@@ -43,6 +46,8 @@ typedef struct ViewInfo ImodView;
 class QLabel;
 class QSpinBox;
 class QCheckBox;
+class QButtonGroup;
+class QRadioButton;
 
 class ContourFrame : public DialogFrame
 {
@@ -77,6 +82,8 @@ class ContourMove : public ContourFrame
   void expandToggled(bool state);
   void keepSizeToggled(bool state);
   void shiftContClicked();
+  void moveUpDownToggled(bool state);
+  void upDownSelected(int which);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -89,6 +96,10 @@ class ContourMove : public ContourFrame
   QCheckBox *mReplaceBox;
   QCheckBox *mExpandBox;
   QCheckBox *mKeepSizeBox;
+  QCheckBox *mMoveUpDownBox;
+  QButtonGroup *mUpDownGroup;
+  QRadioButton *mUpButton;
+  QRadioButton *mDownButton;
 
 };
 

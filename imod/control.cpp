@@ -72,8 +72,6 @@ DialogManager imodDialogManager;
 
 static int removeControl(ImodView *iv, int inCtrlId, int callClose);
 
-static int controlDebug = 0;
-
 /****************************************************************************/
 
 /* Add a control to the imodDraw command, and to the quit command.
@@ -114,7 +112,7 @@ int ivwNewControl(ImodView *iv,
   iv->ctrlist->top    = ctrlId;
   iv->ctrlist->active = ctrlId;
   ilistPush(iv->ctrlist->list, &ctrl);
-  if (controlDebug)
+  if (imodDebug('c'))
     imodPrintStderr("Control id %d\n", ctrlId);
   return(ctrlId);
 }
@@ -170,7 +168,7 @@ int ivwControlPriority(ImodView *iv, int inCtrlId)
   ImodControl *ctrlPtr;
   int element = 0;
 
-  if (controlDebug)
+  if (imodDebug('c'))
     imodPrintStderr("ivwControlPriority: %d\n", inCtrlId);
 
   if (!iv->ctrlist) return(0);
@@ -230,7 +228,7 @@ void ivwWorkProc(ImodView *iv)
     iv->timers->mControlTimer->stop();
     return;
   }
-  if (controlDebug)
+  if (imodDebug('c'))
     imodPrintStderr("Drawing %d\n", ctrlPtr->id); 
   (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, iv->ctrlist->reason);
 }
@@ -250,7 +248,7 @@ void ivwControlListDraw(ImodView *iv, int reason)
      
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   if (ctrlPtr) {
-    if (controlDebug)
+    if (imodDebug('c'))
       imodPrintStderr("Drawing priority %d\n", ctrlPtr->id);
     if (ctrlPtr->id == iv->ctrlist->active){
       iv->ctrlist->active = 0;
@@ -299,10 +297,10 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
      
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   while (ctrlPtr) {
-    if (controlDebug)
+    if (imodDebug('c'))
       imodPrintStderr("checking %d\n", ctrlPtr->id);
     if (ctrlPtr->key_cb) {
-      if (controlDebug)
+      if (imodDebug('c'))
 	imodPrintStderr("sending to %d\n", ctrlPtr->id);
       (*ctrlPtr->key_cb)(iv, ctrlPtr->userData, released, e);
       return;
@@ -536,6 +534,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.16  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.15  2004/05/05 17:33:17  mast
 Added function to get list of windows of one type
 

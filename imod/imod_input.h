@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.9  2003/04/18 20:10:15  mast
+    changed name
+
     Revision 3.8  2003/04/18 20:05:52  mast
     Add function for rejecting meta key on Mac
 
@@ -116,6 +119,7 @@ void inputContourDup(ImodView *vw);
 void inputConvertNumLock(int &keysym, int &keypad);
 void inputRaiseWindows();
 bool inputTestMetaKey(QKeyEvent *event);
+void inputUndoRedo(ImodView *vw, bool redo);
 
 void inputSetModelTime(ImodView *vw, int time);
 

@@ -48,6 +48,8 @@ Log at end of file
 #include "dia_qtutils.h"
 #include <qhbox.h>
 #include <qpushbutton.h>
+#include <qradiobutton.h>
+#include <qbuttongroup.h>
 #include "form_cont_edit.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -56,6 +58,7 @@ Log at end of file
 #include "imod_cont_edit.h"
 #include "control.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
@@ -75,6 +78,8 @@ struct contour_move_struct{
   int       expand;
   int       enabled;
   int       keepsize;
+  int       moveUpDown;
+  int       upOrDown;
 };
 
 struct contour_join_struct{
@@ -103,7 +108,7 @@ static bool indexGood(Iindex ind)
 /*                  CONTOUR BREAKING                                       */
 /***************************************************************************/
 
-static struct contour_break_struct cobrk = {NULL, NULL, 0, 0};
+static struct contour_break_struct cobrk = {NULL, NULL, {0,0,0}, {0,0,0}};
 
 void imodContEditBreak(ImodView *vw)
 {
@@ -141,7 +146,6 @@ static char *breakTips[] = {"Break contour at the selected point(s)",
 ContourBreak::ContourBreak(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, breakTips, name)
 {
-  QPushButton *button;
   diaLabel("Set contour break point(s):", this, mLayout);
 
   mObjContLabel = diaLabel("Obj", this, mLayout);
@@ -336,7 +340,8 @@ void ContourBreak::breakCont()
     return;
   }
 
-
+  vw->undo->contourDataChg();
+  vw->undo->contourAddition(obj->contsize);
   cont = imodContourDup(cont1);     
   cont2 = cont;
 
@@ -389,6 +394,7 @@ void ContourBreak::breakCont()
   imodel_contour_check_wild(cont2);
 
   imodObjectAddContour(obj, cont);
+  vw->undo->finishUnit();
   imodDraw(vw, IMOD_DRAW_MOD);
   return;
 }
@@ -468,7 +474,6 @@ static char *joinTips[] = {"Join two contours at the selected points",
 ContourJoin::ContourJoin(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, joinTips, name)
 {
-  QPushButton *button;
   diaLabel("Select contours to join:", this, mLayout);
   QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
 
@@ -606,15 +611,20 @@ void imodContEditJoin(ImodView *vw)
   }
 
   cont1 = imodContourGet(vw->imod);
+  if (cont1) 
+    vw->undo->contourDataChg();
+
   imodSetIndex(vw->imod, 
                i2p->object, i2p->contour, i2p->point);
   cont2 = imodContourGet(vw->imod);
+  vw->undo->contourRemoval();
 
   /* DNM: consolidate the identical tests on cont1 and cont2 */
   if (!cont1 || !cont2){
     wprint("\a\nContour Join Error:\n"
            "\tInvalid Model data or no contour selected.\n");
     imodSetIndex(vw->imod, ob, co, pt);
+    vw->undo->flushUnit();
     return;
   }
 
@@ -623,6 +633,7 @@ void imodContEditJoin(ImodView *vw)
     wprint("\a\nContour Join Error:\n"
            "\tContour has changed since point was set.\n");
     imodSetIndex(vw->imod, ob, co, pt);
+    vw->undo->flushUnit();
     return;
   }
      
@@ -630,6 +641,7 @@ void imodContEditJoin(ImodView *vw)
     if (dia_choice("Joining will destroy point labels; do you really "
                    "want to join?", "Yes", "No", NULL) != 1) {
       imodSetIndex(vw->imod, ob, co, pt);
+      vw->undo->flushUnit();
       return;
     }
 
@@ -684,6 +696,7 @@ void imodContEditJoin(ImodView *vw)
     setlabel(cojoin.dia->mSet2Label, cojoin.i2);
   }
 
+  vw->undo->finishUnit();
   imodSelectionListClear(vw);
   imodDraw(vw, IMOD_DRAW_MOD);
   return;
@@ -712,7 +725,7 @@ void ContourJoin::buttonPressed(int which)
        "[Set 1] button, then select a point within the second contour and "
        "press [Set 2].  The latter step is actually superfluous, because if "
        "only one join point is set and another point is selected as the "
-       "current poitn, that point will be used as the second point.  The "
+       "current point, that point will be used as the second point.  The "
        "second way is to select a point in the first contour, then select "
        "a point in the second contour with "CTRL_STRING" and the first mouse "
        "button.  If two contours are selected in this way, they will be the "
@@ -776,6 +789,8 @@ void imodContEditMoveDialog(ImodView *vw, int moveSurf)
     comv.expand = 0;
     comv.enabled = 1;
     comv.keepsize = 0;
+    comv.moveUpDown = 0;
+    comv.upOrDown = 0;
     movefirst = 0;
   }
 
@@ -830,11 +845,7 @@ void imodContEditMoveDialogUpdate(void)
   }
   
   comv.dia->mObjSpinBox->setEnabled(comv.enabled != 0);
-  comv.dia->mObjSpinBox->blockSignals(true);
-  comv.dia->mObjSpinBox->setMinValue(min);
-  comv.dia->mObjSpinBox->setMaxValue(max);
-  comv.dia->mObjSpinBox->setValue(val);
-  comv.dia->mObjSpinBox->blockSignals(false);
+  diaSetSpinMMVal(comv.dia->mObjSpinBox, min, max, val);
 
   comv.dia->manageCheckBoxes();
   return;
@@ -849,15 +860,16 @@ void imodContEditMove(void)
 {
   Iobj *obj, *tobj;
   Icont *cont , *newCont;
-  Imod *imod = App->cvi->imod;
+  ImodView *vi = App->cvi;
+  Imod *imod = vi->imod;
   int surf, ob, co, pt;
   int nsurf;
-  float firstz, size;
+  float firstz, size, delz;
   double weight;
   Ipoint ccent;
   int conew, ptnew;
   double rad, dz, delAng, circRad;
-  int dzLim, iz, izCen, npts, firstCont;
+  int dzLim, iz, izCen, npts;
   float xCen, yCen, zCen, zscale;
   char *surfLabel = NULL;
 
@@ -875,13 +887,15 @@ void imodContEditMove(void)
 
   imodGetIndex(imod, &ob, &co, &pt);
   /* object to move current contour to. */
-  tobj = &(imod->obj[App->cvi->obj_moveto - 1]);
+  tobj = &(imod->obj[vi->obj_moveto - 1]);
 
   /* Get current object and contour. */
   obj = imodObjectGet(imod);
-  if (!obj)  return;
+  if (!obj)
+    return;
   cont = imodContourGet(imod);
-  if (!cont)  return;
+  if (!cont) 
+    return;
 
   /* DNM 3/29/01: set up values for new contour and point */
   co = imod->cindex.contour;
@@ -891,7 +905,7 @@ void imodContEditMove(void)
   /* REPLACE CONTOUR BY POINT IS FIRST */
 
   if (iobjScat(tobj->flags) && comv.replace && !comv.movetosurf && 
-      !iobjScat(obj->flags)) {
+      !iobjScat(obj->flags) && !comv.moveUpDown) {
     if (cont->psize < 3) {
       wprint("\aError: Contour must have at least 3 points.\n");
       return;
@@ -909,43 +923,51 @@ void imodContEditMove(void)
     ccent.x /= weight;
     ccent.y /= weight;
     ccent.z = firstz;
-    size = sqrt((double)(imodContourArea(cont)/3.14159)) * App->cvi->xybin;
+    size = sqrt((double)(imodContourArea(cont)/3.14159)) * vi->xybin;
+
+    // Create contour if none there
     if(!tobj->contsize) {
+      vi->undo->contourAddition(vi->obj_moveto - 1, tobj->contsize);
       cont = imodContourNew();
       imodObjectAddContour(tobj, cont);
     }
+
+    // Get contour, register changes and add point
     cont = &(tobj->cont[tobj->contsize - 1]);
+    vi->undo->pointAddition(vi->obj_moveto - 1, tobj->contsize - 1, 
+                            cont->psize);
+    vi->undo->contourRemoval();
     imodPointAppend(cont, &ccent);
     imodPointSetSize(cont, cont->psize - 1, size);
     imodObjectRemoveContour(obj, co);
 
-    /* DNM 3/29/01: drop back to previous contour and set no
-       current point */
+    /* DNM 3/29/01: drop back to previous contour and set no current point */
     conew = co - 1;
     ptnew = -1;
 
   } else if (!iobjScat(tobj->flags) && comv.expand && !comv.movetosurf && 
-      iobjScat(obj->flags)) {
+      iobjScat(obj->flags) && !comv.moveUpDown) {
 
     /* EXPAND A SCATTERED POINT INTO CONTOURS IS NEXT */
     if (pt < 0)
       return;
 
-    rad = imodPointGetSize(obj, cont, pt) / App->cvi->xybin;
+    rad = imodPointGetSize(obj, cont, pt) / vi->xybin;
     if (rad < 1.) {
       wprint("\aError: Point radius must be at least 1.\n");
       return;
     }
 
     // Get range of Z values and center values
-    zscale = ((imod->zscale ?  imod->zscale : 1.) * App->cvi->zbin) / 
-              App->cvi->xybin;
+    zscale = ((imod->zscale ?  imod->zscale : 1.) * vi->zbin) / 
+              vi->xybin;
     dzLim = (int)(rad / zscale + 1.);
     xCen = cont->pts[pt].x;
     yCen = cont->pts[pt].y;
     zCen = cont->pts[pt].z;
     izCen = (int)floor(zCen + 0.5);
-    nsurf = 0;
+    nsurf = -1;
+    vi->undo->objectPropChg(vi->obj_moveto - 1);
 
     // Loop on the potential Z slices, skipping if not far enough into sphere
     for (iz = izCen - dzLim; iz <= izCen + dzLim; iz++) {
@@ -958,11 +980,12 @@ void imodContEditMove(void)
       newCont = imodContourNew();
       if (!newCont) {
         wprint("\aError getting memory for new contour.\n");
+        vi->undo->flushUnit();
         return;
       }
 
       // Get number of points, angular increment, and add points to contour
-      npts = (2. * 3.14159 * circRad * App->cvi->xybin) / imod->res;
+      npts = (int)((2. * 3.14159 * circRad * vi->xybin) / imod->res);
       if (npts < 6)
         npts = 6;
       delAng = 2. * 3.14159 / npts;
@@ -975,19 +998,22 @@ void imodContEditMove(void)
 
       // Get a new surface number for destination object the first time - this
       // can be done before the contour is added to the object
-      if (!nsurf) {
+      if (nsurf < 0) {
         imodel_contour_newsurf(tobj, newCont);
         nsurf = newCont->surf;
       } else
         newCont->surf = nsurf;
+
+      vi->undo->contourAddition(vi->obj_moveto - 1, tobj->contsize);
       imodObjectAddContour(tobj, newCont);
       if (iz == izCen)
         conew = tobj->contsize - 1;
     }
 
+    vi->undo->pointRemoval();
     imodPointDelete(cont, ptnew);
     ptnew = 0;
-    imod->cindex.object = App->cvi->obj_moveto - 1;
+    imod->cindex.object = vi->obj_moveto - 1;
     obj = tobj;
 
   } else if (comv.movetosurf) {
@@ -997,23 +1023,54 @@ void imodContEditMove(void)
       /* Move all contours with the same surface number. */
       surf = cont->surf;
       for(co = 0; co < obj->contsize; co++){
-        if (obj->cont[co].surf == surf)
+        if (obj->cont[co].surf == surf) {
+          vi->undo->contourPropChg(ob, co);
           obj->cont[co].surf = comv.surf_moveto;
+        }
       }
     } else {
 
       // Move single (or multiple selected) contours
-      if (ilistSize(App->cvi->selectionList)) {
+      if (ilistSize(vi->selectionList)) {
         for (co = 0; co < obj->contsize; co++)
-          if (imodSelectionListQuery(App->cvi, ob, co) > -2)
+          if (imodSelectionListQuery(vi, ob, co) > -2) {
+            vi->undo->contourPropChg(ob, co);
             obj->cont[co].surf = comv.surf_moveto;
-      } else
+          }
+      } else {
+        vi->undo->contourPropChg();
         cont->surf = comv.surf_moveto;
+      }
     }
     if (obj->surfsize < comv.surf_moveto)
       obj->surfsize = comv.surf_moveto;
+    vi->undo->objectPropChg();
     imodObjectCleanSurf(obj);
     imodContEditMoveDialogUpdate();
+
+  } else if (comv.moveUpDown) {
+
+    /* MOVE CONTOURS UP OR DOWN A SECTION */
+    /* Do current contour, all in surface if that is selected, or all 
+       selected contours if whole surface not selected */
+    delz = comv.upOrDown ? -1. : 1.;
+    for (co = 0; co < obj->contsize; co++) {
+      if (co == conew || (comv.wholeSurf && cont->surf == obj->cont[co].surf)
+          || (!comv.wholeSurf && imodSelectionListQuery(vi, ob, co) > -2)) {
+        vi->undo->contourDataChg(ob, co);
+        for (pt = 0; pt < obj->cont[co].psize; pt++)
+          obj->cont[co].pts[pt].z += delz;
+      }
+    }
+
+    // Go to adjacent section to show the moved contours, then return
+    if (comv.upOrDown)
+      inputPrevz(vi);
+    else
+      inputNextz(vi);
+
+    vi->undo->finishUnit();
+    return;
 
   } else {
 
@@ -1026,6 +1083,10 @@ void imodContEditMove(void)
                
     if (comv.wholeSurf){
       /* MOVE ALL CONTOURS WITH THE SAME SURFACE NUMBER. */
+
+      vi->undo->objectPropChg();
+      vi->undo->objectPropChg(vi->obj_moveto - 1);
+
       /* Assign them the first free surface # in destination object */
       surf = cont->surf;
       nsurf = imodel_unused_surface(tobj);
@@ -1043,10 +1104,13 @@ void imodContEditMove(void)
 
           /* Set all the sizes before moving, if it is a
              scattered object and button is set for this */
-          if (iobjScat(obj->flags) && comv.keepsize)
+          if (iobjScat(obj->flags) && comv.keepsize) {
+            vi->undo->contourDataChg(ob, co);
             for (pt = 0; pt < cont->psize; pt++)
-              imodPointSetSize(cont, pt, imodPointGetSize
-                               (obj, cont, pt));
+              imodPointSetSize(cont, pt, imodPointGetSize (obj, cont, pt));
+          }
+
+          vi->undo->contourMove(ob, co, vi->obj_moveto - 1, tobj->contsize);
           imodObjectAddContour(tobj, cont);
           if (!imodObjectRemoveContour(obj, co))
             co--;
@@ -1071,9 +1135,9 @@ void imodContEditMove(void)
          scattered points and that option selected */
 
       // Set flags for contours to do
-      if (ilistSize(App->cvi->selectionList)) {
+      if (ilistSize(vi->selectionList)) {
         for (co = 0; co < obj->contsize; co++)
-          if (imodSelectionListQuery(App->cvi, ob, co) > -2)
+          if (imodSelectionListQuery(vi, ob, co) > -2)
             obj->cont[co].flags |= ICONT_ONLIST; 
 
       } else
@@ -1083,15 +1147,21 @@ void imodContEditMove(void)
       for (co = 0; co < obj->contsize; co++) {
         cont = &obj->cont[co];
         if (cont->flags & ICONT_ONLIST) {
-          if (cont->surf > tobj->surfsize)
+          cont->flags &= ~ICONT_ONLIST;
+          if (cont->surf > tobj->surfsize) {
             tobj->surfsize = cont->surf;
-          if (iobjScat(obj->flags) && comv.keepsize)
+            vi->undo->objectPropChg(vi->obj_moveto - 1);
+          }
+
+          if (iobjScat(obj->flags) && comv.keepsize) {
+            vi->undo->contourDataChg(ob, co);
             for (pt = 0; pt < cont->psize; pt++)
-              imodPointSetSize(cont, pt, 
-                               imodPointGetSize(obj, cont, pt));
+              imodPointSetSize(cont, pt, imodPointGetSize(obj, cont, pt));
+          }
+
+          vi->undo->contourMove(ob, co, vi->obj_moveto - 1, tobj->contsize);
           imodObjectAddContour(tobj, cont);
           imodObjectRemoveContour(obj, co);
-          cont->flags &= ~ICONT_ONLIST;
 
           /* DNM 3/29/01: drop back to previous contour and set no 
              current point */
@@ -1117,7 +1187,8 @@ void imodContEditMove(void)
   }
   imod->cindex.contour = conew;
   imod->cindex.point = ptnew;
-  imodSelectionListClear(App->cvi);
+  vi->undo->finishUnit();
+  imodSelectionListClear(vi);
 
   return;
 }
@@ -1189,6 +1260,26 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                 " are moved");
   diaSetChecked(mKeepSizeBox, comv.keepsize != 0);
 
+  // Make layout for moving up/down, and invisible radio group
+  layout = new QHBoxLayout(mLayout);
+  mMoveUpDownBox = diaCheckBox("Move contour one section", this, layout);
+  connect(mMoveUpDownBox, SIGNAL(toggled(bool)), this, 
+          SLOT(moveUpDownToggled(bool)));
+  QToolTip::add(mMoveUpDownBox, "Shift contour(s) up or down in Z, not "
+                "between objects/surfaces");
+  mUpDownGroup = new QButtonGroup(1, Qt::Horizontal, this);
+  mUpDownGroup->hide();
+  connect(mUpDownGroup, SIGNAL(clicked(int)), this, 
+          SLOT(upDownSelected(int))); 
+
+  mUpButton = diaRadioButton("Up", this);
+  mUpDownGroup->insert(mUpButton);
+  layout->addWidget(mUpButton);
+  mDownButton = diaRadioButton("Down", this);
+  mUpDownGroup->insert(mDownButton);
+  layout->addWidget(mDownButton);
+  diaSetGroup(mUpDownGroup, comv.upOrDown);
+
   QPushButton *button = diaPushButton("Shift contour with first mouse button",
                                      this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(shiftContClicked()));
@@ -1199,31 +1290,36 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   setCaption(imodCaption("3dmod Move Contour"));
 }
 
-/* Manage the four check box sensitivities to reflect the mutual exclusivity 
-   of the two options */
+/* Manage the five check box sensitivities to reflect the mutual exclusivity 
+   of the various options */
 void ContourMove::manageCheckBoxes()
 {
   Iobj *obj;
   unsigned int destScat, curScat = 0;
-  bool replaceable, replaceOn, expandable, expandOn;
+  bool replaceable, replaceOn, expandable, expandOn, upDownAble;
   obj = imodObjectGet(comv.vw->imod);
   if (obj)
     curScat = iobjScat(obj->flags);
   destScat = iobjScat(comv.vw->imod->obj[comv.vw->obj_moveto - 1].flags);
-  replaceable = destScat && !comv.movetosurf && !curScat;
+  replaceable = destScat && !comv.movetosurf && !curScat && !comv.moveUpDown;
   replaceOn = comv.replace && replaceable;
 
   mReplaceBox->setEnabled(replaceable);
 
-  expandable = !destScat && !comv.movetosurf && curScat;
+  expandable = !destScat && !comv.movetosurf && curScat && !comv.moveUpDown;
   expandOn = comv.expand && expandable;
 
   mExpandBox->setEnabled(expandable);
 
   mMoveAllBox->setEnabled(!replaceOn && !expandOn);
-  mToSurfBox->setEnabled(!replaceOn && !expandOn);
+  mToSurfBox->setEnabled(!replaceOn && !expandOn && !comv.moveUpDown);
 
-  mKeepSizeBox->setEnabled(curScat && !comv.movetosurf);
+  upDownAble = !replaceOn && !expandOn && !comv.movetosurf;
+  mMoveUpDownBox->setEnabled(upDownAble);
+  mUpButton->setEnabled(upDownAble);
+  mDownButton->setEnabled(upDownAble);
+
+  mKeepSizeBox->setEnabled(curScat && !comv.movetosurf && !comv.moveUpDown);
 }
 
 /* Respond to state changes */
@@ -1268,12 +1364,24 @@ void ContourMove::objSelected(int value)
   }
 }
 
+void ContourMove::moveUpDownToggled(bool state)
+{
+  comv.moveUpDown = state ? 1 : 0;
+  manageCheckBoxes();
+}
+
+void ContourMove::upDownSelected(int which)
+{
+  comv.upOrDown = which;
+}
+
 void ContourMove::shiftContClicked()
 {
   QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_P, 'P', 
                                ShiftButton);
   ivwControlKey(0, e);
 }
+
 
 // Respond to action buttons
 void ContourMove::buttonPressed(int which)
@@ -1363,6 +1471,13 @@ void ContourMove::buttonPressed(int which)
        "a different object and have them occupy a separate surface "
        "in that object, select the option to move all contours with "
        "the same surface number.\n\n",
+       "\"Move contour one section\" can be selected to shift contours up or "
+       "down in Z, provided that other kinds of movements are not selected.  "
+       "If \"Move all contours with same surface #\" is selected, then all "
+       "contours in the surface will be moved.  Otherwise, all selected "
+       "contours will be moved if there is more than one.  "
+       "The current point and selected contours remain unchanged "
+       "so it is easy to undo this operation by changing the direction.\n\n"
        "\"Shift contour with first mouse button\" allows you to shift the "
        "current contour in the active Zap window by dragging with the first "
        "mouse button held down.  After "
@@ -1579,10 +1694,12 @@ void iceClosedOpen(int state)
   if (!cont)
     return;
 
+  surf.vw->undo->contourPropChg();
   if (state)
     cont->flags |= ICONT_OPEN;
   else
     cont->flags &= ~ICONT_OPEN;
+  surf.vw->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
@@ -1596,8 +1713,10 @@ void iceTimeChanged(int value)
   if ((obj) &&  (iobjTime(obj->flags))){
     cont = imodContourGet(surf.vw->imod);
     if (cont){
+      surf.vw->undo->contourPropChg();
       cont->type = value;
       cont->flags |= ICONT_TYPEISTIME;
+      surf.vw->undo->finishUnit();
     }
   }    
   imodContEditSurfShow();
@@ -1616,18 +1735,21 @@ void iceLabelChanged(char *st, int contPoint)
     return;
 
   if (contPoint == 2) {
+    surf.vw->undo->objectPropChg();
     if (!obj->label)
       obj->label = imodLabelNew();
     imodLabelItemAdd(obj->label, st, cont->surf);
-    return;
-  }
+  } else {
      
-  if (!cont->label)
-    cont->label = imodLabelNew();
-  if (contPoint)
-    imodLabelItemAdd(cont->label, st, surf.vw->imod->cindex.point);
-  else
-    imodLabelName(cont->label, st);
+    surf.vw->undo->contourDataChg();
+    if (!cont->label)
+      cont->label = imodLabelNew();
+    if (contPoint)
+      imodLabelItemAdd(cont->label, st, surf.vw->imod->cindex.point);
+    else
+      imodLabelName(cont->label, st);
+  }
+  surf.vw->undo->finishUnit();
 }
 
 // Record change in point size by whatever means
@@ -1639,7 +1761,9 @@ void icePointSize(float size)
   if (!cont || (pt == -1))
     return;
 
+  surf.vw->undo->contourDataChg();
   imodPointSetSize(cont, pt, size);
+  surf.vw->undo->finishUnit();
   imodDraw(surf.vw, IMOD_DRAW_MOD);
 }
 
@@ -1808,6 +1932,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.15  2004/11/09 00:37:27  mast
+Fixed escaping of quote in help
+
 Revision 4.14  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

@@ -47,6 +47,7 @@ Log at end of file
 class QGLColormap;
 class QCursor;
 class QPixmap;
+class UndoRedo;
 typedef struct ilist_struct Ilist;
 
 /* DNM 12/22/02: eliminated multiple view structures */
@@ -174,6 +175,7 @@ typedef struct ViewInfo
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
   Autox  *ax;
   ImodControlList *ctrlist;
+  UndoRedo *undo;             /* Undo -redo class */
 
   /* Some Flags. */
   int    dim;         /* bits 0..4, x, y, z, t */
@@ -264,12 +266,16 @@ char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 QString imodCaption(char *intro);
+bool imodDebug(char key);
 
 #endif     
 
 
 /*
 $Log$
+Revision 3.28  2004/11/05 19:08:12  mast
+Include local files with quotes, not brackets
+
 Revision 3.27  2004/11/01 22:51:48  mast
 Added selection list
 

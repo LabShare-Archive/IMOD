@@ -56,6 +56,7 @@ Log at end of file
 #include "imod_edit.h"
 #include "control.h"
 #include "preferences.h"
+#include "undoredo.h"
 
 /* These have to be maintained as indexes for the combo box */
 #define COPY_TO_OBJECT     0
@@ -151,6 +152,8 @@ static int copyContour(Icont *cont)
   Iobj *toObj;
   int co,pt;
   int section;
+  ImodView *vw = ThisDialog.vw;
+  int obnum = vw->imod->cindex.object;
 
   if (!cont) return(-1);
   if (!cont->psize) return(-1);
@@ -158,7 +161,8 @@ static int copyContour(Icont *cont)
   switch(ThisDialog.copyOperation){
 
   case COPY_TO_OBJECT:
-    toObj = &ThisDialog.vw->imod->obj[ThisDialog.objectNumber - 1];
+    obnum = ThisDialog.objectNumber - 1;
+    toObj = &vw->imod->obj[obnum];
 
     /* Don't copy if duplicate contour already exists. */
     for(co = 0; co < toObj->contsize; co++){
@@ -171,29 +175,33 @@ static int copyContour(Icont *cont)
         contRmDup(&toObj->cont[co], cont);
       }
     }
+    vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
 
   case COPY_TO_CURRENT:
-    toObj = imodObjectGet(ThisDialog.vw->imod);
+    toObj = imodObjectGet(vw->imod);
+    vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
 
   case COPY_TO_SECTION:
   case COPY_TO_NEXT_SECTION:
   case COPY_TO_PREV_SECTION:
-    toObj   = imodObjectGet(ThisDialog.vw->imod);
+    toObj   = imodObjectGet(vw->imod);
     section = ThisDialog.sectionNumber-1; 
     for(pt = 0; pt < cont->psize; pt++){
       cont->pts[pt].z = section;
     }
+    vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
 
   case COPY_TO_TIME:
   case COPY_TO_NEXT_TIME:
-    toObj   = &ThisDialog.vw->imod->obj[ThisDialog.currentObject];
+    toObj   = &vw->imod->obj[ThisDialog.currentObject];
     cont->type = ThisDialog.timeIndex;
+    vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
   }
@@ -374,13 +382,9 @@ void ContourCopy::update()
   }
 
   // Set up spin box limits and value and enable it if meaningful
-  mToSpinBox->blockSignals(true);
-  mToSpinBox->setMinValue(minVal);
-  mToSpinBox->setMaxValue(maxVal);
-  mToSpinBox->setValue(curVal);
+  diaSetSpinMMVal(mToSpinBox, minVal, maxVal, curVal);
   mToSpinBox->setSpecialValueText(minVal ? "" : "   ");
   mToSpinBox->setEnabled(minVal > 0);
-  mToSpinBox->blockSignals(false);
 
   // Enable the time radio button if appropriate
   if (vw->nt)
@@ -529,6 +533,7 @@ void ContourCopy::apply()
       }
     }
   }
+  ThisDialog.vw->undo->finishUnit();
   wprint("Copy operation completed\n");
   imodDraw(ThisDialog.vw, IMOD_DRAW_MOD);
   imod_setxyzmouse();
@@ -613,6 +618,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.7  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 

@@ -87,6 +87,7 @@ int    Rampbase = RAMPBASE;
 /*****************************************************************************/
 
 static int loopStarted = 0;
+static char *debugKeys = NULL;
 
 void imod_usage(char *name)
 {
@@ -167,6 +168,7 @@ int main( int argc, char *argv[])
   int nChars;
   QRect infoGeom;
   StartupForm *startup;
+  char *windowKeys = NULL;
 
   /* Initialize data. */
   App = &app;
@@ -188,8 +190,9 @@ int main( int argc, char *argv[])
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output */
   for (i = 1; i < argc; i++){
-    if (!strcmp("-D", argv[i])) {
+    if (!strncmp("-D", argv[i], 2)) {
       Imod_debug = TRUE;
+      debugKeys = strdup(argv[i] + 2);
       doFork = 0;
     }
     if (!strcmp("-W", argv[i]))
@@ -375,6 +378,10 @@ int main( int argc, char *argv[])
           Imod_debug = TRUE;
           break;
         
+        case 'E':
+          windowKeys = strdup(argv[++i]);
+          break;
+
         case 'm':
           ImodTrans = FALSE;
           break;
@@ -753,6 +760,9 @@ int main( int argc, char *argv[])
   if (App->rgba)
     imod_info_setbw(App->cvi->black, App->cvi->white);
 
+  /* Open up requested dialog windows */
+  ImodInfoWin->openSelectedWindows(windowKeys);
+    
   /* Start main application input loop. */
   if (Imod_debug)
     imodPuts("mainloop");
@@ -960,6 +970,12 @@ void imodPuts(const char *message)
 #endif
 }
 
+/* Returns true if debugging keys include the given character */
+bool imodDebug(char key)
+{
+  return (Imod_debug && debugKeys && (strchr(debugKeys, key) != NULL));
+}
+
 /***********************************************************************
  * Core application plugin lookup functions.
  *
@@ -1006,6 +1022,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.42  2004/11/04 23:52:19  mast
+Undoing erroreous checking of test version
+
 
 Revision 4.40  2004/11/04 17:01:31  mast
 Changes for loading FFTs with internal mirroring
