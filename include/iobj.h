@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IOBJ_H
 #define IOBJ_H
@@ -126,6 +134,7 @@ Iobj *imodObjectGetNext(Imod *imod);
 
 int   imodObjectSort(Iobj *obj);
 int   imodObjectAddContour(Iobj *obj, Icont *ncont);
+Icont *imodObjectGetContour(Iobj *inObject, int inIndex);
 int   imodObjectSkin(Iobj *obj, Ipoint *scale);
 void  imodObjectDefault(Iobj *obj);
 
@@ -141,6 +150,8 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType);
 void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue);
 void  imodObjectGetColor(Iobj *inObject,
 			 float *outRed, float *outGreen, float *outBlue);
+void  imodObjectSetColor(Iobj *inObject,
+                         float inRed, float inGreen, float inBlue);
 
 Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex);
 int    imodObjectAddMesh(Iobj *inObject, Imesh *inMesh);
