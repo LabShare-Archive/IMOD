@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/03 00:59:21  mast
+c	  Changed terminology to refered to tilt angle offset
+c	
 c	  Revision 3.5  2003/06/21 00:48:41  mast
 c	  Switch to new version of get_tilt_angles that can use PIP
 c	
@@ -65,6 +68,8 @@ c
 	powerdmag=1.5
 	powerrot=0.
 	poweralf=0.
+	ioptdist = 0
+	iffix = 0
 c
 	tiltadd=0.
 	nvarsrch=0
