@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.4  2004/10/22 22:15:33  mast
+    Added function to start dumping of cache after each section load
+
     Revision 4.3  2003/09/18 05:59:08  mast
     Added functions for autocontrast
 
@@ -51,6 +54,7 @@ void imod_info_setbw(int black, int white);
 int imod_info_bwfloat(ImodView *vw, int section, int time);
 void imodInfoAutoContrast(int targetMean, int targetSD);
 int imodInfoCurrentMeanSD(float &mean, float &sd);
+void imodInfoSaveNextClear();
 void imod_info_float_clear(int section, int time);
 void show_status(char *info);
 void imod_show_info(char *info, int line);
