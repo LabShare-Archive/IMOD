@@ -73,6 +73,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.17  2003/03/20 21:18:55  rickg
+ * <p> Added matchshift results button/access
+ * <p>
  * <p> Revision 2.16  2003/03/20 16:58:42  rickg
  * <p> Added methods: imodMatchedToTomgram, matchorwarpTrial
  * <p> Added trial mode handling to matchorwarp
@@ -2184,7 +2187,7 @@ public class ApplicationManager {
       String threadName = processMgr.solvematchmod();
       setThreadName(threadName, AxisID.FIRST);
       tomogramCombinationDialog.showPane("Initial Match");
-      mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+      mainFrame.startProgressBar("Combine: solvematchmod", AxisID.FIRST);
     }
   }
 
