@@ -19,6 +19,9 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.4  2004/08/23 23:29:22  sueh
+* <p> bug# 508 added watched file combine.out
+* <p>
 * <p> Revision 1.3  2004/08/20 21:29:06  sueh
 * <p> bug# 508 Made the match string static.  Added equals() functions for
 * <p> testing.
@@ -158,21 +161,37 @@ public class CombineComscriptState implements ComscriptState {
     String commandLabel = toLabel(VOLCOMBINE_INDEX);
     //if the endCommand is the last command (volcombine), remove the exit 
     //success commands from after the volcombine label, if they are there
-    if (endCommand == NUM_COMMANDS - 1) {
-      comScriptManager.deleteFromCombine(EchoParam.COMMAND_NAME, commandLabel);
-      comScriptManager.deleteFromCombine(ExitParam.COMMAND_NAME, commandLabel);
+    if (endCommand == VOLCOMBINE_INDEX) {
+      //look for the success echo.  Delete it and the exit command if it is
+      //found
+      EchoParam echoParamInComscript = 
+          comScriptManager.getEchoParamFromCombine(commandLabel);
+      if (echoParamInComscript != null && 
+           echoParamInComscript.getString().startsWith(SUCCESS_TEXT)) {
+        comScriptManager.deleteFromCombine(
+            EchoParam.COMMAND_NAME, commandLabel);
+        comScriptManager.deleteFromCombine(
+            ExitParam.COMMAND_NAME, commandLabel);
+      }
     }
-    else {
+    else if (endCommand == MATCHORWARP_INDEX) {
       //if the endCommand is not the last command (must be matchorwarp), add
       //or update exit success commands after the volcombine label
       //insert echo param if it is not there, otherwise update it
       EchoParam echoParam = new EchoParam();
-      echoParam.setString(SUCCESS_TEXT + THROUGH_TEXT + COMMANDS[endCommand].toUpperCase());
+      echoParam.setString(
+          SUCCESS_TEXT 
+          + THROUGH_TEXT + COMMANDS[MATCHORWARP_INDEX].toUpperCase());
       int echoIndex = comScriptManager.saveCombine(echoParam, commandLabel);
       //insert exit param if it is not there, otherwise update it
       ExitParam exitParam = new ExitParam();
       exitParam.setResultValue(0);
       comScriptManager.saveCombine(exitParam, echoIndex);
+    }
+    else {
+      throw new IllegalStateException(
+        "EndCommand can only be volcombine or matchorwarp.  endCommand="
+          + endCommand);
     }
     runSelfTest(END_COMMAND_SET_STATE);
   }
