@@ -16,6 +16,7 @@ void MovieController::init()
     layout->addLayout(mSliders->getLayout());
     diaSetGroup(snapshotGroup, 0);
     diaSetGroup(extentGroup, 0);
+    diaSetGroup(startHereGroup, 0);
     diaSetGroup(axisGroup, 2);
     connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this,
 	    SLOT(sliderChanged(int, int, bool)));
@@ -65,6 +66,11 @@ void MovieController::snapshotSelected( int which )
 void MovieController::extentSelected( int which )
 {
     imcExtentSelected(which);
+}
+
+void MovieController::startHereSelected( int which )
+{
+    imcStartHereSelected(which);
 }
 
 void MovieController::donePressed()

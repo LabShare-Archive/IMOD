@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>MovieController</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>202</width>
-            <height>249</height>
+            <width>200</width>
+            <height>309</height>
         </rect>
     </property>
     <property name="caption">
@@ -219,67 +219,61 @@
                 <set>AlignVCenter|AlignLeft</set>
             </property>
         </widget>
-        <widget class="QLayoutWidget">
+        <widget class="QButtonGroup">
             <property name="name">
-                <cstring>Layout24</cstring>
+                <cstring>extentGroup</cstring>
+            </property>
+            <property name="title">
+                <string>Looping</string>
             </property>
             <hbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
                 <property name="margin">
-                    <number>0</number>
+                    <number>9</number>
                 </property>
                 <property name="spacing">
-                    <number>6</number>
+                    <number>2</number>
                 </property>
-                <widget class="QButtonGroup">
+                <widget class="QRadioButton">
                     <property name="name">
-                        <cstring>extentGroup</cstring>
+                        <cstring>roundTripButton</cstring>
                     </property>
-                    <property name="title">
-                        <string>Looping</string>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
                     </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>9</number>
-                        </property>
-                        <property name="spacing">
-                            <number>2</number>
-                        </property>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>roundTripButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Round trip</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Loop from start to end then back to start</string>
-                            </property>
-                        </widget>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>oneWayTripButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>One way</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Loop from start to end only</string>
-                            </property>
-                        </widget>
-                    </vbox>
+                    <property name="text">
+                        <string>Round trip</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Loop from start to end then back to start</string>
+                    </property>
                 </widget>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>oneWayTripButton</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>One way</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Loop from start to end only</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
                 <widget class="QButtonGroup">
                     <property name="name">
                         <cstring>snapshotGroup</cstring>
@@ -337,6 +331,47 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Take RGB snapshots of movie</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+                <widget class="QButtonGroup">
+                    <property name="name">
+                        <cstring>startHereGroup</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Start at</string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>9</number>
+                        </property>
+                        <property name="spacing">
+                            <number>2</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>endRadioButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Start/end</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Start snapshots at starting or ending limit for axis</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>hereRadioButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Current pt</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Start snapshots at current coordinates</string>
                             </property>
                         </widget>
                     </vbox>
@@ -508,6 +543,12 @@
         <receiver>MovieController</receiver>
         <slot>downPressed()</slot>
     </connection>
+    <connection>
+        <sender>startHereGroup</sender>
+        <signal>pressed(int)</signal>
+        <receiver>MovieController</receiver>
+        <slot>startHereSelected(int)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">qslider.h</include>
@@ -533,6 +574,7 @@
     <slot>rateEntered()</slot>
     <slot>snapshotSelected( int which )</slot>
     <slot>extentSelected( int which )</slot>
+    <slot>startHereSelected( int which )</slot>
     <slot>donePressed()</slot>
     <slot>helpPressed()</slot>
     <slot>resetPressed()</slot>
