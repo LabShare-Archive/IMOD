@@ -13,6 +13,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2003/08/04 22:23:50  rickg
+ * <p> Now derived from LogFileProcessMonitor
+ * <p>
  * <p> Revision 1.5  2003/06/27 20:17:51  rickg
  * <p> Fixed javadoc header
  * <p> </p>
@@ -26,16 +29,12 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
 
   /**
    * Construct a xcorr process watcher
-   * @param process
    * @param appMgr
    * @param id
    */
-  public XcorrProcessWatcher(
-    SystemProcessInterface process,
-    ApplicationManager appMgr,
-    AxisID id) {
+  public XcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
 
-    super(process, appMgr, id);
+    super(appMgr, id);
     logFileBasename = "xcorr";
   }
 
@@ -43,7 +42,6 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
    */
   protected void initializeProgressBar() {
-    // TODO Auto-generated method stub
     applicationManager.setProgressBar(
       "Cross-correlating stack",
       nSections,
@@ -61,9 +59,8 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
         String[] fields = line.split("\\s+");
         if (fields.length > 1) {
           String number = fields[1];
-          int idxSection =
+          currentSection =
             Integer.parseInt(number.substring(0, number.length() - 1));
-
         }
       }
     }
