@@ -669,6 +669,9 @@ while ($iaxis < $numax)
         shift excludelistin
     end
 
+    set wipeexclude = "ExcludeList"
+    if ($excludelist != "") set wipeexclude = "gibberish"
+
     set backuplist = ($backuplist $setname.pl $setname.rawtlt track$logext align$logext findsec$logext tomopitch$logext)
 
     # FOR CCD CAMERA ONLY
@@ -929,21 +932,20 @@ EOF
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e s/$srcname/$dstname/g\
-	-e "/-1 to enter all tilts/s/.*	/$tiltopt	/g"\
-	-e "/start and increment if 1/s/^.*/$tiltspec/g"\
-	-e "/Initial rotation angle/s/.*	/$axisangle	/g"\
-	-e "/size and origin/s/.*	/#$alxsize,$alysize\/	/"\
-	-e "/views to exclude/s/.*	/$excludelist	/"\
+	-e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltStart/"\
+	-e "/^$tiltIncText/s/[ 	].*/	$tiltInc/"\
+	-e "/^$incDelText/d"\
+	-e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
+	-e "/ImageSizeXandY/s/[ 	].*/	$alxsize,$alysize/"\
+	-e "/.*ExcludeList.*/s//ExcludeList	$excludelist/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e "s/$setname.xf/$tiltxf/"\
-	-e s/$wipexyz//\
+	-e "/$wipeexclude/d"\
+	-e "/$wipexyz/d"\
 	<$srcfile >$dstfile
 
 
     if ($local == 1) then
-	echo "# Next line, filename for output of local alignments" >> $dstfile
-	echo $setname"local.xf" >> $dstfile
-	cat $srcdir/localpart.com >> $dstfile
 	set backuplist = ($backuplist $setname"local.xf")
     endif
 
@@ -1275,6 +1277,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.30  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
 #  Revision 3.29  2004/07/12 18:16:56  mast
 #  Fixed problem with increment angle not getting into align.com and track.com
 #
