@@ -270,7 +270,7 @@ dist : ALWAYS
 	setup -inst $(ARCDIR) $(SETUP_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
-	\cp buildlib/*.so $(ARCDIR)/lib/
+	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp -r dist/* $(ARCDIR)/
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	echo "Compressing..."
@@ -353,6 +353,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.10  2003/03/28 05:49:47  mast
+#  include .xpm's in make src
+#
 #  Revision 3.9  2003/03/07 22:04:14  mast
 #  Fix making of VERSION for windows
 #
