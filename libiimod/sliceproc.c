@@ -19,6 +19,7 @@
 */
 
 #include <math.h>
+#include <stdlib.h>
 #include "b3dutil.h"
 #include "mrcc.h"
 #include "sliceproc.h"
@@ -772,6 +773,9 @@ static int selectInt(int s, int *r, int num)
 
 /*
     $Log$
+    Revision 3.3  2005/01/28 05:41:11  mast
+    Needed separate byte routine for anisotropic diffusion
+
     Revision 3.2  2005/01/27 05:56:56  mast
     Added anisotropic diffusion
 
