@@ -210,6 +210,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/28 22:55:53  mast
+c	  Scale model coordinates correctly in Z; standardize error output
+c	
 c	  Revision 3.2  2002/05/07 02:01:33  mast
 c	  Changes to accommodate distinction in tiltalign between views in
 c	  solution and views in file
@@ -259,7 +262,7 @@ c
 	integer*4 ivsolv(maxview),iobjali(maxreal)
 	real*4 dxysav(2,maxview),xyzsav(3,maxreal)
 	common /tltcntrl/nvuall,imintilt,mininview,minvtiltali,
-     &	    randoaxis,randotilt, scalexy,xcen,ycen,xorig,
+     &	    randoaxis,randotilt, scalexy,xcen,ycen,cgx,cgy,xorig,
      &	    yorig,xdelt,ydelt, initxyzdone,nsolve,facm, ncycle,eps,
      &	    tiltorig,gmagorig,rotorig,mapalltilt,mapallmag,ivorig,
      &	    ivsolv,iobjali,dxysav,xyzsav
