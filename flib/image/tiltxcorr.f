@@ -97,11 +97,17 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/01/10 01:44:58  mast
+c	  Increased limview to 720 and added check on number of views
+c	
+	implicit none
+	integer idim,limview
 	parameter (idim=2300*2300,limview=720)
+	integer*4 NX,NY,NZ,nxs,nys,nzs
 	COMMON //NX,NY,NZ,nxs,nys,nzs
 C
-	DIMENSION NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3),title(20)
-     &	    ,label(20,20)
+	integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
+	real*4 title(20)
 	real*4 ctfa(8193),ctfb(8193),ctfp(8193)
 	complex array(idim/2),brray(idim/2),crray(idim/2)
 C
@@ -121,6 +127,16 @@ c
 	integer*4 ixpclist(limview),iypclist(limview),izpclist(limview)
 	integer*4 listz(limview)
 	real*4 tilt(limview)
+	real*4 dmin2,dmax2,dmean2,rotangle,deltap,radexcl
+	integer*4 i,npclist,nview,minxpiece,nxpieces,nxoverlap,minypiece
+	integer*4 nypieces,nyoverlap,ifimout,nxpad,nypad,ifexclude,mode
+	integer*4 nxtrim,nytrim,nxuse,nyuse,nxbord,nybord,nxtap,nytap
+	integer*4 izst,iznd,kk,nout,izlast,izcur,idir,iztmp
+	real*4 dmsum,dmax,dmin,stretch,streak,xpeak,ypeak,usdx,usdy
+	real*4 dmean
+	integer*4 jx,iv,iview,kti,isout
+	integer*4 niceframe
+	real*4 cosd
 
         write(*,'(1x,a,$)')'Image input file: '
 	READ(5,101)FILIN
@@ -202,7 +218,7 @@ c
      &	    //' or / for no filter'
 	call setctf(ctfp,nxpad,nypad,deltap)
 c
-	iexclude=0
+	ifexclude=0
 	write(*,'(1x,a,$)')'1 to exclude central correlation peak due'
      &	    //' to fixed pattern noise, 0 not to: '
 	read(5,*)ifexclude
@@ -241,9 +257,6 @@ c
      &	    //' in X and Y (/ for',nxtap,nytap,'): '
 	read(*,*)nxtap,nytap
 
-	ifrot180=ifrotshift/2
-	ifshift=mod(ifrotshift,2)
-	if(ifrot180.ne.0)ifshift=-ifshift
 15	izst=1
 	iznd=nz
 	write(*,'(1x,a,$)') 'Starting and ending views'
@@ -435,7 +448,15 @@ c	  a much better estimate of peak location.
 c
 	subroutine peakfind(array,nxplus,nyrot,xpeak,ypeak,radexcl,
      &	    rotangle,streak)
+	implicit none
+	integer*4 nxplus,nyrot
+	real*4 xpeak,ypeak,radexcl,rotangle,streak
 	real*4 array(nxplus,nyrot)
+	integer*4 nxrot,ix,iy,idx,idy,lower,ixpeak,iypeak
+	real*4 peak,xrot,yrot,cx,y1,y2,y3,denom,cy,costh,sinth
+	real*4 cosd,sind
+	integer*4 indmap
+c
 	nxrot=nxplus-2
 c	  
 c	  find peak
@@ -508,7 +529,11 @@ c	print *,xpeak,ypeak
 
 
 	subroutine packcorr(crray,array,nxpadpl,nypad)
+	implicit none
+	integer*4 nxpadpl,nypad
 	real*4 array(nxpadpl,nypad),crray(*)
+	integer*4 nxpad,iout,ixin,iyin,ix,iy
+
 	nxpad=nxpadpl-2
 	iout=1
 	ixin=nxpad/2+1
