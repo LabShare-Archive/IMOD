@@ -1,20 +1,25 @@
 #############################################################################
-# Intel running Red Hat Linux 7.0
-# Modified for Intel running Red Hat 7.3  7/18/02 by dnm and rjg
+# Intel running Cygwin/Windows
 #
-#  Use OpenMotif 2.1.30 included with the RH 7.0 Powertools
+#
 #  Separate pointers are needed for X and Motif includes
 #
 set Xlibdir = /usr/X11R6/lib
 set Xincdir = /usr/X11R6/include/X11
 set Mincdir = /usr/X11R6/include
+if ($no_xlibs == false) then
+    if (!(-e $Xlibdir) || !(-e $Xincdir)) set no_xlibs = true
+endif
 
-# add location of system glw includes if using system glw instead
-# (define glwincdir and add -I$glwincdir)
-set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
-
-# add -I$opengl_lib if it's not on the system library path
-echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
+if ($no_xlibs == false) then
+    set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
+    echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
+    echo 'XPLAX = plax.c' >> $configure
+else
+    set c_includes =  '-I$(QTDIR)/include'
+    echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
+    echo 'XPLAX = noplax.c' >> $configure
+endif
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -28,7 +33,7 @@ if ($compiler == intel) then
 	set usfftdir = $source_dir/USFFTlib/pc-intel
 else
 	echo "CC        = gcc"              >> $configure
-	echo "FC        = f77"              >> $configure
+	echo "FC        = g77"              >> $configure
 	#
 	# tell the C routines being called by Fortran that they need two __
 	#
@@ -90,7 +95,6 @@ echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
 
 # 
 # If using plugins, need to tell linker to export symbols
-echo 'PLUGLIBS  = -ldl -Wl,-E' >> $configure
 echo 'IMODCC    = $(CC)'              >> $configure
 echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
@@ -157,13 +161,23 @@ set fbpswitch       = fbpswitch-pc.inc
 # Start Qt include files
 #
 echo " " >! $midas_qconf
-echo " " >! $imod_qconf
+cat << EOF >! $imod_qconf
+INCLUDEPATH += ..\include .
+LIBS += libdiaqt.lib libimod.lib libiimod.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
+QMAKE_LFLAGS_DEBUG += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+EOF
 
-# set up make files for things built by VisualC
-set vcexedir = Release
-if ($debug == true) set vcexedir = Debug
+if ($debug == true) then
+    echo CONFIG += debug warn_off >> $imod_qconf
+    set vcexedir = Debug
+else
+    echo CONFIG += release warn_off >> $imod_qconf
+    set vcexedir = Release
+endif
 
 echo VCEXEDIR = $vcexedir >> $configure
 
+# set up make files for things built by VisualC
 set makefile_ext = dummy
 set makefile_dirs = ($imod_dir $midas_dir $sendevent_dir $plugsrc_dir $libdiaqt_dir)

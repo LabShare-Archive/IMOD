@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/03/18 19:27:08  mast
+#  Add hack definition for keeping window on top
+#
 #  Revision 3.3  2003/02/10 20:58:00  mast
 #  *** empty log message ***
 #
@@ -148,12 +151,8 @@ echo 'LIBS     = $(CLIBS)'                              >> $configure
 echo 'FORTCLIBS = $(CLIBS)'                              >> $configure
 
 echo "XLIBS      = -lXm -lXt -lX11 -lXext -lPW" >> $configure
-echo "GLIBS  = -lGLw -lGLU -lGL" >> $configure
-#echo "IRISGLIBS    = -lSgm -lgl" >> $configure
 echo "IMLIBS     = -lhvem -lim -lifft -limod" >> $configure
-echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
 
-echo 'PLUGLIBS = ' >> $configure
 echo 'IMODCC    = $(CC)'  >> $configure
 echo  'MAKEF77PLUGIN  = ld $(LDFLAGS) -shared -all -lftn -o'  >> $configure
 echo 'FLCC      = $(CC)'  >> $configure

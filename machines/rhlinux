@@ -1,29 +1,12 @@
 #############################################################################
-# Intel running Red Hat Linux 7.0
+# Intel running Red Hat Linux 7-8
 # Modified for Intel running Red Hat 7.3  7/18/02 by dnm and rjg
 #
-#  Use OpenMotif 2.1.30 included with the RH 7.0 Powertools
-#  Separate pointers are needed for X and Motif includes
+# 3/28/03: eliminated all X includes and libs
 #
-set Xlibdir = /usr/X11R6/lib
-set Xincdir = /usr/X11R6/include/X11
-set Mincdir = /usr/X11R6/include
+set c_includes =  ' -I$(QTDIR)/include'
 
-# DNM 7/26/02: not needed, all includes refer to <GL/...>
-set opengl_inc = /usr/include/GL
-set opengl_lib = /usr/lib
-
-# DNM 12/3/00: define directories for installing GLw includes and library
-# DNM 7/26/02: place them internally
-set glwinst_inc_dir = $source_dir/include
-set glwinst_lib_dir = $source_dir/buildlib
-
-# add location of system glw includes if using system glw instead
-# (define glwincdir and add -I$glwincdir)
-set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
-
-# add -I$opengl_lib if it's not on the system library path
-echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
+echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -85,21 +68,14 @@ echo "MAKELIBSO = g++ $flags -shared -o" >> $configure
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
-echo "GLIBS = -lGLw -lGL -lGLU" >> $configure
 
 if ($compiler == intel) then
 	# For Intel, add -lXp, add -Vaxlib flag for compatibility calls
-	echo "XLIBS   = -lXm -lXp -lXt -lSM -lICE -lXext -lX11" >> $configure
 	echo "IMLIBS     = $wrapper -Vaxlib -lhvem -lim -lblockio -lifft  -limod -lrandm -ldtrigs " >> $configure
 else
-	echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
 	echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
 endif
-echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
 
-# 
-# If using plugins, need to tell linker to export symbols
-echo 'PLUGLIBS  = -ldl -Wl,-E' >> $configure
 echo 'IMODCC    = $(CC)'              >> $configure
 echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
