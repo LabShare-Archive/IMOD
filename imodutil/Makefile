@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/11/01 14:36:23  mast
+#  Put libiimod befor libimod because of new error calls
+#
 #  Revision 3.5  2003/10/24 02:30:40  mast
 #  Changes for windows/Intel compiler
 #
@@ -37,8 +40,9 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
 
 all : $(PROGS)
 
-imodinfo$(E) : imodinfo.$(O) 
-	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodinfo$(E) : imodinfo.$(O) parselist.$(O)
+	$(CC) -o imodinfo imodinfo.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) \
+	$(CLIBS)
 
 imodmesh$(E) : imodmesh.$(O) mkmesh.$(O) parselist.$(O)
 	$(CC) -o imodmesh mkmesh.$(O) imodmesh.$(O) parselist.$(O) \
