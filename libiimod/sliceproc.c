@@ -31,7 +31,10 @@
 #define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
 
+int  myRank = 0;
+
 int sliceByteConvolve(Islice *sin, int mask[3][3]);
+static double **allocate2D_double(int m, int n );
 static void sliceScaleAndFree(Islice *sout, Islice *sin);
 static float selectFloat(int s, float *r, int num);
 static int selectInt(int s, int *r, int num);
@@ -465,6 +468,119 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
   return 0;
 }
 
+/* 
+ * Do anisotropic diffusion on slice
+ * outMode specifies the output mode; CC is edge stopping type (1, 2, 3)
+ * k is the threshold parameter, lambda is step size, iterations is just that
+ * clearFlag is one of ANISO_CLEAR_AT_END, ANISO_LEAVE_OPEN. ANISO_CLEAR_ONLY
+ * to allow additional iterations to be done on the existing data
+ */
+int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
+                   int iterations, int clearFlag)
+{
+  static double **image, **image2, **imout;
+  static int iterDone = 0;
+  int i, j;
+  int n = sl->xsize;
+  int m = sl->ysize;
+
+  /* If just clearing, free arrays if allocated, set iterations to 0 */
+  if (clearFlag == ANISO_CLEAR_ONLY) {
+    if (iterDone) {
+      free(image[0]);
+      free(image);
+      free(image2[0]);
+      free(image2);
+      iterDone = 0;
+    }
+    return 0;
+  }
+
+  /* Convert slice to float for copying to/from double */
+  if (sl->mode != SLICE_MODE_FLOAT && sliceNewMode(sl, SLICE_MODE_FLOAT) < 0)
+    return -1;
+
+
+  /* If no iterations yet, get double arrays */
+  if (!iterDone) {
+    image = allocate2D_double(m + 2, n + 2);
+    if (!image)
+      return -1;
+    image2 = allocate2D_double(m + 2, n + 2);
+    if (!image2) {
+      free(image[0]);
+      free(image);
+      return -1;
+    }
+
+    /* Copy data into array */
+    for (j = 0; j < m; j++)
+      for (i = 0; i < n; i++)
+        image[j + 1][i + 1] = sl->data.f[i + j * sl->xsize];
+  }
+
+  /* alternate between two matrices to avoid memcopy */	
+  /* printf("m = %d n = %d CC = %d k = %f lambda = %f, iter = %d\n",
+     m,n,CC,k,lambda, iterations); */
+  for (i = 0; i < iterations; i++, iterDone++) {
+	if ( iterDone % 2 == 0 ) {
+      updateMatrix(image2,image,m,n,CC,k,lambda,1);
+      imout = image2;
+	} else {
+      updateMatrix(image,image2,m,n,CC,k,lambda,1);
+      imout = image;
+	}
+  }
+  
+  /* Copy data back to slice */
+  for (j = 0; j < m; j++)
+    for (i = 0; i < n; i++)
+      sl->data.f[i + j * sl->xsize] = (float)imout[j + 1][i + 1];
+
+  /* Free data if doing one-shot operation */
+  if (clearFlag == ANISO_CLEAR_AT_END) {
+    free(image[0]);
+    free(image);
+    free(image2[0]);
+    free(image2);
+    iterDone = 0;
+  }
+
+  /* convert slice to output mode */
+  if (outMode != SLICE_MODE_FLOAT && sliceNewMode(sl, outMode) < 0)
+    return -1;
+
+  return 0;
+}
+
+
+/* allocate 2D array of doubles that is contiguous in memory
+ *
+ *  array is actual a 1D vector of length m x n
+ *      with a 2D array mapped onto the 1D vector
+ */
+double **allocate2D_double(int m, int n ) 
+{
+  double  **a;
+  double  *fake;
+  int i;
+  
+  if ( (a = (double **)malloc(sizeof(double *)*m)) == NULL )
+    return NULL;
+  
+  if ( (fake = (double *) malloc(m*n*sizeof(double))) == NULL ) {
+    free(a);
+    return NULL;
+  }
+
+  for (i = 0; i < m; i++)
+	a[i] = &(fake[i*n]);
+  
+  return a;
+}
+
+
+
 /* A routine for finding min and max as rapidly as possible for the three basic
    data modes */
 int sliceMinMax(Islice *s)
@@ -612,6 +728,9 @@ static int selectInt(int s, int *r, int num)
 
 /*
     $Log$
+    Revision 3.1  2005/01/07 20:00:45  mast
+    Moved to libiimod to make available to clip, added median filter
+
     Revision 3.6  2004/12/22 15:21:15  mast
     Fixed problems discovered with Visual C compiler
 

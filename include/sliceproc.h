@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2005/01/07 20:01:17  mast
+    Moved to libiimod so putthis file in include
+
     Revision 3.4  2004/12/22 15:21:15  mast
     Fixed problems discovered with Visual C compiler
 
@@ -23,25 +26,32 @@
 
 #include "mrcslice.h"
 
+enum {ANISO_CLEAR_AT_END, ANISO_CLEAR_ONLY, ANISO_LEAVE_OPEN};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int sliceByteConvolve(Islice *sin, int mask[3][3]);
-int sliceByteAdd(Islice *sin, int inVal);
-int sliceByteEdgeTwo(Islice *sin, int center);
-int sliceByteEdgeSobel(Islice *sin);
-int sliceByteEdgePrewitt(Islice *sin);
-int sliceByteEdgeLaplacian(Islice *sin);
-int sliceByteSharpen(Islice *sin);
-int sliceByteSmooth(Islice *sin);
-int sliceByteConvolve(Islice *sin, int mask[3][3]);
-int sliceByteThreshold(Islice *sin, int val);
-int sliceByteGrow(Islice *sin, int val);
-int sliceByteShrink(Islice *sin, int val);
-int sliceByteGraham(Islice *sin);
+  int sliceByteConvolve(Islice *sin, int mask[3][3]);
+  int sliceByteAdd(Islice *sin, int inVal);
+  int sliceByteEdgeTwo(Islice *sin, int center);
+  int sliceByteEdgeSobel(Islice *sin);
+  int sliceByteEdgePrewitt(Islice *sin);
+  int sliceByteEdgeLaplacian(Islice *sin);
+  int sliceByteSharpen(Islice *sin);
+  int sliceByteSmooth(Islice *sin);
+  int sliceByteConvolve(Islice *sin, int mask[3][3]);
+  int sliceByteThreshold(Islice *sin, int val);
+  int sliceByteGrow(Islice *sin, int val);
+  int sliceByteShrink(Islice *sin, int val);
+  int sliceByteGraham(Islice *sin);
   int sliceMinMax(Islice *s);
   int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size);
+  void updateMatrix(double **image, double **imageOld, int m, int n,
+                    int CC, double k, double lambda, int p);
+  int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
+                     int iterations, int clearFlag);
+
 #ifdef __cplusplus
 }
 #endif

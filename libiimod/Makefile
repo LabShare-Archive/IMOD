@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/01/18 22:08:30  mast
+#  Needed to add / after INCDIR
+#
 #  Revision 3.9  2005/01/07 20:00:12  mast
 #  Added sliceproc
 #
@@ -31,7 +34,8 @@ LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
- mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O) sliceproc.$(O)
+ mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O) sliceproc.$(O) \
+ diffusion.$(O)
 
 INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h $(INCDIR)/mrcproc.h \
  $(INCDIR)/mrcspectral.h $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h
