@@ -3,16 +3,63 @@ package etomo.process;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004, 2005</p>
  * 
-  * <p>Organization: Boulder Laboratory for 3D Electron Microscopy (BL3dEM),
+ * <p>Organization: Boulder Laboratory for 3D Electron Microscopy (BL3dEM),
  * University of Colorado</p>
  * 
  * @author $Author$
  * 
  * @version $Revision$
- * 
+ */
+import etomo.ApplicationManager;
+import etomo.comscript.BlendmontParam;
+import etomo.type.AxisID;
+
+public class XcorrProcessWatcher implements Runnable {
+  public static final String rcsid = "$Id$";
+
+  private ApplicationManager applicationManager = null;
+  private AxisID axisID = null;
+  private boolean blendmont = false;
+
+  /**
+   * Construct a xcorr process watcher
+   * @param appMgr
+   * @param id
+   */
+  public XcorrProcessWatcher(ApplicationManager applicationManager,
+      AxisID axisID, boolean blendmont) {
+    this.applicationManager = applicationManager;
+    this.axisID = axisID;
+    this.blendmont = blendmont;
+  }
+
+  public void run() {
+    if (blendmont) {
+      BlendmontProcessMonitor blendmontMonitor = new BlendmontProcessMonitor(
+          applicationManager, axisID, BlendmontParam.XCORR_MODE);
+      Thread blendmontThread = new Thread(blendmontMonitor);
+      blendmontThread.start();
+      try {
+        while (!blendmontMonitor.isDone()) {
+          Thread.sleep(100);
+        }
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    TiltxcorrProcessWatcher tiltxcorrMonitor = new TiltxcorrProcessWatcher(applicationManager, axisID, blendmont);
+    Thread tiltxcorrThread = new Thread(tiltxcorrMonitor);
+    tiltxcorrThread.start();
+  }
+}
+/**
  * <p> $Log$
+ * <p> Revision 3.5  2004/11/19 23:26:42  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.4.4.1  2004/09/29 19:12:32  sueh
  * <p> bug# 520 Removing pass-through function calls.
  * <p>
@@ -45,55 +92,3 @@ package etomo.process;
  * <p> Fixed javadoc header
  * <p> </p>
  */
-
-import java.io.IOException;
-import etomo.ApplicationManager;
-import etomo.type.AxisID;
-
-public class XcorrProcessWatcher extends LogFileProcessMonitor {
-  String lastLineRead = null;
-  /**
-   * Construct a xcorr process watcher
-   * @param appMgr
-   * @param id
-   */
-  public XcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
-
-    super(appMgr, id);
-    logFileBasename = "xcorr";
-  }
-
-  /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
-   */
-  protected void initializeProgressBar() {
-    if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
-      return;
-    }
-    applicationManager.getMainPanel().setProgressBar(
-      "Cross-correlating stack",
-      nSections,
-      axisID);
-  }
-
-  /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
-   */
-  protected void getCurrentSection()
-    throws NumberFormatException, IOException {
-    String line;
-    while ((line = logFileReader.readLine()) != null) {
-      if (line.startsWith("View")) {
-        currentSection++;
-      }
-      lastLineRead = line;
-    }
-
-    if (lastLineRead != null
-      && lastLineRead.trim().startsWith("PROGRAM EXECUTED TO END.")) {
-      waitingForExit++;
-    }
-  }
-}
