@@ -487,6 +487,7 @@ typedef struct Mod_Transform
 #include <imat.h>
 #include <iplane.h>
 #include <iview.h>
+#include <b3dutil.h>
 
 /*****************************************************************************/
 /* imodel.c functions                                                        */
@@ -496,8 +497,6 @@ typedef struct Mod_Transform
 extern "C" {
 #endif
 
-  int imodVersion(char *pname);
-  void imodCopyright(void);
   Imod *imodNew       (void);
   void  imodFree      (Imod *imod);
   void  imodDelete(Imod *imod);
@@ -711,6 +710,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.12  2003/09/16 02:05:53  mast
+    Add function to return flipping state of model
+
     Revision 3.11  2003/06/27 20:07:52  mast
     Defined bits in world flag for quality;
     changed imodChecksum return type from long to int
