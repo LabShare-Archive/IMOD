@@ -192,4 +192,13 @@ QMAKE_LFLAGS_DEBUG += -Wl,-E
 QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
 
-echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
+if ($packqt == true) then
+    #
+    # Set up to copy qt lib for distribution, and set name of LD_LIBRARY variable
+    #
+    echo 'QTINSTLIBDIR = qtlib' >> $configure
+    set ld_lib_var      = LD_LIBRARY_PATH
+    echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+else
+    echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
+endif
