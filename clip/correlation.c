@@ -1,31 +1,21 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  correlation.c -- auto and cross correlation for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+Log at end of file
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -120,8 +110,6 @@ void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
   return;
 }
 
-#ifndef NOFFTLIB
-
 void clip_padcorr(Islice *s, int pad)
 {
   if (!s)
@@ -161,14 +149,13 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
     autocorr = TRUE; /* do autocorrelation. */
 
   /*  If first slice isn't complex compute fft.
-   * 11/3/04: Complex input is now disallowed, too many thing to do differently
    */
   if (s1->mode != SLICE_MODE_COMPLEX_FLOAT){
     sliceFloat(s1);
     sliceMMM(s1);
     val[0] = -s1->mean;
     sliceAddConst(s1, val);
-    /*    printf("corr: size = %d %d\n", s1->xsize - 2, s1->ysize); */
+    /* printf("corr: size = %d %d\n", s1->xsize - 2, s1->ysize);*/
     mrcToDFFT(s1->data.f, s1->xsize - 2, s1->ysize, 0);
     s1->xsize /= 2;
   } else if (!(s1->xsize % 2))
@@ -201,7 +188,7 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
    * calculate the inverse fft.
    */
   corr_conj(s1->data.f, s2->data.f, s1->xsize * s1->ysize);
-  mrcToDFFT(s1->data.f, s1->xsize-2, s1->ysize, 1);
+  mrcToDFFT(s1->data.f, 2*s1->xsize-2, s1->ysize, 1);
      
 
   /* reorder the mangled data. */
@@ -755,4 +742,6 @@ double parabolic_fit(double *outX, double *outY, double i[3][3])
   return(p);
 }
 
-#endif /* NOFFTLIB */
+/*
+$Log$
+*/
