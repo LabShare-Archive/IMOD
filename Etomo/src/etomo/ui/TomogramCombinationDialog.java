@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -22,6 +21,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 15:23:50  rickg
+ * <p> Fixed button action logic
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -57,43 +59,48 @@ import etomo.type.AxisID;
 public class TomogramCombinationDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
-  SetupCombinePanel panelSetupCombine = new SetupCombinePanel();
-
-  private JPanel panelButton = new JPanel();
-  private JToggleButton buttonImodVolumeA = new JToggleButton("Imod volume A");
-  private JToggleButton buttonImodVolumeB = new JToggleButton("Imod volume B");
-  private JButton buttonCreate = new JButton("Create combine script");
+  SetupCombinePanel panelSetupCombine;
+  InitialCombinePanel panelInitialCombine; 
+  FinalCombinePanel panelFinalCombine;
+  
+  private JTabbedPane tabbedPane= new JTabbedPane(); 
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST);
+    
+    //  Nothing in advanced catagory
+    buttonAdvanced.setEnabled(false);
+    
+    //  Instantiate the tab pane contents
+    panelSetupCombine = new SetupCombinePanel(applicationManager);
+    panelInitialCombine = new InitialCombinePanel(applicationManager);
+    panelFinalCombine = new FinalCombinePanel(applicationManager);
+    
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    panelButton.setLayout(new GridLayout(1, 2, 30, 10));
-    panelButton.add(buttonImodVolumeA);
-    panelButton.add(buttonImodVolumeB);
-    panelButton.add(buttonCreate);
 
     //  Construct the main panel for this dialog panel
-    rootPanel.add(panelSetupCombine.getContainer());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelButton);
+    tabbedPane.add("Setup", panelSetupCombine.getContainer());
+    tabbedPane.add("Initial Match", panelInitialCombine.getContainer());
+    tabbedPane.add("Final Match", panelFinalCombine.getContainer());
+    
+    rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
+    rootPanel.add(tabbedPane);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //  Bind the buttons to the action listener
-    TomogramCombinationActionAdapter actionListener =
-      new TomogramCombinationActionAdapter(this);
-    buttonImodVolumeA.addActionListener(actionListener);
-    buttonImodVolumeB.addActionListener(actionListener);
-    buttonCreate.addActionListener(actionListener);
 
     // Set the default advanced dialog state
     updateAdvanced();
   }
 
+
+  public void showPane(String paneName) {
+    tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(paneName));
+  }
   /**
    * Update the dialog with the current advanced state
    */
@@ -110,19 +117,6 @@ public class TomogramCombinationDialog extends ProcessDialog {
     panelSetupCombine.getParameters(combineParams);
   }
 
-  //  Action functions for setup panel buttons
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
-    if (command.equals(buttonImodVolumeA.getActionCommand())) {
-      applicationManager.imodTomogram(AxisID.FIRST);
-    }
-    if (command.equals(buttonImodVolumeB.getActionCommand())) {
-      applicationManager.imodTomogram(AxisID.SECOND);
-    }
-    if (command.equals(buttonCreate.getActionCommand())) {
-      applicationManager.createCombineScripts();
-    }
-  }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
@@ -140,15 +134,4 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.doneTomogramCombinationDialog();
   }
 
-} //  Action adapter
-class TomogramCombinationActionAdapter implements ActionListener {
-
-  TomogramCombinationDialog adaptee;
-  public TomogramCombinationActionAdapter(TomogramCombinationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
-  }
-}
+} 
