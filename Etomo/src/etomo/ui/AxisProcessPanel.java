@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/07/01 22:55:28  rickg
+ * <p> Fixed status panel layout
+ * <p>
  * <p> Revision 2.9  2003/06/10 05:14:36  rickg
  * <p> Changes model for button selection to be managed by
  * <p> the application manager
@@ -117,7 +120,7 @@ public class AxisProcessPanel implements ContextMenu {
     panelStatus.add(buttonKillProcess);
     panelStatus.add(Box.createRigidArea(FixedDim.x0_y5));
     panelStatus.setLayout(new BoxLayout(panelStatus, BoxLayout.X_AXIS));
-    
+
     //  Create the process control panel    
     createProcessControlPanel();
 
@@ -469,35 +472,54 @@ public class AxisProcessPanel implements ContextMenu {
      * Initialize the tooltip text for the axis panel objects
      */
   private void setToolTipText() {
-    String line1, line2, line3, line4;
-    line1 = "<html>Open the Pre-processing panel that allows<br>";
-    line2 = "for the conversion of Digital Micrograph files<br>";
-    line3 = "and running CCD eraser.";
-    procCtlPreProc.setToolTipText(line1 + line2 + line3);
-    line1 = "<html>Open the Coarse Alignment panel to generate a<br>";
-    line2 = "coarsely aligned stack using cross correlation and <br>";
-    line3 = "to fix coarse alignment problems with Midas.";
-    procCtlCoarseAlign.setToolTipText(line1 + line2 + line3);
-    line1 = "<html>Open the Fiducial Model Generation panel to create<br>";
-    line2 = "a fiducial model to be used in the fine alignment step.";
-    procCtlFiducialModel.setToolTipText(line1 + line2);
-    line1 = "<html>Open the Fine Alignment panel to use the generated<br>";
-    line2 = "fiducial model to sub-pixel align the project sequence.";
-    procCtlFineAlignment.setToolTipText(line1 + line2);
-    line1 = "<html>Open the Tomogram Position panel to optimally adjust<br>";
-    line2 = "the 3D location and size of the reconstruction volume.";
-    procCtlTomogramPositioning.setToolTipText(line1 + line2);
-    line1 =
-      "<html>Open the Tomogram Generation panel to generate the final<br>";
-    line2 = "aligned stack and calcuate the tomographic reconstruction.";
-    procCtlTomogramGeneration.setToolTipText(line1 + line2);
-    line1 = "<html>Open the Tomogram Combination panel to combine the<br>";
-    line2 = "tomograms generated from the A and B axes into a single<br>";
-    line3 = "dual axis reconstruction.";
-    procCtlTomogramCombination.setToolTipText(line1 + line2 + line3);
-    line1 = "<html>Open the Post Processing panel to trim the final<br>";
-    line2 = "reconstruction to size and delete the intermediate files.";
-    procCtlPostProcessing.setToolTipText(line1 + line2);
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text =
+      "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad "
+        + " CCD rows from the raw projection stack.";
+    procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Coarse Alignment panel to generate a coarsely aligned "
+        + " stack using cross correlation and to fix coarse alignment problems "
+        + "with Midas.";
+    procCtlCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Fiducial Model Generation panel to create a fiducial "
+        + "model to be used in the fine alignment step.";
+    procCtlFiducialModel.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Fine Alignment panel to use the generated fiducial model to "
+        + "sub-pixel align the project sequence.";
+    procCtlFineAlignment.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Tomogram Position panel to optimally adjust the 3D location "
+        + "and size of the reconstruction volume.";
+    procCtlTomogramPositioning.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Tomogram Generation panel to generate the final aligned "
+        + "stack and calcuate the tomographic reconstruction.";
+    procCtlTomogramGeneration.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Tomogram Combination panel to combine the tomograms generated "
+        + "from the A and B axes into a single dual axis reconstruction.";
+    procCtlTomogramCombination.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the Post Processing panel to trim the final reconstruction to size"
+        + " and delete the intermediate files.";
+    procCtlPostProcessing.setToolTipText(
+      tooltipFormatter.setText(text).format());
   }
 
 }
