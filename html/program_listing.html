@@ -4,7 +4,7 @@
 </HEAD>
 
 <BODY>
-<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.3.0</H1>
+<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.5</H1>
 </CENTER>
 <HR>
 <UL> 
@@ -34,7 +34,8 @@ Midas also allows one to
 adjust the contrast and brightness of each section independently.
 
 <LI><b><A HREF="UsingEtomo.html">etomo</A></b>
-: Interface for building single- and dual-axis tomograms with IMOD.
+: Interface for building single- and dual-axis tomograms with IMOD, and 
+joining tomograms from serial sections.
 
 <LI> <b><A HREF="man/mrcv.html">mrcv</a></b>
 : View image files in the MRC file format.  A simple viewer
@@ -123,7 +124,6 @@ image data.  Includes the following processing abilities.
 	<UL>
 	<LI>FFT,<LI>Correlation and Filters.
 	<LI>Averaging.
-	<LI>Rotate, translate or scale image.
 	<LI>Brightness and  contrast adjustments.
 	</UL>
 </UL>
@@ -133,7 +133,7 @@ image data.  Includes the following processing abilities.
 <HR>
 This section lists Fortran image processing programs for MRC image files,
 Fortran programs that work with IMOD models, and
-shell scripts that run these programs.  Most of programs
+shell scripts that run these programs.  Most of the programs
 prompt users for input or use command files, but many have been converted to
 take command line and keyword-value input.  The shell scripts generally
 provide a
@@ -159,6 +159,8 @@ command line interface.
 : Blend montaged images together.
 <LI><b><A HREF="man/boxavg.html">boxavg</a></b>
 : Average images at specified points.
+<LI><b><A HREF="man/binvol.html">binvol</a></b>
+: Bin a volume down isotropically in 3D.
 <LI><B><A HREF="man/boxstartend.html">boxstartend</A></B>
 : Clip out portions of an image around specified model points.
 <LI><B><A HREF="man/ccderaser.html">ccderaser</A></B>
@@ -231,13 +233,15 @@ file.
 : Subtracts image averages with analysis of variance.
 <LI><b><A HREF="man/subimstat.html">subimstat</a></b>
 : Subtracts one average image from another with a t-test.
+<LI><b><A HREF="man/sumdensity.html">sumdensity</a></b>
+: Adds densities for pixels above a threshold within contours.
 <LI><B><A HREF="man/vmstocsh.html">vmstocsh</A></B>
-: Converts VMS-style command file to C-shell script
+: Converts VMS-style command file to C-shell script.
 <LI><b><A HREF="man/xcorr.html">xcorr</a></b>
 : Cross-correlate a single image with a whole image stack.
 <LI><b><A HREF="man/xyzproj.html">xyzproj</a></b>
 : Project 3-dimensional data at a series of tilts around the
-X, Y, or Z axis
+X, Y, or Z axis.
 </UL>
 
 <P>
@@ -386,6 +390,19 @@ image inside the edges.
 </UL>
 
 <P>
+<LI> Scripts for (parallel) processing of large volumes.
+<UL>
+<LI><B><A HREF="man/chunksetup.html">chunksetup</A></B>
+: Set up command files to process a volume in chunks.
+<LI><B><A HREF="man/processchunks.html">processchunks</A></B>
+: Run command files in parallel on multiple processors.
+<LI><B><A HREF="man/splittilt.html">splittilt</A></B>
+: Produce multiple command files for running Tilt in parallel.
+<LI><B><A HREF="man/splitcombine.html">splitcombine</A></B>
+: Produce command files for running volcombine in parallel.
+</UL>
+
+<P>
 <LI> Special programs used for microtubule (MT) studies.
 <UL>
 <LI><B><A HREF="man/checkmtmod.html">checkmtmod</A></B>
@@ -415,7 +432,7 @@ image inside the edges.
 
 </UL>
 <HR>
-<I>Last updated: November 7, 2003</I>
+<I>Last updated: March 6, 2005</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
 </body>
