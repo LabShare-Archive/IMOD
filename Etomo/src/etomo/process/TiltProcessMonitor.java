@@ -23,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/17 23:06:21  rickg
+ * <p> Bug #460 Using nio FileChannle.size() method to monitor file since it seems 
+ * <p> to be much more reliable than the File.length() method
+ * <p>
  * <p> Revision 3.2  2004/06/14 17:26:47  sueh
  * <p> bug# 460 set startTime in the constructor
  * <p>
@@ -49,8 +53,8 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid =
     "$Id$";
 
-  public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+  public TiltProcessMonitor(ApplicationManager appMgr, AxisID id, long startTime) {
+    super(appMgr, id, startTime);
   }
 
   /* (non-Javadoc)

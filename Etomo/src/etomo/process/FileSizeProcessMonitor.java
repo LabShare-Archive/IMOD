@@ -16,7 +16,7 @@ import etomo.util.Utilities;
  * 
  * <p>Copyright: Copyright (c) 2002, 2003</p>
  * 
-  * <p>Organization: Boulder Laboratory for 3D Electron Microscopy (BL3DEM),
+ * <p>Organization: Boulder Laboratory for 3D Electron Microscopy (BL3DEM),
  * University of Colorado</p>
  * 
  * @author $Author$
@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/17 23:06:21  rickg
+ * <p> Bug #460 Using nio FileChannle.size() method to monitor file since it seems 
+ * <p> to be much more reliable than the File.length() method
+ * <p>
  * <p> Revision 3.3  2004/06/17 01:29:12  sueh
  * <p> removed unnecessary import
  * <p>
@@ -56,21 +60,23 @@ import etomo.util.Utilities;
  */
 
 public abstract class FileSizeProcessMonitor implements Runnable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
   ApplicationManager applicationManager;
   AxisID axisID;
   long processStartTime;
+  long scriptStartTime;
   File watchedFile;
   FileChannel watchedChannel;
-  
+
   int nKBytes;
 
-  int updatePeriod = 500;
+  int updatePeriod = 250;
 
-  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
+  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
+    long startTime) {
     applicationManager = appMgr;
     axisID = id;
+    scriptStartTime = startTime;
   }
 
   // The dervied class must implement this function to 
@@ -85,7 +91,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       // Reset the progressBar 
       applicationManager.setProgressBar(" ", 1, axisID);
       applicationManager.setProgressBarValue(0, "Starting...", axisID);
-      
+
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
       calcFileSize();
@@ -122,30 +128,36 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     boolean newOutputFile = false;
     boolean needChannel = true;
     while (!newOutputFile) {
-      if (watchedFile.exists()) {
-        if(needChannel) {
+      if (watchedFile.exists() && watchedFile.lastModified() > scriptStartTime) {
+        if (needChannel) {
           FileInputStream stream = null;
           try {
             stream = new FileInputStream(watchedFile);
           }
           catch (FileNotFoundException e) {
             e.printStackTrace();
-            System.err.println(
-              "Shouldn't be in here, we already checked for existence");
+            System.err
+              .println("Shouldn't be in here, we already checked for existence");
           }
           watchedChannel = stream.getChannel();
           needChannel = false;
           try {
             lastSize = watchedChannel.size();
+            System.err.println(lastSize);
           }
           catch (IOException except) {
             except.printStackTrace();
           }
         }
-        
+
         try {
           currentSize = watchedChannel.size();
-          if(currentSize > lastSize) {
+          System.err.print("lastSize ");
+          System.err.println(lastSize);
+          System.err.print("currentSize ");
+          System.err.println(currentSize);
+
+          if (currentSize > lastSize) {
             newOutputFile = true;
             processStartTime = System.currentTimeMillis();
           }
@@ -181,21 +193,19 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       int percentage = (int) Math.round(fractionDone * 100);
 
       //  Catch any wierd values before they get displayed
-      if(percentage < 0) {
+      if (percentage < 0) {
         percentage = 0;
       }
-      if(percentage > 99) {
+      if (percentage > 99) {
         percentage = 99;
       }
-      
+
       long elapsedTime = System.currentTimeMillis() - processStartTime;
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
-      String message =
-        String.valueOf(percentage)
-          + "%   ETC: "
-          + Utilities.millisToMinAndSecs(remainingTime);
+      String message = String.valueOf(percentage) + "%   ETC: "
+        + Utilities.millisToMinAndSecs(remainingTime);
       applicationManager.setProgressBarValue(currentLength, message, axisID);
-      
+
       //  TODO: need to put a fail safe in here to
       try {
         Thread.sleep(updatePeriod);

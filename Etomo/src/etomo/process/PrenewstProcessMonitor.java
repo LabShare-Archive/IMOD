@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/08 16:59:27  rickg
+ * <p> Account for binning in newstack command
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -30,13 +33,13 @@ import etomo.type.AxisID;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
-
 public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
   public static final String rcsid = "$Id$";
 
-  public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+  public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id,
+    long startTime) {
+    super(appMgr, id, startTime);
   }
 
   /**
@@ -51,11 +54,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     int modeBytes = 1;
 
     // Get the header from the raw stack to calculate the aligned stack stize
-    String dataSetPath =
-      System.getProperty("user.dir")
-        + "/"
-        + applicationManager.getDatasetName()
-        + axisID.getExtension();
+    String dataSetPath = System.getProperty("user.dir") + "/"
+      + applicationManager.getDatasetName() + axisID.getExtension();
 
     MRCHeader rawStack = new MRCHeader(dataSetPath + ".st");
     rawStack.read();
@@ -65,13 +65,13 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     nZ = rawStack.getNSections();
 
     // Get the binByFactor from prenewst.com script
-    ComScriptManager comScriptManager = 
-    applicationManager.getComScriptManager();
+    ComScriptManager comScriptManager = applicationManager
+      .getComScriptManager();
     comScriptManager.loadPrenewst(axisID);
     NewstParam prenewstParam = comScriptManager.getPrenewstParam(axisID);
     int binBy = prenewstParam.getBinByFactor();
     // If the bin by factor is unspecified it defaults to 1
-    if(binBy > 1) {
+    if (binBy > 1) {
       nX = nX / binBy;
       nY = nY / binBy;
     }
@@ -81,7 +81,6 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     applicationManager.setProgressBar("Creating coarse stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
-    watchedFile =
-      new File(dataSetPath + ".preali");
+    watchedFile = new File(dataSetPath + ".preali");
   }
 }

@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/26 00:22:32  rickg
+ * <p> bug# 426 Changed progress bar text to reflect that it is not
+ * <p> always the final alignment
+ * <p>
  * <p> Revision 3.3  2004/04/08 16:59:27  rickg
  * <p> Account for binning in newstack command
  * <p>
@@ -41,8 +45,9 @@ import etomo.util.MRCHeader;
 public class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,
+    long startTime) {
+    super(appMgr, id, startTime);
   }
 
   /* (non-Javadoc)
@@ -56,14 +61,14 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
-    ComScriptManager comScriptManager = 
-    applicationManager.getComScriptManager();
+    ComScriptManager comScriptManager = applicationManager
+      .getComScriptManager();
     comScriptManager.loadNewst(axisID);
     NewstParam newstParam = comScriptManager.getNewstComNewstParam(axisID);
 
     // Get the header from the raw stack to calculate the aligned stack stize
-    String rawStackFilename = 
-    System.getProperty("user.dir") + "/" + newstParam.getInputFile();
+    String rawStackFilename = System.getProperty("user.dir") + "/"
+      + newstParam.getInputFile();
     MRCHeader rawStack = new MRCHeader(rawStackFilename);
     rawStack.read();
     nX = rawStack.getNRows();
@@ -91,23 +96,24 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
       default :
         throw new InvalidParameterException("Unknown mode parameter");
     }
-    
+
     // Get the binByFactor from newst.com script
     int binBy = newstParam.getBinByFactor();
     // If the bin by factor is unspecified it defaults to 1
-    if(binBy > 1) {
+    if (binBy > 1) {
       nX = nX / binBy;
       nY = nY / binBy;
     }
-    
+
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.setProgressBar("Creating aligned stack", nKBytes, axisID);
+    applicationManager
+      .setProgressBar("Creating aligned stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
-    watchedFile = 
-    new File(System.getProperty("user.dir"), newstParam.getOutputFile());
+    watchedFile = new File(System.getProperty("user.dir"), newstParam
+      .getOutputFile());
   }
 }

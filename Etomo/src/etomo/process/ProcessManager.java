@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2004/06/15 20:07:09  rickg
+ * Bug #469 Rotation.xf was not getting the axisID inserted into the
+ * filename.
+ *
  * Revision 3.13  2004/06/02 23:45:56  rickg
  * Bug #391 added logic for backward compatibility in manage .xf
  * and .tlt files
@@ -495,7 +499,7 @@ public class ProcessManager {
 
     //  Start the com script in the background
     PrenewstProcessMonitor prenewstProcessMonitor = new PrenewstProcessMonitor(
-      appManager, axisID);
+      appManager, axisID, System.currentTimeMillis());
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
@@ -769,7 +773,7 @@ public class ProcessManager {
 
     //  Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
-      appManager, axisID);
+      appManager, axisID, System.currentTimeMillis());
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
       newstProcessMonitor, axisID);
@@ -805,9 +809,11 @@ public class ProcessManager {
     //
     String command = "tilt" + axisID.getExtension() + ".com";
 
-    //  Start the com script in the background
+    //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
-      axisID);
+      axisID, System.currentTimeMillis());
+
+    //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
       tiltProcessMonitor, axisID);
 
@@ -1021,9 +1027,10 @@ public class ProcessManager {
   private ComScriptProcess startComScript(String command,
     Runnable processMonitor, AxisID axisID) throws SystemProcessException {
 
+    // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
-
-    //  Run the script as a thread in the background
+    
+    // Run the script as a thread in the background
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this,
       axisID);
     comScriptProcess.setWorkingDirectory(new File(System
