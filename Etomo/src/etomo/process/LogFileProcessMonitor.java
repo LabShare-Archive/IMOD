@@ -24,6 +24,29 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2004/08/19 02:27:17  sueh
+ * <p> bug# 508 Preventing progress bar updates that prevent
+ * <p> CombineProcessMonitor from working.  Checking processRunning to
+ * <p> see if the progress bar should be changed.  Using a new member
+ * <p> variable lastProcess to prevent LogFileProcessMonitor from controlling
+ * <p> when a progress bar should be shut off.  If lastProcess is false, then
+ * <p> LogFileProcessMonitor is too slow to shut off the progress bar and
+ * <p> sometimes shuts it off after it has started for the next process.
+ * <p> Created a way to force the monitor to shut off, so I made
+ * <p> processRunning a member variable.  It starts as true, and then is set
+ * <p> to false perminently.  This helped CombineProcessMonitor be more
+ * <p> accurate.  Looks pretty good in this object.  Will have to test it some
+ * <p> more.  It shouldn't be a problem because we always create new
+ * <p> monitors for each process.
+ * <p> Added:
+ * <p> boolean lastProcess
+ * <p> boolean processRunning
+ * <p> setLastProcess(boolean lastProcess)
+ * <p> setProcessRunning(boolean processRunning)
+ * <p> Changed:
+ * <p> run()
+ * <p> updateProgressBar()
+ * <p>
  * <p> Revision 3.8  2004/05/21 02:15:51  sueh
  * <p> bug# 83 fixing a null pointer bug
  * <p>
@@ -80,8 +103,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
-  //Run() can only be run once per instance.
-  protected boolean processRunning = true;
   protected boolean lastProcess = true;
 
   boolean standardLogFileName = true;
@@ -117,6 +138,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
     }
     logFile = new File(System.getProperty("user.dir"), logFileName);
 
+    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile();
@@ -248,9 +270,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
     String message = String.valueOf(percentage) + "%   ETC: "
         + Utilities.millisToMinAndSecs(remainingTime);
     
-    if (!processRunning) {
-      return;
-    }
     applicationManager.setProgressBarValue(currentSection, message, axisID);
   }
 
@@ -263,9 +282,5 @@ public abstract class LogFileProcessMonitor implements Runnable {
     double fractionDone = (double) currentSection / nSections;
     long elapsedTime = System.currentTimeMillis() - processStartTime;
     remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
-  }
-  
-  protected void setProcessRunning(boolean processRunning) {
-    this.processRunning = processRunning;
   }
 }
