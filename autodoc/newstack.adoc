@@ -1,0 +1,191 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FNM
+usage = Input image file
+tooltip = 
+manpage = Input image file.  Input files may also be entered after all 
+arguments on the command line, as long as an output file is the last name
+on the command line.  Files entered with this option will be 
+processed before files at the end of the command line, if any.
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FNM
+usage = Output image file
+tooltip = 
+manpage = Output image file.  The last filename on the command line will
+also be treated as an output file, following any specified by this option.
+
+[Field = ListOfInputs]
+short = listin
+long = ListOfInputs
+type = FN
+usage = Name of file with list of input files and sections to read
+tooltip = 
+manpage = Name of file with list of input files and sections to read.  The
+format of the file is filename on first line, list of sections to read on
+next line, next filename on next line, etc.  If this
+option is used, no input filenames may be specified with the -input option
+or following options on the command line.
+
+[Field = ListOfOutputs]
+short = listout
+long = ListOfOutputs
+type = FN
+usage = Name of file with list of output files and number of sections in each
+tooltip = Name of file with list of output files and number of sections to 
+place in each
+manpage = Name of file with list of output files and number of sections to 
+place in each.  The
+format of the file is filename on first line, number of sections to write on
+next line, next filename on next line, etc.  If this
+option is used, no output filenames may be specified with the -output option
+or as the last file on the command line.
+
+[Field = SectionsToRead]
+short = sections
+long = SectionsToRead
+type = LIM
+usage = List of sections to read from input file, numbered from 0.  
+The default is all sections.  Ranges are allowed.
+tooltip = 
+manpage = List of sections to read from an input file, numbered from 0.
+Ranges may be entered (e.g., 1-3,5,8), and / may be used to specify all
+sections in the file.  If multiple lists are entered, each
+one will be applied to the respective input file.  If no list is entered for
+a file, all sections will be read.
+
+[Field = NumberToOutput]
+short = numout
+long = NumberToOutput
+type = IAM
+usage = Number of sections to write to an output file
+tooltip = 
+manpage = Number of sections to write to each output file, when there are
+multiple output files.  These numbers may be listed in sequence in one entry,
+or in several entries.
+
+[Field = SizeToOutputInXandY]
+short = size
+long = SizeToOutputInXandY
+type = IP
+usage = 
+tooltip = 
+manpage = 
+
+[Field = ModeToOutput]
+short = mode
+long = ModeToOutput
+type = I
+usage = 
+tooltip = 
+manpage = 
+
+[Field = OffsetsInXandY]
+short = offset
+long = OffsetsInXandY
+type = FAM
+usage = 
+tooltip = 
+manpage = 
+
+[Field = TransformFile]
+short = xffile
+long = TransformFile
+type = FN
+usage = 
+tooltip = 
+manpage = 
+
+[Field = UseTransformLines]
+short = uselines
+long = UseTransformLines
+type = LI
+usage = 
+tooltip = 
+manpage = 
+
+[Field = RotateByAngle]
+short = rotate
+long = RotateByAngle
+type = F
+usage = 
+tooltip =
+manpage =
+
+[Field = ExpandByFactor]
+short = expand
+long = ExpandByFactor
+type = F
+usage = 
+tooltip =
+manpage =
+
+[Field = LinearInterpolation]
+short = linear
+long = LinearInterpolation
+type = B
+usage = Use linear instead of cubic interpolation to transform images
+tooltip = 
+manpage = 
+
+[Field = FloatDensities]
+short = float
+long = FloatDensities
+type = I
+usage = 
+tooltip = 
+manpage = 
+
+[Field = ContrastBlackWhite]
+short = contrast
+long = ContrastBlackWhite
+type = IP
+usage = 
+tooltip = 
+manpage = 
+
+[Field = ScaleMinAndMax]
+short = scale
+long = ScaleMinAndMax
+type = FP
+usage = 
+tooltip = 
+manpage = 
+
+[Field = DistortionField]
+short = distort
+long = DistortionField
+type = FN
+usage = 
+tooltip = 
+manpage = 
+
+[Field = BinningOfImages]
+short = binning
+long = BinningOfImages
+type = I
+usage = 
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

@@ -1,0 +1,163 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file to be transformed, or from which transformations 
+will be found.
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FN
+usage = Output file, either transformed model or list of transformations.
+tooltip = 
+manpage =
+
+[Field = ImageFile]
+short = image
+long = ImageFile
+type = FN
+usage = 
+tooltip =
+manpage =
+
+[Field = PieceListFile]
+short = piece
+long = PieceListFile
+type = FN
+usage = 
+tooltip =
+manpage =
+
+[Field = CenterInXandY]
+short = center
+long = CenterInXandY
+type = FP
+usage = 
+tooltip =
+manpage =
+
+[Field = TranslationOnly]
+short = transonly
+long = TranslationOnly
+type = B
+usage = 
+tooltip =
+manpage =
+
+[Field = RotationTranslation]
+short = rottrans
+long = RotationTranslation
+type = B
+usage = 
+tooltip =
+manpage =
+
+[Field = MagRotTrans]
+short = magrot
+long = MagRotTrans
+type = B
+usage = 
+tooltip =
+manpage =
+
+[Field = BackTransform]
+short = back
+long = BackTransform
+type = B
+usage = 
+tooltip =
+manpage =
+
+[Field = EditTransforms]
+short = edit
+long = EditTransforms
+type = FN
+usage = 
+tooltip =
+manpage =
+
+[Field = SectionsToAnalyze]
+short = sections
+long = SectionsToAnalyze
+type = LI
+usage = 
+tooltip =
+manpage =
+
+[Field = SingleSection]
+short = single
+long = SingleSection
+type = I
+usage = 
+tooltip =
+manpage =
+
+[Field = FullReportMeanAndMax]
+short = full
+long = FullReportMeanAndMax
+type = FP
+usage = 
+tooltip =
+manpage =
+
+[Field = PrealignTransforms]
+short = prealign
+long = PrealignTransforms
+type = FN
+usage = 
+tooltip =
+manpage =
+
+[Field = XformsToApply]
+short = xforms
+long = XformsToApply
+type = FN
+usage = 
+tooltip =
+manpage =
+
+[Field = AllZhaveTransforms]
+short = allz
+long = AllZhaveTransforms
+type = B
+usage = 
+tooltip =
+manpage =
+
+[Field = DistortionField]
+short = distort
+long = DistortionField
+type = FN
+usage = 
+tooltip = 
+manpage = 
+
+[Field = BinningOfImages]
+short = binning
+long = BinningOfImages
+type = I
+usage = 
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
