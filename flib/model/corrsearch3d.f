@@ -76,6 +76,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/12/24 19:05:08  mast
+c	  Changed to fit new form of get_nxyz
+c	
 c	  Revision 3.7  2003/10/24 17:40:17  mast
 c	  Removed -e flag from tcsh command
 c	
@@ -209,27 +212,12 @@ c
 c	  
 c	  get patch starting positions and delta between patches
 c
-	if(numxpat.gt.1)then
-	  ixstart=nbxlo
-	  ixdelta=(nx-(nbxlo+nbxhi+nxpatch))/(numxpat-1)
-	else
-	  ixstart=(nbxlo+nx-nbxhi)/2 - nxpatch/2
-	  ixdelta=1
-	endif
-	if(numypat.gt.1)then
-	  iystart=nbylo
-	  iydelta=(ny-(nbylo+nbyhi+nypatch))/(numypat-1)
-	else
-	  iystart=(nbylo+ny-nbyhi)/2 - nypatch/2
-	  iydelta=1
-	endif
-	if(numzpat.gt.1)then
-	  izstart=nbzlo
-	  izdelta=(nz-(nbzlo+nbzhi+nzpatch))/(numzpat-1)
-	else
-	  izstart=(nbzlo+nz-nbzhi)/2 - nzpatch/2
-	  izdelta=1
-	endif
+	call checkAndSetPatches(nx, nbxlo, nbxhi, nxpatch, numxpat,
+     &	    ixstart, ixdelta, 'X AXIS')
+	call checkAndSetPatches(ny, nbylo, nbyhi, nypatch, numypat,
+     &	    iystart, iydelta, 'Y AXIS')
+	call checkAndSetPatches(nz, nbzlo, nbzhi, nzpatch, numzpat,
+     &	    izstart, izdelta, 'Z AXIS')
 c	  
 c	  compute transformed locations of corners of b source volume
 c	  
@@ -477,6 +465,8 @@ c
 	  enddo
 	enddo
 c	  
+	if (numtot .lt. 1) call errorexit(
+     &	    'NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
 	call dopen(1,filout,'new','f')
 	write(1,'(i7,a)')numtot,' positions'
 c	  
@@ -1017,9 +1007,55 @@ c
 	end
 
 
+c	  checkAndSetPatches does error checks and sets the basic start
+c	  and delta for the patches
+c
+	subroutine checkAndSetPatches(nx, nbxlo, nbxhi, nxpatch, numxpat,
+     &	    ixstart, ixdelta, axis)
+	implicit none
+	integer*4 nx, nbxlo, nbxhi, nxpatch, numxpat, ixstart, ixdelta
+	character*6 axis
+	character*80 concat
+c	  
+c	  check basic input properties
+c
+	if (nbxlo .lt. 0 .or. nbxhi .lt. 0) call errorexit(
+     &	    'A NEGATIVE BORDER WAS ENTERED FOR THE '//axis)
+	if (nxpatch .le. 4) call errorexit(
+     &	    'PATCH SIZE NEGATIVE OR TOO SMALL FOR THE '//axis)
+	if (numxpat .le. 0) call errorexit(
+     &	    'NUMBER OF PATCHES MUST BE POSITIVE FOR THE '//axis)
+	if (nxpatch .gt. nx-(nbxlo+nbxhi)) call errorexit(
+     &	    'PATCH SIZE IS TOO LARGE TO FIT WITHIN BORDERS FOR THE '//
+     &	    axis)
+c	  
+c	  If multiple patches, compute the delta and then adjust the number
+c	  of patches down to require a delta of at least 2
+c
+	if(numxpat.gt.1)then
+	  ixstart=nbxlo
+	  ixdelta=(nx-(nbxlo+nbxhi+nxpatch))/(numxpat-1)
+	  do while (numxpat .gt. 1 .and. ixdelta .lt. 2)
+	    numxpat = numxpat - 1
+	    if (numxpat .gt. 1) ixdelta=(nx-(nbxlo+nbxhi+nxpatch))/(numxpat-1)
+	  enddo
+	endif
+c	  
+c	  If only one patch originally or now, center it in range
+c
+	if (numxpat .eq. 1) then
+	  ixstart=(nbxlo+nx-nbxhi)/2 - nxpatch/2
+	  ixdelta=1
+	endif
+	return
+	end
+
+
 	subroutine errorexit(message)
 	character*(*) message
+	integer*4 lnblnk
 	print *
-	print *,'ERROR: CORRSEARCH3D - ',message
+	print *,'ERROR: CORRSEARCH3D - ',message(1:lnblnk(message))
 	call exit(1)
 	end
+
