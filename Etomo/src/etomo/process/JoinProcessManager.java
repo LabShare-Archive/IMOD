@@ -27,6 +27,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.3  2004/11/20 01:58:33  sueh
+* <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
+* <p>
 * <p> Revision 1.2  2004/11/19 23:22:15  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -172,10 +175,13 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(FlipyzParam.getName())) {
+      File outputFile = command.getOutputFile();
       if (exitValue == 0) {
-        joinManager.addSection(command.getOutputFile());
+        joinManager.addSection(outputFile);
       }
       else {
+        //A partially created flip file can cause an error when it is opened.
+        outputFile.delete();
         joinManager.abortAddSection();
       }
     }
