@@ -7,10 +7,11 @@
 #
 set Xlibdir = /usr/X11R6/lib
 set Xincdir = /usr/X11R6/include/X11
+set Mincdir = /usr/X11R6/include
 
 # add location of system glw includes if using system glw instead
 # (define glwincdir and add -I$glwincdir)
-set c_includes =  "-I$Xincdir"' -I$(QTDIR)/include'
+set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
 
 # add -I$opengl_lib if it's not on the system library path
 echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure

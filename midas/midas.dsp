@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "tmp"
 # PROP Target_Dir ""
-# ADD CPP /nologo /MD /W3 /O1 /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
+# ADD CPP /nologo /MD /W1 /O1 /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "NDEBUG"
