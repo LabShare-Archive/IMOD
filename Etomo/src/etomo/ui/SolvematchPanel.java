@@ -33,6 +33,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/17 20:43:50  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.3  2004/06/15 21:37:16  rickg
  * <p> Bug #383 Correct synchronization of solvematch sub-panel
  * <p>
@@ -76,6 +79,7 @@ public class SolvematchPanel implements InitialCombineFields {
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private String parentTitle;
+  private boolean binningWarning = false;
 
   public SolvematchPanel(TomogramCombinationDialog parent, String title,
     ApplicationManager appMgr) {
@@ -129,6 +133,7 @@ public class SolvematchPanel implements InitialCombineFields {
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
       this);
     btnImodMatchModels.addActionListener(actionListener);
+    cbBinBy2.addActionListener(actionListener);
 
     RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
     rbBothSides.addActionListener(rbFiducialListener);
@@ -311,6 +316,12 @@ public class SolvematchPanel implements InitialCombineFields {
     String command = event.getActionCommand();
     if (event.getActionCommand().equals(btnImodMatchModels.getActionCommand())) {
       applicationManager.imodMatchingModel(cbBinBy2.isSelected());
+    }
+    else if (event.getActionCommand().equals(cbBinBy2.getActionCommand())) {
+      if (!binningWarning && cbBinBy2.isSelected()) {
+        tomogramCombinationDialog.setBinningWarning(true);
+        binningWarning = true;
+      }
     }
   }
 
