@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.52  2003/06/27 20:23:32  rickg
+ * <p> Adde getter method for the com script manager
+ * <p>
  * <p> Revision 2.51  2003/06/10 05:29:30  rickg
  * <p> Data persistence behavior of the combination and post
  * <p> processing panels now match the others.
@@ -2692,7 +2695,7 @@ public class ApplicationManager {
    * Return a reference to THE com script manager
    * @return
    */
-  ComScriptManager getComScriptManager() {
+  public ComScriptManager getComScriptManager() {
     return comScriptMgr;
   }
   
