@@ -21,6 +21,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/21 23:31:50  sueh
+ * <p> bug# 509 bug# 591  Changed set(ComScriptCommand, String...) to use
+ * <p> EtomoNumber.parse().
+ * <p>
  * <p> Revision 3.3  2005/01/10 23:51:40  sueh
  * <p> bug# 578 Changing calls to ConstEtomoNumber.isNull() to !isSet().
  * <p>
@@ -230,7 +234,7 @@ public class TiltAngleSpec implements Storable {
       throws InvalidParameterException {
     //EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //Get rangeMin
-    EtomoNumber rangeMin = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, rangeMinKey);
+    ScriptParameter rangeMin = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, rangeMinKey);
     rangeMin.parse(scriptCommand);
     if (rangeMin.isNull() && rangeMinShortKey != null
         && !rangeMinShortKey.matches("\\s*")) {
@@ -241,7 +245,7 @@ public class TiltAngleSpec implements Storable {
       this.rangeMin = rangeMin.getDouble();
     }
     //Get rangeStep
-    EtomoNumber rangeStep = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, rangeStepKey);
+    ScriptParameter rangeStep = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, rangeStepKey);
     rangeStep.parse(scriptCommand);
     if (rangeStep.isNull() && rangeStepShortKey != null
         && !rangeStepShortKey.matches("\\s*")) {
