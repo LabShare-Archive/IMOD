@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p> </p>
@@ -38,9 +41,11 @@ public class ConstPatchcrawl3DParam {
   protected String outputFile = "";
   protected String transformFile = "";
   protected String originalFileB = "";
+  protected FortranInputString borders;
   protected String boundaryModel = "";
   
   public ConstPatchcrawl3DParam() {
+    reset();
   }
 
   /**
@@ -90,6 +95,10 @@ public class ConstPatchcrawl3DParam {
    */
   public String getTransformFile() {
     return transformFile;
+  }
+  
+  public String getBorders() {
+    return borders.toString();
   }
 
   /**
@@ -169,6 +178,10 @@ public class ConstPatchcrawl3DParam {
   public String getBoundaryModel() {
     return boundaryModel;
   }
+  
+  public boolean isUseBoundaryModel() {
+    return !boundaryModel.equals("");
+  }
 
   /**
    * @return String
@@ -176,5 +189,31 @@ public class ConstPatchcrawl3DParam {
   public String getOutputFile() {
     return outputFile;
   }
+  
+  protected void reset() {
+    xPatchSize = 0;
+    yPatchSize = 0;
+    zPatchSize = 0;
+    nX = 0;
+    nY = 0;
+    nZ = 0;
+    xLow = 0;
+    xHigh = 0;
+    yLow = 0;
+    yHigh = 0;
+    zLow = 0;
+    zHigh = 0;
+    maxShift = 0;
+    fileA = "";
+    fileB = "";
+    outputFile = "";
+    transformFile = "";
+    originalFileB = "";
+    borders = new FortranInputString(4);
+    boolean[] intFlag = {true, true, true, true};
+    borders.setIntegerType(intFlag);
+    boundaryModel = "";
+  }
+
 
 }
