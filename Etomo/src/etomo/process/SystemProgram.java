@@ -22,6 +22,11 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/01/13 22:43:02  rickg
+ * <p> Bug #376 Created a new Constructor that accepts a String[] for
+ * <p> the command and arguments.  This also required restructing the
+ * <p> exec call and splitting the exsiting constructor command strings.
+ * <p>
  * <p> Revision 3.1  2003/12/01 19:57:08  rickg
  * <p> Close cleanup
  * <p>
@@ -99,6 +104,7 @@ public class SystemProgram implements Runnable {
   private String exceptionMessage = "";
   private boolean started = false;
   private boolean done = false;
+  private ArrayList warningList = new ArrayList();
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -317,6 +323,27 @@ public class SystemProgram implements Runnable {
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
+    }
+
+    if (stdOutput.size() > 0) {
+      for (int i = 0; i < stdOutput.size(); i++) {
+        String output = (String) stdOutput.get(i);
+        if (output.startsWith("WARNING:")) {
+          warningList.add(output);
+          System.out.println("warning=" + warningList.get(warningList.size() - 1));
+        }
+      }
+    }
+    if (stdError.size() > 0) {
+      System.out.println("stderr");
+      for (int i = 0; i < stdError.size(); i++) {
+        String error = (String) stdError.get(i);
+        System.out.println(error);
+        if (error.startsWith("WARNING:")) {
+          warningList.add(error);
+          System.out.println("warning=" + warningList.get(warningList.size() - 1));
+        }
+      }
     }
 
     if (debug) {
