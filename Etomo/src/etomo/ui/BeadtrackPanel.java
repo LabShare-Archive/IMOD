@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/05/07 17:52:39  rickg
+ * <p> Removed context menu, parent panel handles it
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -46,8 +49,9 @@ public class BeadtrackPanel {
 
   private LabeledTextField ltfInputImage =
     new LabeledTextField("Input image file: ");
-  private LabeledTextField ltfPiceListFile =
-    new LabeledTextField("Piece list file: ");
+    //SUEH 274
+//  private LabeledTextField ltfPiceListFile =
+//    new LabeledTextField("Piece list file: ");
   private LabeledTextField ltfSeedModelFile =
     new LabeledTextField("Seed model file: ");
   private LabeledTextField ltfOutputModelFile =
@@ -55,7 +59,7 @@ public class BeadtrackPanel {
   private LabeledTextField ltfViewSkipList =
     new LabeledTextField("View skip list: ");
   private LabeledTextField ltfAdditionalViewSets =
-    new LabeledTextField("Additional view groups: ");
+    new LabeledTextField("Separate view groups: ");
   private LabeledTextField ltfTiltAngleGroupSize =
     new LabeledTextField("Tilt angle group size: ");
   private LabeledTextField ltfTiltAngleGroups =
@@ -65,26 +69,26 @@ public class BeadtrackPanel {
   private LabeledTextField ltfMagnificationGroups =
     new LabeledTextField("Non-default magnification groups: ");
   private LabeledTextField ltfNMinViews =
-    new LabeledTextField("Minimum number of views for tilt alignment: ");
+    new LabeledTextField("Minimum # of views for tilt alignment: ");
   private LabeledTextField ltfFiducialParams =
-    new LabeledTextField("Fiducial marker parameters: ");
+    new LabeledTextField("Fiducial marker radius & polarity: ");
   JCheckBox chkboxFillGaps = new JCheckBox("Fill seed model gaps");
   private LabeledTextField ltfMaxGap =
     new LabeledTextField("Maximum gap size: ");
   private LabeledTextField ltfTiltAngleMinRange =
-    new LabeledTextField("Tilt angle mimimums: ");
+    new LabeledTextField("Minimums: ");
   private LabeledTextField ltfSearchBoxPixels =
     new LabeledTextField("Search box size (pixels): ");
   private LabeledTextField ltfMaxFiducialsAvg =
     new LabeledTextField("Maximum # of views for fiducial avg.: ");
   private LabeledTextField ltfFiducialExtrapolationParams =
-    new LabeledTextField("Fiducial extrapolation parameters: ");
+    new LabeledTextField("Fiducial extrapolation limits: ");
   private LabeledTextField ltfRescueAttemptParams =
-    new LabeledTextField("Rescue attempt parameters: ");
+    new LabeledTextField("Rescue attempt criteria: ");
   private LabeledTextField ltfMinRescueDistance =
-    new LabeledTextField("Min rescue distance (pixels): ");
+    new LabeledTextField("Maximum rescue distance (pixels): ");
   private LabeledTextField ltfRescueRelaxtionParams =
-    new LabeledTextField("Rescue relaxation parameters: ");
+    new LabeledTextField("Rescue relaxation factors: ");
   private LabeledTextField ltfResidualDistanceLimit =
     new LabeledTextField("First pass residual limit for deletion: ");
   private LabeledTextField ltfSecondPassParams =
@@ -105,7 +109,7 @@ public class BeadtrackPanel {
     panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
 
     panelBeadtrack.add(ltfInputImage.getContainer());
-    panelBeadtrack.add(ltfPiceListFile.getContainer());
+//    panelBeadtrack.add(ltfPiceListFile.getContainer());
     panelBeadtrack.add(ltfSeedModelFile.getContainer());
     panelBeadtrack.add(ltfOutputModelFile.getContainer());
     panelBeadtrack.add(ltfViewSkipList.getContainer());
@@ -139,7 +143,7 @@ public class BeadtrackPanel {
    */
   public void setParameters(ConstBeadtrackParam beadtrackParams) {
     ltfInputImage.setText(beadtrackParams.getInputFile());
-    ltfPiceListFile.setText(beadtrackParams.getPieceListFile());
+//    ltfPiceListFile.setText(beadtrackParams.getPieceListFile());
     ltfSeedModelFile.setText(beadtrackParams.getSeedModelFile());
     ltfOutputModelFile.setText(beadtrackParams.getOutputModelFile());
     ltfViewSkipList.setText(beadtrackParams.getViewSkipList());
@@ -178,7 +182,7 @@ public class BeadtrackPanel {
     String badParameter = "";
     try {
       beadtrackParams.setInputFile(ltfInputImage.getText());
-      beadtrackParams.setPieceListFile(ltfPiceListFile.getText());
+//      beadtrackParams.setPieceListFile(ltfPiceListFile.getText());
       beadtrackParams.setSeedModelFile(ltfSeedModelFile.getText());
       beadtrackParams.setOutputModelFile(ltfOutputModelFile.getText());
 
@@ -277,11 +281,13 @@ public class BeadtrackPanel {
     //ltfTiltAngleGroupParams.setVisible(state);
     //ltfTiltAngleGroups.setVisible(state);
     //chkboxFillGaps.setVisible(state);
-
+//SUEH 274
     ltfInputImage.setVisible(state);
-    ltfPiceListFile.setVisible(state);
+//    ltfPiceListFile.setVisible(state);
     ltfSeedModelFile.setVisible(state);
     ltfOutputModelFile.setVisible(state);
+    ltfTiltAngleGroupSize.setVisible(state);
+    ltfTiltAngleGroups.setVisible(state);
     ltfMagnificationGroupSize.setVisible(state);
     ltfMagnificationGroups.setVisible(state);
     ltfNMinViews.setVisible(state);
