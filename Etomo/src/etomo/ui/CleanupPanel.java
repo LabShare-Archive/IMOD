@@ -37,6 +37,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/11/19 23:49:43  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.2.4.3  2004/10/11 02:10:41  sueh
  * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * property.  This property would need a different value for each manager.
@@ -120,8 +123,11 @@ public class CleanupPanel {
     btnRescanDir.setMaximumSize(dimButton);
 
     //  Create the filechooser
+    String datasetName = applicationManager.getMetaData().getDatasetName();
     intermediateFileFilter =
-      new IntermediateFileFilter(applicationManager.getMetaData().getDatasetName());
+      new IntermediateFileFilter(datasetName);
+    File trimmedTomogram = new File(applicationManager.getPropertyUserDir(), datasetName + ".rec");
+    intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram.exists());
     backupFileFilter = new BackupFileFilter();
 
     fileChooser = new JFileChooser();
