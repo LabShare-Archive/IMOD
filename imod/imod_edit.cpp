@@ -228,7 +228,7 @@ void imod_contour_move(int ob)
 // Add an item to the selection list
 void imodSelectionListAdd(ImodView *vi, Iindex newIndex)
 {
-  int multiObject = 0;    // Placekeeper for possible argument/preference
+  int multiObject = 1;    // Placekeeper for possible argument/preference
   Iindex *index;
   int i;
 
@@ -313,6 +313,9 @@ void imodSelectionListRemove(ImodView *vi, int ob, int co)
 
 /*
 $Log$
+Revision 4.5  2004/11/21 05:50:34  mast
+Switch from int to float for nearest point distance measurement
+
 Revision 4.4  2004/11/01 23:21:57  mast
 Allowed 3D point selection, added selection list functions
 
