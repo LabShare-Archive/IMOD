@@ -748,6 +748,12 @@ int main( int argc, char *argv[])
   return qapp.exec();
 }
 
+// Provide information about whether event loop started yet
+int imodLoopStarted()
+{
+  return loopStarted;
+}
+
 /* Close everything as gracefully as possible */
 void imod_exit(int retcode)
 {
@@ -957,6 +963,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.33  2004/03/25 21:06:00  mast
+Prevented accessing vi.hdr when no image was loaded
+
 Revision 4.32  2004/01/09 15:54:12  mast
 Turn keepcachefull back on if user enter -F and doesn't limit cache
 
