@@ -1085,6 +1085,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       if (zap->rubberband || zap->startingBand) {
         zap->rubberband = 0;
         zap->startingBand = 0;
+        setControlAndLimits(zap);
       } else {
         zap->startingBand = 1;
 	/* Eliminated old code for making initial band */
@@ -2821,6 +2822,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.34  2003/10/30 06:28:44  mast
+Specified that "a" hot key is lower case
+
 Revision 4.33  2003/09/25 21:10:04  mast
 Keep zap window on the screen when it is positioned from settings
 
