@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -980,6 +988,8 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
      return;
 }
 
+/* Check the list of piece coordinates for regularity and determine the 
+   the number of pieces in the dimension and the overlap */
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 		      int *nxpieces, int *nxoverlap)
 {
@@ -990,7 +1000,8 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
      /* get min and max of piece coordinates */
 
      *minxpiece=100000;
-     for (i = 1; i < npclist; i++) {
+     /* DNM 1/15/02: in all three loops, change starting counter from 1 to 0 */
+     for (i = 0; i < npclist; i++) {
 	  if (*minxpiece > xpclist[i])
 	       *minxpiece = xpclist[i];
 	  if (maxxpiece < xpclist[i])
@@ -1000,7 +1011,7 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 
      /* get difference from minimum; keep track of minimum distance */
 
-     for (i = 1; i < npclist; i++) {
+     for (i = 0; i < npclist; i++) {
 	  ixdiff = xpclist[i] - *minxpiece;
 	  if (ixdiff > 0 && minxdiff > ixdiff) 
 	       minxdiff = ixdiff;
@@ -1016,7 +1027,7 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 	  *nxpieces = -1;
 	  if (minxdiff > nxframe)
 	       return;
-	  for (i = 1; i < npclist; i++) {
+	  for (i = 0; i < npclist; i++) {
 
 	       ixdiff = xpclist[i] - *minxpiece;
 	       if(ixdiff % minxdiff) {
