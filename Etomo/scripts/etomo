@@ -1,22 +1,30 @@
 #!/bin/sh
-
-# Test for appropriate java run time
-if ! type java > /dev/null ; then
-  echo "There is no java runtime in the current search path.  Add the path to"
-  echo "a java runtime (1.4 or greater) to your current command search path."
-fi
+#
+# Description: startup script for eTomo
+# 
+# Copyright: Copyright (c) 2002, 2003
+# Boulder Laboratory for 3D Fine Structure, University of Colorado
+# 
+# $Author$
+# 
+# $Revision$
+# 
+# $Log$
 
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
   echo "The IMOD_DIR environement variable has not been set"
   echo "Set it to point to the directory where IMOD is installed"
+  exit
 fi
 if [ ! -e $IMOD_DIR ]; then
   echo "IMOD_DIR="${IMOD_DIR} " does not exist"
   echo "Set it to point to the directory where IMOD is installed"
+  exit
 fi
 
-# Test for existence of etomo jar file
+# Use the JRE distribute with Etomo for now
+ETOMO_JAVAVM=$IMOD_DIR/jre/bin
 
 # Copy the previous log files to backups
 if [ -e etomo_out.log ]; then
@@ -25,6 +33,6 @@ fi
 if [ -e etomo_err.log ]; then
   cp etomo_err.log etomo_err.log~
 fi
-
-java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@ \
+echo $ETOMO_JAVAVM/java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@
+$ETOMO_JAVAVM/java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@ \
   2>etomo_err.log >etomo_out.log &
