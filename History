@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/6/02: IMOD_2-6-12
+5/6/02: Changed Tiltalign to work better with a subset of views; it puts out
+a full set of transforms and tilt angles for downstream programs and refers
+to all views by their view number in the file rather than in the particular
+selected subset.  Added an entry for a list of views to exclude in
+Copytomocoms and propagated this into track.com, align.com, and tilt.com.
+Added an EXCLUDELIST option to Tilt to make it easier to use the same list
+in both Tiltalign and Tilt.
+
+5/6/02: Changed the surface analysis output in Tiltalign to make it more
+understandable and more easily readable by programs; made Alignlog read the
+old or new form correctly and fixed a problem with Alignlog's reading of the
+log file name.
+
 5/2/02: IMOD_2-6-11
 5/2/02: Fixed bug in tiltxcorr in which images with negative tilt angles
 had their shifts inappropriately destretched.
