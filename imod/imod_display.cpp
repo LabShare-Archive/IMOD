@@ -260,7 +260,7 @@ static int rethink(ImodView *vw)
   }
 
   obj = imodObjectGet(vw->imod);
-  if (iobjFlagTime(obj))
+  if (iobjFlagTime(obj) && cont->type && (cont->flags & ICONT_TYPEISTIME))
     ivwSetTime(vw, cont->type);
 
   point = &(cont->pts[index]);
@@ -537,6 +537,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.14  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 4.13  2004/06/09 14:11:17  mast
 Suggested checking for display format when no GL visual available
 
