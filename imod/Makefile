@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2002/12/01 16:47:14  mast
+#  Added dependency of imodv_stereo on imod.h
+#
 #  Revision 3.5  2002/12/01 15:36:02  mast
 #  Added a few dependencies after getting compilation with g++
 #
@@ -91,7 +94,7 @@ imodv_gfx.o : $(IMODDEPS) $(IMODVDEPS)
 imodv_image.o : $(IMODDEPS) $(IMODVDEPS)
 imodv_input.o : $(IMODDEPS) $(IMODVDEPS)
 imodv_ogl.o : $(IMODDEPS) $(IMODVDEPS)
-ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
+ximodv.o : $(IMODDEPS) $(IMODVDEPS)
 imod_moviecon.o : $(IMODVDEPS)
 imodv_objed.o : $(IMODDEPS)
 imodv_control.o : $(IMODDEPS)
