@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/08 15:52:34  rickg
+ * <p> Added invokeLater structure to progress bar
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -47,6 +50,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import etomo.util.Utilities;
 
 public class ProgressPanel {
   public static final String rcsid = "$Id$";
@@ -55,130 +59,144 @@ public class ProgressPanel {
   private JPanel progressPanel = new JPanel();
   private JLabel taskLabel = new JLabel();
   private JProgressBar progressBar = new JProgressBar();
-  private int i = 0;
   private Timer timer;
 
   // Keep these around so that SwingUtilities.invokeLater can update the
   // the UI status 
-  private int currentValue;
-  private int currentMaximum;
-  private int currentMinimum;
-  private String currentString;
-  private String currentLabel;
+  private int counter = 0;
+  private int value;
+  private int maximum;
+  private int minimum;
+  private long startTime;
+  private String barString;
+  private String label;
 
-  public ProgressPanel(String label) {
-    taskLabel.setText(label);
+  public ProgressPanel(String newLabel) {
+    taskLabel.setText(newLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+    timer = new Timer(1000, new ProgressTimerActionListener(this));
   }
 
-  public void setLabel(String label) {
-    currentLabel = label;
+  public void setLabel(String newLabel) {
+    label = newLabel;
     SwingUtilities.invokeLater(new SetLabelLater());
   }
 
   private class SetLabelLater implements Runnable {
     public void run() {
-      taskLabel.setText(currentLabel);
+      taskLabel.setText(label);
       panel.revalidate();
       panel.repaint();
     }
   }
 
-  
   public void start() {
     //  Setting the progress bar indeterminate causes it to move on its own
+    counter = 0;
+    startTime = System.currentTimeMillis();
     SwingUtilities.invokeLater(new StartLater());
   }
+
   private class StartLater implements Runnable {
     public void run() {
       progressBar.setIndeterminate(true);
       progressBar.setString("");
-      progressBar.setStringPainted(false);
-      i = 0;
+      progressBar.setStringPainted(true);
+      timer.start();
     }
   }
-  
+
   public void stop() {
+    counter = 0;
     SwingUtilities.invokeLater(new StopLater());
   }
+
   private class StopLater implements Runnable {
     public void run() {
-      i = 0;
-      progressBar.setValue(i);
+      timer.stop();
+      progressBar.setValue(counter);
       progressBar.setIndeterminate(false);
       progressBar.setString("done");
       progressBar.setStringPainted(true);
     }
   }
-  
+
   void increment() {
     SwingUtilities.invokeLater(new IncrementLater());
   }
+
   private class IncrementLater implements Runnable {
     public void run() {
-      progressBar.setValue(i);
+      progressBar.setValue(counter);
+       //  Put the elapsed time into the progress bar string
+      progressBar.setString("Elapsed: "
+          + Utilities
+            .millisToMinAndSecs(System.currentTimeMillis() - startTime));
       panel.validate();
       panel.repaint();
-      i++;
+      counter++;
       timer.restart();
+
     }
   }
-  
+
   /**
    * @param n
    */
   public void setMaximum(int n) {
-    currentMaximum = n;
+    maximum = n;
     SwingUtilities.invokeLater(new SetMaximumLater());
   }
+
   private class SetMaximumLater implements Runnable {
     public void run() {
-      progressBar.setMaximum(currentMaximum);
+      progressBar.setMaximum(maximum);
       progressBar.setIndeterminate(false);
       progressBar.setStringPainted(true);
     }
   }
-  
 
   public void setMinimum(int n) {
-    currentMinimum = n;
+    minimum = n;
     SwingUtilities.invokeLater(new SetMinimumLater());
   }
+
   private class SetMinimumLater implements Runnable {
     public void run() {
-      progressBar.setMinimum(currentMinimum);
+      progressBar.setMinimum(minimum);
     }
   }
-
 
   public void setValue(int n) {
-    currentValue = n;
+    value = n;
     SwingUtilities.invokeLater(new SetValueLater());
   }
+
   private class SetValueLater implements Runnable {
     public void run() {
-      progressBar.setValue(currentValue);
+      progressBar.setValue(value);
     }
   }
+
   /**
    * 
    * @param n
    * @param string
    */
   public void setValue(int n, String string) {
-    currentValue = n;
-    currentString = string;
+    value = n;
+    barString = string;
     SwingUtilities.invokeLater(new SetValueAndStringLater());
   }
 
   private class SetValueAndStringLater implements Runnable {
     public void run() {
-      progressBar.setValue(currentValue);
-      progressBar.setString(currentString);
+      progressBar.setValue(value);
+      progressBar.setString(barString);
     }
   }
 
@@ -215,6 +233,7 @@ public class ProgressPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
+      System.err.println("timer event");
       panel.increment();
     }
   }
