@@ -42,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2002/08/17 05:38:39  mast
+c	  Added entries to return and alter the rms value
+c	
 c	  Revision 3.8  2002/07/31 17:43:38  mast
 c	  *** empty log message ***
 c	
@@ -214,6 +217,12 @@ c	  if(mrcflip(j))call convert_longs(ibsym(1,j),nbs/4)
 	  enddo
 	endif
 c	  
+c	  DNM 6/3/03: replace null in titles with space to avoid binary output
+c	  
+	do k = 1,nlab(j)
+	  call fixtitlenulls(labls(1,k,j))
+	enddo
+c	  
 c	  after reading the header, need to set to first section now
 c
 	call imposn(istream,0,0)
@@ -244,7 +253,7 @@ C
      .  1X,'Number of columns, rows, sections .........',3I6,/,
      .  1X,'Map mode ..................................',I5,/,
      .  1X,'Start cols, rows, sects, grid x,y,z .......',3I5,2X,3i5,/,
-     .  1X,'Pixel spacing .............................',3G11.4,/,
+     .  1X,'Pixel spacing (Angstroms)..................',3G11.4,/,
      .  1X,'Cell angles ...............................',3F9.3,/,
      .  1X,'Fast, medium, slow axes ...................',3(4X,A1),/,
      .	1X,'Origin on x,y,z ...........................',3G11.4,/,
@@ -1237,5 +1246,18 @@ c
 	stamp(2,j) = 0
 	stamp(3,j) = 0
 	stamp(4,j) = 0
+	return
+	end
+
+
+c	  Replace any nulls in the title with spaces
+c
+	subroutine fixtitlenulls(label)
+	implicit none
+	byte label(80)
+	integer*4 i
+	do i = 1,80
+	  if (label(i) .eq. 0) label(i) = 32
+	enddo
 	return
 	end
