@@ -28,6 +28,9 @@ import java.util.Calendar;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/18 00:32:33  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.2  2003/02/24 23:35:24  rickg
  * <p> Added management of threads for each axis
  * <p> Added interrupt method  (doesn't work well with C shell scripts)
@@ -332,6 +335,41 @@ public class ProcessManager {
       }
 
       throw (new BadComScriptException(buffer.toString()));
+    }
+  }
+
+  /**
+   * Run the imod2patch command 
+   */
+  public void modelToPatch() throws SystemProcessException {
+    //  Copy the old patch.out to patch.out~
+    SystemProgram savePatchOut =
+      new SystemProgram("mv -f patch.out patch.out~");
+    savePatchOut.setWorkingDirectory(
+      new File(appManager.getWorkingDirectory()));
+    savePatchOut.run();
+    if (savePatchOut.getExitValue() != 0) {
+      String message = "";
+      String[] stderr = savePatchOut.getStdError();
+
+      for (int i = 0; i < stderr.length; i++) {
+        message = message + stderr[i] + "\n";
+      }
+      throw new SystemProcessException(message);
+    }
+    // Convert the new patchvector.mod  
+    SystemProgram patch2imod =
+      new SystemProgram("imod2patch patch_vector.mod patch.out");
+    patch2imod.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    patch2imod.run();
+    if (patch2imod.getExitValue() != 0) {
+      String message = "";
+      String[] stderr = patch2imod.getStdError();
+
+      for (int i = 0; i < stderr.length; i++) {
+        message = message + stderr[i] + "\n";
+      }
+      throw new SystemProcessException(message);
     }
   }
 

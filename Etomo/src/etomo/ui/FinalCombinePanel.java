@@ -40,6 +40,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2003/03/20 17:57:10  rickg
+ * <p> Fixed combined volume button size
+ * <p>
  * <p> </p>
  */
 public class FinalCombinePanel implements ContextMenu {
@@ -112,6 +115,8 @@ public class FinalCombinePanel implements ContextMenu {
 
   private JButton btnPatchVectorModel =
     new JButton("<html><b>Examine patch vector model</b>");
+  private JButton btnCommitPatchOut =
+    new JButton("<html><b>Commit new patch vector model</b>");
   private JButton btnImodMatchedTo =
     new JButton("<html><b>Open volume being matched to</b>");
   private JButton btnImodCombined =
@@ -137,6 +142,8 @@ public class FinalCombinePanel implements ContextMenu {
     btnPatchRegionModel.setMaximumSize(dimButton);
     btnPatchVectorModel.setPreferredSize(dimButton);
     btnPatchVectorModel.setMaximumSize(dimButton);
+    btnCommitPatchOut.setPreferredSize(dimButton);
+    btnCommitPatchOut.setMaximumSize(dimButton);
     btnImodMatchedTo.setPreferredSize(dimButton);
     btnImodMatchedTo.setMaximumSize(dimButton);
     btnImodCombined.setPreferredSize(dimButton);
@@ -242,6 +249,8 @@ public class FinalCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnPatchVectorModel);
     pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnCommitPatchOut);
+    pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodMatchedTo);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined);
@@ -258,6 +267,7 @@ public class FinalCombinePanel implements ContextMenu {
     btnMatchorwarpRestart.addActionListener(actionListener);
     btnMatchorwarpTrial.addActionListener(actionListener);
     btnPatchVectorModel.addActionListener(actionListener);
+    btnCommitPatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
 
@@ -524,6 +534,12 @@ public class FinalCombinePanel implements ContextMenu {
       .getActionCommand()
       .equals(btnPatchVectorModel.getActionCommand())) {
       applicationManager.imodPatchVectorModel();
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(btnCommitPatchOut.getActionCommand())) {
+      applicationManager.modelToPatch();
     }
 
     if (event.getActionCommand().equals(btnImodMatchedTo.getActionCommand())) {

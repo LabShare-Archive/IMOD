@@ -73,6 +73,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.18  2003/03/22 00:40:35  rickg
+ * <p> slovematchmod label change
+ * <p>
  * <p> Revision 2.17  2003/03/20 21:18:55  rickg
  * <p> Added matchshift results button/access
  * <p>
@@ -2270,6 +2273,24 @@ public class ApplicationManager {
     mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);
   }
 
+  /**
+   * Convert the patch.mod to patch.out
+   *
+   */
+  public void modelToPatch() {
+    try {
+      processMgr.modelToPatch();      
+    }
+    catch (SystemProcessException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Patch vector model error");
+      return;
+
+    }
+
+  }
   /**
    * Open the post processing dialog
    */
