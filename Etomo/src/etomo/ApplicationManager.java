@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.26  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.25  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -1826,25 +1829,16 @@ public class ApplicationManager {
    */
   public void imodMatchCheck() {
     try {
-      imodManager.openMatchCheckMat();
+      imodManager.openMatchCheck();
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open 3dmod on matchcheck.mat");
+        "Can't open 3dmod on matchcheck.mat or matchcheck.rec");
     }
-    try {
-      imodManager.openMatchCheckRec();
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      openMessageDialog(
-        except.getMessage(),
-        "Can't open 3dmod on matchcheck.rec");
-    }
-
   }
+
   /**
    * Open the patch region models in tomogram being matched to
    */

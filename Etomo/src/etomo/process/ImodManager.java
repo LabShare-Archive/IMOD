@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/04/28 23:25:26  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.6  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -99,8 +102,7 @@ public class ImodManager {
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
   private ImodProcess patchVectorModel;
-  private ImodProcess matchCheckMat;
-  private ImodProcess matchCheckRec;
+  private ImodProcess matchCheck;
   private ImodProcess fullVolume;
   private ImodProcess trimmedVolume;
   
@@ -144,8 +146,7 @@ public class ImodManager {
       combinedTomogram.setSwapYZ(true);
       patchVectorModel = new ImodProcess("patch_vector.mod");
       patchVectorModel.setModelView(true);
-      matchCheckMat = new ImodProcess("matchcheck.mat");
-      matchCheckRec = new ImodProcess("matchcheck.rec");
+      matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
       fullVolume = combinedTomogram;
     }
     trimmedVolume = new ImodProcess(datasetName + ".rec");
@@ -441,43 +442,22 @@ public class ImodManager {
   /**
    * Open the matchcheck.mat in 3dmod if it is not already open
    */
-  public void openMatchCheckMat() throws SystemProcessException {
-    matchCheckMat.open();
+  public void openMatchCheck() throws SystemProcessException {
+    matchCheck.open();
   }
 
   /**
    * Check to see if the matchcheck.mat is open
    */
-  public boolean isMatchCheckMat() {
-    return matchCheckMat.isRunning();
+  public boolean isMatchCheck() {
+    return matchCheck.isRunning();
   }
 
   /**
    * Close the matchcheck.mat tomogram
    */
-  public void quitMatchCheckMat() throws SystemProcessException {
-    matchCheckMat.quit();
-  }
-
-  /**
-   * Open the matchcheck.rec in 3dmod if it is not already open
-   */
-  public void openMatchCheckRec() throws SystemProcessException {
-    matchCheckRec.open();
-  }
-
-  /**
-   * Check to see if the matchcheck.rec is open
-   */
-  public boolean isMatchCheckRec() {
-    return matchCheckRec.isRunning();
-  }
-
-  /**
-   * Close the matchcheck.rec tomogram
-   */
-  public void quitMatchCheckRec() throws SystemProcessException {
-    matchCheckRec.quit();
+  public void quitMatchCheck() throws SystemProcessException {
+    matchCheck.quit();
   }
 
   /**
