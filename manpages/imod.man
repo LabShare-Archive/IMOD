@@ -121,9 +121,7 @@ position data will be loaded.
 .TP
 .B -xyz
 This option causes the default image window to be the
-XYZ window instead of the ZaP window.  There was a time
-when the XYZ window was actually more useful than the 
-ZaP window.
+XYZ window instead of the ZaP window.
 .TP
 .B -Y
 This option causes the image data to be flipped after it
@@ -629,6 +627,62 @@ Numeric Keypad:
 0    -  (Insert) Set last adjusted angle to 0
 .fi
 
+.SH XYZ Window
+The XYZ window displays three slices: through an XY plane in the lower
+left, through a YZ plane in the lower right, and through an XZ plane in
+the upper left.  Marker lines and crosses indicate the position of the
+current point and of the slices within the volume.  Like the ZaP window,
+it can be resized, and the image can be zoomed with hotkeys and panned
+with the left mouse button.  Limited modeling capability is available 
+in the XY plane.  One can movie through one or more of the planes 
+simultaneously.  
+In addition, the marker lines can be dragged with the
+mouse to riffle through images in a plane.
+.P
+.TP
+.I Hot Keys in the XYZ Window
+.nf
+-/=  -  Decrease/Increase zoom
+r    -  Toggle between low and high resolution display modes
+S    -  Snapshot to RGB file
+Ctrl-S - Snapshot to TIFF file
+.fi
+.TP
+.I Mouse Buttons in the XYZ Window
+ Actions in Movie Mode:
+    Clicking the left mouse button will select the current
+point.  In one of the three image planes, this will generally change the
+coordinates displayed in the other two planes.  Clicking in the horizontal
+gutter region occupied by the X marker line will change the current X
+coordinate and the plane displayed in the YZ panel.  Clicking in the
+vertical gutter region will select a new Y coordinate and XZ plane.  Clicking
+in the upper right region will select a new Z coordinate and XY plane, as
+indicated by the crossed marker lines.
+    Dragging with the left mouse button depressed will either pan the image
+within the window or riffle through one of the planes, depending on where
+the mouse is when the button is first pressed.  If it is in one of the
+image panels, dragging will pan the image (provided it is larger than the 
+window.)
+In the horizontal or vertical gutter regions, dragging will riffle through
+YZ or XZ planes, respectively.  In the upper right region, dragging will
+change the XY plane; this is most effective if the mouse is moved along
+the diagonal in this region.
+    Clicking the middle mouse button in one of the image panels will start
+or stop a movie in the forward direction in that panel.
+    Clicking the right mouse button in one of the image panels will start
+or stop a movie in the backward direction in that panel.
+
+ Actions in Model Mode:
+    Clicking the left mouse button near a model point in the XY plane will
+select that point as the current model point.  Clicking anywhere else will
+cause the same result as in movie mode.
+    Dragging with the left mouse button is the same as in movie mode.
+    Clicking with the middle mouse button in the XY plane will add a point 
+to the current contour and has no effect elsewhere.
+    Dragging with the middle mouse button depressed will add a series of
+points to the current contour.
+    Clicking with the right mouse button in the XY plane will move the
+current model point to that location.
 .SH Tumbler Window
 The Tumbler Window is opened by selecting the Tumbler item
 from the Image menu.  The area around the current point

@@ -103,6 +103,8 @@ DDEESSCCRRIIPPTTIIOONN
      11 to group points based upon their X values in the previous
        column (as in option 3) and then divide the average of the
        current column by the average of some other column
+     12 to select subsets of the data based on the values in some
+       other column than the ones being plotted
   
   If you select option 3, you first choose whether to plot error bars
   as a multiple of standard deviation or standard error of the mean,
@@ -148,6 +150,16 @@ DDEESSCCRRIIPPTTIIOONN
   divided by mean of denominator (SD associated with Y), and number
   of points in the set.  Error bars based on the resulting SD values
   may or may not be meaningful depending on the nature of the data.
+
+  If you select option 12, first enter the number of the column that
+  will be used to test whether to include data.  Then enter a lower
+  and upper limit to a range of values, plus either 0 to include only
+  values in that range, or 1 to exclude values in that range.  Use this
+  option repeatedly to enter multiple selection criteria.  Data points
+  will have to meet all of the criteria to be included in the plots.
+  After entering one or more selection criteria, you must select data
+  by specifying columns with option 1.  To cancel all of the criteria,
+  specify option 12 and enter 0 for the column.
 
 HHIISSTTOORRYY
 	  Written by David Mastronarde, has wandered from one computer to the
