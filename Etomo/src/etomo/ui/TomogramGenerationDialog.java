@@ -54,6 +54,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2004/04/24 21:28:42  rickg
+ * bug #424 Fixed and organized UI layouts
+ *
  * Revision 3.11  2004/04/16 02:20:19  sueh
  * removing print statements
  *
@@ -731,7 +734,7 @@ public class TomogramGenerationDialog extends ProcessDialog
    *
    */
   private void layoutFilterPanel() {
-    pnlFilter.setBorder(new EtchedBorder("MTF Filtering").getBorder());
+    pnlFilter.setBorder(new EtchedBorder("2D Filtering").getBorder());
     pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
 
     //  Inverse filter sub panel
