@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/11/14 00:49:51  mast
+c	  convert to PIP input, add whole-tomogram options for modeling
+c	
 c	  Revision 3.7  2003/10/14 23:14:04  mast
 c	  More terminology changes
 c	
@@ -548,9 +551,9 @@ c$$$	  zp=ycen(i)*cosal-ysamp(i)*sinal
 c$$$	  yy(i)=xcen(i)*sinth+zp*costh
 c$$$	enddo
 	write(6,103)alpha,-theta
-103	format(/' The pitch between samples can be corrected with ',
-     &	    'an X-axis tilt of',f7.2,/,' In this case, to make level,'
-     &	    ' add',f6.1,' to total angle offset')
+103	format(/' Pitch between samples can be corrected with ',
+     &	    'an added X-axis tilt of',f7.2,/,' In this case, to make ',
+     &	    'level, add',f6.1,' to total angle offset')
 	call findshift('x-tilted ',yy,thkmid,ifuse,nspots)
 	return
 	end
