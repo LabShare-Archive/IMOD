@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/23 19:36:56  sueh
+ * <p> bug# 83 adding a "starting" comment when starting the process bar
+ * <p>
  * <p> Revision 3.5  2004/04/08 17:33:59  rickg
  * <p> Use Utilities.milliesToMinAndSecs to get time string
  * <p>
@@ -62,7 +65,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected AxisID axisID;
   protected long processStartTime;
   protected BufferedReader logFileReader;
-  protected int nSections;
+  protected int nSections = Integer.MIN_VALUE;
   protected int currentSection;
   protected int remainingTime;
   protected int waitingForExit = 0;
@@ -92,8 +95,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   }
 
   public void run() {
-    applicationManager.setProgressBar(" ", 1, axisID);
-    applicationManager.setProgressBarValue(0, "Starting...", axisID);
+    initializeProgressBar();
     //  Instantiate the logFile object
     String logFileName;
     if (standardLogFileName) {
