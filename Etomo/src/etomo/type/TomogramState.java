@@ -1,6 +1,12 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.Properties;
+
+import etomo.ApplicationManager;
+import etomo.EtomoDirector;
+import etomo.comscript.TrimvolParam;
+import etomo.util.MRCHeader;
 
 /**
 * <p>Description: </p>
@@ -16,6 +22,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/14 21:49:04  sueh
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.  All state variables saved after a process is run belong in
+* <p> the state object.
+* <p>
 * <p> Revision 1.2  2004/12/08 21:32:04  sueh
 * <p> bug# 564 Added access to flipped.
 * <p>
@@ -27,15 +38,18 @@ public class TomogramState implements BaseState {
   public static  final String  rcsid =  "$Id$";
   
   private static final String groupString = "ReconstructionState";
-  EtomoBoolean flipped = new EtomoBoolean("Flipped");
+  EtomoBoolean trimvolFlipped = new EtomoBoolean("TrimvolFlipped");
+  EtomoBoolean squeezevolFlipped = new EtomoBoolean("SqueezevolFlipped");
  
   
   public TomogramState() {
+    trimvolFlipped.setBackwardCompatibleValue(new EtomoBoolean()).setResetValue(false);
     reset();
   }
   
   void reset() {
-    flipped.reset();
+    trimvolFlipped.reset();
+    squeezevolFlipped.reset();
   }
   
   public void store(Properties props) {
@@ -45,12 +59,15 @@ public class TomogramState implements BaseState {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    flipped.store(props, prepend);
+    trimvolFlipped.store(props, prepend);
+    squeezevolFlipped.store(props, prepend);
   }
 
-  
   public boolean equals(TomogramState that) {
-    if (!flipped.equals(that.flipped)) {
+    if (!trimvolFlipped.equals(that.trimvolFlipped)) {
+      return false;
+    }
+    if (!squeezevolFlipped.equals(that.squeezevolFlipped)) {
       return false;
     }
     return true;
@@ -71,10 +88,55 @@ public class TomogramState implements BaseState {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    flipped.load(props, prepend);
+    trimvolFlipped.load(props, prepend);
+    squeezevolFlipped.load(props, prepend);
   }
   
-  public ConstEtomoBoolean setFlipped(boolean flipped) {
-    return this.flipped.set(flipped);
+  public ConstEtomoBoolean setTrimvolFlipped(boolean trimvolFlipped) {
+    return this.trimvolFlipped.set(trimvolFlipped);
+  }
+  
+  public ConstEtomoBoolean setSqueezevolFlipped(boolean squeezevolFlipped) {
+    return this.squeezevolFlipped.set(squeezevolFlipped);
+  }
+  
+  public ConstEtomoBoolean getTrimvolFlipped() {
+    return trimvolFlipped;
+  }
+  
+  public ConstEtomoBoolean getSqueezevolFlipped() {
+    return squeezevolFlipped;
+  }
+  
+  /**
+   * function decide whether trimvol is flipped base on the header
+   * @return
+   */
+  public boolean getTrimvolFlippedFromHeader() {
+    //If trimvol has not been run, then assume that the tomogram has not been
+    //flipped.
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    ApplicationManager manager = (ApplicationManager) etomoDirector
+        .getCurrentManager();
+    String datasetName = manager.getMetaData().getDatasetName();
+    File trimvolFile = new File(etomoDirector.getCurrentPropertyUserDir(),
+        TrimvolParam.getOutputFileName(datasetName));
+    if (!trimvolFile.exists()) {
+      return false;
+    }
+    MRCHeader header = new MRCHeader(trimvolFile.getAbsolutePath());
+    try {
+      header.read();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    if (header.getNRows() < header.getNSections()) {
+      System.err.println("Assuming that " + trimvolFile.getName() + " has not been flipped\nbecause the Y is less then Z in the header.");
+      return false;
+    }
+    System.err.println("Assuming that " + trimvolFile.getName() + " has been flipped\nbecause the Y is greater or equal to Z in the header.");
+    return true;
   }
 }
