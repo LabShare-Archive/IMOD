@@ -18,6 +18,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2004/01/01 00:42:45  sueh
+* <p> $bug# 372 correcting interface
+* <p> $
 * <p> $Revision 1.1  2003/12/31 01:22:02  sueh
 * <p> $bug# 372 holds attribute data
 * <p> $$ </p>
@@ -129,6 +132,51 @@ public class Attribute implements AttributeCollection {
       return null;
     }
     return value.getValue(true);
+  }
+  
+  public String getUnformattedValue() {
+    if (value == null) {
+      return null;
+    }
+    Token token = value;
+    StringBuffer buffer = new StringBuffer();
+    while (token != null) {
+      if (!token.is(Token.BREAK) && !token.is(Token.INDENT)) {
+        String tokenValue = token.getValue();
+        if (tokenValue == null) {
+          buffer.append(' ');
+        }
+        else {
+          buffer.append(tokenValue);
+        }
+      }
+      token = token.next();
+    }
+    return buffer.toString();
+  }
+  
+  public String getFormattedValue() {
+    if (value == null) {
+      return null;
+    }
+    Token token = value;
+    StringBuffer buffer = new StringBuffer();
+    while (token != null) {
+      if (token.is(Token.BREAK)) {
+        buffer.append("\n");
+      }
+      else {
+        String tokenValue = token.getValue();
+        if (tokenValue == null) {
+          buffer.append(' ');
+        }
+        else {
+          buffer.append(tokenValue);
+        }
+      }
+      token = token.next();
+    }
+    return buffer.toString();
   }
  
   public int hashCode() {
