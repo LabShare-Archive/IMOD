@@ -7,6 +7,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/21 22:15:25  mast
+    Include new type definitions from imodconfig, eliminate old typedefs that
+    conflict with Qt, and eliminate X11 definitions
+
     Revision 3.1  2002/11/30 07:24:00  mast
     add ability to exclude X11 definitions for Qt use
 
@@ -26,17 +30,9 @@
 #define TRUE 1
 #endif
 
-#ifndef X 
-#define X 0 
-#endif
-
-#ifndef Y
-#define Y 1
-#endif
-
-#ifndef Z
-#define Z 2
-#endif
+#define b3dX 0
+#define b3dY 1
+#define b3dZ 2
 
 #include <limits.h>
 
