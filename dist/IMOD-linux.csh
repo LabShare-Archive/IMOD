@@ -49,5 +49,10 @@ alias subm 'submfg \!* &'
 
 #
 # This command allows fast backprojection if the USFFT license file exists
+# in either /usr/local/USFFT by hostname, or in IMOD_DIR
 #
-setenv USFFT2_LICENSE_FILE $IMOD_DIR/license.clo
+if (-d /usr/local/USFFT) then
+    setenv USFFT2_LICENSE_FILE /usr/local/USFFT/license.clo.$HOST
+else
+    setenv USFFT2_LICENSE_FILE $IMOD_DIR/license.clo
+endif

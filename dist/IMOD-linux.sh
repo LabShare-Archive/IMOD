@@ -41,5 +41,10 @@ function subm () { submfg $* & }
 
 #
 # This command allows fast backprojection if the USFFT license file exists
+# in either /usr/local/USFFT by hostname, or in IMOD_DIR
 #
-export USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
+if [ -d /usr/local/USFFT ] ; then
+    export USFFT2_LICENSE_FILE=/usr/local/USFFT/license.clo.$HOST
+else
+    export USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
+fi
