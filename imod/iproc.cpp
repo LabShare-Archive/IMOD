@@ -773,7 +773,6 @@ void IProcWindow::startProcess()
     return;
 #ifdef QT_THREAD_SUPPORT
 
-
   // If running in a thread, set flag, disable buttons except help,
   // start timer and start thread
   mRunningProc = true;
@@ -783,8 +782,8 @@ void IProcWindow::startProcess()
   mTimerID = startTimer(50);
   mProcThread = new IProcThread;
 
-  // Priorities not available in Qt 3.1, status in 3.2 unknown
-#if QT_VERSION > 0x030300
+  // Priorities not available in Qt 3.1
+#if QT_VERSION >= 0x030200
   mProcThread->start(QThread::LowPriority);
 #else
   mProcThread->start();
@@ -792,8 +791,9 @@ void IProcWindow::startProcess()
 
 #else
 
-  // Otherwise just start the process directly
+  // Otherwise just start the process directly and do finishing tasks
   proc_data[ip->procnum].cb();
+  finishProcess();
 #endif
 }
 
@@ -900,6 +900,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.11  2004/11/08 06:03:10  mast
+    Needed to make some more thread items conditional
+
     Revision 4.10  2004/11/08 05:41:52  mast
     Needed to make priority on starting thread conditional on Qt version
 
