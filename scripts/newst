@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/12/10 18:11:08  mast
+#  Implemented combinations of transforming, rotating, and scaling
+#
 #  Revision 3.2  2002/11/14 20:18:41  mast
 #  Made it exit with an error if newstack does
 #
@@ -19,6 +22,7 @@ Usage: newst [options] input.file output.file
             -m[ode] new_mode
             -o[ffset] dX,dY              (single offset used for whole file)
             -x[form] transform_file
+            -l[inear]                    (transform with linear interpolation)
             -e[xpand] expansion_factor   (>1 to expand, <1 to squeeze)
             -r[otate] rotation_angle     (degrees, counterclockwise positive)
             -c[ontrast] black,white      (scale to black/white levels)
@@ -28,10 +32,8 @@ Usage: newst [options] input.file output.file
 EOF
 exit 0
 endif
-if ($#argv % 2 != 0)then
-echo "newst: Wrong number of arguments"
-exit 1
-endif
+
+
 
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
@@ -45,6 +47,7 @@ set ifrotate = "0"
 set float = "0"
 set minmax = "/"
 set ifcontrast = "0"
+set linear = "0"
 @ numxf = 0
 while ($#argv > 2)
   switch ($argv[1])
@@ -78,6 +81,10 @@ while ($#argv > 2)
           exit 1
         endif
       shift; shift
+      breaksw
+    case -l*:
+      set linear = "1"
+      shift
       breaksw
     case -e*:
       set ifexpand = "1"
@@ -236,6 +243,8 @@ EOF
     endif
 endif
 
+if ($ifxf != "0" && $linear != "0") set ifxf = 2
+
 onintr clean
 cat >! $tmpfil <<EOCAT
 newstack <<EOF
@@ -252,7 +261,7 @@ if ($ifoffset == "-1") then
   echo $offset >> $tmpfil
 endif
 echo $ifxf >> $tmpfil
-if ($ifxf == "1") then
+if ($ifxf != "0") then
 cat >> $tmpfil <<EOCAT
 $xfile
 $xfsec
