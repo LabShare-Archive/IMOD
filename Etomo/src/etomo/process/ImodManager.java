@@ -24,6 +24,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.24  2003/11/05 18:02:45  sueh
+ * <p> bug298
+ * <p>
  * <p> Revision 2.23  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>
@@ -322,13 +325,18 @@ public class ImodManager {
 	public void modelCoarseAligned(
 		String modelName,
 		AxisID axisID,
-		boolean modelMode)
+		boolean modelMode, boolean preserveConstrast)
 		throws AxisTypeException, SystemProcessException {
 		// Make sure there is an 3dmod with right coarse aligned data set that
 		// is already open
 		openCoarseAligned(axisID);
 		ImodProcess coarseAligned = selectCoarseAligned(axisID);
-		coarseAligned.openModel(modelName);
+		if(preserveConstrast) {
+			coarseAligned.openModelPreserveContrast(modelName);
+		}
+		else {
+			coarseAligned.openModel(modelName);
+		}
 		coarseAligned.modelMode();
 		if (modelMode) {
 			coarseAligned.modelMode();
