@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2002/12/03 21:53:32  mast
+#  Made it set limits at z-0.5 and z+0.5 for clipmodel
+#  Added complete error detection and reporting from each program that is run
+#
 #  Revision 3.6  2002/09/05 05:42:14  mast
 #  Fixed output of chosen view numbers
 #
@@ -98,6 +102,10 @@ set pmstart = 0
 set pmend = 1
 set leavetmp = 0
 set midas = 0
+set src = a
+set dst = b
+set AA = A
+set BB = B
 
 if ($#argv < 1) goto usage
 
@@ -157,6 +165,13 @@ while ($#argv > 1)
       set midas = 1
       shift
       breaksw
+    case -b:
+      set src = b
+      set dst = a
+      set AA = B
+      set BB = A
+      shift
+      breaksw
     case -h:
       goto usage
     default:
@@ -173,31 +188,43 @@ if ($nviews < 1) then
 endif
 
 #
+# swap inputs for filename and center z's if going backwards
+#
+if ($src == "b") then
+    set tmp = $imagea
+    set imagea = $imageb
+    set imageb = $tmp
+    set tmp = $zeroa
+    set zeroa = $zerob
+    set zerob = $tmp
+endif
+
+#
 # check existence of files needed
 #
 
-if (($imagea == "" || $radius == "") && (! -e tracka.com)) then
-    echo "tracka.com not found - it is needed unless you enter both "
-    echo " the A image file with -ia and the bead radius with -r"
+if (($imagea == "" || $radius == "") && (! -e track$src.com)) then
+    echo "track$src.com not found - it is needed unless you enter both "
+    echo " the $AA image file with -i$src and the bead radius with -r"
     exit 1
 endif
 
-if ($imageb == "" && (! -e trackb.com)) then
-    echo "trackb.com not found - it is needed unless you enter"
-    echo " the B image file with -ib"
+if ($imageb == "" && (! -e track$dst.com)) then
+    echo "track$dst.com not found - it is needed unless you enter"
+    echo " the $BB image file with -i$dst"
     exit 1
 endif
 
-set tiltfilea = ${setname}a.rawtlt
-set tiltfileb = ${setname}b.rawtlt
+set tiltfilea = ${setname}$src.rawtlt
+set tiltfileb = ${setname}$dst.rawtlt
 if ($zeroa == "" && (! -e $tiltfilea)) then
     echo "$tiltfilea not found - it is needed unless you enter"
-    echo " the zero-tilt view number for A with -za"
+    echo " the zero-tilt view number for $AA with -z$src"
     exit 1
 endif
 if ($zerob == "" && (! -e $tiltfileb)) then
     echo "$tiltfileb not found - it is needed unless you enter"
-    echo " the zero-tilt view number for B with -zb"
+    echo " the zero-tilt view number for $BB with -z$dst"
     exit 1
 endif
 
@@ -205,9 +232,9 @@ endif
 # Get the image file names if they don't exist already
 #
 if ($imagea == "") then
-    @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
+    @ topline  = `vmstocsh < track$src.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imagea = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline`
 endif
 
 if (! -e $imagea) then
@@ -216,9 +243,9 @@ if (! -e $imagea) then
 endif
 
 if ($imageb == "") then
-    @ topline  = `vmstocsh < trackb.com | awk '/beadtrack/{print NR}'`
+    @ topline  = `vmstocsh < track$dst.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imageb = `vmstocsh < trackb.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline`
 endif
 
 if (! -e $imageb) then
@@ -229,12 +256,12 @@ endif
 #
 # get fiducial file name and check existence
 #
-if ($fidfile == "") set fidfile = ${setname}a.fid
+if ($fidfile == "") set fidfile = ${setname}$src.fid
 if (! -e $fidfile) then
     echo "Fiducial file $fidfile not found"
     exit 1
 endif
-if ($outfile == "") set outfile = ${setname}b.seed
+if ($outfile == "") set outfile = ${setname}$dst.seed
 
 #
 # Get the views with minimum tilt angles
@@ -309,11 +336,11 @@ end
 # Check section numbers
 # 
 if ($asecstr < 0 || $asecend >= $nza) then
-    echo "The starting or ending section numbers for A are out of range ($asecstr and $asecend)"
+    echo "The starting or ending section numbers for $AA are out of range ($asecstr and $asecend)"
     exit 1
 endif
 if ($bsecstr < 0 || $bsecend >= $nzb) then
-    echo "The starting or ending section numbers for B are out of range ($bsecstr and $bsecend)"
+    echo "The starting or ending section numbers for $BB are out of range ($bsecstr and $bsecend)"
     exit 1
 endif
 
@@ -396,7 +423,7 @@ $tmprot90
 EOF
 	    if ($status) then
 		grep ERROR $tmperrlog
-		echo "ERROR: Transferfid - extracting rotated section from A"
+		echo "ERROR: Transferfid - extracting rotated section from $AA"
 		goto clean
 	    endif
 	    #
@@ -418,7 +445,7 @@ $tmpstack
 EOF
 	    if ($status) then
 		grep ERROR $tmperrlog
-		echo "ERROR: Transferfid - Stacking rotated A on B"
+		echo "ERROR: Transferfid - Stacking rotated $AA on $BB"
 		goto clean
 	    endif
 	    if ($midas) then
@@ -518,7 +545,7 @@ EOF
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    @ bview = $bsec + 1
-	    echo -n "A $aview  B $bview  rotation $pmangle  difference $diff"
+	    echo -n "$AA $aview  $BB $bview  rotation $pmangle  difference $diff"
 	    if ($diff < $diffmin) then
 		#
 		# If new minimum, save sections and real transform
@@ -608,7 +635,7 @@ $seclower,$secupper
 EOF
 if ($status) then
     grep ERROR $tmperrlog
-    echo "ERROR: Transferfid - Clipping out best view from A fiducial model"
+    echo "ERROR: Transferfid - Clipping out best view from $AA fiducial model"
     goto clean
 endif
 
@@ -620,7 +647,7 @@ $tmpmap1
 EOF
 if ($status) then
     grep ERROR $tmperrlog
-    echo "ERROR: Transferfid - Remapping A fiducials to section 1"
+    echo "ERROR: Transferfid - Remapping $AA fiducials to section 1"
     goto clean
 endif
 
@@ -640,7 +667,7 @@ $tmptwoxf
 EOF
 if ($status) then
     grep ERROR $tmperrlog
-    echo "ERROR: Transferfid - Transforming A fiducials to match B image"
+    echo "ERROR: Transferfid - Transforming $AA fiducials to match $BB image"
     goto clean
 endif
 
@@ -652,7 +679,7 @@ $xadd,$yadd,0
 EOF
 if ($status) then
     grep ERROR $tmperrlog
-    echo "ERROR: Transferfid - Recentering transformed A fiducials"
+    echo "ERROR: Transferfid - Recentering transformed $AA fiducials"
     goto clean
 endif
 
@@ -676,7 +703,7 @@ endif
 #
 @ aview = $asecbest + 1
 @ bview = $bsecbest + 1
-echo "Transferring fiducials from view $aview in A to view $bview in B with Beadtrack:"
+echo "Transferring fiducials from view $aview in $AA to view $bview in $BB with Beadtrack:"
 echo "              (Type Ctrl-C to interrupt)"
 beadtrack >! $tmpbtlog <<EOF
 $tmpstack
@@ -708,7 +735,7 @@ $radiusdark
 EOF
 if ($status) then
     grep ERROR $tmpbtlog
-    echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto B view "
+    echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto $BB view "
     goto clean
 endif
 set btresult = `tail -1 $tmpbtlog`
@@ -724,14 +751,14 @@ $bsecbest,-999
 EOF
 if ($status) then
     grep ERROR $tmperrlog
-    echo "ERROR: Transferfid - Remapping seed model up to view in B"
+    echo "ERROR: Transferfid - Remapping seed model up to view in $BB"
     goto clean
 endif
 #
 # Repack the model to remove empty points, and pass through mapping report
 # First find out if the fid.xyz is availabel and has contour data
 #
-set xyzname = ${setname}afid.xyz
+set xyzname = ${setname}${src}fid.xyz
 if (-e $xyzname) then
     set xyzwc = `wc $xyzname`
     @ lines = $xyzwc[1]
@@ -761,13 +788,17 @@ exit 0
 usage:
 cat <<EOF
 Usage: $pn [options] setname
-  Will make a fiducial seed model for axis B from the fiducial model for axis A
-  For setname, give the name of the data set, omitting a or b
+  Will make a fiducial seed model for one axis from the fiducial model for
+  the other axis.  By default, it will transfer fiducials from A to B.
+  For setname, give the name of the data set, omitting a or b.
   Options:
+     -b            Transfer fiducials in backwards direction, from B to A
      -ia imagefile Name of axis A image file (default taken from tracka.com)
      -ib imagefile Name of axis B image file (default taken from trackb.com)
-     -f fidmodel   Name of axis A fiducial model (default setnamea.fid)
-     -o seedmodel  Name of output file (default setnameb.seed)
+     -f fidmodel   Name of axis A fiducial model (default setnamea.fid, or
+                      setnameb.fid with -b option)
+     -o seedmodel  Name of output file (default setnameb.seed, or 
+                      setnamea.seed with -b option)
      -n #          Number of views to search to find best pair (default $nviews)
      -za #         Number of view in A to center search around (default is 
                       view closest to zero tilt in setnamea.rawtlt)
