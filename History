@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/28/02: Made the I hotkey in the Zap window pop the Information Window to
+the front as well as print image informationl and added a button to the toolbar
+to do the same thing.
+
+7/28/02: Modified Transferfid and Repackseed to use a fiducial coordinate
+file from Tiltalign to get a better analysis of how points will correspond
+between two data sets.  Added ability to use Midas within Transferfid to get
+an initial rotational and translational alignment between the axes.
+
+7/28/02: Made Beadtrack, Tiltalign, and Remapmodel scale model coordinates
+properly to work with pixel sizes other than 1.0, and standardized their
+error outputs.  Changed Tilt to propagate pixel size into a reconstruction.
+Verified that all processing steps in generating a tomogram, transferring
+fiducials, and combining two axes work with a non-unitary pixel size.
+
+7/27/02: Modified Solvematch to be able to work with fiducial coordinate
+files from which lines have been removed, and to refer to points from 
+matching model files by negative numbers.
+
+7/26/02: Added ability for Tilt to decide not to use fast backprojection based
+on the width, thickness, and number of views in the reconstruction, with
+different switch points for PC, SGI, and Sun.
+
 IMOD_2-6-18
 7/21/02: In Imod, increased section number output in Zap window to 4 columns
 and made the filename outputs in windows show the number of image files
