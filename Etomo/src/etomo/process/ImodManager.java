@@ -24,6 +24,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.23  2003/11/04 20:56:11  rickg
+ * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.22  2003/11/04 17:53:31  rickg
  * <p> Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
  * <p>
@@ -201,6 +204,7 @@ public class ImodManager {
 			patchVectorModel = new ImodProcess("patch_vector.mod");
 			patchVectorModel.setModelView(true);
 			matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
+      matchCheck.setSwapYZ(true);
 			matchCheck.setFillCache(true);
 		}
 		trimmedVolume = new ImodProcess(datasetName + ".rec");
