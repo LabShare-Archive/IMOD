@@ -77,10 +77,13 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   outerLayout->addWidget(line);
 
 
-  // set up signal mapper for the buttons
+  // set up signal mappers for the buttons
   QSignalMapper *pressMapper = new QSignalMapper(this);
   connect(pressMapper, SIGNAL(mapped(int)), this, 
           SLOT(actionButtonPressed(int)));
+  QSignalMapper *clickMapper = new QSignalMapper(this);
+  connect(clickMapper, SIGNAL(mapped(int)), this, 
+          SLOT(actionButtonClicked(int)));
   
   // Make a layout and put the buttons in it
   QHBoxLayout *layout2 = new QHBoxLayout(0, 0, 6, "bottom layout");
@@ -94,7 +97,9 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
     button->setFocusPolicy(NoFocus);
     layout2->addWidget(button);
     pressMapper->setMapping(button, i);
-    connect(button, SIGNAL(clicked()), pressMapper, SLOT(map()));
+    connect(button, SIGNAL(pressed()), pressMapper, SLOT(map()));
+    clickMapper->setMapping(button, i);
+    connect(button, SIGNAL(clicked()), clickMapper, SLOT(map()));
     if (tips != NULL)
       QToolTip::add(button, tips[i]);
   }
@@ -143,8 +148,16 @@ void DialogFrame::actionButtonPressed(int which)
   emit actionPressed(which);
 }
 
+void DialogFrame::actionButtonClicked(int which)
+{
+  emit actionClicked(which);
+}
+
 /*
 $Log$
+Revision 1.3  2003/03/24 17:41:47  mast
+Set up to resize buttons on font change
+
 Revision 1.2  2003/02/10 20:51:22  mast
 Merge Qt source
 
