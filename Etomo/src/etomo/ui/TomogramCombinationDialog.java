@@ -36,6 +36,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/07/21 00:20:05  sueh
+ * <p> bug# 507 added isRunVolcombine()
+ * <p>
  * <p> Revision 3.10  2004/06/25 23:25:28  sueh
  * <p> bug# 485 made Syncronize public
  * <p>
@@ -396,6 +399,10 @@ public class TomogramCombinationDialog
   
   public boolean isRunVolcombine() {
     return pnlFinal.isRunVolcombine();
+  }
+  
+  public void setRunVolcombine(boolean runVolcombine) {
+    pnlFinal.setRunVolcombine(runVolcombine);
   }
 
   /**
