@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/04/30 18:48:34  rickg
+ * <p> Changed matchcheck* to a single imod instance
+ * <p>
  * <p> Revision 2.7  2003/04/28 23:25:26  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -105,7 +108,7 @@ public class ImodManager {
   private ImodProcess matchCheck;
   private ImodProcess fullVolume;
   private ImodProcess trimmedVolume;
-  
+
   private Thread fiducialModelA;
   private Thread fiducialModelB;
   /**
@@ -127,7 +130,7 @@ public class ImodManager {
       tomogramA.setSwapYZ(true);
       fullVolume = new ImodProcess("full.rec");
       fullVolume.setSwapYZ(true);
-      
+
     }
     else {
       rawStackA = new ImodProcess(datasetName + "a.st");
@@ -147,6 +150,7 @@ public class ImodManager {
       patchVectorModel = new ImodProcess("patch_vector.mod");
       patchVectorModel.setModelView(true);
       matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
+      matchCheck.setFillCache(true);
       fullVolume = combinedTomogram;
     }
     trimmedVolume = new ImodProcess(datasetName + ".rec");
@@ -501,7 +505,6 @@ public class ImodManager {
   public void quitTrimmedVolume() throws SystemProcessException {
     trimmedVolume.quit();
   }
-
 
   /**
    * Check the axisID argument to see if it is valid given the axisType of the
