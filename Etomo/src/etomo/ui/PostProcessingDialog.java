@@ -7,11 +7,10 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
-import etomo.comscript.FinishjoinParam;
+import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
-import etomo.process.ImodManager;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
 
 /**
  * <p>Description: </p>
@@ -26,6 +25,9 @@ import etomo.type.ConstJoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/01 03:47:37  sueh
+ * <p> bug# 557 Added ui fields to use with squeezevol.
+ * <p>
  * <p> Revision 3.1  2004/03/15 20:33:55  rickg
  * <p> button variable name changes to btn...
  * <p>
@@ -150,6 +152,26 @@ public class PostProcessingDialog
     
     return squeezeVolPanel.getContainer();
   }
+  
+  /**
+   * Set the panel values with the specified parameters
+   * @param squeezevolParam
+   */
+  public void setParameters(ConstSqueezevolParam squeezevolParam) {
+    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorXY().toString());
+    ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
+    cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
+  }
+  
+  /**
+   * Get the panel values
+   * @param squeezevolParam
+   */
+  public void getParameters(SqueezevolParam squeezevolParam) {
+    squeezevolParam.setReductionFactorXY(ltfReductionFactorXY.getText());
+    squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
+    squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
+  }
 
   /**
    * Set the trimvol panel values with the specified parameters
@@ -193,6 +215,7 @@ public class PostProcessingDialog
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
+      applicationManager.squeezevol();
     }
     else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
     }
