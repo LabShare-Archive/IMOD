@@ -14,13 +14,23 @@ c	  IGROUP is an array returned with a value for each point of 1 if
 c	  on lower surface, 2 if on upper, but only if 2-surface analysis is
 c	  done
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine find_surfaces(xyz,nrealpt,nsurface,tiltmax,
-     &	    iunit2,tiltnew,igroup)
+     &	    iunit2,tiltnew,igroup,ifcomp,tiltadd)
 	real*4 xyz(3,*)
 	parameter (maxreal=250)
 	real*4 xx(maxreal),yy(maxreal),zz(maxreal),zrot(maxreal)
 	integer*4 igroup(*),icheck(maxreal/2)
 	logical changed
+
+	real*4 cosd,sind,atand
 c	  
 c	  first fit a line to all of the points to get starting angle
 c	  
@@ -34,8 +44,11 @@ c
      &	    resid)
 
 	do iun=6,iunit2
-	  write(iun,'(/,a,f8.5)')
-     &	      ' Fit to all points gives adjusted slope =',slop
+	  write(iun,'(/,a,//,a,//,a,/,a,f8.4)') ' SURFACE ANALYSIS:',
+     &	      ' The following parameters are appropriate if fiducials'
+     &	      //' are all on one surface',
+     &	      ' Fit of one plane to all fiducials:',
+     &	      ' Adjusted slope =',slop
 	enddo
 c	  
 c	  if there are supposed to be 2 surfaces, enter an iterative procedure
@@ -46,7 +59,12 @@ c	  rotated Z values, assigns points to the lower or upper surface based
 c	  on this midpoint, and fits lines to lower and upper surface points.
 c
 	if(nsurface.gt.1)then
-	  call calc_tiltnew(slop,tiltmax,iunit2,truepl)
+	  call calc_tiltnew(slop,tiltmax,iunit2,truepl,ifcomp,tiltadd)
+	  do iun=6,iunit2
+	    write(iun,'(a,/,a,/)')' The following '//
+     &		'parameters are provided to indicate the consistency',
+     &		' of the fit when fiducials are on two surfaces'
+	  enddo
 	  niter=6
 c	    iterate at least twice and until get same result twice
 	  changed=.true.
@@ -170,22 +188,22 @@ c
 c
 	  if(npntmi.gt.1)then
 	    do iun=6,iunit2
-	      write(iun,101)npntmi,bintmi,slopmi,-alphami,residmi
-101	      format(i4,' points, Z axis intercept =',f10.3,
-     &		  ',  adjusted slope =' ,f8.5,/,
-     &		  '    X axis tilt needed ='
-     &		  ,f6.2,',  mean residual =',f10.3)
+	      write(iun,101)'bottom',npntmi,bintmi,slopmi,residmi,-alphami
+101	      format(' Fit of one plane to points on ',a,' surface:',/,
+     &		  ' # of points = ',i6,/,' Z axis intercept =',f8.2,/,
+     &		  ' Adjusted slope =' ,f10.4,/,' Mean residual =',f11.3,/,
+     &		  ' X axis tilt needed =',f6.2)
 	    enddo
-	    call calc_tiltnew(slopmi,tiltmax,iunit2,truemi)
+	    call calc_tiltnew(slopmi,tiltmax,iunit2,truemi,ifcomp,tiltadd)
 	  endif
 	else
 	  npntpl=nrealpt
 	endif
 	if(npntpl.gt.1)then
 	  do iun=6,iunit2
-	    write(iun,101)npntpl,bint,slop,-alpha,resid
+	    write(iun,101)'top',npntpl,bint,slop,resid,-alpha
 	  enddo
-	  call calc_tiltnew(slop,tiltmax,iunit2,truepl)
+	  call calc_tiltnew(slop,tiltmax,iunit2,truepl,ifcomp,tiltadd)
 	endif
 	if(nsurface.eq.1)then
 	  tiltnew=truepl
@@ -195,12 +213,15 @@ c	    but just return distance between intercepts
 c
 	  thick=bint-bintmi
 	  do iun=6,iunit2
-	    write(iun,102)thick,-alphaav,slopav
-102	    format(' Thickness at Z intercepts =',f10.3,/,
-     &		'  average X axis tilt needed =',f6.2,
-     &		',  average adjusted slope =',f8.5)
+	    print *,'The following parameters combine the last two '//
+     &		'results and are','appropriate if fiducials are on'//
+     &		' two surfaces'
+	    write(iun,102)thick,slopav,-alphaav
+102	    format(/,' Thickness at Z intercepts =',f11.2,/,
+     &		' Average adjusted slope =',f14.4,/,
+     &		' Average X axis tilt needed =',f10.2)
 	  enddo
-	  call calc_tiltnew(slopav,tiltmax,iunit2,tiltnew)
+	  call calc_tiltnew(slopav,tiltmax,iunit2,tiltnew,ifcomp,tiltadd)
 	endif
 	return
 	end
@@ -263,22 +284,36 @@ c
 	return
 	end
 
-	
-	subroutine calc_tiltnew(slopmi,tiltmax,iunit2,truemi)
+c	  DNM 5/3/02: give the new maximum tilt angle only for compression
+c	  solutions
+c
+	subroutine calc_tiltnew(slopmi,tiltmax,iunit2,truemi,ifcomp,
+     &	    tiltadd)
+	implicit none
+	real*4 slopmi,tiltmax,truemi,tiltadd
+	integer*4 iunit2,ifcomp
+	real*4 cosnew,globdelt
+	integer*4 iun
+	real*4 atand,acosd,cosd,sind
+
 	cosnew=slopmi*sind(tiltmax)+cosd(tiltmax)
 	globdelt=atand(-slopmi)
 	do iun=6,iunit2
-	  write(iun,102)globdelt
-102	  format('   To make this slope become zero, either change',
-     &	      ' ALL tilt angles by',f7.2)
-	  if(abs(cosnew).le.1.)then
-	    truemi=sign(acosd(cosnew),tiltmax)
-	    write(iun,103)tiltmax,truemi
-103	    format('     or change the maximum tilt angle from'
-     &		,f8.2,' to',f8.2,/)
+	  write(iun,102)globdelt,globdelt+tiltadd
+102	  format(' Incremental tilt angle change =',f7.2,/,
+     &	      ' Total tilt angle change =',f13.2)
+	  if (ifcomp.ne.0)then
+	    if(abs(cosnew).le.1.)then
+	      truemi=sign(acosd(cosnew),tiltmax)
+	      write(iun,103)tiltmax,truemi
+103	      format('     or, change a fixed maximum tilt angle from'
+     &		  ,f8.2,' to',f8.2,/)
+	    else
+	      write(iun,'(a,/)') '      or. . . But cannot derive '//
+     &		  'implied tilt angle: |cos| > 1'
+	    endif
 	  else
-	    write(iun,'(a,/)') '      or. . . But cannot derive '//
-     &		'implied tilt angle: |cos| > 1'
+	    write(iun,*)
 	  endif
 	enddo
 	return
@@ -286,7 +321,11 @@ c
 	    
 
 	subroutine lsfit2_resid(x,y,z,n,a,b,c,alpha,slop,resid)
-	real*4 x(*),y(*),z(*)
+	implicit none
+	real*4 x(*),y(*),z(*),a,b,c,alpha,slop,resid,ro
+	integer*4 n,i
+	real*4 sind,cosd,atand
+
 	if(n.gt.2)then
 	  call lsfit2(x,y,z,n,a,b,c)
 	else
