@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/11 04:33:40  mast
+    Correct comments on crashes from dual-processor to Ti 4600
+
     Revision 3.2  2002/09/10 19:49:35  mast
     Needed to flush events before movie image draw as well as after, to
     prevent crashes possibly due to expose events after a resize with
@@ -84,201 +87,14 @@ int imod_start_autosave()
 }
 
 
-
-/*
- * Handle all gl events.
- *
- */
-#ifdef DRAW_GL
-Boolean imod_gl_wp(XtPointer client_data);
-int imodMovie(struct ViewInfo *vi);
-
-void imod_gl_to(XtPointer client, XtIntervalId *id)
-{
-     XtAppAddWorkProc(Dia_context, imod_gl_wp, NULL);
-}		     
-
-Boolean imod_gl_wp(XtPointer client_data)
-{
-     imod_gl_flush();
-     XtAppAddTimeOut(Dia_context, 33L, imod_gl_to, NULL);
-     return(True);
-}
-
-int imod_add_glwp(void)
-{
-     XtAppAddWorkProc(Dia_context, imod_gl_wp, NULL);
-     return(0);
-}
-#endif
-
-/*
- * Movie for imodv
- *
- */
-
-void imodv_anim_to(XtPointer client, XtIntervalId *id)
-{
-     imodv_anim();
-     XtAppAddTimeOut(Dia_context, 33L, imodv_anim_to, NULL);
-}
-
-int imodv_add_anim(void)
-{
-     XtAppAddTimeOut(Dia_context, 2000L, imodv_anim_to, NULL);
-     return(0);
-}
-
-
 /*
  * Movie for xyz images
- *
+ * Movie time outs for tilt window
+ * Handle all gl events.
+ * imodMovie function
+ * Movie for imodv
+ * DNM deleted all these obsolete items 10/22/02
  */
-
-Boolean imod_xyz_wp(XtPointer client_data);
-
-void imod_xyz_to(XtPointer client, XtIntervalId *id)
-{
-     struct ViewInfo *vi = (struct ViewInfo *)client;
-
-     XtAppAddWorkProc(Dia_context, imod_xyz_wp, vi);
-}
-
-Boolean imod_xyz_wp(XtPointer client_data)
-{
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-     int show = 0;
-     unsigned long interval; /* milliseconds */
-     long drawflag = IMOD_DRAW_XYZ;
-
-     printf("movie(%d, %d, %d), xyz( %g, %g, %g)\n",
-	    vi->xmovie, vi->ymovie, vi->zmovie, vi->xmouse, vi->ymouse,
-	    vi->zmouse);
-
-     if (vi->xmovie != 0){
-	  show = 1;
-	  vi->xmouse += vi->xmovie;
-	  if ( vi->xmouse < 0){
-	       vi->xmouse = 0;
-	       vi->xmovie *= -1;
-	  }
-	  if ( vi->xmouse >= vi->xsize){
-	       vi->xmouse = vi->xsize - 1;
-	       vi->xmovie *= -1;
-	  }
-     }
-     if (vi->ymovie != 0){
-	  show = 1;
-	  vi->ymouse += vi->ymovie;
-	  if ( vi->ymouse < 0){
-	       vi->ymouse = 0;
-	       vi->ymovie *= -1;
-	  }
-	  if ( vi->ymouse >= vi->ysize){
-	       vi->ymouse = vi->ysize - 1;
-	       vi->ymovie *= -1;
-	  }
-     }
-     if (vi->zmovie != 0){
-	  show = 1;
-	  vi->zmouse += vi->zmovie;
-	  if ( vi->zmouse < 0){
-	       vi->zmouse = 0;
-	       vi->zmovie *= -1;
-	  }
-	  if ( vi->zmouse >= vi->zsize){
-	       vi->zmouse = vi->zsize - 1;
-	       vi->zmovie *= -1;
-	  }
-     }
-
-     if (vi->tmovie != 0){
-	  show = 1;
-	  vi->ct += vi->tmovie;
-	  if ( vi->ct <= 0){
-	       vi->ct = 1;
-	       vi->tmovie *= -1;
-	  }
-	  if ( vi->ct > vi->zsize){
-	       vi->ct = vi->nt;
-	       vi->tmovie *= -1;
-	  }
-#ifndef USEIMODI
-	  vi->hdr = &vi->hdrList[vi->ct-1];
-	  vi->fp = vi->hdr->fp;
-#else
-	  vi->hdr = vi->image = &vi->imageList[vi->ct-1];
-#endif
-	  drawflag |= IMOD_DRAW_IMAGE;
-     }
-
-     if (show){
-	  imodDraw(vi, drawflag);
-     }
-
-     if (!vi->movierate)
-	  interval = 5;
-     else{
-	  interval = (1000 * vi->movierate) / 60;
-     }
-     if (!interval){
-	  interval = 1;
-     }
-
-     XtAppAddTimeOut(Dia_context, interval, imod_xyz_to, (XtPointer)vi);
-     return(True);
-}
-
-
-void imod_movie_tocb(XtPointer client_data, XtIntervalId *id)
-{
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-     imodMovie(vi);
-}
-
-void imodTimeOut(struct ViewInfo *vi)
-{
-     XtAppAddTimeOut(Dia_context, vi->movieInterval, 
-		     (XtTimerCallbackProc)imod_movie_tocb, (XtPointer)vi);
-}
-
-Boolean imod_tilt_wp(XtPointer client_data)
-{
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-
-     vi->zmouse += vi->zmovie;
-     if (vi->zmouse < 0){
-	  vi->zmouse *= -1;
-	  vi->zmovie *= -1;
-     }
-     if (vi->zmouse >= vi->zsize){
-	  vi->zmouse = vi->zsize - 2;
-	  vi->zmovie *= -1;
-     }
-#ifdef DRAW_GL
-     tilt_draw(vi);
-#endif
-     imodTimeOut(vi);
-     return(True);
-}
-
-
-
-
-int imodMovie(struct ViewInfo *vi)
-{
-     if ((!vi->xmovie) && (!vi->ymovie) && (!vi->zmovie) && (!vi->tmovie))
-	  return(0);
-     XtAppAddWorkProc(Dia_context, (XtWorkProc)vi->movieProc, (XtPointer)vi);
-     return(0);
-}
-
-int imod_add_xyzwp(struct ViewInfo *vi)
-{
-     XtAppAddWorkProc(Dia_context, imod_xyz_wp, (XtPointer)vi);
-     return(0);
-}
-
 
 
 
@@ -305,16 +121,6 @@ int imod_add_xyzwp(struct ViewInfo *vi)
 static int display_busy, timer_fired;
 static int first_frame;
 void imodMovieProc(XtPointer client_data, XtIntervalId *id);
-
-void imodMovieTimer(XtPointer client_data, XtIntervalId *id)
-{
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-     if (display_busy)
-          timer_fired = True;
-     else
-          vi->movieTimeOut = XtAppAddTimeOut(Dia_context, MININTERVAL,
-					     imodMovieProc, client_data);
-}
 
 static void xinput(void)
 {
@@ -364,6 +170,20 @@ static void movie_inc(ImodView *vi, float *mouse, int *movie, int axis,
      }
 }
 
+void imodMovieTimer(XtPointer client_data, XtIntervalId *id)
+{
+     struct ViewInfo *vi = (struct ViewInfo *)client_data;
+     if (display_busy) {
+          timer_fired = True;
+	  
+	  /* DNM 10/22/02: need to zero out this value to keep the startup 
+	     routine from clearing other timeouts by mistake */
+	  vi->movieTimeOut = 0;
+     } else
+          vi->movieTimeOut = XtAppAddTimeOut(Dia_context, MININTERVAL,
+					     imodMovieProc, client_data);
+}
+
 void imodMovieProc(XtPointer client_data, XtIntervalId *id)
 {
      unsigned int interval; /* milliseconds */
@@ -404,6 +224,9 @@ void imodMovieProc(XtPointer client_data, XtIntervalId *id)
 	  imcReadTimer();
      first_frame = False;
 
+     /* If none of the axes has a movie, return; the display_busy flag will
+	keep the timer from restarting the movie, and it will clear 
+	movieTimeout */
      if (!show)
 	  return;
 
@@ -436,7 +259,9 @@ static int setmovievar(int set, int movie)
      }
 }
 
-
+/* Modify the movie flags and restart movie if needed:
+   for each of the four axes, pass 1 to toggle the movie on that axis,
+   0 to stop the movie, and MOVIE_DEFAULT to leave it unmodified */
 int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
 {
      unsigned int interval; /* milliseconds */
