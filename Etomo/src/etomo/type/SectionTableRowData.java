@@ -17,6 +17,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/16 02:29:57  sueh
+* <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
+* <p> resetValue instead.
+* <p>
 * <p> Revision 1.3  2004/11/23 22:32:52  sueh
 * <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Removed
 * <p> unnecessary functions parseDouble and parseInt.
@@ -106,7 +110,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     yMax.load(props, prepend);
     zMax = Integer.parseInt(props.getProperty(group + zMaxString,
         Integer.toString(Integer.MIN_VALUE)));
-    finalEnd.setResetValue(zMax);
+    finalEnd.setDisplayValue(zMax);
     String sectionName = props.getProperty(group + sectionString, null);
     if (sectionName != null) {
       section = new File(sectionName);
@@ -144,7 +148,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   
   public void setZMax(int zMax) {
     this.zMax = zMax;
-    finalEnd.setResetValue(zMax);
+    finalEnd.setDisplayValue(zMax);
   }
 
   public ConstEtomoNumber setSampleBottomStart(String sampleBottomStart) {
