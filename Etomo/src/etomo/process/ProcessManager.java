@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.36  2004/08/25 23:04:16  sueh
+ * bug# moved kill signal to a separate function kill(String,String)
+ * sleep between kill group and kill process and descendents
+ * (probably not necessary)
+ *
  * Revision 3.35  2004/08/25 21:00:03  sueh
  * bug# 508 removing diagnostic prints and adding kill by
  * group (killProcessGroup)
@@ -1558,12 +1563,6 @@ public class ProcessManager {
     }
     
     killProcessGroup(processID);
-    try {
-      Thread.sleep(500);
-    }
-    catch (InterruptedException e) {
-      
-    }
     killProcessAndDescendants(processID);
     
     if (thread instanceof BackgroundComScriptProcess) {
