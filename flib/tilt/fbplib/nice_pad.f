@@ -24,6 +24,13 @@ c             The routine has been tested for some random integers, and seems
 c             to work, but I don't guarantee it's without bugs...
 c
 c 010307
+c	  $Author$
+c
+c	  $Date$
+
+c	  $Revision$
+c
+c	  $Log$
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
@@ -43,8 +50,7 @@ c
 
        nmax=10000
 
-       n_nice=n
-      
+       n_nice=n + mod(n,2)
 
  100   if (n_nice .le. nmax) then
 
@@ -78,7 +84,7 @@ c
                 goto 600
              endif
           else          
-             n_nice=n_nice+1
+             n_nice=n_nice+2
              goto 100
           endif
 
