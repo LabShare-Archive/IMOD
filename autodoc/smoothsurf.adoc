@@ -1,0 +1,76 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file. 
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FN
+usage = Output model file
+tooltip = 
+manpage = Output model file. 
+
+[Field = ObjectsToSmooth]
+short = objects
+long = ObjectsToSmooth
+type = LI
+usage = List of objects to smooth (default is to do all objects)
+tooltip = 
+manpage = A list of the objects to smooth (ranges are allowed, e.g. 1,2,5-7).
+The default is to do all closed-contour objects, and open contours that lie in
+one plane.
+
+[Field = NumberOfSections]
+short = nz
+long = NumberOfSections
+type = I
+usage = Number of sections in Z over which to fit surfaces (default 7)
+tooltip = 
+manpage = Number of sections or slices in Z to include in the fit.  Higher
+numbers smooth more.  The default is 7.
+
+[Field = MaximumDistance]
+short = distance
+long = MaximumDistance
+type = F
+usage = Maximum distance for points included in fits (default 15)
+tooltip = 
+manpage = Maximum distance from the central point being smoothed, for points
+to be included in fits.  Higher distances smooth more.  The default is 15
+pixels.
+
+[Field = ContourOrder]
+short = contorder
+long = ContourOrder
+type = I
+usage = Polynomial order for smoothing contours, or 0 for none (default 2)
+tooltip = 
+manpage = Order of the polynomials fit to contours to smooth them after 
+smoothing the surface, or 0 to omit this smoothing.
+Higher orders smooth less.  The default is order 2; order 1 (linear) 
+will probably oversmooth and contract the contours.
+
+[Field = SurfaceOrder]
+short = surforder
+long = SurfaceOrder
+type = I
+usage = Polynomial order for surface fit to points in 3D (default 3)
+tooltip = 
+manpage = Order of the polynomials fit to the surface.  Higher orders smooth
+less.  The default is order 3.  Note that a second-order polynomial has 5
+terms and a third-order has 9 terms.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
