@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2004/06/24 15:34:37  mast
+Changes for read and analyze at once
+
 Revision 1.6  2004/06/12 00:58:11  mast
 Switched to reading in whole file at once
 
@@ -35,6 +38,7 @@ Incorporation as internal module in 3dmod
 #define BEADFIX_H
 
 #include "dialog_frame.h"
+#include "imodel.h"
 
 // Changes to make internal module: include and declare class
 #include "special_module.h"
@@ -66,6 +70,35 @@ class AlignThread : public QThread
 
 class QPushButton;
 class QCheckBox;
+
+// A structure to hold all of the residual data that is read in, plus what
+// local area it is in and whether it has been looked at in this run-through
+typedef struct {
+  int obj;
+  int cont;
+  int view;
+  float xcen, ycen;
+  float xres, yres;
+  float sd;
+  int lookedAt;
+  int area;
+} ResidPt;
+
+// A structure to hold data about points that have been looked at
+typedef struct {
+  int obj;
+  int cont;
+  int view;
+} LookedPt;
+
+// A structure to hold data about areas
+typedef struct {
+  int areaX;
+  int areaY;
+  int firstPt;
+  int numPts;
+} AreaData;
+
 class BeadFixer : public DialogFrame
 {
   Q_OBJECT
@@ -100,6 +133,28 @@ class BeadFixer : public DialogFrame
   int foundgap(int obj, int cont, int ipt, int before);
   void clearExtraObj();
 
+  int    mIfdidgap;
+  int    mLastob, mLastco, mLastpt, mLastbefore;
+  int    mObjcont;                      /* Flag for new object/contour data */
+  int    mObjlook, mContlook, mPtlook;  /* obj, cont, pt of current residual */
+  int    mIndlook;                      /* Index in list of current residual */
+  int    mCurmoved;                     /* flag whether it has been moved */
+  int    mObjmoved, mContmoved, mPtmoved;  /* obj, cont, pt of moved point */
+  int    mDidmove;                      /* flag that a point was moved */
+  Ipoint mOldpt, mNewpt;                /* old and new positions */
+  int    mLookonce;                     /* Flag for Examine once button */
+  ResidPt *mResidList;                  /* List of all residuals read in */
+  int    mNumResid;                     /* Number of point on list */ 
+  int    mResidMax;                     /* Allocated size of list */ 
+  int    mCurrentRes;                   /* Current residual index */ 
+  LookedPt *mLookedList;                /* List of points examined */
+  int    mNumLooked;                    /* Number of items on list */
+  int    mLookedMax;                    /* Size allocated for list */
+  int    mCurArea;                      /* Current local area index */
+  int    mNumAreas;                     /* Number of areas */
+  AreaData *mAreaList;                  /* Data about areas */
+  int    mAreaMax;                      /* Size allocated */
+  int    mBell;                         /* 1 to ring bell, -1 to suppress */ 
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
