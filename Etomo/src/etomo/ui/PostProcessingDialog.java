@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.5.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -48,12 +51,15 @@ public class PostProcessingDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
 
+  private TrimvolPanel trimvolPanel = new TrimvolPanel();
+  
   public PostProcessingDialog(ApplicationManager appManager) {
     super(appManager, AxisID.ONLY);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
+    rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
