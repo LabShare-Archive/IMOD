@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2003/10/09 02:33:42  mast
+c	  converted to use autodoc
+c	
 c	  Revision 3.9  2003/06/20 23:55:37  mast
 c	  Converted to using one lone string for options
 c	
@@ -93,7 +96,7 @@ c
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg
+	integer*4 PipGetNonOptionArg, PipGetInOutFile
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
 c
@@ -141,24 +144,12 @@ c
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
 	call PipReadOrParseOptions(options, numOptions, 'ccderaser',
-     &	    'ERROR: CCDERASER - ', .true., 0, 1, 1, numOptArg,
+     &	    'ERROR: CCDERASER - ', .true., 2, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
-	if (pipinput) then
-c
-c	    Get an input file string; or if none, look on command line
-c
-	  ierr = PipGetString('InputFile', infile)
-	  if (ierr .gt. 0) then
-	    if (numNonOptArg .eq. 0) call errorexit
-     &		('NO INPUT FILE SPECIFIED')
-	    ierr = PipGetNonOptionArg(1, infile)
-	  endif
-	else
-	  write(*,'(1x,a,$)')'Input image file: '
-	  read(*,'(a)')infile
-	endif
+	if (PipGetInOutFile('InputFile', 1, 'Name of input file', infile)
+     &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 c	call irtdel(1,delt)
 c	call irtorg(1,orig(1),orig(2),orig(3))
 c	  

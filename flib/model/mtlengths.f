@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/09 02:33:33  mast
+c	  converted to use autodoc
+c	
 c	  Revision 3.3  2003/09/05 18:15:34  mast
 c	  Finish declarations for implicit none
 c	
@@ -53,7 +56,7 @@ c
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg
+	integer*4 PipGetNonOptionArg, PipGetInOutFile
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  mtlengths
 c
@@ -84,25 +87,12 @@ c
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
 	call PipReadOrParseOptions(options, numOptions, 'mtlengths',
-     &	    'ERROR: MTLENGTHS - ', .true., 0, 1, 1, numOptArg,
+     &	    'ERROR: MTLENGTHS - ', .true., 1, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
-	if (pipinput) then
-c	    
-c	    Get an input file string; or if none, look on command line
-c
-	  ierr = PipGetString('ModelFile', modelfile)
-	  if (ierr .gt. 0) then
-	    if (numNonOptArg .eq. 0) call errorexit
-     &		('NO INPUT FILE SPECIFIED')
-	    ierr = PipGetNonOptionArg(1, modelfile)
-	  endif
-	else
-	  write(*,'(1x,a,$)')'Name of input model file: '
-	  read(*,'(a)')modelfile
-	endif
-
+	if (PipGetInOutFile('ModelFile', 1, 'Name of input model file',
+     &	    modelfile) .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 c
 c	  read in the model
 c

@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/10/09 02:32:44  mast
+c	  Add pipdone call
+c	
 c	  Revision 3.4  2003/10/08 17:15:24  mast
 c	  Convert to using autodoc
 c	
@@ -169,25 +172,15 @@ c
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
-	if (pipinput) then
-	  if (PipGetString('ImageInputFile', filnam) .ne. 0) call
-     &	      errorexit('NO INPUT IMAGE FILE SPECIFIED')
-	else
-
-	  write(*,'(1x,a,$)')'Input image file: '
-	  read(5,'(a)')filnam
-	endif
+	if (PipGetInOutFile('ImageInputFile', numNonOptArg + 1,
+     &	    'Input image file', filnam) .ne. 0) call errorexit(
+     &	    'NO INPUT IMAGE FILE SPECIFIED')
 	call imopen(1,filnam,'ro')
 	call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
 c	  
-	if (pipinput) then
-	  if (PipGetString('ImageOutputFile', filnam) .ne. 0) call
-     &	      errorexit('NO OUTPUT IMAGE FILE SPECIFIED')
-
-	else
-	  write(*,'(1x,a,$)')'Output image file: '
-	  read(5,'(a)')filnam
-	endif
+	if (PipGetInOutFile('ImageOutputFile', numNonOptArg + 1,
+     &	    'Output image file', filnam) .ne. 0) call errorexit(
+     &	    'NO OUTPUT IMAGE FILE SPECIFIED')
 	call imopen(2,filnam,'new')
 	call itrhdr(2,1)
 	call ialnbsym(2,0)

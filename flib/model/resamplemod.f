@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/10/09 02:33:20  mast
+c	  Converted to use autodoc
+c	
 c	  Revision 3.1  2003/09/06 00:01:34  mast
 c	  Conversion to PIP input, addition to IMOD
 c	
@@ -36,7 +39,7 @@ c
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg
+	integer*4 PipGetInOutFile
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  resamplemod
 c
@@ -55,26 +58,17 @@ c
 	call PipReadOrParseOptions(options, numOptions, 'resamplemod',
      &	    'ERROR: RESAMPLEMOD - ', .false., 2, 1, 1, numOptArg,
      &	    numNonOptArg)
-c	    
-c	    Get an input file string; or if none, look on command line
 c
-	if (PipGetString('InputFile', modelfile) .gt. 0) then
-	  if (numNonOptArg .eq. 0) call errorexit
-     &	      ('NO INPUT FILE SPECIFIED')
-	  ierr = PipGetNonOptionArg(1, modelfile)
-	endif
-
+	if (PipGetInOutFile('InputFile', 1, ' ', modelfile) .ne. 0)
+     &	    call errorexit('NO INPUT FILE SPECIFIED')
 c
 c	  read in the model
 c
 	exist=readw_or_imod(modelfile)
 	if(.not.exist)call errorexit('READING MODEL')
 
-	if (PipGetString('OutputFile', newmodel) .gt. 0) then
-	  if (numNonOptArg .lt. 2) call errorexit
-     &	      ('NO OUTPUT FILE SPECIFIED')
-	  ierr = PipGetNonOptionArg(2, newmodel)
-	endif
+	if (PipGetInOutFile('OutputFile', 2, ' ', newmodel) .ne. 0)
+     &	    call errorexit('NO OUTPUT FILE SPECIFIED')
 
 	nobjuse=0
 	if (PipGetString('DirectionObjects', modelfile) .eq. 0)

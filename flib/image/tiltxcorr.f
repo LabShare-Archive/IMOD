@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2003/10/09 02:33:08  mast
+c	  Converted to use autodoc
+c	
 c	  Revision 3.11  2003/06/21 00:48:00  mast
 c	  New version that uses PIP input - but documentation not revised yet
 c	
@@ -184,7 +187,7 @@ c
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers
-	integer*4 PipGetNonOptionArg, ifpip
+	integer*4 PipGetInOutFile, ifpip
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
 c
@@ -222,26 +225,12 @@ c
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
 	call PipReadOrParseOptions(options, numOptions, 'tiltxcorr',
-     &	    'ERROR: TILTXCORR - ', .true., 0, 1, 1, numOptArg,
+     &	    'ERROR: TILTXCORR - ', .true., 3, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
-	if (pipinput) then
-	  ifpip = 1
-c	    
-c	    Get an input file string; or if none, look on command line
-c
-	  ierr = PipGetString('InputFile', filin)
-	  if (ierr .gt. 0) then
-	    if (numNonOptArg .eq. 0) call errorexit
-     &		('NO INPUT FILE SPECIFIED')
-	    ierr = PipGetNonOptionArg(1, filin)
-	  endif
-	else
 
-	  write(*,'(1x,a,$)')'Image input file: '
-	  READ(5,101)FILIN
-101	  format(a)
-	endif
+	if (PipGetInOutFile('InputFile', 1, 'Image input file', filin)
+     &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
         CALL IMOPEN(1,FILIN,'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 	IF (((NX+2)*NY.GT.idim)) call errorexit(
@@ -250,12 +239,14 @@ c
 	if (nz.gt.limview) call errorexit('TOO MANY VIEWS FOR ARRAYS')
 C   
 	if (pipinput) then
+	  ifpip = 1
 	  plfile = ' '
 	  ierr = PipGetString('PieceListFile', plfile)
 	else
 	  write(*,'(1x,a,$)')'Piece list file if there is one,'//
      &	      ' otherwise Return: '
 	  read(*,101)plfile
+101	  format(a)
 	endif
 	call read_piece_list(plfile,ixpclist,iypclist,izpclist,npclist)
 c	  
@@ -292,17 +283,9 @@ c
 	  call exit(1)
 	endif
 c
-	if (pipinput) then
-	  ierr = PipGetString('OutputFile', filin)
-	  if (ierr .gt. 0) then
-	    if (numNonOptArg .lt. 2) call errorexit(
-     &		'NO OUTPUT FILE SPECIFIED FOR TRANSFORMS')
-	    ierr = PipGetNonOptionArg(2, filin)
-	  endif
-	else
-	  write(*,'(1x,a,$)')'Output file for transforms: '
-	  READ(5,101)FILIN
-	endif
+	if (PipGetInOutFile('OutputFile', 2,
+     &	    'Output file for transforms', filin) .ne. 0) call errorexit(
+     &	    'NO OUTPUT FILE SPECIFIED FOR TRANSFORMS')
 	call dopen(1,filin,'new','f')
 c	    
 	call get_tilt_angles(nview,3,tilt, limview, ifpip)
