@@ -32,6 +32,12 @@ set warpvol = warpvol.com
 set matchvol2 = matchvol2.com
 set volcombine = volcombine.com
 
+set pipecom = ""
+if ($?CYGWIN) then
+    if (`echo $CYGWIN | grep nobinmode` != "") set pipecom = "| cat"
+endif
+
+echo $pipecom
 
 #  $Author$
 #
@@ -40,6 +46,9 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2002/11/04 20:38:02  mast
+#  Made WARNINGS go to standard error with echo2
+#
 #  Revision 3.5  2002/10/23 15:36:50  mast
 #  Made it set up for one patch in Z if patch thickness is two-thirds of the
 #  spacing between the limits in Z.  Also made warnings start on a new line
@@ -420,7 +429,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/$corrtext1/s/.*	/$corrlist1	/g"\
     -e "/$corrtext2/s/.*	/$corrlist2	/g"\
     -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
-	<$srcdir/$matchmod >$matchmod
+	<$srcdir/$matchmod | cat >$matchmod
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -429,7 +438,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
     -e "/$surftext/s/.*	/$modsurf	/g"\
     -e "/matchshifts.*64 32 64/s/64 32 64/$MATCHSHIFTXZ $msy $MATCHSHIFTXZ/"\
-	<$srcdir/$matchshift >$matchshift
+	<$srcdir/$matchshift | cat >$matchshift
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -437,21 +446,21 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
     -e "/savework-file/s//$backupsed/g"\
-	<$srcdir/$matchvol1 >$matchvol1
+	<$srcdir/$matchvol1 | cat >$matchvol1
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
-	<$srcdir/$matchvol2 >$matchvol2
+	<$srcdir/$matchvol2 | cat >$matchvol2
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
-	<$srcdir/$warpvol >$warpvol
+	<$srcdir/$warpvol | cat >$warpvol
 
 sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpatch] $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
     -e s/$from_srcname/$fromname/g\
@@ -459,7 +468,7 @@ sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpat
     -e s/$matfile/$sedmatfile/g\
     -e s/36,36,36,36/$xyborder,$xyborder,$xyborder,$xyborder/g\
     -e "/boundary_model/s//$modelin/"\
-	<$srcdir/$patchcorr >$patchcorr
+	<$srcdir/$patchcorr | cat >$patchcorr
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -467,20 +476,20 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $modelin -size/"\
     -e "/$tempdirarg/s///"\
-	<$srcdir/$matchorwarp >$matchorwarp
+	<$srcdir/$matchorwarp | cat >$matchorwarp
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e s/$matfile/$sedmatfile/g\
     -e "/savework-file/s//$backupsed/g"\
-    	<$srcdir/$volcombine >$volcombine
+    	<$srcdir/$volcombine | cat >$volcombine
 
 sed -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e "/mkdir/s/.*if/$ifmkdir/"\
     -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
     -e "/$uncomment/s/"'^[\$#]*\([ve]\)/\$\1/g'\
-	<$srcdir/combine.com >combine.com
+	<$srcdir/combine.com | cat >combine.com
 
 
 set ranlist = `tomopieces $recfile $MAXMEMORY $TAPERPADXZ $TAPERPADY $MINOVERLAP`
@@ -490,7 +499,7 @@ if ($status) then
     exit 1
 endif
 
-cat >> $volcombine <<EOF
+cat <<EOF | cat >> $volcombine
 \$touch prevent-error
 \$\\rm prevent-err* ${tmppath}*.mat~ ${tmppath}mat.fft* ${tmppath}rec.fft* ${tmppath}sum.fft* $sumname* ${tmppath}sum[1-9]*.rec*
 #
@@ -518,7 +527,7 @@ while ($znum < $npiecez)
     while ($xnum < $npiecex)
 	@ xnum++
 	@ sumnum++
-	cat >> $volcombine <<EOCAT
+	cat <<EOCAT | cat >> $volcombine
 #
 \$echo STATUS: EXTRACTING AND COMBINING PIECE  $sumnum  of $npiecetot
 \$echo
@@ -552,7 +561,7 @@ EOCAT
     end
 end
 
-cat >> $volcombine <<EOCAT
+cat <<EOCAT | cat >> $volcombine
 #
 \$echo STATUS: REASSEMBLING PIECES
 \$echo
@@ -563,15 +572,15 @@ $npiecex,1,$npiecez
 EOCAT
 @ xnum = 0
 while ($xnum < $npiecex)
-    echo $ranlist[1] >> $volcombine
+    echo $ranlist[1] | cat >> $volcombine
     shift ranlist
     @ xnum++
 end
-echo $ranlist[1] >> $volcombine
+echo $ranlist[1] | cat >> $volcombine
 shift ranlist
 @ znum = 0
 while ($znum < $npiecez)
-    echo $ranlist[1] >> $volcombine
+    echo $ranlist[1] | cat >> $volcombine
     shift ranlist
     @ znum++
 end
@@ -579,9 +588,9 @@ end
 @ sumnum = 0
 while ($sumnum < $npiecex * $npiecez)
   @ sumnum++
-  echo ${tmppath}sum$sumnum.rec >> $volcombine
+  echo ${tmppath}sum$sumnum.rec | cat >> $volcombine
 end
-cat >> $volcombine <<EOCAT
+cat <<EOCAT | cat >> $volcombine
 #
 \$echo 
 \$echo STATUS: RUNNING FILLTOMO ON FINAL VOLUME
@@ -598,9 +607,9 @@ EOCAT
 
 
 if ($handclean == "0") then
-cat >> $volcombine <<EOCAT
+cat <<EOCAT | cat >> $volcombine
 \$\\rm -r $tmpdir
 EOCAT
 endif
 
-echo '$'"if (-e $backupname) $backupname" >> $volcombine
+echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
