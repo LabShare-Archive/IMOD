@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2001/12/29 01:04:09  mast
+    *** empty log message ***
+
     Revision 3.1  2001/12/29 00:49:24  mast
     Made signed long work, made signed and unsigned bytes work on PC,
     eliminated two lines of diagnostic output
@@ -419,14 +422,16 @@ static void rawswap(unsigned char *indata, int pixsize, int xysize)
 
      if (pixsize == 4){
 	  for (i = 0 ; i < xysize; i++){
-	       u1 = indata[i * 2];
-	       u2 = indata[(i * 2) + 1];
-	       u3 = indata[(i * 2) + 2];
-	       u4 = indata[(i * 2) + 3];
-	       indata[i * 2] = u4;
-	       indata[(i * 2) + 1] = u3;
-	       indata[(i * 2) + 2] = u2;
-	       indata[(i * 2) + 3] = u1;
+	       
+	       /* DNM 12/18/01: changed i * 2 to i * 4 */
+	       u1 = indata[i * 4];
+	       u2 = indata[(i * 4) + 1];
+	       u3 = indata[(i * 4) + 2];
+	       u4 = indata[(i * 4) + 3];
+	       indata[i * 4] = u4;
+	       indata[(i * 4) + 1] = u3;
+	       indata[(i * 4) + 2] = u2;
+	       indata[(i * 4) + 3] = u1;
 	  }
 	  return;
      }
