@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2005/03/09 18:08:05  sueh
+ * bug# 533 In crossCorrelate(), if blendmont will be run, use the
+ * XcorrProcessWatcher instead of the TiltxcorrProcessWatcher.
+ *
  * Revision 3.57  2005/03/08 18:31:00  sueh
  * bug# 533 Added midasBlendStack() to run midas with the .bl stack.
  *
@@ -769,6 +773,12 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
   
+  /**
+   * run preblend comscript
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
   public String preblend(AxisID axisID) throws SystemProcessException {
     //  Create the required tiltalign command
     String command = BlendmontParam
@@ -777,6 +787,27 @@ public class ProcessManager extends BaseProcessManager {
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
       appManager, axisID, BlendmontParam.PREBLEND_MODE);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        blendmontProcessMonitor, axisID);
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * run blend comscript
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  public String blend(AxisID axisID) throws SystemProcessException {
+    //  Create the required tiltalign command
+    String command = BlendmontParam
+        .getCommandFileName(BlendmontParam.BLEND_MODE)
+        + axisID.getExtension() + ".com";
+    //  Start the com script in the background
+    BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
+      appManager, axisID, BlendmontParam.BLEND_MODE);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
