@@ -50,6 +50,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.20  2003/11/04 20:56:11  rickg
+ * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.19  2003/11/03 19:36:09  sueh
  * <p> bug266 EtomoFileFilter:  added an implements clause to the class def to allow the use
  * <p> of this file with File.listFiles(FileFilter)
@@ -388,8 +391,13 @@ public class MainFrame extends JFrame implements ContextMenu {
       if (i == nMRUFileMax) {
         return;
       }
-      menuMRUList[i].setText(mRUList[i]);
-      menuMRUList[i].setVisible(true);
+      if (mRUList[i].equals("")) {
+        menuMRUList[i].setVisible(false);
+      }
+      else {
+        menuMRUList[i].setText(mRUList[i]);
+        menuMRUList[i].setVisible(true);
+      }
     }
     for (int i = mRUList.length; i < nMRUFileMax; i++) {
       menuMRUList[i].setVisible(false);
