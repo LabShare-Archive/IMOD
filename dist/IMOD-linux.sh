@@ -17,7 +17,7 @@ export IMOD_DIR=${IMOD_DIR:=/usr/local/IMOD}
 #
 # Set IMOD_JAVADIR if it is not set already
 #
-export IMOD_JAVADIR=${IMOD_JAVADIR:=/usr/local/j2re1.4.0_04}
+export IMOD_JAVADIR=${IMOD_JAVADIR:=/usr/local/j2re1.4.2_02}
 
 #
 # Put the IMOD programs on the path
