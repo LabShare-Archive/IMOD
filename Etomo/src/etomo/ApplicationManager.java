@@ -77,6 +77,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.85  2003/11/05 18:05:50  sueh
+ * <p> bug278 created backupFile(File) to backup the .edf file
+ * <p> called backupFile(File) from saveTestParamFile()
+ * <p>
  * <p> Revision 2.84  2003/11/04 20:55:42  rickg
  * <p> Bug #345 IMOD Diriectory supplied by a static function from ApplicationManager
  * <p>
@@ -2160,11 +2164,11 @@ public class ApplicationManager {
 			mainFrame.showBlankProcess(axisID);
 		}
 		else {
+			//  Get the user input data from the dialog box
+			if (!updateTiltCom(axisID, true)) {
+				return;
+			}
 			if (exitState == DialogExitState.POSTPONE) {
-				//  Get the user input data from the dialog box
-				if (!updateTiltCom(axisID, true)) {
-					return;
-				}
 				processTrack.setTomogramGenerationState(
 					ProcessState.INPROGRESS,
 					axisID);
