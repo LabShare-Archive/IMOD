@@ -11,7 +11,7 @@ import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
-import etomo.type.JoinMetaData;
+import etomo.type.JoinState;
 
 /**
 * <p>Description: </p>
@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.8  2004/12/09 04:54:45  sueh
+* <p> bug# 565 Removed save meta data from postPRocess and errorProcess
+* <p> functions.  It will be done more centrally.
+* <p>
 * <p> Revision 1.7  2004/12/08 21:23:33  sueh
 * <p> bug# 564 Changed FinishjoinParam statics SHIFT_IN_X_VALUE_NAME,
 * <p> etc to SHIFT_IN_X.
@@ -182,7 +186,7 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(startjoinComscriptName)) {
-      joinManager.getJoinMetaData().setSampleProduced(true);
+      joinManager.getState().setSampleProduced(true);
       joinManager.setMode();
     }
   }
@@ -229,12 +233,12 @@ public class JoinProcessManager extends BaseProcessManager {
         return;
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
-        JoinMetaData metaData = joinManager.getJoinMetaData();
-        metaData.setFinishjoinTrialBinning(command.getBinning());
-        metaData.setFinishjoinTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X)); 
-        metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y));
-        metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X));
-        metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y));
+        JoinState state = joinManager.getState();
+        state.setTrialBinning(command.getBinning());
+        state.setTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X));
+        state.setTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y));
+        state.setTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X));
+        state.setTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y));
       }
     }
   }
@@ -252,7 +256,7 @@ public class JoinProcessManager extends BaseProcessManager {
       joinManager.enableMidas();
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
-      joinManager.getJoinMetaData().setSampleProduced(false);
+      joinManager.getState().setSampleProduced(false);
       joinManager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
@@ -271,7 +275,7 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(startjoinComscriptName)) {
-      joinManager.getJoinMetaData().setSampleProduced(false);
+      joinManager.getState().setSampleProduced(false);
       joinManager.setMode();
     }
   }

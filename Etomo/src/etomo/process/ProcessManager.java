@@ -20,6 +20,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2004/12/09 04:57:40  sueh
+ * bug# 565 Save meta data in functions which to not call a start... function
+ * and may been preceded by a change in meta data.  Don't do this for
+ * setupComScript() because it is followed by doneSetupDialog(), which
+ * saves meta data.
+ *
  * Revision 3.44  2004/12/08 21:24:59  sueh
  * bug# 564 In postProcess(BackgroundProcess) saved
  * TrimvolParam.swapYZ in metaData.state.
@@ -611,7 +617,7 @@ public class ProcessManager extends BaseProcessManager {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
-    appManager.saveMetaData();
+    appManager.saveTestParamFile();
     int exitValue = copyTomoComs.run();
 
     if (exitValue != 0) {
@@ -1037,7 +1043,7 @@ public class ProcessManager extends BaseProcessManager {
     throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
-    appManager.saveMetaData();
+    appManager.saveTestParamFile();
     int exitValue = setupCombine.run();
 
     if (exitValue != 0) {
@@ -1371,7 +1377,7 @@ public class ProcessManager extends BaseProcessManager {
         return;
       }
       if (commandName.equals(TrimvolParam.getName())) {
-        appManager.getTomogramMetaData().getState().setFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
+        appManager.getState().setFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
       }
     }
   }
