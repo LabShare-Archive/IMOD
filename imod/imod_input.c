@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2002/05/20 15:34:47  mast
     Made time index modeling be the default for a new object if multiple files
     are open
@@ -44,6 +47,7 @@
 #include <math.h>
 #include "keypad.h"
 #include "imod.h"
+#include "imod_info.h"
 #include "mrcfiles.h"
 
 extern long Typemenu;
@@ -760,7 +764,11 @@ void inputNewObject(ImodView *vw)
 
 void inputSaveModel(ImodView *vw)
 {
-     vw->imod->blacklevel = vw->black;
+  if (ImodForbidLevel)
+    return;
+
+  imod_info_forbid();
+    vw->imod->blacklevel = vw->black;
      vw->imod->whitelevel = vw->white;
 
      /* DNM: the first FlipModel is unnecessary in normal cases and actually 
@@ -773,6 +781,7 @@ void inputSaveModel(ImodView *vw)
 	  show_status("Done saving model."); */
      /*     ivwFlipModel(vw); */
 
+     imod_info_enable();
      imod_draw_window();
      return;
 }
