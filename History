@@ -1,10 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/04: IMOD_3-4-16
+12/16/04:  The flipped state will now be monitored properly for the squeezevol
+interface. 
+
 12/14/04: IMOD_3-4-15
 12/13/04: eTomo now saves the .edf as well as the .ejf file automatically at
 various points when processes are run and upon exit.  This will enable it to
-keep track of processing state better between sessions.  The flipped state
-will now be monitored properly for the squeezevol interface.
+keep track of processing state better between sessions.
 
 12/13/04: Fixed bug in running 3dmod from eTomo in some cases, created by
 fixes for spaces in the path on 12/3/04.
