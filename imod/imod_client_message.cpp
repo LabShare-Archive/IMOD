@@ -38,6 +38,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include <qdir.h>
+#include <qregexp.h>
 #include <qtimer.h>
 #include <qapplication.h>
 #include <qclipboard.h>
@@ -154,6 +155,11 @@ bool ImodClipboard::handleMessage()
   QClipboard *cb = QApplication::clipboard();
   cb->setSelectionMode(false);
   QString text = cb->text();
+  if (Imod_debug) {
+    fprintf(stderr, "imodHCM in handleMessage = %s\n", 
+            text.latin1());
+    wprint("handleMessage = %s\n", text.latin1());
+  }                   
 
   // Return if text is empty, starts with a space or has no spaces
   if (text.isEmpty())
@@ -161,6 +167,9 @@ bool ImodClipboard::handleMessage()
   index = text.find(" ");
   if (index <= 0)
     return false;
+
+  // Remove multiple spaces
+  text = text.replace(QRegExp("  *"), " ");
 
   // Return false if this is not our info window ID
   if ((text.left(index)).toInt() != (unsigned int)ImodInfoWin->winId())
@@ -172,10 +181,10 @@ bool ImodClipboard::handleMessage()
   if (text2.left(index) == "OK" || text2.left(index) == "ERROR")
     return false;
 
-  // If we see the same message again, send the response again
+  // If we see the same message again, send the last response again
   newStamp = text2.left(index).toInt();
   if (newStamp == message_stamp) {
-    sendResponse(1);
+    sendResponse(-1);
     return false;
   }
   message_stamp = newStamp;
@@ -317,7 +326,11 @@ bool ImodClipboard::executeMessage()
 
 void ImodClipboard::sendResponse(int succeeded)
 {
+  static int lastResponse = 0;
   QString str;
+  if (succeeded < 0)
+    succeeded = lastResponse;
+  lastResponse = succeeded;
   str.sprintf("%u %s", (unsigned int)ImodInfoWin->winId(), 
     succeeded ? "OK" : "ERROR");
   QClipboard *cb = QApplication::clipboard();
@@ -327,6 +340,9 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.7  2003/09/24 15:07:11  mast
+Improved debug mode, added a repeated response to same message
+
 Revision 4.6  2003/08/01 05:52:38  mast
 Allowed model mode message to set back to movie mode, added message to open
 file and keep black/white levels.
