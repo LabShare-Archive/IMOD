@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.6  2003/08/08 05:13:52  rickg
+# Mods to support IMOD make structure
+#
 
 include ../configure
 
@@ -35,7 +38,7 @@ $(JAR_FILE): cpimages compile
 	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
-	cp -a $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -a $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
@@ -58,7 +61,7 @@ javadocs:
 clean:
 	rm -rf bin/etomo/*
 	rm -rf doc/javadocs
-	rm $(JAR_FILE)
+	rm -f $(JAR_FILE)
 
 .PHONY: linecount
 linecount:
