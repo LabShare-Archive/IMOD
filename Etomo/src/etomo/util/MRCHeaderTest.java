@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/01/16 18:26:38  rickg
+ * <p> Added checkout of testHeader to appropriate directories
+ * <p>
  * <p> Revision 3.1  2004/01/13 22:36:47  rickg
  * <p> Creates it own ApplicationManager for static function access
  * <p> Added a test that includes a space in the directory name
@@ -122,7 +125,7 @@ public class MRCHeaderTest extends TestCase {
   public void testReadBadFilename() {
     // Need an application manger to get the IMOD_DIR environment
     // variable
-    String[] args = { "" };
+    String[] args = { "--test" };
     ApplicationManager appManager = new ApplicationManager(args);
 
     // First test, should throw an exception because the image stack is not
