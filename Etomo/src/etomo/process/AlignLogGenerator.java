@@ -36,6 +36,7 @@ public class AlignLogGenerator {
     runArgument("-a", "alignAngles");
     runArgument("-c", "alignCoordinates");
     runArgument("-e", "alignError");
+    runArgument("-l", "alignLocals");
     runArgument("-m", "alignMappings");
     runArgument("-r", "alignResiduals");
     runArgument("-s", "alignSolution");
