@@ -21,6 +21,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/05/20 23:57:38  mast
+#  Strip spaces from exclude list
+#
 #  Revision 3.5  2003/05/16 15:33:23  mast
 #  Made it work with spaces in names for current and backup directories
 #
@@ -267,9 +270,13 @@ while ($iaxis < $numax)
     set recext = ".rec"
     if ($numax == 2) then
 	set setlet = "a"
-	if ($iaxis == 1) set setlet = "b"
+        set sayaset = 'first ("a")'
+	if ($iaxis == 1) then
+            set setlet = "b"
+        set sayaset = 'second ("b")'
+        endif
 	echo ' '
-	echo 'Now make entries specific to the first ("'$setlet'") set'
+	echo "Now make entries specific to the $sayaset set"
 	echo ' '
 	set setname = $rootname$setlet
 	set dstext = "$setlet.com"
