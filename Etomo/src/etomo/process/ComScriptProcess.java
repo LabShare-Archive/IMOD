@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2004/07/07 21:42:22  sueh
+ * bug# 490 only rename watched file if it exists
+ *
  * Revision 3.9  2004/07/02 16:47:32  sueh
  * bug# 490 added watchFileName.  Moving watchFile to backup
  * in run().
@@ -293,13 +296,15 @@ public class ComScriptProcess
       // by an existing log file
       String logFileName = parseBaseName(name, ".com") + ".log";
       File logFile = new File(workingDirectory, logFileName);
-      File oldLog = new File(workingDirectory, logFileName + "~");
-      try {
-        Utilities.renameFile(logFile, oldLog);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        System.err.println(except.getMessage());
+      if (logFile.exists()) {
+        File oldLog = new File(workingDirectory, logFileName + "~");
+        try {
+          Utilities.renameFile(logFile, oldLog);
+        }
+        catch (IOException except) {
+          except.printStackTrace();
+          System.err.println(except.getMessage());
+        }
       }
       
       if (watchedFileName != null) {
