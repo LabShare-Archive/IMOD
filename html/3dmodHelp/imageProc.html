@@ -1,0 +1,78 @@
+<head>
+<title>Image Processing</title>
+</head>
+<H3>Image Processing</H3>
+Various kinds of simple filters can be applied with these 
+controls.  The filter will always be applied to the current 
+section.  Note that many of these filters can be applied to a whole image
+stack through the
+<A HREF = "../man/clip.html">Clip</A> program.
+<P>
+Single-click in the list of filters to select the current filter 
+to be applied to the data; in some cases there will be further 
+parameters to select.
+<P>
+Pressing the <B>Apply</B> button will apply the current filter to the 
+ORIGINAL image data.  Double-clicking in the filter list is the 
+same as pressing the <B>Apply</B> button.
+<P>
+Pressing the <B>More</B> button will apply the filter to the CURRENT 
+image data, as modified by previous filter operations.
+<P>
+Pressing the <B>Reset</B> button, applying a filter to a different 
+section, closing the window with <B>Done</B>, or flipping the data 
+volume will all restore the original image data for a section, 
+unless you press the <B>Save</B> button.  <B>Save</B> will permanently 
+replace the image data in memory with the processed data.
+<P>
+<H4>Fourier Filtering</H4>
+The Fourier filter is done by taking Fourier transforms and its 
+parameters are the <B>radius</B> and <B>sigma</B> parameters used in 
+several other IMOD programs.  Namely, the <B>Low frequency sigma</B> is 
+the sigma of an inverted Gaussian starting at the origin, used to 
+attenuate low frequencies.  Low pass filtering is done with a 
+Gaussian starting at the <B>High-frequency cutoff</B> and  
+with a sigma given by the <B>High-frequency falloff</B>.  The units are 
+cycles per pixel, ranging from 0 to 0.5.
+<P>
+<H4>Fourier Transforms</H4>
+To take a Fourier transform (FFT), the program will pad the image 
+into a square array slightly larger than the original image, taper 
+the image at its edges to minimize edge artifacts, take the FFT, 
+apply log scaling, and clip out the portion that fits into the 
+original image size.  For a non-square image, the FFT will thus be 
+isotropic (X and Y scales the same) but truncated in one dimension.  
+The panel will show the range of frequencies that appear in the X 
+and Y dimensions.  Binning can be used to see the whole transform for 
+a non-square image, and also to reduce noise and execution time.  
+With binning, the smaller FFT will be embedded into a black 
+background.
+<P>
+To do an FFT of a subregion, turn on <B>Use Zap window subarea</B>.  If 
+the rubber band is on in the active Zap window, the FFT will be taken 
+of the area inside the rubber band.  Otherwise, the area used will be 
+the portion of the image showing in the window.
+<P>
+The panel also shows a scale that can be used to convert from pixels 
+in the FFT to frequency units.  To determine the frequency at a 
+location, measure the distance from the origin (at the center of the 
+image) to the given location.  (For example, draw a model line 
+between them and use <B>Edit-Point-Distance</B>.)  Multiply the distance 
+in pixels times the scale to get the frequency in cycles/pixel.  
+To determine the frequency in actual units such as reciprocal 
+nanometers, divide this frequency by the pixel size (e.g., in nm).  
+To get a resolution value in real-space units, 
+divide the pixel size by the frequency in cycles/pixel.
+<P>
+<H4>Median Filtering</H4>
+Median filtering replaces each pixel by the median value of neighboring
+pixels, where the <B>Size</B> parameter determines the size of the block of
+pixels.  The default is to do the filtering in 3D, and take the median in a
+cube of voxels.  Filtering in 2D, considering only the pixels on the current
+section, can be done if you turn off <B>Compute median in 3D cube</B>.  With
+2D filtering, you can iterate by pressing <B>More</B>.  However, with 3D
+filtering, pressing <B>More</B> will not have much effect and will not be the
+same as iterative filtering in 3D, because only the central slice has been
+filtered.
+<P>
+<A HREF="index.html">Help Index<A>
