@@ -24,6 +24,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2002/10/22 21:38:33  rickg
+ * <p> ApplicationManager now controls both demo and debug
+ * <p> modes
+ * <p>
  * <p> Revision 1.7  2002/10/14 22:45:07  rickg
  * <p> Enabled debug output for com scripts
  * <p>
@@ -301,19 +305,49 @@ public class ProcessManager {
 
   /**
    * A message specifying that a com script has finished execution
+   * @param script the RunComScript execution object that finished
    * @param exitValue the exit value for the com script
    */
-  public void msgComScriptDone(RunComScript script, 
-    int exitValue, String command) {
-    
-    //  increment the state machine forward to allow for
-    System.out.println("Process complete:");
-    System.out.println("  script: " + command);
-    System.out.println("  Exit value: " + String.valueOf(exitValue));
+  public void msgComScriptDone(RunComScript script, int exitValue) {
 
-    if(exitValue != 0) {
-        appManager.openMessageDialog(script.getMessage(),
-        command + "failed");
+    if (exitValue != 0) {
+      String[] message = script.getErrorMessage();
+      String[] stdError = script.getStdError();
+      String[] combined = new String[message.length + stdError.length + 5];
+
+      int j = 0;
+      combined[j++] = "<html>Com script failed: " + script.getScriptName();
+      combined[j++] = "  ";
+      combined[j++] = "<html><U>Log file errors:</U>";
+
+      for (int i = 0; i < message.length; i++, j++) {
+        combined[j] = message[i];
+      }
+      combined[j++] = "  ";
+      combined[j++] = "<html><U>Standard error output:</U>";
+      for (int i = 0; i < stdError.length; i++, j++) {
+        combined[j] = stdError[i];
+      }
+
+      appManager.openMessageDialog(
+        combined,
+        script.getScriptName() + " failed");
+    }
+    else {
+      String[] warningMessages = script.getWarningMessage();
+      String[] dialogMessage;
+      if (warningMessages != null && warningMessages.length > 0) {
+        dialogMessage = new String[warningMessages.length + 2];
+        dialogMessage[0] = "Com script: " + script.getScriptName();
+        dialogMessage[1] = "<html><U>Warnings:</U>";
+        int j = 2;
+        for (int i = 0; i < warningMessages.length; i++) {
+          dialogMessage[j++] = warningMessages[i];
+        }
+        appManager.openMessageDialog(
+          dialogMessage,
+          script.getScriptName() + " warnings");
+      }
     }
   }
 
