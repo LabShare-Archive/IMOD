@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.43  2003/05/19 22:05:31  rickg
+ * <p> Added openNewDataset method
+ * <p> unset isDataParamDirty in daving method
+ * <p>
  * <p> Revision 2.42  2003/05/15 22:24:24  rickg
  * <p> Reordered method sequence in opening processing panel to
  * <p> prevent slider from taking up all of the window.
@@ -3356,8 +3360,8 @@ public class ApplicationManager {
    * Interrupt the currently running thread for this axis
    * @param axisID
    */
-  public void interrupt(AxisID axisID) {
-    processMgr.interrupt(axisID);
+  public void kill(AxisID axisID) {
+    processMgr.kill(axisID);
   }
 
   /**

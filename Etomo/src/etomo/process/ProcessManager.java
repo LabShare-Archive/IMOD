@@ -28,6 +28,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/05/13 16:56:04  rickg
+ * <p> Use whole command line for transferfid command ID, since 
+ * <p> windows/cygwin needs a preceeding tcsh
+ * <p>
  * <p> Revision 2.8  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -114,12 +118,12 @@ public class ProcessManager {
     "$Id$";
 
   ApplicationManager appManager;
-  Thread threadAxisA = null;
-  Thread threadAxisB = null;
-	// save the transferfid command line so that we can identify when process is
-	// complete.
-	String transferfidCommandLine;
-	
+  RunComScript threadAxisA = null;
+  RunComScript threadAxisB = null;
+  // save the transferfid command line so that we can identify when process is
+  // complete.
+  String transferfidCommandLine;
+
   public ProcessManager(ApplicationManager appMgr) {
     appManager = appMgr;
   }
@@ -494,24 +498,28 @@ public class ProcessManager {
   }
 
   /**
-   * Interrupt the thread for the specified axis
-   * @param commandLine
-   * @return String
+   * Kill the thread for the specified axis
    */
-  public void interrupt(AxisID axisID) {
+  public void kill(AxisID axisID) {
+    String processID = "";
     if (axisID == AxisID.SECOND) {
       if (threadAxisB != null) {
-        threadAxisB.interrupt();
-        threadAxisB = null;
+        processID = threadAxisB.getCshProcessID();
       }
     }
     else {
       if (threadAxisA != null) {
-        threadAxisA.interrupt();
-        threadAxisA = null;
+        processID = threadAxisA.getCshProcessID();
       }
     }
+    
+    System.err.println(processID);
+    if (!processID.equals("")) {
+      SystemProgram killCsh = new SystemProgram("kill -9 " + processID);
+      killCsh.run();
+    }
   }
+  
   /**
    * Run the comand specified by the argument string
    */
@@ -682,9 +690,10 @@ public class ProcessManager {
     }
   }
 
-  private void mapThreadAxis(Thread thread, AxisID axisID) {
+  private void mapThreadAxis(RunComScript thread, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       threadAxisB = thread;
+
     }
     else {
       threadAxisA = thread;
