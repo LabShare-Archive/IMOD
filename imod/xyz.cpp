@@ -514,7 +514,7 @@ void XyzWindow::B2Press(int x, int y)
 
   /* DNM: don't make closed contours wild if they're not */
   if (cont->psize &&  iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)
-      && cont->pts[0].z != mz) {
+      && (int)floor(cont->pts[0].z + 0.5) != mz) {
     wprint("\aXYZ will not add a point on a different section to"
            " a co-planar closed contour.\n");
     return;
@@ -1433,7 +1433,8 @@ void XyzWindow::DrawCurrentPoint()
      otherwise draw crosses at current mouse point */
   if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
           
-    if ((int)(pnt->z) == cz && !zapTimeMismatch(xx->vi, 0, obj, cont)) {
+    if ((int)floor(pnt->z + 0.5) == cz && 
+        !zapTimeMismatch(xx->vi, 0, obj, cont)) {
       b3dColorIndex(App->foreground);
     }else{
       b3dColorIndex(App->shadow);
@@ -1727,6 +1728,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.7  2003/03/24 17:56:46  mast
+Register with dialogManager so it can be parked with info window
+
 Revision 4.6  2003/03/13 01:14:46  mast
 Pass Ctrl R on to default keys
 

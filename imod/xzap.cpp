@@ -1425,7 +1425,7 @@ void zapButton2(ZapStruct *zap, int x, int y)
     if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)){
       cpoint = imodPointGet(vi->imod);
       if (cpoint){
-        cz = (int)cpoint->z; 
+        cz = (int)floor(cpoint->z + 0.5); 
         pz = (int)point.z;
 
         if (cz != pz || zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
@@ -1515,7 +1515,7 @@ static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
   critsq = crit * crit;
   for (i = 0; i < cont->psize  && cont->psize > 1; ) {
     lpt = &(cont->pts[i]);
-    if (floor((double)lpt->z + 0.5) == zap->section) {
+    if (floor(lpt->z + 0.5) == zap->section) {
       dsq = (lpt->x - ix) * (lpt->x - ix) +
         (lpt->y - iy) * (lpt->y - iy);
       if (dsq <= critsq) {
@@ -2420,7 +2420,7 @@ static void zapDrawGhost(ZapStruct *zap)
     /* DNM: don't display wild contours, only coplanar ones */
     /* By popular demand, display ghosts from lower and upper sections */
     if (cont->pts && !(cont->flags & ICONT_WILD)) {
-      iz = (int)floor((double)cont->pts->z + 0.5);
+      iz = (int)floor(cont->pts->z + 0.5);
       if ((iz > zap->section && iz <= nextz && 
            (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
           (iz < zap->section && iz >= prevz && 
@@ -2592,6 +2592,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.12  2003/03/24 17:56:46  mast
+Register with dialogManager so it can be parked with info window
+
 Revision 4.11  2003/03/13 01:20:08  mast
 Convert numlock keypad keys so num lock can be on
 
