@@ -55,6 +55,7 @@ Log at the end of file
 #include "imod_info.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
+#include "imod_cachefill.h"
 #include "sslice.h"
 #include "control.h"
 #include "imodplug.h"
@@ -96,6 +97,7 @@ void imod_usage(char *name)
   printf("         -s min,max  Scale input to range [min,max].\n");
   printf("         -C #  Set # of sections or Mbytes to cache (#M or #m for"
          " Mbytes).\n");
+  printf("         -F    Fill cache right after starting program.\n");
   printf("         -Y    Flip volume to model planes normal to y axis.\n");
   printf("         -p <file name>  Load piece list file.\n");
   printf("         -P nx,ny  Display images as montage in nx by ny array.\n");
@@ -126,6 +128,7 @@ int main( int argc, char *argv[])
   int modelViewOpen= FALSE;
   int print_wid    = FALSE;
   int loadinfo     = FALSE;
+  int fillCache    = FALSE;
   int new_model_created = FALSE;
   int i      = 0;
   int vers;
@@ -174,7 +177,7 @@ int main( int argc, char *argv[])
 	cmdLineStyle = strdup(argv[i + 1]);
     }
     
-    if (!strcmp("-imodv", argv[i]) || !strcmp("-view", argv[i]))
+    if (!strcmp("-modv", argv[i]) || !strcmp("-view", argv[i]))
       doImodv = 1;
   }
 
@@ -222,7 +225,7 @@ int main( int argc, char *argv[])
   /* DNM: Find out how many imods this user is running and set the cmap to
      that number.  Also change the interval from 300 to 330 here and in
      imod_menu.c */
-  cmap = system ("exit `\\ps -a | grep imod | wc -l`");
+  cmap = system ("exit `\\ps -a | grep 3dmod | wc -l`");
   cmap = WEXITSTATUS(cmap);
   /*     printf("Returned cmap = %d\n", cmap); */
   if (cmap <= 0)
@@ -238,7 +241,7 @@ int main( int argc, char *argv[])
   for (i = 1; i < argc; i++){
     if (argv[i][0] == '-'){
       if (firstfile) {
-        fprintf(stderr, "Imod: invalid to have argument %s after"
+        fprintf(stderr, "3dmod: invalid to have argument %s after"
           " first filename\n", argv[i]);
         exit(1);
       }
@@ -249,7 +252,7 @@ int main( int argc, char *argv[])
           break;
         cmap = atoi(argv[++i]);
         if ((cmap > 12) || (cmap < 1)){
-          fprintf(stderr, "imod: valid -c range is 1 - 12\n");
+          fprintf(stderr, "3dmod: valid -c range is 1 - 12\n");
           exit(-1);
         }
         Rampbase  = 256 + ((cmap - 1) * 330);
@@ -268,6 +271,10 @@ int main( int argc, char *argv[])
         vi.vmSize = cacheSize;
         break;
         
+      case 'F':
+        fillCache = TRUE;
+        break;
+
       case 'x':
         if (argv[i][2] == 'y')
           if(argv[i][3] == 'z'){
@@ -365,9 +372,9 @@ int main( int argc, char *argv[])
         print_wid = TRUE;
         break;
         
-      case 'F':
+        /*      case 'F':
         font_scale = atof(argv[++i]);
-        break;
+        break; */
         
       default:
         break;
@@ -449,9 +456,9 @@ int main( int argc, char *argv[])
       vers = imodVersion(NULL);
       imodCopyright();    
       qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
-                                           "Imod: Select Image file to load:");
+                                           "3dmod: Select Image file to load:");
       if (qname.isEmpty()) {
-        fprintf(stderr, "IMOD: file not selected\n");
+        fprintf(stderr, "3DMOD: file not selected\n");
         exit(-1);
       }
       Imod_imagefile = strdup(qname.latin1());
@@ -490,7 +497,7 @@ int main( int argc, char *argv[])
       
       vi.image = iiOpen(Imod_imagefile, "rb");
       if (!vi.image){
-        fprintf(stderr, "imod error: "
+        fprintf(stderr, "3dmod error: "
           "Failed to load input file %s\n",
           Imod_imagefile);
         if (errno) perror("image open");
@@ -636,11 +643,14 @@ int main( int argc, char *argv[])
 
   /* Finish loading/setting up images, reading IFD if necessary */
   if (ivwLoadImage(&vi)){
-    fprintf(stderr, "imod: Fatal Error --" 
+    fprintf(stderr, "3dmod: Fatal Error --" 
             " while reading image data.\n");
-    perror("imod LoadImage");
+    perror("3dmod LoadImage");
     exit(-1);
   }
+
+  if (fillCache && vi.vmSize)
+    imodCacheFill(&vi);
 
   if (!Imod_IFDpath.isEmpty())
     QDir::setCurrent(Imod_cwdpath);
@@ -662,7 +672,7 @@ int main( int argc, char *argv[])
   imod_start_autosave(App->cvi);
 
   /* Satisfy the lawyers. */
-  wprint("Imod %s Copyright %s\n"
+  wprint("3dmod %s Copyright %s\n"
          "BL3DEMC & Regents of the Univ. of Colo.\n", 
          VERSION_NAME, COPYRIGHT_YEARS);
   imod_draw_window();
@@ -873,6 +883,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.13  2003/04/18 20:15:40  mast
+Set flag when program is exiting
+
 Revision 4.12  2003/04/17 21:53:05  mast
 Fix simplification
 
