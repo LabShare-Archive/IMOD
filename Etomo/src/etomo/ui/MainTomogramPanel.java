@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/02/25 19:11:56  sueh
+* <p> working on java 1.5 fitting issues.  Added commented out override of
+* <p> packaxis().
+* <p>
 * <p> Revision 1.4  2005/02/17 02:44:31  sueh
 * <p> bug# 605 Added saveDisplayState() to call saveDisplayState() in axis
 * <p> panels.
@@ -325,6 +329,14 @@ public class MainTomogramPanel extends MainPanel {
   
   protected boolean isAxisPanelAFitScreenError() {
     return isFitScreenError(axisPanelA);
+  }
+  
+  /**
+   * Show a blank processing panel
+   */
+  public void showBlankProcess(AxisID axisID) {
+    ((ApplicationManager) manager).setCurrentDialogType(null, axisID);
+    super.showBlankProcess(axisID);
   }
   
   /**
