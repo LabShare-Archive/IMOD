@@ -53,6 +53,7 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "imod_cont_edit.h"
 #include "imodv.h"
+#include "imodv_window.h"
 #include "imod_input.h"
 #include "control.h"
 #include "sslice.h"
@@ -63,6 +64,17 @@ Log at end of file
 
 void inputRaiseWindows()
 {
+  /* New way, allows type of windows to be raised in chosen order */
+  if (!ImodvClosed && Imodv->mainWin->isVisible())
+    Imodv->mainWin->raise();
+
+  imodDialogManager.raise(IMOD_IMAGE);
+  imodvDialogManager.raise(IMODV_DIALOG);
+  imodDialogManager.raise(IMOD_DIALOG);
+  if (ImodInfoWin->isVisible())
+    ImodInfoWin->raise();
+  
+  /* The old way
   QWidgetList  *list = QApplication::topLevelWidgets();
   QWidgetListIt it( *list );  // iterate over the widgets
   QWidget * w;
@@ -72,6 +84,7 @@ void inputRaiseWindows()
       w->raise();
   }
   delete list;                // delete the list, not the widgets
+  */
 }
      
 /* old function still in use */
@@ -1196,6 +1209,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.10  2003/04/18 20:16:39  mast
+Rename meta test function
+
 Revision 4.9  2003/04/18 20:08:18  mast
 Implement function to reject Ctrl key and give message on Mac
 
