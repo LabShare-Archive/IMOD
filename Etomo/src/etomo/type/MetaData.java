@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
 import etomo.storage.Storable;
 
 /**
@@ -20,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/06/01 18:55:27  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
  * <p> Revision 3.5  2004/05/25 23:59:54  sueh
  * <p> bug# 355 when axis type is not available it should be set to
  * <p> "not set"
@@ -219,6 +223,10 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setCombineParams(CombineParams combine) {
     combineParams = combine;
   }
+  
+  public void setTrimvolParam(TrimvolParam trimvol) {
+    trimvolParam = trimvol;
+  }
 
   public void setFiducialessAlignment(boolean state) {
     fiducialessAlignment = state;
@@ -279,6 +287,7 @@ public class MetaData extends ConstMetaData implements Storable {
         .valueOf(fiducialessAlignment));
     props.setProperty(group + "WholeTomogramSample", String
         .valueOf(wholeTomogramSample));
+    trimvolParam.store(props, group);
   }
 
   /**
@@ -357,5 +366,6 @@ public class MetaData extends ConstMetaData implements Storable {
     wholeTomogramSample = Boolean.valueOf(
         props.getProperty(group + "WholeTomogramSample", "false"))
         .booleanValue();
+    trimvolParam.load(props, group);
   }
 }
