@@ -10,8 +10,23 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import etomo.EtomoDirector;
 import etomo.comscript.TransferfidParam;
+import etomo.type.AxisID;
+import etomo.type.MetaData;
 
+/**
+ * <p>Description: </p>
+ *
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004, 2005</p>
+ *
+ * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ *
+ * @version $Revision$
+*/
 public class TransferfidPanel {
   public static final String rcsid =
     "$Id$";
@@ -33,13 +48,12 @@ public class TransferfidPanel {
   private JRadioButton rbSearchBoth = new JRadioButton("Both directions");
   private JRadioButton rbSearchPlus90 = new JRadioButton("+90 (CCW) only");
   private JRadioButton rbSearchMinus90 = new JRadioButton("-90 (CW) only");
+  private MetaData metaData;
+  private AxisID axisID;
 
-  
-  public TransferfidPanel() {
-    setup();
-  }
-
-  public TransferfidPanel(boolean inclButton) {
+  public TransferfidPanel(AxisID axisID, boolean inclButton) {
+    this.axisID = axisID;
+    metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
     includeButton = inclButton;
     setup();
   }
@@ -88,30 +102,33 @@ public class TransferfidPanel {
    * Set the values of the panel using a TransferfidParam parameter
    * object
    */
-  public void setParameters(TransferfidParam params) {
-    cbRunMidas.setSelected(params.isRunMidas());
-    if (params.getCenterViewA() > 0) {
-      ltfCenterViewA.setText(params.getCenterViewA());
+  public void setParameters() {
+    TransferfidParam params = new TransferfidParam(axisID);
+    params.initialize();
+    if (axisID == AxisID.SECOND) {
+      metaData.getTransferfidBFields(params);
     }
+    else {
+      metaData.getTransferfidAFields(params);
+    }
+    cbRunMidas.setSelected(params.getRunMidas().is());
+    ltfCenterViewA.setText(params.getCenterViewA().toString());
+    ltfCenterViewB.setText(params.getCenterViewB().toString());
+    ltfNumberViews.setText(params.getNumberViews().toString());
 
-    if (params.getCenterViewB() > 0) {
-      ltfCenterViewB.setText(params.getCenterViewB());
-    }
-    
-    if (params.getNumberViews() > 0) {
-    	ltfNumberViews.setText(params.getNumberViews());
-    }
-
-    if (params.getSearchDirection() == 0) {
+    if (!params.getSearchDirection().isUpdateCommand()) {
       rbSearchBoth.setSelected(true);
     }
-    if (params.getSearchDirection() < 0) {
+    if (params.getSearchDirection().isNegative()) {
       rbSearchMinus90.setSelected(true);
     }
-    if (params.getSearchDirection() > 0) {
+    if (params.getSearchDirection().isPositive()) {
       rbSearchPlus90.setSelected(true);
     }
-
+  }
+  
+  public void getParameters() {
+    getParameters(new TransferfidParam(axisID));
   }
 
   /**
@@ -119,20 +136,10 @@ public class TransferfidPanel {
    */
   public void getParameters(TransferfidParam params) {
     params.setRunMidas(cbRunMidas.isSelected());
-    if (ltfCenterViewA.getText().matches("^\\s*$")) {
-      params.setCenterViewA(0);
-    }
-    else {
-      params.setCenterViewA(Integer.parseInt(ltfCenterViewA.getText()));
-    }
-    if (ltfCenterViewB.getText().matches("^\\s*$")) {
-      params.setCenterViewB(0);
-    }
-    else {
-      params.setCenterViewB(Integer.parseInt(ltfCenterViewA.getText()));
-    }
+    params.setCenterViewA(ltfCenterViewA.getText());
+    params.setCenterViewB(ltfCenterViewB.getText());
     if (rbSearchBoth.isSelected()) {
-      params.setSearchDirection(0);
+      params.getSearchDirection().reset();
     }
     if (rbSearchPlus90.isSelected()) {
       params.setSearchDirection(1);
@@ -140,7 +147,13 @@ public class TransferfidPanel {
     if (rbSearchMinus90.isSelected()) {
       params.setSearchDirection(-1);
     }
-		params.setNumberViews(Integer.parseInt(ltfNumberViews.getText()));
+		params.setNumberViews(ltfNumberViews.getText());
+    if (axisID == AxisID.SECOND) {
+      metaData.setTransferfidBFields(params);
+    }
+    else {
+      metaData.setTransferfidAFields(params);
+    }
   }
 
   public Container getContainer() {
@@ -207,6 +220,10 @@ public class TransferfidPanel {
   }
 
 }
+
+/**
+ * <p> $Log$
+*/
 
 
 
