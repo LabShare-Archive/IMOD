@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.Properties;
 
 import etomo.comscript.CombineParams;
@@ -18,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/07 22:28:47  rickg
+ * <p> removed unused imports
+ * <p>
  * <p> Revision 1.2  2002/09/30 23:49:04  rickg
  * <p> Reformatted after emacs trashed it.
  * <p>
@@ -42,13 +46,18 @@ public class MetaData extends ConstMetaData implements Storable {
    * end of the string
    */
   public void setFilesetName(String fileset) {
-    filesetName = fileset.trim();
+    String pathName = fileset.trim();
+    File file = new File(pathName);
+    String path = file.getPath();
+    workingDirectory = path.substring(0, path.lastIndexOf(file.separator));
+    filesetName = file.getName();
+    fixFilesetName();
   }
 
   /**
    * Remove the ".st", "a.st", or "b.st" as approrpiate to the
    */
-  public void fixFilesetName() {
+  private void fixFilesetName() {
     if (axisType == AxisType.SINGLE_AXIS) {
       if (filesetName.endsWith(".st")) {
         int nChars = filesetName.length();
