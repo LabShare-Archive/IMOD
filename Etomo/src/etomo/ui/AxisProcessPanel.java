@@ -11,7 +11,6 @@ import java.awt.Rectangle;
 import etomo.ApplicationManager;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -26,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/07/16 23:00:21  sueh
+ * <p> bug# 501 sending System.out prints only when debug is set
+ * <p>
  * <p> Revision 3.4  2004/07/16 22:03:51  sueh
  * <p> bug# 501 adjusting divider to fix problem with
  * <p> JsplitPane.resetToPreferedSizes() that happens when
@@ -170,13 +172,11 @@ public class AxisProcessPanel implements ContextMenu {
       return hide;
     }
     hide = true;
-    Utilities.debugPrint("hiding" , true);
     panelRoot.setVisible(false);
     return hide;
   }
   
   public boolean tooSmall() {
-    Utilities.debugPrint("in tooSmall: getWidth()=" + getWidth(), true);
     if (getWidth() <= 16) {
       return true;
     }
