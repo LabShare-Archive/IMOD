@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import etomo.type.FiducialMatch;
+
 /**
  * <p>Description: A model of the solvematch com script.  The solvematch
  * com script supercedes the Solvematchshift and Solvematchmod com scripts.</p>
@@ -14,7 +16,10 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p> </p>
  */
 
 public class SolvematchParam extends ConstSolvematchParam
@@ -50,8 +55,8 @@ public class SolvematchParam extends ConstSolvematchParam
     ParamUtilities.setParamIfPresent(scriptCommand, FROM_CORRESPONDENCE_LIST,
       fromCorrespondenceList);
     ParamUtilities.setParamIfPresent(scriptCommand, XAXIS_TILTS, xAxistTilt);
-    nSurfaces = ParamUtilities.setParamIfPresent(scriptCommand,
-      SURFACE_OR_USE_MODELS, nSurfaces);
+    surfacesOrModel = ParamUtilities.setParamIfPresent(scriptCommand,
+      SURFACE_OR_USE_MODELS, surfacesOrModel);
     maximumResidual = ParamUtilities.setParamIfPresent(scriptCommand,
       MAXIMUM_RESIDUAL, maximumResidual);
     toMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -88,7 +93,7 @@ public class SolvematchParam extends ConstSolvematchParam
       FROM_CORRESPONDENCE_LIST, fromCorrespondenceList.toString());
     ParamUtilities.updateScriptParameter(scriptCommand, XAXIS_TILTS, xAxistTilt);
     ParamUtilities.updateScriptParameter(scriptCommand, SURFACE_OR_USE_MODELS,
-      nSurfaces);
+      surfacesOrModel);
     ParamUtilities.updateScriptParameter(scriptCommand, MAXIMUM_RESIDUAL,
       maximumResidual);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_MATCHING_MODEL,
@@ -116,7 +121,7 @@ public class SolvematchParam extends ConstSolvematchParam
     fromCorrespondenceList = solvematchshift.getFiducialMatchListB();
     xAxistTilt = solvematchshift.getXAxistTilt();
     maximumResidual = solvematchshift.getResidualThreshold();
-    nSurfaces = solvematchshift.getNSurfaces();
+    surfacesOrModel = solvematchshift.getNSurfaces();
     outputFile = solvematchshift.getOutputTransformationFile();
     
     // Fill in the matching model and tomogram names since they will now be
@@ -147,7 +152,7 @@ public class SolvematchParam extends ConstSolvematchParam
     fromCorrespondenceList = solvematchmod.getFiducialMatchListB();
     xAxistTilt = solvematchmod.getXAxistTilt();
     maximumResidual = solvematchmod.getResidualThreshold();
-    nSurfaces = solvematchmod.getNSurfaces();
+    surfacesOrModel = solvematchmod.getNSurfaces();
     outputFile = solvematchmod.getOutputTransformationFile();
     toMatchingModel = solvematchmod.getToMatchingModel();
     fromMatchingModel = solvematchmod.getFromMatchingModel();
@@ -221,8 +226,27 @@ public class SolvematchParam extends ConstSolvematchParam
   /**
    * @param surfaces The nSurfaces to set.
    */
-  public void setNSurfaces(int surfaces) {
-    nSurfaces = surfaces;
+  public void setSurfacesOrModel(FiducialMatch value) {
+    if (value == FiducialMatch.USE_MODEL_ONLY) {
+      surfacesOrModel = -2;
+      return;
+    }
+    if (value == FiducialMatch.ONE_SIDE_INVERTED) {
+      surfacesOrModel = -1;
+      return;
+    }
+    if (value == FiducialMatch.USE_MODEL) {
+      surfacesOrModel = 0;
+      return;
+    }
+    if (value == FiducialMatch.ONE_SIDE) {
+      surfacesOrModel = 1;
+      return;
+    }
+    if (value == FiducialMatch.BOTH_SIDES) {
+      surfacesOrModel = 2;
+      return;
+    }
   }
 
   /**
