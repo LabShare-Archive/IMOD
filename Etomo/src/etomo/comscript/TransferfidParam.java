@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -60,7 +63,7 @@ public class TransferfidParam {
    * Get the command string specified by the current state
    */
   public String getCommandString() {
-    StringBuffer commandLine = new StringBuffer("transferfid ");
+    StringBuffer commandLine = new StringBuffer("tcsh -ec ' transferfid ");
 
     if (bToA) {
       commandLine.append("-b ");
@@ -102,7 +105,7 @@ public class TransferfidParam {
     }
 
     commandLine.append(datasetName);
-
+		commandLine.append("'");
     return commandLine.toString();
   }
 
