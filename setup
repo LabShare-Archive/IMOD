@@ -39,6 +39,7 @@ set fallback        =
 set swap_ieee       = true
 set no_xlibs        = false
 set distname        = ""
+set packqt          = false
 
 set inst_dir        = default
 set tifflibs        = default
@@ -87,6 +88,21 @@ set uint16          = "unsigned short int"
 set int32           = "int"
 set uint32          = "unsigned int"
 set float32         = "float"
+
+# Take care of .options file - stripping out install entry
+#
+set inargv = ($argv)
+set optlist = ()
+while ($#inargv > 0)
+    if ("$inargv[1]" == "-inst" || "$inargv[1]" == "-i") then
+        shift inargv
+    else
+        set optlist = ($optlist $inargv[1])
+    endif
+    shift inargv
+end
+
+echo $optlist >! .options
 
 #
 # Input options
@@ -151,6 +167,10 @@ while($#argv > 0)
                 case -name:
                         shift
                         set distname = _$argv[1]
+                        breaksw
+
+                case -packqt:
+                        set packqt = true
                         breaksw
 
 		case -h:
@@ -741,12 +761,16 @@ echo "             -tiff        Link with TIFF libraries"
 echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
 echo "             -compiler    Use specified compilers (intel or gnu for rhlinux)"
+echo "             -packqt      Pack Qt library into distribution (Linux only)"
 echo "             -flags       Set flags for compilation"
 exit
 
 
 #
 #  $Log$
+#  Revision 3.37  2004/01/27 05:15:51  mast
+#  Added a distribution name
+#
 #  Revision 3.36  2004/01/20 04:19:13  mast
 #  Set copyright year for new year
 #
