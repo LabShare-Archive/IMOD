@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/10/24 03:41:37  mast
+c	  switched to calling routine for making backup file
+c	
 c	  Revision 3.1  2003/08/29 17:31:09  mast
 c	  Made screen displayer call imodpsview, changed name of file to 
 c	  gmeta.ps
@@ -29,7 +32,7 @@ c
 	  ierr = imodBackupFile(fname)
 	  if(ierr.ne.0)write(6,*)
      &	      ' Error attempting to rename existing file ',fname
-	  call psopen(fname(1:namlen),0.5,1.75,upi)
+	  call psopen(fname,0.5,1.75,upi)
 	  ifgks=1
 	endif
 	nthick=ithset
@@ -158,19 +161,34 @@ c
 c	  Unix version for SGI
 c
 	subroutine pltout(metascreen)
-	character*80 comstr
-	character*80 fname
+	character*120 comstr
+	character*80 fname,imodpath
+	character*20 imodshell,outcom
 	common /gmetaname/fname
 
 	call gksoff
+c	  
+c	  10/28/03: switch to calling imodpsview for printing too and run
+c	  tcsh explicitly
+c	
 	if(metascreen.eq.0)then
-	  comstr='lp '
+	  outcom='imodpsview -p'
 	else
-	  comstr='imodpsview '
+	  outcom='imodpsview'
 	endif
+	if (imodGetenv('IMOD_DIR', imodpath) .ne. 0) then
+	  print *, 'impak failed to get IMOD_DIR environment '//
+     &	      'variable for running imodpsview'
+	  return
+	endif
+	if (imodGetenv('IMOD_CSHELL', imodshell) .ne. 0)
+     &	    imodshell = 'tcsh'
 	namelen = lnblnk(fname)
-	lencom = lnblnk(comstr) + 1
-	comstr(lencom+1:lencom+namelen) = fname(1:namelen)
+	lencom = lnblnk(outcom)
+	write(comstr, '(a,1x,a,1x,a,a,a,1x,a,1x,a)')
+     &	    imodshell(1:lnblnk(imodshell)),'-f',
+     &	    imodpath(1:lnblnk(imodpath)),'/bin/',
+     &	    outcom(1:lencom),fname(1:namelen)
 	call system(comstr)
 	if(metascreen.ne.0)write(*,101)fname(1:namelen)
 101	format(/,' WARNING: If you start making more plots, a new plot'
