@@ -21,6 +21,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/10/29 18:21:00  rickg
+ * <p> Check to see if the ImodProcess is non-null before calling open isRunning
+ * <P> in is*Open() functions.  Return false if the object is null so that they
+ * <p> can be called without exceptions.
+ * <p>
  * <p> Revision 1.6  2002/10/07 22:25:03  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -81,6 +86,7 @@ public class ImodManager {
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
       tomogramA = new ImodProcess(filesetName + ".rec");
       tomogramA.setSwapYZ(true);
+      
     }
     else {
       rawStackA = new ImodProcess(filesetName + "a.st");
