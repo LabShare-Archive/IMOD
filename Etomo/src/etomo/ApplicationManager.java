@@ -88,6 +88,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.82  2004/06/25 23:26:51  sueh
+ * <p> bug# 485 In openTomogramCombinationDialog, after loading
+ * <p> the comscripts, synchronize from initial and final tabs to setup
+ * <p> and update combineParams
+ * <p>
  * <p> Revision 3.81  2004/06/25 21:18:31  sueh
  * <p> bug# 486 corrected set state to inprogress calls.
  * <p>
@@ -1572,9 +1577,6 @@ public class ApplicationManager {
       mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
-        if (metaData.isFiducialessAlignment()) {
-          nextProcess = "generateNonFidXF";
-        }
         threadName = processMgr.coarseAlign(axisID);
       }
       catch (SystemProcessException e) {
@@ -1771,22 +1773,6 @@ public class ApplicationManager {
       errorMessage[2] = fnRotationXF;
       mainFrame.openMessageDialog(errorMessage,
         "Rotation Transform IO Exception");
-    }
-    //  Create the new _nonfid.xf from the updated rotation.xf
-    generateNonFidXF(axisID);
-  }
-
-  /**
-   * Create the non fiducial .xf files and setup the non fiducial file
-   * stucture.
-   **/
-  private void generateNonFidXF(AxisID axisID) {
-    nextProcess = "";
-    try {
-      processMgr.generateNonFidXF(axisID);
-    }
-    catch (SystemProcessException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "SystemProcessException");
     }
   }
 
@@ -2315,8 +2301,7 @@ public class ApplicationManager {
     if (fiducialModelDialog != null) {
       TransferfidParam transferfidParam = new TransferfidParam();
       // Setup the default parameters depending upon the axis to transfer
-      // the
-      // fiducials from
+      // the fiducials from
       String datasetName = metaData.getDatasetName();
       transferfidParam.setDatasetName(datasetName);
       if (destAxisID == AxisID.FIRST) {
@@ -2599,6 +2584,12 @@ public class ApplicationManager {
     }
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if(metaData.isFiducialessAlignment()) {
+      generateFiducialessTransforms(axisID);
+    }
     String threadName;
     try {
       threadName = processMgr.createSample(axisID);
@@ -2635,6 +2626,13 @@ public class ApplicationManager {
     }
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if(metaData.isFiducialessAlignment()) {
+      generateFiducialessTransforms(axisID);
+    }
+
     nextProcess = "tilt";
     String threadName;
     try {
@@ -2906,6 +2904,33 @@ public class ApplicationManager {
     }
     comScriptMgr.saveNewst(newstParam, axisID);
     return true;
+  }
+  
+  /**
+   * Generate the prexg and _nonfid.xf for the specified axis
+   * @param axisID
+   */
+  private void generateFiducialessTransforms(AxisID axisID) {
+    try {
+      processMgr.generatePreXG(axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate prexg";
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to generate prexg");
+    }
+    try {
+      processMgr.generateNonFidXF(axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate _nonfid.xf";
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to generate _nonfid.xf");
+    }
   }
 
   /**
@@ -3220,6 +3245,13 @@ public class ApplicationManager {
 
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if(metaData.isFiducialessAlignment()) {
+      generateFiducialessTransforms(axisID);
+    }
+
     String threadName;
     try {
       threadName = processMgr.newst(axisID);
@@ -5303,10 +5335,6 @@ public class ApplicationManager {
    * Start the next process specified by the nextProcess string
    */
   private void startNextProcess(AxisID axisID) {
-    if (nextProcess.equals("generateNonFidXF")) {
-      generateNonFidXF(axisID);
-      return;
-    }
     if (nextProcess.equals("tilt")) {
       tiltProcess(axisID);
     }
