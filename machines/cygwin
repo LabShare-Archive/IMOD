@@ -14,11 +14,11 @@ endif
 if ($no_xlibs == false) then
     set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
     echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
-    echo 'XPLAX = plax.c' >> $configure
+    echo 'XPLAX = plax.o' >> $configure
 else
     set c_includes =  '-I$(QTDIR)/include'
     echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
-    echo 'XPLAX = noplax.c' >> $configure
+    echo 'XPLAX = noplax.o' >> $configure
 endif
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
@@ -91,7 +91,11 @@ else
 	echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
 	echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
 endif
-echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
+if ($no_xlibs == false) then
+        echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
+else
+        echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)' >> $configure
+endif
 
 # 
 # If using plugins, need to tell linker to export symbols
