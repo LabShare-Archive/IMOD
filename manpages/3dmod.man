@@ -23,7 +23,12 @@ are loaded, then the size of the display in each dimension will be
 limited to the minimum size of the various files.
 If 3dmod is invoked
 with options but no filenames, then a dialog window will open to allow
-selection of an image file.  
+selection of an image file.  If 3dmod is invoked with no options or
+filenames, or with the 
+.B -O
+option, then a startup dialog will open to allow options to
+be set.
+
 
 The model must be in the IMOD model format.  Images must be in the MRC
 image format, or in the TIFF format, if the appropriate TIFF library is
@@ -34,18 +39,23 @@ TIFF files with various kinds of compression can
 be read, depending on the
 capabilities of the libraries on the system.  When multiple files are read
 in, they do not need to be the same mode or even the same format (except that
-if any file is an RGB file, all files must be.)  Whenever a TIFF file, an
-RGB-mode file, or more than one file is specified, images are loaded only 
-as they are needed into an image cache.  This has various implications that
-are mentioned below.  Starting a movie through the images will eventually
-load all of the
-data into the cache, at which point the program will perform very similarly
-to the way it does without the cache.  In addition, there is a dialog box
-to fill the cache in various ways, available through the 
-Edit-Image-Cache Filler menu entry.
-Several other restrictions on image files exist.
-If any TIFF or RGB-mode files are loaded,
-the image volume cannot be flipped (Y and Z exchanged).  The Pixel View
+if any file is an RGB file, all files must be.)
+Images are loaded
+into an image cache under certain circumstances: whenever more than one
+file is specified, when montaged data are loaded, or when you enter the
+.B -C
+option to limit the size of the cache.
+By default, the cache will be fully loaded upon
+program startup and the program will behave the same as with regular data
+loading.  However, if you limit the size of the cache, images are loaded
+only when needed.  This has various implications that are mentioned below.  
+Starting a movie through the images will eventually load as much data as
+will fit into the cache.  In addition, there is a dialog box to fill the
+cache in various ways, available through the Edit-Image-Cache Filler menu
+entry.  Several other restrictions on image files exist.
+If any TIFF files are loaded and the cache is used,
+the image volume cannot be flipped (Y and Z exchanged) unless it is fully
+loaded into the cache.  The Pixel View
 window, high-resolution mode in the Graph window, and the f and F hot keys
 for finding pixel values will all give zeros for a TIFF file.  If RGB files are
 loaded, only the Zap and Model View windows can be opened.
@@ -107,11 +117,22 @@ of the original image.  The offsets are saved in the model
 so if a different area is loaded the model is automatically
 transformed to match the new sub area. 
 .TP
-.B -m
-This option overrides
-the model transformation behavior and causes the model to
-be loaded without any transformations.  The default model
-position data will be loaded.
+.B -B <value>
+Bin images by the given amount in all three dimensions.  For binning by 2,
+3dmod averages 8 pixels to produce one display pixel.  Models built on
+unbinned images will be
+displayed properly on binned images and, when saved again, will display
+properly on unbinned images again.  RGB images and multiple single image files
+being displayed as sections may not be binned.
+.TP
+.B -b <nxy,[nz]>
+Bin images by 
+.B nxy
+in X and Y and by
+.B nz
+in Z.  Omit 
+.B nz
+for no binning in Z.  
 .TP
 .B -xyz
 This option causes the default image window to be the
@@ -144,19 +165,29 @@ orientations using the
 .I Edit Image 
 menu item 
 .I Flip.
+Certain cached data can not be flipped unless they are entirely loaded into
+memory: TIFF files, montaged images, images loaded with different binning
+in Z than in X and Y, and multiple single-image files.
 .TP
 .B -h  -help
 Print some quick help for 3dmod's command line options to 
 the terminal.
 .TP
+.B -O
+Open the startup dialog box for setting program options and selecting
+files.  The box will be filled in with any other arguments included in the
+command line.
+.TP
 .B -C <value>
 The 
 .B -C
 option controls the image cache used by 3dmod. 
-The default
-value is 0 which means 3dmod will try to load the entire image into memory.  
+By default, 3dmod will try to load 
+the entire image into an ordered array in memory.
 This option
-can force a given number of images to be cached.  Alternatively, one
+can force a given number of images to be loaded into a more flexible memory
+cache.
+Alternatively, one
 can limit the size of the cache in megabytes by entering a value with m
 or M on the end.  For example,
 .B -C 200M
@@ -167,6 +198,10 @@ This features works best
 with the ZaP Window, which always loads the image that it needs into the cache.
 Other image windows
 will only be able to access image data that are already within the cache.
+As a special case, entering
+.B -C 0
+will set up a cache that is large enough to hold all image data but will
+load images only when needed.
 .TP
 .B -F
 Fill the image cache upon program startup, before displaying any images.  This
@@ -218,7 +253,18 @@ file header.  It is possible for an image file to have piece coordinates stored
 in its header rather than in a separate piece list file.  3dmod will 
 automatically load such a file as a montage, so this option is available to
 override this behavior and force loading as individual frames.
-
+.TP
+.B -m
+This option overrides
+the model transformation behavior and causes the model to
+be loaded without any transformations.  This option is useful for loading
+an existing model onto a data stack after it has been flipped in Y and Z or
+after the pixel size or origin has been changed in the image file header.
+.TP
+.B -T
+Load multiple single-image files as files at different times (the behavior
+before IMOD 3.2.3).
+By default, such files will now become multiple sections in Z instead.
 .TP
 .B -ci
 Display images in color index mode using a color table, rather than in
@@ -226,10 +272,9 @@ Display images in color index mode using a color table, rather than in
 poorly under Qt. 
 .TP
 .B -G
-Display an RGB-mode MRC file in gray-scale rather than in color.  If there are
-multiple MRC files, if the file is specified by an image list, or if the
-file on the command line is a color TIFF file, it will be displayed in color
-regardless of this option.
+Display an RGB-mode MRC file in gray-scale rather than in color.  If the 
+list of files being loaded includes a color TIFF file, all files will be 
+displayed in color regardless of this option.
 .TP
 .B -s <min,max>
 The 
@@ -947,6 +992,13 @@ IMAGE image_filename
 XYZ                           [on a line by itself]
 x  y  z                       [piece coordinates, one line per section]
  . . .
+.fi
+
+To load files that are located in another directory, include the following
+before the IMAGE lines for the respective files.  This entry can occur more
+than once.
+.nf
+IMGDIR path_to_image_directory
 .fi
 
 .SH PLUGIN ENVIRONMENT
