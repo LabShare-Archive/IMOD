@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.51  2003/06/10 05:29:30  rickg
+ * <p> Data persistence behavior of the combination and post
+ * <p> processing panels now match the others.
+ * <p>
  * <p> Revision 2.50  2003/06/10 05:15:23  rickg
  * <p> *** empty log message ***
  * <p>
@@ -2684,6 +2688,14 @@ public class ApplicationManager {
     }
   }
 
+  /**
+   * Return a reference to THE com script manager
+   * @return
+   */
+  ComScriptManager getComScriptManager() {
+    return comScriptMgr;
+  }
+  
   /**
    * Check if the current data set is a dual axis data set
    * @return true if the data set is a dual axis data set
