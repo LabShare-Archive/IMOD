@@ -32,7 +32,7 @@ nearly all errors to message windows instead of the terminal.
 
 10/29/03: Added the A hot key to 3dmod to do autocontrast.
 
-10/29/03: Modified Tiltxcorr to implement Christian Renkin's method of
+10/29/03: Modified Tiltxcorr to implement Christian Renken's method of
 aligning to a reference image that is the average of aligned lower-tilt views.
 
 10/29/03: Added a parameter to Ccderaser to limit the size of patches that
