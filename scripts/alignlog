@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/05/25 16:28:17  mast
+#  Added output of local areas and fiducial number
+#
 #  Revision 3.1  2002/05/07 01:59:06  mast
 #  Fixed problem with interpreting the log file name input, added an
 #  alternative to handle new-style SURFACE ANALYSIS output
@@ -62,7 +65,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ *Variable mappings/, /^ Criterion/' $file | sed '/Criterion/d'
+	    awk '/^ *Variable mappings/, /^$/' $file
 	    set output = 1
 	    shift
 	breaksw
@@ -85,7 +88,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ view   rotation/, /^ *3-D point/' $file | sed '/3-D/d'
+	    awk '/^ view   rotation/, /^$/' $file
 	    set output = 1
 	    shift
 	breaksw
@@ -119,11 +122,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    if ($newsurface == 1) then
-		awk '/^ *Projection points/, /^ Fit to all/' $file | sed '/Fit t/d'
-	    else
-		awk '/^ *Projection points/, /^ SURFACE ANALYSIS/' $file | sed '/SURFACE/d'
-	    endif
+	    awk '/^ *Projection points/, /^$/' $file
 	    set output = 1
 	    shift
 	breaksw
