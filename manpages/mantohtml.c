@@ -1,86 +1,99 @@
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
+$Log$
+Revision 3.1  2003/10/08 17:22:16  mast
+Added a return value at the end fo main
+
 */
 #include <stdio.h>
 
+void putspec(int c);
+
 int main(int argc , char **argv)
 {
-     int c;
-     int last = 0;
+  int c;
+  int last = 0;
+  int bold = 0;
+  int italic = 0;
 
-     char *htitle = "Man Page";
+  char *htitle = "Man Page";
 
-     if (argc > 1)
-	  htitle = argv[1];
+  if (argc > 1)
+    htitle = argv[1];
 
-     printf("<html><head><title>%s</title></head><body><pre>\n", htitle);
+  printf("<html><head><title>%s</title></head><body><pre>\n", htitle);
 
-     while(EOF != (c = getchar())){
-	  
-	  switch(c){
+  while (last != EOF) {
+    c = getchar();
+    if (c == '\b') {
 
-	     case '\b':
-	       if (last == '_'){
-		    printf("<i>");
-		    do{
-			 c = getchar();
-			 putchar(c);
-			 c = getchar();
+      /* If it is backspace, get next character */
+      c = getchar();
+      if (c == last) {
 
-		    }while( (c == '_'));
+        /* If characters match, it is bold; turn off italic and turn on bold */
+        if (italic)
+          printf("</i>");
+        if (!bold)
+          printf("<b>");
+        italic = 0;
+        bold = 1;
+        putspec(c);
+        last = getchar();
+        continue;
 
-		    printf("</i>");
-	       }else{
-		    int lastput = 0;
-		    printf("<b>");
-		    do{
-			 c = getchar();
-			 if (!lastput){
-			      putchar(c);
-			      lastput = c;
-			 }
-			 if (lastput != c){
-			      putchar(c);
-			      lastput = c;
-			 }
-			 c = getchar();
-			 
-		    }while( (c == '\b'));
+      } else if (last == '_') {
 
-		    printf("</b>");
-	       }
-	       last = c;
-	       break;
+        /* Or if last was _, it is italic; turn off bold and turn on italic */
+        if (bold)
+          printf("</b>");
+        if (!italic)
+          printf("<i>");
+        italic = 1;
+        bold = 0;
+        putspec(c);
+        last = getchar();
+        continue;
+      }
+    }
+    
+    /* Neither case: turn off bold and italic, dump last character */
+    if (bold)
+      printf("</b>");
+    if (italic)
+      printf("</i>");
+    bold = 0;
+    italic = 0;
+    putspec(last);
+    last = c;
+  }
 
-	     default:
-	       if (last){
-		    switch(last){
-		       case '<':
-			 printf("&lt;");
-			 break;
-		       case '>':
-			 printf("&gt;");
-			 break;
-		       case '&':
-			 printf("&amp;");
-			 break;
-		       case '\"':
-			 printf("&quot;");
-			 break;
-		       default:
-			 putchar(last);
-		    }
+  printf("</pre></body></html>\n");
+  return 0;
+}
 
-	       }
-	       last = c;
-	  }
-     }
-
-     printf("</pre></body></html>\n");
-     return 0;
+void putspec(int c)
+{
+  if (c){
+    switch(c){
+    case '<':
+      printf("&lt;");
+      break;
+    case '>':
+      printf("&gt;");
+      break;
+    case '&':
+      printf("&amp;");
+      break;
+    case '\"':
+      printf("&quot;");
+      break;
+    default:
+      putchar(c);
+    }
+  }
 }
