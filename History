@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-3
+3/19/03: Changed the color selector window to use a GL widget to display the
+current color since color selections in regular widgets are limited on the SGI.
+
+3/18/03: Added buttons to keep Imod Info window on top, to raise all windows,
+and to control whether changing the current object or contour will make the
+image windows display the new current point or not.
+
+3/13/03: Made Matchshifts produce match checking volumes adjacent to the ones
+used to determine the 3D translations, stop with an error if the displacements
+are too large, and leave the volumes for the user to inspect
+
+3/13/03: Added linear interpolation option to newstack and newst.
+
 3/12/03: Substituted new default object color scheme with 35 colors that
 are chosen purely by object number.
 
