@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/9/03: IMOD_3-0-14
+8/9/03: Changed Blendmont to take PIP input and modified command files and
+Copytomocoms to use new form of input.
+
+8/8/03: Etomo was incorporated into IMOD build structure.
+
+8/8/03: Wrote man page for Mtk, changed program to make terminology
+consistent, to fix problems with saving connector objects and moving items to
+new objects, and to add ability to export a graph in a format easily readable
+by other programs.  (Nda can also export graphs.)  Also provided some example
+command files in the com directory.
+
+8/8/03: Fixed problem of current point not being displayed when model is
+turned off, caused by the ability to display the vector from bead fixer.
+
 8/1/03: Made it possible to kill 3dmod during image flipping operation.
 
 8/1/03: Standardized error exit in Xfproduct.
