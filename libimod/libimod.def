@@ -112,10 +112,10 @@ EXPORTS
 	imodContourScale
 	PIPGETFLOATARRAY
 	PipAddOption
+	ilistTruncate
 	GETIMODMESH
 	PipParseInput
 	imodLabelName
-	imodVirtIn
 	imodContZDirection
 	b3dGetError
 	imodMatScale
@@ -125,6 +125,7 @@ EXPORTS
 	imodLabelRead
 	imodel_contour_sortz
 	imodWriteAscii
+	imodLabelDup
 	imodLabelWrite
 	imodContourCircularity
 	imodFgetline
@@ -167,8 +168,10 @@ EXPORTS
 	imodClipsFixCount
 	imodel_contour_mm
 	imodel_contour_nearest
+	imodObjectInsertContour
 	imodSetIndex
 	imodObjectsDelete
+	imodObjectDup
 	imodContoursFromImagePoints
 	b3dSetStoreError
 	imodFree
@@ -207,6 +210,7 @@ EXPORTS
 	PipGetError
 	b3dFwrite
 	imodNew
+	imodMoveObject
 	imodPointDelete
 	imodMeshesDelete
 	imodMeshGetVerts
@@ -251,12 +255,14 @@ EXPORTS
 	imodel_dist
 	PIPADDOPTION
 	ilistFirst
+	imodMeshDup
 	imodel_mesh_add
 	imodObjectCopy
 	imodWriteFile
 	GETIMODOBJSIZE
 	imodViewDefaultScale
 	imodGetFloats
+	ilistLast
 	GETIMODTIMES
 	imodPointGetSize
 	imodObjectGetColor
@@ -280,7 +286,6 @@ EXPORTS
 	imodMatTransform3D
 	b3dMin
 	imodel_model_clean
-	imodObjectVirtIn
 	imodPointIntersect
 	imodViewModelWrite
 	imodObjectAddMesh
@@ -310,7 +315,6 @@ EXPORTS
 	imodFileRead
 	PIPSETMANPAGEOUTPUT
 	PipGetString
-	imodObjectVirtOut
 	imodPutByte
 	imodObjviewToObject
 	PipGetThreeFloats
@@ -364,6 +368,7 @@ EXPORTS
 	imodViewUse
 	imodContourGetPoints
 	NEWIMOD
+	ilistQuantum
 	imodObjectSetValue
 	imodContourNearest
 	imodContourSwap
@@ -372,6 +377,7 @@ EXPORTS
 	imodPoint2DAngle
 	imodRead
 	imodNewContour
+	ilistDup
 	imodContourLength
 	imodMatId
 	GETIMODMAXES
