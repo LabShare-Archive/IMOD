@@ -1,0 +1,63 @@
+See the Makefile for building instructions.  The setup program makes 
+configuration files based on machine-specific details in the "machines" 
+directory.
+
+Upon unpacking the source, you will find the following directories:
+
+GLw		Source for building GLw libraries under Linux
+USFFTlib	Static libraries for USFFT in machine-specific subdirectories
+clip		Source for Command Line Image Processing
+com		Command files, mostly used by copytomocoms for tomography
+devkit		Plugin developers kit available on web page
+dist		Files added to the top directory of the IMOD distribution
+flib		Fortran program source tree
+flib/beadtrack	Source for bead tracker program
+flib/blend	Source for montage blending program and montage reducer
+flib/graphics	Source for several programs using line graphics
+flib/image	Source for many programs that do not use models or graphics
+flib/man	Master directory for man pages of Fortran programs
+flib/model	Source for many programs that use IMOD models
+flib/ndasda	Source for nda, sda, and mtk spatial analysis programs
+flib/subrs	Top of source tree for Fortran libraries
+  .../dtrigs	Source for cosd, sind, etc. functions for Linux (libdtrigs)
+  .../graphics	Source for graphics subroutines (libdnmncar)
+  .../hvem	Source for miscellaneous subroutines developed here
+  .../ifftsub	Source for FFT subroutines  (libifft)
+  .../imsubs	Source for basic image I/O routines  (libim)
+  .../imsubs2	Source for other image manipulation routines  (libim)
+  .../model	Source for model-related subroutines  (libhvem)	
+  .../piecesubs	Source for routines that work with piece coordinates  (libhvem)
+  .../randm	Source for Linux replacement for RAN function  (librandm)
+  .../statsubs	Source for statistical subroutines
+  .../xfsubs	Source for routines that work with transformations
+flib/tilt	Source for back-projection program
+flib/tilt/fbplib  Source for library of routines for fast back-projection
+flib/tiltalign	Source for tilt alignmnet program
+html		All html documents and files that they link to
+imod		Source for imod program
+imodutil	Source for utility programs for working with IMOD models
+include		Include files for IMOD programs
+libdia	        Source for dialog library
+libiimod        Source for IMOD image library
+libimod         Source for IMOD model library
+localman	Program to convert man pages to html
+machines	Machine-specific files included by setup script
+manpages	Master source for man pages of C programs, in nroff format
+midas		Source for midas program
+mrc		Source for various programs manipulating MRC image files
+plugs		Source tree for imod plugins
+plugs/4dPlugs	Source for time dependent 4D imaging and lineage plugins
+plugs/beadfix	Source for bead fixer plugin
+plugs/linetrack	Source for line tracker plugin (mixed fortran and C)
+scripts		Shell scripts
+
+
+After doing a "make", "make man", and default "make install", you will have:
+
+buildlib	Newly built but uninstalled libraries, needed to make programs
+man		Top directory for man pages (contains a cat1 and cat5)
+html/man	Html versions of man pages
+bin		Installation directory for executable programs and scripts
+lib		Installation directory for libraries (old 32-bit on SGI)
+lib/imodplug	Installation directory for imod plugins
+lib32		Installation directory for n32 libraries on an SGI

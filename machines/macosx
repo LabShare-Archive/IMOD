@@ -1,0 +1,184 @@
+#!/bin/csh
+#############################################################################
+#
+set c_includes = '-I$(QTDIR)/include'
+
+echo 'LDFLAGS = -L$(LIBDIR) -dynamic' >> $configure
+
+# DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
+# of #define in imodconfig because it must precede all system includes.
+set defines = -D_FILE_OFFSET_BITS=64
+
+echo "SHELL     = /bin/csh"         >> $configure
+
+echo "CC        = gcc"              >> $configure
+echo "FC        = g77"              >> $configure
+#
+# tell the C routines being called by Fortran that they need two __
+#
+echo '#define G77__HACK' >> $hconfigure
+
+# Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
+cat << EOF >> $configure
+CP        = \\cp
+FIND      = \\find
+EOF
+
+#set shared_libs = false
+
+set wrapper = ""
+
+if ($shared_libs != false) then
+	echo "AR      = c++"                 >> $configure
+	echo "ARCPP   = c++"                >> $configure
+	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -o"    >> $configure
+	echo "RANLIB    = true"                     >> $configure
+	echo "LIBEXT  = dylib"                 >> $configure
+else
+	echo "AR      = ar"                 >> $configure
+	echo "ARCPP   = ar"                 >> $configure
+	echo "ARFLAGS = ruv"                >> $configure
+	echo "RANLIB    = ranlib"            >> $configure
+	echo "LIBEXT  = a"                  >> $configure
+endif
+
+echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
+echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+
+set fort_cpplibs = -lstdc++
+
+# defer MAKELIBSO and MAKEF77PLUGIN to setup file
+
+
+echo "CLIBS   = -lc -lm" >> $configure
+echo 'LIBS    = $(CLIBS)'  >> $configure
+echo 'FORTCLIBS = '  >> $configure
+
+echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
+
+echo 'FLCC      = $(FC)'              >> $configure
+echo "F77LIBS   = $wrapper"                  >> $configure
+
+# 
+# tell the C routines which way to swap floats
+#
+echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
+
+echo '#define NO_IMOD_FORK' >> $hconfigure
+echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
+echo '#define GLU_QUADRIC_HACK' >> $hconfigure
+
+
+
+set optimization = "-O3 -w"
+if ($debug == true) set optimization = "-g -O0"
+
+#
+#
+#  The fallbacks need to be defined because of problems with n32 code on the
+#  SGI; just define them the same as non-fallback versions.
+#
+echo "CFLAGS  = $flags $optimization $defines $include_flags $c_includes" >> $configure
+echo "CXXFLAGS = $flags $optimization $defines $include_flags $c_includes" >> $configure
+echo "FFLAGS  = $flags $optimization $include_flags" >> $configure
+echo "NOOPFFLAGS = $flags $optimization -O0 $include_flags" >> $configure
+
+echo "CFALLBACK  = $flags $optimization $defines $include_flags $c_includes" >> $configure
+echo "FFALLBACK  = $flags $optimization $include_flags" >> $configure
+echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
+echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
+
+# Use fortran code for tilt program, make extra fortran libs, skip SGI progs
+echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
+echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+echo 'RGBPROGS = '  >> $configure
+#
+#   default is to assume tifflib does not exist
+#
+if ($tifflibs == default) set tifflibs = false
+
+#
+# Set the switch point include file for the FBP algorithm in Tilt
+#
+set fbpswitch       = fbpswitch-pc.inc
+
+
+# Set the string for the "ctrl" key
+#
+set ctrl_string = Apple
+
+#
+# Set up things for Qt include files
+#
+
+# get target executable name pattern from sendevent
+#
+(cd $sendevent_dir ; qmake imodsendevent.pro)
+set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
+set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/imod/g'`
+set midas_target = `echo $imod_target | sed '/imod/s/imod/midas/g'`
+set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
+
+# Tell plugins where imod is
+#
+set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
+echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs -o" >> $configure
+echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o" >> $configure
+
+# make script files to run programs
+#
+cat <<EOF >! $imod_dir/runimod
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D' || "\$i" == '-W') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${imod_target} \$*
+else
+    \$IMOD_DIR/bin/${imod_target} \$* &
+endif
+EOF
+
+cat <<EOF >! $imod_dir/runimodv
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${imod_target} -view \$*
+else
+    \$IMOD_DIR/bin/${imod_target} -view \$* &
+endif
+EOF
+
+echo '$IMOD_DIR/bin/'"$send_target"' $*' >! $sendevent_dir/runsendevent
+
+cat <<EOF >! $midas_dir/runmidas
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${midas_target} \$*
+else
+    \$IMOD_DIR/bin/${midas_target} \$* &
+endif
+EOF
+
+chmod +x $imod_dir/runimod $imod_dir/runimodv 
+chmod +x $midas_dir/runmidas $sendevent_dir/runsendevent
+
+cat << EOF  >! $midas_qconf
+DEFINES	+= _FILE_OFFSET_BITS=64
+EOF
+
+cat << EOF >! $imod_qconf
+LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff
+LIBS += -ldl -lm
+DEFINES	+= _FILE_OFFSET_BITS=64
+EOF
+
+

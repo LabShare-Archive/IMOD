@@ -1,0 +1,35 @@
+#! /bin/csh -f
+# reduceby2 - script to run reducemont in its simplest form to bin down by 2
+if ($#argv != 2) then
+cat <<EOCAT 
+Usage: reduceby2 Input_file Output_file
+         runs REDUCEMONT on the entire input file to reduce X and Y sizes by 2
+         then uses ALTERHEADER to set the pixel size to 1 instead of 2
+EOCAT
+exit 1
+endif
+set tmpdir = /usr/tmp
+set tmppl = $tmpdir/reducepl.$$
+if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+reducemont <<EOCAT 
+$argv[1]
+
+$argv[2]
+$tmppl
+/
+0
+/
+2
+/
+2000,2000,2,2
+0
+EOCAT
+\rm -f $tmppl
+set nxyz =  `header $argv[2] | grep 'rows, sections'| awk '{print $7, $8, $9}'`
+alterheader <<EOF
+$argv[2]
+cel
+$nxyz[1] $nxyz[2] /
+done
+EOF

@@ -1,0 +1,8 @@
+include ../configure
+
+all :
+
+install	:
+	$(CP) $(VCEXEDIR)/imodsendevent.exe $(INSTBINDIR)
+
+clean :

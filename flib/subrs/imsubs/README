@@ -1,0 +1,38 @@
+This directory has individual files for all of the subroutines from the
+file IMSUBS.FOR under VMS.  It also has the C version for i/o, blockio.c.
+
+
+C*IMSUBS.FOR*************************************************************
+C									*
+C	HIGHER-LEVEL FORTRAN SUBROUTINES FOR READING/WRITING		*
+C	IMAGE FILES							*
+C									*
+C		Update:	17.November.84	DAA	 	VAX		*
+C	 Update:	 7.April.87	added tilts,origz  DAA	VAX	*
+c					symm, data types		*
+c	Update:		11.November.87	DAA  fix ialdat, add ialtlt_rot	*
+c	  
+C   DNM (mast) August 1988 for HVEM
+C   IMPOSN and the READ/WRITE Subroutines have been changed to allow 9 - 15 bit
+C   storage mode.  No change in other routines is required.  However, all
+C   documentation of MODE for the other routines should be changed to note that
+c   a mode of 9 to 15 means 9 to 15 bit storage mode
+C
+c   A new common block was added (im$bit) with variables bytcur and ibleft.
+c   In 9 to 15 bit storage mode, bytcur contains the last byte read from
+c   a file, and ibleft is the number of bits (if any) left in that byte
+c   that belong to the next pixel.  The rest of the pixel is in the byte
+c   pointed to by the read/write pointer.  All positioning within the file,
+c   as well as reads and writes, must maintain these values correctly.
+c   
+c   There are also new routines IREPAK to repack a 2D array into linear
+c   storage (so that iwrsec can be called instead of iwrpas), and ISETDN to
+c   scale densities appropriately for the storage mode.
+c	  DNM 11/18/88 increased file limit to 9, changed definitions of
+c	  different data types
+c	  DNM 7/24/91 put in an if statement to avoid trying to print filename
+c	  when the stream # is > 5, due to error in macro code QINQUIRE
+c	  DNM 2/10/92 added ability to read (but not write) SPIDER files,
+c	  increased file limit to 10
+C									*
+C************************************************************************

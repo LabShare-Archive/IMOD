@@ -1,0 +1,28 @@
+8	option 8 to do a single plot
+1,0	window #, 0 to specify plot parameters
+0	1 for new page or 0 for same as last: OMIT FOR FIRST GRAPH
+2.5,2.5,1.6,2	X size, Y size, lower left X and Y in inches
+-8,-6,-.08,3,1	-# divisions X & Y axes, - tick size, line thickness, 1 for box
+5,1	# of numeric, # of text labels for bottom axis
+1,2	IF numeric labels, # of first tick to label, # of ticks between labels
+0,50,100,150,200
+.16,.17	numeric label size, separation from X axis
+.16,.5,0	text label size, spacing below X axis, offset right from center
+Distance from each MT (nm)
+4,1	# of numeric, # of text labels for left axis
+1,2	IF numeric labels, # of first tick to label, # of ticks between labels
+0,50,100,150
+.16,.13		numeric label size, separation from Y axis
+.16,.73,0	text label size, separation from Y axis, offset up from center
+Density (MTs/^Smm^P2)
+1,1,0,0	# of lines of text, # of letters in circles, symbols in boxes, lines
+.97,0.9,-1	IF text, X and Y location, -1 for relative frame coordinates
+0	0 to center, -1 to left-justify, 1 to right justify on position
+.16,0	text size, orientation in degrees
+All MTs
+.88,.12,-1	IF letter in circle, X and Y location, -1 for relative position
+.3,2		circle diameter, line thickness
+.16	letter size
+A
+24	option 24 to return to keyboard: follow with blank line
+

@@ -1,0 +1,94 @@
+
+
+
+Makefile	Build the imod program.
+autox.c 	Auto contour window and controls.
+autox.h
+b3dfile.c            
+b3dgfx.c        Graphics toolkit.     
+b3dgfx.h
+blankLineage.c
+colormap.h
+control.c
+hotkey.h	Hotkey help.
+ifio.c          Image file input / output routines.
+imod.c		The main entry point for the imod program. Parses command
+		line options, opens display and reads data.
+imod.h		Public imod data structure.
+imodP.h		Private imod data structure header.
+imod_cont_copy.c     
+imod_cont_edit.c
+imod_display.c
+imod_edit.c
+imod_help.h
+imod_info.c
+imod_info.h 
+imod_info_cb.c
+imod_input.c
+imod_input.h
+imod_io.c
+imod_io.h
+imod_iscale.c
+imod_menu.c
+imod_model_draw.c
+imod_model_edit.c
+imod_moveto.c
+imod_object_edit.c
+imod_surface.c
+imod_workprocs.c
+imodhelp             
+imodhelp.h           
+imodinfo.c	The imod information window.
+imodplug.c	Interface for imod plugins.
+imodr.c		Like imodv but software only renderer.
+imodv.c
+imodv.h 
+imodv_clip.c
+imodv_control.c
+imodv_depthcue.c
+imodv_dlist.c
+imodv_dlist.h
+imodv_edit.c
+imodv_gfx.c
+imodv_image.c
+imodv_input.c
+imodv_light.c
+imodv_menu.c
+imodv_modeled.c
+imodv_movie.c
+imodv_objed.c
+imodv_ogl.c
+imodv_renderer.c
+imodv_select.c
+imodv_stereo 
+imodv_stereo.c
+imodv_views.c
+imodview.c 
+iproc.c
+iproc.h
+keypad.h 
+makevms.com	Used to build VMS version of imod.
+menus.h
+mkargv.c
+oldimod.c
+oldpore.c
+options.h
+osmesa.h
+pixelview.c	The pixel view window.
+sliceproc.c
+sliceproc.h 
+slicer.c 	The Slicer window.
+slicer.h
+sslice.h
+timeview.c	
+transform.c	
+wprint.c	printf like function that prints to the information window.
+xgraph.c	The image graph window.
+ximodv.c	The model view window.
+ximodv.h
+xtilt.c		The tilt window.
+xtum.c		The tumble window.
+xxyz.h
+xyz.c		The XYZ window.
+xzap.c		The Zap window.
+xzap.h

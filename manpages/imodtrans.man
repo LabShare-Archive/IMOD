@@ -1,0 +1,78 @@
+.na
+.nh
+.TH imodtrans 1 2.00 BL3DFS
+.SH NAME
+imodtrans \- Transform an imod model file.
+.SH SYNOPSIS
+imodtrans <input model> <output model> [options]
+.SH DESCRIPTION
+Applies transformations to an imod model and copies the result to a new
+imod model.
+Transform parameters applied in a given order,
+first translations, then scaling, then rotations about the x-, y- and
+z-axis.
+
+.SS Options
+
+.TP
+.B -tx <value>
+.PD 0
+.TP
+.B -ty <value>
+.TP
+.B -tz <value>
+.PD
+The
+.B -tx, -ty
+and
+.B -tz
+options can be used to 
+translate the model by the given floating point numerical value.
+
+.TP
+.B -sx <value>
+.PD 0
+.TP
+.B -sy <value>
+.TP
+.B -sz <value>
+.PD
+The
+.B -sx, -sy
+and
+.B -sz
+options can be used to 
+scale the model by the given floating point numerical value.
+
+.TP
+.B -rx <value>
+.PD 0
+.TP
+.B -ry <value>
+.TP
+.B -rz <value>
+.PD
+The
+.B -rx, -ry
+and
+.B -rz
+options can be used to 
+rotate the model by the given degree value.
+
+
+.TP
+.B -2 <transform file>
+Transform the model in 2-D sections using the given transform file
+as input.  This option is useful for transforming a model to match an
+image stack that has been aligned with xfalign or manali.
+If this option is given all other options are ignored.
+.SH AUTHOR
+Jim Kremer 
+.SH SEE ALSO
+manali(1), xfalign(1)
+.SH BUGS
+Future versions should have the options before the filenames are given
+and transformation will be applied in the order given on the command line
+instead of the fixed order.
+
+Email bug reports to mast@colorado.edu.
