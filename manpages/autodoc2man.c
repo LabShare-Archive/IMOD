@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 19:50:06  mast
+    Remove unused argument in usage statement
+
     Revision 3.1  2003/10/08 17:23:25  mast
     Addition to repository
 
@@ -28,7 +31,7 @@ int main(int argc , char **argv)
             "   type = -2 for fallback Fortran option code\n"
             "          -1 for cat output (.1)\n"
             "           1 for man output (.man)\n"
-            "   directories_up = number of ../ to find autodoc directory\n")
+            "   directories_up = number of ../ to find autodoc directory\n");
     exit(1);
   }
 
