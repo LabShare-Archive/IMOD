@@ -608,7 +608,8 @@ int main( int argc, char *argv[])
     unsigned int winID = (unsigned int)ImodInfoWin->winId();
     fprintf(stderr, "Window id = %u\n", winID);
     fflush(stderr);    // Needed on Windows
-    //wprint("Window id = %u\n", winID);
+    if (Imod_debug)
+      wprint("Window id = %u\n", winID);
   }
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
@@ -920,6 +921,10 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.22  2003/09/24 00:50:11  mast
+Switched from keeping track of geometry to keeping track of pos() and
+size() when saving and restoring positions and sizes
+
 Revision 4.21  2003/09/17 04:48:43  mast
 Added call to set info window geometry and made settings get saved before
 exit
