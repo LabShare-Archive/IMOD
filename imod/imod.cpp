@@ -233,7 +233,7 @@ int main( int argc, char *argv[])
   b3dSetStoreError(1);
 
   ImodPrefs = new ImodPreferences(cmdLineStyle);
-  ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp");
+  ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp", "3dmod");
 
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QImage(b3dicon));
@@ -1054,6 +1054,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.49  2004/12/04 02:10:31  mast
+Moved declaration of ImodHelp into here
+
 Revision 4.48  2004/12/02 21:42:23  mast
 Changes for raw image loading
 
