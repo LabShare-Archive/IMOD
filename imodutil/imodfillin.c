@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:53:55  mast
+    First version of program
+
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -254,7 +257,7 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
 			 coadd = imodObjectAddContour(destobj, cont);
 			 if (coadd < 0) {
 			      fprintf(stderr, "Fatal error: cannot get new "
-				      "contouror add it to object");
+				      "contour or add it to object");
 			      exit(-1);
 			 }
 			 imodContourDelete(cont);
@@ -296,8 +299,27 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
 					     break;
 					}
 				   }
-				   if (done)
+
+				   /* If there is a duplicate, see if this is
+				      the second triangle, and if it is the
+				      first point of first triangle that
+				      matches - then need to swap the points */
+				   if (done) {
+					if (itri == 1 && 
+					    (ind1 == jnd1 && ind2 == jnd2 ||
+					     ind2 == jnd1 && ind1 == jnd2 ||
+					     (vertp[jnd1].z == vertp[jnd2].z &&
+					      (ind1 == jnd2 && ind2 == jnd3 ||
+					       ind2 == jnd2 && 
+					       ind1 == jnd3)))) {
+					     
+					     ptadd = cont->pts[0];
+					     cont->pts[0] = cont->pts[1];
+					     cont->pts[1] = ptadd;
+					}
+
 					continue;
+				   }
 				   
 				   /* It passes the test, add interpolated 
 				      point */
