@@ -1,6 +1,15 @@
 #####################
 # Makefile for clip
 #
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 include ../configure
 
 OBJS = clip.o clip_proc.o clip_transform.o clip_io.o\
@@ -23,6 +32,9 @@ clean :
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core" -exec rm "{}" \;
 	$(FIND) . -type f -name "clip" -exec rm "{}" \;
+
+$(OBJS) : clip.h
+clip.o : ../.version
 
 
 #

@@ -1,4 +1,13 @@
 # Makefile for imod and imodv
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 include ../configure
 
 IMOD_OBJS = imod.o imod_io.o imod_input.o imod_display.o \
@@ -64,7 +73,9 @@ xzap.o : keypad.h xzap.h
 xyz.c : keypad.h
 sliceproc.o : sliceproc.h
 imod_edit.o : xzap.h
-
+imod.o : ../.version
+imod_menu.o : ../.version
+imodv_meno.o : ../.version
 
 
 ##############################################################################
