@@ -320,6 +320,11 @@ static int openWindow(ImodvApp *a)
     a->mainWin->move(lastGeom.x(), lastGeom.y());
     a->mainWin->show();
 
+    // 11/24/03: OS 10.3 needs to move after the show
+#ifdef Q_OS_MACX
+    a->mainWin->move(lastGeom.x(), lastGeom.y());
+#endif
+
   // If the user did not enter a window size, just resize to that before
   // showing
   } else if (a->winx == DEFAULT_XSIZE && a->winy == DEFAULT_YSIZE) {
@@ -639,6 +644,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.13  2003/11/12 18:54:23  mast
+Add ability to receive messages & save and restore window position from 3dmod
+
 Revision 4.12  2003/11/04 04:41:32  mast
 Initialize rotation speed
 
