@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2004/07/02 22:01:32  rickg
+ * Bug #491 Fixed xf detection logic
+ *
  * Revision 3.20  2004/07/02 16:50:39  sueh
  * bug# 490 in startComScript() constucting ComScriptProcess with
  * watchedFileName.  In patchcorr() sending the watched file
@@ -407,6 +410,7 @@ import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ProcessManager {
   public static final String rcsid = "$Id$";
@@ -416,6 +420,7 @@ public class ProcessManager {
   SystemProcessInterface threadAxisB = null;
   Thread processMonitorA = null;
   Thread processMonitorB = null;
+  private HashMap killedList = new HashMap();
 
   // save the transferfid command line so that we can identify when process is
   // complete.
@@ -1415,7 +1420,9 @@ public class ProcessManager {
         processID = threadAxisA.getShellProcessID();
       }
     }
-
+    killProcessAndDescendants(processID);
+    
+    /*
     //  Loop over killing the children until there are none left
     if (!processID.equals("")) {
       String[] children;
@@ -1431,8 +1438,99 @@ public class ProcessManager {
 
       SystemProgram killShell = new SystemProgram("kill " + processID);
       killShell.run();
-    }
+    }*/
   }
+  
+  /**
+   * Recursively kill all the descendents of a process and then kill the
+   * process.  Function assumes that the process will continue spawning while
+   * the descendant processes are being killed.  Function attempts to stop
+   * spawning with a Stop signal.  The Stop signal may not work in all cases and
+   * OS's, so the function refreshes the list of child process each time it gets
+   * one.  Functions avoids getting stuck on an unkillable process by recording
+   * each PID it sent a "kill -9" to.
+   * 
+   * The algorithm:
+   * 1. Stop the root process.
+   * 2. Go down to a leaf, stopping each process encountered.
+   * 3. Kill the leaf.
+   * 4. Go up to the parent of the killed leaf.
+   * 5. If the parent is now a leaf, kill it and continue from step 4.
+   * 6. If the parent is not a leaf, continue from step 2.
+   * 
+   * @param processID
+   */
+  protected void killProcessAndDescendants(String processID) {
+    if (processID == null || processID.equals("")) {
+      return;
+    }
+    //try to prevent process from spawning with a SIGSTOP signal
+    SystemProgram killShell = new SystemProgram("kill -19 " + processID);
+    killShell.run();
+    //kill all decendents of process before killing process
+    String childProcessID = null;
+    do {
+      //get an unkilled child process
+      childProcessID = getChildProcess(processID);
+      if (childProcessID != null) {
+        killProcessAndDescendants(childProcessID);
+      }
+    } while (childProcessID != null);
+    //there are no more unkilled child processes so kill process with a SIGKILL
+    //signal
+    killShell = new SystemProgram("kill -9 " + processID);
+    killShell.run();
+    System.err.println("killed " + processID);
+    //record killed process
+    killedList.put(processID, "");
+  }
+
+  /**
+   * Return a PID of a children process for the specified parent process.  A new
+   * ps command is run each time this function is called so that the most
+   * up-to-date list of child processes is used.  Only processes the have not
+   * already received a "kill -9" signal are returned.
+   * 
+   * @param processID
+   * @return A PID of a child process or null
+   */
+  protected String getChildProcess(String processID) {
+    System.err.println("in getChildProcess: processID=" + processID);
+    //  Run the appropriate version of ps
+    SystemProgram ps = new SystemProgram("ps -l");
+    ps.run();
+
+    //  Find the index of the Parent ID and ProcessID
+    String[] stdout = ps.getStdOutput();
+    String header = stdout[0].trim();
+    String[] labels = header.split("\\s+");
+    int idxPID = -1;
+    int idxPPID = -1;
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].equals("PID")) {
+        idxPID = i;
+      }
+      if (labels[i].equals("PPID")) {
+        idxPPID = i;
+      }
+    }
+    //  Return null if the PID or PPID fields are not found
+    if (idxPPID == -1 || idxPID == -1) {
+      return null;
+    }
+
+    // Walk through the process list finding the PID of the children
+    String[] fields;
+    for (int i = 1; i < stdout.length; i++) {
+      fields = stdout[i].trim().split("\\s+");
+      if (fields[idxPPID].equals(processID) && !killedList.containsKey(fields[idxPID])) {
+        System.err.println("child found:PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
+        return fields[idxPID];
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Return a string array of the PIDs of children processes for the specified
@@ -1442,7 +1540,6 @@ public class ProcessManager {
    * @return A string array of the child processes or null if they don't exist
    */
   private String[] getChildProcessList(String processID) {
-    //    System.out.println("in getChildProcessList: processID=" + processID);
     //  Run the appropriate version of ps
     SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
@@ -1471,10 +1568,8 @@ public class ProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
-      //      System.out.println("fields: PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       if (fields[idxPPID].equals(processID)) {
         childrenPID.add(fields[idxPID]);
-        //        System.out.println("added : PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       }
     }
 
