@@ -318,6 +318,14 @@ c	  Kristian Sandberg and Gregory Beylkin.  Implemented X-axis tilting
 c	  by interpolation from untilted slices, so that the fast
 c	  backprojection could be used with X-axis tilting.
 c
+c	  $Author$
+c	  
+c	  $Date$
+c	  
+c	  $Revision$
+c
+c	  $Log$
+c
 	include 'tilt.inc'
 	real*4 fp(2,3)
 	integer*4 nxyztmp(3),nxyzst(3)
@@ -697,7 +705,7 @@ c
 	    nxyztmp(3)=nsliceout
 	    if(mod(nsliceout,interhsave).eq.1)then 
 	      call ialsiz(2,nxyztmp,nxyzst)
-	      DMEAN=DTOT/(NSLICEout*IWIDE*ITHICK)
+	      DMEAN=DTOT/(float(NSLICEout)*IWIDE*ITHICK)
 	      CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
 	      call imposn(2,nsliceout,0)
 	    endif
@@ -711,7 +719,7 @@ C-----------------
 C
 C Close files
 	CALL IMCLOSE(1)
-	DMEAN=DTOT/(NSLICE*IWIDE*ITHICK)
+	DMEAN=DTOT/(float(NSLICE)*IWIDE*ITHICK)
 	if(perp.and.interhsave.gt.0)then
 	  nxyztmp(3)=nslice
 	  call ialsiz(2,nxyztmp,nxyzst)
