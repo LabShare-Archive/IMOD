@@ -40,6 +40,7 @@ Log at end of file
 #include <qwidgetstack.h>
 #include <qtimer.h>
 #include "imodv_window.h"
+#include "imodv.h"
 #include "imodv_menu.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
@@ -314,6 +315,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/08/01 00:13:30  mast
+Make event reports happen in debug mode
+
 Revision 4.6  2003/05/05 15:08:50  mast
 Add accelerator keys, some of which don't show up
 
