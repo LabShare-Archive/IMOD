@@ -43,7 +43,11 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  * 
  * <p>
- * $Log$ Revision 1.16 2003/10/16 21:03:35 rickg
+ * $Log$
+ * Revision 1.17  2003/10/17 15:44:24  rickg
+ * Bug# 303 Re-layout of UI items
+ * Get button sizes from UIParameters static object
+ * Revision 1.16 2003/10/16 21:03:35 rickg
  * Bug# 303 Label changes and re-layout
  * 
  * <p>
@@ -130,8 +134,8 @@ public class FinalCombinePanel implements ContextMenu {
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbUsePatchRegionModel =
     new JCheckBox("Use patch region model");
-  private JButton btnPatchRegionModel =
-    new JButton("<html><b>Create/Edit Patch Region Model</b>");
+  private MultiLineButton btnPatchRegionModel =
+    new MultiLineButton("<html><b>Create/Edit Patch Region Model</b>");
   private LabeledTextField ltfWarpLimit =
     new LabeledTextField("Warping residual limits: ");
   private LabeledTextField ltfRefineLimit =
