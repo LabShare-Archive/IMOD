@@ -103,6 +103,16 @@ center of the area from which image will be taken, so a positive offset in X
 will move images to the left.  Enter one X,Y pair to apply a single offset to
 all sections.
 
+[Field = Apply offsets first]
+short = applyfirst
+long = ApplyOffsetsFirst
+type = B
+usage = Apply offsets in X and Y before transforming image (default is after)
+tooltip = 
+manpage = Apply offsets in X and Y before transforming image, which will make
+a rotated image come from a predictable location.  The default is to apply
+offsets after, which shifts the transformed image instead.
+
 [Field = TransformFile]
 short = xform
 long = TransformFile
