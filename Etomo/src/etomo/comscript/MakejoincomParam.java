@@ -30,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/08 21:21:27  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p>
 * <p> Revision 1.3  2004/12/01 03:45:47  sueh
 * <p> bug# 520 Removed unnecessary member variable SystemProgram
 * <p> program.
@@ -161,10 +164,6 @@ public class MakejoincomParam implements Command {
     return options;
   }
 
-  public int getBinning() {
-    return 1;
-  }
-  
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
@@ -185,11 +184,11 @@ public class MakejoincomParam implements Command {
     return false;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return null;
   }
   

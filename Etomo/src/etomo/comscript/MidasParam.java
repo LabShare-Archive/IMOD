@@ -24,6 +24,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/08 21:21:40  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:05:04  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -126,7 +129,7 @@ public class MidasParam implements Command {
     return options;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return outputFile;
   }
   
@@ -138,7 +141,7 @@ public class MidasParam implements Command {
     return false;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
   
@@ -148,10 +151,6 @@ public class MidasParam implements Command {
   
   public static String getOutputFileExtension() {
     return outputFileExtension;
-  }
-  
-  public int getBinning() {
-    return 1;
   }
 
 }
