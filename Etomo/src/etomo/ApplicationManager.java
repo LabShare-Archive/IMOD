@@ -94,6 +94,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.132  2005/03/07 23:57:01  sueh
+ * <p> bug# 533 Added midasEdges to call midas for fixing edge with a montage
+ * <p> view.  Substituting preblend for prenewst in coarse align with a montage
+ * <p> view.
+ * <p>
  * <p> Revision 3.131  2005/03/04 00:06:31  sueh
  * <p> bug# 533 Changes for montaging only.  imodErasedStack(): add piece list
  * <p> file to 3dmod call.  ImodManualErase():  add frames to 3dmod call.
@@ -2046,7 +2051,7 @@ public class ApplicationManager extends BaseManager {
     String commandName;
     if (metaData.getViewType() == ViewType.MONTAGE) {
       updatePreblendCom(axisID);
-      commandName = "preblend";
+      commandName = BlendmontParam.getCommandFileName(BlendmontParam.PREBLEND_MODE);
     }
     else {
       if (!updatePrenewstCom(axisID)) {
