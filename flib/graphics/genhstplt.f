@@ -94,6 +94,8 @@ c	  .     column of the data file.
 c	  .  11 to group points based upon their X values in the previous
 c	  .    column (as in option 3) and then divide the average of the
 c	  .    current column by the average of some other column
+c	  .  12 to select subsets of the data based on the values in some
+c	  .    other column than the ones being plotted
 c	  
 c	  If you select option 3, you first choose whether to plot error bars
 c	  as a multiple of standard deviation or standard error of the mean,
@@ -139,11 +141,31 @@ c	  current divided by mean of denominator column (Y), SD of current
 c	  divided by mean of denominator (SD associated with Y), and number
 c	  of points in the set.  Error bars based on the resulting SD values
 c	  may or may not be meaningful depending on the nature of the data.
+c
+c	  If you select option 12, first enter the number of the column that
+c	  will be used to test whether to include data.  Then enter a lower
+c	  and upper limit to a range of values, plus either 0 to include only
+c	  values in that range, or 1 to exclude values in that range.  Use this
+c	  option repeatedly to enter multiple selection criteria.  Data points
+c	  will have to meet all of the criteria to be included in the plots.
+c	  After entering one or more selection criteria, you must select data
+c	  by specifying columns with option 1.  To cancel all of the criteria,
+c	  specify option 12 and enter 0 for the column.
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 	parameter (len=100000,leng=5000)
 	dimension dmat(len*10),xx(len),ngx(len),zz(len)
      1,yy(len),itype(len),itgrp(50,50),nsymb(50),ntypg(50)
 	dimension ngxa(leng),avgx(leng),avgy(leng),nnav(leng),sdy(len)
+	real*4 selmin(50),selmax(50)
+	integer*4 icolsel(50),ifselexcl(50)
 	character*80 name
 c
 	iffil=0
@@ -152,6 +174,7 @@ c
 	nskip=0
 	iflogx=0
 	zadd=0
+	nselect=0
 5	continue
 c	  HVEM version only
 	write(*,'(1x,a,$)')
@@ -234,9 +257,9 @@ c
 	if(icol.le.0.or.icol.gt.ncol)go to 20
 c
 	iflogy=iflogx
-	do 130 i=1,nx
+	do i=1,nx
 	  yy(i)=xx(i)
-130	continue
+	enddo
 c
 	write(*,'(1x,a,$)') '1 or 2 to take log or sqr root '//
      &	    '(-1 if it already is log), base to add: '
@@ -244,12 +267,20 @@ c
 c
 	iflogx=iflogxin
 	nx=0
-	do 40 igrp=1,ngrps
-	  do 38 k=1,nd
+	do igrp=1,ngrps
+	  do k=1,nd
 	    ingroup=0
-	    do 36 j=1,ntypg(igrp)
+	    do j=1,ntypg(igrp)
 	      if(itype(k).eq.itgrp(j,igrp))ingroup=1
-36	    continue
+	    enddo
+c	      
+c	      check that it passes all selections too
+c	      
+	    do isel=1,nselect
+	      selval=dmat((k-1)*ncol+icolsel(isel))
+	      if(ifselexcl(isel).ne.0.xor.(selval.lt.selmin(isel).or.
+     &		  selval.gt.selmax(isel)))ingroup=0
+	    enddo
 	    if(ingroup.gt.0)then
 	      nx=nx+1
 	      ngx(nx)=igrp
@@ -259,8 +290,8 @@ c
 		if(iflogx.ne.2)xx(nx)=alog10(xx(nx)+zadd)
 	      endif
 	    endif
-38	  continue
-40	continue
+	  enddo
+	enddo
 c
 	if(iflogx.eq.2)iflogx=0
 	iflogx=iabs(iflogx)
@@ -276,12 +307,13 @@ c
      &	    '       6 or 7 to plot metacode file on screen or printer,',
      &	    '   8 to exit program,',/,
      &	    '       9 for Tukey box plots,'
-     &	    '   10 for X/Y plot with error bars using S.D.''s')
+     &	    '   10 for X/Y plot with error bars using S.D.''s,',/,
+     &	    '       12 to set columns to select on')
 	read(5,*)iopt
 	if(iopt.eq.-123)go to 99
 	if(iopt.eq.209)iopt=7
-	if(iopt.le.0.or.iopt.gt.11)go to 50
-	go to(30,60,70,20,5,90,90,99,110,70,70)iopt
+	if(iopt.le.0.or.iopt.gt.12)go to 50
+	go to(30,60,70,20,5,90,90,99,110,70,70,130)iopt
 c
 60	call gnplt(yy,xx,ngx,nx,nsymb,ngrps,iflogy,iflogx)
 	go to 50
@@ -404,6 +436,21 @@ c		  tcrit=g01caf(dble((1.+0.01*fsd)/2.),nnval-1,ifail)
 c
 90	continue
 	call pltout(7-iopt)
+	go to 50
+c	  
+130	write(*,'(1x,a,$)')
+     &	    'New column to select on, or 0 to clear selections: '
+	read(5,*)icolin
+	if(icolin.le.0)then
+	  nselect=0
+	  go to 50
+	endif
+	nselect=nselect+1
+	icolsel(nselect)=icolin
+	write(*,'(1x,a,/,a,$)')'Minimum and maximum values for that '
+     &	    //'column, and 0 to include or ',
+     &	    '  1 to exclude values in that range: '
+	read(5,*)selmin(nselect),selmax(nselect),ifselexcl(nselect)
 	go to 50
 c	  
 99	call plxoff
