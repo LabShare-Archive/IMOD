@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.86  2003/11/05 19:20:21  rickg
+ * <p> Bug# 290 Save tomo gen data when done is pressed
+ * <p>
  * <p> Revision 2.85  2003/11/05 18:05:50  sueh
  * <p> bug278 created backupFile(File) to backup the .edf file
  * <p> called backupFile(File) from saveTestParamFile()
@@ -2646,7 +2649,9 @@ public class ApplicationManager {
 	 */
 	public void imodPatchRegionModel() {
 		try {
-			if (metaData.getCombineParams().getMatchBtoA()) {
+			CombineParams combineParams = new CombineParams();
+			tomogramCombinationDialog.getCombineParams(combineParams);
+			if (combineParams.getMatchBtoA()) {
 				imodManager.patchRegionModel(AxisID.FIRST);
 			}
 			else {
