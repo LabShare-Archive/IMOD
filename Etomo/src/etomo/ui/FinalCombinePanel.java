@@ -44,6 +44,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 1.18  2003/10/21 23:44:30  rickg
+ * Changed patch region model button ot a multiline button
+ *
  * Revision 1.17  2003/10/17 15:44:24  rickg
  * Bug# 303 Re-layout of UI items
  * Get button sizes from UIParameters static object
@@ -160,7 +163,7 @@ public class FinalCombinePanel implements ContextMenu {
   private JButton btnPatchVectorModel =
     new JButton("<html><b>Examine Patch Vector Model</b>");
   private JButton btnCommitPatchOut =
-    new JButton("<html><b>Replace Patch Vector Model</b>");
+    new JButton("<html><b>Replace Patch Vectors</b>");
   private JButton btnImodMatchedTo =
     new JButton("<html><b>Open Volume Being Matched To</b>");
   private JButton btnImodCombined =
