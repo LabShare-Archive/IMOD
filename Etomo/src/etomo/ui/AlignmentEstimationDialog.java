@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/07/02 00:34:46  sueh
+ * <p> bug# 461 construct TiltalignPanel with info from fid.xyz,
+ * <p> preali header, and raw stack header
+ * <p>
  * <p> Revision 3.4  2004/06/21 17:16:37  rickg
  * <p> Bug #461 z shift is scaled by the prealigned binning
  * <p>
@@ -204,7 +208,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
-    panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.X_AXIS));
+    panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.Y_AXIS));
 
     Dimension dimButton = UIParameters.getButtonDimension();
     btnComputeAlignment.setPreferredSize(dimButton);
@@ -215,14 +219,21 @@ public class AlignmentEstimationDialog extends ProcessDialog
     btnViewResiduals.setMaximumSize(dimButton);
     btnView3DModel.setPreferredSize(dimButton);
     btnView3DModel.setMaximumSize(dimButton);
-
-    panelButton.add(btnComputeAlignment);
+    
+    SpacedPanel topButtonPanel = new SpacedPanel(FixedDim.x10_y0);
+    topButtonPanel.setLayout(new BoxLayout(topButtonPanel.getContainer(), BoxLayout.X_AXIS));
+    topButtonPanel.add(btnComputeAlignment);
+    //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    topButtonPanel.add(btnImod);
+    panelButton.add(topButtonPanel.getContainer());
     panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelButton.add(btnImod);
-    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelButton.add(btnView3DModel);
-    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelButton.add(btnViewResiduals);
+    SpacedPanel bottomButtonPanel = new SpacedPanel(FixedDim.x10_y0);
+    bottomButtonPanel.setLayout(new BoxLayout(bottomButtonPanel.getContainer(), BoxLayout.X_AXIS));
+    bottomButtonPanel.add(btnView3DModel);
+    //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    bottomButtonPanel.add(btnViewResiduals);
+    panelButton.add(bottomButtonPanel.getContainer());
+    
     pnlAlignEst.setLayout(new BoxLayout(pnlAlignEst, BoxLayout.Y_AXIS));
     pnlAlignEst.setBorder(border.getBorder());
 
