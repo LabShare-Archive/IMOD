@@ -17,6 +17,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2.2.1  2003/01/24 18:37:54  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -74,30 +77,30 @@ public class ProcessTrack implements Storable {
     props.setProperty(group + "Setup", setup.toString());
 
     props.setProperty(group + "PreProcessing-A", preProcessingA.toString());
-    props.setProperty(group + "PreProcessing-B", preProcessingA.toString());
+    props.setProperty(group + "PreProcessing-B", preProcessingB.toString());
 
     props.setProperty(group + "CoarseAlignment-A", coarseAlignmentA.toString());
-    props.setProperty(group + "CoarseAlignment-B", coarseAlignmentA.toString());
+    props.setProperty(group + "CoarseAlignment-B", coarseAlignmentB.toString());
 
     props.setProperty(group + "FiducialModel-A", fiducialModelA.toString());
-    props.setProperty(group + "FiducialModel-B", fiducialModelA.toString());
+    props.setProperty(group + "FiducialModel-B", fiducialModelB.toString());
 
     props.setProperty(group + "FineAlignment-A", fineAlignmentA.toString());
-    props.setProperty(group + "FineAlignment-B", fineAlignmentA.toString());
+    props.setProperty(group + "FineAlignment-B", fineAlignmentB.toString());
 
     props.setProperty(
       group + "TomogramPositioning-A",
       tomogramPositioningA.toString());
     props.setProperty(
       group + "TomogramPositioning-B",
-      tomogramPositioningA.toString());
+      tomogramPositioningB.toString());
 
     props.setProperty(
       group + "TomogramGeneration-A",
       tomogramGenerationA.toString());
     props.setProperty(
       group + "TomogramGeneration-B",
-      tomogramGenerationA.toString());
+      tomogramGenerationB.toString());
 
     props.setProperty(
       group + "TomogramCombination",
