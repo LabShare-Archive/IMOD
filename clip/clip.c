@@ -410,13 +410,14 @@ int main( int argc, char *argv[] )
 		    fprintf(stderr, "Error reading %s\n", argv[i]);
 		    return(-1);
 	       }
+
 	       /* DNM 3/21/01: Give explicit error message here if file is
-		  swapped */
-	       if (hout.swapped) {
+		  swapped.  6/26/02: it should be OK now */
+	       /* if (hout.swapped) {
 		    fprintf(stderr, "clip error: Attempting to write to a "
 			    "byte-swapped file, %s\n", argv[i]);
 		    return(-1);
-	       }
+		    } */
 
 	  }else{
 #ifndef __vms	       
