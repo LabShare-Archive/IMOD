@@ -536,6 +536,7 @@ void MidasWindow::createParameterDisplay(QVBox *col)
     for (i = 0; i < 4; i++) {
       VW->wToperr[i] = new QPushButton("X 199: 50.00  ", grid);
       mapper->setMapping(VW->wToperr[i], i);
+      QObject::connect(VW->wToperr[i], SIGNAL(clicked()), mapper, SLOT(map()));
       VW->wToperr[i]->setFocusPolicy(NoFocus);
     }
     QObject::connect(mapper, SIGNAL(mapped(int)), 
@@ -749,6 +750,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.6  2003/05/26 01:02:33  mast
+    Added label to show mouse action
+
     Revision 3.5  2003/02/28 21:36:08  mast
     connect to focusLost signal of ToolEdit
 
