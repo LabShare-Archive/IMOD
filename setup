@@ -54,6 +54,7 @@ set sendevent_dir   = sendevent
 set imod_dir        = imod
 set plugsrc_dir     = plugs
 set libdiaqt_dir    = libdiaqt
+set etomo_dir       = Etomo
 set midas_qconf     = midas/qconfigure
 set imod_qconf      = imod/qconfigure
 set sendevent_qconf = sendevent/qconfigure
@@ -620,6 +621,17 @@ foreach i ($makefile_dirs)
     cat $i/Makefile.$makefile_ext >> $i/Makefile
 end
 
+# Test for javac and set up makefile for etomo
+#
+set javacexe = `which java`
+if ($status) then
+    echo "The Java SDK is not installed or not on the path, so Etomo will not be built"
+    \cp $etomo_dir/Makefile.dummy $etomo_dir/Makefile
+else
+    echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT" >! $etomo_dir/Makefile
+    cat $etomo_dir/Makefile.real >> $etomo_dir/Makefile
+endif
+
 # copy imodconfig.h unless it has not changed
 #
 if (-e $hconffinal) then
@@ -662,6 +674,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.19  2003/05/21 04:35:35  mast
+#  Find needed to use -size 0, not -empty
+#
 #  Revision 3.18  2003/05/12 15:13:44  mast
 #  Keeping it from removing imodhelp and making sure 3dmod is recompiled when
 #  version changes.
