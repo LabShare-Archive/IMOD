@@ -1,0 +1,100 @@
+Version = 1.0
+Pip = 1
+
+[Field = TomogramOrSizeXYZ]
+short = tomogram
+long = TomogramOrSizeXYZ
+type = FN
+usage = Input file to be cut up, or the dimensions in X, Y and Z
+tooltip =
+manpage = 
+
+[Field = MegaVoxels]
+short = megavox
+long = MegaVoxels
+type = F
+usage = Maximum number of megavoxels to allow in each piece (default 20)
+tooltip = 
+manpage = 
+
+[Field = XPadding]
+short = xpad
+long = XPadding
+type = I
+usage = Number of pixels to pad on each side in X (default 8)
+tooltip = 
+manpage = 
+
+[Field = YPadding]
+short = ypad
+long = YPadding
+type = I
+usage = Number of pixels to pad on each side in Y (default 4)
+tooltip = 
+manpage = 
+
+[Field = ZPadding]
+short = zpad
+long = ZPadding
+type = I
+usage = Number of pixels to pad on each side in Z (default 8)
+tooltip = 
+manpage = 
+
+[Field = XMaximumPieces]
+short = xmaxpiece
+long = XMaximumPieces
+type = I
+usage = Maximum number of pieces in X (default is 0)
+tooltip = 
+manpage = Maximum number of pieces in X.  Enter -1 for essentially no
+constraints (a maximum of X image size divided by 2).  The default is 0
+for X and Y, which will make the total number of pieces in X and Y be no
+more than 19.  If the maximum for Y is set to 1, a value of 0 for X will make
+the number of pieces in X be no more than 19.  These constraints will allow 
+Assemblevol to keep all files in one layer in Z open at once.
+
+[Field = YMaximumPieces]
+short = ymaxpiece
+long = YMaximumPieces
+type = I
+usage = Maximum number of pieces in Y (default is 0; entries of 0 for X and Y
+give a maximum total in X and Y of 19)
+tooltip = 
+manpage = Maximum number of pieces in Y.  Enter -1 for essentially no
+constraints (a maximum of Y image size divided by 2).  The default is 0; see
+entry for XMaximumPieces.  If the maximum for X is set to 1, a value of 0 for 
+Y will make the number of pieces in Y be no more than 19.
+
+[Field = ZMaximumPieces]
+short = zmaxpiece
+long = ZMaximumPieces
+type = I
+usage = Maximum number of pieces in Z; the default is -1 for NZ/2
+tooltip = 
+manpage = Maximum number of pieces in Z.  The default is -1 for essentially
+no constraints (a maximum of Z image size divided by 2).
+
+[Field = MinimumOverlap]
+short = minoverlap
+long = MinimumOverlap
+type = I
+usage = Minimum number of pixels to overlap between pieces (default 4)
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
