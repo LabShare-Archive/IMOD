@@ -13,7 +13,10 @@ c	  correlation.  The program works from the center of the volume
 c	  outward, analyzing patches in the X, then the Y, then the Z
 c	  direction.  An optional model file can be entered with contours
 c	  enclosing the area where patches should be analyzed; patches outside
-c	  this area are excluded.
+c	  this area are excluded.  Also, information about the source volume
+c	  for the file being transformed can be entered so that the program
+c	  can analyze patches only from regions that are good in the second
+c	  image file.
 c	  
 c	  Inputs to the program:
 c	  
@@ -40,6 +43,18 @@ c	  Number of pixels over which to taper the patches in X, Y and Z
 c	  
 c	  Maximum displacement to determine by searching
 c	  
+c	  Either the X, Y, and Z size or the name of the original source
+c	  volume for the second image file.  Return to omit analysis of
+c	  positions in this file.
+c	  
+c	  Name of the 3-D transformation file used to generate the second
+c	  image file from its source volume, or Return to omit analysis of
+c	  positions in the second file.
+c	  
+c	  Size of borders to be excluded on the lower and upper sides in X
+c	  and the lower and upper sides in Z in the original source volume
+c	  for the second image file.
+c	  
 c	  The program outputs an initial line with the total number of
 c	  patches, then one line for each patch, containing the X, Y, and Z
 c	  coordinates of the patch and the displacement between the two files
@@ -47,22 +62,33 @@ c	  in X, Y, and Z.
 c
 c	  David Mastronarde, 7/16/01
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c	  
+	implicit none
 	include 'model.inc'
+	integer idim,limvert,limcont,limpat,nadjlook
 	parameter (idim=16000000)
 	parameter (limvert=100000,limcont=1000,limpat=10000)
 	parameter (nadjlook=6)
+	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 C
-	DIMENSION NXYZ(3),MXYZ(3)
+	integer*4 NXYZ(3),MXYZ(3),nxyzbsrc(3)
 	real*4 buf(idim)
 C
 	EQUIVALENCE (NX,NXYZ)
 c
 	logical inside,exist,readw_or_imod,found
-	integer getimodhead
+	integer getimodhead,getimodscales
 	real*4 xvert(limvert),yvert(limvert),zcont(limcont)
 	integer*4 indvert(limcont),nvert(limcont)
-	character*80 filea,fileb,filout,modelfile,tempfile
+	character*80 filea,fileb,filout,modelfile,tempfile,xffile
 	real*4 dxpat(limpat),dypat(limpat),dzpat(limpat)
 	integer*2 ifdone(limpat)
 	character*320 patchcom
@@ -70,11 +96,34 @@ c
 	integer*4 idxadj(nadjlook)/-1,1,0,0,0,0/
 	integer*4 idyadj(nadjlook)/0,0,-1,1,0,0/
 	integer*4 idzadj(nadjlook)/0,0,0,0,-1,1/
+	real*4 xvertbsrc(4),yvertbsrc(4)
 c
+	integer*4 indpat,ix,iy,iz,nxpatch,nypatch,nzpatch,maxshift
+	integer*4 ifdebug,nonepatch,ncorrs,mode,numxpat,numypat,numzpat
+	integer*4 nbxlo,nbxhi,nbylo,nbyhi,nbzlo,nbzhi,nxtap,nytap,nztap
+	integer*4 ixstart,iystart,izstart,ixdelta,iydelta,izdelta
+	integer*4 nbsrcxlo,nbsrcxhi,nbsrczlo,nbsrczhi,indv
+	real*4 dmin,dmax,dmean,dum,a11,a12,a21,a22,dxsrc,dzsrc,xx,zz
+	real*4 tmp,xyscal,zscal,xofs,yofs,zofs,ximscale,yimscale,zimscale
+	integer*4 i,j,ixlo2,ixhi2,izlo2,izhi2,numx2,numz2,newxdelta
+	integer*4 newzdelta,nxpad,nypad,nzpad,npixpatch,indpatcha
+	integer*4 indpatchb,indloada,indloadb,maxload,maxxload,ncont
+	integer*4 ierr,ifflip,indy,indz,indcur,iobj,ip,ipt,numtot
+	real*4 xcen,ycen,zcen,xpatlo,xpathi,zpatlo,zpathi,dz,dzmin
+	integer*4 indp,ifuse,icont,icmin,ixspan,izspan
+	integer*4 izpstr,izpend,izdir,izpat,iz0,iz1,izcen
+	integer*4 iypstr,iypend,iydir,iypat,iy0,iy1,iycen,ixpstr,ixpend
+	integer*4 ixdir,ixpat,ix0,ix1,ixcen,nadj,ixadj,iyadj,izadj,inda
+	integer*4 loady0,loady1,loadz0,loadz1,loadx0,loadx1,nmore
+	integer*4 nxload,nyload,nzload
+	real*4 dxsum,dysum,dzsum,err,perpos,dxadj,dyadj,dzadj
+
 	indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
 c
 c	  set IFDEBUG 1 to do both search and onepatchcorr at each postion and
 c	  get an error output
+c	  
+c	  set IFDEBUG 2 to get dummy patch output for all positions
 c
 	ifdebug=0
 	nonepatch=0
@@ -112,87 +161,20 @@ C
 	read(5,*)nxtap,nytap,nztap
 	write(*,'(1x,a,$)')'Maximum shift to analyze for by searching: '
 	read(5,*)maxshift
-c	  
-c	  set indexes at which to load data and compose patches
-c	  
-	nxpad=nxpatch+2*(maxshift+1)
-	nypad=nypatch+2*(maxshift+1)
-	nzpad=nzpatch+2*(maxshift+1)
-	npixpatch=nxpatch*nypatch*nzpatch
-	indpatcha=1
-	indpatchb=indpatcha+npixpatch
-	indloada=indpatchb+nxpad*nypad*nzpad
-	if(indloada.gt.idim+1)then
-	  print *,'PATCHES TOO LARGE FOR ARRAYS'
-	  call exit(1)
-	endif
-c	  
-c	  get maximum load size: if less than size of one patch, set up to
-c	  load into patch space directly
 c
-	maxload=(idim+1-indloada)/2
-	if(maxload.lt.npixpatch)then
-	  maxload=npixpatch
-	  indloada=1
-	endif
-	indloadb=indloada+maxload
-	maxxload=maxload/(nypatch*nzpatch)
-c	print *,npixpatch,indpatcha,indpatchb,indloada,indloadb,maxload,
-c     &	    maxxload
-c	  
-c	  process model if one exists
+c	  get inputs for analyzing existence of data in B file
 c
-	ncont=0
-	if(modelfile.ne.' ')then
-	  exist=readw_or_imod(modelfile)
-	  if(.not.exist)then 
-	    print *, 'CORRSEARCH3D: ERROR READING MODEL'
-	    call exit(1)
-	  endif
-	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
-c	  print *,'Offsets:',xofs,yofs,zofs
-	  do i=1,n_point
-	    p_coord(1,i)=p_coord(1,i)-xofs
-	    p_coord(2,i)=p_coord(2,i)-yofs
-	    p_coord(3,i)=p_coord(3,i)-zofs
-	  enddo
-	  indy=2
-	  indz=3
-	  if (ifflip.ne.0)then
-	    indy=3
-	    indz=2
-	  endif
-	  indcur=0
-	  do iobj=1,max_mod_obj
-	    if(npt_in_obj(iobj).ge.3)then
-	      ncont=ncont+1
-	      if(ncont.gt.limcont)then
-		print *,'CORRSEARCH3D: TOO MANY CONTOURS IN MODEL'
-		call exit(1)
-	      endif
-	      nvert(ncont)=npt_in_obj(iobj)
-	      if(indcur+nvert(ncont).gt.limvert)then
-		print *,'CORRSEARCH3D: TOO MANY POINTS IN CONTOURS'
-		call exit(1)
-	      endif
-	      do ip=1,nvert(ncont)
-		ipt=abs(object(ibase_obj(iobj)+ip))
-		xvert(ip+indcur)=p_coord(1,ipt)
-		yvert(ip+indcur)=p_coord(indy,ipt)
-	      enddo
-	      zcont(ncont)=p_coord(indz,ipt)
-	      indvert(ncont)=indcur+1
-	      indcur=indcur+nvert(ncont)
-	    endif
-	  enddo
-	  print *,ncont,
-     &	      ' contours available for deciding which patches to analyze'
-	endif
-c
-	if(numxpat*numypat*numzpat.gt.limpat)then
-	  print *,'CORRSEARCH3D: TOO MANY PATCHES FOR ARRAYS'
-	  call exit(1)
-	endif
+	nxyzbsrc(1)=0
+	print *,'Enter name or NX, NY, NZ of the untransformed source',
+     &	    ' for the image file being aligned, or Return for none'
+	call get_nxyz(5,nxyzbsrc)
+	print *,'Enter name of file used to transform the image file',
+     &	    ' being aligned, or Return for none'
+	read(5,50)xffile
+	write(*,'(1x,a,/,a,$)')'Border sizes on lower and upper sides'
+     &	    //' in X and in Z in the untransformed',
+     &	    ' source for the image file being aligned: '
+	read(5,*)nbsrcxlo,nbsrcxhi,nbsrczlo,nbsrczhi
 c	  
 c	  get patch starting positions and delta between patches
 c
@@ -217,6 +199,200 @@ c
 	  izstart=(nbzlo+nz-nbzhi)/2 - nzpatch/2
 	  izdelta=1
 	endif
+c	  
+c	  compute transformed locations of corners of b source volume
+c	  
+	if (nxyzbsrc(1) .gt. 0 .and. xffile .ne. ' ') then
+	  call dopen(1, xffile, 'ro', 'f')
+	  read(1,*)a11,dum,a12,dxsrc
+	  read(1,*)dum
+	  read(1,*)a21,dum,a22,dzsrc
+	  close(1)
+	  xx = -nxyzbsrc(1) / 2 + nbsrcxlo
+	  zz = -nxyzbsrc(3) / 2 + nbsrczlo
+	  xvertbsrc(1) = a11 * xx + a12 * zz + nx / 2. + dxsrc
+	  yvertbsrc(1) = a21 * xx + a22 * zz + nz / 2. + dzsrc
+	  xx = nxyzbsrc(1) / 2 - nbsrcxhi
+	  xvertbsrc(2) = a11 * xx + a12 * zz + nx / 2. + dxsrc
+	  yvertbsrc(2) = a21 * xx + a22 * zz + nz / 2. + dzsrc
+	  zz = nxyzbsrc(3) / 2 - nbsrczhi
+	  xvertbsrc(3) = a11 * xx + a12 * zz + nx / 2. + dxsrc
+	  yvertbsrc(3) = a21 * xx + a22 * zz + nz / 2. + dzsrc
+	  xx = -nxyzbsrc(1) / 2 + nbsrcxlo
+	  xvertbsrc(4) = a11 * xx + a12 * zz + nx / 2. + dxsrc
+	  yvertbsrc(4) = a21 * xx + a22 * zz + nz / 2. + dzsrc
+c	    
+c	    now order the coordinates to find middle values that can be
+c	    used to adjust the entered lower and upper limits, so that the
+c	    basic grid can be set up to span between those limits
+c	    
+	  do i=1,4
+	    xvert(i) = xvertbsrc(i)
+	    yvert(i) = yvertbsrc(i)
+	  enddo
+	  do i=1,3
+	    do j=i+1,4
+	      if (xvert(i) .gt. xvert(j)) then
+		tmp = xvert(i)
+		xvert(i) = xvert(j)
+		xvert(j) = tmp
+	      endif
+	      if (yvert(i) .gt. yvert(j)) then
+		tmp = yvert(i)
+		yvert(i) = yvert(j)
+		yvert(j) = tmp
+	      endif
+	    enddo
+	  enddo
+c
+c	    compute revised lower and upper limits for X
+c	    
+	  ixlo2 = max(nbxlo, xvert(2))
+	  ixhi2 = min(nx - nbxhi, xvert(3))
+	  if (numxpat .gt. 1) then
+c	      
+c	      get new number of intervals inside the limits, and a new delta
+c	      to span the limits
+c	      
+	    ixspan = ixhi2 - ixlo2 - nxpatch
+	    numx2 = ixspan / ixdelta + 1
+	    newxdelta = ixspan / numx2
+	    if (newxdelta .lt. 0.6 * ixdelta) then
+c		
+c		but if delta is too small, drop the number of intervals
+c
+	      numx2=numx2-1
+	      if (numx2 .gt. 0) then
+		newxdelta = ixspan / numx2
+	      else
+		newxdelta = ixdelta
+	      endif
+	    endif
+c	      
+c	      now adjust ixlo2 up by half of remainder to center the patches
+c	      in the span and find true start and end that fits inside the
+c	      original low-hi limits
+c	      
+	    ixlo2 = ixlo2 + mod(ixspan, newxdelta) / 2
+	    ixdelta = newxdelta
+	    ixstart = ixlo2 - ixdelta * ((ixlo2 - nbxlo) / ixdelta)
+	    numxpat = (nx - nbxhi - nxpatch - ixstart) / ixdelta + 1
+	  else
+c	      
+c	      if only one patch, put it in new middle
+c
+	    ixstart=(ixlo2+ixhi2)/2 - nxpatch/2
+	  endif
+c
+c	    compute revised lower and upper limits for Z
+c	    
+	  izlo2 = max(nbzlo, yvert(2))
+	  izhi2 = min(nz - nbzhi, yvert(3))
+	  if (numzpat .gt. 1) then
+c
+	    izspan = izhi2 - izlo2 - nzpatch
+	    numz2 = izspan / izdelta + 1
+	    newzdelta = izspan / numz2
+	    if (newzdelta .lt. 0.6 * izdelta) then
+c
+	      numz2=numz2-1
+	      if (numz2 .gt. 0) then
+		newzdelta = izspan / numz2
+	      else
+		newzdelta = izdelta
+	      endif
+	    endif
+c
+	    izlo2 = izlo2 + mod(izspan, newzdelta) / 2
+	    izdelta = newzdelta
+	    izstart = izlo2 - izdelta * ((izlo2 - nbzlo) / izdelta)
+	    numzpat = (nz - nbzhi - nzpatch - izstart) / izdelta + 1
+	  else
+	    izstart=(izlo2+izhi2)/2 - nzpatch/2
+	  endif
+	else
+	  nxyzbsrc(1) = 0
+	endif
+c	  
+	if (ifdebug.eq.2) then
+	  print *,'Scan limits in X:',ixstart,ixstart+(numxpat-1)*ixdelta
+     &	      +nxpatch
+	  print *,'Scan limits in Z:',izstart,izstart+(numzpat-1)*izdelta
+     &	      +nzpatch
+	endif
+
+c	  
+c	  set indexes at which to load data and compose patches
+c	  
+	nxpad=nxpatch+2*(maxshift+1)
+	nypad=nypatch+2*(maxshift+1)
+	nzpad=nzpatch+2*(maxshift+1)
+	npixpatch=nxpatch*nypatch*nzpatch
+	indpatcha=1
+	indpatchb=indpatcha+npixpatch
+	indloada=indpatchb+nxpad*nypad*nzpad
+	if(indloada.gt.idim+1)call errorexit(
+     &	    'PATCHES TOO LARGE FOR ARRAYS')
+c	  
+c	  get maximum load size: if less than size of one patch, set up to
+c	  load into patch space directly
+c
+	maxload=(idim+1-indloada)/2
+	if(maxload.lt.npixpatch)then
+	  maxload=npixpatch
+	  indloada=1
+	endif
+	indloadb=indloada+maxload
+	maxxload=maxload/(nypatch*nzpatch)
+c	print *,npixpatch,indpatcha,indpatchb,indloada,indloadb,maxload,
+c     &	    maxxload
+c	  
+c	  process model if one exists
+c
+	ncont=0
+	if(modelfile.ne.' ')then
+	  exist=readw_or_imod(modelfile)
+	  if(.not.exist)call errorexit(
+     &	      'ERROR READING MODEL')
+	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+	  ierr=getimodscales(ximscale,yimscale,zimscale)
+c	  print *,'Offsets:',xofs,yofs,zofs
+	  do i=1,n_point
+	    p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	    p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	    p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
+	  enddo
+	  indy=2
+	  indz=3
+	  if (ifflip.ne.0)then
+	    indy=3
+	    indz=2
+	  endif
+	  indcur=0
+	  do iobj=1,max_mod_obj
+	    if(npt_in_obj(iobj).ge.3)then
+	      ncont=ncont+1
+	      if(ncont.gt.limcont)call errorexit(
+     &		  'TOO MANY CONTOURS IN MODEL')
+	      nvert(ncont)=npt_in_obj(iobj)
+	      if(indcur+nvert(ncont).gt.limvert)call errorexit(
+     &		  'TOO MANY POINTS IN CONTOURS')
+	      do ip=1,nvert(ncont)
+		ipt=abs(object(ibase_obj(iobj)+ip))
+		xvert(ip+indcur)=p_coord(1,ipt)
+		yvert(ip+indcur)=p_coord(indy,ipt)
+	      enddo
+	      zcont(ncont)=p_coord(indz,ipt)
+	      indvert(ncont)=indcur+1
+	      indcur=indcur+nvert(ncont)
+	    endif
+	  enddo
+	  print *,ncont,
+     &	      ' contours available for deciding which patches to analyze'
+	endif
+c
+	if(numxpat*numypat*numzpat.gt.limpat)call errorexit(
+     &	    'TOO MANY PATCHES FOR ARRAYS')
 c	  
 c	  prescan for patches inside boundaries, to get total count
 c	  
@@ -245,6 +421,21 @@ c
 		indv=indvert(icmin)
 		if(inside(xvert(indv),yvert(indv),nvert(icmin),xcen,zcen))
      &		    ifuse=1
+	      endif
+	      if(ifuse .eq. 1 .and. nxyzbsrc(1) .gt. 0)then
+		ifuse=0
+c		  
+c		  if b source volume was given, make sure all corners of
+c		  the patch are inside transformed area
+c		  
+		xpatlo = xcen - (nxpatch - nxtap) / 2
+		xpathi = xcen + (nxpatch - nxtap) / 2
+		zpatlo = zcen - (nzpatch - nztap) / 2
+		zpathi = zcen + (nzpatch - nztap) / 2
+		if (inside(xvertbsrc,yvertbsrc,4,xpatlo,zpatlo) .and.
+     &		    inside(xvertbsrc,yvertbsrc,4,xpatlo,zpathi) .and.
+     &		    inside(xvertbsrc,yvertbsrc,4,xpathi,zpatlo) .and.
+     &		    inside(xvertbsrc,yvertbsrc,4,xpathi,zpathi)) ifuse = 1
 	      endif
 	      if(ifuse.eq.0)then
 		ifdone(indp)=-1
@@ -285,6 +476,11 @@ c
 		    ixcen=ix0+nxpatch/2
 c		    print *,'doing',ixcen,iycen,izcen
 		    indp=indpat(ixpat,iypat,izpat)
+		    if(ifdebug.eq.2.and.ifdone(indp).eq.0)then
+		      write(1,105)ixcen,iycen,izcen,2.,2.,2.
+		      ifdone(indp)=1
+		    endif
+
 		    if(ifdone(indp).eq.0)then
 c		      
 c			find and average adjacent patches
@@ -406,8 +602,8 @@ c			print *,patchcom(1:lnblnk(patchcom))
 			call system(patchcom)
 			inquire(file=tempfile,exist=exist)
 			if(.not.exist)then
-			  print *,'CORRSEARCH3D: ONEPATCHCORR FAILED TO'
-     &			      ,' RETURN RESULTS AT',ixcen,iycen,izcen
+			  print *,'ERROR: CORRSEARCH3D - ONEPATCHCORR ',
+     &			      'FAILED TO RETURN RESULTS AT',ixcen,iycen,izcen
 			  call exit(1)
 			endif
 			open(2,file=tempfile,status='old')
@@ -476,7 +672,9 @@ c
      &	    loadax0,loaday0,loadaz0, brray,nxb,nyb,nzb,
      &	    loadbx0,loadby0,loadbz0,ix0,ix1,iy0,iy1, iz0,iz1,dxadj,
      &	    dyadj,dzadj,maxshift, found,ncorrs)
+	implicit none
 
+	integer*4 nxa,nxb,nya,nyb,nza,nzb
 	real*4 array(nxa,nya,nza),brray(nxb,nyb,nzb)
 	real*8 corrs(-1:1,-1:1,-1:1),corrtmp(-2:2,-2:2,-2:2)
 	real*8 corrmax
@@ -484,6 +682,14 @@ c
 	integer*4 idyseq(9)/0,-1,1,0,0,-1,1,-1,1/
 	integer*4 idzseq(9)/0,0,0,1,-1,-1,-1,1,1/
 	logical found
+	integer*4 ix0,ix1,iy0,iy1, iz0,iz1,maxshift,ncorrs
+	integer*4 loadax0,loadbx0,loaday0,loadby0,loadaz0,loadbz0
+	real*4 dxadj,dyadj,dzadj
+c	  
+	integer*4 idxglb,idyglb,idzglb,ix,iy,iz,iseq,idy,idz
+	integer*4 idycor,idzcor,ix0cor,ix1cor,iy0cor,iy1cor,iz0cor,iz1cor
+	integer*4 indmax
+	real*4 cx,y1,y2,y3,denom,cy,cz
 c	  
 c	  get global displacement of b, including the load offset
 c
@@ -636,8 +842,11 @@ c	  overall search by almost a factor of 3.
 c
 	subroutine threecorrs(array,nxa,nya,brray,nxb,nyb,ix0,ix1,
      &	    iy0,iy1,iz0,iz1,idx,idy,idz,corr1,corr2,corr3)
+	implicit none
 	real*4 array(*),brray(*)
 	real*8 sum1,sum2,sum3,corr1,corr2,corr3
+	integer*4 ix0,ix1,iy0,iy1, iz0,iz1,idx,idy,idz,nxa,nxb,nya,nyb
+	integer*4 iz,izb,iy,iyb,indbasea,inddelb,ix,ixb,nsum
 	sum1=0.
 	sum2=0.
 	sum3=0.
@@ -704,6 +913,8 @@ c	  assuming dimensions of NXDIM by NYDIM, from index coordinates
 c	  IX0, IX1, IY0, IY1, IZ0, IZ1.
 c
 	subroutine loadvol(iunit,array,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1)
+	implicit none
+	integer*4 nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1,iunit,indz,iz
 	real*4 array(nxdim,nydim,*)
 c	  
 c	print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
@@ -714,8 +925,7 @@ c	print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
 	  call irdpas(iunit,array(1,1,indz),nxdim,nydim,ix0,ix1,iy0,iy1,*99)
 	enddo
 	return
-99	print *,'CORRSEARCH3D: ERROR READING FILE'
-	call exit(1)
+99	call errorexit('ERROR READING FILE')
 	end
 
 
@@ -728,7 +938,11 @@ c
 	subroutine extract_patch(buf,nxload,nyload,nzload,
      &	    loadx0,loady0,loadz0,ix0,iy0,
      &	    iz0,array,nxpatch,nypatch,nzpatch)
+	implicit none
+	integer*4 nxload,nyload,nzload,loadx0,loady0,loadz0,ix0,iy0
+	integer*4 iz0,nxpatch,nypatch,nzpatch
 	real*4 buf(nxload,nyload,nzload),array(nxpatch,nypatch,nzpatch)
+	integer*4 iz, izfrom,iy,iyfrom,ix
 c	  
 	do iz=1,nzpatch
 	  izfrom=iz+iz0-loadz0
@@ -747,8 +961,12 @@ c	  VOLMEANZERO shifts the mean to zero of the volume in ARRAY
 c	  dimensioned NX by NY by NZ
 c
 	subroutine volmeanzero(array,nx,ny,nz)
+	implicit none
 	real*4 array(*)
 	real*8 sum
+	integer*4 nx,ny,nz
+	integer*4 i
+	real*4 dmean
 	sum=0.
 	do i=1,nx*ny*nz
 	  sum=sum+array(i)
@@ -758,4 +976,12 @@ c
 	  array(i)=array(i)-dmean
 	enddo
 	return
+	end
+
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: CORRSEARCH3D - ',message
+	call exit(1)
 	end
