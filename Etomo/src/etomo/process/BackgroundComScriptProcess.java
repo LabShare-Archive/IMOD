@@ -1,7 +1,10 @@
 package etomo.process;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2004/08/24 20:43:35  sueh
+ * <p> bug# 508 change kill() to killMonitor()
+ * <p>
  * <p> Revision 1.4  2004/08/23 23:31:49  sueh
  * <p> bug# 508 moved rename combine.out, removed unecessary
  * <p> throws from parseWarning and parseError, changed setKilled(boolean)
@@ -92,16 +98,104 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     this.comscriptState = comscriptState;
   }
   
-  protected void renameFiles() {
-    super.renameFiles();
+  /**
+   * Since background processes can run after etomo has exited, it would be
+   * easy to start a second combine that would interfer and cause
+   * file corruption.
+   * Check to see if comscript log is open by using lsof (list open files)
+   * If it is, stop the monitor and return false
+   * If the monitor isn't stopped it reattaches to the existing combine.log
+   */
+  protected boolean isComScriptBusy() {
+    File pidFile = new File(workingDirectory, watchedFileName);
+    String groupPid = null;
+    SystemProgram lsof = null;
+    if (pidFile.exists()) {
+      groupPid = parsePIDString(pidFile);
+    }
+    if (groupPid == null) {
+      lsof = new SystemProgram("/usr/sbin/lsof -w -S -l -M -L");     
+    }
+    else {
+      lsof =
+          new SystemProgram("/usr/sbin/lsof -w -S -l -M -L -g " + groupPid);
+    }
+    lsof.run();
+    String[] stdout = lsof.getStdOutput();
+    if (stdout == null || stdout.length == 0) {
+      return false;
+    }
+    String header = stdout[0].trim();
+    String[] labels = header.split("\\s+");
+    int idxNAME = -1;
+    int idxTYPE = -1;
+
+    int found = 0;
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].equals("NAME")) {
+        idxNAME = i;
+        found++;
+      }
+      else if (labels[i].equals("TYPE")) {
+        idxTYPE = i;
+        found++;
+      }
+      if (found >= 2) {
+        break;
+      }
+    }
+    //  Return null if the PID or PPID fields are not found
+    if (idxNAME == -1 || idxTYPE == -1) {
+      return false;
+    }
+    String[] fields;
+    File comscriptLog = new File(workingDirectory, comscriptState.getComscriptName() + ".log");
+    for (int i = 1; i < stdout.length; i++) {
+      fields = stdout[i].trim().split("\\s+");
+      int nameIndex = idxNAME;
+      //check for missing size entry
+      if (fields.length == idxNAME) {
+        nameIndex = idxNAME - 1;
+      }
+      if (fields[idxTYPE].equals("REG") && 
+          fields[nameIndex].equals(comscriptLog.getAbsolutePath())){
+        killMonitor();
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  protected boolean renameFiles() {
+    try {
+      renameFiles(name, watchedFileName, workingDirectory);
+    }
+    catch (IOException e) {
+      errorMessage = new String[2];
+      errorMessage[0] = e.getMessage();
+      errorMessage[1] = name + " may already be running.  Check the log file.";
+      e.printStackTrace();
+      return false;
+    }
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
     int index = startCommand;
     while (index <= endCommand) {
-      renameFiles(comscriptState.getCommand(index) + ".com", 
-        comscriptState.getWatchedFile(index), workingDirectory);
+      try {
+        renameFiles(comscriptState.getCommand(index) + ".com", 
+          comscriptState.getWatchedFile(index), workingDirectory);
+      }
+      catch (IOException e) {
+        errorMessage = new String[2];
+        errorMessage[0] = e.getMessage();
+        errorMessage[1] = 
+          name + " may already be running.  Check the log file.";
+        e.printStackTrace();
+        return false;
+      }
       index++;
     }
+    return true;
   }
 
   /**
@@ -116,12 +210,11 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     
     String runCshFileName = "run" + runName + ".csh";
     File runCshFile = new File(workingDirectory, runCshFileName);
-    
-    String outFileName = runName + ".out";
-    File outFile = new File(workingDirectory, outFileName);
+
+    File outFile = new File(workingDirectory, watchedFileName);
     
     Utilities.writeFile(cshFile, commands, true);
-    makeRunCshFile(runCshFile, cshFileName, outFileName);
+    makeRunCshFile(runCshFile, cshFileName, watchedFileName);
     
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
@@ -219,5 +312,54 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     }
     return (String[]) errors.toArray(new String[errors.size()]);
   }
+  
+  /** 
+   * want to parse the pid file on this thread, without access to the system
+   * program thread so I can't use ParseBackgroundPID.
+   * @param outFile
+   * @return
+   */
+  private String parsePIDString(File outFile) {
+
+    StringBuffer PID = new StringBuffer();
+    BufferedReader bufferedReader = null;
+    try {
+      bufferedReader = new BufferedReader(new FileReader(outFile));
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+      closeFile(bufferedReader);
+      return null;
+    }
+    String line;
+    try {
+      if ((line = bufferedReader.readLine()) != null) {
+        if (line.startsWith("Shell PID:")) {
+          String[] tokens = line.split("\\s+");
+          if (tokens.length > 2) {
+            PID.append(tokens[2]);
+          }
+        }
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    closeFile(bufferedReader);
+    return PID.toString();
+  }
+  
+  private void closeFile(BufferedReader bufferedReader) {
+    try {
+      if (bufferedReader != null) {
+        bufferedReader.close();
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+
  
 }
