@@ -1,6 +1,6 @@
 	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc
-	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim
-	parameter (maxsiz=1024*1024*32)		!# of pixels
+	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
+	parameter (maxsiz=1024*1024*48)		!# of pixels
 c	  
 c	  set limvar to LESS THAN the square root of maxsiz
 c	  
@@ -25,10 +25,11 @@ c
 	equivalence (nxin,nxyzin(1))
 	equivalence (nxout,nxyzout(1))
 	equivalence (noverlap(1),nxoverlap)
-	integer*4 npclist,minxpiece,minypiece,nxpieces,nypieces
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
+	integer*4 npclist,minxpiece,minypiece,nxpieces,nypieces,interpOrder
+	real*4 dmean
+	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,nypieces,
+     &	    nxoverlap,nyoverlap,npclist,minxpiece,minypiece,interpOrder,
+     &	    dmean,nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
      &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
      &	    edgelonear,edgehinear
 c
@@ -48,9 +49,10 @@ c
      &	    hxcen,hycen, gxcen,gycen, ginv,hinv
 c	  
 	parameter (memlim=128)
-	integer*4 izmemlist(memlim),lastused(memlim)
-	integer*4 npixin,limsec,jusecount
-	common /shuffl/ npixin,limsec,jusecount,izmemlist,lastused
+	integer*4 izmemlist(memlim),lastused(memlim),memIndex(limnpc)
+	integer*4 npixin,maxload,jusecount,ilistz
+	common /shuffl/ npixin,maxload,jusecount,ilistz,izmemlist,lastused,
+     &	    memIndex
 c
 	parameter (limedgbf=20,ixgdim=256,iygdim=256)
 	integer*4 ibufedge(limedge,2),iedgbflist(limedgbf)
@@ -69,3 +71,17 @@ c
      &	    iedgbflist, ixybflist,
      &	    lasedguse, nxgrbf ,nygrbf,ixgrdstbf,iygrdstbf, ixofsbf,
      &	    iyofsbf,intxgrbf,intygrbf,dxgrbf,dygrbf ,ddengrbf,intgrcopy
+c
+	parameter (lmField = 200, maxFields = 16)
+	real*4 distDx(lmField,lmField),distDy(lmField,lmField)
+	real*4 fieldDx(lmField,lmField,maxFields)
+	real*4 fieldDy(lmField,lmField,maxFields)
+	logical doFields,undistort,doMagGrad,focusAdjusted, doingEdgeFunc
+	real*4 pixelMagGrad, axisRot
+	real*4 tiltAngles(limsect), dmagPerUm(limsect), rotPerUm(limsect)
+	integer*4 ixFieldStrt, iyFieldStrt, nxField, nyField, numMagGrad
+	real*4 xFieldIntrv, yFieldIntrv
+	common /distrt/ doFields,undistort,doMagGrad,focusAdjusted,
+     &	    doingEdgeFunc,pixelMagGrad, axisRot,ixFieldStrt, iyFieldStrt,
+     &	    nxField, nyField, numMagGrad,xFieldIntrv, yFieldIntrv,
+     &	    distDx,distDy,fieldDx,fieldDy,tiltAngles,dmagPerUm,rotPerUm
