@@ -17,6 +17,18 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/08/19 02:45:11  sueh
+ * <p> bug# 508 Took the get process exit value functionality out of run() and
+ * <p> placed it into a function so that it can be overridden.  Did the same
+ * <p> with the sleep call that comes after exec'ing the process - called it
+ * <p> waitForProcess.  WaitForProcess() doesn't mean much in this class,
+ * <p> but it is really useful in BackgroundSystemProgram.
+ * <p> Added:
+ * <p> getProcessExitValue(Process process)
+ * <p> waitForProcess()
+ * <p> Changed:
+ * <p> run()
+ * <p>
  * <p> Revision 3.6  2004/05/25 23:23:03  rickg
  * <p> Bug #391 ignore IOExceptions in the stream monitor under the
  * <p> assumption that the program has ended
@@ -109,7 +121,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class SystemProgram implements Runnable {
@@ -127,6 +141,7 @@ public class SystemProgram implements Runnable {
   private boolean started = false;
   private boolean done = false;
   private ArrayList warningList = new ArrayList();
+  private Date runTimestamp = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -221,6 +236,7 @@ public class SystemProgram implements Runnable {
       if (workingDirectory == null) {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
+      runTimestamp = new Date();
       process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
       waitForProcess();
       if (debug)
@@ -472,6 +488,10 @@ public class SystemProgram implements Runnable {
    */
   public boolean isDone() {
     return done;
+  }
+  
+  public Timestamp getRunTimestamp() {
+    return new Timestamp(runTimestamp.getTime());
   }
  
   
