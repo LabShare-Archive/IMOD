@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2004/12/04 02:05:39  mast
+    Added to libdiaqt
+
     Revision 1.2  2004/11/24 18:30:16  mast
     Add adp file on startup
 
@@ -21,9 +24,10 @@
 
 #include <qobject.h>
 #include <qstring.h>
+#include "dllexport.h"
 class QAssistantClient;
 
-class ImodAssistant : public QObject
+class DLL_IM_EX ImodAssistant : public QObject
 {
   Q_OBJECT
 
