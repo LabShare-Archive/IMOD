@@ -61,6 +61,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/09/10 21:33:31  mast
+Eliminated long variables
+
 Revision 3.7.2.1  2004/07/07 19:26:21  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -97,7 +100,7 @@ Changes to accommodate new or old style MRC headers
 #include <math.h>
 
 /*#include <environ.h> */
-#include <mrcfiles.h>
+#include "mrcfiles.h"
 #include "b3dutil.h"
 
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)

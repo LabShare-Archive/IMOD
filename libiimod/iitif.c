@@ -41,6 +41,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.3  2004/01/21 00:56:50  mast
+    Stopped freeing map from byte_map
+
     Revision 3.2  2004/01/05 17:51:16  mast
     renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
     unsigned short to b3dUInt16
@@ -51,9 +54,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 */
 
 
-#include <imodconfig.h>
+#include "imodconfig.h"
 #ifdef NOTIFFLIBS
-#include <notiffio.h>
+#include "notiffio.h"
 #else
 #include <tiffio.h>
 #endif

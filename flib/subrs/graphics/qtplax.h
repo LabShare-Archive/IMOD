@@ -2,7 +2,7 @@
 #define _PLAX_H_
 
 /* DNM 8/17/00: add this to get the flags in as needed */
-#include <imodconfig.h>
+#include "imodconfig.h"
 
 #ifndef QTPLAX_NO_THREAD
 #define QT_THREAD_SUPPORT

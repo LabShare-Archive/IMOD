@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/09/28 15:12:03  mast
+    Move clipping plane functions to iplane
+
     Revision 3.3  2004/09/21 20:08:59  mast
     Added clipping plane declarations
 
@@ -47,7 +50,7 @@
 #ifndef IVIEW_H
 #define IVIEW_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 #ifdef __cplusplus
 extern "C" {

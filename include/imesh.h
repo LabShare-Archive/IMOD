@@ -29,7 +29,7 @@
 #ifndef IMESH_H
 #define IMESH_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 /****************************************************************************/
 /*

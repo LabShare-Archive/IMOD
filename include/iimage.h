@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/11/04 17:08:29  mast
+Added element for mirroring FFTs
+
 Revision 3.2  2004/01/05 17:24:00  mast
 Renamed imin/imax to smin/smax and changed iiSetMM arguments to float
 
@@ -15,7 +18,7 @@ Declare extern C if c++
 #ifndef IIMAGE_H
 #define IIMAGE_H
 
-#include <mrcc.h>
+#include "mrcc.h"
 #include <math.h>
 
 #ifdef __cplusplus

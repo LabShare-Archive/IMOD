@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/09/21 20:10:42  mast
+    Added tag argument for label writing
+
     Revision 3.2  2003/02/27 00:34:40  mast
     add projects' *.dsw *.dsp
 
@@ -41,7 +44,7 @@
 */
 
 #include <string.h>
-#include <imodel.h>
+#include "imodel.h"
 
 /*#include <unistd.h>*/
 

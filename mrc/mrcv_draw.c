@@ -35,7 +35,7 @@
 #include <gl/device.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <imodel.h>
+#include "imodel.h"
 
 /* MRC include files    */
 #include "mrcv.h"

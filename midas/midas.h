@@ -56,8 +56,8 @@ class FloatSpinBox;
 #include <qvbox.h>
 #include <qspinbox.h>
 
-#include <imodconfig.h>
-#include <mrcc.h>
+#include "imodconfig.h"
+#include "mrcc.h"
 #include <qgl.h>
 #include "slots.h"
 #include "graphics.h"
@@ -386,6 +386,9 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 
 /*
 $Log$
+Revision 3.8  2004/10/25 18:51:52  mast
+Added optoin to output to different file from input file
+
 Revision 3.7  2004/08/04 22:35:13  mast
 Changed unsigned long to b3dUInt32 for 64-bit use
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/04/22 19:08:45  mast
+Added error checks and returns on mrc I/O calls
+
 Revision 3.3  2003/11/18 19:29:50  mast
 changes to call b3dF* functions for 2GB problem on Windows
 
@@ -47,7 +50,7 @@ overwriting to an output file
 */
 
 #include <stdlib.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "clip.h"
 
 

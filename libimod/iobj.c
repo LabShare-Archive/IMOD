@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/09/21 20:12:48  mast
+Added function to maintain surface labels and max surface number
+
 Revision 3.2  2003/06/27 20:16:26  mast
 Added functions to get specific contour in object and to set object color,
 fixed problem with setting closed property, made sure mat bytes are all zeroed
@@ -47,7 +50,7 @@ Use new b3d types
 #include <limits.h>
 #include <float.h>
 
-#include <imodel.h>
+#include "imodel.h"
 
 
 Iobj *imodObjectNew()

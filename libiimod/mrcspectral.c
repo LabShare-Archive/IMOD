@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "b3dutil.h"
 
 #define REAL  0

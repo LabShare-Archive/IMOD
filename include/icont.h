@@ -30,7 +30,7 @@
 #ifndef ICONT_H
 #define ICONT_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 /*****************************************************************************/
 /* contour flags                                                             */

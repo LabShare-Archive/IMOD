@@ -28,7 +28,7 @@
  *****************************************************************************/
 
 #include <math.h>
-#include <imodel.h>
+#include "imodel.h"
 
 /*
  * Create a new matrix structure.  Input dimension can be 2 or 3.

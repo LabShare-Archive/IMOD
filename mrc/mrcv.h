@@ -27,7 +27,7 @@
  *****************************************************************************/
 
 #include <gl/gl.h>
-#include <imodel.h>
+#include "imodel.h"
 
 /* Defines for using cmap mode, byte data. */
 

@@ -28,16 +28,16 @@
 
 #ifndef IMODI_H
 #define IMODI_H
-#include <iimage.h>
+#include "iimage.h"
 
 /*
-#include <iitif.h>
-#include <iimrc.h>
+#include "iitif.h"
+#include "iimrc.h"
 */
 
-#include <mrcfiles.h>
-#include <mrcspectral.h>
-#include <mrcproc.h>
-#include <mrcslice.h>
+#include "mrcfiles.h"
+#include "mrcspectral.h"
+#include "mrcproc.h"
+#include "mrcslice.h"
 
 #endif

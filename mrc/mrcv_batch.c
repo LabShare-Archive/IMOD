@@ -34,7 +34,7 @@
 #include <gl/get.h>
 #include <fmclient.h>
 #include <string.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "colormap.h"
 #include "mrcv.h"
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.10  2004/11/04 17:09:38  mast
+    Changes for mirroring FFTs
+
     Revision 3.9  2004/01/17 20:34:51  mast
     Move b3d file routines and mrc_big_seek to b3dutil
 
@@ -68,8 +71,8 @@
 #define MRCFILES_H
 
 #include <stdio.h>
-#include <hvemtypes.h>
-#include <imodconfig.h>
+#include "hvemtypes.h"
+#include "imodconfig.h"
 
 #ifndef FALSE
 #define FALSE       0           /*false for boolean*/

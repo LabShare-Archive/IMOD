@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.9  2004/09/10 21:33:31  mast
+    Eliminated long variables
+
 */
 
 /* tif2mrc [-b file] [tiff files] [mrcfile] */
@@ -41,7 +44,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
 

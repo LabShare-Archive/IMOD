@@ -77,7 +77,7 @@ $(LIBRANDM):	randm/ransub.f randm/ourrnd.c
 	$(RANLIB) $(LIBRANDM)
 	$(CP) librandm.$(LIBEXT) $(LIBDIR)
 
-$(LIBTRACK):	linetrack/*.f
+$(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	(cd linetrack; $(MAKE) all)
 	\rm -f $(LIBTRACK)
 	$(AR) $(ARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)

@@ -29,9 +29,9 @@
 #ifndef __TIFF_H__
 #define __TIFF_H__
 
-#include <imodconfig.h>
-#include <mrcfiles.h>
-#include <iimage.h>
+#include "imodconfig.h"
+#include "mrcfiles.h"
+#include "iimage.h"
 
 #define TIFFVERSION 42
 #define TIFFENTRIES  7

@@ -26,7 +26,7 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 #ifndef NOFFTLIB
-#include <mrcc.h>
+#include "mrcc.h"
 #include "clip.h"
 
 /* future: get 3d filter working

@@ -16,7 +16,7 @@
  * October 2003: DNM switched meaning of F77FUNCAP to work on Windows/Intel
  */
 
-#include <imodconfig.h>
+#include "imodconfig.h"
 
 #ifdef F77FUNCAP
 

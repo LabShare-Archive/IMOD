@@ -1,4 +1,4 @@
-#include <notiffio.h>
+#include "notiffio.h"
 
 int TIFFSetDirectory(TIFF *d, tdir_t t)
 {

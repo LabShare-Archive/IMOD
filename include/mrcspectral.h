@@ -28,7 +28,7 @@
 
 #ifndef MRCSPECTRAL_H
 #define MRCSPECTRAL_H
-#include <mrcslice.h>
+#include "mrcslice.h"
 
 #ifdef __cplusplus
 extern "C" {

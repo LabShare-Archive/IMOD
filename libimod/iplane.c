@@ -26,7 +26,7 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
-#include <imodel.h>
+#include "imodel.h"
 
 Iplane *imodPlanesNew(int size)
 {

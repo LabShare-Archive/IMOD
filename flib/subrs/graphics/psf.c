@@ -12,14 +12,17 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/10/29 04:31:14  mast
+switch to calling f2cString
+
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* DNM 8/17/00: add this to get the flags in as needed */
-#include <imodconfig.h>
-#include <b3dutil.h>
+#include "imodconfig.h"
+#include "b3dutil.h"
 
 #ifdef F77STRING
 typedef struct

@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/11/04 17:10:27  mast
+libiimod.def
+
 Revision 3.8  2004/03/18 17:56:43  mast
 Changed to calling central routine with extra header byte counts
 
@@ -40,7 +43,7 @@ Added protections against non-Boulder files being recognized as montages
 
 */
 #include <stdlib.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "iimage.h"
 #include "b3dutil.h"
 

@@ -43,8 +43,9 @@
 #include <string.h>
 
 #include "midas.h"
-#include <mrcc.h>
-#include <imodel.h>
+#include "mrcc.h"
+#include "b3dutil.h"
+#include "math.h"
 #include <qpopupmenu.h>
 #include <qmenubar.h>
 #include <qgrid.h>
@@ -832,6 +833,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.13  2004/10/25 18:51:52  mast
+    Added optoin to output to different file from input file
+
     Revision 3.12  2004/07/12 18:42:30  mast
     Changes for chunk alignment and for switching to spin boxes
 

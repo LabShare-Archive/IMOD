@@ -38,7 +38,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include "midas.h"
-#include <imodel.h>
+#include "imodel.h"
 #include <qfile.h>
 #include "dia_qtutils.h"
 
@@ -1698,6 +1698,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.11  2004/10/25 18:51:52  mast
+Added optoin to output to different file from input file
+
 Revision 3.10  2004/08/04 22:35:13  mast
 Changed unsigned long to b3dUInt32 for 64-bit use
 

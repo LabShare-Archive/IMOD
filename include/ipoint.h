@@ -30,7 +30,7 @@
 #ifndef IPOINT_H
 #define IPOINT_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 /*****************************************************************************/
 /* ipoint.c functions                                                        */

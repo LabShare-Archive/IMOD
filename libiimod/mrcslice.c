@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
 Revision 3.4  2004/09/10 21:33:53  mast
 Eliminated long variables
 
@@ -41,7 +44,7 @@ Eliminated long variables
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "b3dutil.h"
 
 /*****************************************************************************

@@ -29,9 +29,9 @@
 #ifndef MRCC_H
 #define MRCC_H
 
-#include <mrcfiles.h>
-#include <mrcspectral.h>
-#include <mrcproc.h>
-#include <mrcslice.h>
+#include "mrcfiles.h"
+#include "mrcspectral.h"
+#include "mrcproc.h"
+#include "mrcslice.h"
 
 #endif

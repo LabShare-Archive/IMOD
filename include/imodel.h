@@ -38,12 +38,12 @@ Log at end of file
 #define IMODEL_H
 #define IMOD_MODEL_H
 
-#include <imodconfig.h>
-#include <hvemtypes.h>
+#include "imodconfig.h"
+#include "hvemtypes.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ilist.h>
+#include "ilist.h"
 
 /* Mouse mode. */
 #define IMOD_MMODEL 1   /* Mouse edits model points.  */
@@ -487,14 +487,14 @@ typedef struct Mod_Transform
 
 
 /* include functions in iobj.c, icont.c, imesh.c, ipoint.c */
-#include <iobj.h>
-#include <icont.h>
-#include <imesh.h>
-#include <ipoint.h> 
-#include <imat.h>
-#include <iplane.h>
-#include <iview.h>
-#include <b3dutil.h>
+#include "iobj.h"
+#include "icont.h"
+#include "imesh.h"
+#include "ipoint.h"
+#include "imat.h"
+#include "iplane.h"
+#include "iview.h"
+#include "b3dutil.h"
 
 /*****************************************************************************/
 /* imodel.c functions                                                        */
@@ -721,6 +721,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.18  2004/09/28 22:21:59  mast
+    Added parselist declaration
+
     Revision 3.17  2004/09/21 20:08:04  mast
     Defined new clipping structures
 

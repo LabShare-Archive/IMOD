@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
 Revision 3.5  2004/07/12 18:42:43  mast
 Changes for chunk alignment
 
@@ -46,7 +49,7 @@ changed to put out virtually all error messages to a window
 
 #include <stdlib.h>
 #include "midas.h"
-#include <imodel.h>
+#include "b3dutil.h"
 #include <qfile.h>
 #include "dia_qtutils.h"
 

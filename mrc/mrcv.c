@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/07/07 19:25:30  mast
+    Changed exit(-1) to exit(3) for Cygwin
+
     Revision 3.2  2003/10/24 02:28:42  mast
     strip directory from program name and/or use routine to make backup file
 
@@ -62,7 +65,7 @@ main(int argc, char **argv)
 #include <limits.h>
 
 /* MRC include files    */
-#include <mrcfiles.h>
+#include "mrcfiles.h"
 #include "mrcv.h"
 #include "imodel.h"
 

@@ -33,10 +33,13 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2004/09/10 21:33:46  mast
+    Eliminated long variables
+
 */
 
 #include <math.h>
-#include <imodel.h>
+#include "imodel.h"
 
 Ipoint *imodPointGet(struct Mod_Model *imod)
 {

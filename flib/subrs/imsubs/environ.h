@@ -23,7 +23,7 @@ Include Files
 /* DNM 8/13/00: add this, make all special cases come through here, remove
  defines for VMS and SEEK64BIT (was SGI64) from section below */
 
-#include <imodconfig.h>
+#include "imodconfig.h"
  
 /******************************************************************************
 Public Definitions

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include <stdlib.h>
 #include "b3dutil.h"
 

@@ -33,11 +33,14 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/09/10 21:33:46  mast
+    Eliminated long variables
+
 */
 
 #include <math.h>
 #include <string.h>
-#include <imodel.h>
+#include "imodel.h"
 #include "b3dutil.h"
 
 /* Library

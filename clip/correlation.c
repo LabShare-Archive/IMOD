@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <mrcc.h>
+#include "mrcc.h"
 
 #include "clip.h"
 
