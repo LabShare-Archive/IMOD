@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/02/15 21:06:43  sueh
+ * <p> bug# 603 Removed SectionType radio buttons (single or serial sections)
+ * <p> because serial sections are handled by the join interface.
+ * <p>
  * <p> Revision 3.20  2005/02/07 22:55:44  sueh
  * <p> bug# 594 Added setDatasetString() to return the value of the dataset field.
  * <p>
@@ -238,6 +242,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
@@ -302,7 +307,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JButton btnDistortionFile = new JButton(iconFolder);
   private LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
     new SpinnerNumberModel(1, 1, 50, 1));
-
+  
+  private JPanel pnlMagGradientInfo = new JPanel();
+  private LabeledTextField ltfMagGradientFile = new LabeledTextField(
+    "Mag gradients correction: ");
+  private JButton btnMagGradientFile = new JButton(iconFolder);
+  
   //  Tilt angle GUI objects
   private JPanel pnlPerAxisInfo = new JPanel();
   private JPanel pnlAxisInfoA = new JPanel();
@@ -370,7 +380,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnDistortionFile.setPreferredSize(FixedDim.folderButton);
     btnDistortionFile.setMaximumSize(FixedDim.folderButton);
     //ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
-
+    btnMagGradientFile.setPreferredSize(FixedDim.folderButton);
+    btnMagGradientFile.setMaximumSize(FixedDim.folderButton);
+    
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
@@ -378,7 +390,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnBackupDirectory
       .addActionListener(new BackupDirectoryActionListener(this));
     btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
-
+    btnMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
+    
     rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
     rbDualAxis.addActionListener(new DualAxisActionListener(this));
     btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
@@ -412,8 +425,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
     pnlAxisType.add(rbSingleAxis);
     pnlAxisType.add(rbDualAxis);
-    rbSingleView.setEnabled(false);
-    rbMontage.setEnabled(false);
+    rbSingleView.setEnabled(true);
+    rbMontage.setEnabled(true);
 
     bgViewType.add(rbSingleView);
     bgViewType.add(rbMontage);
@@ -461,10 +474,18 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDistortionInfo.add(spnBinning.getContainer());
     pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x5_y0));
 
+    pnlMagGradientInfo.setLayout(new BoxLayout(pnlMagGradientInfo,
+        BoxLayout.X_AXIS));
+    pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlMagGradientInfo.add(ltfMagGradientFile.getContainer());
+    pnlMagGradientInfo.add(btnMagGradientFile);
+    pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+      
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlImageRows.add(pnlDistortionInfo);
+    pnlImageRows.add(pnlMagGradientInfo);
 
     btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
     pnlImageRows.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -538,6 +559,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
     ltfDistortionFile.setText(metaData.getDistortionFile());
+    ltfMagGradientFile.setText(metaData.getMagGradientFile());
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
     if(!Double.isNaN(metaData.getPixelSize())) {
@@ -570,6 +592,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     MetaData metaData = getDataset();
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDistortionFile(ltfDistortionFile.getText());
+    metaData.setMagGradientFile(ltfMagGradientFile.getText());
     metaData.setViewType(getViewType());
     String currentField = "";
     try {
@@ -647,6 +670,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
         String distortionFileName = distortionFile.getName();
         applicationManager.getMainPanel().openMessageDialog(
             "The image distortion field file " + distortionFileName
+                + " does not exist.", errorMessageTitle);
+        return false;
+      }
+    }
+    //validate mag gradient field file name
+    //optional
+    //file must exist
+    String magGradientFileText = ltfMagGradientFile.getText();
+    if (!magGradientFileText.equals("")) {
+      File magGradientFile = new File(magGradientFileText);
+      if (!magGradientFile.exists()) {
+        String magGradientFileName = magGradientFile.getName();
+        applicationManager.getMainPanel().openMessageDialog(
+            "The mag gradients correction file " + magGradientFileName
                 + " does not exist.", errorMessageTitle);
         return false;
       }
@@ -795,6 +832,43 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = chooser.getSelectedFile();
       try {
         ltfDistortionFile.setText(distortionFile.getAbsolutePath());
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Lets the user choose the mag gradients correction file.
+   * @param event
+   */
+  private void btnMagGradientFileAction(ActionEvent event) {
+    //Open up the file chooser in the calibration directory, if available,
+    //otherwise open in the working directory
+    String currentMagGradientDirectory = ltfMagGradientFile.getText();
+    if (currentMagGradientDirectory.equals("")) {
+      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
+      File magGradientDir = new File(calibrationDir.getAbsolutePath(),
+        "Distortion");
+      if (magGradientDir.exists()) {
+        currentMagGradientDirectory = magGradientDir.getAbsolutePath();
+      }
+      else {
+        currentMagGradientDirectory = applicationManager.getPropertyUserDir();
+      }
+    }
+    JFileChooser chooser = new JFileChooser(
+      new File(currentMagGradientDirectory));
+    MagGradientFileFilter magGradientFileFilter = new MagGradientFileFilter();
+    chooser.setFileFilter(magGradientFileFilter);
+    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File magGradientFile = chooser.getSelectedFile();
+      try {
+        ltfMagGradientFile.setText(magGradientFile.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -1022,6 +1096,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       adaptee.btnDistortionFileAction(event);
     }
   }
+  
+  class MagGradientFileActionListener implements ActionListener {
+
+    SetupDialog adaptee;
+
+    MagGradientFileActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnMagGradientFileAction(event);
+    }
+  }
+
 
   class SingleAxisActionListener implements ActionListener {
 
