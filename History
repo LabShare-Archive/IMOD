@@ -1,5 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-11
+2/6/03: Made tif2mrc exit with error when output file cannot be opened.
+
+1/30/03: Fixed imodinfo so that when looking at subset surface areas with
+either clipping planes or bounding coordinates, mesh triangles that are cut
+by a boundary are divided between the two sides, so that all the area shows up
+somewhere.
+
+1/17/03: Fixed bug in model output section of tiltalign that crashed program
+if there were many contours with 1 point.
+
+12/23/02: Fixed exit status of patch2imod and various other utilities; also
+made patch2imod set up the symbol properties of a residual model so the start
+and end of each residual vector shows up as green and red crosses.
+
+12/20/02: Added ability to get both a residual output file and a 3-D model
+of fiducials from Tiltalign, and allowed the minimum size of patches for local
+alignment to be specified by fractional overlaps; modified com files to use
+these capabilities.
+
 IMOD_2-7-10
 12/10/02: Prevented Edit-image-flip during initial image load from crashing
 Imod; also stopped a big memory leak upon closing zap windows.
@@ -8,7 +28,8 @@ Imod; also stopped a big memory leak upon closing zap windows.
 
 IMOD_2-7-9
 12/3/02: Fixed Transferfid to keep from getting no points in clipped out model
-due to roundoff errors.  Also added full error trapping and reporting.
+due to roundoff errors.  Also added full error trapping and reporting, and 
+ability to transfer from B to A easily.
 
 IMOD_2-7-8
 12/3/02: Changes to prevent multiple file dialog boxes from appearing in
