@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/11/12 15:22:13  mast
+Added min and max functions and macros
+
 Revision 1.5  2004/03/18 17:56:57  mast
 Added header byte count routine
 
@@ -61,8 +64,8 @@ extern "C" {
 
   void b3dHeaderItemBytes(int *nflags, int *nbytes);
 
-  int b3dMin(char *types, ...);
-  int b3dMax(char *types, ...);
+  int b3dIMin(int narg, ...);
+  int b3dIMax(int narg, ...);
 
 #ifdef __cplusplus
 }
