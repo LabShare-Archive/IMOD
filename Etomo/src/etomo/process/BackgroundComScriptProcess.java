@@ -27,6 +27,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2004/08/20 21:39:45  sueh
+ * <p> bug# 508 added parseWarning()
+ * <p>
  * <p> $Revision 1.2  2004/08/19 01:45:03  sueh
  * <p> $bug# 508 Removed the -e when running combine.csh, because it
  * <p> $wasn't returning errors.  Added file renaming based the state of
@@ -113,7 +116,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     File outFile = new File(workingDirectory, outFileName);
     
     Utilities.writeFile(cshFile, commands, true);
-    Utilities.renameFile(outFile, new File(outFile.getAbsolutePath() + "~"));
     makeRunCshFile(runCshFile, cshFileName, outFileName);
     
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
@@ -125,8 +127,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     csh.setWorkingDirectory(workingDirectory);
     csh.setDebug(debug);
     
-    ParseBackgroundPID parsePID =
-      new ParseBackgroundPID(csh, cshProcessID, outFile);
+    ParseBackgroundPID parsePID = 
+        new ParseBackgroundPID(csh, cshProcessID, outFile);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     
@@ -171,9 +173,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * set killed in the process monitor
    * @param killed
    */
-  public void setKilled(boolean killed) {
+  public void kill() {
     if (backgroundProcessMonitor != null) {
-      backgroundProcessMonitor.setKilled(killed);
+      backgroundProcessMonitor.kill();
     }
   }
   
@@ -183,10 +185,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * comscriptState that may have been executed.
    */
   protected String[] parseError() throws IOException {
-    if (backgroundProcessMonitor.isProcessRunning()) {
-      throw new IllegalStateException(
-        "parseError() called while process is running.");
-    }
     ArrayList errors = parseError(name, true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
@@ -205,10 +203,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * comscriptState that may have been executed.
    */
   protected String[] parseWarning() throws IOException {
-    if (backgroundProcessMonitor.isProcessRunning()) {
-      throw new IllegalStateException(
-        "parseWarning() called while process is running.");
-    }
     ArrayList errors = parseWarning(name, true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
