@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.11  2003/01/29 01:33:15  mast
 changes for colormap switching
 
@@ -418,9 +421,8 @@ void InfoWindow::editObjectSlot(int item)
     return;
 
   obj = imodel_object_get(App->cvi->imod);
-  if (!obj)
-    if (item)
-      return;
+  if (!obj && item != EOBJECT_MENU_NEW)
+    return;
      
   switch(item){
   case EOBJECT_MENU_NEW: /* New */
