@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.33  2003/05/09 23:25:36  rickg
+ * <p> Working change to get env vars from all OSs
+ * <p>
  * <p> Revision 2.32  2003/05/09 17:52:59  rickg
  * <p> include this in ImodManager constructor, needed for fiducial model calls
  * <p>
@@ -2757,35 +2760,36 @@ public class ApplicationManager {
       openMessageDialog(message, "Program Initialization Error");
       System.exit(1);
     }
-
-    //  Set the user.dir system property to the current working dirctory
-    String workingDirectory = getEnvironmentVariable("PWD");
-    if (workingDirectory == "") {
-      String[] message = new String[2];
-      message[0] = "Can not find current working directory!";
-      message[1] = "Home directory will be the starting point for file opens.";
-      openMessageDialog(message, "Program Initialization Error");
-    }
-    else {
-      // Set the System property user.dir to the current working directory
-      System.setProperty("user.dir", workingDirectory);
+    if (debug) {
+      System.err.println("Home directory: " + homeDirectory);
+      System.err.println(
+        "Working directory: " + System.getProperty("user.dir"));
     }
 
     // Get the IMOD directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    // If not punt...
     IMODDirectory = System.getProperty("IMOD_DIR");
     if (IMODDirectory == null) {
       IMODDirectory = getEnvironmentVariable("IMOD_DIR");
+      if (IMODDirectory == "") {
+        String[] message = new String[3];
+        message[0] =
+          "Can not find IMOD directory! Unable to view documentation";
+        message[1] =
+          "Set IMOD_DIR environment variable and restart program to fix this problem";
+        openMessageDialog(message, "Program Initialization Error");
+      }
+      else {
+        if (debug) {
+          System.err.println("IMOD_DIR (env): " + IMODDirectory);
+        }
+      }
     }
-    if (IMODDirectory == "") {
-      String[] message = new String[3];
-      message[0] = "Can not find IMOD directory! Unable to view documentation";
-      message[1] =
-        "Set IMOD_DIR environment variable and restart program to fix this problem";
-      openMessageDialog(message, "Program Initialization Error");
-      System.exit(1);
+    else {
+      if (debug) {
+        System.err.println("IMOD_DIR (-D): " + IMODDirectory);
+      }
     }
 
     //  Create a File object specifying the user configuration file
@@ -3029,37 +3033,75 @@ public class ApplicationManager {
   private String getEnvironmentVariable(String varName) {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
-    SystemProgram echoHome = new SystemProgram("env");
-    try {
-      echoHome.setDebug(debug);
-      echoHome.run();
-    }
-    catch (Exception excep) {
-      excep.printStackTrace();
-      System.err.println(excep.getMessage());
-      System.err.println(
-        "Unable to run env command to find "
-          + varName
-          + " environment variable");
+    SystemProgram readEnvVar;
+    String osName = System.getProperty("os.name");
 
-      return "";
-    }
-    String[] stderr = echoHome.getStdError();
-    if (stderr.length > 0) {
-      System.err.println("Error running 'env' command");
-      for (int i = 0; i < stderr.length; i++) {
-        System.err.println(stderr[i]);
+    if (osName.startsWith("Windows")) {
+      readEnvVar = new SystemProgram("cmd.exe /C echo %" + varName + "%");
+      try {
+        readEnvVar.setDebug(debug);
+        readEnvVar.run();
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+        System.err.println(excep.getMessage());
+        System.err.println(
+          "Unable to run cmd command to find "
+            + varName
+            + " environment variable");
+
+        return "";
+      }
+      String[] stderr = readEnvVar.getStdError();
+      if (stderr.length > 0) {
+        System.err.println("Error running 'cmd.exe' command");
+        for (int i = 0; i < stderr.length; i++) {
+          System.err.println(stderr[i]);
+        }
+      }
+
+      // Return the first line from the command  
+      String[] stdout = readEnvVar.getStdOutput();
+      if (stdout.length > 0) {
+        return stdout[0];
       }
     }
 
-    // Search through the evironment string array to find the request
-    // environment variable
-    String searchString = varName + "=";
-    int nChar = searchString.length();
-    String[] stdout = echoHome.getStdOutput();
-    for (int i = 0; i < stdout.length; i++) {
-      if (stdout[i].indexOf(searchString) == 0) {
-        return stdout[i].substring(nChar);
+    //  Non windows environment
+    else {
+
+      readEnvVar = new SystemProgram("env");
+      try {
+        readEnvVar.setDebug(debug);
+        readEnvVar.run();
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+        System.err.println(excep.getMessage());
+        System.err.println(
+          "Unable to run env command to find "
+            + varName
+            + " environment variable");
+
+        return "";
+      }
+      String[] stderr = readEnvVar.getStdError();
+      if (stderr.length > 0) {
+        System.err.println("Error running 'env' command");
+        for (int i = 0; i < stderr.length; i++) {
+          System.err.println(stderr[i]);
+        }
+      }
+
+      // Search through the evironment string array to find the request
+      // environment variable
+      String searchString = varName + "=";
+      int nChar = searchString.length();
+      String[] stdout = readEnvVar.getStdOutput();
+      for (int i = 0; i < stdout.length; i++) {
+        if (stdout[i].indexOf(searchString) == 0) {
+          return stdout[i].substring(nChar);
+        }
       }
     }
     return "";
