@@ -20,6 +20,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
@@ -41,6 +42,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/09 04:49:17  sueh
+* <p> bug# 565 Removed isDataParamDirty.  Synchronized storage of param
+* <p> file with store(Storable[]).  Automatically saving to param file on exit.
+* <p> Changed saveTestParamIfNecessary() to saveTestParamOnExit().
+* <p>
 * <p> Revision 1.4  2004/12/03 02:30:44  sueh
 * <p> bug# 568 Added setDataParamDirty() so that meta data can be changed
 * <p> in other objects.
@@ -180,13 +186,17 @@ public abstract class BaseManager {
   protected abstract void createMainPanel();
   protected abstract void createMetaData();
   protected abstract void createProcessTrack();
+  protected abstract void createState();
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
   protected abstract void startNextProcess(AxisID axisID);
   protected abstract void setMetaData(ImodManager imodManager);
   public abstract BaseMetaData getBaseMetaData();
   public abstract MainPanel getMainPanel();
+  protected abstract void getProcessTrack(Storable[] storable, int index);
   protected abstract BaseProcessTrack getProcessTrack();
+  protected abstract BaseState getBaseState();
   public abstract void kill(AxisID axisID);
+  protected abstract int getNumStorables();
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
@@ -196,6 +206,7 @@ public abstract class BaseManager {
     propertyUserDir = System.getProperty("user.dir");
     createMetaData();
     createProcessTrack();
+    createState();
     createProcessManager();
     createComScriptManager();
     //  Initialize the program settings
@@ -245,15 +256,19 @@ public abstract class BaseManager {
    * information to a file.
    */
   public void saveTestParamFile() {
-    Storable[] storable = new Storable[2];
+    Storable[] storable = new Storable[getNumStorables()];
     storable[0] = getBaseMetaData();
-    storable[1] = getProcessTrack();
+    storable[1] = getBaseState();
+    getProcessTrack(storable, 2);
     save(storable);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
-    // Reset the process track flag
-    getProcessTrack().resetModified();
+    // Reset the process track flag, if it exists
+    BaseProcessTrack processTrack = getProcessTrack();
+    if (processTrack != null) {
+      processTrack.resetModified();
+    }
   }
   
   /** 
@@ -265,6 +280,9 @@ public abstract class BaseManager {
    * @param storable
    */
   private synchronized void save(Storable[] storable) {
+    if (storable == null) {
+      return;
+    }
     backupFile(paramFile);
     ParameterStore paramStore = new ParameterStore(paramFile);
     try {
@@ -279,17 +297,7 @@ public abstract class BaseManager {
       getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
     }
   }
-  
-  /**
-   * save the meta data parameter
-   * information to file.
-   */
-  public void saveMetaData() {
-    Storable[] storable = new Storable[1];
-    storable[0] = getBaseMetaData();
-    save(storable);
-  }
-  
+ 
   /**
    * Exit the program
    */
@@ -460,9 +468,10 @@ public abstract class BaseManager {
     try {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
-      Storable[] storable = new Storable[2];
+      Storable[] storable = new Storable[this.getNumStorables()];
       storable[0] = getBaseMetaData();
-      storable[1] = getProcessTrack();
+      storable[1] = getBaseState();
+      getProcessTrack(storable, 2);
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
