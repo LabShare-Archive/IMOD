@@ -37,6 +37,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2004/03/22 23:47:31  sueh
+ * bug# 83 Use PatchcorrProcessWatcher when running patchcorr.
+ *
  * Revision 3.3  2004/03/11 00:00:33  sueh
  * bug# 61
  *
@@ -628,6 +631,22 @@ public class ProcessManager {
       startComScript(command, newstProcessMonitor, axisID);
     return comScriptProcess.getName();
 
+  }
+
+  /**
+   * Run the appropriate mtffilter com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run newst on.
+   */
+  public String mtffilter(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required newst command
+    //
+    String command = "mtffilter" + axisID.getExtension() + ".com";
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
   }
 
   /**
