@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 
@@ -100,6 +103,7 @@ void wprint(char *fmt, ...)
   va_end (args);
      
   msgstr = msgbuf;
+  msgstr = msgstr.remove(0x07);
 
   // Strip \r's
   while ((lastnl = msgstr.find('\r')) >= 0) {
