@@ -269,14 +269,9 @@ int imodvLoadModel()
   /*     a->imod = tmod; */
 
   /* DNM: changes for storage of object properties in view and 
-     relying on default scaling */
+     relying on default scaling - switched to new method 6/26/03 */
 
-  imodViewStore(tmod, 0);
-     
-  if (!tmod->cview){
-    imodViewModelDefault(tmod, tmod->view);
-  }else
-    imodViewUse(tmod);
+  imodvViewsInitialize(tmod);
 
   imodvSelectModel(a, a->nm - 1);
   return(0);
@@ -577,6 +572,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2003/05/05 15:07:10  mast
+Fix hotkey list
+
 Revision 4.7  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
