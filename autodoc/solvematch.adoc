@@ -72,14 +72,18 @@ surfaces, 1 or -1 for fiducials on one surface (-1 if tomograms inverted), or
 -2 to use matching models only
 tooltip =
 manpage = This entry governs the mode of operation of the program.  To obtain
-the transformation from fiducial points only, enter 2 if there are fiducials
-on two surfaces, 1 if fiducials are on one surface and the tomograms are NOT
-inverted relative to each other, or -1 if the tomograms are inverted and there
-are fiducials on only one surface.  Enter 0 to use model files of
+the transformation from fiducial points only, enter:
+^  2 if there are fiducials on two surfaces, 
+^  1 if fiducials are on one surface and the tomograms are NOT
+inverted relative to each other,
+^ -1 if the tomograms are inverted and there
+are fiducials on only one surface,
+^  0 to use model files of
 corresponding points; with this entry both the matching model points and
-fiducial points will be used if the fiducials are available.  Enter -2 to use
+fiducial points will be used if the fiducials are available.  
+^ -2 to use
 only the matching model points and ignore any entries of fiducial point files.
-The default is 2.
+^The default is 2.
 
 [Field = MaximumResidual]
 short = maxresid

@@ -181,7 +181,9 @@ continuation line should not have \fB#\fR or \fB[\fR as its first non-white
 space character, nor should it contain the key-value delimiter.  Lines are
 added to a help string until a line with the delimiter is encountered.  If
 you want to use = in help strings, change the delimiter to ==
-as shown above.
+as shown above.  Use \fB^\fR at the beginning of a continuation line to
+start a new line before outputting the text on the line.  Spaces after 
+the \fB^\fR will be retained, so that lines can be indented in a man page.
 
 Lines containing only white space, and lines with \fB#\fR as the first
 non-white space, are ignored.
