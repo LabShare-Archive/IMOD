@@ -6,7 +6,7 @@ O        = $(OBJEXT)
 OBJS = amat_to_rotmag.$(O) amat_to_rotmagstr.$(O) rotmag_to_amat.$(O)\
  rotmagstr_to_amat.$(O) xfapply.$(O) xfinvert.$(O) xflincom.$(O) xfcopy.$(O) \
  xfmult.$(O) xfrdall.$(O) xfread.$(O) xfunit.$(O) xfwrite.$(O) \
- readdistortions.$(O) interpolategrid.$(O) maggradfield.$(O)
+ readdistortions.$(O) interpolategrid.$(O) maggradfield.$(O) findxf.$(O)
 
 all: $(OBJS)
 
