@@ -836,6 +836,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
   int bwStep = ImodPrefs->getBwStep();
+  int mean, sd;
 
   if (inputTestMetaKey(event))
     return;
@@ -925,6 +926,14 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       sslice_open(vw);
     break; 
           
+  case Qt::Key_A:
+    if (shifted) {
+      ImodPrefs->getAutoContrastTargets(mean, sd);
+      imodInfoAutoContrast(mean, sd);
+    } else
+      handled = 0;
+    break;
+
   case Qt::Key_C:
     if (shifted)
       inputNextContour(vw);
@@ -1214,6 +1223,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.13  2003/07/30 00:15:51  mast
+Fixed bug that let Z go outside legal limits
+
 Revision 4.12  2003/06/04 23:32:47  mast
 Output integer coordinates numbered from one in f and F outputs
 
