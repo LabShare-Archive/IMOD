@@ -36,29 +36,11 @@
 #ifndef IMOD_H
 #define IMOD_H
 
+class QKeyEvent;
+
 #ifndef IMODP_H
 #include "imodP.h"
 #endif
-
-/* imod plugin */
-/************************************* defines *******************************/
-
-#define IMOD_PLUG_MENU  1      /* Add to special plugin menu. */
-#define IMOD_PLUG_TOOL  2      /* Add to toolbar (future)     */
-#define IMOD_PLUG_PROC  4      /* Add to image proc window. (future)  */
-#define IMOD_PLUG_VIEW  8      /* Add to model view window. */
-#define IMOD_PLUG_KEYS 16      /* Handle key events. */
-#define IMOD_PLUG_FILE 32      /* Allow other image files to be loaded. */
-
-#define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
-#define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
-#define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
-
-
-       // 1/12/03: Moved plugin stuff to imodplug.h
-
-       // 1/1/03: Moved ivwControl stuff to control.h, until all files can
-       // read c++
 
 /*********************** Graphics functions. *********************************/
 
@@ -77,71 +59,8 @@
 
 #define IMOD_DRAW_ALL (IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD)
 
-/*
- *  Send a message to all imod parts that an update is needed.
- */
-int  ivwDraw(ImodView *inImodView, int inFlags);
-
-/*
- *  The general draw update function. 
- */
-int  ivwRedraw(ImodView *vw);
-
-/* Get pixel values of the greyscale color ramp. */
-void ivwGetRamp(ImodView *inImodView, int *outRampBase, int *outRampSize);
-int  ivwGetObjectColor(ImodView *inImodView, int inObject);
-
-void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ);
-int  ivwGetImageType(ImodView *view, unsigned int *otype, 
-		     unsigned int *oformat);
-void ivwGetLocation(ImodView *inImodView, int *outX, int *outY, int *outZ);
-void ivwGetLocationPoint(ImodView *inImodView, Ipoint *outPoint);
-void ivwSetLocation(ImodView *inImodView, int inX, int inY, int inZ);
-void ivwSetLocationPoint(ImodView *inImodView, Ipoint *inPoint);
-
-
-/*
- * 4D data functions     
- */
-/* returns max time index, the current time is retured via outTime. */
-int   ivwGetTime(ImodView *inImodView, int *outTime);
-/* set the current time to inTime */
-void  ivwSetTime(ImodView *inImodView, int inTime);
-/* get max time */
-int   ivwGetMaxTime(ImodView *inImodView);
-/* get label for time. */
-char *ivwGetTimeLabel(ImodView *inImodView);
-char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
-
-/* 
- * Returns line pointers to raw grey scale image data for given z section. 
- */
-unsigned char **ivwGetZSection(ImodView *inImodView, int inSection);
-unsigned char **ivwGetCurrentZSection(ImodView *inImodView);
-unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time);
-     
-/* Returns grey scale value for given image coordinate. */
-int ivwGetValue(ImodView *inImodView, int inX, int inY, int inZ);
-
-/* Return value from image file. */
-float ivwGetFileValue(ImodView *inImodView, int inX, int inY, int inZ);
-
-
-/**************************** Model data functions. ***************************
- *
- * See the libimod library functions for using the model structure.
- *
- */
-
-/*
- *  Get the model associated with the view.
- */
-Imod *ivwGetModel(ImodView *inImodView);
-
-/*
- *  Get the extra object
- */
-Iobj *ivwGetExtraObject(ImodView *inImodView);
+#include "imodview.h"
+extern "C" {
 
 /*
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
@@ -149,21 +68,23 @@ Iobj *ivwGetExtraObject(ImodView *inImodView);
  */
 void imodDrawModel(ImodView *inImodView, Imod *inModel);
 
+/* imod plugin */
+/************************************* defines *******************************/
+
+#define IMOD_PLUG_MENU  1      /* Add to special plugin menu. */
+#define IMOD_PLUG_TOOL  2      /* Add to toolbar (future)     */
+#define IMOD_PLUG_PROC  4      /* Add to image proc window. (future)  */
+#define IMOD_PLUG_VIEW  8      /* Add to model view window. */
+#define IMOD_PLUG_KEYS 16      /* Handle key events. */
+#define IMOD_PLUG_FILE 32      /* Allow other image files to be loaded. */
+
+#define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
+#define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
+#define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
+
 
 /**************************** Application Data *******************************/
-/*
-Display      *imodDisplay(void);
-XtAppContext  imodAppContext(void);
-Widget        imodTopLevel(void);
-*/
-/* These values are the based on the imod global graphics rendering
- * colormap.
- */
-/* 
-Visual       *imodVisual(void);
-XVisualInfo  *imodVisualInfo(void);
-Colormap      imodColormap(void);
-*/
+
 int           imodDepth(void);
 
 
@@ -196,15 +117,18 @@ void wprint(char *fmt, ...);
 /* 1/13/02: removed inputDefaultKeys
  *  Call a keyevent, execute imod hot keys.
  */
-     
+void imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 
 /*****************************************************************************/
-
+}
 #endif /* IMOD_H */
 
 /*
     $Log$
+    Revision 3.5  2003/09/16 02:49:06  mast
+    Changed declarations ofr functions that return image line pointers
+
     Revision 3.4  2003/06/27 19:24:45  mast
     Add function to get extra object
 
