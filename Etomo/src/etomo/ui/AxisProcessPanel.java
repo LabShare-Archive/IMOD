@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.Rectangle;
 
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 
@@ -24,6 +25,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/02/17 02:41:05  sueh
+ * <p> bug# 605 Added saveDisplayState() to save the current width to lastWidth.
+ * <p> In getWidth(), if lastWidth is not null return it instead of calling
+ * <p> computeVisibleRect().
+ * <p>
  * <p> Revision 3.8  2004/11/19 23:47:18  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -174,6 +180,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
 
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.X_AXIS));
+    if (EtomoDirector.getInstance().isNewStuff()) {
+      panelRoot.setBorder(BorderFactory.createRaisedBevelBorder());
+    }
     panelRoot.add(panelProcessSelect);
     panelRoot.add(panelProcessInfo);
   }
