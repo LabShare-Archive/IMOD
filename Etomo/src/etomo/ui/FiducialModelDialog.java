@@ -25,6 +25,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/16 18:52:01  sueh
+ * <p> bug# 276 Added Use Fiducial Model as Seed button with
+ * <p> action = call makeFiducialModelSeedModel() and untoggle
+ * <p> Track button.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -120,6 +125,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   private MultiLineToggleButton btnFixModel =
     new MultiLineToggleButton("<html><b>Fix Fiducial Model</b>");
+    
+  private JPanel pnlSeed = new JPanel();
 
   private boolean transferfidEnabled = false;
 
@@ -132,7 +139,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     buttonExecute.setText("Done");
 
-    btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     Dimension dimButton = UIParameters.getButtonDimension();
     btnSeed.setPreferredSize(dimButton);
     btnSeed.setMaximumSize(dimButton);
@@ -140,8 +146,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTrack.setPreferredSize(dimButton);
     btnTrack.setMaximumSize(dimButton);
-
-    btnUseModel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
     btnUseModel.setPreferredSize(dimButton);
     btnUseModel.setMaximumSize(dimButton);
 
@@ -159,17 +164,19 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-
-    pnlFiducialModel.add(btnSeed);
+    pnlSeed.setLayout(new BoxLayout(pnlSeed, BoxLayout.X_AXIS));
+    pnlSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSeed.add(btnSeed);
+    pnlSeed.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSeed.add(btnUseModel);
+    
+    pnlFiducialModel.add(pnlSeed);
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(btnTrack);
-    pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlFiducialModel.add(btnUseModel);
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(btnFixModel);
@@ -209,6 +216,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    * Set the advanced state for the dialog box
    */
   public void updateAdvanced(boolean state) {
+    btnUseModel.setVisible(state);
     pnlBeadtrack.setAdvanced(state);
     if (applicationManager.isDualAxis()) {
       pnlTransferfid.setAdvanced(state);
