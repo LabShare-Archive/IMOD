@@ -64,6 +64,8 @@ public class ImodManagerTest extends TestCase {
   
 
 
+  //Regression test
+  
   final public void testImodManager() {
     Tester tester;
     //Test single axis
@@ -184,7 +186,7 @@ public class ImodManagerTest extends TestCase {
 
 
   
-  public void testRawStack()
+  final public void testRawStack()
     throws AxisTypeException, SystemProcessException {
     String key = "rawStack";
     AxisID axisID;
@@ -311,6 +313,7 @@ public class ImodManagerTest extends TestCase {
     axisID = AxisID.ONLY;
     Tester tester = newTester(key, axisID);
     
+    //openFullVolume
     //fullVolume.setModelName("");
     tester.setModelName("");
 
@@ -321,18 +324,24 @@ public class ImodManagerTest extends TestCase {
     imodManager.openBeadFixer(key, axisID);
     imodManager.quit(key, axisID);
     assertEquals(imodManager.get(key, axisID), imodManager.get(imodManager.getPrivateKey("combinedTomogram")));
-    
+
     //Test dual
     setUpDual();
     axisID = AxisID.FIRST;
+
+    //openFullVolume
+    tester = newTester(key, axisID);
+    tester.setModelName("");
+
+    imodManager = new ImodManager(applicationManager, metaData);
+    imodManager.open(key, axisID);
+    assertTrue(imodManager.isOpen(key, axisID));
+    tester.equals(imodManager.get(key, axisID));
+
+    //matchingModel
+    
     Tester testerA = newTester(key, axisID);
     Tester testerB = newTester(key, AxisID.SECOND);
-    
-    //fullVolume.setModelName("");
-    testerA.setModelName("");
-    testerB.setModelName("");
-    
-    //matchingModel
     
     //fullVolumeA.openModel(datasetName + "a.matmod");
     //fullVolumeA.modelMode();
@@ -344,24 +353,35 @@ public class ImodManagerTest extends TestCase {
     testerB.openModel(datasetName + "b.matmod");
     testerB.modelMode();
 
-    imodManager = new ImodManager(applicationManager, metaData);
-    imodManager.matchingModel(datasetName);
+    imodManager.model(key, axisID, datasetName + "a.matmod", true);
+    imodManager.model(key, AxisID.SECOND, datasetName + "b.matmod", true);
     assertTrue(imodManager.isOpen(key, axisID));
     assertTrue(imodManager.isOpen(key, AxisID.SECOND));
     testerA.equals(imodManager.get(key, axisID));
     testerB.equals(imodManager.get(key, AxisID.SECOND));
-    imodManager.quit(key, axisID);
     imodManager.quit(key, AxisID.SECOND);
     
     //patchRegionModel
+    
+    tester = newTester(key, axisID);
+
     //fullVolumeA.openModel("patch_region.mod");
     //fullVolumeA.modelMode(); 
-    testerA.openModel("patch_region.mod");
-    testerA.modelMode();
+    tester.openModel("patch_region.mod");
+    tester.modelMode();
 
-    imodManager.patchRegionModel(axisID);
+    imodManager.model(key, axisID, "patch_region.mod", true);
     assertTrue(imodManager.isOpen(key, axisID));
-    testerA.equals(imodManager.get(key, axisID));
+    tester.equals(imodManager.get(key, axisID));
+    
+    //retest openFullVolume
+    tester = newTester(key, axisID);
+    
+    tester.setModelName("");
+
+    imodManager.reset(key, axisID);
+    imodManager.open(key, axisID);
+    tester.equals(imodManager.get(key, axisID));
     imodManager.quit(key, axisID);
   }
   
@@ -716,10 +736,9 @@ public class ImodManagerTest extends TestCase {
     private boolean modelView = false;
     private boolean fillCache = false;
     private boolean useModv = false;
-    private boolean outputWindowID = true;
     private boolean preserveContrast = false;   
     private String modelName = "";
-    private String mode = ImodAssistant.movie;
+    private String mode = ImodState.MOVIE;
 
     
 
@@ -740,12 +759,8 @@ public class ImodManagerTest extends TestCase {
         + fillCache
         + ",useModv="
         + useModv
-        + ",outputWindowID="
-        + outputWindowID
         + ",mode="
         + mode
- //       + ",modelModeSet="
- //       + modelModeSet
         + ",preserveContrast="
         + preserveContrast;
     }
@@ -761,34 +776,30 @@ public class ImodManagerTest extends TestCase {
     }
 
 
-    public void equals(ImodAssistant imod) {
-      assertTrue(imod.getDatasetName().equals(datasetName));
-      //modelName can be overridden
-      assertTrue(modelName.equals(imod.getModelName()) || modelName.equals(imod.getModelNameUsed()));
-      //mode can be overridden
-      assertTrue(mode == imod.getMode() || mode == imod.getModeUsed());
-      assertEquals(imod.isSwapYZ(), swapYZ);
-      assertEquals(imod.isModelView(), modelView);
-      assertEquals(imod.isFillCache(), fillCache);
-      assertEquals(imod.isUseModv(), useModv);
-      assertEquals(imod.isPreserveContrast(), preserveContrast);
+    public void equals(ImodState imodState) {
+      assertTrue(imodState.getDatasetName().equals(datasetName));
+      assertTrue(imodState.getModelName().equals(modelName));
+      assertTrue(imodState.getMode().equals(mode));
+      assertEquals(imodState.isSwapYZ(), swapYZ);
+      assertEquals(imodState.isModelView(), modelView);
+      assertEquals(imodState.isFillCache(), fillCache);
+      assertEquals(imodState.isUseModv(), useModv);
+      assertEquals(imodState.isPreserveContrast(), preserveContrast);
     }
 
 
-    private void print(String key, ImodAssistant imod) {
+    private void print(String key, ImodState imodState) {
       if (key == "modelName") {
-        System.out.println("imodAssistant:");
-        System.out.println(key + "=" + imod.getModelName());
-        System.out.println(key + "Used=" + imod.getModelNameUsed());
+        System.out.println("imodState:");
+        System.out.println(key + "=" + imodState.getModelName());
         System.out.println("this: " + key + "=" + modelName);
       }
       else if (key == "mode") {
-        System.out.println("imodAssistant:");
-        System.out.println(key + "=" + imod.getMode());
-        System.out.println(key + "Used=" + imod.getModeUsed());
+        System.out.println("imodState:");
+        System.out.println(key + "=" + imodState.getMode());
         System.out.println("this: " + key + "=" + mode);      }
       else if (key == "useModv") {
-        System.out.println(key + ": imod=" + imod.isUseModv() + ", this=" + useModv);
+        System.out.println(key + ": imodState=" + imodState.isUseModv() + ", this=" + useModv);
       }
     }
 
@@ -813,7 +824,6 @@ public class ImodManagerTest extends TestCase {
     }
 
     public void setOutputWindowID(boolean outputWindowID) {
-      this.outputWindowID = outputWindowID;
     }
 
     public void openModelPreserveContrast(String modelName) {
@@ -835,13 +845,13 @@ public class ImodManagerTest extends TestCase {
     
     public void setMode(boolean modelMode) {
       if (modelMode) {
-        mode = ImodAssistant.model;
+        mode = ImodState.MODEL;
       }
       else {
-        mode = ImodAssistant.movie;
+        mode = ImodState.MOVIE;
       }
     }
-    
+
     public void setModelName(String modelName) {
       this.modelName = new String(modelName);
     }
