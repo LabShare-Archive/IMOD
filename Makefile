@@ -392,7 +392,7 @@ csrc : ALWAYS
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
 	qtassist/*.h qtassist/*.cpp qtassist/imodqtassist.pro \
-	qtassist/Makefile.dummy \
+	qtassist/Makefile.dummy qtassist/imodqtassist.dsp \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
@@ -435,6 +435,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.43  2004/12/22 05:49:20  mast
+#  Added imodqtassist
+#
 #  Revision 3.42  2004/10/24 21:27:25  mast
 #  Changes for addition of libcfft version of libifft
 #
