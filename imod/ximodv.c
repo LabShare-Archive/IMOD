@@ -27,28 +27,16 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
-#define USEXIMODV
+/*  $Author$
 
-#ifndef USEXIMODV
-#include <imodel.h>
+    $Date$
 
-void imodv_open(struct Mod_Model *imod, int cmapbase)
-{
-     wprint("Model view not yet available for X11 version.\n");
-     return;
-}
+    $Revision$
 
-int  imodv_anim(void)
-{
-     return(0);
-}
+    $Log$
+*/
 
-void imodv_draw()
-{
-     return;
-}
-
-#else
+/* DNM 9/2/02: eliminate conditional no non-existent X version */
 
 #include <Xm/Xm.h>
 #include <X11/keysym.h>
@@ -101,64 +89,32 @@ void imodv_open(struct Mod_Model *imod, int cmapbase)
      return;
 }
 
+/* DNM 9/2/02: changed to call imodv_init for bulk of the initialization */
 static void initstruct(ImodView *vw, ImodvApp *a)
 {
      Screen *screen;
      struct Mod_Draw *md;
+     md = &Imodv_mdraw;
+     imodv_init(a, md);
+
      a->nm = 1;
-     a->cm = 0;
      a->mod = (Imod **)malloc(sizeof(Imod *));
      a->mod[0] = vw->imod;
      a->imod = vw->imod;
-     a->mat  = imodMatNew(3);
-     a->rmat  = imodMatNew(3);
-     
-     a->dobj = imodObjectNew();
+
      /* DNM 8/3/01: start with current object if defined */
      if (a->imod->cindex.object >= 0 && 
 	 a->imod->cindex.object < a->imod->objsize) {
 	  a->ob = a->imod->cindex.object;
 	  a->obj = &(a->imod->obj[a->ob]);
-     } else {
-	  a->obj = a->dobj;
-	  a->ob = 0;
      }
-     md = a->md = &Imodv_mdraw;
-     a->cnear = 0;
-     a->cfar = 1000;
-     a->fovy = 0;
-     a->gc = a->dgc = 0;
-     
-     a->dlist = 0;
-     a->update_dlist = 1;
-     a->movie = 0;
-     a->movieFrames = 0;
-     a->wpid = (XtWorkProcId)0;
-     a->stereo = 0;
-     a->plax = 5.0f;
-     a->lightx = a->lighty = 0;
-     a->wxt = a->wyt = a->wzt = 0;
 
+     /* This is almost certainly superceded! */
      a->rbgcolor.red = a->rbgcolor.green = a->rbgcolor.blue = 255;
-     md->xorg =  md->yorg = md->zorg = 0;
-     md->xrot = md->yrot = md->zrot = 0;  /* current rotation. */
-     md->zoom = 1.0f;
-     md->arot = 10;
-     md->atrans = 5.0f;
-     md->azoom = 1.05f;
-     md->azscale = 0.2;
-     md->xrotm = 0; /* rotation movie */
-     md->yrotm = 0;
-     md->zrotm = 0;
      
      /* control flags */
-     a->fastdraw   = 0;
-     a->crosset    = False;
      a->noborder   = imodv_nob;
      a->fullscreen = imodv_fs;
-     a->drawall    = False;
-     a->moveall    = True;
-     a->current_subset = 0;
 
      a->wxt = vw->xsize/2;
      a->wyt = vw->ysize/2;
@@ -167,14 +123,8 @@ static void initstruct(ImodView *vw, ImodvApp *a)
      a->texMap  = 0;
      a->texTrans = 0;
      a->vi = vw;
-     a->doPick = 0;
-     a->wPick = a->hPick = 5;
 
-     if (App->depth > 8)
-	  a->cindex = False;
-     else
-	  a->cindex = True;
-     a->alpha = 0;
+     /* DNM 9/3/02: do not set cindex here; try to choose visuals */
 
      /* DNM: surely it should be x*x+y*y+z*z, not x*x+y*y+y*y */
      a->r = (a->wxt*a->wxt) + (a->wyt*a->wyt) + (a->wzt*a->wzt);
@@ -193,15 +143,8 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 	  a->depth = App->depth;
      a->gcmap = a->cmap = App->cmap;
      a->db = True;
-     a->visualInfo = App->visualinfo;
      a->cstart = App->objbase;
      a->cstep = -1;
-
-     a->lighting  = True;
-     a->depthcue  = False;
-     a->wireframe = False;
-     a->lowres = 0;
-
 
      a->SGIStereoCommand  = (_XtString)ImodRes_SGIStereoCommand();
      a->SGIRestoreCommand = (_XtString)ImodRes_SGIRestoreCommand();
@@ -215,7 +158,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
      return;
 }
 
-/* DNM: remove the code from here which was quit incomplete, and rely on the
+/* DNM: remove the code from here which was quite incomplete, and rely on the
    quit callback in imodv_input */
 void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call);
 
@@ -225,7 +168,7 @@ void imodvOpen(ImodView *vw)
      Atom wmclose;
      char *window_name;
      ImodvApp *a = Imodv;
-     int ob, co, pt;
+     int ob, co, pt, err;
      Imod *imod = vw->imod;
      int hasPoints = 0;
 
@@ -272,6 +215,20 @@ void imodvOpen(ImodView *vw)
      
      if (!Imodv->topLevel)
 	  return;
+
+     if ((err = imodvGetVisuals(a)) != 0) {
+	  if (err > 0)
+	       wprint("Couldn't get rendering visual for model view."
+		      "  Try running imodv separately.\n");
+	  else
+	       wprint("Error opening model view: Couldn't get color map.\n");
+	  XtDestroyWidget(a->topLevel);
+	  a->topLevel = 0;
+	  imodMatDelete(a->mat);
+	  imodMatDelete(a->rmat);
+	  return;
+     }
+
 
      a->mainWin = XtVaCreateWidget
 	  ("imodv", xmMainWindowWidgetClass, a->topLevel,
@@ -346,5 +303,3 @@ void imodv_new_model(Imod *mod)
          imodViewUse(mod);
      imodvSelectModel(Imodv, 0);
 }
-
-#endif
