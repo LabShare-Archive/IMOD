@@ -2,6 +2,12 @@
 #############################################################################
 #
 set c_includes = '-I$(QTDIR)/include'
+#
+#   default is to assume tifflib does exist
+#
+if ($tifflibs == default) set tifflibs = true
+
+if ($tifflibs == true) set c_includes = '-I$(QTDIR)/include -I/usr/local/include'
 
 echo 'LDFLAGS = -L$(LIBDIR) -dynamic' >> $configure
 
@@ -96,10 +102,6 @@ echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
 echo 'RGBPROGS = '  >> $configure
-#
-#   default is to assume tifflib does not exist
-#
-if ($tifflibs == default) set tifflibs = false
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt

@@ -2,7 +2,8 @@
 #
 # Startup file for users of IMOD on an SGI (if they are running csh or tcsh)
 #
-# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR
+# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
+# or set IMOD_DIR before sourcing this file
 #
 # Source this file from the user's .cshrc or from the system cshrc file
 # (probably /etc/cshrc) by inserting sgi.cshrc

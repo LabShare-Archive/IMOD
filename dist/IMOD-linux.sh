@@ -2,7 +2,8 @@
 #
 # Startup file for bash users of IMOD under Linux
 #
-# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR
+# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
+# or set IMOD_DIR before sourcing this file
 #
 # Place this file in /etc/profile.d
 #
