@@ -618,10 +618,15 @@ void imod_imgcnt(char *string)
 {
   wprint("%s\r", string);
   imod_info_input();
+  if (App->exiting)
+    exit(0);
 }
 
 /*
 $Log$
+Revision 4.5  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.4  2003/02/27 19:35:39  mast
 Removed unneeded imod_open function
 
