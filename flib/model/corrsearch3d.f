@@ -76,6 +76,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/10/24 17:40:17  mast
+c	  Removed -e flag from tcsh command
+c	
 c	  Revision 3.6  2003/10/24 03:48:13  mast
 c	  Use IMOD_DIR and IMOD_CSHELL to run onepatchcorr explicitly for 
 c	  Windows
@@ -195,7 +198,7 @@ c
 	nxyzbsrc(1)=0
 	print *,'Enter name or NX, NY, NZ of the untransformed source',
      &	    ' for the image file being aligned, or Return for none'
-	call get_nxyz(5,nxyzbsrc)
+	call get_nxyz(.false., ' ', ' ', 5,nxyzbsrc)
 	print *,'Enter name of file used to transform the image file',
      &	    ' being aligned, or Return for none'
 	read(5,50)xffile

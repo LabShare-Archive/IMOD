@@ -26,6 +26,14 @@ c	  bottom (lower Y in flipped tomogram), and top (upper Y) edges.
 c
 c	  David Mastronarde, November 1995
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (idim=2100,maxsamp=100000)
 	COMMON //NX,NY,NZ
 C   
@@ -63,7 +71,7 @@ c
 c
 	print *,'Enter either the X, Y and Z dimensions of the tomogram '
      &	    ,'that was','transformed to match, or the name of that file'
-	call get_nxyz(5,nxyzin)
+	call get_nxyz(.false., ' ', 'FILLTOMO', 5,nxyzin)
 c	  
 	print *,'Enter name of file containing inverse transformation ',
      &	    'used by MATCHVOL'

@@ -170,6 +170,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/24 03:47:17  mast
+c	  fix bug of using maxdrop before setting it
+c	
 c	  Revision 3.5  2002/10/23 15:41:44  mast
 c	  Added ability to get solutions with only one layer of patches in Y,
 c	  and to drop back to a solution that is fixed in Y when there are
@@ -294,7 +297,7 @@ c
 c
 	print *,'Enter NX, NY, NZ of tomogram',
      &	      ', or name of either tomogram file'
-	call get_nxyz(1,nxyz)
+	call get_nxyz(.false., ' ', 'FINDWARP', 1,nxyz)
 c	  
 c	  mark positions as nonexistent and fill cx from list positions
 c

@@ -69,6 +69,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/10/23 15:40:22  mast
+c	  Added ability to get a solution with only one layer of patches in
+c	  one of the dimensions, but fixing the column of the matrix for that
+c	  dimension.
+c	
 c	  Revision 3.2  2002/09/09 21:36:00  mast
 c	  Eliminate stat_source: and nimp_source: from all includes
 c	
@@ -104,7 +109,7 @@ c
         call dopen(1,filename,'old','f')
 	print *,'Enter NX, NY, NZ of tomogram',
      &	      ', or name of either tomogram file'
-	call get_nxyz(1,nxyz)
+	call get_nxyz(.false., ' ', 'REFINEMATCH', 1,nxyz)
         write(*,'(1x,a,/,a,$)')
      &      'Enter name of model file with contour enclosing area to '
      &	    //'use,',' or Return to use all patches: '
