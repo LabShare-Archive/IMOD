@@ -129,6 +129,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEObjectMenu->insertItem("&Move...", EOBJECT_MENU_MOVE);
   mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
   mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
+  mEObjectMenu->insertItem("&Break by Z", EOBJECT_MENU_FIXZ);
 
   // Edit Surface submenu
   mESurfaceMenu->insertItem("&New", ESURFACE_MENU_NEW);
@@ -470,6 +471,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.19  2003/05/18 22:59:28  mast
+    Remove icon include file
+
     Revision 4.18  2003/05/18 22:08:48  mast
     Changes to add an application icon
 
