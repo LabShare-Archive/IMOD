@@ -3,7 +3,7 @@
 SUMDENSITY(1)							 SUMDENSITY(1)
 
 NNAAMMEE
-  sumdensity - subtracts one image from another
+  sumdensity - adds densities above a threshold for pixels within contours
 
 SSYYNNOOPPSSIISS
   sumdensity [options] image_file model_file_B output_file
