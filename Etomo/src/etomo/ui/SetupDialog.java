@@ -1,14 +1,13 @@
 package etomo.ui;
 
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -17,7 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.border.TitledBorder;
 
 import etomo.ApplicationManager;
 import etomo.storage.StackFileFilter;
@@ -28,6 +26,8 @@ import etomo.type.DataSource;
 import etomo.type.MetaData;
 import etomo.type.SectionType;
 import etomo.type.ViewType;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -42,6 +42,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/12 01:32:25  rickg
+ * <p> Working directory calculation works both unix and windows now
+ * <p>
  * <p> Revision 2.4  2003/05/07 23:36:12  rickg
  * <p> Updated Data Source labels and tooltips
  * <p>
@@ -115,71 +118,65 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private JPanel panelDataParameters = new JPanel();
+  private JPanel pnlDataParameters = new JPanel();
 
-  //
   //  Dataset GUI objects
-  //
   private JPanel pnlDataset = new JPanel();
   private ImageIcon iconFolder =
     new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfDataset = new LabeledTextField("Dataset Name:");
+  private LabeledTextField ltfDataset = new LabeledTextField("Dataset Name: ");
   private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory =
-    new LabeledTextField("Backup Directory:");
-  private JButton buttonBackupDirectory = new JButton(iconFolder);
+    new LabeledTextField("Backup Directory: ");
+  private JButton btnBackupDirectory = new JButton(iconFolder);
 
   //  Data type GUI objects
-  private JPanel panelDataType = new JPanel();
-  private TitledBorder borderDataType;
+  private JPanel pnlDataType = new JPanel();
 
-  private JPanel panelDataSource = new JPanel();
-  private TitledBorder borderDataSource;
+  private JPanel pnlDataSource = new JPanel();
   private JRadioButton rbCCD = new JRadioButton("Unaligned (CCD)");
   private JRadioButton rbFilm = new JRadioButton("Well Aligned (Film)");
   private ButtonGroup bgDataSource = new ButtonGroup();
 
-  private JPanel panelAxisType = new JPanel();
-  private TitledBorder borderAxisType;
+  private JPanel pnlAxisType = new JPanel();
   private JRadioButton rbSingleAxis = new JRadioButton("Single Axis");
   private JRadioButton rbDualAxis = new JRadioButton("Dual Axis");
   private ButtonGroup bgAxisType = new ButtonGroup();
 
-  private JPanel panelViewType = new JPanel();
-  private TitledBorder borderViewType;
+  private JPanel pnlViewType = new JPanel();
   private JRadioButton rbSingleView = new JRadioButton("Single View");
   private JRadioButton rbMontage = new JRadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
-  private JPanel panelSectionType = new JPanel();
-  private TitledBorder borderSectionType;
+  private JPanel pnlSectionType = new JPanel();
   private JRadioButton rbSingleSection = new JRadioButton("Single Tomogram");
   private JRadioButton rbSerialSection = new JRadioButton("Serial Tomogram");
   private ButtonGroup bgSectionType = new ButtonGroup();
 
-  private JPanel panelPixelAndLocalAlign = new JPanel();
+  private JPanel pnlPixelAndLocalAlign = new JPanel();
+  private JButton btnScanHeader = new JButton("Scan Header");
   private LabeledTextField ltfPixelSize =
-    new LabeledTextField("Pixel size (nm) :");
+    new LabeledTextField("Pixel size (nm): ");
   private LabeledTextField ltfFiducialDiameter =
-    new LabeledTextField("Fiducial marker diameter (nm) :");
+    new LabeledTextField("Fiducial diameter (nm): ");
   private LabeledTextField ltfImageRotation =
-    new LabeledTextField("Image rotation (degrees) :");
+    new LabeledTextField("Image rotation (degrees): ");
 
   //  Tilt angle GUI objects
-  private JPanel panelPerAxisInfo = new JPanel();
-  private JPanel panelAxisInfoA = new JPanel();
-  private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A:");
+  private JPanel pnlPerAxisInfo = new JPanel();
+  private JPanel pnlAxisInfoA = new JPanel();
+  private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A: ");
   private TiltAngleDialogPanel tiltAnglesA = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListA =
-    new LabeledTextField("Exclude projections :");
+    new LabeledTextField("Exclude projections: ");
 
-  private JPanel panelAxisInfoB = new JPanel();
-  private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B:");
+  private JPanel pnlAxisInfoB = new JPanel();
+  private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   private TiltAngleDialogPanel tiltAnglesB = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListB =
-    new LabeledTextField("Exclude projections :");
+    new LabeledTextField("Exclude projections: ");
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
@@ -202,10 +199,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelExitButtons.remove(buttonAdvanced);
 
     //  Add the panes to the dialog box
-    rootPanel.add(panelDataParameters);
+    rootPanel.add(pnlDataParameters);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelPerAxisInfo);
+    rootPanel.add(pnlPerAxisInfo);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
@@ -225,20 +222,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  so that the box layout happens correctly
     btnDataset.setPreferredSize(FixedDim.folderButton);
     btnDataset.setMaximumSize(FixedDim.folderButton);
-    buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
-    buttonBackupDirectory.setMaximumSize(FixedDim.folderButton);
+    btnBackupDirectory.setPreferredSize(FixedDim.folderButton);
+    btnBackupDirectory.setMaximumSize(FixedDim.folderButton);
 
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
-    btnDataset.addActionListener(new SetupDialogDatasetActionAdapter(this));
-    buttonBackupDirectory.addActionListener(
-      new SetupDialogBackupDirectoryActionAdapter(this));
-    rbSingleAxis.addActionListener(
-      new SetupDialogSingleAxisActionAdapter(this));
-    rbDualAxis.addActionListener(new SetupDialogDualAxisActionAdapter(this));
+    btnDataset.addActionListener(new DatasetActionListener(this));
+    btnBackupDirectory.addActionListener(
+      new BackupDirectoryActionListener(this));
+    rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
+    rbDualAxis.addActionListener(new DualAxisActionListener(this));
+    btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
 
-    //  Add the GUI objects to the panel
+    //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
     pnlDataset.add(ltfDataset.getContainer());
@@ -246,7 +243,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
 
     pnlDataset.add(ltfBackupDirectory.getContainer());
-    pnlDataset.add(buttonBackupDirectory);
+    pnlDataset.add(btnBackupDirectory);
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Add the tooltip text
@@ -255,134 +252,105 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void createDataTypePanel() {
 
-    //  Datatype subpanels: DataSource AxisType Viewtype SectionType
+    //  Datatype subpnls: DataSource AxisType Viewtype SectionType
     Dimension dimDataTypePref = new Dimension(150, 80);
     bgDataSource.add(rbCCD);
     bgDataSource.add(rbFilm);
-    panelDataSource.setLayout(new BoxLayout(panelDataSource, BoxLayout.Y_AXIS));
-    panelDataSource.setPreferredSize(dimDataTypePref);
-    borderDataSource =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(
-          new Color(248, 254, 255),
-          new Color(121, 124, 136)),
-        "Data Source");
-    panelDataSource.setBorder(borderDataSource);
-    panelDataSource.add(rbCCD);
-    panelDataSource.add(rbFilm);
+    pnlDataSource.setLayout(new BoxLayout(pnlDataSource, BoxLayout.Y_AXIS));
+    pnlDataSource.setPreferredSize(dimDataTypePref);
+    pnlDataSource.setBorder(new EtchedBorder("Data Source").getBorder());
+    pnlDataSource.add(rbCCD);
+    pnlDataSource.add(rbFilm);
 
     bgAxisType.add(rbSingleAxis);
     bgAxisType.add(rbDualAxis);
-    panelAxisType.setLayout(new BoxLayout(panelAxisType, BoxLayout.Y_AXIS));
-    borderAxisType =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(
-          new Color(248, 254, 255),
-          new Color(121, 124, 136)),
-        "Axis Type");
-    panelAxisType.setPreferredSize(dimDataTypePref);
-    panelAxisType.setBorder(borderAxisType);
-    panelAxisType.add(rbSingleAxis);
-    panelAxisType.add(rbDualAxis);
+    pnlAxisType.setLayout(new BoxLayout(pnlAxisType, BoxLayout.Y_AXIS));
+    pnlAxisType.setPreferredSize(dimDataTypePref);
+    pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
+    pnlAxisType.add(rbSingleAxis);
+    pnlAxisType.add(rbDualAxis);
 
     bgViewType.add(rbSingleView);
     bgViewType.add(rbMontage);
-    panelViewType.setLayout(new BoxLayout(panelViewType, BoxLayout.Y_AXIS));
-    borderViewType =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(
-          new Color(248, 254, 255),
-          new Color(121, 124, 136)),
-        "View Type");
-    panelViewType.setPreferredSize(dimDataTypePref);
-    panelViewType.setBorder(borderViewType);
-    panelViewType.add(rbSingleView);
-    panelViewType.add(rbMontage);
+    pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
+    pnlViewType.setPreferredSize(dimDataTypePref);
+    pnlViewType.setBorder(new EtchedBorder("View Type").getBorder());
+    pnlViewType.add(rbSingleView);
+    pnlViewType.add(rbMontage);
 
     bgSectionType.add(rbSerialSection);
     bgSectionType.add(rbSingleSection);
-    panelSectionType.setLayout(
-      new BoxLayout(panelSectionType, BoxLayout.Y_AXIS));
-    borderSectionType =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(
-          new Color(248, 254, 255),
-          new Color(121, 124, 136)),
-        "Tomogram Type");
-    panelSectionType.setPreferredSize(dimDataTypePref);
-    panelSectionType.setBorder(borderSectionType);
-    panelSectionType.add(rbSingleSection);
-    panelSectionType.add(rbSerialSection);
+    pnlSectionType.setLayout(new BoxLayout(pnlSectionType, BoxLayout.Y_AXIS));
+    pnlSectionType.setPreferredSize(dimDataTypePref);
+    pnlSectionType.setBorder(new EtchedBorder("Tomogram Type").getBorder());
+    pnlSectionType.add(rbSingleSection);
+    pnlSectionType.add(rbSerialSection);
+
+    rbSingleSection.setEnabled(false);
+    rbSerialSection.setEnabled(false);
 
     //  Datatype panel
-    borderDataType =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(
-          new Color(248, 254, 255),
-          new Color(121, 124, 136)),
-        "Data Type");
+    pnlDataType.setLayout(new BoxLayout(pnlDataType, BoxLayout.X_AXIS));
+    pnlDataType.setBorder(new EtchedBorder("Data Type").getBorder());
 
-    panelDataType.setLayout(new BoxLayout(panelDataType, BoxLayout.X_AXIS));
-    panelDataType.setBorder(borderDataType);
-    panelDataType.add(panelDataSource);
-    panelDataType.add(Box.createHorizontalGlue());
-    panelDataType.add(panelAxisType);
-    panelDataType.add(Box.createHorizontalGlue());
-    panelDataType.add(panelViewType);
-    panelDataType.add(Box.createHorizontalGlue());
-    panelDataType.add(panelSectionType);
+    pnlDataType.add(pnlDataSource);
+    pnlDataType.add(Box.createHorizontalGlue());
+    pnlDataType.add(pnlAxisType);
+    pnlDataType.add(Box.createHorizontalGlue());
+    pnlDataType.add(pnlViewType);
+    pnlDataType.add(Box.createHorizontalGlue());
+    pnlDataType.add(pnlSectionType);
 
     //  Pixel & Alignment panel
-    panelPixelAndLocalAlign.setLayout(
-      new BoxLayout(panelPixelAndLocalAlign, BoxLayout.X_AXIS));
-    panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    /*    panelPixelAndLocalAlign.add(labelPixelSize);
-        panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
-        panelPixelAndLocalAlign.add(textFieldPixelSize);*/
-    panelPixelAndLocalAlign.add(ltfPixelSize.getContainer());
-    panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    panelPixelAndLocalAlign.add(ltfFiducialDiameter.getContainer());
-    panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    panelPixelAndLocalAlign.add(ltfImageRotation.getContainer());
-    panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlPixelAndLocalAlign.setLayout(
+      new BoxLayout(pnlPixelAndLocalAlign, BoxLayout.X_AXIS));
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
+    pnlPixelAndLocalAlign.add(btnScanHeader);
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
+    pnlPixelAndLocalAlign.add(ltfPixelSize.getContainer());
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
+    pnlPixelAndLocalAlign.add(ltfFiducialDiameter.getContainer());
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
+    pnlPixelAndLocalAlign.add(ltfImageRotation.getContainer());
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
+    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Create Data Parameters panel
-    panelDataParameters.setLayout(
-      new BoxLayout(panelDataParameters, BoxLayout.Y_AXIS));
-    panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelDataParameters.add(pnlDataset);
-    panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelDataParameters.add(panelDataType);
-    panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelDataParameters.add(panelPixelAndLocalAlign);
-    panelDataParameters.add(Box.createHorizontalGlue());
+    pnlDataParameters.setLayout(
+      new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
+    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlDataset);
+    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlDataType);
+    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlPixelAndLocalAlign);
+    pnlDataParameters.add(Box.createHorizontalGlue());
   }
 
   private void createPerAxisInfoPanel() {
 
-    //  Tilt angle specification panel
-    panelAxisInfoA.setBorder(borderAxisInfoA.getBorder());
-    panelAxisInfoA.setLayout(new BoxLayout(panelAxisInfoA, BoxLayout.Y_AXIS));
+    //  Tilt angle specification pnl
+    pnlAxisInfoA.setBorder(borderAxisInfoA.getBorder());
+    pnlAxisInfoA.setLayout(new BoxLayout(pnlAxisInfoA, BoxLayout.Y_AXIS));
 
-    panelAxisInfoA.add(tiltAnglesA.getPanel());
-    panelAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelAxisInfoA.add(ltfExcludeListA.getContainer());
+    pnlAxisInfoA.add(tiltAnglesA.getPanel());
+    pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAxisInfoA.add(ltfExcludeListA.getContainer());
 
-    panelAxisInfoB.setBorder(borderAxisInfoB.getBorder());
-    panelAxisInfoB.setLayout(new BoxLayout(panelAxisInfoB, BoxLayout.Y_AXIS));
+    pnlAxisInfoB.setBorder(borderAxisInfoB.getBorder());
+    pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
 
-    panelAxisInfoB.add(tiltAnglesB.getPanel());
-    panelAxisInfoB.add(ltfExcludeListB.getContainer());
+    pnlAxisInfoB.add(tiltAnglesB.getPanel());
+    pnlAxisInfoB.add(ltfExcludeListB.getContainer());
 
-    panelPerAxisInfo.setLayout(
-      new BoxLayout(panelPerAxisInfo, BoxLayout.X_AXIS));
-    panelPerAxisInfo.add(panelAxisInfoA);
-    panelPerAxisInfo.add(panelAxisInfoB);
+    pnlPerAxisInfo.setLayout(new BoxLayout(pnlPerAxisInfo, BoxLayout.X_AXIS));
+    pnlPerAxisInfo.add(pnlAxisInfoA);
+    pnlPerAxisInfo.add(pnlAxisInfoB);
   }
 
   public Container getContainer() {
@@ -544,7 +512,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   //  Action functions for buttons
   //
-  void buttonDatasetAction(ActionEvent event) {
+  private void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
     JFileChooser chooser =
       new JFileChooser(new File(System.getProperty("user.dir")));
@@ -564,7 +532,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
   }
 
-  void buttonBackupDirectoryAction(ActionEvent event) {
+  private void btnBackupDirectoryAction(ActionEvent event) {
 
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
@@ -586,16 +554,82 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
   }
 
-  void rbSingleAxisAction(ActionEvent event) {
+  private void rbSingleAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(false);
     ltfExcludeListB.setEnabled(false);
   }
 
-  void rbDualAxisAction(ActionEvent event) {
+  private void rbDualAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
   }
 
+  private void btnScanHeaderAction(ActionEvent event) {
+    // Get the dataset name from the UI object
+    String datasetName = ltfDataset.getText();
+    if (datasetName == null || datasetName.equals("")) {
+      applicationManager.openMessageDialog(
+        "Dataset name has not been entered",
+        "Missing dataset name");
+      return;
+    }
+    //  Add the appropriate extension onto the filename if necessary 
+    if (!datasetName.endsWith(".st")) {
+      if (rbDualAxis.isSelected()) {
+        datasetName = datasetName + "a.st";
+      }
+      else {
+        datasetName = datasetName + ".st";
+
+      }
+    }
+
+    // Run header on the dataset to the extract whatever information is
+    // available
+    MRCHeader header = new MRCHeader(datasetName);
+    try {
+      header.read();
+    }
+    catch (InvalidParameterException except) {
+      applicationManager.openMessageDialog(
+        except.getMessage(),
+        "Invalid Parameter Exception");
+    }
+    catch (IOException except) {
+      applicationManager.openMessageDialog(except.getMessage(), "IO Exception");
+    }
+
+    // Set the image rotation if available
+    double imageRotation = header.getImageRotation();
+    if (!Double.isNaN(imageRotation)) {
+      ltfImageRotation.setText(imageRotation);
+    }
+
+    // set the pixel size if available
+    double xPixelSize = header.getXPixelSize();
+    double yPixelSize = header.getYPixelSize();
+    if (Double.isNaN(xPixelSize) || Double.isNaN(xPixelSize)) {
+      applicationManager.openMessageDialog(
+        "Unable to read pixel size, enter manually",
+        "Pixel sizes are missing");
+      return;
+    }
+
+    if (xPixelSize != yPixelSize) {
+      applicationManager.openMessageDialog(
+        "X & Y pixels sizes are different, don't know what to do",
+        "Pixel size are different");
+      return;
+    }
+    if (xPixelSize == 1.0) {
+      applicationManager.openMessageDialog(
+        "X & Y pixels sizes are not defined",
+        "Pixel size are not defined");
+      return;
+    }
+    ltfPixelSize.setText(xPixelSize / 10.0);
+  }
+  
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -642,32 +676,32 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
-    buttonBackupDirectory.setToolTipText(line1 + line2);
+    btnBackupDirectory.setToolTipText(line1 + line2);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "has been collected using a CCD or film.  Even if the data are<br>";
     line3 = "from film, select CCD unless they are already well-aligned<br>";
     line4 = "from one projection to the next.";
-    panelDataSource.setToolTipText(line1 + line2 + line3 + line4);
+    pnlDataSource.setToolTipText(line1 + line2 + line3 + line4);
     rbCCD.setToolTipText(line1 + line2 + line3 + line4);
     rbFilm.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
-    panelAxisType.setToolTipText(line1 + line2);
+    pnlAxisType.setToolTipText(line1 + line2);
     rbSingleAxis.setToolTipText(line1 + line2);
     rbDualAxis.setToolTipText(line1 + line2);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single view per projection or multiple views<br>";
     line3 = "per projection (montaged).";
-    panelViewType.setToolTipText(line1 + line2 + line3);
+    pnlViewType.setToolTipText(line1 + line2 + line3);
     rbSingleView.setToolTipText(line1 + line2 + line3);
     rbMontage.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single tomogram or several serial tomograms";
-    panelSectionType.setToolTipText(line1 + line2);
+    pnlSectionType.setToolTipText(line1 + line2);
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
 
@@ -715,53 +749,65 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
   }
 
-}
+  //  Button action listener classes
+  class DatasetActionListener implements ActionListener {
 
-//  Button action listener classes
-class SetupDialogDatasetActionAdapter implements ActionListener {
+    SetupDialog adaptee;
+    DatasetActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
 
-  SetupDialog adaptee;
-  SetupDialogDatasetActionAdapter(SetupDialog adaptee) {
-    this.adaptee = adaptee;
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnDatasetAction(event);
+    }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonDatasetAction(event);
-  }
-}
+  class BackupDirectoryActionListener implements ActionListener {
 
-class SetupDialogBackupDirectoryActionAdapter implements ActionListener {
+    SetupDialog adaptee;
+    BackupDirectoryActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
 
-  SetupDialog adaptee;
-  SetupDialogBackupDirectoryActionAdapter(SetupDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonBackupDirectoryAction(event);
-  }
-}
-
-class SetupDialogSingleAxisActionAdapter implements ActionListener {
-
-  SetupDialog adaptee;
-  SetupDialogSingleAxisActionAdapter(SetupDialog adaptee) {
-    this.adaptee = adaptee;
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnBackupDirectoryAction(event);
+    }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.rbSingleAxisAction(event);
-  }
-}
+  class SingleAxisActionListener implements ActionListener {
 
-class SetupDialogDualAxisActionAdapter implements ActionListener {
+    SetupDialog adaptee;
+    SingleAxisActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
 
-  SetupDialog adaptee;
-  SetupDialogDualAxisActionAdapter(SetupDialog adaptee) {
-    this.adaptee = adaptee;
+    public void actionPerformed(ActionEvent event) {
+      adaptee.rbSingleAxisAction(event);
+    }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.rbDualAxisAction(event);
+  class DualAxisActionListener implements ActionListener {
+
+    SetupDialog adaptee;
+    DualAxisActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.rbDualAxisAction(event);
+    }
   }
+
+  class ScanHeaderActionListener implements ActionListener {
+
+    SetupDialog adaptee;
+    ScanHeaderActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnScanHeaderAction(event);
+    }
+  }
+
 }
