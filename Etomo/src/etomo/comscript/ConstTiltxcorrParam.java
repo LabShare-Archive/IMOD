@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/09/09 17:18:47  rickg
  * <p> Changed view list to view range and made it a 2 element integer
  * <p> FortranInputString
@@ -36,33 +39,50 @@ public class ConstTiltxcorrParam {
   public static final String rcsid =
     "$Id$";
 
-  protected String inputFile;
-  protected String pieceListFile;
-  protected String outputFile;
-  protected TiltAngleSpec tiltAngleSpec;
-  protected double imageRotation;
-  protected FortranInputString filterParams;
+  //PIP and sequential input
+  protected String inputFile = "";
+  protected String pieceListFile = "";
+  protected String outputFile = "";
   protected boolean excludeCentralPeak;
-  protected FortranInputString trim;
-  protected FortranInputString padPercent;
-  protected FortranInputString taperPercent;
-  protected FortranInputString viewRange;
+  protected double rotationAngle; //was imageRotation
+  protected FortranInputString bordersInXandY; //was trim
+  protected FortranInputString padsInXandY; // was padPercent;
+  protected FortranInputString tapersInXandY; //was taperPercent
+  protected FortranInputString startingEndingViews; //was viewRange
+  
+  //PIP only
+  //was tiltAngleSpec
+  protected double firstTiltAngle;
+  protected double tiltIncrement;
+  protected String tiltFile = "";
+  protected double[] tiltAngles = null;
+  
+  //was filterParams
+  protected double filterRadius1;
+  protected double filterRadius2;
+  protected double filterSigma1;
+  protected double filterSigma2;
+  
+  //sequential input only
+  protected TiltAngleSpec tiltAngleSpec;
+  protected FortranInputString filterParams;
+
 
   public ConstTiltxcorrParam() {
     tiltAngleSpec = new TiltAngleSpec();
     filterParams = new FortranInputString(4);
-    trim = new FortranInputString(2);
-    trim.setIntegerType(0, true);
-    trim.setIntegerType(1, true);
-    padPercent = new FortranInputString(2);
-    padPercent.setIntegerType(0, true);
-    padPercent.setIntegerType(1, true);
-    taperPercent = new FortranInputString(2);
-    taperPercent.setIntegerType(0, true);
-    taperPercent.setIntegerType(1, true);
-    viewRange = new FortranInputString(2);
-    viewRange.setIntegerType(0, true);
-    viewRange.setIntegerType(1, true);
+    bordersInXandY = new FortranInputString(2);
+    bordersInXandY.setIntegerType(0, true);
+    bordersInXandY.setIntegerType(1, true);
+    padsInXandY = new FortranInputString(2);
+    padsInXandY.setIntegerType(0, true);
+    padsInXandY.setIntegerType(1, true);
+    tapersInXandY = new FortranInputString(2);
+    tapersInXandY.setIntegerType(0, true);
+    tapersInXandY.setIntegerType(1, true);
+    startingEndingViews = new FortranInputString(2);
+    startingEndingViews.setIntegerType(0, true);
+    startingEndingViews.setIntegerType(1, true);
   }
 
   public String getInputFile() {
@@ -74,29 +94,45 @@ public class ConstTiltxcorrParam {
   public String getOutputFile() {
     return outputFile;
   }
-
-  public TiltAngleSpec getTiltAngleSpec() {
-    return new TiltAngleSpec(tiltAngleSpec);
+  public double getFirstTiltAngle() {
+    return firstTiltAngle;
   };
-
-  public double getImageRotation() {
-    return imageRotation;
+ 
+  public double getTiltIncrement() {
+    return tiltIncrement;
+  };
+  public String getTiltFile() {
+    return tiltFile;
+  };
+  public double[] getTiltAngles() {
+    return tiltAngles;
+  };
+  public double getRotationAngle() {
+    return rotationAngle;
   }
-
-  public String getFilterParams() {
-    return filterParams.toString();
+  public double getFilterRadius1() {
+    return filterRadius1;
   }
-  public String getTrim() {
-    return trim.toString();
+  public double getFilterRadius2() {
+    return filterRadius2;
   }
-  public String getPadPercent() {
-    return padPercent.toString();
+  public double getFilterSigma1() {
+    return filterSigma1;
+  }
+  public double getFilterSigma2() {
+    return filterSigma2;
+  }
+  public String getBordersInXandY() {
+    return bordersInXandY.toString();
+  }
+  public String getPadsInXandY() {
+    return padsInXandY.toString();
   }
   public String getTaperPercent() {
-    return taperPercent.toString();
+    return tapersInXandY.toString();
   }
-  public String getViewRange() {
-    return viewRange.toString();
+  public String getStartingEndingViews() {
+    return startingEndingViews.toString();
   }
   public boolean getExcludeCentralPeak() {
     return excludeCentralPeak;
