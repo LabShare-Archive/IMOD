@@ -37,6 +37,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/06/17 20:18:53  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.11  2004/06/17 18:50:08  sueh
  * <p> bug# 472
  * <p>
@@ -192,7 +195,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     btnExecute.setText("Done");
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner("   binning ", integerModel);
+    spinBinning = new LabeledSpinner("   Binning ", integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
 
     //  Create the primary panels
