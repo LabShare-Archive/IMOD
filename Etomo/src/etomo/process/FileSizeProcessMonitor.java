@@ -2,7 +2,6 @@ package etomo.process;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Time;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -22,6 +21,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/14 17:26:08  sueh
+ * <p> bug# 460 set startTime earlier, allow startTime to be set in
+ * <p> the child class, make sure the instance is still reuseable
+ * <p>
  * <p> Revision 3.1  2004/04/08 17:33:59  rickg
  * <p> Use Utilities.milliesToMinAndSecs to get time string
  * <p>
