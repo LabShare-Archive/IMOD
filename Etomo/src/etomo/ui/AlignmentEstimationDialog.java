@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -22,6 +21,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2002/12/20 01:25:05  rickg
+ * <p> Adding fiducial transfer interface
+ * <p>
  * <p> Revision 1.9  2002/12/19 00:28:34  rickg
  * <p> Advanced handling implemented
  * <p>
@@ -69,6 +71,7 @@ public class AlignmentEstimationDialog
   private BeveledBorder borderA = new BeveledBorder("Axis: A");
 
   private TiltalignPanel panelTiltalignA;
+  private TransferfidPanel panelTransferFidA;
 
   private JPanel panelButtonA = new JPanel();
 
@@ -88,6 +91,7 @@ public class AlignmentEstimationDialog
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
 
   private TiltalignPanel panelTiltalignB;
+  private TransferfidPanel panelTransferFidB;
 
   private JPanel panelButtonB = new JPanel();
 
@@ -116,9 +120,11 @@ public class AlignmentEstimationDialog
     }
     else {
       panelAlignEstB.setVisible(false);
+
       panelTiltalignA = new TiltalignPanel("");
     }
     panelTiltalignB = new TiltalignPanel("b");
+    panelTransferFidB = new TransferfidPanel("b");
 
     buttonExecute.setText("Done");
 
@@ -140,6 +146,11 @@ public class AlignmentEstimationDialog
 
     panelAlignEstA.add(panelTiltalignA.getContainer());
     panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
+    if(applicationManager.isDualAxis()) {
+      panelTransferFidA = new TransferfidPanel("a");
+      panelAlignEstA.add(panelTransferFidA.getContainer());
+      panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
+    }
     panelAlignEstA.add(panelButtonA);
 
     //  Create the second panel
@@ -149,10 +160,12 @@ public class AlignmentEstimationDialog
     panelButtonB.add(buttonImodB);
     panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonB.add(buttonView3DModelB);
+
     if (applicationManager.isDualAxis()) {
       panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
       panelButtonB.add(buttonTransferFiducialsB);
     }
+
     buttonView3DModelB.setEnabled(false);
 
     panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
@@ -160,6 +173,12 @@ public class AlignmentEstimationDialog
 
     panelAlignEstB.add(panelTiltalignB.getContainer());
     panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+
+    if(applicationManager.isDualAxis()){
+      panelAlignEstB.add(panelTransferFidB.getContainer());
+      panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+    }
+
     panelAlignEstB.add(panelButtonB);
 
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.X_AXIS));
@@ -192,9 +211,6 @@ public class AlignmentEstimationDialog
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-
-    // Calcute the necessary window size
-    setSize(new Dimension(400, 600));
 
     // Set the default advanced state, this also executes a pack()
     updateAdvanced(isAdvanced);
@@ -300,9 +316,9 @@ public class AlignmentEstimationDialog
   }
 
   void buttonTransferFiducialsAAction() {
-    
+
   }
-  
+
   void buttonComputeBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND);
   }
@@ -316,7 +332,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonTransferFiducialsBAction() {
-    
+
   }
   //  Action function overides for exit buttons
   public void buttonCancelAction(ActionEvent event) {
