@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2002/12/02 00:41:05  mast
+#  removed ximodv.h
+#
 #  Revision 3.6  2002/12/01 16:47:14  mast
 #  Added dependency of imodv_stereo on imod.h
 #
@@ -110,6 +113,8 @@ $(DIAPUSERS) : $(INCDIR)diaP.h
 slicer.o : sslice.h slicer.h
 imod_menu.o : imodhelp.h hotkey.h menus.h imod_info.h iproc.h options.h
 imod_info.o : imod_info.h
+imod_input.o : imod_info.h
+imod_client_message.o : imod_info.h
 imod_info_cb.o : imod_info.h options.h xzap.h
 imod_io.o : imod_info.h xzap.h
 iproc.o : iproc.h sliceproc.h
