@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2004/04/06 02:48:13  rickg
+ * <p> Added makeDirectories method
+ * <p>
  * <p> Revision 1.1  2004/04/02 18:44:26  rickg
  * <p> Initial revision
  * <p> </p>
@@ -36,8 +39,7 @@ public class TestUtilites {
    * "user.dir". 
    * @param newDirectory
    */
-  public static void makeDirectories(String newDirectory)
-      throws IOException {
+  public static void makeDirectories(String newDirectory) throws IOException {
     //  Create the test directories
     File directory;
     if (newDirectory.startsWith(File.separator)) {
@@ -64,11 +66,13 @@ public class TestUtilites {
   public static void checkoutVector(String directory, String vector)
       throws SystemProcessException, InvalidParameterException {
 
-    if(vector.matches(File.separator)){
-      throw new InvalidParameterException("vector can not contain path separators");
+    if (vector.matches(File.separator)) {
+      throw new InvalidParameterException(
+        "vector can not contain path separators");
     }
-    File fileVector = new File(System.getProperty("user.dir") + directory, vector);
-    
+    File fileVector = new File(System.getProperty("user.dir") + directory,
+      vector);
+
     if (fileVector.exists()) {
       if (!fileVector.delete()) {
         throw new SystemProcessException("Cannot delete vector: " + vector);
@@ -87,6 +91,21 @@ public class TestUtilites {
 
     if (cvs.getExitValue() > 0) {
       throw new SystemProcessException(cvs.getStdErrorString());
+    }
+
+    // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
+    // (CVS directory is created) instead of an export when using the -d flag
+    // This is a work around to handle that case
+
+    File badDirectory = new File(System.getProperty("user.dir") + directory,
+      "CVS");
+    if (badDirectory.exists()) {
+      String[] rmCommand = new String[3];
+      rmCommand[0] = "rm";
+      rmCommand[1] = "-rf";
+      rmCommand[2] = badDirectory.getAbsolutePath();
+      SystemProgram rm = new SystemProgram(rmCommand);
+      rm.run();
     }
   }
 
