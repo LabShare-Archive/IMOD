@@ -1,4 +1,4 @@
-/*   imodplug.h  -  declarations for imodplug.cpp
+/*   imodplug.h  -  public declarations for imodplug.cpp
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -12,6 +12,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2003/02/10 20:41:55  mast
+    Merge Qt source
+
     Revision 1.1.2.3  2003/01/29 01:43:57  mast
     switch back to extern C
 
@@ -25,16 +28,18 @@
 #ifndef IMODPLUG_H
 #define IMODPLUG_H
 
-class QPopupMenu;
 class QKeyEvent;
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 #endif
 
+#ifndef IMODPLUGP_H
+#include "imodplugP.h"
+#endif
+
+
 /* It looks like these need to be C linkage on the SGI */
 extern "C" {
-
-// Formerly in imod.h
 
 /*************************** Setup Functions *********************************/
 
@@ -70,14 +75,6 @@ void imodPlugExecute(ImodView *vw);
  * A zero return value indicates that imod should process the key as usual.
  */
 int imodPlugKeys(ImodView *vw, QKeyEvent *event);
-
-// Functions from imodP.h
-int imodPlugInit(void);
-int imodPlugLoaded(int type);
-int imodPlugCall(ImodView *vw, int type, int reason);
-void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
-int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
-void imodPlugOpen(int item);
 
 }
 #endif
