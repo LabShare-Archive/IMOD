@@ -74,6 +74,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/22 00:36:23  mast
+#  Updated make src to include .version and exclude CVS directories
+#
 #############################################################################
 # For making distribution, all files will be put in a
 # directory called $(ARCNAME) and a final file called
@@ -276,7 +279,7 @@ cleansrc : ALWAYS
 #
 csrc : ALWAYS
 	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
-	cp Makefile setup README .version $(ARCDIR)_src/
+	cp Makefile setup README .version original_dates $(ARCDIR)_src/
 	tar cBf - \
 	machines/*[^~] \
 	lib*/*.[ch] libdia/*.symbol lib*/Makefile \
