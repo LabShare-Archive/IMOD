@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/11/04: IMOD_3-2-14  (eTomo unstable)
+5/11/04: Fixed problem caused by removing the Run Tiltalign button.
+
 5/7/04: IMOD_3-2-13  (eTomo unstable)
 5/7/04: Fixed a problem with shifting Z introduced in Tiltalign on 5/4.
 
