@@ -42,6 +42,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -120,9 +123,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     new LabeledTextField("Backup Directory:");
   private JButton buttonBackupDirectory = new JButton(iconFolder);
 
-  //
   //  Data type GUI objects
-  //
   private JPanel panelDataType = new JPanel();
   private TitledBorder borderDataType;
 
@@ -158,9 +159,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private LabeledTextField ltfImageRotation =
     new LabeledTextField("Image rotation (degrees) :");
 
-  //
   //  Tilt angle GUI objects
-  //
   private JPanel panelPerAxisInfo = new JPanel();
   private JPanel panelAxisInfoA = new JPanel();
   private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A:");
@@ -174,9 +173,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private LabeledTextField ltfExcludeListB =
     new LabeledTextField("Exclude projections :");
 
-  //
   //  Construct the setup dialog
-  //
   public SetupDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY);
 
@@ -215,10 +212,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   private void createDatasetPanel() {
-    //
+
     //  Set the preferred and max sizes for the dataset GUI objects
     //  so that the box layout happens correctly
-    //
     btnDataset.setPreferredSize(FixedDim.folderButton);
     btnDataset.setMaximumSize(FixedDim.folderButton);
     buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
@@ -226,9 +222,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
-    //
     //  Bind the buttons to their adapters
-    //
     btnDataset.addActionListener(new SetupDialogDatasetActionAdapter(this));
     buttonBackupDirectory.addActionListener(
       new SetupDialogBackupDirectoryActionAdapter(this));
@@ -236,9 +230,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       new SetupDialogSingleAxisActionAdapter(this));
     rbDualAxis.addActionListener(new SetupDialogDualAxisActionAdapter(this));
 
-    //
     //  Add the GUI objects to the panel
-    //
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
     pnlDataset.add(ltfDataset.getContainer());
@@ -254,9 +246,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   private void createDataTypePanel() {
-    //
+
     //  Datatype subpanels: DataSource AxisType Viewtype SectionType
-    //
     Dimension dimDataTypePref = new Dimension(150, 80);
     bgDataSource.add(rbCCD);
     bgDataSource.add(rbFilm);
@@ -315,9 +306,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelSectionType.add(rbSingleSection);
     panelSectionType.add(rbSerialSection);
 
-    //
     //  Datatype panel
-    //
     borderDataType =
       new TitledBorder(
         BorderFactory.createEtchedBorder(
@@ -335,9 +324,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelDataType.add(Box.createHorizontalGlue());
     panelDataType.add(panelSectionType);
 
-    //
     //  Pixel & Alignment panel
-    //
     panelPixelAndLocalAlign.setLayout(
       new BoxLayout(panelPixelAndLocalAlign, BoxLayout.X_AXIS));
     panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -356,9 +343,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelPixelAndLocalAlign.add(Box.createHorizontalGlue());
     panelPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    //
     //  Create Data Parameters panel
-    //
     panelDataParameters.setLayout(
       new BoxLayout(panelDataParameters, BoxLayout.Y_AXIS));
     panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -371,9 +356,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   private void createPerAxisInfoPanel() {
-    //
+
     //  Tilt angle specification panel
-    //
     panelAxisInfoA.setBorder(borderAxisInfoA.getBorder());
     panelAxisInfoA.setLayout(new BoxLayout(panelAxisInfoA, BoxLayout.Y_AXIS));
 
@@ -401,7 +385,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     if (!metaData.getDatasetName().equals("")) {
       String canonicalPath =
-        metaData.getWorkingDirectory() + "/" + metaData.getDatasetName();
+        System.getProperty("user.dir") + "/" + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
 
@@ -438,7 +422,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     else {
       metaData.setDatasetName(
-        applicationManager.getWorkingDirectory() + "/" + ltfDataset.getText());
+        System.getProperty("user.dir") + "/" + ltfDataset.getText());
     }
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
@@ -451,9 +435,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
     return metaData;
-  } //
+  }
+
+  // Return the working directory as a File object  
+  public File getWorkingDirectory() {
+    File dataset;
+    String datasetText = ltfDataset.getText();
+    if (datasetText.startsWith("/")) {
+      dataset = new File(datasetText);
+    }
+    else {
+      dataset = new File(System.getProperty("user.dir") + "/" + datasetText);
+    }
+
+    return dataset.getParentFile();
+  }
+
   // Data source radio button control
-  //
   void setDataSource(DataSource dataSource) {
     if (dataSource == DataSource.CCD) {
       rbCCD.setSelected(true);
@@ -470,9 +468,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return DataSource.FILM;
     }
-  } //
+  }
+
   //  Axis type radio button
-  //
   void setAxisType(AxisType axisType) {
     if (axisType == AxisType.SINGLE_AXIS) {
       rbSingleAxis.setSelected(true);
@@ -489,9 +487,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return AxisType.DUAL_AXIS;
     }
-  } //
+  }
+
   //  View type radio button
-  //
   void setViewType(ViewType viewType) {
     if (viewType == ViewType.SINGLE_VIEW) {
       rbSingleView.setSelected(true);
@@ -508,9 +506,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return ViewType.MONTAGE;
     }
-  } //
+  }
+
   //  Section type radio button
-  //
   void setSectionType(SectionType sectionType) {
     if (sectionType == SectionType.SINGLE) {
       rbSingleSection.setSelected(true);
@@ -527,21 +525,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return SectionType.SERIAL;
     }
-  } /**
-        * Right mouse button context menu
-        */
+  }
+
+  /**
+   * Right mouse button context menu
+   **/
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup =
       new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
-  } //
+  }
+
+  //
   //  Action functions for buttons
   //
   void buttonDatasetAction(ActionEvent event) {
-    //
     //  Open up the file chooser in the working directory
-    //
     JFileChooser chooser =
-      new JFileChooser(new File(applicationManager.getWorkingDirectory()));
+      new JFileChooser(new File(System.getProperty("user.dir")));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -559,12 +559,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonBackupDirectoryAction(ActionEvent event) {
-    //
+
     //  Open up the file chooser in the working directory
-    //
     String currentBackupDirectory = ltfBackupDirectory.getText();
     if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = applicationManager.getWorkingDirectory();
+      currentBackupDirectory = System.getProperty("user.dir");
     }
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -590,23 +589,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
   } /**
-            * Action to take when the cancel button is pressed, the default action is
-            * to set the exitState attribute to CANCEL.
-            */
+                  * Action to take when the cancel button is pressed, the default action is
+                  * to set the exitState attribute to CANCEL.
+                  */
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneSetupDialog();
   } /**
-            * Action to take when the postpone button is pressed, the default action is
-            * to set the exitState attribute to POSTPONE.
-            */
+                  * Action to take when the postpone button is pressed, the default action is
+                  * to set the exitState attribute to POSTPONE.
+                  */
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneSetupDialog();
   } /**
-            * Action to take when the execute button is pressed, the default action is
-            * to set the exitState attribute to EXECUTE.
-            */
+                  * Action to take when the execute button is pressed, the default action is
+                  * to set the exitState attribute to EXECUTE.
+                  */
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneSetupDialog();
@@ -616,14 +615,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String line1, line2, line3, line4, line5, line6, line7, line8;
     line1 = "<html>Enter the name of projection data file(s). You can<br>";
     line2 = "also select the projection data file  by pressing the<br>";
-    line3 = "folder button. Remember to omit the .st for single axis<br>";
-    line4 = "data sets or the a.st for dual axis data sets.";
-    ltfDataset.setToolTipText(line1 + line2 + line3 + line4);
+    line3 = "folder button.";
+    ltfDataset.setToolTipText(line1 + line2 + line3);
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select the projection data file.<br>";
-    line3 = "Remember to remove the .st for single axis data sets<br>";
-    line4 = "or the a.st for dual axis data sets.";
-    btnDataset.setToolTipText(line1 + line2 + line3);
+    btnDataset.setToolTipText(line1 + line2);
     line1 = "<html>Enter the name of the directory where you want the<br>";
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
@@ -683,11 +679,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
   }
 
-} 
+}
 
-//
 //  Button action listener classes
-//
 class SetupDialogDatasetActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
