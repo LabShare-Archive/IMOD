@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -19,6 +20,9 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.StringList;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
+import etomo.util.FidXyz;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -33,6 +37,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/06/21 17:16:37  rickg
+ * <p> Bug #461 z shift is scaled by the prealigned binning
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -335,13 +342,24 @@ public class TiltalignPanel {
     "Skew group size: ");
   private LabeledTextField ltfLocalSkewNonDefaultGroups = new LabeledTextField(
     "Skew non-default grouping: ");
+    
+  private FidXyz fidXyz = null;
+  private MRCHeader rawstackHeader = null;
+  private MRCHeader prealiHeader = null;
 
   /**
    * Constructor
    * @param axis
    */
-  public TiltalignPanel(AxisID axis) {
+  public TiltalignPanel(
+    AxisID axis,
+    FidXyz fidXyz,
+    MRCHeader prealiHeader,
+    MRCHeader rawstackHeader) {
     axisID = axis;
+    this.fidXyz = fidXyz;
+    this.prealiHeader = prealiHeader;
+    this.rawstackHeader = rawstackHeader;
 
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     //  Create the tabs
@@ -356,7 +374,18 @@ public class TiltalignPanel {
    * object
    */
   public void setParameters(ConstTiltalignParam params) {
-
+    try {
+      fidXyz.read();
+      rawstackHeader.read();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
     //  General panel parameters
 
     if (params.getNSurfaceAnalysis() == 2) {
@@ -385,8 +414,21 @@ public class TiltalignPanel {
 
     ltfSeparateViewGroups.setText(params.getSeparateViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
-    ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
-      * prealignedBinning);
+    
+    //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
+    //have been 1 the last time align.com was run.
+    if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
+      ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
+    }
+    else {
+      //multiply by the binning previously used by align.com
+      ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
+        * Math.round(fidXyz.getPixelSize() / rawstackHeader.getXPixelSpacing()));
+    }
+    //System.out.println("setParameters:fidXyz.getPixelSize()=" + fidXyz.getPixelSize() + ",rawstackHeader.getXPixelSpacing()=" + rawstackHeader.getXPixelSpacing());
+    //System.out.println("align binning=" + Math.round(fidXyz.getPixelSize() / rawstackHeader.getXPixelSpacing()));
+    //System.out.println("ltfTiltAxisZShift=" + ltfTiltAxisZShift.getText());
+      
     ltfMetroFactor.setText(params.getMetroFactor());
     ltfCycleLimit.setText(params.getCycleLimit());
 
@@ -545,6 +587,19 @@ public class TiltalignPanel {
    */
   public void getParameters(TiltalignParam params)
     throws FortranInputSyntaxException {
+      try {
+        prealiHeader.read();
+        //raw stack won't change and doesn't really have to be read again
+        rawstackHeader.read();
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        return;
+      }
+      catch (InvalidParameterException except) {
+        except.printStackTrace();
+        return;
+      }
     String badParameter = "";
     try {
       if (rbDualFiducialSurfaces.isSelected()) {
@@ -582,7 +637,16 @@ public class TiltalignPanel {
       params.setTiltAngleOffset(ltfTiltAngleOffset.getText());
 
       badParameter = ltfTiltAxisZShift.getLabel();
-      params.setTiltAxisZShift(Double.parseDouble(ltfTiltAxisZShift.getText()) / prealignedBinning);
+      
+      //divide by the binning used to create the .preali file
+      params.setTiltAxisZShift(
+        Double.parseDouble(ltfTiltAxisZShift.getText())
+          / Math.round(
+            prealiHeader.getXPixelSpacing()
+              / rawstackHeader.getXPixelSpacing()));
+      //System.out.println("getParameters:prealiHeader.getXPixelSpacing()=" + prealiHeader.getXPixelSpacing() + ",rawstackHeader.getXPixelSpacing()=" + rawstackHeader.getXPixelSpacing());
+      //System.out.println("preali binning=" + Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
+      //System.out.println("TiltAxisZShift=" + params.getTiltAxisZShift());
 
       badParameter = ltfMetroFactor.getLabel();
       params.setMetroFactor(ltfMetroFactor.getText());
