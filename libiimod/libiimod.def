@@ -34,8 +34,10 @@ EXPORTS
 	iiMRCreadSectionByte
 	iiClose
 	loadtilts
+	sliceWrapFFTLines
 	mrcGetDataMemory
 	mrc_default_status
+	mrcMirrorSource
 	corr_conj
 	mrcReadSection
 	mrc_plist_li
@@ -47,7 +49,6 @@ EXPORTS
 	mrc_get_scale
 	mrc_pow2pad
 	mrcFreeDataMemory
-	mrcMirrorSource
 	mrc_zoom_center
 	mrc_slice_zooms
 	get_byte_map
@@ -59,6 +60,7 @@ EXPORTS
 	mrc_set_scale
 	get_short_map
 	sliceGetVal
+	sliceReduceMirroredFFT
 	sliceBox
 	mrc_slice_free
 	mrc_liso
@@ -73,6 +75,7 @@ EXPORTS
 	mrc_getval
 	mrc_3dfft
 	mrc_head_label_cp
+	iiAddCheckFunction
 	mrc_read_byte
 	sliceComplexFloat
 	mrc_bandpass_filter
@@ -108,8 +111,6 @@ EXPORTS
 	iiTIFFCheck
 	mrcReadYByte
 	mrc_slice_wrap
-	sliceReduceMirroredFFT
-	sliceWrapFFTLines
 	mrc_slice_interpolate
 	iiDelete
 	iiMRCLoadPCoord
