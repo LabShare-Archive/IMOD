@@ -48,6 +48,11 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/05/19 22:10:03  rickg
+ * <p> Added new to file menu
+ * <p> Added tomography guide and imod guide to help menu
+ * <p> Restructured action handlers
+ * <p>
  * <p> Revision 2.10  2003/05/19 04:54:18  rickg
  * <p> Added mnemonics for menus
  * <p>
@@ -255,45 +260,54 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Show a blank processing panel
    */
   public void showBlankProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.eraseDialogPanel();
-    }
-    else {
-      axisPanelA.eraseDialogPanel();
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.eraseDialogPanel();
   }
-
+  
   /**
    * Show the specified processing panel
    */
   public void showProcess(Container processPanel, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.replaceDialogPanel(processPanel);
-    }
-    else {
-      axisPanelA.replaceDialogPanel(processPanel);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.replaceDialogPanel(processPanel);
   }
 
   /**
-   * 
+   * Set the progress bar to the beginning of determinant sequence
+   * @param label
+   * @param nSteps
    */
-  public void startProgressBar(String name, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.startProgressBar(name);
-    }
-    else {
-      axisPanelA.startProgressBar(name);
-    }
+  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.startProgressBar(label);
+    axisPanel.setProgressBarValue(0);
   }
 
+  /**
+   * Set the progress bar to the specified value
+   * @param value
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setProgressBarValue(value);
+  }
+
+  /**
+   *  Start the indeterminate progress bar on the specified axis 
+   */
+  public void startProgressBar(String name, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.startProgressBar(name);
+  }
+
+  /**
+   * Stop the specified progress bar
+   * @param axisID
+   */
   public void stopProgressBar(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.stopProgressBar();
-    }
-    else {
-      axisPanelA.stopProgressBar();
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.stopProgressBar();
   }
 
   /**
@@ -498,64 +512,78 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setPreProcessingState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setPreProcState(state);
-    }
-    else {
-      axisPanelA.setPreProcState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setPreProcState(state);
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setCoarseAlignState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setCoarseAlignState(state);
-    }
-    else {
-      axisPanelA.setCoarseAlignState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setCoarseAlignState(state);
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setFiducialModelState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setFiducialModelState(state);
-    }
-    else {
-      axisPanelA.setFiducialModelState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setFiducialModelState(state);
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setFineAlignmentState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setFineAlignmentState(state);
-    }
-    else {
-      axisPanelA.setFineAlignmentState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setFineAlignmentState(state);
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setTomogramPositioningState(state);
-    }
-    else {
-      axisPanelA.setTomogramPositioningState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setTomogramPositioningState(state);
   }
 
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
   public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      axisPanelB.setTomogramGenerationState(state);
-    }
-    else {
-      axisPanelA.setTomogramGenerationState(state);
-    }
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setTomogramGenerationState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setTomogramCombinationState(ProcessState state) {
     axisPanelA.setTomogramCombinationState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setPostProcessingState(ProcessState state) {
     axisPanelA.setPostProcessingState(state);
   }
@@ -577,6 +605,21 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
+  /**
+   * Convienence function to return a reference to the correct AxisProcessPanel
+   * @param axisID
+   * @return
+   */
+  private AxisProcessPanel mapAxis(AxisID axisID) {
+    if(axisID == AxisID.SECOND) {
+      return axisPanelB;
+    }
+    return axisPanelA;
+  }
+  
+  /**
+   * Set the advanced label to to the opposite state
+   */
   private void setAdvancedLabel() {
     if (applicationManager.getAdvanced()) {
       menuAdvanced.setText("Advanced X");
