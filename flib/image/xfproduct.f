@@ -1,20 +1,7 @@
 *	  XFPRODUCT  is used to concatenate two lists of transforms, or to
 c	  multiply all of the transforms in one file by another transform.
 c
-c	  In the first case, for each line in the input files, it multiplies
-c	  the transform in the first input file by the transform in the second
-c	  file, and writes the product in the output file.  This can thus be
-c	  used to implement two stage alignment: If the first set of
-c	  transforms were obtained by a first stage of aligning raw images,
-c	  and the second set are obtained by a second stage of alignment
-c	  applied to images that have been aligned by the first set, then the
-c	  products produced by this program can be applied to the raw images,
-c	  in one step, to produce an alignment that incorporates both stages.
-c	  
-c	  To multiply all of the transforms in one file by a single transform,
-c	  make the latter transform be the only one in a file.  The file with
-c	  the single transform can be either the first or the second file.
-c	  in the other file.
+c	  See man page for details.
 c
 c	  David Mastronarde 1989
 c
@@ -25,36 +12,68 @@ c
 c	  $Revision$
 c
 c	  $Log$
-c
-	parameter (nflimit=1000)
+c	  Revision 3.1  2003/08/02 22:32:14  mast
+c	  Standardize error output and exit
+c	
+c	  
+	implicit none
+	integer nflimit
+	parameter (nflimit=100000)
 	real*4 f(2,3,nflimit),g(2,3,nflimit),prod(2,3)
-	character*80 gfile
+	character*120 gfile
+c	  
+	integer*4 nfirst, nsecond, nout, ierr, i
+	real*4 scale1, scale2
 c
-	write(*,'(1x,a,$)')
-     &	    'file of transforms applied first: '
-	read(*,'(a)')gfile
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetTwoFloats
+	integer*4 PipGetInOutFile
+c	  
+c	  
+c         fallbacks from ../../manpages/autodoc2man -2 2  xfproduct
+c	  
+	integer numOptions
+	parameter (numOptions = 5)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'in1:InputFile1:FN:@in2:InputFile2:FN:@'//
+     &      'output:OutputFile:FN:@scale:ScaleShifts:FP:@help:usage:B:'
+c
+	scale1 = 1.
+	scale2 = 1.
+c
+	call PipReadOrParseOptions(options, numOptions, 'xfproduct',
+     &	    'ERROR: XFPRODUCT - ', .true., 3, 2, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+
+	if (PipGetInOutFile('InputFile1', 1,
+     &	    'File of transforms applied first', gfile)
+     &	    .ne. 0) call errorexit('NO FIRST INPUT FILE SPECIFIED')
 	call dopen(1,gfile,'ro','f')
 	call xfrdall(1,f,nfirst,*92)
-	print *,nfirst,' transforms'
+	print *,nfirst,' transforms in first file'
 c
-	write(*,'(1x,a,$)')
-     &	    'file of transforms applied second: '
-	read(*,'(a)')gfile
+	if (PipGetInOutFile('InputFile2', 2,
+     &	    'File of transforms applied second', gfile)
+     &	    .ne. 0) call errorexit('NO SECOND INPUT FILE SPECIFIED')
 	call dopen(2,gfile,'ro','f')
 	call xfrdall(2,g,nsecond,*92)
-	print *,nsecond,' transforms'
+	print *,nsecond,' transforms in second file'
 c	  
-	if(nfirst.gt.nflimit.or.nsecond.gt.nflimit)then
-	  print *,'too many transforms for array size'
-	  stop
-	endif
+	if (nfirst.gt.nflimit.or.nsecond.gt.nflimit)
+     &	    call errorexit('too many transforms for array size')
 c
-	write(*,'(1x,a,$)')
-     &	    'new file for product transforms: '
-	read(*,'(a)')gfile
+	if (PipGetInOutFile('OutputFile', 3,
+     &	    'New file for product transforms', gfile)
+     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
 	call dopen(3,gfile,'new','f')
+
+	if (pipinput) ierr = PipGetTwoFloats('ScaleShifts', scale1, scale2)
+	call PipDone()
 c
-	if(nsecond.ne.nfirst)then
+	if (nsecond.ne.nfirst)then
 	  if(nsecond.eq.1)then
 	    do i=2,nfirst
 	      call xfcopy(g(1,1,1),g(1,1,i))
@@ -76,14 +95,23 @@ c
 c	  
 	nout=min(nfirst,nsecond)
 	do i=1,nout
+	  f(1,3,i) = f(1,3,i) * scale1
+	  f(2,3,i) = f(2,3,i) * scale1
+	  g(1,3,i) = g(1,3,i) * scale2
+	  g(2,3,i) = g(2,3,i) * scale2
 	  call xfmult(f(1,1,i),g(1,1,i),prod)
 	  call xfwrite(3,prod,*94)
 	enddo
 	print *,nout,' new transforms written'
 	call exit(0)
 c
-92	print *,'ERROR: XFPRODUCT - reading old f/g file'
-	call exit(1)
-94	print *,'ERROR: XFPRODUCT - writing out g file'
+92	call errorexit('reading old f/g file')
+94	call errorexit('writing out g file')
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: XFPRODUCT - ',message
 	call exit(1)
 	end
