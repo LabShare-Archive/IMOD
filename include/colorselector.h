@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/04/14 05:05:27  mast
+add initial redraw
+
 Revision 3.2  2003/03/19 19:38:20  mast
 Change the color panel to a GL widget
 
@@ -63,7 +66,7 @@ class ColorSelector : public DialogFrame
   void keyRelease( QKeyEvent * e );
 
   public slots:
-    void buttonPressed(int which);
+    void buttonClicked(int which);
     void sliderChanged(int which, int value, bool dragging);
 
  protected:
