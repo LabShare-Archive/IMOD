@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,6 +19,8 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
+import etomo.comscript.TiltalignParam;
+import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
 
 /**
@@ -33,6 +37,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/08/31 17:43:01  sueh
+ * <p> bug# 542 Calling TomogramCombinationDialog.setBinningWarning(true)
+ * <p> when Bin by 2 checkbox is first checked.
+ * <p>
  * <p> Revision 3.4  2004/06/17 20:43:50  sueh
  * <p> bug# 472
  * <p>
@@ -377,26 +385,27 @@ public class SolvematchPanel implements InitialCombineFields {
    */
   private void setToolTipText() {
     String text;
+    Section section;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "Select this option when there are fiducials distributed in Z.";
-    rbBothSides.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Select this option when the fiducials lie on one surface and the "
-      + "tomograms are not inverted in Z with respect to each other.";
-    rbOneSide.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Select this option when the fiducials lie on one surface and the "
-      + "top of one tomogram in Z corresponds to the bottom of the other.";
-    rbOneSideInverted.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Select this option to use both fiducials and models of "
-        + "corresponding points to find the transformation between tomograms.";
-    rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Select this option to use ONLY models of corresponding points to "
-        + "find the transformation between tomograms.";
-    rbUseModelOnly.setToolTipText(tooltipFormatter.setText(text).format());
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.get(Autodoc.SOLVEMATCH);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    System.out.println("autodoc="+autodoc);
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, SolvematchParam.SURFACE_OR_USE_MODELS);
+    if (section != null) {
+      rbBothSides.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION)).format());
+      rbOneSide.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_OPTION)).format());
+      rbOneSideInverted.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_INVERTED_OPTION)).format());
+      rbUseModel.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_OPTION)).format());
+      rbUseModelOnly.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_ONLY_OPTION)).format());
+    }
 
     text = "Use binning by 2 when opening matching models to allow the two 3dmods "
       + "to fit into the computer's memory.";
@@ -405,20 +414,8 @@ public class SolvematchPanel implements InitialCombineFields {
     text = "Create models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Enter the list of fiducials in A for which you know the corresponding "
-      + "fiducial in B.  Use the point number in *fid.xyz, not the contour "
-      + "number.";
-    ltfFiducialMatchListA.setToolTipText(tooltipFormatter.setText(text)
-      .format());
-
-    text = "Enter the list of fiducials in B that correspond to the ones in the "
-      + "list entered for A.  Use the point number in *fid.xyz, not the "
-      + "contour number.";
-    ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(text)
-      .format());
-    
-    text = "Maximum residual allowed when fitting a 3D transformation to the "
-        + "corresponding points.";
-    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfFiducialMatchListA.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.TO_CORRESPONDENCE_LIST)).format());
+    ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
+    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL)).format());
   }
 }
