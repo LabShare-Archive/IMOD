@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/06/10 05:14:36  rickg
+ * <p> Changes model for button selection to be managed by
+ * <p> the application manager
+ * <p>
  * <p> Revision 2.8  2003/06/09 04:26:16  rickg
  * <p> Manage button selected state
  * <p>
@@ -72,7 +76,7 @@ public class AxisProcessPanel implements ContextMenu {
   private JPanel panelDialog = new JPanel();
 
   //  Progress panel
-  ProgressPanel progressPanel = new ProgressPanel("");
+  ProgressPanel progressPanel = new ProgressPanel("No process");
   JButton buttonKillProcess = new JButton("Kill Process");
 
   //  Process select panel
@@ -106,9 +110,14 @@ public class AxisProcessPanel implements ContextMenu {
     //  Create the status panel
     buttonKillProcess.addActionListener(new KillButtonActionListener(this));
     buttonKillProcess.setEnabled(false);
+    buttonKillProcess.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+    panelStatus.add(Box.createRigidArea(FixedDim.x5_y0));
     panelStatus.add(progressPanel.getContainer());
+    panelStatus.add(Box.createRigidArea(FixedDim.x5_y0));
     panelStatus.add(buttonKillProcess);
-
+    panelStatus.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelStatus.setLayout(new BoxLayout(panelStatus, BoxLayout.X_AXIS));
+    
     //  Create the process control panel    
     createProcessControlPanel();
 
