@@ -33,26 +33,52 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/13 21:07:39  mast
+    Removed redundant declarations, changed LoadModel
+
 */
 /* imod_io.h */
 
 #ifndef IMOD_IO_H
 #define IMOD_IO_H
 
-extern char Statstring[128];
-extern char Inputstring[128];
-
-/* Functions */
-int imod_model_changed(struct Mod_Model *imodel);
-void imod_cleanup_autosave(void);
-int reqask(char *prompt);
-int imod_autosave(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin, char *filename);
-int SaveModel(struct Mod_Model *mod);
-int SaveasModel(struct Mod_Model *mod);
-int SaveModelQuit(struct Mod_Model *mod);
-unsigned char **imod_io_image_load(ImodImageFile *im,
-				   struct LoadInfo *li,
-				   void (*func)(char *));
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+#define IMOD_IO_SUCCESS 0
+#define IMOD_IO_SAVE_ERROR 1
+#define IMOD_IO_SAVE_CANCEL 2
+#define IMOD_IO_DOES_NOT_EXIST 3
+#define IMOD_IO_NO_ACCESS_ERROR 4
+#define IMOD_IO_READ_ERROR 5
+#define IMOD_IO_NO_FILE_SELECTED 6
+#define IMOD_IO_NOMEM 7
+#define IMOD_IO_UNIMPLEMENTED_ERROR 99
+
+  extern char Statstring[128];
+  extern char Inputstring[128];
+
+  /* Functions */
+  int imodIOGetError();
+  char *imdoIOGetErrorString();
+  int createNewModel(char *mdoelFilename);
+  int openModel(char *modelFilename);
+  Imod *LoadModel(FILE *mfin);
+  int SaveModel(struct Mod_Model *mod);
+  int SaveasModel(struct Mod_Model *mod);
+  int SaveModelQuit(Imod *mod);
+  int imod_model_changed(Imod *imodel);
+  void imod_cleanup_autosave(void);
+  int imod_autosave(struct Mod_Model *mod);
+  int SaveImage(struct ViewInfo *vi);
+  int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li);
+  unsigned char **imod_io_image_load(ImodImageFile *im,
+                                     struct LoadInfo *li,
+                                     void (*func)(char *));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* IMOD_IO_H */
