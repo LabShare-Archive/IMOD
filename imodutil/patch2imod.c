@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.3  2002/12/23 21:32:55  mast
 Fixed exit status and made residual model have end-markers set
 
@@ -221,6 +224,10 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
   mod->xmax = xmax + xmin;
   mod->ymax = ymax + ymin;
   mod->zmax = zmax + zmin;
+
+  /* Set current thicken contour flag to aid deleting patches */
+  mod->obj->flags |= IMOD_OBJFLAG_THICK_CONT;
+
   return(mod);
      
 }
