@@ -31,30 +31,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.7  2002/09/04 23:13:10  mast
-    Add a flag to indicate mat and mat3 are stored as bytes
-
-    Revision 3.6  2002/09/03 20:06:14  mast
-    Changed mat1 and mat3 in object this time; last time was in object view
-
-    Revision 3.5  2002/09/03 19:37:01  mast
-    Redefine object materials mat1 and mat3 from UINT to 4 UBYTES each because
-    code accesses them as individual bytes in numbered positions
-
-    Revision 3.4  2002/08/03 22:46:56  mast
-    Changed some comments
-
-    Revision 3.3  2002/07/20 23:26:44  mast
-    Define a flag to signify that refImage.otrans has image origin info
-
-    Revision 3.2  2002/05/20 15:27:15  mast
-    Fix documentation of contour type and surf
-
-    Revision 3.1  2001/12/05 16:02:06  mast
-    Add declaration of imodFromVmsFloats in imodel_files.c
-
+    Log at end of file
 */
 
 #ifndef IMODEL_H
@@ -100,7 +77,7 @@
 #define MakeID(a,b,c,d) ( (long)(d)<<24L | (long)(c)<<16L | (b)<<8 | (a))
 #else
 */
-#define MakeID(a,b,c,d) ( (long)(a)<<24L | (long)(b)<<16L | (c)<<8 | (d))
+#define MakeID(a,b,c,d) ((b3dInt32)(a)<<24L | (b3dInt32)(b)<<16L | (c)<<8 | (d))
 
 
 #define ID_IMOD MakeID('I', 'M', 'O', 'D')  /* imod file                     */
@@ -150,24 +127,24 @@
 
 typedef struct Mod_Point
 {
-     float           x;
-     float           y;
-     float           z;
+     b3dFloat           x;
+     b3dFloat           y;
+     b3dFloat           z;
 }Ipoint;
 
-typedef struct {float a, b, c, d;} Iplane;
+typedef struct {b3dFloat a, b, c, d;} Iplane;
 typedef Ilist IclipList;
 typedef Ilist *Istore;
 
 typedef struct Mod_Mesh
 {
      struct Mod_Point *vert;   /* list of points */
-     INT              *list;   /* index into vert array + instructions */
-     INT        vsize;         /* size of arrays */
-     INT        lsize;
-     UINT       flag;          /* Tells how to draw mesh */
-     INT        type;          /* Set to 0. time data.   */
-     INT        pad;           /* Set to 0. surf data.   */
+     b3dInt32              *list;   /* index into vert array + instructions */
+     b3dInt32        vsize;         /* size of arrays */
+     b3dInt32        lsize;
+     b3dUInt32       flag;          /* Tells how to draw mesh */
+     b3dInt32        type;          /* Set to 0. time data.   */
+     b3dInt32        pad;           /* Set to 0. surf data.   */
      Istore     store;
 }Imesh;
 
@@ -175,9 +152,9 @@ typedef struct Mod_Mesh
 /* Describes current object, contour and point. */
 typedef struct Mod_Index
 {
-     INT  object;
-     INT  contour;
-     INT  point;
+     b3dInt32  object;
+     b3dInt32  contour;
+     b3dInt32  point;
 }Iindex;
 
 /* Describes a 3D view of a model. */
@@ -194,50 +171,50 @@ typedef struct Mod_Index
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
 {
-     UINT              flags;               /* bit flags IMOD_OBJFLAG        */
-     float   red;                 /* Red (0 - 1.0)                 */
-     float   green;               /* Green (0 - 1.0)               */
-     float   blue;                /* Blue (0 - 1.0)                */
-     INT     pdrawsize;           /* size to draw scattered objs   */
+     b3dUInt32              flags;               /* bit flags IMOD_OBJFLAG        */
+     b3dFloat   red;                 /* Red (0 - 1.0)                 */
+     b3dFloat   green;               /* Green (0 - 1.0)               */
+     b3dFloat   blue;                /* Blue (0 - 1.0)                */
+     b3dInt32     pdrawsize;           /* size to draw scattered objs   */
 
-     UBYTE     linewidth;           /* linewidth in 3-D              */
-     UBYTE     linesty;             /* line draw style               */
-     UBYTE     trans;               /* transperentcy                 */
+     b3dUByte     linewidth;           /* linewidth in 3-D              */
+     b3dUByte     linesty;             /* line draw style               */
+     b3dUByte     trans;               /* transperentcy                 */
 
      /* new extended data imod 1.2 */
      /* chunk CLIP */
      /* define a clipping plane. max for each object is 8. */
-     UBYTE clip;        /* number of additional clip planes. */
-     UBYTE clip_flags;  /* Which clip planes are on.         */
-     UBYTE clip_trans;  /* Transperentcy for clipped area    */
-     UBYTE clip_plane;  /* Current clip plane.               */
+     b3dUByte clip;        /* number of additional clip planes. */
+     b3dUByte clip_flags;  /* Which clip planes are on.         */
+     b3dUByte clip_trans;  /* Transperentcy for clipped area    */
+     b3dUByte clip_plane;  /* Current clip plane.               */
      Ipoint clip_normal;
      Ipoint clip_point;
 
      /* Added info IMAT */
-     UBYTE ambient;   /* Ambient multiplier to color */
-     UBYTE diffuse;   /* Diffuse multiplier to color */
-     UBYTE specular;  /* Specular property, added to color */
-     UBYTE shininess; /* shininess exponent */
-     UBYTE mat1;      /* Fill color red */
-     UBYTE mat1b1;    /* Fill color green */
-     UBYTE mat1b2;    /* Fill color blue */
-     UBYTE mat1b3;    /* Unused */
-     UINT  mat2;      /* set to 0, use as flags.  Unused */
-     UBYTE mat3;      /* Black level for showing normal magnitudes in mesh */
-     UBYTE mat3b1;    /* Black level for showing normal magnitudes in mesh */
-     UBYTE mat3b2;    /* Unused */
-     UBYTE mat3b3;    /* Unused */
+     b3dUByte ambient;   /* Ambient multiplier to color */
+     b3dUByte diffuse;   /* Diffuse multiplier to color */
+     b3dUByte specular;  /* Specular property, added to color */
+     b3dUByte shininess; /* shininess exponent */
+     b3dUByte mat1;      /* Fill color red */
+     b3dUByte mat1b1;    /* Fill color green */
+     b3dUByte mat1b2;    /* Fill color blue */
+     b3dUByte mat1b3;    /* Unused */
+     b3dUInt32  mat2;      /* set to 0, use as flags.  Unused */
+     b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
+     b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
+     b3dUByte mat3b2;    /* Unused */
+     b3dUByte mat3b3;    /* Unused */
 }Iobjview;
 
 typedef struct
 {
      /* Set up the camera */
-     float  fovy;   /* field of view of camera, perspective in degrees.  */
-     float  rad;    /* viewing radius of sphere encloseing bounding box. */
-     float  aspect; /* aspect ratio */
-     float  cnear;  /* clip near range 0.0 to 1.0, default 0.0. */
-     float  cfar;   
+     b3dFloat  fovy;   /* field of view of camera, perspective in degrees.  */
+     b3dFloat  rad;    /* viewing radius of sphere encloseing bounding box. */
+     b3dFloat  aspect; /* aspect ratio */
+     b3dFloat  cnear;  /* clip near range 0.0 to 1.0, default 0.0. */
+     b3dFloat  cfar;   
      
      /* Model transformation values for model view.
       */
@@ -246,16 +223,16 @@ typedef struct
      Ipoint scale;
 
      /* World OpenGL transformation matrix. */
-     float mat[16];
+     b3dFloat mat[16];
 
-     int   world;    /* flags, true if we use world matrix. */
-     char  label[32];
+     b3dInt32 world;    /* flags, true if we use world matrix. */
+     b3dByte  label[32];
 
-     float dcstart, dcend;
-     float lightx, lighty;
-     float plax;
+     b3dFloat dcstart, dcend;
+     b3dFloat lightx, lighty;
+     b3dFloat plax;
      Iobjview *objview;    /* properties of each object */
-     int   objvsize;       /* Number of objects properties exist for */
+     b3dInt32 objvsize;       /* Number of objects properties exist for */
      
 }Iview;
 
@@ -277,16 +254,16 @@ typedef struct
  */
 typedef struct
 {
-     char *name;
-     INT  len;
-     UINT index;
+     b3dByte *name;
+     b3dInt32  len;
+     b3dUInt32 index;
 }IlabelItem;
 
 typedef struct
 {
-     char       *name;
-     INT         len;
-     UINT        nl;
+     b3dByte       *name;
+     b3dInt32         len;
+     b3dUInt32        nl;
      IlabelItem *label;
 }Ilabel;
 
@@ -299,13 +276,13 @@ typedef struct Mod_Contour
 {
      /* Run time data */
      Ipoint *pts;    /* Points data.                      */
-     float  *sizes;  /* sizes for scattered points        */
+     b3dFloat  *sizes;  /* sizes for scattered points        */
 
      /* data below is written to file                     */
-     UINT    psize;  /* Number of points.                 */
-     UINT    flags;  /* Default 0 means use object flags. */
-     INT     type;   /* Time index.                       */
-     INT     surf;   /* Surface number.                   */
+     b3dUInt32    psize;  /* Number of points.                 */
+     b3dUInt32    flags;  /* Default 0 means use object flags. */
+     b3dInt32     type;   /* Time index.                       */
+     b3dInt32     surf;   /* Surface number.                   */
 
      Ilabel  *label;
 /*     Istore store;*/
@@ -323,64 +300,64 @@ typedef struct Mod_Object
      struct Mod_Contour *vcont;             /* virtual contour */
      struct Mod_Mesh    *vmesh;
 
-     UINT fgcolor;  /* colors used for colorindex rendering. */
-     UINT bgcolor;
+     b3dUInt32 fgcolor;  /* colors used for colorindex rendering. */
+     b3dUInt32 bgcolor;
 
      /* data below is written to file */
-     char              name[IOBJ_STRSIZE];  /* Name of Object.               */
-     UINT              extra[IOBJ_EXSIZE];  /* extra unused data = 0         */
+     b3dByte              name[IOBJ_STRSIZE];  /* Name of Object.               */
+     b3dUInt32              extra[IOBJ_EXSIZE];  /* extra unused data = 0         */
 
      /* Use some EXSIZE data for light location. 
-	float            lightOrientation[3];
+	b3dFloat            lightOrientation[3];
      */
 
 
-     UINT              contsize;            /* Number of Contours in object. */
-     UINT              flags;               /* bit flags IMOD_OBJFLAG        */
-     INT               axis;                /* Z = 0, X = 1, Y = 2. (future) */
-     INT               drawmode;            /* Tells type of points to draw  */
+     b3dUInt32              contsize;            /* Number of Contours in object. */
+     b3dUInt32              flags;               /* bit flags IMOD_OBJFLAG        */
+     b3dInt32               axis;                /* Z = 0, X = 1, Y = 2. (future) */
+     b3dInt32               drawmode;            /* Tells type of points to draw  */
                                             /* for scatterd objects.         */
-     float             red;                 /* Red (0 - 1.0)                 */
-     float   green;               /* Green (0 - 1.0)               */
-     float   blue;                /* Blue (0 - 1.0)                */
-     INT     pdrawsize;           /* size to draw scattered objs   */
+     b3dFloat             red;                 /* Red (0 - 1.0)                 */
+     b3dFloat   green;               /* Green (0 - 1.0)               */
+     b3dFloat   blue;                /* Blue (0 - 1.0)                */
+     b3dInt32     pdrawsize;           /* size to draw scattered objs   */
 
-     UBYTE     symbol;              /* default 0=circle              */
-     UBYTE     symsize;             /* size of symbol.               */
-     UBYTE     linewidth2;          /* linewidth in 2-D              */
-     UBYTE     linewidth;           /* linewidth in 3-D              */
-     UBYTE     linesty;             /* line draw style               */
-     UBYTE     symflags;
-     UBYTE     sympad;
-     UBYTE     trans;               /* transperentcy                 */
+     b3dUByte     symbol;              /* default 0=circle              */
+     b3dUByte     symsize;             /* size of symbol.               */
+     b3dUByte     linewidth2;          /* linewidth in 2-D              */
+     b3dUByte     linewidth;           /* linewidth in 3-D              */
+     b3dUByte     linesty;             /* line draw style               */
+     b3dUByte     symflags;
+     b3dUByte     sympad;
+     b3dUByte     trans;               /* transperentcy                 */
 
-     INT       meshsize;            /* Number of meshes in object.   */
-     INT       surfsize;            /* Max surfaces in object.       */
+     b3dInt32       meshsize;            /* Number of meshes in object.   */
+     b3dInt32       surfsize;            /* Max surfaces in object.       */
 
      /* new extended data imod 1.2 */
      /* chunk CLIP */
      /* define a clipping plane. max for each object is 8. */
-     UBYTE clip;        /* number of additional clip planes. */
-     UBYTE clip_flags;  /* Which clip planes are on.         */
-     UBYTE clip_trans;  /* Transperentcy for clipped area    */
-     UBYTE clip_plane;  /* Current clip plane.               */
+     b3dUByte clip;        /* number of additional clip planes. */
+     b3dUByte clip_flags;  /* Which clip planes are on.         */
+     b3dUByte clip_trans;  /* Transperentcy for clipped area    */
+     b3dUByte clip_plane;  /* Current clip plane.               */
      Ipoint clip_normal;
      Ipoint clip_point;
 
      /* Added info IMAT */
-     UBYTE ambient;   /* Ambient multiplier to color */
-     UBYTE diffuse;   /* Diffuse multiplier to color */
-     UBYTE specular;  /* Specular property, added to color */
-     UBYTE shininess; /* shininess exponent */
-     UBYTE mat1;      /* Fill color red */
-     UBYTE mat1b1;    /* Fill color green */
-     UBYTE mat1b2;    /* Fill color blue */
-     UBYTE mat1b3;    /* Unused */
-     UINT  mat2;      /* set to 0, use as flags.  Unused */
-     UBYTE mat3;      /* Black level for showing normal magnitudes in mesh */
-     UBYTE mat3b1;    /* Black level for showing normal magnitudes in mesh */
-     UBYTE mat3b2;    /* Unused */
-     UBYTE mat3b3;    /* Unused */
+     b3dUByte ambient;   /* Ambient multiplier to color */
+     b3dUByte diffuse;   /* Diffuse multiplier to color */
+     b3dUByte specular;  /* Specular property, added to color */
+     b3dUByte shininess; /* shininess exponent */
+     b3dUByte mat1;      /* Fill color red */
+     b3dUByte mat1b1;    /* Fill color green */
+     b3dUByte mat1b2;    /* Fill color blue */
+     b3dUByte mat1b3;    /* Unused */
+     b3dUInt32  mat2;      /* set to 0, use as flags.  Unused */
+     b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
+     b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
+     b3dUByte mat3b2;    /* Unused */
+     b3dUByte mat3b3;    /* Unused */
 
      Istore store;
 }Iobj;
@@ -393,38 +370,38 @@ typedef struct Mod_Model
      /* Run time data */
      Iobj  *obj;          /* Object data.                       */
      FILE  *file;         /* Current file handle.               */
-     INT   lock;          /* Locks model data for shared procs. */
-     INT   redraw;        /* Used for shared procs.             */
-     INT   ctime;         /* current time index.                */
+     int   lock;          /* Locks model data for shared procs. */
+     int   redraw;        /* Used for shared procs.             */
+     int   ctime;         /* current time index.                */
 
      /* data written to file    */
-     char   name[IMOD_STRSIZE];        /* file name of model.                */
+     b3dByte   name[IMOD_STRSIZE];        /* file name of model.                */
                                        /* Use labels for model name.         */
-     INT    xmax, ymax, zmax;  
-     UINT   objsize;                   /* Number of objects in model.        */
-     UINT   flags;                     /* IMODF_FLAG values      */
-     INT    drawmode;                  /* 1 to draw model, -1 not to         */
-     INT    mousemode;                 /* Tells what mouse buttons do.       */
-     INT    blacklevel, whitelevel;    /* Contrast adjustment.               */
-     float  xoffset, yoffset, zoffset; /* offsets used for 3-D display       */
-     float  xscale;                    /* pixel size zoom.                   */
-     float  yscale;                    /* y aspect for pixels.               */
-     float  zscale;                    /* z aspect for sections.             */
+     b3dInt32    xmax, ymax, zmax;  
+     b3dUInt32   objsize;                   /* Number of objects in model.        */
+     b3dUInt32   flags;                     /* IMODF_FLAG values      */
+     b3dInt32    drawmode;                  /* 1 to draw model, -1 not to         */
+     b3dInt32    mousemode;                 /* Tells what mouse buttons do.       */
+     b3dInt32    blacklevel, whitelevel;    /* Contrast adjustment.               */
+     b3dFloat  xoffset, yoffset, zoffset; /* offsets used for 3-D display       */
+     b3dFloat  xscale;                    /* pixel size zoom.                   */
+     b3dFloat  yscale;                    /* y aspect for pixels.               */
+     b3dFloat  zscale;                    /* z aspect for sections.             */
      Iindex cindex;       /* Current object, contour & point     */
-     INT    res;          /* Number of pixels between points.    */
-     INT    thresh;       /* Threshold level for auto cont.      */
-     float  pixsize;      /* size of unit 1.0 pixel              */
-     INT    units;        /* units of given size.                */
-     INT    csum;         /* checksum storage.                   */
-     INT    cview;
-     INT    viewsize;     
-     INT    tmax;          /* max time */
+     b3dInt32    res;          /* Number of pixels between points.    */
+     b3dInt32    thresh;       /* Threshold level for auto cont.      */
+     b3dFloat  pixsize;      /* size of unit 1.0 pixel              */
+     b3dInt32    units;        /* units of given size.                */
+     b3dInt32    csum;         /* checksum storage.                   */
+     b3dInt32    cview;
+     b3dInt32    viewsize;     
+     b3dInt32    tmax;          /* max time */
      
      /* imod file version 0.2 data */
-     float  alpha, beta, gamma;        /* rotation of model in 3-D view. */
+     b3dFloat  alpha, beta, gamma;        /* rotation of model in 3-D view. */
 
      /* more runtime data */
-     USHORT   color; /* color of current object */
+     b3dUInt16   color; /* color of current object */
      Iview   *view;
 
      IclipList  *clipList;
@@ -441,60 +418,60 @@ typedef struct Mod_Model
 /* Used for drawing models, imodv */
 typedef struct Mod_Draw
 {
-     INT llx;     /* Used for drawing 2d models to sub area */
-     INT lly;     
-     INT urx;
-     INT ury;
-     INT llz;
-     INT urz;
-     float xorg;    /* Offset for 2d, translation for 3d models. */
-     float yorg;
-     float zorg;
-     INT xrot;     /* Amount to rotate model */
-     INT yrot;
-     INT zrot;
-     float xtrans;   /* Amount to translate model */
-     float ytrans;
-     float ztrans;
-     INT axis;     /* Axis to rotate.         */
-     INT cmapbase; /* Where to start colormap */
-     float left,
+     b3dInt32 llx;     /* Used for drawing 2d models to sub area */
+     b3dInt32 lly;     
+     b3dInt32 urx;
+     b3dInt32 ury;
+     b3dInt32 llz;
+     b3dInt32 urz;
+     b3dFloat xorg;    /* Offset for 2d, translation for 3d models. */
+     b3dFloat yorg;
+     b3dFloat zorg;
+     b3dInt32 xrot;     /* Amount to rotate model */
+     b3dInt32 yrot;
+     b3dInt32 zrot;
+     b3dFloat xtrans;   /* Amount to translate model */
+     b3dFloat ytrans;
+     b3dFloat ztrans;
+     b3dInt32 axis;     /* Axis to rotate.         */
+     b3dInt32 cmapbase; /* Where to start colormap */
+     b3dFloat left,
            right,
            bottom,
            top;
-     INT    cnear,  /* Clipping planes */
+     b3dInt32    cnear,  /* Clipping planes */
             cfar;
-     INT   dc;     /* min depth cue factor  range x/1 to x/16*/
-     float zoom;   /* Mag factor for displaying */
-     float cdist;  /* Distence for center of model to far corner */
-     float edist;  /* Distence from center of model to eye.      */
-     INT xrotm;    /* xyz movie amounts */
-     INT yrotm;
-     INT zrotm;
-     INT arot;     /* amount of change in rotation */
-     float azoom;
-     float atrans;
-     float azscale;
+     b3dInt32   dc;     /* min depth cue factor  range x/1 to x/16*/
+     b3dFloat zoom;   /* Mag factor for displaying */
+     b3dFloat cdist;  /* Distence for center of model to far corner */
+     b3dFloat edist;  /* Distence from center of model to eye.      */
+     b3dInt32 xrotm;    /* xyz movie amounts */
+     b3dInt32 yrotm;
+     b3dInt32 zrotm;
+     b3dInt32 arot;     /* amount of change in rotation */
+     b3dFloat azoom;
+     b3dFloat atrans;
+     b3dFloat azscale;
 } Idraw;
 
 
 typedef struct Mod_Transform
 {
-     float x;       /* input x, y and z. */
-     float y;
-     float z;
-     float xout;    /* output values after transformation. */
-     float yout;
-     float zout;
-     float xtrans;  /* amount to translate x, y and z. */
-     float ytrans;
-     float ztrans;
-     float xrot;    /* amount to rotate x, y, and z. */
-     float yrot;
-     float zrot;
-     float xscale;  /* amount to scale x, y and z. */
-     float yscale;
-     float zscale;
+     b3dFloat x;       /* input x, y and z. */
+     b3dFloat y;
+     b3dFloat z;
+     b3dFloat xout;    /* output values after transformation. */
+     b3dFloat yout;
+     b3dFloat zout;
+     b3dFloat xtrans;  /* amount to translate x, y and z. */
+     b3dFloat ytrans;
+     b3dFloat ztrans;
+     b3dFloat xrot;    /* amount to rotate x, y, and z. */
+     b3dFloat yrot;
+     b3dFloat zrot;
+     b3dFloat xscale;  /* amount to scale x, y and z. */
+     b3dFloat yscale;
+     b3dFloat zscale;
 }Itrans;
 
 
@@ -613,7 +590,7 @@ int   imodGetInt(FILE *fp);
 int   imodGetInts(FILE *fp, void *buf, int size);
 int   imodPutInts(FILE *fp, void *buf, int size);
 int   imodPutInt(FILE *fp,  void *dat);
-short imodGetShort(FILE *fp);
+b3dInt16 imodGetShort(FILE *fp);
 int   imodPutShort(FILE *fp, void *buf);
 unsigned char  imodGetByte(FILE *fp);
 int   imodGetBytes(FILE *fp, unsigned char *buf, int size);
@@ -726,4 +703,32 @@ mesh (index) (vert size) (list size)
 */
 /*****************************************************************************/
 
+/*    
+    $Log$
+    Revision 3.8  2002/12/01 15:40:44  mast
+    move ilabel declarations so they are inside the extern "C" construct
+
+    Revision 3.7  2002/09/04 23:13:10  mast
+    Add a flag to indicate mat and mat3 are stored as bytes
+
+    Revision 3.6  2002/09/03 20:06:14  mast
+    Changed mat1 and mat3 in object this time; last time was in object view
+
+    Revision 3.5  2002/09/03 19:37:01  mast
+    Redefine object materials mat1 and mat3 from UINT to 4 UBYTES each because
+    code accesses them as individual bytes in numbered positions
+
+    Revision 3.4  2002/08/03 22:46:56  mast
+    Changed some comments
+
+    Revision 3.3  2002/07/20 23:26:44  mast
+    Define a flag to signify that refImage.otrans has image origin info
+
+    Revision 3.2  2002/05/20 15:27:15  mast
+    Fix documentation of contour type and surf
+
+    Revision 3.1  2001/12/05 16:02:06  mast
+    Add declaration of imodFromVmsFloats in imodel_files.c
+
+*/
 #endif /* imodel.h */
