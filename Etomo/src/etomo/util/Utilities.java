@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.9  2004/07/16 23:01:27  sueh
+ * <p> $bug# 501 sending System.out prints only when debug is set
+ * <p> $
  * <p> $Revision 3.8  2004/07/13 17:26:50  sueh
  * <p> $bug# 429 make fix global
  * <p> $
@@ -54,9 +57,11 @@ package etomo.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
@@ -301,4 +306,32 @@ public class Utilities {
     return "";
   }
 
+  /**
+   * 
+   * @param file
+   * @param strings
+   * @throws IOException
+   */  
+  public static void writeFile(File file, String[] strings, boolean newFile)
+    throws IOException {
+    if (file == null) {
+      throw new IOException();
+    }
+    if (newFile) {
+      Utilities.renameFile(
+        file,
+        new File(file.getAbsolutePath() + "~"));
+    }
+    if (strings == null || strings.length == 0) {
+      return;
+    }
+    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+    for (int i = 0; i < strings.length; i++) {
+      bufferedWriter.write(strings[i]);
+      bufferedWriter.newLine();
+    }
+    if (bufferedWriter != null) {
+      bufferedWriter.close();
+    }
+  }
 }
