@@ -2,6 +2,9 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.comscript.ComScriptCommand;
+import etomo.comscript.InvalidParameterException;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,6 +19,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:34:47  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.2  2004/11/19 03:04:52  sueh
 * <p> bug# 520 In set(Object) renamed a local variable for clarity.
 * <p>
@@ -69,7 +75,13 @@ public class EtomoNumber extends ConstEtomoNumber {
     if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
+    validate();
     return this;
+  }
+  
+  public EtomoNumber set(ComScriptCommand scriptCommand)
+      throws InvalidParameterException {
+    return set(scriptCommand.getValue(name));
   }
   
   public EtomoNumber set(Object value) {
@@ -84,6 +96,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     else {
       this.value = newNumber(newValue);
     }
+    validate();
     return this;
   }
   
@@ -93,6 +106,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
+    validate();
     return this;
   }
   
@@ -102,11 +116,23 @@ public class EtomoNumber extends ConstEtomoNumber {
     if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
+    validate();
+    return this;
+  }
+  
+  public EtomoNumber set(double value) {
+    invalidReason = null;
+    this.value = newNumber(value);
+    if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
+      this.value = newNumber(ceilingValue);
+    }
+    validate();
     return this;
   }
   
   public EtomoNumber reset() {
     value = newNumber(resetValue);
+    validate();
     return this;
   }
   
