@@ -11,18 +11,14 @@ set packname = $this:r.tar.gz
 set tempdir = IMODtempDir
 
 # Find the end of this script
-# Make sure this number is safely past the end of this file - just want to
-# limit the awk to a small part of the file
 #
-set maxlines = 1000
-
-set stublines = `head -$maxlines $this | awk '/END OF STUB/ {print NR}'`
-if ($#stublines < 2) then
+set stubline = `awk '/END OF STUB/ {if (gotit > 0) {print NR ; exit} else { gotit = 1}}' $this`
+if ($stubline == "" || $#stubline > 1) then
     echo "Could not find package in this file!"
     exit 1
 endif
 
-@ skip = $stublines[2]
+@ skip = $stubline
 @ skip++
 
 set extract = 0
@@ -106,6 +102,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/04/24 17:41:12  mast
+#  Used awk instead of repeated head - tails to find end of script
+#
 #  Revision 3.3  2004/04/24 04:32:27  mast
 #  Fixes for SGI
 #
