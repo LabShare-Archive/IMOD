@@ -8,11 +8,15 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/06/24 15:33:28  mast
+#  Added -c option to subm and an if test to the removal of input file
+#
 #  Revision 3.3  2004/06/23 19:27:05  mast
 #  Fixed missing endif
 #
 #  Revision 3.2  2004/06/19 21:01:03  mast
-#  Added a monitor for parallel script and took care of case of machines > chunks
+#  Added a monitor for parallel script and took care of case of # of machines
+#  > # of chunks
 #
 #  Revision 3.1  2004/06/17 16:00:53  mast
 #  Initial creation
@@ -277,6 +281,7 @@ while (\$num < $npiecetot)
     @ num++
     set flags = (\$flags 0)
 end
+onintr report
 @ numdone = 0
 @ lastdone = 0
 while (\$numdone < $npiecetot)
@@ -303,7 +308,17 @@ while (\$numdone < $npiecetot)
     if (\$numdone > \$lastdone) echo \$numdone DONE SO FAR
     @ lastdone = \$numdone
 end
-echo "ALL DONE"
+echo "ALL DONE - going to run $rootname-finish to reassemble"
+vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
+exit
+report:
+echo -n "Still undone: "
+@ num = 0
+while (\$num < $npiecetot)
+    @ num++
+    if (\$flags[\$num] == 0) echo -n " \$num"
+end
+echo " "
 EOF
 
 
@@ -313,15 +328,7 @@ endif
 cat <<EOF
 
 $npiecetot command files were generated and are ready to run.
-
-You can run them individually (e.g., some on different machines or processors)
-and, when they are all done, run $finishname to reassemble the 
-volume and clean up intermediate image and command files.
-
-Or, you can just run $allname to run all files in sequence, 
-reassemble, and clean up.
 EOF
-
 if ($?farmout) then
 cat <<EOF
 
@@ -329,3 +336,13 @@ Run the shell script, $rootname-parallel to use the $numproc different processor
 Just run this directly (without subm) to start all of the processes.
 EOF
 endif
+cat <<EOF
+
+You can run $allname (with subm) to run all command files in 
+sequence, reassemble the volume, and clean up intermediate image and 
+command files.
+
+Or, you can run them individually (e.g., some on different machines or 
+processors) and, when they are all done, run $finishname to 
+reassemble the volume and clean up intermediate files.
+EOF
