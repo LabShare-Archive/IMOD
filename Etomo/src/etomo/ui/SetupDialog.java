@@ -41,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.16  2003/11/06 22:45:27  sueh
  * <p> cleaning up task tags and prints
  * <p>
@@ -301,7 +304,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisType.add(rbDualAxis);
     rbSingleView.setEnabled(false);
     rbMontage.setEnabled(false);
-    
+
     bgViewType.add(rbSingleView);
     bgViewType.add(rbMontage);
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
@@ -446,25 +449,42 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public boolean isValid() {
     String errorMessageTitle = new String("Setup Dialog Error");
     String datasetText = ltfDataset.getText();
-   
+    String panelErrorMessage;
+
     if (datasetText.equals("")) {
       applicationManager.openMessageDialog(
-        "Dataset name has not been entered",
+        "Dataset name has not been entered.",
         errorMessageTitle);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st") ||
-        datasetFileName.equals(".")) {
+    if (datasetFileName.equals("a.st")
+      || datasetFileName.equals("b.st")
+      || datasetFileName.equals(".")) {
       applicationManager.openMessageDialog(
-        "The name " + datasetFileName + " cannot be used as a dataset name",
+        "The name " + datasetFileName + " cannot be used as a dataset name.",
         errorMessageTitle);
       return false;
     }
+    panelErrorMessage = tiltAnglesA.getErrorMessage();
+    if (panelErrorMessage != null) {
+      applicationManager.openMessageDialog(
+        panelErrorMessage + " in Axis A.",
+        errorMessageTitle);
+      return false;
+    }
+    panelErrorMessage = tiltAnglesB.getErrorMessage();
+    if (panelErrorMessage != null) {
+      applicationManager.openMessageDialog(
+        panelErrorMessage + " in Axis B.",
+        errorMessageTitle);
+      return false;
+    }
+
     return true;
-    
   }
+
   // Return the working directory as a File object  
   public File getWorkingDirectory() {
     String datasetText = ltfDataset.getText();
@@ -472,8 +492,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (!dataset.isAbsolute()) {
 
       dataset =
-        new File(
-          System.getProperty("user.dir") + File.separator + datasetText);
+        new File(System.getProperty("user.dir") + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
@@ -663,7 +682,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
   }
-  
+
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -711,7 +730,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     btnBackupDirectory.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>Attempt to extract pixel size and tilt axis rotation<br>";
     line2 = "angle from data stack.";
     btnScanHeader.setToolTipText(line1 + line2);
@@ -734,7 +753,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlSectionType.setToolTipText(line1 + line2);
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>Enter the view image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
 
@@ -746,10 +765,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
-    
+
     tiltAnglesA.setToolTipText();
     tiltAnglesB.setToolTipText();
-    
+
     line1 =
       "<html>Enter the view images to <b>exclude</b> from the processing<br>";
     line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
