@@ -12,6 +12,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/08 19:11:26  rickg
+ * <p> Bug #421 Make sure the UI objects are only modified in the event
+ * <p> thread.
+ * <p> Bug #83 Added elapsed time string to indeterminate progress
+ * <p> bars
+ * <p>
  * <p> Revision 3.1  2004/04/08 15:52:34  rickg
  * <p> Added invokeLater structure to progress bar
  * <p>
@@ -233,7 +239,6 @@ public class ProgressPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      System.err.println("timer event");
       panel.increment();
     }
   }
