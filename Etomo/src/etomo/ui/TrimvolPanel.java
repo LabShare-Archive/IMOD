@@ -32,6 +32,10 @@ import etomo.process.ImodProcess;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/05/07 19:53:23  sueh
+ * <p> bug# 33 getting coordinates info in the right order, getting only
+ * <p> the correct kind of data
+ * <p>
  * <p> Revision 3.2  2004/05/06 20:25:16  sueh
  * <p> bug# 33 added getCoordinates button, moved fullvol button to the top
  * <p> of the dialog, added setXYMinAndMax() to set field values
@@ -289,27 +293,30 @@ public class TrimvolPanel {
       return;
     }
     int size = coordinates.size();
+    if (size == 0) {
+      return;
+    }
     int index = 0;
-    //Assumes that everything other then the results have been removed from the
-    //vector.
-    if (index >= size
-      || !ImodProcess.RUBBERBAND_RESULTS_STRING.equals(
-        (String) coordinates.get(index++))) {
-      return;
+    while (index < size) {
+      if (ImodProcess
+        .RUBBERBAND_RESULTS_STRING
+        .equals((String) coordinates.get(index++))) {
+        ltfXMin.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
+        ltfYMin.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
+        ltfXMax.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
+        ltfYMax.setText((String) coordinates.get(index++));   
+        return;     
+      }
     }
-    ltfXMin.setText((String) coordinates.get(index++));
-    if (index >= size) {
-      return;
-    }
-    ltfYMin.setText((String) coordinates.get(index++));
-    if (index >= size) {
-      return;
-    }
-    ltfXMax.setText((String) coordinates.get(index++));
-    if (index >= size) {
-      return;
-    }
-    ltfYMax.setText((String) coordinates.get(index++));
   }
 
   /**
