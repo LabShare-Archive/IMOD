@@ -24,6 +24,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/10/14 19:02:37  rickg
+ * <p> Opens a dialog through the app manager if a process returns
+ * <p> an error
+ * <p>
  * <p> Revision 1.5  2002/10/10 23:39:56  rickg
  * <p> refactored createCombineScripts to setupCombineScripts
  * <p>
@@ -329,7 +333,7 @@ public class ProcessManager {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
     comScript.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
-
+    comScript.setEnableDebug(true);
     comScript.start();
 
     System.out.println("Started " + command);
