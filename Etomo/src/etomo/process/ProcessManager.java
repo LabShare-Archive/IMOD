@@ -29,6 +29,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/06/05 04:40:15  rickg
+ * <p> thread references changed to SystemProcessInterface
+ * <p> mapped threads for transferfid and trimvol
+ * <p>
  * <p> Revision 2.13  2003/05/27 08:45:59  rickg
  * <p> Added new method to generate the align logs
  * <p> Added a section to the comscript done section for scipt
@@ -566,7 +570,6 @@ public class ProcessManager {
   public String trimVolume(TrimvolParam trimvolParam) {
     BackgroundProcess trimvol =
       new BackgroundProcess(trimvolParam.getCommandString(), this);
-    System.out.println(trimvolParam.getCommandString());
     trimvol.setWorkingDirectory(new File(System.getProperty("user.dir")));
     trimvol.setDemoMode(appManager.isDemo());
     trimvol.setDebug(appManager.isDebug());
@@ -589,7 +592,6 @@ public class ProcessManager {
       System.out.print(threadAxisA);
       if (threadAxisA != null) {
         processID = threadAxisA.getShellProcessID();
-        System.out.print(processID);
       }
     }
 
