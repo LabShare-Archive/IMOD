@@ -1,4 +1,4 @@
-# IMOD 3.2.10
+# IMOD 3.5.2
 #
 # Startup file for bash users of IMOD under Linux
 #
@@ -11,7 +11,7 @@
 #
 # Set IMOD_DIR if it is not set already; use Windows path format with double \
 #
-export IMOD_DIR=${IMOD_DIR:=C:\\cygwin\\usr\\local\\IMOD}
+export IMOD_DIR=${IMOD_DIR:=`/usr/bin/cygpath -w /usr/local/IMOD`}
 
 # Put the IMOD programs on the path
 #
@@ -23,7 +23,7 @@ export IMOD_PLUGIN_DIR=${IMOD_PLUGIN_DIR:=$IMOD_DIR\\lib\\imodplug}
 
 # Set a variable with the location of calibration/data files, in Windows format
 #
-export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=C:\\cygwin\\usr\\local\\ImodCalib}
+export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=`/usr/bin/cygpath -w /usr/local/ImodCalib`}
 
 # A subm function to run command files in the background with submfg
 #

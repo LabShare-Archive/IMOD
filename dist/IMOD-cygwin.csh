@@ -1,4 +1,4 @@
-# IMOD 3.2.10
+# IMOD 3.5.2
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -10,7 +10,7 @@
 #
 # Set IMOD_DIR if it is not set already, use Windows path format with double \
 #
-if (! $?IMOD_DIR) setenv IMOD_DIR C:\\cygwin\\usr\\local\\IMOD
+if (! $?IMOD_DIR) setenv IMOD_DIR `/usr/bin/cygpath -w /usr/local/IMOD`
 
 # Put the IMOD programs on the path
 #
@@ -27,7 +27,7 @@ if (! $?IMOD_PLUGIN_DIR) setenv IMOD_PLUGIN_DIR $IMOD_DIR\\lib\\imodplug
 
 # Set a variable with the location of calibration/data files, in Windows format
 #
-if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR C:\\cygwin\\usr\\local\\ImodCalib
+if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR `/usr/bin/cygpath -w /usr/local/ImodCalib`
 
 # A subm alias to run command files in the background with submfg
 #
