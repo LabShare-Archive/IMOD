@@ -27,7 +27,10 @@ Log at end of file
 #include <qvbox.h>
 #include <qcheckbox.h>
 #include <qpushbutton.h>
+#include <qradiobutton.h>
+#include <qvbuttongroup.h>
 #include "dia_qtutils.h"
+#include "tooledit.h"
 #include "multislider.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -40,14 +43,14 @@ Log at end of file
 #include "control.h"
 #include "preferences.h"
 
-#define MAX_LIST_TO_SHOW 6
-
 /* internal functions. */
 static void clearsec(ImodIProc *ip);
 static void savesec(ImodIProc *ip);
 static void cpdslice(Islice *sl, ImodIProc *ip);
 static void copyAndDisplay();
 static void setSliceMinMax(bool actual);
+static void freeArrays(ImodIProc *ip);
+static void  setUnscaledK();
 
 static void edge_cb();
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
@@ -66,6 +69,9 @@ static void fft_cb();
 static void mkMedian_cb(IProcWindow *win, QWidget *parent, 
                         QVBoxLayout *layout);
 static void median_cb();
+static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
+                           QVBoxLayout *layout);
+static void anisoDiff_cb();
 
 
 /* The table of entries and callbacks */
@@ -76,6 +82,7 @@ ImodIProcData proc_data[] = {
   {"threshold", thresh_cb, mkthresh_cb, NULL},
   {"smooth", smooth_cb, NULL, "Smooth Image."},
   {"median", median_cb, mkMedian_cb, NULL},
+  {"diffusion", anisoDiff_cb, mkAnisoDiff_cb, NULL},
   {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
   {"dilation", grow_cb, NULL, "Grow Threshold Area."},
   {"erosion", shrink_cb, NULL, "Shrink Threshold Area."},
@@ -163,7 +170,6 @@ static void thresh_cb()
 // Smoothing
 static void smooth_cb()
 {
-  ImodIProc *ip = &proc;
   setSliceMinMax(true);
   sliceByteSmooth(&s);
 }
@@ -171,7 +177,6 @@ static void smooth_cb()
 // Sharpening
 static void sharpen_cb()
 {
-  ImodIProc *ip = &proc;
   setSliceMinMax(true);
   sliceByteSharpen(&s);
 }
@@ -271,6 +276,16 @@ static void median_cb()
   free(ip->medianVol.vol);
 }
 
+static void anisoDiff_cb()
+{
+  ImodIProc *ip = &proc;
+  ip->andfK = ip->andfKEdit->text().toDouble();
+  ip->andfLambda = ip->andfLambdaEdit->text().toDouble();
+  sliceByteAnisoDiff(&s, ip->andfImage, ip->andfImage2, ip->andfStopFunc + 2,
+                     ip->andfK, ip->andfLambda, ip->andfIterations, 
+                     &ip->andfIterDone);
+}
+
 // Set the min and max of the static slice to full range, or actual values
 static void setSliceMinMax(bool actual)
 {
@@ -293,23 +308,23 @@ int iprocRethink(struct ViewInfo *vi)
     if (proc.isaved) {
       clearsec(&proc);
       proc.idatasec = -1;
-      free(proc.isaved);
-      free(proc.iwork);
+      freeArrays(&proc);
     }
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
-    if (!proc.isaved) {
-      proc.iwork = NULL;
+    proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
+
+    proc.andfImage = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+    proc.andfImage2 = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+    proc.andfIterDone = 0;
+    proc.andfDoneLabel->setText("0 done");
+
+    if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
+      freeArrays(&proc);
+      wprint("\aCannot get new memory for processing window!\n");
       proc.dia->close();
       return 1;
     }
 
-    proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
-    if (!proc.iwork) {
-      free(proc.isaved);
-      proc.isaved = NULL;
-      proc.dia->close();
-      return 1;
-    }
     proc.dia->limitFFTbinning();
   }
   return 0;
@@ -332,19 +347,30 @@ int inputIProcOpen(struct ViewInfo *vi)
       proc.fftSubset = false;
       proc.medianSize = 3;
       proc.median3D = true;
+      proc.andfK = 2.;
+      proc.andfStopFunc = 0;
+      proc.andfLambda = 0.2;
+      proc.andfIterations = 5;
+      proc.isaved = NULL;
+      proc.iwork = NULL;
+      proc.andfImage = NULL;
+      proc.andfImage2 = NULL;
     }
     proc.vi = vi;
     proc.idatasec = -1;
     proc.idatatime = 0;
     proc.modified = 0;
+    proc.andfIterDone = 0;
+
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
-
-    if (!proc.isaved)
-      return(-1);
-
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
-    if (!proc.iwork) {
-      free(proc.isaved);
+
+    proc.andfImage = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+    proc.andfImage2 = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+
+    if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
+      freeArrays(&proc);
+      wprint("\aCannot get memory for processing window!\n");
       return(-1);
     }
 
@@ -356,6 +382,27 @@ int inputIProcOpen(struct ViewInfo *vi)
   }
   return(0);
 }
+
+static void freeArrays(ImodIProc *ip)
+{
+  if (ip->isaved)
+    free(ip->isaved);
+  ip->isaved = NULL;
+  if (ip->iwork)
+    free(ip->iwork);
+  ip->iwork = NULL;
+  if (ip->andfImage) {
+    free(ip->andfImage[0]);
+    free(ip->andfImage);
+    ip->andfImage = NULL;
+  }
+  if (ip->andfImage2) {
+    free(ip->andfImage2[0]);
+    free(ip->andfImage2);
+    ip->andfImage2 = NULL;
+  }
+}
+
 
 bool iprocBusy(void)
 {
@@ -461,7 +508,9 @@ static void savesec(ImodIProc *ip)
 }
 
 
-/* Functions to make the widgets for particular filters */
+/*
+ * FUNCTIONS TO MAKE THE WIDGETS FOR PARTICULAR FILTERS
+ */
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
   diaLabel("Edge Enhancement Filter Type:", parent, layout);
@@ -557,6 +606,87 @@ static void mkMedian_cb(IProcWindow *win, QWidget *parent,
                 " this section");
 }
 
+static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
+                           QVBoxLayout *layout)
+{
+  QString str;
+  diaLabel("Anisotropic diffusion", parent, layout);
+
+  // The edge stopping radio buttons
+  QVButtonGroup *stopGroup = new QVButtonGroup("Edge Stopping Function", 
+                                               parent);
+  stopGroup->setInsideSpacing(0);
+  stopGroup->setInsideMargin(5);
+  layout->addWidget(stopGroup);
+  QRadioButton *radio = diaRadioButton("Rational", stopGroup);
+  QToolTip::add(radio, "Use rational edge stopping function; may require "
+                "smaller K values");
+  radio = diaRadioButton("Tukey biweight", stopGroup);
+  QToolTip::add(radio, "Use Tukey biweight edge stopping function; may require"
+                " larger K values");
+  diaSetGroup(stopGroup, proc.andfStopFunc);
+
+  // Iteration spin box and report of # done
+  QHBoxLayout *hLayout = new QHBoxLayout(layout);
+  QLabel *label = new QLabel("Iterations", parent);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  QSpinBox *iterSpin = new QSpinBox(1, 1000, 1, parent);
+  diaSetSpinBox(iterSpin, proc.andfIterations);
+  QToolTip::add(iterSpin, "Number of time steps to take in one run");
+  hLayout->addWidget(iterSpin);
+  iterSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(iterSpin, SIGNAL(valueChanged(int)), win, 
+                   SLOT(andfIterChanged(int)));
+  proc.andfDoneLabel = new QLabel("0 done", parent);
+  hLayout->addWidget(proc.andfDoneLabel);
+
+  // K edit box and report of unscaled K value
+  hLayout = new QHBoxLayout(layout);
+  label = new QLabel("K", parent);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  proc.andfKEdit = new ToolEdit(parent, 6);
+  hLayout->addWidget(proc.andfKEdit);
+  QToolTip::add(proc.andfKEdit, "Gradient threshold parameter controlling "
+                "edge stopping function");
+  str.sprintf("%.5g", proc.andfK);
+  proc.andfKEdit->setText(str);
+  proc.andfKEdit->setFocusPolicy(QWidget::ClickFocus);
+  proc.andfScaleLabel = new QLabel(" ", parent);
+  setUnscaledK();
+  hLayout->addWidget(proc.andfScaleLabel);
+  QObject::connect(proc.andfKEdit, SIGNAL(returnPressed()), win,
+                   SLOT(setFocus()));
+  QObject::connect(proc.andfKEdit, SIGNAL(returnPressed()), win,
+                   SLOT(andfKEntered()));
+  QObject::connect(proc.andfKEdit, SIGNAL(focusLost()), win,
+                   SLOT(andfKEntered()));
+
+  // Lambda edit box
+  hLayout = new QHBoxLayout(layout);
+  label = new QLabel("Lambda", parent);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  proc.andfLambdaEdit = new ToolEdit(parent, 6);
+  hLayout->addWidget(proc.andfLambdaEdit);
+  QToolTip::add(proc.andfLambdaEdit, "Size of time step");
+  str.sprintf("%g", proc.andfLambda);
+  proc.andfLambdaEdit->setText(str);
+  proc.andfLambdaEdit->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(proc.andfLambdaEdit, SIGNAL(returnPressed()), win,
+                   SLOT(setFocus()));
+  QHBox *spacer = new QHBox(parent);
+  hLayout->addWidget(spacer);
+  hLayout->setStretchFactor(spacer, 100);
+}
+
+static void setUnscaledK()
+{
+  QString str;
+  str.sprintf("unscaled: %.5g",  proc.andfK / proc.vi->image->slope);
+  proc.andfScaleLabel->setText(str);
+}
 
 /* THE WINDOW CLASS CONSTRUCTOR */
 static char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
@@ -624,11 +754,14 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   connect(mListBox, SIGNAL(highlighted(int)), this,
           SLOT(filterHighlighted(int)));
   connect(mListBox, SIGNAL(selected(int)), this, SLOT(filterSelected(int)));
-  if (i > MAX_LIST_TO_SHOW)
-    i = MAX_LIST_TO_SHOW;
-  mListBox->setMinimumHeight(i * mListBox->itemHeight() + 4);
+  
+  // 1/27/05: Forget this, panels set the height now; but fix the width
+  // to avoid bottom scroll
+  //if (i > MAX_LIST_TO_SHOW)
+  //  i = MAX_LIST_TO_SHOW;
+  //mListBox->setMaximumHeight(i * mListBox->itemHeight() + 4);
   QSize size = mListBox->sizeHint();
-  //  mListBox->setFixedWidth(size.width());
+  mListBox->setFixedWidth(size.width() + 4);
 
   filterHighlighted(proc.procnum);
 
@@ -705,6 +838,23 @@ void IProcWindow::med3DChanged(bool state)
 {
   proc.median3D = state;
 }
+
+void IProcWindow::andfIterChanged(int val)
+{
+  setFocus();
+  proc.andfIterations = val;
+}
+void IProcWindow::andfFuncClicked(int val)
+{
+  proc.andfStopFunc = val;
+}
+
+void IProcWindow::andfKEntered()
+{
+  proc.andfK = proc.andfKEdit->text().toDouble();
+  setUnscaledK();
+}
+
 
 // Respond to button click (release)
 void IProcWindow::buttonClicked(int which)
@@ -795,6 +945,9 @@ void IProcWindow::apply()
   /* Unconditionally restore data if modified */
   clearsec(ip);
 
+  ip->andfIterDone = 0;
+  ip->andfDoneLabel->setText("0 done");
+
   /* If this is a new section, save the data */
   if (cz != ip->idatasec || ip->vi->ct != ip->idatatime) {
     ip->idatasec = cz;
@@ -857,6 +1010,11 @@ void IProcWindow::finishProcess()
     str.sprintf("Range: +/- %.4f in X, +/- %.4f in Y", xrange, yrange);
     ip->fftLabel2->setText(str);
   }
+  if (ip->andfIterDone) {
+    str.sprintf("%d done", ip->andfIterDone);
+    ip->andfDoneLabel->setText(str);
+    setUnscaledK();
+  }
 }
 
 
@@ -892,7 +1050,6 @@ void IProcWindow::limitFFTbinning()
   ip->fftBinSpin->blockSignals(false);
 }
 
-
 void IProcWindow::fontChange( const QFont & oldFont )
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
@@ -908,10 +1065,7 @@ void IProcWindow::closeEvent ( QCloseEvent * e )
   clearsec(ip);
   imodDialogManager.remove((QWidget *)ip->dia);
   imodDraw(ip->vi, IMOD_DRAW_IMAGE);
-  if (ip->isaved)
-    free(ip->isaved);
-  if (ip->iwork)
-    free(ip->iwork);
+  freeArrays(ip);
   ip->dia = NULL;
   e->accept();
 }
@@ -941,6 +1095,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.14  2005/01/07 21:59:01  mast
+    Added median filter, converted help page
+
     Revision 4.13  2004/11/11 15:55:34  mast
     Changes to do FFT in a subarea
 

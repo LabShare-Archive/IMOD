@@ -30,6 +30,7 @@ class QListBox;
 class QVBoxLayout;
 class QLabel;
 class QSpinBox;
+class ToolEdit;
 
 typedef struct ViewInfo ImodView;
 
@@ -69,6 +70,9 @@ class IProcWindow : public DialogFrame
   void subsetChanged(bool state);
   void medSizeChanged(int val);
   void med3DChanged(bool state);
+  void andfIterChanged(int val);
+  void andfFuncClicked(int val);
+  void andfKEntered();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -95,6 +99,8 @@ typedef struct
   ImodView      *vi;        /* image data to model                       */
   unsigned char *iwork;     /* Image data processing buffer.             */
   unsigned char *isaved;     /* buffer for saving original data.         */
+  double        **andfImage; /* Double buffers for aniso diff */
+  double        **andfImage2;
 
   int           idatasec;   /* data section. */
   int           idatatime;  /* time value of section */
@@ -118,6 +124,16 @@ typedef struct
   bool          median3D;
   int           medianSize;
   struct MRCvolume medianVol;
+  int           andfIterations;
+  int           andfIterDone;
+  double        andfK;
+  double        andfLambda;
+  int           andfStopFunc;
+  ToolEdit      *andfKEdit;
+  ToolEdit      *andfLambdaEdit;
+  QLabel        *andfScaleLabel;
+  QLabel        *andfDoneLabel;
+  
 } ImodIProc;
 
 
@@ -137,6 +153,9 @@ bool iprocBusy(void);
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.10  2005/01/07 21:59:13  mast
+    Added median filter
+
     Revision 3.9  2004/11/11 15:55:34  mast
     Changes to do FFT in a subarea
 
