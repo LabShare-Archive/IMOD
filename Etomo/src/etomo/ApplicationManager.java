@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2002/10/09 04:29:17  rickg
+ * <p> Implemented calls to updateCombineCom
+ * <p>
  * <p> Revision 1.9  2002/10/09 00:04:37  rickg
  * <p> Added default patch boundary logic
  * <p> still needs work on getting combine parameters at the correct times
@@ -40,7 +43,8 @@ import etomo.ui.*;
  * <p>
  * <p> Revision 1.5  2002/09/20 18:56:09  rickg
  * <p> Added private message and yes/no dialog methods
- * <p> Check to see if the raw stack and coarsely aligned stacks should be closed by the user
+ * <p> Check to see if the raw stack and coarsely aligned stacks should be
+ * <p> closed by the user
  * <p>
  * <p> Revision 1.4  2002/09/19 22:57:56  rickg
  * <p> Imod mangement is now handled through the ImodManager
@@ -62,6 +66,8 @@ public class ApplicationManager {
 
   private boolean isDataParamDirty = false;
   private String homeDirectory;
+  private String IMODDirectory;
+
   private UserConfiguration userConfig = new UserConfiguration();
   private MetaData metaData = new MetaData();
   private File paramFile = null;
@@ -1333,8 +1339,9 @@ public class ApplicationManager {
         combineParams.setDefaultPatchBoundaries(recFileName);
       }
       catch (Exception except) {
-        openMessageDialog(except.getMessage(), 
-        "Error getting stack dimensions");
+        openMessageDialog(
+          except.getMessage(),
+          "Error getting stack dimensions");
       }
     }
     // Fill in the dialog box params and set it to the appropriate state
@@ -1342,27 +1349,22 @@ public class ApplicationManager {
 
   }
 
-  public void doneTomogramCombinationDialog(
-    TomogramCombinationDialog tomogramCombinationDialog) {
+  public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
 
-    DialogExitState exitState =
-      tomogramCombinationDialog.getExitState();
+    DialogExitState exitState = tomogramCombinationDialog.getExitState();
 
     if (exitState == DialogExitState.CANCEL) {
       tomogramCombinationDialog.dispose();
     }
     else {
       //  Get the user input data from the dialog box
-      boolean dialogFinished =
-        updateCombineCom(tomogramCombinationDialog);
+      boolean dialogFinished = updateCombineCom(tomogramCombinationDialog);
 
       if (dialogFinished) {
-        processTrack.setTomogramCombinationState(
-          ProcessState.INPROGRESS);
+        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
-          processTrack.setTomogramCombinationState(
-            ProcessState.COMPLETE);
+          processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         }
 
         mainFrame.setTomogramCombinationState(
@@ -1379,17 +1381,15 @@ public class ApplicationManager {
       //
       //  Get the user input data from the dialog box
       //
-      mainFrame.setTomogramCombinationState(
-        ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
     }
     if (exitState == DialogExitState.EXECUTE) {
-      mainFrame.setTomogramCombinationState(
-        ProcessState.COMPLETE);
+      mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
     }
 
   }
-  
+
   /**
    * Update the combine parameters from the calling dialog
    * @param tomogramCombinationDialog the calling dialog.
@@ -1397,8 +1397,7 @@ public class ApplicationManager {
    * combine parameters are invalid a message dialog describing the invalid
    * parameters is presented to the user.
    */
-  private boolean updateCombineCom(
-    TomogramCombinationDialog tomogramCombinationDialog) {
+  private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
@@ -1426,12 +1425,11 @@ public class ApplicationManager {
    * @param tomogramCombinationDialog the calling dialog.
    * 
    */
-  public void createCombineScripts(
-    TomogramCombinationDialog tomogramCombinationDialog) {
-    if(! updateCombineCom(tomogramCombinationDialog)) {
+  public void createCombineScripts(TomogramCombinationDialog tomogramCombinationDialog) {
+    if (!updateCombineCom(tomogramCombinationDialog)) {
       return;
     }
-    
+
     try {
       processMgr.createCombineScripts(metaData);
     }
@@ -1639,11 +1637,10 @@ public class ApplicationManager {
   }
 
   private void initProgram() {
-    //
+
     // Get the HOME directory environment variable to find the program
     // configuration file
-    //
-    homeDirectory = getHomeDirectory();
+    homeDirectory = getEnvironmentVariable("HOME");
     if (homeDirectory == "") {
       String[] message = new String[2];
       message[0] =
@@ -1651,7 +1648,18 @@ public class ApplicationManager {
       message[1] =
         "Set HOME environment variable and restart program to fix this problem";
       openMessageDialog(message, "Program Initialization Error");
-      return;
+      System.exit(1);
+    }
+
+    // Get the IMOD directory so we know which program to run
+    IMODDirectory = getEnvironmentVariable("IMOD_DIR");
+    if (homeDirectory == "") {
+      String[] message = new String[2];
+      message[0] = "Can not find IMOD directory! Unable to run programs";
+      message[1] =
+        "Set IMOD_DIR environment variable and restart program to fix this problem";
+      openMessageDialog(message, "Program Initialization Error");
+      System.exit(1);
     }
 
     //
@@ -1788,7 +1796,7 @@ public class ApplicationManager {
    * Return the IMOD directory
    */
   public String getIMODDirectory() {
-    return getEnvironmentVariable("IMOD_DIR");
+    return IMODDirectory;
   }
 
   /**
@@ -1796,7 +1804,7 @@ public class ApplicationManager {
    * string if it doesn't exist.
    */
   private String getHomeDirectory() {
-    return getEnvironmentVariable("HOME");
+    return homeDirectory;
   }
 
   private String getEnvironmentVariable(String varName) {
@@ -1804,13 +1812,17 @@ public class ApplicationManager {
     //  since the primary method was deprecated
     SystemProgram echoHome = new SystemProgram("env");
     try {
+      echoHome.enableDebug(true);
       echoHome.run();
     }
     catch (Exception excep) {
+      excep.printStackTrace();
+      System.out.println(excep.getMessage());
       System.out.println(
         "Unable to run env command to find "
           + varName
           + " environment variable");
+
       return "";
     }
     String[] stderr = echoHome.getStdError();
