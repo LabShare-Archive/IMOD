@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/06/29 03:50:57  mast
+#  Added nohup
+#
 #  Revision 3.6  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
 #
@@ -33,22 +36,26 @@ set xcfilter = "0.01,0.05,0,0.25"
 
 if ($#argv < 2) then
 usage:
-	echo "Usage: xfalign options input_file output_transform_file"
-	echo "input_file: an image stack, or a text file with a list of sections or files"
-	echo "options: "
-	echo " -si[ze] X,Y              -  size to extract from image"
-	echo " -o[ffset] dX,dY          -  center offset to subarea"
-	echo " -f[ilter] s1,s2,r1,r2    -  Sigmas and Radii for prefilter"
-	echo " -red[uce] n              -  # of times to reduce by 2 (default 1)"
-	echo " -sk[ip] n1,n2,n3...      -  list of sections to skip (ranges OK)"
-	echo " -m[att] f                -  fraction of image to omit at edges, or # of pixels"
-	echo " -pa[rams] n              -  0 for formal params, or # of semi-natural params"
-	echo " -b[ilinear]              -  to use bilinear interpolation"
-	echo " -ref reference_file      -  to align stack to reference"
-	echo " -pr[excorr]              -  to do initial cross-correlation alignment"
-	echo " -x[cfilter] s1,s2,r1,r2  -  Sigmas and Radii for filter used in initial"
-	echo "                               cross-correlation (default $xcfilter)"
-	echo " -i[nitial] prexf_file    -  start with initial F alignments from file"
+cat <<EOF
+Usage: xfalign options input_file output_transform_file
+input_file: an image stack, or a text file with a list of sections or files
+options: 
+ -si[ze] X,Y              -  size to extract from image
+ -o[ffset] dX,dY          -  center offset to subarea
+ -f[ilter] s1,s2,r1,r2    -  Sigmas and Radii for prefilter
+ -red[uce] n              -  # of times to reduce by 2 (default 1)
+ -sk[ip] n1,n2,n3...      -  list of sections to skip (ranges OK)
+ -br[eak] n1,n2,n3...     -  list of sections to break alignment at (ranges OK)
+ -m[att] f                -  fraction of image to omit at edges, or # of pixels
+ -pa[rams] n              -  0 for formal params, or # of semi-natural params
+ -bi[linear]              -  to use bilinear interpolation
+ -ref reference_file      -  to align stack to reference
+ -pr[excorr]              -  to do initial cross-correlation alignment
+ -x[cfilter] s1,s2,r1,r2  -  Sigmas and Radii for filter used in initial
+                               cross-correlation (default $xcfilter)
+ -i[nitial] prexf_file    -  start with initial F alignments from file
+ -t[omo]                  -  align top/bottom averages from serial tomograms
+EOF
 	exit 1
 endif
 
@@ -60,18 +67,21 @@ endif
 
 set pname      = xfalign
 set com        = $pname:t
-set prepfile   = $tmpdir/$com.prep.$$
 set runenhance = $tmpdir/$com.enhance.$$
 set runsearch  = $tmpdir/$com.search.$$
 set tmpxf      = $tmpdir/$com.xf.$$
 set tmppic     = $tmpdir/$com.pic.$$
 set tmpprp     = $tmpdir/$com.prp.$$
 set tmplprp    = $tmpdir/$com.lprp.$$
+set tmplog     = $tmpdir/$com.log.$$
 set refpic     = "0"
 set ifskip     = "0"
+set ifbreak    = "0"
 set seclist    = $tmpdir/$com.secs.$$
 set prexcorr   = "0"
 set prexffile  = ""
+set iftomo     = 0
+set exitstat   = 1
 set noglob
 onintr clean
 
@@ -163,103 +173,132 @@ set NPCRANGES = ","
 set PCRANGES = ",,,,"
 #
 #
-# Here is the subroutine to prep a file.  You can add any desired functions
-# here.  The image is in TMP.PIC upon entering the subroutine, and must be in
-# TMP.PRP upon exiting from it.  You can put operations before and/or after
-# the runenhance or replace the runenhance entirely.  To run a program that
-# needs input other than from the command line, imitate the <<EOF style used
-# below.
+# ALL THIS WAS NICE FOR PRETENDING SOMEONE COULD EDIT THE SCRIPT - BUT
+# GOT RID OF "subroutine to prep a file" TO AVOID MULTIPLE SHELLS.
+# you could edit runenhance to do other things as long as
+# the image is in $tmppic at start and $tmpprp at end
 #
-cat >! $prepfile <<EOCAT
-csh -f $runenhance
-EOCAT
 # ----------------------------------------------------------------------
 #                      YOU ARE DONE SETTING DEFAULT PARAMETERS
 # ----------------------------------------------------------------------
 
 # command line options
 while($#argv > 2)
-	switch($argv[1])
-		case -si*:
-			shift
-			set NEWSIZE = $argv[1]
-			breaksw
+    switch($argv[1])
+        case -si*:
+            shift
+            set NEWSIZE = $argv[1]
+            breaksw
 
-#		case -mode:
-#			shift
-#			set NEWMODE = $argv[1]
-#			breaksw
+#        case -mode:
+#            shift
+#            set NEWMODE = $argv[1]
+#            breaksw
 
-		case -o*:
-			shift
-			set NEWCEN = $argv[1]
-			breaksw
+        case -o*:
+            shift
+            set NEWCEN = $argv[1]
+            breaksw
 
-		case -f*:
-			shift
-			set FILTERPARAM = $argv[1]
-			breaksw
+        case -f*:
+            shift
+            set FILTERPARAM = $argv[1]
+            breaksw
 
-		case -red*:
-			shift
-			set NREDUCE = $argv[1]
-			breaksw
+        case -red*:
+            shift
+            set NREDUCE = $argv[1]
+            breaksw
 
-		case -sk*:
-			shift
-			set ifskip = "1"
-			set words = (`echo $argv[1]| sed '/,/s// /g'`)
-			breaksw
+        case -sk*:
+            shift
+            set ifskip = "1"
+            set words = (`echo $argv[1]| sed '/,/s// /g'`)
+            breaksw
 
-		case -m*:
-			shift
-			set FRACMATT = $argv[1]
-			breaksw
+        case -br*:
+            shift
+            set ifbreak = "1"
+            set words = (`echo $argv[1]| sed '/,/s// /g'`)
+            breaksw
 
-		case -pa*:
-			shift
-			set NPARAM = $argv[1]
-			breaksw
+        case -m*:
+            shift
+            set FRACMATT = $argv[1]
+            breaksw
 
-		case -b*:
-			set IFBILINEAR = "1"
-			breaksw
+        case -pa*:
+            shift
+            set NPARAM = $argv[1]
+            breaksw
 
-		case -ref*:
-			shift
-			set refpic = "1"
-			set reffile = $argv[1]
-			breaksw
+        case -bi*:
+            set IFBILINEAR = "1"
+            breaksw
 
-		case -pr*:
-			set prexcorr = "1"
-			breaksw
+        case -ref*:
+            shift
+            set refpic = "1"
+            set reffile = $argv[1]
+            breaksw
 
-		case -x*:
-			shift
-			set xcfilter = $argv[1]
-			breaksw
+        case -pr*:
+            set prexcorr = "1"
+            breaksw
 
-		case -i*:
-			shift
-			set prexffile = $argv[1]
-			breaksw
+        case -x*:
+            shift
+            set xcfilter = $argv[1]
+            breaksw
 
-		default:
-			echo Illegal option $argv[1]
-			goto usage
-	endsw
-	shift
+        case -i*:
+            shift
+            set prexffile = $argv[1]
+            breaksw
+
+        case -t*:
+            set iftomo = 1
+            breaksw
+
+        default:
+            echo "ERROR: $com - Illegal option $argv[1]"
+            goto usage
+    endsw
+    shift
 end
 
 if ($prexcorr == "1" && $refpic == "1") then
-    echo "You cannot use initial cross-correlation with alignment to one reference"
+    echo "ERROR: $com - You cannot use initial cross-correlation with alignment to one reference"
     exit 1
 endif
 
 if ($prexcorr == "1" && $prexffile != "") then
-    echo "You cannot use initial cross-correlation with initial transforms"
+    echo "ERROR: $com - You cannot use initial cross-correlation with initial transforms"
     exit 1
+endif
+
+if ($ifskip == 1 && $ifbreak == 1) then
+    echo "ERROR: $com - You cannot use both a break list and skip list"
+    exit 1
+endif
+
+if (! -e $argv[1]) then
+    echo "ERROR: $com - Input image file $argv[1] does not exist"
+    exit 1
+endif
+
+if ($prexffile != "") then
+    if (! -e $prexffile) then
+        echo "ERROR: $com - Initial transform file $prexffile does not exist"
+        exit 1
+    endif
+endif
+
+if ($refpic) then
+    if (! -e $reffile) then
+        echo "ERROR: $com - Reference image file $reffile does not exist"
+        exit 1
+    endif
 endif
 
 # input_file is either an MRC file or a filesectlist
@@ -271,11 +310,12 @@ endif
 set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
 
 if ($#nxyz < 3) then
-	set filesectlist = $argv[1]
-	if ($prexcorr == "1") then
-	    echo "You cannot use initial cross-correlation with file lists"
-	    exit 1
-	endif
+    set filesectlist = $argv[1]
+    if ($prexcorr == "1") then
+        echo "ERROR: $com - You cannot use initial cross-correlation with file lists"
+        exit 1
+    endif
+    if ($iftomo == 0) echo "File is not identified as an MRC file and is assumed to be a section list"
 else
     @ numsec =  $nxyz[3]
     echo $argv[1] >! $seclist
@@ -287,6 +327,32 @@ else
     set filesectlist = $seclist
 endif
 
+# If serial tomograms, check other options
+#
+if ($iftomo == 1) then
+    if ($ifskip == 1 || $ifbreak == 1) then
+        echo "ERROR: $com - You cannot enter a break or a skip list in serial tomogram mode"
+        exit 1
+    endif
+    if ($refpic == 1) then
+        echo "ERROR: $com - You cannot use alignment to one reference with serial tomograms"
+        exit 1
+    endif
+    if ($#nxyz < 3) then
+        echo "ERROR: $com - Error reading image file header"
+        exit 1
+    endif
+
+    # Set up break list as even sections
+    #
+    set ifbreak = 1
+    set words = (2)
+    @ secnum = 4
+    while ($secnum < $numsec)
+        set words = ($words $secnum)
+        @ secnum += 2
+    end
+endif
 
 # Set XFLISTFILE to the name of the file to receive the list of F transforms
 set XFLISTFILE = $argv[2]
@@ -297,8 +363,8 @@ if ($prexcorr == "1") then
     set preroot = $XFLISTFILE:r
     set prexffile = $preroot.xcxf
     if ($xcfilter == "NONE" || $xcfilter == "none") set xcfilter = "0.,0.,0.,0."
-echo "RUNNING TILTXCORR FOR INITIAL CROSS-CORRELATION ALIGNMENTS"
-tiltxcorr <<EOF
+echo "RUNNING TILTXCORR FOR INITIAL CROSS-CORRELATION ALIGNMENTS..."
+    tiltxcorr >! $tmplog <<EOF
 $argv[1]
 
 $prexffile
@@ -312,7 +378,24 @@ $xcfilter
 /
 /
 EOF
-echo "INITIAL CROSS-CORRELATION ALIGNMENT TRANSFORMS WRITTEN TO $prexffile"
+    if ($status) goto error
+    echo "INITIAL CROSS-CORRELATION ALIGNMENT TRANSFORMS WRITTEN TO $prexffile"
+
+    # trim the transform list for tomos
+    #
+    if ($iftomo == 1) then
+        set tmptrim = $com.trim.$$
+        head -2 $prexffile >! $tmptrim
+        @ secnum = 4
+        while ($secnum <= $numsec)
+            head -$secnum $prexffile | tail -1 >> $tmptrim
+            @ secnum += 2
+        end
+        \mv -f $tmptrim $prexffile
+    endif
+
+    echo "X, Y SHIFTS FOUND:"
+    awk '{printf "%9.2f  %9.2f\n", $5, $6}' $prexffile
 endif    
 
 set tmpxfin = ""
@@ -325,22 +408,24 @@ if ( ($FILTERPARAM  == "0.,0.,0.,0.")  ||  ($FILTERPARAM == "NONE") ) then
    echo "mv -f $tmppic $tmpprp" >! $runenhance
 else
    cat !> $runenhance <<EOCAT
-enhance $tmppic $tmpprp > /dev/null <<EOF
+enhance $tmppic $tmpprp >! $tmplog <<EOF
 $FILTERPARAM
 1
 EOF
+if (\$status) exit 1
 EOCAT
 endif
 #
-#     Initialize xflist file
+#     Initialize xflist file; make backup.  If it is also the prexf file,
+#     point to the backup file
 #
 if (-e $XFLISTFILE) \mv -f $XFLISTFILE $XFLISTFILE~
+if ("$prexffile" == "$XFLISTFILE") set prexffile = $XFLISTFILE~
 if ($refpic == "0") echo '   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000' >! $XFLISTFILE
 #
 #      Set up file to run xfsimplex with the given parameters
 #
 cat >! $runsearch <<EOCAT
-xfsimplex > /dev/null <<EOF
 $tmplprp
 $tmpprp
 $tmpxf
@@ -356,7 +441,6 @@ EOCAT
 if ($DIFFDIST == "0") then
 cat >> $runsearch <<EOCAT
 $IFBILINEAR
-EOF
 EOCAT
 else
 cat >> $runsearch <<EOCAT
@@ -365,15 +449,13 @@ $RADIUS
 $MATCHDIFF
 $NPCRANGES
 $PCRANGES
-EOF
 EOCAT
 endif
-
 #
 #	parse the skip list
 #
 echo "TRANSFORMS FOUND BY XFSIMPLEX:"
-if ($ifskip == "1") then
+if ($ifskip == "1" || $ifbreak == 1) then
     set skips = ""
     while ($#words > 0)
 	switch ($words[1])
@@ -435,57 +517,63 @@ while ($#filesect != 0 )
 #	if skipping some sections, and its not a reference image, check if
 #	this is a section to skip
 #
-    set doskip = "0"
-    if ($ifskip == "1" && ($refpic == "0" || $firsttime == "1")) then
+    set doskip = 0
+    set dobreak = 0
+    if (($ifskip || $ifbreak) && ($refpic == 0 || $firsttime == 1)) then
 	set skiptmp = ($skips)
 	while ($#skiptmp > 0)
-	    if ($skiptmp[1] == $insect) set doskip = "1"
+	    if ($skiptmp[1] == $insect) then
+                if ($ifskip) set doskip = 1
+                if ($ifbreak) set dobreak = 1
+                break
+            endif
 	    shift skiptmp
 	end
     endif
-    if ($doskip == "0") then
 
+    if ($doskip == "0") then
 
 	if ($docopy == "1") then
 	    cp $infile $tmppic
 	else
-	    newstack > /dev/null << EOF
-1
-$infile
-$insect
-1
-$tmppic
-$NEWSIZE
-$NEWMODE
-1
-$NEWCEN
-0
-0
-EOF
+            newstack -sec $insect -size $NEWSIZE -mode $NEWMODE -off $NEWCEN $infile $tmppic >! $tmplog
+            if ($status) goto error
 	endif
 #
 # 	prep the file next with enhance or whatever
 
-	csh -f $prepfile
+	csh -f $runenhance
+        if ($status) then
+            echo "ERROR: $com - running the enhance routine"
+            goto clean
+        endif
 
-	if ($firsttime == "0") then
-#
-#	 rename this prep'd file to "previous" prep file
-#
+	if ($firsttime == "0" || $dobreak) then
+            #
+            # first time or at break, rename this prep'd file to "previous" 
+            # prep file, and put out a unit transform unless doing tomo
+            #
 	    \mv -f $tmpprp $tmplprp
+            if ($firsttime == 1 && $iftomo == 0) \
+                echo '   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000' >> $XFLISTFILE
 	    set firsttime = "1"
 	else
 #
-#      Extract the prexf if needed
+#      Extract the prexf if needed, adjust line number for tomo mode
 #
 	    if ($prexffile != "") then
 		@ headnum = $insect + 1
+                if ($iftomo == 1) @ headnum = ($insect + 1) / 2 + 1
 		head -$headnum $prexffile | tail -1 >! $tmpxfin
 	    endif
 #
 #      Now do search for transform
 #
-	    csh -f $runsearch
+	    xfsimplex < $runsearch > /dev/null
+            if ($status) then
+                echo "ERROR: $com - running xfsimplex"
+                goto clean
+        endif
 #
 #      Add transform to file
 #
@@ -499,13 +587,18 @@ EOF
 	    endif
 
 	endif
-    else
+    else if ($iftomo == 0) then
 #	if skipping, just output unit transform
 	echo '   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000' >> $XFLISTFILE
     endif
 end
+set exitstat = 0
+goto clean
+
+error:
+grep ERROR $tmplog
 
 clean:
 unset noglob
-/bin/rm -f $tmpdir/$com.*.$$*
-exit 0
+/bin/rm -f $tmpdir/$com.*.$$* $com.trim.$$
+exit $exitstat
