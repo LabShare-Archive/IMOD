@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:54  mast
+Merge Qt source
+
 Revision 1.1.2.6  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -138,6 +141,7 @@ class DialogManager
   void close();
   void hide();
   void show();
+  QWidget *parent(int dlgClass);
 
  private:
   Ilist *mDialogList;

@@ -46,6 +46,8 @@ Log at end of file
 #include <qwidget.h>
 #include <qtimer.h>
 #include "imod.h"
+#include "imod_info.h"
+#include "imodv.h"
 #include "control.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
@@ -411,8 +413,25 @@ void DialogManager::show()
   }
 }
 
+// Return the appropriate parent based on type of winodw and OS
+QWidget *DialogManager::parent(int dlgClass)
+{
+#ifdef Q_OS_MACX
+  if (dlgClass == IMODV_DIALOG)
+    return (QWidget *)Imodv->mainWin;
+  else
+    return (QWidget *)ImodInfoWin;
+#else
+  return NULL;
+#endif
+}
+
+
 /*
 $Log$
+Revision 4.2  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 
