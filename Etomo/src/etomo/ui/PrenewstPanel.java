@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/03/02 00:12:45  sueh
+ * <p> bug# 533 disabled binning for montaging.
+ * <p>
  * <p> Revision 1.9  2004/12/02 20:41:58  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -85,7 +88,12 @@ public class PrenewstPanel implements ContextMenu {
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       spinBinning.setEnabled(false);
     }
-    pnlPrenewst.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      pnlPrenewst.setBorder(new EtchedBorder("Blendmont Parameters").getBorder());
+    }
+    else {
+      pnlPrenewst.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
+    }
     UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
     //  Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
