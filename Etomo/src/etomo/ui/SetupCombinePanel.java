@@ -43,6 +43,11 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/02/27 20:02:46  sueh
+ * bug# 250 added getUseMatchingModels()
+ * added setUseMatchingModels()
+ * change updateUseFiducialModel() - stop updating initial panel
+ *
  * Revision 3.1  2004/01/30 22:45:18  sueh
  * bug# 356 Changing buttons with html labels to
  * MultiLineButton and MultiLineToggleButton
@@ -553,8 +558,14 @@ public class SetupCombinePanel implements ContextMenu {
   }
   
   void setUseMatchingModels(boolean state) {
-    rbUseModel.setSelected(state);
-    updateUseFiducialModel();
+    if (state) {
+      rbUseModel.setSelected(true);
+    }
+    else {
+      if (rbUseModel.isSelected()) {
+        rbBothSides.setSelected(true); //default for solvematchshift
+      }
+    }
   }
   
   //  Action functions for setup panel buttons
