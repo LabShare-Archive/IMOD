@@ -865,7 +865,7 @@ void imodContEditMove(void)
     ccent.x /= weight;
     ccent.y /= weight;
     ccent.z = firstz;
-    size = sqrt((double)(imodContourArea(cont)/3.14159));
+    size = sqrt((double)(imodContourArea(cont)/3.14159)) * App->cvi->xybin;
     if(!tobj->contsize) {
       cont = imodContourNew();
       imodObjectAddContour(tobj, cont);
@@ -1502,7 +1502,9 @@ void iceShowHelp()
      "It is possible to assign a size for each point.  "
      "If the object type is scattered points, this number will "
      "determine the size at which the particular point will be "
-     "displayed.  Points without a size will still be displayed at "
+     "displayed.  The units are pixels in the image file, i.e., unbinned "
+     "pixels if images are loaded in binned.  Points without a size will still"
+     " be displayed at "
      "the size specified for the object as a whole.  You can "
      "change a size either by typing a number into the text box "
      "(followed by Enter) or by using the slider.  If a point has "
@@ -1564,6 +1566,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.6  2003/04/28 04:02:05  mast
+Fix help texton hot key
+
 Revision 4.5  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
