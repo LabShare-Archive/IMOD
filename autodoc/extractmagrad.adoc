@@ -15,7 +15,8 @@ long = OutputFile
 type = FN
 usage = Output file for tilt angles and mag gradients
 tooltip = 
-manpage = 
+manpage = Output file for tilt angles and mag gradients.  This file will be in
+the format required for the -gradient entries to Newstack and Xfmodel.
 
 [Field = GradientTable]
 short = gradient
@@ -31,7 +32,8 @@ long = RotationAngle
 type = F
 usage = Rotation angle from the Y axis to the tilt axis (required)
 tooltip = 
-manpage = 
+manpage = Angle of rotation of the tilt axis in the images; specifically, the
+angle from the vertical to the tilt axis (counterclockwise positive).
 
 [Field = PixelSize]
 short = pixel
