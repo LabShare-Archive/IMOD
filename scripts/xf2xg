@@ -12,3 +12,4 @@ xftoxg -h
 EOF
 
 xftoxg $*
+exit $status
