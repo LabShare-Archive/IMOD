@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/06/06 21:28:15  mast
+Eliminate unneeded clear function
+
 Revision 4.2  2003/02/27 17:32:28  mast
 Had to include qgl.h instead of GL/gl.h under windows
 
@@ -47,6 +50,8 @@ void imodvStereoUpdate(void);
 void imodvStereoToggle(void);
 void stereoHWOff(void);
 void stereoDrawBuffer(GLenum mode);
+void imodvStereoClear(void);
+int imodvStereoVoffset(void);
 
 #include "dialog_frame.h"
 class MultiSlider;
