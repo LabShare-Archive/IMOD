@@ -20,6 +20,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.31  2004/08/23 23:41:48  sueh
+ * bug# 508 passed watched file into BackgroundComScriptPRocess
+ * the same way it is passed to ComScriptPRocess.  remove 
+ * unnecessary watchedFileNAme parameter from the startComScript(
+ * ComScriptProcess, String, Runnable, AxisID, String watchedFileNAme)
+ *
  * Revision 3.30  2004/08/19 02:39:18  sueh
  * bug# 508 Passing CombineComscriptState to combine() so it can be
  * passed to BackgroundComScriptProcess.  In kill(), when the thread is
@@ -1528,12 +1534,13 @@ public class ProcessManager {
     }
     if (thread != null) {
       processID = thread.getShellProcessID();
-      if (thread instanceof BackgroundComScriptProcess) {
-        ((BackgroundComScriptProcess) thread).kill();
-      }
     }
     killProcessAndDescendants(processID);
     
+    if (thread instanceof BackgroundComScriptProcess) {
+      ((BackgroundComScriptProcess) thread).kill();
+    }
+
     /*
     //  Loop over killing the children until there are none left
     if (!processID.equals("")) {
