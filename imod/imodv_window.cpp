@@ -73,6 +73,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mFileMenu->insertItem("Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
   mFileMenu->insertItem("&Zero Snap File #", VFILE_MENU_ZEROSNAP);
   mFileMenu->insertItem("&Movie...", VFILE_MENU_MOVIE);
+  mFileMenu->setAccel(Key_M, VFILE_MENU_MOVIE);
 
   mFileMenu->insertItem(standAlone ? "&Quit" : "&Close", VFILE_MENU_QUIT);
   mFileMenu->setAccel(CTRL + Key_Q, VFILE_MENU_QUIT);
@@ -94,6 +95,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mEditMenu->insertItem("&Views...", VEDIT_MENU_VIEWS);
   mEditMenu->setAccel(SHIFT + Key_V, VEDIT_MENU_VIEWS);
   mEditMenu->insertItem("&Image...", VEDIT_MENU_IMAGE);
+  mEditMenu->setAccel(SHIFT + Key_I, VEDIT_MENU_IMAGE);
   mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, !standAlone);
   connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editMenuSlot(int)));
 
@@ -101,6 +103,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mViewMenu  = new QPopupMenu;
   mViewMenu->setCheckable(true);
   mViewMenu->insertItem("&Double Buffer", VVIEW_MENU_DB);
+  mFileMenu->setAccel(Key_B, VVIEW_MENU_DB);
   mViewMenu->setItemChecked(VVIEW_MENU_DB, enableDepthDB >= 0);
   mViewMenu->setItemEnabled(VVIEW_MENU_DB, 
                             enableDepthDB >= 0 && enableDepthSB >= 0);
@@ -112,6 +115,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mViewMenu->setItemChecked(VVIEW_MENU_WIREFRAME, false);
 
   mViewMenu->insertItem("Low &Res", VVIEW_MENU_LOWRES);
+  mFileMenu->setAccel(Key_R, VVIEW_MENU_LOWRES);
   mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, lowRes);
 
   mViewMenu->insertItem("&Stereo...", VVIEW_MENU_STEREO);
@@ -298,6 +302,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/23 17:50:44  mast
+no longer need to watch windowActivate event due to fix on Mac
+
 Revision 4.4  2003/04/16 18:46:51  mast
 hide/show changes
 
