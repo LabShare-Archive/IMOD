@@ -62,6 +62,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/21 19:31:59  mast
+c	  Standardized error outputs
+c	
 c	  Revision 3.1  2002/07/07 20:14:16  mast
 c	  Modified to use scale factors from model file instead of from image
 c	  file to get back to index coordinates.  Made it exit with error
@@ -80,6 +83,7 @@ c
 	integer*4 ixfix(limpatch),iyfix(limpatch),izfix(limpatch)
 	integer*4 iobjline(limobj),iobjdoall(limobj)
 	include 'model.inc'
+	common /bigcom/array
 	logical readw_or_imod, typeonlist
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
