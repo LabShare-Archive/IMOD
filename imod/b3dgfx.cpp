@@ -1134,7 +1134,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     
   /* special optimization. DNM: don't take if want quality*/
   if (!quality && (xzoom == 1.50) && (yzoom == 1.50)){
-    puts ("zoom 1.5");
     b3dDrawGreyScalePixels15(dataPtrs, xsize, ysize, xoffset, yoffset,
                              wx, wy, width, height, image, base, slice);
     return;
@@ -1891,6 +1890,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.15  2003/09/16 05:52:23  mast
+Forgot to comment out diagnostic output
+
 Revision 4.14  2003/09/16 03:52:46  mast
 Fixed test for integer zoom to not fail on 0.01, and fixed bug in 1.5 zoom
 
