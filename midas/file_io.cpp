@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/07/12 18:42:43  mast
+Changes for chunk alignment
+
 Revision 3.4  2003/12/17 21:44:19  mast
 Changes to implement global rotations
 
@@ -180,7 +183,7 @@ int save_view(struct Midas_view *vw, char *filename)
 
   for (k = 0; k < vw->zsize; k++){
     orgSlice = getRawSlice(vw, k);
-    vw->midasGL->fill_rgb(orgSlice->data.b, (unsigned long *)s->data.b,
+    vw->midasGL->fill_rgb(orgSlice->data.b, (b3dUInt32 *)s->data.b,
 			  vw->xysize, -1, &vw->tr[k]);
     mrc_write_slice((void *)s->data.b, hout->fp, hout, k, 'z');
   }

@@ -12,9 +12,9 @@ class MidasGL : public QGLWidget
 
   void midas_clear();
   void draw();
-  void fill_rgb(unsigned char *fbuf, unsigned long *tobuf, 
+  void fill_rgb(unsigned char *fbuf, b3dUInt32 *tobuf, 
 		int size, int channel, struct Midas_transform *tr);
-  void draw_image(struct Midas_view *vw, unsigned long *image,
+  void draw_image(struct Midas_view *vw, b3dUInt32 *image,
 		  int llx, int lly, int urx, int ury, int *xdrawn, 
 		  int *ydrawn);
   int fill_viewdata( struct Midas_view *vw);

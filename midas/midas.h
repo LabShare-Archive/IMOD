@@ -209,8 +209,8 @@ struct Midas_view
 
   /* data used for viewing */
   int sdatSize;
-  unsigned long *sdat; /* data written into display-sized buffer */
-  unsigned long *id;   /* image data, full size.  */
+  b3dUInt32 *sdat; /* data written into display-sized buffer */
+  b3dUInt32 *id;   /* image data, full size.  */
 
   /* viewing factors */
   float zoom;    /* Current zoom, can be negative for fractions */
@@ -385,6 +385,9 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 
 /*
 $Log$
+Revision 3.6  2004/07/12 18:42:31  mast
+Changes for chunk alignment and for switching to spin boxes
+
 Revision 3.5  2003/12/17 21:43:59  mast
 Changes to implement global rotations
 

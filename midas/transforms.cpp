@@ -197,7 +197,7 @@ int load_view(struct Midas_view *vw, char *fname)
     tramat_idmat(vw->tr[k].mat);
   }
 
-  vw->id = (unsigned long *)malloc(vw->xysize * sizeof(unsigned long));
+  vw->id = (b3dUInt32 *)malloc(vw->xysize * sizeof(b3dUInt32));
 
   /* Create and load slice for reference image now */
   if (vw->refname) {
@@ -1691,6 +1691,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.9  2004/07/12 18:42:43  mast
+Changes for chunk alignment
+
 Revision 3.8  2004/07/07 19:25:31  mast
 Changed exit(-1) to exit(3) for Cygwin
 

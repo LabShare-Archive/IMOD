@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/12/17 21:43:04  mast
+Provide control-key dependent mouse action hints
+
 Revision 3.4  2003/11/01 16:43:10  mast
 changed to put out virtually all error messages to a window
 
@@ -101,8 +104,8 @@ void MidasGL::paintGL()
   /* DNM 2/5/01: set sdatSize here.  This may be redundant now that the
      expose_cb tests correctly for need for new array */
   if (!VW->sdat) {
-    VW->sdat = (unsigned long *)
-      malloc( VW->width * VW->height * sizeof(unsigned long));
+    VW->sdat = (b3dUInt32 *)
+      malloc( VW->width * VW->height * sizeof(b3dUInt32));
     VW->sdatSize = VW->width * VW->height;
   }
 
@@ -174,11 +177,11 @@ void MidasGL::paintGL()
 /* fill in image data */
 /* Copy the data in fbuf to the tobuf.
  */
-void MidasGL::fill_rgb(unsigned char *fbuf, unsigned long *tobuf, 
+void MidasGL::fill_rgb(unsigned char *fbuf, b3dUInt32 *tobuf, 
 		       int size, int channel, struct Midas_transform *tr)
 {
   unsigned char *buf = (unsigned char *)tobuf;
-  unsigned long tmp;
+  b3dUInt32 tmp;
   unsigned char cmap[256];
   unsigned int cmapi[256];
   unsigned char *cmap2;
@@ -260,7 +263,7 @@ void MidasGL::fill_rgb(unsigned char *fbuf, unsigned long *tobuf,
 }
 
 /* llx, lly, urx, ury are coordinates of area within window to draw to */
-void MidasGL::draw_image(struct Midas_view *vw, unsigned long *image,
+void MidasGL::draw_image(struct Midas_view *vw, b3dUInt32 *image,
 			 int llx, int lly, int urx, int ury, int *xdrawn, int *ydrawn)
 {
   int swinx, swiny;
@@ -271,8 +274,8 @@ void MidasGL::draw_image(struct Midas_view *vw, unsigned long *image,
   int i, j;
   int xsize, ysize;
   float zoom, glzoom;
-  unsigned long *data;
-  unsigned long *bdata;
+  b3dUInt32 *data;
+  b3dUInt32 *bdata;
   int di, istart, ilim, maxj, iextra, iskip;
 
   swinx = urx - llx;  /* size of area to draw to */
@@ -525,8 +528,7 @@ void MidasGL::resizeGL(int wdth, int hght)
   if (xysize > VW->sdatSize){
     if (VW->sdat)
       free(VW->sdat);
-    VW->sdat = (unsigned long *)
-      malloc( xysize * sizeof(unsigned long));
+    VW->sdat = (b3dUInt32 *)malloc( xysize * sizeof(b3dUInt32));
     VW->sdatSize = xysize;
   }
 
