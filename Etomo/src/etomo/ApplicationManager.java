@@ -4,6 +4,7 @@ import java.io.*;
 import etomo.util.InvalidParameterException;
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 
 import etomo.comscript.*;
 import etomo.process.*;
@@ -26,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.26  2002/12/11 05:39:00  rickg
+ * <p> Added basic font change method
+ * <p>
  * <p> Revision 1.25  2002/12/11 00:39:48  rickg
  * <p> Basic handling of settings dialog
  * <p> added setUserPreferences method
@@ -1842,6 +1846,9 @@ public class ApplicationManager {
     if (settingsDialog != null) {
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
+      
+      mainFrame.repaintWindow();
+      
     }
   }
 
@@ -1944,7 +1951,9 @@ public class ApplicationManager {
       userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(
       userConfig.getToolTipsDismissDelay());
+    setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
+
   }
 
   private void parseCommandLine(String[] args) {
@@ -2054,8 +2063,10 @@ public class ApplicationManager {
     }
   }
 
-  public static void setUIFont (javax.swing.plaf.FontUIResource f){
-    //
+  public static void setUIFont(String fontFamily, int fontSize) {
+    FontUIResource fontBase =
+      new FontUIResource(fontFamily, Font.PLAIN, fontSize);
+
     // sets the default font for all Swing components.
     // ex. 
     //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
@@ -2063,12 +2074,12 @@ public class ApplicationManager {
     java.util.Enumeration keys = UIManager.getDefaults().keys();
     while (keys.hasMoreElements()) {
       Object key = keys.nextElement();
-      Object value = UIManager.get (key);
+      Object value = UIManager.get(key);
       if (value instanceof javax.swing.plaf.FontUIResource)
-        UIManager.put (key, f);
-      }
+        UIManager.put(key, fontBase);
+    }
   }
-  
+
   /**
    * Return the IMOD directory
    */
