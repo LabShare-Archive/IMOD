@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/12/09 04:16:11  rickg
+ * <p> Added EDF file filter to open dialog
+ * <p>
  * <p> Revision 1.4  2002/11/19 05:32:55  rickg
  * <p> Label spelling correction
  * <p>
@@ -320,7 +323,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   public boolean getTestParamFilename() {
-    String cwd = System.getProperty(applicationManager.getWorkingDirectory());
+    String cwd = applicationManager.getWorkingDirectory();
 
     //  Open up the file chooser in current working directory
     JFileChooser chooser = new JFileChooser(new File(cwd));
@@ -333,7 +336,15 @@ public class MainFrame extends JFrame implements ContextMenu {
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return false;
     }
-    applicationManager.setTestParamFile(chooser.getSelectedFile());
+    // If the file does not already have an extension appended then add an edf
+    // extension
+    File edfFile = chooser.getSelectedFile();
+    String fileName = chooser.getSelectedFile().getName();
+    if(fileName.indexOf(".") == -1) {
+      edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
+
+    }
+    applicationManager.setTestParamFile(edfFile);
     return true;
   }
 
