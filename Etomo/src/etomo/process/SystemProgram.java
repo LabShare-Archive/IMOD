@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/11 00:01:53  sueh
+ * <p> bug# 61 more to do
+ * <p>
  * <p> Revision 3.2  2004/01/13 22:43:02  rickg
  * <p> Bug #376 Created a new Constructor that accepts a String[] for
  * <p> the command and arguments.  This also required restructing the
@@ -330,18 +333,18 @@ public class SystemProgram implements Runnable {
         String output = (String) stdOutput.get(i);
         if (output.startsWith("WARNING:")) {
           warningList.add(output);
-          System.out.println("warning=" + warningList.get(warningList.size() - 1));
+          //System.out.println("warning=" + warningList.get(warningList.size() - 1));
         }
       }
     }
     if (stdError.size() > 0) {
-      System.out.println("stderr");
+      //System.out.println("stderr");
       for (int i = 0; i < stdError.size(); i++) {
         String error = (String) stdError.get(i);
-        System.out.println(error);
+        //System.out.println(error);
         if (error.startsWith("WARNING:")) {
           warningList.add(error);
-          System.out.println("warning=" + warningList.get(warningList.size() - 1));
+          //System.out.println("warning=" + warningList.get(warningList.size() - 1));
         }
       }
     }
