@@ -1,11 +1,10 @@
-/*  IN TESTING VERSION 0.1
- *
+/*
  *  linegui.c -- Special plugin for line finding
  *
  */
 
 /*****************************************************************************
- *   Copyright (C) 1997-2000 by Boulder Laboratory for 3-Dimensional Fine         *
+ *   Copyright (C) 1997-2002 by Boulder Laboratory for 3-Dimensional Fine    *
  *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
  *                                                                           *
  *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
@@ -24,6 +23,15 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 
 /* include basic X-Window, Motif and OpenGL headers.
  */
@@ -106,7 +114,7 @@ void linetrack_(unsigned char *image, int *nx, int *ny,
 		int   *iffail);
 
 void conttrack_(unsigned char *image, int *nx, int *ny,
-		float *points, int *csize, int *cpnt, int *cmax,
+		float *points, int *csize, int *cpnt, float *p_copy, int *cmax,
 		int   *ksize,
 		int   *knum,
 		float *sigma,
@@ -338,6 +346,7 @@ static void track_cb(Widget w, XtPointer client, XtPointer call)
     int copytol, curx, cury, curz, i;
     float zdiff;
     Icont *tmpcont;
+    float *p_copy;
     
     PlugData *plug = &thisPlug;
     Imod *theModel = ivwGetModel(plug->view);
@@ -348,6 +357,8 @@ static void track_cb(Widget w, XtPointer client, XtPointer call)
 
     copytol = plug->docopy;
     plug->docopy = 0;
+    if ((int)client > 1)
+	 copytol = plug->copytol;
 
     plug->cont = imodContourGet(theModel);
     if (!plug->cont){
@@ -416,7 +427,7 @@ static void track_cb(Widget w, XtPointer client, XtPointer call)
 
     pts = (Ipoint *)malloc(npoint * sizeof(Ipoint));
     if (!pts){
-	wprint("LineTrack memcpy error!\n");
+	wprint("LineTrack memory allocation error!\n");
 	return;
     }
 
@@ -442,8 +453,15 @@ static void track_cb(Widget w, XtPointer client, XtPointer call)
 	XBell(imodDisplay(), 100);
       }
     } else  {
+
+      p_copy = (float *)malloc(2 * maxpoint * sizeof(Ipoint));
+      if (!p_copy){
+	   wprint("LineTrack memory allocation error!\n");
+	   return;
+      }
+
       conttrack_(image, &plug->xsize, &plug->ysize,
-		 (float *)pts, &maxpoint, &curpt , &npoint,
+		 (float *)pts, &maxpoint, &curpt, p_copy, &npoint,
 		 &plug->ksize,
 		 &plug->knum,
 		 &plug->sigma,
@@ -455,6 +473,8 @@ static void track_cb(Widget w, XtPointer client, XtPointer call)
 		 &copytol,
 		 &plug->copypool,
 		 &plug->copyfit);
+
+      free(p_copy);
     }
     plug->cont->psize = maxpoint;
     plug -> copysize = maxpoint;
@@ -655,6 +675,10 @@ static void makeWorkArea(Widget parent)
     button = XtVaCreateManagedWidget
 	("Track", xmPushButtonWidgetClass, rowcol, NULL);
     XtAddCallback(button, XmNactivateCallback, track_cb, (XtPointer)1);
+
+    button = XtVaCreateManagedWidget
+	("Copy", xmPushButtonWidgetClass, rowcol, NULL);
+    XtAddCallback(button, XmNactivateCallback, track_cb, (XtPointer)2);
 
     plug->undo = XtVaCreateManagedWidget
 	("Undo", xmPushButtonWidgetClass, rowcol, NULL);
