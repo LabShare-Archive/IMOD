@@ -31,41 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/23 20:08:26  mast
-change name of include for form class
-
-Revision 1.1.2.8  2003/01/14 21:51:42  mast
-Register with dialog manager
-
-Revision 1.1.2.7  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.6  2003/01/06 18:58:59  mast
-eliminate warning
-
-Revision 1.1.2.5  2003/01/06 15:45:21  mast
-New object color class and code
-
-Revision 1.1.2.4  2002/12/13 06:03:47  mast
-moving imod_object_edit declaration to include file and removing argument
-
-Revision 1.1.2.3  2002/12/09 17:49:57  mast
-Getting the object type buttons right
-
-Revision 1.1.2.2  2002/12/07 01:22:02  mast
-Taking care of window title
-
-Revision 1.1.2.1  2002/12/05 16:30:58  mast
-Qt version
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include "form_object_edit.h"
@@ -350,8 +316,8 @@ int imod_object_edit_draw(void)
     }
   }
   Ioew_dialog->setSymbolProperties(symbol, 
-                                   obj->symflags & IOBJ_SYMF_FILL != 0,
-                                   obj->symflags & IOBJ_SYMF_ENDS != 0, 
+                                   (obj->symflags & IOBJ_SYMF_FILL) != 0,
+                                   (obj->symflags & IOBJ_SYMF_ENDS) != 0, 
                                    (int)obj->symsize);
   Ioew_dialog->setLineWidth((int)obj->linewidth2);
   Ioew_dialog->setTimeBox((obj->flags & IMOD_OBJFLAG_TIME) != 0,
@@ -510,3 +476,43 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.9  2003/01/23 20:08:26  mast
+change name of include for form class
+
+Revision 1.1.2.8  2003/01/14 21:51:42  mast
+Register with dialog manager
+
+Revision 1.1.2.7  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 1.1.2.6  2003/01/06 18:58:59  mast
+eliminate warning
+
+Revision 1.1.2.5  2003/01/06 15:45:21  mast
+New object color class and code
+
+Revision 1.1.2.4  2002/12/13 06:03:47  mast
+moving imod_object_edit declaration to include file and removing argument
+
+Revision 1.1.2.3  2002/12/09 17:49:57  mast
+Getting the object type buttons right
+
+Revision 1.1.2.2  2002/12/07 01:22:02  mast
+Taking care of window title
+
+Revision 1.1.2.1  2002/12/05 16:30:58  mast
+Qt version
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
