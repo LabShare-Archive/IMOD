@@ -74,6 +74,7 @@ static void mapfalsecolor(int gray, int *red, int *green, int *blue);
 static int CTime = -1;
 static float depthShift;
 static int cursurf, curcont;
+static int thickCont;
 static int curTessObj;
 
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
@@ -327,6 +328,12 @@ static void set_curcontsurf(int ob, Imod* imod)
     if (curcont >= 0)
       cursurf = imod->obj[imod->cindex.object].cont[curcont].surf;
   }
+  
+  // Set contour to thicken if flag set and in current object
+  thickCont = -1;
+  if ((imod->obj[ob].flags & IMOD_OBJFLAG_THICK_CONT) &&
+      imod->cindex.object == ob)
+    thickCont = imod->cindex.contour;
 }
 
 /*
@@ -865,6 +872,11 @@ static void imodvDraw_contours(Iobj *obj, int mode)
 
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
       continue;
+
+    // Set thicker line if this is the current contour, restore at end
+    if (co == thickCont)
+      glLineWidth(obj->linewidth + 2);
+
 #ifdef LINE_LOOP_HACK
     if (mode == GL_LINE_LOOP)
       glBegin(GL_LINE_STRIP);
@@ -883,6 +895,9 @@ static void imodvDraw_contours(Iobj *obj, int mode)
       glVertex3fv((GLfloat *)cont->pts);
 #endif
     glEnd();
+
+    if (co == thickCont)
+      glLineWidth(obj->linewidth);
   }
   return;
 }  
@@ -1180,6 +1195,10 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
     if (!iobjScat(obj->flags) && !obj->pdrawsize && !cont->sizes)
       continue;
 
+    // Set thicker line if this is the current contour, restore at end
+    if (co == thickCont)
+      glLineWidth(obj->linewidth + 2);
+
     glPushName(NO_NAME);
     for(pt = 0; pt < cont->psize; pt++){
 
@@ -1209,6 +1228,8 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
       glPopMatrix();
     }
     glPopName();
+    if (co == thickCont)
+      glLineWidth(obj->linewidth);
   }
   glDeleteLists(listIndex, 1);
   glPopMatrix();
@@ -1743,6 +1764,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.7  2004/01/05 18:36:53  mast
+Divide point sizes by binning if not in standalone mode
+
 Revision 4.6  2003/06/27 19:31:00  mast
 Changed to using object and global point quality flags
 
