@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/20 00:26:58  mast
+    Force GLw to use the already chosen visual when getting a drawing area
+
 */
 
 #include <stdlib.h>
@@ -155,9 +158,6 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 	  /* altmp = DisplayHasAlpha(a->display, 1) */
 	  a->dgfx = XtVaCreateManagedWidget
 	       ("drgbwidget", B3dDrawingAreaWidgetClass, form,
-		GLwNvisualInfo, a->visualInfo,
-		GLwNinstallBackground, False,
-		GLwNinstallColormap, False,
 		GLwNrgba, True, 
 		GLwNdoublebuffer, True, 
 		GLwNdepthSize, 8,
@@ -196,9 +196,6 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 	  /* altmp = DisplayHasAlpha(a->display, 0) */
 	  a->gfx = XtVaCreateManagedWidget
 	       ("rgbwidget", B3dDrawingAreaWidgetClass, form,
-		GLwNvisualInfo, a->visualInfo,
-		GLwNinstallBackground, False,
-		GLwNinstallColormap, False,
 		GLwNrgba, True,
 		GLwNdoublebuffer, False,
 		GLwNdepthSize, 8,
