@@ -34,6 +34,11 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/25 19:24:49  mast
+    Made it add itself to list of controls to be redraw to prevent excessive
+    redraws; restructured calls for external drawing and closing accordingly,
+    and made it raise itself when it redraws
+
 */
 
 #include <stdlib.h>
@@ -61,14 +66,14 @@ static void pview_quit_cb(Widget w, XtPointer client, XtPointer call)
      ivwDeleteControl(vi, ctrl);
 }
 
-static void pviewClose_cb(ImodView *vi, void *client, long drawflag)
+static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 {
      XtPopdown(PixelViewDialog);
      XtDestroyWidget(PixelViewDialog);
      PixelViewDialog = 0;
 }
 
-static void pviewDraw_cb(ImodView *vi, void *client, long drawflag)
+static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
 {
      if (PixelViewDialog && (drawflag & IMOD_DRAW_XYZ))
 	  set_pixelview(vi);
