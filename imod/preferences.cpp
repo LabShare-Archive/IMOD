@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2003/09/15 21:05:18  mast
+Changing zooms 0.35 -> 0.3333 and 0.16 -> 0.1667 for optimal drawing
+
 Revision 1.6  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
@@ -66,8 +69,10 @@ Initial implementation
 #include "form_behavior.h"
 #include "form_mouse.h"
 #include "imod.h"
+#include "imod_info.h"
 #include "imod_display.h"
 #include "imod_workprocs.h"
+#include "control.h"
 
 ImodPreferences *ImodPrefs;
 
@@ -99,7 +104,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   double szoomvals[MAXZOOMS] =
     { 0.1, 0.1667, 0.25, 0.3333, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
       8.0, 10.0, 12.0, 16.0, 20.0};
-  int i;
+  int i, left, top, width, height;
   bool readin;
   QString str;
   ImodPrefStruct *prefs = &mCurrentPrefs;
@@ -121,6 +126,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autosaveIntervalDflt = 5;
   prefs->autosaveOnDflt = true;
   prefs->autosaveDirDflt = "";
+  prefs->rememberGeomDflt = true;
 
   // Read the settings
   QSettings settings;
@@ -160,6 +166,10 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->minImPtSize = settings.readNumEntry(IMOD_NAME"minImPtSize",
                                         prefs->minImPtSizeDflt,
                                         &prefs->minImPtSizeChgd);
+  prefs->rememberGeom = settings.readBoolEntry(IMOD_NAME"rememberGeom",
+                                                 prefs->rememberGeomDflt,
+                                                 &prefs->rememberGeomChgd);
+  mGeomLastSaved = settings.readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
 
   // Read each zoom with a separate key
   prefs->zoomsChgd = false;
@@ -169,6 +179,31 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     prefs->zooms[i] = settings.readDoubleEntry(str, szoomvals[i], &readin);
     if (readin)
       prefs->zoomsChgd = true;
+  }
+
+  // Read the geometry information with separate keys
+  for (i = 0; i < MAX_GEOMETRIES; i++) {
+    mGeomImageXsize[i] = mGeomImageYsize[i] = 0;
+    mGeomZapWin[i].setRect(0, 0, 0, 0);
+    mGeomInfoWin[i].setRect(0, 0, 0, 0);
+    str.sprintf(IMOD_NAME"geomImageSize/%d", i);
+    str = settings.readEntry(str);
+    if (!str.isEmpty())
+      sscanf(str.latin1(), "%d,%d", &mGeomImageXsize[i], &mGeomImageYsize[i]);
+
+    str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
+    str = settings.readEntry(str);
+    if (!str.isEmpty()) {
+      sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+      mGeomZapWin[i].setRect(left, top, width, height);
+    }
+
+    str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
+    str = settings.readEntry(str);
+    if (!str.isEmpty()) {
+      sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+      mGeomInfoWin[i].setRect(left, top, width, height);
+    }
   }
 
   prefs->autosaveInterval = settings.readNumEntry
@@ -264,10 +299,68 @@ void ImodPreferences::saveSettings()
 {
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QSettings settings;
-  QString str;
-  int i;
+  QString str, str2;
+  int i, geomInd, firstEmpty;
 
   settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
+
+  // Get current geometries of info and zap windows
+  // first find where in the table this will go
+  if (prefs->rememberGeom) {
+    geomInd = -1;
+    firstEmpty = MAX_GEOMETRIES - 1;
+    for (i = 0; i < MAX_GEOMETRIES; i++) {
+      /*  printf("i %d  xsize %d  ysize %d\n", i, mGeomImageXsize[i], 
+          mGeomImageYsize[i]); */
+      if (geomInd < 0 && App->cvi->xsize == mGeomImageXsize[i] &&
+          App->cvi->ysize == mGeomImageYsize[i])
+        geomInd = i;
+      if (firstEmpty == MAX_GEOMETRIES - 1 && !mGeomImageXsize[i])
+        firstEmpty = i;
+    }
+
+    /* printf("geomInd %d  firstEmpty %d xsize %d  ysize %d\n", geomInd, 
+       firstEmpty, App->cvi->xsize, App->cvi->ysize); */
+
+    // Move entries up if nothing in the table matches
+    if (geomInd < 0) {
+      for (i = firstEmpty; i > 0; i--) {
+        mGeomImageXsize[i] = mGeomImageXsize[i - 1];
+        mGeomImageYsize[i] = mGeomImageYsize[i - 1];
+        mGeomZapWin[i] = mGeomZapWin[i - 1];
+        mGeomInfoWin[i] = mGeomInfoWin[i - 1];
+      }
+      geomInd = 0;
+      mGeomImageXsize[0] = App->cvi->xsize;
+      mGeomImageYsize[0] = App->cvi->ysize;
+    }
+
+    // Get the current geometries and put in table
+    mGeomInfoWin[geomInd] = ImodInfoWin->geometry();
+    mGeomZapWin[geomInd] = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
+
+    settings.writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
+
+    for (i = 0; i < MAX_GEOMETRIES; i++) {
+      if (mGeomImageXsize[i]) {
+        str.sprintf(IMOD_NAME"geomImageSize/%d", i);
+        str2.sprintf("%d,%d", mGeomImageXsize[i], mGeomImageYsize[i]);
+        settings.writeEntry(str, str2);
+        
+        str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
+        str2.sprintf("%d,%d,%d,%d", mGeomZapWin[i].left(), 
+                     mGeomZapWin[i].top(),
+                     mGeomZapWin[i].width(), mGeomZapWin[i].height());
+        settings.writeEntry(str, str2);
+        
+        str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
+        str2.sprintf("%d,%d,%d,%d", mGeomInfoWin[i].left(), 
+                     mGeomInfoWin[i].top(),
+                     mGeomInfoWin[i].width(), mGeomInfoWin[i].height());
+        settings.writeEntry(str, str2);
+      }
+    }
+  }
 
   if (prefs->hotSliderKeyChgd)
     settings.writeEntry(IMOD_NAME"hotSliderKey", prefs->hotSliderKey);
@@ -291,6 +384,8 @@ void ImodPreferences::saveSettings()
     settings.writeEntry(IMOD_NAME"minModPtSize", prefs->minModPtSize);
   if (prefs->minImPtSizeChgd)
     settings.writeEntry(IMOD_NAME"minImPtSize", prefs->minImPtSize);
+  if (prefs->rememberGeomChgd)
+    settings.writeEntry(IMOD_NAME"rememberGeom", prefs->rememberGeom);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -426,6 +521,10 @@ void ImodPreferences::donePressed()
     curp->minImPtSize = newp->minImPtSize;
     curp->minImPtSizeChgd = true;
   }
+  if (!equiv(newp->rememberGeom, curp->rememberGeom)) {
+    curp->rememberGeom = newp->rememberGeom;
+    curp->rememberGeomChgd = true;
+  }
 
   for (int i = 0; i < MAXZOOMS; i++) {
     if (newp->zooms[i] != curp->zooms[i]) {
@@ -503,6 +602,7 @@ void ImodPreferences::defaultPressed()
   prefs->iconifyImageWin = prefs->iconifyImageWinDflt;
   prefs->minModPtSize = prefs->minModPtSizeDflt;
   prefs->minImPtSize = prefs->minImPtSizeDflt;
+  prefs->rememberGeom = prefs->rememberGeomDflt;
   prefs->autosaveInterval = prefs->autosaveIntervalDflt;
   prefs->autosaveOn = prefs->autosaveOnDflt;
   prefs->autosaveDir = prefs->autosaveDirDflt;
@@ -651,3 +751,32 @@ void ImodPreferences::pointSizeChanged()
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
+// Return the geometry for the info window that matches current image or
+// fall back to last one used
+QRect ImodPreferences::getInfoGeometry()
+{
+  int i;
+  if (mCurrentPrefs.rememberGeom) {
+    for (i = 0; i < MAX_GEOMETRIES; i++)
+      if (App->cvi->xsize == mGeomImageXsize[i] &&
+          App->cvi->ysize == mGeomImageYsize[i])
+        return (mGeomInfoWin[i]);
+    
+    if (mGeomLastSaved >= 0)
+      return (mGeomInfoWin[mGeomLastSaved]);
+  }
+  return QRect(0, 0, 0, 0);
+}
+
+// Return the geometry for the zap window that matches current image
+QRect ImodPreferences::getZapGeometry()
+{
+  int i;
+  if (mCurrentPrefs.rememberGeom) {
+    for (i = 0; i < MAX_GEOMETRIES; i++)
+      if (App->cvi->xsize == mGeomImageXsize[i] &&
+          App->cvi->ysize == mGeomImageYsize[i])
+        return (mGeomZapWin[i]);
+  }
+  return QRect(0, 0, 0, 0);
+}
