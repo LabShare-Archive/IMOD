@@ -13,6 +13,10 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/11 23:15:39  rickg
+ * <p> New key/value parameters structure
+ * <p> new ccderaser mode
+ * <p>
  * <p> Revision 2.3  2003/07/09 16:00:51  rickg
  * <p> *** empty log message ***
  * <p>
@@ -85,6 +89,21 @@ public class CCDEraserParam
       borderPixels = inputArgs[5].getArgument();
       polynomialOrder = inputArgs[6].getArgument();
       includeAdjacentPoints = inputArgs[7].getArgument().matches("\\s*1\\s*");
+
+      //  Turn on the automatic mode with the defaults from the new com script
+      findPeaks = true;
+      String junk[] = inputFile.split("\\.st");
+      String datasetName = junk[0];
+      outputFile = datasetName + "_fixed.st";
+      peakCriterion = "10.0";
+      diffCriterion = "8.0";
+      growCriterion = "4.0";
+      edgeExclusion = "4";
+      pointModel = datasetName + "_peak.mod";
+      maximumRadius = "2.1";
+      outerRadius = "4.0";
+      xyScanSize = "100";
+      scanCriterion = "3.0";
     }
   }
 
@@ -102,8 +121,12 @@ public class CCDEraserParam
     scriptCommand.useKeywordValue();
 
     scriptCommand.setValue("InputFile", inputFile);
+
     if (!outputFile.equals("")) {
       scriptCommand.setValue("OutputFile", outputFile);
+    }
+    else {
+      scriptCommand.deleteKey("OutputFile");
     }
 
     if (findPeaks) {
@@ -116,60 +139,108 @@ public class CCDEraserParam
     if (!peakCriterion.equals("")) {
       scriptCommand.setValue("PeakCriterion", peakCriterion);
     }
+    else {
+      scriptCommand.deleteKey("PeakCriterion");
+    }
 
     if (!diffCriterion.equals("")) {
       scriptCommand.setValue("DiffCriterion", diffCriterion);
+    }
+    else {
+      scriptCommand.deleteKey("DiffCriterion");
     }
 
     if (!growCriterion.equals("")) {
       scriptCommand.setValue("GrowCriterion", growCriterion);
     }
+    else {
+      scriptCommand.deleteKey("GrowCriterion");
+    }
 
     if (!scanCriterion.equals("")) {
       scriptCommand.setValue("ScanCriterion", scanCriterion);
+    }
+    else {
+      scriptCommand.deleteKey("ScanCriterion");
     }
 
     if (!maximumRadius.equals("")) {
       scriptCommand.setValue("MaximumRadius", maximumRadius);
     }
+    else {
+      scriptCommand.deleteKey("MaximumRadius");
+    }
 
     if (!outerRadius.equals("")) {
       scriptCommand.setValue("OuterRadius", outerRadius);
+    }
+    else {
+      scriptCommand.deleteKey("OuterRadius");
     }
 
     if (!xyScanSize.equals("")) {
       scriptCommand.setValue("XYScanSize", xyScanSize);
     }
+    else {
+      scriptCommand.deleteKey("XYScanSize");
+    }
 
     if (!edgeExclusion.equals("")) {
       scriptCommand.setValue("EdgeExclusionWidth", edgeExclusion);
+    }
+    else {
+      scriptCommand.deleteKey("EdgeExclusionWidth");
     }
 
     if (!pointModel.equals("")) {
       scriptCommand.setValue("PointModel", pointModel);
     }
+    else {
+      scriptCommand.deleteKey("PointModel");
+    }
 
     if (!modelFile.equals("")) {
       scriptCommand.setValue("ModelFile", modelFile);
     }
+    else {
+      scriptCommand.deleteKey("ModelFile");
+    }
+
     if (!globalReplacementList.equals("")) {
       scriptCommand.setValue("AllSectionsObjects", globalReplacementList);
     }
+    else {
+      scriptCommand.deleteKey("AllSectionsObjects");
+    }
+
     if (!localReplacementList.equals("")) {
       scriptCommand.setValue("LineObjects", localReplacementList);
     }
+    else {
+      scriptCommand.deleteKey("LineObjects");
+    }
+
     if (!borderPixels.equals("")) {
       scriptCommand.setValue("BorderSize", borderPixels);
     }
+    else {
+      scriptCommand.deleteKey("BorderSize");
+    }
+
     if (!polynomialOrder.equals("")) {
       scriptCommand.setValue("PolynomialOrder", polynomialOrder);
     }
+    else {
+      scriptCommand.deleteKey("PolynomialOrder");
+    }
+
     if (includeAdjacentPoints) {
       scriptCommand.deleteKey("ExcludeAdjacent");
     }
     else {
       scriptCommand.setValue("ExcludeAdjacent", "");
     }
+
     if (trialMode) {
       scriptCommand.setValue("TrialMode", "");
     }
