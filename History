@@ -3,6 +3,8 @@ IMOD History
 IMOD_3-0-0
 2/10/03: Merged Qt branch.
 
+2/6/03: Fixed a bug that crashed imodmesh if contours had negative Z values.
+
 IMOD_2-7-11
 2/6/03: Made tif2mrc exit with error when output file cannot be opened.
 
