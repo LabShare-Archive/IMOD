@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.58  2003/08/05 21:35:22  rickg
+ * <p> Retry commit, eclipse broken?
+ * <p>
  * <p> Revision 2.57  2003/07/28 22:53:09  rickg
  * <p> Fixed postpone logic for combine panel.  Combine scripts
  * <p> created flag is now reset only when the CombineParams are
@@ -666,20 +669,12 @@ public class ApplicationManager {
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
       try {
-        if (imodManager.isRawStackOpen(AxisID.FIRST)
-          || imodManager.isRawStackOpen(AxisID.SECOND)) {
+        if (imodManager.isRawStackOpen(axisID)) {
           String[] message = new String[2];
-          message[0] = "There are raw stack 3dmod processes open";
-          message[1] = "Should they be closed?";
-          boolean answer = openYesNoDialog(message);
-          if (answer) {
-            if (isDualAxis()) {
-              imodManager.quitRawStack(AxisID.FIRST);
-              imodManager.quitRawStack(AxisID.SECOND);
-            }
-            else {
-              imodManager.quitRawStack(AxisID.ONLY);
-            }
+          message[0] = "The raw stack is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (openYesNoDialog(message)) {
+            imodManager.quitRawStack(axisID);
           }
         }
       }
@@ -870,7 +865,7 @@ public class ApplicationManager {
 
     if (imodManager.isRawStackOpen(axisID)) {
       String[] message = new String[2];
-      message[0] = "The replaced raw stack is still open in 3dmod";
+      message[0] = "The replaced raw stack is open in 3dmod";
       message[1] = "Should it be closed?";
       if (openYesNoDialog(message)) {
         try {
@@ -1330,21 +1325,12 @@ public class ApplicationManager {
         // Check to see if the user wants to keep any coarse aligned imods
         // open
         try {
-          if (imodManager.isCoarseAlignedOpen(AxisID.FIRST)
-            || imodManager.isCoarseAlignedOpen(AxisID.SECOND)) {
+          if (imodManager.isCoarseAlignedOpen(axisID)) {
             String[] message = new String[2];
-            message[0] =
-              "There are coarsely aligned stack 3dmod processes open";
-            message[1] = "Should they be closed?";
-            boolean answer = openYesNoDialog(message);
-            if (answer) {
-              if (isDualAxis()) {
-                imodManager.quitCoarseAligned(AxisID.FIRST);
-                imodManager.quitCoarseAligned(AxisID.SECOND);
-              }
-              else {
-                imodManager.quitCoarseAligned(AxisID.ONLY);
-              }
+            message[0] = "The coarsely aligned stack is open in 3dmod";
+            message[1] = "Should it be closed?";
+            if (openYesNoDialog(message)) {
+              imodManager.quitCoarseAligned(axisID);
             }
           }
         }
@@ -1633,20 +1619,12 @@ public class ApplicationManager {
         openTomogramGenerationDialog(axisID);
 
         try {
-          if (imodManager.isSampleOpen(AxisID.FIRST)
-            || imodManager.isSampleOpen(AxisID.SECOND)) {
+          if (imodManager.isSampleOpen(axisID)) {
             String[] message = new String[2];
-            message[0] = "There are sample reconstruction 3dmod processes open";
-            message[1] = "Should they be closed?";
-            boolean answer = openYesNoDialog(message);
-            if (answer) {
-              if (isDualAxis()) {
-                imodManager.quitSample(AxisID.FIRST);
-                imodManager.quitSample(AxisID.SECOND);
-              }
-              else {
-                imodManager.quitSample(AxisID.FIRST);
-              }
+            message[0] = "The sample reconstruction is open in 3dmod";
+            message[1] = "Should it be closed?";
+            if (openYesNoDialog(message)) {
+              imodManager.quitSample(axisID);
             }
           }
         }
@@ -1975,7 +1953,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open 3dmod to view the coarsely aligned stack
+   * Open 3dmod to view the tomogram
    * @param axisID the AxisID of the tomogram to open.
    */
   public void imodTomogram(AxisID axisID) {
