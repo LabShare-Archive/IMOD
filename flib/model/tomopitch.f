@@ -56,6 +56,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/06/25 15:25:18  mast
+c	  Adjusted sample coordinates to be centered around zero to correct
+c	  problem with computation of shift with X-axis tilt.
+c	
 c	  Revision 3.2  2002/05/21 03:12:17  mast
 c	  Remove ; at end of two lines, declare lnblnk
 c	
@@ -71,7 +75,7 @@ C
 	CHARACTER*120 FILIN
 C	
 	logical readw_or_imod,usetimes
-	integer getimodhead,getimodmaxes,getimodtimes
+	integer getimodhead,getimodmaxes,getimodtimes,getimodscales
 	real*4 xcen(limtot),ycen(limtot),thkmid(limtot),ysamp(limtot)
 	integer*4 ifuse(limtot),itimes(max_obj_num)
 	integer*4 ibottop(2)
@@ -83,6 +87,7 @@ c
 	real*4 border,deltay,ysample,xyscal,zscal,xofs,yofs,zofs
 	integer*4 ip1,ip2,ibt
 	real*4 x1,y1,x2,y2,xlo,xhi,yll,ylr,yul,yur,ymiddle
+	real*4 ximscale,yimscale,zimscale
 	integer*4 lnblnk
 c
 	npatch=2
@@ -112,14 +117,16 @@ c
 	    write(*,'(1x,a,i2,a,$)')'Name of model file #',ifile,': '
 	    read(5,'(a)')FILIN
 	    if(.not.readw_or_imod(filin))then
-	      print *, 'ERROR READING MODEL FILE ',filin
+	      print *,' '
+	      print *, 'ERROR: TOMOPITCH - READING MODEL FILE ',filin
 	      call exit(1)
 	    endif
 	    ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
 	    ierr=getimodmaxes(maxx,maxy,maxz)
+	    ierr=getimodscales(ximscale,yimscale,zimscale)
 	    do i=1,n_point
-	      p_coord(1,i)=p_coord(1,i)-xofs-maxx/2
-	      p_coord(2,i)=p_coord(2,i)-yofs-maxy/2
+	      p_coord(1,i)=(p_coord(1,i)-xofs)/ximscale-maxx/2
+	      p_coord(2,i)=(p_coord(2,i)-yofs)/ximscale-maxy/2
 	    enddo
 c	      
 c	      If there is one file, see if there are multiple times
@@ -138,17 +145,21 @@ c
 		usetimes = .true.
 		nfiles = maxtime
 		if (mintime .eq. 0) then
-		  print *,'THE MODEL FILE HAS MULTIPLE TIMES BUT ',
-     &		      'HAS SOME CONTOURS WITH NO TIME INDEX',
-     &		      'THESE CONTOURS CANNOT BE INTERPRETED AND ',
-     &		      'SHOULD BE ELIMINATED'
+		  print *,' '
+		  print *,'ERROR: TOMOPITCH - THE MODEL FILE HAS ',
+     &		  'MULTIPLE TIMES BUT HAS SOME CONTOURS',
+     &		  ' WITH NO TIME INDEX.  ',
+     &		  'THESE CONTOURS CANNOT BE INTERPRETED AND',
+     &		  '  SHOULD BE ELIMINATED'
 		  call exit(1)
 		endif
 	      endif
 	    endif
 	  endif
 	  if(nfiles*npatch.gt.limtot)then
-	    print *, 'TOO MANY TOTAL PATCHES FOR ARRAYS'
+	    print *,' '
+	    print *,
+     &		'ERROR: TOMOPITCH - TOO MANY TOTAL PATCHES FOR ARRAYS'
 	    call exit(1)
 	  endif
 c	      
@@ -174,13 +185,16 @@ c
 
 	  if (numobj.gt.0.or..not.usetimes) then
 	    if (numobj.lt.2) then
-	      print *,'MODEL OR TIME',ifile,
+	      print *,' '
+	      print *,'ERROR: TOMOPITCH - MODEL OR TIME',ifile,
      &		  ' DOES NOT HAVE ENOUGH CONTOURS'
 	      call exit(1)
 	    endif
 	    if(npt_in_obj(iobj1).lt.2.or.npt_in_obj(iobj2).lt.2)then
-     		print *,'THERE ARE NOT TWO POINTS IN FIRST TWO ',
-     &		'CONTOURS OF MODEL OR TIME',ifile
+	      print *,' '
+	      print *,'ERROR: TOMOPITCH - THERE ARE NOT TWO POINTS ',
+     &		  'IN FIRST TWO',
+     &		  ' CONTOURS OF MODEL OR TIME',ifile
 	      call exit(1)
 	    endif
 
