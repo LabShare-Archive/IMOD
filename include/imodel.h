@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/07/20 23:26:44  mast
+    Define a flag to signify that refImage.otrans has image origin info
+
     Revision 3.2  2002/05/20 15:27:15  mast
     Fix documentation of contour type and surf
 
@@ -387,8 +390,8 @@ typedef struct Mod_Model
                                        /* Use labels for model name.         */
      INT    xmax, ymax, zmax;  
      UINT   objsize;                   /* Number of objects in model.        */
-     UINT   flags;                     /* Not used yet.                      */
-     INT    drawmode;                  /* Tells how to draw model.           */
+     UINT   flags;                     /* IMODF_FLAG values      */
+     INT    drawmode;                  /* 1 to draw model, -1 not to         */
      INT    mousemode;                 /* Tells what mouse buttons do.       */
      INT    blacklevel, whitelevel;    /* Contrast adjustment.               */
      float  xoffset, yoffset, zoffset; /* offsets used for 3-D display       */
