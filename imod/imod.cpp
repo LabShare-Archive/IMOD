@@ -577,7 +577,7 @@ int main( int argc, char *argv[])
   if (print_wid) {
     unsigned int winID = (unsigned int)ImodInfoWin->winId();
     fprintf(stderr, "Window id = %u\n", winID);
-    wprint("Window id = %u\n", winID);
+    //wprint("Window id = %u\n", winID);
   }
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
@@ -883,6 +883,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.14  2003/04/25 00:13:33  mast
+Added cache filling option and make program name changes
+
 Revision 4.13  2003/04/18 20:15:40  mast
 Set flag when program is exiting
 
