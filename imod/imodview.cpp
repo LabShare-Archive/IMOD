@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
 Revision 1.1.2.4  2003/01/29 17:54:18  mast
 changed ivwGetLocation to get nearest intgere from zmouse
 
@@ -153,7 +156,7 @@ unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time)
 }
 
 /* DNM 12/12/01: make this a function, do it only if not raw images
-   Not sure if this is still needed, can't test it easily */
+   This is what scales data into restricted range with 8-bit colormap */
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr)
 {
   int rbase = iv->rampbase;
@@ -831,6 +834,10 @@ int ivwFlip(ImodView *vw)
   vw->ymouse = ozmouse;
   vw->zmouse = oymouse;
 
+  /* Keep it in bounds */
+  if (vw->zmouse > nz - 1)
+    vw->zmouse = nz - 1;
+
   /* DNM: need to reset the movie controller because ny and nz changed */
   imcResetAll(vw);
 
@@ -876,7 +883,7 @@ void ivwBindMouse(ImodView *vw)
     vw->xmouse = vw->xsize - 1;
   if (vw->ymouse >= vw->ysize)
     vw->ymouse = vw->ysize - 1;
-  if (vw->zmouse >= vw->zsize)
+  if (vw->zmouse > vw->zsize - 1)
     vw->zmouse = vw->zsize - 1;
   return;
 }
@@ -983,20 +990,11 @@ void ivwSetLocation(ImodView *vw, int x, int y, int z)
 void ivwSetLocationPoint(ImodView *vw, Ipoint *pnt)
 {
   int x,y,z;
-  float fc = 0.5f;
+  double fc = 0.5;
 
-  if (pnt->x < 0.0f) 
-    x = (int)(pnt->x + fc);
-  else
-    x = (int)(pnt->x - fc);
-  if (pnt->y > 0.0f)
-    y = (int)(pnt->y + fc);
-  else
-    y = (int)(pnt->y - fc);
-  if (pnt->z > 0.0f)
-    z = (int)(pnt->z + fc);
-  else
-    z = (int)(pnt->z - fc);
+  x = (int)floor(pnt->x + fc);
+  y = (int)floor(pnt->y + fc);
+  z = (int)floor(pnt->z + fc);
 
   ivwSetLocation(vw, x, y, z);
   return;
@@ -1005,7 +1003,7 @@ void ivwSetLocationPoint(ImodView *vw, Ipoint *pnt)
 
 int ivwPointVisible(ImodView *vw, Ipoint *pnt)
 {
-  if (vw->zmouse == (int)(pnt->z + 0.5))
+  if ((int)(vw->zmouse + 0.5) == (int)(pnt->z + 0.5))
     return(1);
   else
     return(0);
@@ -1190,14 +1188,14 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz)
 
         /* DNM: compute the bounding coordinates to read in, and
            skip if there is nothing that overlaps the image */
-        llx = iv->li->xmin - iox;
+        llx = ox - iox;
         if (llx < 0)
           llx = 0;
         urx = iv->li->xmax - iox;
         if (urx >= iv->hdr->nx)
           urx = iv->hdr->nx - 1;
 
-        lly = iv->li->ymin - ioy;
+        lly = oy - ioy;
         if (lly < 0)
           lly = 0;
         ury = iv->li->ymax - ioy;
@@ -1222,8 +1220,8 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz)
         xsize = urx + 1 - llx;
         ysize = ury + 1 - lly;
         iskip = mx - xsize;
-        iox += llx - iv->li->xmin;
-        ioy += lly - iv->li->ymin;
+        iox += llx - ox;
+        ioy += lly - oy;
         fox = foy = 0;
         fskip = 0;
 
