@@ -168,6 +168,11 @@ with the ZaP Window, which always loads the image that it needs into the cache.
 Other image windows
 will only be able to access image data that are already within the cache.
 .TP
+.B -F
+Fill the image cache upon program startup, before displaying any images.  This
+option is useful if you will be using the Slicer or XYZ windows, to avoid 
+seeing incomplete slices.
+.TP
 .B -p <filename>
 Load a file containing a piece list for the input image.  
 This allows one to montage image sections together or to view

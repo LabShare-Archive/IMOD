@@ -156,6 +156,11 @@ DDEESSCCRRIIPPTTIIOONN
               able to access image data that are already within
               the cache.
 
+       --FF     Fill the image cache upon program startup, before
+              displaying any images.  This option is useful if
+              you will be using the Slicer or XYZ windows, to
+              avoid seeing incomplete slices.
+
        --pp <<ffiilleennaammee>>
               Load a file containing a piece list for the input
               image.  This allows one to montage image sections
@@ -652,9 +657,9 @@ SSlliicceerr WWiinnddooww
        bor and slower, cubic interpolation.
           The Lock button will keep the Slicer from changing its
        current position when locked.
-          The Show Slice button will draw where the slice inter­
-       sects the X- Y- and Z-planes in the XYZ window, and the Z-
-       plane in the ZaP window.
+          The Show Slice button will draw where the slice
+       intersects the X- Y- and Z-planes in the XYZ window, and
+       the Z-plane in the ZaP window.
           The Z-Scale control determines whether the model's Z-
        scale will be applied to stretch the volume in the Z
        dimension and compensate for thinning.
