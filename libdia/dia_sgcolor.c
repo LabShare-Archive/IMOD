@@ -28,6 +28,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #ifdef __sgi
 #ifdef SYSV
 
@@ -42,7 +51,7 @@ typedef struct dia_color{
      short dred;
      short dgreen;
      short dblue;
-     void  (*cb)();
+     void  (*cb)(Widget,  XtPointer, XtPointer);
      XtPointer client_data;
      struct dia_color_cbs glc;
      XColor color;
@@ -147,7 +156,7 @@ static void workarea_cb(Widget w, XtPointer client, XtPointer call)
 
 
 int dia_sgcolor(short red, short green, short blue, char *prompt,
-		void (*cb)(), void *client_data)
+		void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      DiaColor *sgicolor;
 
@@ -173,7 +182,7 @@ int dia_sgcolor(short red, short green, short blue, char *prompt,
 
 #else
 int dia_sgcolor(short red, short green, short blue, char *prompt,
-		                void (*cb)(), void *client_data)
+		void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      return(-1);
 }

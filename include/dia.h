@@ -28,6 +28,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #ifndef DIA_H
 #define DIA_H
 
@@ -165,14 +174,16 @@ void         diaWindowQuit(Widget window,
 
 diaDialog *diaVaCreateDialog(char *name, Widget topLevel, 
 			     XtAppContext context, ...);
-void diaEasyFileAct(char *name, void (*fcb)(), XtPointer udata);
+void diaEasyFileAct(char *name, void (*fcb)(Widget,  XtPointer, XtPointer),
+		    XtPointer udata);
 
 
 int  dia_color(int *red, int *green, int *blue);
 void dia_setcolor(short red, short green, short blue, char *prompt,
-		  void (*cb)(), void *client_data);
+		  void (*cb)(Widget,  XtPointer, XtPointer),
+		  void *client_data);
 int dia_sgicolor(short red, short green, short blue, char *prompt,
-		 void (*cb)(), void *client_data);
+		 void (*cb)(Widget,  XtPointer, XtPointer), void *client_data);
 int  dia_err(char *msg);
 int  dia_abort(char *message, int cpid);
 int  dia_wait(char *message, int cpid);
@@ -183,9 +194,9 @@ void dia_smsg( char **msg);
 int  dia_abort(char *message, int cpid);
 int  dia_wait(char *message, int cpid);
 int  dia_fact(char *prompt, char *def1, char *def2,
-	     void (*cb)(), void *client_data);
+	     void (*cb)(Widget,  XtPointer, XtPointer), void *client_data);
 int  dia_fload(char *prompt, char *def1,
-	      void (*cb)(), void *client_data);
+	      void (*cb)(Widget,  XtPointer, XtPointer), void *client_data);
 char *dia_filename(char *reason);
 char *dia_gets(char *string, char *prompt);
 int  dia_int(int low, int high, int value, int decimal, char *prompt);

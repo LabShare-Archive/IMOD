@@ -28,6 +28,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <Xm/DialogS.h>
 #include <Xm/PushBG.h>
 #include <Xm/Label.h>
@@ -56,7 +65,8 @@ struct Fact_dialog{
 };
 
 int dia_fact_driver(char *prompt, char *def1, char *def2, 
-		    void (*cb)(), void *client_data, int files, int exitonok);
+		    void (*cb)(Widget,  XtPointer, XtPointer),
+		    void *client_data, int files, int exitonok);
 
 void dia_fact_cancel_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -113,19 +123,20 @@ void dia_fact_file_cb(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 int dia_fact(char *prompt, char *def1, char *def2,
-	     void (*cb)(), void *client_data)
+	     void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      return(dia_fact_driver(prompt, def1, def2, cb, client_data, 2, 0));
 }
 
 int dia_fload(char *prompt, char *def1,
-	      void (*cb)(), void *client_data)
+	      void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      return(dia_fact_driver(prompt, def1, NULL, cb, client_data, 1, 0));
 }
 
 int dia_fact_driver(char *prompt, char *def1, char *def2, 
-	     void (*cb)(), void *client_data, int files, int exitonok)
+	     void (*cb)(Widget,  XtPointer, XtPointer), void *client_data,
+		    int files, int exitonok)
 {
      struct Fact_dialog *fd;
      Widget dialog, pane, formw, form;

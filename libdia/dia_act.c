@@ -1,3 +1,14 @@
+
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
+
 #include <Xm/DialogS.h>
 #include <Xm/SelectioB.h>
 #include <Xm/FileSB.h>
@@ -59,7 +70,8 @@ static void efile_help_cb
 
 }
 
-void diaEasyFileAct(char *name, void (*fcb)(), XtPointer udata)
+void diaEasyFileAct(char *name, void (*fcb)(Widget,  XtPointer, XtPointer),
+		    XtPointer udata)
 {
      Widget hw; /* the help widget */
      XmString can = XmStringCreateSimple("Cancel");

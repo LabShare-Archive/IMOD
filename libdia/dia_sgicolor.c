@@ -28,6 +28,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #define DRAW_X11
 #ifdef DRAW_GL
 #undef DRAW_GL
@@ -335,7 +344,7 @@ static void dia_sgibluedrag_cb
 
 
 void dia_setcolor(short red, short green, short blue, char *prompt,
-		  void (*cb)(), void *client_data)
+		  void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      static short sred, sgreen, sblue;
 
@@ -358,14 +367,14 @@ void dia_setcolor(short red, short green, short blue, char *prompt,
 }
 
 int dia_cbcolor(short red, short green, short blue, char *prompt,
-		void (*cb)(), void *client_data)
+		void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 {
      return(dia_sgicolor(red,green,blue,prompt,cb,client_data));
 }
 
 
 int dia_sgicolor(short red, short green, short blue, char *prompt,
-		 void (*cb)(), void *client_data)
+		 void (*cb)(Widget,  XtPointer, XtPointer), void *client_data)
 
 /*int dia_sgicolor(short *red, short *green, short *blue, char *prompt) */
 {
