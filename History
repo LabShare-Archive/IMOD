@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-IMOD_2-6-7
+1/28/02: IMOD_2-6-8
+1/28/02: Fixed new bug in xyz drawing routine.
+
+1/28/02: IMOD_2-6-7
 1/27/02: Added ability to apply selection criteria to Genhstplt.
 
 1/25/02: Increased allowed number of projections in xyzproj and added check on
