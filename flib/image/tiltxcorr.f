@@ -31,6 +31,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.15  2003/10/30 00:48:24  mast
+c	  Incorporated cumulative reference method of Renkin, and added ability
+c	  to correlate a subset shifted from the center
+c	
 c	  Revision 3.14  2003/10/24 03:48:52  mast
 c	  do not call flush for small files due to Windows problems
 c	
@@ -166,7 +170,7 @@ c
 	ifAbsStretch = 0
 	ifLeaveAxis = 0
 
-	maxbinsize=1024
+	maxbinsize=1180
 	ifpip = 0
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -249,9 +253,8 @@ c	  DNM 4/28/02: figure out binning now, and fix this to send setctf
 c	  approximately correct nx and ny instead of nxpad and nypad which
 c	  don't yet exist
 c	  DNM 7/11/03: better fix is to wait to get ctf until pad size is known
-c	  
-	nbin=(max(nx,ny)+maxbinsize-1)/maxbinsize
-
+c	  DNM 11/1/5/03: and wait to get binning so big padding can be used
+c
 	if (pipinput) then
 	  if (PipGetString('TestOutput', imfilout) .eq. 0) then
 	    CALL IMOPEN(3,imfilout,'NEW')
@@ -310,8 +313,6 @@ c
 
 	nxuse = ixnd + 1 - ixst
 	nyuse = iynd + 1 - iyst
-	nxusebin=nxuse/nbin
-	nyusebin=nyuse/nbin
 c	  
 c	  determine padding
 c	  
@@ -324,6 +325,14 @@ c
      &	      //'in X and Y (/ for',nxbord,nybord,'): '
 	  read(*,*)nxbord,nybord
 	endif
+c
+c	  get a binning based on the padded size so that large padding is
+c	  possible
+c
+	nbin=(max(nxuse+2*nxbord,nyuse+2*nybord)+maxbinsize-1)/maxbinsize
+	nxusebin=nxuse/nbin
+	nyusebin=nyuse/nbin
+
 	nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
 	nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
 	if((nxpad+2)*nypad.gt.idim2) call errorexit(
