@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2003/12/18 22:45:56  mast
+    changes for movieing
+
     Revision 3.4  2003/03/03 22:18:41  mast
     Added variable for keeping track of cursor
 
@@ -136,6 +139,7 @@ typedef struct Super_slicer{
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
 		  int ilimshort, int jlimshort, int minval, int maxval);
 int sslice_open(struct ViewInfo *vi);
+void slicerReportAngles();
 void slicerHelp();
 void slicerStepZoom(SlicerStruct *win, int dir);
 void slicerEnteredZoom(SlicerStruct *win, float newZoom);

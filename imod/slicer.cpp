@@ -39,6 +39,7 @@ Log at end of file
 #include <string.h>
 #include <qcursor.h>
 #include <qapplication.h>
+#include <qobjectlist.h>
 
 #include "slicer_classes.h"
 #include "imod.h"
@@ -62,6 +63,7 @@ Log at end of file
 static void sslice_cube_draw(SlicerStruct *ss);
 static void sslice_draw(SlicerStruct *ss);
 static void sslice_setxyz(SlicerStruct *ss, int x, int y);
+static float getZScaleBefore(SlicerStruct *ss);
 static void slice_trans_step(SlicerStruct *ss);
 static void slicer_attach_point(SlicerStruct *ss, int x, int y);
 static void slicer_insert_point(SlicerStruct *ss, int x, int y);
@@ -113,12 +115,20 @@ void slicerHelp()
      "XYZ and ZaP windows to show the intersection of the current "
      "slice.\n",
      "\tThe Z-Scale box lets you "
-     "control whether the volume will be displayed with Z "
+     "control whether the volume will be displayed with Z-"
      "scaling.  If you choose \"Z-Scale Before\", then the volume will be "
      "scaled before it is rotated and sliced, and thus the rotation "
-     "angles will not select the same slice as with no Z-scaling.  If "
-     "you choose \"Z-Scale After\", the volume is scaled after being "
-     "rotated, and the same slice is selected as with no Z-scaling.\n",
+     "angles will not select the same slice as with no Z-scaling.  These "
+     "angles will be correct in a Z-scaled volume, but would not be correct "
+     "for using Rotatevol to achieve the same rotation of the original volume."
+     "  If you choose \"Z-Scale After\", the volume is scaled after being "
+     "rotated, and the same slice is selected as with no Z-scaling.  If you "
+     "plan to use angles in Rotatevol, use \"Z-Scale After\" or no Z-scaling."
+     "\n\tWhen images are loaded in with a different binning in Z versus X and"
+     " Y, the angles are correct for the original, unbinned volume.  This is "
+     "accomplished by applying an implicit Z scaling before rotation.  In "
+     "this case, you can select \"Z-Scale Before\" to apply an additional "
+     "Z-scaling, but \"Z-Scale After\" will be unavailable.\n"
 
      "\nThe Second Toolbar\n",
      "-------------------\n",
@@ -409,7 +419,8 @@ int sslice_open(struct ViewInfo *vi)
 	
   ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
                                (void *)ss);
-  imodDialogManager.add((QWidget *)ss->qtWindow, IMOD_IMAGE);
+  imodDialogManager.add((QWidget *)ss->qtWindow, IMOD_IMAGE, 
+                        SLICER_WINDOW_TYPE);
 
   // Set up cursor
   if (ss->mousemode == IMOD_MMODEL)
@@ -434,6 +445,35 @@ int sslice_open(struct ViewInfo *vi)
   return(0);
 }
 
+// Report the angles of the first slicer window
+void slicerReportAngles()
+{
+  QObjectList objList;
+  SlicerStruct *ss;
+  int i, topOne;
+  float xl, xr, yb, yt;
+  int ixl, ixr, iyb, iyt;
+
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  if (!objList.count()) {
+    imodPrintStderr("ERROR: No slicer windows open\n");
+    return;
+  }
+
+  topOne = -1;
+  for (i = 0; i < objList.count(); i++) {
+    ss = ((SlicerWindow *)objList.at(i))->mSlicer;
+    if (ss->ctrl == ss->vi->ctrlist->top) {
+      topOne = i;
+      break;
+    }
+  }
+  if (topOne < 0)
+    ss = ((SlicerWindow *)objList.at(0))->mSlicer;
+
+  imodPrintStderr("Slicer angles: %.1f %.1f %.1f\n", ss->tang[b3dX],
+                  ss->tang[b3dY], ss->tang[b3dZ]);
+}
 
 /* Broadcast position of this slice, and let other windows
  * show where this slice intersects with their views.
@@ -886,6 +926,17 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
   imodDraw(vi, IMOD_DRAW_XYZ);
 }
 
+// Get the Z scale of the volume before slicing: it is the product of
+// an implicit Z scael from the ration of Z to XY binning, and actual z scale
+// if zscale before is selected 
+static float getZScaleBefore(SlicerStruct *ss)
+{
+  float zs = (float)ss->vi->zbin / (float)ss->vi->xybin;
+  if (ss->scalez == SLICE_ZSCALE_BEFORE && ss->vi->imod->zscale > 0)
+    zs *= ss->vi->imod->zscale;
+  return zs;
+}
+
 static void sslice_setxyz(SlicerStruct *ss, int x, int y)
 {
   float xoffset, yoffset;
@@ -896,9 +947,9 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   /* DNM: the xzoom and yzoom are correct for all cases, and the zs
      needs to be applied only for the case of SCALE_BEFORE */
 
-  zs = 1.0f;
-  if (ss->scalez == SLICE_ZSCALE_BEFORE && ss->vi->imod->zscale > 0)
-    zs = 1.0 / ss->vi->imod->zscale;
+  zs = 1.0f / getZScaleBefore(ss);
+  //  if (ss->scalez == SLICE_ZSCALE_BEFORE && ss->vi->imod->zscale > 0)
+  //  zs = 1.0 / ss->vi->imod->zscale;
 
   /* DNM: have to use integer arithmetic on window sizes, and account for
      y going from 0 to winy-1 when inverting it */
@@ -982,8 +1033,9 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   n.x = p2->x - p1->x;
   n.y = p2->y - p1->y;
   n.z = p2->z - p1->z;
-  if (ss->scalez == SLICE_ZSCALE_BEFORE)
-    n.z *= ss->vi->imod->zscale;
+  n.z *= getZScaleBefore(ss);
+  //  if (ss->scalez == SLICE_ZSCALE_BEFORE)
+  //  n.z *= ss->vi->imod->zscale;
   if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0)
     return;
   imodPointNormalize(&n);
@@ -1181,12 +1233,13 @@ static void slice_trans_step(SlicerStruct *ss)
   jsize = ss->winy / ss->zoom;
 
   /* z stretch scale factor.   */
-  zs  = ss->vi->imod->zscale; 
+  zs = 1.0f / getZScaleBefore(ss);
+  /*  zs  = ss->vi->imod->zscale; 
   if (zs <= 0.0f)
     zs = 1.0f;
   zs = 1.0f / zs;
   if (ss->scalez != SLICE_ZSCALE_BEFORE)
-    zs = 1.0f;
+  zs = 1.0f; */
 
   /* DNM: make these correct for HQ case at least */
   ss->xo -= (isize / 2) * ss->xstep[b3dX];
@@ -1316,10 +1369,11 @@ static void fillImageArray(SlicerStruct *ss)
   ysz = ss->zstep[b3dY];
   zsz = ss->zstep[b3dZ];
 
-  if ((ss->scalez) && (ss->vi->imod->zscale > 0))
-    zs  = 1.0f/ss->vi->imod->zscale;
+  zs = 1.0f / getZScaleBefore(ss);
+  // if ((ss->scalez) && (ss->vi->imod->zscale > 0))
+  //  zs  = 1.0f/ss->vi->imod->zscale;
 
-		if (ss->scalez == SLICE_ZSCALE_AFTER){
+  if (ss->scalez == SLICE_ZSCALE_AFTER){
     if (ss->vi->imod->zscale > 0)
       zs = ss->vi->imod->zscale;
     xzoom = zoom * sqrt((double)
@@ -2087,8 +2141,10 @@ static void sslice_draw_model(SlicerStruct *ss)
   glRotatef(ss->tang[b3dX], 1.0f, 0.0f, 0.0f);
   glRotatef(ss->tang[b3dY], 0.0f, 1.0f, 0.0f);
   glRotatef(ss->tang[b3dZ], 0.0f, 0.0f, 1.0f);
-  if (ss->scalez == SLICE_ZSCALE_BEFORE)
-    glScalef(1.0f, 1.0f, ss->vi->imod->zscale);
+  
+  glScalef(1.0f, 1.0f, getZScaleBefore(ss));
+  // if (ss->scalez == SLICE_ZSCALE_BEFORE)
+  //  glScalef(1.0f, 1.0f, ss->vi->imod->zscale);
 
   glTranslatef(-ss->cx, -ss->cy, -ss->cz);
 
@@ -2239,6 +2295,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.23  2004/06/16 00:13:01  mast
+Constrain keypad movements when locked
+
 Revision 4.22  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
