@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/03: Added ability to turn a plugin into an internal module that is added
+to the Special menu, to provide Bead fixer on Windows.
+
+9/29/03: Restructured some 3dmod include files to restore ability to build
+plugins with minimal header files.
+
+9/25/03: Made sure windows stayed on the screen when restoring Zap and Info
+window positions.
+
+9/25/03: Changed Midas to number sections from 1 instead of 0.
+
 9/24/03: IMOD_3-0-20
 9/24/03: Resolved problems with the Fortran graphics package so it works
 on all systems, at least briefly.
@@ -15,7 +26,7 @@ Info window size since that is highly font-dependent.
 9/23/03: Put Fortran graphics programs inside application directories on the
 Mac, which made them work correctly, with the window raisable and resizable.
 
-9/22/03: Removed a large unused common from smoothsurf, which wss making it
+9/22/03: Removed a large unused common from smoothsurf, which was making it
 fail under Cygwin.
 
 9/19/03: Made sample.com files produce top.rec, etc, directly as the output
