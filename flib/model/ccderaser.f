@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2004/06/15 04:58:00  mast
+c	  Added option to specify annulus width instead of outer radius
+c	
 c	  Revision 3.13  2003/11/03 23:37:53  mast
 c	  Made it put out an empty model if there are no points to replace
 c	
@@ -1041,7 +1044,7 @@ c
      &		iy-iybordlo .lt. nbordm1 .or.
      &		iybordhi-iy .lt. nbordm1
 	    if(.not.inlist(ixofs,iyofs) .and. (ifincadj.eq.1 .or.
-     &		(nearedge.or. .not.adjacent(ixofs,iyofs))))then
+     &		(nearedge.or. .not.adjacent(ixofs,iyofs)))) then
 	      npnts=npnts+1
 	      call polyterm(ixofs,iyofs,iorder,xr(1,npnts))
 	      xr(nindep+1,npnts)=array(ix,iy)
@@ -1057,9 +1060,10 @@ c
      &	    ,fra)
 c	  
 c	  replace points on list with values calculated from fit
+c	  cannot truncate range by nbordm1 because could be on edge of image
 c
-	do iy=iybordhi-nbordm1,iybordlo+nbordm1,-1
-	  do ix=ixbordlo+nbordm1,ixbordhi-nbordm1
+	do iy=iybordhi,iybordlo,-1
+	  do ix=ixbordlo,ixbordhi
 	    ixofs=ix-ixcen
 	    iyofs=iy-iycen
 	    if(inlist(ixofs,iyofs))then
