@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/09/11 04:43:51  mast
+#  Add dependencies on diaP.h
+#
 #  Revision 3.2  2002/09/04 00:19:46  mast
 #  Add dependency of imodv on imod.h
 #
@@ -30,7 +33,7 @@ IMOD_OBJS = imod.o imod_io.o imod_input.o imod_display.o \
  imodview.o imod_edit.o b3dgfx.o b3dfile.o \
  xtum.o xtilt.o xgraph.o xzap.o iproc.o sliceproc.o \
  imod_iscale.o imod_model_edit.o imod_cont_copy.o imod_moviecon.o imodplug.o \
- samplemeansd.o imod_cachefill.o
+ samplemeansd.o imod_cachefill.o imod_client_message.o
 
 IMOD_X11_OBJS = ximodv.o imodv.o imod_model_draw.o
 
@@ -68,7 +71,8 @@ imodv : imod
 IMODDEPS = imod.h imodP.h b3dgfx.h autox.h imod_io.h sslice.h xxyz.h \
  $(INCDIR)imodel.h $(INCDIR)imodi.h $(INCDIR)dia.h $(INCDIR)iobj.h \
  $(INCDIR)icont.h $(INCDIR)imesh.h $(INCDIR)ipoint.h $(INCDIR)imat.h \
- $(INCDIR)iplane.h $(INCDIR)iview.h $(INCDIR)hvemtypes.h $(INCDIR)ilist.h 
+ $(INCDIR)iplane.h $(INCDIR)iview.h $(INCDIR)hvemtypes.h $(INCDIR)ilist.h \
+ imod_io.h imod_client_message.h
 
 IMODVDEPS = imodv.h $(INCDIR)imodel.h $(INCDIR)dia.h $(INCDIR)iobj.h \
  $(INCDIR)icont.h $(INCDIR)imesh.h $(INCDIR)ipoint.h $(INCDIR)imat.h \
