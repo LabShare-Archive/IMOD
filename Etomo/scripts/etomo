@@ -61,9 +61,13 @@ if [ ! -z ${ETOMO_LOG_DIR} ] ; then
     timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
     outlog=${ETOMO_LOG_DIR}/etomo_out_${timestamp}.log
     errlog=${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log
-    purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t | tail -n +61`
-    if [ ! -z "${purgelist}" ] ; then 
-      (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
+    anypurge=`cd ${ETOMO_LOG_DIR} ; find . -name 'etomo_*.log' -print`
+    if [ ! -z "${anypurge}" ] ; then
+      purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t etomo_*.log | tail -n +61`
+      # echo $purgelist
+      if [ ! -z "${purgelist}" ] ; then 
+        (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
+      fi
     fi
   fi
 fi
@@ -82,6 +86,9 @@ java -cp ${IMOD_DIR}/bin/etomo -jar ${IMOD_DIR}/bin/etomo.jar $@ \
 
 
 # $Log$
+# Revision 1.11  2005/01/19 00:13:44  mast
+# Added ability to direct logs to a specific directory
+#
 # Revision 1.10  2003/09/11 05:54:52  rickg
 # updated for IMOD_JAVADIR
 #
