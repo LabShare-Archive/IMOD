@@ -20,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.8  2003/11/06 22:44:07  sueh
  * <p> cleaning up tasks
  * <p>
@@ -126,6 +129,9 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setBackupDirectory(String backupDir) {
     backupDirectory = backupDir.trim();
   }
+  public void setDistortionFile(String distortionFile) {
+    this.distortionFile = distortionFile;
+  }
 
   public void setAxisType(AxisType at) {
     axisType = at;
@@ -152,6 +158,10 @@ public class MetaData extends ConstMetaData implements Storable {
 
   public void setImageRotation(double rotation) {
     imageRotation = rotation;
+  }
+  
+  public void setBinning(int binning) {
+    this.binning = binning;
   }
 
   public void setTiltAngleSpecA(TiltAngleSpec tiltAngleSpec) {
