@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <X11/Xlib.h>
 #include <X11/IntrinsicP.h>
 #include <Xm/Xm.h>
@@ -87,7 +96,6 @@ void zapKeyInput(Widget w, XEvent *event, String par, Cardinal num);
 void sliceKeyInput(Widget w, XEvent *event, String par, Cardinal num);
 void defaultKeyInput(Widget w, XEvent *event, String par, Cardinal num);
 int imod_get_colormap(ImodApp *ap);
-void xyzDraw_cb(ImodView *vi, void *client, long drawflag);
 
 static XtActionsRec ActionTable[] = {
 {"zapKeyInput",     (XtActionProc)zapKeyInput     },
@@ -672,14 +680,10 @@ int imodDraw(ImodView *vw, int flag)
 	  imod_info_setocp();
      }
 
-     xyzDraw_cb(vw, vw->xyz, flag);
+     /* DNM 11/24/02: deleted conditional on using controls, stopped drawing
+      xyz window separately (it now has a control) */
 
-#ifdef USE_IMOD_CONTROL
      ivwControlListDraw(vw, flag);
-#else
-     zapDraw_cb(vw, vw->zap, flag);
-#endif
-
 
      if (flag & IMOD_DRAW_XYZ){
 	  imod_info_setxyz();
