@@ -1,70 +1,21 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  mrcfiles.h
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
+/*  
+    $Author$
+    
     $Date$
-
+    
     $Revision$
-
-    $Log$
-    Revision 3.10  2004/11/04 17:09:38  mast
-    Changes for mirroring FFTs
-
-    Revision 3.9  2004/01/17 20:34:51  mast
-    Move b3d file routines and mrc_big_seek to b3dutil
-
-    Revision 3.8  2004/01/12 17:26:55  mast
-    Change complex min max routine from float to void
-
-    Revision 3.7  2004/01/08 06:43:05  mast
-    Added functions for complex scaling
-
-    Revision 3.6  2004/01/05 17:26:17  mast
-    Renamed imin/imax to outmin/outmax; changed mrcRead... from void to int
-    for error returns, and eliminated mode-specific calls
-
-    Revision 3.5  2003/11/18 19:20:51  mast
-    changes for 2GB problem on Windows
-
-    Revision 3.4  2003/02/21 22:18:06  mast
-    implement new b3d types
-
-    Revision 3.3  2002/07/31 17:39:04  mast
-    *** empty log message ***
-
-    Revision 3.2  2002/07/31 17:29:29  mast
-    Redefine header entries to comply with MRC image2000 standard
-    Add declaration for mrc_set_cmap_stamp
-
-    Revision 3.1  2002/06/26 16:53:13  mast
-    Added prototype for mrc_swap_header
-
+    Log at end of file
 */
 
 #ifndef MRCFILES_H
@@ -140,7 +91,7 @@ typedef struct  /*complex short number*/
 
 
 
-struct MRCheader
+typedef struct MRCheader
 {
   b3dInt32   nx;         /*  # of Columns                  */
   b3dInt32   ny;         /*  # of Rows                     */
@@ -244,7 +195,7 @@ struct MRCheader
   char *pathname;
   char *filedesc;
   char *userData;
-};
+} MrcHeader;
 
 
 /* to get from index to model coords -> scale -> subtract org -> rotate */
@@ -315,31 +266,31 @@ extern "C" {
 
 
 /******************************** Header functions **************************/
-int mrc_head_read (FILE *fin,  struct MRCheader *hdata);
-int mrc_head_write(FILE *fout, struct MRCheader *hdata);
-int mrc_head_label(struct MRCheader *hdata, char *label);
-int mrc_head_new  (struct MRCheader *hdata, int x, int y, int z, int mode);
-int mrc_byte_mmm  (struct MRCheader *hdata, unsigned char **idata);
-int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout);
+int mrc_head_read (FILE *fin,  MrcHeader *hdata);
+int mrc_head_write(FILE *fout, MrcHeader *hdata);
+int mrc_head_label(MrcHeader *hdata, char *label);
+int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
+int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
+int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout);
 
-void mrc_get_scale(struct MRCheader *h, float *xs, float *ys, float *zs);
-void mrc_set_scale(struct MRCheader *h, double x, double y, double z);
-void mrc_coord_cp(struct MRCheader *hout, struct MRCheader *hin);
+void mrc_get_scale(MrcHeader *h, float *xs, float *ys, float *zs);
+void mrc_set_scale(MrcHeader *h, double x, double y, double z);
+void mrc_coord_cp(MrcHeader *hout, MrcHeader *hin);
 	  
 
 /************************* Write image data functions ************************/
-int mrc_write_byte (FILE *fout, struct MRCheader *hdata, unsigned char **data);
-int mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[]);
-int mrc_data_new   (FILE *fout, struct MRCheader *hdata);
-int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata, 
+int mrc_write_byte (FILE *fout, MrcHeader *hdata, unsigned char **data);
+int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[]);
+int mrc_data_new   (FILE *fout, MrcHeader *hdata);
+int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, 
 		    int slice, char axis);
 
 /************************ Read image data functions **************************/
-void *mrc_read_image (FILE *fin, struct MRCheader *hdata, int z);
-float mrc_read_point (FILE *fin, struct MRCheader *hdata, int x, int y, int z);
-void *mrc_mread_slice(FILE *fin, struct MRCheader *hdata,
+void *mrc_read_image (FILE *fin, MrcHeader *hdata, int z);
+float mrc_read_point (FILE *fin, MrcHeader *hdata, int x, int y, int z);
+void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
 		      int slice, char axis);
-int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata, 
+int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 
 		   int slice, char axis);
 
   unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
@@ -351,41 +302,41 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
   void mrcMirrorSource(int nx, int ny, int imageX, int imageY, int *fileX,
                        int *fileY);
 
-unsigned char **read_mrc_byte(FILE *fin, struct MRCheader *hdata, 
+unsigned char **read_mrc_byte(FILE *fin, MrcHeader *hdata, 
 			      struct LoadInfo *li);
-unsigned char **mrc_read_byte(FILE *fin, struct MRCheader *hdata, 
+unsigned char **mrc_read_byte(FILE *fin, MrcHeader *hdata, 
 			      struct LoadInfo *li,
 			      void (*func)(char *));
 
-int mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadSectionByte(MrcHeader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int z);
-int mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadZByte(MrcHeader *hdata, struct LoadInfo *li,
 		  unsigned char *buf, int z);
-int mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadYByte(MrcHeader *hdata, struct LoadInfo *li,
 		  unsigned char *buf, int y);
-int mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadZ(MrcHeader *hdata, struct LoadInfo *li,
 	      unsigned char *buf, int cz);
-int mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadY(MrcHeader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int cy);
-int mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
+int mrcReadSection(MrcHeader *hdata, struct LoadInfo *li,
 		    unsigned char *buf, int z);
 
 
 
 /* misc stdio functions */
-int  loadtilts(struct TiltInfo *ti, struct MRCheader *hdata);
-int  getloadinfo(struct MRCheader *hdata,  struct LoadInfo *li); 
-int  mrc_init_li(struct LoadInfo *li, struct MRCheader *hd);
-int  mrc_plist_li(struct LoadInfo *li, struct MRCheader *hdata, char *fname);
-int  mrc_plist_load(struct LoadInfo *li, struct MRCheader *hdata, FILE *fin);
+int  loadtilts(struct TiltInfo *ti, MrcHeader *hdata);
+int  getloadinfo(MrcHeader *hdata,  struct LoadInfo *li); 
+int  mrc_init_li(struct LoadInfo *li, MrcHeader *hd);
+int  mrc_plist_li(struct LoadInfo *li, MrcHeader *hdata, char *fname);
+int  mrc_plist_load(struct LoadInfo *li, MrcHeader *hdata, FILE *fin);
 int  mrc_plist_proc(struct LoadInfo *li, int nx, int ny, int nz);
 int  mrc_plist_create(struct LoadInfo *li, int nx, int ny, int nz, int nfx, 
 		      int nfy, int ovx, int ovy);
 int  iiPlistLoadF(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
 int  iiPlistLoad(char *filename, struct LoadInfo *li, int nx, int ny, int nz);
-void mrc_liso(struct MRCheader *hdata, struct LoadInfo *li);
+void mrc_liso(MrcHeader *hdata, struct LoadInfo *li);
 int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
-int get_loadinfo(struct MRCheader *hdata, struct LoadInfo *li);
+int get_loadinfo(MrcHeader *hdata, struct LoadInfo *li);
 unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax);
 unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
 			     int ramptype, int swapbytes, int signedint);
@@ -399,10 +350,49 @@ int fgetline(FILE *fp, char s[],int limit);
 void mrc_swap_shorts(short int *data, int amt);
 void mrc_swap_longs(int *data, int amt);
 void mrc_swap_floats(float *data, int amt);
-void mrc_swap_header(struct MRCheader *hdata);
-void mrc_set_cmap_stamp(struct MRCheader *hdata);
+void mrc_swap_header(MrcHeader *hdata);
+void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 #ifdef __cplusplus
 }
 #endif
 #endif
+
+/*
+    $Log$
+    Revision 3.11  2004/11/05 18:52:53  mast
+    Include local files with quotes, not brackets
+
+    Revision 3.10  2004/11/04 17:09:38  mast
+    Changes for mirroring FFTs
+
+    Revision 3.9  2004/01/17 20:34:51  mast
+    Move b3d file routines and mrc_big_seek to b3dutil
+
+    Revision 3.8  2004/01/12 17:26:55  mast
+    Change complex min max routine from float to void
+
+    Revision 3.7  2004/01/08 06:43:05  mast
+    Added functions for complex scaling
+
+    Revision 3.6  2004/01/05 17:26:17  mast
+    Renamed imin/imax to outmin/outmax; changed mrcRead... from void to int
+    for error returns, and eliminated mode-specific calls
+
+    Revision 3.5  2003/11/18 19:20:51  mast
+    changes for 2GB problem on Windows
+
+    Revision 3.4  2003/02/21 22:18:06  mast
+    implement new b3d types
+
+    Revision 3.3  2002/07/31 17:39:04  mast
+    *** empty log message ***
+
+    Revision 3.2  2002/07/31 17:29:29  mast
+    Redefine header entries to comply with MRC image2000 standard
+    Add declaration for mrc_set_cmap_stamp
+
+    Revision 3.1  2002/06/26 16:53:13  mast
+    Added prototype for mrc_swap_header
+
+*/
