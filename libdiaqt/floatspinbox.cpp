@@ -12,9 +12,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/12/16 23:50:10  mast
+Initial creation
+
 */
 
 #include "floatspinbox.h"
+#include <math.h>
 #include <qvalidator.h>
 
 ///////////////////////////////////////////////
