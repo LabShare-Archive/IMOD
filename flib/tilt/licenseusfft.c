@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "imodconfig.h"
 
 #ifdef F77FUNCAP
 #define licenseusfft LICENSEUSFFT

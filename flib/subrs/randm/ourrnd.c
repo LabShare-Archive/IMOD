@@ -4,10 +4,15 @@
 
 #include <stdlib.h>
 /*  #include <stdio.h>                                  */
+#include "imodconfig.h"
 
+#ifdef F77FUNCAP
+#define myrand MYRAND
+#define mysrand MYSRAND
+#else
 #define myrand myrand_
 #define mysrand mysrand_
-
+#endif
 
 void mysrand(int *seed, float *val)
 {
