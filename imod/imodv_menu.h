@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2002/12/27 01:24:13  mast
 new background color selector
 
@@ -59,6 +62,7 @@ void imodvViewMenu(int item);
 void imodvMenuBgcolor(int state);
 int imodvLoadModel();
 void imodvSaveModelAs();
+void imodvOpenSelectedWindows(char *keys);
 
 #endif
 
