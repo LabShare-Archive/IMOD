@@ -33,6 +33,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/02/27 15:58:11  mast
+c	  Added to library
+c	
 c
 	subroutine undistInterp(array,bray,nxa,nya,nxb,nyb,amat,
      &	    xc,yc,xt,yt,scale,dmean, linear, dxGrid, dyGrid, ixgDim,
