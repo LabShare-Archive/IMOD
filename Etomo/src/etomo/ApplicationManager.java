@@ -86,6 +86,18 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2004/05/11 21:11:21  sueh
+ * <p> bug# 302 Standardizing synchronization.
+ * <p> Syncing with PatchRegionModel button push.
+ * <p> UpdateCombineCom(), which updates metadata, is not necessary to
+ * <p> run scripts so it doesn't need a success return value.
+ * <p> Put syncing first in most cases.
+ * <p> Follow syncing by updateCombineCom().
+ * <p> In createCombineScripts() run either loadSolvematchShift() or
+ * <p> loadSolvematchMod(), instead of only loadSolvematchShift.
+ * <p> If MatchingModels is selected after Create scripts is done, call
+ * <p> modelCombine() from combine() and visa versa.
+ * <p>
  * <p> Revision 3.50  2004/05/07 19:54:45  sueh
  * <p> bug# 33 adding error processing to
  * <p> imodGetRubberbandCoordinates()
@@ -4300,9 +4312,9 @@ public class ApplicationManager {
   
   
   public Vector imodGetRubberbandCoordinates(String imodKey) {
-    Vector coordinates = null;
+    Vector results = null;
     try {
-      coordinates = imodManager.getRubberbandCoordinates(imodKey);
+      results = imodManager.getRubberbandCoordinates(imodKey);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -4310,32 +4322,43 @@ public class ApplicationManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
-        "Can't get rubberband coordinates from " + imodKey);
+      mainFrame.openMessageDialog(
+        except.getMessage(),
+        "Unable to retrieve rubberband coordinates from " + imodKey + ".");
     }
-    String message = null;
-    Vector messages = new Vector();
-    if (coordinates == null) {
-      messages.add("Unable to retrieve rubberband coordinates.");
+    Vector messageArray = new Vector();
+    if (results == null) {
+      messageArray.add(
+        "Unable to retrieve rubberband coordinates from " + imodKey + ".");
+      return null;
     }
     else {
-      Iterator i = coordinates.iterator();
+      boolean success = false;
+      String result = null;
+      Iterator i = results.iterator();
       while (i.hasNext()) {
-        message = (String) i.next();
-        if (message.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-          || message.indexOf(ImodProcess.ERROR_STRING) != -1
-          || message.indexOf(ImodProcess.WARNING_STRING) != -1) {
-          messages.add(message);
+        result = (String) i.next();
+        if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
+          || result.indexOf(ImodProcess.ERROR_STRING) != -1
+          || result.indexOf(ImodProcess.WARNING_STRING) != -1) {
+          messageArray.add(result);
           i.remove();
         }
+        if (result.indexOf(ImodProcess.RUBBERBAND_RESULTS_STRING) != -1) {
+          success = true;
+        }
+      }
+      if (!success) {
+        messageArray.add(
+          "Unable to retrieve rubberband coordinates from " + imodKey + ".");
       }
     }
-    if (messages.size() > 0) {
-      String[] messageString =
-        (String[]) messages.toArray(new String[messages.size()]);
-      mainFrame.openMessageDialog(messageString, "Rubberband Coordinates");
+    if (messageArray.size() > 0) {
+      String[] messages =
+        (String[]) messageArray.toArray(new String[messageArray.size()]);
+      mainFrame.openMessageDialog(messages, "Rubberband Coordinates");
     }
-    return coordinates;
+    return results;
   }
 
   /**
