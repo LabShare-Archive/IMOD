@@ -198,4 +198,4 @@ echo '3dmod $* &' >! $imod_dir/3dmodbg
 echo '3dmod -view $* &' >! $imod_dir/3dmodv
 
 # Make sure critical scripts are in unix mode
-(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid >& /dev/null)
+(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign >& /dev/null)
