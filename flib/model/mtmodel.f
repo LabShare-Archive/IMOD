@@ -69,7 +69,7 @@ c	  .  the gaps.
 c
 C	  David Mastronarde  9/8/88
 
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 
 	parameter (less_pt = max_pt/5)
 	character*80 modelfile,pointfile,oldmodel

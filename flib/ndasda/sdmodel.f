@@ -3,7 +3,7 @@
 	character*(*) modelfile
 	integer*4 openimoddata
 	include 'sda.inc'
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	integer*4 getimodmesh,getimodscat,getimodclip
 	logical*1 neednorm(maxverts)
 	integer*4 modind(maxverts*6)

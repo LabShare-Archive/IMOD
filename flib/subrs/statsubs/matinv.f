@@ -8,7 +8,7 @@ c	  for singularity, verified basically same program as GAUSSJ from
 c	  Press et al 1986 for Gauss-Jordan elimination
 c
 	subroutine matinv(a,n,b,m,determ)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension a(msiz,msiz), b(msiz), pivot(msiz), ipivot(msiz),
      1 index(msiz,2)
 	equivalence (irow,jrow), (icolum,jcolum), (amax, t, swap)

@@ -63,9 +63,13 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/21 00:06:46  mast
+c	  Standardized error outputs, added declarations for implicit none, and
+c	  added model scaling in case image file has a non-unitary scale.
+c	
 c	  
 	implicit none
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	include 'model.inc'
 	integer idim,limvert
         parameter (idim=10000,limvert=100000)

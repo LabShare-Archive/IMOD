@@ -45,7 +45,7 @@ c	  .  negative of this value for WIMP objects that are turned off.
 c	  
 c	  David Mastronarde  1/27/90; modified for IMOD 4/4/97
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	character*80 modelfile,newmodel,tiltfile
 	logical exist,readw_or_imod
 	real*4 tiltzstrt(1000),tilt(1000),costilt(1000),remapz(1000)

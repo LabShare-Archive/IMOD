@@ -6,7 +6,7 @@ c	matrix h, of order n.  It places eigenvalues in the diagonal elements
 c	of h, eigenvectors in the columns of matrix u if iegen =0 not 1.
 c	nr contains # of rotations done
 	subroutine hdiag(h,n,iegen,u,nr)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension h(msiz,msiz), u(msiz,msiz), x(msiz), iq(msiz)
 c	call prmat(h,n,'matrix entering hdiag')
 	if(iegen.ne.0)go to 15

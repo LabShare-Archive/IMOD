@@ -9,7 +9,7 @@ c	matrix h, of order n.  It places eigenvalues in the diagonal elements
 c	of h, eigenvectors in the columns of matrix u if iegen =0 not 1.
 c	nr contains # of rotations done
 	subroutine dirnm(a, m, b, x, xl)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension a(msiz,msiz), b(msiz,msiz), x(msiz,msiz), xl(msiz)
 	call hdiag(b,m,0,x,nr)
 	do 1 i=1,m

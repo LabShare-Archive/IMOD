@@ -58,7 +58,7 @@ c
 	parameter (maxarr=1025*1025,maxcolrow=2100,maxsec=500,
      &	    maxtour=100)
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 c
 	real*4 array(maxarr),xp(maxcolrow),yp(maxcolrow)
 	integer*2 img(maxarr)
@@ -157,7 +157,7 @@ c
 
 
 	subroutine vecplt(xplot,yplot,itype)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	common /veccom/nx,ny,nz,icolor,izcur,xofset,yofset,sclx,scly
 	logical toomuch/.false./
 c

@@ -31,7 +31,7 @@ c
 	real*4 dxgrid(ixgdim,iygdim),dygrid(ixgdim,iygdim)
 	real*4 sdgrid(ixgdim,iygdim),ddengrid(ixgdim,iygdim)
 	parameter (idim=100)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz)

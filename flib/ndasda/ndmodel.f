@@ -15,6 +15,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/07 04:39:52  mast
+c	  Add the argument for maximum number of vertices to the convexbound
+c	  call.
+c	
 c	  Revision 3.1  2002/06/05 21:16:50  mast
 c	  Made GET_POINTS reject a contour only if was in a closed object
 c	  and was completely planar; made it work with scattered points by
@@ -85,7 +89,7 @@ c	  NINCLASS is a list of the number of points of each type
 c
 	subroutine get_points(bx,by,nvert,zz,itypcrosind,ntypes,sx,sy,
      &	    itype,npnts,ninclass)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
         logical inside
 	parameter (limtyp=50,itypall=999)
 	real*4 bx(*),by(*)

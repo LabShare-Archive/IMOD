@@ -38,7 +38,7 @@ c	  points; in this case enter "2,0.1"
 c	  
 c	  David Mastronarde  11/23/92; modified for IMOD 4/24/97
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	character*80 modelfile
 	logical exist,readw_or_imod
 	real*4 xyzmt(3,2,max_obj_num)

@@ -1490,7 +1490,7 @@ c
 	real*4 zstrt(*),zend(*),xmt(*),ymt(*),zmt(*)
 	integer*4 itype(*),indbundle(*),ninbundle(*),indxymt(*)
 	real*4 tiltzstrt(*),remapz(*),costilt(*)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	real*4 bx(500),by(500)
 	logical*1 notgot(max_obj_num)
 	logical looking,inside

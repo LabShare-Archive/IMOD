@@ -92,7 +92,7 @@ c
 	real*4 array(nx,ny),brray(nx,ny)
 	parameter (lmzon=50,limpek=100000,npctl=1000,lmteach=3000,
      &	    limpcl=50000,limsec=1000)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 C
         logical*1 consid(nx,ny)
         integer*2 ixwind(200),iywind(200)

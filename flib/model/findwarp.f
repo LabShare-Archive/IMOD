@@ -163,6 +163,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/09/06 00:40:18  mast
+c	  Had it exit with error if no patch arrangements will fit the minimum
+c	  required measurement to unknown ratio in automatic mode
+c	
 c	  Revision 3.2  2002/09/06 00:38:33  mast
 c	  Wrong message!
 c	
@@ -179,7 +183,7 @@ c	  1/1/00: added model exclusion and automatic finding of best warp
 c	  6/7/01: rewrote data input to handle data with missing patches
 c
 	implicit none
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	include 'model.inc'
 	integer idim,limpatch,limvert,limaxis
         parameter (idim=10000,limpatch=10000,limvert=100000)

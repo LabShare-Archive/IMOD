@@ -4,7 +4,7 @@ c   9/88 modified for VAX, leave out tests for missing data, drop argument
 c   ircol, fix dialog, put in "quiet" option
 c   INVERTED SUBSCRIPT ORDER OF DMAT ARRAY
 	subroutine eigenv(dmat,m,ndisc,ning,nstr,nend,ssd,ifquiet)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension sx(msiz), xm(msiz), sd(msiz),icltmp(msiz)
      1, ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz),sclvec(msiz)
      3, dmat(msiz,*),sumt(msiz),ts(msiz,msiz),w(msiz,msiz)
@@ -117,7 +117,7 @@ c630	write(*,'(1x,a,i3,f12.6)')'f ratio for vector',k,frat
 	end
 
 	subroutine prmat(x,n,heading)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension x(msiz,msiz)
 	character*(*) heading
 	write(*,*) heading
@@ -127,7 +127,7 @@ c630	write(*,'(1x,a,i3,f12.6)')'f ratio for vector',k,frat
 	end
 
 	subroutine dmean(dmat,ncol,nstr,nend,avgs)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension dmat(msiz,*),avgs(*)
 	do 30 j=1,ncol
 	n=0

@@ -126,7 +126,7 @@ c	  David Mastronarde, May 1989
 c
         parameter (ixdim=2100,iydim=2100,limpek=10000,lmzon=50,
      &      lmreal=3000,limpcl=50000)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	COMMON //NX,NY,NZ
 C
 	DIMENSION NXYZ(3),MXYZ(3),ARRAY(ixdim*iydim),brray(ixdim*iydim)

@@ -50,7 +50,7 @@ c	  will the objects be joined.
 c	  
 c	  David Mastronarde  1/10/90
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 c
 c  Variable definitions for storage of second model
 c

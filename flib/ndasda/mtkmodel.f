@@ -10,7 +10,7 @@ c
 c
 	subroutine read_model(modelfile,tiltfile,xyscal,zscal,xofs,yofs,
      &	    zofs,ifflip, iobjflag, limflag,zgapst,zgapnd,ngaps)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	include 'mtk.inc'
 	character*(*) modelfile,tiltfile
 	integer*4 iobjflag(*)
@@ -164,7 +164,7 @@ c
 	subroutine get_objects(zstart,zend,
      &	    xmt,ymt, zmt, indstrt,npntobj, icolor,nmt,iobjmod,
      &	    iobjflag,limxyz,limwobj)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	real*4 xmt(*),ymt(*),zmt(*)
 	integer*4 indstrt(*),npntobj(*),icolor(*),iobjmod(*),iobjflag(*)
 c
@@ -227,7 +227,7 @@ c
 	subroutine save_model(xyscal,zscal,xofs,yofs,zofs,ifflip,
      &	    iobjflag,xmt, ymt, zmt,indstrt,
      &	    npntobj, icolor,nmt,ninwin,iobjwin,nobjwin,iobjmod,endsep)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	real*4 xmt(*),ymt(*),zmt(*),endsep(*),chnglo(50),chnghi(50)
 	integer*4 indstrt(*),npntobj(*),icolor(*),iobjwin(*),iobjmod(*)
 	integer*4 icolold(50),icolnew(50),iobjflag(*)

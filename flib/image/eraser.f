@@ -158,7 +158,7 @@ c
 	logical*1 inlist(-mxd:mxd,-mxd:mxd),adjacent(-mxd:mxd,-mxd:mxd)
 	logical nearedge
 	parameter (isdim=1000)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz),vect(msiz)

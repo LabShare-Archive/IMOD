@@ -6,7 +6,7 @@ c	give it full total SSCP matrix in ts, full within-group in r, it
 c	will return best m variables in ltot, and for those variables,
 c	total SSCP in ssd, within in w, between in d, sqrt(w(i,i)) in sx
 	subroutine stepwz(m,mfull,ltot,sx,w,d,r,ts,ssd)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension ltot(msiz),w(msiz,msiz),d(msiz,msiz),r(msiz,msiz)
      1,ts(msiz,msiz),ssd(msiz,msiz),sx(msiz)
 	common /stpcom/ mdiff,k12,ns(msiz)
@@ -44,7 +44,7 @@ C
 	end
 
 	subroutine stpini(m,mfull,ltot)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	dimension ltot(msiz)
 	common /stpcom/ mdiff,k12,ns(msiz)
 	mdiff=mfull-m
@@ -55,7 +55,7 @@ C
 	end
 
 	subroutine stpmov(m,mfull)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 	common /stpcom/ mdiff,k12,ns(msiz)
 	ns(m)=ns(m)+1
 75	k12=m

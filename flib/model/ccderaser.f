@@ -62,6 +62,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/21 19:43:39  mast
+c	  Moved big array into a common block to avoid stack size limit on SGI
+c	
 c	  Revision 3.2  2002/07/21 19:31:59  mast
 c	  Standardized error outputs
 c	
@@ -372,7 +375,7 @@ c
 	logical*1 inlist(-mxd:mxd,-mxd:mxd),adjacent(-mxd:mxd,-mxd:mxd)
 	logical nearedge
 	parameter (isdim=1000)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz),vect(msiz)

@@ -7,7 +7,7 @@ c	  term in BINT.  Y = BINT + sum ( SLOP(i) * X**i )
 	subroutine weightpoly(x,y,w,nfit,iorder,slop,bint)
 	real*4 x(*),y(*),w(*),slop(*)
 	parameter (idim=1000)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
      1	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      2	    , b(msiz), b1(msiz)

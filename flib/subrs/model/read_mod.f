@@ -10,7 +10,7 @@ c	  and cleaned up declarations now that all model stuff is in .inc file
 c   DNM 7/20/89  changes for new model format
 
 	logical function read_mod()
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	   
 	character*50 model_file
 	character*10 label_c

@@ -75,8 +75,13 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/12 22:17:44  mast
+c	  Revised man page to contain instructions for extracting into separate
+c	  files; added checks on array limits, and converted STOP to
+c	  call exit(1)
+c	
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	parameter (idim=128,izdim=128,limpcl=50000)
 	real*4 array(idim,idim),brray(idim,idim,izdim)
      &	    ,avgray(idim,idim,izdim)

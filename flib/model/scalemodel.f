@@ -2,7 +2,7 @@
 *   Will rescale a model for changes in image origin, delta or tilt
 *
 
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 
         real*4 tilt(3,2),orig(3,2),delt(3,2),freinp(10),tmp(3),tmp2(3)
         real*4 postnew(3),preold(3),scrat(3,3),mold(3,3),mnew(3,3)

@@ -17,7 +17,7 @@ c	  .   than the longest object length.
 c	  
 c	  David Mastronarde 2/9/90
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	integer*4 listz(1000)
 	logical exist,readw_or_imod,inside,lastinside
 	character*80 modelfile

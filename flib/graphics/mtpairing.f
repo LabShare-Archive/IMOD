@@ -251,7 +251,7 @@ c
 	real*4 zptscal(limbun),xyscal(limbun)
 	integer*4 ifile(limbun),ntilts(limbun),indtlt(limbun)
 	real*4 datpair(limpair,11),datmt(limmt,7)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	integer*4 ngx(limpair),nsymb(1),icolsave(2,max_obj_num)
 	logical typeonlist,outopen,aonlist,bonlist
 	character*80 modelfile,comfile,modelout,outfile
@@ -1478,7 +1478,7 @@ c
 	integer*4 itype(*),indbundle(*),ninbundle(*),indxymt(*)
 	integer*4 iobjnum(*),icontnum(*)
 	real*4 tiltzstrt(*),remapz(*),costilt(*)
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	real*4 bx(500),by(500)
 	logical*1 notgot(max_obj_num)
 	logical looking,inside

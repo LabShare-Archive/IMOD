@@ -103,8 +103,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/07 20:12:28  mast
+c	  Modified to get scale factors from model file and use them to
+c	  scale to index coordinates
+c	
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	integer*4 listz(1000),icolelim(512),iflags(512)
 	logical exist,readw_or_imod,inside,lastinside
 	integer*4 getimodflags,getimodhead,getimodscales

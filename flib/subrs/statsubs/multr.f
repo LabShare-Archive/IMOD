@@ -4,7 +4,7 @@ c	Behavioral Sciences, Wiley, 1962 (!).
 c	computes multiple regression coefficients for an input data matrix
 c	with the dependent variable in the last column
 	subroutine multr(x,mpin,ng,sx,ss,ssd,d,r,xm,sd,b,b1,c,rsq,f)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 c	x = data matrix, msiz columns by any # of rows
 c	mp = # of columns (parameters),  ng = # of rows (subjects)
 c	sx, xm, sd = sum, mean and sd of each column

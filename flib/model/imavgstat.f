@@ -267,7 +267,7 @@ c
         real*4 glist(2,3,500),flist1(2,3,maxsec),flist2(2,3,maxsec)
 	real*4 prod1(2,3),prod2(2,3,maxsec)
 c
-	include 'nimp_source:model.inc'
+	include 'model.inc'
 	character*100 modelfile,filin,filout
 	character*120 copyline
 	character*3 oldnew

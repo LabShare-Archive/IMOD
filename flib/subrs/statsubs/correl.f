@@ -4,7 +4,7 @@ c	Behavioral Sciences, Wiley, 1962 (!).
 c	computes basic matrices - means, sd's, variances, covariances,
 c	correlations - for an input data matrix
 	subroutine correl(x,m,ng,sx,ss,ssd,d,r,xm,sd,ifdisp)
-        include 'stat_source:statsize.inc'
+        include 'statsize.inc'
 c	x = data matrix, msiz columns by any # of rows
 c	m = # of columns (parameters),  ng = # of rows (subjects)
 c	or ng = 10000*(starting row #) + (ending row #)
@@ -94,7 +94,7 @@ c	call mprint(r,m,'r  ')
 	end
 
 c	subroutine mprint(x,m,string)
-c       include 'stat_source:statsize.inc'
+c       include 'statsize.inc'
 c	dimension x(msiz,msiz)
 c	character*3 string
 c	write(*,*)string
