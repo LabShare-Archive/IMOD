@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 3.0.2.1  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -44,6 +47,35 @@ Initital version of code moved from imod_menu_cb.c
 #ifndef IMOD_CLIENT_MESSAGE_H
 #define IMOD_CLIENT_MESSAGE_H
 
-bool imodHandleClientMessage(XEvent *event);
+#include <qobject.h>
+#include <qstring.h>
+class QTimer;
+
+class ImodClipboard : public QObject
+{
+  Q_OBJECT
+
+ public:
+  ImodClipboard();
+  ~ImodClipboard() {};
+  bool handleMessage();
+  bool executeMessage();
+  void sendResponse(int succeeded);
+
+
+  QTimer *mClipTimer;
+  QTimer *mClipHackTimer;
+
+ public slots:
+  void clipTimeout();
+  void clipHackTimeout();
+  void clipboardChanged();
+
+ private:  
+  bool mHandling;
+  bool mExiting;
+  QString mSavedClipboard;
+};
+
 
 #endif /* IMOD_CLIENT_MESSAGE_H */
