@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/28 15:45:06  mast
+#  Changes to make install directory root available to man, html, com Makefiles
+#
 #
 # Global setup
 #
@@ -443,44 +446,16 @@ if (! -e include/imod.h) ln -s ../imod/imod.h include/imod.h
 #
 # Make the directories if needed.
 #
-if (! -e $bin_dir) then
-	mkdir $bin_dir
-endif
-if (! -e $lib_dir) then
-	mkdir $lib_dir
-endif
-
-if (! -e $inst_bin_dir) then
-        mkdir $inst_bin_dir
-endif
-if (! -e $inst_lib_dir) then
-        mkdir $inst_lib_dir
-endif
-
-if (! -e $inst_plug_parent) then
-        mkdir $inst_plug_parent
-endif
-if (! -e $inst_plug_dir) then
-        mkdir $inst_plug_dir
-endif
-if (! -e $inst_dir/com) then
-        mkdir $inst_dir/com
-endif
-if (! -e $inst_dir/html) then
-        mkdir $inst_dir/html
-endif
-if (! -e $inst_dir/html/man) then
-        mkdir $inst_dir/html/man
-endif
-if (! -e $inst_dir/man) then
-        mkdir $inst_dir/man
-endif
-if (! -e $inst_dir/man/cat1) then
-        mkdir $inst_dir/man/cat1
-endif
-if (! -e $inst_dir/man/cat5) then
-        mkdir $inst_dir/man/cat5
-endif
+mkdir -p $bin_dir
+mkdir -p $lib_dir
+mkdir -p $inst_bin_dir
+mkdir -p $inst_lib_dir
+mkdir -p $inst_plug_parent
+mkdir -p $inst_plug_dir
+mkdir -p $inst_dir/com
+mkdir -p $inst_dir/html/man
+mkdir -p $inst_dir/man/cat1
+mkdir -p $inst_dir/man/cat5
 
 exit
 
