@@ -281,6 +281,14 @@ A backup file of the original model is created with the
 Jim Kremer, modified by David Mastronarde <mast@colorado.edu>
 .SH SEE ALSO
 3dmod(1), 3dmodv(1), reducecont(1)
+
+The algorithm in imodmesh is based on:
+.br
+Fuchs, H., Kedem, Z.M., and Uselton, S.P. 1977.  Optimal surface reconstruction
+from planar contours.  Graphics and Image Processing, 20: 693-702.
+.br
+Shantz, M. 1981.  Surface definition for branching, contour-defined objects.
+Computer Graphics, 15: 242-267.
 .SH BUGS
 Only closed contours that have all of their points in one
 Z plane can be
