@@ -24,6 +24,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 /* include needed Qt headers and imod headers
  */
 #include <stdio.h>
@@ -682,7 +691,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   button = diaPushButton("Go to Next Gap", this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
   button->setFixedWidth(width);
-  QToolTip::add(button, "Go to gap in model - Hotkey: spacebar");
+  QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
 
   button = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
@@ -705,21 +714,21 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
   nextResBut->setFixedWidth(width);
-  QToolTip::add(nextResBut, "Show next highest residual - Hotkey: apostrophe");
+  QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
 
   movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
   movePointBut->setFixedWidth(width);
   QToolTip::add(movePointBut, "Move point to position that fits alignment"
-                " solution - Hotkey: semicolon");
+                " solution - Hot key: semicolon");
 
   undoMoveBut = diaPushButton("Undo Move", this, mLayout);
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
   undoMoveBut->setFixedWidth(width);
   QToolTip::add(undoMoveBut, 
-                "Move point back to previous position - Hotkey: U");
+                "Move point back to previous position - Hot key: U");
 
   box = diaCheckBox("Examine Points Once", this, mLayout);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
@@ -741,12 +750,19 @@ void BeadFixer::buttonPressed(int which)
     close();
   else
     dia_vasmsg
-      ("Bead Fixer Plugin Help\n\n",
+      ("Bead Fixer Plugin Help\n",
+       "--------------------------\n\n"
        "This Plugin makes it easier to fix tilt series fiducial "
        "models in two ways.  It has a function for finding the next "
        "gap or untracked place in the model and making that be the "
        "current point.  It also will read the log file from running "
        "Tiltalign and move to points with high residuals.\n\n"
+       "Hot Key Summary\n"
+       "---------------------\n"
+       "spacebar\tGo to next gap\n"
+       "' (apostrophe)\tGo to next big residual\n"
+       ";\t\tMove point by resiual\n"
+       "U\t\tUndo last moved point\n\n",
        "Select the Go to Next Gap button or hit the space bar key to "
        "move to the next gap or incomplete place in the model.  If "
        "there is a gap, the point BEFORE the gap will be displayed.  "
