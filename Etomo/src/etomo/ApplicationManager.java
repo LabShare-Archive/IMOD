@@ -92,6 +92,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101  2004/09/02 19:51:18  sueh
+ * <p> bug# 527 adding ImodMAnager.setOpenContour calls to
+ * <p> imodMAatchingModel()
+ * <p> bug# 541 remove unnecessary setBinning call in imodMatchingModel.
+ * <p> Don't need to set binning to its default
+ * <p>
  * <p> Revision 3.100  2004/08/31 16:52:53  sueh
  * <p> bug# 508 removing JUnit tests that require an X server
  * <p>
@@ -4088,6 +4094,7 @@ public class ApplicationManager {
     loadSolvematch();
     loadPatchcorr();
     loadMatchorwarp();
+    loadCombineComscript();
     
     tomogramCombinationDialog.enableCombineTabs(true);
     mainFrame.stopProgressBar(AxisID.ONLY);
