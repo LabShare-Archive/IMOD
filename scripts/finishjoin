@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/09/17 19:02:44  mast
+#  Had it detect large rotations and warn if there is no reference sections
+#
 #  Revision 3.5  2004/08/27 05:44:59  mast
 #  Changed to handle new version of info file with scaling and file names
 #  on separate lines, switched to head -n and tail -n
@@ -39,7 +42,14 @@ cat <<EOF
         -o[ffset] X,Y Offsets in X and Y from the center of the image to the
                       the point which should end up in the center of the new
                       images.  A positive X offset will shift images to the
-                       left.
+                      left.
+        -t[rial] #    Build trial joined file, using sections at the given 
+                      interval
+        -b[in] #      Bin images by the given number in a trial joined file.
+                      Size and offset entries should still be in unbinned 
+                      pixels.
+        -m[axsize]    Just compute the maximum size and offsets needed to
+                      contain all of the transformed data, then exit
 EOF
 exit 0
 endif
@@ -56,7 +66,13 @@ set xflist = ""
 set joinroot = ""
 set newsize = ""
 set ref = ""
+set maxsize = 0
+@ linesave = 0
 set offset = "0,0"
+@ binning = 1
+@ interval = 1
+set trial = 0
+
 while ($#argv > 2 && $joinroot == "")
   switch ($argv[1])
     case -r*:
@@ -71,6 +87,19 @@ while ($#argv > 2 && $joinroot == "")
     case -o*:
       set offset = $argv[2]
       shift; shift
+      breaksw
+    case -t*:
+      @ interval = $argv[2]
+      set trial = 1
+      shift; shift
+      breaksw
+    case -b*:
+      @ binning = $argv[2]
+      shift; shift
+      breaksw
+    case -m*:
+      set maxsize = 1
+      shift
       breaksw
     default:
       set joinroot = $argv[1]
@@ -117,6 +146,7 @@ else
     # Read in the lines one by one.  
     # Have to build a wordlist big enough before starting
     @ linestart = 4
+    @ linesave = $linestart - 1
     @ ind = 0
     set matlist = ()
     while ($ind < $ntomo)
@@ -143,7 +173,43 @@ if ($ref != "") then
     endif
 endif
 
+# If trial mode with binning, adjust newsize and offset
+#
+if ($trial == 0) @ binning = 1
+if ($binning > 1) then
+    set arrtmp = `echo $offset | sed '/,/s// /g'`
+    if ($#arrtmp < 2) goto twoerr
+    set numtmp = `echo $arrtmp[1] | sed '/\..*/s///'`
+    if ($numtmp == "") goto converr
+    @ xtmp = $numtmp
+    @ xtmp /= $binning
 
+    set numtmp = `echo $arrtmp[2] | sed '/\..*/s///'`
+    if ($numtmp == "") goto converr
+    @ ytmp = $numtmp
+    @ ytmp /= $binning
+    set offset = $xtmp,$ytmp
+
+    if ($newsize != "") then
+        set arrtmp = `echo $newsize | sed '/,/s// /g'`
+        if ($#arrtmp < 2) goto twoerr
+        set numtmp = `echo $arrtmp[1] | sed '/\..*/s///'`
+        if ($numtmp == "") goto converr
+        @ xtmp = $numtmp
+        @ xtmp /= $binning
+
+        set numtmp = `echo $arrtmp[2] | sed '/\..*/s///'`
+        if ($numtmp == "") goto converr
+        @ ytmp = $numtmp
+        @ ytmp /= $binning
+        set newsize = $xtmp,$ytmp
+    endif
+endif
+
+
+
+#  Get Z ranges and make up xflist
+#
 @ itomo = 1
 while ($itomo <= $ntomo)
     if (! -e "$matlist[$itomo]") then
@@ -177,9 +243,32 @@ while ($itomo <= $ntomo)
 	set zstout = $znd
 	set zndout = $zst
     endif
-    set zrange = $zstout"-"$zndout
+
+    # Set up z range as simple range or as list of slices at interval
+    #
+    if ($trial == 0) then
+        set zrange = $zstout"-"$zndout
+    else
+        @ intuse = $interval
+        @ zsto = $zstout
+        @ zndo = $zndout
+        @ idir = 1
+        set zrange = "$zstout"
+        if ($zsto > $zndo) @ idir = -1
+        set zlast = $zsto
+        @ iz = $zsto + $idir * $interval
+        while ($idir * ($iz - $zndo) <= 0)
+            set zrange = $zrange,$iz
+            set zlast = $iz
+            @ iz += $idir * $interval
+        end
+        if ($zlast != $zndo) set zrange = $zrange,$zndo
+    endif
+
     set rangelist = ($rangelist $zrange)
 
+    # Now set up the xflist with the right number of entries for this tomo
+    #
     @ zmin = $zst
     @ zmax = $znd
     if ($zst > $znd) then
@@ -190,8 +279,9 @@ while ($itomo <= $ntomo)
     @ iz = $zmin
     while ($iz <= $zmax)
 	set xflist = ($xflist $xfline)
-	@ iz++
+	@ iz += $interval
     end
+    if ($iz - $interval != $zmax) set xflist = ($xflist $xfline)
 
     @ itomo++
 end
@@ -267,6 +357,17 @@ EOF
     if ($status) goto error
 endif
 
+# Now if max size is wanted, call the program
+#
+if ($maxsize) then
+    if ($linesave == 0) then
+        echo 'ERROR: $pn - INFO FILE IS TOO OLD TO GET THE MAXIMUM SIZE FROM'
+        exit 1
+    endif
+    maxjoinsize $ntomo $linesave $joinroot
+    exit $status
+endif
+
 set newstin = $tmpdir/joinnewst.$$
 
 echo -n >! $newstin
@@ -281,6 +382,7 @@ while ($itomo <= $ntomo)
 end
 if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
 cat >> $newstin <<EOF
+BinByFactor $binning
 OutputFile $joinroot.join
 OffsetsInXandY $offset
 TransformFile $joinroot.tomoxg
@@ -298,3 +400,11 @@ clean:
 \rm -f $newstin
 \find . -name "$joinroot.*tmp*"  -exec rm "{}" \;
 exit $retval
+
+twoerr:
+echo "ERROR: $pn - there must be two numbers entered for size or offsets"
+exit 1
+
+converr:
+echo "ERROR: $pn - Size and offset values should be integers"
+exit 1
