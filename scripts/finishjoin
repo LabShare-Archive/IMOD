@@ -1,5 +1,6 @@
 #! /bin/csh -f
 # SHELL SCRIPT TO FINISH JOINING SERIAL SECTION TOMOGRAMS
+nohup
 set pn = "finishjoin"
 if ($#argv < 3) then
 echo "Usage: $pn [options]  root_name  slice_range1  slice_range2  ..."
