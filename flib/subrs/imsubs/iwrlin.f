@@ -11,6 +11,14 @@ c	responsible for supplying real values between 0 and 2**nbits-1.
 C	After writing a partial line, the pointer is always advanced
 C	to the start of the next line.
 C NOTE:	The start of a line is ALWAYS 0 (ie NX1,NX2 are relative)
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 C
 	SUBROUTINE IWRLIN(ISTREAM,ARRAY)
 C
@@ -19,11 +27,13 @@ C
 	include 'endian.inc'
 C
 	DIMENSION ARRAY(*)
-	INTEGER*2 LINE(4096),IB,iscratch(7300)
-        BYTE BLINE(8192),QB(2),bstore(4),bcur
+	parameter (linesize = 8192)
+	INTEGER*2 LINE(linesize/2),IB,iscratch(7300)
+        BYTE BLINE(linesize),QB(2),bstore(4),bcur
+	real*4 fline(linesize/4)
         integer*4 lcompos
 	logical bad /.true./
-	EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1))
+	EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)),(fline,line)
 C
 	ITYPE = 1
 	GOTO 1
@@ -40,8 +50,11 @@ C
         GOTO 1
 C
 1	J = LSTREAM(ISTREAM)
-	if(spider(j))STOP 'TRYING TO WRITE TO SPIDER FILE'
-	if(mrcflip(j))STOP 'TRYING TO WRITE TO UNCONVERTED FILE'
+	if(spider(j))then
+	  print *,'IWRLIN ERROR: TRYING TO WRITE TO SPIDER FILE'
+	  call exit(1)
+	endif
+
 	JMODE = MODE(J)
         jb=1
         if(jmode.le.4) JB = NB(JMODE + 1)
@@ -68,44 +81,90 @@ C
 C
 	IF (JMODE .EQ. 2 .OR. JMODE .EQ. 4 .OR.
      &      (NOCON(J) .AND. JMODE .LT. 9)) THEN
-C   DNM: straight no-conversion makes no sense for bit modes
-	  CALL QWRITE(J,ARRAY(INDEX),NWRITE)
+c
+C	    direct write of floats, or no-conversion writes if not bit modes
+c
+	  if (mrcflip(j) .and. (jmode .eq. 1 .or. jmode .eq. 3)) then
+c
+c	    for swapped ints, which are already ints in the "real" array
+c	      
+	    NWRITE = NWRITE/2
+	    do while (NWRITE .GT. 0)
+	      N = MIN(linesize/2,NWRITE)
+	      call imrltoin(array,line,index,n)
+	      index=index+n
+	      call convert_shorts(line, n)
+	      CALL QWRITE(J,LINE,N*2)
+	      NWRITE = NWRITE - n
+	    enddo
+	    
+	  else if (mrcflip(j) .and. (jmode .eq. 2 .or. jmode .eq. 4)) then
+c	      
+c	      for swapped floats it is easier
+c	      
+	    NWRITE = NWRITE/4
+	    do while (NWRITE .GT. 0)
+	      N = MIN(linesize/4,NWRITE)
+	      DO K = 1,N
+		FLINE(K) = array(index)
+		INDEX = INDEX + 1
+	      enddo
+	      call convert_floats(fline, n)
+	      CALL QWRITE(J,FLINE,N*4)
+	      NWRITE = NWRITE - n
+	    enddo
+	    
+	  else
+c	      everything else just writes out straight
+	    CALL QWRITE(J,ARRAY(INDEX),NWRITE)
+	  endif
+
 	ELSE IF (JMODE .EQ. 0) THEN			!INTEGER*1
-10	  N = MIN(8192,NWRITE)
-	  DO 100 K = 1,N
-c   DNM: changed this test to possibly speed it up; put value into denval,
-c   use a single if statement
-            denval=array(index)
-	    if (denval .gt. 255. .or. denval .lt. 0.) then
-	      denval = min(255.,max(denval,0.))
-	      if (bad) print *,'** overflow on byte conversion ***'
-	      bad = .false.
-	    endif	      
-	    IB = NINT(denval)
-	    BLINE(K) = QB(lowbyte)
-	    INDEX = INDEX + 1
-100	  CONTINUE
-	  CALL QWRITE(J,BLINE,N)
-	  NWRITE = NWRITE - 8192
-	  IF (NWRITE .GT. 0) GOTO 10
+	  do while (NWRITE .GT. 0)
+	    N = MIN(linesize,NWRITE)
+	    DO K = 1,N
+c		DNM: changed this test to possibly speed it up; put value into
+c		denval, use a single if statement
+	      denval=array(index)
+	      if (denval .gt. 255. .or. denval .lt. 0.) then
+		denval = min(255.,max(denval,0.))
+		if (bad) print *,'** overflow on byte conversion ***'
+		bad = .false.
+	      endif	      
+	      IB = NINT(denval)
+	      BLINE(K) = QB(lowbyte)
+	      INDEX = INDEX + 1
+	    enddo
+	    CALL QWRITE(J,BLINE,N)
+	    NWRITE = NWRITE - n
+	  enddo
+
 	ELSEif(jmode.le.8)then         !ELSE INTEGER*2
 	  NWRITE = NWRITE/2
-15	  N = MIN(4096,NWRITE)
-	  DO 150 K = 1,N
-c   DNM: similar changes, also make limit 32767 instead of 32700.
-            denval=array(index)
-	    if (denval .gt. 32767. .or. denval .lt. -32767.) then
-	      denval = min(32767.,max(denval,-32767.))
-	      if (bad) print *,'** overflow on integer truncation ***'
-	      bad = .false.
-	    endif	      
-	    LINE(K) = NINT(denval)
-	    INDEX = INDEX + 1
-150	  CONTINUE
-	  CALL QWRITE(J,LINE,N*2)
-	  NWRITE = NWRITE - 4096
-	  IF (NWRITE .GT. 0) GOTO 15
+	  do while (NWRITE .GT. 0)
+	    N = MIN(linesize/2,NWRITE)
+	    DO K = 1,N
+c		DNM: similar changes, also make limit 32767 instead of 32700.
+	      denval=array(index)
+	      if (denval .gt. 32767. .or. denval .lt. -32767.) then
+		denval = min(32767.,max(denval,-32767.))
+		if (bad) print *,'** overflow on integer truncation ***'
+		bad = .false.
+	      endif	      
+	      LINE(K) = NINT(denval)
+	      INDEX = INDEX + 1
+	    enddo
+	    if (mrcflip(j))call convert_shorts(line, n)
+	    CALL QWRITE(J,LINE,N*2)
+	    NWRITE = NWRITE - n
+	  enddo
+
         else                           !bit mode
+	  if (mrcflip(j))then
+	    print *,'IWRLIN: TRYING TO WRITE BIT MODE DATA TO',
+     &		' BYTE_SWAPPED FILE'
+	    call exit(1)
+	  endif
           noconj=nocon(j)
 20        maxpix=(8*8190)/jmode        !max pixels in one write
           ngetpix=min(nwrite,maxpix)   !# of pixels to do this time
