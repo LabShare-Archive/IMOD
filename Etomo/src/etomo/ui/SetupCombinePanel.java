@@ -25,6 +25,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/09 00:06:28  rickg
+ * <p> Added getting and setting of patch boundary parameters
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -301,8 +304,8 @@ public class SetupCombinePanel implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "matchwarp" };
-    String[] manPage = { "matchwarp.html" };
+    String[] manPagelabel = { "matchorwarp" };
+    String[] manPage = { "matchorwarp.html" };
     ContextPopup contextPopup =
       new ContextPopup(contentPane, mouseEvent, manPagelabel, manPage);
   }
