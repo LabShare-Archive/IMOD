@@ -8,5 +8,5 @@
 # The -offset argument should be 0,0 for no offset, 0,300 to take an area
 # 300 pixels above the center, etc.
 #
-$newst -size ,, -offset 0,0 -xf g5a.xf g5a.st g5a.ali
+$newstack -size ,, -offset 0,0 -xf g5a.xf g5a.st g5a.ali
 $mrctaper g5a.ali
