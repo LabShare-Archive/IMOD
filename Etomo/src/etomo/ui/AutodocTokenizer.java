@@ -11,7 +11,8 @@ import java.lang.IllegalStateException;
 * <p>Description:
 * Creates the tokens required for autodoc functionality.  It can recognize the
 * following tokens:  EOF, EOL, WHITESPACE, COMMENT, SEPARATOR, OPEN, CLOSE,
-* DELIMITER, WORD, and KEYWORD.
+* DELIMITER, WORD, and KEYWORD.  It is not case sensitive, but it does preserve
+* original case and whitespace.
 * 
 * To Use:
 * construct with a file.
@@ -24,6 +25,13 @@ import java.lang.IllegalStateException;
 * Call testPrimativeTokenizer() to test the PrimativeTokenizer.
 * Call testStreamTokenizer() to test the StreamTokenizer.
 *
+* Current token characters and strings:
+* COMMENT:  #
+* SEPARATOR:  .
+* OPEN:  [
+* CLOSE:  ]
+* Default DELIMITER:  =
+* Keywords:  Version, Pip, KeyValueDelimiter
 * 
 * Tokenizing Rules:
 * 
@@ -32,16 +40,16 @@ import java.lang.IllegalStateException;
 * 
 * The delimiter may contain multiple characters.
 * 
-* COMMENT, SEPARATOR, OPEN, CLOSE, and Delimiter should not contain alphanumeric
+* COMMENT, SEPARATOR, OPEN, CLOSE, and DELIMITER should not contain alphanumeric
 * or whitespace characters.
 * 
-* Whitespace, eol, and eof are defined in PrimativeTokenizer.
+* WHITESPACE, EOL, and EOF are defined in PrimativeTokenizer.
 * 
-* A word is the longest possible set of characters that are alphanumeric and
+* A WORD is the longest possible set of characters that are alphanumeric and
 * unmatched symbols, and do not match the current delimiter string.
 * 
-* A keyword is a word that completely matches a keyword constant.  Embedded
-* keywords are ignored.
+* A KEYWORD is a word that completely matches a keyword constant.  Embedded
+* strings matching keyword constants are ignored.
 </p>
 *
 * <p>Copyright: Copyright © 2002, 2003</p>
@@ -55,6 +63,10 @@ import java.lang.IllegalStateException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2003/12/31 01:28:30  sueh
+* <p> $bug# 372 simplified next() function, fixed delimiter bugs,
+* <p> $added doc
+* <p> $
 * <p> $Revision 1.2  2003/12/23 21:33:08  sueh
 * <p> $bug# 372 Reformating.
 * <p> $

@@ -22,13 +22,20 @@ package etomo.ui;
 * saving and retrieving tokens.
 * 
 * Values made up of multiple tokens:
+* Link list:
 * This class can be used to make a linked list of tokens.  The next token can be
 * set.  A token can be removed from the list (see dropFromList()).  The next
-* token can be retrieved.  Values and keys made of multiple tokens can be
-* retrieved.  See getValue(boolean includeNext) and getKey(boolean includeNext).
+* token can be retrieved.
+* Values:
+* Values and keys made of multiple tokens can be retrieved.  See
+* getValue(boolean includeNext) and getKey(boolean includeNext).  When
+* retrieving a string made of multiple tokens, one space with be appended to the
+* string for each null value.
 * 
 * Inheritance:
 * This class is not designed to be inherited.
+* 
+* 
 * 
 * Possible Upgrades:
 * This class could be upgraded to allow the addition or an
@@ -59,6 +66,9 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2003/12/31 01:32:01  sueh
+* <p> $bug# 372 added doc, added link list connectors
+* <p> $
 * <p> $Revision 1.2  2003/12/23 21:34:43  sueh
 * <p> $bug# 372 Reformatting.
 * <p> $
@@ -376,7 +386,7 @@ public class Token {
     }
     return false;
   }
-  
+
   public final String toString() {
     if (value == null) {
       return "(" + typeToString() + ")";
