@@ -59,6 +59,9 @@ public class FinalCombinePanel {
   private JButton buttonPatchRegionModel =
     new JButton("<html><b>Create/edit patch region model</b>");
   private LabeledTextField ltfWarpLimit = new LabeledTextField("Warp limit: ");
+  private LabeledTextField ltfRefineLimit =
+    new LabeledTextField("Refine limit: ");
+
   private CheckBoxTextField cbtfXLowerExclude =
     new CheckBoxTextField("X lower (left) exclude:");
   private CheckBoxTextField cbtfXUpperExclude =
@@ -139,6 +142,8 @@ public class FinalCombinePanel {
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
     panelMatchorwarp.add(ltfWarpLimit.getContainer());
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelMatchorwarp.add(ltfRefineLimit.getContainer());
+    panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
 
     panelMatchorwarp.add(cbtfXLowerExclude);
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -169,6 +174,15 @@ public class FinalCombinePanel {
     panelButton.add(Box.createHorizontalGlue());
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(panelButton);
+  
+    // Bind the buttons to action listener
+    ButtonActionListener actionListener = new ButtonActionListener(this);
+    buttonPatchcorrRestart.addActionListener(actionListener);
+    buttonPatchRegionModel.addActionListener(actionListener);
+    buttonMatchorwarpRestart.addActionListener(actionListener);
+    buttonMatchorwarpTrial.addActionListener(actionListener);
+    buttonPatchVectorModel.addActionListener(actionListener);
+    buttonImodMatchedTo.addActionListener(actionListener);
   }
 
   /**
@@ -220,6 +234,8 @@ public class FinalCombinePanel {
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
     ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
+    ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
+
     if (matchorwarpParam.getXLowerExclude() > 0) {
       cbtfXLowerExclude.setCheckBoxSelected(true);
       cbtfXLowerExclude.setTextField(
@@ -257,6 +273,10 @@ public class FinalCombinePanel {
       badParameter = ltfWarpLimit.getLabel();
       matchorwarpParam.setWarpLimit(ltfWarpLimit.getText());
 
+      badParameter = ltfRefineLimit.getLabel();
+      matchorwarpParam.setRefineLimit(
+        Double.parseDouble(ltfRefineLimit.getText()));
+
       badParameter = cbtfXLowerExclude.getCheckBoxLabel();
       if (cbtfXLowerExclude.isCheckBoxSelected()) {
         matchorwarpParam.setXLowerExclude(
@@ -285,6 +305,51 @@ public class FinalCombinePanel {
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
+    }
+  }
+
+  private void buttonAction(ActionEvent event) {
+    if (event
+      .getActionCommand()
+      .equals(buttonPatchcorrRestart.getActionCommand())) {
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(buttonPatchRegionModel.getActionCommand())) {
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(buttonMatchorwarpRestart.getActionCommand())) {
+        applicationManager.matchorwarpCombine();
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(buttonMatchorwarpTrial.getActionCommand())) {
+        
+    }
+    if (event
+      .getActionCommand()
+      .equals(buttonPatchVectorModel.getActionCommand())) {
+    }
+    if (event
+      .getActionCommand()
+      .equals(buttonImodMatchedTo.getActionCommand())) {
+    }
+
+  }
+
+  class ButtonActionListener implements ActionListener {
+    FinalCombinePanel listenee;
+
+    ButtonActionListener(FinalCombinePanel finalCombinePanel) {
+      listenee = finalCombinePanel;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      listenee.buttonAction(event);
     }
   }
 }
@@ -358,4 +423,5 @@ class CheckBoxTextField extends JPanel {
       listenee.manageCheckBoxState(event);
     }
   }
+
 }

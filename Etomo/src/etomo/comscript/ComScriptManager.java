@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -90,21 +93,7 @@ public class ComScriptManager {
 
     // Initialize a CCDEraserParam object from the com script command object
     CCDEraserParam ccdEraserParam = new CCDEraserParam();
-    try {
-      ccdEraserParam.initialize(eraser.getScriptCommand("ccderaser"));
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't parse eraser"
-          + axisID.getExtension()
-          + ".com file: "
-          + eraser.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return ccdEraserParam;
-    }
+    initialize(ccdEraserParam, eraser, "ccderaser", axisID);
     return ccdEraserParam;
   }
 
@@ -126,27 +115,7 @@ public class ComScriptManager {
     }
 
     // update the ccderaser parameters
-    //  get the ccderaser command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    ComScriptCommand ccdEraserCmd = scriptEraser.getScriptCommand("ccderaser");
-    try {
-      ccdEraserParam.updateComScript(ccdEraserCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update ccderaser command in xcorr"
-          + axisID.getExtension()
-          + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    //  FIXME can't always assume that the ccderaser command is index zero
-    scriptEraser.setScriptComand(0, ccdEraserCmd);
-
-    // write out the script
-    writeComScript(scriptEraser, "ccderaser", axisID);
+    updateComScript(scriptEraser, ccdEraserParam, "ccderaser", axisID);
   }
 
   /**
@@ -155,13 +124,13 @@ public class ComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadXcorr(AxisID axisID) {
+
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptXcorrB = loadComScript("xcorr", axisID);
     }
     else {
       scriptXcorrA = loadComScript("xcorr", axisID);
-      ;
     }
   }
 
@@ -184,39 +153,7 @@ public class ComScriptManager {
 
     // Initialize a TiltxcorrParam object from the com script command object
     TiltxcorrParam tiltXcorrParam = new TiltxcorrParam();
-    try {
-      tiltXcorrParam.initialize(xcorr.getScriptCommand("tiltxcorr"));
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't parse xcorr"
-          + axisID.getExtension()
-          + ".com file: "
-          + xcorr.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return tiltXcorrParam;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] messages = new String[4];
-      messages[0] = "Input parameter syntax error";
-      messages[1] =
-        "xcorr"
-          + axisID.getExtension()
-          + ".com file: "
-          + xcorr.getComFileName();
-      messages[2] = except.getMessage();
-      messages[3] = "Input string: " + except.getNewString();
-      JOptionPane.showMessageDialog(
-        null,
-        messages,
-        messages[0],
-        JOptionPane.ERROR_MESSAGE);
-      return tiltXcorrParam;
-    }
+    initialize(tiltXcorrParam, xcorr, "tiltxcorr", axisID);
     return tiltXcorrParam;
   }
 
@@ -227,6 +164,7 @@ public class ComScriptManager {
    * the xcorr com script
    */
   public void saveXcorr(TiltxcorrParam tiltXcorrParam, AxisID axisID) {
+
     //  Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
@@ -235,29 +173,7 @@ public class ComScriptManager {
     else {
       scriptXcorr = scriptXcorrA;
     }
-
-    // update the tiltxcorr parameters
-    //  get the tiltxcorr command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    //  FIXME can't always assume that the tiltxcorr command is index zero
-    ComScriptCommand tiltXcorrCmd = scriptXcorr.getScriptCommand("tiltxcorr");
-    try {
-      tiltXcorrParam.updateComScript(tiltXcorrCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update tiltxcorr command in xcorr"
-          + axisID.getExtension()
-          + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    scriptXcorr.setScriptComand(0, tiltXcorrCmd);
-
-    // write out the script
-    writeComScript(scriptXcorr, "xcorr", axisID);
+    updateComScript(scriptXcorr, tiltXcorrParam, "tiltxcorr", axisID);
   }
 
   /**
@@ -265,13 +181,13 @@ public class ComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadTrack(AxisID axisID) {
+
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTrackB = loadComScript("track", axisID);
     }
     else {
       scriptTrackA = loadComScript("track", axisID);
-      ;
     }
   }
 
@@ -294,39 +210,7 @@ public class ComScriptManager {
 
     // Initialize a BeadtrckParam object from the com script command object
     BeadtrackParam beadtrackParam = new BeadtrackParam();
-    try {
-      beadtrackParam.initialize(track.getScriptCommand("beadtrack"));
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't initi"
-          + axisID.getExtension()
-          + ".com file: "
-          + track.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return beadtrackParam;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] messages = new String[4];
-      messages[0] = "Input parameter syntax error";
-      messages[1] =
-        "track"
-          + axisID.getExtension()
-          + ".com file: "
-          + track.getComFileName();
-      messages[2] = except.getMessage();
-      messages[3] = "Input string: " + except.getNewString();
-      JOptionPane.showMessageDialog(
-        null,
-        messages,
-        messages[0],
-        JOptionPane.ERROR_MESSAGE);
-      return beadtrackParam;
-    }
+    initialize(beadtrackParam, track, "beadtrack", axisID);
     return beadtrackParam;
   }
 
@@ -337,6 +221,7 @@ public class ComScriptManager {
    * the track com script
    */
   public void saveTrack(BeadtrackParam beadtrackParam, AxisID axisID) {
+
     //  Get a reference to the appropriate script object
     ComScript scriptTrack;
     if (axisID == AxisID.SECOND) {
@@ -345,29 +230,8 @@ public class ComScriptManager {
     else {
       scriptTrack = scriptTrackA;
     }
-
     // update the beadtrack parameters
-    //  get the beadtrack command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    //  FIXME can't always assume that the beadtrackcommand is the only one
-    ComScriptCommand beadtrackCmd = scriptTrack.getScriptCommand("beadtrack");
-    try {
-      beadtrackParam.updateComScript(beadtrackCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update beadtrack command in track"
-          + axisID.getExtension()
-          + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    scriptTrack.setScriptComand(0, beadtrackCmd);
-
-    // write out the script
-    writeComScript(scriptTrack, "track", axisID);
+    updateComScript(scriptTrack, beadtrackParam, "beadtrack", axisID);
   }
 
   /**
@@ -375,6 +239,7 @@ public class ComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadAlign(AxisID axisID) {
+
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptAlignB = loadComScript("align", axisID);
@@ -403,51 +268,7 @@ public class ComScriptManager {
 
     // Initialize a BeadtrckParam object from the com script command object
     TiltalignParam tiltalignParam = new TiltalignParam();
-    try {
-      tiltalignParam.initialize(align.getScriptCommand("tiltalign"));
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't initialize  align"
-          + axisID.getExtension()
-          + ".com file: "
-          + align.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return tiltalignParam;
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't initialize  align"
-          + axisID.getExtension()
-          + ".com file: "
-          + align.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return tiltalignParam;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] messages = new String[4];
-      messages[0] = "Input parameter syntax error";
-      messages[1] =
-        "align"
-          + axisID.getExtension()
-          + ".com file: "
-          + align.getComFileName();
-      messages[2] = except.getMessage();
-      messages[3] = "Input string: " + except.getNewString();
-      JOptionPane.showMessageDialog(
-        null,
-        messages,
-        messages[0],
-        JOptionPane.ERROR_MESSAGE);
-      return tiltalignParam;
-    }
+    initialize(tiltalignParam, align, "tiltalign", axisID);
     return tiltalignParam;
   }
 
@@ -458,6 +279,7 @@ public class ComScriptManager {
    * tiltalign command in the align com script
    */
   public void saveAlign(TiltalignParam tiltalignParam, AxisID axisID) {
+
     //  Get a reference to the appropriate script object
     ComScript scriptAlign;
     if (axisID == AxisID.SECOND) {
@@ -467,28 +289,8 @@ public class ComScriptManager {
       scriptAlign = scriptAlignA;
     }
 
-    // update the tiltalign parameters
-    //  get the tiltalign command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    //  FIXME can't always assume that the tiltalign command is the only one
-    ComScriptCommand tiltalignCmd = scriptAlign.getScriptCommand("tiltalign");
-    try {
-      tiltalignParam.updateComScript(tiltalignCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update tiltalign command in align"
-          + axisID.getExtension()
-          + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    scriptAlign.setScriptComand(0, tiltalignCmd);
-
-    // write out the script
-    writeComScript(scriptAlign, "align", axisID);
+    //  update the tiltalign parameters
+    updateComScript(scriptAlign, tiltalignParam, "tiltalign", axisID);
   }
 
   /**
@@ -524,7 +326,7 @@ public class ComScriptManager {
 
     // Initialize a NewstParam object from the com script command object
     NewstParam newstParam = new NewstParam();
-    newstParam.initialize(newst.getScriptCommand("newst"));
+    initialize(newstParam, newst, "newst", axisID);
     return newstParam;
   }
 
@@ -535,6 +337,7 @@ public class ComScriptManager {
    * tiltalign command in the align com script
    */
   public void saveNewst(NewstParam newstParam, AxisID axisID) {
+
     //  Get a reference to the appropriate script object
     ComScript scriptNewst;
     if (axisID == AxisID.SECOND) {
@@ -545,25 +348,7 @@ public class ComScriptManager {
     }
 
     // update the newst parameters
-    //  get the newst command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    //  FIXME can't always assume that the newst command is the only one
-    ComScriptCommand newstCmd = scriptNewst.getScriptCommand("newst");
-    try {
-      newstParam.updateComScript(newstCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update newst command in newst" + axisID.getExtension() + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    scriptNewst.setScriptComand(0, newstCmd);
-
-    // write out the script
-    writeComScript(scriptNewst, "newst", axisID);
+    updateComScript(scriptNewst, newstParam, "newst", axisID);
   }
 
   /**
@@ -599,21 +384,7 @@ public class ComScriptManager {
 
     // Initialize a TiltParam object from the com script command object
     TiltParam tiltParam = new TiltParam();
-    try {
-      tiltParam.initialize(tilt.getScriptCommand("tilt"));
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't initialize tilt"
-          + axisID.getExtension()
-          + ".com file: "
-          + tilt.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return tiltParam;
-    }
+    initialize(tiltParam, tilt, "tilt", axisID);
     return tiltParam;
   }
 
@@ -632,27 +403,7 @@ public class ComScriptManager {
     else {
       scriptTilt = scriptTiltA;
     }
-
-    // update the tilt parameters
-    //  get the tilt command object from the script object
-    //  update the input parameters and reinsert it back into script object
-    //  FIXME can't always assume that the tilt command is the only one
-    ComScriptCommand tiltCmd = scriptTilt.getScriptCommand("tilt");
-    try {
-      tiltParam.updateComScript(tiltCmd);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't update tilt command in tilt" + axisID.getExtension() + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    scriptTilt.setScriptComand(0, tiltCmd);
-
-    // write out the script
-    writeComScript(scriptTilt, "tilt", axisID);
+    updateComScript(scriptTilt, tiltParam, "tilt", axisID);
   }
 
   /**
@@ -660,6 +411,36 @@ public class ComScriptManager {
    */
   public void loadSolvematchshift() {
     scriptSolvematchshift = loadComScript("solvematchshift", AxisID.ONLY);
+  }
+
+  /**
+   * Parse the patchrawl3D command from the patchcorr script
+   * @return MatchorwarpParam
+   */
+  public SolvematchshiftParam getSolvematchshift() {
+
+    // Initialize a SolvematchshiftParam object from the com script command
+    // object
+    SolvematchshiftParam solveMatchshiftParam = new SolvematchshiftParam();
+    initialize(
+      solveMatchshiftParam,
+      scriptSolvematchshift,
+      "solvematch",
+      AxisID.ONLY);
+    return solveMatchshiftParam;
+  }
+
+  /**
+   * Save the solvematchshift com script updating the patchcrawl3d parameters
+   * @param patchcrawl3DParam
+   */
+  public void saveSolvematchshift(SolvematchshiftParam solveMatchshiftParam) {
+
+    updateComScript(
+      scriptSolvematchshift,
+      solveMatchshiftParam,
+      "solvematch",
+      AxisID.ONLY);
   }
 
   /**
@@ -677,6 +458,31 @@ public class ComScriptManager {
   }
 
   /**
+   * Parse the patchrawl3D command from the patchcorr script
+   * @return MatchorwarpParam
+   */
+  public Patchcrawl3DParam getPatchcrawl3D() {
+
+    // Initialize a CCDEraserParam object from the com script command object
+    Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam();
+    initialize(patchcrawl3DParam, scriptPatchcorr, "patchcrawl3d", AxisID.ONLY);
+    return patchcrawl3DParam;
+  }
+
+  /**
+   * Save the patchcorr com script updating the patchcrawl3d parameters
+   * @param patchcrawl3DParam
+   */
+  public void savePatchcorr(Patchcrawl3DParam patchcrawl3DParam) {
+
+    updateComScript(
+      scriptPatchcorr,
+      patchcrawl3DParam,
+      "patchcrawl3D",
+      AxisID.ONLY);
+  }
+
+  /**
    * Load the matchorwarp com script
    */
   public void loadMatchorwarp() {
@@ -691,25 +497,16 @@ public class ComScriptManager {
 
     // Initialize a CCDEraserParam object from the com script command object
     MatchorwarpParam matchorwarpParam = new MatchorwarpParam();
-    try {
-      matchorwarpParam.initialize(
-        scriptMatchorwarp.getScriptCommand("matchorwarp"));
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't parse matchorwarp.com file: "
-          + scriptMatchorwarp.getComFileName(),
-        JOptionPane.ERROR_MESSAGE);
-      return matchorwarpParam;
-    }
+    initialize(matchorwarpParam, scriptMatchorwarp, "matchorwarp", AxisID.ONLY);
     return matchorwarpParam;
   }
 
-  //  Check to see that this works!!
+  /**
+   * Save the matchorwarp com script updating the matchorwarp parameters
+   * @param matchorwarpParam
+   */
   public void saveMatchorwarp(MatchorwarpParam matchorwarpParam) {
+
     updateComScript(
       scriptMatchorwarp,
       matchorwarpParam,
@@ -745,28 +542,6 @@ public class ComScriptManager {
       return null;
     }
     return comScript;
-  }
-
-  /**
-   * Write out the com file catching any exceptions and displaying an
-   * error dialog box
-   */
-  private void writeComScript(
-    ComScript script,
-    String command,
-    AxisID axisID) {
-
-    try {
-      script.writeComFile();
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        "Can't write " + command + axisID.getExtension() + ".com",
-        JOptionPane.ERROR_MESSAGE);
-    }
   }
 
   /**
@@ -813,5 +588,41 @@ public class ComScriptManager {
         "Can't write " + command + axisID.getExtension() + ".com",
         JOptionPane.ERROR_MESSAGE);
     }
+  }
+
+  /**
+   * Initialize the CommandParam object from the specified command in the
+   * comscript.  True is returned if the initialization is successful, false if
+   * the initialization fails.
+   * 
+   * @param param
+   * @param comScript
+   * @param command
+   * @param axisID
+   * @return boolean
+   */
+  private boolean initialize(
+    CommandParam param,
+    ComScript comScript,
+    String command,
+    AxisID axisID) {
+
+    try {
+      param.initialize(comScript.getScriptCommand(command));
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        null,
+        except.getMessage(),
+        "Can't parse "
+          + command
+          + axisID.getExtension()
+          + ".com file: "
+          + comScript.getComFileName(),
+        JOptionPane.ERROR_MESSAGE);
+      return false;
+    }
+    return true;
   }
 }

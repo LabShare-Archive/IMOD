@@ -25,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.2  2003/02/24 23:48:18  rickg
  * <p> Panel layout for combination dialog
  * <p>
@@ -133,6 +136,26 @@ public class TomogramCombinationDialog extends ProcessDialog {
     panelSetupCombine.getParameters(combineParams);
   }
 
+  /**
+   * Set the patchcrawl3D parameters of the UI from the the
+   * ConstPatchcrawl3DParam object
+   * @param patchcrawl3DParams
+   */
+  public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
+    panelFinalCombine.setPatchcrawl3DParams(patchcrawl3DParams);
+  }
+  
+  /**
+   * Get the the patchcrawl3d parameters of the UI returning them in the 
+   * modified Patchcrawl3DParam object
+   * @param patchcrawl3DParams
+   * @throws NumberFormatException
+   */
+  public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
+    throws NumberFormatException {
+    panelFinalCombine.getPatchcrawl3DParams(patchcrawl3DParams);
+  }
+  
   /**
    * Set the matchorwarp parameters of the UI from the the ConstMatchorwarp
    * object

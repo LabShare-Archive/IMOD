@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * <p>Description: </p>
+ * <p>Description: This object models a IMOD Com script.</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/02/24 23:29:05  rickg
+ * <p> comment fix to match Eclipse tags
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -73,7 +76,7 @@ public class ComScript {
 
     //  Read in the lines of the command file, assigning each one to the correct
     //  list
-    boolean continuationAllowed = false;
+    boolean flgContinuation = false;
     ComScriptCommand currentScriptCommand = null;
     ArrayList currentCommentBlock = new ArrayList();
 
@@ -82,13 +85,18 @@ public class ComScript {
     while ((line = in.readLine()) != null) {
       lineNumber++;
 
-      //  If the first character is a $ followed by a word character
+      //  If the first character is a pound place on the comment list
+      if (line.startsWith("#")) {
+        currentCommentBlock.add(line);
+      }
+
+      //  If the first character is a $ not followed by !
       //    create a new ComScriptCommand object and insert onto scriptCommands
       //    insert the current comment block into the header comments then clear
       //      the current comment block
       //    parse the command line setting the command and command line
       //      arguments
-      if (line.matches("^\\$[^!].*")) {
+      else if (line.matches("^\\$[^!].*")) {
         currentScriptCommand = new ComScriptCommand();
         scriptCommands.add(currentScriptCommand);
 
@@ -99,51 +107,81 @@ public class ComScript {
           currentCommentBlock.clear();
         }
 
+        //  Split the line into tokens at whitespace boundaries
         String noDollarSign = line.substring(1);
         noDollarSign = noDollarSign.trim();
         String[] tokens = noDollarSign.split("\\s+");
         currentScriptCommand.setCommand(tokens[0]);
-        String[] arguments = new String[tokens.length - 1];
-        for (int i = 0; i < arguments.length; i++) {
-          arguments[i] = tokens[i + 1];
+
+        //  Check to if see if this line is continued
+        int nShrink = 1;
+        if (tokens[tokens.length - 1].equals("\\")) {
+          nShrink = 2;
+          flgContinuation = true;
         }
-        currentScriptCommand.setCommandLineArgs(arguments);
 
-        continuationAllowed = true;
-      }
-
-      //  If the first character is a pound place on the comment list and reset
-      //  the continuation flag.
-      else if (line.startsWith("#")) {
-        continuationAllowed = false;
-        currentCommentBlock.add(line);
+        String[] cmdLineArgs = new String[tokens.length - nShrink];
+        for (int i = 0; i < cmdLineArgs.length; i++) {
+          cmdLineArgs[i] = tokens[i + 1];
+        }
+        currentScriptCommand.setCommandLineArgs(cmdLineArgs);
       }
 
       //  Otherwise the line is assumed to be an input parmeter to the current
-      //  command
+      //  command or a continuation line
       else {
-        if (currentScriptCommand == null) {
-          String description =
-            "Input parameter found before command in "
-              + comFile.getAbsoluteFile()
-              + " line: "
-              + String.valueOf(lineNumber);
-          throw new BadComScriptException(description);
+        if (flgContinuation) {
+          // Get any comments associated with the continuation line and add
+          // them to the header comments
+          if (currentCommentBlock.size() > 0) {
+            String[] commentArray = new String[currentCommentBlock.size()];
+            commentArray = (String[]) currentCommentBlock.toArray(commentArray);
+            currentScriptCommand.appendHeaderComments(commentArray);
+            currentCommentBlock.clear();
+          }
+
+          // Split the line into tokens checking to see if the last token is
+          // another line continuation 
+          String[] tokens = line.split("\\s+");
+          int nShrink = 0;
+          if (tokens[tokens.length - 1].equals("\\")) {
+            nShrink = 1;
+            flgContinuation = true;
+          }
+          else {
+            flgContinuation = false;
+          }
+
+          String[] cmdLineArgs = new String[tokens.length - nShrink];
+          for (int i = 0; i < cmdLineArgs.length; i++) {
+            cmdLineArgs[i] = tokens[i];
+          }
+          currentScriptCommand.appendCommandLineArgs(cmdLineArgs);
+
         }
+        else {
+          if (currentScriptCommand == null) {
+            String description =
+              "Input parameter found before command in "
+                + comFile.getAbsoluteFile()
+                + " line: "
+                + String.valueOf(lineNumber);
+            throw new BadComScriptException(description);
+          }
 
-        continuationAllowed = false;
-        ComScriptInputArg inputArg = new ComScriptInputArg();
+          ComScriptInputArg inputArg = new ComScriptInputArg();
 
-        if (currentCommentBlock.size() > 0) {
-          String[] commentArray = new String[currentCommentBlock.size()];
-          commentArray = (String[]) currentCommentBlock.toArray(commentArray);
-          inputArg.setComments(commentArray);
-          currentCommentBlock.clear();
+          if (currentCommentBlock.size() > 0) {
+            String[] commentArray = new String[currentCommentBlock.size()];
+            commentArray = (String[]) currentCommentBlock.toArray(commentArray);
+            inputArg.setComments(commentArray);
+            currentCommentBlock.clear();
+          }
+
+          inputArg.setArgument(line, parseComments);
+
+          currentScriptCommand.appendInputArgument(inputArg);
         }
-
-        inputArg.setArgument(line, parseComments);
-
-        currentScriptCommand.appendInputArgument(inputArg);
       }
     }
 

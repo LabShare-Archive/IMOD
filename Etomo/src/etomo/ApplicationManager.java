@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.6  2003/02/24 23:27:21  rickg
  * <p> Added process interrupt method
  * <p>
@@ -1496,7 +1499,7 @@ public class ApplicationManager {
         mainFrame.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         if (isDualAxis()) {
           openTomogramCombinationDialog();
-          if(axisID == AxisID.SECOND) {
+          if (axisID == AxisID.SECOND) {
             mainFrame.showBlankProcess(axisID);
           }
         }
@@ -1629,44 +1632,51 @@ public class ApplicationManager {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
 
-   //  Get the setupcombine parameters and 
-   CombineParams combineParams =
+    //  Get the setupcombine parameters and 
+    CombineParams combineParams =
       new CombineParams(metaData.getCombineParams());
 
-   if (!combineParams.isPatchBoundarySet()) {
+    if (!combineParams.isPatchBoundarySet()) {
       String recFileName;
       if (combineParams.getMatchBtoA()) {
         recFileName = metaData.getFilesetName() + "a.rec";
       }
       else {
         recFileName = metaData.getFilesetName() + "b.rec";
-        }
-        try {
-          combineParams.setDefaultPatchBoundaries(recFileName);
-        }
-        catch (InvalidParameterException except) {
-          String[] detailedMessage = new String[4];
-          detailedMessage[0] = "Unable to set default patch boundaries";
-          detailedMessage[1] = "Are both tomograms computed and available?";
-          detailedMessage[2] = "";
-          detailedMessage[3] = except.getMessage();
-
-          openMessageDialog(
-            detailedMessage,
-            "Invalid parameter: " + recFileName);
-          //Close the dialog
-          return;
-        }
-        catch (IOException except) {
-          except.printStackTrace();
-          openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
-          //Close the dialog
-          return;
-        }
       }
+      try {
+        combineParams.setDefaultPatchBoundaries(recFileName);
+      }
+      catch (InvalidParameterException except) {
+        String[] detailedMessage = new String[4];
+        detailedMessage[0] = "Unable to set default patch boundaries";
+        detailedMessage[1] = "Are both tomograms computed and available?";
+        detailedMessage[2] = "";
+        detailedMessage[3] = except.getMessage();
 
-      // Fill in the dialog box params and set it to the appropriate state
-      tomogramCombinationDialog.setCombineParams(combineParams);
+        openMessageDialog(detailedMessage, "Invalid parameter: " + recFileName);
+        //Close the dialog
+        return;
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
+        //Close the dialog
+        return;
+      }
+    }
+
+    // Fill in the dialog box params and set it to the appropriate state
+    tomogramCombinationDialog.setCombineParams(combineParams);
+
+    comScriptMgr.loadMatchorwarp();
+    tomogramCombinationDialog.setMatchorwarpParams(
+      comScriptMgr.getMatchorwarParam());
+
+    //  FIXME
+    comScriptMgr.loadPatchcorr();
+    /*tomogramCombinationDialog.setPatchcrawl3DParams(
+          comScriptMgr.getPa());*/
 
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
@@ -1708,14 +1718,81 @@ public class ApplicationManager {
   }
 
   /**
+   * Initiate the combine process from matchorwarp step
+   */
+  public void matchorwarpCombine() {
+    if (updateMatchorwarpCom()) {
+
+    }
+  }
+
+  /**
+   * Update the patchcorr.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updatePatchcorrCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update patchcorr.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
+      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
+      comScriptMgr.savePatchcorr(patchcrawl3DParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Patchcorr Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Patchcorr Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the matchorwarp.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updateMatchorwarpCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update matchorwarp.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      MatchorwarpParam matchorwarpParam = comScriptMgr.getMatchorwarParam();
+      tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
+      comScriptMgr.saveMatchorwarp(matchorwarpParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Matchorwarp Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Matchorwarp Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Combine the two tomograms
    */
   public void combine() {
-      String threadName = processMgr.combine();   
-      setThreadName(threadName, AxisID.FIRST);
-      mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);
+    String threadName = processMgr.combine();
+    setThreadName(threadName, AxisID.FIRST);
+    mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);
   }
-  
+
   /**
    * Update the combine parameters from the calling dialog
    * @param tomogramCombinationDialog the calling dialog.
@@ -2187,7 +2264,7 @@ public class ApplicationManager {
     Dimension size = mainFrame.getSize();
     userConfig.setMainWindowWidth(size.width);
     userConfig.setMainWindowHeight(size.height);
-    
+
     //  Write out the user configuration data
     File userConfigFile = new File(homeDirectory, ".etomo");
 
@@ -2417,7 +2494,7 @@ public class ApplicationManager {
         "Thread name: " + threadName);
     }
   }
-  
+
   /**
    * Interrupt the currently running thread for this axis
    * @param axisID
