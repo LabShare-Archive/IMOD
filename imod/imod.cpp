@@ -219,7 +219,7 @@ int main( int argc, char *argv[])
   b3dSetStoreError(1);
 
   ImodPrefs = new ImodPreferences(cmdLineStyle);
-  ImodHelp = new ImodAssistant("html/3dmodHelp");
+  ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp");
 
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QImage(b3dicon));
@@ -1020,6 +1020,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.45  2004/11/22 00:23:22  mast
+Added creation and convenience call to new help system
+
 Revision 4.44  2004/11/21 05:58:29  mast
 Added call to open imodv windows, and -DT to throw away model
 
