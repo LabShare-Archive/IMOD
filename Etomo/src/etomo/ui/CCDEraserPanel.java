@@ -30,6 +30,12 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/10/13 17:00:19  sueh
+ * <p> bug269
+ * <p> UI Changes
+ * <p> CCDEraserPanel
+ * <p> changed button names
+ * <p>
  * <p> Revision 2.9  2003/09/23 23:58:42  sueh
  * <p> bug#237 moved XrayReplacement to Advanced
  * <p>
@@ -480,6 +486,9 @@ public class CCDEraserPanel implements ContextMenu {
     ltfLocalReplacementList.setToolTipText(
       tooltipFormatter.setText(text).format());
 
+	text = "Use a manually created model to specify regions and lines to replace.";
+	cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
+	
     text =
       "List of objects with points to be replaced on all sections.  "
         + "Ranges can be entered, and / to specify all objects.";
@@ -496,6 +505,11 @@ public class CCDEraserPanel implements ContextMenu {
         + "which includes terms in x, y, x**2, y**2 and x*y).";
     ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(text).format());
 
+    text = 
+      "Include pixels adjacent to the patch being replaced in the pixels "
+      + "being fit.";
+    cbIncludeAdjacentPoints.setToolTipText(tooltipFormatter.setText(text).format());
+    
     text =
       "Run ccderaser in trial mode creating a x-ray model which can be viewed "
         + "in 3dmod.  This will not create an output stack.";
@@ -508,8 +522,9 @@ public class CCDEraserPanel implements ContextMenu {
     btnCreateModel.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
-      "Run ccderaser, erasing the raw stack and writing the modified stack"
-        + "to the output file specified.  NOTE: subsequent processing uses the "
+      "Run ccderaser, erasing the raw stack and writing the modified stack "
+        + "to the output file specified (the default is *_fixed.st).  " 
+        + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
         + "your data you must commit the raw stack when you are satisfied with"
         + " your ccderaser output stack.";
