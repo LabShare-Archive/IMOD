@@ -1,7 +1,7 @@
 c  parameters defining the maximum size of a model
 	integer max_obj_num,max_pt,len_object,max_obj_order,max_clabel
-	parameter (max_obj_num=100000)	  !absolute max # of objects 
-	parameter (max_pt=5000000)	 !max # of real points with coordinates
+	parameter (max_obj_num=200000)	  !absolute max # of objects 
+	parameter (max_pt=10000000)	 !max # of real points with coordinates
 	parameter (len_object=(max_pt+max_pt/5)) !len of pointer array "object"
 	parameter (max_obj_order=(max_obj_num+max_obj_num/5))
 	parameter (max_clabel=200)	!max # of text labels
