@@ -109,6 +109,12 @@ set fbpswitch       = fbpswitch-pc.inc
 #
 set ctrl_string = Apple
 
+# Copy files for libdl, ranlib may not be needed if preserve date, but do it
+#
+\cp -p sysdep/mac/dlfcn.h $inc_dir
+\cp -p sysdep/mac/libdl.a $lib_dir
+ranlib $lib_dir/libdl.a
+
 #
 # Set up things for Qt include files
 #
