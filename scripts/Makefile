@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/01/13 17:40:11  mast
+#  *** empty log message ***
+#
 #  Revision 3.1  2001/12/31 19:17:52  mast
 #  Add dm2mrc
 #
@@ -15,7 +18,7 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog
+ dm2mrc alignlog transferfid
 
 all:
 
