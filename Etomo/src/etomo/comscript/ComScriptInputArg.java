@@ -14,15 +14,18 @@ package etomo.comscript;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class ComScriptInputArg {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private String[] comments = new String[0];
   private String argument = null;
-
 
   /**
    * Default constructor.  A zero length String is created to represent the
@@ -31,7 +34,6 @@ public class ComScriptInputArg {
   public ComScriptInputArg() {
   }
 
-
   /**
    * Copy constructor
    */
@@ -39,7 +41,6 @@ public class ComScriptInputArg {
     argument = src.getArgument();
     comments = src.getComments();
   }
-
 
   /**
    * Set the argument line.  The whole line is considerered the argument,
@@ -50,7 +51,6 @@ public class ComScriptInputArg {
     setArgument(argument, false);
   }
 
-
   /**
    * Set the argument line.  The argument is considered the first whitespace
    * separated token in the line.  The remainder of the line is appended onto
@@ -58,19 +58,19 @@ public class ComScriptInputArg {
    * @param a string containing the argument line.
    * @param a boolean specifying whether to parse the comments or not
    */
-  public void setArgument(String argument, boolean parseComments){
-    if(parseComments) {
+  public void setArgument(String argument, boolean parseComments) {
+    if (parseComments) {
       String[] parse = argument.split("\\s+", 2);
       this.argument = parse[0];
-      if(parse.length > 1) {
-	String[] append = new String[1];
-	if(parse[1].startsWith("#")) {
-	  append[0] = parse[1];
-	}
-	else {
-	  append[0] = "# " + parse[1];
-	}
-       addComments(append);
+      if (parse.length > 1) {
+        String[] append = new String[1];
+        if (parse[1].startsWith("#")) {
+          append[0] = parse[1];
+        }
+        else {
+          append[0] = "# " + parse[1];
+        }
+        addComments(append);
       }
     }
     else {
@@ -82,7 +82,7 @@ public class ComScriptInputArg {
    * Set the argument line with an integer.
    */
   public void setArgument(boolean arg) {
-    if(arg)
+    if (arg)
       argument = "1";
     else
       argument = "0";
@@ -94,7 +94,6 @@ public class ComScriptInputArg {
   public void setArgument(int arg) {
     argument = String.valueOf(arg);
   }
-
 
   /**
    * Set the argument line with a float.
@@ -120,10 +119,9 @@ public class ComScriptInputArg {
   /**
    * Get the argument line.
    */
-  public String getArgument(){
+  public String getArgument() {
     return argument;
   }
-
 
   /**
    * Set the comments for this argument.
@@ -133,11 +131,10 @@ public class ComScriptInputArg {
   public void setComments(String[] comments) {
     //  make a defensive copy of the array
     this.comments = new String[comments.length];
-    for(int i = 0; i < comments.length; i++) {
+    for (int i = 0; i < comments.length; i++) {
       this.comments[i] = comments[i];
     }
   }
-
 
   /**
    * Get the comments as an array of Strings, each comment line is a separate
@@ -148,12 +145,11 @@ public class ComScriptInputArg {
   public String[] getComments() {
     //  make a defensive copy of the array
     String[] safeArray = new String[comments.length];
-    for(int i = 0; i < comments.length; i++) {
+    for (int i = 0; i < comments.length; i++) {
       safeArray[i] = comments[i];
     }
     return safeArray;
   }
-
 
   /**
    * Add the array of comments on to the end of the existing comments.
@@ -163,12 +159,12 @@ public class ComScriptInputArg {
     String[] existingComments = comments;
     comments = new String[existingComments.length + append.length];
 
-    for(int i = 0; i < existingComments.length; i++) {
+    for (int i = 0; i < existingComments.length; i++) {
       comments[i] = existingComments[i];
     }
 
-    for(int i = 0; i < append.length; i++) {
-      comments[i+existingComments.length] = append[i];
+    for (int i = 0; i < append.length; i++) {
+      comments[i + existingComments.length] = append[i];
     }
   }
 }
