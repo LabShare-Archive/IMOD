@@ -25,6 +25,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2002/12/31 00:57:38  rickg
+ * <p> Added transferFiducials method
+ * <p>
  * <p> Revision 1.9  2002/12/30 20:38:11  rickg
  * <p> msgComScriptDone now invokes appropriate error
  * <p> or warning dialogs
@@ -201,14 +204,14 @@ public class ProcessManager {
    * Run the transferfid script
    */
   public void transferFiducials(TransferfidParam transferfidParam) {
-    SystemProgram transferfid =
-      new SystemProgram(transferfidParam.getCommandString());
+    BackgroundProcess transferfid =
+      new BackgroundProcess(transferfidParam.getCommandString(), this);
 
     transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
-    transferfid.enableDebug(appManager.isDebug());
-    transferfid.run();
+    transferfid.setDebug(appManager.isDebug());
+    transferfid.start();
   }
-  
+
   /**
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
@@ -313,11 +316,30 @@ public class ProcessManager {
     startComScript(command);
   }
   /**
-   * Get the IMOD_DIR from the application manager and pass on to the calling
-   * object
+   * A message specifying that a com script has finished execution
+   * @param script the RunComScript execution object that finished
+   * @param exitValue the exit value for the com script
    */
-  public String getIMODDirectory() {
-    return appManager.getIMODDirectory();
+  public void msgBackgroundProcessDone(BackgroundProcess process,
+    int exitValue) {
+
+    if (exitValue != 0) {
+      String[] stdError = process.getStdError();
+      String[] combined = new String[stdError.length + 5];
+
+      int j = 0;
+      combined[j++] = "<html>Command failed: " + process.getName();
+      combined[j++] = "  ";
+      combined[j++] = "<html><U>Standard error output:</U>";
+      for (int i = 0; i < stdError.length; i++, j++) {
+        combined[j] = stdError[i];
+      }
+
+      appManager.openMessageDialog(
+        combined,
+        process.getName() + " failed");
+    }
+
   }
 
   /**
@@ -394,4 +416,5 @@ public class ProcessManager {
     System.out.println("Started " + command);
     System.out.println("  Name: " + comScript.getName());
   }
+
 }
