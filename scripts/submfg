@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
 #  Revision 3.6  2004/07/07 18:56:40  mast
 #  Fixed bug in scanning arguments
 #
@@ -130,3 +133,4 @@ end
 
 clean:
 if ($dotime == 1 || $nice != 0) \rm -f $comtmp 
+exit $exitstat
