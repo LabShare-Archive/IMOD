@@ -72,6 +72,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/02/10 23:30:36  mast
+#  fixing new o32lib commands
+#
 #  Revision 3.3  2003/02/10 20:57:47  mast
 #  *** empty log message ***
 #
@@ -136,6 +139,7 @@ all : configure clibs
 	cd flib      ; $(MAKE) all
 	cd imod      ; $(MAKE) all
 	cd imodutil  ; $(MAKE) all
+	cd sendevent ; $(MAKE) all
 	cd mrc       ; $(MAKE) all
 	cd clip      ; $(MAKE) all
 	cd midas     ; $(MAKE) all
@@ -156,6 +160,7 @@ install : configure man
 	cd libdiaqt  ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
+	cd sendevent ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
@@ -192,6 +197,7 @@ clean : configure
 	cd libdiaqt  ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
+	cd sendevent ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
@@ -305,6 +311,7 @@ csrc : ALWAYS
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
 	midas/*.[ch] midas/*.cpp midas/midas.pro  \
+	sendevent/*.h sendevent/*.cpp sendevent/sendevent.pro  \
 	html/*.* html/Makefile \
 	dist scripts com manpages \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile plugs/Makefile \
