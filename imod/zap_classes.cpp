@@ -66,6 +66,8 @@ Log at end of file
 #include "time_lock.bits"
 #include "lowres.bits"
 #include "highres.bits"
+#include "rubberband.bits"
+#include "rubberband2.bits"
 
 static unsigned char insert_after_bits[] = {
   0x00, 0x00, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x80, 0x01,
@@ -87,14 +89,16 @@ static unsigned char smartCenter_bits[] = {
   0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90, 0x09, 0x90,
   0xf9, 0x9f, 0x01, 0x80, 0x01, 0x80, 0xff, 0xff};
 
-static unsigned char *bitList[5][2] =
+#define NUM_TOOLBUTTONS 6
+static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits},
     {smartCenter_bits, keepCenter_bits},
     {insert_after_bits, insert_before_bits},
+    {rubberband_bits, rubberband2_bits},
     {time_unlock_bits, time_lock_bits}};
 
-static QBitmap *bitmaps[5][2];
+static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
 static int firstTime = 1;
 
 ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
@@ -135,7 +139,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 4; j++)
+  for (j = 0; j < NUM_TOOLBUTTONS - 1; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
 
   // Section slider
@@ -180,7 +184,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
     mToolBar->addSeparator();
-    setupToggleButton(mToolBar, toggleMapper, 4);
+    setupToggleButton(mToolBar, toggleMapper, NUM_TOOLBUTTONS);
 
     label = new QLabel("4th D", mToolBar);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -235,6 +239,7 @@ static char *toggleTips[] = {
   "Toggle between centering when model point nears edge and keeping model"
   " point centered",
   "Toggle between inserting points after or before current point",
+  "Toggle rubberband on or off (resize with first mouse, move with second)",
   "Lock window at current time unless time is changed in this window"};
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
@@ -443,6 +448,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.12  2004/03/26 04:58:24  mast
+Made it do a clear on first call, because of problems with 53xx Nvidia driver
+
 Revision 4.11  2003/10/01 05:04:19  mast
 change include from imodP to imod after eliminating imod.h from imodP.h
 
