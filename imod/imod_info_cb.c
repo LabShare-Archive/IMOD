@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/29 03:10:00  mast
+    Call imodDraw instead of xyz_draw after changing model/movie mode
+
 */
 
 #include <stdio.h>
@@ -712,7 +715,7 @@ int imod_open(FILE *mfin)
 	  }
      else
 	  {
-	       Model = (struct Mod_Model *)LoadModel(mfin);
+	       Model = (struct Mod_Model *)LoadModel(mfin, NULL);
 	       if (Model == NULL){
 		    return(-1);
 	       }
