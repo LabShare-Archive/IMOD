@@ -76,6 +76,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:28:54  rickg
+ * <p> ContextPopup initialization no longer needed
+ * <p> Some more stderr printing on exceptions
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -1063,7 +1067,7 @@ public class ApplicationManager {
         }
         catch (SystemProcessException e) {
           e.printStackTrace();
-					System.err.println("System process exception in replaceRawStack");
+          System.err.println("System process exception in replaceRawStack");
         }
       }
     }
@@ -1433,6 +1437,7 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
       imodManager.modelCoarseAligned(fiducialModel, axisID, true, false);
+      imodManager.openBeadFixer(axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1445,6 +1450,7 @@ public class ApplicationManager {
         "Can't open 3dmod on coarse aligned stack with model: "
           + fiducialModel);
     }
+
   }
 
   /**
@@ -1660,7 +1666,20 @@ public class ApplicationManager {
   public void imodView3DModel(AxisID axisID) {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".3dmod";
-    imodManager.openFiducialModel(fiducialModel, axisID);
+    try {
+      imodManager.openFiducialModel(fiducialModel, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(
+        except.getMessage(),
+        "Can't open 3dmod on fine aligned stack");
+    }
+
   }
 
   /**
@@ -1684,10 +1703,10 @@ public class ApplicationManager {
 
   }
 
-	/**
-	 * Transfer the fiducial to the specified axis
-	 * @param destAxisID
-	 */
+  /**
+   * Transfer the fiducial to the specified axis
+   * @param destAxisID
+   */
   public void transferfid(AxisID destAxisID) {
     //  Set a reference to the correct object
     FiducialModelDialog fiducialModelDialog;
@@ -2519,21 +2538,21 @@ public class ApplicationManager {
    */
   public void deleteAlignedStacks(AxisID axisID) {
     mainFrame.setProgressBar("Deleting aligned image stacks", 1, axisID);
-//
-// Don't do preali now because users may do upto generation before transfering
-// the fiducials
-//
-//     File preali =
-//      new File(
-//        System.getProperty("user.dir"),
-//        metaData.getDatasetName() + axisID.getExtension() + ".preali");
-//    if (preali.exists()) {
-//      if (!preali.delete()) {
-//        mainFrame.openMessageDialog(
-//          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
-//          "Can not delete file");
-//      }
-//    }
+    //
+    // Don't do preali now because users may do upto generation before transfering
+    // the fiducials
+    //
+    //     File preali =
+    //      new File(
+    //        System.getProperty("user.dir"),
+    //        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+    //    if (preali.exists()) {
+    //      if (!preali.delete()) {
+    //        mainFrame.openMessageDialog(
+    //          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
+    //          "Can not delete file");
+    //      }
+    //    }
 
     File aligned =
       new File(
@@ -4330,20 +4349,20 @@ public class ApplicationManager {
     }
   }
 
-	//  Test helper functions
-	/**
-	 * Return the currently executing thread name for the specified axis
-	 * @param axisID
-	 * @return
-	 */
-	String getThreadName(AxisID axisID) {
-		if (axisID == AxisID.SECOND) {
-			return threadNameB;
-		}
-		return threadNameA;
-	}
+  //  Test helper functions
+  /**
+   * Return the currently executing thread name for the specified axis
+   * @param axisID
+   * @return
+   */
+  String getThreadName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return threadNameB;
+    }
+    return threadNameA;
+  }
 
-	MainFrame getMainFrame() {
-		return mainFrame;
-	}
+  MainFrame getMainFrame() {
+    return mainFrame;
+  }
 }
