@@ -839,6 +839,9 @@
                             <height>32767</height>
                         </size>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
                     <property name="toolTip" stdset="0">
                         <string>Enter total number of positions from start to end</string>
                     </property>
@@ -909,6 +912,9 @@
                             <width>60</width>
                             <height>0</height>
                         </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
                     </property>
                     <property name="minValue">
                         <number>2</number>
@@ -1293,6 +1299,162 @@
         <signal>clicked()</signal>
         <receiver>imodvMovieForm</receiver>
         <slot>helpPressed()</slot>
+    </connection>
+    <connection>
+        <sender>montageFramesBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>framesEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xRotStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xRotEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>yRotStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>yRotEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zRotStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zRotEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xTransStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xTransEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>yTransStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>yTransEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zTransStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zTransEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zoomStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zoomEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xSliceStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>xSliceEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>ySliceStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>ySliceEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zSliceStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>zSliceEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>transpStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>transpEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>thickStart</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
+    </connection>
+    <connection>
+        <sender>thickEnd</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvMovieForm</receiver>
+        <slot>setFocus()</slot>
     </connection>
 </connections>
 <includes>

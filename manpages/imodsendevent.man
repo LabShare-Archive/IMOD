@@ -45,6 +45,14 @@ Currently, 3dmod will accept the following commands:
           3D point radius
   13  Report the three angles of a slicer window (the active one if a 
         slicer is the active window, otherwise the first one)
+  14  Send a message to a plugin or compiled-in special module.  Follow with
+        the name of the plugin as it appears in the Special menu, including 
+        spaces if any, then with the message for the plugin.
+
+Bead Fixer accepts the following commands:
+   1  Open a Tiltalign log file.  Follow with log file name
+   2  Reread the current log file.
+
 .P
 If 3dmod is run in standalone model-view mode (run as 3dmodv or 3dmod -view)
 it will accept the following commands:
