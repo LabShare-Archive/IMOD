@@ -368,7 +368,7 @@ void TumblerWindow::sizeChanged(int which)
   else if (which == 1)
     mTum->ny = mSizeBoxes[1]->value();
   else
-    mTum->nz = mSizeBoxes[1]->value();
+    mTum->nz = mSizeBoxes[2]->value();
   mTum->ms = (int)(sqrt((double)(mTum->nx * mTum->nx + mTum->ny * mTum->ny +
 				mTum->nz * mTum->nz)) + 0.9);
   setSlice(mTum);
@@ -1313,6 +1313,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.14  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.13  2003/09/16 02:11:18  mast
 Changed to access image data using new line pointers
 
