@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.75  2003/10/17 02:00:07  sueh
+ * <p> Bug317 added new function - to retrieve default UI resources
+ * <p>
  * <p> Revision 2.73  2003/10/10 23:17:01  sueh
  * <p> bug251 removing marks
  * <p>
@@ -549,7 +552,7 @@ public class ApplicationManager {
 
     //  Initialize the static UIParameter object
     UIParameters uiparameters = new UIParameters();
-    
+
     // Open the etomo data file if one was found on the command line
     if (!testParamFilename.equals("")) {
       File etomoDataFile = new File(testParamFilename);
@@ -1226,7 +1229,7 @@ public class ApplicationManager {
     }
 
     updateTransferfidEnabled(fiducialModelDialog, axisID);
-    
+
     //  Load the required track{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
     comScriptMgr.loadTrack(axisID);
@@ -1237,18 +1240,22 @@ public class ApplicationManager {
     mainFrame.showProcess(fiducialModelDialog.getContainer(), axisID);
   }
 
-  private void updateTransferfidEnabled(FiducialModelDialog dialog, AxisID axisID) {
+  private void updateTransferfidEnabled(
+    FiducialModelDialog dialog,
+    AxisID axisID) {
     if (axisID == AxisID.ONLY) {
       return;
     }
     dialog.setTransferfidEnabled(
-      Utilities.fileExists(metaData, ".preali", AxisID.FIRST) &&
-      Utilities.fileExists(metaData, ".preali", AxisID.SECOND) &&
-      Utilities.fileExists(metaData, ".fid",
-        (axisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST)));
+      Utilities.fileExists(metaData, ".preali", AxisID.FIRST)
+        && Utilities.fileExists(metaData, ".preali", AxisID.SECOND)
+        && Utilities.fileExists(
+          metaData,
+          ".fid",
+          (axisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST)));
     dialog.updateEnabled();
   }
-  
+
   /**
    * 
    */
@@ -1628,16 +1635,19 @@ public class ApplicationManager {
     else {
       fiducialModelDialog = fiducialModelDialogA;
     }
-    
-    if (sourceAxisID != AxisID.ONLY &&
-        !Utilities.fileExists(metaData, "fid.xyz",
+
+    if (sourceAxisID != AxisID.ONLY
+      && !Utilities.fileExists(
+        metaData,
+        "fid.xyz",
         (sourceAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
       mainFrame.openMessageDialog(
-          "It is recommended that you run Fine Alignment on axis " +
-          (sourceAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
-          "Warning");
+        "It is recommended that you run Fine Alignment on axis "
+          + (sourceAxisID == AxisID.FIRST ? "B" : "A")
+          + " at least once",
+        "Warning");
     }
-    
+
     if (fiducialModelDialog != null) {
       TransferfidParam transferfidParam =
         new TransferfidParam(getIMODDirectory());
@@ -1645,7 +1655,7 @@ public class ApplicationManager {
       // fiducials from
       String datasetName = metaData.getDatasetName();
       transferfidParam.setDatasetName(datasetName);
-      
+
       if (sourceAxisID == AxisID.FIRST) {
         transferfidParam.setBToA(true);
       }
@@ -1666,7 +1676,7 @@ public class ApplicationManager {
         message[1] = e.getMessage();
         mainFrame.openMessageDialog(message, "Unable to execute command");
         return;
-      } 
+      }
       setThreadName(threadName, sourceAxisID);
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
       updateTransferfidEnabled(fiducialModelDialog, sourceAxisID);
@@ -2490,10 +2500,9 @@ public class ApplicationManager {
 
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
-      tomogramCombinationDialog.enableCombineTabs(
-        metaData.getCombineParams().isScriptsCreated());
+      tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
 
-      if (metaData.getCombineParams().isScriptsCreated()) {
+      if (combineScriptsExist()) {
         if (metaData.getCombineParams().isModelBased()) {
           loadSolvematchMod();
         }
@@ -2658,6 +2667,30 @@ public class ApplicationManager {
   }
 
   /**
+   * Check to see if the combine scripts exist
+   * @return
+   */
+  public boolean combineScriptsExist() {
+    File solvematchshift =
+      new File(System.getProperty("user.dir"), "solvematchshift.com");
+    File solvematchmod =
+      new File(System.getProperty("user.dir"), "solvematchmod.com");
+    File matchvol1 = new File(System.getProperty("user.dir"), "matchvol1.com");
+    File matchorwarp =
+      new File(System.getProperty("user.dir"), "matchorwarp.com");
+    File patchcorr = new File(System.getProperty("user.dir"), "patchcorr.com");
+    File volcombine =
+      new File(System.getProperty("user.dir"), "volcombine.com");
+    File warpvol = new File(System.getProperty("user.dir"), "warpvol.com");
+    return solvematchshift.exists()
+      && solvematchmod.exists()
+      && matchvol1.exists()
+      && matchorwarp.exists()
+      && patchcorr.exists()
+      && volcombine.exists()
+      && warpvol.exists();
+  }
+  /**
    * Run the setupcombine script with the current combine parameters stored in
    * metaData object.  updateCombineCom is called first to get the currect
    * parameters from the dialog.
@@ -2691,7 +2724,6 @@ public class ApplicationManager {
 
     // Reload the initial and final match paramaters from the newly created
     // scripts
-    metaData.getCombineParams().setScriptsCreated(true);
     isDataParamDirty = true;
 
     loadSolvematchShift();
@@ -3387,8 +3419,8 @@ public class ApplicationManager {
         openProcessingPanel();
       }
       else {
-      	resetState();
-				openSetupDialog();
+        resetState();
+        openSetupDialog();
       }
     }
   }
@@ -3592,7 +3624,7 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   *  
    */
   public void getSettingsParameters() {
     if (settingsDialog != null) {
@@ -3605,7 +3637,7 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   *  
    */
   public void closeSettingsDialog() {
     if (settingsDialog != null) {
@@ -3614,7 +3646,7 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   *  
    */
   private void setupRequestDialog() {
     String[] message = new String[2];
@@ -3626,7 +3658,7 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   *  
    */
   private String initProgram(String[] args) {
     //  Parse the command line
@@ -3725,11 +3757,13 @@ public class ApplicationManager {
   }
 
   /**
-   * Parse the command line.  This method will return a non-empty string if
+   * Parse the command line. This method will return a non-empty string if
    * there is a etomo data .
-   * @param The command line arguments
+   * 
+   * @param The
+   *          command line arguments
    * @return A string that will be set to the etomo data filename if one is
-   * found on the command line otherwise it is "".
+   *         found on the command line otherwise it is "".
    */
   private String parseCommandLine(String[] args) {
     String testParamFilename = "";
@@ -3821,8 +3855,10 @@ public class ApplicationManager {
 
   /**
    * Sets the look and feel for the program.
-   * @param nativeLookAndFeel set to true to use the host os look and feel,
-   * false will use the Metal look and feel.
+   * 
+   * @param nativeLookAndFeel
+   *          set to true to use the host os look and feel, false will use the
+   *          Metal look and feel.
    */
   private void setLookAndFeel(boolean nativeLookAndFeel) {
     String lookAndFeelClassName;
@@ -3873,12 +3909,12 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   *  
    */
   public static void setUIFont(String fontFamily, int fontSize) {
 
     // sets the default font for all Swing components.
-    // ex. 
+    // ex.
     //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
     // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
     java.util.Enumeration keys = UIManager.getDefaults().keys();
@@ -3894,14 +3930,14 @@ public class ApplicationManager {
     }
   }
 
-//SUEH 317
+  //SUEH 317
   /**
-   * 
+   *  
    */
   public static Object getDefaultUIResource(Object target, String name) {
 
     // sets the default font for all Swing components.
-    // ex. 
+    // ex.
     //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
     // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
     java.util.Enumeration keys = UIManager.getDefaults().keys();
@@ -3935,6 +3971,7 @@ public class ApplicationManager {
 
   /**
    * Return an environment variable value
+   * 
    * @param varName
    * @return String
    */
@@ -3968,7 +4005,7 @@ public class ApplicationManager {
         }
       }
 
-      // Return the first line from the command  
+      // Return the first line from the command
       String[] stdout = readEnvVar.getStdOutput();
       if (stdout.length > 0) {
         return stdout[0];
@@ -4017,6 +4054,7 @@ public class ApplicationManager {
 
   /**
    * Returns the debug state.
+   * 
    * @return boolean
    */
   public boolean isDebug() {
@@ -4025,6 +4063,7 @@ public class ApplicationManager {
 
   /**
    * Returns the demo state.
+   * 
    * @return boolean
    */
   public boolean isDemo() {
@@ -4041,7 +4080,7 @@ public class ApplicationManager {
 
   /**
    * Start the next process specified by the nextProcess string
-   *
+   *  
    */
   private void startNextProcess() {
     if (nextProcess.equals("matchvol1")) {
@@ -4067,6 +4106,7 @@ public class ApplicationManager {
 
   /**
    * Open a messsage dialog with the given message and title
+   * 
    * @param message
    * @param title
    */
@@ -4076,6 +4116,7 @@ public class ApplicationManager {
 
   /**
    * Set the progress bar to the beginning of determinant sequence
+   * 
    * @param label
    * @param nSteps
    */
@@ -4085,6 +4126,7 @@ public class ApplicationManager {
 
   /**
    * Set the progress bar to the specified value
+   * 
    * @param value
    * @param axisID
    */
@@ -4094,6 +4136,7 @@ public class ApplicationManager {
 
   /**
    * Set the progress bar to the specified value and update the string
+   * 
    * @param value
    * @param string
    * @param axisID
@@ -4103,7 +4146,6 @@ public class ApplicationManager {
   }
 
   /**
-   * 
    * @param axisID
    */
   public void progressBarDone(AxisID axisID) {
@@ -4112,7 +4154,9 @@ public class ApplicationManager {
 
   /**
    * Notification message that a background process is done.
-   * @param threadName The name of the thread that has finished
+   * 
+   * @param threadName
+   *          The name of the thread that has finished
    */
   public void processDone(String threadName, int exitValue) {
     if (threadName.equals(threadNameA)) {
@@ -4131,18 +4175,19 @@ public class ApplicationManager {
         "Unknown thread finished!!!",
         "Thread name: " + threadName);
     }
-    
+
     if (fiducialModelDialogA != null) {
-      updateTransferfidEnabled(fiducialModelDialogA, AxisID.FIRST);   
+      updateTransferfidEnabled(fiducialModelDialogA, AxisID.FIRST);
     }
     if (fiducialModelDialogB != null) {
-      updateTransferfidEnabled(fiducialModelDialogB, AxisID.SECOND);   
+      updateTransferfidEnabled(fiducialModelDialogB, AxisID.SECOND);
     }
 
   }
 
   /**
    * Interrupt the currently running thread for this axis
+   * 
    * @param axisID
    */
   public void kill(AxisID axisID) {
@@ -4151,8 +4196,11 @@ public class ApplicationManager {
 
   /**
    * Map the thread name to the correct axis
-   * @param name The name of the thread to assign to the axis
-   * @param axisID The axis of the thread to be mapped 
+   * 
+   * @param name
+   *          The name of the thread to assign to the axis
+   * @param axisID
+   *          The axis of the thread to be mapped
    */
   private void setThreadName(String name, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
