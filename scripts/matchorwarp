@@ -1,4 +1,15 @@
 #! /bin/csh -f
+# MATCHORWARP: script to run refinewarp and matchvol if fit is good enough
+# or findwarp with progressively worse criteria, then warpvol
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 
 set patchfile = "patch.out"
 set solvefile = "solve.xf"
@@ -10,6 +21,11 @@ set warplimit = "0.2,0.27,0.35"
 set modelfile = ""
 set sizein = ""
 set tempdir = ""
+set xlower = "0"
+set zlower = "0"
+set xupper = "0"
+set zupper = "0"
+set trial = ""
 set pn = "matchorwarp"
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
@@ -31,12 +47,13 @@ Usage: ${pn} [options] input.file output.file
  -inversefile inverse_file Inverse transform file (default $inversefile)
  -warpfile warp_file       Warp transform file (default $warpfile)
  -tempdir temp_directory   Directory for temporary files
+ -xlowerexclude #          Columns to exclude on the left side
+ -xupperexclude #          Columns to exclude on the right side
+ -zlowerexclude #          Rows to exclude at high Z
+ -zupperexclude #          Rows to exclude at low Z
+ -trial                    Run Refinewarp/Findwarp but not Matchvol/Warpvol
 EOF
 exit 0
-endif
-if ($#argv % 2 != 0)then
-    echo "${pn}: Wrong number of arguments"
-    exit 1
 endif
 while ($#argv > 2)
   switch ($argv[1])
@@ -84,8 +101,29 @@ while ($#argv > 2)
       set tempdir = $argv[2]
       shift; shift
       breaksw
+    case -xl*:
+      set xlower = $argv[2]
+      shift; shift
+      breaksw
+    case -xu*:
+      set xupper = $argv[2]
+      shift; shift
+      breaksw
+    case -zl*:
+      set zlower = $argv[2]
+      shift; shift
+      breaksw
+    case -zu*:
+      set zupper = $argv[2]
+      shift; shift
+      breaksw
+    case -tr*
+      set trial = "1"
+      shift
+      breaksw
+
     default:
-      echo "matchorwarp: bad argument $argv[1]"
+      echo "ERROR: matchorwarp - bad argument $argv[1]"
       exit 1
   endsw
 end
@@ -123,7 +161,7 @@ endif
 
 # Run refinematch
 
-echo "STATUS: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION"
+echo "MATCHORWARP: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION"
 
 refinematch <<EOF
 $patchfile
@@ -133,11 +171,21 @@ $refinelimit
 $refinefile
 EOF
 
-if (! $status) then
+set savestat = $status
+if ($savestat == 1) exit 1
+
+if (! $savestat) then
+
+    echo " "
+    if ($trial == "1") then
+	echo "MATCHORWARP: REFINEMATCH FOUND A GOOD TRANSFORMATION"
+	exit 0
+    endif
 
     # If refinematch did not have error exit, run matchvol
 
-    echo "STATUS: REFINEMATCH FOUND A GOOD TRANSFORMATION: NEXT RUNNING MATCHVOL"
+    echo "MATCHORWARP: REFINEMATCH FOUND A GOOD TRANSFORMATION: NEXT RUNNING MATCHVOL"
+    echo " "
 
 
     matchvol <<EOF
@@ -165,7 +213,8 @@ set lastwarp = $warplist[$#warplist]
 # Try one limit after another
 
 while ($#warplist)
-echo "STATUS: RUNNING FINDWARP TO FIND A WARPING WITH A RESIDUAL LIMIT OF $warplist[1]"
+    echo " "
+    echo "MATCHORWARP: RUNNING FINDWARP TO FIND A WARPING WITH A RESIDUAL LIMIT OF $warplist[1]"
     findwarp <<EOF
 $patchfile
 $size
@@ -173,15 +222,27 @@ $modelfile
 1
 $warplist[1]
 /
+1
+$xlower,$xupper
+0,0
+$zlower,$zupper
 $solvefile
 $warpfile
 EOF
+    set savestat = $status
+
+    if ($savestat == 1) exit 1
 
     # If succeed, run warpvol
+    if (! $savestat) then
+	echo " "
+	if ($trial == "1") then
+	    echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING"
+	    exit 0
+	endif
 
-    if (! $status) then
-	echo "STATUS: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL"
-
+	echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL"
+	echo " "
 	warpvol <<EOF
 $recfile
 $matfile
@@ -196,6 +257,8 @@ EOF
 end
 
 # IF get out of loop, it's all over
-echo "FINDWARP COULD NOT FIND WARPING WITH RESIDUAL UNDER $lastwarp AUTOMATICALLY"
-echo "YOU NEED TO RUN FINDWARP INTERACTIVELY"
+echo " "
+echo "MATCHORWARP: FINDWARP COULD NOT FIND WARPING WITH RESIDUAL UNDER $lastwarp"
+echo "YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, ELIMINATE ROWS OR COLUMNS,"
+echo "  OR RUN FINDWARP INTERACTIVELY"
 exit 1
