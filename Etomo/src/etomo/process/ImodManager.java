@@ -11,7 +11,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
-import etomo.ui.MainFrame;
 
 /*p
  * <p>Description: This class manages the opening, closing and sending of 
@@ -29,6 +28,9 @@ import etomo.ui.MainFrame;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2004/04/28 00:39:43  sueh
+ * <p> bug# 320 changed warnStaleFile() message
+ * <p>
  * <p> Revision 3.17  2004/04/27 23:17:03  sueh
  * <p> bug# 320 added warnStaleFile() to tell user and a file that has
  * <p> changed on disk and ask to close it
@@ -577,24 +579,15 @@ public class ImodManager {
     }
   }
   
-  public void warnStaleFile(String key, MainFrame mainFrame)
+  public boolean warnStaleFile(String key, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
-    ImodState imodState = get(key);
+    ImodState imodState = get(key, axisID);
     if (!imodState.isWarnedStaleFile() && imodState.isOpen()) {
       imodState.setWarnedStaleFile(true);
-      String[] message = new String[4];
-      message[0] = "3dmod is open to the existing " + key + ".";
-      message[1] = "A new " + key + " has been or will be created on disk.";
-      message[2] =
-        "You will not be able to see the new version of "
-          + key
-          + " until you close this 3dmod.";
-      message[3] = "Do you wish to quit this 3dmod now?";
-      if (mainFrame.openYesNoDialog(message)) {
-        imodState.quit();
-      }
+      return true;
     }
+    return false;
   }
 
   //protected methods

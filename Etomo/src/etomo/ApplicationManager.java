@@ -83,6 +83,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2004/04/28 20:13:10  rickg
+ * <p> bug #429 all file renames are now handled by the utilities static
+ * <p> function to deal with the windows bug
+ * <p>
  * <p> Revision 3.43  2004/04/28 00:47:52  sueh
  * <p> trying delete  full aligned stack so that rename works in Windows
  * <p>
@@ -3884,8 +3888,8 @@ public class ApplicationManager {
 
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
-
+      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+      
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
       String threadName;
@@ -3964,8 +3968,8 @@ public class ApplicationManager {
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
-
+    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+    
     //  Check to see if solve.xf exists first
     File solveXf = new File(System.getProperty("user.dir"), "solve.xf");
     if (!solveXf.exists()) {
@@ -4004,14 +4008,38 @@ public class ApplicationManager {
         && updateCombineCom(TomogramCombinationDialog.FINAL_TAB)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
+      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
       patchcorr();
     }
   }
-
-  protected void warnStaleFile(String key) {
+  
+  protected void warnStaleFile(String key, boolean future) {
+    warnStaleFile(key, null, future);
+  }
+  protected void warnStaleFile(String key, AxisID axisID) {
+    warnStaleFile(key, axisID, false);
+  }
+  protected void warnStaleFile(String key, AxisID axisID, boolean future) {
     try {
-      imodManager.warnStaleFile(key, mainFrame);
+      if (imodManager.warnStaleFile(key, axisID)) {
+        String[] message = new String[4];
+        if (future) {
+          message[0] = "3dmod is open to the existing " + key + ".";
+          message[1] = "A new " + key + " will be created on disk.";
+        }
+        else {
+          message[0] = "3dmod is open to the old " + key + ".";
+          message[1] = "A new " + key + " has been created on disk.";          
+        }
+        message[2] =
+          "You will not be able to see the new version of "
+            + key
+            + " until you close this 3dmod.";
+        message[3] = "Do you wish to quit this 3dmod now?";
+        if (mainFrame.openYesNoDialog(message)) {
+          imodManager.quit(key, axisID);
+        }
+      }
     }
     catch (AxisTypeException e) {
       e.printStackTrace();
