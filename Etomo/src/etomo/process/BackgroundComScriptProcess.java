@@ -30,6 +30,13 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/02/09 01:27:55  sueh
+ * <p> bug# 598 isComScriptBusy(): Using the index of NAME to find the
+ * <p> directory path and file name, rather then splitting.  There could be spaces
+ * <p> in the directory path and each output line has an unknown number of
+ * <p> columns.  However the columns are spaced to always start under their
+ * <p> column header and NAME is always the last column.
+ * <p>
  * <p> Revision 1.11  2005/02/07 23:48:40  sueh
  * <p> bug# 595 isComScriptBusy(): Checking the os and only running lsof on
  * <p> linux and mac.
@@ -142,7 +149,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * If the monitor isn't stopped it reattaches to the existing combine.log
    */
   protected boolean isComScriptBusy() {
-    //System.out.println("isComScriptBusy");
     String osName = System.getProperty("os.name").toLowerCase();
     //lsof does not exist in Windows.  In Windows, a busy log file will be
     //detected when the rename fails.
