@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.30  2003/01/04 00:41:00  rickg
+ * <p> Implemented transferfid method
+ * <p>
  * <p> Revision 1.29  2002/12/19 00:35:20  rickg
  * <p> Implemented persitent advanced state handling
  * <p>
@@ -841,6 +844,8 @@ public class ApplicationManager {
           comScriptMgr.getTiltalignParam(AxisID.SECOND),
           AxisID.SECOND);
 
+        //  Create a default transferfid object to populate the alignment dialog
+        alignmentEstimationDialog.setTransferFidParams(new TransferfidParam());
         alignmentEstimationDialog.setEnabledB(true);
       }
       else {
@@ -957,24 +962,22 @@ public class ApplicationManager {
    * Run transferfid
    */
   public void transferfid(AxisID sourceAxisID) {
-    if(alignmentEstimationDialog != null) {
+    if (alignmentEstimationDialog != null) {
       TransferfidParam transferfidParam = new TransferfidParam();
       // Setup the default parameters depending upon the axis to transfer the
       // fiducials from
       String fileSetName = metaData.getFilesetName();
       transferfidParam.setFileSetName(fileSetName);
-      if(sourceAxisID == AxisID.SECOND) {
-        transferfidParam.setInputImageFile(fileSetName + "b.st");
-        transferfidParam.setInputModelFile(fileSetName + "b.fid");
-        transferfidParam.setOutputModelFile(fileSetName + "a.seed");
+      if (sourceAxisID == AxisID.SECOND) {
+        transferfidParam.setBToA(true);
       }
 
       // Get any user specified changes
-      alignmentEstimationDialog.getTransferFidParams(transferfidParam, sourceAxisID);
+      alignmentEstimationDialog.getTransferFidParams(transferfidParam);
       processMgr.transferFiducials(transferfidParam);
     }
   }
-  
+
   /**
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
    * the alignment estimation dialog.  This also updates the local alignment
@@ -1730,7 +1733,7 @@ public class ApplicationManager {
   public void setAdvanced(boolean state) {
     isAdvanced = state;
   }
-  
+
   /**
    * Return the fileset name.  This is the basename of the raw image stack and
    * the name used for the base of all intermediate and final data files.
@@ -1882,9 +1885,9 @@ public class ApplicationManager {
     if (settingsDialog != null) {
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
-      
+
       mainFrame.repaintWindow();
-      
+
     }
   }
 
@@ -2216,7 +2219,7 @@ public class ApplicationManager {
   public boolean isDemo() {
     return demo;
   }
-  
+
   /**
    * Run the specified command as a background process with a indeterminate
    * progress bar.
