@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/12/18 19:07:09  rickg
+ * <p> Added getters for metro factor and cycle limit
+ * <p>
  * <p> Revision 1.3  2002/12/10 21:37:21  rickg
  * <p> changed reportStddevThreshold to residualThreshold
  * <p>
@@ -108,8 +111,7 @@ public class ConstTiltalignParam {
     nLocalPatches.setIntegerType(1, true);
 
     minLocalPatchSize = new FortranInputString(2);
-    minLocalPatchSize.setIntegerType(0, true);
-    minLocalPatchSize.setIntegerType(1, true);
+
     minLocalFiducials = new FortranInputString(2);
     minLocalFiducials.setIntegerType(0, true);
     minLocalFiducials.setIntegerType(1, true);
