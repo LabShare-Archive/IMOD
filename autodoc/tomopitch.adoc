@@ -32,9 +32,13 @@ flat in its Z dimension.
 [Field = ScaleFactor]
 short = scale
 long = ScaleFactor
-usage = 
+usage = Amount to scale the recommended Z shift and thickness (for binned-down
+samples)
 tooltip =
-manpage = 
+manpage = Amount by which to scale the Z shift and thickness recommended by
+the program.  Use this entry if the model was drawn on binned-down samples
+or a whole binned-down tomogram but you intend to make an unbinned tomogram.
+The scale factor factor is the binning factor.
 
 [Field = ParameterFile]
 short = param
