@@ -4,7 +4,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -34,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/23 22:03:06  rickg
+ * <p> Changed default tilt angle group size to 5
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:43:52  rickg
  * <p> Comment update
  * <p>
@@ -125,7 +127,7 @@ import etomo.type.AxisID;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class TiltalignPanel implements ContextMenu {
+public class TiltalignPanel {
   public static final String rcsid =
     "$Id$";
 
@@ -300,6 +302,10 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfLocalSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
+  /**
+   * Constructor
+   * @param axis
+   */
   public TiltalignPanel(AxisID axis) {
     axisID = axis;
 
@@ -308,12 +314,6 @@ public class TiltalignPanel implements ContextMenu {
     createGeneralTab();
     createGlobalSolutionTab();
     createLocalSolutionTab();
-
-    //
-    //  Mouse adapter for context menu
-    //
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    panelGeneral.addMouseListener(mouseAdapter);
 
   }
 
@@ -732,10 +732,17 @@ public class TiltalignPanel implements ContextMenu {
     }
   }
 
+  /**
+   * Make the panel visible
+   * @param state
+   */
   void setVisible(boolean state) {
     panelGeneral.setVisible(state);
   }
 
+  /**
+   *
+   */
   void setLargestTab() {
     //tabPane.setSelectedComponent(panelGlobalVariable);
     tabPane.setSelectedComponent(panelLocalSolution);
@@ -925,25 +932,12 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   /**
-   * Right mouse button context menu
+   * 
+   * @param panel
+   * @param group
+   * @param items
+   * @param listener
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tiltalign" };
-    String[] manPage = { "tiltalign.html" };
-    String[] logFileLabel = { "align" };
-    String[] logFile = new String[1];
-    logFile[0] = "align" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup =
-      new ContextPopup(
-        panelGeneral,
-        mouseEvent,
-        "FINAL ALIGNMENT",
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFile);
-  }
-
   private void createRadioBox(
     JPanel panel,
     ButtonGroup group,
