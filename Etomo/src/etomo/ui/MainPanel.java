@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2005/02/24 02:24:53  sueh
+ * <p> bug# 605 In fitWindows: Tab height is different in Mac.  Adjust the
+ * <p> tabHeight for mac os.
+ * <p>
  * <p> Revision 1.10  2005/02/19 00:31:01  sueh
  * <p> bug# 605 fitWindow():  When tabs are used correct the frameBorder height
  * <p> to avoid repacking when there is not vertical scroll bar.  This prevents a
@@ -417,6 +421,13 @@ public abstract class MainPanel extends JPanel {
    */
   public void fitWindow(boolean force) {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+      /* Need a function which does what 1.4.2 show did:
+       * Makes the Window visible. If the Window and/or its owner are not yet
+       * displayable, both are made displayable. The Window will be validated
+       * prior to being made visible. If the Window is already visible, this
+       * will bring the Window to the front.
+       * Component.SetVisible() is recommended as the replacement  
+       */
       EtomoDirector.getInstance().getMainFrame().show();
       return;
     }
@@ -437,6 +448,15 @@ public abstract class MainPanel extends JPanel {
           tabHeight = 43;
         }
       }
+      /*
+      System.out.println("difference="
+          + Integer.toString(EtomoDirector.getInstance().getMainFrame()
+              .getSize().height
+              - getSize().height));
+      System.out.println("tabHeight=" + tabHeight + ",frameBorder.height="
+          + frameBorder.height + ",both="
+          + Integer.toString(frameBorder.height + tabHeight));
+      */
       if (EtomoDirector.getInstance().getMainFrame().getSize().height
           - getSize().height > frameBorder.height+tabHeight) {
         setVerticalScrollBarPolicy(true);
