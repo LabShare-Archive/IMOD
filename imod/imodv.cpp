@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodv.cpp -- The main imodv entry point for standalone or imod operation
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -48,6 +30,7 @@ Log at end of file
 
 #include "imodv.h"
 #include "imodv_views.h"
+#include "imodv_menu.h"
 #include "imod.h"
 #include "imod_info_cb.h"
 #include "xzap.h"
@@ -59,6 +42,7 @@ Log at end of file
 #include "preferences.h"
 #include "control.h"
 #include "imod_client_message.h"
+#include "undoredo.h"
 
 #include "b3dicon.xpm"
 
@@ -108,11 +92,12 @@ static void usage(char *pname)
   imodVersion(pname);
   imodCopyright();
   qstr = "options: all Qt options plus:\n";
-  qstr += "\t-f                Open window to max size.\n";
-  qstr += "\t-b color_name     Background color for rendering.\n";
-  qstr += "\t-s width,height   Window size in pixels.\n";
-  qstr += "\t-D                Debug mode.\n";
-  qstr += "\t-h                Print this help message.\n";
+  qstr += "\t-f               Open window to max size.\n";
+  qstr += "\t-b color_name    Background color for rendering.\n";
+  qstr += "\t-s width,height  Window size in pixels.\n";
+  qstr += "\t-E <keys>        Open windows specifed by key letters (= hot keys).\n";
+  qstr += "\t-D               Debug mode.\n";
+  qstr += "\t-h               Print this help message.\n";
   imodPrintInfo(qstr.latin1());
   exit(3);
 }
@@ -419,6 +404,7 @@ int imodv_main(int argc, char **argv)
   int printID = 0;
   ImodClipboard *clipHandler;
   ImodvApp *a = Imodv;
+  char *windowKeys = NULL;
   a->standalone = 1;
   diaSetTitle("3dmodv");
   imodv_init(a, &Imodv_mdraw);
@@ -449,6 +435,10 @@ int imodv_main(int argc, char **argv)
       case 'W':
 	printID = 1;
 	break;
+
+      case 'E':
+        windowKeys = strdup(argv[++i]);
+        break;
 
       case 'h':
         usage(argv[0]);
@@ -498,6 +488,8 @@ int imodv_main(int argc, char **argv)
     imodPrintStderr("Window id = %u\n", winID);
     clipHandler = new ImodClipboard();
   }
+
+  imodvOpenSelectedWindows(windowKeys);
 
   return qApp->exec();
 }
@@ -575,9 +567,9 @@ void imodv_new_model(Imod *mod)
 
   // Recompute scale and shift of operating view and current view - replaces
   // earlier method of setting up views
-  imageMax.x = App->cvi->xsize;
-  imageMax.y = App->cvi->ysize;
-  imageMax.z = App->cvi->zsize;
+  imageMax.x = Imodv->vi->xsize;
+  imageMax.y = Imodv->vi->ysize;
+  imageMax.z = Imodv->vi->zsize;
   imodViewDefaultScale(mod, mod->view, &imageMax);
   imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax);
 
@@ -609,7 +601,7 @@ void imodvDrawImodImages()
 {
   if (Imodv->standalone)
     return;
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodDraw(Imodv->vi, IMOD_DRAW_MOD);
   imod_object_edit_draw();
   imod_info_setobjcolor();
 }
@@ -619,9 +611,31 @@ int imodvByteImagesExist()
 {
   if (Imodv->standalone)
     return 0;
-  if (App->cvi->rawImageStore || App->cvi->fakeImage)
+  if (Imodv->vi->rawImageStore || Imodv->vi->fakeImage)
     return 0;
   return 1;
+}
+
+// Pass changes to undo if not in standalone mode
+void imodvRegisterModelChg()
+{
+  if (Imodv->standalone)
+    return;
+  Imodv->vi->undo->modelChange();
+}
+
+void imodvRegisterObjectChg(int object)
+{
+  if (Imodv->standalone)
+    return;
+  Imodv->vi->undo->objectPropChg(object);
+}
+
+void imodvFinishChgUnit()
+{
+  if (Imodv->standalone)
+    return;
+  Imodv->vi->undo->finishUnit();
 }
 
 // Quit imodv
@@ -647,6 +661,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.22  2004/11/12 01:20:55  mast
+Fixed bug that made it impossible to turn off stored low res mode
+
 Revision 4.21  2004/09/21 20:30:52  mast
 Added call to synchronize object color change to info window
 
