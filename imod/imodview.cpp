@@ -49,6 +49,7 @@ Log at end of file
 #include "iproc.h"
 #include "autox.h"
 #include "imod_workprocs.h"
+#include "preferences.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 static int ivwManageInitialFlips(ImodView *iv);
@@ -654,6 +655,9 @@ int ivwLoadMrc(ImodView *vi)
   vi->ysize  = ysize;
   vi->zsize  = zsize;
   vi->xysize = xsize * ysize;
+
+  // Set info window up now that size is known
+  ImodPrefs->setInfoGeometry();
 
   /* Get a cache size set properly if piece list or -C entry was made */
   if (vi->li->plist || vi->vmSize)
@@ -2089,6 +2093,9 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
   iv->ysize  = ysize;
   iv->zsize  = zsize;
   iv->xysize = xsize * ysize;
+  
+  // Set info window up now that size is known
+  ImodPrefs->setInfoGeometry();
 
   ivwSetCacheSize(iv);
   ilistDelete(ilist);
@@ -2180,6 +2187,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.12  2003/09/18 00:42:43  mast
+Fixed an error message
+
 Revision 4.11  2003/09/16 02:46:18  mast
 Changed to return line pointers to images instead of actually flipping data
 and consolidated fast pixel access routines from xyz, slicer, and tumbler.
