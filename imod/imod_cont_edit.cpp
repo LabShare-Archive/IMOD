@@ -1522,7 +1522,7 @@ void iceShowHelp()
      "as ghosts from up to 3 sections away.  If the \"Up\" "
      "button is on, then contours will be displayed as ghosts on "
      "following sections; the \"Down\" button will display contours "
-     "as ghosts on previous sections.  The \"g\" hotkey will "
+     "as ghosts on previous sections.  The \"g\" hot key will "
      "toggle "
      "the combination selected by these buttons on and off.\n\n",
      NULL);
@@ -1564,6 +1564,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.5  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.4  2003/04/17 18:43:38  mast
 adding parent to window creation
 
