@@ -72,6 +72,7 @@ typedef struct imod_application
   int ghost;
   
   short wzoom;
+  int exiting;
 
 }ImodApp;
 
@@ -175,7 +176,6 @@ typedef struct ViewInfo
                            * 16 = color rgb unsigned byte triplets.
                            */
 
-  int            imageSize;
 
   FILE   *fp;                /* current image file pointer.    */
 
@@ -281,6 +281,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.11  2003/03/03 22:10:27  mast
+Added modeling cursor to App structure
+
 Revision 3.10  2003/02/27 18:17:36  mast
 Changes for using Qt directory functions
 
