@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2004/07/08 00:06:50  sueh
+ * bug# 429 rename .log to .log~ when .log exists
+ *
  * Revision 3.10  2004/07/07 21:42:22  sueh
  * bug# 490 only rename watched file if it exists
  *
@@ -296,28 +299,24 @@ public class ComScriptProcess
       // by an existing log file
       String logFileName = parseBaseName(name, ".com") + ".log";
       File logFile = new File(workingDirectory, logFileName);
-      if (logFile.exists()) {
-        File oldLog = new File(workingDirectory, logFileName + "~");
-        try {
-          Utilities.renameFile(logFile, oldLog);
-        }
-        catch (IOException except) {
-          except.printStackTrace();
-          System.err.println(except.getMessage());
-        }
+      File oldLog = new File(workingDirectory, logFileName + "~");
+      try {
+        Utilities.renameFile(logFile, oldLog);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        System.err.println(except.getMessage());
       }
       
       if (watchedFileName != null) {
         File watchedFile = new File(workingDirectory, watchedFileName);
-        if (watchedFile.exists()) {
-          File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
-          try {
-            Utilities.renameFile(watchedFile, oldWatchedFile);
-          }
-          catch (IOException except) {
-            except.printStackTrace();
-            System.err.println(except.getMessage());
-          }
+        File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
+        try {
+          Utilities.renameFile(watchedFile, oldWatchedFile);
+        }
+        catch (IOException except) {
+          except.printStackTrace();
+          System.err.println(except.getMessage());
         }
       }
 
