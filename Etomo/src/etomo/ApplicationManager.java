@@ -74,6 +74,12 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.69  2003/10/03 22:11:15  rickg
+ * <p> Bug# 255
+ * <p> added returns to catch sections for doneSetupDialog
+ * <p> Don't want to continue to main window if copytomocoms did not
+ * <p> succeed
+ * <p>
  * <p> Revision 2.68  2003/10/02 18:57:46  sueh
  * <p> bug236 added testing:
  * <p> NewstParamTest
@@ -1602,7 +1608,18 @@ public class ApplicationManager {
 
       // Get any user specified changes
       fineAlignmentDialog.getTransferFidParams(transferfidParam);
-      String threadName = processMgr.transferFiducials(transferfidParam);
+      String threadName;
+      try {
+        threadName = processMgr.transferFiducials(transferfidParam);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+				String[] message = new String[2];
+				message[0] = "Can not execute transferfid command";
+				message[1] = e.getMessage();
+				mainFrame.openMessageDialog(message, "Unable to execute command");
+				return;
+      }
       setThreadName(threadName, sourceAxisID);
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
     }
@@ -3192,7 +3209,19 @@ public class ApplicationManager {
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
 
-    String threadName = processMgr.trimVolume(trimvolParam);
+
+    String threadName;
+    try {
+      threadName = processMgr.trimVolume(trimvolParam);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+			String[] message = new String[2];
+			message[0] = "Can not execute trimvol command";
+			message[1] = e.getMessage();
+			mainFrame.openMessageDialog(message, "Unable to execute command");
+			return;
+    }
     setThreadName(threadName, AxisID.ONLY);
     mainFrame.startProgressBar("Trimming volume", AxisID.ONLY);
   }
