@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/10/30 01:43:44  rickg
+ * <p> Bug# 338 Remapped context menu entries
+ * <p>
  * <p> Revision 2.11  2003/10/28 23:35:48  rickg
  * <p> Bug# 336 Context menu label capitalization
  * <p>
@@ -110,15 +113,17 @@ public class TomogramCombinationDialog
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
-  
+
   private JTabbedPane tabbedPane = new JTabbedPane();
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST);
 
-    //  Instantiate the tab pane contents
-    pnlSetup = new SetupCombinePanel(applicationManager);
+    // Instantiate the tab pane contents
+    // The initial combine panel needs to be instatiated before the setup panel
+    // because the setup panel calls the initial combine panel 
     pnlInitial = new InitialCombinePanel(applicationManager);
+    pnlSetup = new SetupCombinePanel(applicationManager, pnlInitial);
     pnlFinal = new FinalCombinePanel(applicationManager);
 
     fixRootPanel(rootSize);
@@ -248,7 +253,7 @@ public class TomogramCombinationDialog
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Final Match"), state);
   }
-  
+
   /**
    * Return true if the initial and final match panels are enabled. 
    * @return The state of the initial and final match panels
@@ -256,7 +261,7 @@ public class TomogramCombinationDialog
   public boolean isCombinePanelEnabled() {
     return combinePanelEnabled;
   }
-  
+
   /**
    * Get the the matchorwarp parameters of the UI returning them in the 
    * modified MatchorwarpParam object  * 

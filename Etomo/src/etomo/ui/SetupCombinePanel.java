@@ -45,6 +45,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.16  2003/11/05 19:40:47  rickg
+ * Bug# 351 added warning label regarding creating scripts
+ *
  * Revision 2.15  2003/10/30 01:43:44  rickg
  * Bug# 338 Remapped context menu entries
  *
@@ -166,6 +169,7 @@ public class SetupCombinePanel implements ContextMenu {
     "$Id$";
 
   private ApplicationManager applicationManager;
+  private InitialCombinePanel initialCombinePanel;
 
   private JPanel pnlRoot = new JPanel();
   private BeveledBorder brdrContent =
@@ -234,9 +238,12 @@ public class SetupCombinePanel implements ContextMenu {
   /**
    * Default constructor
    */
-  public SetupCombinePanel(ApplicationManager appMgr) {
+  public SetupCombinePanel(
+    ApplicationManager appMgr,
+    InitialCombinePanel pnlInitial) {
 
     applicationManager = appMgr;
+    initialCombinePanel = pnlInitial;
 
     //  Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -379,9 +386,9 @@ public class SetupCombinePanel implements ContextMenu {
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(brdrContent.getBorder());
-    
+
     pnlRoot.add(lblEffectWarning);
-		pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlToSelector);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlFiducialParams);
@@ -572,6 +579,7 @@ public class SetupCombinePanel implements ContextMenu {
    */
   private void updateUseFiducialModel() {
     btnImodMatchModels.setEnabled(rbUseModel.isSelected());
+    initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
   }
 
   /**

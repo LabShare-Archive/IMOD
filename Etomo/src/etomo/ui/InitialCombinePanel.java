@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2003/10/29 17:23:02  rickg
+ * <p> Bug# 301 Tooltips
+ * <p>
  * <p> Revision 1.14  2003/10/21 23:43:42  rickg
  * <p> Changed imod buttons to non multiline
  * <p>
@@ -214,6 +217,14 @@ public class InitialCombinePanel implements ContextMenu {
     solvematchmodParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
     solvematchmodParam.setResidualThreshold(
       Double.parseDouble(ltfResidulThreshold.getText()));
+  }
+
+  /**
+   * Set the state of the matching model checkbox.
+   * @param state
+   */
+  void setMatchingModels(boolean state) {
+    cbUseModel.setSelected(state);
   }
 
   /**
