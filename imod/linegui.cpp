@@ -30,6 +30,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/06/23 03:34:14  mast
+Added ability to save and restore all settings, and a button to restore
+defaults
+
 Revision 1.3  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
@@ -560,6 +564,7 @@ void LineTrack::track(int client)
     plug->cont = imodContourGet(theModel);
     imodContourCopy(tmpcont, plug->cont);
     free(tmpcont);
+    ivwSetNewContourTime(plug->view, imodObjectGet(theModel), plug->cont);
     pts = plug->cont->pts;
     for (i = 0; i < maxpoint; i++) pts++->z = curz;
     imodGetIndex(theModel, &plug->ob, &plug->co, &curpt);
