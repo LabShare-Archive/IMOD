@@ -19,7 +19,48 @@ $Date$
 
 $Revision$
 
-Log at end of file 
+$Log$
+Revision 3.13  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.12  2004/06/15 15:15:50  mast
+Had to move declaration out of body of check_unit for SGI
+
+Revision 3.11  2004/06/15 04:42:36  mast
+Fixed bugs created by unneeded cosmetic changes!
+
+Revision 3.10  2004/06/14 20:05:58  mast
+Added check and error reporting for illegal unit number and unit not open
+
+Revision 3.9  2004/04/24 04:42:40  mast
+Rewrote get_fstr to be clearer, but valgrind still complains
+
+Revision 3.8  2004/04/19 18:06:51  mast
+Added newlines in front of all ERROR outputs
+
+Revision 3.7  2004/01/17 20:33:26  mast
+Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
+b3dutil
+
+Revision 3.6  2003/11/18 19:19:09  mast
+changes for 2GB problem on Windows
+
+Revision 3.5  2003/10/24 03:40:33  mast
+open file as binary; delete ~ before renaming for Windows/Intel
+
+Revision 3.4  2002/10/23 21:01:06  mast
+Directed error messages to stdout instead of stderr because that is
+where Fortran program messages go
+
+Revision 3.3  2002/07/21 19:22:34  mast
+Standardized error output to ERROR: ROUTINE
+
+Revision 3.2  2002/06/26 00:22:53  mast
+Changed abort calls to exit(-1) so that they would set error status
+
+Revision 3.1  2002/01/07 18:23:34  mast
+Add an error message if big_seek fails
+
 */
  
 #define BLOCKIO_C    /*define source name for includes*/
@@ -28,7 +69,6 @@ Log at end of file
 Include Files
 ******************************************************************************/
 #include <stdio.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -139,7 +179,6 @@ static int find_unit();
 static void get_fstr();
 static void set_fstr();
 static Unit *check_unit(int iunit, char *function, int doExit);
-static void close_at_exit();
  
 /******************************************************************************
 Private Global Declarations
@@ -503,11 +542,9 @@ static int find_unit()
   static int firstTime = 1;
   int i;
   
-  if (firstTime) {
+  if (firstTime) 
     for (i = 0; i < MAX_UNIT; i++)
       units[i].being_used = 0;
-    atexit(close_at_exit);
-  }
   firstTime = 0;
 
   for (i = 0; i < MAX_UNIT; i++) {
@@ -562,60 +599,11 @@ static Unit *check_unit(int unit, char *function, int doExit)
   return u;
 }
 
-/* Simply call close on all units to get scratch files deleted */
-static void close_at_exit()
-{
-  int i;
-  for (i = 1; i <= MAX_UNIT; i++)
-    qclose(&i);
-}
  
 /************************************************************************
 Private undefines
 *************************************************************************/
 #undef BLOCKIO_C
  
-/*
-$Log$
-Revision 3.13  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.12  2004/06/15 15:15:50  mast
-Had to move declaration out of body of check_unit for SGI
-
-Revision 3.11  2004/06/15 04:42:36  mast
-Fixed bugs created by unneeded cosmetic changes!
-
-Revision 3.10  2004/06/14 20:05:58  mast
-Added check and error reporting for illegal unit number and unit not open
-
-Revision 3.9  2004/04/24 04:42:40  mast
-Rewrote get_fstr to be clearer, but valgrind still complains
-
-Revision 3.8  2004/04/19 18:06:51  mast
-Added newlines in front of all ERROR outputs
-
-Revision 3.7  2004/01/17 20:33:26  mast
-Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
-b3dutil
-
-Revision 3.6  2003/11/18 19:19:09  mast
-changes for 2GB problem on Windows
-
-Revision 3.5  2003/10/24 03:40:33  mast
-open file as binary; delete ~ before renaming for Windows/Intel
-
-Revision 3.4  2002/10/23 21:01:06  mast
-Directed error messages to stdout instead of stderr because that is
-where Fortran program messages go
-
-Revision 3.3  2002/07/21 19:22:34  mast
-Standardized error output to ERROR: ROUTINE
-
-Revision 3.2  2002/06/26 00:22:53  mast
-Changed abort calls to exit(-1) so that they would set error status
-
-Revision 3.1  2002/01/07 18:23:34  mast
-Add an error message if big_seek fails
-
-*/
+    
+ 
