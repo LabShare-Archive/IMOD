@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/07 22:28:30  rickg
+ * <p> Implemented fillCache mechanism, but not enabled
+ * <p>
  * <p> Revision 2.5  2003/04/28 23:25:26  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -121,18 +124,22 @@ public class ImodProcess {
     }
 
     // TODO: Change imod command to 3dmod and remove debug flag
-    String command = "imod -D -W " + options + datasetName + " " + modelName;
+    String command = "3dmod -W " + options + datasetName + " " + modelName;
+    System.err.println(command);
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
     //  Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
+    System.err.print("Starting 3dmod thread...");
     imodThread.start();
-
+		System.err.println("started");
+		
     //  Check the stderr of the 3dmod process for the windowID and the
     String line;
     while (imodThread.isAlive() && windowID.equals("")) {
 
       while ((line = imod.readStderr()) != null) {
+      	System.err.println("line:" + line);
         if (line.indexOf("Window id = ") != -1) {
           String[] words = line.split("\\s+");
           if (words.length < 4) {
@@ -152,9 +159,10 @@ public class ImodProcess {
     }
 
     //  If imod exited before getting the window report the problem to the user
+    System.err.println("3dmod window ID:" + windowID);
     if (windowID.equals("")) {
       String message =
-        "imod returned: " + String.valueOf(imod.getExitValue()) + "\n";
+        "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
       while ((line = imod.readStderr()) != null) {
         System.out.println(line);
@@ -232,7 +240,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command = command + args[i] + " ";
     }
-
+		System.err.println(command);
     InteractiveSystemProgram imodSendEvent =
       new InteractiveSystemProgram(command);
 
