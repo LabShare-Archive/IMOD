@@ -57,6 +57,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/02/07 03:05:56  sueh
+ * <p> $bug# 169 Added setWorkingDirectory().
+ * <p> $
  * <p> $Revision 1.4  2004/02/05 18:04:12  sueh
  * <p> $bug# 306 added setSwapYZ - used to set swapYZ before
  * <p> $opening 3dmod
@@ -97,6 +100,7 @@ public class ImodState {
   private boolean modelView = false;
   private boolean useModv = false;
   private boolean preserveContrast = false;
+  private boolean warnedStaleFile = false;
   
 
   
@@ -267,6 +271,7 @@ public class ImodState {
       process.setUseModv(useModv);
     }
     process.open();
+    warnedStaleFile = false;
     if (useMode) {
       if (mode.equals(MODEL)) {
         process.modelMode();
@@ -316,6 +321,7 @@ public class ImodState {
     }
     else {
       process.openModel(modelName);
+      warnedStaleFile = false;
     }
     if (useMode) {
       if (mode.equals(MODEL)) {
@@ -414,6 +420,12 @@ public class ImodState {
   }
   public boolean isPreserveContrast() {
     return preserveContrast;
+  }
+  public boolean isWarnedStaleFile() {
+    return warnedStaleFile;
+  }
+  public void setWarnedStaleFile(boolean warnedStaleFile) {
+    this.warnedStaleFile = warnedStaleFile;
   }
 
 
