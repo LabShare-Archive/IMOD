@@ -358,6 +358,7 @@ void zapResize(ZapStruct *zap, int winx, int winy)
 
   b3dBufferImage(zap->image);
   zap->ginit = 1;
+  zap->recordSubarea = 1;
 
   if (imodDebug('z'))
     imodPrintStderr("\n");
@@ -415,6 +416,12 @@ void zapPaint(ZapStruct *zap)
                      zap->rbMouseY1 - zap->rbMouseY0);
   } 
   zapDrawTools(zap);
+
+  // If flag set, record the subarea size; clear flag
+  if (zap->recordSubarea)
+    setControlAndLimits(zap);
+  zap->recordSubarea = 0;
+
   if (imodDebug('z'))
     imodPrintStderr("\n");
 }
@@ -1102,9 +1109,10 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   }
 
   // If event not handled, pass up to default processor
-  if (handled)
+  if (handled) {
     event->accept();    // redundant action - supposed to be the default
-  else {
+    setControlAndLimits(zap);   // Set limits again after action
+  } else {
     // What does this mean? It is needed to get images to sync right
     ivwControlActive(vi, 0);
     inputQDefaultKeys(event, vi);
@@ -3417,6 +3425,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.62  2005/03/07 06:17:23  mast
+Synchronized toolbar button properly when turning off rubberband
+
 Revision 4.61  2005/02/24 22:36:00  mast
 Implemented multiple-object selection for Ctrl-A and the drag-select,
 and allowed contours from multiple objects to be shifted/transformed
