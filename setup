@@ -546,7 +546,7 @@ if ($machine != cygwin) then
     cat <<EOF >> $imod_qconf
 INCLUDEPATH += $inc_dir
 target.path = $inst_bin_dir
-imodv.path = $inst_bin_dir
+3dmodv.path = $inst_bin_dir
 EOF
 
     if ($debug == true) then
@@ -563,7 +563,7 @@ EOF
     #
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
-unix:imodv.extra = \\rm -f $inst_bin_dir/imodv ; ln -s $inst_bin_dir/imod $inst_bin_dir/imodv
+unix:3dmodv.extra = cd $inst_bin_dir ; \\rm -f 3dmodv imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
     else
         cat << EOF >> $sendevent_qconf
@@ -579,13 +579,13 @@ runmidas.extra = \\cp -f runmidas $inst_bin_dir/midas
 EOF
 
         cat << EOF >> $imod_qconf
-imodv.extra = \\cp -f runimodv $inst_bin_dir/imodv ; \\cp -f runimod $inst_bin_dir/imod
+3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
     endif
 
     (cd $midas_dir ; qmake midas.pro)
     (cd $sendevent_dir ; qmake imodsendevent.pro)
-    (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s imod imodv)
+    (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s 3dmod 3dmodv)
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
     echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
@@ -650,6 +650,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.14  2003/04/17 19:29:39  mast
+#  Changes for Mac
+#
 #  Revision 3.13  2003/03/29 01:06:19  mast
 #  Add variable to add libraries to GRAPHLIBS
 #
