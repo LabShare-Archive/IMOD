@@ -398,6 +398,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/28 22:42:35  mast
+c	  Changes to output a residual listing file and to standardize error
+c	  exits and output
+c	
 c	  Revision 3.2  2002/05/09 03:48:38  mast
 c	  Fixed a line length that did not compile on SGI
 c	
@@ -462,7 +466,7 @@ c
 	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
 	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel
 	real*4 atand,sind,cosd
-	integer*4 nearest_view
+	integer*4 nearest_view,lnblnk
 c
 	nlocalres=50
 	firsttime=.true.
