@@ -1,5 +1,45 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-18
+7/21/02: In Imod, increased section number output in Zap window to 4 columns
+and made the filename outputs in windows show the number of image files
+when multiple files are loaded.
+
+7/21/02: Made Setupcombine set up default border sizes based on size of input
+volume.  Increased default thickness of small 3-D volume used by Matchshifts
+and made this thickness increase with input volume thickness.
+
+7/21/02: Modified Matchshifts to reduce extraneous output and report on
+its progress instead.  Added STATUS reports for each piece to volcombine.com.
+
+7/20/02: Standardized error outputs for Tilt, Ccderaser, Tomopitch,
+Solvematch, Refinematch, Findwarp, Corrsearch3d, and image reading routines.
+
+7/20/02: Made imod start saving image file origin information in the model
+file so that programs can convert model coordinates back to the index
+coordinates in the full volume even if the model was loaded on a subset of the
+image file.
+
+7/20/02: Revised Solvematch, Refinematch, Findwarp, Tomopitch, and
+Corrsearch3d to scale model coordinates properly, so they should work with
+volumes that have pixel sizes other than 1.0.
+
+7/20/02: Made Corrsearch3d rather than Patchcrawl3d determine which patches 
+should be excluded because they are not from good areas of the second volume,
+which should fix problems in combining tomograms with a rotation much
+different from 90 degrees and with both a large shift between volumes and
+large excluded areas.
+
+7/20/02: Resurrected Solvematch's ability to work with matching model files
+and added a capability to find a solution using just matching model files and
+no fiducial coordinates.
+
+7/20/02: Rearranged input to Findwarp so that it is easier to run it
+automatically while excluding rows or columns of patches, and added arguments
+to Matchorwarp to specify rows or columns to exclude and to run it in a trial
+mode.  Exclusion of rows or columns can now be explored by running
+matcorwarp.com, without running Findwarp interactively.
+
 IMOD_2-6-17
 7/7/02: Made Ccderaser use scale factors from the model file to get back to
 index coordinates, so now one model file can be used with image files that
