@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/08/22 14:58:37  mast
+c	  Used line_is_filename as workaround to Windows problem
+c	
 c	  Revision 3.8  2004/06/10 05:29:30  mast
 c	  Added ability to deal with absolute coordinates
 c	
@@ -71,7 +74,8 @@ c
 	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix,k
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 loMaxAvgRatio, hiMaxAvgRatio, loMaxLimRatio, hiMaxLimRatio
-	real*4 aDelta, bDelta, aPixelSize, bPixelSize
+	real*4 aDelta, bDelta, aPixelSize, bPixelSize, xcen, ycen
+	integer*4 nxFidA, nyFidA, nxFidB, nyFidB
 	logical relativeFids
 
         logical readw_or_imod
@@ -167,7 +171,7 @@ c
 c
 	ncolfit = 4
 	call getFiducials(filename, iconta, pnta, npnta, idim,
-     &	    'first tomogram', aPixelSize)
+     &	    'first tomogram', aPixelSize,  nxFidA, nyFidA)
 c
 	if (pipinput) then
 	  if (PipGetString('BFiducialFile', filename) .gt. 0) call errorexit
@@ -178,7 +182,7 @@ c
 	  read(*,'(a)')filename
 	endif
 	call getFiducials(filename, icontb, pntb, npntb, idim,
-     &	    'second tomogram', bPixelSize)
+     &	    'second tomogram', bPixelSize, nxFidB, nyFidB)
 c	  
 c	  fill listcorr with actual contour numbers, and find maximum contours
 c
@@ -313,15 +317,29 @@ c
      &	      (ierrFactor .eq. 0 .and. bDelta .eq. 0.))) then
 c
 c	      Shift the original X and Y to the center of the volume
-c	      hove to divide size by scale because points aren't scaled up yet
+c	      have to divide size by scale because points aren't scaled up yet
+c	      Use the actual fiducial size if it exists
 c
+	    xcen = 0.5 * nxyz(1, 1) / aScale
+	    ycen = 0.5 * nxyz(jxyz(2), 1) / aScale
+	    if (nxFidA .gt. 0 .and. nyFidA .gt. 0) then
+	      xcen = 0.5 * nxFidA
+	      ycen = 0.5 * nyFidA
+	    endif
 	    do i = 1, npnta
-	      pnta(1, i) = pnta(1, i) - 0.5 * nxyz(1, 1) / aScale
-	      pnta(2, i) = pnta(2, i) - 0.5 * nxyz(jxyz(2), 1) / aScale
+	      pnta(1, i) = pnta(1, i) - xcen
+	      pnta(2, i) = pnta(2, i) - ycen
 	    enddo
+c	      
+	    xcen = 0.5 * nxyz(1, 2) / bScale
+	    ycen = 0.5 * nxyz(jxyz(2), 2) / bScale
+	    if (nxFidB .gt. 0 .and. nyFidB .gt. 0) then
+	      xcen = 0.5 * nxFidB
+	      ycen = 0.5 * nyFidB
+	    endif
 	    do i = 1, npntb
-	      pntb(1, i) = pntb(1, i) - 0.5 * nxyz(1, 2) / bScale
-	      pntb(2, i) = pntb(2, i) - 0.5 * nxyz(jxyz(2), 2) / bScale
+	      pntb(1, i) = pntb(1, i) - xcen
+	      pntb(2, i) = pntb(2, i) - ycen
 	    enddo
 	    relativeFids = .false.
 	  endif
@@ -717,19 +735,22 @@ c	  If a pixel size is found on the first line, it is returned in
 c	  PIXELSIZE, otherwise this is set to 0
 c
 	subroutine getFiducials(filename, iconta, pnta, npnta, idim, axis,
-     &	    pixelSize)
+     &	    pixelSize, nxFid, nyFid)
 	implicit none
 	character*(*) filename
 	character*(*) axis
-	character*80 line
-	integer*4 iconta(*),idim,npnta,len,lnblnk,i,j
+	character*100 line
+	integer*4 iconta(*),idim,npnta,len,lnblnk,i,j,nxFid, nyFid
 	real*4 pnta(3, idim), pixelSize
 c
 	npnta = 0
 	pixelSize = 0.
+	nxFid = 0
+	nyFid = 0
 	call dopen(1,filename,'old','f')
 c	  
-c	  get the first line and search for PixelSize:
+c	  get the first line and search for PixelSize: (first version)
+c	  or Pix: and Dim: (second version)
 c
 	read(1,'(a)',end=15)line
 	len = lnblnk(line)
@@ -737,6 +758,10 @@ c
 	do while (i .lt. len - 11)
 	  if (line(i:i+10) .eq. 'Pixel size:')
      &	      read(line(i+11:len),*, err=8)pixelSize
+	  if (line(i:i+3) .eq. 'Pix:')
+     &	      read(line(i+4:len),*, err=8)pixelSize
+	  if (line(i:i+3) .eq. 'Dim:')
+     &	      read(line(i+4:len),*, err=8)nxFid,nyFid
 	  i = i + 1
 	enddo
 c	  
