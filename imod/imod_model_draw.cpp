@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/03/03 22:15:55  mast
+Added ability to draw spheres for any points with size
+
 Revision 4.2  2003/02/27 19:38:56  mast
 Change include to qgl, and have it only draw at the current time
 
@@ -28,18 +31,23 @@ Changes to get clean compilation with g++
 */
 #include "imod.h"
 #include "imod_display.h"
-
-#include <qgl.h>
+#include "b3dgfx.h"
 #include <GL/glu.h>
+#include "xzap.h"
 
 static void imodDrawContourLines(Icont *cont, GLenum mode);
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj);
 static void imodDrawSpheres(ImodView *vi, Iobj *obj);
+static void imodDrawSymbol(Ipoint *point, unsigned char sym,
+                           unsigned char size, unsigned char flags);
+
 
 void imodDrawModel(ImodView *vi, Imod *imod)
 {
   Iobj  *obj;
   Icont *cont;
+  Ipoint *pnt;
+  int imPtSize, modPtSize, backupSize, curSize;
   int ob, co;
   bool hasSpheres;
 
@@ -70,8 +78,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
 	  continue;
 	
         /* DNM 2/21/03: don't draw contours from other times */
-        if (vi->nt && iobjTime(obj->flags) && cont->type && 
-            (vi->ct != cont->type))
+	if (zapTimeMismatch(vi, 0, obj, cont))
           continue;
 
 	/* todo: ghost contour ? */
@@ -92,7 +99,33 @@ void imodDrawModel(ImodView *vi, Imod *imod)
      
   /* draw ends of current contour. */
   /* draw current point symbol.    */
-     
+  obj = imodObjectGet(vi->imod);
+  cont = imodContourGet(vi->imod);
+  pnt = imodPointGet(vi->imod);
+  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+
+  /* draw if current contour exists and it is not at wrong time */
+  if (cont && cont->psize && !zapTimeMismatch(vi, 0, obj, cont)) { 
+    
+    /* draw ends if more than one point */
+    if (cont->psize > 1) {
+      b3dColorIndex(App->bgnpoint);
+      imodDrawSymbol(cont->pts, IOBJ_SYM_CIRCLE, modPtSize, 0);
+      b3dColorIndex(App->endpoint);
+      imodDrawSymbol(&(cont->pts[cont->psize - 1]), IOBJ_SYM_CIRCLE, 
+                     modPtSize, 0);
+    }
+
+    /* draw current point in model mode */
+    if (pnt && vi->imod->mousemode == IMOD_MMODEL) {
+      b3dColorIndex(App->foreground);
+      curSize = modPtSize;
+      if (cont->psize > 1 && 
+          (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
+        curSize = backupSize;
+      imodDrawSymbol(pnt, IOBJ_SYM_CIRCLE, curSize, 0);
+    }
+  }   
   return;
 }
 
@@ -150,8 +183,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
 
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
-    if (vi->nt && iobjTime(obj->flags) && cont->type && 
-        (vi->ct != cont->type))
+    if (zapTimeMismatch(vi, 0, obj, cont))
       continue;
 
     lpt = cont->psize;
@@ -214,10 +246,37 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
     default:
       break;
     }
+
+    /* draw end markers for all kinds of contours */
+    if (obj->symflags & IOBJ_SYMF_ENDS) {
+      point = cont->pts;
+      b3dColorIndex(App->bgnpoint);
+
+      for (pt = 0; pt < 2; pt++) {
+        vert = *point;
+        glBegin(GL_LINES);
+        vert.x -= obj->symsize/2.;
+        vert.y -= obj->symsize/2.;
+	glVertex3fv((float *)&vert);
+        vert.x += obj->symsize;
+        vert.y += obj->symsize;
+	glVertex3fv((float *)&vert);
+        glEnd();
+
+        glBegin(GL_LINES);
+        vert.x -= obj->symsize;
+	glVertex3fv((float *)&vert);
+        vert.x += obj->symsize;
+        vert.y -= obj->symsize;
+	glVertex3fv((float *)&vert);
+        glEnd();
+
+        point = &(cont->pts[cont->psize - 1]);
+        b3dColorIndex(App->endpoint);
+      }
+      
+    }
   }
-
-  /* todo: draw ends */
-
   return;
 }
 
@@ -252,8 +311,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
     cont = &obj->cont[co];
     if (!cont->psize)
       continue;
-    if (vi->nt && iobjTime(obj->flags) && cont->type && 
-        (vi->ct != cont->type))
+    if (zapTimeMismatch(vi, 0, obj, cont))
       continue;
 
     for (pt = 0, point = cont->pts; pt < cont->psize; pt++, point++) {
@@ -282,9 +340,27 @@ void imodDrawSymbol(Ipoint *point,
 		    unsigned char size,
 		    unsigned char flags)
 {
+  static GLUquadricObj *qobj = NULL;
+  double inner, outer;
+  int slices, loops;
+
+  if (!qobj)
+    qobj = gluNewQuadric();
+
   switch(sym){
           
   case IOBJ_SYM_CIRCLE:
+    outer = size;
+    if (flags  & IOBJ_SYMF_FILL)
+      inner = 0.0;
+    else
+      inner = outer - 1;
+    slices = (int)(outer + 4);
+    loops = 1;
+    glPushMatrix();
+    glTranslatef(point->x, point->y, point->z);
+    gluDisk(qobj, inner, outer, slices, loops);
+    glPopMatrix();
     break;
           
   case IOBJ_SYM_SQUARE:
