@@ -69,6 +69,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/07/26 19:20:05  mast
+c	  Was taking min of an int and a real - Intel compiler caught it.
+c	
 c	  Revision 3.3  2002/07/21 19:44:11  mast
 c	  Added declaration of lnblnk
 c	
@@ -263,7 +266,7 @@ c
 c	      get new number of intervals inside the limits, and a new delta
 c	      to span the limits
 c	      
-	    ixspan = ixhi2 - ixlo2 - nxpatch
+	    ixspan = max(0, ixhi2 - ixlo2 - nxpatch)
 	    numx2 = ixspan / ixdelta + 1
 	    newxdelta = ixspan / numx2
 	    if (newxdelta .lt. 0.6 * ixdelta) then
@@ -299,7 +302,7 @@ c
 	  izhi2 = min(nz - nbzhi, nint(yvert(3)))
 	  if (numzpat .gt. 1) then
 c
-	    izspan = izhi2 - izlo2 - nzpatch
+	    izspan = max(0, izhi2 - izlo2 - nzpatch)
 	    numz2 = izspan / izdelta + 1
 	    newzdelta = izspan / numz2
 	    if (newzdelta .lt. 0.6 * izdelta) then
@@ -329,7 +332,6 @@ c
 	  print *,'Scan limits in Z:',izstart,izstart+(numzpat-1)*izdelta
      &	      +nzpatch
 	endif
-
 c	  
 c	  set indexes at which to load data and compose patches
 c	  
