@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.1  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p> </p>
@@ -42,6 +45,12 @@ public class ConstSolvematchParam {
   public static final String SURFACE_OR_USE_MODELS = "SurfacesOrUseModels";
   public static final String TO_MATCHING_MODEL = "AMatchingModel";
   public static final String FROM_MATCHING_MODEL = "BMatchingModel";
+  
+  public static final int USE_MODEL_ONLY_OPTION = -2;
+  public static final int ONE_SIDE_INVERTED_OPTION = -1;
+  public static final int USE_MODEL_OPTION = 0;
+  public static final int ONE_SIDE_OPTION = 1;
+  public static final int BOTH_SIDES_OPTION = 2;
 
   protected boolean matchBToA = true;
 
@@ -120,15 +129,15 @@ public class ConstSolvematchParam {
    */
   public FiducialMatch getSurfacesOrModel() {
     switch (surfacesOrModel) {
-      case -2 :
+      case USE_MODEL_ONLY_OPTION :
         return FiducialMatch.USE_MODEL_ONLY;
-      case -1 :
+      case ONE_SIDE_INVERTED_OPTION :
         return FiducialMatch.ONE_SIDE_INVERTED;
-      case 0 :
+      case USE_MODEL_OPTION :
         return FiducialMatch.USE_MODEL;
-      case 1 :
+      case ONE_SIDE_OPTION :
         return FiducialMatch.ONE_SIDE;
-      case 2 :
+      case BOTH_SIDES_OPTION :
         return FiducialMatch.BOTH_SIDES;
       default :
         return FiducialMatch.NOT_SET;

@@ -17,6 +17,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/08/02 23:06:30  rickg
+ * <p> Bug #523 Added call to setMatchBToA to the parse.. method
+ * <p>
  * <p> Revision 3.6  2004/06/24 21:40:07  sueh
  * <p> *** empty log message ***
  * <p>
@@ -237,23 +240,23 @@ public class SolvematchParam extends ConstSolvematchParam
    */
   public void setSurfacesOrModel(FiducialMatch value) {
     if (value == FiducialMatch.USE_MODEL_ONLY) {
-      surfacesOrModel = -2;
+      surfacesOrModel = USE_MODEL_ONLY_OPTION;
       return;
     }
     if (value == FiducialMatch.ONE_SIDE_INVERTED) {
-      surfacesOrModel = -1;
+      surfacesOrModel = ONE_SIDE_INVERTED_OPTION;
       return;
     }
     if (value == FiducialMatch.USE_MODEL) {
-      surfacesOrModel = 0;
+      surfacesOrModel = USE_MODEL_OPTION;
       return;
     }
     if (value == FiducialMatch.ONE_SIDE) {
-      surfacesOrModel = 1;
+      surfacesOrModel = ONE_SIDE_OPTION;
       return;
     }
     if (value == FiducialMatch.BOTH_SIDES) {
-      surfacesOrModel = 2;
+      surfacesOrModel = BOTH_SIDES_OPTION;
       return;
     }
   }
