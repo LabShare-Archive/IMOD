@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -126,7 +134,8 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
      Ipoint *pts;
      int ix, iy, iz;
      int xmin, ymin, zmin, xmax, ymax, zmax;
-     float dx, dy, dz;
+     float dx, dy, dz, xx, yy;
+     int residuals = 0;
 
      fgetline(fin,line,MAXLINE);
      sscanf(line, "%d", &npatch);
@@ -135,6 +144,9 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
 		  npatch);
 	  exit(1);
      }
+
+     if (strstr(line, "residuals") != NULL)
+	  residuals = 1;
 
      mod = imodNew();     
      if (!mod){
@@ -146,10 +158,12 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
      mod->obj->cont = imodContoursNew(npatch);
      mod->obj->flags |= IMOD_OBJFLAG_OPEN;
      mod->obj->symbol = IOBJ_SYM_CIRCLE;
-     mod->flags |= IMODF_FLIPYZ;
+     if (!residuals)
+	  mod->flags |= IMODF_FLIPYZ;
      mod->pixsize = scale;
      xmin = ymin= zmin = 1000000;
      xmax = ymax = zmax = -1000000;
+     dz = 0.;
      for (i = 0; i < npatch; i++) {
 	  pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
 	  mod->obj->cont[i].pts = pts;
@@ -159,31 +173,40 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
 	       fprintf(stderr, "Error reading file at line %d.\n", i + 1);
 	       exit(1);
 	  }
+     puts(line);
 
-	  /* DNM 11/15/01: have to handle either with commas or without,
-	     depending on whether it was produced by patchcorr3d or 
-	     patchcrawl3d */
-	  if (strchr(line, ','))
-	       sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx, &dz,
-		      &dy);
-	  else
-	       sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
-		      &dy);
+	  /* DNM 7/26/02: read in residuals as real coordinates, without a 
+	     flip */
+	  if (residuals) {
+	       sscanf(line, "%f %f %d %f %f", &xx, &yy, &iz, &dx, &dy);
+	  } else {
+	       /* DNM 11/15/01: have to handle either with commas or without,
+		  depending on whether it was produced by patchcorr3d or 
+		  patchcrawl3d */
+	       if (strchr(line, ','))
+		    sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
+			   &dz, &dy);
+	       else
+		    sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
+			   &dy);
+	       xx = ix;
+	       yy = iy;
+	  }
 
-	  pts[0].x = ix;
-	  pts[0].y = iy;
+	  pts[0].x = xx;
+	  pts[0].y = yy;
 	  pts[0].z = iz;
-	  pts[1].x = ix + scale * dx;
-	  pts[1].y = iy + scale * dy;
+	  pts[1].x = xx + scale * dx;
+	  pts[1].y = yy + scale * dy;
 	  pts[1].z = iz + scale * dz;
-	  if (ix < xmin)
-	       xmin = ix;
-	  if (ix > xmax)
-	       xmax = ix;
-	  if (iy < ymin)
-	       ymin = iy;
-	  if (iy > ymax)
-	       ymax = iy;
+	  if (xx < xmin)
+	       xmin = xx;
+	  if (xx > xmax)
+	       xmax = xx;
+	  if (yy < ymin)
+	       ymin = yy;
+	  if (yy > ymax)
+	       ymax = yy;
 	  if (iz < zmin)
 	       zmin = iz;
 	  if (iz > zmax)
