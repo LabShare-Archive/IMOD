@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2002/12/03 05:22:29  rickg
+ * <p> added getLocalRotationSolutionGroupSize
+ * <p>
  * <p> Revision 1.7  2002/12/03 00:53:20  rickg
  * <p> Redesign in progress
  * <p>
@@ -380,20 +383,22 @@ public class TiltalignPanel implements ContextMenu {
       ltfSkewAdditionalGroups.setText(params.getSkewSolutionAdditionalGroups());
     }
 
+    // Local rotation solution parameters
+    // FIXME: this is brittle since we are mapping a numeric value to a boolean
+    // at David's request
     solutionType = params.getLocalRotationSolutionType();
     if (solutionType == 0) {
       chkLocalRotation.setSelected(false);
     }
     else {
       chkLocalRotation.setSelected(true);
-      ltfLocalRotationGroupSize.setText(params.getLocalRotationSolutionGroupSize());
+      ltfLocalRotationGroupSize.setText(
+        params.getLocalRotationSolutionGroupSize());
       ltfLocalTiltAngleAdditionalGroups.setText(
         params.getLocalTiltAdditionalGroups());
     }
 
     // Local tilt angle solution parameters
-    // FIXME: this is brittle since we are mapping a numeric value to a boolean
-    // at David's request
     solutionType = params.getLocalTiltSolutionType();
     if (solutionType == 0) {
       chkLocalTiltAngle.setSelected(false);
@@ -616,8 +621,24 @@ public class TiltalignPanel implements ContextMenu {
       }
 
       //  Get the local alignment parameters
-      // Tilt angle pane
+      // Rotation pane
       //  FIXME this only works if 0 and 5 are valid local tilt angle codes
+      type = 0;
+      if (chkLocalRotation.isSelected())
+        type = defaultLocalRotationType;
+      params.setLocalRotationSolutionType(type);
+
+      if (type == defaultLocalRotationType) {
+        badParameter = ltfLocalRotationGroupSize.getLabel();
+        params.setLocalRotationSolutionGroupSize(
+          ltfLocalRotationGroupSize.getText());
+
+        badParameter = ltfLocalRotationAdditionalGroups.getLabel();
+        params.setLocalRotationSolutionAdditionalGroups(
+          ltfLocalRotationAdditionalGroups.getText());
+      }
+
+      // Tilt angle pane
       type = 0;
       if (chkLocalTiltAngle.isSelected())
         type = defaultLocalTiltAngleType;
@@ -757,24 +778,12 @@ public class TiltalignPanel implements ContextMenu {
     ltfTiltAngleAdditionalGroups.setEnabled(state);
   }
 
-  void updateLocalTiltAngleSolutionPanel(ActionEvent event) {
-    boolean state = chkLocalTiltAngle.isSelected();
-    ltfLocalTiltAngleGroupSize.setEnabled(state);
-    ltfLocalTiltAngleAdditionalGroups.setEnabled(state);
-  }
-
   void updateMagnificationSolutionPanel(ActionEvent event) {
     boolean state =
       rbMagnificationAutomapLinear.isSelected()
         || rbMagnificationAutomapFixed.isSelected();
     ltfMagnificationGroupSize.setEnabled(state);
     ltfMagnificationAdditionalGroups.setEnabled(state);
-  }
-
-  void updateLocalMagnificationSolutionPanel(ActionEvent event) {
-    boolean state = chkLocalMagnification.isSelected();
-    ltfLocalMagnificationGroupSize.setEnabled(state);
-    ltfLocalMagnificationAdditionalGroups.setEnabled(state);
   }
 
   void updateCompressionSolutionPanel(ActionEvent event) {
@@ -804,6 +813,24 @@ public class TiltalignPanel implements ContextMenu {
 
     updateXstretchSolutionPanel(null);
     updateSkewSolutionPanel(null);
+  }
+
+  void updateLocalRotationSolutionPanel(ActionEvent event) {
+    boolean state = chkLocalRotation.isSelected();
+    ltfLocalRotationGroupSize.setEnabled(state);
+    ltfLocalRotationAdditionalGroups.setEnabled(state);
+  }
+
+  void updateLocalTiltAngleSolutionPanel(ActionEvent event) {
+    boolean state = chkLocalTiltAngle.isSelected();
+    ltfLocalTiltAngleGroupSize.setEnabled(state);
+    ltfLocalTiltAngleAdditionalGroups.setEnabled(state);
+  }
+
+  void updateLocalMagnificationSolutionPanel(ActionEvent event) {
+    boolean state = chkLocalMagnification.isSelected();
+    ltfLocalMagnificationGroupSize.setEnabled(state);
+    ltfLocalMagnificationAdditionalGroups.setEnabled(state);
   }
 
   void updateLocalDistortionSolutionPanel(ActionEvent event) {
@@ -1018,6 +1045,24 @@ public class TiltalignPanel implements ContextMenu {
       new BoxLayout(panelLocalSolution, BoxLayout.Y_AXIS));
     //panelLocalSolution.setPreferredSize(new Dimension(400, 350));
 
+    //  Construct the rotation solution objects
+    panelLocalRotationSolution.setLayout(
+      new BoxLayout(panelLocalRotationSolution, BoxLayout.Y_AXIS));
+
+    panelLocalRotationSolution.add(chkLocalRotation);
+
+    ltfLocalRotationGroupSize.setMaximumSize(dimLTF);
+    panelLocalRotationSolution.add(ltfLocalRotationGroupSize.getContainer());
+
+    ltfLocalRotationAdditionalGroups.setMaximumSize(dimLTF);
+    panelLocalRotationSolution.add(
+      ltfLocalRotationAdditionalGroups.getContainer());
+    panelLocalRotationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    LocalRotationCheckListener localRotationCheckListener =
+      new LocalRotationCheckListener(this);
+    chkLocalRotation.addActionListener(localRotationCheckListener);
+
     //  Construct the tilt angle solution objects
     panelLocalTiltAngleSolution.setLayout(
       new BoxLayout(panelLocalTiltAngleSolution, BoxLayout.Y_AXIS));
@@ -1086,6 +1131,8 @@ public class TiltalignPanel implements ContextMenu {
       new LocalDistortionCheckListener(this);
     chkLocalDistortion.addActionListener(localDistortionCheckListener);
 
+    panelLocalSolution.add(panelLocalRotationSolution);
+    panelLocalSolution.add(Box.createVerticalGlue());
     panelLocalSolution.add(panelLocalTiltAngleSolution);
     panelLocalSolution.add(Box.createVerticalGlue());
     panelLocalSolution.add(panelLocalMagnificationSolution);
@@ -1115,6 +1162,17 @@ class TiltAngleRadioListener implements ActionListener {
   }
   public void actionPerformed(ActionEvent event) {
     panel.updateTiltAngleSolutionPanel(event);
+  }
+}
+
+class LocalRotationCheckListener implements ActionListener {
+  TiltalignPanel panel;
+
+  LocalRotationCheckListener(TiltalignPanel adaptee) {
+    panel = adaptee;
+  }
+  public void actionPerformed(ActionEvent event) {
+    panel.updateLocalRotationSolutionPanel(event);
   }
 }
 
