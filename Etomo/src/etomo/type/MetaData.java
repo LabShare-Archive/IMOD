@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/27 15:25:45  rickg
+ * <p> Static function fix
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -77,6 +80,10 @@ public class MetaData extends ConstMetaData implements Storable {
 			}
 		}
 	}
+
+  public CombineParams getCombineParams() {
+  return combineParams;
+}
 
 	/**
 	 * Set the backup diretory, trimming any white space from the beginning and
