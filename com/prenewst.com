@@ -8,3 +8,6 @@ $xftoxg
 g5a.prexf
 g5a.prexg
 $newst -fl 2 -mo 0 -xf g5a.prexg g5a.st g5a.preali
+$alterheader g5a.preali
+fixpixel
+done
