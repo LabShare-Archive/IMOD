@@ -341,9 +341,6 @@ c
 c	  $Revision$
 c
 c	  $Log$
-c	  Revision 3.9  2003/07/23 23:00:19  mast
-c	  Temporary fix to pad thickness to nice value for fast bp
-c	
 c	  Revision 3.8  2003/04/29 23:33:54  mast
 c	  Set default for radial filter and increase thickness limit
 c	
@@ -379,6 +376,8 @@ c
 	maxSTACK=limstack
 	interhsave=20
 	nsliceout=0
+	memBigCrit = 20000000
+	memBigOutLim = 10
 	DTOT=0.
 	DMIN=1.E30
 	DMAX=-1.E30
@@ -504,10 +503,13 @@ c
 c		loop on successive output slices to find what input slices are
 c		needed for them; until all slices would be loaded or there
 c		would be no more room
-c		
+c		or until the big memory criterion is exceeded and the limit
+c		on number of output slices for that case is reached
 	      do while(itry.gt.0.and.itry.le.mprj.and.ifenough.eq.0.and.
      &		  idir*itry.le.idir*loadlimit.and.
-     &		  idir*(itryend-needstart)+1.le.nplanes)
+     &		  idir*(itryend-needstart)+1.le.nplanes .and.
+     &		  (nbase + ipextra + idir*(itryend-needstart) * iplane .le.
+     &		  memBigCrit .or. idir *(itry - lslice) .le. memBigOutLim))
 		if(ifalpha.le.0.and.nxwarp.eq.0)then
 c		    
 c		    regular case is simple: just need the current slice
@@ -2309,10 +2311,8 @@ c
 	if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0)then
 	  ifalpha=-1
 	  ithickout=ithick
-	  ithickneed=ithick/cal(1)+4.5
-	  ithick = niceframe(ithickneed, 2, 5)
+	  ithick=ithick/cal(1)+4.5
 	  nvertneed=ithickout*abs(sal(1))+5.
-c	  print *,'Calculated thickness of vertical slice =',ithick
 	endif
 C
 C	    Set centre of output plane and center of input for transformations
@@ -2437,12 +2437,7 @@ c	  call getini
 	  flevl=flevl/scalescl
 	  scale=scale*scalescl
 	else
-c	    
-c	    If thickness was increased, drop back to minimum needed
-	  if (ithick .ne. ithickout) then
-	    ithick = ithickneed
-	    YCEN=ITHICK/2+0.5+yoffset
-	  endif
+
 c	  
 c Set up padding: 10% of X size or minimum of 16, max of 50
 	  npadtmp=min(50,2*max(8,npxyz(1)/20))
