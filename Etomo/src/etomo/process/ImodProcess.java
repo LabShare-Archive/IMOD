@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/05/27 08:44:03  rickg
+ * <p> Removed TODO
+ * <p>
  * <p> Revision 2.8  2003/05/15 20:19:41  rickg
  * <p> Removed extraneous debug printing
  * <p>
@@ -76,6 +79,8 @@ public class ImodProcess {
   public static final String MESSAGE_SAVE_MODEL = "2";
   public static final String MESSAGE_VIEW_MODEL = "3";
   public static final String MESSAGE_CLOSE = "4";
+  public static final String MESSAGE_RAISE = "5";
+  public static final String MESSAGE_MODEL_MODE = "6";
 
   private String datasetName = "";
   private String modelName = "";
@@ -109,6 +114,7 @@ public class ImodProcess {
    */
   public void open() throws SystemProcessException {
     if (isRunning()) {
+      raise3dmod();
       return;
     }
 
@@ -125,9 +131,9 @@ public class ImodProcess {
       options = "-V ";
     }
 
-    // FIXME: Fill cache implementation
+    // Fill cache implementation
     if (fillCache) {
-      //options = "-F ";
+      options = "-F ";
     }
 
     String command = "3dmod -W " + options + datasetName + " " + modelName;
@@ -209,6 +215,9 @@ public class ImodProcess {
     args[0] = MESSAGE_OPEN_MODEL;
     args[1] = newModelName;
     imodSendEvent(args);
+    args = new String[1];
+    args[0] = MESSAGE_MODEL_MODE;
+    imodSendEvent(args);
   }
 
   /**
@@ -228,7 +237,24 @@ public class ImodProcess {
     args[0] = MESSAGE_VIEW_MODEL;
     imodSendEvent(args);
   }
+  
+  public void modelMode() throws SystemProcessException {
+  String[] args = new String[1];
+  args[0] = MESSAGE_MODEL_MODE;
+  imodSendEvent(args);
+}
+  
 
+  /**
+   * Raise the 3dmod window
+   * @throws SystemProcessException
+   */
+  public void raise3dmod() throws SystemProcessException {
+     String[] args = new String[1];
+     args[0] = MESSAGE_RAISE;
+     imodSendEvent(args);
+   }
+   
   /**
    * Send an event to 3dmod using the imodsendevent command
    */
