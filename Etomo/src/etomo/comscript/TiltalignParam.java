@@ -16,6 +16,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/01/14 23:01:52  sueh
+ * <p> Changing the name of EtomoNumber.set(ComScriptCommand) to parse.
+ * <p>
  * <p> Revision 3.11  2005/01/13 00:44:58  sueh
  * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
  * <p>
@@ -447,29 +450,29 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         includeList);
     ParamUtilities.updateScriptParameter(scriptCommand, excludeListString,
         excludeList);
-    rotationAngle.update(scriptCommand);
+    rotationAngle.updateCommand(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, separateGroupString,
         separateGroup);
     tiltAngleSpec.update(scriptCommand);
-    angleOffset.update(scriptCommand);
+    angleOffset.updateCommand(scriptCommand);
     projectionStretch.update(scriptCommand);
-    rotOption.update(scriptCommand);
-    rotDefaultGrouping.update(scriptCommand);
-    rotationFixedView.update(scriptCommand);
-    tiltOption.update(scriptCommand);
-    tiltDefaultGrouping.update(scriptCommand);
-    magReferenceView.update(scriptCommand);
-    magOption.update(scriptCommand);
-    magDefaultGrouping.update(scriptCommand);
-    xStretchOption.update(scriptCommand);
-    skewOption.update(scriptCommand);
-    xStretchDefaultGrouping.update(scriptCommand);
-    skewDefaultGrouping.update(scriptCommand);
-    residualReportCriterion.update(scriptCommand);
-    surfacesToAnalyze.update(scriptCommand);
-    metroFactor.update(scriptCommand);
-    maximumCycles.update(scriptCommand);
-    axisZShift.update(scriptCommand);
+    rotOption.updateCommand(scriptCommand);
+    rotDefaultGrouping.updateCommand(scriptCommand);
+    rotationFixedView.updateCommand(scriptCommand);
+    tiltOption.updateCommand(scriptCommand);
+    tiltDefaultGrouping.updateCommand(scriptCommand);
+    magReferenceView.updateCommand(scriptCommand);
+    magOption.updateCommand(scriptCommand);
+    magDefaultGrouping.updateCommand(scriptCommand);
+    xStretchOption.updateCommand(scriptCommand);
+    skewOption.updateCommand(scriptCommand);
+    xStretchDefaultGrouping.updateCommand(scriptCommand);
+    skewDefaultGrouping.updateCommand(scriptCommand);
+    residualReportCriterion.updateCommand(scriptCommand);
+    surfacesToAnalyze.updateCommand(scriptCommand);
+    metroFactor.updateCommand(scriptCommand);
+    maximumCycles.updateCommand(scriptCommand);
+    axisZShift.updateCommand(scriptCommand);
     //local alignment
     localAlignments.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
@@ -483,17 +486,17 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     fixXYZCoordinates.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localOutputOptionsString, localOutputOptions);
-    localRotOption.update(scriptCommand);
-    localRotDefaultGrouping.update(scriptCommand);
-    localTiltOption.update(scriptCommand);
-    localTiltDefaultGrouping.update(scriptCommand);
-    localMagReferenceView.update(scriptCommand);
-    localMagOption.update(scriptCommand);
-    localMagDefaultGrouping.update(scriptCommand);
-    localXStretchOption.update(scriptCommand);
-    localXStretchDefaultGrouping.update(scriptCommand);
-    localSkewOption.update(scriptCommand);
-    localSkewDefaultGrouping.update(scriptCommand);
+    localRotOption.updateCommand(scriptCommand);
+    localRotDefaultGrouping.updateCommand(scriptCommand);
+    localTiltOption.updateCommand(scriptCommand);
+    localTiltDefaultGrouping.updateCommand(scriptCommand);
+    localMagReferenceView.updateCommand(scriptCommand);
+    localMagOption.updateCommand(scriptCommand);
+    localMagDefaultGrouping.updateCommand(scriptCommand);
+    localXStretchOption.updateCommand(scriptCommand);
+    localXStretchDefaultGrouping.updateCommand(scriptCommand);
+    localSkewOption.updateCommand(scriptCommand);
+    localSkewDefaultGrouping.updateCommand(scriptCommand);
     //optional parameters
     ParamUtilities.updateScriptParameter(scriptCommand,
         outputZFactorFileString, outputZFactorFile);
