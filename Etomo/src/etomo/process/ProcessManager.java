@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.38  2004/08/28 00:59:26  sueh
+ * bug# 508 In startComScript checking ComScriptProcess.isError() as
+ * well as isStarted() in order to get out of a loop.
+ * In msgComScriptDone handling stdError == null
+ *
  * Revision 3.37  2004/08/26 01:10:55  sueh
  * bug# 508 removing sleep between kill ground and kill process and
  * descendents because it appears to be unnecessary.
@@ -1572,9 +1577,7 @@ public class ProcessManager {
     killProcessGroup(processID);
     killProcessAndDescendants(processID);
     
-    if (thread instanceof BackgroundComScriptProcess) {
-      ((BackgroundComScriptProcess) thread).killMonitor();
-    }
+    thread.notifyKill();
 
     /*
     //  Loop over killing the children until there are none left
@@ -1642,7 +1645,7 @@ public class ProcessManager {
   private void kill(String signal, String processID) {
     SystemProgram killShell = new SystemProgram("kill " + signal + " " + processID);
     killShell.run();
-    System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
+    //System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
   }
   
