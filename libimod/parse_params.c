@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/06/05 00:22:49  mast
+Addition to IMOD
+
 */
 
 #include "parse_params.h"
@@ -520,6 +523,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     if (optTable[i].multiple)
       fprintf(out, "    (Successive entries accumulate)\n");
   }
+  return 0;
 }
 
 /* Return the error string, or an empty string and an error if there is none */
@@ -561,6 +565,7 @@ int PipNumberOfEntries(char *option, int *numEntries)
   if ((err = LookupOption(option, nonOptInd + 1)) < 0)
     return err;
   *numEntries = optTable[err].count;
+  return 0;
 }
 
 /* Top level routine to be called to process options and arguments */
