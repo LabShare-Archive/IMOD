@@ -597,8 +597,7 @@ int main( int argc, char *argv[])
   /* Now look for piece coordinates - moved up from below 1/2/04 */
   if (vi.nt <= 1 && !vi.li->plist) {
     /* Check for piece list file and read it */
-    iiPlistLoad(plistfname, vi.li, 
-                vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+    iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 
     /* Or use the -P specification */
     if (!vi.li->plist && nframex > 0 && nframey > 0)
@@ -606,9 +605,11 @@ int main( int argc, char *argv[])
                        nframex, nframey, overx, overy);
 
     /* Or, check for piece coordinates in image header */
-    if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC)
-      iiLoadPCoord(vi.image, vi.li,
-                   vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+    if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC) {
+      iiReopen(vi.image);
+      iiLoadPCoord(vi.image, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+      iiClose(vi.image);
+    }
           
     /* DNM 1/2/04: move adjusting of loading coordinates to fix_li call,
        and move that call into list processing */
@@ -950,6 +951,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.30  2004/01/06 16:55:01  mast
+Added new option to open startup page, passing options to it
+
 Revision 4.29  2004/01/05 17:21:09  mast
 Added binning option and did major cleanup of image file loading
 
