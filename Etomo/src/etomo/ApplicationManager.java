@@ -91,6 +91,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.127  2005/02/18 23:59:08  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.126  2005/02/17 19:25:44  sueh
  * <p> bug# 606 Pass AxisID when setting and getting makeZFactors,
  * <p> newstFiducialessAlignment, and usedLocalAlignments.
@@ -1192,6 +1196,8 @@ public class ApplicationManager extends BaseManager {
   private TomogramState state;
   private boolean[] advancedA = new boolean[DialogType.TOTAL];
   private boolean[] advancedB = new boolean[DialogType.TOTAL];
+  private DialogType currentDialogTypeA = null;
+  private DialogType currentDialogTypeB = null;
   
   /**
    *  
@@ -1293,6 +1299,7 @@ public class ApplicationManager extends BaseManager {
   public void openSetupDialog() {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
+    setCurrentDialogType(DialogType.SETUP, AxisID.ONLY);
     if (setupDialog == null) {
       setupDialog = new SetupDialog(this);
       setupDialog.initializeFields((ConstMetaData) metaData);
@@ -1508,6 +1515,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
+    setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
     mainPanel.selectButton(axisID, "Pre-processing");
     // TODO: When a panel is overwriten by another should it be nulled and
     // closed or left and and reshown when needed?
@@ -1859,6 +1867,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
+    setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
     mainPanel.selectButton(axisID, "Coarse Alignment");
     if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
       return;
@@ -2194,6 +2203,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
+    setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
     mainPanel.selectButton(axisID, "Fiducial Model Gen.");
     if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
       return;
@@ -2467,6 +2477,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
+    setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
     mainPanel.selectButton(axisID, "Fine Alignment");
     if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
       return;
@@ -2500,43 +2511,71 @@ public class ApplicationManager extends BaseManager {
    * @param dialogType
    * @param axisID
    */
-  public void saveDialog(DialogType dialogType, AxisID axisID) {
-    ProcessDialog dialog = getDialog(dialogType, axisID);
+  public void saveCurrentDialog(AxisID axisID) {
+    DialogType currentDialogType = getCurrentDialogType(axisID);
+    ProcessDialog dialog = getDialog(currentDialogType, axisID);
     if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
       return;
     }
-    if (dialogType == DialogType.PRE_PROCESSING) {
+    if (currentDialogType == DialogType.PRE_PROCESSING) {
       donePreProcDialog(axisID);
     }
-    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+    else if (currentDialogType == DialogType.COARSE_ALIGNMENT) {
       doneCoarseAlignDialog(axisID);
     }
-    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+    else if (currentDialogType == DialogType.FIDUCIAL_MODEL) {
       doneFiducialModelDialog(axisID);
     }
-    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+    else if (currentDialogType == DialogType.FINE_ALIGNMENT) {
       doneAlignmentEstimationDialog(axisID);
     }
-    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+    else if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
       doneTomogramPositioningDialog(axisID);
     }
-    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+    else if (currentDialogType == DialogType.TOMOGRAM_GENERATION) {
       doneTomogramGenerationDialog(axisID);
     }
-    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+    else if (currentDialogType == DialogType.TOMOGRAM_COMBINATION) {
       doneTomogramCombinationDialog();
     }
-    else if (dialogType == DialogType.POST_PROCESSING) {
+    else if (currentDialogType == DialogType.POST_PROCESSING) {
       donePostProcessing();
     }
   }
   
+  private void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      currentDialogTypeB = dialogType;
+    }
+    else {
+      currentDialogTypeA = dialogType;
+    }
+  }
+  
+  private DialogType getCurrentDialogType(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return currentDialogTypeB;
+    }
+    return currentDialogTypeA;
+  }
+  
+  /**
+   * Call BaseManager.exitProgram().  Call saveDialog.   Return the value of
+   * BaseManager.exitProgram().  To guarantee that etomo can always exit, catch
+   * all unrecognized Exceptions and Errors and return true.
+   */
   public boolean exitProgram() {
-    if (super.exitProgram()) {
-      saveDialog();
+    try {
+      if (super.exitProgram()) {
+        saveDialog();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
       return true;
     }
-    return false;
   }
   
   public void saveDialog() {
@@ -2955,6 +2994,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
+    setCurrentDialogType(DialogType.TOMOGRAM_POSITIONING, axisID);
     mainPanel.selectButton(axisID, "Tomogram Positioning");
     if (showIfExists(tomogramPositioningDialogA, tomogramPositioningDialogB,
       axisID)) {
@@ -3625,7 +3665,8 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    // 
+    //
+    setCurrentDialogType(DialogType.TOMOGRAM_GENERATION, axisID);
     mainPanel.selectButton(axisID, "Tomogram Generation");
     if (showIfExists(tomogramGenerationDialogA, tomogramGenerationDialogB,
       axisID)) {
@@ -4242,6 +4283,7 @@ public class ApplicationManager extends BaseManager {
         "Invalid tomogram combination selection");
       return;
     }
+    setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
     mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
@@ -5184,6 +5226,7 @@ public class ApplicationManager extends BaseManager {
     }
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
+    setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, "Post Processing");
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
