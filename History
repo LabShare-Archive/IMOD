@@ -1,6 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/2//02: IMOD_2-7-0 Released
+9/4/02: Fixed coordinate scaling and standardized error reporting in Xfmodel
+so that Transferfid would work on files with pixel sizes.
+
+9/3/02: Fixed bugs in storing fill color and the black and white levels for
+viewing normal magnitudes in a mesh so they will work between machines of 
+different endianness.  Made it backward compatible so that existing models
+will still read correctly on machines of the same endianness.
+
+9/3/02: Implemented new method for choosing visuals in imodv to avoid problems
+on non-Nvidia systems.
+
+=============================================================================
+8/22/02: IMOD_2-7-0 Released
 8/21/02: Fixed memory overrun problem in copy function of line tracker and
 added a copy button.
 
