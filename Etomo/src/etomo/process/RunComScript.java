@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/21 21:20:42  rickg
+ * <p> Parse the csh process ID from stderr
+ * <p>
  * <p> Revision 2.5  2003/05/13 20:00:12  rickg
  * <p> Added -f option to tcsh call
  * <p>
@@ -208,6 +211,17 @@ public class RunComScript extends Thread {
   }
 
   /**
+   * Get the csh process ID if it is available
+   * @return
+   */
+  public String getCshProcessID() {
+    if (cshProcessID == null) {
+      return "";
+    }
+    return cshProcessID.toString();
+  }
+
+  /**
    * Get the debug state.
    */
   public boolean isDebug() {
@@ -245,7 +259,7 @@ public class RunComScript extends Thread {
     ParsePID parsePID = new ParsePID(csh, cshProcessID);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
-    
+
     csh.run();
 
     // Check the exit value, if it is non zero, parse the warnings and errors
@@ -376,58 +390,6 @@ public class RunComScript extends Thread {
       }
     }
     return (String[]) errors.toArray(new String[errors.size()]);
-  }
-
-  private class ParsePID implements Runnable {
-    SystemProgram csh;
-    StringBuffer PID;
-    public ParsePID(SystemProgram cshProcess, StringBuffer bufPID) {
-      csh = cshProcess;
-      PID = bufPID;
-    }
-    public void run() {
-      //  Wait for the csh thread to start
-      while (!csh.isStarted()) {
-        try {
-          Thread.sleep(100);
-        }
-        catch (InterruptedException except) {
-          return;
-        }
-      }
-      while (PID.length() == 0 && !csh.isDone()) {
-        try {
-          parsePIDString();
-          Thread.sleep(100);
-        }
-        catch (InterruptedException except) {
-          return;
-        }
-      }
-    }
-
-    private void parsePIDString() {
-      String[] stderr = csh.getStdError();
-      for (int i = 0; i < stderr.length; i++) {
-        if (stderr[i].startsWith("Shell PID:")) {
-          String[] tokens = stderr[i].split("\\s+");
-          if (tokens.length > 2) {
-            PID.append(tokens[2]);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Get the csh process ID if it is available
-   * @return
-   */
-  public String getCshProcessID() {
-    if(cshProcessID == null) {
-      return "";
-    }
-    return cshProcessID.toString();
   }
 
 }
