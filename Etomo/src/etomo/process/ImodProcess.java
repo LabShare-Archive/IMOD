@@ -21,6 +21,12 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2004/05/07 19:43:57  sueh
+ * <p> bug# 33 adding getRubberbandCoordinates(),
+ * <p> imodSendAndReceive(), parseError().
+ * <p> Keeping InteractiveSystemProgram imod around for send
+ * <p> and receive.
+ * <p>
  * <p> Revision 3.10  2004/05/06 20:21:47  sueh
  * <p> bug# 33 added getRubberbandCoordinates(), passing back the
  * <p> InteractiveSystemProgram from imodSendEvent()
@@ -436,10 +442,10 @@ public class ImodProcess {
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RUBBERBAND;
-    return imodSendAndReceive(args, RUBBERBAND_RESULTS_STRING);
+    return imodSendAndReceive(args);
   }
 
-  protected Vector imodSendAndReceive(String[] args, String target) throws SystemProcessException {
+  protected Vector imodSendAndReceive(String[] args) throws SystemProcessException {
     Vector results = new Vector();
     imodSendEvent(args, results);
     //3dmod sends the results before it returns 
@@ -452,15 +458,10 @@ public class ImodProcess {
     if (line == null) {
       return results;
     }
-    //Currently assuming only one kind of result can be in standard error at a
-    //time.
     //Currently assuming results can only be on one line.
     do {
       if (!parseError(line, results)) {
         String[] words = line.split("\\s+");
-        if (words.length > 0) {
-          results.add(target);
-        }
         for (int i = 0; i < words.length; i++) {
           results.add(words[i]);
         } 
