@@ -1,5 +1,5 @@
 /*
- *  icont.c -- Library of contour handleing routines.
+ *  icont.c -- Library of contour handling routines.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -14,26 +14,7 @@
 
     $Revision$
 
-    $Log$
-    Revision 3.9  2005/02/03 18:45:52  mast
-    Needed to allocate bigger contatz for imodmesh
-
-    Revision 3.8  2005/01/30 17:44:03  mast
-    Changed imodel_contour_overlap to take addresses of contour pointers and
-    convert to scanline contours only when needed
-
-    Revision 3.7  2005/01/29 20:27:13  mast
-    Added common routines for dealing with nested contours
-
-    Revision 3.6  2004/11/20 04:31:48  mast
-    Convert label duplication to a new routine, initialize store variable
-
-    Revision 3.5  2004/11/05 18:53:00  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.4  2004/09/10 21:33:46  mast
-    Eliminated long variables
-
+    Log at end 
 */
 
 #include <math.h>
@@ -41,33 +22,10 @@
 #include "imodel.h"
 #include "b3dutil.h"
 
-/* Library
- * Functions                              Descriptions
- * ---------------------------------------------------------------------------
- * Icont *imodContourNew(void);           Create and init one contour.
- * Icont *imodContoursNew(int size);      Create and init array of contours.
- * int    imodContourDelete(Icont *cont); Delete a contour with all data.
- * int    imodContoursDelete(Icont *cont, Delete an array of contours.
- *                           int   size);
- * int    imodContoursDeleteToEnd         Delete contours to end of array
- *               (Iobj *obj, int keep); 
- * int    imodContourCopy(Icont *from,    Copy contour structure only.
- *                        Icont *to);
- * Icont *imodContourDup(Icont *cont);    Create a duplicate contour.
- *
- * void   imodContourMakeDirection
- *        (Icont *cont, int direction);   Make direction (conter-)clockwise.
- * float  imodContourArea(Icont *cont);   Return area in square pixels.
- * Icont *imodContourJoin(Icont *c1,      Make one contour out of two.
- *                Icont *c2, int fill);
- * void   imodContourFill(Icont *cont);   Fill in data between points.
- * int    imodContourShave(Icont *cont,   Remove points closer then dist apart.
- *                         double dist)
- * void   imodContourReduce(Icont *cont,  Reduce # of points in contour with
- *                           float tol)   maximum error tol
+/*!
+ * Creates one new contour and initializes it to default values.  Returns NULL
+ * if error. 
  */
-
-
 Icont *imodContourNew(void)
 {
   Icont *cont;
@@ -81,6 +39,10 @@ Icont *imodContourNew(void)
   return(cont);
 }
 
+/*!
+ * Creates an array of [size] contours and initializes them to default values.
+ * Returns NULL if error.
+ */
 Icont *imodContoursNew(int size)
 {
   Icont *cont;
@@ -99,6 +61,9 @@ Icont *imodContoursNew(int size)
   return(cont);
 }
 
+/*!
+ * Initializes [cont] to default values for an empty contour.
+ */
 void imodContourDefault(Icont *cont)
 {
   if (!cont) return; 
@@ -112,6 +77,10 @@ void imodContourDefault(Icont *cont)
   cont->store  = NULL;
 }
 
+/*!
+ * Copies the contour structure in [from] to [to] without copying any data.
+ * Returns -1 if error.
+ */
 int imodContourCopy(Icont *from, Icont *to)
 {
   if (!from)
@@ -122,9 +91,9 @@ int imodContourCopy(Icont *from, Icont *to)
   return(0);
 }
 
-/* 
- *  Create a new contour containing the same point and label data 
- *  as the input contour.
+/*!
+ * Creates a new contour containing the same point, size, and label data 
+ * as [cont].  Returns NULL if error.
  */
 
 Icont *imodContourDup(Icont *cont)
@@ -159,6 +128,10 @@ Icont *imodContourDup(Icont *cont)
   return(ocont);
 }
 
+/*!
+ * Deletes [cont], freeing all data and the contour structure.  Returns -1 if
+ * error (i.e., [cont] is NULL).
+ */
 int imodContourDelete(Icont *cont)
 {
   char *lbl;
@@ -171,6 +144,10 @@ int imodContourDelete(Icont *cont)
   return(0);
 }
 
+/*!
+ * Deletes an array of [size] contours in [cont], freeing all data and the 
+ * array itself.  Returns -1 if error (i.e., [cont] is NULL).
+ */
 int imodContoursDelete(Icont *cont, int size)
 {
   int co;
@@ -184,6 +161,11 @@ int imodContoursDelete(Icont *cont, int size)
   return(0);
 }
 
+/*!
+ * Deletes contours from object [obj], retaining [keep].  The contour data
+ * is freed and the contour array is reallocated to the new size.  Returns
+ * -1 if error.
+ */
 int imodContoursDeleteToEnd(Iobj *obj, int keep)
 {
   int co;
@@ -215,6 +197,10 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
   return(0);
 }
 
+/*!
+ * Returns a pointer to the current contour in model [imod], or NULL if there
+ * is no current contour or the contour index is not legal.
+ */
 Icont *imodContourGet(Imod *imod)
 {
   Iobj *obj;
@@ -231,6 +217,10 @@ Icont *imodContourGet(Imod *imod)
   return( &(obj->cont[imod->cindex.contour]));
 }
 
+/*!
+ * Sets the current contour index to 0 in the current object in model [imod]
+ * and returns pointer to first contour, or NULL if there is no contour.
+ */
 Icont *imodContourGetFirst(Imod *imod)
 {
   int ob, co, pt;
@@ -241,6 +231,11 @@ Icont *imodContourGetFirst(Imod *imod)
   return(imodContourGet(imod));
 }
 
+/*!
+ * Advances to the next contour in the current object of model [imod] and
+ * returns pointer to the contour, or NULL if there is none (error or end
+ * of object).
+ */
 Icont *imodContourGetNext(Imod *imod)
 {
   int ob, co, pt;
@@ -258,9 +253,11 @@ Icont *imodContourGetNext(Imod *imod)
 }
 
 
-/* imodContourReduce reduces a set of points by selecting a
- * minimal subset of the points.  Each of the original points will be
- * within a tolerance TOL of the segments defined by the new set of points. */
+/*!
+ * Reduces the points in contour [cont] by selecting a minimal subset of the
+ * points.  Each of the original points will be within a tolerance [tol] of 
+ * the segments defined by the remaining points.
+ */
 void imodContourReduce(Icont *cont, float tol)
 {
   int npts, noutlim, left, irt, nout, ifout, npo, ipo, its;
@@ -373,6 +370,10 @@ void imodContourReduce(Icont *cont, float tol)
 /* internal functions                                                        */
 /*****************************************************************************/
 
+/*!
+ * Frees all data in contour [cont] and sets its pointers to NULL.  Returns
+ * -1 if error
+ */
 int imodel_contour_clear(Icont *cont)
 {
   if (!cont)
@@ -395,8 +396,10 @@ int imodel_contour_clear(Icont *cont)
   return(0);
 }
 
-
-
+/*!
+ * Assigns a new surface number to contour [cont] and adjusts the maximum
+ * surface number for [obj], the object that it is in.  Returns -1 if error.
+ */
 int imodel_contour_newsurf(Iobj *obj, Icont *cont)
 {
   int co;
@@ -414,7 +417,10 @@ int imodel_contour_newsurf(Iobj *obj, Icont *cont)
   return(0);
 }
 
-/* Find first unused surface number */
+/*!
+ * Finds the first unused surface number in object [obj], and returns this 
+ * number or 0 for an error.
+ */
 int imodel_unused_surface(Iobj *obj)
 {
   int co;
@@ -452,7 +458,11 @@ int imodel_unused_surface(Iobj *obj)
 }
      
 
-/* returns area of contour in square pixels. */
+/*!
+ * Returns area of contour [cont] in square pixels.  The contour need not be
+ * COplanar.  The area is computed as half the magnitude of the sum of 
+ * cross-products of adjacent line segments.  
+ */
 float imodContourArea(Icont *cont)
 {
   Ipoint n;
@@ -481,6 +491,11 @@ float imodContourArea(Icont *cont)
   return(retval);
 }
 
+/*!
+ * Returns area of contour [cont] in the X/Y plane in square pixels, or 0 for
+ * an error.  Area is measured by converting to a scan contour and summing the
+ * length of the scan lines.  Used (only) by @imodContourCircularity.
+ */
 int imodel_contour_area(Icont *icont)
 {
   Icont *cont;
@@ -528,10 +543,10 @@ int imodel_contour_area(Icont *icont)
   return(pix);
 }
 
-
-
-
-
+/*!
+ * Returns length of contour [cont], excluding a connection between last and
+ * first points, or -1 if error.
+ */
 double imodel_contour_length(Icont *cont)
 {
   double dist = 0;
@@ -550,7 +565,9 @@ double imodel_contour_length(Icont *cont)
 
 }
 
-
+/*!
+ * 
+ */
 double imodContourMoment(Icont *cont, int a, int b)
 {
   Icont *scont;
@@ -592,6 +609,9 @@ double imodContourMoment(Icont *cont, int a, int b)
   return(moment);
 }
 
+/*!
+ * 
+ */
 int imodContourCenterOfMass(Icont *cont, Ipoint *rpt)
 {
   double M00, M01, M10;
@@ -1229,8 +1249,10 @@ int imodContourShave(Icont *cont, double dist)
   return(0);
 }
 
-/* Calculate the full 3D Bounding box of a contour.
- * ll = lower left, bottom; ur = upper right top;
+/*!
+ * Calculates the full 3D bounding box of contour [cont] and returns the 
+ * lower left, bottom coordinates in [ll] and the upper right, top coordinates
+ * in [ur].  Returns -1 if error.
  */
 int imodContourGetBBox(Icont *cont, Ipoint *ll, Ipoint *ur)
 {
@@ -1264,10 +1286,9 @@ int imodContourGetBBox(Icont *cont, Ipoint *ll, Ipoint *ur)
 
 /* 3/19/05: removed imodel_contour_mm, same actions as above */
 
-/*
- * FUNCTION: imodContourSplice
- * returns a contour with points 0 to p1 from c1 and
- * points p2 to psize - 1 from c2.
+/*!
+ * Returns a contour with points 0 to [p1] from contour [c1] and
+ * points from [p2] to the end from from contour [c2].
  */
 Icont *imodContourSplice(Icont *c1, Icont *c2,
                          int p1, int p2)
@@ -1296,10 +1317,9 @@ Icont *imodContourSplice(Icont *c1, Icont *c2,
   return(nc);
 }
 
-/*
- * FUNCTION: imodContourBreak
- * returns contour containing points p to psize - 1, and removes
- * those points from the input contour.
+/*!
+ * Returns a contour containing points from [p] to the end from contour [cont],
+ * and removes those points from [cont].  Returns NULL if error.
  */
 Icont *imodContourBreak(Icont *cont, int p)
 {
@@ -1340,11 +1360,9 @@ Icont *imodContourBreak(Icont *cont, int p)
   return(nc);
 }
 
-/*****************************************************************************/
-/* FUNCTION: imodel_contour_move                                             */
-/*****************************************************************************/
-int imodel_contour_move(void){return(0);}
-
+/*!
+ * Rounds are point coordinates of contour [cont] to the nearest integer.
+ */
 void imodel_contour_whole(Icont *cont)
 {
   int i, x, y;
@@ -1358,6 +1376,12 @@ void imodel_contour_whole(Icont *cont)
   }
 }
 
+/*!
+ * Creates a scan contour from contour [incont] and returns pointer to it, or 
+ * NULL for an error.  A scan contour consists of pairs of points at the starts
+ * and ends of horizontal lines.  The pairs are in order by increasing Y, and
+ * by increasing X at each Y level.  Z coordinates are ignored.
+ */
 Icont *imodel_contour_scan(Icont *incont)
 {
   Ipoint *et; /* edge table & active edge table. */
@@ -1658,7 +1682,10 @@ Icont *imodel_contour_scan(Icont *incont)
   return(cont);
 }
 
-
+/*!
+ * Returns the index of the point in contour [cont] that is nearest in 3D to
+ * point [pnt], or -1 for an error.
+ */
 int imodContourNearest(Icont *cont, Ipoint *pnt)
 {
   int i, index = 0;
@@ -1688,7 +1715,11 @@ int imodContourNearest(Icont *cont, Ipoint *pnt)
   return(index);
 }
 
-/* returns index of point in contour nearest to (x, y) */
+/*!
+ * Returns the index of the point in contour [cont] that is nearest in X and Y
+ * to ([x], [y]), or -1 for an error.
+ */
+/* Unused 3/29/05 */
 int imodel_contour_nearest(Icont *cont, int x, int y)
 {
   int i, index = 0;
@@ -1712,14 +1743,17 @@ int imodel_contour_nearest(Icont *cont, int x, int y)
 }
 
 
-/* returns TRUE if c1 overlapes c2 in a given section. */
+/*!
+ * Returns 1 if contour [c1] overlaps contour [c2] when projected onto the X/Y 
+ * plane.  Returns 0 if not, or if an error occurs.
+ */
 int imodel_contour_overlap(Icont *c1, Icont *c2)
 {
   Icont *cs1, *cs2;
   Ipoint pmax1, pmin1, pmax2, pmin2;
   int i, j, jstrt;
 
-  /* first check an see if bounding box overlaps. */
+  /* first check and see if bounding box overlaps. */
   imodContourGetBBox(c1, &pmax1, &pmin1);
   imodContourGetBBox(c2, &pmax2, &pmin2);
 
@@ -1779,7 +1813,10 @@ int imodel_contour_overlap(Icont *c1, Icont *c2)
   return(0);
 }
 
-/* returns TRUE if cs1 overlaps cs2 in a given section. */
+/*!
+ * Returns 1 if scan contour [c1] overlaps scan contour [c2].
+ * Returns 0 if not, or for an error.
+ */
 int imodel_scans_overlap(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
                          Icont *cs2, Ipoint pmin2, Ipoint pmax2)
 {
@@ -1829,14 +1866,17 @@ int imodel_scans_overlap(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
   return(0);
 }
 
-/* returns TRUE if cs1 overlaps cs2 in a given section, and returns fractions
-   of each contour's area that overlaps in frac1 and frac2.  The bounding
-   boxes of the contours are given in pmin1, pmax1, pmin2, pmax2.
-   If cs1 and cs2 are already scan contours, they are unchanged.  If they are
-   not scan conatours and their bounding boxes do not overlap, the contours
-   are converted to scan contours and the address of the scan contour is
-   placed into cs1p and/or cs2p.  This allows scan conversions to be done only
-   when needed. */
+/*!
+ * Returns 1 if there is overlap between the contours whose addresses are
+ * pointed to by [cs1p] and [cs2p], and returns fractions of each contour's
+ * area that overlaps in [frac1] and [frac2].  The bounding boxes of the
+ * contours must be provided in in [pmin1], [pmax1], [pmin2], and [pmax2].
+ * If the contours are already scan contours, they are unchanged.  If they are
+ * not scan conatours and their bounding boxes do not overlap, the contours
+ * are converted to scan contours and the address of the scan contour is
+ * placed into [cs1p] and/or [cs2p].  This allows scan conversions to be done 
+ * only when needed.  Returns 0 for no overlap or error.
+ */
 int imodel_overlap_fractions(Icont **cs1p, Ipoint pmin1, Ipoint pmax1,
                              Icont **cs2p, Ipoint pmin2, Ipoint pmax2,
                              float *frac1, float *frac2)
@@ -1933,12 +1973,11 @@ int imodel_overlap_fractions(Icont **cs1p, Ipoint pmin1, Ipoint pmax1,
   return(didoverlap);
 }
 
-/**********************************************************/
+
 /* returns defined flags for clockwise or counter-clockwise.     */
 /* DNM: removed imodel_contour_direction; got rid of old imodContZDirection */
 /* turned imodContZAreaDirection into this; made it compute area properly */
 /* and do so even if not in one Z plane; and return 0 for ambiguous cases */
-
 int imodContZDirection(Icont *cont)
 {
   int pt, mpt, nextp;
@@ -3095,3 +3134,29 @@ char *imodContourGetName(Icont *inContour)
   if (!inContour->label->name) return(&name);
   return(inContour->label->name);
 }
+
+/*
+  $Log$
+  Revision 3.10  2005/03/20 19:56:49  mast
+  Eliminating duplicate functions
+  
+  Revision 3.9  2005/02/03 18:45:52  mast
+  Needed to allocate bigger contatz for imodmesh
+  
+  Revision 3.8  2005/01/30 17:44:03  mast
+  Changed imodel_contour_overlap to take addresses of contour pointers and
+  convert to scanline contours only when needed
+  
+  Revision 3.7  2005/01/29 20:27:13  mast
+  Added common routines for dealing with nested contours
+  
+  Revision 3.6  2004/11/20 04:31:48  mast
+  Convert label duplication to a new routine, initialize store variable
+  
+  Revision 3.5  2004/11/05 18:53:00  mast
+  Include local files with quotes, not brackets
+  
+  Revision 3.4  2004/09/10 21:33:46  mast
+  Eliminated long variables
+
+*/
