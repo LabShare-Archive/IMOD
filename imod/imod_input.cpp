@@ -36,6 +36,8 @@ Log at end of file
 */
 
 #include <math.h>
+#include <qapplication.h>
+#include <qwidgetlist.h>
 #include <qevent.h>
 #include <qnamespace.h>
 #include "xgraph.h"
@@ -58,6 +60,18 @@ Log at end of file
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
 
+static void inputRaiseWindows()
+{
+  QWidgetList  *list = QApplication::topLevelWidgets();
+  QWidgetListIt it( *list );  // iterate over the widgets
+  QWidget * w;
+  while ( (w=it.current()) != 0 ) {   // for each top level widget...
+    ++it;
+    if (w->isVisible() )
+      w->raise();
+  }
+  delete list;                // delete the list, not the widgets
+}
      
 /* old function still in use */
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
@@ -803,6 +817,9 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
 
+  if (keypad)
+    keysym = inputConvertNumLock(keysym);
+
   // Set this to 0 when a case is NOT handling the key
   int handled = 1;
 
@@ -1020,6 +1037,13 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     imod_zap_open(vw);
     break;
           
+  case Qt::Key_R:
+    if (event->state() & Qt::ControlButton)
+      inputRaiseWindows();
+    else
+      handled = 0;
+    break;
+
   case Qt::Key_Comma: /* slower movie */
     imcSetMovierate(vw, vw->movierate + 1);
     /* vw->movierate++; */
@@ -1124,8 +1148,29 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
 }
 
+/* Convert numeric keypad keys that come through as numbers because NumLock is
+   on to the named keys */
+static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End, 
+                             Qt::Key_Down, Qt::Key_Next, Qt::Key_Left,
+                             Qt::Key_Right, Qt::Key_Home, Qt::Key_Up,
+                             Qt::Key_Prior};
+static int numLockKeys[10] = {Qt::Key_Period, Qt::Key_0, Qt::Key_1, Qt::Key_2,
+                              Qt::Key_3, Qt::Key_4,
+                              Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9};
+int inputConvertNumLock(int keysym)
+{
+  for (int i = 0; i < 10; i++)
+    if (keysym == numLockKeys[i])
+      return keypadKeys[i];
+  return keysym;
+}
+
 /*
 $Log$
+Revision 4.4  2003/03/12 06:35:35  mast
+Modified inputInsertPoint to work like the xyz window insert in terms of
+times and creating a new contour; modified inputModifyPoint to respect time
+
 Revision 4.3  2003/02/27 23:45:42  mast
 Add function to truncate contour
 
