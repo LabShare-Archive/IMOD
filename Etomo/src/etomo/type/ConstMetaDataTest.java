@@ -185,6 +185,23 @@ public class ConstMetaDataTest extends TestCase {
    */
   protected void tearDown() throws Exception {
     super.tearDown();
+    System.out.println();
+    unreadableFile.delete();
+    unreadableAFile.delete();
+    unreadableBFile.delete();
+    validFile.delete();
+    validAFile.delete();
+    validBFile.delete();
+    File file = new File(unreadableBFileDir, validAFileName);
+    file.delete();
+
+    emptyDir.delete();
+    emptyDir2.delete();
+    unreadableDir.delete();
+    unwritableDir.delete();
+    unreadableFileDir.delete();
+    unreadableBFileDir.delete();
+    validFileDir.delete();l
   }
 
   protected File createUnreadableFile(File dir, String name)
