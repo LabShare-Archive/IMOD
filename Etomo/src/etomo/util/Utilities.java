@@ -1,3 +1,4 @@
+
 package etomo.util;
 
 import java.io.File;
@@ -21,6 +22,9 @@ import etomo.process.SystemProgram;
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.2  2003/12/05 01:24:23  sueh
+ * <p> $bug242 moved getEnvironmentVariable() to Utilities
+ * <p> $
  * <p> $Revision 3.1  2003/11/27 00:05:28  rickg
  * <p> $Added debugPrint static method
  * <p> $
@@ -46,32 +50,45 @@ public class Utilities {
   private Utilities() {
   }
 
-  static public boolean fileExists(
-    ConstMetaData metaData,
-    String fileName,
-    AxisID axisID) {
+  /**
+   * Convert milliseconds into a string of the format Minutes:Seconds
+   * @param milliseconds
+   * @return
+   */
+  public static String millisToMinAndSecs(double milliseconds) {
+    int minutes = (int) Math.floor(milliseconds / 60000);
+    int seconds = (int) Math.floor((milliseconds - minutes * 60000) / 1000.0);
+    String strSeconds = "";
+    //  Add aleading zero if less than 10 seconds
+    if (seconds < 10) {
+      strSeconds = "0";
+    }
+    strSeconds += String.valueOf(seconds);
+    return String.valueOf(minutes) + ":" + strSeconds;
+  }
+
+  static public boolean fileExists(ConstMetaData metaData, String fileName,
+      AxisID axisID) {
     String workingDirectory = System.getProperty("user.dir");
-    File file =
-      new File(
-        workingDirectory,
-        metaData.getDatasetName() + axisID.getExtension() + fileName);
+    File file = new File(workingDirectory, metaData.getDatasetName()
+        + axisID.getExtension() + fileName);
     if (file.exists()) {
       return true;
     }
     return false;
   }
-  
+
   /**
    * Print out the specified string if the debug flag is set
    *
    * @param string
    */
   static public void debugPrint(String string) {
-  	if(ApplicationManager.isDebug()) {
-  		System.err.println(string);
-  	}
+    if (ApplicationManager.isDebug()) {
+      System.err.println(string);
+    }
   }
-  
+
   /**
    * Return an environment variable value
    * 
@@ -92,9 +109,7 @@ public class Utilities {
       catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
-        System.err.println(
-          "Unable to run cmd command to find "
-            + varName
+        System.err.println("Unable to run cmd command to find " + varName
             + " environment variable");
 
         return "";
@@ -124,9 +139,7 @@ public class Utilities {
       catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
-        System.err.println(
-          "Unable to run env command to find "
-            + varName
+        System.err.println("Unable to run env command to find " + varName
             + " environment variable");
 
         return "";
@@ -152,6 +165,5 @@ public class Utilities {
     }
     return "";
   }
-
 
 }
