@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/04/07 21:02:30  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 
 package etomo.ui;
@@ -90,4 +93,15 @@ public class UIUtilities {
       }
     }
   }
+  
+  /**
+   * Set the button sizes (preferred and maximum) of a button
+   * @param container
+   * @param size
+   */
+  public static void setButtonSize(AbstractButton button, Dimension size) {
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
+  }
+
 }
