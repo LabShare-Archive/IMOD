@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2004/06/17 15:58:53  mast
+#  Added chunksetup
+#
 #  Revision 3.9  2004/03/11 18:46:16  mast
 #  Added matchrotpairs
 #
@@ -40,7 +43,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- chunksetup $(GENERATED_SCRIPTS)
+ chunksetup processchunks $(GENERATED_SCRIPTS)
 
 all:
 
