@@ -13,6 +13,11 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/01/04 00:37:27  rickg
+ * <p> Added fileSetName, bToA, searchDirection, centerView* members
+ * <p> Added centerView command line args
+ * <p> Added necessary spaces after command line args
+ * <p>
  * <p> Revision 1.1  2002/12/31 00:57:08  rickg
  * <p> Initial revision
  * <p>
@@ -40,6 +45,9 @@ public class TransferfidParam {
   public String getCommandString() {
     StringBuffer commandLine = new StringBuffer("transferfid ");
 
+    if(bToA) {
+      commandLine.append("-b ");
+    }
     if (!inputImageFile.equals("")) {
       commandLine.append("-ia " + inputImageFile + " ");
     }
@@ -64,6 +72,14 @@ public class TransferfidParam {
       commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
     }
 
+    if(searchDirection > 0) {
+      commandLine.append("-a 90 ");
+    }
+    
+    if(searchDirection < 0) {
+      commandLine.append("-a -90 ");
+    }
+    
     if (runMidas) {
       commandLine.append("-m ");
     }
@@ -183,6 +199,54 @@ public class TransferfidParam {
    */
   public void setBToA(boolean bToA) {
     this.bToA = bToA;
+  }
+
+  /**
+   * Returns the centerViewA.
+   * @return int
+   */
+  public int getCenterViewA() {
+    return centerViewA;
+  }
+
+  /**
+   * Returns the centerViewB.
+   * @return int
+   */
+  public int getCenterViewB() {
+    return centerViewB;
+  }
+
+  /**
+   * Returns the searchDirection.
+   * @return int
+   */
+  public int getSearchDirection() {
+    return searchDirection;
+  }
+
+  /**
+   * Sets the centerViewA.
+   * @param centerViewA The centerViewA to set
+   */
+  public void setCenterViewA(int centerViewA) {
+    this.centerViewA = centerViewA;
+  }
+
+  /**
+   * Sets the centerViewB.
+   * @param centerViewB The centerViewB to set
+   */
+  public void setCenterViewB(int centerViewB) {
+    this.centerViewB = centerViewB;
+  }
+
+  /**
+   * Sets the searchDirection.
+   * @param searchDirection The searchDirection to set
+   */
+  public void setSearchDirection(int searchDirection) {
+    this.searchDirection = searchDirection;
   }
 
 }
