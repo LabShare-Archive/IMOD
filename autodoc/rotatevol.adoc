@@ -30,7 +30,7 @@ temporary files will be placed in the current directory.
 short = size
 long = OutputSizeXYZ
 type = IT
-usage = X, Y, Z dimensions of the output file
+usage = X, Y, Z dimensions of the output file (default is size of input file)
 tooltip = 
 manpage = 
 
@@ -50,7 +50,7 @@ output volume.  Coordinates are numbered from zero.
 short = angles
 long = RotationAnglesZYX
 type = FT
-usage = Angles to rotate about Z, Y, and X axes, in that order
+usage = Angles to rotate about Z, Y, and X axes, in that order (defaults 0)
 tooltip = Angles to rotate about Z, Y, and X axes.  Rotations will be
 applied in that order; first around Z, then Y, then X.
 manpage = 
@@ -59,7 +59,7 @@ manpage =
 short = order
 long = InterpolationOrder
 type = I
-usage = Order of interpolation to use (1 = linear, 2 = quadratic; default = 2)
+usage = Order of interpolation to use (1: linear, 2: quadratic; default is 2)
 tooltip = 
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.
