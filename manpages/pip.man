@@ -611,7 +611,7 @@ there is no interactive input, supply an empty string for \fIprompt\fR.
 .nf
 int PipSetManpageOutput(int \fItype\fB);
 
-integer*4 function PipPrintHelp(\fItype\fB)
+subroutine PipSetManpageOutput(\fItype\fB)
 integer*4 \fItype\fB
 .ft R
 .fi
