@@ -1435,7 +1435,7 @@ Icont *imodel_contour_scan(Icont *incont)
 
   /* DNM: eliminate getting rid of lines parallel to y scan */
 
-  imodContourGetBBox(ocont, &pmax, &pmin);
+  imodContourGetBBox(ocont, &pmin, &pmax);
   ymin = pmin.y;
   ymax = pmax.y;
 
@@ -1754,8 +1754,8 @@ int imodel_contour_overlap(Icont *c1, Icont *c2)
   int i, j, jstrt;
 
   /* first check and see if bounding box overlaps. */
-  imodContourGetBBox(c1, &pmax1, &pmin1);
-  imodContourGetBBox(c2, &pmax2, &pmin2);
+  imodContourGetBBox(c1, &pmin1, &pmax1);
+  imodContourGetBBox(c2, &pmin2, &pmax2);
 
   if (pmax1.x < pmin2.x)
     return(0);
@@ -3137,6 +3137,9 @@ char *imodContourGetName(Icont *inContour)
 
 /*
   $Log$
+  Revision 3.11  2005/03/30 02:27:16  mast
+  Documented functions (in progress)
+
   Revision 3.10  2005/03/20 19:56:49  mast
   Eliminating duplicate functions
   

@@ -1994,7 +1994,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
     return 0;
 
   /* Get limits and test in X and Y */
-  imodContourGetBBox(cont, &tmpmax, &tmpmin);
+  imodContourGetBBox(cont, &tmpmin, &tmpmax);
   if (tmpmin.x > ptmax.x || tmpmax.x < ptmin.x ||
       tmpmin.y > ptmax.y || tmpmax.y < ptmin.y)
     return 0;
@@ -2038,7 +2038,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
       imodContourDelete((*scancont));
       return 0;
     }
-    imodContourGetBBox((*scancont), &tmpmax, &tmpmin);
+    imodContourGetBBox((*scancont), &tmpmin, &tmpmax);
 
     /* Adjust true area down by ratio of trimmed to original
        scan-contour area */
@@ -2198,6 +2198,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 
 /*
 $Log$
+Revision 3.13  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
 Revision 3.12  2005/01/29 20:28:57  mast
 Pulled out routines for making Z tables and doing nested contour
 analysis; fixed bug in clipping plane volume measurement

@@ -1297,7 +1297,7 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
     level[co] = 0;
     nestind[co] = -1;
     if (obj->cont[co].psize) {
-      imodContourGetBBox(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
+      imodContourGetBBox(&(obj->cont[co]), &(pmin[co]), &(pmax[co]));
       scancont[co] = &(obj->cont[co]);
     }
   }
@@ -1364,6 +1364,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.16  2005/03/20 19:56:49  mast
+Eliminating duplicate functions
+
 Revision 3.15  2005/01/30 17:44:39  mast
 Make scanlines contours only when needed for nesting analysis
 

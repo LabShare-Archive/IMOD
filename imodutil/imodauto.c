@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
 Revision 3.7  2004/11/05 19:05:29  mast
 Include local files with quotes, not brackets
 
@@ -503,7 +506,7 @@ static Iobj *imodaObjectCreateThresholdData
       }
       if (critedge) {
         /* count the edges that the contour touches */
-        imodContourGetBBox(cont, &pmax, &pmin);
+        imodContourGetBBox(cont, &pmin, &pmax);
         if (pmin.x == 0)
           nedge++;
         if (pmax.x == nx - 1)

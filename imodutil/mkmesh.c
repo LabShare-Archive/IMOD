@@ -764,12 +764,12 @@ static Imesh *imeshContoursCost(Icont *bc, Icont *tc, Ipoint *scale,
         /* Try to have all mesh start at about the same place
          * so it looks better with fake transperentcy.
          */
-        imodContourGetBBox(bc, &maxp, &minp);
+        imodContourGetBBox(bc, &minp, &maxp);
         si[0] = imodContourNearest(bc, &minp);
                     
         /* Now find a similar point in the top contour. */
                     
-        imodContourGetBBox(tc, &maxp, &minp);
+        imodContourGetBBox(tc, &minp, &maxp);
         si[1] = imodContourNearest(tc,  &minp); 
 
         /* DNM: this won't work any better than going for corner
@@ -1072,7 +1072,7 @@ int SkinObject
 
   for (co = 0; co < obj->contsize; co++)
     if (obj->cont[co].psize)
-      imodContourGetBBox(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
+      imodContourGetBBox(&(obj->cont[co]), &(pmin[co]), &(pmax[co]));
 
   if (!iobjClose(obj->flags))
     return(mesh_open_obj(obj, scale, incz, flags, zmin, zmax, contz, 
@@ -1104,7 +1104,6 @@ int SkinObject
     return(-1);
   for (co = 0; co < obj->contsize; co++)
     nestind[co] = -1;
-
 
   /*
    *  Mark all contours with no data as connected.
@@ -1387,7 +1386,7 @@ int SkinObject
             /* DNM 12/18/01: Need to include even levels also */
             if (/*nest->level % 2 &&*/ nest->ninside) {
               tcont = nest->inscan;
-              imodContourGetBBox(tcont, &tpmax, &tpmin);
+              imodContourGetBBox(tcont, &tpmin, &tpmax);
             }
           }
           for (j = 0; j < nbot; j++) {
@@ -1401,7 +1400,7 @@ int SkinObject
               blevels[j] = bnest->level;
               if (/*bnest->level % 2 &&*/ bnest->ninside) {
                 bcont = bnest->inscan;
-                imodContourGetBBox(bcont, &bpmax, &bpmin);
+                imodContourGetBBox(bcont, &bpmin, &bpmax);
               }
             }
             imodel_overlap_fractions(&bcont, bpmin, bpmax, &tcont, 
@@ -2000,7 +1999,7 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
   outscan = imodel_contour_scan(cout);
   if (!outscan)
     return NULL;
-  imodContourGetBBox(cout, &pmaxout, &pminout);
+  imodContourGetBBox(cout, &pminout, &pmaxout);
 
   /* go through and mark ones that will get capped first */
   for (inl = 0; inl < njustin; inl++) {
@@ -2256,7 +2255,7 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
       inscan = imodel_contour_scan(cinmin);
       if (!inscan)
         return NULL;
-      imodContourGetBBox(cinmin, &pmaxin, &pminin);
+      imodContourGetBBox(cinmin, &pminin, &pmaxin);
 
       /* build list of ones that overlap new inner contour */
       ninlist = 0;
@@ -2398,7 +2397,7 @@ static float evaluate_break(Icont *cout, int *list, int *used,
   inscan = imodel_contour_scan(cintst);
   if (!inscan)
     return (1.e30);
-  imodContourGetBBox(cintst, &pmaxin, &pminin);
+  imodContourGetBBox(cintst, &pminin, &pmaxin);
 
   /* sum the area of orphans overlapping this contour */
   areasum = 0;
@@ -3851,6 +3850,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.11  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
 Revision 3.10  2005/01/30 17:45:44  mast
 Changed calls to overlap_fractions to send address of contour pointers
 
