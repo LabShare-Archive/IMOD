@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/04/29 20:25:57  sueh
+ * <p> bug# 427 added commented out testing code
+ * <p>
  * <p> Revision 3.6  2004/04/27 01:02:46  sueh
  * <p> bugt# 427 added set and get TomopitchParam
  * <p>
@@ -277,6 +280,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   public void getTomopitchParams(TomopitchParam tomopitchParam) {
     //TODO set ScaleFactor
     double binning = Double.parseDouble(spinBinning.getValue().toString());
+    tomopitchParam.setScaleFactor(binning);
     //temp test
     /*
     tomopitchParam.setExtraThickness("3");
