@@ -210,6 +210,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/06/21 00:39:26  mast
+c	  Changed to use new version of get_tilt_angles
+c	
 c	  Revision 3.5  2003/05/20 23:42:09  mast
 c	  Add space before wrlist output
 c	
@@ -754,7 +757,7 @@ c
 		      if(incore(ibox,iobjdo).ge.0)then
 			needed=0
 			do ic=1,maxuse
-			  if(incore(ibox,iobjdo).eq.izclose(iz))needed=1
+			  if(incore(ibox,iobjdo).eq.izclose(ic))needed=1
 			enddo
 			if(needed.eq.0)incore(ibox,iobjdo)=-1
 		      endif
@@ -765,7 +768,7 @@ c
 		    do ic=1,maxuse
 		      needed=1
 		      do ibox=1,maxsum
-			if(incore(ibox,iobjdo).eq.izclose(iz))needed=0
+			if(incore(ibox,iobjdo).eq.izclose(ic))needed=0
 		      enddo
 		      if(needed.eq.1)then
 			do ibox=1,maxsum
