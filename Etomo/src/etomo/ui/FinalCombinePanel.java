@@ -39,6 +39,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2003/04/09 23:37:46  rickg
+ * <p> Moved CheckBoxTextPanel out
+ * <p>
  * <p> Revision 1.10  2003/03/26 00:52:56  rickg
  * <p> Added button to convert patch_vector.mod to patch.out
  * <p>
@@ -123,6 +126,7 @@ public class FinalCombinePanel implements ContextMenu {
     new JButton("<html><b>Open volume being matched to</b>");
   private JButton btnImodCombined =
     new JButton("<html><b>Open combined volume</b>");
+  private JButton btnVolCombine = new JButton("<html><b>Run Volcombine</b>");
 
   /**
    * Default constructor
@@ -257,6 +261,11 @@ public class FinalCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined);
     pnlButton.add(Box.createHorizontalGlue());
+		
+		
+		pnlButton.add(btnVolCombine);
+				pnlButton.add(Box.createHorizontalGlue());
+    
     pnlRoot.add(Box.createVerticalGlue());
     pnlRoot.add(pnlButton);
 
@@ -272,7 +281,8 @@ public class FinalCombinePanel implements ContextMenu {
     btnCommitPatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
-
+		btnVolCombine.addActionListener(actionListener);
+		
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
@@ -551,6 +561,10 @@ public class FinalCombinePanel implements ContextMenu {
     if (event.getActionCommand().equals(btnImodCombined.getActionCommand())) {
       applicationManager.imodCombinedTomogram();
     }
+		if (event.getActionCommand().equals(btnVolCombine.getActionCommand())) {
+			applicationManager.volcombine();
+		}
+
   }
 
   class ButtonActionListener implements ActionListener {
@@ -565,4 +579,3 @@ public class FinalCombinePanel implements ContextMenu {
     }
   }
 }
-
