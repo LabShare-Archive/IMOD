@@ -1,0 +1,109 @@
+#!/bin/csh -f
+#
+# Stub for self-extracting IMOD installer
+# Options are -extract to extract archive and installer without installing
+#             -test to go through whole script without installing
+#
+
+set installer = installIMOD
+set this = $0
+set packname = $this:r.tar.gz
+set tempdir = IMODtempDir
+
+# Find the end of this script
+# Make sure this starting number is safely past the test for the string!
+#
+@ skip = 30
+while ($skip < 1000)
+    set stubend = `head -$skip $this | tail -1 | grep 'END OF STUB'`
+    if (! $status) break;
+    @ skip++
+end
+
+if ($skip == 1000) then
+    echo "Could not find package in this file!"
+    exit 1
+endif
+
+@ skip++
+
+set extract = 0
+set test = 0
+while ($#argv > 0)
+    switch ($argv[1])
+        case -ex*:
+            set extract = 1
+            shift
+            breaksw
+
+        case -test:
+            set test = 1
+            shift
+            breaksw
+
+        default:
+            echo "Illegal option $argv[1]"
+            exit 1
+    endsw
+end
+
+if ($extract == 0) then
+    echo ""
+    echo "This script will install IMOD at the default location and rename"
+    echo "any previous version, or remove another copy of this version."
+    echo "You can add the option -extract to just extract the tar file and not install"
+    echo ""
+    echo -n "Enter Y if you want to proceed: "
+    set yesno = $<
+    if ("$yesno" != "Y" && "$yesno" != "y") exit 0
+endif
+
+mkdir -p $tempdir    
+
+echo "Extracting $packname ..."
+tail +$skip $this >! $tempdir/$packname
+
+set version = `echo $this:t | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
+
+cd $tempdir
+
+echo "Extracting $installer"
+set irix = `uname -s | grep IRIX`
+
+if ($status) then
+    tar xzf $packname $version/$installer
+else
+    gzcat $packname | tar x $version/$installer
+endif
+
+if (! -e $version/$installer) then
+    echo "Could not extract $installer"
+    exit 1
+endif
+
+mv $version/$installer .
+rmdir $version
+
+if ($extract == 1) then
+    echo "Left $packname and $installer in $tempdir"
+    exit 0
+endif
+
+if ($test == 0) csh $installer $packname
+
+echo "Cleaning up $packname and $installer"
+\rm $installer $packname
+cd ..
+rmdir $tempdir
+
+exit 0
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+END OF STUB
