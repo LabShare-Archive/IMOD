@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdlib.h>
 #include <Xm/Xm.h>
 #include <Xm/Label.h>
@@ -44,13 +53,25 @@
 
 Widget PixelViewGrid[PV_ROWS][PV_COLS];
 Widget PixelViewDialog = 0;
+static int ctrl;
 
-void pview_quit_cb(Widget w, XtPointer client, XtPointer call)
+static void pview_quit_cb(Widget w, XtPointer client, XtPointer call)
 {
-     Widget *dialog = (Widget *)client;
+     ImodView *vi = (ImodView *)client;
+     ivwDeleteControl(vi, ctrl);
+}
+
+static void pviewClose_cb(ImodView *vi, void *client, long drawflag)
+{
      XtPopdown(PixelViewDialog);
      XtDestroyWidget(PixelViewDialog);
      PixelViewDialog = 0;
+}
+
+static void pviewDraw_cb(ImodView *vi, void *client, long drawflag)
+{
+     if (PixelViewDialog && (drawflag & IMOD_DRAW_XYZ))
+	  set_pixelview(vi);
 }
 
 
@@ -63,6 +84,9 @@ int set_pixelview(struct ViewInfo *vi)
 
      if (!PixelViewDialog)
 	  return(-1);
+
+     /* DNM 11/24/02: Bring window to the top */
+     XRaiseWindow(App->display, XtWindow(PixelViewDialog));
 
      for (i = 0; i < PV_COLS; i++)
 	  for(j = 0; j < PV_ROWS; j++){
@@ -107,13 +131,15 @@ void pixelview_cb(Widget w, XtPointer client, XtPointer call)
      int pos = (int)client;
      int x,y;
 
+     ivwControlPriority(App->cvi, ctrl);
+
      y = pos / PV_COLS - PV_COLS / 2;
      x = pos % PV_COLS - PV_ROWS / 2;
      y += 1;
      App->cvi->xmouse += x;
      App->cvi->ymouse -= y;
      ivwBindMouse(App->cvi);
-     set_pixelview(App->cvi);
+     /*   set_pixelview(App->cvi); */
      imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
 }
 
@@ -166,7 +192,10 @@ int open_pixelview(struct ViewInfo *vi)
      wmclose = XmInternAtom( XtDisplay(PixelViewDialog),
 			    "WM_DELETE_WINDOW", False);
      XmAddWMProtocolCallback(PixelViewDialog, wmclose, pview_quit_cb,
-			     (caddr_t)0);
+			     (caddr_t)vi);
+
+     ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, (XtPointer)0);
+
      XtPopup(PixelViewDialog, XtGrabNone);
      set_pixelview(vi);
      return(0);
