@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/05/12 23:25:34  rickg
+ * <p> imodv -> 3dmod -view
+ * <p>
  * <p> Revision 2.11  2003/05/09 17:50:58  rickg
  * <p> Set appmgr on construction
  * <p>
@@ -325,6 +328,7 @@ public class ImodManager {
     checkAxisID(axisID);
     ImodProcess sample = selectSample(axisID);
     sample.open();
+    sample.modelMode();
   }
 
   /**
