@@ -9,6 +9,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/12/20 23:58:39  mast
+c	  Fix variable mapping output when one rotation is fixed, and add
+c	  option to fix all rotations
+c	
 c	  Revision 3.3  2002/07/28 22:38:35  mast
 c	  Standardized error exit and output
 c	
@@ -150,7 +154,7 @@ c
 c	    get initial tilt angles for all views, convert to radians
 c	    save adjusted angles in tiltorig, then map as radians into tilt
 c	    
-	  call get_tilt_angles(nfileviews,3,tiltorig)
+	  call get_tilt_angles(nfileviews,3,tiltorig, maxview, 0)
 	  write(*,'(1x,a,$)')'Amount to add to all angles: '
 	  read(5,*)tiltadd
 	  do i=1,nfileviews
