@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2002/12/06 01:02:58  rickg
+ * <p> Redesign in progress
+ * <p>
  * <p> Revision 1.12  2002/12/05 01:21:31  rickg
  * <p> Redesign in progress
  * <p>
@@ -94,6 +97,14 @@ public class TiltalignPanel implements ContextMenu {
 
   private LabeledTextField ltfNSurfaceAnalysis =
     new LabeledTextField("Number of fiducial surfaces: ");
+  private LabeledTextField ltfResidualThreshold =
+    new LabeledTextField("Residual threshold: ");
+  private JRadioButton rbResidAllViews = new JRadioButton("All projections");
+  private JRadioButton rbResidNeighboring =
+    new JRadioButton("Neighboring projections");
+  private ButtonGroup bgResidualThreshold = new ButtonGroup();
+  private JPanel panelResidualThreshold = new JPanel();
+
   private LabeledTextField ltfExcludeList =
     new LabeledTextField("Exclude list: ");
   private LabeledTextField ltfAdditionalViewGroups =
@@ -221,7 +232,7 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfLocalSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
-  private Dimension dimLTF = new Dimension(1000, 30);
+  private Dimension dimLTF = new Dimension(1000, 20);
 
   public TiltalignPanel(String suffix) {
     logSuffix = suffix;
@@ -247,6 +258,14 @@ public class TiltalignPanel implements ContextMenu {
 
     //  General panel parameters
     ltfNSurfaceAnalysis.setText(params.getNSurfaceAnalysis());
+    ltfResidualThreshold.setText(Math.abs(params.getResidualThreshold()));
+    if (params.getResidualThreshold() < 0) {
+      rbResidNeighboring.setSelected(true);
+    }
+    else {
+      rbResidAllViews.setSelected(true);
+    }
+
     int excludeType = params.getIncludeExcludeType();
     if (excludeType == 0 || excludeType == 3) {
       ltfExcludeList.setEnabled(true);
@@ -429,6 +448,13 @@ public class TiltalignPanel implements ContextMenu {
     try {
       badParameter = ltfNSurfaceAnalysis.getLabel();
       params.setNSurfaceAnalysis(ltfNSurfaceAnalysis.getText());
+
+      badParameter = ltfResidualThreshold.getLabel();
+      double resid = Double.parseDouble(ltfResidualThreshold.getText());
+      if (rbResidNeighboring.isSelected()) {
+        resid *= -1;
+      }
+      params.setResidualThreshold(resid);
 
       //  Currently only supports Exclude list or blank entries
       badParameter = ltfExcludeList.getLabel();
@@ -699,6 +725,12 @@ public class TiltalignPanel implements ContextMenu {
         logFile);
   }
 
+  // Residual solution panel, nothing much to do.  This is here so that
+  // this section matches the other's pattern
+  void updateResidualSolutionPanel() {
+
+  }
+
   //  Local alignment state
   void updateLocalAlignmentState() {
     boolean state = chkLocalAlignments.isSelected();
@@ -794,7 +826,32 @@ public class TiltalignPanel implements ContextMenu {
 
     ltfNSurfaceAnalysis.setMaximumSize(dimLTF);
     panelGeneral.add(ltfNSurfaceAnalysis.getContainer());
-    
+
+    panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    ltfResidualThreshold.setMaximumSize(dimLTF);
+    panelResidualThreshold.setLayout(
+      new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
+    ltfResidualThreshold.setPreferredSize(
+      new Dimension(300, (int) dimLTF.getHeight()));
+    panelResidualThreshold.add(ltfResidualThreshold.getContainer());
+    panelResidualThreshold.add(new JLabel(" s.d. realitive to "));
+    JRadioButton[] items = new JRadioButton[2];
+    items[0] = rbResidAllViews;
+    items[1] = rbResidNeighboring;
+    JPanel panelRBResidual = new JPanel();
+    panelRBResidual.setLayout(new BoxLayout(panelRBResidual, BoxLayout.Y_AXIS));
+
+    ResidualRadioListener residualRadioListener =
+      new ResidualRadioListener(this);
+    createRadioBox(
+      panelRBResidual,
+      bgResidualThreshold,
+      items,
+      residualRadioListener);
+    panelResidualThreshold.add(panelRBResidual);
+
+    panelGeneral.add(panelResidualThreshold);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
     ltfExcludeList.setMaximumSize(dimLTF);
@@ -1079,6 +1136,17 @@ public class TiltalignPanel implements ContextMenu {
         BorderFactory.createEtchedBorder(highlight, shadow),
         title));
 
+  }
+}
+
+class ResidualRadioListener implements ActionListener {
+  TiltalignPanel panel;
+
+  ResidualRadioListener(TiltalignPanel adaptee) {
+    panel = adaptee;
+  }
+  public void actionPerformed(ActionEvent event) {
+    panel.updateResidualSolutionPanel();
   }
 }
 
