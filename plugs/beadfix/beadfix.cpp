@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.11  2004/09/24 17:55:38  mast
+    Added example of executing message
+
     Revision 3.10  2004/06/01 00:52:38  mast
     Set up as test for plugin building
 
@@ -874,59 +877,64 @@ BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
     width = width2;
   width = (int)(1.15 * width);
 
-  button = diaPushButton("Go to Next Gap", this, mLayout);
+  button = diaPushButton("Go to Next Gap", this, (QBoxLayout *)mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
   button->setFixedWidth(width);
   QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
 
-  button = diaPushButton("Open Tiltalign Log File", this, mLayout);
+  button = diaPushButton("Open Tiltalign Log File", this, (QBoxLayout *)mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
   button->setFixedWidth(width);
   QToolTip::add(button, "Select an alignment log file to open");
 
-  rereadBut = diaPushButton("Reread Log File", this, mLayout);
+  rereadBut = diaPushButton("Reread Log File", this, (QBoxLayout *)mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
   rereadBut->setEnabled(false);
   rereadBut->setFixedWidth(width);
   QToolTip::add(rereadBut, "Read the previously specified file again");
 
-  nextLocalBut = diaPushButton("Go to Next Local Set", this, mLayout);
+  nextLocalBut = diaPushButton("Go to Next Local Set", this, 
+                               (QBoxLayout *)mLayout);
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
   nextLocalBut->setFixedWidth(width);
   QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
 
-  nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
+  nextResBut = diaPushButton("Go to Next Big Residual", this,
+                             (QBoxLayout *)mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
   nextResBut->setFixedWidth(width);
   QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
-  movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
+  movePointBut = diaPushButton("Move Point by Residual", this, 
+                               (QBoxLayout *)mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
   movePointBut->setFixedWidth(width);
   QToolTip::add(movePointBut, "Move point to position that fits alignment"
                 " solution - Hot key: semicolon");
 
-  undoMoveBut = diaPushButton("Undo Move", this, mLayout);
+  undoMoveBut = diaPushButton("Undo Move", this, (QBoxLayout *)mLayout);
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
   undoMoveBut->setFixedWidth(width);
   QToolTip::add(undoMoveBut, 
                 "Move point back to previous position - Hot key: U");
 
-  backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
+  backUpBut = diaPushButton("Back Up to Last Point", this,
+                            (QBoxLayout *)mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
   backUpBut->setEnabled(false);
   backUpBut->setFixedWidth(width);
   QToolTip::add(backUpBut, "Back up to last point examined");
 
-  box = diaCheckBox("Examine Points Once", this, mLayout);
+  box = diaCheckBox("Examine Points Once", this, (QBoxLayout *)mLayout);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
   diaSetChecked(box, plug->lookonce != 0);
   QToolTip::add(box, "Skip over points examined before");
 
-  clearListBut = diaPushButton("Clear Examined List", this, mLayout);
+  clearListBut = diaPushButton("Clear Examined List", this, 
+                               (QBoxLayout *)mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
   clearListBut->setFixedWidth(width);
   QToolTip::add(clearListBut, "Allow all points to be examined again");
