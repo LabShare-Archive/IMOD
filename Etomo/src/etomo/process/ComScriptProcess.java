@@ -1,17 +1,3 @@
-package etomo.process;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.type.ProcessName;
-import etomo.util.Utilities;
 
 /**
  * <p>
@@ -33,6 +19,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2004/04/16 01:51:41  sueh
+ * bug# 409 added ProcessName
+ *
  * Revision 3.3  2004/04/10 00:52:01  sueh
  * bug# 409 fixed a possible bug in parseWarning()
  *
@@ -204,6 +193,21 @@ import etomo.util.Utilities;
  * <p>
  * </p>
  */
+package etomo.process;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
+import etomo.ApplicationManager;
+import etomo.type.AxisID;
+import etomo.type.ProcessName;
+import etomo.util.Utilities;
+
 public class ComScriptProcess
   extends Thread
   implements SystemProcessInterface {
@@ -573,7 +577,7 @@ public class ComScriptProcess
         int index = line.indexOf("ERROR:");
         if (index != -1) {
           foundError = true;
-          errors.add(line);
+          errors.add(line.substring(index));
         }
       }
       else {
