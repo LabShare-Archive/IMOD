@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/10/24 02:30:40  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.4  2003/02/28 18:09:32  mast
 #  Changes for cygwin/windows
 #
@@ -32,7 +35,7 @@ PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
  mrctaper$(E) dm3props$(E) $(RGBPROGS)
 
 
-IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
+IILIBS    =  $(LIIMOD) $(LIMOD) $(TIFFLIBS)
 
 all : $(PROGS)
 
