@@ -819,6 +819,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int shifted = event->state() & Qt::ShiftButton;
   int bwStep = ImodPrefs->getBwStep();
 
+  if (testMetaKey(event))
+    return;
   inputConvertNumLock(keysym, keypad);
 
   // Set this to 0 when a case is NOT handling the key
@@ -1179,8 +1181,24 @@ void inputConvertNumLock(int &keysym, int &keypad)
   return;
 }
 
+/* For Mac, allow modules to discard keys if the Ctrl key is down */
+bool testMetaKey(QKeyEvent *event)
+{
+#ifdef Q_OS_MACX
+  if (event->state() & Qt::MetaButton) {
+    wprint("\aUse the Apple/Command key instead of Ctrl on the Mac!\n");
+    event->ignore();
+    return true;
+  }
+#endif
+  return false;
+}
+
 /*
 $Log$
+Revision 4.8  2003/04/17 19:27:13  mast
+keypad workaround for Mac
+
 Revision 4.7  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 
