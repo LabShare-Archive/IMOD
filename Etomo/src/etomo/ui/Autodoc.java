@@ -12,7 +12,38 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
-* <p>Description:</p>
+* <p>Description:  Data storage for an autodoc file.
+* 
+* To Use:
+* 
+* Set up environement variables:  make sure that either the AUTODOC_DIR or
+* IMOD_DIR/autodoc points to an autodoc directory (AUTODOC_DIR) is checked
+* first.  An autodoc file can also be placed in the current working directory.
+* 
+* Call Autodoc.get(String) with the constant refering to the autodoc file you wish to
+* load.
+* 
+* Use the get... and next... functions to retrieve sections and attributes.
+* 
+* 
+* To Test:
+* Call the print() function to print everything in the autodoc.
+* Test the parser of the autodoc file by modifying the code.  Set testMode to
+* true.  Uncomment the test function you wish to use.
+* 
+* 
+* Possible Upgrades:
+* 
+* Required:  The Autodoc file names need to be added to this object.
+* 
+* The ability to open an unknown autodoc file.
+* 
+* Make testing accessible without modifying the code.
+* 
+* After parsing is finished the Autodoc should be readOnly.  Allow Autodoc to be
+* set to ReadOnly. 
+* 
+* </p>
 *
 * <p>Copyright: Copyright © 2002, 2003</p>
 *
@@ -25,6 +56,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.6  2004/01/01 00:44:50  sueh
+* <p> $bug# 372 correcting interface name
+* <p> $
 * <p> $Revision 1.5  2003/12/31 17:46:43  sueh
 * <p> $bug# 372 add getFile()
 * <p> $
@@ -244,7 +278,7 @@ public class Autodoc implements AttributeCollection {
       //parser.testAutodocTokenizer(true);
       //parser.testPreprocessor(false);
       //parser.testPreprocessor(true);
-      parser.test(false);
+      //parser.test(false);
       //parser.test(true);
       //parser.test(false, true);
       //parser.test(true, true);
