@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/13 21:29:57  rickg
+ * <p> Started updating for ImodManager
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -48,10 +51,10 @@ public class ApplicationManager {
   private ProcessManager processMgr = new ProcessManager(this);
   private ProcessTrack processTrack = new ProcessTrack();
 
-	// This object manages the opening and closing closing of imod(s), message 
-	// passing for loading model
-	private ImodManager imodManager = new ImodManager(this);
-	
+  // This object manages the opening and closing closing of imod(s), message 
+  // passing for loading model
+  private ImodManager imodManager = new ImodManager(this);
+
   private MainFrame mainFrame;
   private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
