@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/28/04: IMOD_3-4-13
+11/28/04: Revised serial tomogram joining guide for eTomo interface.
+
 11/23/04: Added options for controlling whether contours are joined by adding
 all of their points together end to end, versus connecting them or splicing
 them together at nearest or selected points.  The default settings will now be
