@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/08 17:03:49  rickg
+ * <p> Swapped position of nColumns and nRows in read()
+ * <p>
  * <p> Revision 1.2  2002/10/03 19:17:48  rickg
  * <p> Added new InvalidParameterException.
  * <p> Corrected parsing of header output to account for leading space.
@@ -44,6 +47,7 @@ public class MRCHeader {
 
     // Run the header command on the filename
     SystemProgram header = new SystemProgram("header " + filename);
+    header.enableDebug(true);
     header.run();
 
     // Throw an exception if the file can not be read
