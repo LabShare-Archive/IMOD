@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.5  2003/12/30 06:29:51  mast
+    Switched to having montage compose and save whole image
+
     Revision 4.4  2003/04/25 03:28:32  mast
     Changes for name change to 3dmod
 
@@ -90,28 +93,33 @@ void imodvMovieHelp()
     ("Make Movie Dialog Help.\n\n",
      "Movie Making\n\n",
      "The upper controls make a movie by stepping through "
-     "from the values in the start set to the values in the end set.\n\n"
-     "Select the [Set Start] button to set the starting values to the "
-     "values of the current display, or the [Set End] button to set "
-     "the ending values.\n\n"
-     "Selecting the [Make] button will cause 3dmodv to "
+     "from the values in the left column of text boxes (starting values) to "
+     "the values in the right column (ending values).\n\n"
+     "Press the \"Set Start\" button to set the starting values to the "
+     "values of the current display, or the \"Set End\" button to set "
+     "the ending values.  You can also edit values.\n\n"
+     "If the model view window is opened from 3dmod, then text boxes will "
+     "appear for starting and ending image slices in X, Y, and Z.  These "
+     "values will be relevant if you use the Edit-Image dialog to turn on "
+     "display fo image slices in the model view window.\n\n"
+     "Pressing the \"Make\" button will cause 3dmodv to "
      "display the number of frames given.  The rotation between the "
      "starting and ending positions will be resolved into a rotation "
      "around a single axis, and the rotation will occur at even "
      "increments around that axis.\n\n"
-     "Select the [Stop] button to stop after the next display.\n\n"
-     "If [Write Files] is selected then a snapshot will "
+     "Press the \"Stop\" button to stop after the next display.\n\n"
+     "If \"Write Files\" is selected then a snapshot will "
      "be taken of each image.  The file will be an RGB or a TIFF file, "
      "depending on which radio button is selected.\n\n"
      "To make a movie through 360 degrees around the X or the Y axis, "
-     "select the [Full 360 X] or [Full 360 Y] button.  Then select the "
-     "[Make] button.  The number of frames can be set before or "
-     "after selecting a Full 360 button.  Selecting [Set Start] or "
-     "[Set End] will cancel the Full 360 selection.\n\n",
-     "If [Reverse] is selected, the movie will run in reverse, from "
+     "select the \"Full 360 X\" or \"Full 360 Y\" button.  Then select the "
+     "\"Make\" button.  The number of frames can be set before or "
+     "after selecting a Full 360 button.  Pressing \"Set Start\" or "
+     "\"Set End\" will cancel the Full 360 selection.\n\n",
+     "If \"Reverse\" is selected, the movie will run in reverse, from "
      "the ending to the starting position, or rotate in the opposite "
      "direction for a Full 360 movie.\n\n"
-     "If [Long way] is selected, the rotation will go the long way "
+     "If \"Long way\" is selected, the rotation will go the long way "
      "around, through an angle greater instead of less than 180 "
      "degrees.\n\n\n",
      "Montage Making\n\n",
@@ -120,7 +128,7 @@ void imodvMovieHelp()
      "rendering of the model.  The model will be zoomed up by a "
      "factor equal to the number of montage frames, then translated to a "
      "regular array of positions.  "
-     "If [Write Files] is selected, then images will be montaged into an "
+     "If \"Write Files\" is selected, then images will be montaged into an "
      "array that is saved into a TIFF "
      "file at the end.  Perspective must be set to zero in order for "
      "this to work correctly.\n",
@@ -148,6 +156,11 @@ void imodvMovieSetStart()
   movie->dia->setStart(4, vw->trans.y);
   movie->dia->setStart(5, vw->trans.z);
   movie->dia->setStart(6, vw->rad);
+  if (!Imodv->standalone) {
+    movie->dia->setStart(7, (int)(Imodv->vi->xmouse + 1.5));
+    movie->dia->setStart(8, (int)(Imodv->vi->ymouse + 1.5));
+    movie->dia->setStart(9, (int)(Imodv->vi->zmouse + 1.5));
+  }
 }
 
 // Set the ending values to the current display values
@@ -163,6 +176,11 @@ void imodvMovieSetEnd()
   movie->dia->setEnd(4, vw->trans.y);
   movie->dia->setEnd(5, vw->trans.z);
   movie->dia->setEnd(6, vw->rad);
+  if (!Imodv->standalone) {
+    movie->dia->setEnd(7, (int)(Imodv->vi->xmouse + 1.5));
+    movie->dia->setEnd(8, (int)(Imodv->vi->ymouse + 1.5));
+    movie->dia->setEnd(9, (int)(Imodv->vi->zmouse + 1.5));
+  }
 }
 
 // Do full axis rotation: set start and end both to same values
@@ -275,10 +293,29 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->dia->show();
 }
 
-static void setstep(int index, int frame, float *start, float *step)
+static void setstep(int index, int frame, int limit, float *start, float *step)
 {
   float tmin, tmax;
   movie->dia->readStartEnd(index, tmin, tmax);
+
+  // If the item has a limit, make sure it is between 1 and limit
+  if (limit && tmin < 1.) {
+    tmin = 1.;
+    movie->dia->setStart(index, tmin);
+  }
+  if (limit && tmin > limit) {
+    tmin = (float)limit;
+    movie->dia->setStart(index, tmin);
+  } 
+  if (limit && tmax < 1.) {
+    tmax = 1.;
+    movie->dia->setEnd(index, tmax);
+  }
+  if (limit && tmax > limit) {
+    tmax = (float)limit;
+    movie->dia->setEnd(index, tmax);
+  }
+
   if (movie->reverse){
     *start = tmax;
     *step  = (tmin - tmax) / (float)frame;
@@ -301,6 +338,8 @@ static void imodvMakeMovie(int frames)
   float zstart, zstep, zfac;
   float xtstart, ytstart, ztstart;
   float xtstep, ytstep, ztstep;
+  float xImStart, yImStart, zImStart;
+  float xImStep, yImStep, zImStep;
   double angle, delangle;
   double alpha, beta, gamma;
   Ipoint v;
@@ -312,13 +351,18 @@ static void imodvMakeMovie(int frames)
   if (!frame)
     frame = 1;
 
-  setstep(0, frame, &astart, &astep);
-  setstep(1, frame, &bstart, &bstep);
-  setstep(2, frame, &gstart, &gstep);
-  setstep(3, frame, &xtstart, &xtstep);
-  setstep(4, frame, &ytstart, &ytstep);
-  setstep(5, frame, &ztstart, &ztstep);
-  setstep(6, frame, &zstart, &zstep);
+  setstep(0, frame, 0, &astart, &astep);
+  setstep(1, frame, 0, &bstart, &bstep);
+  setstep(2, frame, 0, &gstart, &gstep);
+  setstep(3, frame, 0, &xtstart, &xtstep);
+  setstep(4, frame, 0, &ytstart, &ytstep);
+  setstep(5, frame, 0, &ztstart, &ztstep);
+  setstep(6, frame, 0, &zstart, &zstep);
+  if (!a->standalone) {
+    setstep(7, frame, a->vi->xsize, &xImStart, &xImStep);
+    setstep(8, frame, a->vi->ysize, &yImStart, &yImStep);
+    setstep(9, frame, a->vi->zsize, &zImStart, &zImStep);
+  }
 
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
@@ -338,6 +382,12 @@ static void imodvMakeMovie(int frames)
   mat = imodMatNew(3);
   mati = imodMatNew(3);
   matp = imodMatNew(3);
+
+  if (!a->standalone) {
+    a->vi->xmouse = (int)(xImStart - 0.5);
+    a->vi->ymouse = (int)(yImStart - 0.5);
+    a->vi->zmouse = (int)(zImStart - 0.5);
+  }
 
   /* get incremental rotation matrix */
 
@@ -407,6 +457,11 @@ static void imodvMakeMovie(int frames)
       vw->trans.x += xtstep;
       vw->trans.y += ytstep;
       vw->trans.z += ztstep;
+      if (!a->standalone) {
+        a->vi->xmouse = (int)(xImStart + frame * xImStep - 0.5);
+        a->vi->ymouse = (int)(yImStart + frame * yImStep - 0.5);
+        a->vi->zmouse = (int)(zImStart + frame * zImStep - 0.5);
+      }
     }
   }
   movie->abort = 1;
