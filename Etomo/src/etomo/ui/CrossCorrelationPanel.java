@@ -6,6 +6,7 @@ import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
+//import java.io.*;
 
 /**
  * <p>Description: </p>
@@ -20,6 +21,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.7  2003/11/06 22:45:01  sueh
  * <p> cleaning up tasks
  * <p>
@@ -90,7 +94,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     panelAdvanced.add(cbExcludeCentralPeak);
     panelAdvanced.add(ltfInputFile.getContainer());
     panelAdvanced.add(ltfOutputFile.getContainer());
-//    panelAdvanced.add(ltfPieceListFile.getContainer());
+    //    panelAdvanced.add(ltfPieceListFile.getContainer());
     panelAdvanced.add(ltfFilterParams.getContainer());
     panelAdvanced.add(ltfTrim.getContainer());
     panelAdvanced.add(ltfPadPercent.getContainer());
@@ -115,8 +119,7 @@ public class CrossCorrelationPanel implements ContextMenu {
    * Set the field values for the panel from the ConstTiltxcorrParam object
    */
   public void setParameters(ConstTiltxcorrParam tiltXcorrParams) {
-    cbExcludeCentralPeak.setSelected(
-      tiltXcorrParams.getExcludeCentralPeak());
+    cbExcludeCentralPeak.setSelected(tiltXcorrParams.getExcludeCentralPeak());
     ltfInputFile.setText(tiltXcorrParams.getInputFile());
     ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
     ltfFilterParams.setText(tiltXcorrParams.getFilterParams());
@@ -131,8 +134,7 @@ public class CrossCorrelationPanel implements ContextMenu {
    */
   public void getParameters(TiltxcorrParam tiltXcorrParams)
     throws FortranInputSyntaxException {
-    tiltXcorrParams.setExcludeCentralPeak(
-      cbExcludeCentralPeak.isSelected());
+    tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
     tiltXcorrParams.setInputFile(ltfInputFile.getText());
     tiltXcorrParams.setOutputFile(ltfOutputFile.getText());
     String currentParam = "unknown";
@@ -182,48 +184,60 @@ public class CrossCorrelationPanel implements ContextMenu {
         logFileLabel,
         logFile);
   }
-  
-  
+
   /**
    * Tooltip string initialization
    */
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    
+
+    /*
+    try {
+      Autodoc.get(Autodoc.TILTXCORR);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    */
+
     text = "Image file to correlate.";
     ltfInputFile.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text = "Output file for transformations.";
     ltfOutputFile.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
+    text =
       "Sigma for low-frequency filter, sigma for high-frequency filter, 0, and "
-      + "radius for start of high-frequency filter.";
+        + "radius for start of high-frequency filter.";
     ltfFilterParams.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
+    text =
       "Pixels to trim off each side in X, and in Y; or / to use "
-      + "whole image.";
+        + "whole image.";
     ltfTrim.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
+    text =
       "Padding in X, and in Y; or / for 5% of the image size up to "
-      + "20 pixels.";
+        + "20 pixels.";
     ltfPadPercent.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
+    text =
       "Pixels to taper in X, and in Y; or / for 10% of the image size up to 100 "
-      + "pixels.";
+        + "pixels.";
     ltfTaperPercent.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
-      "Starting and ending view numbers to correlate, or / for all views.";
+    text = "Starting and ending view numbers to correlate, or / for all views.";
     ltfViewRange.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
-      "Ignore correlation peaks near (0, 0); do not use unless necessary because "      + "nearly aligned images can become misaligned.";
-    cbExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "Ignore correlation peaks near (0, 0); do not use unless necessary because "
+        + "nearly aligned images can become misaligned.";
+    cbExcludeCentralPeak.setToolTipText(
+      tooltipFormatter.setText(text).format());
   }
 
 }
