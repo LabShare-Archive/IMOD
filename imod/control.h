@@ -130,6 +130,7 @@ class DialogManager
 
  private:
   Ilist *mDialogList;
+  QRect mLastZapGeom;
 };
 
 /* Global instances */
@@ -140,6 +141,9 @@ extern DialogManager imodDialogManager;
 
 /*
 $Log$
+Revision 4.4  2003/09/17 04:46:43  mast
+Added function to return size of biggest Zap window
+
 Revision 4.3  2003/05/23 02:46:05  mast
 Added raise function
 
