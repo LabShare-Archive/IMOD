@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2004/06/02 20:41:55  rickg
+ * Bug #187 catch ERROR: in stdout and added to error message
+ *
  * Revision 3.11  2004/05/27 22:51:04  rickg
  * Bug #391 setupFiducialAlign will now remove .xf and .tlt if its
  * source files don't exist
@@ -399,13 +402,13 @@ public class ProcessManager {
    *          copytomocoms script
    */
   public void setupComScripts(ConstMetaData metaData)
-      throws BadComScriptException, IOException {
+    throws BadComScriptException, IOException {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
     if (ApplicationManager.isDebug()) {
       System.err.println("copytomocoms command line: "
-          + copyTomoComs.getCommandLine());
+        + copyTomoComs.getCommandLine());
     }
 
     int exitValue = copyTomoComs.run();
@@ -505,10 +508,10 @@ public class ProcessManager {
 
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
     xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
-        + ".prexg";
+      + ".prexg";
     xfproduct[2] = "rotation.xf";
     xfproduct[3] = appManager.getDatasetName() + axisID.getExtension()
-        + "_nonfid.xf";
+      + "_nonfid.xf";
 
     runCommand(xfproduct);
   }
@@ -541,25 +544,52 @@ public class ProcessManager {
   public void setupFiducialAlign(AxisID axisID) throws IOException {
     String workingDirectory = System.getProperty("user.dir");
     String axisDataset = appManager.getDatasetName() + axisID.getExtension();
-
+    // Files to be managed
     File xf = new File(workingDirectory, axisDataset + ".xf");
-    if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
-      File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
-      Utilities.copyFile(fidXF, xf);
+    File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
+    File tlt = new File(workingDirectory, axisDataset + ".tlt");
+    File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
+    File tltxf = new File(workingDirectory, axisDataset + ".tltxf");
+    File rotation = new File(workingDirectory, "rotation.xf");
+    if (tltxf.exists()) {
+      // Align{|a|b}.com shows evidence of being run
+      if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
+        // A recent align.com (or equivalent) has created the _fid.xf and
+        // _fid.tlt (protected) transform and tilt files 
+        Utilities.copyFile(fidXF, xf);
+        Utilities.copyFile(fidTlt, tlt);
+      }
+      else {
+        // An older align.com that just wrote out an .xf and .tlt was run 
+        if (rotation.exists()) {
+          // The .xf and .tlt could have been written over by the fiducialess
+          // processing sequence compare the modification date on the .xf to
+          // the .tltxf and rotation.xf
+          if ((xf.lastModified() - tltxf.lastModified()) < 
+            (xf.lastModified() - rotation.lastModified())) {
+            Utilities.copyFile(xf, fidXF);
+            Utilities.copyFile(tlt, fidTlt);
+          }
+          else {
+            xf.delete();
+            tlt.delete();
+          }
+        }
+        else {
+          // No rotation.xf exists so the .xf and .tlt came from align
+          // create the protected copies
+          Utilities.copyFile(xf, fidXF);
+          Utilities.copyFile(tlt, fidTlt);
+        }
+      }
     }
     else {
-      // attempt delete the current .xf so that it is not accidentally used
+      // Align has not been run, delete any .xf and .tlt file so that they
+      // are not accidentally used
       xf.delete();
-    }
-    File tlt = new File(workingDirectory, axisDataset + ".tlt");
-    if (Utilities.fileExists(appManager.getMetaData(), "_fid.tlt", axisID)) {
-      File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
-      Utilities.copyFile(fidTlt, tlt);
-    }
-    else{
-      // attempt delete the current .tlt so that it is not accidentally used
       tlt.delete();
     }
+
   }
 
   /**
@@ -576,10 +606,10 @@ public class ProcessManager {
     String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
     String stack = appManager.getDatasetName() + axisID.getExtension() + ".st ";
     String xform = appManager.getDatasetName() + axisID.getExtension()
-        + ".prexf ";
+      + ".prexf ";
 
     String commandLine = ApplicationManager.getIMODBinPath() + "midas "
-        + options + stack + xform;
+      + options + stack + xform;
 
     //  Start the system program thread
     startSystemProgramThread(commandLine);
@@ -638,10 +668,40 @@ public class ProcessManager {
   }
 
   /**
+   * Copy the fiducial align files to the new protected names.  This is a
+   * redundancy to handle existing com scripts, this functionality is also
+   * present at the end of new align com scripts. 
+   * @param axisID
+   */
+  public void copyFiducialAlignFiles(AxisID axisID) {
+    String workingDirectory = System.getProperty("user.dir");
+    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+
+    try {
+      if (Utilities.fileExists(appManager.getMetaData(), ".xf", axisID)) {
+        File xf = new File(workingDirectory, axisDataset + ".xf");
+        File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
+        Utilities.copyFile(xf, fidXF);
+      }
+      if (Utilities.fileExists(appManager.getMetaData(), ".tlt", axisID)) {
+        File tlt = new File(workingDirectory, axisDataset + ".tlt");
+        File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
+        Utilities.copyFile(tlt, fidTlt);
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      appManager.openMessageDialog("Unable to copy protected align files:",
+        "Align Error");
+    }
+
+  }
+
+  /**
    * Run the transferfid script
    */
   public String transferFiducials(TransferfidParam transferfidParam)
-      throws SystemProcessException {
+    throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
     //Run transferfid on the destination axis.
     if (transferfidParam.isBToA()) {
@@ -758,7 +818,7 @@ public class ProcessManager {
    *          script
    */
   public void setupCombineScripts(ConstMetaData metaData)
-      throws BadComScriptException, IOException {
+    throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
 
@@ -920,7 +980,7 @@ public class ProcessManager {
    * Run trimvol
    */
   public String trimVolume(TrimvolParam trimvolParam)
-      throws SystemProcessException {
+    throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam
       .getCommandString(), AxisID.ONLY);
     return backgroundProcess.getName();
@@ -958,7 +1018,7 @@ public class ProcessManager {
     if (ApplicationManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  working directory: "
-          + System.getProperty("user.dir"));
+        + System.getProperty("user.dir"));
     }
   }
 
@@ -970,7 +1030,7 @@ public class ProcessManager {
    * @return
    */
   private ComScriptProcess startComScript(String command,
-      Runnable processMonitor, AxisID axisID) throws SystemProcessException {
+    Runnable processMonitor, AxisID axisID) throws SystemProcessException {
 
     isAxisBusy(axisID);
 
@@ -1028,13 +1088,13 @@ public class ProcessManager {
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
     System.err.println("msgComScriptDone:scriptName=" + script.getScriptName()
-        + ",processName=" + script.getProcessName());
+      + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       String[] combined;
       //    Is the last string "Killed"
       if ((stdError.length > 0)
-          && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         combined = new String[1];
         combined[0] = "<html>Terminated: " + script.getScriptName();
       }
@@ -1056,12 +1116,15 @@ public class ProcessManager {
         }
       }
       appManager.openMessageDialog(combined, script.getScriptName()
-          + " terminated");
+        + " terminated");
     }
     else {
+      // TODO: Should this script specific processing be handled by the
+      // nextProcess attribute of the application manager.
       // Script specific post processing
       if (script.getProcessName() == ProcessName.ALIGN) {
         generateAlignLogs(script.getAxisID());
+        copyFiducialAlignFiles(script.getAxisID());
       }
       if (script.getProcessName() == ProcessName.TOMOPITCH) {
         appManager.openTomopitchLog(script.getAxisID());
@@ -1078,7 +1141,7 @@ public class ProcessManager {
           dialogMessage[j++] = warningMessages[i];
         }
         appManager.openMessageDialog(dialogMessage, script.getScriptName()
-            + " warnings");
+          + " warnings");
       }
 
     }
@@ -1113,7 +1176,7 @@ public class ProcessManager {
    * @throws SystemProcessException
    */
   private BackgroundProcess startBackgroundProcess(String command, AxisID axisID)
-      throws SystemProcessException {
+    throws SystemProcessException {
 
     isAxisBusy(axisID);
 
@@ -1149,7 +1212,7 @@ public class ProcessManager {
 
       // Is the last string "Killed"
       if ((stdError.length > 0)
-          && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         message = new String[1];
         message[0] = "<html>Terminated: " + process.getCommandLine();
       }
@@ -1164,7 +1227,7 @@ public class ProcessManager {
         }
       }
       appManager.openMessageDialog(message, process.getCommand()
-          + " terminated");
+        + " terminated");
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -1222,7 +1285,7 @@ public class ProcessManager {
       String[] stdOutput = process.getStdOutput();
       BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(System
         .getProperty("user.dir")
-          + "/transferfid.log"));
+        + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
         fileBuffer.write(stdOutput[i]);
@@ -1234,7 +1297,7 @@ public class ProcessManager {
       TextPageWindow logFileWindow = new TextPageWindow();
       logFileWindow.setVisible(logFileWindow.setFile(System
         .getProperty("user.dir")
-          + File.separator + "transferfid.log"));
+        + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
       appManager
@@ -1404,7 +1467,7 @@ public class ProcessManager {
       for (int i = 0; i < stderr.length; i++) {
         message = message + stderr[i] + "\n";
       }
-      
+
       // Also scan stdout for ERROR: lines
       String[] stdOutput = systemProgram.getStdOutput();
       boolean foundError = false;
