@@ -8,7 +8,6 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
-import etomo.EtomoDirector;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
@@ -30,6 +29,12 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/23 22:37:21  sueh
+* <p> bug# 520 retrieveData(): Display error message if a numeric field is
+* <p> incorrect.   Retrieve all correct fields.  Since retrieveData() is called by
+* <p> different functions, pass flag deciding whether to display an error
+* <p> message.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:03:43  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -152,7 +157,7 @@ public class SectionTableRow {
   private FieldCell rotationAngleZ = null;
   private SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
       this);
-  private String invalidReason = null;
+  private boolean valid = true;
   
   /**
    * Create colors, fields, and buttons.  Add the row to the table
@@ -479,51 +484,40 @@ public class SectionTableRow {
    * @return
    */
   private boolean retrieveData(boolean displayErrorMessage) {
-    invalidReason = null;
-    MainPanel mainPanel = EtomoDirector.getInstance().getCurrentManager().getMainPanel();
+    valid = true;
     String errorTitle = "Invalid number in row " + rowNumber.getText();
-    String errorMessage = null;
-    ConstEtomoNumber number;
-    if (!(number = data.setSampleBottomStart(sampleBottomStart.getText())).isValid()) {
-      setInvalidReason(number);
+    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;
     }
-    if (!(number = data.setSampleBottomEnd(sampleBottomEnd.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;     
     }
-    if (!(number = data.setSampleTopStart(sampleTopStart.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setSampleTopStart(sampleTopStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;    
     }
-    if (!(number = data.setSampleTopEnd(sampleTopEnd.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setSampleTopEnd(sampleTopEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;   
     }
-    if (!(number = data.setFinalStart(finalStart.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setFinalStart(finalStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;  
     }
-    if (!(number = data.setFinalEnd(finalEnd.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setFinalEnd(finalEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;
     }
-    if (!(number = data.setRotationAngleX(rotationAngleX.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setRotationAngleX(rotationAngleX.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;
     }
-    if (!(number = data.setRotationAngleY(rotationAngleY.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setRotationAngleY(rotationAngleY.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;
     }
-    if (!(number = data.setRotationAngleZ(rotationAngleZ.getText())).isValid() && isValid()) {
-      setInvalidReason(number);
+    if (!data.setRotationAngleZ(rotationAngleZ.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+      valid = false;
     }
-    if (displayErrorMessage && !isValid()) {
-      mainPanel.openMessageDialog(invalidReason, errorTitle);
-      return false;
-    }
-    return isValid();
-  }
-  
-  private void setInvalidReason(ConstEtomoNumber number){
-    invalidReason = number.getDescription() + ": " + number.getInvalidReason();
+    return valid;
   }
   
   boolean isValid() {
-    return invalidReason == null;
+    return valid;
   }
 
   /**
