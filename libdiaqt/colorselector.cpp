@@ -76,6 +76,7 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   mCtrlPressed = false;
   mHotKey = hotKey;
   mHotFlag = hotFlag;
+  mDragging = false;
 
   // Get the top label
   QLabel *topLabel = new QLabel(label, this);
@@ -147,6 +148,10 @@ void ColorSelector::sliderChanged(int which, int value, bool dragging)
   imposeColor(false, 
 	      !dragging || (mHotFlag == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
 	      (mHotFlag == HOT_SLIDER_KEYUP && !mCtrlPressed));
+
+  // Keep track of dragging state AFTER sending signal so first move of a
+  // drag is still treated as non-drag and the last one resets the flag
+  mDragging = dragging;
 }
 
 // Act on a new color
@@ -219,6 +224,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.9  2004/11/04 23:32:44  mast
+Changes for rounded button style
+
 Revision 1.8  2004/03/22 00:42:55  mast
 Had to rename buttonPressed to buttonClicked
 
