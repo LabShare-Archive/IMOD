@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/26 19:14:30  mast
+#  Added copy of machine-specific fast backprojection switching file
+#
 #  Revision 3.0  2001/11/29 17:25:14  rickg
 #  *** empty log message ***
 #
@@ -21,7 +24,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2001'
+set imod_copyright    = '1994-2002'
 
 set source_dir    = `pwd`
 set endian_dir    = include
