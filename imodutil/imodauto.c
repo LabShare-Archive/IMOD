@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <math.h>
 #include <limits.h>
@@ -82,6 +90,7 @@ static void usage(void)
      fprintf(stderr, "\t-o \tSmooth areas (expand then shrink).\n");
      fprintf(stderr, "\t-r #\tResolution factor (pixels) for shaving points.\n");
      fprintf(stderr, "\t-R #\tTolerance (maximum error) for point reduction.\n");
+     fprintf(stderr, "\t-c r,g,b   Color of model object (r,g,b between 0 and 1 or 0 and 255).\n");
 }
 
 int main(int argc, char *argv[])
@@ -107,6 +116,9 @@ int main(int argc, char *argv[])
      int smoothflags = 0;
      int followdiag = 0;
      int inside = 0;
+     float red = 0.;
+     float green = 1.;
+     float blue = 0.;
 
      if (argc < 3){
 	  imodVersion(argv[0]);
@@ -172,6 +184,14 @@ int main(int argc, char *argv[])
 		    break;
 		  case 'f':
 		    followdiag = atoi(argv[++i]);
+		    break;
+		  case 'c':
+		    sscanf(argv[++i], "%f%*c%f%*c%f", &red, &green, &blue);
+		    if (red > 1. || green > 1. || blue > 1.) {
+			 red /= 255.;
+			 green /= 255.;
+			 blue /= 255.;
+		    }
 		    break;
 		  default:
 		    usage();
@@ -266,6 +286,10 @@ int main(int argc, char *argv[])
 	   minsize, maxsize, followdiag, inside,
 	   shave, tol, delete_edge, smoothflags);
      
+     obj->red = red;
+     obj->green = green;
+     obj->blue = blue;
+
      if (imod->objsize){
 	  tobj = (Iobj *)realloc(imod->obj, sizeof(Iobj *) * 
 				 (imod->objsize + 1));
