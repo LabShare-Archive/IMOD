@@ -1,0 +1,93 @@
+.na
+.nh
+.TH chunksetup 1 3.2.19 BL3DEMC
+.SH NAME
+chunksetup \- Set up command files to process a volume in chunks
+.SH SYNOPSIS
+chunksetup [options] <command file> <input file>  <output file>
+.SH DESCRIPTION
+chunksetup will produce a set of command files to process a 3D image file in
+chunks and reassemble the chunks into a single image file.  This procedure can
+be used when the processing operation is memory intensive, when it is more 
+efficiently done in smaller chunks, or when one wishes to run the operation on
+multiple processors. 
+
+To use this procedure, first make a master command file (the first required 
+argument) that performs the needed operation, in the format required by
+Vmstocsh, as ordinarily run with subm.  The input file for the
+operation should be entered as INPUTFILE, and the final output of the operation
+as OUTPUTFILE.  The command file may perform multiple operations and may even
+contain INPUTFILE more than once.  If the procedure needs to produce temporary
+intermediate files, they 
+should be named ending in ".$$" (e.g., chunktemp.$$).  At the end of the 
+command file, include a line to remove the specific intermediate files, e.g.
+.br
+$rm -f *.$$
+
+When chunksetup is run, it first calls Tomopieces, which analyzes the
+dimensions of the input file to determine how to chop it up optimally.
+It then produces command files for extracting each chunk with Taperoutvol
+and processing them,
+numbered sequentially with 3-digit numbers.  If the name of the master command
+file is "comfile.com", the first command file is comfile-001.com,
+INPUTFILE is replaced by comfile-001.in, and OUTPUTFILE is replaced by
+comfile-001.out, and similarly for the following files.  Each file contains a
+command to remove
+comfile-nnn.in, so only the output chunks accumulate as the files are run.
+Chunksetup also produces a command file to reassemble the pieces,
+comfile-finish.com, which will also delete the output chunks and the command
+and log files for each of the chunks.  Finally, it produces a command file,
+comfile-all.com, to run all of the chunks in sequence and run the finishing
+command file at the end.
+
+You have the option of running the top-level command file using "subm", or
+running the individual command files and running the finishing command file
+at the end.
+
+Chunksetup also provides a rudimentary setup for parallel processing if you
+use the 
+.B -f
+option and specify a list of machines to run the chunks on.
+Chunksetup divides the chunks equally among the machines and 
+produces a shell script, comfile-parallel, that you can run directly
+(without using subm) to start the processing on all of the machines.  The
+remote processing is run with ssh and each ssh command is started in the
+background, then the script exits.  Each machine must have access to the
+current directory.  If the directory path includes "localscratch" this will
+be replaced by "scratch/hostname" where "hostname" is the name of the current
+machine.  (This works for the scratch filesystem at the BL3DEMC.)
+
+.SS Options
+.TP
+.B -p <value>
+Set the number of pixels of padding on each edge to the given value.  The
+default is whatever the default is for Tomopieces (8 pixels).
+.TP
+.B -o <value>
+Set the number of pixels of overlap between the subvolumes to the given value.
+The default is 8.
+.TP
+.B -m <size>
+Limit each subvolume to "size" megavoxels.  The default is whatever the
+default is for Tomopieces (10 megaVoxels).  
+.TP
+.B -xm <value>
+Set the maximum number of chunks in the X direction to the given value.
+The default is -1, which is effectively no limit.  See the man page for
+Tomopieces for more details on the choices for maximum number of pieces.
+.TP
+.B -ym <value>
+Set the maximum number of chunks in the Y direction to the given value.
+The default is -1, which is effectively no limit.
+.TP
+.B -f <list>
+Farm out the chunks to the machines given in the list.  The machines must
+all have access to the current directory.  Separate the machine names
+with commas and include no spaces in the list.  A machine can be entered
+more than once (e.g., if it has multiple processors).  Put the fastest machines
+first in the list so that they will be given the extra chunks if the number
+of chunks cannot be divided equally among the machines.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+tomopieces(1), taperoutvol(1), assemblevol(1)
