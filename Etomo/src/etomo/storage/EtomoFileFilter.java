@@ -2,7 +2,6 @@ package etomo.storage;
 
 import java.io.File;
 
-import javax.swing.filechooser.FileFilter;
 
 /**
  * <p>Description: </p>
@@ -17,6 +16,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2  2002/12/10 23:47:31  rickg
  * <p> Added rcsid
  * <p>
@@ -24,7 +26,7 @@ import javax.swing.filechooser.FileFilter;
  * <p> Initial revision
  * <p>
  */
-public class EtomoFileFilter extends FileFilter {
+public class EtomoFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
   public static final String rcsid = "$Id:";
 
   /**
