@@ -53,6 +53,9 @@ class ImodvWindow;
 class QColor;
 class QPixmap;
 
+/* Number of frames to determine frame rate over */
+#define MAX_MOVIE_TIMES  10
+
 typedef struct __imodv_struct
 {
   /* model data.   */
@@ -107,9 +110,12 @@ typedef struct __imodv_struct
   int alpha;       /* number of alpha planes.                 */
   int current_subset;  /* display subset of model (current element) */
                        /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
-  int movieFrames;    /* Number of movie frames displayed     */
-  int movieStart; /* Starting CPU time of movie           */
-  int movieCurrent; /* Current CPU time of movie          */
+  int movieFrames;     /* Number of movie frames displayed     */
+  int movieStart;      /* Starting time of movie           */
+  int movieCurrent;    /* Current time of movie          */
+  float movieSpeed;    /* Speed in degrees per second */
+  float throwFactor;   /* Speed multiplier if throw occurs */
+  int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -149,6 +155,9 @@ void imodvDrawImodImages();
 
 /*
 $Log$
+Revision 3.9  2003/06/27 19:43:46  mast
+Eliminate the fastdraw flag in favor of bits in the world flag
+
 Revision 3.8  2003/05/18 22:08:48  mast
 Changes to add an application icon
 
