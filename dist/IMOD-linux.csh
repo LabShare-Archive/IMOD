@@ -1,13 +1,13 @@
-# IMOD 3.0.16
+# IMOD 3.2.7
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
 # It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
 # or set IMOD_DIR before sourcing this file
 #
-# It assumes that the java run-time environment is installed at the
-# recommended location - to use a different jre, modify IMOD_JAVADIR here or
-# set IMOD_JAVADIR before sourcing this file
+# It assumes that there is link to the java run-time environment in /usr/local
+# to use a specific jre, modify IMOD_JAVADIR here or set IMOD_JAVADIR before
+# sourcing this file
 
 #
 # Set IMOD_DIR if it is not set already
@@ -17,7 +17,7 @@ if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
 #
 # Set IMOD_JAVADIR if it is not set already
 #
-if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/local/j2re1.4.2_02
+if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/local/java
 
 #
 # Put the IMOD programs on the path
@@ -41,6 +41,11 @@ if ($?LD_LIBRARY_PATH) then
 else
 	setenv LD_LIBRARY_PATH $IMOD_DIR/lib
 endif
+
+#
+# Set a variable with the location of calibration/data files
+#
+if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
 
 #
 # A subm alias to run command files in the background with submfg
