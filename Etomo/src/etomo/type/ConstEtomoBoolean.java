@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/30 17:58:43  sueh
+* <p> bug# 567 Fixed toInteger(String): an empty string equals null.
+* <p>
 * <p> Revision 1.4  2004/12/29 23:46:17  sueh
 * <p> bug# 567 Fixing toInteger(String):  a blank string returns 0 (false).
 * <p>
@@ -46,11 +49,10 @@ public abstract class ConstEtomoBoolean implements Storable {
   protected String name;
   protected String description = null;
   protected boolean displayDefault = false;
+  protected EtomoVersion originalVersion = null;
   protected int value;
   protected int defaultValue;
   protected int resetValue;
-  protected boolean useBackwardCompatibleValue;
-  protected int backwardCompatibleValue;
   private int updateAs = UPDATE_AS_KEYWORD;
   
   public abstract void load(Properties props);
@@ -104,18 +106,6 @@ public abstract class ConstEtomoBoolean implements Storable {
   }
   
   /**
-   * Set the value that will be used if the variable cannot be loaded
-   * Overrides resetValue in load().
-   * @param value
-   * @return
-   */
-  public ConstEtomoBoolean setBackwardCompatibleValue(ConstEtomoBoolean value) {
-    useBackwardCompatibleValue = true;
-    backwardCompatibleValue = value.toInteger();
-    return this;
-  }
-  
-  /**
    * Set updateAs, which changes how the object is stored in ComScriptCommand.
    * UPDATE_AS_KEYWORD (default) stores the name only if the object is true.
    * UPDATE_AS_INTEGER stores the name and 0 or 1.
@@ -125,6 +115,21 @@ public abstract class ConstEtomoBoolean implements Storable {
   public ConstEtomoBoolean setUpdateAs(int updateAs) {
     this.updateAs = updateAs;
     return this;
+  }
+  
+  public ConstEtomoBoolean setOriginalVersion(String originalVersion) {
+    this.originalVersion.set(originalVersion);
+    return this;
+  }
+  
+  public boolean inVersion(EtomoVersion version) {
+    if (originalVersion.isNull() || originalVersion.isNull()) {
+      return false;
+    }
+    if (originalVersion.earlierOrEqualTo(version)) {
+      return true;
+    }
+    return false;
   }
   
   public void setDescription(String description) {
@@ -157,14 +162,14 @@ public abstract class ConstEtomoBoolean implements Storable {
   }
 
   public boolean isSetAndNotDefault() {
-    return !isNull() && (isNull(defaultValue) || value != defaultValue);
+    return isSet() && (isNull(defaultValue) || value != defaultValue);
   }
   
   public boolean is() {
-    if (isNull() || value == 0) {
+    if (isNull() || equals(0)) {
       return false;
     }
-     return true;
+    return true;
   }
   
   /**
@@ -173,7 +178,14 @@ public abstract class ConstEtomoBoolean implements Storable {
    * @return
    */
   public ConstEtomoBoolean update(ComScriptCommand scriptCommand) {
-    if (value == 0 || isNull()) {
+    int value = getValue();
+    if (isNull(value)) {
+      value = 0;
+    }
+    else if (value != 0) {
+      value = 1;
+    }
+    if (value == 0) {
       switch (updateAs) {
       case UPDATE_AS_KEYWORD:
         scriptCommand.deleteKey(name);
@@ -196,8 +208,12 @@ public abstract class ConstEtomoBoolean implements Storable {
     return this;
   }
 
+  public boolean isSet() {
+    return !isNull(value);
+  }
+  
   public boolean isNull() {
-    return isNull(value);
+    return isNull(getValue());
   }
 
   /**
@@ -212,6 +228,10 @@ public abstract class ConstEtomoBoolean implements Storable {
   public boolean equals(boolean value) {
     return equals(getValue(), toInteger(value));
   }
+  
+  public boolean equals(int value) {
+    return equals(getValue(), value);
+  }
 
   public boolean equals(String value) {
     return equals(getValue(), toInteger(value));
@@ -221,24 +241,36 @@ public abstract class ConstEtomoBoolean implements Storable {
     value = Integer.MIN_VALUE;
     defaultValue = Integer.MIN_VALUE;
     resetValue = Integer.MIN_VALUE;
-    useBackwardCompatibleValue = false;
-    backwardCompatibleValue = Integer.MIN_VALUE;
+    originalVersion = new EtomoVersion();
   }
   
   private void initialize(boolean initialValue) {
     value = toInteger(initialValue);
     defaultValue = Integer.MIN_VALUE;
     resetValue = Integer.MIN_VALUE;
-    useBackwardCompatibleValue = false;
-    backwardCompatibleValue = Integer.MIN_VALUE;
+    originalVersion = new EtomoVersion();
   }
   
+  /**
+   * Gets the correct value, taking resetValue and defaultValue
+   * and displayDefault into account.  Should be used every time the value is
+   * looked at, except isSet().
+   * @param displayDefault
+   * @return
+   */
   private int getValue() {
     return getValue(displayDefault);
   }
   
+  /**
+   * Gets the correct value, taking resetValue and defaultValue
+   * and displayDefault into account.  Should be used every time the value is
+   * looked at, except isSet().
+   * @param displayDefault
+   * @return
+   */
   private int getValue(boolean displayDefault) {
-    if (!isNull()) {
+    if (!isNull(value)) {
       return value;
     }
     if (!isNull(resetValue)) {
@@ -259,6 +291,13 @@ public abstract class ConstEtomoBoolean implements Storable {
   
   private int toInteger() {
     return value;
+  }
+  
+  private boolean toBoolean(int value) {
+    if (isNull(value) || value == 0) {
+      return false;
+    }
+    return true;
   }
   
   protected int toInteger(String value) {
