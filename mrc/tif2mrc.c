@@ -101,7 +101,7 @@ int main( int argc, char *argv[])
             "dividing by 2\n");
     fprintf(stderr, "\t-b file Background subtract image in given file\n");
 
-    exit(-1);
+    exit(3);
   }
 
 
@@ -158,7 +158,7 @@ int main( int argc, char *argv[])
   if ( (argc - 1) < (i + 1)){
     fprintf(stderr, "%s: argument error: no output file specified.\n",
             progname);
-    exit(-1);
+    exit(3);
   }
 
 
@@ -170,7 +170,7 @@ int main( int argc, char *argv[])
 
     if (tiff_open_file(argv[i], openmode, &tiff)) {
       fprintf(stderr, "tif2mrc: Couldn't open %s.\n", argv[i]);
-      exit(-1);
+      exit(3);
     }
        
     tiffp = tiff.fp;
@@ -204,7 +204,7 @@ int main( int argc, char *argv[])
 
       if (imodBackupFile(argv[argc - 1])) {
         fprintf(stderr, "%s: Error, couldn't create backup", progname);
-        exit(-1);
+        exit(3);
       }
       mrcfp = fopen(argv[argc - 1], "wb");
       if (!mrcfp){
@@ -300,21 +300,21 @@ int main( int argc, char *argv[])
   if (bg){
     if (tiff_open_file(bgfile, openmode, &tiff)) {
       fprintf(stderr, "tif2mrc: Couldn't open %s.\n", bgfile);
-      exit(-1);
+      exit(3);
     }
     bgfp = tiff.fp;
 
     bgdata = (unsigned char *)tiff_read_file(bgfp, &tiff);
     if (!bgdata){
       fprintf(stderr, "tif2mrc: Error reading %s.\n", bgfile);
-      exit(-1);
+      exit(3);
     }
     bgBits = tiff.BitsPerSample;
     if ((bgBits != 8 && bgBits !=16) || tiff.PhotometricInterpretation == 
         2) {
       fprintf(stderr, "tif2mrc: Background file must be 8 or 16-bit "
               "grayscale\n");
-      exit(-1);
+      exit(3);
     }
 
     bgxsize = tiff.directory[WIDTHINDEX].value;
@@ -352,7 +352,7 @@ int main( int argc, char *argv[])
   /* Write out mrcheader */
   if (imodBackupFile(argv[argc - 1])) {
     fprintf(stderr, "%s: Error, couldn't create backup", progname);
-    exit(-1);
+    exit(3);
   }
   mrcfp = fopen(argv[argc - 1], "wb");
   if (!mrcfp){
@@ -374,7 +374,7 @@ int main( int argc, char *argv[])
     /* Open the TIFF file. */
     if (tiff_open_file(argv[i], openmode, &tiff)) {
       fprintf(stderr, "tif2mrc: Couldn't open %s.\n", argv[i]);
-      exit(-1);
+      exit(3);
     }
     printf("Opening %s for input\n", argv[i]);
     tiffp = tiff.fp;
@@ -383,7 +383,7 @@ int main( int argc, char *argv[])
     tifdata = (unsigned char *)tiff_read_file(tiffp, &tiff);
     if (!tifdata){
       fprintf(stderr, "tif2mrc: Error reading %s.\n", argv[i]);
-      exit(-1);
+      exit(3);
     }
 
     xsize = tiff.directory[WIDTHINDEX].value;
@@ -408,7 +408,7 @@ int main( int argc, char *argv[])
         && mode != MRC_MODE_RGB) {
       fprintf(stderr, "tif2mrc Error: All files must have the same"
               " data type.\n");
-      exit(-1);
+      exit(3);
     }
 
 
@@ -422,7 +422,7 @@ int main( int argc, char *argv[])
           mode == MRC_MODE_SHORT && bgBits == 8) {
         fprintf(stderr, "tif2mrc Error: Background data must have "
                 " the same data type as the image files.\n");
-        exit(-1);
+        exit(3);
       }
 
       xdo = bgxsize < xsize ? bgxsize : xsize;
@@ -469,7 +469,7 @@ int main( int argc, char *argv[])
       if (pixSize > 1){
         fprintf(stderr, "tif2mrc Error: Non byte data must be"
                 " the same size.\n");
-        exit(-1);
+        exit(3);
       }
       /* todo: center file if not same size. */
       /*  for(y = mrcysize - 1; y >= 0; y--) */

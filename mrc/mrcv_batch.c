@@ -1131,7 +1131,7 @@ load_mrc(char *filename)
 
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "Can't Read Input File Header.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      if (Verbose)

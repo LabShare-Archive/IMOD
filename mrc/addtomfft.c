@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 		  "the x fft file should have the tilt axis horizontal.\n\n"
 		  );
 	  
-	  exit(-1);
+	  exit(3);
      }
      
 
@@ -106,34 +106,34 @@ int main(int argc, char **argv)
      afin = fopen(argv[i++], "rb");
      if (afin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[1]);
-	  exit(-1);
+	  exit(3);
      }
      bfin = fopen(argv[i++], "rb");
      if (bfin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[1]);
-	  exit(-1);
+	  exit(3);
      }
      fout = fopen(argv[i], "wb");
      if (fout == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[2]);
-	  exit(-1);
+	  exit(3);
      }
 
 
      if (mrc_head_read(afin, &ah)){
 	  fprintf(stderr, "Can't Read Input File Header.\n");
-	  exit(-1);
+	  exit(3);
      }
      if (mrc_head_read(bfin, &bh)){
 	  fprintf(stderr, "Can't Read Input File Header.\n");
-	  exit(-1);
+	  exit(3);
      }
 
      if ((ah.nx != bh.nx) || (ah.ny != bh.ny) || (ah.nz != bh.nz)
 	 || (ah.mode != bh.mode) || (ah.mode != 4)){
 	  fprintf(stderr, 
 		  "Input files must both be complex mode and same size.\n");
-	  exit(-1);
+	  exit(3);
      }
 
      ox = 0;
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 	  
 	  if (!fwrite(cslice->data.b, sizeof(float), ah.nx * ah.ny * 2, fout)){
 	       fprintf(stderr, "Error writing output file\n");
-	       exit(-1);
+	       exit(3);
 	  }
 	       
 	  sliceFree(aslice);

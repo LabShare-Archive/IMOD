@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/06/24 15:36:39  mast
+Added -X, -Y, -Z options for doing subvolume
+
 Revision 3.4  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -143,7 +146,7 @@ int main(int argc, char *argv[])
     imodVersion(progname);
     imodCopyright();
     usage();
-    exit(-1);
+    exit(3);
   }
 
   mrc_init_li(&li, NULL);
@@ -228,7 +231,7 @@ int main(int argc, char *argv[])
         break;
       default:
         usage();
-        exit(-1);
+        exit(3);
         break;
 
       }
@@ -243,11 +246,11 @@ int main(int argc, char *argv[])
 
   if (i >= argc - 1){
     usage();
-    exit(-1);
+    exit(3);
   }
   if (smoothflags < 0) {
     fprintf(stderr, "Only one of -x, -i and -o may be entered.\n");
-    exit(-1);
+    exit(3);
   }
 
   if (inside) {
@@ -255,7 +258,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "Only a high or a low threshold, not both, "
               "may be entered when using\n the -n flag to find "
               "inside contours.\n");
-      exit (-1);
+      exit (3);
     }
     /* Set thresholds equal, and set to follow diagonals only on the
        primary threshold */
@@ -275,12 +278,12 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Error opening image file %s.\n", argv[i-1]);
     if (errno)
       perror("imodauto open image");
-    exit(-1);
+    exit(3);
   }
   /* read in graphic header and image data */
   if (mrc_head_read(fin, &hdata)){
     fprintf(stderr, "Can't Read Input File Header.\n");
-    exit(-1);
+    exit(3);
   }
 
   if (li.smin == li.smax){
@@ -305,13 +308,13 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Error opening %s\n", argv[i]);
     if (errno)
       perror("imodauto open model");
-    exit(-1);
+    exit(3);
   }
      
   imod = imodNew();
   if (!imod){
     fprintf(stderr, "Error creating model %s.\n", argv[i]);
-    exit(-1);
+    exit(3);
   }
   imod->file = fout;
      
@@ -319,7 +322,7 @@ int main(int argc, char *argv[])
   idata = mrc_read_byte(fin, &hdata, &li, mrc_default_status);
   if (!idata){
     fprintf(stderr, "%s: Error reading image data\n", progname);
-    exit(-1);
+    exit(3);
   }
   fclose(fin);
      

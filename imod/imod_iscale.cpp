@@ -301,7 +301,7 @@ void ImageScaleWindow::applyLimits()
     if (vi->keepCacheFull) {
       if (imodCacheFill(vi)) {
         imodError(NULL, "3DMOD: Fatal error rereading image file\n");
-        exit(-1);
+        exit(3);
       }
     }
   } else {
@@ -314,7 +314,7 @@ void ImageScaleWindow::applyLimits()
     vi->idata = imod_io_image_load(vi);
     if (!vi->idata) {
       imodError(NULL, "3DMOD: Fatal error rereading image file\n");
-      exit(-1);
+      exit(3);
     }
           
     if (App->depth == 8)
@@ -357,6 +357,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.10  2004/01/09 15:55:32  mast
 Use image smin/msax instead of li values when updating
 

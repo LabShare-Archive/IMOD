@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 02:28:42  mast
+    strip directory from program name and/or use routine to make backup file
+
     Revision 3.1  2002/11/05 23:48:02  mast
     Changed to call imodCopyright
 
@@ -69,13 +72,13 @@ main(int argc, char *argv[])
 
      if (NULL == (fin = fopen(argv[1], "rb"))){
 	  fprintf(stderr, "%s: Couldn't open %s\n", progname, argv[1]);
-	  exit(-1);
+	  exit(3);
      }
 
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "%s: Can't Read Input Header from %s.\n",
 		  progname,argv[1]);
-	  exit(-1);
+	  exit(3);
      }
 
 
@@ -92,7 +95,7 @@ main(int argc, char *argv[])
 	  break;
 	default:
 	  fprintf(stderr, "mrc2tif Error: Datatype not supported.\n");
-	  exit(-1);
+	  exit(3);
 	  break;
      }
      xsize = hdata.nx;

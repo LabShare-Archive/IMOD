@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/11/18 19:29:32  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
 Revision 3.2  2003/10/24 02:28:42  mast
 strip directory from program name and/or use routine to make backup file
 
@@ -91,7 +94,7 @@ main( int argc, char *argv[] )
             "%s version %s\n", progname, VERSION_NAME);
     imodCopyright();
     mrcbyte_help(progname);
-    exit(-1);
+    exit(3);
   }
 
   mrc_init_li(&li, NULL);
@@ -172,7 +175,7 @@ main( int argc, char *argv[] )
     if (fin == NULL)
       {
         fprintf(stderr, "Error opening %s.\n", argv[i]);
-        exit(-1);
+        exit(3);
       }
 
     i++;
@@ -180,18 +183,18 @@ main( int argc, char *argv[] )
     if (fout == NULL)
       {
         fprintf(stderr, "Error opening %s.\n", argv[i]);
-        exit(-1);
+        exit(3);
       }
   }else{
     mrcbyte_help(progname);
-    exit(-1);     
+    exit(3);     
   }
      
 
   if (mrc_head_read(fin, &hdata))
     {
       fprintf(stderr, "Can't Read Input File Header.\n");
-      exit(-1);
+      exit(3);
     }
      
   if (resize){
@@ -226,7 +229,7 @@ main( int argc, char *argv[] )
   if (!idata)
     {
       fprintf(stderr, "%s: Error reading image data\n", progname);
-      exit(-1);
+      exit(3);
     }
 
      

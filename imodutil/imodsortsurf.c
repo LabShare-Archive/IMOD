@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.1  2003/02/21 23:16:15  mast
 Open output file in binary mode
 
@@ -44,7 +47,7 @@ static void usage(char *prog)
   fprintf(stderr, "Usage: %s [-o list_of_objects] input_model"
           " output_model\n", prog);
   fprintf(stderr, "       The optional list of object numbers can include ranges, e.g. 1-3,6-9,13\n");
-  exit(-1);
+  exit(3);
 }
 
 int *parselist (char *line, int *nlist);

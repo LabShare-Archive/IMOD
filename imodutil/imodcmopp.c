@@ -211,19 +211,19 @@ int main( int argc, char *argv[])
 
   if ((start_tilt > end_tilt) && (inc_tilt > 0)){
     fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
-    exit(-1);
+    exit(3);
   }
   if ((end_tilt > start_tilt) && (inc_tilt < 0)){
     fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
-    exit(-1);
+    exit(3);
   }
   if (!inc_tilt){
     fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
-    exit(-1);
+    exit(3);
   }
   if (! (end_tilt - start_tilt)){
     fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
-    exit(-1);
+    exit(3);
   }
 
   printf("Reading model %s.\n", argv[1]);
@@ -231,24 +231,24 @@ int main( int argc, char *argv[])
   imod = imodRead(argv[1]);
   if (!imod){
     fprintf(stderr, "rgbmop: Couldn't open/read %s\n", argv[1]);
-    exit(-1);
+    exit(3);
   }
 
   /*     mfin = fopen(argv[1], "rb");
          if (mfin == NULL){
          fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[1]);
-         exit(-1);
+         exit(3);
          }
   */
   gfin = fopen(argv[2], "rb");
   if (gfin == NULL){
     fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[2]);
-    exit(-1);
+    exit(3);
   }
 
   /*     if (ReadImod(&model, mfin)){ */
   /*        fprintf(stderr, "rgbmop: Error reading modelfile %s.\n", argv[1]); */
-  /*        exit(-1); */
+  /*        exit(3); */
   /*     } */
 
   imodel_maxpt(imod, &maxpt);
@@ -257,7 +257,7 @@ int main( int argc, char *argv[])
   if (mrc_head_read(gfin, &hdata)){
     fprintf(stderr, "rgbmop: Can't read tomogram header, %s.\n",
             argv[2]);
-    exit(-1);
+    exit(3);
   }
      
   li.white = imod->whitelevel;
@@ -273,7 +273,7 @@ int main( int argc, char *argv[])
 
   if (!idata){
     fprintf(stderr, "%s: Error reading image data\n", progname);
-    exit(-1);
+    exit(3);
   }
   rfout = fopen(rtom, "wb");
   gfout = fopen(gtom, "wb");
@@ -552,7 +552,7 @@ int cmopp_write_movie(char *moviename,
           
     if (NULL == (of  = fopen(iname, "wb"))){
       fprintf(stderr, "rgbmop: Couldn't open rgb file\n");
-      exit(-1);
+      exit(3);
     }
 
     rgb_putshort(of, (short)474);       /* MAGIC                */

@@ -89,7 +89,7 @@ static void usage(void)
 #else
      printf(qstr.latin1());
 #endif
-     exit(-1);
+     exit(3);
 }
 
 int main (int argc, char **argv)
@@ -796,6 +796,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.10  2004/05/28 18:56:13  mast
+    needed to parse gloabal rotation as float
+
     Revision 3.9  2003/12/17 21:44:19  mast
     Changes to implement global rotations
 

@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/10/24 02:28:42  mast
+    strip directory from program name and/or use routine to make backup file
+
     Revision 3.2  2002/11/05 23:52:15  mast
     Changed to call imodCopyright, fixed bug in outputting usage
 
@@ -82,7 +85,7 @@ main( int argc, char *argv[] )
 		  "%s version %s\n", progname, VERSION_NAME);
 	  imodCopyright();
 	  mrctaper_help(progname);
-	  exit(-1);
+	  exit(3);
      }
 
      for (i = 1; i < argc; i++)
@@ -119,12 +122,12 @@ main( int argc, char *argv[] )
 
      if (i < (argc - 2) || i == argc){
 	  mrctaper_help(progname);
-	  exit(-1);	  
+	  exit(3);	  
      }
 
      if (ntaper < 1 || ntaper > 127) {
 	  fprintf(stderr, "%s: Taper must be between 1 and 127.\n", progname);
-	  exit(-1);
+	  exit(3);
      }
 
      if (i < argc - 1)
@@ -134,17 +137,17 @@ main( int argc, char *argv[] )
 
      if (fin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[i - 1]);
-	  exit(-1);
+	  exit(3);
      }
      if (mrc_head_read(fin, &hdata)) {
 	  fprintf(stderr, "Can't Read Input File Header.\n");
-	  exit(-1);
+	  exit(3);
      }
 
      if (hdata.mode != MRC_MODE_BYTE && hdata.mode != MRC_MODE_SHORT &&
 	 hdata.mode != MRC_MODE_FLOAT) {
 	  fprintf(stderr, "%s: Can operate only on byte, integer and real data.\n", progname);
-	  exit(-1);
+	  exit(3);
      }
      
      if (zmin == -1 && zmax == -1) {
@@ -161,7 +164,7 @@ main( int argc, char *argv[] )
 	  fout = fopen(argv[i], "wb");
 	  if (fout == NULL) {
 	       fprintf(stderr, "Error opening %s.\n", argv[i]);
-	       exit(-1);
+	       exit(3);
 	  }
 	  hout = hdata;
 	  /* DNM: eliminate extra header info in the output, and mark it as not
@@ -181,7 +184,7 @@ main( int argc, char *argv[] )
 	  /* DNM 6/26/02: it it OK now */
 	  /* if (hdata.swapped) {
 	       fprintf(stderr, "%s: Cannot write to byte-swapped file.\n", progname);
-	       exit(-1);
+	       exit(3);
 	       } */
 	  hptr = &hdata;
 	  fout = fin;
@@ -195,7 +198,7 @@ main( int argc, char *argv[] )
      
      if (!buf){
 	  fprintf(stderr, "%s: Couldn't get memory for slice.\n", progname);
-	  exit(-1);
+	  exit(3);
      }
      mrc_slice_init(&slice, hdata.nx, hdata.ny, hdata.mode, buf);
 
@@ -204,17 +207,17 @@ main( int argc, char *argv[] )
 	  fflush(stdout);
 	  if (mrc_read_slice(buf, fin, &hdata, i, 'Z')) {
 	       fprintf(stderr, "\nError reading section %d.\n", i);
-	       exit(-1);
+	       exit(3);
 	  }
 	  
 	  if (taper_slice(&slice, ntaper, inside)) {
 	       fprintf(stderr, "\nError: Can't get memory for taper operation.\n");
-	       exit(-1);
+	       exit(3);
 	  }
 	  	  
 	  if (mrc_write_slice(buf, fout, hptr, i - secofs, 'Z')) {
 	       fprintf(stderr, "\nError writing section %d.\n", i);
-	       exit(-1);
+	       exit(3);
 	  }
      }
      puts("\nDone!");

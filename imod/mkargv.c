@@ -11,11 +11,11 @@ int main(int argc, char **argv)
      
      fin = fopen(argv[1], "r");
      if (!fin)
-	  exit(-1);
+	  exit(3);
      
      fout = fopen(argv[2], "w");
      if (!fout)
-	  exit(-1);
+	  exit(3);
      
      fprintf(fout, "char *%s = {\n", argv[3]);
 

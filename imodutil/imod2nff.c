@@ -71,7 +71,7 @@ main( int argc, char *argv[])
      if (!imod){
 	  fprintf(stderr, "Imod2NFF: Error reading model %s.\n",
 		  argv[i]);
-	  exit(-1);
+	  exit(3);
      }
      i++;
      

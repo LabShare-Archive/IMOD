@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2004/06/15 15:15:50  mast
+Had to move declaration out of body of check_unit for SGI
+
 Revision 3.11  2004/06/15 04:42:36  mast
 Fixed bugs created by unneeded cosmetic changes!
 
@@ -261,7 +264,7 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
       fprintf(stdout, "\nERROR: qopen - Could not open '%s'\n"
               , u->fname);
       perror(""); /* JRK: have system tell why. */
-      exit(-1);
+      exit(3);
     }
     *iunit = unit + 1;
 
@@ -305,12 +308,12 @@ void qread(int *iunit, char *array, int *nitems, int *ier)
     int bc = u->num_char_per_item * *nitems;
     if (u->write_only) {
       fprintf(stdout, "\nERROR: qread - file is write only.\n");
-      exit(-1);
+      exit(3);
     }
     if (b3dFread(array, 1, bc, u->fp) != bc) {
       fprintf(stdout, "\nERROR: qread - read error\n");
       perror("");
-      exit(-1);
+      exit(3);
     }
     u->pos += bc;
     *ier = 0;
@@ -328,13 +331,13 @@ void qwrite(int *iunit, char *array, int *nitems)
   int bc = u->num_char_per_item * *nitems;
   if (u->read_only) {
        fprintf(stdout, "\nERROR: qwrite - file is read only.\n");
-       exit(-1);
+       exit(3);
   }
 
   if (b3dFwrite(array, 1, bc, u->fp) != bc) {
     fprintf(stdout, "\nERROR: qwrite - error writing file.\n");
     perror("");
-    exit(-1);
+    exit(3);
   }
   u->pos += bc;
 }
@@ -360,7 +363,7 @@ void qseek(int *iunit, int *irecord, int *ielement, int *ireclength)
     {
       fprintf(stdout, "\nERROR: qseek - Error on big_seek\n");
       perror("");
-      exit(-1);
+      exit(3);
     }
 }
 
@@ -376,7 +379,7 @@ void qback(int *iunit, int *ireclength)
   if (b3dFseek(u->fp, amt, SEEK_CUR))
     {
       fprintf(stdout, "\nERROR: qback - Error on seek\n");
-      exit(-1);
+      exit(3);
     }
 }
  
@@ -389,7 +392,7 @@ void qskip(int *iunit, int *ireclength)
   if (b3dFseek(u->fp, amt, SEEK_CUR))
     {
       fprintf(stdout, "\nERROR: qskip - Error on seek\n");
-      exit(-1);
+      exit(3);
     }
 }
 
@@ -580,14 +583,14 @@ static Unit *check_unit(int unit, char *function, int doExit)
     fprintf(stdout, "\nERROR: %s - %d is not a legal unit number.\n", function,
             unit + 1);
     if (doExit)
-      exit(-1);
+      exit(3);
     return NULL;
   }
   if (!u->being_used) {
     fprintf(stdout, "\nERROR: %s - unit %d is not open.\n", function, 
             unit + 1);
     if (doExit)
-      exit(-1);
+      exit(3);
     return NULL;
   }
   return u;

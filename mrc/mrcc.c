@@ -48,21 +48,21 @@ main( int argc, char *argv[] )
 		  "3-Dimensional Fine Structure, University of Colorado.\n");
 	  fprintf(stderr, "%s usage: [input file] [output file] [r][g][b].\n",
 		  argv[0]);
-	  exit(-1);
+	  exit(3);
      }
      
      fin = fopen(argv[1], "rb");
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[1]);
-	       exit(-1);
+	       exit(3);
 	  }
      
      fout = fopen(argv[2], "wb");
      if (fout == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[2]);
-	       exit(-1);
+	       exit(3);
 	  }
      
 
@@ -73,7 +73,7 @@ main( int argc, char *argv[] )
      if (mrc_head_read(fin, &hdata))
 	  {
 	       fprintf(stderr, "Can't Read Input File Header.\n");
-	       exit(-1);
+	       exit(3);
 	  }
      
      datasize = hdata.nx * hdata.ny;

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
         if (endptr - argv[argIndex] < (int)strlen(argv[argIndex])) {
           fprintf(stderr, "ERROR: imodsendevent - invalid timeout entry %s\n",
                   argv[argIndex]);
-          exit(-1);
+          exit(3);
         }
         break;
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
       default:
         fprintf(stderr, "ERROR: imodsendevent - invalid argument %s\n",
                 argv[argIndex]);
-        exit(-1);
+        exit(3);
         break;
       } 
     } else
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "ERROR: imodsendevent - Wrong number of arguments\n"
             "   Usage: imodsendevent [-t timeout] [-D] Window_ID action "
             "[arguments]\n");
-    exit(-1);
+    exit(3);
   }
 
   // Check the arguments for odd characters
@@ -103,13 +103,13 @@ int main(int argc, char **argv)
   if (endptr - argv[argIndex] < (int)strlen(argv[argIndex])) {
     fprintf(stderr, "ERROR: imodsendevent - invalid characters in window ID"
             " entry %s\n", argv[argIndex]);
-    exit(-1);
+    exit(3);
   }
   action = strtol(argv[argIndex + 1], &endptr, 10);
   if (endptr - argv[argIndex + 1] < (int)strlen(argv[argIndex + 1])) {
     fprintf(stderr, "ERROR: imodsendevent - invalid characters in action "
             "entry %s\n", argv[argIndex + 1]);
-    exit(-1);
+    exit(3);
   }
 
   // Create the application
@@ -222,6 +222,9 @@ void ImodSendEvent::clipboardChanged()
 
 /*
 $Log$
+Revision 1.8  2004/06/04 03:14:46  mast
+Fixed probelm with trailing space after filename
+
 Revision 1.7  2004/05/31 19:54:00  mast
 change name in error message from imod to 3dmod
 

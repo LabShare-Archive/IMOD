@@ -57,7 +57,7 @@ int main( int argc, char *argv[])
      imod = imodRead(argv[1]);
      if (!imod){
 	  fprintf(stderr, "Imod2RIB: Error reading model.\n");
-	  exit(-1);
+	  exit(3);
      }
      
       

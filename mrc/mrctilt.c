@@ -46,7 +46,7 @@ main( int argc, char *argv[] )
 		  "3-Dimensional Fine Structure, University of Colorado.\n"); 
 	  fprintf(stderr, "%s: Modify a mrc header to contain tilt information.\n", argv[0]) ;
 	  fprintf(stderr, "Usage: %s [image file] [first tilt] [tilt increment]\n",  argv[0]) ;
-	   exit(-1) ;
+	   exit(3) ;
      }
      
 
@@ -54,14 +54,14 @@ main( int argc, char *argv[] )
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[1]);
-	       exit(-1);
+	       exit(3);
 	  }
      
      fout = fopen(argv[1], "rb+");
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[2]);
-	       exit(-1);
+	       exit(3);
 	  }
      
      sscanf(argv[2], "%f", &first);
@@ -71,7 +71,7 @@ main( int argc, char *argv[] )
      if (mrc_head_read(fin, &hdata))
 	  {
 	       fprintf(stderr, "Can't Read Input File Header.\n");
-	       exit(-1);
+	       exit(3);
 	  }
 
      printf("First tilt = %g, Inc = %g\n", first, inc);

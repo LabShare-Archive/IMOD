@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 02:28:42  mast
+    strip directory from program name and/or use routine to make backup file
+
     Revision 3.1  2002/11/05 23:45:56  mast
     Changed to call imodCopyright
 
@@ -125,13 +128,13 @@ main(int argc, char *argv[])
 
      if (NULL == (fin = fopen(argv[1], "rb"))){
 	  fprintf(stderr, "%s: Couldn't open %s\n", progname, argv[1]);
-	  exit(-1);
+	  exit(3);
      }
 
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "%s: Can't Read Input Header from %s.\n",
 		  progname, argv[1]);
-	  exit(-1);
+	  exit(3);
      }
 
      if (hdata.mode == MRC_MODE_RGB){
@@ -142,7 +145,7 @@ main(int argc, char *argv[])
 
      if (hdata.mode){
 	  fprintf(stderr, "mrc2rgb: Only byte mode data supported.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      xsize = hdata.nx;
@@ -153,7 +156,7 @@ main(int argc, char *argv[])
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "mrc2rgb: Can't Read Input Header from %s.\n",
 		  argv[2]);
-	  exit(-1);
+	  exit(3);
      }
 
      idata = mrc_read_byte(fin, &hdata, NULL, NULL);
@@ -204,7 +207,7 @@ mrc_rgb_write(FILE *fin, struct MRCheader *hd, char *rgb)
 
      if ( (!rdat) || (!gdat) || (!bdat) || (!buf) ){
 	  fprintf(stderr, "mrc_rgb_write: memory alloc error.\n");
-	  exit(-1);
+	  exit(3);
      }
 
      printf("Writing rgb images. ");

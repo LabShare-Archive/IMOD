@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 02:28:42  mast
+    strip directory from program name and/or use routine to make backup file
+
     Revision 3.1  2002/11/05 23:55:30  mast
     Changed to call imodCopyright
 
@@ -198,7 +201,7 @@ main( int argc, char *argv[])
 		    if (!Mrcv_model){
 			 fprintf(stderr, "%s: error reading model file %s\n",
 				 progname, argv[i]);
-			 exit(-1);
+			 exit(3);
 		    }
 		    break;
 
@@ -273,7 +276,7 @@ main( int argc, char *argv[])
 
      /* open input file. */
      if ((argc - 1) < i)
-	  exit(-1);
+	  exit(3);
      
      filearg = i;
      fin = fopen(argv[i], "rb");
@@ -318,7 +321,7 @@ main( int argc, char *argv[])
      if (mrc_head_read(fin, &hdata))
 	  {
 	       fprintf(stderr, "Can't Read Input File Header.\n");
-	       exit(-1);
+	       exit(3);
 	  }
 
      if (hdata.mode == MRC_MODE_RGB)

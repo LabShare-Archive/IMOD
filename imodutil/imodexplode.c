@@ -85,7 +85,7 @@ int main(int argc, char **argv)
         list = parselist(argv[++i], &nlist);
         if (!list) {
           fprintf(stderr, "%s: Error parsing object list\n", progname);
-          exit(-1);
+          exit(3);
         }
         ninset[nsets] = nlist;
         listp[nsets] = (int *)malloc(nlist * sizeof(int));
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
         if (!nsets) {
           fprintf(stderr, "%s: Must define object list before offsets\n"
                   , progname);
-          exit(-1);
+          exit(3);
         }
         dx[nsets - 1] = atof(argv[++i]);
         break;
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         if (!nsets) {
           fprintf(stderr, "%s: Must define object list before offsets\n"
                   , progname);
-          exit(-1);
+          exit(3);
         }
         dy[nsets - 1] = atof(argv[++i]);
         break;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
         if (!nsets) {
           fprintf(stderr, "%s: Must define object list before offsets\n"
                   , progname);
-          exit(-1);
+          exit(3);
         }
         dz[nsets - 1] = atof(argv[++i]);
         break;
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
   if (!imod){
     fprintf(stderr, "%s: Error reading model %s\n",
             progname, argv[i]);
-    exit(-1);
+    exit(3);
   }
         
 
@@ -184,13 +184,13 @@ int main(int argc, char **argv)
   /* Save backup of Model to Model~ */
   if (imodBackupFile(argv[i])) {
     fprintf(stderr, "%s: Error, couldn't create backup", progname);
-    exit(-1);
+    exit(3);
   }
 
   fout = fopen(argv[i], "wb");
   if (!fout){
     fprintf(stderr, "%s: Error, couldn't open output.", progname);
-    exit(-1);
+    exit(3);
   }
 
   imodWrite(imod, fout);

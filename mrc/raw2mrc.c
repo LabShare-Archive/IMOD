@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2004/06/19 22:13:36  mast
+Fixed seek error message
+
 Revision 3.10  2004/06/06 00:48:39  mast
 Added an option for converting long to short
 
@@ -168,7 +171,7 @@ main( int argc, char *argv[] )
 
   if (argc < 3){
     usage();
-    exit(-1);
+    exit(3);
   }
      
 
@@ -217,7 +220,7 @@ main( int argc, char *argv[] )
   if ( (argc - 1) < (i + 1)){
     fprintf(stderr, "ERROR: %s - insufficient arguments\n", progname);
     usage();
-    exit(-1);
+    exit(3);
   }
 
   if (convert) {
@@ -243,13 +246,13 @@ main( int argc, char *argv[] )
 
   if (imodBackupFile(argv[argc - 1])) {
     fprintf(stderr, "ERROR: %s - couldn't create backup", progname);
-    exit(-1);
+    exit(3);
   }
   fout = fopen(argv[argc - 1], "wb");
   if (!fout){
     fprintf(stderr, "ERROR: %s - opening %s for output\n", progname,
             argv[argc -1]);
-    exit(-1);
+    exit(3);
   }
 
   for (j = 0; j < 1024; j++)
@@ -261,7 +264,7 @@ main( int argc, char *argv[] )
   indata = (void *)malloc(pixsize * xysize);
   if (!indata){
     fprintf(stderr, "ERROR: %s - getting memory.\n", progname);
-    exit(-1);
+    exit(3);
   }
 
   for (j = i ; j < argc-1 ; j++) {
@@ -269,13 +272,13 @@ main( int argc, char *argv[] )
     if (!fin){
       fprintf(stderr, "ERROR: %s - opening %s for input\n", progname,
               argv[j]);
-      exit(-1);
+      exit(3);
     }
 
     if (b3dFseek(fin, hsize, SEEK_CUR)) {
       fprintf(stderr, "ERROR: %s - seeking to data in file  %s\n",
               progname, argv[j]);
-      exit(-1);
+      exit(3);
     }
 
     for (k = 0; k < z; k++) {
@@ -284,13 +287,13 @@ main( int argc, char *argv[] )
         if (b3dFseek(fin, zoffset, SEEK_CUR)) {
           fprintf(stderr, "ERROR: %s - seeking to data at section %d in "
                   "file  %s\n", progname, k, argv[j]);
-          exit(-1);
+          exit(3);
         }
       }
       if (b3dFread(indata, pixsize, xysize, fin) != xysize) {
         fprintf(stderr, "ERROR: %s - reading data from file  %s\n", progname,
                 argv[j]);
-        exit(-1);
+        exit(3);
       }
       if (compression){
         rawdecompress(indata, pixsize, xysize, compression);
@@ -412,7 +415,7 @@ main( int argc, char *argv[] )
       if (flip == 0) {
         if (b3dFwrite(indata, outPixsize, xysize, fout) != xysize) {
           fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
-          exit(-1);
+          exit(3);
         }
       } else {
 
@@ -420,7 +423,7 @@ main( int argc, char *argv[] )
           bdata = ((unsigned char *)indata) + i * outPixsize * x;
           if (b3dFwrite(bdata, outPixsize, x, fout) != x) {
             fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
-            exit(-1);
+            exit(3);
           }
         }
       }

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.3  2003/07/31 21:42:46  mast
 Extract object views for the particular objects being extracted
 
@@ -50,7 +53,7 @@ static void usage()
 {
   fprintf(stderr, "Usage: imodextract <list of objects> <input model> <output model>\n");
   fprintf(stderr, "       The list of objects can include ranges, e.g. 1-3,6,9,13-15\n");
-  exit(-1);
+  exit(3);
 }
 
 int *parselist (char *line, int *nlist);

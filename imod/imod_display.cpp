@@ -530,13 +530,16 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
               "Make sure your display format is set for at least 15 bits "
               "of color\nAt least 24 bits of color is recommended for proper "
               "model viewing", argv[0]);
-    exit(-1);
+    exit(3);
   }
   return visual->colorBits;
 }
 
 /*
 $Log$
+Revision 4.13  2004/06/09 14:11:17  mast
+Suggested checking for display format when no GL visual available
+
 Revision 4.12  2004/06/06 21:27:20  mast
 Eliminated stereo-command related items
 

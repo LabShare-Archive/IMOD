@@ -27,7 +27,7 @@ main( int argc, char *argv[])
      if (argc != 3){
 	  fprintf(stderr, "%s: usage %s <infile> <outfile>\n",
 		  argv[0], argv[0]);
-	  exit(-1);
+	  exit(3);
      }
 
      i = 1;
@@ -35,7 +35,7 @@ main( int argc, char *argv[])
      if (!fin){
 	  fprintf(stderr, "%s: Error, couldn't open file %s\n",
 		  argv[0], argv[i]);
-	  exit(-1);
+	  exit(3);
      }
      model.file = fin;
      if (imodReadFile(&model)){
@@ -51,7 +51,7 @@ main( int argc, char *argv[])
      if (!fout){
 	  fprintf(stderr, "%s: Error, couldn't open file %s\n",
 		  argv[0], argv[i]);
-	  exit(-1);
+	  exit(3);
      }
 
      imodel_model_clean(&model, 0);

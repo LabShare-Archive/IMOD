@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/06/16 21:06:42  mast
+Forgot to delete copies of library functions from debugging
+
 Revision 3.4  2004/06/11 02:29:59  mast
 Fixed bug with trying to use the zero-th view when there are no real views
 
@@ -59,7 +62,7 @@ static void usage()
   fprintf(stderr, "       Each list of objects can include ranges, e.g. 1-3,6,9,13-15\n");
   fprintf(stderr, "       -o will select particular objects from either model\n");
   fprintf(stderr, "       -r will REPLACE listed objects from model 1 with objects from model 2\n");
-  exit(-1);
+  exit(3);
 }
 
 static void parserr(int mod)

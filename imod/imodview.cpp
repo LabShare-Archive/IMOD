@@ -1694,7 +1694,7 @@ int ivwLoadIMODifd(ImodView *vi)
         imodError(NULL, "3DMOD Error: " 
                 "Image list file must specify one image file"
                 " before the XYZ option.\n");
-        exit(-1);
+        exit(3);
       }
       iiPlistLoadF(vi->fp, li, 
                    image->nx, image->ny, image->nz);
@@ -1740,7 +1740,7 @@ int ivwLoadIMODifd(ImodView *vi)
                   "couldn't open %s, first file in image list,"
                   "\n and no SIZE specified before this.\n",
                   filename);
-          exit(-1);
+          exit(3);
         }
         wprint("Warning: couldn't open %s\n\r",
                filename);
@@ -1817,7 +1817,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
     if (!image){
       imodError(NULL, "3DMOD Error: " 
               "couldn't open image file %s.\n", argv[i]);
-      exit(-1);
+      exit(3);
     }
 
     /* set up scaling for this image */
@@ -1895,7 +1895,7 @@ int ivwLoadImage(ImodView *vi)
       imodError(NULL, "3DMOD Error: "
                 "Image cache and piece lists do not work with "
                 "complex short data.\n");
-      exit(-1);
+      exit(3);
     }
 
     vi->idata = NULL;
@@ -1990,13 +1990,13 @@ static int ivwProcessImageList(ImodView *vi)
     if (rgbs < ilist->size) {
       imodError(NULL, "3DMOD Error: Only %d files out of %d are "
               "RGB type and all files must be.\n", rgbs, ilist->size);
-      exit(-1);
+      exit(3);
     }
                
     if (!App->rgba) {
       imodError(NULL, "3DMOD Error: You must not start 3dmod with "
               "the -ci option to display RGB files.\n");
-      exit(-1);
+      exit(3);
     }
         
     /* Set the flag for storing raw images with the mode, and set rgba to 
@@ -2050,7 +2050,7 @@ static int ivwProcessImageList(ImodView *vi)
     vi->hdr = vi->image = iiNew();
     if (!vi->image){
       imodError(NULL, "Not enough memory.\n"); 
-      exit(-1);
+      exit(3);
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
     iiReopen(vi->image);
@@ -2064,7 +2064,7 @@ static int ivwProcessImageList(ImodView *vi)
       (sizeof(ImodImageFile) * ilist->size);
     if (!vi->imageList) {
       imodError(NULL, "Not enough memory.\n"); 
-      exit(-1);
+      exit(3);
     }
     memcpy(vi->imageList, ilist->data,
            sizeof(ImodImageFile) * ilist->size);
@@ -2372,6 +2372,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.23  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.22  2004/01/07 01:54:25  mast
 Needed to add a '/' in using IMGDIR as prefix
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
 Revision 3.4  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -276,14 +279,14 @@ int main( int argc, char *argv[])
     if (!fin){
       fprintf(stderr, "%s: Error, couldn't read file %s\n",
               progname, argv[i]);
-      exit(-1);
+      exit(3);
     }
     model.file = fin;
     errcode = imodReadFile(&model);
     if (errcode){
       fprintf(stderr, "%s: Error (%d) reading imod model. (%s)\n", 
               progname, errcode, argv[i]);
-      /*             exit(-1); */
+      /*             exit(3); */
 
     }
 

@@ -85,27 +85,27 @@ main(int argc, char *argv[])
 
      if (NULL == (mrcrf = fopen(argv[1], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[1]);
-	  exit(-1);
+	  exit(3);
      }
      if (NULL == (mrcgf = fopen(argv[2], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[2]);
-	  exit(-1);
+	  exit(3);
      }
      if (NULL == (mrcbf = fopen(argv[3], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[3]);
-	  exit(-1);
+	  exit(3);
      }
 
 
      if (mrc_head_read(mrcrf, &hdata)){
 	  fprintf(stderr, "mrc2rgb: Can't Read Input Header from %s.\n",
 		  argv[1]);
-	  exit(-1);
+	  exit(3);
      }
      
      if (hdata.mode){
 	  fprintf(stderr, "mrc2rgb: Only byte mode data supported.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      xsize = hdata.nx;
@@ -115,34 +115,34 @@ main(int argc, char *argv[])
      if (mrc_head_read(mrcgf, &hdata)){
 	  fprintf(stderr, "mrc2rgb: Can't Read Input Header from %s.\n",
 		  argv[2]);
-	  exit(-1);
+	  exit(3);
      }
 
      if (hdata.mode){
 	  fprintf(stderr, "mrc2rgb: Only byte mode data supported.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      if ( (xsize != hdata.nx) || (ysize != hdata.ny) || (zsize != hdata.nz) ){
 	  fprintf(stderr, "mrc2rgb: All mrcfiles must be same size.\n");
-	  exit(-1);
+	  exit(3);
      }
 
 
      if (mrc_head_read(mrcbf, &hdata)){
 	  fprintf(stderr, "mrc2rgb: Can't Read Input Header from %s.\n",
 		  argv[3]);
-	  exit(-1);
+	  exit(3);
      }
      
      if (hdata.mode){
 	  fprintf(stderr, "mrc2rgb: Only byte mode data supported.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      if ( (xsize != hdata.nx) || (ysize != hdata.ny) || (zsize != hdata.nz) ){
 	  fprintf(stderr, "mrc2rgb: All mrcfiles must be same size.\n");
-	  exit(-1);
+	  exit(3);
      }
 
      idata = (unsigned char *)malloc(xsize * ysize);
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 
 	  if (NULL == (of  = fopen(iname, "wb"))){
 	       fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[4]);
-	       exit(-1);
+	       exit(3);
 	  }
 
 	  putshort(of,474);       /* MAGIC                */

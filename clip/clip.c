@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/04/22 19:07:56  mast
+Zeroed out number of extra header bytes in output file to fixe problems
+with headers that have extra data that is not being copied.
+
 Revision 3.7  2004/01/16 18:09:02  mast
 Added splitrgb and joinrgb options
 
@@ -175,7 +179,7 @@ int main( int argc, char *argv[] )
 
   if (argc < 3){
     usage();
-    exit(-1);
+    exit(3);
   }
 
   opt.command = argv[1];
@@ -326,7 +330,7 @@ int main( int argc, char *argv[] )
         default:
           fprintf(stderr, "%s: invalid option %s.\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
         }
         break;
 		    
@@ -343,7 +347,7 @@ int main( int argc, char *argv[] )
         default:
           fprintf(stderr, "%s: invalid option %s.\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
         }
         break;
 
@@ -358,14 +362,14 @@ int main( int argc, char *argv[] )
         default:
           fprintf(stderr, "%s: invalid option %s.\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
         }
         break;
 
       default:
         fprintf(stderr, "%s: invalid option %s.\n",
 			    progname, argv[i]);
-        exit(-1);
+        exit(3);
       }
     else
       break;
@@ -377,14 +381,14 @@ int main( int argc, char *argv[] )
     /* check for at least one input file */
     if ((argc - 1) < i){
       usage();
-      exit(-1);
+      exit(3);
     }
     opt.infiles = argc - i;
   }else{
     /* check for at least one input and one output file name. */
     if ((argc - 2) < i){
       usage();
-      exit(-1);
+      exit(3);
     }
     opt.infiles = argc - i - 1;
   }

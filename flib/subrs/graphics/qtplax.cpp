@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.12  2004/04/08 17:06:12  mast
+Used a separate define for killing process at exit
+
 Revision 1.11  2003/10/26 05:34:23  mast
 add resize workaround for Windows
 
@@ -259,7 +262,7 @@ void plax_initialize(char *string, int strsize)
   if (!argv) {
     fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
             PlaxProgName);
-    exit (-1);
+    exit (3);
   }
   
   for (i = 0; i < argc; i++) {
@@ -269,7 +272,7 @@ void plax_initialize(char *string, int strsize)
     if (!argv[i]) {
       fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
               PlaxProgName);
-      exit (-1);
+      exit (3);
     }
   }
 
@@ -306,7 +309,7 @@ void plax_initialize(char *string, int strsize)
   PlaxMutex = new QMutex();
 
   if (startPlaxApp())
-    exit (-1);
+    exit (3);
   AppThread = new PlaxThread();
 
   PlaxApp->exec();

@@ -519,7 +519,7 @@ int main( int argc, char *argv[])
                                            "3dmod: Select Image file to load:");
       if (qname.isEmpty()) {
         imodError(NULL, "3DMOD: file not selected\n");
-        exit(-1);
+        exit(3);
       }
       Imod_imagefile = strdup(qname.latin1());
       
@@ -686,7 +686,7 @@ int main( int argc, char *argv[])
     if (errno) 
       qname += QString("System error: ") + strerror(errno);
     imodError(NULL, qname.latin1());
-    exit(-1);
+    exit(3);
   }
 
   /* If new model and multiple image files, set time flag by default */
@@ -991,6 +991,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.37  2004/06/23 03:34:54  mast
+Change in exiting sequence to allow generic settings to be saved
+
 Revision 4.36  2004/06/05 00:10:24  mast
 Prevented accessing vi.image with no image loaded - crashed on FC1
 

@@ -114,7 +114,7 @@ static void usage(char *pname)
   qstr += "\t-D                Debug mode.\n";
   qstr += "\t-h                Print this help message.\n";
   imodPrintInfo(qstr.latin1());
-  exit(-1);
+  exit(3);
 }
 
 static char *blackString = "black";
@@ -477,7 +477,7 @@ int imodv_main(int argc, char **argv)
 
   if (getVisuals(a) != 0) {
     imodError(NULL, "3dmodv error: Couldn't get rendering visual.\n");
-    exit(-1);
+    exit(3);
   }
 
   if (argc - i < 1)
@@ -486,12 +486,12 @@ int imodv_main(int argc, char **argv)
   /* DNM 1/29/03: already forked in imod, no need to do it here */
   
   if (load_models(argc - i, &(argv[i]), Imodv))
-    exit(-1);
+    exit(3);
 
   a->iconPixmap = new QPixmap(QImage(b3dicon));
 
   if (openWindow(Imodv))
-    exit(-1);
+    exit(3);
 
   if (printID) {
     unsigned int winID = (unsigned int)a->mainWin->winId();
@@ -646,6 +646,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.19  2004/06/06 21:27:21  mast
+Eliminated stereo-command related items
+
 Revision 4.18  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

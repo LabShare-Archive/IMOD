@@ -87,20 +87,20 @@ main( int argc, char *argv[])
      fin = fopen(argv[i++], "r");
      if (!fin){
 	  fprintf(stderr, "Couldn't open %s\n", argv[i]);
-	  exit(-1);
+	  exit(3);
      }
 
      fout = fopen(argv[i], "wb");
      if (!fout){
 	  fprintf(stderr, "Couldn't open %s\n", argv[i]);
-	  exit(-1);
+	  exit(3);
      }
 
      Model = (struct Mod_Model *)imod_from_wmod(fin);
      
      if (Model == NULL){
 	  fprintf(stderr, "Error reading imod file.\n");
-	  exit(-1);
+	  exit(3);
      }
      
 

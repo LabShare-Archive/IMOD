@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.1  2002/12/23 21:34:22  mast
 fixed exit status
 
@@ -73,7 +76,7 @@ int main( int argc, char *argv[])
   if (!mod){
     fprintf(stdout, "ERROR: imod2patch - reading model %s\n",
             argv[i]);
-    exit(-1);
+    exit(3);
   }
   
   if (imodBackupFile(argv[++i])) {
@@ -85,7 +88,7 @@ int main( int argc, char *argv[])
   fout = fopen(argv[i], "w");
   if (!fout){
     fprintf(stdout, "ERROR: imod2patch - Couldn't open %s\n", argv[i]);
-    exit(-1);
+    exit(3);
   }
 
   for (ob = 0; ob < mod->objsize; ob++)

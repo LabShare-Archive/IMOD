@@ -25,6 +25,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/23 21:37:14  mast
+    fixed exit status
+
 */
 
 #include <stdio.h>
@@ -97,7 +100,7 @@ int main( int argc, char *argv[])
   if (!imod){
     fprintf(stderr, "%s: Error reading imod model %s\n", argv[0], 
 	    argv[i]);
-    exit(-1);
+    exit(3);
   }
      
   imod_to_vrml(imod, fout);

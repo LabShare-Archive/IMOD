@@ -48,7 +48,7 @@ main( int argc, char *argv[] )
 
      if (argc < 3){
 	  fprintf(stderr, "Usage: %s [infile] [outfile]\n",  argv[0]) ;
-	   exit(-1) ;
+	   exit(3) ;
      }
      
 
@@ -56,14 +56,14 @@ main( int argc, char *argv[] )
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[1]);
-	       exit(-1);
+	       exit(3);
 	  }
      
      fout = fopen(argv[2], "wb");
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[2]);
-	       exit(-1);
+	       exit(3);
 	  }
      
 
@@ -72,7 +72,7 @@ main( int argc, char *argv[] )
      if (mrc_head_read(fin, &hdata))
 	  {
 	       fprintf(stderr, "Can't Read Input File Header.\n");
-	       exit(-1);
+	       exit(3);
 	  }
      
      datasize = hdata.nx * hdata.ny * hdata.nz;

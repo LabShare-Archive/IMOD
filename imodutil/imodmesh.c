@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
 Revision 3.3  2003/10/24 03:05:24  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -185,7 +188,7 @@ void main(int argc, char **argv)
         list = parselist(argv[++i], &nlist);
         if (!list) {
           fprintf(stderr, "%s: Error parsing object list\n", progname);
-          exit(-1);
+          exit(3);
         }
         break;
       case 'r':
@@ -211,7 +214,7 @@ void main(int argc, char **argv)
         cap_skip_zlist = parselist(argv[++i], &cap_skip_nz);
         if (!cap_skip_zlist) {
           fprintf(stderr, "%s: Error parsing Z list\n", progname);
-          exit(-1);
+          exit(3);
         }
         break;
       case 'e': /* erase meshes */
@@ -240,7 +243,7 @@ void main(int argc, char **argv)
         if (!tube_list) {
           fprintf(stderr, "%s: Error parsing list of objects to "
                   "mesh as tubes\n", progname);
-          exit(-1);
+          exit(3);
         }
         break;
             
@@ -334,7 +337,7 @@ void main(int argc, char **argv)
     if (!simod){
       fprintf(stderr, "%s: Error reading model %s\n",
               progname, argv[i]);
-      exit(-1);
+      exit(3);
     }
     /* delete the meshes completely */
     for (ob = 0; ob < simod->objsize; ob++){
@@ -349,7 +352,7 @@ void main(int argc, char **argv)
     if (!imod){
       fprintf(stderr, "%s: Error reading model %s\n",
               progname, argv[i]);
-      exit(-1);
+      exit(3);
     }
         
     /* Skinning doesn't like dirty models.  But keep empty objs (DNM) */
@@ -471,13 +474,13 @@ void main(int argc, char **argv)
     /* Save backup of Model to Model~ */
     if (imodBackupFile(argv[i])) {
       fprintf(stderr, "%s: Error, couldn't create backup", progname);
-      exit(-1);
+      exit(3);
     }
 
     fout = fopen(argv[i], "wb");
     if (!fout){
       fprintf(stderr, "%s: Error, couldn't open output.", progname);
-      exit(-1);
+      exit(3);
     }
 
     /*  switchskin(imod, simod, append, list, nlist, &spnt); */

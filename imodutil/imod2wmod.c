@@ -52,7 +52,7 @@ main( int argc, char *argv[])
      imod = imodRead(argv[1]);
      if (!imod){
 	  fprintf(stderr, "Imod2wmod: Error reading imod model.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      imod_to_wmod(&model, fout, argv[2]);

@@ -70,7 +70,7 @@ main( int argc, char *argv[] )
 	  fprintf(stderr, "Converts raw data into mrc file format.\n");
 	  fprintf(stderr, "User will be prompted for input.\n");
 	  fprintf(stderr, "Usage: rawmrc infile outfile.\n");
-	  exit(-1);
+	  exit(3);
      }
      
      fin = fopen(argv[1], "rb");

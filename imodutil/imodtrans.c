@@ -168,28 +168,28 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Where -sx, -sy & -sz scale     x y & z\n");
     fprintf(stderr, "Where -rx, -ry & -rz rotate    x y & z\n");
     fprintf(stderr, "Where -2 filename is a transformation file for a 2-d stack transformation.\n");
-    exit(-1);
+    exit(3);
   }
      
   fin = fopen(argv[1], "rb");
   if (!fin){
     fprintf(stderr, "%s: error reading input file %s\n",
             progname, argv[1]);
-    exit(-1);
+    exit(3);
   }
       
   fout = fopen(argv[2], "wb");
   if (!fin){
     fprintf(stderr, "%s: error opening output file %s\n",
             progname, argv[2]);
-    exit(-1);
+    exit(3);
   }
 
   model.file = fin;
   if (imodReadFile(&model)){
     fprintf(stderr, "%s: Error reading imod model. (%s)\n", 
             progname, argv[1]);
-    exit(-1);
+    exit(3);
   }
 
   for (i = 3; i < argc; i++){
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
         default:
           fprintf(stderr, "%s: Invalid option %s\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
           break;
         }
         break;
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
         default:
           fprintf(stderr, "%s: Invalid option %s\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
           break;
         }
         break;
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
         default:
           fprintf(stderr, "%s: Invalid option %s\n",
                   progname, argv[i]);
-          exit(-1);
+          exit(3);
           break;
         }
         break;
@@ -288,21 +288,21 @@ int main(int argc, char *argv[])
       default:
         fprintf(stderr, "%s: Invalid option %s\n",
                 progname, argv[i]);
-        exit(-1);
+        exit(3);
         break;
       }
 
     }else{
       fprintf(stderr, "%s: Invalid option %s\n",
               progname, argv[i]);
-      exit(-1);
+      exit(3);
     }
   }
 
   if (filename){
     if (filetrans(filename, &model, mode)){
       fprintf(stderr, "%s: Error transforming model.\n", progname);
-      exit(-1);
+      exit(3);
     }
     imodWrite(&model, fout);
     exit(0);

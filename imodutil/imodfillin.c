@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
 Revision 3.5  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -114,7 +117,7 @@ main( int argc, char *argv[])
         obj_list = parselist(argv[++i], &obj_list_size);
         if (!obj_list) {
           fprintf(stderr, "%s: Error parsing object list\n", progname);
-          exit(-1);
+          exit(3);
         }
         break;
                
@@ -275,7 +278,7 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
           if (coadd < 0) {
             fprintf(stderr, "Fatal error: cannot get new "
                     "contour or add it to object");
-            exit(-1);
+            exit(3);
           }
           imodContourDelete(cont);
           cont = &destobj->cont[coadd];

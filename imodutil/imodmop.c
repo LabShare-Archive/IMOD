@@ -69,7 +69,7 @@ int main( int argc, char *argv[])
     fprintf(stderr,
             "Usage: mop [-hrgbi] [model file] [input image] [output image]\n");
     fprintf(stderr, "use mop -h for help\n");
-    exit(-1);
+    exit(3);
   }
 
   for (i = 1; i < argc; i++){
@@ -110,40 +110,40 @@ int main( int argc, char *argv[])
   if (((argc - i) < 3) & (!Mop_help)){
     fprintf(stderr,
             "Usage: mop [-hrgbi] [model file] [input image] [output image]\n");
-    exit(-1);
+    exit(3);
   }
 
 
   mfin = fopen(argv[i++], "rb");
   if (mfin == NULL){
     fprintf(stderr, "MOP: Couldn't open %s\n", argv[1]);
-    exit(-1);
+    exit(3);
   }
      
   gfin = fopen(argv[i++], "rb");
   if (gfin == NULL){
     fprintf(stderr, "MOP: Couldn't open %s\n", argv[2]);
-    exit(-1);
+    exit(3);
   }
      
 
   gfout = fopen(argv[i], "wb");
   if (gfout == NULL){
     fprintf(stderr, "MOP: Couldn't open %s\n", argv[3]);
-    exit(-1);
+    exit(3);
   }
      
 
   model.file = mfin;
   if (imodReadFile(&model)){
     fprintf(stderr, "MOP: Error reading modelfile %s.\n", argv[1]);
-    exit(-1);
+    exit(3);
   }
      
      
   if (mrc_head_read(gfin, &hdata)){
     fprintf(stderr, "MOP: Can't Read Header for %s.\n", argv[2]);
-    exit(-1);
+    exit(3);
   }
      
   modpaint(mfin, gfin, gfout, &model, &hdata, invert);

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/04/28 05:29:31  mast
+Set flag to draw current contour thicker
+
 Revision 3.4  2003/10/24 03:05:24  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -100,7 +103,7 @@ int main( int argc, char *argv[])
   fin = fopen(argv[i++], "r");
   if (!fin){
     printf("ERROR: patch2imod - Couldn't open %s\n", argv[--i]);
-    exit(-1);
+    exit(3);
   }
 
   if (imodBackupFile(argv[i])) {
@@ -111,7 +114,7 @@ int main( int argc, char *argv[])
   fout = fopen(argv[i], "wb");
   if (!fout){
     printf("ERROR: patch2imod - couldn't open %s\n", argv[i]);
-    exit(-1);
+    exit(3);
   }
   Model = (struct Mod_Model *)imod_from_patches(fin, scale);
      

@@ -61,6 +61,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/01/17 20:38:26  mast
+Add define for rewind call
+
 Revision 3.6  2003/11/18 19:29:32  mast
 changes to call b3dF* functions for 2GB problem on Windows
 
@@ -207,7 +210,7 @@ main( int argc, char *argv[])
 
   if (fread(&hdata, 56, 4, fin) == 0){
     fprintf(stderr, "%s: Error Reading header.\n", progname);
-    exit(-1);
+    exit(3);
   }
 
   hdata.swapped = 0;
@@ -239,7 +242,7 @@ main( int argc, char *argv[])
     fprintf(stderr, "%s: This is not an MRC file, even after "
             "swapping bytes in header.\n", progname);
       
-    exit(-1);
+    exit(3);
   }
 
   hdata.headerSize = 1024;
@@ -293,7 +296,7 @@ main( int argc, char *argv[])
   default:
     fprintf(stderr, "%s: data type %d unsupported.\n",
             progname, hdata.mode);
-    exit(-1);
+    exit(3);
     break;
   }
 

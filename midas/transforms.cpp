@@ -349,7 +349,7 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->incindex[2]--;
     vw->increment[2] = vw->midasSlots->getIncrement(vw->incindex[2], 2);
     if (load_transforms(vw, vw->xname))
-      exit(-1);
+      exit(3);
     vw->didsave = 0;
   }
 
@@ -1667,6 +1667,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.7  2004/02/27 21:37:46  mast
+Fixed treatment of x/ycenter when transforming and rotating, etc.
+
 Revision 3.6  2003/12/17 21:44:19  mast
 Changes to implement global rotations
 

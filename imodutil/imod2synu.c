@@ -63,7 +63,7 @@ main( int argc, char *argv[])
 
 		  default:
 		    fprintf(stderr, "%s: invalid option\n", argv[0]);
-		    exit(-1);
+		    exit(3);
 		    break;
 	       }
 	  }else

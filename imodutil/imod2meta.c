@@ -276,7 +276,7 @@ int main(int argc, char **argv)
   if (!imod){
     fprintf(stderr, "Imod2meta: Error reading imod model. (%s)\n",
             argv[i]);
-    exit(-1);
+    exit(3);
   }
   i = argc-1;
   fout = fopen( argv[i] , "w");
