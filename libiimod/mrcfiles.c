@@ -46,11 +46,11 @@ Log at end of file */
 #include "b3dutil.h"
 
 /* These defines are OK since all I/O in file is to MRC files */
-#ifdef WIN32_BIGFILE
-#include <io.h>
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
 #define fseek b3dFseek 
 #define fread b3dFread 
 #define fwrite b3dFwrite 
+#define rewind b3dRewind
 #endif
 
 #ifndef FLT_MAX
@@ -73,8 +73,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
     return(-1);
   rewind(fin);
      
-     
-  if (fread(hdata, 56, 4, fin) == 0){
+  if (fread(hdata, 4, 56, fin) != 56){
     b3dError(stderr, "ERROR: mrc_head_read - reading header data.\n");
     return(-1);
   }
@@ -171,8 +170,9 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
              hdata->mode);
     return(1);
   }
-  fseek(fin, 0, 2);
-  filesize = ftell(fin);
+
+  /* fseek(fin, 0, 2);
+     filesize = ftell(fin); */
   rewind(fin);
 
   /* if ((filesize - datasize) < 0)
@@ -2070,85 +2070,12 @@ void mrc_swap_floats(float *data, int amt)
 #endif
 #endif
 
-#define SEEK_LIMIT 2000000000
-
-int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
-{
-  int smaller, bigger, ntodo, ndo, abs1, abs2;
-  int steplimit, err;
-
-  /* Do the base seek if it is non-zero, or if the rest of the seek is
-     zero and we are doing a SEEK_SET */
-  if (base || ((!size1 || !size2) && (flag == SEEK_SET))) {
-    if (err = fseek(fp, base, flag))
-      return err;
-    flag = SEEK_CUR;
-  }
-
-  if (!size1 || !size2)
-    return 0;
-
-  /* Find smaller and larger size */
-  abs1 = size1 >= 0 ? size1 : -size1;
-  abs2 = size2 >= 0 ? size2 : -size2;
-  smaller = abs1 < abs2 ? abs1 : abs2;
-  bigger = abs1 < abs2 ? abs2 : abs1;
-
-  /* Step by multiples of the larger size, but not by more than the limit */
-  steplimit = SEEK_LIMIT / bigger;
-  ntodo = smaller;
-
-  /* If one of the size entries is negative, negate the steps */
-  if ((size1 < 0 && size2 >= 0) || (size1 >= 0 && size2 < 0))
-    bigger = -bigger;
-
-  while (ntodo > 0) {
-    ndo = ntodo <= steplimit ? ntodo : steplimit;
-    if (err = fseek(fp, ndo * bigger, flag))
-      return err;
-    ntodo -= ndo;
-    flag = SEEK_CUR;
-  }
-  return 0;
-}
-
-/* These routines will simply call the standard C routine unless under Windows,
-   then they will get the matching file handle and call the low-level Windows
-   routine */
-int b3dFseek(FILE *fp, int offset, int flag)
-{
-#ifdef WIN32_BIGFILE
-  int handle = _fileno(fp);
-  __int64 err;
-  err = _lseeki64(handle, (_int64)offset, flag);
-  return (err == -1 ? -1 : 0);
-#else
-  return fseek(fp, offset, flag);
-#endif
-}
-
-size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
-{
-#ifdef WIN32_BIGFILE
-  int handle = _fileno(fp);
-  return (size_t)(_read(handle, buf, size * count) / size);
-#else
-  return fread(buf, size, count, fp);
-#endif
-}
- 
-size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
-{
-#ifdef WIN32_BIGFILE
-  int handle = _fileno(fp);
-  return (size_t)(_write(handle, buf, size * count) / size);
-#else
-  return fwrite(buf, size, count, fp);
-#endif
-}
 
 /*
 $Log$
+Revision 3.14  2004/01/12 17:27:00  mast
+Change complex min max routine from float to void
+
 Revision 3.13  2004/01/08 06:40:52  mast
 Fixed complex scaling and rewrote mrc_read_byte to split into cases just for
 processing each line
