@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/25 16:16:06  mast
+convert from plugin to internal module
+
 Revision 3.5  2003/09/16 02:07:24  mast
 Changed to copy image data into a buffer using new line pointers
 
@@ -476,7 +479,7 @@ void LineTrack::track(int client)
   if (curz != plug->idataSec || flipped != plug->idataFlipped) {
     datap = plug->idata;
     for (j = 0; j < plug->ysize; j++)
-      for (i = 0; i < plug->ysize; i++)
+      for (i = 0; i < plug->xsize; i++)
         *datap++ = image[j][i];
   }
   plug->idataSec = curz;
