@@ -203,12 +203,20 @@ c
 c	  David Mastronarde, 1995
 c	  added tilt alignment, 10/6/97
 c	  
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	include 'model.inc'
 	include 'statsize.inc'
 	include 'alivar.inc'
 	parameter (maxbox=64,maxstor=10,npad=8)
 	parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
-	parameter (limpcl=50000,maxnbox=500)
+	parameter (limpcl=50000,maxnbox=500,liminside=3000,limedge=1000)
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -224,7 +232,8 @@ C
 C	  
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
 	CHARACTER*80 FILIN,FILOUT,plfile,modelfile
-	integer*4 idxin(200),idyin(200),idxedge(200),idyedge(200)
+	integer*4 idxin(liminside),idyin(liminside)
+	integer*4 idxedge(limedge),idyedge(limedge)
 	integer*4 listz(maxview),izexclude(maxview)
 	character*9 dat
 	character*8 tim
@@ -295,7 +304,7 @@ c
 	  npclist=nz
 	endif
 	call fill_listz(izpclist,npclist,listz,nvuall)
-	print *,nvuall,maxview
+c	print *,nvuall,maxview
 	if(nvuall.gt.maxview)stop
      &	    'TOO MANY VIEWS FOR ARRAYS'
 	call checklist(ixpclist,npclist,1,nx,minxpiece
@@ -589,6 +598,8 @@ c
 	      idxedge(nedge)=ix
 	      idyedge(nedge)=iy
 	    endif
+	    if (ninside.gt.liminside.or.nedge.gt.limedge) stop
+     &		'BEAD RADIUS FOR CENTROIDS TOO LARGE FOR ARRAYS'
 	  enddo
 	enddo
 c	  
