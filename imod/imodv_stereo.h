@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/27 17:32:28  mast
+Had to include qgl.h instead of GL/gl.h under windows
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -43,7 +46,6 @@ void imodvStereoEditDialog(ImodvApp *a, int state);
 void imodvStereoUpdate(void);
 void imodvStereoToggle(void);
 void stereoHWOff(void);
-void stereoClear(GLbitfield mask);
 void stereoDrawBuffer(GLenum mode);
 
 #include "dialog_frame.h"
