@@ -15,6 +15,9 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/30 18:37:51  sueh
+ * <p> bug# 567 Add a 25 pixel x spacing variable.
+ * <p>
  * <p> Revision 3.1  2004/11/19 23:54:15  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -44,7 +47,7 @@ public class FixedDim {
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
-  public final static Dimension x25_y0 = new Dimension(25, 0);
+  public final static Dimension x40_y0 = new Dimension(40, 0);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
@@ -56,4 +59,6 @@ public class FixedDim {
   public final static int sectionsWidth = 75;
   public final static int highlighterWidth = 40;
   public final static int rowNumberWidth = 30;
+  public final static int integerPairWidth = 60;
+  public final static int integerTripletWidth = 90;
 }
