@@ -83,6 +83,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.76  2004/06/22 02:04:28  sueh
+ * <p> bug# 441 Created updateTrimvolParam() and added it to
+ * <p> trimVolume() and donePostProcessing().  Moved the logic
+ * <p> used to create input and output file names to TrimvolParam.
+ * <p>
  * <p> Revision 3.75  2004/06/21 17:22:37  rickg
  * <p> Bug #461 z shift is scaled by the prealigned binning
  * <p>
@@ -1158,7 +1163,7 @@ public class ApplicationManager {
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
       + ".erase";
     try {
-      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
@@ -1251,8 +1256,8 @@ public class ApplicationManager {
     String xRayModel = metaData.getDatasetName() + axisID.getExtension()
       + "_peak.mod";
     try {
-      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, xRayModel, false,
-        true);
+      imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1852,8 +1857,10 @@ public class ApplicationManager {
     String seedModel = metaData.getDatasetName() + axisID.getExtension()
       + ".seed";
     try {
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel,
-        true, true);
+      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
+        true);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel,
+        true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -1973,8 +1980,8 @@ public class ApplicationManager {
       + ".fid";
     try {
       imodManager.setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
-        true, false);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
+        true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2177,8 +2184,11 @@ public class ApplicationManager {
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
       + ".resmod";
     try {
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
-        false, true);
+      imodManager.setPreserveContrast(
+        ImodManager.COARSE_ALIGNED_KEY,
+        axisID,
+        true);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2623,6 +2633,8 @@ public class ApplicationManager {
    */
   public void imodSample(AxisID axisID) {
     try {
+      //It is safe to use open contours in all cases.
+      imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
       imodManager.open(ImodManager.SAMPLE_KEY, axisID);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
@@ -2646,8 +2658,8 @@ public class ApplicationManager {
   public void imodFullSample(AxisID axisID) {
     String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
-      imodManager.model(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true);
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
@@ -3563,10 +3575,10 @@ public class ApplicationManager {
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 1);
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 1);
       }
-      imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
         metaData.getDatasetName() + AxisID.FIRST.getExtension() + ".matmod",
         true);
-      imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
         metaData.getDatasetName() + AxisID.SECOND.getExtension() + ".matmod",
         true);
     }
@@ -3610,11 +3622,11 @@ public class ApplicationManager {
 
       // FIXME axis should be a parameter to the call
       if (metaData.getCombineParams().getMatchBtoA()) {
-        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
+        imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
           "patch_region.mod", true);
       }
       else {
-        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+        imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
           "patch_region.mod", true);
       }
     }
