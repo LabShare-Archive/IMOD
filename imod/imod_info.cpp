@@ -137,6 +137,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mESurfaceMenu->setAccel(SHIFT + Key_N, ESURFACE_MENU_NEW);
   mESurfaceMenu->insertItem("&Go To...", ESURFACE_MENU_GOTO);
   mESurfaceMenu->insertItem("&Move...", ESURFACE_MENU_MOVE);
+  mESurfaceMenu->insertItem("&Delete", ESURFACE_MENU_DELETE);
 
   // Edit Contour submenu
   mEContourMenu->insertItem("&New", ECONTOUR_MENU_NEW);
@@ -487,6 +488,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.25  2004/09/21 20:17:54  mast
+    Added menu option to renumber object
+
     Revision 4.24  2004/05/31 23:35:26  mast
     Switched to new standard error functions for all debug and user output
 
