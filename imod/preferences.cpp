@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 1.5  2003/04/17 19:06:50  mast
 various changes for Mac
 
@@ -94,8 +97,8 @@ static int styleStatus[MAX_STYLES];
 ImodPreferences::ImodPreferences(char *cmdLineStyle)
 {
   double szoomvals[MAXZOOMS] =
-    { 0.1, 0.16, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0,
-    10.0, 12.0, 16.0, 20.0};
+    { 0.1, 0.1667, 0.25, 0.3333, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
+      8.0, 10.0, 12.0, 16.0, 20.0};
   int i;
   bool readin;
   QString str;
