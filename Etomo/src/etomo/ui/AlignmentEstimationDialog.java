@@ -27,6 +27,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/27 08:48:24  rickg
+ * <p> Tabbed window for align log
+ * <p>
  * <p> Revision 2.3  2003/05/23 22:50:13  rickg
  * <p> Removed any extensions from log file labels in context menu
  * <p>
@@ -248,23 +251,28 @@ public class AlignmentEstimationDialog
     Vector logFileLabel = new Vector(2);
     String[] alignLabels = {
     "align errors",
-    "align residual",
     "align solution",
+    "align angles",
+    "align locals",
+    "complete log",
+    "align residual",
     "align mappings",
-    "align coordinates",
-    "align angles"};
+    "align coordinates",};
     logFileLabel.add(alignLabels);
     String[] transferfidLabels = {"transferfid"};
     logFileLabel.add(transferfidLabels);
 
     Vector logFile = new Vector(2);
-    String[] logFileList = new String[6];
+    String[] logFileList = new String[8];
     logFileList[0] = "alignError" + axisID.getExtension() + ".log";
-    logFileList[1] = "alignResiduals" + axisID.getExtension() + ".log";
-    logFileList[2] = "alignSolution" + axisID.getExtension() + ".log";
-    logFileList[3] = "alignMappings" + axisID.getExtension() + ".log";
-    logFileList[4] = "alignCoordinates" + axisID.getExtension() + ".log";
-    logFileList[5] = "alignAngles" + axisID.getExtension() + ".log";
+    logFileList[1] = "alignSolution" + axisID.getExtension() + ".log";
+    logFileList[2] = "alignAngles" + axisID.getExtension() + ".log";
+    logFileList[3] = "alignLocals" + axisID.getExtension() + ".log";
+    logFileList[4] = "align" + axisID.getExtension() + ".log";
+    logFileList[5] = "alignResiduals" + axisID.getExtension() + ".log";
+    logFileList[6] = "alignMappings" + axisID.getExtension() + ".log";
+    logFileList[7] = "alignCoordinates" + axisID.getExtension() + ".log";
+
     logFile.add(logFileList);
     String[] tfLogFile = {"transferfid.log"};
     logFile.add(tfLogFile);
