@@ -35,6 +35,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/27 20:08:31  sueh
+ * <p> bug# 250 added getUseMatchingModels()
+ * <p> added setUseMatchingModels()
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -116,6 +120,7 @@ public class TomogramCombinationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
+  public static final int NO_TAB = -1;
   public static final int SETUP_TAB = 0;
   public static final int INITIAL_TAB = 1;
   private SetupCombinePanel pnlSetup;
@@ -181,7 +186,24 @@ public class TomogramCombinationDialog
    */
   public void getCombineParams(CombineParams combineParams)
     throws NumberFormatException {
-    pnlSetup.getParameters(combineParams);
+    getCombineParams(SETUP_TAB, combineParams);
+  }
+  
+  /**
+   * Get the the setupcombine parameters of the UI returning them in the 
+   * modified CombineParams object
+   * @param combineParams
+   * @throws NumberFormatException
+   */
+  public void getCombineParams(int fromTab, CombineParams combineParams)
+    throws NumberFormatException {
+    if (fromTab == SETUP_TAB) {
+      pnlSetup.getParameters(combineParams);
+      return;
+    }
+    if (fromTab == INITIAL_TAB) {
+      pnlInitial.getCombineParameters(combineParams);
+    }
   }
 
   /**
