@@ -90,6 +90,8 @@ if ($compiler == intel) then
 	echo "ARFLAGS = -lib /out:"                >> $configure
 	echo "RANLIB    = true"            >> $configure
 	echo "LIBEXT  = lib"                  >> $configure
+        set makestaticlib = "link -lib /out:"
+        set staticranlib = true
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
