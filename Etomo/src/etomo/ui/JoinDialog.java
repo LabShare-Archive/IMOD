@@ -35,6 +35,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2004/11/23 22:34:04  sueh
+ * <p> bug# 520 getMetaData() returning a success boolean.  On Change Setup:
+ * <p> save screen to metaData and save metaData.
+ * <p>
  * <p> Revision 1.2  2004/11/19 23:56:33  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -272,7 +276,8 @@ public class JoinDialog implements ContextMenu {
   private JoinActionListener joinActionListener = new JoinActionListener(this);
   private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(
       this);
-  private UseAlignmentRefSectionActionListener useAlignmentRefSectionActionListener = new UseAlignmentRefSectionActionListener(this);
+  private UseAlignmentRefSectionActionListener useAlignmentRefSectionActionListener = new UseAlignmentRefSectionActionListener(
+      this);
 
   private final AxisID axisID;
   private final JoinManager joinManager;
@@ -290,9 +295,6 @@ public class JoinDialog implements ContextMenu {
 
   private void createRootPanel(String workingDirName) {
     rootPanel = new JPanel();
-    //  Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    rootPanel.addMouseListener(mouseAdapter);
     createTabPane(workingDirName);
     rootPanel.add(tabPane);
   }
@@ -300,6 +302,7 @@ public class JoinDialog implements ContextMenu {
   private void createTabPane(String workingDirName) {
     tabPane = new JTabbedPane();
     TabChangeListener tabChangeListener = new TabChangeListener(this);
+    tabPane.addMouseListener(new GenericMouseAdapter(this));
     tabPane.addChangeListener(tabChangeListener);
     tabPane.setBorder(new BeveledBorder("Join").getBorder());
     createSetupPanel(workingDirName);
@@ -940,6 +943,34 @@ public class JoinDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel;
+    String[] manPage;
+    String[] logFileLabel;
+    String[] logFile;
+    ContextPopup contextPopup;
+    switch (curTab) {
+    case SETUP_TAB:
+      manPagelabel = new String[] { "3dmod" };
+      manPage = new String[] { "3dmod.html" };
+      logFileLabel = new String[] { "startjoin" };
+      logFile = new String[] { "startjoin.log" };
+      contextPopup = new ContextPopup(rootPanel, mouseEvent, "Setup",
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, logFileLabel,
+          logFile, joinManager);
+      break;
+    case ALIGN_TAB:
+      manPagelabel = new String[] { "Xfalign", "Midas", "3dmod" };
+      manPage = new String[] { "xfalign.html", "midas.html", "3dmod.html" };
+      contextPopup = new ContextPopup(rootPanel, mouseEvent, "Align",
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage);
+      break;
+    case JOIN_TAB:
+      manPagelabel = new String[] { "Finishjoin", "3dmod" };
+      manPage = new String[] { "finishjoin.html", "3dmod.html" };
+      contextPopup = new ContextPopup(rootPanel, mouseEvent, "Joining",
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage);
+      break;
+    }
   }
 
   /**
