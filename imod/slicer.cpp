@@ -31,59 +31,9 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.9  2003/01/30 01:01:08  mast
-Simplify getting window the right size
-
-Revision 1.1.2.8  2003/01/29 01:34:00  mast
-implement colormaps
-
-Revision 1.1.2.7  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.6  2003/01/23 20:13:33  mast
-add include of imod_input
-
-Revision 1.1.2.5  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.4  2003/01/10 23:53:53  mast
-moved declaration of cubicFillin to include file
-
-Revision 1.1.2.3  2003/01/06 18:59:19  mast
-cleanup and reorganization
-
-Revision 1.1.2.2  2003/01/06 15:47:55  mast
-Qt version
-
-Revision 1.1.2.1  2003/01/02 15:45:09  mast
-changes for new controller key callback
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/09/05 16:03:41  mast
-Choose visual explicitly for the cube, because GLw fails if there
-is no single-buffer visual available
-
-Revision 3.1  2002/05/20 15:29:39  mast
-Made it move the current point to middle of image when slicer is opened if
-it is still at 0,0.  Made it load cache for current point, which is needed
-if no Zap window is open.
-
-Revision 3.0  2001/11/29 18:10:49  rickg
-*** empty log message ***
-
-Revision 1.2  2001/11/23 05:32:30  mast
-Activated faster HQ display method for zoom > 1 using cubic interpolation
-- coded 2 years ago and left unused.  Also added workaround to Intel
-compiler bug.
-
+Log at end of file
 */
+
 #include <math.h>
 #include <limits.h>
 #include <string.h>
@@ -380,9 +330,9 @@ int sslice_open(struct ViewInfo *vi)
   ss->ly     = vi->ymouse;
   ss->lz     = vi->zmouse;
   ss->hq     = 0;
-  ss->tang[X] = 0.0f;
-  ss->tang[Y] = 0.0f;
-  ss->tang[Z] = 0.0f;
+  ss->tang[b3dX] = 0.0f;
+  ss->tang[b3dY] = 0.0f;
+  ss->tang[b3dZ] = 0.0f;
   ss->mapped = 0;
   ss->scalez = 0;
   ss->depth = 1.0;
@@ -394,7 +344,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->ystep[1]  = 1.0f; ss->ystep[0] = ss->ystep[2] = 0.0f;
   ss->nslice = 1;
   ss->mat = imodMatNew(3);
-  ss->lastangle = X;
+  ss->lastangle = b3dX;
   ss->zslast = 1.0;
   ss->pending = 0;
   ss->imageFilled = 0;
@@ -557,11 +507,11 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 	p1 = &cont->pts[pt-1];
       else
 	p1 = &cont->pts[pt+1];
-      axis = X;
+      axis = b3dX;
       if (keysym == Qt::Key_Y)
-	axis = Y;
+	axis = b3dY;
       if (keysym == Qt::Key_Z)
-	axis = Z;
+	axis = b3dZ;
       if (shift){
 	p2 = &cont->pts[cont->psize - 1];
 	p1 = &cont->pts[0];
@@ -692,10 +642,10 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   ym = ss->cy;
   zm = ss->cz;
 
-  xm -= (ss->xstep[X] * xoffset) + (ss->ystep[X] * yoffset);
-  ym -= (ss->xstep[Y] * xoffset) + (ss->ystep[Y] * yoffset);
+  xm -= (ss->xstep[b3dX] * xoffset) + (ss->ystep[b3dX] * yoffset);
+  ym -= (ss->xstep[b3dY] * xoffset) + (ss->ystep[b3dY] * yoffset);
      
-  zm -= (ss->xstep[Z] * xoffset * zs) + (ss->ystep[Z] * yoffset * zs);
+  zm -= (ss->xstep[b3dZ] * xoffset * zs) + (ss->ystep[b3dZ] * yoffset * zs);
 
   if (xm < 0)
     xm = 0;
@@ -756,7 +706,7 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   Ipoint n;
   Ipoint a;
   double val;
-  float small = 1.e-4;
+  float smallVal = 1.e-4;
   double rpd = RADIANS_PER_DEGREE;
   n.x = p2->x - p1->x;
   n.y = p2->y - p1->y;
@@ -767,17 +717,17 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
     return;
   imodPointNormalize(&n);
 
-  if (axis == X) {
+  if (axis == b3dX) {
     a.z = 0.0;
-    if (n.x > small || n.y > small || n.x < -small || n.y < -small)
+    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal)
       a.z = -atan2((double)n.y, (double)n.x);
     val = a.z;
     val = n.x * cos(val) - n.y * sin(val);
     a.y = fixangle(90. * rpd - atan2(val, (double)n.z));
     a.x = 0.0;
-  } else if (axis == Y) {
+  } else if (axis == b3dY) {
     a.z = 0.0;
-    if (n.x > small || n.y > small || n.x < -small || n.y < -small)
+    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal)
       a.z = fixangle(90. * rpd - atan2((double)n.y, (double)n.x));
     val = a.z;
     val = n.x * sin(val) + n.y * cos(val);
@@ -786,7 +736,7 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   } else {
     /* This may be most logical in terms of general angles available */
     /*   a.y = 0.0;
-         if (n.x > small || n.z > small || n.x < -small || n.z < -small)
+         if (n.x > smallVal || n.z > smallVal || n.x < -smallVal || n.z < -smallVal)
          a.y = -atan2((double)n.x, (double)n.z);
          val = a.y;
          val = n.z * cos(val) - n.x * sin(val);
@@ -796,7 +746,7 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
     /* But this is useful for doing Z rotation and then X, and for
        keeping all the angles under +/- 90 degrees. */
     a.z = 0.0;
-    if (n.x > small || n.y > small || n.x < -small || n.y < -small)
+    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal)
       if (n.y >= 0.0)
         a.z = atan2((double)n.x, (double)n.y);
       else
@@ -810,9 +760,9 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
     a.y = 0.0;
   }
 
-  ss->tang[X] = a.x / rpd;
-  ss->tang[Y] = a.y / rpd;
-  ss->tang[Z] = a.z / rpd;
+  ss->tang[b3dX] = a.x / rpd;
+  ss->tang[b3dY] = a.y / rpd;
+  ss->tang[b3dZ] = a.z / rpd;
   ss->qtWindow->setAngles(ss->tang);
 }
 
@@ -829,9 +779,9 @@ static void slice_trans_step(SlicerStruct *ss)
   /* DNM: made the angles be negative to match angles applied to volume */
   
   imodMatId(mat);
-  imodMatRot(mat, (double)(-ss->tang[X]), X); 
-  imodMatRot(mat, (double)(-ss->tang[Y]), Y);
-  imodMatRot(mat, (double)(-ss->tang[Z]), Z);
+  imodMatRot(mat, (double)(-ss->tang[b3dX]), b3dX); 
+  imodMatRot(mat, (double)(-ss->tang[b3dY]), b3dY);
+  imodMatRot(mat, (double)(-ss->tang[b3dZ]), b3dZ);
 
   pnt.y = pnt.z = 0.0f;
   pnt.x = 1.0f;
@@ -858,15 +808,15 @@ static void slice_trans_step(SlicerStruct *ss)
   imodPointNormalize(&ycut);
   imodPointNormalize(&zcut);
 
-  ss->xstep[X] = xn.x;
-  ss->xstep[Y] = xn.y;
-  ss->xstep[Z] = xn.z;
-  ss->ystep[X] = yn.x;
-  ss->ystep[Y] = yn.y;
-  ss->ystep[Z] = yn.z;
-  ss->zstep[X] = zn.x;
-  ss->zstep[Y] = zn.y;
-  ss->zstep[Z] = zn.z;
+  ss->xstep[b3dX] = xn.x;
+  ss->xstep[b3dY] = xn.y;
+  ss->xstep[b3dZ] = xn.z;
+  ss->ystep[b3dX] = yn.x;
+  ss->ystep[b3dY] = yn.y;
+  ss->ystep[b3dZ] = yn.z;
+  ss->zstep[b3dX] = zn.x;
+  ss->zstep[b3dY] = zn.y;
+  ss->zstep[b3dZ] = zn.z;
      
   /* Set cut points */
   ss->vi->slice.zx1 = ss->vi->slice.zx2 =
@@ -968,12 +918,12 @@ static void slice_trans_step(SlicerStruct *ss)
     zs = 1.0f;
 
   /* DNM: make these correct for HQ case at least */
-  ss->xo -= (isize / 2) * ss->xstep[X];
-  ss->yo -= (isize / 2) * ss->xstep[Y];
-  ss->zo -= (isize / 2) * ss->xstep[Z] * zs;
-  ss->zo -= (jsize / 2) * ss->ystep[Z] * zs;
-  ss->xo -= (jsize / 2) * ss->ystep[X];
-  ss->yo -= (jsize / 2) * ss->ystep[Y];
+  ss->xo -= (isize / 2) * ss->xstep[b3dX];
+  ss->yo -= (isize / 2) * ss->xstep[b3dY];
+  ss->zo -= (isize / 2) * ss->xstep[b3dZ] * zs;
+  ss->zo -= (jsize / 2) * ss->ystep[b3dZ] * zs;
+  ss->xo -= (jsize / 2) * ss->ystep[b3dX];
+  ss->yo -= (jsize / 2) * ss->ystep[b3dY];
 
   return;
 }
@@ -1102,15 +1052,15 @@ static void fillImageArray(SlicerStruct *ss)
   yo = ss->cy;
   zo = ss->cz;
 
-  xsx = ss->xstep[X];
-  ysx = ss->xstep[Y];
-  zsx = ss->xstep[Z];
-  xsy = ss->ystep[X];
-  ysy = ss->ystep[Y];
-  zsy = ss->ystep[Z];
-  xsz = ss->zstep[X];
-  ysz = ss->zstep[Y];
-  zsz = ss->zstep[Z];
+  xsx = ss->xstep[b3dX];
+  ysx = ss->xstep[b3dY];
+  zsx = ss->xstep[b3dZ];
+  xsy = ss->ystep[b3dX];
+  ysy = ss->ystep[b3dY];
+  zsy = ss->ystep[b3dZ];
+  xsz = ss->zstep[b3dX];
+  ysz = ss->zstep[b3dY];
+  zsz = ss->zstep[b3dZ];
 
   if ((ss->scalez) && (ss->vi->imod->zscale > 0))
     zs  = 1.0f/ss->vi->imod->zscale;
@@ -1173,9 +1123,9 @@ static void fillImageArray(SlicerStruct *ss)
        rotate in 3D to find location in display pixel */
 
     imodMatId(mat);
-    imodMatRot(mat, (double)ss->tang[Z], Z);
-    imodMatRot(mat, (double)ss->tang[Y], Y);
-    imodMatRot(mat, (double)ss->tang[X], X); 
+    imodMatRot(mat, (double)ss->tang[b3dZ], b3dZ);
+    imodMatRot(mat, (double)ss->tang[b3dY], b3dY);
+    imodMatRot(mat, (double)ss->tang[b3dX], b3dX); 
 
     pnt.x = ss->cx - (int)ss->cx;
     pnt.y = ss->cy - (int)ss->cy;
@@ -1678,15 +1628,15 @@ static void sslice_draw_model(SlicerStruct *ss)
 
   /* DNM: took away minus signs because inverting sense of angles;
      also had to swap X and Y */
-  glRotatef(ss->tang[X], 1.0f, 0.0f, 0.0f);
-  glRotatef(ss->tang[Y], 0.0f, 1.0f, 0.0f);
-  glRotatef(ss->tang[Z], 0.0f, 0.0f, 1.0f);
+  glRotatef(ss->tang[b3dX], 1.0f, 0.0f, 0.0f);
+  glRotatef(ss->tang[b3dY], 0.0f, 1.0f, 0.0f);
+  glRotatef(ss->tang[b3dZ], 0.0f, 0.0f, 1.0f);
   if (ss->scalez == SLICE_ZSCALE_BEFORE)
     glScalef(1.0f, 1.0f, ss->vi->imod->zscale);
 
   glTranslatef(-ss->cx, -ss->cy, -ss->cz);
 
-  imodDrawModel(ss->vi->imod);
+  imodDrawModel(ss->vi, ss->vi->imod);
   glPopMatrix();
   return;
 }
@@ -1823,3 +1773,60 @@ void slicerCubePaint(SlicerStruct *ss)
   glFlush();
 
 }
+
+/*
+$Log$
+Revision 4.2  2003/02/12 21:39:26  mast
+Changed integer truncation method to speed up on some pentium 4's
+
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.9  2003/01/30 01:01:08  mast
+Simplify getting window the right size
+
+Revision 1.1.2.8  2003/01/29 01:34:00  mast
+implement colormaps
+
+Revision 1.1.2.7  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.6  2003/01/23 20:13:33  mast
+add include of imod_input
+
+Revision 1.1.2.5  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 1.1.2.4  2003/01/10 23:53:53  mast
+moved declaration of cubicFillin to include file
+
+Revision 1.1.2.3  2003/01/06 18:59:19  mast
+cleanup and reorganization
+
+Revision 1.1.2.2  2003/01/06 15:47:55  mast
+Qt version
+
+Revision 1.1.2.1  2003/01/02 15:45:09  mast
+changes for new controller key callback
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.2  2002/09/05 16:03:41  mast
+Choose visual explicitly for the cube, because GLw fails if there
+is no single-buffer visual available
+
+Revision 3.1  2002/05/20 15:29:39  mast
+Made it move the current point to middle of image when slicer is opened if
+it is still at 0,0.  Made it load cache for current point, which is needed
+if no Zap window is open.
+
+Revision 3.0  2001/11/29 18:10:49  rickg
+*** empty log message ***
+
+Revision 1.2  2001/11/23 05:32:30  mast
+Activated faster HQ display method for zoom > 1 using cubic interpolation
+- coded 2 years ago and left unused.  Also added workaround to Intel
+compiler bug.
+
+*/
