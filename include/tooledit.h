@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/02/28 21:35:11  mast
+renamed lostFocus
+
 Revision 3.1  2003/02/10 20:57:02  mast
 Merge Qt source
 
@@ -40,6 +43,7 @@ class ToolEdit : public QLineEdit
 
  protected:
   void focusOutEvent(QFocusEvent *event);
+  void fontChange(const QFont &oldFont);
 
  private:
   int mColumns;    // Number of columns it is sized for, of 0 if not

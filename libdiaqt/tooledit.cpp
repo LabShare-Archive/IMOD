@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/02/28 21:34:58  mast
+rename lostFocus to focusLost to avoid conflict with signals in 3.1
+
 Revision 1.2  2003/02/10 20:51:22  mast
 Merge Qt source
 
@@ -58,6 +61,11 @@ ToolEdit::~ToolEdit()
 void ToolEdit::focusOutEvent(QFocusEvent *event)
 {
   emit focusLost();
+}
+void ToolEdit::fontChange(const QFont &oldFont)
+{
+  setColumnWidth();
+  QLineEdit::fontChange(oldFont);
 }
 
 // Set the edit box to fit a given number of characters, or resize it to fit
