@@ -1,5 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/04: IMOD_3-4-1
+7/14/04: eTomo process killing improved to handle the multi-layered processes
+in combining and fixed to work on Windows again.
+
+7/13/04: Fixed an ancient bug in pixel view when a subset is loaded flipped.
+
+7/13/04: Converted Combinefft to PIP input and added an option for reducing
+amplitudes in the missing wedge regions to match the reduction in the combined
+data region, and an option for more sophisticated weighting.
+
+7/12/04: Implemented a mode in Midas to make it easier to align chunks of 
+sections (e.g., slices from serial tomograms) to each other.  Makejoincom
+will output the appropriate command line for running Midas in this mode.
+
+7/12/04: Fixed copytomocoms problem with starting and increment til angles.
+
 7/11/04: Fixed failure to start new contour on a different section after
 autocontouring.  Fixed problems with autocontouring not setting surface number
 or contour time correctly and line tracker not setting contour time when
@@ -13,7 +29,7 @@ ghosts to appear for all objects.
 7/10/04: Fixed bug in autocontrasting subarea when zoomed image was panned 
 enough for non-image to show in window on right or top.
 
-7/9/04: Fixed bead fixer to run run Tiltalign when current directory has spaces
+7/9/04: Fixed bead fixer to run Tiltalign when current directory has spaces
 in the path.
 
 7/9/04: Fixed Finishjoin to not rely on /usr/tmp as temporary directory.
