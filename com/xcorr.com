@@ -16,7 +16,7 @@ g5a.prexf
 1	tilts: 1 for start & increment, 0 for tilt file, -1 to enter all angles
 -60,1.5	start and increment if 1
 0	rotation angle from vertical to tilt axis
-.02,.05,0,.25	filter parameters Sigma1, Sigma2, Radius1, Radius2
+.03,.05,0,.25	filter parameters Sigma1, Sigma2, Radius1, Radius2
 0	1 to exclude central peak due to fixed pattern noise, 0 not to
 #
 # YOU'LL ONLY HAVE TO FIDDLE WITH THE PARAMETERS BELOW IF SOMETHING
