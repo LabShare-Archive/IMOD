@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -125,9 +133,9 @@ void update_parameters()
 	  param[4] = VW->edgedy[VW->edgeind * 2 + VW->xory];
 	  first = 3;
 	  find_best_shifts(VW, 0, 4, &meanerr, toperr, VW->topind, &curerrx,
-			   &curerry);
+			   &curerry, VW->mousemoving);
 	  find_best_shifts(VW, 1, 1, &meanleave, &topleave, &topleavind,
-			   &VW->curleavex, &VW->curleavey);
+			   &VW->curleavex, &VW->curleavey, VW->mousemoving);
 
 	  sprintf(string, "Mean error: %.2f", meanerr);
 	  str = XmStringCreateSimple(string);
@@ -1803,6 +1811,10 @@ void input_cb(Widget w, XtPointer client, XtPointer call)
 	  }
 	  break;
 
+	case ButtonRelease:
+	  update_parameters();
+	  break;
+
 	case MotionNotify:
 	  if (cbs->event->xmotion.state & Button1Mask)
 	       button1 = True;
@@ -1811,6 +1823,7 @@ void input_cb(Widget w, XtPointer client, XtPointer call)
 	  if (cbs->event->xmotion.state & Button3Mask)
 	       button3 = True;
 
+	  VW->mousemoving = 1;
 	  XQueryPointer(VW->display,
 			XtWindow(VW->glw), &rootr, &childr,
 			&rx, &ry, &VW->mx, &VW->my, &maskr);
@@ -1836,6 +1849,7 @@ void input_cb(Widget w, XtPointer client, XtPointer call)
 	       VW->lastmx = VW->mx;
 	       VW->lastmy = VW->my;
 	  }
+	  VW->mousemoving = 0;
 	  break;
 
      }
