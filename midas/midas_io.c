@@ -27,11 +27,19 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdlib.h>
 #include <mrcc.h>
+#include <imodel.h>
 #include "midas.h"
-
-int   imodFgetline(FILE *fp, char s[],int limit);
 
 static struct MRCheader ImageHeader;
 static struct LoadInfo loadinfo;

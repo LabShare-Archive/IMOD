@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/11/05 23:27:00  mast
+    Changed copyright notice to use lab name and years
+
     Revision 3.1  2002/08/19 04:48:31  mast
     In montage-fixing mode, made it suppress updates during mouse moves
     when there are many pieces
@@ -48,6 +51,7 @@
 #include <sys/time.h>
 #endif
 #include <Xm/Xm.h>
+#include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include <X11/keysym.h>
 #include <Xm/VirtKeys.h>
@@ -795,8 +799,8 @@ static void translate(float xstep, float ystep)
 {
      struct Midas_transform *tr;
      static int fastcount = 0;
-     int ix = xstep;
-     int iy = ystep;
+     int ix = (int)xstep;
+     int iy = (int)ystep;
      int i, ist, ind;
      getChangeLimits(&ist, &ind);
 
@@ -1325,8 +1329,8 @@ static int setbwlevels(int black, int white, int draw)
 	       dslope = (float)(ws - bs) / (float)(w0 - b0);
 	       bnf = bs + (black - b0) * dslope;
 	       /* compute nearest integer values to what equations give */
-	       wn = bnf + (white - black) * dslope + 0.5;
-	       bn = bnf + 0.5;
+	       wn = (int)floor(bnf + (white - black) * dslope + 0.5);
+	       bn = (int)floor(bnf + 0.5);
 
 	       /* enforce legality, differing by > 0 and within bounds */
 	       if (wn <= bn)

@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/11/05 23:54:24  mast
+    Changed to get a visual then pass it to GLw.
+
     Revision 3.3  2002/11/05 23:29:13  mast
     Changed to call imodCopyright
 
@@ -66,8 +69,8 @@
 #include <Xm/Separator.h>
 #include <mrcc.h>
 #include <diaP.h>
+#include <imodel.h>
 #include "midas.h"
-
 
 struct Midas_view *VW;
 /* DNM: fontlist was -17-, this failed on PC */
@@ -240,7 +243,7 @@ main (int argc, char **argv)
      /* If there are two args left, the last one is name of transform file */
      if (i == argc - 2) {
 	  /* It gets freed by a save-as, so need to copy to malloc'd space */
-	  vw->xname = malloc(strlen(argv[argc - 1]) + 2);
+	  vw->xname = (char *)malloc(strlen(argv[argc - 1]) + 2);
 	  strcpy(vw->xname, argv[argc - 1]);
 	  file = fopen(vw->xname, "r");
 	  if (file) {
