@@ -219,6 +219,7 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
       ss->cx = ss->vi->xmouse;
       ss->cy = ss->vi->ymouse;
       ss->cz = ss->vi->zmouse;
+      ss->pending = 0;
       sslice_draw(ss);
     }
   } else {
@@ -327,10 +328,11 @@ int sslice_open(struct ViewInfo *vi)
 
   /* DNM 5/16/02: if the current position is still in the lower left
      corner, move it to middle and draw other windows */
+  /* 5/5/03: take away DRAW IMAGE flag */
   if (!vi->xmouse && !vi->ymouse) {
     vi->xmouse = vi->xsize / 2;
     vi->ymouse = vi->ysize / 2;
-    imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+    imodDraw(vi, IMOD_DRAW_XYZ);
   }
 
   ss->cx = vi->xmouse;
@@ -634,7 +636,7 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
   Imod *imod = vi->imod;
   Iindex index;
   float selsize = IMOD_SELSIZE / ss->zoom;
-
+  int drawflag = IMOD_DRAW_XYZ;
 
   sslice_setxyz(ss, x, y);
   if (imod->mousemode == IMOD_MMODEL) {
@@ -663,11 +665,14 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
         }
       }
     }
+
+    /* DNM 5/5/03: take out IMAGE flag, use RETHINK only if in model mode */
+    drawflag |= IMOD_DRAW_RETHINK;
   }
 
   /* DNM: for select hits, do keep cz at an integral value */
   ss->pending = 0;
-  imodDraw(ss->vi, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+  imodDraw(ss->vi, drawflag);
 }
 static void slicer_insert_point(SlicerStruct *ss, int x, int y)
 {
@@ -740,6 +745,7 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   ss->vi->xmouse = xm; 
   ss->vi->ymouse = ym; 
   ss->vi->zmouse = zmouse;
+  //fprintf(stderr, "setxyz %f %f %f\n", xm, ym, zm);
   return;
 }
 
@@ -1152,10 +1158,11 @@ static void fillImageArray(SlicerStruct *ss)
   ksize = ss->nslice;
   zoffset = (float)(ksize - 1) * 0.5;
 
+  /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
   xzoom = yzoom = zzoom = ss->zoom;
-  xo = ss->cx;
-  yo = ss->cy;
-  zo = ss->cz;
+  xo = ss->lx = ss->cx;
+  yo = ss->ly = ss->cy;
+  zo = ss->lz = ss->cz;
 
   xsx = ss->xstep[b3dX];
   ysx = ss->xstep[b3dY];
@@ -1732,6 +1739,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->glw->unsetCursor();
   }
 
+  // fprintf(stderr, "flags on draw %x \n", drawflag);
+
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){
     ss->zslast = ss->vi->imod->zscale;
@@ -1753,11 +1762,12 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       }
       if ((ss->lx != usex) ||
           (ss->ly != usey) ||
-          (ss->lz != usez)){
-        ss->cx = ss->lx = usex;
-        ss->cy = ss->ly = usey;
-        ss->cz = ss->lz = usez;
+          (ss->lz != usez)) {
+        ss->cx = usex;
+        ss->cy = usey;
+        ss->cz = usez;
         ss->pending = 0;
+        //fprintf(stderr, "XYZ draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
         sslice_draw(ss);
         return;
       }
@@ -1767,16 +1777,18 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
   /* DNM 3/11/03: try moving only if not locked */
   if ((drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE))){
     if (ss->pending && !ss->locked) {
-      ss->cx = ss->lx = ss->pendx;
-      ss->cy = ss->ly = ss->pendy;
-      ss->cz = ss->lz = ss->pendz;
+      ss->cx = ss->pendx;
+      ss->cy = ss->pendy;
+      ss->cz = ss->pendz;
       ss->pending = 0;
     }
+    //fprintf(stderr, "ACTIVE draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     sslice_draw(ss);
     return;
   }
      
   if (drawflag & IMOD_DRAW_MOD){
+    //fprintf(stderr, "MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     slicerUpdateImage(ss);
   }
 
@@ -2035,6 +2047,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.17  2003/04/28 04:03:21  mast
+Fix help text
+
 Revision 4.16  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
