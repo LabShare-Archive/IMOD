@@ -17,8 +17,8 @@ argument) that performs the needed operation, in the format required by
 Vmstocsh, as ordinarily run with subm.  The input file for the
 operation in this command file should be entered as INPUTFILE, and the final 
 output of the operation
-as OUTPUTFILE.  (Note that OUTPUTFILE does not have the name of the final
-output file given on the chunksetup command line.)  The command file may
+as OUTPUTFILE.  (Note that OUTPUTFILE should not be used for the name of the
+final output file given on the chunksetup command line.)  The command file may
 perform multiple operations and may even
 contain INPUTFILE more than once.  If the procedure needs to produce temporary
 intermediate files, they 
@@ -26,6 +26,19 @@ should be named ending in ".$$" (e.g., chunktemp.$$).  At the end of the
 command file, include lines to remove the specific intermediate files, e.g.
 .br
 $if (-e chunktemp.$$) rm -f chunktemp.$$
+.br
+If you are going to run the operation on more than one machine, it is
+probably best to
+put the files in a machine-specific location such as /usr/tmp.
+Alternatively, you can use a more elaborate method for naming temporary files.
+Define a variable at the top of your command file:
+.br
+$set tmpext `hostname`.$$
+.br
+and end your temporary file names with ".$tmpext".  In this case, you should
+remove the files at the end of the command file with statements like:
+.br
+$if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
 
 When chunksetup is run, it first calls Tomopieces, which analyzes the
 dimensions of the input file to determine how to chop it up optimally.
@@ -45,45 +58,14 @@ command file at the end.
 
 You have the option of running the top-level command file using "subm", or
 running the individual command files and running the finishing command file
-at the end.
-
-Chunksetup also provides a rudimentary setup for parallel processing if you
-use the 
-.B -f
-option and specify a list of machines to run the chunks on.
-Chunksetup divides the chunks equally among the machines and 
-produces a shell script, comfile-parallel, that you can run directly
-(without using subm) to start the processing on all of the machines.  The
-remote processing is run with ssh and each ssh command is started in the
-background so that the script can then go on and watch the progress.
-You must already be set up to log into each of the
-machines without requests for passwords or other interactive input, such as
-the request for confirmation when you first log in to a machine.
-Each machine must have access to the
-current directory.
-If the directory path includes "localscratch" this will
-be replaced by "scratch/hostname" where "hostname" is the name of the current
-machine.  (This works for the scratch filesystem at the BL3DEMC.)
-If you need to use temporary files with parallel processing, then you should
-define a variable at the top of your command file:
+at the end.  If you have multiple processors available with access to the
+current directory, you can use
+the Processchunks script to run the jobs in parallel on the various processors
+or machines, such as with:
 .br
-$set tmpext `hostname`.$$
+processchunks machine_list comfile
 .br
-and end your temporary file names with ".$tmpext".  In this case, you should
-remove the files at the end of the command file with statements like:
-.br
-$if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
-.br
-The script includes a
-loop to watch the log files for completion and report on how many chunks are
-done periodically.  It will run the finishing command when the chunks
-are done.
-
-If errors occur and some chunks fail to be made, the script will not exit.
-In this case, you can interrupt the script with Ctrl-C and it will report
-the numbers of the chunks that it thinks failed.  You should then check which
-of these output files are truly absent, and then run the individual command
-files to finish the job.
+where machine_list is a list of the machines to use.
 
 .SS Options
 .TP
@@ -107,15 +89,7 @@ Tomopieces for more details on the choices for maximum number of pieces.
 .B -ym <value>
 Set the maximum number of chunks in the Y direction to the given value.
 The default is -1, which is effectively no limit.
-.TP
-.B -f <list>
-Farm out the chunks to the machines given in the list.  The machines must
-all have access to the current directory.  Separate the machine names
-with commas and include no spaces in the list.  A machine can be entered
-more than once (e.g., if it has multiple processors).  Put the fastest machines
-first in the list so that they will be given the extra chunks if the number
-of chunks cannot be divided equally among the machines.
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
-tomopieces(1), taperoutvol(1), assemblevol(1)
+tomopieces(1), taperoutvol(1), assemblevol(1), processchunks(1)
