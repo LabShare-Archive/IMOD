@@ -23,6 +23,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/27 23:51:23  rickg
+ * <p> Added a split pane manager to the mane window for dual
+ * <p> axis layout
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -169,6 +173,7 @@ public class MainFrame extends JFrame implements ContextMenu {
         new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
       //      panelCenter.add(scrollPaneA);
       //      panelCenter.add(scrollPaneB);
+      splitPane.setDividerLocation(0.5);
       panelCenter.add(splitPane);
     }
   }

@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3  2002/12/11 21:27:33  rickg
  * <p> Implemented font for user config
  * <p>
@@ -32,15 +35,17 @@ public class UserConfiguration implements Storable {
   public static final String rcsid =
     "$Id$";
 
-  private String revisionNumber = "1.1";
+  private String revisionNumber = "1.2";
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
-  private int toolTipsInitialDelay = 500;
-  private int toolTipsDismissDelay = 120000;
+  private int toolTipsInitialDelay = 2000;
+  private int toolTipsDismissDelay = 20000;
   private int nMRUFiles = 4;
   private CircularBuffer MRUFileList;
   private String fontFamily = "Dialog";
   private int fontSize = 12;
+  private int mainWindowWidth = 800;
+  private int mainWindowHeight = 600;
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
@@ -79,6 +84,13 @@ public class UserConfiguration implements Storable {
       String.valueOf(toolTipsDismissDelay));
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
+
+    props.setProperty(
+      group + "MainWindowWidth",
+      String.valueOf(mainWindowWidth));
+    props.setProperty(
+      group + "MainWindowHeight",
+      String.valueOf(mainWindowHeight));
 
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
@@ -126,6 +138,11 @@ public class UserConfiguration implements Storable {
         props.getProperty(group + "ToolTipsDismissDelay", "30000"));
     fontFamily = props.getProperty(group + "FontFamily", "Dialog");
     fontSize = Integer.parseInt(props.getProperty(group + "FontSize", "12"));
+
+    mainWindowWidth =
+      Integer.parseInt(props.getProperty(group + "MainWindowWidth", "800"));
+    mainWindowHeight =
+      Integer.parseInt(props.getProperty(group + "MainWindowHeight", "600"));
 
     nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "4"));
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -263,6 +280,38 @@ public class UserConfiguration implements Storable {
    */
   public void setFontSize(int fontSize) {
     this.fontSize = fontSize;
+  }
+
+  /**
+   * Returns the mainWindowHeight.
+   * @return int
+   */
+  public int getMainWindowHeight() {
+    return mainWindowHeight;
+  }
+
+  /**
+   * Returns the mainWindowWidth.
+   * @return int
+   */
+  public int getMainWindowWidth() {
+    return mainWindowWidth;
+  }
+
+  /**
+   * Sets the mainWindowHeight.
+   * @param mainWindowHeight The mainWindowHeight to set
+   */
+  public void setMainWindowHeight(int mainWindowHeight) {
+    this.mainWindowHeight = mainWindowHeight;
+  }
+
+  /**
+   * Sets the mainWindowWidth.
+   * @param mainWindowWidth The mainWindowWidth to set
+   */
+  public void setMainWindowWidth(int mainWindowWidth) {
+    this.mainWindowWidth = mainWindowWidth;
   }
 
 }

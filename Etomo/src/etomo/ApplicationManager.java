@@ -26,6 +26,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/27 18:12:41  rickg
+ * <p> Fixed bug from single window transition in positioning dialog
+ * <p> opening function
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -337,7 +341,10 @@ public class ApplicationManager {
   public void openProcessingPanel() {
     mainFrame.setLocation(0, 0);
     //  FIXME should set main window size to user default
-    mainFrame.setSize(new Dimension(800, 600));
+    mainFrame.setSize(
+      new Dimension(
+        userConfig.getMainWindowWidth(),
+        userConfig.getMainWindowHeight()));
     mainFrame.showProcessingPanel(metaData.getAxisType());
     mainFrame.updateAllProcessingStates(processTrack);
     mainFrame.validate();
@@ -1163,8 +1170,7 @@ public class ApplicationManager {
 
     // Get the tilt{|a|b}.com and align{|a|b}.com parameters
     comScriptMgr.loadTiltCom(axisID);
-    tomogramPositioningDialog.setTiltParams(
-      comScriptMgr.getTiltParam(axisID));
+    tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
 
     comScriptMgr.loadAlignCom(axisID);
     tomogramPositioningDialog.setAlignParams(
@@ -2136,6 +2142,11 @@ public class ApplicationManager {
       }
     }
 
+    //  Get the current window size
+    Dimension size = mainFrame.getSize();
+    userConfig.setMainWindowWidth(size.width);
+    userConfig.setMainWindowHeight(size.height);
+    
     //  Write out the user configuration data
     File userConfigFile = new File(homeDirectory, ".etomo");
 
