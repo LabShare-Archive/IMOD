@@ -2,6 +2,14 @@
 #
 # libiimod.a - C library for handling mrc and other types of files and images
 #
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 include ../configure
 
 O      = $(OBJEXT)
@@ -13,7 +21,7 @@ OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
  mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O)
 
 INCS  = $(INCDIR)mrcfiles.h $(INCDIR)mrcslice.h $(INCDIR)mrcproc.h \
- $(INCDIR)mrcspectral.h $(INCDIR)mrcc.h
+ $(INCDIR)mrcspectral.h $(INCDIR)mrcc.h $(INCDIR)/b3dutil.h
 
 all : $(LIBS)
 

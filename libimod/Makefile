@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/10/26 15:30:28  mast
+#  fix dependency on version -> b3dutil.o
+#
 #  Revision 3.3  2003/10/24 03:01:06  mast
 #  Changes for Windows/Intel
 #
@@ -66,14 +69,17 @@ work : clean
 #
 $(IMODELOBJS) : $(INCDIR)imodel.h
 imodel.$(O) : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
-$(INCDIR)/ipoint.h $(INCDIR)/imesh.h
+$(INCDIR)/ipoint.h $(INCDIR)/imesh.h $(INCDIR)/b3dutil.h
 iobj.$(O)   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 imesh.$(O)  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
-icont.$(O)  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
+icont.$(O)  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h $(INCDIR)/b3dutil.h
 ipoint.$(O) : $(INCDIR)/ipoint.h
 iplane.$(O) : $(INCDIR)/iplane.h
 iview.$(O)  : $(INCDIR)/iview.h
 imat.$(O)   : $(INCDIR)/imat.h
 ilist.$(O)  : $(INCDIR)/ilist.h
 b3dutil.$(O) : $(INCDIR)/b3dutil.h  ../.version
+imodel_files.$(O) : $(INCDIR)/b3dutil.h
+imodel_from.$(O) : $(INCDIR)/b3dutil.h
 $(PIPOBJS) : $(INCDIR)parse_params.h
+pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
