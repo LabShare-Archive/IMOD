@@ -21,6 +21,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/08 23:55:39  rickg
+ * <p> createCombineScript call now include a reference to this
+ * <p> added NoumberFormatException
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -41,7 +45,8 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager = appMgr;
     contentPane = (JPanel) getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    setTitle("eTomo Tomogram Combination");
+    setTitle(
+      "eTomo Tomogram Combination: " + applicationManager.getFilesetName());
 
     contentPane.add(panelSetupCombine.getContainer());
     contentPane.add(Box.createVerticalGlue());
@@ -94,23 +99,23 @@ public class TomogramCombinationDialog extends ProcessDialog {
   }
 
   void buttonCreateAction(ActionEvent event) {
-    applicationManager.createCombineScripts(this);
+    applicationManager.createCombineScripts();
   }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramCombinationDialog(this);
+    applicationManager.doneTomogramCombinationDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramCombinationDialog(this);
+    applicationManager.doneTomogramCombinationDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramCombinationDialog(this);
+    applicationManager.doneTomogramCombinationDialog();
   }
 
 }

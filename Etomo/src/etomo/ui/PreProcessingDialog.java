@@ -22,6 +22,10 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -46,11 +50,11 @@ public class PreProcessingDialog extends ProcessDialog {
   CCDEraserPanel panelCCDEraserA = new CCDEraserPanel("Axis: A");
   CCDEraserPanel panelCCDEraserB = new CCDEraserPanel("Axis: B");
 
-  public PreProcessingDialog(ApplicationManager applicationManager) {
-    this.applicationManager = applicationManager;
+  public PreProcessingDialog(ApplicationManager appManager) {
+    applicationManager = appManager;
     contentPane = (JPanel) this.getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    this.setTitle("eTomo Pre-processing");
+    setTitle("eTomo Pre-processing: " + applicationManager.getFilesetName());
 
     //
     //  Build the digital micrograph panel
@@ -198,17 +202,17 @@ public class PreProcessingDialog extends ProcessDialog {
   //
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.donePreProcDialog(this);
+    applicationManager.donePreProcDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.donePreProcDialog(this);
+    applicationManager.donePreProcDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     exitState = DialogExitState.EXECUTE;
-    applicationManager.donePreProcDialog(this);
+    applicationManager.donePreProcDialog();
   }
 }
 

@@ -21,6 +21,10 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -79,7 +83,8 @@ public class TomogramGenerationDialog
 
     contentPane = (JPanel) getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    setTitle("eTomo Tomogram Generation");
+    setTitle(
+      "eTomo Tomogram Generation: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
 
     buttonNewstA.setAlignmentX(0.5F);
@@ -274,10 +279,10 @@ public class TomogramGenerationDialog
   void buttonTiltA(ActionEvent event) {
 
     if (applicationManager.isDualAxis()) {
-      applicationManager.tilt(AxisID.FIRST, this);
+      applicationManager.tilt(AxisID.FIRST);
     }
     else {
-      applicationManager.tilt(AxisID.ONLY, this);
+      applicationManager.tilt(AxisID.ONLY);
     }
   }
 
@@ -296,7 +301,7 @@ public class TomogramGenerationDialog
   }
 
   void buttonTiltB(ActionEvent event) {
-    applicationManager.tilt(AxisID.SECOND, this);
+    applicationManager.tilt(AxisID.SECOND);
   }
 
   void buttonImodB(ActionEvent event) {
@@ -306,17 +311,17 @@ public class TomogramGenerationDialog
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramGenerationDialog(this);
+    applicationManager.doneTomogramGenerationDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramGenerationDialog(this);
+    applicationManager.doneTomogramGenerationDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramGenerationDialog(this);
+    applicationManager.doneTomogramGenerationDialog();
   }
 }
 

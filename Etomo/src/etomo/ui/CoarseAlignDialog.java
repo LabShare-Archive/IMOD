@@ -23,6 +23,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -60,7 +64,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     applicationManager = appMgr;
 
     contentPane = (JPanel) getContentPane();
-    setTitle("eTomo Coarse Alignment");
+    setTitle("eTomo Coarse Alignment: " + applicationManager.getFilesetName());
 
     if (applicationManager.isDualAxis()) {
       panelCrossCorrelationA = new CrossCorrelationPanel("a");
@@ -282,10 +286,10 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   void buttonCrossCorrelateA(ActionEvent event) {
     panelCrossCorrelationA.setButtonState(true);
     if (applicationManager.isDualAxis()) {
-      applicationManager.crossCorrelate(AxisID.FIRST, this);
+      applicationManager.crossCorrelate(AxisID.FIRST);
     }
     else {
-      applicationManager.crossCorrelate(AxisID.ONLY, this);
+      applicationManager.crossCorrelate(AxisID.ONLY);
     }
   }
 
@@ -317,7 +321,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonCrossCorrelateB(ActionEvent event) {
-    applicationManager.crossCorrelate(AxisID.SECOND, this);
+    applicationManager.crossCorrelate(AxisID.SECOND);
   }
 
   void buttonCoarseAlignB(ActionEvent event) {
@@ -337,17 +341,17 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   //
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneCoarseAlignDialog(this);
+    applicationManager.doneCoarseAlignDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneCoarseAlignDialog(this);
+    applicationManager.doneCoarseAlignDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneCoarseAlignDialog(this);
+    applicationManager.doneCoarseAlignDialog();
   }
 
   public void setEnabledB(boolean state) {

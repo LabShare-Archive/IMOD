@@ -24,6 +24,10 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.2  2002/09/19 21:37:57  rickg
  * <p> Removed stdout messages
  * <p>
@@ -92,7 +96,7 @@ public class TomogramPositioningDialog
 
     contentPane = (JPanel) this.getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    setTitle("eTomo Tomogram Position");
+    setTitle("eTomo Tomogram Position: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
 
     ltfSampleTomoThicknessA.setTextPreferredSize(new Dimension(50, 20));
@@ -186,6 +190,7 @@ public class TomogramPositioningDialog
 
   }
 
+  //  Set the tilt.com parameters that are editable in this dialog
   public void setTiltParams(ConstTilt tiltParam, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       ltfSampleTomoThicknessB.setText(tiltParam.getThickness());
@@ -195,6 +200,7 @@ public class TomogramPositioningDialog
     }
   }
 
+  // Get the tilt.com parameters that 
   public void getTiltParams(TiltParam tiltParam, AxisID axisID)
     throws NumberFormatException {
     if (axisID == AxisID.SECOND) {
@@ -311,10 +317,10 @@ public class TomogramPositioningDialog
   //  Button action handler methods
   void buttonSampleA(ActionEvent event) {
     if (applicationManager.isDualAxis()) {
-      applicationManager.createSample(AxisID.FIRST, this);
+      applicationManager.createSample(AxisID.FIRST);
     }
     else {
-      applicationManager.createSample(AxisID.ONLY, this);
+      applicationManager.createSample(AxisID.ONLY);
     }
   }
 
@@ -338,15 +344,15 @@ public class TomogramPositioningDialog
 
   void buttonFinalAlignA(ActionEvent event) {
     if (applicationManager.isDualAxis()) {
-      applicationManager.finalAlign(this, AxisID.FIRST);
+      applicationManager.finalAlign(AxisID.FIRST);
     }
     else {
-      applicationManager.finalAlign(this, AxisID.ONLY);
+      applicationManager.finalAlign(AxisID.ONLY);
     }
   }
 
   void buttonSampleB(ActionEvent event) {
-    applicationManager.createSample(AxisID.SECOND, this);
+    applicationManager.createSample(AxisID.SECOND);
   }
 
   void buttonCreateBoundaryB(ActionEvent event) {
@@ -358,23 +364,23 @@ public class TomogramPositioningDialog
   }
 
   void buttonFinalAlignB(ActionEvent event) {
-    applicationManager.finalAlign(this, AxisID.SECOND);
+    applicationManager.finalAlign(AxisID.SECOND);
   }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramPositioningDialog(this);
+    applicationManager.doneTomogramPositioningDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramPositioningDialog(this);
+    applicationManager.doneTomogramPositioningDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramPositioningDialog(this);
+    applicationManager.doneTomogramPositioningDialog();
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

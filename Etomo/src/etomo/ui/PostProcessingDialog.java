@@ -3,6 +3,8 @@ package etomo.ui;
 import java.awt.event.*;
 import javax.swing.*;
 
+import etomo.ApplicationManager;
+
 /**
  * <p>Description: </p>
  *
@@ -16,6 +18,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -25,11 +31,16 @@ public class PostProcessingDialog extends ProcessDialog {
     "$Id$";
 
   JPanel contentPane;
+  ApplicationManager applicationManager;
 
-  public PostProcessingDialog() {
+  public PostProcessingDialog(ApplicationManager appManager) {
+    applicationManager = appManager;
+
     contentPane = (JPanel) this.getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    this.setTitle("eTomo Post-processing and Trimming");
+    this.setTitle(
+      "eTomo Post-processing and Trimming: "
+        + applicationManager.getFilesetName());
 
     contentPane.add(Box.createVerticalGlue());
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));

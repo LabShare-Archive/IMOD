@@ -22,6 +22,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:30:28  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -86,7 +90,9 @@ public class AlignmentEstimationDialog
     applicationManager = appMgr;
     contentPane = (JPanel) getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
-    setTitle("eTomo Fine Alignment Estimation");
+    setTitle(
+      "eTomo Fine Alignment Estimation: "
+        + applicationManager.getFilesetName());
 
     if (applicationManager.isDualAxis()) {
       panelTiltalignA = new TiltalignPanel("a");
@@ -273,10 +279,10 @@ public class AlignmentEstimationDialog
 
   void buttonTiltEstAAction(ActionEvent event) {
     if (applicationManager.isDualAxis()) {
-      applicationManager.fineAlignment(AxisID.FIRST, this);
+      applicationManager.fineAlignment(AxisID.FIRST);
     }
     else {
-      applicationManager.fineAlignment(AxisID.ONLY, this);
+      applicationManager.fineAlignment(AxisID.ONLY);
     }
   }
 
@@ -295,10 +301,10 @@ public class AlignmentEstimationDialog
 
   void buttonDistortionEstAAction(ActionEvent event) {
     if (applicationManager.isDualAxis()) {
-      applicationManager.fineAlignment(AxisID.FIRST, this);
+      applicationManager.fineAlignment(AxisID.FIRST);
     }
     else {
-      applicationManager.fineAlignment(AxisID.ONLY, this);
+      applicationManager.fineAlignment(AxisID.ONLY);
     }
   }
 
@@ -319,7 +325,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonTiltEstBAction(ActionEvent event) {
-    applicationManager.fineAlignment(AxisID.SECOND, this);
+    applicationManager.fineAlignment(AxisID.SECOND);
   }
 
   void buttonDistortionDefaultsBAction(ActionEvent event) {
@@ -336,7 +342,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonDistortionEstBAction(ActionEvent event) {
-    applicationManager.fineAlignment(AxisID.SECOND, this);
+    applicationManager.fineAlignment(AxisID.SECOND);
   }
 
   void buttonImodBAction(ActionEvent event) {
@@ -346,17 +352,17 @@ public class AlignmentEstimationDialog
   //  Action function overides for exit buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneAlignmentEstimationDialog(this);
+    applicationManager.doneAlignmentEstimationDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneAlignmentEstimationDialog(this);
+    applicationManager.doneAlignmentEstimationDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneAlignmentEstimationDialog(this);
+    applicationManager.doneAlignmentEstimationDialog();
   }
 
 }
