@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/02/27 16:57:57  mast
+change to b3dX,Y,Z
+
 Revision 3.3  2003/02/07 02:36:59  mast
 Compute zmin correctly so it will work with negative z's; add some tests
 for empty contours in early setup of contour lists
@@ -73,10 +76,12 @@ static Imesh *imeshContoursCost(Icont *bc, Icont *tc, Ipoint *scale,
 
 static Imesh *imeshContourCap(Icont *cont, int side, int inside, 
 			      Ipoint *scale);
+static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir);
 
-static Imesh *jcont(Icont *c1, Icont *c2, Ipoint *norm);
-static int mkcont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
-		  int diameter, int slices);
+static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags);
+static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm);
+static int mkTubeCont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
+		  float tubeDiameter, int slices);
 
 static int inside_cont(Icont *cont, Ipoint pt);
 static int eliminate_overlap(Icont *c1, Icont *c2);
@@ -157,13 +162,25 @@ static int getContZValue(Icont *cont)
   return(p);
 }
 
-static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale)
+static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags)
 {
   Imesh *nmesh;
   Icont *cont;
   Icont *clst;
   Ipoint nrot;
-  int co, pt, npt, ppt;
+  int co, pt, npt, ppt, slices;
+  float tubeDiameter = obj->linewidth;
+
+  /* DNM 8/25/03: Set tube diameter here instead of in mkTubeCont and make 
+     number of segments variable within limits */
+  if (meshDiameterSize > 0.0) 
+    tubeDiameter = meshDiameterSize;
+
+  slices = tubeDiameter / 2;
+  if (slices < 12) 
+    slices = 12;
+  if (slices > 50)
+    slices = 50;
 
   obj->meshsize = 0;
   obj->mesh = NULL;
@@ -190,8 +207,8 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale)
       nrot.z = scale->z * (cont->pts[npt].z - cont->pts[ppt].z);
 
       imodPointNormalize(&nrot);
-      mkcont(&clst[pt], &cont->pts[pt], &nrot, scale,
-	     obj->linewidth, 12);
+      mkTubeCont(&clst[pt], &cont->pts[pt], &nrot, scale,
+	     tubeDiameter, slices);
 
     }
 	  
@@ -201,14 +218,27 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale)
       nrot.z = scale->z * (cont->pts[pt+1].z - cont->pts[pt].z);
 
       imodPointNormalize(&nrot);
-      nmesh = jcont(&clst[pt], &clst[pt+1], &nrot);
+      nmesh = joinTubeCont(&clst[pt], &clst[pt+1], &nrot);
       if (nmesh){
-	obj->mesh = imodel_mesh_add
-	  (nmesh, obj->mesh, &(obj->meshsize));
+	obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
 	free(nmesh);
       }
     }
-    /* TODO: cap? */
+
+    /* DNM 8/25/02: cap if flag is set*/
+    if (flags & IMESH_CAP_TUBE) {
+      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1);
+      if (nmesh){
+	obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+	free(nmesh);
+      }
+      nmesh = makeCapMesh(&clst[cont->psize - 1], &cont->pts[cont->psize - 1], 
+			  0);
+      if (nmesh){
+	obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+	free(nmesh);
+      }
+    }
 	  
     imodContoursDelete(clst, cont->psize);
   }
@@ -372,8 +402,8 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
 }
 
 /* make a contour for tube mesh. */
-static int mkcont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
-		  int diameter, int slices)
+static int mkTubeCont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
+		  float tubeDiameter, int slices)
 {
   Ipoint spt, tpt, cpt;
   Imat *mat = imodMatNew(3);
@@ -383,9 +413,6 @@ static int mkcont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
   int sl;
 
   Ipoint rscale;
-
-  float tubeDiameter = diameter;
-  if (meshDiameterSize > 0.0) tubeDiameter = meshDiameterSize;
 
   /*     printf("mkcont: norm = %g %g %g\n",
 	 n->x, n->y, n->z);
@@ -458,7 +485,7 @@ static int circle_top_and_direction(Icont *cont, Imat *mat, int *ptop)
 }
 	       
 /* join two tube contours together. */
-static Imesh *jcont(Icont *c1, Icont *c2, Ipoint *norm)
+static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm)
 {
   int pt, mpt, npt, pt2, pt1, idir2;
   Imat *mat = imodMatNew(3);
@@ -1081,7 +1108,7 @@ int SkinObject
     return(-1);     
 
   if (!iobjClose(obj->flags) && (flags & IMESH_MK_TUBE) )
-    return(mesh_open_tube_obj(obj, scale));
+    return(mesh_open_tube_obj(obj, scale, flags));
 
   if (flags & IMESH_MK_FAST)
     fastmesh = 0;
@@ -2701,7 +2728,7 @@ static float evaluate_break(Icont *cout, int *list, int *used,
  */
 static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
 {
-  int     pt, npt;
+  int     pt;
   int     meshdir = 0;
   /* IMOD_CONTOUR_CLOCKWISE, IMOD_CONTOUR_COUNTER_CLOCKWISE */
   int     direction; 
@@ -2772,9 +2799,6 @@ static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
     return (m);
   }
 
-  m = imodMeshNew();
-  if (!m) return(m);
-
 
   if (( (side < 0) && (direction == IMOD_CONTOUR_COUNTER_CLOCKWISE)) ||
       ( (side > 0) && (direction == IMOD_CONTOUR_CLOCKWISE)))
@@ -2783,8 +2807,20 @@ static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
     meshdir = 1 - meshdir;
 
   /* ccw on top , cw on bottom (unless inside!)*/
+
+  return(makeCapMesh(cont, &cm, meshdir));
+}
+
+/* make a cap mesh connecting a contour to a point in the given direction */
+static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir)
+{
+  int pt, npt;
+  Imesh *m = imodMeshNew();
+  if (!m) 
+    return(m);
+
   if (meshdir){
-    imodMeshAddVert(m, &cm);
+    imodMeshAddVert(m, cm);
 	  
     for(pt = 0; pt < cont->psize; pt++){
       npt = pt+1;
@@ -2797,7 +2833,7 @@ static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
       imodMeshAddIndex(m, IMOD_MESH_ENDPOLY);
     }
   }else{
-    imodMeshAddVert(m, &cm);
+    imodMeshAddVert(m, cm);
 	  
     for(pt = 0; pt < cont->psize; pt++){
       npt = pt+1;
