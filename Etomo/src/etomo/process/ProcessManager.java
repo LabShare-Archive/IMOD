@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2004/04/22 23:32:24  rickg
+ * bug #391 Added processing for non fid aligne
+ * Added runCommand private method
+ *
  * Revision 3.6  2004/04/16 01:56:26  sueh
  * bug# 409 In msgComScriptDone: passed the script's processName and axisID to
  * ApplicationManager.processDone, simplified log generation.
@@ -633,7 +637,7 @@ public class ProcessManager {
    */
   public String createSample(AxisID axisID) throws SystemProcessException {
     //
-    //  Create the required tiltalign command
+    //  Create the required sample command
     //
     String command = "sample" + axisID.getExtension() + ".com";
 
