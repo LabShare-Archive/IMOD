@@ -93,8 +93,8 @@ if ($compiler == intel) then
         # and set the install directory to bin
         #
             set dllext = dll
-            echo "ARFLAGS = -dll /out:"         >> $configure
-            echo 'MAKELIBCPP = link -lib /out:' >> $configure
+            echo "ARFLAGS = -dll /NOLOGO /out:"         >> $configure
+            echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
             echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libimod.lib ../buildlib/libtiff.lib'   >> $configure
             echo 'LIBIMODDEF = /def:libimod.def'     >> $configure
             echo 'LIBIMDEF = /def:libim.def libifft.lib ../../buildlib/libimod.lib'  >> $configure
@@ -108,16 +108,16 @@ if ($compiler == intel) then
             # Also need to make separate static libwmod, because it accesses
             # common in the program
             #
-            set makenondll = 'link -lib /out:'
+            set makenondll = 'link -lib /NOLOGO /out:'
             set modelallo =
             echo "LIBWMOD = libwmod.lib"  >> $configure
         else
-            echo "ARFLAGS = -lib /out:"                >> $configure
+            echo "ARFLAGS = -lib /NOLOGO /out:"                >> $configure
             echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
         endif
         echo "LIBEXT  = lib"                  >> $configure
 	echo "RANLIB    = true"            >> $configure
-        set makestaticlib = "link -lib /out:"
+        set makestaticlib = "link -lib /NOLOGO /out:"
         set staticranlib = true
 else
         #
@@ -327,7 +327,11 @@ if ($compiler == intel) then
     set qt_libs = `sed -n '/^LIBS[ 	]*=/s/^[^"]*\("[^"]*"\).*$/\1/p' $sendevent_dir/Makefile | sed '/\\/s//\\\\/g'`
     set qt_libs = '/LIBPATH:"$(QTDIR)\\lib"'" $qt_libs"
 
-    echo "MAKELIBSO = link -dll $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
+    # Set variables for library/dll makes that depended on qt_libs
+    #
+    echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
+    set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
+    echo "LIBDIAQTDEF = $qt_libs $opengl_lib" >> $configure
 
     cat <<EOF >> $imod_dir/Makefile
 
