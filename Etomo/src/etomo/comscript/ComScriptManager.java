@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/03/08 01:53:37  sueh
+ * <p> bug# 533 Added preblend script.
+ * <p>
  * <p> Revision 3.24  2005/03/04 00:08:37  sueh
  * <p> bug# 533 Added getBlendmontParamFromTiltxcorr(),
  * <p> getGotoParamFromTiltxcorr(), saveXcorr(BlendmontParam),
@@ -232,6 +235,8 @@ public class ComScriptManager {
   private ComScript scriptMTFFilterB;
   private ComScript scriptPreblendA;
   private ComScript scriptPreblendB;
+  private ComScript scriptBlendA;
+  private ComScript scriptBlendB;
   // The solvematch com script replaces the functionality of the
   // solvematchshift and solvematchmod com scripts
   private ComScript scriptSolvematch;
@@ -424,6 +429,18 @@ public class ComScriptManager {
           .getCommandFileName(BlendmontParam.PREBLEND_MODE), axisID, true);
     }
   }
+  
+  public void loadBlend(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptBlendB = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.BLEND_MODE), axisID, true);
+    }
+    else {
+      scriptBlendA = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.BLEND_MODE), axisID, true);
+    }
+  }
 
 
   /**
@@ -470,6 +487,24 @@ public class ComScriptManager {
     initialize(preblendParam, scriptPreblend, BlendmontParam.COMMAND_NAME, axisID);
     return preblendParam;
   }
+  
+  public BlendmontParam getBlendParam(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend = scriptBlendB;
+    }
+    else {
+      scriptBlend = scriptBlendA;
+    }
+
+    // Initialize a BlendmontParam object from the com script command object
+    BlendmontParam blendParam = new BlendmontParam(appManager.getMetaData()
+        .getDatasetName(), axisID, BlendmontParam.BLEND_MODE);
+    initialize(blendParam, scriptBlend, BlendmontParam.COMMAND_NAME, axisID);
+    return blendParam;
+  }
+
 
 
   /**
@@ -500,6 +535,18 @@ public class ComScriptManager {
       scriptPreblend = scriptPreblendA;
     }
     updateComScript(scriptPreblend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
+  }
+  
+  public void saveBlend(BlendmontParam blendmontParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend = scriptBlendB;
+    }
+    else {
+      scriptBlend = scriptBlendA;
+    }
+    updateComScript(scriptBlend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
   }
   
   public void savePrenewst(BlendmontParam preblendParam, AxisID axisID) {
