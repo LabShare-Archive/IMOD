@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2004/12/08 21:24:59  sueh
+ * bug# 564 In postProcess(BackgroundProcess) saved
+ * TrimvolParam.swapYZ in metaData.state.
+ *
  * Revision 3.43  2004/12/02 18:28:29  sueh
  * bug# 557 Added squeezeVolume().
  *
@@ -591,7 +595,8 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run the copytomocoms script
+   * Run the copytomocoms script.  Don't need to save meta data because
+   * this function is run on exiting Setup dialog
    * 
    * @param metaData
    *          a read-only MetaData object containing the information to run the
@@ -606,7 +611,7 @@ public class ProcessManager extends BaseProcessManager {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
-
+    appManager.saveMetaData();
     int exitValue = copyTomoComs.run();
 
     if (exitValue != 0) {
@@ -1032,7 +1037,7 @@ public class ProcessManager extends BaseProcessManager {
     throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
-
+    appManager.saveMetaData();
     int exitValue = setupCombine.run();
 
     if (exitValue != 0) {
@@ -1057,7 +1062,8 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run the imod2patch command
+   * Run the imod2patch command, don't save meta data because it doesn't change
+   * for this command
    */
   public void modelToPatch() throws SystemProcessException {
     //  Copy the old patch.out to patch.out~
@@ -1179,9 +1185,9 @@ public class ProcessManager extends BaseProcessManager {
    * Run trimvol
    */
   public String trimVolume(TrimvolParam trimvolParam)
-    throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam
-      .getCommandLine(), AxisID.ONLY);
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
+        AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -1297,6 +1303,7 @@ public class ProcessManager extends BaseProcessManager {
 
   /**
    * Execute the command and arguments in commandAarray immediately.
+   * Add save meta data if meta data is changed for this function is called
    * @param commandArray
    * @throws SystemProcessException
    */
