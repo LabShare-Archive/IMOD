@@ -1,7 +1,11 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.Vector;
+
+import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -16,6 +20,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/25 18:04:33  sueh
+ * <p> bug# 484 returning default when binByFactor is not set.
+ * <p>
  * <p> Revision 3.3  2004/02/18 00:50:32  rickg
  * <p> Check buffer length when deleting trailing comma in getOffsetsInXandY
  * <p>
@@ -63,9 +70,20 @@ import java.util.Vector;
  * <p> </p>
  */
 
-public class ConstNewstParam {
+public class ConstNewstParam implements Command {
   public static final String rcsid = 
   "$Id$";
+  
+  //generic gets
+  public static final int GET_FIDUCIALESS_ALIGNMENT = -1;
+  
+  //command modes
+  public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -1;
+  public static final int FULL_ALIGNED_STACK_MODE = -2;
+  
+  private static final String commandFileName = "newst";
+  private static final String commandFileExtension = ".com";
+  
   protected Vector inputFile;
   protected Vector outputFile;
   protected String fileOfInputs;
@@ -89,11 +107,16 @@ public class ConstNewstParam {
   protected int imagesAreBinned;
   protected FortranInputString testLimits;
   protected String parameterFile;
+  protected boolean fiducialessAlignment;
+  protected int commandMode;
+  
+  private AxisID axisID;
   
   //defaults
   public static final int BIN_BY_FACTOR_DEFAULT = 1;
 
-  public ConstNewstParam() {
+  public ConstNewstParam(AxisID axisID) {
+    this.axisID = axisID;
     initializeEmpty();
   }
   /**
@@ -306,5 +329,39 @@ public class ConstNewstParam {
     testLimits = new FortranInputString(2);
     testLimits.setIntegerType(bothTrue);
     parameterFile = "";
+    fiducialessAlignment = false;
+  }
+  
+  public static String getCommandFileName(AxisID axisID) {
+    return commandFileName + axisID.getExtension() + commandFileExtension;
+  }
+  
+  public String getCommandLine() {
+    return getCommandFileName(axisID);
+  }
+  
+  public String getCommandName() {
+    return commandFileName;
+  }
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+  public int getCommandMode() {
+    return commandMode;
+  }
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public int getIntegerValue(int name) {
+    return EtomoNumber.INTEGER_NULL_VALUE;
+  }
+  public boolean getBooleanValue(int name) {
+    switch (name) {
+    case GET_FIDUCIALESS_ALIGNMENT:
+      return fiducialessAlignment;
+    }
+    return false;
   }
 }
