@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2002/12/01 16:51:34  mast
+    Changes to eliminate warnings on SGI
+
     Revision 4.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -62,6 +65,7 @@ extern "C" {
 #define IMOD_IO_READ_ERROR 5
 #define IMOD_IO_NO_FILE_SELECTED 6
 #define IMOD_IO_NOMEM 7
+#define IMOD_IO_READ_CANCEL 8
 #define IMOD_IO_UNIMPLEMENTED_ERROR 99
 
   extern char Statstring[128];
