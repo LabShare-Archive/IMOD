@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/3/04: IMOD_3-2-18
 6/3/04: Fixed problem with imodsendevent putting spaces after filenames.
 Improved problem with 3dmod crashing when it receives message to load seed 
 model.
