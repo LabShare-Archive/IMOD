@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/13 01:03:25  rickg
+ * <p> Renamed valuesSet method
+ * <p>
  * <p> Revision 3.2  2004/02/12 04:42:01  rickg
  * <p> Removed diagnostic printing
  * <p>
@@ -124,7 +127,7 @@ public class FortranInputString {
     Double[] tempValue = new Double[value.length];
     int idxValue = 0;
     int idxStart = 0;
-    while (idxStart <= newValues.length()) {
+    while (idxStart < newValues.length()) {
       int idxDelim = newValues.indexOf(',', idxStart);
       if (idxDelim != -1) {
         String currentToken = newValues.substring(idxStart, idxDelim);
