@@ -128,10 +128,10 @@
 # directory called $(ARCNAME) and a final file called
 # $(ARCNAME)$(DISTNAME).tar.gz will be made.
 SHELL    = /bin/csh
-VERSION = `sed '/.\(*\[0-9.]*\).*/s//\1/' .version`
+VERSION = `sed '/[^0-9.]/s///g' .version`
 ARCNAME  = imod_$(VERSION)
-DISTNAME = `if (-e .distname) sed '/.\(*\[0-9._-a-zA-Z]*\).*/s//\1/' .distname`
-LAST_OPTIONS = `if (-e .options) sed '/.\(*\[0-9._-a-zA-Z]*\).*/s//\1/' .options`
+DISTNAME = `if (-e .distname) sed '/[^ -z]/s///g' .distname`
+LAST_OPTIONS = `if (-e .options) sed '/[^ -z]/s///g' .options`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -404,6 +404,11 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.36  2004/04/03 19:59:27  mast
+#  Changed from SETUP_OPTIONS to using last options stored in .options file
+#  Updated make and install instructions to add Mac OSX and include
+#  installqtlib in all cases
+#
 #  Revision 3.35  2004/01/27 06:07:02  mast
 #  Don't need to make dist directory
 #
