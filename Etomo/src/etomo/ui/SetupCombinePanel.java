@@ -13,6 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
@@ -44,6 +45,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.15  2003/10/30 01:43:44  rickg
+ * Bug# 338 Remapped context menu entries
+ *
  * Revision 2.14  2003/10/29 20:57:38  rickg
  * Bug# 297 Tooltips
  *
@@ -170,6 +174,8 @@ public class SetupCombinePanel implements ContextMenu {
   private JPanel pnlToSelector = new JPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
   private JPanel pnlRBToSelector = new JPanel();
+  private JLabel lblEffectWarning =
+    new JLabel("You must create new combine script for changes in these parameters to take effect.");
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
   private JRadioButton rbAtoB = new JRadioButton("Match the A tomogram to B");
 
@@ -233,6 +239,7 @@ public class SetupCombinePanel implements ContextMenu {
     applicationManager = appMgr;
 
     //  Create the matching direction selector panel
+    lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgToSelector.add(rbAtoB);
@@ -372,6 +379,9 @@ public class SetupCombinePanel implements ContextMenu {
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(brdrContent.getBorder());
+    
+    pnlRoot.add(lblEffectWarning);
+		pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlToSelector);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlFiducialParams);
