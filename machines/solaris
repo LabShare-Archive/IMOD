@@ -9,6 +9,11 @@ set motif_inc  = /usr/include
 set opengl_inc = /usr/include
 set opengl_lib = /usr/lib
 
+# DNM 1/05/02: Needed for large files to work right.  Use a -D define instead
+# of #define in imodconfig because it must precede all system includes.
+# Also need to define fseek as fseeko, which gets turned into fseeko64
+set defines = -D_FILE_OFFSET_BITS=64
+echo "#define fseek fseeko" >> $hconfigure
 
 # Print Defines needed to make programs.
 echo "SHELL     = /usr/bin/csh"     >> $configure
@@ -59,11 +64,11 @@ echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
 # take out -I$opengl_inc and -I$motif_inc because they are /usr/include and
 # this is screwing up variable arguments includes
 # take out -I$openwin_inc, don't know why it was there
-echo "CFLAGS  = $flags $optimization $include_flags" >> $configure
+echo "CFLAGS  = $flags $optimization $defines $include_flags" >> $configure
 echo "FFLAGS  = $flags -erroff=WDECL_LOCAL_NOTUSED,WEXEC_EXIT,WSUB_NOT_SAFE $optimization  $include_flags" >> $configure
 echo "NOOPFFLAGS  = $flags -erroff=WDECL_LOCAL_NOTUSED $optimization  $include_flags -O0" >> $configure
 
-echo "CFALLBACK  = $flags $optimization $include_flags" >> $configure
+echo "CFALLBACK  = $flags $optimization $defines $include_flags" >> $configure
 echo "FFALLBACK  = $flags -erroff=WDECL_LOCAL_NOTUSED $optimization  $include_flags" >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
 echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
