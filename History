@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IMOD_2-6-16
+6/26/02: Added ability for C programs to write back to byte-swapped files also,
+so now Mrctaper and Clip work overwriting or appending to byte-swapped files.
+
 6/25/02: Fortran programs can now write back into byte-swapped files, except
 for extended header data.  Ccderaser and Densmatch will now run on 
 byte-swapped files.
