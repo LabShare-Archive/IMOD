@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/06/29 03:41:22  mast
+#  Added nice option and nohup
+#
 #  Revision 3.4  2004/06/24 15:32:55  mast
 #  Added -c option to continue if one file fails
 #
@@ -59,7 +62,7 @@ set done = 0
 set continue = 0
 set nice = 0
 
-while ($#argv > 2 && $done == 0)
+while ($#argv > 1 && $done == 0)
     switch ($argv[1])
     case -t:
         set dotime = 1
