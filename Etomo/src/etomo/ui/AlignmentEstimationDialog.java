@@ -25,6 +25,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.19.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -181,14 +184,14 @@ public class AlignmentEstimationDialog
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    AlignmentEstimationActionListner acitionListener =
+    AlignmentEstimationActionListner actionListener =
       new AlignmentEstimationActionListner(this);
 
-    buttonComputeAlignment.addActionListener(acitionListener);
-    buttonView3DModel.addActionListener(acitionListener);
-    buttonViewResiduals.addActionListener(acitionListener);
-    buttonImod.addActionListener(acitionListener);
-    buttonTransferFiducials.addActionListener(acitionListener);
+    buttonComputeAlignment.addActionListener(actionListener);
+    buttonView3DModel.addActionListener(actionListener);
+    buttonViewResiduals.addActionListener(actionListener);
+    buttonImod.addActionListener(actionListener);
+    buttonTransferFiducials.addActionListener(actionListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
