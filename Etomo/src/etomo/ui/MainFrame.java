@@ -30,7 +30,6 @@ import etomo.BaseManager;
 import etomo.Controller;
 import etomo.EtomoDirector;
 import etomo.storage.DataFileFilter;
-import etomo.util.HashedArray;
 import etomo.util.UniqueKey;
 
 /**
@@ -46,6 +45,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/02/09 22:29:53  sueh
+ * <p> bug# 594 Calling pack() for a new window and MainPanel.fitWindow() for
+ * <p> an existing window.  MainPanel.fitWindow() functionality doesn't work
+ * <p> when opening Etomo.
+ * <p>
  * <p> Revision 3.17  2005/02/09 20:51:36  sueh
  * <p> bug# 594 Moved maximumSize from MainPanel to MainFrame so that it
  * <p> will work with the tabbedPane.  Changing rootPanel to Border layout.
@@ -345,9 +349,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
 
-  private JMenu menuWindow;// = new JMenu("Window");
-  private HashedArray menuWindowList = null;
-
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuTomoGuide = new JMenuItem("Tomography Guide",
       KeyEvent.VK_T);
@@ -454,31 +455,6 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuMRUList[i].setVisible(false);
     }
   }
-
-  /**
-   * Set the open etomo data file list.  This fills in the current window items
-   * on the Window menu
-   */
-  /*  public void setWindowMenuLabels(ConstHashedArray managerList) {
-    WindowListActionListener windowListActionListener = new WindowListActionListener(
-        this);
-    //remove old list
-    if (menuWindowList != null) {
-      for (int i = 0; i < menuWindowList.size(); i++) {
-        menuWindow.remove((JMenuItem) menuWindowList.get(i));
-      }
-    }
-    menuWindowList = managerList.getEmptyHashedArray();
-    for (int i = 0; i < menuWindowList.size(); i++) {
-      JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
-      menuItem.addActionListener(windowListActionListener);
-      menuItem.setText(Integer.toString(i + 1) + ": "
-          + menuWindowList.getKey(i).getName());
-      menuItem.setVisible(true);
-      menuWindow.add(menuItem);
-      menuWindowList.set(i, menuItem);
-    }
-  }*/
   
   public void addWindow(Controller controller, UniqueKey controllerKey) {
     windowSwitch.add(controller, controllerKey);
@@ -494,16 +470,6 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   public void selectWindowMenuItem(UniqueKey currentManagerKey) {
     windowSwitch.selectWindow(currentManagerKey);
-/*    if (menuWindowList == null) {
-      return;
-    }
-    JMenuItem menuItem = null;
-    for (int i = 0; i < menuWindowList.size(); i++) {
-      menuItem = (JMenuItem) menuWindowList.get(i);
-      menuItem.setSelected(false);
-    }
-    menuItem = (JMenuItem) menuWindowList.get(currentManagerKey);
-    menuItem.setSelected(true);*/
   }
 
   /**
@@ -856,8 +822,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  Construct menu bar
     menuBar.add(menuFile);
     menuBar.add(menuOptions);
-    menuWindow = windowSwitch.getMenu();
-    menuBar.add(menuWindow);
     menuBar.add(menuHelp);
     setJMenuBar(menuBar);
   }
