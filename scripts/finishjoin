@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/08/27 05:44:59  mast
+#  Changed to handle new version of info file with scaling and file names
+#  on separate lines, switched to head -n and tail -n
+#
 #  Revision 3.4  2004/07/09 21:06:01  mast
 #  Switched from /usr/tmp to tmpdir set in standard way
 #
@@ -219,26 +223,34 @@ else
     endif
 endif
 
-xftoxg <<EOF
-0
-$joinroot.tomoxf
-$joinroot.tomoxg
-EOF
+# Now check for big transformations if no reference
+#
+@ ind = 0
+while ($ind < $ntomo && $ref == "")
+    @ ind++
+    set xfline = `head -n $ind $joinroot.tomoxf | tail -n 1`
+    set ratiotext = 10000
+    set denom = `echo $xfline[1] | awk '{print int($1 * 1000)}'`
+    if ($denom != "0") set ratiotext = `echo $xfline[1] $xfline[2] | \
+        awk '{print int(1000 * $2 / $1)}'`
+    @ ratio = $ratiotext
+    if ($ratio >= 1000 || $ratio <= -1000) then
+        echo "WARNING: YOU HAVE A BIG ROTATION WHICH COULD SCREW UP THE FINAL ORIENTATION"
+        echo "WARNING: YOU PROBABLY NEED TO USE ONE SECTION AS A REFERENCE (-ref OPTION) "
+        sleep 5
+        break
+    endif
+end
+
+
+xftoxg -nfit 0 $joinroot.tomoxf $joinroot.tomoxg
 if ($status) goto error
 
 if ($ifsquoze == "1") then
     \mv $joinroot.tomoxg $joinroot.tmpxg
-    xfproduct <<EOF
-$joinroot.sqzxf
-$joinroot.tmpxg
-$joinroot.tmpsqz
-EOF
+    xfproduct $joinroot.sqzxf $joinroot.tmpxg $joinroot.tmpsqz
     if ($status) goto error
-    xfproduct <<EOF
-$joinroot.tmpsqz
-$joinroot.xpndxf
-$joinroot.tomoxg
-EOF
+    xfproduct $joinroot.tmpsqz $joinroot.xpndxf $joinroot.tomoxg
     if ($status) goto error
 endif
 
@@ -251,11 +263,7 @@ $joinroot.tmpinv
 1
 EOF
     if ($status) goto error
-    xfproduct <<EOF
-$joinroot.tmpxg
-$joinroot.tmpinv
-$joinroot.tomoxg
-EOF
+    xfproduct $joinroot.tmpxg $joinroot.tmpinv $joinroot.tomoxg
     if ($status) goto error
 endif
 
@@ -280,7 +288,9 @@ UseTransformLines $xflist
 EOF
 
 newstack -StandardInput < $newstin
-if (! $status) goto clean
+if ($status) goto error
+echo "Truncations are a normal result of the scaling for density matching."
+goto clean
 error:
 set retval = 1
 
