@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD CPP /nologo /MD /W1 /O1 /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /I "." /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
+# ADD CPP /nologo /MD /O1 /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /I "." /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /D "QT_NO_DEBUG" /FD -Zm200 /c
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -65,7 +65,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "tmp"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD CPP /nologo /MDd /W1 /Z7 /Od /I "." /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
+# ADD CPP /nologo /MDd /Z7 /Od /I "." /I "..\include" /I "$(QTDIR)\include" /I "tmp\\" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -73,7 +73,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /machine:IX86
-# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "libimod.lib" "libiimod.lib" "libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" /nologo /subsystem:windows /debug /machine:IX86 /nodefaultlib:"msvcrt.lib" /nodefaultlib:"libcd.lib" /pdbtype:sept /libpath:"$(QTDIR)\lib" /libpath:"..\buildlib\Debug" /DELAYLOAD:opengl32.dll
+# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "libimod.lib" "libiimod.lib" "libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" /nologo /subsystem:windows /debug /machine:IX86 /nodefaultlib:"msvcrt.lib" /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /pdbtype:sept /libpath:"$(QTDIR)\lib" /libpath:"..\buildlib" /DELAYLOAD:opengl32.dll
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
