@@ -17,7 +17,8 @@ import etomo.type.UserConfiguration;
  * Window>Preferences>Java>Code Generation.
  */
 public class SettingsDialog extends JDialog {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   ApplicationManager applicationManager;
 
@@ -30,10 +31,10 @@ public class SettingsDialog extends JDialog {
   JList listFontFamily = new JList(fontFamilies);
   JScrollPane scrollFontFamily = new JScrollPane(listFontFamily);
   LabeledTextField ltfFontSize = new LabeledTextField("Size:");
-  String[] fontStyles = {"Plain", "Bold", "Italic"};
-  JList listFontStyle = new JList(fontStyles);
-  JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
-  
+  /*  String[] fontStyles = { "Plain", "Bold", "Italic" };
+    JList listFontStyle = new JList(fontStyles);
+    JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
+  */
   JPanel panelSettings = new JPanel();
   LabeledTextField ltfTooltipsInitialDelay =
     new LabeledTextField("Tooltips initial delay");
@@ -56,18 +57,18 @@ public class SettingsDialog extends JDialog {
     setTitle("eTomo Settings");
 
     //  Layout the font panel
-//    panelFontSelect.setLayout(new )
+    //panelFontSelect.setLayout(new )
     panelFontSelect.add(new JLabel("Font family:"));
     listFontFamily.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFontFamily.setVisibleRowCount(3);
     panelFontSelect.add(scrollFontFamily);
     ltfFontSize.setPreferredSize(new Dimension(30, 20));
     panelFontSelect.add(ltfFontSize.getContainer());
-    panelFontSelect.add(new JLabel("Style:"));
-    listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    listFontStyle.setVisibleRowCount(3);
-    panelFontSelect.add(scrollFontStyle);
-
+    /*    panelFontSelect.add(new JLabel("Style:"));
+        listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listFontStyle.setVisibleRowCount(3);
+        panelFontSelect.add(scrollFontStyle);
+    */
     panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
@@ -98,6 +99,31 @@ public class SettingsDialog extends JDialog {
       userConfig.getToolTipsDismissDelay() / 1000);
     chkNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     chkAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
+
+    // Get the current font parameters to set the UI
+    // Since they may not be all the same make the assumption that the first
+    // object contains the font 
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    String currentFontFamily = "";
+    int currentFontSize = 0;
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof javax.swing.plaf.FontUIResource) {
+        currentFontFamily = UIManager.getFont(key).getFamily();
+        currentFontSize = UIManager.getFont(key).getSize();
+        break;
+      }
+    }
+
+    // Find the font family index from the fontFamilies
+    for (int i = 0; i < fontFamilies.length; i++) {
+      if (fontFamilies[i].compareToIgnoreCase(currentFontFamily) == 0) {
+        listFontFamily.setSelectedIndex(i);
+      }
+    }
+    ltfFontSize.setText(currentFontSize);
+
   }
 
   public void getParameters(UserConfiguration userConfig) {
@@ -109,6 +135,8 @@ public class SettingsDialog extends JDialog {
     userConfig.setToolTipsDismissDelay((int) (delay * 1000));
     userConfig.setNativeLookAndFeel(chkNativeLAF.isSelected());
     userConfig.setAdvancedDialogs(chkAdvancedDialogs.isSelected());
+    userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
+    userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
   }
 
   void buttonCancelAction() {
@@ -123,7 +151,6 @@ public class SettingsDialog extends JDialog {
     applicationManager.getSettingsParameters();
     applicationManager.closeSettingsDialog();
   }
-  
 
 }
 
