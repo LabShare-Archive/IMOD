@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/11/07 23:15:03  rickg
+ * <p> Comments and command line args added
+ * <p>
  * <p> Revision 1.1  2003/11/07 00:53:09  rickg
  * <p> *** empty log message ***
  * <p> </p>

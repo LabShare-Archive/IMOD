@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/08/07 17:59:06  rickg
+ * <p> Merged in tilt angle fix from beta2a branch
+ * <p>
  * <p> Revision 2.4  2003/07/25 22:46:57  rickg
  * <p> CommandParam method name changes
  * <p>

@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.93  2003/11/07 19:49:38  rickg
+ * <p> Don't delete preali in delete aligned stacks code.
+ * <p>
  * <p> Revision 2.92  2003/11/07 00:52:56  rickg
  * <p> Added test helper methods
  * <p> Changed transferfid parameter name to indicate that it is called with

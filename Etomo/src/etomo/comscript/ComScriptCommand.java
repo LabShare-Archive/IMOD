@@ -17,6 +17,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/25 22:56:59  rickg
+ * <p> Added keywordValuePairs to copy constructor
+ * <p>
  * <p> Revision 2.3  2003/07/11 23:18:20  rickg
  * <p> Adde key/value processing methods
  * <p>

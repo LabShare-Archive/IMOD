@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/30 01:43:44  rickg
+ * <p> Bug# 338 Remapped context menu entries
+ * <p>
  * <p> Revision 2.4  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>

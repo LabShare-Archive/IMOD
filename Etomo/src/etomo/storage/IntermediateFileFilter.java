@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2003/11/06 18:30:40  sueh
+ * <p> bug321 accept(File f): added matchcheck.rec
+ * <p>
  * <p> Revision 1.3  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>

@@ -22,6 +22,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/05/21 21:19:21  rickg
+ * <p> Added started and done flags
+ * <p> Shorted thread sleep times
+ * <p>
  * <p> Revision 2.8  2003/05/15 20:20:03  rickg
  * <p> Removed extraneous debug printing
  * <p>

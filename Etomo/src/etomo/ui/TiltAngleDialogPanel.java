@@ -23,6 +23,10 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/10/09 20:27:43  sueh
+ * <p> bug264
+ * <p> UI Changes
+ * <p>
  * <p> Revision 2.1  2003/05/07 23:38:36  rickg
  * <p> Added tooltips to object as well as panel
  * <p>

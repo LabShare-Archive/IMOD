@@ -25,6 +25,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/30 21:09:41  rickg
+ * <p> Bug# 340 Added context menu entry for transferfid man page
+ * <p> JToggleButton -> MultilineToggleButton
+ * <p>
  * <p> Revision 2.10  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>

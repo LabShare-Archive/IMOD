@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/11/06 22:45:01  sueh
+ * <p> cleaning up tasks
+ * <p>
  * <p> Revision 2.6  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>

@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/10/01 18:17:46  rickg
+ * <p> demoTime now specified in constructor
+ * <p>
  * <p> Revision 1.1  2003/10/01 17:10:07  rickg
  * <p> Initial revision
  * <p> </p>

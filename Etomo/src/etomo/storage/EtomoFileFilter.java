@@ -16,6 +16,10 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/11/03 19:32:10  sueh
+ * <p> bug266 MainFrame:
+ * <p> getTestParamFilename(): added datasetname.edf as the default when there are no .edf files.
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>

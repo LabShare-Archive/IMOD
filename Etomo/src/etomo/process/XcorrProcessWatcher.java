@@ -13,6 +13,10 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2003/08/05 21:16:26  rickg
+ * <p> Correctly set nSections.
+ * <p> SystemProcessInterface object is no longer necessary
+ * <p>
  * <p> Revision 1.6  2003/08/04 22:23:50  rickg
  * <p> Now derived from LogFileProcessMonitor
  * <p>

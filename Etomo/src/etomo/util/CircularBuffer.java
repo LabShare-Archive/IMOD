@@ -14,6 +14,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/11/04 21:32:59  sueh
+ * <p> bug329 fixing null pointer exception
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>

@@ -19,6 +19,9 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/10/23 17:16:55  rickg
+ * <p> Bug# Label consistency
+ * <p>
  * <p> Revision 2.1  2003/06/09 04:25:04  rickg
  * <p> Changed the execute button to a toggle button and added
  * <p> a setSelected method for the button

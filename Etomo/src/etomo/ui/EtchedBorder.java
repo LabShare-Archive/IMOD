@@ -19,6 +19,9 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2003/03/20 17:30:10  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 1.2  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>

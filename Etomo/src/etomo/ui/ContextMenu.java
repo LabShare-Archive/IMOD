@@ -16,6 +16,9 @@ import java.awt.event.MouseEvent;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2  2002/11/14 04:22:43  rickg
  * <p> HTMLPage and ContextPopup now work with URLS
  * <p>

@@ -35,6 +35,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/11/05 19:56:58  rickg
+ * <p> Bug# 300 Selecting matching models on setup patch now
+ * <p> selects matching models on initial page
+ * <p>
  * <p> Revision 2.12  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/25 22:56:12  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.2  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>

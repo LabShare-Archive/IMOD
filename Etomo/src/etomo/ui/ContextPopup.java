@@ -28,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/11/04 20:56:11  rickg
+ * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.8  2003/10/23 17:05:43  rickg
  * <p> Bug# 257 Added IMOD and eTomo guides to generic menu
  * <p>

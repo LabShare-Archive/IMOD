@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/18 00:32:33  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.2  2003/03/17 06:45:16  rickg
  * <p> in progress
  * <p>

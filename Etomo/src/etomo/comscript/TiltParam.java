@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/22 21:31:20  rickg
+ * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
+ * <p>
  * <p> Revision 2.8  2003/08/21 22:17:48  rickg
  * <p> Added density scaling setters
  * <p>

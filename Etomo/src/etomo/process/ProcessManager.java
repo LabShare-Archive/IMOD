@@ -36,6 +36,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 2.33  2003/11/04 20:56:11  rickg
+ * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ *
  * Revision 2.32  2003/11/04 01:02:41  rickg
  * Bug #345 Explicitly set path to script using IMOD_DIR
  *

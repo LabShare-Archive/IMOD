@@ -14,6 +14,9 @@ import java.awt.Color;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/20 17:29:53  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>

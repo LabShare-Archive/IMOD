@@ -19,6 +19,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.18  2003/11/05 20:28:42  rickg
+ * <p> Bug #292 Added openPreserveContrast and openBeadfixer methods
+ * <p>
  * <p> Revision 2.17  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>

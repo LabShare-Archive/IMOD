@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/20 16:51:41  rickg
+ * <p> Removed scriptsCreated flag, use existence of combine com scripts instead
+ * <p>
  * <p> Revision 2.4  2003/03/18 23:50:08  rickg
  * <p> Added scripts created state variable
  * <p>

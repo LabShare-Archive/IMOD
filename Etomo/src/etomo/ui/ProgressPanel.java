@@ -25,6 +25,9 @@ import javax.swing.Timer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/01 22:57:12  rickg
+ * <p> Cleaned progress panel layout
+ * <p>
  * <p> Revision 2.2  2003/05/27 08:53:38  rickg
  * <p> Determinant progress bar now takes a string
  * <p>

@@ -24,6 +24,9 @@ import javax.swing.JTextField;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/04/09 23:36:12  rickg
+ * <p> Changes to allow for subclassing
+ * <p>
  * <p> Revision 1.1  2003/04/09 23:14:48  rickg
  * <p> Moved out of FinalCombinePanel
  * <p> </p>

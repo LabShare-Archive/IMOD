@@ -22,7 +22,10 @@ import etomo.util.MRCHeader;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/07/01 19:26:56  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 
 public class NewstProcessMonitor extends FileSizeProcessMonitor {

@@ -21,6 +21,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/07/25 22:57:30  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.8  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>

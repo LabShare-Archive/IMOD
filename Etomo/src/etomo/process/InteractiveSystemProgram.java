@@ -15,6 +15,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:26:48  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/01/30 04:54:24  rickg
  * <p> Comments
  * <p>

@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/30 21:05:06  rickg
+ * <p> Bug# 340 Added context menu
+ * <p>
  * <p> Revision 2.4  2003/04/17 23:07:20  rickg
  * <p> Added cleanup panel
  * <p>

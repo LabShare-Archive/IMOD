@@ -24,6 +24,9 @@ import java.net.URL;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/10 19:12:20  rickg
+ * <p> OS independent path implementation
+ * <p>
  * <p> Revision 2.1  2003/03/20 17:41:54  rickg
  * <p> Comment update
  * <p>

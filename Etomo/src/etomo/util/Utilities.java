@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2003/10/10 23:17:01  sueh
+ * <p> $bug251 removing marks
+ * <p> $
  * <p> $Revision 1.1  2003/10/07 22:43:13  sueh
  * <p> $bug251 moved transferfid from fine alignment dialog
  * <p> $to fiducial model dialog

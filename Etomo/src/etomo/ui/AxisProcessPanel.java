@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/10/23 18:13:16  rickg
+ * <p> Bug# 309
+ * <p>
  * <p> Revision 2.11  2003/08/21 16:10:05  rickg
  * <p> Tooltip now use the TooltipFormatter class
  * <p>

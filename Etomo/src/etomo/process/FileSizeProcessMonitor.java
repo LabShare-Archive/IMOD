@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2003/09/08 22:21:31  rickg
+ * <p> Limit percentage done to between 0 and 99
+ * <p>
  * <p> Revision 1.4  2003/08/04 22:22:57  rickg
  * <p> Fixed typo
  * <p>

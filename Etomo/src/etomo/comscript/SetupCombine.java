@@ -29,6 +29,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.11  2003/11/06 16:50:27  rickg
+ * Removed -e flag for tcsh execution for all but the com scripts
+ *
  * Revision 2.10  2003/11/04 20:56:11  rickg
  * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  *

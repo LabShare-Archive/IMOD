@@ -16,6 +16,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/10/09 20:27:43  sueh
+ * <p> bug264
+ * <p> UI Changes
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:28:21  rickg
  * <p> Comment update
  * <p>

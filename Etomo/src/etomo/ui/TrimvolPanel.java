@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2003/10/29 20:49:11  rickg
+ * <p> Bug# 308 Tooltips
+ * <p>
  * <p> Revision 1.11  2003/10/20 23:25:41  rickg
  * <p> Bug# 253 Added convert to bytes checkbox
  * <p>

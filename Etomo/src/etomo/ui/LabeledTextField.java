@@ -18,6 +18,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/06/03 23:27:05  rickg
+ * <p> Comment updates
+ * <p> Removed ambiguous methods
+ * <p>
  * <p> Revision 2.1  2003/02/24 23:26:14  rickg
  * <p> Added a get label preferred size method
  * <p>

@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/14 20:30:56  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
  * <p> Revision 2.6  2003/10/09 23:24:10  rickg
  * <p> Bug#279  Added integer set method for nFiducials
  * <p>

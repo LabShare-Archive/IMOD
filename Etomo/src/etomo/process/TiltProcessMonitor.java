@@ -23,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/07/31 22:54:17  rickg
+ * <p> 2GB fix.  An intermediate setp in the fileSize calculation over
+ * <p> flowed the temporay int that was created.
+ * <p>
  * <p> Revision 1.2  2003/07/01 19:30:06  rickg
  * <p> Added mode bytes handling
  * <p> Get input and output filenames from tilt?.com

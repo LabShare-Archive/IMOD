@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.5  2003/03/18 00:32:33  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.4  2003/03/17 06:46:30  rickg
  * <p> in progress
  * <p>

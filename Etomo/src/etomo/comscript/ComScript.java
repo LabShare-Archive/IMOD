@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/07/11 23:20:13  rickg
+ * <p> Automatically switch of comment parsing if keyword/value file
+ * <p>
  * <p> Revision 2.5  2003/03/20 17:21:30  rickg
  * <p> Comment update
  * <p>

@@ -38,6 +38,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 1.5  2003/10/29 20:49:11  rickg
+ * Bug# 308 Tooltips
+ *
  * Revision 1.4  2003/10/16 17:07:44  rickg
  * Bug# 305 Label changes, backup file filter
  *

@@ -17,6 +17,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/11/06 16:50:27  rickg
+ * <p> Removed -e flag for tcsh execution for all but the com scripts
+ * <p>
  * <p> Revision 2.9  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>

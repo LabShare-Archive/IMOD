@@ -20,6 +20,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2003/11/06 21:28:51  sueh
+ * <p> bug307 setDefaultRange(String): Set sectionScaleMin to 1/3
+ * <p> y or z max and sectionScaleMax to 2/3 y or z max.
+ * <p>
  * <p> Revision 1.11  2003/11/06 16:50:27  rickg
  * <p> Removed -e flag for tcsh execution for all but the com scripts
  * <p>

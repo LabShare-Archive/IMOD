@@ -22,6 +22,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/09/08 22:23:37  rickg
+ * <p> Limit percentage done to between 0 and 99
+ * <p>
  * <p> Revision 1.2  2003/08/05 21:17:23  rickg
  * <p> Initial revision (really)
  * <p>

@@ -28,6 +28,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.7  2003/10/21 02:33:38  sueh
+* <p> Bug325 Pulled out common button functionality and placed it in ButtonHelper.
+* <p>
 * <p> Revision 1.6  2003/10/20 17:07:52  sueh
 * <p> bug317 removing platform dependent methods
 * <p>

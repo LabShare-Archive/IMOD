@@ -17,7 +17,10 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/08/05 21:18:32  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 
 public class CCDEraserProcessMonitor extends LogFileProcessMonitor {

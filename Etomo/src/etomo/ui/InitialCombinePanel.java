@@ -31,6 +31,10 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2003/11/05 19:56:58  rickg
+ * <p> Bug# 300 Selecting matching models on setup patch now
+ * <p> selects matching models on initial page
+ * <p>
  * <p> Revision 1.15  2003/10/29 17:23:02  rickg
  * <p> Bug# 301 Tooltips
  * <p>

@@ -50,6 +50,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.21  2003/11/04 22:02:17  sueh
+ * <p> bug329 MainFrame: setMRUFileLabels(): Don't display blank
+ * <p> MRU entries
+ * <p>
  * <p> Revision 2.20  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>

@@ -44,6 +44,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 2.19  2003/11/07 19:54:02  rickg
+ * Don't delete preali in delete aligned stacks code.
+ *
  * Revision 2.18  2003/10/30 01:43:44  rickg
  * Bug# 338 Remapped context menu entries
  *

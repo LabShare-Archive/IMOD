@@ -24,6 +24,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.25  2003/11/05 20:29:52  rickg
+ * <p> Bug #292 Added preserve contrast functionality to coarse align open
+ * <p>
  * <p> Revision 2.24  2003/11/05 18:02:45  sueh
  * <p> bug298
  * <p>

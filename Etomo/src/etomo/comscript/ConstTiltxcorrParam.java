@@ -16,6 +16,11 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/09/09 17:18:47  rickg
+ * <p> Changed view list to view range and made it a 2 element integer
+ * <p> FortranInputString
+ * <p> padPercent, taperPercent, and trim are now integer FortranInputString
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>

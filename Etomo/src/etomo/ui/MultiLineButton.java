@@ -19,7 +19,10 @@ import java.lang.String;
 *
 * @version $Revision$
 *
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2003/10/21 02:32:40  sueh
+* <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
+* <p> </p>
 */
 
 

@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/10/28 21:22:50  rickg
+ * <p> Bug# 280 Tooltips
+ * <p>
  * <p> Revision 2.13  2003/10/28 00:22:07  rickg
  * <p> Bug# 309 Capitalized align log tabs
  * <p>

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/07/25 22:51:51  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.5  2003/07/22 22:14:47  rickg
  * <p> Default parameters for automatic x-ray detection
  * <p> Delete keys containing empty parameters.

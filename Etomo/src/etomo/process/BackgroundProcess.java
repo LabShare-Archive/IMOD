@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.6  2003/06/05 04:23:10  rickg
+ * <p> method name change to getShellProcessID
+ * <p>
  * <p> Revision 2.5  2003/05/23 22:48:44  rickg
  * <p> Implemented getting the PID of tcsh shell scripts that emmit it
  * <p> to stderr

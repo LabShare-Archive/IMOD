@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.5  2003/07/25 22:54:14  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.4  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>

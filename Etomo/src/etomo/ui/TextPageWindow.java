@@ -25,6 +25,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:44:32  rickg
+ * <p> setFile now returns a boolean if it was successful
+ * <p>
  * <p> Revision 2.1  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>

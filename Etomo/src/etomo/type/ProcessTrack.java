@@ -17,6 +17,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/01/27 17:36:28  rickg
+ * <p> Fixed set* logic bug that set the A axis when B was selected
+ * <p>
  * <p> Revision 2.2  2003/01/27 15:26:06  rickg
  * <p> Static function fix
  * <p>

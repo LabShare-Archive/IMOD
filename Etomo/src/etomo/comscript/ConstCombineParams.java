@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/20 16:51:29  rickg
+ * <p> Removed scriptsCreated flag, use existence of combine com scripts instead
+ * <p>
  * <p> Revision 2.4  2003/07/28 22:44:56  rickg
  * <p> Added an equals method
  * <p>

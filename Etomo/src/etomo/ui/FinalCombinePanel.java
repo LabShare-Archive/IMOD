@@ -44,6 +44,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 1.20  2003/10/29 18:05:21  rickg
+ * Bug# 304 Tooltips
+ *
  * Revision 1.19  2003/10/23 17:09:41  rickg
  * Bug# 323 Label change
  *

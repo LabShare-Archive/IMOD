@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/10/16 21:49:05  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 package etomo.ui;
 

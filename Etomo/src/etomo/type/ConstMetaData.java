@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/28 02:23:59  sueh
+ * <p> bug267
+ * <p>
  * <p> Revision 2.10  2003/10/23 23:04:59  sueh
  * <p> bug267 removing prints
  * <p>

@@ -26,6 +26,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/06/04 23:38:52  rickg
+ * <p> Added independent labels for tabs
+ * <p>
  * <p> Revision 1.1  2003/05/27 08:50:45  rickg
  * <p> Initial revision
  * <p>

@@ -45,6 +45,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.18  2003/11/05 21:09:18  rickg
+ * Bug# 175 Swap patch parameter x and y min and max if match to state changes.
+ *
  * Revision 2.17  2003/11/05 19:56:58  rickg
  * Bug# 300 Selecting matching models on setup patch now
  * selects matching models on initial page

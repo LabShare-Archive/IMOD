@@ -12,6 +12,13 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/10/02 18:57:47  sueh
+ * <p> bug236 added testing:
+ * <p> NewstParamTest
+ * <p> ComScriptTest
+ * <p>
+ * <p> Removed marks
+ * <p>
  * <p> Revision 2.1  2003/09/29 23:34:57  sueh
  * <p> bug236 Added UseLinearInterpolation to
  * <p> TomogramGenerationDialog.

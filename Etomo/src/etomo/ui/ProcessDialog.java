@@ -24,6 +24,10 @@ import etomo.type.DialogExitState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/10/13 20:27:21  sueh
+ * <p> bug270
+ * <p> changed tooltips
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>

@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/08/21 22:16:56  rickg
+ * <p> Fixed loss of last character.
+ * <p>
  * <p> Revision 1.2  2003/07/30 21:54:13  rickg
  * <p> Initial revision
  * <p>
