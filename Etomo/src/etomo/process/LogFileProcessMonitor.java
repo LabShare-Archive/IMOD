@@ -24,6 +24,14 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2005/03/09 18:05:19  sueh
+ * <p> bug# 533 Added done boolean so that XcorrProcessWatcher knows when
+ * <p> BlendmontProcessMonitor is done.  When TiltxcorrProcessWatcher runs
+ * <p> under XcorrProcessWatcher, it doesn't get its interrupt exception and is
+ * <p> doing a time out instead.  This makes the process bar act strangely.
+ * <p> When the timeout is in use (waitingForExit) display "Ending" on the
+ * <p> progress bar.
+ * <p>
  * <p> Revision 3.12  2004/11/19 23:22:25  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -127,7 +135,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   private boolean done = false;
 
   protected int updatePeriod = 500;
-  protected int stopWaiting = 20;
+  protected int stopWaiting = 10;
   protected boolean lastProcess = true;
 
   boolean standardLogFileName = true;
