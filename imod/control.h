@@ -33,6 +33,7 @@ enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
   class QKeyEvent;
   class QString;
   class QWidget;
+class QRect;
 
 /* Each window that shows the view below uses this control 
  * stucture to have the view update the window.
@@ -70,6 +71,7 @@ void ivwControlListDraw(ImodView *iv, int reason);
 void ivwControlListDelete(ImodView *iv);
 void ivwControlKey(/*ImodView *iv,*/ int released, QKeyEvent *e);
 void ivwWorkProc(ImodView *iv);
+QRect ivwRestorableGeometry(QWidget *widget);
 
        /* The functions from imod.h */
 /****************************************************************************/
@@ -141,6 +143,9 @@ extern DialogManager imodDialogManager;
 
 /*
 $Log$
+Revision 4.5  2003/09/17 05:54:36  mast
+Add variable for geometry of last zap window closed
+
 Revision 4.4  2003/09/17 04:46:43  mast
 Added function to return size of biggest Zap window
 
