@@ -37,6 +37,7 @@ set shared_libs     = default
 set flags           = 
 set fallback        = 
 set swap_ieee       = true
+set no_xlibs        = false
 
 set inst_bin_dir    = default
 set inst_lib_dir    = default
@@ -121,6 +122,10 @@ while($#argv > 0)
 			set swap_ieee = false
 			breaksw
 
+                case -no_xlibs:
+                        set no_xlibs = true
+                        breaksw
+
 		case -h:
 		case -help:
 			goto usage
@@ -136,7 +141,7 @@ end
 #
 # get machine specifics
 #
-set UMACHINE = `uname -m`
+set UMACHINE = `uname -m | sed '/ /s//_/g'`
 set URELEASE = `uname -r`
 set USYSTEM  = `uname -s`
 #set UVERSION = `uname -v`
@@ -184,6 +189,11 @@ echo "# setup for $target_computer" >> $configure
 echo " " >> $configure
 echo "IMOD_VERSION $imod_version_name"
 
+#
+# Set up defaults for makefile copying
+#
+set makefile_ext = unix
+set makefile_dirs = ($plugsrc_dir $libdiaqt_dir)
 
 #
 # Go To Machine dependent parts.
@@ -234,6 +244,12 @@ switch($target_computer)
                 echo $target_computer is Intel running Cygwin under Windows
                 set machine = cygwin
                 goto cygwin
+                breaksw
+
+	case Power_Macintosh__Darwin__*__*:
+                echo $target_computer is Power Macintosh running OSX
+                set machine = maxosx
+                goto macosx
                 breaksw
 
 	# OSF1 V3.2 17 alpha
@@ -386,6 +402,14 @@ source machines/cygwin
 
 goto standard_defines
 
+#############################################################################
+# Macintosh
+#
+macosx:
+source machines/macosx
+
+goto standard_defines
+
 ##############################################################################
 # Solaris 2.x or SunOS5 using gcc compiler.
 #
@@ -535,8 +559,10 @@ EOF
     (cd $sendevent_dir ; qmake imodsendevent.pro)
     (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s imod imodv)
 
-    set makefile_ext = unix
-    set makefile_dirs = ($plugsrc_dir $libdiaqt_dir)
+    set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
+    echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs" >> $configure
+    echo 'XPLAX = ' >> $configure
+
 endif
 
 foreach i ($makefile_dirs)
@@ -578,6 +604,7 @@ echo "             -shared      Make libraries shared"
 echo "             -no_shared   Make libraries non-shared"
 echo "             -tiff        Link with TIFF libraries"
 echo "             -no_tiff     Do not try to link with TIFF libraries"
+echo "             -no_xlibs    Do not try to make X version of plax routines"
 echo "             -compiler    Use specified compilers (intel for rhlinux)"
 echo "             -flags       Set flags for compilation"
 exit
@@ -585,6 +612,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.10  2003/02/28 19:46:18  mast
+#  Do not touch imodconfig.h unless it changes
+#
 #  Revision 3.9  2003/02/28 18:23:26  mast
 #  CHanges for cygwin/windows
 #
