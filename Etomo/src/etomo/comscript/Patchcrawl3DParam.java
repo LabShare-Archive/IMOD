@@ -15,6 +15,9 @@ import java.util.Vector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/05 18:17:44  sueh
+ * <p> bug# 250 changed updateComScriptCommand() - allow cmdLineArgs to grow
+ * <p>
  * <p> Revision 3.1  2004/03/02 21:52:19  sueh
  * <p> bug# 250 changed parseComScriptCommand() - correcting parameters
  * <p> changed updateComScriptCommand() - adding parameters
@@ -193,8 +196,8 @@ public class Patchcrawl3DParam
       badParameter = "boundary_model";
       cmdLineArgs.add(boundaryModel);
     }
-    String[] dummyStringArray = new String[2];
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(dummyStringArray));
+    scriptCommand.setCommandLineArgs(
+      (String[]) cmdLineArgs.toArray(new String[cmdLineArgs.size()]));
   }
   /**
    * Sets the fileA.
