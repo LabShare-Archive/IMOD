@@ -56,6 +56,8 @@ Log at the end of file
 #include "imod_assistant.h"
 #include "b3dicon.xpm"
 
+extern "C" int iiQImageCheck(ImodImageFile *inFile);
+
 /******************************* Globals *************************************/
 ImodApp *App;
 Imod    *Model;
@@ -209,6 +211,9 @@ int main( int argc, char *argv[])
     if (fork())
       exit(0);
 #endif
+
+  /* Add check function for QImage formats */
+  iiAddCheckFunction(iiQImageCheck);
 
   /* Open the Qt application */
   
@@ -1020,6 +1025,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.46  2004/11/24 18:29:38  mast
+Start the assistant with an adp file to get customized appearance
+
 Revision 4.45  2004/11/22 00:23:22  mast
 Added creation and convenience call to new help system
 
