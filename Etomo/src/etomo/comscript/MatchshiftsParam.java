@@ -11,7 +11,10 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$</p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/06/24 18:37:29  sueh
+ * <p> $bug# 482 param for matchshifts command
+ * <p> $$</p>
  */
 
 package etomo.comscript;
@@ -32,10 +35,15 @@ public class MatchshiftsParam
     int i = 0;
     rootName1 = cmdLineArgs[i++];
     rootName2 = cmdLineArgs[i++];
-    xDim = Integer.parseInt(cmdLineArgs[i++]);
-    yDim = Integer.parseInt(cmdLineArgs[i++]);
-    zDim = Integer.parseInt(cmdLineArgs[i++]);
-    System.out.println("parseComScriptCommand:rootName1= " + rootName1 + ",rootName2=" + rootName2);
+    xDim = ParamUtilities.parseInt(cmdLineArgs[i++]);
+    yDim = ParamUtilities.parseInt(cmdLineArgs[i++]);
+    zDim = ParamUtilities.parseInt(cmdLineArgs[i++]);
+    if (cmdLineArgs.length >= 6) {
+      xfIn = cmdLineArgs[i++];
+    }
+    if (cmdLineArgs.length >= 7) {
+      xfOut = cmdLineArgs[i++];
+    }
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -43,22 +51,26 @@ public class MatchshiftsParam
       // Create a new command line argument array
       ArrayList cmdLineArgs = new ArrayList(20);
 
-      if (!rootName1.equals("\\s+")) {
+      if (!ParamUtilities.isEmpty(rootName1)) {
         cmdLineArgs.add(rootName1);
-        System.out.println("updateComScriptCommand:added rootName1");
       }
-      if (!rootName2.equals("\\s+")) {
+      if (!ParamUtilities.isEmpty(rootName2)) {
         cmdLineArgs.add(rootName2);
-        System.out.println("updateComScriptCommand:added rootName1");
       }
       if (xDim != Integer.MIN_VALUE) {
-        cmdLineArgs.add(String.valueOf(xDim));
+        cmdLineArgs.add(ParamUtilities.valueOf(xDim));
       } 
       if (yDim != Integer.MIN_VALUE) {
-        cmdLineArgs.add(String.valueOf(yDim));
+        cmdLineArgs.add(ParamUtilities.valueOf(yDim));
       } 
       if (zDim != Integer.MIN_VALUE) {
-        cmdLineArgs.add(String.valueOf(zDim));
+        cmdLineArgs.add(ParamUtilities.valueOf(zDim));
+      }
+      if (!ParamUtilities.isEmpty(xfIn)) {
+        cmdLineArgs.add(xfIn);
+      }
+      if (!ParamUtilities.isEmpty(xfOut)) {
+        cmdLineArgs.add(xfOut);
       }
       int nArgs = cmdLineArgs.size();
       scriptCommand.setCommandLineArgs(
