@@ -1,7 +1,5 @@
 package etomo.comscript;
 
-import java.util.ArrayList;
-
 /**
  * <p>Description: </p>
  *
@@ -15,6 +13,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/06/10 22:55:36  rickg
+ * <p> Modeled all of the parameters from the man page
+ * <p>
  * <p> Revision 2.2  2003/05/23 21:26:32  rickg
  * <p> Implemented radial filter parameters
  * <p>
@@ -40,24 +41,23 @@ public class ConstTiltParam {
 
   protected String outputFile = "";
 
-  protected ArrayList angles = new ArrayList();
+  protected String angles = "";
   protected boolean useAngles = false;
 
   protected double compressionFraction;
   protected boolean useCompressionFraction = false;
 
-  protected double compression;
+  protected String compression;
   protected boolean useCompression = false;
 
   protected int cosInterpOrder;
   protected double cosInterpFactor;
   protected boolean useCosInterp = false;
 
-  protected String densityWeightNadjacent = "";
-  protected ArrayList densityWeights = new ArrayList();
+  protected String densityWeightParams = "";
   protected boolean useDensityWeight = false;
 
-  protected ArrayList exclude = new ArrayList();
+  protected String exclude = "";
   protected boolean useExclude = false;
 
   protected StringList excludeList = new StringList(0);
@@ -70,7 +70,7 @@ public class ConstTiltParam {
   protected int fullImageY;
   protected boolean useFullImage = false;
 
-  protected ArrayList include = new ArrayList();
+  protected String include = "";
   protected boolean useInclude = false;
 
   protected String localAlignFile = "";
@@ -79,8 +79,8 @@ public class ConstTiltParam {
   protected double localScale;
   protected boolean useLocalScale = false;
 
-  protected double logShift;
-  protected boolean useLogShift = false;
+  protected double logOffset;
+  protected boolean useLogOffset = false;
 
   protected double mask;
   protected boolean useMask = false;
@@ -88,9 +88,9 @@ public class ConstTiltParam {
   protected int mode;
   protected boolean useMode = false;
 
-  protected double offsetAngle;
-  protected double offsetX;
-  protected boolean useOffset = false;
+  protected double tiltAngleOffset;
+  protected double tiltAxisOffset;
+  protected boolean useAngleOffsets = false;
 
   protected boolean parallel = false;
   protected boolean useParallel = false;
@@ -109,7 +109,7 @@ public class ConstTiltParam {
   protected double scaleFLevel;
   protected double scaleCoeff;
   protected boolean useScale = false;
-
+ 
   protected double xOffset;
   protected double zOffset;
   protected boolean useShift = false;
@@ -149,7 +149,7 @@ public class ConstTiltParam {
   }
 
   public double getLogShift() {
-    return logShift;
+    return logOffset;
   }
 
   public int getMode() {
@@ -206,5 +206,275 @@ public class ConstTiltParam {
   public double getRadialFalloff() {
     return radialFalloff;
   }
+
+  /**
+   * @return
+   */
+  public int getWidth() {
+    return width;
+  }
+
+  /**
+   * @return
+   */
+  public double getXOffset() {
+    return xOffset;
+  }
+
+  /**
+   * @return
+   */
+  public double getZOffset() {
+    return zOffset;
+  }
+
+
+  /**
+   * @return
+   */
+  public int getIdxSliceIncr() {
+    return idxSliceIncr;
+  }
+
+  /**
+   * @return
+   */
+  public int getIdxSliceStart() {
+    return idxSliceStart;
+  }
+
+  /**
+   * @return
+   */
+  public int getIdxSliceStop() {
+    return idxSliceStop;
+  }
+
+  /**
+   * @return
+   */
+  public double getTiltAngleOffset() {
+    return tiltAngleOffset;
+  }
+
+  /**
+   * @return
+   */
+  public double getTiltAxisOffset() {
+    return tiltAxisOffset;
+  }
+
+
+  /**
+   * @return
+   */
+  public boolean hasAngleOffsets() {
+    return useAngleOffsets;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasAngles() {
+    return useAngles;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasCompression() {
+    return useCompression;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasCompressionFraction() {
+    return useCompressionFraction;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasCosInterp() {
+    return useCosInterp;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasDensityWeight() {
+    return useDensityWeight;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasExclude() {
+    return useExclude;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasExcludeList() {
+    return useExcludeList;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasFastBackProjInterpOrder() {
+    return useFastBackProjInterpOrder;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasFullImage() {
+    return useFullImage;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasInclude() {
+    return useInclude;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasLocalScale() {
+    return useLocalScale;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasLogOffset() {
+    return useLogOffset;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasMask() {
+    return useMask;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasMode() {
+    return useMode;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasParallel() {
+    return useParallel;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasPerpendicular() {
+    return usePerpendicular;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasRadialWeightingFunction() {
+    return useRadialWeightingFunction;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasReplicate() {
+    return useReplicate;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasScale() {
+    return useScale;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasShift() {
+    return useShift;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasSlice() {
+    return useSlice;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasSubsetStart() {
+    return useSubsetStart;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasThickness() {
+    return useThickness;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasTiltfile() {
+    return useTiltfile;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasTitle() {
+    return useTitle;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasWidth() {
+    return useWidth;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXAxisTilt() {
+    return useXAxisTilt;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXTiltFile() {
+    return useXTiltFile;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXTiltInterp() {
+    return useXTiltInterp;
+  }
+
+
 
 }

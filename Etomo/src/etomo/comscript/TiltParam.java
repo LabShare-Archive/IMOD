@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/06/23 23:27:39  rickg
+ * <p> Stricter typing of parameters
+ * <p>
  * <p> Revision 2.4  2003/06/10 22:59:59  rickg
  * <p> Changes to match full implementation in progress
  * <p>
@@ -49,7 +52,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void initialize(ComScriptCommand scriptCommand)
+  public void parseComScript(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
@@ -69,16 +72,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
     for (int i = argIndex; i < nInputArgs; i++) {
       // split the line into the parameter name and the rest of the line
-      String[] tokens = inputArgs[i].getArgument().split("\\s+", 0);
-
-      if (tokens[0].equals("DONE")) {
-        foundDone = true;
-      }
+      String[] tokens = inputArgs[i].getArgument().split("\\s+", 2);
 
       if (tokens[0].equals("ANGLES")) {
-        for (int j = 1; j < tokens.length; j++) {
-          angles.add(tokens[j]);
-        }
+        angles = tokens[1];
         useAngles = true;
       }
 
@@ -88,28 +85,28 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("COMPRESS")) {
-        compression = Double.parseDouble(tokens[1]);
+        compression = tokens[1];
         useCompression = true;
       }
 
       if (tokens[0].equals("COSINTERP")) {
-        cosInterpOrder = Integer.parseInt(tokens[1]);
-        cosInterpFactor = Double.parseDouble(tokens[2]);
+        String[] params = tokens[1].split("\\s+", 2);
+        cosInterpOrder = Integer.parseInt(params[0]);
+        cosInterpFactor = Double.parseDouble(params[1]);
         useCosInterp = true;
       }
 
       if (tokens[0].equals("DENSWEIGHT")) {
-        densityWeightNadjacent = tokens[1];
-        for (int j = 2; j < tokens.length; j++) {
-          densityWeights.add(tokens[j]);
-        }
+        densityWeightParams = tokens[1];
         useDensityWeight = true;
       }
 
+      if (tokens[0].equals("DONE")) {
+        foundDone = true;
+      }
+
       if (tokens[0].equals("EXCLUDE")) {
-        for (int j = 1; j < tokens.length; j++) {
-          exclude.add(tokens[j]);
-        }
+        exclude = tokens[1];
         useExclude = true;
       }
 
@@ -124,9 +121,15 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("FULLIMAGE")) {
-        fullImageX = Integer.parseInt(tokens[1]);
-        fullImageY = Integer.parseInt(tokens[2]);
+        String[] params = tokens[1].split("\\s+", 2);
+        fullImageX = Integer.parseInt(params[0]);
+        fullImageY = Integer.parseInt(params[1]);
         useFullImage = true;
+      }
+
+      if (tokens[0].equals("INCLUDE")) {
+        include = tokens[1];
+        useInclude = true;
       }
 
       if (tokens[0].equals("LOCALFILE")) {
@@ -135,13 +138,25 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("LOG")) {
-        logShift = Double.parseDouble(tokens[1]);
-        useLogShift = true;
+        logOffset = Double.parseDouble(tokens[1]);
+        useLogOffset = true;
+      }
+
+      if (tokens[0].equals("MASK")) {
+        mask = Double.parseDouble(tokens[1]);
+        useMask = true;
       }
 
       if (tokens[0].equals("MODE")) {
         mode = Integer.parseInt(tokens[1]);
         useMode = true;
+      }
+
+      if (tokens[0].equals("OFFSET")) {
+        String[] params = tokens[1].split("\\s+", 2);
+        tiltAngleOffset = Double.parseDouble(params[0]);
+        tiltAxisOffset = Double.parseDouble(params[1]);
+        useAngleOffsets = true;
       }
 
       if (tokens[0].equals("PARALLEL")) {
@@ -159,20 +174,45 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("RADIAL")) {
-        radialBandwidth = Double.parseDouble(tokens[1]);
-        radialFalloff = Double.parseDouble(tokens[2]);
+        String[] params = tokens[1].split("\\s+", 2);
+        radialBandwidth = Double.parseDouble(params[0]);
+        radialFalloff = Double.parseDouble(params[1]);
         useRadialWeightingFunction = true;
       }
 
+      if (tokens[0].equals("REPLICATE")) {
+        String[] params = tokens[1].split("\\s+", 2);
+        nReplicate = Integer.parseInt(params[0]);
+        incReplicate = Integer.parseInt(tokens[1]);
+        useReplicate = true;
+      }
+
       if (tokens[0].equals("SCALE")) {
-        scaleFLevel = Double.parseDouble(tokens[1]);
-        scaleCoeff = Double.parseDouble(tokens[2]);
+        String[] params = tokens[1].split("\\s+", 2);
+        scaleFLevel = Double.parseDouble(params[0]);
+        scaleCoeff = Double.parseDouble(params[1]);
         useScale = true;
       }
 
+      if (tokens[0].equals("SHIFT")) {
+        String[] params = tokens[1].split("\\s+", 2);
+        xOffset = Double.parseDouble(params[0]);
+        zOffset = Double.parseDouble(params[1]);
+        useShift = true;
+      }
+
+      if (tokens[0].equals("SLICE")) {
+        String[] params = tokens[1].split("\\s+", 3);
+        idxSliceStart = Integer.parseInt(params[0]);
+        idxSliceStop = Integer.parseInt(params[1]);
+        idxSliceIncr = Integer.parseInt(params[2]);
+        useSlice = true;
+      }
+
       if (tokens[0].equals("SUBSETSTART")) {
-        idxXSubsetStart = Integer.parseInt(tokens[1]);
-        idxYSubsetStart = Integer.parseInt(tokens[2]);
+        String[] params = tokens[1].split("\\s+", 2);
+        idxXSubsetStart = Integer.parseInt(params[0]);
+        idxYSubsetStart = Integer.parseInt(params[1]);
         useSubsetStart = true;
       }
 
@@ -186,10 +226,31 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         useTiltfile = true;
       }
 
+      if (tokens[0].equals("TITLE")) {
+        title = tokens[1];
+        useTitle = true;
+      }
+
+      if (tokens[0].equals("WIDTH")) {
+        width = Integer.parseInt(tokens[1]);
+        useWidth = true;
+      }
+
       if (tokens[0].equals("XAXISTILT")) {
         xAxisTilt = Double.parseDouble(tokens[1]);
         useXAxisTilt = true;
       }
+      
+      if (tokens[0].equals("XTILTFILE")) {
+        xTiltFile = tokens[1];
+        useXTiltFile = true;
+      }
+      
+      if (tokens[0].equals("XTILTINTERP")) {
+        xTiltInterp = Integer.parseInt(tokens[1]);
+        useXTiltInterp = true;
+      }
+
     }
 
   }
@@ -214,9 +275,56 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     newArg.setArgument(outputFile);
     cmdLineArgs.add(newArg);
 
+    if (useAngles) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("ANGLES " + angles);
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useCompressionFraction) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("COMPFRACTION " + String.valueOf(compressionFraction));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useCompression) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("COMPRESS " + compression);
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useCosInterp) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "COSINTERP "
+          + String.valueOf(cosInterpOrder)
+          + " "
+          + String.valueOf(cosInterpFactor));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useDensityWeight) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("DENSWEIGHT " + densityWeightParams);
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useExclude) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("EXCLUDE " + exclude);
+      cmdLineArgs.add(newArg);
+    }
+
     if (useExcludeList) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("EXCLUDELIST " + excludeList.toString());
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useFastBackProjInterpOrder) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "FBPINTERP " + String.valueOf(fastBackProjInterpOrder));
       cmdLineArgs.add(newArg);
     }
 
@@ -230,21 +338,43 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
 
+    if (useInclude) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("INCLUDE " + include);
+      cmdLineArgs.add(newArg);
+    }
+
     if (useLocalAlignFile) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("LOCALFILE " + localAlignFile);
       cmdLineArgs.add(newArg);
     }
 
-    if (useLogShift) {
+    if (useLogOffset) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("LOG " + String.valueOf(logShift));
+      newArg.setArgument("LOG " + String.valueOf(logOffset));
       cmdLineArgs.add(newArg);
     }
 
     if (useMode) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("MODE " + String.valueOf(mode));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useMask) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("MASK " + String.valueOf(mask));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useAngleOffsets) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "OFFSET "
+          + String.valueOf(tiltAngleOffset)
+          + " "
+          + String.valueOf(tiltAxisOffset));
       cmdLineArgs.add(newArg);
     }
 
@@ -270,6 +400,16 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
 
+    if (useReplicate) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "REPLICATE "
+          + String.valueOf(nReplicate)
+          + " "
+          + String.valueOf(incReplicate));
+      cmdLineArgs.add(newArg);
+    }
+
     if (useScale) {
       newArg = new ComScriptInputArg();
       newArg.setArgument(
@@ -277,6 +417,25 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
           + String.valueOf(scaleFLevel)
           + " "
           + String.valueOf(scaleCoeff));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useShift) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "SHIFT " + String.valueOf(xOffset) + " " + String.valueOf(zOffset));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useSlice) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(
+        "SLICE "
+          + String.valueOf(idxSliceStart)
+          + " "
+          + String.valueOf(idxSliceStop)
+          + " "
+          + String.valueOf(idxSliceIncr));
       cmdLineArgs.add(newArg);
     }
 
@@ -302,9 +461,27 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
 
+    if (useWidth) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("WIDTH " + String.valueOf(width));
+      cmdLineArgs.add(newArg);
+    }
+
     if (useXAxisTilt) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("XAXISTILT " + String.valueOf(xAxisTilt));
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useXTiltFile) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("XTILTFILE " + xTiltFile);
+      cmdLineArgs.add(newArg);
+    }
+
+    if (useXTiltInterp) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("XTILTINTERP " + String.valueOf(xTiltInterp));
       cmdLineArgs.add(newArg);
     }
 
@@ -352,8 +529,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   }
 
   public void setLogShift(double shift) {
-    logShift = shift;
-    useLogShift = true;
+    logOffset = shift;
+    useLogOffset = true;
   }
 
   //  NOTE needs documentation for use
@@ -396,6 +573,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setRadialFalloff(double value) {
     radialFalloff = value;
+    useRadialWeightingFunction = true;
   }
 
   public void setSubsetStart(int xStart, int yStart) {
@@ -426,6 +604,30 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   }
 
   /**
+   * @param i
+   */
+  public void setIdxSliceIncr(int i) {
+    idxSliceIncr = i;
+    useSlice(true);
+  }
+
+  /**
+   * @param i
+   */
+  public void setIdxSliceStart(int i) {
+    idxSliceStart = i;
+    useSlice(true);
+  }
+
+  /**
+   * @param i
+   */
+  public void setIdxSliceStop(int i) {
+    idxSliceStop = i;
+    useSlice(true);
+  }
+
+  /**
    * Sets the excludeList.
    * @param excludeList The excludeList to set
    */
@@ -437,6 +639,261 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     else {
       useExcludeList = false;
     }
+  }
+
+  /**
+   * @param i
+   */
+  public void setWidth(int i) {
+    width = i;
+    useWidth = true;
+  }
+
+  /**
+   * @param d
+   */
+  public void setXOffset(double d) {
+    xOffset = d;
+    useShift = true;
+  }
+
+  /**
+   * @param d
+   */
+  public void setZOffset(double d) {
+    zOffset = d;
+    useShift = true;
+  }
+  /**
+   * @param d
+   */
+  public void setTiltAngleOffset(double d) {
+    tiltAngleOffset = d;
+    useAngleOffsets = true;
+  }
+
+  /**
+   * @param d
+   */
+  public void setTiltAxisOffset(double d) {
+    tiltAxisOffset = d;
+    useAngleOffsets = true;
+  }
+  /**
+   * @param b
+   */
+  public void useAngles(boolean b) {
+    useAngles = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useCompression(boolean b) {
+    useCompression = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useCompressionFraction(boolean b) {
+    useCompressionFraction = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useCosInterp(boolean b) {
+    useCosInterp = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useDensityWeight(boolean b) {
+    useDensityWeight = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useExclude(boolean b) {
+    useExclude = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useExcludeList(boolean b) {
+    useExcludeList = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useFastBackProjInterpOrder(boolean b) {
+    useFastBackProjInterpOrder = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useFullImage(boolean b) {
+    useFullImage = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useInclude(boolean b) {
+    useInclude = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useLocalAlignFile(boolean b) {
+    useLocalAlignFile = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useLocalScale(boolean b) {
+    useLocalScale = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useLogOffset(boolean b) {
+    useLogOffset = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useMask(boolean b) {
+    useMask = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useMode(boolean b) {
+    useMode = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useParallel(boolean b) {
+    useParallel = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void usePerpendicular(boolean b) {
+    usePerpendicular = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useRadialWeightingFunction(boolean b) {
+    useRadialWeightingFunction = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useReplicate(boolean b) {
+    useReplicate = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useScale(boolean b) {
+    useScale = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useShift(boolean b) {
+    useShift = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useSlice(boolean b) {
+    useSlice = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useSubsetStart(boolean b) {
+    useSubsetStart = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useThickness(boolean b) {
+    useThickness = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useTiltfile(boolean b) {
+    useTiltfile = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useTitle(boolean b) {
+    useTitle = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useWidth(boolean b) {
+    useWidth = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useXAxisTilt(boolean b) {
+    useXAxisTilt = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useXTiltFile(boolean b) {
+    useXTiltFile = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useXTiltInterp(boolean b) {
+    useXTiltInterp = b;
+  }
+
+  /**
+   * @param b
+   */
+  public void useAngleOffsets(boolean b) {
+    useAngleOffsets = b;
   }
 
 }
