@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2003/10/24 02:03:50  mast
+#  Add the sourceable file to set tmpdir
+#
 #  Revision 3.7  2003/09/11 19:54:31  mast
 #  Need to take explicit generated list from configure
 #
@@ -33,7 +36,8 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid submfg imodpsview settmpdir $(GENERATED_SCRIPTS)
+ dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
+ $(GENERATED_SCRIPTS)
 
 all:
 
