@@ -55,13 +55,13 @@ public class ConstTomopitchParam {
     return (String) modelFiles.get(index);
   }
   public String getExtraThicknessString() {
-    return ParamUtilities.getString(extraThickness);
+    return ParamUtilities.valueOf(extraThickness);
   }
   public String getSpacingInYString() {
-    return ParamUtilities.getString(spacingInY);
+    return ParamUtilities.valueOf(spacingInY);
   }
   public String getScaleFactorString() {
-    return ParamUtilities.getString(scaleFactor);
+    return ParamUtilities.valueOf(scaleFactor);
   }
   public String getParameterFile() {
     return parameterFile;

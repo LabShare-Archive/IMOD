@@ -17,6 +17,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/05/03 18:00:51  sueh
+ * <p> bug# 418 standardizing get functions
+ * <p> And param testing proof of concept
+ * <p>
  * <p> Revision 3.6  2004/03/13 02:24:41  sueh
  * <p> bug# 373 getting an empty string for a default FortranInputString
  * <p>
@@ -169,32 +173,32 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
     return outputFile;
   }
   public String getFirstTiltAngleString() {
-    return ParamUtilities.getString(firstTiltAngle);
+    return ParamUtilities.valueOf(firstTiltAngle);
   };
 
   public String getTiltIncrementString() {
-    return ParamUtilities.getString(tiltIncrement);
+    return ParamUtilities.valueOf(tiltIncrement);
   };
   public String getTiltFile() {
     return tiltFile;
   };
   public String[] getTiltAnglesString() {
-    return ParamUtilities.getStrings(tiltAngles);
+    return ParamUtilities.valueOf(tiltAngles);
   };
   public String getRotationAngleString() {
-    return ParamUtilities.getString(rotationAngle);
+    return ParamUtilities.valueOf(rotationAngle);
   }
   public String getFilterRadius1String() {
-    return ParamUtilities.getString(filterRadius1);
+    return ParamUtilities.valueOf(filterRadius1);
   }
   public String getFilterRadius2String() {
-    return ParamUtilities.getString(filterRadius2);
+    return ParamUtilities.valueOf(filterRadius2);
   }
   public String getFilterSigma1String() {
-    return ParamUtilities.getString(filterSigma1);
+    return ParamUtilities.valueOf(filterSigma1);
   }
   public String getFilterSigma2String() {
-    return ParamUtilities.getString(filterSigma2);
+    return ParamUtilities.valueOf(filterSigma2);
   }
   public String getBordersInXandY() {
     return bordersInXandY.toString(true);

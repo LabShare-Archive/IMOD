@@ -2,7 +2,6 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,7 +20,6 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
-import etomo.type.FiducialMatch;
 
 /**
  * <p>
@@ -43,6 +41,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2004/05/11 21:48:05  sueh
+ * bug# 302 enabling/disabling matching models and patch region
+ * in Setup during sync
+ *
  * Revision 3.7  2004/05/11 20:54:41  sueh
  * bug# 302 adding InitialCombineValues and FinalCombineValues interface
  * standardizing synchronization
@@ -204,47 +206,26 @@ import etomo.type.FiducialMatch;
  */
 public class SetupCombinePanel
   implements ContextMenu, InitialCombineFields, FinalCombineFields {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
+  private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
-  private InitialCombinePanel initialCombinePanel;
 
-	boolean matchBtoA;
-	
+  boolean matchBtoA;
+
   private JPanel pnlRoot = new JPanel();
-  private BeveledBorder brdrContent =
-    new BeveledBorder("Combination Parameters");
+  private BeveledBorder brdrContent = new BeveledBorder(
+    "Combination Parameters");
 
   private JPanel pnlToSelector = new JPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
   private JPanel pnlRBToSelector = new JPanel();
-  private JLabel lblEffectWarning =
-    new JLabel("You must create new combine script for changes in these parameters to take effect.");
+  private JLabel lblEffectWarning = new JLabel(
+    "You must create new combine script for changes in these parameters to take effect.");
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
   private JRadioButton rbAtoB = new JRadioButton("Match the A tomogram to B");
 
-  private JPanel pnlFiducialParams = new JPanel();
-  private JPanel pnlFiducialRadio = new JPanel();
-  private JPanel pnlFiducialSelect = new JPanel();
-  private ButtonGroup bgFiducialParams = new ButtonGroup();
-  private JRadioButton rbBothSides =
-    new JRadioButton("Fiducials on both sides");
-  private JRadioButton rbOneSide =
-    new JRadioButton("Fiducials on one side, NOT inverted");
-  private JRadioButton rbOneSideInverted =
-    new JRadioButton("Fiducials on one side, inverted");
-  private JRadioButton rbUseModel =
-    new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private JPanel pnlImodMatchModels = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
-  private MultiLineButton btnImodMatchModels =
-    new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
-
-  private LabeledTextField ltfFiducialMatchListA =
-    new LabeledTextField("Corresponding fiducial list A: ");
-  private LabeledTextField ltfFiducialMatchListB =
-    new LabeledTextField("Corresponding fiducial list B: ");
+  private SolvematchPanel pnlSolvematch;
 
   private JPanel pnlPatchParams = new JPanel();
   private JRadioButton rbSmallPatch = new JRadioButton("Small patches");
@@ -252,10 +233,9 @@ public class SetupCombinePanel
   private JRadioButton rbLargePatch = new JRadioButton("Large patches");
   private ButtonGroup bgPatchSize = new ButtonGroup();
   private JPanel pnlPatchRegionModel = new JPanel();
-  private JCheckBox cbPatchRegionModel =
-    new JCheckBox("Use patch region model");
-  private MultiLineButton btnPatchRegionModel =
-    new MultiLineButton("<html><b>Create/Edit Patch Region Model</b>");
+  private JCheckBox cbPatchRegionModel = new JCheckBox("Use patch region model");
+  private MultiLineButton btnPatchRegionModel = new MultiLineButton(
+    "<html><b>Create/Edit Patch Region Model</b>");
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -267,38 +247,36 @@ public class SetupCombinePanel
   private int maxZMax = 0;
 
   private JPanel pnlTempDirectory = new JPanel();
-  private LabeledTextField ltfTempDirectory =
-    new LabeledTextField("Temporary directory: ");
+  private LabeledTextField ltfTempDirectory = new LabeledTextField(
+    "Temporary directory: ");
   private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private MultiLineButton btnImodVolumeA = new MultiLineButton("<html><b>3dmod Volume A</b>");
-  private MultiLineButton btnImodVolumeB = new MultiLineButton("<html><b>3dmod Volume B</b>");
-  private MultiLineToggleButton btnCreate =
-    new MultiLineToggleButton("<html><b>Create Combine Scripts</b>");
-  private MultiLineToggleButton btnCombine =
-    new MultiLineToggleButton("<html><b>Start Combine</b>");
+  private MultiLineButton btnImodVolumeA = new MultiLineButton(
+    "<html><b>3dmod Volume A</b>");
+  private MultiLineButton btnImodVolumeB = new MultiLineButton(
+    "<html><b>3dmod Volume B</b>");
+  private MultiLineToggleButton btnCreate = new MultiLineToggleButton(
+    "<html><b>Create Combine Scripts</b>");
+  private MultiLineToggleButton btnCombine = new MultiLineToggleButton(
+    "<html><b>Start Combine</b>");
 
   /**
    * Default constructor
    */
-  public SetupCombinePanel(
-    ApplicationManager appMgr,
-    InitialCombinePanel pnlInitial) {
+  public SetupCombinePanel(TomogramCombinationDialog parent,
+    ApplicationManager appMgr) {
 
+    tomogramCombinationDialog = parent;
     applicationManager = appMgr;
-    initialCombinePanel = pnlInitial;
 
-
-		
     //  Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
-    pnlToSelector.setBorder(
-      new EtchedBorder("Tomogram Matching Relationship").getBorder());
+    pnlToSelector.setBorder(new EtchedBorder("Tomogram Matching Relationship").getBorder());
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.X_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.add(rbBtoA);
@@ -306,42 +284,9 @@ public class SetupCombinePanel
     pnlToSelector.add(pnlRBToSelector);
     pnlToSelector.add(Box.createHorizontalGlue());
 
-    //  Create the fiducial relationship panel
-    pnlFiducialRadio.setLayout(
-      new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-
-    rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
-    rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
-    rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
-    rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    bgFiducialParams.add(rbBothSides);
-    bgFiducialParams.add(rbOneSide);
-    bgFiducialParams.add(rbOneSideInverted);
-    bgFiducialParams.add(rbUseModel);
-    pnlFiducialRadio.add(rbBothSides);
-    pnlFiducialRadio.add(rbOneSide);
-    pnlFiducialRadio.add(rbOneSideInverted);
-    pnlFiducialRadio.add(rbUseModel);
-
-    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
-    pnlImodMatchModels.add(cbBinBy2);
-    pnlImodMatchModels.add(btnImodMatchModels);
-    
-
-    pnlFiducialSelect.setLayout(
-      new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
-    pnlFiducialSelect.add(pnlFiducialRadio);
-    pnlFiducialSelect.add(pnlImodMatchModels);
-
-    pnlFiducialParams.setBorder(
-      new EtchedBorder("Initial Volume Alignment Method").getBorder());
-    pnlFiducialParams.setLayout(
-      new BoxLayout(pnlFiducialParams, BoxLayout.Y_AXIS));
-    pnlFiducialParams.add(pnlFiducialSelect);
-    pnlFiducialParams.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlFiducialParams.add(ltfFiducialMatchListA.getContainer());
-    pnlFiducialParams.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlFiducialParams.add(ltfFiducialMatchListB.getContainer());
+    // Create the solvematch panel
+    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog, appMgr);
+    pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
     rbSmallPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -350,8 +295,8 @@ public class SetupCombinePanel
     bgPatchSize.add(rbSmallPatch);
     bgPatchSize.add(rbMediumPatch);
     bgPatchSize.add(rbLargePatch);
-    pnlPatchParams.setBorder(
-      new EtchedBorder("Patch Parameters for Refining Alignment").getBorder());
+    pnlPatchParams.setBorder(new EtchedBorder(
+      "Patch Parameters for Refining Alignment").getBorder());
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
     JPanel pnlPatchRB = new JPanel();
     pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
@@ -359,15 +304,17 @@ public class SetupCombinePanel
     pnlPatchRB.add(rbMediumPatch);
     pnlPatchRB.add(rbLargePatch);
 
-    pnlPatchRegionModel.setLayout(
-      new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
+    pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel,
+      BoxLayout.X_AXIS));
     pnlPatchRegionModel.add(pnlPatchRB);
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel);
     pnlPatchParams.add(pnlPatchRegionModel);
+    UIUtilities.setButtonSizeAll(pnlPatchRegionModel, UIParameters.dimButton);
 
+    //  Patch boundary
     pnlPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
     pnlPatchRegion.add(ltfXMin.getContainer());
     pnlPatchRegion.add(ltfYMin.getContainer());
@@ -379,17 +326,14 @@ public class SetupCombinePanel
     pnlPatchParams.add(pnlPatchRegion);
 
     //  Create the temporary storage panel
-    pnlTempDirectory.setBorder(
-      new EtchedBorder("Intermediate Data Storage").getBorder());
-    pnlTempDirectory.setLayout(
-      new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
+    pnlTempDirectory.setBorder(new EtchedBorder("Intermediate Data Storage").getBorder());
+    pnlTempDirectory.setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(ltfTempDirectory.getContainer());
     pnlTempDirectory.add(cbManualCleanup);
 
     //  Bind the buttons to the action listener
-    SetupCombineActionListener actionListener =
-      new SetupCombineActionListener(this);
-    btnImodMatchModels.addActionListener(actionListener);
+    SetupCombineActionListener actionListener = new SetupCombineActionListener(
+      this);
     btnPatchRegionModel.addActionListener(actionListener);
     btnImodVolumeA.addActionListener(actionListener);
     btnImodVolumeB.addActionListener(actionListener);
@@ -401,29 +345,9 @@ public class SetupCombinePanel
     rbAtoB.addActionListener(rbMatchToListener);
     rbBtoA.addActionListener(rbMatchToListener);
 
-    RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
-    rbBothSides.addActionListener(rbFiducialListener);
-    rbOneSide.addActionListener(rbFiducialListener);
-    rbOneSideInverted.addActionListener(rbFiducialListener);
-    rbUseModel.addActionListener(rbFiducialListener);
-
     // Bind the patch region model check box to its action listener
     CBPatchListener cbPatchListener = new CBPatchListener(this);
     cbPatchRegionModel.addActionListener(cbPatchListener);
-
-    //  Set the button sizes
-    Dimension dimButton = UIParameters.getButtonDimension();
-    btnImodMatchModels.setPreferredSize(dimButton);
-    btnImodMatchModels.setMaximumSize(dimButton);
-    btnPatchRegionModel.setMaximumSize(dimButton);
-    btnImodVolumeA.setPreferredSize(dimButton);
-    btnImodVolumeA.setMaximumSize(dimButton);
-    btnImodVolumeB.setPreferredSize(dimButton);
-    btnImodVolumeB.setMaximumSize(dimButton);
-    btnCreate.setPreferredSize(dimButton);
-    btnCreate.setMaximumSize(dimButton);
-    btnCombine.setPreferredSize(dimButton);
-    btnCombine.setMaximumSize(dimButton);
 
     //  Button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -436,29 +360,26 @@ public class SetupCombinePanel
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine);
     pnlButton.add(Box.createHorizontalGlue());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.dimButton);
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(brdrContent.getBorder());
 
-    pnlRoot.add(lblEffectWarning);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlToSelector);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlFiducialParams);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlPatchParams);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlTempDirectory);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    UIUtilities.addWithSpace(pnlRoot, lblEffectWarning, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlRoot, pnlToSelector, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlRoot, pnlSolvematch.getContainer(),
+      FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlRoot, pnlPatchParams, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlRoot, pnlTempDirectory, FixedDim.x0_y10);
     pnlRoot.add(Box.createVerticalGlue());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y20));
-    pnlRoot.add(pnlButton);
+    UIUtilities.addWithYSpace(pnlRoot, pnlButton);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
-    updateUseFiducialModel();
+    pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
     updateStartCombine();
     setToolTipText();
@@ -468,6 +389,10 @@ public class SetupCombinePanel
     return pnlRoot;
   }
 
+  /**
+   * Set the parameters of the panel using the combineParams object
+   * @param combineParams
+   */
   public void setParameters(ConstCombineParams combineParams) {
 
     if (combineParams.getMatchBtoA()) {
@@ -479,20 +404,7 @@ public class SetupCombinePanel
       matchBtoA = false;
     }
 
-    if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
-      rbBothSides.setSelected(true);
-    }
-    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
-      rbOneSide.setSelected(true);
-    }
-    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
-      rbOneSideInverted.setSelected(true);
-    }
-    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
-      rbUseModel.setSelected(true);
-    }
-    ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
-    ltfFiducialMatchListB.setText(combineParams.getFiducialMatchListB());
+    pnlSolvematch.setParameters(combineParams);
 
     if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
       rbSmallPatch.setSelected(true);
@@ -503,9 +415,7 @@ public class SetupCombinePanel
     if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
       rbLargePatch.setSelected(true);
     }
-
     cbPatchRegionModel.setSelected(combineParams.usePatchRegionModel());
-
     ltfXMin.setText(combineParams.getPatchXMin());
     ltfXMax.setText(combineParams.getPatchXMax());
     ltfYMin.setText(combineParams.getPatchYMin());
@@ -515,36 +425,25 @@ public class SetupCombinePanel
     maxZMax = combineParams.getMaxPatchZMax();
 
     ltfTempDirectory.setText(combineParams.getTempDirectory());
-
     cbManualCleanup.setSelected(combineParams.getManualCleanup());
 
-    updateUseFiducialModel();
+    pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
     updateStartCombine();
   }
 
+  /**
+   * Get the cobineParams from the panel
+   * @param combineParams
+   * @throws NumberFormatException
+   */
   public void getParameters(CombineParams combineParams)
     throws NumberFormatException {
     String badParameter = "unknown";
     try {
 
       combineParams.setMatchBtoA(rbBtoA.isSelected());
-
-      if (rbBothSides.isSelected()) {
-        combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
-      }
-      if (rbOneSide.isSelected()) {
-        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
-      }
-      if (rbOneSideInverted.isSelected()) {
-        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
-      }
-      if (rbUseModel.isSelected()) {
-        combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
-      }
-
-      combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-      combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+      pnlSolvematch.getParameters(combineParams);
 
       if (rbSmallPatch.isSelected()) {
         combineParams.setPatchSize(CombinePatchSize.SMALL);
@@ -586,105 +485,105 @@ public class SetupCombinePanel
 
   }
 
-  public boolean isUseMatchingModels() {
-    return rbUseModel.isSelected();
-  }
-  
-  public void setUseMatchingModels(boolean state) {
-    if (state) {
-      rbUseModel.setSelected(true);
-    }
-    else {
-      if (rbUseModel.isSelected()) {
-        rbBothSides.setSelected(true); //default for solvematchshift
-      }
-    }
-    updateUseFiducialModel();
-  }
-  
-  public boolean isBinBy2() {
-    return cbBinBy2.isSelected();
-  }
-  public void setBinBy2(boolean state) {
-      cbBinBy2.setSelected(state);
-  }
-  
-  public void setFiducialMatchListA(String fiducialMatchListA) {
-    ltfFiducialMatchListA.setText(fiducialMatchListA);
-  }
-  public String getFiducialMatchListA() {
-    return ltfFiducialMatchListA.getText();
-  }
-  public void setFiducialMatchListB(String fiducialMatchListB) {
-    ltfFiducialMatchListB.setText(fiducialMatchListB);
-  }
-  public String getFiducialMatchListB() {
-    return ltfFiducialMatchListB.getText();
-  }
   public void setUsePatchRegionModel(boolean usePatchRegionModel) {
     cbPatchRegionModel.setSelected(usePatchRegionModel);
     updatePatchRegionModel();
   }
+
   public boolean isUsePatchRegionModel() {
     return cbPatchRegionModel.isSelected();
   }
-  
+
   public void setXMin(String xMin) {
-   ltfXMin.setText(xMin);
+    ltfXMin.setText(xMin);
   }
+
   public String getXMin() {
     return ltfXMin.getText();
   }
-  
+
   public void setXMax(String xMax) {
     ltfXMax.setText(xMax);
   }
+
   public String getXMax() {
     return ltfXMax.getText();
   }
-  
+
   public void setYMin(String yMin) {
     ltfYMin.setText(yMin);
   }
+
   public String getYMin() {
     return ltfYMin.getText();
   }
-  
+
   public void setYMax(String yMax) {
     ltfYMax.setText(yMax);
   }
+
   public String getYMax() {
     return ltfYMax.getText();
   }
-  
+
   public void setZMin(String zMin) {
     ltfZMin.setText(zMin);
   }
+
   public String getZMin() {
     return ltfZMin.getText();
   }
-  
+
   public void setZMax(String zMax) {
     ltfZMax.setText(zMax);
   }
+
   public String getZMax() {
     return ltfZMax.getText();
   }
 
-  
+  // InitialiCombineFields interface pass-thru
+  public boolean isUseMatchingModels() {
+    return pnlSolvematch.isUseMatchingModels();
+  }
+
+  public void setUseMatchingModels(boolean state) {
+    pnlSolvematch.setUseMatchingModels(state);
+  }
+
+  public boolean isBinBy2() {
+    return pnlSolvematch.isBinBy2();
+  }
+
+  public void setBinBy2(boolean state) {
+    pnlSolvematch.setBinBy2(state);
+  }
+
+  public void setFiducialMatchListA(String fiducialMatchListA) {
+    pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
+  }
+
+  public String getFiducialMatchListA() {
+    return pnlSolvematch.getFiducialMatchListA();
+  }
+
+  public void setFiducialMatchListB(String fiducialMatchListB) {
+    pnlSolvematch.setFiducialMatchListB(fiducialMatchListB);
+  }
+
+  public String getFiducialMatchListB() {
+    return pnlSolvematch.getFiducialMatchListB();
+  }
+
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
+    //  Synchronize this panel with the others
+    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup,
+      true, TomogramCombinationDialog.ALL_FIELDS);
+
     String command = event.getActionCommand();
-    if (event
-      .getActionCommand()
-      .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(TomogramCombinationDialog.SETUP_TAB);
-    }
-    if (event
-      .getActionCommand()
-      .equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(
-        TomogramCombinationDialog.SETUP_TAB);
+    if (command.equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel();
     }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
       applicationManager.imodFullVolume(AxisID.FIRST);
@@ -696,13 +595,9 @@ public class SetupCombinePanel
       applicationManager.createCombineScripts();
     }
     if (command.equals(btnCombine.getActionCommand())) {
-      if (rbUseModel.isSelected()) {
-        applicationManager.modelCombine(TomogramCombinationDialog.SETUP_TAB);
-      }
-      else {
-        applicationManager.combine(TomogramCombinationDialog.SETUP_TAB);
-      }
+      applicationManager.combine();
     }
+    //  Check the combine scripts state and set the start button accordingly
     updateStartCombine();
   }
 
@@ -716,41 +611,24 @@ public class SetupCombinePanel
   }
 
   private void updateMatchTo() {
-  	//  Swap the X and Y values if the matching state changes 
-  	if((matchBtoA && rbAtoB.isSelected()) || (!matchBtoA && rbBtoA.isSelected())) {
-  		String temp = ltfXMin.getText();
-  		ltfXMin.setText(ltfYMin.getText());
-			ltfYMin.setText(temp);
-			
-			temp = ltfXMax.getText();
-			ltfXMax.setText(ltfYMax.getText());
-			ltfYMax.setText(temp);
-  	}
+    //  Swap the X and Y values if the matching state changes 
+    if ((matchBtoA && rbAtoB.isSelected())
+      || (!matchBtoA && rbBtoA.isSelected())) {
+      String temp = ltfXMin.getText();
+      ltfXMin.setText(ltfYMin.getText());
+      ltfYMin.setText(temp);
 
-		if(rbAtoB.isSelected()) {
-			matchBtoA = false;
-		}
-		else {
-			matchBtoA = true;
-		}
-  }
+      temp = ltfXMax.getText();
+      ltfXMax.setText(ltfYMax.getText());
+      ltfYMax.setText(temp);
+    }
 
-  /**
-   * Manage fiducial radio button action
-   * 
-   * @param event
-   */
-  private void rbFiducialAction(ActionEvent event) {
-    updateUseFiducialModel();
-  }
-
-  /**
-   * Enable/disable the matching model button
-   */
-  private void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected();
-    btnImodMatchModels.setEnabled(enable);
-    cbBinBy2.setEnabled(enable);
+    if (rbAtoB.isSelected()) {
+      matchBtoA = false;
+    }
+    else {
+      matchBtoA = true;
+    }
   }
 
   /**
@@ -779,45 +657,24 @@ public class SetupCombinePanel
    * Right mouse btn context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
-    String[] manPage =
-      {
-        "solvematch.html",
-        "matchshifts.html",
-        "patchcrawl3d.html",
-        "matchorwarp.html" };
-    String[] logFileLabel =
-      {
-        "Transferfid",
-        "Solvematchshift",
-        "Solvematchmod",
-        "Patchcorr",
-        "Matchorwarp",
-        "Volcombine" };
-    String[] logFile =
-      {
-        "transferfid.log",
-        "solvematchshift.log",
-        "solvematchmod.log",
-        "patchcorr.log",
-        "matchorwarp.log",
-        "volcombine.log" };
+    String[] manPagelabel = {"Solvematch", "Matchshifts", "Patchcrawl3d",
+        "Matchorwarp"};
+    String[] manPage = {"solvematch.html", "matchshifts.html",
+        "patchcrawl3d.html", "matchorwarp.html"};
+    String[] logFileLabel = {"Transferfid", "Solvematchshift", "Solvematchmod",
+        "Patchcorr", "Matchorwarp", "Volcombine"};
+    String[] logFile = {"transferfid.log", "solvematchshift.log",
+        "solvematchmod.log", "patchcorr.log", "matchorwarp.log",
+        "volcombine.log"};
 
-    ContextPopup contextPopup =
-      new ContextPopup(
-        pnlRoot,
-        mouseEvent,
-        "TOMOGRAM COMBINATION",
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFile);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
+      "TOMOGRAM COMBINATION", manPagelabel, manPage, logFileLabel, logFile);
   }
   //	Button action listener
   class SetupCombineActionListener implements ActionListener {
 
     SetupCombinePanel adaptee;
+
     public SetupCombineActionListener(SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
@@ -825,12 +682,12 @@ public class SetupCombinePanel
     public void actionPerformed(ActionEvent event) {
       adaptee.buttonAction(event);
     }
-
   }
 
   class RBMatchToListener implements ActionListener {
 
     SetupCombinePanel adaptee;
+
     public RBMatchToListener(SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
@@ -840,21 +697,10 @@ public class SetupCombinePanel
     }
   }
 
-  class RBFiducialListener implements ActionListener {
-
-    SetupCombinePanel adaptee;
-    public RBFiducialListener(SetupCombinePanel adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbFiducialAction(event);
-    }
-  }
-
   class CBPatchListener implements ActionListener {
 
     SetupCombinePanel adaptee;
+
     public CBPatchListener(SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
@@ -865,89 +711,37 @@ public class SetupCombinePanel
   }
 
   /**
-  * Initialize the tooltip text
-  */
+   * Initialize the tooltip text
+   */
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
-    text =
-      "Transform the B tomogram into the same orientation as the A tomogram.";
+    text = "Transform the B tomogram into the same orientation as the A tomogram.";
     rbBtoA.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Transform the A tomogram into the same orientation as the B tomogram.";
+    text = "Transform the A tomogram into the same orientation as the B tomogram.";
     rbAtoB.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Select this option to find the shifts between volumes with "
-        + "cross-correlation, when there are fiducials distributed in Z.";
-    rbBothSides.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Select this option to find the shifts between volumes with "
-        + "cross-correlation, when the fiducials lie on one surface and the "
-        + "tomograms are not inverted in Z with respect to each other.";
-    rbOneSide.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Select this option to find the shifts between volumes with "
-        + "cross-correlation, when the fiducials lie on one surface and the "
-        + "top of one tomogram in Z corresponds to the bottom of the other.";
-    rbOneSideInverted.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Select this option to use models of corresponding points to find the "
-        + "shifts between volumes, which you would do if cross-correlation is "
-        + "likely to fail.";
-    rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Using binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text = "Create models of corresponding points.";
-    btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Enter the list of fiducials in A for which you know the corresponding "
-        + "fiducial in B.  Use the point number in *fid.xyz, not the contour "
-        + "number.";
-    ltfFiducialMatchListA.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Enter the list of fiducials in B that correspond to the ones in the "
-        + "list entered for A.  Use the point number in *fid.xyz, not the "
-        + "contour number.";
-    ltfFiducialMatchListB.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Use small patches for refining the alignment with correlation - "
-        + "appropriate for feature-rich tomogram from binned CCD camera images "
-        + "or from film.";
+    text = "Use small patches for refining the alignment with correlation - "
+      + "appropriate for feature-rich tomogram from binned CCD camera images "
+      + "or from film.";
     rbSmallPatch.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Use medium patches for refining the alignment with correlation - "
-        + "appropriate for feature-rich tomogram from unbinned CCD camera "
-        + "images.";
+    text = "Use medium patches for refining the alignment with correlation - "
+      + "appropriate for feature-rich tomogram from unbinned CCD camera "
+      + "images.";
     rbMediumPatch.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Use large patches for refining the alignment with correlation - may be "
-        + "needed for tomogram with sparse features.";
+    text = "Use large patches for refining the alignment with correlation - may be "
+      + "needed for tomogram with sparse features.";
     rbLargePatch.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Use a model with contours around the areas where patches should be "
-        + "correlated to prevent bad patches outside those areas.";
+    text = "Use a model with contours around the areas where patches should be "
+      + "correlated to prevent bad patches outside those areas.";
     cbPatchRegionModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Open the volume being matched to and create the patch region model.";
+    text = "Open the volume being matched to and create the patch region model.";
     btnPatchRegionModel.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Minimum X coordinate for left edge of correlation patches.";
@@ -968,14 +762,12 @@ public class SetupCombinePanel
     text = "Maximum Z coordinate for bottom edge of correlation patches.";
     ltfZMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Specify a directory on local disk (e.g., /usr/tmp, or /scratch/myarea) "
-        + "to avoid writing temporary files over a network.";
+    text = "Specify a directory on local disk (e.g., /usr/tmp, or /scratch/myarea) "
+      + "to avoid writing temporary files over a network.";
     ltfTempDirectory.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "If using a temporary directory, select this option if you will want to "
-        + "examine the *.mat file that will be left in it.";
+    text = "If using a temporary directory, select this option if you will want to "
+      + "examine the *.mat file that will be left in it.";
     cbManualCleanup.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Display tomogram from axis A";
@@ -984,9 +776,8 @@ public class SetupCombinePanel
     text = "Display tomogram from axis B";
     btnImodVolumeB.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Run setupcombine to create the com scripts for combining, using the "
-        + "current parameters.";
+    text = "Run setupcombine to create the com scripts for combining, using the "
+      + "current parameters.";
     btnCreate.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Start running the combine operation from the beginning.";

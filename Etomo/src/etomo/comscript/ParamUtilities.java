@@ -1,36 +1,56 @@
 /**
- * <p>Description: </p>
+ * <p>Description: A collection of static utility functions to work with 
+ * Com script parameter objects.  There are four classes of functions:
  * 
+ * 1. setParamIfPresent returns value of the specified parameter from the com
+ *    script if it is present in the comscript, otherwise it returns the "not
+ *    present value" specified in the argument list.  The purpose of these 
+ *    functions is to assist in reading com scripts into parameter objects
+ * 
+ * 2. updateScriptParameter updates the ComScript object with specified
+ *    parameter, deleting the keyword if the specified parameter equals the
+ *    default value.  The purpose of these function is to assist in writing
+ *    out new com scripts </p>
+ * 
+ * 3. valueOf returns the String representation of the parameter handling the
+ *    not present or default case correctly
+ * 
+ * 4. parseType parses a string into the specfied type returning the correct not
+ *    present or default value if the String is null or empty or white space
+ *   
  * <p>Copyright: Copyright(c) 2002, 2003, 2004</p>
  * 
  * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  * 
  * @author $$Author$$
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$
- * <p> $Revision 1.6  2004/05/03 18:01:48  sueh
- * <p> $bug# 418 adding more functions, fixing bugs.
- * <p> $
- * <p> $Revision 1.5  2004/04/29 20:23:12  sueh
- * <p> $bug# 427 corrected Double.NaN comparison.
- * <p> $
- * <p> $Revision 1.4  2004/04/27 00:52:29  sueh
- * <p> $bug# 427 adding update required parameter - vector of strings
- * <p> $
- * <p> $Revision 1.3  2004/04/26 21:18:44  sueh
- * <p> $bug# 427 add updateParameterStrings() for Vectors
- * <p> $containing strings
- * <p> $
- * <p> $Revision 1.2  2004/03/29 20:53:36  sueh
- * <p> $bug# 418 avoid updating a null FortranInputString parameter
- * <p> $
- * <p> $Revision 1.1  2004/03/25 00:48:11  sueh
- * <p> $bug# 409, bug# 418 Utility functions for Param objects
- * <p> $$ </p>
+ * <p> $$Log$$
+ * <p> Revision 1.7  2004/06/09 21:18:12  rickg
+ * <p> Changed upateParameter method to updateScriptParameter
+ * <p> 
+ * <p> Revision 1.6  2004/05/03 18:01:48  sueh
+ * <p> bug# 418 adding more functions, fixing bugs.
+ * <p> 
+ * <p> Revision 1.5  2004/04/29 20:23:12  sueh
+ * <p> bug# 427 corrected Double.NaN comparison.
+ * <p> 
+ * <p> Revision 1.4  2004/04/27 00:52:29  sueh
+ * <p> bug# 427 adding update required parameter - vector of strings
+ * <p> 
+ * <p> Revision 1.3  2004/04/26 21:18:44  sueh
+ * <p> bug# 427 add updateParameterStrings() for Vectors
+ * <p> containing strings
+ * <p> 
+ * <p> Revision 1.2  2004/03/29 20:53:36  sueh
+ * <p> bug# 418 avoid updating a null FortranInputString parameter
+ * <p> 
+ * <p> Revision 1.1  2004/03/25 00:48:11  sueh
+ * <p> bug# 409, bug# 418 Utility functions for Param objects
+ * </p>
  */
 package etomo.comscript;
 
@@ -38,25 +58,90 @@ import java.util.Vector;
 
 public class ParamUtilities {
 
-  public static String getString(double value) {
+  /**
+   * Return the string representation of the int value or an empty string if the
+   * value is the not present value
+   * @param value
+   * @return
+   */
+  public static String valueOf(int value) {
+    if (value == Integer.MIN_VALUE) {
+      return new String();
+    }
+    return String.valueOf(value);
+  }
+  
+  /**
+   * Return the string representation of the float value or an empty string if
+   * the value is the not present value
+   * @param value
+   * @return
+   */
+  public static String valueOf(float value) {
+    if (Float.isNaN(value)) {
+      return new String();
+    }
+    return String.valueOf(value);
+  }
+
+  /**
+   * Return the string representation of the double value or an empty string if
+   * the value is the not present value
+   * @param value
+   * @return
+   */
+  public static String valueOf(double value) {
     if (Double.isNaN(value)) {
       return new String();
     }
     return String.valueOf(value);
   }
 
-  public static String[] getStrings(double[] values) {
+  public static String[] valueOf(double[] values) {
     String[] strings = new String[values.length <= 0 ? 1 : values.length];
     if (values.length == 0) {
       strings[0] = new String();
     }
     for (int i = 0; i < values.length; i++) {
-      strings[i] = getString(values[i]);
+      strings[i] = valueOf(values[i]);
     }
     return strings;
   }
 
-  public static double getDouble(String value) {
+  
+  /**
+   * Parse an integer value from a string, returning the default value the
+   * string is white space
+   * @param value
+   * @return
+   */
+  public static int parseInt(String value) {
+    if (value == null || !value.matches("\\S+")) {
+      return Integer.MIN_VALUE;
+    }
+    return Integer.parseInt(value);
+  }
+
+  /**
+   * Parse a float value from a string returning the default value the string
+   * is white space
+   * @param value
+   * @return
+   */
+  public static float parseFloat(String value) {
+    if (value == null || !value.matches("\\S+")) {
+      return Float.NaN;
+    }
+    return Float.parseFloat(value);
+  }
+
+  /**
+   * Parse a double value from a string returning the default value the string
+   * is white space
+   * @param value
+   * @return
+   */
+  public static double parseDouble(String value) {
     if (value == null || !value.matches("\\S+")) {
       return Double.NaN;
     }
@@ -249,8 +334,47 @@ public class ParamUtilities {
     }
   }
 
+
   /**
    * 
+   * @param scriptCommand
+   * @param key
+   * @param value
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, int value) {
+    
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (!(value == Integer.MIN_VALUE)) {
+      scriptCommand.setValue(key, Integer.toString(value));
+    }
+    else {
+      scriptCommand.deleteKey(key);
+    }
+  }
+
+  /**
+   * @param scriptCommand
+   * @param key
+   * @param value
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, float value) {
+    
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (!Float.isNaN(value)) {
+      scriptCommand.setValue(key, Float.toString(value));
+    }
+    else {
+      scriptCommand.deleteKey(key);
+    }
+  }
+
+  /**
    * @param scriptCommand
    * @param key
    * @param value

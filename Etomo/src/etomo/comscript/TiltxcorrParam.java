@@ -16,6 +16,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/06/09 21:18:12  rickg
+ * <p> Changed upateParameter method to updateScriptParameter
+ * <p>
  * <p> Revision 3.9  2004/05/03 18:02:21  sueh
  * <p> bug# 418 standardizing update parameters, and sets
  * <p>
@@ -320,16 +323,16 @@ public class TiltxcorrParam
   }
 
   public void setFilterRadius1(String filterRadius1) {
-    this.filterRadius1 = ParamUtilities.getDouble(filterRadius1);
+    this.filterRadius1 = ParamUtilities.parseDouble(filterRadius1);
   }
   public void setFilterRadius2(String filterRadius2) {
-    this.filterRadius2 = ParamUtilities.getDouble(filterRadius2);
+    this.filterRadius2 = ParamUtilities.parseDouble(filterRadius2);
   }
   public void setFilterSigma1(String filterSigma1) {
-    this.filterSigma1 = ParamUtilities.getDouble(filterSigma1);
+    this.filterSigma1 = ParamUtilities.parseDouble(filterSigma1);
   }
   public void setFilterSigma2(String filterSigma2) {
-    this.filterSigma2 = ParamUtilities.getDouble(filterSigma2);
+    this.filterSigma2 = ParamUtilities.parseDouble(filterSigma2);
   }
 
   /**

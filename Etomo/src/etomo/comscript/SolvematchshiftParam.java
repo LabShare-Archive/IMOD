@@ -13,6 +13,14 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/05/14 00:51:50  sueh
+ * <p> bug# 434 set matchBToA from toFiducialCoordinatesFile.
+ * <p> Set matchBToA in both parse and update when toFiducialCoordinatesFile
+ * <p> is available.  If update is called before parse, matchBToA is
+ * <p> correct.  If matchBToA, load the first fiducial list into A, otherwise
+ * <p> load it into B.  Also fixed a problem where the first fiducial list
+ * <p> wasn't being updated.
+ * <p>
  * <p> Revision 3.1  2004/04/12 16:50:47  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -82,7 +90,7 @@ public class SolvematchshiftParam
       fiducialMatchListA.parseString(inputArgs[i++].getArgument());;
     }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
-    residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
+    residualThreshold = Float.parseFloat(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
     outputTransformationFile = inputArgs[i++].getArgument();
   }
@@ -206,7 +214,7 @@ public class SolvematchshiftParam
    * Sets the residualThreshold.
    * @param residualThreshold The residualThreshold to set
    */
-  public void setResidualThreshold(double residualThreshold) {
+  public void setResidualThreshold(float residualThreshold) {
     this.residualThreshold = residualThreshold;
   }
 

@@ -1,23 +1,26 @@
-/*
- * Created on Mar 5, 2003
- *
- * To change this generated comment go to 
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
 package etomo.comscript;
 
 /**
- * @author rickg
- *
- * To change this generated comment go to 
- * Window>Preferences>Java>Code Generation>Code and Comments
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002-2004</p>
+ * 
+ * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$ 
  */
+
 public class SolvematchmodParam
   extends ConstSolvematchmodParam
   implements CommandParam {
 
-  /* (non-Javadoc)
-   * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
+  /**
+   * 
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws
@@ -51,7 +54,7 @@ public class SolvematchmodParam
       fiducialMatchListA.parseString(inputArgs[i++].getArgument());
     }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
-    residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
+    residualThreshold = Float.parseFloat(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
     toReconstructionFile = inputArgs[i++].getArgument();
     toMatchingModel = inputArgs[i++].getArgument();
@@ -206,7 +209,7 @@ public class SolvematchmodParam
    * Sets the residualThreshold.
    * @param residualThreshold The residualThreshold to set
    */
-  public void setResidualThreshold(double residualThreshold) {
+  public void setResidualThreshold(float residualThreshold) {
     this.residualThreshold = residualThreshold;
   }
 

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/05/25 23:24:32  rickg
+ * <p> Bug #391 added fiducialess parameter interface and UI objects
+ * <p>
  * <p> Revision 3.7  2004/04/23 19:38:43  rickg
  * <p> Method name change for opening 3dmod on the coarse
  * <p> aligned stack
@@ -263,11 +266,16 @@ public class CoarseAlignDialog extends ProcessDialog
     btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use 3dmod to view the coarsely aligned images.";
     btnImod.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Enable or disable the fiducialess align processing flow.";
+    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use Midas to adjust bad alignments.";
     btnMidas.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
-  //  Action function for stack buttons
+  /**
+   * Action function for process buttons
+   * @param event
+   */
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnCrossCorrelate.getActionCommand())) {
@@ -284,7 +292,6 @@ public class CoarseAlignDialog extends ProcessDialog
     }
   }
 
-  //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneCoarseAlignDialog(axisID);

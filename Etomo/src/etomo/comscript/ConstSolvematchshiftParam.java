@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/05/14 00:45:02  sueh
+ * <p> bug# 434 added a match B to A state variable
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -33,76 +36,76 @@ package etomo.comscript;
  */
 
 public class ConstSolvematchshiftParam {
-	public static final String rcsid =
-		"$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected boolean matchBToA = true;
-	protected String toFiducialCoordinatesFile;
-	protected String fromFiducialCoordinatesFile;
-	protected StringList fiducialMatchListA = new StringList(0);
-	protected StringList fiducialMatchListB = new StringList(0);
-	protected FortranInputString xAxistTilt = new FortranInputString(2);
-	protected double residualThreshold;
-	protected int nSurfaces;
-	protected String outputTransformationFile;
+  protected String toFiducialCoordinatesFile;
+  protected String fromFiducialCoordinatesFile;
+  protected StringList fiducialMatchListA = new StringList(0);
+  protected StringList fiducialMatchListB = new StringList(0);
+  protected FortranInputString xAxistTilt = new FortranInputString(2);
+  protected float residualThreshold;
+  protected int nSurfaces;
+  protected String outputTransformationFile;
 
-	public ConstSolvematchshiftParam() {
-	}
+  public ConstSolvematchshiftParam() {
+  }
 
-	/**
-	 * @return StringList
-	 */
-	public StringList getFiducialMatchListA() {
-		return fiducialMatchListA;
-	}
+  /**
+   * @return StringList
+   */
+  public StringList getFiducialMatchListA() {
+    return fiducialMatchListA;
+  }
 
-	/**
-	 * @return StringList
-	 */
-	public StringList getFiducialMatchListB() {
-		return fiducialMatchListB;
-	}
+  /**
+   * @return StringList
+   */
+  public StringList getFiducialMatchListB() {
+    return fiducialMatchListB;
+  }
 
-	/**
-	 * @return String
-	 */
-	public String getFromFiducialCoordinatesFile() {
-		return fromFiducialCoordinatesFile;
-	}
+  /**
+   * @return String
+   */
+  public String getFromFiducialCoordinatesFile() {
+    return fromFiducialCoordinatesFile;
+  }
 
-	/**
-	 * @return int
-	 */
-	public int getNSurfaces() {
-		return nSurfaces;
-	}
+  /**
+   * @return int
+   */
+  public int getNSurfaces() {
+    return nSurfaces;
+  }
 
-	/**
-	 * @return String
-	 */
-	public String getOutputTransformationFile() {
-		return outputTransformationFile;
-	}
+  /**
+   * @return String
+   */
+  public String getOutputTransformationFile() {
+    return outputTransformationFile;
+  }
 
-	/**
-	 * @return double
-	 */
-	public double getResidualThreshold() {
-		return residualThreshold;
-	}
+  /**
+   * @return float
+   */
+  public float getResidualThreshold() {
+    return residualThreshold;
+  }
 
-	/**
-	 * @return String
-	 */
-	public String getToFiducialCoordinatesFile() {
-		return toFiducialCoordinatesFile;
-	}
+  /**
+   * @return String
+   */
+  public String getToFiducialCoordinatesFile() {
+    return toFiducialCoordinatesFile;
+  }
 
-	/**
-	 * @return FortranInputString
-	 */
-	public FortranInputString getXAxistTilt() {
-		return xAxistTilt;
-	}
+  /**
+   * @return FortranInputString
+   */
+  public FortranInputString getXAxistTilt() {
+    return xAxistTilt;
+  }
 
 }

@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/04/16 01:48:50  sueh
+ * <p> $bug# 409 added startingAndEndingZ (Starting and Ending Views)
+ * <p> $
  * <p> $Revision 1.4  2004/04/12 17:13:46  sueh
  * <p> $bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  reset()
  * <p> $should unset values, not set to comscript defaults.
@@ -64,7 +67,7 @@ public class ConstMTFFilterParam {
     return mtfFile;
   }
   public String getMaximumInverseString() {
-    return ParamUtilities.getString(maximumInverse);
+    return ParamUtilities.valueOf(maximumInverse);
   }
   public String getLowPassRadiusSigmaString() {
     return lowPassRadiusSigma.toString(true);

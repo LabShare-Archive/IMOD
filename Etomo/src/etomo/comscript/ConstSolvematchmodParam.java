@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/05/14 00:44:32  sueh
+ * <p> bug# 434 added a match b to a state variable
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -31,12 +34,13 @@ public class ConstSolvematchmodParam {
     "$Id$";
   
   protected boolean matchBToA = true;
+  
   protected String toFiducialCoordinatesFile;
   protected String fromFiducialCoordinatesFile;
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
   protected FortranInputString xAxistTilt = new FortranInputString(2);
-  protected double residualThreshold;
+  protected float residualThreshold;
   protected int nSurfaces;
   protected String toReconstructionFile;
   protected String toMatchingModel;
@@ -95,9 +99,9 @@ public class ConstSolvematchmodParam {
   }
 
   /**
-   * @return double
+   * @return float
    */
-  public double getResidualThreshold() {
+  public float getResidualThreshold() {
     return residualThreshold;
   }
 

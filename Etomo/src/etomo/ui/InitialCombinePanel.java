@@ -1,23 +1,18 @@
 package etomo.ui;
 
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.comscript.ConstSolvematchmodParam;
-import etomo.comscript.ConstSolvematchshiftParam;
-import etomo.comscript.SolvematchmodParam;
-import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
-import etomo.type.FiducialMatch;
 
 /**
  * <p>Description: </p>
@@ -32,6 +27,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/05/11 21:47:13  sueh
+ * <p> bug# 302 removing print statements
+ * <p>
  * <p> Revision 3.8  2004/05/11 20:57:07  sueh
  * <p> bug# 302
  * <p>
@@ -105,78 +103,36 @@ import etomo.type.FiducialMatch;
  * <p> </p>
  */
 public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
+  private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
 
   private JPanel pnlRoot = new JPanel();
 
-  private JPanel pnlSolvematch = new JPanel();
-
-  private LabeledTextField ltfFiducialMatchListA =
-    new LabeledTextField("Corresponding fiducial list A: ");
-  private LabeledTextField ltfFiducialMatchListB =
-    new LabeledTextField("Corresponding fiducial list B: ");
-
-  private LabeledTextField ltfResidulThreshold =
-    new LabeledTextField("Residual Threshold: ");
-
-  private JPanel pnlModelSelect = new JPanel();
-  private JPanel pnlImodMatchModels = new JPanel();
-  private JCheckBox cbUseModel =
-    new JCheckBox("Use models of corresponding points, not cross-correlation");
-  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
-  private MultiLineButton btnImodMatchModels =
-    new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
+  private SolvematchPanel pnlSolvematch;
 
   private JPanel pnlButton = new JPanel();
-  private MultiLineButton btnMatchcheck =
-    new MultiLineButton("<html><b>View Match Check Volume</b>");
-  private MultiLineButton btnRestart = new MultiLineButton("<html><b>Restart Combine</b>");
-  private MultiLineToggleButton btnMatchvolRestart =
-    new MultiLineToggleButton("<html><b>Restart at Matchvol1</b>");
+  private MultiLineButton btnMatchcheck = new MultiLineButton(
+    "<html><b>View Match Check Volume</b>");
+  private MultiLineButton btnRestart = new MultiLineButton(
+    "<html><b>Restart Combine</b>");
+  private MultiLineToggleButton btnMatchvolRestart = new MultiLineToggleButton(
+    "<html><b>Restart at Matchvol1</b>");
 
   /**
    * Default constructor
    * @param appMgr
    */
-  public InitialCombinePanel(ApplicationManager appMgr) {
-
+  public InitialCombinePanel(TomogramCombinationDialog parent,
+    ApplicationManager appMgr) {
+    tomogramCombinationDialog = parent;
     applicationManager = appMgr;
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
-    //  Set the button sizes
-    Dimension dimButton = UIParameters.getButtonDimension();
-    btnImodMatchModels.setPreferredSize(dimButton);
-    btnImodMatchModels.setMaximumSize(dimButton);
-    btnMatchcheck.setPreferredSize(dimButton);
-    btnMatchcheck.setMaximumSize(dimButton);
-    btnRestart.setPreferredSize(dimButton);
-    btnRestart.setMaximumSize(dimButton);
-    btnMatchvolRestart.setPreferredSize(dimButton);
-    btnMatchvolRestart.setMaximumSize(dimButton);
-
-    pnlSolvematch.setLayout(new BoxLayout(pnlSolvematch, BoxLayout.Y_AXIS));
-    pnlSolvematch.setBorder(
-      new EtchedBorder("Solvematch Parameters").getBorder());
-
-    pnlModelSelect.setLayout(new BoxLayout(pnlModelSelect, BoxLayout.X_AXIS));
-    pnlModelSelect.add(cbUseModel);
-    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
-    pnlImodMatchModels.add(cbBinBy2);
-    pnlImodMatchModels.add(btnImodMatchModels);
-    pnlModelSelect.add(pnlImodMatchModels);
-    pnlSolvematch.add(pnlModelSelect);
-    pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSolvematch.add(ltfFiducialMatchListA.getContainer());
-    pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSolvematch.add(ltfFiducialMatchListB.getContainer());
-    pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSolvematch.add(ltfResidulThreshold.getContainer());
-    pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSolvematch.add(ltfResidulThreshold.getContainer());
+    ///  Create the solvematch panel
+    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog, appMgr);
 
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -187,20 +143,18 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnMatchvolRestart);
     pnlButton.add(Box.createHorizontalGlue());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
 
-    pnlRoot.add(pnlSolvematch);
+    pnlRoot.add(pnlSolvematch.getContainer());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlButton);
     pnlRoot.add(Box.createVerticalGlue());
 
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
-    btnImodMatchModels.addActionListener(buttonAction);
     btnRestart.addActionListener(buttonAction);
     btnMatchvolRestart.addActionListener(buttonAction);
     btnMatchcheck.addActionListener(buttonAction);
-    CheckBoxActionListener checkboxAction = new CheckBoxActionListener(this);
-    cbUseModel.addActionListener(checkboxAction);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -217,117 +171,75 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   }
 
   /**
-   * Set the solvematchshift parameters of the UI 
-   * @param solvematchshiftParam
+   * Set the solvematch parameters from the ConstSolvematchParam object
+   * @param solvematchParam
    */
-  public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParam) {
-    ltfFiducialMatchListA.setText(
-      solvematchshiftParam.getFiducialMatchListA().toString());
-    ltfFiducialMatchListB.setText(
-      solvematchshiftParam.getFiducialMatchListB().toString());
-    ltfResidulThreshold.setText(solvematchshiftParam.getResidualThreshold());
-    cbUseModel.setSelected(false);
+  public void setSolvematchParams(ConstSolvematchParam solvematchParam) {
+    pnlSolvematch.setParameters(solvematchParam);
   }
 
   /**
-   * Get the solvematchshift parameters from the UI
-   * @param solvematchshiftParam
+   * Get the solvematch parameters from the UI
+   * @param solvematchsParam
    */
-  public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParam) {
-    solvematchshiftParam.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-    solvematchshiftParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    solvematchshiftParam.setResidualThreshold(
-      Double.parseDouble(ltfResidulThreshold.getText()));
+  public void getSolvematchParams(SolvematchParam solvematchParam) {
+    pnlSolvematch.getParameters(solvematchParam);
   }
 
-  /**
-   * Set the solvematchmod parameters of the UI 
-   * @param solvematchmodParam
-   */
-  public void setSolvematchmodParams(ConstSolvematchmodParam solvematchmodParam) {
-    ltfFiducialMatchListA.setText(
-      solvematchmodParam.getFiducialMatchListA().toString());
-    ltfFiducialMatchListB.setText(
-      solvematchmodParam.getFiducialMatchListB().toString());
-    ltfResidulThreshold.setText(solvematchmodParam.getResidualThreshold());
-    cbUseModel.setSelected(true);
-  }
-
-  /**
-   * Get the solvematchmod parameters from the UI
-   * @param solvematchmodParam
-   */
-  public void getSolvematchmodParams(SolvematchmodParam solvematchmodParam) {
-    solvematchmodParam.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-    solvematchmodParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    solvematchmodParam.setResidualThreshold(
-      Double.parseDouble(ltfResidulThreshold.getText()));
-  }
-  
   /**
    * Get the combine parameters from the UI
    * @param combineParams
    */
   public void getCombineParameters(CombineParams combineParams) {
-    combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-    combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    if (cbUseModel.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
-    }
+    pnlSolvematch.getParameters(combineParams);
   }
 
-  /**
-   * Set the state of the matching model checkbox.
-   * @param state
-   */
-  public void setUseMatchingModels(boolean state) {
-    cbUseModel.setSelected(state);
-  }
-  
+  // InitialiCombineFields interface pass-thru
   public boolean isUseMatchingModels() {
-    return cbUseModel.isSelected();
+    return pnlSolvematch.isUseMatchingModels();
   }
-  
-  public void setBinBy2(boolean state) {
-    cbBinBy2.setSelected(state);
+
+  public void setUseMatchingModels(boolean state) {
+    pnlSolvematch.setUseMatchingModels(state);
   }
-  
+
   public boolean isBinBy2() {
-    return cbBinBy2.isSelected();
+    return pnlSolvematch.isBinBy2();
   }
+
+  public void setBinBy2(boolean state) {
+    pnlSolvematch.setBinBy2(state);
+  }
+
   public void setFiducialMatchListA(String fiducialMatchListA) {
-    ltfFiducialMatchListA.setText(fiducialMatchListA);
+    pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
   }
+
   public String getFiducialMatchListA() {
-    return ltfFiducialMatchListA.getText();
+    return pnlSolvematch.getFiducialMatchListA();
   }
+
   public void setFiducialMatchListB(String fiducialMatchListB) {
-    ltfFiducialMatchListB.setText(fiducialMatchListB);
+    pnlSolvematch.setFiducialMatchListB(fiducialMatchListB);
   }
+
   public String getFiducialMatchListB() {
-    return ltfFiducialMatchListB.getText();
+    return pnlSolvematch.getFiducialMatchListB();
   }
 
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Solvematch", "Matchshifts" };
-    String[] manPage = { "solvematch.html", "matchshifts.html" };
-    String[] logFileLabel =
-      { "Transferfid", "Solvematchshift", "Solvematchmod" };
-    String[] logFile =
-      { "transferfid.log", "solvematchshift.log", "solvematchmod.log" };
+    String[] manPagelabel = {"Solvematch", "Matchshifts"};
+    String[] manPage = {"solvematch.html", "matchshifts.html"};
+    String[] logFileLabel = {"Transferfid", "Solvematchshift", "Solvematchmod"};
+    String[] logFile = {"transferfid.log", "solvematchshift.log",
+        "solvematchmod.log"};
 
-    ContextPopup contextPopup =
-      new ContextPopup(
-        pnlRoot,
-        mouseEvent,
-        "Initial Problems in Combining",
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFile);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
+      "Initial Problems in Combining", manPagelabel, manPage, logFileLabel,
+      logFile);
   }
 
   /**
@@ -335,46 +247,19 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
    * @param event
    */
   private void buttonAction(ActionEvent event) {
-    if (event
-      .getActionCommand()
-      .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(TomogramCombinationDialog.INITIAL_TAB);
-    }
+    //  Synchronize this panel with the others
+    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
+      true, TomogramCombinationDialog.ALL_FIELDS);
 
-    if (event.getActionCommand().equals(btnMatchcheck.getActionCommand())) {
+    String command = event.getActionCommand();
+    if (command.equals(btnMatchcheck.getActionCommand())) {
       applicationManager.imodMatchCheck();
     }
-
-    if (event.getActionCommand().equals(btnRestart.getActionCommand())) {
-      if (cbUseModel.isSelected()) {
-        applicationManager.modelCombine(TomogramCombinationDialog.INITIAL_TAB);
-      }
-      else {
-        applicationManager.combine(TomogramCombinationDialog.INITIAL_TAB);
-      }
+    if (command.equals(btnRestart.getActionCommand())) {
+      applicationManager.combine();
     }
-    if (event
-      .getActionCommand()
-      .equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1(TomogramCombinationDialog.INITIAL_TAB);
-    }
-  }
-
-  /**
-   * Respond to checkbox actions
-   * @param event
-   */
-  private void checkboxAction(ActionEvent event) {
-    if (event.getActionCommand().equals(cbUseModel.getActionCommand())) {
-      //needs to load data from the screen - use update
-      if (cbUseModel.isSelected()) {
-        //applicationManager.loadSolvematchMod();
-        applicationManager.updateSolvematchmodCom();
-      }
-      else {
-        //applicationManager.loadSolvematchShift();
-        applicationManager.updateSolvematchshiftCom();
-      }
+    if (command.equals(btnMatchvolRestart.getActionCommand())) {
+      applicationManager.matchvol1();
     }
   }
 
@@ -394,72 +279,22 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   }
 
   /**
-   * Checkbox action listener inner class
-   */
-  class CheckBoxActionListener implements ActionListener {
-    InitialCombinePanel listenee;
-
-    CheckBoxActionListener(InitialCombinePanel initialCombinePanel) {
-      listenee = initialCombinePanel;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      listenee.checkboxAction(event);
-    }
-  }
-
-  /**
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
-    text =
-      "Use models of corresponding points instead of cross-correlation to find"
-        + " the shifts between volumes.";
-    cbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text =
-      "Using binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text = "Open both volumes in 3dmod to make models of corresponding points.";
-    btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Enter the list of fiducials in A for which you know the corresponding "
-        + "fiducial in B.  Use the point number in *fid.xyz, not the contour "
-        + "number.";
-    ltfFiducialMatchListA.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Enter the list of fiducials in B that correspond to the ones in the "
-        + "list entered for A.  Use the point number in *fid.xyz, not the "
-        + "contour number.";
-    ltfFiducialMatchListB.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "The highest allowed value for the maximum residual when fitting the "
-        + "pairs of corresponding fiducial points to a linear transformation.";
-    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "View the two volumes that are used for assessing whether Matchshifts "
-        + "found the correct shifts between the volumes.";
+    text = "View the two volumes that are used for assessing whether Matchshifts "
+      + "found the correct shifts between the volumes.";
     btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Restart the combine operation from the beginning with the parameters "
-        + "specified here.";
+    text = "Restart the combine operation from the beginning with the parameters "
+      + "specified here.";
     btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Resume and make first matching volume, despite a small displacement "
-        + "between the match check volumes";
+    text = "Resume and make first matching volume, despite a small displacement "
+      + "between the match check volumes";
     btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }

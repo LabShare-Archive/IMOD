@@ -8,18 +8,19 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
-import etomo.comscript.ConstSolvematchmodParam;
-import etomo.comscript.ConstSolvematchshiftParam;
+import etomo.comscript.ConstSolvematchParam;
+
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
-import etomo.comscript.SolvematchmodParam;
-import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
 
 /**
@@ -35,6 +36,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/05/11 21:38:42  sueh
+ * <p> bug# 302 simplifying logic in synchronize function
+ * <p>
  * <p> Revision 3.6  2004/05/11 21:01:21  sueh
  * <p> bug# 302 adding field set ids
  * <p> standardizing synchronization
@@ -141,10 +145,9 @@ public class TomogramCombinationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
-  public static final int NO_TAB = 0;
-  public static final int SETUP_TAB = 1;
-  public static final int INITIAL_TAB = 2;
-  public static final int FINAL_TAB = 3;
+  public static final String lblSetup = "Setup";
+  public static final String lblInitial = "Initial Match";
+  public static final String lblFinal = "Final Match";
   public static final int ALL_FIELDS = 10;
   public static final int MATCHING_MODEL_FIELDS = 11;
   public static final int PATCH_REGION_MODEL_FIELDS = 12;
@@ -154,25 +157,28 @@ public class TomogramCombinationDialog
   private boolean combinePanelEnabled;
 
   private JTabbedPane tabbedPane = new JTabbedPane();
+  /**
+   * This is the index of the last tab to keep track of what to sync from when
+   * switching tabs
+   */
+  private int idxLastTab;
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST);
 
     // Instantiate the tab pane contents
-    // The initial combine panel needs to be instatiated before the setup panel
-    // because the setup panel calls the initial combine panel 
-    pnlInitial = new InitialCombinePanel(applicationManager);
-    pnlSetup = new SetupCombinePanel(applicationManager, pnlInitial);
-    pnlFinal = new FinalCombinePanel(applicationManager);
+    pnlSetup = new SetupCombinePanel(this, applicationManager);
+    pnlInitial = new InitialCombinePanel(this,  applicationManager);
+    pnlFinal = new FinalCombinePanel(this,  applicationManager);
 
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-
+    
     //  Construct the main panel for this dialog panel
-    tabbedPane.add("Setup", pnlSetup.getContainer());
-    tabbedPane.add("Initial Match", pnlInitial.getContainer());
-    tabbedPane.add("Final Match", pnlFinal.getContainer());
+    tabbedPane.add(lblSetup, pnlSetup.getContainer());
+    tabbedPane.add(lblInitial, pnlInitial.getContainer());
+    tabbedPane.add(lblFinal, pnlFinal.getContainer());
 
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
     JLabel zWarning =
@@ -186,10 +192,19 @@ public class TomogramCombinationDialog
     rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
+    TabChangeListener tabChangeListener = new TabChangeListener(this);
+    tabbedPane.addChangeListener(tabChangeListener);
+    
     // Set the default advanced dialog state
     updateAdvanced(isAdvanced);
+    
+    idxLastTab = tabbedPane.getSelectedIndex();
   }
-
+  
+  /**
+   * Show the specified tab pane
+   * @param paneName
+   */
   public void showPane(String paneName) {
     tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(paneName));
   }
@@ -214,47 +229,27 @@ public class TomogramCombinationDialog
     throws NumberFormatException {
       pnlSetup.getParameters(combineParams);
   }
+
+  /**
+   * Set the solvematch parameters of the UI from the the
+   * ConstSolvematchParams object
+   * @param solvematchshiftParams
+   */
+  public void setSolvematchParams(ConstSolvematchParam solvematchParams) {
+    pnlInitial.setSolvematchParams(solvematchParams);
+  }
   
   /**
-   * Set the solvematchshift parameters of the UI from the the
-   * ConstSolvematchshiftParams object
-   * @param solvematchshiftParams
-   */
-  public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParams) {
-    pnlInitial.setSolvematchshiftParams(solvematchshiftParams);
-  }
-
-  /**
-   * Get the the patchcrawl3d parameters of the UI returning them in the 
-   * modified SolvematchshiftParam object
-   * @param solvematchshiftParams
+   * Get the the solvematch parameters of the UI returning them in the 
+   * modified SolvematchParam object
+   * @param solvematchParams
    * @throws NumberFormatException
    */
-  public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParams)
+  public void getSolvematchParams(SolvematchParam solvematchParams)
     throws NumberFormatException {
-    pnlInitial.getSolvematchshiftParams(solvematchshiftParams);
+    pnlInitial.getSolvematchParams(solvematchParams);
   }
-
-  /**
-   * Set the solvematchmod parameters of the UI from the the
-   * ConstSolvematchmodParams object
-   * @param solvematchmodParams
-   */
-  public void setSolvematchmodParams(ConstSolvematchmodParam solvematchmodParams) {
-    pnlInitial.setSolvematchmodParams(solvematchmodParams);
-  }
-
-  /**
-   * Get the the patchcrawl3d parameters of the UI returning them in the 
-   * modified SolvematchmodParam object
-   * @param solvematchmodParams
-   * @throws NumberFormatException
-   */
-  public void getSolvematchmodParams(SolvematchmodParam solvematchmodParams)
-    throws NumberFormatException {
-    pnlInitial.getSolvematchmodParams(solvematchmodParams);
-  }
-
+  
   /**
    * Set the patchcrawl3D parameters of the UI from the the
    * ConstPatchcrawl3DParam object
@@ -285,26 +280,27 @@ public class TomogramCombinationDialog
   }
   
   public boolean isUseMatchingModels(int fromTab) {
-    if (fromTab == SETUP_TAB) {
+    if (fromTab == tabbedPane.indexOfTab(lblSetup)) {
       return pnlSetup.isUseMatchingModels();
     }
-    if (fromTab == INITIAL_TAB) {
+    if (fromTab == tabbedPane.indexOfTab(lblInitial)) {
       return pnlInitial.isUseMatchingModels();
     }
     return false;
   }
 
   public boolean isBinBy2(int fromTab) {
-    if (fromTab == SETUP_TAB) {
+    if (fromTab == tabbedPane.indexOfTab(lblSetup)) {
       return pnlSetup.isBinBy2();
     }
-    if (fromTab == INITIAL_TAB) {
+    if (fromTab == tabbedPane.indexOfTab(lblInitial)) {
       return pnlInitial.isBinBy2();
     }
     return false;
   }
   
-  public void synchronize(int currentTab) {
+  //  FIXME these are no longer needed
+  /* public void synchronize(int currentTab) {
     synchronize(currentTab, true, ALL_FIELDS);
   }
   public void synchronize(int currentTab, int values) {
@@ -315,6 +311,8 @@ public class TomogramCombinationDialog
     boolean copyFromCurrentTab) {
       synchronize(currentTab, copyFromCurrentTab, ALL_FIELDS);
     }
+  */
+  
   /**
    * synchronizes setup panel to/from initial and final panels
    * @param currentTab
@@ -322,14 +320,10 @@ public class TomogramCombinationDialog
    * to the other tab(s).  False when copying data into the current tab (when
    * running combine on the setup tab).
    */
-  public void synchronize(
-    int currentTab,
+  void synchronize(String tabTitle,
     boolean copyFromCurrentTab,
     int fieldSet) {
-    if (currentTab == NO_TAB) {
-      return;
-    }
-    if (currentTab == SETUP_TAB) {
+    if (tabTitle.equals(lblSetup)) {
       if (copyFromCurrentTab) {
         synchronize(pnlSetup, pnlInitial, fieldSet);
         synchronize(pnlSetup, pnlFinal, fieldSet);
@@ -339,7 +333,7 @@ public class TomogramCombinationDialog
       synchronize(pnlFinal, pnlSetup, fieldSet);
       return;
     }
-    if (currentTab == INITIAL_TAB) {
+    if (tabTitle.equals(lblInitial)) {
       if (copyFromCurrentTab) {
         synchronize(pnlInitial, pnlSetup, fieldSet);
         return;
@@ -347,7 +341,7 @@ public class TomogramCombinationDialog
       synchronize(pnlSetup, pnlInitial, fieldSet);
       return;      
     }
-    if (currentTab == FINAL_TAB) {
+    if (tabTitle.equals(lblFinal)) {
       if (copyFromCurrentTab) {
         synchronize(pnlFinal, pnlSetup, fieldSet);
         return;
@@ -357,7 +351,7 @@ public class TomogramCombinationDialog
     }
   }
   
-  protected void synchronize(
+  private void synchronize(
     InitialCombineFields fromPanel,
     InitialCombineFields toPanel,
     int fieldSet) {
@@ -375,7 +369,7 @@ public class TomogramCombinationDialog
     }
   }
 
-  protected void synchronize(
+  private void synchronize(
     FinalCombineFields fromPanel,
     FinalCombineFields toPanel,
     int fieldSet) {
@@ -432,11 +426,13 @@ public class TomogramCombinationDialog
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
     applicationManager.doneTomogramCombinationDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
     applicationManager.doneTomogramCombinationDialog();
   }
 
@@ -481,5 +477,30 @@ public class TomogramCombinationDialog
         manPage,
         logFileLabel,
         logFileLabel);
+  }
+  
+  /**
+   * Handle tab state changes 
+   * @param event
+   */
+  void tabStateChange(ChangeEvent event){
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
+    //  Set the last tab index to current tab so that we are ready for tab
+    // change
+    idxLastTab = tabbedPane.getSelectedIndex();
+  }
+  
+  /**
+   * Connect tab state changes to the appropriate dialog method
+   */
+  class TabChangeListener implements ChangeListener {
+    TomogramCombinationDialog adaptee;
+    public TabChangeListener(TomogramCombinationDialog dialog) {
+      adaptee = dialog;
+    }
+    
+     public void stateChanged(ChangeEvent event) {
+       adaptee.tabStateChange(event);
+     }
   }
 }

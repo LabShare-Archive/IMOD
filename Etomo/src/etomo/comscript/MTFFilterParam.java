@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2004/06/09 21:18:12  rickg
+ * <p> $Changed upateParameter method to updateScriptParameter
+ * <p> $
  * <p> $Revision 1.6  2004/05/03 18:01:17  sueh
  * <p> $bug# 418 standardizing set function
  * <p> $
@@ -114,7 +117,7 @@ public class MTFFilterParam
     this.mtfFile = new String(mtfFile);
   }
   public void setMaximumInverse(String maximumInverse) {
-    this.maximumInverse = ParamUtilities.getDouble(maximumInverse);
+    this.maximumInverse = ParamUtilities.parseDouble(maximumInverse);
   }
   public void setLowPassRadiusSigma(String lowPassRadiusSigma)
     throws FortranInputSyntaxException {
