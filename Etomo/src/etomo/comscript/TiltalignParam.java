@@ -83,7 +83,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       localRotOption.parse(scriptCommand);
       localRotDefaultGrouping.parse(scriptCommand);
       localRotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          localRotNondefaultGroupString, nondefaultGroupSize,
+          LOCAL_ROT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       tiltOption.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
@@ -92,7 +92,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
           nondefaultGroupIntegerType);
       localTiltDefaultGrouping.parse(scriptCommand);
       localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, localTiltNondefaultGroupString, nondefaultGroupSize,
+          scriptCommand, LOCAL_MAG_DEFAULT_GROUPING_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       magReferenceView.parse(scriptCommand);
       magOption.parse(scriptCommand);
@@ -114,7 +114,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       localXStretchOption.parse(scriptCommand);
       localXStretchDefaultGrouping.parse(scriptCommand);
       localXStretchNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, localXStretchNondefaultGroupString,
+          scriptCommand, LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY,
           nondefaultGroupSize, nondefaultGroupIntegerType);
       skewOption.parse(scriptCommand);
       skewDefaultGrouping.parse(scriptCommand);
@@ -124,7 +124,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       localSkewOption.parse(scriptCommand);
       localSkewDefaultGrouping.parse(scriptCommand);
       localSkewNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, localSkewNondefaultGroupString, nondefaultGroupSize,
+          scriptCommand, LOCAL_SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       residualReportCriterion.parse(scriptCommand);
       surfacesToAnalyze.parse(scriptCommand);
@@ -412,15 +412,15 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         SKEW_NONDEFAULT_GROUP_KEY, skewNondefaultGroup);
     //local optional parameters
     ParamUtilities.updateScriptParameter(scriptCommand,
-        localRotNondefaultGroupString, localRotNondefaultGroup);
+        LOCAL_ROT_NONDEFAULT_GROUP_KEY, localRotNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        localTiltNondefaultGroupString, localTiltNondefaultGroup);
+        LOCAL_MAG_DEFAULT_GROUPING_KEY, localTiltNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localMagNondefaultGroupString, localMagNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        localXStretchNondefaultGroupString, localXStretchNondefaultGroup);
+        LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY, localXStretchNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        localSkewNondefaultGroupString, localSkewNondefaultGroup);
+        LOCAL_SKEW_NONDEFAULT_GROUP_KEY, localSkewNondefaultGroup);
   }
 
   public void initializeDefaults() {
@@ -847,6 +847,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2005/02/18 01:27:38  sueh
+ * <p> bug# 600 Moving parameter names to public statics, so they can be used
+ * <p> for tooltips.
+ * <p>
  * <p> Revision 3.14  2005/01/25 21:43:18  sueh
  * <p> Converting EtomoNumbers parameters to ScriptParameters.
  * <p>
