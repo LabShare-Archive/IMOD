@@ -87,7 +87,6 @@ static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
 
 
-
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
 
@@ -1349,6 +1348,9 @@ void zapButton2(ZapStruct *zap, int x, int y)
   int time;
   int rcrit = 10;   /* Criterion for moving the whole band */
   int dxll, dxur,dyll, dyur;
+  int cz, pz;
+  int curTime = zap->timeLock ? zap->timeLock : vi->ct;
+
   zapGetixy(zap, x, y, &ix, &iy);
 
   if (vi->ax){
@@ -1399,44 +1401,52 @@ void zapButton2(ZapStruct *zap, int x, int y)
       if (!cont)
         return;
       if (iobjFlagTime(obj)){
-        ivwGetTime(zap->vi, &time);
-        cont->type = time;
+        cont->type = curTime;
         cont->flags |= ICONT_TYPEISTIME;
       }
     }
 
+    /* If contour is empty and time doesn't match, 
+       reassign it to the current time */
+    if (zapTimeMismatch(vi, zap->timeLock, obj, cont) && !cont->psize)
+      cont->type = curTime;
+    
     /* If contours are closed and Z has changed, start a new contour */
     /* Also check for a change in time, if time data are being modeled */
     if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)){
       cpoint = imodPointGet(vi->imod);
       if (cpoint){
-        int cz,pz, contim;
         cz = (int)cpoint->z; 
         pz = (int)point.z;
-        ivwGetTime(zap->vi, &time);
-        contim = time;
-        if (iobjFlagTime(obj) && (cont->flags & ICONT_TYPEISTIME))
-          contim = cont->type;
 
-        if (cz != pz || time != contim){
+        if (cz != pz || zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
           if (cont->psize == 1) {
-            wprint("\aStarted a new contour even though last "
-                   "contour had only 1 pt.  Use open "
-                   "contours to model across sections.\n");
+            wprint("Started a new contour even though last "
+                   "contour had only 1 pt.  ");
+            if (cz != pz)
+              wprint("\aUse open contours to model across sections.\n");
+            else
+              wprint("\aSet contour time to 0 to model across times.\n");
           }
           NewContour(vi->imod);
           cont = imodContourGet(vi->imod);
           if (!cont)
             return;
           if (iobjFlagTime(obj)){
-            cont->type = time;
+            cont->type = curTime;
             cont->flags |= ICONT_TYPEISTIME;
           }
         }
-
       }
     }
 
+    /* Now if times still don't match refuse the point */
+    if (zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+      wprint("\aContour time does not match current time.\n"
+             "Set contour time to 0 to model across times.\n");
+      return;
+    }
+    
     pt = vi->imod->cindex.point;
     if (pt >= 0)
       lastz = cont->pts[pt].z;
@@ -1523,6 +1533,7 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 {
   ImodView *vi = zap->vi;
   Icont *cont;
+  Iobj *obj;
   int   pt;
   float ix, iy;
 
@@ -1542,6 +1553,10 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
     if (!cont)
       return;
     if (pt < 0)
+      return;
+
+    obj = imodObjectGet(vi->imod);
+    if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
     /* If the control key is down, delete points under the cursor */
@@ -1766,6 +1781,9 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
 
   dist = imodel_point_dist( lpt, &cpt);
 
+  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+    return;
+
   if ( dist > vi->imod->res){
     pt = vi->imod->cindex.point;
 
@@ -1827,6 +1845,9 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   /* DNM 11/13/02: do not allow operation on scattered points */
   obj = imodObjectGet(vi->imod);
   if (iobjScat(obj->flags))
+    return;
+
+  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
   if (controlDown) {
@@ -2131,7 +2152,6 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
   int pt, radius;
-  int curTime = vi->ct;
   float drawsize;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
@@ -2139,23 +2159,18 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if ((!cont) || (!cont->psize))
     return;
 
-  if (zap->timeLock)
-    curTime = zap->timeLock;
 
   /* check for contours that contian time data. */
   /* Don't draw them if the time isn't right. */
   /* DNM 6/7/01: but draw contours with time 0 regardless of time */
-  if (vi->nt){
-    if (iobjTime(obj->flags)){
-      if (cont->type && (curTime != cont->type))
-        return;
-    }
-  }
+  if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
+    return;
+
 
   /* Open or closed contour */
   // Skip if not wild and not on section
-  if (!iobjScat(obj->flags) && (cont->flags & ICONT_WILD) ||
-        zapPointVisable(zap, &(cont->pts[0]))) {
+  if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) ||
+        zapPointVisable(zap, &(cont->pts[0])))) {
 
     // Draw interior points
     b3dBeginLine();
@@ -2300,18 +2315,12 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   Ipoint *pnt = imodPointGet(vi->imod);
   int imPtSize, modPtSize, backupSize, curSize;
   int x,y;
-  int curTime = vi->ct;
-  int contime;
 
   if (!vi->drawcursor) return;
 
-  if (zap->timeLock)
-    curTime = zap->timeLock;
-  contime = curTime;
-
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
-  if ((App->cvi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
+  if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (double)((int)vi->xmouse + 0.5));
     y = zapYpos(zap, (double)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->foreground);
@@ -2326,12 +2335,10 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
         curSize = backupSize;
           
       /* DNM 6/17/01: display off-time features as if off-section */
-      if (iobjTime(obj->flags) && (cont->flags & ICONT_TYPEISTIME) &&
-          cont->type)
-        contime = cont->type;
       x = zapXpos(zap, pnt->x);
       y = zapYpos(zap, pnt->y);
-      if (zapPointVisable(zap, pnt) && contime == curTime){
+      if (zapPointVisable(zap, pnt) && 
+	  !zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
         b3dColorIndex(App->foreground);
       }else{
         b3dColorIndex(App->shadow);
@@ -2343,20 +2350,17 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   if (zap->showslice){
     b3dColorIndex(App->foreground);
     b3dDrawLine(x, y,
-                zapXpos(zap, zap->vi->slice.zx1+0.5f),
-                zapYpos(zap, zap->vi->slice.zy1+0.5f));
+                zapXpos(zap, vi->slice.zx1+0.5f),
+                zapYpos(zap, vi->slice.zy1+0.5f));
     b3dDrawLine(x, y,
-                zapXpos(zap, zap->vi->slice.zx2+0.5f), 
-                zapYpos(zap, zap->vi->slice.zy2+0.5f));
+                zapXpos(zap, vi->slice.zx2+0.5f), 
+                zapYpos(zap, vi->slice.zy2+0.5f));
     zap->showslice = 0;
   }
 
   /* draw begin/end points for current contour */
   if (cont){
-    if (iobjTime(obj->flags) && (cont->flags & ICONT_TYPEISTIME) &&
-        cont->type)
-      contime = cont->type;
-    if (contime != curTime)
+    if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
     if (cont->psize > 1){
@@ -2577,8 +2581,23 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
   return(0);
 }
 
+/* Return true if there are multiple images, contours have times in this 
+   object, this contour has a non-zero time, and this time does not match
+   current display time, which is either global time or timelock time */
+bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
+{
+  int time = timelock ? timelock : vi->ct;
+  return (vi->nt > 0 && iobjFlagTime(obj) && (cont->flags & ICONT_TYPEISTIME)
+	  && cont->type && (time != cont->type));
+}
+
+
+
 /*
 $Log$
+Revision 4.8  2003/03/04 05:38:48  mast
+cleanup
+
 Revision 4.7  2003/03/04 05:35:48  mast
 Fix current point size bug
 
