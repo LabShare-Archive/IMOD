@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2004/04/22 23:29:40  rickg
+ * Switched getIMODBinPath method
+ *
  * Revision 3.6  2004/04/21 20:27:17  sueh
  * reformatting
  *
@@ -278,7 +281,16 @@ public class ComScriptProcess
 
       // Rename the logfile so that any log file monitor does not get confused
       // by an existing log file
-      renameLogFile();
+      String logFileName = parseBaseName(name, ".com") + ".log";
+      File logFile = new File(workingDirectory, logFileName);
+      File oldLog = new File(workingDirectory, logFileName + "~");
+      try {
+        Utilities.renameFile(logFile, oldLog);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        System.err.println(except.getMessage());
+      }
 
       //  Covert the com script to a sequence of csh commands
       String[] commands;
@@ -329,62 +341,6 @@ public class ComScriptProcess
     //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
     done = true;
-  }
-
-  /**
-   * Rename the log to backup file (tilde)
-   * This need serious work arounds because of the random failure bugs on
-   * windows.  See sun java bugs: 4017593, 4017593, 4042592
-   */
-  private void renameLogFile() {
-    try {
-      Utilities.debugPrint("In renameLogFile");
-      String logFileName = parseBaseName(name, ".com") + ".log";
-
-      // Delete the existing backup file if it exists, otherwise the call will
-      // fail on windows 
-      File oldLog = new File(workingDirectory, logFileName + "~");
-      if (oldLog.exists()) {
-        Utilities.debugPrint(oldLog.getAbsolutePath() + " exists, deleting");
-        if (!oldLog.delete()) {
-          System.err.println("Unable to delete backup log file: "
-              + oldLog.getAbsolutePath());
-          if (oldLog.exists()) {
-            System.err.println(oldLog.getAbsolutePath() + " still exists!");
-          }
-          else {
-            System.err.println(oldLog.getAbsolutePath() + " does not exist!");
-          }
-        }
-      }
-
-      // Rename the existing log file
-      File logFile = new File(workingDirectory, logFileName);
-      if (logFile.exists()) {
-        Utilities.debugPrint(logFile.getAbsolutePath() + " exists");
-
-        if (!logFile.renameTo(oldLog)) {
-          if (logFile.exists()) {
-            System.err.println(logFile.getAbsolutePath() + " still exists");
-          }
-          else {
-            System.err.println(logFile.getAbsolutePath() + " does not exist!");
-          }
-
-          if (oldLog.exists()) {
-            System.err.println(oldLog.getAbsolutePath() + " still exists!");
-          }
-          else {
-            System.err.println(oldLog.getAbsolutePath() + " does not exist");
-          }
-          System.err.println("Unable to rename log file to: "
-              + oldLog.getAbsolutePath());
-        }
-      }
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-    }
   }
 
   /**
