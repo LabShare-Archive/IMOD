@@ -47,6 +47,7 @@ Log at end of file
 #include "imodv.h"
 #include "control.h"
 #include "xcramp.h"
+#include "preferences.h"
 #include "dia_qtutils.h"
 
 #ifdef Q_OS_MACX
@@ -56,6 +57,8 @@ Log at end of file
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
 #endif
+
+static void mapOneNamedColor(int index);
 
 // The numbers are single/double buffer, rgba, colorBits, depthBits, stereo
 static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0};
@@ -120,7 +123,7 @@ void imodSetObjectColor(int ob)
 }
 
 
-/* changes color of given pixel */
+/* changes color of given pixel in color index mode */
 int mapcolor(int color, int red, int green, int blue)
 {
   if (App->rgba) 
@@ -133,15 +136,6 @@ int mapcolor(int color, int red, int green, int blue)
 /* setup the colors to be used. */
 int imod_color_init(ImodApp *ap)
 {
-  /* Set up fixed indexes */
-  ap->background   = IMOD_BACKGROUND;
-  ap->foreground   = IMOD_FOREGROUND;
-  ap->select       = IMOD_SELECT;
-  ap->shadow       = IMOD_SHADOW;
-  ap->endpoint     = IMOD_ENDPOINT;
-  ap->bgnpoint     = IMOD_BGNPOINT;
-  ap->curpoint     = IMOD_CURPOINT;
-  ap->ghost        = IMOD_GHOST;
   ap->objbase      = RAMPMIN - 1;
 
   if (ap->cvi->imod){
@@ -189,14 +183,7 @@ int imod_color_init(ImodApp *ap)
   } else {
 
     /* This is needed if there was no model somehow */
-    mapcolor(ap->select,     255, 255,   0);
-    mapcolor(ap->shadow,     128, 128,   0);
-    mapcolor(ap->endpoint,   255,   0,   0);
-    mapcolor(ap->bgnpoint,     0, 255,   0);
-    mapcolor(ap->curpoint,   255,   0,   0);
-    mapcolor(ap->foreground, 255, 255, 128);
-    mapcolor(ap->background,  64,  64,  96);
-    mapcolor(ap->ghost,       16, 16, 16);
+    mapNamedColors();
   }
 
   imod_info_setbw(ap->cvi->black, ap->cvi->white);
@@ -226,17 +213,31 @@ void imod_cmap(Imod *m)
       m->obj[i].fgcolor = App->objbase + i;
     }
   }
-  mapcolor(App->select,     255, 255,   0);
-  mapcolor(App->shadow,     128, 128,   0);
-  mapcolor(App->endpoint,   255,   0,   0);
-  mapcolor(App->bgnpoint,     0, 255,   0);
-  mapcolor(App->curpoint,   255,   0,   0);
-  mapcolor(App->foreground, 255, 255, 128);
-  mapcolor(App->background,  64,  64,  96);
+  mapNamedColors();
   imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
   return;
 }
 
+// Map all the named colors.  The App members are set up in imod.cpp and
+// the colors now come from preferences
+void mapNamedColors()
+{
+  mapOneNamedColor(App->ghost);
+  mapOneNamedColor(App->select);
+  mapOneNamedColor(App->shadow);
+  mapOneNamedColor(App->endpoint);
+  mapOneNamedColor(App->bgnpoint);
+  mapOneNamedColor(App->curpoint);
+  mapOneNamedColor(App->foreground);
+  mapOneNamedColor(App->background);
+}
+
+// get one color from preferences and call mapcolor with it
+static void mapOneNamedColor(int index)
+{
+  QColor qcol = ImodPrefs->namedColor(index);
+  mapcolor(index, qcol.red(), qcol.green(), qcol.blue());
+}
 
 static int rethink(ImodView *vw)
 {
@@ -537,6 +538,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.15  2004/07/11 18:22:39  mast
+Do not set time when switching to contours with no time
+
 Revision 4.14  2004/07/07 19:25:29  mast
 Changed exit(-1) to exit(3) for Cygwin
 
