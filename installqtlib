@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.16  2003/12/30 17:24:58  mast
+#  Delete stray .libs in windows install
+#
 #  Revision 3.15  2003/12/02 02:07:08  mast
 #  Change the way Qt lib is identified in Windows, give up on Makefiles
 #
@@ -43,6 +46,20 @@
 #
 #
 
+# get the install directory
+#
+set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
+
+#
+# Get list of install files and copy them to install directory
+#
+set instlist = `sed -n '/INSTALL_FILES/s/^.*= *//p' configure`
+if ("$instlist" != "") then
+    foreach i ($instlist)
+        \cp dist/$i $instdir
+    end
+endif
+
 #
 # Get the subdirectory to copy the libraries to, exit if not defined
 #
@@ -52,16 +69,13 @@ if ($#qtlibdir == 0) exit 0
 if ($qtlibdir == "") exit 0
 
 #
-# Get the library extension, but don't worrry if it's not defined
+# Get the library extension, but don't worry if it's not defined
 #
 set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
 
 #
-# get the install directory, and grab the name of the Qt lib from the
-# ever-useful sendevent Makefile
+# Copy DLL's from various places to the install directory
 #
-set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
-
 @ dllnum = 1
 while ($dllnum < 100)
     set dlldir = `sed -n "/DLLSOURCEDIR$dllnum/s/^.*= *//p" configure`
@@ -77,6 +91,9 @@ while ($dllnum < 100)
     @ dllnum++
 end
 
+#
+# grab the name of the Qt lib from the ever-useful sendevent Makefile
+#
 set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
 
 # If the library goes to bin, it is Windows and need to copy a dll
