@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/9/02: Eliminated strange include statements in Fortran programs that were
+needed under VMS.
+
 IMOD_2-7-1
 9/5/02: Fixed some problems with combining: a bug in Corrsearch3d when the
 rotation is close to 45 degrees, the need for an error exit from Findwarp
