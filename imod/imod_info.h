@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/10 20:41:55  mast
+    Merge Qt source
+
     Revision 3.1.2.5  2003/01/27 00:30:07  mast
     Pure Qt version and general cleanup
 
@@ -80,6 +83,7 @@ class InfoWindow : public QMainWindow
   InfoWindow(QWidget * parent = 0, const char * name = 0, 
               WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~InfoWindow() {};
+  void manageMenus();
 
   public slots:
   void fileSlot(int item);
