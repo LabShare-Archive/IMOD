@@ -2,9 +2,10 @@
 c	  
 c	  BOXSTARTEND will clip out volumes of image centered on the starting
 c	  or ending points of model contours, or on all points in a model
-c	  contour.  Each section in such a volume is saved as a separate piece
-c	  of image.  The program can generate two lists of piece coordinates
-c	  to allow the volumes to be examined in two different ways.  One list
+c	  contour.  It can place each volume into a separate file, or stack all
+c	  the extracted volumes into a single output file.  In the latter
+c	  case, the program can generate two lists of piece coordinates to
+c	  allow the volumes to be examined in two different ways.  One list
 c	  will assemble all of the volumes into a single square array, with
 c	  the extracted starting or ending points all appearing on the same
 c	  section.  The other list will display each piece in its true
@@ -66,6 +67,14 @@ c	  .  coordinates of each piece, or Return for no such file
 c
 c	  David Mastronarde 4/23/90 - revised 1/19/93, for IMOD 4/24/97
 c	  for separate files and all point output 10/26/99
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 	include 'nimp_source:model.inc'
 	parameter (idim=128,izdim=128,limpcl=50000)
@@ -185,11 +194,21 @@ c
 	read(*,*)npixbox
 	npleft=(npixbox-1)/2
 	npright=npixbox-npleft-1
+	if (npixbox.gt.idim)then
+	  print *,'BOXSTARTEND ERROR: BOX SIZE TOO LARGE FOR ARRAYS'
+	  call exit(1)
+	endif
 c	  
 	write(*,'(1x,a,$)')'# of sections before and # of sections'//
      &	    ' after endpoint to clip out: '
 	read(*,*)nzbefore,nzafter
 	nzclip=nzbefore+nzafter+1
+	if (nzclip.gt.izdim)then
+	  print *,'BOXSTARTEND ERROR: MUMBER OF SECTIONS',
+     &	      ' TOO LARGE FOR ARRAYS'
+	  call exit(1)
+	endif
+	
 c	  
 	write(*,'(1x,a,$)')'1 to output numbered series of files,'//
      &	    ' 0 for single output file: '
@@ -460,7 +479,8 @@ c
 	  call date(dat)
 	  call time(tim)
 	  chstrnd='starts'
-	  if(ifstrtend.ne.0)chstrnd='ends  '
+	  if(ifstrtend.gt.0)chstrnd='ends  '
+	  if(ifstrtend.lt.0)chstrnd='points'
 c
 c 7/7/00 CER: remove the encodes
 c
@@ -495,6 +515,7 @@ c
 	  enddo
 	  close(3)    
 	endif
-	stop
-99	stop 'read error'
+	call exit(0)
+99	print *,'BOXSTARTEND: ERROR READING FILE'
+	call exit(1)
 	end
