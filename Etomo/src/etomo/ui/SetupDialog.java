@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/06/17 18:49:38  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.13  2004/04/26 03:17:54  rickg
  * <p> Normalized button size
  * <p>
@@ -538,21 +541,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   public MetaData getFields() {
-    MetaData metaData = new MetaData();
-
+    MetaData metaData = getDataset();
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDistortionFile(ltfDistortionFile.getText());
-    metaData.setAxisType(getAxisType());
-
-    //  The dataset name needs to be set after the axis type so the metadata
-    // object modifies the ending correctly
-    if (ltfDataset.getText().startsWith("/")) {
-      metaData.setDatasetName(ltfDataset.getText());
-    }
-    else {
-      metaData.setDatasetName(System.getProperty("user.dir") + "/"
-          + ltfDataset.getText());
-    }
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
@@ -571,6 +562,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
     return metaData;
   }
+  
+  public MetaData getDataset() {
+    MetaData metaData = new MetaData();
+    metaData.setAxisType(getAxisType());
+
+    //  The dataset name needs to be set after the axis type so the metadata
+    // object modifies the ending correctly
+    if (ltfDataset.getText().startsWith("/")) {
+      metaData.setDatasetName(ltfDataset.getText());
+    }
+    else {
+      metaData.setDatasetName(System.getProperty("user.dir") + "/"
+          + ltfDataset.getText());
+    }
+    return metaData;
+  }
+
 
   public boolean isValid() {
     String errorMessageTitle = new String("Setup Dialog Error");
