@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * <p>Description: This object manages the execution of com scripts in the
@@ -28,6 +29,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/05/21 22:56:23  rickg
+ * <p> Initial kill implementation
+ * <p>
  * <p> Revision 2.9  2003/05/13 16:56:04  rickg
  * <p> Use whole command line for transferfid command ID, since 
  * <p> windows/cygwin needs a preceeding tcsh
@@ -512,14 +516,76 @@ public class ProcessManager {
         processID = threadAxisA.getCshProcessID();
       }
     }
-    
-    System.err.println(processID);
+
+    //  Loop over killing the children until there are none left
     if (!processID.equals("")) {
-      SystemProgram killCsh = new SystemProgram("kill -9 " + processID);
-      killCsh.run();
+      String[] children;
+      while ((children = getChildProcessList(processID)) != null) {
+        String killCommand = "kill ";
+        for (int i = 0; i < children.length; i++) {
+          killCommand = killCommand + children[i] + " ";
+        }
+
+        SystemProgram kill = new SystemProgram(killCommand);
+        kill.run();
+      }
+
+      SystemProgram killShell = new SystemProgram("kill " + processID);
+      killShell.run();
     }
   }
-  
+
+  /**
+   * Return a string array of the PIDs of children processes for the specified
+   * process. 
+   * @param processID
+   * @return A string array of the child processes or null if they don't exist
+   */
+  private String[] getChildProcessList(String processID) {
+    //  Run the appropriate version of ps
+    SystemProgram ps = new SystemProgram("ps -l");
+    ps.run();
+
+    //  Find the index of the Parent ID and ProcessID
+    String[] stdout = ps.getStdOutput();
+    String header = stdout[0].trim();
+    String[] labels = header.split("\\s+");
+    int idxPID = -1;
+    int idxPPID = -1;
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].equals("PID")) {
+        idxPID = i;
+      }
+      if (labels[i].equals("PPID")) {
+        idxPPID = i;
+      }
+    }
+    //  Return null if the PID or PPID fields are not found
+    if (idxPPID == -1 || idxPID == -1) {
+      return null;
+    }
+
+    // Walk through the process list finding the PID of the children   
+    ArrayList childrenPID = new ArrayList();
+    String[] fields;
+    for (int i = 1; i < stdout.length; i++) {
+      fields = stdout[i].trim().split("\\s+");
+      if (fields[idxPPID].equals(processID)) {
+        childrenPID.add(fields[idxPID]);
+      }
+    }
+
+    // If there are no children return null
+    if (childrenPID.size() == 0) {
+      return null;
+    }
+
+    // Connvert the ArrayList into a String[]
+    String[] children =
+      (String[]) childrenPID.toArray(new String[childrenPID.size()]);
+    return children;
+  }
+
   /**
    * Run the comand specified by the argument string
    */
