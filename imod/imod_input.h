@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2003/03/13 07:15:16  mast
+    Add raise window function
+
     Revision 3.4  2003/03/13 01:17:46  mast
     Add function to convert keypad keys
 
@@ -61,6 +64,7 @@
 
 #ifndef IMOD_INPUT_H
 #define IMOD_INPUT_H
+typedef struct ViewInfo ImodView;
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
