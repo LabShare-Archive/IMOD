@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2004/06/17 23:55:51  rickg
+ * Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * instantiation
+ *
  * Revision 3.15  2004/06/17 23:34:17  rickg
  * Bug #460 added script starting time to differentiate old data files
  *
@@ -1063,7 +1067,7 @@ public class ProcessManager {
       // that log file has already been moved
       while (!comScriptProcess.isStarted()) {
         try {
-          Thread.sleep(1000);
+          Thread.sleep(100);
         }
         catch (InterruptedException e) {
           break;
