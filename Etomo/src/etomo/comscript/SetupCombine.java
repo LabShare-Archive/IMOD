@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.4  2003/05/07 22:30:06  rickg
  * <p> Don't need to set working directory since it defaults to user.dir
  * <p>
@@ -73,7 +76,7 @@ public class SetupCombine {
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
-    setupcombine = new SystemProgram("setupcombine");
+    setupcombine = new SystemProgram("tcsh -ec setupcombine");
 
     String[] tempStdInput = new String[15];
 
