@@ -56,7 +56,12 @@ Log at end of file
 
 ImodPreferences *ImodPrefs;
 
+#ifdef Q_OS_MACX
+#define IMOD_NAME
+#else
 #define IMOD_NAME "/3dmod/"
+#endif
+
 #define MAX_STYLES 24
 
 #ifdef EXCLUDE_STYLES
@@ -112,7 +117,15 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
 
   // Read the settings
   QSettings settings;
+
+  // The Mac format is not compatible with QT 3.0.5
+  // Need to check if this will work on other systems without breaking old files.
+  // Be sure to modify in saveSettings too
+#ifdef Q_OS_MACX
+  settings.setPath("", "3dmod", QSettings::User);
+#else
   settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
+#endif
   prefs->hotSliderKey = settings.readNumEntry(IMOD_NAME"hotSliderKey", 
                                               prefs->hotSliderKeyDflt,
                                               &prefs->hotSliderKeyChgd);
@@ -290,7 +303,11 @@ void ImodPreferences::saveSettings()
   QString str, str2;
   int i, geomInd, firstEmpty;
 
+#ifdef Q_OS_MACX
+  settings.setPath("", "3dmod", QSettings::User);
+#else
   settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
+#endif
 
   // Get current geometries of info and zap windows
   // first find where in the table this will go
@@ -808,6 +825,9 @@ void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 
 /*
 $Log$
+Revision 1.13  2003/09/25 21:09:19  mast
+Make info window stay on the screen when it is positioned from settings
+
 Revision 1.12  2003/09/24 17:39:52  mast
 Moved log down
 
