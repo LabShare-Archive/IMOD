@@ -1,5 +1,13 @@
 #! /bin/csh -f
 # SHELL SCRIPT TO FINISH JOINING SERIAL SECTION TOMOGRAMS
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 nohup
 set pn = "finishjoin"
 if ($#argv < 3) then
@@ -23,7 +31,9 @@ EOF
 exit 0
 endif
 
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
 
 set rangelist = ""
 set xflist = ""

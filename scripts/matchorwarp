@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/11 00:03:38  mast
+#  Switched to new input method for matchvol/warpvol, added linear
+#  interpolation option
+#
 #  Revision 3.2  2003/03/21 22:45:56  mast
 #  Make sure all error exits has an ERROR: statement and pass on exit status
 #  from running matchvol or warpvol
@@ -18,7 +22,7 @@
 #  and for running in a trial mode
 #
 
-
+nohup
 set patchfile = "patch.out"
 set solvefile = "solve.xf"
 set refinefile = "refine.xf"
@@ -36,7 +40,9 @@ set xupper = "0"
 set zupper = "0"
 set trial = ""
 set pn = "matchorwarp"
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
 
 if ($#argv == 0) then
 cat <<EOF
