@@ -61,7 +61,7 @@ c
 	equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
 	equivalence (cxyzin(1),cxin),(cxyzout(1),cxout)
 	real*4 mfor(3,3),minv(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
-	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
+	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3),delta(3)
 	integer*4 ncubes(3),nxyzcubas(3),nxyzscr(3),nbigcube(3)
 	integer*4 nxyzcube(3,lmcube),ixyzcube(3,lmcube),izsec(4)
 	integer*4 inmin(3),inmax(3)
@@ -104,10 +104,11 @@ c
 c	  
 c	  get true centers of index coordinate systems
 c
+	call irtdel(5,delta)
 	do i=1,3
 	  cxyzin(i)=(nxyzin(i)-1)/2.+indcen(i)-nxyzin(i)/2
 	  cxyzout(i)=(nxyzout(i)-1)/2.
-	  cell(i)=nxyzout(i)
+	  cell(i)=nxyzout(i)*delta(i)
 	  cell(i+3)=90.
 	enddo
 c

@@ -48,7 +48,7 @@ c
 	equivalence (cxyzin(1),cxin),(cxyzout(1),cxout)
 	real*4 mfor(3,3),minv(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
 	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
-	real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3)
+	real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3),delta(3)
 	real*4 aloc(3,3,maxloc),dloc(3,maxloc)
 	real*4 ofsin(3,limout),amx(3,3,limout)
 	integer*4 ncubes(3),nxyzcubas(3),nxyzscr(3),nbigcube(3)
@@ -127,8 +127,11 @@ c
 	dzloc=(zlocmax-zlocst)/max(1,nlocz-1)
 	close(1)
 c
+c	  DNM 7/26/02: transfer pixel spacing to same axes
+c
+	call irtdel(5,delta)
 	do i=1,3
-	  cell(i)=nxyzout(i)
+	  cell(i)=nxyzout(i)*delta(i)
 	  cell(i+3)=90.
 	  cxyzout(i)=nxyzout(i)/2.
 	enddo

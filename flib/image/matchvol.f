@@ -34,6 +34,14 @@ c	  David Mastronarde, 1995
 c	  DNM 2/26/01: add temporary directory entry and semi-unique filenames
 c	  DNM 11/6/01: fixed problem with output array size not being respected
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (inpdim=200,limdim=10000,lmcube=limdim/inpdim)
 	parameter (limout=(inpdim*3)/2)
 	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
@@ -45,7 +53,7 @@ c
 	equivalence (cxyzin(1),cxin),(cxyzout(1),cxout)
 	real*4 mfor(3,3),minv(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
 	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
-	real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3)
+	real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3),delta(3)
 	integer*4 ncubes(3),nxyzcubas(3),nxyzscr(3),nbigcube(3)
 	integer*4 nxyzcube(3,lmcube),ixyzcube(3,lmcube),izsec(4)
 	integer*4 inmin(3),inmax(3)
@@ -122,9 +130,13 @@ c
 	  write(1,102)((minv(i,j),j=1,3),cxyzin(i),i=1,3)
 	  close(1)
 	endif
+c	  
+c	  DNM 7/26/02: transfer pixel spacing to same axes; could be weird
+c	  if spacings are not isotropic
 c
+	call irtdel(5,delta)
 	do i=1,3
-	  cell(i)=nxyzout(i)
+	  cell(i)=nxyzout(i)*delta(i)
 	  cell(i+3)=90.
 	  cxyzin(i)=cxyzin(i)+nxyzin(i)/2.
 	  cxyzout(i)=nxyzout(i)/2.
