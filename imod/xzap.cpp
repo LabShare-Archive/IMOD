@@ -2374,13 +2374,13 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
       if (zapPointVisable(zap, cont->pts)){
         b3dColorIndex(App->bgnpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts->x),
-                      zapYpos(zap, cont->pts->y), curSize);
+                      zapYpos(zap, cont->pts->y), modPtSize);
       }
       if (zapPointVisable(zap, &(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts[cont->psize - 1].x),
                       zapYpos(zap, cont->pts[cont->psize - 1].y), 
-                      curSize);
+                      modPtSize);
       }
     }
   }
@@ -2590,6 +2590,16 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.6  2003/03/03 22:43:43  mast
+Added ability to display spheres for all points with size and eliminated
+separate routine for drawing current contour.
+Made rubber band work by initially defining it, and added cursor changes
+when the rubber band is grabbed.
+Implemented dynamic sizes for current and end point markers.
+Added continuous mouse tracking while the Insert key is down, so it works
+with or without keyboard repeat being set.
+Improved tracking of initial movements with left mouse button.
+
 Revision 4.5  2003/02/28 20:58:55  mast
 adjusting geometry for Windows
 
