@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -33,7 +36,7 @@ class QCheckBox;
 int icfGetAutofill(void);
 unsigned char *icfDoAutofill(ImodView *vw, int cz);
 void imodCacheFillDialog(ImodView *vw);
-void imodCacheFill(ImodView *vw);
+int imodCacheFill(ImodView *vw);
 
 class ImodCacheFill : public DialogFrame
 {
