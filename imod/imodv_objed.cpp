@@ -1733,7 +1733,7 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
 
   QHBox *box = new QHBox(this);
   QPushButton *button = new QPushButton("Done", box);
-  diaSetButtonWidth(button, 1.4, ImodPrefs->getRoundedStyle(), "Done");
+  diaSetButtonWidth(button, ImodPrefs->getRoundedStyle(), 1.4, "Done");
   button->setFocusPolicy(QWidget::NoFocus);
   layout->addWidget(box);
   connect(button, SIGNAL(clicked()), this, SLOT(donePressed()));
@@ -1823,6 +1823,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.19  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.18  2004/09/21 20:22:38  mast
 Implemented interface to multiple and global clipping planes, allowed
 colors to be changed in multiple objects, put object list in scroll view
