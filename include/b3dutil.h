@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/11/04 17:14:21  mast
+Add include of stdio so that FILE is defined
+
 Revision 1.2  2003/11/01 16:41:13  mast
 Add error routines
 
@@ -40,6 +43,12 @@ extern "C" {
   void b3dSetStoreError(int ival);
   void b3dError(FILE *stream, char *format, ...);
   char *b3dGetError();
+
+  int b3dFseek(FILE *fp, int offset, int flag);
+  size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp);
+  size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp);
+  void b3dRewind(FILE *fp);
+  int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
 
 #ifdef __cplusplus
 }
