@@ -1,3 +1,4 @@
+# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT
 # Makefile for building Etomo under the IMOD structure
 #
 # NOTE: that this Makefile only works if run under the IMOD directory
@@ -8,6 +9,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.5  2004/01/22 21:08:13  rickg
+# Use headless mode when running tests.
+#
 # Revision 2.4  2003/10/31 17:19:38  mast
 # *** empty log message ***
 #
@@ -69,19 +73,19 @@ testjarfile: cpimages testcompile
 
 cpimages:
 	if (! (-e $(CLASSPATH)))  mkdir $(CLASSPATH)
-	$(CP) -r $(SOURCEPATH)/images $(CLASSPATH)
+	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
-	
+
 testcompile: 
 	$(JAVAC) -classpath $(TESTPATH) $(SOURCEPATH)/etomo/EtomoTests.java
 
 install: $(JAR_FILE)
-	$(CP) $(JAR_FILE) $(INSTBINDIR)
+	\cp -p $(JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/etomo
-	$(CP) scripts/etomo $(INSTBINDIR)
+	\cp -p scripts/etomo $(INSTBINDIR)
 
 tests: testjarfile
 	java -classpath $(TESTPATH):$(TEST_JAR_FILE) -Djava.awt.headless=true junit.textui.TestRunner etomo.EtomoTests
@@ -93,7 +97,8 @@ javadocs:
 
 .PHONY: clean
 clean:
-	rm -rf bin/etomo/*
+	rm -rf bin/etomo
+	rm -rf bin/images
 	rm -rf doc/javadocs
 	rm -f $(JAR_FILE)
 
