@@ -362,7 +362,7 @@ fsrc :
 	cp -r flib/man $(ARCDIR)_src/flib/
 	(cd flib; tar cBf - \
 	*/Makefile */*/Makefile \
-	*/*.[chfs] */*/*.[chfs] */*.inc */*/*.inc */*/README)\
+	*/*.[chfs] */*/*.[chfs] */*/*.cpp */*.inc */*/*.inc */*/README)\
 	| (cd $(ARCDIR)_src/flib; tar xBf -)
 
 #
@@ -378,6 +378,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.22  2003/10/08 17:18:35  mast
+#  Changes to work with autodoc files
+#
 #  Revision 3.21  2003/09/23 20:57:32  mast
 #  Add entry to pack Mac applications on install
 #
