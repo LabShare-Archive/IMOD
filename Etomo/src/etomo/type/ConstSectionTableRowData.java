@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/23 22:32:17  sueh
+* <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Added
+* <p> description strings to fields that will display error messages.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:34:14  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -122,7 +126,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleTopStart.setDescription("Sample Slices, Top, Start");
     sampleTopEnd.setDescription("Sample Slices, Top, End");
     finalStart.setDescription("Final, Start");
-    finalStart.setRecommendedValue(1);
+    finalStart.setResetValue(1);
     finalEnd.setDescription("Final, End");
     rotationAngleX.setDescription("Rotation Angles, X");
     rotationAngleX.setDefault(0);
