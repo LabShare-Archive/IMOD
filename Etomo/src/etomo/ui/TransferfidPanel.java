@@ -75,7 +75,7 @@ public class TransferfidPanel {
     
     if (includeButton) {
       buttonTransferfid =
-        new MultiLineToggleButton("Transfer fiducials from other axis");
+        new MultiLineToggleButton("Transfer Fiducials From Other Axis");
       buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
       buttonTransferfid.setPreferredSize(FixedDim.button2Line);
       buttonTransferfid.setMaximumSize(FixedDim.button2Line);

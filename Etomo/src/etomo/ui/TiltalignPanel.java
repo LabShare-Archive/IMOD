@@ -33,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/14 20:30:25  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
  * <p> Revision 2.5  2003/10/09 23:21:21  rickg
  * <p> Bug#279  Label layout and name changes
  * <p>
@@ -1131,7 +1134,7 @@ public class TiltalignPanel {
     pnlTiltAngleSolution.add(ltfTiltAngleAdditionalGroups.getContainer());
 
     pnlTiltAngleSolution.setBorder(
-      new EtchedBorder("Tilt angle solution type").getBorder());
+      new EtchedBorder("Tilt Angle Solution Type").getBorder());
 
     //  Layout the global magnification variable parameters
     pnlMagnificationSolution.setLayout(
@@ -1157,7 +1160,7 @@ public class TiltalignPanel {
     pnlMagnificationSolution.add(
       ltfMagnificationAdditionalGroups.getContainer());
     pnlMagnificationSolution.setBorder(
-      new EtchedBorder("Magnification solution type").getBorder());
+      new EtchedBorder("Magnification Solution Type").getBorder());
 
     // Layout the global distortion pane
     createVariablePanel(
@@ -1165,7 +1168,7 @@ public class TiltalignPanel {
       chkDistortion,
       ltfXstretchGroupSize,
       ltfXstretchAdditionalGroups,
-      "Distortion solution type");
+      "Distortion Solution Type");
 
     pnlDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlDistortionSolution.add(ltfSkewGroupSize.getContainer());
@@ -1187,7 +1190,7 @@ public class TiltalignPanel {
     pnlGlobalVariable.add(Box.createVerticalGlue());
     pnlGlobalVariable.add(pnlDistortionSolution);
 
-    tabPane.addTab("Global variables", pnlGlobalVariable);
+    tabPane.addTab("Global Variables", pnlGlobalVariable);
 
   }
 
@@ -1228,7 +1231,7 @@ public class TiltalignPanel {
       chkLocalRotation,
       ltfLocalRotationGroupSize,
       ltfLocalRotationAdditionalGroups,
-      "Local rotation solution type");
+      "Local Rotation Solution Type");
     LocalRotationCheckListener localRotationCheckListener =
       new LocalRotationCheckListener(this);
     chkLocalRotation.addActionListener(localRotationCheckListener);
@@ -1239,7 +1242,7 @@ public class TiltalignPanel {
       chkLocalTiltAngle,
       ltfLocalTiltAngleGroupSize,
       ltfLocalTiltAngleAdditionalGroups,
-      "Local tilt angle solution type");
+      "Local Tilt Angle Aolution Type");
 
     LocalTiltAngleCheckListener localTiltAngleCheckListener =
       new LocalTiltAngleCheckListener(this);
@@ -1251,7 +1254,7 @@ public class TiltalignPanel {
       chkLocalMagnification,
       ltfLocalMagnificationGroupSize,
       ltfLocalMagnificationAdditionalGroups,
-      "Local magnification solution type");
+      "Local Magnification Solution Type");
 
     LocalMagnificationCheckListener localMagnificationCheckListener =
       new LocalMagnificationCheckListener(this);
@@ -1263,7 +1266,7 @@ public class TiltalignPanel {
       chkLocalDistortion,
       ltfLocalXstretchGroupSize,
       ltfLocalXstretchAdditionalGroups,
-      "Local distortion solution type");
+      "Local Distortion Dolution Type");
 
 		pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());

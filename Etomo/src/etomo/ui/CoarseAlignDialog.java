@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/10/14 21:56:05  sueh
+ * <p> Bug273 add tooltips
+ * <p>
  * <p> Revision 2.3  2003/05/23 22:14:55  rickg
  * <p> Added xcorr log file to context menu
  * <p>
@@ -66,13 +69,13 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   private BeveledBorder borderA = new BeveledBorder("Coarse Alignment");
   private CrossCorrelationPanel panelCrossCorrelation;
   private JToggleButton buttonCrossCorrelate =
-    new JToggleButton("<html><b>Calculate<br>cross-correlation</b>");
+    new JToggleButton("<html><b>Calculate<br>Cross-Correlation</b>");
   private JToggleButton buttonCoarseAlign =
-    new JToggleButton("<html><b>Generate coarse<br>aligned stack</b>");
+    new JToggleButton("<html><b>Generate Coarse<br>Aligned Stack</b>");
   private JToggleButton buttonImod =
-    new JToggleButton("<html><b>View aligned<br>stack in 3dmod</b>");
+    new JToggleButton("<html><b>View Aligned<br>Stack In 3dmod</b>");
   private JToggleButton buttonMidas =
-    new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
+    new JToggleButton("<html><b>Fix Alignment<br>With Midas</b>");
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);

@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/10/14 21:56:34  sueh
+ * <p> Bug273 add tooltips
+ * <p>
  * <p> Revision 2.2  2003/10/13 23:00:48  sueh
  * <p> removed PieceListFile, rename fields, move field to advanced
  * <p>
@@ -48,7 +51,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   private JPanel panelAdvanced = new JPanel();
 
   private BeveledBorder borderCoarseAlignment =
-    new BeveledBorder("Cross-correlation");
+    new BeveledBorder("Cross-Correlation");
 
   private JCheckBox chkBoxExcludeCentralPeak =
     new JCheckBox("Exclude central peak due to fixed pattern noise");

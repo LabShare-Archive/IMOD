@@ -26,6 +26,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/10/09 23:23:19  rickg
+ * <p> Fixed context menu (needed to remove transferfid entries)
+ * <p>
  * <p> Revision 2.9  2003/10/07 22:43:13  sueh
  * <p> bug251 moved transferfid from fine alignment dialog
  * <p> to fiducial model dialog
@@ -146,15 +149,15 @@ public class AlignmentEstimationDialog
   private JPanel panelButton = new JPanel();
 
   private JToggleButton buttonComputeAlignment =
-    new JToggleButton("<html><b>Compute alignment</b>");
+    new JToggleButton("<html><b>Compute Alignment</b>");
 
   private JButton buttonImod =
-    new JButton("<html><b>View/Edit model in 3dmod</b>");
+    new JButton("<html><b>View/Edit Model In 3dmod</b>");
 
-  private JButton buttonView3DModel = new JButton("<html><b>View 3D model</b>");
+  private JButton buttonView3DModel = new JButton("<html><b>View 3D Model</b>");
 
   private JButton buttonViewResiduals =
-    new JButton("<html><b>View residual vectors</b>");
+    new JButton("<html><b>View Residual Vectors</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);

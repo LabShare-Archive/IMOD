@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/08 20:49:52  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.2  2003/05/08 00:16:30  rickg
  * <p> Added border for ccderaser panel
  * <p>
@@ -41,7 +44,7 @@ import etomo.comscript.CCDEraserParam;
  * <p> advanced button management now handled by
  * <p> super class
  * <p>
- * <p> Revision 1.5  2002/12/19 00:30:26  rickg
+ * <p> Revisiopn 1.5  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
  * <p> Revision 1.4  2002/11/19 02:40:37  rickg
@@ -67,7 +70,7 @@ public class PreProcessingDialog extends ProcessDialog {
     new JLabel("No digital micrograph files detected:  ");
   private JPanel pnlDMConvert = new JPanel();
   private JCheckBox chkBoxUniqueHeaders =
-    new JCheckBox("Digital Micrograph files have unique headers");
+    new JCheckBox("Digital micrograph files have unique headers");
 
   private JPanel pnlEraser = new JPanel();
   private CCDEraserPanel panelCCDEraser;

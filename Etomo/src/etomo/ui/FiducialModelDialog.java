@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/15 01:34:20  sueh
+ * <p> Bug277 added tooltips
+ * <p>
  * <p> Revision 2.6  2003/10/10 23:17:01  sueh
  * <p> bug251 removing marks
  * <p>
@@ -87,16 +90,16 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
   private JToggleButton buttonTransferFiducials = null;
   JToggleButton buttonSeed =
-    new JToggleButton("<html><b>Seed fiducial<br>model using 3dmod</b>");
+    new JToggleButton("<html><b>Seed Fiducial<br>Model Using 3dmod</b>");
 
   TransferfidPanel panelTransferfid = null;
   BeadtrackPanel panelBeadtrack;
 
   private JToggleButton buttonTrack =
-    new JToggleButton("<html><b>Track fiducial<br>seed model</b>");
+    new JToggleButton("<html><b>Track Fiducial<br>Seed Model</b>");
 
   JToggleButton buttonFixModel =
-    new JToggleButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
+    new JToggleButton("<html><b>Fix Fiducial Model<br>Using Bead Fixer</b>");
 
   private boolean transferfidEnabled = false;
   

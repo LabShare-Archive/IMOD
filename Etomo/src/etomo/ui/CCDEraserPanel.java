@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/13 20:26:52  sueh
+ * <p> bug270
+ * <p> added and changed tooltips
+ * <p>
  * <p> Revision 2.10  2003/10/13 17:00:19  sueh
  * <p> bug269
  * <p> UI Changes
@@ -97,7 +101,7 @@ public class CCDEraserPanel implements ContextMenu {
   private JPanel pnlEraseButtons = new JPanel();
 
   private JCheckBox cbXrayReplacement =
-    new JCheckBox("Automatic X-ray replacement");
+    new JCheckBox("Automatic x-ray replacement");
   private LabeledTextField ltfPeakCriterion =
     new LabeledTextField("Peak criterion:");
   private LabeledTextField ltfDiffCriterion =
@@ -115,9 +119,9 @@ public class CCDEraserPanel implements ContextMenu {
   private LabeledTextField ltfScanCriterion =
     new LabeledTextField("Scan criterion:");
   private JToggleButton btnFindXRays =
-    new JToggleButton("<html><b>Find X-rays (trial mode)</b>");
+    new JToggleButton("<html><b>Find X-rays (Trial Mode)</b>");
   private JButton btnViewXRayModel =
-    new JButton("<html><b>View X-ray model</b>");
+    new JButton("<html><b>View X-ray Model</b>");
 
   private JCheckBox cbManualReplacement = new JCheckBox("Manual replacement");
   private LabeledTextField ltfGlobalReplacementList =
@@ -125,7 +129,7 @@ public class CCDEraserPanel implements ContextMenu {
   private LabeledTextField ltfLocalReplacementList =
     new LabeledTextField("Line replacement list: ");
   private JButton btnCreateModel =
-    new JButton("<html><b>Create manual replacement model</b>");
+    new JButton("<html><b>Create Manual Replacement Model</b>");
 
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputImage =
@@ -137,10 +141,10 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox cbIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JToggleButton btnErase = new JToggleButton("<html><b>Create fixed stack</b>");
-  private JButton btnViewErased = new JButton("<html><b>View fixed stack</b>");
+  private JToggleButton btnErase = new JToggleButton("<html><b>Create Fixed Stack</b>");
+  private JButton btnViewErased = new JButton("<html><b>View Fixed Stack</b>");
   private JToggleButton btnReplaceRawStack =
-    new JToggleButton("<html><b>Use fixed stack</b>");
+    new JToggleButton("<html><b>Use Fixed Stack</b>");
 
   /**
    * Default constructor
@@ -449,7 +453,7 @@ public class CCDEraserPanel implements ContextMenu {
 
     text =
       "Criterion # of SDs above mean pixel-to-pixel difference for "
-        + "erasing a peak based on differences (the default is 10 SDs)";
+        + "erasing a peak based on differences (the default is 10 SDs).";
     ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
