@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdio.h>
 #include <Xm/Xm.h>
 #include <Xm/ArrowBG.h>
@@ -485,6 +493,8 @@ int imod_info_open(int argc, char **argv)
      s3 = XmStringCreateSimple("Colormap...");
      s4 = XmStringCreateSimple("Reload...");
      s5 = XmStringCreateSimple("Flip");
+     s6 = XmStringCreateSimple("Fill Cache");
+     s7 = XmStringCreateSimple("Cache Filler...");
      submenu = XmVaCreateSimplePulldownMenu
 	  (menu, "image_menu", 5, (XtCallbackProc)imod_edit_image_cb,
 	   XmNvisual,   visual,
@@ -492,11 +502,15 @@ int imod_info_open(int argc, char **argv)
 	   XmVaPUSHBUTTON, s3, 'C', NULL, NULL,
 	   XmVaPUSHBUTTON, s4, 'R', NULL, NULL,
 	   XmVaPUSHBUTTON, s5, 'F', NULL, NULL,
+	   XmVaPUSHBUTTON, s6, 'i', NULL, NULL,
+	   XmVaPUSHBUTTON, s7, 'M', NULL, NULL,
 	   NULL);
      XmStringFree(s1);
      XmStringFree(s3);
      XmStringFree(s4);
      XmStringFree(s5);
+     XmStringFree(s6);
+     XmStringFree(s7);
 
      /* Create Window Menu */
      s1 = XmStringCreateSimple("Graph");
