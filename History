@@ -1,9 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/27/05: Added 2D anisotropic diffusion to 3dmod image processing and to clip.
+
+1/27/05: When tilt angles are specified as start and increment values, eTomo
+now provides defaults for the central view number parameters needed when
+transferring fiducials from other axis; it also stores all transferfid
+parameters in the edf file.  Progress monitors have been added for 2D
+filtering, mathvol and matchorwarp steps.
+
+1/26/05: Made imod2vrml produce sphere output for all points that have non-zero
+size.
+
+1/24/05: Fixed bug that crashed imodmesh when the capping exclusion list
+included first and last slices in the model.
+
 1/18/05: IMOD_3-4-18
 1/18/05: Etomo log files can be placed in a chosen directory by defining the
 environment variable ETOMO_LOG_DIR with the path to the directory.  The log
-files will be given a date/time stamp; the directory will be purged to 60 files.
+files will be given a date/time stamp; the directory will be purged to 60 
+files.
 
 1/17/05: Doubled size of model that can be used in Fortran programs.
 
@@ -17,7 +32,7 @@ pieces) up to 10% of frame size, made it check for image size, and increased
 buffer for blendmont and reducemont to hold two 4Kx4K images.
 
 1/14/05: Etomo tomogram generation has a new field to specify additional views
-to exclude
+to exclude.
 
 1/12/05: Fixed clip 2D correlation, broken by changes on 11/4/04.
 

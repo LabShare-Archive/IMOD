@@ -26,6 +26,9 @@ Adjust contrast by scaling intensities.
 .I correlation   
 Do a auto/cross correlation.
 .TP
+.I diffusion
+Do 2d anisotropic diffusion.
+.TP
 .I gradient
 Calculate a gradient as in 3dmod image processing.
 .TP
@@ -186,9 +189,17 @@ Output modes: 'byte', 'short', 'float', 'complex', 'rgb', or 0-4 or 16.
 Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0.
 .TP
+.B -k <value>
+K threshold value for anisotropic diffusion; the default is 2.0.
+.TP
 .B -l <level>
-Level for low  pass filter. Range is (0.0 - 0.71 / pixel).
-The default value is 1.0.
+Level for low pass filter. Range is (0.0 - 0.71 / pixel).
+The default value is 1.0.  With diffusion, this specifies the lambda value or 
+step size; the default is 0.2.
+.TP
+.B -cc <value>
+Specifies type of edge stopping function for diffusion: 1 for exponential
+function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 .TP
 .B -n <value>
 Input number. Use depends on process.
@@ -281,6 +292,24 @@ The -n option selects the type of padding.
 '-n 1' selects padding with mean value. (default)
 Float is the only output mode supported.
 Input sizes must fit fft dimensions.
+.TP
+.B diffusion
+Apply 2D anisotropic diffusion to individual slices, using the Perona
+and Malik diffusion technique.  The number of iterations is specified with the
+.B -n
+option (default 5).  The edge stopping function is selected with the
+.B -cc
+option and can be 1 for the exponential function, 2 for
+the rational function, or 3 for the Tukey biweight function (default 2).  The
+K value for controlling the edge stopping function is entered with the
+.B -k
+option.  For byte data, start with values on the order of 1; the rational edge
+function may require lower values and the Tukey biweight may require larger
+values.  The effect of the value scales proportional to the range of the data.
+The step size, lambda, is specified with the
+.B -l
+option; the default is 0.2, which should be small enough to give stable 
+results.
 .TP
 .B fft
 Calculate a Fast Fourier Transform.
@@ -422,6 +451,7 @@ well-implemented and were abandoned.
 .nf
 Jim Kremer 
 David Mastronarde
+Alejandro Cantarero programmed the anisotropic diffusion.
 .fi
 
 .SH SEE ALSO
