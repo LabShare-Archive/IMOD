@@ -86,6 +86,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.113  2004/12/16 01:29:04  sueh
+ * <p> bug# check whether squeezvol output file is flipped before displaying it in
+ * <p> 3dmod.
+ * <p>
  * <p> Revision 3.112  2004/12/14 21:21:26  sueh
  * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
  * <p> only saving metadata.  bug# 572:  Removing state object from meta data
@@ -1194,12 +1198,12 @@ public class ApplicationManager extends BaseManager {
         return;
       }
       if (metaData.isValid()) {
-        mainPanel.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
         //final initialization of IMOD manager
         imodManager.setMetaData(metaData);
         //set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
+        mainPanel.updateDataParameters(paramFile, metaData);
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedTestParamFile = true;
       }
