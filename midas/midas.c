@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/11/05 23:29:13  mast
+    Changed to call imodCopyright
+
     Revision 3.2  2002/08/19 04:46:10  mast
     Changed number of columns in edge number text box to 4
 
@@ -99,6 +102,32 @@ static XtTranslations keytrans;
 static Widget createMenuBar(Widget window);
 static Widget createControlPanel(Widget parent);
 
+/* Attributes for the visuals that would be OK */
+static int True24[] =
+{
+    GLX_DOUBLEBUFFER, 
+    GLX_RGBA,
+    GLX_RED_SIZE, 8,
+    GLX_GREEN_SIZE, 8,
+    GLX_BLUE_SIZE, 8,
+    None
+};
+static int True12[] =
+{
+    GLX_DOUBLEBUFFER, 
+    GLX_RGBA,
+    GLX_RED_SIZE, 4,
+    GLX_GREEN_SIZE, 4,
+    GLX_BLUE_SIZE, 4,
+    None
+};
+
+/* Order of visuals in priority: single then double buffer, then reduced 
+   depth */
+static int *OpenGLAttribList[] = {
+     True24 + 1, True24, True12 + 1, True12,
+     NULL
+};
 
 
 static void usage(void)
@@ -138,6 +167,7 @@ main (int argc, char **argv)
      int command_height = 800;
      int i;
      int nxfopt = 0;
+     XVisualInfo *visualInfo;
 
 #ifdef NO_IMOD_FORK
      int dofork = 0;
@@ -268,17 +298,34 @@ main (int argc, char **argv)
 
      XtVaSetValues(topLevel, XmNdeleteResponse, XmDO_NOTHING, NULL);
 
-     screen =  DefaultScreenOfDisplay(XtDisplay(topLevel));
+     screen =  DefaultScreenOfDisplay(VW->display);
      width = WidthOfScreen(screen) - 40;
      height = HeightOfScreen(screen) - 90;
      if (width > vw->xsize + command_width)
-	  width = vw->xsize + command_width;
+       width = vw->xsize + command_width;
      if (command_height < vw->ysize)
-	  command_height = vw->ysize;
+       command_height = vw->ysize;
      if (height > command_height)
-	  height = command_height;
+       height = command_height;
      /* printf ("%d %d %d %d %d %d\n", vw->xsize, vw->ysize, width, height,
 	command_width, command_height); */
+
+     /* Find a visual with desirable attributes */
+     for (i = 0; OpenGLAttribList[i] != NULL; i++) {
+       visualInfo = NULL;
+       visualInfo = glXChooseVisual(VW->display, DefaultScreen(VW->display),
+					     OpenGLAttribList[i]);
+
+       /* Insist that the depth be at least 16 */
+       if (visualInfo && visualInfo->depth >=16)
+	 break;
+     }
+
+     if (!visualInfo) {
+	  fprintf(stderr, "%s: couldn't get a suitable rendering visual.\n",
+		  argv[0]);
+	  exit(-1);
+     }
 
      window =  XtVaCreateManagedWidget
 	  ("midas", xmMainWindowWidgetClass, topLevel,
@@ -308,13 +355,16 @@ main (int argc, char **argv)
 	   XmNshadowType, XmSHADOW_IN,
 	   NULL); */
 
+     /* Have it use the supplied visual because GLw is inflexible about
+	choosing EITHER single or double buffer if only one is available */
      vw->glw = XtVaCreateManagedWidget
 	  ("rgbwidget",  glwMDrawingAreaWidgetClass, row,
-	   GLwNrgba, True,
+	   /*  GLwNrgba, True,
 	   GLwNdoublebuffer, False,
 	   GLwNgreenSize, 1,
 	   GLwNredSize, 1,
-	   GLwNblueSize, 1,
+	   GLwNblueSize, 1, */
+	   GLwNvisualInfo, visualInfo,
 	   XmNnavigationType, XmNONE,
 	   XmNtraversalOn, True,
 	   XmNtranslations, transTable,
