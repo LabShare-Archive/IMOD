@@ -210,6 +210,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2004/05/07 23:41:49  mast
+c	  Fixed two uses of uninitialized variables
+c	
 c	  Revision 3.6  2003/06/21 00:39:26  mast
 c	  Changed to use new version of get_tilt_angles
 c	
@@ -408,10 +411,12 @@ c
 c
 	print *,'Specify grouping for mapping of tilt variables'
 	call setgrpsize(tltall,nvuall,0.,boxes)
-	call automap(nvuall,mapalltilt,boxes,mapfiletoview,nfileviews)
+	call automap(nvuall,mapalltilt,boxes,mapfiletoview,nfileviews,
+     &	    0,0,' ',' ')
 c
 	print *,'Specify grouping for mapping of magnification variables'
-	call automap(nvuall,mapallmag,boxes,mapfiletoview,nfileviews)
+	call automap(nvuall,mapallmag,boxes,mapfiletoview,nfileviews,
+     &	    0,0,' ',' ')
 c
 	write(*,'(1x,a,$)')'Minimum # of views required for tilt'//
      &	    ' aligning: '
