@@ -15,6 +15,11 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 21:09:05  rickg
+ * <p> Added sleep to wait for imod process to exit and then
+ * <p> some when.  For some reason the windowID/processID
+ * <p> strings were not available
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -56,6 +61,8 @@ public class ImodProcess {
   private String processID = "";
   private boolean swapYZ = false;
 
+  private Thread imodThread;
+
   /**
    * Dataset only constructor
    * @param A string specifying the path to the projection stack file
@@ -85,86 +92,52 @@ public class ImodProcess {
     //  Reset the window and process ID strings
     windowID = "";
     processID = "";
-    
+
     String stringYZ = "";
     if (swapYZ) {
       stringYZ = "-Y ";
     }
-    String command = "imod -W " + stringYZ + datasetName + " " + modelName;
+    String command = "imod -D -W " + stringYZ + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
     //  Start the imod program thread and wait for it to finish
-    Thread imodThread = new Thread(imod);
+    imodThread = new Thread(imod);
     imodThread.start();
-    try {
-      imodThread.join();
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-    }
 
+    //  Check the stderr of the imod process for the windowID and the
+    String line;
+    while (imodThread.isAlive() && windowID.equals("")) {
 
-    //  Sleep for a little bit to get info from process it doesn't seem that
-    // that the  info is truly avaialble!
-    try {
-      Thread.sleep(500);
-    }
-    catch (InterruptedException e) {
-      System.err.println("Interrupted");
-    }
-    
-    // Check imod's exit code, if it is zero parse the windowID from
-    // stderr stream, otherwise throw an exception describing why the file 
-    // was not loaded
-    if (imod.getExitValue() == 0) {
-
-      String line;
       while ((line = imod.readStderr()) != null) {
-        System.err.println("stderr: " + line);
-
         if (line.indexOf("Window id = ") != -1) {
           String[] words = line.split("\\s+");
           if (words.length < 4) {
             throw (
               new SystemProcessException("Could not parse window ID from imod\n"));
           }
-
           windowID = words[3];
         }
+      }
 
-        if (line.indexOf("Process id ") != -1) {
-          String[] words = line.split("\\s+");
-          if (words.length < 4) {
-            throw (
-              new SystemProcessException("Could not parse process ID from imod\n"));
-          }
-          processID = words[3];
-          System.err.println("processID: " + processID);        
-        }
+      //  Wait a litte while for imod to generate some stderr output
+      try {
+        Thread.sleep(500);
       }
-      if (windowID.equals("")) {
-        throw (
-          new SystemProcessException("Did not find window ID from imod\n"));
-      }
-      if (processID.equals("")) {
-        throw (
-          new SystemProcessException("Did not find process ID from imod\n"));
+      catch (InterruptedException e) {
       }
     }
 
-    //  Non-zero return value from imod
-    else {
+    //  If imod exited before getting the window report the problem to the user
+    if (windowID.equals("")) {
       String message =
         "imod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
-      String line = imod.readStderr();
-      while (line != null) {
+      while ((line = imod.readStderr()) != null) {
+        System.out.println(line);
         message = message + "stderr: " + line + "\n";
-        line = imod.readStderr();
       }
 
-      line = imod.readStdout();
-      while (line != null) {
+      while ((line = imod.readStdout()) != null) {
         message = message + "stdout: " + line + "\n";
         line = imod.readStdout();
       }
@@ -188,26 +161,10 @@ public class ImodProcess {
    * Check to see if this imod process is running
    */
   public boolean isRunning() {
-
-    if (processID == "") {
+    if (imodThread == null) {
       return false;
     }
-
-    SystemProgram checkImod = new SystemProgram("ps -p " + processID);
-    checkImod.run();
-    String[] stdout = checkImod.getStdOutput();
-
-    for (int i = 0; i < stdout.length; i++) {
-      System.err.println(stdout[i]);
-    }
-
-    if (stdout.length < 2) {
-      return false;
-    }
-    if (stdout[1].indexOf("imod") == -1) {
-      return false;
-    }
-    return true;
+    return imodThread.isAlive();
   }
 
   /**
