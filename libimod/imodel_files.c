@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /*
  * Functions                           Discription
@@ -85,7 +93,6 @@ static void byteswap(void *ptr, unsigned size);
 
 #ifdef IMOD_FLOAT_CONVERT
 static void tovmsfloat(unsigned char *ptr);
-static void fromvmsfloat(unsigned char *ptr);
 #endif
 
 Imod *imodFileRead(char *filename)
@@ -1313,8 +1320,11 @@ static void tovmsfloat(unsigned char *data, int amt)
 	  ptr+=4;
      }
 }
+#endif
 
-static void fromvmsfloat(unsigned char *data, int amt)
+/* DNM 12/3/01: turn this from conditionally compiled static fromvmsfloat
+   to a globally compiled function so it is available in imodel_fwrap */
+void imodFromVmsFloats(unsigned char *data, int amt)
 {
      unsigned char exp, temp;
      int i;
@@ -1343,7 +1353,7 @@ static void fromvmsfloat(unsigned char *data, int amt)
 	  ptr+=4;
      }
 }
-#endif
+
 
 /* imod files store floats as 4 bytes 4321 in IEEE format. */
 float imodGetFloat(FILE *fp)
@@ -1374,7 +1384,7 @@ int imodPutFloat(FILE *fp, float *dat)
 int imodPutFloats(FILE *fp, float *buf, int size)
 {
 #ifdef IMOD_FLOAT_CONVERT 
-     convert_write(fromvmsfloat, fp, (unsigned char *)buf, size);
+     convert_write(imodConvertVmsFloat, fp, (unsigned char *)buf, size);
 #else
 #ifdef IMOD_DATA_SWAP
      convert_write(swap_longs, fp, (unsigned char *)buf, size);
