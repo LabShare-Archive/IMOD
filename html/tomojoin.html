@@ -103,6 +103,8 @@ see if there are trends in position within the section that need to be taken
 in to account when aligning across the boundary.  In some cases, this may not
 be needed, and you could choose to extract just one slice that is adequate for
 alignment.  In general, it is safer to be generous in this initial sample.
+These sample slices will also be averaged to produce images that can be used
+for automatic alignment.
      Note that the bottom of the first section and the top of the last section
 will not be extracted because they do not connect to another section.
      At the same time that you are making these choices, you may also be able
@@ -122,6 +124,7 @@ chunk.  To get one transform per section, include the top and bottom samples
 from each section in the same chunk.  In its final message, Makejoincom
 outputs a command line to use to run Midas with the appropriate sizes.  Run
    midas -c size_list join_name.sample join_name.xf
+
 to load the sample file (&quot;join_name.sample&quot;) into Midas and make the output
 file for transforms be &quot;join_name.xf&quot;.  For each section boundary, it will
 initially show the slice from the top of the lower section as the &quot;reference
@@ -132,6 +135,37 @@ structures, and to switch the pair of slices after you have started aligning.
 Use the up and down arrows on the spin boxes, or the &quot;a&quot;, &quot;b&quot;, &quot;c&quot;, and &quot;d&quot;
 hot keys to move forward and back through the slices in the two sections.
 Use the &quot;Current chunk&quot; spin box to switch to a different section boundary.
+
+Using Automatic Alignment
+     The startjoin command file includes commands to average the slices from
+the top and bottom of each section and stack the averages in a file,
+join_name.sampavg.  These averages can be used to determine the alignment
+automatically with the program Xfalign.  Xfalign could be useful at two
+stages: getting an initial alignment that might need refinement by hand, or
+refining an approximate alignment that you have made with Midas.  To use
+Xfalign for the first stage, enter
+   xfalign -tomo -pre join_name.sample join_name.xf
+
+The &quot;-tomo&quot; argument tells it that the images are samples from serial section
+tomograms, so that it will align only between sections and produce one
+transform per tomogram.  The &quot;-pre&quot; argument tells it do a prealignment by
+cross-correlation.
+
+     When you run Midas to check the alignment after this operation, using the 
+command given above, you may find that some or all of the transformations are
+useless.  If so, use the menu entry &quot;Edit - Reset to unit transform&quot; to get rid
+of a bad transformation, and realign manually.
+
+     If you find it difficult to correct for stretching in Midas, you can try
+using Xfalign to refine the transformation after you have gotten it nearly
+correct.  Enter
+   xfalign -tomo -ini join_name.xf join_name.sample join_name.xf
+
+Here, the &quot;-ini join_name.xf&quot; argument tells it to start with the existing
+transformations.  The new transformations will be put into a new file by the
+same name and the old file will be renamed to join_name.xf~.  Run Midas again
+to check the alignment.  If the alignments are bad, restore the join_name.xf
+file from the backup file join_name.xf~.
 
 Making the Final Joined Volume
      Once you have found the transformations and exited Midas, you need only to
