@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/07/25 22:52:37  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.6  2003/06/25 22:15:32  rickg
  * <p> Manage all tilt parameters
  * <p>
@@ -898,5 +901,20 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void useAngleOffsets(boolean b) {
     useAngleOffsets = b;
   }
+
+  /**
+   * @param scaleCoeff
+   */
+  public void setScaleCoeff(double scaleCoeff) {
+    this.scaleCoeff = scaleCoeff;
+  }
+
+  /**
+   * @param scaleFLevel
+   */
+  public void setScaleFLevel(double scaleFLevel) {
+    this.scaleFLevel = scaleFLevel;
+  }
+
 
 }
