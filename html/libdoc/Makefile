@@ -8,7 +8,6 @@ all :
 #	../../sourcedoc/$(SOURCEDOC_EXE) testin.html testout.html
 #	../../sourcedoc/$(SOURCEDOC_EXE) -f testfin.html testfout.html
 
-# Remove output files from help directory
 clean :
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
