@@ -94,6 +94,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.136  2005/03/09 22:45:34  sueh
+ * <p> bug# 533 In newst() running blend instead of newst when doing a montage.
+ * <p>
  * <p> Revision 3.135  2005/03/09 17:58:16  sueh
  * <p> bug# 533 In done functions, only update newst when the view type is not
  * <p> montage.  ProcessManager.crossCorrelate needs to know whether
@@ -2245,7 +2248,9 @@ public class ApplicationManager extends BaseManager {
    * @return
    */
   private void updateBlendCom(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
+    tomogramGenerationDialog.getBlendParams(blendParam);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
   }
@@ -3174,8 +3179,10 @@ public class ApplicationManager extends BaseManager {
     // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
-    comScriptMgr.loadNewst(axisID);
-    tomogramPositioningDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      comScriptMgr.loadNewst(axisID);
+      tomogramPositioningDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+    }
 
     // Get the align{|a|b}.com parameters
     comScriptMgr.loadAlign(axisID);
@@ -3231,7 +3238,8 @@ public class ApplicationManager extends BaseManager {
       if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
         return;
       }
-      if (updateNewstCom(tomogramPositioningDialog, axisID) == null) {
+      if (metaData.getViewType() != ViewType.MONTAGE
+          && updateNewstCom(tomogramPositioningDialog, axisID) == null) {
         return;
       }
 
@@ -3846,6 +3854,7 @@ public class ApplicationManager extends BaseManager {
     // correctly scale the dimensions
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadBlend(axisID);
+      tomogramGenerationDialog.setBlendParams(comScriptMgr.getBlendParam(axisID));
     }
     else {
       comScriptMgr.loadNewst(axisID);
@@ -3888,8 +3897,13 @@ public class ApplicationManager extends BaseManager {
       if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
         return;
       }
-      if (metaData.getViewType() != ViewType.MONTAGE && updateNewstCom(axisID) == null) {
-        return;
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        updateBlendCom(axisID);
+      }
+      else {
+        if (updateNewstCom(axisID) == null) {
+          return;
+        }
       }
       if (!updateTiltCom(axisID, true)) {
         return;
