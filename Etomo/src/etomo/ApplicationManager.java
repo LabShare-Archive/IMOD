@@ -86,6 +86,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2004/05/21 21:55:13  sueh
+ * <p> bug# 443 setting the output file name in tilta.com when
+ * <p> running sample
+ * <p>
  * <p> Revision 3.55  2004/05/21 02:21:38  sueh
  * <p> bug# 83 removing generic progress bar
  * <p>
@@ -3013,8 +3017,8 @@ public class ApplicationManager {
       String inputFileName;
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFileName = metaData.getDatasetName() + AxisID.ONLY + ".ali";
-        outputFileName = metaData.getDatasetName() + AxisID.ONLY + "_filt.ali";
+        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension() + ".ali";
+        outputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension() + "_filt.ali";
       }
       else {
         inputFileName = metaData.getDatasetName() + axisID.getExtension()
