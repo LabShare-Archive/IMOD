@@ -1,47 +1,21 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  clip_proc.c -- Processing functions for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.6  2004/04/22 19:08:45  mast
-Added error checks and returns on mrc I/O calls
-
-Revision 3.5  2004/01/17 20:32:33  mast
-Remove unneeded rewind
-
-Revision 3.4  2004/01/16 18:09:52  mast
-Added functions to split and join rgb images
-
+Log at end of file
 */
 
 #include <limits.h>
@@ -51,6 +25,7 @@ Added functions to split and join rgb images
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #include "mrcspectral.h"
+#include "b3dutil.h"
 #include "clip.h"
 
 #ifndef FLT_MIN
@@ -83,359 +58,419 @@ int grap_resize(struct MRCheader *hin, struct MRCheader *hout,
   return(0);
 }
 
-#ifdef USE_grap_oresize
-int grap_oresize(struct MRCheader *hin, struct MRCheader *hout,
-                 struct Grap_options *opt)
+/*
+ * Common routine for the rescaling options
+ */
+int clip_scaling(struct MRCheader *hin, struct MRCheader *hout,
+                    struct Grap_options *opt, int process)
 {
-  struct MRCvolume v;
-  struct MRCslice *s;
-  Ival val;
-  int i, j, k, x, y, z;
-  int zo, ks;
-  int xe, ye, xs, ys, zs, ze, msize;
-
-  if (opt->ix == IP_DEFAULT) opt->ix = hin->nx;
-  if (opt->iy == IP_DEFAULT) opt->iy = hin->ny;
-  if (opt->iz == IP_DEFAULT) opt->iz = hin->nz;
-  if (opt->cx == IP_DEFAULT) opt->cx = hin->nx / 2;
-  if (opt->cy == IP_DEFAULT) opt->cy = hin->ny / 2;
-  if (opt->cz == IP_DEFAULT) opt->cz = hin->nz / 2;
-  if (opt->ox == IP_DEFAULT) opt->ox = hin->nx;
-  if (opt->oy == IP_DEFAULT) opt->oy = hin->ny;
-  if (opt->oz == IP_DEFAULT) opt->oz = hin->nz;
-     
-  val[0] = hin->amean;
-  val[1] = hin->amean;
-  val[2] = hin->amean;
-
-  xs = (opt->ox > opt->ix) ? (opt->ox - opt->ix) / 2 : 0;
-  msize = (opt->ox > opt->ix) ? opt->ix : opt->ox;
-  xe = xs + msize;
-  ys = (opt->oy > opt->iy) ? (opt->oy - opt->iy) / 2 : 0;
-  msize = (opt->oy > opt->iy) ? opt->iy : opt->oy;
-  ye = ys + msize;
-  zs = (opt->oz > opt->iz) ? (opt->oz - opt->iz) / 2 : 0;
-  msize = (opt->oz > opt->iz) ? opt->iz : opt->oz;
-  ze = zs + msize;
-
-  v.vol = (struct MRCslice **)malloc( opt->oz * sizeof(struct MRCslice *));
-  v.zsize = opt->oz;
-
-  for( k = 0; k < opt->oz; k++){
-    v.vol[k] = mrc_slice_create(opt->ox, opt->oy, hin->mode);
-    if (!v.vol[k])
-      return(-1);
-    if (opt->sano)
-      for( j = 0; j < opt->oy; j++)
-        for(i = 0; i < opt->ox; i++)
-          slicePutVal(v.vol[k], i, j, val);
-		    
-  }
-
-  s = mrc_slice_create(hin->nx, hin->ny, hin->mode);
-  if (!s)
-    return(-1);
-  k = opt->cz - (opt->iz / 2);
-  z = zs;
-
-  for(k = opt->cz - (opt->oz / 2) + zs, z = zs; k < ks, z < ze; k++, z++){
-    if ( (k >= 0) && (k < hin->nz) && (z >= 0) && (z < opt->oz)){
-      if (mrc_read_slice((void *)s->data.b, hin->fp, hin, k, 'z'))
-        return -1;
-
-      for (j = opt->cy - (opt->oy/2), y = ys; 
-           j < s->ysize, y < ye; j++, y++){
-        for (i = opt->cx - (opt->ox / 2) , x = xs;
-			 i < s->xsize, x < xe; i++, x++){
-          sliceGetVal(s, i, j, val);
-          slicePutVal(v.vol[z], x, y, val);
-        }
-      }
-    }
-  }
-
-  mrc_slice_free(s);
-  mrc_head_new(hout, opt->ox, opt->oy, opt->oz, hin->mode);
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "grap: resize");
-  write_vol(v.vol, hout);
-  free_vol(v.vol, v.zsize);
-
-  return(0);
-}
-#endif
-
-int clip_brightness(struct MRCheader *hin, struct MRCheader *hout,
-                    struct Grap_options *opt)
-{
-  int k;
+  int k, z;
+  Islice *slice;
   struct MRCvolume *v;
   double min, alpha;
 
-  if (opt->dim == 2)
-    return(clip2d_brightness(hin,hout,opt));
+  /* Set up new header for 2D */
+  if (opt->dim == 2) {
+    set_input_options(opt, hin);
+    z = set_output_options(opt, hout);
+    if (z < 0)
+      return(z);
+  }
 
-  v = grap_volume_read(hin, opt);
-  if (!v){
+  /* Copy header, give message, add title */
+  mrc_head_label_cp(hin, hout);
+
+  switch (process) {
+  case IP_BRIGHTNESS:
+    show_status("Brightness...\n");
+    mrc_head_label(hout, "clip: brightness");
+    min = hin->amin;
+    break;
+  case IP_SHADOW:
+    show_status("Shadow...\n");
+    mrc_head_label(hout, "clip: shadow");
+    min = hin->amax;
+    break;
+  case IP_CONTRAST:
+    show_status("Contrast...\n");
+    mrc_head_label(hout, "clip: contrast");
+    min = hin->amean;
+    break;
+  default:
     return(-1);
   }
 
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "clip brightness");
-  min = hin->amin;
-
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-  alpha = opt->val;
-  for (k = 0; k < v->zsize; k++){
-    mrc_slice_lie(v->vol[k], min, alpha);
-  }
-  if (grap_volume_write(v, hout, opt)) 
-    return(-1); 
-  set_mrc_coords(opt);  
-  grap_volume_free(v);
-  return(0);
-}
-
-int clip2d_brightness(struct MRCheader *hin, struct MRCheader *hout,
-                      struct Grap_options *opt)
-{
-  Islice *slice;
-  int k, z;
-  double alpha;
-
-  set_input_options(opt, hin);
-  z = set_output_options(opt, hout);
-  if (z < 0)
-    return(z);
   if (opt->val == IP_DEFAULT){
     opt->val = 1.0f;
   }
   alpha = opt->val;
 
-  show_status("Brightness...\n");
+  if (opt->dim == 3) {
+  
+    /* 3D processing based on global min/max/mean */
+    v = grap_volume_read(hin, opt);
+    if (!v){
+      return(-1);
+    }
+    
+    for (k = 0; k < v->zsize; k++){
+      mrc_slice_lie(v->vol[k], min, alpha);
+    }
+    if (grap_volume_write(v, hout, opt)) 
+      return(-1); 
+    if (set_mrc_coords(opt))
+      return (-1);
+    grap_volume_free(v);
+    return(0);
+  }
 
-  for(k = 0; k < opt->nofsecs; k++, z++){
-    slice = sliceReadSubm(hin, k, 'z', opt->ix, opt->iy,
+  /* 2D processing, by slice, with potentially subarea read in */
+  for (k = 0; k < opt->nofsecs; k++) {
+    slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
     if (!slice){
       show_error("clip: Error reading slice.");
       return(-1);
     }
+
+    /* Scale based on min.max.mean of individual slice */
     sliceMMM(slice);
-    mrc_slice_lie(slice, (double)slice->min, alpha);
-    sliceMMM(slice);
-    if (slice->min < hout->amin)
-      hout->amin = slice->min;
-    if (slice->max > hout->amax)
-      hout->amax = slice->max;
-    hout->amean += slice->mean;
-    hout->mode  = slice->mode;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
-      return -1;
-    sliceFree(slice);
-  }
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
-  return mrc_head_write(hout->fp, hout);
-}
-
-
-
-int clip_contrast(struct MRCheader *hin, struct MRCheader *hout,
-                  struct Grap_options *opt)
-{
-  int k;
-  struct MRCvolume *v;
-  double mean, alpha;
-
-  if (opt->dim == 2)
-    return(clip2d_contrast(hin,hout,opt));
-
-  v = grap_volume_read(hin, opt);
-  if (!v){
-    return(-1);
-  }
-
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "clip contrast");
-  mean = hin->amean;
-
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-  alpha = opt->val;
-  for (k = 0; k < v->zsize; k++){
-    mrc_slice_lie(v->vol[k], mean, alpha);
-  }
-  if (grap_volume_write(v, hout, opt)) 
-    return(-1); 
-  set_mrc_coords(opt);
-  grap_volume_free(v);
-  return(0);
-}
-
-int clip2d_contrast(struct MRCheader *hin, struct MRCheader *hout,
-                    struct Grap_options *opt)
-{
-  Islice *slice;
-  int k, z;
-  double mean, alpha;
-
-  set_input_options(opt, hin);
-  z = set_output_options(opt, hout);
-  if (z < 0)
-    return(z);
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-  alpha = opt->val;
-
-  show_status("Contrast...\n");
-
-  for(k = 0; k < opt->nofsecs; k++, z++){
-    slice = sliceReadSubm(hin, k, 'z', opt->ix, opt->iy,
-
-                          (int)opt->cx, (int)opt->cy);
-    if (!slice){
-      show_error("clip: Error reading slice.");
-      return(-1);
+     
+    switch (process) {
+    case IP_BRIGHTNESS:
+      min = (double)slice->min;
+      break;
+    case IP_SHADOW:
+      min = (double)slice->max;
+      break;
+    case IP_CONTRAST:
+      min = (double)slice->mean;
+      break;
     }
+      
+    mrc_slice_lie(slice, min, alpha);
     sliceMMM(slice);
-    mean = slice->mean;
-    mrc_slice_lie(slice, mean, alpha);
-    sliceMMM(slice);
-    if (slice->min < hout->amin)
-      hout->amin = slice->min;
-    if (slice->max > hout->amax)
-      hout->amax = slice->max;
+    hout->amin = B3DMIN(hout->amin, slice->min);
+    hout->amax = B3DMAX(hout->amax, slice->max);
     hout->amean += slice->mean;
     hout->mode  = slice->mode;
     hout->nx    = slice->xsize;
     hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
       return -1;
     sliceFree(slice);
   }
+
   if (opt->nofsecs)
     hout->amean /= opt->nofsecs;
-  return mrc_head_write(hout->fp, hout);
+  return set_mrc_coords(opt);  
 }
 
-
-int clip_shadow(struct MRCheader *hin, struct MRCheader *hout,
-                struct Grap_options *opt)
-{
-  int k;
-  struct MRCvolume *v;
-  double max, alpha;
-
-  if (opt->dim == 2)
-    return(clip2d_shadow(hin,hout,opt));
-
-  v = grap_volume_read(hin, opt);
-  if (!v){
-    return(-1);
-  }
-
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "grap: brightness");
-  max = hin->amin;
-
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-  alpha = opt->val;
-  for (k = 0; k < v->zsize; k++){
-    mrc_slice_lie(v->vol[k], max, alpha);
-  }
-  if (grap_volume_write(v, hout, opt)) 
-    return(-1); 
-  set_mrc_coords(opt);  
-  grap_volume_free(v);
-  return(0);
-}
-
-int clip2d_shadow(struct MRCheader *hin, struct MRCheader *hout,
-                  struct Grap_options *opt)
-{
-  Islice *slice;
-  int k, z;
-  double alpha;
-
-  set_input_options(opt, hin);
-  z = set_output_options(opt, hout);
-  if (z < 0)
-    return(z);
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-  alpha = opt->val;
-
-  show_status("Shadow...\n");
-
-  for(k = 0; k < opt->nofsecs; k++, z++){
-    slice = sliceReadSubm(hin, k, 'z', opt->ix, opt->iy,
-                          (int)opt->cx, (int)opt->cy);
-    if (!slice){
-      show_error("clip: Error reading slice.");
-      return(-1);
-    }
-    sliceMMM(slice);
-    mrc_slice_lie(slice, (double)slice->max, alpha);
-    sliceMMM(slice);
-    if (slice->min < hout->amin)
-      hout->amin = slice->min;
-    if (slice->max > hout->amax)
-      hout->amax = slice->max;
-    hout->amean += slice->mean;
-    hout->mode  = slice->mode;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
-      return -1;
-    sliceFree(slice);
-  }
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
-  return mrc_head_write(hout->fp, hout);
-}
-
-
+/*
+ * Common routine for the edge filters that are not simple convolutions
+ */
 int clipEdge(struct MRCheader *hin, struct MRCheader *hout,
+             struct Grap_options *opt, int process)
+{
+  struct MRCslice *s;
+  int i, k, z;
+  Islice *slice;
+  char *message;
+  double scale, fixval;
+
+  if (opt->mode == IP_DEFAULT)
+    opt->mode = (process == IP_GRADIENT) ? hin->mode : MRC_MODE_BYTE;
+
+  if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
+      hin->mode != MRC_MODE_FLOAT) {
+    show_error("clip edge: only byte, integer and float modes can be used");
+    return -1;
+  }
+
+  set_input_options(opt, hin);
+
+  z = set_output_options(opt, hout);
+  if (z < 0)
+    return(z);
+
+  /* Copy header, give message, add title */
+  mrc_head_label_cp(hin, hout);
+
+  switch (process) {
+  case IP_GRADIENT:
+    message = "Taking gradient of";
+    mrc_head_label(hout, "clip: gradient");
+    break;
+  case IP_PREWITT:
+    message = "Applying Prewitt filter to";
+    mrc_head_label(hout, "clip: Prewitt filter");
+    break;
+  case IP_GRAHAM:
+    message = "Applying Graham filter to";
+    mrc_head_label(hout, "clip: Graham filter");
+    break;
+  case IP_SOBEL:
+    message = "Applying Sobel filter to";
+    mrc_head_label(hout, "clip: Sobel filter");
+    break;
+  default:
+    return(-1);
+  }
+
+  printf("clip: %s %ld slices...\n", message, opt->nofsecs);
+  for (k = 0; k < opt->nofsecs; k++) {
+    s = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
+                          (int)opt->cx, (int)opt->cy);
+    if (!s){
+      show_error("clip: Error reading slice.");
+      return(-1);
+    }
+
+    if (process == IP_GRADIENT) {
+
+      /* Do gradient */
+      slice = sliceGradient(s);
+      sliceFree(s);
+    } else {
+
+      /* Otherwise scale slice and convert slice if not bytes */
+      slice = s;
+      if (slice->mode != SLICE_MODE_BYTE) {
+        sliceMinMax(slice);
+        scale = 1.;
+        if (slice->max > slice->min)
+          scale = 255. / (slice->max - slice->min);
+        if (scale >= 0.95 && scale <= 1.05)
+          scale = 0.95;
+        fixval = slice->min * scale / (scale - 1.);
+        mrc_slice_lie(slice, fixval, scale);
+        sliceNewMode(slice, SLICE_MODE_BYTE);
+      }
+
+      /* Do selected filter after getting min/max quickly */
+      sliceMinMax(slice);
+      if (process == IP_GRAHAM)
+        sliceByteGraham(slice);
+      else if (process == IP_SOBEL)
+        sliceByteEdgeSobel(slice);
+      else
+        sliceByteEdgePrewitt(slice);
+    }
+
+    /* Scale slice to output mode if needed */
+    if (slice->mode != opt->mode && sliceNewMode(slice, opt->mode) < 0)
+      return -1;
+    sliceMMM(slice);
+    hout->amin = B3DMIN(hout->amin, slice->min);
+    hout->amax = B3DMAX(hout->amax, slice->max);
+    hout->amean += slice->mean;
+    hout->nx    = slice->xsize;
+    hout->ny    = slice->ysize;
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
+      return -1;
+    sliceFree(slice);
+  }
+
+  if (opt->nofsecs)
+    hout->amean /= opt->nofsecs;
+  return set_mrc_coords(opt);  
+}
+
+/*
+ * Common routine for kernel convolution filtering
+ */
+int clip_convolve(struct MRCheader *hin, 
+                 struct MRCheader *hout,
+                 struct Grap_options *opt, int process)
+{
+  struct MRCslice *s;
+  float *blur;
+  int i, k, z;
+  float smoothKernel[] = {
+    0.0625f, 0.125f, 0.0625f,
+    0.125f,  0.25f,  0.125f, 
+    0.0625f, 0.125f, 0.0625f};
+  float sharpenKernel[] = {
+    -1.,  -1., -1.,
+    -1.,  9., -1.,
+    -1.,  -1., -1.};
+  float laplacianKernel[] = {
+    1.,  1., 1.,
+    1.,  -4., 1.,
+    1.,  1., 1.};
+  Islice *slice;
+  char *message;
+
+  if (opt->mode == IP_DEFAULT)
+    opt->mode = (process == IP_SMOOTH) ? hin->mode : MRC_MODE_FLOAT;
+
+  set_input_options(opt, hin);
+
+  z = set_output_options(opt, hout);
+  if (z < 0)
+    return(z);
+
+  /* Copy header, give message, add title */
+  mrc_head_label_cp(hin, hout);
+
+  switch (process) {
+  case IP_SMOOTH:
+    message = "Smoothing";
+    mrc_head_label(hout, "clip: smooth");
+    blur = smoothKernel;
+    break;
+  case IP_SHARPEN:
+    message = "Sharpening";
+    mrc_head_label(hout, "clip: sharpen");
+    blur = sharpenKernel;
+    break;
+  case IP_LAPLACIAN:
+    message = "Applying Laplacian to";
+    mrc_head_label(hout, "clip: Laplacian");
+    blur = laplacianKernel;
+    break;
+  default:
+    return(-1);
+  }
+
+  printf("clip: %s %ld slices...\n", message, opt->nofsecs);
+  for (k = 0; k < opt->nofsecs; k++) {
+    s = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
+                          (int)opt->cx, (int)opt->cy);
+    if (!s){
+      show_error("clip: Error reading slice.");
+      return(-1);
+    }
+
+    s->mean = hin->amean;
+    slice = slice_mat_filter(s, blur, 3);
+    mrc_slice_free(s);
+
+    if (slice->mode != opt->mode && sliceNewMode(slice, opt->mode) < 0)
+      return -1;
+    sliceMMM(slice);
+    hout->amin = B3DMIN(hout->amin, slice->min);
+    hout->amax = B3DMAX(hout->amax, slice->max);
+    hout->amean += slice->mean;
+    hout->nx    = slice->xsize;
+    hout->ny    = slice->ysize;
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
+      return -1;
+    sliceFree(slice);
+  }
+
+  if (opt->nofsecs)
+    hout->amean /= opt->nofsecs;
+  return set_mrc_coords(opt);  
+}
+
+/*
+ * 2D or 3D median filtering
+ */
+int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
              struct Grap_options *opt)
 {
-  int k;
-  struct MRCvolume *v;
+  struct MRCslice *s;
+  int i, j, k, z;
+  Islice *slice;
+  struct MRCvolume v;
+  char title[40];
+  int numInVol, firstInVol, lastInVol, firstNeed, lastNeed, depth, size;
 
-  Islice *s;
-  v = grap_volume_read(hin, opt);
-  if (!v){
-    return(-1);
+  if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
+      hin->mode != MRC_MODE_FLOAT) {
+    show_error("clip median: only byte, integer and float modes can be used");
+    return -1;
   }
+
+  set_input_options(opt, hin);
+  z = set_output_options(opt, hout);
+  if (z < 0)
+    return(z);
+
+  if (opt->val == IP_DEFAULT)
+    opt->val = 3;
+  if (opt->mode != MRC_MODE_BYTE && opt->mode != MRC_MODE_SHORT && 
+      opt->mode != MRC_MODE_FLOAT)
+    opt->mode = hin->mode;
+  size = (int)B3DMAX(2, opt->val);
 
   mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "clip edge");
+  sprintf(title, "clip: %dD median filter, size %d", opt->dim, size);
+  mrc_head_label(hout, title);
+  printf("clip: median filtering %ld slices...\n", opt->nofsecs);
 
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
+  /* Get slice for output */
+  slice = sliceCreate(opt->ix, opt->iy, opt->mode);
+  if (!slice)
+    return (-1);
 
-  for (k = 0; k < v->zsize; k++){
-    s = sliceGradient(v->vol[k]);
-    sliceFree(v->vol[k]);
-    v->vol[k] = s;
+  depth = opt->dim == 2 ? 1 : size;
+  v.vol = (struct MRCslice **)malloc(depth * sizeof(struct MRCslice *));
+  v.zsize = 0;
+
+  for (k = 0; k < opt->nofsecs; k++) {
+
+    /* Set up slice numbers needed in volume */
+    if (opt->dim == 2) {
+      firstNeed = lastNeed = opt->secs[k];
+    } else {
+      firstNeed = B3DMAX(0, opt->secs[k] - size / 2);
+      lastNeed = B3DMIN(hin->nz - 1, opt->secs[k] + (size - 1) / 2);
+    }
+    /* printf("k = %d, need %d to %d\n", k, firstNeed, lastNeed); */
+
+      /* Free or copy down existing slices in volume */
+    for (i = 0, j = 0; i < v.zsize; i++) {
+      if (firstInVol + i < firstNeed || firstInVol + i > lastNeed) {
+        /* printf("freeing %d\n", firstInVol + i); */
+        sliceFree(v.vol[i]);
+      } else {
+        /* printf("copying %d: %d to %d\n", firstInVol + i, i, j); */
+        v.vol[j++] = v.vol[i];
+      }
+    }
+    v.zsize = j;
+    if (j)
+      firstInVol = lastInVol + 1 - j;
+
+    /* Load needed slices */
+    for (i = firstNeed; i <= lastNeed; i++) {
+      if (!v.zsize || i > lastInVol) {
+        /* printf("loading %d into %d mode %d\n", i,  v.zsize, hin->mode); */
+        s = sliceReadSubm(hin, i, 'z', opt->ix, opt->iy,
+                                         (int)opt->cx, (int)opt->cy);
+        if (!s)
+          return -1;
+        if (!v.zsize)
+          firstInVol = i;
+        v.vol[v.zsize++] = s;
+        lastInVol = i;
+      }
+    }
+
+    /* Filter and maintain mmm and write */
+    if (sliceMedianFilter(slice, &v, size))
+      return -1;
+    sliceMMM(slice);
+    hout->amin = B3DMIN(hout->amin, slice->min);
+    hout->amax = B3DMAX(hout->amax, slice->max);
+    hout->amean += slice->mean;
+    hout->nx    = slice->xsize;
+    hout->ny    = slice->ysize;
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
+      return -1;
   }
-  if (grap_volume_write(v, hout, opt)) 
-    return(-1); 
-  set_mrc_coords(opt);
-  grap_volume_free(v);
-  return(0);
+  
+  /* clean up */
+  sliceFree(slice);
+  for (i = 0; i < v.zsize; i++)
+    sliceFree(v.vol[i]);
+
+  if (opt->nofsecs)
+    hout->amean /= opt->nofsecs;
+  return set_mrc_coords(opt);  
 }
-
 
 
 int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
@@ -1364,47 +1399,6 @@ int grap_stat(struct MRCheader *hin, struct Grap_options *opt)
 }
 
 
-int clip_sharpen(struct MRCheader *hin, 
-                 struct MRCheader *hout,
-                 struct Grap_options *opt)
-{
-  struct MRCvolume *v;
-  struct MRCslice *s;
-  float blur[25];
-  int i, k;
-
-  v = grap_volume_read(hin, opt);
-  if (!v){
-    return(-1);
-  }
-     
-  for(i = 0; i < 9; i++) 
-    blur[i] = -1.0f;
-  blur[4] = 9.0f;
-
-  if (opt->val == IP_DEFAULT){
-    opt->val = 1.0f;
-  }
-
-  printf("clip: sharpening %ld slices...\n", v->zsize);
-  for(k = 0; k < v->zsize; k++){
-    s = slice_mat_filter(v->vol[k], blur, 3);
-    /*	  mrc_slice_lie_img(v->vol[k], s, alpha); */
-    mrc_slice_free(v->vol[k]);
-    v->vol[k] = s;
-  }
-
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "clip: sharpen");
-
-  if (grap_volume_write(v, hout, opt))
-    return(-1);
-  set_mrc_coords(opt);     
-  grap_volume_free(v);
-  return(0);
-}
-
-
 int write_vol(struct MRCslice **vol, struct MRCheader *hout)
 {
   int k;
@@ -1468,4 +1462,20 @@ int free_vol(struct MRCslice **vol, int z)
   #endif
 
   }
+*/
+/*
+$Log$
+
+Revision 3.7  2004/09/21 22:31:13  mast
+Added return 0 for split_rgb and join_rgb functions
+
+Revision 3.6  2004/04/22 19:08:45  mast
+Added error checks and returns on mrc I/O calls
+
+Revision 3.5  2004/01/17 20:32:33  mast
+Remove unneeded rewind
+
+Revision 3.4  2004/01/16 18:09:52  mast
+Added functions to split and join rgb images
+
 */
