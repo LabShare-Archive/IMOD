@@ -254,6 +254,7 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 /****************************************************************************/
 /* Private functions for internal imod use.                                 */
 
+int imodLoopStarted();
 void imod_quit(void);
 char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
@@ -267,6 +268,9 @@ void imodPrintInfo(const char *message);
 
 /*
 $Log$
+Revision 3.23  2004/01/06 16:43:30  mast
+Add flag for gray-scale RGB reading
+
 Revision 3.22  2004/01/05 17:55:45  mast
 Changes for binning
 
