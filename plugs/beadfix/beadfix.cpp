@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.10  2004/06/01 00:52:38  mast
+    Set up as test for plugin building
+
     Revision 3.9  2003/08/01 00:16:51  mast
     Made "examine once" be default and rearranged buttons
 
@@ -65,6 +68,7 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qtooltip.h>
+#include <qstringlist.h>
 
 #include "imodplugin.h"
 #include "dia_qtutils.h"
@@ -127,7 +131,7 @@ static PlugData thisPlug = { 0, 0 };
 char *imodPlugInfo(int *type)
 {
   if (type)
-    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS;
+    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE;
   return("Bead Fixer2");
 }
 
@@ -235,6 +239,18 @@ void imodPlugExecute(ImodView *inImodView)
   plug->window->show();
 }
 
+/* Execute the message in the strings, leave arg as index of last component 
+   of message */
+
+int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
+{
+  PlugData *plug = &thisPlug;
+  int action = (*strings)[*arg].toInt();
+  if (!plug->window || action != 1)
+    return 1;
+  plug->window->reread(0);
+  return 0;
+}
 
 /* Open a tiltalign log file to find points with big residuals */
 
