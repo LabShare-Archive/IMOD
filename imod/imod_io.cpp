@@ -68,10 +68,10 @@ static void imod_undo_backup(void);
 static void imod_finish_backup(void);
 static int mapErrno(int errorCode);
 
-char Imod_filename[256] = {0x00};
+char Imod_filename[IMOD_FILENAME_SIZE] = {0x00};
 
-static char autosave_filename[266] = {0x00};
-static char saved_filename[256] = {0x00};
+static char autosave_filename[IMOD_FILENAME_SIZE + 10] = {0x00};
+static char saved_filename[IMOD_FILENAME_SIZE] = {0x00};
 static int last_checksum = -1;
 static int lastError = IMOD_IO_SUCCESS;
 
@@ -386,7 +386,6 @@ Imod *LoadModel(FILE *mfin) {
   }
 
   imodvViewsInitialize(imod);
-  imod->csum = imodChecksum(imod);
   imod_cleanup_autosave();
 
   return(imod);
@@ -411,6 +410,7 @@ Imod *LoadModel(FILE *mfin) {
 Imod *LoadModelFile(char *filename) {
   FILE *fin;
   Imod *imod;
+  int nChars;
   QString qname;
   char *filter[] = {"Model files (*.*mod *.fid)"};
   
@@ -443,9 +443,13 @@ Imod *LoadModelFile(char *filename) {
 
   /* DNM 2/24/03: catch error at this point, and translate it to a read 
     error if unidentified */
+  /* DNM 9/12/03: eliminate checksum, protect from overrunning filename */
   if (imod) {
-    imod->csum = imodChecksum(imod);
-    strcpy(Imod_filename, qname.latin1());
+    nChars = strlen(qname.latin1());
+    if (nChars >= IMOD_FILENAME_SIZE)
+      nChars = IMOD_FILENAME_SIZE - 1;
+    strncpy(Imod_filename, qname.latin1(), nChars);
+    Imod_filename[nChars] = 0x00;
   } else {
     lastError = mapErrno(errno);
     if (lastError == IMOD_IO_UNIMPLEMENTED_ERROR)
@@ -477,8 +481,10 @@ int openModel(char *modelFilename) {
   /*	  mode = App->cvi->imod->mousemode; */
   tmod = (Imod *)LoadModelFile(modelFilename);
 
+  /* DNM 9/12/03: need to check checksum here, not in load model routines */
   if (tmod){
     initModelData(tmod);
+    tmod->csum = imodChecksum(tmod);
   }
   else {
     return lastError;
@@ -601,15 +607,10 @@ int createNewModel(char *modelFilename) {
   //  MaintainModelName to update the model structure and main window
   if(modelFilename != NULL) {
     nChars = strlen(modelFilename);
-    if(nChars < sizeof(Imod_filename)) {
-      strncpy(Imod_filename, modelFilename, nChars);
-      Imod_filename[nChars] = '\0';
-    }
-    else {
-      strncpy(Imod_filename, modelFilename, sizeof(Imod_filename) - 1);
-      Imod_filename[sizeof(Imod_filename) - 1] = '\0';
-    }
-
+    if (nChars >= IMOD_FILENAME_SIZE)
+      nChars = IMOD_FILENAME_SIZE - 1;
+    strncpy(Imod_filename, modelFilename, nChars);
+    Imod_filename[nChars] = '\0';
   }
   else {
     Imod_filename[0] = '\0';
@@ -632,15 +633,16 @@ int createNewModel(char *modelFilename) {
   App->cvi->imod->mousemode = mode;
   imod_cmap(App->cvi->imod);
 
-  /* Set the checksum to avoid save requests */
-  App->cvi->imod->csum = imodChecksum(App->cvi->imod);
-     
   imod_info_setobjcolor();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 
   imod_info_setocp();
   ivwSetModelTrans(App->cvi);
   imod_cmap(App->cvi->imod);
+
+  /* Set the checksum to avoid save requests */
+  App->cvi->imod->csum = imodChecksum(App->cvi->imod);
+     
   return IMOD_IO_SUCCESS;
 }
 
@@ -828,6 +830,10 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.7  2003/06/27 19:26:36  mast
+Changes to implement new view scheme when reading, saving, or making a
+new model
+
 Revision 4.6  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
