@@ -17,7 +17,14 @@ import etomo.type.AxisID;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/05/21 02:20:26  sueh
+ * <p> $bug# 83 volcombine process monitor uses the volcombine.log file
+ * <p> $and the status lines which count which piece has been extracted.
+ * <p> $findNSections() has been overridden.  It sets the first currentSection
+ * <p> $because the currentSection value is on the same line as the
+ * <p> $nSections value.
+ * <p> $$ </p>
  */
 
 public class VolcombineProcessMonitor extends LogFileProcessMonitor {
@@ -59,7 +66,6 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
       if (line.startsWith("STATUS: EXTRACTING AND COMBINING")) {
         String[] fields = line.split("\\s+");
         currentSection = parseFields(fields, 5, currentSection);
-        System.out.println("currentSection:" + currentSection);
       }
     }
   }
@@ -84,12 +90,10 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
           nSections = parseFields(fields, 7, nSections);
           if (nSections != Integer.MIN_VALUE) {
             foundNSections = true;
-            System.out.println("nSections:" + nSections);
           } else {
             throw new NumberFormatException("Unable to read first STATUS: EXTRACTING AND COMBINING line");
           }
           currentSection = parseFields(fields, 5, currentSection);
-          System.out.println("currentSection:" + currentSection);
         }
       }
     }
