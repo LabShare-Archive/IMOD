@@ -25,6 +25,12 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2005/01/14 03:14:14  sueh
+ * <p> bug# 511 Creating ProcessControlPanels with DialogType instead of
+ * <p> strings.  Added currentProcess to process the most recent panel before
+ * <p> switching dialogs.  Calling applicationManager.saveDialog(DialogType, AxisID)
+ * <p> before switching dialogs.
+ * <p>
  * <p> Revision 1.2  2004/11/20 00:06:57  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -65,7 +71,6 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.POST_PROCESSING);
   
   private ApplicationManager applicationManager;
-  private ProcessControlPanel currentProcess = null;
 
   /**
    * @param appManager
@@ -92,53 +97,39 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   private void buttonProcessAction(ActionEvent event) {
     String command = event.getActionCommand();
-    if (currentProcess != null) {
-      applicationManager.saveDialog(currentProcess.getDialogType(), axisID);
-    }
+    applicationManager.saveCurrentDialog(axisID);
+    ProcessControlPanel currentProcess = null;
     
     if (command.equals(procCtlPreProc.getName())) {
-      currentProcess = procCtlPreProc;
       applicationManager.openPreProcDialog(axisID);
       return;
     }
-
     if (command.equals(procCtlCoarseAlign.getName())) {
-      currentProcess = procCtlCoarseAlign;
       applicationManager.openCoarseAlignDialog(axisID);
       return;
     }
-
     if (command.equals(procCtlFiducialModel.getName())) {
-      currentProcess = procCtlFiducialModel;
       applicationManager.openFiducialModelDialog(axisID);
       return;
     }
-
     if (command.equals(procCtlFineAlignment.getName())) {
-      currentProcess = procCtlFineAlignment;
       applicationManager.openFineAlignmentDialog(axisID);
       return;
     }
     if (command.equals(procCtlTomogramPositioning.getName())) {
-      currentProcess = procCtlTomogramPositioning;
       applicationManager.openTomogramPositioningDialog(axisID);
       return;
     }
-
     if (command.equals(procCtlTomogramGeneration.getName())) {
-      currentProcess = procCtlTomogramGeneration;
       applicationManager.openTomogramGenerationDialog(axisID);
       return;
-    }
 
+    }
     if (command.equals(procCtlTomogramCombination.getName())) {
-      currentProcess = procCtlTomogramCombination;
       applicationManager.openTomogramCombinationDialog();
       return;
     }
-
     if (command.equals(procCtlPostProcessing.getName())) {
-      currentProcess = procCtlPostProcessing;
       applicationManager.openPostProcessingDialog();
       return;
     }
