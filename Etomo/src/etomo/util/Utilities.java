@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.5  2004/04/26 23:19:20  rickg
+ * <p> $Added buffering to the non nio file copy
+ * <p> $
  * <p> $Revision 3.4  2004/04/22 23:23:04  rickg
  * <p> $Added copyFile
  * <p> $Modified calling parameter in fileExists
@@ -115,10 +118,14 @@ public class Utilities {
         destBuffer.write(byteIn);
     }
     
-    //  FIXME: does each object need to be closed indivudually
-    sourceBuffer.close();
+    //  TODO: does each object need to be closed indivudually
+    if(sourceBuffer != null) {
+      sourceBuffer.close();
+    }
     sourceStream.close();
-    destBuffer.close();
+    if(destBuffer != null) {
+      destBuffer.close();
+    }
     destStream.close();
   }
 
