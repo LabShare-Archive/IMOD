@@ -23,6 +23,13 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
  * <p> Revision 1.11  2002/12/19 00:30:26  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -71,12 +78,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private ImageIcon iconFolder =
     new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private JLabel labelFileset = new JLabel("Fileset Name:");
-  private JTextField textFieldFileset = new JTextField();
+  private LabeledTextField ltfFileset = new LabeledTextField("Fileset Name:");
   private JButton buttonFileset = new JButton(iconFolder);
 
-  private JLabel labelBackupDirectory = new JLabel("Backup Directory:");
-  private JTextField textFieldBackupDirectory = new JTextField();
+  private LabeledTextField ltfBackupDirectory =
+    new LabeledTextField("Backup Directory:");
   private JButton buttonBackupDirectory = new JButton(iconFolder);
 
   //
@@ -153,11 +159,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonPostpone.setText("Use existing coms");
     buttonExecute.setText("Create com scripts");
 
-
     // There are no advanced settings for this dialog, remove the advanced
     // button
     panelExitButtons.remove(buttonAdvanced);
-    
+
     //  Add the panes to the dialog box
     rootPanel.add(panelDataParameters);
     rootPanel.add(Box.createVerticalGlue());
@@ -172,7 +177,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-
     // Calcute the necessary window size
     pack();
   }
@@ -182,12 +186,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Set the preferred and max sizes for the fileset GUI objects
     //  so that the box layout happens correctly
     //
-    Dimension dimTextPref = new Dimension(120, 20);
+/*   Dimension dimTextPref = new Dimension(120, 20);
     Dimension dimTextMax = new Dimension(1000, 20);
     textFieldFileset.setPreferredSize(dimTextPref);
     textFieldFileset.setMaximumSize(dimTextMax);
     textFieldBackupDirectory.setPreferredSize(dimTextPref);
-    textFieldBackupDirectory.setMaximumSize(dimTextMax);
+    textFieldBackupDirectory.setMaximumSize(dimTextMax);*/
     buttonFileset.setPreferredSize(FixedDim.folderButton);
     buttonFileset.setMaximumSize(FixedDim.folderButton);
     buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
@@ -210,15 +214,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    panelFileset.add(labelFileset);
-    panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelFileset.add(textFieldFileset);
+    panelFileset.add(ltfFileset.getContainer());
     panelFileset.add(buttonFileset);
     panelFileset.add(Box.createRigidArea(FixedDim.x10_y0));
 
-    panelFileset.add(labelBackupDirectory);
-    panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelFileset.add(textFieldBackupDirectory);
+    panelFileset.add(ltfBackupDirectory.getContainer());
     panelFileset.add(buttonBackupDirectory);
     panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
 
@@ -371,10 +371,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (!metaData.getFilesetName().equals("")) {
       String canonicalPath =
         metaData.getWorkingDirectory() + "/" + metaData.getFilesetName();
-      textFieldFileset.setText(canonicalPath);
+      ltfFileset.setText(canonicalPath);
     }
 
-    textFieldBackupDirectory.setText(metaData.getBackupDirectory());
+    ltfBackupDirectory.setText(metaData.getBackupDirectory());
     setDataSource(metaData.getDataSource());
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
@@ -396,13 +396,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public MetaData getFields() {
     MetaData metaData = new MetaData();
 
-    metaData.setBackupDirectory(textFieldBackupDirectory.getText());
+    metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDataSource(getDataSource());
     metaData.setAxisType(getAxisType());
 
     //  The fileset name needs to be set after the axis type so the metadata
     // object modifies the ending correctly
-    metaData.setFilesetName(textFieldFileset.getText());
+    metaData.setFilesetName(ltfFileset.getText());
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
@@ -529,7 +529,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File filesetName = chooser.getSelectedFile();
       try {
-        textFieldFileset.setText(filesetName.getAbsolutePath());
+        ltfFileset.setText(filesetName.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -541,12 +541,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     //  Open up the file chooser in the working directory
     //
-    String currentBackupDirectory = textFieldBackupDirectory.getText();
-    if(currentBackupDirectory.equals("")) {
+    String currentBackupDirectory = ltfBackupDirectory.getText();
+    if (currentBackupDirectory.equals("")) {
       currentBackupDirectory = applicationManager.getWorkingDirectory();
     }
-    JFileChooser chooser =
-      new JFileChooser(new File(currentBackupDirectory));
+    JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
@@ -554,7 +553,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File backupDirectory = chooser.getSelectedFile();
       try {
-        textFieldBackupDirectory.setText(backupDirectory.getCanonicalPath());
+        ltfBackupDirectory.setText(backupDirectory.getCanonicalPath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -606,8 +605,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line2 = "also select the projection data file  by pressing the<br>";
     line3 = "folder button. Remember to omit the .st for single axis<br>";
     line4 = "data sets or the a.st for dual axis data sets.";
-    labelFileset.setToolTipText(line1 + line2 + line3 + line4);
-    textFieldFileset.setToolTipText(labelFileset.getToolTipText());
+    ltfFileset.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select the projection data file.<br>";
@@ -619,8 +617,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
     line4 = "directory to store the backups.";
-    labelBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
-    textFieldBackupDirectory.setToolTipText(labelFileset.getToolTipText());
+    ltfBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
+
 
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
