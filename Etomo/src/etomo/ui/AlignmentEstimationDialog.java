@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/05 00:51:25  sueh
+ * <p> bug# 433 passing applicationManager to ContextPopup so that new
+ * <p> versions of the ta* align logs can be generated.
+ * <p>
  * <p> Revision 3.2  2004/03/15 20:33:55  rickg
  * <p> button variable name changes to btn...
  * <p>
@@ -159,37 +163,36 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public class AlignmentEstimationDialog
-  extends ProcessDialog
+public class AlignmentEstimationDialog extends ProcessDialog
   implements ContextMenu {
 
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
-  private JPanel panelAlignEst = new JPanel();
+  private JPanel pnlAlignEst = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fine Alignment");
 
-  private TiltalignPanel panelTiltalign;
+  private TiltalignPanel pnlTiltalign;
 
   private JPanel panelButton = new JPanel();
 
-  private MultiLineToggleButton btnComputeAlignment =
-    new MultiLineToggleButton("<html><b>Compute Alignment</b>");
+  private MultiLineToggleButton btnComputeAlignment = new MultiLineToggleButton(
+    "<html><b>Compute Alignment</b>");
 
-  private MultiLineButton btnImod =
-    new MultiLineButton("<html><b>View/Edit Fiducial Model</b>");
+  private MultiLineButton btnImod = new MultiLineButton(
+    "<html><b>View/Edit Fiducial Model</b>");
 
-  private MultiLineButton btnView3DModel = new MultiLineButton("<html><b>View 3D Model</b>");
+  private MultiLineButton btnView3DModel = new MultiLineButton(
+    "<html><b>View 3D Model</b>");
 
-  private MultiLineButton btnViewResiduals =
-    new MultiLineButton("<html><b>View Residual Vectors</b>");
+  private MultiLineButton btnViewResiduals = new MultiLineButton(
+    "<html><b>View Residual Vectors</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
     fixRootPanel(rootSize);
 
-    panelTiltalign = new TiltalignPanel(axisID);
+    pnlTiltalign = new TiltalignPanel(axisID);
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -212,26 +215,26 @@ public class AlignmentEstimationDialog
     panelButton.add(btnView3DModel);
     panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButton.add(btnViewResiduals);
-    panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.Y_AXIS));
-    panelAlignEst.setBorder(border.getBorder());
+    pnlAlignEst.setLayout(new BoxLayout(pnlAlignEst, BoxLayout.Y_AXIS));
+    pnlAlignEst.setBorder(border.getBorder());
 
-    panelAlignEst.add(panelTiltalign.getContainer());
-    panelAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelAlignEst.add(panelButton);
+    pnlAlignEst.add(pnlTiltalign.getContainer());
+    pnlAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlAlignEst.add(panelButton);
 
     //  Construct the main panel from the alignment panel and exist buttons
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     //    rootPanel.setLayout(new BorderLayout());
-    JScrollPane scrollPane = new JScrollPane(panelAlignEst);
-    rootPanel.add(panelAlignEst, BorderLayout.CENTER);
+    JScrollPane scrollPane = new JScrollPane(pnlAlignEst);
+    rootPanel.add(pnlAlignEst, BorderLayout.CENTER);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons, BorderLayout.SOUTH);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    AlignmentEstimationActionListner actionListener =
-      new AlignmentEstimationActionListner(this);
+    AlignmentEstimationActionListner actionListener = new AlignmentEstimationActionListner(
+      this);
 
     btnComputeAlignment.addActionListener(actionListener);
     btnView3DModel.addActionListener(actionListener);
@@ -241,22 +244,22 @@ public class AlignmentEstimationDialog
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-    panelTiltalign.getContainer().addMouseListener(mouseAdapter);
+    pnlTiltalign.getContainer().addMouseListener(mouseAdapter);
 
     // Set the default advanced state
     updateAdvanced(isAdvanced);
-    panelTiltalign.setFirstTab();
+    pnlTiltalign.setFirstTab();
     setToolTipText();
   }
 
   public void setTiltalignParams(TiltalignParam tiltalignParam) {
-    panelTiltalign.setParameters(tiltalignParam);
+    pnlTiltalign.setParameters(tiltalignParam);
   }
 
   public void getTiltalignParams(TiltalignParam tiltalignParam)
     throws FortranInputSyntaxException {
     try {
-      panelTiltalign.getParameters(tiltalignParam);
+      pnlTiltalign.getParameters(tiltalignParam);
     }
     catch (FortranInputSyntaxException except) {
       String message = "Axis: " + axisID.getExtension() + except.getMessage();
@@ -266,29 +269,29 @@ public class AlignmentEstimationDialog
   }
 
   /**
+   * Set the prealigned binning for handling the z shift parameter
+   * @param binning
+   */
+  public void setPrealignedBinning(int binning) {
+    pnlTiltalign.setPrealignedBinning(binning);
+  }
+
+  /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Tiltalign", "Xfproduct", "3dmod" };
-    String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
+    String[] manPagelabel = {"Tiltalign", "Xfproduct", "3dmod"};
+    String[] manPage = {"tiltalign.html", "xfproduct.html", "3dmod.html"};
     Vector logFileLabel = new Vector(1);
-    String[] logWindowLabel = { "Align" };
+    String[] logWindowLabel = {"Align"};
 
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "Align Axis:" + axisID.getExtension();
     }
     String alignCommandName = logWindowLabel[0];
 
-    String[] alignLabels =
-      {
-        "Errors",
-        "Solution",
-        "Surface Angles",
-        "Locals",
-        "Complete Log",
-        "Large Residual",
-        "Mappings",
-        "Coordinates" };
+    String[] alignLabels = {"Errors", "Solution", "Surface Angles", "Locals",
+        "Complete Log", "Large Residual", "Mappings", "Coordinates"};
     logFileLabel.add(alignLabels);
 
     Vector logFile = new Vector(1);
@@ -304,19 +307,9 @@ public class AlignmentEstimationDialog
 
     logFile.add(logFileList);
 
-    ContextPopup contextPopup =
-      new ContextPopup(
-        rootPanel,
-        mouseEvent,
-        "FINAL ALIGNMENT",
-        manPagelabel,
-        manPage,
-        logWindowLabel,
-        logFileLabel,
-        logFile,
-        applicationManager,
-        alignCommandName,
-        axisID);
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+      "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
+      logFile, applicationManager, alignCommandName, axisID);
   }
 
   //  Action function overides for exit buttons
@@ -343,7 +336,7 @@ public class AlignmentEstimationDialog
   //  This is a separate function so it can be called at initialization time
   //  as well as from the button action above
   private void updateAdvanced(boolean state) {
-    panelTiltalign.setAdvanced(isAdvanced);
+    pnlTiltalign.setAdvanced(isAdvanced);
     applicationManager.packMainWindow();
   }
 
@@ -372,6 +365,7 @@ public class AlignmentEstimationDialog
   class AlignmentEstimationActionListner implements ActionListener {
 
     AlignmentEstimationDialog adaptee;
+
     AlignmentEstimationActionListner(AlignmentEstimationDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -396,8 +390,7 @@ public class AlignmentEstimationDialog
     text = "View model of solved 3D locations of fiducial points in 3dmodv.";
     btnView3DModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Show model of residual vectors (exaggerated 10x) on the image stack.";
+    text = "Show model of residual vectors (exaggerated 10x) on the image stack.";
     btnViewResiduals.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
