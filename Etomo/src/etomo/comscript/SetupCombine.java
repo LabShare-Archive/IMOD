@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/04/22 23:28:28  rickg
+ * *** empty log message ***
+ *
  * Revision 3.1  2004/04/21 20:26:55  sueh
  * bug# 61 added warningMessage and parseWarning(), which is called
  * from run()
@@ -211,6 +214,9 @@ public class SetupCombine {
 
     if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
       tempStdInput[lineCount++] = "0";
+    }
+    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL_ONLY) {
+      tempStdInput[lineCount++] = "-2";
     }
 
     //  Patch sizes
