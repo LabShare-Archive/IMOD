@@ -1,26 +1,8 @@
-package etomo.process;
-
-import etomo.type.AxisID;
-import etomo.type.ProcessName;
-import etomo.ApplicationManager;
-import etomo.type.ConstMetaData;
-import etomo.ui.TextPageWindow;
-import etomo.comscript.CopyTomoComs;
-import etomo.comscript.BadComScriptException;
-import etomo.comscript.SetupCombine;
-import etomo.comscript.TransferfidParam;
-import etomo.comscript.TrimvolParam;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
 /**
  * <p>
  * Description: This object manages the execution of com scripts in the
- * background and the opening and sending messages to imod.
+ * background and the opening and sending messages to imod.  It also provides
+ * an interface to executing some simple command sequences.
  * </p>
  * 
  * <p>
@@ -38,6 +20,10 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2004/04/16 01:56:26  sueh
+ * bug# 409 In msgComScriptDone: passed the script's processName and axisID to
+ * ApplicationManager.processDone, simplified log generation.
+ *
  * Revision 3.5  2004/03/29 20:57:58  sueh
  * bug# 409 added mtffilter()
  *
@@ -350,9 +336,28 @@ import java.util.ArrayList;
  * </p>
  */
 
+package etomo.process;
+
+import etomo.type.AxisID;
+import etomo.type.ProcessName;
+import etomo.ApplicationManager;
+import etomo.type.ConstMetaData;
+import etomo.ui.TextPageWindow;
+import etomo.util.Utilities;
+import etomo.comscript.CopyTomoComs;
+import etomo.comscript.BadComScriptException;
+import etomo.comscript.SetupCombine;
+import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class ProcessManager {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   ApplicationManager appManager;
   SystemProcessInterface threadAxisA = null;
@@ -376,13 +381,13 @@ public class ProcessManager {
    *          copytomocoms script
    */
   public void setupComScripts(ConstMetaData metaData)
-    throws BadComScriptException, IOException {
+      throws BadComScriptException, IOException {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
     if (ApplicationManager.isDebug()) {
-      System.err.println(
-        "copytomocoms command line: " + copyTomoComs.getCommandLine());
+      System.err.println("copytomocoms command line: "
+          + copyTomoComs.getCommandLine());
     }
 
     int exitValue = copyTomoComs.run();
@@ -394,8 +399,7 @@ public class ProcessManager {
       String[] stdError = copyTomoComs.getStdError();
       if (stdError.length < 1) {
         stdError = new String[1];
-        stdError[0] =
-          "Get David to add some std error reporting to copytomocoms";
+        stdError[0] = "Get David to add some std error reporting to copytomocoms";
       }
       StringBuffer buffer = new StringBuffer();
       buffer.append("Copytomocoms Error\n");
@@ -418,15 +422,15 @@ public class ProcessManager {
   public String eraser(AxisID axisID) throws SystemProcessException {
 
     // Create the process monitor
-    CCDEraserProcessMonitor ccdEraserProcessMonitor =
-      new CCDEraserProcessMonitor(appManager, axisID);
+    CCDEraserProcessMonitor ccdEraserProcessMonitor = new CCDEraserProcessMonitor(
+      appManager, axisID);
 
     //  Create the required command string
     String command = "eraser" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, ccdEraserProcessMonitor, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      ccdEraserProcessMonitor, axisID);
 
     return comScriptProcess.getName();
   }
@@ -440,15 +444,15 @@ public class ProcessManager {
   public String crossCorrelate(AxisID axisID) throws SystemProcessException {
 
     //  Create the process monitor
-    XcorrProcessWatcher xcorrProcessWatcher =
-      new XcorrProcessWatcher(appManager, axisID);
+    XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
+      appManager, axisID);
 
     //  Create the required command string
     String command = "xcorr" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, xcorrProcessWatcher, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      xcorrProcessWatcher, axisID);
 
     return comScriptProcess.getName();
   }
@@ -465,13 +469,71 @@ public class ProcessManager {
     String command = "prenewst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    PrenewstProcessMonitor prenewstProcessMonitor =
-      new PrenewstProcessMonitor(appManager, axisID);
+    PrenewstProcessMonitor prenewstProcessMonitor = new PrenewstProcessMonitor(
+      appManager, axisID);
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, prenewstProcessMonitor, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      prenewstProcessMonitor, axisID);
     return comScriptProcess.getName();
+  }
+
+  /**
+   * Run xproduct to create the _nonfid.xf for specified axis 
+   * @param axisID
+   */
+  public void generateNonFidXF(AxisID axisID) throws SystemProcessException {
+    String[] xfproduct = new String[4];
+
+    xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
+    xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
+        + ".prexg";
+    xfproduct[2] = "rotation.xf";
+    xfproduct[3] = appManager.getDatasetName() + axisID.getExtension()
+        + "_nonfid.xf";
+
+    runCommand(xfproduct);
+  }
+
+  /**
+   * Setup the non fiducial alignment files
+   * Copy the _nonfid.xf to .xf file
+   * Copy the .rawtlt to the .tlt file
+   * @param axisID
+   */
+  public void setupNonFidicualAlign(AxisID axisID) throws IOException {
+    String workingDirectory = System.getProperty("user.dir");
+    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+
+    File nonfidXF = new File(workingDirectory, axisDataset + "_nonfid.xf");
+    File xf = new File(workingDirectory, axisDataset + ".xf");
+    Utilities.copyFile(nonfidXF, xf);
+
+    File rawtlt = new File(workingDirectory, axisDataset + ".rawtlt");
+    File tlt = new File(workingDirectory, axisDataset + ".tlt");
+    Utilities.copyFile(rawtlt, tlt);
+  }
+
+  /**
+   * Setup the fiducial alignment files
+   * If the exist copy the _fid.xf to .xf
+   * Copy _fid.tlt to .tlt
+   * @param axisID
+   */
+  public void setupFiducialAlign(AxisID axisID) throws IOException {
+    String workingDirectory = System.getProperty("user.dir");
+    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+
+    if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
+      File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
+      File xf = new File(workingDirectory, axisDataset + ".xf");
+      Utilities.copyFile(fidXF, xf);
+    }
+    if (Utilities.fileExists(appManager.getMetaData(), "_fid.tlt", axisID)) {
+      File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
+      File tlt = new File(workingDirectory, axisDataset + ".tlt");
+      Utilities.copyFile(fidTlt, tlt);
+    }
   }
 
   /**
@@ -481,29 +543,15 @@ public class ProcessManager {
    *          the AxisID to run midas on.
    */
   public void midasRawStack(AxisID axisID) {
-    String stack = "";
-    String xform = "";
 
-    //  Create the required midas command
-    if (axisID == AxisID.ONLY) {
-      stack = appManager.getDatasetName() + ".st ";
-      xform = appManager.getDatasetName() + ".prexf ";
-    }
-    if (axisID == AxisID.FIRST) {
-      stack = appManager.getDatasetName() + "a.st ";
-      xform = appManager.getDatasetName() + "a.prexf ";
-    }
-    if (axisID == AxisID.SECOND) {
-      stack = appManager.getDatasetName() + "b.st ";
-      xform = appManager.getDatasetName() + "b.prexf ";
-    }
+    String[] commandArray = new String[3];
 
-    String imodBinPath =
-      ApplicationManager.getIMODDirectory().getAbsolutePath()
-        + File.separator
-        + "bin"
-        + File.separator;
-    String commandLine = imodBinPath + "midas " + stack + xform;
+    String stack = appManager.getDatasetName() + axisID.getExtension() + ".st ";
+    String xform = appManager.getDatasetName() + axisID.getExtension()
+        + ".prexf ";
+
+    String commandLine = ApplicationManager.getIMODBinPath() + "midas " + stack
+        + xform;
     //  Start the system program thread
     startSystemProgramThread(commandLine);
   }
@@ -514,8 +562,7 @@ public class ProcessManager {
    * @param axisID
    *          the AxisID to run track.com on.
    */
-  public String fiducialModelTrack(AxisID axisID)
-    throws SystemProcessException {
+  public String fiducialModelTrack(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required beadtrack command
     //
@@ -556,8 +603,7 @@ public class ProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      appManager.openMessageDialog(
-        "Unable to create alignlog files",
+      appManager.openMessageDialog("Unable to create alignlog files",
         "Alignlog Error");
     }
   }
@@ -566,15 +612,15 @@ public class ProcessManager {
    * Run the transferfid script
    */
   public String transferFiducials(TransferfidParam transferfidParam)
-    throws SystemProcessException {
+      throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
     //Run transferfid on the destination axis.
     if (transferfidParam.isBToA()) {
       axisID = AxisID.FIRST;
     }
 
-    BackgroundProcess backgroundProcess =
-      startBackgroundProcess(transferfidParam.getCommandString(), axisID);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+      transferfidParam.getCommandString(), axisID);
     transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
@@ -628,11 +674,11 @@ public class ProcessManager {
     String command = "newst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    NewstProcessMonitor newstProcessMonitor =
-      new NewstProcessMonitor(appManager, axisID);
+    NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
+      appManager, axisID);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, newstProcessMonitor, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      newstProcessMonitor, axisID);
     return comScriptProcess.getName();
 
   }
@@ -666,10 +712,10 @@ public class ProcessManager {
     String command = "tilt" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    TiltProcessMonitor tiltProcessMonitor =
-      new TiltProcessMonitor(appManager, axisID);
-    ComScriptProcess comScriptProcess =
-      startComScript(command, tiltProcessMonitor, axisID);
+    TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
+      axisID);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      tiltProcessMonitor, axisID);
 
     return comScriptProcess.getName();
 
@@ -683,7 +729,7 @@ public class ProcessManager {
    *          script
    */
   public void setupCombineScripts(ConstMetaData metaData)
-    throws BadComScriptException, IOException {
+      throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
 
@@ -696,8 +742,7 @@ public class ProcessManager {
       String[] stdError = setupCombine.getStdError();
       if (stdError.length < 1) {
         stdError = new String[1];
-        stdError[0] =
-          "Get David to add some std error reporting to setupCombine";
+        stdError[0] = "Get David to add some std error reporting to setupCombine";
       }
       StringBuffer buffer = new StringBuffer();
       buffer.append("SetupCombine Error\n");
@@ -716,43 +761,12 @@ public class ProcessManager {
    */
   public void modelToPatch() throws SystemProcessException {
     //  Copy the old patch.out to patch.out~
-    SystemProgram savePatchOut =
-      new SystemProgram("mv -f patch.out patch.out~");
-    savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    savePatchOut.setDebug(ApplicationManager.isDebug());
-
-    savePatchOut.run();
-    if (savePatchOut.getExitValue() != 0) {
-      String message = "";
-      String[] stderr = savePatchOut.getStdError();
-
-      for (int i = 0; i < stderr.length; i++) {
-        message = message + stderr[i] + "\n";
-      }
-      throw new SystemProcessException(message);
-    }
+    String[] mv = {"mv", "-f", "patch.out", "patch.out~"};
+    runCommand(mv);
 
     // Convert the new patchvector.mod
-    String imodBinPath =
-      ApplicationManager.getIMODDirectory().getAbsolutePath()
-        + File.separator
-        + "bin"
-        + File.separator;
-    String commandLine = imodBinPath + "imod2patch patch_vector.mod patch.out";
-    SystemProgram patch2imod = new SystemProgram(commandLine);
-    patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    patch2imod.setDebug(ApplicationManager.isDebug());
-
-    patch2imod.run();
-    if (patch2imod.getExitValue() != 0) {
-      String message = "";
-      String[] stderr = patch2imod.getStdError();
-
-      for (int i = 0; i < stderr.length; i++) {
-        message = message + stderr[i] + "\n";
-      }
-      throw new SystemProcessException(message);
-    }
+    String[] imod2patch = {"imod2patch", "patch_vector.mod", "patch.out"};
+    runCommand(imod2patch);
   }
 
   /**
@@ -766,8 +780,8 @@ public class ProcessManager {
     String command = "combine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -782,8 +796,8 @@ public class ProcessManager {
     String command = "solvematchshift.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -798,8 +812,8 @@ public class ProcessManager {
     String command = "solvematchmod.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -814,8 +828,8 @@ public class ProcessManager {
     String command = "matchvol1.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -829,12 +843,12 @@ public class ProcessManager {
     //  Create the required combine command
     String command = "patchcorr.com";
     //  Create the process monitor
-    PatchcorrProcessWatcher patchcorrProcessWatcher =
-      new PatchcorrProcessWatcher(appManager, AxisID.FIRST);
+    PatchcorrProcessWatcher patchcorrProcessWatcher = new PatchcorrProcessWatcher(
+      appManager, AxisID.FIRST);
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, patchcorrProcessWatcher, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      patchcorrProcessWatcher, AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -849,8 +863,8 @@ public class ProcessManager {
     String command = "matchorwarp.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -865,8 +879,8 @@ public class ProcessManager {
     String command = "volcombine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command, null,
+      AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -875,9 +889,9 @@ public class ProcessManager {
    * Run trimvol
    */
   public String trimVolume(TrimvolParam trimvolParam)
-    throws SystemProcessException {
-    BackgroundProcess backgroundProcess =
-      startBackgroundProcess(trimvolParam.getCommandString(), AxisID.ONLY);
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam
+      .getCommandString(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
 
@@ -912,8 +926,8 @@ public class ProcessManager {
     sysProgThread.start();
     if (ApplicationManager.isDebug()) {
       System.err.println("Started " + command);
-      System.err.println(
-        "  working directory: " + System.getProperty("user.dir"));
+      System.err.println("  working directory: "
+          + System.getProperty("user.dir"));
     }
   }
 
@@ -924,18 +938,16 @@ public class ProcessManager {
    * @param axisID
    * @return
    */
-  private ComScriptProcess startComScript(
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
+  private ComScriptProcess startComScript(String command,
+      Runnable processMonitor, AxisID axisID) throws SystemProcessException {
 
     isAxisBusy(axisID);
 
     //  Run the script as a thread in the background
-    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this, axisID);
-    comScriptProcess.setWorkingDirectory(
-      new File(System.getProperty("user.dir")));
+    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this,
+      axisID);
+    comScriptProcess.setWorkingDirectory(new File(System
+      .getProperty("user.dir")));
     comScriptProcess.setDebug(ApplicationManager.isDebug());
     comScriptProcess.setDemoMode(appManager.isDemo());
     comScriptProcess.start();
@@ -951,12 +963,8 @@ public class ProcessManager {
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
     if (appManager.isDemo()) {
-      processMonitor =
-        new DemoProcessMonitor(
-          appManager,
-          axisID,
-          command,
-          comScriptProcess.getDemoTime());
+      processMonitor = new DemoProcessMonitor(appManager, axisID, command,
+        comScriptProcess.getDemoTime());
     }
 
     //	Start the process monitor thread if a runnable process is provided
@@ -988,13 +996,14 @@ public class ProcessManager {
    *          the exit value for the com script
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-    System.err.println("msgComScriptDone:scriptName=" + script.getScriptName() + ",processName=" + script.getProcessName());
+    System.err.println("msgComScriptDone:scriptName=" + script.getScriptName()
+        + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       String[] combined;
       //    Is the last string "Killed"
       if ((stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+          && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         combined = new String[1];
         combined[0] = "<html>Terminated: " + script.getScriptName();
       }
@@ -1015,9 +1024,8 @@ public class ProcessManager {
           combined[j] = stdError[i];
         }
       }
-      appManager.openMessageDialog(
-        combined,
-        script.getScriptName() + " terminated");
+      appManager.openMessageDialog(combined, script.getScriptName()
+          + " terminated");
     }
     else {
       // Script specific post processing
@@ -1038,9 +1046,8 @@ public class ProcessManager {
         for (int i = 0; i < warningMessages.length; i++) {
           dialogMessage[j++] = warningMessages[i];
         }
-        appManager.openMessageDialog(
-          dialogMessage,
-          script.getScriptName() + " warnings");
+        appManager.openMessageDialog(dialogMessage, script.getScriptName()
+            + " warnings");
       }
 
     }
@@ -1063,11 +1070,8 @@ public class ProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    appManager.processDone(
-      script.getName(),
-      exitValue,
-      script.getProcessName(),
-      script.getAxisID());
+    appManager.processDone(script.getName(), exitValue,
+      script.getProcessName(), script.getAxisID());
   }
 
   /**
@@ -1077,16 +1081,14 @@ public class ProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  private BackgroundProcess startBackgroundProcess(
-    String command,
-    AxisID axisID)
-    throws SystemProcessException {
+  private BackgroundProcess startBackgroundProcess(String command, AxisID axisID)
+      throws SystemProcessException {
 
     isAxisBusy(axisID);
 
     BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
-    backgroundProcess.setWorkingDirectory(
-      new File(System.getProperty("user.dir")));
+    backgroundProcess.setWorkingDirectory(new File(System
+      .getProperty("user.dir")));
     backgroundProcess.setDemoMode(appManager.isDemo());
     backgroundProcess.setDebug(ApplicationManager.isDebug());
     backgroundProcess.start();
@@ -1107,9 +1109,7 @@ public class ProcessManager {
    * @param exitValue
    *          the exit value for the process
    */
-  public void msgBackgroundProcessDone(
-    BackgroundProcess process,
-    int exitValue) {
+  public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
 
     //  Check to see if the exit value is non-zero
     if (exitValue != 0) {
@@ -1118,7 +1118,7 @@ public class ProcessManager {
 
       // Is the last string "Killed"
       if ((stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+          && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         message = new String[1];
         message[0] = "<html>Terminated: " + process.getCommandLine();
       }
@@ -1132,9 +1132,8 @@ public class ProcessManager {
           message[j] = stdError[i];
         }
       }
-      appManager.openMessageDialog(
-        message,
-        process.getCommand() + " terminated");
+      appManager.openMessageDialog(message, process.getCommand()
+          + " terminated");
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -1153,8 +1152,8 @@ public class ProcessManager {
         errors.add(stdOutput[i]);
       }
     }
-    String[] errorMessage =
-      (String[]) errors.toArray(new String[errors.size()]);
+    String[] errorMessage = (String[]) errors
+      .toArray(new String[errors.size()]);
 
     if (errorMessage.length > 0) {
       appManager.openMessageDialog(errorMessage, "Background Process Error");
@@ -1190,9 +1189,9 @@ public class ProcessManager {
 
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      BufferedWriter fileBuffer =
-        new BufferedWriter(
-          new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
+      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(System
+        .getProperty("user.dir")
+          + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
         fileBuffer.write(stdOutput[i]);
@@ -1202,16 +1201,16 @@ public class ProcessManager {
 
       //  Show a log file window to the user
       TextPageWindow logFileWindow = new TextPageWindow();
-      logFileWindow.setVisible(
-        logFileWindow.setFile(
-          System.getProperty("user.dir") + File.separator + "transferfid.log"));
+      logFileWindow.setVisible(logFileWindow.setFile(System
+        .getProperty("user.dir")
+          + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
-      appManager.openMessageDialog(
-        except.getMessage(),
-        "Transferfid log error");
+      appManager
+        .openMessageDialog(except.getMessage(), "Transferfid log error");
     }
   }
+
   /**
    * Save the process thread reference for the appropriate axis
    * 
@@ -1239,12 +1238,14 @@ public class ProcessManager {
     // axis.
     if (axisID == AxisID.SECOND) {
       if (threadAxisB != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
+        throw new SystemProcessException(
+          "A process is already executing in the current axis");
       }
     }
     else {
       if (threadAxisA != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
+        throw new SystemProcessException(
+          "A process is already executing in the current axis");
       }
     }
   }
@@ -1307,7 +1308,7 @@ public class ProcessManager {
    * @return A string array of the child processes or null if they don't exist
    */
   private String[] getChildProcessList(String processID) {
-//    System.out.println("in getChildProcessList: processID=" + processID);
+    //    System.out.println("in getChildProcessList: processID=" + processID);
     //  Run the appropriate version of ps
     SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
@@ -1336,10 +1337,10 @@ public class ProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
-//      System.out.println("fields: PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
+      //      System.out.println("fields: PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       if (fields[idxPPID].equals(processID)) {
         childrenPID.add(fields[idxPID]);
-//        System.out.println("added : PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
+        //        System.out.println("added : PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       }
     }
 
@@ -1349,9 +1350,30 @@ public class ProcessManager {
     }
 
     // Connvert the ArrayList into a String[]
-    String[] children =
-      (String[]) childrenPID.toArray(new String[childrenPID.size()]);
+    String[] children = (String[]) childrenPID.toArray(new String[childrenPID
+      .size()]);
     return children;
   }
 
+  /**
+   * Execute the command and arguments in commandAarray immediately.
+   * @param commandArray
+   * @throws SystemProcessException
+   */
+  private void runCommand(String[] commandArray) throws SystemProcessException {
+    SystemProgram systemProgram = new SystemProgram(commandArray);
+    systemProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    systemProgram.setDebug(ApplicationManager.isDebug());
+
+    systemProgram.run();
+    if (systemProgram.getExitValue() != 0) {
+      String message = "";
+      String[] stderr = systemProgram.getStdError();
+
+      for (int i = 0; i < stderr.length; i++) {
+        message = message + stderr[i] + "\n";
+      }
+      throw new SystemProcessException(message);
+    }
+  }
 }
