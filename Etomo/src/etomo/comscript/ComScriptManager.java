@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/01/08 01:28:20  sueh
+ * <p> bug# 578 Passing axisID to NewstParam constructor.  Passing dataset
+ * <p> name and axisID to TiltParam constructor.
+ * <p>
  * <p> Revision 3.20  2005/01/06 17:55:40  sueh
  * <p> bug# 567 Passing dataset name to TiltalignParam constructor to build the
  * <p> zFactorFile name without making TiltalignParam depend on one type of
@@ -1238,7 +1242,7 @@ public class ComScriptManager {
 
     if (script == null) {
       String[] errorMessage = new String[2];
-      errorMessage[0] = "Failed attempt to update comscript for command:"
+      errorMessage[0] = "Failed attempt to update the comscript containing the command: "
         + command;
       errorMessage[1] = "It needs to be loaded first";
       appManager.getMainPanel().openMessageDialog(errorMessage,
@@ -1466,6 +1470,9 @@ public class ComScriptManager {
   }
   private boolean initialize(CommandParam param, ComScript comScript,
     String command, AxisID axisID, boolean optionalCommand) {
+    if (comScript == null) {
+      return false;
+    }
     if (!comScript.isCommandLoaded()) {
       param.initializeDefaults();
     }
