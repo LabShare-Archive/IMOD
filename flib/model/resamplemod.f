@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2004/06/17 17:48:35  mast
+c	  Corrected program name in error messages
+c	
 c	  Revision 3.3  2003/10/10 20:42:32  mast
 c	  Used new subroutine for getting input/output files
 c	
@@ -30,7 +33,7 @@ c
 	logical exist,readw_or_imod
 	real*4 rmat(3,3),vecmean(3),vecnorm(3)
 	integer*4 iobjuse(limobj),iobjexcl(limobj)
-	integer getimodhead
+	integer getimodhead,getimodscales
 	real*4 xmt(limsec),ymt(limsec),zmt(limsec)
 	logical failed
 	integer*4 ierr, nobjuse, nobjexcl, ifflip, indz, indy, invaxis
@@ -38,6 +41,7 @@ c
 	integer*4 iobj,ninobj, ibase, ipt, itmp, nvec, i, ifuse, ifexcl, j
 	real*4 xshft, yshft, zshft, tmp, frac, xmax, ymax, zmax
 	integer*4 izst, iznd, newnin, iz, maxx, maxy, maxz, imodobj, imodcont
+	integer*4 skipInv
 
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
@@ -55,6 +59,9 @@ c
      &      'direction:DirectionObjects:LI:@main:MainAxis:I:@'//
      &      'skip:SkipInversion:B:@param:ParameterFile:PF:@'//
      &      'help:usage:B:'
+
+	skipInv = 0
+	invaxis = 3
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -84,6 +91,7 @@ c
 	ifflip=0
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
 	if(ierr.ne.0)call errorexit('GETTING SCALING FROM MODEL HEADER')
+	call scale_model(0)
 
 	if(ifflip.eq.0)then
 	  indy=2
@@ -93,22 +101,19 @@ c
 	  indy=3
 	endif
 
-	invaxis = 0
-	if (PipGetBoolean('SkipInversion', iobj) .gt. 0) then
-	  invaxis = 3
-	  ierr = PipGetInteger('MainAxis', invaxis)
+	ierr = PipGetBoolean('SkipInversion', skipInv)
+	ierr = PipGetInteger('MainAxis', invaxis)
+	invaxis = max(1,min(3,invaxis))
+	if (invaxis.eq.2)then
+	  invaxis = indy
+	elseif(invaxis.eq.3)then
+	  invaxis = indz
 	endif
 	call PipDone()
 c	  
 c	  invert objects if starting z > ending z. 
 c	  
-	if (invaxis.ne.0)then
-	  invaxis = max(1,min(3,invaxis))
-	  if (invaxis.eq.2)then
-	    invaxis = indy
-	  elseif(invaxis.eq.3)then
-	    invaxis = indz
-	  endif
+	if (skipInv.eq.0)then
 
 	  do iobj=1,max_mod_obj
 	    ninobj=npt_in_obj(iobj)
@@ -148,15 +153,22 @@ c
 	  ninobj=npt_in_obj(iobj)
 	  if(ninobj.gt.1.and.ifuse.eq.1)then
 	    ibase=ibase_obj(iobj)
-	    vecmean(1)=vecmean(1)+
-     &		p_coord(1,object(ninobj+ibase)) -
-     &		p_coord(1,object(1+ibase))
-	    vecmean(indy)=vecmean(indy)+
-     &		p_coord(indy,object(ninobj+ibase)) -
-     &		p_coord(indy,object(1+ibase))
+	    i = abs(object(ibase + 1))
+	    ipt = abs(object(ibase + ninobj))
+c	      
+c	      If inversion was skipped, check if this object needs to be 
+c	      inverted for adding into the sum
+c
+	    if (skipInv .ne. 0 .and. 
+     &		p_coord(invaxis, i) .gt. p_coord(invaxis, ipt)) then
+	      i = abs(object(ibase + ninobj))
+	      ipt = abs(object(ibase + 1))
+	    endif
+	    
+	    vecmean(1)=vecmean(1)+ p_coord(1,ipt) - p_coord(1,i)
+	    vecmean(indy)=vecmean(indy)+ p_coord(indy,ipt) - p_coord(indy,i)
 	    vecmean(indz)=vecmean(indz)+ zscale*(
-     &		p_coord(indz,object(ninobj+ibase)) -
-     &		p_coord(indz,object(1+ibase)))
+     &		p_coord(indz,ipt) - p_coord(indz,i))
 	    nvec=nvec+1
 	  endif
 	enddo
@@ -166,6 +178,16 @@ c
 	enddo
 
 	call vectors_to_rmat(vecmean,vecnorm,rmat)
+
+	print *,'vecmean:',(vecmean(i),i=1,3)
+	write(*,'(3f8.4)')((rmat(i,ipt),i=1,3),ipt=1,3)
+	xt = vecmean(1)
+	yt = vecmean(2)
+	zt = vecmean(3)
+	xmt(1)=xt*rmat(1,1)+yt*rmat(1,2)+zt*rmat(1,3)
+	ymt(1)=xt*rmat(2,1)+yt*rmat(2,2)+zt*rmat(2,3)
+	zmt(1)=(xt*rmat(3,1)+yt*rmat(3,2)+zt*rmat(3,3))/zscale
+	print *,'rotated vec:', xmt(1),ymt(1),zmt(1)
 
 	xmin=1.e10
 	ymin=1.e10
@@ -307,6 +329,7 @@ c
 	maxx=10*(int(xmax+19)/10)
 	maxy=10*(int(ymax+19)/10)
 	maxz=nint(zmax)+2
+	call scale_model(1)
 	call putimodmaxes(maxx,maxy,maxz)
 	call write_wmod(newmodel)
 	call exit
