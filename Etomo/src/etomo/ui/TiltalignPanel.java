@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.20  2002/12/31 23:13:47  rickg
+ * <p> Layout simplification
+ * <p>
  * <p> Revision 1.19  2002/12/24 01:08:08  rickg
  * <p> Moved min local patch size to advanced
  * <p>
@@ -260,6 +263,9 @@ public class TiltalignPanel implements ContextMenu {
   public TiltalignPanel(String suffix) {
     logSuffix = suffix;
 
+    tabPane.setBorder(new TitledBorder(
+        BorderFactory.createEtchedBorder(highlight, shadow),
+        "Tiltalign Parameters"));
     //  Create the tabs
     createGeneralTab();
     createGlobalSolutionTab();
@@ -972,10 +978,8 @@ public class TiltalignPanel implements ContextMenu {
       items,
       tiltAngleRadioListener);
     panelTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-//    ltfTiltAngleGroupSize.setMaximumSize(dimLTF);
     panelTiltAngleSolution.add(ltfTiltAngleGroupSize.getContainer());
     panelTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-//    ltfTiltAngleAdditionalGroups.setMaximumSize(dimLTF);
     panelTiltAngleSolution.add(ltfTiltAngleAdditionalGroups.getContainer());
 
     panelTiltAngleSolution.setBorder(
