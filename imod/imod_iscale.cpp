@@ -202,8 +202,17 @@ void ImageScaleWindow::updateLimits()
 
 void ImageScaleWindow::showFileAndMMM()
 {
+  int cz;
   ImodView *vw = imodImageScaleData.vw;
   QString str;
+  if (vw->multiFileZ > 0) {
+    cz = (int)(vw->zmouse + 0.5 + vw->li->zmin);
+    if (cz >= 0 && cz < vw->zsize && vw->image != &vw->imageList[cz]) {
+        iiClose(vw->image);
+        vw->hdr = vw->image = &vw->imageList[cz];
+        ivwReopen(vw->image);
+    }
+  }
   str.sprintf("File: %s", vw->image->filename);
   mFileLabel->setText(str);
   str.sprintf("Min: %g    Max: %g    Mean: %g",  vw->hdr->amin,
@@ -246,6 +255,12 @@ void ImageScaleWindow::applyLimits()
      
   iiSetMM(vw->image, (double)vw->li->smin, (double)vw->li->smax);
   ivwSetScale(vw);
+
+  /* For multi-file sections, apply to all the files */
+  if (vw->multiFileZ)
+    for (k = 0; k < vw->zsize; k++)
+      iiSetMM(&vw->imageList[k + vw->li->zmin], (double)vw->li->smin, 
+                             (double)vw->li->smax);
 
   if (vw->vmSize){
     /* flush the image cache. */
@@ -321,6 +336,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/11/01 18:12:17  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.5  2003/06/04 23:30:55  mast
 Add timer to prevent crash if window closed before reload done
 
