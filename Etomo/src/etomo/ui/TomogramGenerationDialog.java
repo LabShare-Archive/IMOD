@@ -60,6 +60,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.34  2005/02/19 00:31:21  sueh
+ * bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * and localalignments.  Add them for A and B.
+ *
  * Revision 3.33  2005/02/11 16:46:27  sueh
  * bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
  *
@@ -409,7 +413,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
       "<html><b>Delete Aligned Image Stack</b>");
-  private JCheckBox cbUseZFactors = new JCheckBox("Use Z Factors");
+  private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
       
   private JPanel pnlTiltButtons = new JPanel();
   private LabeledTextField ltfExtraExcludeList = new LabeledTextField(
