@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.4  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
     Revision 4.3  2003/04/17 18:43:38  mast
     adding parent to window creation
 
@@ -46,10 +49,12 @@
 #include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
+#include "imodview.h"
 #include "b3dgfx.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_movie.h"
+#include "imodv_window.h"
 #include "control.h"
 
 /* The movie control structure  */
@@ -111,18 +116,14 @@ void imodvMovieHelp()
      "degrees.\n\n\n",
      "Montage Making\n\n",
      "The lower controls allow one to save a montage of zoomed-up views "
-     "of the model.  The model will be zoomed up by an appropriate "
-     "factor, then translated to a regular array of positions.  "
-     "The collection of "
-     "images will form a montage of whatever is currently in the window "
-     "before you start.  Perspective must be set to zero in order for "
-     "this to work correctly.\n\n"
-     "Set the number of frames to the desired zoom factor.  Set the "
-     "amount of overlap to whatever is most convenient for reassembling "
-     "the montage.  "
-     "If [Write Files] is selected then a snapshot will "
-     "be taken of each image.  The file will be an RGB or a TIFF file, "
-     "depending on which radio button is selected.\n",
+     "of the model into a single TIFF file, in order to get a high-resolution "
+     "rendering of the model.  The model will be zoomed up by a "
+     "factor equal to the number of montage frames, then translated to a "
+     "regular array of positions.  "
+     "If [Write Files] is selected, then images will be montaged into an "
+     "array that is saved into a TIFF "
+     "file at the end.  Perspective must be set to zero in order for "
+     "this to work correctly.\n",
      NULL);
                 
   return;
@@ -185,7 +186,7 @@ void imodvMovieClosing()
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
                               format, movie->saved);
   movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
-  movie->dia->getFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
+  movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
   imodvDialogManager.remove((QWidget *)movie->dia);
   movie->dia = NULL;
   movie->abort = 1;
@@ -203,7 +204,7 @@ void imodvMovieMake()
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
                               format, movie->saved);
   movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
-  movie->dia->getFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
+  movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
 
   /* DNM: only make if not already making */
   if (movie->abort) {
@@ -269,7 +270,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->dia->setButtonStates(movie->longway, movie->reverse, movie->montage,
                               movie->file_format == SnapShot_TIF ? 1 : 0, 
                               movie->saved);
-  movie->dia->setFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
+  movie->dia->setFrameBoxes(movie->frames, movie->montFrames);
   imodvDialogManager.add((QWidget *)movie->dia, IMODV_DIALOG);
   movie->dia->show();
 }
@@ -425,8 +426,13 @@ static void imodvMakeMontage(int frames, int overlap)
   Imat *mat;
   Ipoint ipt, spt, xunit, yunit;
   float scrnscale, radsave;
-  int ix, iy;
+  int ix, iy, xFullSize, yFullSize;
   float zoom, yzoom;
+  unsigned char *framePix = NULL;
+  unsigned char *fullPix = NULL;
+  unsigned char **linePtrs = NULL;
+  int limits[4];
+  char fname[32];
 
   /* limit the overlap */
   if (frames <= 1)
@@ -437,6 +443,23 @@ static void imodvMakeMontage(int frames, int overlap)
     overlap = a->winx / 2;
   if (overlap > a->winy / 2)
     overlap = a->winy / 2;
+
+  xFullSize = frames * a->winx - (frames - 1) * overlap;
+  yFullSize = frames * a->winy - (frames - 1) * overlap;
+
+  if (movie->saved) {
+    framePix = (unsigned char *)malloc(4 * a->winx * a->winy);
+    fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
+    linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
+    if (!framePix || !fullPix || !linePtrs) {
+      if (framePix)
+        free(framePix);
+      if (fullPix)
+        free(fullPix);
+      imodError(NULL, "Failed to get memory for snapshot buffers.\n");
+      return;
+    }
+  }
 
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
@@ -490,14 +513,20 @@ static void imodvMakeMontage(int frames, int overlap)
   vw->trans.y += 0.5 * (frames - 1.) * (xunit.y + yunit.y) ;
   vw->trans.z += 0.5 * (frames - 1.) * (xunit.z + yunit.z) ;
 
-
+  /* 12/2/8/03: Disabling the auto swap and reading from back buffer for db 
+     did not work here for protecting from occluding stuff (nor does it work 
+     in regular snapshot) */
   for(iy = 0; iy < frames; iy++){
     for(ix = 0; ix < frames; ix++){
-      if (movie->saved)
-        imodv_auto_snapshot(NULL, movie->file_format);
-      else
-        imodvDraw(a);
-
+      imodvDraw(a);
+      if (movie->saved) {
+        glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
+                     framePix);
+        glFlush();
+        memreccpy(fullPix, framePix, a->winx, a->winy, 4, xFullSize - a->winx,
+                  ix * (a->winx - overlap), iy * (a->winy - overlap), 0, 0, 0);
+        
+      }
       xinput(); 
 
       if (movie->abort)
@@ -516,6 +545,26 @@ static void imodvMakeMontage(int frames, int overlap)
     if (movie->abort)
       break;
   }
+
+  /* If saving, and not aborted, then get snapshot name and save data */
+  if (movie->saved) {
+    if (!movie->abort) {
+      for (iy = 0; iy < yFullSize; iy++)
+        linePtrs[iy] = fullPix + 4 * xFullSize * iy;
+      limits[0] = limits[1] = 0;
+      limits[2] = xFullSize;
+      limits[3] = yFullSize;
+      b3dGetSnapshotName(fname, "modv", SnapShot_TIF, 4, a->snap_fileno);
+      printf("3dmodv: Saving montage to %s", fname);
+      fflush(stdout);
+      b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+    }
+
+    free(framePix);
+    free(fullPix);
+    free(linePtrs);
+  }
+
   movie->abort = 1;
   vw->rad = radsave;
   vw->trans = transave;
