@@ -642,6 +642,7 @@ while ($iaxis < $numax)
 
     set incDelText = "TiltIncrement"
     set tiltIncText = "gibberish232"
+    set tiltStart = $tiltspec
     set tiltInc = 1
     if ($tiltopt < 0) then
         set tiltTypeText = "TiltAngles"
@@ -654,7 +655,7 @@ while ($iaxis < $numax)
             echo "ERROR: $pn - You entered only one number for start and increment tilt angles"
             exit 1
         endif
-        set tiltspec = $startInc[1]
+        set tiltStart = $startInc[1]
         set tiltInc = $startInc[2]
         set tiltIncText = "TiltIncrement"
         set incDelText = "gibberish434"
@@ -730,7 +731,7 @@ EOF
 
         set srcfile = $srcdir/"xcorr"$srcext
         sed -e s/$srcname/$dstname/g\
-	    -e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltspec/"\
+	    -e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltStart/"\
 	    -e "/^$tiltIncText/s/[ 	].*/	$tiltInc/"\
 	    -e "/^$incDelText/d"\
 	    -e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
@@ -1274,6 +1275,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.28  2004/06/10 22:45:52  mast
+#  Added automatic setting of log base to 32767 if densities are negative
+#
 #  Revision 3.27  2004/04/22 17:34:14  mast
 #  Copied .tlt to _fid.tlt in align.com
 #
