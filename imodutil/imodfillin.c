@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/06/21 00:26:03  mast
+    Needed to swap points from first triangle of a strip if they were out of
+    order relative to the following points of the strip
+
     Revision 3.1  2001/12/17 18:53:55  mast
     First version of program
 
@@ -163,7 +167,7 @@ main( int argc, char *argv[])
 
     sprintf(backname, "%s~", argv[argc - 1]);
     rename (argv[argc - 1], backname);
-    if (imodOpenFile(argv[argc - 1], "w", model)) {
+    if (imodOpenFile(argv[argc - 1], "wb", model)) {
       fprintf(stderr, "%s: Fatal error opening new model %s\n", argv[0],
 	      argv[argc - 1]);
       exit (1);
