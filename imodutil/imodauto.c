@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.3  2002/12/23 21:38:08  mast
 fixed exit status
 
@@ -94,6 +97,9 @@ static void usage(void)
   fprintf(stderr, "\t-M #\tMaximum contour area mask.\n");
   fprintf(stderr, "\t-e #\tEdge mask: eliminate contours touching that # of edges.\n");
   fprintf(stderr, "\t-s min,max\tIntensity scaling: scale min to 0 and max to 255.\n");
+  fprintf(stderr, "\t-X min,max\tLoad subset in X from min to max (numbered from 0).\n");
+  fprintf(stderr, "\t-Y min,max\tLoad subset in Y from min to max (numbered from 0).\n");
+  fprintf(stderr, "\t-Z min,max\tLoad subset in Z from min to max (numbered from 0).\n");
   fprintf(stderr, "\t-z #\tSet model z scale.\n");
   fprintf(stderr, "\t-x \tExpand areas before enclosing in contours.\n");
   fprintf(stderr, "\t-i \tShrink areas before enclosing in contours.\n");
@@ -119,7 +125,7 @@ int main(int argc, char *argv[])
   int minsize = 10;
   int maxsize = -1;
   int delete_edge = 0;
-  int i, co;
+  int i, co, pt;
   float zscale = 1.0f;
   float finalarea;
   int smoothflags = 0;
@@ -145,76 +151,85 @@ int main(int argc, char *argv[])
     if (argv[i][0] == '-')
       switch (argv[i][1]){
       case 'm':
-	minsize = atoi(argv[++i]);
-	break;
+        minsize = atoi(argv[++i]);
+        break;
       case 'M':
-	maxsize = atoi(argv[++i]);
-	break;
+        maxsize = atoi(argv[++i]);
+        break;
       case 'd':
-	dim = atoi(argv[++i]);
-	break;
+        dim = atoi(argv[++i]);
+        break;
       case 'h':
-	ht = atof(argv[++i]);
-	hentered = 1;
-	break;
+        ht = atof(argv[++i]);
+        hentered = 1;
+        break;
       case 'l':
-	lt = atof(argv[++i]);
-	lentered = 1;
-	break;
+        lt = atof(argv[++i]);
+        lentered = 1;
+        break;
       case 'r':
-	shave = atof(argv[++i]);
-	break;
+        shave = atof(argv[++i]);
+        break;
       case 'R':
-	tol = atof(argv[++i]);
-	break;
+        tol = atof(argv[++i]);
+        break;
       case 'e':
-	delete_edge = atoi(argv[++i]);
-	break;
+        delete_edge = atoi(argv[++i]);
+        break;
       case 'z':
-	zscale = atof(argv[++i]);
-	break;
+        zscale = atof(argv[++i]);
+        break;
       case 's':
-	sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
-	break;
+        sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
+        break;
       case 'x':
-	if (smoothflags)
-	  smoothflags = -1;
-	else
-	  smoothflags = 2;
-	break;
+        if (smoothflags)
+          smoothflags = -1;
+        else
+          smoothflags = 2;
+        break;
       case 'o':
-	if (smoothflags)
-	  smoothflags = -1;
-	else
-	  smoothflags = 3;
-	break;
+        if (smoothflags)
+          smoothflags = -1;
+        else
+          smoothflags = 3;
+        break;
       case 'i':
-	if (smoothflags)
-	  smoothflags = -1;
-	else
-	  smoothflags = 1;
-	break;
+        if (smoothflags)
+          smoothflags = -1;
+        else
+          smoothflags = 1;
+        break;
       case 'n':
-	inside = 1;
-	break;
+        inside = 1;
+        break;
       case 'u':
-	unscaled = 1;
-	break;
+        unscaled = 1;
+        break;
       case 'f':
-	followdiag = atoi(argv[++i]);
-	break;
+        followdiag = atoi(argv[++i]);
+        break;
       case 'c':
-	sscanf(argv[++i], "%f%*c%f%*c%f", &red, &green, &blue);
-	if (red > 1. || green > 1. || blue > 1.) {
-	  red /= 255.;
-	  green /= 255.;
-	  blue /= 255.;
-	}
-	break;
+        sscanf(argv[++i], "%f%*c%f%*c%f", &red, &green, &blue);
+        if (red > 1. || green > 1. || blue > 1.) {
+          red /= 255.;
+          green /= 255.;
+          blue /= 255.;
+        }
+        break;
+      case 'X':
+        sscanf(argv[++i], "%d%*c%d", &(li.xmin), &(li.xmax));
+        break;
+      case 'Y':
+        sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
+        break;
+      case 'Z':
+        sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
+        break;
       default:
-	usage();
-	exit(-1);
-	break;
+        usage();
+        exit(-1);
+        break;
 
       }
     else
@@ -238,8 +253,8 @@ int main(int argc, char *argv[])
   if (inside) {
     if (hentered && lentered) {
       fprintf(stderr, "Only a high or a low threshold, not both, "
-	      "may be entered when using\n the -n flag to find "
-	      "inside contours.\n");
+              "may be entered when using\n the -n flag to find "
+              "inside contours.\n");
       exit (-1);
     }
     /* Set thresholds equal, and set to follow diagonals only on the
@@ -309,7 +324,8 @@ int main(int argc, char *argv[])
   fclose(fin);
      
   obj = imodaObjectCreateThresholdData
-    (idata, hdata.nx, hdata.ny, hdata.nz, ht, lt, dim,
+    (idata, li.xmax + 1 - li.xmin, li.ymax + 1 - li.ymin,
+     li.zmax + 1 - li.zmin, ht, lt, dim,
      minsize, maxsize, followdiag, inside,
      shave, tol, delete_edge, smoothflags);
      
@@ -317,9 +333,18 @@ int main(int argc, char *argv[])
   obj->green = green;
   obj->blue = blue;
 
+  /* Shift all points in the object by the load-in min values */
+  for (co = 0; co < obj->contsize; co++) {
+    for (pt = 0; pt < obj->cont[co].psize; pt++) {
+      obj->cont[co].pts[pt].x += li.xmin;
+      obj->cont[co].pts[pt].y += li.ymin;
+      obj->cont[co].pts[pt].z += li.zmin;
+    }
+  }
+
   if (imod->objsize){
     tobj = (Iobj *)realloc(imod->obj, sizeof(Iobj *) * 
-			   (imod->objsize + 1));
+                           (imod->objsize + 1));
     imod->obj = tobj;
     memcpy(&(imod->obj[imod->objsize]), obj, sizeof(Iobj));
   }else{
@@ -386,7 +411,7 @@ static Iobj *imodaObjectCreateThresholdData
     mean = 0.;
     for (k = 0; k < nz; k++) {
       for (tsum = 0, i = 0; i < nxy; i++)
-	tsum += idata[k][i];
+        tsum += idata[k][i];
       mean += tsum / nxy;
     }
     mean /= nz;
@@ -397,7 +422,7 @@ static Iobj *imodaObjectCreateThresholdData
     /* Get per-section mean for dim = 3 */
     if (dim == 3) {
       for (tsum = 0, i = 0; i < nxy; i++)
-	tsum += idata[k][i];
+        tsum += idata[k][i];
       mean = tsum / nxy;
     }
 
@@ -424,34 +449,34 @@ static Iobj *imodaObjectCreateThresholdData
       tdata[i] = 0;
     for (i = 0; i < nxy; i++)
       if ( (idata[k][i] > t1) && (idata[k][i] < t2) )
-	tdata[i] = -1;
+        tdata[i] = -1;
 
     for(j = 0; j < ny; j++)
       for(i = 0; i < nx; i++){
-	if (tdata[i + (j * nx)] != 0)
-	  continue;
-	if (followdiag <= 0)
-	  diagonal = 0;
-	else if (followdiag >= 3)
-	  diagonal = 1;
-	else if (followdiag == 1)
-	  diagonal = (idata[k][i + (j * nx)] >= t2);
-	else
-	  diagonal = (idata[k][i + (j * nx)] <= t1);
+        if (tdata[i + (j * nx)] != 0)
+          continue;
+        if (followdiag <= 0)
+          diagonal = 0;
+        else if (followdiag >= 3)
+          diagonal = 1;
+        else if (followdiag == 1)
+          diagonal = (idata[k][i + (j * nx)] >= t2);
+        else
+          diagonal = (idata[k][i + (j * nx)] <= t1);
 
-	if (imoda_object_bfill_2d(idata[k], tdata, nx, ny, i, j,
-				  t1, t2, diagonal, col) > 1 || 
-	    minsize < 2){
+        if (imoda_object_bfill_2d(idata[k], tdata, nx, ny, i, j,
+                                  t1, t2, diagonal, col) > 1 || 
+            minsize < 2){
                         
-	  /* printf("\nfilled c %d at %d,%d,%d\n", 
-	     col, i, j, k); */
+          /* printf("\nfilled c %d at %d,%d,%d\n", 
+             col, i, j, k); */
                                
-	  col++;
-	} else {
-	  /* If single pixel, and minsize > 1, just eliminate
-	     this pixel */
-	  tdata[i + (j * nx)] = -1; 
-	}
+          col++;
+        } else {
+          /* If single pixel, and minsize > 1, just eliminate
+             this pixel */
+          tdata[i + (j * nx)] = -1; 
+        }
       }
          
 
@@ -462,11 +487,11 @@ static Iobj *imodaObjectCreateThresholdData
          
     for(j = 0; j < ny; j++)
       for(i = 0; i < nx; i++){
-	co = (int) tdata[i + (j * nx)];
-	if (co > 0){
-	  pt.x = i; pt.y = j; pt.z = k;
-	  imodPointAppend(&(obj->cont[co-1]), &pt);
-	}
+        co = (int) tdata[i + (j * nx)];
+        if (co > 0){
+          pt.x = i; pt.y = j; pt.z = k;
+          imodPointAppend(&(obj->cont[co-1]), &pt);
+        }
       }
 
     nobjsize = nobj->contsize;
@@ -477,34 +502,34 @@ static Iobj *imodaObjectCreateThresholdData
       nedge = 0;
       critedge = delete_edge;
       /* If doing inside, set up to eliminate any contour touching
-	 an edge if it is the wrong polarity */
+         an edge if it is the wrong polarity */
       if (inside) {
-	i = cont->pts->x;
-	j = cont->pts->y;
-	if ((followdiag == 1 && idata[k][i + (j * nx)] <= t1) ||
-	    (followdiag == 2 && idata[k][i + (j * nx)] >= t2))
-	  critedge = 1;
+        i = cont->pts->x;
+        j = cont->pts->y;
+        if ((followdiag == 1 && idata[k][i + (j * nx)] <= t1) ||
+            (followdiag == 2 && idata[k][i + (j * nx)] >= t2))
+          critedge = 1;
       }
       if (critedge) {
-	/* count the edges that the contour touches */
-	imodel_contour_mm(cont, &pmax, &pmin);
-	if (pmin.x == 0)
-	  nedge++;
-	if (pmax.x == nx - 1)
-	  nedge++;
-	if (pmin.y == 0)
-	  nedge++;
-	if (pmax.y == ny - 1)
-	  nedge++;
+        /* count the edges that the contour touches */
+        imodel_contour_mm(cont, &pmax, &pmin);
+        if (pmin.x == 0)
+          nedge++;
+        if (pmax.x == nx - 1)
+          nedge++;
+        if (pmin.y == 0)
+          nedge++;
+        if (pmax.y == ny - 1)
+          nedge++;
       }
       if ((cont->psize < minsize) ||
-	  (cont->psize > maxsize && maxsize > 0) ||
-	  (critedge && (nedge >= critedge))){
-	if (cont->psize){
-	  cont->psize = 0;
-	  free(cont->pts);
-	}
-	continue;
+          (cont->psize > maxsize && maxsize > 0) ||
+          (critedge && (nedge >= critedge))){
+        if (cont->psize){
+          cont->psize = 0;
+          free(cont->pts);
+        }
+        continue;
       }
                    
       nobjsize++;
@@ -516,63 +541,63 @@ static Iobj *imodaObjectCreateThresholdData
       if (!cont->psize) continue;
 
       printf("\rsection %d contour %6d of %6d size = %6d", 
-	     k, nco-onobjsize + 1, nobjsize-onobjsize,
-	     cont->psize);
+             k, nco-onobjsize + 1, nobjsize-onobjsize,
+             cont->psize);
       fflush(stdout);
              
       cz = cont->pts->z;
 
       /* Clear fdata array and mark pixels in this contour as FLOOD */
       for(i = 0; i < nxy; i++)
-	fdata[i] = 0;
+        fdata[i] = 0;
 
       for(cpt = 0; cpt < cont->psize; cpt++){
-	i = cont->pts[cpt].x;
-	j = cont->pts[cpt].y;
-	fdata[i + (j * nx)] = AUTO_FLOOD;
+        i = cont->pts[cpt].x;
+        j = cont->pts[cpt].y;
+        fdata[i + (j * nx)] = AUTO_FLOOD;
       }
 
       if (followdiag <= 0)
-	diagonal = 0;
+        diagonal = 0;
       else if (followdiag >= 3)
-	diagonal = 1;
+        diagonal = 1;
       else if (followdiag == 1)
-	diagonal = (idata[k][i + (j * nx)] >= t2);
+        diagonal = (idata[k][i + (j * nx)] >= t2);
       else
-	diagonal = (idata[k][i + (j * nx)] <= t1);
+        diagonal = (idata[k][i + (j * nx)] <= t1);
              
       auto_patch(fdata, nx, ny);
 
       /* If we do an expand, shrink, or smooth, run the patch again */
       if (smoothflags > 1)
-	auto_expand(fdata, nx, ny);
+        auto_expand(fdata, nx, ny);
       if (smoothflags % 2)
-	auto_shrink(fdata, nx, ny);
+        auto_shrink(fdata, nx, ny);
       if (smoothflags)
-	auto_patch(fdata, nx, ny);
+        auto_patch(fdata, nx, ny);
              
       newconts = imodContoursFromImagePoints(fdata, nx, ny, cz, 
-					     AUTO_FLOOD, diagonal, 
-					     &ncont);
+                                             AUTO_FLOOD, diagonal, 
+                                             &ncont);
       for (i = 0; i < ncont; i++) {
                   
-	/* Just check the area and eliminate again */
-	area = imodContourArea(&(newconts[i]));
-	if (area < minsize || (maxsize > 0 && area > maxsize))
-	  continue;
+        /* Just check the area and eliminate again */
+        area = imodContourArea(&(newconts[i]));
+        if (area < minsize || (maxsize > 0 && area > maxsize))
+          continue;
                   
-	imodContourStrip(&(newconts[i]));
-	if (tol != 0.0)
-	  imodContourReduce(&(newconts[i]), tol);
-	if (shave != 0.0)
-	  imodContourShave(&(newconts[i]), shave);
-	imodObjectAddContour(nobj, imodContourNew());
-	imodContourCopy(&newconts[i], 
-			&(nobj->cont[nobj->contsize - 1]));
+        imodContourStrip(&(newconts[i]));
+        if (tol != 0.0)
+          imodContourReduce(&(newconts[i]), tol);
+        if (shave != 0.0)
+          imodContourShave(&(newconts[i]), shave);
+        imodObjectAddContour(nobj, imodContourNew());
+        imodContourCopy(&newconts[i], 
+                        &(nobj->cont[nobj->contsize - 1]));
       }
       nco++;
       if (newconts)
-	free(newconts);
+        free(newconts);
     }
          
     imodObjectDelete(obj);
@@ -624,57 +649,57 @@ static int imoda_object_bfill_2d(unsigned char *idata, int *data,
       nadded++;
 
       /* add each of four neighbors on list if coordinate is legal
-	 and they are not already on list or in flood */
+         and they are not already on list or in flood */
       if (x > 0 && !data[pixind - 1]) {
-	xlist[ringfree] = x - 1;
-	ylist[ringfree++] = y;
-	ringfree %= listsize;
-	data[pixind - 1] = -2;
+        xlist[ringfree] = x - 1;
+        ylist[ringfree++] = y;
+        ringfree %= listsize;
+        data[pixind - 1] = -2;
       }
       if (x < xsize - 1 && !data[pixind + 1]) {
-	xlist[ringfree] = x + 1;
-	ylist[ringfree++] = y;
-	ringfree %= listsize;
-	data[pixind + 1] = -2;
+        xlist[ringfree] = x + 1;
+        ylist[ringfree++] = y;
+        ringfree %= listsize;
+        data[pixind + 1] = -2;
       }
       if (y > 0 && !data[pixind - xsize]) {
-	xlist[ringfree] = x;
-	ylist[ringfree++] = y - 1;
-	ringfree %= listsize;
-	data[pixind - xsize] = -2;
+        xlist[ringfree] = x;
+        ylist[ringfree++] = y - 1;
+        ringfree %= listsize;
+        data[pixind - xsize] = -2;
       }
       if (y < ysize - 1 && !data[pixind + xsize]) {
-	xlist[ringfree] = x;
-	ylist[ringfree++] = y + 1;
-	ringfree %= listsize;
-	data[pixind + xsize] = -2;
+        xlist[ringfree] = x;
+        ylist[ringfree++] = y + 1;
+        ringfree %= listsize;
+        data[pixind + xsize] = -2;
       }
       if (diagonal) {
-	if (x > 0 && y > 0 && !data[pixind - 1 - xsize]) {
-	  xlist[ringfree] = x - 1;
-	  ylist[ringfree++] = y - 1;
-	  ringfree %= listsize;
-	  data[pixind - 1 - xsize] = -2;
-	}
-	if (x < xsize - 1 && y > 0 && !data[pixind + 1 - xsize]) {
-	  xlist[ringfree] = x + 1;
-	  ylist[ringfree++] = y - 1;
-	  ringfree %= listsize;
-	  data[pixind + 1 - xsize] = -2;
-	}
-	if (x > 0 && y < ysize - 1 && !data[pixind - 1 + xsize]) {
-	  xlist[ringfree] = x - 1;
-	  ylist[ringfree++] = y + 1;
-	  ringfree %= listsize;
-	  data[pixind - 1 + xsize] = -2;
-	}
-	if (x < xsize - 1 && y < ysize - 1 &&
-	    !data[pixind + 1 + xsize]) {
-	  xlist[ringfree] = x + 1;
-	  ylist[ringfree++] = y + 1;
-	  ringfree %= listsize;
-	  data[pixind + 1 + xsize] = -2;
-	}
+        if (x > 0 && y > 0 && !data[pixind - 1 - xsize]) {
+          xlist[ringfree] = x - 1;
+          ylist[ringfree++] = y - 1;
+          ringfree %= listsize;
+          data[pixind - 1 - xsize] = -2;
+        }
+        if (x < xsize - 1 && y > 0 && !data[pixind + 1 - xsize]) {
+          xlist[ringfree] = x + 1;
+          ylist[ringfree++] = y - 1;
+          ringfree %= listsize;
+          data[pixind + 1 - xsize] = -2;
+        }
+        if (x > 0 && y < ysize - 1 && !data[pixind - 1 + xsize]) {
+          xlist[ringfree] = x - 1;
+          ylist[ringfree++] = y + 1;
+          ringfree %= listsize;
+          data[pixind - 1 + xsize] = -2;
+        }
+        if (x < xsize - 1 && y < ysize - 1 &&
+            !data[pixind + 1 + xsize]) {
+          xlist[ringfree] = x + 1;
+          ylist[ringfree++] = y + 1;
+          ringfree %= listsize;
+          data[pixind + 1 + xsize] = -2;
+        }
       }
     }
 
@@ -703,29 +728,29 @@ static void auto_patch(unsigned char *data, int xsize, int ysize)
   for (y = 0; y < ysize; y++)
     for (x = 0; x < xsize; x++)
       if (data[x + y * xsize] & AUTO_FLOOD) {
-	if (x < xmin)
-	  xmin = x;
-	if (x > xmax)
-	  xmax = x;
-	if (y < ymin)
-	  ymin = y;
-	if (y > ymax)
-	  ymax = y;
+        if (x < xmin)
+          xmin = x;
+        if (x > xmax)
+          xmax = x;
+        if (y < ymin)
+          ymin = y;
+        if (y > ymax)
+          ymax = y;
       }
 
   /* Start a patch from every point along the four sides, because there
      may be isolated patches */
   for(x = xmin ; x <= xmax; x++){
     auto_patch_fill_outside(data, xsize, xmin, xmax, ymin, ymax, x,
-			    ymin);
+                            ymin);
     auto_patch_fill_outside(data, xsize, xmin, xmax, ymin, ymax, x, 
-			    ymax);
+                            ymax);
   }
   for (y = ymin ; y <= ymax; y++){
     auto_patch_fill_outside(data, xsize, xmin, xmax, ymin, ymax, xmin, 
-			    y);
+                            y);
     auto_patch_fill_outside(data, xsize, xmin, xmax, ymin, ymax, xmax, 
-			    y);
+                            y);
   }
 
   xysize = xsize * ysize;
@@ -735,7 +760,7 @@ static void auto_patch(unsigned char *data, int xsize, int ysize)
     for(x = xmin; x <= xmax; x++){
       i = x + y * xsize;
       if (!(data[i] & (AUTO_FLOOD | AUTO_PATCH)))
-	data[i] |= AUTO_FLOOD;
+        data[i] |= AUTO_FLOOD;
     }
      
   /* Clear the patch flags */
@@ -746,7 +771,7 @@ static void auto_patch(unsigned char *data, int xsize, int ysize)
 
 /* To build a patch from a single point */
 static void auto_patch_fill_outside(unsigned char *data, int xsize, int xmin,
-				    int xmax, int ymin, int ymax, int x, int y)
+                                    int xmax, int ymin, int ymax, int x, int y)
 {
   int ringnext = 0;
   int ringfree = 1;
@@ -820,8 +845,8 @@ static int nay8(unsigned char *data, int xsize, int ysize, int i, int j)
     for(m = -1; m <= 1 ; m++){
       x = m + i;
       if ((x >= 0) && (y >= 0) && (x < xsize) && (y < ysize))
-	if (data[x + (y * xsize)] & AUTO_FLOOD)
-	  k++; 
+        if (data[x + (y * xsize)] & AUTO_FLOOD)
+          k++; 
     }
   }
   return(k-1);
@@ -838,14 +863,14 @@ static void auto_shrink(unsigned char *data, int imax, int jmax)
   for(j = 0; j < jmax; j++)
     for(i = 0; i < imax; i++){
       if (nay8(data, imax, jmax, i, j) < 7)
-	data[i + (j * imax)] |= AUTO_CHECK;
+        data[i + (j * imax)] |= AUTO_CHECK;
     }
 
   /* DNM: clear check flag after use, not before */
   for(j = 0; j < jmax; j++)
     for(i = 0; i < imax; i++){
       if (data[i + (j * imax)] & AUTO_CHECK)
-	data[i + (j * imax)] &= ~(AUTO_FLOOD | AUTO_CHECK);
+        data[i + (j * imax)] &= ~(AUTO_FLOOD | AUTO_CHECK);
     }
 
   return;
@@ -861,14 +886,14 @@ static void auto_expand(unsigned char *data, int imax, int jmax)
       if (!(data[i + (j * imax)] & AUTO_FILL)) continue;
 
       for(m = -1; m <= 1; m++){
-	y = j + m;
-	if ((y < 0) || (y >= jmax)) continue;
-	for(n = -1; n <= 1; n++){
-	  x = n + i;
-	  if ((x == i) && (y == j)) continue;
-	  if ((x < 0) || (x >= imax)) continue;
-	  data[x + (y * imax)] |= AUTO_CHECK;
-	}
+        y = j + m;
+        if ((y < 0) || (y >= jmax)) continue;
+        for(n = -1; n <= 1; n++){
+          x = n + i;
+          if ((x == i) && (y == j)) continue;
+          if ((x < 0) || (x >= imax)) continue;
+          data[x + (y * imax)] |= AUTO_CHECK;
+        }
       }
     }
 
