@@ -74,6 +74,15 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2004/03/02 00:09:04  sueh
+ * <p> bug #250 added updateCombineCom(int fromTab) - update CombineParams
+ * <p> from a tab
+ * <p> changed combine - default call to combine(int copyFromTab) with NO_TAB
+ * <p> added combine(int copyFromTab) copies fields from copyFromTab to setup
+ * <p> tab.
+ * <p> modelCombine() - same as combine
+ * <p> matchvol1() - same as combine
+ * <p>
  * <p> Revision 3.16  2004/02/27 20:10:49  sueh
  * <p> bug# 250 changed createCombineScripts() - copied the
  * <p> Setup Use Matching Models value into the Initial tab
@@ -3176,7 +3185,7 @@ public class ApplicationManager {
    * parameters have not changed.  If the combine parameters are invalid a
    * message dialog describing the invalid parameters is presented to the user.
    */
-  private boolean updateCombineCom(int fromTab) {
+  private boolean updateCombineCom(int copyFromTab) {
     if (tomogramCombinationDialog == null) {
       mainFrame.openMessageDialog(
         "Can not update combine.com without an active tomogram combination dialog",
@@ -3187,7 +3196,9 @@ public class ApplicationManager {
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
-      tomogramCombinationDialog.getCombineParams(fromTab, combineParams);
+      if (copyFromTab != TomogramCombinationDialog.NO_TAB) {
+        tomogramCombinationDialog.getCombineParams(copyFromTab, combineParams);
+      }
       if (!combineParams.isValid()) {
         mainFrame.openMessageDialog(
           combineParams.getInvalidReasons(),
@@ -3203,7 +3214,9 @@ public class ApplicationManager {
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      tomogramCombinationDialog.setCombineParams(combineParams);
+      if (copyFromTab != TomogramCombinationDialog.NO_TAB) {
+        tomogramCombinationDialog.setCombineParams(combineParams);
+      }
       isDataParamDirty = true;
     }
     return true;
@@ -3508,7 +3521,9 @@ public class ApplicationManager {
    * Initiate the combine process from patchcorr step
    */
   public void patchcorrCombine() {
-    if (updatePatchcorrCom() && updateMatchorwarpCom(false)) {
+    if (updatePatchcorrCom()
+      && updateMatchorwarpCom(false)
+      && updateCombineCom(TomogramCombinationDialog.FINAL_TAB)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       patchcorr();
