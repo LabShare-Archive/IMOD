@@ -16,6 +16,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/12 19:59:48  sueh
+ * <p> bug# 412 added absoluteCosineStretch, cumulativeCorreslation, noCosineStretch,
+ * <p> testOutput, xMinAndMax, yMinAndMax, reset()
+ * <p>
  * <p> Revision 3.3  2004/01/30 02:11:38  sueh
  * <p> bug# 373 formatting
  * <p>
@@ -107,35 +111,31 @@ public class ConstTiltxcorrParam {
   }
   
   protected void reset() {
-    inputFile = new String("");
-    pieceListFile = new String("");
-    outputFile = new String("");
+    inputFile = new String();
+    pieceListFile = new String();
+    outputFile = new String();
     excludeCentralPeak = false;
     rotationAngle = Double.NaN;
-    bordersInXandY.set(0, Double.NaN);
-    bordersInXandY.set(1, Double.NaN);
-    xMinAndMax.set(0, Double.NaN);
-    xMinAndMax.set(1, Double.NaN);
-    yMinAndMax.set(0, Double.NaN);
-    yMinAndMax.set(1, Double.NaN);
-    padsInXandY.set(0, Double.NaN);
-    padsInXandY.set(1, Double.NaN);
-    tapersInXandY.set(0, Double.NaN);
-    tapersInXandY.set(1, Double.NaN);
+    bordersInXandY.setDefault();
+    xMinAndMax.setDefault();
+    yMinAndMax.setDefault();
+    padsInXandY.setDefault();
+    tapersInXandY.setDefault();
     cumulativeCorrelation = false;
     absoluteCosineStretch = false;
     noCosineStretch = false;
-    testOutput = new String("");
-    startingEndingViews.set(0, Double.NaN);
-    startingEndingViews.set(1, Double.NaN);
+    testOutput = new String();
+    startingEndingViews.setDefault();
     firstTiltAngle = Double.NaN;
     tiltIncrement = Double.NaN;
-    tiltFile = new String("");
+    tiltFile = new String();
     tiltAngles = null;
     filterRadius1 = Double.NaN;
     filterRadius2 = Double.NaN;
     filterSigma1 = Double.NaN;
     filterSigma2 = Double.NaN;
+    TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
+    filterParams.setDefault();
   }
 
   public String getInputFile() {
