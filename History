@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-19
+7/28/02: Added 3 fractional zooms to Imod to keep step size to a factor of
+1.4-1.6.
+
 7/28/02: Made the I hotkey in the Zap window pop the Information Window to
 the front as well as print image informationl and added a button to the toolbar
 to do the same thing.
