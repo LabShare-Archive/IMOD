@@ -1,11 +1,18 @@
 #
 # Makefile for IMOD model utility programs
 #
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 include ../configure
 
 PROGS = imodauto imodinfo imodmesh imodtrans imodmop imodcmopp \
 rec2imod imod2rib imod2vrml imod2meta wmod2imod imodjoin imodextract \
-imodsortsurf imodexplode patch2imod imod2patch echo2
+imodsortsurf imodexplode patch2imod imod2patch echo2 imodfillin
 
 all : $(PROGS)
 
@@ -69,6 +76,8 @@ imod2patch : imod2patch.o
 echo2 : echo2.o 
 	$(CC) -o echo2 echo2.o $(LDFLAGS)
 
+imodfillin : imodfillin.o parselist.o
+	$(CC) -o imodfillin imodfillin.o parselist.o $(LDFLAGS) -limod $(CLIBS)
 
 install : $(PROGS)
 	strip $(PROGS)
