@@ -42,6 +42,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/07 23:36:12  rickg
+ * <p> Updated Data Source labels and tooltips
+ * <p>
  * <p> Revision 2.3  2003/05/07 17:47:46  rickg
  * <p> System property user.dir now defines the working directory
  * <p> Added method to get working directy name from current dataset
@@ -444,15 +447,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   // Return the working directory as a File object  
   public File getWorkingDirectory() {
-    File dataset;
     String datasetText = ltfDataset.getText();
-    if (datasetText.startsWith("/")) {
-      dataset = new File(datasetText);
+    File dataset = new File(datasetText);
+    if (!dataset.isAbsolute()) {
+      dataset =
+        new File(
+          System.getProperty("user.dir") + File.pathSeparator + datasetText);
     }
-    else {
-      dataset = new File(System.getProperty("user.dir") + "/" + datasetText);
-    }
-
     return dataset.getParentFile();
   }
 
@@ -593,24 +594,30 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   void rbDualAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
-  } /**
-                  * Action to take when the cancel button is pressed, the default action is
-                  * to set the exitState attribute to CANCEL.
-                  */
+  }
+
+  /**
+   * Action to take when the cancel button is pressed, the default action is
+   * to set the exitState attribute to CANCEL.
+   */
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneSetupDialog();
-  } /**
-                  * Action to take when the postpone button is pressed, the default action is
-                  * to set the exitState attribute to POSTPONE.
-                  */
+  }
+
+  /**
+   * Action to take when the postpone button is pressed, the default action is
+   * to set the exitState attribute to POSTPONE.
+   */
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneSetupDialog();
-  } /**
-                  * Action to take when the execute button is pressed, the default action is
-                  * to set the exitState attribute to EXECUTE.
-                  */
+  }
+
+  /**
+   * Action to take when the execute button is pressed, the default action is
+   * to set the exitState attribute to EXECUTE.
+   */
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneSetupDialog();
@@ -622,21 +629,21 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line2 = "also select the projection data file  by pressing the<br>";
     line3 = "folder button.";
     ltfDataset.setToolTipText(line1 + line2 + line3);
-    
+
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select the projection data file.";
     btnDataset.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>Enter the name of the directory where you want the<br>";
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
     line4 = "directory to store the backups.";
     ltfBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
-    
+
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     buttonBackupDirectory.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "has been collected using a CCD or film.  Even if the data are<br>";
     line3 = "from film, select CCD unless they are already well-aligned<br>";
@@ -644,38 +651,38 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelDataSource.setToolTipText(line1 + line2 + line3 + line4);
     rbCCD.setToolTipText(line1 + line2 + line3 + line4);
     rbFilm.setToolTipText(line1 + line2 + line3 + line4);
-    
+
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
     panelAxisType.setToolTipText(line1 + line2);
     rbSingleAxis.setToolTipText(line1 + line2);
     rbDualAxis.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single view per projection or multiple views<br>";
     line3 = "per projection (montaged).";
     panelViewType.setToolTipText(line1 + line2 + line3);
     rbSingleView.setToolTipText(line1 + line2 + line3);
     rbMontage.setToolTipText(line1 + line2 + line3);
-    
+
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single tomogram or several serial tomograms";
     panelSectionType.setToolTipText(line1 + line2);
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
-    
+
     line1 = "<html>Enter the projection image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
-    
+
     line1 = "<html>Enter the fiducial size in nanometers here.";
     ltfFiducialDiameter.setToolTipText(line1);
-    
+
     line1 = "<html>Enter the projection image rotation in degrees. This is<br>";
     line2 = "the rotation (CCW positive) from the Y-axis (the tilt axis<br>";
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
-    
+
     line1 = "<html>Specify the source of the projection tilt angles";
     line2 = "<ul><li>Select the Extract option if the raw stack data<br>";
     line3 = "contains the tilt angle data";
@@ -695,12 +702,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line4 = "four images of a 60 projection stack enter 1-4,57-60.";
     ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
     ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
-    
+
     line1 = "<html>The button will setup the processing for existing<br>";
     line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
     line3 = "the existing command scripts.</b>";
     buttonPostpone.setToolTipText(line1 + line2 + line3);
-    
+
     line1 = "<html>This button will create a new set of command scripts<br>";
     line2 = "overwriting any of the same name in the specified working<br>";
     line3 = "directory.  Be sure to save the data file after creating the<br>";
