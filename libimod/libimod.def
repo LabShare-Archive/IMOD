@@ -104,6 +104,7 @@ EXPORTS
 	B3DHEADERITEMBYTES
 	imodPutInts
 	imodPointGet
+	GETIMODNESTING
 	imodObjectSort
 	imodFromVmsFloats
 	imodMeshCopy
@@ -112,6 +113,7 @@ EXPORTS
 	imodContourScale
 	PIPGETFLOATARRAY
 	PipAddOption
+	imodContourMakeZTables
 	ilistTruncate
 	GETIMODMESH
 	PipParseInput
@@ -152,6 +154,7 @@ EXPORTS
 	PUTIMODMAXES
 	imodContourGetPoint
 	imodMatCopy
+	imodContourFreeZTables
 	imodObjectGetNext
 	GETIMODFLAGS
 	imodel_mesh_addvert
@@ -261,6 +264,7 @@ EXPORTS
 	GETIMODOBJSIZE
 	imodViewDefaultScale
 	imodGetFloats
+	imodContourNestLevels
 	ilistLast
 	GETIMODTIMES
 	imodPointGetSize
@@ -296,6 +300,7 @@ EXPORTS
 	imodDelete
 	b3dFread
 	imodLabelItemDelete
+	imodContourCheckNesting
 	imodDeleteContour
 	PIPNUMBEROFENTRIES
 	PipGetBoolean
@@ -342,6 +347,7 @@ EXPORTS
 	imodel_scans_overlap
 	imodPutBytes
 	imodPointArea
+	imodContourFreeNests
 	imodPointAppend
 	ilistDelete
 	imodClipsInitialize
@@ -415,4 +421,5 @@ EXPORTS
 	PUTIMODMESH
 	PipGetNonOptionArg
 	imodel_contour_on
+	imodContourZValue
 	imodContourGet

@@ -61,6 +61,17 @@ membranes, this entry can be used to exclude pixels in the membrane as well as
 within a certain distance of the membrane.  The default is to include all
 pixels within the contour. 
 
+[Field = Inside border]
+short=inside
+long=InsideBorder
+type=F
+usage=Distance from interior contour within which to exclude pixels
+tooltip=
+manpage=Distance from interior contours within which to exclude pixels from
+consideration.  All pixels inside of interior contours will be excluded, so
+this entry governs the border outside those contours.  The default is to
+use the BorderSize value.
+
 [StartGroup = Threshold setting]
 [Field = Absolute threshold]
 short=absolute

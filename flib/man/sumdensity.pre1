@@ -36,6 +36,13 @@ DDEESSCCRRIIPPTTIIOONN
   each surface in an object, then for the sum of all surfaces.  With the
   "-verbose" option, values are reported for each contour.
 
+  The program will detect contours that are nested inside other contours and
+  exclude pixels that are inside or with a border distance of inner contours.
+  There can be any number of levels of nested contours, and in the general
+  case the program will exclude pixels that are inside an even-level contour
+  but not inside an odd-level contour contained within it (where the outermost
+  contour is considered level 1).
+
   Sumdensity uses the PIP package for input exclusively (see the manual page
   for pip(1)).  The following options can be specified either as command line
   arguments (with the -) or one per line in a command file or parameter file
