@@ -36,6 +36,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2001/12/05 15:59:19  mast
+    Provide a function so that Wimp model reading routines can read VMS floats
+
 */
 #include <stdio.h>
 #include <math.h>
@@ -78,6 +81,9 @@
 #define getimodverts GETIMODVERTS
 #define putimodflag  PUTIMODFLAG
 #define fromvmsfloats FROMVMSFLOATS
+#define putscatsize  PUTSCATSIZE
+#define getimodtimes  GETIMODTIMES
+#define getimodsurfaces  GETIMODSURFACES
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -99,6 +105,9 @@
 #define getimodverts getimodverts_
 #define putimodflag  putimodflag_
 #define fromvmsfloats fromvmsfloats_
+#define putscatsize  putscatsize_
+#define getimodtimes  getimodtimes_
+#define getimodsurfaces  getimodsurfaces_
 #endif
 
 typedef struct
@@ -115,6 +124,8 @@ static int nflags_put = 0;
 static int *flags_put = NULL;
 static int maxes_put = 0;
 static int xmax_put, ymax_put, zmax_put;
+
+#define SCAT_SIZE_OFFSET 10
 
 static char *fstrtoc(char *fstr, int flen)
 {
@@ -787,7 +798,7 @@ int writeimod(
              int   fsize)
 {
 #endif
-     int i, ob;
+     int i, ob, flag;
      int retcode = 0;
      char *filename = fstrtoc(fname, fsize);
      if (!filename) return(FWRAP_ERROR_BAD_FILENAME);
@@ -795,8 +806,9 @@ int writeimod(
 
      for (i = 0; i < nflags_put; i++) {
 	  ob = flags_put[2 * i];
+	  flag = flags_put[2 * i + 1];
 	  if (ob >= 0 && ob < Fimod->objsize)
-	       switch (flags_put[2 * i + 1]) {
+	       switch (flag) {
 		  case 0:
 		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
 		    Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
@@ -810,6 +822,8 @@ int writeimod(
 		    Fimod->obj[ob].flags |= IMOD_OBJFLAG_SCAT;
 		    break;
 		  default:
+		    if (flag > SCAT_SIZE_OFFSET)
+			 Fimod->obj[ob].pdrawsize = flag - SCAT_SIZE_OFFSET;
 		    break;
 	       }
      }
@@ -1073,4 +1087,47 @@ void putimodflag(int *objnum, int *flag)
 void fromvmsfloats(unsigned char *data, int *amt)
 {
      imodFromVmsFloats(data, *amt);
+}
+
+/* DNM 5/15/02: put scattered point sizes out in flags with an offset */
+void putscatsize(int *objnum, int *size)
+{
+     int flag = *size + SCAT_SIZE_OFFSET;
+     putimodflag(objnum, &flag);
+}
+
+int getimodtimes(int *times)
+{
+     int ob, co;
+     Iobj *obj;
+     int coi = 0;
+
+     if (!Fimod)
+	  return(FWRAP_ERROR_NO_MODEL);
+
+     for(ob = 0; ob < Fimod->objsize; ob++){
+	  obj = &(Fimod->obj[ob]);
+	  for(co = 0; co < obj->contsize; co++, coi++)
+	       times[coi] = obj->cont[co].type;
+     }
+
+     return FWRAP_NOERROR;
+}
+
+int getimodsurfaces(int *surfs)
+{
+     int ob, co;
+     Iobj *obj;
+     int coi = 0;
+
+     if (!Fimod)
+	  return(FWRAP_ERROR_NO_MODEL);
+
+     for(ob = 0; ob < Fimod->objsize; ob++){
+	  obj = &(Fimod->obj[ob]);
+	  for(co = 0; co < obj->contsize; co++, coi++)
+	       surfs[coi] = obj->cont[co].surf;
+     }
+
+     return FWRAP_NOERROR;
 }
