@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.13  2003/02/03 05:38:45  mast
 fixed problem in finding highest pixel (F)
 
@@ -233,10 +236,12 @@ void inputPrevy(ImodView *vw)
   return;
 }
 
+/* DNM 2/13/03: add binding to limit mouse to possible values */
 void inputNextx(ImodView *vw)
 {
   if (vw->xmouse < (vw->xsize - 1)){
-    vw->xmouse++;
+    vw->xmouse += 1.0;
+    ivwBindMouse(vw);
     imodDraw(vw, IMOD_DRAW_XYZ);
   }
   return;
@@ -245,7 +250,8 @@ void inputNextx(ImodView *vw)
 void inputPrevx(ImodView *vw)
 {
   if (vw->xmouse > 0){
-    vw->xmouse--;
+    vw->xmouse -= 1.0;
+    ivwBindMouse(vw);
     imodDraw(vw, IMOD_DRAW_XYZ);
   }
   return;
@@ -328,29 +334,17 @@ void inputNewSurface(ImodView *vw)
 
 void inputNextObject(ImodView *vw)
 {
-  Iobj *obj;
-
   imodNextObject(vw->imod);
 
-  /*  Try leaving these tests out - see if the setxyzmouse works OK with no
-      object */
-  /* obj  = imodObjectGet(vw->imod);
-  if (!obj) return;
-  */
+  /*  Drop tests for object in this and next function, setxyzmouse works OK 
+      with no  object */
 
   imod_setxyzmouse();
 }
 
 void inputPrevObject(ImodView *vw)
 {
-  Iobj *obj;
   imodPrevObject(vw->imod);
-     
-  /*
-  obj  = imodObjectGet(vw->imod);
-  if (!obj) return;
-  */
-
   inputKeepContourAtSameTime(vw);
   imod_setxyzmouse();
 }
@@ -546,7 +540,7 @@ void inputSetModelTime(ImodView *vw, int time)
   Iobj *obj = imodObjectGet(vw->imod);
   Icont *cont;
   Ipoint *point;
-  int ob,co,pt;
+  int ob,co;
 
   int nco = -1; 
   int npt = -1;
