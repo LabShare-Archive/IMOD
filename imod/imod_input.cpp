@@ -674,7 +674,7 @@ void inputFindValue(ImodView *vw)
   pixval = ivwGetFileValue(vw, (int)vw->xmouse, (int)vw->ymouse, 
                            (int)vw->zmouse);
   wprint("Pixel (%g, %g, %g) = %g\n", 
-         vw->xmouse, vw->ymouse, vw->zmouse, pixval);
+         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, pixval);
 
   imodDraw(vw, IMOD_DRAW_XYZ);
   return;
@@ -769,7 +769,7 @@ void inputFindMaxValue(ImodView *vw)
   vw->ymouse = maxy;
 
   wprint("Pixel %g %g %g = %g\n", 
-         vw->xmouse, vw->ymouse, vw->zmouse, maxpixval);
+         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, maxpixval);
 
   imodDraw(vw, IMOD_DRAW_XYZ);
   return;
@@ -1209,6 +1209,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.11  2003/05/23 02:44:58  mast
+Raise windows in order of image then dialog
+
 Revision 4.10  2003/04/18 20:16:39  mast
 Rename meta test function
 
