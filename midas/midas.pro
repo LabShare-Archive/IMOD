@@ -3,8 +3,8 @@ SOURCES += midas.cpp slots.cpp file_io.cpp graphics.cpp transforms.cpp \
 
 HEADERS += midas.h graphics.h slots.h
 
-MOC_DIR = tmp
-OBJECTS_DIR = tmp
+#MOC_DIR = tmp
+#OBJECTS_DIR = tmp
 
 TEMPLATE = app
 

@@ -2,11 +2,8 @@ SOURCES	+= autox.cpp b3dfile.c b3dgfx.cpp control.cpp imod_cachefill.cpp imod_cl
 HEADERS	+= autox.h b3dgfx.h b3dfile.h imod_edit.h hotkey.h imod_client_message.h imod.h imod_info.h imod_info_cb.h imod_input.h imod_io.h imod_moviecon.h imod_cachefill.h imod_model_edit.h imod_iscale.h imod_cont_edit.h imod_cont_copy.h imodP.h control.h imodv.h imod_workprocs.h iproc.h menus.h sliceproc.h slicer_classes.h sslice.h xtum.h xxyz.h xzap.h xgraph.h imod_object_edit.h pixelview.h imodv_control.h zap_classes.h imod_display.h imodv_window.h imodv_gfx.h imodv_ogl.h imodv_input.h imodv_menu.h imodv_light.h imodv_stereo.h imodv_depthcue.h imodv_views.h imodv_modeled.h imodv_objed.h imodv_image.h imodv_movie.h qcursor.bits qcursor_mask.bits time_lock.bits unlock.bits lock.bits imodplug.h xcramp.h preferences.h imodplugP.h imodview.h imodviewP.h controlP.h beadfix.h special_module.h pegged.xpm unpegged.xpm b3dicon.xpm
 
 
-MOC_DIR = tmp
-OBJECTS_DIR = tmp
-UI_DIR = tmp
-
 TARGET = 3dmod
+INSTALLS += target
 
 include (qconfigure)
 
@@ -21,7 +18,6 @@ mkargvtarget.commands = gcc -o mkargv mkargv.o
 
 QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget
 
-INSTALLS += target 3dmodv
 FORMS	= form_object_edit.ui formv_control.ui formv_movie.ui formv_modeled.ui formv_views.ui formv_depthcue.ui formv_objed.ui form_info.ui form_moviecon.ui form_autox.ui form_cont_edit.ui form_appearance.ui form_behavior.ui form_mouse.ui form_startup.ui 
 IMAGES	= uparrow.png downarrow.png rightarrow.png leftarrow.png raisewindow.png 
 TEMPLATE	=app
