@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.8  2004/04/22 19:07:56  mast
 Zeroed out number of extra header bytes in output file to fixe problems
 with headers that have extra data that is not being copied.
@@ -123,9 +126,10 @@ void usage(void)
   fprintf(stderr, "\n");
 }
 
+/* 11/4/04: switch to standard out and standard format to some extent */
 void show_error(char *reason)
 {
-  fprintf(stderr, "clip: %s\n", reason);
+  printf("ERROR: %s\n", reason);
 }
 
 void show_status(char *info)
@@ -214,6 +218,7 @@ int main( int argc, char *argv[] )
     process = IP_FFT;
   if (!strncmp( argv[1], "filter", 3))
     process = IP_FILTER;
+  
 #endif
 
   if (!strncmp( argv[1], "flip", 4))
@@ -514,6 +519,7 @@ int main( int argc, char *argv[] )
     retval = clip_fft(&hin, &hout, &opt);
     break;
   case IP_FILTER:
+    opt.dim = 2;
     retval = clip_bandpass_filter(&hin, &hout, &opt);
     break;
 #endif

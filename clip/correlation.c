@@ -159,18 +159,9 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
    */
   if (s1 == s2)
     autocorr = TRUE; /* do autocorrelation. */
-  if ((s1->xsize != s2->xsize) || (s1->ysize != s2->ysize)){
-    show_error("corr: slices must be same size.\n");
-    return(NULL);
-  }
-
-  /* create a slice used for returning correlation data.
-   */
-  slice = sliceCreate(s1->xsize, s1->ysize, SLICE_MODE_FLOAT);
-  if (!slice)
-    return(NULL);
 
   /*  If first slice isn't complex compute fft.
+   * 11/3/04: Complex input is now disallowed, too many thing to do differently
    */
   if (s1->mode != SLICE_MODE_COMPLEX_FLOAT){
     sliceFloat(s1);
@@ -179,21 +170,37 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
     sliceAddConst(s1, val);
     /*    printf("corr: size = %d %d\n", s1->xsize - 2, s1->ysize); */
     mrcToDFFT(s1->data.f, s1->xsize - 2, s1->ysize, 0);
-  }
+    s1->xsize /= 2;
+  } else if (!(s1->xsize % 2))
+    sliceReduceMirroredFFT(s1);
+             
 
   /* Handle the second slice.
    */
-  if (!autocorr){
-    if (s2->mode != SLICE_MODE_COMPLEX_FLOAT){
+  if (!autocorr) {
+    if (s2->mode != SLICE_MODE_COMPLEX_FLOAT) {
       sliceFloat(s2);
       mrcToDFFT(s2->data.f, s2->xsize - 2, s2->ysize, 0);
-    }
+      s2->xsize /= 2;
+    } else if (!(s2->xsize % 2))
+      sliceReduceMirroredFFT(s2);
   }
+
+  if ((s1->xsize != s2->xsize) || (s1->ysize != s2->ysize)){
+    show_error("corr: slices must be same size.\n");
+    return(NULL);
+  }
+
+  /* create a slice used for returning correlation data.
+   */
+  slice = sliceCreate(2 * s1->xsize, s1->ysize, SLICE_MODE_FLOAT);
+  if (!slice)
+    return(NULL);
 
   /* Calculate the correlation using complex conjugate and
    * calculate the inverse fft.
    */
-  corr_conj(s1->data.f, s2->data.f, s1->xsize * s1->ysize / 2);
+  corr_conj(s1->data.f, s2->data.f, s1->xsize * s1->ysize);
   mrcToDFFT(s1->data.f, s1->xsize-2, s1->ysize, 1);
      
 
@@ -444,6 +451,12 @@ int grap_corr(struct MRCheader *hin1, struct MRCheader *hin2,
 
   if (opt->val == IP_DEFAULT)
     opt->val = 1;
+
+  if (hin1->mode == MRC_MODE_COMPLEX_FLOAT || 
+      hin1->mode == MRC_MODE_COMPLEX_FLOAT) {
+    show_error("corr, fourier transform input not allowed");
+    return(-1);
+  }
 
   if (opt->add2file){
     if (hout->mode != MRC_MODE_FLOAT){

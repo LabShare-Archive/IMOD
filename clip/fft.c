@@ -33,6 +33,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/10/24 21:43:37  mast
+Modified to use header from C version of FFT library, changed orientation
+of planes that are done in 3rd dimension of 3D FFT, and rewrote to
+compose planes as fast as possible.
+
 Revision 3.4  2004/06/20 21:58:05  mast
 Fixed one-pixel shift between mirrored rows and actual rows
 
@@ -103,23 +108,21 @@ int clip_nicesize(int size)
 
 int slice_fft(Islice *slice)
 {
-  float *tbuf, *buf;
+  float *tbuf;
   int nx2  = slice->xsize + 2;
   int ncs  = (int)slice->xsize * sizeof(float);
-  int y2   = slice->ysize / 2;
-  /*     int x2   = slice->xsize / 2; */
-  int nx2s = nx2 * sizeof(float);
-  int nxs  = (int)slice->xsize * sizeof(float);
-  int i, j,k;
+  int i, j, newXsize;
   int idir = 1;
 
-  if (slice->mode == MRC_MODE_COMPLEX_FLOAT)
+  if (slice->mode == MRC_MODE_COMPLEX_FLOAT || 
+      slice->mode == MRC_MODE_COMPLEX_SHORT)
     idir = -1;
-  if (slice->mode == MRC_MODE_COMPLEX_SHORT)
-    idir = -1;
-
-  /* forward fft */
+  
   if (idir == 1){
+
+    /* forward fft.  Convert to float if needed, then pack data into
+       wider buffer for FFT and take fft */
+
     sliceFloat(slice); 
     tbuf = (float *)malloc(sizeof(float) * nx2 * slice->ysize);
     for(i = 0; i < slice->ysize; i++)
@@ -128,11 +131,16 @@ int slice_fft(Islice *slice)
              ncs);
     free(slice->data.f);
     mrcToDFFT(tbuf, slice->xsize, slice->ysize, 0);
-    buf = (float *)malloc(sizeof(float)*2*slice->xsize*slice->ysize);
-    sliceInit(slice, slice->xsize, slice->ysize, 
-              MRC_MODE_COMPLEX_FLOAT,
-              buf);
 
+    /* Set slice to new properties and wrap the lines */
+    sliceInit(slice, slice->xsize / 2 + 1, slice->ysize, 
+              MRC_MODE_COMPLEX_FLOAT,
+              tbuf);
+    sliceWrapFFTLines(slice);
+
+#ifdef OLD_STUFF
+    /* The old set of operations, painfully reproduced with mirrored image
+       load in 3dmod */
     /* Move top half of FFT to lower right of new array, and store the
        extra pixel at the left edge of each row */
     for(j = 0, i = y2; i < slice->ysize; i++, j++){
@@ -163,29 +171,38 @@ int slice_fft(Islice *slice)
           buf[slice->xsize+ k+1 + (slice->xsize*2*(slice->ysize - j))];
       }
     memcpy(&(buf[2]), &(buf[2 + 2 * slice->xsize]), 
-             (slice->xsize - 1) * sizeof(float));
+             (slice->xsize - 2) * sizeof(float));
     free(tbuf);
+#endif
 
   }else{
+
+    /* Inverse FFT: first convert to float */
     sliceComplexFloat(slice); 
 
-    tbuf = (float *)malloc(nx2s * slice->ysize);
+    /* If even length, it is old-style mirrored; reduce it */
+    if (!(slice->xsize % 2))
+      sliceReduceMirroredFFT(slice);
 
-    mrc_slice_wrap(slice);
-    for(j = 0; j < slice->ysize; j++){
-      memcpy(&(tbuf[j * nx2]),
-             &(slice->data.f[(j * slice->xsize * 2)]),
-             nx2s);
-    }
-    free(slice->data.f);
-    mrcToDFFT(tbuf, slice->xsize, slice->ysize, 1);
-    for(j = 0; j < slice->ysize; j++)
-      for(i = 0; i < slice->xsize; i++)
-        tbuf[i + (j * slice->xsize)] = 
-          tbuf[i + (j * slice->xsize) + (j * 2)];
+    /* Unwrap the lines in any case then take the FFT */
+    sliceWrapFFTLines(slice);
+    /*  fprintf(stderr, "unwrapped\n");
+    for (j = 0; j < slice->ysize; j++) {
+      for (i = 0; i < 2 * slice->xsize; i++)
+        fprintf(stderr, "%8.2f ", slice->data.f[i + j * 2 * slice->xsize]);
+      fprintf(stderr, "\n");
+      } */
+    newXsize = 2 * (slice->xsize - 1);
+    mrcToDFFT(slice->data.f, newXsize, slice->ysize, 1);
+    
+    /* Repack data to eliminate extra elements */
+    for (j = 0; j < slice->ysize; j++)
+      for (i = 0; i < newXsize; i++)
+        slice->data.f[i + j * newXsize] =
+          slice->data.f[i + j * (newXsize + 2)];
 
+    slice->xsize = newXsize;
     slice->mode = 2;
-    slice->data.f = tbuf;
   }
   return(0);
 }
