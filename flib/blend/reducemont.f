@@ -57,44 +57,49 @@ c	  models will display properly on reduced image stacks.
 *	  .   plus the usual libraries.
 *
 *	  David Mastronarde, February 1993
-
-	parameter (maxsiz=1024*1024*12)		!# of pixels
-	real*4 array(maxsiz)
-	parameter (ifastsiz=32,maxlinelength=10240)
-	real brray(ifastsiz*maxlinelength)
+c	  
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	implicit none
+	include 'blend.inc'
+c
 	character*80 filnam
 	integer*4 mxyzin(3),nxyzst(3)/0,0,0/
 	real*4 cell(6)/1.,1.,1.,0.,0.,0./
-c
-	parameter (limxypc=50,limnpc=50000,limsect=1000)
-	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
-	integer*4 nxoverlap,nyoverlap
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc)		!section #,
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	integer*4 mappiece(limxypc,limxypc)	!map of pieces in this section
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    maxxpiece,maxypiece,ixpclist,iypclist,izpclist,mappiece
-c
-c
 c
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
-
-	parameter (memlim=128)
-	integer*4 izmemlist(memlim),lastused(memlim)
-	common /shuffl/ npixin,limsec,jusecount,izmemlist,lastused
-c
 c
 	integer*4 listz(limsect),izwant(limsect)
 	character dat*9, tim*8
 	real*4 title(20),delt(3)
 	logical anypixels,dofast,anylinesout,xinlong
 	integer*4 modepow(0:15)/8,15,8,0,0,0,0,0,0,9,10,11,12,13,14,15/
+c
+	integer*4 modein,nlistz,minzpc,maxzpc,nsect,nxtotpix,nytotpix
+	integer*4 maxxpiece,maxypiece,modeout,iffloat,i,minxoverlap
+	integer*4 minyoverlap,ntrial,nreduce,minxwant,minywant,maxxwant
+	integer*4 maxywant,nxtotwant,nytotwant,newxpieces,newypieces
+	integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
+	integer*4 newminypiece,dminout,dmaxout,grandsum,ilistz,ifwant
+	real*4 xorig,yorig,zorig,dmin,dmax,dmean,outmin,outmax,definmin
+	real*4 definmax,reduce,curinmin,curinmax,pixscale,pixadd,tsum
+	integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
+	integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
+	integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece
+	integer*4 ixinll,iyinll,inpieceno,indx,indy,iyst,iynd,ioutbase
+	integer*4 ixst,ixnd,indbase,ix,iy,nsum,ilineout,ifill
+	real*4 sum,val,tmpsum,tmean
+	integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant
+	integer*4 ixout,iyout,ixinpc,iyinpc,ifrevise
 c
 	write(*,'(1x,a,$)')'Input image file: '
 	read(5,'(a)')filnam
@@ -330,7 +335,7 @@ c
 	      do ishort=nshort,1,-1
 		call crossvalue(xinlong,ishort,ilong,ixfrm,iyfrm)
 		if(mappiece(ixfrm,iyfrm).gt.0)then
-		  call shuffler(array,mappiece(ixfrm,iyfrm),indbray)
+		  call shuffler(mappiece(ixfrm,iyfrm),indbray)
 		  do i=indbray,indbray+nxin*nyin-1
 		    curinmin=min(curinmin,array(i))
 		    curinmax=max(curinmax,array(i))
@@ -405,21 +410,21 @@ c
 		  dofast=.true.
 		  do indy=indylo,indyhi,indyhi-indylo
 		    do indx=indxlo,indxhi,indxhi-indxlo
-		      call checkbox(indx,indy,nreduce,inpiece,ixinll,
+		      call checkbox(indx,indy,nreduce,inpieceno,ixinll,
      &			  iyinll)
 		      if(indx.eq.indxlo.and.indy.eq.indylo)then
-			inonepiece=inpiece
+			inonepiece=inpieceno
 			ixinpc=ixinll
 			iyinpc=iyinll
 		      endif
-		      dofast=dofast.and.inpiece.eq.inonepiece
+		      dofast=dofast.and.inpieceno.eq.inonepiece
 		    enddo
 		  enddo
 c
 c		    ALL ON ONE PIECE:
 c
-		  if(dofast.and.inpiece.gt.0)then
-		    call shuffler(array,inpiece,indbray)
+		  if(dofast.and.inpieceno.gt.0)then
+		    call shuffler(inpieceno,indbray)
 		    do indy=indylo,indyhi
 		      iyst=iyinpc+(indy-indylo)*nreduce
 		      iynd=iyst+nreduce-1
@@ -451,13 +456,13 @@ c
 		    do indy=indylo,indyhi
 		      ioutbase=nxout*(indy-indylo)+1-newpcxll
 		      do indx=indxlo,indxhi
-			call checkbox(indx,indy,nreduce,inpiece,ixinpc,
+			call checkbox(indx,indy,nreduce,inpieceno,ixinpc,
      &			    iyinpc)
-			if(inpiece.gt.0)then
+			if(inpieceno.gt.0)then
 c			    
 c			    if this output pixel comes all from one input piece
 c
-			  call shuffler(array,inpiece,indbray)
+			  call shuffler(inpieceno,indbray)
 			  if(nreduce.eq.1)then
 			    brray(ioutbase+indx)=array(ixinpc+nxin*
      &				iyinpc+indbray)
@@ -474,7 +479,7 @@ c
 			    brray(ioutbase+indx)=sum/nreduce**2
 			  endif
 			  anypixels=.true.
-			elseif(inpiece.eq.0)then
+			elseif(inpieceno.eq.0)then
 c			    
 c			    but if it comes from more than one piece, need to
 c			    get each pixel independently
@@ -487,10 +492,10 @@ c
 			  sum=0.
 			  do iy=iyst,iynd
 			    do ix=ixst,ixnd
-			      call findpixel(ix,iy,inpiece,ixinpc,
+			      call findpixel(ix,iy,inpieceno,ixinpc,
      &				  iyinpc)
-			      if(inpiece.gt.0)then
-				call shuffler(array,inpiece,indbray)
+			      if(inpieceno.gt.0)then
+				call shuffler(inpieceno,indbray)
 				sum=sum+array(ixinpc+nxin*(iyinpc)+
      &				    indbray)
 				nsum=nsum+1
@@ -555,7 +560,7 @@ c
 		call ialsam(2,nxyzout)
 		cell(3)=nzout
 		call ialcel(2,cell)
-		tmean=grandsum/(nzout*nxout*nyout)
+		tmean=grandsum/(nzout*float(nxout*nyout))
 		call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
 		write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
 	      endif
@@ -571,42 +576,49 @@ c
 
 
 
-	subroutine checkbox(indx,indy,nreduce,inpiece,ixinll,iyinll)
+	subroutine checkbox(indx,indy,nreduce,inpieceno,ixinll,iyinll)
+	implicit none
+	integer*4 indx,indy,nreduce,inpieceno,ixinll,iyinll
+	integer*4 ix,iy,inpt,ixinpc,iyinpc
 c
 	ix=indx*nreduce
 	iy=indy*nreduce
-	call findpixel(ix,iy,inpiece,ixinll,iyinll)
+	call findpixel(ix,iy,inpieceno,ixinll,iyinll)
 	if(nreduce.eq.1)return
 c
 	call findpixel(ix+nreduce-1,iy,inpt,ixinpc,iyinpc)
-	if(inpt.ne.inpiece)go to 10
+	if(inpt.ne.inpieceno)go to 10
 c
 	call findpixel(ix+nreduce-1,iy+nreduce-1,inpt,ixinpc,iyinpc)
-	if(inpt.ne.inpiece)go to 10
+	if(inpt.ne.inpieceno)go to 10
 c
 	call findpixel(ix,iy+nreduce-1,inpt,ixinpc,iyinpc)
-	if(inpt.eq.inpiece)return
+	if(inpt.eq.inpieceno)return
 c
-10	inpiece=0
+10	inpieceno=0
 	return
 	end
 
 
 
-	subroutine findpixel(ix,iy,inpiece,ixinpc,iyinpc)
-	parameter (limxypc=50,limnpc=50000,limsect=1000)
-	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
-	integer*4 nxoverlap,nyoverlap
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	integer*4 mappiece(limxypc,limxypc)	!map of pieces in this section
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    maxxpiece,maxypiece,ixpclist,iypclist,izpclist,mappiece
-c	  
-	inpiece=-1
+	subroutine findpixel(ix,iy,inpieceno,ixinpc,iyinpc)
+	implicit none
+	integer*4 ix,iy,inpieceno,ixinpc,iyinpc
+	include 'blend.inc'
+C	  
+	integer*4 nxdel,nydel,ipcx,ipcy,idx,idy,newx,newpcx
+	integer*4 newy,newpcy
+	integer*4 nxtotpix,nytotpix,maxxpiece,maxypiece
+c
+c	  DNM 8/18/02: need to either recompute these or equivalence them
+c	  them to something in common
+c
+	nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
+	nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
+	maxxpiece=minxpiece+nxtotpix-1
+	maxypiece=minypiece+nytotpix-1
+c
+	inpieceno=-1
 	if(ix.lt.minxpiece.or.iy.lt.minypiece.or.
      &	    ix.gt.maxxpiece.or.iy.gt.maxypiece)return
 	nxdel=nxin-nxoverlap
@@ -687,13 +699,15 @@ c
 	go to 10
 9	ipcy=newpcy
 	iyinpc=newy
-10	inpiece=mappiece(ipcx,ipcy)
+10	inpieceno=mappiece(ipcx,ipcy)
 	return
 	end
 
 
 	subroutine crossvalue(xinlong,nxpieces,nypieces,nshort,nlong)
+	implicit none
 	logical xinlong
+	integer*4 nxpieces,nypieces,nshort,nlong
 	if(xinlong)then
 	  nshort=nypieces
 	  nlong=nxpieces
