@@ -69,6 +69,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/20 23:56:52  mast
+c	  Added analysis of regions to exclude based on their positions in the
+c	  source file for the second volume.  Standardized error outputs and
+c	  added declarations for implicit none.
+c	
 c	  
 	implicit none
 	include 'model.inc'
@@ -117,6 +122,7 @@ c
 	integer*4 loady0,loady1,loadz0,loadz1,loadx0,loadx1,nmore
 	integer*4 nxload,nyload,nzload
 	real*4 dxsum,dysum,dzsum,err,perpos,dxadj,dyadj,dzadj
+	integer*4 lnblnk
 
 	indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
 c
