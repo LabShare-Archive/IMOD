@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/04/28 05:28:52  mast
+Changes for drawing current contour thicker
+
 Revision 4.3  2003/06/27 19:28:46  mast
 Changes for manipulating point quality
 
@@ -42,6 +45,7 @@ typedef struct __imodv_struct ImodvApp;
 #include <qwidget.h>
 class QGridLayout;
 class QFrame;
+class QScrollView;
 
 /******************************************************************
  * Object Edit Field allows easier expansion
@@ -93,6 +97,7 @@ class ImodvObjed : public QObject
 
   public slots:
     void lineColorSlot(int color, int value, bool dragging);
+  void multipleColorSlot(bool state);
   void fillToggleSlot(bool state);
   void bothSidesSlot(bool state);
   void fillColorSlot(int color, int value, bool dragging);
@@ -106,6 +111,9 @@ class ImodvObjed : public QObject
   void meshNormalSlot(bool state);
   void meshFalseSlot(bool state);
   void meshLevelSlot(int which, int value, bool dragging);
+  void clipGlobalSlot(int value);
+  void clipSkipSlot(bool state);
+  void clipPlaneSlot(int value);
   void clipResetSlot();
   void clipInvertSlot();
   void clipToggleSlot(bool state);
@@ -129,6 +137,8 @@ class ImodvOlist : public QWidget
   ~ImodvOlist() {};
 
   QGridLayout *mGrid;
+  QFrame *mFrame;
+  QScrollView *mScroll;
 
   public slots:
     void donePressed();
