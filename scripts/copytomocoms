@@ -890,8 +890,8 @@ EOF
 #
 # COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS
 #
-\$xfproduct $setname.prexg $setname.tltxf $setname.fidxf
-\$\\cp $setname.fidxf $setname.xf
+\$xfproduct $setname.prexg $setname.tltxf ${setname}_fid.xf
+\$\\cp ${setname}_fid.xf $setname.xf
 EOF
     endif
     cat >> $dstfile <<EOF
@@ -1189,6 +1189,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.19  2004/01/27 03:02:41  mast
+#  Added command line argument interface and distortion options
+#
 #  Revision 3.18  2004/01/13 20:02:06  mast
 #  ($<) does not work in true csh on SGI, so make wordlist in two steps
 #
