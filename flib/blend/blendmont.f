@@ -10,184 +10,7 @@ c	  cross-correlation to find substantial shifts.  Multinegative montages
 c	  can also be handled, with each negative transformed so as to produce
 c	  the best fit between the negatives.
 c
-c	  The program performs these feats by examining each edge, or region
-c	  of overlap, between adjacent pieces, and deriving a function that
-c	  maps pixels in one piece to corresponding pixels in the adjacent
-c	  piece.  These "edge functions" are stored in two separate files (for
-c	  pieces that are adjacent in X or Y, respectively).  Thus, even if one
-c	  needs to run the program more than once on the same input images,
-c	  the edge functions need to be calculated only once, since they can
-c	  be read from the files on later runs.  However, if the input image
-c	  file is changed in any way, the edge functions must be recalculated.
-c
-c	  To blend images at an overlap zone, the program considers each pixel 
-c	  in the output image in turn.  It finds the two corresponding 
-c	  positions (in the two adjacent input pieces) whose weighted average 
-c	  equals the position of the desired output pixel, where the weights
-c	  are proportional to the distance across the overlap zone.  Near one
-c	  edge of the overlap zone, the output pixel has very nearly the same
-c	  position as the corresponding pixel in the nearby piece; in
-c	  the middle of the overlap zone, the output pixel has a position
-c	  midway between the positions of the corresponding pixels in the two
-c	  pieces.
-c
-c	  If pieces are shifted by more than a few pixels from the positions
-c	  specified by their piece coordinates, then the program will not be
-c	  able to find the edge functions without doing an initial 
-c	  cross-correlation between the regions that overlap in adjacent
-c	  pieces.  Thus, if your montage is "sloppy" enough, you should select
-c	  the option for initial cross-correlations.
-c	  
-c	  If the pieces are shifted at all from the positions specified by
-c	  their piece coordinates, the program can correct for this.  It can
-c	  take the information about the shift between each pair of overlapping
-c	  pieces and use it to find the amounts to shift each piece so as to
-c	  fit the pieces together best.  If the shifts are large, then an
-c	  initial cross-correlation should be selected; otherwise this step is
-c	  not needed.  There are three ways to implement this correction step.
-c	  One is based solely on the information in the edge functions.
-c	  Another is a hybrid method based  on both cross-correlation and edge
-c	  functions; the program will solve for shifts twice, using the
-c	  displacements implied by the edge  functions then those implied by
-c	  correlations, and select the solution that gives the smallest mean
-c	  error.  The third method is based on cross-correlations alone and is
-c	  not as reliable as the hybrid method.  This method should be used
-c	  with older data if it is important to have an image stack that
-c	  exactly matches that produce by Blendmont prior to June 1, 2001,
-c	  when the hybrid option was implemented. It might also be useful in
-c	  cases where the edge functions are not reliable, such as when there
-c	  are large blank areas in the edge regions. 
-c
-c	  In any case where cross-correlations are being computed, the program
-c	  will write the displacements between pieces into a file with the
-c	  extension ".ecd".  On another run of the program, you can choose to
-c	  have these displacements read in from the file, just as edge
-c	  functions can be read in instead of recomputed.  This allows you to
-c	  edit bad displacements with Midas, then use Blendmont to get a
-c	  stack with pieces properly shifted into register.
-c
-c	  If sections come from more than one negative, this may be specified
-c	  in either of two ways.  If every section has the same division of
-c	  pieces into negatives, then one can specify this universal division 
-c	  into negatives as an interactive input to the program.
-c	  Alternatively, one may add negative numbers after the z coordinates
-c	  in the file of piece coordinates.  The only restriction on these
-c	  numbers is that they should be non-zero, and every piece from the
-c	  same negative should have the same number.  Thus, one could number
-c	  negatives 1, 2, 3 ... in each section that has multiple negatives,
-c	  or one could use the identifying number on each negative.
-c
-c	  When pieces of a section come from more than one negative, the
-c	  program uses the edge functions between the negatives to determine
-c	  how each negative should be rotated and translated to align it with
-c	  adjacent negatives.  This collection of rotations and translations
-c	  between adjacent negatives is then resolved into a single rotation
-c	  and translation for each negative, so as to bring all of the
-c	  negatives into best alignment.  Blending of edges is performed after
-c	  such rotations and translations have been applied.
-c
-c	  When you specify the maximum frame size and minimum overlap of the
-c	  output image, the program will pick the largest frame size less than
-c	  that maximum, with the smallest overlap greater than that minimum,
-c	  so that the resulting image will contain at least as many pixels as
-c	  the original input image.  It picks a frame size that is a multiple
-c	  of 2 and has no prime factor greater than 19 (so that fourier
-c	  transforms can be run on the resulting pieces).
-c
-c	  Entries are as follows:
-c
-c	  Input image file
-c
-c	  Output image file
-c
-c	  Data mode for output file (the default is same as mode of input)
-c
-c	  1 to float each section to maximum range for the data mode, 0 not to
-c
-c	  Name of file of g transforms to apply to align the sections, or a
-c	  .	blank line for no transforms
-c
-c	  Name of input file with list of piece coordinates
-c
-c	  IF this file has entries specifying that pieces are on different
-c	  negatives, enter 1 to do an initial cross-correlation in the overlap
-c	  zones to find the average displacement between pieces
-c
-c	  IF this file does NOT have any entries specifying that pieces belong
-c	  to different negatives, there are several possibilities for either
-c	  specifying negatives or correcting for displacements between frames.
-c	  Use the negative of an option to do initial cross-correlations to
-c	  correct for sloppy montages:
-c
-c	  .	Enter 1 or -1 to specify how the sections should be divided
-c	  .        into negatives
-c	  .     OR 2 or -2 to use edge functions to find a shift for each frame
-c	  .        that aligns the frames as well as possible
-c	  .     OR 3 or -3 to use cross-correlations exclusively, rather than
-c	  .        edge functions to find the best shift for each frame
-c	  .        (obsolete, use 5/-5 except to replicate old data)
-c	  .     OR 4 or -4 to use only cross-correlations read from an edge
-c	  .        correlation displacement file to find the best shifts
-c	  .        (obsolete, use 6/-6 except to replicate old data)
-c	  .     OR 5 or -5 to use both cross-correlations and edge functions
-c	  .        (whichever is better) to find the best shifts
-c	  .     OR 6 or -6 to use both cross-correlations read from a file and
-c         .        edge functions to find the best shifts
-c	  .	OR 0 for none of these options
-c
-c	  .  IF you enter 1 or -1 to specify division into negatives, enter 2 
-c	  .        lines:
-c
-c	  .	# of frames (pieces) per negative in the X direction, and the
-c	  .	    # of frames missing from the left-most negative.  E.g., if
-c	  .	    there are 2 frames from the left-most negative, 4 from the
-c	  .	    middle one, and 1 from the right-most one, there are 4
-c	  .	    frames per negative, with 2 missing from the left-most one
-c
-c	  .	# of frames (pieces) per negative in the Y direction, and the
-c	  .	    # of frames missing from the bottom-most negative.
-c
-c	  Name of new file for list of coordinates of pieces in the output file
-c
-c	  IF you have g transforms, enter on the next line:
-c	  .  X and Y center coordinates of the transforms, or / to accept the
-c	  .  default, which is the center of the input image.
-c
-c	  List of sections to be included in output file, or / to include all
-c	  .  sections from the input file in the output file.  Ranges may be
-c	  .  entered (e.g. 0-5,8-14,17-23)
-c
-c	  Minimum and maximum X, and minimum and maximum Y coordinates that
-c	  .	should be included in the output image.  Enter "/" to obtain
-c	  .	the entire input image.
-c
-c	  Maximum limit on the X and Y frame size for output pieces, and
-c	  .	minimum limit on overlap between output pieces.  The program
-c	  .	will then choose new frame sizes and overlaps based on these
-c	  .	limits
-c
-c	  0 to accept the program's choices of frame size and overlap.  When
-c	  .	running interactively, entering 1 will allow you to loop back
-c	  .	and enter new minimum and maximum X and Y coordinates and a
-c	  .	new maximum frame and minimum overlap.  Note that on the first
-c	  .     two entries, the program will enforce a minimum overlap of 2;
-c	  .     if for some reason you want an overlap of 0, you need to loop
-c	  .     back so that you enter the frame size and overlap 3 times.
-c
-c	  0 to build new files of edge functions, 1 to use old files that were
-c	  .	generated on a previous run of the program
-c
-c	  Root filename for edge function files.  Two files will be created or
-c	  .	sought for, with the extensions .XEF and .YEF attached to this
-c	  .	root name 
-c
-c	  Widths over which to blend positions at an edge, in the X and Y
-c	  .	directions.  For overlaps in the input image of 64 or more,
-c	  .	blending widths of 50 are recommended.
-c
-c
-c	  To link: blend,bsubs,smoothgrid,sdsearch,sdcalc
-c	  .   plus the usual libraries.
+c	  See the man page for further details.
 c
 c	  David Mastronarde, February 1989
 c	  12/21/98 added capability to do initial cross-correlation of overlaps
@@ -208,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/06/20 20:18:13  mast
+c	  Standardized error reporting
+c	
 c	  Revision 3.1  2002/08/19 03:19:14  mast
 c	  Implemented include file for commons.  Put large arrays in common
 c	  to prevent stack problems.  Passed array to find_best_shifts to
@@ -261,7 +87,7 @@ c
 	equivalence (array,irray)
 	logical edgedone(limedge,2),multineg(limsect),active4(3,2)
 	logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong
-	logical shifteach,docross,fromedge,exist,xcreadin,xclegacy
+	logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
 	real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
 	real*4 edgedispx(limedge,2),edgedispy(limedge,2)
 	real*4 aftermean(2),aftermax(2)
@@ -272,7 +98,66 @@ c	  the former rotrans structures
      &	    rnet(6)
 	integer*4 modepow(0:15)/8,15,8,0,0,0,0,0,0,9,10,11,12,13,14,15/
 	integer*4 rename
+	integer*4  minxwant, maxxwant
+	integer*4  minywant, maxywant
 c	  
+	integer numOptions
+	parameter (numOptions = 25)
+	character*(80 * numOptions) options(1)
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
+	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
+	integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
+	integer*4 PipGetNonOptionArg, PipPrintHelp
+	options(1) =
+     &	    'imin:ImageInputFile:FN:Montaged image input file to be'//
+     &	    ' blended@'//
+     &	    'plin:PieceListInput:FN:File with list of piece'//
+     &	    ' coordinates for image input file@'//
+     &	    'imout:ImageOutputFile:FN:Output file for blended images@'//
+     &	    'plout:PieceListOutput:FN:File for list of coordinates of'//
+     &	    ' pieces in output image file@'//
+     &	    'rootname:RootNameForEdges:CH:Root name for edge function'//
+     &	    ' and .ecd files@'//
+     &	    'mode:ModeToOutput:I:Mode for output file - 0 for bytes,'//
+     &	    ' 1 for integers, 2 for reals@'//
+     &	    'float:FloatToRange:B:Stretch intensities of each output'//
+     &	    ' section to fill range of data mode@'//
+     &	    'xform:TransformFile:FN:File with transformations to'//
+     &	    ' apply@'//
+     &	    'center:TransformCenterXandY:TF:X and Y coordinates of'//
+     &	    ' center of transformations@'//
+     &	    'sloppy:SloppyMontage:B:Do initial cross-correlations for'//
+     &	    ' finding edge functions@'//
+     &	    'shift:ShiftPieces:B:Shift pieces to minimize'//
+     &	    ' displacements in the overlap zones@'//
+     &	    'edge:ShiftFromEdges:B:Use only edge functions for'//
+     &	    ' shifting pieces@'//
+     &	    'xcorr:ShiftFromXcorrs:B:Use only cross-correlations of'//
+     &	    ' overlap zones for shifting pieces (legacy behavior)@'//
+     &	    'readxcorr:ReadInXcorrs:B:Read displacements from .ecd'//
+     &	    ' file instead of computing correlations@'//
+     &	    'sections:SectionsToDo:LI:Sections to blend into output'//
+     &	    ' file@'//
+     &	    'xminmax:StartingAndEndingX:TI:Minimum and maximum X index'//
+     &	    ' coordinates to output@'//
+     &	    'yminmax:StartingAndEndingY:TI:Minimum and maximum Y index'//
+     &	    ' coordinates to output@'//
+     &	    'maxsize:MaximumNewSizeXandY:TI:Maximum size in X and Y of'//
+     &	    ' pieces in output file@'//
+     &	    'minoverlap:MinimumOverlapXandY:TI:Minimum overlap between'//
+     &	    ' pieces in X and Y in output file@'//
+     &	    'oldedge:OldEdgeFunctions:B:Use existing edge functions@'//
+     &	    'perneg:FramesPerNegativeXandY:TI:Number of frames per'//
+     &	    ' negative for multi-negative montage@'//
+     &	    'missing:MissingFromFirstNegativeXandY:TI:Number of pieces'//
+     &	    ' missing from first negative in X and Y@'//
+     &	    'width:BlendingWidthXandY:TI:Width in X and Y across which'//
+     &	    ' to blend overlaps@'//
+     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
+     &	    'help:usage:B:Print help output'
+c
 c	  initialization of elements in common; this is done with statements
 c	  to avoid huge executables on SGI
 c
@@ -284,28 +169,69 @@ c
 	intgrid(2)=10
 	iboxsiz(1)=10				!box size short & long
 	iboxsiz(2)=15
+	iffloat = 0
+	ifsloppy = 0
+	ioptabs = 0
+	nxmissing = 0
+	nymissing = 0
+	ifoldedge = 0
+	shifteach = .false.
+	xclegacy = .false.
+	fromedge = .false.
+	xcreadin = .false.
 c
-	write(*,'(1x,a,$)')'Input image file: '
-	read(5,'(a)')filnam
+c	  
+c	  Pip startup: set error, parse options, set flag if used
+c
+	call PipExitOnError(0, "ERROR: TILTXCORR - ")
+	call PipAllowCommaDefaults(1)
+	ierr = PipParseInput(options, numOptions, '@', numOptArg, numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+c
+	if (pipinput) then
+c	    
+c	    First action if pip used: check for help
+c
+	  if (PipGetBoolean('usage', ierr) .eq. 0) then
+	    ierr = PipPrintHelp('blendmont', 0, 0, 0)
+	    call exit(0)
+	  endif
+
+	  if (PipGetString('ImageInputFile', filnam) .ne. 0) call
+     &	      errorexit('NO INPUT IMAGE FILE SPECIFIED')
+	else
+
+	  write(*,'(1x,a,$)')'Input image file: '
+	  read(5,'(a)')filnam
+	endif
 	call imopen(1,filnam,'ro')
 	call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
 c	  
-	write(*,'(1x,a,$)')'Output image file: '
-	read(5,'(a)')filnam
+	if (pipinput) then
+	  if (PipGetString('ImageOutputFile', filnam) .ne. 0) call
+     &	      errorexit('NO OUTPUT IMAGE FILE SPECIFIED')
+
+	else
+	  write(*,'(1x,a,$)')'Output image file: '
+	  read(5,'(a)')filnam
+	endif
 	call imopen(2,filnam,'new')
 	call itrhdr(2,1)
 	call ialnbsym(2,0)
 	call ialsymtyp(2,0,0)
 c	call ialcon(2,.false.)
 c	  
-18	modeout=modein
-	write(*,'(1x,a,i2,a,$)')'Mode for output file [',modeout,']: '
-	read(5,*)modeout
-	if(modeout.lt.0.or.modeout.gt.15.or.
-     &	    (modeout.ge.3.and.modeout.le.8))then
-	  print *,'bad mode value'
-	  go to 18
+	modeout=modein
+	if (pipinput) then
+	  ierr = PipGetInteger('ModeToOutput', modeout)
+	else
+	  write(*,'(1x,a,i2,a,$)')'Mode for output file [/ for',modeout,
+     &	      ']: '
+	  read(5,*)modeout
 	endif
+	if(modeout.lt.0.or.modeout.gt.15.or.
+     &	    (modeout.ge.3.and.modeout.le.8))call errorexit(
+     &	    'bad mode value')
 	call ialmod(2,modeout)
 c	  
 c	  set up output range, and default input range and minimum.  If real
@@ -325,14 +251,20 @@ c
 	  definmax=2**modepow(modein)-1.
 	  definmin=0.
 	endif
+c	  
+	filnam = ' '
+	if (pipinput) then
+	  ierr = PipGetBoolean('FloatToRange', iffloat)
+	  ierr = PipGetString('TransformFile', filnam)
+	else
+	  write(*,'(1x,a,$)')
+     &	      '1 to float each section to maximum range, 0 not to: '
+	  read(5,*)iffloat
 c
-	write(*,'(1x,a,$)')
-     &	    '1 to float each section to maximum range, 0 not to: '
-	read(5,*)iffloat
-c
-	write(*,'(1x,a,$)')
-     &	    'File of g transforms to apply (Return if none): '
-	read(5,'(a)')filnam
+	  write(*,'(1x,a,$)')
+     &	      'File of g transforms to apply (Return if none): '
+	  read(5,'(a)')filnam
+	endif
 	dogxforms=.false.
 	if(filnam.ne.' ')then
 	  call dopen(3,filnam,'ro','f')
@@ -341,15 +273,14 @@ c
 	  dogxforms=.true.
 	endif
 c	
-20	call read_list(ixpclist,iypclist,izpclist,neglist,
-     &	    multineg,npclist,minzpc,maxzpc,anyneg)
+	call read_list(ixpclist,iypclist,izpclist,neglist,
+     &	    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
 	nsect=maxzpc+1-minzpc
 	call fill_listz(izpclist,npclist,listz,nlistz)
 	if(dogxforms)then
-	  if (nlistz.gt.nglist)then
-	    print *,'More sections than g transforms'
-	    go to 20
-	  endif
+	  if (nlistz.gt.nglist) call errorexit(
+     &	      'More sections than g transforms')
+
 	  skipxforms=.false.
 	  if(nlistz.lt.nsect)then
 	    if(nglist.eq.nlistz)then
@@ -360,9 +291,8 @@ c
      &		  //' including ones missing from file'
 	      skipxforms=.true.
 	    else
-	      print *, 'Cannot tell how transforms match up to '//
-     &		  'sections, because of missing sections'
-	      go to 20
+	      call errorexit('Cannot tell how transforms match up to '//
+     &		  'sections, because of missing sections')
 	    endif
 	  endif
 	endif
@@ -373,14 +303,15 @@ c
      &	    nxoverlap)
 	call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &	    nyoverlap)
-	if(nxpieces.le.0. or. nypieces.le.0)go to 20
-	if(nxin.ne.nxin .or. nyin.ne.nyin)then
-	  print *,'frame size and image file dimension mismatch'
-	  go to 20
-	endif
+	if(nxpieces.le.0. or. nypieces.le.0)call errorexit
+     &	    ('CHECKLIST reported 0 pieces in one direction')
+	if(nxin.ne.nxin .or. nyin.ne.nyin) call errorexit
+     &	    ('frame size and image file dimension mismatch')
+
 c
 	nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
 	nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
+	if (pipinput) print *,'Input file:'
 	write(*,115)nxtotpix,'X',nxpieces,nxin,nxoverlap
 	write(*,115)nytotpix,'Y',nypieces,nyin,nyoverlap
 115	format(i6,' total ',a1,' pixels in',i3,' pieces of',
@@ -388,88 +319,121 @@ c
 c	  
 c	  find out if global multi-neg specifications are needed or desired
 c	  
-	if(anyneg)then
-	  print *,'There are multi-negative specifications in list file'
-	  write(*,'(1x,a,$)')'1 to do initial cross-correlations '//
-     &	      'in overlap zones, 0 not to: '
-	  read(5,*)ifsloppy
+	if (pipinput) then
+	  ierr = PipGetBoolean('SloppyMontage', ifsloppy)
+	  shifteach = ifsloppy.ne.0
+	  if (PipGetTwoIntegers('FramesPerNegativeXandY', nxfrmpneg,
+     &		nyfrmpneg) .eq. 0) ioptabs = 1
+	  ierr = PipGetLogical('ShiftPieces', shifteach)
+	  ierr = PipGetLogical('ShiftFromEdges', fromedge)
+	  ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
+	  ierr = PipGetLogical('ReadInXcorrs', xcreadin)
+	  if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin))
+     &	      call errorexit('you cannot use ShiftPieces or '//
+     &	      'ReadInXcorrs with multiple negatives')
+	  if (fromedge .and. xclegacy) call errorexit(
+     &	      'you cannot use both ShiftFromEdges and ShiftFromXcorrs')
 	else
-	  print *,'Enter the negative of one of the following '//
-     &	      'options to do initial','cross-correlations in overlap'//
-     &	      ' zones in combination with the particular option'
-	  write(*,'(1x,a,/,a,/,a,/,a,/,a,/,a,$)')
-     &	      'Enter 1 to specify division'//
-     &	      ' into negatives to apply to all sections,',
-     &	      '      2 to use edge functions to find a shift for each '
-     &	      //'frame to align frames',
-     &	      '      3 to use cross-correlation only to find a shift '//
-     &	      'for each frame',
-     &	      '      4 to use only cross-correlation displacements '//
-     &	      'read from a file',
-     &	      '      5 to use best shifts from edge functions and '//
-     &	      'correlations',
-     &	      '      6 to use best shifts from edge functions and '//
-     &	      'displacements read from a file: '
-	  read(5,*)ioptneg
-	  ifsloppy=0
-	  if(ioptneg.lt.0)ifsloppy=1
-	  ioptabs=abs(ioptneg)
-	  shifteach=ioptabs.ge.2
-	  fromedge=ioptabs.eq.2
-	  xclegacy=ioptabs.eq.3.or.ioptabs.eq.4
-	  xcreadin=ioptabs.eq.4.or.ioptabs.eq.6
-	  if(ioptabs.eq.1)then
+	  if(anyneg)then
+	    print *,'There are multi-negative specifications in list file'
+	    write(*,'(1x,a,$)')'1 to do initial cross-correlations '//
+     &		'in overlap zones, 0 not to: '
+	    read(5,*)ifsloppy
+	  else
+	    print *,'Enter the negative of one of the following '//
+     &		'options to do initial','cross-correlations in overlap'//
+     &		' zones in combination with the particular option'
+	    write(*,'(1x,a,/,a,/,a,/,a,/,a,/,a,$)')
+     &		'Enter 1 to specify division'//
+     &		' into negatives to apply to all sections,',
+     &		'      2 to use edge functions to find a shift for each '
+     &		//'frame to align frames',
+     &		'      3 to use cross-correlation only to find a shift '//
+     &		'for each frame',
+     &		'      4 to use only cross-correlation displacements '//
+     &		'read from a file',
+     &		'      5 to use best shifts from edge functions and '//
+     &		'correlations',
+     &		'      6 to use best shifts from edge functions and '//
+     &		'displacements read from a file: '
+	    read(5,*)ioptneg
+	    ifsloppy=0
+	    if(ioptneg.lt.0)ifsloppy=1
+	    ioptabs=abs(ioptneg)
+	    shifteach=ioptabs.ge.2
+	    fromedge=ioptabs.eq.2
+	    xclegacy=ioptabs.eq.3.or.ioptabs.eq.4
+	    xcreadin=ioptabs.eq.4.or.ioptabs.eq.6
+	  endif
+	endif
+
+	if(ioptabs.eq.1)then
+	  if (pipinput) then
+	    ierr = PipGetTwoIntegers('FramesPerNegativeXandY',
+     &		nxmissing, nymissing)
+	  else
 	    write(*,'(1x,a,$)')'# of frames per negative in X;'//
      &		' # missing from left-most negative: '
 	    read(5,*)nxfrmpneg,nxmissing
 	    write(*,'(1x,a,$)')'# of frames per negative in Y;'//
      &		' # missing from bottom-most negative: '
 	    read(5,*)nyfrmpneg,nymissing
-	    nxneg=(nxpieces+(nxfrmpneg-1) + nxmissing)/nxfrmpneg
-c
-c	      derive frame number of each piece and assign negative #
-c
-	    do ipc=1,npclist
-	      ixfrm=(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap)
-	      iyfrm=(iypclist(ipc)-minypiece)/(nyin-nyoverlap)
-	      ixneg=(ixfrm+nxmissing)/nxfrmpneg
-	      iyneg=(iyfrm+nymissing)/nyfrmpneg
-	      neglist(ipc)=1+ixneg+iyneg*nxneg
-	    enddo
-c	      
-c	      now deduce true multi-neg character of each section
-c
-	    do iz=minzpc,maxzpc
-	      ineg=iz+1-minzpc
-	      multineg(ineg)=.false.
-	      listfirst=-100000
-	      do ipc=1,npclist
-		if(izpclist(ipc).eq.iz)then
-		  if(listfirst.eq.-100000)listfirst=neglist(ipc)
-		    multineg(ineg)=
-     &			multineg(ineg).or.(neglist(ipc).ne.listfirst)
-		endif
-	      enddo
-	      anyneg=anyneg.or.multineg(ineg)
-	    enddo
-c
 	  endif
+	  nxneg=(nxpieces+(nxfrmpneg-1) + nxmissing)/nxfrmpneg
+c	    
+c	      derive frame number of each piece and assign negative #
+c	    
+	  do ipc=1,npclist
+	    ixfrm=(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap)
+	    iyfrm=(iypclist(ipc)-minypiece)/(nyin-nyoverlap)
+	    ixneg=(ixfrm+nxmissing)/nxfrmpneg
+	    iyneg=(iyfrm+nymissing)/nyfrmpneg
+	    neglist(ipc)=1+ixneg+iyneg*nxneg
+	  enddo
+c	    
+c	    now deduce true multi-neg character of each section
+c	    
+	  do iz=minzpc,maxzpc
+	    ineg=iz+1-minzpc
+	    multineg(ineg)=.false.
+	    listfirst=-100000
+	    do ipc=1,npclist
+	      if(izpclist(ipc).eq.iz)then
+		if(listfirst.eq.-100000)listfirst=neglist(ipc)
+		multineg(ineg)=
+     &		    multineg(ineg).or.(neglist(ipc).ne.listfirst)
+	      endif
+	    enddo
+	    anyneg=anyneg.or.multineg(ineg)
+	  enddo
+c
 	endif
 c	  
-	write(*,'(1x,a,$)')'Name of new piece list file: '
-	read(5,'(a)')filnam
-	call dopen(3,filnam,'new','f')
+	filnam = ' '
+	if (pipinput) then
+	  ierr = PipGetString('PieceListOutput', filnam)
+	else
+	  write(*,'(1x,a,$)')
+     &	      'Name of new piece list file (Return for none): '
+	  read(5,'(a)')filnam
+	endif
+	outputpl = filnam .ne. ' '
+	if (outputpl) call dopen(3,filnam,'new','f')
 c	  
 c	  find out center of transforms
 c	  
 	gxcen=minxpiece+nxtotpix/2
 	gycen=minypiece+nytotpix/2
-	if(dogxforms)then
-	  write(*,'(1x,a,/,a,f6.1,a,f6.1,a,$)')
-     &	      'Enter true center coordinates of the transforms,',
-     &	      '    or / for the default',gxcen,',',gycen,
-     &	      ', the center of the image area: '
-	  read(5,*)gxcen,gycen
+	if (pipinput) then
+	  ierr = PipGetTwoFloats('TransformCenterXandY', gxcen, gycen)
+	else
+	  if(dogxforms)then
+	    write(*,'(1x,a,/,a,f6.1,a,f6.1,a,$)')
+     &		'Enter true center coordinates of the transforms,',
+     &		'    or / for the default',gxcen,',',gycen,
+     &		', the center of the image area: '
+	    read(5,*)gxcen,gycen
+	  endif
 	endif
 c	  
 c	  get list of sections desired, set up default as all sections
@@ -478,54 +442,69 @@ c
 	  izwant(i)=listz(i)
 	enddo
 	nzwant=nlistz
-	print *,'Enter list of sections to be included in output '//
-     &	    'file (ranges ok)','   or / to include all sections'
-	do i=1,nlistz
-	  izwant(i)=listz(i)
-	enddo
-	nzwant=nlistz
-	call rdlist(5,izwant,nzwant)
+	if (pipinput) then
+	  if (PipGetString('SectionsToDo', filnam) .eq. 0)
+     &	      call parselist(filnam, izwant, nzwant)
+	else
+	  print *,'Enter list of sections to be included in output '//
+     &	      'file (ranges ok)','   or / to include all sections'
+	  call rdlist(5,izwant,nzwant)
+	endif
 c	  
 c	  output size limited by line length in X
 c	  
 	minxoverlap=2
 	minyoverlap=2
+	newxframe=maxlinelength
+	newyframe=65535
 	ntrial=0
 32	minxwant=minxpiece
 	minywant=minypiece
 	maxxwant=minxwant+nxtotpix-1
 	maxywant=minywant+nytotpix-1
-	write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
-     &	    ' Max Y coordinates of desired output section,'
-     &	    ,'    or / for whole input section [='
-     &	    ,minxwant,maxxwant,minywant,maxywant,']: '
-	read(5,*)minxwant,maxxwant,minywant,maxywant
+	if (pipinput) then
+	  ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
+	  ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
+	  ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe, newyframe)
+	  ierr = PipGetTwoIntegers('MinimumOverlapXandY', minxoverlap,
+     &	      minyoverlap)
+	else
+	  write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
+     &	      ' Max Y coordinates of desired output section,'
+     &	      ,'    or / for whole input section [='
+     &	      ,minxwant,maxxwant,minywant,maxywant,']: '
+	  read(5,*)minxwant,maxxwant,minywant,maxywant
+	  write(*,'(1x,a,$)')
+     &	      'Maximum new X and Y frame size, minimum overlap: '
+	  read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
+	endif
 	nxtotwant=2*((maxxwant+2-minxwant)/2)
 	nytotwant=2*((maxywant+2-minywant)/2)
-	write(*,'(1x,a,$)')
-     &	    'Maximum new X and Y frame size, minimum overlap: '
-	read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
 	if(ntrial.le.1)then			!on first 2 trials, enforce min
 	  minxoverlap=max(2,minxoverlap)	!overlap of 2 so things look
 	  minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
 	endif					!the user have it.
 	ntrial=ntrial+1
-	if(newxframe.gt. maxlinelength)then
-	  print *,'too large in X'
-	  go to 32
-	endif
+	if(newxframe.gt. maxlinelength) call errorexit
+     &	    ('output size is too large in X for arrays')
 c
 	call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
      &	    newxoverlap,newxtotpix)
 	call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
      &	    newyoverlap,newytotpix)
 c
+	if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
+     &	    call errorexit('you must specify an output piece list file'//
+     &	    ' to have more than one output frame')
+	if (pipinput) print *,'Output file:'
 	write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
 	write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
-c
-	write(*,'(1x,a,$)')'1 to revise frame size/overlap: '
-	read(5,*)ifrevise
-	if(ifrevise.ne.0)go to 32	  
+c	  
+	if (.not.pipinput)then
+	  write(*,'(1x,a,$)')'1 to revise frame size/overlap: '
+	  read(5,*)ifrevise
+	  if(ifrevise.ne.0)go to 32	  
+	endif
 c	  
 	newminxpiece=minxwant-(newxtotpix-nxtotwant)/2
 	newminypiece=minywant-(newytotpix-nytotwant)/2
@@ -611,11 +590,53 @@ c
 c	  
 c	  get edge file name root, parameters if doing a new one
 c
-	write(*,'(1x,a,$)')'0 for new edge files, 1 to read old ones: '
-	read(5,*)ifoldedge
-	write(*,'(1x,a,$)')'Root file name for edge function files: '
-	read(5,'(a)')filnam
-	if(ifoldedge.eq.0)then
+	if (pipinput) then
+	  ierr = PipGetBoolean('OldEdgeFunctions', ifoldedge)
+	  if (PipGetString('RootNameForEdges', filnam) .ne. 0) call
+     &	      errorexit('NO ROOT NAME FOR EDGE FUNCTIONS SPECIFIED')
+	else
+	  write(*,'(1x,a,$)')'0 for new edge files, 1 to read old ones: '
+	  read(5,*)ifoldedge
+	  write(*,'(1x,a,$)')'Root file name for edge function files: '
+	  read(5,'(a)')filnam
+	endif
+c
+	if(ifoldedge.ne.0)then
+c	    
+c	    for old files, open, get edge count and make sure it matches
+c
+	  do ixy=1,2
+	    call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
+     &	        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
+	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
+	    edgenam=concat(filnam,edgeext(ixy))
+c
+c 7/20/00 CER remove readonly for gnu
+c
+	    open(iunedge(ixy),file=edgenam,status='old',
+     &		form='unformatted',access='direct', recl=lenrec, err=53)
+	    read(iunedge(ixy),rec=1)nedgetmp(ixy)
+	  enddo
+	  if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))then
+	    call convert_longs(nedgetmp,2)
+	    if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))
+     &		call errorexit('wrong # of edges in edge function file')
+	    needbyteswap=1
+	  endif
+	  go to 54
+c	    
+c	    8/8/03: if there is an error opening old files, just build new ones
+c	    This is to allow command files to say use old functions even if
+c	    a previous command file might not get run
+c
+53	  ifoldedge = 0
+	  if (ixy.eq.2) close(iunedge(1))
+	  print *
+	  print *,'WARNING: BLENDMONT - ERROR OPENING OLD EDGE ',
+     &	      'FUNCTION FILE','NEW EDGE FUNCTIONS WILL BE COMPUTED'
+	endif
+
+54	if(ifoldedge.eq.0)then
 	  ifdiddle=0
 c	  write(*,'(1x,a,$)')
 c     &	      '1 to diddle with edge function parameters: '
@@ -669,37 +690,15 @@ c	      write header record
 	    write(iunedge(ixy),rec=1)nedge(ixy),nxgrid(ixy),nygrid(ixy)
      &		,intgrid(ixy),intgrid(3-ixy)
 	  enddo
-	else
-c	    
-c	    for old files, open, get edge count and make sure it matches
-c
-	  do ixy=1,2
-	    call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
-     &	        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
-	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
-	    edgenam=concat(filnam,edgeext(ixy))
-c
-c 7/20/00 CER remove readonly for gnu
-c
-	    open(iunedge(ixy),file=edgenam,status='old',
-     &		form='unformatted',access='direct', recl=lenrec)
-	    read(iunedge(ixy),rec=1)nedgetmp(ixy)
-	  enddo
-	  if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))then
-	    call convert_longs(nedgetmp,2)
-	    if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))then
-	      print *,'wrong # of edges in edge function file'
-	      call exit(1)
-	    endif
-	    needbyteswap=1
-	  endif
 	endif
 c	  
 	if(xcreadin)then
 	  edgenam=concat(filnam,xcorrext)
 	  inquire(file=edgenam,exist=exist)
 	  if(.not.exist)then
-	    print *,'Edge correlation file does not exist: ',edgenam
+	    print *
+	    print *,'ERROR: BLENDMONT - Edge correlation file does ',
+     &		'not exist: ',edgenam
 	    call exit(1)
 	  endif
 	  call dopen(4,edgenam,'ro','f')
@@ -712,9 +711,18 @@ c
      &	      ,ixy=1,2)
 	  close(4)
 	endif
-c
-	write(*,'(1x,a,$)')'Blending width in X & Y: '
-	read(5,*)(iblend(i),i=1,2)
+c	  
+c	  make default blending width be 80% of overlap up to 50, then
+c	  half of overlap above 50
+	iblend(1) = max(max(nxoverlap / 2, 50), min(4 * nxoverlap / 5, 50))
+	iblend(2) = max(max(nyoverlap / 2, 50), min(4 * nyoverlap / 5, 50))
+	if (pipinput) then
+	  ierr = PipGetIntegerArray('BlendingWidthXandY', iblend, 2, 2)
+	else
+	  write(*,'(1x,a,2i5,a,$)')'Blending width in X & Y (/ for'
+     &	      ,iblend(1), iblend(2),'): '
+	  read(5,*)(iblend(i),i=1,2)
+	endif
 c	  
 c	  initialize memory allocator
 c	  
@@ -2219,7 +2227,7 @@ c
 		call ialcel(2,cell)
 		tmean=grandsum/(nzout*nxout*nyout)
 		call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
-		write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
+		if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
 	      endif
 c		
 	    enddo
