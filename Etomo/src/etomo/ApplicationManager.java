@@ -91,6 +91,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.126  2005/02/17 19:25:44  sueh
+ * <p> bug# 606 Pass AxisID when setting and getting makeZFactors,
+ * <p> newstFiducialessAlignment, and usedLocalAlignments.
+ * <p>
  * <p> Revision 3.125  2005/02/17 02:38:36  sueh
  * <p> Removing print statements.
  * <p>
@@ -1878,7 +1882,7 @@ public class ApplicationManager extends BaseManager {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     coarseAlignDialog.setPrenewstParams(prenewstParam);
 
-    coarseAlignDialog.setFiducialessAlignment(metaData.isFiducialessAlignment());
+    coarseAlignDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
   }
@@ -1915,7 +1919,7 @@ public class ApplicationManager extends BaseManager {
         processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
         //  Go to the fiducial model dialog by default
-        if (metaData.isFiducialessAlignment()) {
+        if (metaData.isFiducialessAlignment(axisID)) {
           openTomogramPositioningDialog(axisID);
           // Check to see if the user wants to keep any coarse aligned imods
           // open
@@ -2129,7 +2133,7 @@ public class ApplicationManager extends BaseManager {
         "Tilt axis rotation syntax error");
       return false;
     }
-    metaData.setFiducialessAlignment(dialog.isFiducialessAlignment());
+    metaData.setFiducialessAlignment(axisID, dialog.isFiducialessAlignment());
     metaData.setImageRotation(tiltAxisAngle, axisID);
     updateRotationXF(tiltAxisAngle, axisID);
     return true;
@@ -2715,7 +2719,7 @@ public class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.fineAlignment(tiltalignParam, axisID);
-      metaData.setFiducialessAlignment(false);
+      metaData.setFiducialessAlignment(axisID, false);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3013,9 +3017,9 @@ public class ApplicationManager extends BaseManager {
 
     // Set the whole tomogram sampling state, fidcialess state, and tilt axis
     // angle
-    tomogramPositioningDialog.setWholeTomogramSampling(metaData.isWholeTomogramSample());
+    tomogramPositioningDialog.setWholeTomogramSampling(metaData.isWholeTomogramSample(axisID));
 
-    tomogramPositioningDialog.setFiducialessAlignment(metaData.isFiducialessAlignment());
+    tomogramPositioningDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     tomogramPositioningDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
 
     // Open the dialog panel
@@ -3125,7 +3129,7 @@ public class ApplicationManager extends BaseManager {
     
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
-    if(metaData.isFiducialessAlignment()) {
+    if(metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
     }
     else {
@@ -3181,7 +3185,7 @@ public class ApplicationManager extends BaseManager {
 
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
-    if(metaData.isFiducialessAlignment()) {
+    if(metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
     }
     else {
@@ -3319,7 +3323,7 @@ public class ApplicationManager extends BaseManager {
       String threadName;
       try {
         threadName = processMgr.fineAlignment(tiltalignParam, axisID);
-        metaData.setFiducialessAlignment(false);
+        metaData.setFiducialessAlignment(axisID, false);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -3459,7 +3463,7 @@ public class ApplicationManager extends BaseManager {
     TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
 
     //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(tomogramPositioningDialog.isWholeTomogramSampling());
+    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog.isWholeTomogramSampling());
 
     NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
     tomogramPositioningDialog.getNewstParamst(newstParam);
@@ -3675,7 +3679,7 @@ public class ApplicationManager extends BaseManager {
     updateDialog(tomogramGenerationDialog, axisID);
 
     //  Set the fidcialess state and tilt axis angle
-    tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment());
+    tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     tomogramGenerationDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
     enableTiltParameters(axisID);
 
@@ -3882,7 +3886,7 @@ public class ApplicationManager extends BaseManager {
       // copytomocoms template
       newstParam.setSizeToOutputInXandY("/");
       newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
-      newstParam.setFiducialessAlignment(metaData.isFiducialessAlignment());
+      newstParam.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
       tomogramGenerationDialog.getNewstParams(newstParam);
       comScriptMgr.saveNewst(newstParam, axisID);
     }
@@ -3934,7 +3938,7 @@ public class ApplicationManager extends BaseManager {
 
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
-    if(metaData.isFiducialessAlignment()) {
+    if(metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
     }
     else {

@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/11/19 22:34:12  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.4.2.3  2004/10/08 15:41:59  sueh
  * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
  * <p> member variables non-static.
@@ -130,7 +133,10 @@ public class DataFlowTests {
 
     // If the fiducialless state has been specfied override the EDF file 
     if (fiducialSpecified) {
-      metaData.setFiducialessAlignment(fiducialless);
+      metaData.setFiducialessAlignment(AxisID.FIRST, fiducialless);
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+        metaData.setFiducialessAlignment(AxisID.SECOND, fiducialless);
+      }
     }
 
     preProcessing(AxisID.FIRST);
@@ -143,10 +149,12 @@ public class DataFlowTests {
       coarseAlignment(AxisID.SECOND);
     }
 
-    if (!applicationManager.getMetaData().isFiducialessAlignment()) {
+    if (!applicationManager.getMetaData().isFiducialessAlignment(AxisID.FIRST)) {
       fiducialModelGen(AxisID.FIRST);
       fineAlignment(AxisID.FIRST);
-      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS
+          && !applicationManager.getMetaData().isFiducialessAlignment(
+              AxisID.SECOND)) {
         transferfid(AxisID.SECOND);
         fiducialModelGen(AxisID.SECOND);
         fineAlignment(AxisID.SECOND);
@@ -224,7 +232,7 @@ public class DataFlowTests {
     mainFrame.pack();
     applicationManager.crossCorrelate(axisID);
     waitForThread(axisID);
-    if(!applicationManager.getMetaData().isFiducialessAlignment()) {
+    if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
       applicationManager.coarseAlign(axisID);
       waitForThread(axisID);
     }
@@ -282,7 +290,7 @@ public class DataFlowTests {
       e.printStackTrace();
       return;
     }
-    if(applicationManager.getMetaData().isWholeTomogramSample()) {
+    if(applicationManager.getMetaData().isWholeTomogramSample(axisID)) {
       applicationManager.wholeTomogram(axisID);
     }
     else {
@@ -290,7 +298,7 @@ public class DataFlowTests {
     }
     waitForThread(axisID);
 
-    if(!applicationManager.getMetaData().isFiducialessAlignment()) {
+    if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
       applicationManager.finalAlign(axisID);
       waitForThread(axisID);
     }
