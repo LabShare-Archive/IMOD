@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>objectEditForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>221</width>
-            <height>439</height>
+            <width>223</width>
+            <height>459</height>
         </rect>
     </property>
     <property name="caption">
@@ -452,7 +452,7 @@
                         <number>999</number>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Increase, decrease, or enter a radius for spheres to be drawn at each point</string>
+                        <string>Increase, decrease, or enter a radius for spheres to be drawn at each point (in unbinned pixels)</string>
                     </property>
                 </widget>
             </hbox>
