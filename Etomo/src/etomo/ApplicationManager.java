@@ -12,6 +12,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2004/04/22 23:31:33  rickg
+ * <p> bug #391 Added processing for non fid aligne
+ * <p> Added getIMODBinPath and getMetaData
+ * <p>
  * <p> Revision 3.31  2004/04/19 19:25:04  sueh
  * <p> bug# 409 removing prints
  * <p>
@@ -3826,7 +3830,6 @@ public class ApplicationManager {
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
-    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
     String threadName;
     try {
       threadName = processMgr.patchcorr();
