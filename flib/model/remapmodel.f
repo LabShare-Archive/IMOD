@@ -31,13 +31,13 @@ c	  .  0-9,-999--990 will remove all points with Z from 10 to 19.
 c	  .  Enter -1 to replace each Z value by its negative.
 c	  
 c	  Amounts to add to all X, Y, and Z coordinates.  These values will be
-c	  .  added after the remapping of Z values, if any.
+c	  .  added after the remapping of Z values, if any.  Values should be
+c	  .  in units of pixels (image index coordinates).
 c	  
 c	  IF your new list of Z values is not in monotonic order, enter 1 to
 c	  .  have the program reorder the points within each object so that
 c	  .  they occur with monotonically changing Z.  This option would be
-c	  .  used if you wanted to switch two sections within a stack.  It
-c	  .  won't work with branched models.
+c	  .  used if you wanted to switch two sections within a stack.
 c
 c	  David Mastronarde  5/8/89
 c	  DNM 7/20/89  changes for new model format
@@ -50,6 +50,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/22 23:44:10  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.1  2002/05/20 15:51:09  mast
 c	  Made sure the elimination of Z values did not confuse it into 
 c	  thinking the new Z values were out of order.
@@ -62,6 +65,7 @@ c
 c
 	character*80 modelfile,newmodel
 	logical exist,readw_or_imod
+	integer*4 getimodhead,getimodscales
 c	  
 	integer*4 ninzlis,iobj,indobj,ipnt,nlistz,i,nnew
 	integer*4 ifreorder,ninobj,ibase,izval,newzval,indmov,itmp
@@ -78,6 +82,16 @@ c
 c
 	write(*,'(1x,a,$)')'Name of output model file: '
 	read(*,'(a)')newmodel
+c	  
+c	  scale to index coordinates
+c
+	ierr = getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr = getimodscales(ximscale, yimscale, zimscale)
+	do i=1,n_point
+	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
+	enddo
 c
 c	  make list of all z values in the model
 c
@@ -217,7 +231,14 @@ c
 	  endif
 c
 	enddo
+c	  
+c	  scale data back
 c
+	do i=1,n_point
+	  p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	  p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	  p_coord(3,i)=zimscale*p_coord(3,i)+zofs
+	enddo
 	call write_wmod(newmodel)
 	call exit(0)
 	end
