@@ -10,6 +10,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/28 22:37:52  mast
+c	  Made it scale model coordinates correctly and get scaling/origin
+c	  information from model file if image file not given.  Also
+c	  standardized error output and had it exit rather than loop on
+c	  model file reading error.
+c	
 c	  Revision 3.2  2002/05/20 15:55:04  mast
 c	  Fixed model output so that it works properly with points assigned to
 c	  two surfaces, and with multiple objects; also had it set object type
@@ -317,8 +323,9 @@ c
 	integer*4 igroup(*),nrealpt
 	character*(*) modelfile
 	include 'model.inc'
-	real*4 xyzmax
-	integer*4 imodobj,isize
+	real*4 xyzmax,ximscale,yimscale,zimscale
+	integer getimodscales
+	integer*4 imodobj,isize,ierr
 c	  
 	integer*4 ireal,iobject,ipt,i
 c
@@ -342,14 +349,17 @@ c
 c	  loop on model objects that are non-zero, stuff point coords into 
 c	  first point of object (now only point), and set color by group
 c
+c	  get scaling factors, might as well apply each one to each coordinate
+c
+	ierr=getimodscales(ximscale,yimscale,zimscale)
 	ireal=0
 	do iobject=1,max_mod_obj
 	  if(npt_in_obj(iobject).gt.0)then
 	    ipt=object(ibase_obj(iobject)+1)
 	    ireal=ireal+1
-	    do i=1,3
-	      p_coord(i,ipt)=xyz(i,ireal)
-	    enddo
+	    p_coord(1,ipt)=xyz(1,ireal)*ximscale
+	    p_coord(2,ipt)=xyz(2,ireal)*yimscale
+	    p_coord(3,ipt)=xyz(3,ireal)*zimscale
 c
 c	      DNM 5/15/02: only change color if there is a group
 c	      assignment, but then double the object numbers to keep them
