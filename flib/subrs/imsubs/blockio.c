@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/06/14 20:05:58  mast
+Added check and error reporting for illegal unit number and unit not open
+
 Revision 3.9  2004/04/24 04:42:40  mast
 Rewrote get_fstr to be clearer, but valgrind still complains
 
@@ -511,7 +514,7 @@ static void get_fstr(char *fstr, int lfstr, char *str, int l)
  
 /************************************************************************/
 /* Creates a fortran string from a c one */
-static void set_fstr(char *fstr, int *lfstr, char *str)
+static void set_fstr(char *fstr, int lfstr, char *str)
 {
   while(lfstr > 0 && *str)
     {
@@ -533,6 +536,7 @@ static int find_unit()
   if (firstTime) 
     for (i = 0; i < MAX_UNIT; i++)
       units[i].being_used = 0;
+  firstTime = 0;
 
   for (i = 0; i < MAX_UNIT; i++) {
     if (!units[i].being_used)
