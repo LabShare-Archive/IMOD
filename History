@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/01: IMOD_2-6-6
+1/13/01: Made imodmesh work with inside-out annular-horseshoe transitions.
+
+1/10/01: Added alignlog to makefile so it would be properly installed.
+
+1/9/01: Fixed Tiltxcorr and Tilt to work with more than 360 tilt views.
+
 1/8/01: IMOD_2-6-5
 1/8/01: Changed prenewst.com to reset pixel sizes to 1 in the prealigned
 stack, so that align.com would run correctly if pixel sizes are set in the

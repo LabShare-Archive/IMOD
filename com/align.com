@@ -58,5 +58,5 @@ g5a.xf
 # *ADD* A RECOMMENDED AMOUNT TO SHIFT UP TO THE NUMBER ON THE NEXT LINE
 #
 0	AMOUNT TO MOVE TILT AXIS IN Z, OR 1000 to move midpoint 
-0	IF getting xforms, amount to move tilt axis in X from center
+0	Amount to move tilt axis in X from center
 0	0 TO EXIT, OR 1 TO DO LOCAL ALIGNMENTS
