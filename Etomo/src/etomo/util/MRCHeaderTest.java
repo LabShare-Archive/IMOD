@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/02/10 04:53:50  rickg
+ * <p> Changed CVS commans to export
+ * <p>
  * <p> Revision 3.4  2004/01/27 18:07:05  rickg
  * <p> Unset debug mode for tests, too much cruft
  * <p>
@@ -74,41 +77,6 @@ public class MRCHeaderTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    //  Create the test directories
-    File dir1 =
-      new File(System.getProperty("user.dir"), testRoot + testDirectory1);
-    if(! dir1.exists()) {
-    	assertTrue("Creating test directory 1", dir1.mkdirs());
-    }
-    File dir2 =
-      new File(System.getProperty("user.dir"), testRoot + testDirectory2);
-    if(! dir2.exists()) {
-    	assertTrue("Creating test directory 2", dir2.mkdirs());
-    }
-    
-    // Set the working directory to the current test directory
-    String originalDirectory = System.getProperty("user.dir");
-    System.setProperty("user.dir", testRoot);
-
-    // Check out the test header stack into the required directories
-    String[] cvsCommand = new String[7];
-    cvsCommand[0] = "cvs";
-    cvsCommand[1] = "export";
-    cvsCommand[2] = "-D";
-    cvsCommand[3] = "today";    
-    cvsCommand[4] = "-d";
-    cvsCommand[5] = testDirectory1;
-    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
-    SystemProgram cvs = new SystemProgram(cvsCommand);
-    cvs.setDebug(true);
-    cvs.run();
-
-    cvsCommand[5] = testDirectory2;
-    cvs = new SystemProgram(cvsCommand);
-    cvs.run();
-		
-    //  Switch back to the original working directory
-    System.setProperty("user.dir", originalDirectory);
   }
 
   /**
@@ -157,6 +125,31 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testRead() throws IOException, InvalidParameterException {
+    //  Create the test directories
+    File dir1 =
+      new File(System.getProperty("user.dir"), testRoot + testDirectory1);
+    if(! dir1.exists()) {
+      assertTrue("Creating test directory 1", dir1.mkdirs());
+    }
+    // Set the working directory to the current test directory
+    String originalDirectory = System.getProperty("user.dir");
+    System.setProperty("user.dir", testRoot);
+
+    // Check out the test header stack into the required directories
+    String[] cvsCommand = new String[7];
+    cvsCommand[0] = "cvs";
+    cvsCommand[1] = "export";
+    cvsCommand[2] = "-D";
+    cvsCommand[3] = "today";    
+    cvsCommand[4] = "-d";
+    cvsCommand[5] = testDirectory1;
+    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
+    SystemProgram cvs = new SystemProgram(cvsCommand);
+    cvs.run();
+
+    //  Switch back to the original working directory
+    System.setProperty("user.dir", originalDirectory);  
+    
     mrcHeader.read();
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
     assertEquals("Incorrect row count", 512, mrcHeader.getNRows());
@@ -164,6 +157,31 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
+    File dir2 =
+      new File(System.getProperty("user.dir"), testRoot + testDirectory2);
+    if(! dir2.exists()) {
+      assertTrue("Creating test directory 2", dir2.mkdirs());
+    }
+    
+    // Set the working directory to the current test directory
+    String originalDirectory = System.getProperty("user.dir");
+    System.setProperty("user.dir", testRoot);
+
+    // Check out the test header stack into the required directories
+    String[] cvsCommand = new String[7];
+    cvsCommand[0] = "cvs";
+    cvsCommand[1] = "export";
+    cvsCommand[2] = "-D";
+    cvsCommand[3] = "today";    
+    cvsCommand[4] = "-d";
+    cvsCommand[5] = testDirectory2;
+    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
+    SystemProgram cvs = new SystemProgram(cvsCommand);
+    cvs.run();
+
+    //  Switch back to the original working directory
+    System.setProperty("user.dir", originalDirectory);
+    
     mrcWithSpaces.read();
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
     assertEquals("Incorrect row count", 512, mrcWithSpaces.getNRows());
