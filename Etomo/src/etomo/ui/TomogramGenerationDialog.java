@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2004/07/15 20:17:35  sueh
+ * bug# 499 added "optional" to 2d filtering title
+ *
  * Revision 3.20  2004/07/02 20:42:07  sueh
  * bug# 489 added a tilt button panel to put the buttons at the bottom
  * side by side, changed the updateAdvanced() function
@@ -694,7 +697,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlAdvanced2.setVisible(isAdvanced);
     pnlAdvanced3.setVisible(isAdvanced);
     pnlTrial.setVisible(isAdvanced);
-    cbBoxUseLinearInterpolation.setVisible(isAdvanced);
     ltfStartingAndEndingZ.setVisible(isAdvanced);
     pnlInverseFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
