@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/12/19 00:28:34  rickg
+ * <p> Advanced handling implemented
+ * <p>
  * <p> Revision 1.8  2002/12/18 18:52:13  rickg
  * <p> Restructured buttons and layout
  * <p>
@@ -72,11 +75,14 @@ public class AlignmentEstimationDialog
   private JToggleButton buttonComputeAlignmentA =
     new JToggleButton("<html><b>Compute<br>alignment</b>");
 
-  private JToggleButton buttonImodA =
-    new JToggleButton("<html><b>View/Edit model<br>in imod</b>");
+  private JButton buttonImodA =
+    new JButton("<html><b>View/Edit model<br>in imod</b>");
 
-  private JToggleButton buttonView3DModelA =
-    new JToggleButton("<html><b>View 3D<br>model</b>");
+  private JButton buttonView3DModelA =
+    new JButton("<html><b>View 3D<br>model</b>");
+
+  private JButton buttonTransferFiducialsA =
+    new JButton("<html><b>Transfer fiducials<br>to other axis</b>");
 
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -88,11 +94,14 @@ public class AlignmentEstimationDialog
   private JToggleButton buttonComputeAlignmentB =
     new JToggleButton("<html><b>Compute<br>alignment</b>");
 
-  private JToggleButton buttonView3DModelB =
-    new JToggleButton("<html><b>View 3D<br>model</b>");
+  private JButton buttonView3DModelB =
+    new JButton("<html><b>View 3D<br>model</b>");
 
-  private JToggleButton buttonImodB =
-    new JToggleButton("<html><b>View/Edit model<br>in imod<</b>");
+  private JButton buttonImodB =
+    new JButton("<html><b>View/Edit model<br>in imod<</b>");
+
+  private JButton buttonTransferFiducialsB =
+    new JButton("<html><b>Transfer fiducials<br>to other axis</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr) {
     super(appMgr);
@@ -120,6 +129,10 @@ public class AlignmentEstimationDialog
     panelButtonA.add(buttonImodA);
     panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonA.add(buttonView3DModelA);
+    if (applicationManager.isDualAxis()) {
+      panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
+      panelButtonA.add(buttonTransferFiducialsA);
+    }
     buttonView3DModelA.setEnabled(false);
 
     panelAlignEstA.setLayout(new BoxLayout(panelAlignEstA, BoxLayout.Y_AXIS));
@@ -136,6 +149,10 @@ public class AlignmentEstimationDialog
     panelButtonB.add(buttonImodB);
     panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonB.add(buttonView3DModelB);
+    if (applicationManager.isDualAxis()) {
+      panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
+      panelButtonB.add(buttonTransferFiducialsB);
+    }
     buttonView3DModelB.setEnabled(false);
 
     panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
@@ -164,13 +181,13 @@ public class AlignmentEstimationDialog
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    buttonComputeAlignmentA.addActionListener(new AlignementComputeA(this));
-    buttonView3DModelA.addActionListener(new AlignementView3DModelA(this));
-    buttonImodA.addActionListener(new AlignementImodA(this));
+    buttonComputeAlignmentA.addActionListener(new AlignmentComputeA(this));
+    buttonView3DModelA.addActionListener(new AlignmentView3DModelA(this));
+    buttonImodA.addActionListener(new AlignmentImodA(this));
 
-    buttonComputeAlignmentB.addActionListener(new AlignementComputeB(this));
-    buttonView3DModelB.addActionListener(new AlignementCompute3DModelB(this));
-    buttonImodB.addActionListener(new AlignementImodB(this));
+    buttonComputeAlignmentB.addActionListener(new AlignmentComputeB(this));
+    buttonView3DModelB.addActionListener(new AlignmentCompute3DModelB(this));
+    buttonImodB.addActionListener(new AlignmentImodB(this));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -282,6 +299,10 @@ public class AlignmentEstimationDialog
   void buttonView3DModelAAction(ActionEvent event) {
   }
 
+  void buttonTransferFiducialsAAction() {
+    
+  }
+  
   void buttonComputeBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND);
   }
@@ -294,6 +315,9 @@ public class AlignmentEstimationDialog
 
   }
 
+  void buttonTransferFiducialsBAction() {
+    
+  }
   //  Action function overides for exit buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
@@ -325,11 +349,11 @@ public class AlignmentEstimationDialog
 }
 
 //  ActionListener classes for buttons
-class AlignementComputeA implements ActionListener {
+class AlignmentComputeA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementComputeA(AlignmentEstimationDialog adaptee) {
+  AlignmentComputeA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -338,11 +362,11 @@ class AlignementComputeA implements ActionListener {
   }
 }
 
-class AlignementView3DModelA implements ActionListener {
+class AlignmentView3DModelA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementView3DModelA(AlignmentEstimationDialog adaptee) {
+  AlignmentView3DModelA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -351,11 +375,11 @@ class AlignementView3DModelA implements ActionListener {
   }
 }
 
-class AlignementImodA implements ActionListener {
+class AlignmentImodA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementImodA(AlignmentEstimationDialog adaptee) {
+  AlignmentImodA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -364,11 +388,24 @@ class AlignementImodA implements ActionListener {
   }
 }
 
-class AlignementComputeB implements ActionListener {
+class AlignmentTransferA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementComputeB(AlignmentEstimationDialog adaptee) {
+  AlignmentTransferA(AlignmentEstimationDialog adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonTransferFiducialsAAction();
+  }
+}
+
+class AlignmentComputeB implements ActionListener {
+
+  AlignmentEstimationDialog adaptee;
+
+  AlignmentComputeB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -377,11 +414,11 @@ class AlignementComputeB implements ActionListener {
   }
 }
 
-class AlignementCompute3DModelB implements ActionListener {
+class AlignmentCompute3DModelB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementCompute3DModelB(AlignmentEstimationDialog adaptee) {
+  AlignmentCompute3DModelB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -390,15 +427,28 @@ class AlignementCompute3DModelB implements ActionListener {
   }
 }
 
-class AlignementImodB implements ActionListener {
+class AlignmentImodB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementImodB(AlignmentEstimationDialog adaptee) {
+  AlignmentImodB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
     adaptee.buttonImodBAction(event);
+  }
+}
+
+class AlignmentTransferB implements ActionListener {
+
+  AlignmentEstimationDialog adaptee;
+
+  AlignmentTransferB(AlignmentEstimationDialog adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonTransferFiducialsBAction();
   }
 }
