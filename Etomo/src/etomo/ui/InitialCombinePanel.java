@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 1.8  2003/03/20 21:19:08  rickg
  * <p> Added matchshift results button/access
  * <p>
@@ -67,7 +70,7 @@ public class InitialCombinePanel implements ContextMenu {
 
   private JPanel pnlButton = new JPanel();
   private JButton btnMatchcheck =
-    new JButton("<html><b>View matchshift results</b>");
+    new JButton("<html><b>View match check volume</b>");
   private JButton btnRestart = new JButton("<html><b>Restart combine</b>");
 
   /**
