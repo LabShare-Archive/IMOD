@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/3/03: Changed model view rotation so that models will rotate at a fixed
+speed that is independent of the step size, although , and . hot keys change
+both settings at once.  The default speed is 36 degrees per second.  Fixed
+some problems with the "throwing" feature and added description of it in the
+Help-Mouse entry.
+
+11/1/03: Implemented new error processing in libraries, 3dmod, and Midas so
+that these programs can prevent routines in the libraries from trying to write
+to standard error (which crashes on Windows).  3dmod and Midas now print
+nearly all errors to message windows instead of the terminal.
+
 10/31/03: IMOD_3-0-25
 10/31/03: Most new documentation added for etomo.
 
