@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/23 22:34:35  sueh
+ * <p> bug267 removing prints
+ * <p>
  * <p> Revision 2.8  2003/10/23 19:11:16  sueh
  * <p> bug267 look for stack in the working directory and the
  * <p> backup directory when validating directories.
@@ -242,13 +245,11 @@ public class ConstMetaData {
         return false;
       }
       if (findValidFile(datasetName + "b.st", currentDir) == null) {
-        System.out.println("3: currentDir=" + currentDir);
         return false;
       }
     }
     else {
       if (findValidFile(datasetName + ".st", currentDir, backupDir) == null) {
-        System.out.println("4: currentDir=" + currentDir);
         return false;
       }
     }
@@ -320,8 +321,6 @@ public class ConstMetaData {
       if (curDir == altDir || !isValid(altDir, true)) {
         invalidReason =
           fileName + " does not exist in  " + curDir.getAbsolutePath();
-        //SUEH 267
-        System.out.println("a:      curDir=" + curDir);
         return null;
       }
       curDir = altDir;
@@ -359,8 +358,6 @@ public class ConstMetaData {
     if (!file.exists()) {
       invalidReason =
         fileName + " does not exist in " + curDir.getAbsolutePath();
-      //SUEH 267
-      System.out.println("a:      curDir=" + curDir);
       return null;
     }
 
