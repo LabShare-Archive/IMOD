@@ -12,22 +12,104 @@ import etomo.type.AxisID;
  * to perform any function on the ImodProcess instance that is required by the
  * ImodManager.
  * 
- * ImodState should mirror ImodProcess's state as much as
- * possible without changing the previously existing functionality.</p>
+ * ImodState preserves the original state configuration during multiple opens,
+ * raises and re-opens of 3dmod, all of which are handle by the open() function.
+ * It also allows a new state configuration to temporarily override the original
+ * state configuration for a single call to open().  Conflicting new
+ * configurations can be created when calling open() several times, without any
+ * negative effect.  Some state information, such as binning is not reset to an
+ * original state and is totally controlled by the user.
+ * </p>
  * 
  * <p>Use:
- * 1. Construct an ImodState with all parameters required to create the
- *    correct ImodProcess instance.
- * 2. If necessary, run setup() to do the initial configuration of the
- *    ImodProcess instance.
- * 3. Settings that are don't change can be set using the set functions
- *    prior to open() and model().
- *    Examples:  
- *    fiducialModel.setUseModv(true) => setUseModv(true);
- *    patchVectorModel.modelMode() => setSetToMode(true);
- * 4. Settings that need to be passed as parameters can be passed to open() or
- *    model(), or to the set functions just before running open() or model().
+ * Construction and initialization:
+ * 1. Construct an ImodState.
+ * 2. Use the setInitial functions to set the initial state.  ImodState resets
+ *    to the initial state after each open call.
+ * Opening and modeling:
+ * 1. Use the set functions to set the current state.
+ * 2. Call an open function.
+ * </p>
  * 
+ * <p>Upgrading:
+ * 
+ * Adding a member variable that is changed only during the construction and
+ * initialization phase:
+ * 1. For a variable called "foo", create ImodState members and methods:
+ *    - A foo variable, set to a default value
+ *    - A get or is function for foo.
+ *    - A set function for foo or add it to the constructor(s).
+ *    If setting foo with a set function:
+ *    - An fooSet boolean variable, set to false
+ *    - The setFoo function should:
+ *        Do nothing if fooSet is true.
+ *        Set fooSet to true.
+ * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 
+ * Adding a member variable that is set during the construction and
+ * initialization phase and also changed later:
+ * 1. For a variable called "foo", create ImodState members and methods:
+ *    - A foo variable
+ *    - A get or is function for foo.
+ *    - A set function for foo.
+ *    - An initialFoo variable, set to a default value
+ *    - An initialFooSet boolean variable, set to false
+ *    - A get or is function for initialFoo
+ *    - A set function for initialFoo:
+ *        Do nothing if initialFooSet is true.
+ *        Set foo = initialFoo.
+ *        Set initialFooSet to true.
+ * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 3. Change ImodState.reset():
+ *    Set foo = initialFoo.
+ * 
+ * Adding a member variable that is only changed during opening and modeling:
+ * 1. For a variable called "foo", create ImodState members and methods:
+ *    - A foo variable
+ *    - A get or is function for foo.
+ *    - A set function for foo.
+ *    - A static final defaultFoo variable, set to a default value
+ *    - A get or is function for defaultFoo
+ * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 3. Change ImodState.reset():
+ *    Set foo = defaultFoo.
+ * 
+ * Adding a member variable that holds the last value the user gave:
+ * 1. Place the variable in ImodProcess.  ImodState doesn't need to know about
+ *    it.
+ * 2. Pass the variable's value to ImodProcess when set.
+ * 3. If ImodState has to know about in, don't change it in reset().
+ * </p>
+ * 
+ * <p>Rules for upgrading:
+ * 1. Unchanging variables are set only once.  They should not be changed in
+ *    reset().
+ * 2. Variables with an initial value set during construction and initialization
+ *    should be set back to their initial value in reset().
+ * 3. Variables that should always hold the last value set by the user don't
+ *    need to be in ImodState.  If they are, reset() shouldn't change them.
+ * 4. Variables that are only changed during opening and modelling should be set
+ *    to their default value in reset().
+ * </p>
+ * 
+ * <p>Current types of state information as of 6/9/04:
+ * Unchanging state information:
+ * - datasetName
+ * - modelView
+ * - useModv
+ * States information that changes during opening and modeling:
+ *   Settings that are set during construction and initialization:
+ *   - modelName
+ *   - useMode
+ *   - mode
+ *   - swapYZ
+ *   State information that is not set during construction and initialization:
+ *   - openWithModel
+ *   - preserveContrast
+ * State information that is controlled by the user
+ * - whether 3dmod running
+ * - binning
+ * </p>
  * <p>Copyright: Copyright(c) 2002, 2003</p>
  * 
  * <p>Organization:
@@ -54,6 +136,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.13  2004/06/07 18:33:29  sueh
+ * <p> $bug# 457 In open(), collect all messages to be sent to 3dmod in process.
+ * <p> $Send all messages to 3dmod before exiting open().
+ * <p> $
  * <p> $Revision 1.12  2004/06/07 00:19:21  sueh
  * <p> $bug# 452 Remove the model() functions.  No longer take
  * <p> $responsibility for knowing when to set openWithModel.
@@ -104,28 +190,51 @@ import etomo.type.AxisID;
 public class ImodState {
   public static final String rcsid = "$$Id$$";
 
-  protected ImodProcess process = null;
+  //public constants
+  //mode
+  public static final int MODEL_MODE = -1;
+  public static final int MOVIE_MODE = -2;
+  //modelView
+  public static final int MODEL_VIEW = -3;
+  //useModv
+  public static final int MODV = -4;
   
-  public static final String MODEL = "model";
-  public static final String MOVIE = "movie";
-
+  //unchanging state information
   private String datasetName = "";
-  
-  private boolean openWithModel = false;
-  private String modelName = "";
-
-  private boolean useMode = false;
-  private String mode = MOVIE;
-  
-  private boolean swapYZ = false;
-  private boolean fillCache = false;
   private boolean modelView = false;
   private boolean useModv = false;
-  private boolean preserveContrast = false;
+  
+  //current state information
+  //reset to initial state
+  private String modelName;
+  private boolean useMode;
+  private int mode;
+  private boolean swapYZ;
+  //reset to default state
+  private boolean openWithModel;
+  private boolean preserveContrast;
+  
+  //reset values
+  //initial state information
+  private String initialModelName = "";
+  private boolean initialUseMode = false;
+  private int initialMode = MOVIE_MODE;
+  private boolean initialSwapYZ = false;
+  //default state information
+  private static final boolean defaultOpenWithModel = false;
+  private static final boolean defaultPreserveContrast = false;
+    
+  //internal state information
+  private ImodProcess process = null;
   private boolean warnedStaleFile = false;
-  
+  //initial state information
+  boolean initialUseModeSet = false;
+  boolean initialModeSet = false;
+  boolean initialSwapYZSet = false;
 
-  
+  //constructors
+  //they can set final state variables
+  //they can also set initialModelName
   
   /**
    * Use this constructor to create an instance of ImodProcess using
@@ -133,6 +242,17 @@ public class ImodState {
    */
   public ImodState() {
     process = new ImodProcess();
+    reset();
+  }
+  
+  /**
+   * Use this constructor to create an instance of ImodProcess using
+   * ImodProcess() and set either model view or imodv.
+   */
+  public ImodState(int modelViewType) {
+    process = new ImodProcess();
+    setModelViewType(modelViewType);
+    reset();
   }
   
   /**
@@ -142,7 +262,20 @@ public class ImodState {
   public ImodState(String datasetName) {
     this.datasetName = datasetName;
     process = new ImodProcess(datasetName);
+    reset();
   }
+  
+  /**
+   * Use this constructor to create an instance of ImodProcess using
+   * ImodProcess(String dataset) and set either model view or imodv.
+   */
+  public ImodState(String datasetName, int modelViewType) {
+    this.datasetName = datasetName;
+    process = new ImodProcess(datasetName);
+    setModelViewType(modelViewType);
+    reset();
+  }
+
   
   /**
    * Use this constructor to create an instance of ImodProcess using
@@ -150,8 +283,9 @@ public class ImodState {
    */
   public ImodState(String datasetName, String modelName) {
     this.datasetName = datasetName;
-    this.modelName = modelName;
+    initialModelName = modelName;
     process = new ImodProcess(datasetName, modelName);
+    reset();
   }
 
   
@@ -174,6 +308,7 @@ public class ImodState {
     }
     this.datasetName = datasetName + axisExtension + datasetExt;
     process = new ImodProcess(this.datasetName);
+    reset();
   }
   
   /**
@@ -201,80 +336,11 @@ public class ImodState {
       throw new IllegalArgumentException(tempAxisID.toString());
     }
     datasetName = datasetName1 + axisExtension + datasetExt + " " + datasetName2 + axisExtension + datasetExt + " " + datasetName3 + axisExtension + datasetExt;
-    this.modelName = modelName + axisExtension + modelExt;
+    initialModelName = modelName + axisExtension + modelExt;
     process = new ImodProcess(datasetName, this.modelName);
+    reset();
   }
 
-
-  /**
-   * Configures the ImodProcess instance.  Use when necessary before calling
-   * configuration and open.
-   * @param swapYZ
-   * @param fillCache
-   * @param modelView
-   */
-  public void initialize(boolean swapYZ, boolean fillCache, boolean modelView) {
-    if (swapYZ) {
-      this.swapYZ = swapYZ;
-      process.setSwapYZ(this.swapYZ);
-    }
-    if (fillCache) {
-      this.fillCache = fillCache;
-      process.setFillCache(this.fillCache);
-    }
-    if (modelView) {
-      this.modelView = modelView;
-      process.setModelView(this.modelView);
-    }
-  }
-
-  
-  public void reset() {
-     openWithModel = true;
-     modelName = "";
-     useMode = false;
-     mode = MOVIE; 
-     useModv = false;
-     preserveContrast = false;
-  }
-
-
-  public void setSwapYZ(boolean swapYZ) {
-      this.swapYZ = swapYZ;
-      process.setSwapYZ(swapYZ);
-  }
-  
-  public void setWorkingDirectory(File workingDirectory) {
-    process.setWorkingDirectory(workingDirectory);
-  }
-
-
-  //Set functions
-  
-  /**
-   * Set opening a process and setting the mode to model or movie.
-   */
-  public void setUseMode(boolean useMode){
-    this.useMode = useMode;
-  }
-  
-  public void setMode(String mode) {
-    this.mode = new String (mode);
-  }
-
-  
-  /**
-   * Sets opening a process using the -view option
-   *
-   */
-  public void setUseModv(boolean useModv) {
-    this.useModv = useModv;
-  }
-  
-  public void setPreserveContrast(boolean preserveContrast) {
-    this.preserveContrast = preserveContrast;
-  }
-  
   /**
    * Opens a process, opens a model.
    * 
@@ -289,9 +355,6 @@ public class ImodState {
           throw new NullPointerException("modelName is empty in " + toString()); 
         }
         process.setModelName(modelName);
-      }
-      if (useModv) {
-        process.setUseModv(useModv);
       }
       //open
       process.open();
@@ -327,7 +390,7 @@ public class ImodState {
     }
     //set mode
     if (useMode) {
-      if (mode.equals(MODEL)) {
+      if (mode == MODEL_MODE) {
         process.setModelModeMessage();
       }
       else {
@@ -335,6 +398,7 @@ public class ImodState {
       }
     }
     process.sendMessages();
+    reset();
   }
   /**
    * Opens a process using the modelName parameter.  Ignores mode setting.
@@ -353,7 +417,7 @@ public class ImodState {
   public void open(String modelName, boolean modelMode) throws SystemProcessException {
     this.modelName = modelName;
     useMode = true;
-    setMode(modelMode);
+    setModelMode(modelMode);
     open();
   } 
 
@@ -369,16 +433,10 @@ public class ImodState {
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     return process.getRubberbandCoordinates();
   }
-  /**
-   * @return true if process is running
-   */
-  public boolean isOpen() {
-    return process.isRunning();
-  }
+
   
   /**
    * Tells process to quit.
-   * 
    * @throws SystemProcessException
    */
   public void quit() throws SystemProcessException {
@@ -387,90 +445,356 @@ public class ImodState {
 
 
   /**
-   * Sets the mode (model or movie)
-   * 
-   * @param modelMode
+   * @param modelViewType either MODEL_VIEW or MODV
    */
-  private void setMode(boolean modelMode) {
-    if (modelMode) {
-      mode = MODEL;
+  protected void setModelViewType(int modelViewType) {
+    if (modelViewType == MODEL_VIEW) {
+      modelView = true;
+    }
+    else if (modelViewType == MODV) {
+      useModv = true;
     }
     else {
-      mode = MOVIE;
+      modelView = false;
+      useModv = false;
     }
+    process.setModelView(modelView);
+    process.setUseModv(useModv);
+  }
+  
+  protected void reset() {
+    //reset to initial state
+    modelName = initialModelName;
+    useMode = initialUseMode;
+    mode = initialMode;
+    swapYZ = initialSwapYZ;
+    //reset to default state
+    openWithModel = defaultOpenWithModel;
+    preserveContrast = defaultPreserveContrast;
   }
 
-  
+  protected String getModeString(int mode) {
+    if (mode == MOVIE_MODE) {
+      return "MOVIE_MODE";
+    }
+    else if (mode == MODEL_MODE) {
+      return "MODEL_MODE";
+    }
+    else {
+      return "ERROR:" + Integer.toString(mode);
+    }
+  }
+ 
+ 
+  //unchanging state information
+  /**
+   * @return datasetName
+   */
   public String getDatasetName() {
     return datasetName;
   }
-  public boolean isOpenWithModel() {
-    return openWithModel;
-  }
-  public void setOpenWithModel(boolean openWithModel) {
-    this.openWithModel = openWithModel;
-  }
-  public String getModelName() {
-    return modelName;
-  }
-  public boolean isUseMode() {
-    return useMode;
-  }
-  public String getMode() {
-    return mode;
-  }
-  public boolean isSwapYZ() {
-    return swapYZ;
-  }
-  public boolean isFillCache() {
-    return fillCache;
-  }
+  
+  /**
+   * 
+   * @return modelView
+   */
   public boolean isModelView() {
     return modelView;
   }
+  
+  /**
+   * @return useModv
+   */
   public boolean isUseModv() {
     return useModv;
   }
+  
+  //current state information
+  /**
+   * @return modelName
+   */
+  public String getModelName() {
+    return modelName;
+  }
+  
+  /**
+   * @return useMode
+   */
+  public boolean isUseMode() {
+    return useMode;
+  }
+  /**
+   * @param useMode
+   */
+  public void setUseMode(boolean useMode){
+    this.useMode = useMode;
+  }
+  
+  /**
+   * @return
+   */
+  public int getMode() {
+    return mode;
+  }
+  /**
+   * @return mode
+   */
+  public String getModeString() {
+    return getModeString(mode);
+  }
+  /**
+   * set the mode to model or movie.
+   */
+  public void setMode(int mode) {
+    this.mode = mode;
+  }
+  /**
+   * Sets the mode (model or movie)
+   * @param modelMode
+   */
+  private void setModelMode(boolean modelMode) {
+    if (modelMode) {
+      mode = MODEL_MODE;
+    }
+    else {
+      mode = MOVIE_MODE;
+    }
+  }
+
+  /**
+   * @return swapZY
+   */
+  public boolean isSwapYZ() {
+    return swapYZ;
+  }
+  /**
+   * @param swapYZ
+   */
+  public void setSwapYZ(boolean swapYZ) {
+    this.swapYZ = swapYZ;
+    process.setSwapYZ(swapYZ);
+  }
+
+  /**
+   * @return openWithModel
+   */
+  public boolean isOpenWithModel() {
+    return openWithModel;
+  }
+  /**
+   * @param openWithModel
+   */
+  public void setOpenWithModel(boolean openWithModel) {
+    this.openWithModel = openWithModel;
+  }
+  
+  /**
+   * @return preserveContrast
+   */
   public boolean isPreserveContrast() {
     return preserveContrast;
   }
-  public boolean isWarnedStaleFile() {
-    return warnedStaleFile;
+  /**
+   * @param preserveContrast
+   */
+  public void setPreserveContrast(boolean preserveContrast) {
+    this.preserveContrast = preserveContrast;
   }
-  public void setWarnedStaleFile(boolean warnedStaleFile) {
-    this.warnedStaleFile = warnedStaleFile;
+
+  //initial state information
+  /**
+   * @return initialModelName
+   */
+  public String getInitialModelName() {
+    return initialModelName;
   }
+  
+  /**
+   * @return initialUseMode
+   */
+  public boolean isInitialUseMode() {
+    return initialUseMode;
+  }
+  /**
+   * @param initialUseMode
+   */
+  public void setInitialUseMode(boolean initialUseMode) {
+    if (initialUseModeSet) {
+      return;
+    }
+    this.initialUseMode = initialUseMode;
+    setUseMode(initialUseMode);
+    initialUseModeSet = true;
+  }
+  
+  /**
+   * @return
+   */
+  public int getInitialMode() {
+    return initialMode;
+  }
+  /**
+   * @return
+   */
+  public String getInitialModeString() {
+    return getModeString(initialMode);
+  }
+  /**
+   * @param initialMode
+   */
+  public void setInitialMode(int initialMode) {
+    if (initialModeSet) {
+      return;
+    }
+    this.initialMode = initialMode;
+    setMode(initialMode);
+    initialModeSet = true;
+  }
+  
+  public boolean isInitialSwapYZ() {
+    return initialSwapYZ;
+  }
+  public void setInitialSwapYZ(boolean initialSwapYZ) {
+    if (initialSwapYZSet) {
+      return;
+    }
+    this.initialSwapYZ = initialSwapYZ;
+    setSwapYZ(initialSwapYZ);
+    initialSwapYZSet = true;
+  }
+  
+  //default state information
+  
+  public boolean isDefaultOpenWithModel() {
+    return defaultOpenWithModel;
+  }
+  
+  public boolean isDefaultPreserveContrast() {
+    return defaultPreserveContrast;
+  }
+  
+  //user controlled state information - pass through to ImodProcess
+  /**
+   * @return true if process is running
+   */
+  public boolean isOpen() {
+    return process.isRunning();
+  }
+  
+  /**
+   * @param binning
+   */
   public void setBinning(int binning) {
     process.setBinning(binning);
   }
+  
+  /**
+   * @param workingDirectory
+   */
+  public void setWorkingDirectory(File workingDirectory) {
+    process.setWorkingDirectory(workingDirectory);
+  }
 
+  //internal state sets and gets
+  /**
+   * @returns warnedStaleFile
+   */
+  public boolean isWarnedStaleFile() {
+    return warnedStaleFile;
+  }
+  /**
+   * 
+   * @param warnedStaleFile
+   */
+  public void setWarnedStaleFile(boolean warnedStaleFile) {
+    this.warnedStaleFile = warnedStaleFile;
+  }
+  
+
+  /**
+   * @return string
+   */
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
+  /**
+   * @return string
+   */
   protected String paramString() {
-    return ",datasetName="
-      + datasetName
-      + ",openWithModel="
-      + openWithModel
-      + ",modelName="
-      + modelName
-      + ",useMode="
-      + useMode
-      + ",mode="
-      + mode
-      + ",swapYZ="
-      + swapYZ
-      + ",fillCache="
-      + fillCache
-      + ",modelView="
-      + modelView
-      + ",useModv="
-      + useModv
-      + ",preserveContrast="
-      + preserveContrast
-      + ",process="
-      + process;
+    Vector params = new Vector(17);
+    params.add("datasetName=" + getDatasetName());
+    params.add("modelView=" + isModelView());
+    params.add("useModv=" + isUseModv());
+    
+    params.add("modelName=" + getModelName());
+    params.add("useMode=" + isUseMode());
+    params.add("mode=" + getModeString());
+    
+    params.add("swapYZ=" + isSwapYZ());
+    params.add("openWithModel=" + isOpenWithModel());
+    params.add("preserveContrast=" + isPreserveContrast());
+    
+    params.add("initialModelName=" + getInitialModelName());
+    params.add("initialUseMode=" + isInitialUseMode());
+    params.add("initialMode=" + getInitialModeString());
+    
+    params.add("initialSwapYZ=" + isInitialSwapYZ());
+    params.add("defaultOpenWithModel=" + isDefaultOpenWithModel());
+    params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
+    
+    params.add("process=" + process.toString());
+    params.add("warnedStaleFile=" + isWarnedStaleFile());
+    return params.toString();
+  }
+  
+  /**
+   * 
+   * @param imodState
+   * @return true if unchanging and initial state information is the same
+   */
+  public boolean equalsInitialConfiguration(ImodState imodState) {
+    if (getDatasetName().equals(imodState.getDatasetName())
+        && isModelView() == imodState.isModelView()
+        && isUseModv() == imodState.isUseModv()
+        && getInitialModelName().equals(imodState.getInitialModelName())
+        && isInitialUseMode() == imodState.isInitialUseMode()
+        && getInitialMode() == imodState.getInitialMode()
+        && isInitialSwapYZ() == imodState.isInitialSwapYZ()) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * 
+   * @param imodState
+   * @return true if unchanging and current state information is the same
+   */
+  public boolean equalsCurrentConfiguration(ImodState imodState) {
+    if (getDatasetName().equals(imodState.getDatasetName())
+      && isModelView() == imodState.isModelView()
+        && isUseModv() == imodState.isUseModv()
+        && getModelName().equals(imodState.getModelName())
+        && isUseMode() == imodState.isUseMode()
+        && getMode() == imodState.getMode()
+        && isSwapYZ() == imodState.isSwapYZ()
+        && isOpenWithModel() == imodState.isOpenWithModel()
+        && isPreserveContrast() == imodState.isPreserveContrast()) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * 
+   * @param imodState
+   * @return true if unchanging, initial, and current state information is the
+   * same
+   */
+  public boolean equals(ImodState imodState) {
+    return equalsInitialConfiguration(imodState)
+      && equalsCurrentConfiguration(imodState);
   }
 
 }
