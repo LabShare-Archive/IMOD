@@ -264,8 +264,7 @@ int main( int argc, char *argv[])
           
         free(tifdata);
       }
-      /* write more info to mrc header. */
-      rewind(mrcfp);
+      /* write more info to mrc header. 1/17/04 eliminate unneeded rewind */
       hdata.nx = xsize;
       hdata.ny = ysize;
       hdata.mx = hdata.nx;
@@ -492,8 +491,7 @@ int main( int argc, char *argv[])
 
   }
   
-  /* write more info to mrc header. */
-  rewind(mrcfp);
+  /* write more info to mrc header. 1/17/04 eliminate unneeded rewind */
   hdata.nx = mrcxsize;
   hdata.ny = mrcysize;
   hdata.mx = hdata.nx;
