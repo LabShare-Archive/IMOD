@@ -20,6 +20,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/10 20:37:53  mast
+c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
+c	  Converted to PIP/autodoc input and added linear interpolation option
+c	  and option to set center of input area.
+c	
 c	  Revision 3.3  2003/10/02 19:58:27  mast
 c	  Changed method of writing sections to avoid having to fit output
 c	  section into array all at once.
@@ -245,7 +250,7 @@ c
 	  enddo
 	enddo
 
-	call setup_cubes_scratch(devmx, filein, tempdir, tempext, tim)
+	call setup_cubes_scratch(devmx, 0, filein, tempdir, tempext, tim)
 	call transform_cubes(interpOrder)
 	end
 

@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/10/29 20:00:07  mast
+c	  Added and allowed defaults for output size and angles
+c	
 c	  Revision 3.4  2003/10/10 20:38:04  mast
 c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
 c	  Converted to PIP/autodoc input and added linear interpolation option.
@@ -204,7 +207,7 @@ c
 	  enddo
 	enddo
 c
-	call setup_cubes_scratch(devmx, filein, tempdir, tempext, tim)
+	call setup_cubes_scratch(devmx, 0, filein, tempdir, tempext, tim)
 	call transform_cubes(interpOrder)
 
 	end
