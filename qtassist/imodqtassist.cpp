@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2004/12/22 22:53:39  mast
+    Needed to advance index in argument loop
+
     Revision 1.2  2004/12/22 05:58:49  mast
     Fixed bugs that showed up on SGI
 
@@ -137,6 +140,7 @@ void AssistantListener::assistantError(const QString &msg)
 void AssistantListener::timerEvent(QTimerEvent *e)
 {
   char line[MAX_LINE];
+  int err;
 #ifdef QT_THREAD_SUPPORT
 
   // If there is thread support, see if the thread got a line
@@ -187,11 +191,15 @@ void AssistantListener::timerEvent(QTimerEvent *e)
     return;
   }
 
-  // Otherwise show page and reprt results
-  if (imodHelp->showPage(line))
+  // Otherwise show page and report results
+  err = imodHelp->showPage(line);
+  if (err > 0)
     fprintf(stderr, "Page %s not found\n", line);
   else
     fprintf(stderr, "Page %s displayed\n", line);
+  if (err < 0)
+    fprintf(stderr, "WARNING: adp file not found\n", line);
+    
   fflush(stderr);
 
 #ifndef QT_THREAD_SUPPORT
