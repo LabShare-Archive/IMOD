@@ -223,8 +223,8 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limod -ldiaqt -lifft -ltrack -ltiff
-LIBS += -lm
+LIBS += -L$lib_dir -liimod -limod -ldiaqt -lifft -ltrack -ltiff 
+LIBS += -lqassistantclient -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E

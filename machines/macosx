@@ -201,7 +201,7 @@ cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
 LIBS += -L$lib_dir -liimod -limod -ldiaqt -lifft -ltiff -ltrack
-LIBS += -lm
+LIBS += -lqassistantclient -lm
 RC_FILE = b3dicon.icns
 EOF
 
