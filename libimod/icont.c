@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  icont.c -- Library of contour handleing routines.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
     $Date$
@@ -33,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2004/11/20 04:31:48  mast
+    Convert label duplication to a new routine, initialize store variable
+
     Revision 3.5  2004/11/05 18:53:00  mast
     Include local files with quotes, not brackets
 
@@ -2734,6 +2719,305 @@ float  imodContourLength(Icont *cont, int closed)
 
   }
 */
+
+
+/*
+ * Consolidated functions for dealing with contours and nesting in imodmesh,
+ * imodinfo
+ */
+
+/* Make tables for an object of contour z values, number and contours at
+   each z value.
+   obj   Object pointer
+   incz  Z increment
+   clearFlag = a flag to clear in cont->flags
+   contzp = pointer to array for Z values
+   zlist = pointer to array for list of z values
+   numatzp = pointer to array for number of contours at each Z
+   contatzp = point to array of int pointers for list of contours at each Z
+   zminp, zmaxp = pointers for return values of minimum and maximum Z 
+   zlsizep = pointer for return value of size of list of Z values
+   nummaxp = pointer for return value of maximum contours on any section
+ */
+int imodContourMakeZTables(Iobj *obj, int incz, unsigned int clearFlag, 
+                           int **contzp, int **zlistp, int **numatzp, 
+                           int ***contatzp, int *zminp, int *zmaxp, 
+                           int *zlsizep, int *nummaxp)
+{
+  int co;
+  Icont *cont;
+  int zmin, zmax, nummax;
+  int i;
+  int cz, z;
+  int zlsize = 0;
+  int *contz = NULL;
+  int *numatz = NULL;
+  int *zlist = NULL;
+  int **contatz = NULL;
+
+  /* Find min and max z values.
+   * Clear the type value used to store connection information.
+   */
+  contz = (int *)malloc(obj->contsize * sizeof(int));
+  if (!contz)
+    return -1;
+  zmin = INT_MAX;
+  zmax = INT_MIN;
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &(obj->cont[co]);
+    cz = imodContourZValue(cont);
+    contz[co] = cz;
+    cont->flags &= ~clearFlag;
+    if (cont->psize) {
+      if (cz < zmin)
+	zmin = cz;
+      if (cz > zmax)
+	zmax = cz;
+    }
+  }
+
+  /* get list of z sections to connect for skip */
+  zlist = (int *)malloc((zmax - zmin + 2) * sizeof(int));
+  numatz = (int *)malloc((zmax - zmin + 2 + incz) * sizeof(int));
+  contatz = (int **)malloc((zmax - zmin + 2) * sizeof(int *));
+  if (!zlist || !numatz || !contatz) {
+    imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
+    return -1;
+  }
+  for (z = 1; z <= incz; z++) {
+    numatz[zmax + z - zmin] = 0;
+    contatz[zmax + z - zmin] = NULL;
+  }
+  for (z = zmin; z <= zmax; z++) {
+    numatz[z - zmin] = 0;
+    contatz[z - zmin] = NULL;
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &(obj->cont[co]);
+      cz = contz[co];
+      if (cont->psize && cz == z) {
+        zlist[zlsize++] = z;
+        break;
+      }
+    }
+  }
+  
+  /* Get number of contours at each z and tables of each */
+  for (co = 0; co < obj->contsize; co++)
+    if (obj->cont[co].psize)
+      numatz[contz[co] - zmin]++;
+  
+  nummax =0;
+  for (i = 0; i < zmax + 1 - zmin; i++) {
+    contatz[i] = (int *)malloc(numatz[i] * sizeof(int));
+    if (!contatz[i]) {
+      imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
+      return -1.;
+    }
+    if (numatz[i] > nummax)
+      nummax = numatz[i];
+    numatz[i] = 0;
+  }
+     			     
+  for (co = 0; co < obj->contsize; co++) {
+    if (obj->cont[co].psize) {
+      i = contz[co] - zmin;
+      contatz[i][numatz[i]++] = co;
+    }
+  }
+
+  *nummaxp = nummax;
+  *zminp = zmin;
+  *zmaxp = zmax;
+  *contzp = contz;
+  *zlistp = zlist;
+  *numatzp = numatz;
+  *contatzp = contatz;
+  *zlsizep = zlsize;
+  return 0;
+}
+
+/* Free the tables of contour Z values, number and contours at Z */
+void imodContourFreeZTables(int *numatz, int **contatz, int *contz, int *zlist,
+                            int zmin, int zmax)
+{
+  int i;
+  if (zlist && numatz && contatz) {
+    for (i = 0; i < zmax + 1 - zmin; i++) {
+      if (numatz[i] && contatz[i])
+        free (contatz[i]);
+    }
+  }
+
+  if(numatz)
+    free(numatz);
+  if(contatz)
+    free(contatz);
+  if(contz)
+    free(contz);
+  if(zlist)
+    free(zlist);
+}
+
+/* Check for one contour inside another
+   co, eco = contour numbers, indexes into arrays
+   scancont = array of scan contours
+   pmin, pmax = arrays of minimum and maximum points
+   nests = pointer to array of nesting structures
+   nestind = array for index from contours to nests
+   numnests = pointer to number of nests found
+   numwarn = pointer to flag for warning on contour overlap: -1 for no
+   warnings, 0 for warnings, becomes 1 after first warning
+ */
+int imodContourCheckNesting(int co, int eco, Icont **scancont, Ipoint *pmin,
+                            Ipoint *pmax, Nesting **nests, int *nestind,
+                            int *numnests, int *numwarn)
+{
+  float frac1, frac2;
+  int inco, outco, nind;
+  Nesting *nest;
+  
+  imodel_overlap_fractions(scancont[co], pmin[co], pmax[co],
+                           scancont[eco], pmin[eco],
+                           pmax[eco], &frac1, &frac2);
+  if (frac1 > 0.99 || frac2 > 0.99) {
+    if (frac2 > frac1) {
+      inco = eco;
+      outco = co;
+    } else {
+      inco = co;
+      outco = eco;
+    }
+    /* add outside one to the inside's lists;
+       create them new list if necessary */
+    nind = nestind[inco];
+    if (nind < 0) {
+      if (*numnests)
+        *nests = (Nesting *)realloc(*nests, (*numnests + 1 )* sizeof(Nesting));
+      else
+        *nests = (Nesting *)malloc(sizeof(Nesting));
+      if (!*nests)
+        return -1;
+      nind = (*numnests)++;
+      nestind[inco] = nind;
+      nest = &((*nests)[nind]);
+      nest->co = inco;
+      nest->level = 0;
+      nest->ninside = 0;
+      nest->noutside = 0;
+      nest->inscan = NULL;
+    } else
+      nest = &((*nests)[nind]);
+
+    if (nest->noutside)
+      nest->outside = (int *)realloc(nest->outside,
+                                           (nest->noutside + 1) * sizeof(int));
+    else
+      nest->outside = (int *)malloc(sizeof(int));
+    if (!nest->outside)
+      return -1;
+    nest->outside[nest->noutside++] = outco;
+                         
+    /* now add inside one to outside's list */
+    nind = nestind[outco];
+    if (nind < 0) {
+      if (*numnests)
+        *nests = (Nesting *)realloc(*nests, (*numnests + 1 )*sizeof(Nesting));
+      else
+        *nests = (Nesting *)malloc(sizeof(Nesting));
+      nind = (*numnests)++;
+      nestind[outco] = nind;
+      nest = &((*nests)[nind]);
+      nest->co = outco;
+      nest->level = 0;
+      nest->ninside = 0;
+      nest->noutside = 0;
+      nest->inscan = NULL;
+    } else
+      nest = &((*nests)[nind]);
+    
+    if (nest->ninside)
+      nest->inside = (int *)realloc(nest->inside,
+                                    (nest->ninside + 1) * sizeof(int));
+    else
+      nest->inside = (int *)malloc(sizeof(int));
+    if (!nest->inside)
+      return -1;
+    nest->inside[nest->ninside++] = inco;
+                           
+  } else if ((frac1 > 0.1 || frac2 > 0.1) && *numwarn >= 0) {
+    printf("WARNING: Contours %d and %d overlap by "
+           "%.3f and %.3f\n", co + 1, eco + 1, frac1, frac2);
+    if (!*numwarn)
+      printf("To find these contours in 3dmod, you may "
+             "first have to remove empty contours\n "
+             "with the menu command Edit-Object-Clean\n");
+    *numwarn = 1;
+  }
+  return 0;
+}
+
+/* Free nests and their internal arrays */
+void imodContourFreeNests(Nesting *nests, int numnests)
+{
+  Nesting *nest;
+  int nind;
+  for (nind = 0; nind < numnests && nests; nind++) {
+    nest = &nests[nind];
+    if (nest->ninside > 0 && nest->inscan)
+      imodContourDelete(nest->inscan);
+    if (nest->ninside && nest->inside)
+      free(nest->inside);
+    if (nest->noutside && nest->outside)
+      free(nest->outside);
+  }
+  if(numnests && nests)
+    free(nests);
+}
+
+/* Analyze inside and outside contours to determine level */
+void imodContourNestLevels(Nesting *nests, int *nestind, int numnests)
+{
+  int level, more, ready, nind, oind, i;
+  level = 1;
+  do {
+    more = 0;
+    for (nind = 0; nind < numnests; nind++) {
+      if (nests[nind].level)
+        continue;
+      ready = 1;
+      /* if the only contours outside have level assigned but lower
+         than the current level, then this contour can be assigned to
+         the current level */
+      for (i = 0; i < nests[nind].noutside; i++) {
+        oind = nestind[nests[nind].outside[i]];
+        if (nests[oind].level == 0 || nests[oind].level >= level) {
+          more = 1;
+          ready = 0;
+          break;
+        }
+      }
+      if (ready) 
+        nests[nind].level = level;
+    }
+    level++;
+  } while(more);
+}
+
+
+/* Computes the mean Z value of a contour and rounds to nearest integer,
+   or returns -1 if no contour or no points */
+int imodContourZValue(Icont *cont)
+{
+  int p;
+  float z=0.0f;
+  if ((!cont) || (!cont->psize))
+    return(-1);
+  for(p = 0; p < cont->psize; p++)
+    z+=cont->pts[p].z;
+
+  p = (int)floor(z / cont->psize + 0.5);
+  return(p);
+}
 
 
 
