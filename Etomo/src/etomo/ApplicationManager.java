@@ -92,6 +92,15 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.99  2004/08/26 01:09:51  sueh
+ * <p> bug# 508 handling exiting while a background process is
+ * <p> running: adding setBackgroundThreadName() and variables
+ * <p> backgroundProcessA and backgroundProcessNameA.  Using
+ * <p> setBackgroundThreadName() in combine, matchvol1, patchcorr,
+ * <p> matchorwarp, and volcombine.  Reseting background thread
+ * <p> variables in processDone().  Adding more information to the
+ * <p> processes running dialog in exitProgram().
+ * <p>
  * <p> Revision 3.98  2004/08/20 22:57:12  sueh
  * <p> bug# 515 improving error handling for Setup dialog
  * <p> Changed:
@@ -1072,7 +1081,7 @@ public class ApplicationManager {
     //imodManager should be created only once.
     imodManager = new ImodManager(this);
     //  Create a new main window and wait for an event from the user
-
+    if (!test) {
       mainFrame = new MainFrame(this);   
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       //  Initialize the static UIParameter object
@@ -1090,7 +1099,6 @@ public class ApplicationManager {
       else {
         openSetupDialog();
       }
-    if (!test) { 
       mainFrame.pack();
       mainFrame.show();
     }
