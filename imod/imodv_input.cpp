@@ -126,6 +126,9 @@ void imodvKeyPress(QKeyEvent *event)
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
 
+  if (inputTestMetaKey(event))
+    return;
+
   inputConvertNumLock(keysym, keypad);
 
   if (state & Qt::ShiftButton)
@@ -1005,6 +1008,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.6  2003/04/17 19:27:13  mast
+    keypad workaround for Mac
+
     Revision 4.5  2003/03/13 01:20:08  mast
     Convert numlock keypad keys so num lock can be on
 
