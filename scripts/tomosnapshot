@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/10/22 03:38:51  mast
+#  Added environment output and cygcheck
+#
 #  Revision 3.2  2004/10/13 20:31:34  mast
 #  Added ls -lrt output and ability to work without edf, fixed a few bugs.
 #
@@ -26,7 +29,8 @@ set axistype = ""
 
 # The file lists
 #
-set oneAxisComLog = (eraser xcorr prenewst track align sample tomopitch tilt)
+set oneAxisComLog = (eraser xcorr prenewst track align sample newst tomopitch \
+tilt)
 set combineComLog = (solvematch solvematchshift solvematchmod matchvol1 \
 patchcorr matchorwarp volcombine combine)
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
