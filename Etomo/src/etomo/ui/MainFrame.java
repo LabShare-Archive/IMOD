@@ -30,6 +30,7 @@ import etomo.BaseManager;
 import etomo.Controller;
 import etomo.EtomoDirector;
 import etomo.storage.DataFileFilter;
+import etomo.type.AxisType;
 import etomo.util.UniqueKey;
 
 /**
@@ -45,6 +46,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/03/30 23:44:14  sueh
+ * <p> bug# 622 Removed the divider in Axis A only and B only.
+ * <p>
  * <p> Revision 3.20  2005/02/17 20:24:47  sueh
  * <p> Removed unused code.
  * <p>
@@ -412,7 +416,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       mainPanel = currentManager.getMainPanel();
       rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
-      menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
+      enableMenu(currentManager);
       mainPanel.repaint();
     }
     if (newWindow) {
@@ -421,6 +425,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       mainPanel.fitWindow();
     }
+  }
+  
+  private void enableMenu(BaseManager currentManager) {
+    menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
+    boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
+    menuAxisA.setEnabled(dualAxis);
+    menuAxisB.setEnabled(dualAxis);
+    menuAxisBoth.setEnabled(dualAxis);
   }
   
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
