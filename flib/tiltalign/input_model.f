@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2004/10/24 22:29:25  mast
+c	  Changes for pip input and residual file options
+c	
 c	  Revision 3.11  2004/09/16 16:14:23  mast
 c	  Had it pass point file name out instead of opening it; made it give
 c	  error when a contour has two points on a view.
@@ -64,7 +67,7 @@ c
 c
 	character*80 solufile,anglefile
 	logical stereopair,exist,readw_or_imod,pipinput
-	integer getimodhead,getimodscales,getimodmaxes
+	integer getimodhead,getimodscales,getimodmaxes,lnblnk
 c
 	include 'model.inc'
 c
@@ -199,8 +202,8 @@ c
 	  residualfile = ' '
 	  write(*,'(1x,a,/,a)')'Enter file name for output model of'//
      &	      ' solved X-Y-Z coordinates,',' or a name containing .res'//
-     &	      'for a list of residuals,',' or a name without an extension'
-     &	      //' for both outputs, or Return for neither'
+     &	      'for a list of residuals,',' or a name without an '//
+     &	      'extension for both outputs, or Return for neither'
 	  read(5,'(a)')modelfile
 c	  
 c	    7/26/02: if modelfile contains .res, output residuals
@@ -307,7 +310,7 @@ c
 c
 	  write(*,'(1x,a,i3,a,/,a,/,a,/,a,$)')'Enter 0 to include all',nzlist,
      &	      ' views with points'
-     &	      ,'    or 1 to enter start, end, and increment view numbers,'
+     &	      ,'    or 1 to enter start, end, and increment view numbers'
      &	      ,'    or 2 to specify a list of views to include'
      &	      ,'    or 3 to specify a list of views to exclude: '
 	  read(5,*)ifspecify

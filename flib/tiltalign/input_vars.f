@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/10/24 22:29:44  mast
+c	  Chnages for pip input and projection stretch
+c	
 c	  Revision 3.8  2004/06/24 15:38:51  mast
 c	  Changed calls to map_vars to be compatible with PIP-input version
 c	
@@ -69,7 +72,7 @@ c
 	integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
 	integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist,ioptalf
 	integer*4 ireftilt,ndmagvar,ivl,ivh, lenOpt, ioptdmag, ioptskew
-	integer*4 nearest_view,ifpip,mapfix,ierr
+	integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk
 	character*1024 listString
 c
 	integer*4 PipGetInteger,PipNumberOfEntries
