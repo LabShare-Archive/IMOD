@@ -223,11 +223,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
     pnlAxisType.add(rbSingleAxis);
     pnlAxisType.add(rbDualAxis);
-    if (!EtomoDirector.getInstance().isNewStuff()) {
-      rbSingleView.setEnabled(false);
-      rbMontage.setEnabled(false);
-    }
-
     bgViewType.add(rbSingleView);
     bgViewType.add(rbMontage);
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
@@ -1034,6 +1029,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2005/03/02 23:15:56  sueh
+ * <p> bug# 533 In setup dialog, put the Scan Header button with the header fields.
+ * <p>
  * <p> Revision 3.23  2005/03/02 20:26:56  sueh
  * <p> bug# 533 Temporary:  enabling montaging option when
  * <p> EtomoDirector.newstuff is true.  Bug# 533 Added adjustedFocus.  Only
