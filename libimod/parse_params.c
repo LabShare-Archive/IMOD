@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/08/08 16:21:59  mast
+Add functions for getting two numbers
+
 Revision 3.4  2003/06/20 23:56:37  mast
 Add ability to break output of help strings into limited-length lines
 
@@ -53,25 +56,27 @@ typedef struct pipOptions {
   char *helpString;     /* Help string */
   char **valuePtr;      /* pointer to array of string pointers with values */
   int multiple;         /* 0 if single value allowed, or number of next one
-			   being returned (numbered from 1) */
+                           being returned (numbered from 1) */
   int count;            /* Number of values accumulated */
 } PipOptions;
 
 static char *types[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
-			"LI", "I", "F", "IA", "FA", "CH", "FN"};
+                        "LI", "I", "F", "TI", "TF", "IA", "FA", "CH", "FN"};
 static char *typeDescriptions[] = {
   "Boolean",
   "Parameter file",
   "List of integer ranges",
   "Integer",
   "Floating point",
+  "Two integers",
+  "Two floats",
   "Multiple integers",
   "Multiple floats",
   "Text string",
   "File name",
   "Unknown argument type"
 };
-static char numTypes = 8;
+static char numTypes = 11;
 
 static char nullChar = 0x00;
 static char *nullString = &nullChar;
@@ -79,7 +84,7 @@ static char *nullString = &nullChar;
 /* declarations of local functions */
 static int ReadParamFile(FILE *pFile);
 static int GetLineOfValues(char *option, void *array, int valType, 
-			   int *numToGet, int arraySize);
+                           int *numToGet, int arraySize);
 static int GetNextValueString(char *option, char **strPtr);
 static int AddValueString(int option, char *strPtr);
 static int LookupOption(char *option, int maxLookup);
@@ -163,8 +168,8 @@ void PipDone(void)
       free(optp->helpString);
     if (optp->valuePtr) {
       for (j = 0; j < optp->count; j++)
-	if (optp->valuePtr[j])
-	  free(optp->valuePtr[j]);
+        if (optp->valuePtr[j])
+          free(optp->valuePtr[j]);
       free(optp->valuePtr);
     }
   }
@@ -207,7 +212,7 @@ int PipExitOnError(int useStdErr, char *prefix)
   exitPrefix = strdup(prefix);
   if (!exitPrefix) {
     fprintf(useStdErr ? stderr : stdout, "Failure to get memory in "
-	    "PipExitOnError");
+            "PipExitOnError");
     exit(1);
   }
   return 0;
@@ -232,7 +237,7 @@ int PipAddOption(char *optionString)
 
   if (nextOption >= numOptions) {
     PipSetError("Attempting to add more options than were originally"
-		 " specified");
+                " specified");
     return -1;
   }
 
@@ -254,71 +259,71 @@ int PipAddOption(char *optionString)
     colonPtr = strchr(subStr, ':');
     if (colonPtr) {
       if (PipMemoryError(colonPtr, "PipAddOption"))
-	return -1;
+        return -1;
       indEnd = colonPtr - subStr;
       if (indEnd > 0)
-	optp->longName = PipSubStrDup(subStr, 0, indEnd - 1);
+        optp->longName = PipSubStrDup(subStr, 0, indEnd - 1);
       else
-	optp->longName = strdup(nullString);
+        optp->longName = strdup(nullString);
       if (PipMemoryError(optp->longName, "PipAddOption"))
-	return -1;
+        return -1;
       subStr += indEnd + 1;
 
       /* Get the type and if there is M at the end, trim it off and set
-	 multiple flag to 1 */
+         multiple flag to 1 */
       colonPtr = strchr(subStr, ':');
       if (colonPtr) {
-	if (PipMemoryError(colonPtr, "PipAddOption"))
-	  return -1;
-	indEnd = colonPtr - subStr;
-	if (indEnd > 0) {
-	  ind = indEnd - 1;
-	  if (subStr[ind] == 'M') {
-	    optp->multiple = 1;
-	    ind--;
-	  }
-	  optp->type = PipSubStrDup(subStr, 0, ind);
-	} else
-	  optp->type = strdup(nullString);
-	if (PipMemoryError(optp->type, "PipAddOption"))
-	  return -1;
-	subStr += indEnd + 1;
+        if (PipMemoryError(colonPtr, "PipAddOption"))
+          return -1;
+        indEnd = colonPtr - subStr;
+        if (indEnd > 0) {
+          ind = indEnd - 1;
+          if (subStr[ind] == 'M') {
+            optp->multiple = 1;
+            ind--;
+          }
+          optp->type = PipSubStrDup(subStr, 0, ind);
+        } else
+          optp->type = strdup(nullString);
+        if (PipMemoryError(optp->type, "PipAddOption"))
+          return -1;
+        subStr += indEnd + 1;
 
-	/* Now if there is anything left, it is the help string */
-	optp->helpString = strdup(subStr);
-	if (PipMemoryError(optp->helpString, "PipAddOption"))
-	  return -1;
+        /* Now if there is anything left, it is the help string */
+        optp->helpString = strdup(subStr);
+        if (PipMemoryError(optp->helpString, "PipAddOption"))
+          return -1;
 
-	/* Need to check the short and long names against all previous
-	   names and special names */
-	newShort = optp->shortName;
-	newLong = optp->longName;
-	for (ind = 0; ind < tableSize; ind++) {
+        /* Need to check the short and long names against all previous
+           names and special names */
+        newShort = optp->shortName;
+        newLong = optp->longName;
+        for (ind = 0; ind < tableSize; ind++) {
 
-	  /* after checking existing ones, skip to NonOptionArg and 
-	     StandardInput entries */
-	  if (ind >= nextOption && ind < nonOptInd)
-	    continue;
+          /* after checking existing ones, skip to NonOptionArg and 
+             StandardInput entries */
+          if (ind >= nextOption && ind < nonOptInd)
+            continue;
 
-	  oldShort = optTable[ind].shortName;
-	  oldLong = optTable[ind].longName;
-	  if (StartsWith(newShort, oldShort) || 
-	      StartsWith(oldShort, newShort) ||
-	      StartsWith(oldLong, newShort) ||
-	      StartsWith(newShort, oldLong) ||
-	      StartsWith(oldShort, newLong) ||
-	      StartsWith(newLong, oldShort) ||
-	      StartsWith(oldLong, newLong) ||
-	      StartsWith(newLong, oldLong)) {
-	    sprintf(tempStr, "Option %s  %s is ambiguous with option %s"
-		    "  %s", newShort, newLong, oldShort, oldLong);
-	    PipSetError(tempStr);
-	    return -1;
-	  }
-	}	      
+          oldShort = optTable[ind].shortName;
+          oldLong = optTable[ind].longName;
+          if (StartsWith(newShort, oldShort) || 
+              StartsWith(oldShort, newShort) ||
+              StartsWith(oldLong, newShort) ||
+              StartsWith(newShort, oldLong) ||
+              StartsWith(oldShort, newLong) ||
+              StartsWith(newLong, oldShort) ||
+              StartsWith(oldLong, newLong) ||
+              StartsWith(newLong, oldLong)) {
+            sprintf(tempStr, "Option %s  %s is ambiguous with option %s"
+                    "  %s", newShort, newLong, oldShort, oldLong);
+            PipSetError(tempStr);
+            return -1;
+          }
+        }         
 
-	nextOption++;
-	return 0;
+        nextOption++;
+        return 0;
       }
     }
   }
@@ -348,13 +353,13 @@ int PipNextArg(char *argString)
     if (!err && !strcmp(optTable[nextArgBelongsTo].type, PARAM_FILE_STRING)) {
       paramFile = fopen(argCopy, "r");
       if (paramFile) {
-	err = ReadParamFile(paramFile);
-	fclose(paramFile);
+        err = ReadParamFile(paramFile);
+        fclose(paramFile);
       } else {
-	sprintf(tempStr, "Error opening parameter file %s", argCopy);
-	PipSetError(tempStr);
-	err = -1;
-      }		   
+        sprintf(tempStr, "Error opening parameter file %s", argCopy);
+        PipSetError(tempStr);
+        err = -1;
+      }        
     }
 
     nextArgBelongsTo = -1;
@@ -393,7 +398,7 @@ int PipNextArg(char *argString)
       /* for a boolean option, set the argument with a 1 */
       argCopy = strdup("1");
       if (PipMemoryError(argCopy, "PipNextArg"))
-	return -1;
+        return -1;
       return AddValueString(err, argCopy);
     }
   }
@@ -446,11 +451,11 @@ int PipGetBoolean(char *option, int *val)
       !strcasecmp(strPtr, "TRUE") || !strcasecmp(strPtr, "ON"))
     *val = 1;
   else if (!strcmp(strPtr, "0") || !strcasecmp(strPtr, "F") || 
-	   !strcasecmp(strPtr, "FALSE") || !strcasecmp(strPtr, "OFF"))
+           !strcasecmp(strPtr, "FALSE") || !strcasecmp(strPtr, "OFF"))
     *val = 0;
   else {
     sprintf(tempStr, "Illegal entry for boolean option %s: %s", option, 
-	    strPtr);
+            strPtr);
     PipSetError(tempStr);
     return -1;
   }
@@ -476,12 +481,12 @@ int PipGetTwoIntegers(char *option, int *val1, int *val2)
   int err;
   int num = 2;
   int tmp[2];
-  tmp[1] = *val1;
-  tmp[2] = *val2;
+  tmp[0] = *val1;
+  tmp[1] = *val2;
   if ((err = PipGetIntegerArray(option, tmp, &num, 2)) != 0)
     return err;
-  *val1 = tmp[1];
-  *val2 = tmp[2];
+  *val1 = tmp[0];
+  *val2 = tmp[1];
   return 0;
 }
 
@@ -490,12 +495,12 @@ int PipGetTwoFloats(char *option, float *val1, float *val2)
   int err;
   int num = 2;
   float tmp[2];
-  tmp[1] = *val1;
-  tmp[2] = *val2;
+  tmp[0] = *val1;
+  tmp[1] = *val2;
   if ((err = PipGetFloatArray(option, tmp, &num, 2)) != 0)
     return err;
-  *val1 = tmp[1];
-  *val2 = tmp[2];
+  *val1 = tmp[0];
+  *val2 = tmp[1];
   return 0;
 }
 
@@ -504,18 +509,18 @@ int PipGetTwoFloats(char *option, float *val1, float *val2)
 int PipGetIntegerArray(char *option, int *array, int *numToGet, int arraySize)
 {
   return GetLineOfValues(option, (void *)array, INTEGER_TYPE, numToGet,
-			 arraySize);
+                         arraySize);
 }
 
 int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize)
 {
   return GetLineOfValues(option, (void *)array, FLOAT_TYPE, numToGet,
-			 arraySize);
+                         arraySize);
 }
 
 /* Print a complete usage statement */
 int PipPrintHelp(char *progName, int useStdErr, int inputFiles, 
-		 int outputFiles)
+                 int outputFiles)
 {
   int i, j;
   int helplim = 74;
@@ -542,7 +547,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     if (!lname && !sname)
       continue;
     /*   if (i)
-	 fprintf(out, "\n"); */
+         fprintf(out, "\n"); */
     fprintf(out, " ");
     if (sname && *sname)
       fprintf(out, "-%s", sname);
@@ -552,7 +557,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       fprintf(out, "-%s", lname);
     for (j = 0; j < numTypes; j++)
       if (!strcmp(optTable[i].type, types[j]))
-	break;
+        break;
     if (!strcmp(optTable[i].type, BOOLEAN_STRING))
       fprintf(out, "   (%s entry, no value expected)", typeDescriptions[j]);
     else
@@ -602,7 +607,7 @@ int PipSetError(char *errString)
 {
   FILE *outFile = errorDest ? stderr : stdout;
   if (errorString)
-     free(errorString);
+    free(errorString);
   errorString = strdup(errString);
   if (!errorString && !exitPrefix)
     return -1;
@@ -627,7 +632,7 @@ int PipNumberOfEntries(char *option, int *numEntries)
 
 /* Top level routine to be called to process options and arguments */
 int PipParseInput(int argc, char *argv[], char *options[], int numOptions,
-		  int *numOptArgs, int *numNonOptArgs)
+                  int *numOptArgs, int *numNonOptArgs)
 {
   int i, err;
 
@@ -646,7 +651,7 @@ int PipParseInput(int argc, char *argv[], char *options[], int numOptions,
       return err;
     if (err && i == argc - 1) {
       PipSetError("A value was expected but not found for"
-		  " the last option on the command line");
+                  " the last option on the command line");
       return -1;
     }
   }
@@ -671,7 +676,7 @@ static int ReadParamFile(FILE *pFile)
 
       /* If error, it's OK if it's an EOF, or an error otherwise */
       if (feof(pFile))
-	break;
+        break;
       PipSetError("Error reading parameter file or "STANDARD_INPUT_STRING);
       return -1;
     }
@@ -680,12 +685,12 @@ static int ReadParamFile(FILE *pFile)
     lineLen = strlen(lineStr);
     if (lineLen == LINE_STR_SIZE - 1) {
       PipSetError("Line too long for buffer while reading parameter file or "
-		  STANDARD_INPUT_STRING);
+                  STANDARD_INPUT_STRING);
       return -1;
     }
 
     /* adjust line length if there is a comment sign, then back further
-     if there is white space (also remove newline) */
+       if there is white space (also remove newline) */
     strPtr = strchr(lineStr, '#');
     if (strPtr)
       lineLen = strPtr - lineStr;
@@ -693,7 +698,7 @@ static int ReadParamFile(FILE *pFile)
     while (lineLen > 0) {
       ch = lineStr[lineLen - 1]; 
       if (ch != ' ' && ch != '\t' && ch != '\n')
-	break;
+        break;
       lineLen--;
     }
 
@@ -701,7 +706,7 @@ static int ReadParamFile(FILE *pFile)
     indst = 0;
     while (indst < lineLen) {
       if (lineStr[indst] != ' ' && lineStr[indst] != '\t')
-	break;
+        break;
       indst++;
     }
 
@@ -730,7 +735,7 @@ static int ReadParamFile(FILE *pFile)
 
     if (!strcmp(optTable[optNum].type, PARAM_FILE_STRING)) {
       PipSetError("Trying to open a parameter file while reading a parameter"
-		  " file or "STANDARD_INPUT_STRING);
+                  " file or "STANDARD_INPUT_STRING);
       return -1;
     }
 
@@ -739,14 +744,14 @@ static int ReadParamFile(FILE *pFile)
     gotEquals = 0;
     while (indst < lineLen) {
       if (lineStr[indst] == '=') {
-	if (gotEquals) {
-	  sprintf(tempStr, "Two = signs in input line:\n");
-	  AppendToErrorString(lineStr);
-	  return -1;
-	}
-	gotEquals = 1;
+        if (gotEquals) {
+          sprintf(tempStr, "Two = signs in input line:\n");
+          AppendToErrorString(lineStr);
+          return -1;
+        }
+        gotEquals = 1;
       } else if (lineStr[indst] != ' ' && lineStr[indst] != '\t')
-	break;
+        break;
       indst++;
     }
 
@@ -773,7 +778,7 @@ static int ReadParamFile(FILE *pFile)
 
 /* Parse a line of values and return them into an array */
 static int GetLineOfValues(char *option, void *array, int valType, 
-			   int *numToGet, int arraySize)
+                           int *numToGet, int arraySize)
 {
   char *strPtr;
   char *sepPtr;
@@ -803,35 +808,35 @@ static int GetLineOfValues(char *option, void *array, int valType,
 
       /* separator at start means advance by one byte and continue */
       /* if defaults allowed and a specific number are expected,
-	 / means stop processing and mark all values as received */
+         / means stop processing and mark all values as received */
       if (strPtr[0] == '/') {
-	if (allowDefaults && *numToGet) {
-	  numGot = *numToGet;
-	  break;
-	}
-	sprintf(tempStr, "Default entry with a / is not allowed"
-		" in value entry:\n");
-	AppendToErrorString(fullStr);
-	return -1;
+        if (allowDefaults && *numToGet) {
+          numGot = *numToGet;
+          break;
+        }
+        sprintf(tempStr, "Default entry with a / is not allowed"
+                " in value entry:\n");
+        AppendToErrorString(fullStr);
+        return -1;
       }
 
       /* special handling of commas to allow default values */
       if (strPtr[0] == ',') {
 
-	/* If already have a comma, skip an array value if defaults allowed */
-	if (gotComma) {
-	  if (allowDefaults && *numToGet) {
-	    numGot++;
-	    if (numGot >= *numToGet)
-	      break;
-	  } else {
-	    sprintf(tempStr, "Default entries with commas are not allowed"
-		    " in value entry:\n");
-	    AppendToErrorString(fullStr);
-	    return -1;
-	  }
-	}
-	gotComma = 1;
+        /* If already have a comma, skip an array value if defaults allowed */
+        if (gotComma) {
+          if (allowDefaults && *numToGet) {
+            numGot++;
+            if (numGot >= *numToGet)
+              break;
+          } else {
+            sprintf(tempStr, "Default entries with commas are not allowed"
+                    " in value entry:\n");
+            AppendToErrorString(fullStr);
+            return -1;
+          }
+        }
+        gotComma = 1;
       }
       strPtr++;
       continue;
@@ -847,7 +852,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
       AppendToErrorString(fullStr);
       return -1;
     }
-
+    
     /* convert number, get pointer  to first invalid char */
     if (valType == INTEGER_TYPE)
       iarray[numGot++] = strtol(strPtr, &invalid, 10);
@@ -879,7 +884,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
   /* If not enough values found, return error */
   if (numGot < *numToGet) {
     sprintf(tempStr, "%d values expected but only %d values found in value "
-	    "entry\n", *numToGet, numGot);
+            "entry\n", *numToGet, numGot);
     AppendToErrorString(fullStr);
     return -1;
   }
@@ -917,7 +922,7 @@ static int AddValueString(int option, char *strPtr)
   if (!optp->count || optp->multiple) {
     if (optp->count)
       optp->valuePtr = (char **)realloc(optp->valuePtr, (optp->count + 1) *
-					sizeof(char *));
+                                        sizeof(char *));
     else
       optp->valuePtr = (char **)malloc(sizeof(char *));
     if (PipMemoryError(optp->valuePtr, "AddValueString"))
@@ -949,17 +954,17 @@ static int LookupOption(char *option, int maxLookup)
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
     if ((sname && *sname && strstr(sname, option) == sname) ||
-	(lname && *lname && strstr(lname, option) == lname)) {
+        (lname && *lname && strstr(lname, option) == lname)) {
 
       /* If it is found, it's an error if one has already been found */
       if (found == LOOKUP_NOT_FOUND)
-	found = i;
+        found = i;
       else {
-	sprintf(tempStr, "An option specified by \"%s\" is ambiguous between "
-		"option %s -  %s  and option %s -  %s", option, sname, lname, 
-		optTable[found].shortName, optTable[found].longName);
-	PipSetError(tempStr);
-	return LOOKUP_AMBIGUOUS;
+        sprintf(tempStr, "An option specified by \"%s\" is ambiguous between "
+                "option %s -  %s  and option %s -  %s", option, sname, lname, 
+                optTable[found].shortName, optTable[found].longName);
+        PipSetError(tempStr);
+        return LOOKUP_AMBIGUOUS;
       }
     }
   }
