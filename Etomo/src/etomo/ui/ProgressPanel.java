@@ -21,12 +21,16 @@ import javax.swing.Timer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
  */
 public class ProgressPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panel = new JPanel();
   private JLabel taskLabel = new JLabel();
@@ -73,6 +77,51 @@ public class ProgressPanel {
   public Container getContainer() {
     return panel;
   }
+  /**
+   * @return
+   */
+  public int getMaximum() {
+    return progressBar.getMaximum();
+  }
+
+  /**
+   * @return
+   */
+  public int getMinimum() {
+    return progressBar.getMinimum();
+  }
+
+  /**
+   * @return
+   */
+  public int getValue() {
+    return progressBar.getValue();
+  }
+
+  /**
+   * @param n
+   */
+  public void setMaximum(int n) {
+    progressBar.setMaximum(n);
+    progressBar.setIndeterminate(false);
+  }
+
+  /**
+   * @param n
+   */
+  public void setMinimum(int n) {
+    progressBar.setMinimum(n);
+  }
+
+  /**
+   * @param n
+   */
+  public void setValue(int n) {
+    progressBar.setValue(n);
+    panel.validate();
+    panel.repaint();
+  }
+
 }
 
 class ProgressTimerActionListener implements ActionListener {
