@@ -23,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/07/01 19:30:06  rickg
+ * <p> Added mode bytes handling
+ * <p> Get input and output filenames from tilt?.com
+ * <p>
  * <p> Revision 1.1  2003/06/27 20:29:25  rickg
  * <p> Initial rev (in progress)
  * <p> </p>
@@ -101,7 +105,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
           throw new InvalidParameterException("Unknown mode parameter");
       }
     }
-    long fileSize = 1024 + nX * nY * nZ * modeBytes;
+    long fileSize = 1024 + (long) nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
     applicationManager.setProgressBar("Calculating tomogram", nKBytes, axisID);
