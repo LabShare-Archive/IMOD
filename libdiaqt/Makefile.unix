@@ -4,8 +4,8 @@
 include ../configure
 
 O     = $(OBJEXT)
-LIB      = libdiaqt.$(LIBEXT)
-CXXFLAGS = $(LIBCFLAGS)
+LIBD      = libdiaqt.$(DLLEXT)
+CXXFLAGS = $(LIBCFLAGS) -DEXPORT_FOR_DLL
 
 OBJS     = arrowbutton.$(O) dialog_frame.$(O) multislider.$(O) \
  colorselector.$(O) floatspinbox.$(O) dia_qtutils.$(O) tooledit.$(O) \
@@ -13,13 +13,13 @@ OBJS     = arrowbutton.$(O) dialog_frame.$(O) multislider.$(O) \
  moc_colorselector.$(O) moc_tooledit.$(O) moc_floatspinbox.$(O) 
 
 
-all : $(LIB)
+all : $(LIBD)
 
-$(LIB) : $(OBJS)
-	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIBCPP)$(LIB) $(OBJS)
-	$(RANLIB) $(LIB)
-	$(CP) $(LIB) $(LIBDIR)
+$(LIBD) : $(OBJS)
+	$(FIND) . -type f -name $(LIBD) -exec rm "{}" \;
+	$(MAKELIBCPP)$(LIBD) $(LIBDIAQTDEF) $(OBJS)
+	$(RANLIB) $(LIBD)
+	$(CP) libdiaqt.$(LIBEXT) $(LIBDIR)
 
 moc_arrowbutton.cpp : $(INCDIR)/arrowbutton.h
 	$(MOC) $(INCDIR)/arrowbutton.h -o moc_arrowbutton.cpp
@@ -40,19 +40,19 @@ moc_floatspinbox.cpp : $(INCDIR)/floatspinbox.h
 	$(MOC) $(INCDIR)/floatspinbox.h -o moc_floatspinbox.cpp
 
 
-install : $(LIB)
-	$(CP) $(LIB) $(INSTLIBDIR)
+install : $(LIBD)
+	$(CP) $(LIBD) $(INSTLIBDIR)
 
 clean :
 	$(FIND) . -type f -name "*.o*"   -exec rm "{}" \;
-	$(FIND) . -type f -name $(LIB)  -exec rm "{}" \;
+	$(FIND) . -type f -name $(LIBD)  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 
 work : clean
 	touch $(OBJS)
-	touch $(LIB)
+	touch $(LIBD)
 
 arrowbutton.$(O) : $(INCDIR)/arrowbutton.h
 dialog_frame.$(O) : $(INCDIR)/dialog_frame.h
