@@ -312,9 +312,13 @@ int inputIProcOpen(struct ViewInfo *vi)
 
 bool iprocBusy(void)
 {
+#ifdef QT_THREAD_SUPPORT
   if (!proc.dia)
     return false;
   return proc.dia->mRunningProc;
+#else
+  return false;
+#endif
 }
 
 /*
@@ -817,6 +821,7 @@ void IProcWindow::finishProcess()
 
 void IProcWindow::timerEvent(QTimerEvent *e)
 {
+#ifdef QT_THREAD_SUPPORT
   int i;
   if (mProcThread->running())
     return;
@@ -827,6 +832,7 @@ void IProcWindow::timerEvent(QTimerEvent *e)
   mRunningProc = false;
   finishProcess();
   ImodInfoWin->manageMenus();
+#endif
 }
 
 void IProcWindow::limitFFTbinning()
@@ -883,15 +889,20 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+#ifdef QT_THREAD_SUPPORT
 // A very simple thread run command!
 void IProcThread::run()
 {
   proc_data[proc.procnum].cb();
 }
+#endif
 
 /*
 
     $Log$
+    Revision 4.10  2004/11/08 05:41:52  mast
+    Needed to make priority on starting thread conditional on Qt version
+
     Revision 4.9  2004/11/07 23:05:24  mast
     Execute in thread, added FFT and fourier filter, fixed scaling problems
 
