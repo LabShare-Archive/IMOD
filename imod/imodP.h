@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IMODP_H
 #define IMODP_H
@@ -311,6 +319,11 @@ extern int Rampbase;
 #define IMOD_GHOST_SECTION (3)
 #define IMOD_GHOST_SURFACE (1<<2)
 
+#define MESSAGE_NO_ACTION   0
+#define MESSAGE_OPEN_MODEL  1
+#define MESSAGE_SAVE_MODEL  2
+#define MESSAGE_VIEW_MODEL  3
+
 /* Colors for 12-bit colormap systems */
 #define RAMPBASE 256
 #define RAMPSIZE 256  
@@ -527,22 +540,6 @@ void imod_igraph_gdata(struct ViewInfo *vi);
 */
 
 
-/* imod_io.c */
-extern char Statstring[128];
-extern char Inputstring[128];
-int reqask(char *prompt);
-int imod_autosave(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin);
-int SaveModel(struct Mod_Model *mod);
-int SaveasModel(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin);
-int imod_model_changed(Imod *imodel);
-int imod_io_image_reload(ImodView *vi);
-#ifdef USEIMODI
-unsigned char **imod_io_image_load(ImodImageFile *im,
-				   struct LoadInfo *li,
-				   void (*func)(char *));
-#endif
 void imodImageScaleDialog(ImodView *iv);
 void imodImageScaleUpdate(ImodView *iv);
 
