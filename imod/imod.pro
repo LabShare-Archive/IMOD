@@ -71,7 +71,8 @@ HEADERS	+= autox.h \
 	imod_assistant.h \
 	pegged.xpm \
 	unpegged.xpm \
-	b3dicon.xpm
+	b3dicon.xpm \
+	iirawimage.h
 SOURCES	+= autox.cpp \
 	b3dfile.c \
 	b3dgfx.cpp \
@@ -129,7 +130,8 @@ SOURCES	+= autox.cpp \
 	xcorr.cpp \
 	undoredo.cpp \
 	imod_assistant.cpp \
-	iiqimage.cpp
+	iiqimage.cpp \
+	iirawimage.cpp
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
 	formv_movie.ui \
@@ -144,7 +146,8 @@ FORMS	= form_object_edit.ui \
 	form_appearance.ui \
 	form_behavior.ui \
 	form_mouse.ui \
-	form_startup.ui
+	form_startup.ui \
+	form_rawimage.ui
 IMAGES	= uparrow.png \
 	downarrow.png \
 	rightarrow.png \
@@ -152,28 +155,6 @@ IMAGES	= uparrow.png \
 	raisewindow.png \
 	undo.png \
 	redo.png
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
