@@ -1411,7 +1411,7 @@ void zapButton2(ZapStruct *zap, int x, int y)
   ImodView *vi = zap->vi;
   Iobj  *obj;
   Icont *cont;
-  Ipoint point, *cpoint;
+  Ipoint point;
   int   pt;
   float ix, iy;
   float lastz;
@@ -1453,7 +1453,12 @@ void zapButton2(ZapStruct *zap, int x, int y)
     obj = imodObjectGet(vi->imod);
     if (!obj)
       return;
-    cont = imodContourGet(vi->imod);
+
+    // Get current contour; if there is none, start a new one
+    // DNM 7/10/04: switch to calling routine
+    cont = ivwGetOrMakeContour(vi, obj);
+    if (!cont)
+      return;
     point.x = ix;
     point.y = iy;
     point.z = zap->section;
@@ -1463,19 +1468,6 @@ void zapButton2(ZapStruct *zap, int x, int y)
     vi->xmouse = ix;
     vi->ymouse = iy;
 
-    /* If there is no current contour, start a new one */
-    if (!cont){
-      vi->imod->cindex.contour = obj->contsize - 1;
-      NewContour(vi->imod);
-      cont = imodContourGet(vi->imod);
-      if (!cont)
-        return;
-      if (iobjFlagTime(obj)){
-        cont->type = curTime;
-        cont->flags |= ICONT_TYPEISTIME;
-      }
-    }
-
     /* If contour is empty and time doesn't match, 
        reassign it to the current time */
     if (zapTimeMismatch(vi, zap->timeLock, obj, cont) && !cont->psize)
@@ -1484,9 +1476,10 @@ void zapButton2(ZapStruct *zap, int x, int y)
     /* If contours are closed and Z has changed, start a new contour */
     /* Also check for a change in time, if time data are being modeled  */
     /* and start new contour for any kind of contour */
-    cpoint = imodPointGet(vi->imod);
-    if (cpoint) {
-      cz = (int)floor(cpoint->z + 0.5); 
+    // DNM 7/10/04: just use first point instead of current point which is
+    // not always defined
+    if (cont->psize > 0) {
+      cz = (int)floor(cont->pts->z + 0.5); 
       pz = (int)point.z;
       if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) ||
           zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
@@ -1498,14 +1491,11 @@ void zapButton2(ZapStruct *zap, int x, int y)
           else
             wprint("\aSet contour time to 0 to model across times.\n");
         }
-        NewContour(vi->imod);
+        imodNewContour(vi->imod);
         cont = imodContourGet(vi->imod);
         if (!cont)
           return;
-        if (iobjFlagTime(obj)) {
-          cont->type = curTime;
-          cont->flags |= ICONT_TYPEISTIME;
-        }
+        ivwSetNewContourTime(vi, obj, cont);
       }
     }
 
@@ -2652,7 +2642,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 
 static void zapDrawGhost(ZapStruct *zap)
 {
-  int co, i, base;
+  int co, i, base, ob;
   int red, green, blue;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
@@ -2665,53 +2655,56 @@ static void zapDrawGhost(ZapStruct *zap)
   if ( !(zap->vi->ghostmode & IMOD_GHOST_SECTION))
     return;
      
-  obj = imodObjectGet(mod);
-  if (!obj ) return;
+  for (ob = 0; ob < mod->objsize; ob++) {
+    if (ob != mod->cindex.object && !(zap->vi->ghostmode & IMOD_GHOST_ALLOBJ))
+      continue;
+    obj = &(mod->obj[ob]);
 
-  /* DNM: don't do scattered points - point size works for that */
-  if(iobjScat(obj->flags))
-    return;
+    /* DNM: don't do scattered points - point size works for that */
+    if(iobjScat(obj->flags))
+      continue;
 
-  // Set base to 2 to make color get brighter instead of darker
-  base = 0;
-  red = (int)(((base + obj->red) * 255.0) / 3.0);
-  green = (int)(((base + obj->green) * 255.0) / 3.0);
-  blue = (int)(((base + obj->blue) * 255.0) / 3.0);
+    // Set base to 2 to make color get brighter instead of darker
+    base = (zap->vi->ghostmode & IMOD_GHOST_LIGHTER) ? 2 : 0;
+    red = (int)(((base + obj->red) * 255.0) / 3.0);
+    green = (int)(((base + obj->green) * 255.0) / 3.0);
+    blue = (int)(((base + obj->blue) * 255.0) / 3.0);
+    
+    mapcolor(App->ghost, red, green, blue); 
+    b3dColorIndex(App->ghost);  
+    b3dLineWidth(obj->linewidth2);
+    
+    /* DNM: if it's RGB, just have to set the color here */
+    if (App->rgba)
+      glColor3f(red/255., green/255., blue/255.);
 
-  mapcolor(App->ghost, red, green, blue); 
-  b3dColorIndex(App->ghost);  
-  b3dLineWidth(obj->linewidth2);
-
-  /* DNM: if it's RGB, just have to set the color here */
-  if (App->rgba)
-    glColor3f(red/255., green/255., blue/255.);
-
-  /* DNM 6/16/01: need to be based on zap->section, not zmouse */
-  nextz = zap->section + zap->vi->ghostdist;
-  prevz = zap->section - zap->vi->ghostdist;
+    /* DNM 6/16/01: need to be based on zap->section, not zmouse */
+    nextz = zap->section + zap->vi->ghostdist;
+    prevz = zap->section - zap->vi->ghostdist;
      
-  for(co = 0; co < obj->contsize; co++){
-    cont = &(obj->cont[co]);
-
-    /* DNM: don't display wild contours, only coplanar ones */
-    /* By popular demand, display ghosts from lower and upper sections */
-    if (cont->pts && !(cont->flags & ICONT_WILD)) {
-      iz = (int)floor(cont->pts->z + 0.5);
-      if ((iz > zap->section && iz <= nextz && 
-           (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
-          (iz < zap->section && iz >= prevz && 
-           (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))){
-        b3dBeginLine();
-        for (i = 0; i < cont->psize; i++){
-          b3dVertex2i(zapXpos(zap, cont->pts[i].x),
-                      zapYpos(zap, cont->pts[i].y));
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &(obj->cont[co]);
+      
+      /* DNM: don't display wild contours, only coplanar ones */
+      /* By popular demand, display ghosts from lower and upper sections */
+      if (cont->pts && !(cont->flags & ICONT_WILD)) {
+        iz = (int)floor(cont->pts->z + 0.5);
+        if ((iz > zap->section && iz <= nextz && 
+             (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
+            (iz < zap->section && iz >= prevz && 
+             (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))){
+          b3dBeginLine();
+          for (i = 0; i < cont->psize; i++) {
+            b3dVertex2i(zapXpos(zap, cont->pts[i].x),
+                        zapYpos(zap, cont->pts[i].y));
+          }
+          
+          /* DNM: connect back to start only if closed contour */
+          if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))
+            b3dVertex2i(zapXpos(zap, cont->pts->x),
+                        zapYpos(zap, cont->pts->y));
+          b3dEndLine();
         }
-
-        /* DNM: connect back to start only if closed contour */
-        if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))
-          b3dVertex2i(zapXpos(zap, cont->pts->x),
-                      zapYpos(zap, cont->pts->y));
-        b3dEndLine();
       }
     }
   }
@@ -2869,6 +2862,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.45  2004/07/10 23:30:49  mast
+FIxed subset area for autocontrast, made ghost have object line thickness
+
 Revision 4.44  2004/06/23 04:46:28  mast
 Fixed hang on opening window at 0.1 zoom in Windows
 
