@@ -24,8 +24,9 @@
 
   <target name="dist" depends="compile">
     <mkdir dir="${dist}" />
-    <jar jarfile="${dist}/etomo-${DSTAMP}.jar" basedir="${build}">
-       <!-- manfiest name="MANIFEST.MF" / -->
+    <jar jarfile="${dist}/etomo-${DSTAMP}.jar"
+     basedir="${build}"
+     manifest="MANIFEST.MF" >
     </jar>
   </target>
 
