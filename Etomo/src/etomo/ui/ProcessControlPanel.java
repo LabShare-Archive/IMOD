@@ -19,6 +19,10 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/06/09 04:25:04  rickg
+ * <p> Changed the execute button to a toggle button and added
+ * <p> a setSelected method for the button
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -38,7 +42,7 @@ public class ProcessControlPanel {
     "$Id$";
 
   static Dimension dimPanelProcess = new Dimension(80, 130);
-  static String[] textStates = { "Not started", "In progress", "Complete" };
+  static String[] textStates = { "Not Started", "In Progress", "Complete" };
   static Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
   static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);
   static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
