@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/01/14 03:11:06  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.18  2004/11/20 00:04:14  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -572,6 +575,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       ltfExcludeListB.setEnabled(false);
       btnViewRawStackB.setEnabled(false);
     }
+  }
+  
+  public String getDatasetString() {
+    return ltfDataset.getText();
   }
 
   public MetaData getFields() {
