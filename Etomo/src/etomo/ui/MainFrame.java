@@ -23,6 +23,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/05/15 22:25:14  rickg
+ * <p> created separate setDividerLocation method to correctly update
+ * <p> panel
+ * <p>
  * <p> Revision 2.8  2003/05/15 20:21:22  rickg
  * <p> Added extra validation call hopefully to make sure divider gets rendered
  * <p> correctly
@@ -100,19 +104,19 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuBar menuBar = new JMenuBar();
 
   private JMenu menuFile = new JMenu("File");
-  private JMenuItem menuFileOpen = new JMenuItem("Open...");
-  private JMenuItem menuFileSave = new JMenuItem("Save");
-  private JMenuItem menuFileSaveAs = new JMenuItem("Save As");
-  private JMenuItem menuFileExit = new JMenuItem("Exit");
+  private JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
+  private JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
+  private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
+  private JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
   private JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
   private JMenu menuOptions = new JMenu("Options");
-  private JMenuItem menuAdvanced = new JMenuItem("Advanced");
-  private JMenuItem menuSettings = new JMenuItem("Settings");
-  private JMenuItem menuFitWindow = new JMenuItem("Fit Window");
+  private JMenuItem menuAdvanced = new JMenuItem("Advanced", KeyEvent.VK_A);
+  private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
+  private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
 
   private JMenu menuHelp = new JMenu("Help");
-  private JMenuItem menuHelpAbout = new JMenuItem("About");
+  private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
 
   private JLabel statusBar = new JLabel("No data set loaded");
 
@@ -565,6 +569,10 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Create the menus for the main window
    */
   private void createMenus() {
+    menuFile.setMnemonic(KeyEvent.VK_F);
+    menuOptions.setMnemonic(KeyEvent.VK_O);
+    menuHelp.setMnemonic(KeyEvent.VK_H);
+    
     //  Menu bar text and adapters
     menuFileOpen.addActionListener(new menuFileOpenActionAdapter(this));
     menuFileSave.addActionListener(new menuFileSaveActionAdapter(this));
