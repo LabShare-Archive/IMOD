@@ -129,43 +129,34 @@ static void mkcmap(void)
   int rampsize, cmapReverse = 0;
   float slope, point;
   int r,g,b,i;
+  int white = WhiteLevel;
+  int black = BlackLevel;
 
-  if (BlackLevel > WhiteLevel){
-    cmapReverse = BlackLevel;
-    BlackLevel = WhiteLevel;
-    WhiteLevel = cmapReverse;
+  /* DNM 10/26/03: kept it from reversing the actual levels by copying to
+     separate variables; simplified reversal */
+  if (black > white){
+    cmapReverse = black;
+    black = white;
+    white = cmapReverse;
     cmapReverse = 1;
   }
 
-  rampsize = WhiteLevel - BlackLevel;
+  rampsize = white - black;
   if (rampsize < 1) rampsize = 1;
      
-  for (i = 0; i < BlackLevel; i++)
+  for (i = 0; i < black; i++)
     Cmap[0][i] = 0;
-  for (i = WhiteLevel; i < 256; i++)
+  for (i = white; i < 256; i++)
     Cmap[0][i] = 255;
   slope = 256.0 / (float)rampsize;
-  for (i = BlackLevel; i < WhiteLevel; i++){
-    point = (float)(i - BlackLevel) * slope;
+  for (i = black; i < white; i++){
+    point = (float)(i - black) * slope;
     Cmap[0][i] = (unsigned char)point;
   }
      
   if (cmapReverse){
-    for(i = 0; i < 256; i++){
-      if (!Cmap[0][i])
-	Cmap[0][i] = 255;
-      else
-	if (Cmap[0][i] > 127){
-	  Cmap[0][i] -= 128;
-	  Cmap[0][i] *= -1;
-	  Cmap[0][i] += 128;
-	}
-	else{
-	  Cmap[0][i] -= 128;
-	  Cmap[0][i] *= -1;
-	  Cmap[0][i] += 128;
-	}
-    }
+    for(i = 0; i < 256; i++)
+      Cmap[0][i] = 255 - Cmap[0][i];
   }
   if (Falsecolor){
     for(i = 0; i < 256; i++){
@@ -447,6 +438,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/09/16 02:09:14  mast
+Changed to access image data using new line pointers
+
 Revision 4.6  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
