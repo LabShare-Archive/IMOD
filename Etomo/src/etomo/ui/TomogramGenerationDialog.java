@@ -55,6 +55,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2004/07/20 23:08:33  sueh
+ * bug# 502 setting fiducialess in tilt (not getting fiducialess
+ * from tilt).  Use local alignment is disabled when fiducialess is
+ * true
+ *
  * Revision 3.22  2004/07/15 20:34:13  sueh
  * bug# 500 moving linear interpolation to Basic mode
  *
@@ -320,7 +325,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   // MTF Filter objects
   private JPanel pnlFilter = new JPanel();
   private LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
-      "Low pass (radius,sigma): ");
+      "Low pass (cutoff,sigma): ");
   private JPanel pnlInverseFilter = new JPanel();
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
