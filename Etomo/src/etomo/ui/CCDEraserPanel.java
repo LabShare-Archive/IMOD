@@ -10,102 +10,6 @@
  *
  * @version $Revision$
  *
- * <p> $Log$
- * <p> Revision 3.6  2004/11/19 23:49:22  sueh
- * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- * <p>
- * <p> Revision 3.5.4.2  2004/10/11 02:10:20  sueh
- * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
- * <p> the propertyUserDir.
- * <p>
- * <p> Revision 3.5.4.1  2004/09/07 17:58:36  sueh
- * <p> bug# 520 getting dataset name from metadata
- * <p>
- * <p> Revision 3.5  2004/06/25 00:34:01  sueh
- * <p> bug# 467 Removing outerRadius, adding annulusWidth.
- * <p> Making maximumRadius a basic field.
- * <p>
- * <p> Revision 3.4  2004/04/21 17:06:17  rickg
- * <p> Bug #424 simplified panel layout using UIUtilities
- * <p>
- * <p> Revision 3.3  2004/01/30 22:44:47  sueh
- * <p> bug# 356 Changing buttons with html labels to
- * <p> MultiLineButton and MultiLineToggleButton
- * <p>
- * <p> Revision 3.2  2004/01/29 22:33:01  rickg
- * <p> Tooltip text change
- * <p>
- * <p> Revision 3.1  2003/11/10 07:36:24  rickg
- * <p> Task tags moved to bugzilla, reformat
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.14  2003/10/30 01:43:44  rickg
- * <p> Bug# 338 Remapped context menu entries
- * <p>
- * <p> Revision 2.13  2003/10/28 23:35:48  rickg
- * <p> Bug# 336 Context menu label capitalization
- * <p>
- * <p> Revision 2.12  2003/10/20 20:08:37  sueh
- * <p> Bus322 corrected labels
- * <p>
- * <p> Revision 2.11  2003/10/13 20:26:52  sueh
- * <p> bug270
- * <p> added and changed tooltips
- * <p>
- * <p> Revision 2.10  2003/10/13 17:00:19  sueh
- * <p> bug269
- * <p> UI Changes
- * <p> CCDEraserPanel
- * <p> changed button names
- * <p>
- * <p> Revision 2.9  2003/09/23 23:58:42  sueh
- * <p> bug#237 moved XrayReplacement to Advanced
- * <p>
- * <p> Revision 2.8  2003/09/09 17:14:09  rickg
- * <p> Changed replace text to commit
- * <p>
- * <p> Revision 2.7  2003/08/06 21:56:44  rickg
- * <p> Switched stateful buttons to JToggleButton
- * <p>
- * <p> Revision 2.6  2003/07/30 21:53:44  rickg
- * <p> Use new tooltip formatting class
- * <p>
- * <p> Revision 2.5  2003/07/25 23:02:47  rickg
- * <p> Moved polynomial order, border pixels and inclide adjacent to
- * <p> the global section
- * <p> Corrected spelling mistakes
- * <p>
- * <p> Revision 2.4  2003/07/22 22:17:54  rickg
- * <p> Erase button name change
- * <p> Correct setup of manual replacement parameters
- * <p>
- * <p> Revision 2.3  2003/07/11 23:14:08  rickg
- * <p> Add parameter set and get for new eraser mode
- * <p>
- * <p> Revision 2.2  2003/07/08 20:49:43  rickg
- * <p> Restructure panel for new ccderaser
- * <p>
- * <p> Revision 2.1  2003/05/08 04:26:51  rickg
- * <p> Centered checkbox
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.3  2002/11/14 21:18:37  rickg
- * <p> Added anchors into the tomoguide
- * <p>
- * <p> Revision 1.2  2002/10/07 22:31:18  rickg
- * <p> removed unused imports
- * <p> reformat after emacs trashed it
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 
 package etomo.ui;
@@ -114,6 +18,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -124,6 +30,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 
 public class CCDEraserPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
@@ -463,78 +370,43 @@ public class CCDEraserPanel implements ContextMenu {
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Input image file.";
-    ltfInputImage.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Output image file.  If no output file is specified and the program "
-        + "is not run in trial mode, pixels will be replaced in the input file."
-        + "  USE REPLACEMENT OPTION WITH CAUTION.";
-    ltfOutputImage.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Find and erase peaks a criterion # of SDs above or below background."
-        + "  This option must be included for automatic removal of X-rays.";
-    cbXrayReplacement.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Criterion # of SDs above local mean for erasing peak based on "
-        + "intensity (the default is 10 SDs).";
-    ltfPeakCriterion.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Criterion # of SDs above mean pixel-to-pixel difference for "
-        + "erasing a peak based on differences (the default is 10 SDs).";
-    ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Criterion # of SDs above mean for adding points to peak (the "
-        + "default is 4 SDs).";
-    ltfGrowCriterion.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Criterion # of SDs of mean of scan area for picking peaks in "
-        + "initial scan (the default is 3 SDs).";
-    ltfScanCriterion.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Maximum radius of peak area to erase (the default is 2.1 pixels).";
-    ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Width of the annulus around a peak in which to calculate local"
-        + " mean and SD (the default is 2.0 pixels).";
-    ltfAnnulusWidth.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Size of regions to compute mean and SD in for initial scans (the "
-        + "default is 100 pixels).";
-    ltfScanRegionSize.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Width of area to exclude on all edges of image in pixels "
-        + "(default 0).";
-    ltfEdgeExclusion.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "List of objects that define lines to be replaced.  Ranges can be "
-        + "entered, and / to specify all objects.";
-    ltfLocalReplacementList.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.get(Autodoc.CCDERASER);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    
+    ltfInputImage.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.INPUT_FILE_KEY)).format());
+    ltfOutputImage.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.OUTPUT_FILE_KEY)).format());
+    cbXrayReplacement.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.FIND_PEAKS_KEY)).format());
+    ltfPeakCriterion.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.PEAK_CRITERION_KEY)).format());
+    ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.DIFF_CRITERION_KEY)).format());
+    ltfGrowCriterion.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.GROW_CRITERION_KEY)).format());
+    ltfScanCriterion.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.SCAN_CRITERION_KEY)).format());
+    ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.MAXIMUM_RADIUS_KEY)).format());
+    ltfAnnulusWidth.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.ANNULUS_WIDTH_KEY)).format());
+    ltfScanRegionSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.X_Y_SCAN_SIZE_KEY)).format());
+    ltfEdgeExclusion.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.EDGE_EXCLUSION_WIDTH_KEY)).format());
+    ltfLocalReplacementList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.LINE_OBJECTS_KEY)).format());
 
     text = "Use a manually created model to specify regions and lines to replace.";
     cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "List of objects with points to be replaced on all sections.  "
-        + "Ranges can be entered, and / to specify all objects.";
-    ltfGlobalReplacementList.setToolTipText(tooltipFormatter.setText(text)
-      .format());
-
-    text = "Size of border around points in patch, which contains the "
-        + "points which will be fit to (the default is 2 pixels).";
-    ltfBorderPixels.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Order of polynomial to fit to border points (the default is 2, "
-        + "which includes terms in x, y, x**2, y**2 and x*y).";
-    ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfGlobalReplacementList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.ALL_SECTION_OBJECTS_KEY)).format());
+    ltfBorderPixels.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.BORDER_SIZE_KEY)).format());
+    ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.POLYNOMIAL_ORDER_KEY)).format());
 
     text = "Include pixels adjacent to the patch being replaced in the pixels "
         + "being fit.";
     cbIncludeAdjacentPoints.setToolTipText(tooltipFormatter.setText(text)
       .format());
 
-    text = "Run ccderaser in trial mode creating a x-ray model which can be viewed "
-        + "in 3dmod.  This will not create an output stack.";
-    btnFindXRays.setToolTipText(tooltipFormatter.setText(text).format());
+    btnFindXRays.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.TRIAL_MODE_KEY)).format());
 
     text = "View the x-ray model on the raw stack in 3dmod.";
     btnViewXRayModel.setToolTipText(tooltipFormatter.setText(text).format());
@@ -574,5 +446,107 @@ public class CCDEraserPanel implements ContextMenu {
       adaptee.buttonAction(event);
     }
   }
-
 }
+
+/**
+* <p> $Log$
+* <p> Revision 3.7  2004/12/02 20:37:08  sueh
+* <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+* <p> the join guide.  Need to specify the guide to anchor.
+* <p>
+* <p> Revision 3.6  2004/11/19 23:49:22  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
+* <p> Revision 3.5.4.2  2004/10/11 02:10:20  sueh
+* <p> bug# 520 Passed the manager to the ContextPopup object in order to get
+* <p> the propertyUserDir.
+* <p>
+* <p> Revision 3.5.4.1  2004/09/07 17:58:36  sueh
+* <p> bug# 520 getting dataset name from metadata
+* <p>
+* <p> Revision 3.5  2004/06/25 00:34:01  sueh
+* <p> bug# 467 Removing outerRadius, adding annulusWidth.
+* <p> Making maximumRadius a basic field.
+* <p>
+* <p> Revision 3.4  2004/04/21 17:06:17  rickg
+* <p> Bug #424 simplified panel layout using UIUtilities
+* <p>
+* <p> Revision 3.3  2004/01/30 22:44:47  sueh
+* <p> bug# 356 Changing buttons with html labels to
+* <p> MultiLineButton and MultiLineToggleButton
+* <p>
+* <p> Revision 3.2  2004/01/29 22:33:01  rickg
+* <p> Tooltip text change
+* <p>
+* <p> Revision 3.1  2003/11/10 07:36:24  rickg
+* <p> Task tags moved to bugzilla, reformat
+* <p>
+* <p> Revision 3.0  2003/11/07 23:19:01  rickg
+* <p> Version 1.0.0
+* <p>
+* <p> Revision 2.14  2003/10/30 01:43:44  rickg
+* <p> Bug# 338 Remapped context menu entries
+* <p>
+* <p> Revision 2.13  2003/10/28 23:35:48  rickg
+* <p> Bug# 336 Context menu label capitalization
+* <p>
+* <p> Revision 2.12  2003/10/20 20:08:37  sueh
+* <p> Bus322 corrected labels
+* <p>
+* <p> Revision 2.11  2003/10/13 20:26:52  sueh
+* <p> bug270
+* <p> added and changed tooltips
+* <p>
+* <p> Revision 2.10  2003/10/13 17:00:19  sueh
+* <p> bug269
+* <p> UI Changes
+* <p> CCDEraserPanel
+* <p> changed button names
+* <p>
+* <p> Revision 2.9  2003/09/23 23:58:42  sueh
+* <p> bug#237 moved XrayReplacement to Advanced
+* <p>
+* <p> Revision 2.8  2003/09/09 17:14:09  rickg
+* <p> Changed replace text to commit
+* <p>
+* <p> Revision 2.7  2003/08/06 21:56:44  rickg
+* <p> Switched stateful buttons to JToggleButton
+* <p>
+* <p> Revision 2.6  2003/07/30 21:53:44  rickg
+* <p> Use new tooltip formatting class
+* <p>
+* <p> Revision 2.5  2003/07/25 23:02:47  rickg
+* <p> Moved polynomial order, border pixels and inclide adjacent to
+* <p> the global section
+* <p> Corrected spelling mistakes
+* <p>
+* <p> Revision 2.4  2003/07/22 22:17:54  rickg
+* <p> Erase button name change
+* <p> Correct setup of manual replacement parameters
+* <p>
+* <p> Revision 2.3  2003/07/11 23:14:08  rickg
+* <p> Add parameter set and get for new eraser mode
+* <p>
+* <p> Revision 2.2  2003/07/08 20:49:43  rickg
+* <p> Restructure panel for new ccderaser
+* <p>
+* <p> Revision 2.1  2003/05/08 04:26:51  rickg
+* <p> Centered checkbox
+* <p>
+* <p> Revision 2.0  2003/01/24 20:30:31  rickg
+* <p> Single window merge to main branch
+* <p>
+* <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
+* <p> Single window GUI layout initial revision
+* <p>
+* <p> Revision 1.3  2002/11/14 21:18:37  rickg
+* <p> Added anchors into the tomoguide
+* <p>
+* <p> Revision 1.2  2002/10/07 22:31:18  rickg
+* <p> removed unused imports
+* <p> reformat after emacs trashed it
+* <p>
+* <p> Revision 1.1  2002/09/09 22:57:02  rickg
+* <p> Initial CVS entry, basic functionality not including combining
+* <p> </p>
+*/
