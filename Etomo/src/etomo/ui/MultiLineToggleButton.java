@@ -30,6 +30,9 @@ import etomo.ApplicationManager;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.3  2003/10/20 16:44:00  sueh
+* <p> bug317 replacing assert with an unchecked exception
+* <p>
 * <p> Revision 1.2  2003/10/17 22:27:24  sueh
 * <p> Bug317 selected, disabled text is now visible
 * <p>
@@ -95,11 +98,9 @@ public class MultiLineToggleButton extends JToggleButton {
     super.setEnabled(isEnabled);
     if (super.isSelected()) {
       super.setForeground(isEnabled ? enabledSelectedTextColor : disabledSelectedTextColor);
-      System.out.println("is selected");
     }
     else {
       super.setForeground(isEnabled ? enabledUnselectedTextColor : disabledUnselectedTextColor);
-      System.out.println("is not selected");
     }
     System.out.println(paramString());
   }
