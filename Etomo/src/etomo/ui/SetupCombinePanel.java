@@ -5,7 +5,6 @@ import etomo.type.CombinePatchSize;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 
-import java.awt.Checkbox;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.*;
@@ -24,6 +23,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -103,7 +105,7 @@ public class SetupCombinePanel implements ContextMenu {
     new BeveledBorder("Intermediate data storage");
   private LabeledTextField ltfTempDirectory =
     new LabeledTextField("Temporary directory: ");
-  private Checkbox chkManualCleanup = new Checkbox("Manual cleanup");
+  private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
 
   public SetupCombinePanel() {
 
@@ -237,7 +239,7 @@ public class SetupCombinePanel implements ContextMenu {
 
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
-    chkManualCleanup.setState(combineParams.getManualCleanup());
+    chkManualCleanup.setSelected(combineParams.getManualCleanup());
   }
 
   public void getParameters(CombineParams combineParams)
@@ -290,7 +292,7 @@ public class SetupCombinePanel implements ContextMenu {
 
       combineParams.setTempDirectory(ltfTempDirectory.getText());
 
-      combineParams.setManualCleanup(chkManualCleanup.getState());
+      combineParams.setManualCleanup(chkManualCleanup.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
