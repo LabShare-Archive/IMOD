@@ -20,6 +20,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/24 01:04:01  sueh
+* <p> bug# 520 Allow class to display its own error message when required
+* <p> (isValue).
+* <p>
 * <p> Revision 1.2  2004/11/19 23:33:29  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -353,7 +357,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     catch (NumberFormatException e) {
       e.printStackTrace();
-      invalidBuffer.append("Invalid value:  " + value);
+      invalidBuffer.append("Invalid number:  " + value);
       return newNumber();
     }
   }
