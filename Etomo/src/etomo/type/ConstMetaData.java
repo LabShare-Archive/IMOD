@@ -23,6 +23,13 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/01/21 23:06:48  sueh
+ * <p> bug# 509 bug# 591  Removed transferfidNumberViews.  Added
+ * <p> transferfidParamA and transferfidParamB to hold the user-modifiable
+ * <p> transferfid values.  Removed initializeTransferfidParam() and added
+ * <p> getTransferfidParamAFields() and getTransferfidParamBFields() to get/set
+ * <p> storable fields in TransferfidParam.
+ * <p>
  * <p> Revision 3.17  2005/01/12 00:42:45  sueh
  * <p> bug# 579 Make the reset value on useZFactors true.
  * <p>
@@ -186,7 +193,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
   protected String excludeProjectionsB = "";
-  protected EtomoBoolean useZFactors = new EtomoBoolean("UseZFactors");
+  protected EtomoBoolean2 useZFactors = new EtomoBoolean2("UseZFactors");
 
   protected boolean comScriptsCreated = false;
 
@@ -201,7 +208,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     
   public ConstMetaData() {
     fileExtension = ".edf";
-    useZFactors.setResetValue(true);
+    useZFactors.setDisplayValue(true);
   }
 
   /**
@@ -322,7 +329,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     return useLocalAlignments;
   }
   
-  public EtomoBoolean getUseZFactors() {
+  public ConstEtomoNumber getUseZFactors() {
     return useZFactors;
   }
 
