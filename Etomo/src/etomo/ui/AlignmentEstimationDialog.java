@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.4  2002/10/17 23:42:26  rickg
  * <p> Spaced buttons some
  * <p> Call default parameters methods in panelAlign objects
@@ -196,6 +199,8 @@ public class AlignmentEstimationDialog
 
     // Calcute the necessary window size
     setSize(new Dimension(400, 600));
+    //FIXME: advanced state should gotten from the application manager
+    setAdvanced(appMgr.isAdvanced());
     panelTiltalignA.setLargestTab();
     panelTiltalignB.setLargestTab();
     pack();
@@ -351,6 +356,24 @@ public class AlignmentEstimationDialog
     applicationManager.doneAlignmentEstimationDialog();
   }
 
+  public void buttonAdvancedAction(ActionEvent event) {
+    super.buttonAdvancedAction(event);
+    setAdvanced(isAdvanced);
+  }
+
+  //  This is a separate function so it can be called at initialization time
+  //  as well as from the button action above
+  private void setAdvanced(boolean state) {
+    panelTiltalignA.setAdvanced(state);
+    panelTiltalignB.setAdvanced(state);
+    if(state) {
+      buttonAdvanced.setText("Basic");
+    }
+    else {
+      buttonAdvanced.setText("Advanced");
+    }
+    pack();
+  }
 }
 
 class AlignementEstTiltDefaultsA implements ActionListener {
