@@ -5,6 +5,8 @@ import java.io.File;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
 
 /**
 * <p>Description: </p>
@@ -27,11 +29,13 @@ public class BlendmontParam implements CommandParam {
   public static final int XCORR_MODE = -1;
   public static final int PREBLEND_MODE = -2;
   public static final int BLEND_MODE = -3;
+  public static final int LINEAR_INTERPOLATION_ORDER = 1;
   
   private AxisID axisID;
   private String datasetName;
   private EtomoBoolean2 readInXcorrs;
   private EtomoBoolean2 oldEdgeFunctions;
+  private ScriptParameter interpolationOrder;
   private int mode = XCORR_MODE;
   
   public BlendmontParam(String datasetName, AxisID axisID) {
@@ -46,19 +50,29 @@ public class BlendmontParam implements CommandParam {
     readInXcorrs.setDisplayAsInteger(true);
     oldEdgeFunctions = new EtomoBoolean2("OldEdgeFunctions");
     oldEdgeFunctions.setDisplayAsInteger(true);
+    interpolationOrder = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "InterpolationOrder");
   }
   
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
   throws BadComScriptException, InvalidParameterException,
   FortranInputSyntaxException {
+    reset();
     readInXcorrs.parse(scriptCommand);
     oldEdgeFunctions.parse(scriptCommand);
+    interpolationOrder.parse(scriptCommand);
   }
   
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
   throws BadComScriptException {
     readInXcorrs.setInScript(scriptCommand);
     oldEdgeFunctions.setInScript(scriptCommand);
+    interpolationOrder.setInScript(scriptCommand);
+  }
+  
+  private void reset() {
+    readInXcorrs.reset();
+    oldEdgeFunctions.reset();
+    interpolationOrder.reset();
   }
   
   public void initializeDefaults() {
@@ -116,9 +130,26 @@ public class BlendmontParam implements CommandParam {
       return "xcorr";
     }
   }
+  
+  public boolean isLinearInterpolation() {
+    return interpolationOrder.getInteger() == LINEAR_INTERPOLATION_ORDER;
+  }
+  
+  public void setLinearInterpolation(boolean linearInterpolation) {
+    if (linearInterpolation) {
+      interpolationOrder.set(LINEAR_INTERPOLATION_ORDER);
+    }
+    else {
+      interpolationOrder.reset();
+    }
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/03/09 17:59:41  sueh
+* <p> bug# 533 Added a mode for blendmont in the blend.com script.  In this
+* <p> mode readInXcorrs and oldEdgeFunctions are always true.
+* <p>
 * <p> Revision 1.2  2005/03/08 00:44:12  sueh
 * <p> bug# 533 Added a mode because the rules for setting readInXcorrs are
 * <p> different in xcorr and preblend.  Changed set...State functions to set
