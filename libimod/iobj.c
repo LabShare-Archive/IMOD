@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/02/21 22:22:02  mast
+    Use new b3d types
+
 */
 
 #include <stdio.h>
@@ -112,8 +115,14 @@ void imodObjectDefault(Iobj *obj)
      obj->specular  = 127;
      obj->shininess = 4;
      obj->mat1 = 0;
+     obj->mat1b1 = 0;
+     obj->mat1b2 = 0;
+     obj->mat1b3 = 0;
      obj->mat2 = 0;
      obj->mat3 = 0;
+     obj->mat3b1 = 0;
+     obj->mat3b2 = 0;
+     obj->mat3b3 = 0;
      obj->store = NULL;
      return;
 }
@@ -262,6 +271,15 @@ Iobj *imodObjectGetNext(Imod *imod)
 	  return(NULL);
      imodSetIndex(imod, ob, co, pt);
      return(imodObjectGet(imod));
+}
+
+Icont *imodObjectGetContour(Iobj *inObject, int inIndex)
+{
+    if (inObject == NULL) return(NULL);
+    if (inIndex < 0) return(NULL);
+    if (inObject->cont == NULL) return(NULL);
+    if (inIndex >= inObject->contsize) return(NULL);
+    return(&inObject->cont[inIndex]);
 }
 
 Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex)
@@ -561,6 +579,13 @@ void  imodObjectGetColor(Iobj *inObject,
      *outBlue  = inObject->blue;
 }
 
+void  imodObjectSetColor(Iobj *inObject,
+                         float inRed, float inGreen, float inBlue)
+{
+  inObject->red = inRed;
+  inObject->green = inGreen;
+  inObject->blue = inBlue;
+}
 
 int   imodObjectGetMaxContour(Iobj *inObject)
 {
@@ -654,7 +679,7 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 	  return;
 
 	case IobjFlagClosed:
-	  setObjFlag(inObject, IMOD_OBJFLAG_OPEN, inValue);
+	  setObjFlag(inObject, IMOD_OBJFLAG_OPEN, !inValue);
 	  return;
 
 	case IobjFlagConnected:
