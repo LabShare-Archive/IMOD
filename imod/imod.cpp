@@ -155,6 +155,7 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   int doStartup = 0;
+  int hugeCache = 2000000000;
   Iobj *obj;
   QString qname;
   int doFork = 1;
@@ -309,7 +310,7 @@ int main( int argc, char *argv[])
           if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
             vi.vmSize = -vi.vmSize;
           else if (!vi.vmSize)
-            vi.vmSize = 2000000000;
+            vi.vmSize = hugeCache;
           vi.keepCacheFull = 0;
           break;
         
@@ -673,6 +674,11 @@ int main( int argc, char *argv[])
   /********************************************/
   /* Load in image data, set up image buffer. */
 
+  /* If the user did not limit cache and specified Fill cache, then restore
+     the flag to keep cache full */
+  if (fillCache && vi.vmSize == hugeCache)
+    vi.keepCacheFull = 1;
+
   /* Finish setting up and loading images */
   errno = 0;
   if (ivwLoadImage(&vi)){
@@ -951,6 +957,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.31  2004/01/07 01:53:59  mast
+Needed to reopen image file to read piece list from it
+
 Revision 4.30  2004/01/06 16:55:01  mast
 Added new option to open startup page, passing options to it
 
