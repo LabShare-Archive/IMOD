@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.9  2003/05/07 22:29:14  rickg
  * <p> set fill cache for matchCheck
  * <p>
@@ -92,7 +95,7 @@ public class ImodManager {
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager appManager;
+  private ApplicationManager applicationManager;
   private AxisType axisType;
   private String datasetName;
 
@@ -119,7 +122,9 @@ public class ImodManager {
    * @param metaData this class is used to initialize the
    * dataset name and axisType of the data to used in imod.
    */
-  public ImodManager(ConstMetaData metaData) {
+  public ImodManager(ApplicationManager appMgr, ConstMetaData metaData) {
+    applicationManager = appMgr;
+    
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
 
@@ -264,7 +269,7 @@ public class ImodManager {
     }
 
     SystemProgram imodv = new SystemProgram("imodv " + model);
-    imodv.setDebug(appManager.isDebug());
+    imodv.setDebug(applicationManager.isDebug());
     Thread fiducialModel = new Thread(imodv);
     fiducialModel.start();
 
