@@ -1,8 +1,35 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/10/04: IMOD_3-2-11  (Etomo unstable)
+5/5/04: IMOD_3-2-12  (eTomo unstable)
+5/4/05: Made Tiltalign put out 3D coordinates adjusted back to image
+coordinates in the fid.xyz file and the .3dmod model.  This will allow
+elimination of the matchshifts procedure and/or the use of matching models
+with fiducials.
+
+5/4/04: Added rubberband toolbutton to Zap window and a message by which
+eTomo can get the coordinates of a rubberband.
+
+5/3/04: Enhanced image display in model view window by adding ability to
+display X and Y slices as well as Z slices, and ability to show multiple
+slices with transparency to see a projection through them.  Also added the 
+X, Y, and Z coordinates to the movie maker so that movies can be made of a
+changing image display.
+
+4/30/04: Added button to keep Bead Fixer window on top, and added ability to
+run tiltalign from Bead Fixer window.
+
+4/28/04: Model view window can now show the current contour as a thicker line,
+and the current contour can be deleted with D from model view if it was picked
+with the third mouse button.  Patch2imod sets the flag to highlight the current
+contour, so patch vectors can now be edited conveniently from model view.
+
+4/27/04: Made 3dmod not consider a model modified if view 1 is rotated.
+
+4/27/04: Fixed one-pixel edge effect when undistorting with Newstack.
+
+4/27/04: IMOD_3-2-11  (eTomo unstable)
 4/27/04: Found that environment variables set in Cygwin startup scripts needed
-double backslashes for WIndows format pathnames.
+double backslashes for Windows format pathnames.
 
 4/25/04: Fixed setupcombine to work when there is no XAXISTILT entry in 
 tilt[ab].com and assume 0 tilt.
@@ -22,15 +49,15 @@ routines for SGI.
 in Mtk that kept it from running under Windows.
 
 4/19/04: Added newlines before ERROR: outputs from Fortran MRC file I/O
-routines and made Etomo strip everything before ERROR: when reporting an error.
+routines and made eTomo strip everything before ERROR: when reporting an error.
 
 4/18/04: Modified imodsendevent to work with Qt versions 3.2 and above under
 Linux.
 
-4/10/04: IMOD_3-2-10  (Etomo unstable)
+4/10/04: IMOD_3-2-10  (eTomo unstable)
 4/9/04: Incorporated changes for building under Amd64 into Linux build scripts.
 
-4/3/04: IMOD_3-2-9  (Etomo unstable)
+4/3/04: IMOD_3-2-9 intended but never tagged (eTomo unstable)
 4/3/04: Added ability to pack QT library into Linux distribution since message
 passing to 3dmod won't work with Qt 3.2 or 3.3.
 
@@ -63,7 +90,7 @@ containing intensity values.  Converted Extracttilts to PIP input and added
 options to extract stage position, magnification, or intensity.
 
 3/16/04: IMOD_3-2-7
-3/15/04: Many Etomo changes including change to using command line input
+3/15/04: Many eTomo changes including change to using command line input
 to Copytomocoms, ability to specify a distortion field and apply it when
 generating prealigned and aligned stack, an option for binning the prealigned
 stack, entries for new options to Tiltxcorr for using subareas and doing 
@@ -412,7 +439,7 @@ save an unchanged model, arranged the startup page in two columns, fixed a
 problem with zooming up under Windows, and added a workaround to a display
 problem with Qt 3.2.1 on the Mac.
 
-9/11/03: IMOD_3-0-17  beta release with Etomo
+9/11/03: IMOD_3-0-17  beta release with eTomo
 
 9/9/03: IMOD_3-0-16
 9/5/03: Added a program, Resamplemod, for rotating a microtubule model to be
@@ -441,7 +468,7 @@ the Mac without hanging when the window opened.
 8/9/03: Changed Blendmont to take PIP input and modified command files and
 Copytomocoms to use new form of input.
 
-8/8/03: Etomo was incorporated into IMOD build structure.
+8/8/03: eTomo was incorporated into IMOD build structure.
 
 8/8/03: Wrote man page for Mtk, changed program to make terminology
 consistent, to fix problems with saving connector objects and moving items to
@@ -542,7 +569,7 @@ local area sizes and number of fiducials.
 Midas.
 
 5/22/03: Moved creation of temporary directory for combining from combine.com
-to individual command files to allow this to work with Etomo.
+to individual command files to allow this to work with eTomo.
 
 5/22/03: Added message to raise all 3dmod windows, made windows get raised
 in order by type (image then dialog), and fixed problem with secondary Zap
@@ -550,11 +577,11 @@ windows not syncing to point position for an added point.
 
 5/20/03: IMOD_3-0-10
 5/20/03: Modified Vmstocsh and Submfg so that all command files will output
-the process ID, so Etomo can kill operations properly.
+the process ID, so eTomo can kill operations properly.
 
 5/20/03: Made Setupcombine and Copytomocoms able to accept corresponding
 fiducial lists or exclude lists with spaces embedded in them, and remove the
-spaces so that Etomo will parse them correctly.  Also modified the list-writing
+spaces so that eTomo will parse them correctly.  Also modified the list-writing
 subroutine to output lists without spaces.
 
 5/18/03: Added startup dialog to allow all options to be set when 3dmod is
