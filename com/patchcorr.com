@@ -1,4 +1,4 @@
-# THIS FILE RUNS PATCHCORR3D WITH OUTPUT TEE'D TO A FILE
+# THIS FILE RUNS PATCHCRAWL3D WITH OUTPUT TEE'D TO A FILE
 #
 #  Arguments are size of patches, # of positions, and lower and upper limits
 #  of sampled volume in each dimension.  IF YOU HAVE TO ADJUST THE NUMBER OF
