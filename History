@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/04: IMOD_3-2-11  (Etomo unstable)
+4/27/04: Found that environment variables set in Cygwin startup scripts needed
+double backslashes for WIndows format pathnames.
+
+4/25/04: Fixed setupcombine to work when there is no XAXISTILT entry in 
+tilt[ab].com and assume 0 tilt.
+
+4/24/04: Made distribution files be self-installing runnable scripts, with
+installation to the default location and renaming of existing version (not
+documented yet).
+
 4/22/04: Made clip test for errors in MRC file I/O and exit properly; also
 fixed problems with header of output file showing extra bytes if the input
 file did.
@@ -12,6 +23,9 @@ in Mtk that kept it from running under Windows.
 
 4/19/04: Added newlines before ERROR: outputs from Fortran MRC file I/O
 routines and made Etomo strip everything before ERROR: when reporting an error.
+
+4/18/04: Modified imodsendevent to work with Qt versions 3.2 and above under
+Linux.
 
 4/10/04: IMOD_3-2-10  (Etomo unstable)
 4/9/04: Incorporated changes for building under Amd64 into Linux build scripts.
