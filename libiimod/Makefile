@@ -29,17 +29,17 @@ $(LIBD) : tiffstub.o ALWAYS
 	$(FIND) . -type f -name $(LIBD) -exec rm "{}" \;
 	$(MAKELIB) $(LIBD) tiffstub.o
 	$(RANLIB) $(LIBD)
-	$(FIND) $(LIBDIR) -type f -name "*libtiff.*" -exec rm "{}" \;
+	$(FIND) $(LIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
 	$(CP) $(LIBD) $(LIBDIR)
 
 install : $(LIBS)
-	$(FIND) $(INSTLIBDIR) -type f -name "*libtiff.*" -exec rm "{}" \;
+	$(FIND) $(INSTLIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
 	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
-	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(FIND) . -type f -name $(LIBD) -exec rm "{}" \;
+	$(FIND) . -type f -name $(LIBI) -exec rm -f "{}" \;
+	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -name "#*#"  -exec rm "{}" \;
 
