@@ -80,6 +80,7 @@ class MidasSlots : public QObject
   void try_section_change(int ds, int dsref);
   void try_montage_edge(int sec, int direction);
   void display_bwslider_value(QLabel *w, int white);
+  void convertNumLock(int &keysym, int &keypad);
 
   bool mBlackPressed;    // Flag that slider is being dragged
   bool mWhitePressed;
