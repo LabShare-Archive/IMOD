@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/27 19:41:15  mast
+No plugs in windows yet
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
@@ -18,11 +21,7 @@ Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
 */
-
-/*#ifdef __linux
-  #define NOPLUGS
-  #endif */
-#ifdef __vms
+#ifdef __ppc__
 #define NOPLUGS
 #endif
 #ifdef _WIN32
