@@ -22,6 +22,9 @@ set seedname = "empty.seed"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2003/06/05 00:09:17  mast
+#  Copy seed model only if it does not exist
+#
 #  Revision 3.8  2003/06/04 23:57:38  mast
 #  Copy empty seed models
 #
@@ -615,10 +618,6 @@ EOF
     if ($filmccd != "F")then
 	cat >> $dstfile <<EOF
 #
-# CONVERT RESIDUAL FILE TO MODEL
-#
-\$patch2imod -s $RESIDUAL_SCALE $setname.resid $setname.resmod
-#
 # COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS
 #
 \$xfproduct
@@ -627,6 +626,13 @@ $setname.tltxf
 $setname.xf
 EOF
     endif
+    cat >> $dstfile <<EOF
+#
+# CONVERT RESIDUAL FILE TO MODEL
+#
+\$if (-e $setname.resid) patch2imod -s $RESIDUAL_SCALE $setname.resid $setname.resmod
+EOF
+
     set backuplist = ($backuplist $setname.xf $setname.tlt $setname.resid $setname.resmod $setname.3Dmod)
     if ($naxis == "2") set backuplist = ($backuplist $setname"fid.xyz")
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
