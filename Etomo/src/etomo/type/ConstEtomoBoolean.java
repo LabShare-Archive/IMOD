@@ -19,6 +19,15 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/10 23:24:16  sueh
+* <p> bug# 578 Added originalVersion.  Standardized class to every use of
+* <p> value goes through getValue().  GetValue() tries to find a non-null value
+* <p> by looking first at value, then resetValue, and then defaultValue (if
+* <p> displayDefault is set).  Replacing isNull() with isSet().  IsSet() does not
+* <p> use getValue(), since it is querying whether the value was set (by set(),
+* <p> resetValue() with a non-null resetValue, or with an initialValue).  Added a
+* <p> new isNull() that uses getValue().
+* <p>
 * <p> Revision 1.5  2004/12/30 17:58:43  sueh
 * <p> bug# 567 Fixed toInteger(String): an empty string equals null.
 * <p>
@@ -301,10 +310,10 @@ public abstract class ConstEtomoBoolean implements Storable {
   }
   
   protected int toInteger(String value) {
-    value = value.toLowerCase();
     if (value == null || value.matches("\\s*") || value.equals("null")) {
       return Integer.MIN_VALUE;
     }
+    value = value.toLowerCase();
     if (value.equals("true") || value.equals("t") || value.equals("yes")) {
       return 1;
     }
