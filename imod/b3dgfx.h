@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2003/02/25 19:39:24  mast
+    Needed to include qgl.h instead of GL.h for windows
+
     Revision 3.4  2003/02/10 20:41:54  mast
     Merge Qt source
 
@@ -99,6 +102,7 @@ typedef struct b3d_ci_image
   void b3dSetCurSize(int width, int height);
 void b3dResizeViewportXY(int winx, int winy);
 void b3dColorIndex(int pix);
+float b3dGetCurXZoom();
 
 void b3dDrawPoint(int x, int y);
 void b3dDrawPlus(int x, int y, int size);
@@ -154,26 +158,18 @@ void b3dSetImageOffset(int winsize,     /* window size         */
 		       int *offset,     /* offset from center. */
 		       int *woff,       /* window offset.      */
 		       int *doff);      /* data offset         */
-void b3dFillGreyScalePixels(unsigned char *data,
-			    int xsize, int ysize,
-			    B3dCIImage *image,
-			    int base);
 
 /*
  *   Pixel drawing.
  */
 
-void b3dPutCIImage(B3dCIImage *image, int src_x, int src_y,
-		   int dest_x, int dest_y,
-		   unsigned int width, unsigned int height);
-
 void b3dDrawGreyScalePixels
-(unsigned char *data, int xsize, int ysize, int xoffset, int yoffset,
+(unsigned char **data, int xsize, int ysize, int xoffset, int yoffset,
 int wx, int wy, int width, int height, B3dCIImage *image, int base, 
 double xzoom, double yzoom, int slice);
 
 void b3dDrawGreyScalePixelsHQ
-(unsigned char *data, int xsize, int ysize, 
+(unsigned char **data, int xsize, int ysize, 
  int xoffset, int yoffset,
  int wx, int wy, 
  int width, int height, 
@@ -182,7 +178,7 @@ void b3dDrawGreyScalePixelsHQ
 
 
 void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
-				   unsigned char *data,
+				   unsigned char **data,
 				   int xsize, int ysize,
 				   int xtrans, int ytrans,
 				   int llx, int lly,  int urx, int ury,
@@ -196,7 +192,7 @@ void b3dSnapshot(char *fname);
 void b3dAutoSnapshot(char *name, int format_type, int *limits);
 void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits);
 void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
-		     unsigned char *data);
+		     unsigned char **data);
 
 
 
