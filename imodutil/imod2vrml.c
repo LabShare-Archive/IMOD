@@ -1,23 +1,14 @@
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+/*
+ *  imod2vrml - convert IMOD model to VRML version 1
+ *
+ *  Original author: James Kremer
+ *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ */
+
 /*  $Author$
 
     $Date$
@@ -25,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2004/07/07 19:25:30  mast
+    Changed exit(-1) to exit(3) for Cygwin
+
     Revision 3.1  2002/12/23 21:37:14  mast
     fixed exit status
 
@@ -249,27 +243,34 @@ static void printObject(Imod *imod, int ob, FILE *fout)
   int co;
   Iobj *obj = &imod->obj[ob];
   int lastuse = -1;
+  int hasSpheres = iobjScat(obj->flags);
   if (iobjOff(obj->flags))
     return;
 
+  /* See if object has spheres to draw */
+  for (co = 0; co < obj->contsize && !hasSpheres; co++)
+    if (obj->cont[co].sizes)
+      hasSpheres = 1;
+
   fprintf(fout, "DEF Object%dData Separator {\n", ob);
 
-          
-  if (iobjScat(obj->flags)){
+  /* Call scattered point routine for all objects with point sizes 
+     for some reason this needs to be first */
+  if (hasSpheres) {
     printMaterial(obj, &lastuse, obj->flags & IMOD_OBJFLAG_FCOLOR, fout);
     printScatContours(imod, obj, fout);
   }
-  else if (iobjMesh(obj->flags))
+  
+  /* Call routines for drawing various kinds of non-scattered points */
+  if (iobjMesh(obj->flags))
     printMesh(imod, ob, fout);
-  else{
-    if (iobjFill(obj->flags) && iobjClose(obj->flags))
-      printFilledContours(imod, obj, fout);
-    else {
-      printMaterial(obj, &lastuse, 0, fout);
-      printContours(imod, obj, fout);
-    }
+  else if (iobjFill(obj->flags) && iobjClose(obj->flags))
+    printFilledContours(imod, obj, fout);
+  else if (!iobjScat(obj->flags)) {
+    printMaterial(obj, &lastuse, 0, fout);
+    printContours(imod, obj, fout);
   }
-     
+
   fprintf(fout, "} #Object%dData\n", ob);
   return;
 }
@@ -280,22 +281,28 @@ static void printScatContours(Imod *imod, Iobj *obj, FILE *fout)
   Icont *cont;
   int co, pt;
   float zscale = imod->zscale;
+  float size;
 
   for(co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);
-    if ((!cont )||(!cont->psize))
+    
+    /* Skip the contour if it is empty or if object is not scattered and there 
+       are no sizes */
+    if (!cont || !cont->psize || (!iobjScat(obj->flags) && !cont->sizes))
       continue;
-    for(pt = 0; pt < cont->psize; pt++){
-      fprintf(fout, "\tDEF PntDat Separator { "
-	      "Translation { translation %g %g %g}"
-	      "Sphere { radius %f } }\n",
-	      cont->pts[pt].x,
-	      cont->pts[pt].y,
-	      cont->pts[pt].z * zscale,
-	      imodPointGetSize(obj, cont, pt));
+    for (pt = 0; pt < cont->psize; pt++) {
+      size = imodPointGetSize(obj, cont, pt);
+
+      /* Draw point only if size is nonzero */
+      if (size > 0.)
+        fprintf(fout, "\tDEF PntDat Separator { "
+                "Translation { translation %g %g %g}"
+                "Sphere { radius %f } }\n",
+                cont->pts[pt].x,
+                cont->pts[pt].y,
+                cont->pts[pt].z * zscale, size);
     }
   }
-     
 }
 
 /* Draws open or closed lines if object not filled. */
