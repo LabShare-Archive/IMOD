@@ -227,6 +227,17 @@ cleanlibs : cleanclibs
 	cd flib; $(MAKE) $@
 
 #
+# Clean up everything that depends on Qt
+#
+cleanqt : configure
+	cd libdiaqt  ; $(MAKE) clean
+	cd plugs     ; $(MAKE) clean
+	cd imod      ; $(MAKE) clean
+	cd midas     ; $(MAKE) clean
+	cd sendevent ; $(MAKE) clean
+	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm '{}' \;
+	cd flib/subrs/graphics ; $(MAKE) clean
+#
 # Shortcut for making libs only, helps for debugging.
 #
 clibs : configure
@@ -364,6 +375,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.19  2003/09/03 00:37:29  mast
+#  Change to ./setup in cygdist
+#
 #  Revision 3.18  2003/08/10 02:18:35  mast
 #  Add hidden files to Etomo source
 #
