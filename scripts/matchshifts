@@ -1,4 +1,11 @@
 #! /bin/csh -f
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 set SIZELIMIT = 1600
 
@@ -147,9 +154,9 @@ HERESTRING
 @ nxtap = ($nx + 9) / 10
 @ nytap = ($ny + 9) / 10
 @ nztap = ($nz + 9) / 10
-@ nxpad = ($nx + 4) / 5
+@ nxpad = ($nx + 9) / 10
 @ nypad = ($ny + 4) / 5
-@ nzpad = ($nz + 4) / 5
+@ nzpad = ($nz + 9) / 10
 @ nxcen = $nx / 2
 @ nycen = $ny / 2
 @ nzcen = $nz / 2
