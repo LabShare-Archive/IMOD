@@ -48,6 +48,14 @@ DDEESSCCRRIIPPTTIIOONN
   surface) so as to provide information on this scaling.  Here, 5 or 6
   points are recommended.
   
+  You can also use models of corresponding points alone to register
+  two volumes for which fiducial points from TILTALIGN are not
+  available.  In this case, you should have points well-distributed in
+  in all dimensions.  At least 8 points are recommended.  If this is to
+  provide the basis for the final alignment of the volumes, they should
+  be relatively near the 8 corners of the volume; but if the alignment
+  is to be refined with correlation, this is not necessary.
+
   The program needs to know how the fiducial points correspond between
   the two tilt series.  If it is given a small list of points which do
   correspond, it can find the rest of the correspondences and ignore
@@ -65,7 +73,7 @@ DDEESSCCRRIIPPTTIIOONN
   maximum residual in the linear fit is still higher than a value that
   you specify, than the program will exit with an error.
 
-  Inputs to the program:
+  Inputs to the program when fiducials from TILTALIGN are available:
   
   Name of file with coordinate of fiducials from the first tilt series
 
@@ -98,30 +106,45 @@ DDEESSCCRRIIPPTTIIOONN
 
   IF you entered 0, make the following four entries:
 
-     Either the file name of the first tomogram, or the X, Y and Z
-       dimensions and the X, Y and Z origin of that tomogram.
-       (NOTE: the standard origin values put out by TILT are NX/2, 
-       NY/2, and 0.)
+     Either the file name or the X, Y and Z dimensions of the first
+       tomogram
 
      Name of model of points from the first tomogram
   
-     Either the file name of the second tomogram, or the X, Y and Z
-       dimensions and X, Y and Z origin of that tomogram.
+     Either the file name or the X, Y and Z dimensions of the second
+       tomogram
 
      Name of model of points from the second tomogram
   
   Finally, enter name of file for output of the transformation, or
      Return for none
 
+  
+  Inputs to the program when matching models alone are being used:
+  
+  A blank line (Return) in place of the name of the first fiducial file
+  
+  The limiting value for the maximum residual
+
+  Either the file name or the X, Y and Z size of the first tomogram
+
+  Name of model of points from the first tomogram
+  
+  Either the file name or the X, Y and Z size of the second tomogram
+
+  Name of model of points from the second tomogram
+  
+  Name of file for output of the transformation, or Return for none
+  
+
   The program determines the transformation and computes the deviation
   between each actual point in the first tomogram and the
   transformation of the corresponding point in the second tomogram.  It
   reports the mean and S.D. of these deviations, the number of the
   point with the highest deviation, and the magnitude of its deviation.
-  (The modeled points are placed in the array after the fiducial
-  points, so the highest numbers refer to these points.)
 
 HHIISSTTOORRYY
-	  Written by David Mastronarde, 1995; modified for zero shifts, 7/4/97
-	  Added outlier elimination and error exit, 6/5/99
-	  Added ability to start with small initial set of matches, 3/20/00
+  Written by David Mastronarde, 1995; modified for zero shifts, 7/4/97
+  Added outlier elimination and error exit, 6/5/99
+  Added ability to start with small initial set of matches, 3/20/00
+  Added ability to use matching models only, 7/21/02
