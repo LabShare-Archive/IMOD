@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/07/30 21:54:13  rickg
+ * <p> Initial revision
+ * <p>
  * <p> Revision 1.1  2003/07/28 23:59:32  rickg
  * <p> In progress
  * <p> </p>
@@ -63,7 +66,7 @@ public class TooltipFormatter {
       // Are we past the end of the string
       if (idxSearch >= rawString.length() - 1) {
         htmlFormat.append(
-          rawString.substring(idxStart, rawString.length() - 1));
+          rawString.substring(idxStart));
         splitting = false;
       }
       else {
