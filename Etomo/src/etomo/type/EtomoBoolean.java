@@ -19,6 +19,12 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/01/05 19:58:15  sueh
+ * <p> bug# 567 Fixed bug in set(ComScriptCommand).  Function was not
+ * <p> handling a comscript where including a boolean parameter without a value
+ * <p>  means that it is true.  Caught the InvalidParameterException from
+ * <p> ComScriptCommand.getValue() and set the value to 1.
+ * <p>
  * <p> Revision 1.5  2004/12/30 17:59:29  sueh
  * <p> bug# 567 Fixed set(ComScriptCommand): handle a missing keyword by
  * <p> setting value to 0.
@@ -53,22 +59,11 @@ public class EtomoBoolean extends ConstEtomoBoolean {
   }
 
   public void load(Properties props) {
-    if (useBackwardCompatibleValue) {
-      set(props.getProperty(name, toString(backwardCompatibleValue)));
-    }
-    else {
-      set(props.getProperty(name, toString(resetValue)));
-    }
+    set(props.getProperty(name, toString(resetValue)));
   }
 
   public void load(Properties props, String prepend) {
-    if (useBackwardCompatibleValue) {
-      set(props.getProperty(prepend + "." + name,
-          toString(backwardCompatibleValue)));
-    }
-    else {
-      set(props.getProperty(prepend + "." + name, toString(resetValue)));
-    }
+    set(props.getProperty(prepend + "." + name, toString(resetValue)));
   }
 
   public ConstEtomoBoolean set(String value) {
