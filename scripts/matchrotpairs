@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2004/02/29 18:54:13  mast
+#  Initial version
+#
 
 # Filter for tiltxcorr
 set sigma1 = 0.03
@@ -63,11 +66,11 @@ if ($#argv < 1) goto usage
 while ($#argv > 3)
   switch ($argv[1])
     case -za:
-      @ zsea = $argv[2]
+      set zsea = $argv[2]
       shift; shift
       breaksw
     case -zb:
-      @ zseb = $argv[2]
+      set zseb = $argv[2]
       shift; shift
       breaksw
     case -a:
@@ -90,11 +93,11 @@ while ($#argv > 3)
       echo2 Shell PID: $$
       shift
       breaksw
-    case -d
+    case -d*
       set distort = "-dist $argv[2]"
       shift; shift
       breaksw
-    case -b
+    case -b*
       set imbin = "-image $argv[2]"
       shift; shift
       breaksw
@@ -185,7 +188,7 @@ endif
 # Set up lists to do sections from center out
 #
 @ zeroa = ($asecstr + $asecend) / 2
-@ zerob = ($asecstr + $asecend) / 2
+@ zerob = ($bsecstr + $bsecend) / 2
 set aseclist = ($zeroa)
 set bseclist = ($zerob)
 @ nviewa = 3 + $asecend - $asecstr
@@ -196,8 +199,8 @@ if ($nviewa < $nviewb) @ nviewa = $nviewb
 while ($count <= $nviewa)
     @ asec = $zeroa + $incr
     @ bsec = $zerob + $incr
-    if ($asec >= 0 && $asec < $nza) set aseclist = ($aseclist $asec)
-    if ($bsec >= 0 && $bsec < $nzb) set bseclist = ($bseclist $bsec)
+    if ($asec >= $asecstr && $asec <= $asecend) set aseclist = ($aseclist $asec)
+    if ($bsec >= $bsecstr && $bsec <= $bsecend) set bseclist = ($bseclist $bsec)
     if ($incr > 0) then
 	@ incr = - ($incr)
     else
