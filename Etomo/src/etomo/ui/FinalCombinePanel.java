@@ -39,6 +39,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2003/06/05 04:41:31  rickg
+ * <p> Label change
+ * <p>
  * <p> Revision 1.13  2003/05/15 04:28:48  rickg
  * <p> Removed test button for volcombine
  * <p>
@@ -148,7 +151,7 @@ public class FinalCombinePanel implements ContextMenu {
 
     //  Set the button sizes
     Dimension dimButton = new Dimension();
-    dimButton.setSize(8 * height, 2 * height);
+    dimButton.setSize(7 * height, 2 * height);
     btnPatchRegionModel.setPreferredSize(dimButton);
     btnPatchRegionModel.setMaximumSize(dimButton);
     btnPatchVectorModel.setPreferredSize(dimButton);
