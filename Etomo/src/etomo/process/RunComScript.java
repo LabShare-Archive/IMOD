@@ -16,6 +16,11 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/12/30 20:31:59  rickg
+ * <p> Added interface to get process output
+ * <p> Program execution correctly calls done message
+ * <p> of process manager
+ * <p>
  * <p> Revision 1.6  2002/10/22 21:38:40  rickg
  * <p> ApplicationManager now controls both demo and debug
  * <p> modes
@@ -68,8 +73,6 @@ public class RunComScript extends Thread {
    * function for the thread.
    */
   public void run() {
-
-    String IMODDIR = processManager.getIMODDirectory();
 
     //  Start a progress bar to keep the user informed
     ProcessProgressDialog progress =
