@@ -19,6 +19,11 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/11 00:23:59  sueh
+ * <p> Bug349 add useModv "-view" default false, add
+ * <p> outputWindowID  "-W" default true, open(): -W is a default
+ * <p> option rather then a constant, multiple options allowed
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -218,7 +223,6 @@ public class ImodProcess {
 				+ File.separator;
 		String command =
 			imodBinPath + "3dmod " + options + datasetName + " " + modelName;
-    System.out.println("command=" + command);
 		InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
 		//  Start the 3dmod program thread and wait for it to finish
