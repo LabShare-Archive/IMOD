@@ -103,6 +103,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/05/02 22:41:51  mast
+c	  Fixed bug in which all shifts were being destrected, not just the
+c	  ones where the current view was stretched
+c	
 c	  Revision 3.3  2002/04/29 21:56:54  mast
 c	  Added automatic binning of images down to 1024 pixels.
 c	
@@ -113,15 +117,15 @@ c	  Revision 3.1  2002/01/10 01:44:58  mast
 c	  Increased limview to 720 and added check on number of views
 c	
 	implicit none
-	integer idim,limview
-	parameter (idim=2300*2300,limview=720)
+	integer idim,idim2,limview
+	parameter (idim=4100*4100,idim2=1200*1200,limview=720)
 	integer*4 NX,NY,NZ,nxs,nys,nzs
 	COMMON //NX,NY,NZ,nxs,nys,nzs
 C
 	integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
 	real*4 title(20)
 	real*4 ctfa(8193),ctfb(8193),ctfp(8193)
-	complex array(idim/2),brray(idim/2),crray(idim/2)
+	complex array(idim/2),brray(idim2/2),crray(idim2/2)
 C
 	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
 c
@@ -267,7 +271,7 @@ c
 	read(*,*)nxbord,nybord
 	nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
 	nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
-	if((nxpad+2)*nypad.gt.idim)then
+	if((nxpad+2)*nypad.gt.idim2)then
 	  print *,'Padded image too big, try smaller borders'
 	  go to 8
 	endif
