@@ -5,6 +5,10 @@ package etomo.comscript;
  * FORTRAN input formatting present in the IMOD utilities.  It also allows for
  * range and type validation of the parameters.</p>
  *
+ * <p> Implementation details:  Double.NaN is used internaly to represent 
+ * David's remaining default input specifier /.  Double.NEGATIVE_INFINITY is
+ * used to represent an uninitialized value.
+ * 
  * <p>Copyright: Copyright (c) 2002</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
@@ -15,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/03/20 17:22:45  rickg
  * <p> Comment update
  * <p>
@@ -30,13 +37,17 @@ package etomo.comscript;
  */
 
 public class FortranInputString {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = 
+  "$Id$";
+
   int nParams;
 
   boolean[] isInteger;
+
   double[] minimum;
+
   double[] maximum;
+
   Double[] value;
 
   /**
@@ -53,6 +64,7 @@ public class FortranInputString {
       minimum[i] = -1 * Double.MAX_VALUE;
       maximum[i] = Double.MAX_VALUE;
       isInteger[i] = false;
+      value[i] = new Double(Double.NEGATIVE_INFINITY);
     }
   }
 
@@ -92,7 +104,7 @@ public class FortranInputString {
    * specified rules.
    */
   public void validateAndSet(String newValues)
-    throws FortranInputSyntaxException {
+  throws FortranInputSyntaxException {
 
     //  Handle a simple default string
     if (newValues.equals("/")) {
@@ -102,64 +114,52 @@ public class FortranInputString {
       return;
     }
 
-    // separate the sting into comma separated tokens and check for the right
-    // number of parameters or the default specifier
-    String[] tokens = newValues.split(",");
-
-    if (tokens.length < nParams) {
-      String lastToken = tokens[tokens.length - 1];
-      if (lastToken.endsWith("/")) {
-        tokens[tokens.length - 1] =
-          lastToken.substring(0, lastToken.length() - 1);
+    // Walk through the newValues string parsing the values
+    Double[] tempValue = new Double[value.length];
+    System.err.println(newValues);
+    int idxValue = 0;
+    int idxStart = 0;
+    while (idxStart <= newValues.length()) {
+      int idxDelim = newValues.indexOf(',', idxStart);
+      System.err.println(idxDelim);
+      if (idxDelim != -1) {
+        String currentToken = newValues.substring(idxStart, idxDelim);
+        System.err.println("'" + currentToken + "'");
+        // A default value
+        if (currentToken.length() == 0) {
+          System.err.println("Found default");
+          tempValue[idxValue] = new Double(Double.NaN);
+        }
+        else {
+          tempValue[idxValue] = new Double(currentToken);
+          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
+        }
+        idxStart = idxDelim + 1;
+        idxValue++;
       }
+      //  This should be the last value
       else {
-        String message =
-          "Incorrect number of parameters.  Expected "
-            + String.valueOf(nParams)
-            + " got "
-            + String.valueOf(tokens.length);
-
-        throw (new FortranInputSyntaxException(message, newValues));
-
+        String currentToken = newValues.substring(idxStart);
+        if (currentToken.endsWith("/")) {
+          System.err.println(currentToken.substring(0, 
+          currentToken.length()));
+          tempValue[idxValue] = new Double(currentToken.substring(0, 
+          currentToken.length() - 1));
+          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
+          idxValue++;
+          while (idxValue < nParams) {
+            tempValue[idxValue] = new Double(Double.NaN);
+            idxValue++;
+          }
+        }
+        else {
+          tempValue[idxValue] = new Double(newValues.substring(idxStart));
+        }
+        break;
       }
     }
-
-    // validate the range of each value if it is not a default
-    // TODO walking the data twice is not the most efficient but we don't
-    // want to change the state of the object if the input data is invalid
-    for (int i = 0; i < tokens.length; i++) {
-      double test = Double.parseDouble(tokens[i]);
-
-      if (test < minimum[i]) {
-        String message =
-          "Value below minimum.  Acceptable range: ["
-            + String.valueOf(minimum[i])
-            + ","
-            + String.valueOf(maximum[i])
-            + "] got "
-            + String.valueOf(test);
-        throw (new FortranInputSyntaxException(message, newValues));
-      }
-      if (test > maximum[i]) {
-        String message =
-          "Value above maximum.  Acceptable range: ["
-            + String.valueOf(minimum[i])
-            + ","
-            + String.valueOf(maximum[i])
-            + "] got "
-            + String.valueOf(test);
-        throw (new FortranInputSyntaxException(message, newValues));
-      }
-    }
-
-    // parse the tokens into the value array,
-    // filling in any default values
-    for (int i = 0; i < tokens.length; i++) {
-      value[i] = new Double(tokens[i]);
-    }
-    for (int i = tokens.length; i < nParams; i++) {
-      value[i] = new Double(Double.NaN);
-    }
+    value = tempValue;
+    return;
   }
 
   /**
@@ -172,7 +172,6 @@ public class FortranInputString {
   /**
    * Get a specific value as an integer
    */
-
   public int getInt(int index) {
     return value[index].intValue();
   }
@@ -188,33 +187,36 @@ public class FortranInputString {
    * Return the string representation of the parameters
    */
   public String toString() {
-
     if (value[0] == null) {
       return "Unitialized!";
     }
 
-    if (value[0].isNaN()) {
-      return "/";
-    }
+    // Walk backwards from the end of the array collecting any default value
+    // into /
 
+    boolean trailingDefault = false;
+    int idxValue = value.length - 1;
+    while (idxValue >= 0 && value[idxValue].isNaN()) {
+      trailingDefault = true;
+      idxValue--;
+    }
     StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < value.length; i++) {
-      if (isInteger[i]) {
-        buffer.append(String.valueOf(value[i].intValue()));
-      }
-      else {
-        buffer.append(String.valueOf(value[i]));
-      }
-      if (i < value.length - 1) {
-        if (value[i + 1].isNaN()) {
-          buffer.append("/");
-          return buffer.toString();
+    if (trailingDefault) {
+      buffer.append("/");
+    }
+    while (idxValue >= 0) {
+      if (!value[idxValue].isNaN()) {
+        if (isInteger[idxValue]) {
+          buffer.insert(0, String.valueOf(value[idxValue].intValue()));
         }
         else {
-          buffer.append(",");
+          buffer.insert(0, String.valueOf(value[idxValue]));
         }
       }
-
+      if (idxValue != 0) {
+        buffer.insert(0, ',');
+      }
+      idxValue--;
     }
     return buffer.toString();
   }
@@ -236,4 +238,46 @@ public class FortranInputString {
       isInteger[i] = isIntArray[i];
     }
   }
+
+  public boolean allValuesSet(){
+    for(int i=0; i <nParams; i++) {
+      if(value[i].isInfinite()){
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  /**
+   * Compare given value range specified for index.
+   * @param value
+   * @param index
+   * @param newValues
+   * @throws FortranInputSyntaxException
+   */
+  private void rangeCheck(double value, int index, String newValues)
+  throws FortranInputSyntaxException {
+    if (value < minimum[index]) {
+      String message = 
+      "Value below minimum.  Acceptable range: ["
+      + String.valueOf(minimum[index])
+      + ","
+      + String.valueOf(maximum[index])
+      + "] got "
+      + String.valueOf(value);
+      throw (new FortranInputSyntaxException(message, newValues));
+    }
+    if (value > maximum[index]) {
+      String message = 
+      "Value above maximum.  Acceptable range: ["
+      + String.valueOf(minimum[index])
+      + ","
+      + String.valueOf(maximum[index])
+      + "] got "
+      + String.valueOf(value);
+      throw (new FortranInputSyntaxException(message, newValues));
+    }
+  }
+  
+ 
 }
