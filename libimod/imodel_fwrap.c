@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2003/08/08 16:25:17  mast
+Added functions to get object name and # of objects
+
 Revision 3.9  2003/07/31 22:07:42  mast
 Complete set of object views before writing so new objects have the same
 properties in all views
@@ -164,21 +167,6 @@ static int xmax_put, ymax_put, zmax_put;
 #define SYMBOL_TYPE_FLAG (1 << 4)
 #define FLAG_VALUE_SHIFT 8
 
-static char *fstrtoc(char *fstr, int flen)
-{
-  int i;
-  char *cstr = (char *)malloc(flen + 2);
-  cstr[flen] = 0x00;
-  for (i = 0; i < flen; i++){
-    cstr[i] = fstr[i];
-    if (cstr[i] == ' '){
-      cstr[i] = 0x00;
-      break;
-    }
-  }
-  return(cstr);
-}
-
 /* DNM: a common function to delete model and object flags */
 static void deleteFimod()
 {
@@ -238,15 +226,9 @@ int getimod (int ibase[],     /* index into coord array */
   if (!model)
     return(-1);
 
-  cfilename = (char *)malloc(fsize + 2);
-  cfilename[fsize] = 0x00;
-  for (i = 0; i < fsize; i++){
-    cfilename[i] = fname[i];
-    if (cfilename[i] == ' '){
-      cfilename[i] = 0x00;
-      break;
-    }
-  }
+  cfilename = f2cString(fname, fsize);
+  if (!cfilename)
+    return FWRAP_ERROR_MEMORY;
 
   fin = fopen(cfilename, "rb");
 
@@ -405,7 +387,7 @@ int openimoddata(
              int   fsize)
 {
 #endif
-  char *filename = fstrtoc(fname, fsize);
+  char *filename = f2cString(fname, fsize);
   if (!filename) return(FWRAP_ERROR_BAD_FILENAME);
   
   deleteFimod();
@@ -868,7 +850,7 @@ int writeimod(
   int i, ob, flag, value;
   int retcode = 0;
   Iobjview *objview;
-  char *filename = fstrtoc(fname, fsize);
+  char *filename = f2cString(fname, fsize);
   if (!filename) return(FWRAP_ERROR_BAD_FILENAME);
   if (!Fimod) { free(filename); return(FWRAP_ERROR_NO_MODEL);}
 
