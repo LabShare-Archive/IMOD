@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 /* DNM note: fixed here, and in imod_display.c and imodv.c, so that the program
@@ -56,6 +59,7 @@
 #include <X11/IntrinsicP.h>
 #include <dia.h>
 #include "imodv.h"
+#include "imod.h"
 
 #ifdef __sgi
 #include <X11/extensions/SGIStereo.h>

@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.7  2002/11/14 01:15:56  mast
 Prevent 3rd mouse button drag from moving scattered points or points off
 the section
@@ -1608,7 +1611,7 @@ static void zap_keyinput(XKeyEvent *event, struct zapwin *zap)
     insertDown = 1;
     /* Use time since last event to determine whether to treat like
        single click or drag */
-    rx = event->time - insertTime;
+    rx = (int)(event->time - insertTime);
     insertTime = event->time;
     /* fprintf(stderr, " %d %d %d\n ", rx, ix, iy); */
     if(rx > 250)

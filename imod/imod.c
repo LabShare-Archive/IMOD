@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.8  2002/09/27 19:46:26  rickg
 Reverted LoadModel call due to changes in imod_io
 Added error string to SaveModelQuit call
@@ -75,7 +78,6 @@ index modeling is the default if multiple files are opened.
 
 #include "imod.h" 
 #include "imodv.h"
-#include "imod_io.h"
 #include "imod_client_message.h"
 
 /******************************* Globals *************************************/

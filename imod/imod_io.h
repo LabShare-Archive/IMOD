@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 4.0  2002/09/27 20:20:44  rickg
     Added error reporting functionality and codes
     Moved the io functionality in imod_menu_cb to this module
@@ -65,8 +68,8 @@ extern "C" {
   extern char Inputstring[128];
 
   /* Functions */
-  int imodIOGetError();
-  char *imodIOGetErrorString();
+  int imodIOGetError(void);
+  char *imodIOGetErrorString(void);
   int createNewModel(char *mdoelFilename);
   int openModel(char *modelFilename);
   Imod *LoadModel(FILE *mfin);

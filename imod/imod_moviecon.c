@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <stdio.h>
@@ -224,11 +227,11 @@ void imcReadTimer(void)
 	  return;
 
 #ifdef NO_SYS_TIMES
-     elapsed = (float)(movieCurrent - movieStart) / CLOCKS_PER_SEC;
-     instrate = CLOCKS_PER_SEC / (float)(movieCurrent - movieLast);
+     elapsed = (float)(movieCurrent - movieStart) / (float)CLOCKS_PER_SEC;
+     instrate = (float)CLOCKS_PER_SEC / (float)(movieCurrent - movieLast);
 #else
-     elapsed = (float)(movieCurrent - movieStart) / USE_CLK_TCK;
-     instrate = USE_CLK_TCK / (float)(movieCurrent - movieLast);
+     elapsed = (float)(movieCurrent - movieStart) / (float)USE_CLK_TCK;
+     instrate = (float)USE_CLK_TCK / (float)(movieCurrent - movieLast);
 #endif
      sprintf(cstring, "Actual /%s: %5.2f (avg)  %5.2f", persec,
 	     movieCount / elapsed, instrate);

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <stdlib.h>
@@ -391,9 +394,11 @@ void imodv_input_cb(Widget w, XtPointer client, XtPointer call)
                a->imod->view->rot.z);
         if (a->movieFrames) {
 #ifdef NO_SYS_TIMES
-          elapsed = (float)(a->movieCurrent - a->movieStart) / CLOCKS_PER_SEC;
+          elapsed = (float)(a->movieCurrent - a->movieStart) / 
+	    (float)CLOCKS_PER_SEC;
 #else
-          elapsed = (float)(a->movieCurrent - a->movieStart) / USE_CLK_TCK;
+          elapsed = (float)(a->movieCurrent - a->movieStart) / 
+	    (float)USE_CLK_TCK;
 #endif
 #ifdef NO_SYS_TIMES
           printf("%d frames / %.3f CPU sec = %.3f FPS\n",

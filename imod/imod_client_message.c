@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2002/10/22 22:38:02  mast
+Added include of imod_client_message.h, removed some obviously redundant
+or unneeded includes carried over from imod_menu.c
+
 Revision 3.1  2002/10/15 21:18:09  rickg
 executeMessage() call moved so that it get called for all messages.
 
@@ -60,7 +64,7 @@ static int message_index;
 static char *message_string = NULL;
 
 //  Module methods
-static void executeMessage();
+static void executeMessage(void);
 
 
 void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
