@@ -15,6 +15,10 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/06/05 21:12:23  rickg
+ * <p> Added model mode and raise messages
+ * <p> fill cache flag is functional
+ * <p>
  * <p> Revision 2.9  2003/05/27 08:44:03  rickg
  * <p> Removed TODO
  * <p>
@@ -142,7 +146,7 @@ public class ImodProcess {
     //  Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
     imodThread.start();
-		
+
     //  Check the stderr of the 3dmod process for the windowID and the
     String line;
     while (imodThread.isAlive() && windowID.equals("")) {
@@ -215,9 +219,6 @@ public class ImodProcess {
     args[0] = MESSAGE_OPEN_MODEL;
     args[1] = newModelName;
     imodSendEvent(args);
-    args = new String[1];
-    args[0] = MESSAGE_MODEL_MODE;
-    imodSendEvent(args);
   }
 
   /**
@@ -237,24 +238,27 @@ public class ImodProcess {
     args[0] = MESSAGE_VIEW_MODEL;
     imodSendEvent(args);
   }
-  
+
+  /**
+   * Switch the 3dmod process to model mode
+   * @throws SystemProcessException
+   */
   public void modelMode() throws SystemProcessException {
-  String[] args = new String[1];
-  args[0] = MESSAGE_MODEL_MODE;
-  imodSendEvent(args);
-}
-  
+    String[] args = new String[1];
+    args[0] = MESSAGE_MODEL_MODE;
+    imodSendEvent(args);
+  }
 
   /**
    * Raise the 3dmod window
    * @throws SystemProcessException
    */
   public void raise3dmod() throws SystemProcessException {
-     String[] args = new String[1];
-     args[0] = MESSAGE_RAISE;
-     imodSendEvent(args);
-   }
-   
+    String[] args = new String[1];
+    args[0] = MESSAGE_RAISE;
+    imodSendEvent(args);
+  }
+
   /**
    * Send an event to 3dmod using the imodsendevent command
    */
