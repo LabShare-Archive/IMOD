@@ -141,11 +141,11 @@
 # For making distribution, all files will be put in a
 # directory called $(ARCNAME) and a final file called
 # $(ARCNAME)$(DISTNAME).tar.gz will be made.
-SHELL    = /bin/csh
+#
 VERSION = `sed '/[^0-9.]/s///g' .version`
 ARCNAME  = imod_$(VERSION)
-DISTNAME = `if (-e .distname) sed '/[[:cntrl:]]/s///g' .distname`
-LAST_OPTIONS = `if (-e .options) sed '/[[:cntrl:]]/s///g' .options`
+DISTNAME = `if [ -e .distname ] ; then sed '/[[:cntrl:]]/s///g' .distname ; fi`
+LAST_OPTIONS = `if [ -e .options ] ; then sed '/[[:cntrl:]]/s///g' .options ; fi`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -157,7 +157,7 @@ LAST_OPTIONS = `if (-e .options) sed '/[[:cntrl:]]/s///g' .options`
 #
 PWD      = `pwd`
 
-COMPRESS = gzip
+COMPRESS = gzip -f
 
 ARCHIVE  = $(ARCNAME)$(DISTNAME).tar
 ARCCOMP  = $(ARCNAME)$(DISTNAME).tar.gz
@@ -331,7 +331,7 @@ flibs: configure
 # Make the full software distribution.  Use the options from last setup
 #
 dist : ALWAYS
-	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
+	if [ -e $(ARCDIR) ] ; then /bin/rm -rf $(ARCDIR)/ ; fi
 	mkdir $(ARCDIR)
 	./setup -inst $(ARCDIR) $(LAST_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
@@ -340,24 +340,24 @@ dist : ALWAYS
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	./installqtlib
-	echo "Compressing..."
+	@echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
-	echo "Making self-installing file..."
-	cat dist/installStub $(ARCCOMP) >! $(ARCCSH) ; chmod a+x $(ARCCSH)
+	@echo "Making self-installing file..."
+	cat dist/installStub $(ARCCOMP) >| $(ARCCSH) ; chmod a+x $(ARCCSH)
 
 
 ##################################################################
 # Make the full IMOD source distribution
 #
 src : configure cleansrc csrc fsrc etomosrc
-	if (-e $(ARCDIR)_src/$(ARCDIR)_src/) /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/
+	if [ -e $(ARCDIR)_src/$(ARCDIR)_src/ ] ; then /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/ ; fi
 	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
 	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
 	$(COMPRESS) $(ARCNAME)_src.tar
 
 cleansrc : ALWAYS
-	if (-e $(ARCDIR)_src) /bin/rm -rf $(ARCDIR)_src/
-	if (-e $(ARCNAME)_src.tar) /bin/rm -rf $(ARCNAME)_src.tar	
+	if [ -e $(ARCDIR)_src ] ; then /bin/rm -rf $(ARCDIR)_src/ ; fi
+	if [ -e $(ARCNAME)_src.tar ] ; then /bin/rm -rf $(ARCNAME)_src.tar ; fi
 	\find dist -type f -name "*~" -exec rm "{}" \;
 	\find machines -type f -name "*~" -exec rm "{}" \;
 	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
@@ -373,7 +373,7 @@ cleansrc : ALWAYS
 # The C source.
 #
 csrc : ALWAYS
-	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
+	mkdir -p $(ARCDIR)_src
 	cp Makefile setup README History .version original_dates vcimod.dsw \
 	installqtlib packMacApps $(ARCDIR)_src/
 	tar cBf - \
@@ -404,7 +404,7 @@ csrc : ALWAYS
 # The Fortran source.
 #
 fsrc :
-	if (! (-e $(ARCDIR)_src/flib/)) mkdir $(ARCDIR)_src/flib/
+	mkdir -p $(ARCDIR)_src/flib/
 	cp flib/Makefile $(ARCDIR)_src/flib/
 	cp -r flib/man $(ARCDIR)_src/flib/
 	(cd flib; tar cBf - \
@@ -416,7 +416,7 @@ fsrc :
 # Etomo source
 #
 etomosrc :
-	if (! (-e $(ARCDIR)_src/Etomo/)) mkdir $(ARCDIR)_src/Etomo/
+	mkdir -p $(ARCDIR)_src/Etomo/
 	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
 	Etomo/*MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
 	Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
@@ -435,6 +435,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.44  2004/12/23 23:38:35  mast
+#  Added dsp file for imodqtassist
+#
 #  Revision 3.43  2004/12/22 05:49:20  mast
 #  Added imodqtassist
 #
