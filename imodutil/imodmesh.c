@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
 Revision 3.8  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -356,9 +359,9 @@ int main(int argc, char **argv)
     maxsave.y = imod->ymax;
     maxsave.z = imod->zmax;
     imodel_maxpt(imod, &max);
-    imod->xmax = max.x;
-    imod->ymax = max.y;
-    imod->zmax = max.z;
+    imod->xmax = max.x + 1.;
+    imod->ymax = max.y + 1.;
+    imod->zmax = max.z + 1.;
     imodel_model_clean(imod, 1);
     cleanzero(imod);
     imod->xmax = maxsave.x;
