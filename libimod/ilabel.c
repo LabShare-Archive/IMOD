@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/27 00:34:40  mast
+    add projects' *.dsw *.dsp
+
     Revision 3.1  2003/02/21 22:20:37  mast
     Use new b3d types
 
@@ -288,7 +291,7 @@ static int getpadlen(char *string)
 }
 
 
-int imodLabelWrite(Ilabel *lab, FILE *fout)
+int imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout)
 {
      b3dUInt32 id;
      b3dInt32 l, len, pad, lpad;
@@ -297,8 +300,7 @@ int imodLabelWrite(Ilabel *lab, FILE *fout)
      if (!lab) return -1;
 
      bgnpos = ftell(fout);
-     id = ID_LABL;
-     imodPutInt(fout, &id);
+     imodPutInt(fout, &tag);
 
      /* Calculate lenth of data to be written. */
      id  = 16;
