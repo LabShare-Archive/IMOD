@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.5  2003/06/20 20:14:44  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -318,7 +321,7 @@ EOF
     set contout = "-mo 0 -co $bwout[1],$bwout[3]"
 endif
 
-newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout
+newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout
 
 if ($status) goto clean
 
@@ -328,7 +331,7 @@ if ($?slices) then
 endif
 echo " "
 echo "The newstack command was:"
-echo "newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout"
+echo "newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout"
 
 if ($doflip == "1") then
     echo "Flipping Y and Z..."
