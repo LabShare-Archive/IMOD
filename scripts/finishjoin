@@ -5,32 +5,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.9  2004/11/09 21:24:56  mast
-#  Change terminology to slices  in usage statement
-#
-#  Revision 3.8  2004/11/08 18:12:50  mast
-#  Name the trial output file differently
-#
-#  Revision 3.7  2004/10/28 21:13:31  mast
-#  Added maxsize, bin and trial options
-#
-#  Revision 3.6  2004/09/17 19:02:44  mast
-#  Had it detect large rotations and warn if there is no reference sections
-#
-#  Revision 3.5  2004/08/27 05:44:59  mast
-#  Changed to handle new version of info file with scaling and file names
-#  on separate lines, switched to head -n and tail -n
-#
-#  Revision 3.4  2004/07/09 21:06:01  mast
-#  Switched from /usr/tmp to tmpdir set in standard way
-#
-#  Revision 3.3  2004/07/08 22:54:18  mast
-#  Switched some echos to \echo to dodge Cygwin tcsh bug
-#
-#  Revision 3.2  2004/06/29 03:47:22  mast
-#  Added nohup, fixed path setting
+#  Log at end of file
 #
 
 nohup
@@ -82,6 +57,7 @@ set offset = "0,0"
 @ binning = 1
 @ interval = 1
 set trial = ""
+set newmode = ""
 
 while ($#argv > 2 && $joinroot == "")
   switch ($argv[1])
@@ -133,9 +109,15 @@ set ifsquoze = $info1[2]
 
 # 2nd version info file has default size in it
 # The fifth entry was added as a version number at version 3
+# Access of info1 variable must be on separate line from test, thus then/endif
 set version = 1
 if ($#info1 > 2) set version = 2
-if ($#info1 > 4) set version = $info1[5]
+if ($#info1 > 4) then
+    set version = $info1[5]
+endif
+if ($version > 3) then
+    set newmode = $info1[6]
+endif
 
 # use default size unless user entered size
 # Note, wasn't able to test on "/" because csh tried to do a division
@@ -395,6 +377,7 @@ while ($itomo <= $ntomo)
     @ itomo++
 end
 if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
+if ($newmode != "") echo "ModeToOutput $newmode" >> $newstin
 cat >> $newstin <<EOF
 BinByFactor $binning
 OutputFile $joinroot$trial.join
@@ -422,3 +405,34 @@ exit 1
 converr:
 echo "ERROR: $pn - Size and offset values should be integers"
 exit 1
+
+#
+#  $Log$
+#  Revision 3.10  2004/11/24 02:45:03  mast
+#  *** empty log message ***
+#
+#  Revision 3.9  2004/11/09 21:24:56  mast
+#  Change terminology to slices  in usage statement
+#
+#  Revision 3.8  2004/11/08 18:12:50  mast
+#  Name the trial output file differently
+#
+#  Revision 3.7  2004/10/28 21:13:31  mast
+#  Added maxsize, bin and trial options
+#
+#  Revision 3.6  2004/09/17 19:02:44  mast
+#  Had it detect large rotations and warn if there is no reference sections
+#
+#  Revision 3.5  2004/08/27 05:44:59  mast
+#  Changed to handle new version of info file with scaling and file names
+#  on separate lines, switched to head -n and tail -n
+#
+#  Revision 3.4  2004/07/09 21:06:01  mast
+#  Switched from /usr/tmp to tmpdir set in standard way
+#
+#  Revision 3.3  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
+#  Revision 3.2  2004/06/29 03:47:22  mast
+#  Added nohup, fixed path setting
+#
