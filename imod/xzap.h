@@ -31,38 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.2.2.8  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 3.2.2.7  2003/01/30 00:47:35  mast
-Cleanup with new timer logic
-
-Revision 3.2.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 3.2.2.5  2003/01/04 03:42:20  mast
-simplified closing logic
-
-Revision 3.2.2.4  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 3.2.2.3  2002/12/13 06:06:30  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 3.2.2.2  2002/12/10 16:57:34  mast
-preventing multiple draws, implementing current contour draw while dragging
-
-Revision 3.2.2.1  2002/12/09 17:50:17  mast
-Initial changes to get Qt version
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/09/13 21:04:57  mast
-Added resizeSkipDraw to prevent redraws during resize
-
+Log at end of file
 */
 
 #ifndef XZAP_H
@@ -71,25 +40,6 @@ Added resizeSkipDraw to prevent redraws during resize
 class ZapWindow;
 class ZapGL;
 typedef struct b3d_ci_image B3dCIImage;
-
-void zapClosing(struct zapwin *zap);
-void zapPaint(struct zapwin *zap);
-void zapResize(struct zapwin *zap, int winx, int winy);
-void zapKeyInput(struct zapwin *zap, QKeyEvent *e);
-void zapKeyRelease(struct zapwin *zap, QKeyEvent *e);
-void zapMousePress(struct zapwin *zap, QMouseEvent *e);
-void zapMouseRelease(struct zapwin *zap, QMouseEvent *e);
-void zapMouseMove(struct zapwin *zap, QMouseEvent *e);
-void zapHelp(void);
-void zapEnteredZoom(struct zapwin *zap, float newZoom);
-void zapEnteredSection(struct zapwin *zap, int section);
-void zapStepZoom(struct zapwin *zap, int step);
-void zapStateToggled(struct zapwin *zap, int index, int state);
-void zapPrintInfo(struct zapwin *zap);
-void zapStepTime(struct zapwin *zap, int step);
-void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
-                   unsigned char flags);
-int  imod_zap_open(struct ViewInfo *vi);
 
 typedef struct zapwin
 {
@@ -113,6 +63,7 @@ typedef struct zapwin
   int bandurx;
   int bandlly;
   int bandury;
+  int startingBand;
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
@@ -148,4 +99,61 @@ typedef struct zapwin
 
 }ZapStruct;
 
+void zapClosing(struct zapwin *zap);
+void zapPaint(struct zapwin *zap);
+void zapResize(struct zapwin *zap, int winx, int winy);
+void zapKeyInput(struct zapwin *zap, QKeyEvent *e);
+void zapKeyRelease(struct zapwin *zap, QKeyEvent *e);
+void zapMousePress(struct zapwin *zap, QMouseEvent *e);
+void zapMouseRelease(struct zapwin *zap, QMouseEvent *e);
+void zapMouseMove(struct zapwin *zap, QMouseEvent *e, bool mousePressed);
+void zapHelp(void);
+void zapEnteredZoom(struct zapwin *zap, float newZoom);
+void zapEnteredSection(struct zapwin *zap, int section);
+void zapStepZoom(struct zapwin *zap, int step);
+void zapStateToggled(struct zapwin *zap, int index, int state);
+void zapPrintInfo(struct zapwin *zap);
+void zapStepTime(struct zapwin *zap, int step);
+void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
+                   unsigned char flags);
+void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
+                         int *imPtSize);
+int  imod_zap_open(struct ViewInfo *vi);
+
+/*
+$Log$
+Revision 3.3  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 3.2.2.8  2003/01/30 06:17:47  mast
+Add ability to change range of Z slider on image flip
+
+Revision 3.2.2.7  2003/01/30 00:47:35  mast
+Cleanup with new timer logic
+
+Revision 3.2.2.6  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 3.2.2.5  2003/01/04 03:42:20  mast
+simplified closing logic
+
+Revision 3.2.2.4  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 3.2.2.3  2002/12/13 06:06:30  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 3.2.2.2  2002/12/10 16:57:34  mast
+preventing multiple draws, implementing current contour draw while dragging
+
+Revision 3.2.2.1  2002/12/09 17:50:17  mast
+Initial changes to get Qt version
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/09/13 21:04:57  mast
+Added resizeSkipDraw to prevent redraws during resize
+
+*/
 #endif
