@@ -437,7 +437,7 @@ int main( int argc, char *argv[])
 
   /* Try to open the last file if there is one */
   if (firstfile) {
-    mfin = fopen(argv[argc - 1], "r");
+    mfin = fopen(argv[argc - 1], "rb");
     if (mfin == NULL) {
 
       /* Fail to open, and it is the only filename, then exit */
@@ -523,7 +523,7 @@ int main( int argc, char *argv[])
     /* The file is an image, not an image list */
     if (!vi.ifd){
 
-      vi.image = iiOpen(Imod_imagefile, "r");
+      vi.image = iiOpen(Imod_imagefile, "rb");
       if (!vi.image){
 	fprintf(stderr, "imod error: "
 			    "Failed to load input file %s\n",
@@ -909,6 +909,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.2  2003/02/20 15:58:57  mast
+Add -V and -Z options, rationalize them with -S and -xyz options
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 
