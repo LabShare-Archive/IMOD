@@ -53,6 +53,7 @@
 #include "imod.h"
 #include "imod_info_cb.h"
 #include "imodplug.h"
+#include "iproc.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -356,6 +357,10 @@ void InfoWindow::manageMenus()
     mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);
   }
 
+  // These are run-time items.  If more instances appear this should be
+  // split into initial and runtime calls
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy());
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy());
 }
 
 
@@ -488,6 +493,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.26  2004/11/01 23:25:13  mast
+    Added delete surface menu entry
+
     Revision 4.25  2004/09/21 20:17:54  mast
     Added menu option to renumber object
 
