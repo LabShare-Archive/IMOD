@@ -55,6 +55,8 @@ Log at end of file
 #include "imod_client_message.h"
 #include "imodplug.h"
 #include "imod_workprocs.h"
+#include "control.h"
+#include "xzap.h"
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
@@ -334,6 +336,13 @@ bool ImodClipboard::executeMessage()
       imodPlugOpenByName("Bead Fixer");
       break;
 
+    case MESSAGE_ONE_ZAP_OPEN:
+      if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE))
+        inputRaiseWindows();
+      else
+        imod_zap_open(App->cvi);
+      break;
+
     default:
       fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
               , message_action);
@@ -388,6 +397,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.11  2004/01/07 01:54:51  mast
+Add capability to start movie on any axis with negative value to 6
+
 Revision 4.10  2003/11/12 18:48:37  mast
 Added ability to process messages in imodv
 
