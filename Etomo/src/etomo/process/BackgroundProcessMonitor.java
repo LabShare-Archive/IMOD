@@ -16,12 +16,15 @@ package etomo.process;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:47:30  sueh
+ * <p> $bug# 508 Generic interface for CombineProcessMonitor.
+ * <p> $$ </p>
  */
 public interface BackgroundProcessMonitor {
   public static final String rcsid = "$$Id$$";
   
-  abstract public boolean isDone();
-  abstract public void setKilled(boolean killed);
+  abstract public boolean isSuccessful();
+  abstract public void kill();
   abstract public boolean isProcessRunning();
 }
