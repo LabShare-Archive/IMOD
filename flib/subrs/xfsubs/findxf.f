@@ -1,7 +1,7 @@
 c	  FINDXF finds a transformation from a set of corresponding points
 c	  that have been loaded into the matrix XR, independent variable values
-c	  of X and Y in columns 1 and 2, dependent variable values of X and Y in
-c	  columns 4 and 5 (column 3 will be used for each in turn.)
+c	  of X and Y in columns 1 and 2, dependent variable values of X and Y
+c	  in columns 4 and 5 (column 3 will be used for each in turn.)
 c	  NPNTS is the number of points
 c	  XCEN, YCEN should contain the center coordinates that have been
 c	  subtracted from the X and Y point data.
@@ -13,10 +13,11 @@ c	  IFDEV should be 0 for no deviation information, 1 or 2 for deviations
 c	  F(2,3) is returned with the transform
 c	  If IFDEV is non-zero, DEVAVG, DEVSD, DEVMAX, and IPNTMAX are returned
 c	  with the mean, SD, and maximum deviation and the point number at
-c	  which the maximum occurs, and columns 10 and 11, and 13 are filled with
-c	  the deviation in X and Y and total deviation.
+c	  which the maximum occurs, and columns 10 and 11, and 13 are filled
+c	  with the deviation in X and Y and total deviation.
 c	  If IFDEV is 2, columns 8 and 9 are filled with the coordinates with
-c	  XCEN and YCEN added back, and column 12 has the angle of the deviation
+c	  XCEN and YCEN added back, and column 12 has the angle of the
+c	  deviation
 c
 c	  $Author$
 c
@@ -25,6 +26,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.1  2004/06/21 23:03:44  mast
+c	  Took out of beadtrack, added to library, to avoid duplication code
+c	  with xfmodel
+c	
 c
 	subroutine findxf(xr,npnts,xcen,ycen,iftrans,ifrotrans,ifdev,f,devavg,
      &	    devsd,devmax,ipntmax)
@@ -35,8 +40,8 @@ c
 	real*4 xr(msiz,*), sx(msiz), xm(msiz), sd(msiz), ss(msiz,msiz)
 	real*4 ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz), b(msiz), b1(msiz)
 	integer*4 isol,i,ipnt
-	real*4 const, rsq, fra, theta,sinth,costh,gmag,devsum,devsumsq,xdev,ydev
-	real*4 devpnt,xx,yy
+	real*4 const, rsq, fra, theta,sinth,costh,gmag,devsum,devsumsq,xdev
+	real*4 ydev,devpnt,xx,yy
 	real*4 atan2d
 c	  
 	call xfunit(f,1.)
