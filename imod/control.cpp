@@ -459,7 +459,7 @@ QWidget *DialogManager::parent(int dlgClass)
 #endif
 }
 
-// Raise all windows of the given type
+// Raise all windows of the given class
 void DialogManager::raise(int dlgClass)
 {
   ImodvDialog *dia;
@@ -469,6 +469,20 @@ void DialogManager::raise(int dlgClass)
       dia->widget->raise();
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
+}
+
+// Return the number of windows of a given type
+int DialogManager::windowCount(int dlgType)
+{
+  int num = 0;
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if (dia->dlgType == dlgType) 
+      num++;
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+  }
+  return num;
 }
 
 // Return the size of the biggest Zap window still open, or of the last
@@ -507,6 +521,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.13  2003/11/01 18:12:16  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.12  2003/09/24 17:32:44  mast
 Add and use restorable geometry routine
 
