@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2003/10/20 20:25:59  rickg
+ * <p> Bug# 228 added Restart at matchvol1 button
+ * <p>
  * <p> Revision 1.12  2003/10/15 22:46:41  rickg
  * <p> Button size change
  * <p> Label changes
@@ -76,8 +79,8 @@ public class InitialCombinePanel implements ContextMenu {
   private JPanel pnlModelSelect = new JPanel();
   private JCheckBox cbUseModel =
     new JCheckBox("Use models of corresponding points, not cross-correlation");
-  private JButton btnImodMatchModels =
-    new JButton("<html><b>Create Matching Models in 3dmod</b>");
+  private MultiLineButton btnImodMatchModels =
+    new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
   private JPanel pnlButton = new JPanel();
   private JButton btnMatchcheck =

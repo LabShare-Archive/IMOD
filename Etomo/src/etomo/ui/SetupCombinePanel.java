@@ -43,7 +43,11 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p>
- * $Log$ Revision 2.11 2003/10/18 00:53:22 rickg
+ * $Log$
+ * Revision 2.12  2003/10/20 18:53:30  rickg
+ * Changed patch region and start combine buttons to MultilineToggles
+ * Logic for checking if com scripts exist.
+ * Revision 2.11 2003/10/18 00:53:22 rickg
  * Added multiline toggle button for matching models Updated matching model
  * button state in setParameters method
  * 
@@ -175,8 +179,8 @@ public class SetupCombinePanel implements ContextMenu {
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private MultiLineToggleButton btnImodMatchModels =
-    new MultiLineToggleButton("<html><b>Create Matching Models in 3dmod</b>");
+  private MultiLineButton btnImodMatchModels =
+    new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
   private LabeledTextField ltfFiducialMatchListA =
     new LabeledTextField("Corresponding fiducial list A: ");
@@ -191,8 +195,8 @@ public class SetupCombinePanel implements ContextMenu {
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbPatchRegionModel =
     new JCheckBox("Use patch region model");
-  private MultiLineToggleButton btnPatchRegionModel =
-    new MultiLineToggleButton("<html><b>Create/Edit Patch Region Model</b>");
+  private MultiLineButton btnPatchRegionModel =
+    new MultiLineButton("<html><b>Create/Edit Patch Region Model</b>");
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -333,12 +337,8 @@ public class SetupCombinePanel implements ContextMenu {
       new SetupCombinePatchCBListener(this);
     cbPatchRegionModel.addActionListener(patchCBListener);
     
-    //  Get the current text height from one of the
-    double height = cbPatchRegionModel.getPreferredSize().getHeight();
-
-    //  Set the button sizes
-    Dimension dimButton = new Dimension();
-    dimButton.setSize(7 * height, 2 * height);
+     //  Set the button sizes
+    Dimension dimButton = UIParameters.getButtonDimension();
     btnImodMatchModels.setPreferredSize(dimButton);
     btnImodMatchModels.setMaximumSize(dimButton);
     btnPatchRegionModel.setMaximumSize(dimButton);
