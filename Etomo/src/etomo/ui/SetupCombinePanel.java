@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.4  2003/03/20 17:46:21  rickg
  * <p> Added right button context menu
  * <p>
@@ -113,8 +116,11 @@ public class SetupCombinePanel implements ContextMenu {
   private JRadioButton rbMediumPatch = new JRadioButton("Medium patches");
   private JRadioButton rbLargePatch = new JRadioButton("Large patches");
   private ButtonGroup bgPatchSize = new ButtonGroup();
+  private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbPatchRegionModel =
-    new JCheckBox("Use patch region model file");
+    new JCheckBox("Use patch region model");
+  private JButton btnPatchRegionModel =
+    new JButton("<html><b>Create/edit patch region model</b>");
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -189,7 +195,12 @@ public class SetupCombinePanel implements ContextMenu {
     pnlPatchParams.add(rbSmallPatch);
     pnlPatchParams.add(rbMediumPatch);
     pnlPatchParams.add(rbLargePatch);
-    pnlPatchParams.add(cbPatchRegionModel);
+
+    pnlPatchRegionModel.setLayout(
+      new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
+    pnlPatchRegionModel.add(cbPatchRegionModel);
+    pnlPatchRegionModel.add(btnPatchRegionModel);
+    pnlPatchParams.add(pnlPatchRegionModel);
 
     pnlPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
     pnlPatchRegion.add(ltfXMin.getContainer());
@@ -212,15 +223,20 @@ public class SetupCombinePanel implements ContextMenu {
     //  Bind the btns to the action listener
     SetupCombineActionListener actionListener =
       new SetupCombineActionListener(this);
+    btnPatchRegionModel.addActionListener(actionListener);
     btnImodVolumeA.addActionListener(actionListener);
     btnImodVolumeB.addActionListener(actionListener);
     btnCreate.addActionListener(actionListener);
     btnCombine.addActionListener(actionListener);
 
-    //  Set the btn sizes
-    double height = ltfFiducialMatchListA.getLabelPreferredSize().getHeight();
+    //  Get the current text height from one of the 
+    double height = cbPatchRegionModel.getPreferredSize().getHeight();
+
+    //  Set the button sizes
     Dimension dimButton = new Dimension();
-    dimButton.setSize(10 * height, 3 * height);
+    dimButton.setSize(8 * height, 2 * height);
+    btnPatchRegionModel.setPreferredSize(dimButton);
+    btnPatchRegionModel.setMaximumSize(dimButton);
     btnImodVolumeA.setSize(dimButton);
     btnImodVolumeA.setMaximumSize(dimButton);
     btnImodVolumeB.setSize(dimButton);
@@ -381,6 +397,11 @@ public class SetupCombinePanel implements ContextMenu {
   //  Action functions for setup panel btns
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
+    if (event
+      .getActionCommand()
+      .equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel();
+    }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
       applicationManager.imodTomogram(AxisID.FIRST);
     }
