@@ -84,6 +84,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2004/06/01 18:53:48  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
  * <p> Revision 3.61  2004/05/27 22:49:54  rickg
  * <p> Bug #391 offer to close preali window for fidless case
  * <p> standardized parameter gathering for tomogram positioning
@@ -2584,7 +2587,6 @@ public class ApplicationManager {
   public void imodFullSample(AxisID axisID) {
     String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
       imodManager
           .model(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
