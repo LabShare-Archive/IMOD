@@ -1126,7 +1126,8 @@ float ivwGetFileValue(ImodView *vw, int cx, int cy, int cz)
         vw->hdr = vw->image = &vw->imageList[fz];
         ivwReopen(vw->image);
         fp = vw->image->fp;
-        }
+        mrcheader = (struct MRCheader *)vw->image->header;
+      }
       fz = 0;
     }
 
@@ -2227,6 +2228,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.18  2003/12/30 06:27:37  mast
+Implemented treatment of multiple single-image files as sections in Z
+
 Revision 4.17  2003/12/04 22:57:17  mast
 Set info window position for fake images too
 
