@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/03/27 00:27:49  rickg
+ * <p> Fixed but in loading tilt with with respect to parsing comments.
+ * <p>
  * <p> Revision 2.4  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>
@@ -567,7 +570,8 @@ public class ComScriptManager {
     boolean parseComments) {
 
     String command = scriptName + axisID.getExtension() + ".com";
-    File comFile = new File(appManager.getWorkingDirectory(), command);
+
+    File comFile = new File(System.getProperty("user.dir"), command);
     ComScript comScript = new ComScript(comFile);
     try {
       comScript.setParseComments(parseComments);
