@@ -1,15 +1,58 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/1/04: Changes to 3dmod:
+   Changed attach function for zap, slicer and Xyz windows to enable attaching
+to a 3D point as long as it is visible, even if it is not on the current
+section.
+   In Contour Move dialog, added ability to convert a spherical point to a set
+of circular contours in another object.
+   Added menu entry to delete a whole surface.
+   Changed meaning of model resolution to be zoom-dependent, so that
+continuously added points would be added at an interval appropriate for the
+zoom.
+   Added help screen for Model Header dialog.
+   Fixed Xyz window to retain floating point model point positions.
+   Changed rubberband so that it has invariant position in image as image is
+panned and zoomed, and is constrained to the image not the window.
+   Implemented multiple contour selection with Ctrl and first mouse button or
+with Ctrl-A to select all contours on a section or inside rubberband.
+   Made contour join work with two selected contours or with one set contour
+and the current contour; provided hot key J to join.
+   Contour deletion will delete multiple selected contours after confirmation.
+   Contour Move dialog will also move multiple selected contours to another
+object or surface.
+   In the Subset panel of the Model View - Edit Object window, showing the
+current surface only will now work with meshes displayed and not just with the
+contours displayed.
+
+10/29/04: Fixed centering of extracted items in Boxstartend.
+
+10/29/04: Allowed Rotatevol to run with only one option; provided defaults for
+output size and angles.
+
+10/28/04: Added Binvol for binning a volume down in 3 dimensions.
+
+10/28/04: Added options to Finishjoin to get a report on the size needed to
+hold the aligned images, and to get a trial stack with a subset of sections.
+
+10/27/04: Fixed csh startup files on Linux, Mac, and SGI and scripts for
+running Qt programs to work if the path or the dynamic library path contains
+entries with spaces.
+
+10/25/04: Added option to Midas to define a transform output file different
+from the input file.
+
 10/24/04: Changed Tiltalign to use matrix products instead of explicit
 equations for computing the projection matrix and its derivatives, converted
 to PIP input, added an option to solve for a single stretch during projection,
 added ability to group rotation angles during global solution, and added
-outputs of factors for adjusting back-porjection position as a function of Z
+outputs of factors for adjusting back-projection position as a function of Z
 height, both into a separate file for global factors and into the local
 alignment file.
 
 10/24/04: Switched to a C version of the FFT library (a translation of the
 Fortran version), added a 3D FFT option to Fftrans, and speeded up clip fft 3d.
+Switched setupcombine to use Fftrans since it seems faster than clip.
 
 10/22/04: Under Linux, made 3dmod clear file system cache for each section
 that it reads (only effective with 2.6 kernel/FC 2).  This is to prevent image

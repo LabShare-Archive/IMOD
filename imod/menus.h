@@ -40,6 +40,7 @@ char *Imod_menus_help[] = {
 "\tNew \t\tCreates a new contour on a new surface. (N)\n",
 "\tGo To... \t\tGo to a different surface.\n",
 "\tMove... \t\tMove contours to new surfaces within object.\n",
+"\tDelete \t\tDelete all contours in the current surface.\n",
 "\n",
 "     Contour-->\n",
 "\tNew \t\tCreates a new contour.   (n)\n",
