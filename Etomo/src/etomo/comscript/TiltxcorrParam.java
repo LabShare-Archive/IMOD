@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.util.StringTokenizer;
 import etomo.type.TiltAngleType;
 
 /**
@@ -15,6 +16,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/09/09 17:17:30  rickg
  * <p> Changed view list to view range and made it a 2 element integer
  * <p> FortranInputString
@@ -61,7 +65,10 @@ public class TiltxcorrParam
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException, FortranInputSyntaxException {
+    throws
+      BadComScriptException,
+      FortranInputSyntaxException,
+      InvalidParameterException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
@@ -70,6 +77,38 @@ public class TiltxcorrParam
     }
     catch (BadComScriptException except) {
       throw (except);
+    }
+    String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
+    if (scriptCommand.isKeywordValuePairs()) {
+      inputFile = scriptCommand.getValue("InputFile");
+      pieceListFile = scriptCommand.getValue("PieceListFile");
+      outputFile = scriptCommand.getValue("OutputFile");
+      firstTiltAngle =
+        Double.parseDouble(scriptCommand.getValue("FirstTiltAngle"));
+      tiltIncrement =
+        Double.parseDouble(scriptCommand.getValue("TiltIncrement"));
+      tiltFile = scriptCommand.getValue("TiltFile");
+      StringTokenizer tokens =
+        new StringTokenizer(scriptCommand.getValue("TiltAngles"), ",");
+      int index = 0;
+      while (tokens.hasMoreTokens()) {
+        tiltAngles[index++] = Double.parseDouble(tokens.nextToken());
+      }
+      rotationAngle =
+        Double.parseDouble(scriptCommand.getValue("RotationAngle"));
+      filterRadius1 =
+        Double.parseDouble(scriptCommand.getValue("FilterRadius1"));
+      filterRadius2 =
+        Double.parseDouble(scriptCommand.getValue("FilterRadius2"));
+      filterSigma1 = Double.parseDouble(scriptCommand.getValue("FilterSigma1"));
+      filterSigma2 = Double.parseDouble(scriptCommand.getValue("FilterSigma2"));
+      excludeCentralPeak = scriptCommand.hasKeyword("ExcludeCentralPeak");
+      bordersInXandY.validateAndSet(scriptCommand.getValue("BordersInXandY"));
+      padsInXandY.validateAndSet(scriptCommand.getValue("PadsInXandY"));
+      tapersInXandY.validateAndSet(scriptCommand.getValue("TapersInXandY"));
+      startingEndingViews.validateAndSet(
+        scriptCommand.getValue("StartingEndingViews"));
+      return;
     }
 
     int inputLine = 0;
@@ -98,15 +137,15 @@ public class TiltxcorrParam
       throw new BadComScriptException("Incorrect tilt angle specification type");
     }
 
-    imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
+    rotationAngle = Double.parseDouble(inputArgs[inputLine++].getArgument());
     try {
       filterParams.validateAndSet(inputArgs[inputLine++].getArgument());
       excludeCentralPeak =
         inputArgs[inputLine++].getArgument().matches("\\s*1\\s*");
-      trim.validateAndSet(inputArgs[inputLine++].getArgument());
-      padPercent.validateAndSet(inputArgs[inputLine++].getArgument());
-      taperPercent.validateAndSet(inputArgs[inputLine++].getArgument());
-      viewRange.validateAndSet(inputArgs[inputLine++].getArgument());
+      bordersInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
+      padsInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
+      tapersInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
+      startingEndingViews.validateAndSet(inputArgs[inputLine++].getArgument());
     }
     catch (FortranInputSyntaxException except) {
       String message =
@@ -116,6 +155,7 @@ public class TiltxcorrParam
           + except.getMessage();
       throw new FortranInputSyntaxException(message, except.getNewString());
     }
+    sequentialInputToPip();
   }
 
   /**
@@ -125,7 +165,6 @@ public class TiltxcorrParam
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
-
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
@@ -135,27 +174,131 @@ public class TiltxcorrParam
       throw (except);
     }
 
-    //  Fill in the input argument sequence
-    inputArgs[0].setArgument(inputFile);
-    inputArgs[1].setArgument(pieceListFile);
-    inputArgs[2].setArgument(outputFile);
-    TiltAngleType type = tiltAngleSpec.getType();
-    inputArgs[3].setArgument(String.valueOf(type.toInt()));
-    inputArgs[4].setArgument(tiltAngleSpec.getTiltAngles());
-    inputArgs[5].setArgument(String.valueOf(imageRotation));
-    inputArgs[6].setArgument(filterParams.toString());
-    if (excludeCentralPeak) {
-      inputArgs[7].setArgument("1");
+    //  Switch to keyword/value pairs
+    scriptCommand.useKeywordValue();
+
+    scriptCommand.setValue("InputFile", inputFile);
+
+    if (!pieceListFile.equals("")) {
+      scriptCommand.setValue("PieceListFile", pieceListFile);
     }
     else {
-      inputArgs[7].setArgument("0");
+      scriptCommand.deleteKey("PieceListFile");
     }
-    inputArgs[8].setArgument(trim.toString());
-    inputArgs[9].setArgument(padPercent.toString());
-    inputArgs[10].setArgument(taperPercent.toString());
-    inputArgs[11].setArgument(viewRange);
-    scriptCommand.setInputArguments(inputArgs);
+    if (!outputFile.equals("")) {
+      scriptCommand.setValue("OutputFile", outputFile);
+    }
+    else {
+      scriptCommand.deleteKey("OutputFile");
+    }
+    if (firstTiltAngle != Double.NaN) {
+      scriptCommand.setValue("FirstTiltAngle", String.valueOf(firstTiltAngle));
+    }
+    else {
+      scriptCommand.deleteKey("FirstTiltAngle");
+    }
+    if (tiltIncrement != Double.NaN) {
+      scriptCommand.setValue("TiltIncrement", String.valueOf(tiltIncrement));
+    }
+    else {
+      scriptCommand.deleteKey("TiltIncrement");
+    }
+    if (!tiltFile.equals("")) {
+      scriptCommand.setValue("TiltFile", tiltFile);
+    }
+    else {
+      scriptCommand.deleteKey("TiltFile");
+    }
+    if (tiltAngles != null && tiltAngles.length > 0) {
+      StringBuffer buffer = new StringBuffer();
+      for (int index = 0; index < tiltAngles.length; index++) {
+        buffer.append(String.valueOf(tiltAngles[index]));
+        if (index < tiltAngles.length - 1) {
+          buffer.append(",");
+        }
+      }
+      scriptCommand.setValue("TiltAngles", buffer.toString());
+    }
+    else {
+      scriptCommand.deleteKey("TiltAngles");
+    }
+    if (rotationAngle != Double.NaN) {
+      scriptCommand.setValue("RotationAngle", String.valueOf(rotationAngle));
+    }
+    else {
+      scriptCommand.deleteKey("RotationAngle");
+    }
+    if (filterRadius1 != Double.NaN) {
+      scriptCommand.setValue("FilterRadius1", String.valueOf(filterRadius1));
+    }
+    else {
+      scriptCommand.deleteKey("FilterRadius1");
+    }
+    if (filterRadius2 != Double.NaN) {
+      scriptCommand.setValue("FilterRadius2", String.valueOf(filterRadius2));
+    }
+    else {
+      scriptCommand.deleteKey("FilterRadius2");
+    }
+    if (filterSigma1 != Double.NaN) {
+      scriptCommand.setValue("FilterSigma1", String.valueOf(filterSigma1));
+    }
+    else {
+      scriptCommand.deleteKey("FilterSigma1");
+    }
+    if (filterSigma2 != Double.NaN) {
+      scriptCommand.setValue("FilterSigma2", String.valueOf(filterSigma2));
+    }
+    else {
+      scriptCommand.deleteKey("FilterSigma2");
+    }
+    if (excludeCentralPeak) {
+      scriptCommand.setValue("ExcludeCentralPeak", "");
+    }
+    else {
+      scriptCommand.deleteKey("ExcludeCentralPeak");
+    }
+    if (!bordersInXandY.equals("")) {
+      scriptCommand.setValue("BordersInXandY", bordersInXandY.toString());
+    }
+    else {
+      scriptCommand.deleteKey("BordersInXandY");
+    }
+    if (!padsInXandY.equals("")) {
+      scriptCommand.setValue("PadsInXandY", padsInXandY.toString());
+    }
+    else {
+      scriptCommand.deleteKey("PadsInXandY");
+    }
+    if (!tapersInXandY.equals("")) {
+      scriptCommand.setValue("TapersInXandY", tapersInXandY.toString());
+    }
+    else {
+      scriptCommand.deleteKey("TapersInXandY");
+    }
+    if (!startingEndingViews.equals("")) {
+      scriptCommand.setValue(
+        "StartingEndingViews",
+        startingEndingViews.toString());
+    }
+    else {
+      scriptCommand.deleteKey("StartingEndingViews");
+    }
+  }
 
+  protected void sequentialInputToPip() {
+    //LIST is not implemented and EXTRACT isn't used with tiltxcorr
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+      tiltFile = tiltAngleSpec.getTiltAngleFilename();
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+      firstTiltAngle = tiltAngleSpec.getRangeMin();
+      tiltIncrement = tiltAngleSpec.getRangeStep();
+    }
+    filterSigma1 = filterParams.getDouble(0);
+    filterSigma2 = filterParams.getDouble(1);
+    filterRadius1 = filterParams.getDouble(2);
+    filterRadius2 = filterParams.getDouble(3);
   }
 
   /**
@@ -179,43 +322,49 @@ public class TiltxcorrParam
     this.outputFile = outputFile;
   }
 
-  /**
-   * Set the filter parameters.
-   */
-  public void setFilterParams(String newFilterParams)
-    throws FortranInputSyntaxException {
-    filterParams.validateAndSet(newFilterParams);
+  public void setFilterRadius1(double filterRadius1) {
+    this.filterRadius1 = filterRadius1;
+  }
+  public void setFilterRadius2(double filterRadius2) {
+    this.filterRadius2 = filterRadius2;
+  }
+  public void setFilterSigma1(double filterSigma1) {
+    this.filterSigma1 = filterSigma1;
+  }
+  public void setFilterSigma2(double filterSigma2) {
+    this.filterSigma2 = filterSigma2;
   }
 
   /**
-   * Set the trimming parameters.
+   * Set the borders in x and y.
    */
-  public void setTrim(String newTrimValues)
+  public void setBordersInXandY(String newBordersInXandYValues)
     throws FortranInputSyntaxException {
-    trim.validateAndSet(newTrimValues);
+    bordersInXandY.validateAndSet(newBordersInXandYValues);
   }
 
   /**
-   * Set the padding percentage.
+   * Set the pads in x and y.
    */
-  public void setPadPercent(String newPadPercent)
+  public void setPadsInXandY(String newPadsInXandY)
     throws FortranInputSyntaxException {
-    padPercent.validateAndSet(newPadPercent);
+    padsInXandY.validateAndSet(newPadsInXandY);
   }
 
   /**
    * Set the taper percentage.
    */
-  public void setTaperPercent(String newTaperPercent)
+  public void setTapersInXandY(String newTapersInXandY)
     throws FortranInputSyntaxException {
-    taperPercent.validateAndSet(newTaperPercent);
+    tapersInXandY.validateAndSet(newTapersInXandY);
   }
 
   /**
    * Set the range of view to process.
    */
-  public void setViewRange(String newPair) throws FortranInputSyntaxException {
-    viewRange.validateAndSet(newPair);
+  public void setStartingEndingViews(String newPair)
+    throws FortranInputSyntaxException {
+    startingEndingViews.validateAndSet(newPair);
   }
 
   /**
@@ -241,17 +390,17 @@ public class TiltxcorrParam
       + "Exclude central peak : "
       + String.valueOf(excludeCentralPeak)
       + "\n"
-      + "Trim x: "
-      + trim
+      + "Borders In X and Y: "
+      + bordersInXandY
       + "\n"
-      + "Trim y: "
-      + padPercent
+      + "Pads In X and Y: "
+      + padsInXandY
       + "\n"
-      + "Pad x: "
-      + taperPercent
+      + "Tapers In X and Y: "
+      + tapersInXandY
       + "\n"
-      + "Pad y: "
-      + viewRange
+      + "Starting Ending Views: "
+      + startingEndingViews
       + "\n";
   }
 
@@ -270,14 +419,6 @@ public class TiltxcorrParam
 
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if (inputArgs.length != 12) {
-      throw (
-        new BadComScriptException(
-          "Incorrect number of input arguments to tiltxcorr command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected 12."));
-    }
-
     return inputArgs;
   }
 }
