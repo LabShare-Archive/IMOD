@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/02/26 22:56:32  mast
+    Improved protection against erroneous identification as montage
+
     Revision 3.1  2001/12/17 18:54:45  mast
     Added protections against non-Boulder files being recognized as montages
 
@@ -132,12 +135,13 @@ int iiMRCCheck(ImodImageFile *i)
     i->imax  = i->amax;
     i->amean = hdr->amean;
     /* DNM 11/5/98: inverted these expressions to give proper usage */
+    /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
     if (hdr->xlen)
-	 i->xscale = hdr->xlen/(float)hdr->nx;
+	 i->xscale = hdr->xlen/(float)hdr->mx;
     if (hdr->ylen)
-	 i->yscale = hdr->ylen/(float)hdr->ny;
+	 i->yscale = hdr->ylen/(float)hdr->my;
     if (hdr->xlen)
-	 i->zscale = hdr->zlen/(float)hdr->nz;
+	 i->zscale = hdr->zlen/(float)hdr->mz;
     i->xtrans = hdr->xorg;
     i->ytrans = hdr->yorg;
     i->ztrans = hdr->zorg;
