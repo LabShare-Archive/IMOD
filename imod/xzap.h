@@ -51,6 +51,9 @@ typedef struct zapwin
   int    rbMouseY1;
   int    startingBand;
   int    shiftingCont; /* Flag for shifting contour */
+  Ipoint xformCenter;  /* Center defined by mouse */
+  int    centerDefined;  /* Flag that center was defined with mouse */
+  int    centerMarked;   /* Flag that center was displayed in extra object */
   int    shiftRegistered;  /* Flag that contour changes have been registered */
   int    dragAddCount; /* Number of points added and not registered for undo */
   Iindex dragAddIndex; /* Starting obj, cont, point for first such point*/
@@ -120,6 +123,9 @@ void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.14  2005/02/09 01:19:48  mast
+Added flag for keeping track of changes started when shifted contours
+
 Revision 3.13  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
