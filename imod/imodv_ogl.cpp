@@ -71,6 +71,8 @@ static void set_curcontsurf(int ob, Imod* imod);
 static void imodvUnsetObject(Iobj *obj);
 static int load_cmap(unsigned char table[3][256], int *rampData);
 static void mapfalsecolor(int gray, int *red, int *green, int *blue);
+static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale,
+                    double zoom);
 
 static int CTime = -1;
 static float depthShift;
@@ -443,9 +445,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     glLoadName(ob);
     curTessObj = ob;
     if (obj->trans == 0){
-      clip_obj(obj, 1, imod->zscale, Imodv->md->zoom);
+      clip_obj(imod, obj, 1, imod->zscale, Imodv->md->zoom);
       imodvDraw_object( obj , imod);
-      clip_obj(obj, 0, imod->zscale, Imodv->md->zoom);
+      clip_obj(imod, obj, 0, imod->zscale, Imodv->md->zoom);
       glFinish();
     }
   }
@@ -457,9 +459,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     obj = &(imod->obj[ob]);
     if (obj->trans > 0){
       glDepthMask(GL_FALSE); 
-      clip_obj(obj, 1, imod->zscale, Imodv->md->zoom);
+      clip_obj(imod, obj, 1, imod->zscale, Imodv->md->zoom);
       imodvDraw_object( obj , imod);
-      clip_obj(obj, 0, imod->zscale, Imodv->md->zoom);
+      clip_obj(imod, obj, 0, imod->zscale, Imodv->md->zoom);
       glDepthMask(GL_TRUE); 
       glFinish();
     }
@@ -467,6 +469,49 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
      
   glPopName();
   return;
+}
+
+static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale, 
+                    double zoom)
+{
+  GLdouble params[4];
+  float z = zscale;
+  int cpn = 0, clipSet, ip;
+  IclipPlanes *clips = &obj->clips;
+  GLint maxPlanes;
+  int numSets = (clips->flags & (1 << 7)) ? 1 : 2;
+  glGetIntegerv(GL_MAX_CLIP_PLANES, &maxPlanes);
+  //imodPrintStderr("Max planes %d\n", maxPlanes);
+
+  /* Loop through the two sets (object then global), loop through the planes in
+     each set, and for each one that is on up to the limit, either turn on the
+     plane or disable it based on the flag */
+  for (clipSet = 0; clipSet < numSets; clipSet++) {
+    for (ip = 0; ip < clips->count; ip++) {
+      if ((clips->flags & (1 << ip)) && cpn < maxPlanes) {
+        if (flag) {
+          params[0] = clips->normal[ip].x;
+          params[1] = clips->normal[ip].y;
+          params[2] = clips->normal[ip].z;
+          params[3] = (clips->normal[ip].x * clips->point[ip].x) +
+            (clips->normal[ip].y * clips->point[ip].y) +
+            (clips->normal[ip].z * clips->point[ip].z);
+          /* imodPrintStderr("clip set %d plane %d params = %g %g %g %g\n", 
+            clipSet, ip, params[0], params[1], params[2], params[3]); */
+          
+          glClipPlane( GL_CLIP_PLANE0 + cpn, params); 
+          glEnable(GL_CLIP_PLANE0 + cpn);
+        } else {
+          glDisable(GL_CLIP_PLANE0 + cpn);
+        }
+        cpn++;
+      }
+    }
+    clips = &imod->view->clips;
+  }
+  if (flag)
+    glFlush();
+  return(0);
 }
 
 /* In which any mode enabled by imodvSetObject should be disabled */
@@ -1780,6 +1825,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.14  2004/09/10 02:31:03  mast
+replaced long with int
+
 Revision 4.13  2004/06/10 00:33:28  mast
 Disbaled clipping planes, more or less, at 0 and 1000
 
