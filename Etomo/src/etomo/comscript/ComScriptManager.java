@@ -13,6 +13,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/12 00:04:10  rickg
+ * <p> Bug #410 Newstack PIP transition
+ * <p> Handle newst or newstack commands the same way
+ * <p>
  * <p> Revision 3.1  2004/03/04 00:46:54  rickg
  * <p> Bug# 406 Correctly write out command when it isn't the first in the
  * <p> script
@@ -77,6 +81,8 @@ public class ComScriptManager {
   private ComScript scriptEraserB;
   private ComScript scriptXcorrA;
   private ComScript scriptXcorrB;
+  private ComScript scriptPrenewstA;
+  private ComScript scriptPrenewstB;
   private ComScript scriptTrackA;
   private ComScript scriptTrackB;
   private ComScript scriptAlignA;
@@ -211,6 +217,72 @@ public class ComScriptManager {
   }
 
   /**
+   * Load the specified prenewst com script and initialize the NewstParam
+   * object
+   * @param axisID the AxisID to load.
+   */
+  public void loadPrenewst(AxisID axisID) {
+
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptPrenewstB = loadComScript("prenewst", axisID, true);
+    }
+    else {
+      scriptPrenewstA= loadComScript("prenewst", axisID, true);
+    }
+  }
+
+  /**
+   * Get the newstack parameters from the specified prenewst script object
+   * @param axisID the AxisID to read.
+   * @return a NewstParam object that will be created and initialized
+   * with the input arguments from prenewst in the com script.
+   */
+  public NewstParam getPrenewstParam(AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript scriptPrenewst;
+    if (axisID == AxisID.SECOND) {
+      scriptPrenewst = scriptPrenewstB;
+    }
+    else {
+      scriptPrenewst = scriptPrenewstA;
+    }
+
+    // Initialize a NewstParam object from the com script command object
+    NewstParam prenewstParam = new NewstParam();
+    
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptPrenewst);
+    initialize(prenewstParam, scriptPrenewst, cmdName, axisID);
+    return prenewstParam;
+  }
+
+  /**
+   * Save the specified prenewst com script updating the newst parameters
+   * @param axisID the AxisID to load.
+   * @param tiltXcorrParam a TiltxcorrParam object that will be used to update
+   * the xcorr com script
+   */
+  public void savePrenewst(NewstParam prenewstParam, AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript scriptPrenewst;
+    if (axisID == AxisID.SECOND) {
+      scriptPrenewst = scriptPrenewstB;
+    }
+    else {
+      scriptPrenewst = scriptPrenewstA;
+    }
+    
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptPrenewst) ;
+    updateComScript(scriptPrenewst, prenewstParam, cmdName, axisID);
+  }
+
+  /**
    * Load the specified track com script
    * @param axisID the AxisID to load.
    */
@@ -307,6 +379,28 @@ public class ComScriptManager {
   }
 
   /**
+   * Get the xfproduct parameter from the align script
+   * @param axisID
+   * @return
+   */
+  public XfproductParam getXfproductInAlign(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript align;
+    if (axisID == AxisID.SECOND) {
+      align = scriptAlignB;
+    }
+    else {
+      align = scriptAlignA;
+    }
+
+    // Initialize a BeadtrckParam object from the com script command object
+    XfproductParam xfproductParam = new XfproductParam();
+    initialize(xfproductParam, align, "xfproduct", axisID);
+    return xfproductParam;
+  }
+  
+  
+  /**
    * Save the specified align com script updating the tiltalign parameters
    * @param axisID the AxisID to load.
    * @param tiltalignParam a TiltalignParam object that will be used to update
@@ -327,6 +421,26 @@ public class ComScriptManager {
     updateComScript(scriptAlign, tiltalignParam, "tiltalign", axisID);
   }
 
+  /**
+   * Save the xfproduct command to the specified align com script
+   * @param xfproductParam
+   * @param axisID
+   */
+  public void saveXfproductInAlign(XfproductParam xfproductParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptAlign;
+    if (axisID == AxisID.SECOND) {
+      scriptAlign = scriptAlignB;
+    }
+    else {
+      scriptAlign = scriptAlignA;
+    }
+
+    //  update the tiltalign parameters
+    updateComScript(scriptAlign, xfproductParam, "xfproduct", axisID);
+  }
+  
+  
   /**
    * Load the specified newst com script
    * @param axisID the AxisID to load.

@@ -12,6 +12,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2004/03/11 23:58:14  rickg
+ * <p> Bug #410 Newstack PIP transition
+ * <p> Formatted code
+ * <p>
  * <p> Revision 3.21  2004/03/10 00:44:32  sueh
  * <p> bug# 408 added getIMODCalibDirectory()
  * <p>
@@ -595,6 +599,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.comscript.XfproductParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
@@ -1201,6 +1206,9 @@ public class ApplicationManager {
     comScriptMgr.loadXcorr(axisID);
     coarseAlignDialog.setCrossCorrelationParams(comScriptMgr
       .getTiltxcorrParam(axisID));
+    comScriptMgr.loadPrenewst(axisID);
+    comScriptMgr.loadAlign(axisID);
+    coarseAlignDialog.setPrenewstParams(comScriptMgr.getPrenewstParam(axisID));
     mainFrame.showProcess(coarseAlignDialog.getContainer(), axisID);
   }
 
@@ -1234,6 +1242,10 @@ public class ApplicationManager {
       if (!updateXcorrCom(axisID)) {
         return;
       }
+      if (!updatePrenewstCom(axisID)) {
+        return;
+      }
+
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
         mainFrame.setCoarseAlignState(ProcessState.COMPLETE, axisID);
@@ -1285,21 +1297,24 @@ public class ApplicationManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID) {
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.coarseAlign(axisID);
+    if (updatePrenewstCom(axisID)) {
+      processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.coarseAlign(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute prenewst" + axisID.getExtension()
+            + ".com";
+        message[1] = e.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
+      setThreadName(threadName, axisID);
     }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute prenewst" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
-      return;
-    }
-    setThreadName(threadName, axisID);
   }
 
   /**
@@ -1369,6 +1384,46 @@ public class ApplicationManager {
     return true;
   }
 
+  /**
+   * Get the prenewst parameters from the dialog box and update the prenewst
+   * com script as well as the align com script since binning of the pre-aligned
+   * stack has an affect on the scaling of the fiducial model.
+   * @param axisID
+   * @return
+   */
+private boolean updatePrenewstCom(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog;
+    if (axisID == AxisID.SECOND) {
+      coarseAlignDialog = coarseAlignDialogB;
+    }
+    else {
+      coarseAlignDialog = coarseAlignDialogA;
+    }
+    NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+    coarseAlignDialog.getPrenewstParams(prenewstParam);
+    comScriptMgr.savePrenewst(prenewstParam, axisID);
+
+    XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
+    int binning = prenewstParam.getBinByFactor();
+    try {
+      if(binning > 1) {
+        xfproductParam.setScaleShifts("1," + String.valueOf(binning));
+      }
+      else{
+        xfproductParam.setScaleShifts("/");
+      }
+      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Align Parameter Syntax Error (xfproduct)";
+      errorMessage[1] = except.getMessage();
+      errorMessage[2] = "New value: " + except.getNewString();
+      mainFrame.openMessageDialog(errorMessage, "Align Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
   /**
    * Open the fiducial model generation dialog
    */
