@@ -1,4 +1,3 @@
-
 /*  IMOD VERSION 2.50
  *
  *  xzap.c -- The Zap Window.
@@ -192,7 +191,7 @@ void zapHelp()
      "\nMouse button function in movie mode\n\n",
      "\tFirst Button Click: Select the current viewing point, marked by "
      "a small cross.\n",
-     "\First Button Drag: Pan the image if it is larger than the "
+     "\tFirst Button Drag: Pan the image if it is larger than the "
      "window, or adjust the size of the rubber band."
      "\n"
      "\tSecond Button: Start movie in forward direction, or stop movie."
@@ -2602,6 +2601,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.14  2003/04/14 15:31:02  mast
+fixing documentation
+
 Revision 4.13  2003/03/25 23:01:35  mast
 Take nearest int in checking for current point Z value when adding points
 
