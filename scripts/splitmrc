@@ -16,7 +16,9 @@ Options:  -d pathname   Path of directory to place files into
 EOF
     exit 0
 endif
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR)
+    set path = ($IMOD_DIR/bin $path)
+endif
 
 while ($#argv > 1)
   switch ($argv[1])
