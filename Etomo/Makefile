@@ -7,7 +7,7 @@ SOURCEPATH = -sourcepath src
 CLASSPATH = -classpath classes
 OUTPUT = -d classes
 
-PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.ui  etomo.util
+PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui etomo.util
 
 JAVAC_OPTIONS =
 JAVAC = $(JAVAC_EXE) $(CLASSPATH) $(OUTPUT) $(JAVAC_OPTIONS)
