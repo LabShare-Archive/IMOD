@@ -332,6 +332,7 @@ void InfoWindow::editModelSlot(int item)
 
       /* Take care of object color map and displayed color of current
          object */
+      imodSelectionListClear(App->cvi);
       imod_cmap(App->cvi->imod);
       imod_info_setobjcolor();
       imodDraw(App->cvi, IMOD_DRAW_RETHINK);
@@ -377,6 +378,7 @@ void InfoWindow::editObjectSlot(int item)
       if (dia_ask("Delete Object?")) {
         imodFreeObject(imod, imod->cindex.object);
       }
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
@@ -430,6 +432,7 @@ void InfoWindow::editObjectSlot(int item)
     }
     /* DNM: need to maintain separate object numbers for two functions */
     /*	  vi->obj_moveto = obj_moveto; */
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
@@ -506,6 +509,7 @@ void InfoWindow::editObjectSlot(int item)
       imod->cindex.point = ptsave;
     }
 
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_RETHINK);
     break;
 
@@ -531,6 +535,7 @@ void InfoWindow::editObjectSlot(int item)
 	pt = obj->cont[co].psize - 1;
       imodSetIndex(imod, ob, co, pt);
     }
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
@@ -581,6 +586,7 @@ void InfoWindow::editObjectSlot(int item)
     }
     free(objSave);
     imodSetIndex(imod, obNew, co, pt);
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     imodvObjedNewView();
     break;
@@ -597,6 +603,12 @@ void InfoWindow::editObjectSlot(int item)
  */
 void InfoWindow::editSurfaceSlot(int item)
 {
+  Iobj *obj;
+  Icont *cont;
+
+  int co, coNew, numDel, surfDel;
+  QString qstr;
+  Imod *imod = App->cvi->imod;
 
   if (ImodForbidLevel)
     return;
@@ -611,7 +623,40 @@ void InfoWindow::editSurfaceSlot(int item)
     break;
 	  
   case ESURFACE_MENU_MOVE: /* move */
-    imodContEditMoveDialog(App->cvi);
+    imodContEditMoveDialog(App->cvi, 1);
+    break;
+
+  case ESURFACE_MENU_DELETE: /* delete */
+    cont = imodContourGet(imod);
+    obj = imodObjectGet(imod);
+    if (!cont)
+      break;
+
+    // Count contours at this surface and confirm if > 1
+    numDel = 0;
+    surfDel = cont->surf;
+    for (co = 0; co < obj->contsize; co++)
+      if (obj->cont[co].surf == surfDel)
+        numDel++;
+    qstr.sprintf("Are you sure you want to delete the %d contours in "
+                 "this surface?", numDel);
+    if (numDel > 1 && !dia_ask((char *)qstr.latin1()))
+      break;
+
+    // Remove contours from end back, adjust current contour when deleted
+    coNew = imod->cindex.contour;
+    for (co = obj->contsize - 1; co >= 0; co--) {
+      if (obj->cont[co].surf == surfDel) {
+        DelContour(imod, co);
+        if (coNew == co)
+          coNew--;
+      }
+    }
+    if (coNew < 0 && obj->contsize > 0)
+      coNew = 0;
+    imod->cindex.contour = coNew;
+    imodSelectionListClear(App->cvi);
+    imod_setxyzmouse();
     break;
   }
 }
@@ -648,7 +693,7 @@ void InfoWindow::editContourSlot(int item)
              "to a new object\n");
       break;
     }
-    imodContEditMoveDialog(vi);
+    imodContEditMoveDialog(vi, 0);
     break;
 	  
   case ECONTOUR_MENU_SORT: /* sort */
@@ -656,6 +701,7 @@ void InfoWindow::editContourSlot(int item)
       imodObjectSort(imodel_object_get(imod));
       imod->cindex.contour = -1;
       imod->cindex.point   = -1;
+      imodSelectionListClear(vi);
       imod_info_setocp();
     }else{
       wprint("\aError: Must be in Model mode to Sort.\n");
@@ -749,11 +795,12 @@ void InfoWindow::editContourSlot(int item)
     if (pt >= (int)cont->psize)
       pt = cont->psize - 1;
     imodSetIndex(imod, ob, co, pt);
+    imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   case ECONTOUR_MENU_JOIN: /* join two contour together. */
-    imodContEditJoin(vi, 0, 0);
+    imodContEditJoinOpen(vi);
     break;
 
   case ECONTOUR_MENU_INVERT: /* invert a contour */
@@ -1112,6 +1159,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.18  2004/10/12 15:23:09  mast
+Fixed string when writing as NFF
+
 Revision 4.17  2004/09/21 20:17:10  mast
 Added menu option to renumber object
 
