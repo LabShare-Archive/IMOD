@@ -13,23 +13,7 @@ c	  transformations (varying in X and Z) or with a general 3-D matrix,
 c	  as output by FINDWARP.  The program uses the same algorithm as
 c	  ROTATEVOL for rotating large volumes.
 c
-c	  INPUTS to the program:
-c	  
-c	  Name of the input file to be transformed
-c
-c	  Name of the output file for the transformed volume
-c
-c	  Path name of directory (for example, /usr/tmp) where temporary files
-c	  .  can be placed, or Return to have files placed in the current
-c	  .  directory
-c
-c	  X, Y, and Z dimensions of the output file, or / to accept the default
-c	  .  values, which are NZ, NY, and NX of the input volume (a 90-degree
-c	  .  rotation about the Y axis)
-c	  
-c	  Name of the file with the matrix of inverse transformations
-c	  .  (produced by FINDWARP)
-c
+c	  See man page for more details
 c
 c	  David Mastronarde, 11/15/96; modified for 3-D matrix of
 c	  transformations, 7/23/97
@@ -43,38 +27,31 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/10/02 19:59:05  mast
+c	  Changed method of writing sections to avoid having to fit output
+c	  section into array all at once.
+c	  Increased array size and put big array in common
+c	
 c	  Revision 3.2  2003/03/14 22:54:09  mast
 c	  Standardized error outout and implemented implicit none
 c	
 
 	implicit none
-	integer inpdim,limdim,lmcube,maxloc,limout
-	parameter (inpdim=256,limdim=16200,lmcube=limdim/inpdim,
-     &	    maxloc=10000)
-	parameter (limout=(inpdim*3)/2)
-	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
-	real*4 cxyzin(3),cxyzout(3),cell(6),title(20),dxyzin(3)
-	integer*4 nxyzin(3),mxyzin(3),nxyzout(3),indcen(3)
-	integer*4 nxin,nyin,nzin,nxout,nyout,nzout
-	real*4 cxin,cyin,czin,cxout,cyout,czout
-	common /xyz/nxin,nyin,nzin,nxout,nyout,nzout,cxin,cyin,czin
-     &	    ,cxout,cyout,czout
-	equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
-	equivalence (cxyzin(1),cxin),(cxyzout(1),cxout)
-	real*4 mfor(3,3),minv(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
+	include 'rotmatwarp.inc'
+	integer maxloc
+	parameter (maxloc=10000)
+	real*4 cell(6),dxyzin(3)
+	integer*4 mxyzin(3)
+	real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
 	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
 	real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3),delta(3)
 	real*4 aloc(3,3,maxloc),dloc(3,maxloc)
 	real*4 ofsin(3,limout),amx(3,3,limout)
-	integer*4 ncubes(3),nxyzcubas(3),nxyzscr(3),nbigcube(3)
-	integer*4 nxyzcube(3,lmcube),ixyzcube(3,lmcube),izsec(4)
+	integer*4 izsec(4)
 	integer*4 inmin(3),inmax(3)
-	integer*2 ifile(lmcube,lmcube),izinfile(lmcube,lmcube,limout)
 	real*4 freinp(10)
 c
-	character*120 filein,fileout,fileinv,tempdir,tempext,tempname
-	character*120 temp_filename
-	common /bigarr/array
+	character*120 filein,fileout,fileinv,tempdir,tempext
 c
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c
@@ -83,39 +60,83 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
-	integer*4 nlocx,ninp,nlocy,nlocz,nloctot,i,j,mode,kti,ja,ix,iy
+	integer*4 nlocx,ninp,nlocy,nlocz,nloctot,i,j,kti,ja,ix,iy,ierr
 	real*4 xlocst,ylocst,xlocmax,ylocmax,zlocst,zlocmax,cenlocx,cenlocy
 	real*4 cenlocz,dxloc,dyloc,dzloc,dmin,dmax,tsum,devmx,xcen,ycen,zcen
 	integer*4 idimout,ind,izcube,ixcube,iycube,ifx,ify,ifz,ival,ifempty
 	integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
 	real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
-	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,dmeanin
-	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut
+	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
+	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder
+	real*4 baseInt
 c
-	write(*,'(1x,a,$)')'Name of input file: '
-	read(5,'(a)')filein
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger, PipGetFloatArray, PipNumberOfEntries
+	integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats
+	integer*4 PipGetNonOptionArg, PipGetInOutFile
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  warpvol
+c
+	integer numOptions
+	parameter (numOptions = 7)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'xforms:TransformFile:FN:@tempdir:TemporaryDirectory:CH:@'//
+     &      'size:OutputSizeXYZ:IT:@order:InterpolationOrder:I:@'//
+     &      'help:usage:B:'
+c	  
+c	  set defaults here
+c	  
+	interpOrder = 2
+	baseInt = 0.5
+	tempdir = ' '
+c
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'warpvol',
+     &	    'ERROR: WARPVOL - ', .true., 3, 1, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+
+	if (PipGetInOutFile('InputFile', 1, 'Name of input file', filein)
+     &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 	call imopen(5,filein,'RO')
 	call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
-c
-	write(*,'(1x,a,$)')'Name of output file: '
-	read(5,'(a)')fileout
-	call imopen(6,fileout,'NEW')
-c
-	write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
-     &	    'temporary files, ',' or Return to use current directory: '
-	read(5,'(a)')tempdir
-c
 	nxout=nzin
 	nyout=nyin
 	nzout=nxin
-	write(*,'(1x,a,2i4,i5,a,$)')'X, Y, and Z dimensions of the '//
-     &	    'output file (/ for',nxout,nyout,nzout,'): '
-	read(5,*)nxout,nyout,nzout
+c
+	if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
+     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+c
+	call imopen(6,fileout,'NEW')
+c
+	if (pipinput) then
+	  ierr = PipGetString('TemporaryDirectory', tempdir)
+	  ierr = PipGetInteger('InterpolationOrder', interpOrder)
+	  ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
+	  if (PipGetString('TransformFile', fileinv) .ne. 0) call errorexit(
+     &	      'NO FILE WITH INVERSE TRANSFORMS SPECIFIED')
+	else
+	  write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
+     &	      'temporary files, ',' or Return to use current directory: '
+	  read(5,'(a)')tempdir
+c	    
+	  write(*,'(1x,a,3i5,a,$)')'X, Y, and Z dimensions of the '//
+     &	      'output file (/ for',nxout,nyout,nzout,'): '
+	  read(5,*)nxout,nyout,nzout
 c	  
-c	  get matrix for inverse transforms
+c	    get matrix for inverse transforms
 c	  
-	print *,'Enter name of file with inverse transformations'
-	read(5,'(a)')fileinv
+	  print *,'Enter name of file with inverse transformations'
+	  read(5,'(a)')fileinv
+	endif
+	call PipDone()
+	if (interpOrder .lt. 2) baseInt = 0.
+c
 	call dopen(1,fileinv,'ro','f')
 	read(1,'(a)')fileinv
 	call frefor(fileinv,freinp,ninp)
@@ -134,11 +155,8 @@ c
 	zlocst=1.e10
 	zlocmax=-1.e10
 	nloctot=nlocx*nlocz*nlocy
-	if(nloctot.gt.maxloc)then
-	  print *,'ERROR: WARPVOL TOO MANY TRANSFORMATIONS TO',
-     &	      ' FIT IN ARRAYS'
-	  call exit(1)
-	endif
+	if(nloctot.gt.maxloc)call errorexit(
+     &	    'TOO MANY TRANSFORMATIONS TO FIT IN ARRAYS')
 
 	do l=1,nloctot
 	  read(1,*)cenlocx,cenlocy,cenlocz
@@ -169,6 +187,7 @@ c
 	call itrlab(6,5)
 	call time(tim)
 	call date(dat)
+	tempext='wrp      1'
 c
 c 7/7/00 CER: remove the encodes
 c
@@ -196,78 +215,8 @@ c
 	    enddo
 	  enddo
 	enddo
-	idimout=inpdim/devmx-2
-	idimout=min(idimout,limout)
-c	  
-c	  now compute sizes of nearly equal sized near cubes to fill output
-c	  volume, store the starting index coordinates
-c
-	do i=1,3
-	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) then
-	    print *,'ERROR: WARPVOL - TOO MANY CUBES IN LONGEST',
-     &		' DIRECTION TO FIT IN ARRAYS'
-	    call exit(1)
-	  endif
-	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
-	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
-	  ind=0
-	  do j=1,ncubes(i)
-	    ixyzcube(i,j)=ind
-	    nxyzcube(i,j)=nxyzcubas(i)
-	    if(j.le.nbigcube(i))nxyzcube(i,j)=nxyzcube(i,j)+1
-	    ind=ind+nxyzcube(i,j)
-	  enddo
-	  nxyzscr(i)=nxyzcubas(i)+1
-	enddo
-	if (nxout * (nxyzcubas(2) + 1) .ge. inpdim**3)
-     &	    call errorexit('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
+	call setup_cubes_scratch(devmx, filein, tempdir, tempext, tim)
 
-	write(*,103)ncubes(3),ncubes(1),ncubes(2)
-103	format(' Rotations done in',i3,' layers, with',i3,' by',i3,
-     &	    ' cubes in each layer')
-c	  
-c	  open scratch files with 4 different sizes.
-c	  compose temporary filenames from the time
-c	  
-	tempext='wrp      1'
-	tempext(4:5)=tim(1:2)
-	tempext(6:7)=tim(4:5)
-	tempext(8:9)=tim(7:8)
-	tempname=temp_filename(filein,tempdir,tempext)
-c
-	nxyzscr(3)=nxyzscr(3)*ncubes(1)*ncubes(2)
-	call ialprt(.false.)
-	call imopen(1,tempname,'scratch')
-	call icrhdr(1,nxyzscr,nxyzscr,mode,title,0)
-c	  
-	tempext(10:10)='2'
-	tempname=temp_filename(filein,tempdir,tempext)
-	nxyzscr(1)=nxyzscr(1)-1
-	call imopen(2,tempname,'scratch')
-	call icrhdr(2,nxyzscr,nxyzscr,mode,title,0)
-c	  
-	tempext(10:10)='4'
-	tempname=temp_filename(filein,tempdir,tempext)
-	nxyzscr(2)=nxyzscr(2)-1
-	call imopen(4,tempname,'scratch')
-	call icrhdr(4,nxyzscr,nxyzscr,mode,title,0)
-c	  
-	tempext(10:10)='3'
-	tempname=temp_filename(filein,tempdir,tempext)
-	nxyzscr(1)=nxyzscr(1)+1
-	call imopen(3,tempname,'scratch')
-	call icrhdr(3,nxyzscr,nxyzscr,mode,title,0)
-c	  
-c	  get an array of file numbers for each cube in X/Y plane
-c
-	do ix=1,ncubes(1)
-	  do iy=1,ncubes(2)
-	    ifile(ix,iy)=1
-	    if(ix.gt.nbigcube(1))ifile(ix,iy)=ifile(ix,iy)+1
-	    if(iy.gt.nbigcube(2))ifile(ix,iy)=ifile(ix,iy)+2
-	  enddo
-	enddo
 c	  
 c	  loop on layers of cubes in Z, do all I/O to complete layer
 c	  
@@ -383,12 +332,11 @@ c
      &			  amx(3,3,ix)*zcen+ ofsin(3,ix)
 		      bval = DMEANIN
 c			
-c			do triquadratic interpolation with higher-order terms 
-c			omitted
+c			do generalized evaluation of whether pixel is doable
 c			
-		      ixp=nint(xp)
-		      iyp=nint(yp)
-		      izp=nint(zp)
+		      ixp=int(xp + baseInt)
+		      iyp=int(yp + baseInt)
+		      izp=int(zp + baseInt)
 		      IF (IXP.GE.1 .AND. IXP.Le.IXLIM .AND.
      &			  IYP.GE.1 .AND. IYP.Le.IYLIM .AND.
      &			  IZP.GE.1 .AND. IZP.Le.IZLIM) THEN
@@ -398,32 +346,52 @@ c
 			ixpp1=min(ixlim,ixp+1)
 			iypp1=min(iylim,iyp+1)
 			izpp1=min(izlim,izp+1)
-			ixpm1=max(1,ixp-1)
-			iypm1=max(1,iyp-1)
-			izpm1=max(1,izp-1)
+c
+			if (interpOrder .ge. 2) then
+			  ixpm1=max(1,ixp-1)
+			  iypm1=max(1,iyp-1)
+			  izpm1=max(1,izp-1)
+C			    
+C			    Set up terms for quadratic interpolation with
+c			    higher-order terms omitted
+C			    
+			  V2 = ARRAY(IXP, IYPM1, IZP)
+			  V4 = ARRAY(IXPM1, IYP, IZP)
+			  V5 = ARRAY(IXP, IYP, IZP)
+			  V6 = ARRAY(IXPP1, IYP, IZP)
+			  V8 = ARRAY(IXP, IYPP1, IZP)
+			  VU = ARRAY(IXP, IYP, IZPP1)
+			  VD = ARRAY(IXP, IYP, IZPM1)
+			  vmax=max(v2,v4,v5,v6,v8,vu,vd)
+			  vmin=min(v2,v4,v5,v6,v8,vu,vd)
+C			    
+			  C = (V6 - V4)*.5
+			  A = C + V4 - V5
+			  D = (V8 - V2)*.5
+			  B = D + V2 - V5
+			  F = (VU - VD)*.5
+			  E = F + VD - V5
+			  bval = (a*dx+c)*dx + (b*dy+d)*dy
+     &			      + (e*dz+f)*dz + v5
+			  if(bval.gt.vmax)bval=vmax
+			  if(bval.lt.vmin)bval=vmin
+			else
 C			  
-C			  Set up terms for quadratic interpolation
-C			  
-			V2 = ARRAY(IXP, IYPM1, IZP)
-			V4 = ARRAY(IXPM1, IYP, IZP)
-			V5 = ARRAY(IXP, IYP, IZP)
-			V6 = ARRAY(IXPP1, IYP, IZP)
-			V8 = ARRAY(IXP, IYPP1, IZP)
-			VU = ARRAY(IXP, IYP, IZPP1)
-			VD = ARRAY(IXP, IYP, IZPM1)
-			vmax=max(v2,v4,v5,v6,v8,vu,vd)
-			vmin=min(v2,v4,v5,v6,v8,vu,vd)
-C			  
-			C = (V6 - V4)*.5
-			A = C + V4 - V5
-			D = (V8 - V2)*.5
-			B = D + V2 - V5
-			F = (VU - VD)*.5
-			E = F + VD - V5
-			bval = (a*dx+c)*dx + (b*dy+d)*dy
-     &			    + (e*dz+f)*dz + v5
-			if(bval.gt.vmax)bval=vmax
-			if(bval.lt.vmin)bval=vmin
+C			    Set up terms for linear interpolation
+C			    
+			  d11 = (1. - dx) * (1. - dy)
+			  d12 = (1. - dx) * dy
+			  d21 = dx * (1. - dy)
+			  d22 = dx * dy
+			  bval = (1. - dz) * (d11 * array(ixp, iyp, izp)
+     &			      + d12 * array(ixp, iypp1, izp)
+     &			      + d21 * array(ixpp1, iyp, izp)
+     &			      + d22 * array(ixpp1, iypp1, izp)) +
+     &			      dz * (d11 * array(ixp, iyp, izpp1)
+     &			      + d12 * array(ixp, iypp1, izpp1)
+     &			      + d21 * array(ixpp1, iyp, izpp1)
+     &			      + d22 * array(ixpp1, iypp1, izpp1))
+			endif
 		      endif
 		      brray(ix,iy)=bval
 		    enddo
@@ -447,25 +415,7 @@ c
 c	    whole layer of cubes in z is done.  now reread and compose one
 c	    row of the output section at a time in array
 c	    
-	  do iz=1,nxyzcube(3,izcube)
-	    do iycube=1,ncubes(2)
-	      nLinesOut = nxyzcube(2,iycube)
-	      do ixcube=1,ncubes(1)
-		iunit=ifile(ixcube,iycube)
-		longint=izinfile(ixcube,iycube,iz)
-		call imposn(iunit,longint,0)
-		call irdsec(iunit,brray,*99)
-		call pack_piece(array,nxout,nyout,ixyzcube(1,ixcube),
-     &		    0,brray,nxyzcube(1,ixcube), nLinesOut)
-	      enddo
-	      call iclden(array,nxout,nLinesOut,1,nxout,1,nLinesOut,tmin,tmax,
-     &		  tmean)
-	      dmin=min(dmin,tmin)
-	      dmax=max(dmax,tmax)
-	      tsum=tsum+tmean
-	      call iwrsecl(6,array, nLinesOut)
-	    enddo
-	  enddo
+	  call recompose_cubes(izcube, dmin, dmax, tsum)
  	enddo
 c
 	dmean=tsum/nzout
@@ -474,20 +424,7 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	print *, 'ERROR: WARPVOL - reading file'
-	end
-
-	subroutine pack_piece (array,ixdout,iydout,ixofs,iyofs,
-     &	    brray,nxin,nyin)
-	implicit none
-	integer*4 ixdout,iydout,ixofs,iyofs,nxin,nyin,ix,iy
-	real*4 array(ixdout,iydout),brray(nxin,nyin)
-	do iy=1,nyin
-	  do ix=1,nxin
-	    array(ix+ixofs,iy+iyofs)=brray(ix,iy)
-	  enddo
-	enddo
-	return
+99	call errorexit('READING FILE')
 	end
 
 
