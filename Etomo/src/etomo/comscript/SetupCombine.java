@@ -18,6 +18,11 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/10 18:55:38  rickg
+ * <p> Output blank line when there is no match lists
+ * <p> Enabled SystemProgram debugging and remove local
+ * <p> writing to stdout.
+ * <p>
  * <p> Revision 1.3  2002/10/08 23:57:11  rickg
  * <p> Added remaining parameters for stdin sequence to script
  * <p>
@@ -152,6 +157,10 @@ public class SetupCombine {
 
   public String[] getStdError() {
     return setupcombine.getStdError();
+  }
+
+  public String[] getStdOutput() {
+    return setupcombine.getStdOutput();
   }
 
 }
