@@ -20,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/20 23:45:37  sueh
+ * <p> bug# 386 added setDistortionFile() and setBinning()
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -237,6 +240,8 @@ public class MetaData extends ConstMetaData implements Storable {
 
 		props.setProperty(group + "TransferfidNumberViews", String.valueOf(transferfidNumberViews));
     combineParams.store(props, group);
+    props.setProperty(group + "DistortionFile", distortionFile);
+    props.setProperty(group + "Binning", String.valueOf(binning));
   }
 
   /**
@@ -302,7 +307,7 @@ public class MetaData extends ConstMetaData implements Storable {
 			Integer.parseInt(props.getProperty(group + "TransferfidNumberViews", "5"));
 
     combineParams.load(props, group);
-    
+    distortionFile = props.getProperty(group + "DistortionFile", "");
+    binning = Integer.parseInt(props.getProperty(group + "Binning", "1"));
   }
-
 }
