@@ -34,10 +34,13 @@ surfaces which become more evident at some orientations.
 .TP 
 .B -l
 Use low-resolution meshes, if any are available.  The default is to use the
-highest resolution meshes contained in the model.
+highest resolution meshes contained in the model.  Low resolution meshes can
+be produced with the 
+.B -l
+option to imodmesh(1).
 .SH AUTHORS
 Jim Kremer and David Mastronarde
 .SH SEE ALSO
-3dmodv(1)
+3dmodv(1), imodmesh(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.
