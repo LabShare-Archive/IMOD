@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2005/03/09 22:29:00  sueh
+ * <p> bug# 533 Reducing the timeout count to 10 so blendmont monitor
+ * <p> finishes faster.
+ * <p>
  * <p> Revision 3.13  2005/03/09 18:05:19  sueh
  * <p> bug# 533 Added done boolean so that XcorrProcessWatcher knows when
  * <p> BlendmontProcessMonitor is done.  When TiltxcorrProcessWatcher runs
@@ -220,7 +224,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   }
   
   /**
-   * when lastProcess is false
+   * set lastProcess
    * @param lastProcess
    */
   public void setLastProcess(boolean lastProcess) {
