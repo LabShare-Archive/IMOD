@@ -1,4 +1,12 @@
 include ../configure
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 
 PROGS = blendmont reducemont
@@ -27,3 +35,8 @@ install: $(PROGS)
 
 clean:
 	-\rm -f *.o *~ blendmont reducemont
+
+blendmont.o:	blend.inc
+bsubs.o:	blend.inc
+shuffler.o:	blend.inc
+reducemont.o:	blend.inc
