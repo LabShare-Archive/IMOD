@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/06/26 00:24:59  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.1  2002/06/26 00:24:42  mast
 c	  Made explicit declarations of all variables, for use with implicit
 c	  none
@@ -20,17 +23,18 @@ c       number of units
      &	    LABLS(20,10,maxunit),nbsym(maxunit),numopen,
      &      lrecspi(maxunit),lbasspi(maxunit)
 
-	real*4 DENMMM(3,maxunit),STUFF(31,maxunit),ORIGXY(2,maxunit),
-     &      CEL(6,maxunit)
+	real*4 DENMMM(3,maxunit),STUFF(27,maxunit),ORIGXYZ(3,maxunit),
+     &      CEL(6,maxunit),rms(maxunit)
+	byte cmap(4,maxunit),stamp(4,maxunit)
 	logical FLAG(maxunit),NOCON(maxunit),spider(maxunit),
      &      mrcflip(maxunit),print
 C
 C	CER 6/29/00 replace $ with G for g77 in im$com and im$bit
 C
 	COMMON/IMGCOM/ LSTREAM,NBHDR,NBW,NBW3,NB,NBL, NCRS,MODE,
-     &	    NCRST, NXYZ,CEL,MAPCRS, DENMMM,STUFF,ORIGXY, NLAB,LABLS,
-     &	    FLAG, NOCON,nbsym,numopen,print, spider,lrecspi,lbasspi,
-     &      mrcflip
+     &	    NCRST, NXYZ,CEL,MAPCRS, DENMMM,STUFF,ORIGXYZ,cmap,stamp,rms,
+     &	    NLAB,LABLS, FLAG, NOCON,nbsym,numopen,print, spider,lrecspi,
+     &	    lbasspi, mrcflip
 
 	integer*4  ibleft(maxunit)
         byte bytcur(maxunit)
