@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2002/12/17 01:02:08  rickg
+ * <p> Additional groups are now advanced
+ * <p>
  * <p> Revision 1.14  2002/12/10 21:33:10  rickg
  * <p> Add residual threshold control
  * <p>
@@ -688,7 +691,6 @@ public class TiltalignPanel implements ContextMenu {
     rbTiltAngleAll.setSelected(true);
     chkDistortion.setSelected(false);
     chkLocalDistortion.setSelected(false);
-    updateEnabled();
   }
 
   void setDistortionDefaults() {
@@ -703,7 +705,6 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalXstretchGroupSize.setText(defaultLocalXStretchGroupSize);
     ltfLocalSkewGroupSize.setText(defaultLocalSkewGroupSize);
 
-    updateEnabled();
   }
 
   void setLargestTab() {
@@ -778,12 +779,24 @@ public class TiltalignPanel implements ContextMenu {
   */
   void updateDistortionSolutionPanel() {
 
-    //  Xstretch panel state
+    //  Xstretch and skew panel state
     boolean state = chkDistortion.isSelected();
     ltfXstretchGroupSize.setEnabled(state);
     ltfXstretchAdditionalGroups.setEnabled(state);
     ltfSkewGroupSize.setEnabled(state);
     ltfSkewAdditionalGroups.setEnabled(state);
+    
+    //  Set the local distortion state as well
+    chkLocalDistortion.setSelected(state);
+    updateLocalDistortionSolutionPanel();
+    
+    
+    if(state == true) {
+      setDistortionDefaults();
+    }
+    else {
+      setTiltAndMagnificationDefaults();
+    }
   }
 
   void updateLocalRotationSolutionPanel() {
