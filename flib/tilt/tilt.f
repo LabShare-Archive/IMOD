@@ -341,6 +341,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/04/29 23:33:54  mast
+c	  Set default for radial filter and increase thickness limit
+c	
 c	  Revision 3.7  2002/07/28 00:03:40  mast
 c	  Made it preserve pixel spacings in output file
 c	
@@ -2303,8 +2306,10 @@ c
 	if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0)then
 	  ifalpha=-1
 	  ithickout=ithick
-	  ithick=ithick/cal(1)+4.5
+	  ithickneed=ithick/cal(1)+4.5
+	  call nice_pad(ithickneed, ithick)
 	  nvertneed=ithickout*abs(sal(1))+5.
+	  print *,'Calculated thickness of vertical slice =',ithick
 	endif
 C
 C	    Set centre of output plane and center of input for transformations
@@ -2429,7 +2434,12 @@ c	  call getini
 	  flevl=flevl/scalescl
 	  scale=scale*scalescl
 	else
-
+c	    
+c	    If thickness was increased, drop back to minimum needed
+	  if (ithick .ne. ithickout) then
+	    ithick = ithickneed
+	    YCEN=ITHICK/2+0.5+yoffset
+	  endif
 c	  
 c Set up padding: 10% of X size or minimum of 16, max of 50
 	  npadtmp=min(50,2*max(8,npxyz(1)/20))
