@@ -29,6 +29,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.23  2003/10/01 04:22:47  rickg
+ * <p> Moved the order of processing in msgComScriptDone to
+ * <p> keep monitor around till after the processDone method is called
+ * <p>
  * <p> Revision 2.22  2003/09/08 22:20:35  rickg
  * <p> Throw an exception if a process is already running for the current
  * <p> axis
@@ -308,7 +312,8 @@ public class ProcessManager {
   * Run the appropriate track com file for the given axis ID
   * @param axisID the AxisID to run track.com on.
   */
-  public String fiducialModelTrack(AxisID axisID) throws SystemProcessException {
+  public String fiducialModelTrack(AxisID axisID)
+    throws SystemProcessException {
     //
     //  Create the required beadtrack command
     //
@@ -429,7 +434,7 @@ public class ProcessManager {
    * Run the appropriate tilt com file for the given axis ID
    * @param axisID the AxisID to run tilt on.
    */
-  public String tilt(AxisID axisID) throws SystemProcessException{
+  public String tilt(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required tilt command
     //
@@ -873,22 +878,21 @@ public class ProcessManager {
 
     appManager.processDone(script.getName(), exitValue);
 
-		// Interrupt the process monitor and nulll out the appropriate references
-		if (threadAxisA == script) {
-			if (processMonitorA != null) {
-				processMonitorA.interrupt();
-				processMonitorA = null;
-			}
-			threadAxisA = null;
-		}
-		if (threadAxisB == script) {
-			if (processMonitorB != null) {
-				processMonitorB.interrupt();
-				processMonitorB = null;
-			}
-			threadAxisB = null;
-		}
-
+    // Interrupt the process monitor and nulll out the appropriate references
+    if (threadAxisA == script) {
+      if (processMonitorA != null) {
+        processMonitorA.interrupt();
+        processMonitorA = null;
+      }
+      threadAxisA = null;
+    }
+    if (threadAxisB == script) {
+      if (processMonitorB != null) {
+        processMonitorB.interrupt();
+        processMonitorB = null;
+      }
+      threadAxisB = null;
+    }
 
   }
 
@@ -948,6 +952,15 @@ public class ProcessManager {
 
     //  Start the process monitor thread if a runnable process is provided
     Thread processMonitorThread = null;
+    // Replace the process monitor with a DemoProcessMonitor if demo mode is on 
+    if (appManager.isDemo()) {
+      processMonitor =
+        new DemoProcessMonitor(
+          appManager,
+          axisID,
+          command,
+          comScriptProcess.getDemoTime());
+    }
     if (processMonitor != null) {
       // Wait for the started flag within the comScriptProcess, this ensures
       // that log file has already been moved
