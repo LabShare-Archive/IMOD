@@ -18,6 +18,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/12/10 21:34:38  rickg
+ * <p> Added get and set size methods
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -32,10 +35,22 @@ public class LabeledTextField {
 
   public LabeledTextField(String tfLabel) {
     label.setText(tfLabel);
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    //    panel.setAlignmentX(0.0F);
+
     panel.add(label);
     panel.add(textField);
+
+    // Set the maximum height of the text field box to twice the
+    // font size since it is not set by default
+    Dimension maxSize = textField.getMaximumSize();
+    if (label.getFont().getSize() > textField.getFont().getSize()) {
+      maxSize.setSize(maxSize.getWidth(), 2*label.getFont().getSize());
+    }
+    else {
+      maxSize.setSize(maxSize.getWidth(), 2*textField.getFont().getSize());
+    }
+    textField.setMaximumSize(maxSize);
   }
 
   public Container getContainer() {
@@ -101,6 +116,10 @@ public class LabeledTextField {
 
   public Dimension getSize() {
     return textField.getSize();
+  }
+
+  public void setColumns(int columns) {
+    textField.setColumns(columns);
   }
 
   public void setToolTipText(String toolTipText) {
