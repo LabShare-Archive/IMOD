@@ -1177,10 +1177,14 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	 interpolation at each position.  Not for color data */
       for(j = 0, cy = yoffset + trans; j < dheight; cy += zs, j++) {
 	yi = (int)(cy + 0.5);
+        if (yi >= ysize)
+          yi = ysize - 1;
 	pyi = yi - 1;
 	nyi = yi + 1;
-	if (pyi < 0) pyi = 0;
-	if (nyi >= ysize) nyi = yi;
+	if (pyi < 0) 
+          pyi = 0;
+	if (nyi >= ysize)
+          nyi = yi;
 	ibase = j * drawwidth;
 	if (sidefill)
 	  for (i = 0; i < wx; i++)
@@ -1196,8 +1200,13 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  pxi = xi - 1;
 	  nxi = xi + 1;
                          
-	  if (pxi < 0) pxi = 0;
-	  if (nxi >= xsize) nxi = xi;
+	  if (pxi < 0)
+            pxi = 0;
+	  if (nxi >= xsize) {
+            if (xi >= xsize)
+              xi = xsize - 1;
+            nxi = xi;
+          }
                          
           x1 = dataPtrs[yi][pxi];
 	  x2 = dataPtrs[yi][nxi];
@@ -1937,6 +1946,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.25  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.24  2004/11/02 20:14:10  mast
 Switch to get named colors from preferences
 
