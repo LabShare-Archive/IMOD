@@ -628,6 +628,9 @@ extern "C" {
   int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
   int     ilabelMatchReg(char *exp, char *str);
 
+  /* parselist.c  - for parsing a list of integers */
+  int *parselist (char *line, int *nlist);
+
 #ifdef __cplusplus
 }
 #endif
@@ -718,6 +721,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.17  2004/09/21 20:08:04  mast
+    Defined new clipping structures
+
     Revision 3.16  2004/09/17 19:48:19  mast
     Document use of mat1b3 for point quality
 
