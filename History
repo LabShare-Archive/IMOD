@@ -1,5 +1,31 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/04: Fixed failure to start new contour on a different section after
+autocontouring.  Fixed problems with autocontouring not setting surface number
+or contour time correctly and line tracker not setting contour time when
+copying.  Made all situations that start a new contour when there is no
+current contour use the last contour in the object if it is empty.
+
+7/11/04: Made ghost mode use same line thickness as object lines and added
+options for ghost contours to be lighter instead of darker colors, and for
+ghosts to appear for all objects.
+
+7/10/04: Fixed bug in autocontrasting subarea when zoomed image was panned 
+enough for non-image to show in window on right or top.
+
+7/9/04: Fixed bead fixer to run run Tiltalign when current directory has spaces
+in the path.
+
+7/9/04: Fixed Finishjoin to not rely on /usr/tmp as temporary directory.
+
+7/8/04: Added workaround to Cygwin tcsh 6.13 bug to transferfid, finishjoin,
+matchrotpairs, and matchshifts.
+
+7/8/04: Raw2mrc was not working in Windows, needed one more b3dFwrite.
+
+7/7/04: eTomo no longer removes ...log~ or patch.out~ unless there is an 
+existing ...log or patch.out that needs to be renamed to the ~ file.
+
 7/7/04: Changed all exit(-1) to exit(3) because this was giving 0 exit status
 in Cygwin and failing to stop command file processing.
 
