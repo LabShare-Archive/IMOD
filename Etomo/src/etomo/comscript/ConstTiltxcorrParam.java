@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 01:27:09  sueh
+ * <p> bug# 373 Changed fields and functions to match autodoc
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -52,16 +55,16 @@ public class ConstTiltxcorrParam {
   
   //PIP only
   //was tiltAngleSpec
-  protected double firstTiltAngle;
-  protected double tiltIncrement;
+  protected double firstTiltAngle = Double.NaN;
+  protected double tiltIncrement = Double.NaN;
   protected String tiltFile = "";
   protected double[] tiltAngles = null;
   
   //was filterParams
-  protected double filterRadius1;
-  protected double filterRadius2;
-  protected double filterSigma1;
-  protected double filterSigma2;
+  protected double filterRadius1 = Double.NaN;
+  protected double filterRadius2 = Double.NaN;
+  protected double filterSigma1 = Double.NaN;
+  protected double filterSigma2 = Double.NaN;
   
   //sequential input only
   protected TiltAngleSpec tiltAngleSpec;
