@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/08/24 18:48:03  mast
+#  Fixed problem with needing to replace local temporary directory
+#  on specifications of rec.*, mat.*
+#
 #  Revision 3.1  2004/07/21 04:19:41  mast
 #  Initial creation
 #
@@ -47,6 +51,18 @@ set comname = $rootname.com
 
 if (! -e $comname) then
     echo "ERROR: $pn - Command file $comname does not exist"
+    exit 1
+endif
+
+# Make sure directory for sum*.rec is writable
+set sum1rec = `sed -n '/.*clip.*\([^ ]*sum1.rec\)/s//\1/p' $comname`
+set sumdir = "."
+if ("$sum1rec" != "") then
+    set sumdir = "$sum1rec:h"
+    if ("$sumdir" == "$sum1rec") set sumdir = "."
+endif
+if (! -w "$sumdir") then
+    echo "ERROR: $pn - Unable to write sum*.rec to directory $sumdir"
     exit 1
 endif
 
