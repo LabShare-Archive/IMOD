@@ -16,7 +16,6 @@ import java.net.MalformedURLException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -27,16 +26,16 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
+import etomo.Controller;
 import etomo.EtomoDirector;
 import etomo.storage.DataFileFilter;
-import etomo.util.ConstHashedArray;
 import etomo.util.HashedArray;
 import etomo.util.UniqueKey;
 
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004, 2005</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -46,6 +45,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/01/27 00:11:49  sueh
+ * <p> bug# 543 For Ctrl-F (fit window) call MainPanel.fitWindow() with force set to
+ * <p> true, to cause a fit window with autofit off.
+ * <p>
  * <p> Revision 3.14  2004/12/02 20:41:30  sueh
  * <p> bug# 566 Added Join Guide menu item.
  * <p>
@@ -326,7 +329,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
 
-  private JMenu menuWindow = new JMenu("Window");
+  private JMenu menuWindow;// = new JMenu("Window");
   private HashedArray menuWindowList = null;
 
   private JMenu menuHelp = new JMenu("Help");
@@ -345,6 +348,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   //manager object
   private BaseManager currentManager;
   GenericMouseAdapter mouseAdapter = null;
+  WindowSwitch windowSwitch = new WindowSwitch();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -365,14 +369,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
   }
 
-  public void setCurrentManager(BaseManager currentManager) {
+  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     this.currentManager = currentManager;
     if (mainPanel != null) {
-      rootPanel.remove(mainPanel);
+      rootPanel.removeAll();
     }
     if (currentManager != null) {
       mainPanel = currentManager.getMainPanel();
-      rootPanel.add(mainPanel);
+      rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
       menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
       mainPanel.repaint();
@@ -419,7 +423,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Set the open etomo data file list.  This fills in the current window items
    * on the Window menu
    */
-  public void setWindowMenuLabels(ConstHashedArray managerList) {
+  /*  public void setWindowMenuLabels(ConstHashedArray managerList) {
     WindowListActionListener windowListActionListener = new WindowListActionListener(
         this);
     //remove old list
@@ -438,10 +442,23 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuWindow.add(menuItem);
       menuWindowList.set(i, menuItem);
     }
+  }*/
+  
+  public void addWindow(Controller controller, UniqueKey controllerKey) {
+    windowSwitch.add(controller, controllerKey);
+  }
+  
+  public void removeWindow(UniqueKey controllerKey) {
+    windowSwitch.remove(controllerKey);
+  }
+  
+  public void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
+    windowSwitch.rename(oldKey, newKey);
   }
 
   public void selectWindowMenuItem(UniqueKey currentManagerKey) {
-    if (menuWindowList == null) {
+    windowSwitch.selectWindow(currentManagerKey);
+/*    if (menuWindowList == null) {
       return;
     }
     JMenuItem menuItem = null;
@@ -450,7 +467,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuItem.setSelected(false);
     }
     menuItem = (JMenuItem) menuWindowList.get(currentManagerKey);
-    menuItem.setSelected(true);
+    menuItem.setSelected(true);*/
   }
 
   /**
@@ -503,10 +520,10 @@ public class MainFrame extends JFrame implements ContextMenu {
       }
     }
   }
-
+/*
   private void menuWindowAction(ActionEvent event) {
   }
-
+*/
   /**
    * Open the specified MRU EDF file
    * @param event
@@ -520,7 +537,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Open the specified window
    * @param event
    */
-  private void menuWindowListAction(ActionEvent event) {
+  /*private void menuWindowListAction(ActionEvent event) {
     String menuChoice = event.getActionCommand();
     int index = menuChoice.indexOf(":");
     if (index < 1 || index > menuChoice.length()) {
@@ -528,7 +545,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
     int keyIndex = Integer.parseInt(menuChoice.substring(0, index)) - 1;
     EtomoDirector.getInstance().setCurrentManager(menuWindowList.getKey(keyIndex));
-  }
+  }*/
 
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
@@ -755,7 +772,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuAxisB.addActionListener(optionsActionListener);
     menuAxisBoth.addActionListener(optionsActionListener);
 
-    WindowActionListener windowActionListener = new WindowActionListener(this);
+    //WindowActionListener windowActionListener = new WindowActionListener(this);
 
     HelpActionListener helpActionListener = new HelpActionListener(this);
     menuTomoGuide.addActionListener(helpActionListener);
@@ -803,6 +820,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  Construct menu bar
     menuBar.add(menuFile);
     menuBar.add(menuOptions);
+    menuWindow = windowSwitch.getMenu();
     menuBar.add(menuWindow);
     menuBar.add(menuHelp);
     setJMenuBar(menuBar);
@@ -835,7 +853,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   //  MRU file list action listener
-  class WindowListActionListener implements ActionListener {
+  /*  class WindowListActionListener implements ActionListener {
     MainFrame adaptee;
 
     WindowListActionListener(MainFrame adaptee) {
@@ -846,7 +864,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       adaptee.menuWindowListAction(e);
     }
   }
-
+*/
   // Options file action listener
   class OptionsActionListener implements ActionListener {
     MainFrame adaptee;
@@ -859,7 +877,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       adaptee.menuOptionsAction(e);
     }
   }
-
+/*
   // Options file action listener
   class WindowActionListener implements ActionListener {
     MainFrame adaptee;
@@ -871,7 +889,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     public void actionPerformed(ActionEvent e) {
       adaptee.menuWindowAction(e);
     }
-  }
+  }*/
 
   // Help file action listener
   class HelpActionListener implements ActionListener {
