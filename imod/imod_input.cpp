@@ -62,6 +62,8 @@ Log at end of file
 #include "imod_object_edit.h"
 #include "preferences.h"
 
+static void newContourOrSurface(ImodView *vw, int surface);
+
 void inputRaiseWindows()
 {
   /* New way, allows type of windows to be raised in chosen order */
@@ -106,23 +108,15 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
 void inputInsertPoint(ImodView *vw)
 {
   Iobj *obj = imodObjectGet(vw->imod);
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont;
   Ipoint point;
   int pt;
 
   /* create a new contour if there is no current contour */
   if (obj && vw->imod->mousemode == IMOD_MMODEL) {
-    if (!cont) {
-      vw->imod->cindex.contour = obj->contsize - 1;
-      NewContour(vw->imod);
-      cont = imodContourGet(vw->imod);
-      if (!cont)
-	return;
-      if (iobjFlagTime(obj)){
-	cont->type = vw->ct;
-	cont->flags |= ICONT_TYPEISTIME;
-      }
-    }
+    cont = ivwGetOrMakeContour(vw, obj);
+    if (!cont)
+      return;
     
     /* Set time of empty contour to current time */
     if (!cont->psize && zapTimeMismatch(vw, 0, obj, cont))
@@ -267,25 +261,33 @@ void inputGhostmode(ImodView *vw)
   return;
 }
 
+// Make a new contour
 void inputNewContour(ImodView *vw)
 {
+  newContourOrSurface(vw, 0);
+}
+
+// Make a new contour on a new surface number
+void inputNewSurface(ImodView *vw)
+{
+  newContourOrSurface(vw, 1);
+}
+
+// Make a new contour, optionally assigning it to a new surface
+static void newContourOrSurface(ImodView *vw, int surface)
+{
+  Iobj *obj = imodObjectGet(vw->imod);
+  Icont *cont;
   if (vw->imod->mousemode == IMOD_MMOVIE)
     return;
   if (vw->imod->cindex.object >= 0)
     imodNewContour(vw->imod);
+  cont = imodContourGet(vw->imod);
+  if (surface)
+    imodel_contour_newsurf(obj, cont);
 
-  if (vw->nt){
-    Iobj *obj = imodObjectGet(vw->imod);
-    if ((obj) && (iobjTime(obj->flags))){
-      Icont *cont = imodContourGet(vw->imod);
-      if (cont){
-        cont->type = vw->ct;
-        cont->flags |= ICONT_TYPEISTIME;
-      }
-    }
-  }
+  ivwSetNewContourTime(vw, obj, cont);
   imod_info_setocp();
-  return;
 }
 
 void inputContourDup(ImodView *vw)
@@ -298,34 +300,12 @@ void inputContourDup(ImodView *vw)
   cont = imodContourGet(vw->imod);
   if (!cont) return;
   ocont = imodContourDup(cont);
-  NewContour(vw->imod);
+  imodNewContour(vw->imod);
   cont = imodContourGet(vw->imod);
   if (!cont) return;
   *cont = *ocont;
   free(ocont);
   imod_info_setocp();
-}
-
-void inputNewSurface(ImodView *vw)
-{
-  if (vw->imod->mousemode == IMOD_MMOVIE)
-    return;
-  if (vw->imod->cindex.object >= 0)
-    NewContour(vw->imod);
-  imodel_contour_newsurf(imodObjectGet(vw->imod),
-                         imodContourGet(vw->imod));
-  if (vw->nt){
-    Iobj *obj = imodObjectGet(vw->imod);
-    if ((obj) && (iobjTime(obj->flags))){
-      Icont *cont = imodContourGet(vw->imod);
-      if (cont){
-        cont->type = vw->ct;
-        cont->flags |= ICONT_TYPEISTIME;
-      }
-    }
-  }
-  imod_info_setocp();
-  return;
 }
 
 void inputNextObject(ImodView *vw)
@@ -1226,6 +1206,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.16  2003/12/18 22:44:43  mast
+Disable A hot key for fake or raw image
+
 Revision 4.15  2003/11/02 00:07:21  mast
 Raise doesnt work in windows, add command that makes it flash
 
