@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/05/29 05:03:43  mast
+    Make filter for align*.log only
+
     Revision 3.3  2003/05/12 19:13:39  mast
     Add hot key summary and fix spelling
 
@@ -249,6 +252,12 @@ void BeadFixer::reread(int skipopen)
   char *arealine;
   int newstyle, oldstyle = 0;
   int found = 0;
+  Iobj *xobj = ivwGetExtraObject(plug->view);
+
+  // Initialize extra object
+  clearExtraObj();
+  imodObjectSetColor(xobj, 1., 0., 0.);
+  imodObjectSetValue(xobj, IobjFlagClosed, 0);
 
   if (plug->filename == NULL) 
     return;
@@ -314,6 +323,8 @@ void BeadFixer::nextRes()
   Iobj *ob;
   Icont *con;
   Ipoint *pts;
+  Ipoint tpt;
+  float headLen = 2.5;
 
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -327,6 +338,7 @@ void BeadFixer::nextRes()
       wprint("No more residuals in this list\n");
       nextResBut->setEnabled(false);    
       plug->residok=0;
+      clearExtraObj();
       return;
     }
     if (plug->objcont)
@@ -422,7 +434,6 @@ void BeadFixer::nextRes()
   for (ipt = 0; ipt < npnt; ipt++) {
     if(floor((double)(pts++->z + 1.5f)) == inview) {
       imodSetIndex(theModel, obj, cont, ipt);
-      ivwRedraw(plug->view);
       resval = sqrt((double)(xr*xr + yr*yr));
       wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
               resval, xr, yr, sd);
@@ -433,6 +444,28 @@ void BeadFixer::nextRes()
       plug->ptlook = ipt;
       plug->curmoved = 0;
       movePointBut->setEnabled(true);
+
+      // Make an arrow in the extra object
+      con = imodContourNew();
+      if (con) {
+        ob = ivwGetExtraObject(plug->view);
+        imodPointAppend(con, --pts);
+        tpt.x = pts->x + xr;
+        tpt.y = pts->y + yr;
+        tpt.z = pts->z;
+        imodPointAppend(con, &tpt);
+        tpt.x -= 0.707 * (xr - yr) * headLen / resval;
+        tpt.y -= 0.707 * (xr + yr) * headLen / resval;
+        imodPointAppend(con, &tpt);
+        tpt.x = pts->x + xr;
+        tpt.y = pts->y + yr;
+        imodPointAppend(con, &tpt);
+        tpt.x -= 0.707 * (xr + yr) * headLen / resval;
+        tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
+        imodPointAppend(con, &tpt);
+        imodObjectAddContour(ob, con);
+      }
+      ivwRedraw(plug->view);
       return;
     }
   }
@@ -456,6 +489,8 @@ void BeadFixer::clearList()
 void BeadFixer::movePoint()
 {
   int obj, cont, pt;
+  Ipoint *pts;
+  Icont *con;
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
@@ -470,11 +505,13 @@ void BeadFixer::movePoint()
   }
 
   /* move the point */
-  plug->oldpt = theModel->obj[obj].cont[cont].pts[pt];
+  con = imodContourGet(theModel);
+  pts = imodContourGetPoints(con);
+  plug->oldpt = pts[pt];
   plug->newpt = plug->oldpt;
   plug->newpt.x += plug->xresid;
   plug->newpt.y += plug->yresid;
-  theModel->obj[obj].cont[cont].pts[pt] = plug->newpt;
+  pts[pt] = plug->newpt;
   plug->objmoved = plug->objlook;
   plug->contmoved = plug->contlook;
   plug->ptmoved = plug->ptlook;
@@ -494,6 +531,7 @@ void BeadFixer::undoMove()
   int nobj, ncont;
   Iobj *ob;
   Icont *con;
+  Ipoint *pts;
   float dx, dy, distsq;
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -512,15 +550,15 @@ void BeadFixer::undoMove()
     ncont = imodObjectGetMaxContour(ob);
     if (plug->contmoved < ncont) {
       con = imodContourGet(theModel);
-      if (plug->ptmoved < con->psize) {
+      pts = imodContourGetPoints(con);
+      if (plug->ptmoved < imodContourGetMaxPoint(con)) {
 
         /* Check that point is within 10 pixels of where it was */
-        dx = con->pts[plug->ptmoved].x - plug->newpt.x;
-        dy = con->pts[plug->ptmoved].y - plug->newpt.y;
+        dx = pts[plug->ptmoved].x - plug->newpt.x;
+        dy = pts[plug->ptmoved].y - plug->newpt.y;
         distsq = dx * dx + dy * dy;
-        if (distsq < 100. && con->pts[plug->ptmoved].z ==
-            plug->newpt.z) {
-          con->pts[plug->ptmoved] = plug->oldpt;
+        if (distsq < 100. && pts[plug->ptmoved].z == plug->newpt.z) {
+          pts[plug->ptmoved] = plug->oldpt;
           plug->didmove = 0;
           plug->curmoved = 0;
           undoMoveBut->setEnabled(false);
@@ -554,6 +592,24 @@ int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
   imodSetIndex(theModel, obj, cont, ipt);
   ivwRedraw(plug->view);
   return 0;
+}
+
+void BeadFixer::clearExtraObj()
+{
+  PlugData *plug = &thisPlug;
+  Iobj *obj = ivwGetExtraObject(plug->view);
+  int ncont = imodObjectGetMaxContour(obj);
+  int co;
+  Icont *cont;
+  if (!ncont)
+    return;
+
+  // Get the contour pointer.  "Remove" contours from the end, then delete
+  // and free the contour data
+  cont = imodObjectGetContour(obj, 0);
+  for (co = ncont - 1; co >= 0; co--)
+    imodObjectRemoveContour(obj, co);
+  imodContoursDelete(cont, ncont);
 }
 
 
@@ -814,6 +870,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &thisPlug;
   imodDialogManager.remove((QWidget *)plug->window);
+  clearExtraObj();
 
   plug->view = NULL;
   plug->window = NULL;
