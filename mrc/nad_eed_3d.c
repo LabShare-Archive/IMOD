@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2005/03/11 19:42:16  mast
+    Added to package
+
 */
 /* IMOD modifications above here */
 /*--------------------------------------------------------------------------*/
@@ -950,10 +953,11 @@ void usage(char *progname, float ht, int pmax, float sigma, float lambda)
          "Usage: %s [options] <input file> <output file>\nOptions:\n"
          "\t-k #\tK (lambda) value, threshold for gradients (default %.1f)\n"
          "\t-n #\tNumber of iterations (default %d)\n"
-         "\t-m list\tList of iterations at which to write output\n"
+         "\t-i list\tList of iterations at which to write output\n"
          "\t-o #\tOutput only the given Z slice (numbered from 1)\n"
+         "\t-m #\tMode for output file, 0=byte, 1=int, 2=real\n"
          "\t-s #\tSigma for smoothing of structure tensor (default %.1f)\n"
-         "\t-t #\tTime step (default %.2f)\n", 
+         "\t-t #\tTime step (default %.2f)\n",
          progname, progname, lambda, pmax, sigma, ht);
   exit(1);
 }
@@ -978,10 +982,11 @@ int main (int argc, char **argv)
   int sliceMode;
   char *progname = imodProgName(argv[0]);
   int nWrite = 0;
-  int doWrite, iarg, nzout, kst, knd;
+  int doWrite, iarg, nzout, kst, knd, writeArg;
   int* writeList;
   char outFile[STRING_MAX];
   int oneSlice = 0;
+  int outMode = -1;
   float minout, maxout, sumout;
 
   struct tm *local;
@@ -1016,11 +1021,15 @@ int main (int argc, char **argv)
       case 'o':
         oneSlice = atoi(argv[++iarg]);
         break;
+      case 'm':
+        outMode = atoi(argv[++iarg]);
+        break;
       case 't':
         ht = atof(argv[++iarg]);
         break;
-      case 'm':
+      case 'i':
         writeList = parselist(argv[++iarg], &nWrite);
+        writeArg = iarg;
         break;
       default:
         printf("ERROR: %s - Invalid option %s\n", progname, argv[i]);
@@ -1124,8 +1133,25 @@ int main (int argc, char **argv)
   printf("mean:          %1.10f \n", mean);
   printf("variance:      %1.10f \n\n", vari);
 
-  sprintf(outFile, "%s: Edge-enhancing anisotropic diffusion", progname);
+  // Take care of header
+  if (oneSlice && nWrite)
+    sprintf(outFile, "%s: Z %d, iter %s", progname, oneSlice, 
+            argv[writeArg]);
+  else
+    sprintf(outFile, "%s: Edge-enhancing anisotropic diffusion", progname);
   mrc_head_label(&header, outFile);
+
+  // Adjust output mode if valid entry made
+  if (outMode == MRC_MODE_BYTE) {
+    sliceMode = SLICE_MODE_BYTE;
+    header.mode = outMode;
+  } else if (outMode == MRC_MODE_SHORT) {
+    sliceMode = SLICE_MODE_SHORT;
+    header.mode = outMode;
+  } else if (outMode == MRC_MODE_FLOAT) {
+    sliceMode = SLICE_MODE_FLOAT;
+    header.mode = outMode;
+  }
 
   /* ---- process image ---- */
 
