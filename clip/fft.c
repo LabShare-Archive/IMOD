@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/06/20 21:58:05  mast
+Fixed one-pixel shift between mirrored rows and actual rows
+
 Revision 3.3  2004/04/22 19:08:45  mast
 Added error checks and returns on mrc I/O calls
 
@@ -48,42 +51,30 @@ Preserve pixel size and lables when doing 3D FFT
 
 #include <stdlib.h>
 #include <string.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "clip.h"
+#include "cfft.h"
 
-/**************************************************************/
-/* c-stub for fortran SUBROUTINE TODFFT(ARRAY,NX,NY,IDIR)     */
-/* buf is (nx + 2)/2 by ny floats                             */
-/* idir 0 = forward, 1 = inverse, -1 = inverse w/o conjugate  */
+/*******************************************************************/
+/* c-stub for formerly fortran SUBROUTINE TODFFT(ARRAY,NX,NY,IDIR) */
+/* (now a C-routine with fortran calling convention)               */
+/* buf is (nx + 2)/2 by ny floats                                  */
+/* idir 0 = forward, 1 = inverse, -1 = inverse w/o conjugate       */
 
 /*
  * ODFFT do a series of 1D FFT's on 2D data.
  * idir -1 forward, -2 reverse.
  */
-#ifdef F77FUNCAP
-#define odfft_ ODFFT
-#define todfft_ TODFFT
-#define niceframe_ NICEFRAME
-#endif
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void todfft_(float buf[], int *nx, int *ny, int *idir);
-  void odfft_ (float *buf, int *nx, int *ny, int *idir);
-#ifdef __cplusplus
-}
-#endif
-
 
 void mrcToDFFT(float buf[], int nx, int ny, int idir)
 {
-  todfft_(buf, &nx, &ny, &idir); 
+  todfft(buf, &nx, &ny, &idir); 
 }
 
 
 int mrcODFFT(float *buf, int nx, int ny, int idir)
 {
-  odfft_(buf, &nx, &ny, &idir);
+  odfft(buf, &nx, &ny, &idir);
   return(0);
 }
 
@@ -205,27 +196,38 @@ int clip_fftvol3(struct MRCvolume *v, int idir)
   int x, y, z, i, j;
   Islice *slice;
   Ival val;
+  float *inp, *outp;
   int  vxsize = v->vol[0]->xsize;
   int  vysize = v->vol[0]->ysize;
 
-  slice = sliceCreate(v->zsize, vysize,
+  slice = sliceCreate(v->zsize, vxsize,
                       SLICE_MODE_COMPLEX_FLOAT);
-  for(x = 0; x < vxsize; x++){
+  for(y = 0; y < vysize; y++){
 
-    for(j = 0, y = 0; j < slice->ysize; j++, y++)
-      for(i = 0, z = 0; i < slice->xsize; i++, z++){
-        sliceGetComplexFloatVal(v->vol[z], x, y, val);
-        slicePutComplexFloatVal(slice, i, j, val);
+    for (z = 0; z < slice->xsize; z++) {
+      inp = v->vol[z]->data.f + 2 * y * vxsize;
+      outp = slice->data.f + 2 * z;
+      for (x = 0; x < slice->ysize; x++) {
+        outp[2 * x * slice->xsize] = inp[2 * x];
+        outp[2 * x * slice->xsize + 1] = inp[2 * x + 1];
+        //sliceGetComplexFloatVal(v->vol[z], x, y, val);
+        //slicePutComplexFloatVal(slice, z, x, val);
       }
+    }
 
     mrcODFFT(slice->data.f, slice->xsize, slice->ysize, idir);
 
     /* put slice back into volume. */
-    for(j = 0, y = 0; j < slice->ysize; j++, y++)
-      for(i = 0, z = 0; i < slice->xsize; i++, z++){
-        sliceGetComplexFloatVal(slice, i, j, val);
-        slicePutComplexFloatVal(v->vol[z], x, y, val);
+    for (z = 0; z < slice->xsize; z++) {
+      outp = v->vol[z]->data.f + 2 * y * vxsize;
+      inp = slice->data.f + 2 * z;
+      for (x = 0; x < slice->ysize; x++) {
+        outp[2 * x] = inp[2 * x * slice->xsize];
+        outp[2 * x + 1] = inp[2 * x * slice->xsize + 1];
+        //sliceGetComplexFloatVal(slice, z, x, val);
+        //slicePutComplexFloatVal(v->vol[z], x, y, val);
       }
+    }
   }
   sliceFree(slice);
   return(0);
