@@ -553,7 +553,8 @@ void imod_info_float_clear(int section, int time)
     secData = NULL;
     table_size = 0;
   } else if (section < 0) {
-    if ((-section) * tdim + time >= table_size)
+    /* DNM 11/14/03: fix to test actual highest index */
+    if ((-section - 1) * tdim + time >= table_size)
       return;
     for (i = 0; i < -section; i++) {
       secData[i * tdim + time].mean = -1;
@@ -712,6 +713,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.8  2003/09/18 05:58:54  mast
+Added ability to do floating on a subarea and to set contrast automatically
+
 Revision 4.7  2003/09/16 02:55:14  mast
 Changed to access image data using new line pointers
 
