@@ -16,6 +16,10 @@ import java.util.Vector;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/04/29 20:25:01  sueh
+ * <p> $bug# 427 used statics to avoid typos, added ParameterFile to
+ * <p> $updateComSCriptCommand, moved toString() to const
+ * <p> $
  * <p> $Revision 1.2  2004/04/27 00:54:26  sueh
  * <p> $bug# 427 added reset model files, so models can be changed
  * <p> $fixing model files, making model files required
@@ -83,7 +87,7 @@ public class TomopitchParam
   }
 
   /**
-   * Update the script command with the current valus of this TiltxcorrParam
+   * Update the script command with the current valus of this TomopitchParam
    * object
    * @param scriptCommand the script command to be updated
    */
