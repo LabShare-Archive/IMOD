@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/02/17 02:44:31  sueh
+* <p> bug# 605 Added saveDisplayState() to call saveDisplayState() in axis
+* <p> panels.
+* <p>
 * <p> Revision 1.3  2004/12/16 02:52:32  sueh
 * <p> bug# 559 Removing everything from the status bar except the param file
 * <p> and path.
@@ -288,6 +292,36 @@ public class MainTomogramPanel extends MainPanel {
   protected void showAxisPanelB() {
     axisPanelB.show();
   }
+  /*
+  protected void packAxis() {
+    //(new Exception()).printStackTrace();
+    if (splitPane == null) {
+      EtomoDirector.getInstance().getMainFrame().pack();
+      return;
+    }
+    int widthA = axisPanelA.getWidth();
+    int widthB = axisPanelB.getWidth();
+    if (widthA == 0 && widthB == 0) {
+      EtomoDirector.getInstance().getMainFrame().pack();
+      return;
+    }
+    //System.out.println("dual panel:widthA="+widthA+",widthB="+widthB);
+    if (widthA < 20) {
+      axisPanelA.show(false);
+    }
+    else if (widthB < 20) {
+      axisPanelB.show(false);
+    }
+    EtomoDirector.getInstance().getMainFrame().pack();
+    if (widthA < 20) {
+      axisPanelA.show(true);
+      splitPane.setDividerLocation(0);
+    }
+    else if (widthB < 20) {
+      axisPanelB.show(true);
+      splitPane.setDividerLocation(1);
+    }
+  }*/
   
   protected boolean isAxisPanelAFitScreenError() {
     return isFitScreenError(axisPanelA);
