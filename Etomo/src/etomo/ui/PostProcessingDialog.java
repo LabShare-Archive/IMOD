@@ -25,92 +25,6 @@ import etomo.type.TomogramState;
  * @author $Author$
  *
  * @version $Revision$
- *
- * <p> $Log$
- * <p> Revision 3.11  2005/01/14 03:07:40  sueh
- * <p> bug# 511 Added DialogType to super constructor.
- * <p>
- * <p> Revision 3.10  2005/01/12 00:45:42  sueh
- * <p> bug# 579 Renamed TomogramState.getBackwordCompatible...() functions
- * <p> to ...BackwardCompatible...
- * <p>
- * <p> Revision 3.9  2005/01/10 23:56:32  sueh
- * <p> bug# 578 Modified isSqueezevolFlipped() and isTrimvolFlipped().
- * <p>
- * <p> Revision 3.8  2005/01/08 01:55:32  sueh
- * <p> bug# 578 Calling all backword compatible functions in TomogramState
- * <p> "getBackwordCompatible...".
- * <p>
- * <p> Revision 3.7  2004/12/16 02:33:05  sueh
- * <p> bug# 564 Taking whether trimvol output and squeezevol output are flipped
- * <p> or not when getting and setting Squeezevol parameters.
- * <p>
- * <p> Revision 3.6  2004/12/14 21:50:57  sueh
- * <p> bug# 557 Made separate variables for x and y reduction factors to handle
- * <p> an unflipped tomogram.
- * <p>
- * <p> Revision 3.5  2004/12/04 01:27:19  sueh
- * <p> bug# 557 Added call to imodSqueezedVolume().
- * <p>
- * <p> Revision 3.4  2004/12/02 20:41:48  sueh
- * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
- * <p> the join guide.  Need to specify the guide to anchor.
- * <p>
- * <p> Revision 3.3  2004/12/02 18:30:50  sueh
- * <p> bug# 557 Added the Squeeze Volume panel.  Added an action for the
- * <p> Squeeze Volume button.
- * <p>
- * <p> Revision 3.2  2004/12/01 03:47:37  sueh
- * <p> bug# 557 Added ui fields to use with squeezevol.
- * <p>
- * <p> Revision 3.1  2004/03/15 20:33:55  rickg
- * <p> button variable name changes to btn...
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.5  2003/10/30 21:05:06  rickg
- * <p> Bug# 340 Added context menu
- * <p>
- * <p> Revision 2.4  2003/04/17 23:07:20  rickg
- * <p> Added cleanup panel
- * <p>
- * <p> Revision 2.3  2003/04/16 00:15:01  rickg
- * <p> Trimvol in progress
- * <p>
- * <p> Revision 2.2  2003/04/14 23:57:34  rickg
- * <p> Trimvol management changes
- * <p>
- * <p> Revision 2.1  2003/04/10 23:43:23  rickg
- * <p> Added trimvol panel
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.5.2.1  2003/01/24 18:43:37  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.5  2002/12/19 17:45:22  rickg
- * <p> Implemented advanced dialog state processing
- * <p> including:
- * <p> default advanced state set on start up
- * <p> advanced button management now handled by
- * <p> super class
- * <p>
- * <p> Revision 1.4  2002/12/19 00:30:26  rickg
- * <p> app manager and root pane moved to super class
- * <p>
- * <p> Revision 1.3  2002/10/17 22:39:55  rickg
- * <p> Added fileset name to window title
- * <p> this reference removed applicationManager messages
- * <p>
- * <p> Revision 1.2  2002/10/07 22:31:18  rickg
- * <p> removed unused imports
- * <p> reformat after emacs trashed it
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 public class PostProcessingDialog
   extends ProcessDialog
@@ -156,12 +70,13 @@ public class PostProcessingDialog
 
     // Set the default advanced dialog state
     updateAdvanced();
+    setToolTipText();
   }
   
   private Container createSqueezeVolPanel() {
     SpacedPanel squeezeVolPanel = new SpacedPanel(FixedDim.x0_y5, true, false);
     squeezeVolPanel.setLayout(new BoxLayout(squeezeVolPanel.getContainer(), BoxLayout.Y_AXIS));
-    squeezeVolPanel.setBorder(new EtchedBorder("Squeeze Volume").getBorder());
+    squeezeVolPanel.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
     //first component
     SpacedPanel squeezeVolPanel1 = new SpacedPanel(FixedDim.x5_y0);
     squeezeVolPanel1.setLayout(new BoxLayout(squeezeVolPanel1.getContainer(), BoxLayout.X_AXIS));
@@ -333,4 +248,116 @@ public class PostProcessingDialog
     }
   }
 
+  
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "Factor to squeeze by in X and Y.";
+    ltfReductionFactorXY.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Factor to squeeze by in Z.";
+    ltfReductionFactorZ.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Use linear instead of quadratic interpolation for transforming the "
+      + "volume with Matchvol.";
+    cbLinearInterpolation.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Squeeze the trimmed volume by the given factors.";
+    btnSqueezeVolume.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the squeezed volume.";
+    btnImodSqueezedVolume.setToolTipText(tooltipFormatter.setText(text).format());
+  }
+
 }
+/**
+ * <p> $Log$
+ * <p> Revision 3.12  2005/01/21 23:46:00  sueh
+ * <p> bug# 509 bug# 591  Using EtomoNumber.isNull() instead of isSet().
+ * <p>
+ * <p> Revision 3.11  2005/01/14 03:07:40  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
+ * <p> Revision 3.10  2005/01/12 00:45:42  sueh
+ * <p> bug# 579 Renamed TomogramState.getBackwordCompatible...() functions
+ * <p> to ...BackwardCompatible...
+ * <p>
+ * <p> Revision 3.9  2005/01/10 23:56:32  sueh
+ * <p> bug# 578 Modified isSqueezevolFlipped() and isTrimvolFlipped().
+ * <p>
+ * <p> Revision 3.8  2005/01/08 01:55:32  sueh
+ * <p> bug# 578 Calling all backword compatible functions in TomogramState
+ * <p> "getBackwordCompatible...".
+ * <p>
+ * <p> Revision 3.7  2004/12/16 02:33:05  sueh
+ * <p> bug# 564 Taking whether trimvol output and squeezevol output are flipped
+ * <p> or not when getting and setting Squeezevol parameters.
+ * <p>
+ * <p> Revision 3.6  2004/12/14 21:50:57  sueh
+ * <p> bug# 557 Made separate variables for x and y reduction factors to handle
+ * <p> an unflipped tomogram.
+ * <p>
+ * <p> Revision 3.5  2004/12/04 01:27:19  sueh
+ * <p> bug# 557 Added call to imodSqueezedVolume().
+ * <p>
+ * <p> Revision 3.4  2004/12/02 20:41:48  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
+ * <p> Revision 3.3  2004/12/02 18:30:50  sueh
+ * <p> bug# 557 Added the Squeeze Volume panel.  Added an action for the
+ * <p> Squeeze Volume button.
+ * <p>
+ * <p> Revision 3.2  2004/12/01 03:47:37  sueh
+ * <p> bug# 557 Added ui fields to use with squeezevol.
+ * <p>
+ * <p> Revision 3.1  2004/03/15 20:33:55  rickg
+ * <p> button variable name changes to btn...
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.5  2003/10/30 21:05:06  rickg
+ * <p> Bug# 340 Added context menu
+ * <p>
+ * <p> Revision 2.4  2003/04/17 23:07:20  rickg
+ * <p> Added cleanup panel
+ * <p>
+ * <p> Revision 2.3  2003/04/16 00:15:01  rickg
+ * <p> Trimvol in progress
+ * <p>
+ * <p> Revision 2.2  2003/04/14 23:57:34  rickg
+ * <p> Trimvol management changes
+ * <p>
+ * <p> Revision 2.1  2003/04/10 23:43:23  rickg
+ * <p> Added trimvol panel
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.5.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.5  2002/12/19 17:45:22  rickg
+ * <p> Implemented advanced dialog state processing
+ * <p> including:
+ * <p> default advanced state set on start up
+ * <p> advanced button management now handled by
+ * <p> super class
+ * <p>
+ * <p> Revision 1.4  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
+ * <p> Revision 1.3  2002/10/17 22:39:55  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+*/
