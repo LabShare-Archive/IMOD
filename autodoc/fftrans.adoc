@@ -1,0 +1,51 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FN
+usage = Input file with image or Fourier transform
+tooltip = 
+manpage =
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FN
+usage = Output file for Fourier transform or inverse transform
+tooltip = 
+manpage =
+
+[Field = 3dfft]
+short = 
+long = 3dfft
+type = B
+usage = Take 3D instead of 2D FFT
+tooltip = 
+manpage = 
+
+[Field = Mode]
+short = mode
+long = Mode
+type = I
+usage = Output mode for inverse transform (0 byte, 1 integer; default is 2)
+tooltip = 
+manpage = Mode of output file for inverse transform: 0 for bytes, 1 for 
+integers (default is 2 for reals)
+
+[Field = Quiet]
+short = quiet
+long = Quiet
+type = B
+usage = Suppress header and min/max/mean outputs
+tooltip = 
+manpage = 
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
