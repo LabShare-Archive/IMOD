@@ -146,6 +146,8 @@ PWD      = `pwd`
 COMPRESS = gzip
 
 ARCHIVE  = $(ARCNAME)$(DISTNAME).tar
+ARCCOMP  = $(ARCNAME)$(DISTNAME).tar.gz
+ARCCSH   = $(ARCNAME)$(DISTNAME).csh
 ARC      = tar cvf
 IMODDIR  = $(PWD)
 ARCDIR   = $(IMODDIR)/$(ARCNAME)
@@ -310,12 +312,14 @@ dist : ALWAYS
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/COPYRIGHT dist/start.html $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
 	\cp .version $(ARCDIR)/VERSION
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	./installqtlib
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
+	echo "Making self-installing file..."
+	cat dist/installStub $(ARCCOMP) >! $(ARCCSH) ; chmod a+x $(ARCCSH)
 
 
 ##################################################################
@@ -404,6 +408,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.37  2004/04/03 21:28:56  mast
+#  simplified seds for stripping ^M in cygwin
+#
 #  Revision 3.36  2004/04/03 19:59:27  mast
 #  Changed from SETUP_OPTIONS to using last options stored in .options file
 #  Updated make and install instructions to add Mac OSX and include
