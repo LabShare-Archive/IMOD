@@ -24,6 +24,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/12 01:27:13  rickg
+ * <p> Keep imod URL as a static object, don't need appManager
+ * <p> Windows compliant now
+ * <p>
  * <p> Revision 2.3  2003/05/10 19:12:42  rickg
  * <p> OS independent path implementation
  * <p>
@@ -261,9 +265,9 @@ public class ContextPopup {
       }
     };
 
-    addManPageMenuItems(manPageLabel, manPage);
-    contextMenu.add(new JPopupMenu.Separator());
     addLogFileMenuItems(logFileLabel, logFile);
+    contextMenu.add(new JPopupMenu.Separator());
+    addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
     addStandardMenuItems();
     showMenu(component);
