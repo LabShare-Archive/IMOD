@@ -21,6 +21,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.9  2003/07/25 22:57:30  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -626,6 +629,7 @@ public class ComScriptManager {
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
+    int commandIndex = script.getScriptCommandIndex(command);
     try {
       comScriptCommand = script.getScriptCommand(command);
       params.updateComScriptCommand(comScriptCommand);
@@ -644,9 +648,8 @@ public class ComScriptManager {
       return;
     }
 
-    // Replace the first script command with the updated ComScriptCommand
-    // object
-    script.setScriptComand(0, comScriptCommand);
+    // Replace the specified command by the updated comScriptCommand
+    script.setScriptComand(commandIndex, comScriptCommand);
 
     //  Write the script back out to disk
     try {

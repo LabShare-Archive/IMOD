@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/07/11 23:20:13  rickg
  * <p> Automatically switch of comment parsing if keyword/value file
  * <p>
@@ -247,6 +250,23 @@ public class ComScript {
     throw (new BadComScriptException("Did not find command: " + cmdName));
   }
 
+  /**
+   * Return the index of the specified command or -1 if the command is not
+   * present in the script
+   * @param cmdName the name of the command to find
+   * @return index of the command or -1 if not present
+   */
+  public int getScriptCommandIndex(String cmdName){
+    for (int i = 0; i < scriptCommands.size(); i++) {
+      ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
+      if (command.getCommand().equals(cmdName)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  
+  
   /**
    * Write out the command file currently represented by this object
    */
