@@ -1,4 +1,4 @@
-# IMOD 3.2.10
+# IMOD 3.4.12
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
@@ -16,7 +16,7 @@ if (! $?IMOD_DIR) setenv IMOD_DIR /Applications/IMOD
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH $IMOD_DIR/bin:$PATH
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     setenv PATH $IMOD_DIR/bin
 endif
@@ -29,7 +29,7 @@ setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
 # Tell the system where the IMOD libraries are located.
 #
 if ($?DYLD_LIBRARY_PATH) then
-	setenv DYLD_LIBRARY_PATH $IMOD_DIR/lib:$DYLD_LIBRARY_PATH
+	setenv DYLD_LIBRARY_PATH "$IMOD_DIR/lib:$DYLD_LIBRARY_PATH"
 else
 	setenv DYLD_LIBRARY_PATH $IMOD_DIR/lib
 endif

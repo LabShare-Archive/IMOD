@@ -1,4 +1,4 @@
-# IMOD 3.2.10
+# IMOD 3.4.12
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -21,7 +21,7 @@ if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/local/java
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH $IMOD_DIR/bin:$PATH
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     setenv PATH $IMOD_DIR/bin
 endif
@@ -33,7 +33,7 @@ setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
 # Tell the system where the IMOD libraries are located.
 #
 if ($?LD_LIBRARY_PATH) then
-	setenv LD_LIBRARY_PATH $IMOD_DIR/lib:$LD_LIBRARY_PATH
+	setenv LD_LIBRARY_PATH "$IMOD_DIR/lib:$LD_LIBRARY_PATH"
 else
 	setenv LD_LIBRARY_PATH $IMOD_DIR/lib
 endif
