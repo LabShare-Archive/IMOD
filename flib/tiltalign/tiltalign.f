@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2004/05/21 20:06:34  mast
+c	  Put out iteration limit error as a formal WARNING
+c	
 c	  Revision 3.11  2004/05/07 23:41:21  mast
 c	  Fixed problem with Z shift being setto zero
 c	
@@ -495,7 +498,7 @@ c
 	integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ier
 	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
 	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel
-	real*4 xpmin,ypmin
+	real*4 xpmin,ypmin,xdelt
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
 	character*80 concat
@@ -520,8 +523,8 @@ c
 	iuxtilt=inputalf
 	call input_model(xx,yy,isecview,maxprojpt,maxreal,irealstr,
      &	    ninreal,imodobj,imodcont,nview,nprojpt, nrealpt,iwhichout,
-     &	    xcen,ycen, mapviewtofile,mapfiletoview,nfileviews,modelfile,
-     &	    iupoint,iuangle,iuxtilt)
+     &	    xcen,ycen, xdelt, mapviewtofile,mapfiletoview,nfileviews,
+     &	    modelfile, iupoint,iuangle,iuxtilt)
 c	  
 	if(nview.gt.maxview)call errorexit('TOO MANY VIEWS FOR ARRAYS',
      &	    0)
@@ -1191,8 +1194,10 @@ c
 	enddo
 c	  
 	if (iupoint.ne.0) then
+	  write(iupoint,'(i4,3f10.2,i7,i5,3x,a,f12.5)')1,(allxyz(i,1),i=1,3),
+     &	      imodobj(1),imodcont(1),'Pixel size:',xdelt
 	  write(iupoint,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
-     &	      imodobj(j),imodcont(j),j=1,nrealpt)
+     &	      imodobj(j),imodcont(j),j=2,nrealpt)
 	  close(iupoint)
 	endif
 c	  
