@@ -826,17 +826,12 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
   zsy = xtum->zstep.y;
   zsz = xtum->zstep.z;
 
-  xs  = xtum->cx; ys = xtum->cy; zs = xtum->cz;
-  xs -= xsx * isize * 0.5f;
-  ys -= xsy * isize * 0.5f;
-  zs -= xsz * isize * 0.5f;
-  xs -= ysx * jsize * 0.5f;
-  ys -= ysy * jsize * 0.5f;
-  zs -= ysz * jsize * 0.5f;
-  xs -= zsx * xtum->ms * 0.5f;
-  ys -= zsy * xtum->ms * 0.5f;
-  zs -= zsz * xtum->ms * 0.5f;
+  /* DNM 4/29/04: rewrote for compactness and clarity */
+  xs = xtum->cx - 0.5f * (xsx * isize + ysx * jsize + zsx * xtum->ms);
+  ys = xtum->cy - 0.5f * (xsy * isize + ysy * jsize + zsy * xtum->ms);
+  zs = xtum->cz - 0.5f * (xsz * isize + ysz * jsize + zsz * xtum->ms);
 
+  /* printf("xyzs %f %f %f\n", xs, ys, zs); */
   x = xs; y = ys; z = zs;
 
   shortcut = 0;
@@ -1186,7 +1181,20 @@ void TumblerWindow::drawBoxLines(TumblerStruct *xtum, Imat *mat)
 }
 
 /* Set up the steps for walking through the data */
+/* DNM 4/29/04: move calculation into a routine that can be called for both 
+   cases */
 void TumblerWindow::setSteps(TumblerStruct *xtum)
+{
+  setStepsPoints(xtum, &xtum->xstep, &xtum->ystep, &xtum->zstep, xtum->beta);
+
+  if (xtum->stereo)
+    setStepsPoints(xtum, &xtum->sxstep, &xtum->systep, &xtum->szstep, 
+                   xtum->beta + xtum->plax);
+}
+
+/* Set up the steps for the given variables and beta rotation */
+void TumblerWindow::setStepsPoints(TumblerStruct *xtum, Ipoint *xstep, 
+                                   Ipoint *ystep, Ipoint *zstep, float beta)
 {
   Imat *mat;
   Ipoint inp, outp, transp;
@@ -1201,47 +1209,40 @@ void TumblerWindow::setSteps(TumblerStruct *xtum)
   transp.z = xtum->cz;
   imodMatTrans(mat, &transp);
   imodMatRot(mat, (double)xtum->alpha, 0);
-  imodMatRot(mat, (double)xtum->beta,  1);
+  imodMatRot(mat, (double)beta,  1);
   imodMatRot(mat, -(double)xtum->gamma, 2);
   transp.x *= -1.0f; transp.y *= -1.0f; transp.z *= -1.0f;
   imodMatTrans(mat, &transp);
   imodMatTransform(mat, &inp, &outp);
   inp.x = 1.0f;
-  imodMatTransform(mat, &inp, &(xtum->xstep));
+  imodMatTransform(mat, &inp, xstep);
   inp.y = 1.0f; inp.x = 0.0f;
-  imodMatTransform(mat, &inp, &(xtum->ystep));
-  inp.z = -1.0f; inp.y = 0.0f;
-  imodMatTransform(mat, &inp, &(xtum->zstep));
-  xtum->xstep.x -= outp.x; xtum->xstep.y -= outp.y; xtum->xstep.z -= outp.z;
-  xtum->ystep.x -= outp.x; xtum->ystep.y -= outp.y; xtum->ystep.z -= outp.z;
-  xtum->zstep.x -= outp.x; xtum->zstep.y -= outp.y; xtum->zstep.z -= outp.z;
+  imodMatTransform(mat, &inp, ystep);
+  inp.z = 1.0f; inp.y = 0.0f;
+  imodMatTransform(mat, &inp, zstep);
+  xstep->x -= outp.x; xstep->y -= outp.y; xstep->z -= outp.z;
+  ystep->x -= outp.x; ystep->y -= outp.y; ystep->z -= outp.z;
+  zstep->x -= outp.x; zstep->y -= outp.y; zstep->z -= outp.z;
 
-  if (xtum->stereo){
-    imodMatId(mat);
-    transp.x = xtum->cx; transp.y = xtum->cy; transp.z = xtum->cz;
-    imodMatTrans(mat, &transp);
-    imodMatRot(mat, (double)xtum->alpha, 0);
-    imodMatRot(mat, (double)xtum->beta + xtum->plax,  1);
-    imodMatRot(mat, -(double)xtum->gamma, 2);
-    transp.x *= -1.0f; transp.y *= -1.0f; transp.z *= -1.0f;
-    imodMatTrans(mat, &transp);
-    inp.x = inp.y = inp.z = 0.0f;
-    imodMatTransform(mat, &inp, &outp);
-    inp.x = 1.0f;
-    imodMatTransform(mat, &inp, &(xtum->sxstep));
-    inp.y = 1.0f; inp.x = 0.0f;
-    imodMatTransform(mat, &inp, &(xtum->systep));
-    inp.z = 1.0f; inp.y = 0.0f;
-    imodMatTransform(mat, &inp, &(xtum->szstep));
-    xtum->sxstep.x -= outp.x; xtum->sxstep.y -= outp.y; 
-    xtum->sxstep.z -= outp.z;
-    xtum->systep.x -= outp.x; xtum->systep.y -= outp.y; 
-    xtum->systep.z -= outp.z;
-    xtum->szstep.x -= outp.x; xtum->szstep.y -= outp.y; 
-    xtum->szstep.z -= outp.z;
-  }
+  setSmallStepZero(xstep);
+  setSmallStepZero(ystep);
+  setSmallStepZero(zstep);
+  /*  printf("xstep %g %g %g  ystep %g %g %g\n zstep %g %g %g\n", 
+         xstep->x, xstep->y, xstep->z, ystep->x, ystep->y, ystep->z,
+         zstep->x, zstep->y, zstep->z); */
   imodMatDelete(mat);
-  return;
+}
+
+/* Set very small steps exactly zero to avoid lurching back and forth when
+   rotating around an axis */
+void TumblerWindow::setSmallStepZero(Ipoint *xstep)
+{
+  if (fabs((double)xstep->x) < 1.e-5)
+    xstep->x = 0.;
+  if (fabs((double)xstep->y) < 1.e-5)
+    xstep->y = 0.;
+  if (fabs((double)xstep->z) < 1.e-5)
+    xstep->z = 0.;
 }
 
 /* Draw borders around the images */
@@ -1313,6 +1314,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.15  2004/03/12 19:27:43  mast
+Fixed bug in Z size changes; it was taking Y value
+
 Revision 4.14  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
