@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -28,6 +29,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/03/24 17:55:06  sueh
+ * <p> bug# 621 Added a button for the clean up dialog and reduced the space
+ * <p> between buttons.
+ * <p>
  * <p> Revision 1.5  2005/03/21 18:34:52  sueh
  * <p> bug# 622 Adding buttons to change axis.
  * <p>
@@ -245,6 +250,9 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
       axisButtonPanel.add(btnOtherAxis);
       panelProcessSelect.add(axisButtonPanel);
+    }
+    if (!EtomoDirector.getInstance().isNewStuff()) {
+      axisButtonPanel.setVisible(false);
     }
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     procCtlPreProc.setButtonActionListener(buttonListener);
