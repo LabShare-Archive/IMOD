@@ -46,6 +46,20 @@
 # 7.  "make install"
 #
 #
+# BUILDING UNDER CYGWIN/WINDOWS
+#
+# 1. "setup -i [install directory]" to set the install directory.
+#
+# 2. "make" to make all the non-graphical programs under Cygwin
+#
+# 3. In VisualC++, open the workspace libimod/libimod.dsw and build release
+#    versions of all three libraries
+#
+# 4. Open the workspace vcimod.dsw and build imod, midas, and imodsendevent.
+# 
+# 5. "make cyginstall"
+#
+#
 # The install commands will build .1 and .html versions of all man pages and
 # install them in man and html/man directories.  If the install directory is
 # omitted, then installation will be into bin, lib, com, man, and html
@@ -72,6 +86,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/02/28 18:09:32  mast
+#  Changes for cygwin/windows
+#
 #  Revision 3.5  2003/02/27 20:25:32  mast
 #  Add new sendevent directory
 #
