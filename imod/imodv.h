@@ -97,7 +97,6 @@ typedef struct __imodv_struct
   int lightx,
     lighty;
 
-  int fastdraw;    /* 0 = standard rendering for spheres, range 0 -3 */
   int mousemove;   /* 0 = move model, 1 light, 2 clip.        */
   int stereo;      /* 0 = no stereo view.                     */
                    /* 1 = cross, 2 = wall, 3 = red/green      */
@@ -150,6 +149,9 @@ void imodvDrawImodImages();
 
 /*
 $Log$
+Revision 3.8  2003/05/18 22:08:48  mast
+Changes to add an application icon
+
 Revision 3.7  2003/03/26 23:22:20  mast
 Change argument to main entry function
 
