@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/12/02 18:27:49  sueh
+ * <p> bug# 557 Added a static getOutputFile(String datasetName) to put the
+ * <p> responsibility of knowing how to build the trimvol output file in
+ * <p> TrimvolParam.
+ * <p>
  * <p> Revision 3.2  2004/06/22 01:53:33  sueh
  * <p> bug# 441 Added store(), load(), and equals().  Prevented
  * <p> setDefaultRange from overriding non-default values.  Moved
@@ -63,17 +68,21 @@
  */
 package etomo.comscript;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.type.AxisType;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
 
-public class TrimvolParam {
+public class TrimvolParam implements Command {
   public static final String rcsid = "$Id$";
+
+  public static final int SWAPYZ = -1;
 
   public static final String PARAM_ID = "Trimvol";
   public static final String XMIN = "XMin";
@@ -88,9 +97,12 @@ public class TrimvolParam {
   public static final String SECTION_SCALE_MAX = "SectionScaleMax";
   public static final String FIXED_SCALE_MIN = "FixedScaleMin";
   public static final String FIXED_SCALE_MAX = "FixedScaleMax";
-  public static final String SWAPYZ = "SwapYZ";
+  private static final String swapYZString = "SwapYZ";
   public static final String INPUT_FILE = "InputFile";
   public static final String OUTPUT_FILE = "OutputFile";
+  
+  private static final int commandSize = 3;
+  private static final String commandName = "trimvol";
   
   private int xMin = Integer.MIN_VALUE;
   private int xMax = Integer.MIN_VALUE;
@@ -107,7 +119,7 @@ public class TrimvolParam {
   private boolean swapYZ = true;
   private String inputFile = "";
   private String outputFile = "";
-
+  private String[] commandArray;
   /**
    *  Insert the objects attributes into the properties object.
    */
@@ -138,7 +150,7 @@ public class TrimvolParam {
       String.valueOf(sectionScaleMax));
     props.setProperty(group + FIXED_SCALE_MIN, String.valueOf(fixedScaleMin));
     props.setProperty(group + FIXED_SCALE_MAX, String.valueOf(fixedScaleMax));
-    props.setProperty(group + SWAPYZ, String.valueOf(swapYZ)  );
+    props.setProperty(group + swapYZString, String.valueOf(swapYZ)  );
     props.setProperty(group + INPUT_FILE, inputFile);
     props.setProperty(group + OUTPUT_FILE, outputFile);
   }
@@ -240,7 +252,7 @@ public class TrimvolParam {
         
     swapYZ =
       Boolean
-        .valueOf(props.getProperty(group + SWAPYZ, Boolean.toString(swapYZ)))
+        .valueOf(props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
         .booleanValue();
         
     inputFile = props.getProperty(group + INPUT_FILE, inputFile);
@@ -264,63 +276,62 @@ public class TrimvolParam {
 
   public TrimvolParam() {
   }
+  
+  private void createCommand() {
+    ArrayList options = genOptions();
+    commandArray = new String[options.size() + commandSize];
+    // Do not use the -e flag for tcsh since David's scripts handle the failure 
+    // of commands and then report appropriately.  The exception to this is the
+    // com scripts which require the -e flag.  RJG: 2003-11-06  
+    commandArray[0] = "tcsh";
+    commandArray[1] = "-f";
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
+    for (int i = 0; i < options.size(); i++) {
+      commandArray[i + commandSize] = (String) options.get(i);
+    }
+  }
 
   /**
    * Get the command string specified by the current state
    */
-  public String getCommandString() {
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
-    StringBuffer commandLine = new StringBuffer("tcsh -f "
-        + ApplicationManager.getIMODBinPath() + "trimvol -P ");
+  public ArrayList genOptions() {
+    ArrayList options = new ArrayList();
+    options.add("-P");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
     if (xMin >= 0 && xMax >= 0) {
-      commandLine.append(" -x ");
-      commandLine.append(String.valueOf(xMin));
-      commandLine.append(",");
-      commandLine.append(String.valueOf(xMax));
+      options.add("-x");
+      options.add(String.valueOf(xMin) + "," + String.valueOf(xMax));
     }
     if (yMin >= 0 && yMax >= 0) {
-      commandLine.append(" -y ");
-      commandLine.append(String.valueOf(yMin));
-      commandLine.append(",");
-      commandLine.append(String.valueOf(yMax));
+      options.add("-y");
+      options.add(String.valueOf(yMin) + "," + String.valueOf(yMax));
     }
     if (zMin >= 0 && zMax >= 0) {
-      commandLine.append(" -z ");
-      commandLine.append(String.valueOf(zMin));
-      commandLine.append(",");
-      commandLine.append(String.valueOf(zMax));
+      options.add("-z");
+      options.add(String.valueOf(zMin) + "," + String.valueOf(zMax));
     }
     if (convertToBytes) {
       if (fixedScaling) {
-        commandLine.append(" -c ");
-        commandLine.append(String.valueOf(fixedScaleMin));
-        commandLine.append(",");
-        commandLine.append(String.valueOf(fixedScaleMax));
+        options.add("-c");
+        options.add(String.valueOf(fixedScaleMin) + "," + String.valueOf(fixedScaleMax));
 
       }
       else {
-        commandLine.append(" -s ");
-        commandLine.append(String.valueOf(sectionScaleMin));
-        commandLine.append(",");
-        commandLine.append(String.valueOf(sectionScaleMax));
+        options.add("-s");
+        options.add(String.valueOf(sectionScaleMin) + "," + String.valueOf(sectionScaleMax));
       }
     }
 
     if (swapYZ) {
-      commandLine.append(" -yz ");
+      options.add("-yz");
     }
     // TODO check to see that filenames are apropriate
-    commandLine.append(" ");
-    commandLine.append(inputFile);
-    commandLine.append(" ");
-    commandLine.append(outputFile);
+    options.add(inputFile);
+    options.add(outputFile);
 
-    return commandLine.toString();
+    return options;
   }
 
   /**
@@ -544,7 +555,7 @@ public class TrimvolParam {
    * 
    * @return
    */
-  public String getInputFile() {
+  public String getInputFileName() {
     return inputFile;
   }
   /**
@@ -553,7 +564,7 @@ public class TrimvolParam {
    * @param datasetName
    * @return
    */
-  public static String getInputFile(AxisType axisType, String datasetName) {
+  public static String getInputFileName(AxisType axisType, String datasetName) {
     if (axisType == AxisType.SINGLE_AXIS) {
       return datasetName + "_full.rec";
     }
@@ -564,30 +575,76 @@ public class TrimvolParam {
    * @param axisType
    * @param datasetName
    */
-  public void setInputFile(AxisType axisType, String datasetName) {
-    inputFile = getInputFile(axisType, datasetName);
+  public void setInputFileName(AxisType axisType, String datasetName) {
+    inputFile = getInputFileName(axisType, datasetName);
   }
 
   /**
    * 
    * @return
    */
-  public String getOutputFile() {
+  public String getOutputFileName() {
     return outputFile;
   }
   
-  public static String getOutputFile(String datasetName) {
+  public static String getOutputFileName(String datasetName) {
     return datasetName + ".rec";
   }
   /**
    * 
    * @param datasetName
    */
-  public void setOutputFile(String datasetName) {
+  public void setOutputFileName(String datasetName) {
     outputFile = datasetName + ".rec";
   }
   
-
+  public int getBinning() {
+    return 1;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    switch (name) {
+    case SWAPYZ:
+      return swapYZ;
+    }
+    return false;
+  }
+  
+  public String[] getCommandArray() {
+    return commandArray;
+  }
+  
+  public String getCommandLine() {
+    if (commandArray == null) {
+      createCommand();
+    }
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i] + " ");
+    }
+    return buffer.toString();
+  }
+  
+  public String getCommandName() {
+    return commandName;
+  }
+  
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
+  public int getMode() {
+    return 0;
+  }
+  
+  public File getOutputFile() {
+    return new File(outputFile);
+  }
+  
+  public static String getName() {
+    return commandName;
+  }
+  
   /**
    * 
    * @param trim
@@ -633,8 +690,8 @@ public class TrimvolParam {
     if (swapYZ != trim.isSwapYZ()) {
       return false;
     }
-    if (!inputFile.equals(trim.getInputFile())
-      && (inputFile.equals("\\S+") || trim.getInputFile().equals("\\S+"))) {
+    if (!inputFile.equals(trim.getInputFileName())
+      && (inputFile.equals("\\S+") || trim.getInputFileName().equals("\\S+"))) {
       return false;
     }
     if (!outputFile.equals(trim.getOutputFile())
