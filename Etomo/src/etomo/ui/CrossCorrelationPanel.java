@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/11/19 23:50:37  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.9.4.1  2004/10/11 02:12:43  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -306,7 +309,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     String[] logFile = new String[1];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCrossCorrelation,
-      mouseEvent, "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel,
+      mouseEvent, "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
       logFile, applicationManager);
   }
 

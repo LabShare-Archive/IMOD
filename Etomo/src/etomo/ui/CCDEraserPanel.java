@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/11/19 23:49:22  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.5.4.2  2004/10/11 02:10:20  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -430,7 +433,7 @@ public class CCDEraserPanel implements ContextMenu {
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
-      "PRE-PROCESSING", label, manPage, logFileLabel, logFile, applicationManager);
+      "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile, applicationManager);
   }
 
   private void enableXRayReplacement() {

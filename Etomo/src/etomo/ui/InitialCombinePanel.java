@@ -28,6 +28,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/11/19 23:56:16  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.14.2.1  2004/10/11 02:13:30  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -260,7 +263,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     String[] logFile = {"transferfid.log", "solvematch.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-      "Initial Problems in Combining", manPagelabel, manPage, logFileLabel,
+      "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
       logFile, applicationManager);
   }
 

@@ -42,6 +42,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2004/11/20 00:04:03  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.14.2.1  2004/10/11 02:17:32  sueh
  * bug# 520 Passed the manager to the ContextPopup object in order to get
  * the propertyUserDir.
@@ -711,7 +714,7 @@ public class SetupCombinePanel
         "matchorwarp.log", "volcombine.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-      "TOMOGRAM COMBINATION", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+      "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
   //	Button action listener
   class SetupCombineActionListener implements ActionListener {

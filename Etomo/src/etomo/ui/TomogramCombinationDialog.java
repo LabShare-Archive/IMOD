@@ -38,6 +38,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/11/30 00:36:02  sueh
+ * <p> bug# 556 Adding get and set params for volcombine.
+ * <p>
  * <p> Revision 3.14  2004/11/20 00:06:29  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -498,7 +501,7 @@ public class TomogramCombinationDialog
       new ContextPopup(
         rootPanel,
         mouseEvent,
-        "TOMOGRAM COMBINATION",
+        "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, 
         manPagelabel,
         manPage,
         logFileLabel,

@@ -25,6 +25,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/11/19 23:53:35  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.4.4.1  2004/10/11 02:12:56  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -292,7 +295,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     new ContextPopup(
       pnlFiducialModel,
       mouseEvent,
-      "GETTING FIDUCIAL",
+      "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE,
       manPagelabel,
       manPage,
       logFileLabel,

@@ -25,6 +25,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/12/02 18:30:50  sueh
+ * <p> bug# 557 Added the Squeeze Volume panel.  Added an action for the
+ * <p> Squeeze Volume button.
+ * <p>
  * <p> Revision 3.2  2004/12/01 03:47:37  sueh
  * <p> bug# 557 Added ui fields to use with squeezevol.
  * <p>
@@ -200,7 +204,7 @@ public class PostProcessingDialog
     new ContextPopup(
       rootPanel,
       mouseEvent,
-      "POST-PROCESSING",
+      "POST-PROCESSING", ContextPopup.TOMO_GUIDE,
       manPagelabel,
       manPage);
   }

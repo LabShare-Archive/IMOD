@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/11/19 23:49:54  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.10.4.1  2004/10/11 02:11:10  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -261,7 +264,7 @@ public class CoarseAlignDialog extends ProcessDialog
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     logFile[1] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
-      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+      "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   /**

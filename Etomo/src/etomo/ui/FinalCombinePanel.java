@@ -47,6 +47,9 @@ import etomo.comscript.SetParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2004/11/30 18:29:36  sueh
+ * bug# 556 Made Reduction Factor advanced and gave it a tooltip.
+ *
  * Revision 3.17  2004/11/30 00:35:49  sueh
  * bug# 556 Adding reduction factor and get and set params for volcombine.
  *
@@ -697,7 +700,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     String[] logFileLabel = {"Patchcorr", "Matchorwarp", "Volcombine"};
     String[] logFile = {"patchcorr.log", "matchorwarp.log", "volcombine.log"};
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-      "Patch Problems in Combining", manPagelabel, manPage, logFileLabel,
+      "Patch Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
       logFile, applicationManager);
   }
 

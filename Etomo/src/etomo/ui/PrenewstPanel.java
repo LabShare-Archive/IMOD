@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2004/11/20 00:01:23  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 1.7.4.1  2004/10/11 02:16:51  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -124,7 +127,7 @@ public class PrenewstPanel implements ContextMenu {
     String[] logFile = new String[1];
     logFile[0] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
-      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+      "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
   
   /**

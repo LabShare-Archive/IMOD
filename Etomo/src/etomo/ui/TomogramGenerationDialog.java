@@ -56,6 +56,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2004/11/20 00:06:42  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.24.2.4  2004/10/11 02:19:11  sueh
  * bug# 520 Passed the manager to the ContextPopup object in order to get
  * the propertyUserDir.
@@ -931,7 +934,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+        "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
