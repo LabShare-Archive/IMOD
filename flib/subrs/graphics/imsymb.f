@@ -57,7 +57,7 @@
 27	return
 30	nthsav=nthick
 	rscl=symscl+0.5*nthick/upi
-	call imset(1,ic1,ic2,ic3,0)
+	call imset(1,c1,c2,c3,0)
 	if(ind+1)42,32,31
 31	alo=abot(ind)
 	blo=bbot(ind)
