@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2003/06/20 20:09:51  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.11  2003/06/05 04:28:54  mast
 #  Change PID output to match vmstocsh output to stderr
 #
@@ -61,15 +64,11 @@ set xcfilter = "0.03,0.05,0,0.25"
 @ BEADTRACK_RESHOOT_LINE = 7
 @ BEADTRACK_RADIUS_LINE = 13
 
+set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
-
-set tmpdir = /usr/tmp
-if ($?IMOD_TMPDIR) then
-    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
-endif
-if (! -w $tmpdir) set tmpdir = /tmp
 
 onintr searchdone
 
@@ -257,7 +256,7 @@ endif
 if ($imagea == "") then
     @ topline  = `vmstocsh < track$src.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[^ -z]/s///g'`
 endif
 
 if (! -e $imagea) then
@@ -268,7 +267,7 @@ endif
 if ($imageb == "") then
     @ topline  = `vmstocsh < track$dst.com | awk '/beadtrack/{print NR}'`
     @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline`
+    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[^ -z]/s///g'`
 endif
 
 if (! -e $imageb) then
@@ -713,10 +712,10 @@ endif
 if ($radius == "") then
     @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
     @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
-    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline`
+    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[^ -z]/s///g'`
     @ reshootnum = $reshoots[1]
     @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
-    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline`
+    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed '/[^ -z]/s///g'`
 else
     set radiusdark = $radius,$lightdark
 endif
