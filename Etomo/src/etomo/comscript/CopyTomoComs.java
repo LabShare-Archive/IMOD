@@ -17,6 +17,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/09 21:35:44  rickg
+ * <p> Removed stdout messages, can now be gotten from the enableDebug method in SystemProgram
+ * <p>
  * <p> Revision 1.2  2002/10/09 21:19:40  rickg
  * <p> Reformat from emacs
  * <p>
@@ -164,26 +167,9 @@ public class CopyTomoComs {
     checkTiltAngleFiles();
 
     //  Execute the script
+    copytomocoms.enableDebug(true);
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
-
-    System.out.println("Stdout:");
-    System.out.println(
-      "------------------------------------------------------------");
-    String[] stdout = copytomocoms.getStdOutput();
-    for (int i = 0; i < stdout.length; i++) {
-      System.out.println(stdout[i]);
-    }
-    System.out.println("");
-
-    System.out.println("Stderr:");
-    System.out.println(
-      "------------------------------------------------------------");
-    String[] stderr = copytomocoms.getStdError();
-    for (int i = 0; i < stderr.length; i++) {
-      System.out.println(stderr[i]);
-    }
-    System.out.println("");
 
     //  FIXME we really need to find out what the exception/error condition was
     if (exitValue != 0) {

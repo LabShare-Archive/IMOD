@@ -15,6 +15,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/03 01:47:53  rickg
+ * <p> Reformat after emacs whitespace trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -60,7 +63,6 @@ public class RunComScript extends Thread {
         + comBaseName
         + ".log ";
 
-    System.out.println(command);
     SystemProgram systemProgram = new SystemProgram(command);
     systemProgram.setWorkingDirectory(workingDirectory);
 
@@ -77,11 +79,13 @@ public class RunComScript extends Thread {
         sleep(5000);
       }
       catch (InterruptedException except) {
+        except.printStackTrace();
         System.out.println("Sleep interrupted");
       }
     }
     else {
       try {
+        systemProgram.enableDebug(true);
         systemProgram.run();
         exitValue = systemProgram.getExitValue();
       }
@@ -90,25 +94,6 @@ public class RunComScript extends Thread {
         System.exit(-1);
       }
 
-      System.out.println("Exit value:" + String.valueOf(exitValue));
-
-      System.out.println("Stdout:");
-      System.out.println(
-        "------------------------------------------------------------");
-      String[] stdout = systemProgram.getStdOutput();
-      for (int i = 0; i < stdout.length; i++) {
-        System.out.println(stdout[i]);
-      }
-      System.out.println("");
-      System.out.println("Stderr:");
-      System.out.println(
-        "------------------------------------------------------------");
-      String[] stderr = systemProgram.getStdError();
-      for (int i = 0; i < stderr.length; i++) {
-        System.out.println(stderr[i]);
-      }
-      System.out.println("");
-      System.out.println("");
     }
     progressBarThread.interrupt();
 
