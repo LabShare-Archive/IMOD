@@ -10,6 +10,8 @@ set this = "$0"
 set rootname = "$this:t"
 set packname = $rootname:r.tar.gz
 set tempdir = IMODtempDir
+set installdir = ""
+set custom = 0
 
 # Find the end of this script
 #
@@ -36,6 +38,11 @@ while ($#argv > 0)
             shift
             breaksw
 
+        case -d*:
+            set installdir = $argv[2]
+            shift ; shift
+            breaksw
+
         default:
             echo "Illegal option $argv[1]"
             exit 1
@@ -48,7 +55,7 @@ set sysfiles = ()
 # DUPLICATION ALERT: THE FOLLOWING IS COPIED FROM installIMOD
 #
 set system = `uname -s`
-set installdir = /usr/local
+set defaultdir = /usr/local
 
 switch ($system)
     case *IRIX*:
@@ -68,7 +75,7 @@ switch ($system)
         breaksw
     case *Darwin*:
         set os = osx
-        set installdir = /Applications
+        set defaultdir = /Applications
         set scripts = (mac.cshrc mac.bashrc)
         set sysfiles = (/etc/csh.login /etc/profile)
         breaksw
@@ -80,6 +87,13 @@ switch ($system)
         exit 1
 
 endsw
+
+if ("$installdir" == "") set installdir = $defaultdir
+if ("$installdir" != "$defaultdir") set custom = 1
+if ($os == windows && $custom == 1) then
+    echo "You can not set the install directory on Windows"
+    exit 1
+endif
 
 if ($extract == 0) then
     echo ""
@@ -93,6 +107,12 @@ if ($extract == 0) then
         if ($#sysfiles == 2) echo -n " and $sysfiles[2]"
         echo " to source a startup script"
         echo " in $installdir/IMOD unless they already appear to do so"
+    endif
+    
+    if ($os != windows && $custom == 0) then 
+        echo ""
+        echo "Your can add the option -dir install_dir to install to install_dir"
+        echo "instead of to $installdir (enter a full, absolute path for install_dir)"
     endif
     echo ""
     echo "You can add the option -extract to just extract the tar file and not install"
@@ -134,7 +154,7 @@ endif
 
 # It has to be run by tcsh for Irix; there is some bug in csh
 
-if ($test == 0) tcsh $installer $packname
+if ($test == 0) tcsh $installer -d $installdir $packname
 
 echo " "
 echo "Cleaning up $packname and $installer"
@@ -151,6 +171,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/08/24 18:46:42  mast
+#  Switched from 'tail +#' to 'tail -n +#' due to problem on some Linux
+#
 #  Revision 3.7  2004/07/04 14:27:11  mast
 #  Fixed a problem on Mac
 #

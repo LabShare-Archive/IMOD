@@ -1,7 +1,7 @@
 #!/bin/tcsh -f
 #
 # Multi-platform install script for IMOD. 
-# Usage : installIMOD [package name]
+# Usage : installIMOD [-d install_dir] [package name]
 # If run with no arguments, it will look for a package in the current 
 # directory and try to install it if there is only one.
 #
@@ -11,31 +11,20 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.7  2004/07/08 23:23:50  mast
-#  Added message to open new window and warning about other source lines
-#
-#  Revision 3.6  2004/07/06 16:55:20  mast
-#  Switch from link to rename for Mac
-#
-#  Revision 3.5  2004/07/04 13:47:31  mast
-#  Added details for user and made it work with spaces in directory path
-#
-#  Revision 3.4  2004/04/24 17:42:04  mast
-#  Remove gzcat error warning, it happened because editing file added a newline
-#
-#  Revision 3.3  2004/04/24 04:32:59  mast
-#  Fixes for SGI; decided not to put source command in /etc/profile
-#
-#  Revision 3.2  2004/04/24 01:21:57  mast
-#  Needed to separate : from varaiable
-#
-#  Revision 3.1  2004/04/24 01:10:03  mast
-#  Initial creation
-#
+#  Log at end of file
 
+# First check for install directory
 # Set the package name from the argument and check it if there is one
 #
+set installdir = ""
+set custom = 0
+
+if ($#argv > 0) then
+    if ("$argv[1]" == "-d" || "$argv[1]" == "-dir") then
+        set installdir = $argv[2]
+        shift; shift
+endif
+
 if ($#argv > 0) then
     set package = "$argv[1]"
     if (! -r "$package") then
@@ -68,7 +57,7 @@ echo "Checking system and package types"
 # DUPLICATION ALERT: THE FOLLOWING IS INCORPORATED IN THE installStub
 #
 set system = `uname -s`
-set installdir = /usr/local
+set defaultdir = /usr/local
 
 switch ($system)
     case *IRIX*:
@@ -89,7 +78,7 @@ switch ($system)
         breaksw
     case *Darwin*:
         set os = osx
-        set installdir = /Applications
+        set defaultdir = /Applications
         set scripts = (mac.cshrc mac.bashrc)
         set sysfiles = (/etc/csh.login /etc/profile)
         breaksw
@@ -98,6 +87,13 @@ switch ($system)
         echo "IMOD will not run on this system ($system)"
         exit 1
 endsw
+
+if ("$installdir" == "") set installdir = $defaultdir
+if ("$installdir" != "$defaultdir") set custom = 1
+if ($os == windows && $custom == 1) then
+    echo "You can not set the install directory on Windows"
+    exit 1
+endif
 
 switch ($package)
     case *irix*:
@@ -116,6 +112,15 @@ endsw
 
 if ($os != $packos) then
     echo "The system type ($os) does not match the IMOD package type ($packos)"
+    exit 1
+endif
+
+set sysdir = /etc
+if ($os == linux || $os == windows) set sysdir = /etc/profile.d
+
+if (! -w $installdir || ! -w $sysdir) then
+    echo "You do not have permission to write to both $installdir and $sysdir"
+    echo  "Run this command with sudo or as root"
     exit 1
 endif
 
@@ -206,26 +211,44 @@ else
     ln -s $version IMOD
 endif
 
+set defaultstr = `echo $defaultdir/IMOD | sed '/\//s//\\\//g'`
+set installstr = `echo $installdir/IMOD | sed '/\//s//\\\//g'`
+
 cd IMOD
 if ($os == windows || $os == linux) then
 
     # The easy ones: copy to /etc/profile.d
     #
     echo "Copying startup scripts to /etc/profile.d: $scripts"
-    \cp $scripts /etc/profile.d
+    foreach i ($scripts)
+        sed "/$defaultstr/s//$installstr/g" $i >! /etc/profile.d/$i
+    end
 else
 
     # The hard ones: append a source command to a system file if files exist
     # and it is not there already
     #
+    set warned = 0
     @ ind = 1
     while ($ind <= $#scripts)
         set sysfil = $sysfiles[$ind]
         if (-e $scripts[$ind] && -e $sysfil) then
+            if ($custom == 1) then
+                set wrong = `grep -i "^[^#].*source.*$defaultdir.*imod" $sysfil`
+                if ($status == 0) then
+                    echo ""
+                    echo "WARNING: $sysfil has a command to source from the default install location"
+                    echo "You should edit $sysfil to remove this line (or lines):"
+                    grep -i "^[^#].*source.*$defaultdir.*imod" $sysfil
+                    echo ""
+                    set warned = 1
+                endif
+            endif
+
             set already = `grep "^[^#].*source.*$installdir.*IMOD" $sysfil`
             if ($status) then
                 set wrong = `grep -i "^[^#].*source.*imod" $sysfil`
-                if ($status == 0) then
+                if ($status == 0 && $warned == 0) then
                     echo ""
                     echo "WARNING: $sysfil has an older, inappropriate source command"
                     echo "You should edit $sysfil to remove this line (or lines):"
@@ -235,7 +258,7 @@ else
                 echo "Adding source of startup script to $sysfil"
                 echo "# Set environment for IMOD" >> $sysfil
                 echo "" >> $sysfil
-                tail -n 2 $scripts[$ind] >> $sysfil
+                tail -n 2 $scripts[$ind] | sed "/$defaultstr/s//$installstr/g" >> $sysfil
             else
                 echo "Source command already exists in $sysfil"
             endif
@@ -258,3 +281,30 @@ echo ""
 echo "If there are version-specific IMOD startup commands in individual user"
 echo " startup files (.cshrc, .bashrc) they should be changed or removed."
 exit 0
+
+#
+#  $Log$
+#  Revision 3.8  2004/08/27 05:48:20  mast
+#  Switched to tail -n
+#
+#  Revision 3.7  2004/07/08 23:23:50  mast
+#  Added message to open new window and warning about other source lines
+#
+#  Revision 3.6  2004/07/06 16:55:20  mast
+#  Switch from link to rename for Mac
+#
+#  Revision 3.5  2004/07/04 13:47:31  mast
+#  Added details for user and made it work with spaces in directory path
+#
+#  Revision 3.4  2004/04/24 17:42:04  mast
+#  Remove gzcat error warning, it happened because editing file added a newline
+#
+#  Revision 3.3  2004/04/24 04:32:59  mast
+#  Fixes for SGI; decided not to put source command in /etc/profile
+#
+#  Revision 3.2  2004/04/24 01:21:57  mast
+#  Needed to separate : from varaiable
+#
+#  Revision 3.1  2004/04/24 01:10:03  mast
+#  Initial creation
+#
