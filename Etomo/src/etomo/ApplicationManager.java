@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.47  2003/05/27 08:42:04  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p>
  * <p> Revision 2.46  2003/05/23 22:49:41  rickg
  * <p> Spelling correction
  * <p>
@@ -1286,6 +1289,9 @@ public class ApplicationManager {
       transferfidParam.setDatasetName(datasetName);
       if (sourceAxisID == AxisID.SECOND) {
         transferfidParam.setBToA(true);
+      }
+      else {
+        transferfidParam.setBToA(false);
       }
 
       // Get any user specified changes
