@@ -14,6 +14,7 @@ program.
 [Field = ExtraThickness]
 short = extra
 long = ExtraThickness
+type = F
 usage = Additional pixels of thickness to add on top and bottom
 tooltip = 
 manpage = Additional pixels of thickness to add to both the top and the bottom 
@@ -22,6 +23,7 @@ of the tomogram, beyond the region described by the model lines.
 [Field = SpacingInY]
 short = spacing
 long = SpacingInY
+type = F
 usage = Spacing between tomogram samples (distance in Y in tilted views)
 tooltip =
 manpage = Spacing between tomogram samples (distance in Y in tilted views).
@@ -32,6 +34,7 @@ flat in its Z dimension.
 [Field = ScaleFactor]
 short = scale
 long = ScaleFactor
+type = F
 usage = Amount to scale the recommended Z shift and thickness (for binned-down
 samples)
 tooltip =
