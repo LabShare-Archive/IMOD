@@ -2,6 +2,14 @@
 # - setupcoms: will set up command files for axoneme averaging.
 # all alignment parameters can be set by the usual means in statements below.
 #
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 # SET DOBOTH to 1 to do both sets of runs, to 0 to do only 2nd alignment 
 set DOBOTH = "1"
 set noglob
@@ -378,7 +386,7 @@ endif
 #
 if ($DOBOTH == "0") echo -n '#' >> $comm
 cat >> $comm << EOCAT
-csh $com1
+csh -f $com1
 newstack <<EOF
 1
 $P1.dblt
@@ -410,7 +418,7 @@ EOCAT
 endif
 #
 cat >> $comm << EOCAT
-csh $com2
+csh -f $com2
 newstack <<EOF
 1
 $P1.ali_1
@@ -436,5 +444,5 @@ EOF
 echo2 Cross-sectional average $P1 finished
 EOCAT
 chmod +x $com1 $com2 $comm
-csh $comm >/dev/null &
+csh -f $comm >/dev/null &
 echo "Master command file being executed in background, output to /dev/null"
