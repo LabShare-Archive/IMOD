@@ -4,11 +4,11 @@
   <property name="src" location="src" />
   <property name="build" location="bin" />
   <property name="dist" location="dist" /> 
-
+  <property name="javadocs" location="doc/javadoc" />
+  <property name="manfiest" location="MANIFEST.MF" />
 
   <property name="appname" value="etomo"/>
   <property name="classpath" value="/usr/local/junit/junit.jar"/>
-  <property name="packages" value="etomo,etomo.comscript,etomo.process,etomo.storage,etomo.type,etomo.ui,etomo.util"/>
 
   <target name="init" >
     <tstamp/>
@@ -24,17 +24,24 @@
 
   <target name="dist" depends="compile">
     <mkdir dir="${dist}" />
-    <jar jarfile="${dist}/etomo-${DSTAMP}.jar" basedir="${build}" />
+    <jar jarfile="${dist}/etomo-${DSTAMP}.jar" basedir="${build}">
+       <!-- manfiest name="MANIFEST.MF" / -->
+    </jar>
   </target>
 
-  <target name="etomo-docs" >
-  	<javadoc packagenames="bin.etomo.*"
-  	  sourcepath="src/etomo"
-  	  destdir="doc/javadoc"
+  <target name="etomo-docs" depends="compile">
+  	<javadoc destdir="doc/javadoc"
   	  author="true"
   	  version="true"
   	  use="true"
-  	  verbose="true" >
+  	  private="true"
+      windowtitle="Etomo API"
+      doctitle="Etomo API"
+      additionalparam="-breakiterator">
+	  <packageset dir="src">
+	    <include name="etomo/**" />
+  	  </packageset>
+      <classpath path="${classpath}" />
     </javadoc>
   </target>
            
@@ -42,6 +49,7 @@
 	<delete dir="${build}/${appname}" />
 	<delete dir="${build}/images" />
 	<delete dir="${dist}" />
+	<delete dir="${javadocs}" />
   </target>
 </project>
 
