@@ -8,6 +8,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/07/24 17:35:38  mast
+c	  Added progress output
+c	
 c	  Revision 3.2  2004/06/22 19:57:48  mast
 c	  Fixed computation of mean
 c	
@@ -20,7 +23,8 @@ c	  setup_cubes_scratch determines the needed size of the scratch files
 c	  opens the scratch files, and sets up tables for which cubes use
 c	  which file
 c
-	subroutine setup_cubes_scratch(devmx, filein, tempdir, tempext, tim)
+	subroutine setup_cubes_scratch(devmx, nExtra, filein, tempdir,
+     &	    tempext, tim)
 	implicit none
 	real*4 devmx
 	character*(*) filein
@@ -28,12 +32,12 @@ c
 	character*(*) tempext
 	character*(*) tim
 	include 'rotmatwarp.inc'
-	integer*4 nxyzcubas(3),nxyzscr(3),nbigcube(3)
+	integer*4 nxyzcubas(3),nxyzscr(3),nbigcube(3),nExtra
 	integer*4 idimout, i, ind, j, ix, iy
 	character*80 temp_filename
 	character*120 tempname
 c
-	idimout=inpdim/devmx-2
+	idimout=(inpdim - nExtra) / devmx - 2
 	idimout=min(idimout,limout)
 c	  
 c	  now compute sizes of nearly equal sized near cubes to fill output
@@ -57,6 +61,17 @@ c
 	enddo
 	if (nxout * (nxyzcubas(2) + 1) .ge. inpdim**3)
      &	    call errorexit('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
+c	  
+c	  get an array of file numbers for each cube in X/Y plane
+c
+	do ix=1,ncubes(1)
+	  do iy=1,ncubes(2)
+	    ifile(ix,iy)=1
+	    if(ix.gt.nbigcube(1))ifile(ix,iy)=ifile(ix,iy)+1
+	    if(iy.gt.nbigcube(2))ifile(ix,iy)=ifile(ix,iy)+2
+	  enddo
+	enddo
+	if (filein .eq. ' ') return
 
 	write(*,103)ncubes(3),ncubes(1),ncubes(2)
 103	format(' Rotations done in',i3,' layers, with',i3,' by',i3,
@@ -92,16 +107,6 @@ c
 	nxyzscr(1)=nxyzscr(1)+1
 	call imopen(3,tempname,'scratch')
 	call icrhdr(3,nxyzscr,nxyzscr,mode,title,0)
-c	  
-c	  get an array of file numbers for each cube in X/Y plane
-c
-	do ix=1,ncubes(1)
-	  do iy=1,ncubes(2)
-	    ifile(ix,iy)=1
-	    if(ix.gt.nbigcube(1))ifile(ix,iy)=ifile(ix,iy)+1
-	    if(iy.gt.nbigcube(2))ifile(ix,iy)=ifile(ix,iy)+2
-	  enddo
-	enddo
 	return
 	end
 
