@@ -31,6 +31,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/12/03 02:32:25  sueh
+ * <p> bug# 566 Corrected JOIN_GUIDE.  Added name of guide to be anchored
+ * <p> in globalItemAction() so that it will use the anchor when it matches what
+ * <p> the user chose.
+ * <p>
  * <p> Revision 3.4  2004/12/02 20:39:09  sueh
  * <p> bug# 566 Changed ContextPopup to specify an anchor in both the t
  * <p> omo guide and the join guide.  Passing in guideToAnchor to the
@@ -223,6 +228,41 @@ public class ContextPopup {
     addStandardMenuItems();
     showMenu(component);
   }
+  
+  /**
+   * Constructor to show the standard items with a anchor into one of the guides.
+   * @param component
+   * @param mouseEvent
+   * @param tomoAnchor
+   * @param guideToAnchor
+   */
+  public ContextPopup(
+      Component component,
+      MouseEvent mouseEvent,
+      String tomoAnchor,
+      final String guideToAnchor) {
+
+      this.mouseEvent = mouseEvent;
+      anchor = tomoAnchor;
+      calcImodURL();
+
+      //  Instantiate a new ActionListener to handle the menu selection
+      actionListener = new ActionListener() {
+        public void actionPerformed(ActionEvent actionEvent) {
+          String guideLocation = guideToAnchor;
+          if (anchor != null && !anchor.equals("")) {
+            guideLocation += "#" + anchor;
+          }
+          globalItemAction(actionEvent, guideLocation, guideToAnchor);
+          //  Close the menu
+          contextMenu.setVisible(false);
+        }
+      };
+      
+      contextMenu.add(new JPopupMenu.Separator());
+      addStandardMenuItems();
+      showMenu(component);
+    }
 
   /**
    * Constructor to show a man page list and log file items in addition to the
