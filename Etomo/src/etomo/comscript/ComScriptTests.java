@@ -22,6 +22,7 @@ public class ComScriptTests {
     suite.addTestSuite(SetupCombineTest.class);
     suite.addTestSuite(StringListTest.class);
     suite.addTestSuite(NewstParamTest.class);
+    suite.addTestSuite(FortranInputStringTest.class);
     //suite.addTest(new NewstParamTest("testParseComScriptCommand"));
     return suite;
   }
