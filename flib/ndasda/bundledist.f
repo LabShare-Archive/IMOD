@@ -20,6 +20,14 @@ c	  ITYPNEIGH(I,J) is the Ith neighbor type for the Jth graph
 c	  GRAPHS(I,J) is returned with the density at the Ith bin of Jth graph
 c	  FRACSUM(I,J) is returned with total area contributing to that bin
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine bundledist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &	    delr,nbins,ngraph,nreftyp,nneightyp,itypref,itypneigh,
      &	    iwhichend,ifnearest,pad,fracomit,graphs,fracsum,zscal,
@@ -107,7 +115,8 @@ c
 	    if(ninsec(isec).ge.minbund)then
 	      call convexbound(sx(1+(isec-1)*nmax),sy(1+(isec-1)*nmax),
      &		  ninsec(isec),fracomit,pad,bx(indbase),by(indbase),
-     &		  nvert(ibund,isec),xcen(ibund,isec),ycen(ibund,isec))
+     &		  nvert(ibund,isec),xcen(ibund,isec),ycen(ibund,isec),
+     &		  limvert-indbase)
 	      indvert(ibund,isec)=indbase
 	      if(.not.inside(bx(indbase),by(indbase),nvert(ibund,isec),
      &		  xcen(ibund,isec),ycen(ibund,isec)))write(*,'(a,2i5)')
