@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/24 23:03:47  sueh
+* <p> bug# 520 Add -P option to get the PID from finishjoin.
+* <p>
 * <p> Revision 1.3  2004/11/23 22:29:29  sueh
 * <p> bug# 520 Converted finalStart and end to EtomoNumbers.
 * <p>
@@ -91,7 +94,6 @@ public class FinishjoinParam implements Command {
   private static final String commandName = "finishjoin";
   private ConstJoinMetaData metaData;
   private String[] commandArray;
-  private SystemProgram program;
   private String rootName;
   private File outputFile;
   private int mode;
@@ -114,8 +116,6 @@ public class FinishjoinParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + 3] = (String) options.get(i);
     }
-    program = new SystemProgram(commandArray);
-    program.setWorkingDirectory(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir()));
   }
   
   public int getIntegerValue(int name) {

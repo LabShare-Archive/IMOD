@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
@@ -31,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:04:18  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.13  2004/11/19 00:01:10  sueh
 * <p> bug# 520 Removed unnecessary pass-through functions from
 * <p> ConstSectionTableRowData.
@@ -94,12 +96,6 @@ public class MakejoincomParam implements Command {
   
   public MakejoincomParam(ConstJoinMetaData metaData) {
     this.metaData = metaData;
-
-    //  Create a new SystemProgram object for setupcombine, set the
-    //  working directory and stdin array.
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
@@ -108,8 +104,6 @@ public class MakejoincomParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(commandArray);
-    program.setWorkingDirectory(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir()));
   }
   
   public String[] getCommandArray() {

@@ -23,6 +23,9 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:15:33  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.10  2004/11/16 02:21:42  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -73,7 +76,6 @@ public class XfalignParam implements Command {
   
   private ConstJoinMetaData metaData;
   private String[] commandArray;
-  private SystemProgram program;
   private String workingDir = null;
   private String rootName = null;
   private String outputFileName = null;
@@ -95,8 +97,6 @@ public class XfalignParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(commandArray);
-    program.setWorkingDirectory(new File(workingDir));
   }
   
   public String[] getCommandArray() {
