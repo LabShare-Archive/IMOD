@@ -489,18 +489,10 @@ void XyzWindow::B2Press(int x, int y)
   if (!obj)
     return;
 
-  cont = imodContourGet(xx->vi->imod);
-  if (!cont) {
-    xx->vi->imod->cindex.contour = obj->contsize - 1;
-    NewContour(xx->vi->imod);
-    cont = imodContourGet(xx->vi->imod);
-    if (!cont)
-      return;
-    if (iobjFlagTime(obj)){
-      cont->type = xx->vi->ct;
-      cont->flags |= ICONT_TYPEISTIME;
-    }
-  }
+  // DNM 7/10/04: switch to calling function for this
+  cont = ivwGetOrMakeContour(xx->vi, obj);
+  if (!cont)
+    return;
 
   /* If contour is empty and time doesn't match, 
      reassign it to the current time */
@@ -1737,6 +1729,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.18  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.17  2004/05/03 19:19:10  mast
 fixed bug in test for presence of data on one plane
 
