@@ -58,6 +58,12 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.29  2005/01/12 00:48:10  sueh
+ * bug# 579 Stop enabling/disabling Use local alignments checkbox when
+ * fiducialess checkbox is selected/unselected.  This needs to initiated from
+ * ProcessManager.postProcess().  Setting/getting Use local alignments
+ * checkbox from metaData.
+ *
  * Revision 3.28  2005/01/11 18:08:21  sueh
  * bug# 578 Sending useZFactors state to metaData to preserve it when it is
  * disabled.
@@ -688,7 +694,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.setLogShift(Float.NaN);
       }
 
-      if (cbBoxUseLocalAlignment.isSelected()) {
+      if (cbBoxUseLocalAlignment.isSelected() && cbBoxUseLocalAlignment.isEnabled()) {
         tiltParam.setLocalAlignFile(applicationManager.getMetaData()
             .getDatasetName()
             + axisID.getExtension() + "local.xf");
