@@ -1,3 +1,4 @@
+
 package etomo.ui;
 
 import java.awt.Component;
@@ -54,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2004/05/26 04:54:08  rickg
+ * Bug #391 added fiducialess parameter interface and UI objects
+ *
  * Revision 3.13  2004/04/28 16:15:18  sueh
  * bug# 409 changing border name (mast)
  *
@@ -124,184 +128,120 @@ import etomo.util.InvalidParameterException;
  * Bug# 285 Added view aligned stack button
  *
  * Revision 2.13 2003/10/14 22:53:55 rickg
- *
  * Bug #286 Label changes
- *
+ * 
  * Revision 2.12 2003/10/02 18:57:47 sueh
- *
  * bug236 added testing:
- *
  * NewstParamTest
- *
  * ComScriptTest
- *
- *
  * Removed marks
  *
- *
  * Revision 2.11 2003/09/29 23:34:57 sueh
- *
  * bug236 Added UseLinearInterpolation to
- *
  * TomogramGenerationDialog.
- *
- *
  * UseLinearInterpolation:
- *
  * check box
- *
  * Advanced
- *
  * newst -linear
  *
- *
  * Files:
- *
  * ComScriptManager.java
- *
  * ConstNewstParam.java
- *
  * NewstParam.java
- *
  * TomogramGenerationDialog.java
- *
  * ApplicationManager.java
  *
- *
  * Revision 2.10 2003/09/08 22:51:25 rickg
- *
  * Added commit test volume action
  *
- *
  * Revision 2.9 2003/09/08 05:47:09 rickg
- *
  * Added trial tilt
- *
  * Output for a single axis tomogram is changed to
- *
  * dataset_full.rec
  *
- *
  * Revision 2.8 2003/06/25 22:14:57 rickg
- *
  * Constructed a panel for the tilt parameters
  *
- *
  * Revision 2.7 2003/06/23 23:26:59 rickg
- *
  * Added advanced options/parameters
  *
- *
  * Revision 2.6 2003/05/23 22:14:11 rickg
- *
  * Removed any extensions from log file labels in context menu
  *
- *
  * Revision 2.5 2003/05/23 21:26:55 rickg
- *
  * *** empty log message ***
  *
- *
  * Revision 2.4 2003/04/28 23:25:25 rickg
- *
  * Changed visible imod references to 3dmod
  *
- *
  * Revision 2.3 2003/04/24 17:46:54 rickg
- *
  * Changed fileset name to dataset name
  *
- *
  * Revision 2.2 2003/03/02 23:30:41 rickg
- *
  * Combine layout in progress
  *
- *
  * Revision 2.1 2003/01/24 21:04:18 rickg
- *
  * AxisID bug fix from single buttonAction function
  *
- *
  * Revision 2.0 2003/01/24 20:30:31 rickg
- *
  * Single window merge to main branch
  *
- *
  * Revision 1.6.2.1 2003/01/24 18:43:37 rickg
- *
  * Single window GUI layout initial revision
  *
- *
  * Revision 1.6 2002/12/19 17:45:22 rickg
- *
  * Implemented advanced dialog state processing
- *
  * including:
- *
  * default advanced state set on start up
- *
  * advanced button management now handled by
- *
  * super class
  *
- *
  * Revision 1.5 2002/12/19 00:30:26 rickg
- *
  * app manager and root pane moved to super class
  *
- *
  * Revision 1.4 2002/11/14 21:18:37 rickg
- *
  * Added anchors into the tomoguide
  *
- * t
- *
  * Revision 1.3 2002/10/17 22:40:22 rickg
- *
  * Added fileset name to window title
- *
  * this reference removed applicationManager messages
  *
- *
  * Revision 1.2 2002/10/07 22:31:18 rickg
- *
  * removed unused imports
- *
  * reformat after emacs trashed it
  *
- *
  * Revision 1.1 2002/09/09 22:57:02 rickg
- *
  * Initial CVS entry, basic functionality not including combining
  *
  * </p>
  */
 
 public class TomogramGenerationDialog extends ProcessDialog
-    implements ContextMenu, FiducialessParams {
+    implements
+      ContextMenu,
+      FiducialessParams {
   public static final String rcsid = "$Id$";
-  
+
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
-  private JPanel pnlFiducialess = new JPanel();
   private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
-  "Tilt axis rotation:");
-  
+      "Tilt axis rotation:");
+
   // Newst/Newstack objects
   private JPanel pnlNewstParams = new JPanel();
   private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
-    "Use linear interpolation");
+      "Use linear interpolation");
   private LabeledSpinner spinBinning;
   private Dimension fullImageSize = new Dimension();
 
   //  Aligned stack buttons
   private JPanel pnlAlignedStack = new JPanel();
   private MultiLineToggleButton btnNewst = new MultiLineToggleButton(
-    "<html><b>Create Full<br>Aligned Stack</b>");
+      "<html><b>Create Full<br>Aligned Stack</b>");
   private MultiLineButton btn3dmodFull = new MultiLineButton(
-    "<html><b>View Full<br>Aligned Stack</b>");
+      "<html><b>View Full<br>Aligned Stack</b>");
 
   //  Tilt objects
   private JPanel pnlTiltParams = new JPanel();
@@ -311,23 +251,23 @@ public class TomogramGenerationDialog extends ProcessDialog
   private LabeledTextField ltfSliceStop = new LabeledTextField("Last slice: ");
   private JLabel lblInY = new JLabel(" in Y");
   private LabeledTextField ltfSliceIncr = new LabeledTextField(
-    "Slice step in Y: ");
+      "Slice step in Y: ");
   private LabeledTextField ltfTomoWidth = new LabeledTextField(
-    "Tomogram width in X: ");
+      "Tomogram width in X: ");
   private LabeledTextField ltfTomoThickness = new LabeledTextField(
-    "Tomogram thickness in Z: ");
+      "Tomogram thickness in Z: ");
   private LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
   private LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
-    "Tilt angle offset: ");
+      "Tilt angle offset: ");
   private LabeledTextField ltfRadialMax = new LabeledTextField(
-    "Radial filter cutoff: ");
+      "Radial filter cutoff: ");
   private LabeledTextField ltfRadialFallOff = new LabeledTextField("Falloff: ");
   private LabeledTextField ltfDensityOffset = new LabeledTextField("Offset: ");
   private LabeledTextField ltfDensityScale = new LabeledTextField(
-    "Output density scaling factor: ");
+      "Output density scaling factor: ");
   private LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
   private JCheckBox cbBoxUseLocalAlignment = new JCheckBox(
-    "Use local alignments");
+      "Use local alignments");
   private JPanel pnlDensityScaling = new JPanel();
   private JPanel pnlSlicesInY = new JPanel();
   private JPanel pnlOffset = new JPanel();
@@ -345,44 +285,44 @@ public class TomogramGenerationDialog extends ProcessDialog
   private Vector trialTomogramList = new Vector();
   private JPanel pnlTrialButtons = new JPanel();
   private MultiLineButton btnTrial = new MultiLineButton(
-    "<html><b>Generate Trial Tomogram</b>");
+      "<html><b>Generate Trial Tomogram</b>");
   private MultiLineButton btn3dmodTrial = new MultiLineButton(
-    "<html><b>View Trial in 3dmod</b>");
+      "<html><b>View Trial in 3dmod</b>");
   private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
-    "<html><b>Use Current Trial Tomogram</b>");
+      "<html><b>Use Current Trial Tomogram</b>");
 
   // MTF Filter objects
   private JPanel pnlFilter = new JPanel();
   private LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
-    "Low pass (radius,sigma): ");
+      "Low pass (radius,sigma): ");
   private JPanel pnlInverseFilter = new JPanel();
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
-    .getSystemResource("images/openFile.gif"));
+      .getSystemResource("images/openFile.gif"));
   private JPanel pnlMtfFile = new JPanel();
   private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file: ");
   private JButton btnMtfFile = new JButton(iconFolder);
   private JPanel pnlInverseFilterParam = new JPanel();
   private LabeledTextField ltfMaximumInverse = new LabeledTextField(
-    "Maximum Inverse: ");
+      "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
-    "Rolloff (radius,sigma): ");
+      "Rolloff (radius,sigma): ");
   private JPanel pnlFilterButtons = new JPanel();
   private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
   private MultiLineButton btnViewFilter = new MultiLineButton(
-    "View Filtered Stack");
+      "View Filtered Stack");
   private MultiLineToggleButton btnUseFilter = new MultiLineToggleButton(
-    "Use Filtered Stack");
+      "Use Filtered Stack");
   private LabeledTextField ltfStartingAndEndingZ = new LabeledTextField(
-    "Starting and ending views: ");
+      "Starting and ending views: ");
   boolean enableFiltering = false;
 
   //  Tomogram generation buttons
   private MultiLineToggleButton btnTilt = new MultiLineToggleButton(
-    "<html><b>Generate Tomogram</b>");
+      "<html><b>Generate Tomogram</b>");
   private MultiLineButton btn3dmodTomogram = new MultiLineButton(
-    "<html><b>View Tomogram In 3dmod</b>");
+      "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
-    "<html><b>Delete Aligned Image Stack</b>");
+      "<html><b>Delete Aligned Image Stack</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -399,11 +339,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     // Layout the main panel and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlFiducialess, cbFiducialess);
-    UIUtilities.addWithYSpace(pnlFiducialess, ltfRotation.getContainer());
-    UIUtilities.alignComponentsX(pnlFiducialess, Component.LEFT_ALIGNMENT);
-    UIUtilities.addWithYSpace(pnlTilt, pnlFiducialess);
     UIUtilities.addWithYSpace(pnlTilt, pnlNewstParams);
     UIUtilities.addWithYSpace(pnlTilt, pnlAlignedStack);
     UIUtilities.addWithYSpace(pnlTilt, pnlFilter);
@@ -413,7 +348,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTilt, btnDeleteStacks);
     UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlTilt, UIParameters.dimButton);
-    
+
     rootPanel.add(pnlTilt);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -435,7 +370,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     btnDeleteStacks.addActionListener(tomogramGenerationListener);
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
     ltfStartingAndEndingZ
-      .addKeyListener(new StartingAndEndingZKeyListener(this));
+        .addKeyListener(new StartingAndEndingZKeyListener(this));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -460,7 +395,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   public boolean isFiducialessAlignment() {
     return cbFiducialess.isSelected();
   }
-  
+
   public void setTiltAxisAngle(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
@@ -569,7 +504,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         if (ltfZOffset.getText().matches("\\S+")) {
           badParameter = ltfZOffset.getLabel();
           tiltParam
-            .setZOffset(Float.parseFloat(ltfZOffset.getText()) / binning);
+              .setZOffset(Float.parseFloat(ltfZOffset.getText()) / binning);
         }
         else {
           tiltParam.resetZOffset();
@@ -579,7 +514,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.resetXOffset();
         if (ltfZOffset.getText().matches("\\S+")) {
           throw (new InvalidParameterException(
-            "You must supply an X offset to supply a Z offset"));
+              "You must supply an X offset to supply a Z offset"));
         }
         else {
           tiltParam.resetZOffset();
@@ -603,7 +538,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       }
       else {
         throw (new InvalidParameterException(
-          "You must supply both the first and last slices if you want to specify either."));
+            "You must supply both the first and last slices if you want to specify either."));
       }
       if (ltfSliceIncr.getText().matches("\\S+")) {
         if (sliceRangeSpecified) {
@@ -612,7 +547,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         }
         else {
           throw (new InvalidParameterException(
-            "You must supply both the first and last slices to specify the slice step."));
+              "You must supply both the first and last slices to specify the slice step."));
         }
       }
       else {
@@ -639,7 +574,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       if (ltfTiltAngleOffset.getText().matches("\\S+")) {
         badParameter = ltfTiltAngleOffset.getLabel();
         tiltParam.setTiltAngleOffset(Float.parseFloat(ltfTiltAngleOffset
-          .getText()));
+            .getText()));
       }
       else {
         tiltParam.resetTiltAngleOffset();
@@ -651,7 +586,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
         badParameter = ltfRadialFallOff.getLabel();
         tiltParam
-          .setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
+            .setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
       }
       else {
         tiltParam.resetRadialFilter();
@@ -697,7 +632,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     mtfFilterParam.setMtfFile(ltfMtfFile.getText());
     mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
     mtfFilterParam.setInverseRolloffRadiusSigma(ltfInverseRolloffRadiusSigma
-      .getText());
+        .getText());
   }
 
   public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
@@ -706,7 +641,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     ltfLowPassRadiusSigma.setText(mtfFilterParam.getLowPassRadiusSigmaString());
     ltfStartingAndEndingZ.setText(mtfFilterParam.getStartingAndEndingZString());
     ltfInverseRolloffRadiusSigma.setText(mtfFilterParam
-      .getInverseRolloffRadiusSigmaString());
+        .getInverseRolloffRadiusSigmaString());
     enableUseFilter();
   }
 
@@ -736,7 +671,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     applicationManager.packMainWindow();
   }
 
-
   /**
    * Layout the newstack panel
    */
@@ -744,13 +678,15 @@ public class TomogramGenerationDialog extends ProcessDialog
     //  Setup the binning spinner for newstack
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ",
-      integerModel);
+        integerModel);
 
     pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
     pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
-      .getBorder());
+        .getBorder());
     UIUtilities.addWithYSpace(pnlNewstParams, cbBoxUseLinearInterpolation);
     UIUtilities.addWithYSpace(pnlNewstParams, spinBinning.getContainer());
+    UIUtilities.addWithYSpace(pnlNewstParams, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlNewstParams, ltfRotation.getContainer());
     UIUtilities.alignComponentsX(pnlNewstParams, Component.LEFT_ALIGNMENT);
 
     // Layout the newst button panel
@@ -775,22 +711,22 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlMtfFile.add(btnMtfFile);
 
     pnlInverseFilterParam.setLayout(new BoxLayout(pnlInverseFilterParam,
-      BoxLayout.X_AXIS));
+        BoxLayout.X_AXIS));
     UIUtilities.addWithSpace(pnlInverseFilterParam, ltfMaximumInverse
-      .getContainer(), FixedDim.x5_y0);
+        .getContainer(), FixedDim.x5_y0);
     pnlInverseFilterParam.add(ltfInverseRolloffRadiusSigma.getContainer());
 
     pnlInverseFilter
-      .setLayout(new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
+        .setLayout(new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
     pnlInverseFilter.setBorder(new EtchedBorder(
-      "Inverse Filtering Parameters: ").getBorder());
+        "Inverse Filtering Parameters: ").getBorder());
     UIUtilities.addWithYSpace(pnlInverseFilter, pnlMtfFile);
     pnlInverseFilter.add(pnlInverseFilterParam);
     UIUtilities.alignComponentsX(pnlInverseFilter, Component.CENTER_ALIGNMENT);
-    
+
     //  Filter buttons sub panel
     pnlFilterButtons
-      .setLayout(new BoxLayout(pnlFilterButtons, BoxLayout.X_AXIS));
+        .setLayout(new BoxLayout(pnlFilterButtons, BoxLayout.X_AXIS));
     UIUtilities.addWithXSpace(pnlFilterButtons, btnFilter);
     UIUtilities.addWithXSpace(pnlFilterButtons, btnViewFilter);
     UIUtilities.addWithXSpace(pnlFilterButtons, btnUseFilter);
@@ -814,7 +750,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlDensityScaling.add(ltfDensityScale.getContainer());
     pnlDensityScaling.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlDensityScaling.add(ltfDensityOffset.getContainer());
-    
+
     //  slice first/last subpanel
     pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
     UIUtilities.addWithXSpace(pnlSlicesInY, ltfSliceStart.getContainer());
@@ -838,17 +774,17 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlAdvanced1, pnlDensityScaling);
     UIUtilities.addWithYSpace(pnlAdvanced1, ltfTomoWidth.getContainer());
     UIUtilities.alignComponentsX(pnlAdvanced1, Component.LEFT_ALIGNMENT);
-    
+
     pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlAdvanced2, pnlSlicesInY);
     UIUtilities.addWithYSpace(pnlAdvanced2, ltfSliceIncr.getContainer());
     UIUtilities.addWithYSpace(pnlAdvanced2, pnlOffset);
     UIUtilities.alignComponentsX(pnlAdvanced2, Component.LEFT_ALIGNMENT);
-    
+
     pnlAdvanced3.setLayout(new BoxLayout(pnlAdvanced3, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlAdvanced3, ltfTiltAngleOffset.getContainer());
     UIUtilities.alignComponentsX(pnlAdvanced3, Component.LEFT_ALIGNMENT);
-    
+
     pnlTiltParams.setBorder(new EtchedBorder("Tilt Parameters").getBorder());
     pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
     pnlTiltParams.add(pnlAdvanced1);
@@ -857,15 +793,15 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTiltParams, ltfXAxisTilt.getContainer());
     pnlTiltParams.add(pnlAdvanced3);
     UIUtilities.addWithYSpace(pnlTiltParams, pnlRadialFilter);
-    
+
     //UIUtilities.addWithYSpace(pnlUseLocalAlignment, cbBoxUseLocalAlignment);
     UIUtilities.addWithYSpace(pnlTiltParams, cbBoxUseLocalAlignment);
     //pnlTiltParams.add(pnlUseLocalAlignment);
     //pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTiltParams.add(pnlTrial);
-    
+
     UIUtilities.alignComponentsX(pnlTiltParams, Component.LEFT_ALIGNMENT);
-    
+
   }
 
   /**
@@ -875,7 +811,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     // Filename subpanel
     cmboTrialTomogramName.setEditable(true);
     pnlTrialTomogramName.setLayout(new BoxLayout(pnlTrialTomogramName,
-      BoxLayout.X_AXIS));
+        BoxLayout.X_AXIS));
     pnlTrialTomogramName.add(lblTrialTomogramName);
     pnlTrialTomogramName.add(cmboTrialTomogramName);
 
@@ -936,7 +872,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-      "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile);
+        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
@@ -1007,7 +943,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
             + " tomogram filename edit box.";
         applicationManager.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error");
+            "Tilt Parameter Syntax Error");
         return;
       }
       if (!trialTomogramList.contains(trialTomogramName)) {
@@ -1096,7 +1032,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     text = "Make aligned stack with linear instead of cubic interpolation to "
         + "reduce noise.";
     cbBoxUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+        .format());
     text = "Generate the complete aligned stack for input into the tilt process."
         + "  This runs the newst.com script.";
     btnNewst.setToolTipText(tooltipFormatter.setText(text).format());
@@ -1106,12 +1042,12 @@ public class TomogramGenerationDialog extends ProcessDialog
       text = TooltipFormatter.getText(autodoc, "StartingAndEndingZ");
       if (text != null) {
         ltfStartingAndEndingZ.setToolTipText(tooltipFormatter.setText(text)
-          .format());
+            .format());
       }
       text = TooltipFormatter.getText(autodoc, "LowPassRadiusSigma");
       if (text != null) {
         ltfLowPassRadiusSigma.setToolTipText(tooltipFormatter.setText(text)
-          .format());
+            .format());
       }
       text = TooltipFormatter.getText(autodoc, "MtfFile");
       if (text != null) {
@@ -1120,12 +1056,12 @@ public class TomogramGenerationDialog extends ProcessDialog
       text = TooltipFormatter.getText(autodoc, "MaximumInverse");
       if (text != null) {
         ltfMaximumInverse.setToolTipText(tooltipFormatter.setText(text)
-          .format());
+            .format());
       }
       text = TooltipFormatter.getText(autodoc, "InverseRolloffRadiusSigma");
       if (text != null) {
         ltfInverseRolloffRadiusSigma.setToolTipText(tooltipFormatter.setText(
-          text).format());
+            text).format());
       }
     }
     text = "Run mtffilter on the full aligned stack.";
@@ -1194,7 +1130,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     text = "Select this checkbox to use local alignments.  You must have "
         + "created the local alignments in the Fine Alignment step";
     cbBoxUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+        .format());
     text = "Compute the tomogram from the full aligned stack.  This runs "
         + "the tilt.com script.";
     btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
@@ -1203,9 +1139,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     text = "Current name of trial tomogram, which will be generated, viewed, or"
         + " used by the buttons below.";
     lblTrialTomogramName
-      .setToolTipText(tooltipFormatter.setText(text).format());
+        .setToolTipText(tooltipFormatter.setText(text).format());
     cmboTrialTomogramName.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+        .format());
     text = "Compute a trial tomogram with the current parameters, using the "
         + "filename in the \" Trial tomogram filename \" box.";
     btnTrial.setToolTipText(tooltipFormatter.setText(text).format());
