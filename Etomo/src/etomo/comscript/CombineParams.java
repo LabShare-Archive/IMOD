@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.8.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -120,6 +123,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     }
   }
 
+  public void setDefaultPatchRegionModel() {
+    patchRegionModel = "patch_region.mod";
+  }
+  
   /**
    * Sets the patchXMax.
    * @param patchXMax The patchXMax to set
