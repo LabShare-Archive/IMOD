@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2005/02/11 19:03:31  sueh
+ * <p> bug# 594 Add show to fitWindow() to handle the case when autofit is off.
+ * <p> This updates the main frame tabs.
+ * <p>
  * <p> Revision 1.6  2005/02/09 22:30:51  sueh
  * <p> Removing unnecessary import.
  * <p>
@@ -144,6 +148,7 @@ public abstract class MainPanel extends JPanel {
   protected abstract boolean isAxisPanelAFitScreenError();
   protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
   protected abstract DataFileFilter getDataFileFilter();
+  public abstract void saveDisplayState();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -330,6 +335,13 @@ public abstract class MainPanel extends JPanel {
       && !AxisPanelBIsNull()) {
       boolean hideA = hideAxisPanelA();
       boolean hideB = hideAxisPanelB();
+      //if both widths are zero, get getWidth is failing - just pack
+      if (hideA && hideB) {
+        showAxisPanelA();
+        showAxisPanelB();
+        EtomoDirector.getInstance().getMainFrame().pack();
+        return;
+      }
       EtomoDirector.getInstance().getMainFrame().pack();
       splitPane.resetToPreferredSizes();
       
