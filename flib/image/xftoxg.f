@@ -13,6 +13,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/01/27 03:33:12  mast
+c	  Converted to PIP input, and fixed hybrid option for eliminating
+c	  trends in rotation and magnification.
+c	
 c
 	implicit none
 	integer lmsc
@@ -81,8 +85,8 @@ c
      &	      //' average central alignment;'
 	  print *,'   or 1 to align to an average alignment that shifts based'
 	  print *,'         on a polynomial fit to the whole stack;'
-	  print *,
-     &	      '   or N to align each section to an average alignment based'
+	  print *, '   or N to align each section to an average '//
+     &	      'alignment based'
 	  write(*,'(1x,a,/,a,$)')
      &	      '         on a polynomial fit to the nearest N sections,',
      &	      '   or -1 or -N for a hybrid of central and shifting '//
