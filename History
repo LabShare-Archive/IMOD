@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/3/04: IMOD_3-4-3  (same time as IMOD_3-3-5 release)
+8/3/04: eTomo now makes a .rawtlt file from starting and increment tilt angles
+when making a tomogram with fiducialless alignment.
+
 8/2/04: Fixed problem with eTomo not swapping corresponding point lists when
 matching A to B.
 
