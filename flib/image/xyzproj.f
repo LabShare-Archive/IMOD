@@ -56,10 +56,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/01/28 16:14:22  mast
+c	  Increased limit on number of projections and added check on limit.
+c	  Added declarations for implicit none.
+c	
 	implicit none
 	integer limpix,limstack,limproj,limray
 	parameter (limstack=5000000,limpix=10000,
-     &	    limproj=720,limray=(limproj+1)*10000)
+     &	    limproj=720,limray=180*10000)
 	real*4 array(limstack)
 	character*80 filin,filout
 	character*1 xyz
