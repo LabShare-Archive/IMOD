@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/20 17:23:23  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.2  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -31,7 +34,7 @@ public class MatchorwarpParam
    * @see 
    * etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
-  public void initialize(ComScriptCommand scriptCommand)
+  public void parseComScript(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,

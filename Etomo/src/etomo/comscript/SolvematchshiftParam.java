@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/13 22:40:04  rickg
+ * <p> Changed error string
+ * <p>
  * <p> Revision 2.4  2003/03/18 00:32:33  rickg
  * <p> combine development in progress
  * <p>
@@ -35,7 +38,7 @@ public class SolvematchshiftParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
-  public void initialize(ComScriptCommand scriptCommand)
+  public void parseComScript(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,

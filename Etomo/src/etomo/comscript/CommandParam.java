@@ -12,7 +12,10 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p> </p>
  */
 
 public interface CommandParam {
@@ -20,7 +23,7 @@ public interface CommandParam {
    * Initialize the parameter object from the ComScriptCommand object
    * @param scriptCommand
    */
-  public void initialize(ComScriptCommand scriptCommand)
+  public void parseComScript(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,

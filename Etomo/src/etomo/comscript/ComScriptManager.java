@@ -7,7 +7,9 @@ import etomo.ApplicationManager;
 import etomo.type.*;
 
 /**
- * <p>Description: </p>
+ * <p>Description: This class provides a high level manager for loading and
+ * saving particlar com scripts and extracting the parameter sets for the 
+ * commands within those scripts.</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -19,6 +21,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/23 23:28:32  rickg
+ * <p> Return exception class name in error dialog
+ * <p>
  * <p> Revision 2.6  2003/05/07 22:32:42  rickg
  * <p> System property user.dir now defines the working directory
  * <p>
@@ -673,7 +678,7 @@ public class ComScriptManager {
     AxisID axisID) {
 
     try {
-      param.initialize(comScript.getScriptCommand(command));
+      param.parseComScript(comScript.getScriptCommand(command));
     }
     catch (Exception except) {
       except.printStackTrace();

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.4  2003/04/29 20:13:40  rickg
+ * <p> Corrected range for number of patchcrawl args
+ * <p>
  * <p> Revision 2.3  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>
@@ -36,7 +39,7 @@ public class Patchcrawl3DParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
-  public void initialize(ComScriptCommand scriptCommand)
+  public void parseComScript(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,

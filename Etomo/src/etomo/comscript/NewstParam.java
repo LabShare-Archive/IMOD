@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:23:37  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -37,7 +40,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void initialize(ComScriptCommand scriptCommand) {
+  public void parseComScript(ComScriptCommand scriptCommand) {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
