@@ -42,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2002/07/31 17:43:38  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.7  2002/07/31 17:41:28  mast
 c	  Changed internal data definitions to correspond to MRC image2000
 c	  standard, eliminating wavelength entries and associated routines.
@@ -98,7 +101,7 @@ c
 	integer*4 nleft,iblock,nbread,indconv,nl,ml,ntflag,jstream
 	integer*4 itype,lensnum,n1,n2,istart,nextra,mbsym
 	integer*4 itype1,itype2,m,jextra
-	real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig
+	real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig,rmsval
 
 C
 C Read header
@@ -900,7 +903,16 @@ c*ialwav
 c	  DNM 7/30/02: eliminated
 c
 c
-C
+C	  
+c*ialrms
+c	  
+c	  Alter RMS value
+c	  
+	entry ialrms(istream, rmsval)
+	J = LSTREAM(ISTREAM)
+	rms(j) = rmsval
+	return
+c
 C*IRTCEL
 C
 C	Return CELL information from file. 
@@ -1159,6 +1171,16 @@ c
 c
 c*irtwav
 c	  DNM 7/30/02 eliminated
+c
+C	  
+c*irtrms
+c	  
+c	  Return RMS value
+c	  
+	entry irtrms(istream, rmsval)
+	J = LSTREAM(ISTREAM)
+	rmsval = rms(j)
+	return
 c
 c
 99	WRITE(6,2000)
