@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/10/08 17:23:25  mast
+    Addition to repository
+
 */
 #include "parse_params.h"
 #include <stdlib.h>
@@ -25,8 +28,7 @@ int main(int argc , char **argv)
             "   type = -2 for fallback Fortran option code\n"
             "          -1 for cat output (.1)\n"
             "           1 for man output (.man)\n"
-            "   directories_up = number of ../ to find autodoc directory\n",
-            argv[0]);
+            "   directories_up = number of ../ to find autodoc directory\n")
     exit(1);
   }
 
