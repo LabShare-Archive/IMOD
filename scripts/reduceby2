@@ -8,9 +8,18 @@ Usage: reduceby2 Input_file Output_file
 EOCAT
 exit 1
 endif
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
 set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
+
 set tmppl = $tmpdir/reducepl.$$
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
 reducemont <<EOCAT 
 $argv[1]
@@ -26,7 +35,7 @@ $tmppl
 0
 EOCAT
 \rm -f $tmppl
-set nxyz =  `header $argv[2] | grep 'rows, sections'| awk '{print $7, $8, $9}'`
+set nxyz =  `header $argv[2] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
 alterheader <<EOF
 $argv[2]
 cel

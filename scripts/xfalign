@@ -7,11 +7,12 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/05/13 20:15:26  mast
+#  Eliminate using $0 to get temp file name, doesn't work on Windows
+#
 #  Revision 3.1  2002/04/29 22:03:34  mast
 #  Made first write to $seclist be via >! rather than >>
 #
-
-set tmpdir = /usr/tmp
 
 set xcfilter = "0.01,0.05,0,0.25"
 
@@ -35,7 +36,16 @@ usage:
 	echo " -i[nitial] prexf_file    -  start with initial F alignments from file"
 	exit 1
 endif
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 set pname      = xfalign
 set com        = $pname:t

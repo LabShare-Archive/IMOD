@@ -10,9 +10,17 @@ Finds the displacement of the volume in FILEB relative to the volume in FILEA,
 EOCAT
 exit 1
 endif
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
 
 set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
+
 @ nxl = $1; shift
 @ nyl = $1; shift
 @ nzl = $1; shift

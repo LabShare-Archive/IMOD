@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/03/21 22:25:52  mast
+#  Fix error test and output when displacement is too large
+#
 #  Revision 3.3  2003/03/14 02:11:10  mast
 #  Made it produce two checking volumes that the user can inspect, and stopped
 #  when displacement between those volumes was too high.  Made it report last
@@ -31,7 +34,15 @@ if ($#argv == 0)then
   exit 0
 endif
 
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 set exitstatus = 1
 onintr clean
@@ -41,7 +52,6 @@ if ($#argv < 5 || $#argv >7) then
   exit 1
 endif
 
-set tmpdir = /usr/tmp
 set infile = solvezero.xf
 set outfile = solve.xf
 set recfile1 = $argv[1].rec

@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/03/14 02:00:28  mast
+#  Added linear interpolation option
+#
 #  Revision 3.3  2002/12/10 18:11:08  mast
 #  Implemented combinations of transforming, rotating, and scaling
 #
@@ -35,7 +38,15 @@ endif
 
 
 
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 set sec = "u"
 set size = ",,"
@@ -152,11 +163,11 @@ if ($ifxf == "1") then
   endif
 endif
 
-set tmpfil = /usr/tmp/newst.$$
-set tmpexpxf = /usr/tmp/newstexpxf.$$
-set tmprotxf = /usr/tmp/newstrotxf.$$
-set tmpexprot = /usr/tmp/newstexprot.$$
-set tmpprod = /usr/tmp/newstprodxf.$$
+set tmpfil = $tmpdir/newst.$$
+set tmpexpxf = $tmpdir/newstexpxf.$$
+set tmprotxf = $tmpdir/newstrotxf.$$
+set tmpexprot = $tmpdir/newstexprot.$$
+set tmpprod = $tmpdir/newstprodxf.$$
 
 # Set up xf for expansion; set size if default taken
 if ($ifexpand == "1") then

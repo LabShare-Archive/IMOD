@@ -9,12 +9,22 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/01/07 18:21:58  mast
+#  Change usage output to say dm2mrc, not dm3mrc
+#
 #  Revision 3.1  2001/12/31 19:18:58  mast
 #  Addition to IMOD suite
 #
 
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
 set tmpdir = /usr/tmp
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 if ($#argv < 2) then
 	echo "Usage: dm2mrc [-d] Input_files Output_file"

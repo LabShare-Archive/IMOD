@@ -1,4 +1,13 @@
 #! /bin/csh -f
+
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 # default setting for entering flipped versus unflipped coordinates, index
 # versus imod coordinates
 set flipyz = "0"
@@ -36,7 +45,15 @@ EOF
   exit 0
 endif
 
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 while ($#argv > 2)
   switch ($argv[1])
@@ -277,7 +294,7 @@ if ($?slices) then
 	exit 1
     endif
 
-    set tmpfil = /tmp/trimvol.$$
+    set tmpfil = $tmpdir/trimvol.$$
     onintr clean
     echo "Determining byte scaling of $argv[1] ..."
     findcontrast > $tmpfil <<EOF
