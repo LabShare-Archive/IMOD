@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:03  mast
+autox.cpp
+
 Revision 1.1.2.20  2003/02/04 19:08:29  mast
 fix syncing to model point when changing contour or point via hotkey
 
@@ -744,7 +747,6 @@ int imod_zap_open(struct ViewInfo *vi)
 {
   ZapStruct *zap;
   QString str;
-  int    depth;
   int time, tmax, len, maxlen;
   int needWinx, needWiny;
   int deskWidth = QApplication::desktop()->width();
@@ -2012,27 +2014,18 @@ static void zapResizeToFit(ZapStruct *zap)
 /****************************************************************************/
 /* drawing routines.                                                        */
 
-static int doingBWfloat = 0;
-
 /* Draws the image.  Returns 1 if further drawing can be skipped */
 static void zapDrawGraphics(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
-  unsigned char *pixptr;
-  int i, j, x, y, z;
-  int jsize, xlim;
-  int xstop, ystop, ystep;
-  int zoom = 1;
+  int x, y, z;
   int time;
-  int xz, yz;
   unsigned char *imageData;
 
   ivwGetLocation(vi, &x, &y, &z);
 
   // DNM eliminated unused function 1/23/03
   // b3dSetCurPoint(x, y, zap->section);
-
-  zoom = (int)zap->zoom;
 
   b3dSetImageOffset(zap->winx, vi->xsize, zap->zoom,
                     &zap->xdrawsize, &zap->xtrans, 
@@ -2169,7 +2162,6 @@ static void zapDrawCurrentContour(ZapStruct *zap, int co, int ob)
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
   int pt;
-  int cz = zap->section;
 
   if (!cont->psize)
     return;
@@ -2249,7 +2241,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   Iobj  *obj  = &(vi->imod->obj[ob]);
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
-  int pt, npt = 0, ptsonsec;
+  int pt;
   int curTime = vi->ct;
   float drawsize;
 
@@ -2472,9 +2464,8 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 
 static void zapDrawGhost(ZapStruct *zap)
 {
-  int ob, co, i;
+  int co, i;
   int red, green, blue;
-  float vert[2];
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
   Imod *mod = zap->vi->imod;
@@ -2541,10 +2532,8 @@ static int zapDrawAuto(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
   unsigned long i, j;
-  float vert[2];
-  unsigned short cdat;
   int x, y;
-  unsigned long pixel;
+  int pixel;
   unsigned long xsize,ysize;
   int rectsize;
 
@@ -2559,8 +2548,6 @@ static int zapDrawAuto(ZapStruct *zap)
 
   if (vi->ax->cz != zap->section)
     return(-1);
-
-  cdat = App->endpoint;
 
   /* DNM 8/11/01: make rectangle size be nearest integer and not 0 */
   rectsize = zap->zoom < 1 ? 1 : (int)(zap->zoom + 0.5);

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:42:02  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -70,8 +73,7 @@ static void autox_expand(Autox *ax);
 static int allocate_arrays(ImodView *vw, Autox *ax);
 static int nay8(Autox *ax, int i, int j);
 
-/* The current section number and data that is being contoured. */
-static int autox_cz = -1;
+/* The current data that is being contoured. */
 static unsigned char *autoImage = NULL;
 static AutoxWindow *autoWindow = NULL;
 
@@ -557,8 +559,6 @@ static int autox_flood(Autox *ax)
   else
     ax->reverse = 0;
 
-
-  autox_cz = (int)(ax->vw->zmouse + 0.5f);
 
   /* initialize the ring buffer */
   xlist[0] = x;

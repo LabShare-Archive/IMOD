@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -187,19 +190,15 @@ static int imod_distance( float *x, float *y, struct Mod_Point *pnt)
 /* This is called when moving all contours in an object */
 void imod_contour_move(int ob)
 {
-
+  /* DNM2/13/03: remove oldpt, co, cont */
   int oldob;
   int oldco;
-  int oldpt;
-  int co;
   Iobj *obj;  
-  Icont *cont, *ocont;
+  Icont *ocont;
   Imod *imod = App->cvi->imod;
      
   oldob =  imod->cindex.object;
   oldco =  imod->cindex.contour;
-  oldpt =  imod->cindex.point;
-
 
   ocont = imodContourGet(imod);
   if (!ocont)

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
 Revision 1.1.2.4  2003/02/07 01:03:23  mast
 a little cleanup
 
@@ -878,7 +881,7 @@ static void b3dDrawGreyScalePixels15
   unsigned short rbase  = base;
   unsigned int *cindex = App->cvi->cramp->ramp;
   int sw, sh; /* scaled width and height. */
-  int maxi, maxj;
+  int maxj;
   unsigned int fillval;
   int sidefill;
   int drawwidth;
@@ -924,7 +927,6 @@ static void b3dDrawGreyScalePixels15
   }
 
   maxj = height;
-  maxi = width;
           
   if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
                      sw, sh, 1.5, 1, slice)){
@@ -1116,7 +1118,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
   unsigned int fillval;
   unsigned char *fillpt = (unsigned char *)(&fillval);
   int sidefill;
-  int rgbascale = 0;
   int ibase;
   int drawwidth;
   int wxdraw;
@@ -1166,9 +1167,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
       }
     }
   }
-
-  if((unpack == 4) && (App->rgba == 1))
-    rgbascale = 1;
 
   if (dwidth > CurWidth){
     dwidth = CurWidth;
@@ -1617,7 +1615,6 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   unsigned int pixel;
   unsigned int ifd;
   unsigned int colortable;
-  int pad;
   unsigned char bpix,rpix,gpix;
   unsigned short tenum;
   unsigned short color[3];
@@ -1713,7 +1710,6 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   ifd /= 4;
   ifd += 1;
   ifd *= 4;
-  pad = -(ifd % 4) + 4;
 
   if (!fwrite(&ifd, 4, 1, fout)){
     fclose(fout);
