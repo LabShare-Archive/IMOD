@@ -198,6 +198,7 @@ void imodInfoFloat(int state)
 {
   if (state) {
     float_on = 1;
+    imod_info_bwfloat(App->cvi, (int)(App->cvi->zmouse + 0.5f), App->cvi->ct);
     imod_info_setbw(App->cvi->black, App->cvi->white);
   } else
     float_on = 0;
@@ -373,7 +374,7 @@ static int tdim = 0;
 static int singleCleared = 0;
 static int saveNextClear = 0;
 static int clearedSection, clearedTime;
-static float clearedMean, clearedSD, clearedBlack, clearedWhite;
+static float clearedMean, clearedSD = -1., clearedBlack, clearedWhite;
 
 
 /*
@@ -479,9 +480,10 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     /* Get information about reference and current sections if necessary;
      i.e. if there is no SD already or if area doesn't match*/
     err1 = 0;
-    /*imodPrintStderr("sc %d iref %d isec %d lastsec %d clearedsec %d sd %f\n",
-          singleCleared, iref, isec, last_section, clearedSection, 
-          secData[iref].sd); */
+    if (imodDebug('i'))
+      imodPrintStderr("sc %d iref %d isec %d lastsec %d clearedsec %d sd %f\n",
+                      singleCleared, iref, isec, last_section, clearedSection, 
+                      secData[iref].sd);
     if (singleCleared && iref == isec && last_section == clearedSection && 
         last_time == clearedTime && secData[iref].sd < 0.) {
 
@@ -531,8 +533,9 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       secData[iref].iyStart = secData[isec].iyStart = iyStart;
       secData[iref].nyUse = secData[isec].nyUse = nyUse;
 
-      /* imodPrintStderr("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
-         refSD, secData[isec].mean, secData[isec].sd);*/
+      if (imodDebug('i'))
+        imodPrintStderr("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
+                        refSD, secData[isec].mean, secData[isec].sd);
 
       /* Compute new black and white sliders; keep floating values */
       sloperatio = secData[isec].sd / refSD;
@@ -540,19 +543,21 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       tmp_black = (secData[isec].mean - (refMean - ref_black) * sloperatio);
       tmp_white = (tmp_black + sloperatio * (ref_white - ref_black));
 		    
-      /*imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
-        ref_white, tmp_black, tmp_white);*/ 
+      if (imodDebug('i'))
+        imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
+                        ref_white, tmp_black, tmp_white);
       if (tmp_black < 0)
         tmp_black = 0.;
-      if (tmp_white > 255.)
-        tmp_white = 255.;
+      tmp_white = B3DMAX(tmp_black, B3DMIN(tmp_white, 255.));
 
       newblack = (int)(tmp_black + 0.5);
       newwhite = (int)(tmp_white + 0.5);
-      /* int meanmap = 255 * (secData[isec].mean - newblack) / (newwhite - newblack);
-      float sdmap = 255 * (secData[isec].sd) / (newwhite - newblack);
-      imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap); */
-
+      if (imodDebug('i')) {
+        int meanmap = 255 * (secData[isec].mean - newblack) / 
+          (newwhite - newblack);
+        float sdmap = 255 * (secData[isec].sd) / (newwhite - newblack);
+        imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap);
+      }
 
       /* Set the sliders and the ramp if the integer values changed*/
       if (newwhite != vw->white || newblack != vw->black) {
@@ -578,6 +583,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
 void imodInfoSaveNextClear()
 {
   saveNextClear = 1;
+  if (imodDebug('i'))
+    imodPuts("saving next clear");
 }
 
 /* Clear the information for floating sections - for one section or all 
@@ -588,8 +595,8 @@ void imodInfoSaveNextClear()
 void imod_info_float_clear(int section, int time)
 {
   int i;
+  int index = section * tdim + time;
   singleCleared = 0;
-
   if (section < 0 && time < 0) {
     if (secData)
       free(secData);
@@ -603,24 +610,28 @@ void imod_info_float_clear(int section, int time)
       secData[i * tdim + time].mean = -1;
       secData[i * tdim + time].sd = -1;
     }
-  } else if (section * tdim + time < table_size) {
+  } else if (index < table_size) {
 
     // If a single section is being cleared, keep track of its values if flag
     // set
     if (saveNextClear) {
+      if (imodDebug('i'))
+        imodPuts("saving clear");
       clearedSection = section;
       clearedTime = time;
-      clearedMean = secData[section * tdim + time].mean;
-      clearedSD = secData[section * tdim + time].sd;
+      clearedMean = secData[index].mean;
+      clearedSD = secData[index].sd;
       clearedBlack = ref_black;
       clearedWhite = ref_white;
       saveNextClear = 0;
     }
-    secData[section * tdim + time].mean = -1;
-    secData[section * tdim + time].sd = -1;
+    secData[index].mean = -1;
+    secData[index].sd = -1;
     if (clearedSD >= 0.)
       singleCleared = 1;
   }
+  if (imodDebug('i'))
+    imodPrintStderr("clear called, sc = %d\n",singleCleared);
   return;
 }
 
@@ -789,6 +800,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.16  2004/11/07 23:03:42  mast
+Fixed saving of cleared float info by saving only once and saving b/w also
+
 Revision 4.15  2004/11/01 23:24:23  mast
 Clear selection list when updating window if current cont not on list
 
