@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
@@ -30,6 +31,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:00  rickg
+ * Version 1.0.0
+ *
  * Revision 2.13  2003/11/06 16:50:27  rickg
  * Removed -e flag for tcsh execution for all but the com scripts
  *
@@ -127,9 +131,10 @@ public class CopyTomoComs {
 	public static final String rcsid =
 		"$Id$";
 	SystemProgram copytomocoms;
-	String commandLine = "";
+  StringBuffer commandLine = new StringBuffer();
 	int exitValue;
 	ConstMetaData metaData;
+  Vector options;
 
 	public CopyTomoComs(ConstMetaData metaData) {
 
@@ -146,11 +151,13 @@ public class CopyTomoComs {
 		// Do not use the -e flag for tcsh since David's scripts handle the failure 
 		// of commands and then report appropriately.  The exception to this is the
 		// com scripts which require the -e flag.  RJG: 2003-11-06  
-		commandLine = "tcsh -f " + imodBinPath + "copytomocoms";
-		copytomocoms = new SystemProgram(commandLine);
-
-		genStdInputSequence();
-	}
+		commandLine = new StringBuffer("tcsh -f " + imodBinPath + "copytomocoms");
+    genOptions();
+    for (int i = 0; i < options.size(); i++) {
+      commandLine.append(" " + options.get(i));
+    }
+    copytomocoms = new SystemProgram(commandLine.toString());
+  }
 
 	/**
 	 * Return the current command line string
@@ -158,13 +165,98 @@ public class CopyTomoComs {
 	 * @return
 	 */
 	public String getCommandLine() {
-		return commandLine;
+		return commandLine.toString();
 	}
 
-	/**
-	 * Generate the standard input sequence
-	 */
-	private void genStdInputSequence() {
+  private void genOptions() {
+    options = new Vector();
+    //  Dataset name
+    options.add("-name " + metaData.getDatasetName());
+    //  View type: single or montaged
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      options.add("-montage");
+    }
+    //  Backup directory
+    String backupDirectory = metaData.getBackupDirectory();
+    if (!backupDirectory.equals("")) {
+      options.add("-backup " + metaData.getBackupDirectory());
+    }
+    //  Data source: CCD or film
+    if (metaData.getDataSource() == DataSource.FILM) {
+      options.add("-film");
+    }
+    //  Pixel size
+    options.add("-pixel " + String.valueOf(metaData.getPixelSize()));
+    //  Fiducial diameter
+    options.add("-gold " + String.valueOf(metaData.getFiducialDiameter()));
+    // Image rotation
+    options.add("-rotation " + String.valueOf(metaData.getImageRotation()));
+    // A first tilt angle and tilt angle incriment
+    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+      options.add(
+        "-firstinc "
+          + String.valueOf(metaData.getTiltAngleSpecA().getRangeMin())
+          + ","
+          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
+    }
+    // Use an existing rawtilt file (this assumes that one is there and has
+    // not been deleted by checkTiltAngleFiles()
+    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
+      options.add("-userawtlt");
+    }
+    //  Extract the tilt angle data from the stack
+    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
+      options.add("-extract");
+    }
+    //List of views to exclude from processing
+    String excludeProjections = metaData.getExcludeProjectionsA();
+    if (!excludeProjections.equals("")) {
+      options.add("-skip " + excludeProjections);
+    }
+    //Take tilt angle from a .rawtlt file
+    //  Axis type: single or dual
+    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+      options.add("-dual");
+      // B image rotation
+      options.add("-brotation " + String.valueOf(metaData.getImageRotation()));
+      // B first tilt angle and tilt angle incriment
+      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
+        options.add(
+          "-bfirstinc "
+            + String.valueOf(metaData.getTiltAngleSpecB().getRangeMin())
+            + ","
+            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+      }
+      //Take tilt angle from a .rawtlt file - B
+      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
+        options.add("-buserawtlt");
+      }
+      //  Extract the tilt angle data from the stack - B
+      else if (
+        metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
+        options.add("-bextract");
+      }
+      //List of views to exclude from processing - B
+      excludeProjections = metaData.getExcludeProjectionsB();
+      if (!excludeProjections.equals("")) {
+        options.add("-bskip " + excludeProjections);
+      }
+    }
+    //TODO
+    //Undistort images with the given .idf file
+    //Binning of raw stacks (needed to undistort if ambiguous)
+
+    // Options removed:
+    //  CCDEraser and local alignment entries
+    //  Always yes tiltalign relies on local entries to save default values
+    //  even if they are not used.
+  }
+  
+  /**
+   * @deprecated
+   * Generate the standard input sequence
+   */
+  private void genStdInputSequence() {
 		String[] tempStdInput = new String[19];
 
 		//  compile the input sequence to copytomocoms
