@@ -42,6 +42,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/10/10 22:56:59  sueh
+ * <p> bug265
+ * <p> changed file.pathSeparator (“:”) to file.separator (“/”)
+ * <p>
  * <p> Revision 2.11  2003/10/09 20:27:43  sueh
  * <p> bug264
  * <p> UI Changes
@@ -153,29 +157,29 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private ImageIcon iconFolder =
     new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfDataset = new LabeledTextField("Dataset Name: ");
+  private LabeledTextField ltfDataset = new LabeledTextField("Dataset name: ");
   private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory =
-    new LabeledTextField("Backup Directory: ");
+    new LabeledTextField("Backup directory: ");
   private JButton btnBackupDirectory = new JButton(iconFolder);
 
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
 //SUEH 263
   private JPanel pnlAxisType = new JPanel();
-  private JRadioButton rbSingleAxis = new JRadioButton("Single Axis");
-  private JRadioButton rbDualAxis = new JRadioButton("Dual Axis");
+  private JRadioButton rbSingleAxis = new JRadioButton("Single axis");
+  private JRadioButton rbDualAxis = new JRadioButton("Dual axis");
   private ButtonGroup bgAxisType = new ButtonGroup();
 
   private JPanel pnlViewType = new JPanel();
-  private JRadioButton rbSingleView = new JRadioButton("Single Frame");
+  private JRadioButton rbSingleView = new JRadioButton("Single frame");
   private JRadioButton rbMontage = new JRadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
   private JPanel pnlSectionType = new JPanel();
-  private JRadioButton rbSingleSection = new JRadioButton("Single Tomogram");
-  private JRadioButton rbSerialSection = new JRadioButton("Serial Tomogram");
+  private JRadioButton rbSingleSection = new JRadioButton("Single tomogram");
+  private JRadioButton rbSerialSection = new JRadioButton("Serial tomogram");
   private ButtonGroup bgSectionType = new ButtonGroup();
 
   private JPanel pnlPixelAndLocalAlign = new JPanel();
@@ -214,8 +218,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     createPerAxisInfoPanel();
 
     //  Relabel the postpone button
-    buttonPostpone.setText("Use existing coms");
-    buttonExecute.setText("Create com scripts");
+    buttonPostpone.setText("Use Existing Coms");
+    buttonExecute.setText("Create Com Scripts");
 
     // There are no advanced settings for this dialog, remove the advanced
     // button
@@ -684,7 +688,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnBackupDirectory.setToolTipText(line1 + line2);
     
     line1 = "<html>Attempt to extract pixel size and tilt axis rotation<br>";
-    line2 = "angle from data stack";
+    line2 = "angle from data stack.";
     btnScanHeader.setToolTipText(line1 + line2);
 //SUEH 263
     line1 = "<html>This radio button selector will choose whether the data<br>";
@@ -701,7 +705,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rbMontage.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of a single tomogram or several serial tomograms";
+    line2 = "consists of a single tomogram or several serial tomograms.";
     pnlSectionType.setToolTipText(line1 + line2);
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
