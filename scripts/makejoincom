@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/07/21 14:18:50  mast
+#  Added messages about optional xfalign commands
+#
 #  Revision 3.2  2004/07/12 19:03:07  mast
 #  Added an output of the command line for running Midas with the -c size list
 #
@@ -324,12 +327,12 @@ while ($itomo <= $ntomo)
 		    set toprange = $zstout"-"$zndout
 		    if ($zst == $znd) set toprange = $zst
                     if ($znd >= $zst) then
-                        @ chunksize += $znd + 1 - $zst
-                        set avglist = ($avglist $znd + 1 - $zst)
+                        @ chunkadd = $znd + 1 - $zst
                     else
-                        @ chunksize += $zst + 1 - $znd
-                        set avglist = ($avglist $zst + 1 - $znd)
+                        @ chunkadd = $zst + 1 - $znd
                     endif
+                    @ chunksize += $chunkadd
+                    set avglist = ($avglist $chunkadd)
 		endif
 	    endif
 	end
@@ -462,13 +465,15 @@ cat >> $joincom <<EOF
 EOF
 endif
 
+echo $avglist
+
 # Now make the average commands
 @ ind = 0
 @ startsec = 0
 set tmplist = ""
 while ($ind < $#avglist)
     @ ind++
-    @ numavg = avglist[$ind]
+    @ numavg = $avglist[$ind]
     @ endsec = $startsec + $numavg - 1
     cat >> $joincom <<EOF
 \$avgstack
@@ -495,7 +500,7 @@ Then run:
    midas -c $chunklist $joinroot.sample $joinroot.xf
 to run midas in chunk alignment mode and create or edit the transform file
 For optional automatic refinement of transforms, then try:
-   xfalign -tomo -ini joinroot.xf $joinroot.sampavg $joinroot.xf
+   xfalign -tomo -ini $joinroot.xf $joinroot.sampavg $joinroot.xf
 (after which you should check results with the midas command again).
 Finally run finishjoin to create the joined tomogram
 EOF
