@@ -1,0 +1,49 @@
+/*   imod_moviecon.h  -  declarations for imod_moviecon.cpp
+ *
+ *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *   Colorado.  See implementation file for full copyright notice.
+ */                                                                           
+
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/14 21:44:51  mast
+initial creation
+
+*/
+#ifndef IMOD_MOVIECON_H
+#define IMOD_MOVIECON_H
+
+typedef struct ViewInfo ImodView;
+
+int imcGetIncrement(ImodView *vw, int xyzt);
+void imcGetStartEnd(ImodView *vw, int xyzt, int *stout, int *endout);
+void imodMovieConDialog(ImodView *vw);
+float imcGetInterval(void);
+void imcSetMovierate(ImodView *vw, int newrate);
+void imcResetAll(ImodView *vw);
+int imcGetLoopMode(ImodView *vw);
+int imcGetSnapshot(ImodView *vw);
+void imcStartTimer(void);
+void imcReadTimer(void);
+
+void imcHelp();
+void imcClosing();
+void imcResetPressed();
+void imcSliderChanged(int which, int value);
+void imcAxisSelected(int which);
+void imcExtentSelected(int which);
+void imcSnapSelected(int which);;
+void imcRateEntered(float value);
+void imcIncrementRate(int dir);
+
+
+#endif

@@ -33,14 +33,22 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.2.2.1  2003/01/14 21:42:44  mast
+    Qt version
+
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #ifndef AUTOX_H
 #define AUTOX_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  /* Resolution times 100 */
+#define AUTOX_MAX_RESOLUTION  200
 
 /* bits for autox data */
 #define AUTOX_BLANK 0
@@ -66,8 +74,6 @@ extern "C" {
 typedef struct imod_autox_struct
 {
      struct ViewInfo  *vw;     /* image data to model                       */
-     Widget        dialog;     /* main auto window                          */
-     Widget        regc, highc;/* contrast control widgets.                 */
      unsigned char *data;      /* storage for classification                */
      double        shave;      /* min dis. between points.                  */
      int           threshold;  /* segmentation threshold.                   */
@@ -83,39 +89,29 @@ typedef struct imod_autox_struct
      int           diagonal;   /* flag to follow diagonals when filling     */
 } Autox;
 
-int autox_open(struct ViewInfo *vw);
-int autox_setlow(struct ViewInfo *vw, int x, int y);
-int autox_sethigh(struct ViewInfo *vw, int x, int y);
-int autox_fillmouse(struct ViewInfo *vw, int xm, int ym);
-int autox_build(Autox *ax);
-void autox_newsize(struct ViewInfo *vw);
+  /* Functions called from elsewhere in the program */
+  int autox_open(struct ViewInfo *vw);
+  int autox_setlow(struct ViewInfo *vw, int x, int y);
+  int autox_sethigh(struct ViewInfo *vw, int x, int y);
+  int autox_fillmouse(struct ViewInfo *vw, int xm, int ym);
+  int autox_build(Autox *ax);
+  void autox_newsize(struct ViewInfo *vw);
+  int autox_next(Autox *ax);
+  int autox_smooth(Autox *ax);
 
-/************************** internal functions ******************************/
-int get_contour_edge_points(unsigned char *data,
-			    int xsize, int ysize, int z,
-			    struct Mod_Contour *cont);
-int autox_flood(Autox *ax);
-int rboundry_fill(int x, int y, int thresh,
-	 	 unsigned char *data, struct ViewInfo *vi);
-int boundry_fill(int x, int y, int thresh,
-		 unsigned char *data, struct ViewInfo *vi);
-void auto_patch(Autox *ax, int xsize, int ysize);
-void auto_patch_fill_outside(Autox *ax, int xsize, int xmin, int xmax,
-			     int ymin, int ymax, int x, int y);
-void autox_clear(Autox *ax, unsigned char bit);
-int auto_clear(unsigned char *data, int xsize, int ysize);
-void autox_shrink(Autox *ax);
-void autox_expand(Autox *ax);
-int auto_ishole(unsigned char *data,
-		struct Mod_Contour *cont,
-		int xsize, int ysize,
-		int xmouse, int ymouse);
-int imod_auto_sort(struct Mod_Contour *cont);
-int autox_next(Autox *ax);
-int autox_smooth(Autox *ax);
-
-#ifdef __cplusplus
-}
-#endif
+  /* Functions called from the form class */
+  void autoxHelp();
+  void autoxSlider(int which, int value);
+  void autoxContrastSelected(int which);
+  void autoxAltmouse(int state);
+  void autoxFollowDiagonals(int state);
+  void autoxClosing();
+  void autoxFill();
+  void autoxBuild();
+  void autoxClear();
+  void autoxShrink();
+  void autoxExpand();
+  void autoxSmooth();
+  void autoxNext();
 
 #endif /* AUTOX_H */

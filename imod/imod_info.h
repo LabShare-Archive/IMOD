@@ -1,4 +1,11 @@
-/* imod info.h */
+/*   imod_info.h  -  declarations for InfoWindow class implemented in
+ *                      imod_info.cpp and imod_menu.cpp
+ *
+ *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *   Colorado.  See implementation file for full copyright notice.
+ */                                                                           
+
 /*  $Author$
 
     $Date$
@@ -6,80 +13,117 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.5  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.4  2003/01/14 21:49:54  mast
+    add dialog hiding/showing control
+
+    Revision 3.1.2.3  2003/01/13 01:05:05  mast
+    Qt version
+
+    Revision 3.1.2.2  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
+    Revision 3.1.2.1  2002/12/17 21:37:47  mast
+    Move global variable declarations outside extern "C" construct
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 #ifndef IMOD_INFO_H
 #define IMOD_INFO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <qmainwindow.h>
 
-extern XtAppContext Imod_info_context;
-extern int Imod_info_quit;
+class InfoControls;
+class QTextEdit;
+class QTimer;
+class QPopupMenu;
+class InfoWindow;
+
+typedef struct Mod_Model Imod;
+
+extern InfoControls *ImodInfoWidget;
+extern InfoWindow *ImodInfoWin;
 extern int ImodForbidLevel;
 
-/* Widgets */
-extern Widget Imod_info_top;
-extern Widget Imod_widget_image;
-extern Widget Imod_widget_model;
-extern Widget Imod_widget_blacklevel;
-extern Widget Imod_widget_whitelevel;
-extern Widget Imod_widget_object;
-extern Widget Imod_widget_contour;
-extern Widget Imod_widget_point;
-extern Widget Imod_widget_info;
-extern Widget Imod_widget_status;
-extern Widget Imod_widget_blackval;
-extern Widget Imod_widget_whiteval;
-extern Widget Imod_widget_x;
-extern Widget Imod_widget_y;
-extern Widget Imod_widget_z;
-extern Widget Imod_widget_model;
-extern Widget Imod_widget_movie;
-extern Widget Imod_widget_recallbyz;
-extern XColor Imod_object_color;
+enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_SAVE, FILE_MENU_SAVEAS,
+      FILE_MENU_TIFF, FILE_MENU_QUIT,
+      FWRITE_MENU_IMOD, FWRITE_MENU_WIMP, FWRITE_MENU_NFF, FWRITE_MENU_SYNU,
+      EDIT_MENU_MOVIES, 
+      EMODEL_MENU_HEADER, EMODEL_MENU_OFFSETS, EMODEL_MENU_CLEAN, 
+      EOBJECT_MENU_NEW, EOBJECT_MENU_DELETE, EOBJECT_MENU_COLOR, 
+      EOBJECT_MENU_TYPE, EOBJECT_MENU_INFO, EOBJECT_MENU_MOVE, 
+      EOBJECT_MENU_CLEAN,  
+      ESURFACE_MENU_NEW, ESURFACE_MENU_GOTO, ESURFACE_MENU_MOVE, 
+      ECONTOUR_MENU_NEW, ECONTOUR_MENU_DELETE, ECONTOUR_MENU_MOVE, 
+      ECONTOUR_MENU_SORT, ECONTOUR_MENU_AUTO, ECONTOUR_MENU_TYPE, 
+      ECONTOUR_MENU_INFO, ECONTOUR_MENU_BREAK, ECONTOUR_MENU_JOIN, 
+      ECONTOUR_MENU_FIXZ, ECONTOUR_MENU_INVERT, ECONTOUR_MENU_COPY,
+      ECONTOUR_MENU_LOOPBACK, ECONTOUR_MENU_FILLIN,
+      EPOINT_MENU_DELETE, EPOINT_MENU_SORTZ, EPOINT_MENU_SORTDIST, 
+      EPOINT_MENU_DIST, EPOINT_MENU_VALUE, EPOINT_MENU_SIZE, 
+      EIMAGE_MENU_PROCESS, EIMAGE_MENU_COLORMAP, EIMAGE_MENU_RELOAD, 
+      EIMAGE_MENU_FLIP, EIMAGE_MENU_FILLCACHE, EIMAGE_MENU_FILLER, 
+      IMAGE_MENU_GRAPH, IMAGE_MENU_SLICER, IMAGE_MENU_TUMBLER, 
+      IMAGE_MENU_MODV, IMAGE_MENU_ZAP, IMAGE_MENU_XYZ, IMAGE_MENU_PIXEL,
+      HELP_MENU_MAN, HELP_MENU_MENUS, HELP_MENU_HOTKEY, HELP_MENU_ABOUT};
 
 
-void contSurfShow(void);
+class InfoWindow : public QMainWindow
+{
+  Q_OBJECT
 
-void imod_nextobj_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevobj_cb(Widget w, XtPointer client, XtPointer call);
-void imod_nextcont_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevcont_cb(Widget w, XtPointer client, XtPointer call);
-void imod_nextpoint_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevpoint_cb(Widget w, XtPointer client, XtPointer call);
-void imod_nextx_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevx_cb(Widget w, XtPointer client, XtPointer call);
-void imod_nexty_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevy_cb(Widget w, XtPointer client, XtPointer call);
-void imod_nextz_cb(Widget w, XtPointer client, XtPointer call);
-void imod_prevz_cb(Widget w, XtPointer client, XtPointer call);
-void imod_obj_select_cb(Widget w, XtPointer client, XtPointer call);
-void imod_blacklevel_cb(Widget w, XtPointer client, XtPointer call);
-void imod_whitelevel_cb(Widget w, XtPointer client, XtPointer call);
-void imod_float_cb(Widget w, XtPointer client, XtPointer call);
+ public:
+  InfoWindow(QWidget * parent = 0, const char * name = 0, 
+              WFlags f = WType_TopLevel | WDestructiveClose) ;
+  ~InfoWindow() {};
+
+  public slots:
+  void fileSlot(int item);
+  void fileWriteSlot(int item);
+  void editSlot(int item);
+  void editModelSlot(int item);
+  void editObjectSlot(int item);
+  void editSurfaceSlot(int item);
+  void editContourSlot(int item);
+  void editPointSlot(int item);
+  void editImageSlot(int item);
+  void imageSlot(int item);
+  void pluginSlot(int item);
+  void helpSlot(int item);
+  void hideTimeout();
+
+ protected:
+    void keyPressEvent ( QKeyEvent * e );
+    void keyReleaseEvent ( QKeyEvent * e );
+    void closeEvent ( QCloseEvent * e );
+    void showEvent(QShowEvent *e);
+    void hideEvent(QHideEvent *e);
+
+ private:
+  QPopupMenu *mFileMenu;
+  QPopupMenu *mEditMenu;
+  QPopupMenu *mImageMenu;
+  QPopupMenu *mHelpMenu;
+  QPopupMenu *mFModelMenu;
+  QPopupMenu *mFWriteMenu;
+  QPopupMenu *mEModelMenu;
+  QPopupMenu *mEObjectMenu;
+  QPopupMenu *mESurfaceMenu;
+  QPopupMenu *mEPointMenu;
+  QPopupMenu *mEContourMenu;
+  QPopupMenu *mEImageMenu;
+  QPopupMenu *mPlugMenu;
+  QTextEdit *mStatusEdit;
+  QTimer *mHideTimer;
+  bool mMinimized;
+};
+
+/* GLOBAL FUNCTIONS */
 void MaintainModelName(Imod *mod);
-
-
-
-/*  Call back functions. */
-void imod_file_cb(Widget w, XtPointer client, XtPointer call);
-void imod_file_model_cb(Widget w, XtPointer client, XtPointer call);
-void imod_file_write_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_surface_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call);
-void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call);
-void imod_win_cb(Widget w, XtPointer client, XtPointer call);
-void imod_help_cb(Widget w, XtPointer client, XtPointer call);
-
-void imod_mmode_cb(Widget w, XtPointer client, XtPointer call);
-
-#ifdef __cplusplus
-}
-#endif
+int imod_info_open();
 
 #endif    /* IMOD_INFO_H */

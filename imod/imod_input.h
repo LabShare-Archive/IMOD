@@ -33,15 +33,28 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.4  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.3  2003/01/23 20:06:07  mast
+    remove declarations for imod_cont_edit
+
+    Revision 3.1.2.2  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
+    Revision 3.1.2.1  2002/12/09 17:51:38  mast
+    add declartion of defaultKeyInput
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #ifndef IMOD_INPUT_H
 #define IMOD_INPUT_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
+void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
+
 void inputDeletePoint(ImodView *vw);
 void inputInsertPoint(ImodView *vw);
 void inputModifyPoint(ImodView *vw);
@@ -74,21 +87,12 @@ void inputFirstPoint(ImodView *vw);
 void inputLastPoint(ImodView *vw);
 void inputNextTime(ImodView *vw);
 void inputPrevTime(ImodView *vw);
-
-void inputContourBreak(ImodView *vw);
-void inputContourJoin(ImodView *vw, int x, int y);
-void inputContourSurf(ImodView *vw);
+void inputRestorePointIndex(ImodView *vw);
+void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
-void contSurfShow(void);
-void inputContourMove(void);
-void inputContourMoveDialog(ImodView *vw);
-void inputContourMoveDialogUpdate(void);
 
 void inputSetModelTime(ImodView *vw, int time);
 
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* imod_input.h */

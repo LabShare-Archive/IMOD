@@ -33,6 +33,15 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.2  2003/01/10 23:55:34  mast
+    moved declaration of cubicFillin to include file
+
+    Revision 3.2.2.1  2003/01/06 15:48:11  mast
+    Qt version
+
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2002/09/05 16:02:20  mast
     Add a flag for whether the cube is in a doublebuffered visual
 
@@ -40,10 +49,6 @@
 
 #ifndef SSLICE_H
 #define SSLICE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifndef RADIANS_PER_DEGREE
 #define RADIANS_PER_DEGREE 0.017453293
@@ -53,55 +58,37 @@ extern "C" {
 #define SLICE_ZSCALE_BEFORE 1
 #define SLICE_ZSCALE_AFTER  2
 
-/* used to show current slice */
-struct imod_showslice_struct
-{
-     int zx1, zx2;
-     int zy1, zy2;  
-     int xy1, xy2;
-     int xz1, xz2;
-     int yx1, yx2;
-     int yz1, yz2;     
-};
+class SlicerWindow;
+class SlicerGL;
+class SlicerCube;
+class QKeyEvent;
+class QMouseEvent;
+
+struct ViewInfo;
+typedef struct b3d_ci_image B3dCIImage;
+typedef struct imodel_matrix Imat;
 
 
-struct Super_slicer{
+typedef struct Super_slicer{
 
-     XtWorkProcId work_id;
-     XtIntervalId iid;
-     XtAppContext app;
-     Widget       dialog;
-     Widget       glw;
-     Widget       cube;
-     Widget       anglew[3];
-     Widget       rowcol;
-
-     Widget       wThick, wImageThick,wModelThick;
-     Widget       zoomarrow;
-
-     int          maprowcol;
-     Pixmap       showpix, hidepix, lockpix, unlockpix;
-     Pixmap       lowrespix, highrespix;
-     Pixmap       zscalepix, znormpix;
-     int          scalez;
-     int          exposed;
-     int          mapped;
-     int          locked;
-     int          expose_draw;
-     int          cubeDB;
+  SlicerWindow *qtWindow;
+  SlicerGL     *glw;
+  SlicerCube   *cube;
+  
+  int          maprowcol;
+  int          scalez;
+  int          mapped;
+  int          locked;
+  int          imageFilled;
 
      struct ViewInfo *vi;
      B3dCIImage   *image;
-     XID context;
-     XID cubegc;
 
      int    winx, winy;
      float  cx, cy, cz;  /* current x, y, z */
      float  lx, ly, lz;  /* last set point for x, y, z */
      float  zoom;
      float  depth;
-     int    ginit;
-     int    closing;     /* flag that window is closing */
      int    lastangle;   /* Last angle slider that was used */
 
      /* coords for plane intersection */
@@ -115,7 +102,6 @@ struct Super_slicer{
      float xsz, ysz, zsz;
      float xo, yo, zo;
      int   yline;
-     int   fasthq;
 
      /* slicer version 3 data. */
      float inangle[3]; /* three user input angles.                      */
@@ -137,12 +123,31 @@ struct Super_slicer{
      short nslice;
      Imat  *mat;
      int   ctrl;
-};     
+} SlicerStruct;     
 
+void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
+		  int ilimshort, int jlimshort, int minval, int maxval);
 int sslice_open(struct ViewInfo *vi);
-#ifdef __cplusplus
-}
-#endif
+void slicerHelp();
+void slicerStepZoom(SlicerStruct *win, int dir);
+void slicerEnteredZoom(SlicerStruct *win, float newZoom);
+void slicerShowSlice(SlicerStruct *win);
+void slicerStateToggled(SlicerStruct *win, int index, int state);
+void slicerAngleChanged(SlicerStruct *sslice, int axis, int value, 
+			int dragging);
+void slicerZscale(SlicerStruct *sslice, int item);
+void slicerImageThickness(SlicerStruct *sslice, int sno);
+void slicerModelThickness(SlicerStruct *sslice, float depth);
+void slicerResize(SlicerStruct *sslice, int winx, int winy);
+void slicerCubeResize(SlicerStruct *sslice, int winx, int winy);
+void slicerClosing(SlicerStruct *sslice);
+void slicerKeyInput(SlicerStruct *sslice, QKeyEvent *event);
+void slicerKeyRelease(SlicerStruct *sslice, QKeyEvent *event);
+void slicerMousePress(SlicerStruct *sslice, QMouseEvent *event);
+void slicerPaint(SlicerStruct *win);
+void slicerCubePaint(SlicerStruct *ss);
+
+
 
 #endif
 

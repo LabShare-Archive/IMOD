@@ -27,13 +27,37 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.1  2002/01/28 16:54:55  mast
-    Added structure elements for new enhancements
+$Log$
+Revision 3.2.2.7  2003/01/03 16:46:30  mast
+Simplified closing logic
+
+Revision 3.2.2.6  2003/01/02 15:42:49  mast
+add  variable to keep track of sections loaded in cache
+
+Revision 3.2.2.5  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 3.2.2.4  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
+Revision 3.2.2.3  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 3.2.2.2  2002/12/12 02:45:56  mast
+*** empty log message ***
+
+Revision 3.2.2.1  2002/12/12 01:22:29  mast
+Changes to become Qt window
+
+Revision 3.2  2002/11/25 19:22:16  mast
+Added a structure element for control id
+
+Revision 3.1  2002/01/28 16:54:55  mast
+Added structure elements for new enhancements
 
 */
 
@@ -41,49 +65,113 @@
 #define XXYZ_H
 
 #define XYZ_BSIZE 8
-#define XYZ_STRINGSIZE 128
+
+#include <qmainwindow.h>
+#include <qgl.h>
+#include "b3dgfx.h"
+
+/* Forward declarations to minimize includes */
+struct ViewInfo;
+struct Mod_object;
+struct Mod_contour;
+class XyzWindow;
+class XyzGL;
 
 struct xxyzwin
 {
-     struct ViewInfo *vi;   /* Image Data information.              */
-     Widget dialog;         /* The top widget of the xyz window     */
-     Widget glw;            /* The drawing widget of the xyz window */
-     XID    context;
-     int ctrl;              /* id of control */
+  struct ViewInfo *vi;   /* Image Data information.              */
+  XyzWindow *dialog;         /* The top widget of the xyz window     */
+  XyzGL *glw;            /* The drawing widget of the xyz window */
+  int ctrl;              /* id of control */
      
-     unsigned char *fdataxz; /* tmp data storage for xz image       */
-     unsigned char *fdatayz; /* tmp data storage for yz image       */
-     B3dCIImage *xydata;    /* Draw buffer for Z slices.            */
-     B3dCIImage *xzdata;    /* Draw buffer for Y slices.            */
-     B3dCIImage *yzdata;    /* Draw buffer for X slices.            */
+  unsigned char *fdataxz; /* tmp data storage for xz image       */
+  unsigned char *fdatayz; /* tmp data storage for yz image       */
+  B3dCIImage *xydata;    /* Draw buffer for Z slices.            */
+  B3dCIImage *xzdata;    /* Draw buffer for Y slices.            */
+  B3dCIImage *yzdata;    /* Draw buffer for X slices.            */
 
-     int winx, winy;         /* Size of xyz window.                  */
-     int overclear;          /* Clear overlay planes if set.         */
-     int exposed;
-     float zoom;
+  int winx, winy;         /* Size of xyz window.                  */
+  int exposed;
+  float zoom;
 
-     int lx, ly, lz;
+  int lx, ly, lz;
+  int lastCacheSum;       /* Sum of cache Z values on last draw */
 
-     int xtrans, ytrans;     /* translation (pan) in image coords */
-     int xwoffset,ywoffset;  /* offset in window coordinates */
-     int lmx, lmy;           /* last mouse position for panning */
-     int hq;                 /* High resolution flag */
-     int whichbox;           /* box that left mouse button went down in */
+  int xtrans, ytrans;     /* translation (pan) in image coords */
+  int xwoffset,ywoffset;  /* offset in window coordinates */
+  int lmx, lmy;           /* last mouse position for panning */
+  int hq;                 /* High resolution flag */
+  int whichbox;           /* box that left mouse button went down in */
 };
 
 
-/* Functions */
-#ifdef __cplusplus
-extern "C" {
-#endif
+class XyzWindow : public QMainWindow
+{
+  Q_OBJECT
 
-int xxyz_open( struct ViewInfo *vi);  /* open the xxyz window             */
-int xyz_draw(struct ViewInfo *vi);    /* force update of the xxyz window. */
-int xyz_draw_showslice(struct ViewInfo *vi);
+    public:
+  XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
+	    bool enableDepth, QWidget * parent = 0, const char * name = 0,
+	    WFlags f = Qt::WDestructiveClose || Qt::WType_TopLevel) ;
+  ~XyzWindow() {};
 
-#ifdef __cplusplus
-}
-#endif
+  XyzGL *mGLw;
+  void Draw();
+  int Getxyz(int x, int y, int *mx, int *my, int *mz);
+  void B1Press(int x, int y);
+  void B2Press(int x, int y);
+  void B3Press(int x, int y);
+  void B1Drag(int x, int y);
+  void B2Drag(int x, int y);
+  void B3Drag(int x, int y);
+  void DrawAuto();
+  void DrawModel();
+  void DrawImage();
+  void GetCIImages();
+  void SetSubimage(int absStart, int winSize, int imSize, float zoom,
+		   int *drawsize, int *woffset, int *dataStart);
+  void DrawGhost();
+  void DrawContour(struct Mod_Object *obj, int ob, struct Mod_Contour *cont);
+  void DrawCurrentContour(struct Mod_Object *obj, int ob, 
+			  struct Mod_Contour *cont);
+  void DrawCurrentPoint();
+  void DrawCurrentLines();
+  void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
+
+ protected:
+  void keyPressEvent ( QKeyEvent * e );
+  void closeEvent ( QCloseEvent * e );
+
+
+ private:
+
+  struct xxyzwin *mXyz;
+};
+
+class XyzGL : public QGLWidget
+{
+  Q_OBJECT
+
+    public:
+  XyzGL(  struct xxyzwin *xyz, QGLFormat format, XyzWindow * parent = 0,
+        const char * name = 0);
+  ~XyzGL() {};
+ 
+ protected:
+  void paintGL();
+  void resizeGL( int wdth, int hght );
+  void mousePressEvent(QMouseEvent * e );
+  void mouseReleaseEvent ( QMouseEvent * e );
+  void mouseMoveEvent ( QMouseEvent * e );
+
+ private:
+  struct xxyzwin *mXyz;
+  XyzWindow *mWin;
+  bool mMousePressed;
+};
+
+/* Global functions */
+int xxyz_open(struct ViewInfo *vi);
 
 #endif /* xxyz.h */
 

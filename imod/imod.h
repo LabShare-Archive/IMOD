@@ -33,6 +33,21 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.4  2003/01/29 01:43:00  mast
+    add colormap draw flag
+
+    Revision 3.1.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.2  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
+    Revision 3.1.2.1  2003/01/02 15:38:16  mast
+    remove declarations for control.c functions
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 #ifndef IMOD_H
 #define IMOD_H
@@ -56,80 +71,10 @@
 #define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
 
 
-#ifdef __cplusplus
-     extern "C" {
-#endif
+       // 1/12/03: Moved plugin stuff to imodplug.h
 
-
-/*************************** Setup Functions *********************************/
-
-/*
- * Function must be defined by plugin.
- *
- * Returns the name of the plugin.
- * Bit flags for the type of plugins are returned in the type.
- * Not all of imod's data structures may be initialized at the time of
- * this function call so no initialization should be done.
- */
-char *imodPlugInfo(int *type);
-
-/*
- * Generic Plugin interface.
- * IMOD will call this functions on your behalf at 
- * well defined times.
- */
-void imodPlugExecuteType(ImodView *inView, int inType, int inReason);
-
-/* Menu execution function for plugins with the IMOD_PLUG_MENU bit set.
- * This function will be called if available, if not defined then. 
- * the following call will be made.
- * imodPlugExecuteType(inView, IMOD_PLUG_MENU, IMOD_REASON_EXECUTE);
- */
-void imodPlugExecute(ImodView *vw);
-
-/* Key input callback function to be defined by plugins with the
- * IMOD_PLUG_KEYS bit set.
- * This function can be used to override imod hot key settings.
- * A nonzero return value indicates that the plugin handled the input key.
- * and that no other action should be taken by the imod program.
- * A zero return value indicates that imod should process the key as usual.
- */
-int imodPlugKeys(ImodView *vw, XKeyEvent *event);
-
-/****************************************************************************/
-/* Create a new drawing control for an imod view. 
- * A nonzero integer that is used as the inCtrlId
- * in other control functions is returned.
- *
- * The inDrawFunction is called when the imod draw function
- * is called.  The integer in the third argument contains
- * the draw flags.
- *
- * The inQuitFunction is called when a user quits imod.
- *
- */
-
-int ivwNewControl(ImodView *inImodView,
-		  ImodControlProc inDrawFunction,
-		  ImodControlProc inQuitFunction,
-		  void *data);
-
-/* delete the control associated with the inCtrlId value.
- * this will also call the close or quit method of the control.
- */
-int ivwDeleteControl(ImodView *iv, int inCtrlId);
-
-/* move control to top of control Q if it exists
- * also sets or clears the control active flag.
- * returns the id of the highest priority control id.
- */
-int ivwControlPriority(ImodView *iv, int inCtrlId);
-
-/* make the given control the active one.
- * A zero value for inCtrlId make no control the active one.
- */
-void ivwControlActive(ImodView *iv, int inCtrlId);    
-
+       // 1/1/03: Moved ivwControl stuff to control.h, until all files can
+       // read c++
 
 /*********************** Graphics functions. *********************************/
 
@@ -140,6 +85,7 @@ void ivwControlActive(ImodView *iv, int inCtrlId);
 #define IMOD_DRAW_SLICE    (1<<3) /* A slice location has changed.        */
 #define IMOD_DRAW_CMAP     (1<<4) /* Colormap has changed.                */
 #define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed. */
+#define IMOD_DRAW_COLORMAP (1<<11)  /* Colormap has changed (index mode)  */
 #define IMOD_DRAW_NOSYNC  (1<<12) /* do not resync image to model point.  */
 #define IMOD_DRAW_RETHINK (1<<13) /* recalc cursor position               */
 #define IMOD_DRAW_ACTIVE  (1<<14) /* current window is active.            */
@@ -216,17 +162,19 @@ void imodDrawModel(Imod *inModel);
 
 
 /**************************** Application Data *******************************/
-
+/*
 Display      *imodDisplay(void);
 XtAppContext  imodAppContext(void);
 Widget        imodTopLevel(void);
-
+*/
 /* These values are the based on the imod global graphics rendering
  * colormap.
- */ 
+ */
+/* 
 Visual       *imodVisual(void);
 XVisualInfo  *imodVisualInfo(void);
 Colormap      imodColormap(void);
+*/
 int           imodDepth(void);
 
 
@@ -256,17 +204,12 @@ int imodColorValue(int inColor);
  */
 void wprint(char *fmt, ...);
 
-/*
+/* 1/13/02: removed inputDefaultKeys
  *  Call a keyevent, execute imod hot keys.
  */
-void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
      
 
 
 /*****************************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* IMOD_H */

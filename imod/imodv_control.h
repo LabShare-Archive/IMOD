@@ -1,4 +1,4 @@
-/*  IMOD VERSION 2.7.2
+/*  IMOD VERSION 2.7.8
  *
  *  $Id$
  *
@@ -32,18 +32,46 @@ $Date$
 $Revision$
 
 $Log$
-Revision 3.0.2.1  2003/01/27 00:30:07  mast
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
-Revision 3.0  2002/09/27 20:35:04  rickg
-Initital version of code moved from imod_menu_cb.c
+Revision 1.1.2.2  2002/12/17 18:34:31  mast
+Adding declarations for all global functions
+
+Revision 1.1.2.1  2002/12/05 16:30:38  mast
+First addition to archive
+
 
 */
-/* imod_client_message.h */
 
-#ifndef IMOD_CLIENT_MESSAGE_H
-#define IMOD_CLIENT_MESSAGE_H
+#ifndef IMODV_CONTROL_H
+#define IMODV_CONTROL_H
 
-bool imodHandleClientMessage(XEvent *event);
+typedef struct __imodv_struct ImodvApp;
 
-#endif /* IMOD_CLIENT_MESSAGE_H */
+#define IMODV_CONTROL_NEAR 1
+#define IMODV_CONTROL_FAR 2
+#define IMODV_CONTROL_FOVY 3
+#define IMODV_CONTROL_ZSCALE 4
+#define IMODV_CONTROL_XAXIS 1
+#define IMODV_CONTROL_YAXIS 2
+#define IMODV_CONTROL_ZAXIS 3
+void imodvControlAxisText(int axis, float rot);
+void imodvControlScale(float value);
+void imodvControlZscale(int value);
+void imodvControlRate(int value);
+void imodvControlClip(int plane, int value);
+void imodvControlZoom(int zoom);
+void imodvControlHelp(void);
+void imodvControlStart(void);
+void imodvControlAxisButton(int axisDir);
+void imodvControlClosing(void);
+void imodvControlQuit(void);
+
+int imodv_control(ImodvApp *a, int state);
+void imodvControlSetArot(ImodvApp *a, int newval);
+void imodvControlSetView(ImodvApp *a);
+void imodvControlUpdate(ImodvApp *a);
+
+
+#endif /* IMODV_CONTROL_H */

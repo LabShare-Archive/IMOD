@@ -33,6 +33,21 @@
     $Revision$
 
     $Log$
+    Revision 3.3.2.4  2003/02/07 01:03:33  mast
+    a little cleanup
+
+    Revision 3.3.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.3.2.2  2003/01/06 15:40:33  mast
+    add b3dviewportXY
+
+    Revision 3.3.2.1  2002/12/23 04:55:13  mast
+    declare routines for putting bytes, shorts, ints that are in b3dfile.c
+
+    Revision 3.3  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.2  2002/07/18 20:20:35  rickg
     Changed include of GLwMDrawA to rely upon -I compiler option
 
@@ -42,35 +57,20 @@
 #ifndef B3DGFX_H
 #define B3DGFX_H
 
-#ifdef  DRAW_OPENGL
-#define DRAW_OpenGL
-#endif
-
-#include <stdio.h>
-#include <X11/Xlib.h>
-#include <Xm/Xm.h>
+//#include <stdio.h>
+//#include <X11/Xlib.h>
+//#include <Xm/Xm.h>
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-/* Change glwM to glw to avoid using motif widgets */
-#include <GLwMDrawA.h>
 
-
-extern String B3DGFX_Translations;
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
 #define SnapShot_TIF     2
 
 
-#define B3dDrawingAreaCallbackStruct GLwDrawingAreaCallbackStruct
-/* Change glwM to glw to avoid using motif widgets */
-#define B3dDrawingAreaWidgetClass    glwMDrawingAreaWidgetClass
-#define B3dNexposeCallback GLwNexposeCallback
-#define B3dNresizeCallback GLwNresizeCallback
-#define B3dNinputCallback  GLwNinputCallback
-#define B3dNginitCallback  GLwNginitCallback
-typedef struct
+typedef struct b3d_ci_image
 {
      unsigned short *id1;
      unsigned short *id2;
@@ -84,7 +84,7 @@ typedef struct
      short cz1, cz2;
 
 }B3dCIImage;
-#define FONT_LIST_BASE 10
+
 
 
 #define B3D_NODRAW    0
@@ -96,30 +96,12 @@ typedef struct
 #define B3D_LINESTYLE_DASH  1
 #define B3D_LINESTYLE_DDASH 2
 
-#define b3dGetDrawCoord(x,z,o) (((x) * (z)) + (o))
-
 /* functions */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-
-XID  b3dGetContext(Widget w);
-XID  b3dGetXContext(Widget w);
-void b3dWinset(Display *dpy, Widget w, XID context);
-void b3dXWinset(Display *dpy, Widget w, XID context);
-     void b3dSetCurSize(int width, int height);
-void b3dDestroyGFX(void);
-void b3dResizeViewport(void);
-void b3dSwapBuffers(void);
-void b3dFlush(void);
-void b3dMapColor(unsigned int   color,
-		 unsigned short red,
-		 unsigned short green,
-		 unsigned short blue);
-void b3dColorIndex(unsigned int pix);
-void b3dClear(void);
+  void b3dSetCurSize(int width, int height);
+void b3dResizeViewportXY(int winx, int winy);
+void b3dColorIndex(int pix);
 
 void b3dDrawPoint(int x, int y);
 void b3dDrawPlus(int x, int y, int size);
@@ -141,7 +123,6 @@ void b3dLineWidth(int width);
 void b3dLineStyle(int style);
 void b3dVertex2i(int x, int y);
 void b3dDrawBoxout(int llx, int lly, int urx, int ury);
-void b3dSetCurPoint(int x, int y, int z);
 
 /****************************************************************************/
 /* Pixel data functions.                                                    */
@@ -212,38 +193,15 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 				   int *xo, int *yo, int slice);
 
 
-/*****************************************************************************
- *   String / Font display functions
- ****************************************************************************/
-
-XFontStruct *b3dGetXFontStruct(char *name);
-void b3dFreeXFontStruct(XFontStruct *fs);
-void b3dSetCurrentFont(XFontStruct *font);
-void b3dXSetCurrentFont(XFontStruct *font);
-void b3dDrawString(char *string, int x, int y, int alignment);
-void b3dXDrawString(char *string, int x, int y, int alignment);
      
 void b3dSnapshot(char *fname);
 
-/*void b3dAutoSnapshot(char *name);*/
 void b3dAutoSnapshot(char *name, int format_type, int *limits);
 void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits);
 void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
 		     unsigned char *data);
 
-void b3dGetMouseWindowCoord(int *x, int *y);
 
-
-/* special file io commands. */
-int bdRGBWrite(FILE *fout, int xsize, int ysize, unsigned char *pixels);
-int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels);
-int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
-		   unsigned char *pixels, unsigned short *cmap);
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 
