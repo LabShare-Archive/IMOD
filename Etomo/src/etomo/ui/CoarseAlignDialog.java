@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.7  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>
@@ -77,14 +80,14 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
 
   private BeveledBorder borderA = new BeveledBorder("Coarse Alignment");
   private CrossCorrelationPanel panelCrossCorrelation;
-  private JToggleButton buttonCrossCorrelate =
-    new JToggleButton("<html><b>Calculate<br>Cross-Correlation</b>");
-  private JToggleButton buttonCoarseAlign =
-    new JToggleButton("<html><b>Generate Coarse<br>Aligned Stack</b>");
-  private JToggleButton buttonImod =
-    new JToggleButton("<html><b>View Aligned<br>Stack In 3dmod</b>");
-  private JToggleButton buttonMidas =
-    new JToggleButton("<html><b>Fix Alignment<br>With Midas</b>");
+  private MultiLineToggleButton buttonCrossCorrelate =
+    new MultiLineToggleButton("<html><b>Calculate<br>Cross-Correlation</b>");
+  private MultiLineToggleButton buttonCoarseAlign =
+    new MultiLineToggleButton("<html><b>Generate Coarse<br>Aligned Stack</b>");
+  private MultiLineToggleButton buttonImod =
+    new MultiLineToggleButton("<html><b>View Aligned<br>Stack In 3dmod</b>");
+  private MultiLineToggleButton buttonMidas =
+    new MultiLineToggleButton("<html><b>Fix Alignment<br>With Midas</b>");
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);

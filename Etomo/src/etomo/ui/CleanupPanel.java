@@ -9,7 +9,6 @@ import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,6 +37,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2003/11/10 07:38:21  rickg
+ * Task tags moved to bugzilla
+ *
  * Revision 3.0  2003/11/07 23:19:01  rickg
  * Version 1.0.0
  *
@@ -83,8 +85,8 @@ public class CleanupPanel {
   IntermediateFileFilter intermediateFileFilter;
   BackupFileFilter backupFileFilter;
   private JPanel pnlButton = new JPanel();
-  JButton btnDelete = new JButton("<html><b>Delete Selected</b>");
-  JButton btnRescanDir = new JButton("<html><b>Rescan Directory</b>");
+  MultiLineButton btnDelete = new MultiLineButton("<html><b>Delete Selected</b>");
+  MultiLineButton btnRescanDir = new MultiLineButton("<html><b>Rescan Directory</b>");
 
   public CleanupPanel(ApplicationManager appMgr) {
     applicationManager = appMgr;

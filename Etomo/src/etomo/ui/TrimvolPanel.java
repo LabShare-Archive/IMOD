@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -30,6 +29,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.12  2003/10/29 20:49:11  rickg
  * <p> Bug# 308 Tooltips
  * <p>
@@ -102,10 +104,10 @@ public class TrimvolPanel {
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodFull = new JButton("<html><b>3dmod Full Volume</b>");
-  private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
-  private JButton btnImodTrim =
-    new JButton("<html><b>3dmod Trimmed Volume</b>");
+  private MultiLineButton btnImodFull = new MultiLineButton("<html><b>3dmod Full Volume</b>");
+  private MultiLineButton btnTrimvol = new MultiLineButton("<html><b>Trim Volume</b>");
+  private MultiLineButton btnImodTrim =
+    new MultiLineButton("<html><b>3dmod Trimmed Volume</b>");
 
   /**
    * Default constructor

@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -31,6 +30,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.16  2003/11/05 19:56:58  rickg
  * <p> Bug# 300 Selecting matching models on setup patch now
  * <p> selects matching models on initial page
@@ -93,9 +95,9 @@ public class InitialCombinePanel implements ContextMenu {
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnMatchcheck =
-    new JButton("<html><b>View Match Check Volume</b>");
-  private JButton btnRestart = new JButton("<html><b>Restart Combine</b>");
+  private MultiLineButton btnMatchcheck =
+    new MultiLineButton("<html><b>View Match Check Volume</b>");
+  private MultiLineButton btnRestart = new MultiLineButton("<html><b>Restart Combine</b>");
   private MultiLineToggleButton btnMatchvolRestart =
     new MultiLineToggleButton("<html><b>Restart at Matchvol1</b>");
 

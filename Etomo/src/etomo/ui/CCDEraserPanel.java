@@ -7,10 +7,8 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
@@ -30,6 +28,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/01/29 22:33:01  rickg
+ * <p> Tooltip text change
+ * <p>
  * <p> Revision 3.1  2003/11/10 07:36:24  rickg
  * <p> Task tags moved to bugzilla, reformat
  * <p>
@@ -133,18 +134,18 @@ public class CCDEraserPanel implements ContextMenu {
     new LabeledTextField("XY scan size:");
   private LabeledTextField ltfScanCriterion =
     new LabeledTextField("Scan criterion:");
-  private JToggleButton btnFindXRays =
-    new JToggleButton("<html><b>Find X-rays (Trial Mode)</b>");
-  private JButton btnViewXRayModel =
-    new JButton("<html><b>View X-ray Model</b>");
+  private MultiLineToggleButton btnFindXRays =
+    new MultiLineToggleButton("<html><b>Find X-rays (Trial Mode)</b>");
+  private MultiLineButton btnViewXRayModel =
+    new MultiLineButton("<html><b>View X-ray Model</b>");
 
   private JCheckBox cbManualReplacement = new JCheckBox("Manual replacement");
   private LabeledTextField ltfGlobalReplacementList =
     new LabeledTextField("All section replacement list: ");
   private LabeledTextField ltfLocalReplacementList =
     new LabeledTextField("Line replacement list: ");
-  private JButton btnCreateModel =
-    new JButton("<html><b>Create Manual Replacement Model</b>");
+  private MultiLineButton btnCreateModel =
+    new MultiLineButton("<html><b>Create Manual Replacement Model</b>");
 
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputImage =
@@ -156,11 +157,11 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox cbIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JToggleButton btnErase =
-    new JToggleButton("<html><b>Create Fixed Stack</b>");
-  private JButton btnViewErased = new JButton("<html><b>View Fixed Stack</b>");
-  private JToggleButton btnReplaceRawStack =
-    new JToggleButton("<html><b>Use Fixed Stack</b>");
+  private MultiLineToggleButton btnErase =
+    new MultiLineToggleButton("<html><b>Create Fixed Stack</b>");
+  private MultiLineButton btnViewErased = new MultiLineButton("<html><b>View Fixed Stack</b>");
+  private MultiLineToggleButton btnReplaceRawStack =
+    new MultiLineToggleButton("<html><b>Use Fixed Stack</b>");
 
   /**
    * Default constructor

@@ -11,12 +11,10 @@ import java.awt.event.MouseEvent;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
@@ -45,6 +43,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:01  rickg
+ * Version 1.0.0
+ *
  * Revision 2.18  2003/11/05 21:09:18  rickg
  * Bug# 175 Swap patch parameter x and y min and max if match to state changes.
  *
@@ -237,10 +238,10 @@ public class SetupCombinePanel implements ContextMenu {
   private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodVolumeA = new JButton("<html><b>3dmod Volume A</b>");
-  private JButton btnImodVolumeB = new JButton("<html><b>3dmod Volume B</b>");
-  private JToggleButton btnCreate =
-    new JToggleButton("<html><b>Create Combine Scripts</b>");
+  private MultiLineButton btnImodVolumeA = new MultiLineButton("<html><b>3dmod Volume A</b>");
+  private MultiLineButton btnImodVolumeB = new MultiLineButton("<html><b>3dmod Volume B</b>");
+  private MultiLineToggleButton btnCreate =
+    new MultiLineToggleButton("<html><b>Create Combine Scripts</b>");
   private MultiLineToggleButton btnCombine =
     new MultiLineToggleButton("<html><b>Start Combine</b>");
 

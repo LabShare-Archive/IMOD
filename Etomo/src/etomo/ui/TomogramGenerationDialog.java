@@ -9,12 +9,10 @@ import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltParam;
@@ -44,6 +42,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:01  rickg
+ * Version 1.0.0
+ *
  * Revision 2.19  2003/11/07 19:54:02  rickg
  * Don't delete preali in delete aligned stacks code.
  *
@@ -234,10 +235,10 @@ public class TomogramGenerationDialog
     new JCheckBox("Use linear interpolation");
 
   private JPanel pnlAlignedStack = new JPanel();
-  private JToggleButton btnNewst =
-    new JToggleButton("<html><b>Create Full<br>Aligned Stack</b>");
-  private JButton btn3dmodFull =
-    new JButton("<html><b>View Full<br>Aligned Stack</b>");
+  private MultiLineToggleButton btnNewst =
+    new MultiLineToggleButton("<html><b>Create Full<br>Aligned Stack</b>");
+  private MultiLineButton btn3dmodFull =
+    new MultiLineButton("<html><b>View Full<br>Aligned Stack</b>");
 
   private JPanel pnlTiltParams = new JPanel();
 
@@ -281,17 +282,17 @@ public class TomogramGenerationDialog
   private Vector trialTomogramList = new Vector();
 
   private JPanel pnlTrialButtons = new JPanel();
-  private JButton btnTrial =
-    new JButton("<html><b>Generate Trial Tomogram</b>");
-  private JButton btn3dmodTrial =
-    new JButton("<html><b>View Trial in 3dmod</b>");
-  private JToggleButton btnUseTrial =
-    new JToggleButton("<html><b>Use Current Trial Tomogram</b>");
+  private MultiLineButton btnTrial =
+    new MultiLineButton("<html><b>Generate Trial Tomogram</b>");
+  private MultiLineButton btn3dmodTrial =
+    new MultiLineButton("<html><b>View Trial in 3dmod</b>");
+  private MultiLineToggleButton btnUseTrial =
+    new MultiLineToggleButton("<html><b>Use Current Trial Tomogram</b>");
 
-  private JToggleButton btnTilt =
-    new JToggleButton("<html><b>Generate Tomogram</b>");
-  private JButton btn3dmodTomogram =
-    new JButton("<html><b>View Tomogram In 3dmod</b>");
+  private MultiLineToggleButton btnTilt =
+    new MultiLineToggleButton("<html><b>Generate Tomogram</b>");
+  private MultiLineButton btn3dmodTomogram =
+    new MultiLineButton("<html><b>View Tomogram In 3dmod</b>");
 
   private MultiLineToggleButton btnDeleteStacks =
     new MultiLineToggleButton("<html><b>Delete Aligned Image Stack</b>");

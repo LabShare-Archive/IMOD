@@ -10,7 +10,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -44,6 +43,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:01  rickg
+ * Version 1.0.0
+ *
  * Revision 1.20  2003/10/29 18:05:21  rickg
  * Bug# 304 Tooltips
  *
@@ -116,10 +118,10 @@ public class FinalCombinePanel implements ContextMenu {
   private LabeledTextField ltfZPatchSize =
     new LabeledTextField("Y patch size :");
   private JPanel pnlPatchsizeButtons = new JPanel();
-  private JButton btnPatchsizeIncrease =
-    new JButton("<html><b>Patch Size +20%</b>");
-  private JButton btnPatchsizeDecrease =
-    new JButton("<html><b>Patch Size -20%</b>");
+  private MultiLineButton btnPatchsizeIncrease =
+    new MultiLineButton("<html><b>Patch Size +20%</b>");
+  private MultiLineButton btnPatchsizeDecrease =
+    new MultiLineButton("<html><b>Patch Size -20%</b>");
 
   private LabeledTextField ltfXNPatches =
     new LabeledTextField("Number of X patches :");
@@ -136,8 +138,8 @@ public class FinalCombinePanel implements ContextMenu {
   private LabeledTextField ltfZLow = new LabeledTextField("Y Low :");
   private LabeledTextField ltfZHigh = new LabeledTextField("Y high :");
 
-  private JButton btnPatchcorrRestart =
-    new JButton("<html><b>Restart at Patchcorr</b>");
+  private MultiLineButton btnPatchcorrRestart =
+    new MultiLineButton("<html><b>Restart at Patchcorr</b>");
 
   private JPanel pnlMatchorwarp = new JPanel();
   private JPanel pnlPatchRegionModel = new JPanel();
@@ -159,21 +161,21 @@ public class FinalCombinePanel implements ContextMenu {
   private LabeledTextField ltfZUpperExclude =
     new LabeledTextField("Number of rows to exclude on top (in Y): ");
   private JPanel pnlMatchorwarpButtons = new JPanel();
-  private JButton btnMatchorwarpRestart =
-    new JButton("<html><b>Restart at Matchorwarp</b>");
-  private JButton btnMatchorwarpTrial =
-    new JButton("<html><b>Matchorwarp Trial Run</b>");
+  private MultiLineButton btnMatchorwarpRestart =
+    new MultiLineButton("<html><b>Restart at Matchorwarp</b>");
+  private MultiLineButton btnMatchorwarpTrial =
+    new MultiLineButton("<html><b>Matchorwarp Trial Run</b>");
 
   private JPanel pnlButton = new JPanel();
 
-  private JButton btnPatchVectorModel =
-    new JButton("<html><b>Examine Patch Vector Model</b>");
-  private JButton btnReplacePatchOut =
-    new JButton("<html><b>Replace Patch Vectors</b>");
-  private JButton btnImodMatchedTo =
-    new JButton("<html><b>Open Volume Being Matched To</b>");
-  private JButton btnImodCombined =
-    new JButton("<html><b>Open Combined Volume</b>");
+  private MultiLineButton btnPatchVectorModel =
+    new MultiLineButton("<html><b>Examine Patch Vector Model</b>");
+  private MultiLineButton btnReplacePatchOut =
+    new MultiLineButton("<html><b>Replace Patch Vectors</b>");
+  private MultiLineButton btnImodMatchedTo =
+    new MultiLineButton("<html><b>Open Volume Being Matched To</b>");
+  private MultiLineButton btnImodCombined =
+    new MultiLineButton("<html><b>Open Combined Volume</b>");
 
   /**
    * Default constructor

@@ -9,10 +9,8 @@ import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
@@ -32,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.14  2003/10/28 21:22:50  rickg
  * <p> Bug# 280 Tooltips
  * <p>
@@ -166,16 +167,16 @@ public class AlignmentEstimationDialog
 
   private JPanel panelButton = new JPanel();
 
-  private JToggleButton btnComputeAlignment =
-    new JToggleButton("<html><b>Compute Alignment</b>");
+  private MultiLineToggleButton btnComputeAlignment =
+    new MultiLineToggleButton("<html><b>Compute Alignment</b>");
 
-  private JButton btnImod =
-    new JButton("<html><b>View/Edit Fiducial Model</b>");
+  private MultiLineButton btnImod =
+    new MultiLineButton("<html><b>View/Edit Fiducial Model</b>");
 
-  private JButton btnView3DModel = new JButton("<html><b>View 3D Model</b>");
+  private MultiLineButton btnView3DModel = new MultiLineButton("<html><b>View 3D Model</b>");
 
-  private JButton btnViewResiduals =
-    new JButton("<html><b>View Residual Vectors</b>");
+  private MultiLineButton btnViewResiduals =
+    new MultiLineButton("<html><b>View Residual Vectors</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);

@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltParam;
@@ -31,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.10  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>
@@ -106,21 +108,21 @@ public class TomogramPositioningDialog
 
   private LabeledTextField ltfSampleTomoThickness =
     new LabeledTextField("Sample tomogram thickness: ");
-  private JToggleButton btnSample =
-    new JToggleButton("<html><b>Create Sample Tomograms</b>");
+  private MultiLineToggleButton btnSample =
+    new MultiLineToggleButton("<html><b>Create Sample Tomograms</b>");
 
-  private JToggleButton btnCreateBoundary =
-    new JToggleButton("<html><b>Create Boundary Models</b>");
+  private MultiLineToggleButton btnCreateBoundary =
+    new MultiLineToggleButton("<html><b>Create Boundary Models</b>");
 
-  private JToggleButton btnTomopitch =
-    new JToggleButton("<html><b>Compute Z Shift & Pitch Angles</b>");
+  private MultiLineToggleButton btnTomopitch =
+    new MultiLineToggleButton("<html><b>Compute Z Shift & Pitch Angles</b>");
 
   private LabeledTextField ltfTiltAngleOffset =
     new LabeledTextField("Total angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Total Z shift: ");
-  private JToggleButton btnAlign =
-    new JToggleButton("<html><b>Create Final Alignment</b>");
+  private MultiLineToggleButton btnAlign =
+    new MultiLineToggleButton("<html><b>Create Final Alignment</b>");
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
