@@ -1,3 +1,11 @@
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +14,7 @@
 #include "qtplax.h"
 #include <qapplication.h>
 #include <qfont.h>
+#include <qdatetime.h>
 #include <qpen.h>
 #include <qpointarray.h>
 #include <qpainter.h>
@@ -37,6 +46,7 @@ static void plax_set_brush(int color, int closed);
 static void plax_draw_vect(int x1, int y1, int x2, int y2);
 static void plax_draw_box(int cindex, int x1, int y1, int x2, int y2);
 static void plax_draw_circ(int cindex, int radius, int x, int y);
+static char *f2cString(char *str, int strSize);
 
 extern "C" {
   int iargc_();
@@ -98,15 +108,7 @@ int plax_open(void)
     for (i = 0; i < argc; i++) {
       getarg_(&i, fstring, FSTRING_LEN);
 
-      // Find last non-blank character and follow with a null
-      for (j = FSTRING_LEN - 2; j >= 0; j--) {
-	if (j == 0 || fstring[j] != 0x20) {
-	  fstring[j + 1] = 0x00;
-	  break;
-	}
-      }
-
-      argv[i] = strdup(fstring);
+      argv[i] = f2cString(fstring, FSTRING_LEN);
       if (!argv[i]) {
 	fprintf(stderr, "Error getting memory for program arguments.\n");
 	return (-1);
@@ -251,6 +253,14 @@ void plax_polyo(int *cindex, int *size, short *vec)
   PlaxPainter->drawPolygon(points);
 }
 
+// The characters are too small even for Mac users
+#ifdef Q_OS_MACX
+#define TEXT_SIZE_SCALE 3.3
+#else
+#define TEXT_SIZE_SCALE 2.5
+#endif
+
+
 /* DNM: changed this to keep track of last font used, to search for nearest
    size from requested font, and to keep track of the sizes found in the
    table */
@@ -267,8 +277,13 @@ void plax_sctext(int *thickness,
 
   int x = *ix;
   int y = *iy;
-  int ysize = (int)(*iysize * 2.5);
+  int ysize = (int)(*iysize * TEXT_SIZE_SCALE);
   int ifbold = 0;
+  char *cstring = f2cString(string, strsize);
+
+  if (!cstring)
+    return;
+
   if (*thickness > 1)
     ifbold = 1;
 
@@ -288,7 +303,8 @@ void plax_sctext(int *thickness,
   plax_transform(&x, &y);
   plax_set_pen(*cindex, 0);
 
-  PlaxPainter->drawText(x, y, QString(string), 0, strsize);
+  PlaxPainter->drawText(x, y, QString(cstring));
+  free(cstring);
 }
 
 void plax_putc(char *f)
@@ -427,3 +443,25 @@ static void plax_set_brush(int color, int closed)
   PlaxBrushClosed = closed;
 }  
 
+/* Create a C string with a copy of a Fortran string */
+static char *f2cString(char *str, int strSize)
+{
+  int i;
+  char *newStr;
+
+  /* find last non-blank character */
+  for (i = strSize - 1; i >= 0; i--)
+    if (str[i] != ' ')
+      break;
+
+  newStr = (char *)malloc(i + 2);
+  if (!newStr) {
+    return NULL;
+  }
+
+  /* copy string if non-null, then put terminator at end */
+  if (i >= 0)
+    strncpy(newStr, str, i + 1);
+  newStr[i + 1] = 0x00;
+  return newStr;
+}
