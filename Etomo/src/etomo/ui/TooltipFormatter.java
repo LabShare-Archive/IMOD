@@ -13,6 +13,10 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2003/12/31 01:32:57  sueh
+ * <p> bug# 372 added getText() - finds the right tooltip in an
+ * <p> autodoc
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -58,7 +62,7 @@ public class TooltipFormatter {
     rawString = str;
     return this;
   }
-  
+
   /**
    * Format the rawString into an HTML string appropriate for tooltips
    * @return the HTML formatted string
@@ -71,8 +75,7 @@ public class TooltipFormatter {
       int idxSearch = idxStart + nColumns;
       // Are we past the end of the string
       if (idxSearch >= rawString.length() - 1) {
-        htmlFormat.append(
-          rawString.substring(idxStart));
+        htmlFormat.append(rawString.substring(idxStart));
         splitting = false;
       }
       else {
@@ -91,23 +94,33 @@ public class TooltipFormatter {
     }
     return htmlFormat.toString();
   }
-  
+
   public static String getText(Autodoc autodoc, String fieldName) {
     Section section = autodoc.getSection("field", fieldName);
-    if (section.isNull()) {
+    if (section == null) {
       return null;
     }
-    String text = section.getAttribute("tooltip").getValue();
-    if (text != null) {
-      return text;
+    String text = null;
+    Attribute attribute = section.getAttribute("tooltip");
+    if (attribute != null) {
+      text = attribute.getValue();
+      if (text != null) {
+        return text;
+      }
     }
-    text = section.getAttribute("usage").getValue();
-    if (text != null) {
-      return text;
+    attribute = section.getAttribute("usage");
+    if (attribute != null) {
+      text = attribute.getValue();
+      if (text != null) {
+        return text;
+      }
     }
-    text = section.getAttribute("manpage").getValue();
-    if (text != null) {
-      return text;
+    attribute = section.getAttribute("manpage");
+    if (attribute != null) {
+      text = attribute.getValue();
+      if (text != null) {
+        return text;
+      }
     }
     return null;
   }
