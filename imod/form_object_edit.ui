@@ -157,6 +157,9 @@
                                     <property name="text">
                                         <string>Fill</string>
                                     </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Draw filled rather than open symbols</string>
+                                    </property>
                                 </widget>
                                 <widget class="QCheckBox">
                                     <property name="name">
@@ -167,6 +170,9 @@
                                     </property>
                                     <property name="text">
                                         <string>Mark ends</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Mark contour starting and ending points with cross</string>
                                     </property>
                                 </widget>
                             </vbox>
@@ -669,7 +675,7 @@
     <include location="local" impldecl="in implementation">imod_object_edit.h</include>
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
-    <include location="local" impldecl="in implementation">object_edit.ui.h</include>
+    <include location="local" impldecl="in implementation">form_object_edit.ui.h</include>
 </includes>
 <slots>
     <slot>helpPressed()</slot>
