@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/04/12 17:13:46  sueh
+ * <p> $bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  reset()
+ * <p> $should unset values, not set to comscript defaults.
+ * <p> $
  * <p> $Revision 1.3  2004/03/29 20:47:47  sueh
  * <p> $bug# 409 user cannot change output file
  * <p> $
@@ -35,10 +39,14 @@ public class ConstMTFFilterParam {
   double maximumInverse;
   FortranInputString lowPassRadiusSigma;
   FortranInputString inverseRolloffRadiusSigma;
+  FortranInputString startingAndEndingZ;
   
   public ConstMTFFilterParam() {
     lowPassRadiusSigma = new FortranInputString(2);
     inverseRolloffRadiusSigma = new FortranInputString(2);
+    startingAndEndingZ = new FortranInputString(2);
+    startingAndEndingZ.setIntegerType(0, true);
+    startingAndEndingZ.setIntegerType(1, true);
     reset();
   }
   
@@ -49,6 +57,7 @@ public class ConstMTFFilterParam {
     maximumInverse = Double.NaN;
     lowPassRadiusSigma.setDefault();
     inverseRolloffRadiusSigma.setDefault();
+    startingAndEndingZ.setDefault();
   }
   
   public String getMtfFile() {
@@ -62,5 +71,8 @@ public class ConstMTFFilterParam {
   }
   public String getInverseRolloffRadiusSigmaString() {
     return inverseRolloffRadiusSigma.toString(true);
+  }
+  public String getStartingAndEndingZString() {
+    return startingAndEndingZ.toString(true);
   }
 }
