@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/21 21:32:38  rickg
+ * <p> Enabled kill process functionality
+ * <p>
  * <p> Revision 2.3  2003/05/08 04:19:24  rickg
  * <p> Updated tooltips
  * <p>
@@ -79,6 +82,11 @@ public class AxisProcessPanel implements ContextMenu {
   private ProcessControlPanel procCtlPostProcessing =
     new ProcessControlPanel("Post Processing");
 
+  /**
+   * Constructor
+   * @param appManager
+   * @param axis
+   */
   public AxisProcessPanel(ApplicationManager appManager, AxisID axis) {
     applicationManager = appManager;
     axisID = axis;
@@ -94,9 +102,6 @@ public class AxisProcessPanel implements ContextMenu {
     panelProcessSelect.setAlignmentY(Component.TOP_ALIGNMENT);
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
-    // panel layout structure
-    //    panelProcessInfo.setLayout(
-    //      new BoxLayout(panelProcessInfo, BoxLayout.Y_AXIS));
     panelProcessInfo.setLayout(new BorderLayout());
     panelProcessInfo.add(panelStatus, BorderLayout.NORTH);
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
@@ -106,10 +111,18 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessInfo);
   }
 
+  /**
+   * 
+   * @return
+   */
   public Container getContainer() {
     return panelRoot;
   }
 
+  /**
+   * 
+   * @param newDialog
+   */
   public void replaceDialogPanel(Container newDialog) {
     panelDialog.removeAll();
     panelDialog.add(newDialog);
@@ -117,6 +130,9 @@ public class AxisProcessPanel implements ContextMenu {
     panelDialog.repaint();
   }
 
+  /**
+   * Remove all process information from the dialog panel
+   */
   public void eraseDialogPanel() {
     //  Get the current panel size and a new blank panel of the same size
     panelDialog.removeAll();
@@ -124,15 +140,46 @@ public class AxisProcessPanel implements ContextMenu {
     panelDialog.repaint();
   }
 
+  /**
+   * Setup the progress bar for a determinate
+   * @param label
+   * @param nSteps
+   */
+  public void setProgressBar(String label, int nSteps) {
+    progressPanel.setLabel(label);
+    progressPanel.setMinimum(0);
+    progressPanel.setMaximum(nSteps); 
+  }
+
+  /**
+   * 
+   * @param n
+   */  
+  public void setProgressBarValue(int n) {
+    progressPanel.setValue(n);
+  }
+  
+  /**
+   * 
+   * @param label
+   */
   public void startProgressBar(String label) {
     progressPanel.setLabel(label);
     progressPanel.start();
   }
 
+  /**
+   * 
+   *
+   */
   public void stopProgressBar() {
     progressPanel.stop();
   }
 
+  /**
+   * 
+   * @param event
+   */
   void buttonKillAction(ActionEvent event) {
     applicationManager.kill(axisID);
   }
@@ -203,22 +250,42 @@ public class AxisProcessPanel implements ContextMenu {
     procCtlFiducialModel.setState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setFineAlignmentState(ProcessState state) {
     procCtlFineAlignment.setState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setTomogramPositioningState(ProcessState state) {
     procCtlTomogramPositioning.setState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setTomogramGenerationState(ProcessState state) {
     procCtlTomogramGeneration.setState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setTomogramCombinationState(ProcessState state) {
     procCtlTomogramCombination.setState(state);
   }
 
+  /**
+   * 
+   * @param state
+   */
   public void setPostProcessingState(ProcessState state) {
     procCtlPostProcessing.setState(state);
   }
@@ -306,7 +373,9 @@ public class AxisProcessPanel implements ContextMenu {
     }
   }
 
-  //  Right mouse button context menu
+  /**
+   * Right mouse button context menu
+   */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "");
   }
