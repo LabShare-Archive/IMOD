@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/03: IMOD_3-0-10
+5/20/03: Made Setupcombine and Copytomocoms able to accept corresponding
+fiducial lists or exclude lists with spaces embedded in them, and remove the
+spaces so that Etomo will parse them correctly.  Also modified the list-writing
+subroutine to output lists without spaces.
+
+5/18/03: Added startup dialog to allow all options to be set when 3dmod is
+started with no arguments.  Added an icon for 3dmod.
+
 5/12/03: IMOD_3-0-9
 5/12/03: Changes to vmstocsh and setupcombine for running under Cygwin, and
 other minor changes for Cygwin (like the name change)
