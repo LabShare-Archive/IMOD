@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/04/17 19:05:26  mast
+eliminate Ctrl-A from text strings
+
 Revision 4.2  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 
@@ -103,7 +106,8 @@ void wprint(char *fmt, ...)
   va_end (args);
      
   msgstr = msgbuf;
-  msgstr = msgstr.remove(0x07);
+  while ((i = msgstr.find(0x07)) >= 0)
+    msgstr = msgstr.remove(i, 1);
 
   // Strip \r's
   while ((lastnl = msgstr.find('\r')) >= 0) {
