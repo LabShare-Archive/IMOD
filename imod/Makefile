@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2001/12/17 18:37:32  mast
+#  Add imod_cachefill.c to make, add many dependencies on headers included by
+#  imod.h
+#
 #  Revision 3.0  2001/11/29 18:10:47  rickg
 #  *** empty log message ***
 #
@@ -77,7 +81,7 @@ imodv_ogl.o : $(IMODDEPS) $(IMODVDEPS)
 ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
 
 $(IMODVOBJS) : $(IMODVDEPS)
-imodv.o : $(IMODVDEPS)
+imodv.o : $(IMODVDEPS) imod.h
 
 slicer.o : sslice.h slicer.h
 imod_menu.o : imodhelp.h hotkey.h menus.h imod_info.h iproc.h options.h
