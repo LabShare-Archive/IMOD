@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -210,8 +213,8 @@ public class TomogramPositioningDialog
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-    logFileLabel[0] = "sample" + axisID.getExtension();
-    logFileLabel[1] = "tomopitch" + axisID.getExtension();
+    logFileLabel[0] = "sample";
+    logFileLabel[1] = "tomopitch";
     logFile = new String[2];
     logFile[0] = "sample" + axisID.getExtension() + ".log";
     logFile[1] = "tomopitch" + axisID.getExtension() + ".log";

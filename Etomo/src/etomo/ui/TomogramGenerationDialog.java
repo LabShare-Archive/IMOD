@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/23 21:26:55  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.4  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -212,7 +215,7 @@ public class TomogramGenerationDialog
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-    logFileLabel[0] = "newst" + axisID.getExtension();
+    logFileLabel[0] = "newst";
     logFileLabel[1] = "tilt";
     logFile = new String[2];
     logFile[0] = "newst" + axisID.getExtension() + ".log";
