@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-0
+2/10/03: Merged Qt branch.
+
 IMOD_2-7-11
 2/6/03: Made tif2mrc exit with error when output file cannot be opened.
 
@@ -26,6 +29,7 @@ Imod; also stopped a big memory leak upon closing zap windows.
 
 12/10/02: Made newst able to combine transformation, rotation, and scaling.
 
+BRANCHED IMOD_2-7-9-QT
 IMOD_2-7-9
 12/3/02: Fixed Transferfid to keep from getting no points in clipped out model
 due to roundoff errors.  Also added full error trapping and reporting, and 
