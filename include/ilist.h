@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:39:50  mast
+    Declare extern C if c++
+
 */
 
 #ifndef ILIST_H
@@ -46,7 +49,7 @@ extern "C" {
 
 #define LIST_QUANTUM 1
 
-typedef struct 
+typedef struct ilist_struct
 {
      void *data;
      int   dsize;
