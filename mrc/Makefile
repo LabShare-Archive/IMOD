@@ -22,12 +22,20 @@
 #  for the Boulder Laboratory for 3-Dimensional Fine Structure.
 #  University of Colorado, MCDB Box 347, Boulder, CO 80309
 ########################################################################
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 include ../configure
 
 MRCVOBJS  = mrcv.o mrcv_movie.o mrcv_draw.o mrcv_batch.o rgbv.o colormap.o
 
-PROGS     = mrc2tif raw2mrc tif2mrc mrcbyte mrcx mrctaper $(RGBPROGS)
+PROGS     = mrc2tif raw2mrc tif2mrc mrcbyte mrcx mrctaper dm3props $(RGBPROGS)
 
 IILIBS    = -liimod $(TIFFLIBS)
 
@@ -54,6 +62,9 @@ mrcbyte : mrcbyte.o
 
 mrctaper : mrctaper.o 
 	$(CC) -o mrctaper mrctaper.o $(LDFLAGS) $(IILIBS)  $(CLIBS)
+
+dm3props : dm3props.o 
+	$(CC) -o dm3props dm3props.o $(LDFLAGS) $(IILIBS)  $(CLIBS)
 
 #
 # SGI only programs
