@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.8  2005/03/01 20:58:56  sueh
+ * bug# 607 Catching Throwable in exitProgram and returning true to make
+ * sure that Etomo can always exit.
+ *
  * Revision 1.7  2005/02/09 22:17:48  sueh
  * bug# 594 Calling MainFrame.setCurrentManager with newWindow = true
  * when the window is first opened.  This prevents Setup Tomogram from
@@ -155,6 +159,7 @@ public class EtomoDirector {
   private boolean demo = false;
   private boolean test = false;
   private boolean selfTest = false;
+  private boolean newstuff = false;
   private HashedArray controllerList = null;
   private UniqueKey currentControllerKey = null;
   private String homeDirectory;
@@ -177,6 +182,12 @@ public class EtomoDirector {
     return theEtomoDirector;
   }
 
+  /**
+   * Get the singleton instance of EtomoDirector
+   * This function can be used to create the instance of EtomoDirector without
+   * a command line.  This functionality is used by test objects.
+   * @return
+   */
   public static EtomoDirector getInstance() {
     if (theEtomoDirector == null) {
       String[] args = {"--test","--selftest","--debug"};
@@ -662,6 +673,9 @@ public class EtomoDirector {
       if (args[i].equals("--selftest")) {
         selfTest = true;
       }
+      if (args[i].equals("--newstuff")) {
+        newstuff = true;
+      }
     }
     return paramFileNameList;
   }
@@ -768,6 +782,10 @@ public class EtomoDirector {
 
   public boolean isTest() {
     return test;
+  }
+  
+  public boolean isNewStuff() {
+    return newstuff;
   }
   
   public int getControllerListSize() {
