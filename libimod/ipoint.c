@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/11/05 18:53:00  mast
+    Include local files with quotes, not brackets
+
     Revision 3.2  2004/09/10 21:33:46  mast
     Eliminated long variables
 
@@ -98,7 +101,8 @@ int     imodPointAdd(Icont *cont, Ipoint *pnt, int index)
   return(imodel_point_add(cont, pnt, index));
 }
 
-
+/* Add a point to a contour at the given index.  Returns number of points
+   in contour, or 0 if an error occurs */
 int imodel_point_add(Icont *cont, Ipoint *pnt, int index)
 {
   Ipoint ipnt, *tpts;     
@@ -124,24 +128,16 @@ int imodel_point_add(Icont *cont, Ipoint *pnt, int index)
     startz = ipnt.z;
 
   if (cont->pts){
-    tpts = (Ipoint *)
-      realloc((Ipoint *)cont->pts,(size + 1) * sizeof(Ipoint));
+    tpts = (Ipoint *)realloc((Ipoint *)cont->pts, (size + 1) * sizeof(Ipoint));
   }else{
     tpts = (Ipoint *)malloc(sizeof(Ipoint));
   }
      
 
   /* DNM: handle sizes appropriately in each area below */
-
-  if (tpts == NULL){
-    cont->psize = 0;
-    cont->pts = NULL;
-    if (cont->sizes) {
-      free(cont->sizes);
-      cont->sizes = NULL;
-    }
+  /* 11/17/04: no longer dump the data if this fails, just return */
+  if (tpts == NULL)
     return(0);
-  }
 
   cont->pts = tpts;
 
