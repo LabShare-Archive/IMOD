@@ -6,9 +6,16 @@ matchshifts \- Find shift component of transformation between two volumes
 .SH SYNOPSIS
 matchshifts root_name1 root_name2 NX NY NZ [xf_in] [xf_out]
 .SH DESCRIPTION
-matchshifts uses cross correlation to complete the process of finding an 
-initial transformation between two volumes.  It assumes that solvematch has
-found a 3x3 transformation matrix with zero shifts.  It projects each volume
+Matchshifts uses cross correlation to complete the process of finding an 
+initial transformation between two volumes.  It is now obsolete but was needed
+because older versions of Tiltalign produces relative fiducial coordinates,
+from which the shifts in X, Y, and Z could not be deduced by Solvematch.
+It will now take the output of Solvematch, assumed to be solvezero.xf, and
+determine whether the transformation already contains shifts.  If it does, 
+the solvezero.xf is simply copied to solve.xf.
+
+If Matchshifts finds a 3x3 transformation matrix with zero shifts in
+solvezero.xf, it projects each volume
 into the X-Z plane, or the central 1024 by 1024 pixels if the volumes are
 larger than that.  It rotates the projection of the second volume using
 appropriate terms from the transformation matrix, then cross-correlates this
