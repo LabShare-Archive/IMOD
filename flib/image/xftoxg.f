@@ -1,77 +1,22 @@
-c   XFTOXG takes a list of transformations (f) from each section to
-c   the previous one, and computes a list of xforms (g) to apply to each
-c   section to obtain a single consistent set of alignments.
-
-c   Three different modes of operation can be selected.	 In the first, all
-c   sections will be transformed to a single position in the "center" of
-c   the series.	 Here "position" refers to the entire set of parameters
-c   describing the transformation, i.e. not just the x,y coordinates but
-c   the rotation and stretch as well.  This mode will remove any consistent
-c   trends in the data stack, such a progressive rotation, compression or
-c   shift.
-
-c   In the second mode, the "center" position is assumed to change
-c   progressively over the whole series, based on a polynomial fit to the
-c   series, and a transformation will be computed for each section that will
-c   align it to a fitted shifting center position.  If a polynomial order of 1
-c   is selected, the center position will shift linearly from one end to the
-c   other of the data stack.  This mode will retain trends in the data stack
-c   to the extent that they can be fit by the order of polynomial chosen.  For
-c   example, if order 1 is chosen, the fit is a linear one, and the resulting
-c   transforms will retain trends that occur at a constant rate from one end
-c   to the other.
-
-c   In the third mode, one defines a distance (number of sections) over which
-c   to fit a polynomial to a shifting center position.  For each section, the
-c   program fits polynomials to the transformation parameters over the
-c   selected distance (centered on the given section, if possible), and uses
-c   these polynomial fits to define the position to which that section should
-c   be transformed.  This mode will retain trends in the data stack that occur
-c   over the range of the specified distance.
+c	  XFTOXG takes a list of transformations (f) from each section to
+c	  the previous one, and computes a list of xforms (g) to apply to each
+c	  section to obtain a single consistent set of alignments.
 c	  
-c   It is also possible to do a hybrid alignment in which trends are retained
-c   for some parameters while they are eliminated for others.  Trends will
-c   be eliminated for X and Y translations, and can optionally be eliminated
-c   for rotations and overall size changes.  The most appropriate choice would
-c   be to eliminate trends for translations and rotations, unless the rotation
-c   trends in the data are meaningful and should be preserved.  This hybrid
-c   method can be used with either local or global polynomial fits (the second
-c   or third mode of operation).
+c	  See man page for details.
 c
-c   To do the averaging and fitting, the program converts the A matrix of the
-c   g transforms to the "semi-natural" parameters: global rotation and
-c   magnification, and differences between Y and X axis rotation and stretch.
-c   This conversion allows the hybrid alignments to be done.  It also means
-c   that if input transformations involve only a restricted set of these 
-c   parameters (e.g., rotation only), this restriction will be retained in the
-c   final g transforms.
+c	  David Mastronarde 1988; hybrid method 7/26/01
+c	  
+c	  $Author$
 c
-c   The ability to use both the local fits and fits of order higher than 1 is
-c   somewhat redundant.  If local fitting is used, start with order 1 and go
-c   to higher orders only if necessary.
-c	  
-c   Inputs to the program:
-c   
-c   0 to align all sections to a single average central alignment, 1 to align
-c   to an average alignment fit to a single polynomial, N > 1 to align each
-c   section to an average alignment fit to the nearest N sections, or -1 or
-c   -N to do a hybrid or central and shifting alignments with fits to a single
-c   polynomial or to locally fitted polynomials
-c	  
-c   IF you entered a negative number, next enter 2 for central alignment of
-c   translations only, 3 for central alignment of translations and rotations,
-c   or 4 for central alignment of translations, rotations and size changes
-c	  
-c   IF you entered a nonzero number to the first query, next enter the order
-c   of the polynomials to fit (1 for linear fits)
-c	  
-c   Name of input file of F transforms
-c	  
-c   Name of output file of G transforms
+c	  $Date$
 c
-c   David Mastronarde 1988; hybrid method 7/26/01
+c	  $Revision$
 c
-	parameter (lmsc=1000)
+c	  $Log$
+c
+	implicit none
+	integer lmsc
+	parameter (lmsc=100000)
 C	structure /xform/
 C	  real*4 a(2,2),dx,dy
 C	end structure
@@ -79,50 +24,108 @@ C	end structure
 	real*4 natav(2,3),ginv(2,3),prod(2,3),
      &	    slope(2,3,10),intcp(2,3),natpr(2,3)
 	real*4 x(lmsc),y(lmsc),slop(10)
-	character*80 infil,outfil
+	character*120 infil,outfil
+c	  
+	integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi
+	integer*4 j, ipow, nfit, ierr, lnblnk
+	real*4 deltang, angdiff, bint
+c
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger
+	integer*4 PipGetInOutFile
+c	  
+c         fallbacks from ../../manpages/autodoc2man -2 2  xftoxg
+c	  
+	integer numOptions
+	parameter (numOptions = 6)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@goutput:GOutputFile:FN:@'//
+     &      'nfit:NumberToFit:I:@order:OrderOfPolynomialFit:I:@'//
+     &      'mixed:HybridFits:I:@help:usage:B:'
+c	  
+c	  defaults
+c	  
+	ifshift = 7
+	nhybrid = 0
+	iorder = 1
+c	  
+c	  initialize
+c
+	call PipReadOrParseOptions(options, numOptions, 'xftoxg',
+     &	    'ERROR: XFTOXG - ', .true., 1, 1, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+
 c	  
 c	  get input parameters
 c
-	print *,'Enter 0 to align all sections to a single'
-     &	    //' average central alignment;'
-	print *,'   or 1 to align to an average alignment that shifts based'
-	print *,'         on a polynomial fit to the whole stack;'
-	print *,
-     &	    '   or N to align each section to an average alignment based'
-	write(*,'(1x,a,/,a,$)')
-     &	    '         on a polynomial fit to the nearest N sections,',
-     &	    '   or -1 or -N for a hybrid of central and shifting '//
-     &	    'alignments: '
-	read(*,*)ifshift
+	if (pipinput) then
+	  ierr = PipGetInteger('NumberToFit', ifshift)
+	  if (ifshift .lt. 0) call errorexit(
+     &	      'A negative value for nfit is not allowed')
+	  ierr = PipGetInteger('OrderOfPolynomialFit', iorder)
+	  ierr = PipGetInteger('HybridFits', nhybrid)
+
+	  if (nhybrid .ne. 0) then
+	    if (ifshift .eq. 0) call errorexit(
+     &		'You cannot use hybrid and global alignment together')
+	    if (nhybrid .lt. 0) call errorexit(
+     &		'A negative value for hybrid alignment is not allowed')
+	    nhybrid=max(2,min(4,nhybrid))
+	  endif
+	else
+
+	  print *,'Enter 0 to align all sections to a single'
+     &	      //' average central alignment;'
+	  print *,'   or 1 to align to an average alignment that shifts based'
+	  print *,'         on a polynomial fit to the whole stack;'
+	  print *,
+     &	      '   or N to align each section to an average alignment based'
+	  write(*,'(1x,a,/,a,$)')
+     &	      '         on a polynomial fit to the nearest N sections,',
+     &	      '   or -1 or -N for a hybrid of central and shifting '//
+     &	      'alignments: '
+	  read(*,*)ifshift
 c
-	nhybrid=0
-	if(ifshift.lt.0)then
-	  write(*,'(1x,a,/,a,$)')'Enter # of parameters to do central'
-     &	      //' alignment on (2 for translation only,',
-     &	      ' 3 for translation/rotation; 4 for trans/rot/mag: '
-	  read(5,*)nhybrid
-	  ifshift=abs(ifshift)
-	  nhybrid=max(2,min(4,nhybrid))
+	  if(ifshift.lt.0)then
+	    write(*,'(1x,a,/,a,$)')'Enter # of parameters to do central'
+     &		//' alignment on (2 for translation only,',
+     &		' 3 for translation/rotation; 4 for trans/rot/mag: '
+	    read(5,*)nhybrid
+	    ifshift=abs(ifshift)
+	    nhybrid=max(2,min(4,nhybrid))
+	  endif
+c
+	  if(ifshift.gt.0)then
+	    write(*,'(1x,a,$)')
+     &		'Order of polynomial to fit (1 for linear): '
+	    read(*,*)iorder
+	  endif
 	endif
+	if(ifshift.gt.1)iorder=min(ifshift-1,iorder)
+	iorder=max(1,min(10,iorder))
 c
-	if(ifshift.gt.0)then
-	  write(*,'(1x,a,$)')
-     &	      'Order of polynomial to fit (1 for linear): '
-	  read(*,*)iorder
-	  if(ifshift.gt.1)iorder=min(ifshift-1,iorder)
-	  iorder=max(1,min(10,iorder))
+	if (PipGetInOutFile('InputFile', 1, 'Input file of f transforms',
+     &	    infil) .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+	if (PipGetInOutFile('GOutputFile', 2, 'Output file of g transforms',
+     &	    outfil) .ne. 0) then
+	  i = lnblnk(infil)
+	  if (infil(i-1:i) .ne. 'xf')call errorexit
+     &	      ('No output file specified and input filename '//
+     &	      'does not end in xf')
+	  outfil = infil
+	  outfil(i:i) = 'g'
 	endif
-c
-	write(*,'(1x,a,$)')'Input file of f transforms: '
-	read(*,'(a)')infil
-	write(*,'(1x,a,$)')'Output file of g transforms: '
-	read(*,'(a)')outfil
+
 c
 c	  open files, read the whole list of f's
 c
 	call dopen(1,infil,'old','f')
 	call dopen(2,outfil,'new','f')
 	call xfrdall(1,f,nlist,*96)
+	if (nlist .gt. lmsc) call errorexit('TOO MANY TRANSFORMS FOR ARRAYS')
 C
 c	  compute g's to align all sections to the first
 C	
@@ -164,8 +167,9 @@ c
 	gav(1,3)=natav(1,3)
 	gav(2,3)=natav(2,3)
 	call xfinvert(gav,ginv)
-	call amat_to_rotmag(ginv,natav(1,1),natav(1,2)
-     &	      ,natav(2,1),natav(2,2))
+c	  
+c	  DNM 1/24/04: fixed bug in hybrid 3 or 4:
+c	  do not convert natav to be the inverse!
 c	  
 c	  loop over each section
 c
@@ -178,7 +182,7 @@ c	      if doing line fits, set up section limits for this fit
 	    else
 	      kllo=max(1,ilist-ifshift/2)	!>1: take N sections centered
 	      klhi=min(nlist,kllo+ifshift-1)	!on this one, or offset
-	      kllo=max(1,min(kllo,klhi+1-ishift))
+	      kllo=max(1,min(kllo,klhi+1-ifshift))  ! DNM 1/24/04 fixed ishift
 	    endif
 	    if(ifshift.gt.1.or.(ifshift.eq.1.and.ilist.eq.1))then
 c
@@ -246,9 +250,13 @@ c
 	enddo
 	close(2)
 	call exit(0)
-96	print *,'error reading file'
-	call exit(0)
-97	print *,'error writing file'
-	call exit(0)
+96	call errorexit('reading file')
+97	call errorexit('writing file')
 	end
 
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: XFTOXG - ',message
+	call exit(1)
+	end
