@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/06/05 21:15:51  rickg
+ * <p> Open sample in model mode
+ * <p>
  * <p> Revision 2.12  2003/05/12 23:25:34  rickg
  * <p> imodv -> 3dmod -view
  * <p>
@@ -107,6 +110,9 @@ public class ImodManager {
 
   private ImodProcess rawStackA;
   private ImodProcess rawStackB;
+  private ImodProcess erasedStackA;
+  private ImodProcess erasedStackB;
+  
   private ImodProcess coarseAlignedA;
   private ImodProcess coarseAlignedB;
   private ImodProcess fineAlignedA;
@@ -130,13 +136,14 @@ public class ImodManager {
    */
   public ImodManager(ApplicationManager appMgr, ConstMetaData metaData) {
     applicationManager = appMgr;
-    
+
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
 
     //  Initialize the necessary ImodProcesses
     if (axisType == AxisType.SINGLE_AXIS) {
       rawStackA = new ImodProcess(datasetName + ".st");
+      erasedStackA = new ImodProcess(datasetName + "_fixed.st");
       coarseAlignedA = new ImodProcess(datasetName + ".preali");
       fineAlignedA = new ImodProcess(datasetName + ".ali");
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
@@ -149,6 +156,8 @@ public class ImodManager {
     else {
       rawStackA = new ImodProcess(datasetName + "a.st");
       rawStackB = new ImodProcess(datasetName + "b.st");
+      erasedStackA = new ImodProcess(datasetName + "a_fixed.st");
+      erasedStackB = new ImodProcess(datasetName + "b_fixed.st");
       coarseAlignedA = new ImodProcess(datasetName + "a.preali");
       coarseAlignedB = new ImodProcess(datasetName + "b.preali");
       fineAlignedA = new ImodProcess(datasetName + "a.ali");
@@ -212,6 +221,51 @@ public class ImodManager {
     checkAxisID(axisID);
     ImodProcess rawStack = selectRawStack(axisID);
     rawStack.quit();
+  }
+
+
+  /**
+   * Open the specified erased data stack in 3dmod if it is not already open
+   * @param axisID the AxisID of the desired axis.
+   */
+  public void openErasedStack(AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
+    checkAxisID(axisID);
+    ImodProcess erasedStack = selectErasedStack(axisID);
+    erasedStack.open();
+  }
+
+  /**
+   * Open the specified model with the erased stack 3dmod
+   */
+  public void modelErasedStack(String modelName, AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
+    // Make sure there is an imod with right course aligned data set that
+    // is already open
+    openErasedStack(axisID);
+    ImodProcess erasedStack = selectErasedStack(axisID);
+    erasedStack.openModel(modelName);
+  }
+
+  /**
+   * Check to see if the specified erased stack is open
+   */
+  public boolean isErasedStackOpen(AxisID axisID) {
+    ImodProcess erasedStack = selectErasedStack(axisID);
+    if (erasedStack == null) {
+      return false;
+    }
+    return erasedStack.isRunning();
+  }
+
+  /**
+   * Close the specified erased stack
+   */
+  public void quitErasedStack(AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
+    checkAxisID(axisID);
+    ImodProcess erasedStack = selectErasedStack(axisID);
+    erasedStack.quit();
   }
 
   /**
@@ -541,6 +595,13 @@ public class ImodManager {
     return rawStackA;
   }
 
+  private ImodProcess selectErasedStack(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return erasedStackB;
+    }
+    return erasedStackA;
+  }
+  
   private ImodProcess selectCoarseAligned(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return coarseAlignedB;
