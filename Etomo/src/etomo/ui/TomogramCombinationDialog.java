@@ -38,6 +38,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/12/02 20:42:31  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.15  2004/11/30 00:36:02  sueh
  * <p> bug# 556 Adding get and set params for volcombine.
  * <p>
@@ -308,6 +312,10 @@ public class TomogramCombinationDialog
   
   public void getVolcombineParams(SetParam setParam) {
     pnlFinal.getVolcombineParams(setParam);
+  }
+  
+  public void enableReductionFactor(boolean enable) {
+    pnlFinal.enableReductionFactor(enable);
   }
 
   /**
