@@ -141,6 +141,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/03/14 01:57:05  mast
+c	  Added a linear interpolation option
+c	
 c	  Revision 3.7  2002/08/18 23:12:47  mast
 c	  Changed to call iclavgsd in library
 c	
@@ -163,34 +166,45 @@ c
 c	  Revision 3.1  2001/12/29 00:57:49  mast
 c	  Added an entry to -1 floating option to disable all rescaling
 c	
-	integer idim,lmfil,lmsec,maxchunks,maxextra
+	implicit none
+	integer idim,lmfil,lmsec,maxchunks,maxextra,lmGrid
 	parameter (idim=19000000,lmfil=1000,lmsec=50000,maxchunks=20)
 	parameter (maxextra=1000000)
+	parameter (lmGrid = 200)
 	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 c
 c	  9/25/01: make the buffer be in common to avoid stack limit size on
 c	  the SGI
-	common /buffer/ARRAY(idim)
+	real*4 array(idim)
+	common /bigarr/ARRAY
 C   
 	integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
 	real*4 CELL2(6),cell(6), TITLE(20)
 C   
 	CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
-C   
+	character*120 idfFile
+	character*100000 listString
+	equivalence (listString, array)
 	EQUIVALENCE (NX,NXYZ)
 C   
 	DATA NXYZST/0,0,0/
 	character*20 floatxt/' '/,xftext/' '/,trunctxt/' '/
-	real*4 f(2,3,lmsec)
+	real*4 f(2,3,lmsec), frot(2,3), fexp(2,3), fprod(2,3)
 	integer*4 inlist(lmsec),nlist(lmfil),listind(lmfil)
      &      ,nsecout(lmfil),lineuse(lmsec)
 	real*4 xcen(lmsec),ycen(lmsec),optmax(16),secmean(lmsec)
-	integer*4 lineoutst(maxchunks+1),nlinesout(maxchunks)
-	integer*4 lineinst(maxchunks+1),nlinesin(maxchunks)
+	integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
+	integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
 	byte extrain(maxextra),extraout(maxextra)
 	data optmax/255.,32767.,7*255.,511.,1023.,2047.,4095.,8191.,
      &      16383.,32767./
+c	  
+	integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
+	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
+	real*4 xGridIntrv, yGridIntrv, pixelIdf
+	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+c
 	logical rescale
 	character dat*9,tim*8,tempext*9
 	character*120 tempname,temp_filename
@@ -209,44 +223,154 @@ c
 	integer*4 nbytexin,iflagxin,mode,nbytexout,nbsymout,indxout
 	real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
 	real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
-	integer*4 linesleft,nchunk,nextline,ichunk,ifoutchunk,iscan,iytest
+	integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
 	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase
 	real*4 dmeansec,dsum,dsumsq,tmpmin,tmpmax,tsum,val,tsum2,dminnew
 	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
 	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
 	integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear
-	real*4 const,denoutmin,den
-
+	real*4 const,denoutmin,den, tmin2,tmax2,tmean2,tsumsq,avgsec
+	integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
+	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
+	integer*4 maxFieldY
+	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
+	real*4 cosd, sind
+c
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger,PipGetBoolean, PipNumberOfEntries
+	integer*4 PipGetString,PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
+	integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
+c
+	integer numOptions
+	parameter (numOptions = 21)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'listin:ListOfInputs:FN:@listout:ListOfOutputs:FN:@'//
+     &      'sections:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
+     &      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
+     &      'offset:OffsetsInXandY:FA:@xffile:TransformFile:FN:@'//
+     &      'uselines:UseTransformLines:LI:@rotate:RotateByAngle:F:@'//
+     &      'expand:ExpandByFactor:F:@linear:LinearInterpolation:B:@'//
+     &      'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &      'scale:ScaleMinAndMax:FP:@distort:DistortionField:FN:@'//
+     &      'binning:BinningOfImages:I:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'newstack',
+     &	    'ERROR: NEWSTACK - ', .true., 2, 2, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+c	  
+c	  defaults
+c	  
+	filistin = ' '
+	filistout = ' '
+	numInputFiles = 0
+	numOutputFiles = 0
+	numSecLists = 0
+	ifDistort = 0
+	maxFieldY = 0
+	idfFile = ' '
+	rotateAngle = 0.
+	expandFactor = 0.
 C   
 C	  Read in list of input files
 C   
+	call ialprt(.false.)
 	inunit=5
-	write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
-     &	    ' of input files from file): '
-	read(5,*)nfilein
+c	  
+c	  get number of input files
+c
+	if (pipinput) then
+	  ierr = PipGetString('ListOfInputs', filistin)
+	  ierr = PipNumberOfEntries('InputFile', numInputFiles)
+	  nfilein = numInputFiles + max(0, numNonOptArg - 1)
+	  if (nfilein .gt. 0 .and. filistin .ne. ' ') call errorexit(
+     &	      'YOU CANNOT ENTER BOTH INPUT FILES AND AN INPUT LIST FILE')
+	  if (filistin .ne. ' ')nfilein = -1
+	  ierr = PipNumberOfEntries('SectionsToRead', numSecLists)
+	else
+	  write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
+     &	      ' of input files from file): '
+	  read(5,*)nfilein
+	endif
+c	  
+c	  if it is negative, open a list file, set up input from 7
+c
+	if (nfilein .eq. 0) call errorexit('NO INPUT FILE SPECIFIED')
 	if(nfilein.lt.0)then
 	  inunit=7
-	  write(*,'(1x,a,$)')'Name of input list file: '
-	  read(5,101)filistin
+	  if (.not.pipinput) then
+	    write(*,'(1x,a,$)')'Name of input list file: '
+	    read(5,101)filistin
+	  endif
 	  call dopen(7,filistin,'ro','f')
 	  read(inunit,*)nfilein
 	endif
 	listot=0
 	if(nfilein.gt.lmfil)call errorexit(
      &	    'TOO MANY FILES FOR ARRAYS')
+c	  
 	do i=1,nfilein
-	  if(inunit.ne.7)then
-	    if(nfilein.eq.1)then
-	      write(*,'(1x,a,$)')'Name of input file: '
+c
+c	    get the next filename
+c
+	  if (pipinput .and. inunit.ne.7) then
+	    if (i .le. numInputFiles) then
+	      ierr = PipGetString('InputFile', filin(i))
 	    else
-	      write(*,'(1x,a,i3,a,$)')'Name of input file #',i,': '
+	      ierr = PipGetNonOptionArg(i - numInputFiles, filin(i))
 	    endif
+	  else
+	    if(inunit.ne.7)then
+	      if(nfilein.eq.1)then
+		write(*,'(1x,a,$)')'Name of input file: '
+	      else
+		write(*,'(1x,a,i3,a,$)')'Name of input file #',i,': '
+	      endif
+	    endif
+	    READ(inunit,101)FILIN(i)
 	  endif
-	  READ(inunit,101)FILIN(i)
-	  if(inunit.ne.7)print *,'Enter list of sections to read from'//
-     &	      ' file (1st sec is 0; ranges may be entered)'
-	  call rdlist(inunit,inlist(listot+1),nlist(i))
+c	    
+c	    open file to make sure it exists and get default section list
+c
+	  CALL IMOPEN(1,FILIN(i),'RO')
+	  CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
+	  call imclose(1)
+	  nlist(i) = nz
+	  do isec = 1, nz
+	    inlist(min(listot + isec, lmsec)) = isec - 1
+	  enddo
+c	    
+c	    get section list
+c
+	  if (.not.pipinput) then
+	    if(inunit.ne.7)print *,'Enter list of sections to read from'
+     &		//' file (/ for all, 1st sec is 0; ranges OK)'
+	    call rdlist(inunit,inlist(listot+1),nlist(i))
+	  elseif (i .le. numSecLists) then
+	    ierr = PipGetString('SectionsToRead', listString)
+	    call parselist(listString, inlist(listot+1),nlist(i))
+	  endif
+c	    
+c	    check list legality
+c
 	  listind(i)=listot+1
+	  do isec = listot + 1, listot + nlist(i)
+	    if (inlist(isec) .lt. 0 .or. inlist(isec) .ge. nz) then
+	      print *
+	      print *,'ERROR: NEWSTACK -',inlist(isec),
+     &		  ' IS AN ILLEGAL SECTION NUMBER FOR ',
+     &		  filin(i)(1:lnblnk(filin(i)))
+	      call exit(1)
+	    endif
+	  enddo
 	  listot=listot+nlist(i)
 	  if(listot.gt.lmsec)call errorexit(
      &	      'TOO MANY SECTIONS FOR ARRAYS')
@@ -258,85 +382,201 @@ C	  Read in list of output files
 C   
 	inunit=5
 	noutot=0
-	write(*,'(1x,a,$)')'# of output files (or -1 to read list'//
-     &	    ' of output files from file): '
-	read(5,*)nfileout
+c	  
+c	  get number of output files
+c
+	if (pipinput) then
+	  ierr = PipGetString('ListOfOutputs', filistout)
+	  ierr = PipNumberOfEntries('OutputFile', numOutputFiles)
+	  nfileout = numOutputFiles + min(1, numNonOptArg)
+	  if (nfileout .gt. 0 .and. filistout .ne. ' ') call errorexit(
+     &	      'YOU CANNOT ENTER BOTH OUTPUT FILES AND AN OUTPUT'//
+     &	      ' LIST FILE')
+	else
+	  write(*,'(1x,a,$)')'# of output files (or -1 to read list'//
+     &	      ' of output files from file): '
+	  read(5,*)nfileout
+	endif
+	if (nfileout .eq. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+	if(nfileout.gt.lmfil)call errorexit(
+     &	    'TOO MANY OUTPUT FILES FOR ARRAYS')
+c	  
+c	  get list input
+c
 	if(nfileout.lt.0)then
 	  inunit=7
-	  write(*,'(1x,a,$)')'Name of output list file: '
-	  read(5,101)filistout
+	  if (.not.pipinput) then
+	    write(*,'(1x,a,$)')'Name of output list file: '
+	    read(5,101)filistout
+	  endif
 	  call dopen(7,filistout,'ro','f')
 	  read(inunit,*)nfileout
-	elseif(nfileout.eq.1)then
+	elseif(nfileout.eq.1 .and. .not.pipinput)then
+c	    
+c	    get single output file
+c
 	  write(*,'(1x,a,$)')'Name of output file: '
 	  read(5,101)filout(1)
 	  nsecout(1)=listot
 	  noutot=listot
 	endif
+c	  
+c	  or get all the output files and the number of sections
+c
 	if(noutot.eq.0)then
-	  do i=1,nfileout
-	    if(inunit.ne.7)write(*,'(1x,a,i3,a,$)')
-     &		'Name of output file #',i,': '
-	    READ(inunit,101)FILOUT(i)
-	    if(inunit.ne.7)write(*,'(1x,a,$)')
-     &		'Number of sections to store in that file: '
-	    read(inunit,*)nsecout(i)
-	    noutot=noutot+nsecout(i)
-	  enddo
+	  if (pipinput) then
+	    if (nfileout .eq. 1) then
+	      nsecout(1)=listot
+	    elseif (nfileout .eq. listot) then
+	      do i = 1, nfileout
+		nsecout(i) = 1
+	      enddo
+	    else
+	      ierr = PipNumberOfEntries('NumberToOutput', numOutEntries)
+     		  if (numOutEntries .eq. 0)
+     &		  call errorexit('YOU MUST SPECIFY NUMBER OF SECTIONS '//
+     &		  'TO WRITE TO EACH OUTPUT FILE')
+	      
+	      numOutValues = 0
+	      do i = 1, numOutEntries
+		numToGet = 0
+		ierr = PipGetIntegerArray('NumberToOutput',
+     &		    nsecout(numOutValues + 1), numToGet, lmfil)
+		numOutValues = numOutValues + numToGet
+	      enddo
+	      if (numOutValues .ne. nfileout) call errorexit(
+     &		  'THE NUMBER OF VALUES FOR SECTIONS TO OUTPUT DOES'
+     &		  //' NOT EQUAL THE NUMBER OF OUTPUT FILES')
+	    endif
+	    do i=1,nfileout
+	      if (i .le. numOutputFiles) then
+		ierr = PipGetString('OutputFile', filout(i))
+	      else
+		ierr = PipGetNonOptionArg(numNonOptArg, filout(i))
+	      endif
+	      noutot=noutot+nsecout(i)
+	    enddo
+	  else
+	    do i=1,nfileout
+	      if(inunit.ne.7)write(*,'(1x,a,i3,a,$)')
+     &		  'Name of output file #',i,': '
+	      READ(inunit,101)FILOUT(i)
+	      if(inunit.ne.7)write(*,'(1x,a,$)')
+     &		  'Number of sections to store in that file: '
+	      read(inunit,*)nsecout(i)
+	      noutot=noutot+nsecout(i)
+	    enddo
+	  endif
 	endif
 	if(noutot.ne.listot)call errorexit(
      &	      'Number of input and output sections does not match')
 c	  
-c	  get new size and mode
+c	  get new size and mode and offsets
 c	  
 	nx3=-1
 	ny3=-1
-	write(*,'(1x,a,$)')'Output file X and Y dimensions'//
-     &	    ' (/ for same as first input file): '
-	read(5,*)nx3,ny3
 	newmode=-1
-	write(*,'(1x,a,$)')'Output file data mode (/ for same'//
-     &	    ' as first input file): '
-	read(5,*)newmode
-c
-c
-c	  get list of x,y coordinate offsets
-c
-	write(*,'(1x,a,/,a,$)')'1 to offset centers of individual '//
-     &	    'images,','  -1 to apply same offset to all sections,'//
-     &	    ' or 0 for no offsets: '
-	read(5,*)ifoffset
-	if(ifoffset.gt.0)then
-	  print *,'Enter X and Y center offsets for each section'
-	  read(5,*)(xcen(i),ycen(i),i=1,listot)
+	xofsall=0.
+	yofsall=0.
+	ifoffset = 0
+	if (pipinput) then
+	  ierr = PipGetTwoIntegers('SizeToOutputInXandY', nx3, ny3)
+	  ierr = PipGetInteger('ModeToOutput', newmode)
+	  ierr = PipNumberOfEntries('OffsetsInXandY', numOutEntries)
+	  if (numOutEntries .gt. 0) then
+	    ifoffset = 1
+	    numOutValues = 0
+	    do i = 1, numOutEntries
+	      numToGet = 0
+	      ierr = PipGetFloatArray('OffsetsInXandY',
+     &		  array(numOutValues + 1), numToGet, lmsec * 2)
+	      numOutValues = numOutValues + numToGet
+	    enddo
+	    if (numOutValues .ne. 2 .and. numOutValues .ne. 2 * listot)
+     &		call errorexit('THERE MUST BE EITHER ONE OFFSET OR AN'
+     &		//' OFFSET FOR EACH SECTION')
+	    do i = 1, numOutValues / 2
+	      xcen(i) = array(2 * i - 1)
+	      ycen(i) = array(2 * i)
+	    enddo
+	    if (numOutValues .eq. 2) ifoffset = -1
+	    xofsall = xcen(1)
+	    yofsall = ycen(1)
+	  endif
 	else
-	  xofsall=0.
-	  yofsall=0.
-	  if(ifoffset.lt.0)then
+	  write(*,'(1x,a,$)')'Output file X and Y dimensions'//
+     &	      ' (/ for same as first input file): '
+	  read(5,*)nx3,ny3
+	  write(*,'(1x,a,$)')'Output file data mode (/ for same'//
+     &	      ' as first input file): '
+	  read(5,*)newmode
+c
+c	    get list of x,y coordinate offsets
+c	    
+	  write(*,'(1x,a,/,a,$)')'1 to offset centers of individual '//
+     &	      'images,','  -1 to apply same offset to all sections,'//
+     &	      ' or 0 for no offsets: '
+	  read(5,*)ifoffset
+	  if(ifoffset.gt.0)then
+	    print *,'Enter X and Y center offsets for each section'
+	    read(5,*)(xcen(i),ycen(i),i=1,listot)
+	  elseif(ifoffset.lt.0)then
 	    write(*,'(1x,a,$)')
      &		'X and Y center offsets for all sections: '
 	    read(5,*)xofsall,yofsall
 	  endif
+	ENDIF
+c	  
+c	  fill offset list if only one or none
+c
+	if (ifoffset .le. 0) then
 	  do i=1,listot
 	    xcen(i)=xofsall
 	    ycen(i)=yofsall
 	  enddo
-	ENDIF
+	endif
 C   
 C	  Get list of transforms
-C   
-	write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
-     &	    //' linear interpolation, 0 not to: '
-	read(5,*)ifxform
+C	  
+	ifxform = 0
+	if (pipinput) then
+	  if (PipGetString('TransformFile', xffil) .eq. 0) then
+	    ierr = PipGetBoolean('LinearInterpolation', ifxform)
+	    ifxform = ifxform + 1
+	  endif
+	else
+	  write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
+     &	      //' linear interpolation, 0 not to: '
+	  read(5,*)ifxform
+	  if(ifxform.ne.0)then
+	    write(*,'(1x,a,$)')'Name of transform file: '
+	    read(5,101)xffil
+	  endif
+	endif
 	if(ifxform.ne.0)then
-	  write(*,'(1x,a,$)')'Name of transform file: '
-	  read(5,101)xffil
+c	    
+c	    read transforms, set default to section list
+c
 	  call dopen(3,xffil,'ro','f')
 	  call xfrdall(3,f,nxforms,*96)
-	  print *,'Enter list of lines to use in file, or a single ',
-     &	      'line number to apply that',' transform to all sections',
-     &	      ' (1st line is 0; ranges may be entered)'
-	  call rdlist(5,lineuse,nlineuse)
+	  close(3)
+	  nlineuse = listot
+	  do i = 1, listot
+	    lineuse(i) = inlist(i)
+	  enddo
+	  if (pipinput) then
+	    if (PipGetString('UseTransformLines', listString) .eq. 0)
+     &		call parselist(listString, lineuse, nlineuse)
+	  else
+	    print *,'Enter list of lines to use in file, or a single ',
+     &		'line number to apply that'
+	    print *,' transform to all sections',
+     &		' (1st line is 0; ranges OK; / for section list)'
+	    call rdlist(5,lineuse,nlineuse)
+	  endif
+C	    
+C	    use single number for all sections
+C
 	  xftext=', transformed'
 	  if(nlineuse.eq.1)then
 	    do i=2,listot
@@ -352,38 +592,137 @@ c	  find out if root beer float or what
 c
 	fraczero=0.
 	ifmean=0
-	write(*,102)
-102	format(' Enter 0 for no floating',/,8x,
-     &	    '-2 to scale to bytes based on black and white contrast ',
-     &	    'levels',/,8x,
-     &	    '-1 to specify a single rescaling of all sections'
-     &	    ,/,8x,' 1 to float all sections to same range',/,8x,
-     &	    ' 2 to float all sections to same mean & standard deviation'
-     &	    ,/,8x,' 3 to shift sections to same mean without scaling',/
-     &	    ,6x,'or 4 to shift to same mean and specify a single',
-     &	    ' rescaling: ',$)
-	read(5,*)iffloat
-	if(iffloat.gt.1)ifmean=1
+	iffloat = 0
 	dminspec=0
 	dmaxspec=0
+	conlo=0
+	conhi=255
+	if (pipinput) then
+	  ierr = 1 - PipGetTwoFloats('ContrastBlackWhite', conlo, conhi)
+	  ierr2 = 1 - PipGetTwoFloats('ScaleMinAndMax', dminspec, dmaxspec)
+	  if (ierr + ierr2 + 1 - PipGetInteger('FloatDensities', iffloat)
+     &	       .gt. 1) call errorexit('The -scale, -contrast,'
+     &	      //' and -float options are mutually exclusive')
+	  if (iffloat .lt. 0)call errorexit('You must use -contrast or '
+     &	      //'-scale instead of a negative -float entry')
+	  if (ierr .ne. 0) iffloat = -2
+	  if (ierr2 .ne. 0) iffloat = -1
+	  
+	else
+	  write(*,102)
+102	  format(' Enter 0 for no floating',/,8x,
+     &	      '-2 to scale to bytes based on black and white contrast ',
+     &	      'levels',/,8x,
+     &	      '-1 to specify a single rescaling of all sections'
+     &	      ,/,8x,' 1 to float all sections to same range',/,8x,' ',
+     &	      '2 to float all sections to same mean & standard deviation'
+     &	      ,/,8x,' 3 to shift sections to same mean without scaling',/
+     &	      ,6x,'or 4 to shift to same mean and specify a single',
+     &	      ' rescaling: ',$)
+	  read(5,*)iffloat
+	endif
+	if(iffloat.gt.1)ifmean=1
 	if(iffloat.lt.0)then
 	  floatxt=', densities scaled'
-	  if(iffloat.eq.-1)then
+	  if(iffloat.eq.-1 .and. .not.pipinput)then
 	    write(*,'(1x,a,/,a,$)')'Values to scale input file''s'//
      &		' min and max to,','   or / to scale to maximum range,'
      &		//' or 1,1 to override mode scaling: '
 	    read(5,*)dminspec,dmaxspec
-	  else
-	    conlo=0
-	    conhi=255
-	    write(*,'(1x,a,$)')'Contrast ramp black and white settings '
-     &		//'(values between 0 and 255): '
-	    read(5,*)conlo,conhi
+	  elseif (iffloat .lt. -1) then
+	    if (.not.pipinput) then
+	      write(*,'(1x,a,$)')'Contrast ramp black and white settings '
+     &		  //'(values between 0 and 255): '
+	      read(5,*)conlo,conhi
+	    endif
 	    conhi=max(conhi,conlo+1.)
 	    dminspec= -conlo*255/(conhi-conlo)
 	    dmaxspec=dminspec+65025/(conhi-conlo)
+	    print *,conlo, conhi,dminspec,dmaxspec
 	  endif
 	endif
+c	  
+c	  get new options
+c
+	if (pipinput) then
+	  ierr = PipGetFloat('RotateByAngle', rotateAngle)
+	  ierr = PipGetFloat('ExpandByFactor', expandFactor)
+
+	  ierr = PipGetString('DistortionField', idfFile)
+	  if (idfFile .ne. ' ') then
+	    ifDistort = 1
+	    xftext=', undistorted'
+	    call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
+     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
+     &	    iyGridStrt, yGridIntrv, nyGrid)
+c
+	    if (PipGetInteger('BinningOfImages', iBinning) .ne. 0)
+     &		call errorexit
+     &		('FOR NOW, YOU MUST SPECIFY BINNING OF IMAGES')
+	    if (iBinning .ne. idfBinning) then
+	      binRatio = idfBinning / float(iBinning)
+	      ixGridStrt = nint(ixGridStrt * binRatio)
+	      iyGridStrt = nint(iyGridStrt * binRatio)
+	      xGridIntrv = xGridIntrv * binRatio
+	      yGridIntrv = yGridIntrv * binRatio
+	      do iy = 1, nyGrid
+		do i = 1, nxGrid
+		  fieldDx(i, iy) = fieldDx(i, iy) * binRatio
+		  fieldDy(i, iy) = fieldDy(i, iy) * binRatio
+		enddo
+	      enddo
+	    endif
+c
+c	      get maximum Y deviation to adjust chunk limits with
+c
+	    fieldMaxY = 0.
+	    do iy = 1, nyGrid
+	      do i = 1, nxGrid
+		fieldMaxY = max(fieldMaxY, abs(fieldDy(i, iy)))
+	      enddo
+	    enddo
+	    maxFieldY = int(fieldMaxY + 1.)
+	  endif
+	endif
+	call PipDone()
+c	    
+c	  if not transforming and distorting, rotating, or expanding, set up
+c	  a unit transform
+c	  
+	if (ifxform .eq. 0 .and. (ifDistort .ne. 0 .or.
+     &	    rotateAngle .ne. 0. .or. expandFactor .ne. 0.)) then
+	  ifxform = 1
+	  call xfunit(f(1,1,1), 1.)
+	  do i = 1, listot
+	    lineuse(i) = 0
+	  enddo
+	  nlineuse = listot
+	  nxforms = 1
+	endif
+c	  
+c	  set up rotation and expansion transforms and multiply by transforms
+c	  
+	if (rotateAngle .ne. 0. .or. expandFactor .ne. 0.) then
+	  call xfunit(frot, 1.)
+	  if (rotateAngle .ne. 0.) then
+	    frot(1,1) = cosd(rotateAngle)
+	    frot(1,2) = -sind(rotateAngle)
+	    frot(2,2) = frot(1,1)
+	    frot(2,1) = -frot(1,2)
+	    frot(1,3) = 0.5 * (frot(1,1) + frot(1,2)) - 0.5
+	    frot(2,3) = 0.5 * (frot(2,1) + frot(2,2)) - 0.5
+	  endif
+	  if (expandFactor .eq. 0.) expandFactor = 1.
+	  call xfunit(fexp, expandFactor)
+	  call xfmult(frot, fexp, fprod)
+	  print *,'transform',((fprod(i, iy),i=1,2),iy=1,3)
+	  do i = 1, nxforms
+	    call xfmult(f(1,1,i), fprod, frot)
+	    call xfcopy(frot, f(1,1,i))
+	  enddo
+	endif
+	if (expandFactor .eq. 0.) expandFactor = 1.
+c
 	if(iffloat.gt.0)then
 	  floatxt=', floated to range'
 	  if(fraczero.ne.0.)
@@ -405,10 +744,12 @@ c
 		floatxt=',  shifted to means'
 	      else
 		floatxt=', mean shift&scaled'
-		write(*,'(1x,a,/,a,$)')'Values to scale the shifted'//
-     &		    ' min and max to,','   or / to scale to maximum'//
-     &		    ' range: '
-		read(5,*)dminspec,dmaxspec
+		if (.not.pipinput) then
+		  write(*,'(1x,a,/,a,$)')'Values to scale the shifted'//
+     &		      ' min and max to,','   or / to scale to maximum'//
+     &		      ' range: '
+		  read(5,*)dminspec,dmaxspec
+		endif
 	      endif
 	    endif
 	    do ifil=1,nfilein
@@ -470,6 +811,7 @@ c
 	isec=1
 	isecout=1
 	ifileout=1
+	call ialprt(.true.)
 	call time(tim)
 	call date(dat)
 	ntrunclo=0
@@ -516,8 +858,8 @@ c
 c	      set output characteristics from first section
 c
 	    if(isec.eq.1)then
-	      if(nx3.le.0)nx3=nx
-	      if(ny3.le.0)ny3=ny
+	      if(nx3.le.0)nx3=nint(nx * expandFactor)
+	      if(ny3.le.0)ny3=nint(ny * expandFactor)
 	      if(newmode.lt.0)newmode=mode
 	    endif
 c
@@ -555,9 +897,10 @@ c
 c		keep delta the same by scaling cell size from change in mxyz
 c
               do i=1,3
-                CELL2(i)=mxyz2(i)*(cell(i)/mxyz(i))
+                CELL2(i)=mxyz2(i)*(cell(i)/mxyz(i)) / expandFactor
                 CELL2(i+3)=90.
               enddo
+	      CELL2(3)=mxyz2(3)*(cell(3)/mxyz(3))
 	      CALL IALCEL(2,CELL2)
 c
 c 7/7/00 CER: remove the encodes
@@ -629,6 +972,19 @@ c
 	      rescale=.true.
 	    endif
 c	      
+c	      if transforming, get the shifts by applying the offset first
+c	      then multiplying that by the transform
+c
+	    if (ifxform .ne. 0) then
+	      lnu=lineuse(isec)+1
+	      if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
+     &		  'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
+	      call xfunit(frot, 1.)
+	      frot(1,3) = -xcen(isec)
+	      frot(2,3) = -ycen(isec)
+	      call xfmult(frot, f(1,1,lnu), fprod)
+	    endif
+c	      
 c	      figure out how the data will be loaded and saved; first see if
 c	      both input and output images will fit in one chunk, or if
 c	      entire input image will fit
@@ -643,16 +999,16 @@ c		set up chunks for output, and set up that
 c		whole image is needed for every output chunk.
 c		Note that lines are numbered from 0 here
 c
-	      lineoutst(1)=0
+	      lineOutSt(1)=0
 	      do ichunk=1,nchunk
 		nextline=(ny3/nchunk)*ichunk+min(ichunk,mod(ny3,nchunk))
-		nlinesout(ichunk)=nextline-lineoutst(ichunk)
-		lineoutst(ichunk+1)=nextline
-		lineinst(ichunk)=0
-		nlinesin(ichunk)=ny
+		nLinesOut(ichunk)=nextline-lineOutSt(ichunk)
+		lineOutSt(ichunk+1)=nextline
+		lineInSt(ichunk)=0
+		nLinesIn(ichunk)=ny
 	      enddo	      
 	      maxin=ny
-	      ifoutchunk=1
+	      ifOutChunk=1
 	    else
 c		
 c		otherwise, break output into successively more chunks, and
@@ -660,77 +1016,79 @@ c		find out how many lines are needed of input for each chunk,
 c		Scan twice: first trying to fit all the output to avoid a
 c		read-write to temp file; then breaking equally
 c		
-	      ifoutchunk=-1
+	      ifOutChunk=-1
 	      iscan=1
 	      iytest=ny3
-	      do while(iscan.le.2.and.ifoutchunk.lt.0)
+	      do while(iscan.le.2.and.ifOutChunk.lt.0)
 		nchunk=1
-		do while(nchunk.le.maxchunks.and.ifoutchunk.lt.0)
-		  lineoutst(1)=0
+		do while(nchunk.le.maxchunks.and.ifOutChunk.lt.0)
+		  lineOutSt(1)=0
 		  maxin=0
 		  do ichunk=1,nchunk
 		    nextline=(ny3/nchunk)*ichunk+min(ichunk,mod(ny3,nchunk))
-		    nlinesout(ichunk)=nextline-lineoutst(ichunk)
-		    lineoutst(ichunk+1)=nextline
+		    nLinesOut(ichunk)=nextline-lineOutSt(ichunk)
+		    lineOutSt(ichunk+1)=nextline
 c
 		    if(ifxform.eq.0)then
 c			
 c			simple case of no transform
 c			
 		      IYbase = NY/2 + YCEN(isec) - (NY3/2)
-		      IY1 = max(0,IYbase+lineoutst(ichunk))
+		      IY1 = max(0,IYbase+lineOutSt(ichunk))
 		      iy2 = min(ny-1, iybase+nextline-1)
 		    else
 c			
 c			transform: get input needs of 4 corners
 c			pass and get back coordinates numbered from 1, subtract
 c			an extra 1 to get to lines numbered from 0
+c			Allow extra for distortion field Y component
 c			
-		      lnu=lineuse(isec)+1
-		      if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
-     &			    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
 		      xci=nx/2.
 		      yci=ny/2.
-		      dx=f(1,3,lnu)-xcen(isec)
-		      dy=f(2,3,lnu)-ycen(isec)
-		      call backxform(nx,ny,nx3,ny3,f(1,1,lnu),xci ,yci,dx,dy,
-     &			  1,lineoutst(ichunk)+1,xp1,yp1)
-		      call backxform(nx,ny,nx3,ny3,f(1,1,lnu),xci ,yci,dx,dy,
-     &			  nx3,lineoutst(ichunk)+1,xp2,yp2)
-		      call backxform(nx,ny,nx3,ny3,f(1,1,lnu),xci ,yci,dx,dy,
+		      dx = fprod(1,3)
+		      dy = fprod(2,3)
+c		      dx=f(1,3,lnu)-xcen(isec)
+c		      dy=f(2,3,lnu)-ycen(isec)
+		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+     &			  1,lineOutSt(ichunk)+1,xp1,yp1)
+		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
+     &			  nx3,lineOutSt(ichunk)+1,xp2,yp2)
+		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  1,nextline,xp3,yp3)
-		      call backxform(nx,ny,nx3,ny3,f(1,1,lnu),xci ,yci,dx,dy,
+		      call backxform(nx,ny,nx3,ny3,fprod,xci ,yci,dx,dy,
      &			  nx3,nextline,xp4,yp4)
-		      iy1=min(ny-1,max(0,int(min(yp1,yp2,yp3,yp4))-2))
-		      iy2=min(ny-1,max(0,int(max(yp1,yp2,yp3,yp4))+1))
+		      iy1=min(ny-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
+     &			  maxFieldY))
+		      iy2=min(ny-1,max(0,int(max(yp1,yp2,yp3,yp4))+1 +
+     &			  maxFieldY))
 		    endif
-		    lineinst(ichunk)=iy1
-		    nlinesin(ichunk)=iy2+1-iy1
-		    maxin=max(maxin,nlinesin(ichunk))
+		    lineInSt(ichunk)=iy1
+		    nLinesIn(ichunk)=iy2+1-iy1
+		    maxin=max(maxin,nLinesIn(ichunk))
 		  enddo
 c		    
 c		    Will the input and output data now fit?  Then terminate.
 c		    
-		  if(iscan.eq.2)iytest=nlinesout(1)
+		  if(iscan.eq.2)iytest=nLinesOut(1)
 		  if(maxin*nx+iytest*nx3.le.idim)then
-		    ifoutchunk=iscan-1
+		    ifOutChunk=iscan-1
 		  else
 		    nchunk=nchunk+1
 		  endif
 		enddo
 		iscan=iscan+1
 	      enddo
-	      if(ifoutchunk.lt.0)call errorexit(
+	      if(ifOutChunk.lt.0)call errorexit(
      &		  ' INPUT IMAGE TOO LARGE FOR ARRAY.')
 	    endif
 c	    print *,'number of chunks:',nchunk
 c	    do i=1,nchunk
-c	      print *,i,lineinst(i),nlinesin(i),lineoutst(i),nlinesout(i)
+c	      print *,i,lineInSt(i),nLinesIn(i),lineOutSt(i),nLinesOut(i)
 c	    enddo
 c	      
 c	      open temp file if one is needed
 c
-	    if(rescale.and.ifoutchunk.gt.0.and.nchunk.gt.1.and.
+	    if(rescale.and.ifOutChunk.gt.0.and.nchunk.gt.1.and.
      &		iftempopen.eq.0)then
 	      tempext='nws      '
 	      tempext(4:5)=tim(1:2)
@@ -764,8 +1122,8 @@ c
 	    tmpmin=1.e30
 	    tmpmax=-1.e30
 	    do ichunk=1,nchunk
-	      needyst=lineinst(ichunk)
-	      needynd=needyst+nlinesin(ichunk)-1
+	      needyst=lineInSt(ichunk)
+	      needynd=needyst+nLinesIn(ichunk)-1
 c		
 c		first load data that is needed if not already loaded
 c
@@ -806,26 +1164,30 @@ c
 		loadynd=needynd
 	      endif
 	      nyload=loadynd+1-loadyst
-	      nych=nlinesout(ichunk)
+	      nych=nLinesOut(ichunk)
 	      npix=nx3*nych
 	      ibchunk=ibbase
-	      if(ifoutchunk.eq.0)ibchunk=ibbase+lineoutst(ichunk)*nx3
+	      if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nx3
 
 	      if(ifxform.ne.0)then
 c		  
 c		  do transform if called for
 c		  
-		lnu=lineuse(isec)+1
-		if(lnu.le.0.or.lnu.gt.nxforms)call errorexit(
-     &		    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS')
 		xci=nx/2.
 		yci=ny/2.-loadyst
-		dx=f(1,3,lnu)-xcen(isec)
-		dy=(ny3-nych)/2.+f(2,3,lnu)-ycen(isec)-
-     &		    lineoutst(ichunk)
-		call cubinterp(array,array(ibchunk),nx,nyload,
-     &		    nx3, nych,
-     &		    f(1,1,lnu),xci ,yci, dx,dy,1.,dmeansec, ifxform - 1)
+		dx=fprod(1,3)
+		dy=(ny3-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
+c		dx=f(1,3,lnu)-xcen(isec)
+c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
+		if (ifDistort .eq. 0) then
+		  call cubinterp(array,array(ibchunk),nx,nyload, nx3, nych,
+     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1)
+		else
+		  call undistort(array,array(ibchunk),nx,nyload, nx3, nych,
+     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1,
+     &		      fieldDx, fieldDy, lmGrid, nxGrid, ixGridStrt, xGridIntrv,
+     &		      nyGrid, iyGridStrt, yGridIntrv)
+		endif
 	      else
 c		  
 c		  otherwise repack array into output space nx3 by ny3, with
@@ -836,7 +1198,7 @@ c
 		IX2 = IX1 + NX3 - 1
 C		  
 		IYbase = NY/2 + YCEN(isec) - (NY3/2)
-		IY1 = IYbase+lineoutst(ichunk)-loadyst
+		IY1 = IYbase+lineOutSt(ichunk)-loadyst
 		iy2 = iy1+nych-1
 c		  
 		CALL IREPAK2(array(ibchunk),ARRAY,nx,nyload,IX1,IX2,IY1,
@@ -893,12 +1255,12 @@ c		write all but last chunk
 c		
 	      if(.not.rescale)then
 c		print *,'writing to real file',ichunk
-		call imposn(2,isecout-1,lineoutst(ichunk))
-		call iwrsecl(2,array(ibchunk),nlinesout(ichunk))
-	      elseif(ichunk.ne.nchunk.and.ifoutchunk.gt.0)then
+		call imposn(2,isecout-1,lineOutSt(ichunk))
+		call iwrsecl(2,array(ibchunk),nLinesOut(ichunk))
+	      elseif(ichunk.ne.nchunk.and.ifOutChunk.gt.0)then
 c		print *,'writing to temp file',ichunk
-		call imposn(3,0,lineoutst(ichunk))
-		call iwrsecl(3,array(ibbase),nlinesout(ichunk))
+		call imposn(3,0,lineOutSt(ichunk))
+		call iwrsecl(3,array(ibbase),nLinesOut(ichunk))
 	      endif
 	    enddo
 c   
@@ -1033,13 +1395,13 @@ c		and rewriting
 c		
 	      do ichunk=nchunk,1,-1
 		ibchunk=ibbase
-		if(ifoutchunk.eq.0)ibchunk=ibbase+lineoutst(ichunk)*nx3
-		if(ichunk.ne.nchunk.and.ifoutchunk.gt.0)then
+		if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nx3
+		if(ichunk.ne.nchunk.and.ifOutChunk.gt.0)then
 c		  print *,'reading',ichunk
-		  call imposn(3,0,lineoutst(ichunk))
-		  call irdsecl(3,array(ibbase),nlinesout(ichunk),*99)
+		  call imposn(3,0,lineOutSt(ichunk))
+		  call irdsecl(3,array(ibbase),nLinesOut(ichunk),*99)
 		endif
-		do iy=1,nlinesout(ichunk)
+		do iy=1,nLinesOut(ichunk)
 		  istart=ibchunk+(iy-1)*nx3
 		  tsum=0.
 		  do i=istart,istart+nx3-1
@@ -1059,8 +1421,8 @@ c		  print *,'reading',ichunk
 		  dmean2=dmean2+tsum
 		enddo
 c		print *,'writing',ichunk
-		call imposn(2,isecout-1,lineoutst(ichunk))
-		call iwrsecl(2,array(ibchunk),nlinesout(ichunk))
+		call imposn(2,isecout-1,lineOutSt(ichunk))
+		call iwrsecl(2,array(ibchunk),nLinesOut(ichunk))
 	      enddo
 	    else
 c
@@ -1260,3 +1622,189 @@ c
 	print *,'ERROR: NEWSTACK - ',message
 	call exit(1)
 	end
+
+	subroutine readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
+     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
+     &	    iyGridStrt, yGridIntrv, nyGrid)
+	character*(*) idfFile
+	integer*4  idfBinning, idfNx, idfNy, lmGrid
+	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
+	real*4 xGridIntrv, yGridIntrv, pixelIdf
+	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+c	  
+	integer*4 idfVersion, i, j
+c	  
+	call dopen(14, idfFile, 'ro', 'f')
+	read(14, *) idfVersion
+	if (idfVersion .eq. 1) then
+	  read(14, *)idfNx, idfNy, idfBinning, pixelIdf
+	  read(14, *)ixGridStrt, xGridIntrv, nxGrid, iyGridStrt,
+     &	      yGridIntrv, nyGrid
+	  if (nxGrid .gt. lmGrid .or. nyGrid .gt. lmGrid) then
+	    print *
+	    print *,'ERROR: readDistortions - too many grid points for arrays'
+	    call exit(1)
+	  endif
+	  do j = 1, nyGrid
+	    read(14, *)(fieldDx(i, j), fieldDy(i,j), i = 1, nxGrid)
+	  enddo
+	else
+	  print *
+	  print *,'ERROR: readDistortions - version',idfVersion,
+     &	      ' of idf file not recognized'
+	  call exit(1)
+	endif
+	close(14)
+	return
+	end
+
+	subroutine interpolateGrid(x, y, dxGrid, dyGrid, ixgDim,
+     &	    nxGrid, nyGrid, ixGridStrt, xGridIntrv, iyGridStrt,
+     &	    yGridIntrv, dx, dy)
+	implicit none
+	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
+	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
+	real*4 xGridIntrv, yGridIntrv, x, y, dx, dy
+	real*4 xgrid,ygrid,fx1,fx,fy1,fy,c00,c10,c01,c11
+	integer*4 ixg,iyg,ixg1,iyg1
+
+	xgrid = 1. + (x - ixGridStrt) / xGridIntrv
+	ixg=xgrid
+	ixg=max(1,min(nxGrid-1,ixg))
+	fx1=max(0.,min(1.,xgrid-ixg))		!NO EXTRAPOLATIONS ALLOWED
+	fx=1.-fx1
+	ixg1=ixg+1
+	ygrid = 1. + (y - iyGridStrt) / yGridIntrv
+	iyg=ygrid
+	iyg=max(1,min(nyGrid-1,iyg))
+	fy1=max(0.,min(1.,ygrid-iyg))
+	fy=1.-fy1
+	iyg1=iyg+1
+	c00=fx*fy
+	c10=fx1*fy
+	c01=fx*fy1
+	c11=fx1*fy1
+c	  
+c	  interpolate
+c
+	dx = c00*dxGrid(ixg,iyg) + c10*dxGrid(ixg1,iyg)
+     &	    + c01*dxGrid(ixg,iyg1) + c11*dxGrid(ixg1,iyg1)
+	dy = c00*dyGrid(ixg,iyg) + c10*dyGrid(ixg1,iyg)
+     &	    + c01*dyGrid(ixg,iyg1) + c11*dyGrid(ixg1,iyg1)
+	return
+	end
+
+
+	SUBROUTINE undistort(ARRAY,BRAY,NXA,NYA,NXB,NYB,AMAT,
+     &	    XC,YC,XT,YT,SCALE,DMEAN, linear, dxGrid, dyGrid, ixgDim,
+     &	    nxGrid, ixGridStrt, xGridIntrv, nyGrid, iyGridStrt,
+     &	    yGridIntrv)
+	implicit none
+	integer*4 NXA,NYA,NXB,NYB,linear
+	real*4 ARRAY(NXA,NYA),BRAY(NXB,NYB),AMAT(2,2)
+	real*4 XC,YC,XT,YT,SCALE,dmean
+	real*4 xcen,ycen,xco,yco,denom,a11,a12,a22,a21,dyo,xbase,ybase
+	real*4 xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d
+	real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax
+	integer*4 iy,ix,ixp,ixpp1,iyp,iypp1,iypp2,ixpp2,ixpm1,iypm1,linefb
+	integer*4 ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall
+	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
+	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
+	real*4 xGridIntrv, yGridIntrv
+C
+C   Calc inverse transformation
+C
+	XCEN = NXB/2. + XT + 1
+	YCEN = NYB/2. + YT + 1
+	XCO = XC + 1
+	YCO = YC + 1
+	DENOM = AMAT(1,1)*AMAT(2,2) - AMAT(1,2)*AMAT(2,1)
+	A11 =  AMAT(2,2)/DENOM
+	A12 = -AMAT(1,2)/DENOM
+	A21 = -AMAT(2,1)/DENOM
+	A22 =  AMAT(1,1)/DENOM
+C
+C Loop over output image
+C
+	DO IY = 1,NYB
+	  DYO = IY - YCEN
+	  xbase = a12*dyo +xco - a11*xcen
+	  ybase = a22*dyo + yco - a21*xcen
+
+	  if (linear .ne. 0) then
+	    do ix=1,nxb
+	      xp = a11*ix + xbase
+	      yp = a21*ix + ybase
+	      call interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid,
+     &		  nyGrid, ixGridstrt, xGridIntrv, iyGridStrt,
+     &		  yGridIntrv, dx, dy)
+	      xp = xp + dx
+	      yp = yp + dy
+	      IXP = XP
+	      IYP = YP
+	      bray(ix,iy)=dmean
+	      IF (IXP .ge. 1 .and. IXP .lt. NXA .and. IYP .ge. 1 .and.
+     &		  IYP .lt. NYA) then
+		DX = XP - IXP
+		DY = YP - IYP
+		IXPP1 = IXP + 1
+		IYPP1 = IYP + 1
+		bray(ix, iy) = (1. - dy) * ((1. - dx) * array(ixp, iyp) +
+     &		    dx * array(ixpp1, iyp)) +
+     &		    dy * ((1. - dx) * array(ixp, iypp1) +
+     &		    dx * array(ixpp1, iypp1))
+	      endif
+	    enddo
+	  else
+	    do ix=1,nxb
+	      xp = a11*ix + xbase
+	      yp = a21*ix + ybase
+	      call interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid,
+     &		  nyGrid, ixGridstrt, xGridIntrv, iyGridStrt,
+     &		  yGridIntrv, dx, dy)
+	      xp = xp + dx
+	      yp = yp + dy
+	      IXP = XP
+	      IYP = YP
+	      bray(ix,iy)=dmean
+	      IF (IXP .ge. 1 .and. IXP .lt. NXA - 1 .and. IYP .ge. 1 .and.
+     &		  IYP .lt. NYA - 1) then
+
+		DX = XP - IXP
+		DY = YP - IYP
+		IXPP1 = IXP + 1
+		IXPM1 = IXP - 1
+		IYPP1 = IYP + 1
+		IYPM1 = IYP - 1
+		ixpp2 = ixp + 2
+		iypp2 = iyp + 2
+		
+		dxm1 = dx-1.
+		dxdxm1=dx*dxm1
+		fx1=-dxm1*dxdxm1
+		fx4=dx*dxdxm1
+		fx2=1+dx**2*(dx-2.)
+		fx3=dx*(1.-dxdxm1)
+		
+		dym1 = dy-1.
+		dydym1=dy*dym1
+		
+		v1=fx1*array(ixpm1,iypm1)+fx2*array(ixp,iypm1)+
+     &		    fx3*array(ixpp1,iypm1)+fx4*array(ixpp2,iypm1)
+		v2=fx1*array(ixpm1,iyp)+fx2*array(ixp,iyp)+
+     &		    fx3*array(ixpp1,iyp)+fx4*array(ixpp2,iyp)
+		v3=fx1*array(ixpm1,iypp1)+fx2*array(ixp,iypp1)+
+     &		    fx3*array(ixpp1,iypp1)+fx4*array(ixpp2,iypp1)
+		v4=fx1*array(ixpm1,iypp2)+fx2*array(ixp,iypp2)+
+     &		    fx3*array(ixpp1,iypp2)+fx4*array(ixpp2,iypp2)
+		bray(ix,iy)=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
+     &		    dy*(1.-dydym1)*v3 +dy*dydym1*v4
+c		
+	      endif
+	    enddo
+	  endif
+	  
+	enddo
+	RETURN
+	END
+
