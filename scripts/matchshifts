@@ -6,11 +6,15 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/07/21 19:34:05  mast
+#  Suppressed output of all programs except Tiltxcorr
+#
 #  Revision 3.1  2002/07/21 05:52:35  mast
 #  Decreased padding in X and Z to compensate for increased sizes in Y
 #
 
 set SIZELIMIT = 1600
+set MAXERROR = 3.0
 
 if ($#argv == 0)then
   echo 'Usage: matchshifts root_name1 root_name2 NX NY NZ [solve_xf_in] [solve_xf_out]'
@@ -24,6 +28,7 @@ endif
 
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
+set exitstatus = 1
 onintr clean
 
 if ($#argv < 5 || $#argv >7) then
@@ -46,6 +51,9 @@ set projst = $tmpdir/projst.$$
 set rotxf = $tmpdir/rotxf.$$
 set txcxf = $tmpdir/txcxf.$$
 set midfile = $tmpdir/midxf.$$
+set logfile = $tmpdir/logtmp.$$
+set checkfile1 = matchcheck.rec
+set checkfile2 = matchcheck.mat
 
 if($#argv >5 ) then
   set infile = $argv[6]
@@ -70,7 +78,7 @@ if ($nzuse > $SIZELIMIT) @ nzuse = $SIZELIMIT
 echo " "
 echo "MATCHSHIFTS: PROJECTING $recfile1"
 
-xyzproj <<EOF > /dev/null
+xyzproj <<EOF >! $logfile
 $recfile1
 $proj1file
 $ix0,$ix1,,,$iz0,$iz1
@@ -82,9 +90,11 @@ Z
 /
 EOF
 
+if ($status) goto error
+
 echo "MATCHSHIFTS: PROJECTING $recfile2"
 
-xyzproj <<EOF  > /dev/null
+xyzproj <<EOF  >! $logfile
 $recfile2
 $proj2file
 $iz0,$iz1,,,$ix0,$ix1
@@ -96,13 +106,15 @@ Z
 /
 EOF
 
+if ($status) goto error
+
 set sol = `cat $infile`
 echo "1 0 0 1 0 0" > $rotxf
 echo "$sol[1] $sol[3] $sol[9] $sol[11] 0 0" >> $rotxf
 
 echo "MATCHSHIFTS: STACKING PROJECTIONS WITH ROTATION"
 
-newstack <<EOF > /dev/null
+newstack <<EOF >! $logfile
 2
 $proj1file
 0
@@ -118,6 +130,8 @@ $rotxf
 0,1
 0
 EOF
+
+if ($status) goto error
 
 @ nxin = $nxyz[1]
 @ nyin = $nxyz[2]
@@ -142,6 +156,8 @@ $xtrim $ytrim
 /
 EOF
 
+if ($status) goto error
+
 set txcshift = `tail -1 $txcxf`
 
 echo "$sol[1]   $sol[2]   $sol[3]   $txcshift[5]"  > $midfile
@@ -156,7 +172,7 @@ echo "$sol[9]   $sol[10]   $sol[11]   $txcshift[6]"  >> $midfile
 echo " "
 echo "MATCHSHIFTS: EXTRACTING SMALL MATCHING VOLUME FROM $recfile2"
 
-matchvol <<HERESTRING > /dev/null
+matchvol <<HERESTRING >! $logfile
 $recfile2
 $matfile
 $tmpdir
@@ -165,6 +181,8 @@ $nx $ny $nz
 $midfile
 
 HERESTRING
+
+if ($status) goto error
 
 @ nxtap = ($nx + 9) / 10
 @ nytap = ($ny + 9) / 10
@@ -178,7 +196,7 @@ HERESTRING
 
 echo "MATCHSHIFTS: GETTING TAPERED, PADDED VOLUMES FOR CORRELATING"
 
-tapervoledge <<HERESTRING > /dev/null
+tapervoledge <<HERESTRING >! $logfile
 $matfile
 $pad2file
 $nx,$ny,$nz
@@ -187,11 +205,13 @@ $nxpad,$nypad,$nzpad
 $nxtap,$nytap,$nztap
 HERESTRING
 
+if ($status) goto error
+
 @ nxcen = $nxyz[1] / 2
 @ nycen = $nxyz[2] / 2
 @ nzcen = $nxyz[3] / 2
 
-tapervoledge <<HERESTRING > /dev/null
+tapervoledge <<HERESTRING >! $logfile
 $recfile1
 $pad1file
 $nx,$ny,$nz
@@ -199,6 +219,8 @@ $nxcen,$nycen,$nzcen
 $nxpad,$nypad,$nzpad
 $nxtap,$nytap,$nztap
 HERESTRING
+
+if ($status) goto error
 
 
 #clip resize -ox $nx -oy $ny -oz $nz $recfile1 $clipfile
@@ -218,6 +240,72 @@ echo "$sol[1]   $sol[2]   $sol[3]   $xshift"  > $outfile
 echo "$sol[5]   $sol[6]   $sol[7]   $displ[2]"  >> $outfile
 echo "$sol[9]   $sol[10]   $sol[11]   $yshift"  >> $outfile
 
+echo "MATCHSHIFTS: GETTING VOLUMES TO CHECK THE MATCH"
+
+@ nxextract = $nx * 3
+
+matchvol <<HERESTRING >! $logfile
+$recfile2
+$matfile
+$tmpdir
+$nxextract $ny $nz
+1
+$outfile
+
+HERESTRING
+
+if ($status) goto error
+
+@ nxcen = $nxcen - $nx
+tapervoledge <<HERESTRING >! $logfile
+$recfile1
+$checkfile1
+$nx,$ny,$nz
+$nxcen,$nycen,$nzcen
+0,0,0
+$nxtap,$nytap,$nztap
+HERESTRING
+
+if ($status) goto error
+
+@ nxcen = $nx / 2
+@ nycen = $ny / 2
+@ nzcen = $nz / 2
+
+tapervoledge <<HERESTRING >! $logfile
+$matfile
+$checkfile2
+$nx,$ny,$nz
+$nxcen,$nycen,$nzcen
+0,0,0
+$nxtap,$nytap,$nztap
+HERESTRING
+
+if ($status) goto error
+
+echo "MATCHSHIFTS: CORRELATING MATCH CHECK VOLUMES"
+
+set clipcom = "clip corr -3d -n 0 $checkfile2 $checkfile1 $cortmp"
+set displ = `$clipcom | grep '^(' | sed '/.*(\(.*\)).*/s//\1/'`
+
+set checkerror = `echo $displ | awk '{printf "%.2f", sqrt($1 * $1 + $2 * $2 + $3 * $3)}'`
+
+echo "Displacement between check volumes is $displ in X Y Z, total $checkerror"
+
+@ errdiff = `echo "$displ $MAXERROR" | awk '{print int(100. * (sqrt($1 * $1 + $2 * $2 + $3 * $3) - $4))}'`
+if ($errdiff > 0) then
+    echo "ERROR: MATCHSHIFTS - measured displacement between check volumes is $error"
+    echo "To see if this is a problem, run:  imod $checkfile1 $checkfile2"
+    goto clean
+endif
+
+set exitstatus = 0
+goto clean
+
+error:
+if (-e $logfile) grep ERROR $logfile
+
 clean:
-\rm -f $cortmp* $proj1file $proj2file $projst $rotxf $txcxf $midfile
-\rm -f $pad1file* $pad2file* $matfile*
+\rm -f $cortmp $cortmp~ $proj1file $proj2file $projst $rotxf $txcxf $midfile
+\rm -f $pad1file* $pad2file $matfile $pad2file~ $matfile~ $logfile
+exit $exitstatus
