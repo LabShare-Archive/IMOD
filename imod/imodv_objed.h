@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/06/27 19:28:46  mast
+Changes for manipulating point quality
+
 Revision 4.2  2003/03/26 17:15:31  mast
 Adjust sizes for font changes
 
@@ -99,6 +102,7 @@ class ImodvObjed : public QObject
   void globalQualitySlot(int value);
   void lineWidthSlot(int which, int value, bool dragging);
   void lineAliasSlot(bool state);
+  void lineThickenSlot(bool state);
   void meshNormalSlot(bool state);
   void meshFalseSlot(bool state);
   void meshLevelSlot(int which, int value, bool dragging);

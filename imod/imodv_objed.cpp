@@ -419,10 +419,15 @@ void imodvObjedHelp()
      "setting can also be controlled by the g and G hot keys.\n\n",
            
      "\tLines: The Width slider changes the line width used to "
-     "draw the objects.  The \"Anti-Alias Rendering\" toggle "
+     "draw the objects.  The \"Anti-Alias Rendering\" check box "
      "selects anti-alias rendering for lines.  "
      "Lines will look smoother with this option on; however, "
-     "some artifacts may be noticed."
+     "some artifacts may be noticed.  The \"Thicken current contour\" check "
+     "box can be used to highlight the current contour by drawing it thicker "
+     "than other contours.  This will "
+     "have an effect only for objects whose drawing style is \"Lines\".  "
+     "This feature is most useful when using the third mouse button to select "
+     "contours."
      "\n\n",
 
      "\tMesh View: This is a special control group used for "
@@ -1014,6 +1019,7 @@ static void mkPoints_cb(int index)
 
 static MultiSlider *widthSlider;
 static QCheckBox *wLineAlias;
+static QCheckBox *wThickenCont;
 static char *widthLabel[] = {"Line Width"};
 
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
@@ -1043,6 +1049,12 @@ void ImodvObjed::lineAliasSlot(bool state)
   imodvDraw(Imodv);
 }
 
+void ImodvObjed::lineThickenSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_THICK_CONT, state ? 1 : 0);
+  objset(Imodv);
+  imodvDraw(Imodv);
+}
 
 static void setLines_cb(void)
 {
@@ -1051,6 +1063,7 @@ static void setLines_cb(void)
     return;
   widthSlider->setValue(0, obj->linewidth);
   diaSetChecked(wLineAlias, obj->flags & IMOD_OBJFLAG_ANTI_ALIAS );
+  diaSetChecked(wThickenCont, obj->flags & IMOD_OBJFLAG_THICK_CONT);
 }
 
 static void mkLines_cb(int index)
@@ -1072,6 +1085,13 @@ static void mkLines_cb(int index)
   QToolTip::add(wLineAlias, "Smooth lines with anti-aliasing");
 
   layout1->addWidget(wLineAlias);
+
+  wThickenCont = diaCheckBox("Thicken current contour", oef->control, layout1);
+  QObject::connect(wThickenCont, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(lineThickenSlot(bool)));
+  QToolTip::add(wThickenCont, "Draw current contour thicker");
+
+  layout1->addWidget(wThickenCont);
 
   finalSpacer(oef->control, layout1);
 }
@@ -1572,6 +1592,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.15  2003/10/01 05:04:19  mast
+change include from imodP to imod after eliminating imod.h from imodP.h
+
 Revision 4.14  2003/06/27 19:42:44  mast
 Changes to allow sphere quality tobe controlled
 

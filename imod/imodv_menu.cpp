@@ -182,6 +182,7 @@ void imodvHelpMenu(int item)
        " 1/2  \tDecrease/Increase time for 4D models\n",
        "  8   \tToggle displaying all models or one model\n",
        " 9/0  \tPrevious/Next model\n",
+       " D    \tDelete current contour if it was picked with mouse\n",
        "----------------------------------------------------------\n",
        NULL);
     break;
@@ -594,6 +595,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2003/11/04 04:43:16  mast
+DOcumentation for new rotation speed and throwing
+
 Revision 4.10  2003/10/24 04:01:57  mast
 delete files before renaming, renaming only if necessary for Windows/Intel
 
