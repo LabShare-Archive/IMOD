@@ -25,6 +25,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2003/01/03 00:56:00  rickg
+ * <p> Added msgBackgroundProcessDone method
+ * <p>
  * <p> Revision 1.10  2002/12/31 00:57:38  rickg
  * <p> Added transferFiducials method
  * <p>
@@ -206,7 +209,7 @@ public class ProcessManager {
   public void transferFiducials(TransferfidParam transferfidParam) {
     BackgroundProcess transferfid =
       new BackgroundProcess(transferfidParam.getCommandString(), this);
-
+    System.out.println(transferfidParam.getCommandString());
     transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
@@ -315,6 +318,21 @@ public class ProcessManager {
     //  Start the com script in the background
     startComScript(command);
   }
+
+
+  /**
+   * Run the comand specified by the argument string
+   */
+  public void test(String commandLine) {
+    BackgroundProcess command = new BackgroundProcess(commandLine, this);
+    command.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    command.setDebug(appManager.isDebug());
+    command.start();
+
+    System.out.println("Started " + commandLine);
+    System.out.println("  Name: " + command.getName());
+  }
+  
   /**
    * A message specifying that a com script has finished execution
    * @param script the RunComScript execution object that finished
@@ -325,19 +343,17 @@ public class ProcessManager {
 
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
-      String[] combined = new String[stdError.length + 5];
+      String[] message = new String[stdError.length + 5];
 
       int j = 0;
-      combined[j++] = "<html>Command failed: " + process.getName();
-      combined[j++] = "  ";
-      combined[j++] = "<html><U>Standard error output:</U>";
+      message[j++] = "<html>Command failed: " + process.getCommandLine();
+      message[j++] = "  ";
+      message[j++] = "<html><U>Standard error output:</U>";
       for (int i = 0; i < stdError.length; i++, j++) {
-        combined[j] = stdError[i];
+        message[j] = stdError[i];
       }
 
-      appManager.openMessageDialog(
-        combined,
-        process.getName() + " failed");
+      appManager.openMessageDialog(message, process.getCommand() + " failed");
     }
 
   }
