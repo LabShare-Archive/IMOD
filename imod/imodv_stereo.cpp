@@ -33,17 +33,6 @@ $Date$
 $Revision$
 Log at end of file
 */
-/* DNM note: fixed here, and in imod_display.c and imodv.c, so that the program
- * reads and sets resources properly, including defaults and fallbacks, for
- * the resources SGIStereoCommand and SGIResourceCommand.  The resources
- * stereoCommand and restoreCommand still exist and there are settings for
- * them, but they are not as well maintained.  Those values are used to set
- * up stcmd and mocmd, which are used only in the Stereo_FULL_SCREEN_HACK
- * (not compiled), and to set up ImodvStereoData.stereoCommand, which is also
- * never used.  The code could be structured to use alternate stereo commands
- * on other systems, but that still needs doing.  This generally needs to
- * be cleaned up and the various default settings rationalized.
- */
 
 #include <math.h>
 #include <qcombobox.h>
@@ -62,19 +51,11 @@ Log at end of file
 #include "preferences.h"
 #include "control.h"
 
-//#define LIMIT_Stereo
 
-//#ifdef __sgi
-//#include <X11/extensions/SGIStereo.h>
-//#endif
-
-static void stereoInitl(void);
+static void stereoInit(void);
 static void stereoSetUp(void);
-static void stereoInit(int usingStereoVisual, 
-                char *stereoCmd, char *restoreCmd);
 static void stereoEnable(void);
 static void stereoDisable(void);
-static void stereoDone(void);
      
 static bool hardwareOK(void);
 
@@ -91,10 +72,6 @@ static struct{
   int    x, y;
   float       rad;
 
-  int         useSGIStereo;
-  GLenum      currentDrawBuffer;
-  //  int         currentStereoBuffer;
-  bool        enabled;
   char        *stereoCommand;
   char        *restoreCommand;
      
@@ -119,144 +96,26 @@ void imodvStereoUpdate(void)
  */
 static void stereoEnable(void)
 {
-  /*  imodPrintStderr("In stereoEnable, command %s\n", Imodv->SGIStereoCommand); */
-  /*
-    if (Imodv->stereoCommand)
-    system(Imodv->stereoCommand);
-  */
- 
-  if (Imodv->SGIStereoCommand)
-    system(Imodv->SGIStereoCommand);
-
-  //else
-  //  system("/usr/gfx/setmon -n STR_TOP");
-  
+  if (imodvStereoData.stereoCommand)
+    system(imodvStereoData.stereoCommand);
 }
 
 /* call to turn off stereo viewing */
 static void stereoDisable(void)
 {
-  /*  imodPrintstderr("In stereoDisable, command %s\n", Imodv->SGIRestoreCommand); */
-  /*
-    if (Imodv->restoreCommand)
-    system(Imodv->restoreCommand);
-  */
-
-  if (Imodv->SGIRestoreCommand)
-    system(Imodv->SGIRestoreCommand);
-
-  //  else
-  //  system("/usr/gfx/setmon -n 72HZ");
+  stereoHWOff();
 }
 
 void stereoDrawBuffer(GLenum mode)
 {
-
-  if (hardwareOK()) {
-
-    imodvStereoData.currentDrawBuffer = mode;
-    switch (mode) {
-    case GL_FRONT:
-    case GL_BACK:
-    case GL_FRONT_AND_BACK:
-      /*
-      ** Simultaneous drawing to both left and right buffers isn't
-      ** really possible if we don't have a stereo capable visual.
-      ** For now just fall through and use the left buffer.
-      */
-    case GL_LEFT:
-    case GL_FRONT_LEFT:
-    case GL_BACK_LEFT:
-      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_LEFT;
-      break;
-    case GL_RIGHT:
-    case GL_FRONT_RIGHT:
-      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
-      mode = GL_FRONT;
-      break;
-    case GL_BACK_RIGHT:
-      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
-      mode = GL_BACK;
-      break;
-    default:
-      break;
-    }
-  }
-        
+  // 6/6/04: Eliminated abstruse buffer-changing logic from SGI
   glDrawBuffer(mode);
 }
 
-/* call instead of glClear */
-void
-stereoClear(GLbitfield mask)
-{
-  //
-  if (hardwareOK()) {
-    //    if (imodvStereoData.useSGIStereo) {
-    GLenum drawBuffer = imodvStereoData.currentDrawBuffer;
-    switch (drawBuffer) {
-    case GL_FRONT:
-      stereoDrawBuffer(GL_FRONT_RIGHT);
-      glClear(mask);
-      stereoDrawBuffer(drawBuffer);
-      break;
-    case GL_BACK:
-      stereoDrawBuffer(GL_BACK_RIGHT);
-      glClear(mask);
-      stereoDrawBuffer(drawBuffer);
-      break;
-    case GL_FRONT_AND_BACK:
-      stereoDrawBuffer(GL_RIGHT);
-      glClear(mask);
-      stereoDrawBuffer(drawBuffer);
-      break;
-    case GL_LEFT:
-    case GL_FRONT_LEFT:
-    case GL_BACK_LEFT:
-    case GL_RIGHT:
-    case GL_FRONT_RIGHT:
-    case GL_BACK_RIGHT:
-    default:
-      break;
-    }
-  }
-  glClear(mask);
-}
+// 6/6/04: Eliminated stereoClear as unneeded and detrimental
 
 
-/* call after glXMakeCurrent */
 // DNM 12/16/02: removed unused  stereoMakeCurrent
-
-#ifndef __sgi
-#define  STEREO_BUFFER_NONE 0
-#endif
-          
-/* call before using stereo */
-static void stereoInit(int usingStereoVisual, char *stereoCmd, char
-                *restoreCmd)
-{
-
-  imodvStereoData.useSGIStereo = !usingStereoVisual;
-  imodvStereoData.currentDrawBuffer = GL_NONE;
-  //  imodvStereoData.currentStereoBuffer = STEREO_BUFFER_NONE;
-  imodvStereoData.enabled = 0;
-  if (imodvStereoData.stereoCommand) {
-    free(imodvStereoData.stereoCommand);
-  }
-  imodvStereoData.stereoCommand = stereoCmd ? strdup(stereoCmd) : NULL;
-  if (imodvStereoData.restoreCommand) {
-    free(imodvStereoData.restoreCommand);
-  }
-  imodvStereoData.restoreCommand = restoreCmd ? strdup(restoreCmd) : NULL;
-}
-
-/* call when done using stereo */
-void
-stereoDone(void)
-{
-  stereoDisable();
-  stereoInit(1, NULL, NULL);
-}
 
 
 /**************************************************************************/
@@ -265,41 +124,21 @@ stereoDone(void)
 static void stereoSetUp(void)
 {
 
-  static int width, height, border;
-  int  sw = 1280, sh = 1024, sb = 0;
+  static int width, height;
   int nx, nwidth, ny , nheight;
 
   static int x, y;
-  int sx = 10, sy = 30;
-  static int dx, dy;
   float scalefac;
   int configured = 0;
      
-#ifdef __sgi
-  /*     char stcmd[] = "/usr/gfx/setmon -n STR_RECT"; */
-  char *stcmd = "/usr/gfx/setmon -n STR_TOP";
-  char *mocmd = "/usr/gfx/setmon -n 72HZ";
-
-  if (Imodv->standalone){
-    stcmd = Imodv->stereoCommand;
-    mocmd = Imodv->restoreCommand;
-    /*       puts(stcmd);
-             puts(mocmd);
-    */
-  }else{
-    stcmd = ImodRes_SGIStereoCommand();
-    mocmd = ImodRes_SGIRestoreCommand();
-  }
-#else
-  char *stcmd = "true";
-  char *mocmd = "true";
-#endif
-  //diaBusyCursor(1);
   // DNM 12/16/02 deleted Stereo_FULL_SCREEN_HACK
 
-      /* keep window in upper half of screen. */
-  width = Imodv->mainWin->width();
-  height = Imodv->mainWin->height();
+  /* keep window in upper half of screen. */
+  QRect oldGeom = ivwRestorableGeometry(Imodv->mainWin);
+  width = oldGeom.width();
+  height = oldGeom.height();
+  x = oldGeom.x();
+  y = oldGeom.y();
   if (Imodv->stereo == IMODV_STEREO_HW){
     imodvStereoData.hw = 1;
     imodvStereoData.width = width;
@@ -315,15 +154,20 @@ static void stereoSetUp(void)
     nwidth = width;
     /* DNM: move any window that will go below edge to the top, and
        cut the width and move windows left if necessary too */
-    if (y + height > 512){  
-      ny = 10;
+    // These numbers are based on the flawed SGI geometry setting where
+    // they are actually client window positions...  Will need to parameterize
+    // if it ever works elsewhere
+    if (nheight > 450) 
+      nheight = 450;
+    if (y + nheight > 484){  
+      ny = 34;
     }
-    if (nheight > 484) 
-      nheight = 512;
-    if (width > 1270) {
-      nwidth = 1270;
+    if (width > 1260) {
+      nwidth = 1260;
       scalefac = (nwidth * scalefac) / width;
     }
+    if (x + nwidth > 1270)
+      nx = 1270 - nwidth;
              
     /* DNM: set the zoom and enable the stereo before configuring,
        so that the redraw will be useful, then set flag so that
@@ -332,74 +176,71 @@ static void stereoSetUp(void)
     Imodv->imod->view->rad = 0.5 * 
       (nwidth > nheight ? nheight : nwidth) / scalefac;
     stereoEnable();
-    if (x + nwidth > 1280)
-      nx = 1280 - nwidth;
     if ( (y != ny) || (height != nheight) || (x != nx) || 
          (width != nwidth)){
                  
-      Imodv->mainWin->setGeometry(nx, ny, nwidth, nheight);
+      Imodv->mainWin->resize(nwidth, nheight);
+      Imodv->mainWin->move(nx, ny);
       configured = 1;
     }
   }else{
     if (imodvStereoData.hw){
       Imodv->imod->view->rad = imodvStereoData.rad;
       stereoDisable();
-      Imodv->mainWin->setGeometry(imodvStereoData.x, imodvStereoData.y, 
-                                  imodvStereoData.width,
-                                  imodvStereoData.height);
+      Imodv->mainWin->resize(imodvStereoData.width, imodvStereoData.height);
+      Imodv->mainWin->move(imodvStereoData.x, imodvStereoData.y);
       configured = 1;
     }
-    imodvStereoData.hw = 0;
   }
 
-  //  diaBusyCursor(0);
   if (!configured) {
     imodvDraw(Imodv);
   }
 
 }
 
-static void stereoInitl(void)
+static void stereoInit(void)
 {
-  /** better stereo **/
-#ifdef __sgi
-  imodvStereoData.useSGIStereo = 1;
-#else
-  imodvStereoData.useSGIStereo = 0;
-#endif
+  char *envtmp;
 
-  stereoInit(1,
-             Imodv->stereoCommand,
-             Imodv->restoreCommand);
+  if (imodvStereoData.init)
+    return;
   atexit(stereoHWOff);
-  /***/
-  if (!imodvStereoData.init){
+  imodvStereoData.omode = IMODV_STEREO_HW;
+  imodvStereoData.a = Imodv;
+  imodvStereoData.init = 1;
+
+  // Set up stereo commands: have default for SGI, then get from environment
 #ifdef __sgi
-    /*       if (Imodv->fullscreen) */
-    imodvStereoData.omode = IMODV_STEREO_HW;  // WAS _HW
-    /*        else */
+  imodvStereoData.stereoCommand = "/usr/gfx/setmon -n STR_TOP";
+  imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 1600x1024_72";
+  //imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 72HZ";
 #else
-    imodvStereoData.omode = IMODV_STEREO_HW;
+  imodvStereoData.stereoCommand = NULL;
+  imodvStereoData.restoreCommand = NULL;
 #endif
-    imodvStereoData.a = Imodv;
-    imodvStereoData.init = 1;
-  }
+  envtmp = getenv("IMOD_STEREO_COMMAND");
+  if (envtmp)
+    imodvStereoData.stereoCommand = envtmp;
+  envtmp = getenv("IMOD_STEREO_RESTORE");
+  if (envtmp)
+    imodvStereoData.restoreCommand = envtmp;
+  if (Imod_debug)
+    imodPrintStderr("Stereo enable and restore commands:\n%s\n%s\n",
+                    imodvStereoData.stereoCommand,
+                    imodvStereoData.restoreCommand);
 }
 
 void stereoHWOff(void)
 {
-#ifdef __sgi
-     
-  if (imodvStereoData.hw)
-    system(Imodv->SGIRestoreCommand);
+  if (imodvStereoData.hw && imodvStereoData.restoreCommand)
+    system(imodvStereoData.restoreCommand);
   imodvStereoData.hw = 0;
-#endif
-  return;
 }
 
 void imodvStereoToggle(void)
 {
-  stereoInitl();
+  stereoInit();
 
   if (Imodv->stereo != IMODV_STEREO_OFF){
     Imodv->stereo = IMODV_STEREO_OFF;
@@ -426,7 +267,7 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  stereoInitl();
+  stereoInit();
 
   if (imodvStereoData.dia){
     imodvStereoData.dia->raise();
@@ -580,6 +421,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.5  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
