@@ -29,6 +29,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/07/25 23:02:47  rickg
+ * <p> Moved polynomial order, border pixels and inclide adjacent to
+ * <p> the global section
+ * <p> Corrected spelling mistakes
+ * <p>
  * <p> Revision 2.4  2003/07/22 22:17:54  rickg
  * <p> Erase button name change
  * <p> Correct setup of manual replacement parameters
@@ -401,72 +406,111 @@ public class CCDEraserPanel implements ContextMenu {
    * Tooltip string initialization
    */
   private void setToolTipText() {
-    String line1, line2, line3, line4, line5, line6, line7;
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text = "Input image file.";
+    ltfInputImage.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The input image stack filename.<br>";
-    line2 = "This specifies the input image stack.  The default value of <br>";
-    line3 = "the original source data will work unless you have modified<br>";
-    line4 = "or renamed the orignal data.";
-    ltfInputImage.setToolTipText(line1 + line2 + line3 + line4);
+    text =
+      "Output image file.  If no output file is specified and the program "
+        + "is not run in trial mode, pixels will be replaced in the input file."
+        + "  USE REPLACEMENT OPTION WITH CAUTION.";
+    ltfOutputImage.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The ouput image stack filename.<br>";
-    line2 =
-      "Leave blank to replace existing image stack file.  The default<br>";
-    line3 = "processing expects the image stack file to be replaced so a <br>";
-    line4 = "blank entry should work for most situations.";
-    ltfOutputImage.setToolTipText(line1 + line2 + line3 + line4);
+    text =
+      "Find and erase peaks a criterion # of SDs above or below background."
+        + "  This option must be included for automatic removal of X-rays.";
+    cbXrayReplacement.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The global replacemnt list.<br>";
-    line2 = "A list of objects in the model file which specify the points<br>";
-    line3 = "lines to be replaced in <b>ALL</b> projections of the stack.<br>";
-    line4 = "You can use / to indicate that all objects in the model file<br>";
-    line5 = "specify the pixels to be replaced.  A blank entry indicates<br>";
-    line6 = "that no objects will be used for global replacement.<br>";
-    line7 = "Ranges of objects are allowed";
-    ltfGlobalReplacementList.setToolTipText(
-      line1 + line2 + line3 + line4 + line5 + line6 + line7);
+    text =
+      "Criterion # of SDs above local mean for erasing peak based on "
+        + "intensity (the default is 10 SDs).";
+    ltfPeakCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The line replacemnt list.<br>";
-    line2 = "A list of objects in the model file which specify lines<br>";
-    line3 = "to be replaced in <b>SPECIFIC</b> projections of the stack.<br>";
-    line4 = "You can use / to indicate that all objects in the model file<br>";
-    line5 = "specify the lines to be replaced.  A blank entry indicates<br>";
-    line6 = "that no objects will be used for line replacement.<br>";
-    line7 = "Ranges of objects are allowed";
+    text =
+      "Criterion # of SDs above mean pixel-to-pixel difference for "
+        + "erasing a peak based on differences (the default is 10 SDs)";
+    ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Criterion # of SDs above mean for adding points to peak (the "
+        + "default is 4 SDs).";
+    ltfGrowCriterion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Criterion # of SDs of mean of scan area for picking peaks in "
+        + "initial scan (the default is 3 SDs).";
+    ltfScanCriterion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum radius of peak area to erase (the default is 2.1 pixels).";
+    ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Outer radius of annulus around a peak in which to calculate local"
+        + " mean and SD (the default is 4.0 pixels).";
+    ltfOuterRadius.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Size of regions to compute mean and SD in for initial scans (the "
+        + "default is 100 pixels).";
+    ltfScanRegionSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Width of area to exclude on all edges of image in pixels "
+        + "(default 0).";
+    ltfEdgeExclusion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "List of objects that define lines to be replaced.  Ranges can be "
+        + "entered, and / to specify all objects.";
     ltfLocalReplacementList.setToolTipText(
-      line1 + line2 + line3 + line4 + line5 + line6 + line7);
+      tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The size of the border around the replaced pixels.<br>";
-    line2 = "This specifes the number pixles are the replaced pixels to be<br>";
-    line3 = "used in the interpolation.  Enter / for the default of 3 pixels";
-    ltfBorderPixels.setToolTipText(line1 + line2 + line3);
+    text =
+      "List of objects with points to be replaced on all sections.  "
+        + "Ranges can be entered, and / to specify all objects.";
+    ltfGlobalReplacementList.setToolTipText(
+      tooltipFormatter.setText(text).format());
 
-    line1 = "<html>The order polynomial of the interpolation.<br>";
-    line2 = "This specifes order of the two dimensional polynomial used to<br>";
-    line3 = "interpolate the pixel being replaced.  Enter / for the<br>";
-    line4 = "default of a second order polynomial";
-    ltfPolynomialOrder.setToolTipText(line1 + line2 + line3 + line4);
+    text =
+      "Size of border around points in patch, which contains the "
+        + "points which will be fit to (the default is 2 pixels).";
+    ltfBorderPixels.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Include point adjacent to the specified points in the<br>";
-    line2 =
-      "polynomial fit.  <b>???</b>Selecting this check box will replace the erase<br>";
-    line3 =
-      "model points <b>as well as the adjacent points</b> with interpolated values.<br>";
-    line4 =
-      "Does this effectively increas the replacement patch by 1 pixel in all directions<br>";
-    line5 = "<b>prior</b> to performing the interpolation<b>???</b>";
-    cbIncludeAdjacentPoints.setToolTipText(
-      line1 + line2 + line3 + line4 + line5);
+    text =
+      "Order of polynomial to fit to border points (the default is 2, "
+        + "which includes terms in x, y, x**2, y**2 and x*y).";
+    ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This button will open 3dmod with the current CCD erase<br>";
-    line2 = "model.  This will allow you to specify additional pixels and<br>";
-    line3 = "regions to be replaced with interpolated values.";
-    btnCreateModel.setToolTipText(line1 + line2 + line3);
+    text =
+      "Run ccderaser in trial mode creating a x-ray model which can be viewed "
+        + "in 3dmod.  This will not create an output stack.";
+    btnFindXRays.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This button will execute the specified erase command<br>";
-    line2 = "applying the erase model created in the previous step.";
-    btnErase.setToolTipText(line1 + line2);
+    text = "View the x-ray model on the raw stack in 3dmod.";
+    btnViewXRayModel.setToolTipText(tooltipFormatter.setText(text).format());
 
+    text = "Create a manual replacement model using 3dmod.";
+    btnCreateModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Run ccderaser, erasing the raw stack and writing the modified stack"
+        + "to the output file specified.  NOTE: subsequent processing uses the "
+        + "raw stack filename, therefore for ccderaser to have an effect on "
+        + "your data you must replace the raw stack when you are satisfied with"
+        + " your ccderaser output stack.";
+    btnErase.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the erased stack in 3dmod.";
+    btnViewErased.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Replace the raw stack with the output from ccderaser.  "
+        + "NOTE: subsequent processing uses the "
+        + "raw stack filename, therefore for ccderaser to have an effect on "
+        + "your data you must replace the raw stack when you are satisfied with"
+        + " your ccderaser output stack.";
+    btnReplaceRawStack.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   //  Action listener
