@@ -23,6 +23,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/12/09 04:42:29  rickg
+ * <p> Automatically add .edf extenstion when doing save as or
+ * <p> save with not existing filename
+ * <p>
  * <p> Revision 1.5  2002/12/09 04:16:11  rickg
  * <p> Added EDF file filter to open dialog
  * <p>
@@ -59,9 +63,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuFileExit = new JMenuItem("Exit");
   private JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
-  private JMenu menuSettings = new JMenu("Settings");
+  private JMenu menuOptions = new JMenu("Options");
   private JMenuItem menuAdvanced = new JMenuItem("Advanced");
-  private JMenuItem menuOptions = new JMenuItem("Options");
+  private JMenuItem menuSettings = new JMenuItem("Settings");
 
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuHelpAbout = new JMenuItem("About");
@@ -124,35 +128,26 @@ public class MainFrame extends JFrame implements ContextMenu {
     mainPanel = (JPanel) getContentPane();
     mainPanel.setLayout(borderMain);
 
-    //
     //  Menu bar text and adapters
-    //
-    menuFileOpen.addActionListener(
-      new MainFrame_menuFileOpenActionAdapter(this));
-    menuFileSave.addActionListener(
-      new MainFrame_menuFileSaveActionAdapter(this));
-    menuFileSaveAs.addActionListener(
-      new MainFrame_menuFileSaveAsActionAdapter(this));
-    menuFileExit.addActionListener(
-      new MainFrame_menuFileExitActionAdapter(this));
+    menuFileOpen.addActionListener(new menuFileOpenActionAdapter(this));
+    menuFileSave.addActionListener(new menuFileSaveActionAdapter(this));
+    menuFileSaveAs.addActionListener(new menuFileSaveAsActionAdapter(this));
+    menuFileExit.addActionListener(new menuFileExitActionAdapter(this));
 
-    menuOptions.addActionListener(new MainFrame_menuOptionsActionAdapter(this));
+    menuSettings.addActionListener(new menuOptionsSettingsActionAdapter(this));
 
-    menuHelpAbout.addActionListener(
-      new MainFrame_menuHelpAboutActionAdapter(this));
+    menuHelpAbout.addActionListener(new menuHelpAboutActionAdapter(this));
 
+    //  File menu
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
     menuFile.add(menuFileExit);
     menuFile.addSeparator();
 
-    //
     //  Initialize all of the MRU file menu items
-    //
-
-    MainFrame_menuFileMRUListActionAdapter mRUListActionAdapter =
-      new MainFrame_menuFileMRUListActionAdapter(this);
+    menuFileMRUListActionAdapter mRUListActionAdapter =
+      new menuFileMRUListActionAdapter(this);
     for (int i = 0; i < nMRUFileMax; i++) {
       menuMRUList[i] = new JMenuItem();
       menuMRUList[i].addActionListener(mRUListActionAdapter);
@@ -162,9 +157,9 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     menuHelp.add(menuHelpAbout);
     menuBar.add(menuFile);
-    menuSettings.add(menuAdvanced);
-    menuSettings.add(menuOptions);
-    menuBar.add(menuSettings);
+    menuOptions.add(menuSettings);
+    menuOptions.add(menuAdvanced);
+    menuBar.add(menuOptions);
     menuBar.add(menuHelp);
     this.setJMenuBar(menuBar);
 
@@ -288,7 +283,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     procCtlPanelPostProcessing.setState(setupState);
   }
 
-  void menuFileOpen_actionPerformed(ActionEvent e) {
+  void menuFileOpenAction(ActionEvent e) {
     //
     //  Open up the file chooser in current working directory
     //
@@ -308,7 +303,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  void menuFileSave_actionPerformed(ActionEvent e) {
+  void menuFileSaveAction(ActionEvent e) {
 
     //  Check to see if there is a current parameter file chosen
     //  if not open a dialog box to select the name
@@ -340,7 +335,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     // extension
     File edfFile = chooser.getSelectedFile();
     String fileName = chooser.getSelectedFile().getName();
-    if(fileName.indexOf(".") == -1) {
+    if (fileName.indexOf(".") == -1) {
       edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
 
     }
@@ -348,7 +343,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     return true;
   }
 
-  void menuFileSaveAs_actionPerformed(ActionEvent e) {
+  void menuFileSaveAsAction(ActionEvent e) {
     boolean haveTestParamFilename = getTestParamFilename();
     if (haveTestParamFilename) {
       applicationManager.saveTestParamFile();
@@ -356,7 +351,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   /**File | Exit action performed*/
-  void menuFileExit_actionPerformed(ActionEvent e) {
+  void menuFileExitAction(ActionEvent e) {
 
     //  Check to see if we need to save any data
     if (applicationManager.exitProgram()) {
@@ -364,18 +359,19 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  void menuFileMRUList_actionPerformed(ActionEvent e) {
+  void menuFileMRUListAction(ActionEvent e) {
     applicationManager.openTestParamFile(new File(e.getActionCommand()));
   }
-  void menuOptions_actionPerformed(ActionEvent e) {
-    //
-    //  Open the options dialog box
-    //
-    System.out.println(e.paramString());
+
+  /**
+   * Options/Settings action
+   */
+  void menuOptionsSettingsAction(ActionEvent e) {
+    applicationManager.openSettingsDialog();
   }
 
   /**Help | About action performed*/
-  void menuHelpAbout_actionPerformed(ActionEvent e) {
+  void menuHelpAboutAction(ActionEvent e) {
     MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
     Dimension dlgSize = dlg.getPreferredSize();
     Dimension frmSize = getSize();
@@ -391,38 +387,38 @@ public class MainFrame extends JFrame implements ContextMenu {
   protected void processWindowEvent(WindowEvent e) {
     super.processWindowEvent(e);
     if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-      menuFileExit_actionPerformed(null);
+      menuFileExitAction(null);
     }
   }
 
   //
   //  Process button actions
   //
-  void buttonSetup_actionPerformed(ActionEvent e) {
+  void buttonSetupAction(ActionEvent e) {
     applicationManager.openSetupDialog();
   }
-  void buttonPreProc_actionPerformed(ActionEvent e) {
+  void buttonPreProcAction(ActionEvent e) {
     applicationManager.openPreProcDialog();
   }
-  void buttonCoarseAlign_actionPerformed(ActionEvent e) {
+  void buttonCoarseAlignAction(ActionEvent e) {
     applicationManager.openCoarseAlignDialog();
   }
-  void buttonFiducialModel_actionPerformed(ActionEvent e) {
+  void buttonFiducialModelAction(ActionEvent e) {
     applicationManager.openFiducialModelDialog();
   }
-  void buttonAlignmentEstimation_actionPerformed(ActionEvent e) {
+  void buttonAlignmentEstimationAction(ActionEvent e) {
     applicationManager.openAlignmentEstimationDialog();
   }
-  void buttonTomogramPositioning_actionPerformed(ActionEvent e) {
+  void buttonTomogramPositioningAction(ActionEvent e) {
     applicationManager.openTomogramPositioningDialog();
   }
-  void buttonTomogramGeneration_actionPerformed(ActionEvent e) {
+  void buttonTomogramGenerationAction(ActionEvent e) {
     applicationManager.openTomogramGenerationDialog();
   }
-  void buttonTomogramCombination_actionPerformed(ActionEvent e) {
+  void buttonTomogramCombinationAction(ActionEvent e) {
     applicationManager.openTomogramCombinationDialog();
   }
-  void buttonPostProcessing_actionPerformed(ActionEvent e) {
+  void buttonPostProcessingAction(ActionEvent e) {
     applicationManager.openPostProcessingDialog();
   }
 
@@ -436,23 +432,23 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   private void createProcessControlPanel() {
     procCtlPanelSetup.setButtonActionListener(
-      new MainFrame_buttonSetupActionAdapter(this));
+      new buttonSetupActionAdapter(this));
     procCtlPanelPreProc.setButtonActionListener(
-      new MainFrame_buttonPreProcActionAdapter(this));
+      new buttonPreProcActionAdapter(this));
     procCtlPanelCoarseAlign.setButtonActionListener(
-      new MainFrame_buttonCoarseAlignActionAdapter(this));
+      new buttonCoarseAlignActionAdapter(this));
     procCtlPanelFiducialModel.setButtonActionListener(
-      new MainFrame_buttonFiducialModelActionAdapter(this));
+      new buttonFiducialModelActionAdapter(this));
     procCtlPanelAlignmentEst.setButtonActionListener(
-      new MainFrame_buttonAlignmentEstimationActionAdapter(this));
+      new buttonAlignmentEstimationActionAdapter(this));
     procCtlPanelTomogramPositioning.setButtonActionListener(
-      new MainFrame_buttonTomogramPositioningActionAdapter(this));
+      new buttonTomogramPositioningActionAdapter(this));
     procCtlPanelTomogramGeneration.setButtonActionListener(
-      new MainFrame_buttonTomogramGenerationActionAdapter(this));
+      new buttonTomogramGenerationActionAdapter(this));
     procCtlPanelTomogramCombination.setButtonActionListener(
-      new MainFrame_buttonTomogramCombinationActionAdapter(this));
+      new buttonTomogramCombinationActionAdapter(this));
     procCtlPanelPostProcessing.setButtonActionListener(
-      new MainFrame_buttonPostProcessingActionAdapter(this));
+      new buttonPostProcessingActionAdapter(this));
 
     setToolTipText();
 
@@ -526,184 +522,181 @@ public class MainFrame extends JFrame implements ContextMenu {
 //
 //  Action adapters to handle file events
 //
-class MainFrame_menuFileOpenActionAdapter implements ActionListener {
+class menuFileOpenActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuFileOpenActionAdapter(MainFrame adaptee) {
+  menuFileOpenActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileOpen_actionPerformed(e);
+    adaptee.menuFileOpenAction(e);
   }
 }
 
-class MainFrame_menuFileSaveActionAdapter implements ActionListener {
+class menuFileSaveActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuFileSaveActionAdapter(MainFrame adaptee) {
+  menuFileSaveActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileSave_actionPerformed(e);
+    adaptee.menuFileSaveAction(e);
   }
 }
 
-class MainFrame_menuFileSaveAsActionAdapter implements ActionListener {
+class menuFileSaveAsActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuFileSaveAsActionAdapter(MainFrame adaptee) {
+  menuFileSaveAsActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileSaveAs_actionPerformed(e);
+    adaptee.menuFileSaveAsAction(e);
   }
 }
 
-class MainFrame_menuFileExitActionAdapter implements ActionListener {
+class menuFileExitActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuFileExitActionAdapter(MainFrame adaptee) {
+  menuFileExitActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileExit_actionPerformed(e);
-  }
-}
-class MainFrame_menuFileMRUListActionAdapter implements ActionListener {
-  MainFrame adaptee;
-
-  MainFrame_menuFileMRUListActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileMRUList_actionPerformed(e);
+    adaptee.menuFileExitAction(e);
   }
 }
 
-class MainFrame_menuOptionsActionAdapter implements ActionListener {
+class menuOptionsSettingsActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuOptionsActionAdapter(MainFrame adaptee) {
+  menuOptionsSettingsActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuOptions_actionPerformed(e);
+    adaptee.menuOptionsSettingsAction(e);
   }
 }
 
-class MainFrame_menuHelpAboutActionAdapter implements ActionListener {
+class menuFileMRUListActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_menuHelpAboutActionAdapter(MainFrame adaptee) {
+  menuFileMRUListActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.menuHelpAbout_actionPerformed(e);
+    adaptee.menuFileMRUListAction(e);
+  }
+}
+
+class menuHelpAboutActionAdapter implements ActionListener {
+  MainFrame adaptee;
+
+  menuHelpAboutActionAdapter(MainFrame adaptee) {
+    this.adaptee = adaptee;
+  }
+  public void actionPerformed(ActionEvent e) {
+    adaptee.menuHelpAboutAction(e);
   }
 }
 
 //
 //  Action adapters to handle process panel events
 //
-class MainFrame_buttonSetupActionAdapter implements ActionListener {
+class buttonSetupActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonSetupActionAdapter(MainFrame adaptee) {
+  buttonSetupActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonSetup_actionPerformed(e);
+    adaptee.buttonSetupAction(e);
   }
 }
 
-class MainFrame_buttonPreProcActionAdapter implements ActionListener {
+class buttonPreProcActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonPreProcActionAdapter(MainFrame adaptee) {
+  buttonPreProcActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonPreProc_actionPerformed(e);
+    adaptee.buttonPreProcAction(e);
   }
 }
 
-class MainFrame_buttonCoarseAlignActionAdapter implements ActionListener {
+class buttonCoarseAlignActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonCoarseAlignActionAdapter(MainFrame adaptee) {
+  buttonCoarseAlignActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonCoarseAlign_actionPerformed(e);
+    adaptee.buttonCoarseAlignAction(e);
   }
 }
 
-class MainFrame_buttonFiducialModelActionAdapter implements ActionListener {
+class buttonFiducialModelActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonFiducialModelActionAdapter(MainFrame adaptee) {
+  buttonFiducialModelActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonFiducialModel_actionPerformed(e);
+    adaptee.buttonFiducialModelAction(e);
   }
 }
 
-class MainFrame_buttonAlignmentEstimationActionAdapter
-  implements ActionListener {
+class buttonAlignmentEstimationActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonAlignmentEstimationActionAdapter(MainFrame adaptee) {
+  buttonAlignmentEstimationActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonAlignmentEstimation_actionPerformed(e);
+    adaptee.buttonAlignmentEstimationAction(e);
   }
 }
 
-class MainFrame_buttonTomogramPositioningActionAdapter
-  implements ActionListener {
+class buttonTomogramPositioningActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonTomogramPositioningActionAdapter(MainFrame adaptee) {
+  buttonTomogramPositioningActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramPositioning_actionPerformed(e);
+    adaptee.buttonTomogramPositioningAction(e);
   }
 }
 
-class MainFrame_buttonTomogramGenerationActionAdapter
-  implements ActionListener {
+class buttonTomogramGenerationActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonTomogramGenerationActionAdapter(MainFrame adaptee) {
+  buttonTomogramGenerationActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramGeneration_actionPerformed(e);
+    adaptee.buttonTomogramGenerationAction(e);
   }
 }
 
-class MainFrame_buttonTomogramCombinationActionAdapter
-  implements ActionListener {
+class buttonTomogramCombinationActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonTomogramCombinationActionAdapter(MainFrame adaptee) {
+  buttonTomogramCombinationActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonTomogramCombination_actionPerformed(e);
+    adaptee.buttonTomogramCombinationAction(e);
   }
 }
 
-class MainFrame_buttonPostProcessingActionAdapter implements ActionListener {
+class buttonPostProcessingActionAdapter implements ActionListener {
   MainFrame adaptee;
 
-  MainFrame_buttonPostProcessingActionAdapter(MainFrame adaptee) {
+  buttonPostProcessingActionAdapter(MainFrame adaptee) {
     this.adaptee = adaptee;
   }
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonPostProcessing_actionPerformed(e);
+    adaptee.buttonPostProcessingAction(e);
   }
 }
