@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/26 16:52:38  mast
+    Added ability to write header back to byte-swapped file, and to write
+    data to byte-swapped file with mrc_data_new and mrc_write_slice
+
 */
 
 #include <stdio.h>
@@ -812,9 +816,9 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	  }
 	  memcpy(data, buf, slicesize * dsize * csize);
 	  if (dsize == 2)
-	       mrc_swap_shorts(data, slicesize * csize);
+	       mrc_swap_shorts((short int *)data, slicesize * csize);
 	  else
-	       mrc_swap_floats(data, slicesize * csize);
+	       mrc_swap_floats((float *)data, slicesize * csize);
      }
      
      switch (axis)
