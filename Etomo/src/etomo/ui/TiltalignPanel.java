@@ -2,12 +2,10 @@ package etomo.ui;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -38,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/12/29 23:50:23  sueh
+ * <p> bug# 567 Put checkbox or radio buttons to the left on the fields in global and
+ * <p> local tabs and in the local alignment panel on the general tab.
+ * <p>
  * <p> Revision 3.6  2004/12/29 01:54:46  sueh
  * <p> bug# 567 Adding rotation solution panel.  Putting global and local rotation
  * <p> solution next to tilt angle solution panel.  Putting global and local
@@ -584,7 +586,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       cbLocalRotation.setSelected(true);
     }
     ltfLocalRotationGroupSize.setText(params.getLocalRotDefaultGrouping().toString());
-    ltfLocalTiltAngleNonDefaultGroups.setText(params.getLocalRotNondefaultGroup());
+    ltfLocalRotationNonDefaultGroups.setText(params.getLocalRotNondefaultGroup());
 
     // Local tilt angle solution parameters
     solutionType = params.getLocalTiltOption().getInteger();
