@@ -21,6 +21,15 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2005/01/25 21:56:30  sueh
+ * <p> Changing resetValue to displayValue.  Removing empty functionality.  Removing
+ * <p> displayDefault functionality.  Adding boolean useDisplayValue, but not
+ * <p> adding function to set it, because it is equivalent to setting
+ * <p> displayValue to null.  An inheriting class might want to turn off
+ * <p> useDisplayValue to prevent displayValue from being used on the screen.
+ * <p> Store only the currentValue.  Moving defaultValue to inherit class
+ * <p> ScriptParameter.
+ * <p>
  * <p> Revision 1.12  2005/01/22 04:11:06  sueh
  * <p> bug# 509, bug# 591  Ignore empty in comparisons.  Change validate() to
  * <p> ignore empty when looking at validValues.  Also in validate() fail on null
@@ -362,6 +371,13 @@ public abstract class ConstEtomoNumber implements Storable {
   
   public boolean is() {
     if (isNull() || equals(0)) {
+      return false;
+    }
+    return true;
+  }
+  
+  protected boolean is(Number value) {
+    if (isNull(value) || equals(value, 0)) {
       return false;
     }
     return true;
