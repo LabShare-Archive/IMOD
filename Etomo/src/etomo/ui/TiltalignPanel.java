@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.3  2002/10/17 23:40:32  rickg
  * <p> Added methods to set titl/mag and distortion defaults.
  * <p>
@@ -55,8 +58,8 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Tilt angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Tilt axis z shift: ");
-  private LabeledTextField ltfTiltAxisXShift =
-    new LabeledTextField("Tilt axis x shift: ");
+/*  private LabeledTextField ltfTiltAxisXShift =
+    new LabeledTextField("Tilt axis x shift: ");*/
   private JCheckBox chkLocalAlignments =
     new JCheckBox("Enable local alignments");
   private LabeledTextField ltfNLocalPatches =
@@ -269,7 +272,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfAdditionalViewGroups.setText(params.getAdditionalViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
-    ltfTiltAxisXShift.setText(params.getTiltAxisXShift());
+//    ltfTiltAxisXShift.setText(params.getTiltAxisXShift());
     chkLocalAlignments.setSelected(params.getLocalAlignments());
     ltfNLocalPatches.setText(params.getNLocalPatches());
     ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
@@ -525,9 +528,9 @@ public class TiltalignPanel implements ContextMenu {
       badParameter = ltfTiltAxisZShift.getLabel();
       params.setTiltAxisZShift(ltfTiltAxisZShift.getText());
 
-      badParameter = ltfTiltAxisXShift.getLabel();
+/*      badParameter = ltfTiltAxisXShift.getLabel();
       params.setTiltAxisXShift(ltfTiltAxisXShift.getText());
-
+*/
       badParameter = chkLocalAlignments.getText();
       params.setLocalAlignments(chkLocalAlignments.isSelected());
 
@@ -1003,14 +1006,14 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfTiltAxisXShift.setMaximumSize(dimLTF);
+    ltfTiltAxisZShift.setMaximumSize(dimLTF);
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    ltfTiltAxisZShift.setMaximumSize(dimLTF);
+/*    ltfTiltAxisXShift.setMaximumSize(dimLTF);
     panelGeneral.add(ltfTiltAxisXShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
-
+*/
     panelGeneral.add(chkLocalAlignments);
     chkLocalAlignments.setAlignmentX(1.0F);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
