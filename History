@@ -5,6 +5,9 @@ in Cygwin and failing to stop command file processing.
 
 7/7/04: Fixed a bug processing arguments in subm (submfg).
 
+7/6/04: Enhanced output from self-install script and made it work from or in
+directories with spaces in their path; switched from link to rename for OSX.
+
 7/3/04: Fixed Tiltxcorr to keep tilt axis in global center of aligned images
 rather than letting it start at center of zero-degree image and shift to the 
 center of shifted images.  This should improve tomograms generated using only
