@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/06/09 04:26:16  rickg
+ * <p> Manage button selected state
+ * <p>
  * <p> Revision 2.7  2003/06/04 23:42:02  rickg
  * <p> Keep kill button grey out until a process is running
  * <p>
@@ -165,7 +168,7 @@ public class AxisProcessPanel implements ContextMenu {
   /**
    * 
    * @param n
-   */  
+   */
   public void setProgressBarValue(int n) {
     progressPanel.setValue(n);
   }
@@ -173,11 +176,11 @@ public class AxisProcessPanel implements ContextMenu {
   /**
    * 
    * @param n
-   */  
+   */
   public void setProgressBarValue(int n, String string) {
     progressPanel.setValue(n, string);
   }
-  
+
   /**
    * 
    * @param label
@@ -213,56 +216,40 @@ public class AxisProcessPanel implements ContextMenu {
 
     if (command.equals(procCtlPreProc.getName())) {
       applicationManager.openPreProcDialog(axisID);
-      unSelectAll();
-      procCtlPreProc.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlCoarseAlign.getName())) {
       applicationManager.openCoarseAlignDialog(axisID);
-      unSelectAll();
-      procCtlCoarseAlign.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlFiducialModel.getName())) {
       applicationManager.openFiducialModelDialog(axisID);
-      unSelectAll();
-      procCtlFiducialModel.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlFineAlignment.getName())) {
       applicationManager.openFineAlignmentDialog(axisID);
-      unSelectAll();
-      procCtlFineAlignment.setSelected(true);
       return;
     }
     if (command.equals(procCtlTomogramPositioning.getName())) {
       applicationManager.openTomogramPositioningDialog(axisID);
-      unSelectAll();
-      procCtlTomogramPositioning.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlTomogramGeneration.getName())) {
       applicationManager.openTomogramGenerationDialog(axisID);
-      unSelectAll();
-      procCtlTomogramGeneration.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlTomogramCombination.getName())) {
       applicationManager.openTomogramCombinationDialog();
-      unSelectAll();
-      procCtlTomogramCombination.setSelected(true);
       return;
     }
 
     if (command.equals(procCtlPostProcessing.getName())) {
       applicationManager.openPostProcessingDialog();
-      unSelectAll();
-      procCtlPostProcessing.setSelected(true);
       return;
     }
   }
@@ -411,6 +398,46 @@ public class AxisProcessPanel implements ContextMenu {
     }
   }
 
+  /**
+   * Select the requested button
+   * @param name
+   */
+  public void selectButton(String name) {
+    unSelectAll();
+    if (name.equals(procCtlPreProc.getName())) {
+      procCtlPreProc.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlCoarseAlign.getName())) {
+      procCtlCoarseAlign.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlFiducialModel.getName())) {
+      procCtlFiducialModel.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlFineAlignment.getName())) {
+      procCtlFineAlignment.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlTomogramPositioning.getName())) {
+      procCtlTomogramPositioning.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlTomogramGeneration.getName())) {
+      procCtlTomogramGeneration.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlTomogramCombination.getName())) {
+      procCtlTomogramCombination.setSelected(true);
+      return;
+    }
+    if (name.equals(procCtlPostProcessing.getName())) {
+      procCtlPostProcessing.setSelected(true);
+      return;
+    }
+  }
+
   private void unSelectAll() {
     procCtlPreProc.setSelected(false);
     procCtlCoarseAlign.setSelected(false);
@@ -421,50 +448,44 @@ public class AxisProcessPanel implements ContextMenu {
     procCtlTomogramCombination.setSelected(false);
     procCtlPostProcessing.setSelected(false);
   }
-  
+
   /**
-   * Right mouse button context menu
-   */
+     * Right mouse button context menu
+     */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "");
   }
 
   /**
-   * Initialize the tooltip text for the axis panel objects
-   */
+     * Initialize the tooltip text for the axis panel objects
+     */
   private void setToolTipText() {
     String line1, line2, line3, line4;
     line1 = "<html>Open the Pre-processing panel that allows<br>";
     line2 = "for the conversion of Digital Micrograph files<br>";
     line3 = "and running CCD eraser.";
     procCtlPreProc.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>Open the Coarse Alignment panel to generate a<br>";
     line2 = "coarsely aligned stack using cross correlation and <br>";
     line3 = "to fix coarse alignment problems with Midas.";
     procCtlCoarseAlign.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>Open the Fiducial Model Generation panel to create<br>";
     line2 = "a fiducial model to be used in the fine alignment step.";
     procCtlFiducialModel.setToolTipText(line1 + line2);
-
     line1 = "<html>Open the Fine Alignment panel to use the generated<br>";
     line2 = "fiducial model to sub-pixel align the project sequence.";
     procCtlFineAlignment.setToolTipText(line1 + line2);
-
     line1 = "<html>Open the Tomogram Position panel to optimally adjust<br>";
     line2 = "the 3D location and size of the reconstruction volume.";
     procCtlTomogramPositioning.setToolTipText(line1 + line2);
-
-    line1 = "<html>Open the Tomogram Generation panel to generate the final<br>";
+    line1 =
+      "<html>Open the Tomogram Generation panel to generate the final<br>";
     line2 = "aligned stack and calcuate the tomographic reconstruction.";
     procCtlTomogramGeneration.setToolTipText(line1 + line2);
-
     line1 = "<html>Open the Tomogram Combination panel to combine the<br>";
     line2 = "tomograms generated from the A and B axes into a single<br>";
     line3 = "dual axis reconstruction.";
     procCtlTomogramCombination.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>Open the Post Processing panel to trim the final<br>";
     line2 = "reconstruction to size and delete the intermediate files.";
     procCtlPostProcessing.setToolTipText(line1 + line2);
@@ -473,11 +494,10 @@ public class AxisProcessPanel implements ContextMenu {
 }
 
 /**
- *   Action listeners to handle process panel events
- */
+*   Action listeners to handle process panel events
+*/
 class ProcessButtonActionListener implements ActionListener {
   AxisProcessPanel adaptee;
-
   ProcessButtonActionListener(AxisProcessPanel adaptee) {
     this.adaptee = adaptee;
   }
@@ -487,11 +507,10 @@ class ProcessButtonActionListener implements ActionListener {
 }
 
 /**
- * Action listener to handle process kill
- */
+* Action listener to handle process kill
+*/
 class KillButtonActionListener implements ActionListener {
   AxisProcessPanel adaptee;
-
   KillButtonActionListener(AxisProcessPanel adaptee) {
     this.adaptee = adaptee;
   }
