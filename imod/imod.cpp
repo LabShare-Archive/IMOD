@@ -35,12 +35,11 @@ $Revision$
 Log at the end of file
 */
 
-#include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#ifdef __unix
+#ifndef NO_IMOD_FORK
 #include <unistd.h>
 #endif
 #include <qfiledialog.h>
@@ -871,6 +870,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 19:23:51  mast
+Changes for windows version
+
 Revision 4.3  2003/02/22 00:00:44  mast
 Open file in binary mode
 
