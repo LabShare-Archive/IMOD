@@ -812,27 +812,20 @@ int imod_zap_open(struct ViewInfo *vi)
     // adjust zoom either way to fit window
     needWiny = newHeight - toolHeight;
     needWinx = newWidth;
-    if (vi->xsize < needWinx && vi->ysize < needWiny) {
 
-      // If images are too small, start big and find first zoom that fits
+    // If images are too big, zoom down until they almost fit
+    // If images are too small, start big and find first zoom that fits
+    // Apply same overflow criterion so that reopened windows will behave
+    // the same as when they were first opened
+    if (vi->xsize < needWinx && vi->ysize < needWiny)
       zap->zoom = (2. * needWinx) / vi->xsize;
-      while (zap->zoom * vi->xsize > 1.01 * needWinx ||
-             zap->zoom * vi->ysize > 1.01 * needWiny) {
-        newZoom = b3dStepPixelZoom(zap->zoom, -1);
-        if (newZoom == zap->zoom)
-          break;
-        zap->zoom = newZoom;
-      }
-    } else {
 
-      // If images are too big, zoom down until they almost fit
-      while (zap->zoom * vi->xsize > 1.1 * needWinx || 
-             zap->zoom * vi->ysize > 1.1 * needWiny) {
-        newZoom = b3dStepPixelZoom(zap->zoom, -1);
-        if (newZoom == zap->zoom)
-          break;
-        zap->zoom = newZoom;
-      }
+    while (zap->zoom * vi->xsize > 1.1 * needWinx || 
+           zap->zoom * vi->ysize > 1.1 * needWiny) {
+      newZoom = b3dStepPixelZoom(zap->zoom, -1);
+      if (newZoom == zap->zoom)
+        break;
+      zap->zoom = newZoom;
     }
 
   }
@@ -2822,6 +2815,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.35  2003/10/31 01:29:24  mast
+Reset drawn area when rubber band is turned off
+
 Revision 4.34  2003/10/30 06:28:44  mast
 Specified that "a" hot key is lower case
 
