@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.80  2003/10/22 21:32:02  rickg
+ * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
+ * <p>
  * <p> Revision 2.79  2003/10/21 23:45:05  rickg
  * <p> Added function to delete the aligned stacks
  * <p>
@@ -612,6 +615,8 @@ public class ApplicationManager {
    * Close message from the setup dialog window
    */
   public void doneSetupDialog() {
+    //SUEH 271
+    System.out.println("in doneSetupDialog");
     if (setupDialog == null) {
       mainFrame.openMessageDialog(
         "Can not update metadata parameters without an active setup dialog",
@@ -623,6 +628,9 @@ public class ApplicationManager {
 
     if (exitState != DialogExitState.CANCEL) {
 
+      if (!setupDialog.isValid()) {
+        return;
+      }
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = System.getProperty("user.dir");
