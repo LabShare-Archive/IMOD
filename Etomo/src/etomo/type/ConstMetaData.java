@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/01/11 18:07:27  sueh
+ * <p> bug# 578 Added useZFactors.
+ * <p>
  * <p> Revision 3.15  2004/12/14 21:45:05  sueh
  * <p> bug# 572:  Removing state object from meta data and managing it with a
  * <p> manager class.  All state variables saved after a process is run belong in
@@ -195,6 +198,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     
   public ConstMetaData() {
     fileExtension = ".edf";
+    useZFactors.setResetValue(true);
   }
 
   /**
