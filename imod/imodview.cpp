@@ -82,6 +82,19 @@ unsigned char **ivwGetCurrentZSection(ImodView *iv)
   return(ivwGetZSection(iv, cz));
 }
 
+/* Reopen an image file, setting current directory correctly before opening,
+ and back afterwards */
+int ivwReopen(ImodImageFile *inFile)
+{
+  int retval;
+  if (!Imod_IFDpath.isEmpty())
+    QDir::setCurrent(Imod_IFDpath);
+  retval = iiReopen(inFile);
+  if (!Imod_IFDpath.isEmpty())
+    QDir::setCurrent(Imod_cwdpath);
+  return retval;
+}
+
 /* Get a section at potentially different time from current time */
 unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time)
 {
@@ -99,12 +112,7 @@ unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time)
 
   iv->ct = time;
   iv->hdr = iv->image = &iv->imageList[time-1];
-  /* DNM: need to change directory before reopening, and back afterwards */
-  if (!Imod_IFDpath.isEmpty())
-    QDir::setCurrent(Imod_IFDpath);
-  iiReopen(iv->image);
-  if (!Imod_IFDpath.isEmpty())
-    QDir::setCurrent(Imod_cwdpath);
+  ivwReopen(iv->image);
   imageData = ivwGetZSection(iv, section);
   iiClose(iv->image);
   iv->ct = oldTime;
@@ -502,6 +510,7 @@ void ivwInit(ImodView *vi)
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
+  vi->multiFileZ = 0;
   vi->extraObj = imodObjectNew();
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
@@ -1008,12 +1017,7 @@ void ivwSetTime(ImodView *vw, int time)
     vw->hdr = vw->image = &vw->imageList[vw->ct-1];
     ivwSetScale(vw);
 
-    /* DNM: need to change directory before reopening, and back after */
-    if (!Imod_IFDpath.isEmpty())
-      QDir::setCurrent(Imod_IFDpath);
-    iiReopen(vw->image);
-    if (!Imod_IFDpath.isEmpty())
-      QDir::setCurrent(Imod_cwdpath);
+    ivwReopen(vw->image);
    }
   /* DNM: update scale window */
   imodImageScaleUpdate(vw);
@@ -1114,6 +1118,18 @@ float ivwGetFileValue(ImodView *vw, int cx, int cy, int cz)
       }
     }
 
+    /* For multi-file sections in Z, make sure z is legal, reopen the right
+       section if necessary, and set z to 0 */
+    if (vw->multiFileZ > 0) {
+      if (fz >= 0 && fz < vw->multiFileZ && vw->image != &vw->imageList[fz]) {
+        iiClose(vw->image);
+        vw->hdr = vw->image = &vw->imageList[fz];
+        ivwReopen(vw->image);
+        fp = vw->image->fp;
+        }
+      fz = 0;
+    }
+
     if (vw->li->plist){
 
       /* montaged: find piece with coordinates in it and get data 
@@ -1198,6 +1214,7 @@ void memreccpy
 /* Read a section of data into the cache */
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz)
 {
+  int zread;
 
   /* Image in not a stack but loaded into pieces. */
   if (iv->li->plist){
@@ -1301,20 +1318,23 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz)
     return;
   }
 
-  /* normal data, YZ flipped */
-  if (iv->li->axis == 2){
-    if (iv->rawImageStore)
-      iiReadSection(iv->image, (char *)buf, cz + iv->li->ymin);
-    else
-      iiReadSectionByte(iv->image, (char *)buf, cz + iv->li->ymin);
-    return;
+  /* normal data - set up z to read based on axis, flipped or not */
+  zread = cz + iv->li->zmin;
+  if (iv->li->axis == 2)
+    zread = cz + iv->li->ymin;
+
+  /* For multi-file Z, close current file, open proper one,  read z = 0 */
+  if (iv->multiFileZ > 0) {
+    iiClose(iv->image);
+    iv->hdr = iv->image = &iv->imageList[zread];
+    ivwReopen(iv->image);
+    zread = 0;
   }
 
-  /* normal data, unflipped */
   if (iv->rawImageStore) 
-    iiReadSection(iv->image, (char *)buf, cz + iv->li->zmin);
+    iiReadSection(iv->image, (char *)buf, zread);
   else
-    iiReadSectionByte(iv->image, (char *) buf, cz + iv->li->zmin);
+    iiReadSectionByte(iv->image, (char *) buf, zread);
 
   return;
 }
@@ -2011,21 +2031,31 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
         zsize = image->nz;
     }     
 
+    /* If maximum Z is 1 and multifile treatment in Z is allowed, set zsize
+       to number of files, and cancel treatment as times */
+    if (ilist->size > 1 && zsize == 1 && iv->multiFileZ >= 0) {
+      zsize = ilist->size;
+      iv->multiFileZ = ilist->size;
+      iv->ct = iv->nt = 0;
+    }
+
     /* Use this to fix the load-in coordinates, then use those to set the
-       lower left and upper right coords in each file */
+       lower left and upper right coords in each file - except for Z in the
+       multifile Z case, which is set to 0 - 0 */
     mrc_fix_li(iv->li, xsize, ysize, zsize);
     for (i = 0; i < ilist->size; i++) {
       image = (ImodImageFile *)ilistItem(ilist, i);
       image->llx = iv->li->xmin;
       image->lly = iv->li->ymin;
-      image->llz = iv->li->zmin;
+      image->llz = iv->multiFileZ > 0 ? 0 : iv->li->zmin;
       image->urx = iv->li->xmax;
       image->ury = iv->li->ymax;
-      image->urz = iv->li->zmax;
+      image->urz = iv->multiFileZ > 0 ? 0 : iv->li->zmax;
                
-      /* If not an MRC file or color file, set to no flipping ever */
+      /* If not an MRC file or color file, or if multifile in Z, set to no 
+         flipping ever */
       if (image->file != IIFILE_MRC || 
-          image->format == IIFORMAT_RGB) {
+          image->format == IIFORMAT_RGB || iv->multiFileZ > 0) {
         iv->li->axis = 3;
         iv->flippable = 0;
       }
@@ -2081,11 +2111,17 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
       (sizeof(ImodImageFile) * ilist->size);
     memcpy(iv->imageList, ilist->data,
            sizeof(ImodImageFile) * ilist->size);
-    ivwSetTime(iv, 1);
-    iv->hdr = iv->image = iv->imageList;
-    /* mrc_init_li(iv->li, NULL);
-       mrc_fix_li(iv->li, xsize, ysize, zsize); */
-    iv->dim |= 8;
+    /* for times, set up initial time; for multifile Z, reopen first image */
+    if (iv->multiFileZ <= 0) {
+      ivwSetTime(iv, 1);
+      iv->hdr = iv->image = iv->imageList;
+      /* mrc_init_li(iv->li, NULL);
+         mrc_fix_li(iv->li, xsize, ysize, zsize); */
+      iv->dim |= 8;
+    } else {
+      iv->hdr = iv->image = &iv->imageList[0];
+      ivwReopen(iv->image);
+    }
   }
           
   iv->xsize  = xsize;
@@ -2191,6 +2227,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.17  2003/12/04 22:57:17  mast
+Set info window position for fake images too
+
 Revision 4.16  2003/11/01 18:12:17  mast
 changed to put out virtually all error messages to a window
 
