@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/12/03: Substituted new default object color scheme with 35 colors that
+are chosen purely by object number.
+
+3/12/03: Made all keypad hot keys work even when Num Lock is on.
+
+3/12/03: Added Ctrl-R hotkey to raise all windows.
+
+3/11/03: Prevented Zap, Slicer, and Xyz windows from adding or moving points
+when the current contour time does not match the displayed image time.
+
+3/11/03: Added current point and end point markers to the slicer window model
+display, made the left mouse button attach to nearest model point in model
+mode, and made the image lock work while adding or moving model points.
+
 IMOD_3-0-2
 3/6/03: Made the Z slider in the Zap window controllable with Ctrl key.
 
