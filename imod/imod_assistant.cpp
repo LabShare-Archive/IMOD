@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2004/11/22 03:58:58  mast
+    Got it working in Windows/Qt 3.3; added check for file existence
+
     Revision 1.1  2004/11/22 00:21:32  mast
     Addition to program
 
@@ -25,7 +28,7 @@
 #include <qdir.h>
 #include <qstringlist.h>
 #include "imod_assistant.h"
-#include "dia_qtutils.h";
+#include "dia_qtutils.h"
 #include "imod.h"
 
 ImodAssistant *ImodHelp;
