@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
 Revision 3.9  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -697,7 +700,7 @@ void imod_exit(int retcode)
 void imod_quit(void)
 {
   static int quitting = 0;
-  int done;
+  int done, err;
 
   if (quitting)
     return;
@@ -715,9 +718,11 @@ void imod_quit(void)
   switch(done){
   case 1:
 	  
-    if (SaveModelQuit(Model)){
+    if ((err = SaveModel(Model))){
+      if (err == IMOD_IO_SAVE_CANCEL)
+        break;
       wprint("%s\n", imodIOGetErrorString());
-      wprint("Model not saved.\n");
+      wprint("Model not saved; quit aborted.\n");
       break;
     }else{
       imod_cleanup_autosave();
