@@ -1,6 +1,6 @@
 <html><head> <title>IMOD User's Guide</title> </head>
 <body> 
-<H1>IMOD Users's Guide for Version 2.7.0</H1>
+<H1>IMOD Users's Guide for Version 2.7.4</H1>
 
 <HR>
 <H3>Table of Contents</H3>
@@ -28,20 +28,17 @@ The recommended configuration for running the IMOD software is:
 <P>
 Processor:  Intel Pentium III or 4 or AMD Athlon
 <BR>
-Video Card:  Nvidia Geforce 256, GeForce 2 MX, Geforce2 GTS, Geforce2 GTS 
+Video Card:  GeForce 2 MX, Geforce2 GTS, Geforce2 GTS 
 Ultra, GeForce3, GeForce 4 (64 MB or 128 MB cards preferred)
 <BR>
 Minimum memory size:  256MB
 <BR>
 Minimum disk size:          10 GB
 <BR>
-Operating System:  Red Hat 7.3 Workstation class installation.
+Operating System:  Red Hat 7.3 Workstation class installation; a
+custom installation with Kernel Development modules included is recommended.
 <BR>
 OpenMotif rather than LessTif.  See details for your OS below.
-: To use the Red Hat 7.3 distribution, you need OpenMotif 2.2.2.
-To use the Red Hat 7.1 distribution, you need OpenMotif 2.1.30 from the 
-Red Hat 7.1 PowerTools CD, or OpenMotif 2.2.2
-plus the 2.1.30 compatibility library.
 <BR>
 Nvidia Linux device drivers and OpenGL libraries from
 <A HREF = "http://www.nvidia.com">Nvidia</A>, at least version 1541 or higher.
@@ -50,15 +47,79 @@ For Red Hat 7.1 or 7.2, a version of the OpenGL library libGLU.so based on the
 SGI sample implementation, available through links at 
 <A HREF = "http://www.mesa3d.org">Mesa</A>
 <BR>
+For Red Hat 7.1 - 7.3, to work with files bigger than 2 GB, version 6.11 or
+higher of <code>tcsh</code>.
+<BR>
 <P>
-The steps required to install the Nvidia card and drivers are somewhat tricky.
-These
+The required or recommended steps for each operating system are:
+<P>
+<B>Red Hat 8.0</B>
+<UL>
+<LI>Nvidia installation
+<LI>Window manager settings
+</UL>
+<P>
+<B>Red Hat 7.3</B>
+<UL>
+<LI>Nvidia installation
+<LI>Window manager settings
+<LI>tcsh for large files
+</UL>
+<P>
+<B>Red Hat 7.1 - 7.2</B>
+<UL>
+<LI>Nvidia installation
+<LI>Window manager settings
+<LI>tcsh for large files
+<LI>OpenMotif 2.1
+<LI>libGLU
+<LI>Possible kernel upgrades for Red Hat 7.1
+</UL>
+<P>
+<B>Nvidia installation (all systems).</B>
+The steps required to install
+the Nvidia card and drivers are somewhat tricky.  These
 <A HREF = "nvidia_install.txt">instructions</A> are based on our
 current procedures and may be helpful.  In addition, here is a sample of
 a <A HREF = "XF86Config7.1.txt">/etc/X11/XF86Config-4</A> file from Red Hat
 7.1.
 <P>
-If you are running a system lower than Red Hat 7.3, you are encouraged to get
+<B>Window manager settings (all systems).</B>  To keep imod from bogging down
+when it is displaying large images or complex models, the window
+manager needs to be set to display windows as "box" rather than
+"opaque" when they are moved or resized.  This
+<A HREF = "sawfish_setup.txt">guide</A> for novices to the Sawfish window 
+manager describes these important settings and some other helpful ones when 
+using imod. 
+<P>
+<B>tcsh for large files (Red Hat 7.1 - 7.3).</B>  As of IMOD 2.6.0,
+programs have been compiled to work with files bigger than 2
+GB.  However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1-7.3 has
+problems with large files,
+and some of the IMOD shell scripts will fail with large files under this tcsh.
+For doing
+tomography with large files, you need to upgrade to <code>tcsh 6.11</code>,
+which is available as an
+<A HREF =
+"http://www.rpmfind.net//linux/RPM/cooker/cooker/i586/Mandrake/RPMS/tcsh-6.11-3mdk.i586.html">rpm</A>.
+The <code>tcsh 6.12</code> included with Red Hat 8.0 will also work.
+<P>
+<B>OpenMotif (Red Hat 7.1 - 7.2).</B>  Versions of IMOD before 2.7.4,
+and the Red Hat 7.1 release of IMOD 2.7.4,
+were built to run with OpenMotif 2.1.  The Red Hat 7.3 release of IMOD
+2.7.4 was built to run with OpenMotif 2.2, and future releases will be
+as well.  If you are running Red Hat 7.3 or later, the default
+installation should be ready to work with the latter releases.  For
+Red Hat 7.1 or 7.2, you need to install version 2.1 of OpenMotif and
+run an IMOD built to run with it.
+This is available as OpenMotif 2.1.30 from the 
+Red Hat 7.1 PowerTools CD, or OpenMotif 2.2.2
+plus the 2.1.30 compatibility library from the Red Hat 7.3 packages.
+See our <A HREF =
+"nvidia_install.txt">Nvidia instructions</A> for details.
+<P>
+<B>libGLU (Red Hat 7.1 - 7.2).</B>  If you are running a system lower than 
+Red Hat 7.3, you are encouraged to get
 a copy of libGLU.so based on SGI's source code
 because the version from Mesa distributed with Red Hat 7.1 is missing some
 functions, which will make imod crash if you attempt to display an object
@@ -68,44 +129,23 @@ of IMOD 2.50, Imod has been compiled without the workaround that prevented
 these crashes, another reason to get a better libGLU.  See our <A HREF =
 "nvidia_install.txt">Nvidia instructions</A> for details.
 <P>
-To run Imod, you need version 2.1 of OpenMotif.  However, future releases will
-probably be built against version 2.2.  You may wish to install or upgrade
-to version 2.2 plus the 2.1 compatibility libraries.  See our <A HREF =
-"nvidia_install.txt">Nvidia instructions</A> for details.
-<P>
-Red Hat 7.1 also shipped with a version of the MTRR module that broke the
+<B>Kernel upgrades (Red Hat 7.1).</B>  Red Hat 7.1 shipped with a
+version of the MTRR module that broke the
 accelerated graphics support for AMD processors.  For proper graphics
 performance, you may need to upgrade your kernel.  Here are some simplified
 <A HREF = "kernel_upgrade.txt">
 instructions</A>
 for installing an upgrade kernel with Nvidia drivers.
-In addition, 
-here are some 
+In addition, here are some 
 <A HREF = "kernel_build7.1.txt">
 instructions</A> based on our experience in building kernels for Red Hat 7.1.
 <P>
-Versions earlier than IMOD 2.6.4 recommended replacing a <code>csh</code>
+<B>Note on old versions.</B>  Versions earlier than IMOD 2.6.4 recommended 
+replacing a <code>csh</code>
 startup file, <code>/etc/profile.d/colorls.csh</code>, because of problems
 with the <CODE>subm</CODE> alias, but this is no longer necessary
 if the alias has the -ef flag on 
 <code>csh</code> (see the <A HREF="tomoguide.html">Tomography Guide</A>).
-<P>
-Several window manager settings are also needed to keep imod from bogging down
-when it is displaying large images or complex models.
-This
-<A HREF = "sawfish_setup.txt">guide</A> for novices to the Sawfish window 
-manager describes the important settings and some other helpful ones when 
-using imod. 
-<P>
-As of IMOD 2.6.0, programs have been compiled to work with files bigger than 2
-GB.  However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1-7.3 has
-problems with large files,
-and some of the IMOD shell scripts will fail with large files under this tcsh.
-For doing
-tomography with large files, you need to upgrade to <code>tcsh 6.11</code>,
-which is available as an
-<A HREF =
-"http://www.rpmfind.net//linux/RPM/cooker/cooker/i586/Mandrake/RPMS/tcsh-6.11-3mdk.i586.html">rpm</A>.
 
 <H4>Installing IMOD.</H4>
 All of the IMOD programs are available via the 
@@ -965,7 +1005,7 @@ Quick Draw 3D</A> Home Page for more information.
 <LI> <A HREF="tomojoin.html"> Guide for joining tomograms from serial sections.</A>
 <LI> <A HREF = "serialalign.txt">Guide to serial section alignment.</A>
 <HR>
-<I>Last updated: August 21, 2002</I>
+<I>Last updated: November 5, 2002</I>
 [<A HREF="../index.html">IMOD Home Page</A>] 
 [<A HREF="../../index.html">BL3DFS Home Page</A>]
 </BODY>

@@ -1,6 +1,6 @@
 These instructions may be helpful with the steps required if you are
 installing an Nvidia card to use with IMOD.  They were correct as of
-August 2002.  The list of steps assume that you have already installed
+November 2002.  The list of steps assume that you have already installed
 Red Hat Linux 7.1-7.3 with the XFree86 drivers.
 
 1. Go to the Nvidia web site (http://www.nvidia.com) and find the page
@@ -46,7 +46,7 @@ double check - you will see a new entry for NVdriver.
 Type "make".  The message which comes out should indicate success. This will
 install the 1.0-2960 version of OpenGL from Nvidia.
 
-7. Edit your /etc/X11/XF86Config file.
+7. Edit your /etc/X11/XF86Config-4 file.
 Make sure the modules section loads "glx".
 Make your driver line says "Driver nvidia".
 A sample XF86Config file is attached for your reference.
@@ -60,23 +60,9 @@ You can examine the start up process in detail by looking in the file
 the Display line matches up with one of the screens that is declared.
 
 9. Install the real OpenMotif libraries.  
-A. If you are running Red Hat 7.3, you need the OpenMotif 2.1 compatibility
-libraries.  If you did a custom installation and selected "Legacy
-Applications", you should have them already.  Check whether they are present 
-with:
-
-rpm -qa | grep motif
-
-If this yields openmotif21-2.1.30-1, you are all set.  Otherwise insert
-the (second?) Binary CD of the 7.3 distribution and start up GnoRPM.
-(It should offer to start up automatically; if not, do
-Paw-Programs-System-GnoRPM.)
-
-Click the "install" icon on GNORPM to get the second window that
-indicates packages available on the CD.
-
-Under system environment, libraries, select "OpenMotif21-2.1.30-1" then 
-push "Install" to complete the installation.
+A. If you are running Red Hat 7.3 or higher and will be running a version
+of IMOD built to run with OpenMotif 2.2 (IMOD 2.7.4 or higher), you should be
+all set.
 
 B. For systems below Red Hat 7.3, you can install OpenMotif 2.1 from
 the PowerTools CD (for Red Hat 7.0 or 7.1) or (possibly) from the Utilities
@@ -95,10 +81,9 @@ select "OpenMotif".
 
 Push "Install" to complete the installation.
 
-C. Alternatively, for systems below Red Hat 7.3, you can install or upgrade to
-OpenMotif 2.2 plus the 2.1 compatibility libaries.  This will allow you to run 
-IMOD 2.7.0 and should be compatible with future releases of IMOD that are built
-against OpenMotif 2.2.  Go to the Red Hat site (http://www.redhat.com) and
+C. Alternatively, for systems below Red Hat 7.3, you can install
+OpenMotif 2.2 plus the 2.1 compatibility libaries.  
+Go to the Red Hat site (http://www.redhat.com) and
 search Linux sites for the following RPMs:
 
 openmotif21-2.1.30-1
