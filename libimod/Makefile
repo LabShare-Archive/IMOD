@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/06/05 00:08:50  mast
+#  Added PIP files here since this library is already in Fortran builds
+#
 #  Revision 3.1  2002/07/21 19:26:59  mast
 #  Added dependencies on imodel.h
 #
@@ -22,19 +25,21 @@
 include ../configure
 
 LIB   = libimod.$(LIBEXT)
+O     = $(OBJEXT)
 
-IMODELOBJS = imodel.o iobj.o icont.o imodel_to.o\
-             imodel_from.o ipoint.o imodel_files.o imesh.o\
-             imodel_fwrap.o imat.o iplane.o iview.o\
-	     ilist.o ilabel.o
 
-PIPOBJS = parse_params.o pip_fwrap.o
+IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
+             imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
+             imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
+	     ilist.$(O) ilabel.$(O) b3dutil.$(O)
+
+PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
 
 all : $(LIB)
 
 $(LIB) : $(IMODELOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIB) $(LIB) $(IMODELOBJS) $(PIPOBJS)
+	$(MAKELIB)$(LIB) $(IMODELOBJS) $(PIPOBJS)
 	$(RANLIB) $(LIB)
 	$(CP) $(LIB) $(LIBDIR)
 
@@ -43,7 +48,7 @@ install : $(LIB)
 
 clean : 
 	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
 
@@ -57,14 +62,15 @@ work : clean
 # Some depends.
 #
 $(IMODELOBJS) : $(INCDIR)imodel.h
-imodel.o : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
+imodel.$(O) : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
 $(INCDIR)/ipoint.h $(INCDIR)/imesh.h ../.version
-iobj.o   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
-imesh.o  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
-icont.o  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
-ipoint.o : $(INCDIR)/ipoint.h
-iplane.o : $(INCDIR)/iplane.h
-iview.o  : $(INCDIR)/iview.h
-imat.o   : $(INCDIR)/imat.h
-ilist.o  : $(INCDIR)/ilist.h
+iobj.$(O)   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
+imesh.$(O)  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
+icont.$(O)  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
+ipoint.$(O) : $(INCDIR)/ipoint.h
+iplane.$(O) : $(INCDIR)/iplane.h
+iview.$(O)  : $(INCDIR)/iview.h
+imat.$(O)   : $(INCDIR)/imat.h
+ilist.$(O)  : $(INCDIR)/ilist.h
+b3dutil.$(O) : $(INCDIR)/b3dutil.h
 $(PIPOBJS) : $(INCDIR)parse_params.h
