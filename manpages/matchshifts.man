@@ -17,7 +17,11 @@ initial estimate of shifts in X and Z.  In this way, quite large shifts between
 the volumes can be determined.  Next, it extracts a subset from the
 center of the first volume and uses matchvol to extract and transform the
 approximately corresponding subset of the second volume.  The two subsets are
-cross-correlated in 3-D to estimate the shifts in X, Y, and Z.
+cross-correlated in 3-D to estimate the shifts in X, Y, and Z.  With these
+final shifts, it then extracts a subset volume just adjacent to the central
+subsets and uses 3-D correlation to check whether the shifts are correct.
+If the displacement between these two volumes is too large, matchshifts
+exits with an error message and a non-zero status.
 .SH ARGUMENTS
 root_name1 and root_name2 are the root names (without extension .rec) of the
 first and second volumes.
@@ -32,6 +36,8 @@ file is assumed to be solvezero.xf.
 An optional seventh argument (xf_out) can be used to specify the output 
 file for the completed transformation; otherwise this file will be solve.xf.
 .SH FILES
+The program leaves the subset volumes used for checking the alignments.
+These files are matchcheck.rec and matchcheck.mat.
 The program assumes that volumes have the extension ".rec" and, unless there is
 a sixth argument, it assumes that the 3x3 transformation is in solvezero.xf.
 .SH AUTHOR
