@@ -30,56 +30,10 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.15  2003/01/30 06:23:18  mast
-fiddling with first draw
-
-Revision 1.1.2.14  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 1.1.2.13  2003/01/30 00:48:43  mast
-New timer logic
-
-Revision 1.1.2.12  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.11  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.10  2003/01/02 15:40:27  mast
-use dia call to block signals when setting toolbar slider
-
-Revision 1.1.2.9  2002/12/17 17:30:50  mast
-Adding timer for redraws, using tooledit with column specifier
-
-Revision 1.1.2.8  2002/12/17 04:45:54  mast
-Use new ability to set columns in tooledits
-
-Revision 1.1.2.7  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.6  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.5  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.4  2002/12/12 01:25:14  mast
-added z slider
-
-Revision 1.1.2.3  2002/12/09 23:24:06  mast
-*** empty log message ***
-
-Revision 1.1.2.2  2002/12/09 22:00:29  mast
-include stdio and stdlib for atof/atoi calls
-
-Revision 1.1.2.1  2002/12/09 17:47:51  mast
-Initial addition to source
-
+Log at end of file
 */
+
 #include <stdlib.h>
-#include <stdio.h>
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
@@ -430,3 +384,55 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
   if (mMousePressed)
     zapMouseMove(mZap, e);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:03  mast
+autox.cpp
+
+Revision 1.1.2.15  2003/01/30 06:23:18  mast
+fiddling with first draw
+
+Revision 1.1.2.14  2003/01/30 06:17:47  mast
+Add ability to change range of Z slider on image flip
+
+Revision 1.1.2.13  2003/01/30 00:48:43  mast
+New timer logic
+
+Revision 1.1.2.12  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.11  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 1.1.2.10  2003/01/02 15:40:27  mast
+use dia call to block signals when setting toolbar slider
+
+Revision 1.1.2.9  2002/12/17 17:30:50  mast
+Adding timer for redraws, using tooledit with column specifier
+
+Revision 1.1.2.8  2002/12/17 04:45:54  mast
+Use new ability to set columns in tooledits
+
+Revision 1.1.2.7  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 1.1.2.6  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
+Revision 1.1.2.5  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 1.1.2.4  2002/12/12 01:25:14  mast
+added z slider
+
+Revision 1.1.2.3  2002/12/09 23:24:06  mast
+*** empty log message ***
+
+Revision 1.1.2.2  2002/12/09 22:00:29  mast
+include stdio and stdlib for atof/atoi calls
+
+Revision 1.1.2.1  2002/12/09 17:47:51  mast
+Initial addition to source
+
+*/

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.3  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -57,7 +60,6 @@ Make routine for parsing pixel size string
 #include <qlayout.h>
 #include <qtooltip.h>
 #include "dia_qtutils.h"
-#include <stdio.h>
 #include <math.h>
 
 #include "imod.h"
@@ -165,7 +167,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
     mEditBox[i] = new ToolEdit(this, 12);
     grid->addWidget(mEditBox[i], i, 1);
     connect(mEditBox[i], SIGNAL(returnPressed()), this, SLOT(valueEntered()));
-    connect(mEditBox[i], SIGNAL(lostFocus()), this, SLOT(valueEntered()));
+    connect(mEditBox[i], SIGNAL(focusLost()), this, SLOT(valueEntered()));
     QToolTip::add(mEditBox[i], boxTips[i]);
   }
 

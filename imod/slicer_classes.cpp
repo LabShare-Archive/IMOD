@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
 Revision 1.1.2.4  2003/01/30 00:52:36  mast
 new timer logic for getting clean first image
 
@@ -130,7 +133,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
-  connect(mZoomEdit, SIGNAL(lostFocus()), this, SLOT(newZoom()));
+  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   
   // Make the 2 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);

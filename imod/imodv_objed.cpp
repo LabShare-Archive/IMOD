@@ -972,7 +972,7 @@ static void mkPoints_cb(int index)
   layout1->addWidget(wPointEdit);
   QObject::connect(wPointEdit, SIGNAL(returnPressed()), &imodvObjed,
           SLOT(pointSizeSlot()));
-  QObject::connect(wPointEdit, SIGNAL(lostFocus()), &imodvObjed,
+  QObject::connect(wPointEdit, SIGNAL(focusLost()), &imodvObjed,
           SLOT(pointSizeSlot()));
 
   diaLabel("Scattered Point Size", oef->control, layout1);
@@ -1563,6 +1563,9 @@ int hotSliderKey()
 
 /*
 $Log$
+Revision 4.3  2003/02/27 17:35:27  mast
+Fixed bug in setting material with multiple models
+
 Revision 4.2  2003/02/21 22:19:54  mast
 Use new b3d type
 
