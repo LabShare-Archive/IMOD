@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2002/12/11 21:28:29  rickg
+ * <p> Implemented repaint method, doesn't work well
+ * <p>
  * <p> Revision 1.7  2002/12/11 00:37:26  rickg
  * <p> Added handler for options/settings menu
  * <p>
@@ -138,7 +141,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuFileExit.addActionListener(new menuFileExitActionAdapter(this));
 
     menuSettings.addActionListener(new menuOptionsSettingsActionAdapter(this));
-
+    menuAdvanced.addActionListener(new menuOptionsAdvancedActionAdapter(this));
     menuHelpAbout.addActionListener(new menuHelpAboutActionAdapter(this));
 
     //  File menu
@@ -161,10 +164,12 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuHelp.add(menuHelpAbout);
     menuBar.add(menuFile);
     menuOptions.add(menuSettings);
+    setAdvancedLabel();
+
     menuOptions.add(menuAdvanced);
     menuBar.add(menuOptions);
     menuBar.add(menuHelp);
-    this.setJMenuBar(menuBar);
+    setJMenuBar(menuBar);
 
     createProcessControlPanel();
 
@@ -373,6 +378,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     applicationManager.openSettingsDialog();
   }
 
+  /**
+   * Options/Advanced action
+   */
+  void menuOptionsAdvancedAction() {
+    applicationManager.setAdvanced(!applicationManager.getAdvanced());
+    setAdvancedLabel();
+  }
+
   /**Help | About action performed*/
   void menuHelpAboutAction(ActionEvent e) {
     MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
@@ -536,6 +549,15 @@ public class MainFrame extends JFrame implements ContextMenu {
       "<html>This process control panel is not yet complete<br>");
 
   }
+
+  private void setAdvancedLabel() {
+    if (applicationManager.getAdvanced()) {
+      menuAdvanced.setText("Advanced X");
+    }
+    else {
+      menuAdvanced.setText("Advanced");
+    }
+  }
 }
 
 //
@@ -593,6 +615,17 @@ class menuOptionsSettingsActionAdapter implements ActionListener {
   }
   public void actionPerformed(ActionEvent e) {
     adaptee.menuOptionsSettingsAction(e);
+  }
+}
+
+class menuOptionsAdvancedActionAdapter implements ActionListener {
+  MainFrame adaptee;
+
+  menuOptionsAdvancedActionAdapter(MainFrame adaptee) {
+    this.adaptee = adaptee;
+  }
+  public void actionPerformed(ActionEvent e) {
+    adaptee.menuOptionsAdvancedAction();
   }
 }
 
