@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 C	  GRAPHDSP displays one graph in histogram format in one of 4 windows
 c	  on the parallax.
 c	  GRAPH is the array containing numbers to be graphed
@@ -376,7 +384,7 @@ c	  for input instead of keyboard input, or restores keyboard input
 c	  if no file name is entered, or if end of file or error occurs.
 c
 	subroutine opencomfile
-	character*80 comfile
+	character*120 comfile
 	logical istty/.true./
 	save istty
 	write(*,*) 'Enter name of file with commands,',
@@ -489,7 +497,7 @@ c
 	subroutine save_graph(graphs,areas,nbins,delr,ifangdiff,rmin,
      &	    rmax)
 	real*4 graphs(*),areas(*)
-	character*50 namein,filename
+	character*120 namein,filename
 	save filename,nch
 	integer*4 nch/0/
 c	  
@@ -532,7 +540,7 @@ c
 	subroutine read_graph(graphs,areas,nbins,delr,ifangdiff,rmin,
      &	    rmax,irecget,needfile,iferr)
 	real*4 graphs(*),areas(*)
-	character*80 namein,filename
+	character*120 namein,filename
 	save filename,nch
 	integer*4 nch/0/
 c	  
@@ -582,6 +590,55 @@ c
 	delr=1.
 	graphs(1)=0.
 	areas(1)=0.
+	return
+	end
+
+c	  EXPORT_GRAPH exports a graph to a file for use elsewhere
+c	  
+	subroutine export_graph(graphs,areas,nbins,delr)
+	implicit none
+	real*4 graphs(*),areas(*)
+	character*120 filename
+	integer*4 nbins
+	real*4 delr
+	integer*4 itype, ifcounts, i
+	real*4 yval,xstart,xmid,xend
+c	  
+	write(*,'(1x,a,$)')'0 to output densities, 1 to output counts: '
+	read(5,*)ifcounts
+
+	write(*,'(a,/,a,/,a,/a,$)')
+     &	    ' Enter 1 to output points for drawing histogram graph,',
+     &	    '       2 to output bin starting distance and bin value,',
+     &	    '       3 to output bin middle distance and bin value,',
+     &	    '    or 4 to output starting and ending distance and value: '
+	read(5,*)itype
+
+	write(*,'(1x,a,$)')'Output file name: '
+        read(5,'(a)') filename
+	call dopen(9, filename, 'new', 'f')
+
+	if (itype .eq. 1) write(9,101)0., 0.
+101	format(3g15.6)
+
+	do i = 1, nbins
+	  yval = graphs(i)
+	  if (ifcounts .ne. 0) yval = nint(graphs(i)*areas(i))
+	  xstart = (i-1)*delr
+	  xend = i * delr
+	  xmid = (i-0.5)*delr
+	  if (itype.eq.1) then
+	    write(9,101)xstart,yval
+	    write(9,101)xend,yval
+	  else if (itype.eq.2) then
+	    write(9,101)xstart,yval
+	  else if (itype.eq.3) then
+	    write(9,101)xmid,yval
+	  else 
+	    write(9,101)xstart,xend,yval
+	  endif
+	enddo
+	close(9)
 	return
 	end
 
@@ -752,5 +809,26 @@ c     &		      areas(ibin),bincum(itbin),bincum(itbinp1)
 	enddo
 c	print *,nround,itry
 	if(itry.eq.100)print *,char(7)//'Shiftbins did not converge'
+	return
+	end
+
+c	  OptionNeedsModel checks whether there is a modelfile defined,
+c	  and if not, it checks whether option IOPT is on the list
+c	  IOPTNEEDMODEL (size NOPTNEEDMODEL) of options that need a model
+
+	logical function OptionNeedsModel(modelfile, ioptNeedModel,
+     &	    nOptNeedModel, iopt)
+	implicit none
+	character*(*) modelfile
+	integer*4 iopt, ioptNeedModel(*), nOptNeedModel, i
+	OptionNeedsModel = .false.
+	if (modelfile .ne. ' ') return
+	do i = 1, nOptNeedModel
+	  if (iopt .eq. ioptNeedModel(i)) then
+	    OptionNeedsModel = .true.
+	    print *,'Option not available - no model file defined'
+	    return
+	  endif
+	enddo
 	return
 	end
