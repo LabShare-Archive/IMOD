@@ -31,12 +31,12 @@ public class SolvematchmodParam
 
     //  Extract the parameters
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if (inputArgs.length != 8) {
+    if (inputArgs.length != 12) {
       throw (
         new BadComScriptException(
           "Incorrect number of input arguments to ccderaser command\nGot "
             + String.valueOf(inputArgs.length)
-            + " expected 8."));
+            + " expected 12."));
     }
     int i = 0;
     toFiducialCoordinatesFile = inputArgs[i++].getArgument();
@@ -116,16 +116,16 @@ public class SolvematchmodParam
    * Sets the fiducialMatchListA.
    * @param fiducialMatchListA The fiducialMatchListA to set
    */
-  public void setFiducialMatchListA(StringList fiducialMatchListA) {
-    this.fiducialMatchListA = fiducialMatchListA;
+  public void setFiducialMatchListA(String list) {
+    fiducialMatchListA.parseString(list);
   }
 
   /**
    * Sets the fiducialMatchListB.
    * @param fiducialMatchListB The fiducialMatchListB to set
    */
-  public void setFiducialMatchListB(StringList fiducialMatchListB) {
-    this.fiducialMatchListB = fiducialMatchListB;
+  public void setFiducialMatchListB(String list) {
+    fiducialMatchListA.parseString(list);
   }
 
   /**
