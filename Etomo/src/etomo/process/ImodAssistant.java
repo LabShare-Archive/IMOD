@@ -12,21 +12,29 @@ import etomo.type.AxisID;
  * <p>Description:
  * ImodAssistant constructs a private ImodProcess instance.  It should be used
  * to perform any function on the ImodProcess instance that is required by the
- * ImodManager.</p>
+ * ImodManager.
+ * 
+ * ImodAssistant should mirror ImodProcess's state as much as
+ * possible without changing the previously existing functionality.</p>
  * 
  * <p>Use:
  * 1. Construct an ImodAssistant with all parameters required to create the
  *    correct ImodProcess instance.
  * 2. If necessary, run setup() to do the initial configuration of the
  *    ImodProcess instance.
- * 3. Use set functions and run other functions as needed.
+ * 3. Settings that are constant can be set using the configure functions
+ *    prior to open() and model().
+ *    Examples:  
+ *    fiducialModel.setUseModv(true) => configureUseModv(true);
+ *    fullVolume.setModelName("") => configureModelName("");
+ *    patchVectorModel.modelMode() => configureSetToMode(true);
+ *    coarseAligned.openModelPreserveContrast(modelName); =>
+ *      configurePreserveContrast();
+ * 4. Settings that are variable can be passed to open() or model(), or to the
+ *    configuration functions just before running open() or model().
  * 
  * Settings:
  * - All options are initially false, except for outputWindowID.
- * 
- * Testing:
- * Functions to check the state of both ImodAssistant and ImodProcess are
- * available.
  * 
  * <p>Copyright: Copyright(c) 2002, 2003</p>
  * 
@@ -39,6 +47,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2003/11/21 23:49:46  sueh
+ * <p> $bug242 ImodAssistant - made it more configureable,
+ * <p> $improved the interface
+ * <p> $
  * <p> $Revision 1.1  2003/11/15 01:40:12  sueh
  * <p> $bug242 created class to run ImodProcess functions for
  * <p> $ImodManager
@@ -50,16 +62,28 @@ public class ImodAssistant {
 
   protected ImodProcess process = null;
   
+  protected static final String model = "model";
+  protected static final String movie = "movie";
 
-
+  private String datasetName = "";
+  
   private boolean openWithModel = false;
   private String modelName = "";
-  private boolean useModv = false;
+  private String modelNameUsed = "";
 
   private boolean setToMode = false;
-  private boolean modelMode = false;
+  private String mode = movie;
+  private String modeUsed = "";
   
+  private boolean swapYZ = false;
+  private boolean fillCache = false;
+  private boolean modelView = false;
+  private boolean useModv = false;
   private boolean preserveContrast = false;
+  
+
+  
+  
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
@@ -72,16 +96,19 @@ public class ImodAssistant {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
    */
-  public ImodAssistant(String dataset) {
-    process = new ImodProcess(dataset);
+  public ImodAssistant(String datasetName) {
+    this.datasetName = datasetName;
+    process = new ImodProcess(datasetName);
   }
   
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
    */
-  public ImodAssistant(String dataset, String model) {
-    process = new ImodProcess(dataset, model);
+  public ImodAssistant(String datasetName, String modelName) {
+    this.datasetName = datasetName;
+    this.modelName = modelName;
+    process = new ImodProcess(datasetName, modelName);
   }
 
   
@@ -97,12 +124,13 @@ public class ImodAssistant {
    * ImodProcess("dataseta_fixed.st");
    * ImodProcess("datasetb_fixed.st");
    */
-  public ImodAssistant(AxisID tempAxisID, String datasetName, String datasetExt) {
-    String axisExtension = tempAxisID.getExtension();
+  public ImodAssistant(AxisID axisID, String datasetName, String datasetExt) {
+    String axisExtension = axisID.getExtension();
     if (axisExtension == "ERROR") {
-      throw new IllegalArgumentException(tempAxisID.toString());
+      throw new IllegalArgumentException(axisID.toString());
     }
-    process = new ImodProcess(datasetName + axisExtension + datasetExt);
+    this.datasetName = datasetName + axisExtension + datasetExt;
+    process = new ImodProcess(this.datasetName);
   }
   
   /**
@@ -129,20 +157,9 @@ public class ImodAssistant {
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(tempAxisID.toString());
     }
-    process =
-      new ImodProcess(
-        datasetName1
-          + axisExtension
-          + datasetExt
-          + " "
-          + datasetName2
-          + axisExtension
-          + datasetExt
-          + " "
-          + datasetName3
-          + axisExtension
-          + datasetExt,
-        modelName + axisExtension + modelExt);
+    datasetName = datasetName1 + axisExtension + datasetExt + " " + datasetName2 + axisExtension + datasetExt + " " + datasetName3 + axisExtension + datasetExt;
+    this.modelName = modelName + axisExtension + modelExt;
+    process = new ImodProcess(datasetName, this.modelName);
   }
 
 
@@ -155,13 +172,16 @@ public class ImodAssistant {
    */
   public void setup(boolean swapYZ, boolean fillCache, boolean modelView) {
     if (swapYZ) {
-      process.setSwapYZ(swapYZ);
+      this.swapYZ = swapYZ;
+      process.setSwapYZ(this.swapYZ);
     }
     if (fillCache) {
-      process.setFillCache(fillCache);
+      this.fillCache = fillCache;
+      process.setFillCache(this.fillCache);
     }
     if (modelView) {
-      process.setModelView(modelView);
+      this.modelView = modelView;
+      process.setModelView(this.modelView);
     }
   }
 
@@ -216,8 +236,8 @@ public class ImodAssistant {
    * Configures opening a process and setting the mode to model or movie.
    */
   public void configureSetToMode(boolean modelMode){
-    this.setToMode = true;
-    this.modelMode = modelMode;
+    setToMode = true;
+    configureMode(modelMode);
   }
   
   /**
@@ -226,7 +246,12 @@ public class ImodAssistant {
    * @param newModelMode
    */
   public void configureMode(boolean modelMode) {
-    this.modelMode = modelMode;
+    if (modelMode) {
+      mode = model;
+    }
+    else {
+      mode = movie;
+    }
   }
   
   /**
@@ -256,17 +281,21 @@ public class ImodAssistant {
    */
   public void open() throws SystemProcessException{
     if (openWithModel) {
-      open(modelName, setToMode);
+      open(modelName);
+      if (setToMode) {
+        setMode(mode);
+      }
     }
     else {
       process.open();
       if (setToMode) {
-        setMode(modelMode);
+        setMode(mode);
       }
     }
   }
   /**
-   * Opens a process using modelName.  Ignores configuration effecting mode.
+   * Opens a process using the modelName parameter.  Ignores configuration 
+   * effecting mode.  Does not alter configuration.
    * 
    * Configuration functions you can use with this function:
    * configureUseModv()
@@ -279,34 +308,23 @@ public class ImodAssistant {
       throw new NullPointerException(toString()); 
     }
     process.setModelName(modelName);
+    modelNameUsed = modelName;
     if (useModv) {
       process.setUseModv(useModv);
       process.setOutputWindowID(false);
     }
     process.open();
-  }
+  } 
   
-  /**
-   * Opens a process using modelName.  Sets the mode if setToMode = true.
-   * 
-   * Configuration functions you can use with this function:
-   * configureSetMode()
-   * configureUseModv()
-   *  
-   * @param modelName
-   * @param setModelMode
-   * @throws SystemProcessException
-   */
-  public void open(String modelName, boolean setToMode) throws SystemProcessException {
+  public void open(String modelName, boolean modelMode) throws SystemProcessException {
     open(modelName);
-    if (setToMode) {
-      setMode(modelMode);
-    }
-  }
-  
+    setMode(modelMode);
+  } 
+
 
   /**
-   * Opens a model using modelName.  Ignores configuration effecting mode.
+   * Opens a model using the modelName parameter.  Ignores configuration 
+   * effecting mode.  Does not alter configuration.
    * 
    * Configuration functions you can use with this function:
    * configurePreserveContrast()
@@ -324,11 +342,12 @@ public class ImodAssistant {
     else {
       process.openModel(modelName);
     }
-
+    modelNameUsed = modelName;
   }
 
   /**
-   * Opens a model.  Sets the mode.  Ignores model and mode configuration.
+   * Opens a model using the modelName parameter.  Sets the mode based on the 
+   * modelModel parameter.  Does not alter configuration.
    * 
    * Configuration functions you can use with this function:
    * configurePreserveContrast()
@@ -343,17 +362,28 @@ public class ImodAssistant {
   }
   
   /**
-   * Sets the mode.  Ignores mode configuration.
+   * Sets the mode based on the modelMode parameter.  Does not alter
+   * configuration.
    * 
    * @param modelModeIn
    * @throws SystemProcessException
    */
-  public void setMode(boolean modelMode) throws SystemProcessException {
-    if (modelMode) {
+  private void setMode(String mode) throws SystemProcessException {
+    if (mode == model) {
       process.modelMode();
     }
     else {
       process.movieMode();
+    }
+    modeUsed = mode;
+  }
+  
+  private void setMode(boolean modelMode) throws SystemProcessException {
+    if (modelMode) {
+      setMode(model);
+    }
+    else {
+      setMode(movie);
     }
   }
   
@@ -383,14 +413,9 @@ public class ImodAssistant {
 
 
   
-  public boolean isPreserveContrast() {
-    return preserveContrast;
+  public String getDatasetName() {
+    return datasetName;
   }
-  
-  public boolean isUseModv() {
-    return useModv;
-  }
-  
   public boolean isOpenWithModel() {
     return openWithModel;
   }
@@ -400,10 +425,30 @@ public class ImodAssistant {
   public boolean isSetToMode() {
     return setToMode;
   }
-  public boolean isModelMode() {
-    return modelMode;
+  public String getMode() {
+    return mode;
   }
-  
+  public boolean isSwapYZ() {
+    return swapYZ;
+  }
+  public boolean isFillCache() {
+    return fillCache;
+  }
+  public boolean isModelView() {
+    return modelView;
+  }
+  public boolean isUseModv() {
+    return useModv;
+  }
+  public boolean isPreserveContrast() {
+    return preserveContrast;
+  }
+  public String getModelNameUsed() {
+    return modelNameUsed;
+  }
+  public String getModeUsed() {
+    return modeUsed;
+  }
 
 
   public String toString() {
@@ -411,24 +456,31 @@ public class ImodAssistant {
   }
 
   protected String paramString() {
-    return ",process="
-      + process
-      + ", useModv="
-      + useModv
-      + ", preserveContrast="
-      + preserveContrast
-      + ", openWithModel="
+    return ",datasetName="
+      + datasetName
+      + ",openWithModel="
       + openWithModel
-      + ", modelName="
+      + ",modelName="
       + modelName
-      + ", setToMode="
+      + ",modelNameUsed="
+      + modelNameUsed
+      + ",setToMode="
       + setToMode
-      + ", modelMode="
-      + modelMode;
+      + ",mode="
+      + mode
+      + ",modeUsed="
+      + modeUsed
+      + ",swapYZ="
+      + swapYZ
+      + ",fillCache="      + fillCache
+      + ",modelView="
+      + modelView
+      + ",useModv="
+      + useModv
+      + ",preserveContrast="
+      + preserveContrast
+      + ",process="
+      + process;
   }
-
-  
-
-
 
 }
