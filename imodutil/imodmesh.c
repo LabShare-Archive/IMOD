@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/09/10 21:34:01  mast
+Eliminated long variables
+
 Revision 3.4.4.1  2004/07/07 19:26:21  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -379,6 +382,15 @@ void main(int argc, char **argv)
 
     /* If there is a list of capping exclusion Z values, check if 0 and
        model max are on list, and extend range by 1 */
+    if (cap_skip_nz) {
+      cap_skip_zlist = (int *)realloc(cap_skip_zlist, (cap_skip_nz + 3) * 
+                                      sizeof(int));
+      if (!cap_skip_zlist) {
+        fprintf(stderr, "%s: Error getting memory for bigger cap exclusion"
+                " list\n");
+        exit(3);
+      }
+    }
     for (ilist = 0; ilist < cap_skip_nz; ilist++) {
       if (!cap_skip_zlist[ilist]) {
         cap_skip_zlist[cap_skip_nz++] = -1;
