@@ -15,9 +15,11 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.ConstSetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.CombineParams;
+import etomo.comscript.SetParam;
 
 /**
  * <p>
@@ -43,6 +45,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2004/11/19 23:54:04  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.15.2.1  2004/10/11 02:13:15  sueh
  * bug# 520 Passed the manager to the ContextPopup object in order to get
  * the propertyUserDir.
@@ -239,6 +244,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   private MultiLineButton btnImodCombined = new MultiLineButton(
     "<html><b>Open Combined Volume</b>");
   private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
+  private LabeledTextField ltfReductionFactor = new LabeledTextField(
+      "Reduction factor for matching amplitudes in combined FFT: ");
   /**
    * Default constructor
    * 
@@ -351,6 +358,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
     pnlVolcombine.add(cbNoVolcombine);
+    pnlVolcombine.add(ltfReductionFactor.getContainer());
     pnlVolcombine.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlVolcombine.add(btnVolcombineRestart);
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -500,6 +508,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     ltfYHigh.setText(patchrawlParam.getYHigh());
     ltfZLow.setText(patchrawlParam.getZLow());
     ltfZHigh.setText(patchrawlParam.getZHigh());
+  }
+  
+  void setVolcombineParams(ConstSetParam setParam) {
+    ltfReductionFactor.setText(setParam.getValue(true));
+  }
+  
+  void getVolcombineParams(SetParam setParam) {
+    setParam.setValue(ltfReductionFactor.getText());
   }
 
   /**
