@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/03/11 23:28:44  rickg
+ * <p> Added isDefault method
+ * <p>
  * <p> Revision 3.4  2004/02/26 17:58:30  sueh
  * <p> bug# 404 fixing typo
  * <p>
@@ -128,6 +131,9 @@ public class FortranInputString {
 
     // Walk through the newValues string parsing the values
     Double[] tempValue = new Double[value.length];
+    for (int i = 0; i < value.length; i++) {
+      tempValue[i] = new Double(Double.NEGATIVE_INFINITY);
+    }
     int idxValue = 0;
     int idxStart = 0;
     while (idxStart < newValues.length()) {
@@ -258,6 +264,10 @@ public class FortranInputString {
     return true;
   }
   
+  public boolean valueSet(int index) {
+    return value[index] != null && !value[index].isInfinite();
+  }
+  
   /**
    * Are all of the values set to their defaults
    * @return
@@ -271,7 +281,12 @@ public class FortranInputString {
     return true;
   }
   
-  
+  public boolean isDefault(int index) {
+    if (value[index] == null) {
+      throw new NullPointerException("value[" + index + "]");
+    }
+    return value[index].isNaN();
+  }
   /**
    * Compare given value range specified for index.
    * @param value
