@@ -22,6 +22,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/01/06 18:16:29  sueh
+ * <p> bug# 578 Make integer null value static public.
+ * <p>
  * <p> Revision 1.6  2004/12/29 00:05:29  sueh
  * <p> bug# 567 Added update(ComScriptCommand) to update value where the
  * <p> keyword in ComScriptCommand equals name.  Added validValues:  a list
@@ -82,6 +85,7 @@ public abstract class ConstEtomoNumber implements Storable {
   protected String name;
   protected String description = null;
   protected String invalidReason = null;
+  protected EtomoVersion originalVersion = null;
   protected boolean displayDefault = false;
   protected Number value;
   protected Number defaultValue;
@@ -106,6 +110,13 @@ public abstract class ConstEtomoNumber implements Storable {
   protected ConstEtomoNumber(int type, int initialValue) {
     this.type = type;
     name = super.toString();
+    description = name;
+    initialize(initialValue);
+  }
+  
+  protected ConstEtomoNumber(int type, String name, int initialValue) {
+    this.type = type;
+    this.name = name;
     description = name;
     initialize(initialValue);
   }
@@ -143,7 +154,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * Sets invalidReason if invalid
    */
   protected void validate() {
-    if (isNull() || invalidReason != null || validValues == null) {
+    if (!isSet() || invalidReason != null || validValues == null) {
       return;
     }
     boolean valid = false;
@@ -154,8 +165,8 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     if (!valid) {
       StringBuffer invalidBuffer = new StringBuffer();
-      invalidReason = "Invalid value:  " + value.toString()
-          + "\nValid values are " + validValues.toString();
+      invalidReason = "Invalid value:  " + toString(value)
+          + "\nValid values are " + toString(validValues);
     }
   }
 
@@ -254,13 +265,28 @@ public abstract class ConstEtomoNumber implements Storable {
     validate();
     return this;
   }
+  
+  public ConstEtomoNumber setOriginalVersion(String originalVersion) {
+    this.originalVersion.set(originalVersion);
+    return this;
+  }
+  
+  public boolean inVersion(EtomoVersion version) {
+    if (originalVersion.isNull() || originalVersion.isNull()) {
+      return false;
+    }
+    if (originalVersion.earlierOrEqualTo(version)) {
+      return true;
+    }
+    return false;
+  }
 
   public void store(Properties props) {
-    props.setProperty(name, value.toString());
+    props.setProperty(name, toString(value));
   }
 
   public void store(Properties props, String prepend) {
-    props.setProperty(prepend + "." + name, value.toString());
+    props.setProperty(prepend + "." + name, toString(value));
   }
 
   public void remove(Properties props, String prepend) {
@@ -276,7 +302,7 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(value)) {
       return "";
     }
-    return value.toString();
+    return toString(value);
   }
 
   public int getInteger() {
@@ -285,6 +311,13 @@ public abstract class ConstEtomoNumber implements Storable {
 
   public int getInteger(boolean displayDefault) {
     return getValue(displayDefault).intValue();
+  }
+  
+  public boolean is() {
+    if (isNull() || equals(0)) {
+      return false;
+    }
+    return true;
   }
 
   public long getLong() {
@@ -304,7 +337,8 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   public ConstEtomoNumber update(ComScriptCommand scriptCommand) {
-    if (isNull() || (!isNull(defaultValue) && equals(value, defaultValue))) {
+    Number value = getValue();
+    if (isNull(value) || (!isNull(defaultValue) && equals(value, defaultValue))) {
       scriptCommand.deleteKey(name);
     }
     else {
@@ -330,11 +364,16 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean isSetAndNotDefault() {
-    return !isNull() && (isNull(defaultValue) || !value.equals(defaultValue));
+    return isSet() && (isNull(defaultValue) || !value.equals(defaultValue));
   }
 
-  public boolean isNull() {
-    return isNull(value);
+  /**
+   * 
+   * @return true if the instance value has been set using a set function
+   * or by setting initial value.  Ignores resetValue and defaultValue.
+   */
+  public boolean isSet() {
+    return !isNull(value);
   }
 
   /**
@@ -348,6 +387,10 @@ public abstract class ConstEtomoNumber implements Storable {
 
   public boolean equals(int value) {
     return equals(getValue(), value);
+  }
+  
+  public boolean isNull() {
+    return isNull(getValue());
   }
 
   public boolean equals(Number value) {
@@ -363,6 +406,7 @@ public abstract class ConstEtomoNumber implements Storable {
     defaultValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
+    originalVersion = new EtomoVersion();
   }
 
   private void initialize(int initialValue) {
@@ -370,14 +414,29 @@ public abstract class ConstEtomoNumber implements Storable {
     defaultValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
+    originalVersion = new EtomoVersion();
   }
 
+  /**
+   * Gets the correct value, taking resetValue and defaultValue
+   * and displayDefault into account.  Should be used every time the value is
+   * looked at, except isSet().
+   * @param displayDefault
+   * @return
+   */
   private Number getValue() {
     return getValue(displayDefault);
   }
 
-  private Number getValue(boolean displayDefault) {
-    if (!isNull()) {
+  /**
+   * Gets the correct value, taking resetValue and defaultValue
+   * and displayDefault into account.  Should be used every time the value is
+   * looked at, except isSet().
+   * @param displayDefault
+   * @return
+   */
+  protected Number getValue(boolean displayDefault) {
+    if (isSet()) {
       return value;
     }
     if (!isNull(resetValue)) {
@@ -388,7 +447,22 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return value;
   }
-
+  
+  protected String toString(Number value) {
+    return value.toString();
+  }
+  
+  protected String toString(Vector numberVector) {
+    if (numberVector == null || numberVector.size() == 0) {
+      return "";
+    }
+    StringBuffer buffer = new StringBuffer(toString((Number) numberVector.get(0)));
+    for (int i = 1; i < numberVector.size(); i++) {
+      buffer.append("," + toString((Number) numberVector.get(0)));
+    }
+    return buffer.toString();
+  }
+  
   protected Number newNumber() {
     switch (type) {
     case DOUBLE_TYPE:
