@@ -328,7 +328,7 @@ bool InfoWindow::event(QEvent *e)
     mMinimized = false;
      imodDialogManager.show();
   }
-  QWidget::event(e);
+  return QWidget::event(e);
 }
 
 void InfoWindow::deferTimeout()
@@ -479,6 +479,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.13  2003/04/11 18:56:34  mast
+    switch to watching event types to manage hide/show events
+
     Revision 4.12  2003/03/28 23:51:10  mast
     changes for Mac problems
 

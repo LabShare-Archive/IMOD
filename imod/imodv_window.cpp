@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/04/11 18:56:34  mast
+switch to watching event types to manage hide/show events
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 
@@ -265,7 +268,7 @@ bool ImodvWindow::event(QEvent *e)
     mMinimized = false;
     imodvDialogManager.show();
   }
-  QWidget::event(e);
+  return QWidget::event(e);
 }
 
 void ImodvWindow::timeoutSlot()
