@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/02/24 23:46:37  rickg
+ * <p> Handle interrupted exception to destroy the process
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:44:01  rickg
  * <p> Only write in debug mode if strings are available
  * <p>
@@ -251,7 +254,7 @@ public class SystemProgram implements Runnable {
         System.err.println(String.valueOf(count) + " lines");
 
     }
-    //  FIXME need better error handling, what should be the state if an
+    // TODO need better error handling, what should be the state if an
     // exception is thrown i.e. the exitValue
 
     catch (IOException except) {

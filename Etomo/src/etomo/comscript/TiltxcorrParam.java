@@ -15,6 +15,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -55,7 +58,7 @@ public class TiltxcorrParam
     outputFile = inputArgs[inputLine++].getArgument();
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    // FIXME: what if the next argument is not a filename!
+    // NOTE what if the next argument is not a filename!
     tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
     imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
     try {

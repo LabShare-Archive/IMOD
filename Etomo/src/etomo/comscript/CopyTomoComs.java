@@ -22,6 +22,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:45:45  rickg
  * <p> Debug messages to stderr instead of stdout
  * <p>
@@ -122,7 +125,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "0";
     }
     else {
-      //  FIXME Specification of all tilt alngles is not yet implemented
+      //  TODO Specification of all tilt alngles is not yet implemented
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "-1";
       System.err.println(
@@ -155,7 +158,7 @@ public class CopyTomoComs {
         tempStdInput[lineCount++] = "0";
       }
       else {
-        //  FIXME Specification of all tilt alngles is not yet implemented
+        //  TODO Specification of all tilt alngles is not yet implemented
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "-1";
         System.err.println(
@@ -186,7 +189,7 @@ public class CopyTomoComs {
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
 
-    //  FIXME we really need to find out what the exception/error condition was
+    //  TODO we really need to find out what the exception/error condition was
     if (exitValue != 0) {
       throw (new IOException(copytomocoms.getExceptionMessage()));
     }

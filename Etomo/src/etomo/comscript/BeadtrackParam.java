@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -31,7 +34,9 @@ import etomo.type.TiltAngleType;
  * <p> </p>
  */
 
-public class BeadtrackParam extends ConstBeadtrackParam implements CommandParam {
+public class BeadtrackParam
+  extends ConstBeadtrackParam
+  implements CommandParam {
   public static final String rcsid =
     "$Id$";
 
@@ -71,7 +76,6 @@ public class BeadtrackParam extends ConstBeadtrackParam implements CommandParam 
 
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    // FIXME: what if the next argument is not a filename!
     tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
 
     try {
@@ -357,8 +361,7 @@ public class BeadtrackParam extends ConstBeadtrackParam implements CommandParam 
       nSrcSets = fis.getInt(1);
     }
     catch (FortranInputSyntaxException except) {
-      //  FIXME this should probably throw an excpetion or set a state so that
-      //  some other code above a handles it
+      // TODO throw exception so calling object can catch and display a message 
       String[] errorMessage = new String[5];
       errorMessage[0] = "BeadtrackParam Error";
       errorMessage[1] = "Existing beadtrack tilt angle parameter was incorrect";
@@ -395,8 +398,7 @@ public class BeadtrackParam extends ConstBeadtrackParam implements CommandParam 
       nSrcSets = fis.getInt(1);
     }
     catch (FortranInputSyntaxException except) {
-      //  FIXME this should probably throw an excpetion or set a state so that
-      //  some other code above a handles it
+      // TODO throw exception so calling object can catch and display a message 
       String[] errorMessage = new String[5];
       errorMessage[0] = "BeadtrackParam Error";
       errorMessage[1] =

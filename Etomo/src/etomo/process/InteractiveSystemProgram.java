@@ -15,6 +15,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/30 04:54:24  rickg
+ * <p> Comments
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -103,8 +106,9 @@ public class InteractiveSystemProgram implements Runnable {
 
     }
 
-    //  FIXME need better error handling, what should be the state if an
+    // TOD need better error handling, what should be the state if an
     // exception is thrown i.e. the exitValue
+    // we can't rethrow the exception because it is a runnable implementation
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();

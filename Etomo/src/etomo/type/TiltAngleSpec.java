@@ -16,6 +16,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -50,7 +53,7 @@ public class TiltAngleSpec implements Storable {
 
   public void setType(TiltAngleType type) {
     this.type = type;
-    // FIXME: what sort of clean do we need to do upon setting the type
+    // TODO what sort of clean do we need to do upon setting the type
     if (type == TiltAngleType.FILE) {
 
     }
@@ -70,7 +73,7 @@ public class TiltAngleSpec implements Storable {
 
   public void setRangeMin(double rangeMin) {
     //
-    //  FIXME: do we validate the range here, what value
+    //  NOTE do we validate the range here, what value
     //
     this.rangeMin = rangeMin;
   }
@@ -81,7 +84,7 @@ public class TiltAngleSpec implements Storable {
 
   public void setRangeMax(double rangeMax) {
     //
-    //  FIXME: do we validate the range here, what value
+    // NOTE do we validate the range here, what value
     //
     this.rangeMax = rangeMax;
   }
@@ -92,7 +95,7 @@ public class TiltAngleSpec implements Storable {
 
   public void setRangeStep(double rangeStep) {
     //
-    //  FIXME: do we validate the range here, what value
+    // NOTE do we validate the range here, what value
     //
     this.rangeStep = rangeStep;
   }
@@ -103,7 +106,7 @@ public class TiltAngleSpec implements Storable {
 
   public void setTiltAngleFilename(String tiltAngleFilename) {
     //
-    //  FIXME: validation, does it need to exits, format?
+    // NOTE validation, does it need to exits, format?
     //
     this.tiltAngleFilename = tiltAngleFilename;
   }

@@ -15,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -119,7 +122,7 @@ public class FortranInputString {
     }
 
     // validate the range of each value if it is not a default
-    // FIXME: walking the data twice is not the most efficient but we don't
+    // TODO walking the data twice is not the most efficient but we don't
     // want to change the state of the object if the input data is invalid
     for (int i = 0; i < tokens.length; i++) {
       double test = Double.parseDouble(tokens[i]);

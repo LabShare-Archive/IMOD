@@ -14,6 +14,9 @@ import java.awt.Color;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -32,14 +35,14 @@ public class ColoredStateText {
 
   public ColoredStateText(String[] labels, Color[] colors) {
     nItems = labels.length;
-    // FIXME: throw an exception if the two arrays are not of equal length
+    // TODO throw an exception if the two arrays are not of equal length
     this.labels = labels;
     this.colors = colors;
   }
 
   public void setSelected(int index) {
 
-    //FIXME: should throw a parameter out of range exception
+    //TODO should throw a parameter out of range exception
     if (index < 0 & index >= nItems) {
       index = -1;
     }

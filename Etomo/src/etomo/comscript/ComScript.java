@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.3  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -37,7 +40,7 @@ import java.util.Iterator;
  * <p> </p>
  */
 
-//TODO: check for necessary defensive copying
+//TODO check for necessary defensive copying
 
 public class ComScript {
   public static final String rcsid =

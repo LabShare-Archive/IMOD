@@ -1,6 +1,5 @@
 package etomo.process;
 
-// FIXME don't return null throw an exception for bad objects
 /*
  * <p>Description: </p>
  *
@@ -14,6 +13,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:36:17  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -57,6 +59,8 @@ public class ProcessState {
     if (name.compareToIgnoreCase(COMPLETE.toString()) == 0) {
       return COMPLETE;
     }
+
+    //  TODO don't return null throw an exception for bad objects
     return null;
   }
 }

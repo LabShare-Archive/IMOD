@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -112,7 +115,7 @@ public class TiltalignParam
 
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    // FIXME: what if the next argument is not a filename!
+    // TODO what if the next argument is not a filename!
     tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
 
     tiltAngleOffset = Double.parseDouble(inputArgs[inputLine++].getArgument());
@@ -122,7 +125,7 @@ public class TiltalignParam
       tiltAngleSolution.type =
         Integer.parseInt(inputArgs[inputLine++].getArgument());
 
-      //  FIXME shouldn't be a specific integer
+      //  NOTE shouldn't be a specific integer
       //        what about others
       if (!(tiltAngleSolution.type == 0
         || tiltAngleSolution.type == 2
@@ -139,7 +142,7 @@ public class TiltalignParam
         inputArgs[inputLine++].getArgument());
       magnificationSolution.type =
         Integer.parseInt(inputArgs[inputLine++].getArgument());
-      //  FIXME shouldn't be a specific integer, what about others
+      //  NOTE shouldn't be a specific integer, what about others
       if (magnificationSolution.type == 2) {
         String message =
           "Don't know how to handle arbitrary magnification views yet!!!";
@@ -155,7 +158,7 @@ public class TiltalignParam
       if (compressionSolution.referenceView.getInt(0) > 0) {
         compressionSolution.type =
           Integer.parseInt(inputArgs[inputLine++].getArgument());
-        //  FIXME shouldn't be a specific integer, what about others
+        //  NOTE shouldn't be a specific integer, what about others
         if (compressionSolution.type == 2) {
           String message =
             "Don't know how to handle arbitrary compression views yet!!!";
@@ -226,7 +229,7 @@ public class TiltalignParam
       else {
         localAlignments = false;
       }
-      //  FIXME do we always want to do this?
+      //  NOTE do we always want to do this?
       if (inputArgs.length > inputLine) {
         inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
         localTransformFile = inputArgs[inputLine++].getArgument();
@@ -284,7 +287,7 @@ public class TiltalignParam
         inputLine = getNextNonBlankArgIndex(inputArgs, inputLine);
         localMagnificationSolution.type =
           Integer.parseInt(inputArgs[inputLine++].getArgument());
-        //  FIXME shouldn't be a specific integer, what about others
+        //  NOTE shouldn't be a specific integer, what about others
         if (localMagnificationSolution.type == 2) {
           String message =
             "Don't know how to handle arbitrary local magnification views yet!!!";
@@ -404,7 +407,7 @@ public class TiltalignParam
     transformSolutionFile = filename;
   }
 
-  //FIXME validation
+  //TODO validation
   public void setSolutionType(int type) {
     solutionType = type;
   }
@@ -413,7 +416,7 @@ public class TiltalignParam
     includeExcludeType = code;
   }
 
-  //FIXME validation
+  //TODO validation
   public void setIncludeExcludeList(String zList) {
     includeExcludeList.parseString(zList);
   }
@@ -1162,7 +1165,7 @@ public class TiltalignParam
     }
     catch (Exception except) {
       except.printStackTrace();
-      //  FIXME this should probably throw an excpetion or set a state so that
+      //  TODO this should probably throw an excpetion or set a state so that
       //  some other code above a handles it
       String[] errorMessage = new String[6];
       errorMessage[0] = "TiltalignParam Error";

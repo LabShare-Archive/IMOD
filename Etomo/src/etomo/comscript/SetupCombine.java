@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/18 23:49:02  rickg
+ * <p> Changed method name to get CombineParams reference
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -161,7 +164,7 @@ public class SetupCombine {
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
 
-    //  FIXME we really need to find out what the exception/error condition was
+    //  TODO we really need to find out what the exception/error condition was
     if (exitValue != 0) {
       throw (new IOException(setupcombine.getExceptionMessage()));
     }
