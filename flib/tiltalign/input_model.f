@@ -10,6 +10,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2004/09/16 16:14:23  mast
+c	  Had it pass point file name out instead of opening it; made it give
+c	  error when a contour has two points on a view.
+c	
 c	  Revision 3.10  2004/06/17 17:47:56  mast
 c	  Reset zscale and rotation of 3d fiducial model
 c	
@@ -49,17 +53,17 @@ c
 	subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &	    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
      &	    iwhichout, xcen, ycen,xdelt,listz,mapfiletoview,nfileviews,
-     &	    modelfile,pointfile, iuangle, iuxtilt)
+     &	    modelfile,residualFile, pointfile, iuangle, iuxtilt,pipinput)
 c	  
 	implicit none
 	real*4 xx(*),yy(*),xcen,ycen
 	integer*4 isecview(*),irealstr(*),ninreal(*),imodobj(*),imodcont(*)
 	integer*4 mapfiletoview(*),maxprojpt,maxreal,nview,nprojpt,nrealpt
 	integer*4 iwhichout, iuangle,iuxtilt,nfileviews
-	character*(*) modelfile,pointfile
+	character*(*) modelfile,pointfile,residualFile
 c
 	character*80 solufile,anglefile
-	logical stereopair,exist,readw_or_imod
+	logical stereopair,exist,readw_or_imod,pipinput
 	integer getimodhead,getimodscales,getimodmaxes
 c
 	include 'model.inc'
@@ -69,22 +73,39 @@ c
 c	  
 	integer*4 nzlist,iobject,ninobj,ipt,iz,i,j,itmp,minzval,ifspecify
 	integer*4 ninoutlist,ivstr,ivend,ivinc,ifonlist,ibase,nprojtmp
-	integer*4 inlist,mode,ierr,ifflip
+	integer*4 inlist,mode,ierr,ifflip,ifpip,ierr2,ierr3
 	real*4 xorig,yorig,zorig,xdelt,ydelt,dmin,dmax,dmean
 	real*4 xyscal,zscal,xofs,yofs,zofs
+	logical residualout, resbothout, gotdot
+	character*1024 listString
+	integer*4 PipGetThreeIntegers
+	integer*4 PipGetString,PipGetTwoIntegers, PipGetTwoFloats
+	character*80 concat
 c
 c	  read model in
 c
-	write(*,'(1x,a,$)')'Model file: '
-	read(5,'(a)')modelfile
+	if (pipinput) then
+	  ifpip = 1
+	  if (PipGetString('ModelFile', modelfile) .ne. 0) call errorexit(
+     &	      'NO INPUT FIDUCIAL MODEL FILE ENTERED', 0)
+	else
+	  ifpip = 0
+	  write(*,'(1x,a,$)')'Model file: '
+	  read(5,'(a)')modelfile
+	endif
 	exist=readw_or_imod(modelfile)
 	if(.not.exist)call errorexit('READING MODEL FILE', 0)
 c
 c	  get dimensions of file and header info on origin and delta
-c
-	print *,'Image file with matching header info'//
-     &	    ' (Return to enter nx,ny directly)'
-	read(5,'(a)')modelfile
+c	  
+	if (pipinput) then
+	  modelfile = ' '
+	  ierr = PipGetString('ImageFile', modelfile)
+	else
+	  print *,'Image file with matching header info'//
+     &	      ' (Return to enter nx,ny directly)'
+	  read(5,'(a)')modelfile
+	endif
 c
 	if(modelfile.eq.' ')then
 c	    
@@ -96,10 +117,15 @@ c
 	  xorig=-xofs
 	  yorig=-yofs
 	  zorig=-zofs
-	  write(*,'(1x,a,$)')
-     &	      'nx, ny, x origin, y origin, x delta, y delta: '
-	  read(5,*)nxyz(1),nxyz(2),xorig,yorig,delta(1),delta(2)
-
+	  if (pipinput) then
+	    ierr = PipGetTwoIntegers('ImageSizeXandY', nxyz(1),nxyz(2))
+	    ierr = PipGetTwoFloats('ImageOriginXandY', xorig,yorig)
+	    ierr = PipGetTwoFloats('ImagePixelSizeXandY', delta(1),delta(2))
+	  else
+	    write(*,'(1x,a,$)')
+     &		'nx, ny, x origin, y origin, x delta, y delta: '
+	    read(5,*)nxyz(1),nxyz(2),xorig,yorig,delta(1),delta(2)
+	  endif
 	else
 	  call ialprt(.false.)			!don't want to see header!
 	  call imopen(1,modelfile,'ro')
@@ -158,79 +184,159 @@ c
 c
 c	  get name of file for output model
 c	  
-	write(*,'(1x,a,/,a)')'Enter file name for output model of'//
-     &	    ' solved X-Y-Z coordinates,',' or a name containing .res'//
-     &	    'for a list of residuals,',' or a name without an extension'
-     &	    //' for both outputs, or Return for neither'
-	read(5,'(a)')modelfile
+	residualout = .false.
+	if (pipinput) then
+	  modelfile = ' '
+	  residualFile = ' '
+	  if (PipGetString('OutputModelAndResidual', modelfile) .eq. 0) then
+	    resbothout = .true.
+	  else
+	    resbothout = .false.
+	    ierr = PipGetString('OutputModelFile', modelfile)
+	    ierr = PipGetString('OutputResidualFile', residualFile)
+	  endif
+	else
+	  residualfile = ' '
+	  write(*,'(1x,a,/,a)')'Enter file name for output model of'//
+     &	      ' solved X-Y-Z coordinates,',' or a name containing .res'//
+     &	      'for a list of residuals,',' or a name without an extension'
+     &	      //' for both outputs, or Return for neither'
+	  read(5,'(a)')modelfile
+c	  
+c	    7/26/02: if modelfile contains .res, output residuals
+c	    12/20/02: if there is no extension, output both residual and
+c	    model
+c	    
+	  resbothout = modelfile .ne. ' '
+	  gotdot = .false.
+	  do i = 1, lnblnk(modelfile)-2
+	    if (gotdot .and. modelfile(i:i+2).eq.'res')residualout = .true.
+	    if (gotdot .and. modelfile(i:i+2).eq.'mod')resbothout = .false.
+	    if (modelfile(i:i).eq.'.')  gotdot = .true.
+	  enddo
+	endif
+c
+	if (residualout.or.resbothout) then
+	  if (residualout) then
+	    residualfile = modelfile
+	  else
+	    residualfile = concat(modelfile, '.resid')
+	  endif
+c	    
+c	    manage the model file name now; attach extension if model
+c	    wanted, or null it out if not
+c	    
+	  if (residualout) then
+	    modelfile = ' '
+	  else
+	    modelfile = concat(modelfile, '.3dmod')
+	  endif
+	endif
 c	  
 c	  get name of files for angle list output and 3-D point output
 c	  
-	write(*,'(1x,a)')'Enter file name for ASCII list of'//
-     &	    ' solved X-Y-Z coordinates (Return for none)'
-	read(5,'(a)')pointfile
-c
 	iuangle=0
-	write(*,'(1x,a)')'Enter name of output file for list of'//
-     &	    ' solved tilt angles (Return for none)'
-	read(5,'(a)')anglefile
+	angleFile = ' '
+	pointfile = ' '
+	if (pipinput) then
+	  ierr = PipGetString('OutputFidXYZFile', pointfile)
+	  ierr = PipGetString('OutputTiltFile', anglefile)
+	else
+	  write(*,'(1x,a)')'Enter file name for ASCII list of'//
+     &	      ' solved X-Y-Z coordinates (Return for none)'
+	  read(5,'(a)')pointfile
+c
+	  write(*,'(1x,a)')'Enter name of output file for list of'//
+     &	      ' solved tilt angles (Return for none)'
+	  read(5,'(a)')anglefile
+	endif
 	if(anglefile.ne.' ')then
 	  call dopen(9,anglefile,'new','f')
 	  iuangle=9
 	endif
 c	  
 c	  if iuxtilt comes in non-zero, ask about file for x axis tilts
-c
-	if(iuxtilt.ne.0)then
+c	  
+	anglefile = ' '
+	if (pipinput) then
+	  ierr = PipGetString('OutputXAxisTiltFile', anglefile)
+	else if(iuxtilt.ne.0)then
 	  iuxtilt=0
 	  write(*,'(1x,a)')'Enter name of output file for list of'//
      &	      ' X-axis tilt angles (Return for none)'
 	  read(5,'(a)')anglefile
-	  if(anglefile.ne.' ')then
-	    call dopen(10,anglefile,'new','f')
-	    iuxtilt=10
-	  endif
+	endif
+	if(anglefile.ne.' ')then
+	  call dopen(10,anglefile,'new','f')
+	  iuxtilt=10
 	endif
 c
 c	  open output file to put transforms into
 c
-	write(*,'(1x,a,$)')'Output file for solutions/transforms: '
-	read(5,'(a)')solufile
+	if (pipinput) then
+	  solufile = ' '
+	  ierr = PipgetString('OutputTransformFile', solufile)
+	  iwhichout = 1
+	else
+	  write(*,'(1x,a,$)')'Output file for solutions/transforms: '
+	  read(5,'(a)')solufile
+c
+	  write(*,'(1x,a,$)')'1 to put only xforms in file,'
+     &	      //' -1 to put only solutions, 0 both: '
+	  read(5,*)iwhichout
+	endif
 	call dopen(7,solufile,'new','f')
 c
-	write(*,'(1x,a,$)')'1 to put only xforms in file,'
-     &	    //' -1 to put only solutions, 0 both: '
-	read(5,*)iwhichout
-c
 c	  find out which z values to include; end up with a list of z values
-c
-	write(*,'(1x,a,i3,a,/,a,/,a,/,a,$)')'Enter 0 to include all',nzlist,
-     &	    ' views with points',
-     &	    '    or 1 to enter start, end, and increment view numbers,',
-     &	    '    or 2 to specify a list of views to include',
-     &	    '    or 3 to specify a list of views to exclude: '
-	read(5,*)ifspecify
-c
-	if (ifspecify.gt.0)then
-	  if(ifspecify.eq.1)then
-	    write(*,'(1x,a,$)')
-     &		'Start, end, and increment of views to include: '
-	    read(5,*)ivstr,ivend,ivinc
-	    ninoutlist=1+(ivend-ivstr)/ivinc
-	    do i=1,ninoutlist
-	      isecview(i)=ivstr+(i-1)*ivinc
-	    enddo
-	  elseif(ifspecify.eq.2)then
-	    write(*,'(1x,a,$)')'Enter views to include (ranges ok): '
-	    call rdlist(5,isecview,ninoutlist)
-	  else
-	    write(*,'(1x,a,$)')'Enter views to exclude (ranges ok): '
-	    call rdlist(5,isecview,ninoutlist)
+c	  
+	ninoutlist = 0
+	if (pipinput) then
+	  ifspecify = 0
+	  ierr = PipGetThreeIntegers('IncludeStartEndInc', ivstr,ivend,ivinc)
+	  ierr2 = PipGetString('IncludeList', listString)
+	  ierr3 = PipGetString('ExcludeList', listString)
+	  if (ierr + ierr2 + ierr3 .lt. 2) call errorexit(
+     &	      'YOU MAY ENTER ONLY ONE OF IncludeStartEndInc, '//
+     &	      'IncludeList, OR ExcludeList', 0)
+	  if (ierr .eq. 0) ifspecify = 1
+	  if (ierr2 + ierr3 .eq. 1) then
+	    call parselist(listString, isecview,ninoutlist)
+	    if (ierr3 .eq. 0) ifspecify = 3
 	  endif
+	else
+c
+	  write(*,'(1x,a,i3,a,/,a,/,a,/,a,$)')'Enter 0 to include all',nzlist,
+     &	      ' views with points'
+     &	      ,'    or 1 to enter start, end, and increment view numbers,'
+     &	      ,'    or 2 to specify a list of views to include'
+     &	      ,'    or 3 to specify a list of views to exclude: '
+	  read(5,*)ifspecify
+c	    
+	  if (ifspecify.gt.0)then
+	    if(ifspecify.eq.1)then
+	      write(*,'(1x,a,$)')
+     &		  'Start, end, and increment of views to include: '
+	      read(5,*)ivstr,ivend,ivinc
+	    elseif(ifspecify.eq.2)then
+	      write(*,'(1x,a,$)')'Enter views to include (ranges ok): '
+	      call rdlist(5,isecview,ninoutlist)
+	    else
+	      write(*,'(1x,a,$)')'Enter views to exclude (ranges ok): '
+	      call rdlist(5,isecview,ninoutlist)
+	    endif
+	  endif
+	endif
+	if (ifspecify .eq. 1) then
+	  ninoutlist=1+(ivend-ivstr)/ivinc
+	  do i=1,ninoutlist
+	    isecview(i)=ivstr+(i-1)*ivinc
+	  enddo
+	endif
 c	    
 c	    go through list of z values in model and make sure they are on
 c	    an include list or not on an exclude list
 c	    
+	if (ninoutlist .gt. 0) then
 	  i=1
 	  do while(i.le.nzlist)
 	    ifonlist=0
