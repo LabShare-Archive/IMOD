@@ -18,6 +18,10 @@ import etomo.type.ConstEtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/14 21:32:55  sueh
+* <p> bug# 557 Made separate variables for x and y reduction factors to handle
+* <p> an unflipped tomogram.
+* <p>
 * <p> Revision 1.2  2004/12/02 18:26:02  sueh
 * <p> bug# 557 Moved everything except public functions that change
 * <p> parameters the ConstSqueezevolParam.  Added load().
@@ -62,5 +66,9 @@ public class SqueezevolParam extends ConstSqueezevolParam {
   
   public boolean setLinearInterpolation(boolean linearInterpolation) {
     return this.linearInterpolation = linearInterpolation;
+  }
+  
+  public boolean setFlipped(boolean flipped) {
+    return this.flipped = flipped;
   }
 }
