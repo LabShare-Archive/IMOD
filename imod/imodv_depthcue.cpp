@@ -33,35 +33,10 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.7  2003/01/18 01:10:17  mast
-add include of dia_qtutils
-
-Revision 1.1.2.6  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.5  2002/12/30 06:49:50  mast
-rationalizing dialogs as widgets and using dialog list
-
-Revision 1.1.2.4  2002/12/23 04:51:22  mast
-Qt version
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
-#include <GL/gl.h>
+#include <qgl.h>
 #include "formv_depthcue.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
@@ -190,3 +165,33 @@ void imodvDepthcueToggle(int state)
   imodvDraw(a);
 }
 
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.7  2003/01/18 01:10:17  mast
+add include of dia_qtutils
+
+Revision 1.1.2.6  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.5  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
+Revision 1.1.2.4  2002/12/23 04:51:22  mast
+Qt version
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
