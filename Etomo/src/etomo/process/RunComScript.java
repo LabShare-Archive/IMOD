@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/12 01:21:33  rickg
+ * <p> Added explici tcsh call to copytomocoms
+ * <p>
  * <p> Revision 2.2  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -226,7 +229,7 @@ public class RunComScript extends Thread {
    */
   private void execCsh(String[] commands)
     throws IOException, SystemProcessException {
-    csh = new SystemProgram("tcsh -ef");
+    csh = new SystemProgram("tcsh -e");
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
