@@ -1326,7 +1326,7 @@ void ContourMove::buttonPressed(int which)
        "point will be added to the end of the last contour in the "
        "target object.  The "
        "current contour will be deleted.\n\n",
-       "\Replace spherical point with circular contours\" can be "
+       "\"Replace spherical point with circular contours\" can be "
        "used when the type of the current object is scattered points and the "
        "selected target object is not scattered points.  "
        "Moving will convert just the current point to a set of circular "
@@ -1808,6 +1808,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.14  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.13  2004/11/04 17:02:41  mast
 Changes for switching to shifting contour as a mode that is turned on
 
