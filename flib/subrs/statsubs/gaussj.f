@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/08/01 00:30:09  mast
+c	  Increased array size to 10000 since memory usage is not large
+c	
 c	  Revision 3.1  2002/07/30 00:51:30  mast
 c	  Added check for array bounds being exceeded
 c	
@@ -78,8 +81,8 @@ c	    worried about that step!
 	    b(icolum,l)=b(icolum,l)/pivotmp
 17	  continue 
 	  do 545 l1=1,n
-	    if(l1.ne.icolum)then
-	      t=a(l1,icolum)
+	    t=a(l1,icolum)
+	    if(l1.ne.icolum.and.t.ne.0.)then
 	      a(l1,icolum)=0.
 	      do 450 l=1,n
 		a(l1,l)=a(l1,l)-a(icolum,l)*t
