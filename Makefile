@@ -343,7 +343,8 @@ dist : ALWAYS
 	@echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 	@echo "Making self-installing file..."
-	cat dist/installStub $(ARCCOMP) >| $(ARCCSH) ; chmod a+x $(ARCCSH)
+	if [ -e $(ARCCSH) ] ; then /bin/rm -rf $(ARCCSH)/ ; fi
+	cat dist/installStub $(ARCCOMP) > $(ARCCSH) ; chmod a+x $(ARCCSH)
 
 
 ##################################################################
@@ -435,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.45  2005/01/17 19:31:56  mast
+#  Switched shell to sh so parallel make will work on Linux
+#
 #  Revision 3.44  2004/12/23 23:38:35  mast
 #  Added dsp file for imodqtassist
 #
