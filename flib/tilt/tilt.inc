@@ -24,6 +24,7 @@ c         interpfac  interpolation factor for cosine stretched data, or 0
 c	  interpord  interpolation order for cosine stretching
 c	  nvertneed  # of vertical slices needed to make tilted output slice
 c	  intordxtilt  order for interpolating X-tilted slice
+c	  reproj     Flag to reproject at zero tilt
 c	  
 	integer limstack, limmask, limview, limwpos, limwidth, limwarp
         parameter (limstack=60000000)
@@ -43,7 +44,7 @@ c
      &      ,ANGLES,TITLE,npad,ithickout
 	equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
 c
-	LOGICAL MASK,PERP,fastbp
+	LOGICAL MASK,PERP,fastbp,reproj
 c
 	real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
 	integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
@@ -53,7 +54,7 @@ c
      &	    ,idelslice,newmode,mapuse,iflog,baselog,nreplic
      &	    ,compress,iplane,ipextra,interpfac,interpord,fastbp
      &      ,ifbpwrk,ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp,yoffset
-     &      ,nvertneed,intordxtilt
+     &      ,nvertneed,intordxtilt,reproj
 c
 	integer*4 nstretch(limview),indstretch(limview)
 	real*4 ofstretch(limview)
