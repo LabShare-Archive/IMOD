@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/04/06 02:46:59  rickg
+ * <p> Added method to get the standard error as a single string
+ * <p>
  * <p> Revision 3.4  2004/03/11 02:25:00  sueh
  * <p> bug# 61 hiding print statements
  * <p>
@@ -436,6 +439,23 @@ public class SystemProgram implements Runnable {
   }
 
   /**
+   * Return true if this thread has ever been started
+   * @return
+   */
+  public boolean isStarted() {
+    return started;
+  }
+
+  /**
+   * Return true if run() has been excuted
+   * @return
+   */
+  public boolean isDone() {
+    return done;
+  }
+ 
+  
+  /**
    * Runnable class to keep the output buffers of the child process from filling
    * up and locking up the process.
    * See Java bugs #: 4750978, 4098442, etc
@@ -458,16 +478,15 @@ public class SystemProgram implements Runnable {
             outputList.add(line);
           }
           Thread.sleep(100);
-
         }
         while ((line = outputReader.readLine()) != null) {
           outputList.add(line);
         }
       }
       catch (IOException except) {
-        except.printStackTrace();
-        System.err.println(
-          "IO Exception while reading SystemProgram process output");
+        //  Assume the stream is closed by the program exiting.  
+        processDone = true;
+        return;
       }
       catch (InterruptedException except) {
         except.printStackTrace();
@@ -479,20 +498,4 @@ public class SystemProgram implements Runnable {
       processDone = state;
     }
   }
-  /**
-   * Return true if this thread has ever been started
-   * @return
-   */
-  public boolean isStarted() {
-    return started;
-  }
-
-  /**
-   * Return true if run() has been excuted
-   * @return
-   */
-  public boolean isDone() {
-    return done;
-  }
-
 }
