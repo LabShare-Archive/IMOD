@@ -90,7 +90,14 @@ C
 c	  
 c	  David Mastronarde 10/6/98
 *
-	parameter (idim=2300*2300,limview=360)
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+	parameter (idim=2300*2300,limview=720)
 	COMMON //NX,NY,NZ,nxs,nys,nzs
 C
 	DIMENSION NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3),title(20)
@@ -122,6 +129,10 @@ c
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 	IF (((NX+2)*NY.GT.idim)) then
 	  print *,'IMAGE TOO LARGE FOR ARRAYS'
+	  call exit(1)
+	endif
+	if (nz.gt.limview) then
+	  print *,'TOO MANY VIEWS FOR ARRAYS'
 	  call exit(1)
 	endif
 C   
