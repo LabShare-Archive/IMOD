@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/21 23:15:33  mast
+    Open new file as wb
+
     Revision 3.2  2002/06/21 00:26:03  mast
     Needed to swap points from first triangle of a strip if they were out of
     order relative to the following points of the strip
@@ -164,6 +167,7 @@ main( int argc, char *argv[])
 		 "with the -s flag\n");
 
     imodSetIndex(model, obsave, cosave, ptsave);
+    imodObjviewComplete(model);
 
     sprintf(backname, "%s~", argv[argc - 1]);
     rename (argv[argc - 1], backname);
