@@ -11,7 +11,8 @@ long and is defined as a string of 4 characters.
 This is the format used by IMOD Version 2.0 available from the
 Boulder Laboratory for Three-Dimensional Fine Structure.
 The format is backwards compatible with IMOD 1.2.
-
+All numbers are stored in big-endian format regardless of 
+machine architecture.
 
 
 <H3>The File Header</H3>
@@ -112,7 +113,8 @@ Length Type  Name       Description
 <H3>The Contour Data Structure</H3>
 The contour ID is (CONT = 0x434f4e54) and the basic structure is
 16 bytes long. Point data follows the contour header.
-All data is put in the last declared object.
+All point coordinates are put in the last declared object.  Empty 
+contours are allowed.
 <pre>
 Length    Type  Name      Description.
 ------------------------------------------------------------------------------
