@@ -24,6 +24,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/24 00:59:23  sueh
+* <p> bug# 520 msgBackgroundProcess:  call errorProcess is exitValue != 0.
+* <p>
 * <p> Revision 1.3  2004/11/20 01:58:22  sueh
 * <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
 * <p>
@@ -81,6 +84,7 @@ public abstract class BaseProcessManager {
   Thread processMonitorA = null;
   Thread processMonitorB = null;
   private HashMap killedList = new HashMap();
+  EtomoDirector etomoDirector = EtomoDirector.getInstance();
   
   protected abstract void postProcess(ComScriptProcess script);
   protected abstract void postProcess(BackgroundProcess process);
@@ -131,21 +135,22 @@ public abstract class BaseProcessManager {
 
     // Run the script as a thread in the background
     comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
-    comScriptProcess.setDebug(EtomoDirector.getInstance().isDebug());
-    comScriptProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
+    comScriptProcess.setDebug(etomoDirector.isDebug());
+    comScriptProcess.setDemoMode(etomoDirector.isDemo());
+    getManager().saveMetaData();
     comScriptProcess.start();
 
     // Map the thread to the correct axis
     mapAxisThread(comScriptProcess, axisID);
 
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (etomoDirector.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (EtomoDirector.getInstance().isDemo()) {
+    if (etomoDirector.isDemo()) {
       processMonitor = new DemoProcessMonitor(getManager(), axisID, command,
         comScriptProcess.getDemoTime());
     }
@@ -602,10 +607,11 @@ public abstract class BaseProcessManager {
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
       throws SystemProcessException {
     backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
-    backgroundProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
-    backgroundProcess.setDebug(EtomoDirector.getInstance().isDebug());
+    backgroundProcess.setDemoMode(etomoDirector.isDemo());
+    backgroundProcess.setDebug(etomoDirector.isDebug());
+    getManager().saveMetaData();
     backgroundProcess.start();
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (etomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + backgroundProcess.getName());
     }
@@ -618,9 +624,10 @@ public abstract class BaseProcessManager {
     InteractiveSystemProgram program = new InteractiveSystemProgram(commandParam, this);
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
+    getManager().saveMetaData();
     thread.start();
     program.setName(thread.getName());
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (etomoDirector.isDebug()) {
       System.err.println("Started " + program.getCommandLine());
       System.err.println("  Name: " + thread.getName());
     }
@@ -644,12 +651,13 @@ public abstract class BaseProcessManager {
   
   private void startSystemProgramThread(SystemProgram sysProgram) { 
     sysProgram.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
-    sysProgram.setDebug(EtomoDirector.getInstance().isDebug());
+    sysProgram.setDebug(etomoDirector.isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
+    getManager().saveMetaData();
     sysProgThread.start();
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
       System.err.println("  working directory: "
         + getManager().getPropertyUserDir());
