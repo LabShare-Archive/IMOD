@@ -37,6 +37,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/03/11 00:00:33  sueh
+ * bug# 61
+ *
  * Revision 3.2  2003/11/26 23:39:14  rickg
  * Debug flag and getter changed to static in AppManager.
  *
@@ -802,10 +805,13 @@ public class ProcessManager {
   public String patchcorr() throws SystemProcessException {
     //  Create the required combine command
     String command = "patchcorr.com";
+    //  Create the process monitor
+    PatchcorrProcessWatcher patchcorrProcessWatcher =
+      new PatchcorrProcessWatcher(appManager, AxisID.FIRST);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess =
-      startComScript(command, null, AxisID.ONLY);
+      startComScript(command, patchcorrProcessWatcher, AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
