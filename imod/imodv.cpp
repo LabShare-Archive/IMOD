@@ -420,8 +420,11 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
 	break;
 
       default:
-	fprintf(stderr, "Imodv error: illegal option %s\n", myapp.argv()[i]);
-	exit(1);
+        if (strcmp("-imodv", myapp.argv()[i]) && 
+            strcmp("-view", myapp.argv()[i])) {
+          fprintf(stderr, "Imodv error: illegal option %s\n", myapp.argv()[i]);
+          exit(1);
+        }
 
       }
     } else
@@ -576,6 +579,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.4  2003/03/26 23:22:00  mast
+Set up to use preferences
+
 Revision 4.3  2003/03/04 21:41:05  mast
 Added function for refreshing imod windows from imodv
 

@@ -146,6 +146,7 @@ int main( int argc, char *argv[])
   QString qname;
   int doFork = 1;
   char *cmdLineStyle = NULL;
+  int doImodv = 0;
 
   /* Initialize data. */
   App = &app;
@@ -154,24 +155,26 @@ int main( int argc, char *argv[])
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output */
   for (i = 1; i < argc; i++){
-    if (argv[i][0] == '-' && argv[i][1] == 'D') {
+    if (!strcmp("-D", argv[i])) {
       Imod_debug = TRUE;
       doFork = 0;
     }
-    if (argv[i][0] == '-' && argv[i][1] == 'W')
+    if (!strcmp("-W", argv[i]))
       doFork = 0;
 
-    if (argv[i][0] == '-' && argv[i][1] == 'c' && argv[i][2] == 'i' ) {
+    if (!strcmp("-ci", argv[i]))
       App->rgba = -1;  /* Set to -1 to force worthless Color index visual */
-    }
+
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
         && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e') {
       if (argv[i][6] == '=')
 	cmdLineStyle = strdup(&(argv[i][7]));
       else if (i < argc - 1)
 	cmdLineStyle = strdup(argv[i + 1]);
-	    
     }
+    
+    if (!strcmp("-imodv", argv[1]) || !strcmp("-view", argv[1]))
+      doImodv = 1;
   }
 
 #ifndef NO_IMOD_FORK
@@ -183,19 +186,9 @@ int main( int argc, char *argv[])
 
   /* Run the program as imodv? */
   i = strlen(argv[0]);
-  if (argv[0][i-1] == 'v'){
+  if (doImodv || argv[0][i-1] == 'v'){
     imodv_main(argc, argv, cmdLineStyle);
     exit(0);
-  }
-
-  if (argc > 1){
-    i = strcmp("-imodv", argv[1]);
-    if (i) i = strcmp("-view", argv[1]);
-    if (!i){
-      argc--; argv++; argv[0]++;
-      imodv_main(argc, argv, cmdLineStyle);
-      exit(0);
-    }
   }
 
 #ifndef _WIN32
@@ -878,6 +871,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.10  2003/04/11 18:15:59  mast
+Fix exiting logic to not exit after calling Qt exit
+
 Revision 4.9  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
