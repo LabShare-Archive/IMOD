@@ -1,5 +1,38 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/11/05: Added nad_eed_3d, Frangakis and Hegerl's edge-enhancing anisotropic 
+diffusion program. (In 3.5)
+
+3/10/05: Montaging interface added to eTomo.
+
+3/10/05: Fixed an eTomo bug in which a process finishing on one axis could
+start the next process on the other axis. (In 3.5)
+
+3/8/05: Added an FFT mode to slicer window.
+
+3/7/05: In 3dmod, centered FFT of subarea in the subarea so it could be
+visualized better; fixed problem with subarea not being updated upon resize.
+(In 3.5)
+
+3/6/05: Fixed synchronization of rubberband state and toolbar. (In 3.5)
+
+3/1/05: Fixed synchronization of parameters between eTomo panels when Done is
+pressed (e.g., Z offset between fine alignment and positioning). (In 3.5)
+
+3/1/05: Added distortion and mag gradient corrections to blend com files
+produced by Copytomocoms.
+
+3/1/05: Changed Copytomocom's test for whether to set the log base to 32768
+so that it is based on a negative mean instead of a negative maximum. (In 3.5)
+
+2/28/05: A procedure in Warpvol for determining the size of input that
+needs to be loaded for each output cube had to be run iteratively to avoid
+crashes in extreme cases. (In 3.5)
+
+2/28/05: Added image distortion correction and magnification gradient 
+correction to Blendmont; added linear and cubic interpolation with cubic as
+the new default.
+
 2/25/05: IMOD_3-6-0 and branch to IMOD_3-5-0
 2/24/05: IMOD_3-4-23
 2/24/05: Added sourecdoc program to produce documentation from source files.
@@ -247,7 +280,7 @@ rounded, as in Aqua style in the Mac.
 
 11/4/04: Improved filter function in clip to work for non-square images, to
 work properly for high-pass filtering, and to not have abrupt onset of
-filtering.  Made sure it works with either or non-mirrored FFTs.
+filtering.  Made sure it works with either mirrored or non-mirrored FFTs.
 
 11/4/04: 3dmod will now automatically mirror FFTs around the origin when the
 input file has an odd dimension in X.  Clip will now no longer produce
