@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/26 16:53:13  mast
+    Added prototype for mrc_swap_header
+
 */
 
 #ifndef MRCFILES_H
@@ -175,6 +178,8 @@ struct MRCheader
     short   vd2;
     FLOAT   tiltangles[6];  /* 0,1,2 = original:  3,4,5 = current */
 
+#ifdef OLD_STYLE_HEADER
+     /* before 2.6.20 */
      /* DNM 3/16/01: redefine the last three floats as wavelength numbers */
     short   nwave;   /* # of wavelengths and values */
     short   wave1;
@@ -182,10 +187,20 @@ struct MRCheader
     short   wave3;
     short   wave4;
     short   wave5;
-    FLOAT   zorg;           /* origin */
+     FLOAT   zorg;           /* origin */
 
-  FLOAT   xorg;
-  FLOAT   yorg;
+     FLOAT   xorg;
+     FLOAT   yorg;
+#else
+   /* MRC 2000 standard */
+     FLOAT   xorg;
+     FLOAT   yorg;
+     FLOAT   zorg;
+     char    cmap[4];
+     char    stamp[4];
+     FLOAT   rms;
+#endif
+
   int   nlabl;
   char  labels[MRC_NLABELS][MRC_LABEL_SIZE + 1];
 
@@ -362,6 +377,7 @@ void mrc_swap_longs(int *data, int amt);
 void mrc_swap_floats(float *data, int amt);
 int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
 void mrc_swap_header(struct MRCheader *hdata);
+void mrc_set_cmap_stamp(struct MRCheader *hdata);
 
 #ifdef __cplusplus
 }
