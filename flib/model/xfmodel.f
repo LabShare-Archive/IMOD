@@ -81,6 +81,72 @@ c	  Just to round out the options, you can also enter 4 to obtain
 c  transformations that include translation, rotation, and magnification change
 c  but no stretch.
 *	  
+c	  ENTRIES TO THE PROGRAM
+c	  
+c	  Name of image file that model was built on, or blank line to enter
+c	  center coordinates instead
+c	  
+c	  IF you entered an image file name, next enter the name of a piece
+c	  list file if the image is a montage, otherwise enter a blank line
+c	  
+c	  OR if you did not enter an image file, next enter the X and Y index
+c	  coordinates of the center of the image (NX/2, NY/2)
+c	  
+c	  IF there are gaps in the Z values described by the piece list, next
+c	  enter 0 if transform files have transforms only for the Z values
+c	  that exist, or 1 if they have transforms for all Z values
+c	  
+c	  Name of model file
+c	  
+c	  Enter one of:
+c	  -1 to back-transform the model to fit a raw image stack
+c	  0 to find linear transformations
+c	  1 to transform the model with a set of transformations
+c	  2 to find X/Y translations only
+c	  3 to find translations and rotations
+c	  4 to find translation, ratation, and mag change
+c	  
+c	  IF you entered any option other than -1 to back-transform, next enter
+c	  0 if the model was built on raw sections, or the sections that you
+c	  want to further transform; or 1 if the model was built on pre-aligned
+c	  sections and you want to reference transforms to the raw sections
+c	  
+c	  IF you are back-transforming OR if you entered 1 to the last query,
+c	  next enter the file name of the g transforms used to pre-align the 
+c	  sections
+c	  
+c	  IF you are transforming or back-transforming the model, next enter
+c	  the name of the output model file.  This is the final entry for
+c	  option -1
+c
+c	  IF you are transforming, enter the name of the file with transforms
+c	  to apply; this is the final entry for option 1
+c	  
+c	  IF you finding transforms instead, continue with the following
+c	  entries:
+c	  
+c	  Name of file with existing f transforms to be replaced by any
+c	  transforms that are solved for
+c	  
+c	  Name of output file for new f transforms
+c	  
+c	  A list of section numbers to find transforms for (the second section
+c	  of each pair, sections numbered from zero), or / to find transforms
+c	  for all sections with data in the model, or -999 to find transforms
+c	  of all sections relative to a single section
+c	  
+c	  IF you entered -999, next enter:
+c	  .  The number of the single section
+c	  .  The real list of transforms to find sections for, or / for all
+c	  
+c	  1 for complete reports of the deviations for each point on sections
+c	  with bad fits, or 0 for no detailed reports
+c	  
+c	  IF you entered 1, then enter a criterion for the mean deviation and
+c	  a criterion for the maximum deviation; a complete report will be 
+c	  given for any section that exceeds either criterion.
+c
+c
 *	  David Mastronarde 1988
 c	  DNM 7/20/89  changes for new model format
 c	  DNM 1/10/90  have it transform only existing model points, not all
@@ -91,24 +157,48 @@ c	  DNM 3/31/92  Implement translation only finding
 c	  DNM 5/1/92   Implement translation and rotation only finding
 c	  DNM 4/24/95 changed model reading/writing to be portable
 c	  DNM 9/23/97  Add translation, rotation, mag only finding
-
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	implicit none
 	include 'model.inc'
-
+	integer nflimit,limpcl,idim
 	parameter (nflimit=1001,limpcl=100000)
 	real*4 f(2,3,nflimit),g(2,3,nflimit),gtmp(2,3)
-	integer*4 nxyz(3),mxyz(3)
+	integer*4 nxyz(3),mxyz(3),nx,ny,nz,mode
 	equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
-	real*4 delt(3)
-	dimension nsec(nflimit),listz(nflimit),indfl(nflimit)
+c	real*4 delt(3)
+	integer*4 nsec(nflimit),listz(nflimit),indfl(nflimit)
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
 	parameter (idim=400)
-	include 'stat_source:statsize.inc'
+	include 'statsize.inc'
 	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
      1	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      2	    , b(msiz), b1(msiz)
 	character*80 modelfile,newmodel,oldxfgfile,oldxffile,newxffile
 	logical gotthis,gotlast,exist,readw_or_imod
+	integer*4 getimodhead,getimodscales
 	integer*4 limpnts/4/			!min # of points for regression
+c	  
+	integer*4 i,nlistz,nfout,npclist,izrange,iffillgap,indf,indval
+	integer*4 minxpiece,nxpieces,nxoverlap,minypiece,nypieces,nyoverlap
+	real*4 xhaf,yhaf,xcen,ycen,critmean,critmax,dmin,dmax,dmean
+	integer*4 ifxfmod,iftrans,ifrotrans,ifprealign,ntofind
+	integer*4 ifsingle,izsingle,iffullrpt,ierr,ierr2,ifflip,indg
+	real*4 xyscal,zscale,xofs,yofs,zofs
+	real*4 ximscale, yimscale, zimscale,zz,zdex,zthis,zlast
+	integer*4 nundefine,iobj,ipt,iz,nfgin,indind,izmin,izmax,ibase
+	integer*4 lastsec,npnts,iobject,ninobj,ipnt,isol,ipntmax,j
+	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
+	real*4 xdev,ydev,devpnt,devavg,xx,yy
+	integer*4 loop,noldg,izsec,il,indobj
+	real*4 atan2d
 c
 c   get parameters
 c
@@ -117,13 +207,13 @@ c
 	read(*,'(a)')modelfile
 c
 c	  if no image file, get crucial info directly
+c	  DNM 8/28/02: just get xcen, ycen since origin and delta aren't needed
+c
 	if(modelfile.eq.' ')then
-	  zorig=0.				!set defaults for these
-	  delt(3)=1.
 	  print *,char(7),
      &	      'Be SURE to enter CENTER coordinates, NOT NX and NY'
-	  write(*,'(1x,a,$)')'Xcen, Ycen, z origin, z delta: '
-	  read(*,*)xcen,ycen,zorig,delt(3)
+	  write(*,'(1x,a,$)')'Xcen, Ycen: '
+	  read(*,*)xcen,ycen
 	  do i=1,nflimit
 	    listz(i)=i-1
 	  enddo
@@ -136,16 +226,18 @@ c	    otherwise get header info from image file
 c
 c	    get header info for proper coordinate usage
 	  call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-	  call irtdel(1,delt)
-	  call irtorg(1,xorig,yorig,zorig)
-	  write(*,'(/,a,a,/)')' This header info MUST be the'
-     &	      ,' same as when model was built'
+c	    call irtdel(1,delt)
+c	  call irtorg(1,xorig,yorig,zorig)
+c	  write(*,'(/,a,a,/)')' This header info MUST be the'
+c     &	      ,' same as when model was built'
 c
 	  write(*,'(1x,a,$)') 'Piece list file if image is a'//
      &	      ' montage, otherwise Return: '
 	  read(*,'(a)')modelfile
 	  call read_piece_list(modelfile,ixpclist,iypclist,izpclist,
      &	      npclist)
+	  if (npclist.gt.limpcl)call errorexit(
+     &	      'too many piece coordinates for arrays')
 c	  
 c	    if no pieces, set up mocklist
 	  if(npclist.eq.0)then
@@ -158,6 +250,8 @@ c	    if no pieces, set up mocklist
 	  endif
 c	    get ordered list of z values 
 	  call fill_listz(izpclist,npclist,listz,nlistz)
+	  if (nlistz.gt.nflimit)call errorexit(
+     &	      'too Z values coordinates for arrays')
 	  
 	  call checklist(ixpclist,npclist,1,nx,minxpiece
      &	      ,nxpieces,nxoverlap)
@@ -166,6 +260,9 @@ c	    get ordered list of z values
 	  xhaf=(nx+(nxpieces-1)*(nx-nxoverlap))/2.
 	  yhaf=(ny+(nypieces-1)*(ny-nyoverlap))/2.
 
+c	    DNM 8/28/02: don't scale any more
+c	    but still add minxpiece - the index coordinates are montage
+c	    coordinates starting at minxpiece.
 c
 c	    [xy]cen is the amount to SUBTRACT from real model coordinates to
 c	    get coordinates centered on the center of the image.  Adding [xy]
@@ -173,8 +270,10 @@ c	    orig shifts coordinates to the lower left corner of image.
 c	    Subtracting 0.5*nx*delt(1) (half of the image width in real
 c	    coordinates) then shifts coords to center of image.  Hence this:
 c
-	  xcen=(minxpiece+xhaf)*delt(1)-xorig
-	  ycen=(minypiece+yhaf)*delt(2)-yorig
+c	  xcen=(minxpiece+xhaf)*delt(1)-xorig
+c	  ycen=(minypiece+yhaf)*delt(2)-yorig
+	  xcen=(minxpiece+xhaf)
+	  ycen=(minypiece+yhaf)
 	  nfout=nlistz
 
 	endif
@@ -304,6 +403,21 @@ c
 75	exist=readw_or_imod(modelfile)
 	if(.not.exist)go to 91
 c
+	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
+	if (ierr .ne. 0 .or. ierr2 .ne. 0) call errorexit(
+     &	    'getting model header')
+
+c	  
+c	  shift the data to display coordinates before using
+c
+	do i=1,n_point
+	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
+	enddo
+
+c
 c	  first fill array with unit transforms in case things get weird
 c
 	do i=1,nflimit
@@ -329,7 +443,8 @@ c	    apply inverse g's to all points in model
 	    do ipt=1,npt_in_obj(iobj)
 	      i=abs(object(ibase_obj(iobj)+ipt))
 	      zz=p_coord(3,i)
-	      zdex=(zz+zorig)/delt(3)
+c		zdex=(zz+zorig)/delt(3)
+	      zdex=zz
 	      iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
 	      indind=iz+1 -listz(1)
 	      if(indind.lt.1.or.indind.gt.nflimit)then
@@ -350,6 +465,14 @@ c
 c	      write out back-transformed model
 	    if(nundefine.gt.0)print *,nundefine,
      &		' points with Z values out of range of transforms'
+c	  
+c	      shift the data back for saving
+c
+	    do i=1,n_point
+	      p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	      p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	      p_coord(3,i)=zimscale*p_coord(3,i)+zofs
+	    enddo
 	    call write_wmod(newmodel)
 	    close(2)
 	    call exit(0)
@@ -362,6 +485,8 @@ c
 	if(oldxffile.ne.' ')then
 	  call dopen(1,oldxffile,'ro','f')
 	  call xfrdall(1,f,nfgin,*92)
+	  if (nfgin.gt.nflimit)call errorexit(
+     &	      'too many transforms for arrays')	
 	endif
 	if(ifxfmod.ne.0)then
 c
@@ -372,7 +497,8 @@ c
 	    do ipt=1,npt_in_obj(iobj)
 	      i=abs(object(ibase_obj(iobj)+ipt))
 	      zz=p_coord(3,i)
-	      zdex=(zz+zorig)/delt(3)
+c	      zdex=(zz+zorig)/delt(3)
+	      zdex=zz
 	      iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
 	      indind=iz+1 -listz(1)
 	      if(indind.lt.1.or.indind.gt.nflimit)then
@@ -392,6 +518,14 @@ c
 c	    write it out
 	  if(nundefine.gt.0)print *,nundefine,
      &	      ' points with Z values out of range of transforms'
+c	  
+c	    shift the data back for saving
+c	    
+	  do i=1,n_point
+	    p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	    p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	    p_coord(3,i)=zimscale*p_coord(3,i)+zofs
+	  enddo
 	  call write_wmod(newmodel)
 	else
 c
@@ -405,7 +539,8 @@ c	    first find min and max z in model
 	    do ipt=1,npt_in_obj(iobj)
 	      i=abs(object(ipt+ibase))
 	      zz=p_coord(3,i)
-	      zdex=(zz+zorig)/delt(3)
+c	      zdex=(zz+zorig)/delt(3)
+	      zdex=zz
 	      iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
 c	      if(iz.lt.listz(1).or.iz.gt.listz(nlistz))go to 93
 	      izmin=min0(izmin,iz)
@@ -454,7 +589,8 @@ c
 		do indobj=1,ninobj
 		  ipnt=object(indobj+ibase_obj(iobject))
 		  if(ipnt.gt.0.and.ipnt.le.n_point)then
-		    zdex=(p_coord(3,ipnt)+zorig)/delt(3)
+c		    zdex=(p_coord(3,ipnt)+zorig)/delt(3)
+		    zdex=p_coord(3,ipnt)
 		    iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
 		    if((iz.eq.izsec).and.(.not.gotthis.or.
      &			(p_coord(3,ipnt).lt.zthis)))then
@@ -485,6 +621,12 @@ c
 		  endif
 		enddo
 		if(gotthis.and.gotlast)npnts=npnts+1
+		if (npnts.ge.idim)then
+		  print *
+		  print *,'ERROR: XFMODEL - ',
+     &		      'too many points for arrays on section', iz
+		  call exit(1)
+		endif
 	      enddo				!done with looking at objects
 	      if(npnts.ge.limpnts)then
 c
@@ -603,12 +745,18 @@ c
 	  enddo
 	endif
 	stop
-91	print *,'error reading file'
-	stop
-92	print *,'error reading old f/g file'
-	stop
-93	print *,'z value out of range for transforms: ',zz
-	stop
-94	print *,'error writing out f file'
-	stop
+91	call errorexit('reading model file')
+92	call errorexit('reading old f/g file')
+93	print *
+	print *,'ERROR: XFMODEL - z value out of range for ',
+     &	    'transforms: ',zz
+	call exit(1)
+94	call errorexit('writing out f file')
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: XFMODEL - ',message
+	call exit(1)
 	end
