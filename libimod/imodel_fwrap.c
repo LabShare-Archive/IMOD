@@ -1292,13 +1292,13 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   if (!pmin || !pmax || !scancont || !nestind)
     return(FWRAP_ERROR_MEMORY);
 
-  /* Get mins, maxes, scan contours */
+  /* Get mins, maxes, set addresses into scan contour list */
   for (co = 0; co < obj->contsize; co++) {
     level[co] = 0;
     nestind[co] = -1;
     if (obj->cont[co].psize) {
       imodel_contour_mm(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
-      scancont[co] = imodel_contour_scan(&(obj->cont[co]));
+      scancont[co] = &(obj->cont[co]);
     }
   }
 
@@ -1351,7 +1351,8 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   /* clean up everything */
   imodContourFreeNests(nests, numnests);
   for (co = 0; co < obj->contsize; co++)
-    imodContourDelete(scancont[co]);
+    if (scancont[co]->flags & ICONT_SCANLINE)
+      imodContourDelete(scancont[co]);
   imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
   free(nestind);
   free(scancont);
@@ -1363,6 +1364,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.14  2005/01/29 20:26:19  mast
+Added routine to return information on nested contours
+
 Revision 3.13  2004/09/21 20:11:26  mast
 Changes for new clipping plane structure
 
