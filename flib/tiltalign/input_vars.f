@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:06:30  mast
+c	  Changes to make things work well with a subset of views
+c	
 c
 	subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &	    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart,
@@ -345,7 +348,8 @@ c
 	elseif(ioptmag.eq.2)then
 	  print *,'For each view, enter a magnification variable #'
 	  write(*,'(a,i4)')'   to fix the mag of a view at 1.0,'//
-     &	      ' give it the same variable # as view',mapviewtofile(ireftilt)
+     &	      ' give it the same variable # as view',
+     &	      mapviewtofile(ireftilt)
 	  read(5,*)(maplist(i),i=1,nview)
 	else
 	  power=0.
@@ -609,7 +613,8 @@ c
 	elseif(ioptalf.eq.2)then
 	  print *,'For each view, enter an X-axis tilt variable #'
 	  write(*,'(a,i4)')'   to fix the tilt of a view at 0,'//
-     &	      ' give it the same variable # as view',mapviewtofile(ireftilt)
+     &	      ' give it the same variable # as view',
+     &	      mapviewtofile(ireftilt)
 	  read(5,*)(maplist(i),i=1,nview)
 	else
 	  power=0.
