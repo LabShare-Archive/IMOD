@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/09/11 19:54:31  mast
+#  Need to take explicit generated list from configure
+#
 #  Revision 3.6  2003/08/29 17:36:05  mast
 #  Add imodpsview
 #
@@ -30,7 +33,7 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid submfg imodpsview $(GENERATED_SCRIPTS)
+ dm2mrc alignlog transferfid submfg imodpsview settmpdir $(GENERATED_SCRIPTS)
 
 all:
 
