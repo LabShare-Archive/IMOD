@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/03/18 16:37:44  mast
+c	  Converted to PIP and added options for extracting other info
+c	
 c	  Revision 3.1  2003/06/05 00:11:14  mast
 c	  Change STOP to standardized ERROR exit
 c	
@@ -33,7 +36,7 @@ C
 C	  
 	integer*4 nz, ierr, iftilt, ifmag, ifstage, npiece, i, nbyte, iflags
 	integer*4 maxz, iunout, lenText, mode, itype, ifc2, ntilt, nbsym
-	integer*4 ntiltout
+	integer*4 ntiltout, lnblnk
 	real*4 dmin, dmax, dmean
 	EQUIVALENCE (Nz,NXYZ(3))
 c
