@@ -26,6 +26,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/01/14 03:07:26  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.6  2004/12/02 20:39:29  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -183,7 +186,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlFiducialModel.setBorder(border.getBorder());
 
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid = new TransferfidPanel(true);
+      pnlTransferfid = new TransferfidPanel(axisID, true);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
@@ -260,9 +263,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlBeadtrack.setParameters(beadtrackParams);
   }
 
-  public void setTransferFidParams(TransferfidParam transferFidParam) {
+  public void setTransferFidParams() {
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid.setParameters(transferFidParam);
+      pnlTransferfid.setParameters();
     }
   }
 
@@ -274,6 +277,12 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlBeadtrack.getParameters(beadtrackParams);
   }
 
+  public void getTransferFidParams() {
+    if (applicationManager.isDualAxis()) {
+      pnlTransferfid.getParameters();
+    }
+  }
+  
   public void getTransferFidParams(TransferfidParam transferFidParam) {
     if (applicationManager.isDualAxis()) {
       pnlTransferfid.getParameters(transferFidParam);
