@@ -19,6 +19,18 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2004/08/28 00:53:40  sueh
+ * bug# 508 gave a descendent class access to watchedFileNAme and
+ * errorMessage.
+ * Added isComScriptBusy().  It always returns true in this class.  It is
+ * needed for background comscript execution.
+ * Allowed renameFiles() to cause the comscript execution to fail if an
+ * error is returned.  This never happens in this class.  It is for background
+ * comscripts running on Windows.
+ * Fixed a problem with failures that happen before the started variable is
+ * set.  ProcessManager.startComScript() has a loop which doesn't end
+ * until started is true.  Added error and treated it like started.
+ *
  * Revision 3.15  2004/08/20 21:43:59  sueh
  * bug# 508 split parseWarning() into two functions so that parseWarning
  * can be used for all the .log files parsed by
@@ -759,5 +771,12 @@ public class ComScriptProcess
    */
   protected boolean isComScriptBusy() {
     return false;
+  }
+  
+  /**
+   * nothing to do
+   */
+  public void notifyKill() {
+    
   }
 }

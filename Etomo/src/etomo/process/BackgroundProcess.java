@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/06/05 04:23:10  rickg
  * <p> method name change to getShellProcessID
  * <p>
@@ -209,6 +212,13 @@ public class BackgroundProcess
       return "";
     }
     return commandProcessID.toString();
+  }
+  
+  /**
+   * nothing to do
+   */
+  public void notifyKill() {
+    
   }
 
 }

@@ -18,4 +18,5 @@ public interface SystemProcessInterface {
   public boolean isStarted();
   public boolean isDone();
   public String getShellProcessID();
+  public void notifyKill();
 }
