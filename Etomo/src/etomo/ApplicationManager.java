@@ -135,6 +135,10 @@ public class ApplicationManager {
   private UserConfiguration userConfig = new UserConfiguration();
   private MetaData metaData = new MetaData();
   private File paramFile = null;
+  // advanced dialog state for this instance, this gets set upon startup from
+  // the user configuration and can be modified for this instance by either
+  // the option or advanced menu items
+  private boolean isAdvanced = false;
 
   //  Process dialog references
   private SetupDialog setupDialog = null;
@@ -1694,10 +1698,14 @@ public class ApplicationManager {
    * Get the current advanced state
    */
 
-  public boolean isAdvanced() {
-    // FIXME
-    return false;
+  public boolean getAdvanced() {
+    return isAdvanced;
   }
+
+  public void setAdvanced(boolean state) {
+    isAdvanced = state;
+  }
+  
   /**
    * Return the fileset name.  This is the basename of the raw image stack and
    * the name used for the base of all intermediate and final data files.
@@ -1849,9 +1857,9 @@ public class ApplicationManager {
     if (settingsDialog != null) {
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
-
+      
       mainFrame.repaintWindow();
-
+      
     }
   }
 
@@ -1956,7 +1964,7 @@ public class ApplicationManager {
       userConfig.getToolTipsDismissDelay());
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
-
+    isAdvanced = userConfig.getAdvancedDialogs();
   }
 
   private void parseCommandLine(String[] args) {
