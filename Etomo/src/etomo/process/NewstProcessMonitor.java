@@ -2,7 +2,6 @@ package etomo.process;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.NewstParam;
@@ -23,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/13 00:09:51  rickg
+ * <p> Updated for PIP based newstack
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -92,12 +94,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     applicationManager.setProgressBar("Creating final stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
-    Vector outputFileList = newstParam.getOutputFile();
-    if (outputFileList.size() != 1) {
-      throw new InvalidParameterException(
-        "Unable to watch multiple output files for newstack");
-    }
     watchedFile = 
-    new File(System.getProperty("user.dir"), (String) outputFileList.get(0));
+    new File(System.getProperty("user.dir"), newstParam.getOutputFile());
   }
 }
