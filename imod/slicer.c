@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.0  2001/11/29 18:10:49  rickg
+    *** empty log message ***
+
     Revision 1.2  2001/11/23 05:32:30  mast
     Activated faster HQ display method for zoom > 1 using cubic interpolation
      - coded 2 years ago and left unused.  Also added workaround to Intel
@@ -600,6 +603,14 @@ int sslice_open(struct ViewInfo *vi)
      sslice = (struct Super_slicer *)malloc(sizeof(struct Super_slicer));
      if (!sslice)
 	  return(-1);
+
+     /* DNM 5/16/02: if the current position is still in the lower left
+	corner, move it to middle and draw other windows */
+     if (!vi->xmouse && !vi->ymouse) {
+	  vi->xmouse = vi->xsize / 2;
+	  vi->ymouse = vi->ysize / 2;
+	  imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+     }
 
      sslice->cx = vi->xmouse;
      sslice->cy = vi->ymouse;
@@ -1790,6 +1801,10 @@ static void sslice_draw(struct Super_slicer *ss)
 
      if (!ss->exposed)
 	  return;
+
+     /* DNM 5/16/02: force a cache load of the current z slice at least */
+     iz = floor((double)(ss->cz + 0.5));
+     ivwGetZSection(ss->vi, iz);
 
      /* Set up image pointer tables */
      imdata = (unsigned char **)
