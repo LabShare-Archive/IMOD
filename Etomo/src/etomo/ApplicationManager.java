@@ -94,6 +94,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.135  2005/03/09 17:58:16  sueh
+ * <p> bug# 533 In done functions, only update newst when the view type is not
+ * <p> montage.  ProcessManager.crossCorrelate needs to know whether
+ * <p> blendmont will actually be run.
+ * <p>
  * <p> Revision 3.134  2005/03/08 18:29:54  sueh
  * <p> bug# 533 In midasRawStack() call midasBlendStack() instead of
  * <p> midasRawStack() for montaging.
@@ -4137,7 +4142,13 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      threadName = processMgr.newst(newstParam, axisID);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        threadName = processMgr.blend(axisID);
+        
+      }
+      else {
+        threadName = processMgr.newst(newstParam, axisID);
+      }
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
