@@ -1,9 +1,8 @@
 package etomo.comscript;
 
-import java.util.ArrayList;
+import java.util.Properties;
 
-import etomo.BaseManager;
-import etomo.type.EtomoNumber;
+import etomo.type.ConstEtomoNumber;
 
 /**
 * <p>Description: </p>
@@ -18,47 +17,41 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/01 03:46:14  sueh
+* <p> bug# 557 Parameter for squeezevol.
+* <p> </p>
 */
-public class SqueezevolParam {
+public class SqueezevolParam extends ConstSqueezevolParam {
   public static  final String  rcsid =  "$Id$";
 
-  private static final int commandSize = 3;
-  
-  private String[] commandArray;
-  
-  private EtomoNumber reductionFactorXY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-  private EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-  private boolean linearInterpolation = false;
-  private String inputFileName = "";
-
-  public SqueezevolParam() {
-    reductionFactorXY.setRecommendedValue(1.25);
-    reductionFactorZ.setRecommendedValue(1.25);
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + "squeezevol";          
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
-    }
-  }
-  
-  private ArrayList genOptions() {
-    ArrayList options = new ArrayList();
-    options.add("-x");
-    options.add(reductionFactorXY.toString());
-    options.add("-y");
-    options.add(reductionFactorXY.toString());
-    options.add("-z");
-    options.add(reductionFactorZ.toString());
-    if (linearInterpolation) {
-      options.add("-l");
-    }
-    options.add(inputFileName);
-    options.add(inputFileName.substring(0, inputFileName.lastIndexOf('.')) + ".sqz");
-    return options;
+  /**
+   *  Get the objects attributes from the properties object.
+   */
+  public void load(Properties props) {
+    load(props, "");
   }
 
+  public void load(Properties props, String prepend) {
+    reset();
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    
+    reductionFactorXY.load(props, prepend);
+    reductionFactorZ.load(props, prepend);
+    linearInterpolation = Boolean.valueOf(props.getProperty(group
+        + linearInterpolationString, Boolean.toString(defaultLinearInterpolation))).booleanValue();
+  }
+
+  public ConstEtomoNumber setReductionFactorXY(String reductionFactorXY) {
+    return this.reductionFactorXY.set(reductionFactorXY);
+  }
+  
+  public ConstEtomoNumber setReductionFactorZ(String reductionFactorZ) {
+    return this.reductionFactorZ.set(reductionFactorZ);
+  }
+  
+  public boolean setLinearInterpolation(boolean linearInterpolation) {
+    return this.linearInterpolation = linearInterpolation;
+  }
 }
