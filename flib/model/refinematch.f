@@ -36,6 +36,12 @@ c	  if you have three layers, add another contour in the middle, etc.
 c	  For a given patch, the program will find the contour at the nearest
 c	  Z level and use that one to determine whether to include the patch.
 c
+c	  If there is only one layer of patches in one dimension, there is
+c	  insufficient information to solve for the full transformation, so
+c	  the program will solve for only two of the three columns of the
+c	  transformation matrix.  This typically occurs in the Y dimension,
+c	  in which case the second column of the matrix is fixed at 0, 1, 0.
+c
 c	  
 c	  Inputs to the program:
 c	  
@@ -63,6 +69,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/09/09 21:36:00  mast
+c	  Eliminate stat_source: and nimp_source: from all includes
+c	
 c	  Revision 3.1  2002/07/21 00:06:46  mast
 c	  Standardized error outputs, added declarations for implicit none, and
 c	  added model scaling in case image file has a non-unitary scale.
@@ -75,9 +84,9 @@ c
         parameter (idim=10000,limvert=100000)
         real*4 xr(msiz,idim)
         real*4 cx(idim),dx(idim),a(3,3),dxyz(3),devxyz(3)
-	real*4 devxyzmax(3),cenloc(3)
+	real*4 devxyzmax(3),cenloc(3),cxlast(3)
         integer*4 nxyz(3),idrop(idim)
-	logical inside,exist,readw_or_imod
+	logical inside,exist,readw_or_imod,onelayer(3)
 	integer getimodhead,getimodscales
 	real*4 xvert(limvert),yvert(limvert),zcont(idim)
 	integer*4 indvert(idim),nvert(idim)
@@ -87,6 +96,7 @@ c
 	real*4 ximscale,yimscale,zimscale,xyscal,zscal,xofs,yofs,zofs
 	integer*4 ifuse,icont,icmin,j,ind,maxdrop,ndrop,ipntmax,ip,ipt
 	real*4 dzmin,crit,elimmin,critabs,devavg,devsd,devmax,stoplim,dz
+	integer*4 icolfix
 
         write(*,'(1x,a,$)')
      &      'Name of file with correlation positions and results: '
@@ -143,6 +153,10 @@ c
         read(1,*)ndat
 	if(ndat.gt.idim)call errorexit(
      &	    'TOO MANY POINTS FOR DATA ARRAYS')
+
+	do j=1,3
+	  onelayer(j)=.true.
+	enddo
 	nfill=0
         do i=1,ndat
 c	    
@@ -150,6 +164,11 @@ c	    these are center coordinates and location of the second volume
 c	    relative to the first volume
 c
           read(1,*)(cx(j),j=1,3),(dx(j),j=1,3)
+	  do j = 1,3
+	    if (i.gt.1 .and. cx(j).ne.cxlast(j)) onelayer(j)=.false.
+	    cxlast(j) = cx(j)
+	  enddo
+
 	  ifuse=1
 	  if(ncont.gt.0)then
 	    ifuse=0
@@ -193,13 +212,22 @@ c
      &	    'exit with an error: '
 	read(5,*)stoplim
 c
+	icolfix = 0
+	do i = 1,3
+	  if (icolfix.ne.0 .and. onelayer(i)) call errorexit(
+     &	      'CANNOT FIT TO PATCHES THAT EXTEND IN ONLY ONE DIMENSION')
+	  if (onelayer(i)) icolfix = i
+	enddo
+	if (icolfix.gt.0)print *,'There is only one layer of patches',
+     &	    ' in the ',char(ichar('W')+icolfix),' dimension'
+c
 	maxdrop=nint(0.1*ndat)
 	crit=0.01
 	elimmin=0.5
 	critabs=0.002
-	call solve_wo_outliers(xr,ndat,3,maxdrop,crit,critabs,elimmin,
-     &	    idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,ipntmax,
-     &	    devxyzmax)
+	call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,critabs,
+     &	    elimmin, idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,
+     &	    ipntmax, devxyzmax)
 c
 	if(ndrop.ne.0)then
 	  write(*,104)ndrop,devavg,devsd,(idrop(i),i=1,ndrop)
