@@ -134,6 +134,9 @@ option.)
 .TP 
 .B -t
 Leave temporary files in /usr/tmp for diagnosing problems.
+.TP 
+.B -P
+Output process ID.
 .SH FILES
 Whether or not they fit the default naming conventions, the image files for
 fiducial tracking for each tilt series and the first fiducial model

@@ -82,6 +82,9 @@ Interpret
 and
 .B -nz
 entries as referring to a flipped volume, with Y and Z transposed.
+.TP 
+.B -P
+Output process ID.
 .SH FILES
 If the output file already exists a backup image
 of the original is created
