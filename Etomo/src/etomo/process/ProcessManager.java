@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.16  2003/06/05 21:11:34  rickg
+ * <p> Parse ERROR: from stdout
+ * <p>
  * <p> Revision 2.15  2003/06/05 16:52:37  rickg
  * <p> Removed stdout messages
  * <p>
@@ -145,6 +148,9 @@ public class ProcessManager {
   ApplicationManager appManager;
   SystemProcessInterface threadAxisA = null;
   SystemProcessInterface threadAxisB = null;
+  Thread processMonitorA = null;
+  Thread processMonitorB = null;
+  
   // save the transferfid command line so that we can identify when process is
   // complete.
   String transferfidCommandLine;
@@ -800,12 +806,21 @@ public class ProcessManager {
       }
 
     }
-
-    // Null out the appropriate thread reference
+    // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
+      if(processMonitorA != null){
+        processMonitorA.interrupt();
+        processMonitorA.destroy();
+        processMonitorA = null;
+      }
       threadAxisA = null;
     }
     if (threadAxisB == script) {
+      if(processMonitorB != null){
+        processMonitorB.interrupt();
+        processMonitorB.destroy();
+        processMonitorB = null;
+      }
       threadAxisB = null;
     }
     appManager.processDone(script.getName(), exitValue);
