@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/09/29 16:07:40  mast
+#  Added check for ability to write to directory where sum*.rec are placed
+#
 #  Revision 3.2  2004/08/24 18:48:03  mast
 #  Fixed problem with needing to replace local temporary directory
 #  on specifications of rec.*, mat.*
@@ -71,7 +74,7 @@ endif
 set numpieces = `sed -n '/^.*COMBINING PIECE *1 *of /s///p' $comname`
 @ numpieces = $numpieces
 
-set optionline = `grep 'set *combinefft_options' $comname`
+set optionline = `grep 'set *combinefft_.*=' $comname`
 
 set usingtmp = `grep '\/usr\/tmp' $comname`
 if ("$usingtmp" != "") then
