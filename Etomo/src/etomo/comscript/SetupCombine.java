@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:23:58  rickg
  * <p> Comment update
  * <p>
@@ -68,7 +71,6 @@ public class SetupCombine {
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
     setupcombine = new SystemProgram("setupcombine");
-    setupcombine.setWorkingDirectory(new File(metaData.getWorkingDirectory()));
 
     String[] tempStdInput = new String[15];
 
