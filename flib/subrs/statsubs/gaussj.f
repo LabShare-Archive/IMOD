@@ -15,9 +15,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/30 00:51:30  mast
+c	  Added check for array bounds being exceeded
+c	
 c
 	subroutine gaussj(a,n,np,b,m,mp)
-        parameter (msiz=1000)
+        parameter (msiz=10000)
 	dimension a(np,np), b(np,mp), pivot(msiz), ipivot(msiz),
      1 index(msiz,2)
 	equivalence (irow,jrow), (icolum,jcolum), (amax, t, swap)
