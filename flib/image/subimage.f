@@ -7,13 +7,22 @@ c	--- Updates: 31-may-1989, sjm			  ---
 c       --- DNM 11/4/00: added multiple-section capability---
 c       --- DNM 11/6/01: added ability to get statistics only
 c	-----------------------------------------------------
+c	  
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 
-	parameter (maxarr=2100)
+	parameter (maxarr=3100)
 	parameter (maxlist=2000)
 
 	real	array(maxarr*maxarr), brray(maxarr*maxarr),
      &	    max, min, title(20), cell(6)
+	common /bigarr/ array,brray
 	integer	nxyz(3), mxyz(3), nxyzst(3), asec, bsec, nxyz2(3)
 	integer*4 listasec(maxlist),listbsec(maxlist)
 	equivalence (nxyz,nx)
@@ -99,7 +108,7 @@ c	---------------------------------
 c	--- Write out the difference  ---
 	  if(cfile.ne.' ') call iwrsec(3,array)
 c	    call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
-	  call iclavgsd(array,nx,ny,tmin,tmax,sum,sumsq,tmean,sd)
+	  call iclavgsd(array,nx,ny,1,nx,1,ny,tmin,tmax,sum,sumsq,tmean,sd)
 	  write(6,4000)asec,tmin,tmax,tmean,sd
 	  sdsum=sdsum+sum
 	  sdsumsq=sdsumsq+sumsq
@@ -155,35 +164,3 @@ c       encode ( 80, 3000, title ) dat, tim
 
 100	stop 'ERROR READING FROM FILE'
 	end
-
-c	  
-c	  ICLAVGSD computes the min DMIN, max DMAX, mean AVG, and standard
-c	  deviation SD from data in ARRAY, dimensioned NX by NY.  It also
-c	  returns the sum in SUM and sum of squares in SUMSQ
-c
-	subroutine iclavgsd(array,nx,ny,dmin,dmax,sum,sumsq,avg,sd)
-	real*4 array(*)
-	sum=0.
-	sumsq=0.
-	dmin=1.e10
-	dmax=-1.e10
-	do iy=0,ny-1
-	  smtm=0.
-	  smtmsq=0.
-	  ibas=iy*nx
-	  do i=1+ibas,nx+ibas
-	    den=array(i)
-	    smtm=smtm+den
-	    smtmsq=smtmsq+den**2
-	    dmin=min(dmin,den)
- 	    dmax=max(dmax,den)
-	  enddo
-	  sum=sum+smtm
-	  sumsq=sumsq+smtmsq
-	enddo
-	nsum=nx*ny
-	avg=sum/nsum
-	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
-	return
-	end
-
