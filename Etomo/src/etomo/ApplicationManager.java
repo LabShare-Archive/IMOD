@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.21  2002/10/29 18:22:04  rickg
+ * <p> Simplified rawstack open checking
+ * <p>
  * <p> Revision 1.20  2002/10/25 19:30:43  rickg
  * <p> Modifies several catches to explicilty specify exception
  * <p>
@@ -1804,6 +1807,7 @@ public class ApplicationManager {
 
   private void initProgram() {
 
+      
     // Get the HOME directory environment variable to find the program
     // configuration file
     homeDirectory = getEnvironmentVariable("HOME");
@@ -1817,6 +1821,21 @@ public class ApplicationManager {
       System.exit(1);
     }
 
+    //  Set the user.dir system property to the current working dirctory
+    String workingDirectory = getEnvironmentVariable("PWD");
+    if (workingDirectory == "") {
+      String[] message = new String[2];
+      message[0] =
+        "Can not find current working directory!";
+      message[1] =
+        "Home directory will be the starting point for file opens.";
+      openMessageDialog(message, "Program Initialization Error");
+    }
+    else {
+      System.setProperty("user.dir", workingDirectory);
+      
+    }
+    
     // Get the IMOD directory so we know which program to run
     IMODDirectory = getEnvironmentVariable("IMOD_DIR");
     if (homeDirectory == "") {
