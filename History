@@ -1,6 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IMOD_2-7-4
+11/5/02: Changed Midas to choose a visual explicitly so it will work on
+machines with only double-buffered visuals.
+
+11/5/02: Standardized copyright notices with lab name as a variable.
+
+11/5/02: Changed raw2mrc to use library routines to write header.
+
 11/4/02: Modified setupcombine to work around a bug in tcsh 6.12 as distributed
 in Redhat 8.0
 
