@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -44,4 +47,5 @@ public class DialogExitState {
   public static final DialogExitState POSTPONE =
     new DialogExitState("Postpone");
   public static final DialogExitState EXECUTE = new DialogExitState("Execute");
+  public static final DialogExitState SAVE = new DialogExitState("Save");
 }
