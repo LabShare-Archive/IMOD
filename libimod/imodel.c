@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2004/09/21 20:13:40  mast
+Changes for multiple and global clipping planes (i.e. checksum)
+
 Revision 3.11  2004/09/10 21:33:46  mast
 Eliminated long variables
 
@@ -86,6 +89,7 @@ Changed imodCopyright to use defined lab name
  * int   imodNextObject(Imod *imod)
  * int   imodPrevObject(Imod *imod)
  * int   imodFreeObject(Imod *imod, int index)
+ * int   imodMoveObject(Imod *imod, int obOld, int obNew)
  * 
  * int   imodNewContour(Imod *imod)
  * void  imodDeleteContour(Imod *imod)
@@ -187,6 +191,9 @@ void imodFree(Imod *imod)
   imodObjectsDelete(imod->obj, imod->objsize);
   if (imod->fileName)
     free(imod->fileName);
+  if (imod->refImage)
+    free(imod->refImage);
+  ilistDelete(imod->store);
   free(imod);
 }
 
@@ -388,8 +395,8 @@ double imodel_dist(struct Mod_Model *imod)
 
 /*****************************************************************************/
 /* Function imodNewObject()                                                  */
-/* Adds point to end of obj array                                            */
-/* Returns size of point array.                                              */
+/* Adds new object to end of obj array                                       */
+/* Returns 1 if error.                                                       */
 /*****************************************************************************/
 int imodNewObject(struct Mod_Model *mod)
 {
@@ -553,6 +560,44 @@ int imodFreeObject(struct Mod_Model *mod, int index)
 
 
 /*****************************************************************************/
+/* imodMoveObject - inputs: pointer to model, existing and new object number */
+/*                  returns 1 if memory error                                */
+/*****************************************************************************/
+int imodMoveObject(Imod *imod, int obOld, int obNew)
+{
+  int idir, ob, iv;
+  Iobj object;
+  Iobj *objSave = &object;
+  Iview *vw;
+  Iobjview obvwSave;
+
+  if (obOld == obNew)
+    return 0;
+  idir = obOld < obNew ? 1 : -1;
+  
+  /* complete object views */
+  if (imodObjviewComplete(imod))
+    return 1;
+    
+  /* Copy object structures */
+  imodObjectCopy(&imod->obj[obOld], objSave);
+  for (ob = obOld; ob != obNew; ob += idir)
+    imodObjectCopy(&imod->obj[ob + idir], &imod->obj[ob]);
+  imodObjectCopy(objSave, &imod->obj[obNew]);
+
+  /* Copy object views */
+  for (iv = 1; iv < imod->viewsize; iv++) {
+    vw = &imod->view[iv];
+    obvwSave  = vw->objview[obOld];
+    for (ob = obOld; ob != obNew; ob += idir)
+      vw->objview[ob] =  vw->objview[ob + idir];
+    vw->objview[obNew] = obvwSave;
+  }
+  return 0;
+}
+
+
+/*****************************************************************************/
 /* imodNextObject - input, pointer to model.                                 */
 /*              returns new object index.                                    */
 /*****************************************************************************/
@@ -673,6 +718,7 @@ int NewContour(struct Mod_Model *mod)
   cont->surf = 0;
   cont->label = NULL;
   cont->sizes = NULL;
+  cont->store = NULL;
 
   /* Reset current index. */
   ocont = imodContourGet(mod);
@@ -886,8 +932,10 @@ int imodInsertPoint(Imod *imod, Ipoint *point, int index)
     
   if (index < 0)
     index = 0;
-  if (index >= cont->psize)
-    index = cont->psize - 1;
+
+  /* DNM 11/17/04: allow it to specify index of appended point */
+  if (index > cont->psize)
+    index = cont->psize;
 
   retval = imodPointAdd(cont, point, index);
 
@@ -908,32 +956,26 @@ int DelPoint(struct Mod_Model *mod)
   return(imodDeletePoint(mod));
 }
 
+/* Deletes the current point, or the current contour if it the last point in it
+   Returns size of current contour or -1 if nothing was deleted */
 int imodDeletePoint(Imod *imod)
 {
   Icont *cont;
-  int    index, size;
-
+  int    index;
 
   cont = imodContourGet(imod);
-  if (!cont) return(0);
+  if (!cont || imod->cindex.point < 0)
+    return(-1);
 
-  if (imod->cindex.point < 0)
-    return(0);
-
+  /* If there is just one point, delete the whole contour */
   if (cont->psize == 1){
     DelContour(imod, imod->cindex.contour);
     return(0);
   }
 
-  size = cont->psize;
   index = imod->cindex.point;
 
-  if (size == 1){
-    if (cont->pts)
-      free (cont->pts);
-    imod->cindex.point = -1;
-    return(0);
-  }
+  /* DNM 11/16/04: removed second test on size = 1 that just free points */
 
   if (index)
     imod->cindex.point = index - 1;
@@ -1396,15 +1438,9 @@ void imodCleanSurf(Imod *imod)
   return;
 }
 
-int imodVirtIn(Imod *imod)
-{
-  int ob;
+/* DNM 11/15/04: removed virtual in call */
 
-  for(ob = 0; ob < imod->objsize; ob++)
-    imodObjectVirtIn(&(imod->obj[ob]));
-  return(0);
-}
-
+/* Flip a model - exchange Y and Z */
 void  imodFlipYZ(Imod *imod)
 {
   Iobj  *obj;
