@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:56:59  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.10  2004/11/16 02:20:21  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -209,7 +212,7 @@ public class FinishjoinParam implements Command {
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       //both numbers must exist
-      options.add(data.getFinalStartString() + "," + data.getFinalEndString());
+      options.add(data.getFinalStart().toString() + "," + data.getFinalEnd().toString());
     }
     return options;
   }
