@@ -25,7 +25,11 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/02 18:24:23  sueh
+* <p> bug# 557 Manages squeezevol parameters.  Creates command line.
+* <p> Stores parameters.
+* <p> </p>
 */
 public abstract class ConstSqueezevolParam implements Storable {
   public static  final String  rcsid =  "$Id$";
@@ -70,7 +74,7 @@ public abstract class ConstSqueezevolParam implements Storable {
     ConstMetaData metaData = manager.getMetaData();
     String datasetName = metaData.getDatasetName();
     //try to take the trimvol output file as input
-    inputFileName = TrimvolParam.getOutputFile(datasetName);
+    inputFileName = TrimvolParam.getOutputFileName(datasetName);
     if (!(new File(manager.getPropertyUserDir(), inputFileName).exists())) {
       String[] message = { inputFileName + " does not exist.",
           "Trim volume before running squeeze volume." };
