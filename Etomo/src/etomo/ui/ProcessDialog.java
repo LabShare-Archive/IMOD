@@ -24,6 +24,9 @@ import etomo.type.DialogExitState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -169,14 +172,14 @@ public class ProcessDialog implements ExitButtons {
 
     line1 = "<html>This button will save any changes to the parameters<br>";
     line2 = "in this dialog box and return you to the main window<br>";
-    line3 = "without exectuing any of the processing.  Any parameter<br>";
-    line4 = "changes will also be written in to the com scripts.";
+    line3 = "without executing any of the processing.  Any parameter<br>";
+    line4 = "changes will also be written to the com scripts.";
     buttonPostpone.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This button will save any changes to the parameters<br>";
     line2 = "in this dialog box and execute the specified operation<br>";
     line3 = "on the data.  Any parameter changes will also be written<br>";
-    line4 = "in to the com scripts.";
+    line4 = "to the com scripts.";
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This button will present a more detailed set of<br>";
