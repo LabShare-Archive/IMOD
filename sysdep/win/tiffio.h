@@ -31,7 +31,9 @@
  * TIFF I/O Library Definitions.
  */
 #include "tiff.h"
+/* DNM: Not available - so leave it out
 #include "tiffvers.h"
+*/
 
 /*
  * TIFF is defined as an incomplete type to hide the
