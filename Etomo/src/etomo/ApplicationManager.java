@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2002/10/07 22:20:21  rickg
+ * <p> removed unused imports
+ * <p>
  * <p> Revision 1.7  2002/09/30 23:44:43  rickg
  * <p> Started implementing updateCombineCom
  * <p>
@@ -1310,28 +1313,53 @@ public class ApplicationManager {
     tomogramCombinationDialog.setModal(false);
     tomogramCombinationDialog.setVisible(true);
 
-    //  Fill in the dialog box params and set it to the appropriate state
-    tomogramCombinationDialog.setCombineParams(metaData.getCombineParams());
+    // If the patch boundaries have not been previously set, then set them
+    // to the default
+    CombineParams combineParams =
+      new CombineParams(metaData.getCombineParams());
+    if (!combineParams.isPatchBoundarySet()) {
+      String recFileName;
+      if (combineParams.getMatchBtoA()) {
+        recFileName = metaData.getFilesetName() + "a.rec";
+      }
+      else {
+        recFileName = metaData.getFilesetName() + "b.rec";
+      }
+      try {
+        combineParams.setDefaultPatchBoundaries(recFileName);
+      }
+      catch (Exception except) {
+        openMessageDialog(except.getMessage(), "Error getting stack dimensions");
+      }
+    }
+    // Fill in the dialog box params and set it to the appropriate state
+    tomogramCombinationDialog.setCombineParams(combineParams);
 
   }
 
   public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
 
-    DialogExitState exitState = tomogramCombinationDialog.getExitState();
+    DialogExitState exitState =
+      tomogramCombinationDialog.getExitState();
 
     if (exitState == DialogExitState.CANCEL) {
       tomogramCombinationDialog.dispose();
     }
     else {
       //  Get the user input data from the dialog box
-      boolean dialogFinished = updateCombineCom(tomogramCombinationDialog);
+      boolean dialogFinished =
+        updateCombineCom(tomogramCombinationDialog);
       if (dialogFinished) {
-        tomogramCombinationDialog.getCombineParams(metaData.getCombineParams());
-
-        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+        CombineParams combineParams = new CombineParams();
+        tomogramCombinationDialog.getCombineParams(
+          combineParams);
+        metaData.setCombineParams(combineParams);
+        processTrack.setTomogramCombinationState(
+          ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
-          processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
+          processTrack.setTomogramCombinationState(
+            ProcessState.COMPLETE);
         }
 
         mainFrame.setTomogramCombinationState(
@@ -1348,21 +1376,37 @@ public class ApplicationManager {
       //
       //  Get the user input data from the dialog box
       //
-      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(
+        ProcessState.INPROGRESS);
 
     }
     if (exitState == DialogExitState.EXECUTE) {
-      mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
+      mainFrame.setTomogramCombinationState(
+        ProcessState.COMPLETE);
     }
 
   }
 
   private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
     CombineParams combineParams = new CombineParams();
-    tomogramCombinationDialog.getCombineParams(combineParams);
+    try {
+      tomogramCombinationDialog.getCombineParams(combineParams);
+      if (!combineParams.isValid()) {
+        openMessageDialog(
+          combineParams.getInvalidReasons(),
+          "Invlaid combine parameters");
+        return false;
+      }
 
-    //  FIXME we need to get the metadata combine parameters object to match the tomogram Combination
-    //  dialog.  Be consistent with previous methods i.e. setup
+    }
+    catch (NumberFormatException except) {
+      openMessageDialog(except.getMessage(), "Number format error");
+      return false;
+    }
+
+    // FIXME we need to get the metadata combine parameters object to match
+    // the tomogram Combination dialog.  Be consistent with previous methods 
+    // i.e. setup
     return true;
   }
 
@@ -1370,7 +1414,7 @@ public class ApplicationManager {
    * Run the setupcombine script with the current combine parameters stored in
    * metaData object
    */
-  public void createCombineScripts() {
+  public void createCombineScripts(TomogramCombinationDialog tomogramCombinationDialog) {
 
     try {
       processMgr.createCombineScripts(metaData);
