@@ -215,6 +215,7 @@ options:
  33: Replace some sets of bins by their averages
  34/35: Set up special big array for plots/Plot all windows in array
  37/38/39 Add list of graphs/Read list of graphs from file/Read&Add from file
+ 42: Export graph values or points for drawing to file
 
      First note that the graphs are referred to by number, from 1 up to the
 total number that you computed.  The first few graphs (up to 4 graphs) are
@@ -481,6 +482,15 @@ in which to place the final sum, and an extra location to be used for
 temporary storage.  Then enter the list of graph numbers in the file.  Finally
 enter the name of the graph file.
 
+42: Export a graph to a file; i.e., output the graph information in a
+format suitable for importing into a spreadsheet or graphing program.  
+First enter the number of the graph to save.  Then enter the
+name of the file to save it in (only one graph can be saved per file).
+Then enter 0 to output the density values or 1 to output raw counts in each
+bin.  Finally, enter 1 to output points that could be connected to draw a
+histogram, or 2 to output the starting distance and bin value for each bin,
+3 for the midpoint distance and bin value of each bin, or 4 for the
+starting and ending distance and bin value for each bin.
 
      If you have generated a random data set by randomizing types or by
 sampling random points, and there is only one region being analyzed, then when
@@ -497,10 +507,10 @@ Making special graphs with good labels
 specify all the characteristics of the graph, then you have many entries to
 make.  If you are trying to make graphs for publication, it is much easier to
 set up a command file to do this.  The file ndapltexamp.dat (in the 
-directories ~mast/tomocoms and /monalisa/src/flib/com) can be copied and
-modified for this use. Some guidance to the use of this file is given below,
-but first, here is a blow-by-blow description of the entries required after
-electing to specify the graph characteristics:
+directorie $IMOD_DIR/com) can be copied and modified for this use. Some
+guidance to the use of this file is given below, but first, here is a
+blow-by-blow description of the entries required after electing to specify the
+graph characteristics:
 
    The graph size in X and Y and coordinates of the lower-left corner in
    inches; there are 7.5 inches on the page and the lower-left corner of the
