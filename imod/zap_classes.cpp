@@ -408,10 +408,8 @@ void ZapGL::paintGL()
     mTimerID = startTimer(10);
     mFirstDraw = false;
     // DNM 3/25/04: Nvidia driver 5336 does a bad first draw and needs a clear
-    if (mTimerID) {
-      glClear(GL_COLOR_BUFFER_BIT);
-      return;
-    }
+    // DNM 6/8/04: Suse 9.1 on AMD64 needed more, so just switch to doing 
+    // two draws unconditionally
   }
   zapPaint(mZap);
 }
@@ -447,6 +445,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.14  2004/05/07 22:15:59  mast
+Fixed array dimension problems caused by new toolbutton
+
 Revision 4.13  2004/05/05 17:32:16  mast
 Added rubberband tool button
 
