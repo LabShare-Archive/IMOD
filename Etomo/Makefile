@@ -12,7 +12,7 @@ PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui
 JAVAC_OPTIONS =
 JAVAC = $(JAVAC_EXE) $(CLASSPATH) $(OUTPUT) $(JAVAC_OPTIONS)
 
-JAVADOC_OPTIONS = -author -version -private -use -breakiterator
+JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
 CLASS_FILES = \
 bin/etomo/ui/FixedDim.class \
