@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.17  2004/01/16 18:07:54  mast
+c	  Fixed problem with how it decided if it needed image binning entry
+c	
 c	  Revision 3.16  2004/01/08 23:02:52  mast
 c	  Fixed problem with linear option
 c	
@@ -97,7 +100,7 @@ C
 	real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C   
 	CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
-	character*120 idfFile
+	character*120 idfFile, magGradFile
 	character*100000 listString
 	equivalence (listString, array)
 	EQUIVALENCE (NX,NXYZ)
@@ -118,6 +121,11 @@ c
 	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
 	real*4 xGridIntrv, yGridIntrv, pixelIdf
 	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+	real*4 idfDx(lmGrid, lmGrid), idfDy(lmGrid, lmGrid)
+c	  
+	integer*4 ifMagGrad, numMagGrad, magUse
+	real*4 pixelMagGrad, axisRot
+	real*4 tiltAngles(lmsec), dmagPerUm(lmsec), rotPerUm(lmsec)
 c
 	logical rescale
 	character dat*9,tim*8,tempext*9
@@ -161,7 +169,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c
 	integer numOptions
-	parameter (numOptions = 24)
+	parameter (numOptions = 25)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -176,7 +184,8 @@ c
      &      'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
      &      'contrast:ContrastBlackWhite:IP:@'//
      &      'scale:ScaleMinAndMax:FP:@distort:DistortionField:FN:@'//
-     &      'imagebinned:ImagesAreBinned:I:@test:TestLimits:IP:@'//
+     &      'imagebinned:ImagesAreBinned:I:@'//
+     &      'maggrad:MagGradientFile:FN:@test:TestLimits:IP:@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -194,8 +203,10 @@ c
 	numOutputFiles = 0
 	numSecLists = 0
 	ifDistort = 0
+	ifMagGrad = 0
 	maxFieldY = 0
 	idfFile = ' '
+	magGradFile = ' '
 	rotateAngle = 0.
 	expandFactor = 0.
 	iBinning = 1
@@ -584,6 +595,7 @@ c
 	  ierr = PipGetFloat('ExpandByFactor', expandFactor)
 	  ierr = PipGetInteger('BinByFactor', iBinning)
 	  ierr = PipGetString('DistortionField', idfFile)
+	  ierr = PipGetString('MagGradientFile', magGradFile)
 	  ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
 	  limdim = min(limdim, maxdim)
 	  lenTemp = min(lenTemp, maxTemp)
@@ -604,6 +616,8 @@ c
 	    endif
 	    if (inputBinning .le. 0) call errorexit
      &		('IMAGE BINNING MUST BE A POSITIVE NUMBER')
+	    
+	    binRatio = 1.
 	    if (inputBinning .ne. idfBinning .or. iBinning .ne. 1) then
 c		
 c		Adjust grid start and interval and field itself for the
@@ -614,31 +628,37 @@ c
 	      iyGridStrt = nint(iyGridStrt * binRatio)
 	      xGridIntrv = xGridIntrv * binRatio
 	      yGridIntrv = yGridIntrv * binRatio
-	      do iy = 1, nyGrid
-		do i = 1, nxGrid
-		  fieldDx(i, iy) = fieldDx(i, iy) * binRatio
-		  fieldDy(i, iy) = fieldDy(i, iy) * binRatio
-		enddo
-	      enddo
+	    endif
 c		
-c		if images are not full field, adjust grid start by half the
-c		difference between field and image size, binned down
+c	      if images are not full field, adjust grid start by half the
+c	      difference between field and image size, binned down
+c	      3/18/04: this was only being done with binning adjustment
+c	      and it needs to be done unconditionally
 c		
 	      ixGridStrt = ixGridStrt - nint((idfNx * idfBinning -
      &		  nxFirst * inputBinning) / (2. * inputBinning * iBinning))
 	      iyGridStrt = iyGridStrt - nint((idfNy * idfBinning -
      &		  nyFirst * inputBinning) / (2. * inputBinning * iBinning))
-	    endif
+c	      
+c	      scale field and copy it to idfDx,y in case there are mag grads
 c
-c	      get maximum Y deviation to adjust chunk limits with
-c
-	    fieldMaxY = 0.
 	    do iy = 1, nyGrid
 	      do i = 1, nxGrid
-		fieldMaxY = max(fieldMaxY, abs(fieldDy(i, iy)))
+		fieldDx(i, iy) = fieldDx(i, iy) * binRatio
+		fieldDy(i, iy) = fieldDy(i, iy) * binRatio
+		idfDx(i, iy) = fieldDx(i, iy)
+		idfDy(i, iy) = fieldDy(i, iy)
 	      enddo
 	    enddo
-	    maxFieldY = int(fieldMaxY + 1.)
+	  endif
+c	    
+c	    get mag gradient information
+c
+	  if (magGradFile .ne. ' ') then
+	    ifMagGrad = 1
+	    xftext=', undistorted'
+	    call readMagGradients(magGradFile, lmsec, pixelMagGrad, axisRot,
+     &		tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
 	  endif
 	endif
 	call PipDone()
@@ -646,7 +666,7 @@ c
 c	  if not transforming and distorting, rotating, or expanding, set up
 c	  a unit transform
 c	  
-	if (ifxform .eq. 0 .and. (ifDistort .ne. 0 .or.
+	if (ifxform .eq. 0 .and. (ifDistort .ne. 0 .or. ifMagGrad .ne. 0 .or.
      &	    rotateAngle .ne. 0. .or. expandFactor .ne. 0.)) then
 	  ifxform = 1
 	  call xfunit(f(1,1,1), 1.)
@@ -982,6 +1002,38 @@ c
 	      endif
 	    endif
 c	      
+c	      if doing mag gradients, set up or add to distortion field
+c	      
+	    if (ifMagGrad .ne. 0) then
+	      magUse = min(nsecred + 1, numMagGrad)
+	      if (ifDistort .ne. 0) then
+		call addMagGradField(idfDx, idfDy, fieldDx, fieldDy, lmGrid,
+     &		    nxbin, nybin, ixGridStrt, xGridIntrv, nxGrid,
+     &		    iyGridStrt, yGridIntrv, nyGrid, nxbin / 2., nybin / 2.,
+     &		    pixelMagGrad, axisRot, tiltAngles(magUse),
+     &		    dmagPerUm(magUse), rotPerUm(magUse))
+	      else
+		call makeMagGradField(idfDx, idfDy, fieldDx, fieldDy, lmGrid,
+     &		    nxbin, nybin, ixGridStrt, xGridIntrv, nxGrid,
+     &		    iyGridStrt, yGridIntrv, nyGrid, nxbin / 2., nybin / 2.,
+     &		    pixelMagGrad, axisRot, tiltAngles(magUse),
+     &		    dmagPerUm(magUse), rotPerUm(magUse))
+	      endif
+	    endif
+c
+c	      get maximum Y deviation with current field to adjust chunk
+c	      limits with
+c
+	    if (ifMagGrad + ifDistort .ne. 0) then
+	      fieldMaxY = 0.
+	      do iy = 1, nyGrid
+		do i = 1, nxGrid
+		  fieldMaxY = max(fieldMaxY, abs(fieldDy(i, iy)))
+		enddo
+	      enddo
+	      maxFieldY = int(fieldMaxY + 1.)
+	    endif
+c	      
 c	      figure out how the data will be loaded and saved; first see if
 c	      both input and output images will fit in one chunk, or if
 c	      entire input image will fit
@@ -1189,7 +1241,7 @@ c
 		dy=(ny3-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
 c		dx=f(1,3,lnu)-xcen(isec)
 c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
-		if (ifDistort .eq. 0) then
+		if (ifDistort + ifMagGrad .eq. 0) then
 		  call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
 		else
