@@ -11,10 +11,11 @@ a simple image thresholding.  Both a low and a high threshold may be set;
 contours are drawn around groups of pixels that are below the low threshold
 and around pixels above the high threshold.  Image data are read from the file
 and scaled to values between 0 and 255, just as when reading into imod(1).
-The thresholds may be specified as absolute values after scaling, in which
+The thresholds may be specified as values either before or after this scaling.
+In addition, thresholds may be specified as absolute values or as
+multiples of the mean image intensity.  The default behavior is for thresholds
+to be interpreted as absolute values after scaling, in which
 case they will correspond to thresholds set in the imod autocontouring window.
-Alternatively, thresholds may be specified as multiples of the mean image
-intensity. 
 .P
 Typically, you would enter either a low or a high threshold, but not both.
 However, if your images have annular regions of pixels, you can get contours
@@ -61,6 +62,12 @@ program).  If an
 image file's mean value is 50 and the low value is 0.5 then
 the low threshold will be set to 25.  When d = 3, the low and high values 
 are factors applied to the mean of each individual section.
+.TP
+.B -u
+Specifies that the entered threshold values are to be interpreted as unscaled,
+corresponding to the actual values in the image file.  By default,
+threshold values are instead interpreted as scaled values to be applied after
+the images are scaled to the range of 0 to 255. 
 .TP
 .B -f <value>
 Determines whether diagonals are followed when finding groups of connected
