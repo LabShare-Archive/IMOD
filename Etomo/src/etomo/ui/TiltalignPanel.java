@@ -38,192 +38,6 @@ import etomo.util.MRCHeader;
  *
  * @version $Revision$
  *
- * <p> $Log$
- * <p> Revision 3.18  2005/02/11 16:46:12  sueh
- * <p> bug# 600 Getting tooltips from autodoc.
- * <p>
- * <p> Revision 3.17  2005/01/26 00:06:49  sueh
- * <p> Converted ConstEtomoNumber.resetValue to displayValue.
- * <p>
- * <p> Revision 3.16  2005/01/11 01:01:05  sueh
- * <p> bug# 567 Varying the widths of the radio button panels.
- * <p>
- * <p> Revision 3.15  2005/01/06 18:19:45  sueh
- * <p> bug# 567 In getParameters(), get z factor file.
- * <p>
- * <p> Revision 3.14  2005/01/05 20:12:17  sueh
- * <p> bug# 567 Made ProjectionStretch advanced only.
- * <p>
- * <p> Revision 3.13  2005/01/05 20:07:20  sueh
- * <p> bug# 567 Added ProjectionStretch checkbox to the global tab.
- * <p>
- * <p> Revision 3.12  2005/01/05 00:08:31  sueh
- * <p> bug# 567 Set the preferred width of fields that are too small
- * <p>
- * <p> Revision 3.11  2004/12/30 19:35:14  sueh
- * <p> bug# 567 in createGeneralTab(): capitalized radio box title.
- * <p>
- * <p> Revision 3.10  2004/12/30 19:33:53  sueh
- * <p> bug# 567 In createGeneralTab() Maved the items in the Resdual Reporting
- * <p> box to make two rows.
- * <p>
- * <p> Revision 3.9  2004/12/30 18:48:34  sueh
- * <p> bug# 567 In createVariablePanel(): Reduce the space between the
- * <p> checkbox and the text fields
- * <p>
- * <p> Revision 3.8  2004/12/30 18:01:54  sueh
- * <p> bug# 567 Fixed a bug in setParameters(ConstTiltalignParam):
- * <p> localRotationNonDefaultGroups was being set incorrectly.
- * <p>
- * <p> Revision 3.7  2004/12/29 23:50:23  sueh
- * <p> bug# 567 Put checkbox or radio buttons to the left on the fields in global and
- * <p> local tabs and in the local alignment panel on the general tab.
- * <p>
- * <p> Revision 3.6  2004/12/29 01:54:46  sueh
- * <p> bug# 567 Adding rotation solution panel.  Putting global and local rotation
- * <p> solution next to tilt angle solution panel.  Putting global and local
- * <p> xstretch and skew side-by-side.
- * <p>
- * <p> Revision 3.5  2004/12/29 00:16:18  sueh
- * <p> bug# 567 Converted distortion checkbox and local distortion checkbox to
- * <p> radio button groups.  Moved default values to ConstTiltalignParam.
- * <p> Changed update...Panel() functions to enable...Fields().  Changed
- * <p> selectGlobalDistortion to setDistortionSolutionState().  No longer testing
- * <p> type values before loading from the param.  Adapt to new tiltalignParam.
- * <p>
- * <p> Revision 3.4  2004/08/31 21:51:19  sueh
- * <p> bug# 545 SetParameters: handle the situation where fid.xyz exists but is empty.
- * <p> Substitute the pixel spacing from pre-aligned stack.
- * <p>
- * <p> Revision 3.3  2004/07/02 17:42:18  sueh
- * <p> bug#461 removing prints
- * <p>
- * <p> Revision 3.2  2004/07/02 00:40:07  sueh
- * <p> bug# 461 adding a connection to fid.xyz, preali header, and rawstack
- * <p> header to the constructor.  Info from these files is required
- * <p> to calculate z shift.  Correcting the calculation of binning
- * <p> when caculating z shift.
- * <p>
- * <p> Revision 3.1  2004/06/21 17:16:37  rickg
- * <p> Bug #461 z shift is scaled by the prealigned binning
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.10  2003/10/30 01:43:44  rickg
- * <p> Bug# 338 Remapped context menu entries
- * <p>
- * <p> Revision 2.9  2003/10/28 20:59:33  rickg
- * <p> Bug# 280 Tooltips
- * <p>
- * <p> Revision 2.8  2003/10/22 22:53:37  rickg
- * <p> Bug# 279 Removed "linear"
- * <p>
- * <p> Revision 2.7  2003/10/20 20:08:37  sueh
- * <p> Bus322 corrected labels
- * <p>
- * <p> Revision 2.6  2003/10/14 20:30:25  rickg
- * <p> Bug#279  Label layout and name changes
- * <p>
- * <p> Revision 2.5  2003/10/09 23:21:21  rickg
- * <p> Bug#279  Label layout and name changes
- * <p>
- * <p> Revision 2.4  2003/05/27 08:50:28  rickg
- * <p> Context menu handled by parent window
- * <p>
- * <p> Revision 2.3  2003/05/23 22:03:06  rickg
- * <p> Changed default tilt angle group size to 5
- * <p>
- * <p> Revision 2.2  2003/03/20 17:43:52  rickg
- * <p> Comment update
- * <p>
- * <p> Revision 2.1  2003/03/02 23:30:41  rickg
- * <p> Combine layout in progress
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.23  2003/01/15 00:11:42  rickg
- * <p> Fixed handling of xstretch and skew types (both global and
- * <p> local) when the original align.com does not have those
- * <p> parameters set and the user requests them.
- * <p>
- * <p> Revision 1.22.2.2  2003/01/24 19:04:54  rickg
- * <p> Merged changes from main branch
- * <p>
- * <p> Revision 1.22.2.1  2003/01/24 18:43:37  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.22  2003/01/06 05:57:29  rickg
- * <p> Quick fix for residual threshold value text field size.  Needs to be more
- * <p> robust
- * <p>
- * <p> Revision 1.21  2003/01/04 00:24:29  rickg
- * <p> Wrap tab pane with a border to ID it as a tiltalign
- * <p> panel.
- * <p>
- * <p> Revision 1.20  2002/12/31 23:13:47  rickg
- * <p> Layout simplification
- * <p>
- * <p> Revision 1.19  2002/12/24 01:08:08  rickg
- * <p> Moved min local patch size to advanced
- * <p>
- * <p> Revision 1.18  2002/12/20 01:08:19  rickg
- * <p> Spelling correction
- * <p>
- * <p> Revision 1.17  2002/12/18 19:15:31  rickg
- * <p> Added advanced capability for metro factor and
- * <p> cycle limit.
- * <p> Ordered handling of panel updates
- * <p>
- * <p> Revision 1.16  2002/12/18 00:53:00  rickg
- * <p> Update in progress
- * <p>
- * <p> Revision 1.15  2002/12/17 01:02:08  rickg
- * <p> Additional groups are now advanced
- * <p>
- * <p> Revision 1.14  2002/12/10 21:33:10  rickg
- * <p> Add residual threshold control
- * <p>
- * <p> Revision 1.13  2002/12/06 01:02:58  rickg
- * <p> Redesign in progress
- * <p>
- * <p> Revision 1.12  2002/12/05 01:21:31  rickg
- * <p> Redesign in progress
- * <p>
- * <p> Revision 1.11  2002/12/04 04:42:13  rickg
- * <p> Redesign in progress
- * <p>
- * <p> Revision 1.10  2002/12/04 01:19:10  rickg
- * <p> Redesign in progress
- * <p>
- * <p> Revision 1.9  2002/12/03 05:41:13  rickg
- * <p> redesign in progress
- * <p>
- * <p> Revision 1.8  2002/12/03 05:22:29  rickg
- * <p> added getLocalRotationSolutionGroupSize
- * <p>
- * <p> Revision 1.7  2002/12/03 00:53:20  rickg
- * <p> Redesign in progress
- * <p>
- * <p> Revision 1.6  2002/11/25 15:59:37  rickg
- * <p> Removed local skew radio buttons
- * <p>
- * <p> Revision 1.5  2002/11/22 00:56:52  rickg
- * <p> removal of non-used fields in progress
- * <p>
- * <p> Revision 1.4  2002/11/14 21:18:37  rickg
- * <p> Added anchors into the tomoguide
- * <p>
- * <p> Revision 1.3  2002/10/17 23:40:32  rickg
- * <p> Added methods to set titl/mag and distortion defaults.
- * <p>
- * <p> Revision 1.2  2002/10/16 23:20:36  rickg
- * <p> Reformat
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 
 public class TiltalignPanel {
@@ -1648,60 +1462,65 @@ public class TiltalignPanel {
       except.printStackTrace();
     }
     // General tab
-    ltfExcludeList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "ExcludeList")).format());
-    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SeparateGroup")).format());
+    ltfExcludeList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.EXCLUDE_LIST_KEY)).format());
+    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SEPARATE_GROUP_KEY)).format());
     
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "ResidualReportCriterion");
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
     if (section  != null ) {
       ltfResidualThreshold.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section)).format());
       rbResidAllViews.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
       rbResidNeighboring.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "neighboring")).format());
     }
     
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "SurfacesToAnalyze");
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.SURFACES_TO_ANALYZE_KEY);
     if (section != null) {
-      rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "one")).format());
-      rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "two")).format());
+      rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "1")).format());
+      rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "2")).format());
     }
 
-    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "AngleOffset")).format());
-    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "AxisZShift")).format());
-    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MetroFactor")).format());
-    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MaximumCycles")).format());
-    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalAlignments")).format());
-    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "NumberOfLocalPatchesXandY")).format());
-    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MinSizeOrOverlapXandY")).format());
-    ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MinFidsTotalAndEachSurface")).format());
+    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ANGLE_OFFSET_KEY)).format());
+    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.AXIS_Z_SHIFT_KEY)).format());
+    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.METRO_FACTOR_KEY)).format());
+    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAXIMUM_CYCLES_KEY)).format());
+    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ALIGNMENTS_KEY)).format());
+    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY)).format());
+    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY)).format());
+    ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY)).format());
 
     //  Global variables
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "TiltOption");
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.TILT_OPTION_KEY);
     if (section != null) {
-      rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
-      rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
-      rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
+      rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION)).format());
+      rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.TILT_ALL_OPTION)).format());
+      rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.TILT_AUTOMAPPED_OPTION)).format());
     }
     
-    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "TiltDefaultGrouping")).format());
-    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "TiltNondefaultGroup")).format());
+    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.TILT_DEFAULT_GROUPING_KEY)).format());
+    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.TILT_NONDEFAULT_GROUP_KEY)).format());
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "MagOption");
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.MAG_OPTION_KEY);
     if (section != null) {
-      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
-      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
-      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
+      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION)).format());
+      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION)).format());
+      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION)).format());
     }
 
-    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagReferenceView")).format());
-    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagDefaultGrouping")).format());
-    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MagNondefaultGroup")).format());
-
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "MagOption");
-    if (section != null) {
-      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
-      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
-      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
-    }
+    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_REFERENCE_VIEW_KEY))
+        .format());
+    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_DEFAULT_GROUPING_KEY)).format());
+    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_NONDEFAULT_GROUP_KEY)).format());
     
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.ROT_OPTION_KEY);
+    if (section != null) {
+      rbRotationNone.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.NONE_OPTION)).format());
+      rbRotationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION)).format());
+      rbRotationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION)).format());
+    }
+
+    ltfRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_DEFAULT_GROUPING_KEY)).format());
+    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_NONDEFAULT_GROUP_KEY)).format());
+
     text = "Do not solve for distortions in the plane of section.";
     rbDistortionDisabled
         .setToolTipText(tooltipFormatter.setText(text).format());
@@ -1710,14 +1529,14 @@ public class TiltalignPanel {
     rbDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewOption")).format());
-    ltfXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "XStretchDefaultGrouping")).format());
-    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "XStretchNondefaultGroup")).format());
-    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewDefaultGrouping")).format());
-    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SkewNondefaultGroup")).format());
+    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_OPTION_KEY)).format());
+    ltfXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.X_STRETCH_DEFAULT_GROUPING_KEY)).format());
+    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
+    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_DEFAULT_GROUPING_KEY)).format());
+    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY)).format());
 
     //local
-    cbLocalRotation.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotOption")).format());
+    cbLocalRotation.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_OPTION_KEY)).format());
     ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotDefaultGrouping")).format());
     ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotNondefaultGroup")).format());
     cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltOption")).format());
@@ -1756,3 +1575,195 @@ public class TiltalignPanel {
     prealignedBinning = binning;
   }
 }
+
+/**
+ * <p> $Log$
+ * <p> Revision 3.19  2005/02/15 22:22:22  sueh
+ * <p> bug# 600 Convert tooltips to autodoc.
+ * <p>
+ * <p> Revision 3.18  2005/02/11 16:46:12  sueh
+ * <p> bug# 600 Getting tooltips from autodoc.
+ * <p>
+ * <p> Revision 3.17  2005/01/26 00:06:49  sueh
+ * <p> Converted ConstEtomoNumber.resetValue to displayValue.
+ * <p>
+ * <p> Revision 3.16  2005/01/11 01:01:05  sueh
+ * <p> bug# 567 Varying the widths of the radio button panels.
+ * <p>
+ * <p> Revision 3.15  2005/01/06 18:19:45  sueh
+ * <p> bug# 567 In getParameters(), get z factor file.
+ * <p>
+ * <p> Revision 3.14  2005/01/05 20:12:17  sueh
+ * <p> bug# 567 Made ProjectionStretch advanced only.
+ * <p>
+ * <p> Revision 3.13  2005/01/05 20:07:20  sueh
+ * <p> bug# 567 Added ProjectionStretch checkbox to the global tab.
+ * <p>
+ * <p> Revision 3.12  2005/01/05 00:08:31  sueh
+ * <p> bug# 567 Set the preferred width of fields that are too small
+ * <p>
+ * <p> Revision 3.11  2004/12/30 19:35:14  sueh
+ * <p> bug# 567 in createGeneralTab(): capitalized radio box title.
+ * <p>
+ * <p> Revision 3.10  2004/12/30 19:33:53  sueh
+ * <p> bug# 567 In createGeneralTab() Maved the items in the Resdual Reporting
+ * <p> box to make two rows.
+ * <p>
+ * <p> Revision 3.9  2004/12/30 18:48:34  sueh
+ * <p> bug# 567 In createVariablePanel(): Reduce the space between the
+ * <p> checkbox and the text fields
+ * <p>
+ * <p> Revision 3.8  2004/12/30 18:01:54  sueh
+ * <p> bug# 567 Fixed a bug in setParameters(ConstTiltalignParam):
+ * <p> localRotationNonDefaultGroups was being set incorrectly.
+ * <p>
+ * <p> Revision 3.7  2004/12/29 23:50:23  sueh
+ * <p> bug# 567 Put checkbox or radio buttons to the left on the fields in global and
+ * <p> local tabs and in the local alignment panel on the general tab.
+ * <p>
+ * <p> Revision 3.6  2004/12/29 01:54:46  sueh
+ * <p> bug# 567 Adding rotation solution panel.  Putting global and local rotation
+ * <p> solution next to tilt angle solution panel.  Putting global and local
+ * <p> xstretch and skew side-by-side.
+ * <p>
+ * <p> Revision 3.5  2004/12/29 00:16:18  sueh
+ * <p> bug# 567 Converted distortion checkbox and local distortion checkbox to
+ * <p> radio button groups.  Moved default values to ConstTiltalignParam.
+ * <p> Changed update...Panel() functions to enable...Fields().  Changed
+ * <p> selectGlobalDistortion to setDistortionSolutionState().  No longer testing
+ * <p> type values before loading from the param.  Adapt to new tiltalignParam.
+ * <p>
+ * <p> Revision 3.4  2004/08/31 21:51:19  sueh
+ * <p> bug# 545 SetParameters: handle the situation where fid.xyz exists but is empty.
+ * <p> Substitute the pixel spacing from pre-aligned stack.
+ * <p>
+ * <p> Revision 3.3  2004/07/02 17:42:18  sueh
+ * <p> bug#461 removing prints
+ * <p>
+ * <p> Revision 3.2  2004/07/02 00:40:07  sueh
+ * <p> bug# 461 adding a connection to fid.xyz, preali header, and rawstack
+ * <p> header to the constructor.  Info from these files is required
+ * <p> to calculate z shift.  Correcting the calculation of binning
+ * <p> when caculating z shift.
+ * <p>
+ * <p> Revision 3.1  2004/06/21 17:16:37  rickg
+ * <p> Bug #461 z shift is scaled by the prealigned binning
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.10  2003/10/30 01:43:44  rickg
+ * <p> Bug# 338 Remapped context menu entries
+ * <p>
+ * <p> Revision 2.9  2003/10/28 20:59:33  rickg
+ * <p> Bug# 280 Tooltips
+ * <p>
+ * <p> Revision 2.8  2003/10/22 22:53:37  rickg
+ * <p> Bug# 279 Removed "linear"
+ * <p>
+ * <p> Revision 2.7  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
+ * <p> Revision 2.6  2003/10/14 20:30:25  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
+ * <p> Revision 2.5  2003/10/09 23:21:21  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
+ * <p> Revision 2.4  2003/05/27 08:50:28  rickg
+ * <p> Context menu handled by parent window
+ * <p>
+ * <p> Revision 2.3  2003/05/23 22:03:06  rickg
+ * <p> Changed default tilt angle group size to 5
+ * <p>
+ * <p> Revision 2.2  2003/03/20 17:43:52  rickg
+ * <p> Comment update
+ * <p>
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.23  2003/01/15 00:11:42  rickg
+ * <p> Fixed handling of xstretch and skew types (both global and
+ * <p> local) when the original align.com does not have those
+ * <p> parameters set and the user requests them.
+ * <p>
+ * <p> Revision 1.22.2.2  2003/01/24 19:04:54  rickg
+ * <p> Merged changes from main branch
+ * <p>
+ * <p> Revision 1.22.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.22  2003/01/06 05:57:29  rickg
+ * <p> Quick fix for residual threshold value text field size.  Needs to be more
+ * <p> robust
+ * <p>
+ * <p> Revision 1.21  2003/01/04 00:24:29  rickg
+ * <p> Wrap tab pane with a border to ID it as a tiltalign
+ * <p> panel.
+ * <p>
+ * <p> Revision 1.20  2002/12/31 23:13:47  rickg
+ * <p> Layout simplification
+ * <p>
+ * <p> Revision 1.19  2002/12/24 01:08:08  rickg
+ * <p> Moved min local patch size to advanced
+ * <p>
+ * <p> Revision 1.18  2002/12/20 01:08:19  rickg
+ * <p> Spelling correction
+ * <p>
+ * <p> Revision 1.17  2002/12/18 19:15:31  rickg
+ * <p> Added advanced capability for metro factor and
+ * <p> cycle limit.
+ * <p> Ordered handling of panel updates
+ * <p>
+ * <p> Revision 1.16  2002/12/18 00:53:00  rickg
+ * <p> Update in progress
+ * <p>
+ * <p> Revision 1.15  2002/12/17 01:02:08  rickg
+ * <p> Additional groups are now advanced
+ * <p>
+ * <p> Revision 1.14  2002/12/10 21:33:10  rickg
+ * <p> Add residual threshold control
+ * <p>
+ * <p> Revision 1.13  2002/12/06 01:02:58  rickg
+ * <p> Redesign in progress
+ * <p>
+ * <p> Revision 1.12  2002/12/05 01:21:31  rickg
+ * <p> Redesign in progress
+ * <p>
+ * <p> Revision 1.11  2002/12/04 04:42:13  rickg
+ * <p> Redesign in progress
+ * <p>
+ * <p> Revision 1.10  2002/12/04 01:19:10  rickg
+ * <p> Redesign in progress
+ * <p>
+ * <p> Revision 1.9  2002/12/03 05:41:13  rickg
+ * <p> redesign in progress
+ * <p>
+ * <p> Revision 1.8  2002/12/03 05:22:29  rickg
+ * <p> added getLocalRotationSolutionGroupSize
+ * <p>
+ * <p> Revision 1.7  2002/12/03 00:53:20  rickg
+ * <p> Redesign in progress
+ * <p>
+ * <p> Revision 1.6  2002/11/25 15:59:37  rickg
+ * <p> Removed local skew radio buttons
+ * <p>
+ * <p> Revision 1.5  2002/11/22 00:56:52  rickg
+ * <p> removal of non-used fields in progress
+ * <p>
+ * <p> Revision 1.4  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
+ * <p> Revision 1.3  2002/10/17 23:40:32  rickg
+ * <p> Added methods to set titl/mag and distortion defaults.
+ * <p>
+ * <p> Revision 1.2  2002/10/16 23:20:36  rickg
+ * <p> Reformat
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+*/
