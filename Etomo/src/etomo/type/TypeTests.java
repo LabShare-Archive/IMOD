@@ -16,11 +16,13 @@ import junit.framework.TestSuite;
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class TypeTests {
-
+  static final String testRoot = new String("JUnitTests/etomo/type/");
+  
   public static Test suite() {
     TestSuite suite = new TestSuite("Test for etomo.type");
     //$JUnit-BEGIN$
     suite.addTestSuite(ConstMetaDataTest.class);
+    suite.addTestSuite(MetaDataTest.class);
     //$JUnit-END$
     return suite;
   }
