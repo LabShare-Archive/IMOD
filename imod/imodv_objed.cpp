@@ -44,6 +44,7 @@ Log at end of file
 #include <qlayout.h>
 #include <qvbox.h>
 #include <qframe.h>
+#include <qtooltip.h>
 #include <qsignalmapper.h>
 #include "tooledit.h"
 #include "formv_objed.h"
@@ -800,10 +801,14 @@ static void mkFillColor_cb(int index)
   wFillToggle = diaCheckBox("Use Fill Color", oef->control, layout1);
   QObject::connect(wFillToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(fillToggleSlot(bool)));
+  QToolTip::add(wFillToggle, 
+                "Use fill color instead of object color for filled data");
 
   wBothSides = diaCheckBox("Light Both Sides", oef->control, layout1);
   QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(bothSidesSlot(bool)));
+  QToolTip::add(wBothSides, 
+                "Make front and back surface both appear brightly lit"); 
   
   finalSpacer(oef->control, layout1);
 
@@ -900,9 +905,16 @@ static void mkMaterial_cb (int index)
   matSliders = new MultiSlider(oef->control, 4, matTitles);
   layout1->addLayout(matSliders->getLayout());
   finalSpacer(oef->control, layout1);
-
-  QObject::connect(matSliders, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
-          SLOT(materialSlot(int, int, bool)));
+  QToolTip::add((QWidget *)matSliders->getSlider(0),
+                "Set non-directional light hitting object");
+  QToolTip::add((QWidget *)matSliders->getSlider(1), 
+                "Set light hitting object from light source");
+  QToolTip::add((QWidget *)matSliders->getSlider(2),
+                "Set specular reflection properties of object");
+  QToolTip::add((QWidget *)matSliders->getSlider(3),
+                "Set shininess of object");
+  QObject::connect(matSliders, SIGNAL(sliderChanged(int, int, bool)), 
+                   &imodvObjed, SLOT(materialSlot(int, int, bool)));
 }
 
 
@@ -977,8 +989,10 @@ static void mkPoints_cb(int index)
           SLOT(pointSizeSlot()));
   QObject::connect(wPointEdit, SIGNAL(focusLost()), &imodvObjed,
           SLOT(pointSizeSlot()));
+  QToolTip::add(wPointEdit, "Set radius of scattered points in pixels");
 
   diaLabel("Scattered Point Size", oef->control, layout1);
+
   finalSpacer(oef->control, layout1);
 }
 
@@ -1052,12 +1066,15 @@ static void mkLines_cb(int index)
                                          FIELD_SPACING, "lines layout");
   widthSlider = new MultiSlider(oef->control, 1, widthLabel, 1, 10);
   layout1->addLayout(widthSlider->getLayout());
-  QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
-          SLOT(lineWidthSlot(int, int, bool)));
+  QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), 
+                   &imodvObjed, SLOT(lineWidthSlot(int, int, bool)));
+  QToolTip::add((QWidget *)widthSlider->getSlider(0),
+                "Set line width in pixels for 3-D display");
 
   wLineAlias = diaCheckBox("Anti-alias rendering", oef->control, layout1);
   QObject::connect(wLineAlias, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(lineAliasSlot(bool)));
+  QToolTip::add(wLineAlias, "Smooth lines with anti-aliasing");
 
   layout1->addWidget(wLineAlias);
 
@@ -1118,15 +1135,22 @@ static void mkScalar_cb(int index)
   wMeshNormal = diaCheckBox("Show normal magnitudes", oef->control, layout1);
   QObject::connect(wMeshNormal, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshNormalSlot(bool)));
+  QToolTip::add(wMeshNormal, "Make surface intensity proportional to "
+                "magnitude of normal vectors");
 
   wMeshFalse = diaCheckBox("False color", oef->control, layout1);
   QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshFalseSlot(bool)));
+  QToolTip::add(wMeshFalse, "Show magnitudes in false color");
 
   meshSliders = new MultiSlider(oef->control, 2, bwLabels);
   layout1->addLayout(meshSliders->getLayout());
   QObject::connect(meshSliders, SIGNAL(sliderChanged(int, int, bool)),
                    &imodvObjed, SLOT(meshLevelSlot(int, int, bool)));
+  QToolTip::add((QWidget *)matSliders->getSlider(0), "Set low end of "
+                "contrast ramp for displaying normal magnitudes");
+  QToolTip::add((QWidget *)matSliders->getSlider(1), "Set high end of "
+                "contrast ramp for displaying normal magnitudes");
 
   finalSpacer(oef->control, layout1);
 }
@@ -1204,14 +1228,18 @@ static void mkClip_cb(int index)
   wClipToggle = diaCheckBox("Turn clipping plane On", oef->control, layout1);
   QObject::connect(wClipToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipToggleSlot(bool)));
+  QToolTip::add(wClipToggle, "Toggle clipping plane for this object");
 
   button = diaPushButton("Reset to Center", oef->control, layout1);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(clipResetSlot()));
+  QToolTip::add(button, "Shift clipping plane back to center of object");
 
   button = diaPushButton("Invert Polarity", oef->control, layout1);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed,
                    SLOT(clipInvertSlot()));
+  QToolTip::add(button, 
+                "Make clipped part visible, clip visible part of object");
 
   diaLabel("Hold down the Ctrl Key", oef->control, layout1);
   diaLabel("to move & rotate clip", oef->control, layout1);
@@ -1563,6 +1591,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.8  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.7  2003/03/26 17:15:30  mast
 Adjust sizes for font changes
 
