@@ -72,9 +72,9 @@ void imodvControlHelp(void)
              "thickness.\n\n",
              "\tThe Rotation box edits model rotation. ",
              "The x, y or z axis arrow",
-             "gadgets are equivalent to the hotkeys on the numeric keypad."
+             "buttons are equivalent to the hot keys on the numeric keypad."
              "  If you press the Start/Stop Rotation button then one of "
-             "the arrow gadgets, the model will start rotating around the "
+             "the arrow buttons, the model will start rotating around the "
              "given axis until you press the Start/Stop Rotation button "
              "again.  Otherwise, each arrow will cause a single step "
              "around the given axis.\n\n",
@@ -395,6 +395,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.3  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
     Revision 4.2  2003/04/17 18:43:38  mast
     adding parent to window creation
 
