@@ -200,7 +200,7 @@ void ImodWorkproc::movieProc()
   vi->movieRunning = -1;
   mMovieTimer->start(interval);
      
-  /* printf("movieProc(%d, %d, %d), xyz( %g, %g, %g)\n",
+  /* imodPrintStderr("movieProc(%d, %d, %d), xyz( %g, %g, %g)\n",
      vi->xmovie, vi->ymovie, vi->zmovie, vi->xmouse, vi->ymouse,
      vi->zmouse); */
 
@@ -233,9 +233,9 @@ void ImodWorkproc::movieProc()
      from crashing with Ti 4600 */
   xinput();
 
-  /*  fprintf(stderr, "calling imodDraw..."); */
+  /*  imodPrintStderr("calling imodDraw..."); */
   imodDraw(vi, drawflag);
-  /* fprintf(stderr, "back\n"); */
+  /* imodPrintStderr("back\n"); */
 
   /* Process all events to allow the timer to fire */
   xinput();
@@ -290,6 +290,9 @@ int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
 
 /*
 $Log$
+Revision 4.3  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.2  2003/02/27 19:25:07  mast
 Fiddles in and out for new Qt messaging scheme
 

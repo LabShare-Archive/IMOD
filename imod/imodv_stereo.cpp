@@ -119,7 +119,7 @@ void imodvStereoUpdate(void)
  */
 static void stereoEnable(void)
 {
-  /*  printf ("In stereoEnable, command %s\n", Imodv->SGIStereoCommand); */
+  /*  imodPrintStderr("In stereoEnable, command %s\n", Imodv->SGIStereoCommand); */
   /*
     if (Imodv->stereoCommand)
     system(Imodv->stereoCommand);
@@ -136,7 +136,7 @@ static void stereoEnable(void)
 /* call to turn off stereo viewing */
 static void stereoDisable(void)
 {
-  /*  printf ("In stereoDisable, command %s\n", Imodv->SGIRestoreCommand); */
+  /*  imodPrintstderr("In stereoDisable, command %s\n", Imodv->SGIRestoreCommand); */
   /*
     if (Imodv->restoreCommand)
     system(Imodv->restoreCommand);
@@ -412,7 +412,8 @@ void imodvStereoToggle(void)
   }
 
   if(Imod_debug)
-    printf("hardware OK %d, stereo %d\n", hardwareOK() ? 1 : 0, Imodv->stereo);
+    imodPrintStderr("hardware OK %d, stereo %d\n", hardwareOK() ? 1 : 0,
+                    Imodv->stereo);
   imodvStereoUpdate();
   stereoSetUp();
 }
@@ -579,6 +580,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 

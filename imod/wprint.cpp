@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2003/10/01 05:02:05  mast
+Need to define as extern C for plugins to use
+
 Revision 4.4  2003/04/17 21:50:31  mast
 Using older remove statement for QString
 
@@ -50,11 +53,8 @@ Changes to get clean compilation with g++
 #include <stdarg.h>
 #include <qtextedit.h>
 #include <qapplication.h>
+#include "imod.h"
 #include "preferences.h"
-
-extern int Imod_debug;
-
-extern "C" void wprint(char *fmt, ...);
 
 static QTextEdit *Wprint_text_output = NULL;
 

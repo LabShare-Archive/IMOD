@@ -126,7 +126,7 @@ void imodv_setbuffer(ImodvApp *a)
 void imodvInitializeGL()
 {
   if (Imod_debug)
-    fprintf(stderr, "imodv Initialize GL\n");
+    imodPrintStderr("imodv Initialize GL\n");
   float rad = Imodv->imod->view->rad*1.5f;
   glClearColor(1.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -146,7 +146,7 @@ void imodvResizeGL(ImodvGL *GLw, int winx, int winy)
 {
   ImodvApp *a = Imodv;
   if (Imod_debug)
-    fprintf(stderr, "imodv Resize GL %d %d\n", winx, winy);
+    imodPrintStderr("imodv Resize GL %d %d\n", winx, winy);
   if (GLw != a->mainWin->mCurGLw)
     return;
   a->winx = winx;
@@ -168,7 +168,7 @@ void imodvPaintGL()
   static int drawcount = 0;
 
   //if (Imod_debug)
-  //  fprintf(stderr, "drawing %d\n", drawcount++);
+  //  imodPrintStderr("drawing %d\n", drawcount++);
 
   if (!a->imod)
     return;
@@ -266,8 +266,7 @@ int imodv_auto_snapshot(char *inName, int format_type)
     b3dGetSnapshotName(fname, "modv", format_type, 4, a->snap_fileno);
   }
 
-  printf("3dmodv: Saving image to %s", usename);
-  fflush(stdout);
+  imodPrintStderr("3dmodv: Saving image to %s", usename);
 
   if (a->db)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
@@ -277,12 +276,12 @@ int imodv_auto_snapshot(char *inName, int format_type)
     imodvDraw(Imodv);
     b3dSetCurSize(Imodv->winx, Imodv->winy);
     b3dSnapshot_TIF(usename, 1, NULL, NULL);
-    printf(".\n");
+    imodPrintStderr(".\n");
   } else {
     if (imodv_snapshot(Imodv, usename))
-      printf(" : error writing file\n");
+      imodPrintStderr(" : error writing file\n");
     else
-      printf(".\n");
+      imodPrintStderr(".\n");
   }
 
   if (a->db) {
@@ -303,9 +302,13 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   GLint xoffset;
   char iname[80];
 
+  errno = 0;
   fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
-    perror("3dmodv: error opening file ");
+    QString qerr = "3dmodv: error opening file\n";
+    if (errno)
+      qerr +=  QString("System error: ") + strerror(errno);
+    imodPrintStderr(qerr.latin1());
     return(-1);
   }
 
@@ -372,6 +375,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.7  2003/12/30 06:32:59  mast
+Use new routine to get snapshot name
+
 Revision 4.6  2003/12/04 06:13:45  mast
 Fix crash when snapping as... by not freeing name
 

@@ -121,7 +121,7 @@ void imodvKeyPress(QKeyEvent *event)
   if (!Imodv->imod) return;
 
   if (Imod_debug)
-    printf("key %x\n", keysym);
+    imodPrintStderr("key %x\n", keysym);
 
   switch(keysym){
 
@@ -170,7 +170,7 @@ void imodvKeyPress(QKeyEvent *event)
       fastdraw = 0;
     if (fastdraw > 3)
       fastdraw = 3;
-    printf("Sphere draw quality %d\n", fastdraw + 1);
+    imodPrintStderr("Sphere draw quality %d\n", fastdraw + 1);
     a->imod->view->world = (a->imod->view->world & ~WORLD_QUALITY_BITS) |
       (fastdraw << WORLD_QUALITY_SHIFT);
     imodvDraw(Imodv);
@@ -850,7 +850,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   imodGetIndex(a->imod, &ob, &co, &pt);
 
 #ifdef HIT_DEBUG
-  printf ("hits = %d\n", hits);
+  imodPrintStderr ("hits = %d\n", hits);
 #endif
   ptr = (GLuint *) buffer;
   ptrstr = ptr;
@@ -866,10 +866,10 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
     zav = z1/2 + z2/2;
 
 #ifdef HIT_DEBUG
-    printf (" # names = %d", names);
-    printf (";  z1 = %u;", z1);
-    printf (" z2 = %u; ", z2);
-    printf ("   names are ");
+    imodPrintStderr (" # names = %d", names);
+    imodPrintStderr (";  z1 = %u;", z1);
+    imodPrintStderr (" z2 = %u; ", z2);
+    imodPrintStderr ("   names are ");
 #endif
                 
     for (j = 0; j < names; j++) {   /*  for each name */
@@ -891,7 +891,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
 
 
 #ifdef HIT_DEBUG
-      printf ("%d ", *ptr);
+      imodPrintStderr ("%d ", *ptr);
 #endif
       ptr++;          
     }
@@ -901,12 +901,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
       zmin = zav;
       mo = tmo; ob = tob; co = tco; pt = tpt;
 #ifdef HIT_DEBUG
-      printf (" *");
+      imodPrintStderr (" *");
 #endif
     }
 #ifdef HIT_DEBUG
-    printf ("\n");
-    printf ("   zav = %u; zmin = %u\n",zav, zmin);
+    imodPrintStderr ("\n");
+    imodPrintStderr ("   zav = %u; zmin = %u\n",zav, zmin);
 #endif
 
   }
@@ -1048,6 +1048,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.14  2004/04/28 04:38:16  mast
+    Added ability to delete current contour it it was picked
+
     Revision 4.13  2003/12/01 20:00:30  mast
     Fixed problem with movie not changing direction when a different keypad key
     is pressed

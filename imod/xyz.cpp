@@ -917,9 +917,9 @@ void XyzWindow::DrawImage()
   SetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
 	      win->zoom, &height2, &wy2, &yoffset2);
 
-  /* printf ("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
+  /* imodPrintStderr("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
      height1, width2, height2);
-     printf ("wx1 %d  xoffset1 %d  wy1 %d  yoffset1 %d\n", wx1,
+     imodPrintStderr("wx1 %d  xoffset1 %d  wy1 %d  yoffset1 %d\n", wx1,
      xoffset1, wy1, yoffset1); */
   if (width1 > 0 && height1 > 0) {
     win->lz = cz;
@@ -1737,6 +1737,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.17  2004/05/03 19:19:10  mast
+fixed bug in test for presence of data on one plane
+
 Revision 4.16  2004/01/05 18:35:15  mast
 Changes to deal with flipped cache properly and to scale point size by
 binning

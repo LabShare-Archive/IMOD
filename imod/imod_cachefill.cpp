@@ -121,12 +121,12 @@ static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
 static void report_cache(ImodView *vi, char *string)
 {
   int sl;
-  printf("%s\n", string);
+  imodPrintStderr("%s\n", string);
   for (sl = 0; sl < vi->vmSize; sl++) {
-    printf (" %3d,%2d,%5d", vi->vmCache[sl].cz, vi->vmCache[sl].ct,
+    imodPrintStderr (" %3d,%2d,%5d", vi->vmCache[sl].cz, vi->vmCache[sl].ct,
 	    vi->vmCache[sl].used);
     if (sl % 6 == 5 || sl == vi->vmSize - 1)
-      printf("\n");
+      imodPrintStderr("\n");
   }
 }
 
@@ -227,7 +227,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     }
   }
   /* for (i=1; i <= ntimes; i++) {
-     printf("time = %d, zs = %d, ze = %d\n", i, zstart[i], zend[i]);
+     imodPrintStderr("time = %d, zs = %d, ze = %d\n", i, zstart[i], zend[i]);
      } */
 
   /* Scan through all times, prioritize slices that
@@ -268,7 +268,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
 
   /*  report_cache(vi,"reprioritized");
       for (i=1; i <= ntimes; i++) {
-      printf("time = %d, zs = %d, ze = %d\n", i, zstart[i], zend[i]);
+      imodPrintStderr("time = %d, zs = %d, ze = %d\n", i, zstart[i], zend[i]);
       } */
 
   /* Prepare to access multiple files */
@@ -293,7 +293,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
 
     if (loadAxis != 2) {
 
-      /* printf("loading %d %d\n", zstart[time], zend[time]); */
+      /* imodPrintStderr("loading %d %d\n", zstart[time], zend[time]); */
       /* For z slices, look for ones that are needed */
       for (z = zstart[time]; z <= zend[time]; z++) {
         sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
@@ -731,6 +731,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.7  2004/01/06 16:54:33  mast
 Needed to save axis flag before starting to load data in case it changes
 

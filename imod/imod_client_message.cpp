@@ -97,7 +97,7 @@ void ImodClipboard::clipboardChanged()
     QClipboard *cb = QApplication::clipboard();
     cb->setSelectionMode(false);
     QString text = cb->text();
-    fprintf(stderr, "imodHandleClientMessage - clipboard = %s\n", 
+    imodPrintStderr("imodHandleClientMessage - clipboard = %s\n", 
             text.latin1());
     if (ImodInfoWin)
       wprint("clipboardChanged = %s\n", text.latin1());
@@ -169,7 +169,7 @@ bool ImodClipboard::handleMessage()
   cb->setSelectionMode(false);
   QString text = cb->text();
   if (Imod_debug) {
-    fprintf(stderr, "imodHCM in handleMessage = %s\n", 
+    imodPrintStderr("imodHCM in handleMessage = %s\n", 
             text.latin1());
     wprint("handleMessage = %s\n", text.latin1());
   }                   
@@ -244,7 +244,7 @@ bool ImodClipboard::executeMessage()
     case MESSAGE_OPEN_MODEL:
     case MESSAGE_OPEN_KEEP_BW:
       if (!message_string) {
-        fprintf(stderr, "imodExecuteMessage: no filename sent"
+        imodPrintStderr("imodExecuteMessage: no filename sent"
                 " with command to open model\n");
         succeeded = 0;
         break;
@@ -358,7 +358,7 @@ bool ImodClipboard::executeMessage()
       objNum = 1;
       type = symbol = symSize = ptSize = -1;
       if (!message_string) {
-        fprintf(stderr, "imodExecuteMessage: no values sent with object"
+        imodPrintStderr("imodExecuteMessage: no values sent with object"
                 " property command\n");
         succeeded = 0;
         break;
@@ -372,7 +372,7 @@ bool ImodClipboard::executeMessage()
       if (--objNum < 0)
         objNum = imod->cindex.object;
       if (objNum < 0 || objNum >= imod->objsize) {
-        fprintf(stderr, "imodExecuteMessage: illegal object # sent with object"
+        imodPrintStderr("imodExecuteMessage: illegal object # sent with object"
                 " property command\n");
         succeeded = 0;
         break;
@@ -422,7 +422,7 @@ bool ImodClipboard::executeMessage()
       break;
 
     default:
-      fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
+      imodPrintStderr("imodExecuteMessage: action %d not recognized\n"
               , message_action);
       succeeded = 0;
     }
@@ -438,7 +438,7 @@ bool ImodClipboard::executeMessage()
       break;
 
     default:
-      fprintf(stderr, "imodExecuteMessage: action %d not recognized by"
+      imodPrintStderr("imodExecuteMessage: action %d not recognized by"
               " 3dmodv\n" , message_action);
       succeeded = 0;
     }
@@ -475,6 +475,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.15  2004/05/31 02:14:58  mast
+Added message to set object properties (type, symbol, 3D point)
+
 Revision 4.14  2004/05/28 23:29:42  mast
 Do not open a zap window until the event loop has started
 

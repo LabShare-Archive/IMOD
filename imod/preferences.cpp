@@ -315,7 +315,7 @@ void ImodPreferences::saveSettings()
     geomInd = -1;
     firstEmpty = MAX_GEOMETRIES - 1;
     for (i = 0; i < MAX_GEOMETRIES; i++) {
-      /*  printf("i %d  xsize %d  ysize %d\n", i, mGeomImageXsize[i], 
+      /*  imodPrintStderr("i %d  xsize %d  ysize %d\n", i, mGeomImageXsize[i], 
           mGeomImageYsize[i]); */
       if (geomInd < 0 && App->cvi->xsize == mGeomImageXsize[i] &&
           App->cvi->ysize == mGeomImageYsize[i])
@@ -324,8 +324,8 @@ void ImodPreferences::saveSettings()
         firstEmpty = i;
     }
 
-    /* printf("geomInd %d  firstEmpty %d xsize %d  ysize %d\n", geomInd, 
-       firstEmpty, App->cvi->xsize, App->cvi->ysize); */
+    /* imodPrintStderr("geomInd %d  firstEmpty %d xsize %d  ysize %d\n", 
+       geomInd, firstEmpty, App->cvi->xsize, App->cvi->ysize); */
 
     // Move entries up if nothing in the table matches
     if (geomInd < 0) {
@@ -825,6 +825,9 @@ void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 
 /*
 $Log$
+Revision 1.14  2004/05/19 15:41:36  mast
+Changed to new setPath call on the Mac to get back to user's file with Qt 3.3
+
 Revision 1.13  2003/09/25 21:09:19  mast
 Make info window stay on the screen when it is positioned from settings
 

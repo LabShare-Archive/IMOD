@@ -427,7 +427,7 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
             glVisualTable[ind].doubleBuffer,  glVisualTable[ind].rgba,
             glVisualTable[ind].colorBits, glVisualTable[ind].depthBits,
             depthEnabled, glVisualTable[ind].stereo);
-    imodPrintInfo(str.latin1());
+    imodPrintStderr(str.latin1());
   }
 }
 
@@ -551,6 +551,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.9  2004/04/27 14:53:13  mast
+Use print info output for the assess visual debug output
+
 Revision 4.8  2003/11/01 18:12:17  mast
 changed to put out virtually all error messages to a window
 

@@ -239,7 +239,7 @@ static void zapClose_cb(ImodView *vi, void *client, int junk)
 {
   ZapStruct *zap = (ZapStruct *)client;
   if (zapDebug)
-    fprintf(stderr, "Sending zap window close.\n");
+    imodPrintStderr("Sending zap window close.\n");
   zap->qtWindow->close();
 }
 
@@ -247,7 +247,7 @@ static void zapClose_cb(ImodView *vi, void *client, int junk)
 void zapClosing(ZapStruct *zap)
 {
   if (zapDebug)
-    fprintf(stderr, "ZapClosing received.\n");
+    imodPrintStderr("ZapClosing received.\n");
 
   // Do cleanup
   zap->popup = 0;
@@ -304,7 +304,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int limarr[4];
 
   if (zapDebug)
-    fprintf(stderr, "Zap Draw\n");
+    imodPrintStderr("Zap Draw\n");
 
   if (!zap) return;
   if ((!zap->popup) || (!zap->ginit)) return;
@@ -399,11 +399,11 @@ static void zapSyncImage(ZapStruct *win)
           trydraws = win->xdrawsize;
           tryborder = win->xborder;
           trystart = win->xstart;
-          /* printf ("before %d %d %d %d\n", 
+          /* imodPrintStderr ("before %d %d %d %d\n", 
              trydraws, win->xtrans, tryborder, trystart); */
           b3dSetImageOffset(wsize, vi->xsize, win->zoom, &trydraws,
                             &trytrans, &tryborder, &trystart);
-          /* printf ("after %d %d %d %d\n", 
+          /* imodPrintStderr ("after %d %d %d %d\n", 
              trydraws, trytrans, tryborder, trystart); */
           /* Can't use xtrans for a test, need to use the other
              two values to see if change in display would occur */
@@ -433,7 +433,7 @@ static void zapSyncImage(ZapStruct *win)
       }
 
       if (tripshift) {
-        /* fprintf(stderr, "tripshift %d\n",tripshift); */
+        /* imodPrintStderr("tripshift %d\n",tripshift); */
         win->xtrans = (int)((vi->xsize * 0.5f) - vi->xmouse + 0.5f);
         win->ytrans = (int)((vi->ysize * 0.5f) - vi->ymouse + 0.5f);
       }
@@ -450,12 +450,12 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   ivwControlPriority(zap->vi, zap->ctrl);
 
   if (zapDebug)
-    fprintf(stderr, "RESIZE: ");
+    imodPrintStderr("RESIZE: ");
 
   if (zapDebug) {
-    fprintf(stderr, "Size = %d x %d :", winx, winy);
+    imodPrintStderr("Size = %d x %d :", winx, winy);
     if (zap->ginit)
-      fprintf(stderr, "Old Size = %d x %d :", zap->winx, zap->winy);
+      imodPrintStderr("Old Size = %d x %d :", zap->winx, zap->winy);
   }
 
   zap->winx = winx;
@@ -505,7 +505,7 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   zap->ginit = 1;
 
   if (zapDebug)
-    fprintf(stderr, "\n");
+    imodPrintStderr("\n");
   return;
 }
 
@@ -523,7 +523,7 @@ void zapPaint(ZapStruct *zap)
 {
   int ob;
   if (zapDebug)
-    fprintf(stderr, "Paint:");
+    imodPrintStderr("Paint:");
 
   b3dSetCurSize(zap->winx, zap->winy);
 
@@ -559,7 +559,7 @@ void zapPaint(ZapStruct *zap)
   } 
   zapDrawTools(zap);
   if (zapDebug)
-    fprintf(stderr, "\n");
+    imodPrintStderr("\n");
 }
 
 
@@ -738,7 +738,7 @@ int imod_zap_open(struct ViewInfo *vi)
     return(-1);
   }
   if (zapDebug)
-    puts("Got a zap window");
+    imodPuts("Got a zap window");
 
   zap->gfx = zap->qtWindow->mGLw;
   if (!App->rgba)
@@ -787,7 +787,7 @@ int imod_zap_open(struct ViewInfo *vi)
 
     zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
     if (Imod_debug)
-      fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
+      imodPrintStderr("Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
               "resize %d %d\n", zap->qtWindow->width(), 
               zap->qtWindow->height(), 
               toolSize.width(), toolSize.height(), zap->gfx->width(), 
@@ -838,7 +838,7 @@ int imod_zap_open(struct ViewInfo *vi)
 #endif    
 
   if (zapDebug)
-    puts("popup a zap dialog");
+    imodPuts("popup a zap dialog");
 
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
@@ -917,7 +917,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   /* downtime.start(); */
 
   if (Imod_debug)
-    fprintf(stderr, "key %x, state %x\n", keysym, event->state());
+    imodPrintStderr("key %x, state %x\n", keysym, event->state());
   if (inputTestMetaKey(event))
     return;
 
@@ -934,7 +934,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
      right with Delete key */
   vi->insertmode = zap->insertmode;
 
-  /*      fprintf(stderr, "Zapo got %x keysym\n", keysym); */
+  /*      imodPrintStderr("Zapo got %x keysym\n", keysym); */
 
 
   switch(keysym){
@@ -1049,7 +1049,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
        single click or drag */
     rx = insertTime.elapsed();
     insertTime.restart();
-    /* fprintf(stderr, " %d %d %d\n ", rx, ix, iy); */
+    /* imodPrintStderr(" %d %d %d\n ", rx, ix, iy); */
     if(rx > 250)
       zapButton2(zap, ix, iy);
     else
@@ -1157,7 +1157,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       width += delta;
       else
       height += delta;
-      printf ("%d x %d\n", width, height);
+      imodPrintStderr ("%d x %d\n", width, height);
       XtConfigureWidget(zap->dialog, dx, dy, width, height, 0);
       }
     */
@@ -1185,7 +1185,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
 {
-  /*  printf ("%d down\n", downtime.elapsed()); */
+  /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
   if (!insertDown || !(event->state() & Qt::Keypad) ||
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
@@ -1215,7 +1215,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
 
-  /* fprintf(stderr, "click at %d %d\n", event->x(), event->y()); */
+  /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
   if (event->button() == ImodPrefs->actualButton(1)) {
       but1downt.start();
@@ -1293,7 +1293,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   button2 = (event->state() & ImodPrefs->actualButton(2)) 
     || insertDown ? 1 : 0;
   button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
-  /*  fprintf(stderr, "mb  %d|%d|%d\n", button1, button2, button3); */
+  /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
 
   if ( (button1) && (!button2) && (!button3)){
     /* DNM: wait for a bit of time or until enough distance moved, but if we
@@ -2090,7 +2090,7 @@ static void zapResizeToFit(ZapStruct *zap)
   QRect pos = ivwRestorableGeometry(zap->qtWindow);
   dx = pos.x();
   dy = pos.y();
-  /* printf("dx %d dy %d\n", dx, dy); */
+  /* imodPrintStderr("dx %d dy %d\n", dx, dy); */
   if (zap->rubberband) {
     /* If rubberbanding, set size to size of band, and offset
        image by difference between band and window center */
@@ -2113,9 +2113,9 @@ static void zapResizeToFit(ZapStruct *zap)
   zapLimitWindowPos(neww, newh, newdx, newdy);
 
   if (zapDebug)
-    fprintf(stderr, "configuring widget...");
+    imodPrintStderr("configuring widget...");
 
-  /* printf("newdx %d newdy %d\n", newdx, newdy); */
+  /* imodPrintStderr("newdx %d newdy %d\n", newdx, newdy); */
   zap->qtWindow->resize(neww, newh);
   zap->qtWindow->move(newdx, newdy);
 
@@ -2123,7 +2123,7 @@ static void zapResizeToFit(ZapStruct *zap)
      was needed temporarily with Qt 3.2.1 on Mac */
 
   if (zapDebug)
-    fprintf(stderr, "back\n");
+    imodPrintStderr("back\n");
 }
      
 // Set the control priority and record the limits of the image displayed in
@@ -2220,12 +2220,12 @@ void zapReportRubberband()
       ixr = ixr * bin + bin - 1;
       iyt = iyt * bin + bin - 1;
         
-      fprintf(stderr, "Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
+      imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
               iyt + 1);
       return;
     }
   }
-  fprintf(stderr, "ERROR: No Zap window has usable rubberband coordinates\n");
+  imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates\n");
 }
 
 
@@ -2864,6 +2864,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.42  2004/05/31 02:16:15  mast
+Changed to starting a new contour if time does not match for any kind of
+object, not just closed contour
+
 Revision 4.41  2004/05/07 22:10:45  mast
 Added text to identify rubberband report
 

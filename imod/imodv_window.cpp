@@ -39,6 +39,7 @@ Log at end of file
 #include <qpopupmenu.h>
 #include <qwidgetstack.h>
 #include <qtimer.h>
+#include "imod.h"
 #include "imodv_window.h"
 #include "imodv.h"
 #include "imodv_menu.h"
@@ -179,14 +180,14 @@ ImodvWindow::~ImodvWindow()
 void ImodvWindow::fileMenuSlot(int which)
 {
   if (Imod_debug)
-    puts("file menu");
+    imodPuts("file menu");
   imodvFileMenu(which);
 }
 
 void ImodvWindow::editMenuSlot(int which)
 {
   if (Imod_debug)
-    puts("edit menu");
+    imodPuts("edit menu");
   imodvEditMenu(which);
 }
 
@@ -240,23 +241,23 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
 bool ImodvWindow::event(QEvent *e)
 {
   if (Imod_debug && e->type() == QEvent::ShowMinimized)
-    fprintf(stderr, "ShowMinimized\n");
+    imodPrintStderr("ShowMinimized\n");
   if (Imod_debug && e->type() == QEvent::Hide)
-    fprintf(stderr, "Hide\n");
+    imodPrintStderr("Hide\n");
   if (Imod_debug && e->type() == QEvent::ShowNormal)
-    fprintf(stderr, "ShowNormal\n");
+    imodPrintStderr("ShowNormal\n");
   if (Imod_debug && e->type() == QEvent::Show)
-    fprintf(stderr, "Show\n");
+    imodPrintStderr("Show\n");
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
     if (Imod_debug)
-      puts("minimizing");
+      imodPuts("minimizing");
     mMinimized = true;
     imodvDialogManager.hide();
   } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
              && mMinimized) {
     if (Imod_debug)
-      puts("maximizing");
+      imodPuts("maximizing");
     mMinimized = false;
     imodvDialogManager.show();
   }
@@ -315,6 +316,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.9  2003/11/26 18:15:29  mast
+Disable image menu entry unless byte images exist
+
 Revision 4.8  2003/11/12 18:52:20  mast
 Add include of imodv since quit moved there
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.7  2004/05/17 05:01:33  mast
+    Allow it to movie if only slices are changing
+
     Revision 4.6  2004/05/03 19:11:13  mast
     Added X, Y, Z slices to movie parameters
 
@@ -614,9 +617,9 @@ static void imodvMakeMontage(int frames, int overlap)
       limits[2] = xFullSize;
       limits[3] = yFullSize;
       b3dGetSnapshotName(fname, "modv", SnapShot_TIF, 4, a->snap_fileno);
-      printf("3dmodv: Saving montage to %s", fname);
-      fflush(stdout);
+      imodPrintStderr("3dmodv: Saving montage to %s", fname);
       b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+      imodPuts("");
     }
 
     free(framePix);

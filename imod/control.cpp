@@ -115,7 +115,7 @@ int ivwNewControl(ImodView *iv,
   iv->ctrlist->active = ctrlId;
   ilistPush(iv->ctrlist->list, &ctrl);
   if (controlDebug)
-    fprintf(stderr, "Control id %d\n", ctrlId);
+    imodPrintStderr("Control id %d\n", ctrlId);
   return(ctrlId);
 }
 
@@ -171,7 +171,7 @@ int ivwControlPriority(ImodView *iv, int inCtrlId)
   int element = 0;
 
   if (controlDebug)
-    fprintf(stderr, "ivwControlPriority: %d\n", inCtrlId);
+    imodPrintStderr("ivwControlPriority: %d\n", inCtrlId);
 
   if (!iv->ctrlist) return(0);
 
@@ -231,7 +231,7 @@ void ivwWorkProc(ImodView *iv)
     return;
   }
   if (controlDebug)
-    fprintf(stderr, "Drawing %d\n", ctrlPtr->id); 
+    imodPrintStderr("Drawing %d\n", ctrlPtr->id); 
   (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, iv->ctrlist->reason);
 }
 
@@ -251,7 +251,7 @@ void ivwControlListDraw(ImodView *iv, int reason)
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   if (ctrlPtr) {
     if (controlDebug)
-      fprintf(stderr, "Drawing priority %d\n", ctrlPtr->id);
+      imodPrintStderr("Drawing priority %d\n", ctrlPtr->id);
     if (ctrlPtr->id == iv->ctrlist->active){
       iv->ctrlist->active = 0;
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData,
@@ -300,10 +300,10 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   while (ctrlPtr) {
     if (controlDebug)
-      fprintf(stderr, "checking %d\n", ctrlPtr->id);
+      imodPrintStderr("checking %d\n", ctrlPtr->id);
     if (ctrlPtr->key_cb) {
       if (controlDebug)
-	fprintf(stderr, "sending to %d\n", ctrlPtr->id);
+	imodPrintStderr("sending to %d\n", ctrlPtr->id);
       (*ctrlPtr->key_cb)(iv, ctrlPtr->userData, released, e);
       return;
     }
@@ -536,6 +536,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.15  2004/05/05 17:33:17  mast
+Added function to get list of windows of one type
+
 Revision 4.14  2004/04/28 23:52:26  mast
 Added method to get count of a window type
 

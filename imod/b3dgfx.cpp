@@ -357,7 +357,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int *woff,       /* window offset in wpixels.        */
                        int *doff)       /* data offset in ipixels           */
 {
-  /* printf("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
+  /* imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
      zoom, *offset); */
   /* Fits compleatly inside of window. */
   if ( ((imsize - 1) * zoom) < winsize ){
@@ -390,7 +390,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
 
       /* try and fill corners. */
       if (*drawsize < (imsize-1)) (*drawsize)++;
-      /* printf("ds do offset wo %d %d %d %d\n", *drawsize, *doff, *offset, *woff); */
+      /* imodPrintStderr("ds do offset wo %d %d %d %d\n", *drawsize, *doff, *offset, *woff); */
       return;
     }
 
@@ -705,7 +705,7 @@ static void chunkdraw(int xysize, float zoom, int wxdraw, int wy,
   if (chunklines < 1)
     chunklines = 1;
 
-  /*  printf ("sh %d  chunklines %d\n", sh, chunklines); */
+  /*  imodPrintStderr ("sh %d  chunklines %d\n", sh, chunklines); */
   while (sh > 0) {
     todraw = chunklines;
     if (todraw > sh)
@@ -749,10 +749,10 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
   unsigned int *cindex = App->cvi->cramp->ramp;
   CurXZoom = zoom;
 
-  /*     printf("unpack = %d\n", unpack);
+  /*     imodPrintStderr("unpack = %d\n", unpack);
          for(i = 0; i < 256; i++)
-         printf("%x ", cindex[i]);
-         printf("\n\n");
+         imodPrintStderr("%x ", cindex[i]);
+         imodPrintStderr("\n\n");
   */
   if (App->depth == 8)
     rbase = 0;
@@ -819,7 +819,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
       }
     }
 
-    /* printf("Draw wx %d wy %d width %d height %d window %d %d\n",
+    /* imodPrintStderr("Draw wx %d wy %d width %d height %d window %d %d\n",
        wx, wy, width, height, CurWidth, CurHeight); */
     glPixelZoom((GLfloat)zoom, (GLfloat)zoom);
 #ifndef CHUNKDRAW_HACK   
@@ -1050,7 +1050,7 @@ static void b3dDrawGreyScalePixels15
 
     }
   }
-  /* printf("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
+  /* imodPrintStderr("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
      wxdraw, wy, drawwidth, sh, CurWidth, CurHeight); */
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f);
@@ -1407,7 +1407,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       }
     }
   }
-  /* printf("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
+  /* imodPrintStderr("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
      wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight); */
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
@@ -1447,7 +1447,7 @@ double b3dStepPixelZoom(double czoom, int step)
 
   if (zoomi < 0) zoomi = 0;
   if (zoomi >= MAXZOOMS) zoomi = MAXZOOMS - 1;
-  /* printf ("%f %d %d %f\n", czoom, step, zoomi, zv[zoomi]); */
+  /* imodPrintStderr ("%f %d %d %f\n", czoom, step, zoomi, zv[zoomi]); */
   return(zv[zoomi]);
 }
 
@@ -1568,9 +1568,13 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
+  errno = 0;
   fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
-    perror("Snapshot: error opening file ");
+    QString qerr = "Snapshot: error opening file\n";
+    if (errno)
+      qerr +=  QString("System error: ") + strerror(errno);
+    imodPrintStderr(qerr.latin1());
     return;
   }
 
@@ -1684,9 +1688,15 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
+  errno = 0;
   fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
-    perror("Snapshot: error opening file ");
+
+    // DNM 5/31/04: output to standard error in case there are many errors
+    QString qerr = "Snapshot: error opening file\n";
+    if (errno)
+      qerr +=  QString("System error: ") + strerror(errno);
+    imodPrintStderr(qerr.latin1());
     return;
   }
 
@@ -1900,6 +1910,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.18  2004/03/09 15:18:02  mast
+Fixed problem that was making offset images creep
+
 Revision 4.17  2003/12/30 06:34:24  mast
 Make snapshot name in a single routine, and change snapshotting from
 an array to take 3 or 4 byte data

@@ -303,7 +303,7 @@ int imod_object_edit_draw(void)
   Iobj *obj;
   if (!Ioew_dialog)
     return(-1);
-  // fprintf(stderr, "updating %d\n", update++);
+  // imodPrintStderr("updating %d\n", update++);
   obj = getObjectOrClose();
   if (!obj)
     return (-1);
@@ -381,7 +381,7 @@ void imod_object_color(int objNum)
   for (i = 0; i < MAX_COLOR_SELECTORS; i++) 
     if (colorObjects[i] && !colorObjects[i]->mSelector) {
       if (Imod_debug)
-	fprintf(stderr, "Deleting selector for object %d from index %d\n", 
+	imodPrintStderr("Deleting selector for object %d from index %d\n", 
 		colorObjects[i]->mObjNum + 1, i);
       delete colorObjects[i];
       colorObjects[i] = NULL;
@@ -482,6 +482,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/05/31 02:16:49  mast
+Added call to imodv object edit window if point size changes
+
 Revision 4.7  2004/01/05 18:23:29  mast
 Add explanation of point size being in unbinned size to help.
 

@@ -831,7 +831,7 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
   ys = xtum->cy - 0.5f * (xsy * isize + ysy * jsize + zsy * xtum->ms);
   zs = xtum->cz - 0.5f * (xsz * isize + ysz * jsize + zsz * xtum->ms);
 
-  /* printf("xyzs %f %f %f\n", xs, ys, zs); */
+  /* imodPrintStderr("xyzs %f %f %f\n", xs, ys, zs); */
   x = xs; y = ys; z = zs;
 
   shortcut = 0;
@@ -988,7 +988,7 @@ void TumblerWindow::scaleData(TumblerStruct *xtum, unsigned short *sdata)
     offset = -min;
   }
      
-  /* fprintf(stderr, "min %d  max %d  scale %f  offset %f\n", min, max,
+  /* imodPrintStderr("min %d  max %d  scale %f  offset %f\n", min, max,
      scale, offset); */
   xtum->scale = scale;
   xtum->offset = offset;
@@ -1132,7 +1132,7 @@ void TumblerWindow::drawBoxLines(TumblerStruct *xtum, Imat *mat)
   inp.x = -x2;
   imodMatTransform(mat, &inp, &outp2);
   b3dDrawLine((int)outp1.x, (int)outp1.y, (int)outp2.x, (int)outp2.y);
-  /*     printf("line %d,%d to %d,%d\n",
+  /*     imodPrintStderr("line %d,%d to %d,%d\n",
          (int)outp1.x, (int)outp1.y, (int)outp2.x, (int)outp2.y);*/
   inp.x = x2; inp.y = -y2;
   imodMatTransform(mat, &inp, &outp2);
@@ -1227,7 +1227,7 @@ void TumblerWindow::setStepsPoints(TumblerStruct *xtum, Ipoint *xstep,
   setSmallStepZero(xstep);
   setSmallStepZero(ystep);
   setSmallStepZero(zstep);
-  /*  printf("xstep %g %g %g  ystep %g %g %g\n zstep %g %g %g\n", 
+  /*  imodPrintStderr("xstep %g %g %g  ystep %g %g %g\n zstep %g %g %g\n", 
          xstep->x, xstep->y, xstep->z, ystep->x, ystep->y, ystep->z,
          zstep->x, zstep->y, zstep->z); */
   imodMatDelete(mat);
@@ -1314,6 +1314,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.16  2004/05/03 02:34:20  mast
+fix wobble due to truncation error near zero degrees
+
 Revision 4.15  2004/03/12 19:27:43  mast
 Fixed bug in Z size changes; it was taking Y value
 

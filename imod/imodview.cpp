@@ -243,7 +243,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 
   /* Cached data otherwise */
   sl = vi->cacheIndex[section * vi->vmTdim + vi->ct - vi->vmTbase];
-  /* fprintf(stderr,"sect %d slice %d\n", section, sl);*/
+  /* imodPrintStderr("sect %d slice %d\n", section, sl);*/
   if (sl >= 0)
     tempSlicePtr = &(vi->vmCache[sl]);
   else {
@@ -793,7 +793,8 @@ int ivwInitCache(ImodView *vi)
   }
 
 
-  /* printf("xsize %d  ysize %d  vmsize %d\n", xsize, ysize, vi->vmSize); */
+  /* imodPrintStderr("xsize %d  ysize %d  vmsize %d\n", xsize, ysize, 
+     vi->vmSize); */
   /* get array of slice structures */
   vi->vmCache = (ivwSlice *)malloc(sizeof(ivwSlice) * vi->vmSize);
   if (!vi->vmCache)
@@ -821,7 +822,7 @@ int ivwInitCache(ImodView *vi)
       vi->vmCache[i].sec = sliceCreate
         (xsize, ysize, MRC_MODE_BYTE);
  
-    /*  printf("cache %d : %d x %d\n", i, xsize, ysize); */
+    /*  imodPrintStderr("cache %d : %d x %d\n", i, xsize, ysize); */
  
     if (!vi->vmCache[i].sec){
       ivwFreeCache(vi);
@@ -1936,7 +1937,7 @@ int ivwLoadImage(ImodView *vi)
     vi->li->contig = 1; 
     if (1000000000 / vi->xysize < vi->zsize)
       vi->li->contig = 0;
-    /*printf("contig = %d  axis = %d  xysize %d  % dzsize %d \n",
+    /*imodPrintStderr("contig = %d  axis = %d  xysize %d  % dzsize %d \n",
       vi->li->contig, vi->li->axis, xysize, 4200000000 / xysize, zsize); */
 
     best_ivwGetValue = idata_ivwGetValue;
@@ -2371,6 +2372,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.22  2004/01/07 01:54:25  mast
+Needed to add a '/' in using IMGDIR as prefix
+
 Revision 4.21  2004/01/06 16:55:32  mast
 Fixed handling of rgb files to do it first when processing image list
 

@@ -943,7 +943,7 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   ss->vi->xmouse = xm; 
   ss->vi->ymouse = ym; 
   ss->vi->zmouse = zmouse;
-  //fprintf(stderr, "setxyz %f %f %f\n", xm, ym, zm);
+  //imodPrintStderr("setxyz %f %f %f\n", xm, ym, zm);
   return;
 }
 
@@ -1693,7 +1693,7 @@ static void fillImageArray(SlicerStruct *ss)
 		      minval * ss->nslice, maxval * ss->nslice);
   }
 
-  // printf("%d msec\n", imodv_sys_time() - timeStart);
+  // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
   cindex = ss->image->width * ss->image->height;
   k = ss->nslice;
 
@@ -1879,7 +1879,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->glw->unsetCursor();
   }
 
-  // fprintf(stderr, "flags on draw %x \n", drawflag);
+  // imodPrintStderr("flags on draw %x \n", drawflag);
 
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){
@@ -1899,7 +1899,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     else if (vi->zmovie && fabs((double)ss->zstep[b3dZ]) > 1.e-6)
       factor = (ss->vi->zmouse - ss->cz) / ss->zstep[b3dZ];
 
-    /*fprintf(stderr, "%d %d %d factor %f mouse %.1f %.1f %.1f  "
+    /*imodPrintStderr("%d %d %d factor %f mouse %.1f %.1f %.1f  "
             "cur %.1f %.1f %.1f\n", vi->xmovie, 
             vi->ymovie, vi->zmovie, factor, vi->xmouse, 
             vi->ymouse, vi->zmouse, ss->cx, ss->cy, ss->cz); */
@@ -1959,7 +1959,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         ss->cy = usey;
         ss->cz = usez;
         ss->pending = 0;
-        //fprintf(stderr, "XYZ draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+        //imodPrintStderr("XYZ draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
         sslice_draw(ss);
         return;
       }
@@ -1974,13 +1974,13 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->cz = ss->pendz;
       ss->pending = 0;
     }
-    //fprintf(stderr, "ACTIVE draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+    //imodPrintStderr("ACTIVE draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     sslice_draw(ss);
     return;
   }
      
   if (drawflag & IMOD_DRAW_MOD){
-    //fprintf(stderr, "MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+    //imodPrintStderr("MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     slicerUpdateImage(ss);
   }
 
@@ -2200,10 +2200,10 @@ void slicerCubePaint(SlicerStruct *ss)
     + (ss->ystep[2] * winy * zs);
 
   /*
-  printf("xo,yo,zo %.0f %.0f %0.f\n", xo, yo, zo);
-  printf("vx %.0f %.0f %0.f\n", vx[0], vx[1], vx[2]);
-  printf("vy %.0f %.0f %0.f\n", vy[0], vy[1], vy[2]);
-  printf("v %.0f %.0f %0.f\n", v[0], v[1], v[2]);
+  imodPrintStderr("xo,yo,zo %.0f %.0f %0.f\n", xo, yo, zo);
+  imodPrintStderr("vx %.0f %.0f %0.f\n", vx[0], vx[1], vx[2]);
+  imodPrintStderr("vy %.0f %.0f %0.f\n", vy[0], vy[1], vy[2]);
+  imodPrintStderr("v %.0f %.0f %0.f\n", v[0], v[1], v[2]);
   */
 
   glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
@@ -2239,6 +2239,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.21  2003/12/18 22:50:25  mast
+Implemented movieing and auot-snapshotting
+
 Revision 4.20  2003/11/13 20:11:30  mast
 Made locked window respond to Up, Down, and arrows by moving current
 position without changing global position, consistent with locked zap

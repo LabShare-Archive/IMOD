@@ -312,25 +312,25 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
 // Watch for both event types in each case due to further X11/Mac differences
 bool InfoWindow::event(QEvent *e)
 {
-  //fprintf(stderr, "event type %d\n", e->type());
+  //imodPrintStderr("event type %d\n", e->type());
   if (Imod_debug && e->type() == QEvent::ShowMinimized)
-    fprintf(stderr, "ShowMinimized\n");
+    imodPrintStderr("ShowMinimized\n");
   if (Imod_debug && e->type() == QEvent::Hide)
-    fprintf(stderr, "Hide\n");
+    imodPrintStderr("Hide\n");
   if (Imod_debug && e->type() == QEvent::ShowNormal)
-    fprintf(stderr, "ShowNormal\n");
+    imodPrintStderr("ShowNormal\n");
   if (Imod_debug && e->type() == QEvent::Show)
-    fprintf(stderr, "Show\n");
+    imodPrintStderr("Show\n");
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
     if (Imod_debug)
-      puts("minimizing");
+      imodPuts("minimizing");
     mMinimized = true;
     imodDialogManager.hide();
   } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
              && mMinimized) {
     if (Imod_debug)
-      puts("maximizing");
+      imodPuts("maximizing");
     mMinimized = false;
     imodDialogManager.show();
   }
@@ -376,11 +376,11 @@ void InfoWindow::keepOnTop(bool state)
   // Also, pos() jumps up-left on Unix, geometry() jumps down-right
   // Unless we access the pos !
   QPoint p2 = pos();
-  /* printf("before geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
-     pos().x(), pos().y()); */
+  /* imodPrintStderr("before geom %d %d  pos %d %d\n", geometry().x(), 
+     geometry().y(), pos().x(), pos().y()); */
   reparent(0, flags, p, true);  
-  /* printf("after geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
-     pos().x(), pos().y()); */
+  /* imodPrintStderr("after geom %d %d  pos %d %d\n", geometry().x(), 
+     geometry().y(), pos().x(), pos().y()); */
 #endif
 }
 
@@ -486,6 +486,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.23  2003/11/26 18:17:03  mast
+    Fix test for whether to open zap and model view with raw images
+
     Revision 4.22  2003/09/18 05:57:08  mast
     Disable float button later in process to exclude RGB images
 

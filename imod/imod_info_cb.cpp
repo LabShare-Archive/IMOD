@@ -471,7 +471,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     /* Get information about reference and current sections if necessary;
      i.e. if there is no SD already or if area doesn't match*/
     err1 = 0;
-    /* printf("sc %d iref %d isec %d lastsec %d clearedsec %d sd %f\n",
+    /*imodPrintStderr("sc %d iref %d isec %d lastsec %d clearedsec %d sd %f\n",
           singleCleared, iref, isec, last_section, clearedSection, 
           secData[iref].sd); */
     if (singleCleared && iref == isec && last_section == clearedSection && 
@@ -521,7 +521,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       secData[iref].iyStart = secData[isec].iyStart = iyStart;
       secData[iref].nyUse = secData[isec].nyUse = nyUse;
 
-      /* printf("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
+      /* imodPrintStderr("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
          refSD, secData[isec].mean, secData[isec].sd); */
 
       /* Compute new black and white sliders; keep floating values */
@@ -530,8 +530,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       tmp_black = (secData[isec].mean - (refMean - ref_black) * sloperatio);
       tmp_white = (tmp_black + sloperatio * (ref_white - ref_black));
 		    
-      /* printf("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black, ref_white,
-         tmp_black, tmp_white); */
+      /* imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
+         ref_white, tmp_black, tmp_white); */
       if (tmp_black < 0)
         tmp_black = 0.;
       if (tmp_white > 255.)
@@ -541,7 +541,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       newwhite = (int)(tmp_white + 0.5);
       /* int meanmap = 255 * (secData[isec].mean - newblack) / (newwhite - newblack);
       float sdmap = 255 * (secData[isec].sd) / (newwhite - newblack);
-      printf("mean = %d  sd = %.2f\n", meanmap, sdmap); */
+      imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap); */
 
 
       /* Set the sliders and the ramp if the integer values changed*/
@@ -640,8 +640,8 @@ int imodInfoCurrentMeanSD(float &mean, float &sd)
   if (sampleMeanSD(image, 0, vi->xsize, vi->ysize, sample,
                     ixStart, iyStart, nxUse, nyUse, &mean, &sd))
     return 1;
-  /* printf("%d %d %d %d %.2f %.2f\n", ixStart, iyStart, nxUse, nyUse, mean,
-     sd); */
+  /* imodPrintStderr("%d %d %d %d %.2f %.2f\n", ixStart, iyStart, nxUse,
+     nyUse, mean, sd); */
 
   /* Adjust for compressed data in 8-bit CI mode */
   if (App->depth == 8)
@@ -748,6 +748,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.11  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.10  2003/12/30 06:46:06  mast
 Made SD be at least 0.1 to prevent crash on floating to blank image,
 and fixed initialization of float_subsets

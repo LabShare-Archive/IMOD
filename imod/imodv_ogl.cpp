@@ -166,7 +166,7 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   {
     float cres = zf - zn;
     /*
-      printf("clipnf %g %g : sliders %g %g\n",
+      imodPrintStderr("clipnf %g %g : sliders %g %g\n",
       zn, zf, vw->cnear, vw->cfar);
     */ 
     zn += (vw->cnear * cres);
@@ -178,7 +178,7 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   glFrustum(-xs, xs, -ys, ys, zn, zf); 
 
   /*
-    printf("frustum xy = %g %g : znf = %g %g : cd = %g\n",
+    imodPrintStderr("frustum xy = %g %g : znf = %g %g : cd = %g\n",
     xs, ys, zn, zf, cdist);
   */
 
@@ -231,7 +231,7 @@ static void imodvSetDepthCue(Imod *imod)
   fstart = 1.2 * drange * vw->dcstart ;
   fend = 1.2 * drange * vw->dcend ;
    
-  /*   fprintf(stderr, "OGL Depth Cue start: %g       end: %g   range: %g\n",
+  /*   imodPrintStderr("OGL Depth Cue start: %g       end: %g   range: %g\n",
        fstart, fend, drange); */
 
   glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -929,7 +929,7 @@ static void myerror(GLenum error)
 {
   tesserror = error;
   /*
-    fprintf(stderr, "gluError %d: %s\n", error,
+    imodPrintStderr("gluError %d: %s\n", error,
     gluErrorString(error));
   */
   return;
@@ -952,13 +952,13 @@ static void myCombine( GLdouble coords[3], Ipoint *d[4],
                        GLfloat w[4], Ipoint **dataOut )
 {
   if (newCount == MAX_CROSSES){
-    printf ("This contour has over %d crossings - fix it!\n", 
+    imodPrintStderr ("This contour has over %d crossings - fix it!\n", 
             MAX_CROSSES);
     *dataOut = &(newPoints[0]);
     return;
   }
   if (!newCount)
-    printf("Warning: contour %d of object %d crosses itself; this may "
+    imodPrintStderr("Warning: contour %d of object %d crosses itself; this may "
            "cause crashes.\n", curTessCont + 1, curTessObj + 1);
   newPoints[newCount].x=coords[0];
   newPoints[newCount].y=coords[1];
@@ -1013,7 +1013,7 @@ static void imodvDraw_filled_contours(Iobj *obj)
     ptstr = 0;
     pts = cont->pts;
     curTessCont = co;
-    /* printf(".%d-%d", co, ptend);
+    /* imodPrintStderr(".%d-%d", co, ptend);
        fflush(stdout); */
     newCount = 0;
     if (ptend){
@@ -1445,7 +1445,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
       return;
 
     case IMOD_MESH_SWAP:
-      fprintf(stderr, "imodlib: old mesh\n");
+      imodPrintStderr("imodlib: old mesh\n");
       return;
 
     default:
@@ -1765,7 +1765,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
       return;
 
     case IMOD_MESH_SWAP:
-      fprintf(stderr, "imodlib: old mesh\n");
+      imodPrintStderr("imodlib: old mesh\n");
       return;
 
     default:
@@ -1783,6 +1783,11 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.10  2004/05/16 20:19:35  mast
+Switched to drawing solid image data before and transparent image data
+after the model data; moved stereo setup of matrices to another routine;
+fixed size computation on empty model so depth cure will work on image
+
 Revision 4.9  2004/05/15 21:34:45  mast
 Switched to drawing all image data after the model draw
 

@@ -843,7 +843,7 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
       if (changeModelObject(m, ob)) 
         setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
   }
-  /*     printf("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
+  /*     imodPrintStderr("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
      
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
@@ -1592,6 +1592,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.16  2004/04/28 05:28:52  mast
+Changes for drawing current contour thicker
+
 Revision 4.15  2003/10/01 05:04:19  mast
 change include from imodP to imod after eliminating imod.h from imodP.h
 

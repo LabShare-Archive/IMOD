@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2003/02/27 17:28:22  mast
+    Had to include qgl.h instead of GL/gl.h under windows
+
     Revision 4.1  2003/02/10 20:29:01  mast
     autox.cpp
 
@@ -269,7 +272,7 @@ int clip_obj(Iobj *obj, int flag, double zscale, double zoom)
 	  params[3] = (obj->clip_normal.x * obj->clip_point.x) +
 	       (obj->clip_normal.y * obj->clip_point.y) +
 		    (obj->clip_normal.z * obj->clip_point.z);
-/*	  printf("clip params = %g %g %g %g\n",
+/*	  imodPrintStderr("clip params = %g %g %g %g\n",
 		 params[0], params[1], params[2], params[3]);
 */
 	  glClipPlane( GL_CLIP_PLANE0, params); 
@@ -420,7 +423,7 @@ int test_normal()
 
      imod_light_normal(&n, &p, &q, &r, 1.0);
 
-     printf("glNormal3fv(%g)\n", n.x, n.y, n.z); 
+     imodPrintStderr("glNormal3fv(%g)\n", n.x, n.y, n.z); 
      return(0);
 }
 

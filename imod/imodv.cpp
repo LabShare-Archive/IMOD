@@ -284,12 +284,12 @@ static int getVisuals(ImodvApp *a)
   if (depthDB < 0)
     imodError(NULL, "3dmodv warning: no double buffer visual available.\n");
   else if (Imod_debug)
-    printf("DB visual: %d color bits, %d depth bits, stereo %d\n",
+    imodPrintStderr("DB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorDB, depthDB, a->stereoDB);
   if (depthSB < 0)
     imodError(NULL, "3dmodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
-    printf("SB visual: %d color bits, %d depth bits, stereo %d\n",
+    imodPrintStderr("SB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorSB, depthSB, a->stereoSB);
 
   // set to double buffer if visual exists
@@ -344,16 +344,14 @@ static int openWindow(ImodvApp *a)
     zapLimitWindowSize(newWidth, newHeight);
     zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
-    if (Imod_debug){
-      QString str;
-      str.sprintf("Sizes: imodv %d %d, GL %d %d: "
+    if (Imod_debug)
+      imodPrintStderr("Sizes: imodv %d %d, GL %d %d: "
                   "resize %d %d\nnew pos %d %d\n",
                   a->mainWin->width(), a->mainWin->height(),
                   a->mainWin->mCurGLw->width(), 
                   a->mainWin->mCurGLw->height(),
                   newWidth, newHeight, xleft, ytop);
-      imodPrintInfo(str);
-    }
+
     a->mainWin->resize(newWidth, newHeight);
     a->mainWin->move(xleft, ytop);
     a->mainWin->show();
@@ -501,12 +499,8 @@ int imodv_main(int argc, char **argv)
 
   if (printID) {
     unsigned int winID = (unsigned int)a->mainWin->winId();
-    qstr.sprintf("Window id = %u\n", winID);
-    fprintf(stderr, qstr.latin1());
-    fflush(stderr);    // Needed on Windows
+    imodPrintStderr("Window id = %u\n", winID);
     clipHandler = new ImodClipboard();
-    if (Imod_debug)
-      imodPrintInfo(qstr.latin1());
   }
 
   return qApp->exec();
@@ -657,6 +651,10 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.17  2004/03/30 18:57:19  mast
+Did initial size-setting and coordinate limiting the same as for Zap window,
+which made it work right under Windows
+
 Revision 4.16  2003/12/30 06:32:16  mast
 Make snap_fileno be part of imodvApp structure
 
