@@ -5,22 +5,32 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/28 22:56:54  mast
+c	  Stadardize error output
+c	
 c
 	subroutine tiltali(ifdidalign,resmean,iview)
+	implicit none
 	include 'alivar.inc'
 c
 c	  IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c	  var to maxmetro
 c
+	integer maxvar,maxmetro
 	parameter (maxvar=5*maxview,maxmetro=1300)
 
+	integer*4 ifdidalign, iview
 	real*4 resmean(*)
 	real*4 tiltorig(maxview),gmagorig(maxview),rotorig(maxview)
 	integer*4 mapalltilt(maxview),mapallmag(maxview),ivorig(maxview)
 	integer*4 ivsolv(maxview),iobjali(maxreal)
 	real*4 dxysav(2,maxview),xyzsav(3,maxreal)
+	integer*4 nvuall,imintilt,mininview,minvtiltali,initxyzdone
+	real*4 randoaxis,randotilt, scalexy,xcen,ycen,xorig,yorig
+	real*4 xdelt,ydelt,facm,eps,cgx,cgy
+	integer*4 nsolve,ncycle
 	common /tltcntrl/nvuall,imintilt,mininview,minvtiltali,
-     &	    randoaxis,randotilt, scalexy,xcen,ycen,xorig,
+     &	    randoaxis,randotilt, scalexy,xcen,ycen,cgx,cgy,xorig,
      &	    yorig,xdelt,ydelt, initxyzdone,nsolve,facm, ncycle,eps,
      &	    tiltorig,gmagorig,rotorig,mapalltilt,mapallmag,ivorig,
      &	    ivsolv,iobjali,dxysav,xyzsav
@@ -28,8 +38,15 @@ c
 	real*4 var(maxvar),grad(maxmetro),h(maxmetro*(maxmetro+3))
 	real*4 erlist(100)
 	logical firsttime
+	double precision error
 	common /functfirst/ firsttime
+	real*4 dtor
 	data dtor/0.0174532/
+	integer*4 imintiltsolv,itry,isolmininit,i,isolmin,nprojpt,iv
+	real*4 tltslvmin,tltslvmax,ang,tltran,ermin,ermininit,finit
+	integer*4 nvarsrch,ifmaptilt,isolve,jpt,kpt,nvargeom,ier,kount
+	real*4 f,ffinal,rsum
+	integer*4 ior,ipt,ivor,j
 
 	ifanyalf=0
 	call proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig,
