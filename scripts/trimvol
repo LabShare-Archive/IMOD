@@ -88,32 +88,32 @@ while ($#argv > 2)
       shift
       breaksw
     default:
-      echo "${pn}: bad argument $argv[1]"
+      echo "ERROR: $pn - bad argument $argv[1]"
       exit 1
   endsw
 end
 if (! -e $argv[1])then
-  echo "${pn}: input file $argv[1] does not exist"
+  echo "ERROR: $pn - input file $argv[1] does not exist"
   exit 1
 endif
 
 if ($?slices && $?contrast) then
-    echo "${pn}: cannot use both -c and -s options"
+    echo "ERROR: $pn - cannot use both -c and -s options"
     exit 1
 endif
 
 if ($?ix && $?inx) then
-    echo "${pn}: cannot use both -x and -nx options"
+    echo "ERROR: $pn - cannot use both -x and -nx options"
     exit 1
 endif
 
 if ($?iyt && $?inyt) then
-    echo "${pn}: cannot use both -y and -ny options"
+    echo "ERROR: $pn - cannot use both -y and -ny options"
     exit 1
 endif
 
 if ($?izt && $?inzt) then
-    echo "${pn}: cannot use both -z and -nz options"
+    echo "ERROR: $pn - cannot use both -z and -nz options"
     exit 1
 endif
 
@@ -159,7 +159,7 @@ set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $
 if ($?inx) then
     @ xsize = $inx
     if ($xsize <= 0 || $xsize > $nx) then
-	echo "${pn}: illegal x size in -nx $inx"
+	echo "ERROR: $pn - illegal x size in -nx $inx"
 	exit 1
     endif
 endif
@@ -167,7 +167,7 @@ endif
 if ($?ix) then
     set xentry = `echo $ix | sed 's/,/ /g'`
     if ($#xentry < 2) then
-	echo "${pn}: incorrect argument -x $ix"
+	echo "ERROR: $pn - incorrect argument -x $ix"
 	exit 1
     endif
     @ xst = $xentry[1]
@@ -177,7 +177,7 @@ if ($?ix) then
 	@ xnd--
     endif
     if ($xst < 0 || $xnd >= $nx || $xst > $xnd) then
-	echo "${pn}: coordinates out of range for file in -x $ix"
+	echo "ERROR: $pn - coordinates out of range for file in -x $ix"
 	exit 1
     endif
 
@@ -191,7 +191,7 @@ if ($flipyz == "1") set inlet = "z"
 if ($?iny) then
     @ ysize = $iny
     if ($ysize <= 0 || $ysize > $ny) then
-	echo "${pn}: illegal $inlet size in -n$inlet $iny"
+	echo "ERROR: $pn - illegal $inlet size in -n$inlet $iny"
 	exit 1
     endif
 endif
@@ -199,7 +199,7 @@ endif
 if ($?iy) then
     set yentry = `echo $iy | sed 's/,/ /g'`
     if ($#yentry < 2) then
-	echo "${pn}: incorrect argument -$inlet $iy"
+	echo "ERROR: $pn - incorrect argument -$inlet $iy"
 	exit 1
     endif
     @ yst = $yentry[1]
@@ -209,7 +209,7 @@ if ($?iy) then
 	@ ynd--
     endif
     if ($yst < 0 || $ynd >= $ny || $yst > $ynd) then
-	echo "${pn}: $inlet coordinates out of range for file in -$inlet $iy"
+	echo "ERROR: $pn - $inlet coordinates out of range for file in -$inlet $iy"
 	exit 1
     endif
 
@@ -224,7 +224,7 @@ set secout = ""
 if ($?inz) then
     @ zsize = $inz
     if ($zsize <= 0 || $zsize > $nz) then
-	echo "${pn}: illegal $inlet size in -n$inlet $inz"
+	echo "ERROR: $pn - illegal $inlet size in -n$inlet $inz"
 	exit 1
     endif
     @ zst = ($nz - $zsize) / 2
@@ -235,7 +235,7 @@ endif
 if ($?iz) then
     set zentry = `echo $iz | sed 's/,/ /g'`
     if ($#zentry < 2) then
-	echo "${pn}: incorrect argument -$inlet $iz"
+	echo "ERROR: $pn - incorrect argument -$inlet $iz"
 	exit 1
     endif
     @ zst = $zentry[1]
@@ -245,7 +245,7 @@ if ($?iz) then
 	@ znd--
     endif
     if ($zst < 0 || $znd >= $nz || $zst > $znd) then
-	echo "${pn}: $inlet coordinates out of range for file in -$inlet $iz"
+	echo "ERROR: $pn - $inlet coordinates out of range for file in -$inlet $iz"
 	exit 1
     endif
     set secout = "-sec $zst-$znd"
@@ -262,16 +262,16 @@ if ($doflip == "1") set newstout = $argv[1].tmp.$$
 if ($?slices) then
     set contslice = `echo $slices | sed 's/,/ /g'`
     if ($#contslice < 2) then
-	echo "${pn}: incorrect argument -s $slices"
+	echo "ERROR: $pn - incorrect argument -s $slices"
 	exit 1
     endif
     @ slicest = $contslice[1]
     @ slicend = $contslice[2]
     if ($slicest < 1 || $slicend > $ny || $slicest > $slicend) then
-	echo "${pn}: slices out of range for file in -s $slices"
+	echo "ERROR: $pn - slices out of range for file in -s $slices"
 	exit 1
     endif
-    echo $slicest,$slicend
+
     set tmpfil = /tmp/trimvol.$$
     onintr clean
     echo "Determining byte scaling of $argv[1] ..."
@@ -281,10 +281,16 @@ $slicest,$slicend
 /
 /
 EOF
+
+    if ($status) then
+        grep 'ERROR:' $tmpfil
+        goto clean
+    endif
+
     set bwout = `sed -n '/Implied/s/Imp.*are *//p' $tmpfil`
     \rm -f $tmpfil
     if ($#bwout != 3) then
-	echo 'findcontrast failed to return scaling values'
+	echo 'ERROR: $pn - findcontrast failed to return scaling values'
 	exit 1
     endif
 
@@ -292,6 +298,8 @@ EOF
 endif
 
 newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout
+
+if ($status) goto clean
 
 if ($?slices) then
     echo " "
@@ -304,6 +312,7 @@ echo "newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $n
 if ($doflip == "1") then
     echo "Flipping Y and Z..."
     clip flipyz $newstout $argv[2]
+    if ($status) goto clean
     \rm -f $newstout
 endif
 
