@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 1.2  2003/04/17 17:19:11  rickg
  * <p> Reformat
  * <p>
@@ -41,6 +44,7 @@ public class IntermediateFileFilter extends FileFilter {
         "~",
         "sum.rec",
         "full.rec",
+        "matchcheck.rec",
         ".mat",
         ".ali",
         ".preali",
