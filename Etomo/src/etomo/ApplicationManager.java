@@ -82,6 +82,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2004/04/27 23:20:13  sueh
+ * <p> bug# 320 warn the user about a stale patch vector model after
+ * <p> any button press that will lead to creating a new patch vector
+ * <p> model
+ * <p>
  * <p> Revision 3.40  2004/04/27 22:02:27  sueh
  * <p> bug# 320 try to close the 3dmod with patch vector model before
  * <p> running patchcorr
@@ -3059,7 +3064,16 @@ public class ApplicationManager {
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     //don't have to rename full aligned stack because it is a generated file
-    filteredFullAlignedStack.renameTo(fullAlignedStack);
+    if (!filteredFullAlignedStack.renameTo(fullAlignedStack)) {
+      String[] message = new String[2];
+      message[0] =
+        "Unable to rename "
+          + filteredFullAlignedStackFilename
+          + " to "
+          + fullAlignedStackFilename
+          + ".";
+      mainFrame.openMessageDialog(message, "Unable to rename");
+    }
 
     try {
       if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
