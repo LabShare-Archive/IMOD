@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.JOptionPane;
@@ -91,6 +92,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.98  2004/08/20 22:57:12  sueh
+ * <p> bug# 515 improving error handling for Setup dialog
+ * <p> Changed:
+ * <p> doneSetupDialog
+ * <p>
  * <p> Revision 3.97  2004/08/20 21:49:27  sueh
  * <p> bug# 508 made some private items protected so they can by
  * <p> inherited classes.
@@ -1047,6 +1053,9 @@ public class ApplicationManager {
   private String threadNameA = "none";
 
   private String threadNameB = "none";
+  
+  private boolean backgroundProcessA = false;
+  private String backgroundProcessNameA = null;
 
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
@@ -4379,9 +4388,8 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
-    setThreadName(threadName, AxisID.FIRST);
-    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblInitial);
-    //mainFrame.startProgressBar("Combine: solvematch", AxisID.FIRST);
+    setBackgroundThreadName(threadName, AxisID.FIRST, 
+        CombineComscriptState.COMSCRIPT_NAME);
   }
   
   public void showPane(String comscript, String pane) {
@@ -4436,9 +4444,8 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
-    setThreadName(threadName, AxisID.FIRST);
-    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblInitial);
-    //mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
+    setBackgroundThreadName(threadName, AxisID.FIRST, 
+      CombineComscriptState.COMSCRIPT_NAME);
   }
 
   /**
@@ -4475,8 +4482,8 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
-    setThreadName(threadName, AxisID.FIRST);
-    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
+    setBackgroundThreadName(threadName, AxisID.FIRST, 
+      CombineComscriptState.COMSCRIPT_NAME);
   }
 
   protected void warnStaleFile(String key, boolean future) {
@@ -4542,9 +4549,8 @@ public class ApplicationManager {
         mainFrame.openMessageDialog(message, "Unable to execute com script");
         return;
       }
-      setThreadName(threadName, AxisID.FIRST);
-      //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
-      //mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);
+      setBackgroundThreadName(threadName, AxisID.FIRST, 
+        CombineComscriptState.COMSCRIPT_NAME);
     }
   }
 
@@ -4597,8 +4603,8 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
-    setThreadName(threadName, AxisID.FIRST);
-    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
+    setBackgroundThreadName(threadName, AxisID.FIRST, 
+      CombineComscriptState.COMSCRIPT_NAME);
   }
 
   /**
@@ -5350,18 +5356,31 @@ public class ApplicationManager {
     }
     return testParamFilename;
   }
-
+  
   /**
    * Exit the program
    */
   public boolean exitProgram() {
     //  Check to see if any processes are still running
-    if (!threadNameA.equals("none") || !threadNameB.equals("none")) {
-      String[] message = new String[3];
-      message[0] = "There are still processes running.";
-      message[1] = "Exiting Etomo now may terminate those processes.";
-      message[2] = "Do you still wish to exit the program?";
-      if (!mainFrame.openYesNoDialog(message)) {
+    ArrayList messageArray = new ArrayList();
+    //handle background processes
+    if (!threadNameA.equals("none") && backgroundProcessA) {
+      messageArray.add("The " + backgroundProcessNameA
+        + " process will continue to run after Etomo ends.");
+      messageArray.add("Check " + backgroundProcessNameA
+        + ".log for status.");
+      messageArray.add(" ");
+    }
+    //handle regular processes
+    if ((!threadNameA.equals("none") && !backgroundProcessA)
+      || !threadNameB.equals("none")) {
+      messageArray.add("There are still processes running.");
+      messageArray.add("Exiting Etomo now may terminate those processes.");
+    }
+    if (messageArray.size() > 0) {
+      messageArray.add("Do you still wish to exit the program?");
+      if (!mainFrame.openYesNoDialog(
+        (String[]) messageArray.toArray(new String[messageArray.size()]))) {
         return false;
       }
     }
@@ -5636,6 +5655,8 @@ public class ApplicationManager {
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
+      backgroundProcessA = false;
+      backgroundProcessNameA = null;
     }
     else if (threadName.equals(threadNameB)) {
       mainFrame.stopProgressBar(AxisID.SECOND);
@@ -5754,6 +5775,18 @@ public class ApplicationManager {
     }
     else {
       threadNameA = name;
+    }
+  }
+  
+  private void setBackgroundThreadName(String name, AxisID axisID, 
+      String processName) {
+    setThreadName(name, axisID);
+    if (axisID == AxisID.SECOND) {
+      throw new IllegalStateException("No Axis B background processes exist.");
+    }
+    else {
+      backgroundProcessA = true;
+      backgroundProcessNameA = processName;
     }
   }
 
