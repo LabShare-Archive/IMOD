@@ -72,6 +72,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.5  2001/11/28 15:33:57  mast
+#  Changes so that man pages install under "install", various fixes after
+#  checking function on the SGI, updated instructions, and general cleanup of
+#  unused variables.
+#
 #  Revision 1.4  2001/11/27 16:00:37  mast
 #  Eliminate CVS directories when make dist; make configure depend on .version
 #
