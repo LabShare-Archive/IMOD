@@ -15,6 +15,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:25:05  rickg
  * <p> Comment update
  * <p>
@@ -43,7 +46,7 @@ public class TiltxcorrParam
    * @param scriptCommand the ComScriptCommand containg the tiltxcorr command
    * and parameters.
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException, FortranInputSyntaxException {
 
     //  get the input arguments from the command
@@ -88,7 +91,7 @@ public class TiltxcorrParam
    * object
    * @param scriptCommand the script command to be updated
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
 
     //  get the input arguments from the command
