@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <Xm/VirtKeys.h>
 #include <Xm/Protocols.h>
 #include <Xm/AtomMgr.h>
@@ -330,16 +338,9 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	case KeyPress:
 	  keysym = XLookupKeysym((XKeyEvent *)cbs->event, 0);
 	  switch(keysym){
-	       /* DNM: better to open from menus
-	     case XK_a:
-	       autox_open(vi);
-	       imod_info_setocp();
-	       break;
-	       */
-	     case XK_b:
-	       autox_build(vi->ax);
-	       break;
-	       
+	       /* DNM 12/13/01: remove autox calls from here; it makes no
+		  sense to call them from xyz window */
+
 	     case XK_minus:
 	       xx->zoom = b3dStepPixelZoom(xx->zoom, -1);
 	       xxyz_draw(xx);
