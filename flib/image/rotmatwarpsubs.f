@@ -8,6 +8,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/06/22 19:57:48  mast
+c	  Fixed computation of mean
+c	
 c	  Revision 3.1  2003/10/11 00:20:59  mast
 c	  Creation of file
 c	
@@ -119,13 +122,14 @@ c
 	real*4 xcen, ycen, zcen, xofsout, xofsin, yofsin, zofsin, xp, yp, zp
 	integer*4 ixlim, iylim, izlim, ixp, iyp, izp, ixpp1, ixpm1
 	real*4 bval, dx, dy, dz, v2, v4, v5, v6, v8, vu, vd, vmin, vmax
-	integer*4 iypp1, iypm1, izpp1, izpm1, iunit, iy, ix, iz
+	integer*4 iypp1, iypm1, izpp1, izpm1, iunit, iy, ix, iz, numDone
 	real*4 a, b, c, d, e, f, dmin, dmax, tsum, dmean
 	real*4 xpofs, ypofs, zpofs, d11, d12, d21, d22
 c
 	dmin=1.e20
 	dmax=-dmin
 	tsum=0.
+	numDone = 0
 c	  
 c	  loop on layers of cubes in Z, do all I/O to complete layer
 c	  
@@ -318,6 +322,10 @@ C
 		izsec(iunit)=izsec(iunit)+1
 	      enddo
 c	      print *,ixcube,iycube,izcube
+	      numDone = numDone + 1
+	      write(*,'(a,i4,a,i4)')'Finished',numDone,' of',
+     &		  ncubes(1)*ncubes(2)*ncubes(3)
+	      call flush(6)
 	    enddo
 	  enddo
 c	    

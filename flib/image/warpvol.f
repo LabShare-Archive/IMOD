@@ -27,6 +27,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/10 20:37:06  mast
+c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
+c	  Converted to PIP/autodoc input and added linear interpolation option.
+c	
 c	  Revision 3.3  2003/10/02 19:59:05  mast
 c	  Changed method of writing sections to avoid having to fit output
 c	  section into array all at once.
@@ -64,7 +68,7 @@ c
 	real*4 xlocst,ylocst,xlocmax,ylocmax,zlocst,zlocmax,cenlocx,cenlocy
 	real*4 cenlocz,dxloc,dyloc,dzloc,dmin,dmax,tsum,devmx,xcen,ycen,zcen
 	integer*4 idimout,ind,izcube,ixcube,iycube,ifx,ify,ifz,ival,ifempty
-	integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
+	integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1,numDone
 	real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
 	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
 	integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder
@@ -198,6 +202,7 @@ c       ENCODE(80,302,TITLE)dat,tim
 	dmin=1.e20
 	dmax=-dmin
 	tsum=0.
+	numDone = 0
 	call irttlt(5,tiltold)
 	call ialtlt(6,tiltold)
 c	  
@@ -409,6 +414,10 @@ C
 		izsec(iunit)=izsec(iunit)+1
 	      enddo
 c	      print *,ixcube,iycube,izcube
+	      numDone = numDone + 1
+	      write(*,'(a,i4,a,i4)')'Finished',numDone,' of',
+     &		  ncubes(1)*ncubes(2)*ncubes(3)
+	      call flush(6)
 	    enddo
 	  enddo
 c	    
