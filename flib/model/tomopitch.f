@@ -56,6 +56,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/21 03:12:17  mast
+c	  Remove ; at end of two lines, declare lnblnk
+c	
 c	  Revision 3.1  2002/05/20 15:42:47  mast
 c	  Added analysis of single file with multiple time indexes
 c	
@@ -79,7 +82,7 @@ c
 	integer*4 maxx,maxy,maxz,mintime,maxtime,numobj,iobj1,iobj2
 	real*4 border,deltay,ysample,xyscal,zscal,xofs,yofs,zofs
 	integer*4 ip1,ip2,ibt
-	real*4 x1,y1,x2,y2,xlo,xhi,yll,ylr,yul,yur
+	real*4 x1,y1,x2,y2,xlo,xhi,yll,ylr,yul,yur,ymiddle
 	integer*4 lnblnk
 c
 	npatch=2
@@ -228,6 +231,15 @@ c
 	  ysample=ysample+deltay
 	  ifile=ifile+1
 	enddo
+c	  
+c	  DNM 6/25/02: need to make the ysamp values symmetric around zero
+c	  i.e., assume that the samples are symmetric in data set
+c
+	ymiddle = deltay * (nfiles - 1) / 2
+	do i = 1, ipbase - 1
+	  ysamp(i) = ysamp(i) - ymiddle
+	enddo
+c
 	message='all files'
 	if(usetimes)message='all time indexes'
 	if(nfiles.eq.1)deltay=0.

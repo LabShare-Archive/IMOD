@@ -62,6 +62,13 @@ c	  .  the file)
 c	  Then enter a list of patches to drop from the analysis for that file,
 c	  .  or Return to retain all patches.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 c	  David Mastronarde, November 1995
 c	  2/18/99: added X axis tilt output
@@ -210,6 +217,14 @@ c
      &	      ifuse(ipbase),npatch, ysamp(ipbase),0.)
 	  ipbase=ipbase+npatch
 	  ysample=ysample+deltay
+	enddo
+c	  
+c	  DNM 6/25/02: need to make the ysamp values symmetric around zero
+c	  i.e., assume that the samples are symmetric in data set
+c
+	ymiddle = deltay * (nfiles - 1) / 2
+	do i = 1, ipbase - 1
+	  ysamp(i) = ysamp(i) - ymiddle
 	enddo
 	call analyzespots('all files',xcen,ycen,
      &	    thkmid,thkedge,ifuse,npatch*nfiles, ysamp, deltay)
