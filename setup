@@ -83,27 +83,15 @@ set staticranlib    = ranlib
 set makenondll      = '$(AR) $(ARFLAGS)'
 set modelallo       = 'model/*.$(OBJEXT)'
 
-set b3dbyte         = "char"
-set ubyte           = "unsigned char"
-set int16           = "short int"
-set uint16          = "unsigned short int"
-set int32           = "int"
-set uint32          = "unsigned int"
-set float32         = "float"
+
+set inargv = ($argv)
 
 #
 # Input options
 #
 
-set optlist =
 
 while($#argv > 0)
-
-        # Prepare to build list of options for make dist to use
-        #
-        set savearg = $argv[1]
-        @ numbefore = $#argv
-        set dumparg = 1
         switch($argv[1])
                 case -d:
 		case -debug:
@@ -139,7 +127,6 @@ while($#argv > 0)
 		case -inst:
 			shift
 			set inst_dir = $argv[1]
-                        set dumparg = 0
 			breaksw
 
 		case -compiler:
@@ -177,13 +164,6 @@ while($#argv > 0)
 			goto usage
 			breaksw
 	endsw
-
-        # Add selected options to list, quoting values
-        #
-        if ($dumparg == 1) then
-            set optlist = "$optlist $savearg"
-            if ($#argv < $numbefore) set optlist = "$optlist "\""$argv[1]"\"
-        endif
         shift
 end
 
@@ -257,6 +237,17 @@ set inst_plug_parent = $inst_dir/lib
 #
 mkdir -p $lib_dir
 
+# 4/8/04: Moved these down from initialization section to forestall csh
+# bug in cygwin with DOS line endings
+#
+set b3dbyte         = "char"
+set ubyte           = "unsigned char"
+set int16           = "short int"
+set uint16          = "unsigned short int"
+set int32           = "int"
+set uint32          = "unsigned int"
+set float32         = "float"
+
 #
 # Go To Machine dependent parts.
 #
@@ -301,6 +292,7 @@ switch($target_computer)
                 set machine = rhlinux
                 goto rhlinux
                 breaksw
+
         # AMD64 Linux (SuSe 9.0)
         # added by CER  March 3, 2003
         case x86_64__Linux__*__*:
@@ -716,8 +708,20 @@ end
 #
 echo $distname >! .distname
 
-# Write .options file - with install entry stripped out
+# Take care of .options file - stripping out install entry
+# It had to be done with index, and down here, to work with DOS line endings
+# This will not work with a quoted multiple -flags entry
 #
+set optlist = ()
+@ ind = 1
+while ($ind <= $#inargv)
+    if ("$inargv[$ind]" == "-inst" || "$inargv[$ind]" == "-i") then
+        @ ind++
+    else
+        set optlist = ($optlist $inargv[$ind])
+    endif
+    @ ind++
+end
 echo $optlist >! .options
 
 # Test for javac and set up makefile for etomo
