@@ -206,13 +206,19 @@ int mrc_head_write(FILE *fout, struct MRCheader *hdata)
 
   rewind(fout);
      
-  fwrite(hptr, 56, 4, fout);
+  if (fwrite(hptr, 56, 4, fout) != 4) {
+    b3dError(stderr, "ERROR: mrc_head_write - writing header to file\n");
+    return 1;
+  }
      
-  for( i = 0; i < MRC_NLABELS; i++)
-    fwrite(hdata->labels[i], MRC_LABEL_SIZE, 1,fout);
+  for( i = 0; i < MRC_NLABELS; i++) {
+    if (fwrite(hdata->labels[i], MRC_LABEL_SIZE, 1,fout) != 1) {
+      b3dError(stderr, "ERROR: mrc_head_write - writing header to file\n");
+      return 1;
+    }
+  }
      
   return(0);
-     
 }
 
 
@@ -2075,6 +2081,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.16  2004/01/21 00:56:57  mast
+Stopped freeing map from byte_map
+
 Revision 3.15  2004/01/17 20:37:03  mast
 Remove b3d file i/o routines and mrc_big_seek to b3dutil, and add a
 define for rewind
