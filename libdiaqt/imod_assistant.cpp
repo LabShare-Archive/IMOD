@@ -13,8 +13,6 @@
     $Date$
 
     $Revision$
-
-    $Log$
     Log at end of file
 */
 
@@ -67,7 +65,8 @@ ImodAssistant::~ImodAssistant()
 /*!
  * Shows a help file with file name given by {page}, {absolute} (default
  * false) should be [true] if {page} gives an absolute path and [false] if
- * it gives a path relative to the path defined in the constructor.
+ * it gives a path relative to the path defined in the constructor. ^
+ * Returns 0 if the page is found, 1 if not
  */
 int ImodAssistant::showPage(const char *page, bool absolute)
 {
@@ -101,7 +100,7 @@ int ImodAssistant::showPage(const char *page, bool absolute)
     QStringList args;
     args << "-hideSidebar";
     if (!mAdp.isEmpty())
-      args << "-profile" <<  mPath + QDir::separator() + mAdp;
+      args << "-profile" <<  mPath + sep + mAdp;
     mAssistant->setArguments(args);
 #endif
   }
@@ -110,8 +109,10 @@ int ImodAssistant::showPage(const char *page, bool absolute)
   if (absolute)
     fullPath = page;
   else
-    fullPath = mPath + QDir::separator() + page;
+    fullPath = mPath + sep + page;
   fullPath = QDir::cleanDirPath(fullPath);
+  if (QDir::isRelativePath(fullPath))
+    fullPath = QDir::currentDirPath() + sep + fullPath;
   
   // Get a name with any tags stripped off to check for file existence
   fileOnly = fullPath;
@@ -142,6 +143,11 @@ void ImodAssistant::assistantError(const QString &msg)
 }
 
 /*
+    $Log$
+    Revision 1.1  2004/12/04 02:07:13  mast
+    Added to libdiaqt, added argument to control error reporting, fixed for
+    Windows if assistant in IMOD_DIR/bin is not on path
+
     Revision 1.5  2004/11/24 18:30:02  mast
     Add the adp file if Qt version supports it
 
