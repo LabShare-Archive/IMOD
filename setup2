@@ -582,7 +582,7 @@ if ($machine != cygwin) then
     echo target.path = $inst_bin_dir >! $sendevent_qconf
     echo LIBS += -lqassistantclient >! $qtassist_qconf
     echo target.path = $inst_bin_dir >> $qtassist_qconf
-    echo LIBS += -L$lib_dir -limod >! $sourcedoc_qconf
+    echo -n >! $sourcedoc_qconf
 
 
     # echo gives two \\ in tcsh 6.12 under RH 8.0 so use cat
@@ -790,6 +790,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.3  2005/02/28 22:08:53  mast
+#  Chnaged default record item length in fortran to 1
+#
 #  Revision 1.2  2005/02/25 02:46:23  mast
 #  Changes for sourcedoc
 #
