@@ -36,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/12/30 18:48:34  sueh
+ * <p> bug# 567 In createVariablePanel(): Reduce the space between the
+ * <p> checkbox and the text fields
+ * <p>
  * <p> Revision 3.8  2004/12/30 18:01:54  sueh
  * <p> bug# 567 Fixed a bug in setParameters(ConstTiltalignParam):
  * <p> localRotationNonDefaultGroups was being set incorrectly.
@@ -1076,25 +1080,36 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     pnlGeneral.add(ltfSeparateViewGroups.getContainer());
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
 
+    //Residual reporting
     pnlResidualThreshold.setLayout(new BoxLayout(pnlResidualThreshold,
-      BoxLayout.X_AXIS));
+      BoxLayout.Y_AXIS));
     pnlResidualThreshold.setBorder(new EtchedBorder("Residual Reporting")
       .getBorder());
+    //top panel
+    SpacedPanel topResidualPanel = new SpacedPanel(FixedDim.x5_y0);
+    topResidualPanel.setLayout(new BoxLayout(topResidualPanel.getContainer(), BoxLayout.X_AXIS));
     ltfResidualThreshold.setColumns(10);
-    pnlResidualThreshold.add(ltfResidualThreshold.getContainer());
-    pnlResidualThreshold.add(new JLabel(" s.d. relative to   "));
+    topResidualPanel.add(ltfResidualThreshold);
+    topResidualPanel.add(new JLabel("s.d."));
+    pnlResidualThreshold.add(topResidualPanel.getContainer());
+    //bottom panel
+    SpacedPanel bottomResidualPanel = new SpacedPanel(FixedDim.x10_y0);
+    bottomResidualPanel.setLayout(new BoxLayout(bottomResidualPanel.getContainer(), BoxLayout.X_AXIS));
+    bottomResidualPanel.setComponentAlignmentX(Container.RIGHT_ALIGNMENT);
+    bottomResidualPanel.add(new JLabel("relative to"));
+    //create radio button group
     JRadioButton[] items = new JRadioButton[2];
     items[0] = rbResidAllViews;
     items[1] = rbResidNeighboring;
     JPanel pnlRBResidual = new JPanel();
     pnlRBResidual.setLayout(new BoxLayout(pnlRBResidual, BoxLayout.Y_AXIS));
-
     ResidualRadioListener residualRadioListener = new ResidualRadioListener(
       this);
     createRadioBox(pnlRBResidual, bgResidualThreshold, items,
       residualRadioListener);
-    //TODO to narrow, change this
-    pnlResidualThreshold.add(pnlRBResidual);
+    bottomResidualPanel.add(pnlRBResidual);
+    pnlResidualThreshold.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlResidualThreshold.add(bottomResidualPanel.getContainer());
 
     pnlGeneral.add(pnlResidualThreshold);
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
