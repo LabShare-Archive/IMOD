@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2004/03/24 03:03:26  rickg
+ * Bug# 395 Implemented ability to create binned tomogram
+ *
  * Revision 3.3  2004/03/15 20:33:55  rickg
  * button variable name changes to btn...
  *
@@ -225,16 +228,21 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
+import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.MTFFilterParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
 import etomo.util.InvalidParameterException;
 
-public class TomogramGenerationDialog extends ProcessDialog
-implements ContextMenu {
-  public static final String rcsid = "$Id$";
+public class TomogramGenerationDialog
+  extends ProcessDialog
+  implements ContextMenu {
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel pnlTilt = new JPanel();
 
@@ -246,16 +254,16 @@ implements ContextMenu {
 
   private Dimension fullImageSize = new Dimension();
 
-  private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
-  "Use linear interpolation");
+  private JCheckBox cbBoxUseLinearInterpolation =
+    new JCheckBox("Use linear interpolation");
 
   private JPanel pnlAlignedStack = new JPanel();
 
-  private MultiLineToggleButton btnNewst = new MultiLineToggleButton(
-  "<html><b>Create Full<br>Aligned Stack</b>");
+  private MultiLineToggleButton btnNewst =
+    new MultiLineToggleButton("<html><b>Create Full<br>Aligned Stack</b>");
 
-  private MultiLineButton btn3dmodFull = new MultiLineButton(
-  "<html><b>View Full<br>Aligned Stack</b>");
+  private MultiLineButton btn3dmodFull =
+    new MultiLineButton("<html><b>View Full<br>Aligned Stack</b>");
 
   private JPanel pnlTiltParams = new JPanel();
 
@@ -263,42 +271,42 @@ implements ContextMenu {
 
   private LabeledTextField ltfZOffset = new LabeledTextField("Z offset: ");
 
-  private LabeledTextField ltfSliceStart = new LabeledTextField(
-  "First slice in Y: ");
+  private LabeledTextField ltfSliceStart =
+    new LabeledTextField("First slice in Y: ");
 
-  private LabeledTextField ltfSliceStop = new LabeledTextField(
-  "Last slice in Y: ");
+  private LabeledTextField ltfSliceStop =
+    new LabeledTextField("Last slice in Y: ");
 
-  private LabeledTextField ltfSliceIncr = new LabeledTextField(
-  "Slice step in Y: ");
+  private LabeledTextField ltfSliceIncr =
+    new LabeledTextField("Slice step in Y: ");
 
-  private LabeledTextField ltfTomoWidth = new LabeledTextField(
-  "Tomogram width in X: ");
+  private LabeledTextField ltfTomoWidth =
+    new LabeledTextField("Tomogram width in X: ");
 
-  private LabeledTextField ltfTomoThickness = new LabeledTextField(
-  "Tomogram thickness in Z: ");
+  private LabeledTextField ltfTomoThickness =
+    new LabeledTextField("Tomogram thickness in Z: ");
 
   private LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
 
-  private LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
-  "Tilt angle offset: ");
+  private LabeledTextField ltfTiltAngleOffset =
+    new LabeledTextField("Tilt angle offset: ");
 
-  private LabeledTextField ltfRadialMax = new LabeledTextField(
-  "Radial filter cutoff: ");
+  private LabeledTextField ltfRadialMax =
+    new LabeledTextField("Radial filter cutoff: ");
 
-  private LabeledTextField ltfRadialFallOff = new LabeledTextField(
-  "Radial filter falloff: ");
+  private LabeledTextField ltfRadialFallOff =
+    new LabeledTextField("Radial filter falloff: ");
 
-  private LabeledTextField ltfDensityOffset = new LabeledTextField(
-  "Output density offset: ");
+  private LabeledTextField ltfDensityOffset =
+    new LabeledTextField("Output density offset: ");
 
-  private LabeledTextField ltfDensityScale = new LabeledTextField(
-  "Output density scaling factor: ");
+  private LabeledTextField ltfDensityScale =
+    new LabeledTextField("Output density scaling factor: ");
 
   private LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
 
-  private JCheckBox cbBoxUseLocalAlignment = new JCheckBox(
-  "Use local alignments");
+  private JCheckBox cbBoxUseLocalAlignment =
+    new JCheckBox("Use local alignments");
 
   private JPanel pnlTrial = new JPanel();
 
@@ -312,23 +320,43 @@ implements ContextMenu {
 
   private JPanel pnlTrialButtons = new JPanel();
 
-  private MultiLineButton btnTrial = new MultiLineButton(
-  "<html><b>Generate Trial Tomogram</b>");
+  //MTF Filter
+  private JPanel pnlFilter = new JPanel();
+  private EtchedBorder filterBorder = new EtchedBorder("MTF Filtering");
+  private LabeledTextField ltfFilterOutputFile =
+    new LabeledTextField("Output file");
+  private LabeledTextField ltfHighFrequencyRadiusSigma =
+    new LabeledTextField("High frequency rolloff (radius,sigma)");
+  private JPanel pnlInverseFilter = new JPanel();
+  private BeveledBorder inverseFilterBorder =
+    new BeveledBorder("Inverse Filtering Parameters");
+  private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file");
+  private LabeledTextField ltfMaximumInverse =
+    new LabeledTextField("Maximum Inverse");
+  private JPanel pnlFilterButtons = new JPanel();
+  private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
+  private MultiLineButton btnViewFilter =
+    new MultiLineButton("View Filtered Stack");
+  private MultiLineToggleButton btnUseFilter =
+    new MultiLineToggleButton("Use Filtered Stack");
 
-  private MultiLineButton btn3dmodTrial = new MultiLineButton(
-  "<html><b>View Trial in 3dmod</b>");
+  private MultiLineButton btnTrial =
+    new MultiLineButton("<html><b>Generate Trial Tomogram</b>");
 
-  private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
-  "<html><b>Use Current Trial Tomogram</b>");
+  private MultiLineButton btn3dmodTrial =
+    new MultiLineButton("<html><b>View Trial in 3dmod</b>");
 
-  private MultiLineToggleButton btnTilt = new MultiLineToggleButton(
-  "<html><b>Generate Tomogram</b>");
+  private MultiLineToggleButton btnUseTrial =
+    new MultiLineToggleButton("<html><b>Use Current Trial Tomogram</b>");
 
-  private MultiLineButton btn3dmodTomogram = new MultiLineButton(
-  "<html><b>View Tomogram In 3dmod</b>");
+  private MultiLineToggleButton btnTilt =
+    new MultiLineToggleButton("<html><b>Generate Tomogram</b>");
 
-  private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
-  "<html><b>Delete Aligned Image Stack</b>");
+  private MultiLineButton btn3dmodTomogram =
+    new MultiLineButton("<html><b>View Tomogram In 3dmod</b>");
+
+  private MultiLineToggleButton btnDeleteStacks =
+    new MultiLineToggleButton("<html><b>Delete Aligned Image Stack</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -338,8 +366,8 @@ implements ContextMenu {
 
     //  Setup the binning spinner for newstack
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner("Aligned image stack binning ", 
-    integerModel);
+    spinBinning =
+      new LabeledSpinner("Aligned image stack binning ", integerModel);
 
     // Object alignments
     cbBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -384,13 +412,14 @@ implements ContextMenu {
     pnlAlignedStack.add(btnNewst);
     pnlAlignedStack.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlAlignedStack.add(btn3dmodFull);
+    //layoutFilterPanel();
 
     // Layout the trial panel
     pnlTrial.setLayout(new BoxLayout(pnlTrial, BoxLayout.Y_AXIS));
     pnlTrial.setBorder(new EtchedBorder("Trial Mode").getBorder());
     cmboTrialTomogramName.setEditable(true);
-    pnlTrialTomogramName.setLayout(new BoxLayout(pnlTrialTomogramName, 
-    BoxLayout.X_AXIS));
+    pnlTrialTomogramName.setLayout(
+      new BoxLayout(pnlTrialTomogramName, BoxLayout.X_AXIS));
     pnlTrialTomogramName.add(lblTrialTomogramName);
     pnlTrialTomogramName.add(cmboTrialTomogramName);
     pnlTrialButtons.setLayout(new BoxLayout(pnlTrialButtons, BoxLayout.X_AXIS));
@@ -411,6 +440,7 @@ implements ContextMenu {
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTilt.add(pnlAlignedStack);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
+    //pnlTilt.add(pnlFilter);
     pnlTilt.add(pnlTiltParams);
     pnlTilt.add(btnTilt);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -508,8 +538,8 @@ implements ContextMenu {
   /**
    * Get the tilt parameters from the requested axis panel
    */
-public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException {
+  public void getTiltParams(TiltParam tiltParam)
+    throws NumberFormatException, InvalidParameterException {
     int binning = ((Integer) spinBinning.getValue()).intValue();
     String badParameter = "";
 
@@ -518,7 +548,7 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       badParameter = "FULLIMAGE";
       tiltParam.setFullImageX(fullImageSize.width / binning);
       tiltParam.setFullImageY(fullImageSize.height / binning);
-      
+
       if (ltfTomoWidth.getText().matches("\\S+")) {
         badParameter = ltfTomoWidth.getLabel();
         tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()) / binning);
@@ -529,12 +559,11 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
 
       if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
-        tiltParam
-          .setXOffset(Float.parseFloat(ltfXOffset.getText()) / binning);
+        tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()) / binning);
         if (ltfZOffset.getText().matches("\\S+")) {
           badParameter = ltfZOffset.getLabel();
-          tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText())
-              / binning);
+          tiltParam.setZOffset(
+            Float.parseFloat(ltfZOffset.getText()) / binning);
         }
         else {
           tiltParam.resetZOffset();
@@ -543,32 +572,33 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       else {
         tiltParam.resetXOffset();
         if (ltfZOffset.getText().matches("\\S+")) {
-          throw (new InvalidParameterException(
-            "You must supply an X offset to supply a Z offset"));
+          throw (
+            new InvalidParameterException("You must supply an X offset to supply a Z offset"));
         }
         else {
           tiltParam.resetZOffset();
         }
       }
-      
+
       boolean sliceRangeSpecified = false;
       if (ltfSliceStart.getText().matches("\\S+")
-          && ltfSliceStop.getText().matches("\\S+")) {
+        && ltfSliceStop.getText().matches("\\S+")) {
         badParameter = ltfSliceStart.getLabel();
-        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText())
-            / binning);
+        tiltParam.setIdxSliceStart(
+          Integer.parseInt(ltfSliceStart.getText()) / binning);
         badParameter = ltfSliceStop.getLabel();
-        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText())
-            / binning);
+        tiltParam.setIdxSliceStop(
+          Integer.parseInt(ltfSliceStop.getText()) / binning);
         sliceRangeSpecified = true;
       }
-      else if (ltfSliceStart.getText().matches("^\\s*$")
+      else if (
+        ltfSliceStart.getText().matches("^\\s*$")
           && ltfSliceStop.getText().matches("^\\s*$")) {
         tiltParam.resetIdxSlice();
       }
       else {
-        throw (new InvalidParameterException(
-          "You must supply both the first and last slices if you want to specify either."));
+        throw (
+          new InvalidParameterException("You must supply both the first and last slices if you want to specify either."));
       }
       if (ltfSliceIncr.getText().matches("\\S+")) {
         if (sliceRangeSpecified) {
@@ -576,8 +606,8 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
           tiltParam.setIncrSlice(Integer.parseInt(ltfSliceIncr.getText()));
         }
         else {
-          throw (new InvalidParameterException(
-            "You must supply both the first and last slices to specify the slice step."));
+          throw (
+            new InvalidParameterException("You must supply both the first and last slices to specify the slice step."));
         }
       }
       else {
@@ -586,8 +616,8 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
         badParameter = ltfTomoThickness.getLabel();
-        tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText())
-            / binning);
+        tiltParam.setThickness(
+          Integer.parseInt(ltfTomoThickness.getText()) / binning);
       }
       else {
         tiltParam.resetThickness();
@@ -603,33 +633,31 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
 
       if (ltfTiltAngleOffset.getText().matches("\\S+")) {
         badParameter = ltfTiltAngleOffset.getLabel();
-        tiltParam.setTiltAngleOffset(Float.parseFloat(ltfTiltAngleOffset
-          .getText()));
+        tiltParam.setTiltAngleOffset(
+          Float.parseFloat(ltfTiltAngleOffset.getText()));
       }
       else {
         tiltParam.resetTiltAngleOffset();
       }
 
       if (ltfRadialMax.getText().matches("\\S+")
-          || ltfRadialFallOff.getText().matches("\\S+")) {
+        || ltfRadialFallOff.getText().matches("\\S+")) {
         badParameter = ltfRadialMax.getLabel();
-        tiltParam
-          .setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
+        tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
         badParameter = ltfRadialFallOff.getLabel();
-        tiltParam.setRadialFalloff(Float.parseFloat(ltfRadialFallOff
-          .getText()));
+        tiltParam.setRadialFalloff(
+          Float.parseFloat(ltfRadialFallOff.getText()));
       }
       else {
         tiltParam.resetRadialFilter();
       }
 
       if (ltfDensityOffset.getText().matches("\\S+")
-          || ltfDensityScale.getText().matches("\\S+")) {
+        || ltfDensityScale.getText().matches("\\S+")) {
         badParameter = ltfDensityScale.getLabel();
         tiltParam.setScaleCoeff(Float.parseFloat(ltfDensityScale.getText()));
         badParameter = ltfDensityOffset.getLabel();
-        tiltParam
-          .setScaleFLevel(Float.parseFloat(ltfDensityOffset.getText()));
+        tiltParam.setScaleFLevel(Float.parseFloat(ltfDensityOffset.getText()));
       }
       else {
         tiltParam.resetScale();
@@ -644,8 +672,10 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       }
 
       if (cbBoxUseLocalAlignment.isSelected()) {
-        tiltParam.setLocalAlignFile(applicationManager.getDatasetName()
-            + axisID.getExtension() + "local.xf");
+        tiltParam.setLocalAlignFile(
+          applicationManager.getDatasetName()
+            + axisID.getExtension()
+            + "local.xf");
       }
       else {
         tiltParam.setLocalAlignFile("");
@@ -656,6 +686,24 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       throw new NumberFormatException(message);
     }
   }
+
+  public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
+    throws FortranInputSyntaxException {
+    mtfFilterParam.setOutputFile(ltfFilterOutputFile.getText());
+    mtfFilterParam.setMtfFile(ltfMtfFile.getText());
+    mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
+    mtfFilterParam.setHighFrequencyRadiusSigma(
+      ltfHighFrequencyRadiusSigma.getText());
+  }
+
+  public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
+    ltfFilterOutputFile.setText(mtfFilterParam.getOutputFile());
+    ltfMtfFile.setText(mtfFilterParam.getMtfFile());
+    ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
+    ltfHighFrequencyRadiusSigma.setText(
+      mtfFilterParam.getHighFrequencyRadiusSigmaString());
+  }
+
   /**
    * Return the selected trial tomogram name
    * 
@@ -675,6 +723,7 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
   private void updateAdvanced() {
     layoutTiltPanel();
     layoutNewstPanel();
+    //pnlFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
 
     // Set the width of the newstack border to the width of the tilt
@@ -693,8 +742,8 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
     if (isAdvanced) {
       pnlNewstParams.add(cbBoxUseLinearInterpolation);
       pnlNewstParams.add(spinBinning.getContainer());
-      pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
-      .getBorder());
+      pnlNewstParams.setBorder(
+        new EtchedBorder("Newstack Parameters").getBorder());
     }
     else {
       pnlNewstParams.setBorder(null);
@@ -751,18 +800,44 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
     }
   }
 
+  protected void layoutFilterPanel() {
+    pnlFilter.setBorder(filterBorder.getBorder());
+    pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
+    pnlFilter.add(ltfFilterOutputFile.getContainer());
+    pnlFilter.add(ltfHighFrequencyRadiusSigma.getContainer());
+    pnlInverseFilter.setLayout(
+      new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
+    pnlInverseFilter.setBorder(inverseFilterBorder.getBorder());
+    pnlInverseFilter.add(ltfMtfFile.getContainer());
+    pnlInverseFilter.add(ltfMaximumInverse.getContainer());
+    pnlFilter.add(pnlInverseFilter);
+    pnlFilterButtons.setLayout(
+      new BoxLayout(pnlFilterButtons, BoxLayout.X_AXIS));
+    pnlFilterButtons.add(btnFilter);
+    pnlFilterButtons.add(btnViewFilter);
+    pnlFilterButtons.add(btnUseFilter);
+    pnlFilter.add(pnlFilterButtons);
+  }
+
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Newst", "Tilt", "3dmod"};
-    String[] manPage = {"newst.html", "tilt.html", "3dmod.html"};
-    String[] logFileLabel = {"Newst", "Tilt"};
+    String[] manPagelabel = { "Newst", "Tilt", "3dmod" };
+    String[] manPage = { "newst.html", "tilt.html", "3dmod.html" };
+    String[] logFileLabel = { "Newst", "Tilt" };
     String[] logFile = new String[2];
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, 
-    "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile);
+    ContextPopup contextPopup =
+      new ContextPopup(
+        rootPanel,
+        mouseEvent,
+        "TOMOGRAM GENERATION",
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   //  Action function overides for process state buttons
@@ -800,10 +875,12 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
         errorMessage[0] = "Missing trial tomogram filename:";
-        errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
-          + " tomogram filename edit box.";
-        applicationManager.openMessageDialog(errorMessage, 
-        "Tilt Parameter Syntax Error");
+        errorMessage[1] =
+          "A filename for the trial tomogram must be entered in the Trial"
+            + " tomogram filename edit box.";
+        applicationManager.openMessageDialog(
+          errorMessage,
+          "Tilt Parameter Syntax Error");
         return;
       }
       if (!trialTomogramList.contains(trialTomogramName)) {
@@ -847,99 +924,123 @@ public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Make aligned stack with linear instead of cubic interpolation to "
-    + "reduce noise.";
-    cbBoxUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
-    .format());
-    text = "Generate the complete aligned stack for input into the tilt process."
-      + "  This runs the newst.com script.";
+    text =
+      "Make aligned stack with linear instead of cubic interpolation to "
+        + "reduce noise.";
+    cbBoxUseLinearInterpolation.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Generate the complete aligned stack for input into the tilt process."
+        + "  This runs the newst.com script.";
     btnNewst.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Open the complete aligned stack in 3dmod";
     btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Thickness, in pixels, along the z-axis of the reconstructed volume.";
+    text =
+      "Thickness, in pixels, along the z-axis of the reconstructed volume.";
     ltfTomoThickness.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The first slice in the Y dimension to include in the reconstructed "
-      + " volume.  Slices are numbered from 0, a last slice must also "
-      + "be specified.";
+    text =
+      "The first slice in the Y dimension to include in the reconstructed "
+        + " volume.  Slices are numbered from 0, a last slice must also "
+        + "be specified.";
     ltfSliceStart.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The last slice in the Y dimension to include in the reconstructed "
-    + " volume.  Slices are numbered from 0, a first slice must also "
-    + "be specified.";
+    text =
+      "The last slice in the Y dimension to include in the reconstructed "
+        + " volume.  Slices are numbered from 0, a first slice must also "
+        + "be specified.";
     ltfSliceStop.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Step between slices in the Y dimension.  A first and last slice must "
-      + "also be entered. Default is 1.";
+    text =
+      "Step between slices in the Y dimension.  A first and last slice must "
+        + "also be entered. Default is 1.";
     ltfSliceIncr.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This entry specifies the width of the output image; the default is the "
-      + "width of the input image.";
+    text =
+      "This entry specifies the width of the output image; the default is the "
+        + "width of the input image.";
     ltfTomoWidth.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to shift the reconstructed slices in X before output.  A "
-    + "positive offset will shift the slice to the right, and the "
-    + "output will contain the left part of the whole potentially "
-    + "reconstructable area.";
+    text =
+      "Amount to shift the reconstructed slices in X before output.  A "
+        + "positive offset will shift the slice to the right, and the "
+        + "output will contain the left part of the whole potentially "
+        + "reconstructable area.";
     ltfXOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to shift the reconstructed slices in Z before output.  A "
-    + "positive offset will shift the slice upward.";
+    text =
+      "Amount to shift the reconstructed slices in Z before output.  A "
+        + "positive offset will shift the slice upward.";
     ltfZOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This line allows one to rotate the reconstruction around the X axis, so "
-      + "that a section that appears to be tilted around the X axis can be "
-      + "made flat to fit into a smaller volume.  The ANGLE should be the "
-      + "tilt of the section relative to the X-Y plane in an unrotated "
-      + "reconstruction.  For example, if the reconstruction extends 500 "
-      + "slices, and the section is 5 pixels below the middle in the first "
-      + "slice and 5 pixels above the middle in the last slice, ANGLE should"
-      + " be 1.1 (the arc sine of 10/500).";
+    text =
+      "This line allows one to rotate the reconstruction around the X axis, so "
+        + "that a section that appears to be tilted around the X axis can be "
+        + "made flat to fit into a smaller volume.  The ANGLE should be the "
+        + "tilt of the section relative to the X-Y plane in an unrotated "
+        + "reconstruction.  For example, if the reconstruction extends 500 "
+        + "slices, and the section is 5 pixels below the middle in the first "
+        + "slice and 5 pixels above the middle in the last slice, ANGLE should"
+        + " be 1.1 (the arc sine of 10/500).";
     ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Offset in degrees to apply to the tilt angles; a positive offset will "
-      + "rotate the reconstructed slices counterclockwise.  Do not use "
-      + "this option for a tomogram that is part of a dual-axis series.";
+    text =
+      "Offset in degrees to apply to the tilt angles; a positive offset will "
+        + "rotate the reconstructed slices counterclockwise.  Do not use "
+        + "this option for a tomogram that is part of a dual-axis series.";
     ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The spatial frequency at which to switch from the R-weighted radial "
-      + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
-      + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.";
+    text =
+      "The spatial frequency at which to switch from the R-weighted radial "
+        + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
+        + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.";
     ltfRadialMax.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The sigma value of a Gaussian which determines how fast the radial "
-      + "filter falls off at spatial frequencies above the cutoff frequency."
-      + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
-      + "cutoff and a falloff must be entered ";
+    text =
+      "The sigma value of a Gaussian which determines how fast the radial "
+        + "filter falls off at spatial frequencies above the cutoff frequency."
+        + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
+        + "cutoff and a falloff must be entered ";
     ltfRadialFallOff.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to add to reconstructed density values before multiplying by"
-      + " the scale factor and outputting the values.";
+    text =
+      "Amount to add to reconstructed density values before multiplying by"
+        + " the scale factor and outputting the values.";
     ltfDensityOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to multiply reconstructed density values by, after adding the "
-      + "offset value.";
+    text =
+      "Amount to multiply reconstructed density values by, after adding the "
+        + "offset value.";
     ltfDensityScale.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This parameter allows one to generate a reconstruction using the "
-    + "logarithm of the densities in the input file, with the value "
-    + "specified added before taking the logarithm.  If no parameter is "
-    + "specified the logarithm of the input data is not taken.";
+    text =
+      "This parameter allows one to generate a reconstruction using the "
+        + "logarithm of the densities in the input file, with the value "
+        + "specified added before taking the logarithm.  If no parameter is "
+        + "specified the logarithm of the input data is not taken.";
     ltfLogOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Select this checkbox to use local alignments.  You must have "
-    + "created the local alignments in the Fine Alignment step";
-    cbBoxUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text)
-    .format());
-    text = "Compute the tomogram from the full aligned stack.  This runs "
-    + "the tilt.com script.";
+    text =
+      "Select this checkbox to use local alignments.  You must have "
+        + "created the local alignments in the Fine Alignment step";
+    cbBoxUseLocalAlignment.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Compute the tomogram from the full aligned stack.  This runs "
+        + "the tilt.com script.";
     btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
     text = "View the reconstructed volume in 3dmod.";
     btn3dmodTomogram.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Current name of trial tomogram, which will be generated, viewed, or"
-      + " used by the buttons below.";
-    lblTrialTomogramName
-    .setToolTipText(tooltipFormatter.setText(text).format());
-    cmboTrialTomogramName.setToolTipText(tooltipFormatter.setText(text)
-    .format());
-    text = "Compute a trial tomogram with the current parameters, using the "
-    + "filename in the \" Trial tomogram filename \" box.";
+    text =
+      "Current name of trial tomogram, which will be generated, viewed, or"
+        + " used by the buttons below.";
+    lblTrialTomogramName.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    cmboTrialTomogramName.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Compute a trial tomogram with the current parameters, using the "
+        + "filename in the \" Trial tomogram filename \" box.";
     btnTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "View the trial tomogram whose name is shown in \"Trial "
-    + "tomogram filename\" box.";
+    text =
+      "View the trial tomogram whose name is shown in \"Trial "
+        + "tomogram filename\" box.";
     btn3dmodTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Rename the trial tomogram whose name is shown in the \"Trial "
-    + "tomogram filename\" box to be the final tomogram.";
+    text =
+      "Rename the trial tomogram whose name is shown in the \"Trial "
+        + "tomogram filename\" box to be the final tomogram.";
     btnUseTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Delete the pre-aligned and aligned stack for this axis.  Once the "
-      + "tomogram is calculated these intermediate files are not used and can be "
-      + "" + "deleted to free up disk space.";
+    text =
+      "Delete the pre-aligned and aligned stack for this axis.  Once the "
+        + "tomogram is calculated these intermediate files are not used and can be "
+        + ""
+        + "deleted to free up disk space.";
     btnDeleteStacks.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
