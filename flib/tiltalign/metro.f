@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/09/16 16:12:57  mast
+c	  Changed do loop indentation, declared for implicit none
+c	
 C
 	SUBROUTINE METRO (N,X,F,G,FACTOR,EST,EPS,LIMITin,IER,H,KOUNT)
 	implicit none
@@ -17,7 +20,7 @@ C
 	integer*4 n, limitin,limit,ier,kount
 	DOUBLE PRECISION DGAM,DD,S,AK,YA,YB,GA,GB,Z,W,NUJ,NUK
 	DOUBLE PRECISION HG,GHG,HGGH,DG,DOT,MU
-	integer*4 n2, n2pn, n2p2n, j, k
+	integer*4 j, k, ibDirVec, ibHG, ibArg, ibGrad
 	real*4 step, gg, p, delta, sig, posdef
 	MU = 1.D-04
 C
@@ -31,9 +34,10 @@ C
 C EVAL INITIAL ARG, GENERATE IDENTITY MATRIX SCALED BY NORM GRAD
 	step=est
 	STEP=FACTOR
-	N2=N**2
-	n2pn=n**2+n
-	n2p2n=n**2+2*n
+	ibArg=N**2
+	ibGrad=n**2+n
+	ibDirVec=n**2+2*n
+	ibHG = ibDirVec
 	IER=0
 	KOUNT=0
 	limit=abs(limitin)
@@ -55,21 +59,21 @@ C
 777	FORMAT(T48,'Cycle',I5,T65,E14.7)
 C
 	DO J=1,N
-	  H(n2+  J)=X(J)
-	  H(n2pn+J)=G(J)
+	  H(ibArg+J)=X(J)
+	  H(ibGrad+J)=G(J)
 C	    
 C COMPUTE DIRECTION VECTOR
 	  P=0.
 	  DO K=1,N
 	    P=P-H((J-1)*N+K)*G(K)
 	  enddo
-	  H(n2p2n+J)=P
+	  H(ibDirVec+J)=P
 	enddo
 C
 C COMPUTE COMPONENT OF NEW GRADIENT ALONG SEARCH VECTOR
 	YB=F
 	GG=DOT(G,G,N)
-	GB=DOT(H(n2p2n+1),G,N)
+	GB=DOT(H(ibDirVec+1),G,N)
 	IF (GG.EQ.0.) GO TO 500		!CONVERGED
 	IF (GB.GE.0.D0) GO TO 1		!CAN'T REDUCE F ALONG THIS LINE --
 					!RETRY STEEPEST
@@ -78,14 +82,14 @@ C ------------------------------   EXTRAPOLATE -------------------------------
 	YA=YB
 	GA=GB
 	DO  J=1,N
-	  X(J)=X(J)+STEP*H(n2p2n+J)
+	  X(J)=X(J)+STEP*H(ibDirVec+J)
 	enddo
 	CALL FUNCT (N,X,F,G)
 	YB=F
-	GB=DOT(H(n2p2n+1),G,N)
+	GB=DOT(H(ibDirVec+1),G,N)
 	DG=0.D0
 	DO J=1,N
-	  DG=DG+(X(J)-H(n2+J))*H(n2pn+J)
+	  DG=DG+(X(J)-H(ibArg+J))*H(ibGrad+J)
 	enddo
 	IF (DG.GE.0.D0) GO TO 600		!SOMETHING'S FLAKY
 	IF ((YB-YA)/DG.GE.MU) STEP=FACTOR	!GOOD IMPROVEMENT -- 
@@ -101,7 +105,7 @@ C NOT ENOUGH IMPROVEMENT -- TRY CUBIC INTERPOLATION IF STEP WAS TOO LARGE
 	AK=S*(GB+W-Z)/(GB-GA+2.D0*W)
 	IF (DABS(AK).GT.S) AK=AK*0.90D0*S/DABS(AK)
 	DO J=1,N
-	  X(J)=X(J)-AK*H(n2p2n+J)
+	  X(J)=X(J)-AK*H(ibDirVec+J)
 	enddo
 	CALL FUNCT (N,X,F,G)
 	IF (F.GT.YA.OR.F.GT.YB) GO TO 95	!INTERPOLATION FAILED
@@ -111,8 +115,8 @@ C DECREASE STEP SIZE NEXT TIME
 	GO TO 100
 C
 C TRY STEPSIZE OF 0.1**N IF NOTHING ELSE WORKS
-95	CALL MOVE (X,H(n2+1),4*N)	!RESTORE OLD ARGUMENT
-	CALL MOVE (G,H(n2pn+1),4*N)	!RESTORE OLD GRADIENT
+95	CALL MOVE (X,H(ibArg+1),4*N)	!RESTORE OLD ARGUMENT
+	CALL MOVE (G,H(ibGrad+1),4*N)	!RESTORE OLD GRADIENT
 	STEP=0.1*STEP
 	IF (STEP/FACTOR.LT.1.E-06) GO TO 700	!ERROR
 	GO TO 21				!TRY IT
@@ -123,9 +127,9 @@ C CHECK CONVERGENCE
 	DGAM=0.D0
 	DG=0.D0
 	DO J=1,N
-	  DG=DG+(X(J)-H(n2+J))*H(n2pn+J)
-	  DGAM=DGAM+(X(J)-H(n2+J))*(G(J)-H(n2pn+J))
-	  DELTA=DELTA+(X(J)-H(n2+J))**2
+	  DG=DG+(X(J)-H(ibArg+J))*H(ibGrad+J)
+	  DGAM=DGAM+(X(J)-H(ibArg+J))*(G(J)-H(ibGrad+J))
+	  DELTA=DELTA+(X(J)-H(ibArg+J))**2
 	enddo
 	IF (SQRT(DELTA).LE.EPS) RETURN
 	IF (DG.GE.0.D0) GO TO 600		!ERROR
@@ -139,19 +143,19 @@ C UPDATE COVARIANCE MATRIX ACCORDING TO SWITCHING ALGORITHM OF FLETCHER
 	  HG=0.D0
 	  DO K=1,N
 	    SIG=SIG+H((J-1)*N+K)*G(K)
-	    HG=HG+H((J-1)*N+K)*(G(K)-H(n2pn+K))
+	    HG=HG+H((J-1)*N+K)*(G(K)-H(ibGrad+K))
 	  enddo
-	  H(n2p2n+J)=HG
-	  GHG=GHG+(G(J)-H(n2pn+J))*HG
+	  H(ibHG+J)=HG
+	  GHG=GHG+(G(J)-H(ibGrad+J))*HG
 	  POSDEF=POSDEF+G(J)*SIG
 	enddo
-	IF (POSDEF.LT.0.) GO TO 800		!ERROR
+	IF (POSDEF.LT.0. .or. GHG.LT.0.) GO TO 800		!ERROR
 C
 C H0 ALGORITHM
 	DO J=1,N
 	  DO K=1,N
-	    DD=(X(J)-H(n2+J))*(X(K)-H(n2+K))
-	    HGGH=H(n2p2n+J)*H(n2p2n+K)
+	    DD=(X(J)-H(ibArg+J))*(X(K)-H(ibArg+K))
+	    HGGH=H(ibHG+J)*H(ibHG+K)
 	    H((J-1)*N+K)=H((J-1)*N+K)+DD/DGAM-HGGH/GHG
 	  enddo
 	enddo
@@ -159,10 +163,10 @@ C
 C H1 ALGORITHM
 	IF (DGAM.LT.GHG) GO TO 21
 	DO J=1,N
-	  NUJ=DSQRT(GHG)*((X(J)-H(n2+J))/DGAM-H(n2p2n+J)/GHG)
+	  NUJ=DSQRT(GHG)*((X(J)-H(ibArg+J))/DGAM-H(ibHG+J)/GHG)
 	  DO K=1,N
-	    NUK=DSQRT(GHG)*((X(K)-H(n2+K))/DGAM-
-     &		H(n2p2n+K)/GHG)
+	    NUK=DSQRT(GHG)*((X(K)-H(ibArg+K))/DGAM-
+     &		H(ibHG+K)/GHG)
 	    H((J-1)*N+K)=H((J-1)*N+K)+NUJ*NUK
 	  enddo
 	enddo
