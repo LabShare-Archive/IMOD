@@ -14,7 +14,7 @@ endif
 
 # Then test for -p flag and print
 #
-if ($argv[1] == '-p') then
+if ("$argv[1]" == '-p') then
     shift
     lp $*
     exit 0
