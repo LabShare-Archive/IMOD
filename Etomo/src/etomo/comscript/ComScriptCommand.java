@@ -17,6 +17,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.4  2003/07/25 22:56:59  rickg
  * <p> Added keywordValuePairs to copy constructor
  * <p>
@@ -183,6 +186,13 @@ public class ComScriptCommand {
       safeArray[i] = commandLineArgs[i];
     }
     return safeArray;
+  }
+  
+  public int getCommandLineLength() {
+    if (commandLineArgs == null) {
+      return 0;
+    }
+    return commandLineArgs.length;
   }
 
   /**
