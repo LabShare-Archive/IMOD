@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/27 23:58:18  rickg
+ * <p> Bug# 284 tooltips
+ * <p>
  * <p> Revision 2.5  2003/10/14 23:15:24  rickg
  * <p> Bug# 282 Label fixes
  * <p>
@@ -210,15 +213,15 @@ public class TomogramPositioningDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tomopitch", "newst", "3dmod", "tilt" };
+    String[] manPagelabel = { "Tomopitch", "Newst", "3dmod", "Tilt" };
     String[] manPage =
       { "tomopitch.html", "newst.html", "3dmod.html", "tilt.html" };
 
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-    logFileLabel[0] = "tomopitch";
-    logFileLabel[1] = "sample";
+    logFileLabel[0] = "Tomopitch";
+    logFileLabel[1] = "Sample";
 
     logFile = new String[2];
     logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
