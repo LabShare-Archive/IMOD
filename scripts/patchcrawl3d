@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/06/16 17:56:33  mast
+#  Added superfluous error checking on limits
+#
 #  Revision 3.5  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
 #
@@ -27,6 +30,7 @@
 #  volume and passed appropriate parameters to Corrsearch3d to do this instead
 #
 
+nohup
 if ($#argv < 16 || $#argv > 20) then
 cat <<EOCAT
 Usage: 
