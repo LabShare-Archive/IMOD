@@ -56,6 +56,7 @@ Log at end of file
 #include "xcramp.h"
 #include "dia_qtutils.h"
 #include "imod_info_cb.h"
+#include "imodview.h"
 #include "imodv.h"
 #include "imod_io.h"
 #include "imodv_views.h"
@@ -330,9 +331,11 @@ int SaveasModel(struct Mod_Model *mod)
     return lastError;
   }
 
-  mod->xmax = App->cvi->xsize;
-  mod->ymax = App->cvi->ysize;
-  mod->zmax = App->cvi->zsize;
+  mod->xmax = App->cvi->xUnbinSize;
+  mod->ymax = App->cvi->yUnbinSize;
+  mod->zmax = App->cvi->zUnbinSize;
+  mod->xybin = App->cvi->xybin;
+  mod->zbin = App->cvi->zbin;
      
   retval = imodWrite(mod, fout);
   fclose(fout);
@@ -549,9 +552,11 @@ static void initModelData(Imod *newModel) {
 
   /* DNM: try eliminating this, since the setting of mode did it */
   /* imodDraw(App->cvi, IMOD_DRAW_MOD); */
-  App->cvi->imod->xmax = App->cvi->xsize;
-  App->cvi->imod->ymax = App->cvi->ysize;
-  App->cvi->imod->zmax = App->cvi->zsize;
+  App->cvi->imod->xmax = App->cvi->xUnbinSize;
+  App->cvi->imod->ymax = App->cvi->yUnbinSize;
+  App->cvi->imod->zmax = App->cvi->zUnbinSize;
+  App->cvi->imod->xybin = App->cvi->xybin;
+  App->cvi->imod->zbin = App->cvi->zbin;
 
 }
 
@@ -620,9 +625,11 @@ int createNewModel(char *modelFilename) {
   /* DNM: notify imodv of new model */
   imodv_new_model(Model);
 
-  App->cvi->imod->xmax = App->cvi->xsize;
-  App->cvi->imod->ymax = App->cvi->ysize;
-  App->cvi->imod->zmax = App->cvi->zsize;
+  App->cvi->imod->xmax = App->cvi->xUnbinSize;
+  App->cvi->imod->ymax = App->cvi->yUnbinSize;
+  App->cvi->imod->zmax = App->cvi->zUnbinSize;
+  App->cvi->imod->xybin = App->cvi->xybin;
+  App->cvi->imod->zbin = App->cvi->zbin;
   imodNewObject(App->cvi->imod);
 
   /* DNM 5/16/02: if multiple image files, set time flag by default */
@@ -646,61 +653,67 @@ int createNewModel(char *modelFilename) {
   return IMOD_IO_SUCCESS;
 }
 
-
-unsigned char **imod_io_image_load(ImodImageFile *im,
-                                   struct LoadInfo *li,
-                                   void (*func)(char *))
+/*
+ * Routine to load or reload image into non-cache buffers
+ */
+unsigned char **imod_io_image_load(struct ViewInfo *vi)
 {
+  ImodImageFile *im = vi->image;
+  struct LoadInfo *li = vi->li;
   unsigned char **idata;
   struct MRCheader *mrchead;
   struct MRCheader savehdr;
+  int i;
+  int pixsize;
+  unsigned char *bdata;
+  QString message;
 
-  if (im->file == IIFILE_MRC){
-    if (!im->fp)
-      iiReopen(im);
-    if (!im->fp) return NULL;
+  if (!im->fp)
+    iiReopen(im);
+  if (!im->fp)
+    return NULL;
+
+  /* Loading unbinned, non RGB MRC, file */
+  if (im->file == IIFILE_MRC && im->format != IIFORMAT_RGB && 
+      vi->xybin * vi->zbin == 1) {
     mrchead = (struct MRCheader *)im->header;
-    
+
+    vi->loadingImage = 1;
     /* DNM: save and restore header after call to mrc_read_byte */
     savehdr = *mrchead;
-    idata = (unsigned char **)mrc_read_byte(im->fp, mrchead, li, func);
+    idata = mrc_read_byte(im->fp, mrchead, li, imod_imgcnt);
     *mrchead = savehdr;
+    vi->loadingImage = 0;
     
     return(idata);
   }
   
-  {
-    int i;
-    int xsize, ysize, zsize, xysize;
-    unsigned char **idata, *bdata;
+  /* reading non-MRC or RGB files */
+
+  /* print load status */
+  wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize,
+         vi->zsize);
+  
+  /* A lot of stuff is already set and can be eliminated */
+
+  pixsize = ivwGetPixelBytes(vi->rawImageStore);
     
-    /* ignore load info for now. */
-    xsize = im->nx;
-    ysize = im->ny;
-    zsize = im->nz;
-    xysize = xsize * ysize;
-    
-    im->llx = 0;
-    im->lly = 0;
-    im->urx = xsize;
-    im->ury = ysize;
-    
-    im->slope  = li->slope;
-    im->offset = li->offset;
-    im->imin   = li->imin;
-    im->imax   = li->imax;
-    im->axis   = li->axis;
-    
-    idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *));
-    if (!idata) return NULL;
-    bdata = (unsigned char *)malloc(xysize * zsize * sizeof(unsigned char));
-    if (!bdata) return NULL;
-    for(i = 0; i < zsize; i++){
-      idata[i] = bdata + (xysize * i);
-      iiReadSectionByte(im, (char *)idata[i], i);
-    }
-    return(idata);
+  /* Just like the standard MRC load, this loads in native orientation
+     and flips afterward if needed, so caller must be sure image axis is 3 */
+
+  idata = mrcGetDataMemory(li, vi->xysize, vi->zsize, pixsize);
+  if (!idata)
+    return NULL;
+
+  vi->loadingImage = 1;
+  for (i = 0; i < vi->zsize; i++) {
+    message.sprintf("Reading Image # %3.3d", i+1); 
+    imod_imgcnt((char *)message.latin1());
+    ivwReadBinnedSection(vi, (char *)idata[i], i + li->zmin);
   }
+  imod_imgcnt("");
+  vi->loadingImage = 0;
+  return(idata);
 }
 
 
@@ -830,6 +843,11 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.8  2003/09/13 04:36:06  mast
+Protected the global array with the model filename from being overrun.
+Got the model checksum at the right points to prevent unneeded requests
+to save the model; and eliminated unneeded computations of model checksum.
+
 Revision 4.7  2003/06/27 19:26:36  mast
 Changes to implement new view scheme when reading, saving, or making a
 new model
