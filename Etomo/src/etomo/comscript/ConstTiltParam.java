@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/06/25 22:15:50  rickg
+ * <p> Manage all tilt parameters
+ * <p>
  * <p> Revision 2.3  2003/06/10 22:55:36  rickg
  * <p> Modeled all of the parameters from the man page
  * <p>
@@ -475,6 +478,18 @@ public class ConstTiltParam {
     return useXTiltInterp;
   }
 
+  /**
+   * @return
+   */
+  public double getScaleCoeff() {
+    return scaleCoeff;
+  }
 
+  /**
+   * @return
+   */
+  public double getScaleFLevel() {
+    return scaleFLevel;
+  }
 
 }
