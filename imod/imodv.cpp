@@ -51,6 +51,7 @@ Log at end of file
 #include "imodv_gfx.h"
 #include "imodv_stereo.h"
 #include "imodv_modeled.h"
+#include "preferences.h"
 
 // static declarations
 static void usage(char *pname);
@@ -385,7 +386,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
 }
 
 // THE ENTRY POINT FOR STANDALONE IMODV
-int imodv_main(int argc, char **argv, int styleSet)
+int imodv_main(int argc, char **argv, char *cmdLineStyle)
 {
   int i;
   ImodvApp *a = Imodv;
@@ -394,6 +395,8 @@ int imodv_main(int argc, char **argv, int styleSet)
 
   //  open_display(&argc, argv, Imodv);
   QApplication myapp(argc, argv);
+
+  ImodPrefs = new ImodPreferences(cmdLineStyle);
 
   // Parse options
   for (i = 1; i < myapp.argc(); i++){
@@ -433,10 +436,6 @@ int imodv_main(int argc, char **argv, int styleSet)
   if (!a->rbgcolor->isValid())
     a->rbgcolor->setRgb(0, 0, 0);
 
-  /* Set the style to windows for now because of HighColor problems on druid */
-  if (!styleSet)
-    QApplication::setStyle("windows");
-  
   if (getVisuals(a) != 0) {
     fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
     exit(-1);
@@ -577,6 +576,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.3  2003/03/04 21:41:05  mast
+Added function for refreshing imod windows from imodv
+
 Revision 4.2  2003/02/27 17:42:38  mast
 Remove include of unistd for windows
 
