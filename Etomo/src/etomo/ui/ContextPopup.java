@@ -18,6 +18,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/11/14 04:22:31  rickg
+ * <p> HTMLPage and ContextPopup now work with URLS
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -57,14 +60,10 @@ public class ContextPopup {
   public ContextPopup(Component component, MouseEvent mouseEvent) {
     this.mouseEvent = mouseEvent;
 
-    // This is not a class member in case we ever want to be able to change
-    // the imod directory on the fly. 
-    final String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
-
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-
+        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
         if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
           manpage.openURL(imodURL + "tomoguide.html");
@@ -105,12 +104,10 @@ public class ContextPopup {
 
     this.mouseEvent = mouseEvent;
 
-    final String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
-
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-
+        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
@@ -128,7 +125,7 @@ public class ContextPopup {
 
         if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(appManager.getIMODDirectory() + "guide.html");
+          manpage.openURL(imodURL + "guide.html");
           manpage.setVisible(true);
         }
 
@@ -172,9 +169,8 @@ public class ContextPopup {
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-
-          // Search the man page items
-  for (int i = 0; i < manPageItem.length; i++) {
+        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
+        for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
             manpage.openURL(imodURL + "man/" + manPageName[i]);
