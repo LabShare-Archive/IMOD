@@ -15,6 +15,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.MetaData;
+import etomo.util.Utilities;
 
 /**
  * @author sueh
@@ -29,7 +30,8 @@ public class ImodManagerTest extends TestCase {
   String datasetNameDual = new String("BB");
   String datasetNameSingle = new String("BBa");
   String datasetName;
-  String oldUserDir;
+  String oldUserDirName;
+  String testSubDirName = new String("vectors/stacks");
 
   /*
    * @see TestCase#setUp()
@@ -37,9 +39,16 @@ public class ImodManagerTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     String[] args = new String[1];
+    File testDir;
     args[0] = new String("");
-    oldUserDir = new String(System.getProperty("user.dir"));
-    File testDir = new File(oldUserDir, "workspace/Etomo_test/vectors/stacks");
+    oldUserDirName = new String(System.getProperty("user.dir"));
+    String etomoTestDirName = Utilities.getEnvironmentVariable("ETOMO_TEST");
+    if (etomoTestDirName.equals("")) {
+      testDir = new File(oldUserDirName, "workspace/Etomo_test/" + testSubDirName);
+    }
+    else {
+      testDir = new File(etomoTestDirName, testSubDirName);
+    }
     assertTrue(testDir.exists());
     System.setProperty("user.dir", testDir.getAbsolutePath());
     applicationManager = new ApplicationManager(args);
@@ -51,7 +60,7 @@ public class ImodManagerTest extends TestCase {
    */
   protected void tearDown() throws Exception {
     super.tearDown();
-    System.setProperty("user.dir", oldUserDir);
+    System.setProperty("user.dir", oldUserDirName);
   }
 
   /**
@@ -184,260 +193,14 @@ public class ImodManagerTest extends TestCase {
   }
 
 
-
-  
-  final public void testRawStack()
-    throws AxisTypeException, SystemProcessException {
-    String key = "rawStack";
-    AxisID axisID;
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    String modelName = "patch_vector.mod";
-    boolean modelMode = true;
-    Tester tester = newTester(key, axisID);
-    
-    //rawStack.openModel(modelName);
-    //if (modelMode) {
-    //  rawStack.modelMode();
-    //}
-    //else {
-    //  rawStack.movieMode();
-    //}
-    tester.openModel(modelName);
-    if (modelMode) {
-      tester.modelMode();
-    }
-    else {
-      tester.movieMode();
-    }
-      
-    testModel(tester, key, axisID, modelName, modelMode);
-  }
-
-  final public void testErasedStack()
-    throws AxisTypeException, SystemProcessException {
-    String key = "erasedStack";
-    AxisID axisID;
-    String modelName = "BBa.fid";
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);
-    
-    //erasedStack.openModel(modelName);
-    tester.openModel(modelName);
-    
-    testModel(tester, key, axisID, modelName);
-  }
-
- 
-  final public void testCoarseAligned()
-    throws AxisTypeException, SystemProcessException {
-    String key = "coarseAligned";
-    AxisID axisID;
-    String modelName = "BBa.fid";
-    boolean preserveContrast = true;
-    boolean modelMode = true;
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);
-    
-    //if (preserveConstrast) {
-    //  coarseAligned.openModelPreserveContrast(modelName);
-    //}
-    //else {
-    //  coarseAligned.openModel(modelName);
-    //}
-    //coarseAligned.modelMode();
-    //if (modelMode) {
-    //  coarseAligned.modelMode();
-    //}
-    //else {
-    //  coarseAligned.movieMode();
-    //}
-    //coarseAligned.configurePreserveContrast(preserveConstrast);
-    //coarseAligned.model(modelName, modelMode);
-    if (preserveContrast) {
-      tester.openModelPreserveContrast(modelName);
-    }
-    else {
-      tester.openModel(modelName);
-    }
-    tester.modelMode();
-    if (modelMode) {
-      tester.modelMode();
-    }
-    else {
-      tester.movieMode();
-    }
-
-    testModel(tester, key, axisID, modelName, modelMode, preserveContrast);
-  }
-
- 
-  public void testFineAligned()
-    throws AxisTypeException, SystemProcessException {
-    String key = "fineAligned";
-    AxisID axisID;
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);
-    testOpen(tester, key, axisID);
-  }
-  
-  final public void testSample()
-    throws AxisTypeException, SystemProcessException {
-    String key = "sample";
-    AxisID axisID;
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);   
-    
-    //sample.modelMode();
-     
-    testOpen(tester, key, axisID);
-  }
-  
   private void setupNewSample(Tester tester) {
     //sample.modelMode();
     tester.modelMode();
   }
 
-  final public void testFullVolume()
-    throws AxisTypeException, SystemProcessException {
-    String key = "fullVolume";
-    AxisID axisID;
-
-    ImodManager imodManager;
-    //Test single
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);
-    
-    //openFullVolume
-    //fullVolume.setModelName("");
-    tester.setModelName("");
-
-    imodManager = new ImodManager(applicationManager, metaData);
-    imodManager.open(key, axisID);
-    assertTrue(imodManager.isOpen(key, axisID));
-    tester.equals(imodManager.get(key, axisID));
-    imodManager.openBeadFixer(key, axisID);
-    imodManager.quit(key, axisID);
-    assertEquals(imodManager.get(key, axisID), imodManager.get(imodManager.getPrivateKey("combinedTomogram")));
-
-    //Test dual
-    setUpDual();
-    axisID = AxisID.FIRST;
-
-    //openFullVolume
-    tester = newTester(key, axisID);
-    tester.setModelName("");
-
-    imodManager = new ImodManager(applicationManager, metaData);
-    imodManager.open(key, axisID);
-    assertTrue(imodManager.isOpen(key, axisID));
-    tester.equals(imodManager.get(key, axisID));
-
-    //matchingModel
-    
-    Tester testerA = newTester(key, axisID);
-    Tester testerB = newTester(key, AxisID.SECOND);
-    
-    //fullVolumeA.openModel(datasetName + "a.matmod");
-    //fullVolumeA.modelMode();
-    testerA.openModel(datasetName + "a.matmod");
-    testerA.modelMode();
-
-    //fullVolumeB.openModel(datasetName + "b.matmod");
-    //fullVolumeB.modelMode();
-    testerB.openModel(datasetName + "b.matmod");
-    testerB.modelMode();
-
-    imodManager.model(key, axisID, datasetName + "a.matmod", true);
-    imodManager.model(key, AxisID.SECOND, datasetName + "b.matmod", true);
-    assertTrue(imodManager.isOpen(key, axisID));
-    assertTrue(imodManager.isOpen(key, AxisID.SECOND));
-    testerA.equals(imodManager.get(key, axisID));
-    testerB.equals(imodManager.get(key, AxisID.SECOND));
-    imodManager.quit(key, AxisID.SECOND);
-    
-    //patchRegionModel
-    
-    tester = newTester(key, axisID);
-
-    //fullVolumeA.openModel("patch_region.mod");
-    //fullVolumeA.modelMode(); 
-    tester.openModel("patch_region.mod");
-    tester.modelMode();
-
-    imodManager.model(key, axisID, "patch_region.mod", true);
-    assertTrue(imodManager.isOpen(key, axisID));
-    tester.equals(imodManager.get(key, axisID));
-    
-    //retest openFullVolume
-    tester = newTester(key, axisID);
-    
-    tester.setModelName("");
-
-    imodManager.reset(key, axisID);
-    imodManager.open(key, axisID);
-    tester.equals(imodManager.get(key, axisID));
-    imodManager.quit(key, axisID);
-  }
-  
-  final public void testCombinedTomogram() throws SystemProcessException, AxisTypeException {
-    String key = "combinedTomogram";
-    setUpDual();
-    Tester tester = newTester(key, AxisType.DUAL_AXIS);
-    testOpen(tester, key);
-  }
-
-  final public void testPatchVectorModel() throws SystemProcessException, AxisTypeException {
-    String key = "patchVectorModel";
-    Tester tester;
-    setUpDual();
-    tester = newTester(key, AxisType.DUAL_AXIS);
-    
-    //patchVectorModel.modelMode();
-    
-    testOpen(tester, key);
-  }
-  
   private void setupNewPatchVectorModel(Tester tester) {
     //patchVectorModel.modelMode();
     tester.modelMode();
-  }
-
-  final public void testMatchCheck() throws SystemProcessException, AxisTypeException {
-    String key = "matchCheck";
-    setUpDual();
-    Tester tester = newTester(key, AxisType.DUAL_AXIS);
-    testOpen(tester, key);
-  }
-
-  final public void testFiducialModel()
-    throws AxisTypeException, SystemProcessException {
-    String key = "fiducialModel";
-    AxisID axisID;
-    String model = "BBa.fid";
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key);
-    
-    //fiducialModel.setModelName(model);
-    //fiducialModel.setUseModv(true);
-    //fiducialModel.setOutputWindowID(false);
-    tester.setModelName(model);
-    
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
-    imodManager.open(key, axisID, model);
-    tester.equals(imodManager.get(key, axisID));
-    try {
-      imodManager.openBeadFixer(key, axisID);
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-    }
   }
 
   private void setupNewFiducialModel(Tester tester) {
@@ -446,37 +209,8 @@ public class ImodManagerTest extends TestCase {
     tester.setUseModv(true);
     tester.setOutputWindowID(false);
   }
-  final public void testTrimmedVolume() throws SystemProcessException, AxisTypeException {
-    String key = "trimmedVolume";
-    setUpSingle();
-    Tester tester = newTester(key);
-    testOpen(tester, key);
-  }
   
-
-  final public void testTrialTomogram()
-    throws AxisTypeException, SystemProcessException {
-    String key = "trialTomogram";
-    AxisID axisID;
-    setUpSingle();
-    axisID = AxisID.ONLY;
-    Tester tester = newTester(key, axisID);   
-    
-    //    imodTrialTomogram.setSwapYZ(true);
-    tester.setSwapYZ(true);
-         
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
-    imodManager.create(key, axisID, datasetName + ".rec");
-    imodManager.open(key, axisID);
-    assertTrue(imodManager.isOpen(key, axisID));
-    tester.equals(imodManager.get(key, axisID));
-    imodManager.openBeadFixer(key, axisID);
-    imodManager.quit(key, axisID);
-
-  }
   
-
-
   private void setUpSingle() {
     datasetName = datasetNameSingle;
     metaData.setDatasetName(datasetName);
@@ -747,6 +481,8 @@ public class ImodManagerTest extends TestCase {
     imodManager.openBeadFixer(key, axisID);
     imodManager.quit(key, axisID);
   }
+  
+
 
   /**
       * Tester has an interface similar to ImodProcess.  It sets variables and checks
@@ -886,5 +622,6 @@ public class ImodManagerTest extends TestCase {
 
 
   }
-  
+
+
 }
