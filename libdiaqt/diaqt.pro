@@ -8,11 +8,13 @@ SOURCES += arrowbutton.cpp \
            dia_qtutils.cpp \
            dialog_frame.cpp \
            multislider.cpp \
-           tooledit.cpp
+           tooledit.cpp \
+           plax.cpp
 
 HEADERS += ../include/arrowbutton.h \
            ../include/colorselector.h \
            ../include/dia_qtutils.h \
            ../include/dialog_frame.h \
            ../include/multislider.h \
-           ../include/tooledit.h
+           ../include/tooledit.h \
+           plax.h
