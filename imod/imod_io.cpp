@@ -670,7 +670,7 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
 
   /* Loading unbinned, non RGB MRC, file */
   if (im->file == IIFILE_MRC && !vi->rawImageStore && 
-      vi->xybin * vi->zbin == 1) {
+      vi->xybin * vi->zbin == 1 && li->mirrorFFT <= 0) {
     mrchead = (struct MRCheader *)im->header;
 
     imodStartAutoDumpCache();
@@ -838,6 +838,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.14  2004/10/22 22:16:18  mast
+Added call to start cache dumping for mrc_read_byte data load
+
 Revision 4.13  2004/09/10 02:31:03  mast
 replaced long with int
 

@@ -121,6 +121,7 @@ void imod_usage(char *name)
   qstr += "         -T    Display multiple single-image files as times not "
     "sections.\n";
   qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
+  qstr += "         -M    Do not mirror FFT data around Y axis.\n";
   qstr += "         -ci   Display images in color index mode with colormap.\n";
   qstr += "         -h    Print this help message.\n";
   imodPrintInfo(qstr.latin1());
@@ -244,7 +245,7 @@ int main( int argc, char *argv[])
     if (doImodv) 
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
                          xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
-                         fillCache, ImodTrans, frames,
+                         fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
@@ -378,6 +379,10 @@ int main( int argc, char *argv[])
           ImodTrans = FALSE;
           break;
         
+        case 'M':
+          vi.li->mirrorFFT = -1;
+          break;
+        
         case 'Y':
           li.axis = 2;
           break;
@@ -447,7 +452,7 @@ int main( int argc, char *argv[])
       startup->setIcon(*(App->iconPixmap));
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
                          xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
-                         fillCache, ImodTrans, frames,
+                         fillCache, ImodTrans, vi.li->mirrorFFT, frames,
                          nframex, nframey, overx, overy, overEntered);
       if (startup->exec() == QDialog::Rejected) {
         imod_usage(argv[0]);
@@ -1001,6 +1006,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.39  2004/11/02 20:15:54  mast
+Initialized color indices for named colors here
+
 Revision 4.38  2004/07/07 19:25:29  mast
 Changed exit(-1) to exit(3) for Cygwin
 

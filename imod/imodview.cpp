@@ -1099,7 +1099,7 @@ void ivwGetLocation(ImodView *vi, int *x, int *y, int *z)
 {
   *x = (int)(vi->xmouse);
   *y = (int)(vi->ymouse);
-  *z = (int)(vi->zmouse + 0.5);
+  *z = (int)floor(vi->zmouse + 0.5);
   return;
 }
 
@@ -1229,9 +1229,9 @@ static float ivwReadBinnedPoint(ImodView *vi, FILE *fp,
 {
   double sum = 0.;
   int nsum = 0;
-  int ix, iy, iz, ubx, uby, ubz;
+  int ix, iy, iz, ubx, uby, ubz, mirx, miry;
 
-  if (vi->xybin * vi->zbin == 1)
+  if (vi->xybin * vi->zbin == 1 && !vi->image->mirrorFFT)
     return (mrc_read_point(fp, mrcheader, cx, cy, cz));
   for (iz = 0; iz < vi->zbin; iz++) {
     ubz = cz * vi->zbin + iz;
@@ -1241,7 +1241,12 @@ static float ivwReadBinnedPoint(ImodView *vi, FILE *fp,
         if (uby < mrcheader->ny) {
           for (ix = 0; ix < vi->xybin; ix++) {
             ubx = cx * vi->xybin + ix;
-            if (ubx < mrcheader->nx) {
+            if (vi->image->mirrorFFT && ubx < vi->image->nx) {
+                mrcMirrorSource(vi->image->nx, vi->image->ny, ubx, uby, &mirx,
+                                &miry);
+                sum += mrc_read_point(fp, mrcheader, mirx, miry, ubz);
+                nsum++;
+            } else if (ubx < mrcheader->nx) {
               sum += mrc_read_point(fp, mrcheader, ubx, uby, ubz);
               nsum++;
             }
@@ -2006,6 +2011,7 @@ static int ivwProcessImageList(ImodView *vi)
   int eret;
   int xsize, ysize, zsize, i, axisSave;
   int rgbs = 0;
+  float leftVal, cenVal;
 
   if (!ilist->size)
     return -1;
@@ -2013,6 +2019,18 @@ static int ivwProcessImageList(ImodView *vi)
   /* First get minimum x, y, z sizes of all the files and count up rgbs */
   for (i = 0; i < ilist->size; i++) {
     image = (ImodImageFile *)ilistItem(ilist, i);
+
+    // See if mirroring of an FFT is needed:
+    // MRC complex float odd size and not forbidden by option
+    // Set flags and increase the nx
+    if (image->file == IIFILE_MRC && image->format == IIFORMAT_COMPLEX &&
+        image->type == IITYPE_FLOAT && image->nx % 2 && 
+        vi->li->mirrorFFT >= 0) {
+      image->mirrorFFT = 1;
+      vi->li->mirrorFFT = 1;
+      image->nx = (image->nx - 1) * 2;
+    }
+
     if (!i || image->nx < xsize)
       xsize = image->nx;
     if (!i || image->ny < ysize)
@@ -2435,6 +2453,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.29  2004/11/01 23:34:56  mast
+Initialized selection list
+
 Revision 4.28  2004/10/27 20:37:39  mast
 Changed cache dumper to take ImodImageFile and only dump for MRC file
 
