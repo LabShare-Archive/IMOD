@@ -352,7 +352,8 @@ int imodDraw(ImodView *vw, int flag)
 #define MAX_VISUALS 8
 static ImodGLVisual glVisualTable[MAX_VISUALS];
 
-static void imodAssessVisual(int ind, int db, int rgba, int depth)
+static void imodAssessVisual(int ind, int db, int rgba, int depth, 
+                             int askStereo)
 {
   int depthEnabled;
   QGLWidget *glw;
@@ -363,6 +364,7 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
   glFormat.setDoubleBuffer(db);
   glFormat.setRgba(rgba);
   glFormat.setDepth(depth > 0);
+  glFormat.setStereo(askStereo > 0);
   glVisualTable[ind].dbRequested = db;
   glVisualTable[ind].rgbaRequested = rgba;
   glVisualTable[ind].depthEnabled = depth;
@@ -419,18 +421,16 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
     depthEnabled = format.depth() ? 1 : 0;
     delete glw;
   }
-  if (Imod_debug) {
-    QString str;
-    str.sprintf("for db %d rgba %d depth %d: direct %d db %d "
-            "rgba %d color %d depth %d enabled %d stereo %d\n", db, rgba,
-            depth, glVisualTable[ind].validDirect,
-            glVisualTable[ind].doubleBuffer,  glVisualTable[ind].rgba,
-            glVisualTable[ind].colorBits, glVisualTable[ind].depthBits,
-            depthEnabled, glVisualTable[ind].stereo);
-    imodPrintStderr(str.latin1());
-  }
+  if (Imod_debug)
+    imodPrintStderr("for db %d rgba %d dep %d stro %d: direct %d db %d "
+                    "rgba %d color %d dep %d enab %d stro %d\n", db, rgba,
+                    depth, askStereo, glVisualTable[ind].validDirect,
+                    glVisualTable[ind].doubleBuffer,  glVisualTable[ind].rgba,
+                    glVisualTable[ind].colorBits, glVisualTable[ind].depthBits,
+                    depthEnabled, glVisualTable[ind].stereo);
 }
 
+// Unused, for early experimentation
 void imodAssessVisuals()
 {
   int db, rgba, depth, ind;
@@ -439,7 +439,7 @@ void imodAssessVisuals()
   for (db = 0; db < 2; db++) {
     for (rgba = 0; rgba < 2; rgba++) {
       for (depth = 0; depth < 2; depth++) {
-        imodAssessVisual(ind, db, rgba, depth);
+        imodAssessVisual(ind, db, rgba, depth, 0);
         ind++;
       }
     }
@@ -464,7 +464,7 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
   // Index of the one requested without depth enabled: needed regardless
   ind = request.doubleBuffer * 4 + request.rgba * 2;
   if (glVisualTable[ind].validDirect == -2)
-    imodAssessVisual(ind, request.doubleBuffer, request.rgba, 0);
+    imodAssessVisual(ind, request.doubleBuffer, request.rgba, 0, 0);
 
   // We are all set if we don't want depth or stereo and request is satisfied
   if (!request.depthBits && !request.stereo &&
@@ -474,7 +474,8 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
 
   // Otherwise, need the one with depth enabled too
   if (glVisualTable[ind + 1].validDirect == -2)
-    imodAssessVisual(ind + 1, request.doubleBuffer, request.rgba, 1);
+    imodAssessVisual(ind + 1, request.doubleBuffer, request.rgba, 1, 
+                     request.stereo);
 
   // Evaluate overall suitability of each
   noDepthOK = glVisualTable[ind].validDirect >= 0 && 
@@ -551,6 +552,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.10  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.9  2004/04/27 14:53:13  mast
 Use print info output for the assess visual debug output
 
