@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2002/12/20 01:08:19  rickg
+ * <p> Spelling correction
+ * <p>
  * <p> Revision 1.17  2002/12/18 19:15:31  rickg
  * <p> Added advanced capability for metro factor and
  * <p> cycle limit.
@@ -712,6 +715,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalMagnificationAdditionalGroups.setVisible(state);
     ltfLocalXstretchAdditionalGroups.setVisible(state);
     ltfLocalSkewAdditionalGroups.setVisible(state);
+    ltfMinLocalPatchSize.setVisible(state);
   }
 
   void setTiltAndMagnificationDefaults() {
