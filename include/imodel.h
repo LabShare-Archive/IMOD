@@ -411,6 +411,8 @@ typedef struct Mod_Model
   IclipList  *clipList;
   IrefImage  *refImage;
   char       *fileName;
+  int        xybin;       /* Binning in X and Y */
+  int        zbin;        /* Binning in Z */
 
   Istore store;      /* Add support for easy addon of user configurable data */
 
@@ -590,6 +592,7 @@ extern "C" {
   float imodGetFloat(FILE *fp);
   int   imodGetFloats(FILE *fp, float *buf, int size);
   int   imodPutFloats(FILE *fp, float *buf, int size);
+  int   imodPutScaledPoints(FILE *fp, Ipoint *buf, int size, Ipoint *scale);
   int   imodPutFloat(FILE *fp, float *dat);
   int   imodGetInt(FILE *fp);
   int   imodGetInts(FILE *fp, void *buf, int size);
@@ -710,6 +713,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.13  2003/10/24 04:07:51  mast
+    move some functions to new b3dutil
+
     Revision 3.12  2003/09/16 02:05:53  mast
     Add function to return flipping state of model
 
