@@ -57,6 +57,7 @@ set libdiaqt_dir    = libdiaqt
 set midas_qconf     = midas/qconfigure
 set imod_qconf      = imod/qconfigure
 set sendevent_qconf = sendevent/qconfigure
+set fort_cpplibs    =
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -559,7 +560,7 @@ EOF
     (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s imod imodv)
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
-    echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs" >> $configure
+    echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
     echo 'XPLAX = ' >> $configure
 
 endif
@@ -612,6 +613,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.12  2003/03/29 00:24:04  mast
+#  rearrange ending statement
+#
 #  Revision 3.11  2003/03/28 23:52:48  mast
 #  Changes for adding Mac OS X and new Qt version of plax
 #
