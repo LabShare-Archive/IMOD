@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/27 20:19:10  mast
+    Changes in includes for Windows
+
     Revision 3.1  2003/02/10 20:49:57  mast
     Merge Qt source
 
@@ -66,6 +69,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef NO_IMOD_FORK
+#include <unistd.h>
+#endif
 
 #include "midas.h"
 #include <mrcc.h>
@@ -79,13 +85,8 @@
 
 struct Midas_view *VW;
 int Midas_debug = 0;
-#define ARROW_SIZE 19
 
-#ifdef _WIN32
-#include <fcntl.h>
-#else
-#include <unistd.h>
-#endif
+#define ARROW_SIZE 19
 
 static void usage(void)
 {
@@ -124,10 +125,6 @@ int main (int argc, char **argv)
 #else
   int dofork = 1;
 #endif
-
-//#ifdef _WIN32
-//  _fmode = _O_BINARY;
-//#endif
 
   vw = VW = &MidasView;
 
