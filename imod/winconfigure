@@ -1,0 +1,4 @@
+INCLUDEPATH += ..\include
+LIBS += ..\buildlib\libimod.lib ..\buildlib\libiimod.lib ..\buildlib\libdiaqt.lib
+target.path = ..\bin
+CONFIG += debug warn_off

@@ -39,7 +39,7 @@ import etomo.comscript.Patchcrawl3DParam;
  *
  * @version $Revision$
  *
- * <p> $Log:
+ * <p> $Log$
  * <p> </p>
  */
 public class FinalCombinePanel implements ContextMenu {
@@ -139,6 +139,9 @@ public class FinalCombinePanel implements ContextMenu {
     btnPatchVectorModel.setMaximumSize(dimButton);
     btnImodMatchedTo.setPreferredSize(dimButton);
     btnImodMatchedTo.setMaximumSize(dimButton);
+    btnImodCombined.setPreferredSize(dimButton);
+    btnImodCombined.setMaximumSize(dimButton);
+
     btnPatchcorrRestart.setPreferredSize(dimButton);
     btnPatchcorrRestart.setMaximumSize(dimButton);
     btnPatchsizeIncrease.setPreferredSize(dimButton);

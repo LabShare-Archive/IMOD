@@ -1,0 +1,41 @@
+.na
+.nh
+.TH finishjoin 1 2.31 BL3DFS
+.SH NAME
+finishjoin \- Join serial section tomograms after finding alignments
+.SH SYNOPSIS
+finishjoin [options] root_name  slice_range1  slice_range2  ...
+.SH DESCRIPTION
+finishjoin will complete the operations required to join serial section
+tomograms together, after one has made a command file with "makejoincom", run
+the command file, and found alignments between the tomograms.  "root_name"
+is the root name for various intermediate files and the joined tomogram, as
+already specified to "makejoincom".  The command line must also have a slice
+range to include from each individual tomogram.  Enter the starting and ending
+slice numbers of the desired ranges, separated by comma or dash.  Slices
+are numbered from 1.
+.SS Options
+Options may be abbreviated to a single letter.
+
+.TP
+.B -ref <tomogram #>
+Make the given tomogram be the reference for alignment, in which case slices
+from it will not be transformed, and other tomograms will be transformed into
+alignment with it.  By default, all tomograms will be transformed into
+alignment to a position averaged over all tomograms.
+.TP
+.B -size <X,Y>
+Set the size of the output slices to X by Y pixels.  The default size will
+be the maximum X size by the maximum Y size of the input tomograms.
+.TP
+.B -offset <X,Y>
+Set the X and Y offsets for the output slices.  These follow the same
+sign convention as in newstack; namely, the numbers entered should be the
+offsets from the center of the current image to the image point which is
+intended to end up in the center of the output image.  A positive offset in
+X will thus shift the image to the left.
+.SH FILES
+The program assumes the existence of several files with the given root name,
+especially root_name.info and root_name.xf.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>

@@ -1,0 +1,83 @@
+#! /bin/csh -f
+set nfit = "7"
+set order = "1"
+set hybrid = "0"
+if ($#argv == 0) then
+echo "Usage: xf2xg [options] input_file [output_file]"
+echo "  options:  -n #   0, 1, or # of sections to fit (default 7)"
+echo "            -o #   order of fit (default 1)"
+echo "            -h #   number of parameters to eliminate trends for with a"
+echo "                     hybrid alignment: 2=translations only, "
+echo "                     3=rotations also, 4=size changes also"
+echo "  If output_file is omitted, it uses input file name with .xf converted to .xg"
+echo " This shell script runs the program xftoxg; see man xftoxg for details"
+exit 0
+endif
+
+if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+set done = "0"
+
+while ($done == "0")
+  switch ($argv[1])
+    case -n:
+      set nfit = $argv[2]
+      shift; shift
+      breaksw
+    case -o:
+      set order = $argv[2]
+      shift; shift
+      breaksw
+    case -h:
+      set hybrid = $argv[2]
+      shift; shift
+      breaksw
+    default:
+      set done = "1"
+      breaksw
+  endsw
+end
+if ($#argv > 2)then
+  echo "Wrong number or incorrect arguments"
+  exit 1
+endif
+if ($nfit == "0" && $hybrid != "0")then
+    echo "You cannot use -n 0 and hybrid alignment at the same time"
+    exit 1
+endif
+if (! -e $argv[1])then
+  echo "xf2xg: input file $argv[1] does not exist"
+  exit 1
+endif
+set infile = $argv[1]
+if ($#argv > 1)then
+  set outfile = $argv[2]
+else
+  set outfile = `echo $infile | sed -n '/xf$/s//xg/p'`
+  if(outfile == "") then
+    echo "Input file name does not end in xf - need output file name"
+    exit 1
+  endif
+endif
+if ($nfit == "0")then
+xftoxg <<EOF
+0
+$infile
+$outfile
+EOF
+
+else if ($hybrid == "0") then
+xftoxg <<EOF
+$nfit
+$order
+$infile
+$outfile
+EOF
+else
+xftoxg <<EOF
+-$nfit
+$hybrid
+$order
+$infile
+$outfile
+EOF
+endif

@@ -1,0 +1,212 @@
+#! /bin/csh -f
+# SHELL SCRIPT TO FINISH JOINING SERIAL SECTION TOMOGRAMS
+set pn = "finishjoin"
+if ($#argv < 3) then
+echo "Usage: $pn [options]  root_name  slice_range1  slice_range2  ..."
+cat <<EOF
+        root_name     Is the root name for the joined tomogram
+        slice_range   Gives the starting and ending slices to include from each
+                      individual tomogram.  A range is two numbers separated by
+                      comma or dash; slices are numbered from 1.
+  Options:
+        -r[ef] tomo_# Use the given tomogram number as the reference for 
+                      alignment, in which case this tomogram will not be
+                      transformed and other tomograms will be transformed into
+                      alignment with it.
+        -s[ize] X,Y   Set the dimensions of the joined tomogram to X by Y.
+        -o[ffset] X,Y Offsets in X and Y from the center of the image to the
+                      the point which should end up in the center of the new
+                      images.  A positive X offset will shift images to the
+                       left.
+EOF
+exit 0
+endif
+
+if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+set rangelist = ""
+set xflist = ""
+set joinroot = ""
+set newsize = ""
+set ref = ""
+set offset = "0,0"
+while ($#argv > 2 && $joinroot == "")
+  switch ($argv[1])
+    case -r*:
+      set ref = $argv[2]
+      @ nref = $ref
+      shift; shift
+      breaksw
+    case -s*:
+      set newsize = $argv[2]
+      shift; shift
+      breaksw
+    case -o*:
+      set offset = $argv[2]
+      shift; shift
+      breaksw
+    default:
+      set joinroot = $argv[1]
+      shift
+      breaksw
+  endsw
+end
+
+if ($joinroot == "" || (! -e $joinroot.info)) then
+    echo "Illegal entry, or $joinroot.info does not exist"
+    exit 1
+endif
+
+set info1 = `head -1 $joinroot.info`
+set matlist = `head -2 $joinroot.info | tail -1`
+set invertlist = `tail -1 $joinroot.info`
+
+@ ntomo = $info1[1]
+set ifsquoze = $info1[2]
+
+# New info file has default size in it; use it unless user entered size
+# Note, wasn't able to test on "/" because csh tried to do a division
+if ($newsize == "" && $#info1 > 2) set newsize = "$info1[3],$info1[4]"
+if ($newsize == "") set newsize = "/"
+
+if ($#argv != $ntomo) then
+    echo "You entered $#argv Z-ranges but $ntomo are required"
+    exit 1
+endif
+
+if ($ref != "") then
+    if ($nref < 1 || $nref > $ntomo) then
+	echo "Illegal entry for reference tomogram number"
+	exit 1
+    endif
+endif
+
+
+@ itomo = 1
+while ($itomo <= $ntomo)
+    if (! -e $matlist[$itomo]) then
+	set size = `echo "1024 1024 100"`
+	echo "WARNING: $matlist[$itomo] NO LONGER EXISTS.  SETTING SIZE TO $size FOR TESTING"
+#	exit 1
+    else
+    set size = `header $matlist[$itomo] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+    endif
+    @ nz = $size[3]
+
+    set zentry = `echo $argv[1] | sed '/[,-]/s// /g'`
+    shift
+    if ($#zentry < 2) then
+        echo "The Z range for tomogram # $itomo does not have two numbers"
+	exit 1
+    endif
+    @ zst = $zentry[1]
+    @ znd = $zentry[2]
+    @ zst--
+    @ znd--
+    if ($zst < 0 || $zst >= $nz || $znd < 0 || $znd >= $nz) then
+	echo "The Z range for tomogram # $itomo has coordinates out of range"
+	exit 1
+    endif
+    set ifinvert = $invertlist[$itomo]
+    if (($zst < $znd && $ifinvert == "0") || ($zst >= $znd && $ifinvert == "1")) then
+	set zstout = $zst
+	set zndout = $znd
+    else
+	set zstout = $znd
+	set zndout = $zst
+    endif
+    set zrange = $zstout"-"$zndout
+    set rangelist = ($rangelist $zrange)
+
+    @ zmin = $zst
+    @ zmax = $znd
+    if ($zst > $znd) then
+	@ zmin = $znd
+	@ zmax = $zst
+    endif
+    @ xfline = $itomo - 1
+    @ iz = $zmin
+    while ($iz <= $zmax)
+	set xflist = ($xflist $xfline)
+	@ iz++
+    end
+
+    @ itomo++
+end
+
+# Now work on getting the transforms
+if (-e $joinroot.tomoxf) \mv $joinroot.tomoxf $joinroot.tomoxf~
+
+echo "1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000" > $joinroot.tomoxf
+sed '/1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000/d' $joinroot.xf >> $joinroot.tomoxf
+set wcout = `wc -l $joinroot.tomoxf`
+@ nlines = $wcout[1]
+
+if ($nlines != $ntomo) then
+    @ nlines--
+    echo "There are $nlines lines in $joinroot.xf with non-unit transforms"
+    echo "This is not the right number of lines for joining $ntomo tomograms"
+    exit 1
+endif
+
+xftoxg <<EOF
+0
+$joinroot.tomoxf
+$joinroot.tomoxg
+EOF
+
+if ($ifsquoze == "1") then
+    \mv $joinroot.tomoxg $joinroot.tmpxg
+    xfproduct <<EOF
+$joinroot.sqzxf
+$joinroot.tmpxg
+$joinroot.tmpsqz
+EOF
+    xfproduct <<EOF
+$joinroot.tmpsqz
+$joinroot.xpndxf
+$joinroot.tomoxg
+EOF
+endif
+
+if ($ref != "") then
+    \mv $joinroot.tomoxg $joinroot.tmpxg
+    head -$nref $joinroot.tmpxg | tail -1 >! $joinroot.tmpref
+    xfinverse <<EOF
+$joinroot.tmpref
+$joinroot.tmpinv
+1
+EOF
+    xfproduct <<EOF
+$joinroot.tmpxg
+$joinroot.tmpinv
+$joinroot.tomoxg
+EOF
+endif
+
+set newstin = /usr/tmp/joinnewst.$$
+
+echo $ntomo >! $newstin
+@ itomo = 1
+while ($itomo <= $ntomo)
+    echo $matlist[$itomo] >> $newstin
+    echo $rangelist[$itomo] >> $newstin
+    @ itomo++
+end
+cat >> $newstin <<EOF
+1
+$joinroot.join
+$newsize
+/
+-1
+$offset
+1
+$joinroot.tomoxg
+$xflist
+0
+EOF
+
+newstack < $newstin
+
+\rm -f $newstin
+\find . -name "$joinroot.*tmp*"  -exec rm "{}" \;

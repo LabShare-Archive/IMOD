@@ -1,0 +1,969 @@
+THIS IS A LISTING OF THE DATES OF ALL SOURCE FILES BEFORE THE 
+CVS REPOSITORY WAS CREATED
+
+GLw:
+ Oct  6  2000 GLwDrawA.c
+ Aug 18  1999 GLwDrawA.h
+ Aug 18  1999 GLwDrawAP.h
+ Aug 18  1999 GLwMDrawA.c
+ Aug 18  1999 GLwMDrawA.h
+ Aug 18  1999 GLwMDrawAP.h
+ Dec  7  2000 Makefile
+ Oct  6  2000 Makefile.X11
+ Aug 18  1999 README
+
+USFFTlib/pc:
+ Mar 13  2001 libtest_usfft.a
+ Jun 14  2001 libusfft_r3.a
+
+USFFTlib/sgi:
+ Oct  3  2000 libtest_usfft.a
+ Oct  3  2000 libusfft_r3.a
+
+USFFTlib/sgi32:
+ May 17  2001 libtest_usfft.a
+ May 17  2001 libusfft_r3.a
+
+USFFTlib/sun:
+ Jun 20  2000 libtest_usfft.a
+ Jun 20  2000 libusfft_r3.a
+
+clip:
+ Mar 12  2001 Makefile
+ Jul 25  2001 clip.c
+ Aug 29  1997 clip.h
+ Sep 21  2001 clip_io.c
+ Jul 31  2001 clip_proc.c
+ Aug 29  1997 clip_transform.c
+ Sep 26  2001 correlation.c
+ Feb 19  2001 fft.c
+ Aug 29  1997 filter.c
+
+com:
+ Nov  4  2000 1.5deg-minus1.rawtlt
+ Nov  4  2000 1.5deg-plus1.rawtlt
+ Nov  4  2000 1.5deg-zero.rawtlt
+ Nov  4  2000 2deg-even.rawtlt
+ Nov  4  2000 2deg-odd.rawtlt
+ Nov  4  2000 align.com
+ Jul  3  2001 blend.com
+ Jul  3  2001 ccdnewst.com
+ Jun  1  2001 ccdpreblend.com
+ Jul 24  2001 combine.com
+ Nov  4  2000 eraser.com
+ Jul  3  2001 filmnewst.com
+ Nov  4  2000 findsec.com
+ Nov  4  2000 localpart.com
+ Nov  4  2000 ndapltexamp.dat
+ Nov  4  2000 prenewst.com
+ Jul  3  2001 tilt.com
+ Nov  4  2000 tomopitch.com
+ Nov  4  2000 track.com
+ Nov  4  2000 xcorr.com
+
+devkit:
+ Feb 24  1997 Makefile
+ Feb 21  1997 README
+ Dec 19  2000 gfxshell.c
+ Dec 17  1998 imod.h
+ Feb 19  1997 imodPluginTest.c++
+ Feb 19  1997 imodPluginWindow.c++
+ Aug 29  1997 imodPluginWindow.h
+ Aug 29  1997 imodplug.h
+ Aug 29  1997 meshcustom.c
+ Aug 29  1997 minfo.c
+ Dec 17  1998 model.h
+ Aug 29  1997 mrc.h
+ Aug 29  1997 plugshell.c
+
+dist:
+ Dec 27  2000 COPYRIGHT
+ Jul 29  2001 bashinstall
+ Jul 25  2001 pcinstall
+ Jul 25  2001 sgiinstall
+ Dec 28  2000 start.html
+ Jul 25  2001 suninstall
+
+flib:
+ Nov 11  2001 Makefile
+
+flib/beadtrack:
+ Nov 11  2001 Makefile
+ Nov  9  2001 beadtrack.f
+ Jul  3  2000 findxf.f
+ Jan 14  1999 proc_model.f
+ Oct 16  1998 proc_vars.f
+ Jun 28  2001 tiltali.f
+ Oct 10  2000 tracksubs.f
+
+flib/blend:
+ Nov  9  2001 Makefile
+ Nov  9  2001 blendmont.f
+ Aug 11  2001 bsubs.f
+ Nov  9  2001 reducemont.f
+ Jul 23  1997 sdcalc.f
+ Nov 10  2001 sdsearch.f
+ Jul 23  1997 setoverlap.f
+ Jul 20  2000 shuffler.f
+ Oct 29  1999 smoothgrid.f
+
+flib/graphics:
+ Nov  9  2001 Makefile
+ Jun 22  2000 avgstatplot.f
+ Oct  5  2000 genhstplt.f
+ Mar 23  2001 mtoverlap.f
+ May 14  2001 mtpairing.f
+
+flib/image:
+ Nov  9  2001 Makefile
+ Dec 21  2000 addtostack.f
+ Feb  5  2001 alterheader.f
+ Nov  9  2001 assemblevol.f
+ Jun 22  2000 avganova.f
+ Nov  9  2001 avgstack.f
+ Jul  7  2000 boxavg.f
+ Nov  9  2001 calc.f
+ Jul  3  2000 checkxforms.f
+ Nov  9  2001 combinefft.f
+ Nov  9  2001 densmatch.f
+ Jun 13  2001 edmont.f
+ Nov  9  2001 edpiecepoint.f
+ Nov  9  2001 enhance.f
+ Nov  9  2001 eraser.f
+ Jul 17  2000 excise.f
+ Nov  9  2001 extposition.f
+ Nov  9  2001 extractpieces.f
+ Nov  9  2001 extracttilts.f
+ Nov  9  2001 extstack.f
+ Nov  9  2001 fftrans.f
+ Nov  9  2001 filltomo.f
+ Nov  9  2001 findcontrast.f
+ Nov  9  2001 findsection.f
+ Jul  7  2000 fixmont.f
+ Jun 30  2000 giantfft.f
+ Jan  3  2000 goodframe.f
+ Jul 23  1997 header.f
+ Nov  6  2001 matchvol.f
+ Jan  3  2000 montagesize.f
+ Jul  3  2000 mtdetect.f
+ Jan  4  2000 mtsubs.f
+ Nov  9  2001 mtteach.f
+ Nov  9  2001 newstack.f
+ Nov  6  2001 rotatevol.f
+ Nov  9  2001 rotmont.f
+ Nov  9  2001 subimage.f
+ Nov  9  2001 subimanova.f
+ Nov  9  2001 subimstat.f
+ Nov  9  2001 taperoutvol.f
+ Nov  9  2001 tapervoledge.f
+ Mar  8  2001 tiltxcorr.f
+ Nov  9  2001 tomopieces.f
+ Nov 15  2001 vmstocsh.f
+ Nov  6  2001 warpvol.f
+ Nov  9  2001 xcorr.f
+ Nov  9  2001 xfinverse.f
+ Nov  9  2001 xfproduct.f
+ Jul 27  2001 xfsimplex.f
+ Nov  9  2001 xftoxg.f
+ Aug 21  2000 xyzproj.f
+
+flib/man:
+ Mar 12  2001 Makefile
+ Dec 21  2000 addtostack.1
+ Dec 26  2000 alterheader.1
+ Mar  2  2001 assemblevol.1
+ Jul 23  1997 avganova.1
+ Jul 23  1997 avgstack.1
+ Jul 23  1997 avgstatplot.1
+ Oct  6  1997 beadtrack.1
+ Jun  3  2001 blendmont.1
+ Jul 23  1997 boxavg.1
+ Jul 23  1997 boxstartend.1
+ Aug 18  1998 bshst.1
+ Oct 29  1997 bsplt.1
+ Dec 18  1998 ccderaser.1
+ Jul 23  1997 checkmtmod.1
+ Jul 23  1997 checkxforms.1
+ Oct 24  2000 clipmodel.1
+ Jul 23  1997 combinefft.1
+ Jul 23  1997 contourmod.1
+ Jul 23  1997 convertmod.1
+ Jul 16  2001 corrsearch3d.1
+ Jul 23  1997 densmatch.1
+ Dec 18  1998 edgeeraser.1
+ Oct 24  2000 edmont.1
+ Jul 23  1997 edpiecepoint.1
+ Jul 23  1997 endmodel.1
+ Jul 23  1997 enhance.1
+ Jul 23  1997 eraser.1
+ Jul 23  1997 excise.1
+ Jul 23  1997 extposition.1
+ Jan  2  2000 extractpieces.1
+ Jan  2  2000 extracttilts.1
+ Jul 23  1997 extstack.1
+ Apr 21  2000 fenestra.1
+ Jul 23  1997 fftrans.1
+ May 16  2001 fiberpitch.1
+ Jan 22  2000 filltomo.1
+ Jun 27  2001 findcontrast.1
+ Feb 18  1999 findsection.1
+ Jun  7  2001 findwarp.1
+ Jul 23  1997 fixmont.1
+ Jul 23  1997 genhstplt.1
+ Jul 23  1997 header.1
+ Jul 23  1997 imavgstat.1
+ Jul 23  1997 joinmodel.1
+ Dec 26  2000 makedist
+ Feb 26  2001 matchvol.1
+ Jul 23  1997 model2point.1
+ Jan  2  2000 montagesize.1
+ Jul 23  1997 mtdetect.1
+ Jul 23  1997 mtk.1
+ Jul 23  1997 mtlengths.1
+ Jul 23  1997 mtmodel.1
+ Jul 23  1997 mtoverlap.1
+ Jul 23  1997 mtpairing.1
+ Jul 23  1997 mtsmooth.1
+ Jul 23  1997 mtteach.1
+ Jul 23  1997 nda.1
+ Sep 25  2001 newstack.1
+ Jul 23  1997 realscalemod.1
+ Sep  9  1997 reducecont.1
+ Jul 23  1997 reducemont.1
+ Jul 23  1997 reducemtmod.1
+ Jan  1  2000 refinematch.1
+ Jul 23  1997 remapmodel.1
+ Feb 26  2001 rotatevol.1
+ Jul 23  1997 rotmont.1
+ Jul 23  1997 scalemodel.1
+ Apr 15  1998 smoothsurf.1
+ Mar 20  2000 solvematch.1
+ Nov  6  2001 subimage.1
+ Jul 23  1997 subimanova.1
+ Jul 23  1997 subimstat.1
+ Mar  2  2001 taperoutvol.1
+ Mar  2  2001 tapervoledge.1
+ Nov  8  2001 tilt.1
+ Jun 28  2001 tiltalign.1
+ Oct  7  1998 tiltxcorr.1
+ Mar  2  2001 tomopieces.1
+ Jan  1  2000 tomopitch.1
+ Jul 16  2001 vmstocsh.1
+ Feb 26  2001 warpvol.1
+ Jan 14  2000 xcorr.1
+ Jul 23  1997 xfinterstack.1
+ Apr 21  2000 xfinverse.1
+ Dec 19  1998 xfmodel.1
+ Jul 23  1997 xfproduct.1
+ Jul 27  2001 xfsimplex.1
+ Aug 29  2001 xftoxg.1
+ Jul 23  1997 xyzproj.1
+
+flib/model:
+ Nov  9  2001 Makefile
+ Aug 21  2000 boxstartend.f
+ Nov  9  2001 ccderaser.f
+ Nov  9  2001 checkmtmod.f
+ Jun 30  2001 clipmodel.f
+ Jan 14  2000 contourmod.f
+ Jul 14  2000 convertmod.f
+ Nov  9  2001 corrsearch3d.f
+ Nov  9  2001 edgeeraser.f
+ Jan 14  2000 endmodel.f
+ Nov  9  2001 fenestra.f
+ Nov  9  2001 fiberpitch.f
+ Jun  7  2001 findwarp.f
+ Aug 21  2000 imavgstat.f
+ Jan 14  2000 joinmodel.f
+ Nov  9  2001 model2point.f
+ Jul 20  2000 mtlengths.f
+ Jun 22  2000 mtmodel.f
+ Nov  9  2001 mtsmooth.f
+ Mar  9  2000 planefit.f
+ Mar  8  2001 realscalemod.f
+ Nov  9  2001 reducecont.f
+ Jan 14  2000 reducemtmod.f
+ Mar  8  2001 refinematch.f
+ Nov  9  2001 remapmodel.f
+ Jan 14  2000 scalemodel.f
+ Nov  9  2001 smoothsurf.f
+ Nov 14  2001 solve_wo_outliers.f
+ Nov 14  2001 solvematch.f
+ Nov  9  2001 tomopitch.f
+ Jul  3  2000 xfinterstack.f
+ Nov  9  2001 xfmodel.f
+
+flib/ndasda:
+ Nov  9  2001 Makefile
+ Jun 22  2000 angdist.f
+ Aug 17  2000 bundledist.f
+ Nov 27  2000 closedist.f
+ Jul 20  2000 convexbound.f
+ Jan  4  2000 find_points_area.f
+ Jul 14  2000 graphcom.f
+ Jun  3  2001 graphden.f
+ Jun 22  2000 kerneldens.f
+ Feb 29  2000 manipgraphs.f
+ Nov 27  2000 mtk.f
+ Aug 17  2000 mtk.inc
+ Nov 27  2000 mtkmodel.f
+ Nov 27  2000 mtkrandom.f
+ Nov 17  2000 mtkransubs.f
+ Aug 23  2000 mtksubs.f
+ Jul 20  2000 nda.f
+ Jul 20  2000 ndmodel.f
+ Oct 28  1997 ndmtkrand.f
+ Mar  8  2001 ndmtksubs.f
+ Nov 15  2000 ndrandom.f
+ Jun 22  2000 ndsubs.f
+ May  1  2000 oldmtkrandom.f
+ Jan  4  2000 sd3dsubs.f
+ Jun 22  2000 sda.f
+ Jul 23  1997 sda.inc
+ Jun 22  2000 sddist.f
+ Jan  4  2000 sdlength.f
+ Jun 22  2000 sdmodel.f
+ Nov 15  2000 sdrandom.f
+ Jan  4  2000 surfden.f
+
+flib/subrs:
+ Nov 11  2001 Makefile
+
+flib/subrs/dtrigs:
+ Mar  4  2001 Makefile
+ Jul 14  2000 degtrig.f
+
+flib/subrs/graphics:
+ Mar  4  2001 Makefile
+ May 16  2001 bshst.f
+ Jul 20  2000 bsplt.f
+ Jun  3  2001 chrout.f
+ Jul 23  1997 dsaxes.f
+ Jul 12  2000 flnam.f
+ Nov 19  2000 fracbx.f
+ Jul 23  1997 graphpak.f
+ Oct  5  2000 grupnt.f
+ Jul 23  1997 imdash.f
+ Dec 20  1999 imgrid.f
+ May  1  2001 immisc.f
+ Nov  9  2001 impak.f
+ Nov 19  2000 imsymb.f
+ Jul 23  1997 label_axis.f
+ Jul 23  1997 minmax.f
+ Jan 15  2001 plax.c
+ Aug 17  2000 plax.h
+ Jul 23  1997 ps.c
+ Jul 23  1997 ps.h
+ Mar 23  2001 psf.c
+ Jul 23  1997 pwrit.f
+ Jul 23  1997 scale.f
+ Jun 30  2000 shiftpt.f
+ Jul 23  1997 trnc.f
+
+flib/subrs/hvem:
+ Jul 16  2001 Makefile
+ Jul 23  1997 concat.f
+ Jan  4  2000 copy_to_backup.f
+ Jun 23  2000 dopen.f
+ Mar  8  2001 frefor.f
+ Jul 23  1997 freone.f
+ Jan  2  2000 get_extra_header_pieces.f
+ Jan  2  2000 get_extra_header_tilts.f
+ Jan 14  2000 get_tilt_angles.f
+ Jul 23  1997 getinout.f
+ Apr  5  2000 ialsiz_sam_cel.f
+ Dec 21  1998 indmap.f
+ Jul 23  1997 int_iwrite.f
+ Jul 23  1997 inv_matrix.f
+ Dec 21  1998 meanzero.f
+ Jul 23  1997 mypause.f
+ Jul 23  1997 niceframe.f
+ Dec 21  1998 padfill.f
+ Jul 23  1997 rdlist.f
+ Dec 19  1998 setctf.f
+ Dec 21  1998 taperinpad.f
+ Jul 16  2001 taperinvol.f
+ Jun 21  2001 taperoutpad.f
+ Jun 23  2001 temp_filename.f
+ Jun 29  2000 wrlist.f
+ Jul 23  1997 xfcopy3d.f
+ Jul 23  1997 xfinv3d.f
+ Jul 23  1997 xfmult3d.f
+
+flib/subrs/ifftsub:
+ Mar  4  2001 Makefile
+ Jul 23  1997 README
+ Nov 10  2001 cmplft.f
+ Jul 23  1997 diprp.f
+ Jul 23  1997 fft1d.f
+ Jul 23  1997 hermft.f
+ Jul 23  1997 inv21.f
+ Nov 10  2001 mdftkd.f
+ Jul 23  1997 mr_tfft.f
+ Jul 23  1997 mr_tfft_nyq.f
+ Jul 20  2000 odfft.f
+ Jul 23  1997 real_ft.f
+ Jul 23  1997 realft.f
+ Nov 10  2001 rsymft.f
+ Nov 10  2001 sdiad.f
+ Nov 10  2001 srfp.f
+ Jul 20  2000 todfft.f
+
+flib/subrs/imsubs:
+ Mar  4  2001 Makefile
+ Jul 23  1997 README
+ Mar  1  2001 altskip.f
+ Jun 14  2001 blockio.c
+ Aug 22  2000 convert_vms.c
+ Aug 13  2000 environ.h
+ Mar  1  2001 icllim.f
+ Mar  1  2001 imopen.f
+ Mar  1  2001 imposn.f
+ Mar  4  2001 imsubs.inc
+ Mar  1  2001 imunit.f
+ Mar 16  2001 irdhdr.f
+ Mar  1  2001 irdlin.f
+ Mar  1  2001 irdpas.f
+ Jul 23  1997 irepak.f
+ Jul 23  1997 isetdn.f
+ Mar  1  2001 iwrlin.f
+ Mar  1  2001 iwrpas.f
+
+flib/subrs/imsubs2:
+ Mar  4  2001 Makefile
+ Jul 23  1997 README
+ Jan 12  2000 bigfft.f
+ Jan 12  2000 bigfilt.f
+ Jul 23  1997 cinterp.f
+ Apr 21  2000 cubinterp.f
+ Dec 19  1998 filter.f
+ Jan  4  2000 filterpart.f
+ Jul 23  1997 get_nxyz.f
+ Jul 23  1997 icalc_angles.f
+ Jul 23  1997 icalc_matrix.f
+ Jul 23  1997 iclcdn.f
+ Sep 23  2001 iclden.f
+ Jul 23  1997 iclscl.f
+ Aug 23  2000 inside.f
+ Jul 23  1997 interp.f
+ Jul 23  1997 qdinterp.f
+ Jul 23  1997 strupcase.f
+
+flib/subrs/model:
+ Nov  9  2001 Makefile
+ Jul 23  1997 iobjfromcont.f
+ Jun 22  2000 obj_manager.f
+ Jul 23  1997 objtocont.f
+ Jul 23  1997 read_mod.f
+ Jul 23  1997 readw_or_imod.f
+ Dec 10  1999 repack_mod.f
+ Jul 23  1997 store_mod.f
+ Jul 17  2000 write_wmod.f
+
+flib/subrs/piecesubs:
+ Mar  4  2001 Makefile
+ Jul 23  1997 README
+ Jan  4  2000 checklist.f
+ Jul 23  1997 fill_listz.f
+ Jul 23  1997 lookup_piece.f
+ Jul 23  1997 read_piece_list.f
+
+flib/subrs/randm:
+ Mar  4  2001 Makefile
+ Jul 21  2000 ourrnd.c
+ Jul 21  2000 ransub.f
+
+flib/subrs/statsubs:
+ Nov  9  2001 Makefile
+ Jul 23  1997 avgsd.f
+ Nov 10  2001 betacf.f
+ Nov 10  2001 betai.f
+ Jul 23  1997 correl.f
+ Jul 23  1997 dirnm.f
+ Jul 23  1997 eigenv.f
+ Jul 23  1997 fvalue.f
+ Jul 23  1997 gammln.f
+ Oct 29  1999 gaussj.f
+ Jul 23  1997 hdiag.f
+ Jul 23  1997 localpolyfit.f
+ Jul 23  1997 lsfit.f
+ Feb 18  1999 lsfit2.f
+ Jul 23  1997 matinv.f
+ Jul 23  1997 multr.f
+ Jan  4  2000 nestanova.f
+ Jul 23  1997 polyfit.f
+ Jul 20  2000 stepwz.f
+ Jul 23  1997 tvalue.f
+ Jul 23  1997 weightpoly.f
+
+flib/subrs/xfsubs:
+ Mar  4  2001 Makefile
+ Jul  3  2000 README
+ Jul 23  1997 amat_to_rotmag.f
+ Jul 23  1997 amat_to_rotmagstr.f
+ Jul 23  1997 rotmag_to_amat.f
+ Jul 23  1997 rotmagstr_to_amat.f
+ Jul  3  2000 xfapply.f
+ Jul  3  2000 xfcopy.f
+ Jul  3  2000 xfinvert.f
+ Jul  3  2000 xflincom.f
+ Jul  3  2000 xfmult.f
+ Jul  3  2000 xfrdall.f
+ Jul  3  2000 xfread.f
+ Jul  3  2000 xfunit.f
+ Jul  3  2000 xfwrite.f
+
+flib/tilt:
+ Nov  9  2001 Makefile
+ Mar 21  2001 bpstretchnox.f
+ Jun 13  2001 bpsumlocal.f
+ Nov  8  2000 bpsumnox.f
+ Nov  8  2000 bpsumsimple.f
+ Nov  8  2000 bpsumxtilt.f
+ Jun 13  2001 handlocal.s
+ Nov  8  2000 handnox.s
+ Nov  8  2000 handxtilt.s
+ May  5  2001 licenseusfft.c
+ May  6  2001 nolibfbp.f
+ Nov 10  2001 tilt.f
+ Nov  8  2001 tilt.inc
+
+flib/tilt/fbplib:
+ Nov 15  2001 Makefile
+ May  5  2001 angread.f
+ Oct 28  2001 angsum.f
+ Oct 29  2001 angsum0.f
+ Mar 26  2001 angsumi.f
+ Mar 26  2001 angsumini.f
+ Nov  7  2001 crop.f
+ May  6  2001 der_par.f
+ Mar 26  2001 diagmult.f
+ Mar 26  2001 f2t.f
+ Nov  7  2001 fbp.f
+ Nov  7  2001 fbpini.f
+ Nov  7  2001 fbpneed.f
+ Oct 27  2001 fbpt2f.f
+ Mar 26  2001 fbpt2f0.f
+ Mar 26  2001 fbpt2fi.f
+ Mar 26  2001 fbpt2fini.f
+ Mar 26  2001 freadbin.f
+ Oct 29  2001 makefilter.f
+ Mar 26  2001 nice_pad.f
+ Mar 26  2001 openfile.f
+ Mar 26  2001 opt2mass.f
+ May 22  2001 pad.f
+ Mar 26  2001 slicecopy.f
+ Mar 26  2001 trig_ang.f
+ Mar 26  2001 writeslice.f
+
+flib/tiltalign:
+ Nov 11  2001 Makefile
+ Jun 28  2001 alivar.inc
+ Feb 26  1999 find_surfaces.f
+ Jun 28  2001 funct.f
+ Jun 28  2001 input_model.f
+ Jun 28  2001 input_vars.f
+ Aug 17  2000 map_vars.f
+ Jan  7  1999 metro.f
+ Aug 17  2000 solve_xyzd.f
+ Nov 10  2001 tiltalign.f
+
+html:
+ Feb 19  2001 XF86Config.txt
+ Jul 25  2001 XF86Config7.1.txt
+ Dec 27  2000 asciispec.html
+ Nov  4  2000 autocont.gif
+ Feb 22  2001 bigmem_kernel.txt
+ Dec 27  2000 binspec.html
+ Nov 16  2000 colorls.csh
+ Nov 19  2001 guide.html
+ Nov  4  2000 infowin.gif
+ Jul 25  2001 kernel_build7.1.txt
+ Nov 21  2001 kernel_upgrade.txt
+ Nov 19  2001 mrc_format.txt
+ Nov 19  2001 nvidia_install.txt
+ Nov 17  2001 program_listing.html
+ Dec 28  2000 sawfish_setup.txt
+ Sep  7  2001 serialalign.txt
+ Nov 19  2001 tomoguide.html
+ Jul 23  2001 tomojoin.html
+ Nov  4  2000 zapwin.gif
+
+imod:
+ Jul 30  2001 Makefile
+ Jan 21  1998 README
+ Feb 19  2001 autox.c
+ Feb 19  2001 autox.h
+ Dec 27  2000 b3dfile.c
+ Jul 25  2001 b3dgfx.c
+ Feb 19  2001 b3dgfx.h
+ Dec 27  2000 control.c
+ Apr 24  1996 curs.bits
+ Dec 28  2000 cursor.bits
+ Apr 24  1996 horseshoe.bits
+ Apr 24  1996 horseshoec.bits
+ Dec 27  2000 hotkey.h
+ Jul 25  2001 imod.c
+ Dec 17  1998 imod.h
+ Jul 25  2001 imodP.h
+ Feb 19  2001 imod_cont_copy.c
+ Jul 25  2001 imod_cont_edit.c
+ Nov  8  2001 imod_display.c
+ Jul 25  2001 imod_edit.c
+ Jul 25  2001 imod_info.c
+ Jan 10  2000 imod_info.h
+ Jul 25  2001 imod_info_cb.c
+ Jul 25  2001 imod_input.c
+ Jan 10  2000 imod_input.h
+ Aug  4  2001 imod_io.c
+ Jul  2  1998 imod_io.h
+ Dec 17  1998 imod_iscale.c
+ Jul 25  2001 imod_menu.c
+ Dec 27  2000 imod_model_draw.c
+ Oct 25  2000 imod_model_edit.c
+ Nov 10  2001 imod_moviecon.c
+ Jul 25  2001 imod_object_edit.c
+ Jul 25  2001 imod_workprocs.c
+ Jul 25  2001 imodhelp
+ Nov 20  2001 imodhelp.h
+ Oct 25  2000 imodplug.c
+ Aug  3  2001 imodv.c
+ Aug  4  2001 imodv.h
+ Jul 25  2001 imodv_control.c
+ Aug 28  2001 imodv_depthcue.c
+ Jul 25  2001 imodv_gfx.c
+ Jul 25  2001 imodv_image.c
+ Nov 10  2001 imodv_input.c
+ Dec 27  2000 imodv_light.c
+ Aug  4  2001 imodv_menu.c
+ Aug  4  2001 imodv_modeled.c
+ Feb 19  2001 imodv_movie.c
+ Aug  3  2001 imodv_objed.c
+ Jul 25  2001 imodv_ogl.c
+ Dec 27  2000 imodv_stereo.c
+ Aug  4  2001 imodv_views.c
+ Jul 25  2001 imodview.c
+ Apr 24  1996 insert_after.bits
+ Apr 24  1996 insert_before.bits
+ Jul 25  2001 iproc.c
+ Jul 25  2001 iproc.h
+ Oct 25  2000 keypad.h
+ Dec 28  2000 mask.bits
+ Feb 19  2001 menus.h
+ Dec 27  2000 mkargv.c
+ Aug 29  1997 options.h
+ Feb 19  2001 pixelview.c
+ Dec 27  2000 samplemeansd.c
+ Dec 17  1998 sliceproc.c
+ Aug 29  1997 sliceproc.h
+ Jul 25  2001 slicer.c
+ Aug 29  1997 slicer.h
+ Oct 25  2000 sslice.h
+ Sep 23  1996 unlock.bits
+ Aug 29  1997 wprint.c
+ Oct 25  2000 xgraph.c
+ Aug  3  2001 ximodv.c
+ Aug 29  1997 ximodv.h
+ Dec 27  2000 xtilt.c
+ Dec 27  2000 xtum.c
+ Aug 29  1997 xxyz.h
+ Nov 17  2001 xyz.c
+ Aug 11  2001 xzap.c
+ Aug 10  2001 xzap.h
+
+imodutil:
+ Nov 10  2001 Makefile
+ Aug 11  2001 echo2.c
+ Dec 24  1998 imod2meta.c
+ Aug 29  1997 imod2nff.c
+ Jul 25  2001 imod2patch.c
+ Aug 29  1997 imod2rib.c
+ Aug 29  1997 imod2synu.c
+ Feb 19  2001 imod2vrml.c
+ Aug 29  1997 imod2wmod.c
+ Feb 19  2001 imodauto.c
+ Dec 17  1998 imodclean.c
+ Jul 25  2001 imodcmopp.c
+ Jan 10  2000 imodexplode.c
+ Jan 10  2000 imodextract.c
+ Nov 19  2001 imodinfo.c
+ Sep 24  2001 imodjoin.c
+ Sep 25  2001 imodmesh.c
+ Aug 29  1997 imodmkhv.c
+ Jan 10  2000 imodmop.c
+ Aug 29  1997 imodold.c
+ Aug 17  2000 imodsortsurf.c
+ Jul  2  1998 imodtrans.c
+ Sep 26  2001 mkmesh.c
+ Sep 25  2001 mkmesh.h
+ Jan 10  2000 moplib.c
+ Aug 29  1997 oldpore.c
+ Aug 29  1997 options.h
+ Aug 17  2000 parselist.c
+ Nov 15  2001 patch2imod.c
+ Jul  2  1998 rec2imod.c
+ Jul  2  1998 recfile.c
+ Aug 29  1997 recfile.h
+ Dec 24  1998 wmod2imod.c
+
+include:
+ Aug 17  2000 big_endian.inc
+ Oct 25  2000 dia.h
+ Aug 29  1997 diaListPane.h
+ Aug 29  1997 diaP.h
+ Nov 20  2001 endian.inc
+ Aug 29  1997 hvemtypes.h
+ Jul 25  2001 icont.h
+ Dec 27  2000 iimage.h
+ Nov 21  1997 ilight.h
+ Nov 21  1997 ilist.h
+ Dec 17  1998 imat.h
+ Aug 17  2000 imesh.h
+ Nov 20  2001 imodconfig.h
+ Jul 25  2001 imodel.h
+ Sep  3  1997 imodi.h
+ Aug 29  1997 imodplug.h
+ Aug 17  2000 iobj.h
+ Nov 21  1997 iplane.h
+ Jan 10  2000 ipoint.h
+ Nov 21  1997 istore.h
+ Jul  2  1998 iview.h
+ Aug 17  2000 little_endian.inc
+ Dec 17  1998 model.h
+ Nov 14  2001 model.inc
+ Aug 29  1997 mrcc.h
+ Nov 17  2001 mrcfiles.h
+ Aug 29  1997 mrcproc.h
+ Aug 29  1997 mrcslice.h
+ Aug 29  1997 mrcspectral.h
+ Jul 25  2001 notiff.h
+ Jul 25  2001 notiffio.h
+ Nov 20  2001 recl_bytes.inc
+ Aug 29  1997 sgi_visual.h
+ Nov 14  2001 statsize.inc
+ Aug 29  1997 xcramp.h
+
+libdia:
+ Nov 19  2001 Makefile
+ Aug  2  1995 clock1.symbol
+ Aug  2  1995 clock2.symbol
+ Aug  2  1995 clock3.symbol
+ Aug  2  1995 clock4.symbol
+ Aug 29  1997 diaListPane.c
+ Aug 29  1997 dia_abort.c
+ Aug 29  1997 dia_act.c
+ Aug 29  1997 dia_ask.c
+ Aug 29  1997 dia_choice.c
+ Aug 29  1997 dia_color.c
+ Aug 29  1997 dia_fact.c
+ Oct 25  2000 dia_file.c
+ Aug 29  1997 dia_gets.c
+ Aug 29  1997 dia_init.c
+ Aug 29  1997 dia_int.c
+ Aug 29  1997 dia_menu.c
+ Jul 25  2001 dia_msg.c
+ Sep  3  1997 dia_print.c
+ Aug 29  1997 dia_puts.c
+ Aug 29  1997 dia_sgcolor.c
+ Oct 25  2000 dia_sgicolor.c
+ Aug 29  1997 dia_temp.c
+ Jul 25  2001 dialog.c
+ Aug 29  1997 sgi_visual.c
+ Aug 29  1997 test.c
+ Aug 29  1997 test1.c
+ Jul 25  2001 xcramp.c
+
+libiimod:
+ Nov  9  2001 Makefile
+ Aug 29  1997 bdfile.c
+ Aug 29  1997 convolve.c
+ Feb 19  2001 iimage.c
+ Feb 19  2001 iimrc.c
+ Nov 18  2001 iitif.c
+ Nov 17  2001 mrcfiles.c
+ Aug 29  1997 mrcflib.c
+ Oct 16  1997 mrcproc.c
+ Nov 17  2001 mrcsec.c
+ Jul 25  2001 mrcslice.c
+ Jul 25  2001 mrcspectral.c
+ Feb 19  2001 plist.c
+ Nov 18  2001 tiffstub.c
+
+libimod:
+ Nov  9  2001 Makefile
+ Aug 11  2001 icont.c
+ Nov 21  1997 ilabel.c
+ Nov 21  1997 ilight.c
+ Nov 21  1997 ilist.c
+ Dec 17  1998 imat.c
+ Aug 17  2000 imesh.c
+ Oct 24  2001 imodel.c
+ Jul 25  2001 imodel_files.c
+ Nov 21  1997 imodel_from.c
+ Sep 10  2001 imodel_fwrap.c
+ Jul  2  1998 imodel_to.c
+ Jan 10  2000 imodslib.c
+ Jan 10  2000 iobj.c
+ Jul 30  2001 iplane.c
+ Jul 25  2001 ipoint.c
+ Dec 17  1998 iview.c
+ Nov 21  1997 vmsgetopt.c
+
+localman:
+ Mar 12  2001 Makefile
+ Nov  4  2000 mantohtml.c
+
+machines:
+ Nov 19  2001 alphalinux
+ Nov 19  2001 alphaosf
+ Nov 19  2001 irix5-6
+ Nov 11  2001 rhlinux
+ Nov 19  2001 solaris
+
+manpages:
+ Mar 12  2001 Makefile
+ Nov 17  2001 alignlog.man
+ Nov  4  2000 clip.man
+ Dec 26  2000 convert
+ Jun 27  2001 finishjoin.man
+ Nov  4  2000 frommrc.man
+ Jul 25  2001 imod.man
+ Nov  4  2000 imod2meta.man
+ Jun  7  2001 imod2patch.man
+ Nov  4  2000 imod2rib.man
+ Jan 22  2001 imod2vrml.man
+ Jan 30  2001 imodauto.man
+ Nov  4  2000 imodcmopp.man
+ Nov  4  2000 imodexplode.man
+ Nov  4  2000 imodextract.man
+ Nov 19  2001 imodinfo.man
+ Sep 24  2001 imodjoin.man
+ Sep 26  2001 imodmesh.man
+ Nov  4  2000 imodmop.man
+ Nov  4  2000 imodsortsurf.man
+ Nov  4  2000 imodtrans.man
+ Nov  4  2000 imodv.man
+ Jul 16  2001 matchorwarp.man
+ Nov  4  2000 matchshifts.man
+ Jul 19  2001 midas.man
+ Nov  4  2000 mrc2tif.man
+ Feb 16  2001 mrcbyte.man
+ May 23  2001 mrctaper.man
+ Nov  4  2000 mrcv.5
+ Nov  4  2000 mrcv.man
+ Nov  4  2000 mrcx.man
+ Nov  4  2000 newst.man
+ Jul 16  2001 onepatchcorr.man
+ Jun  7  2001 patch2imod.man
+ Nov  4  2000 patchcorr3d.man
+ Jul 24  2001 patchcrawl3d.man
+ Oct 24  2001 raw2mrc.man
+ Nov  4  2000 rec2imod.man
+ Dec 13  2000 recombine.man
+ Jul 22  2001 selfalign.man
+ Dec 13  2000 splitmrc.man
+ Feb 26  2001 squeezevol.man
+ Nov 18  2001 tif2mrc.man
+ Nov  4  2000 tomrc.man
+ Nov  4  2000 trimvol.man
+ Nov  4  2000 wmod2imod.man
+ Aug 15  2001 xfalign.man
+
+midas:
+ May 29  2001 Makefile
+ Dec 19  2000 amat_to_rotmagstr.c
+ Nov 10  2001 gaussj.c
+ Jul 25  2001 midas.c
+ Aug 29  2001 midas.h
+ Sep 26  2001 midas_cb.c
+ Aug 29  2001 midas_gl.c
+ Jul 25  2001 midas_io.c
+ Nov 10  2001 midas_trans.c
+ Jun 11  2001 testmidas.c
+
+mrc:
+ May 23  2001 Makefile
+ Aug 29  1997 addtomfft.c
+ Nov 18  2001 b3dtiff.h
+ Jul  2  1998 colormap.c
+ Aug 29  1997 colormap.h
+ Dec 24  1998 frommrc.c
+ Aug 29  1997 mrc2rgb.c
+ Dec 19  2000 mrc2tif.c
+ Jul 25  2001 mrcbyte.c
+ Aug 29  1997 mrcc.c
+ Aug 29  1997 mrcinfo.c
+ Aug 29  1997 mrclog.c
+ Aug 29  1997 mrcmmm.c
+ Aug 29  1997 mrcshort.c
+ Jul 25  2001 mrctaper.c
+ Aug 29  1997 mrctilt.c
+ Jan 10  2000 mrcv.c
+ Aug 29  1997 mrcv.h
+ Jul 25  2001 mrcv_batch.c
+ Nov 25  1997 mrcv_draw.c
+ Nov 25  1997 mrcv_movie.c
+ Jul 25  2001 mrcx.c
+ Oct 24  2001 raw2mrc.c
+ Aug 29  1997 rawmrc.c
+ Nov 25  1997 rgbv.c
+ Nov 18  2001 tif2mrc.c
+ Nov 18  2001 tiff.c
+ Aug 29  1997 tiffcompress.c
+ Aug 29  1997 tifinfo.c
+ Aug 29  1997 tomrc.c
+
+plugs:
+ Feb  4  1998 Makefile
+
+plugs/4dPlugs:
+ Nov  9  2001 Makefile
+ Aug 29  1997 cellstat.c
+ Aug 29  1997 cellstat.h
+ Nov  6  1997 label.c
+ Dec 17  1998 lineage.c
+ Dec 17  1998 matchPoint.c
+ Nov  6  1997 mocp.c
+ Aug 29  1997 olineage.c
+ Sep  5  1997 ps.c
+ Aug 29  1997 ps.h
+ Nov  6  1997 time.c
+
+plugs/beadfix:
+ Nov  9  2001 Makefile
+ Jun 21  2001 beadfix.c
+
+plugs/linetrack:
+ Mar  4  2001 Makefile
+ Jul 23  1997 conttest.f
+ Feb  1  2001 conttrack.f
+ Feb 25  2001 linegui.c
+ Feb  1  2001 linesubs.f
+ Feb  1  2001 linetrack.f
+ Apr 15  1998 reducepts.f
+
+scripts:
+ Jul 24  2001 Makefile
+ Nov 17  2001 alignlog
+ Nov  4  2000 bgimod
+ Nov 19  2001 copytomocoms
+ Nov 15  2001 finishjoin
+ Nov 11  2001 ld
+ Nov 15  2001 makejoincom
+ Nov 15  2001 matchorwarp
+ Nov 15  2001 matchshifts
+ Nov 15  2001 newst
+ Nov 15  2001 onepatchcorr
+ Nov 15  2001 patchcorr3d
+ Nov 15  2001 patchcrawl3d
+ Nov 15  2001 recombine
+ Nov 15  2001 reduceby2
+ Nov 15  2001 selfalign
+ Nov 15  2001 setupcombine
+ Nov 15  2001 setupcoms
+ Nov 15  2001 setuplong
+ Nov 15  2001 splitmrc
+ Nov 15  2001 squeezevol
+ Nov 15  2001 trimvol
+ Nov 15  2001 xf2xg
+ Nov 15  2001 xfalign

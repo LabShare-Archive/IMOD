@@ -1,0 +1,27 @@
+This directory contains separate files for all of the subroutines contained
+in the XFSUBS.FOR package from VMS.  It also contains files rotmagstr_to_amat.f
+and amat_to_rotmagstr.f, which used to be together in the file ROTMAGSTR.FOR
+under VMS.
+
+
+c   subroutines for manipulation general coordinate transformations
+c   they use a common structure, which used to be:
+c   structure /xform/
+c     real*4 a(2,2),dx,dy
+c   end structure
+c   where the transformation is
+c   Xo=a11*Xi + a12*Yi + dx
+c   Yo=a21*Xi + a22*Yi + dy
+
+7/2/00: eliminated structures because of incompatibility with g77.
+    record /xform/ f,g(n)  ->  real*4 f(2,3),g(2,3,n)
+    f.a(i,j)  ->  f(i,j)
+    f(k).a(i,j) ->  f(i,j,k)
+    f.dx  ->  f(1,3)
+    f.dy  ->  f(2,3)
+    f(k).dx  ->  f(1,3,k)
+    f(k).dy  ->  f(2,3,k)
+    g=f  ->  call xfcopy(f,g)
+    xffunction(f(i),...)  ->  xffunction(f(1,1,i),...)
+    use_transform(f.a,...)  ->  use_transform(f,...)
+    use_transform(f(i).a,...)  ->  use_transform(f(1,1,i),...)

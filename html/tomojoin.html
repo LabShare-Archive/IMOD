@@ -1,0 +1,169 @@
+<html><head><title>Man Page</title></head><body><pre>
+                      JOINING TOMOGRAMS FROM SERIAL SECTIONS
+
+     Joining tomograms from serial sections into one involves a sequence of
+steps:
+     1) flipping or rotating the volume so that slices in Z are parallel to the
+plane of section;
+     2) matching densities between the tomograms;
+     3) extracting sample slices from the section boundaries so that these
+boundaries can be visualized and aligned;
+     4) getting transformations to align the top of each section to the bottom
+of the next;
+     5) assembling the joined volume.
+
+Steps 1 to 3 can be accomplished by a command file, startjoin.com, that is
+produced by the program Makejoincom.  The latter is an interactive shell
+script that runs similarly to Copytomocoms.  For step 4, you use Midas.  Step
+5 is done with the program Finishjoin, which is run with a single command-line
+entry.  This makes it easy to rerun the joining with more or fewer 
+slices included from the individual sections.
+
+Preliminaries to Ponder
+     If you have N tomograms, then there are N-1 boundaries between sections.
+The words &quot;top&quot; and &quot;bottom&quot; are used here with a particular meaning: the
+&quot;top&quot; of a section is the part of the tomogram that matches up with the
+&quot;bottom&quot; of the next section.  These words do not refer to the high Z and low
+Z portions of a tomogram, so the top of a section may be at either the high or
+the low Z end.  The programs will take care of any inversions in Z, both in
+extracting sample slices and in assembling the final volume, so you do not
+need to worry about entering slice numbers in a particular order.
+
+     You will probably want to create a new directory for your joining
+operation so that it is easy to clean up afterwards.  You do not need to copy
+the tomograms into this directory, however.  Makejoincom provides a lot of
+flexibility in where the individual tomograms are located and in how some of
+the files are named.  It does this by means of default directories and file
+name extensions which you can override when you enter the name for a
+particular file.  It asks you to enter a default directory for the individual
+tomograms; if you enter nothing, the default will be the current directory.
+You can enter names such as &quot;../tomos&quot; if the files are in a subdirectory
+&quot;tomos&quot; parallel to your current one, or just &quot;..&quot; if the files are in the
+directory above the one where you are joining.  When you enter the name of an
+individual tomogram, you can override this default by putting a directory name
+in front of the file name.  For example, you could enter &quot;../oddball/sec3&quot; if
+the tomogram &quot;sec3.rec&quot; is in the directory &quot;../oddball&quot; while the rest are in
+&quot;../tomos&quot;.
+     Here is what to do in three cases which are probably the most common:
+     1) If all of the tomograms are in the current directory, simply do not
+enter a default directory, and enter each individual file name without
+directory.
+     2) If all of the tomograms are in some other directory, enter a path to
+that directory as the default directory, and enter each individual file name
+without directory.
+     3) If each of the tomograms is in a different directory, do not enter a
+default directory.  Enter the directory path in front of each of the
+individual file names.
+
+     The program will assume the extensions &quot;.rec&quot; for unflipped tomograms and
+&quot;.flip&quot; for flipped or rotated ones.  You can enter different default
+extensions for either of these types of files.  For example, enter &quot;byt&quot; if
+your tomograms have the extension &quot;.byt&quot;, or &quot;.rot&quot; if you want that to be the
+default extension for flipped or rotated volumes.  In any case, you can
+override the default for an existing, individual volume by entering the name
+with extension.  For example, suppose you already have a serial-section
+tomogram named &quot;big.rec&quot; (which is already flipped) and you are adding another
+section to it which is not yet flipped.  Then you would enter the name
+&quot;big.rec&quot; instead of &quot;big&quot; to keep the program from looking for &quot;big.flip&quot;.
+
+     You will be asked to enter a &quot;root name&quot; for the joined tomogram.  The
+final tomogram will be named with this root name plus the extension &quot;.join&quot;.
+An addition, a host of intermediate files will be created with this root name
+and other extensions.
+
+Flipping versus Rotating
+     You need to decide whether flipping the tomograms is sufficient, or
+whether some should be rotated with Rotatevol instead.  There are two reasons
+to use Rotatevol.  1) If a tomogram is rotated by a large angle (e.g. 90
+degree) relative to an adjacent section, then it might be easier to align the
+slices across the boundary if this rotation is already corrected.  2) If the
+surface of one section is pitched and can be made flat by a small rotation,
+then the boundary between sections can be made smaller by correcting this
+pitch.
+     If you do want to use Rotatevol, then load the section into Imod
+unflipped (use Edit-Image-Flip to unflip it if you have already loaded it
+flipped).  Open a Slicer window and adjust the angles to achieve the desired
+rotation.  One or more of the angles will need to be set near +90 or -90.  In
+the simple case of correcting a pitch, this will be the first angle, for
+rotation around the X axis.  If you need to rotate by 90 degrees in the plane
+of the section, then the first angle will be near zero and both the second and
+the third angles need to be near +90 or -90 (e.g., -90 around Y, 90 around Z).
+It may take only a few tenths of a degree to correct significant pitch in the
+section.  Use the numeric keypad arrow keys to adjust an angle by small
+increments (4 and 6 for 0.1 degree increments, 2 and 8 for 0.5 degree
+increments).  Once you have obtained the desired rotation, record the three
+angles so that they can be entered into Makejoincom.
+     
+Deciding on Slices to Extract
+     Finally, you need to decide which slices to extract from the top and
+bottom of each section in order to construct a file that contains a sample of
+each boundary.  You should include the last slice that contains usable image
+data, and 5 to 10 slices into the section from there.  This will allow you to
+see if there are trends in position within the section that need to be taken
+in to account when aligning across the boundary.  In some cases, this may not
+be needed, and you could choose to extract just one slice that is adequate for
+alignment.  In general, it is safer to be generous in this initial sample.
+     Note that the bottom of the first section and the top of the last section
+will not be extracted because they do not connect to another section.
+     At the same time that you are making these choices, you may also be able
+to decide what range of slices from each tomogram to include in the final
+volume.  You can do this for a volume that is going to be flipped or for one
+that has already been flipped or rotated, but not for one that is going to be
+rotated.
+     When you have made all of these preliminary decisions, run Makejoincom
+and answer all of the questions.  Then run the command file startjoin.com.
+
+Aligning the Sample Slices
+     Load the sample file (&quot;join_name.sample&quot;) into Imod.  This will allow you
+to decide which slices are best for aligning, and to discern any trends in
+structure positions that need to be accounted for.  You will probably want to
+park the Imod and Zap windows so that they are readily available when running
+Midas.
+     Run Midas on the sample file and make the output file for transforms be
+&quot;join_name.xf&quot;.  For each section boundary, you want to load in the desired
+slice from the top of the lower section as the &quot;reference&quot; section and a slice
+from the bottom of the upper section as the &quot;current&quot; section.  (Remember that
+section numbers in Midas are one less than in Imod.)  Since these are
+generally not adjacent sections, you will need to turn off the &quot;Keep Curr -
+Ref diff = 1&quot; toggle button.  If you want to scroll through the sections to
+select the pair to align, an easy way to do this is first to keep that button
+selected, display the reference section (PageDown), and use the section up and
+down arrows or the &quot;a&quot; and &quot;b&quot; hotkeys to change section until you see the
+preferred section.  Then unselect the keep-difference button, display the
+current section (PageUp), and use the section arrows or &quot;a&quot; and &quot;b&quot; to find
+the desired current section.  After finding the best alignment for the first
+pair of sections, use the same procedure to move on to the next boundary.
+     Your final transform file must have only one transform that is not &quot;zero&quot;
+for each section boundary.  This means that if you become unhappy with the
+pair of sections that you are using and want to switch to a different pair,
+you should zero out the transform with the Edit menu function &quot;Reset to Unit
+Transform&quot; before switching to the new pair.  Otherwise you will end up with
+an extra transform in the file, and Finishjoin will be unable to proceed.
+
+Making the Final Joined Volume
+     Once you have found the transformations and exited Midas, you need only to
+decide on which slices to include from each tomogram.  You might have done
+this earlier (see above), but if any of your files were rotated with
+Rotatevol, you need to pick the slices from the newly created rotated
+volume.
+
+     Finally, run Finishjoin with the range of sections given for each
+tomogram, for example:
+ finishjoin join_name 15,89 32,95 17,82
+
+Examine the joined volume (&quot;join_name.join&quot;) to see whether you want fewer or
+more slices at any of the section boundaries.  If so, modify the Finishjoin
+command and rerun it.
+     Finishjoin has two options.  The -size option allows you to produce an
+output volume that is smaller in X and Y than the individual tomograms, or
+larger if necessary to compensate for big shifts between individual sections.
+The -ref option allows you to specify one of the sections as the reference to
+which the others will be aligned.  In this case, that reference section will
+not be transformed and the others will be.  This could be useful, for example,
+if you have already modeled on one section, or if you are adding another
+section to an existing set of serial sections.  Without this option, all
+tomograms will be transformed into alignment to a single average position.
+
+     Once you are done, you should be able to delete all of the intermediate
+image files that have been created.  The command file and small transform
+files can be kept for future reference.</pre></body></html>

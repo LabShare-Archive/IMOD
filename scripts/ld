@@ -1,0 +1,12 @@
+#!/bin/csh -f
+# The ld wrapper strips out the -static argument that Intel Fortran compiler
+# puts out regardless of the -i_dynamic argument to it
+@ i = 1
+while ($i <= $#argv)
+	if ("$argv[$i]" == '-static') then
+		set argv[$i] = ' '
+		break
+	endif
+	@ i++
+end
+/usr/bin/ld $argv

@@ -1,0 +1,73 @@
+IMOD Development Kit.
+
+This kit contains header files for writing menu plugin modules for imod
+and header files for use with the libimod.so library.
+
+You should use the version of the libimod.so library that came with
+this distribution in place of the libimod library used with the IMOD
+distrubution.  If there isn't a libimod.so file in this distribution
+then make sure you are using a version of the library from the most
+current version of IMOD.
+
+1. Writing imod plugin modules.
+
+In order for imod to load the plugins the environment variable
+IMOD_PLUGIN_DIR needs to be set to the directory containing
+the plugin modules.  When this environment variable is detected by
+imod an additional menu is created in the imod information window.
+The title of this menu is "Special" and the menu items each execute
+a given plugin module.
+
+Each plugin module is actually a shared library that contains at least
+two functions in the C programming language with the following prototypes.
+
+char *imodPlugInfo(int *type);
+void imodPlugExecute(ImodView *vw)
+
+
+imodPlugInfo returns the name of the plugin module that will appear
+in the imod menubar. The type variable must be set to IMOD_PLUG_MENU.
+In the future, other plugin types will be supported. 
+The next one will be IMOD_PLUG_PROC which will allow
+modules to be pluged into the image proccess dialog.
+These future plugins will be called with the following function.
+
+void imodPlugExecuteType(ImodView *inView, int inType, int inReason);
+
+
+When the user selects the menu item containing the plugin the
+function imodPlugExecute is called with an argument to an ImodView
+structure.
+
+Three example programs are provided.
+------------------------------------
+
+The plugshell.c program is an example of a minimal imod plugin.
+
+The gfxshell.c is a program that opens up an window 
+containing an OpenGL rendering context.  The window will
+draw the model centered about the current point.
+
+The imodPluginWindow C++ class can be used as a base class to open
+custom window controls.  The imodPluginTest.c++ module invokes the
+imodPluginWindow class.  In a real program you would want to invoke
+your own custom class.
+
+imod is linked with the standard imod, C, Motif and OpenGL libraries.
+Any other library used will have to be linked with the plug in module.
+The modules written in C++ are linked to the C++ runtime library.
+
+
+*****************************************************************************
+
+2. Writing programs that use the libimod.so library.
+
+Include the file model.h and link with the libimod.so library to
+use the imod model library functions.
+The functions are documented in the model.h file.
+
+The library contains functions to read and write imod files and
+to access the model data.
+
+minfo.c is an example program that reads an imod model and prints some
+information out.

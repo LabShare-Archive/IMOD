@@ -1,0 +1,62 @@
+Upgrading the Red Hat 7.1 Kernel
+
+We use this procedure to upgrade the kernal after installing Red Hat 7.1.
+This is necessary to get AGP function under AMD processors, and to fix
+problems with reading directories served by IRIX machines over NFS.
+
+1) Obtain matching rpms for the kernel and the kernel source from the
+Red Hat web site or elsewhere; e.g., kernel-2.4.3-12.i686.rpm and
+kernel-source-2.4.3-12.i386.rpm.
+
+2) Edit /etc/inittab to boot into runlevel 3.
+
+3) Install kernel and kernel source; if you have another kernel at the same
+level (i.e., 2.4.3 for the example below), you will have to uninstall it
+first.
+
+   rpm -i kernel-2.4.3-12.i686.rpm
+   rpm -i kernel-source-2.4.3-12.i386.rpm
+
+If you are trying to install a kernel higher than 2.4.3, this will not work
+unless you have installed other required upgrade rpms that are available on
+the Errata page for Red Hat 7.1.  To install the 2.4.9-6 upgrade, it is
+necessary to do:
+rpm -Uvh modutils-2.4.6-4.i386.rpm mkinitrd-3.2.6-1.i386.rpm \
+  filesystem-2.1.0-2.1.noarch.rpm e2fsprogs-1.23-1.7.1.i386.rpm \
+  e2fsprogs-devel-1.23-1.7.1.i386.rpm
+(ignore errors)
+rpm -Uhv cpp-2.96-85.i386.rpm
+rpm -Uhv gcc-2.96-85.i386.rpm gcc-c++-2.96-85.i386.rpm \
+    gcc-g77-2.96-85.i386.rpm gcc-objc-2.96-85.i386.rpm
+rpm -Uhv libstdc++-2.96-85.i386.rpm libstdc++-devel-2.96-85.i386.rpm
+
+After this you will be able to install kernel-2.4.9-6.i386.rpm and
+kernel-source-2.4.9-6.i386.rpm.
+
+4) Edit lilo.conf to add an entry to boot into this kernel, and make it the 
+default boot if desired.  Run
+   lilo -v
+
+5) Boot into the new kernel.  Do not start X.  Cd to /usr/src and ls -l
+to check the links; "linux" should link to the new kernel source directory,
+i.e. either directly:
+   linux -> linux-2.4.3
+or indirectly:
+   linux -> linux-2.4
+   linux-2.4 -> linux-2.4.3
+
+6) Make links in /usr/include to the linux and asm directories in the actual
+kernel source (this only has to happen once on your system):
+   cd /usr/include
+   mv asm asm.orig
+   mv linux linux.orig
+   ln -s /usr/src/linux/include/linux linux
+   ln -s /usr/src/linux/include/asm asm
+
+7) Go to the directory where you unpacked the NVIDIA_kernel... files.
+Type make to reinstall the Nvidia driver to match the current kernel.
+Go ahead and start X, and check /proc/nv/card0 to make sure that AGP is
+enabled.
+
+8) Restore runlevel 5 in /etc/inittab if desired.
+
