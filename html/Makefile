@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/11/08 03:43:50  mast
+#  *** empty log message ***
+#
 #  Revision 3.1  2003/05/08 19:06:27  mast
 #  Added -r flag to copy, added 3dmodimages directory to NOEXT
 #
@@ -21,7 +24,7 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages
+NOEXT = 3dmodimages etomoImages 3dmodHelp
 
 install : clean
 	if (`pwd` != $(INSTDIR)/html) $(CP) -r *.* $(NOEXT) $(INSTDIR)/html
