@@ -1,6 +1,14 @@
 ###########################################################################
 # SGI running IRIX 6
 #
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 goto $machine
 irix6-32:
 set flags = "-32 -mips2 $flags"
@@ -20,8 +28,8 @@ set flags = "-n32 -mips3 $flags"
 echo "MAKELIB = ld -n32 -mips3 -shared -all -o" >> $configure
 echo 'LDFLAGS = -n32 -mips3 -L$(LIBDIR) -woff 84'       >> $configure
 echo "LDFALLBACK = -32 -mips2 -L$lib_dir  -woff 84"       >> $configure
-if ($instdir != default) then
-	set  inst_lib_dir = $instdir/lib32/ 
+if ($inst_dir != default) then
+	set  inst_lib_dir = $inst_dir/lib32/ 
 else
 	set  inst_lib_dir = $source_dir/lib32/ 
 endif
