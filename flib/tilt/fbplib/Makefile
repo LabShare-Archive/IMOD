@@ -17,7 +17,8 @@ LIBRARY  =  ../libfbp.a
 #
 all:	ALWAYS $(OBJS)  
 	ar cr $(LIBRARY) $(OBJS)
-	
+	ranlib $(LIBRARY)
+
 #
 clean:
 	-\rm -f *.o *.a *~
