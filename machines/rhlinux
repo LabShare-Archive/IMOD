@@ -22,7 +22,7 @@ if ($compiler == intel) then
 else
 	echo "CC        = gcc"              >> $configure
 	echo "FC        = f77"              >> $configure
-	set usfftdir = $source_dir/USFFTlib/pc
+	if ($m64bit == false) set usfftdir = $source_dir/USFFTlib/pc
 	#
 	# tell the C routines being called by Fortran that they need two __
 	#
@@ -148,23 +148,57 @@ else
 endif
 
 #
+# Set up special flags for 64 bit
+#
+set m64flags =
+set libflags =
+if ($m64bit == true) then
+    set m64flags = "-m64"
+    set libflags = "-fPIC"
+    set include_flags = "$include_flags -I/usr/lib64"
+endif
+
+# 4/8/04: Use intermediate variables to simplify all the defines that are needed
+#
+set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $m64flags $optimization $include_flags"
+
+echo "CFLAGS  = $cflags" >> $configure
+echo "CXXFLAGS = $cflags" >> $configure
+echo "FFLAGS  = $fflags" >> $configure
+echo "NOOPFFLAGS = $fflags -O0" >> $configure
+
+# 4/8/04: Add flags for building libraries
+#
+echo "LIBCFLAGS  = $libflags $cflags" >> $configure
+echo "LIBFFLAGS  = $libflags $fflags" >> $configure
+
+#
 #
 #  The fallbacks need to be defined because of problems with n32 code on the
 #  SGI; just define them the same as non-fallback versions.
 #
-echo "CFLAGS  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "CXXFLAGS = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFLAGS  = $flags $optimization $include_flags" >> $configure
-echo "NOOPFFLAGS = $flags $optimization -O0 $include_flags" >> $configure
-
-echo "CFALLBACK  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFALLBACK  = $flags $optimization $include_flags" >> $configure
+echo "CFALLBACK  = $cflags" >> $configure
+echo "FFALLBACK  = $fflags" >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
 echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 
-# Use assembly code for tilt program, make extra fortran libs
-echo 'TILTOBJS = handnox.o handxtilt.o handlocal.o' >> $configure
+if ($m64bit == true) then
+    # If 64-bit, use fortran routines for tilt
+    echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
+else
+    # Otherwise use assembly code for tilt program
+    echo 'TILTOBJS = handnox.o handxtilt.o handlocal.o' >> $configure
+endif
+
+# make extra fortran libs
+#
 echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+
+# Qtplax needs to kill second thread on Linux, but problem in Suse 64-bit
+#
+if ($m64bit == false) echo '#define QTPLAX_ATEXIT_HACK' >> $hconfigure
+
 #
 #   default is to assume tifflib exists
 #
