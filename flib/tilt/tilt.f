@@ -341,6 +341,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2002/07/28 00:03:40  mast
+c	  Made it preserve pixel spacings in output file
+c	
 c	  Revision 3.6  2002/07/26 19:19:04  mast
 c	  Added machine-specific switch-points for not doing fast
 c	  backprojection
@@ -1776,8 +1779,9 @@ c......Default is no logarithms
 c......Default is no replications
 	nreplic=1
 	repinc(1)=0.
-C......Default radial weighting parameters
-c       
+C......Default radial weighting parameters - no filtering
+	irmax = npxyz(1) / 2 + 1
+	ifall = 0
 c......Default overall and individual compression of 1; no alpha tilt
 	ncompress=0
 	compfac=1.
