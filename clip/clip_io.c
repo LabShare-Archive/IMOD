@@ -19,32 +19,47 @@ Log at end of file
 */
 
 #include <stdlib.h>
+#include <math.h>
 #include "mrcc.h"
 #include "b3dutil.h"
 #include "clip.h"
 
+/* NOTE:
+ * There are two sets of routines here.  The first set is for processing
+ * a volume slice by slice, which can be done with either -2d or -3d modes
+ * for interpreting the iz input.  This includes set*_options and
+ * clipWriteSlice.  The second set reads in the whole volume after interpreting
+ * options, and writes out the whole volume based on output options.
+ */
+
+static Islice *clipBlankSlice(MrcHeader *hout, ClipOptions *opt);
+
+/*
+ * Copy MRC coordinats from input to output header, adjust header for
+ * for input and output size and location, and write header
+ */
 /* DNM 1/5/05: changed to return result of writing header */
-int set_mrc_coords(struct Grap_options *opt)
+int set_mrc_coords(ClipOptions *opt)
 {
   float tx, ty, tz;
-  struct MRCheader *hin = opt->hin;
-  struct MRCheader *hout = opt->hout;
+  MrcHeader *hin = opt->hin;
+  MrcHeader *hout = opt->hout;
 
   mrc_coord_cp(hout, hin);
      
   /* DNM 9/21/01: subtract rather than add tx, ty, tz, because of weird
      definition of origin */
-  tx = opt->cx - (opt->ix/2);
+  tx = (int)opt->cx - opt->ix / 2;
   tx += (opt->ix - opt->ox)/2;
   hout->xorg -= tx;
      
-  ty = opt->cy - (opt->iy/2);
+  ty = (int)opt->cy - opt->iy / 2;
   ty += (opt->iy - opt->oy)/2;
   hout->yorg -= ty;
    
   /* DNM 1/5/05: with -2d, -iz is treated like a range list, not a size */
   if (opt->dim == 3) {
-    tz = opt->cz - (opt->iz/2);
+    tz = (int)floor(opt->cz - opt->iz / 2.);
     tz += (opt->iz - opt->oz)/2;
     hout->zorg -= tz;
   }
@@ -52,14 +67,18 @@ int set_mrc_coords(struct Grap_options *opt)
   return (mrc_head_write(hout->fp, hout));
 }
 
-void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
+/*
+ * Sets up variables for defining the input size and center, and section lists
+ * for the 2D processing case, and also sets ox, oy,oz and output mode.
+ */
+void set_input_options(ClipOptions *opt, MrcHeader *hin)
 {
-  int i, zst, znd;
+  int i, zst, znd, ozst;
 
   if (opt->nofsecs == IP_DEFAULT){
     opt->nofsecs = hin->nz;
     opt->secs = (int *)malloc(sizeof(int) * hin->nz);
-    for(i = 0; i < hin->nz; i++)
+    for (i = 0; i < hin->nz; i++)
       opt->secs[i] = i;
      
   }
@@ -70,19 +89,42 @@ void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
     if (opt->cz == IP_DEFAULT){
       opt->cz = hin->nz * 0.5f;
     }
+
+    /* If there is no output entry, make it be same as input; but if there is,
+       and it is smaller output, trim input to that size */
     if (opt->oz == IP_DEFAULT)
       opt->oz = opt->iz;
+    else if (opt->iz > opt->oz)
+      opt->iz = opt->oz;
 
     /* Set up a section list for the case where something is treated as
        2d without -2d being given */
     if (opt->nofsecs != IP_DEFAULT)
       free(opt->secs);
-    zst = B3DMAX((int)(opt->cz - opt->iz / 2.), 0);
-    znd = B3DMIN(zst + opt->iz - 1, hin->nz - 1);
+    zst = (int)floor(opt->cz - opt->iz / 2.);
+    znd = B3DMAX(B3DMIN(zst + opt->iz - 1, hin->nz - 1), 0);
+    zst = B3DMAX(B3DMIN(zst, hin->nz - 1), 0);
     opt->nofsecs = znd + 1 - zst;
     opt->secs = (int *)malloc(sizeof(int) * opt->nofsecs);
     for (i = zst; i <= znd; i++)
       opt->secs[i - zst] = i;
+
+    /* If requested output is larger than this output set, keep track of 
+       blank slices to put out before and after */
+    if (opt->oz != IP_DEFAULT && opt->oz > opt->nofsecs) {
+      ozst = (int)floor(opt->cz - opt->oz / 2.);
+      opt->outBefore = B3DMAX(0, zst - ozst);
+      opt->outAfter = opt->oz - opt->nofsecs - opt->outBefore;
+      if (opt->outAfter < 0) {
+        opt->outBefore += opt->outAfter;
+        opt->outAfter = 0;
+      }
+    }
+  } else {
+
+    /* 2D case: use section list size for default output size */
+    if (opt->oz == IP_DEFAULT)
+      opt->oz = opt->nofsecs;
   }
 
   if (opt->ix == IP_DEFAULT)
@@ -93,7 +135,7 @@ void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
     opt->ox = opt->ix;
   else{
     if (!opt->ocanresize){
-      show_error("clip warning: Process can't change output size.");
+      show_warning("clip - Process can't change output size.");
       opt->ox = opt->ix;
     }
   }
@@ -106,7 +148,7 @@ void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
     opt->oy = opt->iy;
   else{
     if (!opt->ocanresize){
-      show_error("clip warning: Process can't change output size.");
+      show_warning("clip - Process can't change output size.");
       opt->oy = opt->iy;
     }
   }
@@ -118,82 +160,154 @@ void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
     opt->mode = hin->mode;
 }
 
-/* returns first z section to write, or negative for error. */
-int set_output_options(struct Grap_options *opt, struct MRCheader *hout)
+/*
+ * Sets up output size and file header based on output options
+ * Returns first z section to write, or negative for error.
+*/
+int set_output_options(ClipOptions *opt, MrcHeader *hout)
 {
   int z = 0;
   int dsize;
 
   /* create a new file */
   if (!opt->add2file){
-    mrc_head_new(hout, opt->ox, opt->oy, opt->nofsecs, opt->mode);
+    mrc_head_new(hout, opt->ox, opt->oy, opt->oz, opt->mode);
     if (mrc_head_write(hout->fp, hout))
       return -1;
-  }
-  else{
+  } else {
     if ((opt->ox != hout->nx) || (opt->oy != hout->ny)){
-      if (opt->ocanresize){
-        opt->ox = hout->nx;
-        opt->oy = hout->ny;
-      }
-      else{
-        show_error("clip error: Appended file can't change size.");
-        return(-1);
-      }
+      opt->ox = hout->nx;
+      opt->oy = hout->ny;
+      show_warning("clip - Appended file can't change size.");
     }
     if (opt->mode != hout->mode){
-      if (opt->ocanchmode){
-        opt->mode = hout->mode;
-      }else{
-        show_error("clip error: Appended file can't change mode.");
-        return(-1);
-      }
-            
+      opt->mode = hout->mode;
+      show_warning("clip - Appended file can't change mode.");
     }
     if (IP_APPEND_ADD == opt->add2file){
+
+      /* If appending, scale mean down so complete mean can be computed
+         by adding slice mean / new nz */
       z = hout->nz;
-      hout->nz += opt->nofsecs;
-    }
-    else{
+      hout->nz += opt->oz;
+      hout->amean = z * hout->amean / hout->nz;
+    } else{
       z = opt->isec;
-      hout->nz = opt->nofsecs + opt->isec;
+      hout->nz = opt->oz + opt->isec;
     }
-    dsize = 1;
-    if (hout->mode == MRC_MODE_SHORT)
-      dsize = sizeof(short);
-    if (hout->mode == MRC_MODE_FLOAT) 
-      dsize = sizeof(float);
-    if (hout->mode == MRC_MODE_COMPLEX_SHORT) 
-      dsize = 2 * sizeof(short);
-    if (hout->mode == MRC_MODE_COMPLEX_FLOAT) 
-      dsize = 2 * sizeof(float);
-    if (hout->mode == MRC_MODE_RGB)
-      dsize = 3;
       
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    /* fseek(hout->fp, hout->headerSize + 
-       (hout->nx * hout->ny * z * dsize),0); */
-    mrc_big_seek(hout->fp, hout->headerSize,
-                 hout->nx * hout->ny, z * dsize, 0);
+
+    /* DNM 1/15/05: removed the calculation of data size and file seek */
   }
   return(z);
 }
 
-int set_options(struct Grap_options *opt, 
-                struct MRCheader *hin, 
-                struct MRCheader *hout)
+/* Call both the input and the output option routines and copy header labels */
+int set_options(ClipOptions *opt, MrcHeader *hin, MrcHeader *hout)
 {
+  int z;
   set_input_options(opt, hin);
-  return(set_output_options(opt,hout));
+  z = set_output_options(opt,hout);
+  mrc_head_label_cp(hin, hout);
+  return z;
 }
 
-
-struct MRCvolume *grap_volume_read(struct MRCheader *hin, 
-                                   struct Grap_options *opt)
+/* 
+ * Write one slice to output file
+ * kSec is the index of the sections being processed, 
+ * zWrite is address of z value at which to write, maintained here
+ * freeSlice 1 indicates to free the slice when done
+ */
+int clipWriteSlice(Islice *slice, MrcHeader *hout, ClipOptions *opt, int kSec, 
+                   int *zWrite, int freeSlice)
 {
-  struct MRCvolume *v;
-  struct MRCslice  *s;
+  Islice *ps = NULL;
+  Islice *s;
+  int z;
+  int blankBefore = 0;
+  int blankAfter = 0;
+
+  /* Ignore if output size is smaller than # being processed */
+  if (kSec < (opt->nofsecs - opt->oz) / 2 || 
+      kSec >= (opt->nofsecs - opt->oz) / 2 + opt->oz) {
+    if (freeSlice)
+      sliceFree(slice);
+    return 0;
+  }
+
+  /* determine if blank slices need to be written before or after this slice */
+  if (opt->oz > opt->nofsecs) {
+    if (!kSec) {
+      if (opt->outBefore == IP_DEFAULT)
+        blankBefore = (opt->oz - opt->nofsecs) / 2;
+      else
+        blankBefore = opt->outBefore;
+    }
+    if (kSec == opt->nofsecs - 1) {
+      if (opt->outAfter == IP_DEFAULT)
+        blankAfter = opt->oz - opt->nofsecs - (opt->oz - opt->nofsecs) / 2;
+      else
+        blankAfter = opt->outAfter;
+    }
+    if (blankBefore || blankAfter) {
+      ps = clipBlankSlice(hout, opt);
+      if (!ps)
+        return -1;
+    }
+  }
+
+  /* Write blank slices before */
+  for (z = 0; z < blankBefore; z++)
+    if (mrc_write_slice((void *)ps->data.b, hout->fp, hout, (*zWrite)++, 'z'))
+      return -1;
+    
+  /* convert slice to output mode if needed */
+  if (slice->mode != opt->mode && sliceNewMode(slice, opt->mode) < 0)
+    return -1;
+
+  /* Resize slice if necessary */
+  s = slice;
+  if (opt->ox != slice->xsize || opt->oy != slice->ysize) {
+    slice->mean = opt->pad;
+    s = mrc_slice_resize(slice, opt->ox, opt->oy);
+    if (!s) {
+      fprintf(stderr, "clipWriteSlice: error resizing slice.\n");
+      return(-1);
+    }
+  }
+   
+  /*   maintain min & max, add to mean unless overwriting */
+  sliceMMM(s);
+  hout->amin = B3DMIN(hout->amin, s->min);
+  hout->amax = B3DMAX(hout->amax, s->max);
+  if (opt->add2file != IP_APPEND_OVERWRITE)
+    hout->amean += (s->mean + (blankBefore + blankAfter) * opt->pad) /
+      hout->nz;
+
+  /* Write slice, free slices as needed */
+  if (mrc_write_slice((void *)s->data.b, hout->fp, hout, (*zWrite)++, 'z'))
+    return -1;
+  if (opt->ox != slice->xsize || opt->oy != slice->ysize)
+    sliceFree(s);
+  if (freeSlice)
+    sliceFree(slice);
+
+  /* Write blank slices after */
+  for (z = 0; z < blankAfter; z++)
+    if (mrc_write_slice((void *)ps->data.b, hout->fp, hout, (*zWrite)++, 'z'))
+      return -1;
+  if (ps)
+    sliceFree(ps);
+  return 0;
+}
+
+/* Read the required data volume */
+Istack *grap_volume_read(MrcHeader *hin, ClipOptions *opt)
+{
+  Istack *v;
+  Islice  *s;
   Ival val;
   int i, j, k, x, y, z;
 
@@ -202,33 +316,35 @@ struct MRCvolume *grap_volume_read(struct MRCheader *hin,
     if (opt->iz2 == IP_DEFAULT) opt->iz2 = hin->nz - 1;
     if (opt->iz2 == 0) opt->iz2 = opt->iz;
     if (opt->iz2 < opt->iz) opt->iz2 = opt->iz;
-    opt->cz = ( opt->iz2 + opt->iz) / 2;
+    opt->cz = ( opt->iz2 + opt->iz) / 2.;
     opt->iz = opt->iz2 - opt->iz + 1;
   }
 
   if (opt->ix == IP_DEFAULT) opt->ix = hin->nx;
   if (opt->iy == IP_DEFAULT) opt->iy = hin->ny;
   if (opt->iz == IP_DEFAULT) opt->iz = hin->nz;
-  if (opt->cx == IP_DEFAULT) opt->cx = hin->nx / 2;
-  if (opt->cy == IP_DEFAULT) opt->cy = hin->ny / 2;
-  if (opt->cz == IP_DEFAULT) opt->cz = hin->nz / 2;
-  if (opt->pad == IP_DEFAULT) opt->pad = hin->amean;
+  if (opt->cx == IP_DEFAULT) opt->cx = hin->nx / 2.;
+  if (opt->cy == IP_DEFAULT) opt->cy = hin->ny / 2.;
+  if (opt->cz == IP_DEFAULT) opt->cz = hin->nz / 2.;
 
+  /* Do not set opt->pad yet, just pad with current mean */
   val[0] = opt->pad;
-  val[1] = opt->pad;
-  val[2] = opt->pad;
+  if (opt->pad == IP_DEFAULT) 
+    val[0] = hin->amean;
+  val[1] = val[0];
+  val[2] = val[0];
 
-  /* Create volume and initialize. */
-  v = (struct MRCvolume *)malloc(sizeof(struct MRCvolume));
-  v->vol = (struct MRCslice **)malloc( opt->iz * sizeof(struct MRCslice *));
+  /* Create volume and initialize to pad value. */
+  v = (Istack *)malloc(sizeof(Istack));
+  v->vol = (Islice **)malloc( opt->iz * sizeof(Islice *));
   v->zsize = opt->iz;
 
-  for( k = 0; k < opt->iz; k++){
+  for (k = 0; k < opt->iz; k++) {
     v->vol[k] = mrc_slice_create(opt->ix, opt->iy, hin->mode);
     if (!v->vol[k])
       return(NULL);
-    for( j = 0; j < opt->oy; j++)
-      for(i = 0; i < opt->ox; i++)
+    for( j = 0; j < opt->iy; j++)
+      for(i = 0; i < opt->ix; i++)
         slicePutVal(v->vol[k], i, j, val);
     v->vol[k]->mean = hin->amean;
     v->vol[k]->max  = hin->amax;
@@ -238,37 +354,44 @@ struct MRCvolume *grap_volume_read(struct MRCheader *hin,
   s = mrc_slice_create(hin->nx, hin->ny, hin->mode);
   if (!s)
     return(NULL);
-  k = (opt->cz - ((float)opt->iz * 0.5f));
+
+  /* Read slices in, copying just the part that is needed */
+  k = (int)floor(opt->cz - ((float)opt->iz * 0.5f));
   /*     printf("k = %d\n", k); */
-  for(z = 0; (k < hin->nz) && (z < opt->iz); k++, z++){
-    if (k >= 0){
+  for (z = 0; (k < hin->nz) && (z < opt->iz); k++, z++) {
+    if (k >= 0) {
       if (mrc_read_slice((void *)s->data.b, hin->fp, hin, k, 'z'))
         return (NULL);
-      j = opt->cy - (opt->iy/2);
-      for (y = 0; (j < hin->ny) && (y < opt->iy); j++, y++){
-        i = opt->cx - (opt->ix / 2);
-        for (x = 0; (i < hin->nx) && (x < opt->ix); i++, x++){
-          sliceGetVal(s, i, j, val);
-          slicePutVal(v->vol[z], x, y, val);
+      j = (int)floor(opt->cy - opt->iy / 2.);
+      for (y = 0; (j < hin->ny) && (y < opt->iy); j++, y++) {
+        if (j >= 0) {
+          i = (int)floor(opt->cx - opt->ix / 2.);
+          x = 0;
+          if (i < 0) {
+            x = -i;
+            i = 0;
+          }
+          for (; (i < hin->nx) && (x < opt->ix); i++, x++) {
+            sliceGetVal(s, i, j, val);
+            slicePutVal(v->vol[z], x, y, val);
+          }
         }
       }
     }
   }
 
-  mrc_slice_free(s);
+  sliceFree(s);
   return(v);
 }
 
-
-int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout, 
-                      struct Grap_options *opt)
+/* Write the data volume with potential padding */
+int grap_volume_write(Istack *v,  MrcHeader *hout, ClipOptions *opt)
 {
   FILE *fp = hout->fp;
   int zs, ks, z;
-  int i,j,k;
+  int k;
   float min, max, mean, zscale;
-  Ival val;
-  struct MRCslice  *s, *ps;
+  Islice  *s, *ps = NULL;
   int labels;
 
   if (opt->mode == IP_DEFAULT)
@@ -292,10 +415,8 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
   mean = v->vol[0]->mean;
   for(k = 1; k < v->zsize; k++){
     mrc_slice_calcmmm(v->vol[k]);
-    if ( v->vol[k]->min < min)
-      min = v->vol[k]->min;
-    if (v->vol[k]->max > max)
-      max = v->vol[k]->max;
+    min = B3DMIN(min, v->vol[k]->min);
+    max = B3DMAX(max, v->vol[k]->max);
     mean += v->vol[k]->mean;
   }
   mean /= (float)v->zsize;
@@ -315,10 +436,8 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
     /* DNM 6/26/02: fix min and max, also fix mz and zlen */
     /* DNM 9/13/02: oops, had xlen instead of zlen */
     /* todo: recalc mmm.  This is a start but not much */
-    if (min < hout->amin)
-      hout->amin = min;
-    if (max > hout->amax)
-      hout->amax = max;
+    hout->amin = B3DMIN(min, hout->amin);
+    hout->amax = B3DMAX(max, hout->amax);
     zscale = hout->zlen / hout->mz;
     hout->mz = hout->nz;
     hout->zlen = hout->mz * zscale;
@@ -330,31 +449,21 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
     opt->ox = hout->nx;
     opt->oy = hout->ny;
     if (hout->mode != v->vol[0]->mode){
-      fprintf(stderr,
-              "inserting requires data modes to be the same.\n");
+      fprintf(stderr, "inserting requires data modes to be the same.\n");
       return(-1);
     }
-    if (min < hout->amin)
-      hout->amin = min;
-    if (max > hout->amax)
-      hout->amax = max;
+    hout->amin = B3DMIN(min, hout->amin);
+    hout->amax = B3DMAX(max, hout->amax);
     hout->amean = ((hout->amean * ks) + (mean * opt->oz)) / hout->nz; 
-    /*  mean = hout->amean;
-        min = hout->amin;
-        max = hout->amax; */
     zscale = hout->zlen / hout->mz;
     hout->mz = hout->nz;
     hout->zlen = hout->mz * zscale;
     break;
-    break;
 
   case IP_APPEND_FALSE:
-    /* Notice in this mode that the output file completely inherits
-       the whole input file's min/max/mean! */
-    /* hout->nx = opt->ox;
-       hout->ny = opt->oy;
-       hout->nz = opt->oz;
-       hout->mode =  v->vol[0]->mode; */
+
+    /* New file: reinitialize header but preserve the labels, set 
+       min/max/mean */
     labels = hout->nlabl;
     mrc_head_new(hout, opt->ox, opt->oy, opt->oz, v->vol[0]->mode);
     hout->nlabl = labels;
@@ -365,12 +474,59 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 
   }
 
-  ps = mrc_slice_create(hout->nx, hout->ny, hout->mode);
-  if (!ps){
-    fprintf(stderr, "volume_write:  error getting slice\n");
-    return(-1);
+  if (opt->pad == IP_DEFAULT)
+    opt->pad = hout->amean;
+
+  if (mrc_head_write(fp, hout))
+    return -1;
+
+  zs = (v->zsize - opt->oz) / 2;
+  for (k = ks, z = zs; k < hout->nz; k++, z++) {
+
+    /* printf("%d %d\n", k, z);*/
+    /* Write blank slice outside z range */
+    if ((z < 0) || (z >= v->zsize)) {
+      if (!ps) {
+        ps = clipBlankSlice(hout, opt);
+        if (!ps)
+          return -1;
+      }
+      if (mrc_write_slice((void *)ps->data.b, fp, hout, k, 'z'))
+        return (-1);
+    } else {
+
+      /* Resize slice only if necessary */
+      s = v->vol[z];
+      if (opt->ox != v->vol[0]->xsize || opt->oy != v->vol[0]->ysize) {
+        v->vol[z]->mean =  opt->pad;
+        s = mrc_slice_resize(v->vol[z], opt->ox, opt->oy);
+        if (!s){
+          fprintf(stderr, "volume_write: error resizing slice.\n");
+          return(-1);
+        }
+      }
+      if (mrc_write_slice((void *)s->data.b, fp, hout, k, 'z'))
+        return (-1);
+      if (opt->ox != v->vol[0]->xsize || opt->oy != v->vol[0]->ysize)
+        sliceFree(s);
+    }
   }
-  if (opt->pad == IP_DEFAULT) opt->pad = hout->amean;
+
+  if (ps)
+    sliceFree(ps);
+  return(0);
+}
+
+/* Make a blank slice to write to the output volume, using the pad in opt */
+static Islice *clipBlankSlice(MrcHeader *hout, ClipOptions *opt)
+{
+  Ival val;
+  int i, j;
+  Islice *ps = mrc_slice_create(hout->nx, hout->ny, hout->mode);
+  if (!ps){
+    fprintf(stderr, "clipBlankSlice:  error getting slice\n");
+    return NULL;
+  }
   val[0] = opt->pad;
   val[1] = opt->pad;
   val[2] = opt->pad;
@@ -378,35 +534,11 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
   for(j = 0; j < hout->ny; j++)
     for(i = 0; i < hout->nx; i++)
       slicePutVal(ps, i, j, val);
-     
-  if (mrc_head_write(fp, hout))
-    return -1;
-
-  zs = (v->zsize - opt->oz) / 2;
-  for(k = ks, z = zs; k < hout->nz; k++, z++){
-    if ((z < 0) || (z >= v->zsize)){
-      if (mrc_write_slice((void *)ps->data.b, fp, hout, k, 'z'))
-        return (-1);
-    }
-    else{
-      v->vol[z]->mean =  hout->amean;
-      s = mrc_slice_resize(v->vol[z], opt->ox, opt->oy);
-      if (!s){
-        fprintf(stderr, "volume_write: error resizing slice.\n");
-        return(-1);
-      }
-      if (mrc_write_slice((void *)s->data.b, fp, hout, k, 'z'))
-        return (-1);
-      mrc_slice_free(s);
-    }
-  }
-
-  mrc_slice_free(ps);
-  return(0);
+  return ps;
 }
 
 
-int grap_volume_free(struct MRCvolume *v)
+int grap_volume_free(Istack *v)
 {
   int k;
 
@@ -414,7 +546,7 @@ int grap_volume_free(struct MRCvolume *v)
     return(-1);
 
   for (k = 0; k < v->zsize; k++)
-    mrc_slice_free(v->vol[k]);
+    sliceFree(v->vol[k]);
 
   free(v->vol);
   free(v);
@@ -422,8 +554,7 @@ int grap_volume_free(struct MRCvolume *v)
 }
 
 
-
-int mrc_head_print(struct MRCheader *data)
+int mrc_head_print(MrcHeader *data)
 {
   float  vd1, vd2, nd1, nd2;
   float xscale, yscale, zscale;
@@ -513,6 +644,9 @@ int mrc_head_print(struct MRCheader *data)
 
 /*
 $Log$
+Revision 3.6  2005/01/07 20:08:55  mast
+Set up section list for 3D case; do not adjust Z origin in 2D case
+
 Revision 3.5  2004/11/05 18:53:16  mast
 Include local files with quotes, not brackets
 
