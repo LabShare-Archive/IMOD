@@ -189,7 +189,7 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
    */
   corr_conj(s1->data.f, s2->data.f, s1->xsize * s1->ysize);
   mrcToDFFT(s1->data.f, 2*s1->xsize-2, s1->ysize, 1);
-     
+  s1->xsize *= 2;
 
   /* reorder the mangled data. */
   {
@@ -744,4 +744,7 @@ double parabolic_fit(double *outX, double *outY, double i[3][3])
 
 /*
 $Log$
+Revision 3.4  2005/01/12 22:09:08  mast
+Fixed slice correlation, size was not passed correctly to todfft
+
 */
