@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2003/09/16 02:06:08  mast
+*** empty log message ***
+
 Revision 3.5  2003/07/31 21:41:25  mast
 Delete object view and view data when deleting model, also delete
 object view data when deleting a single object
@@ -85,24 +88,6 @@ Changed imodCopyright to use defined lab name
 /*************************** include files ***********************************/
 #include <math.h>
 #include "imodel.h"
-
-/* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not crash 
-   imod under Windows */
-int imodVersion(char *pname)
-{
-  if (pname)
-    printf("%s Version %s %s %s\n",
-           pname, VERSION_NAME, __DATE__, __TIME__);
-  return(VERSION);
-}
-
-void imodCopyright(void)
-{
-  char *uofc =   "the Regents of the University of Colorado";
-  printf("Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
-         LAB_NAME1, LAB_NAME2, uofc);
-  return;
-}
 
 
 Imod *imodNew(void)

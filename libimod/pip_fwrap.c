@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/08 17:20:55  mast
+New functions for autodoc files
+
 Revision 3.3  2003/08/08 16:22:26  mast
 Add functiond for getting two numbers
 
@@ -23,10 +26,38 @@ Addition to IMOD
 
 */
 
+#include "imodconfig.h"
+#include "b3dutil.h"
 #include "parse_params.h"
 #include <string.h>
 
-/* Use these defines in case they need to be defined otherwise */
+#ifdef F77FUNCAP
+#define pipinitialize PIPINITIALIZE
+#define pipexitonerror PIPEXITONERROR
+#define pipaddoption PIPADDOPTION
+#define pipnextarg PIPNEXTARG
+#define pipnumberofargs PIPNUMBEROFARGS
+#define pipgetnonoptionarg PIPGETNONOPTIONARG
+#define pipgetstring PIPGETSTRING
+#define pipgetinteger PIPGETINTEGER
+#define pipgettwointegers PIPGETTWOINTEGERS
+#define pipgettwofloats PIPGETTWOFLOATS
+#define pipgetthreeintegers PIPGETTHREEINTEGERS
+#define pipgetthreefloats PIPGETTHREEFLOATS
+#define pipgetfloat PIPGETFLOAT
+#define pipgetboolean PIPGETBOOLEAN
+#define pipgetintegerarray PIPGETINTEGERARRAY
+#define pipgetfloatarray PIPGETFLOATARRAY
+#define pipprinthelp PIPPRINTHELP
+#define pipgeterror PIPGETERROR
+#define pipseterror PIPSETERROR
+#define pipnumberofentries PIPNUMBEROFENTRIES
+#define pipdone PIPDONE
+#define pipparseinput PIPPARSEINPUT
+#define pipallowcommadefaults PIPALLOWCOMMADEFAULTS
+#define pipreadoptionfile PIPREADOPTIONFILE
+#define pipsetmanpageoutput PIPSETMANPAGEOUTPUT
+#else
 #define pipinitialize pipinitialize_
 #define pipexitonerror pipexitonerror_
 #define pipaddoption pipaddoption_
@@ -52,10 +83,9 @@ Addition to IMOD
 #define pipallowcommadefaults pipallowcommadefaults_
 #define pipreadoptionfile pipreadoptionfile_
 #define pipsetmanpageoutput pipsetmanpageoutput_
+#endif
 
-
-static int c2fString(char *cStr, char *fStr, int fSize);
-static char *f2cString(char *str, int strSize);
+static char *pipf2cstr(char *str, int strSize);
 
 
 int pipinitialize(int *numOptions)
@@ -67,7 +97,7 @@ int pipexitonerror(int *useStdErr, char *prefix, int stringSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(prefix, stringSize)))
+  if (!(cStr = pipf2cstr(prefix, stringSize)))
     return -1;
   err = PipExitOnError(*useStdErr, cStr);
   free(cStr);
@@ -89,7 +119,7 @@ int pipreadoptionfile(char *progName, int *helpLevel, int *localDir,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(progName, stringSize)))
+  if (!(cStr = pipf2cstr(progName, stringSize)))
     return -1;
   err = PipReadOptionFile(cStr, *helpLevel, *localDir);
   free(cStr);
@@ -100,7 +130,7 @@ int pipaddoption(char *optionString, int stringSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(optionString, stringSize)))
+  if (!(cStr = pipf2cstr(optionString, stringSize)))
     return -1;
   err = PipAddOption(cStr);
   free(cStr);
@@ -111,7 +141,7 @@ int pipnextarg(char *argString, int stringSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(argString, stringSize)))
+  if (!(cStr = pipf2cstr(argString, stringSize)))
     return -1;
   err = PipNextArg(cStr);
   free(cStr);
@@ -144,7 +174,7 @@ int pipgetstring(char *option, char *string, int optionSize, int stringSize)
   char *strPtr = NULL;
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   
   err = PipGetString(cStr, &strPtr);
@@ -164,7 +194,7 @@ int pipgetinteger(char *option, int *val, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetInteger(cStr, val);
   free(cStr);
@@ -175,7 +205,7 @@ int pipgetfloat(char *option, float *val, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetFloat(cStr, val);
   free(cStr);
@@ -186,7 +216,7 @@ int pipgettwointegers(char *option, int *val1, int *val2, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetTwoIntegers(cStr, val1, val2);
   free(cStr);
@@ -197,7 +227,7 @@ int pipgettwofloats(char *option, float *val1, float *val2, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetTwoFloats(cStr, val1, val2);
   free(cStr);
@@ -209,7 +239,7 @@ int pipgetthreeintegers(char *option, int *val1, int *val2, int *val3,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetThreeIntegers(cStr, val1, val2, val3);
   free(cStr);
@@ -221,7 +251,7 @@ int pipgetthreefloats(char *option, float *val1, float *val2, float *val3,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetThreeFloats(cStr, val1, val2, val3);
   free(cStr);
@@ -232,7 +262,7 @@ int pipgetboolean(char *option, int *val, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetBoolean(cStr, val);
   free(cStr);
@@ -244,7 +274,7 @@ int pipgetintegerarray(char *option, int *array, int *numToGet, int *arraySize,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetIntegerArray(cStr, array, numToGet, *arraySize);
   free(cStr);
@@ -256,7 +286,7 @@ int pipgetfloatarray(char *option, float *array, int *numToGet, int *arraySize,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipGetFloatArray(cStr, array, numToGet, *arraySize);
   free(cStr);
@@ -268,7 +298,7 @@ int pipprinthelp(char *string, int *useStdErr, int *inputFiles,
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(string, stringSize))) {
+  if (!(cStr = pipf2cstr(string, stringSize))) {
     PipSetError("Memory error in pipgethelp_");
     return -1;
   }
@@ -299,7 +329,7 @@ int pipseterror(char *errString, int stringSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(errString, stringSize))) {
+  if (!(cStr = pipf2cstr(errString, stringSize))) {
     PipSetError("Memory error in pipseterror_");
     return -1;
   }
@@ -312,7 +342,7 @@ int pipnumberofentries(char *option, int *numEntries, int optionSize)
 {
   char *cStr;
   int err;
-  if (!(cStr = f2cString(option, optionSize)))
+  if (!(cStr = pipf2cstr(option, optionSize)))
     return -1;
   err = PipNumberOfEntries(cStr, numEntries);
   free(cStr);
@@ -325,46 +355,12 @@ void pipdone(void)
 }
 
 /* Create a C string with a copy of a Fortran string */
-static char *f2cString(char *str, int strSize)
+static char *pipf2cstr(char *str, int strSize)
 {
   int i;
-  char *newStr;
-
-  /* find last non-blank character */
-  for (i = strSize - 1; i >= 0; i--)
-    if (str[i] != ' ')
-      break;
-
-  newStr = (char *)malloc(i + 2);
-  if (!newStr) {
+  char *newStr = f2cString(str, strSize);
+  if (!newStr)
     PipSetError("Memory error converting string from Fortran to C");
-    return NULL;
-  }
-
-  /* copy string if non-null, then put terminator at end */
-  if (i >= 0)
-    strncpy(newStr, str, i + 1);
-  newStr[i + 1] = 0x00;
   return newStr;
 }
 
-/* Return a C string into a Fortran string, return error if it won't fit */
-static int c2fString(char *cStr, char *fStr, int fSize)
-{
-  int i;
-  while (*cStr && fSize > 0) {
-    *fStr++ = *cStr++;
-    fSize--;
-  }
-
-  /* Return error if there is still a non-null character */
-  if (*cStr)
-    return -1;
-
-  /* Blank-pad */
-  while (fSize > 0) {
-    *fStr++ = ' ';
-    fSize--;
-  }
-  return 0;
-}
