@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/05 21:09:56  mast
+c	  Pass size of vertex array to get_boundary_obj
+c	
 c
 	parameter (limgraphs=50,limbins=301,limpnts=50000,
      &	    limvert=5000,limregion=200,itypall=999)
@@ -209,7 +212,7 @@ c
 c	  
 	if(nregion.gt.1)go to 35
 c	  
-	call getbinspec(ifangdiff,delr,nbins,rmin,rmax,nextragrf)
+	call getbinspec(ifangdiff,delr,nbins,rmin,rmax)
 c	  
 	call getgraphspec(ifangdiff,lastangdiff,ngraph,itypref,nreftyp,
      &	      itypneigh, nneightyp,itypang,nangtyp)

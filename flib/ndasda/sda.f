@@ -1,3 +1,12 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
+
 c	  KNOWN BUG: It will not work on data with a zscale value modeled on
 c	  a data stack flipped inside IMOD.  Make a flipped volume BEFORE
 c	  modeling.
@@ -159,7 +168,7 @@ c
 c	  
 	if(nregion.eq.1)then
 c	  
-	  call getbinspec(ifangdiff,delr,nbins,rmin,rmax,nextragrf)
+	  call getbinspec(ifangdiff,delr,nbins,rmin,rmax)
 c	  
 	  call getgraphspec(ifangdiff,lastangdiff,ngraph,itypref,nreftyp,
      &	      itypneigh, nneightyp,itypang,nangtyp)
