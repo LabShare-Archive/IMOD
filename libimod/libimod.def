@@ -188,7 +188,6 @@ EXPORTS
 	imodMatFindVector
 	imodGetInt
 	GETIMODSCAT
-	b3dMax
 	imodPutShort
 	imodel_contour_centroid
 	PipNumberOfEntries
@@ -287,7 +286,6 @@ EXPORTS
 	imodNextObject
 	imodPointGetFirst
 	imodMatTransform3D
-	b3dMin
 	imodel_model_clean
 	imodPointIntersect
 	imodViewModelWrite
@@ -305,6 +303,7 @@ EXPORTS
 	PIPNUMBEROFENTRIES
 	PipGetBoolean
 	PIPGETSTRING
+	b3dIMax
 	ilistItem
 	imodGetInts
 	PIPGETBOOLEAN
@@ -327,6 +326,7 @@ EXPORTS
 	imodContourSetPointData
 	imodPutInt
 	imodMeshInsertIndex
+	b3dIMin
 	imodPoint3DScaleDistance
 	imodObjectsNew
 	mrc_big_seek
