@@ -604,8 +604,18 @@ pressing the keypad Enter key followed by the desired arrow key;
 another press of the Enter key stops the rotation.
 <P>
 On the left is the initial view of the model, before any of the
-default viewing parameters have been changed.  These 
-
+default viewing parameters have been changed.  These parameters are
+initially set to show open and closed contour objects with contour line
+tracings, and scattered points as wire baskets.  The middle view shows
+two changes that can be made immediately, without having to compute
+surface meshes for the contours.  The microtubule lines (green) have been made
+thicker and the scattered points are displayed as lighted surfaces.
+On the right is the display after making a meshes for the objects (as
+explained below) and setting all objects to display as lighted
+surfaces.  These display settings are all changed in the 3dmodv
+Objects dialog box, opened with the Edit-Objects menu item or the O hot
+key.  
+<P>
 <table border="0" align="center">
   <tbody>
     <tr>
@@ -624,69 +634,45 @@ default viewing parameters have been changed.  These
     </tr>
   </tbody>
 </table>
+<P>
+The Objects dialog box contains controls for selecting the current
+object to be edited, buttons for turning individual objects on or off,
+and a set of panels for setting different object properties or
+controlling the overall display.  A panel is selected by clicking on
+its name in the list.
+<P>
+The example on the left shows how the appearance of the green lines
+was changed for the middle model view panel above.  The "Lines" panel
+was selected, the line width was increased from 1 to 3, and
+"Anti-alias rendering" was turned on to smooth out the jagged edges of
+the lines.
+<P>
+The example in the middle shows how the scattered points were
+displayed as solid objects.  The selection for "Draw Data Type" was
+changed from "Contour" to "Mesh".  3dmod automatically changed 
+"Drawing Style" from "Line" to "Fill" to produce the most commonly 
+desired appearance.
+<P>
+The example on the right shows a change that was required after meshes
+were computed and displayed for all
+objects.  By default, objects are lit only on one surface, which is
+always the outer
+surface for closed contour objects.  (Note the dark surfaces on the
+interior of the microtubules.)  However, a sheet like the chromosome
+boundary (yellow) does not have an obvious interior surface, and its
+lit surface happened to face downward, toward the chromosome.  This
+problem was solved by checking the "Light Both Sides" option in the
+"Material" panel.  The other method of solving this is to go back to
+the 3dmod Object Edit dialog box and change the "Front Face" from
+"Outside" to "Inside", then recompute the mesh.
+<P>
+The appearance of the magenta scattered point was improved between the middle
+and right views of the model by pressing the "g" hot key twice to
+increase sphere drawing quality.  When there are many spheres, this
+degree of quality could
+significantly increase drawing time for the display, so it is not the default.
 
-<DD><H4>Automated Model Building</H4>
-<P>
-3dmod has controls for automatically creating 
-contours.  The Auto Contour Window can be opened
-up by selecting the Edit->Contour->Auto menu
-item in the 
-<A HREF ="#Information Window">Information Window</A>
-<P>
-<CENTER>
-<H5>The Auto Contour Window</H5>
-<IMG SRC="autocont.gif" ALT="3dmod Auto Contour Window">
-</CENTER>
-To build a contour automatically, first select the
-<B>High Contrast</B> button and then adjust the <B>Threshold</B>
-until you can see a feature that you wish to model
-outlined in the Zap window.  When the <B>Regular Contrast</B>
-button is selected no change of the image in the Zap window
-will be seen.  Next select the <B>Alt mouse</B> button
-to enable the auto contour mouse functions in the Zap window.
-In the Zap window, select the area you would like to 
-create a contour around with the
-<B>Left mouse button</B>.  You should see a red highlight
-around the area that the contour will enclose.
-If the area looks rough you can smooth it with the 
-<B>Smooth</B> button.
-If you don't like the area that is highlighted select the
-<B>Clear</B> button to erase the highlighted area.
-To build a contour around the selected area use the <B>Build</B>
-button.
-To return to manual editing in the Zap window, de-select the
-<B>Alt mouse</B> button.
-Select the <B>Help</B> button for a more detailed explanation of all
-of the controls.
 </DD>
-</DT>
-<p>
-<i>See also</i>: Manual pages for 
-<code><A HREF = "man/3dmod.html">3dmod</a></code> and
-<code><A HREF = "man/imodauto.html">imodauto</a></code>.
-
-
-<DT><HR><A NAME = "Viewing Models"><H3>Chapter 5: Viewing Models</H3></A>
-Once a model has been made one can get
-quantitative information about the objects and contours within the model
-using the
-<A HREF = "man/imodinfo.html">imodinfo</A> program.
-
-One can also view the model in an interactive renderer using
-<A HREF = "man/3dmodv.html">3dmodv</A>.
-
-It is also possible to use a conversion program to convert
-the IMOD model into other formats for use in other 3rd party programs,
-such as photo-realistic renderers or web browsers.
-
-
-<DD> <H4>Interactive Viewing</H4>
-The main interactive viewing program for IMOD model files is the
-<A HREF = "man/3dmodv.html">3dmodv</A> program.  The viewer can also
-be run within the <A HREF = "man/3dmod.html">3dmod</A> image visualization
-and modeling program by selecting the "Model View" item from the Image
-menu in the 3dmod <A HREF ="#Information Window">Information Window</A>.
-
 
 <DD> <H4>Putting a skin on model data.</H4>
 
