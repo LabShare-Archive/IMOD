@@ -15,7 +15,11 @@ if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
 #
 # Put the IMOD programs on the path
 #
-set path = ($IMOD_DIR/bin $path)
+if ($?PATH) then
+    setenv PATH $IMOD_DIR/bin:$PATH
+else
+    setenv PATH $IMOD_DIR/bin
+endif
 
 #
 # Set variable with location of the IMOD plugins
