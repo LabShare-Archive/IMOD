@@ -48,6 +48,11 @@ endif
 set noglob
 set srcname = $single_srcname
 set disttext = "-xf"
+set focusAdj = 0
+set bFocusAdj = 0
+set binning = 1
+set distort = ""
+set subdistort = gibberish
 
 if ($#argv > 0) then
 
@@ -73,7 +78,6 @@ if ($#argv > 0) then
     set bangles = 0
     set firstinc = 0
     set bfirstinc = 0
-    set binning = 1
 
     # process arguments
     while ($#argv > 0)
@@ -142,7 +146,7 @@ if ($#argv > 0) then
           set firstinc = $argv[2]
           shift; shift
           breaksw
-        case -bf*:
+        case -bfi*:
           set bfirstinc = $argv[2]
           shift; shift
           breaksw
@@ -199,6 +203,14 @@ if ($#argv > 0) then
         case -gr*:
           set gradient = "$argv[2]"
           shift; shift
+          breaksw
+        case -fo*:
+          set focusAdj = 1
+          shift
+          breaksw
+        case -bfo*:
+          set bFocusAdj = 1
+          shift
           breaksw
         default:
           echo "ERROR: $pn - unrecognized option"
@@ -261,7 +273,7 @@ if ($#argv > 0) then
 
     # set distortion parameters
     #
-    if ($?distort) then
+    if ($distort != "") then
 
         # convert backslashes (use system echo in case of c:\cygwin)
         # then copy distortion field file to here if it is not local
@@ -274,6 +286,7 @@ if ($#argv > 0) then
         endif
 
         set disttext = "-distort $distort -imagebinned $binning -xf"
+        set subdistort = "DistortionField"
     endif
 
 else
@@ -501,6 +514,8 @@ while ($iaxis < $numax)
     set logext = ".log"
     set recext = ".rec"
     set xftext = "$disttext"
+    set gradspec = " "
+    set subgradient = gibberish
     if ($numax == 2) then
 	set setlet = "a"
         set sayaset = 'first ("a")'
@@ -528,6 +543,7 @@ while ($iaxis < $numax)
             set bangles = $angles
             set userawtlt = $buserawtlt
             set firstinc = $bfirstinc
+            set focusAdj = $bFocusAdj
         endif
 
     endif
@@ -588,6 +604,7 @@ while ($iaxis < $numax)
 	endif
         
         # Set up mag gradient file
+
         if ($?gradient) then
             set gradspec = $setname.maggrad
             set gradok = "1"
@@ -607,7 +624,10 @@ while ($iaxis < $numax)
                     echo2 "  extractmagrad -rot $axisangle -grad $gradient $stackname $gradspec"
                 endif
 	    endif
-            if ($gradok == "1") set xftext = "-grad $gradspec $disttext"
+            if ($gradok == "1") then
+                set xftext = "-grad $gradspec $disttext"
+                set subgradient = "GradientFile"
+            endif
         endif
     endif
 
@@ -735,6 +755,10 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
 	        -e s/$setname.ali/$xcsrc/\
 	        -e "/^TransformFile/s/^T/#T/"\
+	        -e "/^#*$subdistort/s/.*/DistortionField	$distort/"\
+	        -e "/^ImagesAreBinned/s/1/$binning/"\
+	        -e "/^#*$subgradient/s/^#//"\
+                -e "/^AdjustedFocus/s/0/$focusAdj/"\
 	        -e "/^SloppyMontage/s/0/1/"\
 	        -e "/^ShiftPieces/s/0/1/"\
 		-e "/^StartingAndEndingX/s/[ 	].*/	$xstart $xend/"\
@@ -789,6 +813,10 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
+	        -e "/^#*$subdistort/s/.*/DistortionField	$distort/"\
+	        -e "/^ImagesAreBinned/s/1/$binning/"\
+	        -e "/^#*$subgradient/s/^#//"\
+                -e "/^AdjustedFocus/s/0/$focusAdj/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
@@ -799,6 +827,10 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
+	        -e "/^#*$subdistort/s/.*/DistortionField	$distort/"\
+	        -e "/^ImagesAreBinned/s/1/$binning/"\
+	        -e "/^#*$subgradient/s/^#//"\
+                -e "/^AdjustedFocus/s/0/$focusAdj/"\
 	        -e "/^SloppyMontage/s/0/1/"\
 	        -e "/^ShiftPieces/s/0/1/"\
 	        -e "/^ReadInXcorrs/s/0/1/"\
@@ -1271,6 +1303,8 @@ Current options:
   -di[stort]  name   Undistort images with the given .idf file
   -bi[nning]  #      Binning of raw stacks (needed to undistort if ambiguous)
   -gr[adient]  name  Correct for mag gradients using the given .mgt file
+  -fo[cus]           Focus was adjusted between frames when acquiring montage
+  -bfo[cus]          Focus was adjusted between montage frames for b axis
  
 Options for special cases or film data:
   -xs[ize]  #        X size of image data (needed if data file not present)
@@ -1288,6 +1322,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.36  2005/03/01 18:34:59  mast
+#  Changed test for negative densities in stack to be based on mean density
+#  instead of max density
+#
 #  Revision 3.35  2005/02/17 17:25:10  mast
 #  Added goto to xcorr.com for blend, to skip the blendmont
 #
