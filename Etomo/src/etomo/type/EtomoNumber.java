@@ -19,6 +19,24 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/21 23:26:02  sueh
+* <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+* <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+* <p> be placed in a comscript.  Changed the name of value to currentValue.
+* <p> Added an empty value.  The currentValue is set to empty value when
+* <p> set(String) receives an empty or whitespace filled string.  The distinguishes
+* <p> it from a currentValue that was never set or set incorrectly.  THe only
+* <p> function which doesn't treate empty the same as null is getValue().  This
+* <p> allows EtomoNumber to display a blank field, even when the resetValue is
+* <p> in use.  However, since store() and updateCommand(), and
+* <p> isUpdateCommand() treate empty just like a null, the blank field isn't
+* <p> remembered.  This prevents the comscript, .edf, .ejf files from having lots
+* <p> of empty fields in them.  This means that the reset value will show when
+* <p> they are reloaded.  If a blank numeric field must be remembered and reload
+* <p> blank, write an alternate way to save it, treating empty like a regular value.
+* <p> Removed initialValue from constructor.  Added functionality to optionally
+* <p> prevent the setting of null values (changed initialize() and newNumber().
+* <p>
 * <p> Revision 1.5  2005/01/14 23:04:35  sueh
 * <p> Changing the name of set(ComScriptCommand) to parse.  Handle missing
 * <p> keyword by setting value to null.
@@ -172,10 +190,16 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
   
   public EtomoNumber set(long value) {
+    if (type != LONG_TYPE && type != DOUBLE_TYPE) {
+      throw new IllegalStateException("Cannot set a long currentValue with any type but long and double.");
+    }
     return set(newNumber(value));
   }
   
   public EtomoNumber set(double value) {
+    if (type != DOUBLE_TYPE) {
+      throw new IllegalStateException("Cannot set a double currentValue with any type but double.");
+    }
     return set(newNumber(value));
   }
   
