@@ -1,7 +1,5 @@
-
-
-
 imod(1)                                                   imod(1)
+
 
 
 NNAAMMEE
@@ -11,14 +9,14 @@ SSYYNNOOPPSSIISS
        imod [options] [image filenames]  [model filename]
 
 DDEESSCCRRIIPPTTIIOONN
-       Imod is typically invoked with one image file, but
-       multiple image filenames can also be given.  The model
-       filename is optional; if imod is called without a model
-       file it will create a new model.  The user can load new
-       model files using a menu selection once imod is running.
-       If the model file does not already exist, imod will create
-       a new model under that name.  The image files may also be
-       omitted, in which case imod will draw the model on top of
+       Imod is typically invoked with one image file, but multi­
+       ple image filenames can also be given.  The model filename
+       is optional; if imod is called without a model file it
+       will create a new model.  The user can load new model
+       files using a menu selection once imod is running.  If the
+       model file does not already exist, imod will create a new
+       model under that name.  The image files may also be omit­
+       ted, in which case imod will draw the model on top of
        blank images.  A file containing a list of image files can
        be used in place of the image file names on the command
        line.  If multiple files of different sizes are loaded,
@@ -36,26 +34,26 @@ DDEESSCCRRIIPPTTIIOONN
        files may be byte, 16-bit integer, or color; they may be
        organized in strips but not in tiles.  TIFF files with
        various kinds of compression can be read, depending on the
-       capabilities of the libraries on the system.  When
-       multiple files are read in, they do not need to be the
-       same mode or even the same format (except that if any file
-       is an RGB file, all files must be.)  Whenever a TIFF file,
-       an RGB-mode file, or more than one file is specified,
-       images are loaded only as they are needed into an image
-       cache.  This has various implications that are mentioned
-       below.  Starting a movie through the images will
-       eventually load all of the data into the cache, at which
-       point the program will perform very similarly to the way
-       it does without the cache.  In addition, there is a dialog
-       box to fill the cache in various ways, available through
-       the Edit-Image-Cache Filler menu entry.  Several other
-       restrictions on image files exist.  If any TIFF or RGB-
-       mode files are loaded, the image volume cannot be flipped
-       (Y and Z exchanged).  The Pixel View window, high-
-       resolution mode in the Graph window, and the f and F
-       hotkeys for finding pixel values will all give zeros for a
-       TIFF file.  If RGB files are loaded, only the Zap and
-       Model View windows can be opened.
+       capabilities of the libraries on the system.  When multi­
+       ple files are read in, they do not need to be the same
+       mode or even the same format (except that if any file is
+       an RGB file, all files must be.)  Whenever a TIFF file, an
+       RGB-mode file, or more than one file is specified, images
+       are loaded only as they are needed into an image cache.
+       This has various implications that are mentioned below.
+       Starting a movie through the images will eventually load
+       all of the data into the cache, at which point the program
+       will perform very similarly to the way it does without the
+       cache.  In addition, there is a dialog box to fill the
+       cache in various ways, available through the Edit-Image-
+       Cache Filler menu entry.  Several other restrictions on
+       image files exist.  If any TIFF or RGB-mode files are
+       loaded, the image volume cannot be flipped (Y and Z
+       exchanged).  The Pixel View window, high-resolution mode
+       in the Graph window, and the f and F hotkeys for finding
+       pixel values will all give zeros for a TIFF file.  If RGB
+       files are loaded, only the Zap and Model View windows can
+       be opened.
 
 
        Two windows will open upon startup: the Information Window
@@ -83,8 +81,8 @@ DDEESSCCRRIIPPTTIIOONN
        Model View windows.
           The Slicer Window allows one to view slices through the
        3-D image data.  If the image cache is turned on, only
-       images in the cache will be displayed in views that
-       contain data from multiple Z sections.
+       images in the cache will be displayed in views that con­
+       tain data from multiple Z sections.
           The XYZ Image Window displays slices of the 3-D image
        in planes perpendicular to the X,Y and Z axis.
           The Tumbler Window allows one to view a small projected
@@ -129,7 +127,6 @@ DDEESSCCRRIIPPTTIIOONN
               two modeling orientations using the _E_d_i_t _I_m_a_g_e menu
               item _F_l_i_p_.
 
-
        --hh --hheellpp
               Print some quick help for imod's command line
               options to the terminal.
@@ -145,8 +142,8 @@ DDEESSCCRRIIPPTTIIOONN
               the cache to 200 megabytes.  The reason for using
               this option is either to decrease start up time or
               to view large data sets that can't fit into main
-              memory.  This features works best with the ZaP
-              Window, which always loads the image that it needs
+              memory.  This features works best with the ZaP Win­
+              dow, which always loads the image that it needs
               into the cache.  Other image windows will only be
               able to access image data that are already within
               the cache.
@@ -156,8 +153,8 @@ DDEESSCCRRIIPPTTIIOONN
               image.  This allows one to montage image sections
               together or to view images that are either missing
               sections or have sections out of order.  The piece
-              list is an ASCII text file with the following
-              format.  There are as many lines as the input image
+              list is an ASCII text file with the following for­
+              mat.  There are as many lines as the input image
               has frames (the z dimension of the image file).
               Each line contains three values <X> <Y> and <Z>
               which represent the starting location of each frame
@@ -179,32 +176,32 @@ DDEESSCCRRIIPPTTIIOONN
        --oo <<nnxx,,nnyy>>
               When creating an internal piece list with the --pp
               option, set the overlap between pieces to _n_x in the
-              X direction and _n_y in the Y direction.  Enter
-              negative numbers to get space (gutters) between the
+              X direction and _n_y in the Y direction.  Enter nega­
+              tive numbers to get space (gutters) between the
               pieces.
 
        --ff     Load file as individual frames, overriding montage
-              information in the image file header.  It is
-              possible for an image file to have piece
-              coordinates stored in its header rather than in a
-              separate piece list file.  Imod will automatically
-              load such a file as a montage, so this option is
-              available to override this behavior and force
-              loading as individual frames.
+              information in the image file header.  It is possi­
+              ble for an image file to have piece coordinates
+              stored in its header rather than in a separate
+              piece list file.  Imod will automatically load such
+              a file as a montage, so this option is available to
+              override this behavior and force loading as indi­
+              vidual frames.
 
 
        --cc <<vvaalluuee>>
               The --cc option selects a starting color table used
               for displaying image data.  This allows additional
-              copies of imod to run and display images with
-              different contrasts.  The default _v_a_l_u_e is 1 and
-              the allowed range is 1-12.  This option is ignored
-              on 8-bit and RGB graphics displays.  On SGI
-              machines, imod attempts to determine the number of
-              other imods are already running and selects a color
-              table value one higher than this number.  The color
-              table can be changed from within imod using the
-              _E_d_i_t _I_m_a_g_e menu item _C_o_l_o_r_m_a_p_.
+              copies of imod to run and display images with dif­
+              ferent contrasts.  The default _v_a_l_u_e is 1 and the
+              allowed range is 1-12.  This option is ignored on
+              8-bit and RGB graphics displays.  On SGI machines,
+              imod attempts to determine the number of other
+              imods are already running and selects a color table
+              value one higher than this number.  The color table
+              can be changed from within imod using the _E_d_i_t
+              _I_m_a_g_e menu item _C_o_l_o_r_m_a_p_.
 
        --rrggbb   Display images in 24-bit color mode rather than
               using a color table.  This option is needed on an
@@ -279,8 +276,8 @@ IInnffoorrmmaattiioonn WWiinnddooww
               When this box is checked, imod will attempt to
               maintain comparable image contrast when going from
               one section to the next.  It automatically adjusts
-              the sliders when you change sections in a ZaP
-              window, based on the mean and standard deviation of
+              the sliders when you change sections in a ZaP win­
+              dow, based on the mean and standard deviation of
               image intensity in the sections.
 
        _T_h_e _M_o_d_e _T_o_g_g_l_e _B_u_t_t_o_n_s_.
@@ -292,10 +289,10 @@ IInnffoorrmmaattiioonn WWiinnddooww
 
        _T_h_e _M_e_n_u _b_a_r
               Menus for imod are selected by holding down the
-              left mouse button while inside the information
-              window.  Some menus have keyboard shortcuts (shown
-              in parentheses).  Menu entries with ... open a
-              dialog box, control window, or display window.
+              left mouse button while inside the information win­
+              dow.  Some menus have keyboard shortcuts (shown in
+              parentheses).  Menu entries with ... open a dialog
+              box, control window, or display window.
 
               _F_i_l_e _M_e_n_u
               New Model         Create a new model.
@@ -344,7 +341,8 @@ IInnffoorrmmaattiioonn WWiinnddooww
                  Delete    Deletes the current contour.  (D)
                  Move...   Move current contour to a different object or
                              surface.
-                 Sort      Sort contours by Z value and by time value.
+                 Sort      Sort contours in the object by their Z values and by
+                              their time values.
                  Auto...   Make new contours using threshold.
                  Type...   Edit contour internal data, such as
                               surface #, time index and labels.
@@ -407,12 +405,12 @@ IInnffoorrmmaattiioonn WWiinnddooww
 
               _S_p_e_c_i_a_l _m_e_n_u
               This menu provides access to plugins found by imod
-              when it starts.  Plugins may include ones for
-              working with data from 4D microscopes, the Bead
-              Fixer to assist with correcting models of fiducial
-              markers for aligning tilt series, and the Line
-              Tracker, which performs semi-automated modeling of
-              linear features such as membranes.
+              when it starts.  Plugins may include ones for work­
+              ing with data from 4D microscopes, the Bead Fixer
+              to assist with correcting models of fiducial mark­
+              ers for aligning tilt series, and the Line Tracker,
+              which performs semi-automated modeling of linear
+              features such as membranes.
 
               _H_e_l_p _M_e_n_u
               This menu provides help for controls used in imod.
@@ -454,16 +452,15 @@ ZZaaPP WWiinnddooww
               selected.
 
        Middle mouse button
-              In model mode, this creates a point after the
-              current model point (or before, if the modeling
-              direction is set with ii or the toolbar button.)
-              Holding down the middle mouse button will create
-              additional points as the mouse moves.  In movie
-              mode, this starts the movie through sections in the
-              forward direction.  If the rubber band is on and
-              the button is held down while the pointer is near
-              the band, one can drag the whole band to a new
-              position.
+              In model mode, this creates a point after the cur­
+              rent model point (or before, if the modeling direc­
+              tion is set with ii or the toolbar button.)  Holding
+              down the middle mouse button will create additional
+              points as the mouse moves.  In movie mode, this
+              starts the movie through sections in the forward
+              direction.  If the rubber band is on and the button
+              is held down while the pointer is near the band,
+              one can drag the whole band to a new position.
 
        Right mouse button
               In model mode, the selected point is modified to be
@@ -561,28 +558,27 @@ ZZaaPP WWiinnddooww
 
 SSlliicceerr WWiinnddooww
        Multiple Slicer Windows can be opened. Each Slicer Window
-       shows a different slice through a 3-D volume.  Three
-       sliders are used to select the orientation of the slice by
+       shows a different slice through a 3-D volume.  Three slid­
+       ers are used to select the orientation of the slice by
        setting the angles of rotation of the data volume around
        the X, Y and Z axes.  A small display next to the sliders
        gives a visual cue to the slice location.  One can model
        in the Slicer Window, using the middle mouse button to
-       insert a point after the current point, or the right
-       button to modify the current point.  The Tool bar on top
-       of the Slicer has the following buttons, from left to
-       right.
+       insert a point after the current point, or the right but­
+       ton to modify the current point.  The Tool bar on top of
+       the Slicer has the following buttons, from left to right.
           The Up and Down arrows adjust the magnification in the
        slicer display window.
-          The Show Slice button will draw where the slice
-       intersects the X- Y- and Z-planes in the XYZ window, and
-       the Z-plane in the ZaP window.
+          The Show Slice button will draw where the slice inter­
+       sects the X- Y- and Z-planes in the XYZ window, and the Z-
+       plane in the ZaP window.
           The Lock button will keep the Slicer from changing its
        current position when locked.
-          The checkerboard button toggles between nearest
-       neighbor and slower, cubic interpolation.
+          The checkerboard button toggles between nearest neigh­
+       bor and slower, cubic interpolation.
           The option menu selects whether the angle sliders,
-       depth controls, or just the Slicer image will be
-       displayed.
+       depth controls, or just the Slicer image will be dis­
+       played.
           The Help button opens up on line help.
 
        _H_o_t _K_e_y_s _i_n _t_h_e _S_l_i_c_e_r
@@ -626,30 +622,29 @@ XXYYZZ WWiinnddooww
                Actions in Movie Mode:
                   Clicking the left mouse button will select the
               current point.  In one of the three image planes,
-              this will generally change the coordinates
-              displayed in the other two planes.  Clicking in the
+              this will generally change the coordinates dis­
+              played in the other two planes.  Clicking in the
               horizontal gutter region occupied by the X marker
               line will change the current X coordinate and the
               plane displayed in the YZ panel.  Clicking in the
-              vertical gutter region will select a new Y
-              coordinate and XZ plane.  Clicking in the upper
-              right region will select a new Z coordinate and XY
-              plane, as indicated by the crossed marker lines.
+              vertical gutter region will select a new Y coordi­
+              nate and XZ plane.  Clicking in the upper right
+              region will select a new Z coordinate and XY plane,
+              as indicated by the crossed marker lines.
                   Dragging with the left mouse button depressed
-              will either pan the image within the window or
-              riffle through one of the planes, depending on
-              where the mouse is when the button is first
-              pressed.  If it is in one of the image panels,
-              dragging will pan the image (provided it is larger
-              than the window.)  In the horizontal or vertical
-              gutter regions, dragging will riffle through YZ or
-              XZ planes, respectively.  In the upper right
-              region, dragging will change the XY plane; this is
-              most effective if the mouse is moved along the
-              diagonal in this region.
+              will either pan the image within the window or rif­
+              fle through one of the planes, depending on where
+              the mouse is when the button is first pressed.  If
+              it is in one of the image panels, dragging will pan
+              the image (provided it is larger than the window.)
+              In the horizontal or vertical gutter regions, drag­
+              ging will riffle through YZ or XZ planes, respec­
+              tively.  In the upper right region, dragging will
+              change the XY plane; this is most effective if the
+              mouse is moved along the diagonal in this region.
                   Clicking the middle mouse button in one of the
-              image panels will start or stop a movie in the
-              forward direction in that panel.
+              image panels will start or stop a movie in the for­
+              ward direction in that panel.
                   Clicking the right mouse button in one of the
               image panels will start or stop a movie in the
               backward direction in that panel.
@@ -746,8 +741,8 @@ AAUUTTOOSSAAVVEE AANNDD BBAACCKKUUPP FFIILLEESS
        save a model file, the existing model file will be renamed
        to model_file_name~, and any existing file by that name
        will be deleted.  This backup file will not be overwritten
-       each time that you save thereafter, so that it will
-       preserve the state of the model when imod was started.
+       each time that you save thereafter, so that it will pre­
+       serve the state of the model when imod was started.
 
        The IMOD_AUTOSAVE_DIR environment variable can be set to
        specify a directory in which the autosave file will be
@@ -768,34 +763,33 @@ SSUURRFFAACCEESS,, OOPPEENN CCOONNTTOOUURRSS,, LLAABBE
        Contour Type window to obtain a new, empty contour with
        the new surface number.  Thereafter, each new contour will
        have the same surface number as the previous contour being
-       modeled, until a new surface is started again.  The
-       Contour Type window has controls for moving within and
-       between surfaces and for visualizing contours of the
-       current surface.  The Contour Move window has options for
+       modeled, until a new surface is started again.  The Con­
+       tour Type window has controls for moving within and
+       between surfaces and for visualizing contours of the cur­
+       rent surface.  The Contour Move window has options for
        moving contours from one surface to another or for moving
        an entire surface to a new object.
 
        The Contour Type window has buttons for controlling two
        kinds of ghost displays.  The Surface Ghost button allows
        one to highlight contours of the current surface.  The
-       Section Ghost buttons control the display of ghost
-       contours from adjacent sections, which is also toggled by
-       the g hotkey.
+       Section Ghost buttons control the display of ghost con­
+       tours from adjacent sections, which is also toggled by the
+       g hotkey.
 
-       The Contour Type window has a button for defining
-       individual contours as open in an object defined as having
-       closed contours.  This is useful for displaying a
-       partially cut edge of an object.  See imodmesh(1) for more
-       details.
+       The Contour Type window has a button for defining individ­
+       ual contours as open in an object defined as having closed
+       contours.  This is useful for displaying a partially cut
+       edge of an object.  See imodmesh(1) for more details.
 
        This window also has a text box for displaying and editing
        the time index of the current contour.  If you have loaded
-       multiple image files and want to model contours at
-       specific times (i.e., displayed only on images from a
-       specific file), you must first activate time editing with
-       a button in the Edit-Object-Type window.  Once this
-       feature is selected, newly created contours will be
-       assigned to the currently displayed time.
+       multiple image files and want to model contours at spe­
+       cific times (i.e., displayed only on images from a spe­
+       cific file), you must first activate time editing with a
+       button in the Edit-Object-Type window.  Once this feature
+       is selected, newly created contours will be assigned to
+       the currently displayed time.
 
        The Contour Type window also has text boxes in which one
        can enter labels for individual contours and points.
@@ -867,58 +861,4 @@ SSEEEE AALLSSOO
 
 
 
-BL3DFS                         2.50                             1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+BL3DFS                         2.50                       imod(1)

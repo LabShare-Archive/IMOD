@@ -45,7 +45,7 @@ char *Imod_menus_help[] = {
 "                New      Creates a new contour.   (n)\n",
 "                Delete   Deletes current contour  (D)\n",
 "                Move...  Move current contour to a new object #.\n",
-"                Sort     Sort contours by Z value.\n",
+"                Sort     Sort all contours in object by their Z values.\n",
 "                Auto...  Open window for making new contours using threshold.\n",
 "                Type...  Select a surface, time index or label for a contour.\n",
 "\t\tGo To... Go to a different contour.\n",

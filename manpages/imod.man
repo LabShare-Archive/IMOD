@@ -370,7 +370,8 @@ Contour
    Delete    Deletes the current contour.  (D)
    Move...   Move current contour to a different object or
                surface.
-   Sort      Sort contours by Z value and by time value.
+   Sort      Sort contours in the object by their Z values and by 
+                their time values.
    Auto...   Make new contours using threshold.
    Type...   Edit contour internal data, such as
                 surface #, time index and labels.
