@@ -18,7 +18,7 @@ public class TransferfidPanel {
     "$Id$";
 
   private JPanel panelTransferfid = new JPanel();
-  JToggleButton buttonTransferfid = null;
+  MultiLineToggleButton buttonTransferfid = null;
   private boolean includeButton = false;
 
   private JCheckBox chkRunMidas = new JCheckBox("Run midas");
@@ -75,7 +75,7 @@ public class TransferfidPanel {
     
     if (includeButton) {
       buttonTransferfid =
-        new JToggleButton("<html><b>Transfer fiducials from other axis</b>");
+        new MultiLineToggleButton("Transfer fiducials from other axis");
       buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
       buttonTransferfid.setPreferredSize(FixedDim.button2Line);
       buttonTransferfid.setMaximumSize(FixedDim.button2Line);
