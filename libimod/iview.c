@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/04 23:50:23  mast
+    FIxed bug in last change
+
     Revision 3.2  2002/09/04 23:13:29  mast
     Read mat1 and mat3 the old way if a flag is not set
 
@@ -57,6 +60,8 @@ void imodViewDelete(Iview *vw)
      return;
 }
 
+/* Set default entries for a view with no model information, i.e. set the
+   rad to 1.0 and have no object views */
 void imodViewDefault(Iview *vw)
 {
     int i;
@@ -87,41 +92,36 @@ void imodViewDefault(Iview *vw)
     return;
 }
 
-void imodViewModelDefault(Imod *imod, Iview *vw)
+/* Set the default scaling for a view based on current model dimensions */
+void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax)
 {
-     float fovytan;
      Ipoint maxp, minp;
      int i;
-     if (!imod) return; if (!vw) return;
+     if (!imod || !vw)
+       return;
 
      imodel_maxpt(imod, &maxp);
      imodel_minpt(imod, &minp);
+
+     /* If there is no extent and an image maximum has been supplied,
+        then use image box as limiting coordinates */
+     if (maxp.x == minp.x && maxp.y == minp.y && maxp.z == minp.z &&
+         imageMax->x) {
+       minp.x = minp.y = minp.z = 0.;
+       maxp.x = imageMax->x;
+       maxp.y = imageMax->y;
+       maxp.z = imageMax->z;
+     }
+
      maxp.z *= imod->zscale;
      minp.z *= imod->zscale;
 
-     vw->world = VIEW_WORLD_LIGHT;     
-     vw->rot.x = vw->rot.y = vw->rot.z = 0.0f;
      vw->trans.x = (minp.x + maxp.x)  * -0.5f;
      vw->trans.y = (minp.y + maxp.y)  * -0.5f;
      vw->trans.z = (minp.z + maxp.z)  * -0.5f;
      if (imod->zscale)
 	 vw->trans.z /= imod->zscale;
-     vw->scale.x = vw->scale.y = vw->scale.z = 1.0f;
-     vw->fovy    = 0.0f;
-     vw->aspect  = 1.0f;
-     for(i = 0; i < 16; i++){
-	 vw->mat[i] = 0.0f;
-     }
-     vw->mat[0]  = vw->mat[5] = vw->mat[10] = vw->mat[15] = 1.0f;
-/*     vw->mat[12] = vw->trans.x;
-     vw->mat[13] = vw->trans.y;
-     vw->mat[14] = vw->trans.z;
-*/
-     vw->lightx = 0.0f;
-     vw->lighty = 0.0f;
-     vw->plax   = 5.0f;
-     vw->dcstart = 0.0f;
-     vw->dcend   = 1.0f;
+
      maxp.x -= minp.x;
      maxp.y -= minp.y;
      maxp.z -= minp.z;
@@ -129,8 +129,23 @@ void imodViewModelDefault(Imod *imod, Iview *vw)
 
      /* DNM: Make this happen once here and let all callers rely on it */
      vw->rad *= 0.85;
+
+     /* If the rad is zero, make it one to avoid division by 0 */
+     if (!vw->rad)
+       vw->rad = 1.;
      return;
 }
+
+/* Set up a default view given model information that can give scale.
+   No longer used in 3dmod but kept for consistency and for RIB conversion */
+void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
+{
+     if (!imod || !vw)
+       return; 
+     imodViewDefault(vw);
+     imodViewDefaultScale(imod, vw, imageMax);
+}
+
 
 
 #define BYTES_PER_OBJVIEW 67
