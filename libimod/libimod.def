@@ -15,6 +15,7 @@ EXPORTS
 	imodDeleteObject
 	imodMeshNearestRes
 	imodReadAscii
+	parselist
 	imodObjectCleanSurf
 	imodUnits
 	imod_to_RIB
@@ -56,7 +57,6 @@ EXPORTS
 	PIPREADOPTIONFILE
 	imodel_contour_move
 	imodPlaneClip
-	imodPlaneSetFromClips
 	imodMeshDelete
 	imodCleanSurf
 	PIPDONE
@@ -225,6 +225,7 @@ EXPORTS
 	PUTSYMTYPE
 	imodLabelItemAdd
 	imodFreeObject
+	imodPlaneSetFromClips
 	PipMemoryError
 	imodel_contour_invert
 	imodGetFloat
