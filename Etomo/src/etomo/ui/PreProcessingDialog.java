@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/08 00:16:30  rickg
+ * <p> Added border for ccderaser panel
+ * <p>
  * <p> Revision 2.1  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -62,68 +65,47 @@ public class PreProcessingDialog extends ProcessDialog {
 
   private JLabel textDM2MRC =
     new JLabel("No digital micrograph files detected:  ");
-  private JPanel panelConvertDM2MRC = new JPanel();
+  private JPanel pnlDMConvert = new JPanel();
   private JCheckBox chkBoxUniqueHeaders =
     new JCheckBox("Digital Micrograph files have unique headers");
 
   private JPanel pnlEraser = new JPanel();
-  CCDEraserPanel panelCCDEraser = new CCDEraserPanel();
-  private JButton buttonCreateModel =
-    new JButton("<html><b>Create replacement model</b>");
-  private JButton buttonErase = new JButton("<html><b>Erase pixels</b>");
+  private CCDEraserPanel panelCCDEraser;
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
     super(appManager, axisID);
+    panelCCDEraser = new CCDEraserPanel(appManager, axisID);
+    
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     //  Build the digital micrograph panel
-    panelConvertDM2MRC.setLayout(
-      new BoxLayout(panelConvertDM2MRC, BoxLayout.Y_AXIS));
-    panelConvertDM2MRC.setBorder(
+    pnlDMConvert.setLayout(new BoxLayout(pnlDMConvert, BoxLayout.Y_AXIS));
+    pnlDMConvert.setBorder(
       new BeveledBorder("Digital Micrograph Conversion").getBorder());
-    panelConvertDM2MRC.add(textDM2MRC);
-    panelConvertDM2MRC.add(Box.createRigidArea(FixedDim.x20_y0));
-    panelConvertDM2MRC.add(chkBoxUniqueHeaders);
+    pnlDMConvert.add(textDM2MRC);
+    pnlDMConvert.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlDMConvert.add(chkBoxUniqueHeaders);
     // applicationManager.isDigitalMicrographData();
     disableDM2MRC();
 
     //  Build the base panel
     buttonExecute.setText("Done");
-    panelConvertDM2MRC.setAlignmentX(Component.CENTER_ALIGNMENT);
-    rootPanel.add(panelConvertDM2MRC);
+    pnlDMConvert.setAlignmentX(Component.CENTER_ALIGNMENT);
+    rootPanel.add(pnlDMConvert);
 
     pnlEraser.setLayout(new BoxLayout(pnlEraser, BoxLayout.Y_AXIS));
     pnlEraser.setBorder(new BeveledBorder("CCD Eraser").getBorder());
     pnlEraser.add(panelCCDEraser.getContainer());
-    pnlEraser.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    buttonCreateModel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonCreateModel.setPreferredSize(FixedDim.button2Line);
-    buttonCreateModel.setMaximumSize(FixedDim.button2Line);
-    pnlEraser.add(buttonCreateModel);
-    pnlEraser.add(Box.createRigidArea(FixedDim.x0_y10));
-
-    buttonErase.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonErase.setPreferredSize(FixedDim.button2Line);
-    buttonErase.setMaximumSize(FixedDim.button2Line);
-
-    pnlEraser.add(buttonErase);
     rootPanel.add(pnlEraser);
-
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //  Bind the button action adapters to their listeners
-    buttonCreateModel.addActionListener(new PreProcessingActionListener(this));
-    buttonErase.addActionListener(new PreProcessingActionListener(this));
-
-    setToolTipText();
-
-    //  Set the default advanced state for the window, this also executes
+   //  Set the default advanced state for the window, this also executes
     updateAdvanced();
   }
 
@@ -157,21 +139,7 @@ public class PreProcessingDialog extends ProcessDialog {
   private void disableDM2MRC() {
     chkBoxUniqueHeaders.setEnabled(false);
     chkBoxUniqueHeaders.setSelected(false);
-  }
-
-  //  Button action method
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
-    if (command.equals(buttonCreateModel.getActionCommand())) {
-      applicationManager.imodErase(axisID);
-    }
-    else if (command.equals(buttonErase.getActionCommand())) {
-      applicationManager.eraser(axisID);
-    }
-  }
-
-  void buttonErasePixelsB(ActionEvent event) {
-    applicationManager.eraser(AxisID.SECOND);
+    pnlDMConvert.setVisible(false);
   }
 
   //
@@ -192,29 +160,5 @@ public class PreProcessingDialog extends ProcessDialog {
     applicationManager.donePreProcDialog(axisID);
   }
 
-  private void setToolTipText() {
-    String line1, line2, line3, line4, line5, line6, line7;
-    line1 = "<html>This button will open 3dmod with the current CCD erase<br>";
-    line2 = "model.  This will allow you to specify additional pixels and<br>";
-    line3 = "regions to be replaced with interpolated values.";
-    buttonCreateModel.setToolTipText(line1 + line2 + line3);
-
-    line1 = "<html>This button will execute the specified erase command<br>";
-    line2 = "applying the erase model created in the previous step.";
-    buttonErase.setToolTipText(line1 + line2);
-  }
 }
 
-//  Action listener
-class PreProcessingActionListener implements ActionListener {
-
-  PreProcessingDialog adaptee;
-
-  PreProcessingActionListener(PreProcessingDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
-  }
-}
