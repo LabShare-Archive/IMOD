@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/01/06 18:19:45  sueh
+ * <p> bug# 567 In getParameters(), get z factor file.
+ * <p>
  * <p> Revision 3.14  2005/01/05 20:12:17  sueh
  * <p> bug# 567 Made ProjectionStretch advanced only.
  * <p>
@@ -1096,7 +1099,19 @@ public class TiltalignPanel {
    */
   private void createRadioBox(JPanel panel, ButtonGroup group,
       JRadioButton[] items, ActionListener listener) {
-    int width = 250;
+    createRadioBox(panel, group, items, listener, 245);
+  }
+  
+  /**
+   * 
+   * @param panel
+   * @param group
+   * @param items
+   * @param listener
+   * @param width
+   */
+  private void createRadioBox(JPanel panel, ButtonGroup group,
+      JRadioButton[] items, ActionListener listener, int width) {
     int radioButtonHeight = 18;
     Dimension radioButtonItemSize = new Dimension(width, radioButtonHeight);
 
@@ -1107,7 +1122,6 @@ public class TiltalignPanel {
       items[i].addActionListener(listener);
       items[i].setPreferredSize(radioButtonItemSize);
     }
-
   }
 
   /**
@@ -1152,7 +1166,7 @@ public class TiltalignPanel {
     ResidualRadioListener residualRadioListener = new ResidualRadioListener(
         this);
     createRadioBox(pnlRBResidual, bgResidualThreshold, items,
-        residualRadioListener);
+        residualRadioListener, 300);
     bottomResidualPanel.add(pnlRBResidual);
     pnlResidualThreshold.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlResidualThreshold.add(bottomResidualPanel.getContainer());
@@ -1174,7 +1188,7 @@ public class TiltalignPanel {
     FiducialRadioListener fiducialRadioListener = new FiducialRadioListener(
         this);
     createRadioBox(pnlRBFiducual, bgFiducialSurfaces, items,
-        fiducialRadioListener);
+        fiducialRadioListener, 300);
 
     pnlFiducialSurfaces.add(pnlRBFiducual);
     pnlFiducialSurfaces.add(Box.createHorizontalGlue());
