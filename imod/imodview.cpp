@@ -1135,6 +1135,16 @@ int  ivwGetMaxTime(ImodView *inImodView)
   return(inImodView->nt);
 }
 
+// Set the time of a new contour - only if there are multiple times and the
+// object flags indicate time is to be stored
+void ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont)
+{
+  if (vw->nt && obj && cont && iobjTime(obj->flags)) {
+    cont->type = vw->ct;
+    cont->flags |= ICONT_TYPEISTIME;
+  }
+}
+
 /* Set the global location in 3D space for all windows.
  */
 void ivwSetLocation(ImodView *vi, int x, int y, int z)
@@ -2245,6 +2255,28 @@ Iobj *ivwGetExtraObject(ImodView *inImodView)
   return(inImodView->extraObj);
 }
 
+// Get the current contour, the last contour if it is empty, or a new contour
+Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj)
+{
+  Icont *cont = imodContourGet(vw->imod);
+  if (cont)
+    return cont;
+  
+  // Set index to last contour, both to use that contour if it is empty and
+  // so that its properties (surface and open/closed) are inherited if a new
+  // contour is made
+  vw->imod->cindex.contour = obj->contsize - 1;
+  cont = imodContourGet(vw->imod);
+  if (cont && !cont->psize)
+    return cont;
+
+  // Actually get a new contour now
+  imodNewContour(vw->imod);
+  cont = imodContourGet(vw->imod);
+  ivwSetNewContourTime(vw, obj, cont);
+  return cont;
+}
+
 int  ivwDraw(ImodView *inImodView, int inFlags)
 {
   imodDraw(inImodView, inFlags);
@@ -2372,6 +2404,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.24  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 4.23  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/05/31 23:10:56  mast
+Added macros for exporting/importing under Windows
+
 Revision 1.2  2004/01/05 17:55:45  mast
 Changes for binning
 
@@ -75,6 +78,8 @@ int DLL_EX_IM   ivwGetMaxTime(ImodView *inImodView);
 /* get label for time. */
 char DLL_EX_IM *ivwGetTimeLabel(ImodView *inImodView);
 char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
+/* Set the time for a new contour to match image time */
+void DLL_EX_IM ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont);
 
 /* 
  * Returns line pointers to raw grey scale image data for given z section. 
@@ -107,5 +112,10 @@ Imod DLL_EX_IM *ivwGetModel(ImodView *inImodView);
  *  Get the extra object
  */
 Iobj DLL_EX_IM *ivwGetExtraObject(ImodView *inImodView);
+
+/*
+ * Get the current contour or make a new one if there is none
+ */
+Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj);
 }
 #endif
