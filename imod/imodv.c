@@ -34,6 +34,11 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/11/27 03:29:45  mast
+    Made it look for both single and double buffer visuals as long as they
+    are both RGB or both color index.  Added a true 15 visual, better than
+    pseudo 12 (present on O2).
+
     Revision 3.2  2002/09/04 00:24:48  mast
     Added CVS header.  Changed to getting visuals then passing them to GLw.
 
@@ -194,8 +199,10 @@ static int *OpenGLAttribList[] = {
      True12nodep, True12nodep + 1, Pseudo8nodep, Pseudo8nodep + 1,
      NULL
 };
-static int AttribRGB[] = {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
-static int AttribDepth[] = {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+static int AttribRGB[] = {1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 
+			  1, 1, 0, 0};
+static int AttribDepth[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			    0, 0, 0, 0};
 
 /*void __eprintf(void){return;} */
 
