@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/06/11 20:36:57  mast
+c	  Reorganize and rename a few options
+c	
 c	  Revision 3.5  2003/06/10 20:42:07  mast
 c	  New version with automatic peak detection and PIP input
 c	
@@ -259,12 +262,12 @@ c
 c	    
 c	    get the new parameters for auto peak search
 c	    
-	  ierr = PipGetBoolean('ErasePeaks', ifPeakSearch)
+	  ierr = PipGetBoolean('FindPeaks', ifPeakSearch)
 	  ierr = PipGetInteger('XYScanSize', iScanSize)
 	  ierr = PipGetInteger('EdgeExclusionWidth', nEdgePixels)
 	  ierr = PipGetFloat('MaximumRadius', radiusMax)
 	  ierr = PipGetFloat('OuterRadius', outerRadius)
-	  ierr = PipGetFloat('MainCriterion', critMain)
+	  ierr = PipGetFloat('PeakCriterion', critMain)
 	  ierr = PipGetFloat('GrowCriterion', critGrow)
 	  ierr = PipGetFloat('ScanCriterion', critScan)
 	  ierr = PipGetFloat('DiffCriterion', critDiff)
