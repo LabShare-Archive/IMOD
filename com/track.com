@@ -1,4 +1,7 @@
 # Command file for running BEADTRACK
+#
+####CreatedVersion#### 3.4.4
+#
 # First 4 lines:
 #   Image file
 #   Piece list name if montage (or scrambled Z), blank line if not

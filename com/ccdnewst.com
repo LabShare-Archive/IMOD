@@ -1,5 +1,7 @@
 # THIS IS A COMMAND FILE TO MAKE AN ALIGNED STACK FROM THE ORIGINAL STACK
 #
+####CreatedVersion#### 3.4.4
+#
 # It assumes that the views are in order in the image stack
 #  
 # The -size argument should be ,, for the full area or specify the desired 

@@ -1,5 +1,7 @@
 # THIS FILE DOES EVERYTHING FOR COMBINING VOLUMES
 #
+####CreatedVersion#### 3.4.4
+#
 # INSERT OPTIONS FOR COMBINEFFT IN THE QUOTES
 #
 $set combinefft_options = ""

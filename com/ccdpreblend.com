@@ -1,4 +1,6 @@
 # THIS IS A COMMAND FILE TO PRODUCE A PRE-ALIGNED STACK
+#
+####CreatedVersion#### 3.4.4
 # 
 $xftoxg
 0	global fit

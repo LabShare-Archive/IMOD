@@ -1,5 +1,7 @@
 # THIS COMMAND FILE RUNS SOLVEMATCH
 #
+####CreatedVersion#### 3.4.4
+#
 # It contains all of the entries needed for the three different modes of
 # operation: fiducials only, fiducials and matching models (obsolete), and
 # matching models only.

@@ -1,5 +1,7 @@
 # THIS IS A COMMAND FILE TO RUN CCDERASER
 #
+####CreatedVersion#### 3.4.4
+#
 #   To run in trial mode where it will not replace pixels or produce an output
 #   file, include a line with the entry "TrialMode"
 #

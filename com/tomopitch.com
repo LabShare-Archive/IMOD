@@ -1,4 +1,7 @@
 # THIS IS A COMMAND FILE TO RUN TOMOPITCH ON ONE MODEL
+#
+####CreatedVersion#### 3.4.4
+#
 # YOU SHOULD CREATE THE MODEL WITH:
 #     3dmod top.rec mid.rec bot.rec tomopitch.mod
 #

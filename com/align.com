@@ -2,6 +2,8 @@
 #
 # THE MOST COMMON ENTRIES TO CHANGE ARE DESCRIBED IN CAPITAL LETTERS
 #
+####CreatedVersion#### 3.4.4
+#
 $tiltalign
 # next line, name of fiducial model file
 g5a.fid
