@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: This class provides a high level manager for loading and
@@ -28,6 +29,11 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/06/24 18:36:20  sueh
+ * <p> bug# 482 Removing proof-of-concept test code.  Add functions
+ * <p> to retrieve matchshifts from solvematchshift and add it to
+ * <p> solvematch.
+ * <p>
  * <p> Revision 3.13  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -146,16 +152,10 @@ public class ComScriptManager {
   private ComScript scriptMatchorwarp;
   private ComScript scriptTomopitchA;
   private ComScript scriptTomopitchB;
-
-  private boolean selfTest = false;
+  private ComScript scriptCombine;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
-  }
-
-  public ComScriptManager(ApplicationManager appManager, boolean selfTest) {
-    this.appManager = appManager;
-    this.selfTest = true;
   }
 
   /**
@@ -890,6 +890,107 @@ public class ComScriptManager {
     updateComScript(scriptMatchorwarp, matchorwarpParam, "matchorwarp",
       AxisID.ONLY);
   }
+  
+  /**
+   * 
+   * @return
+   */
+  public CombineComscriptState getCombineComscript() {
+    // Initialize a CombineComscript object from the com script command object
+    CombineComscriptState combineComscriptState = new CombineComscriptState();
+    if (!combineComscriptState.initialize(this)) {
+      return null;
+    }
+    return combineComscriptState;
+  }
+  /**
+   * Load the combine com script
+   */
+  public void loadCombine() {
+    scriptCombine =
+      loadComScript(CombineComscriptState.COMSCRIPT_NAME, AxisID.ONLY, true);
+  }
+  
+  /**
+   * 
+   * @param gotoParam
+   */
+  public void saveCombine(GotoParam gotoParam) {
+    updateComScript(scriptCombine, gotoParam, GotoParam.COMMAND_NAME,
+      AxisID.ONLY);
+  }
+
+  
+  /**
+   * returns index of saved command
+   * @param echoParam
+   * @param previousCommand
+   */
+  public int saveCombine(EchoParam echoParam, String previousCommand) {
+    return updateComScript(scriptCombine, echoParam, EchoParam.COMMAND_NAME,
+      AxisID.ONLY, true, previousCommand);
+  }
+  
+  /**
+   * 
+   * @param gotoParam
+   */
+  public void saveCombine(ExitParam exitParam, int previousCommandIndex) {
+    updateComScript(scriptCombine, exitParam, ExitParam.COMMAND_NAME,
+      AxisID.ONLY, true, previousCommandIndex);
+  }
+
+  /**
+   * 
+   * @param gotoParam
+   * @param previousCommandIndex
+   */
+  public void saveCombine(GotoParam gotoParam, int previousCommandIndex) {
+    updateComScript(scriptCombine, gotoParam, GotoParam.COMMAND_NAME,
+      AxisID.ONLY, true, previousCommandIndex);
+  }
+
+  /**
+   * returns index of saved command
+   * @param echoParam
+   * @param previousCommand
+   */
+  public void deleteFromCombine(String command, String previousCommand) {
+    deleteCommand(scriptCombine, command, AxisID.ONLY, previousCommand);
+  }
+
+
+  /**
+   * 
+   * @return
+   */
+  public GotoParam getGotoParamFromCombine() {
+    // Initialize a GotoParam object from the com script command
+    // object
+    GotoParam gotoParam = new GotoParam();
+    if (!initialize(gotoParam, scriptCombine, GotoParam.COMMAND_NAME, 
+      AxisID.ONLY, true)) {
+      return null;
+    }
+    return gotoParam;
+  }
+  
+  /**
+   * 
+   * @param previousCommand
+   * @return
+   */
+  public EchoParam getEchoParamFromCombine(String previousCommand) {
+    // Initialize an EchoParam object from a location after previousCommand
+    //in the com script command
+    // object
+    EchoParam echoParam = new EchoParam();
+    if (!initialize(echoParam, scriptCombine, EchoParam.COMMAND_NAME, 
+      AxisID.ONLY, previousCommand)) {
+        return null;
+    }
+    return echoParam;
+  }
 
   /**
    * Use a template script from the $IMOD_DIR/com directory.  This is useful if
@@ -956,6 +1057,52 @@ public class ComScriptManager {
     templateReader.close();
     scriptWriter.close();
   }
+  
+  /**
+  /**
+   * Use a template script from the $IMOD_DIR/com directory.  This is useful if
+   * we encounter an old data set that does not have a current complete set of
+   * com scripts
+   * @param scriptName the basename of the template file
+   * @param axisType axisType Specify whether this is a single or dual axis
+   * tomogram. 
+   * @param axisID the AxisID to create.  This is ignored for single axis 
+   * tomogram.  For a dual axis tomogram AxisID.FIRST will create an a.com
+   * script, AxisID.SECOND will create a b.com script.  AxisID.ONLY will
+   * create a .com script.
+   * @param rename rename the original script file
+   * @throws BadComScriptException
+   * @throws IOException
+   */
+  public void useTemplate(String scriptName, AxisType axisType, AxisID axisID, 
+    boolean rename) throws BadComScriptException, IOException {
+    // Copy the template file from the IMOD_DIR/com directory to the script
+    String comDirectory = ApplicationManager.getIMODDirectory()
+      .getAbsolutePath()
+      + File.separator + "com";
+
+    File template = new File(comDirectory, scriptName + ".com");
+    if (!template.exists()) {
+      String message = "Unknown template: " + scriptName;
+      throw new BadComScriptException(message);
+    }
+
+    // The ouput script
+    File script;
+    if (axisType == AxisType.SINGLE_AXIS) {
+      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+    }
+    else {
+      script = new File(System.getProperty("user.dir"), scriptName
+        + axisID.getExtension() + ".com");
+    }
+    
+    if (rename) {
+      Utilities.renameFile(script, new File(script.getAbsolutePath() + "~"));
+    }
+    Utilities.copyFile(template, script);
+  }
+ 
 
   /**
    * Load the specified Com script 
@@ -1047,6 +1194,165 @@ public class ComScriptManager {
         + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
     }
   }
+  
+  /**
+   * 
+   * @param script
+   * @param params
+   * @param command
+   * @param axisID
+   * @param addNew
+   * @param previousCommand
+   * @return index of updated command
+   */
+  private int updateComScript(ComScript script, CommandParam params,
+    String command, AxisID axisID, boolean addNew, String previousCommand) {
+    if (script == null) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to update comscript for command:"
+        + command;
+      errorMessage[1] = "It needs to be loaded first";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return -1;
+    }
+
+    //locate previous command
+    ComScriptCommand previousComScriptCommand = null;
+    int previousCommandIndex = script.getScriptCommandIndex(previousCommand);
+    
+    if (previousCommandIndex == -1) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to update comscript for command:"
+        + command;
+      errorMessage[1] = "previous command:" + previousCommand + "is missing.";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return -1;
+    }
+    
+    return updateComScript(script, params, command, axisID, addNew, 
+      previousCommandIndex);
+  }
+  
+  /**
+   * 
+   * @param script
+   * @param params
+   * @param command
+   * @param axisID
+   * @param addNew
+   * @param previousCommandIndex
+   * @return
+   */
+  private int updateComScript(ComScript script, CommandParam params,
+    String command, AxisID axisID, boolean addNew, int previousCommandIndex) {
+    if (script == null) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to update comscript for command:"
+        + command;
+      errorMessage[1] = "It needs to be loaded first";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return -1;
+    }
+    
+    if (previousCommandIndex < -1) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to update comscript for command:"
+        + command;
+      errorMessage[1] = "previous index, " + previousCommandIndex
+        + ", is invalid.";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return -1;
+    }
+    
+    //  Update the specified com script command from the CommandParam object
+    ComScriptCommand comScriptCommand = null;
+    int commandIndex = previousCommandIndex + 1;
+
+    try {
+      comScriptCommand = script.getScriptCommand(command, commandIndex, addNew);
+      params.updateComScriptCommand(comScriptCommand);
+    }
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + script.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
+      JOptionPane
+        .showMessageDialog(null, errorMessage, "Can't update " + command
+          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      return commandIndex;
+    }
+
+    // Replace the specified command by the updated comScriptCommand
+    script.setScriptComand(commandIndex, comScriptCommand);
+    //  Write the script back out to disk
+    try {
+      script.writeComFile();
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + script.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
+      JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
+        + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+    }
+    return commandIndex;
+  }
+
+
+  private void deleteCommand(ComScript script, String command, AxisID axisID, 
+    String previousCommand) {
+    if (script == null) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to delete command:"
+        + command;
+      errorMessage[1] = "It needs to be loaded first";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return;
+    }
+
+    //locate previous command
+    ComScriptCommand previousComScriptCommand = null;
+    int previousCommandIndex = script.getScriptCommandIndex(previousCommand);
+    
+    if (previousCommandIndex == -1) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to delete command:"
+        + command;
+      errorMessage[1] = "previous command:" + previousCommand + "is missing.";
+      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      return;
+    }
+    
+    //  Update the specified com script command from the CommandParam object
+    ComScriptCommand comScriptCommand = null;
+    int commandIndex = 
+      script.getScriptCommandIndex(command, previousCommandIndex + 1);
+    
+    if (commandIndex == -1) {
+      return;
+    }
+    script.deleteCommand(commandIndex);
+     
+     //  Write the script back out to disk
+     try {
+       script.writeComFile();
+     }
+     catch (Exception except) {
+       except.printStackTrace();
+       String[] errorMessage = new String[3];
+       errorMessage[0] = "Com file: " + script.getComFileName();
+       errorMessage[1] = "Command: " + command;
+       errorMessage[2] = except.getMessage();
+       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
+         + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+     }
+
+  }
+
 
   /**
    * Initialize the CommandParam object from the specified command in the
@@ -1061,11 +1367,19 @@ public class ComScriptManager {
    */
   private boolean initialize(CommandParam param, ComScript comScript,
     String command, AxisID axisID) {
-
+    return initialize(param, comScript, command, axisID, false);
+  }
+  private boolean initialize(CommandParam param, ComScript comScript,
+    String command, AxisID axisID, boolean optionalCommand) {
     if (!comScript.isCommandLoaded()) {
       param.initializeDefaults();
     }
     else {
+      if (optionalCommand) {
+        if (comScript.getScriptCommandIndex(command) == -1) {
+          return false;
+        }
+      }
       try {
         param.parseComScriptCommand(comScript.getScriptCommand(command));
       }
@@ -1076,8 +1390,74 @@ public class ComScriptManager {
         errorMessage[1] = "Command: " + command;
         errorMessage[2] = except.getClass().getName();
         errorMessage[3] = except.getMessage();
-        JOptionPane.showMessageDialog(null, errorMessage,
-          "Com Script Command Parse Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(
+          null,
+          errorMessage,
+          "Com Script Command Parse Error",
+          JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  /**
+   * Initialize the CommandParam object from the specified command in the
+   * comscript.  True is returned if the initialization is successful, false if
+   * the initialization fails.
+   * 
+   * @param param
+   * @param comScript
+   * @param command
+   * @param axisID
+   * @return boolean
+   */
+  private boolean initialize(CommandParam param, ComScript comScript,
+    String command, AxisID axisID, String previousCommand) {
+    if (previousCommand == null) {
+      return initialize(param, comScript, command, axisID);
+    }
+    if (!comScript.isCommandLoaded()) {
+      param.initializeDefaults();
+    }
+    else {
+      //locate previous command
+      ComScriptCommand previousComScriptCommand = null;
+      int previousCommandIndex = comScript.getScriptCommandIndex(previousCommand);
+    
+      if (previousCommandIndex == -1) {
+        String[] errorMessage = new String[2];
+        errorMessage[0] = "Failed attempt to initialize comscript for command:"
+          + command;
+        errorMessage[1] = "previous command:" + previousCommand + "is missing.";
+        appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+        return false;
+      }
+      
+      ComScriptCommand comScriptCommand = null;
+      int commandIndex =
+        comScript.getScriptCommandIndex(command, previousCommandIndex + 1);
+          
+      if (commandIndex == -1) {
+        return false;
+      }
+      
+      try {
+        param.parseComScriptCommand(
+          comScript.getScriptCommand(command, commandIndex, false));
+      }
+      catch (Exception except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[4];
+        errorMessage[0] = "Com file: " + comScript.getComFileName();
+        errorMessage[1] = "Command: " + command + " after " + previousCommand;
+        errorMessage[2] = except.getClass().getName();
+        errorMessage[3] = except.getMessage();
+        JOptionPane.showMessageDialog(
+          null,
+          errorMessage,
+          "Com Script Command Parse Error",
+          JOptionPane.ERROR_MESSAGE);
         return false;
       }
     }
