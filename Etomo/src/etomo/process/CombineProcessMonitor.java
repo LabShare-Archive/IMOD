@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2004/11/19 23:19:07  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 1.6.2.3  2004/10/11 02:02:48  sueh
  * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> $property.  This property would need a different value for each manager.
@@ -217,6 +220,22 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
           CombineComscriptState.getDialogPane(
           CombineComscriptState.PATCHCORR_INDEX));
       childMonitor = new PatchcorrProcessWatcher(applicationManager, axisID);
+    }
+    else if (childCommandName.equals(combineComscriptState.getCommand(
+        CombineComscriptState.MATCHVOL1_INDEX))) {
+      endCurrentChildMonitor();
+      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+          CombineComscriptState.getDialogPane(
+          CombineComscriptState.MATCHVOL1_INDEX));
+      childMonitor = new Matchvol1ProcessMonitor(applicationManager, axisID);
+    }
+    else if (childCommandName.equals(combineComscriptState.getCommand(
+        CombineComscriptState.MATCHORWARP_INDEX))) {
+      endCurrentChildMonitor();
+      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+          CombineComscriptState.getDialogPane(
+          CombineComscriptState.MATCHORWARP_INDEX));
+      childMonitor = new MatchorwarpProcessMonitor(applicationManager, axisID);
     }
     else if (
       childCommandName.equals(combineComscriptState.getCommand(
