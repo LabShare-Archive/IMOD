@@ -89,7 +89,7 @@ while ($#argv > 2)
       shift
       breaksw
     case -P:
-      echo $pn PID: $$
+      echo2 Shell PID: $$
       shift
       breaksw
     default:

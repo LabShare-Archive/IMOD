@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2003/05/22 23:35:04  mast
+#  Added -P to output PID and made all startup errors include ERROR:
+#
 #  Revision 3.9  2003/05/13 20:16:09  mast
 #  Eliminate using $0 to get temp file name, doesn't work on Windows
 #
@@ -181,7 +184,7 @@ while ($#argv > 1)
     case -h:
       goto usage
     case -P:
-      echo $pn PID: $$
+      echo2 Shell PID: $$
       shift
       breaksw
     default:
