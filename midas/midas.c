@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/11/25 19:11:07  mast
+    Changes to get clean compile under g++
+
     Revision 3.4  2002/11/05 23:54:24  mast
     Changed to get a visual then pass it to GLw.
 
@@ -170,6 +173,7 @@ main (int argc, char **argv)
      int command_height = 800;
      int i;
      int nxfopt = 0;
+     int debug = 0;
      XVisualInfo *visualInfo;
 
 #ifdef NO_IMOD_FORK
@@ -227,6 +231,7 @@ main (int argc, char **argv)
 
 		  case 'D':
 		    dofork = 0;
+		    debug = 1;
 		    break;
 
 		  default:
@@ -329,6 +334,9 @@ main (int argc, char **argv)
 		  argv[0]);
 	  exit(-1);
      }
+     if (debug)
+       printf("Visual # %d, class %d, depth %d, ID 0x%x\n", i, 
+	      visualInfo->class, visualInfo->depth, visualInfo->visualid);
 
      window =  XtVaCreateManagedWidget
 	  ("midas", xmMainWindowWidgetClass, topLevel,
