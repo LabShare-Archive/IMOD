@@ -33,6 +33,9 @@ Log at end of file
 #include "imodplug.h"
 #include "special_module.h"
 #include "beadfix.h"
+#ifndef TRACK_PLUGIN
+#include "linegui.h"
+#endif
 
 enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS};
 
@@ -101,6 +104,10 @@ static int ipAddInternalModules()
 
   thePlug.module = new BeadFixerModule;
   ilistAppend(plugList, &thePlug);
+#ifndef TRACK_PLUGIN
+  thePlug.module = new LineTrackModule;
+  ilistAppend(plugList, &thePlug);
+#endif
 
   // After all are added, go get the information from them
   mi = ilistSize(plugList);
@@ -463,6 +470,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.7  2003/10/02 01:31:11  mast
+Added ability to open a plugin by name
+
 Revision 4.6  2003/10/01 19:38:59  mast
 Simply code, add function for getting functions
 
