@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2004/04/06 17:51:03  rickg
+ * <p> bug #391 basic single stage fiducialess alignment
+ * <p>
  * <p> Revision 3.26  2004/03/29 21:00:48  sueh
  * <p> bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
  * <p> result as the full
@@ -1510,7 +1513,7 @@ public class ApplicationManager {
       prenewstParam.setRotateByAngle(Float.NaN);
     }
     comScriptMgr.savePrenewst(prenewstParam, axisID);
-    
+
     XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
     int binning = prenewstParam.getBinByFactor();
     try {
@@ -4374,7 +4377,35 @@ public class ApplicationManager {
    *  
    */
   private String initProgram(String[] args) {
-    //  Parse the command line
+
+    System.err.println("java.version:  " + System.getProperty("java.version"));
+    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
+    System.err.println("java.home:  " + System.getProperty("java.home"));
+    System.err.println("java.vm.version:  "
+        + System.getProperty("java.vm.version"));
+    System.err.println("java.vm.vendor:  "
+        + System.getProperty("java.vm.vendor"));
+    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
+    System.err.println("java.class.version:  "
+        + System.getProperty("java.class.version"));
+    System.err.println("java.class.path:  "
+        + System.getProperty("java.class.path"));
+    System.err.println("java.library.path:  "
+        + System.getProperty("java.library.path"));
+    System.err.println("java.io.tmpdir:  "
+        + System.getProperty("java.io.tmpdir"));
+    System.err
+      .println("java.compiler:  " + System.getProperty("java.compiler"));
+    System.err
+      .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
+    System.err.println("os.name:  " + System.getProperty("os.name"));
+    System.err.println("os.arch:  " + System.getProperty("os.arch"));
+    System.err.println("os.version:  " + System.getProperty("os.version"));
+    System.err.println("user.name:  " + System.getProperty("user.name"));
+    System.err.println("user.home:  " + System.getProperty("user.home"));
+    System.err.println("user.dir:  " + System.getProperty("user.dir"));
+
+    // Parse the command line
     String testParamFilename = parseCommandLine(args);
 
     // Get the HOME directory environment variable to find the program
@@ -4386,11 +4417,6 @@ public class ApplicationManager {
       message[1] = "Set HOME environment variable and restart program to fix this problem";
       mainFrame.openMessageDialog(message, "Program Initialization Error");
       System.exit(1);
-    }
-    if (debug) {
-      System.err.println("Home directory: " + homeDirectory);
-      System.err
-        .println("Working directory: " + System.getProperty("user.dir"));
     }
 
     // Get the IMOD directory so we know where to find documentation
@@ -4404,7 +4430,7 @@ public class ApplicationManager {
         message[0] = "Can not find IMOD directory!";
         message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
         mainFrame.openMessageDialog(message, "Program Initialization Error");
-        System.exit(-1);
+        System.exit(1);
       }
       else {
         if (debug) {
