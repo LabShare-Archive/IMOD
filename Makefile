@@ -106,9 +106,11 @@
 #############################################################################
 # For making distribution, all files will be put in a
 # directory called $(ARCNAME) and a final file called
-# $(ARCNAME).tar.gz will be made.
+# $(ARCNAME)$(DISTNAME).tar.gz will be made.
+SHELL    = /bin/csh
 VERSION = `sed '/.\(*\[0-9.]*\).*/s//\1/' .version`
 ARCNAME  = imod_$(VERSION)
+DISTNAME = `if (-e .distname) sed '/.\(*\[0-9._-a-zA-Z]*\).*/s//\1/' .distname`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -118,13 +120,11 @@ ARCNAME  = imod_$(VERSION)
 #
 # Define programs and paths we need.
 #
-#SHELL   = /usr/bin/csh
-SHELL    = /bin/csh
 PWD      = `pwd`
 
 COMPRESS = gzip
 
-ARCHIVE  = $(ARCNAME).tar
+ARCHIVE  = $(ARCNAME)$(DISTNAME).tar
 ARC      = tar cvf
 IMODDIR  = $(PWD)
 ARCDIR   = $(IMODDIR)/$(ARCNAME)
@@ -285,12 +285,14 @@ flibs: configure
 #
 dist : ALWAYS
 	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
-	if (! (-e $(ARCDIR)))  mkdir $(ARCDIR)
+	mkdir $(ARCDIR)
+	mkdir $(ARCDIR)/dist
 	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp -r dist/* $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html $(ARCDIR)/
+	\cp .version $(ARCDIR)/VERSION
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	./installqtlib
 	echo "Compressing..."
@@ -303,7 +305,8 @@ dist : ALWAYS
 src : configure cleansrc csrc fsrc etomosrc
 	if (-e $(ARCDIR)_src/$(ARCDIR)_src/) /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/
 	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
-	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src
+	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
+	$(COMPRESS) $(ARCNAME)_src.tar
 
 cleansrc : ALWAYS
 	if (-e $(ARCDIR)_src) /bin/rm -rf $(ARCDIR)_src/
@@ -371,13 +374,20 @@ etomosrc :
 #
 # Tests
 #
-tests :
+tests : ImodTests
 	cd Etomo ; $(MAKE) tests
+	cd ImodTests ; cvs update ; $(MAKE) tests ; /bin/rm -rf ImodTests
+
+ImodTests : 
+	cvs co ImodTests 
 
 ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.32  2004/01/17 20:32:00  mast
+#  Fix cleanqt for ndasda and graphics
+#
 #  Revision 3.31  2003/12/30 17:28:29  mast
 #  spare .exes in bin from cleanexe
 #
