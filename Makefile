@@ -93,7 +93,7 @@
 # For making distribution, all files will be put in a
 # directory called $(ARCNAME) and a final file called
 # $(ARCNAME).tar.gz will be made.
-VERSION = `cat .version`
+VERSION = `sed '/.\(*\[0-9.]*\).*/s//\1/' .version`
 ARCNAME  = imod_$(VERSION)
 
 #############################################################################
@@ -353,6 +353,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.8  2003/03/07 21:49:56  mast
+#  Changes for make src and to make a cygwin distribution
+#
 #  Revision 3.7  2003/02/28 19:46:55  mast
 #  Adding instructions for windows
 #
