@@ -158,7 +158,7 @@ void imodvHelpMenu(int item)
        " Esc/q\tQuit this program\n",
        "  s   \tToggle stereo mode\n",
        "  S   \tSnapshot image as an RGB file to imodvnnnn.rgb\n",
-       "Ctrl-S\tSnapshot image as a TIFF file to imodvnnnn.tif\n",
+       CTRL_STRING"-S\tSnapshot image as a TIFF file to imodvnnnn.tif\n",
        "  o   \tOutput transformation information\n",
        "  c   \tOutput clipping plane information\n",
        " -/=  \tDecrease/Increase zoom\n",
@@ -190,14 +190,14 @@ void imodvHelpMenu(int item)
        "----------------------------------------------------------\n",
        "Left Mouse Button Drag\n",
        "\tThe left mouse button moves the model when held down.\n\n",
-       "\tWhen the Ctrl key is held down the left mouse button "
+       "\tWhen the "CTRL_STRING" key is held down the left mouse button "
        "moves the current object clipping plane.\n\n",
        "Middle Mouse Button Drag\n",
        "\tThe Middle mouse button rotates the model around an axis "
        "perpendicular to the direction of motion of the mouse.\n\n"
        "\tWhen the shift key is held down the middle ",
        "mouse button rotates the light source instead.\n\n",
-       "\tWhen the Ctrl key is held down the middle mouse button "
+       "\tWhen the "CTRL_STRING" key is held down the middle mouse button "
        "rotates the current object clipping plane instead.\n\n",
        "Right Mouse Button\n",
        "\tWhen running Model View from Imod, clicking on a point in the "
@@ -513,7 +513,8 @@ void ImodvBkgColor::openDialog()
   QString qstr;
   char *window_name;
 
-  mSelector = new ColorSelector(NULL, "Imodv background color.",
+  mSelector = new ColorSelector(imodvDialogManager.parent(IMODV_DIALOG), 
+                                "Imodv background color.",
                                 Imodv->rbgcolor->red(),
 				Imodv->rbgcolor->green(),
 				Imodv->rbgcolor->blue(), hotSliderFlag(), 
@@ -576,6 +577,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/14 15:31:02  mast
+fixing documentation
+
 Revision 4.4  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
