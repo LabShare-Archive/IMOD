@@ -27,6 +27,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/01/14 03:07:40  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.10  2005/01/12 00:45:42  sueh
  * <p> bug# 579 Renamed TomogramState.getBackwordCompatible...() functions
  * <p> to ...BackwardCompatible...
@@ -227,7 +230,7 @@ public class PostProcessingDialog
    */
   public boolean isSqueezevolFlipped() {
     TomogramState state = applicationManager.getState();
-    if (state.getSqueezevolFlipped().isSet()) {
+    if (!state.getSqueezevolFlipped().isNull()) {
       return state.getSqueezevolFlipped().is();
     }
     return isTrimvolFlipped();
@@ -241,7 +244,7 @@ public class PostProcessingDialog
    */
   public boolean isTrimvolFlipped() {
     TomogramState state = applicationManager.getState();
-    if (!state.getTrimvolFlipped().isSet()) {
+    if (state.getTrimvolFlipped().isNull()) {
       return state.getBackwardCompatibleTrimvolFlipped();
     }
     return state.getTrimvolFlipped().is();
