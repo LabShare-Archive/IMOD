@@ -7,8 +7,9 @@ LIBIM    = libim.$(LIBEXT)
 LIBNMCAR = libdnmncar.$(LIBEXT)
 LIBDTRIGS = libdtrigs.$(LIBEXT)
 LIBRANDM  = librandm.$(LIBEXT)
+LIBTRACK  = libtrack.$(LIBEXT)
 
-LIBS = $(LIBHVEM) $(LIBIFFT) $(LIBIM) $(LIBNMCAR) $(LINUXFLIBS)
+LIBS = $(LIBHVEM) $(LIBIFFT) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS)
 
 
 all : $(LIBS) $(BLOCKIO)
@@ -68,6 +69,13 @@ $(LIBRANDM):	randm/ransub.f randm/ourrnd.c
 	$(AR) $(ARFLAGS)$(LIBRANDM) randm/*.$(O)
 	$(RANLIB) $(LIBRANDM)
 	$(CP) $(LIBRANDM) $(LIBDIR)
+
+$(LIBTRACK):	linetrack/*.f
+	(cd linetrack; $(MAKE) all)
+	\rm -f $(LIBTRACK)
+	$(AR) $(ARFLAGS)$(LIBTRACK) linetrack/*.$(O)
+	$(RANLIB) $(LIBTRACK)
+	$(CP) $(LIBTRACK) $(LIBDIR)
 
 
 install:
