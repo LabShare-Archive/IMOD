@@ -25,6 +25,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.11  2003/10/30 21:09:41  rickg
  * <p> Bug# 340 Added context menu entry for transferfid man page
  * <p> JToggleButton -> MultilineToggleButton
@@ -112,6 +115,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   private MultiLineToggleButton btnTrack =
     new MultiLineToggleButton("<html><b>Track Fiducial Seed Model</b>");
 
+  private MultiLineButton btnUseModel =
+    new MultiLineButton("<html><b>Use Fiducial Model as Seed</b>");
+
   private MultiLineToggleButton btnFixModel =
     new MultiLineToggleButton("<html><b>Fix Fiducial Model</b>");
 
@@ -134,6 +140,10 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTrack.setPreferredSize(dimButton);
     btnTrack.setMaximumSize(dimButton);
+
+    btnUseModel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnUseModel.setPreferredSize(dimButton);
+    btnUseModel.setMaximumSize(dimButton);
 
     btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnFixModel.setPreferredSize(dimButton);
@@ -159,6 +169,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlFiducialModel.add(btnTrack);
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
+    pnlFiducialModel.add(btnUseModel);
+    pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
+
     pnlFiducialModel.add(btnFixModel);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel);
@@ -172,6 +185,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     //
     btnSeed.addActionListener(new FiducialModelActionListener(this));
     btnTrack.addActionListener(new FiducialModelActionListener(this));
+    btnUseModel.addActionListener(new FiducialModelActionListener(this));
     btnFixModel.addActionListener(new FiducialModelActionListener(this));
 
     if (applicationManager.isDualAxis()) {
@@ -275,6 +289,12 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     text = "Run Beadtrack to produce fiducial model from seed model.";
     btnTrack.setToolTipText(tooltipFormatter.setText(text).format());
 
+    text =
+      "Turn the output of Beadtrack (fiducial model) into a new seed model.  "
+        + "Your original seed model will be moved into an _orig.seed file."
+        + "To use the new seed model, press Track Fiducial Seed Model.";
+    btnUseModel.setToolTipText(tooltipFormatter.setText(text).format());
+
     text = "Load fiducial model into 3dmod.";
     btnFixModel.setToolTipText(tooltipFormatter.setText(text).format());
   }
@@ -289,6 +309,13 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     else if (command.equals(btnTrack.getActionCommand())) {
       applicationManager.fiducialModelTrack(axisID);
+    }
+
+    else if (command.equals(btnUseModel.getActionCommand())) {
+      applicationManager.makeFiducialModelSeedModel(axisID);
+      if (btnTrack.isSelected()) {
+        btnTrack.setSelected(false);
+      }
     }
 
     else if (command.equals(btnFixModel.getActionCommand())) {
