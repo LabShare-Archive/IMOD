@@ -33,12 +33,14 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/13 21:56:06  mast
+    Initial addition to package
+
 */
 #include <X11/Xlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_PACKETS 100
 static void send_error(int num)
 {
      fprintf(stderr, "ERROR: imodsendevent - failure to send event # %d\n", 
@@ -50,6 +52,7 @@ int errorHandler(Display *display, XErrorEvent *event)
 {
      fprintf(stderr, "ERROR: imodsendevent - X error sending event\n");
      exit(3);
+     return 1;
 }
 
 int main(int argc, char **argv)
@@ -58,7 +61,7 @@ int main(int argc, char **argv)
      Window win;
      int action;
      int nchar, npackets;
-     XClientMessageEvent event[MAX_PACKETS];
+     XClientMessageEvent event;
      int indexStart, i, ipack;
      unsigned int ui, uilim;
      char lastchar;
@@ -89,21 +92,16 @@ int main(int argc, char **argv)
 #ifdef DEBUG
      fprintf(stderr, "characters %d  packets %d\n", nchar, npackets);
 #endif
-     if (npackets > MAX_PACKETS - 1) {
-	  fprintf(stderr, "ERROR: imodsendevent - Character string too long\n"
-		  );
-	  exit(-1);
-     }
 
      /* Fill in crucial information - the win IS needed */
-     event[0].format = 32;
-     event[0].type = ClientMessage;
-     event[0].data.l[0] = action;
-     event[0].data.l[1] = npackets;
-     event[0].window = win;
+     event.format = 32;
+     event.type = ClientMessage;
+     event.data.l[0] = action;
+     event.data.l[1] = npackets;
+     event.window = win;
 
      /* send event with permissive mask */
-     if (!XSendEvent(display, win, True, 0xffffff, (XEvent *)(&event[0])))
+     if (!XSendEvent(display, win, True, 0xffffff, (XEvent *)(&event)))
 	    send_error(1);
 
      /* send packets, all in separate events */
@@ -113,17 +111,17 @@ int main(int argc, char **argv)
 	  fprintf(stderr, "ipack %d  nchar %d  npackets %d  indexStart %d\n",
 		  ipack, nchar, npackets, indexStart);
 #endif
-	  event[ipack].format = 8;
-	  event[ipack].type = ClientMessage;
-	  event[ipack].window = win;
-	  for (i = indexStart; i < indexStart + 20, i < nchar; i++)
-	       event[ipack].data.b[i - indexStart] = *(argv[3] + i);
-	  if (!XSendEvent(display, win, False, 0, (XEvent *)(&event[ipack])))
+	  event.format = 8;
+	  event.type = ClientMessage;
+	  event.window = win;
+	  for (i = indexStart; (i < indexStart + 20 && i < nchar); i++)
+	       event.data.b[i - indexStart] = *(argv[3] + i);
+	  if (!XSendEvent(display, win, False, 0, (XEvent *)(&event)))
 	       send_error(ipack + 2);
 #ifdef DEBUG
-	  lastchar = event[ipack].data.b[19];
-	  event[ipack].data.b[19] = 0x00;
-	  fprintf(stderr, "sent %s%c\n", event[ipack].data.b, lastchar); 
+	  lastchar = event.data.b[19];
+	  event.data.b[19] = 0x00;
+	  fprintf(stderr, "sent %s%c\n", event.data.b, lastchar); 
 #endif
 	  indexStart += 20;
      }
