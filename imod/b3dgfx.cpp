@@ -44,10 +44,19 @@ Log at end of file
 #include "xcramp.h"
 #include "preferences.h"
 
+static void b3dDrawGreyScalePixels15
+(unsigned char **dataPtrs,      /* input data          */
+ int xsize, int ysize,     /* size of input data  */
+ int xoffset, int yoffset, /* data offsets    */
+ int wx, int wy,           /* window start    */
+ int width, int height,    /* sub-area size   */
+ B3dCIImage *image,        /* tmp image data. */
+ int base, int slice
+ );
 
 static int          CurWidth;
 static int          CurHeight;
-
+static float        CurXZoom;
 
 
 /* DNM: needed so that imodv can use snapshot functions */
@@ -56,6 +65,8 @@ void b3dSetCurSize(int width, int height)
   CurWidth = width;
   CurHeight = height;
 }
+
+float b3dGetCurXZoom() { return CurXZoom;}
 
 void b3dResizeViewportXY(int winx, int winy)
 {
@@ -511,7 +522,7 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
 /* DNM 1/10/03: removed "-1" from winx and xsize and zsize expressions */
 void b3dDrawGreyScalePixelsSubArea
 (B3dCIImage *image,                    /* window image data. */
- unsigned char *data,                  /* input image data. */
+ unsigned char **data,                  /* input image data. */
  int xsize, int ysize,                 /* size of input image data. */
  int xtrans, int ytrans,               /* offset from data center. */
  int llx, int lly,  int urx, int ury,  /* window coords or sub area. */
@@ -718,7 +729,7 @@ static void chunkdraw(int xysize, float zoom, int wxdraw, int wy,
 /* This routine will draw pixels from the input image using the OpenGL zoom */
 /* DNM 1/20/02: Added slice argument to govern image re-use, rather than
    assuming CurZ */
-void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
+void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
                             int xsize, int ysize,     /* size of input   */
                             int xoffset, int yoffset, /* data offsets    */
                             int wx, int wy,           /* window start    */
@@ -736,12 +747,14 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
   unsigned short *sdata = (unsigned short *)image->id1;
   unsigned char *bdata = (unsigned char *)sdata;
   unsigned int  *idata = (unsigned int *)sdata;
-  unsigned int  *rgbadata = (unsigned int *)data;
+  unsigned int  *rgbadata;
   unsigned char *bidata;
+  unsigned char *data;
   unsigned short rbase = base;
   GLenum type, format;
   GLint  unpack = b3dGetImageType(&type, &format);
   unsigned int *cindex = App->cvi->cramp->ramp;
+  CurXZoom = zoom;
 
   /*     printf("unpack = %d\n", unpack);
          for(i = 0; i < 256; i++)
@@ -751,7 +764,7 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
   if (App->depth == 8)
     rbase = 0;
 
-  if (!data){
+  if (!dataPtrs){
     b3dDrawFilledRectangle(wx, wy, (int)(width * xzoom), 
                            (int)(height * yzoom));
     return;
@@ -768,7 +781,8 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
       bdata = (unsigned char *)sdata;
       idata = (unsigned int  *)sdata;
       for (j = 0, di = 0;  j < height; j++){
-        istart = (((j + yoffset) * xsize) + xoffset);
+        data = dataPtrs[j + yoffset];
+        istart = xoffset;
         ilim  = istart + width;
                  
         switch(unpack){
@@ -802,6 +816,7 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
             di += ilim - istart;
             break;
           case 4:  /* untested RGBA data copy */
+            rgbadata = (unsigned int *)data;
             for (i = istart; i < ilim; i++, di++)
               idata[di] = rgbadata[i];
             break;
@@ -841,7 +856,7 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 /* DNM 1/20/02: Added slice argument to govern image re-use, rather than
    assuming CurZ */
 static void b3dDrawGreyScalePixels15
-(unsigned char *data,      /* input data          */
+(unsigned char **dataPtrs,  /* input data line pointers */
  int xsize, int ysize,     /* size of input data  */
  int xoffset, int yoffset, /* data offsets    */
  int wx, int wy,           /* window start    */
@@ -857,8 +872,9 @@ static void b3dDrawGreyScalePixels15
   unsigned short *sdata = (unsigned short *)image->id1;
   unsigned char  *bdata = (unsigned char *)sdata;
   unsigned int   *idata = (unsigned int *)sdata;
-  unsigned int   *indata = (unsigned int *)idata;
+  unsigned int   *indata;
   unsigned char  *bindata;
+  unsigned char  *data;
   unsigned short rbase  = base;
   unsigned int *cindex = App->cvi->cramp->ramp;
   int sw, sh; /* scaled width and height. */
@@ -917,8 +933,9 @@ static void b3dDrawGreyScalePixels15
     idata = (unsigned int  *)sdata;
     /*            if (rbase) */
     for (j = 0, di = 0;  j < maxj; j++){
-      istart = (((j + yoffset) * xsize) + xoffset);
-             
+      data = dataPtrs[j + yoffset];
+      istart = xoffset;
+
       /* DNM: changed this to work with sw trimmed down to pixels
          remaining in the window */
       ilim  = istart + 2 * (sw / 3);
@@ -1012,6 +1029,7 @@ static void b3dDrawGreyScalePixels15
           break;
 
         case 4:  /* Untested: copy RGBA to RGBA */
+          indata = (unsigned int *)data;
           for (i = istart; i < ilim; i++){
             idata[di++] = indata[i];
             idata[di++] = indata[i++];
@@ -1059,7 +1077,7 @@ static void b3dDrawGreyScalePixels15
    high quality data */
 /* DNM 1/20/02: Added slice argument to govern image re-use, rather than
    assuming CurZ */
-void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
+void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
                               int xsize, int ysize,     /* size of input   */
                               int xoffset, int yoffset, /* data offsets    */
                               int wx, int wy,           /* window start    */
@@ -1085,7 +1103,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
   int dwidth = (int)(width * zoom);
   int dheight= (int)(height * zoom);
   int xi, pxi, nxi, yi, pyi, nyi, x1, x2, y1, y2;
-  int i, j;
+  int i, j, izs;
      
   float cx, cy;                            /* current x,y values          */
   float dx, dy;                            /* pixel  offset.              */
@@ -1104,8 +1122,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
   int ibase;
   int drawwidth;
   int wxdraw;
+  CurXZoom = zoom;
 
-  if (!data){
+  if (!dataPtrs){
     b3dColorIndex(base);
     glColor3f(0.0f, 0.0f, 0.0f);
     b3dDrawFilledRectangle(wx, wy, (int)(width * xzoom),
@@ -1115,7 +1134,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
     
   /* special optimization. DNM: don't take if want quality*/
   if (!quality && (xzoom == 1.50) && (yzoom == 1.50)){
-    b3dDrawGreyScalePixels15(data, xsize, ysize, xoffset, yoffset,
+    b3dDrawGreyScalePixels15(dataPtrs, xsize, ysize, xoffset, yoffset,
                              wx, wy, width, height, image, base, slice);
     return;
   } 
@@ -1128,7 +1147,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
         
     if (!App->wzoom){
       /* If relying on OpenGL zoom completely, just call this */
-      b3dDrawGreyScalePixels(data, xsize, ysize, xoffset, yoffset,
+      b3dDrawGreyScalePixels(dataPtrs, xsize, ysize, xoffset, yoffset,
                              wx, wy, width, height, image, base,
                              xzoom, yzoom, slice);
       return;
@@ -1137,7 +1156,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
       if (!(hz%100)){
         /* If it's an integer zoom (1 or more), then use the OpenGL
            zoom through this routine */
-        b3dDrawGreyScalePixels(data, xsize, ysize, 
+        b3dDrawGreyScalePixels(dataPtrs, xsize, ysize, 
                                xoffset, yoffset,
                                wx, wy, width, height, image, base,
                                xzoom, yzoom, slice);
@@ -1211,7 +1230,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	for(i = 0, cx = xoffset + trans; 
 	    i < dwidth; cx += zs, i++){
 	  xi = (int)(cx + 0.5);
-	  val = data[xi + (yi * xsize)];
+          val = dataPtrs[yi][xi];
                          
 	  dx = cx - xi;
 	  dy = cy - yi;
@@ -1221,10 +1240,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	  if (pxi < 0) pxi = 0;
 	  if (nxi >= xsize) nxi = xi;
                          
-	  x1 = data[pxi + (yi  * xsize)];
-	  x2 = data[nxi + (yi  * xsize)];
-	  y1 = data[xi  + (pyi * xsize)];
-	  y2 = data[xi  + (nyi * xsize)];
+          x1 = dataPtrs[yi][pxi];
+	  x2 = dataPtrs[yi][nxi];
+	  y1 = dataPtrs[pyi][xi];
+	  y2 = dataPtrs[nyi][xi];
                          
 	  a = (x1 + x2) * 0.5f - (float)val;
 	  b = (y1 + y2) * 0.5f - (float)val;
@@ -1270,29 +1289,48 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
       if (int(ystop + 0.5) >= ysize)
         ystop = ysize - 1.5;
 
+      /* Get an integer step size and see if it is close enough;
+         if so, use integer steps and avoid floating calculation below */
+      izs = (int)(zs + 0.5);
+      if (izs - zs > 0.002 || izs - zs < -0.002)
+        izs = 0;
+      else
+        CurXZoom = 1. / izs;
+
       for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
 	yi = (int)(cy + 0.5);
 	ibase = j * drawwidth;
+        xi = (int)(xoffset + trans + 0.5);
 
 	switch(unpack){
 	case 1:
-	  for(i = 0, cx = xoffset + trans; 
-	      cx < xstop; cx += zs, i++){
-	    xi = (int)(cx + 0.5);
-	    val = data[xi + (yi * xsize)];
-	    bdata[i + ibase] = val;
-	  }
+          if (izs) {
+            for (i = 0; xi < xsize; xi += izs, i++)
+              bdata[i + ibase] = dataPtrs[yi][xi];
+          } 
+          else {
+            for(i = 0, cx = xoffset + trans; 
+                cx < xstop; cx += zs, i++){
+              xi = (int)(cx + 0.5);
+              bdata[i + ibase] = dataPtrs[yi][xi];
+            }
+          }
 	  for (; i && i < drawwidth; i++)
 	    bdata[i + ibase] = 	bdata[i + ibase - 1];
 	  break;
 
 	case 2:
-	  for(i = 0, cx = xoffset + trans; 
-	      cx < xstop; cx += zs, i++){
-	    xi = (int)(cx + 0.5);
-	    val = data[xi + (yi * xsize)];
-	    sdata[i + ibase] = val + rbase;
-	  }
+          if (izs) {
+            for (i = 0; xi < xsize; xi += izs, i++)
+              sdata[i + ibase] = dataPtrs[yi][xi] + rbase;
+          } 
+          else {
+            for(i = 0, cx = xoffset + trans; 
+                cx < xstop; cx += zs, i++){
+              xi = (int)(cx + 0.5);
+              sdata[i + ibase] = dataPtrs[yi][xi] + rbase;
+            }
+          }
 	  for (; i && i < drawwidth; i++)
 	    sdata[i + ibase] = 	sdata[i + ibase - 1];
 	  break;
@@ -1304,35 +1342,57 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 
 	  switch (App->rgba) {
 	  case 1:   /* lookup from bytes */
-	    for(i = 0, cx = xoffset + trans; 
-		cx < xstop; cx += zs, i++){
-	      xi = (int)(cx + 0.5);
-	      val = data[xi + (yi * xsize)];
-	      idata[i + ibase] = cindex[val];
-	    }
+            if (izs) {
+              for (i = 0; xi < xsize; xi += izs, i++)
+                idata[i + ibase] = cindex[dataPtrs[yi][xi]];
+            } 
+            else {
+              for(i = 0, cx = xoffset + trans; 
+                  cx < xstop; cx += zs, i++){
+                xi = (int)(cx + 0.5);
+                idata[i + ibase] = cindex[dataPtrs[yi][xi]];
+              }
+            }
 	    break;
 
 	  case 3:   /* copy RGB data to RGBA */
 	    bidata = (unsigned char *)&(idata[ibase]);
-	    bdata = &(data[3 * yi * xsize]);
-	    for(i = 0, cx = xoffset + trans; 
-		cx < xstop; cx += zs, i++){
-	      xi = (int)(cx + 0.5);
-	      bptr = bdata + 3 * xi;
-	      *bidata++ = *bptr++;
-	      *bidata++ = *bptr++;
-	      *bidata++ = *bptr++;
-	      *bidata++ = 0;
-	    }
+	    bdata = dataPtrs[yi];
+            if (izs) {
+              for (i = 0; xi < xsize; xi += izs, i++) {
+                bptr = bdata + 3 * xi;
+                *bidata++ = *bptr++;
+                *bidata++ = *bptr++;
+                *bidata++ = *bptr++;
+                *bidata++ = 0;
+              }
+            } 
+            else {
+              for(i = 0, cx = xoffset + trans; 
+                  cx < xstop; cx += zs, i++){
+                xi = (int)(cx + 0.5);
+                bptr = bdata + 3 * xi;
+                *bidata++ = *bptr++;
+                *bidata++ = *bptr++;
+                *bidata++ = *bptr++;
+                *bidata++ = 0;
+              }
+            }
 	    break;
 
 	  case 4:   /* untested placekeeper fro RGBA data */
-	    rgbadata = (unsigned int *)data + yi * xsize;
-	    for(i = 0, cx = xoffset + trans; 
-		cx < xstop; cx += zs, i++){
-	      xi = (int)(cx + 0.5);
-	      idata[i + ibase] = rgbadata[xi];
-	    }
+	    rgbadata = (unsigned int *)dataPtrs[yi];
+            if (izs) {
+              for (i = 0; xi < xsize; xi += izs, i++)
+                idata[i + ibase] = rgbadata[xi];
+            } 
+            else {
+              for(i = 0, cx = xoffset + trans; 
+                  cx < xstop; cx += zs, i++){
+                xi = (int)(cx + 0.5);
+                idata[i + ibase] = rgbadata[xi];
+              }
+            }
 	    break;
 	  }
 
@@ -1377,7 +1437,7 @@ double b3dStepPixelZoom(double czoom, int step)
   int i=0;
   int zoomi;
 
-  /* DNM: czoom has been stored as a float by called.  Change it a bit in the
+  /* DNM: czoom has been stored as a float by caller.  Change it a bit in the
     desired direction to avoid problems under Windows - instead of former
     approach of casting to floats */
   czoom += step * 0.001;
@@ -1594,7 +1654,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
 
 void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
-                     unsigned char *data)
+                     unsigned char **data)
 {
   FILE *fout;
   int i, j;
@@ -1712,9 +1772,10 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     return;
   }
 
+  /* Use the line pointers to write each line */
   if (data) {
     for(j = ysize - 1; j >= 0; j--)
-      fwrite(&data[3 * j * xsize], 1, 3 * xsize, fout);
+      fwrite(data[j], 1, 3 * xsize, fout);
 
   } else if (rgbmode) {
     for(j = ysize - 1; j >= 0; j--)
@@ -1830,6 +1891,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.12  2003/09/12 22:02:20  mast
+Fixed float/double problem with zooming under Windows
+
 Revision 4.11  2003/06/04 23:28:50  mast
 Simplify auto snapshot numbering code
 
