@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/06/20 23:11:39  mast
+c	  Added capability to process options all in one string
+c	
 c	  Revision 3.1  2003/06/05 00:14:22  mast
 c	  Addition to package
 c	
@@ -94,5 +97,20 @@ c	  get numbers to return
 c
 	call PipNumberOfArgs(numOptArg, numNonOptArg)
 	PipParseInput = 0
+	return
+	end
+
+	function PipGetLogical(option, value)
+	character*(*) option
+	logical value
+	integer*4 intval, ierr
+	intval = 0
+	PipGetLogical = 0
+	ierr = PipGetBoolean(option, intval)
+	if (ierr .ne. 0) then
+	  PipGetLogical = ierr
+	else
+	  value = intval .ne. 0
+	endif
 	return
 	end
