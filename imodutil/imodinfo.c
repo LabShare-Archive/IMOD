@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/23 21:40:50  mast
+    fixed exit status
+
 */
 
 #include <stdio.h>
@@ -1563,7 +1566,7 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
 float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
                           int doclip, Iplane *plane)
 {
-  int i, goodside;
+  int i, inside1, inside2, inside3;
   double tsa = 0.0f;
   float sa = 0.0f;
      
@@ -1589,33 +1592,40 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
 	i+=2;
 	p3 = &(mesh->vert[mesh->list[i++]]);
                     
-	/* test against clipping plane: if it crosses the plane,
-	   just take a fraction equal to the fraction of vertices
-	   on the good side */
-	clipfrac = 1.;
+	/* Count the number of vertices that are inside the defined volume
+	   first evaluate their relation to the clipping plane */
+	inside1 = 1;
+	inside2 = 1;
+	inside3 = 1;
+	
 	if (doclip) {
-	  goodside = imodPlaneClip(plane, p1) + 
-	    imodPlaneClip(plane,p2) + 
-	    imodPlaneClip(plane, p3);
-	  if ((goodside == 3 && doclip < 0) || 
-	      (!goodside && doclip > 0))
-	    continue;
-	  if (doclip > 0)
-	    clipfrac = goodside / 3.;
-	  else
-	    clipfrac = (3. - goodside) / 3.;
-	}                              
-                              
-	if (p1->x >= min.x && p1->x <= max.x &&
-	    p1->y >= min.y && p1->y <= max.y &&
-	    p1->z >= min.z && p1->z <= max.z &&
-	    p2->x >= min.x && p2->x <= max.x &&
-	    p2->y >= min.y && p2->y <= max.y &&
-	    p2->z >= min.z && p2->z <= max.z &&
-	    p3->x >= min.x && p3->x <= max.x &&
-	    p3->y >= min.y && p3->y <= max.y &&
-	    p3->z >= min.z && p3->z <= max.z) {
-
+	  inside1 = imodPlaneClip(plane, p1);
+	  inside2 = imodPlaneClip(plane, p2);
+	  inside3 = imodPlaneClip(plane, p3);
+	  if (doclip < 0) {
+	    inside1 = 1 - inside1;
+	    inside2 = 1 - inside2;
+	    inside3 = 1 - inside3;
+	  }
+	}
+	
+	/* Now see whether the vertices fit in the bounding box */
+	if (p1->x < min.x || p1->x >= max.x ||
+	    p1->y < min.y || p1->y >= max.y ||
+	    p1->z < min.z || p1->z >= max.z)
+	  inside1 = 0;
+	if (p2->x < min.x || p2->x >= max.x ||
+	    p2->y < min.y || p2->y >= max.y ||
+	    p2->z < min.z || p2->z >= max.z)
+	  inside2 = 0;
+	if (p3->x < min.x || p3->x >= max.x ||
+	    p3->y < min.y || p3->y >= max.y ||
+	    p3->z < min.z || p3->z >= max.z)
+	  inside3 = 0;
+	
+	/*  just take a fraction equal to the fraction of vertices inside */
+	clipfrac = (inside1 + inside2 + inside3) / 3.;
+	if (clipfrac) {
 	  n1.x = p1->x - p2->x;
 	  n1.y = p1->y - p2->y;
 	  n1.z = (p1->z - p2->z) * zs;
@@ -1623,7 +1633,7 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
 	  n2.y = p3->y - p2->y;
 	  n2.z = (p3->z - p2->z) * zs;
 	  imodPointCross(&n1, &n2, &n);
-                         
+	  
 	  tsa += clipfrac * sqrt((double)(n.x*n.x + n.y*n.y + 
 					  n.z*n.z)) * 0.5;
 	  nsum++;
