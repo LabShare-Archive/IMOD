@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/02/04 18:12:46  sueh
+ * <p> bug# 171 ask to automatically quit all running 3dmod
+ * <p> programs.
+ * <p>
  * <p> Revision 3.8  2004/01/22 21:09:39  rickg
  * <p> Get screen size in openSetupDialog instead of app init
  * <p>
@@ -1003,7 +1007,12 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + "_peak.mod";
     try {
       //imodManager.modelRawStack(xRayModel, axisID, false);
-      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, xRayModel, false);
+      imodManager.model(
+        ImodManager.RAW_STACK_KEY,
+        axisID,
+        xRayModel,
+        false,
+        true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
