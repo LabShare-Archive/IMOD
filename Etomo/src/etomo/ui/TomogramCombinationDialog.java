@@ -13,9 +13,11 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.ConstSolvematchmodParam;
 import etomo.comscript.ConstSolvematchshiftParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
 import etomo.type.AxisID;
 
@@ -32,6 +34,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/03/18 00:32:33  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.6  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>
@@ -85,9 +90,9 @@ import etomo.type.AxisID;
 public class TomogramCombinationDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
-  SetupCombinePanel panelSetupCombine;
-  InitialCombinePanel panelInitialCombine;
-  FinalCombinePanel panelFinalCombine;
+  SetupCombinePanel pnlSetup;
+  InitialCombinePanel pnlInitial;
+  FinalCombinePanel pnlFinal;
 
   private JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -95,18 +100,18 @@ public class TomogramCombinationDialog extends ProcessDialog {
     super(appMgr, AxisID.FIRST);
 
     //  Instantiate the tab pane contents
-    panelSetupCombine = new SetupCombinePanel(applicationManager);
-    panelInitialCombine = new InitialCombinePanel(applicationManager);
-    panelFinalCombine = new FinalCombinePanel(applicationManager);
+    pnlSetup = new SetupCombinePanel(applicationManager);
+    pnlInitial = new InitialCombinePanel(applicationManager);
+    pnlFinal = new FinalCombinePanel(applicationManager);
 
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     //  Construct the main panel for this dialog panel
-    tabbedPane.add("Setup", panelSetupCombine.getContainer());
-    tabbedPane.add("Initial Match", panelInitialCombine.getContainer());
-    tabbedPane.add("Final Match", panelFinalCombine.getContainer());
+    tabbedPane.add("Setup", pnlSetup.getContainer());
+    tabbedPane.add("Initial Match", pnlInitial.getContainer());
+    tabbedPane.add("Final Match", pnlFinal.getContainer());
 
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
     JLabel zWarning =
@@ -134,7 +139,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    * @param combineParams
    */
   public void setCombineParams(ConstCombineParams combineParams) {
-    panelSetupCombine.setParameters(combineParams);
+    pnlSetup.setParameters(combineParams);
   }
 
   /**
@@ -145,7 +150,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    */
   public void getCombineParams(CombineParams combineParams)
     throws NumberFormatException {
-    panelSetupCombine.getParameters(combineParams);
+    pnlSetup.getParameters(combineParams);
   }
 
   /**
@@ -154,7 +159,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    * @param solvematchshiftParams
    */
   public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParams) {
-    panelInitialCombine.setSolvematchshiftParams(solvematchshiftParams);
+    pnlInitial.setSolvematchshiftParams(solvematchshiftParams);
   }
 
   /**
@@ -165,7 +170,27 @@ public class TomogramCombinationDialog extends ProcessDialog {
    */
   public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParams)
     throws NumberFormatException {
-    panelInitialCombine.getSolvematchshiftParams(solvematchshiftParams);
+    pnlInitial.getSolvematchshiftParams(solvematchshiftParams);
+  }
+
+  /**
+   * Set the solvematchmod parameters of the UI from the the
+   * ConstSolvematchmodParams object
+   * @param solvematchmodParams
+   */
+  public void setSolvematchmodParams(ConstSolvematchmodParam solvematchmodParams) {
+    pnlInitial.setSolvematchmodParams(solvematchmodParams);
+  }
+
+  /**
+   * Get the the patchcrawl3d parameters of the UI returning them in the 
+   * modified SolvematchmodParam object
+   * @param solvematchmodParams
+   * @throws NumberFormatException
+   */
+  public void getSolvematchmodParams(SolvematchmodParam solvematchmodParams)
+    throws NumberFormatException {
+    pnlInitial.getSolvematchmodParams(solvematchmodParams);
   }
 
   /**
@@ -174,7 +199,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    * @param patchcrawl3DParams
    */
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
-    panelFinalCombine.setPatchcrawl3DParams(patchcrawl3DParams);
+    pnlFinal.setPatchcrawl3DParams(patchcrawl3DParams);
   }
 
   /**
@@ -185,7 +210,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    */
   public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
     throws NumberFormatException {
-    panelFinalCombine.getPatchcrawl3DParams(patchcrawl3DParams);
+    pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
   }
 
   /**
@@ -194,9 +219,13 @@ public class TomogramCombinationDialog extends ProcessDialog {
    * @param matchorwarpParams
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParams) {
-    panelFinalCombine.setMatchorwarpParams(matchorwarpParams);
+    pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
 
+  public void enableCombineTabs(boolean state){
+    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);  
+    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Final Match"), state);
+  }
   /**
    * Get the the matchorwarp parameters of the UI returning them in the 
    * modified MatchorwarpParam object  * 
@@ -205,7 +234,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
    */
   public void getMatchorwarpParams(MatchorwarpParam matchorwarpParams)
     throws NumberFormatException {
-    panelFinalCombine.getMatchorwarpParams(matchorwarpParams);
+    pnlFinal.getMatchorwarpParams(matchorwarpParams);
   }
 
   //  Action function overides for buttons
@@ -233,8 +262,8 @@ public class TomogramCombinationDialog extends ProcessDialog {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced(boolean isAdvanced) {
-    panelInitialCombine.setAdvanced(isAdvanced);
-    panelFinalCombine.setAdvanced(isAdvanced);
+    pnlInitial.setAdvanced(isAdvanced);
+    pnlFinal.setAdvanced(isAdvanced);
     applicationManager.packMainWindow();
   }
 
