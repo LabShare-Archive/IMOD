@@ -80,12 +80,13 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel);
 /* imod plugin */
 /************************************* defines *******************************/
 
-#define IMOD_PLUG_MENU  1      /* Add to special plugin menu. */
-#define IMOD_PLUG_TOOL  2      /* Add to toolbar (future)     */
-#define IMOD_PLUG_PROC  4      /* Add to image proc window. (future)  */
-#define IMOD_PLUG_VIEW  8      /* Add to model view window. */
-#define IMOD_PLUG_KEYS 16      /* Handle key events. */
-#define IMOD_PLUG_FILE 32      /* Allow other image files to be loaded. */
+#define IMOD_PLUG_MENU     1   /* Add to special plugin menu. */
+#define IMOD_PLUG_TOOL     2   /* Add to toolbar (future)     */
+#define IMOD_PLUG_PROC     4   /* Add to image proc window. (future)  */
+#define IMOD_PLUG_VIEW     8   /* Add to model view window. */
+#define IMOD_PLUG_KEYS    16   /* Handle key events. */
+#define IMOD_PLUG_FILE    32   /* Allow other image files to be loaded. */
+#define IMOD_PLUG_MESSAGE 64   /* Execute messages */
 
 #define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
 #define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
@@ -149,6 +150,9 @@ void DLL_EX_IM imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 /*
     $Log$
+    Revision 3.7  2004/05/31 23:10:56  mast
+    Added macros for exporting/importing under Windows
+
     Revision 3.6  2003/10/01 05:04:44  mast
     Changes for creation of imodview.h
 
