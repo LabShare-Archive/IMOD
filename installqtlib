@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/05/08 23:29:09  mast
+#  change for windows
+#
 #  Revision 3.6  2003/05/08 21:42:35  mast
 #  Get libqt name better
 #
@@ -23,6 +26,10 @@ set qtlibdir = `sed -n '/QTINSTLIBDIR/s/^.*= *//p' configure`
 
 if ($qtlibdir == "") exit 0
 
+#
+# Get the library extension, but don't worrry if it's not defined
+#
+set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
 
 #
 # get the install directory, and grab the name of the Qt lib from the
@@ -45,8 +52,8 @@ set qtlib = $qtlib[1]
 # Count up non-links and save name of real file
 #
 @ numreal = 0
-foreach i ($QTDIR/lib/$qtlib.*)
-    if ((! -l $i) && $i:e != "prl") then
+foreach i ($QTDIR/lib/$qtlib.*$libext)
+    if ((! -l $i) && $i:e != "prl" && $i:e != "la") then
         @ numreal++
         set realname = $i
     endif
