@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/8/03: IMOD_3-1-1
+11/8/03: Setup/makefile files needed to package build correctly
+
 11/7/03: IMOD_3-1-0 released
 11/7/03: Added Windows installation instructions, revised other documentation.
 Made final highest-priority changes in eTomo before release.
