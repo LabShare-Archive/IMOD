@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/02/10 20:49:57  mast
+    Merge Qt source
+
     Revision 1.1.2.4  2003/01/30 01:10:25  mast
     Move fork to before starting application
 
@@ -62,7 +65,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 
 #include "midas.h"
@@ -80,8 +82,9 @@ int Midas_debug = 0;
 #define ARROW_SIZE 19
 
 #ifdef _WIN32
-#define NO_IMOD_FORK
 #include <fcntl.h>
+#else
+#include <unistd.h>
 #endif
 
 static void usage(void)
@@ -122,9 +125,9 @@ int main (int argc, char **argv)
   int dofork = 1;
 #endif
 
-#ifdef _WIN32
-  _fmode = _O_BINARY;
-#endif
+//#ifdef _WIN32
+//  _fmode = _O_BINARY;
+//#endif
 
   vw = VW = &MidasView;
 
@@ -137,16 +140,15 @@ int main (int argc, char **argv)
       dofork = 0;
   }
 
+#ifndef NO_IMOD_FORK
   // Fork before starting Qt application
   if (dofork) {
     if (fork())
       exit(0);
   }
+#endif
 
   QApplication myapp(argc, argv);
-
-  // Workaround apparent bug
-  argc = myapp.argc();
 
   if (argc < 2)
     usage();
