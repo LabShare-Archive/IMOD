@@ -36,6 +36,10 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/07/20 23:25:46  mast
+    Make getimodhead return image origin values so that programs can get
+    back to index coordinates of full-sized volume
+
     Revision 3.4  2002/07/07 20:10:57  mast
     Added getimodscales to return scaling factors for getting between model
     and index coordinates
@@ -219,7 +223,7 @@ int getimod (int ibase[],     /* index into coord array */
 	  }
      }
 
-     fin = fopen(cfilename, "r");
+     fin = fopen(cfilename, "rb");
 
 #ifdef FWRAP_DEBUG
      fprintf(errfp, "filename = %s\n", cfilename);
@@ -871,7 +875,7 @@ int writeimod(
 	  Fimod->zmax = zmax_put;
      }
   
-     Fimod->file = fopen(filename, "w");
+     Fimod->file = fopen(filename, "wb");
      retcode = imodWriteFile(Fimod);
      free(filename);
      return(retcode);

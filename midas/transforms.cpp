@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:49:58  mast
+Merge Qt source
+
 Revision 1.1.2.5  2003/01/26 23:20:33  mast
 using new library
 
@@ -1029,7 +1032,7 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
     dia_err("Error reading model.");
     return;
   }
-  if (imodOpenFile(outfname, "w", model)){
+  if (imodOpenFile(outfname, "wb", model)){
     dia_err("Error opening output.");
     return;
   }

@@ -101,7 +101,7 @@ Imod *imodFileRead(char *filename)
 
 int  imodFileWrite(Imod *imod, char *filename)
 {
-     FILE *fout = fopen(filename, "w");
+     FILE *fout = fopen(filename, "wb");
      return(imodWrite(imod, fout));
 }
 
@@ -181,7 +181,7 @@ Imod *imodRead(char *filename)
      if (!imod)
 	  return(NULL);
 
-     fin = fopen(filename, "r");
+     fin = fopen(filename, "rb");
      if (!fin){
 	  imodFree(imod);
 	  return(NULL);
@@ -1489,6 +1489,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
     $Log$
+    Revision 3.6  2003/02/21 22:21:35  mast
+    Use new b3d types
+
     Revision 3.5  2002/11/25 19:04:42  mast
     Added "int" in front of imodFgetline
 
