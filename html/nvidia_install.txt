@@ -1,14 +1,14 @@
 These instructions for installing an Nvidia card to use with IMOD may
-be helpful.  They were correct as of May 2003.  The list of steps
+be helpful.  They were correct as of June 2004.  The list of steps
 assume that you have already installed Red Hat Linux with the XFree86
 4.0 drivers.
 
 1. Go to the Nvidia web site (http://www.nvidia.com) and find the page
-offering Linux drivers (e.g. select Download Drivers, Linux and
-FreeBSD Drivers, Linux IA32 Latest Version).  Download the driver
-installer file, e.g. NVIDIA-Linux-x86-1.0-4363.run.  Notice links to
-the README file, which you may need to consult.  After you have
-installed the drivers, this file is in /usr/share/doc/NVIDIA_GLX-1.0.
+offering Linux drivers (e.g. select Download Drivers - Linux and
+FreeBSD Drivers - Linux IA32 Latest Version or Archive for older versions).
+Download the driver installer file, e.g. NVIDIA-Linux-x86-1.0-4363.run.
+Notice links to the README file, which you may need to consult.  After you
+have installed the drivers, this file is in /usr/share/doc/NVIDIA_GLX-1.0.
  
 2. Make sure the default boot is into the terminal mode instead of x.
 This is done by setting the run mode as indicated below in /etc/inittab:
@@ -23,8 +23,7 @@ Reboot if necessary for this to take effect.
 run it as recommended in the instructions, e.g.
  sh NVIDIA-Linux-x86-1.0-4363.run
 
-4. Edit your /etc/X11/XF86Config-4 file if it exists, otherwise 
-/etc/X11/XF86Config.
+4. Edit your /etc/X11/XF86Config file.
 Make sure the modules section loads "glx".
 Make your driver line says "Driver nvidia".
 A sample XF86Config file is attached for your reference.
@@ -64,4 +63,3 @@ correctly.  If the rate is somewhat slower (e.g. below 100), you may
 have problems with the AGP support.  Do
    cat  /proc/driver/nvidia/agp/status
  and see if AGP is Disabled.
-
