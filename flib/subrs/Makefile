@@ -34,7 +34,7 @@ libwmod.lib: model/*.f
 	$(RANLIB) $(LIBWMOD)
 	$(CP) $(LIBWMOD) $(LIBDIR)
 
-$(LIBIM): $(LIBIFFT) imsubs/*.f imsubs/*.c imsubs2/*.f
+$(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	\rm -f $(LIBIM)
