@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/07/25 22:54:14  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -120,6 +123,11 @@ public class MatchorwarpParam
         i++;
         zUpperExclude = Integer.parseInt(cmdLineArgs[i]);
       }
+      
+      if (cmdLineArgs[i].startsWith("-l")) {
+        i++;
+        useLinearInterpolation = true;
+      }
 
       if (cmdLineArgs[i].startsWith("-tr")) {
         trial = true;
@@ -208,6 +216,10 @@ public class MatchorwarpParam
     if (zUpperExclude > 0) {
       cmdLineArgs.add("-zupperexclude");
       cmdLineArgs.add(String.valueOf(zUpperExclude));
+    }
+
+    if (useLinearInterpolation) {
+      cmdLineArgs.add("-linear");
     }
 
     if (trial) {
@@ -372,6 +384,10 @@ public class MatchorwarpParam
   public void setRefineFile(String refineFile) {
     this.refineFile = refineFile;
   }
+  
+  public void setUseLinearInterpolation(boolean useLinearInterpolation) {
+    this.useLinearInterpolation = useLinearInterpolation;
+  }
 
   /**
    * Reset the state of the object to it initial defaults
@@ -394,5 +410,6 @@ public class MatchorwarpParam
     trial = false;
     inputFile = "";
     outputFile = "";
+    useLinearInterpolation = false;
   }
 }

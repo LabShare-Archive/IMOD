@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -41,6 +44,7 @@ public class ConstMatchorwarpParam {
   protected boolean trial = false;
   protected String inputFile = "";
   protected String outputFile = "";
+  protected boolean useLinearInterpolation = false;
   
   public ConstMatchorwarpParam() {
   }
@@ -168,6 +172,10 @@ public class ConstMatchorwarpParam {
    */
   public String getRefineFile() {
     return refineFile;
+  }
+  
+  public boolean isUseLinearInterpolation() {
+    return useLinearInterpolation;
   }
   
   /**
