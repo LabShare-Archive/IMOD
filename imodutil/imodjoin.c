@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/06/11 02:29:59  mast
+Fixed bug with trying to use the zero-th view when there are no real views
+
 Revision 3.3  2003/10/24 03:05:24  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -289,48 +292,3 @@ int main(int argc, char **argv)
   imodWriteFile(inModel);
   exit(0);
 }
-void imodViewUse(Imod *imod)
-{
-  int nobj, i;
-  char labsav[32];
-
-  /* First copy the view structure, saving and restoring the object view
-     count and pointer from the default view */
-  Iview *vw = &imod->view[imod->cview];
-  Iobjview *defviewsave = imod->view->objview;
-  int  defsizesave = imod->view->objvsize;
-  memcpy(labsav, imod->view->label, 32);
-  imod->view[0] = *vw;
-  memcpy(imod->view->label, labsav, 32);
-  imod->view->objview = defviewsave;
-  imod->view->objvsize = defsizesave;
-     
-
-  /* Now set object characteristics based on the saved values in the
-     current view.  Use no more data than the current # of objects */
-  nobj = imod->objsize;
-  if (nobj > vw->objvsize)
-    nobj = vw->objvsize;
-
-  for (i = 0; i < nobj; i++)
-    imodObjviewToObject(&vw->objview[i], &imod->obj[i]);
-}
-
-/* Copy all of the characteristics from an object view to an object */
-void imodObjviewToObject(Iobjview *objview, Iobj *obj)
-{
-  obj->flags = objview->flags;
-  obj->red = objview->red;
-  obj->green = objview->green;
-  obj->blue = objview->blue;
-  obj->pdrawsize = objview->pdrawsize;
-  obj->linewidth = objview->linewidth;
-  obj->linesty = objview->linesty;
-  obj->trans = objview->trans;
-  memcpy (&obj->clip, &objview->clip, 4);
-  obj->clip_normal = objview->clip_normal;
-  obj->clip_point = objview->clip_point;
-  memcpy (&obj->ambient, &objview->ambient, 4);
-  memcpy (&obj->mat1, &objview->mat1, 12);
-}
-
