@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/30/03: Fixed problems with float crashing on a blank image, and with Subset
+area being initialized on.
+
+12/29/03: When 3dmod is started with multiple single-image files, it will now
+display them as sections in Z instead of in time by default.
+
+12/28/03: Taking a montage in the model view movie maker will now save a single
+large image.
+
 12/27/03: IMOD_3-2-2
 12/27/03: Converted Xfmodel to PIP input and implemented ability to undistort
 a model built on distorted images.
@@ -23,8 +32,8 @@ be started with only the first axis present.
 snapshots automatically just as with Zap window, and an option to start a movie
 snapshot at the current position in Slicer or Zap windows.
 
-12/18/03: Disabled autocontrast hot key for non-existent or RGB images, and fixed
-problem with float on first image of a zap movie snapshot.
+12/18/03: Disabled autocontrast hot key for non-existent or RGB images, and 
+fixed problem with float on first image of a zap movie snapshot.
 
 12/17/03: Added global rotation mode to Midas so that tilt series images can
 be rotated to make the tilt axis vertical.
