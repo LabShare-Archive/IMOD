@@ -1254,8 +1254,8 @@ int SkinObject
                                      scancont[tco], pmin[tco], pmax[tco])) {
               if (overlap != 0.0){
                 /* contours must overlap by given fraction*/
-                imodel_overlap_fractions(scancont[lind], pmin[lind], 
-                                         pmax[lind], scancont[tco],
+                imodel_overlap_fractions(&scancont[lind], pmin[lind], 
+                                         pmax[lind], &scancont[tco],
                                          pmin[tco], pmax[tco], &frac1, &frac2);
                 if (frac1 <= overlap && frac2 <= overlap)
                   continue;
@@ -1309,8 +1309,8 @@ int SkinObject
 
               if (overlap != 0.0){
                 /* contours must overlap by given fraction*/
-                imodel_overlap_fractions(scancont[lind], pmin[lind],
-                                         pmax[lind], scancont[tco],
+                imodel_overlap_fractions(&scancont[lind], pmin[lind],
+                                         pmax[lind], &scancont[tco],
                                          pmin[tco], pmax[tco], &frac1, &frac2);
                 if (frac1 <= overlap && frac2 <= overlap)
                   continue;
@@ -1404,8 +1404,8 @@ int SkinObject
                 imodel_contour_mm(bcont, &bpmax, &bpmin);
               }
             }
-            imodel_overlap_fractions(bcont, bpmin, bpmax, tcont, tpmin, tpmax,
-                                     &frac1, &frac2);
+            imodel_overlap_fractions(&bcont, bpmin, bpmax, &tcont, 
+                                     tpmin, tpmax, &frac1, &frac2);
             if (frac1 > frac2) {
               maxfrac[i * nbot + j] = frac1;
               minfrac[i * nbot + j] = frac2;
@@ -2009,8 +2009,8 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
        means we need to create a contour around a hole if possible */
     if (!used[justinl[inl]]) {
       co = list[justinl[inl]];
-      imodel_overlap_fractions(scancont[co], pmin[co], pmax[co],
-                               outscan, pminout, pmaxout,
+      imodel_overlap_fractions(&scancont[co], pmin[co], pmax[co],
+                               &outscan, pminout, pmaxout,
                                &frac1, &frac2);
       if (frac1 > 0.8)    /* What to set this to as capping thresh? */
         used[justinl[inl]] = -1;
@@ -2406,8 +2406,8 @@ static float evaluate_break(Icont *cout, int *list, int *used,
     if (used[justinl[i]])
       continue;
     co = list[justinl[i]];
-    imodel_overlap_fractions(scancont[co], pmin[co],
-                             pmax[co], inscan, pminin,
+    imodel_overlap_fractions(&scancont[co], pmin[co],
+                             pmax[co], &inscan, pminin,
                              pmaxin, &frac1, &frac2);
     areasum += frac2 * inarea;
   }
@@ -3851,6 +3851,10 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.9  2005/01/29 20:28:32  mast
+Pulled out routines for making Z tables and doing nested contour
+analysis
+
 Revision 3.8  2004/09/27 22:14:52  mast
 Try again - get rid of empty polygon at start of mesh
 
