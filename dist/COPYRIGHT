@@ -1,8 +1,8 @@
-IMOD Version 3.1.0                       Copyright Notice and Credits
+IMOD Version 3.5.2                       Copyright Notice and Credits
 --------------------------------------------------------------------------
-ALL SOFTWARE LISTED IS Copyright (C) 1994-2003 by Boulder Laboratory for
-3-Dimensional Electron Microscopy of Cells ("BL3DEMC") and the Regents
-of the University of Colorado.
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2005 by
+Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
+("BL3DEMC") and the Regents of the University of Colorado.
 
 BL3DEMC reserves the exclusive rights of preparing derivative works,
 distributing copies for sale, lease or lending and dispalying this
@@ -16,12 +16,16 @@ THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
 EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
 MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
 
-All programs were written by David Mastronarde, James Kremer, and Rick
-Gaudette from the BL3DEMC, some based on work and libraries from the
-MRC.  We thank David Agard and Hans Chen for the original MRC source
-code, Wah Chiu for a Unix version of low-level MRC file routines used in
-the FORTRAN parts, and Chuck Robertson for much work on the port to
-Linux.
+Programs were written by David Mastronarde, James Kremer, Rick
+Gaudette and Sue Held from the BL3DEMC, some based on work and libraries
+from the MRC.  We thank David Agard and Hans Chen for the original MRC
+source code, Wah Chiu for a Unix version of low-level MRC file routines
+used in the FORTRAN parts, and Chuck Robertson for much work on the port
+to Linux.
+
+The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
+excluded from this notice; it is copyright Max-Planck-Institut for
+Biochemistry, Martinsried, Germany.
 
 This work is supported by NIH/NCRR grant RR00592 and NIH Program Project
 grant P01GM61306 to J.R. McIntosh for the Boulder Laboratory for 
