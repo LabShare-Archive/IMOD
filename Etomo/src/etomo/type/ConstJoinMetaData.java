@@ -21,6 +21,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/14 21:43:50  sueh
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.  All state variables saved after a process is run belong in
+* <p> the state object.
+* <p>
 * <p> Revision 1.3  2004/12/04 01:00:17  sueh
 * <p> bug# 569 Fixed the check to see if working directory is empty in isValid()
 * <p>
@@ -175,11 +180,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.setDefault(0);
     shiftInY.setDisplayDefault(true);
     sigmaLowFrequency.setDefault(0);
-    sigmaLowFrequency.setRecommendedValue(0.0);
+    sigmaLowFrequency.setResetValue(0.0);
     cutoffHighFrequency.setDefault(0);
-    cutoffHighFrequency.setRecommendedValue(0.25);
+    cutoffHighFrequency.setResetValue(0.25);
     sigmaHighFrequency.setDefault(0);
-    sigmaHighFrequency.setRecommendedValue(0.05);
+    sigmaHighFrequency.setResetValue(0.05);
   }
   
   public String toString() {
