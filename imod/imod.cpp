@@ -681,12 +681,6 @@ int main( int argc, char *argv[])
     exit(-1);
   }
 
-  infoGeom = ImodPrefs->getInfoGeometry();
-  if (infoGeom.width() && infoGeom.height()) {
-    ImodInfoWin->resize(infoGeom.width(), infoGeom.height());
-    ImodInfoWin->move(infoGeom.x(), infoGeom.y());
-  }
-
   if (fillCache && vi.vmSize)
     imodCacheFill(&vi);
 
@@ -921,6 +915,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.23  2003/09/24 15:08:37  mast
+Put window ID to info window in debug mode
+
 Revision 4.22  2003/09/24 00:50:11  mast
 Switched from keeping track of geometry to keeping track of pos() and
 size() when saving and restoring positions and sizes
