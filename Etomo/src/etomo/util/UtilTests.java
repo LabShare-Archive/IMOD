@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/01/13 23:00:55  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 package etomo.util;
 
@@ -20,6 +23,7 @@ import junit.framework.TestSuite;
 
 public class UtilTests {
 	public static final String rcsid = "$Id$";
+  static final String testRoot = new String("JUnitTests/etomo/util/");
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for etomo.util");
 		suite.addTestSuite(MRCHeaderTest.class);
