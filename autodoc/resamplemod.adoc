@@ -71,6 +71,6 @@ manpage = Read parameter entries from file.
 short = help
 long = usage
 type = B
-usage = Print help output'
+usage = Print help output
 tooltip = 
 manpage = Print help output. 

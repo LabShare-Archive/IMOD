@@ -157,6 +157,6 @@ manpage =
 short = help
 long = usage
 type = B
-usage = Print help output'
+usage = Print help output
 tooltip = 
 manpage = 

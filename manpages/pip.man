@@ -187,7 +187,7 @@ int PipExitOnError(int \fIuseStdErr\fB, char *\fIprefix\fB);
 
 integer*4 function PipExitOnError(int \fIuseStdErr\fB, char *\fIprefix\fB)
 integer*4 \fIuseStdErr\fB
-chararacter*N \fIprefix\fB
+character*N \fIprefix\fB
 .ft R
 .fi
 
@@ -410,7 +410,9 @@ integer*4 \fInumEntries\fB     [Returned argument]
 .fi
 
 This function returns the number of accumulated entries for the given option
-in the argument \fInumEntries\fR.
+in the argument \fInumEntries\fR.  After calling this function, simply call
+a function to get the value of the option that number of times to
+retrieve all of the entered values.
 
 
 .ft B
@@ -548,7 +550,7 @@ int PipGetIntegerArray(char *\fIoption\fB, int *\fIarray\fB, int *\fInumToGet\fB
 
 integer*4 function PipGetIntegerArray(\fIoption\fB, \fIarray\fB, \fInumToGet\fB, 
                                       \fIarraySize\fB)
-chararacter*N \fIoption\fB
+character*N \fIoption\fB
 integer*4 \fIarray\fB(N)        [Returned argument]
 integer*4 \fInumToGet\fB        [Returned argument if initially 0]
 integer*4 \fIarraySize\fB
@@ -558,7 +560,7 @@ int PipGetFloatArray(char *\fIoption\fB, float *\fIarray\fB, int *\fInumToGet\fB
 
 integer*4 function PipGetFloatArray(\fIoption\fB, \fIarray\fB, \fInumToGet\fB,
                                     \fIarraySize\fB)
-chararacter*N \fIoption\fB
+character*N \fIoption\fB
 real*4 \fIarray\fB(N)           [Returned argument]
 integer*4 \fInumToGet\fB        [Returned argument if initially 0]
 integer*4 \fIarraySize\fB
@@ -572,6 +574,28 @@ In the latter case, the functions will return the number of values in
 \fInumToGet\fR.  The size of \fIarray\fR should be specified in
 \fIarraySize\fR.  The return value is 1 if the user did not enter the given
 option.
+
+.nh
+.ft B
+integer*4 function PipGetInOutFile(\fIoption\fB, \fInonOptArgNo\fB, \fIprompt\fB,
+                                   \fIfilename\fB)
+character*N \fIoption\fB, \fIprompt\fB
+integer*4 \fInonOptArgNo\fB
+character*N \fIfilename\fB           [Returned argument]
+.ft R
+.fi
+
+This function is available from Fortran only.  It gets a filename specified
+by \fIoption\fR; if that option was not entered, it gets the non-option
+argument in the \fInonOptArgNo\fR position.  If that argument does not
+exist either, it returns with an error.  Alternatively, if interactive
+input is being used, it prompts for the filename interactively with the
+string in \fIprompt\fB.
+
+To prevent the function from looking for a non-option argument, call it
+with \fInonOptArgNo\fR bigger than the value of \fInumNonOptArg\fR.  If
+there is no interactive input, supply an empty string for \fIprompt\fR.
+
 
 .SS Functions for Help, Cleanup, and Errors
 
@@ -601,7 +625,7 @@ int PipPrintHelp(char *\fIprogName\fB, int \fIuseStdErr\fB, int \fIinputFiles\fB
 
 integer*4 function PipPrintHelp(\fIprogName\fB, \fIuseStdErr\fB, \fIinputFiles\fB,
                                 \fIoutputFiles\fB)
-chararacter*N \fIprogName\fB
+character*N \fIprogName\fB
 integer*4 \fIuseStdErr\fB, \fIinputFiles\fB, \fIoutputFiles\fB
 .ft R
 .fi

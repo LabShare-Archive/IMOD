@@ -1,0 +1,62 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennsssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+WARPVOL(1)							     WARPVOL(1)
+
+NNAAMMEE
+	warpvol - to warp one volume into alignment with another
+
+SSYYNNOOPPSSIISS
+	warpvol
+
+DDEESSCCRRIIPPTTIIOONN
+  Warpvol will transform a volume using a series of general linear
+  transformations. Its main use is to "warp" one tomogram from
+  a two-axis tilt series so that it matches the other tomogram.
+  For each position in the volume, it interpolates between adjacent
+  adjacent transformations to find the transformation appropriate for
+  that position.  Any initial alignment transformation (from
+  Solvematch) must be already contained in the transformations entered
+  into this program; this combining of transformations is accomplished
+  by Findwarp.  It can work with either a 2-D matrix of
+  transformations (varying in X and Z) or with a general 3-D matrix,
+  as output by Findwarp.  The program uses the same algorithm as
+  Rotatevol for rotating large volumes.
+
+  Warpvol uses the PIP package for input (see the manual page for pip(1))
+  and can take input interactively for options that existed when it was
+  converted, to maintain compatibility with old command files.  The
+  following options can be specified either as command line arguments (with
+  the -) or one per line in a command file or parameter file (without 
+  the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+
+  If the program is started with no command line arguments, it reverts to
+  interactive input with the following entries:
+  
+  Name of the input file to be transformed
+
+  Name of the output file for the transformed volume
+
+  Path name of directory (for example, /usr/tmp) where temporary files
+     can be placed, or Return to have files placed in the current
+     directory
+
+  X, Y, and Z dimensions of the output file, or / to accept the default
+     values, which are NZ, NY, and NX of the input volume (a 90-degree
+     rotation about the Y axis)
+  
+  Name of the file with the matrix of inverse transformations
+     (produced by Findwarp)
+
+
+  David Mastronarde, 11/15/96
+
+HHIISSTTOORRYY
+  Written by David Mastronarde  11/15/96; modified for 3-D matrix of
+  transformations, 7/23/97
+  Converted to PIP/autodoc 10/10/03
