@@ -24,7 +24,7 @@ Open model view window to maximum size supported by graphics.
 Select the color that 3dmodv uses as the rendering background.
 The color is a standard Qt color name.
 .TP
-.B -s <wdith,height>
+.B -s <width,height>
 Set the initial size of the model view area of the window.  This is useful if
 you want to take snapshots at a specific size.
 .TP
@@ -95,8 +95,12 @@ Open the Object editing dialog.
 .B V
 Open the View editing dialog.
 .TP
+.B Ctrl-S
+Snapshot image to TIFF file
+.TP
 .B S
-Snapshot image
+Snapshot image to file with current non-TIFF format (selected by setting
+preferences in 3dmod; default is RGB).
 .TP
 .B s
 Toggle Stereo On/Off.

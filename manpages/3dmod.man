@@ -30,11 +30,13 @@ option, then a startup dialog will open to allow options to
 be set.
 
 
-The model must be in the IMOD model format.  Images must be in the MRC
-image format, or in the TIFF format, if the appropriate TIFF library is
-available.  MRC files of almost any mode can be read in: byte, 16-bit integer,
+The model must be in the IMOD model format.  Images can be in the MRC
+image format; in the TIFF format, if the appropriate TIFF library is
+available; or in any of the formats supported by the Qt image-reading
+function, which include JPEG, PNG, PPM, and BMP.  MRC files of almost any
+mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
-16-bit integer, or color; they may be organized in strips but not in tiles.
+16-bit integer, or color; they may be organized in strips or in tiles.
 TIFF files with various kinds of compression can
 be read, depending on the
 capabilities of the libraries on the system.  When multiple files are read
@@ -363,6 +365,12 @@ so that sliders are hot only when the control key is pressed.
 Nearly all controls in 3dmod have tooltips that will appear when the
 mouse pointer is left over a control for about half a second.  These
 tooltips can be disabled in the Preferences dialog.
+
+Snapshots can be taken of image and model view windows with hot keys.
+A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats such as
+JPEG, PNG, and SGI RGB can be
+taken with "S".  The format of these non-TIFF snapshots can be selected in the
+Preferences dialog.
 
 The Escape key can be used to close all windows except the Information
 Window, or the 3dmodv window when running 3dmodv.
@@ -727,7 +735,7 @@ F  -  Find the maximum pixel within 10 pixels and report its value
 
         Other keys active in the ZaP window only
         ----------------------------------------
-S  -  Snapshot image in window to RGB file
+S  -  Snapshot image in window to file with current non-TIFF format
 Ctrl-S - Snapshot image in window to TIFF file
 Ctrl-A - Select all contours in current object on section or 
            within the rubberband
@@ -812,7 +820,7 @@ in a direction perpendicular to the slice.
 _/+  -  Decrease/Increase displayed image thickness
 9/0  -  Decrease/Increase displayed model thickness
 s    -  Show slice in ZaP and XYZ windows
-S    -  Snapshot to RGB file
+S    -  Snapshot to file with current non-TIFF format
 Ctrl-S - Snapshot to TIFF file
 x/y/z  - Align current and last model points along X, Y or Z axis
 X/Y/Z  - Align first and last points of current contour along
@@ -848,7 +856,7 @@ r    -  Toggle between low and high resolution display modes
 P    -  Toggle on or off showing a projection of the current 
           contour in the XZ and YZ planes, and of a current 
           contour that is open in the XY plane
-S    -  Snapshot to RGB file
+S    -  Snapshot to file with current non-TIFF format
 Ctrl-S - Snapshot to TIFF file
 .fi
 .TP
@@ -907,7 +915,7 @@ F5/F6   Decrease/Increase black threshold level
 F7/F8   Decrease/Increase white threshold level
 b       Toggle the bounding box on or off
 ,/.     Decrease/Increase angular increment when rotating
-S    -  Snapshot to RGB file
+S    -  Snapshot to file with current non-TIFF format
 Ctrl-S - Snapshot to TIFF file
 .fi
 .SH Graph Window
