@@ -13,9 +13,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/24 03:01:34  mast
+initial creation, consolidating routines from elsewhere
+
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
