@@ -12,10 +12,14 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/01 05:01:29  mast
+Initial creation; functions pulled from imodP.h
+
 */
 #ifndef IMODVIEWP_H
 #define IMODVIEWP_H
 
+int ivwReopen(ImodImageFile *inFile);
 unsigned char **ivwGetCurrentSection(ImodView *iv);
 unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
                                     int xsize, int ysize, int mode);
@@ -43,5 +47,11 @@ void ivwFlipModel(ImodView *iv);
 void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
+void memreccpy
+(unsigned char *tb,             /* copy data to buffer */
+ unsigned char *fb,             /* copy data from buffer */
+ int xcpy, int ycpy, int psize, /* amount/size of data to copy. */
+ int tskip, int tox, int toy,   /* to buffer offsets, skip. */
+ int fskip, int fox, int foy);   /* from buffer offsets, skip. */
 
 #endif
