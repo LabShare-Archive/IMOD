@@ -5,6 +5,14 @@ C	and associate with stream ISTREAM
 C	(ISTREAM = # between 1 & 12 ; MAX of  10 files opened at any time!!)
 c	  DNM 8/22/00: changed size limit for detecting swapped bytes to 60000
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	SUBROUTINE IMOPEN(ISTREAM,NAME,ATBUTE)
 	CHARACTER*(*) NAME,ATBUTE
 	character*7 at2
@@ -23,15 +31,16 @@ C   Check for valid unit number
 C
 	IF (ISTREAM .GT. maxstream) THEN
 	  WRITE(6,1000)
-1000	  FORMAT(//' IMOPEN: Invalid STREAM number!!!'//)
-	  STOP 'OPEN ERROR'
+1000	  FORMAT(//' IMOPEN: Invalid STREAM number,',
+     &	      ' cannot open file!!!'//)
+	  call exit(1)
 	END IF
 	numopen = numopen + 1
 	if (numopen .gt. maxunit) then
 	  write(6,1100)maxunit
 1100	  format(//,' IMOPEN: No More than',i4,
-     &	      ' files can be opened!!',//)
-	  stop 'open error!!!'
+     &	      ' files can be opened, cannot open file!!',//)
+	  call exit(1)
 	endif
 C
 C   Open file
@@ -48,7 +57,10 @@ c
 	if(spider(j))then
 	  CALL QSEEK(J,1,1,1)
 	  CALL QREAD(J,buf,NBW3,IER)
-	  IF (IER .NE. 0) stop 'ERROR READING FILE'
+	  IF (IER .NE. 0) then
+	    print *, 'IMOPEN: ERROR READING FILE'
+	    call exit(1)
+	  endif
 	  mrctyp=.true.
 	  do i=1,3
 	    mrctyp=mrctyp.and.(intbuf(i).ge.0.and.intbuf(i).le.60000)
@@ -69,8 +81,11 @@ c
      &	      buf(2).gt.0.5.and.buf(2).lt.60000..and.
      &	      buf(3).gt.0.5.and.buf(3).lt.60000.
 	  spider(j)=spityp.and..not.mrctyp
-	  if(.not.(mrctyp.or.spityp))stop 
+	  if(.not.(mrctyp.or.spityp))then
+	    print *,
      &	      'THIS FILE IS NOT RECOGNIZABLE AS MRC OR SPIDER IMAGE FILE'
+	    call exit(1)
+	  endif
 	endif
 c	  
 c	  if SPIDER file, open a second time on unit 30+j, for direct access
@@ -107,7 +122,7 @@ C  DNM: for unix, change len(at2) to len(atbute)
 	if(spider(j).and.print)write(6,2200)
 2200	format(20x,'This is a SPIDER file.',/)
 	if(mrcflip(j).and.print)write(6,2300)
-2300	format(20x,'This is an unconverted file.',/)
+2300	format(20x,'This is a byte-swapped file.',/)
 C	  
 	RETURN
 C
