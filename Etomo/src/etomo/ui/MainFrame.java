@@ -45,6 +45,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/02/17 20:24:47  sueh
+ * <p> Removed unused code.
+ * <p>
  * <p> Revision 3.19  2005/02/11 23:14:14  sueh
  * <p> bug# 594 Removing the Window menu, since it is redundant.
  * <p>
@@ -544,21 +547,49 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   private void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
+    boolean newStuff = EtomoDirector.getInstance().isNewStuff();
     if (command.equals(menuSettings.getActionCommand())) {
       EtomoDirector.getInstance().openSettingsDialog();
     }
     else if (command.equals(menuAxisA.getActionCommand())) {
-      mainPanel.setDividerLocation(1);
+      if (newStuff) {
+        showAxisA();
+      }
+      else {
+        mainPanel.setDividerLocation(1);
+      }
     }
     else if (command.equals(menuAxisB.getActionCommand())) {
-      mainPanel.setDividerLocation(0);
+      if (newStuff) {
+        showAxisB();
+      }
+      else {
+        mainPanel.setDividerLocation(0);
+      }
     }
     else if (command.equals(menuAxisBoth.getActionCommand())) {
-      mainPanel.setDividerLocation(.5);
+      if (newStuff) {
+        showBothAxis();
+      }
+      else {
+        mainPanel.setDividerLocation(.5);
+      }
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
       mainPanel.fitWindow(true);
     }
+  }
+  
+  public void showAxisA() {
+    mainPanel.showAxisA();
+  }
+  
+  public void showAxisB() {
+    mainPanel.showAxisB();
+  }
+  
+  public void showBothAxis() {
+    mainPanel.showBothAxis();
   }
 
   private void menuHelpAction(ActionEvent event) {
