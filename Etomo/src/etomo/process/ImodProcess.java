@@ -15,6 +15,10 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/08/25 22:18:39  rickg
+ * <p> Removed errant model opening for the tomogram where a matching
+ * <p> or patch region model had been previously opened
+ * <p>
  * <p> Revision 2.12  2003/08/05 21:20:45  rickg
  * <p> Added movieMode
  * <p>
@@ -316,8 +320,8 @@ public class ImodProcess {
       except.printStackTrace();
     }
 
-    // Check imodSendEvent's exit code, if it is zero parse the windowID from
-    // stderr stream, otherwise throw an exception describing why the file 
+    // Check imodSendEvent's exit code, if it is not zero read in the
+    // stderr/stdout stream and throw an exception describing why the file 
     // was not loaded
     if (imodSendEvent.getExitValue() != 0) {
 
