@@ -13,6 +13,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
 
 /**
@@ -30,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/11/19 22:42:19  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.15.2.3  2004/10/11 02:00:21  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -204,6 +208,7 @@ public class ComScriptManager {
   private ComScript scriptTomopitchA;
   private ComScript scriptTomopitchB;
   private ComScript scriptCombine;
+  private ComScript scriptVolcombine;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
@@ -962,6 +967,10 @@ public class ComScriptManager {
       loadComScript(CombineComscriptState.COMSCRIPT_NAME, AxisID.ONLY, true);
   }
   
+  public void loadVolcombine() {
+    scriptVolcombine = loadComScript("volcombine", AxisID.ONLY, true);
+  }
+  
   /**
    * 
    * @param gotoParam
@@ -1000,6 +1009,10 @@ public class ComScriptManager {
     updateComScript(scriptCombine, gotoParam, GotoParam.COMMAND_NAME,
       AxisID.ONLY, true, previousCommandIndex);
   }
+  
+  public void saveVolcombine(SetParam setParam) {
+    updateComScript(scriptVolcombine, setParam, SetParam.COMMAND_NAME, AxisID.ONLY);
+  }
 
   /**
    * returns index of saved command
@@ -1024,6 +1037,14 @@ public class ComScriptManager {
       return null;
     }
     return gotoParam;
+  }
+  
+  public SetParam getSetParamFromVolcombine() {
+    SetParam setParam = new SetParam("combinefft_reduce", EtomoNumber.FLOAT_TYPE);
+    if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY)) {
+      return null;
+    }
+    return setParam;
   }
   
   /**
