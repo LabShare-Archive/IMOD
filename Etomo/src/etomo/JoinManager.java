@@ -15,16 +15,18 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
-import etomo.type.JoinProcessTrack;
+import etomo.type.JoinState;
 import etomo.type.ProcessName;
 import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
@@ -46,6 +48,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2004/12/09 04:49:42  sueh
+* <p> bug# 565 Removed isDataParamDirty.  Automatically saving to param file on exit.
+* <p> Changed saveTestParamIfNecessary() to saveTestParamOnExit().
+* <p>
 * <p> Revision 1.7  2004/12/04 00:32:13  sueh
 * <p> bug# 570 Setting paramFile by calling endSetupMode() when running
 * <p> makejoincom.
@@ -208,7 +214,7 @@ public class JoinManager extends BaseManager {
   private MainJoinPanel mainPanel;
   private JoinMetaData metaData;
   private JoinProcessManager processMgr;
-  private JoinProcessTrack processTrack;
+  private JoinState state;
   
   public JoinManager(String paramFileName) {
     super();
@@ -233,7 +239,6 @@ public class JoinManager extends BaseManager {
   }
   
   protected void createProcessTrack() {
-    processTrack = new JoinProcessTrack();
   }
 
   /**
@@ -473,7 +478,7 @@ public class JoinManager extends BaseManager {
   
   protected void saveTestParamOnExit() {
     if (!joinDialog.equalsSample(metaData)) {
-      metaData.setSampleProduced(false);
+      state.setSampleProduced(false);
     }
     joinDialog.getMetaData(metaData);
     // If the user selects Yes then try to save the current EDF file
@@ -639,7 +644,7 @@ public class JoinManager extends BaseManager {
       joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
-    if (metaData.isSampleProduced()) {
+    if (state.isSampleProduced()) {
       joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED_MODE);
     }
     else {
@@ -716,7 +721,7 @@ public class JoinManager extends BaseManager {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return false;
     }
-    saveMetaData();
+    saveTestParamFile();
     return true;
   }
   
@@ -812,8 +817,28 @@ public class JoinManager extends BaseManager {
   }
   
   protected BaseProcessTrack getProcessTrack() {
-    return processTrack;
+    return null;
   }
+  
+  protected void getProcessTrack(Storable[] storable, int index) {
+  }
+  
+  protected void createState() {
+    state = new JoinState();
+  }
+  
+  public JoinState getState() {
+    return state;
+  }
+  
+  protected BaseState getBaseState() {
+    return state;
+  }
+  
+  protected int getNumStorables() {
+    return 2;
+  }
+
   
   /**
    * Interrupt the currently running thread for this axis

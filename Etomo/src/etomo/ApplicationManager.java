@@ -38,11 +38,13 @@ import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
@@ -50,6 +52,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
 import etomo.type.TiltAngleSpec;
+import etomo.type.TomogramState;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
@@ -83,6 +86,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.111  2004/12/13 19:08:19  sueh
+ * <p> bug# 565 Saving process track to edf file as well as meta data in
+ * <p> doneSetupDialog.
+ * <p>
  * <p> Revision 3.110  2004/12/09 04:46:29  sueh
  * <p> bug# 565 Removed isParamFileDirty.  Saved meta data and process track
  * <p> in done function.
@@ -1112,6 +1119,7 @@ public class ApplicationManager extends BaseManager {
   private MainTomogramPanel mainPanel;
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
+  private TomogramState state;
   
   /**
    *  
@@ -4155,7 +4163,7 @@ public class ApplicationManager extends BaseManager {
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      saveMetaData();
+      saveTestParamFile();
     }
     return;
   }
@@ -5252,6 +5260,22 @@ public class ApplicationManager extends BaseManager {
     processTrack = new ProcessTrack();
   }
   
+  protected int getNumStorables() {
+    return 3;
+  }
+  
+  protected void createState() {
+    state = new TomogramState();
+  }
+  
+  public TomogramState getState() {
+    return state;
+  }
+  
+  protected BaseState getBaseState() {
+    return state;
+  }
+  
   public ConstMetaData getMetaData() {
     return (ConstMetaData) metaData;
   }
@@ -5268,6 +5292,13 @@ public class ApplicationManager extends BaseManager {
     return mainPanel;
   }
     
+  protected void getProcessTrack(Storable[] storable, int index) {
+    if (storable == null) {
+      return;
+    }
+    storable[index] = processTrack;
+  }
+  
   protected BaseProcessTrack getProcessTrack() {
     return processTrack;
   }
