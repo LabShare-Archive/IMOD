@@ -176,8 +176,9 @@ cyginstall : configure man
 # Make the manual pages .1 from .man, and .html from .1, copy to directories
 #
 man : configure ALWAYS
-	(cd manpages ; make install)
-	(cd flib/man ; make install)
+	(cd manpages ; $(MAKE) install)
+	(cd flib/man ; $(MAKE) install)
+	(cd autodoc  ; $(MAKE) install)
 
 #
 # Install clibs only or all libs, helps if doing multiple architectures
@@ -320,6 +321,7 @@ cleansrc : ALWAYS
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
+	(cd autodoc ; make clean)
 	(cd com ; make clean)
 	(cd html ; make clean)
 # 
@@ -345,7 +347,7 @@ csrc : ALWAYS
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
 	html/*.* html/Makefile html/3dmodimages \
-	dist scripts com manpages \
+	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
 	devkit/*.[ch] devkit/*++ devkit/README devkit/Makefile \
@@ -376,6 +378,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.21  2003/09/23 20:57:32  mast
+#  Add entry to pack Mac applications on install
+#
 #  Revision 3.20  2003/09/18 20:48:10  mast
 #  Added entry to clean everything that depends on Qt
 #

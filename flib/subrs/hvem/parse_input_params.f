@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/08/09 17:03:28  mast
+c	  Fix bug (add declarations) in new getlogical function
+c	
 c	  Revision 3.3  2003/08/08 16:23:18  mast
 c	  Added function to get a boolean into a logical variable directly
 c	
@@ -29,18 +32,14 @@ c	  Revision 3.1  2003/06/05 00:14:22  mast
 c	  Addition to package
 c	
 
-	integer function PipParseInput(options, numOptions, separator,
+	integer*4 function PipParseInput(options, numOptions, separator,
      &	    numOptArg, numNonOptArg)
 	implicit none
-	integer bufferSize
-	parameter (bufferSize = 1024)
 	character*(*) options(*)
 	character separator
 	integer*4 numOptArg, numOptions, numNonOptArg
-	integer*4 PipInitialize, PipAddOption
-	integer*4 PipNextArg
-	integer*4 iargc, i, lnblnk, j, indStr, indEnd, lenAll
-	character*(bufferSize) string
+	integer*4 PipInitialize, PipAddOption, PipParseEntries
+	integer*4 i, lnblnk, j, indStr, indEnd, lenAll
 c	  
 c	  initialize then pass the options one by one
 c
@@ -75,6 +74,23 @@ c
 	    indStr = j
 	  enddo
 	endif
+
+	PipParseInput = PipParseEntries(numOptArg, numNonOptArg)
+	return
+	end
+
+
+c	  Function to parse the entries to the program after options have
+c	  been defined
+c
+	integer*4 function PipParseEntries(numOptArg, numNonOptArg)
+	implicit none
+	integer bufferSize
+	parameter (bufferSize = 1024)
+	integer*4 numOptArg, numNonOptArg
+	integer*4 iargc, i, lnblnk
+	integer*4 PipNextArg
+	character*(bufferSize) string
 c	  
 c	  pass the arguments in one by one
 c
@@ -82,16 +98,16 @@ c
 	  call getarg(i, string)
 	  if (lnblnk(string) .eq. bufferSize) then
 	    call PipSetError(
-     &		'Input argument too long for buffer in PipParseInput')
-	    PipParseInput = -1
+     &		'Input argument too long for buffer in PipParseEntries')
+	    PipParseEntries = -1
 	    return
 	  endif
-	  PipParseInput = PipNextArg(string)
-	  if (PipParseInput .lt. 0) return
-	  if (PipParseInput .gt. 0 .and. i .eq. iargc()) then
+	  PipParseEntries = PipNextArg(string)
+	  if (PipParseEntries .lt. 0) return
+	  if (PipParseEntries .gt. 0 .and. i .eq. iargc()) then
 	    call PipSetError('A value was expected but not found for'//
      &		' the last option on the command line')
-	    PipParseInput = -1
+	    PipParseEntries = -1
 	    return
 	  endif
 	enddo
@@ -99,11 +115,14 @@ c
 c	  get numbers to return
 c
 	call PipNumberOfArgs(numOptArg, numNonOptArg)
-	PipParseInput = 0
+	PipParseEntries = 0
 	return
 	end
 
-	integer function PipGetLogical(option, value)
+
+c	  PipGetLogical: Function to get a Fortran logical directly
+c
+	integer*4 function PipGetLogical(option, value)
 	implicit none
 	character*(*) option
 	logical value
@@ -117,6 +136,54 @@ c
 	  PipGetLogical = ierr
 	else
 	  value = intval .ne. 0
+	endif
+	return
+	end
+
+
+c	  PipReadOrParseOptions will first try to read an options file,
+c	  then fallback to a list of options supplied to it
+c
+	subroutine PipReadOrParseOptions(options, numOptions, progName,
+     &	    exitString, interactive, minArgs, numInFiles, numOutFiles, 
+     &	    numOptArg, numNonOptArg)
+	implicit none
+	character*(*) options
+	character*(*) progName
+	character*(*) exitString
+	logical interactive
+	integer*4 minArgs, numInFiles, numOutFiles
+	integer*4 numNonOptArg, numOptArg, numOptions, ierr
+	character*240 errString
+	integer*4 PipGetError,PipParseInput,PipReadOptionFile,PipParseEntries
+	integer*4 PipGetBoolean, PipPrintHelp
+c	  
+c	  First try to read autodoc file
+c
+	call PipAllowCommaDefaults(1)
+	ierr = PipReadOptionFile(progName, 1, 0)
+	call PipExitOnError(0, exitString)
+c
+c	  If that is OK, go parse the entries;
+c	  otherwise print error message and use fallback option list
+c
+	if (ierr .eq. 0) then
+	  ierr = PipParseEntries(numOptArg, numNonOptArg)
+	else
+	  ierr = PipGetError(errString)
+	  print *,'PIP WARNING:', errString,
+     &	      'Using fallback options in Fortran code'
+	  ierr = PipParseInput(options, numOptions, '@', numOptArg,
+     &	      numNonOptArg)
+	endif
+c	  
+c	  Process help input
+c	  
+	if (interactive .and. numOptArg + numNonOptArg .eq. 0) return
+	if (numOptArg + numNonOptArg .lt. minArgs .or.
+     &	    PipGetBoolean('help', ierr) .eq. 0) then
+	  ierr = PipPrintHelp(progName, 0, numInFiles, numOutFiles)
+	  call exit(0)
 	endif
 	return
 	end
