@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/02: Added ability for imod to receive X events with commands, and added
+a program, Imodsendevent, to send such events.
+
+9/11/02: Made changes to zap window to minimize X hangups on the PC with
+Nvidia Ti4600 cards when window is resize with R, especially when it is
+movieing.  This includes a delay after expose events.
+
 9/9/02: Eliminated strange include statements in Fortran programs that were
 needed under VMS.
 
