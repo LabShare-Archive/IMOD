@@ -228,8 +228,8 @@ Islice *clip_slice_corr(Islice *s1, Islice *s2)
 
 
 /* Does 3d cross-corr. */
-int clip_corr3d(struct MRCheader *hin1, struct MRCheader *hin2,
-                struct MRCheader *hout, struct Grap_options *opt)
+int clip_corr3d(MrcHeader *hin1, MrcHeader *hin2,
+                MrcHeader *hout, ClipOptions *opt)
 {
   FILE *tfp;
   Istack *v2;
@@ -239,8 +239,8 @@ int clip_corr3d(struct MRCheader *hin1, struct MRCheader *hin2,
   float min,max,mean;
   float x,y,z;
 
-  struct Grap_options opt2;
-  memcpy(&opt2, opt, sizeof(struct Grap_options));
+  ClipOptions opt2;
+  memcpy(&opt2, opt, sizeof(ClipOptions));
 
   if (hin1->mode == MRC_MODE_COMPLEX_FLOAT)
     return(grap_3dcorr(hin1,hin2,hout,opt));
@@ -330,14 +330,14 @@ int clip_corr3d(struct MRCheader *hin1, struct MRCheader *hin2,
  * Does a 3D cross or auto correlation on Complex images. 
  * Outputs product.  Inverse fft still needs to be done.
  */
-int grap_3dcorr(struct MRCheader *hin1, struct MRCheader *hin2,
-                struct MRCheader *hout, struct Grap_options *opt)
+int grap_3dcorr(MrcHeader *hin1, MrcHeader *hin2,
+                MrcHeader *hout, ClipOptions *opt)
 {
-  struct MRCslice  *sin1, *sin2;
+  Islice  *sin1, *sin2;
   int autoc, size;
   int k;
 
-  show_status("Doing 3d corralation...\n");
+  show_status("Doing 3d correlation...\n");
 
   if (opt->infiles > 2){
     show_error("3dcorr, Only two input files allowed.\n");
@@ -369,9 +369,9 @@ int grap_3dcorr(struct MRCheader *hin1, struct MRCheader *hin2,
 
   mrc_head_new(hout, hin1->nx, hin1->ny, hin1->nz, hin1->mode);
   if (autoc)
-    mrc_head_label(hout, "clip: Auto  corralation.");
+    mrc_head_label(hout, "clip: Auto  correlation.");
   else
-    mrc_head_label(hout, "clip: Cross corralation.");
+    mrc_head_label(hout, "clip: Cross correlation.");
 
      
   size = hin1->nx * hin1->ny;
@@ -401,10 +401,10 @@ int grap_3dcorr(struct MRCheader *hin1, struct MRCheader *hin2,
  *
  */
 
-int grap_corr(struct MRCheader *hin1, struct MRCheader *hin2, 
-              struct MRCheader *hout, struct Grap_options *opt)
+int grap_corr(MrcHeader *hin1, MrcHeader *hin2, 
+              MrcHeader *hout, ClipOptions *opt)
 {
-  struct MRCslice  sin1, sin2, *cslice;
+  Islice  sin1, sin2, *cslice;
   void *buf1, *buf2;
   int autoc;
   int z1 = 0, z2 = 0;
@@ -744,6 +744,9 @@ double parabolic_fit(double *outX, double *outY, double i[3][3])
 
 /*
 $Log$
+Revision 3.5  2005/01/12 22:34:28  mast
+Really fixed it this time
+
 Revision 3.4  2005/01/12 22:09:08  mast
 Fixed slice correlation, size was not passed correctly to todfft
 
