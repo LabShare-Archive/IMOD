@@ -19,6 +19,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2005/01/05 19:54:00  sueh
+ * bug# 578 Added a constructor which accepts
+ * Command comScriptCommand instead of String comScript.
+ *
  * Revision 3.19  2004/11/24 00:59:50  sueh
  * bug# 520 Add getComScriptName to identify which comscript was run.
  *
@@ -306,6 +310,7 @@ public class ComScriptProcess
   protected StringBuffer cshProcessID;
   private AxisID axisID;
   protected String watchedFileName;
+  private Command command = null;
 
   private boolean started = false;
   private boolean done = false;
@@ -333,6 +338,7 @@ public class ComScriptProcess
       cshProcessID = new StringBuffer("");
       this.axisID = axisID;
       this.watchedFileName = watchedFileName;
+      command = comScriptCommand;
     }
 
   /**
@@ -458,6 +464,10 @@ public class ComScriptProcess
    */
   public String getScriptName() {
     return name;
+  }
+  
+  public Command getCommand() {
+    return command;
   }
 
   public ProcessName getProcessName() {
