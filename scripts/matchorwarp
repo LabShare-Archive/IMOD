@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/03/21 22:45:56  mast
+#  Make sure all error exits has an ERROR: statement and pass on exit status
+#  from running matchvol or warpvol
+#
 #  Revision 3.1  2002/07/21 04:54:48  mast
 #  Added options for specifying rows and columns to exclude for findwarp,
 #  and for running in a trial mode
@@ -25,6 +29,7 @@ set warplimit = "0.2,0.27,0.35"
 set modelfile = ""
 set sizein = ""
 set tempdir = ""
+set linear = ""
 set xlower = "0"
 set zlower = "0"
 set xupper = "0"
@@ -55,6 +60,7 @@ Usage: ${pn} [options] input.file output.file
  -xupperexclude #          Columns to exclude on the right side
  -zlowerexclude #          Rows to exclude at high Z
  -zupperexclude #          Rows to exclude at low Z
+ -linear                   Use linear interpolation in Matchvol/Warpvol
  -trial                    Run Refinewarp/Findwarp but not Matchvol/Warpvol
 EOF
 exit 0
@@ -102,8 +108,12 @@ while ($#argv > 2)
       shift; shift
       breaksw
     case -te*:
-      set tempdir = $argv[2]
+      set tempdir = "TemporaryDirectory $argv[2]"
       shift; shift
+      breaksw
+    case -li*:
+      set linear = "InterpolationOrder 1"
+      shift
       breaksw
     case -xl*:
       set xlower = $argv[2]
@@ -192,15 +202,15 @@ if (! $savestat) then
     echo " "
 
 
-    matchvol <<EOF
-$recfile
-$matfile
+    matchvol -StandardInput <<EOF
+InputFile $recfile
+OutputFile $matfile
 $tempdir
-$size
-2
-$solvefile
-$refinefile
-$inversefile
+OutputSizeXYZ $size
+TransformFile $solvefile
+TransformFile $refinefile
+InverseFile $inversefile
+$linear
 EOF
 
     exit $status
@@ -253,12 +263,13 @@ EOF
 
 	echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL"
 	echo " "
-	warpvol <<EOF
-$recfile
-$matfile
+	warpvol -StandardInput <<EOF
+InputFile $recfile
+OutputFile $matfile
 $tempdir
-$size
-$warpfile
+OutputSizeXYZ $size
+TransformFile $warpfile
+$linear
 EOF
 
         exit $status
