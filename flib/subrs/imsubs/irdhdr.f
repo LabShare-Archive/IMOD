@@ -40,6 +40,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/02/26 23:04:01  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.1  2002/02/26 23:03:37  mast
 c	  When supplying extended header data, use the values of nint and nreal
 c	  to test whether it consists of shorts or ints and reals, and swap
@@ -52,9 +55,10 @@ c
 	DATA LXYZ/'X','Y','Z'/
 C
 	include 'imsubs.inc'
+	parameter (limtmp = 4096)
 	dimension istuff(31,10),header(256),tilt(3),jbsym(*),wavelen(6)
 	dimension amat1(3,3),amat2(3,3),amat3(3,3),spibuf(9)
-	integer*4 headtmp(256)
+	integer*4 headtmp(limtmp/4)
 	logical cflag,onoff
 	integer*2 idat(6),iwavelen(6)
 	character*(*) string
@@ -398,20 +402,57 @@ c
 127	J = LSTREAM(ISTREAM)
 	K = LSTREAM(JSTREAM)
 	if (nbsym(k).eq.0) return
-	nblocks = (nbsym(k) + 1023)/1024
+c	  
+c	  DNM 4/18/02
+c	  figure out a block size for the transfer; if the data need to be
+c	  swapped, and they are not shorts, then get a block size that
+c	  contains an integral number of sections worth of data
+c
+	iblocksize = limtmp
+	if (mrcflip(k)) then
+	  call move(idat,stuff(11,j),4)
+	  nints = idat(1)
+	  nreal = idat(2)
+	  ifshorts = 1
+	  if(.not.(nbytes_and_flags(nints,nreal).or.
+     &	      (nints+nreal.eq.0))) then
+	    ifshorts=0
+	    nblockunits=limtmp/(4*(nints+nreal))
+	    iblocksize = nblockunits * 4 *(nints+nreal)
+	    if(iblocksize.eq.0) then
+	      print *,'ITRHDR/ITREXTRA: array size too small to ',
+     &		  'transfer extra header data'
+	      stop
+	    endif
+	  endif
+	endif
+	nblocks = (nbsym(k) + iblocksize - 1)/iblocksize
 	nleft = nbsym(k)
 	call qseek(j,1,1+nbhdr,1)
 	call qseek(k,1,1+nbhdr,1)
-	do 130 iblock = 1,nblocks
-	  nbread = min(1024,nleft)
+	do iblock = 1,nblocks
+	  nbread = min(iblocksize,nleft)
 	  call qread(k,headtmp,nbread,ier)
-c
-c	    assume they are shorts
-c
-	  if(mrcflip(k)) call convert_shorts(headtmp,nbread/2)
+	  if(mrcflip(k)) then
+c	    
+c	    if nints and nreal represent nbytes and flags, swap them all as
+c	    shorts Otherwise, swap them as nints longs and nreal floats
+c	    
+	    if(ifshort.eq.1)then
+	      call convert_shorts(headtmp,nbread/2)
+	    else
+	      indconv=1
+	      do  i=1,nblockunits
+		if(nints.gt.0)call convert_longs(headtmp(indconv),nints)
+		indconv=indconv+nints
+		if(nreal.gt.0)call convert_floats(headtmp(indconv),nreal)
+		indconv=indconv+nreal
+	      enddo
+	    endif
+	  endif
 	  call qwrite(j,headtmp,nbread)
-	  nleft = nleft - 1024
-130	continue
+	  nleft = nleft - iblocksize
+	enddo
 	nbsym(j) = nbsym(k)
 	stuff(2,j) = stuff(2,k)
 	stuff(11,j) = stuff(11,k)
@@ -993,9 +1034,9 @@ c
 	call qread(j,jbsym,mbsym,ier)
 	if(mrcflip(j))then
 c	    
-c	    DNM 2/3/02: if swapping, need to find out if nint and nreal
+c	    DNM 2/3/02: if swapping, need to find out if nints and nreal
 c	    represent nbytes and flags, in which case swap them all as shorts
-c	    Otherwise, swap them as nint longs and nreal floats
+c	    Otherwise, swap them as nints longs and nreal floats
 c	    
 	  call move(idat,stuff(11,j),4)
 	  nints = idat(1)
@@ -1004,7 +1045,10 @@ c
 	    call convert_shorts(jbsym,mbsym/2)
 	  else
 	    indconv=1
-	    do  i=1,mbsym/(nints+nreal)
+c
+c	      DNM 4/18/02 add factor of 4 to avoid converting too many
+c
+	    do  i=1,mbsym/(4*(nints+nreal))
 	      if(nints.gt.0)call convert_longs(jbsym(indconv),nints)
 	      indconv=indconv+nints
 	      if(nreal.gt.0)call convert_floats(jbsym(indconv),nreal)

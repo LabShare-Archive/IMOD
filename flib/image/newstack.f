@@ -140,6 +140,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2001/12/29 00:57:49  mast
+c	  Added an entry to -1 floating option to disable all rescaling
+c	
 	parameter (idim=19000000,lmfil=1000,lmsec=50000,maxchunks=20)
 	parameter (maxextra=1000000)
 	COMMON //NX,NY,NZ
@@ -169,6 +172,7 @@ C
 	logical rescale
 	character dat*9,tim*8,tempext*9
 	character*80 tempname,temp_filename
+	logical nbytes_and_flags
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -444,6 +448,12 @@ c
 	    else
 	      call irtsym(1,nbsymin,extrain)
 	      call irtsymtyp(1,nbytexin,iflagxin)
+c		
+c		DNM 4/18/02: if these numbers do not represent bytes and
+c		flags, then number of bytes is 4 times nint + nreal
+c
+	      if(.not.nbytes_and_flags(nbytexin,iflagxin))
+     &		  nbytexin=4*(nbytexin+iflagxin)
 	    endif
 	  endif
 C   
