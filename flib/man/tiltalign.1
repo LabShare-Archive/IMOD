@@ -325,7 +325,9 @@ DDEESSCCRRIIPPTTIIOONN
 	      minimization (METRO).  "Factor" determines how large a step METRO
 	      tries to take.  The default for "factor" is 0.5, but smaller
 	      values of 0.35 or even 0.25 are needed for large data sets.  The
-	      default # of cycles is 500.
+	      default # of cycles is 500.  When METRO fails for various reasons,
+	      the program will retry with several other, mostly smaller values
+	      of the factor.
 
 	  IF transformations are being computed, next enter two more lines:
 
