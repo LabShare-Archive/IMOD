@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/01/05 17:40:14  mast
+Renamed imin/imax to outmin/outmax, and returned errors from mrcRead... calls
+
 Revision 3.5  2003/11/01 16:42:16  mast
 changed to use new error processing routine
 
@@ -187,7 +190,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 {
   int i;
   short int pcoords[3];
-  int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 4};
+  int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 2};
   int extratot = 0;
   int offset=1024;
   int nread = nz;
