@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.53  2003/06/27 20:33:28  rickg
+ * <p> Changed below method to public
+ * <p>
  * <p> Revision 2.52  2003/06/27 20:23:32  rickg
  * <p> Adde getter method for the com script manager
  * <p>
@@ -859,7 +862,6 @@ public class ApplicationManager {
     mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.coarseAlign(axisID);
     setThreadName(threadName, axisID);
-    mainFrame.startProgressBar("Creating coarse stack", axisID);
   }
 
   /**
@@ -1826,7 +1828,6 @@ public class ApplicationManager {
 
       String threadName = processMgr.newst(axisID);
       setThreadName(threadName, axisID);
-      mainFrame.startProgressBar("Creating final stack", axisID);
     }
     catch (FortranInputSyntaxException except) {
       except.printStackTrace();
@@ -1843,7 +1844,6 @@ public class ApplicationManager {
 
       String threadName = processMgr.tilt(axisID);
       setThreadName(threadName, axisID);
-      mainFrame.startProgressBar("Calculating tomogram", axisID);
     }
   }
 
