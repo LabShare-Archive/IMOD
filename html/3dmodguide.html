@@ -25,7 +25,7 @@ objects, contours, and points are organized in a hierarchy in the model.
 <TR>
 <TD COLSPAN=3 TD ALIGN=LEFT>
 <B>Model header:</B><BR>
-includes pixel size, zscale, and information relating model to 
+includes pixel size, Z-scale, and information relating model to 
 image coordinates. </TD>
 </TR>
 
@@ -762,6 +762,97 @@ The Pixel Size field should contain both a value for the size of the
 pixel in the digitized data, and the units for that value.
 Units can be one of the following; A, nm, um, mm, m, km.  For example,
 you could enter "0.015 um" or "15 nm".
+</DD>
 
+<DD> <H4>Advanced topics.</H4>
+This section is to make you aware of some other features in 3dmod, so
+that you can
+investigate them when the need arises.  Consult the help windows of
+the relevant dialog boxes, or the <A HREF="man/3dmod.html">3dmod</A>
+man page, for more details.
+The first few items are related to
+the
+Contour/Surface/Point window, shown here.
+<CENTER> 
+<IMG SRC="3dmodimages/surfcontpt.png" ALT="Surface/Contour/Point
+Dialog Box"> 
+</CENTER> 
+
+<UL>
+<LI>Surfaces.  Surfaces are an optional level of organization between
+objects and contours.  They are particularly useful when you want to
+keep track of many components of one kind, without making a
+separate object for each.  Quantitative information can then be
+derived for each different surface.  The top section of this dialog
+box has some controls for creating and navigating through surfaces,
+and its help window has more information about them.
+<LI>Open and closed contours.  Some of the contours in a closed
+contour object can be defined as open, which means that their starting
+and
+ending points
+will not be connected.  This is useful when modeling a feature 
+that is partially or completely cut by the boundary of a data set.
+<LI>4D modeling.  3dmod can load multiple image files, which occupy a
+fourth dimension referred to as time.  Thus, contours in an object can
+be at different times.
+<LI>Point sizes.  
+Not all points in a scattered point object need to
+be the same size; individual points can be given different sizes using
+the controls in the Point section of this dialog box.  There is even a
+way to draw a closed contour around a feature and have it converted to
+a scattered point with the equivalent radius (see the dialog box
+accessed
+from the Edit-Contour-Move menu entry).
+<LI>Ghost displays.  You can project a "ghost" of contours on adjacent
+sections onto the current section to help you see where to draw the
+next contour.
+
+<LI>Preferences.  You can set preferences that are stored between
+sessions
+of 3dmod, such as the assignment of
+the three mouse buttons.  Use the Edit-Options menu entry to open the
+3dmod Preferences dialog box.
+
+<LI>Automated modeling.  There are two facilities for automated
+modeling.
+The Auto Contouring dialog box, opened from the Edit-Contour menu,
+will draw contours around areas that are above or below a selected
+threshold of intensity.  
+The Line Track plugin, opened from the Special menu, will draw
+contours along a linear feature such as a membrane, either by filling in points
+between two points placed along the feature, or by copying a contour
+from one section to the next and adjusting its position to fit changes
+in the boundary or the object.
+<LI>Pixel View window.  Use the Image-Pixel View menu entry to open a
+window
+that displays a grid of pixel values.
+<LI>Graph Window.  Use the Image-Graph menu entry to open a window
+that can display a graph of pixel values along a line or along a contour.
+<LI>Tumbler Window.  Use the Image-Tumbler menu entry to open a window
+that will show a projection through a small volume of data as the
+volume is tilted to different orientations.
+
+<LI>Making movies.  In addition to being able to snapshot a window
+with a hot key, you can open two dialog boxes that will help you
+collect a series of snapshots for making movies.  The Edit-Movies
+entry in the menu of the 3dmod Info Window opens a box for capturing
+movies from the Zap window, and the File-Movies entry in the menu of
+the Model View Window opens a box for making movies of the model view.
+
+<LI>Object color.  You can change an object's color using the
+Edit-Object-Color menu entry from the 3dmod Info Window, as well as
+using the Edit-Objects dialog box from the Model View Window.
+<LI>Editing contours.  The Edit-Contour menu has a number of advanced
+editing features, including ones to 
+move or copy contours from one object to another, and ones to break and
+join contours.
+<LI>Tooltips.  If you leave the mouse over a button or other control
+for over half a second, a tooltip will appear for that control.
+</UL>
+
+
+
+
+</DD>
 </body>
 </html>
