@@ -865,6 +865,8 @@ void XyzWindow::DrawImage()
      cache; set up image pointer tables */
   // Keep track of a sum of Z values in the cache in order to detect 
   // Changes in available data that will require redisplay of XZ and YZ data
+  // Load current Z section first to get it into cacheSum
+  id = ivwGetCurrentZSection(win->vi);
   if (ivwSetupFastAccess(win->vi, &imdata, 0, &cacheSum))
     return;
 
@@ -887,7 +889,8 @@ void XyzWindow::DrawImage()
 
   ivwGetLocation(win->vi, &cx, &cy, &cz);
   cyi = cy * nx;
-  flipped = !win->vi->fakeImage && !win->vi->vmSize && win->vi->li->axis == 2;
+  flipped = !win->vi->fakeImage && 
+    (!win->vi->vmSize || win->vi->fullCacheFlipped) && win->vi->li->axis == 2;
 
   /* Pass the image offset routine the effective image size, including
      de-zoomed borders, and convert a data offset into a negative window
@@ -920,7 +923,6 @@ void XyzWindow::DrawImage()
      xoffset1, wy1, yoffset1); */
   if (width1 > 0 && height1 > 0) {
     win->lz = cz;
-    id = ivwGetCurrentZSection(win->vi);
     b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
                              width1, height1, win->xydata,
                              win->vi->rampbase, win->zoom, win->zoom, 
@@ -935,16 +937,21 @@ void XyzWindow::DrawImage()
     if (cx != win->lx || cacheSum != win->lastCacheSum) {
       xslice = -1 - cx;
       win->lx = cx;
-      for(z = 0; z < nz; z++) {
-        if (flipped) {
-          for(i = z, y = 0; y < ny; y++, i += nz)
-            fdata[i] = imdata[y][cx + (z * imdataxsize)];
-        } else if (!win->vi->fakeImage && imdata[z]) {
-          for(i = z, y = 0; y < ny; y++, i += nz)
-            fdata[i] = imdata[z][cx + (y * imdataxsize)];
-        } else {
-          for(i= z, y = 0; y < ny; y++, i += nz)
-            fdata[i] = 0;
+      if (flipped && !win->vi->fakeImage) {
+        for (y = 0; y < ny; y++)
+          if (imdata[y]) {
+            for (z = 0; z < nz; z++) 
+              fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
+          }
+      } else {
+        for(z = 0; z < nz; z++) {
+          if (!win->vi->fakeImage && imdata[z]) {
+            for (i = z, y = 0; y < ny; y++, i += nz)
+              fdata[i] = imdata[z][cx + (y * imdataxsize)];
+          } else {
+            for (i= z, y = 0; y < ny; y++, i += nz)
+              fdata[i] = 0;
+          }
         }
       }
     }
@@ -963,10 +970,10 @@ void XyzWindow::DrawImage()
       yslice = -1 - cy;
       win->ly = cy;
       for(i = 0,z = 0; z < nz; z++) {
-        if (flipped) {
+        if (flipped && !win->vi->fakeImage && imdata[cy]) {
           for(x = 0; x < nx; x++, i++)
             fdata[i] = imdata[cy][x + (z * imdataxsize)];
-        } else if (!win->vi->fakeImage && imdata[z]) {
+        } else if (!flipped && !win->vi->fakeImage && imdata[z]) {
           for(x = 0; x < nx; x++, i++)
             fdata[i] = imdata[z][x + (cy * imdataxsize)];
         } else {
@@ -1255,7 +1262,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   /* scattered contour or contour with points to be draw */
   if (iobjScat(obj->flags) || obj->pdrawsize || cont->sizes ) {
     for (pt = 0; pt < cont->psize; pt++) {
-      drawsize = imodPointGetSize(obj, cont, pt);
+      drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0) {
         point = &(cont->pts[pt]);
         if ((int)floor(point->z + 0.5) == currentZ) {
@@ -1727,6 +1734,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.15  2003/12/18 22:46:26  mast
+Register with movie controller when start movie
+
 Revision 4.14  2003/09/16 02:11:30  mast
 Changed to access image data using new line pointers
 
