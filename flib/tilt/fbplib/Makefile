@@ -4,23 +4,26 @@
 #
 include ../../configure
 
+O        = $(OBJEXT)
+
 #
 #
-OBJS     = fbp.o angsum.o angsum0.o fbpt2f.o fbpt2f0.o fbpini.o angsumi.o \
- angsumini.o fbpt2fi.o fbpt2fini.o makefilter.o der_par.o trig_ang.o \
- openfile.o slicecopy.o opt2mass.o angread.o pad.o diagmult.o f2t.o crop.o \
- writeslice.o freadbin.o nice_pad.o fbpneed.o
+OBJS     = fbp.$(O) angsum.$(O) angsum0.$(O) fbpt2f.$(O) fbpt2f0.$(O) \
+ fbpini.$(O) angsumi.$(O) angsumini.$(O) fbpt2fi.$(O) fbpt2fini.$(O) \
+ makefilter.$(O) der_par.$(O) trig_ang.$(O) openfile.$(O) slicecopy.$(O) \
+ opt2mass.$(O) angread.$(O) pad.$(O) diagmult.$(O) f2t.$(O) crop.$(O) \
+ writeslice.$(O) freadbin.$(O) nice_pad.$(O) fbpneed.$(O)
 #
 #
 LIBRARY  =  ../libfbp.a  
 #
 #
 all:	ALWAYS $(OBJS)  
-	ar cr $(LIBRARY) $(OBJS)
-	ranlib $(LIBRARY)
+	$(MAKESTATICLIB)$(LIBRARY) $(OBJS)
+	$(STATICRANLIB) $(LIBRARY)
 
 #
 clean:
-	-\rm -f *.o *.a *~
+	-\rm -f *.o* *.a *~
 
 ALWAYS:
