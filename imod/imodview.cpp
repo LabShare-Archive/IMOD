@@ -307,6 +307,7 @@ void ivwInit(ImodView *vi)
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
+  vi->extraObj = imodObjectNew();
 }
 
 /* After we are all done with the Cache free it.
@@ -2033,6 +2034,13 @@ Imod *ivwGetModel(ImodView *inImodView)
   return(inImodView->imod);
 }
 
+Iobj *ivwGetExtraObject(ImodView *inImodView)
+{
+  if (inImodView == NULL) 
+    return(NULL);
+  return(inImodView->extraObj);
+}
+
 int  ivwDraw(ImodView *inImodView, int inFlags)
 {
   imodDraw(inImodView, inFlags);
@@ -2069,6 +2077,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.8  2003/05/06 02:19:13  mast
+Made ivwPointVisible use proper rounding in test
+
 Revision 4.7  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
