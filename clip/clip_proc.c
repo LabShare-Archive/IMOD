@@ -35,51 +35,22 @@ Log at end of file
 #define FLT_MAX INT_MAX
 #endif
 
-int grap_resize(struct MRCheader *hin, struct MRCheader *hout,
-                struct Grap_options *opt)
-{
-  struct MRCvolume *v;
-
-  v = grap_volume_read(hin, opt);
-  if (!v){
-    return(-1);
-  }
-
-  mrc_head_label_cp(hin, hout);
-	  
-  mrc_head_label(hout, "clip: resized image.");
-
-  if (grap_volume_write(v, hout, opt)) 
-    return(-1); 
-
-  set_mrc_coords(opt);
-  
-  grap_volume_free(v);
-  return(0);
-}
-
 /*
- * Common routine for the rescaling options
+ * Common routine for the rescaling options including resize (no scale)
  */
-int clip_scaling(struct MRCheader *hin, struct MRCheader *hout,
-                    struct Grap_options *opt, int process)
+int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
+                 int process)
 {
   int k, z;
   Islice *slice;
-  struct MRCvolume *v;
+  Istack *v;
   double min, alpha;
 
-  /* Set up new header for 2D */
-  if (opt->dim == 2) {
-    set_input_options(opt, hin);
-    z = set_output_options(opt, hout);
-    if (z < 0)
-      return(z);
-  }
+  z = set_options(opt, hin, hout);
+  if (z < 0)
+    return(z);
 
-  /* Copy header, give message, add title */
-  mrc_head_label_cp(hin, hout);
-
+  /* give message, add title */
   switch (process) {
   case IP_BRIGHTNESS:
     show_status("Brightness...\n");
@@ -96,35 +67,17 @@ int clip_scaling(struct MRCheader *hin, struct MRCheader *hout,
     mrc_head_label(hout, "clip: contrast");
     min = hin->amean;
     break;
+  case IP_RESIZE:
+    mrc_head_label(hout, "clip: resized image");
+    break;
   default:
     return(-1);
   }
 
-  if (opt->val == IP_DEFAULT){
+  if (opt->val == IP_DEFAULT)
     opt->val = 1.0f;
-  }
   alpha = opt->val;
 
-  if (opt->dim == 3) {
-  
-    /* 3D processing based on global min/max/mean */
-    v = grap_volume_read(hin, opt);
-    if (!v){
-      return(-1);
-    }
-    
-    for (k = 0; k < v->zsize; k++){
-      mrc_slice_lie(v->vol[k], min, alpha);
-    }
-    if (grap_volume_write(v, hout, opt)) 
-      return(-1); 
-    if (set_mrc_coords(opt))
-      return (-1);
-    grap_volume_free(v);
-    return(0);
-  }
-
-  /* 2D processing, by slice, with potentially subarea read in */
   for (k = 0; k < opt->nofsecs; k++) {
     slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
@@ -133,46 +86,33 @@ int clip_scaling(struct MRCheader *hin, struct MRCheader *hout,
       return(-1);
     }
 
-    /* Scale based on min.max.mean of individual slice */
-    sliceMMM(slice);
-     
-    switch (process) {
-    case IP_BRIGHTNESS:
-      min = (double)slice->min;
-      break;
-    case IP_SHADOW:
-      min = (double)slice->max;
-      break;
-    case IP_CONTRAST:
-      min = (double)slice->mean;
-      break;
+    /* 2D: Scale based on min/max/mean of individual slice */
+    if (opt->dim == 2 && process != IP_RESIZE) {
+      sliceMMM(slice);
+      if (process == IP_BRIGHTNESS)
+        min = (double)slice->min;
+      else if (process == IP_SHADOW)
+        min = (double)slice->max;
+      else
+        min = (double)slice->mean;
     }
       
-    mrc_slice_lie(slice, min, alpha);
-    sliceMMM(slice);
-    hout->amin = B3DMIN(hout->amin, slice->min);
-    hout->amax = B3DMAX(hout->amax, slice->max);
-    hout->amean += slice->mean;
-    hout->mode  = slice->mode;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
+    if (process != IP_RESIZE)
+      mrc_slice_lie(slice, min, alpha);
+    if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
-    sliceFree(slice);
   }
 
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
   return set_mrc_coords(opt);  
 }
 
 /*
  * Common routine for the edge filters that are not simple convolutions
  */
-int clipEdge(struct MRCheader *hin, struct MRCheader *hout,
-             struct Grap_options *opt, int process)
+int clipEdge(MrcHeader *hin, MrcHeader *hout,
+             ClipOptions *opt, int process)
 {
-  struct MRCslice *s;
+  Islice *s;
   int i, k, z;
   Islice *slice;
   char *message;
@@ -187,15 +127,11 @@ int clipEdge(struct MRCheader *hin, struct MRCheader *hout,
     return -1;
   }
 
-  set_input_options(opt, hin);
-
-  z = set_output_options(opt, hout);
+  z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
-  /* Copy header, give message, add title */
-  mrc_head_label_cp(hin, hout);
-
+  /* give message, add title */
   switch (process) {
   case IP_GRADIENT:
     message = "Taking gradient of";
@@ -257,33 +193,20 @@ int clipEdge(struct MRCheader *hin, struct MRCheader *hout,
         sliceByteEdgePrewitt(slice);
     }
 
-    /* Scale slice to output mode if needed */
-    if (slice->mode != opt->mode && sliceNewMode(slice, opt->mode) < 0)
+    if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
-    sliceMMM(slice);
-    hout->amin = B3DMIN(hout->amin, slice->min);
-    hout->amax = B3DMAX(hout->amax, slice->max);
-    hout->amean += slice->mean;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
-      return -1;
-    sliceFree(slice);
   }
-
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
   return set_mrc_coords(opt);  
 }
 
 /*
  * Common routine for kernel convolution filtering
  */
-int clip_convolve(struct MRCheader *hin, 
-                 struct MRCheader *hout,
-                 struct Grap_options *opt, int process)
+int clip_convolve(MrcHeader *hin, 
+                 MrcHeader *hout,
+                 ClipOptions *opt, int process)
 {
-  struct MRCslice *s;
+  Islice *s;
   float *blur;
   int i, k, z;
   float smoothKernel[] = {
@@ -304,15 +227,11 @@ int clip_convolve(struct MRCheader *hin,
   if (opt->mode == IP_DEFAULT)
     opt->mode = (process == IP_SMOOTH) ? hin->mode : MRC_MODE_FLOAT;
 
-  set_input_options(opt, hin);
-
-  z = set_output_options(opt, hout);
+  z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
-  /* Copy header, give message, add title */
-  mrc_head_label_cp(hin, hout);
-
+  /* give message, add title */
   switch (process) {
   case IP_SMOOTH:
     message = "Smoothing";
@@ -346,34 +265,23 @@ int clip_convolve(struct MRCheader *hin,
     slice = slice_mat_filter(s, blur, 3);
     mrc_slice_free(s);
 
-    if (slice->mode != opt->mode && sliceNewMode(slice, opt->mode) < 0)
+    if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
-    sliceMMM(slice);
-    hout->amin = B3DMIN(hout->amin, slice->min);
-    hout->amax = B3DMAX(hout->amax, slice->max);
-    hout->amean += slice->mean;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
-      return -1;
-    sliceFree(slice);
   }
 
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
   return set_mrc_coords(opt);  
 }
 
 /*
  * 2D or 3D median filtering
  */
-int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
-             struct Grap_options *opt)
+int clipMedian(MrcHeader *hin, MrcHeader *hout,
+             ClipOptions *opt)
 {
-  struct MRCslice *s;
+  Islice *s;
   int i, j, k, z;
   Islice *slice;
-  struct MRCvolume v;
+  Istack v;
   char title[40];
   int numInVol, firstInVol, lastInVol, firstNeed, lastNeed, depth, size;
 
@@ -383,8 +291,7 @@ int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
     return -1;
   }
 
-  set_input_options(opt, hin);
-  z = set_output_options(opt, hout);
+  z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
@@ -395,7 +302,6 @@ int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
     opt->mode = hin->mode;
   size = (int)B3DMAX(2, opt->val);
 
-  mrc_head_label_cp(hin, hout);
   sprintf(title, "clip: %dD median filter, size %d", opt->dim, size);
   mrc_head_label(hout, title);
   printf("clip: median filtering %ld slices...\n", opt->nofsecs);
@@ -406,7 +312,7 @@ int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
     return (-1);
 
   depth = opt->dim == 2 ? 1 : size;
-  v.vol = (struct MRCslice **)malloc(depth * sizeof(struct MRCslice *));
+  v.vol = (Islice **)malloc(depth * sizeof(Islice *));
   v.zsize = 0;
 
   for (k = 0; k < opt->nofsecs; k++) {
@@ -452,13 +358,7 @@ int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
     /* Filter and maintain mmm and write */
     if (sliceMedianFilter(slice, &v, size))
       return -1;
-    sliceMMM(slice);
-    hout->amin = B3DMIN(hout->amin, slice->min);
-    hout->amax = B3DMAX(hout->amax, slice->max);
-    hout->amean += slice->mean;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, k, 'z'))
+    if (clipWriteSlice(slice, hout, opt, k, &z, 0))
       return -1;
   }
   
@@ -466,15 +366,13 @@ int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
   sliceFree(slice);
   for (i = 0; i < v.zsize; i++)
     sliceFree(v.vol[i]);
-
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
   return set_mrc_coords(opt);  
 }
 
-
-int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
-              struct Grap_options *opt)
+/*
+ * All flipping operations
+ */
+int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int i,j,k;
   Islice *sl, *tsl;
@@ -608,13 +506,14 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     return(0);
   }
 	  
-  fprintf(stderr, "clip flip: Warning no flipping was done.\n");
+  show_warning("clip flip - no flipping was done.");
   return(-1);
 }
 
-/* 3-D color */
-int grap_color(struct MRCheader *hin, struct MRCheader *hout, 
-               struct Grap_options *opt)
+/*
+ * 3-D color - conversion to shades of one color
+ */
+int grap_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int xysize, k, i;
   unsigned char **idata;
@@ -634,8 +533,7 @@ int grap_color(struct MRCheader *hin, struct MRCheader *hout,
   if ((opt->ix !=  IP_DEFAULT) || (opt->iy !=  IP_DEFAULT) || 
       (opt->iz !=  IP_DEFAULT) || (opt->ox !=  IP_DEFAULT) ||
       (opt->oy !=  IP_DEFAULT) || (opt->oz !=  IP_DEFAULT))
-    fprintf(stderr, "clip 3d color: "
-            "Warning input and output sizes ignored.\n");
+    show_warning("clip 3d color - input and output sizes ignored.");
 
   printf("clip: color (red, green, blue) = ( %g, %g, %g).\n",
          opt->red, opt->green, opt->blue);
@@ -673,208 +571,74 @@ int grap_color(struct MRCheader *hin, struct MRCheader *hout,
   return(0);
 }
 
-
-int clip2d_color(struct MRCheader *hin, struct MRCheader *hout,
-                 struct Grap_options *opt)
+/*
+ * 2D conversion to shades of a color
+ */
+int clip2d_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *slice;
-  int k, z, i;
+  int k, z, i, j;
   unsigned char bdata;
   float pixel, pixin;
   int xysize;
+  Islice *s;
+  Ival val;
 
   if ((opt->mode != MRC_MODE_RGB) && (opt->mode != IP_DEFAULT)){
-    fprintf(stderr, "clip warning: color output mode must be rgb.\n");
+    show_warning("clip - color output mode must be rgb.");
   }
   opt->mode = MRC_MODE_RGB;
-  set_input_options(opt, hin);
-  z = set_output_options(opt, hout);
+  z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
   show_status("False Color...\n");
-  hout->mode = MRC_MODE_RGB;
-  mrc_head_label_cp(hin, hout);
   mrc_head_label(hout, "CLIP Color");
 
-  for(k = 0; k < opt->nofsecs; k++, z++){
+  s = sliceCreate(opt->ix, opt->iy, MRC_MODE_RGB);
+  if (!s) {
+    show_error("clip - creating slice");
+    return -1;
+  }
+
+  for (k = 0; k < opt->nofsecs; k++) {
     slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
     if (!slice){
       show_error("clip: Error reading slice.");
       return(-1);
     }
-    sliceMMM(slice);
-    if (slice->min < hout->amin)
-      hout->amin = slice->min;
-    if (slice->max > hout->amax)
-      hout->amax = slice->max;
-    hout->amean += slice->mean;
-    hout->nx    = slice->xsize;
-    hout->ny    = slice->ysize;
-    xysize = slice->xsize * slice->ysize;
-    for(i = 0 ; i < xysize; i++){
-      pixin = slice->data.b[i];
-      pixel = pixin * opt->red;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 
-      pixel = pixin * opt->green;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
-	       
-      pixel = pixin * opt->blue;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
+    for (j = 0; j < opt->iy; j++) {
+      for (i = 0; i < opt->ix; i++) {
+        sliceGetVal(slice, i, j, val);
+        pixin = val[0];
+        val[0] = B3DMAX(0., B3DMIN(255., pixin * opt->red + 0.5));
+        val[1] = B3DMAX(0., B3DMIN(255., pixin * opt->green + 0.5));
+        val[2] = B3DMAX(0., B3DMIN(255., pixin * opt->blue + 0.5));
+        slicePutVal(s, i, j, val);
+      }
     }
+
+    if (clipWriteSlice(s, hout, opt, k, &z, 0))
+      return -1;
     sliceFree(slice);
   }
-  if (opt->nofsecs)
-    hout->amean /= opt->nofsecs;
+  sliceFree(s);
 
-  /* DNM 1/17/03: remove unneeded rewind */
-  return mrc_head_write(hout->fp, hout);
-}
-
-
-int grap_average(struct MRCheader *h1, struct MRCheader *h2, 
-                 struct MRCheader *hout, struct Grap_options *opt)
-{
-  struct MRCslice *s, *so;
-  struct MRCheader **hdr;
-  int i, j, k, f;
-  double valscale;
-  Ival val, oval;
-
-  if (opt->dim == 2)
-    return(clip2d_average(h1,hout,opt));
-
-
-  if (opt->infiles < 2){
-    fprintf(stderr, "grap average: Need two input files.\n");
-    return(-1);
-  }
-
-  if (   (h1->nx != h2->nx)
-         || (h1->ny != h2->ny)
-         || (h1->nz != h2->nz)){
-    fprintf(stderr, "grap average: All x,y,z sizes must equal\n");
-    return(-1);
-  }
-
-  mrc_head_new(hout, h1->nx, h1->ny, h1->nz, 2);
-  mrc_head_label(hout, "3D Averaged");
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-
-  s = mrc_slice_create(h1->nx, h1->ny, h1->mode);
-  if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
-    so = mrc_slice_create(h1->nx, h1->ny, 4);
-    hout->mode = MRC_MODE_COMPLEX_FLOAT;
-  }else if (h1->mode == MRC_MODE_RGB){
-    so = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
-    hout->mode = MRC_MODE_RGB;
-  }else{
-    so = mrc_slice_create(h1->nx, h1->ny, 2);
-  }
-  hdr = (struct MRCheader **)
-    malloc(opt->infiles * sizeof(struct MRCheader *));
-  if (!hdr)
-    return(-1);
-     
-  for (f = 0; f < opt->infiles; f++){
-    hdr[f] = (struct MRCheader *)malloc(sizeof(struct MRCheader));
-    if (!hdr[f])
-      return(-1);
-    hdr[f]->fp = fopen(opt->fnames[f], "rb");
-    if (!hdr[f]->fp){
-      fprintf(stderr, "grap average: error opening %s.\n", 
-              opt->fnames[f]);
-      return(-1);
-    }
-    if (mrc_head_read(hdr[f]->fp, hdr[f])){
-      fprintf(stderr, "clip average: error reading %s.\n",
-              opt->fnames[f]);
-      return(-1);
-    }
-    if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
-         (h1->nz != hdr[f]->nz) ){
-      fprintf(stderr, "clip average: all files must be same size.");
-      return(-1);
-    }
-  }
-
-  for(k = 0; k < h1->nz; k++){
-    printf("\r3D - Averaging section %d of %d", k + 1, h1->nz);
-    fflush(stdout);
-	  
-    if (mrc_read_slice((void *)s->data.b, hdr[0]->fp, hdr[0], k, 'z'))
-      return -1;
-    for (j = 0; j < h1->ny; j++)
-      for(i = 0; i < h1->nx; i ++){
-        sliceGetVal(s, i, j, val);
-        slicePutVal(so, i, j, val);
-      }
-
-    for (f = 1; f < opt->infiles; f++){
-      if (mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z'))
-        return -1;
-      for (j = 0; j < h1->ny; j++)
-        for(i = 0; i < h1->nx; i ++){
-          sliceGetVal(s, i, j,   val);
-          sliceGetVal(so, i, j, oval);
-          oval[0] += val[0];
-          oval[1] += val[1];
-          oval[2] += val[2];
-			 
-          slicePutVal(so, i, j, oval);
-        }
-    }
-
-    if (f){
-      valscale = 1.0 / (double)f;
-      mrc_slice_valscale(so, valscale);
-    }
-
-    if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
-      return -1;
-    mrc_slice_calcmmm(so);
-    if (!k){
-      hout->amin = so->min;
-      hout->amax = so->max;
-      hout->amean = so->mean;
-      if (mrc_head_write(hout->fp, hout))
-        return -1;
-    }else{
-      if (so->min < hout->amin)
-        hout->amin = so->min;
-      if (so->max > hout->amax)
-        hout->amax = so->max;
-      hout->amean += so->mean;
-    }
-  }
-  puts("");
-  hout->amean /= k;
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-  mrc_slice_free(s);
-  mrc_slice_free(so);
-  return(0);
+  return set_mrc_coords(opt);  
 }
 
 /*
  * Join 3 separate byte files into an RGB file
  */
-int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
-		 struct MRCheader *hout, struct Grap_options *opt)
+int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
+		 MrcHeader *hout, ClipOptions *opt)
 {
   int i,j,k,l;
   float val[5];
-  struct MRCheader hdr[3];
-  struct MRCslice *s, *srgb[3];
+  MrcHeader hdr[3];
+  Islice *s, *srgb[3];
 
   if (opt->red == IP_DEFAULT)
     opt->red = 1.0;
@@ -965,15 +729,15 @@ int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
 /*
  * Split an RGB file into 3 separate files
  */
-int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
+int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
 {
   int i,j,k,l;
   float val[5];
   char *ext[3] = {".r", ".g", ".b"};
-  struct MRCheader hdr[3];
+  MrcHeader hdr[3];
   char *fname;
   int len = strlen(opt->fnames[1]);
-  struct MRCslice *s, *srgb[3];
+  Islice *s, *srgb[3];
 
   if (h1->mode != MRC_MODE_RGB) {
     fprintf(stderr, "ERROR: clip splitrgb - mode is not RGB\n");
@@ -1061,8 +825,137 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
   return(0);
 }
 
-int clip2d_average(struct MRCheader *hin, struct MRCheader *hout, 
-                   struct Grap_options *opt)
+/*
+ * 3D averaging of multiple files
+ */
+int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
+                 ClipOptions *opt)
+{
+  Islice *s, *so;
+  MrcHeader **hdr;
+  int i, j, k, f;
+  double valscale;
+  Ival val, oval;
+
+  if (opt->dim == 2)
+    return(clip2d_average(h1,hout,opt));
+
+
+  if (opt->infiles < 2){
+    fprintf(stderr, "grap average: Need two input files.\n");
+    return(-1);
+  }
+
+  if (   (h1->nx != h2->nx)
+         || (h1->ny != h2->ny)
+         || (h1->nz != h2->nz)){
+    fprintf(stderr, "grap average: All x,y,z sizes must equal\n");
+    return(-1);
+  }
+
+  mrc_head_new(hout, h1->nx, h1->ny, h1->nz, 2);
+  mrc_head_label(hout, "3D Averaged");
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
+
+  s = mrc_slice_create(h1->nx, h1->ny, h1->mode);
+  if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
+    so = mrc_slice_create(h1->nx, h1->ny, 4);
+    hout->mode = MRC_MODE_COMPLEX_FLOAT;
+  }else if (h1->mode == MRC_MODE_RGB){
+    so = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+    hout->mode = MRC_MODE_RGB;
+  }else{
+    so = mrc_slice_create(h1->nx, h1->ny, 2);
+  }
+  hdr = (MrcHeader **)malloc(opt->infiles * sizeof(MrcHeader *));
+  if (!hdr)
+    return(-1);
+     
+  for (f = 0; f < opt->infiles; f++){
+    hdr[f] = (MrcHeader *)malloc(sizeof(MrcHeader));
+    if (!hdr[f])
+      return(-1);
+    hdr[f]->fp = fopen(opt->fnames[f], "rb");
+    if (!hdr[f]->fp){
+      fprintf(stderr, "grap average: error opening %s.\n", 
+              opt->fnames[f]);
+      return(-1);
+    }
+    if (mrc_head_read(hdr[f]->fp, hdr[f])){
+      fprintf(stderr, "clip average: error reading %s.\n",
+              opt->fnames[f]);
+      return(-1);
+    }
+    if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
+         (h1->nz != hdr[f]->nz) ){
+      fprintf(stderr, "clip average: all files must be same size.");
+      return(-1);
+    }
+  }
+
+  for(k = 0; k < h1->nz; k++){
+    printf("\r3D - Averaging section %d of %d", k + 1, h1->nz);
+    fflush(stdout);
+	  
+    if (mrc_read_slice((void *)s->data.b, hdr[0]->fp, hdr[0], k, 'z'))
+      return -1;
+    for (j = 0; j < h1->ny; j++)
+      for(i = 0; i < h1->nx; i ++){
+        sliceGetVal(s, i, j, val);
+        slicePutVal(so, i, j, val);
+      }
+
+    for (f = 1; f < opt->infiles; f++){
+      if (mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z'))
+        return -1;
+      for (j = 0; j < h1->ny; j++)
+        for(i = 0; i < h1->nx; i ++){
+          sliceGetVal(s, i, j,   val);
+          sliceGetVal(so, i, j, oval);
+          oval[0] += val[0];
+          oval[1] += val[1];
+          oval[2] += val[2];
+			 
+          slicePutVal(so, i, j, oval);
+        }
+    }
+
+    if (f){
+      valscale = 1.0 / (double)f;
+      mrc_slice_valscale(so, valscale);
+    }
+
+    if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
+      return -1;
+    mrc_slice_calcmmm(so);
+    if (!k){
+      hout->amin = so->min;
+      hout->amax = so->max;
+      hout->amean = so->mean;
+      if (mrc_head_write(hout->fp, hout))
+        return -1;
+    }else{
+      if (so->min < hout->amin)
+        hout->amin = so->min;
+      if (so->max > hout->amax)
+        hout->amax = so->max;
+      hout->amean += so->mean;
+    }
+  }
+  puts("");
+  hout->amean /= k;
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
+  mrc_slice_free(s);
+  mrc_slice_free(so);
+  return(0);
+}
+
+/*
+ * 2D averaging of input slices into one slice 
+ */
+int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *slice;
   Islice *avgs, *cnts;
@@ -1071,12 +964,19 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
   int thresh = FALSE;
   float dval,scale;
      
-  mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "CLIP: 2D Average");
+  if (opt->ox != IP_DEFAULT || opt->oy != IP_DEFAULT || 
+      opt->oz != IP_DEFAULT)
+    show_warning("clip - ox, oy, oz have no effect for 2d average.");
+    
+  opt->ox = opt->oy = opt->oz = IP_DEFAULT;
   set_input_options(opt, hin);
+  opt->oz = 1;
   z = set_output_options(opt, hout);
   if (z < 0)
     return(z);
+
+  mrc_head_label_cp(hin, hout);
+  mrc_head_label(hout, "CLIP: 2D Average");
 
   if (opt->val != IP_DEFAULT)
     thresh = TRUE;
@@ -1086,6 +986,7 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
   avgs = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
   cnts = sliceCreate(opt->ix, opt->iy, SLICE_MODE_FLOAT);
 
+  /* Initialize sums */
   aval[0] = aval[1] = aval[2] = 0.0f;
   for(j = 0; j < avgs->ysize; j++)
     for(i = 0; i < avgs->xsize; i++){
@@ -1093,13 +994,15 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
       cnts->data.f[i + (j * cnts->xsize)] = 0.0f;
     }
 
-  for(k = 0; k < opt->nofsecs; k++){
+  for (k = 0; k < opt->nofsecs; k++) {
     slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
     if (!slice){
       show_error("clip: Error reading slice.");
       return(-1);
     }
+
+    /* Add each pixel into average */
     for(j = 0; j < slice->ysize; j++)
       for(i = 0; i < slice->xsize; i++){
         sliceGetVal(slice, i, j,  val);
@@ -1108,19 +1011,24 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
         aval[1] += val[1];
         aval[2] += val[2];
 		    
+        /* If thresholding, only put sum back if magnitude is greater than
+           threshold.  In any case, add up the number of items contributing 
+           to the average */
         if (thresh){
           dval = mrc_slice_getmagnitude(slice, i, j);
           if (dval > opt->val){
             cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
+            slicePutVal(avgs,  i, j, aval);
           }
         }else{
           cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
+          slicePutVal(avgs,  i, j, aval);
         }
-        slicePutVal(avgs,  i, j, aval);
       }
     sliceFree(slice);
   }
 
+  /* Set scaling to keep RGB output in byte range on top end */
   scale = 1.0;
   if (opt->mode == MRC_MODE_RGB){
     sliceMMM(avgs);
@@ -1128,6 +1036,7 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
       scale = opt->nofsecs * 255.0f/avgs->max;
   }
 
+  /* create the output slice by dividing each value by counts */
   slice = sliceCreate(opt->ix, opt->iy, opt->mode);
   for(j = 0; j < slice->ysize; j++)
     for(i = 0; i < slice->xsize; i++){
@@ -1142,14 +1051,14 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
       slicePutVal(slice, i, j, aval);
     }
 
+  /* Take care of min/max/mean and write the slice */
   sliceMMM(slice);
-  hout->amin = slice->min;
-  hout->amean = slice->mean;
-  hout->amax = slice->max;
-  hout->mode = slice->mode;
+  hout->amin = B3DMIN(slice->min, hout->amin);
+  hout->amax = B3DMAX(slice->max, hout->amax);
+  if (opt->add2file != IP_APPEND_OVERWRITE)
+    hout->amean += slice->mean / hout->nz;
   if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
     return -1;
-  hout->nz -= (opt->nofsecs - 1);
   if (mrc_head_write(hout->fp, hout))
     return -1;
   sliceFree(avgs);
@@ -1158,7 +1067,7 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
 }
 
 
-int clip_parxyz(struct MRCvolume *v, 
+int clip_parxyz(Istack *v, 
                 int xmax, int ymax, int zmax,
                 float *rx, float *ry, float *rz)
 { 
@@ -1224,7 +1133,7 @@ int clip_parxyz(struct MRCvolume *v,
 
 }
 
-int clip_stat3d(struct MRCvolume *v)
+int clip_stat3d(Istack *v)
 {
   float min, max, mean;
   float x, y, z;
@@ -1240,7 +1149,7 @@ int clip_stat3d(struct MRCvolume *v)
 }
 
 
-int clip_get_stat3d(struct MRCvolume *v, 
+int clip_get_stat3d(Istack *v, 
                     float *rmin, float *rmax, float *rmean,
                     int *rx, int *ry, int *rz)
 {
@@ -1284,11 +1193,11 @@ int clip_get_stat3d(struct MRCvolume *v,
   return(0);
 }
 
-int grap_stat(struct MRCheader *hin, struct Grap_options *opt)
+int grap_stat(MrcHeader *hin, ClipOptions *opt)
 {
   int i, j, k;
   int xmax, ymax;
-  struct MRCvolume *v;
+  Istack *v;
   Islice *slice;
   float min, max, mean = 0, std = 0, m;
   float x,y;
@@ -1399,7 +1308,7 @@ int grap_stat(struct MRCheader *hin, struct Grap_options *opt)
 }
 
 
-int write_vol(struct MRCslice **vol, struct MRCheader *hout)
+int write_vol(Islice **vol, MrcHeader *hout)
 {
   int k;
 
@@ -1423,7 +1332,7 @@ int write_vol(struct MRCslice **vol, struct MRCheader *hout)
   return mrc_head_write(hout->fp, hout);
 }
 
-int free_vol(struct MRCslice **vol, int z)
+int free_vol(Islice **vol, int z)
 {
   int k;
   for (k = 0; k < z; k++){
@@ -1436,9 +1345,9 @@ int free_vol(struct MRCslice **vol, int z)
 
 /*
   clipProject(char **argv, int argc,
-  struct MRCheader *hin,
-  struct MRCheader *hout,
-  struct Grap_options *opt)
+  MrcHeader *hin,
+  MrcHeader *hout,
+  ClipOptions *opt)
   {
 
   char command[1024];
@@ -1465,6 +1374,9 @@ int free_vol(struct MRCslice **vol, int z)
 */
 /*
 $Log$
+Revision 3.8  2005/01/07 20:13:59  mast
+Fixed problems with filtering and scaling, added many filtering operations
+
 
 Revision 3.7  2004/09/21 22:31:13  mast
 Added return 0 for split_rgb and join_rgb functions
