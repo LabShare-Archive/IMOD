@@ -55,7 +55,7 @@ static int allocate_arrays(ImodView *vw, Autox *ax);
 static int nay8(Autox *ax, int i, int j);
 
 /* The current data that is being contoured. */
-static unsigned char *autoImage = NULL;
+static unsigned char **autoImage = NULL;
 static AutoxWindow *autoWindow = NULL;
 
 /*
@@ -546,7 +546,7 @@ static int autox_flood(Autox *ax)
 		       * threshold) + ax->vw->rampbase);
   }
 
-  if (autoImage[x + (y * ax->vw->xsize)] < threshold)
+  if (autoImage[y][x] < threshold)
     ax->reverse = 1;
   else
     ax->reverse = 0;
@@ -565,10 +565,10 @@ static int autox_flood(Autox *ax)
     y = ylist[ringnext];
     pixind = x + y * xsize;
     if (ax->reverse)
-      test = (autoImage[pixind] < threshold) ||
+      test = (autoImage[y][x] < threshold) ||
 	(data[pixind] & AUTOX_BLACK);
     else
-      test = ((autoImage[pixind] >= threshold) ||
+      test = ((autoImage[y][x] >= threshold) ||
 	      (data[pixind] & AUTOX_WHITE)) &&
 	(~data[pixind] & AUTOX_BLACK);
     if (test) {
@@ -857,6 +857,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 
 /*
 $Log$
+Revision 4.4  2003/05/08 05:16:34  mast
+Expanding help with a introductory list of steps
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 

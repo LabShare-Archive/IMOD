@@ -432,9 +432,8 @@ void GraphWindow::xgraphDraw(GraphStruct *xg)
 void GraphWindow::xgraphFillData(GraphStruct *xg)
 {
   int dsize, xsize;
-  /*     unsigned char **idata = xg->vi->idata; */
-  unsigned char *image = NULL;
-  int cx, cy, cz, i;
+  unsigned char **image = NULL;
+  int cx, cy, cz, i, j;
   int co, cc, cp;
   Icont *cont;
   Ipoint *pt1, *pt2;
@@ -466,10 +465,10 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (!xg->data) return;
     }
     xg->dsize = dsize;
-    for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
+    for(i = 0; i < dsize; i++) 
+      xg->data[i] = 0.0f;
     cz = (int)(xg->vi->zmouse + 0.5f);
     cy = (int)(xg->vi->ymouse + 0.5f);
-    xsize = cy * xg->vi->xsize;
     xg->cpt = (int)xg->cx;
 
     /* DNM: skip out if outside limits */
@@ -481,7 +480,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     else
       for(i = 0; i < dsize; i++)
         if (image)
-          xg->data[i] = image[i + xsize];
+          xg->data[i] = image[cy][i];
         else
           xg->data[i] = xg->vi->hdr->amean;
     break;
@@ -496,9 +495,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (!xg->data) return;
     }
     xg->dsize = dsize;
-    for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
+    for(i = 0; i < dsize; i++)
+      xg->data[i] = 0.0f;
     cz = (int)(xg->vi->zmouse + 0.5f);
-    xsize = xg->vi->xsize;
     cx = (int)(xg->vi->xmouse + 0.5f);
     xg->cpt = (int)xg->cy;
 
@@ -511,7 +510,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     else
       for(i = 0; i < dsize; i++){
         if (image)
-          xg->data[i] = image[(i*xsize) + cx];
+          xg->data[i] = image[i][cx];
         else
           xg->data[i] = xg->vi->hdr->amean;
       }
@@ -526,10 +525,10 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (!xg->data) return;
     }
     xg->dsize = dsize;
-    for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
+    for(i = 0; i < dsize; i++) 
+      xg->data[i] = 0.0f;
     cx = (int)(xg->vi->xmouse + 0.5f);
     cy = (int)(xg->cy + 0.5f);
-    xsize = cx + (cy * xg->vi->xsize);
     xg->cpt = (int)xg->cz;
 
     /* DNM: skip out if outside limits */
@@ -559,8 +558,10 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     scale.x = 1.0;
     scale.y = 1.0;
     scale.z = 1.0;
-    if (cp < 0) cp = 0;
-    if (cp >= (int)cont->psize) cp = (int)cont->psize - 1;
+    if (cp < 0) 
+      cp = 0;
+    if (cp >= (int)cont->psize) 
+      cp = (int)cont->psize - 1;
     xg->cpt = 0;
     for (i = 1; i < (int)cont->psize; i++) {
       totlen += imodPoint3DScaleDistance(&cont->pts[i-1],
@@ -576,7 +577,8 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (!xg->data) return;
     }
     xg->dsize = dsize;
-    for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
+    for(i = 0; i < dsize; i++)
+      xg->data[i] = 0.0f;
     xg->cx = cont->pts[cp].x + 0.5f;
     xg->cy = cont->pts[cp].y + 0.5f;
     xg->cz = cont->pts[cp].z + 0.5f;
@@ -630,20 +632,23 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     if (image){
       dsize = 256;
       if (xg->dsize < dsize){
-        if (xg->data) free(xg->data);
+        if (xg->data)
+          free(xg->data);
         xg->data  = (float *)malloc(dsize * sizeof(float));
-        if (!xg->data) return;
+        if (!xg->data) 
+          return;
       }
       xg->dsize = dsize;
       for(i = 0; i < dsize; i++)
         xg->data[i] = 0.0f;
-      pmax = xg->vi->xsize * xg->vi->ysize;
       cz = (int)(xg->vi->zmouse + 0.5f);
-      for(i = 0; i < pmax; i++){
-        pt = image[i];
-        xg->data[pt] += 1.0f;
+      for (j = 0; j < xg->vi->ysize; j++) {
+        for(i = 0; i < xg->vi->xsize; i++){
+          pt = image[j][i];
+          xg->data[pt] += 1.0f;
+        }
       }
-      xg->cpt = image[cx + (cy * xg->vi->xsize)];
+      xg->cpt = image[cy][cx];
     }
     break;
 
@@ -807,6 +812,9 @@ void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
 
 /*
     $Log$
+    Revision 4.4  2003/04/25 03:28:33  mast
+    Changes for name change to 3dmod
+
     Revision 4.3  2003/04/17 18:43:38  mast
     adding parent to window creation
 

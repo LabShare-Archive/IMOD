@@ -231,7 +231,7 @@ void imodvDrawImage(ImodvApp *a)
   int cix, ciy, ciz;
   int mix, miy;
   int x,y;
-  unsigned char *idata;
+  unsigned char **idata;
   unsigned char pix;
   unsigned char alpha = 0xff;
   int i, mi, j, mj;
@@ -292,7 +292,7 @@ void imodvDrawImage(ImodvApp *a)
 	  u = i - x;
 	  for(j = y; j < mj; j++){
 	    v = (j - y);
-	    pix = idata[i + (j * mix)];
+	    pix = idata[j][i];
 
 	    tdata[u][v][0] = Cmap[0][pix];
 	    tdata[u][v][1] = Cmap[1][pix];
@@ -447,6 +447,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.5  2003/04/17 18:43:38  mast
 adding parent to window creation
 

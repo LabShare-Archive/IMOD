@@ -702,74 +702,19 @@ void TumblerWindow::setSlice(TumblerStruct *xtum)
 }
 
 
-/* DNM: routines to replace ivwGetValue for speedy access */
-
-static int (*best_GetValue)(int x, int y, int z);
-
-static int imdataxsize;
-static int *vmdataxsize;
-static unsigned char **imdata;
-static int vmnullvalue;
-
-static int idata_GetValue(int x, int y, int z)
-{
-  return(imdata[z][x + (y * imdataxsize)]);
-}
-
-static int cache_GetValue(int x, int y, int z)
-{
-  if (!imdata[z])
-    return(vmnullvalue);
-  return(imdata[z][x + (y * vmdataxsize[z])]);
-}
-
-static int fake_GetValue(int x, int y, int z)
-{
-  return(0);
-}
-
 /* Fill the slice data */
 void TumblerWindow::fillSlice(TumblerStruct *xtum)
 {
   Islice *tsl;
   Ipoint tx,ty,tz;
   int i, iz;
+  unsigned char **imdata;
+  int vmnullvalue;
 
   /* Set up image pointer tables */
-  imdata = (unsigned char **)
-    malloc(sizeof(unsigned char *) * xtum->vi->zsize);
-
-  if (!imdata)
-    return;
-
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (xtum->vi->fakeImage) {
-    best_GetValue = fake_GetValue;
-
-  } else if (xtum->vi->vmSize) {
-    /* For cached data, get pointers to data that exist at this time */
-    vmdataxsize = (int *)malloc(sizeof(int) * xtum->vi->zsize);
-    if (!vmdataxsize)
-      return;
-    best_GetValue = cache_GetValue;
-    for (i = 0; i < xtum->vi->zsize; i++)
-      imdata[i] = NULL;
-    for (i = 0; i < xtum->vi->vmSize; i++) {
-      iz = xtum->vi->vmCache[i].cz;
-      if (iz < xtum->vi->zsize && iz >= 0 &&
-          xtum->vi->vmCache[i].ct == xtum->vi->ct){
-        imdata[iz] = xtum->vi->vmCache[i].sec->data.b;
-        vmdataxsize[iz] = xtum->vi->vmCache[i].sec->xsize;
-      }
-    }
-
-  } else {
-    /* for loaded data, get pointers from xtum->vi */
-    best_GetValue = idata_GetValue;
-    for (i = 0; i < xtum->vi->zsize; i++)
-      imdata[i] = xtum->vi->idata[i];
-    imdataxsize = xtum->vi->xsize;
-  }
+  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i))
+    return;
 
   fillASlice(xtum);
 
@@ -805,9 +750,6 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
     xtum->zstep.y = tz.y;
     xtum->zstep.z = tz.z;
   }
-  free(imdata);
-  if (xtum->vi->vmSize)
-    free(vmdataxsize);
   return;
 }
 
@@ -927,7 +869,7 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
             (yi >= ymin) && (yi <= ymax) &&
             (zi >= zmin) && (zi <= zmax)
             ){
-          val = (*best_GetValue)(xi, yi, zi);
+          val = (*ivwFastGetValue)(xi, yi, zi);
                          
 	  if (xtum->highres) {
 	    dx = x - xi - 0.5;
@@ -949,12 +891,12 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
 	    if (nzi >= zsize) nzi = zi;
 	    
 	    
-	    x1 = (*best_GetValue)(pxi,  yi,  zi);
-	    x2 = (*best_GetValue)(nxi,  yi,  zi);
-	    y1 = (*best_GetValue)( xi, pyi,  zi);
-	    y2 = (*best_GetValue)( xi, nyi,  zi);
-	    z1 = (*best_GetValue)( xi,  yi, pzi);
-	    z2 = (*best_GetValue)( xi,  yi, nzi);
+	    x1 = (*ivwFastGetValue)(pxi,  yi,  zi);
+	    x2 = (*ivwFastGetValue)(nxi,  yi,  zi);
+	    y1 = (*ivwFastGetValue)( xi, pyi,  zi);
+	    y2 = (*ivwFastGetValue)( xi, nyi,  zi);
+	    z1 = (*ivwFastGetValue)( xi,  yi, pzi);
+	    z2 = (*ivwFastGetValue)( xi,  yi, nzi);
 	    
 	    a = (x1 + x2) * 0.5f - (float)val;
 	    b = (y1 + y2) * 0.5f - (float)val;
@@ -1125,8 +1067,10 @@ void TumblerWindow::drawSubArea(TumblerStruct *xtum, unsigned short *sdata,
 
   /* DNM 1/20/02: add slice argument to graphics calls; make it -1 to 
      prevent image re-use */
+  
   b3dDrawGreyScalePixelsSubArea
-    (xtum->image, data, 
+    (xtum->image, ivwMakeLinePointers(xtum->vi, data, xtum->slice->xsize,
+                                      xtum->slice->ysize, MRC_MODE_BYTE),
      xtum->slice->xsize, xtum->slice->ysize,
      0, 0, llx, 0, urx, xtum->height,
      xtum->vi->rampbase, zoom,
@@ -1369,6 +1313,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.12  2003/04/28 04:01:40  mast
+Fx hot key text
+
 Revision 4.11  2003/04/25 03:28:33  mast
 Changes for name change to 3dmod
 

@@ -1001,34 +1001,6 @@ static void slice_trans_step(SlicerStruct *ss)
   return;
 }
 
-/*
- * Main routines for filling the data array with interpolated values
- */
-/* DNM: routines to replace ivwGetValue for speedy access */
-
-static int (*best_GetValue)(int x, int y, int z);
-
-static int imdataxsize;
-static int *vmdataxsize;
-static unsigned char **imdata;
-static int vmnullvalue;
-
-static int idata_GetValue(int x, int y, int z)
-{
-  return(imdata[z][x + (y * imdataxsize)]);
-}
-
-static int cache_GetValue(int x, int y, int z)
-{
-  if (!imdata[z])
-    return(vmnullvalue);
-  return(imdata[z][x + (y * vmdataxsize[z])]);
-}
-
-static int fake_GetValue(int x, int y, int z)
-{
-  return(0);
-}
 
 void findIndexLimits(int isize, int xsize, float xo, float xsx, float offset,
                      float *fstart, float *fend)
@@ -1098,6 +1070,8 @@ static void fillImageArray(SlicerStruct *ss)
   unsigned int *cmap = App->cvi->cramp->ramp;
   int innerStart, innerEnd, outerStart, outerEnd;
   float fstart, fend;
+  unsigned char **imdata;
+  int vmnullvalue;
   
   if (!ss->image)
       return;
@@ -1111,41 +1085,11 @@ static void fillImageArray(SlicerStruct *ss)
   ivwGetZSection(ss->vi, iz);
 
   /* Set up image pointer tables */
-  imdata = (unsigned char **)
-    malloc(sizeof(unsigned char *) * ss->vi->zsize);
-
-  if (!imdata)
+  vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
+  if (ivwSetupFastAccess(ss->vi, &imdata, vmnullvalue, &i))
     return;
 
-  vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
   noDataVal = vmnullvalue;
-  if (ss->vi->fakeImage) {
-    best_GetValue = fake_GetValue;
-
-  } else if (ss->vi->vmSize) {
-    /* For cached data, get pointers to data that exist at this time */
-    vmdataxsize = (int *)malloc(sizeof(int) * ss->vi->zsize);
-    if (!vmdataxsize)
-      return;
-    best_GetValue = cache_GetValue;
-    for (i = 0; i < ss->vi->zsize; i++)
-      imdata[i] = NULL;
-    for (i = 0; i < ss->vi->vmSize; i++) {
-      iz = ss->vi->vmCache[i].cz;
-      if (iz < ss->vi->zsize && iz >= 0 &&
-          ss->vi->vmCache[i].ct == ss->vi->ct){
-        imdata[iz] = ss->vi->vmCache[i].sec->data.b;
-        vmdataxsize[iz] = ss->vi->vmCache[i].sec->xsize;
-      }
-    }
-
-  } else {
-    /* for loaded data, get pointers from ss->vi */
-    best_GetValue = idata_GetValue;
-    for (i = 0; i < ss->vi->zsize; i++)
-      imdata[i] = ss->vi->idata[i];
-    imdataxsize = ss->vi->xsize;
-  }
 
   slice_trans_step(ss);
   rbase = ss->vi->rampbase;
@@ -1394,7 +1338,7 @@ static void fillImageArray(SlicerStruct *ss)
                     
           if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
               z > -0.5 && zi < zsize) {
-            val = (*best_GetValue)(xi, yi, zi);
+            val = (*ivwFastGetValue)(xi, yi, zi);
                          
             /* do quadratic interpolation. */
             dx = x - xi - 0.5;
@@ -1415,12 +1359,12 @@ static void fillImageArray(SlicerStruct *ss)
             if (pzi < 0) pzi = 0;
             if (nzi >= zsize) nzi = zi;
                             
-            x1 = (*best_GetValue)(pxi,  yi,  zi);
-            x2 = (*best_GetValue)(nxi,  yi,  zi);
-            y1 = (*best_GetValue)( xi, pyi,  zi);
-            y2 = (*best_GetValue)( xi, nyi,  zi);
-            z1 = (*best_GetValue)( xi,  yi, pzi);
-            z2 = (*best_GetValue)( xi,  yi, nzi);
+            x1 = (*ivwFastGetValue)(pxi,  yi,  zi);
+            x2 = (*ivwFastGetValue)(nxi,  yi,  zi);
+            y1 = (*ivwFastGetValue)( xi, pyi,  zi);
+            y2 = (*ivwFastGetValue)( xi, nyi,  zi);
+            z1 = (*ivwFastGetValue)( xi,  yi, pzi);
+            z2 = (*ivwFastGetValue)( xi,  yi, nzi);
                               
             a = (x1 + x2) * 0.5f - (float)val;
             b = (y1 + y2) * 0.5f - (float)val;
@@ -1473,7 +1417,7 @@ static void fillImageArray(SlicerStruct *ss)
                     
           if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
               z > -0.5 && zi < zsize)
-            val = (*best_GetValue)(xi, yi, zi);
+            val = (*ivwFastGetValue)(xi, yi, zi);
           else
             val = noDataVal;
                     
@@ -1492,7 +1436,7 @@ static void fillImageArray(SlicerStruct *ss)
             xi = (int)x;
             yi = (int)y;
             zi = (int)(z + 0.5);
-            val = (*best_GetValue)(xi, yi, zi);
+            val = (*ivwFastGetValue)(xi, yi, zi);
             cidata[i + cindex] += val;
             x += xsx;
             y += ysx;
@@ -1503,7 +1447,7 @@ static void fillImageArray(SlicerStruct *ss)
             xi = (int)x;
             yi = (int)y;
             zi = (int)(z + 0.5);
-            val = (*best_GetValue)(xi, yi, zi);
+            val = (*ivwFastGetValue)(xi, yi, zi);
             cidata[i + cindex] = val;
             x += xsx;
             y += ysx;
@@ -1518,7 +1462,7 @@ static void fillImageArray(SlicerStruct *ss)
                     
           if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
               z > -0.5 && zi < zsize)
-            val = (*best_GetValue)(xi, yi, zi);
+            val = (*ivwFastGetValue)(xi, yi, zi);
           else
             val = noDataVal;
                     
@@ -1613,9 +1557,7 @@ static void fillImageArray(SlicerStruct *ss)
   }
   ss->xzoom = xzoom;
   ss->yzoom = yzoom;
-  free(imdata);
-  if (ss->vi->vmSize)
-    free(vmdataxsize);
+
   return;
 }
 
@@ -2047,6 +1989,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.18  2003/05/05 20:09:34  mast
+Fixed problem with positioning with first mouse button
+
 Revision 4.17  2003/04/28 04:03:21  mast
 Fix help text
 

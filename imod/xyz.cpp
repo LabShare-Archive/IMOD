@@ -837,7 +837,7 @@ void XyzWindow::DrawImage()
   int nx = win->vi->xsize;
   int ny = win->vi->ysize;
   int nz = win->vi->zsize;
-  unsigned char *id;
+  unsigned char **id;
   unsigned char *fdata;
   unsigned long cyi;
   int cx, cy, cz, iz;
@@ -851,7 +851,7 @@ void XyzWindow::DrawImage()
   int wx1, wx2, wy1, wy2;
   int xoffset1, xoffset2, yoffset1, yoffset2;
   int width1, height1, width2, height2, cacheSum, xslice, yslice;
-          
+  bool flipped;
           
   if (!win) return;
 
@@ -859,33 +859,11 @@ void XyzWindow::DrawImage()
 
   /* DNM 3/5/01: changed to avoid very slow ivwGetValue when data are in
      cache; set up image pointer tables */
-  imdata = (unsigned char **)
-    malloc(sizeof(unsigned char *) * win->vi->zsize);
-
-  if (!imdata)
-    return;
-
   // Keep track of a sum of Z values in the cache in order to detect 
   // Changes in available data that will require redisplay of XZ and YZ data
-  cacheSum = 0;
-  if (win->vi->vmSize) {
-    /* For cached data, get pointers to data that exist at this time */
-    for (i = 0; i < win->vi->zsize; i++)
-      imdata[i] = NULL;
-    for (i = 0; i < win->vi->vmSize; i++) {
-      iz = win->vi->vmCache[i].cz;
-      if (iz < win->vi->zsize && iz >= 0 &&
-          win->vi->vmCache[i].ct == win->vi->ct) {
-        imdata[iz] = win->vi->vmCache[i].sec->data.b;
-	cacheSum += iz;
-      }
-    }
+  if (ivwSetupFastAccess(win->vi, &imdata, 0, &cacheSum))
+    return;
 
-  } else if (!win->vi->fakeImage) {
-    /* for loaded data, get pointers from win->vi */
-    for (i = 0; i < win->vi->zsize; i++)
-      imdata[i] = win->vi->idata[i];
-  }
   /* Just take the X size, do not allow for possibility of cached data 
      having different X sizes */
   imdataxsize = win->vi->xsize;
@@ -905,6 +883,7 @@ void XyzWindow::DrawImage()
 
   ivwGetLocation(win->vi, &cx, &cy, &cz);
   cyi = cy * nx;
+  flipped = !win->vi->fakeImage && !win->vi->vmSize && win->vi->li->axis == 2;
 
   /* Pass the image offset routine the effective image size, including
      de-zoomed borders, and convert a data offset into a negative window
@@ -953,7 +932,10 @@ void XyzWindow::DrawImage()
       xslice = -1 - cx;
       win->lx = cx;
       for(z = 0; z < nz; z++) {
-        if (!win->vi->fakeImage && imdata[z]) {
+        if (flipped) {
+          for(i = z, y = 0; y < ny; y++, i += nz)
+            fdata[i] = imdata[y][cx + (z * imdataxsize)];
+        } else if (!win->vi->fakeImage && imdata[z]) {
           for(i = z, y = 0; y < ny; y++, i += nz)
             fdata[i] = imdata[z][cx + (y * imdataxsize)];
         } else {
@@ -962,7 +944,9 @@ void XyzWindow::DrawImage()
         }
       }
     }
-    b3dDrawGreyScalePixelsHQ(win->fdatayz, nz, ny, xoffset2, yoffset1,
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdatayz, nz, ny,
+                                                 MRC_MODE_BYTE), 
+                             nz, ny, xoffset2, yoffset1,
                              wx2, wy1, width2, height1, win->yzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
                              win->hq, xslice);
@@ -975,7 +959,10 @@ void XyzWindow::DrawImage()
       yslice = -1 - cy;
       win->ly = cy;
       for(i = 0,z = 0; z < nz; z++) {
-        if (!win->vi->fakeImage && imdata[z]) {
+        if (flipped) {
+          for(x = 0; x < nx; x++, i++)
+            fdata[i] = imdata[cy][x + (z * imdataxsize)];
+        } else if (!win->vi->fakeImage && imdata[z]) {
           for(x = 0; x < nx; x++, i++)
             fdata[i] = imdata[z][x + (cy * imdataxsize)];
         } else {
@@ -984,15 +971,15 @@ void XyzWindow::DrawImage()
         }
       }
     }       
-    b3dDrawGreyScalePixelsHQ(win->fdataxz, nx, nz, xoffset1, yoffset2,
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdataxz, nx, nz,
+                                                 MRC_MODE_BYTE),
+                             nx, nz, xoffset1, yoffset2,
                              wx1, wy2, width1, height2, win->xzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
                              win->hq, yslice);
   }
   win->lastCacheSum = cacheSum;
 
-  free(imdata);
-     
   return;
 }
 
@@ -1736,6 +1723,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.13  2003/05/06 02:18:45  mast
+Fixed problem with displaying z = -1 on first section
+
 Revision 4.12  2003/04/25 03:28:33  mast
 Changes for name change to 3dmod
 
