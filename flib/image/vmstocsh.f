@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/11/18 04:13:33  mast
+c	  add ability to output a true continuation line ending in \
+c	
 c
 	logical reading
 	integer*4 iffirst,lenin,lencom,indarrow
@@ -26,6 +29,7 @@ c
 c	  make indarrow 8 for piping to cat, 2 otherwise
 c
 	indarrow = 2
+	write(6,101)'nohup'
 	if(iargc().ne.0)then
 	  call getarg(1,logfile)
 	  lenlog=lnblnk(logfile)
@@ -40,7 +44,9 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
 	  lenlog=lenlog+indarrow+2
 	endif
 
-	write(6,101)'if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)'
+	write(6,101)'if ($?IMOD_DIR) then'
+	write(6,101)'    set path = ($IMOD_DIR/bin $path)'
+	write(6,101)'endif'
 	write(6,101)'echo2 Shell PID: $$'
 
 	iffirst=-1
