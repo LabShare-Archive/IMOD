@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/10/08 04:39:59  rickg
+ * <p> Added setDefaultPatchBoundaryMethod
+ * <p>
  * <p> Revision 1.5  2002/10/07 22:23:14  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -45,6 +48,37 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public static final String rcsid =
     "$Id$";
 
+  /**
+   * Default constructor
+   */
+  public CombineParams() {
+    super();
+  }
+
+  /**
+   * Copy constructor
+   */
+  public CombineParams(ConstCombineParams src) {
+    matchBtoA = src.matchBtoA;
+    fiducialMatch = src.fiducialMatch;
+    fiducialMatchListA = new StringList(src.fiducialMatchListA);
+    fiducialMatchListB = new StringList(src.fiducialMatchListA);
+    patchSize = src.patchSize;
+    patchXMin = src.patchXMin;
+    patchXMax = src.patchXMax;
+    patchYMin = src.patchYMin;
+    patchYMax = src.patchYMax;
+    patchZMin = src.patchZMin;
+    patchZMax = src.patchZMax;
+    patchRegionModel = src.patchRegionModel;
+    tempDirectory = src.tempDirectory;
+    manualCleanup = src.manualCleanup;
+  }
+
+  public void setRevisionNumber(String revNumber) {
+    revisionNumber = revNumber;
+  }
+  
   public void setMatchBtoA(boolean isBtoA) {
     matchBtoA = isBtoA;
   }
@@ -66,7 +100,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   public void setPatchRegionModel(String modelFileName) {
-    patchRegionModel = modelFileName;
+    if (modelFileName.matches("^\\s+$")) {
+      patchRegionModel = "";
+    }
+    else {
+      patchRegionModel = modelFileName;
+    }
   }
 
   /**
@@ -118,7 +157,13 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   public void setTempDirectory(String directoryName) {
-    tempDirectory = directoryName;
+    if (directoryName.matches("^\\s+$")) {
+      tempDirectory = "";
+    }
+    else {
+      tempDirectory = directoryName;
+    }
+
   }
 
   public void setManualCleanup(boolean isManual) {
@@ -139,6 +184,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       group = prepend + "Combine.";
     }
+    props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(group + "MatchBtoA", String.valueOf(matchBtoA));
     props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
     props.setProperty(
@@ -148,6 +194,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
       group + "FiducialMatchListB",
       fiducialMatchListB.toString());
     props.setProperty(group + "PatchSize", patchSize.toString());
+    props.setProperty(group + "PatchBoundaryXMin", String.valueOf(patchXMin));
+    props.setProperty(group + "PatchBoundaryXMax", String.valueOf(patchXMax));
+    props.setProperty(group + "PatchBoundaryYMin", String.valueOf(patchYMin));
+    props.setProperty(group + "PatchBoundaryYMax", String.valueOf(patchYMax));
+    props.setProperty(group + "PatchBoundaryZMin", String.valueOf(patchZMin));
+    props.setProperty(group + "PatchBoundaryZMax", String.valueOf(patchZMax));
     props.setProperty(group + "PatchRegionModel", patchRegionModel);
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
@@ -170,6 +222,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Load the combine values if they are present, don't change the
     // current value if the property is not present
+    
+    revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+    
     matchBtoA =
       Boolean
         .valueOf(
@@ -197,6 +252,42 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchRegionModel =
       props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
+    patchXMin =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryXMin",
+          String.valueOf(patchXMin)));
+
+    patchXMax =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryXMax",
+          String.valueOf(patchXMax)));
+
+    patchYMin =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryYMin",
+          String.valueOf(patchYMin)));
+
+    patchYMax =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryYMax",
+          String.valueOf(patchYMax)));
+
+    patchZMin =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryZMin",
+          String.valueOf(patchZMin)));
+
+    patchZMax =
+      Integer.parseInt(
+        props.getProperty(
+          group + "PatchBoundaryZMax",
+          String.valueOf(patchZMax)));
+
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
     manualCleanup =
@@ -214,7 +305,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * @param fileName The MRC iamge stack file name used to set the patch
    * boundaries.
    */
-  void setDefaultPatchBoundaries(String fileName)
+  public void setDefaultPatchBoundaries(String fileName)
     throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
@@ -237,4 +328,5 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchZMin = 1;
     patchZMax = mrcHeader.getNRows();
   }
+
 }
