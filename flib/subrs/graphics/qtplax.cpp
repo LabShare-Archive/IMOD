@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.9  2003/10/14 21:30:23  mast
+raise widget after showing it
+
 Revision 1.8  2003/09/24 23:04:43  mast
 Reinstate resident QPainter for single thread case, flush painter at end
 
@@ -39,6 +42,7 @@ Changes to try to help text drawingon the Mac
 #endif
 
 #include "qtplax.h"
+#include "b3dutil.h"
 #include <qapplication.h>
 #include <qfont.h>
 #include <qdatetime.h>
@@ -55,8 +59,13 @@ Changes to try to help text drawingon the Mac
 #define TEXT_SIZE_SCALE 3.3
 #define DEFAULT_HEIGHT 600
 #else
+#ifdef _WIN32
+#define TEXT_SIZE_SCALE 2.2
+#define DEFAULT_HEIGHT 500
+#else
 #define TEXT_SIZE_SCALE 2.5
 #define DEFAULT_HEIGHT 640
+#endif
 #endif
 
 static int   PlaxCIndex[PLAX_RAMPSIZE];
@@ -121,10 +130,14 @@ static void plax_draw_text(b3dInt32 thickness,
                            b3dInt32 strsize, char *string);
 static void draw();
 
-static char *f2cString(char *str, int strSize);
+
+#ifdef F77FUNCAP
+#define iargc_ IARGC
+#define getarg_ GETARG
+#define realgraphicsmain_ REALGRAPHICSMAIN
+#endif
 
 extern "C" {
-  void exit_(int code);
   int iargc_();
   void getarg_(int *i, char *string, int len);
   void realgraphicsmain_();
@@ -856,26 +869,3 @@ static void plax_set_brush(int color, int closed)
   PlaxBrushColor = color;
   PlaxBrushClosed = closed;
 }  
-
-/* Create a C string with a copy of a Fortran string */
-static char *f2cString(char *str, int strSize)
-{
-  int i;
-  char *newStr;
-
-  /* find last non-blank character */
-  for (i = strSize - 1; i >= 0; i--)
-    if (str[i] != ' ')
-      break;
-
-  newStr = (char *)malloc(i + 2);
-  if (!newStr) {
-    return NULL;
-  }
-
-  /* copy string if non-null, then put terminator at end */
-  if (i >= 0)
-    strncpy(newStr, str, i + 1);
-  newStr[i + 1] = 0x00;
-  return newStr;
-}
