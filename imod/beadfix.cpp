@@ -65,7 +65,8 @@
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
-
+#include "xzap.h"
+#include "preferences.h"
 
 // 2) Declare the internal functions as static
 // And set them into the member variables in the constructor
@@ -128,6 +129,7 @@ typedef struct
   int    areaMax;                       /* Size allocated */
   QStringList qlines;                   /* A resident copy of the align log */
   int currentLine;
+  int left, top;                        /* Last window position */
   
 }PlugData;
 
@@ -211,6 +213,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 void imodPlugExecute(ImodView *inImodView)
 {
   PlugData *plug;
+  double savedValues[2];
+  static int firstTime = 1;
 
   plug = &thisPlug;
 
@@ -253,6 +257,19 @@ void imodPlugExecute(ImodView *inImodView)
                                 "bead fixer");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
+
+  // Get window position from settings the first time
+  if (!firstTime) {
+    plug->window->move(plug->left, plug->top);
+  } else if (ImodPrefs->getGenericSettings("BeadFixer", savedValues, 2) == 2) {
+    plug->left = (int)savedValues[0];
+    plug->top = (int)savedValues[1];
+    zapLimitWindowPos(plug->window->width(), plug->window->height(), 
+                      plug->left, plug->top);
+    plug->window->move(plug->left, plug->top);
+  }
+  firstTime = 0;
+
   plug->window->show();
 }
 
@@ -553,8 +570,8 @@ void BeadFixer::nextRes()
 	clearExtraObj();
         ob = ivwGetExtraObject(plug->view);
         imodPointAppend(con, --pts);
-        tpt.x = pts->x + xr;
-        tpt.y = pts->y + yr;
+        tpt.x = cx + xr;
+        tpt.y = cy + yr;
         tpt.z = pts->z;
         imodPointAppend(con, &tpt);
         tpt.x -= 0.707 * (xr - yr) * headLen / resval;
@@ -1155,8 +1172,28 @@ void BeadFixer::runAlign()
 void BeadFixer::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &thisPlug;
+  double posValues[2];
+
+  // reject if running thread
+  if (mRunningAlign) {
+    e->ignore();
+    return;
+  }
+
+  // Get geometry and save in settings and in structure for next time
+  QRect pos = ivwRestorableGeometry(plug->window);
+  posValues[0] = pos.left();
+  posValues[1] = pos.top();
+  plug->top = pos.top();
+  plug->left = pos.left();
+  ImodPrefs->saveGenericSettings("BeadFixer", 2, posValues);
+
   imodDialogManager.remove((QWidget *)plug->window);
   clearExtraObj();
+
+  if (mTopTimerID)
+    killTimer(mTopTimerID);
+  mTopTimerID = 0;
 
   plug->view = NULL;
   plug->window = NULL;
@@ -1215,6 +1252,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.12  2004/06/20 22:43:15  mast
+    Fixed problem that made no residuals be found.
+
     Revision 1.11  2004/06/12 15:13:03  mast
     Needed some new Qt includes
 
