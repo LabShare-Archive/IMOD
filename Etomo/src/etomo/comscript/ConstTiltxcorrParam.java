@@ -17,6 +17,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.7  2004/05/03 18:00:51  sueh
  * <p> bug# 418 standardizing get functions
  * <p> And param testing proof of concept
@@ -63,6 +66,8 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   public static final String rcsid =
     "$Id$";
 
+  public static final String GOTO_LABEL = "doxcorr";
+  
   //PIP and sequential input
   protected String inputFile;
   protected String pieceListFile;
