@@ -73,6 +73,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.16  2003/03/20 16:58:42  rickg
+ * <p> Added methods: imodMatchedToTomgram, matchorwarpTrial
+ * <p> Added trial mode handling to matchorwarp
+ * <p>
  * <p> Revision 2.15  2003/03/19 00:23:04  rickg
  * <p> Added imod patch vector model pass through
  * <p>
@@ -1786,6 +1790,33 @@ public class ApplicationManager {
     }
   }
 
+  /**
+   * Open the matchcheck results in imod
+   */
+  public void imodMatchCheck() {
+    try {
+      imodManager.openMatchCheckMat();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on matchcheck.mat");
+    }
+    try {
+      imodManager.openMatchCheckRec();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on matchcheck.rec");
+    }
+
+  }
+  /**
+   * Open the patch region models in tomogram being matched to
+   */
   public void imodPatchRegionModel() {
     try {
       if (metaData.getCombineParams().getMatchBtoA()) {
@@ -1807,6 +1838,9 @@ public class ApplicationManager {
     }
   }
 
+  /**
+   * Open the patch vector models in imod
+   */
   public void imodPatchVectorModel() {
     try {
       imodManager.openPatchVectorModel();
@@ -1819,6 +1853,9 @@ public class ApplicationManager {
     }
   }
 
+  /**
+   * Open the tomogram being matched to
+   */
   public void imodMatchedToTomogram() {
     try {
       if (metaData.getCombineParams().getMatchBtoA()) {
@@ -1840,6 +1877,9 @@ public class ApplicationManager {
     }
   }
 
+  /**
+   * Open the combined tomogram
+   */
   public void imodCombinedTomogram() {
     try {
       imodManager.openCombinedTomogram();
@@ -1853,7 +1893,7 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   * Tomogram combination done method, move on to the post processing window
    */
   public void doneTomogramCombinationDialog() {
     if (tomogramCombinationDialog == null) {

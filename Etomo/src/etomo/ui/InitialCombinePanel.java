@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2003/03/20 17:47:21  rickg
+ * <p> Initial implementation of panel
+ * <p>
  * <p> Revision 1.6  2003/03/18 23:41:07  rickg
  * <p> Restructured for both model and non model based combines
  * <p>
@@ -60,6 +63,8 @@ public class InitialCombinePanel implements ContextMenu {
   private JCheckBox cbUseModel = new JCheckBox("Model based initial match");
 
   private JPanel pnlButton = new JPanel();
+  private JButton btnMatchcheck =
+    new JButton("<html><b>View matchshift results</b>");
   private JButton btnRestart = new JButton("<html><b>Restart combine</b>");
 
   /**
@@ -79,6 +84,8 @@ public class InitialCombinePanel implements ContextMenu {
     dimButton.setSize(10 * height, 3 * height);
     btnImodMatchModels.setPreferredSize(dimButton);
     btnImodMatchModels.setMaximumSize(dimButton);
+    btnMatchcheck.setPreferredSize(dimButton);
+    btnMatchcheck.setMaximumSize(dimButton);
     btnRestart.setPreferredSize(dimButton);
     btnRestart.setMaximumSize(dimButton);
 
@@ -100,6 +107,8 @@ public class InitialCombinePanel implements ContextMenu {
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnMatchcheck);
+    pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnRestart);
     pnlButton.add(Box.createHorizontalGlue());
 
@@ -111,6 +120,7 @@ public class InitialCombinePanel implements ContextMenu {
     ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnImodMatchModels.addActionListener(buttonAction);
     btnRestart.addActionListener(buttonAction);
+    btnMatchcheck.addActionListener(buttonAction);
     CheckBoxActionListener checkboxAction = new CheckBoxActionListener(this);
     cbUseModel.addActionListener(checkboxAction);
 
@@ -208,6 +218,10 @@ public class InitialCombinePanel implements ContextMenu {
       applicationManager.imodMatchingModel();
     }
 
+    if (event.getActionCommand().equals(btnMatchcheck.getActionCommand())) {
+      applicationManager.imodMatchCheck();
+    }
+    
     if (event.getActionCommand().equals(btnRestart.getActionCommand())) {
       if (cbUseModel.isSelected()) {
         applicationManager.modelCombine();

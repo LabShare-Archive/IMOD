@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/19 00:23:43  rickg
+ * <p> Added patch vector model management
+ * <p>
  * <p> Revision 2.2  2003/03/18 00:32:33  rickg
  * <p> combine development in progress
  * <p>
@@ -86,7 +89,9 @@ public class ImodManager {
   private ImodProcess tomogramA;
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
-  private ImodProcess patchVectorModel; 
+  private ImodProcess patchVectorModel;
+  private ImodProcess matchCheckMat;
+  private ImodProcess matchCheckRec;
 
   private Thread fiducialModelA;
   private Thread fiducialModelB;
@@ -107,7 +112,6 @@ public class ImodManager {
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
       tomogramA = new ImodProcess(filesetName + ".rec");
       tomogramA.setSwapYZ(true);
-
     }
     else {
       rawStackA = new ImodProcess(filesetName + "a.st");
@@ -126,8 +130,9 @@ public class ImodManager {
       combinedTomogram.setSwapYZ(true);
       patchVectorModel = new ImodProcess("patch_vector.mod");
       patchVectorModel.setModelView(true);
+      matchCheckMat = new ImodProcess("matchcheck.mat");
+      matchCheckRec = new ImodProcess("matchcheck.rec");
     }
-
   }
 
   /**
@@ -343,7 +348,7 @@ public class ImodManager {
    */
   public void patchRegionModel(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       tomogramB.open();
       tomogramB.openModel("patch_region.mod");
     }
@@ -392,9 +397,8 @@ public class ImodManager {
   /**
    * Close the patch vector model
    */
-  public void quitPatchVectorModel()
-    throws SystemProcessException {
-      patchVectorModel.quit();
+  public void quitPatchVectorModel() throws SystemProcessException {
+    patchVectorModel.quit();
   }
 
   /**
@@ -414,9 +418,50 @@ public class ImodManager {
   /**
    * Close the combined tomogram
    */
-  public void quitCombinedTomogram()
-    throws SystemProcessException {
+  public void quitCombinedTomogram() throws SystemProcessException {
     combinedTomogram.quit();
+  }
+
+  /**
+   * Open the matchcheck.mat in imod if it is not already open
+   */
+  public void openMatchCheckMat() throws SystemProcessException {
+    matchCheckMat.open();
+  }
+
+  /**
+   * Check to see if the matchcheck.mat is open
+   */
+  public boolean isMatchCheckMat() {
+    return matchCheckMat.isRunning();
+  }
+
+  /**
+   * Close the matchcheck.mat tomogram
+   */
+  public void quitMatchCheckMat() throws SystemProcessException {
+    matchCheckMat.quit();
+  }
+
+  /**
+   * Open the matchcheck.rec in imod if it is not already open
+   */
+  public void openMatchCheckRec() throws SystemProcessException {
+    matchCheckRec.open();
+  }
+
+  /**
+   * Check to see if the matchcheck.rec is open
+   */
+  public boolean isMatchCheckRec() {
+    return matchCheckRec.isRunning();
+  }
+
+  /**
+   * Close the matchcheck.rec tomogram
+   */
+  public void quitMatchCheckRec() throws SystemProcessException {
+    matchCheckRec.quit();
   }
 
   /**
