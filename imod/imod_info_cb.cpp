@@ -371,9 +371,9 @@ static MeanSDData *secData = NULL;
 static int table_size = 0;
 static int tdim = 0;
 static int singleCleared = 0;
+static int saveNextClear = 0;
 static int clearedSection, clearedTime;
-static float clearedMean, clearedSD;
-
+static float clearedMean, clearedSD, clearedBlack, clearedWhite;
 
 
 /*
@@ -488,6 +488,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       // If this is a section that was cleared, use the saved values
       refMean = clearedMean;
       refSD = clearedSD;
+      ref_black = clearedBlack;
+      ref_white = clearedWhite;
 
     } else {
       if (secData[iref].sd < 0. || ixStart != secData[iref].ixStart || 
@@ -530,7 +532,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       secData[iref].nyUse = secData[isec].nyUse = nyUse;
 
       /* imodPrintStderr("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
-         refSD, secData[isec].mean, secData[isec].sd); */
+         refSD, secData[isec].mean, secData[isec].sd);*/
 
       /* Compute new black and white sliders; keep floating values */
       sloperatio = secData[isec].sd / refSD;
@@ -538,8 +540,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       tmp_black = (secData[isec].mean - (refMean - ref_black) * sloperatio);
       tmp_white = (tmp_black + sloperatio * (ref_white - ref_black));
 		    
-      /* imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
-         ref_white, tmp_black, tmp_white); */
+      /*imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black,
+        ref_white, tmp_black, tmp_white);*/ 
       if (tmp_black < 0)
         tmp_black = 0.;
       if (tmp_white > 255.)
@@ -572,6 +574,12 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   return retval;
 }
 
+/* Prepare to save the next float clear call */
+void imodInfoSaveNextClear()
+{
+  saveNextClear = 1;
+}
+
 /* Clear the information for floating sections - for one section or all 
    section < 0 and time < 0: clear entire table
    section = - number of sections and time >=0; clear all at this time
@@ -597,11 +605,17 @@ void imod_info_float_clear(int section, int time)
     }
   } else if (section * tdim + time < table_size) {
 
-    // If a single section is being cleared, keep track of its values
-    clearedSection = section;
-    clearedTime = time;
-    clearedMean = secData[section * tdim + time].mean;
-    clearedSD = secData[section * tdim + time].sd;
+    // If a single section is being cleared, keep track of its values if flag
+    // set
+    if (saveNextClear) {
+      clearedSection = section;
+      clearedTime = time;
+      clearedMean = secData[section * tdim + time].mean;
+      clearedSD = secData[section * tdim + time].sd;
+      clearedBlack = ref_black;
+      clearedWhite = ref_white;
+      saveNextClear = 0;
+    }
     secData[section * tdim + time].mean = -1;
     secData[section * tdim + time].sd = -1;
     if (clearedSD >= 0.)
@@ -775,6 +789,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.15  2004/11/01 23:24:23  mast
+Clear selection list when updating window if current cont not on list
+
 Revision 4.14  2004/10/27 20:38:05  mast
 Changed calls to cache dumper to take image, not fp
 
