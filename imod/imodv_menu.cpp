@@ -169,8 +169,8 @@ void imodvHelpMenu(int item)
        "  B   \tOpen background color window\n",
        "  L   \tOpen Object List window\n",
        "  M   \tOpen model selection window\n",
-       "  v   \tOpen view editing window\n",
-       "  i   \tOpen image overlay control window\n",
+       "  V   \tOpen view editing window\n",
+       "  I   \tOpen image overlay control window\n",
        "  b   \tToggle double buffering\n",
        "  r   \tToggle low resolution drawing of mesh and spheres\n",
        " g/G  \tIncrease/Decrease the quality of sphere drawing\n",
@@ -577,6 +577,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.6  2003/04/17 19:27:48  mast
 adding ctrl string
 
