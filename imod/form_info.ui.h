@@ -15,6 +15,8 @@
  * Mode group, spacing 2, margin 8 
  * bottom hbox, spacing 10
  * whole widget, spacing 4, margin 3
+ * As if that is not enough, editing the form on RH 9.0 screwed it up when compiled 
+ * on RH 7.3 and it was necessary to run it through designer on 7.3
  */
 
 void InfoControls::init()

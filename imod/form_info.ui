@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
 <class>InfoControls</class>
 <widget class="QWidget">
     <property name="name">
@@ -627,6 +627,9 @@
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
                 <property name="spacing">
                     <number>10</number>
                 </property>
@@ -637,6 +640,9 @@
                     <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
                         </property>
                         <property name="spacing">
                             <number>2</number>
@@ -757,6 +763,12 @@
                             <hbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
                                 </property>
                                 <widget class="QCheckBox">
                                     <property name="name">
