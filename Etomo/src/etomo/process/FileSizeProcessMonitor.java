@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/06/17 23:55:51  rickg
+ * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * <p> instantiation
+ * <p>
  * <p> Revision 3.5  2004/06/17 23:34:17  rickg
  * <p> Bug #460 added script starting time to differentiate old data files
  * <p>
@@ -103,14 +107,17 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     }
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
+      closeChannel();
       return;
     }
     catch (InvalidParameterException except) {
       except.printStackTrace();
+      closeChannel();
       return;
     }
     catch (IOException except) {
       except.printStackTrace();
+      closeChannel();
       return;
     }
 
@@ -201,13 +208,21 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       }
       catch (InterruptedException exception) {
         fileWriting = false;
-        try {
-          watchedChannel.close();
-        }
-        catch (IOException e1) {
-          e1.printStackTrace();
-        }
+        closeChannel();
       }
     }
+  }
+  
+  /**
+   * Attempt to close the watched channel file.
+   */
+  private void closeChannel() {
+    try {
+      watchedChannel.close();
+    }
+    catch (IOException e1) {
+      e1.printStackTrace();
+    }
+
   }
 }
