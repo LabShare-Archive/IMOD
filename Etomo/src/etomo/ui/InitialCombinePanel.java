@@ -32,6 +32,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/05/05 22:24:09  sueh
+ * <p> bug# 416 moving binned by 2 checkbox to above matching models
+ * <p> button
+ * <p>
  * <p> Revision 3.5  2004/05/03 22:26:10  sueh
  * <p> bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
  * <p> imodMatchingModel so that checkbox settings can be copied between
@@ -93,7 +97,7 @@ import etomo.type.FiducialMatch;
  * <p>
  * <p> </p>
  */
-public class InitialCombinePanel implements ContextMenu {
+public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   public static final String rcsid =
     "$Id$";
 
@@ -273,16 +277,31 @@ public class InitialCombinePanel implements ContextMenu {
     cbUseModel.setSelected(state);
   }
   
-  protected boolean getUseMatchingModels() {
+  public boolean isUseMatchingModels() {
     return cbUseModel.isSelected();
   }
   
-  void setBinBy2(boolean state) {
+  public void setBinBy2(boolean state) {
     cbBinBy2.setSelected(state);
   }
   
-  protected boolean getBinBy2() {
+  public boolean isBinBy2() {
     return cbBinBy2.isSelected();
+  }
+  public void setFiducialMatchListA(String fiducialMatchListA) {
+    System.out.println("InitialcombinePanel.setFiducialMatchListA()start:" + ltfFiducialMatchListA.getText());
+    ltfFiducialMatchListA.setText(fiducialMatchListA);
+    System.out.println("InitialcombinePanel.setFiducialMatchListA()end:" + ltfFiducialMatchListA.getText());
+  }
+  public String getFiducialMatchListA() {
+    System.out.println("InitialcombinePanel.getFiducialMatchListA():" + ltfFiducialMatchListA.getText());
+    return ltfFiducialMatchListA.getText();
+  }
+  public void setFiducialMatchListB(String fiducialMatchListB) {
+    ltfFiducialMatchListB.setText(fiducialMatchListB);
+  }
+  public String getFiducialMatchListB() {
+    return ltfFiducialMatchListB.getText();
   }
 
   /**
@@ -333,7 +352,7 @@ public class InitialCombinePanel implements ContextMenu {
     if (event
       .getActionCommand()
       .equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1();
+      applicationManager.matchvol1(TomogramCombinationDialog.INITIAL_TAB);
     }
   }
 
@@ -343,11 +362,14 @@ public class InitialCombinePanel implements ContextMenu {
    */
   private void checkboxAction(ActionEvent event) {
     if (event.getActionCommand().equals(cbUseModel.getActionCommand())) {
+      //needs to load data from the screen - use update
       if (cbUseModel.isSelected()) {
-        applicationManager.loadSolvematchMod();
+        //applicationManager.loadSolvematchMod();
+        applicationManager.updateSolvematchmodCom();
       }
       else {
-        applicationManager.loadSolvematchShift();
+        //applicationManager.loadSolvematchShift();
+        applicationManager.updateSolvematchshiftCom();
       }
     }
   }
