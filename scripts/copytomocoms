@@ -20,6 +20,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/05/20 19:12:01  mast
+#  Changes to have tomopitch operate on one model file
+#
 #  Revision 3.1  2002/05/07 01:59:42  mast
 #  Added a query for global exclusion list
 #
@@ -651,8 +654,10 @@ EOF
     endif
 
     @ ymin = $ofsize / 2 - 5
-    echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec mid$recext >>$dstfile
+    cat << EOF >> $dstfile
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
+\$ \\mv $setname.rec mid$recext
+EOF
 
     # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
     @ ymin = ($ofsize / 2 + $offset) - 5
@@ -678,8 +683,10 @@ EOF
 	    <blend$dstext >>$dstfile
     endif
 
-    echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec top$recext >>$dstfile
+    cat << EOF >> $dstfile
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
+\$ \\mv $setname.rec top$recext
+EOF
 
     @ ymin = ($ofsize / 2 - $offset) - 5
     @ ymax = ($ofsize / 2 - $offset) + 5
@@ -704,8 +711,10 @@ EOF
 	    <blend$dstext >>$dstfile
     endif
 
-    echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec bot$recext >>$dstfile
+    cat << EOF >> $dstfile
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
+\$ \\mv $setname.rec bot$recext
+EOF
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
     # GET FINDSEC
@@ -750,25 +759,34 @@ if ($backup == "1")then
 
     if ($naxis == "2") set backuplist = ($backuplist combine.com solve.xf refine.xf inverse.xf warp.xf patch.out combine.log)
 
-    echo "#! /bin/csh -f" >! $backupname
-    echo "set backupdir = $backupdir" >> $backupname
-    echo "set backuplist = ( \\" >> $backupname
+    cat << EOF >! $backupname
+#! /bin/csh -f
+set backupdir = $backupdir
+set backuplist = ( \\
+EOF
     @ num = 0
     while ($#backuplist > 0)
-	echo -n "$backuplist[1]  " >> $backupname
+      	echo -n "$backuplist[1]  " >> $backupname
 	shift backuplist
 	@ num++
-	if (($num % 4) == 0) echo "\\" >> $backupname
+	if (($num % 4) == 0) then
+cat << EOF >> $backupname
+\\
+EOF
+	endif
     end
-    echo ")" >> $backupname
-    echo 'while ($#backuplist > 0)' >> $backupname
-    echo '  set flnm = $backuplist[1]' >> $backupname
-    echo '  if (-e $flnm) then' >> $backupname
-    echo '    if (! -e $backupdir/$flnm) \\cp -p $flnm $backupdir' >> $backupname
-    echo '    \\find . -name $flnm -newer $backupdir/$flnm -exec cp -p "{}" $backupdir \\;' >> $backupname
-    echo '  endif' >> $backupname
-    echo '  shift backuplist' >> $backupname
-    echo 'end' >> $backupname
+
+    cat << EOF >> $backupname
+)
+while (\$#backuplist > 0)
+  set flnm = \$backuplist[1]
+  if (-e \$flnm) then
+    if (! -e \$backupdir/\$flnm) \\cp -p \$flnm \$backupdir
+    \\find . -name \$flnm -newer \$backupdir/\$flnm -exec cp -p "{}" \$backupdir \\;
+  endif
+  shift backuplist
+end
+EOF
     chmod +x $backupname
     $backupname
 endif
