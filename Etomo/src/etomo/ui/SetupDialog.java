@@ -43,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/02/23 18:22:13  sueh
+ * <p> bug# 386 Make distortion file optional
+ * <p>
  * <p> Revision 3.5  2004/02/21 00:31:22  sueh
  * <p> bug# 386 validate distortion file
  * <p>
@@ -688,13 +691,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
   
   private void btnDistortionFileAction(ActionEvent event) {
-
-    //  Open up the file chooser in the working directory
+    //Open up the file chooser in the calibration directory, if available,
+    //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
     if (currentDistortionDirectory.equals("")) {
-      currentDistortionDirectory = System.getProperty("user.dir");
+      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File distortionDir =
+        new File(calibrationDir.getAbsolutePath(), "Distortion");
+      if (distortionDir.exists()) {
+        currentDistortionDirectory = distortionDir.getAbsolutePath();
+      }
+      else {
+        currentDistortionDirectory = System.getProperty("user.dir");
+      }
     }
-    JFileChooser chooser = new JFileChooser(new File(currentDistortionDirectory));
+    JFileChooser chooser =
+      new JFileChooser(new File(currentDistortionDirectory));
     DistortionFileFilter distortionFileFilter = new DistortionFileFilter();
     chooser.setFileFilter(distortionFileFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
