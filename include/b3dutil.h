@@ -13,12 +13,17 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/11/01 16:41:13  mast
+Add error routines
+
 Revision 1.1  2003/10/24 02:44:36  mast
 Initial creation
 
 */
 #ifndef B3DUTIL_H
 #define B3DUTIL_H
+
+#include <stdio.h>
 
 #define MAX_IMOD_ERROR_STRING  512
 
