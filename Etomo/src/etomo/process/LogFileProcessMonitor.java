@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2004/08/23 23:37:00  sueh
+ * <p> bug# 508 backed out most recently checked in changes, except
+ * <p> for lastProcess
+ * <p>
  * <p> Revision 3.9  2004/08/19 02:27:17  sueh
  * <p> bug# 508 Preventing progress bar updates that prevent
  * <p> CombineProcessMonitor from working.  Checking processRunning to
@@ -100,6 +104,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected int currentSection;
   protected int remainingTime;
   protected int waitingForExit = 0;
+  private boolean processRunning = true;
 
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
@@ -138,7 +143,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
     }
     logFile = new File(System.getProperty("user.dir"), logFileName);
 
-    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile();
@@ -270,7 +274,14 @@ public abstract class LogFileProcessMonitor implements Runnable {
     String message = String.valueOf(percentage) + "%   ETC: "
         + Utilities.millisToMinAndSecs(remainingTime);
     
-    applicationManager.setProgressBarValue(currentSection, message, axisID);
+    if (processRunning) {
+      applicationManager.setProgressBarValue(currentSection, message, axisID);
+    }
+  }
+  
+  public void haltProcess(Thread runThread) {
+    processRunning = false;
+    runThread.interrupt();
   }
 
   /**
