@@ -1,20 +1,25 @@
-/*
- * Created on Oct 28, 2003
+/**
+ * <p>Description: </p>
  *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * <p>Copyright: Copyright (c) 2002-2004</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ *
+ * @version $Revision$
+ *
+ * <p> $Log$
+* <p> </p>
  */
 package etomo.type;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-/**
- * @author sueh
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
+
 public class TypeTests {
   static final String testRoot = new String("JUnitTests/etomo/type/");
   
