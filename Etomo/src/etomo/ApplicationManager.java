@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.23  2002/12/05 01:21:02  rickg
+ * <p> Added isAdvanced stub
+ * <p>
  * <p> Revision 1.22  2002/11/21 19:24:38  rickg
  * <p> Set user.dir to current working directory
  * <p>
@@ -1733,7 +1736,7 @@ public class ApplicationManager {
 
       //  Set the current working directory for the application
       if (metaData.getWorkingDirectory().length() > 0) {
-        System.setProperty("user.dir", metaData.getWorkingDirectory());
+        System.setProperty("user.dir", getWorkingDirectory());
       }
 
       //  Initialize a new IMOD manager
@@ -1840,8 +1843,10 @@ public class ApplicationManager {
       openMessageDialog(message, "Program Initialization Error");
     }
     else {
+      // Set both the metadata object for persistence and the user.dir
+      // property for objects that can't directly access this object
+      metaData.setWorkingDirectory(workingDirectory);
       System.setProperty("user.dir", workingDirectory);
-
     }
 
     // Get the IMOD directory so we know which program to run
