@@ -57,6 +57,7 @@ set midas_dir       = midas
 set sendevent_dir   = sendevent
 set imod_dir        = imod
 set qtassist_dir    = qtassist
+set sourcedoc_dir   = sourcedoc
 set plugsrc_dir     = plugs
 set libdiaqt_dir    = libdiaqt
 set etomo_dir       = Etomo
@@ -65,6 +66,8 @@ set midas_qconf     = midas/qconfigure
 set imod_qconf      = imod/qconfigure
 set sendevent_qconf = sendevent/qconfigure
 set qtassist_qconf  = qtassist/qconfigure
+set sourcedoc_qconf = sourcedoc/qconfigure
+set sourcedoc_exe   = sourcedoc
 set fort_cpplibs    =
 set ctrl_string     = Ctrl
 set ld_lib_var      = LD_LIBRARY_PATH
@@ -579,6 +582,7 @@ if ($machine != cygwin) then
     echo target.path = $inst_bin_dir >! $sendevent_qconf
     echo LIBS += -lqassistantclient >! $qtassist_qconf
     echo target.path = $inst_bin_dir >> $qtassist_qconf
+    echo LIBS += -L$lib_dir -limod >! $sourcedoc_qconf
 
 
     # echo gives two \\ in tcsh 6.12 under RH 8.0 so use cat
@@ -593,7 +597,7 @@ target.path = $inst_bin_dir
 3dmodv.path = $inst_bin_dir
 EOF
 
-    foreach i ($midas_qconf $sendevent_qconf $imod_qconf $qtassist_qconf)
+    foreach i ($midas_qconf $sendevent_qconf $imod_qconf $qtassist_qconf $sourcedoc_qconf)
         if ($debug == true) then
             echo CONFIG += debug warn_on >> $i
             if ($m64bit == true) echo QMAKE_CXXFLAGS_DEBUG += -m64 >> $i
@@ -643,6 +647,7 @@ EOF
     endif
     (cd $sendevent_dir ; qmake imodsendevent.pro)
     (cd $qtassist_dir ; qmake imodqtassist.pro)
+    (cd $sourcedoc_dir ; qmake sourcedoc.pro)
 
     (cd $imod_dir ; qmake imod.pro ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
 
@@ -687,6 +692,7 @@ echo "MAKENONDLL = $makenondll" >> $configure
 echo "MODELALLO = $modelallo" >> $configure
 echo "JUNIT_HOME = $junit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
+echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -784,6 +790,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.1  2005/02/11 04:58:54  mast
+#  Created file from setup; gave it the log
+#
 #  Revision 3.52  2005/01/27 15:33:28  mast
 #  Added error check after first qmake run
 #

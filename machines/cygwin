@@ -238,7 +238,13 @@ set class_sep       = ';'
 # Start Qt include files
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
-echo LIBS += qassistantclient.lib >! $qtassist_qconf
+echo LIBS += qassistantclient.lib 
+cat <<EOF >! $qtassist_qconf
+CONFIG += CONSOLE
+LIBS += libimod.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib"
+EOF
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
@@ -255,11 +261,11 @@ QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULT
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 EOF
 
-set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist_dir)
-set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro)
-set warn = (warn_on warn_off warn_on warn_on)
+set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist_dir $sourcedoc_dir)
+set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro sourcedoc.pro)
+set warn = (warn_on warn_off warn_on warn_on warn_on)
 @ i = 0
-while ($i < 4)
+while ($i < 5)
     @ i++
 
     echo "INCLUDEPATH += ..\include ." >> $qdir[$i]/qconfigure
@@ -360,7 +366,8 @@ EOF
     echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
 else
     set makefile_ext = dummy
-    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir)
+    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir $sourcedoc_dir)
+    set sourcedoc_exe = '$(VCEXEDIR)/sourcedoc'
 endif
 
 
