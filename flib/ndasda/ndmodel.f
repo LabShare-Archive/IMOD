@@ -8,6 +8,14 @@ c	  The file name is returned in MODELFILE.
 c	  If IFSCALE is non-zero (as passed to routine or entered by user),
 c	  then all points are scaled by XYSCAL.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine read_model(modelfile,ifscale,xyscal)
 	character*(*) modelfile
 	logical exist,readw_or_imod,newfile
@@ -77,32 +85,49 @@ c
 	real*4 bx(*),by(*)
 	integer*4 itypcrosind(-256:256),itype(*),ninclass(*)
 	real*4 sx(*),sy(*)
-	character*50 modelfile
+	character*80 modelfile
+	integer*4 iobjflag(limtyp)
+	integer*4 getimodflags
 c
 	do ii=1,limtyp
 	  ninclass(ii)=0
 	enddo
+	ierr = getimodflags(iobjflag,limtyp)
 c	  
 c	  extract points inside polygon
 c	  
 	npnts=0
 	do iobj=1,max_mod_obj
+	  imodobj = 256-obj_color(2,iobj)
 	  ifplanar=0
-	  if(npt_in_obj(iobj).gt.1)then
-	    if(abs(p_coord(3,abs(object(ibase_obj(iobj)+1)))-
-     &		p_coord(3,abs(object(ibase_obj(iobj)+2)))).lt.0.01)
-     &		ifplanar=1
+	  notclosed=1
+	  if(imodobj.le.limtyp)notclosed=mod(iobjflag(imodobj),4)
+	  if(npt_in_obj(iobj).gt.1.and.notclosed.eq.0)then
+c	      
+c	      for closed contour object only, look through the whole contour
+c	      to make sure it is not planar
+c
+	    ifplanar=1
+	    do i=1,npt_in_obj(iobj)-1
+	      if(abs(p_coord(3,abs(object(ibase_obj(iobj)+i)))-
+     &		p_coord(3,abs(object(ibase_obj(iobj)+i+1)))).gt.0.01)
+     &		  ifplanar=0
+	    enddo
 	  endif
 	  if(ifplanar.eq.0)then
 	    zdiffmin=10.
+	    ifscat=0
+	    if(imodobj.le.limtyp)ifscat=mod(iobjflag(imodobj)/2,2)
 	    do i=1,npt_in_obj(iobj)
 	      ipnt=abs(object(ibase_obj(iobj)+i))
 	      zdiff=abs(p_coord(3,ipnt)-zz)
 	      if(zdiff.lt.0.5)then
 		if(inside(bx,by,nvert,p_coord(1,ipnt),p_coord(2,ipnt)))
      &		    then
-		  if(zdiffmin.lt.10..and.zdiff.lt.zdiffmin) then
+		  if(zdiffmin.lt.10..and.zdiff.lt.zdiffmin.and.
+     &		      ifscat.eq.0) then
 c		      
+c		      Except for scattered point objects,
 c		      If there is already a point from this contour and
 c		      the new point is closer to the Z plane, replace it so
 c		      that we end up with only one point
@@ -114,7 +139,7 @@ c
 c		      
 c		      store first point that meets criteria
 c
-		    zdiffmin=zdiff
+		    if(ifscat.eq.0)zdiffmin=zdiff
 		    npnts=npnts+1
 		    sx(npnts)=p_coord(1,ipnt)
 		    sy(npnts)=p_coord(2,ipnt)
@@ -145,7 +170,7 @@ c	  is an error.  NVERT vertices are returned in BX, BY; ZZ is the Z
 c	  value (which must be the same throughout the object).
 c
 	entry get_boundary_obj(iobjbound,bx,by,nvert,zz,itype,
-     &	    ntypbound,padbound,ifconvex,fracomit,sx,sy)
+     &	    ntypbound,padbound,ifconvex,fracomit,sx,sy,maxverts)
 c
 	if(iobjbound.gt.0)then
 	  nvert=0
@@ -165,6 +190,11 @@ c
 	    endif
 	    if(nvert.eq.0 .or. p_coord(1,ipnt).ne.bx(max(1,nvert))
      &		.or. p_coord(2,ipnt).ne.by(max(1,nvert)))then
+	      if (nvert.ge.maxverts) then
+		print *,
+     &		    'The contour has too many vertices for the arrays'
+		return
+	      endif
 	      nvert=nvert+1
 	      bx(nvert)=p_coord(1,ipnt)
 	      by(nvert)=p_coord(2,ipnt)
