@@ -335,12 +335,19 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 }
 
+
 // Change the keep on top flag - have to reparent the widget for it to work
 void InfoWindow::keepOnTop(bool state)
 {
+#ifdef STAY_ON_TOP_HACK
+  if (mTopTimerID)
+    killTimer(mTopTimerID);
+  if (state)
+    mTopTimerID = startTimer(200);
+#else
   int flags = getWFlags();
   if (state)
-    flags |= WStyle_StaysOnTop | WStyle_Customize;
+    flags |= WStyle_StaysOnTop;
   else
     flags ^= WStyle_StaysOnTop;
   QPoint p(geometry().x(), geometry().y());
@@ -353,6 +360,12 @@ void InfoWindow::keepOnTop(bool state)
   reparent(0, flags, p, true);  
   /* printf("after geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
      pos().x(), pos().y()); */
+#endif
+}
+
+void InfoWindow::timerEvent(QTimerEvent *e)
+{
+  raise();
 }
 
 
@@ -452,6 +465,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.7  2003/03/15 00:29:40  mast
+    disable peg on the SGI
+
     Revision 4.6  2003/03/14 21:28:09  mast
     Making the reparent not move the window in some unix cases
 
