@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2003/03/14 01:10:06  mast
+c	  Add argument to interpolation acll
+c	
 c	  Revision 3.8  2002/07/27 15:49:27  mast
 c	  Standardized error outputs
 c	
@@ -158,7 +161,7 @@ c
 	integer*4 ixpclist(limview),iypclist(limview),izpclist(limview)
 	integer*4 listz(limview)
 	real*4 tilt(limview)
-	real*4 dmin2,dmax2,dmean2,rotangle,deltap,radexcl
+	real*4 dmin2,dmax2,dmean2,dmean3,rotangle,deltap,radexcl
 	integer*4 i,npclist,nview,minxpiece,nxpieces,nxoverlap,minypiece
 	integer*4 nypieces,nyoverlap,ifimout,nxpad,nypad,ifexclude,mode
 	integer*4 nxtrim,nytrim,nxuse,nyuse,nxbord,nybord,nxtap,nytap
@@ -390,16 +393,16 @@ c
 	      endif
 	      if(mode.ne.2)then
 		CALL IsetDN(crray,NXpad,NYpad,MODE,1,NXpad,1,NYpad,DMIN2,
-     &		    DMAX2,DMEAN2)
+     &		    DMAX2,DMEAN3)
 	      else
 		CALL IclDeN(crray,NXpad,NYpad,1,NXpad,1,NYpad,DMIN2,DMAX2,
-     &		    DMEAN2)
+     &		    DMEAN3)
 	      endif
 	      CALL IWRSEC(3,crray)
 C	      
 	      DMAX = max(dmax,dmax2)
 	      DMIN = min(dmin,dmin2)
-	      DMsum = dmsum + dmean2
+	      DMsum = dmsum + dmean3
 	    enddo
 	  endif
 	  call meanzero(array,nxpad+2,nxpad,nypad)
@@ -448,16 +451,16 @@ c
 	    call packcorr(crray,array,nxpad+2,nypad)
 	    if(mode.ne.2)then
 	      CALL IsetDN(crray,NXpad,NYpad,MODE,1,NXpad,1,NYpad,DMIN2,
-     &		  DMAX2,DMEAN2)
+     &		  DMAX2,DMEAN3)
 	    else
 	      CALL IclDeN(crray,NXpad,NYpad,1,NXpad,1,NYpad,DMIN2,DMAX2,
-     &		  DMEAN2)
+     &		  DMEAN3)
 	    endif
 	    CALL IWRSEC(3,crray)
 C	      
 	    DMAX = max(dmax,dmax2)
 	    DMIN = min(dmin,dmin2)
-	    DMsum = dmsum + dmean2
+	    DMsum = dmsum + dmean3
 	  endif
 	enddo
 c
