@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2004/11/19 23:22:25  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.11.2.2  2004/10/11 02:03:23  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -121,6 +124,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected int remainingTime;
   protected int waitingForExit = 0;
   private boolean processRunning = true;
+  private boolean done = false;
 
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
@@ -200,6 +204,11 @@ public abstract class LogFileProcessMonitor implements Runnable {
     if (lastProcess) {
       applicationManager.progressBarDone(axisID);
     }
+    done = true;
+  }
+  
+  boolean isDone() {
+    return done;
   }
   
   /**
@@ -271,7 +280,10 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * @param remainingTime
    */
   private void updateProgressBar() {
-
+    if (waitingForExit > 0) {
+      applicationManager.getMainPanel().setProgressBarValue(0, "Ending...", axisID);
+      return;
+    }
     //  Calculate the percetage done
     double fractionDone = (double) currentSection / nSections;
     int percentage = (int) Math.round(fractionDone * 100);
