@@ -9,6 +9,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2002/07/28 20:23:23  mast
+#  Changed to require setname argument, call repackseed with a fiducial
+#  coordinate file if an appropriate on exists, and have option to call midas
+#  to get the initial alignment.
+#
 #  Revision 3.3  2002/06/19 16:07:13  mast
 #  Added option to leave temporary files
 #
@@ -20,7 +25,7 @@
 #
 
 # Filter for tiltxcorr
-set xcfilter = "0.01,0.05,0,0.25"
+set xcfilter = "0.03,0.05,0,0.25"
 
 # Number of wins more in one rotation direction than the other that will
 # make it abandon the other direction
