@@ -73,11 +73,13 @@ int plax_open(void)
   unsigned long pixels[256];
   int width = 800;
   int height = 640;
-  int argc = 1;
+  int argc = 2;
   char *dummy = "Plax";
-  char *argv[1];
+  char *style = "-style=windows";
+  char *argv[2];
      
   argv[0] = dummy;
+  argv[1] = style;
   Plax_open = 0;
 
   if (!PlaxApp)
