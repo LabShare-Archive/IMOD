@@ -83,6 +83,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.109  2004/12/08 21:16:14  sueh
+ * <p> bug# 564 Changed get and set Input and Output File functions to get and set
+ * <p> Input and Output FileName to avoid confusion with new getOutputFile()
+ * <p> function.
+ * <p>
  * <p> Revision 3.108  2004/12/04 01:25:59  sueh
  * <p> bug# 557 Added imodSqueezedVolume().
  * <p>
@@ -1174,9 +1179,12 @@ public class ApplicationManager extends BaseManager {
       if (metaData.isValid()) {
         mainPanel.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
-        isDataParamDirty = true;
         //final initialization of IMOD manager
         imodManager.setMetaData(metaData);
+        //set paramFile so meta data can be saved
+        paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
+        userConfig.putDataFile(paramFile.getAbsolutePath());
+        loadedTestParamFile = true;
       }
       else {
         String[] errorMessage = new String[2];
@@ -1212,6 +1220,7 @@ public class ApplicationManager extends BaseManager {
     openProcessingPanel();
     //  Free the dialog
     setupDialog = null;
+    saveMetaData();
   }
 
   /**
@@ -1313,6 +1322,7 @@ public class ApplicationManager extends BaseManager {
         //  Go to the coarse align dialog by default
         mainPanel.showBlankProcess(axisID);
       }
+      saveTestParamFile();
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1672,6 +1682,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
+      saveTestParamFile();
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1958,7 +1969,6 @@ public class ApplicationManager extends BaseManager {
     TransferfidParam transferfidParam = new TransferfidParam();
     fiducialModelDialog.getTransferFidParams(transferfidParam);
     metaData.saveTransferfid(transferfidParam);
-    isDataParamDirty = true;
     DialogExitState exitState = fiducialModelDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
@@ -1978,6 +1988,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
+      saveTestParamFile();
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2273,6 +2284,7 @@ public class ApplicationManager extends BaseManager {
             "Problem closing coarse stack");
         }
       }
+      saveTestParamFile();
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2677,6 +2689,7 @@ public class ApplicationManager extends BaseManager {
             "Problem closing sample reconstruction");
         }
       }
+      saveTestParamFile();
     }
 
     //  Clean up the existing dialog
@@ -3046,7 +3059,6 @@ public class ApplicationManager extends BaseManager {
 
     //  Get the whole tomogram positions state
     metaData.setWholeTomogramSample(tomogramPositioningDialog.isWholeTomogramSampling());
-    isDataParamDirty = true;
 
     NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
     tomogramPositioningDialog.getNewstParamst(newstParam);
@@ -3279,6 +3291,7 @@ public class ApplicationManager extends BaseManager {
           openPostProcessingDialog();
         }
       }
+      saveTestParamFile();
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -4037,6 +4050,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         openPostProcessingDialog();
       }
+      saveTestParamFile();
     }
   }
 
@@ -4095,7 +4109,6 @@ public class ApplicationManager extends BaseManager {
 
     // Reload the initial and final match paramaters from the newly created
     // scripts
-    isDataParamDirty = true;
 
     //  Reload all of the parameters into the ComScriptManager
     loadSolvematch();
@@ -4138,7 +4151,7 @@ public class ApplicationManager extends BaseManager {
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      isDataParamDirty = true;
+      saveMetaData();
     }
     return;
   }
@@ -4764,7 +4777,7 @@ public class ApplicationManager extends BaseManager {
   public void donePostProcessing() {
     if (postProcessingDialog == null) {
       mainPanel.openMessageDialog("Post processing dialog not open",
-        "Program logic error");
+          "Program logic error");
       return;
     }
     updateTrimvolParam();
@@ -4772,14 +4785,17 @@ public class ApplicationManager extends BaseManager {
     if (exitState == DialogExitState.CANCEL) {
       postProcessingDialog = null;
     }
-    else if (exitState == DialogExitState.POSTPONE) {
-      processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-      mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
-    }
     else {
-      processTrack.setPostProcessingState(ProcessState.COMPLETE);
-      mainPanel.setPostProcessingState(ProcessState.COMPLETE);
-      postProcessingDialog = null;
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+        mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+      }
+      else {
+        processTrack.setPostProcessingState(ProcessState.COMPLETE);
+        mainPanel.setPostProcessingState(ProcessState.COMPLETE);
+        postProcessingDialog = null;
+      }
+      saveTestParamFile();
     }
     mainPanel.showBlankProcess(AxisID.ONLY);
   }
@@ -4932,22 +4948,12 @@ public class ApplicationManager extends BaseManager {
    *
    */
   protected TrimvolParam updateTrimvolParam() {
-    //FIXME dirty bit will always be set because dialog trimvol param will be
-    //different from metadata trimvol after it is first saved with an inputfile
-    //and an outputfile
-    
     //Get trimvol param data from dialog.
     TrimvolParam dialogTrimvolParam = new TrimvolParam();
     postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
     //Get the metadata trimvol param.
     TrimvolParam trimvolParam = metaData.getTrimvolParam();
     postProcessingDialog.getTrimvolParams(trimvolParam);
-    //Set the dirty bit if dialog trim vol data is changed.
-    //No need to call MetaData.setTrimvolParam(trimvolParam) because
-    //trimvolParam is ConstMetaData.trimvolParam.
-    if (!dialogTrimvolParam.equals(trimvolParam)) {
-      isDataParamDirty = true;
-    }
     //Add input and output files.
     trimvolParam.setInputFileName(
       metaData.getAxisType(),
@@ -4963,22 +4969,12 @@ public class ApplicationManager extends BaseManager {
    *
    */
   protected ConstSqueezevolParam updateSqueezevolParam() {
-    //FIXME dirty bit will always be set because dialog trimvol param will be
-    //different from metadata trimvol after it is first saved with an inputfile
-    //and an outputfile
-    
     //Get trimvol param data from dialog.
     SqueezevolParam dialogSqueezevolParam = new SqueezevolParam();
     postProcessingDialog.getParameters(dialogSqueezevolParam);
     //Get the metadata trimvol param.
     SqueezevolParam squeezevolParam = metaData.getSqueezevolParam();
     postProcessingDialog.getParameters(squeezevolParam);
-    //Set the dirty bit if dialog squeeze vol data is changed.
-    //No need to call MetaData.setSqueezevolParam(squeezevolParam) because
-    //squeezevolParam is ConstMetaData.squeezevolParam.
-    if (!dialogSqueezevolParam.equals(squeezevolParam)) {
-      isDataParamDirty = true;
-    }
     return squeezevolParam;
   }
 
