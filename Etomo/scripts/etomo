@@ -10,6 +10,12 @@
 # $Revision$
 # 
 # $Log$
+# Revision 1.7  2003/07/22 22:13:32  rickg
+# Use JVM defined by the PATH
+# Check to see if we have our our QTLIB
+# Force the system QTLIB to the front of LD_LIBRARY_PATH if
+# it exists.
+#
 # Revision 1.6  2003/06/13 19:24:29  rickg
 # Added LD_ASSUME_KERNEL=2.4.1 export
 #
@@ -39,18 +45,13 @@ if ! type -t java 2>&1 > /dev/null ; then
   echo "be defined to locate the java command."
 fi
 
+# If the system-dependent script for setting the library serach path exists,
+# source it.  This takes care of putting our Qt libraries on the right path
+# variable, and allows other directories to be placed on the path too, to
+# prevent clashes with libraries supplied by other packages
 
-# If we have a qtlib directory in IMOD_DIR then use that, otherwise try to use
-# the system QTDIR.  Also force our libraries to the front of the shared object
-# library search path as well as the system libraries since we have seen other apps
-# clashing with libGL
-if [ -e ${IMOD_DIR}/qtlib ]; then
-  export LD_LIBRARY_PATH=${IMOD_DIR}/qtlib:${IMOD_DIR}/lib:/usr/lib:${LD_LIBRARY_PATH}
-elif [ ! -z "$QTDIR" ]; then
-  export LD_LIBRARY_PATH=${QTDIR}/lib:${IMOD_DIR}/lib:/usr/lib:${LD_LIBRARY_PATH}
-else
-  echo "WARNING: An explicit QT library is not defined."
-  echo "Some graphical programs may not work."
+if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
+  source ${IMOD_DIR}/bin/setlibpath
 fi
 
 # Copy the previous log files to backups
