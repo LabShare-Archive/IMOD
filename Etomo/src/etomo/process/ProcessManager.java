@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2004/07/14 18:43:27  sueh
+ * bug# 405 go back to ps -l:  its faster and works for all the
+ * ways to run etomo that we have tested
+ *
  * Revision 3.24  2004/07/13 23:06:09  sueh
  * bug# 405 get a list of child processes instead of one.  This
  * will speed things up when there are sibling processes.
@@ -1511,7 +1515,7 @@ public class ProcessManager {
   protected String getChildProcess(String processID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps -l");
+    SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1578,7 +1582,7 @@ public class ProcessManager {
   private String[] getChildProcessList(String processID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps -l");
+    SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
