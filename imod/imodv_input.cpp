@@ -75,8 +75,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
 static void imodv_rotate(ImodvApp *a, int throwFlag);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
-
-#define ROTATION_FACTOR 1.26
+static void imodv_start_movie(ImodvApp *a);
 
 
 static unsigned int ctrlDown = 0;
@@ -247,19 +246,21 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Comma:
-    newval = (int)(a->md->arot / ROTATION_FACTOR + 0.5);
+    newval = (int)(a->md->arot / IMODV_ROTATION_FACTOR + 0.5);
     if (newval == a->md->arot)
       newval--;
     if (!newval)
       newval = 1;
     imodvControlSetArot(a, newval);
+    imodvControlIncSpeed(-1);
     break;
 
   case Qt::Key_Period:
-    newval = (int)(a->md->arot * ROTATION_FACTOR + 0.5);
+    newval = (int)(a->md->arot * IMODV_ROTATION_FACTOR + 0.5);
     if (newval == a->md->arot)
       newval++;
     imodvControlSetArot(a, newval);
+    imodvControlIncSpeed(1);
     break;
 
   case Qt::Key_M:
@@ -662,15 +663,14 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
   /* IF movieing, save the current increments as ones to movie on */
   if (a->movie){
-    a->md->xrotm = (int)x;
-    a->md->yrotm = (int)y;
-    a->md->zrotm = (int)z;
-    /* DNM: new workproc approach, start it here and go on */
+    if (!(a->md->xrotm || a->md->yrotm || a->md->yrotm)) {
+      a->md->xrotm = (int)x;
+      a->md->yrotm = (int)y;
+      a->md->zrotm = (int)z;
+    }
     if (!a->wpid) {
-      a->wpid = a->mainWin->mTimer->start
-        (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
-      a->movieFrames = 0;
-      a->movieStart = imodv_sys_time();
+      a->throwFactor = 1.;
+      imodv_start_movie(a);
     }
     /*  return; */
   }
@@ -766,15 +766,15 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
 /* Rotate the model or clipping planes by the amount of cursor movement. */
 
-#define MOUSE_TO_ANGLE 1.0f
 #define MOUSE_TO_THROW 0.25f
 #define MIN_SQUARE_TO_THROW 17
+#define SAME_SPEED_DISTANCE 100.
 
 static void imodv_rotate(ImodvApp *a, int throwFlag)
 {
   int mx, my, idx, idy;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
-  float dx, dy;
+  float dx, dy, angleScale;
 
   /* If movie on and not a Control rotation, then check the throw flag */
 
@@ -793,20 +793,19 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
         return;
       }
 
-      idx = (int)(MOUSE_TO_THROW * dy + 0.5);
-      idy = (int)(MOUSE_TO_THROW * dx + 0.5);
+      idx = (int)floor((MOUSE_TO_THROW * dy + 0.5));
+      idy = (int)floor((MOUSE_TO_THROW * dx + 0.5));
       if (!idx && !idy)
         a->movie = 0;
       a->md->xrotm = idx;
       a->md->yrotm = idy;
       a->md->zrotm = 0;
-      /* DNM: new workproc approach, start it here */
-      if (a->movie && !a->wpid) {
-        a->wpid = a->mainWin->mTimer->start
-          (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
-        a->movieFrames = 0;
-        a->movieStart = imodv_sys_time();
-      }
+
+      a->throwFactor = (float)(sqrt((double)(dx * dx + dy * dy)) /
+                               SAME_SPEED_DISTANCE);
+      /* Start movie if it is not already going */
+      if (a->movie && !a->wpid)
+        imodv_start_movie(a);
     }
     return;
   }
@@ -819,11 +818,14 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
 
-  /* Get the total x and y movement. */
+  /* Get the total x and y movement.  The scale factor will roll the surface
+     of a sphere 0.8 times the size of window's smaller dimension at the same 
+     rate as the mouse */
+  angleScale = 1800. / (3.142 * 0.4 * (a->winx > a->winy ? a->winy : a->winx));
   dx = (mx - a->lmx);
   dy = (my - a->lmy);
-  idx = (int)(MOUSE_TO_ANGLE * dy + 0.5);
-  idy = (int)(MOUSE_TO_ANGLE * dx + 0.5);
+  idx = (int)floor(angleScale * dy + 0.5);
+  idy = (int)floor(angleScale * dx + 0.5);
   if ((!idx) && (!idy))
     return;
      
@@ -999,15 +1001,40 @@ int imodv_sys_time(void)
    to using just this workproc after starting the movie.
    DNM 5/21/01: eliminated old code */
 
+static void imodv_start_movie(ImodvApp *a)
+{
+  int m;
+  /* DNM: new workproc approach, start it here and go on */
+  a->wpid = a->mainWin->mTimer->start
+    (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
+  a->movieFrames = 0;
+  a->movieStart = imodv_sys_time();
+  for (m = 0; m < MAX_MOVIE_TIMES; m++)
+    a->movieTimes[m] = a->movieStart;
+}
+
 void imodvMovieTimeout()
 {
   ImodvApp *a = Imodv;
+  int index, nframes;
+  float rot, scale;
      
   if (a->wpid && !ImodvClosed && a->movie && 
       (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
     a->movieFrames++;
     a->movieCurrent = imodv_sys_time();
-    imodv_rotate_model(a,a->md->xrotm, a->md->yrotm, a->md->zrotm);
+    index = a->movieFrames % MAX_MOVIE_TIMES;
+    nframes = a->movieFrames < MAX_MOVIE_TIMES ? 
+      a->movieFrames : MAX_MOVIE_TIMES;
+    rot = (float)sqrt((double)(a->md->xrotm * a->md->xrotm + 
+                               a->md->yrotm * a->md->yrotm + 
+                               a->md->zrotm * a->md->zrotm));
+    scale = a->movieSpeed * a->throwFactor * 
+      (a->movieCurrent - a->movieTimes[index]) / (100. * nframes * rot);
+    a->movieTimes[index] = a->movieCurrent;
+    imodv_compute_rotation(a, scale * a->md->xrotm, scale * a->md->yrotm, 
+                           scale * a->md->zrotm);
+    imodvDraw(a);
   } else {
     a->wpid = 0;
     a->mainWin->mTimer->stop();
@@ -1016,6 +1043,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.9  2003/11/01 18:12:17  mast
+    changed to put out virtually all error messages to a window
+
     Revision 4.8  2003/06/27 20:01:36  mast
     Changes to use world flag for quality instead of fastdraw flag
 
