@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #include <limits.h>
 #include <math.h>
@@ -791,7 +799,191 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
   return(0);
 }
 
+/*
+ * Join 3 separate byte files into an RGB file
+ */
+int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
+		 struct MRCheader *hout, struct Grap_options *opt)
+{
+  int i,j,k,l;
+  float val[5];
+  struct MRCheader hdr[3];
+  struct MRCslice *s, *srgb[3];
 
+  if (opt->red == IP_DEFAULT)
+    opt->red = 1.0;
+  if (opt->green == IP_DEFAULT)
+    opt->green = 1.0;
+  if (opt->blue == IP_DEFAULT)
+    opt->blue = 1.0;
+
+  if (opt->infiles != 3) {
+    fprintf(stderr, "ERROR: clip joinrgb - three input files must be "
+            "specified\n");
+    return (-1);
+  }
+  hdr[0] = *h1;
+  hdr[1] = *h2;
+  hdr[2].fp = fopen(opt->fnames[2], "rb");
+
+  if (!hdr[2].fp){
+      fprintf(stderr, "ERROR: clip joinrgb - opening %s.\n", opt->fnames[2]);
+      return(-1);
+  }
+  if (mrc_head_read(hdr[2].fp, &hdr[2])){
+    fprintf(stderr, "ERROR: clip joinrgb - reading %s.\n", opt->fnames[2]);
+    return(-1);
+  }
+  
+  if ( (h1->nx != hdr[2].nx) || (h1->ny != hdr[2].ny) ||
+       (h1->nz != hdr[2].nz) || (h1->nx != h2->nx) || (h1->ny != h2->ny) ||
+       (h1->nz != h2->nz)) {
+    fprintf(stderr, "ERROR: clip joinrgb - all files must be same size.\n");
+    return(-1);
+  }
+
+  if (h1->mode != MRC_MODE_BYTE || h2->mode != MRC_MODE_BYTE || 
+      hdr[2].mode != MRC_MODE_BYTE) {
+    fprintf(stderr, "ERROR: clip joinrgb - all files must be bytes.\n");
+    return(-1);
+  }
+
+  /* Set up mode and label */
+  hout->mode = MRC_MODE_RGB;
+  mrc_head_label(hout, "CLIP Join 3 files into RGB");
+  mrc_head_write(hout->fp, hout);
+
+  s = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+  for (i = 0; i < 3; i++) {
+    srgb[i] = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_BYTE);
+    if (!s || !srgb[i]) {
+      fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
+      return (-1);
+    }
+  }
+
+  /* Loop on slices */
+  for (k = 0; k < h1->nz; k++) {
+    printf("\rJoining section %d of %d", k + 1, h1->nz);
+    fflush(stdout);
+
+    /* Read three slices */
+    for (l = 0; l < 3; l++)
+      mrc_read_slice((void *)srgb[l]->data.b, hdr[l].fp, &hdr[l], k, 'z');
+
+    /* Get the components, scale, and put into output slice */
+    for (j = 0; j < h1->ny; j++) {
+      for(i = 0; i < h1->nx; i ++) {
+        for (l = 0; l < 3; l++)
+          sliceGetVal(srgb[l], i, j, &val[l]);
+        val[0] *= opt->red;
+        val[1] *= opt->green;
+        val[2] *= opt->blue;
+        slicePutVal(s, i, j, val);
+      }
+    }
+  
+    mrc_write_slice((void *)s->data.b, hout->fp, hout, k, 'z');
+  }
+  puts("");
+
+  for (i = 0; i < 3; i++)
+    mrc_slice_free(srgb[i]);
+  mrc_slice_free(s);
+}
+
+/*
+ * Split an RGB file into 3 separate files
+ */
+int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
+{
+  int i,j,k,l;
+  float val[5];
+  char *ext[3] = {".r", ".g", ".b"};
+  struct MRCheader hdr[3];
+  char *fname;
+  int len = strlen(opt->fnames[1]);
+  struct MRCslice *s, *srgb[3];
+
+  if (h1->mode != MRC_MODE_RGB) {
+    fprintf(stderr, "ERROR: clip splitrgb - mode is not RGB\n");
+    return(-1);
+  }
+   
+  if (opt->infiles != 1) {
+    fprintf(stderr, "ERROR: clip splitrgb - only one input file should "
+            "be specified\n");
+    return (-1);
+  }
+ 
+  fname = (char *)malloc(len + 4);
+  if (!fname) {
+    fprintf(stderr, "ERROR: CLIP - getting memory for filename\n");
+    return (-1);
+  }
+
+  /* Set up output files and get slices */
+  s = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+  for (i = 0; i < 3; i++) {
+    sprintf(fname, "%s%s", opt->fnames[1], ext[i]);
+    imodBackupFile(fname);
+    hdr[i] = *h1;
+    hdr[i].fp = fopen(fname, "wb+");
+    if (!hdr[i].fp){
+      fprintf(stderr, "Error opening %s\n", fname);
+      return(-1);
+    }
+    hdr[i].swapped = 0;
+    hdr[i].mode = 0;
+    hdr[i].amin = 255;
+    hdr[i].amean = 0;
+    hdr[i].amax = 0;
+    hdr[i].headerSize = 1024;
+    mrc_head_label(&hdr[i], "CLIP Split RGB into 3 files");
+    mrc_head_write(hdr[i].fp, &hdr[i]);
+    srgb[i] = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_BYTE);
+    if (!s || !srgb[i]) {
+      fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
+      return (-1);
+    }
+  }
+
+  /* Loop on sections */
+  for(k = 0; k < h1->nz; k++) {
+    printf("\rSplitting section %d of %d", k + 1, h1->nz);
+    fflush(stdout);
+	  
+    /* Read slice and put its 3 components into output slices */
+    mrc_read_slice((void *)s->data.b, h1->fp, h1, k, 'z');
+    for (j = 0; j < h1->ny; j++) {
+      for(i = 0; i < h1->nx; i ++) {
+        sliceGetVal(s, i, j, val);
+        for (l = 0; l < 3; l++)
+          slicePutVal(srgb[l], i, j, &val[l]);
+      }
+    }
+
+    /* Maintain min/max/mean */
+    for (i = 0; i < 3; i++) {
+      mrc_write_slice((void *)srgb[i]->data.b, hdr[i].fp, &hdr[i], k, 'z');
+      mrc_slice_calcmmm(srgb[i]);
+      if (srgb[i]->min < hdr[i].amin)
+        hdr[i].amin = srgb[i]->min;
+      if (srgb[i]->max > hdr[i].amax)
+        hdr[i].amax = srgb[i]->max;
+      hdr[i].amean += srgb[i]->mean;
+    }
+  }
+
+  puts("");
+
+  for (i = 0; i < 3; i++) {
+    hdr[i].amean /= k;
+    mrc_head_write(hdr[i].fp, &hdr[i]);
+    mrc_slice_free(srgb[i]);
+  }
+  mrc_slice_free(s);
+}
 
 int clip2d_average(struct MRCheader *hin, struct MRCheader *hout, 
                    struct Grap_options *opt)
