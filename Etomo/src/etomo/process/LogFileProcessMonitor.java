@@ -21,12 +21,15 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/08/04 22:23:16  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 
 public abstract class LogFileProcessMonitor implements Runnable {
-  public static final String rcsid = "$Id$";
-  protected SystemProcessInterface process;
+  public static final String rcsid =
+    "$Id$";
   protected ApplicationManager applicationManager;
   protected AxisID axisID;
   protected long processStartTime;
@@ -49,30 +52,22 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * @param appMgr  The application manager object
    * @param id  The axis ID to be monitored
    */
-  public LogFileProcessMonitor(
-    SystemProcessInterface proc,
-    ApplicationManager appMgr,
-    AxisID id) {
-    process = proc;
+  public LogFileProcessMonitor(ApplicationManager appMgr, AxisID id) {
     applicationManager = appMgr;
     axisID = id;
   }
 
   public void run() {
+    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile(logFileBasename);
-      System.err.println("Log file detected");
       findNSections();
-      System.err.println("Number of sections: " + String.valueOf(nSections));
-
       initializeProgressBar();
 
-      while (!process.isDone()) {
+      while (processRunning) {
         Thread.sleep(updatePeriod);
         getCurrentSection();
-        System.err.println(
-          "Current section: " + String.valueOf(currentSection));
         calcRemainingTime();
         updateProgressBar();
       }
@@ -82,7 +77,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
       e.printStackTrace();
     }
     catch (InterruptedException e) {
-      e.printStackTrace();
+      processRunning = false;
     }
     catch (NumberFormatException e) {
       e.printStackTrace();
@@ -132,12 +127,14 @@ public abstract class LogFileProcessMonitor implements Runnable {
    */
   private void findNSections()
     throws InterruptedException, NumberFormatException, IOException {
+
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
-    String line;
-    int nSections = -1;
+
+    nSections = -1;
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
+      String line;
       while ((line = logFileBuffer.readLine()) != null) {
         if (line.startsWith(" Number of columns, rows, sections")) {
           String[] fields = line.split("\\s+");
@@ -161,11 +158,16 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * @param remainingTime
    */
   private void updateProgressBar() {
+
+    //  Calculate the percetage done
     double fractionDone = (double) currentSection / nSections;
     int percentage = (int) Math.round(fractionDone * 100);
+
+    // Convert the remainingTime to minutes and seconds
     int minutes = (int) Math.floor(remainingTime / 60000);
     int seconds = (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
 
+    // Format the progress bar string
     String message =
       String.valueOf(percentage) + "%   ETC: " + String.valueOf(minutes) + ":";
     if (seconds < 10) {
@@ -186,6 +188,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
   private void calcRemainingTime() {
     double fractionDone = (double) currentSection / nSections;
     long elapsedTime = System.currentTimeMillis() - processStartTime;
-    double remainingTime = elapsedTime / fractionDone - elapsedTime;
+    remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
   }
 }
