@@ -84,6 +84,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2004/05/26 04:57:14  rickg
+ * <p> Bug #391 Fiducialess handling for the gneration dialog
+ * <p>
  * <p> Revision 3.59  2004/05/26 00:00:32  sueh
  * <p> bug# 355 validate metaData when retrieve parameters from an
  * <p> .edf file
@@ -1389,6 +1392,27 @@ public class ApplicationManager {
         //  Go to the fiducial model dialog by default
         if (metaData.isFiducialessAlignment()) {
           openTomogramPositioningDialog(axisID);
+          // Check to see if the user wants to keep any coarse aligned imods
+          // open
+          try {
+            if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
+              String[] message = new String[2];
+              message[0] = "The coarsely aligned stack is open in 3dmod";
+              message[1] = "Should it be closed?";
+              if (mainFrame.openYesNoDialog(message)) {
+                imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+              }
+            }
+          }
+          catch (AxisTypeException except) {
+            except.printStackTrace();
+            mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+          }
+          catch (SystemProcessException except) {
+            except.printStackTrace();
+            mainFrame.openMessageDialog(except.getMessage(),
+              "Problem closing coarse stack");
+          }
         }
         else {
           openFiducialModelDialog(axisID);
@@ -1583,10 +1607,24 @@ public class ApplicationManager {
     }
     metaData.setFiducialessAlignment(dialog.isFiducialessAlignment());
     metaData.setImageRotation(tiltAxisAngle, axisID);
+    
     updateRotationXF(tiltAxisAngle, axisID);
+    try {
+      if (metaData.isFiducialessAlignment()) {
+        processMgr.setupNonFiducialAlign(axisID);
+      }
+      else {
+        processMgr.setupFiducialAlign(axisID);
+      }
+    }
+    catch (IOException except) {
+      mainFrame
+      .openMessageDialog(except.getMessage(), "IOException");
+      return false;
+    }
     return true;
   }
-
+  
   /**
    * Return the CoarseAlignDialog associated the specified AxisID
    * 
@@ -1642,12 +1680,6 @@ public class ApplicationManager {
     nextProcess = "";
     try {
       processMgr.generateNonFidXF(axisID);
-      if (metaData.isFiducialessAlignment()) {
-        processMgr.setupNonFiducialAlign(axisID);
-      }
-    }
-    catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "IOException");
     }
     catch (SystemProcessException except) {
       mainFrame
@@ -2238,7 +2270,7 @@ public class ApplicationManager {
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
-      updateTiltDependsOnAlign(tiltalignParam, axisID);
+      updateTiltCom(tiltalignParam, axisID);
       mainFrame.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     }
     catch (FortranInputSyntaxException except) {
@@ -2265,7 +2297,7 @@ public class ApplicationManager {
    * Update the tilt parameters dependent on the align script - local
    * alignments file - the exclude list
    */
-  private void updateTiltDependsOnAlign(ConstTiltalignParam tiltalignParam,
+  private void updateTiltCom(ConstTiltalignParam tiltalignParam,
     AxisID currentAxis) {
     comScriptMgr.loadTilt(currentAxis);
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
@@ -2379,22 +2411,17 @@ public class ApplicationManager {
       mainFrame.showBlankProcess(axisID);
     }
     else {
-      boolean tiltFinished = updateSampleTiltCom(axisID);
-      boolean alignFinished = true;
-      // FIXME check this logic
-      if (tomogramPositioningDialog.isFiducialessAlignment()) {
-        metaData.setFiducialessAlignment(true);
+      //  Get all of the parameters from the panel
+      if(!updateAlignCom(tomogramPositioningDialog, axisID)){
+        return;
       }
-      else {
-        metaData.setFiducialessAlignment(false);
-        alignFinished = updateAlignCom(tomogramPositioningDialog, axisID);
-      }
-      if (!(tiltFinished & alignFinished)) {
+      if(!updateSampleTiltCom(axisID)) {
         return;
       }
       if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
         return;
       }
+      
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
           axisID);
@@ -2426,6 +2453,7 @@ public class ApplicationManager {
         }
       }
     }
+
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       tomogramPositioningDialogB = null;
