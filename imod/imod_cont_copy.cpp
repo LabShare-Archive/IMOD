@@ -242,7 +242,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   QHBox *hBox = new QHBox(this);
   mLayout->addWidget(hBox);
   
-  mToCombo = new QComboBox(hBox);
+  mToCombo = new QComboBox(false, hBox);
   mToCombo->insertItem("Copy to Object #", COPY_TO_OBJECT);
   mToCombo->insertItem("Copy to Section #", COPY_TO_SECTION);
   mToCombo->insertItem("Copy to Next Section", COPY_TO_NEXT_SECTION);
@@ -618,6 +618,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.8  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
