@@ -56,18 +56,33 @@ c
 c	  David Mastronarde, 1995
 c	  12/24/98: added outlier elimination; 6/6/99: added error exit
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c	  
+	implicit none
         include 'stat_source:statsize.inc'
 	include 'model.inc'
+	integer idim,limvert
         parameter (idim=10000,limvert=100000)
         real*4 xr(msiz,idim)
         real*4 cx(idim),dx(idim),a(3,3),dxyz(3),devxyz(3)
 	real*4 devxyzmax(3),cenloc(3)
         integer*4 nxyz(3),idrop(idim)
 	logical inside,exist,readw_or_imod
-	integer getimodhead
+	integer getimodhead,getimodscales
 	real*4 xvert(limvert),yvert(limvert),zcont(idim)
 	integer*4 indvert(idim),nvert(idim)
         character*80 filename
+c	  
+	integer*4 ncont,ierr,ifflip,i,indy,indz,indcur,iobj,ndat,nfill
+	real*4 ximscale,yimscale,zimscale,xyscal,zscal,xofs,yofs,zofs
+	integer*4 ifuse,icont,icmin,j,ind,maxdrop,ndrop,ipntmax,ip,ipt
+	real*4 dzmin,crit,elimmin,critabs,devavg,devsd,devmax,stoplim,dz
 
         write(*,'(1x,a,$)')
      &      'Name of file with correlation positions and results: '
@@ -83,13 +98,14 @@ c
 	ncont=0
 	if(filename.ne.' ')then
 	  exist=readw_or_imod(filename)
-	  if(.not.exist)stop 'REFINEMATCH: ERROR READING MODEL'
+	  if(.not.exist)call errorexit('ERROR READING MODEL')
 	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+	  ierr=getimodscales(ximscale,yimscale,zimscale)
 c	  print *,'Offsets:',xofs,yofs,zofs
 	  do i=1,n_point
-	    p_coord(1,i)=p_coord(1,i)-xofs
-	    p_coord(2,i)=p_coord(2,i)-yofs
-	    p_coord(3,i)=p_coord(3,i)-zofs
+	    p_coord(1,i)=(p_coord(1,i)-xofs)/ximscale
+	    p_coord(2,i)=(p_coord(2,i)-yofs)/yimscale
+	    p_coord(3,i)=(p_coord(3,i)-zofs)/zimscale
 	  enddo
 	  indy=2
 	  indz=3
@@ -101,11 +117,11 @@ c	  print *,'Offsets:',xofs,yofs,zofs
 	  do iobj=1,max_mod_obj
 	    if(npt_in_obj(iobj).ge.3)then
 	      ncont=ncont+1
-	      if(ncont.gt.idim)stop
-     &		  'REFINEMATCH: TOO MANY CONTOURS IN MODEL'
+	      if(ncont.gt.idim)call errorexit(
+     &		  'TOO MANY CONTOURS IN MODEL')
 	      nvert(ncont)=npt_in_obj(iobj)
-	      if(indcur+nvert(ncont).gt.limvert)stop
-     &		  'REFINEMATCH: TOO MANY POINTS IN CONTOURS'
+	      if(indcur+nvert(ncont).gt.limvert)call errorexit(
+     &		  'TOO MANY POINTS IN CONTOURS')
 	      do ip=1,nvert(ncont)
 		ipt=abs(object(ibase_obj(iobj)+ip))
 		xvert(ip+indcur)=p_coord(1,ipt)
@@ -121,8 +137,8 @@ c	  print *,'Offsets:',xofs,yofs,zofs
 	endif
 c	    
         read(1,*)ndat
-	if(ndat.gt.idim)stop
-     &	    'REFINEMATCH CANNOT RUN; TOO MANY POINTS FOR DATA ARRAYS'
+	if(ndat.gt.idim)call errorexit(
+     &	    'TOO MANY POINTS FOR DATA ARRAYS')
 	nfill=0
         do i=1,ndat
 c	    
@@ -206,9 +222,18 @@ c
 	  close(1)
 	endif
 	if(devavg.gt.stoplim)then
-	  print *,'THE MEAN RESIDUAL IS ABOVE THE SPECIFIED LIMIT;',
+	  print *
+	  print *,'REFINEMATCH: THE MEAN RESIDUAL IS ABOVE THE '//
+     &	      'SPECIFIED LIMIT;',
      &	      '  EITHER RAISE THE LIMIT OR USE WARPING'
-	  call exit(1)
+	  call exit(2)
 	endif
 	call exit(0)
         end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: REFINEMATCH - ',message
+	call exit(1)
+	end
