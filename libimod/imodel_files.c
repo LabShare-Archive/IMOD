@@ -651,7 +651,6 @@ static int imodel_read(Imod *imod, int version)
 #endif
 
   fflush(fin);
-  imodVirtIn(imod);
   if (version < IMOD_V12)
     imodCleanSurf(imod);
   return(0);
@@ -1071,9 +1070,6 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "insideout"))
       obj->flags |= IMOD_OBJFLAG_OUT;
 
-    if (substr(line, "virtual"))
-      obj->flags |= IMOD_OBJFLAG_VIRT;
-
     if (substr(line, "offsets "))
       sscanf(line, "offsets %g %g %g",
              &(imod->xoffset), &(imod->yoffset), &(imod->zoffset));
@@ -1141,7 +1137,6 @@ int imodReadAscii(Imod *imod)
       obj->drawmode = atoi(&(line[8]));
   }
      
-  imodVirtIn(imod);
   return(0);
 }
 
@@ -1175,7 +1170,6 @@ int imodWriteAscii(Imod *imod)
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
-    imodObjectVirtOut(obj);
     fprintf(imod->file, "\nobject %d %d %d\n", ob, obj->contsize,
             obj->meshsize);
     fprintf(imod->file, "name %s\n", obj->name);
@@ -1191,8 +1185,6 @@ int imodWriteAscii(Imod *imod)
       fprintf(imod->file, "insideout\n");
     if (obj->flags & IMOD_OBJFLAG_FILL)
       fprintf(imod->file, "fill\n");
-    if (iobjVirtual(obj->flags))
-      fprintf(imod->file, "virtual\n");
 
     fprintf(imod->file, "linewidth %d\n", obj->linewidth);
     fprintf(imod->file, "surfsize  %d\n", obj->surfsize);
@@ -1224,7 +1216,6 @@ int imodWriteAscii(Imod *imod)
         fprintf(imod->file, "%d\n", mesh->list[i]);
 	       
     }
-    /*	  imodObjectVirtIn(obj); */
   }
 
   fprintf(imod->file, "# thats all folks!\n");
@@ -1540,6 +1531,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.14  2004/09/21 20:12:01  mast
+  Changes for multiple and global clip planes, surface labels
+
   Revision 3.13  2004/09/10 21:33:46  mast
   Eliminated long variables
 
