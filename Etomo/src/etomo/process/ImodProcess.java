@@ -19,6 +19,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.17  2003/11/04 20:56:11  rickg
+ * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
  * <p> Revision 2.16  2003/11/04 17:45:21  rickg
  * <p> Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
  * <p>
@@ -109,7 +112,9 @@ public class ImodProcess {
 	public static final String MESSAGE_CLOSE = "4";
 	public static final String MESSAGE_RAISE = "5";
 	public static final String MESSAGE_MODEL_MODE = "6";
-
+	public static final String MESSAGE_OPEN_KEEP_BW = "7";
+	public static final String MESSAGE_OPEN_BEADFIXER = "8";
+	
 	private String datasetName = "";
 	private String modelName = "";
 	private String windowID = "";
@@ -271,6 +276,19 @@ public class ImodProcess {
 	}
 
 	/**
+	 * Open a new model file, Preserve the constrast settings
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void openModelPreserveContrast(String newModelName) throws SystemProcessException {
+		String[] args = new String[2];
+		args[0] = MESSAGE_OPEN_KEEP_BW;
+		args[1] = newModelName;
+		imodSendEvent(args);
+	}
+
+
+	/**
 	 * Save the current model file
 	 */
 	public void saveModel() throws SystemProcessException {
@@ -322,6 +340,16 @@ public class ImodProcess {
 		imodSendEvent(args);
 	}
 
+	/**
+	 * Open the beadfixer dialog
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void openBeadFixer() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_OPEN_BEADFIXER;
+		imodSendEvent(args);
+	}
 	/**
 	 * Send an event to 3dmod using the imodsendevent command
 	 */
