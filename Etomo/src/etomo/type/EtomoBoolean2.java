@@ -17,6 +17,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/03/04 00:16:10  sueh
+* <p> bug# 533 Added setUpdateAsInteger().  Fixed a bug in newNumber() that
+* <p> caused a stack overflow.
+* <p>
 * <p> Revision 1.4  2005/01/25 23:50:52  sueh
 * <p> Switching from inheriting EtomoNumber to inheritying ScriptParameters.
 * <p> Overriding isUseInScript(), getValueFromScript(), and addToScript().
@@ -45,7 +49,7 @@ public class EtomoBoolean2 extends ScriptParameter {
   private static final String falseStrings[] = {"f", "no"};
   private static final String trueString = "true";
   private static final String trueStrings[] = {"t","yes"};
-  private boolean updateAsInteger = false;
+  private boolean displayAsInteger = false;
 
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name, true, new Integer(FALSE_VALUE));
@@ -72,14 +76,17 @@ public class EtomoBoolean2 extends ScriptParameter {
    * otherwise return true
    */
   protected String toString(Number value) {
+    if (displayAsInteger) {
+      return super.toString(value);
+    }
     if (is(value)) {
       return trueString;
     }
     return falseString;
   }
   
-  public ConstEtomoNumber setUpdateAsInteger(boolean updateAsInteger) {
-    this.updateAsInteger = updateAsInteger;
+  public ConstEtomoNumber setDisplayAsInteger(boolean displayAsInteger) {
+    this.displayAsInteger = displayAsInteger;
     return this;
   }
 
@@ -108,10 +115,10 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (!isUseInScript()) {
       return this;
     }
-    if (!updateAsInteger && !is()) {
+    if (!displayAsInteger && !is()) {
       scriptCommand.deleteKey(name);
     }
-    else if (updateAsInteger) {
+    else if (displayAsInteger) {
       scriptCommand.setValue(name, super.toString());
     }
     else {
@@ -124,7 +131,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (!force && !isUseInScript()) {
       return this;
     }
-    if (updateAsInteger) {
+    if (displayAsInteger) {
       optionBuffer.append(super.toString(getValueForScript()));
     }
     else {
