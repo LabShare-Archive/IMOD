@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.21  2004/07/13 18:56:23  mast
+c	  Exit with error message and reference to man page when reading mode 16
+c	
 c	  Revision 3.20  2004/04/27 18:48:38  mast
 c	  Fixed edge effect when undistorting.
 c	
@@ -124,6 +127,7 @@ C
 	real*4 xcen(lmsec),ycen(lmsec),optmax(16),secmean(lmsec)
 	integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
 	integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
+	real*4 scaleFacs(lmfil), scaleConsts(lmfil)
 	byte extrain(maxextra),extraout(maxextra)
 	data optmax/255.,32767.,7*255.,511.,1023.,2047.,4095.,8191.,
      &      16383.,32767./
@@ -157,7 +161,7 @@ c
 	real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
 	real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
 	integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
-	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase
+	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs
 	real*4 dmeansec,dsum,dsumsq,tmpmin,tmpmax,tsum,val,tsum2,dminnew
 	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
 	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
@@ -173,28 +177,28 @@ c
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipGetInteger,PipGetBoolean, PipNumberOfEntries
+	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
 	integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c
 	integer numOptions
-	parameter (numOptions = 25)
+	parameter (numOptions = 26)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'fileinlist:FileOfInputs:FN:@'//
-     &	    'fileoutlist:FileOfOutputs:FN:@'//
-     &      'secs:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
-     &      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
-     &      'offset:OffsetsInXandY:FA:@'//
+     &      'fileoutlist:FileOfOutputs:FN:@secs:SectionsToRead:LI:@'//
+     &      'numout:NumberToOutput:IA:@size:SizeToOutputInXandY:IP:@'//
+     &      'mode:ModeToOutput:I:@offset:OffsetsInXandY:FA:@'//
      &      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
      &      'uselines:UseTransformLines:LI:@rotate:RotateByAngle:F:@'//
      &      'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
      &      'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
      &      'contrast:ContrastBlackWhite:IP:@'//
-     &      'scale:ScaleMinAndMax:FP:@distort:DistortionField:FN:@'//
+     &      'scale:ScaleMinAndMax:FP:@multadd:MultiplyAndAdd:FP:@'//
+     &      'distort:DistortionField:FN:@'//
      &      'imagebinned:ImagesAreBinned:I:@'//
      &      'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
@@ -226,6 +230,7 @@ c
 	lenTemp = maxtemp
 	applyFirst = 0
 	ifLinear = 0
+	numScaleFacs = 0
 C   
 C	  Read in list of input files
 C   
@@ -236,12 +241,12 @@ c	  get number of input files
 c
 	if (pipinput) then
 	  ierr = PipGetString('FileOfInputs', filistin)
-	  ierr = PipNumberOfEntries('InputFile', numInputFiles)
+	  call PipNumberOfEntries('InputFile', numInputFiles)
 	  nfilein = numInputFiles + max(0, numNonOptArg - 1)
 	  if (nfilein .gt. 0 .and. filistin .ne. ' ') call errorexit(
      &	      'YOU CANNOT ENTER BOTH INPUT FILES AND AN INPUT LIST FILE')
 	  if (filistin .ne. ' ')nfilein = -1
-	  ierr = PipNumberOfEntries('SectionsToRead', numSecLists)
+	  call PipNumberOfEntries('SectionsToRead', numSecLists)
 	else
 	  write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
      &	      ' of input files from file): '
@@ -340,7 +345,7 @@ c	  get number of output files
 c
 	if (pipinput) then
 	  ierr = PipGetString('FileOfOutputs', filistout)
-	  ierr = PipNumberOfEntries('OutputFile', numOutputFiles)
+	  call PipNumberOfEntries('OutputFile', numOutputFiles)
 	  nfileout = numOutputFiles + min(1, numNonOptArg)
 	  if (nfileout .gt. 0 .and. filistout .ne. ' ') call errorexit(
      &	      'YOU CANNOT ENTER BOTH OUTPUT FILES AND AN OUTPUT'//
@@ -386,8 +391,8 @@ c
 		nsecout(i) = 1
 	      enddo
 	    else
-	      ierr = PipNumberOfEntries('NumberToOutput', numOutEntries)
-     		  if (numOutEntries .eq. 0)
+	      call PipNumberOfEntries('NumberToOutput', numOutEntries)
+	      if (numOutEntries .eq. 0)
      &		  call errorexit('YOU MUST SPECIFY NUMBER OF SECTIONS '//
      &		  'TO WRITE TO EACH OUTPUT FILE')
 	      
@@ -436,7 +441,7 @@ c
 	if (pipinput) then
 	  ierr = PipGetTwoIntegers('SizeToOutputInXandY', nx3, ny3)
 	  ierr = PipGetInteger('ModeToOutput', newmode)
-	  ierr = PipNumberOfEntries('OffsetsInXandY', numOutEntries)
+	  call PipNumberOfEntries('OffsetsInXandY', numOutEntries)
 	  if (numOutEntries .gt. 0) then
 	    ifoffset = 1
 	    numOutValues = 0
@@ -554,17 +559,30 @@ c
 	  ierr = 1 - PipGetTwoFloats('ContrastBlackWhite', conlo, conhi)
 	  ierr2 = 1 - PipGetTwoFloats('ScaleMinAndMax', dminspec, dmaxspec)
 	  ierr3 = 1 - PipGetInteger('FloatDensities', iffloat)
+	  call PipNumberOfEntries('MultiplyAndAdd', numScaleFacs)
 	  if (iffloat .ge. 4) then
 	    if (ierr2 .eq. 0) call errorexit
      &		('You must enter -scale with -float 4')
 	  else
-	    if (ierr + ierr2 + ierr3 .gt. 1)
-     &		call errorexit('The -scale, -contrast, and -float '//
+	    if (ierr + ierr2 + ierr3 + min(numScaleFacs,1) .gt. 1)
+     &		call errorexit('The -scale, -contrast, -multadd, and -float '//
      &		'options are mutually exclusive except with -float 4')
 	    if (iffloat .lt. 0)call errorexit('You must use -contrast or '
      &		//'-scale instead of a negative -float entry')
 	    if (ierr .ne. 0) iffloat = -2
-	    if (ierr2 .ne. 0) iffloat = -1
+	    if (ierr2 .ne. 0 .or. numScaleFacs .ne. 0) iffloat = -1
+c
+c	      get scale factors, make sure there are right number
+c
+	    if (numScaleFacs .gt. 0) then
+	      if (numScaleFacs .ne. 1 .and. numScaleFacs .ne. nfilein)
+     &		  call errorexit('You must enter -multadd either once '//
+     &		  'or once per input file')
+	      do i = 1, numScaleFacs
+		ierr = PipGetTwoFloats('MultiplyAndAdd', scaleFacs(i),
+     &		    scaleConsts(i))
+	      enddo
+	    endif
 	  endif	  
 	else
 	  write(*,102)
@@ -1353,7 +1371,7 @@ c
      &		  (optin-bottomin)+bottomout
 	      dmax2=(tmpmax-bottomin)*(optout-bottomout)/
      &		  (optin-bottomin)+bottomout
-	    elseif(iffloat.lt.0)then
+	    elseif(iffloat.lt.0 .and. numScaleFacs .eq. 0)then
 c		
 c		if specified global rescale, set values that dminin and dmaxin
 c		map to, either the maximum range or the values specified
@@ -1449,9 +1467,15 @@ c
 	    if(rescale)then
 c
 c		if scaling, set up equation, scale and compute new mean
+c		or use scaling factors directly
 c
-	      sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
-	      const=dmin2-sclfac*tmpmin
+	      if (numScaleFacs .gt. 0) then
+		sclfac = scaleFacs(min(numScaleFacs, ifil))
+		const = scaleConsts(min(numScaleFacs, ifil))
+	      else
+		sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
+		const=dmin2-sclfac*tmpmin
+	      endif
 	      dmin2=1.e20
 	      dmax2=-1.e20
 	      dmean2=0.
