@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  mrcfiles.c -- Reading and writing mrc files; high level io functions.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -38,9 +21,6 @@ Log at end of file */
 #include <stdlib.h>
 #include <limits.h>
 #include <time.h>
-#ifdef __unix
-#include <sys/time.h>
-#endif
 #include <math.h>
 #include "mrcfiles.h"
 #include "b3dutil.h"
@@ -186,7 +166,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 }
 
 
-
+/* Write the header to the given file */
 int mrc_head_write(FILE *fout, struct MRCheader *hdata)
 {
   int i;
@@ -222,66 +202,36 @@ int mrc_head_write(FILE *fout, struct MRCheader *hdata)
 }
 
 
-/* Add a label to the header */
-/* WARNING: doesn't check for string length > 80 */
+/* Add a label to the header or replace the last one if it is full */
 int mrc_head_label(struct MRCheader *hdata, char *label)
 {
-
-#ifdef __unix
-  struct timeval tp;
-  struct timezone tzp;
-  char *time;
+  struct tm *tmp;
+  char *outlab;
   int i, endoflabel = FALSE;
+  time_t time_tval;
+  int datelen = 25;
 
-  if (hdata->nlabl < (MRC_NLABELS - 1)){
-    gettimeofday(&tp, &tzp);
-    for(i = 0; i < MRC_LABEL_SIZE; i++){
-      if (label[i])
-        hdata->labels[hdata->nlabl][i] = label[i];
-      else
-        endoflabel = TRUE;
-      if (endoflabel)
-        hdata->labels[hdata->nlabl][i] = ' ';
-    }
-    i = 55;
-    time = ctime(&(tp.tv_sec));
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = time[8];
-    hdata->labels[hdata->nlabl][i++] = time[9];
-    hdata->labels[hdata->nlabl][i++] = '-';
-    hdata->labels[hdata->nlabl][i++] = time[4];
-    hdata->labels[hdata->nlabl][i++] = time[5];
-    hdata->labels[hdata->nlabl][i++] = time[6];
-    hdata->labels[hdata->nlabl][i++] = '-';
-    hdata->labels[hdata->nlabl][i++] = time[22];
-    hdata->labels[hdata->nlabl][i++] = time[23];
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = time[11];
-    hdata->labels[hdata->nlabl][i++] = time[12];
-    hdata->labels[hdata->nlabl][i++] = time[13];
-    hdata->labels[hdata->nlabl][i++] = time[14];
-    hdata->labels[hdata->nlabl][i++] = time[15];
-    hdata->labels[hdata->nlabl][i++] = time[16];
-    hdata->labels[hdata->nlabl][i++] = time[17];
-    hdata->labels[hdata->nlabl][i++] = time[18];
-    /*        hdata->labels[hdata->nlabl][i++] = '\n'; */
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = ' ';
-    hdata->labels[hdata->nlabl][i++] = 0x00;
-    hdata->nlabl++;
-    return(0);
+  if (hdata->nlabl >= MRC_NLABELS)
+    hdata->nlabl--;
+  outlab = hdata->labels[hdata->nlabl];
+  for(i = 0; i < MRC_LABEL_SIZE - datelen; i++){
+    if (label[i] && !endoflabel)
+        outlab[i] = label[i];
+    else
+      endoflabel = TRUE;
+    if (endoflabel)
+      outlab[i] = ' ';
   }
-  return(-1);
 
-#else
+  time_tval = time(NULL);
+  tmp = localtime(&time_tval);
+  strftime(&outlab[i], datelen, " %d-%b-%y  %H:%M:%S    ", tmp);
+  
+  hdata->nlabl++;
   return(0);
-#endif
-
 }
 
+/* Copy all labels from one header to another */
 int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout)
 {
   int i, j;
@@ -291,6 +241,7 @@ int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout)
       hout->labels[i][j] = hin->labels[i][j];
     }
   }
+  hout->nlabl = hin->nlabl;
   return(0);
 }
 
@@ -2091,6 +2042,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.20  2004/12/02 21:53:27  mast
+Removed setting of header size to min of 1024 so raw reader can use
+
 Revision 3.19  2004/11/04 17:10:27  mast
 libiimod.def
 
