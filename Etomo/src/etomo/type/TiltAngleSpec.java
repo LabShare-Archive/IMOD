@@ -21,6 +21,15 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/29 00:12:36  sueh
+ * <p> bug# 567 Added set(ComScriptCommand...) and
+ * <p> update(ComScriptCommand) to allow TiltAngleSpec to retrieve and update
+ * <p> its values in ComScriptCommand.  Added tiltAngleFilenameKey,
+ * <p> rangeMinKey, and rangeStepKey to be the keywords to send to
+ * <p> ComScriptCommand.  The set() function can also handle alternative
+ * <p> keywords.  Added set(TiltAngleSpec) to copy another instance of
+ * <p> TiltAngleSpec without copying keywords.
+ * <p>
  * <p> Revision 3.1  2004/08/03 18:49:01  sueh
  * <p> bug# 519 removing rangeMax
  * <p>
@@ -219,21 +228,21 @@ public class TiltAngleSpec implements Storable {
     EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //Get rangeMin
     number.set(scriptCommand.getValue(rangeMinKey));
-    if (number.isNull() && rangeMinShortKey != null
+    if (!number.isSet() && rangeMinShortKey != null
         && !rangeMinShortKey.matches("\\s*")) {
       number.set(scriptCommand.getValue(rangeMinShortKey));
     }
-    if (!number.isNull()) {
+    if (number.isSet()) {
       type = TiltAngleType.RANGE;
       rangeMin = number.getDouble();
     }
     //Get rangeStep
     number.set(scriptCommand.getValue(rangeStepKey));
-    if (number.isNull() && rangeStepShortKey != null
+    if (!number.isSet() && rangeStepShortKey != null
         && !rangeStepShortKey.matches("\\s*")) {
       number.set(scriptCommand.getValue(rangeStepShortKey));
     }
-    if (!number.isNull()) {
+    if (number.isSet()) {
       rangeStep = number.getDouble();
     }
     else if ((rangeStepKey == null || rangeStepKey.matches("\\s*"))

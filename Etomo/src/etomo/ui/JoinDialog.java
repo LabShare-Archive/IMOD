@@ -36,6 +36,10 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2004/12/14 21:50:40  sueh
+ * <p> bug# 572:  Removing state object from meta data and managing it with a
+ * <p> manager class.  Bug# 565:  Save all of .ejf each time a save is done.
+ * <p>
  * <p> Revision 1.5  2004/12/04 01:00:50  sueh
  * <p> bug# 569 Fixed the check to see if working directory is empty in isValid()
  * <p>
@@ -396,13 +400,13 @@ public class JoinDialog implements ContextMenu {
     int max;
     ConstJoinMetaData metaData = joinManager.getMetaData();
     JoinState state = joinManager.getState();
-    if (!estXMin.isNull() && !estXMax.isNull()) {
+    if (estXMin.isSet() && estXMax.isSet()) {
       min = metaData.getCoordinate(estXMin, state);
       max = metaData.getCoordinate(estXMax, state);
       ltfSizeInX.setText(JoinMetaData.getSize(min, max));
       ltfShiftInX.setText(state.getNewShiftInX(min, max));
     }
-    if (!estYMin.isNull() && !estYMax.isNull()) {
+    if (estYMin.isSet() && estYMax.isSet()) {
       min = metaData.getCoordinate(estYMin, state);
       max = metaData.getCoordinate(estYMax,state);
       ltfSizeInY.setText(JoinMetaData.getSize(min, max));
