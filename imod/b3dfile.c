@@ -33,6 +33,18 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.3  2003/02/07 01:03:23  mast
+    a little cleanup
+
+    Revision 3.1.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.1  2002/12/23 04:53:51  mast
+    Make routines for putting bytes, shorts, ints global and rename as iput...
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <stdio.h>
@@ -48,9 +60,9 @@
 #endif
 #endif
 
-#include "b3dgfx.h"
+#include "b3dfile.h"
 
-static void putbyte(FILE *fout, unsigned char val)
+void iputbyte(FILE *fout, unsigned char val)
 {
      unsigned char buf[1];
      
@@ -59,7 +71,7 @@ static void putbyte(FILE *fout, unsigned char val)
      return;
 }
 
-static void putshort(FILE *fout, unsigned short val)
+void iputshort(FILE *fout, unsigned short val)
 {
      unsigned char buf[2];
      
@@ -69,7 +81,7 @@ static void putshort(FILE *fout, unsigned short val)
      return;
 }
 
-static void putlong(FILE *fout, unsigned long val)
+void iputlong(FILE *fout, unsigned long val)
 {
      unsigned char buf[4];
      
@@ -89,27 +101,27 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize,
      unsigned long i;
 
      /* Create an SGI rgb file */
-     putshort(fout, 474);       /* MAGIC                */
-     putbyte (fout,   0);       /* STORAGE is VERBATIM  */
-     putbyte (fout,   1);       /* BPC is 1             */
-     putshort(fout,   3);       /* DIMENSION is 3       */
-     putshort(fout, xsize);     /* XSIZE                */
-     putshort(fout, ysize);     /* YSIZE                */
-     putshort(fout,   3);       /* ZSIZE                */
-     putlong (fout, 0l);        /* PIXMIN is 0          */
-     putlong (fout, 255l);      /* PIXMAX is 255        */
-     putlong (fout, 0);         /* DUMMY 4 bytes        */
+     iputshort(fout, 474);       /* MAGIC                */
+     iputbyte (fout,   0);       /* STORAGE is VERBATIM  */
+     iputbyte (fout,   1);       /* BPC is 1             */
+     iputshort(fout,   3);       /* DIMENSION is 3       */
+     iputshort(fout, xsize);     /* XSIZE                */
+     iputshort(fout, ysize);     /* YSIZE                */
+     iputshort(fout,   3);       /* ZSIZE                */
+     iputlong (fout, 0l);        /* PIXMIN is 0          */
+     iputlong (fout, 255l);      /* PIXMAX is 255        */
+     iputlong (fout, 0);         /* DUMMY 4 bytes        */
      fwrite(iname, 80, 1, fout); /* IMAGENAME            */
-     putlong (fout, 0);         /* COLORMAP is 0        */
+     iputlong (fout, 0);         /* COLORMAP is 0        */
      for(i=0; i<404; i++)        /* DUMMY 404 bytes      */
-	  putbyte(fout,0);
+	  iputbyte(fout,0);
 
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+3]);
+	  iputbyte (fout, pixels[(i*4)+3]);
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+2] );
+	  iputbyte (fout, pixels[(i*4)+2] );
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+1]);
+	  iputbyte (fout, pixels[(i*4)+1]);
 
      return(0);
 }
@@ -139,12 +151,6 @@ static void puttiffentry(short tag, short type,
      return;
 }
 
-
-int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels)
-{
-
-     return(0);
-}
 
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
 		   unsigned char *pixels, unsigned short *cmap)
