@@ -34,7 +34,7 @@
     </jar>
   </target>
 
-  <target name="EtomoTestJar" depends="compile">
+  <target name="etomoTests-jar" depends="compile">
     <mkdir dir="${jar-dir}" />
     <jar jarfile="${jar-dir}/etomoTests.jar"
      basedir="${build}"
@@ -42,7 +42,7 @@
     </jar>
   </target>
 
-  <target name="DataFlowTestJar" depends="compile">
+  <target name="dataFlowTests-jar" depends="compile">
     <mkdir dir="${jar-dir}" />
     <jar jarfile="${jar-dir}/dataFlowTests.jar"
      basedir="${build}"
