@@ -173,6 +173,7 @@ void imodvHelpMenu(int item)
        "  M   \tOpen model selection window\n",
        "  V   \tOpen view editing window\n",
        "  I   \tOpen image overlay control window\n",
+       "  I   \tOpen Z plane image overlay\n",
        "  b   \tToggle double buffering\n",
        "  r   \tToggle low resolution drawing of mesh and spheres\n",
        " g/G  \tIncrease/Decrease the quality of sphere drawing\n",
@@ -595,6 +596,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.12  2004/04/28 05:28:52  mast
+Changes for drawing current contour thicker
+
 Revision 4.11  2003/11/04 04:43:16  mast
 DOcumentation for new rotation speed and throwing
 
