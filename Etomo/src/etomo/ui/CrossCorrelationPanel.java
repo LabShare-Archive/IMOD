@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/09/09 17:15:02  rickg
+ * <p> Changed view list to view range
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -50,15 +53,16 @@ public class CrossCorrelationPanel implements ContextMenu {
   private LabeledTextField ltfInputFile = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputFile =
     new LabeledTextField("Output file: ");
-  private LabeledTextField ltfPieceListFile =
-    new LabeledTextField("Piece list file: ");
+    //SUEH 272
+//  private LabeledTextField ltfPieceListFile =
+//    new LabeledTextField("Piece list file: ");
   private LabeledTextField ltfFilterParams =
     new LabeledTextField("Filter parameters: ");
-  private LabeledTextField ltfTrim = new LabeledTextField("Trim: ");
+  private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
   private LabeledTextField ltfPadPercent =
-    new LabeledTextField("Pad percent: ");
+    new LabeledTextField("Pixels to pad: ");
   private LabeledTextField ltfTaperPercent =
-    new LabeledTextField("Taper percent: ");
+    new LabeledTextField("Pixels to taper: ");
   private LabeledTextField ltfViewRange = new LabeledTextField("View range: ");
 
   AxisID axisID;
@@ -66,10 +70,11 @@ public class CrossCorrelationPanel implements ContextMenu {
   public CrossCorrelationPanel(AxisID id) {
     axisID = id;
     panelAdvanced.setLayout(new BoxLayout(panelAdvanced, BoxLayout.Y_AXIS));
-
+    chkBoxExcludeCentralPeak.setAlignmentX((float) 0.5);
+    panelAdvanced.add(chkBoxExcludeCentralPeak);
     panelAdvanced.add(ltfInputFile.getContainer());
     panelAdvanced.add(ltfOutputFile.getContainer());
-    panelAdvanced.add(ltfPieceListFile.getContainer());
+//    panelAdvanced.add(ltfPieceListFile.getContainer());
     panelAdvanced.add(ltfFilterParams.getContainer());
     panelAdvanced.add(ltfTrim.getContainer());
     panelAdvanced.add(ltfPadPercent.getContainer());
@@ -78,8 +83,6 @@ public class CrossCorrelationPanel implements ContextMenu {
 
     panelCrossCorrelation.setLayout(
       new BoxLayout(panelCrossCorrelation, BoxLayout.Y_AXIS));
-    chkBoxExcludeCentralPeak.setAlignmentX((float) 0.5);
-    panelCrossCorrelation.add(chkBoxExcludeCentralPeak);
     panelCrossCorrelation.add(panelAdvanced);
 
     //  Mouse adapter for context menu
@@ -100,7 +103,8 @@ public class CrossCorrelationPanel implements ContextMenu {
       tiltXcorrParams.getExcludeCentralPeak());
     ltfInputFile.setText(tiltXcorrParams.getInputFile());
     ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
-    ltfPieceListFile.setText(tiltXcorrParams.getPieceListFile());
+    //SUEH 272
+    //ltfPieceListFile.setText(tiltXcorrParams.getPieceListFile());
     ltfFilterParams.setText(tiltXcorrParams.getFilterParams());
     ltfTrim.setText(tiltXcorrParams.getTrim());
     ltfPadPercent.setText(tiltXcorrParams.getPadPercent());
@@ -117,7 +121,8 @@ public class CrossCorrelationPanel implements ContextMenu {
       chkBoxExcludeCentralPeak.isSelected());
     tiltXcorrParams.setInputFile(ltfInputFile.getText());
     tiltXcorrParams.setOutputFile(ltfOutputFile.getText());
-    tiltXcorrParams.setPieceListFile(ltfPieceListFile.getText());
+    //SUEH 272
+    //tiltXcorrParams.setPieceListFile(ltfPieceListFile.getText());
     String currentParam = "unknown";
     try {
       currentParam = ltfFilterParams.getLabel();
