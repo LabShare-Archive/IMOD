@@ -19,6 +19,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/01/12 00:43:43  sueh
+ * <p> bug# 579 Reusing useLocalAlignments, which isn't being used for anything
+ * <p> Reseting useLocalAlignments to true;
+ * <p>
  * <p> Revision 3.12  2005/01/11 18:07:38  sueh
  * <p> bug# 578 Added useZFactors.
  * <p>
@@ -120,7 +124,7 @@ import etomo.comscript.TransferfidParam;
 
 public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
-
+  
   public MetaData() {
     super();
     resetToDefault();
@@ -172,9 +176,12 @@ public class MetaData extends ConstMetaData {
     return combineParams;
   }
 
-  public void saveTransferfid(TransferfidParam param) {
-
-    transferfidNumberViews = param.getNumberViews();
+  public void setTransferfidAFields(TransferfidParam param) {
+    transferfidParamA.setStorableFields(param);
+  }
+  
+  public void setTransferfidBFields(TransferfidParam param) {
+    transferfidParamB.setStorableFields(param);
   }
 
   /**
@@ -323,10 +330,6 @@ public class MetaData extends ConstMetaData {
     excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections",
         "");
     tiltAngleSpecB.load(props, group + "AxisB");
-
-    transferfidNumberViews = Integer.parseInt(props.getProperty(group
-        + "TransferfidNumberViews", "5"));
-
     combineParams.load(props, group);
     distortionFile = props
         .getProperty(group + "DistortionFile", distortionFile);
@@ -342,5 +345,7 @@ public class MetaData extends ConstMetaData {
     trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
     useZFactors.load(props, prepend);
+    transferfidParamA.load(props, prepend);
+    transferfidParamB.load(props, prepend);
   }
 }
