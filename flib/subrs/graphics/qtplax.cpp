@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.10  2003/10/24 03:43:18  mast
+provide capitalized versions of Fortran funcs, add sizes for Windows
+
 Revision 1.9  2003/10/14 21:30:23  mast
 raise widget after showing it
 
@@ -60,8 +63,8 @@ Changes to try to help text drawingon the Mac
 #define DEFAULT_HEIGHT 600
 #else
 #ifdef _WIN32
-#define TEXT_SIZE_SCALE 2.2
-#define DEFAULT_HEIGHT 500
+#define TEXT_SIZE_SCALE 2.5
+#define DEFAULT_HEIGHT 540
 #else
 #define TEXT_SIZE_SCALE 2.5
 #define DEFAULT_HEIGHT 640
@@ -169,6 +172,8 @@ void PlaxWindow::paintEvent ( QPaintEvent * e)
 #endif
   if (e->erased())
     OutListInd = 0;
+  /*fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
+    e->rect().width(), e->rect().height()); */
   draw();
 }
 
@@ -194,13 +199,19 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
 // The custom event is sent for hiding and showing the widget
 void PlaxWindow::customEvent ( QCustomEvent * e )
 {
+  static int widthInc = 1;
   if (!Plax_open)
     hide();
-  else {
+  else if (Plax_open > 0) {
     show();
     raise();
+  } else {
+    resize(PlaxWidth + widthInc, PlaxHeight);
+    widthInc = -widthInc;
+    Plax_open = 1;
   }
 }
+
 void PlaxWindow::lock()
 {
 #ifndef QTPLAX_NO_THREAD
@@ -357,8 +368,16 @@ void plax_flush(void)
   draw();
   plax_input();
 #else
+#ifdef _WIN32
+  // Could not make it draw reliably except when the window resized, just
+  // just surrender to resizing the window on every draw.
+  // Check this out on a new version of Qt
+  Plax_open = -1;
+  QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
+#else
   QThread::postEvent(PlaxWidget, new QPaintEvent
                      (QRect(0, 0, PlaxWidth, PlaxHeight), false));
+#endif
 #endif
 }
 
@@ -592,7 +611,8 @@ static void draw()
 #endif
   PlaxWidget->lock();
 
-  // fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize);
+  /* fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize); */
+  
   // Draw starting after the last item drawn
   while (OutListInd < ListSize) {
 
