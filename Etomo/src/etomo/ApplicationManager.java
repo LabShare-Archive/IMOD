@@ -86,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2004/05/21 02:21:38  sueh
+ * <p> bug# 83 removing generic progress bar
+ * <p>
  * <p> Revision 3.54  2004/05/15 01:43:55  sueh
  * <p> bug# 415 if saveTestParamIfNecessary() returns false, then the user
  * <p> pressed cancel our there was a problem saving, so don't exit.
@@ -2683,6 +2686,15 @@ public class ApplicationManager {
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
       tomogramPositioningDialog.getTiltParams(tiltParam);
+      String outputFileName;
+      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+        outputFileName = metaData.getDatasetName() + "_full.rec";
+      }
+      else {
+        outputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + ".rec";
+      }
+      tiltParam.setOutputFile(outputFileName);
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
