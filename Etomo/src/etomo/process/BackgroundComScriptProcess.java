@@ -30,6 +30,13 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2004/08/28 02:41:39  sueh
+ * <p> bug# 508 isComScriptBusy: The output from Mac lsof is a little different.
+ * <p> Stopped checking the type since the value is different on Mac; it wasn't
+ * <p> necessary anyway.  Since more then one field can be empty and name is
+ * <p> always the last field, setting name index to the last field index when
+ * <p> idxNAME is incorrect.
+ * <p>
  * <p> Revision 1.6  2004/08/28 00:45:08  sueh
  * <p> bug# 508 adding isComScriptBusy() - uses lsof to check for an open
  * <p> combine.log.  This will only work on Mac and Linux.
@@ -276,10 +283,17 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * set killed in the process monitor
    * @param killed
    */
-  public void killMonitor() {
+  private void killMonitor() {
     if (backgroundProcessMonitor != null) {
       backgroundProcessMonitor.kill();
     }
+  }
+  
+  /**
+   * kill monitor when notified of a kill request
+   */
+  public void notifyKill() {
+    killMonitor();
   }
   
   /**
