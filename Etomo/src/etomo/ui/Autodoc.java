@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.lang.IllegalArgumentException;
 import java.io.IOException;
 
-
 /**
 * <p>Description:</p>
 *
@@ -15,23 +14,29 @@ import java.io.IOException;
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
+* University of Colorado</p>
 *
 * @author $$Author$$
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/22 23:47:45  sueh
+* <p> $bug# 372 Autodoc contains informatio from the autodoc file.
+* <p> $It instantiates at most one per type of autodoc file.
+* <p> $$ </p>
 */
 
 public class Autodoc {
-  public static final String rcsid = "$$Id$$";
-  
-  public static final String PATH_ENVIRONMENT_VARIABLE = new String("AUTODOC_PATH");
+  public static final String rcsid =
+    "$$Id$$";
+
+  public static final String PATH_ENVIRONMENT_VARIABLE =
+    new String("AUTODOC_PATH");
   public static final String TILTXCORR = new String("tiltxcorr");
-    
+
   private static final String fileExt = new String(".adoc");
-  
+
   private static Autodoc tiltxcorr = null;
 
   private String dirName = null;
@@ -40,7 +45,8 @@ public class Autodoc {
   private AutodocParser parser = null;
   private boolean test = false;
 
-  public static Autodoc get(String name) throws FileNotFoundException, IOException {
+  public static Autodoc get(String name)
+    throws FileNotFoundException, IOException {
     if (name == null) {
       throw new IllegalArgumentException("name is null.");
     }
@@ -50,13 +56,13 @@ public class Autodoc {
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
-  
+
   public String getName() {
     return fileName;
   }
-  
-  
-  private static Autodoc getAutodoc(Autodoc autodoc, String name) throws FileNotFoundException, IOException {
+
+  private static Autodoc getAutodoc(Autodoc autodoc, String name)
+    throws FileNotFoundException, IOException {
     if (autodoc == null) {
       autodoc = new Autodoc(name);
       autodoc.initialize();
@@ -66,20 +72,32 @@ public class Autodoc {
 
   private Autodoc(String name) {
     fileName = new String(name + fileExt);
-    dirName = new String (Utilities.getEnvironmentVariable(PATH_ENVIRONMENT_VARIABLE));
+    dirName =
+      new String(Utilities.getEnvironmentVariable(PATH_ENVIRONMENT_VARIABLE));
     file = new File(dirName, fileName);
   }
-  
+
   private void initialize() throws FileNotFoundException, IOException {
     String errorMessage = null;
     if (file == null) {
-      errorMessage = "Unable to open autodoc file, " + fileName + " , in " + dirName + ".";
+      errorMessage =
+        "Unable to open autodoc file, " + fileName + " , in " + dirName + ".";
     }
     if (!file.exists()) {
-      errorMessage = "The autodoc file, " + fileName + " , in " + dirName + " does not exist.";
+      errorMessage =
+        "The autodoc file, "
+          + fileName
+          + " , in "
+          + dirName
+          + " does not exist.";
     }
     if (!file.canRead()) {
-      errorMessage = "The autodoc file, " + fileName + " , in " + dirName + " is not readable.";
+      errorMessage =
+        "The autodoc file, "
+          + fileName
+          + " , in "
+          + dirName
+          + " is not readable.";
     }
     if (errorMessage != null) {
       throw new FileNotFoundException(errorMessage);
@@ -91,7 +109,9 @@ public class Autodoc {
       //parser.testPrimativeTokenizer(false);
       //parser.testPrimativeTokenizer(true);
       //parser.testAutodocTokenizer(false);
-      parser.testAutodocTokenizer(true);
+      //parser.testAutodocTokenizer(true);
+      parser.testPreprocessor(false);
+      //parser.testPreprocessor(true);
     }
     else {
       parser.initialize();
