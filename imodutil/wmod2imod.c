@@ -111,6 +111,7 @@ main( int argc, char *argv[])
      imodWrite(Model, fout);
 
      imodFree(Model);
+     exit(0);
 }
 
 
