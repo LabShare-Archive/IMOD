@@ -13,8 +13,6 @@ echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
 # of #define in imodconfig because it must precede all system includes.
 set defines = -D_FILE_OFFSET_BITS=64
 
-echo "SHELL     = /bin/csh"         >> $configure
-
 if ($compiler == intel) then
 	echo "CC        = icc"              >> $configure
 	echo "FC        = ifc"              >> $configure

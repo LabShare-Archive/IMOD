@@ -19,7 +19,6 @@ set defines = -D_FILE_OFFSET_BITS=64
 echo "#define fseek fseeko" >> $hconfigure
 
 # Print Defines needed to make programs.
-echo "SHELL     = /usr/bin/csh"     >> $configure
 echo "CC        = gcc"              >> $configure
 echo "FC        = f77"              >> $configure
 echo "AR        = ar"               >> $configure

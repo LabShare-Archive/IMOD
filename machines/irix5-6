@@ -20,7 +20,6 @@ set flags = "-32 -mips2 $flags"
 set fallback = "$flags"
 echo "MAKELIB = ld -32 -mips2 -shared -all -o " >> $configure
 echo 'LDFLAGS = -32 -mips2 -L$(LIBDIR)  -woff 84'       >> $configure
-echo "SHELL     = /sbin/csh"         >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)  -woff 84'       >> $configure
 set usfftdir = $source_dir/USFFTlib/sgi
 set xplax = noplax.o
@@ -40,7 +39,6 @@ else
 	set  inst_lib_dir = $source_dir/lib32/ 
 endif
 set lib_dir         = $source_dir/buildlib32/
-echo "SHELL     = /sbin/csh"         >> $configure
 #
 #   default is to assume tifflib for n32, not for old 32
 #
@@ -201,6 +199,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.27  2004/11/22 00:20:11  mast
+#  Added Qt assistant
+#
 #  Revision 3.26  2004/11/09 17:52:56  mast
 #  Start using multithreaded library
 #

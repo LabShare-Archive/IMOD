@@ -14,8 +14,6 @@ echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
 # qconfigures - it doesn't work anymore on OS 10.3
 
-echo "SHELL     = /bin/csh"         >> $configure
-
 echo "CC        = gcc"              >> $configure
 echo "FC        = g77"              >> $configure
 #

@@ -53,8 +53,6 @@ else
     set xplax = noplax.o
 endif
 
-echo "SHELL     = /bin/csh"         >> $configure
-
 if ($compiler == intel) then
     echo "CC        = icl"              >> $configure
     echo "CXX       = icl"              >> $configure
