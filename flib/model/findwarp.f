@@ -170,6 +170,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/10/23 15:41:44  mast
+c	  Added ability to get solutions with only one layer of patches in Y,
+c	  and to drop back to a solution that is fixed in Y when there are
+c	  too few points on multiple levels in Y.
+c	
 c	  Revision 3.4  2002/09/09 21:36:00  mast
 c	  Eliminate stat_source: and nimp_source: from all includes
 c	
@@ -513,6 +518,7 @@ c
 	      endif
 	    enddo
 	  enddo
+c	  write(*,'(3i5)')(i,nfxauto(i),nfzauto(i),i=1,nauto)
 	  iauto = 1
 	  nfitx=-100
 	  nfity=-100
@@ -773,6 +779,7 @@ c		on another layer in Y, or if there is only one layer being fit,
 c		then set the second column as fixed in the fits
 c
 	      solved(indlc)=ndat.ge.nfitx*nfity*nfitz/2
+	      maxdrop=nint(fracdrop*ndat)
 	      icolfix = 0
 	      do i=1,max(nfitx,nfity,nfitz)
 		if(inrowx(i).gt.ndat-3-maxdrop.or.
@@ -780,7 +787,6 @@ c
 		if (inrowy(i).gt.ndat-3-maxdrop .or. nfity.eq.1)icolfix=2
 	      enddo
 	      if(solved(indlc))then
-		maxdrop=nint(fracdrop*ndat)
 		call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,
      &		    critabs, elimmin,idrop, ndrop, a,dxyz, cenloc,
      &		    devavg,devsd, devmax, ipntmax,devxyzmax)
