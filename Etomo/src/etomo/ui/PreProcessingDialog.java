@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -64,7 +67,7 @@ public class PreProcessingDialog extends ProcessDialog {
 
   CCDEraserPanel panelCCDEraser = new CCDEraserPanel();
   private JButton buttonCreateModel =
-    new JButton("<html><b>Create replacement model using imod</b>");
+    new JButton("<html><b>Create replacement model</b>");
   private JButton buttonErase = new JButton("<html><b>Erase pixels</b>");
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
@@ -185,7 +188,7 @@ public class PreProcessingDialog extends ProcessDialog {
 
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7;
-    line1 = "<html>This button will open imod with the current CCD erase<br>";
+    line1 = "<html>This button will open 3dmod with the current CCD erase<br>";
     line2 = "model.  This will allow you to specify additional pixels and<br>";
     line3 = "regions to be replaced with interpolated values.";
     buttonCreateModel.setToolTipText(line1 + line2 + line3);

@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.25  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.24  2003/04/17 23:11:26  rickg
  * <p> Added cancel handling from post processing dialog
  * <p>
@@ -547,7 +550,7 @@ public class ApplicationManager {
         if (imodManager.isRawStackOpen(AxisID.FIRST)
           || imodManager.isRawStackOpen(AxisID.SECOND)) {
           String[] message = new String[2];
-          message[0] = "There are raw stack imod processes open";
+          message[0] = "There are raw stack 3dmod processes open";
           message[1] = "Should they be closed?";
           boolean answer = openYesNoDialog(message);
           if (answer) {
@@ -595,7 +598,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod to create the erase model
+   * Open 3dmod to create the erase model
    */
   public void imodErase(AxisID axisID) {
     String eraseModelName =
@@ -605,11 +608,13 @@ public class ApplicationManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      openMessageDialog(except.getMessage(), "Can't open imod on raw stack");
+      openMessageDialog(except.getMessage(), "Can't open 3dmod on raw stack");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      openMessageDialog(except.getMessage(), "Axis type problem in imod erase");
+      openMessageDialog(
+        except.getMessage(),
+        "Axis type problem in 3dmod erase");
     }
   }
 
@@ -751,7 +756,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod to view the coarsely aligned stack
+   * Open 3dmod to view the coarsely aligned stack
    */
   public void imodAlign(AxisID axisID) {
     try {
@@ -898,7 +903,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod with the seed model
+   * Open 3dmod with the seed model
    */
   public void imodSeedFiducials(AxisID axisID) {
     String seedModel =
@@ -914,7 +919,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack with model: " + seedModel);
+        "Can't open 3dmod on coarse aligned stack with model: " + seedModel);
     }
   }
 
@@ -931,7 +936,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod with the new fidcuial model
+   * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID) {
     String fiducialModel =
@@ -947,7 +952,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack with model: " + fiducialModel);
+        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
     }
   }
 
@@ -1077,7 +1082,7 @@ public class ApplicationManager {
           if (imodManager.isCoarseAlignedOpen(AxisID.FIRST)
             || imodManager.isCoarseAlignedOpen(AxisID.SECOND)) {
             String[] message = new String[2];
-            message[0] = "There are coarsely aligned stack imod processes open";
+            message[0] = "There are coarsely aligned stack 3dmod processes open";
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
@@ -1128,7 +1133,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod with the new fidcuial model
+   * Open 3dmod with the new fidcuial model
    */
   public void imodViewResiduals(AxisID axisID) {
     String fiducialModel =
@@ -1144,12 +1149,12 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on coarse aligned stack with model: " + fiducialModel);
+        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
     }
   }
 
   /**
-   * Open imodv with the new fidcuial model
+   * Open 3dmodv with the new fidcuial model
    */
   public void imodView3DModel(AxisID axisID) {
     String fiducialModel =
@@ -1158,7 +1163,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod to view the coarsely aligned stack
+   * Open 3dmod to view the coarsely aligned stack
    * @param axisID the AxisID to coarse align.
    */
   public void imodFineAlign(AxisID axisID) {
@@ -1173,7 +1178,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on fine aligned stack");
+        "Can't open 3dmod on fine aligned stack");
     }
 
   }
@@ -1370,7 +1375,7 @@ public class ApplicationManager {
           if (imodManager.isSampleOpen(AxisID.FIRST)
             || imodManager.isSampleOpen(AxisID.SECOND)) {
             String[] message = new String[2];
-            message[0] = "There are sample reconstruction imod processes open";
+            message[0] = "There are sample reconstruction 3dmod processes open";
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
@@ -1696,7 +1701,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open imod to view the coarsely aligned stack
+   * Open 3dmod to view the coarsely aligned stack
    * @param axisID the AxisID of the tomogram to open.
    */
   public void imodTomogram(AxisID axisID) {
@@ -1711,7 +1716,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod with the tomogram");
+        "Can't open 3dmod with the tomogram");
     }
 
   }
@@ -1798,7 +1803,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open the matching models in the imod reconstruction instances  
+   * Open the matching models in the 3dmod reconstruction instances  
    */
   public void imodMatchingModel() {
     try {
@@ -1808,7 +1813,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on tomograms for matching models");
+        "Can't open 3dmod on tomograms for matching models");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1817,7 +1822,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open the matchcheck results in imod
+   * Open the matchcheck results in 3dmod
    */
   public void imodMatchCheck() {
     try {
@@ -1827,7 +1832,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on matchcheck.mat");
+        "Can't open 3dmod on matchcheck.mat");
     }
     try {
       imodManager.openMatchCheckRec();
@@ -1836,7 +1841,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on matchcheck.rec");
+        "Can't open 3dmod on matchcheck.rec");
     }
 
   }
@@ -1856,7 +1861,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on tomogram for patch region models");
+        "Can't open 3dmod on tomogram for patch region models");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1865,7 +1870,7 @@ public class ApplicationManager {
   }
 
   /**
-   * Open the patch vector models in imod
+   * Open the patch vector models in 3dmod
    */
   public void imodPatchVectorModel() {
     try {
@@ -1875,7 +1880,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on tomogram for patch vector model");
+        "Can't open 3dmod on tomogram for patch vector model");
     }
   }
 
@@ -1895,7 +1900,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on tomogram being matched to");
+        "Can't open 3dmod on tomogram being matched to");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1914,7 +1919,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on combined tomogram");
+        "Can't open 3dmod on combined tomogram");
     }
   }
 
@@ -2428,7 +2433,7 @@ public class ApplicationManager {
   }
 
   /**
-   * open the full volume in imod
+   * open the full volume in 3dmod
    */
   public void imodFullVolume() {
     try {
@@ -2438,12 +2443,12 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on the full tomogram");
+        "Can't open 3dmod on the full tomogram");
     }
   }
 
   /**
-   * Open the trimmed volume in imod
+   * Open the trimmed volume in 3dmod
    */
   public void imodTrimmedVolume() {
     try {
@@ -2453,7 +2458,7 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open imod on the trimmed tomogram");
+        "Can't open 3dmod on the trimmed tomogram");
     }
   }
 
@@ -2883,7 +2888,7 @@ public class ApplicationManager {
       }
     }
 
-    //  Should we close the imod windows
+    //  Should we close the 3dmod windows
 
     //  Save the current window size to the user config
     Dimension size = mainFrame.getSize();

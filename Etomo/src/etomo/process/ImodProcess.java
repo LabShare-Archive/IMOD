@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/19 00:23:22  rickg
+ * <p> Added model view option
+ * <p>
  * <p> Revision 2.3  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -88,7 +91,7 @@ public class ImodProcess {
   }
 
   /**
-   * Open the imod process if is not already open.
+   * Open the 3dmod process if is not already open.
    */
   public void open() throws SystemProcessException {
     if (isRunning()) {
@@ -108,14 +111,15 @@ public class ImodProcess {
       options = "-V ";
     }
     
+    // TODO: Change imod command to 3dmod and remove debug flag
     String command = "imod -D -W " + options + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
-    //  Start the imod program thread and wait for it to finish
+    //  Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
     imodThread.start();
 
-    //  Check the stderr of the imod process for the windowID and the
+    //  Check the stderr of the 3dmod process for the windowID and the
     String line;
     while (imodThread.isAlive() && windowID.equals("")) {
 
@@ -130,7 +134,7 @@ public class ImodProcess {
         }
       }
 
-      //  Wait a litte while for imod to generate some stderr output
+      //  Wait a litte while for 3dmod to generate some stderr output
       try {
         Thread.sleep(500);
       }
@@ -169,7 +173,7 @@ public class ImodProcess {
   }
 
   /**
-   * Check to see if this imod process is running
+   * Check to see if this 3dmod process is running
    */
   public boolean isRunning() {
     if (imodThread == null) {
@@ -208,7 +212,7 @@ public class ImodProcess {
   }
 
   /**
-   * Send an event to imod using the imodsendevent command
+   * Send an event to 3dmod using the imodsendevent command
    */
   private void imodSendEvent(String[] args) throws SystemProcessException {
     if (windowID == "") {

@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2003/03/20 21:19:08  rickg
+ * <p> Added matchshift results button/access
+ * <p>
  * <p> Revision 1.7  2003/03/20 17:47:21  rickg
  * <p> Initial implementation of panel
  * <p>
@@ -59,7 +62,7 @@ public class InitialCombinePanel implements ContextMenu {
 
   private JPanel pnlModelSelect = new JPanel();
   private JButton btnImodMatchModels =
-    new JButton("<html><b>Create matching models in imod</b>");
+    new JButton("<html><b>Create matching models in 3dmod</b>");
   private JCheckBox cbUseModel = new JCheckBox("Model based initial match");
 
   private JPanel pnlButton = new JPanel();

@@ -25,6 +25,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/02/24 23:23:02  rickg
+ * <p> Corrected acition spelling
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -119,7 +122,7 @@ public class AlignmentEstimationDialog
     new JToggleButton("<html><b>Compute alignment</b>");
 
   private JButton buttonImod =
-    new JButton("<html><b>View/Edit model in imod</b>");
+    new JButton("<html><b>View/Edit model in 3dmod</b>");
 
   private JButton buttonView3DModel = new JButton("<html><b>View 3D model</b>");
 
@@ -230,8 +233,8 @@ public class AlignmentEstimationDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tiltalign", "xfproduct", "imod" };
-    String[] manPage = { "tiltalign.html", "xfproduct.html", "imod.html" };
+    String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
+    String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
 
     String[] logFileLabel;
     String[] logFile;

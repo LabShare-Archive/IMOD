@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.2  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -88,7 +91,7 @@ public class TomogramGenerationDialog
   JToggleButton buttonTilt =
     new JToggleButton("<html><b>Generate<br>tomogram</b>");
   JToggleButton buttonImod =
-    new JToggleButton("<html><b>View tomogram<br>in imod</b>");
+    new JToggleButton("<html><b>View tomogram<br>in 3dmod</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -187,8 +190,8 @@ public class TomogramGenerationDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "newst", "tilt", "imod" };
-    String[] manPage = { "newst.html", "tilt.html", "imod.html" };
+    String[] manPagelabel = { "newst", "tilt", "3dmod" };
+    String[] manPage = { "newst.html", "tilt.html", "3dmod.html" };
 
     String[] logFileLabel;
     String[] logFile;

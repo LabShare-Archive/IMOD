@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -200,9 +203,9 @@ public class TomogramPositioningDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "newst", "imod", "tomopitch", "tilt" };
+    String[] manPagelabel = { "newst", "3dmod", "tomopitch", "tilt" };
     String[] manPage =
-      { "newst.html", "imod.html", "tomopitch.html", "tilt.html" };
+      { "newst.html", "3dmod.html", "tomopitch.html", "tilt.html" };
 
     String[] logFileLabel;
     String[] logFile;

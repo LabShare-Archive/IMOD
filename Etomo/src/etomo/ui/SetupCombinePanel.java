@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/20 17:46:21  rickg
+ * <p> Added right button context menu
+ * <p>
  * <p> Revision 2.3  2003/03/18 00:32:33  rickg
  * <p> combine development in progress
  * <p>
@@ -127,8 +130,8 @@ public class SetupCombinePanel implements ContextMenu {
   private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodVolumeA = new JButton("<html><b>Imod volume A</b>");
-  private JButton btnImodVolumeB = new JButton("<html><b>Imod volume B</b>");
+  private JButton btnImodVolumeA = new JButton("<html><b>3dmod volume A</b>");
+  private JButton btnImodVolumeB = new JButton("<html><b>3dmod volume B</b>");
   private JToggleButton btnCreate =
     new JToggleButton("<html><b>Create combine scripts</b>");
   private JToggleButton btnCombine =

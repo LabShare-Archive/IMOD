@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.5  2003/04/16 22:18:59  rickg
  * <p> Added imod of full and trimmed volume
  * <p>
@@ -149,7 +152,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified raw data stack in imod if it is not already open
+   * Open the specified raw data stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openRawStack(AxisID axisID)
@@ -160,7 +163,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified model with the course aligned imod
+   * Open the specified model with the course aligned 3dmod
    */
   public void modelRawStack(String modelName, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
@@ -193,7 +196,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified coarse aligned stack in imod if it is not already open
+   * Open the specified coarse aligned stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openCoarseAligned(AxisID axisID)
@@ -208,7 +211,7 @@ public class ImodManager {
    */
   public void modelCoarseAligned(String modelName, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-    // Make sure there is an imod with right coarse aligned data set that
+    // Make sure there is an 3dmod with right coarse aligned data set that
     // is already open
     openCoarseAligned(axisID);
     ImodProcess coarseAligned = selectCoarseAligned(axisID);
@@ -266,7 +269,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified fine aligned stack in imod if it is not already open
+   * Open the specified fine aligned stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openFineAligned(AxisID axisID)
@@ -298,7 +301,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified tomograph samples in imod if they are not already open
+   * Open the specified tomograph samples in 3dmod if they are not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openSample(AxisID axisID)
@@ -331,7 +334,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the specified tomogram in imod if it is not already open
+   * Open the specified tomogram in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openTomogram(AxisID axisID)
@@ -394,7 +397,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the patch vector in imod if it is not already open
+   * Open the patch vector in 3dmod if it is not already open
    */
   public void openPatchVectorModel() throws SystemProcessException {
     patchVectorModel.open();
@@ -415,7 +418,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the combined tomogram in imod if it is not already open
+   * Open the combined tomogram in 3dmod if it is not already open
    */
   public void openCombinedTomogram() throws SystemProcessException {
     combinedTomogram.open();
@@ -436,7 +439,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the matchcheck.mat in imod if it is not already open
+   * Open the matchcheck.mat in 3dmod if it is not already open
    */
   public void openMatchCheckMat() throws SystemProcessException {
     matchCheckMat.open();
@@ -457,7 +460,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the matchcheck.rec in imod if it is not already open
+   * Open the matchcheck.rec in 3dmod if it is not already open
    */
   public void openMatchCheckRec() throws SystemProcessException {
     matchCheckRec.open();
@@ -478,7 +481,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the full volume in imod if it is not already open
+   * Open the full volume in 3dmod if it is not already open
    */
   public void openFullVolume() throws SystemProcessException {
     fullVolume.open();
@@ -499,7 +502,7 @@ public class ImodManager {
   }
 
   /**
-   * Open the trimmed volume in imod if it is not already open
+   * Open the trimmed volume in 3dmod if it is not already open
    */
   public void openTrimmedVolume() throws SystemProcessException {
     trimmedVolume.open();

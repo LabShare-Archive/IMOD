@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2003/04/17 23:08:38  rickg
+ * <p> Initial revision
+ * <p>
  * <p> Revision 1.6  2003/04/16 22:18:17  rickg
  * <p> Trimvol in progress
  * <p>
@@ -80,9 +83,9 @@ public class TrimvolPanel {
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodFull = new JButton("<html><b>Imod full volume</b>");
+  private JButton btnImodFull = new JButton("<html><b>3dmod full volume</b>");
   private JButton btnTrimvol = new JButton("<html><b>Trim volume</b>");
-  private JButton btnImodTrim = new JButton("<html><b>Imod trimmed volume</b>");
+  private JButton btnImodTrim = new JButton("<html><b>3dmod trimmed volume</b>");
 
   /**
    * Default constructor

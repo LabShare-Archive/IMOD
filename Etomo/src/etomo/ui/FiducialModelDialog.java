@@ -23,6 +23,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.7.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -63,7 +66,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
 
   JToggleButton buttonSeed =
-    new JToggleButton("<html><b>Seed fiducial<br>model using imod</b>");
+    new JToggleButton("<html><b>Seed fiducial<br>model using 3dmod</b>");
 
   BeadtrackPanel panelBeadtrack;
 
@@ -157,8 +160,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = { "imod" };
-    String[] manPage = { "imod.html" };
+    String[] label = { "3dmod" };
+    String[] manPage = { "3dmod.html" };
     ContextPopup contextPopup =
       new ContextPopup(
         panelFiducialModel,

@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.5.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -58,7 +61,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   private JToggleButton buttonCoarseAlign =
     new JToggleButton("<html><b>Generate coarse<br>aligned stack</b>");
   private JToggleButton buttonImod =
-    new JToggleButton("<html><b>View aligned<br>stack in imod</b>");
+    new JToggleButton("<html><b>View aligned<br>stack in 3dmod</b>");
   private JToggleButton buttonMidas =
     new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
 
@@ -153,13 +156,13 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "xftoxg", "newst", "newstack", "imod", "midas" };
+    String[] manPagelabel = { "xftoxg", "newst", "newstack", "3dmod", "midas" };
     String[] manPage =
       {
         "xftoxg.html",
         "newst.html",
         "newstack.html",
-        "imod.html",
+        "3dmod.html",
         "midas.html" };
 
     String[] logFileLabel = new String[1];
