@@ -30,6 +30,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2001/12/31 19:21:25  mast
+#  Added dm3props
+#
 
 include ../configure
 
@@ -37,7 +40,7 @@ MRCVOBJS  = mrcv.o mrcv_movie.o mrcv_draw.o mrcv_batch.o rgbv.o colormap.o
 
 PROGS     = mrc2tif raw2mrc tif2mrc mrcbyte mrcx mrctaper dm3props $(RGBPROGS)
 
-IILIBS    = -liimod $(TIFFLIBS)
+IILIBS    = -limod -liimod $(TIFFLIBS)
 
 all : $(PROGS)
 
@@ -46,7 +49,7 @@ all : $(PROGS)
 #
 
 raw2mrc : raw2mrc.o 
-	$(CC) -o raw2mrc raw2mrc.o  $(LDFLAGS) $(CLIBS)
+	$(CC) -o raw2mrc raw2mrc.o  $(LDFLAGS) -limod $(CLIBS)
 
 tif2mrc : tif2mrc.o tiff.o 
 	$(CC) -o tif2mrc tif2mrc.o tiff.o $(LDFLAGS) $(IILIBS) $(CLIBS)
