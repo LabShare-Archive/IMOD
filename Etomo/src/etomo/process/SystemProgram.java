@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/12/01 19:57:08  rickg
+ * <p> Close cleanup
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -88,7 +91,7 @@ public class SystemProgram implements Runnable {
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
-  private String command = null;
+  private String[] commandArray;
   private String[] stdInput = null;
   private ArrayList stdOutput = new ArrayList();
   private ArrayList stdError = new ArrayList();
@@ -97,8 +100,29 @@ public class SystemProgram implements Runnable {
   private boolean started = false;
   private boolean done = false;
 
+  /**
+   * Creates a SystemProgram object to execute the program specified by the
+   * argument <i>command</i> 
+   * @param command The string containng the command and arguments to run.
+   * 
+   * WARNING: The comand string is split at whitespace to create command and
+   * arguments.  This behavior is for backward compatibility.  It is suggested
+   * that SystemProgram(String[] arg) for be used so that spaces are not
+   * accidentally lost in path or arguments. 
+   */
   public SystemProgram(String command) {
-    this.command = command;
+    commandArray = command.split("\\s+");
+  }
+
+  /**
+   * Creates a SystemProgram object to execute the program specified by the
+   * argument <i>cmdArray</i> 
+   * @param cmdArray The string array containng the command and arguments to
+   *  run.
+   * 	
+   */
+  public SystemProgram(String[] cmdArray) {
+    commandArray = cmdArray;
   }
 
   /**
@@ -108,9 +132,14 @@ public class SystemProgram implements Runnable {
    * @param command The string containng the command to run.
    * @param programInput A string array containing the standard input to the
    * program each string should contain one line of input for the program.
+   * 
+   * WARNING: The comand string is split at whitespace to create command and
+   * arguments.  This behavior is for backward compatibility.  It is suggested
+   * that SystemProgram(String[] arg) for be used so that spaces are not
+   * accidentally lost in path or arguments. 
    */
   public SystemProgram(String command, String[] programInput) {
-    this.command = command;
+		commandArray = command.split("\\s+");
     stdInput = programInput;
   }
 
@@ -139,7 +168,10 @@ public class SystemProgram implements Runnable {
     started = true;
     if (debug) {
       System.err.println("");
-      System.err.println("SystemProgram: command string: " + command);
+      System.err.println("SystemProgram: command array: ");
+      for (int i = 0; i < commandArray.length; i++) {
+        System.err.println("  " + commandArray[i]);
+      }
       System.err.print("SystemProgram: working directory: ");
       if (workingDirectory == null) {
         System.err.println("null");
@@ -161,7 +193,7 @@ public class SystemProgram implements Runnable {
       if (workingDirectory == null) {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
-      process = Runtime.getRuntime().exec(command, null, workingDirectory);
+      process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
       try {
         Thread.sleep(100);
       }
@@ -207,10 +239,10 @@ public class SystemProgram implements Runnable {
           cmdInputStream.flush();
         }
       }
-			cmdInputStream.close();
+      cmdInputStream.close();
 
-			if(debug){
-				System.err.println("Done writting to process stdin");
+      if (debug) {
+        System.err.println("Done writting to process stdin");
         if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
           System.err.println(
@@ -308,7 +340,7 @@ public class SystemProgram implements Runnable {
         System.err.println("");
       }
     }
-    
+
     //  Set the done flag for the thread
     done = true;
   }
