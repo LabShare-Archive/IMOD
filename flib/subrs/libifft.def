@@ -1,0 +1,27 @@
+; libifft.def : Declares the module parameters for the DLL.
+
+LIBRARY      "libifft"
+DESCRIPTION  'libifft Windows Dynamic Link Library'
+
+EXPORTS
+	REALFT
+	INV21
+	SDIAD
+	R4CFTK
+	R3CFTK
+	TODFFT
+	RSYMFT
+	MDFTKD
+	ODFFT
+	CMPLFT
+	R5CFTK
+	HERMFT
+	R8CFTK
+	RPCFTK
+	MR_TFFT_NYQ
+	R2CFTK
+	MR_TFFT
+	REAL_FT
+	DIPRP
+	FFT1D
+	SRFP

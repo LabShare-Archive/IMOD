@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/30/03: IMOD_3-2-3
+12/30/03: Made most libraries be DLLs under Windows.
+ 
 12/30/03: Fixed problems with float crashing on a blank image, and with Subset
 area being initialized on.
 
