@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2005/01/29 20:27:13  mast
+    Added common routines for dealing with nested contours
+
     Revision 3.6  2004/11/20 04:31:48  mast
     Convert label duplication to a new routine, initialize store variable
 
@@ -1853,9 +1856,15 @@ int imodel_scans_overlap(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
 }
 
 /* returns TRUE if cs1 overlaps cs2 in a given section, and returns fractions
-   of each contour's area that overlaps. */
-int imodel_overlap_fractions(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
-                             Icont *cs2, Ipoint pmin2, Ipoint pmax2,
+   of each contour's area that overlaps in frac1 and frac2.  The bounding
+   boxes of the contours are given in pmin1, pmax1, pmin2, pmax2.
+   If cs1 and cs2 are already scan contours, they are unchanged.  If they are
+   not scan conatours and their bounding boxes do not overlap, the contours
+   are converted to scan contours and the address of the scan contour is
+   placed into cs1p and/or cs2p.  This allows scan conversions to be done only
+   when needed. */
+int imodel_overlap_fractions(Icont **cs1p, Ipoint pmin1, Ipoint pmax1,
+                             Icont **cs2p, Ipoint pmin2, Ipoint pmax2,
                              float *frac1, float *frac2)
 {
   int i, j, jstrt;
@@ -1864,11 +1873,15 @@ int imodel_overlap_fractions(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
   float sumover = 0.0;
   int didoverlap = 0;
   float ovstart, ovend;
+  Icont *cs1 = *cs1p;
+  Icont *cs2 = *cs2p;
 
   *frac1 = *frac2 = 0.0;
 
-  if (!cs1) return(0);
-  if (!cs2) return(0);
+  if (!cs1) 
+    return(0);
+  if (!cs2)
+    return(0);
 
   /* first check and see if bounding box overlaps. */
 
@@ -1880,6 +1893,22 @@ int imodel_overlap_fractions(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
     return(0);
   if (pmax2.y < pmin1.y)
     return(0);
+
+  /* Make sure contours are scan contours now */
+  if (!(cs1->flags & ICONT_SCANLINE)) {
+    cs1 = imodel_contour_scan(cs1);
+    if (!cs1)
+      return 0;
+    *cs1p = cs1;
+  }
+  
+  if (!(cs2->flags & ICONT_SCANLINE)) {
+    cs2 = imodel_contour_scan(cs2);
+    if (!cs2)
+      return 0;
+    *cs2p = cs2;
+  }
+
 
   /* Now compute total scan line lengths for each */
 
@@ -2876,8 +2905,8 @@ int imodContourCheckNesting(int co, int eco, Icont **scancont, Ipoint *pmin,
   int inco, outco, nind;
   Nesting *nest;
   
-  imodel_overlap_fractions(scancont[co], pmin[co], pmax[co],
-                           scancont[eco], pmin[eco],
+  imodel_overlap_fractions(&scancont[co], pmin[co], pmax[co],
+                           &scancont[eco], pmin[eco],
                            pmax[eco], &frac1, &frac2);
   if (frac1 > 0.99 || frac2 > 0.99) {
     if (frac2 > frac1) {
