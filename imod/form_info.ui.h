@@ -75,6 +75,8 @@ void InfoControls::init()
 // Set a minimum width for spin boxes to keep arrows big
 void InfoControls::setFontDependentWidths()
 {
+    int width = (int)(1.35 * fontMetrics().width("Auto"));
+    autoButton->setFixedWidth(width);
     int minWidth = fontMetrics().width("88888888");
     int minLabelWidth = fontMetrics().width("/ 8888");
     for (int i = 0; i < 3; i++) {
@@ -194,11 +196,25 @@ void InfoControls::keepOnTopToggled( bool state )
     ImodInfoWin->keepOnTop(state);
 }
 
+void InfoControls::subareaToggled( bool state )
+{
+    imodInfoSubset(state ? 1 : 0);
+}
+
+void InfoControls::autoClicked()
+{
+    int mean, sd;
+    ImodPrefs->getAutoContrastTargets(mean, sd);
+    imodInfoAutoContrast(mean, sd);
+}
+
 // ROUTINES FOR SETTING CONTROLS
 // Float checkbox is disabled for state < 0
 void InfoControls::setFloat( int state )
 {
     floatCheckBox->setEnabled(state >= 0);
+    subareaCheckBox->setEnabled(state >= 0);
+    autoButton->setEnabled(state >= 0);
     diaSetChecked(floatCheckBox, state > 0);
 }
 
@@ -301,5 +317,3 @@ void InfoControls::setShowPoint( int state )
     mShowPoint =  state != 0;
     diaSetChecked(showCheckBox, mShowPoint);
 }
-
-

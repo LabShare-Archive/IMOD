@@ -52,6 +52,12 @@ void AppearanceForm::init()
 	ind++;
     }
 #endif
+    
+    if (App->cvi->fakeImage || App->cvi->rawImageStore) {
+        setTargetButton->setEnabled(false);
+        autoMeanSpinBox->setEnabled(false);
+        autoSDspinBox->setEnabled(false);
+    }
 }
 
 // Update the dialog based on current values
@@ -59,6 +65,8 @@ void AppearanceForm::update()
 {
     diaSetSpinBox(imagePtSpinBox, mPrefs->minImPtSize);
     diaSetSpinBox(modelPtSpinBox, mPrefs->minModPtSize);
+    diaSetSpinBox(autoMeanSpinBox, mPrefs->autoTargetMean);
+    diaSetSpinBox(autoSDspinBox, mPrefs->autoTargetSD);
 }
 
 // New font was selected
@@ -88,6 +96,19 @@ void AppearanceForm::modelPtChanged( int value )
     ImodPrefs->pointSizeChanged();
 }
 
+// Target Mean or SD for autocontrast has changed: set and display
+void AppearanceForm::autoMeanChanged( int value )
+{
+    mPrefs->autoTargetMean = value;
+    imodInfoAutoContrast(mPrefs->autoTargetMean,  mPrefs->autoTargetSD);
+}
+
+void AppearanceForm::autoSDChanged( int value )
+{
+    mPrefs->autoTargetSD = value;
+    imodInfoAutoContrast(mPrefs->autoTargetMean,  mPrefs->autoTargetSD);
+}
+
 // An new style was set  to current item
 void AppearanceForm::styleSelected(const QString &key )
 {
@@ -96,6 +117,28 @@ void AppearanceForm::styleSelected(const QString &key )
     mPrefs->styleChgd = true;
     mPrefs->styleKey = key;
     ImodPrefs->changeStyle(key);
+}
+
+// Get the current mean and Sd and use to set the targets
+void AppearanceForm::setTargetClicked()
+{
+    float imageMean, imageSD;
+    int targetMean, targetSD;
+    int range = App->cvi->white - App->cvi->black;
+    
+    // Get current mean and SD, compute the target from current B/W settings
+    if (imodInfoCurrentMeanSD(imageMean, imageSD))
+        return;
+    if (range <= 0)
+        range = 1;
+    targetMean = (int)(255. * (imageMean - App->cvi->black) / range + 0.5);
+    targetSD = (int)(255. * imageSD / range - 0.5);
+    
+    // Set the spin boxes, then unload values back to preferences
+    diaSetSpinBox(autoMeanSpinBox, targetMean);
+    diaSetSpinBox(autoSDspinBox, targetSD);
+    mPrefs->autoTargetMean = autoMeanSpinBox->value();
+    mPrefs->autoTargetSD = autoSDspinBox->value();
 }
 
 // When the window is closing, inform the preference manager

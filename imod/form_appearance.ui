@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>AppearanceForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>302</width>
-            <height>172</height>
+            <width>290</width>
+            <height>252</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,17 +27,11 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout30</cstring>
+                <cstring>layout31</cstring>
             </property>
             <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
@@ -248,6 +242,131 @@
                         </widget>
                     </hbox>
                 </widget>
+                <widget class="QGroupBox">
+                    <property name="name">
+                        <cstring>groupBox7</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Autocontrast targets</string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout29</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Mean:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QSpinBox">
+                                    <property name="name">
+                                        <cstring>autoMeanSpinBox</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>250</number>
+                                    </property>
+                                    <property name="minValue">
+                                        <number>5</number>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Mean intensity to display</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>  SD:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QSpinBox">
+                                    <property name="name">
+                                        <cstring>autoSDspinBox</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="minValue">
+                                        <number>5</number>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Contrast range occupied by one Standard Deviation</string>
+                                    </property>
+                                </widget>
+                            </hbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout30</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer12</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>40</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>setTargetButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Set from Current Contrast</string>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer11</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>40</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </hbox>
+                        </widget>
+                    </vbox>
+                </widget>
                 <spacer>
                     <property name="name">
                         <cstring>Spacer11</cstring>
@@ -260,8 +379,8 @@
                     </property>
                     <property name="sizeHint">
                         <size>
-                            <width>0</width>
-                            <height>23</height>
+                            <width>16</width>
+                            <height>53</height>
                         </size>
                     </property>
                 </spacer>
@@ -279,8 +398,8 @@
             </property>
             <property name="sizeHint">
                 <size>
-                    <width>30</width>
-                    <height>0</height>
+                    <width>19</width>
+                    <height>16</height>
                 </size>
             </property>
         </spacer>
@@ -311,6 +430,24 @@
         <receiver>AppearanceForm</receiver>
         <slot>styleSelected(const QString&amp;)</slot>
     </connection>
+    <connection>
+        <sender>autoMeanSpinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>autoMeanChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>autoSDspinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>autoSDChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>setTargetButton</sender>
+        <signal>clicked()</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>setTargetClicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -319,6 +456,8 @@
     <include location="global" impldecl="in implementation">qfontdialog.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="global" impldecl="in implementation">qstylefactory.h</include>
+    <include location="local" impldecl="in implementation">imod.h</include>
+    <include location="local" impldecl="in implementation">imod_info_cb.h</include>
     <include location="local" impldecl="in implementation">form_appearance.ui.h</include>
 </includes>
 <forwards>
@@ -333,7 +472,10 @@
     <slot>fontPressed()</slot>
     <slot>imagePtChanged( int value )</slot>
     <slot>modelPtChanged( int value )</slot>
+    <slot>autoMeanChanged( int value )</slot>
+    <slot>autoSDChanged( int value )</slot>
     <slot>styleSelected( const QString &amp; key )</slot>
+    <slot>setTargetClicked()</slot>
     <slot>destroy()</slot>
 </slots>
 <pixmapinproject/>

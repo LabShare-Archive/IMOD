@@ -63,10 +63,12 @@ void BehaviorForm::displayCurrentZoom()
 {
     QString str;
     double zoom = mPrefs->zooms[mZoomIndex];
-    str.sprintf("Default %.2f", zoom);
-    defaultZoomLabel->setText(str);
-    str.sprintf(zoom < 1.0 ? "%.3f" : "%.2f", zoom);
+    str.sprintf("%.4f", zoom);
+    if (str.endsWith("00"))
+        str.truncate(str.length() - 2);
     zoomEdit->setText(str);
+    str = "Default " + str;
+    defaultZoomLabel->setText(str);
     mZoomValChanged = false;
 }
 
