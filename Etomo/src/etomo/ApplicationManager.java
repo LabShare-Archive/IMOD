@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/02/25 22:17:52  sueh
+ * <p> bug# 403 resetState() is no longer setting imodManager to
+ * <p> null
+ * <p>
  * <p> Revision 3.13  2004/02/16 18:54:38  sueh
  * <p> bug# 276 Added makeFiducialModelSeedModel() to copy the
  * <p>  .seed file to the .fid file.
@@ -739,18 +743,7 @@ public class ApplicationManager {
         isDataParamDirty = true;
 
         //final initialization of IMOD manager
-        try {
-          imodManager.setMetaData(metaData);
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
-        }
-
+        imodManager.setMetaData(metaData);
       }
       else {
         String[] errorMessage = new String[2];
@@ -3962,16 +3955,6 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(
         errorMessage,
         "Test parameter file read error");
-      return false;
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
-      return false;
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
       return false;
     }
 
