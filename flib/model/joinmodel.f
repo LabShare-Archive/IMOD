@@ -318,6 +318,7 @@ c
 c	  
 c	  now just write model
 c	  
-77	call write_wmod(newmodel)
-	stop 'JOINED MODEL WRITTEN'
+77	call write_wmod(modelfile)
+	print *, 'JOINED MODEL WRITTEN'
+	call exit(0)
 	end
