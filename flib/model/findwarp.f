@@ -163,6 +163,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/21 00:05:00  mast
+c	  Rearranged input order so that it was easier to run from Matchorwarp
+c	  with columns or rows excluded.  Standardized error output and made
+c	  declarations for implicit none.
+c	
 c
 c	  David Mastronarde, January 30, 1997
 c	  12/24/98: added outlier elimination, integrated complex options.
@@ -470,9 +475,11 @@ c     &		  aspect.le.aspectmax)then
 	    enddo
 	  enddo
 	  if(nauto.eq.0)then
-	    print *,'No fitting parameters work with these values,'//
-     &		' try again'
-	    go to 8
+	    print *
+	    print *,'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE THE',
+     &		' REQUIRED RATIO OF',' MEASUREMENTS TO UNKNOWNS - ',
+     &		'THERE ARE PROBABLY TOO FEW PATCHES'
+	    call exit(1)
 	  endif
 c	    
 c	    sort the list by size of area in inverted order
