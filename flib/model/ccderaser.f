@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/06/20 22:08:46  mast
+c	  Replaced option initialization with assignments to make SGI happy
+c	
 c	  Revision 3.7  2003/06/20 20:20:29  mast
 c	  Renamed two options
 c	
@@ -85,56 +88,51 @@ c
 c
 	integer numOptions
 	parameter (numOptions = 22)
-	character*80 options(numOptions)
+	character*(80 * numOptions) options(1)
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
 	integer*4 PipGetNonOptionArg, PipPrintHelp
-        options(1) = 'input:InputFile:FN:'//
-     &	    'Input image file'
-        options(2) = 'output:OutputFile:FN:'//
-     &	    'Output image file'
-        options(3) = 'find:FindPeaks:B:'//
-     &	    'Find peaks a criterion # of SDs above or below background'
-        options(4) = 'peak:PeakCriterion:F:'//
-     &	    'Criterion # of SDs above local mean for erasing peak'
-        options(5) = 'diff:DiffCriterion:F:'//
-     &	    'Criterion # of SDs above mean pixel-to-pixel difference'
-        options(6) = 'grow:GrowCriterion:F:'//
-     &	    'Criterion # of SDs above mean for adding points to peak'
-        options(7) = 'scan:ScanCriterion:F:'//
-     &	    'Criterion # of SDs for picking peaks in initial scan'
-        options(8) = 'radius:MaximumRadius:F:'//
-     &	    'Maximum radius of peak area to erase'
-        options(9) = 'outer:OuterRadius:F:'//
-     &	    'Outer radius of annulus to calculate local mean and SD in'
-        options(10) = 'xyscan:XYScanSize:I:'//
-     &	    'Size of regions to compute mean and SD in for initial scans'
-        options(11) = 'edge:EdgeExclusionWidth:I:'//
-     &	    'Width of area to exclude on all edges of image'
-        options(12) = 'points:PointModel:FN:'//
-     &	    'Output model file with points replaced in peak search'
-        options(13) = 'model:ModelFile:FN:'//
-     &	    'Model file with points or lines to be erased'
-        options(14) = 'lines:LineObjects:LI:'//
-     &	    'Objects that define lines to be replaced'
-        options(15) = 'allsec:AllSectionObjects:LI:'//
-     &	    'Objects with points to be replaced on all sections'
-        options(16) = 'border:BorderSize:I:'//
-     &	    'Size of border around points in patch'
-        options(17) = 'order:PolynomialOrder:I:'//
-     &	    'Order of polynomial to fit to border points'
-        options(18) = 'exclude:ExcludeAdjacent:B:'//
-     &	    'Exclude points adjacent to patch points from the fit'
-        options(19) = 'trial:TrialMode:B:'//
-     &	    'Analyze without writing output file'
-        options(20) = 'verbose::B:'//
-     &	    'Print details on patches being replaced'
-        options(21) = 'param:ParameterFile:PF:'//
-     &	    'Read parameter entries from file'
-        options(22) = 'help:usage:B:'//
-     &	    'Print help output'
+	options(1) =
+     &	    'input:InputFile:FN:Input image file@'//
+     &	    'output:OutputFile:FN:Output image file@'//
+     &	    'find:FindPeaks:B:Find peaks a criterion # of SDs above'//
+     &	    ' or below background@'//
+     &	    'peak:PeakCriterion:F:Criterion # of SDs above local'//
+     &	    ' mean for erasing peak@'//
+     &	    'diff:DiffCriterion:F:Criterion # of SDs above mean'//
+     &	    ' pixel-to-pixel difference@'//
+     &	    'grow:GrowCriterion:F:Criterion # of SDs above mean for'//
+     &	    ' adding points to peak@'//
+     &	    'scan:ScanCriterion:F:Criterion # of SDs for picking'//
+     &	    ' peaks in initial scan@'//
+     &	    'radius:MaximumRadius:F:Maximum radius of peak area to'//
+     &	    ' erase@'//
+     &	    'outer:OuterRadius:F:Outer radius of annulus to calculate'//
+     &	    ' local mean and SD in@'//
+     &	    'xyscan:XYScanSize:I:Size of regions to compute mean and'//
+     &	    ' SD in for initial scans@'//
+     &	    'edge:EdgeExclusionWidth:I:Width of area to exclude on all'//
+     &	    ' edges of image@'//
+     &	    'points:PointModel:FN:Output model file with points'//
+     &	    ' replaced in peak search@'//
+     &	    'model:ModelFile:FN:Model file with points or lines to'//
+     &	    ' be erased@'//
+     &	    'lines:LineObjects:LI:Objects that define lines to be'//
+     &	    ' replaced@'//
+     &	    'allsec:AllSectionObjects:LI:Objects with points to be'//
+     &	    ' replaced on all sections@'//
+     &	    'border:BorderSize:I:Size of border around points in'//
+     &	    ' patch@'//
+     &	    'order:PolynomialOrder:I:Order of polynomial to fit to'//
+     &	    ' border points@'//
+     &	    'exclude:ExcludeAdjacent:B:Exclude points adjacent to'//
+     &	    ' patch points from the fit@'//
+     &	    'trial:TrialMode:B:Analyze without writing output file@'//
+     &	    'verbose::B:Print details on patches being replaced@'//
+     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
+     &	    'help:usage:B:Print help output'
 c	  
 c	  Set all defaults here
 c
@@ -165,7 +163,8 @@ c	  Pip startup: set error, parse options, set flag if used
 c
 	call PipExitOnError(0, "ERROR: CCDERASER - ")
 	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options, numOptions, numOptArg, numNonOptArg)
+	ierr = PipParseInput(options(1), numOptions, '@', numOptArg,
+     &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
 	if (pipinput) then
