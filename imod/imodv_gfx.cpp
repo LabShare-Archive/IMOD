@@ -261,18 +261,26 @@ int imodv_auto_snapshot(char *inName, int format_type)
   char fname[32];
   char *usename = inName;
   char *fext = "rgb";
+  FILE *tfp = NULL;
 
   if (format_type == SnapShot_TIF)
     fext = "tif";
 
   if (!inName) {
     usename = fname;
-    if (snap_fileno < 10000)
-      sprintf(fname, "modv%04d.%s", snap_fileno, fext);
-    else
-      sprintf(fname, "modv%d.%s", snap_fileno, fext);
 
-    snap_fileno += 1;
+    /* DNM 6/4/03: add logic to avoid overwriting files */
+    do {
+      if (tfp) {
+        fclose(tfp);
+        tfp = NULL;
+      }
+      if (snap_fileno < 10000)
+        sprintf(fname, "modv%04d.%s", snap_fileno++, fext);
+      else
+        sprintf(fname, "modv%d.%s", snap_fileno++, fext);
+    } while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
+                         "rb")));
   }
 
   printf("3dmodv: Saving image to %s", usename);
@@ -383,6 +391,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.4  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.3  2003/02/27 17:39:24  mast
 Convert filenames with Qt routines
 
