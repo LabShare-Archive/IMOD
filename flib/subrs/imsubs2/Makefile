@@ -9,6 +9,9 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/02/27 15:57:28  mast
+#  Added undistinterp
+#
 #  Revision 3.5  2004/10/24 20:42:29  mast
 #  Added dependencies on ftbuf.inc
 #
@@ -30,7 +33,7 @@ FFLAGS = $(LIBFFLAGS)
 O        = $(OBJEXT)
 OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
  icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
- interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) undistinterp.$(O) \
+ interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) \
  strupcase.$(O) iclavgsd.$(O)
 
 bigfft.$(O): $(INCDIR)/ftbuf.inc
