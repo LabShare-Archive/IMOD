@@ -1,0 +1,161 @@
+<head>
+<title>Zap Window</title>
+</head>
+<H3>Zap Window Controls</H3>
+<H4>Mouse Button Assignments</H4>
+Descriptions below refer to the first, second, and third mouse 
+buttons.  By default, these correspond to left, middle, and right 
+buttons of a 3-button mouse, but you can change these assignments in 
+the 3dmod Preferences dialog, accessed via the Edit-Options menu entry.
+
+
+<H4>The Tool Bar</H4>
+<UL>
+<LI>The <B>up</B> and <B>down arrows</B> step the zoom factor up or down.
+<LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
+one to type in a custom zoom.
+<LI>The <B>checkerboard</B> button toggles between fast rendering and 
+slower but higher quality interpolated image rendering.
+<LI>The <B>lock</B> button can lock the Zap window at the current Z value.
+When locked, the Z value of a Zap window can be changed with 
+controls or hot keys in the window, but that will not change the current
+Z value of other windows in the program.
+<LI>The <B>centering</B> button toggles between having the image always 
+centered 
+on the current model point, and recentering the image only when 
+the current point comes near an edge (the default).
+<LI>The <B>modeling direction</B> button toggles between inserting new 
+points after the current point (when pointing up) or before 
+the current point (when pointing down).
+<LI>The <B>Z slider</B> allows one to riffle through images or select a 
+particular section to display.
+<LI>The <B>section</B> edit box shows the current section and allows one 
+to go directly to a section by typing in a number.
+<LI>The <B>I</B> button brings the Information Window to the 
+front and prints information about window and image size (see the 
+<B>I</B> hot key below).
+<LI>If multiple image files have been loaded into 3dmod, three 
+additional controls appear.  The <B>time lock</B> button will prevent 
+changes in other windows from changing the time (image file) 
+displayed in this Zap window.  The <B>left</B> and <B>right arrows</B> will 
+step backward and forward in time.
+</UL>
+
+<H4>Hot Keys special to the Zap window</H4>
+<UL>
+<LI><B>i</B> toggles the modeling direction.
+<LI><B>S</B> or <B>Ctrl-S</B> saves the Zap window, or the area inside the 
+rubber band, into a non-TIFF or TIFF file.  (Use the menu entry 
+<B>Edit-Options</B> and go to the Behavior tab to select the non-TIFF file 
+format.)
+<LI><B>Z</B> toggles auto section advance on and off.  When this is on, 
+the section will change automatically after inserting a point if 
+there was a section change between that point and the previous 
+point.
+<LI><B>b</B> builds a contour when AutoContour window is open.
+<LI><B>a</B> advances to and fills next section when auto contouring.
+<LI><B>u</B> smooths a filled area when auto contouring.
+<LI><B>B</B> toggles the rubber band on and off.  The rubber band can be 
+used to select an area, then snapshot the area, resize the window 
+to that area, or find its coordinates.  After pressing B to turn on the 
+rubber band, position the mouse at the desired upper left corner, click 
+the first mouse button and hold it down while you move to the lower 
+right corner.  After initially defining the band, you can adjust its 
+size by placing the pointer near an edge or corner and 
+dragging with the first mouse button.  The band can be moved as a 
+unit by placing the pointer near an edge and dragging with the 
+second mouse button.
+<LI><B>I</B> prints information about the window and image size and 
+the coordinates of the image in the window.  If the rubber band 
+is on, the sizes and coordinates are relative to the rubber band 
+rather than the window.  The image 
+coordinates of the lower left and upper right corners, and of 
+the center, are printed in the 3dmod info window.  There is also 
+a fragment of a command line for extracting the image from the 
+stack with "newstack".  This key also brings the Information 
+Window to the front of the display.
+<LI><B>R</B> resizes the window.  With the rubber band off, the window 
+changes, 
+if possible, to match the size of the entire image at the 
+current zoom.  With the rubber band on, it changes to the size 
+of the rubber band and the image is shifted to display the area 
+previously in the rubber band.
+<LI><B>Ctrl-A</B> adds multiple contours on the current section to the 
+contour selection list.  Selected contours will be shown with a 
+distinguishable line thickness.  Only contours from the current object 
+that are 
+confined to the current section will be added.  With the rubber band 
+off, all eligible contours on the section will be added; with the 
+rubber band on, only contours completely within the rubber band will be 
+selected.
+<LI><B>P</B> Allows you to shift the whole current 
+contour by dragging with the first mouse button held down.  After 
+pressing this key, position the mouse anywhere, press the first mouse 
+button, and shift the contour to the desired position.  Shifting mode 
+is terminated when you release the mouse button.  Shifting 
+works for any contours in closed contour objects and for coplanar 
+contours in open contour objects.
+<LI><B>Arrow keys</B> and the <B>keypad</B>: In movie mode, the arrow keys and 
+the <B>PageUp</B> and <B>PageDown</B> keys move the current viewing point (the 
+small cross), while the keypad keys pan the image horizontally,
+vertically, and diagonally.  In model mode, the arrow keys pan 
+the image, the numeric keypad arrows move the current model point 
+laterally, and the numeric keypad <B>PageUp</B> and <B>PageDown</B> keys move 
+the current model point in Z.
+<LI><B>Ins</B> on the keypad: In model mode, this key works the same as 
+the second mouse button.  A single keystrike adds one point; 
+holding the key down allows points to be added continuously.
+<LI><B>ESC</B> will close the Zap window.
+</UL>
+For other keys, see Help - Hot Keys in the 3dmod Info Window.
+
+
+<H4>Mouse button function in movie mode</H4>
+<UL>
+<LI><B>First Button Click</B>: Select the current viewing point, marked by 
+a small cross.
+<LI><B>First Button Drag</B>: Pan the image if it is larger than the 
+window, or adjust the size of the rubber band.
+
+<LI><B>Second Button Click</B>: Start movie in forward direction, or stop movie.
+
+<LI><B>Second Button Drag</B>: Move the rubber band.
+<LI><B>Third Button Click</B>: Start movie in backward direction, or stop movie.
+</UL>
+
+<H4>Mouse button function in model mode</H4>
+<UL>
+<LI><B>First Button Click</B>: Make the nearest visible model point be the 
+current model point.  If there is no point nearby, this detaches from 
+the current point and contour and selects a current viewing point 
+instead.
+<LI><B>First Button Drag</B>: Pan the image if it is larger than the 
+window, or adjust the size of the rubber band.
+<LI><B>Ctrl - First Button Click</B>: Selects the nearest visible point 
+as the current point but also adds this contour to a list of selected 
+contours.  Selected contours in this list will be 
+displayed with a distinguishable line thickness.  If a contour is 
+already selected, Ctrl-clicking on it will deselect it.  The 
+selection list is cleared by doing an ordinary first button selection 
+of any model point, or by a variety of other operations, mostly ones 
+that select a different contour from the current one.
+<LI><B>Ctrl - First Button Drag</B>: Adds any contours that the mouse crosses to
+the list of selected contours.
+
+<LI><B>Second Button Click</B>: Add one point to the current contour.
+<LI><B>Second Button Drag</B>: Continually add points to the current 
+contour as the mouse is moved, or move the rubber band.
+<LI><B>Third Button Click</B>: Modify the current model point to be at the 
+selected position.
+<LI><B>Third Button Drag</B>: Continually modify points as the mouse is 
+moved.  This only works when the current model point is in the 
+interior of the contour, not at its end.
+<LI><B>Ctrl - Third Button Click</B>: Delete any points under the 
+cursor in the current contour.
+<LI><B>Ctrl - Third Button Drag</B>: Continually delete points under the
+cursor as the mouse is moved.  At the end, the current point is 
+set before the last deletion (or after, if modeling direction is 
+inverted.)
+</UL>
+<P>
+<A HREF="index.html">Help Index<A>
