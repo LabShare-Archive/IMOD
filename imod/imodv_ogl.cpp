@@ -62,6 +62,7 @@ static void imodvDraw_contours(Iobj *obj, int mode);
 static void imodvPick_Contours(Iobj *obj);
 static void imodvSetDepthCue(Imod *imod);
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod);
+static void setStereoProjection(ImodvApp *a);
 static void imodvDraw_filled_contours(Iobj *obj);
 static void imodvDraw_object(Iobj *obj, Imod *imod);
 static int check_mesh_draw(Imesh *mesh, int checkTime, int resol);
@@ -207,7 +208,17 @@ static void imodvSetDepthCue(Imod *imod)
   glGetFloatv(GL_COLOR_CLEAR_VALUE, bgcolor);
   glFogfv(GL_FOG_COLOR, bgcolor);
 
+  // DNM 11/16/04: Get model extent.  If there is none yet, set to image size
+  // so depth cue will work correctly on image display
   imodGetBoundingBox(imod, &minp, &maxp);
+  if (maxp.x == minp.x && maxp.y == minp.y && maxp.z == minp.z &&
+      !Imodv->standalone) {
+    minp.x = minp.y = minp.z = 0.;
+    maxp.x = Imodv->vi->xsize;
+    maxp.y = Imodv->vi->ysize;
+    maxp.z = Imodv->vi->zsize;
+  }
+
   maxp.z *= imod->zscale;
   minp.z *= imod->zscale;
   drange = (maxp.x - minp.x) * (maxp.x - minp.x) +
@@ -261,6 +272,55 @@ static void imodvSetModelTrans(Imod *imod)
   return;
 }
 
+// Set up the projection matrix properly for the current stereo mode
+static void setStereoProjection(ImodvApp *a)
+{
+  glMatrixMode(GL_PROJECTION);
+
+  switch (a->stereo){
+  case -IMODV_STEREO_RL:
+    glViewport(0, 0, a->winx, a->winy);
+    glTranslatef(a->winx/2, a->winy/2, 0.0f);
+    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
+    break;
+
+  case IMODV_STEREO_RL:
+    glTranslatef(a->winx/2, a->winy/2, 0.0f);
+    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
+    glViewport(a->winx, 0, a->winx, a->winy);
+    break;
+
+  case -IMODV_STEREO_TB:
+    glViewport(0, 0, a->winx, a->winy);
+    glTranslatef(a->winx/2, a->winy/2, 0.0f);
+    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
+    break;
+
+  case IMODV_STEREO_TB:
+    glTranslatef(a->winx/2, a->winy/2, 0.0f);
+    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
+    glViewport(0, a->winy, a->winx, a->winy);
+    break;
+
+  case -IMODV_STEREO_HW:
+    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    /* DNM: cut these values in half to get model at same zoom relative
+       to the size of the window */
+    glScalef(1.0f, 0.5f, 0.5f);
+    break;
+
+  case IMODV_STEREO_HW:
+    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glScalef(1.0f, 0.5f, 0.5f);
+    break;
+
+  }
+}
+
 
 void imodvDraw_models(ImodvApp *a)
 {
@@ -270,6 +330,15 @@ void imodvDraw_models(ImodvApp *a)
      to be unsigned */
   glPushName(NO_NAME);
      
+  // DNM 5/15/04: tell routine to draw non-transparent stuff, add modelTrans
+  // call to get transformation matrix correct
+  if (!a->standalone){
+    imodvSetViewbyModel(a, a->imod);
+    imodvSetModelTrans(a->imod);
+    setStereoProjection(a);
+    imodvDrawImage(a, 0);
+  }
+
   switch (a->drawall){
   case 0:
     glLoadName(a->cm);
@@ -301,11 +370,12 @@ void imodvDraw_models(ImodvApp *a)
     break;
   }
 
-  // DNM 5/14/04: switched to drawing all after, instead of only transparent 
-  // after and non-transparent before; this fixed several problems
+  // DNM 5/14/04: now tell routine to draw transparent stuff
   if (!a->standalone){
-      imodvSetViewbyModel(a, a->imod);
-      imodvDrawImage(a);
+    imodvSetViewbyModel(a, a->imod);
+    imodvSetModelTrans(a->imod);
+    setStereoProjection(a);
+    imodvDrawImage(a, 1);
   }
      
   glPopName();
@@ -352,51 +422,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 
   imodvSetModelTrans(imod);
 
-  glMatrixMode(GL_PROJECTION);
-
-  switch (a->stereo){
-  case -IMODV_STEREO_RL:
-    glViewport(0, 0, a->winx, a->winy);
-    glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
-    break;
-
-  case IMODV_STEREO_RL:
-    glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
-    glViewport(a->winx, 0, a->winx, a->winy);
-    break;
-
-  case -IMODV_STEREO_TB:
-    glViewport(0, 0, a->winx, a->winy);
-    glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
-    break;
-
-  case IMODV_STEREO_TB:
-    glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
-    glViewport(0, a->winy, a->winx, a->winy);
-    break;
-
-  case -IMODV_STEREO_HW:
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    /* DNM: cut these values in half to get model at same zoom relative
-       to the size of the window */
-    glScalef(1.0f, 0.5f, 0.5f);
-    break;
-
-  case IMODV_STEREO_HW:
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
-    glScalef(1.0f, 0.5f, 0.5f);
-    break;
-
-  }
-
+  setStereoProjection(a);
 
   CTime = imod->ctime;
   glPushName(ob);
@@ -1757,6 +1783,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.9  2004/05/15 21:34:45  mast
+Switched to drawing all image data after the model draw
+
 Revision 4.8  2004/04/28 14:49:04  mast
 Changed to be able to draw current contour thicker
 
