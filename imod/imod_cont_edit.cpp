@@ -39,6 +39,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -114,7 +117,7 @@ static bool indexGood(Iindex ind)
 /*                  CONTOUR BREAKING                                       */
 /***************************************************************************/
 
-static struct contour_break_struct cobrk = {NULL, NULL};
+static struct contour_break_struct cobrk = {NULL, NULL, 0, 0};
 
 void imodContEditBreak(ImodView *vw)
 {
@@ -437,7 +440,7 @@ void ContourBreak::closeEvent ( QCloseEvent * e )
 /*               CONTOUR JOINING                                            */
 /***************************************************************************/
 
-static struct contour_join_struct cojoin = {NULL, NULL};
+static struct contour_join_struct cojoin = {NULL, NULL, 0, 0};
 
 void imodContEditJoin(ImodView *vw, int x, int y)
 {

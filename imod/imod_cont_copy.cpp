@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/02/27 19:31:35  mast
+remove include of unistd.h for windows
+
 Revision 4.2  2003/02/14 01:14:06  mast
 Add error report if duplication fails
 
@@ -126,7 +129,7 @@ ThisDialog =
   { 
     NULL, NULL , 
     0, 0, 0, 
-    0, -1, 0, -1, 0,
+    0, -1, 0, -1, 0, 0, 0, 0
   };
 
 
@@ -134,7 +137,7 @@ ThisDialog =
 static int contCompare(Icont *c1, Icont *c2)
 {
   int dif = 0;
-  unsigned int pt;
+  int pt;
 
   if ((!c1) || (!c2)) return -1;
   if (c1->type != c2->type) dif++;
@@ -154,7 +157,7 @@ static int contCompare(Icont *c1, Icont *c2)
 static int contRmDup(Icont *c1, Icont *c2)
 {
   int delpts = 0;
-  unsigned  int pt1,pt2;
+  int pt1,pt2;
   if ((!c1)||(!c2)||(!c1->psize)||(!c2->psize)) return delpts;
   for(pt1 = 0; pt1 < c1->psize; pt1++)
 	for(pt2 = 0; pt2 < c2->psize; pt2++){
@@ -176,7 +179,7 @@ static int contRmDup(Icont *c1, Icont *c2)
 static int copyContour(Icont *cont)
 {
   Iobj *toObj;
-  unsigned  int co,pt;
+  int co,pt;
   int section;
 
   if (!cont) return(-1);

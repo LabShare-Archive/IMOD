@@ -117,8 +117,6 @@ int imod_model_changed(Imod *imodel)
 static void imod_make_backup(char *filename)
 {
   QString qname, nfname1, nfname2;
-  int ok;
-  int err;
   if ((filename[0] != 0x00) && strcmp(filename, saved_filename)) {
     QDir *curdir = new QDir();
     qname = QDir::convertSeparators(QString(filename));
@@ -830,6 +828,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.3  2003/02/28 18:33:44  mast
+fix = to == in if statement
+
 Revision 4.2  2003/02/27 19:37:26  mast
 Changes for windows version in filename handling
 

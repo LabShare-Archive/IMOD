@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -69,7 +72,7 @@ struct{
   ImageScaleWindow *dia;
   ImodView  *vw;
   float     min, max;
-}imodImageScaleData = {0, 0, 0};
+}imodImageScaleData = {NULL, NULL, 0, 0};
 
 #define BLACKNEW  32
 #define WHITENEW  223
@@ -233,7 +236,6 @@ void ImageScaleWindow::applyLimits()
   ImodView *vw = imodImageScaleData.vw;
   int black = BLACKNEW, white = WHITENEW;
   int k;
-  struct MRCheader savehdr;
 
   imodImageScaleData.min = mEditBox[0]->text().toFloat();
   imodImageScaleData.max = mEditBox[1]->text().toFloat();
