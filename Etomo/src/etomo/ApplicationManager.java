@@ -91,6 +91,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.124  2005/02/16 22:31:23  sueh
+ * <p> bug# 604 Added checkForSharedDirectory() to check if there is an .edf
+ * <p> file using different stacks in the directory.
+ * <p>
  * <p> Revision 3.123  2005/02/07 21:48:17  sueh
  * <p> bug# 594 Added isSetupChanged() to check if user has enter data into
  * <p> Setup dialog.
@@ -1317,10 +1321,8 @@ public class ApplicationManager extends BaseManager {
     if (axisType == AxisType.DUAL_AXIS) {
       firstStack = new File(propertyUserDir, datasetName + AxisID.FIRST.getExtension() + ".st");
       firstStackName = firstStack.getName();
-      System.out.println("firstStackName="+firstStackName);
       secondStack = new File(propertyUserDir, datasetName + AxisID.SECOND.getExtension() + ".st");
       secondStackName = secondStack.getName();
-      System.out.println("secondStackName="+secondStackName);
     }
     else if (axisType == AxisType.SINGLE_AXIS) {
       firstStack = new File(propertyUserDir, datasetName + AxisID.ONLY.getExtension() + ".st");
