@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.ScriptParameter;
 
 /**
 * <p>Description: </p>
@@ -22,6 +22,11 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/21 22:54:15  sueh
+* <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+* <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+* <p> be placed in a comscript.
+* <p>
 * <p> Revision 1.6  2005/01/08 01:46:38  sueh
 * <p> bug# 578 Updated Command interface.
 * <p>
@@ -185,17 +190,17 @@ public class XfalignParam implements Command {
   }
   
   private void genFilterOptions(ArrayList options) {
-    ConstEtomoNumber sigmaLowFrequency = metaData.getSigmaLowFrequency();
-    ConstEtomoNumber cutoffHighFrequency = metaData
-        .getCutoffHighFrequency();
-    ConstEtomoNumber sigmaHighFrequency = metaData.getSigmaHighFrequency();
+    ScriptParameter sigmaLowFrequency = metaData.getSigmaLowFrequencyParameter();
+    ScriptParameter cutoffHighFrequency = metaData
+        .getCutoffHighFrequencyParameter();
+    ScriptParameter sigmaHighFrequency = metaData.getSigmaHighFrequencyParameter();
     //optional
-    if (sigmaLowFrequency.isUpdateCommand() || cutoffHighFrequency.isUpdateCommand()
-        || sigmaHighFrequency.isUpdateCommand()) {
+    if (sigmaLowFrequency.isUseInScript() || cutoffHighFrequency.isUseInScript()
+        || sigmaHighFrequency.isUseInScript()) {
       options.add("-fil");
       //all three numbers must exist
-      options.add(sigmaLowFrequency.toString(true) + "," + sigmaHighFrequency.toString(true) + ",0,"
-          + cutoffHighFrequency.toString(true));
+      options.add(sigmaLowFrequency.toString() + "," + sigmaHighFrequency.toString() + ",0,"
+          + cutoffHighFrequency.toString());
     }
   }
   

@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/01/22 04:04:06  sueh
+ * <p> bug# 509 bug# 591  Setting numberViews with a string to avoid
+ * <p> NumberFormatException if it is deleted.
+ * <p>
  * <p> Revision 3.2  2005/01/21 22:53:55  sueh
  * <p> bug# 509 bug# 591  Implemented Storable.  Changed storable fields to
  * <p> EtomoNumbers.  Stopped using 0 as null for SearchDirection.  Added
@@ -96,6 +100,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
+import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 
@@ -115,7 +120,7 @@ public class TransferfidParam implements Storable {
   EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SearchDirection"); 
   EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewA");
   EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
-  EtomoNumber numberViews = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "NumberViews");
+  ScriptParameter numberViews = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "NumberViews");
 
   private MetaData metaData = null;
   boolean createLog = false;
@@ -129,7 +134,7 @@ public class TransferfidParam implements Storable {
     }
     groupString = group + axisID.getExtension();
     searchDirection.setValidValues(new int[] {-1,1});
-    numberViews.setResetValue(5).setDefault(5);
+    numberViews.setDefault(5).setDisplayValue(5);
     reset();
   }
   
@@ -181,8 +186,7 @@ public class TransferfidParam implements Storable {
     if (tiltAngleSpec.getType() != TiltAngleType.RANGE) {
       return;
     }
-    centerView.setResetValue(Math.round(1 - tiltAngleSpec.getRangeMin()
-        / tiltAngleSpec.getRangeStep()));
+    centerView.setDisplayValue(Math.round(1 - tiltAngleSpec.getRangeMin() / tiltAngleSpec.getRangeStep()));
   }
   
   /**
@@ -274,15 +278,15 @@ public class TransferfidParam implements Storable {
       commandLine.append("-o " + outputModelFile + " ");
     }
 
-    if (centerViewA.isUpdateCommand()) {
+    if (!centerViewA.isNull()) {
       commandLine.append("-za " + centerViewA.toString() + " ");
     }
 
-    if (centerViewB.isUpdateCommand()) {
+    if (!centerViewB.isNull()) {
       commandLine.append("-zb " + centerViewB.toString() + " ");
     }
 
-    if (numberViews.isUpdateCommand()) {
+    if (numberViews.isUseInScript()) {
       commandLine.append("-n " + numberViews.toString() + " ");
     }
 
