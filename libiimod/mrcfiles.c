@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/06/26 17:06:37  mast
+    Added type casts to calls to mrc_swap_shorts and _floats
+
     Revision 3.1  2002/06/26 16:52:38  mast
     Added ability to write header back to byte-swapped file, and to write
     data to byte-swapped file with mrc_data_new and mrc_write_slice
@@ -84,8 +87,22 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 	 hdata->mapr < 0 || hdata->mapr > 4 ||
 	 hdata->maps < 0 || hdata->maps > 4) {
 
-	  /* Mark data as swapped and do the swaps */
+	  /* Mark data as swapped*/
 	  hdata->swapped = 1;
+     }
+
+     /* DNM 7/30/02: test for old style header and rearrange origin info */
+     if (hdata->cmap[0] != 'M' || hdata->cmap[1] != 'A' || 
+	 hdata->cmap[2] != 'P') {
+	  memcpy(&hdata->zorg, &hdata->cmap[0], 4);
+	  memcpy(&hdata->xorg, &hdata->stamp[0], 4);
+	  memcpy(&hdata->yorg, &hdata->rms, 4);
+	  hdata->rms = 0.;
+	  if (hdata->swapped)
+	       mrc_swap_floats(&hdata->rms, 1);
+	  mrc_set_cmap_stamp(hdata);
+
+     if (hdata->swapped)
 	  mrc_swap_header(hdata);
 
 	  /* Test that this swapping makes values acceptable */
@@ -260,6 +277,7 @@ int mrc_head_new(struct MRCheader *hdata,
 		      int x, int y, int z, int mode)
 {
 
+     hdata->swapped = 0;
      hdata->nx = x;
      hdata->ny = y;
      hdata->nz = z;
@@ -313,12 +331,17 @@ int mrc_head_new(struct MRCheader *hdata,
      
      for(x = 0; x < 6; x++)
 	  hdata->tiltangles[x] = 0.0f;
+#ifdef OLD_STYLE_HEADER
      hdata->nwave = 0;
      hdata->wave1 = 0;
      hdata->wave2 = 0;
      hdata->wave3 = 0;
      hdata->wave4 = 0;
      hdata->wave5 = 0;
+#else
+     hdata->rms = 0.;
+     mrc_set_cmap_stamp(hdata);
+#endif
      hdata->zorg = 0.0f;
      hdata->xorg = 0.0f;
      hdata->yorg = 0.0f;
@@ -331,7 +354,6 @@ int mrc_head_new(struct MRCheader *hdata,
 /*     hdata->li = NULL; */
 
      hdata->headerSize = 1024;
-     hdata->swapped = 0;
      hdata->pathname = NULL;
      hdata->filedesc = NULL;
      hdata->userData = NULL;
@@ -395,9 +417,32 @@ void mrc_swap_header(struct MRCheader *hdata)
      mrc_swap_floats(&hdata->min2, 6);
      mrc_swap_shorts(&hdata->idtype, 6);
      mrc_swap_floats(&hdata->tiltangles[0], 6);
+#ifdef OLD_STYLE_HEADER
      mrc_swap_shorts(&hdata->nwave, 6);
      mrc_swap_floats(&hdata->zorg, 3);
+#else
+     mrc_swap_floats(&hdata->xorg, 3);
+     mrc_swap_floats(&hdata->rms, 1);
+#endif
      mrc_swap_longs(&hdata->nlabl, 1);
+}
+
+/* DNM 7/30/02: set cmap and stamp correctly for a new header or
+   for converting an old style header on reading in */
+void mrc_set_cmap_stamp(struct MRCheader *hdata)
+{
+     hdata->cmap[0] = 'M';
+     hdata->cmap[1] = 'A';
+     hdata->cmap[2] = 'P';
+     hdata->cmap[3] = ' ';
+#ifdef LITTLE_ENDIAN
+     hdata->stamp[0] = hdata->swapped ? 17 : 68;
+#else
+     hdata->stamp[0] = hdata->swapped ? 68 : 17;
+#endif
+     hdata->stamp[1] = 0;
+     hdata->stamp[2] = 0;
+     hdata->stamp[3] = 0;
 }
 
 
