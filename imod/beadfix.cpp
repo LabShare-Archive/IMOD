@@ -570,8 +570,8 @@ void BeadFixer::nextRes()
 	clearExtraObj();
         ob = ivwGetExtraObject(plug->view);
         imodPointAppend(con, --pts);
-        tpt.x = cx + xr;
-        tpt.y = cy + yr;
+        tpt.x = xc + xr;
+        tpt.y = yc + yr;
         tpt.z = pts->z;
         imodPointAppend(con, &tpt);
         tpt.x -= 0.707 * (xr - yr) * headLen / resval;
@@ -1252,6 +1252,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.13  2004/06/23 03:32:19  mast
+    Changed to save and restore window position
+
     Revision 1.12  2004/06/20 22:43:15  mast
     Fixed problem that made no residuals be found.
 
