@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/03/22 05:40:15  mast
+#  Added extractmagrad
+#
 #  Revision 3.2  2003/10/24 02:30:57  mast
 #  Changes for windows/Intel compiler
 #
@@ -27,7 +30,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
- xftoxg$(E) xyzproj$(E) extractmagrad$(E)
+ xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E)
  
 LIBS = $(FORTCLIBS)
 
@@ -125,6 +128,9 @@ montagesize$(E): montagesize.$(O)
 
 mtdetect$(E): mtdetect.$(O) mtsubs.$(O)
 	$(FC) -o mtdetect mtdetect.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+mtffilter$(E): mtffilter.$(O)
+	$(FC) -o mtffilter mtffilter.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 mtteach$(E): mtteach.$(O) mtsubs.$(O)
 	$(FC) -o mtteach mtteach.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
