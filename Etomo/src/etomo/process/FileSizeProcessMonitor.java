@@ -6,6 +6,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.util.InvalidParameterException;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -20,6 +21,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.5  2003/09/08 22:21:31  rickg
  * <p> Limit percentage done to between 0 and 99
  * <p>
@@ -128,6 +132,8 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       int currentLength = (int) (watchedFile.length() / 1024);
       double fractionDone = (double) currentLength / nKBytes;
       int percentage = (int) Math.round(fractionDone * 100);
+
+      //  Catch any wierd values before they get displayed
       if(percentage < 0) {
         percentage = 0;
       }
@@ -137,22 +143,10 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       
       long elapsedTime = System.currentTimeMillis() - processStartTime;
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
-      int minutes = (int) Math.floor(remainingTime / 60000);
-      int seconds =
-        (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
-
       String message =
         String.valueOf(percentage)
           + "%   ETC: "
-          + String.valueOf(minutes)
-          + ":";
-      if (seconds < 10) {
-        message = message + "0" + String.valueOf(seconds);
-      }
-      else {
-        message = message + String.valueOf(seconds);
-      }
-      
+          + Utilities.millisToMinAndSecs(remainingTime);
       applicationManager.setProgressBarValue(currentLength, message, axisID);
 
       //  TODO: need to put a fail safe in here to
