@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/08/03 01:52:10  mast
+c	  Had it treat end of input same as err
+c	
 c	  Revision 3.1  2003/12/24 18:09:38  mast
 c	  Converted to take PIP input
 c	
@@ -31,6 +34,7 @@ c
 	character*80 line
 	logical pipinput
 	real*4 dmin,dmax,dmean
+	logical line_is_filename
 
 	if (.not.pipinput) then
 	  read(5,'(a)')line
@@ -44,6 +48,7 @@ c
 	  endif
 	endif
 	if(line(1:1).eq.'/'.or.line.eq.' ')return
+	if (line_is_filename(line)) go to 10
 	read(line,*,err=10,end=10)(nxyz(i),i=1,3)
 	return
 10	call ialprt(.false.)
@@ -51,5 +56,27 @@ c
 	call irdhdr(iunit,nxyz,mxyz,mode,dmin,dmax,dmean)
 	call imclose(iunit)
 	call ialprt(.true.)
+	return
+	end
+
+
+c	  LINE_IS_FILENAME tests for whether a line could be a valid numeric
+c	  input and returns TRUE if not.  It is to replace reliance on
+c	  trying to read from an internal string, which fails mysteriously
+c	  on some Windows installations.
+c	  
+c	  String must contain spaces, tabs, period, comma, plus, minus, digits
+c
+	logical function line_is_filename(line)
+	implicit none
+	character*(*) line
+	integer*4 i, ich
+	line_is_filename = .true.
+	do i = 1, len(line)
+	  ich = ichar(line(i:i))
+	  if (ich .ne. 32 .and. ich .ne. 11 .and.
+     &	      (ich .lt. 43 .or. ich .gt. 57 .or. ich .eq. 47)) return
+	enddo
+	line_is_filename = .false.
 	return
 	end
