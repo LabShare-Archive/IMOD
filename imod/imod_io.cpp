@@ -673,6 +673,7 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
       vi->xybin * vi->zbin == 1) {
     mrchead = (struct MRCheader *)im->header;
 
+    imodStartAutoDumpCache();
     vi->loadingImage = 1;
     /* DNM: save and restore header after call to mrc_read_byte */
     savehdr = *mrchead;
@@ -837,6 +838,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.13  2004/09/10 02:31:03  mast
+replaced long with int
+
 Revision 4.12  2004/06/04 03:17:03  mast
 Added argument to openModel to keep black/white level
 
