@@ -25,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/07/23 00:03:05  sueh
+ * <p> bug# 517 removing prints
+ * <p>
  * <p> Revision 3.5  2004/07/16 23:00:21  sueh
  * <p> bug# 501 sending System.out prints only when debug is set
  * <p>
@@ -166,9 +169,13 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessInfo);
   }
   
-  public boolean hide(int width) {
+  /**
+   * hide the panel if its width it zero because of the divider
+   * @return
+   */
+  public boolean hide() {
     boolean hide = false;
-    if (width != 0) {
+    if (getWidth() != 0) {
       return hide;
     }
     hide = true;
@@ -176,17 +183,18 @@ public class AxisProcessPanel implements ContextMenu {
     return hide;
   }
   
-  public boolean tooSmall() {
-    if (getWidth() <= 16) {
-      return true;
-    }
-    return false;
-  }
-
+  /**
+   * make panel visible
+   *
+   */
   public void show() {
     panelRoot.setVisible(true);
   }
   
+  /**
+   * get panel width
+   * @return
+   */
   public int getWidth() {
     Rectangle size = new Rectangle();
     panelRoot.computeVisibleRect(size);
