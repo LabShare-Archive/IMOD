@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-9
+12/3/02: Fixed Transferfid to keep from getting no points in clipped out model
+due to roundoff errors.  Also added full error trapping and reporting.
+
 IMOD_2-7-8
 12/3/02: Changes to prevent multiple file dialog boxes from appearing in
 Imod with unpredictable results.
