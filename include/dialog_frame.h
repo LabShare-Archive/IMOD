@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/03/26 06:23:15  mast
+Make fontChange virtual
+
 Revision 3.2  2003/03/24 17:43:48  mast
 Accommodate font changes
 
@@ -58,9 +61,11 @@ class DialogFrame : public QWidget
 
  signals:
   void actionPressed(int which);
+  void actionClicked(int which);
 
   public slots:
     void actionButtonPressed(int which);
+    void actionButtonClicked(int which);
 
  protected:
   virtual void fontChange(const QFont &oldFont);
