@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/02/20 23:44:45  sueh
+ * <p> bug# 386 added distortionFile and binning
+ * <p>
  * <p> Revision 3.3  2004/02/07 03:10:10  sueh
  * <p> bug# 169 Created dataset validation function that returns
  * <p> the valid directory
@@ -106,7 +109,7 @@ public class ConstMetaData {
   protected boolean useLocalAlignments = true;
   protected double fiducialDiameter = 0.0;
   protected double imageRotation = 0.0;
-  protected int binning = 1;
+  protected int binning = Integer.MIN_VALUE;
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
