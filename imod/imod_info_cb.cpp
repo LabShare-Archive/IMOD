@@ -72,6 +72,9 @@ static int float_on = 0;
 static int doingFloat = 0;
 static int float_subsets = 0;
 
+static int dumpCache = 0;
+static int startDump = 0;
+
 /*
  * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
  *
@@ -738,16 +741,38 @@ void imod_draw_window(void)
   }
 }
 
+// Initiate dumping of file system cache after each section is loaded
+void imodStartAutoDumpCache()
+{
+  dumpCache = 1;
+  startDump = 2;
+}
+
 void imod_imgcnt(char *string)
 {
   wprint("%s\r", string);
   imod_info_input();
   if (App->exiting)
     exit(0);
+
+  // If dumping cache, do so after initial calls; get starting position for
+  // next time; stop when empty string is passed
+  if (dumpCache) {
+    if (!startDump)
+      ivwDumpFileSysCache(App->cvi->image->fp);
+    ivwGetFileStartPos(App->cvi->image->fp);
+    if (startDump)
+      startDump--;
+    if (string[0] == 0x00)
+      dumpCache = 0;
+  }     
 }
 
 /*
 $Log$
+Revision 4.12  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.11  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
