@@ -54,6 +54,11 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.12  2004/06/07 00:19:21  sueh
+ * <p> $bug# 452 Remove the model() functions.  No longer take
+ * <p> $responsibility for knowing when to set openWithModel.
+ * <p> $Use the open() functions to do opening and modeling.
+ * <p> $
  * <p> $Revision 1.11  2004/05/07 19:53:49  sueh
  * <p> $bug# 33 correcting function name
  * <p> $
@@ -294,10 +299,10 @@ public class ImodState {
       //open model
       if (!openWithModel && modelName != null && modelName.matches("\\S+")) {
         if (preserveContrast) {
-          process.openModelPreserveContrast(modelName);
+          process.setOpenModelPreserveContrastMessage(modelName);
         }
         else {
-          process.openModel(modelName);
+          process.setOpenModelMessage(modelName);
         }
       }
     }
@@ -305,30 +310,31 @@ public class ImodState {
       //process is running
       //raise 3dmod
       if (!modelView && !useModv) {
-        process.openZapWindow();
+        process.setOpenZapWindowMessage();
       }
       else {
-        process.raise3dmod();
+        process.setRaise3dmodMessage();
       }
       //reopen model
       if (!useModv && modelName != null && modelName.matches("\\S+")) {
         if (preserveContrast) {
-          process.openModelPreserveContrast(modelName);
+          process.setOpenModelPreserveContrastMessage(modelName);
         }
         else {
-          process.openModel(modelName);
+          process.setOpenModelMessage(modelName);
         }
       }
     }
     //set mode
     if (useMode) {
       if (mode.equals(MODEL)) {
-        process.modelMode();
+        process.setModelModeMessage();
       }
       else {
-        process.movieMode();
+        process.setMovieModeMessage();
       }
     }
+    process.sendMessages();
   }
   /**
    * Opens a process using the modelName parameter.  Ignores mode setting.
