@@ -71,23 +71,15 @@ static int auto_store = 1;
 
 static void imodvUpdateView(ImodvApp *a)
 {
+  a->wireframe = (a->imod->view->world & VIEW_WORLD_WIREFRAME) ? 1 : 0;
+  a->lowres = (a->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
   imodvControlSetView(a);
   imodvObjedNewView();
-  imodvSetLight(a->imod->view);
-  imodvMenuLight(a->imod->view->world & VIEW_WORLD_LIGHT);
-
-  if (a->imod->view->world & VIEW_WORLD_WIREFRAME)
-    a->wireframe = 1;    
-  else
-    a->wireframe = 0;
-  imodvMenuWireframe(a->imod->view->world & VIEW_WORLD_WIREFRAME);
-
-  if (a->imod->view->world & VIEW_WORLD_LOWRES)
-    a->lowres = 1;    
-  else
-    a->lowres = 0;
-  imodvMenuLowres(a->imod->view->world & VIEW_WORLD_LOWRES);
+  imodvSetLight(a->imod->view);     // Sets a->lighting
   imodvDepthCueSetWidgets();
+  imodvMenuLight(a->imod->view->world & VIEW_WORLD_LIGHT);
+  imodvMenuWireframe(a->imod->view->world & VIEW_WORLD_WIREFRAME);
+  imodvMenuLowres(a->imod->view->world & VIEW_WORLD_LOWRES);
 }
 
 /* Update when a different model is being displayed */
@@ -99,7 +91,7 @@ void imodvUpdateModel(ImodvApp *a)
   ved->dia->removeAllItems();
   build_list(a);
   imodvViewsGoto(a->imod->cview, false);
-  ved->dia->selectItem(a->imod->cview, true);
+  ved->dia->selectItem(a->imod->cview - 1, true);
 }
 
 /* set the current application flags into the current view */
@@ -132,14 +124,15 @@ void imodvViewsHelp()
 {
   dia_vasmsg
     ("View Edit Dialog Help.\n\n",
+     "\tEvery model is initialized with one view that is continually updated "
+     "as you change the model display, and that is saved with the model.  "
+     "This dialog lets you save the additional, independent views.\n"
      "\tWhen you store a view, you save the orientation, size, and "
      "lighting conditions of the whole model, and also the color,"
      " display type, material, and other properties of all of the "
      "objects.\n\n"
      "\tClick a view in the list to select and"
-     " display it.  "
-     "The default view can be seen by "
-     "clicking the Default View at the top of the list.\n",
+     " display it.\n"
      "\tThe [Store] button stores the properties of the current display"
      " in the currently selected view.\n"
      "\tThe [Revert] button returns the display to the stored values of"
@@ -163,35 +156,13 @@ void imodvViewsHelp()
      "\n\n"
      "\tYou can edit the name of the currently selected view in the "
      "edit box at the bottom.  Press Enter after changing a name.\n\n"
-     "\tThe Default View is set when the Model View window is opened"
-     " and cannot be changed.  It will cease to exist when the Model"
-     " View window is closed.  If this view is precious to you, you"
-     " should either store it as a separate view, or redisplay it before"
-     " exiting Model View.\n\n",
      "\tHot keys: The regular up and down arrow keys (not the ones in the "
-     "numeric keypad) can be used go up or down by one view, and PageUp and "
-     "PageDown can be used to go up or down in the list by many views.  Escape"
-     " will close the dialog box, and "
+     "numeric keypad) can be used to go up or down by one view, and PageUp and"
+     " PageDown can be used to go up or down in the list by many views.  "
+     "Escape will close the dialog box, and "
      "other keys are passed on to the model display window.",
      NULL);
   return;
-}
-
-/* Return to default view */
-void imodvViewsDefault(bool draw)
-{
-  if (!ved->a->imod) return;
-
-  /* Store the current view before changing to default */
-  imodvAutoStoreView(ved->a);
-     
-  ved->a->imod->cview = 0;
-  imodViewModelDefault(ved->a->imod, ved->a->imod->view);
-  imodViewUse(ved->a->imod);
-  imodvDrawImodImages();
-  imodvUpdateView(ved->a);
-  if (draw)
-    imodvDraw(ved->a);
 }
 
 // Done: tell the box to close
@@ -242,7 +213,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
 
   build_list(a);
   ved->dia->setAutostore(auto_store);
-  ved->dia->selectItem(a->imod->cview, true);
+  ved->dia->selectItem(a->imod->cview - 1, true);
   imodvDialogManager.add((QWidget *)ved->dia, IMODV_DIALOG);
   ved->dia->show();
 }
@@ -261,6 +232,7 @@ void imodvViewsSave()
  */
 void imodvViewsGoto(int item, bool draw)
 {
+  item++;
    if (!ved->a->imod)
      return;
 
@@ -270,11 +242,6 @@ void imodvViewsGoto(int item, bool draw)
 
   ved->a->imod->cview = item;
 
-  if (item == 0) {
-    imodvViewsDefault(draw);
-    return;
-  }
-     
   imodViewUse(ved->a->imod);
   imodvDrawImodImages();
 
@@ -290,6 +257,7 @@ void imodvViewsGoto(int item, bool draw)
  */
 void imodvViewsStore(int item)
 {
+  item++;
   Iview *view = ved->a->imod->view;
 
   /* If changing views, store the current view before changing */
@@ -331,12 +299,13 @@ void imodvViewsNew(const char *label)
   imodViewStore(ved->a->imod, cview);
 
   ved->dia->addItem(ved->a->imod->view[cview].label);
-  ved->dia->selectItem(cview, true);
+  ved->dia->selectItem(cview - 1, true);
 }
 
 /* Delete a view */
 void imodvViewsDelete(int item, int newCurrent)
 {
+  item++;
   Imod *imod = ved->a->imod;
   int i;
 
@@ -358,7 +327,7 @@ void imodvViewsDelete(int item, int newCurrent)
 // A new label has been entered
 void imodvViewsLabel(const char *label, int item)
 {
-  strcpy( ved->a->imod->view[item].label, label);
+  strcpy( ved->a->imod->view[item + 1].label, label);
 }
 
 void imodvViewsAutostore(int state)
@@ -366,19 +335,50 @@ void imodvViewsAutostore(int state)
   auto_store = state;
 }
 
+// A new initialization routine to make sure there is a real view in
+// addition to the working view, and put it into use.
+// This should be called whenever a model is loaded or created
+void imodvViewsInitialize(Imod *imod)
+{
+  Ipoint imageMax = {0., 0., 0.};
+
+  // Create view 1 if it does not exist yet, make it current if current is 0
+  if (imod->viewsize < 2) {
+    imodViewModelNew(imod);
+    strcpy(imod->view[1].label, "view 1");
+  }
+  if (!imod->cview)
+    imod->cview = 1;
+
+  // Correct the scaling for the current view if it is 1:
+  if (imod->view[imod->cview].rad == 1.)
+    imodViewDefaultScale(imod, &imod->view[imod->cview], &imageMax);
+
+  // Put the current view into use
+  imodViewUse(imod);
+
+  // Set the world flags in the Imodv structure
+  Imodv->lighting = (imod->view->world & VIEW_WORLD_LIGHT)  ? 1 : 0;
+  Imodv->wireframe = (imod->view->world & VIEW_WORLD_WIREFRAME) ? 1 : 0;
+  Imodv->lowres = (imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
+}
+
 // send the list of views to the form
 static void build_list(ImodvApp *a)
 {
   int i;
 
-  sprintf(a->imod->view->label, "Original Default View");
-  for(i = 0; i < a->imod->viewsize; i++)
+  //  sprintf(a->imod->view->label, "Original Default View");
+  for(i = 1; i < a->imod->viewsize; i++)
     ved->dia->addItem(a->imod->view[i].label);
 }
 
 /*
 
     $Log$
+    Revision 4.5  2003/04/28 04:01:26  mast
+    Fix hotkey text
+
     Revision 4.4  2003/04/25 03:28:32  mast
     Changes for name change to 3dmod
 
