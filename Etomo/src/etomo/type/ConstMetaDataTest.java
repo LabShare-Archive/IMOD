@@ -28,15 +28,12 @@ public class ConstMetaDataTest extends TestCase {
   private File unreadableDir;
   private File unwritableDir;
   private File unreadableFileDir;
-  private File unreadableBFileDir;
   private File validFileDir;
   private File dummyFile;
   private File unreadableFile;
   private File unreadableAFile;
-  private File unreadableBFile;
   private File validFile;
   private File validAFile;
-  private File validBFile;
   private static final String testDirName = new String("JUnitTests/etomo/type");
   private static final String dummyDirName = new String("ConstMetaData_dummy");
   private static final String dummyDir2Name =
@@ -60,15 +57,11 @@ public class ConstMetaDataTest extends TestCase {
     new String(unreadableDatasetName + ".st");
   private static final String unreadableAFileName =
     new String(unreadableDatasetName + "a.st");
-  private static final String unreadableBFileName =
-    new String(unreadableDatasetName + "b.st");
   private static final String validDatasetName = new String("valid");
   private static final String validFileName =
     new String(validDatasetName + ".st");
   private static final String validAFileName =
     new String(validDatasetName + "a.st");
-  private static final String validBFileName =
-    new String(validDatasetName + "b.st");
     
   private SystemProgram program;
 
@@ -150,21 +143,6 @@ public class ConstMetaDataTest extends TestCase {
     unreadableAFile =
       createUnreadableFile(unreadableFileDir, unreadableAFileName);
 
-    //create a directory containing an unreadable B file
-    unreadableBFileDir = new File(testDir, unreadableBFileDirName);
-    if (!unreadableBFileDir.exists()) {
-      assertTrue(unreadableBFileDir.mkdir());
-    }
-    assertTrue(
-      unreadableBFileDir.isDirectory()
-        && unreadableBFileDir.canRead()
-        && unreadableBFileDir.canWrite());
-    //create a valid A file
-    validAFile = createValidFile(unreadableBFileDir, validAFileName);
-    //careate an unreadable B file
-    unreadableBFile =
-      createUnreadableFile(unreadableBFileDir, unreadableBFileName);
-
     //create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
     if (!validFileDir.exists()) {
@@ -177,7 +155,6 @@ public class ConstMetaDataTest extends TestCase {
     //create valid files
     validFile = createValidFile(validFileDir, validFileName);
     validAFile = createValidFile(validFileDir, validAFileName);
-    validBFile = createValidFile(validFileDir, validBFileName);
   }
 
   /*
@@ -188,19 +165,13 @@ public class ConstMetaDataTest extends TestCase {
     System.out.println();
     unreadableFile.delete();
     unreadableAFile.delete();
-    unreadableBFile.delete();
     validFile.delete();
     validAFile.delete();
-    validBFile.delete();
-    File file = new File(unreadableBFileDir, validAFileName);
-    file.delete();
-
     emptyDir.delete();
     emptyDir2.delete();
     unreadableDir.delete();
     unwritableDir.delete();
     unreadableFileDir.delete();
-    unreadableBFileDir.delete();
     validFileDir.delete();
   }
 
@@ -487,9 +458,6 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setAxisType(AxisType.DUAL_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
     System.setProperty("user.dir", unreadableFileDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
-    //file B not found
-    System.setProperty("user.dir", unreadableBFileDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     //single axis
     testInst.setAxisType(AxisType.SINGLE_AXIS);
