@@ -31,58 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/02/07 01:03:23  mast
-a little cleanup
-
-Revision 1.1.2.3  2003/01/29 01:42:35  mast
-Changes for color index snapshotting
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 23:05:54  mast
-conversion to cpp
-
-Revision 3.4.2.6  2003/01/13 01:12:37  mast
-Fixed bug in drawboxout with negative coordinates
-
-Revision 3.4.2.5  2003/01/10 23:57:23  mast
-questionable change to display routine used by tumbler
-
-Revision 3.4.2.4  2003/01/06 15:40:11  mast
-Add call to resize viewport given x and Y arguments
-
-Revision 3.4.2.3  2002/12/17 18:14:26  mast
-remove unused iput functions
-
-Revision 3.4.2.2  2002/12/12 01:20:32  mast
-When setting fonts, take application display if CurDisplay not defined
-
-Revision 3.4.2.1  2002/12/09 17:49:19  mast
-changes to get Zap as a Qt window
-
-Revision 3.4  2002/12/01 15:32:27  mast
-Changes to compile under g++; also eliminated all non openGL code
-
-Revision 3.3  2002/07/28 16:18:58  mast
-Added three new fractional zooms below 1.0 to make steps be 1.4-1.6
-
-Revision 3.2  2002/01/28 16:40:45  mast
-Also added button 1 up to list of standard translations; xyz window needed.
-
-Revision 3.1  2002/01/28 16:38:46  mast
-Modified drawing routines to accept a slice number and pass it on to
-routine that checks for identity of temporary buffer, instead of assuming
-current Z.  Modified buffer matching routine so that it would recognize a
-buffer match even when there is only a single buffer in use.  Fixed logic
-for recognizing a match with fractional zooms.  Removed factor of two 
-excess in sizing of temporary buffers.
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -1456,7 +1405,7 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
     else
       sprintf(fname, "%s%d.%s", name, fileno++, fext);
           
-  }while ((tfp = fopen(fname, "r")));
+  }while ((tfp = fopen(fname, "rb")));
 
   if (tfp){
     fclose(tfp);
@@ -1519,7 +1468,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
-  fout = fopen(fname, "w");
+  fout = fopen(fname, "wb");
   if (!fout){
     perror("Snapshot: error opening file ");
     return;
@@ -1628,7 +1577,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
-  fout = fopen(fname, "w");
+  fout = fopen(fname, "wb");
   if (!fout){
     perror("Snapshot: error opening file ");
     return;
@@ -1837,3 +1786,61 @@ void b3dSnapshot(char *fname)
   else
     b3dSnapshot_TIF(fname, App->rgba, NULL, NULL);
 }
+
+
+/*
+$Log$
+Revision 4.2  2003/02/14 01:13:43  mast
+cleanup unused variables
+
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.4  2003/02/07 01:03:23  mast
+a little cleanup
+
+Revision 1.1.2.3  2003/01/29 01:42:35  mast
+Changes for color index snapshotting
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 23:05:54  mast
+conversion to cpp
+
+Revision 3.4.2.6  2003/01/13 01:12:37  mast
+Fixed bug in drawboxout with negative coordinates
+
+Revision 3.4.2.5  2003/01/10 23:57:23  mast
+questionable change to display routine used by tumbler
+
+Revision 3.4.2.4  2003/01/06 15:40:11  mast
+Add call to resize viewport given x and Y arguments
+
+Revision 3.4.2.3  2002/12/17 18:14:26  mast
+remove unused iput functions
+
+Revision 3.4.2.2  2002/12/12 01:20:32  mast
+When setting fonts, take application display if CurDisplay not defined
+
+Revision 3.4.2.1  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
+Revision 3.4  2002/12/01 15:32:27  mast
+Changes to compile under g++; also eliminated all non openGL code
+
+Revision 3.3  2002/07/28 16:18:58  mast
+Added three new fractional zooms below 1.0 to make steps be 1.4-1.6
+
+Revision 3.2  2002/01/28 16:40:45  mast
+Also added button 1 up to list of standard translations; xyz window needed.
+
+Revision 3.1  2002/01/28 16:38:46  mast
+Modified drawing routines to accept a slice number and pass it on to
+routine that checks for identity of temporary buffer, instead of assuming
+current Z.  Modified buffer matching routine so that it would recognize a
+buffer match even when there is only a single buffer in use.  Fixed logic
+for recognizing a match with fractional zooms.  Removed factor of two 
+excess in sizing of temporary buffers.
+
+*/
