@@ -13,6 +13,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/14 03:10:48  sueh
+ * <p> bug# 511 Added a DialogType member variable to identify the dialog the
+ * <p> ProcessDialog the parent of.  Changed default exitState to SAVE. added
+ * <p> isAdvanced() and getDialogType().
+ * <p>
  * <p> Revision 3.3  2004/11/20 00:02:01  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -61,6 +66,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
@@ -103,6 +109,7 @@ public class ProcessDialog implements ExitButtons {
     this.axisID = axisID;
     this.dialogType = dialogType;
 
+    EtomoDirector.getInstance().getMainFrame().setEnabledFit(true);
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
     setAdvanced(isAdvanced);
@@ -181,6 +188,9 @@ public class ProcessDialog implements ExitButtons {
    * button.  Call this method first before checking the state of isAdvanced.
    */
   public void buttonAdvancedAction(ActionEvent event) {
+    if (btnAdvanced.isVisible()) {
+      EtomoDirector.getInstance().getMainFrame().setEnabledFit(true);
+    }
     setAdvanced(!isAdvanced);
   }
 
