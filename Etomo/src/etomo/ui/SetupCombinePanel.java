@@ -43,6 +43,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2004/05/11 20:54:41  sueh
+ * bug# 302 adding InitialCombineValues and FinalCombineValues interface
+ * standardizing synchronization
+ *
  * Revision 3.6  2004/05/05 22:26:01  sueh
  * bug# 416 moving binned by 2 checkbox to above matching models
  * button
@@ -595,6 +599,7 @@ public class SetupCombinePanel
         rbBothSides.setSelected(true); //default for solvematchshift
       }
     }
+    updateUseFiducialModel();
   }
   
   public boolean isBinBy2() {
@@ -618,6 +623,7 @@ public class SetupCombinePanel
   }
   public void setUsePatchRegionModel(boolean usePatchRegionModel) {
     cbPatchRegionModel.setSelected(usePatchRegionModel);
+    updatePatchRegionModel();
   }
   public boolean isUsePatchRegionModel() {
     return cbPatchRegionModel.isSelected();
@@ -745,7 +751,6 @@ public class SetupCombinePanel
     boolean enable = rbUseModel.isSelected();
     btnImodMatchModels.setEnabled(enable);
     cbBinBy2.setEnabled(enable);
-    //initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
   }
 
   /**
