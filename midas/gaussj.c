@@ -10,7 +10,16 @@
    10/29/99: translated to C.  Failed to keep Fortran ordering of input data.
    
 */
-#define MSIZ 1000
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
+#define MSIZ 10000
 int gaussj(float *a, int n, int np, float *b, int m, int mp)
 {
      int index[MSIZ][2];
