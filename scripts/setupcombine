@@ -40,6 +40,10 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/07/21 19:33:30  mast
+#  Made default borders for patchcorr be based upon image size, and also
+#  made thickness passed to Matchshifts bigger and based on image size
+#
 #  Revision 3.1  2002/06/19 16:06:29  mast
 #  Conversion to multiple command files
 #
@@ -481,6 +485,7 @@ shift ranlist
 @ npiecez = $ranlist[1]
 shift ranlist
 
+@ npiecetot = $npiecex * $npiecez
 @ sumnum = 0
 @ znum = 0
 while ($znum < $npiecez)
@@ -491,7 +496,7 @@ while ($znum < $npiecez)
 	@ sumnum++
 	cat >> $volcombine <<EOCAT
 #
-\$echo STATUS: EXTRACTING AND COMBINING PIECE $sumnum
+\$echo STATUS: EXTRACTING AND COMBINING PIECE  $sumnum  of $npiecetot
 \$echo
 #
 \$taperoutvol
