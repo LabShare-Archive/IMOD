@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/12/03 05:22:56  rickg
+ * <p> added getLocalRotationSolutionGroupSize
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -54,7 +57,7 @@ public class ConstTiltalignParam {
   protected TiltalignSolution xstretchSolution;
   protected TiltalignSolution skewSolution;
 
-  protected double reportStddevThreshold;
+  protected double residualThreshold;
   protected int nSurfaceAnalysis;
   protected FortranInputString minimizationParams;
 
@@ -276,8 +279,8 @@ public class ConstTiltalignParam {
     return skewSolution.additionalGroups.toString();
   }
 
-  public double getReportStddevThreshold() {
-    return reportStddevThreshold;
+  public double getResidualThreshold() {
+    return residualThreshold;
   }
 
   public int getNSurfaceAnalysis() {

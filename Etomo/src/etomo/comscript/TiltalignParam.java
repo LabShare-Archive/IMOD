@@ -18,6 +18,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/12/10 18:48:21  rickg
+ * <p> changed names of comscript put and get methods to
+ * <p> be more understandable
+ * <p>
  * <p> Revision 1.3  2002/12/06 15:22:30  rickg
  * <p> Comment where to fix
  * <p>
@@ -184,7 +188,7 @@ public class TiltalignParam extends ConstTiltalignParam {
         }
       }
 
-      reportStddevThreshold =
+      residualThreshold =
         Double.parseDouble(inputArgs[inputLine++].getArgument());
       nSurfaceAnalysis = Integer.parseInt(inputArgs[inputLine++].getArgument());
       minimizationParams.validateAndSet(inputArgs[inputLine++].getArgument());
@@ -523,8 +527,8 @@ public class TiltalignParam extends ConstTiltalignParam {
     skewSolution.params.set(1, skewSolution.additionalGroups.getNElements());
   }
 
-  public void setReportStddevThreshold(double threshold) {
-    reportStddevThreshold = threshold;
+  public void setResidualThreshold(double threshold) {
+    residualThreshold = threshold;
   }
 
   public void setNSurfaceAnalysis(String newNSurfaceAnalysis) {
@@ -796,8 +800,8 @@ public class TiltalignParam extends ConstTiltalignParam {
     buffer.append("\nskewSolution.additionalGroups: ");
     buffer.append(skewSolution.additionalGroups);
 
-    buffer.append("\nreportStddevThreshold: ");
-    buffer.append(reportStddevThreshold);
+    buffer.append("\nresidualThreshold: ");
+    buffer.append(residualThreshold);
 
     buffer.append("\nnSurfaceAnalysis: ");
     buffer.append(nSurfaceAnalysis);
@@ -890,7 +894,6 @@ public class TiltalignParam extends ConstTiltalignParam {
   /**
    * Parse a FortranInputString and StringList group
    */
-
   private int parseGroup(
     TiltalignSolution solution,
     ComScriptInputArg[] inputArgs,
@@ -1053,7 +1056,7 @@ public class TiltalignParam extends ConstTiltalignParam {
           srcListCount,
           inputArgList);
 
-      inputArgs[srcListCount].setArgument(reportStddevThreshold);
+      inputArgs[srcListCount].setArgument(residualThreshold);
       inputArgList.add(inputArgs[srcListCount++]);
 
       inputArgs[srcListCount].setArgument(nSurfaceAnalysis);
