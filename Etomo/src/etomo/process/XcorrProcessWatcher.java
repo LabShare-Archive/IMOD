@@ -13,6 +13,10 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/13 01:57:35  sueh
+ * <p> bug# 413 fixed backward monitor by counting lines
+ * <p> possible solution for LogFileProcessMonitor.run() infinite loop in comments.
+ * <p>
  * <p> Revision 3.1  2003/11/26 23:38:03  rickg
  * <p> Changed name of logFileReader
  * <p>
@@ -36,7 +40,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 
 public class XcorrProcessWatcher extends LogFileProcessMonitor {
-//  String lastLineRead = null;
+  String lastLineRead = null;
   /**
    * Construct a xcorr process watcher
    * @param appMgr
@@ -68,13 +72,12 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
       if (line.startsWith("View")) {
         currentSection++;
       }
-//TODO
-//      lastLineRead = line;
+      lastLineRead = line;
     }
-//TODO
-//    if (lastLineRead != null
-//      && lastLineRead.trim().startsWith("PROGRAM EXECUTED TO END.")) {
-//      waitingForExit++;
-//    }
+
+    if (lastLineRead != null
+      && lastLineRead.trim().startsWith("PROGRAM EXECUTED TO END.")) {
+      waitingForExit++;
+    }
   }
 }
