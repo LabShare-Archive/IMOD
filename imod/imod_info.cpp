@@ -130,6 +130,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
   mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
   mEObjectMenu->insertItem("&Break by Z", EOBJECT_MENU_FIXZ);
+  mEObjectMenu->insertItem("&Renumber...", EOBJECT_MENU_RENUMBER);
 
   // Edit Surface submenu
   mESurfaceMenu->insertItem("&New", ESURFACE_MENU_NEW);
@@ -486,6 +487,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.24  2004/05/31 23:35:26  mast
+    Switched to new standard error functions for all debug and user output
+
     Revision 4.23  2003/11/26 18:17:03  mast
     Fix test for whether to open zap and model view with raw images
 

@@ -51,6 +51,7 @@ Log at end of file
 #include "imod.h"
 #include "imodv.h"
 #include "imodv_views.h"
+#include "imodv_objed.h"
 #include "imod_display.h"
 #include "xcramp.h"
 #include "xzap.h"
@@ -344,9 +345,12 @@ void InfoWindow::editModelSlot(int item)
  */
 void InfoWindow::editObjectSlot(int item)
 {
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
-  int ob,co,pt, coind;
+  Iobj *obj;
+  Icont *cont;
+  Iobj *objSave;
+  Iview *vw;
+  Iobjview obvwSave;
+  int ob,co,pt, coind, iv, obOld, obNew, idir;
   float vol;
   int cosave, ptsave;
   QString qstr;
@@ -528,6 +532,57 @@ void InfoWindow::editObjectSlot(int item)
       imodSetIndex(imod, ob, co, pt);
     }
     imodDraw(vi, IMOD_DRAW_MOD);
+    break;
+
+  case EOBJECT_MENU_RENUMBER: /* Shift object to a new position */
+    imod_info_forbid();
+    imod_info_input();
+    imod_info_enable();
+    if (imod->objsize < 2){
+      wprint("\aMust have more than one object to renumber objects\n");
+      break;
+    }
+    imodGetIndex(imod, &obOld, &co, &pt);
+    if (obOld < 0)
+      break;
+    obNew = obOld == imod->objsize - 1 ? obOld : imod->objsize;
+
+    if (!diaQInput(&obNew, 1, imod->objsize, 0,
+		   "New object number for current object."))
+      break;
+
+    obNew--;
+    if (obOld == obNew)
+      break;
+    idir = obOld < obNew ? 1 : -1;
+    
+    // Get temporary storage and complete object views
+    objSave = imodObjectNew();
+    if (!objSave || imodObjviewComplete(imod)) {
+      if (objSave)
+        free(objSave);
+      wprint("\aError getting memory for moving objects\n");
+      break;
+    }
+    
+    // Copy object structures
+    imodObjectCopy(&imod->obj[obOld], objSave);
+    for (ob = obOld; ob != obNew; ob += idir)
+      imodObjectCopy(&imod->obj[ob + idir], &imod->obj[ob]);
+    imodObjectCopy(objSave, &imod->obj[obNew]);
+
+    // Copy object views
+    for (iv = 1; iv < imod->viewsize; iv++) {
+      vw = &imod->view[iv];
+      obvwSave  = vw->objview[obOld];
+      for (ob = obOld; ob != obNew; ob += idir)
+        vw->objview[ob] =  vw->objview[ob + idir];
+      vw->objview[obNew] = obvwSave;
+    }
+    free(objSave);
+    imodSetIndex(imod, obNew, co, pt);
+    imodDraw(vi, IMOD_DRAW_MOD);
+    imodvObjedNewView();
     break;
 
   default:
@@ -1057,6 +1112,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.16  2004/06/04 03:17:36  mast
+Added argument to call to open model
+
 Revision 4.15  2004/01/05 18:38:13  mast
 Adjusted info outputs by binning as appropriate, and defined vi and imod
 in some menus for brevity
