@@ -538,6 +538,7 @@ extern "C" {
   int   imodGetMaxObject(Imod *imod);
   float imodGetZScale(Imod *imod);
   float imodGetPixelSize(Imod *imod);
+  int   imodGetFlipped(Imod *imod);
   int   imodTransform(Imod *imod, Imat *mat);
 
   double  imodel_dist(Imod *imod);
@@ -710,6 +711,10 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.11  2003/06/27 20:07:52  mast
+    Defined bits in world flag for quality;
+    changed imodChecksum return type from long to int
+
     Revision 3.10  2003/03/03 22:45:31  mast
     Changes sizes and a few other variables from unsigned to signed ints
 
