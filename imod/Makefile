@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2002/09/27 21:15:34  rickg
+#  Added new dependcies for imod_io.h and imod_client_message.*
+#
 #  Revision 3.3  2002/09/11 04:43:51  mast
 #  Add dependencies on diaP.h
 #
@@ -86,6 +89,9 @@ imodv_image.o : $(IMODDEPS) $(IMODVDEPS)
 imodv_input.o : $(IMODDEPS) $(IMODVDEPS)
 imodv_ogl.o : $(IMODDEPS) $(IMODVDEPS)
 ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
+imod_moviecon.o : $(IMODVDEPS)
+imodv_objed.o : $(IMODDEPS)
+imodv_control.o : $(IMODDEPS)
 
 $(IMODVOBJS) : $(IMODVDEPS)
 imodv.o : $(IMODVDEPS) imod.h
