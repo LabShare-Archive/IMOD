@@ -21,6 +21,20 @@ megabytes of memory that you want this processing to require, and divide by 36
 to obtain the value to enter with the
 .B -m
 option to chunksetup.  See the example below.
+.P
+Finding the right parameters for anisotropic diffusion can be difficult.  To
+adjust parameters, first clip out a small subvolume, e.g., 100x100x30 pixels,
+with typical features of interest.  One strategy is to look at a restricted
+range of iterations, such as 5-10 or possibly 5-15, and find the K value that
+gives the desired result.  A very wide range of K needs to be explored,
+perhaps from .02 to 5 times the standard deviation of the data.  For typical
+byte data this might be a range of 0.4 to 100.  The range should thus be
+explored in two stages.  In the first stage, you might try K values of 0.4,
+1.6, 6.4, 26, 102, then look at the results as described below.  When you see
+that the desired K value falls in one of these intervals, then try 5 K values
+to fill in the interval with finer steps, such as 2.4, 3.2, 4.0, 4.8, and 5.6
+for the interval from 1.6 and 6.4.  Once you have chosen your parameters, you
+can process the whole volume.
 .SS Options
 .TP
 .B -k <value>
@@ -77,14 +91,14 @@ This will produce tomo.nad-003, tomo.nad-006, etc.  They can be
 visualized with:
    3dmod tomo.nad-*
 
-To get a single file with one slice, say slice 16, from every third iteration,
-enter:
-   nad_eed_3d -i 3,6,9,12,15 -k 1.2 -o 16 tomo.rec tomo.nad-1.2
+To get a single file with one slice, say slice 16, from every iteration from
+5 to 15, enter:
+   nad_eed_3d -i 5-15 -k 1.2 -o 16 tomo.rec tomo.nad-1.2
 
 To get a series of such files at different K values, just repeat the above
 command, or (under tcsh) enter:
    foreach i (0.6 0.8 1.0 1.2 1.4 1.6)
-   nad_eed_3d -i 3,6,9,12,15 -k $i -o 16 tomo.rec tomo.nad-$i    
+   nad_eed_3d -i 5-15 -k $i -o 16 tomo.rec tomo.nad-$i    
    end
 
 This will produce tomo.nad-0.6, tomo.nad-0.8, etc., which can be
