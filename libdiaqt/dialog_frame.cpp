@@ -37,10 +37,12 @@ Log at end of file
 /* DialogFrame provides a widget whose default style is to be a dialog box that
    destroys itself on closing.  Its main area is a QVBoxLayout, mLayout,
    that can be populated with widgets by the inheriting class.  The bottom
-   row will have numButton buttons, with text given in "labels".  The
+   row(s) will have numButton buttons, with text given in "labels".  The
    buttons will be equally sized if equalSized is true; otherwise they will
    all be just big enough for their respective text.  The window title will
    be set to "caption", or to "fallback" if "caption" is null.
+   The alternate construction with numRows allows the buttons to be on more
+   than one row.
  */
 
 #include <qlayout.h>
@@ -56,10 +58,30 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
 			 const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
+  makeDialogFrame(parent, numButtons, 1, labels, tips, equalSized, caption,
+              fallback, name, fl);
+}
+
+DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
+                         char *labels[], char *tips[],
+			 bool equalSized, char *caption, char *fallback,
+			 const char *name, WFlags fl)
+  : QWidget(parent, name, fl)
+{
+  makeDialogFrame(parent, numButtons, numRows, labels, tips, equalSized, caption,
+              fallback, name, fl);
+}
+
+void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
+                                  char *labels[], char *tips[],
+                                  bool equalSized, char *caption, char *fallback,
+                                  const char *name, WFlags fl)
+{
   int width = 0;
-  int i, twidth;
+  int i, twidth, row = 0, rowStart = 0;
   QString str;
   QPushButton *button;
+  QHBoxLayout *layout2;  
   mEqualSized = equalSized;
   mNumButtons = numButtons;
 
@@ -76,7 +98,6 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   line->setFrameShadow( QFrame::Sunken );
   outerLayout->addWidget(line);
 
-
   // set up signal mappers for the buttons
   QSignalMapper *pressMapper = new QSignalMapper(this);
   connect(pressMapper, SIGNAL(mapped(int)), this, 
@@ -85,11 +106,20 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   connect(clickMapper, SIGNAL(mapped(int)), this, 
           SLOT(actionButtonClicked(int)));
   
-  // Make a layout and put the buttons in it
-  QHBoxLayout *layout2 = new QHBoxLayout(0, 0, 6, "bottom layout");
-  outerLayout->addLayout(layout2);
-
+  // Make the buttons and put in layout(s)
   for (i = 0; i < numButtons; i++) {
+
+    // If time to start a new row, get a new layout and compute the index
+    // Of the next row start
+    if (i == rowStart) {
+      layout2 = new QHBoxLayout(0, 0, 6);
+      outerLayout->addLayout(layout2);
+      rowStart += numButtons / numRows;
+      if (row < numButtons % numRows)
+        rowStart++;
+      row++;
+    }
+
     str = labels[i];
     button = new QPushButton(str, this, labels[i]);
     if (i < BUTTON_ARRAY_MAX)
@@ -155,6 +185,9 @@ void DialogFrame::actionButtonClicked(int which)
 
 /*
 $Log$
+Revision 1.4  2004/01/22 19:06:18  mast
+Changed actionPressed to actionClicked and added real actionPressed
+
 Revision 1.3  2003/03/24 17:41:47  mast
 Set up to resize buttons on font change
 
