@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2004/04/28 19:58:55  rickg
+ * bug #429 logfile rename functionality moved to Utilities
+ *
  * Revision 3.7  2004/04/22 23:29:40  rickg
  * Switched getIMODBinPath method
  *
@@ -238,6 +241,7 @@ public class ComScriptProcess
   private SystemProgram csh;
   private StringBuffer cshProcessID;
   private AxisID axisID;
+  private String watchedFileName;
 
   private boolean started = false;
   private boolean done = false;
@@ -245,11 +249,13 @@ public class ComScriptProcess
   public ComScriptProcess(
     String comScript,
     ProcessManager processManager,
-      AxisID axisID) {
+      AxisID axisID,
+      String watchedFileName) {
     this.name = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
   }
 
   /**
@@ -290,6 +296,18 @@ public class ComScriptProcess
       catch (IOException except) {
         except.printStackTrace();
         System.err.println(except.getMessage());
+      }
+      
+      if (watchedFileName != null) {
+        File watchedFile = new File(workingDirectory, watchedFileName);
+        File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
+        try {
+          Utilities.renameFile(watchedFile, oldWatchedFile);
+        }
+        catch (IOException except) {
+          except.printStackTrace();
+          System.err.println(except.getMessage());
+        }
       }
 
       //  Covert the com script to a sequence of csh commands
