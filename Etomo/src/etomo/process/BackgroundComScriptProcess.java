@@ -30,6 +30,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/02/07 23:48:40  sueh
+ * <p> bug# 595 isComScriptBusy(): Checking the os and only running lsof on
+ * <p> linux and mac.
+ * <p>
  * <p> Revision 1.10  2005/01/05 19:49:27  sueh
  * <p> bug# 578 Passing BaseProcessManager to constructor instead of
  * <p> ProcessManager.
@@ -143,17 +147,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     //lsof does not exist in Windows.  In Windows, a busy log file will be
     //detected when the rename fails.
     if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
-      //System.out.println("windows");
       return false;
     }
-    //System.out.println("linux or mac");
     File pidFile = new File(workingDirectory, watchedFileName);
     String groupPid = null;
     SystemProgram lsof = null;
     if (pidFile.exists()) {
       groupPid = parsePIDString(pidFile);
     }
-    //System.out.println("groupPid="+groupPid);
     if (groupPid == null) {
       lsof = new SystemProgram("/usr/sbin/lsof -w -S -l -M -L");     
     }
@@ -164,43 +165,19 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     lsof.run();
     String[] stdout = lsof.getStdOutput();
     if (stdout == null || stdout.length == 0) {
-      //System.out.println("stdout empty");
       return false;
     }
     String header = stdout[0].trim();
-    String[] labels = header.split("\\s+");
-    int idxNAME = -1;
-
-    int found = 0;
-    for (int i = 0; i < labels.length; i++) {
-      if (labels[i].equals("NAME")) {
-        idxNAME = i;
-        found++;
-      }
-      if (found >= 1) {
-        break;
-      }
-    }
-    //  Return null if the PID or PPID fields are not found
-    if (idxNAME == -1) {
-      //System.out.println("NAME not found");
+    int nameIndex = header.indexOf(" NAME") + 1;
+    //Return false if the NAME field is not found
+    if (nameIndex == 0) {
       return false;
     }
     String[] fields;
     File comscriptLog = new File(workingDirectory, comscriptState.getComscriptName() + ".log");
-    //System.out.println("comscriptLog="+comscriptLog);
     for (int i = 1; i < stdout.length; i++) {
-      fields = stdout[i].trim().split("\\s+");
-      int nameIndex = idxNAME;
       //check for missing size entry - assume name is last
-      if (fields.length <= idxNAME) {
-        nameIndex = fields.length - 1;
-      }
-      //if (fields[nameIndex].matches("*.log*")) {
-      //  System.out.println("fields[nameIndex]="+fields[nameIndex]);
-      //
-      //}
-      if (fields[nameIndex].equals(comscriptLog.getAbsolutePath())){
+      if (stdout[i].substring(nameIndex).trim().equals(comscriptLog.getAbsolutePath())){
         killMonitor();
         return true;
       }
