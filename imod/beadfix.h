@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/05/07 22:14:26  mast
+Defined a variable instead of QT_THREAD_SUPPORT for the the Run Align button
+
 Revision 1.3  2004/05/03 19:17:20  mast
 Added thread class to run tiltalign
 
@@ -36,9 +39,9 @@ class BeadFixerModule : public SpecialModule
   BeadFixerModule();
 };
 
-/*#ifdef QT_THREAD_SUPPORT
+#ifdef QT_THREAD_SUPPORT
 #define FIXER_CAN_RUN_ALIGN
-#endif*/
+#endif
 
 #ifdef FIXER_CAN_RUN_ALIGN
 #include <qthread.h>
