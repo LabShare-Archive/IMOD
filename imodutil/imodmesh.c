@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -69,7 +77,8 @@ static int imodmesh_usage(char *prog, int retcode)
     fprintf(stderr, "\t-I  \tIgnore time values and connect across times.\n");
     fprintf(stderr, "\t-f  \tForce more connections to non-overlapping contours.\n");
     fprintf(stderr, "\t-t list\tRender open contour objects in list as tubes.\n");
-    fprintf(stderr, "\t-d #\tSet diameter for tubes.\n");
+    fprintf(stderr, "\t-d #\tSet diameter for tubes (default is 3D line width).\n");
+    fprintf(stderr, "\t-E #\tCap ends of tubes.\n");
     fprintf(stderr, "\t-T  \tDo time consuming calculations, "
 	    "may help reduce artifacts.\n");
     
@@ -121,6 +130,7 @@ void main(int argc, char **argv)
     int stray = FALSE;
     int norm  = TRUE;
     int times = TRUE;
+    int capTubes = FALSE;
     unsigned long flags = 0;
     double overlap = 0.0;
     int reduce = -1;
@@ -138,7 +148,7 @@ void main(int argc, char **argv)
     int    tmshsize, m;
     
     extern double meshDiameterSize;
-    char *options = "d:o:r:z:Z:R:D:t:p:P:i:cCeFsSfnNTal";
+    char *options = "d:o:r:z:Z:R:D:t:p:P:i:cCeEFsSfnNTal";
     extern char *optarg;
     extern int optind;
 
@@ -203,6 +213,9 @@ void main(int argc, char **argv)
 	    break;
 	  case 'F':
 	    cap += 2;
+	    break;
+	  case 'E':
+	    capTubes = TRUE;
 	    break;
 	    
 	  case 'n':
@@ -279,6 +292,7 @@ void main(int argc, char **argv)
     if (surf)  flags |= IMESH_MK_SURF;
     if (times)  flags |= IMESH_MK_TIME;
     if (norm)  flags |= IMESH_MK_NORM;
+    if (capTubes)  flags |= IMESH_CAP_TUBE;
 
     if (resol) {
 	 if (incz < 0) {
