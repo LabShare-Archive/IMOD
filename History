@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/27/02: Added ability to apply selection criteria to Genhstplt.
+
+1/25/02: Increased allowed number of projections in xyzproj and added check on
+number requested.
+
+1/25/02: Made goodframe produce only even sizes.
+
+1/25/02: Fixed two problems with movie controller: coming up with no image
+sizes if it is opened before image is done loading; and the average rate
+becoming wrong if movie is stopped with the mouse button.
+
+1/24/02: Enhancements to XYZ window: Made it use the same image drawing code as
+the Zap window so that it would not be slow with fractional zooms; added
+ability to display in high-resolution mode and to take snapshots of the
+window; added ability to pan the window with the mouse; made the model
+display have fixed line widths and symbol sizes independent of zoom; made
+attachment to the nearest model point work just like in the Zap window;
+added ability to riffle through images by dragging the current point
+indicators with the mouse.  Added a section documenting this window to the
+imod man page.
+
+1/23/02: Fixed imodextract's report of invalid object number.
+
 1/15/02: Fixed a problem with midas in montage fixing mode that occurred
 if there was only one section.
 
