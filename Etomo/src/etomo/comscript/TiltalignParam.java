@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/08/07 17:59:06  rickg
+ * <p> Merged in tilt angle fix from beta2a branch
+ * <p>
  * <p> Revision 2.4  2003/07/25 22:55:04  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -581,6 +584,10 @@ public class TiltalignParam
   public void setNSurfaceAnalysis(String newNSurfaceAnalysis) {
     nSurfaceAnalysis = Integer.parseInt(newNSurfaceAnalysis);
   }
+
+	public void setNSurfaceAnalysis(int n) {
+		nSurfaceAnalysis = n;
+	}
 
   public void setMinimizationParams(String params)
     throws FortranInputSyntaxException {
