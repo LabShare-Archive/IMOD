@@ -1162,6 +1162,7 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+#ifdef QT_THREAD_SUPPORT
 // Thread to run tiltalign provided that IMOD_DIR is defined
 void AlignThread::run()
 {
@@ -1186,9 +1187,13 @@ void AlignThread::run()
                  plug->filename, fileStr.latin1(), cshell);
   alignExitCode = system(comStr.latin1());
 }
+#endif
 
 /*
     $Log$
+    Revision 1.6  2004/05/03 19:32:20  mast
+    had to decalre exit code as int
+
     Revision 1.5  2004/05/03 19:17:43  mast
     Added ability to run tiltalign if there is thread support
 
