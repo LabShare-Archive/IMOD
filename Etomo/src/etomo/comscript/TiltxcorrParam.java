@@ -16,6 +16,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 01:28:41  sueh
+ * <p> bug# 373 add PIP-style parsing, changed update comscript
+ * <p> to PIP, changed functions to match autodoc
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -83,10 +87,14 @@ public class TiltxcorrParam
       inputFile = scriptCommand.getValue("InputFile");
       pieceListFile = scriptCommand.getValue("PieceListFile");
       outputFile = scriptCommand.getValue("OutputFile");
+      if (scriptCommand.hasKeyword("FirstTiltAngle")) {
       firstTiltAngle =
         Double.parseDouble(scriptCommand.getValue("FirstTiltAngle"));
+      }
+      if (scriptCommand.hasKeyword("TiltIncrement")) {
       tiltIncrement =
         Double.parseDouble(scriptCommand.getValue("TiltIncrement"));
+      }
       tiltFile = scriptCommand.getValue("TiltFile");
       StringTokenizer tokens =
         new StringTokenizer(scriptCommand.getValue("TiltAngles"), ",");
@@ -94,14 +102,24 @@ public class TiltxcorrParam
       while (tokens.hasMoreTokens()) {
         tiltAngles[index++] = Double.parseDouble(tokens.nextToken());
       }
+      if (scriptCommand.hasKeyword("RotationAngle")) {
       rotationAngle =
         Double.parseDouble(scriptCommand.getValue("RotationAngle"));
+      }
+      if (scriptCommand.hasKeyword("FilterRadius1")) {
       filterRadius1 =
         Double.parseDouble(scriptCommand.getValue("FilterRadius1"));
+      }
+      if (scriptCommand.hasKeyword("FilterRadius2")) {
       filterRadius2 =
         Double.parseDouble(scriptCommand.getValue("FilterRadius2"));
+      }
+      if (scriptCommand.hasKeyword("FilterSigma1")) {
       filterSigma1 = Double.parseDouble(scriptCommand.getValue("FilterSigma1"));
+      }
+      if (scriptCommand.hasKeyword("FilterSigma2")) {
       filterSigma2 = Double.parseDouble(scriptCommand.getValue("FilterSigma2"));
+      }
       excludeCentralPeak = scriptCommand.hasKeyword("ExcludeCentralPeak");
       bordersInXandY.validateAndSet(scriptCommand.getValue("BordersInXandY"));
       padsInXandY.validateAndSet(scriptCommand.getValue("PadsInXandY"));
@@ -165,6 +183,7 @@ public class TiltxcorrParam
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
+    System.out.print("in updateComScriptCommand");
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
@@ -191,13 +210,13 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("OutputFile");
     }
-    if (firstTiltAngle != Double.NaN) {
+    if (!Double.isNaN(firstTiltAngle)) {
       scriptCommand.setValue("FirstTiltAngle", String.valueOf(firstTiltAngle));
     }
     else {
       scriptCommand.deleteKey("FirstTiltAngle");
     }
-    if (tiltIncrement != Double.NaN) {
+    if (!Double.isNaN(tiltIncrement)) {
       scriptCommand.setValue("TiltIncrement", String.valueOf(tiltIncrement));
     }
     else {
@@ -228,25 +247,25 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("RotationAngle");
     }
-    if (filterRadius1 != Double.NaN) {
+    if (!Double.isNaN(filterRadius1)) {
       scriptCommand.setValue("FilterRadius1", String.valueOf(filterRadius1));
     }
     else {
       scriptCommand.deleteKey("FilterRadius1");
     }
-    if (filterRadius2 != Double.NaN) {
+    if (!Double.isNaN(filterRadius2)) {
       scriptCommand.setValue("FilterRadius2", String.valueOf(filterRadius2));
     }
     else {
       scriptCommand.deleteKey("FilterRadius2");
     }
-    if (filterSigma1 != Double.NaN) {
+    if (!Double.isNaN(filterSigma1)) {
       scriptCommand.setValue("FilterSigma1", String.valueOf(filterSigma1));
     }
     else {
       scriptCommand.deleteKey("FilterSigma1");
     }
-    if (filterSigma2 != Double.NaN) {
+    if (!Double.isNaN(filterSigma2)) {
       scriptCommand.setValue("FilterSigma2", String.valueOf(filterSigma2));
     }
     else {
