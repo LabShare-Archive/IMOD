@@ -17,16 +17,19 @@ import java.util.Iterator;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/31 01:30:21  sueh
+* <p> $bug# storage for autodoc sections
+* <p> $$ </p>
 */
 
-public class Section implements AttributeInterface {
+public class Section implements AttributeCollection {
   public static final String rcsid = "$$Id$$";
   
-  private String key = null;
-  private Token type = null;
-  private Token name = null;
-  private HashMap attributeMap = null;
+  private String key = null; //required
+  private Token type = null; //required
+  private Token name = null; //required
+  private HashMap attributeMap = null; //optional
   
   public final static String getKey(Token type, Token name) {
     if (type == null && name == null) {
@@ -54,16 +57,13 @@ public class Section implements AttributeInterface {
     return Token.getKey(type) + Token.getKey(name);
   }
   
-  public Section() {
-  }
-  
   public Section(Token type, Token name) {
     key = Section.getKey(type, name);
     this.type = type;
     this.name = name;
   }
   
-  public AttributeInterface addAttribute(Token name) {
+  public AttributeCollection addAttribute(Token name) {
     if (attributeMap == null) {
       attributeMap = new HashMap();
     }
@@ -79,14 +79,10 @@ public class Section implements AttributeInterface {
   }
   
   public boolean equalsType(String type) {
-    if (this.type == null || type == null) {
+    if (type == null) {
       return false;
     }
     return this.type.getKey(true).equals(Token.getKey(type));
-  }
-
-  public boolean isNull() {
-    return key == null;
   }
 
   public String getKey() {
@@ -94,28 +90,19 @@ public class Section implements AttributeInterface {
   }
   
   public String getName() {
-    if (name == null) {
-      return null;
-    }
     return name.getValue(true);
   }
   
   public int hashCode() {
-    if (key == null) {
-      return new String().hashCode();
-    }
     return key.hashCode();
   }
   
   public Attribute getAttribute(String name) {
     if (attributeMap == null) {
-      return new Attribute();
+      return null;
     }
     String key = Attribute.getKey(name);
     Attribute attribute = (Attribute) attributeMap.get(key);
-    if (attribute == null) {
-      return new Attribute();
-    }
     return attribute;
   }
 
