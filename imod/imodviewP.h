@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/10/22 22:17:22  mast
+Added functions for dumping file system cache
+
 Revision 1.3  2004/01/05 17:55:45  mast
 Changes for binning
 
@@ -59,8 +62,8 @@ void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 int ivwReadBinnedSection(ImodView *vi, char *buf, int section);
-void ivwGetFileStartPos(FILE *fp);
-void ivwDumpFileSysCache(FILE *fp);
+void ivwGetFileStartPos(ImodImageFile *image);
+void ivwDumpFileSysCache(ImodImageFile *image);
 void memreccpy
 (unsigned char *tb,             /* copy data to buffer */
  unsigned char *fb,             /* copy data from buffer */
