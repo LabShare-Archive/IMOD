@@ -1,8 +1,10 @@
 package etomo.util;
 
+import java.io.File;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.process.SystemProgram;
 
 import junit.framework.TestCase;
 
@@ -19,6 +21,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/13 22:36:47  rickg
+ * <p> Creates it own ApplicationManager for static function access
+ * <p> Added a test that includes a space in the directory name
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -33,10 +39,17 @@ import junit.framework.TestCase;
  * <p> </p>
  */
 public class MRCHeaderTest extends TestCase {
+  private static final String testRoot = new String("JUnitTests/etomo/util/");
+  private static final String testDirectory1 = new String("Test");
+  private static final String testDirectory2 = new String("With Spaces");
+
   MRCHeader emptyFilename = new MRCHeader("");
-  MRCHeader badFilename = new MRCHeader("non_existant_image_file");
-  MRCHeader mrcHeader = new MRCHeader("tests/junk.st");
-  MRCHeader mrcWithSpaces = new MRCHeader("tests/With Spaces/junk.st");
+  MRCHeader badFilename =
+    new MRCHeader(testRoot + testDirectory1 + "/non_existant_image_file");
+  MRCHeader mrcHeader =
+    new MRCHeader(testRoot + testDirectory1 + "/headerTest.st");
+  MRCHeader mrcWithSpaces =
+    new MRCHeader(testRoot + testDirectory2 + "/headerTest.st");
 
   /**
    * Constructor for MRCHeaderTest.
@@ -51,7 +64,41 @@ public class MRCHeaderTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
-  }
+
+    //  Create the test directories
+    File dir1 =
+      new File(System.getProperty("user.dir"), testRoot + testDirectory1);
+    if(! dir1.exists()) {
+    	assertTrue("Creating test directory 1", dir1.mkdirs());
+    }
+    File dir2 =
+      new File(System.getProperty("user.dir"), testRoot + testDirectory2);
+    if(! dir2.exists()) {
+    	assertTrue("Creating test directory 2", dir2.mkdirs());
+    }
+    
+    // Set the working directory to the current test directory
+    String originalDirectory = System.getProperty("user.dir");
+    System.setProperty("user.dir", testRoot);
+    // Check out the test header stack into the required directories
+    String[] cvsCommand = new String[5];
+    cvsCommand[0] = "cvs";
+    cvsCommand[1] = "co";
+    cvsCommand[2] = "-d";
+    cvsCommand[3] = testDirectory1;
+		cvsCommand[4] = "ImodTests/EtomoTests/vectors/headerTest.st";
+		SystemProgram cvs = new SystemProgram(cvsCommand);
+		cvs.setDebug(true);
+		cvs.run();
+
+	  cvsCommand[3] = testDirectory2;
+		cvs = new SystemProgram(cvsCommand);
+		cvs.setDebug(true);
+		cvs.run();
+		
+		//  Switch back to the original working directory
+		System.setProperty("user.dir", originalDirectory);
+    }
 
   /**
    * @see TestCase#tearDown()
