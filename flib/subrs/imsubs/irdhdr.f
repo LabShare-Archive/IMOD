@@ -42,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2003/06/05 00:15:00  mast
+c	  Add (Angstroms) to pixel spacing output
+c	
 c	  Revision 3.9  2002/08/17 05:38:39  mast
 c	  Added entries to return and alter the rms value
 c	
@@ -95,6 +98,7 @@ C
 	integer*2 idat(6)
 	character*(*) string
 	character*80 string80
+	character*4 feichar
 	equivalence (istuff,stuff)
 	logical nbytes_and_flags
 c	SAVE /IMGCOM/
@@ -222,6 +226,22 @@ c
 	do k = 1,nlab(j)
 	  call fixtitlenulls(labls(1,k,j))
 	enddo
+c	  
+c	  DNM 6/10/04: Workaround to FEI goof in which nints was set to 
+c	  # of bytes, 4 * nreal
+c	  
+	call move(idat,stuff(11,j),4)
+	feichar = 'Fei '
+	read(feichar, '(a4)')k
+	if (idat(1) .eq. 128 .and. idat(2) .eq. 32  .and. k .eq. labls(1,1,1))
+     &	    then
+	  idat(1) = 0
+	  call move(stuff(11,j),idat,4)
+	  if (print) write(6,1007)
+1007	  format(/,'  Assuming that the header entry for 128 ',
+     &	      'integers per section is an error')
+	endif
+
 c	  
 c	  after reading the header, need to set to first section now
 c
