@@ -50,6 +50,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.21  2003/11/04 22:02:17  sueh
  * <p> bug329 MainFrame: setMRUFileLabels(): Don't display blank
  * <p> MRU entries
@@ -503,13 +506,20 @@ public class MainFrame extends JFrame implements ContextMenu {
       setAdvancedLabel();
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
-
-      pack();
       if (applicationManager.isDualAxis()) {
+        axisPanelA.hide();
+        axisPanelB.hide();
+        pack();
         splitPane.resetToPreferredSizes();
+        axisPanelA.show();
+        axisPanelB.show();
+      }
+      else {
+        pack();
       }
     }
   }
+  
 
   private void menuHelpAction(ActionEvent event) {
 
