@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/08/21 16:10:05  rickg
+ * <p> Tooltip now use the TooltipFormatter class
+ * <p>
  * <p> Revision 2.10  2003/07/01 22:55:28  rickg
  * <p> Fixed status panel layout
  * <p>
@@ -99,7 +102,7 @@ public class AxisProcessPanel implements ContextMenu {
   private ProcessControlPanel procCtlTomogramCombination =
     new ProcessControlPanel("Tomogram Combination");
   private ProcessControlPanel procCtlPostProcessing =
-    new ProcessControlPanel("Post Processing");
+    new ProcessControlPanel("Post-processing");
 
   /**
    * Constructor
@@ -216,14 +219,14 @@ public class AxisProcessPanel implements ContextMenu {
    * 
    * @param event
    */
-  void buttonKillAction(ActionEvent event) {
+  private void buttonKillAction(ActionEvent event) {
     applicationManager.kill(axisID);
   }
 
   /**
    * Invoke the appropriate ApplicationManager method for the button press
    */
-  public void buttonProcessAction(ActionEvent event) {
+  private void buttonProcessAction(ActionEvent event) {
     String command = event.getActionCommand();
 
     if (command.equals(procCtlPreProc.getName())) {
@@ -475,13 +478,13 @@ public class AxisProcessPanel implements ContextMenu {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     text =
-      "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad "
+      "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
         + " CCD rows from the raw projection stack.";
     procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "Open the Coarse Alignment panel to generate a coarsely aligned "
-        + " stack using cross correlation and to fix coarse alignment problems "
+        + "stack using cross correlation and to fix coarse alignment problems "
         + "with Midas.";
     procCtlCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -522,30 +525,29 @@ public class AxisProcessPanel implements ContextMenu {
       tooltipFormatter.setText(text).format());
   }
 
-}
+  /**
+  *   Action listeners to handle process panel events
+  */
+  class ProcessButtonActionListener implements ActionListener {
+    AxisProcessPanel adaptee;
+    ProcessButtonActionListener(AxisProcessPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonProcessAction(event);
+    }
+  }
 
-/**
-*   Action listeners to handle process panel events
-*/
-class ProcessButtonActionListener implements ActionListener {
-  AxisProcessPanel adaptee;
-  ProcessButtonActionListener(AxisProcessPanel adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonProcessAction(event);
-  }
-}
-
-/**
-* Action listener to handle process kill
-*/
-class KillButtonActionListener implements ActionListener {
-  AxisProcessPanel adaptee;
-  KillButtonActionListener(AxisProcessPanel adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonKillAction(event);
+  /**
+  * Action listener to handle process kill
+  */
+  class KillButtonActionListener implements ActionListener {
+    AxisProcessPanel adaptee;
+    KillButtonActionListener(AxisProcessPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonKillAction(event);
+    }
   }
 }
