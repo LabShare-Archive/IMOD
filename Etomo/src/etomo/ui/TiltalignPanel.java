@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2002/12/18 00:53:00  rickg
+ * <p> Update in progress
+ * <p>
  * <p> Revision 1.15  2002/12/17 01:02:08  rickg
  * <p> Additional groups are now advanced
  * <p>
@@ -119,6 +122,9 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Tilt angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Tilt axis z shift: ");
+
+  private LabeledTextField ltfMetroFactor = new LabeledTextField("Metro factor: ");
+  private LabeledTextField ltfCycleLimit = new LabeledTextField("Cycle limit: ");
 
   private JCheckBox chkLocalAlignments =
     new JCheckBox("Enable local alignments");
@@ -284,6 +290,9 @@ public class TiltalignPanel implements ContextMenu {
     ltfAdditionalViewGroups.setText(params.getAdditionalViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
+    ltfMetroFactor.setText(params.getMetroFactor());
+    ltfCycleLimit.setText(params.getCycleLimit());
+    
     chkLocalAlignments.setSelected(params.getLocalAlignments());
     ltfNLocalPatches.setText(params.getNLocalPatches());
     ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
@@ -431,15 +440,23 @@ public class TiltalignPanel implements ContextMenu {
     updateEnabled();
   }
 
+  /**
+   * Signal each pane to update its enabled/disabled state and any relevant
+   * parameters.
+   * The order is important because the state of some objects can change the
+   * values of other UI fields in other panels (i.e the distortion check box
+   * will change the angle solution panel.
+   */
   public void updateEnabled() {
     //  update all of the enable/disable states
+    updateLocalDistortionSolutionPanel();
     updateTiltAngleSolutionPanel();
     updateMagnificationSolutionPanel();
     //    updateCompressionSolutionPanel();
     updateDistortionSolutionPanel();
     updateLocalAlignmentState();
     updateLocalMagnificationSolutionPanel();
-    updateLocalDistortionSolutionPanel();
+
   }
 
   /**
@@ -485,9 +502,12 @@ public class TiltalignPanel implements ContextMenu {
       badParameter = ltfTiltAxisZShift.getLabel();
       params.setTiltAxisZShift(ltfTiltAxisZShift.getText());
 
-      /*      badParameter = ltfTiltAxisXShift.getLabel();
-            params.setTiltAxisXShift(ltfTiltAxisXShift.getText());
-      */
+      badParameter = ltfMetroFactor.getLabel();
+      params.setMetroFactor(ltfMetroFactor.getText());
+      
+      badParameter = ltfCycleLimit.getLabel();
+      params.setCycleLimit(ltfCycleLimit.getText());
+
       badParameter = chkLocalAlignments.getText();
       params.setLocalAlignments(chkLocalAlignments.isSelected());
 
@@ -673,6 +693,8 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void setAdvanced(boolean state) {
+    ltfMetroFactor.setVisible(state);
+    ltfCycleLimit.setVisible(state);
     ltfMagnificationReferenceView.setVisible(state);
     ltfTiltAngleAdditionalGroups.setVisible(state);
     ltfMagnificationAdditionalGroups.setVisible(state);
@@ -683,7 +705,6 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalMagnificationAdditionalGroups.setVisible(state);
     ltfLocalXstretchAdditionalGroups.setVisible(state);
     ltfLocalSkewAdditionalGroups.setVisible(state);
-
   }
 
 
@@ -708,8 +729,8 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void setLargestTab() {
-    tabPane.setSelectedComponent(panelGlobalVariable);
-    //tabPane.setSelectedComponent(panelLocalSolution);
+    //tabPane.setSelectedComponent(panelGlobalVariable);
+    tabPane.setSelectedComponent(panelLocalSolution);
   }
 
   void setFirstTab() {
@@ -790,7 +811,7 @@ public class TiltalignPanel implements ContextMenu {
     chkLocalDistortion.setSelected(state);
     updateLocalDistortionSolutionPanel();
     
-    
+    //  Update the parameters to match the solution type
     if(state == true) {
       setDistortionDefaults();
     }
@@ -900,6 +921,14 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
+    ltfMetroFactor.setMaximumSize(dimLTF);
+    panelGeneral.add(ltfMetroFactor.getContainer());
+    panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    ltfCycleLimit.setMaximumSize(dimLTF);
+    panelGeneral.add(ltfCycleLimit.getContainer());
+    panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
+    
     panelGeneral.add(chkLocalAlignments);
     chkLocalAlignments.setAlignmentX(1.0F);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
