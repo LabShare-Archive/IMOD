@@ -63,6 +63,7 @@ set fort_cpplibs    =
 set ctrl_string     = Ctrl
 set ld_lib_var      = LD_LIBRARY_PATH
 set qtapp_path      =
+set xplax           = qtplax.o
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -604,8 +605,6 @@ EOF
     \find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
-    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
-    echo 'XPLAX = qtplax.o' >> $configure
 
     # Make the runimodqtapp script
     #
@@ -629,6 +628,18 @@ EOF
     echo "GENERATED_SCRIPTS = setlibpath runimodqtapp" >> $configure
 
 endif
+
+# Take care of Fortran graphics variations
+#
+if ($xplax == "qtplax.o") then
+    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
+else if ($xplax == "xplax.o") then
+    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
+else
+    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)' >> $configure
+endif
+echo "XPLAX = $xplax" >> $configure
+
 echo "# end of configure"          >> $configure
 
 foreach i ($makefile_dirs)
@@ -689,6 +700,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.27  2003/09/23 21:09:48  mast
+#  Added path variable for running qt apps out of Mac .app folders
+#
 #  Revision 3.26  2003/09/11 19:53:42  mast
 #  Added configure variable for generated scripts
 #
