@@ -103,12 +103,12 @@ import etomo.type.AxisID;
  *    to their default value in reset().
  * 5. Default variables and the default value of Initial variables should match
  *    3dmod's default state.
- * 6. If 3dmod can be changed back to the default state with a message, consider
- *    creating a "using" variable.  When a using variable is on, the message
- *    based on the corresponding state variable is always sent.  "Using"
- *    variables should be turned on whenever the corresponding state variable is
- *    changed.  "Using" variables should never be turned off.  See usingMode and
- *    usingOpenContours.
+ * 6. If 3dmod can be changed back to the default version of a state variable
+ *    with a message, consider creating a "using" variable.  When a using
+ *    variable is on, the message based on the corresponding state variable is
+ *    always sent.  "Using" variables should be turned on whenever the
+ *    corresponding state variable is changed.  "Using" variables should never
+ *    be turned off.  See usingMode.
  * </p>
  * 
  * <p>Current types of state information as of 6/9/04:
@@ -170,6 +170,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.17  2004/06/22 22:57:45  sueh
+ * <p> $bug# 455 Added openContours.  Changed useMode to usingMode.
+ * <p> $Clarified "using" functionality.  Updated documentation.
+ * <p> $
  * <p> $Revision 1.16  2004/06/17 01:31:04  sueh
  * <p> $bug# 471 fixing how model name is set in ImodProcess
  * <p> $
@@ -264,7 +268,6 @@ public class ImodState {
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
   private boolean usingMode = false;
-  private boolean usingOpenContours = false;
   
   //reset values
   //initial state information
@@ -413,8 +416,8 @@ public class ImodState {
         process.setOpenModelPreserveContrastMessage(modelName);
       }
       //This message can only be sent after opening the model
-      if (usingOpenContours) {
-        process.setNewContoursMessage(openContours);
+      if (openContours) {
+        process.setNewContoursMessage(true);
       }
     }
     else {
@@ -440,8 +443,8 @@ public class ImodState {
         }
       }
       //This message can only be sent after opening the model
-      if (usingOpenContours) {
-        process.setNewContoursMessage(openContours);
+      if (openContours) {
+        process.setNewContoursMessage(true);
       }
     }
     //set mode
@@ -582,19 +585,6 @@ public class ImodState {
   }
   
   /**
-   * @return usingOpenContours
-   */
-  public boolean isUsingOpenContours() {
-    return usingOpenContours;
-  }
-  /**
-   * @param usingOpenContour
-   */
-  public void setUsingOpenContours(boolean usingOpenContours){
-    this.usingOpenContours = usingOpenContours;
-  }
-  
-  /**
    * @return openContours
    */
   public boolean isOpenContours() {
@@ -605,7 +595,6 @@ public class ImodState {
    */
   public void setOpenContours(boolean openContours){
     this.openContours = openContours;
-    usingOpenContours = true;
   }
 
   /**
@@ -786,7 +775,7 @@ public class ImodState {
    * @return string
    */
   protected String paramString() {
-    Vector params = new Vector(18);
+    Vector params = new Vector(17);
     params.add("datasetName=" + getDatasetName());
     params.add("modelView=" + isModelView());
     params.add("useModv=" + isUseModv());
@@ -797,19 +786,17 @@ public class ImodState {
     
     params.add("swapYZ=" + isSwapYZ());
     params.add("preserveContrast=" + isPreserveContrast());
-    
     params.add("openBeadFixer=" + isOpenBeadFixer());
+    
     params.add("initialModelName=" + getInitialModelName());
     params.add("initialMode=" + getInitialModeString());
-    
     params.add("initialSwapYZ=" + isInitialSwapYZ());
+    
     params.add("defaultOpenWithModel=" + isDefaultOpenWithModel());
     params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
-    
     params.add("process=" + process.toString());
-    params.add("warnedStaleFile=" + isWarnedStaleFile());
-    params.add("usingOpenContours=" + isUsingOpenContours());
     
+    params.add("warnedStaleFile=" + isWarnedStaleFile());
     params.add("openContours=" + isOpenContours());
     
     return params.toString();
@@ -843,7 +830,6 @@ public class ImodState {
         && useModv == imodState.isUseModv()
         && modelName.equals(imodState.getModelName())
         && usingMode == imodState.isUsingMode()
-        && usingOpenContours == imodState.isUsingOpenContours()
         && openContours == imodState.isOpenContours()
         && mode == imodState.getMode()
         && swapYZ == imodState.isSwapYZ()
