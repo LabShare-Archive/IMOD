@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/03/08 02:01:26  sueh
+ * <p> bug# 533 Add btnEdgesMidas.
+ * <p>
  * <p> Revision 3.13  2005/01/14 03:07:08  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -273,13 +276,29 @@ public class CoarseAlignDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Xftoxg", "Newstack", "3dmod", "Midas"};
-    String[] manPage = {"xftoxg.html", "newstack.html", "3dmod.html",
+    String alignManpageLabel;
+    String alignManpage;
+    String alignLogfileLabel;
+    String alignLogfile;
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      alignManpageLabel = "Blendmont";
+      alignManpage = "blendmont";
+      alignLogfileLabel = "Preblend";
+      alignLogfile = "preblend";
+    }
+    else {
+      alignManpageLabel = "Newstack";
+      alignManpage = "newstack";
+      alignLogfileLabel = "Prenewst";
+      alignLogfile = "prenewst";
+    }
+    String[] manPagelabel = {"Tiltxcorr", "Xftoxg", alignManpageLabel, "3dmod", "Midas"};
+    String[] manPage = {"tiltxcorr.html", "xftoxg.html", alignManpage + ".html", "3dmod.html",
         "midas.html"};
-    String[] logFileLabel = {"Xcorr", "Prenewst"};
+    String[] logFileLabel = {"Xcorr", alignLogfileLabel};
     String[] logFile = new String[2];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
-    logFile[1] = "prenewst" + axisID.getExtension() + ".log";
+    logFile[1] = alignLogfile + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
       "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
