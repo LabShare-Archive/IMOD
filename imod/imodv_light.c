@@ -27,6 +27,16 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
+
 #include <math.h>
 #include <GL/gl.h>
 #include "imodv.h"
@@ -352,7 +362,8 @@ void light_on(struct Mod_Object *obj)
      params[3] = alpha;
      glMaterialfv(face, GL_SPECULAR, params);
 
-     glMateriali(face, GL_SHININESS, shine);
+     /* DNM 9/3/02: this was glMateriali but did not seem to matter */
+     glMaterialf(face, GL_SHININESS, shine);
 
 /*    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
