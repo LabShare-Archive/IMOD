@@ -7,11 +7,11 @@ c
 	parameter (limvar=3000)
 c
 	real*4 array(maxsiz)
-	parameter (ifastsiz=32,maxlinelength=30720)
+	parameter (ifastsiz=32,maxlinelength=40960)
 	real brray(ifastsiz*maxlinelength)
 	common /bigarr/ array,brray
 c
-	parameter (limxypc=50,limnpc=50000,limedge=50000,limsect=1000)
+	parameter (limxypc=80,limnpc=50000,limedge=50000,limsect=1000)
 	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
 	integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
 	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
