@@ -1,6 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/3/03: Fixed model view rotation so that it would change direction when a 
+12/1/03: IMOD_3-0-2
+12/1/03: In eTomo, log files are now explicitly closed as soon as possible.
+This is to address progress bars that do not initialize correctly.
+Log file renaming now works correctly under Windows.
+
+11/10/03 - 12/1/03: Various changes in eTomo:
+The keyword AllSectionObjects has been fixed in the eTomo CCDEraser module, so
+manual erasing will work again with objects specifying erasure on all sections.
+
+Added validation on empty fields in Setup dialog.
+
+BeadFixer will automatically open or raise when fixing fiducials.
+
+Internal changes: Moved the functionality to view fiducials with 3dmodv to
+ImodManager.  Moved the state information on ImodProcess out of ImodManager.
+Generalized ImodManager interface.  Created automatic regression tests for
+ImodManager.  Functionality to create 3dmods on demand added to ImodManager.
+
+12/1/03: Fixed model view rotation so that it would change direction when a 
 different direction key or button is pressed.
 
 11/26/03: Fixed problem in Nda that showed up in Windows XP.
