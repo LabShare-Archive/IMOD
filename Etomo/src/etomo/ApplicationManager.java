@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.32  2003/01/07 00:30:16  rickg
+ * <p> Added imodViewResidual method
+ * <p>
  * <p> Revision 1.31  2003/01/06 04:53:16  rickg
  * <p> Set default parameters for transferfid panel and handle
  * <p> new backwards flag for b to a
@@ -1581,14 +1584,25 @@ public class ApplicationManager {
           combineParams.setDefaultPatchBoundaries(recFileName);
         }
         catch (InvalidParameterException except) {
-          except.printStackTrace();
+          String[] detailedMessage = new String[4];
+          detailedMessage[0] = "Unable to set default patch boundaries";
+          detailedMessage[1] = "Are both tomograms computed and available?";
+          detailedMessage[2] = "";
+          detailedMessage[3] = except.getMessage();
+
           openMessageDialog(
-            except.getMessage(),
+            detailedMessage,
             "Invalid parameter: " + recFileName);
+          tomogramCombinationDialog.dispose();
+          tomogramCombinationDialog = null;
+          return;
         }
         catch (IOException except) {
           except.printStackTrace();
           openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
+          tomogramCombinationDialog.dispose();
+          tomogramCombinationDialog = null;
+          return;
         }
       }
 
