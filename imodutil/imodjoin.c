@@ -1,4 +1,38 @@
-/* Not-so-simple program to join two imod models together. */
+/*  IMOD VERSION 2.67
+ *
+ *  imodjoin.c  -  Program to extract a list of objects from a model
+ *
+ *  Authors: James Kremer and David Mastronarde   email: mast@colorado.edu
+ */
+
+/*****************************************************************************
+ *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Fine    *
+ *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
+ *                                                                           *
+ *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
+ *   distributing copies for sale, lease or lending and displaying this      *
+ *   software and documentation.                                             *
+ *   Users may reproduce the software and documentation as long as the       *
+ *   copyright notice and other notices are preserved.                       *
+ *   Neither the software nor the documentation may be distributed for       *
+ *   profit, either in original form or in derivative works.                 *
+ *                                                                           *
+ *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
+ *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
+ *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
+ *                                                                           *
+ *   This work is supported by NIH biotechnology grant #RR00592,             *
+ *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
+ *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
+ *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <imodel.h>
 int *parselist (char *line, int *nlist);
@@ -36,7 +70,7 @@ static void readerr(int mod)
 }
 static void objerr(int ob, int mod)
 {
-     fprintf(stderr, "imodjoin: Invalid object number %d fro model %d\n", ob, 
+     fprintf(stderr, "imodjoin: Invalid object number %d for model %d\n", ob, 
 	     mod);
      exit (1);
 }
@@ -164,7 +198,7 @@ int main(int argc, char **argv)
 
     sprintf(backname, "%s~", argv[argc - 1]);
     rename (argv[argc - 1], backname);
-    if (imodOpenFile(argv[argc - 1], "w", inModel)) {
+    if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
       fprintf(stderr, "imodjoin: Fatal error opening new model\n");
       exit (1);
     }

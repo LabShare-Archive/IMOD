@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <imodel.h>
 
@@ -93,7 +101,7 @@ int main(int argc, char **argv)
 
     sprintf(backname, "%s~", argv[argc - 1]);
     rename (argv[argc - 1], backname);
-    if (imodOpenFile(argv[argc - 1], "w", inModel)) {
+    if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
       fprintf(stderr, "%s: Fatal error opening new model\n", argv[0]);
       exit (1);
     }

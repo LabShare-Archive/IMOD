@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/28 16:17:27  mast
+    Fixed report of illegal object number
+
 */
 
 
@@ -103,7 +106,7 @@ int main(int argc, char **argv)
 
     sprintf(backname, "%s~", argv[argc - 1]);
     rename (argv[argc - 1], backname);
-    if (imodOpenFile(argv[argc - 1], "w", inModel)) {
+    if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
       fprintf(stderr, "imodextract: Fatal error opening new model\n");
       exit (1);
     }
