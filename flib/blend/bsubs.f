@@ -26,6 +26,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/02/28 21:15:07  mast
+c	  Changes for distortion and mag gradient correction and cubic and
+c	  linear interpolation
+c	
 c	  Revision 3.5  2004/09/01 20:27:38  mast
 c	  Fixed bug in testing if piece list input entered
 c	
@@ -1003,19 +1007,20 @@ c
      &	      ,i=1,2) ,((dxgrid(ix,iy),dygrid(ix,iy),
      &	      ddengrid(ix,iy),ix=1,nxgr),iy=1,nygr)
 c	    
-	  xrel = 0.
-	  yrel = 0.
-	  do ix = 1,nxgr
-	    do iy = 1,nygr
-	      costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
-	      xrel = xrel + costh
-	      yrel = max(yrel, costh)
-	    enddo
-	  enddo
-	  write(*,'(1x,a,2i4,a,2f6.2)')
-     &	      char(ixy+ichar('W'))//' edge, pieces'
-     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-     &	      '  mean, max vector:',xrel/(nxgr*nygr), yrel
+c$$$	  xrel = 0.
+c$$$	  yrel = 0.
+c$$$	  do ix = 1,nxgr
+c$$$	    do iy = 1,nygr
+c$$$	      costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
+c$$$	      xrel = xrel + costh
+c$$$	      yrel = max(yrel, costh)
+c$$$	    enddo
+c$$$	  enddo
+c$$$	  write(*,'(1x,a,2i4,a,2f6.2)')
+c$$$     &	      char(ixy+ichar('W'))//' edge, pieces'
+c$$$     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c$$$     &	      '  mean, max vector:',xrel/(nxgr*nygr), yrel
+
 	  edgedone(jedge,ixy)=.true.
 	enddo
 	return
