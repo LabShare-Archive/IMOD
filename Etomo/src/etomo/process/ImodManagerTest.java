@@ -66,7 +66,7 @@ public class ImodManagerTest extends TestCase {
 
   //Regression test
   
-  final public void testImodManager() {
+  final public void testImodManager() throws AxisTypeException {
     Tester tester;
     //Test single axis
     setUpSingle();
@@ -454,6 +454,29 @@ public class ImodManagerTest extends TestCase {
   }
   
 
+  final public void testTrialTomogram()
+    throws AxisTypeException, SystemProcessException {
+    String key = "trialTomogram";
+    AxisID axisID;
+    setUpSingle();
+    axisID = AxisID.ONLY;
+    Tester tester = newTester(key, axisID);   
+    
+    //    imodTrialTomogram.setSwapYZ(true);
+    tester.setSwapYZ(true);
+         
+    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    imodManager.create(key, axisID, datasetName + ".rec");
+    imodManager.open(key, axisID);
+    assertTrue(imodManager.isOpen(key, axisID));
+    tester.equals(imodManager.get(key, axisID));
+    imodManager.openBeadFixer(key, axisID);
+    imodManager.quit(key, axisID);
+
+  }
+  
+
+
   private void setUpSingle() {
     datasetName = datasetNameSingle;
     metaData.setDatasetName(datasetName);
@@ -527,6 +550,9 @@ public class ImodManagerTest extends TestCase {
         return tester;
       }
       if (name.equals("trimmedVolume")) {
+        return new Tester(datasetName + ".rec");
+      }
+      if (name.equals("trialTomogram")) {
         return new Tester(datasetName + ".rec");
       }
       return null;
@@ -648,6 +674,9 @@ public class ImodManagerTest extends TestCase {
       if (name.equals("trimmedVolume")) {
         return new Tester(datasetName + ".rec");
       }
+      if (name.equals("trialTomogram")) {
+        return new Tester(datasetName + ".rec");
+      }
       return null;
     }
   }
@@ -679,7 +708,6 @@ public class ImodManagerTest extends TestCase {
     imodManager.openBeadFixer(key, axisID);
     imodManager.quit(key, axisID);
   }
-
 
   private void testModel(Tester tester,
     String key,
