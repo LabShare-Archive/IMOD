@@ -34,7 +34,6 @@
 int  myRank = 0;
 
 int sliceByteConvolve(Islice *sin, int mask[3][3]);
-static double **allocate2D_double(int m, int n );
 static void sliceScaleAndFree(Islice *sout, Islice *sin);
 static float selectFloat(int s, float *r, int num);
 static int selectInt(int s, int *r, int num);
@@ -553,6 +552,52 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
   return 0;
 }
 
+/*
+ * Byte version with arrays already allocated and passed in 
+ * iterDone is a pointer to variable for keeping track of total iterations 
+ */
+void sliceByteAnisoDiff(Islice *sl, double **image, double **image2, 
+                        int CC, double k, double lambda, int iterations, 
+                        int *iterDone)
+{
+  double **imout;
+  int val;
+  int i, j;
+  int n = sl->xsize;
+  int m = sl->ysize;
+
+  /* If no iterations yet, Copy data into array */
+  if (!(*iterDone)) {
+    for (j = 0; j < m; j++)
+      for (i = 0; i < n; i++)
+        image[j + 1][i + 1] = sl->data.b[i + j * sl->xsize];
+  }
+
+  /* alternate between two matrices to avoid memcopy */	
+  /* printf("m = %d n = %d CC = %d k = %f lambda = %f, iter = %d\n",
+     m,n,CC,k,lambda, iterations); */
+  for (i = 0; i < iterations; i++, (*iterDone)++) {
+	if ( (*iterDone) % 2 == 0 ) {
+      updateMatrix(image2,image,m,n,CC,k,lambda,1);
+      imout = image2;
+	} else {
+      updateMatrix(image,image2,m,n,CC,k,lambda,1);
+      imout = image;
+	}
+  }
+  
+  /* Copy data back to slice */
+  for (j = 0; j < m; j++) {
+    for (i = 0; i < n; i++) {
+      val = (int)imout[j + 1][i + 1];
+      if (val < 0)
+        val = 0;
+      if (val > 255)
+        val = 255;
+      sl->data.b[i + j * sl->xsize] = (unsigned char)val;
+    }
+  }
+}
 
 /* allocate 2D array of doubles that is contiguous in memory
  *
@@ -578,7 +623,6 @@ double **allocate2D_double(int m, int n )
   
   return a;
 }
-
 
 
 /* A routine for finding min and max as rapidly as possible for the three basic
@@ -728,6 +772,9 @@ static int selectInt(int s, int *r, int num)
 
 /*
     $Log$
+    Revision 3.2  2005/01/27 05:56:56  mast
+    Added anisotropic diffusion
+
     Revision 3.1  2005/01/07 20:00:45  mast
     Moved to libiimod to make available to clip, added median filter
 

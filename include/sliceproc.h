@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2005/01/27 05:57:05  mast
+    Added anisotropic diffusion
+
     Revision 3.1  2005/01/07 20:01:17  mast
     Moved to libiimod so putthis file in include
 
@@ -51,6 +54,11 @@ extern "C" {
                     int CC, double k, double lambda, int p);
   int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
                      int iterations, int clearFlag);
+  double **allocate2D_double(int m, int n );
+  void sliceByteAnisoDiff(Islice *sl, double **image, double **image2, int CC,
+                          double k, double lambda, int iterations, 
+                          int *iterDone);
+
 
 #ifdef __cplusplus
 }
