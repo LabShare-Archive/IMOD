@@ -27,7 +27,8 @@ MainTarget: $(JAR_FILE)
 	echo "Make completed."
 
 $(JAR_FILE): cpimages compile
-	echo jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+	mkdir -p jar
+	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
 	cp -a $(SOURCEPATH)/images $(CLASSPATH)
