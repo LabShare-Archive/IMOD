@@ -27,12 +27,13 @@ enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
 typedef struct ilist_struct Ilist;
 
 #ifndef IMODP_H
-  typedef struct ViewInfo ImodView;
+typedef struct ViewInfo ImodView;
 #endif
-  class QKeyEvent;
-  class QString;
-  class QWidget;
+class QKeyEvent;
+class QString;
+class QWidget;
 class QRect;
+class QObjectList;
 
 typedef void (*ImodControlProc)(struct ViewInfo *, void *, int);
 typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
@@ -104,6 +105,7 @@ class DialogManager
   void raise(int dlgClass);
   QRect biggestGeometry(int dlgType);
   int windowCount(int dlgType);
+  void windowList(QObjectList *objList, int dlgClass, int dlgType);
 
  private:
   Ilist *mDialogList;
@@ -118,6 +120,9 @@ extern DialogManager imodDialogManager;
 
 /*
 $Log$
+Revision 4.8  2004/04/28 23:52:39  mast
+Added windowCount method
+
 Revision 4.7  2003/10/01 04:59:52  mast
 Split into public and private files
 

@@ -45,6 +45,7 @@ Log at end of file
 #include <string.h>
 #include <qwidget.h>
 #include <qtimer.h>
+#include <qobjectlist.h>
 #include <qapplication.h>
 #include "imod.h"
 #include "imod_info.h"
@@ -506,6 +507,20 @@ QRect DialogManager::biggestGeometry(int dlgType)
   return biggest;
 }
 
+// Construct a list of widgets matching the given class and type; pass -1 to
+// match any class or type
+void DialogManager::windowList(QObjectList *objList, int dlgClass, int dlgType)
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if ((dlgType < 0 || dia->dlgType == dlgType) && 
+        (dlgClass < 0 || dia->dlgClass == dlgClass))
+      objList->append((QObject *)dia->widget);
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+  }
+}
+
 // Return system-dependent rectangle that can be used to restore window size
 // and position
 // This is supposed to be the frame position and the client size, but on
@@ -521,6 +536,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.14  2004/04/28 23:52:26  mast
+Added method to get count of a window type
+
 Revision 4.13  2003/11/01 18:12:16  mast
 changed to put out virtually all error messages to a window
 
