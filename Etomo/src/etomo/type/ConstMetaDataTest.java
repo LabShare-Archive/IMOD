@@ -5,9 +5,12 @@
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
 package etomo.type;
+
 import java.io.File;
 import java.io.IOException;
 import junit.framework.TestCase;
+
+import etomo.process.SystemProgram;
 
 /**
  * @author sueh
@@ -66,11 +69,15 @@ public class ConstMetaDataTest extends TestCase {
     new String(validDatasetName + "a.st");
   private static final String validBFileName =
     new String(validDatasetName + "b.st");
+    
+  private SystemProgram program;
+
   /*
    * @see TestCase#setUp()
    */
   protected void setUp() throws Exception {
     super.setUp();
+   
     //create test site
     testInst = new MetaData();
     testDir = new File(System.getProperty("user.dir"), testDirName);
@@ -110,15 +117,13 @@ public class ConstMetaDataTest extends TestCase {
       assertTrue(unreadableDir.mkdir());
     }
     assertTrue(unreadableDir.isDirectory() && unreadableDir.canWrite());
+    
     if (unreadableDir.canRead()) {
-      System.err.println();
-      System.err.println(
-        "ERROR: Directory with incorrect permissions - unable to test.");
-      System.err.println("Please type the following on the command line:");
-      System.err.println("cd " + testDir.getAbsolutePath());
-      System.err.println("chmod 244 " + unreadableDirName);
-      fail("Incorrect directory permission (see console).");
+      SystemProgram program = new SystemProgram("chmod 244 " + unreadableDirName);
+      program.setWorkingDirectory(testDir);
+      program.run();
     }
+    assertFalse(unreadableDir.canRead());
 
     //create unwritable directory
     unwritableDir = new File(testDir, unwritableDirName);
@@ -190,14 +195,11 @@ public class ConstMetaDataTest extends TestCase {
     }
     assertTrue(file.isFile());
     if (file.canRead()) {
-      System.err.println();
-      System.err.println(
-        "ERROR: File with incorrect permissions - unable to test.");
-      System.err.println("Please type the following on the command line:");
-      System.err.println("cd " + dir.getAbsolutePath());
-      System.err.println("chmod 244 " + name);
-      fail("Incorrect file permission (see console).");
+      SystemProgram program = new SystemProgram("chmod 244 " + name);
+      program.setWorkingDirectory(dir);
+      program.run();
     }
+    assertFalse(file.canRead());
     return file;
   }
 
