@@ -25,6 +25,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/02 20:41:48  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.3  2004/12/02 18:30:50  sueh
  * <p> bug# 557 Added the Squeeze Volume panel.  Added an action for the
  * <p> Squeeze Volume button.
@@ -222,6 +226,7 @@ public class PostProcessingDialog
       applicationManager.squeezevol();
     }
     else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
+      applicationManager.imodSqueezedVolume();
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
