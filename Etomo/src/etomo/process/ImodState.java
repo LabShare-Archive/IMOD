@@ -54,6 +54,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.11  2004/05/07 19:53:49  sueh
+ * <p> $bug# 33 correcting function name
+ * <p> $
  * <p> $Revision 1.10  2004/05/06 20:22:12  sueh
  * <p> $bug# 33 added getRubberbandCoordinates()
  * <p> $
@@ -267,33 +270,57 @@ public class ImodState {
     this.preserveContrast = preserveContrast;
   }
   
-  
-  //functionality
   /**
-   * Opens a process.
+   * Opens a process, opens a model.
    * 
    * @throws SystemProcessException
    */
   public void open() throws SystemProcessException, NullPointerException{
-    if (openWithModel) {
-      if (modelName == null) {
-        throw new NullPointerException(toString()); 
+    //process is not running
+    if (!process.isRunning()) {
+      //set configuration
+      if (openWithModel) {
+        if (modelName == null) {
+          throw new NullPointerException("modelName is empty in " + toString()); 
+        }
+        process.setModelName(modelName);
       }
-      process.setModelName(modelName);
-    }
-    if (useModv) {
-      process.setUseModv(useModv);
-    }
-    if (process.isRunning()) {
-      if (modelView) {
-        process.viewModel();
+      if (useModv) {
+        process.setUseModv(useModv);
       }
-      else {
+      //open
+      process.open();
+      warnedStaleFile = false;
+      //open model
+      if (!openWithModel && modelName != null && modelName.matches("\\S+")) {
+        if (preserveContrast) {
+          process.openModelPreserveContrast(modelName);
+        }
+        else {
+          process.openModel(modelName);
+        }
+      }
+    }
+    else {
+      //process is running
+      //raise 3dmod
+      if (!modelView && !useModv) {
         process.openZapWindow();
       }
+      else {
+        process.raise3dmod();
+      }
+      //reopen model
+      if (!useModv && modelName != null && modelName.matches("\\S+")) {
+        if (preserveContrast) {
+          process.openModelPreserveContrast(modelName);
+        }
+        else {
+          process.openModel(modelName);
+        }
+      }
     }
-    process.open();
-    warnedStaleFile = false;
+    //set mode
     if (useMode) {
       if (mode.equals(MODEL)) {
         process.modelMode();
@@ -313,66 +340,17 @@ public class ImodState {
    * @throws SystemProcessException
    */
   public void open(String modelName) throws SystemProcessException {
-    openWithModel = true;
     this.modelName = modelName;
     open();
   } 
   
   public void open(String modelName, boolean modelMode) throws SystemProcessException {
-    openWithModel = true;
     this.modelName = modelName;
     useMode = true;
     setMode(modelMode);
     open();
   } 
 
-
-  /**
-   * Opens a model.
-   * 
-   * @param modelName
-   * @throws SystemProcessException
-   */
-  public void model(String modelName) throws SystemProcessException {
-    if (modelName == null) {
-      throw new NullPointerException(toString()); 
-    }
-    this.modelName = modelName;
-    if (preserveContrast) {
-      process.openModelPreserveContrast(modelName);
-    }
-    else {
-      process.openModel(modelName);
-      warnedStaleFile = false;
-    }
-    if (useMode) {
-      if (mode.equals(MODEL)) {
-        process.modelMode();
-      }
-      else {
-        process.movieMode();
-      }
-    }
-  }
-
-  /**
-   * Opens a model using the modelName parameter.  Sets the mode based on the 
-   * modelModel parameter.  Does not alter configuration.
-   * 
-   * Configuration functions you can use with this function:
-   * configurePreserveContrast()
-   * 
-   * @param modelName
-   * @param modelMode
-   * @throws SystemProcessException
-   */
-  public void model(String modelName, boolean modelMode) throws SystemProcessException {
-    useMode = true;
-    setMode(modelMode);
-    model(modelName);
-  }
-  
-  
   /**
    * Opens the Bead Fixer window.
    * 
@@ -423,6 +401,9 @@ public class ImodState {
   public boolean isOpenWithModel() {
     return openWithModel;
   }
+  public void setOpenWithModel(boolean openWithModel) {
+    this.openWithModel = openWithModel;
+  }
   public String getModelName() {
     return modelName;
   }
@@ -456,7 +437,6 @@ public class ImodState {
   public void setBinning(int binning) {
     process.setBinning(binning);
   }
-
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
