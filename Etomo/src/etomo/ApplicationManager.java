@@ -89,6 +89,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.90  2004/07/23 00:09:30  sueh
+ * <p> bug# 513 add function to get UserConfiguration
+ * <p>
  * <p> Revision 3.89  2004/07/21 00:22:29  sueh
  * <p> bug# 507 In startNextProcess(), checking
  * <p> tomogramCombinationDialog before running volcombine.
@@ -4689,6 +4692,7 @@ public class ApplicationManager {
    */
   public void packMainWindow() {
     mainFrame.repaint();
+    mainFrame.fitWindow();
   }
 
   /**
