@@ -25,6 +25,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2004/12/08 21:21:06  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p> Changed statics SHIFT_IN_X_VALUE_NAME, etc to SHIFT_IN_X.
+* <p>
 * <p> Revision 1.6  2004/12/02 18:24:48  sueh
 * <p> bug 520 Remove unnecessary import.
 * <p>
@@ -92,10 +96,11 @@ public class FinishjoinParam implements Command {
   public static final int SIZE_IN_Y_INDEX = 4;
   public static final int OFFSET_IN_X_INDEX = 4;
   public static final int OFFSET_IN_Y_INDEX = 5;
-  public static final int SIZE_IN_X = -1;
-  public static final int SIZE_IN_Y = -2;
-  public static final int SHIFT_IN_X = -3;
-  public static final int SHIFT_IN_Y = -4;
+  public static final int GET_SIZE_IN_X = -1;
+  public static final int GET_SIZE_IN_Y = -2;
+  public static final int GET_SHIFT_IN_X = -3;
+  public static final int GET_SHIFT_IN_Y = -4;
+  public static final int GET_BINNING = -5;
   
   private static final String commandName = "finishjoin";
   private ConstJoinMetaData metaData;
@@ -126,14 +131,16 @@ public class FinishjoinParam implements Command {
   
   public int getIntegerValue(int name) {
     switch (name) {
-    case SIZE_IN_X:
+    case GET_SIZE_IN_X:
       return sizeInX;
-    case SIZE_IN_Y:
+    case GET_SIZE_IN_Y:
       return sizeInY;
-    case SHIFT_IN_X:
+    case GET_SHIFT_IN_X:
       return shiftInX;
-    case SHIFT_IN_Y:
+    case GET_SHIFT_IN_Y:
       return shiftInY;
+    case GET_BINNING:
+      return binning;
     default:
       return Integer.MIN_VALUE;
     }
@@ -141,10 +148,6 @@ public class FinishjoinParam implements Command {
   
   public boolean getBooleanValue(int name) {
     return false;
-  }
-  
-  public int getBinning() {
-    return binning;
   }
   
   public String[] getCommandArray() {
@@ -171,11 +174,11 @@ public class FinishjoinParam implements Command {
     return new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(offset).getNegation();
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return outputFile;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return mode;
   }
   
