@@ -1805,6 +1805,15 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
 
   dist = imodel_point_dist( lpt, &cpt);
 
+  /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
+     new contour can be started */
+  if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
+      ((int)floor(lpt->z + 0.5) != (int)cpt.z ||
+       zapTimeMismatch(vi, zap->timeLock, obj, cont))) {
+    zapButton2(zap, x, y);
+    return;
+  }
+
   if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
@@ -2629,6 +2638,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.22  2003/05/23 02:44:20  mast
+Fix syncing to new point in other Zap windows
+
 Revision 4.21  2003/05/04 18:37:14  mast
 Fixing help
 
