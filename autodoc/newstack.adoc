@@ -224,6 +224,16 @@ manpage = Rescale the densities of all sections by the same factors so that
 the original minimum and maximum density will be mapped to the Min and Max
 values that are entered.
 
+[Field = MultiplyAndAdd]
+short = multadd
+long = MultiplyAndAdd
+type = FPM
+usage = Scale all sections by multiplying by first value then adding the second
+tooltip = 
+manpage = Rescale the densities of all sections by multiplying by the first
+entered value then adding the second value.  This option must be entered either
+once only, or once per input file.
+
 [Field = DistortionField]
 short = distort
 long = DistortionField
