@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.1  2004/03/15 20:31:48  rickg
+* <p> Bug# 414 Fixed short string handling
+* <p>
 * <p> Revision 3.0  2003/11/07 23:19:01  rickg
 * <p> Version 1.0.0
 * <p>
@@ -60,7 +63,7 @@ public class ButtonHelper {
     while (keys.hasMoreElements()) {
       Object key = keys.nextElement();
       Object value = UIManager.get(key);
-      if (key.toString() == name && value.getClass() == target.getClass()) {
+      if (key.toString().equals(name) && value.getClass().equals(target.getClass())) {
         return value;
       }
     }
