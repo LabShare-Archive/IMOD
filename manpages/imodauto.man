@@ -126,6 +126,11 @@ Set the zscale for the model.  The zscale is a factor that compensates for
 x-y plane data.  If the images have 25nm pixels and 100nm z slice size then the
 z-scale factor would be 4.0.
 .TP
+.B -c <r,g,b>
+Set the color of the model object by specifying red, green, blue values
+separated by commas.  The values can range from 0 to 1 or from 0 to 255;
+i.e., 1.0,0.5,0 and 255,128,0 could both be used to specify orange.
+.TP
 .B -x
 Expand areas by one pixel before enclosing them in contours, just as in 
 imod autocontouring.
