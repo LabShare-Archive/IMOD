@@ -161,7 +161,7 @@ void imodvHelpMenu(int item)
        "  s   \tToggle stereo mode\n",
        "  S   \tSnapshot image as an RGB file to modvnnnn.rgb\n",
        CTRL_STRING"-S\tSnapshot image as a TIFF file to modvnnnn.tif\n",
-       "  o   \tOutput transformation information\n",
+       "  o   \tOutput transformation information and movie frames/sec\n",
        "  c   \tOutput clipping plane information\n",
        " -/=  \tDecrease/Increase zoom\n",
        " _/+  \tDecrease/Increase zoom by big steps\n"
@@ -178,7 +178,7 @@ void imodvHelpMenu(int item)
        " g/G  \tIncrease/Decrease the quality of sphere drawing\n",
        " [/]  \tAdjust parallax for stereo viewing\n",
        "  l   \tInvert the parallax angle\n",
-       " ,/.  \tDecrease/Increase rotation increment and thus speed\n",
+       " ,/.  \tDecrease/Increase rotation increment and speed\n",
        " 1/2  \tDecrease/Increase time for 4D models\n",
        "  8   \tToggle displaying all models or one model\n",
        " 9/0  \tPrevious/Next model\n",
@@ -195,9 +195,15 @@ void imodvHelpMenu(int item)
        "\tWhen the "CTRL_STRING" key is held down the left mouse button "
        "moves the current object clipping plane.\n\n",
        "Middle Mouse Button Drag\n",
-       "\tThe Middle mouse button rotates the model around an axis "
-       "perpendicular to the direction of motion of the mouse.\n\n"
-       "\tWhen the shift key is held down the middle ",
+       "\tThe middle mouse button rotates the model around an axis "
+       "perpendicular to the direction of motion of the mouse.  It can also "
+       "be used to \"throw\" the model in a new direction if the model "
+       "is already rotating automatically, or if a button or hot key has been "
+       "pressed to start rotation.  The model will rotate continuously in the "
+       "direction of movement, and the speed of rotation will be proportional "
+       "to the distance moved.  (Moving 100 pixels will make it rotate at "
+       "the standard speed.)\n\n"
+       "\tWhen the Shift key is held down the middle ",
        "mouse button rotates the light source instead.\n\n",
        "\tWhen the "CTRL_STRING" key is held down the middle mouse button "
        "rotates the current object clipping plane instead.\n\n",
@@ -588,6 +594,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2003/10/24 04:01:57  mast
+delete files before renaming, renaming only if necessary for Windows/Intel
+
 Revision 4.9  2003/06/27 20:03:30  mast
 Initial views using new scheme when reading in a model
 
