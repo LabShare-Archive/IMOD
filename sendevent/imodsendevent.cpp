@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/09/24 15:05:58  mast
+Switched to ::exit(), set selection mode false, added retry
+
 Revision 1.2  2003/09/13 16:17:36  mast
 Added option for debug output
 
@@ -55,6 +58,7 @@ Initial addition to package
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <imodconfig.h>
 #include <imodsendevent.h>
 
 static int winID;
@@ -180,6 +184,8 @@ void ImodSendEvent::timerEvent(QTimerEvent *e)
     QString qstr = timeStr + cmdStr;
     QClipboard *cb = QApplication::clipboard();
     cb->setSelectionMode(false);
+    if (debugOut)
+      fprintf(stderr, "Imodsendevent - resending %s \n", qstr.latin1());
     cb->setText(qstr);
     return;
   }
