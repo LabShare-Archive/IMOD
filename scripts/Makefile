@@ -1,10 +1,18 @@
 include ../configure
 
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 # 3/12/01 take bgimod out, no longer needed
 
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
- setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign 
+ setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
+ dm2mrc 
 
 all:
 
