@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2003/10/10 20:42:04  mast
+c	  Used new subroutine for getting input/output files
+c	
 c	  Revision 3.12  2003/10/09 02:33:08  mast
 c	  Converted to use autodoc
 c	
@@ -524,7 +527,11 @@ c
 	  endif
 	  write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts',
      &	      idir*nbin*usdx,idir*nbin*usdy
-	  call flush(6)
+c
+c	    DNM 10/22/03: Only do flush for large stacks because of problem
+c	    inside shell scripts in Windows/Intel
+c
+	  if (iznd - izst .gt. 2) call flush(6)
 	  f(1,3,iview)=idir*nbin*usdx
 	  f(2,3,iview)=idir*nbin*usdy
 	  if(imfilout.ne.' ')then
