@@ -38,36 +38,39 @@ Length Type Name          Description
 
 4      long  objsize       Number of objects in model.
 
-4      long  flags;        Not used yet. set to 0.
-4      int   drawmode;     Tells how to draw model.
-4      int   mousemode;    Mouse editing mode. (0=movie,1=model)
+4      long  flags         Model flags  (IMODF_FLAG...)
+                           Bit 14 on : otrans has image origin values
+                           Bit 15 on : current tilt angles are stored correctly
+                           Bit 16 on : model last viewed on Y/Z flipped image
+4      int   drawmode      1 to draw model, -1 not to
+4      int   mousemode     Mouse editing mode. (0=movie,1=model)
 
-4      int   blacklevel;   Contrast adjustment. (0-256) Default = 0.
-4      int   whitelevel;   Contrast adjustment. (0-256) Default = 255.
+4      int   blacklevel    Contrast adjustment. (0-256) Default = 0.
+4      int   whitelevel    Contrast adjustment. (0-256) Default = 255.
 
-4      float xoffset;      Offsets used for display & conversion,
-4      float yoffset;      should be set to 0.
-4      float zoffset;       
+4      float xoffset       Offsets used for display & conversion,
+4      float yoffset       should be set to 0.
+4      float zoffset       (unused, superceded by IMNX information)
 
-4      float xscale;       Scaling for pixel size. xscale and yscale should
-4      float yscale;       be 1.0 and zscale should be adjusted to account
-4      float zscale;       for the image thickness.
+4      float xscale        Scaling for pixel size. xscale and yscale should
+4      float yscale        be 1.0 and zscale should be adjusted to account
+4      float zscale        for the image thickness.
 
-4      int   object;       Current object, contour and point, used for
-4      int   contour;      model editing.
-4      int   point;
+4      int   object        Current object, contour and point, used for
+4      int   contour       model editing.
+4      int   point 
 
-4      int   res;          Number of pixels between points for drag drawing.
-4      int   thresh;       Threshold level for auto contour generator.
+4      int   res           Number of pixels between points for drag drawing.
+4      int   thresh        Threshold level for auto contour generator.
 
-4      float pixsize;      Size of unit 1.0 pixel
-4      int   units;        Units of given size.
+4      float pixsize       Size of unit 1.0 pixel
+4      int   units         Units of given size.
 
 4      long  csum          Checksum storage. Used for autosave only.
 
 4      float alpha         Angles used for orientation of the model with
 4      float beta          image. Should be set to 0.0
-4      float gamma
+4      float gamma         (unused, superceded by IMNX information)
 </pre>
 
 <HR>
@@ -78,35 +81,49 @@ with the following format.
 <pre>
 Length Type  Name       Description
 ------------------------------------------------------------------------------
-64     char  name;      Name of Object. Null terminated string.
+64     char  name       Name of Object. Null terminated string.
 64     int              Extra data reserved for future use.
 
-4      long  contsize;  Number of Contours in object.
-4      long  flags;     bit flags for object.
+4      long  contsize   Number of Contours in object.
+4      long  flags      bit flags for object (IMOD_OBJFLAG...).
+                        Bit 1 on : Off - turns off display
+                        Bit 3 on : Open - contours are not closed
+                        Bit 4 on : Wild - contours not constrained in Z
+                        Bit 5 on : Inside-out  - light inside surface
+                        Bit 8 on : Fill - draw filled polygons
+                        Bit 9 on : Scattered - contours have scattered points
+                        Bit 10 on : Mesh - draw mesh data in 3D
+                        Bit 11 on : Lines - draw contours in 3D
+                        Bit 14 on : Fill color - use instead of regular color
+                        Bit 15 on : Anti-aliasing on
+                        Bit 16 on : Normals have magnitudes
+                        Bit 17 on : Draw normal maginitudes with false color
+                        Bit 18 on : Time - contours have time indexes
+                        Bit 19 on : Light both sides of surface
 
-4      int   axis;      Z = 0, X = 1, Y = 2.
-4      int   drawmode;  Tells type of points to draw.
+4      int   axis       Z = 0, X = 1, Y = 2.
+4      int   drawmode   Tells type of points to draw.
 
-4      float red;       Color values, range is (0.0 - 1.0)
-4      float green;     
-4      float blue;      
+4      float red        Color values, range is (0.0 - 1.0)
+4      float green      
+4      float blue       
 
-4      int   pdrawsize;   Size to draw points in 3D.
+4      int   pdrawsize    Size to draw points in 3D.
 
-1      uchar symbol;      Point Draw symbol, default is 0.
+1      uchar symbol       Point Draw symbol, default is 0.
                              0 = circle, 1 = none, 2 = square, 3 = triangle,
 	                     4 = star.
-1      uchar symsize;     Size of symbol; radius.
-1      uchar linewidth2;  Linewidth in 2-D view.
-1      uchar linewidth;   Linewidth in 3-D view.
-1      uchar linesty;     Line draw style default is 0 = solid. 1 = dashed.
-1      uchar symflags;    Bit 0 on : Fill the symbol.
+1      uchar symsize      Size of symbol; radius.
+1      uchar linewidth2   Linewidth in 2-D view.
+1      uchar linewidth    Linewidth in 3-D view.
+1      uchar linesty      Line draw style default is 0 = solid. 1 = dashed.
+1      uchar symflags     Bit 0 on : Fill the symbol.
                           Bit 1 on : Draw begining and end symbols.
-1      uchar sympad;      Set to 0, for future use.
-1      uchar trans;       Transparency
+1      uchar sympad       Set to 0, for future use.
+1      uchar trans        Transparency
 
-4      int   meshsize;    Number of meshes in object.
-4      int   surfsize;    Max surfaces in object.
+4      int   meshsize     Number of meshes in object.
+4      int   surfsize     Max surfaces in object.
 </pre>
 
 <HR>
@@ -118,13 +135,13 @@ contours are allowed.
 <pre>
 Length    Type         Name      Description.
 ------------------------------------------------------------------------------
-4         long         psize;  Number of points in contour.
-4         long         flags;  Bit 3 on : open, do not connect endpoints
+4         long         psize   Number of points in contour.
+4         long         flags   Bit 3 on : open, do not connect endpoints
                                Bit 4 on : wild, not in one Z plane
                                Bit 15 on : type variable contains time index
-4         int          type;   The time index used by this contour.
-4         int          surf;   The surface index used by this contour.
-12*psize  float x,y,z  pt;     Array of point triplets.
+4         int          type    The time index used by this contour.
+4         int          surf    The surface index used by this contour.
+12*psize  float * 3    pt      Array of point triplets.
 </pre>
 
 <HR>
@@ -135,15 +152,17 @@ The mesh ID is (MESH = 0x4d455348) and the basic structure is
 <pre>
 Length    Type         Name    Description
 ------------------------------------------------------------------------------
-4         int          vsize;  Size of vertex array (# of triple floats).
-4         int          lsize;  Size of index array.
-4         long         flag;   Bit 16 on  : normals have magnitudes.
+4         int          vsize   Size of vertex array (# of triple floats).
+4         int          lsize   Size of index array.
+4         long         flag    Bit 16 on  : normals have magnitudes.
                 	       Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
-4         int          type;   Contains a time index or 0
-4         int          pad;    Contains a surace number or 0
-12*vsize  float x,y,z  vert;   Array of points.
-4*lsize   int          index;  Array of ints.
+2         short        type    Contains a time index or 0
+2         short        pad     Contains a surace number or 0
+                                type and pad are stored as ints in the
+                                internal data structure but shorts in the file
+12*vsize  float * 3    vert    Array of points.
+4*lsize   int          index   Array of ints.
 </pre>
 <p>
 A point can be either a vertex position or a normal vector at a vertex.
@@ -202,20 +221,43 @@ DRAW  Model Draw structure.
 Description of current optional data chunks.
 </H4>
 <HR>
-IMNX  Model to image transformation matrix.  (72 bytes data)
-<br>
-9 floats for current transformation matrix
-followed by 9 floats for the original transformation matrix.
-Each float takes up 4 bytes.
-<pre>
-    | a b c |
-A = | d e f | , P = |x y z| then 
-    | g h i |
+IMNX  Model to image transformation information.  (72 bytes data)
+<p>
+Coordinates are stored in an IMOD model file as image index coordinates 
+relative to the last subset of image file that the model was displayed on.
+The information here has two main uses.  1) It is used by Imod to display
+the model
+correctly when going between having a subset or the full image file loaded,
+or when displaying on an image file with different origin, scaling, or rotation
+angles in its header.  2) It is used by other programs to get back to the
+index coordinates of the full image file.  These data consist
+9 floats for old transformation values
+followed by 9 floats for current transformation values.
 
-x' = ax + by + cz
-y' = dx + ey + fz
-z' = gx + ey + iz
+<pre>
+Length Type         Name     Description
+------------------------------------------------------------------------------
+12     float * 3    oscale   Old scale values (unused in file) 
+12     float * 3    otrans   Old translations (file stores image origin values)
+12     float * 3    orot     Old rotations around X, Y, Z axes (unused in file)
+12     float * 3    cscale   New scale values in X, Y, Z
+12     float * 3    ctrans   New translations in X, Y, Z
+12     float * 3    crot     New rotations around X, Y, Z axes
 </pre>
+
+These values are based on the header information in the last image that
+the model was displayed on: <code>cscale</code> is pixel spacing 
+(cell size over grid size, <code>xlen/mx</code>); 
+<code>crot</code> is taken from the current tilt angles; 
+<code>ctrans</code> is based on
+the origin minus the scale times the starting index coordinate of the image
+loaded into Imod; <code>otrans</code> has the origin values.
+<p>
+To get from coordinates in a model file to an image file coordinate system,
+first Y and Z are exchanged if the FLIPYZ flag is set, then coordinates
+are multiplied by the scale values, translation values are subtracted, then
+points are rotated by the negative of the rotation angles around X, 
+then Y then Z.
 
 <HR>
 LABL  Label contour and point data. (Variable data)
@@ -252,13 +294,13 @@ IMAT  material definition for object.        (16 bytes data)
 <pre>
 Length Type      Description
 -------------------------------------------------------------------
-1  UBYTE ambient;
-1  UBYTE diffuse;
-1  UBYTE specular;  /* specular IS shininess   */
-1  UBYTE shininess; /* shininess used as flags */
-4  UINT  mat1; /* set to 0, use as material color future. ABGR */
-4  UINT  mat2; /* set to 0, use as flags. */
-4  UINT  mat3; /* used  byte0 = bright, byte1 = contrast */
+1  UBYTE ambient 
+1  UBYTE diffuse 
+1  UBYTE specular   /* specular IS shininess   */
+1  UBYTE shininess  /* shininess used as flags */
+4  UINT  mat1  /* set to 0, use as material color future. ABGR */
+4  UINT  mat2  /* set to 0, use as flags. */
+4  UINT  mat3  /* used  byte0 = bright, byte1 = contrast */
 </pre>
 
 <HR>
@@ -282,14 +324,18 @@ Length Type     Name    Description
 4     float     fovy    field of view of camera, perspective in degrees.  
 4     float     rad     viewing radius of sphere encloseing bounding box. 
 4     float     aspect  aspect ratio 
-4     float     cnear   clip near range 0.0 to 1.0, default 0.0. 
-4     float     cfar    clip far range 0.0 to 1.0 
+4     float     cnear   clip near: range 0.0 to 1.0, default 0.0. 
+4     float     cfar    clip far: range 0.0 to 1.0 
 12    float * 3 rot     Model transformation values for model view: rotation
 12    float * 3 trans   translation
 12    float * 3 scale   scale
 -------------------------------------------------------------------
 64    float * 16 mat    World OpenGL transformation matrix
 4     int       world   flags for lighting and transformation properties
+                        Bit 1 on : Light - draw with lighting
+                        Bit 2 on : Depth cue - draw with depth cue
+                        Bit 3 on : Wireframe - draw wireframes, not surfaces
+                        Bit 7 on : Draw lower resolution meshes
 32    char      label   ??
 -------------------------------------------------------------------
 4     float     dcstart Fog starting distance
@@ -304,7 +350,7 @@ Length Type     Name    Description
 </pre>
 Currently there are 67 bytes per object view, as follows:
 <pre>
-4     UINT      flags        bit flags IMOD_OBJFLAG        
+4     UINT      flags        bit flags IMOD_OBJFLAG... (see above)
 4     float     red          Red (0 - 1.0)                 
 4     float     green        Green (0 - 1.0)               
 4     float     blue         Blue (0 - 1.0)                

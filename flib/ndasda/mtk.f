@@ -143,7 +143,7 @@ c	  NDMTKRAND, BUNDLEDIST, CONVEXBOUND
 c	  
 c	  David Mastronarde  November 1991
 c
-	parameter (limgraphs=50,limbins=301,limwobj=30000,limxyz=50000,
+	parameter (limgraphs=50,limbins=301,limwobj=30000,limxyz=100000,
      &	    limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000,limflag=512)
 	parameter (limprobs=50,limprobsets=50)
