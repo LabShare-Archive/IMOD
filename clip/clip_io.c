@@ -1,60 +1,30 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  clip_io.c -- Disk input/output for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.4  2004/04/22 19:08:45  mast
-Added error checks and returns on mrc I/O calls
-
-Revision 3.3  2003/11/18 19:29:50  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.2  2002/09/14 01:01:18  mast
-Fixed output of scale factors in header output to correspond to proper
-usage, and fixed attempt to adjust zlen when overwriting or appending
-
-Revision 3.1  2002/06/26 16:48:52  mast
-Fixed problems with header being reinitialized when appending or
-overwriting to an output file
-
+Log at end of file
 */
 
 #include <stdlib.h>
 #include "mrcc.h"
+#include "b3dutil.h"
 #include "clip.h"
 
-
-void set_mrc_coords(struct Grap_options *opt)
+/* DNM 1/5/05: changed to return result of writing header */
+int set_mrc_coords(struct Grap_options *opt)
 {
   float tx, ty, tz;
   struct MRCheader *hin = opt->hin;
@@ -71,17 +41,20 @@ void set_mrc_coords(struct Grap_options *opt)
   ty = opt->cy - (opt->iy/2);
   ty += (opt->iy - opt->oy)/2;
   hout->yorg -= ty;
+   
+  /* DNM 1/5/05: with -2d, -iz is treated like a range list, not a size */
+  if (opt->dim == 3) {
+    tz = opt->cz - (opt->iz/2);
+    tz += (opt->iz - opt->oz)/2;
+    hout->zorg -= tz;
+  }
      
-  tz = opt->cz - (opt->iz/2);
-  tz += (opt->iz - opt->oz)/2;
-  hout->zorg -= tz;
-     
-  mrc_head_write(hout->fp, hout);
+  return (mrc_head_write(hout->fp, hout));
 }
 
 void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
 {
-  int i;
+  int i, zst, znd;
 
   if (opt->nofsecs == IP_DEFAULT){
     opt->nofsecs = hin->nz;
@@ -99,6 +72,17 @@ void set_input_options(struct Grap_options *opt, struct MRCheader *hin)
     }
     if (opt->oz == IP_DEFAULT)
       opt->oz = opt->iz;
+
+    /* Set up a section list for the case where something is treated as
+       2d without -2d being given */
+    if (opt->nofsecs != IP_DEFAULT)
+      free(opt->secs);
+    zst = B3DMAX((int)(opt->cz - opt->iz / 2.), 0);
+    znd = B3DMIN(zst + opt->iz - 1, hin->nz - 1);
+    opt->nofsecs = znd + 1 - zst;
+    opt->secs = (int *)malloc(sizeof(int) * opt->nofsecs);
+    for (i = zst; i <= znd; i++)
+      opt->secs[i - zst] = i;
   }
 
   if (opt->ix == IP_DEFAULT)
@@ -526,3 +510,25 @@ int mrc_head_print(struct MRCheader *data)
     printf("%s\n",data->labels[i]) ;
   return(0);
 }
+
+/*
+$Log$
+Revision 3.5  2004/11/05 18:53:16  mast
+Include local files with quotes, not brackets
+
+Revision 3.4  2004/04/22 19:08:45  mast
+Added error checks and returns on mrc I/O calls
+
+Revision 3.3  2003/11/18 19:29:50  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
+Revision 3.2  2002/09/14 01:01:18  mast
+Fixed output of scale factors in header output to correspond to proper
+usage, and fixed attempt to adjust zlen when overwriting or appending
+
+Revision 3.1  2002/06/26 16:48:52  mast
+Fixed problems with header being reinitialized when appending or
+overwriting to an output file
+
+*/
+
