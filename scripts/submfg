@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/06/15 01:55:55  mast
+#  Added an option to get time output
+#
 #  Revision 3.2  2003/05/20 23:39:52  mast
 #  Change to echo -n for "Running..." to accommodate PID output
 #
@@ -18,7 +21,7 @@
 if ($#argv < 1) then
 cat <<EOF
 subm or submfg will execute a series of command files in sequence
-Usage:  submfg [-t] command_file1 command_file2 ...
+Usage:  submfg [-t | -c] command_file1 command_file2 ...
         Command files must have extension .com
         If the filename is comfile.com, you can enter 
                  comfile    comfile.    or  comfile.com
@@ -26,6 +29,7 @@ Usage:  submfg [-t] command_file1 command_file2 ...
         To run jobs in the background, set up an alias:  
                alias subm 'submfg \!* &'
         The -t option will report the execution time
+        The -c option will continue with the next command file if one fails
         Set the environment variable SUBM_MESSAGE to modify the message upon
                 completion
 EOF
@@ -42,11 +46,29 @@ set bell = ""
 
 set dotime = 0
 set comtmp = submtimer.$$
-if ("$argv[1]" == "-t") then
-    set dotime = 1
-    shift
-    onintr clean
-endif
+set done = 0
+set continue = 0
+
+while ($#argv > 2 && $done == 0)
+    switch ($argv[1])
+    case -t:
+        set dotime = 1
+        shift
+        onintr clean
+        breaksw
+
+    case -c:
+        set continue = 1
+        shift
+        breaksw
+
+    default:
+        set done = 1
+        breaksw
+    endsw
+end
+
+
 
 while ($#argv > 0)
     set rootname = $argv[1]:r
@@ -69,7 +91,7 @@ while ($#argv > 0)
     if ($exitstat) then
 	echo Error executing $rootname.com $bell
 	if (-e $rootname.log) tail -1 $rootname.log
-	goto clean
+	if ($continue == 0) goto clean
     else
 	echo $rootname.com $message
     endif
@@ -77,4 +99,4 @@ while ($#argv > 0)
 end
 
 clean:
-if ($dotime == 1) \rm $comtmp 
+if ($dotime == 1) \rm -f $comtmp 
