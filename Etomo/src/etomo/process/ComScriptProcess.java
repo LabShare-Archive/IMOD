@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2003/10/01 18:15:48  rickg
+ * <p> Store demo time as a parameter and make it avaiable
+ * <p>
  * <p> Revision 1.8  2003/08/20 22:02:21  rickg
  * <p> Added log message when unable to rename log file
  * <p>
@@ -148,7 +151,7 @@ public class ComScriptProcess
 
     if (demoMode) {
       try {
-				started = true;
+        started = true;
         csh = new SystemProgram("nothing");
         csh.setExitValue(0);
         sleep(demoTime);
@@ -159,19 +162,10 @@ public class ComScriptProcess
       }
     }
     else {
-      // Rename the existing log file
-      String logFileName = parseBaseName(name, ".com") + ".log";
-      File logFile = new File(workingDirectory, logFileName);
-      if (logFile.exists()) {
-        File oldLog = new File(workingDirectory, logFileName + "~");
-        if (!logFile.renameTo(oldLog)) {
-          System.err.println(
-            "Unable to rename log file: "
-              + workingDirectory
-              + logFileName
-              + "~");
-          }
-      }
+
+      // Rename the logfile so that any log file monitor does not get confused
+      // by an existing log file
+      renameLogFile();
 
       //  Covert the com script to a sequence of csh commands
       String[] commands;
@@ -224,6 +218,18 @@ public class ComScriptProcess
     done = true;
   }
 
+  private void renameLogFile() {
+    //	Rename the existing log file
+    String logFileName = parseBaseName(name, ".com") + ".log";
+    File logFile = new File(workingDirectory, logFileName);
+    if (logFile.exists()) {
+      File oldLog = new File(workingDirectory, logFileName + "~");
+      if (!logFile.renameTo(oldLog)) {
+        System.err.println(
+          "Unable to rename log file: " + workingDirectory + logFileName + "~");
+      }
+    }
+  }
   /**
    * Get the name of the com script
    */
