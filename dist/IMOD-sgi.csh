@@ -1,4 +1,4 @@
-# IMOD 3.0.7
+# IMOD 3.0.16
 #
 # Startup file for users of IMOD on an SGI (if they are running csh or tcsh)
 #
@@ -7,11 +7,20 @@
 #
 # Source this file from the user's .cshrc or from the system cshrc file
 # (probably /etc/cshrc) by inserting sgi.cshrc
+#
+# It assumes that the java run-time environment is installed at the
+# recommended location - to use a different jre, modify IMOD_JAVADIR here or
+# set IMOD_JAVADIR before sourcing this file
 
 #
 # Set IMOD_DIR if it is not set already
 #
 if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
+
+#
+# Set IMOD_JAVADIR if it is not set already
+#
+if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/java2v14
 
 #
 # Put the IMOD programs on the path
