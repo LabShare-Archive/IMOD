@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:57  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/27 16:02:22  mast
 #  Added dependency on .version file
 #
@@ -48,7 +51,8 @@ work : clean
 #
 # Some depends.
 #
-imodel.o : $(INCDIR)/imodel.h $(INCDIR)/iobj.h $(INCDIR)/icont.h \
+$(IMODELOBJS) : $(INCDIR)imodel.h
+imodel.o : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
 $(INCDIR)/ipoint.h $(INCDIR)/imesh.h ../.version
 iobj.o   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 imesh.o  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
