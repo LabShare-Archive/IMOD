@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/25 19:14:40  mast
+    Added arguments to (*cb)() in function calls
+
 */
 
 #include <Xm/DialogS.h>
@@ -111,15 +114,20 @@ void dia_fact_file_cb(Widget w, XtPointer client_data, XtPointer call_data)
      if (w == fd->finbut){
 	  fd->gettingfile++;
 	  filename = dia_filename("Enter Input Filename.");
-	  XtVaSetValues(fd->fintext, XmNvalue, filename, NULL);
+          if (filename) {
+            XtVaSetValues(fd->fintext, XmNvalue, filename, NULL);
+            XtFree(filename);
+          }
 	  fd->gettingfile--;
      }else{
 	  fd->gettingfile++;
 	  filename = dia_filename("Enter Output Filename.");
-	  XtVaSetValues(fd->fouttext, XmNvalue, filename, NULL);
+          if (filename) {
+            XtVaSetValues(fd->fouttext, XmNvalue, filename, NULL);
+            XtFree(filename);
+          }
 	  fd->gettingfile--;
      }
-     free(filename);
 }
 
 int dia_fact(char *prompt, char *def1, char *def2,
