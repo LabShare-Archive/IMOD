@@ -51,6 +51,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapDraw(ZapStruct *zap);
+static int zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
 static void zapButton1(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton2(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
@@ -614,6 +615,8 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->setCaption(imodCaption("3dmod ZaP Window"));
 
   zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
+  if (zap->qtWindow->mToolBar2)
+    zap->qtWindow->mToolBar2->setLabel(imodCaption("Time Toolbar"));
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (void *)zap);
@@ -626,6 +629,7 @@ int imod_zap_open(struct ViewInfo *vi)
   /* 1/28/03: this call is needed to get the toolbar size hint right */
   imod_info_input();
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
+  QSize toolSize2 = zap->qtWindow->mToolBar2->sizeHint();
   toolHeight = zap->qtWindow->height() - zap->gfx->height();
 
   if (!oldGeom.width()) {
@@ -640,6 +644,17 @@ int imod_zap_open(struct ViewInfo *vi)
     }
 
     needWinx = (int)(zap->zoom * vi->xsize);
+
+    // If Window is narrower than two toolbars, they will stack, so adjust
+    // toolheight up if it is small; otherwise adjust it down if it is large
+    if (needWinx < toolSize.width() + toolSize2.width()) {
+      if (toolHeight < toolSize.height() + toolSize2.height())
+        toolHeight += toolSize2.height();
+    } else {
+      if (toolHeight >= toolSize.height() + toolSize2.height()) 
+        toolHeight -= toolSize2.height();
+    }
+
     needWiny = (int)(zap->zoom * vi->ysize) + toolHeight;
     zapLimitWindowSize(needWinx, needWiny);
 
@@ -670,9 +685,16 @@ int imod_zap_open(struct ViewInfo *vi)
     zapLimitWindowSize(newWidth, newHeight);
     zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
-    // adjust zoom either way to fit window
-    needWiny = newHeight - toolHeight;
+    // Adjust toolheight then adjust zoom either way to fit window
     needWinx = newWidth;
+    if (needWinx < toolSize.width() + toolSize2.width()) {
+      if (toolHeight < toolSize.height() + toolSize2.height())
+        toolHeight += toolSize2.height();
+    } else {
+      if (toolHeight >= toolSize.height() + toolSize2.height()) 
+        toolHeight -= toolSize2.height();
+    }
+    needWiny = newHeight - toolHeight;
 
     // If images are too big, zoom down until they almost fit
     // If images are too small, start big and find first zoom that fits
@@ -1127,7 +1149,7 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
     return;
   insertDown = 0;
   registerDragAdditions(zap);
-  zap->gfx->setMouseTracking(false);
+  zap->gfx->setMouseTracking(zap->rubberband != 0);
   zap->qtWindow->releaseKeyboard();
   zap->gfx->releaseMouse();
   if (zap->drawCurrentOnly) {
@@ -1245,8 +1267,11 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int ctrlDown = event->state() & Qt::ControlButton;
   int shiftDown = event->state() & Qt::ShiftButton;
 
-  if (!(mousePressed || insertDown))
+  if (!(mousePressed || insertDown)) {
+    if (zap->rubberband)
+      zapAnalyzeBandEdge(zap, event->x(), event->y());
     return;
+  }
 
   setControlAndLimits(zap);
   
@@ -1280,6 +1305,90 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   zap->lmy = event->y();
 }
 
+/*
+ * Analyze for whether mouse is close to a corner or an edge and set flags
+ * for mouse to be set properly
+ */
+static int zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy)
+{
+  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
+  int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
+  int minedgex, minedgey;
+
+  zapBandImageToMouse(zap, 0);    
+  dminsq = rubbercrit * rubbercrit;
+  dragband = 0;
+  minedgex = -1;
+  for (i = 0; i < 4; i++)
+    dragging[i] = 0;
+  dxll = ix - zap->rbMouseX0;
+  dxur = ix - zap->rbMouseX1;
+  dyll = iy - zap->rbMouseY0;
+  dyur = iy - zap->rbMouseY1;
+
+  /* Find distance from each corner, keep track of a min */
+  distsq = dxll * dxll + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 2;
+  }
+  distsq = dxur * dxur + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 2;
+  }
+  distsq = dxll * dxll + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 3;
+  }
+  distsq = dxur * dxur + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 3;
+  }
+
+  /* If we are close to a corner, set up to drag the band */
+  if (minedgex >= 0) {
+    dragband = 1;
+    dragging[minedgex] = 1;
+    dragging[minedgey] = 1;
+  } else {
+    /* Otherwise look at each edge in turn */
+    dmin = rubbercrit;
+    dist = dxll > 0 ? dxll : -dxll;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 0;
+    }
+    dist = dxur > 0 ? dxur : -dxur;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 1;
+    }
+    dist = dyll > 0 ? dyll : -dyll;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 2;
+    }
+    dist = dyur > 0 ? dyur : -dyur;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 3;
+    }
+    if (minedgex < 0)
+      dragband = 0;
+    else {
+      dragging[minedgex] = 1;
+      dragband = 1;
+    }
+  }
+  zapSetCursor(zap, zap->mousemode);
+}
 
 static int zapBandMinimum(ZapStruct *zap)
 {
@@ -1347,6 +1456,7 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
 
     zap->startingBand = 0;
     zap->rubberband = 1;
+    zap->gfx->setMouseTracking(true);
     dragband = 1;
     dragging[0] = 0;
     dragging[1] = 1;
@@ -1663,8 +1773,8 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 
 void zapB1Drag(ZapStruct *zap, int x, int y)
 {
-  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int bandmin = zapBandMinimum(zap);
+  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
   int minedgex, minedgey;
 
@@ -1677,84 +1787,9 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
     return;
   }
 
-  if (zap->rubberband && firstdrag) {
-
-    /* First time if rubberbanding, analyze for whether close to a
-       corner or an edge */
-    zapBandImageToMouse(zap, 0);    
-    dminsq = rubbercrit * rubbercrit;
-    minedgex = -1;
-    for (i = 0; i < 4; i++)
-      dragging[i] = 0;
-    dxll = firstmx - zap->rbMouseX0;
-    dxur = firstmx - zap->rbMouseX1;
-    dyll = firstmy - zap->rbMouseY0;
-    dyur = firstmy - zap->rbMouseY1;
-
-    /* Find distance from each corner, keep track of a min */
-    distsq = dxll * dxll + dyll * dyll;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 0;
-      minedgey = 2;
-    }
-    distsq = dxur * dxur + dyll * dyll;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 1;
-      minedgey = 2;
-    }
-    distsq = dxll * dxll + dyur * dyur;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 0;
-      minedgey = 3;
-    }
-    distsq = dxur * dxur + dyur * dyur;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 1;
-      minedgey = 3;
-    }
-
-    /* If we are close to a corner, set up to drag the band */
-    if (minedgex >= 0) {
-      dragband = 1;
-      dragging[minedgex] = 1;
-      dragging[minedgey] = 1;
-    } else {
-      /* Otherwise look at each edge in turn */
-      dmin = rubbercrit;
-      dist = dxll > 0 ? dxll : -dxll;
-      if (dyll > 0 && dyur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 0;
-      }
-      dist = dxur > 0 ? dxur : -dxur;
-      if (dyll > 0 && dyur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 1;
-      }
-      dist = dyll > 0 ? dyll : -dyll;
-      if (dxll > 0 && dxur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 2;
-      }
-      dist = dyur > 0 ? dyur : -dyur;
-      if (dxll > 0 && dxur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 3;
-      }
-      if (minedgex < 0)
-        dragband = 0;
-      else {
-        dragging[minedgex] = 1;
-        dragband = 1;
-      }
-    }
-    if (dragband)
-      zapSetCursor(zap, zap->mousemode);
-  }
+  // First time mouse moves, lock in the band drag position
+  if (zap->rubberband && firstdrag)
+    zapAnalyzeBandEdge(zap, x, y);
   firstdrag = 0;
      
   if (zap->rubberband && dragband) {
@@ -2723,6 +2758,7 @@ void zapToggleRubberband(ZapStruct *zap)
     zap->rubberband = 0;
     zap->startingBand = 0;
     setControlAndLimits(zap);
+    zap->gfx->setMouseTracking(insertDown != 0);
   } else {
     zap->startingBand = 1;
     zap->shiftingCont = 0;
@@ -3425,6 +3461,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.64  2005/03/20 19:55:37  mast
+Eliminating duplicate functions
+
 Revision 4.63  2005/03/08 02:30:21  mast
 Made sure subarea is set properly after a resize and translations
 
