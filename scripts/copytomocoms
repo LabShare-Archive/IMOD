@@ -968,6 +968,18 @@ EOF
     if ($naxis == "2") set backuplist = ($backuplist $setname"fid.xyz")
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
+
+    # GET MTFFILTER
+
+    set srcfile = $srcdir/"mtffilter"$srcext
+    set dstfile = "mtffilter"$dstext
+    set backuplist = ($backuplist $dstfile)
+    if (-e $dstfile) \mv -f $dstfile $dstfile~
+    sed -e s/$srcname/$dstname/g\
+        <$srcfile >$dstfile
+    echo '$'"if (-e $backupname) $backupname" >> $dstfile
+
+
     # GET TILT
 
     set fullx = $xsize
@@ -1178,18 +1190,17 @@ endif
 echo "track$dstext   to create   $setname.fid"
 echo "align$dstext   to create   $setname.xf  and  $setname.tlt"
 
+echo "sample$dstext   to create   top$moda.rec, mid$moda.rec, bot$moda.rec"
+echo "tomopitch$dstext   to find angles of section from tomopitch$moda.mod"
+
 if ($montage == "0") then
     echo "newst$dstext   to create   $setname.ali"
 else
     echo "blend$dstext   to create   $setname.ali"
 endif
 
-cat <<EOF
-tilt$dstext   to create   $setname.rec
-sample$dstext   to create   top$moda.rec, mid$moda.rec, bot$moda.rec
-findsec$dstext   to find section in top$moda.rec, mid$moda.rec, and bot$moda.rec
-tomopitch$dstext   to find angles of section from tomopitch$moda.mod
-EOF
+echo "mtffilter$dstext   to create   ${setname}_filt.ali   (optional)"
+echo "tilt$dstext   to create   $setname.rec"
 
 if ($naxis == "2") then
 cat <<EOF
@@ -1254,6 +1265,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.25  2004/03/20 15:30:12  mast
+#  Added mag gradient option
+#
 #  Revision 3.24  2004/03/14 16:44:57  mast
 #  Changed xfproduct output to keyword-value pairs
 #
