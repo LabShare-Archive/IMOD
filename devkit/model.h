@@ -35,23 +35,6 @@
 #ifndef IMOD_MODEL_H
 #define IMOD_MODEL_H
 
-struct privateStruct
-{
-     int privateData;
-};
-
-typedef struct { float x, y, z; }    Ipoint;
-typedef struct { float a, b, c, d; } Iplane;
-
-typedef struct privateStruct Imod;    /* The entire main model structure. */
-typedef struct privateStruct Iview;   /* The view or camera structure.    */
-typedef struct privateStruct Iobj;    /* Object data structure.           */
-typedef struct privateStruct Imesh;   /* Mesh data structure.             */ 
-typedef struct privateStruct Icont;   /* Contour data structure.          */
-typedef struct privateStruct Ilabel;  /* Point label structure.           */
-
-#define IMOD_NoIndex -1
-
 /*****************************************************************************/
 /* model functions. */
 
@@ -127,6 +110,7 @@ float imodGetZScale(Imod *imod);
 
 /* return pixel size.                    */
 float imodGetPixelSize(Imod *imod);
+int   imodGetFlipped(Imod *imod);
 
 /* return units for pixels. ie "nm", "um", "mm"   */
 char *imodUnits(Imod *mod);
@@ -184,6 +168,8 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue);
 
 void  imodObjectGetColor(Iobj *inObject,
 			 float *outRed, float *outGreen, float *outBlue);
+void  imodObjectSetColor(Iobj *inObject,
+                         float inRed, float inGreen, float inBlue);
 
 
 /*
@@ -220,12 +206,15 @@ Icont *imodContourGet(Imod *inModel);
 Icont *imodContourGetFirst(Imod *imod);  
 /* Get the next contour in the model, NULL if already at last contour. */
 Icont *imodContourGetNext(Imod *imod);
+Icont *imodObjectGetContour(Iobj *inObject, int inIndex);
 
 /* contour create, delete and move functions. */
 Icont *imodContourNew(void);
 Icont *imodContoursNew(int size);
 void   imodContourDefault(Icont *cont);
 int    imodContourDelete(Icont *cont);
+int    imodContoursDelete(Icont *cont, int size);
+int imodContoursDeleteToEnd(Iobj *obj, int keep);
 void   imodContourSwap(Icont *c1, Icont *c2);
 int    imodContourCopy(Icont *from, Icont *to);
 Icont *imodContourDup(Icont *cont); 
