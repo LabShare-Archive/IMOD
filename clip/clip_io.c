@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/26 16:48:52  mast
+    Fixed problems with header being reinitialized when appending or
+    overwriting to an output file
+
 */
 
 #include <stdlib.h>
@@ -310,14 +314,15 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 	       return(-1);
 	  }
 	  /* DNM 6/26/02: fix min and max, also fix mz and zlen */
+	  /* DNM 9/13/02: oops, had xlen instead of zlen */
 	  /* todo: recalc mmm.  This is a start but not much */
 	  if (min < hout->amin)
 	       hout->amin = min;
 	  if (max > hout->amax)
 	       hout->amax = max;
-	  zscale = hout->xlen / hout->mz;
+	  zscale = hout->zlen / hout->mz;
 	  hout->mz = hout->nz;
-	  hout->xlen = hout->mz * zscale;
+	  hout->zlen = hout->mz * zscale;
 	  break;
 
 	case IP_APPEND_ADD:
@@ -338,9 +343,9 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 	  /*  mean = hout->amean;
 	  min = hout->amin;
 	  max = hout->amax; */
-	  zscale = hout->xlen / hout->mz;
+	  zscale = hout->zlen / hout->mz;
 	  hout->mz = hout->nz;
-	  hout->xlen = hout->mz * zscale;
+	  hout->zlen = hout->mz * zscale;
 	  break;
 	  break;
 
@@ -450,13 +455,16 @@ int mrc_head_print(struct MRCheader *data)
 	    data->mx, data->my, data->mz);
 
      xscale = yscale = zscale = 1.0f;
+
+     /* DNM 9/13/02: invert expressions and change from nx to mx, etc., and
+      say Angstrom, not um*/
      if (data->xlen)
-	  xscale = (float)data->nx/data->xlen;
+	  xscale = data->xlen/(float)data->mx;
      if (data->ylen)
-	  yscale = (float)data->ny/data->ylen;
-     if (data->xlen)
-	  zscale = (float)data->nz/data->zlen;
-     printf("Scale         =  ( %g x %g x %g ) um.\n",
+	  yscale = data->ylen/(float)data->my;
+     if (data->zlen)
+	  zscale = data->zlen/(float)data->mz;
+     printf("Scale         =  ( %g x %g x %g ) Angstrom.\n",
 	    xscale, yscale, zscale);
 
      printf("Cell Rotation =  ( %g, %g, %g).\n",
