@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/02/21 23:57:51  mast
+Open files in binary mode
+
 Revision 3.1  2003/02/10 20:49:58  mast
 Merge Qt source
 
@@ -72,10 +75,10 @@ an error in Fortran to C translation
 #include "dia_qtutils.h"
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
-		      int *nxpieces, int *nxoverlap);
+                      int *nxpieces, int *nxoverlap);
 static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
-			     int *ivarpc, int *indvar, int nvar, int limvar,
-			     int leavind);
+                             int *ivarpc, int *indvar, int nvar, int limvar,
+                             int leavind);
 
 int gaussj(float *a, int n, int np, float *b, int m, int mp);
 
@@ -180,7 +183,7 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->fastip = 0;
   if (vw->boxsize < 1)
     vw->boxsize = 1;
-	  
+          
 
   /* Maximum cache size given memory allowed */
   vw->cachesize = 1000000 * MAX_CACHE_MBYTES / vw->xysize;
@@ -198,11 +201,11 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->cachesize = 4;
 
   vw->cache = (struct Midas_cache *)malloc(vw->cachesize * 
-					   sizeof(struct Midas_cache));
+                                           sizeof(struct Midas_cache));
 
   for(k = 0; k < vw->cachesize; k++){
     vw->cache[k].sec = mrc_slice_create(vw->xsize, vw->ysize, 
-					MRC_MODE_BYTE);
+                                        MRC_MODE_BYTE);
     if (!vw->cache[k].sec)
       midas_error("Out of memory! ", "Exiting", -1);
     vw->cache[k].zval = -1;
@@ -260,7 +263,7 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->edgelower = (int *)malloc(2 * vw->zsize * sizeof(int));
     vw->fbs_indvar = (int *)malloc(2 * vw->zsize * sizeof(int));
     if (!vw->xpclist || !vw->ypclist || !vw->zpclist || !vw->edgeupper
-	|| !vw->edgelower || !vw->fbs_indvar) {
+        || !vw->edgelower || !vw->fbs_indvar) {
       fprintf(stderr, "Error getting memory for piece list.\n");
       exit(-1);
     }
@@ -270,25 +273,25 @@ int load_view(struct Midas_view *vw, char *fname)
     for (k = 0; k < vw->zsize; k++) {
       str = stream.readLine();
       if (str.isEmpty()) {
-	fprintf(stderr, "Error reading piece list after %d lines\n"
-		, k);
-	exit(-1);
+        fprintf(stderr, "Error reading piece list after %d lines\n"
+                , k);
+        exit(-1);
       }
       sscanf(str.latin1(), "%d %d %d", &(vw->xpclist[k]), 
-		       &(vw->ypclist[k]), &(vw->zpclist[k]));
+                       &(vw->ypclist[k]), &(vw->zpclist[k]));
       if (vw->minzpiece > vw->zpclist[k])
-	vw->minzpiece = vw->zpclist[k];
+        vw->minzpiece = vw->zpclist[k];
       if (vw->maxzpiece < vw->zpclist[k])
-	vw->maxzpiece = vw->zpclist[k];
+        vw->maxzpiece = vw->zpclist[k];
     }
 
     checklist(vw->xpclist, vw->zsize, vw->xsize, &vw->minxpiece, 
-	      &vw->nxpieces, &vw->nxoverlap);
+              &vw->nxpieces, &vw->nxoverlap);
     checklist(vw->ypclist, vw->zsize, vw->ysize, &vw->minypiece, 
-	      &vw->nypieces, &vw->nyoverlap);
+              &vw->nypieces, &vw->nyoverlap);
     if (vw->nxpieces < 0 || vw->nypieces < 0) {
       fprintf(stderr, "Piece list does not have regular array "
-	      "of coordinates.\n");
+              "of coordinates.\n");
       exit(-1);
     }
 
@@ -310,8 +313,8 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->fbs_b = (float *)malloc(2 * nxypc * sizeof(float));
     vw->fbs_ivarpc = (int *)malloc(nxypc * sizeof(int));
     if (!vw->montmap || !vw->pieceupper || !vw->piecelower ||
-	!vw->edgedx || !vw->edgedy || !vw->fbs_a || !vw->fbs_b ||
-	!vw->fbs_ivarpc) {
+        !vw->edgedx || !vw->edgedy || !vw->fbs_a || !vw->fbs_b ||
+        !vw->fbs_ivarpc) {
       fprintf(stderr, "Error getting memory for piece analysis.\n");
       exit(-1);
     }
@@ -323,16 +326,16 @@ int load_view(struct Midas_view *vw, char *fname)
 
     for (k = 0; k < vw->zsize; k++) {
       vw->montmap[(vw->xpclist[k] - vw->minxpiece) / 
-		  (vw->xsize - vw->nxoverlap) +
-		  vw->nxpieces * (vw->ypclist[k] - vw->minypiece) /
-		  (vw->ysize - vw->nyoverlap) +
-		  nxypc * (vw->zpclist[k] - vw->minzpiece)] = k;
+                  (vw->xsize - vw->nxoverlap) +
+                  vw->nxpieces * (vw->ypclist[k] - vw->minypiece) /
+                  (vw->ysize - vw->nyoverlap) +
+                  nxypc * (vw->zpclist[k] - vw->minzpiece)] = k;
       vw->edgelower[2 * k] = -1;
       vw->edgeupper[2 * k] = -1;
       vw->edgelower[2 * k + 1] = -1;
       vw->edgeupper[2 * k + 1] = -1;
     }
-	  
+          
     /* look at all the edges in turn, add to list if pieces on both 
        sides */
 
@@ -341,43 +344,43 @@ int load_view(struct Midas_view *vw, char *fname)
     for (ixy = 0; ixy < 2; ixy++) {
       ned=0;
       for (k = 0; k < nsect; k++) {
-	for (iy = 0; iy < nalong; iy++) {
-	  for (ix = 1; ix < ncross; ix++) {
-	    if (!ixy) {
-	      ind = ix + iy * vw->nxpieces + k * nxypc;
-	      ipclo=vw->montmap[ind - 1];
-	    } else { 
-	      ind = iy + ix * vw->nxpieces + k * nxypc;
-	      ipclo=vw->montmap[ind - vw->nxpieces];
-	    }
-	    ipchi=vw->montmap[ind];
+        for (iy = 0; iy < nalong; iy++) {
+          for (ix = 1; ix < ncross; ix++) {
+            if (!ixy) {
+              ind = ix + iy * vw->nxpieces + k * nxypc;
+              ipclo=vw->montmap[ind - 1];
+            } else { 
+              ind = iy + ix * vw->nxpieces + k * nxypc;
+              ipclo=vw->montmap[ind - vw->nxpieces];
+            }
+            ipchi=vw->montmap[ind];
 
-	    if(ipclo >= 0 && ipchi >= 0) {
-	      vw->piecelower[2 * ned + ixy] = ipclo;
-	      vw->pieceupper[2 * ned + ixy] = ipchi;
-	      vw->edgelower[2 * ipchi + ixy] = ned;
-	      vw->edgeupper[2 * ipclo + ixy] = ned;
-	      ned++;
-	    }
-	  }
-	}
+            if(ipclo >= 0 && ipchi >= 0) {
+              vw->piecelower[2 * ned + ixy] = ipclo;
+              vw->pieceupper[2 * ned + ixy] = ipchi;
+              vw->edgelower[2 * ipchi + ixy] = ned;
+              vw->edgeupper[2 * ipclo + ixy] = ned;
+              ned++;
+            }
+          }
+        }
       }
       vw->nedge[ixy] = ned;
       nalong = vw->nxpieces;
       ncross = vw->nypieces;
     }
-	  
+          
     if (!vw->nedge[0] && !vw->nedge[1]) {
       fprintf(stderr, "There are no edges or no montage "
-	      "according to these piece coordinates.\n");
+              "according to these piece coordinates.\n");
       exit(-1);
     }
-	  
+          
     vw->xory = 0;
     vw->montcz = nearest_section(vw, vw->minzpiece, 0);
     vw->midasSlots->manage_xory(vw);
     vw->curedge = nearest_edge(vw, vw->montcz, vw->xory, 1, 0, 
-			       &vw->edgeind);
+                               &vw->edgeind);
     set_mont_pieces(vw);
     vw->incindex[2]--;
     vw->increment[2] = vw->midasSlots->getIncrement(vw->incindex[2], 2);
@@ -584,9 +587,9 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
     for(j = 0; j <  ysize; j++) {
       yofs = j * xsize;
       for(i = xsize - 1; i >= xt; i--)
-	cptr[i + yofs] = cptr[i + yofs - xt];
+        cptr[i + yofs] = cptr[i + yofs - xt];
       for (i = 0; i < xt; i++)
-	cptr[i + yofs] = mean;
+        cptr[i + yofs] = mean;
     }
   }
   if (xt < 0){
@@ -594,17 +597,17 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
     for(j = 0; j < ysize; j++) {
       yofs = j * xsize;
       for(i = 0; i < xsize + xt; i++)
-	cptr[i + yofs] = cptr[i + yofs - xt] ;
+        cptr[i + yofs] = cptr[i + yofs - xt] ;
       for (i = xsize + xt; i < xsize; i++)
-	cptr[i + yofs] = mean;
+        cptr[i + yofs] = mean;
     }
   }
   return(0);
 }
 
 int midas_transform(struct MRCslice *slin, 
-		    struct MRCslice *sout,
-		    struct Midas_transform *tr)
+                    struct MRCslice *sout,
+                    struct Midas_transform *tr)
 {
   int i, j, k, l, index;
   int ix, iy;
@@ -657,15 +660,15 @@ int midas_transform(struct MRCslice *slin,
       xlft = -x / xdx;
       xrt = (nxa - 0.5 - x) / xdx;
       if (xlft < xrt) {
-	if (xst < xlft)
-	  xst = xlft;
-	if (xnd > xrt)
-	  xnd = xrt;
+        if (xst < xlft)
+          xst = xlft;
+        if (xnd > xrt)
+          xnd = xrt;
       } else {
-	if (xst < xrt)
-	  xst = xrt;
-	if (xnd > xlft)
-	  xnd = xlft;
+        if (xst < xrt)
+          xst = xrt;
+        if (xnd > xlft)
+          xnd = xlft;
       }
     } else if (x < 0 || x >= nxa - 0.5) {
       /* if vertical and outside limits, set up for fill */
@@ -678,15 +681,15 @@ int midas_transform(struct MRCslice *slin,
       xlft = -y / xdy;
       xrt = (nya - 0.5 - y) / xdy;
       if (xlft < xrt) {
-	if (xst < xlft)
-	  xst = xlft;
-	if (xnd > xrt)
-	  xnd = xrt;
+        if (xst < xlft)
+          xst = xlft;
+        if (xnd > xrt)
+          xnd = xrt;
       } else {
-	if (xst < xrt)
-	  xst = xrt;
-	if (xnd > xlft)
-	  xnd = xlft;
+        if (xst < xrt)
+          xst = xrt;
+        if (xnd > xlft)
+          xnd = xlft;
       }
     } else if (y < 0 || y >= nya - 0.5) {
       xst = nxa;
@@ -704,15 +707,17 @@ int midas_transform(struct MRCslice *slin,
     } else
       /* otherwise, make sure it's an even box multiple */
       ixnd = ixst + box * ((ixnd - ixst) / box);
+    while (ixnd > nxa)
+      ixnd -= box;
 
     /* Do the left and right fills */
     for (k = j; k < j + box; k++) {
       buf = &sout->data.b[k * xsize];
       for (i = 0; i < ixst; i++)
-	*buf++ = umean;
+        *buf++ = umean;
       buf = &sout->data.b[ixnd + 1 + k * xsize];
       for (i = ixnd + 1; i < xsize; i++)
-	*buf++ = umean;
+        *buf++ = umean;
     }
 
     /* displace to starting point */
@@ -726,9 +731,9 @@ int midas_transform(struct MRCslice *slin,
       y += 0.5;
       buf = &sout->data.b[ixst + j * xsize];
       for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-	ix = (int)x; iy = (int)y;
-	index = ix + (iy * xsize);
-	*buf++ = slin->data.b[index];
+        ix = (int)x; iy = (int)y;
+        index = ix + (iy * xsize);
+        *buf++ = slin->data.b[index];
       }
 
     } else if (VW->fastip) {
@@ -737,27 +742,28 @@ int midas_transform(struct MRCslice *slin,
       x += 0.5;
       y += 0.5;
       for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
-	    x += xdx * box){
-	ix = (int)x; iy = (int)y;
-	for (k = j; k < j + box; k++) {
-	  index = ix + ((iy + k - j) * xsize);
-	  buf = &sout->data.b[i + k * xsize];
-	  for (l = 0; l < box; l++)
-	    *buf++ = slin->data.b[index++];
-	}
+            x += xdx * box){
+        ix = (int)x; iy = (int)y;
+        for (k = j; k < j + box; k++) {
+          index = ix + ((iy + k - j) * xsize);
+          buf = &sout->data.b[i + k * xsize];
+          for (l = 0; l < box; l++)
+            *buf++ = slin->data.b[index++];
+        }
       }
+
     } else {
       /* bilinear interpolation */
       buf = &sout->data.b[ixst + j * xsize];
       for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-	ix = (int)x; iy = (int)y;
-	fx = x - ix;
-	fy = y - iy;
-	index = ix + (iy * xsize);
-	*buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
-					      fx * slin->data.b[index + 1]) +
-				 fy * ((1. - fx) *slin->data.b[index + xsize] +
-				       fx * slin->data.b[index + xsize + 1]));
+        ix = (int)x; iy = (int)y;
+        fx = x - ix;
+        fy = y - iy;
+        index = ix + (iy * xsize);
+        *buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
+                                              fx * slin->data.b[index + 1]) +
+                                 fy * ((1. - fx) *slin->data.b[index + xsize] +
+                                       fx * slin->data.b[index + xsize + 1]));
       }
     }
 
@@ -790,7 +796,7 @@ float *tramat_create(void)
     return(NULL);
   tramat_idmat(mat);
   return(mat);
-}		     
+}                    
 
 void tramat_free(float *mat)
 {
@@ -936,7 +942,7 @@ int tramat_testin(float *mat, float *imat)
 
   if (error){
     fprintf(stderr, "matrix inversion error %d\n", error);
-	  
+          
     fprintf(stderr, "matrix = %g %g %g\n", mat[0], mat[1], mat[2]);
     fprintf(stderr, "         %g %g %g\n", mat[3], mat[4], mat[5]); 
     fprintf(stderr, "         %g %g %g\n", mat[6], mat[7], mat[8]); 
@@ -948,7 +954,7 @@ int tramat_testin(float *mat, float *imat)
     fprintf(stderr, "id mat = %g %g %g\n", idmat[0], idmat[1], idmat[2]);
     fprintf(stderr, "         %g %g %g\n", idmat[3], idmat[4], idmat[5]);
     fprintf(stderr, "         %g %g %g\n", idmat[6], idmat[7], idmat[8]);
-	  
+          
   }
   return(error);
 }
@@ -1049,7 +1055,7 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
 /* Check the list of piece coordinates for regularity and determine the 
    the number of pieces in the dimension and the overlap */
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
-		      int *nxpieces, int *nxoverlap)
+                      int *nxpieces, int *nxoverlap)
 {
   int minxdiff=100000;
   int maxxpiece=-100000;
@@ -1089,19 +1095,19 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 
       ixdiff = xpclist[i] - *minxpiece;
       if(ixdiff % minxdiff) {
-	*nxpieces = -1;
-	return;
+        *nxpieces = -1;
+        return;
       }
       ixpc = ixdiff / minxdiff + 1;
       if (*nxpieces < ixpc)
-	*nxpieces = ixpc;
+        *nxpieces = ixpc;
     }
     *nxoverlap = nxframe - minxdiff;
   }
 }
 
 int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno, 
-		 int direction, int *edgeind)
+                 int direction, int *edgeind)
 {
   int base = (z - vw->minzpiece) * vw->nxpieces * vw->nypieces;
   int edge, xmult, ymult, nacross, ind;
@@ -1119,24 +1125,24 @@ int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno,
     ymult = vw->nxpieces;
   }
      
-	  
+          
   for (edge = 1; edge <= vw->maxedge[xory]; edge++) {
     ind = ((edge - 1) % nacross) * xmult + 
       ((edge - 1) / nacross) * ymult + base;
     if (vw->montmap[ind] >= 0 && vw->montmap[ind + xmult] >= 0) {
 
       /* If there is an edge, update maxbelow if below the target 
-	 and keep going; set both max and min if on target and break,
-	 or set the minabove and break if past the target */
+         and keep going; set both max and min if on target and break,
+         or set the minabove and break if past the target */
       if (edge < edgeno)
-	maxbelow = edge;
+        maxbelow = edge;
       else if (edge == edgeno) {
-	maxbelow = edge;
-	minabove = edge;
-	break;
+        maxbelow = edge;
+        minabove = edge;
+        break;
       } else {
-	minabove = edge;
-	break;
+        minabove = edge;
+        break;
       }
     }
   }
@@ -1163,7 +1169,7 @@ int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno,
     else {
       edge = maxbelow;
       if (edgeno - maxbelow > minabove - edgeno)
-	edge = minabove;
+        edge = minabove;
     }
   }
   ind = ((edge - 1) % nacross) * xmult + 
@@ -1185,14 +1191,14 @@ int nearest_section(struct Midas_view *vw, int sect, int direction)
       edge = nearest_edge(vw, z, 1 - vw->xory, 1, 0, &ind);
     if (edge) {
       if (z < sect)
-	maxbelow = z;
+        maxbelow = z;
       else if (z == sect) {
-	maxbelow = z;
-	minabove = z;
-	break;
+        maxbelow = z;
+        minabove = z;
+        break;
       } else {
-	minabove = z;
-	break;
+        minabove = z;
+        break;
       }
     }
   }
@@ -1218,7 +1224,7 @@ int nearest_section(struct Midas_view *vw, int sect, int direction)
     return minabove;
   return maxbelow;
 }
-	       
+               
 /* Sets up current and reference piece # and maintains the transforms
    properly for the displacements of the current edge */
 void set_mont_pieces(struct Midas_view *vw)
@@ -1235,8 +1241,8 @@ void set_mont_pieces(struct Midas_view *vw)
 #define MAX_GAUSSJ_VARS 9
 #define LOCAL_BORDER 2
 void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
-		      float *meanerr, float *amax, int *indmax,
-		      float *curerrx, float *curerry, int localonly)
+                      float *meanerr, float *amax, int *indmax,
+                      float *curerrx, float *curerry, int localonly)
 {
   float *a = vw->fbs_a;
   float *b = vw->fbs_b;
@@ -1264,11 +1270,11 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
       eux = vw->edgeupper[ind];
       euy = vw->edgeupper[ind + 1];
       if ((elx > -1 && elx * 2 != leavind) ||
-	  (ely > -1 && ely * 2 + 1 != leavind) ||
-	  (eux > -1 && eux * 2 != leavind) ||
-	  (euy > -1 && euy * 2 + 1 != leavind)) {
-	ivarpc[nvar] = ipc;
-	indvar[ipc] = nvar++;
+          (ely > -1 && ely * 2 + 1 != leavind) ||
+          (eux > -1 && eux * 2 != leavind) ||
+          (euy > -1 && euy * 2 + 1 != leavind)) {
+        ivarpc[nvar] = ipc;
+        indvar[ipc] = nvar++;
       }
     }
   }
@@ -1284,7 +1290,7 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 
   if (nvar > MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) {
     find_local_errors(vw, leaveout, ntoperr, meanerr, amax, indmax,
-		      curerrx, curerry, localonly);
+                      curerrx, curerry, localonly);
     return;
   }
 
@@ -1300,30 +1306,30 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
       edge = vw->edgelower[ipc * 2 + ixy];
       ind = edge * 2 + ixy;
       if (edge > -1) {
-	ipclo = vw->piecelower[ind];
-	adx = b[ivar * 2] - b[indvar[ipclo] * 2] - vw->edgedx[ind];
-	ady = b[ivar * 2 + 1] - b[indvar[ipclo] * 2 + 1] -
-	  vw->edgedy[ind];
-	adist = sqrt((double)(adx * adx + ady * ady));
-	if (ind == vw->edgeind * 2 + vw->xory) {
-	  *curerrx = adx;
-	  *curerry = ady;
-	}
-	if (ind != leavind) {
-	  asum += adist;
-	  nsum++;
-	  for (i = 0; i < ntoperr; i++) {
-	    if (adist > amax[i]) {
-	      for (j = ntoperr - 1; j > i; j--) {
-		amax[j] = amax[j - 1];
-		indmax[j] = indmax[j - 1];
-	      }
-	      amax[i] = adist;
-	      indmax[i] = ind;
-	      break;
-	    }
-	  }
-	}
+        ipclo = vw->piecelower[ind];
+        adx = b[ivar * 2] - b[indvar[ipclo] * 2] - vw->edgedx[ind];
+        ady = b[ivar * 2 + 1] - b[indvar[ipclo] * 2 + 1] -
+          vw->edgedy[ind];
+        adist = sqrt((double)(adx * adx + ady * ady));
+        if (ind == vw->edgeind * 2 + vw->xory) {
+          *curerrx = adx;
+          *curerry = ady;
+        }
+        if (ind != leavind) {
+          asum += adist;
+          nsum++;
+          for (i = 0; i < ntoperr; i++) {
+            if (adist > amax[i]) {
+              for (j = ntoperr - 1; j > i; j--) {
+                amax[j] = amax[j - 1];
+                indmax[j] = indmax[j - 1];
+              }
+              amax[i] = adist;
+              indmax[i] = ind;
+              break;
+            }
+          }
+        }
       }
     }
   }
@@ -1339,8 +1345,8 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 /* When there are too many variables to solve all at once in a reasonable
    time, this routine computes errors only in smaller patches */
 void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
-		       float *meanerr, float *amax, int *indmax,
-		       float *curerrx, float *curerry, int localonly)
+                       float *meanerr, float *amax, int *indmax,
+                       float *curerrx, float *curerry, int localonly)
 {
   float *a = vw->fbs_a;
   float *b = vw->fbs_b;
@@ -1430,119 +1436,119 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
     for (divX = 0; divX < ndivX; divX++) {
       ixndin = ixstin + divSizeX;
       if (divX < (vw->nxpieces - 1) % ndivX)
-	ixndin++;
+        ixndin++;
       ixst = ixstin - LOCAL_BORDER;
       if (ixst < 0) 
-	ixst = 0;
+        ixst = 0;
       ixnd = ixndin + LOCAL_BORDER;
       if (ixnd >= vw->nxpieces)
-	ixnd = vw->nxpieces - 1;
-	       
+        ixnd = vw->nxpieces - 1;
+               
 
       /* loop on the pieces, adding them as variables */
       nvar=0;
       doarea = 0;
       if (localind < 0)
-	doarea = 1;
+        doarea = 1;
       for (ipc = 0; ipc < vw->zsize; ipc++)
-	if(vw->zpclist[ipc] == vw->montcz)
-	  indvar[ipc] = -1;
+        if(vw->zpclist[ipc] == vw->montcz)
+          indvar[ipc] = -1;
       for (iy = iyst; iy <= iynd; iy++) {
-	for (ix = ixst; ix <= ixnd; ix++) {
-	  ipc = vw->montmap[ix + iy * vw->nxpieces + 
-			    vw->montcz * limvar];
+        for (ix = ixst; ix <= ixnd; ix++) {
+          ipc = vw->montmap[ix + iy * vw->nxpieces + 
+                            vw->montcz * limvar];
 
-	  ind = ipc * 2;
-	  elx = vw->edgelower[ind];
-	  ely = vw->edgelower[ind + 1];
-	  eux = vw->edgeupper[ind];
-	  euy = vw->edgeupper[ind + 1];
-	  /* include a piece if one of its edges is included
-	     in the area being analyzed */
-	  if ((ix > ixst && elx > -1 && elx * 2 != leavind) ||
-	      (iy > iyst && ely > -1 && ely*2 + 1 != leavind) ||
-	      (ix < ixnd && eux > -1 && eux * 2 != leavind) ||
-	      (iy < iynd && euy > -1 && euy*2 + 1 != leavind)) {
-	    ivarpc[nvar] = ipc;
-	    indvar[ipc] = nvar++;
-	  }
+          ind = ipc * 2;
+          elx = vw->edgelower[ind];
+          ely = vw->edgelower[ind + 1];
+          eux = vw->edgeupper[ind];
+          euy = vw->edgeupper[ind + 1];
+          /* include a piece if one of its edges is included
+             in the area being analyzed */
+          if ((ix > ixst && elx > -1 && elx * 2 != leavind) ||
+              (iy > iyst && ely > -1 && ely*2 + 1 != leavind) ||
+              (ix < ixnd && eux > -1 && eux * 2 != leavind) ||
+              (iy < iynd && euy > -1 && euy*2 + 1 != leavind)) {
+            ivarpc[nvar] = ipc;
+            indvar[ipc] = nvar++;
+          }
 
-	  /* determine if one of these edges is the current
-	     edge and is included in area whose errors are
-	     being computed */
-	  if (localind > -1 &&
-	      (ix > ixstin && elx > -1 && elx*2 == localind) ||
-	      (iy > iystin && ely > -1 && 
-	       ely * 2 + 1 == localind) ||
-	      (ix < ixndin && eux > -1 && eux* 2 == localind) ||
-	      (iy < iyndin && euy > -1 && 
-	       euy * 2 + 1 == localind))
-	    doarea = 1;
-	}
+          /* determine if one of these edges is the current
+             edge and is included in area whose errors are
+             being computed */
+          if (localind > -1 &&
+              (ix > ixstin && elx > -1 && elx*2 == localind) ||
+              (iy > iystin && ely > -1 && 
+               ely * 2 + 1 == localind) ||
+              (ix < ixndin && eux > -1 && eux* 2 == localind) ||
+              (iy < iyndin && euy > -1 && 
+               euy * 2 + 1 == localind))
+            doarea = 1;
+        }
       }
       /*  printf("X: %d %d %d %d %d   Y: %d %d %d %d %d   leave %d %d\n",
-	  divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
+          divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
       if (nvar >= 2 && doarea) {
-	solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, 
-			 leavind);
+        solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, 
+                         leavind);
 
-	/* evaluate errors for ones in the inner area */
-	for (iy = iystin; iy <= iyndin; iy++) {
-	  for (ix = ixstin; ix <= ixndin; ix++) {
-	    ipc = vw->montmap[ix + iy * vw->nxpieces + 
-			      vw->montcz * limvar];
-	    ivar = indvar[ipc];
-	    if (ivar < 0)
-	      continue;
+        /* evaluate errors for ones in the inner area */
+        for (iy = iystin; iy <= iyndin; iy++) {
+          for (ix = ixstin; ix <= ixndin; ix++) {
+            ipc = vw->montmap[ix + iy * vw->nxpieces + 
+                              vw->montcz * limvar];
+            ivar = indvar[ipc];
+            if (ivar < 0)
+              continue;
 
-	    for (ixy = 0; ixy < 2; ixy++) {
-	      edge = vw->edgelower[ipc * 2 + ixy];
-	      ind = edge * 2 + ixy;
-	      /* evaluate if edge exists and, for an
-		 X edge, the piece is past the first in X
-		 and is either not the last local piece in
-		 Y or the very last piece in Y */
-	      if (edge > -1 && 
-		  ((!ixy && ix > ixstin &&
-		    (iy < iyndin || 
-		     iynd == vw->nypieces - 1))
-		   || (ixy && iy > iystin &&
-		       (ix < ixndin || 
-			ixnd == vw->nxpieces -1)))){
-		ipclo = vw->piecelower[ind];
-		adx = b[ivar * 2] - b[indvar[ipclo]* 2]
-		  - vw->edgedx[ind];
-		ady = b[ivar * 2 + 1] - 
-		  b[indvar[ipclo] * 2 + 1] -
-		  vw->edgedy[ind];
-		adist = sqrt((double)
-			     (adx * adx + ady * ady));
-		if (ind == vw->edgeind * 2 + vw->xory){
-		  *curerrx = adx;
-		  *curerry = ady;
-		}
-		if (ind != leavind) {
-		  asum += adist;
-		  nsum++;
-		  for (i = 0; i < ntoperr; i++) {
-		    if (adist > amax[i]) {
-		      for (j = ntoperr - 1;
-			   j > i; j--) {
-			amax[j] = 
-			  amax[j - 1];
-			indmax[j] = 
-			  indmax[j - 1];
-		      }
-		      amax[i] = adist;
-		      indmax[i] = ind;
-		      break;
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+            for (ixy = 0; ixy < 2; ixy++) {
+              edge = vw->edgelower[ipc * 2 + ixy];
+              ind = edge * 2 + ixy;
+              /* evaluate if edge exists and, for an
+                 X edge, the piece is past the first in X
+                 and is either not the last local piece in
+                 Y or the very last piece in Y */
+              if (edge > -1 && 
+                  ((!ixy && ix > ixstin &&
+                    (iy < iyndin || 
+                     iynd == vw->nypieces - 1))
+                   || (ixy && iy > iystin &&
+                       (ix < ixndin || 
+                        ixnd == vw->nxpieces -1)))){
+                ipclo = vw->piecelower[ind];
+                adx = b[ivar * 2] - b[indvar[ipclo]* 2]
+                  - vw->edgedx[ind];
+                ady = b[ivar * 2 + 1] - 
+                  b[indvar[ipclo] * 2 + 1] -
+                  vw->edgedy[ind];
+                adist = sqrt((double)
+                             (adx * adx + ady * ady));
+                if (ind == vw->edgeind * 2 + vw->xory){
+                  *curerrx = adx;
+                  *curerry = ady;
+                }
+                if (ind != leavind) {
+                  asum += adist;
+                  nsum++;
+                  for (i = 0; i < ntoperr; i++) {
+                    if (adist > amax[i]) {
+                      for (j = ntoperr - 1;
+                           j > i; j--) {
+                        amax[j] = 
+                          amax[j - 1];
+                        indmax[j] = 
+                          indmax[j - 1];
+                      }
+                      amax[i] = adist;
+                      indmax[i] = ind;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
 
       }
       ixstin = ixndin;
@@ -1562,8 +1568,8 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
 
 /* Set up equations to determine shifts for the given set of variables */
 static void solve_for_shifts(struct Midas_view *vw, float *a, float *b, 
-			     int *ivarpc, int *indvar, int nvar, int limvar,
-			     int leavind)
+                             int *ivarpc, int *indvar, int nvar, int limvar,
+                             int leavind)
 {
   int ivar, ipc, ind,i;
   int neighpc, neighvar, edge, m, ixy;
@@ -1585,48 +1591,48 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
       edge = vw->edgelower[ipc * 2 + ixy];
       if(edge > -1 && edge * 2 + ixy != leavind) {
-	ind = edge * 2 + ixy;
-	neighpc = vw->piecelower[ind];
-	neighvar = indvar[neighpc];
-	if (neighvar >= 0) {
-	  a[ivar * limvar + ivar]++;
-		    
-	  /* for a regular neighbor, enter a -1 in its term; 
-	     but for the last variable being eliminated, enter
-	     a +1 for ALL other variables instead */
-	  if (neighvar != nvar - 1)
-	    a[ivar * limvar + neighvar]--;
-	  else {
-	    for (m = 0 ; m < nvar-1; m++)
-	      a[ivar * limvar + m]++;
-	  }
+        ind = edge * 2 + ixy;
+        neighpc = vw->piecelower[ind];
+        neighvar = indvar[neighpc];
+        if (neighvar >= 0) {
+          a[ivar * limvar + ivar]++;
+                    
+          /* for a regular neighbor, enter a -1 in its term; 
+             but for the last variable being eliminated, enter
+             a +1 for ALL other variables instead */
+          if (neighvar != nvar - 1)
+            a[ivar * limvar + neighvar]--;
+          else {
+            for (m = 0 ; m < nvar-1; m++)
+              a[ivar * limvar + m]++;
+          }
 
-	  /* when this piece is an upper piece, subtract 
-	     displacements from (add shifts to) constant term */
-	  b[ivar * 2] += vw->edgedx[ind];
-	  b[ivar * 2 + 1] += vw->edgedy[ind];
-	}
+          /* when this piece is an upper piece, subtract 
+             displacements from (add shifts to) constant term */
+          b[ivar * 2] += vw->edgedx[ind];
+          b[ivar * 2 + 1] += vw->edgedy[ind];
+        }
       }
 
       edge = vw->edgeupper[ipc * 2 + ixy];
       if(edge > -1 && edge * 2 + ixy != leavind) {
-	ind = edge * 2 + ixy;
-	neighpc = vw->pieceupper[ind];
-	neighvar = indvar[neighpc];
-	if (neighvar >= 0) {
-	  a[ivar * limvar + ivar]++;
-	  if (neighvar != nvar - 1)
-	    a[ivar * limvar + neighvar]--;
-	  else {
-	    for (m=0 ; m < nvar-1; m++)
-	      a[ivar * limvar + m]++;
-	  }
-		    
-	  /* when a lower piece, add displacements to (subtract
-	     shifts from) constant terms */
-	  b[ivar * 2] -= vw->edgedx[ind];
-	  b[ivar * 2 + 1] -= vw->edgedy[ind];
-	}
+        ind = edge * 2 + ixy;
+        neighpc = vw->pieceupper[ind];
+        neighvar = indvar[neighpc];
+        if (neighvar >= 0) {
+          a[ivar * limvar + ivar]++;
+          if (neighvar != nvar - 1)
+            a[ivar * limvar + neighvar]--;
+          else {
+            for (m=0 ; m < nvar-1; m++)
+              a[ivar * limvar + m]++;
+          }
+                    
+          /* when a lower piece, add displacements to (subtract
+             shifts from) constant terms */
+          b[ivar * 2] -= vw->edgedx[ind];
+          b[ivar * 2 + 1] -= vw->edgedy[ind];
+        }
       }
     }
   }
@@ -1647,7 +1653,7 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
        printf("%9.2f", b[i * 2 + j]);
        printf("\n");
        } */
-	  
+          
   gaussj(a, nvar - 1, limvar, b, 2, 2);
 
   xsum=0.;
