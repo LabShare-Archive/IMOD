@@ -14,13 +14,17 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/01/04 00:21:29  rickg
+ * <p> Methods to get the command and command line.
+ * <p>
  * <p> Revision 1.1  2003/01/03 00:56:19  rickg
  * <p> Initial revision
  * <p>
  * <p> </p>
  */
 public class BackgroundProcess extends Thread {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   private String commandLine = null;
   private File workingDirectory = null;
   private ProcessManager processManager;
@@ -29,13 +33,14 @@ public class BackgroundProcess extends Thread {
   private String[] stdOutput;
   private String[] stdError;
 
+  private String stdoutLogFile = "";
+  private String stderrLogFile = "";
 
   public BackgroundProcess(String commandLine, ProcessManager processManager) {
     this.commandLine = commandLine.trim();
     this.processManager = processManager;
   }
 
-  
   /**
    * Returns the demoMode.
    * @return boolean
@@ -82,7 +87,6 @@ public class BackgroundProcess extends Thread {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
-
 
   /**
    * Sets the demoMode.
@@ -132,12 +136,15 @@ public class BackgroundProcess extends Thread {
     //  Get any output from the command
     stdError = command.getStdError();
     stdOutput = command.getStdOutput();
-    
+
     // Stop the progress bar and send a message back to the ProcessManager
     // that this thread is done.
     progressBarThread.interrupt();
+
+
     processManager.msgBackgroundProcessDone(this, command.getExitValue());
   }
+
   /**
    * Returns the stdError.
    * @return String[]

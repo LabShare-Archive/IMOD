@@ -7,6 +7,10 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.TransferfidParam;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +29,11 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2003/01/04 00:23:36  rickg
+ * <p> Added a test method.
+ * <p> TransferFiducials method reports command name
+ * <p> instead of thread name.
+ * <p>
  * <p> Revision 1.11  2003/01/03 00:56:00  rickg
  * <p> Added msgBackgroundProcessDone method
  * <p>
@@ -319,7 +328,6 @@ public class ProcessManager {
     startComScript(command);
   }
 
-
   /**
    * Run the comand specified by the argument string
    */
@@ -332,18 +340,31 @@ public class ProcessManager {
     System.out.println("Started " + commandLine);
     System.out.println("  Name: " + command.getName());
   }
-  
+
   /**
-   * A message specifying that a com script has finished execution
-   * @param script the RunComScript execution object that finished
-   * @param exitValue the exit value for the com script
+   * A message specifying that a background process has finished execution
+   * @param script the BackgroundProcess execution object that finished
+   * @param exitValue the exit value for the process
    */
-  public void msgBackgroundProcessDone(BackgroundProcess process,
+  public void msgBackgroundProcessDone(
+    BackgroundProcess process,
     int exitValue) {
+
+    System.err.println("exit value: " + String.valueOf(exitValue));
+    String[] out = process.getStdError();
+    System.err.println("err lines: " + String.valueOf(out.length));
+    for (int i = 0; i < out.length; i++) {
+      System.err.println("err: " + out[i]);
+    }
+    out = process.getStdOutput();
+    System.err.println("out lines: " + String.valueOf(out.length));
+    for (int i = 0; i < out.length; i++) {
+      System.err.println("out: " + out[i]);
+    }
 
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
-      String[] message = new String[stdError.length + 5];
+      String[] message = new String[stdError.length + 3];
 
       int j = 0;
       message[j++] = "<html>Command failed: " + process.getCommandLine();
@@ -356,6 +377,12 @@ public class ProcessManager {
       appManager.openMessageDialog(message, process.getCommand() + " failed");
     }
 
+    //  Command succeeded, check to see if we need to show any application specific info
+    else {
+      if (process.getCommand().equals("transferfid")) {
+
+      }
+    }
   }
 
   /**
@@ -433,4 +460,41 @@ public class ProcessManager {
     System.out.println("  Name: " + comScript.getName());
   }
 
+  private void handleTransferfidMessage(BackgroundProcess process) {
+    try {
+
+      String[] stdOutput = process.getStdOutput();
+    // Open the com file for writing using a buffered writer
+    BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
+    
+      //  Write the standard output to a the log file
+      FileOutputStream fileStream =
+        new FileOutputStream(
+          appManager.getWorkingDirectory() + "/transferfid.log");
+
+      BufferedWriter fileBuffer =
+        new BufferedWriter(new OutputStreamWriter(fileStream));
+
+      for (int i = 0; i < stdOutput.length; i++) {
+        fileBuffer.write(stdOutput[i]);
+        fileBuffer.newLine();
+      }
+
+      //  Show a dialog box to the user
+      String[] message = new String[stdOutput.length + 1];
+      int j = 0;
+      message[j++] = "<html><U>" + process.getCommand() + ": output</U>";
+      for (int i = 0; i < stdOutput.length; i++, j++) {
+        message[j] = stdOutput[i];
+      }
+
+      appManager.openMessageDialog(message, "Transferfid output");
+    }
+    catch (IOException except) {
+      appManager.openMessageDialog(
+        except.getMessage(),
+        "Transferfid log error");
+    }
+
+  }
 }

@@ -13,6 +13,11 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2003/01/06 04:50:54  rickg
+ * <p> Added command line arguments for b to a and search
+ * <p> rotation directions as well as getter and setters for those
+ * <p> parameters
+ * <p>
  * <p> Revision 1.2  2003/01/04 00:37:27  rickg
  * <p> Added fileSetName, bToA, searchDirection, centerView* members
  * <p> Added centerView command line args
@@ -33,9 +38,12 @@ public class TransferfidParam {
   String fileSetName = "";
   boolean bToA = false;
   boolean runMidas = false;
-  int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
-  int centerViewA = 0; // 0 => default selected by script
+  int searchDirection = 0;  // 0 - both, -1 => -90, 1=> +90  
+  int centerViewA = 0;      // 0 => default selected by script
   int centerViewB = 0;
+  
+  boolean createLog = false;
+  
   public TransferfidParam() {
   }
 
@@ -85,7 +93,7 @@ public class TransferfidParam {
     }
 
     commandLine.append(fileSetName);
-
+    
     return commandLine.toString();
   }
 
@@ -247,6 +255,22 @@ public class TransferfidParam {
    */
   public void setSearchDirection(int searchDirection) {
     this.searchDirection = searchDirection;
+  }
+
+  /**
+   * Returns the createLog.
+   * @return boolean
+   */
+  public boolean isCreateLog() {
+    return createLog;
+  }
+
+  /**
+   * Sets the createLog.
+   * @param createLog The createLog to set
+   */
+  public void setCreateLog(boolean createLog) {
+    this.createLog = createLog;
   }
 
 }

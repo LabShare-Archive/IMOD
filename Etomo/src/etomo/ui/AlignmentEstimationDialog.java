@@ -23,6 +23,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2003/01/07 00:33:00  rickg
+ * <p> Changed button panel layout to grid and added
+ * <p> button to view residuals in imod
+ * <p>
  * <p> Revision 1.14  2003/01/06 17:35:43  rickg
  * <p> Check for dual axis before calling second axis panel
  * <p> or transferfid components in advanced
@@ -95,16 +99,16 @@ public class AlignmentEstimationDialog
     new JToggleButton("<html><b>Compute<br>alignment</b>");
 
   private JButton buttonImodA =
-    new JButton("<html><b>View/Edit model<br>in imod</b>");
+    new JButton("<html><b>View/Edit model in imod</b>");
 
   private JButton buttonView3DModelA =
-    new JButton("<html><b>View 3D<br>model</b>");
+    new JButton("<html><b>View 3D model</b>");
 
-  private JButton buttonViewResidualsA = 
-    new JButton("<html><b>View residual<br>vectors</b>");  
-    
-  private JButton buttonTransferFiducialsA =
-    new JButton("<html><b>Transfer fiducials<br>to the B axis</b>");
+  private JButton buttonViewResidualsA =
+    new JButton("<html><b>View residual<br>vectors</b>");
+
+  private JToggleButton buttonTransferFiducialsA =
+    new JToggleButton("<html><b>Transfer fiducials to the B axis</b>");
 
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -114,19 +118,19 @@ public class AlignmentEstimationDialog
   private JPanel panelButtonB = new JPanel();
 
   private JToggleButton buttonComputeAlignmentB =
-    new JToggleButton("<html><b>Compute<br>alignment</b>");
+    new JToggleButton("<html><b>Compute alignment</b>");
 
   private JButton buttonView3DModelB =
-    new JButton("<html><b>View 3D<br>model</b>");
+    new JButton("<html><b>View 3D model</b>");
 
   private JButton buttonImodB =
-    new JButton("<html><b>View/Edit model<br>in imod<</b>");
+    new JButton("<html><b>View/Edit model in imod<</b>");
 
-  private JButton buttonViewResidualsB = 
-    new JButton("<html><b>View residual<br>vectors</b>");  
+  private JButton buttonViewResidualsB =
+    new JButton("<html><b>View residual vectors</b>");
 
-  private JButton buttonTransferFiducialsB =
-    new JButton("<html><b>Transfer fiducials<br>to the A axis</b>");
+  private JToggleButton buttonTransferFiducialsB =
+    new JToggleButton("<html><b>Transfer fiducials to the A axis</b>");
 
   //  There only needs to be one transfer fiducial panel
   private TransferfidPanel panelTransferFid;
@@ -152,10 +156,10 @@ public class AlignmentEstimationDialog
     buttonExecute.setText("Done");
 
     //  Create the first panel
-    GridLayout buttonLayout = new GridLayout(1,4);
+    GridLayout buttonLayout = new GridLayout(1, 4);
     buttonLayout.setHgap(10);
     panelButtonA.setLayout(buttonLayout);
-    
+
     panelButtonA.add(buttonComputeAlignmentA);
     panelButtonA.add(buttonImodA);
     panelButtonA.add(buttonViewResidualsA);
@@ -171,10 +175,6 @@ public class AlignmentEstimationDialog
 
     panelAlignEstA.add(panelTiltalignA.getContainer());
     panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
-    if (applicationManager.isDualAxis()) {
-      panelAlignEstA.add(panelTransferFid.getContainer());
-      panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
-    }
     panelAlignEstA.add(panelButtonA);
 
     //  Create the second panel
@@ -198,21 +198,27 @@ public class AlignmentEstimationDialog
 
     panelAlignEstB.add(panelButtonB);
 
+    // Construct the alignment parameter panel from the appropriate alignment
+    // estimate panels 
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.X_AXIS));
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
-    rootPanel.add(Box.createHorizontalGlue());
+    panelAlignEst.add(Box.createHorizontalGlue());
     panelAlignEst.add(panelAlignEstA);
-    rootPanel.add(Box.createHorizontalGlue());
+    panelAlignEst.add(Box.createHorizontalGlue());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
     panelAlignEst.add(panelAlignEstB);
-    rootPanel.add(Box.createHorizontalGlue());
+    panelAlignEst.add(Box.createHorizontalGlue());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
 
+    //  Construct the main panel from the alignment panel and exist buttons
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(panelAlignEst);
-
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    if (applicationManager.isDualAxis()) {
+      rootPanel.add(panelTransferFid.getContainer());
+      rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    }
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
@@ -248,7 +254,6 @@ public class AlignmentEstimationDialog
     else {
       panelTiltalignA.setParameters(tiltalignParam);
     }
-
   }
 
   public void getTiltalignParams(TiltalignParam tiltalignParam, AxisID axisID)
@@ -352,7 +357,7 @@ public class AlignmentEstimationDialog
       applicationManager.imodViewResiduals(AxisID.ONLY);
     }
   }
-  
+
   void buttonTransferFiducialsAAction() {
     applicationManager.transferfid(AxisID.FIRST);
   }

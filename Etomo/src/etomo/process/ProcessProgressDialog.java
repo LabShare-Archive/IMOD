@@ -19,6 +19,9 @@ import etomo.ui.FixedDim;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/09 21:52:53  rickg
+ * <p> Reformat from emacs
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -37,7 +40,7 @@ public class ProcessProgressDialog extends JDialog implements Runnable {
   public ProcessProgressDialog(String newLabel, Thread current) {
     label = new JLabel(newLabel + " progress...");
     progressBar = new JProgressBar();
-
+    setTitle(newLabel);
     contentPane = (JPanel) getContentPane();
     contentPane.setLayout(new BorderLayout());
     contentPane.add(label, BorderLayout.NORTH);
