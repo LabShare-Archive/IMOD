@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/01/14 03:07:08  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.12  2004/12/02 20:37:18  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -121,6 +124,7 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ViewType;
 
 public class CoarseAlignDialog extends ProcessDialog
     implements ContextMenu, FiducialessParams {
@@ -148,6 +152,10 @@ public class CoarseAlignDialog extends ProcessDialog
 
   private MultiLineToggleButton btnMidas = new MultiLineToggleButton(
     "<html><b>Fix Alignment<br>With Midas</b>");
+  
+  //Montaging
+  private MultiLineToggleButton btnEdgesMidas = new MultiLineToggleButton(
+  "Fix Edges With Midas");
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
@@ -168,6 +176,9 @@ public class CoarseAlignDialog extends ProcessDialog
       FixedDim.x0_y10);
     UIUtilities
       .addWithSpace(pnlCoarseAlign, btnCrossCorrelate, FixedDim.x0_y10);
+    if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
+      UIUtilities.addWithSpace(pnlCoarseAlign, btnEdgesMidas, FixedDim.x0_y10);
+    }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
       FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign, FixedDim.x0_y10);
@@ -190,6 +201,7 @@ public class CoarseAlignDialog extends ProcessDialog
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
+    btnEdgesMidas.addActionListener(actionListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -309,6 +321,9 @@ public class CoarseAlignDialog extends ProcessDialog
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID);
+    }
+    else if (command.equals(btnEdgesMidas.getActionCommand())) {
+      applicationManager.midasEdges(axisID);
     }
   }
 
