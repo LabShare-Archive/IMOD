@@ -86,6 +86,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.78  2004/06/24 18:43:00  sueh
+ * <p> bug# 482 add loadSolvematch(boolean modelBased) to merge
+ * <p> solvematchshift and mod into solvematch and add
+ * <p> matchshifts
+ * <p>
  * <p> Revision 3.77  2004/06/22 23:00:12  sueh
  * <p> bug# 455 Added open contours to sample() and fullSample().
  * <p> Substituted open() calls for model() calls.  Removed extra
@@ -3881,29 +3886,6 @@ public class ApplicationManager {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Load the solvematchshift com script into the tomogram combination dialog
-   * converting it first to a solvematch param object
-   */
-  public void loadSolvematchShift() {
-    comScriptMgr.loadSolvematchshift();
-    SolvematchParam solvematchParam = new SolvematchParam();
-//    solvematchParam.parseSolvematchshift(comScriptMgr.getSolvematchshift(),
-//      metaData.getDatasetName());
-    createNewSolvematch(solvematchParam);
-  }
-
-  /**
-   * Load the solvematchmod com script into the tomogram combination dialog
-   * converting it first to a solvematch param object
-   */
-  public void loadSolvematchMod() {
-    comScriptMgr.loadSolvematchmod();
-    SolvematchParam solvematchParam = new SolvematchParam();
-//    solvematchParam.parseSolvematchmod(comScriptMgr.getSolvematchmod());
-    createNewSolvematch(solvematchParam);
   }
 
   private void createNewSolvematch(SolvematchParam solvematchParam) {
