@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+
 import javax.swing.JOptionPane;
 
 import etomo.type.TiltAngleType;
@@ -18,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:22:11  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -27,7 +31,7 @@ import etomo.type.TiltAngleType;
  * <p> </p>
  */
 
-public class BeadtrackParam extends ConstBeadtrackParam {
+public class BeadtrackParam extends ConstBeadtrackParam implements CommandParam {
   public static final String rcsid =
     "$Id$";
 
@@ -146,27 +150,6 @@ public class BeadtrackParam extends ConstBeadtrackParam {
 
     inputArgs = updateInputArgs(inputArgs);
     scriptCommand.setInputArguments(inputArgs);
-  }
-
-  /**
-   * Validate the parameters stored in the BeadtrackObject
-   */
-  public boolean isValid() {
-    ArrayList errors = new ArrayList();
-    //  Compare the number of additional view sets and the number of entries in
-    //  in additionalViewGroups
-    if (nAdditionalViewSets != additionalViewGroups.getNElements()) {
-      errors.add(
-        "The number of additional view groups does not equal the number specified");
-      errors.add(
-        "  number of additional views sets: "
-          + String.valueOf(nAdditionalViewSets));
-      errors.add(
-        "  number of list entries: "
-          + String.valueOf(additionalViewGroups.getNElements()));
-
-    }
-    return true;
   }
 
   public void setInputFile(String inputFile) {

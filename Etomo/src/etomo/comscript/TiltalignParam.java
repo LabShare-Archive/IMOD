@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+
 import javax.swing.JOptionPane;
 
 import etomo.type.TiltAngleType;
@@ -18,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -42,7 +46,9 @@ import etomo.type.TiltAngleType;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class TiltalignParam extends ConstTiltalignParam {
+public class TiltalignParam
+  extends ConstTiltalignParam
+  implements CommandParam {
   public static final String rcsid =
     "$Id$";
 

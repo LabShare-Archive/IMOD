@@ -14,6 +14,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -34,6 +37,23 @@ public class ConstCCDEraserParam {
   protected String borderPixels;
   protected String polynomialOrder;
   protected boolean includeAdjacentPoints;
+
+  public boolean isValid() {
+    boolean valid = true;
+
+    // Check to see if any of the integer parameters do not parse as integers
+    // or there range is in appropriate
+    try {
+      int intBorderPixels = Integer.parseInt(borderPixels);
+      if (intBorderPixels < 0) {
+        valid = false;
+      }
+    }
+    catch (NumberFormatException e) {
+      valid = false;
+    }
+    return valid;
+  }
 
   public String getInputFile() {
     return inputFile;

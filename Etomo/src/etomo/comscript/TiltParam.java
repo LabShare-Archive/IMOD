@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3  2003/01/03 20:02:39  rickg
  * <p> Reformat
  * <p>
@@ -25,7 +28,7 @@ import java.util.ArrayList;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class TiltParam extends ConstTilt {
+public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid =
     "$Id$";
 

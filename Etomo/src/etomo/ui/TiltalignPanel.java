@@ -1,15 +1,25 @@
 package etomo.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTabbedPane;
 
 import etomo.comscript.ConstTiltalignParam;
-import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.StringList;
-import etomo.type.AxisID; 
+import etomo.comscript.TiltalignParam;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -24,6 +34,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.23  2003/01/15 00:11:42  rickg
  * <p> Fixed handling of xstretch and skew types (both global and
  * <p> local) when the original align.com does not have those
@@ -133,10 +146,6 @@ public class TiltalignPanel implements ContextMenu {
   private final int defaultLocalXstretchGroupSize = 7;
   private final int defaultLocalSkewType = 3;
   private final int defaultLocalSkewGroupSize = 11;
-
-  // FIXME: these should be gotten from the app some how
-  private final Color highlight = new Color(248, 254, 255);
-  private final Color shadow = new Color(121, 124, 136);
 
   private JTabbedPane tabPane = new JTabbedPane();
 
@@ -288,10 +297,7 @@ public class TiltalignPanel implements ContextMenu {
   public TiltalignPanel(AxisID axis) {
     axisID = axis;
 
-    tabPane.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        "Tiltalign Parameters"));
+    tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     //  Create the tabs
     createGeneralTab();
     createGlobalSolutionTab();
@@ -690,7 +696,7 @@ public class TiltalignPanel implements ContextMenu {
         params.setLocalDistortionSolutionType(defaultLocalDistortionType);
         params.setLocalXstretchType(defaultLocalXstretchType);
         params.setLocalSkewType(defaultLocalXstretchType);
-        
+
         badParameter = ltfLocalXstretchGroupSize.getLabel();
         params.setLocalXstretchSolutionGroupSize(
           ltfLocalXstretchGroupSize.getText());
@@ -748,7 +754,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalSkewAdditionalGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
   }
-  
+
   void selectGlobalDistortion() {
     if (chkDistortion.isSelected()) {
       chkLocalDistortion.setSelected(true);
@@ -785,7 +791,7 @@ public class TiltalignPanel implements ContextMenu {
    */
   void setDistortionDefaults() {
     rbTiltAngleAutomap.setSelected(true);
-    if(ltfTiltAngleGroupSize.getText().matches("^\\s*$")) {
+    if (ltfTiltAngleGroupSize.getText().matches("^\\s*$")) {
       ltfTiltAngleGroupSize.setText(defaultTiltAngleGroupSize);
     }
 
@@ -795,10 +801,10 @@ public class TiltalignPanel implements ContextMenu {
     // If any of the size fields are empty fill them in with the defaults
     // This will happen if someone starts with a com file with distortion
     // disabled and then enables distortion
-    if(ltfXstretchGroupSize.getText().matches("^\\s*$")) {
+    if (ltfXstretchGroupSize.getText().matches("^\\s*$")) {
       ltfXstretchGroupSize.setText(defaultXstretchGroupSize);
     }
-    if(ltfSkewGroupSize.getText().matches("^\\s*$")) {
+    if (ltfSkewGroupSize.getText().matches("^\\s*$")) {
       ltfSkewGroupSize.setText(defaultSkewGroupSize);
     }
   }
@@ -807,10 +813,10 @@ public class TiltalignPanel implements ContextMenu {
     // If any of the size fields are empty fill them in with the defaults
     // This will happen if someone starts with a com file with distortion
     // disabled and then enables distortion
-    if(ltfLocalXstretchGroupSize.getText().matches("^\\s*$")) {
+    if (ltfLocalXstretchGroupSize.getText().matches("^\\s*$")) {
       ltfLocalXstretchGroupSize.setText(defaultLocalXstretchGroupSize);
     }
-    if(ltfLocalSkewGroupSize.getText().matches("^\\s*$")) {
+    if (ltfLocalSkewGroupSize.getText().matches("^\\s*$")) {
       ltfLocalSkewGroupSize.setText(defaultLocalSkewGroupSize);
     }
   }
@@ -961,7 +967,6 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfNSurfaceAnalysis.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-
     panelResidualThreshold.setLayout(
       new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
     ltfResidualThreshold.setColumns(10);
@@ -1053,9 +1058,7 @@ public class TiltalignPanel implements ContextMenu {
     panelTiltAngleSolution.add(ltfTiltAngleAdditionalGroups.getContainer());
 
     panelTiltAngleSolution.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        "Tilt angle solution type"));
+      new EtchedBorder("Tilt angle solution type").getBorder());
 
     //  Layout the global magnification variable parameters
     panelMagnificationSolution.setLayout(
@@ -1082,9 +1085,7 @@ public class TiltalignPanel implements ContextMenu {
     panelMagnificationSolution.add(
       ltfMagnificationAdditionalGroups.getContainer());
     panelMagnificationSolution.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        "Magnification solution type"));
+      new EtchedBorder("Magnification solution type").getBorder());
 
     // Layout the global distortion pane
     createVariablePanel(
@@ -1241,11 +1242,7 @@ public class TiltalignPanel implements ContextMenu {
     //    additionalGroups.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(additionalGroups.getContainer());
 
-    panel.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        title));
-
+    panel.setBorder(new EtchedBorder(title).getBorder());
   }
 }
 

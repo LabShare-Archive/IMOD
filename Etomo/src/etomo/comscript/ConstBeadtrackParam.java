@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.ArrayList;
+
 import etomo.type.TiltAngleSpec;
 
 /**
@@ -15,6 +17,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -58,6 +63,9 @@ public class ConstBeadtrackParam {
   protected FortranInputString deletionParams;
 
   public ConstBeadtrackParam() {
+    // The attributes of this class are initialized in the constructor because
+    // many of them required additional calls besides construction for
+    // appropriate initialization  
     additionalViewGroups = new StringList(0);
 
     tiltAngleSpec = new TiltAngleSpec();
@@ -99,6 +107,27 @@ public class ConstBeadtrackParam {
     deletionParams.setIntegerType(0, false);
     deletionParams.setIntegerType(1, true);
 
+  }
+
+  /**
+   * Validate the parameters stored in the BeadtrackObject
+   */
+  public boolean isValid() {
+    ArrayList errors = new ArrayList();
+    //  Compare the number of additional view sets and the number of entries in
+    //  in additionalViewGroups
+    if (nAdditionalViewSets != additionalViewGroups.getNElements()) {
+      errors.add(
+        "The number of additional view groups does not equal the number specified");
+      errors.add(
+        "  number of additional views sets: "
+          + String.valueOf(nAdditionalViewSets));
+      errors.add(
+        "  number of list entries: "
+          + String.valueOf(additionalViewGroups.getNElements()));
+
+    }
+    return true;
   }
 
   public String getInputFile() {

@@ -2,27 +2,19 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Color;
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import etomo.comscript.TransferfidParam;
 
-/**
- * @author rickg
- *
- * To change this generated comment edit the template variable "typecomment":
- * Window>Preferences>Java>Templates.
- * To enable and disable the creation of type comments go to
- * Window>Preferences>Java>Code Generation.
- */
 public class TransferfidPanel {
   public static final String rcsid =
     "$Id$";
-
-  // FIXME: these should be gotten from the app some how
-  private final Color highlight = new Color(248, 254, 255);
-  private final Color shadow = new Color(121, 124, 136);
 
   private JPanel panelTransferfid = new JPanel();
 
@@ -43,9 +35,7 @@ public class TransferfidPanel {
     panelTransferfid.setLayout(
       new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        "Transferfid Parameters"));
+      new EtchedBorder("Transferfid Parameters").getBorder());
     chkRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfid.add(chkRunMidas);
 
@@ -60,9 +50,7 @@ public class TransferfidPanel {
     panelSearchDirection.setLayout(
       new BoxLayout(panelSearchDirection, BoxLayout.Y_AXIS));
     panelSearchDirection.setBorder(
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlight, shadow),
-        "Search Direction"));
+      new EtchedBorder("Search Direction").getBorder());
     panelSearchDirection.add(rbSearchBoth);
     panelSearchDirection.add(rbSearchPlus90);
     panelSearchDirection.add(rbSearchMinus90);

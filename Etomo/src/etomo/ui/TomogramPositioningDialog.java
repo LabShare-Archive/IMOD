@@ -1,15 +1,22 @@
 package etomo.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.comscript.ConstTilt;
-import etomo.comscript.TiltParam;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -24,6 +31,9 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.7.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -152,7 +162,7 @@ public class TomogramPositioningDialog
   }
 
   //  Set the tilt.com parameters that are editable in this dialog
-  public void setTiltParams(ConstTilt tiltParam) {
+  public void setTiltParams(ConstTiltParam tiltParam) {
     ltfSampleTomoThickness.setText(tiltParam.getThickness());
   }
 

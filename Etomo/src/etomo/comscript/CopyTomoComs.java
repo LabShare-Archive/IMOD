@@ -1,9 +1,14 @@
 package etomo.comscript;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
-import etomo.type.*;
 import etomo.process.SystemProgram;
+import etomo.type.AxisType;
+import etomo.type.ConstMetaData;
+import etomo.type.DataSource;
+import etomo.type.TiltAngleType;
+import etomo.type.ViewType;
 /**
  * <p>Description: </p>
  *
@@ -17,6 +22,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:45:45  rickg
+ * <p> Debug messages to stderr instead of stdout
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -114,7 +122,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "0";
     }
     else {
-      //  FIXME rjg:
+      //  FIXME Specification of all tilt alngles is not yet implemented
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "-1";
       System.err.println(
@@ -147,7 +155,7 @@ public class CopyTomoComs {
         tempStdInput[lineCount++] = "0";
       }
       else {
-        //  FIXME rjg:
+        //  FIXME Specification of all tilt alngles is not yet implemented
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "-1";
         System.err.println(

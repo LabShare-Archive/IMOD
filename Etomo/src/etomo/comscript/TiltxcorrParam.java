@@ -15,6 +15,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2  2002/10/17 16:21:16  rickg
  * <p> Reformat
  * <p>
@@ -23,7 +26,9 @@ import etomo.type.TiltAngleType;
  * <p> </p>
  */
 
-public class TiltxcorrParam extends ConstTiltxcorrParam {
+public class TiltxcorrParam
+  extends ConstTiltxcorrParam
+  implements CommandParam {
   public static final String rcsid =
     "$Id$";
 

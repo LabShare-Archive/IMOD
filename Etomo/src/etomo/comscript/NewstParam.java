@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -22,7 +25,7 @@ import java.util.ArrayList;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class NewstParam extends ConstNewstParam {
+public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid =
     "$Id$";
 

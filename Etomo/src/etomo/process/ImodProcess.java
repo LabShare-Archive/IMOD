@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/01/31 05:34:08  rickg
+ * <p> Support for foreground imod/qtimod through -W
+ * <p>
  * <p> Revision 2.1  2003/01/29 21:09:05  rickg
  * <p> Added sleep to wait for imod process to exit and then
  * <p> some when.  For some reason the windowID/processID
@@ -58,7 +61,6 @@ public class ImodProcess {
   private String datasetName = "";
   private String modelName = "";
   private String windowID = "";
-  private String processID = "";
   private boolean swapYZ = false;
 
   private Thread imodThread;
@@ -89,9 +91,8 @@ public class ImodProcess {
       return;
     }
 
-    //  Reset the window and process ID strings
+    //  Reset the window string
     windowID = "";
-    processID = "";
 
     String stringYZ = "";
     if (swapYZ) {

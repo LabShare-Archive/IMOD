@@ -14,6 +14,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import etomo.ApplicationManager;
+import etomo.comscript.ConstMatchorwarpParam;
+import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.MatchorwarpParam;
+import etomo.comscript.Patchcrawl3DParam;
 
 /**
  * <p>Description: </p>
@@ -31,18 +35,19 @@ import etomo.ApplicationManager;
  * <p> </p>
  */
 public class FinalCombinePanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
 
   private JPanel rootPanel = new JPanel();
 
   private JPanel panelPatchcorr = new JPanel();
-  private LabeledTextField ltfPatchSizeX =
+  private LabeledTextField ltfXPatchSize =
     new LabeledTextField("X patch size :");
-  private LabeledTextField ltfPatchSizeY =
+  private LabeledTextField ltfYPatchSize =
     new LabeledTextField("Y patch size :");
-  private LabeledTextField ltfPatchSizeZ =
+  private LabeledTextField ltfZPatchSize =
     new LabeledTextField("Z patch size :");
   private JButton buttonPatchcorrRestart =
     new JButton("<html><b>Restart at patchcorr</b>");
@@ -54,14 +59,14 @@ public class FinalCombinePanel {
   private JButton buttonPatchRegionModel =
     new JButton("<html><b>Create/edit patch region model</b>");
   private LabeledTextField ltfWarpLimit = new LabeledTextField("Warp limit: ");
-  private CheckBoxTextField cbtfExcludeXLeft =
-    new CheckBoxTextField("Small X (left) exclude:");
-  private CheckBoxTextField cbtfExcludeXRight =
-    new CheckBoxTextField("Large X (right) exclude:");
-  private CheckBoxTextField cbtfExcludeZBottom =
-    new CheckBoxTextField("Small Z (bottom) exclude:");
-  private CheckBoxTextField cbtfExcludeZTop =
-    new CheckBoxTextField("Large Z (top) exclude:");
+  private CheckBoxTextField cbtfXLowerExclude =
+    new CheckBoxTextField("X lower (left) exclude:");
+  private CheckBoxTextField cbtfXUpperExclude =
+    new CheckBoxTextField("X upper (right) exclude:");
+  private CheckBoxTextField cbtfZLowerExclude =
+    new CheckBoxTextField("Z lower (bottom) exclude:");
+  private CheckBoxTextField cbtfZUpperExclude =
+    new CheckBoxTextField("Z upper (top) exclude:");
   private JPanel panelMatchorwarpButtons = new JPanel();
   private JButton buttonMatchorwarpRestart =
     new JButton("<html><b>Restart at matchorwarp</b>");
@@ -108,11 +113,11 @@ public class FinalCombinePanel {
     panelPatchcorr.setLayout(new BoxLayout(panelPatchcorr, BoxLayout.Y_AXIS));
     panelPatchcorr.setBorder(
       new EtchedBorder("Patchcorr Parameters").getBorder());
-    panelPatchcorr.add(ltfPatchSizeX.getContainer());
+    panelPatchcorr.add(ltfXPatchSize.getContainer());
     panelPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelPatchcorr.add(ltfPatchSizeY.getContainer());
+    panelPatchcorr.add(ltfYPatchSize.getContainer());
     panelPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelPatchcorr.add(ltfPatchSizeZ.getContainer());
+    panelPatchcorr.add(ltfZPatchSize.getContainer());
     panelPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
     buttonPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -135,13 +140,13 @@ public class FinalCombinePanel {
     panelMatchorwarp.add(ltfWarpLimit.getContainer());
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    panelMatchorwarp.add(cbtfExcludeXLeft);
+    panelMatchorwarp.add(cbtfXLowerExclude);
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelMatchorwarp.add(cbtfExcludeXRight);
+    panelMatchorwarp.add(cbtfXUpperExclude);
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelMatchorwarp.add(cbtfExcludeZBottom);
+    panelMatchorwarp.add(cbtfZLowerExclude);
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelMatchorwarp.add(cbtfExcludeZTop);
+    panelMatchorwarp.add(cbtfZUpperExclude);
     panelMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     panelMatchorwarpButtons.setLayout(
@@ -166,28 +171,128 @@ public class FinalCombinePanel {
     rootPanel.add(panelButton);
   }
 
+  /**
+   * Return the rootPanel reference
+   * @return Container
+   */
   public Container getContainer() {
     return rootPanel;
   }
 
-  public void setPatchcorrParams() {
-
+  /**
+   * Set the values of the patchcrawl3D UI objects from the 
+   * ConstPatchcrawl3DParam object.
+   * @param patchrawlParam
+   */
+  public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchrawlParam) {
+    ltfXPatchSize.setText(patchrawlParam.getXPatchSize());
+    ltfYPatchSize.setText(patchrawlParam.getYPatchSize());
+    ltfZPatchSize.setText(patchrawlParam.getZPatchSize());
   }
 
-  public void getPatchcorrParams() {
+  /**
+   * Set the Patchcrawl3DParam object values from the UI values.
+   * @param patchrawlParam
+   * @throws NumberFormatException
+   */
+  public void getPatchcrawl3DParams(Patchcrawl3DParam patchrawlParam)
+    throws NumberFormatException {
+    String badParameter = "";
 
+    try {
+      badParameter = "X patch size";
+      patchrawlParam.setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
+      badParameter = "Y patch size";
+      patchrawlParam.setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
+      badParameter = "Z patch size";
+      patchrawlParam.setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
+    }
+    catch (NumberFormatException except) {
+      String message = badParameter + " " + except.getMessage();
+      throw new NumberFormatException(message);
+    }
   }
 
-  public void setMatchorwarpParams() {
+  /**
+   * Set the values of the matchorwarp UI objects from the 
+   * ConstMatchorwarpParam object.
+   * @param matchorwarpParam
+   */
+  public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
+    ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
+    if (matchorwarpParam.getXLowerExclude() > 0) {
+      cbtfXLowerExclude.setCheckBoxSelected(true);
+      cbtfXLowerExclude.setTextField(
+        String.valueOf(matchorwarpParam.getXLowerExclude()));
+    }
+    if (matchorwarpParam.getXUpperExclude() > 0) {
+      cbtfXUpperExclude.setCheckBoxSelected(true);
+      cbtfXUpperExclude.setTextField(
+        String.valueOf(matchorwarpParam.getXUpperExclude()));
+    }
+
+    if (matchorwarpParam.getZLowerExclude() > 0) {
+      cbtfZLowerExclude.setCheckBoxSelected(true);
+      cbtfZLowerExclude.setTextField(
+        String.valueOf(matchorwarpParam.getZLowerExclude()));
+    }
+
+    if (matchorwarpParam.getZUpperExclude() > 0) {
+      cbtfZUpperExclude.setCheckBoxSelected(true);
+      cbtfZUpperExclude.setTextField(
+        String.valueOf(matchorwarpParam.getZUpperExclude()));
+    }
   }
 
-  public void getMatchorwarpParams() {
-  }
+  /**
+   * Set the MatchorwarpParam object values from the UI values.
+   * @param matchorwarpParam
+   * @throws NumberFormatException
+   */
+  public void getMatchorwarpParams(MatchorwarpParam matchorwarpParam)
+    throws NumberFormatException {
+    String badParameter = "";
 
+    try {
+      badParameter = ltfWarpLimit.getLabel();
+      matchorwarpParam.setWarpLimit(ltfWarpLimit.getText());
+
+      badParameter = cbtfXLowerExclude.getCheckBoxLabel();
+      if (cbtfXLowerExclude.isCheckBoxSelected()) {
+        matchorwarpParam.setXLowerExclude(
+          Integer.parseInt(cbtfXLowerExclude.getTextField()));
+      }
+
+      badParameter = cbtfXUpperExclude.getCheckBoxLabel();
+      if (cbtfXUpperExclude.isCheckBoxSelected()) {
+        matchorwarpParam.setXUpperExclude(
+          Integer.parseInt(cbtfXUpperExclude.getTextField()));
+      }
+
+      badParameter = cbtfZLowerExclude.getCheckBoxLabel();
+      if (cbtfZLowerExclude.isCheckBoxSelected()) {
+        matchorwarpParam.setZLowerExclude(
+          Integer.parseInt(cbtfZLowerExclude.getTextField()));
+      }
+
+      badParameter = cbtfZUpperExclude.getCheckBoxLabel();
+      if (cbtfZUpperExclude.isCheckBoxSelected()) {
+        matchorwarpParam.setZUpperExclude(
+          Integer.parseInt(cbtfZUpperExclude.getTextField()));
+      }
+
+    }
+    catch (NumberFormatException except) {
+      String message = badParameter + " " + except.getMessage();
+      throw new NumberFormatException(message);
+    }
+  }
 }
 
 /**
- * CheckBoxTextField
+ * CheckBoxTextField combines a JCheckBox with it's label and an editable text
+ * field.  The included action listener enables/disables the text field to match
+ * the state of the check box.
  * @author rickg
  */
 class CheckBoxTextField extends JPanel {
@@ -214,6 +319,10 @@ class CheckBoxTextField extends JPanel {
     textField.setEnabled(checkBox.isSelected());
     checkBox.addActionListener(new CheckBoxActionListener(this));
 
+  }
+
+  String getCheckBoxLabel() {
+    return checkBox.getText();
   }
 
   void setCheckBoxSelected(boolean state) {

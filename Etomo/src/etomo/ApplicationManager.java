@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/02/24 23:27:21  rickg
+ * <p> Added process interrupt method
+ * <p>
  * <p> Revision 2.5  2003/01/30 00:43:32  rickg
  * <p> Blank second axis panel when done with tomogram generation
  * <p>
@@ -391,7 +394,7 @@ public class ApplicationManager {
 
     // Load the required ccderaser{|a|b}.com files
     // Fill in the parameters and set it to the appropriate state
-    comScriptMgr.loadEraserCom(axisID);
+    comScriptMgr.loadEraser(axisID);
     preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
 
     mainFrame.showProcess(preProcDialog.getContainer(), axisID);
@@ -517,7 +520,7 @@ public class ApplicationManager {
     CCDEraserParam ccdEraserParam = new CCDEraserParam();
     ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
     preProcDialog.getCCDEraserParams(ccdEraserParam);
-    comScriptMgr.saveEraserCom(ccdEraserParam, axisID);
+    comScriptMgr.saveEraser(ccdEraserParam, axisID);
 
   }
 
@@ -554,7 +557,7 @@ public class ApplicationManager {
     }
 
     //  Create the dialog box
-    comScriptMgr.loadXcorrCom(axisID);
+    comScriptMgr.loadXcorr(axisID);
     coarseAlignDialog.setCrossCorrelationParams(
       comScriptMgr.getTiltxcorrParam(axisID));
     mainFrame.showProcess(coarseAlignDialog.getContainer(), axisID);
@@ -677,7 +680,7 @@ public class ApplicationManager {
     try {
       TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
       coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
-      comScriptMgr.saveXcorrCom(tiltXcorrParam, axisID);
+      comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -724,7 +727,7 @@ public class ApplicationManager {
 
     //  Load the required track{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
-    comScriptMgr.loadTrackCom(axisID);
+    comScriptMgr.loadTrack(axisID);
     fiducialModelDialog.setBeadtrackParams(
       comScriptMgr.getBeadtrackParam(axisID));
     mainFrame.showProcess(fiducialModelDialog.getContainer(), axisID);
@@ -859,7 +862,7 @@ public class ApplicationManager {
     try {
       BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
       fiducialModelDialog.getBeadtrackParams(beadtrackParam);
-      comScriptMgr.saveTrackCom(beadtrackParam, axisID);
+      comScriptMgr.saveTrack(beadtrackParam, axisID);
 
     }
     catch (FortranInputSyntaxException except) {
@@ -907,7 +910,7 @@ public class ApplicationManager {
 
     //  Load the required align{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
-    comScriptMgr.loadAlignCom(axisID);
+    comScriptMgr.loadAlign(axisID);
     fineAlignmentDialog.setTiltalignParams(
       comScriptMgr.getTiltalignParam(axisID));
 
@@ -1121,7 +1124,7 @@ public class ApplicationManager {
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
-      comScriptMgr.saveAlignCom(tiltalignParam, axisID);
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltDependsOnAlign(tiltalignParam, axisID);
 
@@ -1155,7 +1158,7 @@ public class ApplicationManager {
     ConstTiltalignParam tiltalignParam,
     AxisID currentAxis) {
 
-    comScriptMgr.loadTiltCom(currentAxis);
+    comScriptMgr.loadTilt(currentAxis);
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
 
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
@@ -1168,7 +1171,7 @@ public class ApplicationManager {
     }
 
     tiltParam.setExcludeList(tiltalignParam.getIncludeExcludeList());
-    comScriptMgr.saveTiltCom(tiltParam, currentAxis);
+    comScriptMgr.saveTilt(tiltParam, currentAxis);
   }
 
   /**
@@ -1198,10 +1201,10 @@ public class ApplicationManager {
     }
 
     // Get the tilt{|a|b}.com and align{|a|b}.com parameters
-    comScriptMgr.loadTiltCom(axisID);
+    comScriptMgr.loadTilt(axisID);
     tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
 
-    comScriptMgr.loadAlignCom(axisID);
+    comScriptMgr.loadAlign(axisID);
     tomogramPositioningDialog.setAlignParams(
       comScriptMgr.getTiltalignParam(axisID));
 
@@ -1379,7 +1382,7 @@ public class ApplicationManager {
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
       tomogramPositioningDialog.getTiltParams(tiltParam);
-      comScriptMgr.saveTiltCom(tiltParam, axisID);
+      comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -1404,7 +1407,7 @@ public class ApplicationManager {
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       tomogramPositioningDialog.getAlignParams(tiltalignParam);
-      comScriptMgr.saveAlignCom(tiltalignParam, axisID);
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -1445,7 +1448,7 @@ public class ApplicationManager {
     }
 
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
-    comScriptMgr.loadTiltCom(axisID);
+    comScriptMgr.loadTilt(axisID);
     tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
 
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
@@ -1536,7 +1539,7 @@ public class ApplicationManager {
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
       tomogramGenerationDialog.getTiltParams(tiltParam);
-      comScriptMgr.saveTiltCom(tiltParam, axisID);
+      comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -1557,10 +1560,10 @@ public class ApplicationManager {
 
     try {
       NewstParam newstParam;
-      comScriptMgr.loadNewstCom(axisID);
+      comScriptMgr.loadNewst(axisID);
       newstParam = comScriptMgr.getNewstComNewstParam(axisID);
       newstParam.setSize(",,");
-      comScriptMgr.saveNewstCom(newstParam, axisID);
+      comScriptMgr.saveNewst(newstParam, axisID);
 
       String threadName = processMgr.newst(axisID);
       setThreadName(threadName, axisID);
@@ -1626,6 +1629,7 @@ public class ApplicationManager {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
 
+   //  Get the setupcombine parameters and 
    CombineParams combineParams =
       new CombineParams(metaData.getCombineParams());
 

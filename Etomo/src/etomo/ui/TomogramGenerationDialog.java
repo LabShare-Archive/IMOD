@@ -1,13 +1,20 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.comscript.ConstTilt;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltParam;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -22,6 +29,9 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/24 21:04:18  rickg
+ * <p> AxisID bug fix from single buttonAction function
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -131,7 +141,7 @@ public class TomogramGenerationDialog
   /**
    * Populate the dialog box with the tilt paramaters
    */
-  public void setTiltParams(ConstTilt tiltParam) {
+  public void setTiltParams(ConstTiltParam tiltParam) {
     ltfTomoThickness.setText(tiltParam.getThickness());
     ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
     chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());

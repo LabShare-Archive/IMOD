@@ -6,6 +6,10 @@ import javax.swing.*;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstMatchorwarpParam;
+import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.MatchorwarpParam;
+import etomo.comscript.Patchcrawl3DParam;
 import etomo.type.AxisID;
 
 /**
@@ -21,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/02/24 23:48:18  rickg
+ * <p> Panel layout for combination dialog
+ * <p>
  * <p> Revision 2.1  2003/01/29 15:23:50  rickg
  * <p> Fixed button action logic
  * <p>
@@ -60,22 +67,22 @@ public class TomogramCombinationDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
   SetupCombinePanel panelSetupCombine;
-  InitialCombinePanel panelInitialCombine; 
+  InitialCombinePanel panelInitialCombine;
   FinalCombinePanel panelFinalCombine;
-  
-  private JTabbedPane tabbedPane= new JTabbedPane(); 
+
+  private JTabbedPane tabbedPane = new JTabbedPane();
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST);
-    
+
     //  Nothing in advanced catagory
     buttonAdvanced.setEnabled(false);
-    
+
     //  Instantiate the tab pane contents
     panelSetupCombine = new SetupCombinePanel(applicationManager);
     panelInitialCombine = new InitialCombinePanel(applicationManager);
     panelFinalCombine = new FinalCombinePanel(applicationManager);
-    
+
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -84,7 +91,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
     tabbedPane.add("Setup", panelSetupCombine.getContainer());
     tabbedPane.add("Initial Match", panelInitialCombine.getContainer());
     tabbedPane.add("Final Match", panelFinalCombine.getContainer());
-    
+
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
     rootPanel.add(tabbedPane);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -92,11 +99,9 @@ public class TomogramCombinationDialog extends ProcessDialog {
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-
     // Set the default advanced dialog state
     updateAdvanced();
   }
-
 
   public void showPane(String paneName) {
     tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(paneName));
@@ -108,15 +113,45 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.packMainWindow();
   }
 
+  /**
+   * Set the setupcombine parameters of the UI from the the ConstCombineParams
+   * object
+   * @param combineParams
+   */
   public void setCombineParams(ConstCombineParams combineParams) {
     panelSetupCombine.setParameters(combineParams);
   }
 
+  /**
+   * Get the the setupcombine parameters of the UI returning them in the 
+   * modified CombineParams object
+   * @param combineParams
+   * @throws NumberFormatException
+   */
   public void getCombineParams(CombineParams combineParams)
     throws NumberFormatException {
     panelSetupCombine.getParameters(combineParams);
   }
 
+  /**
+   * Set the matchorwarp parameters of the UI from the the ConstMatchorwarp
+   * object
+   * @param matchorwarpParams
+   */
+  public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParams) {
+    panelFinalCombine.setMatchorwarpParams(matchorwarpParams);
+  }
+
+  /**
+   * Get the the matchorwarp parameters of the UI returning them in the 
+   * modified MatchorwarpParam object  * 
+   * @param matchorwarpParams
+   * @throws NumberFormatException
+   */
+  public void getMatchorwarpParams(MatchorwarpParam matchorwarpParams)
+    throws NumberFormatException {
+    panelFinalCombine.getMatchorwarpParams(matchorwarpParams);
+  }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
@@ -134,4 +169,4 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.doneTomogramCombinationDialog();
   }
 
-} 
+}

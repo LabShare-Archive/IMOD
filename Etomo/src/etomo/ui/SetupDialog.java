@@ -1,14 +1,33 @@
 package etomo.ui;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.io.File;
 
-import etomo.*;
-import etomo.type.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.border.TitledBorder;
+
+import etomo.ApplicationManager;
 import etomo.storage.StackFileFilter;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.ConstMetaData;
+import etomo.type.DataSource;
+import etomo.type.MetaData;
+import etomo.type.SectionType;
+import etomo.type.ViewType;
 
 /**
  * <p>Description: </p>
@@ -23,6 +42,9 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.14.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -153,8 +175,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //  Construct the setup dialog
   //
   public SetupDialog(ApplicationManager appMgr) {
-    //FIXME
-    super(appMgr, AxisID.FIRST);
+    super(appMgr, AxisID.ONLY);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
@@ -504,8 +525,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       return SectionType.SERIAL;
     }
   } /**
-       * Right mouse button context menu
-       */
+        * Right mouse button context menu
+        */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup =
       new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
@@ -566,23 +587,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
   } /**
-           * Action to take when the cancel button is pressed, the default action is
-           * to set the exitState attribute to CANCEL.
-           */
+            * Action to take when the cancel button is pressed, the default action is
+            * to set the exitState attribute to CANCEL.
+            */
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneSetupDialog();
   } /**
-           * Action to take when the postpone button is pressed, the default action is
-           * to set the exitState attribute to POSTPONE.
-           */
+            * Action to take when the postpone button is pressed, the default action is
+            * to set the exitState attribute to POSTPONE.
+            */
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneSetupDialog();
   } /**
-           * Action to take when the execute button is pressed, the default action is
-           * to set the exitState attribute to EXECUTE.
-           */
+            * Action to take when the execute button is pressed, the default action is
+            * to set the exitState attribute to EXECUTE.
+            */
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneSetupDialog();
