@@ -58,12 +58,16 @@ typedef struct zapwin
   int    hqgfxsave;           /* Place to save hqgfx when dragging */
   int    drawCurrentOnly;
 
-  int rubberband;    /* Rubber banding flag and corner coordinates */
-  int bandllx;
-  int bandurx;
-  int bandlly;
-  int bandury;
-  int startingBand;
+  int    rubberband;    /* Rubber banding flag and image inside coordinates */
+  float  rbImageX0;
+  float  rbImageX1;
+  float  rbImageY0;
+  float  rbImageY1;
+  int    rbMouseX0;    /* mouse coords - always derived from image coords */
+  int    rbMouseX1;
+  int    rbMouseY0;
+  int    rbMouseY1;
+  int    startingBand;
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
@@ -130,6 +134,9 @@ void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.10  2004/05/05 17:33:46  mast
+Added call to get rubberband coordinates
+
 Revision 3.9  2003/09/25 21:10:34  mast
 Removed unneeded starting geometry member
 
