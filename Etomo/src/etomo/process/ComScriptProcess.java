@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2004/07/13 17:26:11  sueh
+ * bug# 429 moving fix to Utilities
+ *
  * Revision 3.11  2004/07/08 00:06:50  sueh
  * bug# 429 rename .log to .log~ when .log exists
  *
@@ -238,18 +241,18 @@ public class ComScriptProcess
   public static final String rcsid =
     "$Id$";
 
-  private String name = null;
-  private File workingDirectory = null;
+  protected String name = null;
+  protected File workingDirectory = null;
   private ProcessManager processManager;
 
   private boolean demoMode = false;
   private int demoTime = 5000;
-  private boolean debug = false;
+  protected boolean debug = false;
   private String[] errorMessage;
   private String[] warningMessage;
   private SystemProgram vmstocsh;
-  private SystemProgram csh;
-  private StringBuffer cshProcessID;
+  protected SystemProgram csh;
+  protected StringBuffer cshProcessID;
   private AxisID axisID;
   private String watchedFileName;
 
@@ -454,7 +457,7 @@ public class ComScriptProcess
    * Extract the basename from a filename given the filename and the expected
    * extension.
    */
-  private String parseBaseName(String filename, String extension) {
+  protected String parseBaseName(String filename, String extension) {
     int idxExtension = filename.indexOf(extension);
     String base = null;
     if (idxExtension > 0)
@@ -465,7 +468,7 @@ public class ComScriptProcess
   /**
    * Execute the csh commands.
    */
-  private void execCsh(String[] commands) throws IOException,
+  protected void execCsh(String[] commands) throws IOException,
       SystemProcessException {
 
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
