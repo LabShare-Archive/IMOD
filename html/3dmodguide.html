@@ -1,7 +1,30 @@
-<DT><HR><A NAME = "Building Models"><H3>Chapter 4: Building Models</H3></A>
-<P>
+<html><head> <title>3dmod Guide</title> </head>
+<body>
+<H2 ALIGN=center>Guide to Using 3dmod, Version 3.0.8<BR>
+</H2>
+<H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
+<HR>
+<H3>Table of Contents</H3>
 
-<DD><H4>Model Organization</H4>
+<UL>
+<BR><A HREF = "#Model Organization">Model Organization</A>
+<BR><A HREF = "#Starting 3dmod"> Starting 3dmod</A>
+<BR><A HREF = "#Information Window">The Information Window</A> 
+<BR><A HREF = "#Zap Window">The Zap Window</A>
+<BR><A HREF = "#Object Edit">The Object Edit Dialog</A>
+<BR><A HREF = "#Modeling in Zap">Modeling in the Zap Window</A>
+<BR><A HREF = "#Zap Toolbar">The Zap Toolbar</A>
+<BR><A HREF = "#Common Hot Keys">Most Frequently Used Hot Keys</A>
+<BR><A HREF = "#XYZ Window">The XYZ Window</A>
+<BR><A HREF = "#Slicer Window">The Slicer Window</A>
+<BR><A HREF = "#Setting Z-scale">Setting Z-scale and Pixel Size</A>
+<BR><A HREF = "#Viewing Model">Viewing the Model in 3D</A>
+<BR><A HREF = "#Skinning Model">Putting a skin on model data</A>
+<BR><A HREF = "#Advanced Topics">Advanced topics</A>
+</UL>
+<HR>
+<A NAME = "Model Organization"> 
+<DD><H3>Model Organization</H3>
 It is helpful to understand the model data structure before trying
 to create a model.  
 A model is basically a collection of points that refer to or mark
@@ -18,10 +41,10 @@ color and line thickness.  This table shows how
 objects, contours, and points are organized in a hierarchy in the model.
 
 <p>
-<H5>Model Layout</H5>
-
 <CENTER>
+
 <TABLE BORDER=2>
+<CAPTION><B> Model Layout </B></CAPTION>
 <TR>
 <TD COLSPAN=3 TD ALIGN=LEFT>
 <B>Model header:</B><BR>
@@ -99,7 +122,8 @@ Point 4
 
 <p>
 </DD>
-<DD><H4>Interactive Model Building</H4>
+<A NAME = "Starting 3dmod"> 
+<DD><H3>Starting 3dmod</H3></A>
 <P>To create a model for a MRC image file called 
 
 <CODE>example.mrc</CODE> run the following 3dmod command.
@@ -110,19 +134,17 @@ This command will cause a new model to be created, ready to edit.
 
 If a model has already been saved but needs further editing run the
 command
-<br><CODE>3dmod example.mrc example.imod</CODE>
+<br><CODE>3dmod example.mrc example.mod</CODE>
 <p>
 When this command is run a window similar to the one below will open up.
 A secondary window containing the image of the image file and model
 file is opened after the data has been loaded.
 
-<p> <HR> <CENTER> 
 <A NAME = "Information Window"> 
-<H5>The 3dmod Information Window</H5></A> 
-<IMG SRC="3dmodimages/infowin.png" ALT="3dmod Information Window"> 
+<H3>The Information Window</H3></A> 
+<CENTER> <IMG SRC="3dmodimages/infowin.png" ALT="3dmod Information Window"> 
 </CENTER> 
 
-<P> 
 The 3dmod Information Window above is the main control window of the
 program.  It contains menus for performing file operations, 
 selecting model editing functions, and
@@ -148,8 +170,9 @@ now used extensively in 3dmod.  A spin box shows a current value of some
 parameter, and lets you change that parameter either by increasing or
 decreasing it with the up and down arrow buttons, or by typing in a
 new value.  The three spin boxes on the left
-show the current model object, contour and point.
-The current model being edited above has 4 objects; the 4th object
+show the current model object, contour and point, as well as the color of
+the current object.
+The model being edited above has 4 objects; the 4th object
 is currently selected.  The 4th object has 11 contours and
 the 5th contour is currently selected.  
 This contour has 20 points and the 10th point
@@ -170,7 +193,7 @@ current section is number 16.  If you change the Z value, a different
 section will be shown in image windows.  You can change X and Y values
 to move the current image point.  The current image point is not the
 same as the current model point.  It is marked by a cross when the
-program is not in modeling mode, and it determines what coordinates are
+program is not in model mode, and it determines what coordinates are
 displayed in some of the image windows.
 
 <P>
@@ -203,24 +226,22 @@ Below the sliders is the
 "Float" control.  When this is checked,
 the program will adjust the black and white sliders automatically when
 you change from one section to another in an attempt to maintain a
-constant contrast and brightness.
+constant contrast and brightness between the images.
 
 <p>
 The "Movie" and "Model" radio buttons allow a user to select one
-of the two modes.  When "Movie" is selected, mouse actions will
+of the two modes.  When "Movie" is selected, pressing the middle or right
+mouse button will
 cause the image
-to movie back and forth.  When "Model" is selected, mouse
-actions will edit the model, as described below.
+to movie back and forth.  When "Model" is selected, the three different mouse
+buttons will edit the model, as described below.
 <p>
 The bottom panel of the Info Window contains
 additional information and status messages.  You can expand the window
 vertically to see more of the information at once.
 
-<HR>
-<CENTER>
 <A NAME = "Zap Window">
-<H5>The 3dmod Zap Window</H5></A>
-</CENTER>
+<H3>The Zap Window</H3></A>
 <table border="0" align="center">
   <tbody>
     <tr>
@@ -238,23 +259,26 @@ vertically to see more of the information at once.
 
 
 The main image display and model editing window within 3dmod
-is the "ZaP" window.  The window name is an acronym for
+is the "Zap" window.  The window name is an acronym for
 "Zoom and Pan".
 The zoom can be adjusted by clicking with 
 the left mouse button on the arrows at the
-left side of the toolbar.  
+left side of the toolbar.
+Alternatively, one can zoom up and down with the "=" and "-" hot keys,
+respectively.
 To pan the image when it is larger than the window, press and hold the left
 mouse
 button in the image area of the window and
 drag the image.
 <P>
-This display illustrates the three kinds of model objects: closed
+This display of two nearby slices from a tomogram (sections 12 and 16) 
+illustrates the three kinds of model objects: closed
 contours, open contours, and scattered points.
 <UL>
 <LI>Closed contours are
 used to draw closed boundaries around features in one image plane.
-The light blue lines around a vesicle are an example of closed contours.
-As the
+The light blue lines following the membrane around a vesicle are an
+example of closed contours.  As the
 two different slices show, a separate contour is drawn in each section
 where the feature appears.  You can draw as many separate contours as
 necessary to enclose the 
@@ -262,7 +286,12 @@ feature belonging to an object on one section.  After you have drawn
 the model, you run a separate program,
 <A HREF = "man/imodmesh.html">imodmesh</A>,
 to connect the contours across the sections and create a surface that
-can be viewed.  Closed contours are the default when a new object is created.
+can be viewed.  Closed contours without point symbols are the default when a
+new object is created.  The contour in section 16 does have some
+circles drawn on it because it is the current contour.  The first and
+last points
+of the current contour are highlighted with green and red circles, 
+while the current point has a yellow circle drawn on it.
 
 <LI>Open contours are used when the end of a contour should not be connected
 back to the starting point.  There are two cases where this is
@@ -279,18 +308,23 @@ fiducial particles through a tilt series.
 <LI>Scattered points are used when you do not want connecting lines between
 the successive
 points of a contour.  Such points are usually displayed as a sphere in a 
-3D view of the model, or a circle in cross-sections such as in the ZaP window.
+3D view of the model, or as a circle in cross-sections such as in the
+Zap window.
 In the example, a small round vesicle has been modeled simply by placing a
-scattered point on it on section 12 (magenta circle).
-A scattered point will typically show up on more than one section,
+single scattered point on it on section 12 (magenta circle).
+Depending
+on the sphere radius selected, 
+a scattered point will typically show up on several sections,
 with the circle becoming smaller away from the central section where
-the point was placed (the circle is smaller on section 16).  A cross is drawn
+the point was placed (the circle is smaller on section 16).  A
+cross is drawn
 inside the circle on the
-central section to show that the point was drawn on that section; 
+central section to show that the point was deposited on that section; 
 if this does not make it clear enough you can also
 make a separate symbol be displayed only on the central section.
 </UL>
-<P>
+<A NAME = "Object Edit">
+<H4>The Object Edit Dialog</H4></A>
 The type of contours in an object, and the symbols displayed at
 individual points, can be selected with the Object Edit dialog box.
 Here are two examples. 
@@ -318,9 +352,8 @@ here no symbol is
 selected but the sphere radius for points has been set to 14.
 
 
-<p>
-Modeling in the ZaP Window
-<P>
+<A NAME = "Modeling in Zap">
+<H4>Modeling in the Zap Window</H4></A>
 Model points are added or changed using a 3-button mouse with the
 program in Model mode.
 The table below gives an overview of the mouse controls in Movie and
@@ -391,10 +424,9 @@ moving or deleting them.  Use this button alone to move one or more
 points; hold down the Ctrl key to delete points under the cursor while
 clicking or holding down the right button.
 
-<p>
-The Zap Toolbar
-<p> <HR> <CENTER> 
 <A NAME = "Zap Toolbar"> 
+<H4>The Zap Toolbar</H4></A>
+<CENTER> 
 <IMG SRC="3dmodimages/zaptoolbar.png" ALT="Zap window toolbar"> 
 </CENTER> 
 <P>
@@ -405,7 +437,7 @@ there is a text box which both displays the current zoom value and allows you
 to enter any arbitrary zoom.
 (Fractional zooms may be slower on some machines.)
 <LI>The Checkerboard button will toggle between fast drawing and slower, 
-high-resolution drawing when the zoom is greater than 1.
+high-resolution drawing with pixel smoothing when the zoom is greater than 1.
 <LI>The Lock button is used to keep the image from centering on the current
 point and to allow different Zap windows to display different
 sections.
@@ -430,20 +462,24 @@ being viewed in the Zap window and allows you to go to a particular section
 by entering a number.
 <LI>The I button brings the Info Window to the top and prints
 information there about the image and window size.
+<LI>Finally, there is a Help button to open a window with help for all
+features of the Zap window.  Almost all image windows and dialog boxes
+have a Help button to provide window-specific information.
 </UL>
 </DD>
 <P>
 
-<DD><H4>Most Frequently Used Hot Keys</H4>
+<A NAME = "Common Hot Keys">
+<DD><H3>Most Frequently Used Hot Keys</H3></A>
 <P>
 3dmod has many hot keys, which are listed both in the man page for 
 <A HREF = "man/3dmod.html">3dmod</a> and in a help window that can be
 accessed from the Help-Hot Keys menu entry.  These hot keys will work
 from all of the 3dmod image display windows, and even from the Info
 Window or other dialog boxes.  There are also hot keys active only in
-particular windows, which described in the help for those windows.
-The most important hot keys
-to know when starting out are listed here:
+particular windows, which are described in the help for those windows.
+The most commonly used hot keys
+are listed here:
 <pre>
 PageUp     Show the next section (increase Z)
 PageDown   Show the previous section (decrease Z)
@@ -462,9 +498,9 @@ t          Toggle model drawing off or on
 </DD>
 
 
-<DD><H4>The XYZ Window</H4>
-<CENTER> 
 <A NAME = "XYZ Window"> 
+<DD><H3>The XYZ Window</H3></A>
+<CENTER> 
 <IMG SRC="3dmodimages/xyzwin.jpg" ALT="XYZ Window"> 
 </CENTER> 
 <P>
@@ -476,8 +512,9 @@ is in the lower left, the XZ plane is above it, and the YZ plane is to
 the right.
 The current image point governs which planes are
 displayed; its position is marked by a small yellow cross in each
-image panel.  You can see the large modeled vesicle in the XZ plane, and
-an oblique slice through the microtubule in the YZ plane.
+image panel.  You can see the large modeled vesicle in the XZ (top) plane, and
+an oblique slice through the microtubule marked by the small yellow
+cross in the YZ (right) plane.
 <P>
 The colored marker lines in the margins of the images also
 indicate the current point coordinates.  They contain small handles
@@ -503,9 +540,9 @@ mouse button
 functions as in the Zap window.  
 </DD>
 
-<DD><H4>The Slicer Window</H4>
-<CENTER> 
 <A NAME = "Slicer Window"> 
+<DD><H3>The Slicer Window</H3></A>
+<CENTER> 
 <IMG SRC="3dmodimages/slicer.jpg" ALT="Slicer Window"> 
 </CENTER> 
 <P>
@@ -516,7 +553,9 @@ Y, and Z rotation sliders in the second toolbar.  In the example, one
 of the oblique microtubules was centered in the window, then the
 Z rotation was adjusted slightly to orient the microtubule vertically,
 then the X rotation was adjusted to bring the microtubule into
-longitudinal section.
+longitudinal section.  Small changes in the X and Y sliders usually cause big
+changes in the image appearance, whereas the Z slider will primarily rotate the
+image clockwise and counterclockwise unless X or Y angles are large.
 <P>
 The center of the displayed slice is the current
 image point and is marked by a red cross.  This center point may be
@@ -540,6 +579,10 @@ views in other windows (including other Slicers).  Second, it allows
 you to model in the slicer without having the slice jump around.
 Third, it prevents the slow drawing in the slicer from slowing down
 the program when you want to work in or movie through other windows.
+<LI>The help button describes hot keys and other features.
+<LI>The box to the right of the sliders portrays the portion of the
+slice being viewed as a red plane inside of a representation of the
+whole image volume.
 <LI>The image thickness spin box lets you display a slice thicker
 than 1 pixel thick.  The Slicer computes a projection through the
 number of slices that you select, effectively averaging those slices.
@@ -567,7 +610,35 @@ very slow slicer window, remember that the hot sliders can be tamed
 with the Ctrl key.
 </DD>
 
-<DD><H4>Viewing the Model in 3D</H4>
+<A NAME = "Setting Z-scale"> 
+<DD> <H3>Setting Z-scale and Pixel Size</H3></A>
+In order for your model to look right in 3D, you may need to set a property
+called the "Z-scale" correctly.  Both the Z-scale and the pixel size
+must be set to get accurate quantitative information about the model,
+because these values are used for calculating length, surface area
+or volume from object, contour or mesh data.
+To adjust these fields in the model header
+select the Model Header menu item from the Edit menu in the
+3dmod <A HREF ="#Information Window">Information Window</A>.
+<P>
+The Z-Scale is the ratio of the thickness between successive images
+to the pixel size.  Its two most common uses are to adjust for
+section thickness in serial section reconstructions and section
+thinning
+in tomography.  For serial sections, divide the section thickness in
+nanometers by the pixel size at which the data were digitized, again
+in nanometers.  For tomograms, divide the original thickness at which
+the section was cut on the microtome (in nanometers) by the actual thickness of
+material in the tomogram (pixels of material times pixel size in nanometers).
+<P>
+The Pixel Size field should contain both a value for the size of the
+pixel in the digitized data, and the units for that value.
+Units can be one of the following; A, nm, um, mm, m, km.  For example,
+you could enter "0.015 um" or "15 nm".
+</DD>
+
+<A NAME = "Viewing Model"> 
+<DD><H3>Viewing the Model in 3D</H3></A>
 <table border="0" align="center">
   <tbody>
     <tr>
@@ -589,7 +660,9 @@ with the Ctrl key.
 </table>
 <P>
 These are different views of the example model in the Model View
-Window, opened while running 3dmod.  This same window can be opened in
+Window, which can be opened while running 3dmod by selecting Model
+View from the Image menu, or by typing the hot key "v".
+This same window can be opened in
 a standalone mode with
 <br><code>    3dmodv example.mod</code>
 <br>
@@ -674,7 +747,8 @@ significantly increase drawing time for the display, so it is not the default.
 
 </DD>
 
-<DD> <H4>Putting a skin on model data.</H4>
+<A NAME = "Skinning Model"> 
+<DD> <H3>Putting a skin on model data</H3></A>
 
 Skinning is the name used for calculating a three-dimensional 
 surface from contour data.  This surface, once calculated, is represented by
@@ -738,33 +812,8 @@ low-resolution mode then switched to high-resolution mode for studying details.
 Other commonly needed options are -s and -P to connect contours across
 gaps; see the <A HREF="man/imodmesh.html">imodmesh</A> man page for details.
 <P>
-<DD> <H4>Setting Z-scale and Pixel Size.</H4>
-In order for your model to look right in 3D, you may need to set a property
-called the "Z-scale" correctly.  Both the Z-scale and the pixel size
-must be set to get accurate quantitative information about the model,
-because these values are used for calculating length, surface area
-or volume from object, contour or mesh data.
-To adjust these fields in the model header
-select the Model Header menu item from the Edit menu in the
-3dmod <A HREF ="#Information Window">Information Window</A>.
-<P>
-The Z-Scale is the ratio of the thickness between successive images
-to the pixel size.  Its two most common uses are to adjust for
-section thickness in serial section reconstructions and section
-thinning
-in tomography.  For serial sections, divide the section thickness in
-nanometers by the pixel size at which the data were digitized, again
-in nanometers.  For tomograms, divide the original thickness at which
-the section was cut on the microtome (in nanometers) by the actual thickness of
-material in the tomogram (pixels of material times pixel size in nanometers).
-<P>
-The Pixel Size field should contain both a value for the size of the
-pixel in the digitized data, and the units for that value.
-Units can be one of the following; A, nm, um, mm, m, km.  For example,
-you could enter "0.015 um" or "15 nm".
-</DD>
-
-<DD> <H4>Advanced topics.</H4>
+<A NAME = "Advanced Topics"> 
+<DD> <H3>Advanced topics</H3></A>
 This section is to make you aware of some other features in 3dmod, so
 that you can
 investigate them when the need arises.  Consult the help windows of
@@ -779,23 +828,25 @@ Dialog Box">
 </CENTER> 
 
 <UL>
-<LI>Surfaces.  Surfaces are an optional level of organization between
+<LI><b>Surfaces.</b>  Surfaces are an optional level of organization between
 objects and contours.  They are particularly useful when you want to
 keep track of many components of one kind, without making a
 separate object for each.  Quantitative information can then be
 derived for each different surface.  The top section of this dialog
 box has some controls for creating and navigating through surfaces,
 and its help window has more information about them.
-<LI>Open and closed contours.  Some of the contours in a closed
+<LI><b>Open and closed contours.</b>  Some of the contours in a closed
 contour object can be defined as open, which means that their starting
 and
 ending points
 will not be connected.  This is useful when modeling a feature 
 that is partially or completely cut by the boundary of a data set.
-<LI>4D modeling.  3dmod can load multiple image files, which occupy a
-fourth dimension referred to as time.  Thus, contours in an object can
+See the <A HREF="man/imodmesh.html">imodmesh</A> man page as well as
+the help window for this dialog box for details.
+<LI><b>4D modeling.</b>  3dmod can load multiple image files, which occupy a
+fourth dimension referred to as "time".  Thus, contours in an object can
 be at different times.
-<LI>Point sizes.  
+<LI><b>Point sizes.</b>  
 Not all points in a scattered point object need to
 be the same size; individual points can be given different sizes using
 the controls in the Point section of this dialog box.  There is even a
@@ -803,17 +854,17 @@ way to draw a closed contour around a feature and have it converted to
 a scattered point with the equivalent radius (see the dialog box
 accessed
 from the Edit-Contour-Move menu entry).
-<LI>Ghost displays.  You can project a "ghost" of contours on adjacent
+<LI><b>Ghost displays.</b>  You can project a "ghost" of contours on adjacent
 sections onto the current section to help you see where to draw the
 next contour.
 
-<LI>Preferences.  You can set preferences that are stored between
+<LI><b>Preferences.</b>  You can set preferences that are stored between
 sessions
 of 3dmod, such as the assignment of
 the three mouse buttons.  Use the Edit-Options menu entry to open the
 3dmod Preferences dialog box.
 
-<LI>Automated modeling.  There are two facilities for automated
+<LI><b>Automated modeling.</b>  There are two facilities for automated
 modeling.
 The Auto Contouring dialog box, opened from the Edit-Contour menu,
 will draw contours around areas that are above or below a selected
@@ -823,30 +874,31 @@ contours along a linear feature such as a membrane, either by filling in points
 between two points placed along the feature, or by copying a contour
 from one section to the next and adjusting its position to fit changes
 in the boundary or the object.
-<LI>Pixel View window.  Use the Image-Pixel View menu entry to open a
+<LI><b>Pixel View window.</b>  Use the Image-Pixel View menu entry to open a
 window
-that displays a grid of pixel values.
-<LI>Graph Window.  Use the Image-Graph menu entry to open a window
+that displays a grid of pixel intensity values.  The actual values
+from the image file are shown.
+<LI><b>Graph Window.</b>  Use the Image-Graph menu entry to open a window
 that can display a graph of pixel values along a line or along a contour.
-<LI>Tumbler Window.  Use the Image-Tumbler menu entry to open a window
+<LI><b>Tumbler Window.</b>  Use the Image-Tumbler menu entry to open a window
 that will show a projection through a small volume of data as the
 volume is tilted to different orientations.
 
-<LI>Making movies.  In addition to being able to snapshot a window
+<LI><b>Making movies.</b>  In addition to being able to snapshot a window
 with a hot key, you can open two dialog boxes that will help you
 collect a series of snapshots for making movies.  The Edit-Movies
 entry in the menu of the 3dmod Info Window opens a box for capturing
 movies from the Zap window, and the File-Movies entry in the menu of
 the Model View Window opens a box for making movies of the model view.
 
-<LI>Object color.  You can change an object's color using the
+<LI><b>Object color.</b>  You can change an object's color using the
 Edit-Object-Color menu entry from the 3dmod Info Window, as well as
 using the Edit-Objects dialog box from the Model View Window.
-<LI>Editing contours.  The Edit-Contour menu has a number of advanced
+<LI><b>Editing contours.</b>  The Edit-Contour menu has a number of advanced
 editing features, including ones to 
 move or copy contours from one object to another, and ones to break and
 join contours.
-<LI>Tooltips.  If you leave the mouse over a button or other control
+<LI><b>Tooltips.</b>  If you leave the mouse over a button or other control
 for over half a second, a tooltip will appear for that control.
 </UL>
 

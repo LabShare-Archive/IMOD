@@ -1,9 +1,8 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 2.7.0<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.0.8<BR>
 </H2>
-<H3 ALIGN=center>BOULDER LABORATORY FOR 3-D FINE STRUCTURE</H3>
-<HR>
+<H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
 <H3>Table of Contents</H3>
 
@@ -34,6 +33,7 @@
 <BR><A HREF = "#Distortion One">5.4. Solving for Distortion - Fiducials on Only One Surface</A>
 <BR><A HREF = "#Using Local Alignments">5.5. Using Local Alignments</A>
 <BR><A HREF = "#Excluding Views">5.6. Excluding Views</A>
+<BR><A HREF = "#Residual and 3D Model Outputs">5.7. Residual and 3D Model Outputs</A>
 <BR><A HREF = "#GENERATING THE TOMOGRAM">6. POSITIONING AND GENERATING THE TOMOGRAM</A>
 <BR><A HREF = "#Getting Trial">6.1. Getting a Trial Aligned Stack and Tomogram</A>
 <BR><A HREF = "#Sampling">6.2. Sampling 3 Areas of Tomogram and Positioning the 
@@ -51,6 +51,7 @@ Section Optimally</A>
 <BR><A HREF = "#Scaling and Trimming">8.1. Scaling and Trimming a Tomogram</A>
 <BR><A HREF = "#Cleaning Up">8.2. Cleaning Up</A>
 </UL>
+<HR>
 <A NAME = "BACKGROUND"><H3>
 1. BACKGROUND
 </H3></A>
@@ -691,14 +692,16 @@ model, if appropriate.  The Bead Fixer plugin allows you to look easily at the
 points with the greatest error.
 <P>
      Every time you run <A HREF = "man/tiltalign.html">Tiltalign</A>,
- it will analyze the bead positions and
+it will analyze the bead positions and
 recommend a change in tilt angles that would make the beads lie in a
 horizontal plane.  This information is in a section starting with "SURFACE
 ANALYSIS" that you can extract with "alignlog -a".  Make the recommended
 change at least after the first run of 
 <A HREF = "man/tiltalign.html">Tiltalign</A> by taking the final value
 shown for "Total tilt angle change" and using it for the value of
-"amount to add to all angles" in align.com.
+"amount to add to all angles" in align.com.  It is not necessary to do
+this repeatedly because the final tilt angle change will be determined
+in a later processing step.
 <P>
      In the section of <A HREF = "man/tiltalign.html">Tiltalign</A>'s
  output where it reports parameters for each
@@ -916,6 +919,28 @@ final aligned stack, so it is important to enter the same list of views to
 exclude in tilt.com to have them excluded from the reconstruction, as described
 in the next section.
 
+<A NAME = "Residual and 3D Model Outputs"><H4>
+5.7. Residual and 3D Model Outputs
+</A></H4>
+<A HREF = "man/tiltalign.html">Tiltalign</A> produces
+a model of the positions of the beads in 3D, in a file named setname.3dmod.
+If you indicated that beads should be on two surfaces, the 
+points will be assigned to two different objects in this model.
+You can look at this file
+with <A HREF = "man/3dmodv.html">3dmodv</A> to check how well the
+program sorted the beads into the two surfaces and to look at the
+overall distribution of points.
+<P>
+<A HREF = "man/tiltalign.html">Tiltalign</A> also produces a text file
+with the residuals for each point, and <A HREF =
+"man/patch2imod.html">Patch2imod</A> converts this into
+a model of the residual vectors in a file named setname.resmod.  You
+can load this model into <A HREF = "man/3dmod.html">3dmod</A> on top
+of the images, in place of the fiducial model, to look for patterns in
+the direction of the vectors.  The vectors are exaggerated in length
+by a factor of 10.  The start and end of a vector is marked by a green
+and a red cross, respectively.
+
 
 <A NAME = "GENERATING THE TOMOGRAM"><H3>
 6. POSITIONING AND GENERATING THE TOMOGRAM
@@ -1060,7 +1085,7 @@ line if you are running sample.com, because sample.com substitutes the correct
 values.  To get samples with these features, modify tilt.com by entering the
 desired X-axis tilt, and/or adding a line with the name of your local
 alignment file, i.e., add
-<CODE><BR>localfile setnamelocal.xf</CODE><BR>.
+<CODE><BR>localfile setnamelocal.xf</CODE><BR>
  Run sample.com.  If you do this on your initial run then make models and run
 <A HREF = "man/tomopitch.html">Tomopitch</A>,
 be sure to ADD the recommended X-axis tilt to the value already
@@ -1108,7 +1133,9 @@ to determine the 3-D rotation and distortion between the two tomograms.
  Project a zero-degree view of each tomogram, rotate one,
 and use 2-D cross-correlation to find shifts in X and Y.  Then extract a
 small volume from each tomogram (one of which is rotated) and use 3-D
-cross-correlation to find shifts in X, Y and Z.  This operation and
+cross-correlation to find shifts in X, Y and Z.  Extract an adjacent
+small volume to check whether it gives a similar correlation.
+These operations and
 the preceding one are run by solvematchshifts.com.
 <LI> <A HREF = "man/matchvol.html">Matchvol</A>:
  Using this initial alignment, generate an initial matching
@@ -1201,6 +1228,18 @@ relatively high-resolution tomograms from film, while the medium patches are
 more appropriate for data from a CCD camera.  If the tomograms seem
 particularly fuzzy, go up one size in either case.
 </OL>
+<P>
+If you have
+a relatively thin sample, you should be aware that Setupcombine may
+decide to compute only one layer of patches, in which case the second stage
+of alignment will not stretch the data in the thickness dimension.
+This is generally appropriate, but you may wish to change this
+by editing patchcorr.com to specify two layers of
+patches.  Adjust the size of the patches in the thickness dimension
+if necessary so that it
+is at least 30%
+smaller than the range allowed for the patches in that
+dimension.  This dimension is referred to as Y in patchcorr.com.
 
 <A NAME = "Temporary Combining Storage"><H4>
 7.2. Using Temporary Storage for Combining
@@ -1233,7 +1272,7 @@ will create a new temporary directory.
 
      Run Setupcombine.  After this, there should be nothing to change
 in any of the command files,
-unless you have special needs based on prior experience.
+unless you have special needs based on prior experience. 
 <P>
      Make sure that the "....tlt" and "...fid.xyz" files produced by
 <A HREF = "man/tiltalign.html">Tiltalign</A> are still present.
@@ -1268,8 +1307,7 @@ message that <A HREF = "man/warpvol.html">Warpvol</A>
  is being run next will be a report on the mean and
 maximum of the mean residuals.  If the mean is reasonable but the maximum is
 quite high (1 or more), 
- you should make a patch
-vector model with <A HREF = "man/patch2imod.html">Patch2imod</A>
+you should look at the patch vector model (patch_vector.mod)
 and consider whether to take any of the remedial
 actions described below.
 
@@ -1291,15 +1329,23 @@ should just increase the "limiting value for maximum residual" entry to
 <A HREF = "man/solvematch.html">Solvematch</A> and proceed.
 <P>
      It is possible that <A HREF = "man/matchshifts.html">Matchshifts</A>
- will fail to find the proper shift
+will fail to find the proper shift
 between the two tomograms, if the displacement between them is particularly
-large.  One sign of this would be large and erratic patch displacements
-in the file patch.out, at a variety of coordinates.  (On each line, the first
-three numbers are the patch coordinates, and the next three numbers are the
-displacements between the two volumes in X, Y, and Z.)  If possible, you
-should examine the initial matching volume (setnameb.mat, if matching "b" to
-"a") to confirm that <A HREF = "man/matchshifts.html">Matchshifts</A>
- has failed.  To correct for this, you have to
+large.  To check for this possibility, 
+<A HREF = "man/matchshifts.html">Matchshifts</A> produces two small
+volumes just adjacent to the ones it used to determine 3D
+displacements, and uses cross-correlation to find the shift between
+them.  If this shift is too high, the combine processing stops.  You
+should then look at the two volumes with
+<br><code>3dmod -Y matchcheck.rec matchcheck.mat</code><br>
+to see whether the volumes differ in position by just a few pixels or
+are very different.  If the position is close, edit combine.com to
+comment out the 
+two lines referring
+to solvematchshift.com (the "echo" and "vmstocsh" lines) and rerun combine.com.
+<P>
+If the check volumes do not match up, then 
+<A HREF = "man/matchshifts.html">Matchshifts</A> failed, and you have to
 make models of corresponding points by loading both tomograms into 3dmod with
 -Y.  Make two models, "setnamea.matmod" and "setnameb.matmod", containing 3-5
 corresponding points, as described in the man page for
@@ -1324,13 +1370,13 @@ the volume where a relatively high proportion of patches have large errors, a
 situation that the outlier elimination algorithm in 
 <A HREF = "man/findwarp.html">Findwarp</A> cannot handle.
 Finally, there could be inaccurate displacements only along one or more edges
-of the volume.  To assess this situation, the first step is to make and
-examine a model that will show the patch displacements as vectors, with
-<CODE><BR>     patch2imod patch.out patchvector.mod   </CODE><BR>
- This program will convert each displacement to a line whose length is 10
+of the volume.  To assess this situation, the first step is to 
+examine the model of the patch displacements in patch_vector.mod.
+This model shows each displacement as a line whose
+length is 10
 times the actual length of the displacement.  To allow editing of this model,
 display the model without images in the Zap window using
-<CODE><BR>     3dmod patchvector.mod   </CODE><BR>
+<CODE><BR>     3dmod patch_vector.mod   </CODE><BR>
  then open the model view window with "v".  Spin the model slowly and zoom as
 needed to see the pattern of displacement vectors.  
 <P>
@@ -1370,7 +1416,7 @@ Delete the contour with the "D" hotkey in the Zap window;
 it will disappear from the model view
 window also.  When finished, save the model and exit.  Then run 
 <A HREF = "man/imod2patch.html">Imod2patch</A>:
-<CODE><BR>     imod2patch patchvector.mod patch.out    </CODE><BR>
+<CODE><BR>     imod2patch patch_vector.mod patch.out    </CODE><BR>
  You may want to rename the existing patch.out before doing this.  Uncomment
 and change the "goto" entry to be "goto matchorwarp" at the top of
 combine.com and rerun combine.com. 
