@@ -24,10 +24,10 @@ c
 	parameter (lenIwrk = maxData * 10 + 10)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-	character*120 infile,outfile,tempfile, xffile, strFile, patchFile
+	character*120 infile,tempfile, strFile
 	character*320 comString
-	character*12 endvStr, ypadStr
-	character*80 temp_filename
+	character*12 endvStr, ypadStr, quietStr
+	character*80 concat,outRoot,outfile,xffile, stFile, patchFile
 	logical exist
 
 	real*4 array(maxImDim * maxImDim), brray(maxImDim * maxImDim)
@@ -40,6 +40,7 @@ c
      &	    ,dyGrid(iGridDim,iGridDim,maxGrids)
      &	    ,ddenGrid(iGridDim,iGridDim),sdGrid(iGridDim,iGridDim)
 	real*4 fieldDx(iGridDim, iGridDim), fieldDy(iGridDim, iGridDim)
+	real*4 lastFieldX(iGridDim, iGridDim), lastFieldY(iGridDim, iGridDim)
 	equivalence (fieldDx, ddenGrid), (fieldDy, sdGrid)
 	integer*4 ixydispl(2), noverlap(2), intGridXY(2), iboxXY(2),indentXY(2)
 	integer*4 listPairs(maxGrids * 2)
@@ -80,7 +81,7 @@ c
 	integer*4 izLower, izUpper, i, ixy, lenYpad, lenEndv, ierr, iPair
 	integer*4 intField, intData, nPairList, numPairs, j, iAngle
 	real*4 dmin, dmax, dmean, dum
-	logical doMultr, done, useOldXf, saveXfs
+	logical doMultr, done, useOldXf, saveXfs, makePatch
 	integer*4 numVars, numRows, numTotField, iter, numIter, numTied
 	integer*4 ix, iy, ixd, iyd, numInRow, idist, minDist, icol, numNeigh
 	real*4 xData, yData, xShift, yShift, xGrid, yGrid, errsum, error
@@ -91,7 +92,8 @@ c
 	real*4 val,  aa(2, 3), xOut, yOut, errorLast(maxGrids, 2), relaxInitial
 	real*4 bb(2, 3), dmag, theta, smag, str, phi, smagMean, alpha
 	real*4 ssqr, solSsqr, solNeg, solPos, pixelSize, resSum, resMax
-	integer*4 iBinning
+	real*4 fieldChange
+	integer*4 iBinning, maxZ
 	real*4 cosd, sind, acosd, asind
 	integer*4 lnblnk
 
@@ -104,7 +106,7 @@ c
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@'//
-     &      'output:OutputFile:FN:@'//
+     &      'output:OutputRoot:FN:@'//
      &	    'pairs:PairsToAnalyze:LI:@'//
      &	    'field:FieldSpacing:I:@'//
      &	    'data:DataSpacing:I:@'//
@@ -114,9 +116,9 @@ c
      &	    'iterations:Iterations:I:@'//
      &	    'multr:SolveWithMultr:B:@'//
      &	    'usexf:UseOldTransforms:B:@'//
-     &	    'xffile:TransformFile:FN:@'//
+     &	    'quiet:QuietCalledPrograms:B:@'//
      &	    'strfile:StretchFile:FN:@'//
-     &	    'patch:PatchFile:FN:@'//
+     &	    'patch:PatchOutput:B:@'//
      &	    'binning:ImageBinning:I:@'//
      &	    'help:usage:B:'
 c	  
@@ -148,8 +150,10 @@ c
 	useOldXf = .false.
 	xffile = ' '
 	strFile = ' '
-	patchFile = ' '
+	makePatch = .false.
 	iBinning = 2
+	fieldChange = 100000.
+	quietStr = ' '
 
 	call PipReadOrParseOptions(options, numOptions, 'finddistort',
      &	    'ERROR: FINDDISTORT - ', .false., 2, 1, 1, numOptArg,
@@ -157,8 +161,8 @@ c
 
 	if (PipGetInOutFile('InputFile', 1, ' ', infile)
      &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
-	if (PipGetInOutFile('OutputFile', 2, ' ', outfile)
-     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+	if (PipGetInOutFile('OutputRoot', 2, ' ', outRoot)
+     &	    .ne. 0) call errorexit('NO OUTPUT ROOT NAME SPECIFIED')
 
         CALL IMOPEN(1,INFILE,'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
@@ -176,11 +180,12 @@ c
 	  listPairs(i) = i - 1
 	enddo
 	nPairList = 2 * (nz / 2)
-	ierr = PipGetString('TransformFile', xffile)
+c	ierr = PipGetString('TransformFile', xffile)
 	ierr = PipGetLogical('UseOldTransforms', useOldXf)
-	saveXfs = xffile .ne. ' ' .and. .not.useOldXf
-	if (useOldXf .and. xffile .eq. ' ') call errorexit(
-     &	    'TRANSFORM FILE MUST BE SPECIFIED TO USE OLD TRANSFORMS')
+	saveXfs = .not.useOldXf
+c	saveXfs = xffile .ne. ' ' .and. .not.useOldXf
+c	if (useOldXf .and. xffile .eq. ' ') call errorexit(
+c     &	    'TRANSFORM FILE MUST BE SPECIFIED TO USE OLD TRANSFORMS')
 c	  
 c	  get pairs and check their validity
 c
@@ -189,34 +194,42 @@ c
 	numPairs = nPairList / 2
 	if (numPairs .gt. maxGrids) call errorexit(
      &	    'TOO MANY PAIRS OF IMAGES FOR ARRAYS')
+	maxZ = 0
 	do i = 1, numPairs * 2
 	  if (listPairs(i) .lt. 0 .or. listPairs(i) .gt. nz - 1)
      &	      call errorexit('SECTION NUMBER OUT OF RANGE')
-	  if (mod(i, 2) .eq. 1 .and. listPairs(i + 1) .ne. listPairs(i) + 1
-     &	      .and. .not.useOldXf)
+	  if (mod(i, 2) .eq. 1 .and. listPairs(i + 1) .ne. listPairs(i) + 1)
      &	      call errorexit(
      &	      'FOR NOW, PAIRS MUST BE ADJACENT SECTIONS IN FILE')
+	  maxZ = max(maxZ, listPairs(i))
 	enddo
 
 	ierr = PipGetString('StretchFile', strFile)
-	ierr = PipGetString('PatchFile', patchFile)
+	ierr = PipGetLogical('PatchOutput', makePatch)
 	ierr = PipGetInteger('FieldSpacing', intField)
 	ierr = PipGetInteger('GridSpacing', intGrid)
 	ierr = PipGetInteger('DataSpacing', intData)
 	ierr = PipGetInteger('Iterations', numIter)
 	ierr = PipGetLogical('SolveWithMultr', doMultr)
 	ierr = PipGetInteger('ImageBinning', iBinning)
+	if (PipGetBoolean('QuietCalledPrograms', ierr) .eq. 0)
+     &	    quietStr = ' > /dev/null'
 	call PipDone()
 
-	tempfile = temp_filename(infile, ' ', 'xf')
+c	tempfile = temp_filename(infile, ' ', 'xf')
+	tempfile = concat(outRoot, '.tmpxf')
+	xffile = concat(outRoot, '.rawxf')
+	outfile = concat(outRoot, '.nosidf')
 	call int_iwrite(ypadStr, ny / 2, lenYpad)
-	
+	if (maxSect .lt. nz) call errorexit(
+     &	    'TOO MANY SECTIONS FOR TRANSFORM ARRAY')
+
+	iter = 1
+	done = .false.
+	do while ( .not.done)
 c	  
 c	  set up transforms and get from file if using old ones
 c
-	if (xffile .ne. ' ') then
-	  if (maxSect .lt. nz) call errorexit(
-     &	      'TOO MANY SECTIONS FOR TRANSFORM ARRAY')
 	  do i = 1, nz
 	    call xfunit(xform(1, 1, i), 1.)
 	  enddo
@@ -227,123 +240,137 @@ c
      &		'TOO MANY TRANSFORMS IN FILE FOR ARRAY')
 	    close(3)
 	  endif
-	endif
-
-	do iPair = 1, numPairs
 c	    
-c	    make the tiltxcorr command string
+c	    undistort images after the first time
+c	    
+	  stFile = infile
+	  if (iter .gt. 1) then
+	    stFile = concat(outRoot, '.udst')
+	    call int_iwrite(endvStr, maxZ, lenEndv)
+	    write(comString, 102)'newstack -sec 0-', endvStr(1:lenEndv),
+     &		' -image ', iBinning, ' -dist ', outfile(1:lnblnk(outfile)), 
+     &		infile(1:lnblnk(infile)), stFile(1:lnblnk(stFile)),
+     &		quietStr
+102	    format(a,a,a,i3,a,a,1x,a,1x,a,a)
+c	    print *,comString
+c	    
+c		check for result
+c	    
+	      call system(comString)
+	      inquire(file=stFile,exist=exist)
+	      if (.not.exist) call errorexit(
+     &		  'NEWSTACK FAILED TO MAKE UNDISTORTED STACK')
+	  endif
+
+	  errsum = 0.
+	  do iPair = 1, numPairs
+c	    
+c	      make the tiltxcorr command string
 c
-	  izShift = listPairs(2 * iPair)
-	  izRef = listPairs(2 * iPair - 1)
-	  if (useOldXf) then
-	    delXY(1) = xform(1, 3, izShift + 1)
-	    delXY(2) = xform(2, 3, izShift + 1)
-	  else
-	    call int_iwrite(endvStr, izShift + 1, lenEndv)
-	    write(comString, 101)
-     &		'tiltxcorr -first 0. -inc 0. -rot 0. -radius2 ', radius2,
-     &		' -sigma1 ', sigma1, ' -sigma2 ', sigma2, ' -pad ',
-     &		nx / 2, ',', ypadStr(1:lenYpad), ' -views ',
-     &		izRef + 1, ',', endvStr(1:lenEndv),
-     &		infile(1:lnblnk(infile)), tempfile(1:lnblnk(tempfile))
-101	    format(a,f5.2,a,f5.2,a,f5.2,a,i5,a,a,a,i4,a,a,1x,a,1x,a)
+	    izShift = listPairs(2 * iPair)
+	    izRef = listPairs(2 * iPair - 1)
+	    if (useOldXf) then
+	      delXY(1) = xform(1, 3, izShift + 1)
+	      delXY(2) = xform(2, 3, izShift + 1)
+	    else
+	      call int_iwrite(endvStr, izShift + 1, lenEndv)
+	      write(comString, 101)
+     &		  'tiltxcorr -first 0. -inc 0. -rot 0. -radius2 ', radius2,
+     &		  ' -sigma1 ', sigma1, ' -sigma2 ', sigma2, ' -pad ',
+     &		  nx / 2, ',', ypadStr(1:lenYpad), ' -views ',
+     &		  izRef + 1, ',', endvStr(1:lenEndv),
+     &		  stFile(1:lnblnk(stFile)), tempfile(1:lnblnk(tempfile)),
+     &		  quietStr
+101	      format(a,f5.2,a,f5.2,a,f5.2,a,i5,a,a,a,i4,a,a,1x,a,1x,a,a)
 
 c	    print *,comString
 c	    
-c	      check for and get result
+c		check for and get result
 c	    
-	    call system(comString)
-	    inquire(file=tempfile,exist=exist)
-	    if (.not.exist) call errorexit(
-     &		'TILTXCORR FAILED TO MAKE TRANSFORM FILE')
+	      call system(comString)
+	      inquire(file=tempfile,exist=exist)
+	      if (.not.exist) call errorexit(
+     &		  'TILTXCORR FAILED TO MAKE TRANSFORM FILE')
 	    
-	    call dopen(3, tempfile, 'ro', 'f')
+	      open(3, file=tempfile, status='OLD', form='FORMATTED')
 	
-	    do i = 1, izShift + 1
-	      read(3, *) dum, dum, dum, dum, delXY(1), delXY(2)
-	    enddo
-	    close(3)
-	    if (saveXfs) then
-	      xform(1, 3, izShift + 1) = delXY(1)
-	      xform(2, 3, izShift + 1) = delXY(2)
+	      do i = 1, izShift + 1
+		read(3, *) dum, dum, dum, dum, delXY(1), delXY(2)
+	      enddo
+	      close(3)
+	      if (saveXfs) then
+		xform(1, 3, izShift + 1) = delXY(1)
+		xform(2, 3, izShift + 1) = delXY(2)
+	      endif
 	    endif
-	  endif
-
 c
-c	    determine grid parameters, make the "short" dimension be the
-c	    one with less overlap
-c	    swap the images and invert deltas to make upper and lower fit
-c	    the model of upper to right or above
-c	    
-	  ixy = 1
-	  if (abs(delXY(1)) .lt. abs(delXY(2))) ixy = 2
-
-	  if (delXY(ixy) .ge. 0.) then
-	    izLower = izRef
-	    izUpper = izShift
-	  else
-	    izLower = izShift
-	    izUpper = izRef
-	    delXY(1) = -delXY(1)
-	    delXY(2) = -delXY(2)
-	  endif
-	  print *,'pair',izLower, izUpper,', deltas',delXY(1), delXY(2)
-c	    
-c	    set overlap in short dimension, set displacement (error) zero in
-c	    that dimension, and use measured displacement in long dimension
-c
-	  noverlap(ixy) = nxyz(ixy) - nint(delXY(ixy))
-	  ixydispl(ixy) = 0
-	  ixydispl(3 - ixy) = nint(delXY(3 - ixy))
-
-	  do i = 1, 2
-	    indentXY(i) = indent
-	    intgridXY(i) = intgrid
-	    iboxXY(i) = iboxsize
-	  enddo
-
-	  call setgridchars(nxyz, noverlap, iboxXY, indentXY, intgridXY,
-     &	      ixy, ixydispl(1), ixydispl(2), nxGrid(iPair), 
-     &	      nyGrid(iPair), iGridStrt(1, iPair), iGridOfs(1, iPair))
-	  print *,'Grid start',iGridStrt(1, iPair), iGridStrt(2, iPair),
-     &	      '  offset', iGridOfs(1, iPair), iGridOfs(2, iPair)
-
-c	    
-c	    save the starting global offset, its integer and fractional
-c	    components
-c	    
-	  do ixy = 1 ,2
-	    globDelXY(ixy, iPair) = delXY(ixy)
-	    integDelXY(ixy, iPair) = iGridStrt(ixy, iPair) -
-     &		iGridOfs(ixy, iPair)
-	    fracDelXY(ixy, iPair) = delXY(ixy) - integDelXY(ixy, iPair)
-	  enddo
+c	      determine grid parameters, make the "short" dimension be the
+c	      one with less overlap
+c	      swap the images and invert deltas to make upper and lower fit
+c	      the model of upper to right or above
 c	      
-c	      Set up the sampling grid for this pair
+	    ixy = 1
+	    if (abs(delXY(1)) .lt. abs(delXY(2))) ixy = 2
+	    
+	    if (delXY(ixy) .ge. 0.) then
+	      izLower = izRef
+	      izUpper = izShift
+	    else
+	      izLower = izShift
+	      izUpper = izRef
+	      delXY(1) = -delXY(1)
+	      delXY(2) = -delXY(2)
+	    endif
+
+	    if (iter. eq. 1) then
+	      print *,'pair',izLower, izUpper,', deltas',delXY(1), delXY(2)
+c	    
+c		set overlap in short dimension, set displacement (error) zero
+c		in that dimension, and use measured displacement in long
+c		dimension 
+c
+	      noverlap(ixy) = nxyz(ixy) - nint(delXY(ixy))
+	      ixydispl(ixy) = 0
+	      ixydispl(3 - ixy) = nint(delXY(3 - ixy))
+	      
+	      do i = 1, 2
+		indentXY(i) = indent
+		intgridXY(i) = intgrid
+		iboxXY(i) = iboxsize
+	      enddo
+
+	      call setgridchars(nxyz, noverlap, iboxXY, indentXY, intgridXY,
+     &		  ixy, ixydispl(1), ixydispl(2), nxGrid(iPair), 
+     &		  nyGrid(iPair), iGridStrt(1, iPair), iGridOfs(1, iPair))
+c	  print *,'Grid start',iGridStrt(1, iPair), iGridStrt(2, iPair),
+c     &	      '  offset', iGridOfs(1, iPair), iGridOfs(2, iPair)
+
 c	      
-	  nPtData(1, iPair) = ((nxGrid(iPair) - 1) * intGrid + intData - 1) /
-     &	      intData + 1
-	  dataIntrv(1, iPair) = ((nxGrid(iPair) - 1.) * intGrid) /
-     &	      nPtData(1, iPair)
-	  nPtData(2, iPair) = ((nyGrid(iPair) - 1) * intGrid + intData - 1) /
-     &	      intData + 1
-	  dataIntrv(2, iPair) = ((nyGrid(iPair) - 1.) * intGrid) /
-     &	      nPtData(2, iPair)
+c		Set up the sampling grid for this pair
+c	      
+	      nPtData(1, iPair) = ((nxGrid(iPair) - 1) * intGrid + intData - 1)
+     &		/ intData + 1
+	      dataIntrv(1, iPair) = ((nxGrid(iPair) - 1.) * intGrid) /
+     &		  nPtData(1, iPair)
+	      nPtData(2, iPair) = ((nyGrid(iPair) - 1) * intGrid + intData - 1)
+     &		  / intData + 1
+	      dataIntrv(2, iPair) = ((nyGrid(iPair) - 1.) * intGrid) /
+     &		  nPtData(2, iPair)
 c	    
-c	    read in the sections
-c
-	  call imposn(1, izLower, 0)
-	  call irdsec(1, array, *99)
-	  call imposn(1, izUpper, 0)
-	  call irdsec(1, brray, *99)
+c		read in the sections
+c		
+	      call imposn(1, izLower, 0)
+	      call irdsec(1, array, *99)
+	      call imposn(1, izUpper, 0)
+	      call irdsec(1, brray, *99)
 c	    
-c	    get and smooth the edge function
-c
-	  call findedgefunc(array,brray,nx,ny, iGridStrt(1, iPair),
-     &	      iGridStrt(2, iPair),iGridOfs(1, iPair),iGridOfs(2, iPair),
-     &	      nxGrid(iPair),nyGrid(iPair), intGrid,intGrid,iboxsize,
-     &	      iboxsize,intscan, dxGrid(1,1,iPair), dyGrid(1,1,iPair),
-     &	      sdgrid, ddengrid, iGridDim, iGridDim)
+c		get and smooth the edge function
+c		
+	      call findedgefunc(array,brray,nx,ny, iGridStrt(1, iPair),
+     &		  iGridStrt(2, iPair),iGridOfs(1, iPair),iGridOfs(2, iPair),
+     &		  nxGrid(iPair),nyGrid(iPair), intGrid,intGrid,iboxsize,
+     &		  iboxsize,intscan, dxGrid(1,1,iPair), dyGrid(1,1,iPair),
+     &		  sdgrid, ddengrid, iGridDim, iGridDim)
 c	    
 c	  print *,'edge function', iPair
 c	  do j = 1, nyGrid(iPair)
@@ -351,72 +378,110 @@ c	    write(*, '(6(f7.1,f6.1))')(dxGrid(i,j,iPair),dyGrid(i,j,iPair),
 c     &		i = 1, nxGrid(iPair))
 c	  enddo
 c
-	  call smoothgrid(dxGrid(1,1,iPair), dyGrid(1,1,iPair), sdgrid,
-     &	      ddengrid, iGridDim, iGridDim, nxGrid(iPair),
-     &	      nyGrid(iPair), sdcritSmooth, devcritSmooth, nfitSmooth,
-     &	      nfitSmooth, norderSmooth, nskipSmooth,nskipSmooth)
+	      call smoothgrid(dxGrid(1,1,iPair), dyGrid(1,1,iPair), sdgrid,
+     &		  ddengrid, iGridDim, iGridDim, nxGrid(iPair),
+     &		  nyGrid(iPair), sdcritSmooth, devcritSmooth, nfitSmooth,
+     &		  nfitSmooth, norderSmooth, nskipSmooth,nskipSmooth)
 c	    
 c	  print *,'smoothed', iPair
 c	  do j = 1, nyGrid(iPair)
 c	    write(*, '(6(f7.1,f6.1))')(dxGrid(i,j,iPair),dyGrid(i,j,iPair),
 c     &		i = 1, nxGrid(iPair))
 c	  enddo
-
-	enddo
-c	  
-	if (saveXfs) then
-	  call dopen(3, xffile, 'new', 'f')
-	  do i = 1, nz
-	    call xfwrite(3, xform(1,1, i), *97)
-	  enddo  
-	  close(3)
-	endif
 c
-c	  The edge function gives the amount that a pixel moves when going
-c	  from lower to upper piece, so it would have same sign as df in the
-c	  upper piece.  The coordinates are the center of the box in lower 
-c	  piece.
-c	  
-c	  Set up the grid for the distortion field.  The minimum indentation
-c	  is the maximum of half the grid spacing and the indents for the
-c	  edge function, which are the minimum of the start and offset values
-c	  
-	do ixy = 1, 2
-	  iFieldStrt(ixy) = intField / 2
-	  do  iPair = 1, numPairs
-	    iFieldStrt(ixy) = max(iFieldStrt(ixy),
-     &		min(iGridStrt(ixy, iPair), iGridOfs(ixy, iPair)))
+	    else
+c	      
+c		after first time, get shift from previous time and sum the
+c		change
+c		
+	      shiftXY(1, iPair) = delXY(1) - globDelXY(1, iPair)
+	      shiftXY(2, iPair) = delXY(2) - globDelXY(2, iPair)
+	      errsum = errsum + shiftXY(1, iPair)**2 + shiftXY(2, iPair)**2
+	    endif
+c	    
+c	      save the starting global offset, its integer and fractional
+c	      components
+c	      
+	    do ixy = 1 ,2
+	      globDelXY(ixy, iPair) = delXY(ixy)
+	      integDelXY(ixy, iPair) = iGridStrt(ixy, iPair) -
+     &		  iGridOfs(ixy, iPair)
+	      fracDelXY(ixy, iPair) = delXY(ixy) - integDelXY(ixy, iPair)
+	    enddo
 	  enddo
-	  nPtField(ixy) = (nxyz(ixy) - 2 * iFieldStrt(ixy) + intField - 1) /
-     &	      intField + 1
-	  fieldIntrv(ixy) = (nxyz(ixy) - 2. * iFieldStrt(ixy)) /
-     &	      (nPtField(ixy) - 1.)
-	enddo
-
-	numTotField = nPtField(1) * nPtField(2)
-	numVars = numTotField + numPairs
-	if (nPtField(1) .gt. iGridDim .or. nPtField(2) .gt. iGridDim .or.
-     &	    numVars .gt. maxVars) call errorexit(
-     &	    'TOO MANY VARIABLES TO SOLVE FOR TO FIT IN ARRAYS')
-	if (doMultr .and. numVars .ge. msiz) call errorexit(
-     &	    'TOO MANY VARIABLES TO DO MULTR SOLUTION')
-	print *,'Solving for',nPtField(1),' by', nPtField(2),' =',
-     &	    numTotField, ' field positions'
-c	  
-c	  initialize distortion field
+c	    
+c	    save transforms if flag set
 c
-	do j = 1, nPtField(2)
-	  do i = 1, nPtField(1)
-	    fieldDx(i, j) = 0.
-	    fieldDy(i, j) = 0.
-	  enddo	
-	enddo
-	ia(1) = 1
-	iwrk(1) = maxData + 2
-	gridIntrv = intGrid
-	iter = 1
-	done = .false.
-	do while (iter. le. numIter .and. .not.done)
+	  if (saveXfs) then
+	    call dopen(3, xffile, 'new', 'f')
+	    do i = 1, nz
+	      call xfwrite(3, xform(1,1, i), *97)
+	    enddo  
+	    close(3)
+	  endif
+c	    
+c	    Fix some things the first time through
+c
+	  if (iter .eq. 1) then
+c	    
+c	      set up not to use old ones and save them under a different name
+c
+	    saveXfs = .true.
+	    useOldXf = .false.
+	    xffile = concat(outRoot, '.udxf')
+
+c
+c	      The edge function gives the amount that a pixel moves when going
+c	      from lower to upper piece, so it would have same sign as df in
+c	      the upper piece.  The coordinates are the center of the box in
+c	      lower  piece.
+c	  
+c	      Set up the grid for the distortion field.  The minimum
+c	      indentation is the maximum of half the grid spacing and the
+c	      indents for the edge function, which are the minimum of the
+c	      start and offset values 
+c
+	    do ixy = 1, 2
+	      iFieldStrt(ixy) = intField / 2
+	      do  iPair = 1, numPairs
+		iFieldStrt(ixy) = max(iFieldStrt(ixy),
+     &		    min(iGridStrt(ixy, iPair), iGridOfs(ixy, iPair)))
+	      enddo
+	      nPtField(ixy) = (nxyz(ixy) - 2 * iFieldStrt(ixy) + intField - 1)
+     &		  / intField + 1
+	      fieldIntrv(ixy) = (nxyz(ixy) - 2. * iFieldStrt(ixy)) /
+     &		  (nPtField(ixy) - 1.)
+	    enddo
+	  
+	    numTotField = nPtField(1) * nPtField(2)
+c	      numVars = numTotField + numPairs
+	    numVars = numTotField
+	    if (nPtField(1) .gt. iGridDim .or. nPtField(2) .gt. iGridDim .or.
+     &		numVars .gt. maxVars) call errorexit(
+     &		'TOO MANY VARIABLES TO SOLVE FOR TO FIT IN ARRAYS')
+	    if (doMultr .and. numVars .ge. msiz) call errorexit(
+     &		'TOO MANY VARIABLES TO DO MULTR SOLUTION')
+	    print *,'Solving for',nPtField(1),' by', nPtField(2),' =',
+     &		numTotField, ' field positions'
+c	    
+c	      initialize distortion field
+c
+	    do j = 1, nPtField(2)
+	      do i = 1, nPtField(1)
+		fieldDx(i, j) = 0.
+		fieldDy(i, j) = 0.
+	      enddo	
+	    enddo
+	  else
+	    error = sqrt(errsum / numPairs)
+	    write(*,'(a, (10f7.2))')'Shift changes:',
+     &		((shiftXY(ixy,i),ixy=1,2),i=1,numPairs)
+	    print *,'iteration', iter, '   mean change in shift', error
+	  endif
+c
+	  ia(1) = 1
+	  iwrk(1) = maxData + 2
+	  gridIntrv = intGrid
 c	    
 c	    load the data array
 c
@@ -458,8 +523,8 @@ c
 c		  Add dummy variable for the pair and add the data row for
 c		  x shift
 c		  
-		call addValueToRow(1., numTotField + iPair,
-     &		    valRow, icolRow, numInRow)
+c		call addValueToRow(1., numTotField + iPair,
+c     &		    valRow, icolRow, numInRow)
 		call addDataRow(valRow, icolRow, numInRow, xShift, yShift,
      &		    rwrk, ia, ja, numRows, shiftXY, maxData, sumEntries,
      &		    1, x, msiz, matLim, numVars, doMultr)
@@ -476,7 +541,7 @@ c
 	  call addDataRow(valRow, icolRow, numTotField, 0., 0., 
      &	      rwrk, ia, ja, numRows, shiftXY, maxData, sumEntries,
      &	      0, x, msiz, matLim, numVars, doMultr)
-c	    
+c
 c	    Data are loaded.
 c	    Scan for unused variables and tie them to nearest neighbors
 c	    
@@ -531,7 +596,8 @@ c
 	      endif
 	    enddo
 	  enddo
-	  print *,'Data loaded,',numTied,' variables tied to others'
+	  if (numTied .gt. 0)print *,
+     &	      'Data loaded,',numTied,' variables tied to others'
 	  print *,numRows,' rows of data,',ia(numRows + 1) -1,' entries'
 c	      
 c	      Normalize the sparse matrix data
@@ -568,8 +634,6 @@ c
 		solLsqr(i, ixy) = xx(i) / sumEntries(i)
 	      enddo
 	    enddo
-	    write(*,'(a, (10f7.2))')'Shift errors:',
-     &		((solLsqr(i, ixy),ixy=1,2),i=numTotField + 1, numVars)
 	  endif
 c	      
 	  if (doMultr) then
@@ -585,11 +649,10 @@ c		if (ixy.eq.1) write(*,'(f12.5)')shiftXY(ixy, i)
      &		  sd, b, b1, rsq, fval)
 	      do i = 1, numVars
 		solMultr(i, ixy) = b1(i)
+		solLsqr(i, ixy) = b1(i)
 	      enddo
 	    enddo
 	    write(*,'(a,2f9.6)')' Rsq in multr: ',rsq1, rsq
-	    write(*,'(a, 10f7.2)')'Shift errors:',
-     &		((solMultr(i, ixy),ixy=1,2),i=numTotField + 1, numVars)
 	  endif
 c	    
 c	    get mean and max residual
@@ -602,11 +665,7 @@ c
 	      sum = 0.
 	      do j = ia(i), ia(i + 1) - 1
 		icol = ja(j)
-		if (doMultr) then
-		  sum = sum + solMultr(icol, ixy) * rwrk(j) * sumEntries(icol)
-		else
-		  sum = sum + solLsqr(icol, ixy) * rwrk(j) * sumEntries(icol)
-		endif
+		sum = sum + solLsqr(icol, ixy) * rwrk(j) * sumEntries(icol)
 	      enddo
 	      rsq = rsq + (sum - shiftXY(ixy, i))**2
 	    enddo
@@ -618,88 +677,85 @@ c
      &	      resSum / numRows, resMax
 	  
 c	    
-c	    fill distortion field grid with solution, and adjust delXY by the
-c	    error terms
-c
+c	    fill distortion field grid with solution
+c	    
+	  resSum = 0.
+	  resMax = 0.
 	  do ix = 1, nPtField(1)
 	    do iy = 1, nPtField(2)
 	      icol = ix + (iy - 1) * nPtField(1)
-	      if (doMultr) then
-		fieldDx(ix, iy) = solMultr(icol, 1)
-		fieldDy(ix, iy) = solMultr(icol, 2)
-	      else
-		fieldDx(ix, iy) = solLsqr(icol, 1)
-		fieldDy(ix, iy) = solLsqr(icol, 2)
-	      endif
+	      lastFieldX(ix, iy) = fieldDx(ix, iy)
+	      lastFieldY(ix, iy) = fieldDy(ix, iy)
+	      fieldDx(ix, iy) = solLsqr(icol, 1)
+	      fieldDy(ix, iy) = solLsqr(icol, 2)
 	    enddo	  
 	  enddo
-c	    
-c	    The error term must be subtracted from the global delXY and from
-c	    the fractional term, because if global delXY is too low, upper
-c	    piece must move to the right, and the pixels must have been moving
-c	    from right to left in going from lower to upper piece before this
-c	    adjustment, so the error term should be negative in this case
-c	    
-	  errsum = 0.
-	  do iPair = 1, numPairs
-	    do ixy = 1, 2
-	      icol = numTotField + iPair
-	      if (doMultr) then
-		error = solMultr(icol, ixy)
-c		if (icol .lt. numVars) error = error + solMultr(numVars)
-	      else
-		error = solLsqr(icol, ixy)
-	      endif
+c	  
+c	    unstretch the field by solving for stretch
 c
-c		On first iteration, reduce the error correction
-c		Thereafter, if error has same sign as last time, do the
-c		full correction; if error has opposite sign (overshoot), then
-c		compute factor to come back to zero
-c		
-	      relax = 1.
-	      if (iter .eq. 1) then
-		relax = relaxInitial
-	      else if (error * errorLast(iPair, ixy) .lt. 0.) then
-		relax = abs(errorLast(iPair, ixy) /
-     &		    (errorLast(iPair, ixy) - error))
-	      endif
-	      errorLast(iPair, ixy) = error
-	      globDelXY(ixy, iPair) = globDelXY(ixy, iPair) - relax * error
-	      fracDelXY(ixy, iPair) = fracDelXY(ixy, iPair) - relax * error
-	      errsum = errsum + error**2
-c	      print *,'pair', iPair,'  ixy',ixy,'  error', error
+	  numRows = 0
+	  do ix = 1, nPtField(1)
+	    do iy = 1, nPtField(2)
+	      numRows = numRows + 1
+	      xData = iFieldStrt(1) + (ix - 1) * fieldIntrv(1) - nx / 2.
+	      yData = iFieldStrt(2) + (iy - 1) * fieldIntrv(2) - ny / 2.
+	      x(1, numRows) = xData + fieldDx(ix, iy)
+	      x(2, numRows) = yData + fieldDy(ix, iy)
+	      x(4, numRows) = xData
+	      x(5, numRows) = yData
 	    enddo
 	  enddo
-	  error = sqrt(errsum / numPairs)
-	  print *,'iteration', iter, '   mean error', error
-	  iter = iter + 1
-	  done = error .le. errorCrit
-	enddo
-c	  
-c	  unstretch the field by solving for stretch
-c
-	numRows = 0
-	do ix = 1, nPtField(1)
-	  do iy = 1, nPtField(2)
-	    numRows = numRows + 1
-	    xData = iFieldStrt(1) + (ix - 1) * fieldIntrv(1) - nx / 2.
-	    yData = iFieldStrt(2) + (iy - 1) * fieldIntrv(2) - ny / 2.
-	    x(1, numRows) = xData + fieldDx(ix, iy)
-	    x(2, numRows) = yData + fieldDy(ix, iy)
-	    x(4, numRows) = xData
-	    x(5, numRows) = yData
-	  enddo
-	enddo
-	do ixy = 1, 2
-	  do i = 1, numRows
-	    x(3, i) = x(3 + ixy, i)
-	  enddo
-	  call multrd(x, msiz, 3, numRows, sx, ss, xm,
+	  do ixy = 1, 2
+	    do i = 1, numRows
+	      x(3, i) = x(3 + ixy, i)
+	    enddo
+	    call multrd(x, msiz, 3, numRows, sx, ss, xm,
      &		sd, b, b1, rsq, fval)
-	  aa(ixy, 1) = b1(1)
-	  aa(ixy, 2) = b1(2)
-	  aa(ixy, 3) = 0.
+	    aa(ixy, 1) = b1(1)
+	    aa(ixy, 2) = b1(2)
+	    aa(ixy, 3) = 0.
+	  enddo
+	  
+	  done = iter. ge. numIter .or. (iter .gt. 1 .and.
+     &	      error .le. errorCrit .and. fieldChange .le. errorCrit)
+	  iter = iter + 1
+
+	  if (.not.done) then
+c	      
+c	      Transform the vectors
+c	      
+	    j = 0
+	    do ix = 1, nPtField(1)
+	      do iy = 1, nPtField(2)
+		j = j + 1
+		fieldDx(ix, iy) = aa(1,1)*x(1, j) + aa(1,2) * x(2, j) - x(4, j)
+		fieldDy(ix, iy) = aa(2,1)*x(1, j) + aa(2,2) * x(2, j) - x(5, j)
+		rsq = sqrt((fieldDx(ix, iy) - lastFieldX(ix, iy))**2 +
+     &		    (fieldDy(ix, iy) - lastFieldY(ix, iy))**2)
+		resSum = resSum + rsq
+		resMax = max(resMax, rsq)
+	      enddo
+	    enddo
+	    fieldChange = resSum / numTotField
+	    write(*,'(a,2f9.4)')' Mean and max change in field: ',
+     &	      fieldChange, resMax
+c	  
+c	      write the no stretch idf file
+c	      
+	    call dopen(1, outfile, 'new', 'f')
+	    write(1,'(i5)')1
+	    write(1,'(2i7,i3,f10.4)')nx, ny, iBinning, pixelSize
+	    write(1,'(2(i6,f8.2,i6))')(iFieldStrt(i), fieldIntrv(i),
+     &		nPtField(i), i = 1,2)
+	    do iy = 1, nPtField(2)
+	      write(1,'(8f8.2)')(fieldDx(ix, iy), fieldDy(ix, iy), ix = 1,
+     &		  nPtField(1))
+	    enddo
+	    close(1)
+	  endif
 	enddo
+
+	outfile = concat(outRoot, '.idf')
 	write(*,'(a,4f10.6)')' De-stretch transformation:',
      &	    ((aa(i,j),j=1,2),i=1,2)
 
@@ -714,7 +770,7 @@ c
 
 	  write(*,110)theta, smag, str, phi, smagMean, smag/smagMean, str
 110	  format('Pair has rotation =',f8.2,', mag =',f7.4,
-     &	      ', stretch =',f7.4,' along',f7.1,' degree axis',/,
+     &	      ', stretch =',f7.4,' on',f7.1,' deg axis',/,
      &	      'Mean mag =',f7.4,', using mag =',f7.4,' and stretch =',
      &	      f7.4)
 	  write(*,'(a,4f10.6)')' No-mag transformation:',
@@ -739,7 +795,7 @@ c
 	    solNeg = -bfac - sqrt(bfac**2 + 4)
 	    solPos = -bfac + sqrt(bfac**2 + 4)
 	    write(*, 111) -solSsqr, solSsqr, solNeg, solPos
-111	    format('Delta mag from square:',2f10.4,',  from quadratic:',
+111	    format('Delta mag from square:',2f10.4,',  quadratic:',
      &		2f12.4)
 	    if (abs(solNeg + solSsqr) .lt. abs(solSsqr - solPos)) then
 	      dmag = 0.5 * (solNeg - solSsqr)
@@ -790,7 +846,8 @@ c
 	  enddo
 	enddo
 c	  
-	if (patchFile .ne. ' ') then
+	if (makePatch) then
+	  patchFile = concat(outRoot, '.patch')
 	  call dopen(1, patchFile, 'new', 'f')
 	  write(1,'(i7,a)')numTotField,' residuals'
 	  j = 0
@@ -881,6 +938,7 @@ c
      &	      sourceTol
 	  xlast = xnew
 	  ylast = ynew
+	  iter = iter + 1
 	enddo	
 c	  
 c	  Determine the coefficients in the field grid of this location
