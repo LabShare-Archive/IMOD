@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/26 06:30:56  mast
+adjusting to font changes
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -65,6 +68,7 @@ class ContourMove : public ContourFrame
   void surfToggled(bool state);
   void toSurfToggled(bool state);
   void replaceToggled(bool state);
+  void expandToggled(bool state);
   void keepSizeToggled(bool state);
 
  protected:
@@ -75,6 +79,7 @@ class ContourMove : public ContourFrame
   QCheckBox *mMoveAllBox;
   QCheckBox *mToSurfBox;
   QCheckBox *mReplaceBox;
+  QCheckBox *mExpandBox;
   QCheckBox *mKeepSizeBox;
 
 };
@@ -92,16 +97,17 @@ class ContourJoin : public ContourFrame
   void set1Pressed();
   void set2Pressed();
 
+ public:
+  QLabel *mSet1Label;
+  QLabel *mSet2Label;
+
  protected:
   void closeEvent ( QCloseEvent * e );
   void fontChange( const QFont & oldFont );
 
  private:
-  QLabel *mSet1Label;
-  QLabel *mSet2Label;
   QPushButton *mButton1;
   QPushButton *mButton2;
-  void join();
   void setFontDependentWidths();
 };
 
@@ -135,11 +141,12 @@ class ContourBreak : public ContourFrame
 
 /* Entries from the rest of imod */
 void imodContEditBreak(ImodView *vw);
-void imodContEditJoin(ImodView *vw, int x, int y);
+void imodContEditJoinOpen(ImodView *vw);
+void imodContEditJoin(ImodView *vw);
 void imodContEditSurf(ImodView *vw);
 void imodContEditSurfShow(void);
 void imodContEditMove(void);
-void imodContEditMoveDialog(ImodView *vw);
+void imodContEditMoveDialog(ImodView *vw, int moveSurf);
 void imodContEditMoveDialogUpdate(void);
 
 /* Entries from the form class for surface etc */
