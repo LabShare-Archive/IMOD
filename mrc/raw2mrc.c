@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2001/12/29 01:30:23  mast
+    Fixed byte swapping for 4-byte entities
+
     Revision 3.2  2001/12/29 01:04:09  mast
     *** empty log message ***
 
@@ -73,10 +76,9 @@ int setintype(char *stype, int *size, int *otype);
 
 void usage(void)
 {	  
-     fprintf(stderr, "raw2mrc version 2.00 %s %s.\n", __DATE__,__TIME__);
-     fprintf(stderr, "Copyright (C)1994-2001 Boulder Laboratory for\n");
-     fprintf(stderr, "3-Dimensional Fine Structure, ");
-     fprintf(stderr, "Regents of the University of Colorado.\n"); 
+     fprintf(stderr, "raw2mrc %s %s %s.\n", VERSION_NAME, __DATE__,
+	     __TIME__);
+     imodCopyright();
      fprintf(stderr, "Converts raw data into mrc file format.\n");
      fprintf(stderr, "Usage raw2mrc [options] <input files...> <output file>\n");
      fprintf(stderr, "Options:\n");
