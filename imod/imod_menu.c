@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2002/09/17 18:52:44  mast
+    Changed event handler to expect a signature (IMOD), and to give error
+    messages about unexpected packets only in debig mode
+
     Revision 3.5  2002/09/14 18:32:43  mast
     Eliminate unneeded argument from fprintf
 
@@ -1264,6 +1268,10 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
 	case MESSAGE_VIEW_MODEL:
 	  imod_win_cb(w, (XtPointer)4, NULL);
 	  break;
+
+     case MESSAGE_QUIT:
+       imod_quit();
+       break;
 
 	default:
 	  fprintf(stderr, "imodHandleClientMessage: action %d not recognized\n"
