@@ -316,7 +316,7 @@ csrc : ALWAYS
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
 	imod/*.bits imod/*.png imod/*.xpm imod/README imod/3dmod.dsp \
-	imod/3dmod.dsw imod/Makefile.dummy \
+	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
@@ -349,13 +349,16 @@ fsrc :
 etomosrc :
 	if (! (-e $(ARCDIR)_src/Etomo/)) mkdir $(ARCDIR)_src/Etomo/
 	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
-	Etomo/MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
+	Etomo/*MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
 	Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
 
 ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.27  2003/11/18 19:31:36  mast
+#  Add entry to clean windows .exe files
+#
 #  Revision 3.26  2003/10/25 16:44:38  mast
 #  add new directories to make src
 #
