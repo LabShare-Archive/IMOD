@@ -34,12 +34,11 @@ $Date$
 $Revision$
 Log at end of file
 */
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <qdir.h>
 #include "imod_cachefill.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -97,11 +96,11 @@ unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time)
   iv->ct = time;
   iv->hdr = iv->image = &iv->imageList[time-1];
   /* DNM: need to change directory before reopening, and back afterwards */
-  if (Imod_IFDpath)
-    chdir(Imod_IFDpath);
+  if (!Imod_IFDpath.isEmpty())
+    QDir::setCurrent(Imod_IFDpath);
   iiReopen(iv->image);
-  if (Imod_IFDpath)
-    chdir(Imod_cwdpath);
+  if (!Imod_IFDpath.isEmpty())
+    QDir::setCurrent(Imod_cwdpath);
   imageData = ivwGetZSection(iv, section);
   iiClose(iv->image);
   iv->ct = oldTime;
@@ -898,12 +897,12 @@ void ivwSetTime(ImodView *vw, int time)
     ivwSetScale(vw);
 
     /* DNM: need to change directory before reopening, and back after */
-    if (Imod_IFDpath)
-      chdir(Imod_IFDpath);
+    if (!Imod_IFDpath.isEmpty())
+      QDir::setCurrent(Imod_IFDpath);
     iiReopen(vw->image);
-    if (Imod_IFDpath)
-      chdir(Imod_cwdpath);
-  }
+    if (!Imod_IFDpath.isEmpty())
+      QDir::setCurrent(Imod_cwdpath);
+   }
   /* DNM: update scale window */
   imodImageScaleUpdate(vw);
   vw->imod->ctime = vw->ct;
@@ -1413,16 +1412,16 @@ void ivwTransModel(ImodView *iv)
        only if the flag is set that tilts have been stored properly */
 
     if (imod->flags & IMODF_TILTOK) {
-      imodMatRot(mat, - iref->crot.x, X);
-      imodMatRot(mat, - iref->crot.y, Y);
-      imodMatRot(mat, - iref->crot.z, Z);
+      imodMatRot(mat, - iref->crot.x, b3dX);
+      imodMatRot(mat, - iref->crot.y, b3dY);
+      imodMatRot(mat, - iref->crot.z, b3dZ);
 
       /* Next transform from these "absolute" coords to new reference
          image coords */
 
-      imodMatRot(mat, iref->orot.z, Z);
-      imodMatRot(mat, iref->orot.y, Y);
-      imodMatRot(mat, iref->orot.x, X);
+      imodMatRot(mat, iref->orot.z, b3dZ);
+      imodMatRot(mat, iref->orot.y, b3dY);
+      imodMatRot(mat, iref->orot.x, b3dX);
     }
 
     imodMatTrans(mat, &iref->otrans);
@@ -1656,6 +1655,7 @@ int ivwLoadIMODifd(ImodView *iv)
   int version = 0;
 
   char *imgdir = NULL;
+  QDir *curdir = new QDir();
 
   rewind(iv->fp);
   imodFgetline(iv->fp, line, IFDLINE_SIZE);
@@ -1685,8 +1685,9 @@ int ivwLoadIMODifd(ImodView *iv)
 
     /* define a root pathname for all image files. */
     if (!strncmp("IMGDIR", line, 6)){
-      if (imgdir) free(imgdir);
-      imgdir = strdup(&line[7]);
+      if (imgdir) 
+        free(imgdir);
+      imgdir = strdup((curdir->cleanDirPath(QString(&line[7]))).latin1());
       continue;
     }
 
@@ -1748,11 +1749,14 @@ int ivwLoadIMODifd(ImodView *iv)
         pathlen += strlen(imgdir);
         filename = (char *)malloc(pathlen + 3);
         strcpy(filename, imgdir);
-        strcat(filename, &line[6]);
+        strcat(filename, (curdir->cleanDirPath(QString(&line[6]))).latin1());
       }else{
-        filename = strdup(&line[6]);
+        filename = strdup((curdir->cleanDirPath(QString(&line[6]))).latin1());
       }
-      image = iiOpen(filename, "rb");
+
+
+      image = iiOpen((char *)
+        (QDir::convertSeparators(QString(filename))).latin1(), "rb");
       if (!image){
         if (!xsize || !ysize) {
           fprintf(stderr, "IMOD Error: " 
@@ -1769,7 +1773,8 @@ int ivwLoadIMODifd(ImodView *iv)
         image->nx = xsize;
         image->ny = ysize;
         image->nz = zsize;
-        image->filename = strdup(filename);
+        image->filename = strdup
+                   ((QDir::convertSeparators(QString(filename))).latin1());
       }
       /* DNM: set up scaling for this image */
       iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
@@ -1810,8 +1815,9 @@ int ivwLoadIMODifd(ImodView *iv)
   retcode = ivwSetCacheFromList(iv, ilist);
 
   if (imgdir)free(imgdir);
-  return(retcode);
+  delete curdir;
 
+  return(retcode);
 }
 
 void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
@@ -1819,9 +1825,13 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
   ImodImageFile *image;
   int pathlen, i;
+  char *convarg;
+  QDir *curdir = new QDir();
 
   for (i = firstfile; i <= lastimage; i++) {
-    image = iiOpen(argv[i], "r");
+    convarg = strdup((curdir->cleanDirPath(QString(argv[i]))).latin1());
+    image = iiOpen((char *)
+      (QDir::convertSeparators(QString(convarg))).latin1(), "rb");
     if (!image){
       fprintf(stderr, "IMOD Error: " 
               "couldn't open image file %s.\n", argv[i]);
@@ -1830,6 +1840,9 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
 
     /* set up scaling for this image */
     iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
+
+    /* Setting the fp keeps it from closing the file, so there is no need to
+      save the filename too */
     iv->fp = image->fp;
     iiClose(image);
 
@@ -1837,12 +1850,14 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
     iv->nt++;
 
     /* Copy filename with directory stripped to the descriptor */
-    pathlen = strlen(argv[i]);
-    while (( pathlen > 0) && (argv[i][pathlen-1] != '/'))
+    pathlen = strlen(convarg);
+    while (( pathlen > 0) && (convarg[pathlen-1] != '/'))
       pathlen--;
-    image->description = strdup(&argv[i][pathlen]);
+    image->description = strdup(&convarg[pathlen]);
     ilistAppend(ilist, image);
+    free(convarg);
   }
+  delete curdir;
 
   /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
   iv->imageList = (ImodImageFile *)ilist;
@@ -2036,6 +2051,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.3  2003/02/22 00:00:29  mast
+Open image files in binary mode
+
 Revision 4.2  2003/02/14 01:15:44  mast
 treat zmouse values more carefully, cleanup unused variables
 
