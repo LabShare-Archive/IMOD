@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:07:12  mast
+c	  Changes to make things work well with a subset of views
+c	
 c
 	subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &	    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
@@ -303,10 +306,27 @@ c
 	integer*4 igroup(*),nrealpt
 	character*(*) modelfile
 	include 'model.inc'
+	real*4 xyzmax
+	integer*4 imodobj,isize
 c	  
 	integer*4 ireal,iobject,ipt,i
 c
 	if(modelfile.eq.' ')return
+c	  
+c	  get a scattered point size
+c
+	ireal=0
+	xyzmax=0.
+	do iobject=1,max_mod_obj
+	  if(npt_in_obj(iobject).gt.0)then
+	    ipt=object(ibase_obj(iobject)+1)
+	    ireal=ireal+1
+	    do i=1,3
+	      xyzmax=max(xyzmax,abs(xyz(i,ireal)))
+	    enddo
+	  endif
+	enddo
+	isize=max(3.,xyzmax/100.)
 c	  
 c	  loop on model objects that are non-zero, stuff point coords into 
 c	  first point of object (now only point), and set color by group
@@ -319,7 +339,18 @@ c
 	    do i=1,3
 	      p_coord(i,ipt)=xyz(i,ireal)
 	    enddo
-	    obj_color(2,iobject)=obj_color(2,iobject)+igroup(ireal)-1
+c
+c	      DNM 5/15/02: only change color if there is a group
+c	      assignment, but then double the object numbers to keep them
+c	      separate.  Also, define as scattered and put sizes out
+c	      
+	    imodobj=256-obj_color(2,iobject)
+	    if(igroup(ireal).ne.0)then
+	      imodobj=2*(imodobj-1)+igroup(ireal)
+	      obj_color(2,iobject)=256-imodobj
+	    endif
+	    call putimodflag(imodobj,2)
+	    call putscatsize(imodobj,isize)
 	  endif
 	enddo
 c	  
