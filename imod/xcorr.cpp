@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/11/11 15:55:34  mast
+Changes to do FFT in a subarea
+
 Revision 1.3  2004/11/09 17:53:28  mast
 Fixed problems with taperoutpad
 
@@ -43,14 +46,16 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   int nyin = sin->ysize;
   int nxProc, nyProc, nxDim;
   b3dUByte *indata = sin->data.b;
-  b3dUByte *indata2;
   float *fftArray;
   float padFrac = 0.02;
   float taperFrac = 0.02;
-  int iyMirror, idir = 0;
+  int idir = 0;
   int nPadSize, squareSize, nTaper, nPad, i, iyin, iyout, ixbase, ncopy;
+  int nPadPix, ixcen, iycen, ixnd;
   double logScale = mrcGetComplexScale();
-  float val, max, max2, scale;
+  double val, max, max2, sum;
+  float scale;
+  b3dUByte fillVal;
   
   if (sin->mode != SLICE_MODE_BYTE)
     return -1.;
@@ -74,13 +79,14 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   nxProc = ix1 + 1 - ix0;
   nyProc = iy1 + 1 - iy0;
 
-  squareSize = nxProc > nyProc ? nxProc : nyProc;
-  nTaper = taperFrac * squareSize;
-  nPad = padFrac * squareSize;
+  squareSize = B3DMAX(nxProc, nyProc);
+  nTaper = (int)(taperFrac * squareSize);
+  nPad = (int)(padFrac * squareSize);
   nPadSize = XCorrNiceFrame(squareSize + nPad, 2, 19);
+  nPadPix = (nPadSize + 2) * nPadSize;
   
   // Get array for FFT
-  fftArray = (float *)malloc((nPadSize + 2) * nPadSize * sizeof(float));
+  fftArray = (float *)malloc(nPadPix * sizeof(float));
   if (!fftArray) {
     if (binning)
       free(indata);
@@ -97,80 +103,75 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   
   // Find top two magnitudes while scaling real parts to magnitudes
   max = 0.;
-  for (i = 0; i < (nPadSize + 2) * nPadSize; i += 2) {
-    val = (float)sqrt((double)(fftArray[i] * fftArray[i] + 
+  sum = 0.;
+  for (i = 0; i < nPadPix; i += 2) {
+    val = sqrt((double)(fftArray[i] * fftArray[i] + 
                                fftArray[i + 1] * fftArray[i + 1]));
     if (max < val) {
       max2 = max;
-      max = val;
+      max = (float)val;
       iyin = i;
     }
-    fftArray[i] = val;
+    sum += val;
+    fftArray[i] = (float)val;
   }
 
   // Make the maximum 10% of way from second highest to highest and replace max
   max = max2 + 0.1 * (max - max2);
   fftArray[iyin] = max;
   scale = (sin->max - sin->min) / log(logScale * max + 1.);
+  fillVal = (b3dUByte)(scale * log(logScale * sum / nPadPix + 1.) + sin->min);
 
-  // Loop on output lines; set up input line corresponding to first output line
+  // Loop on output lines
+  ixcen = binning * (ix1 + 1 + ix0) / 2;
+  iycen = binning * (iy1 + 1 + iy0) / 2;
   iyin = nPadSize - nyin / 2;
   for (iyout = 0; iyout < nyin; iyout++) {
-    ixbase = iyin * (nPadSize + 2);
-    indata = sin->data.b + iyout * nxin + nxin / 2;
-    
+    iyin = iyout - iycen;
+
     // If line is out of range, fill it
-    if (iyout < nyin / 2 - nPadSize / 2 || iyout >= nyin / 2 + nPadSize / 2) {
-      for (i = 0; i < nxin / 2; i++)
-        *indata++ = 0;
-      sin->data.b[iyout * nxin] = 0;
+    if (iyin < - nPadSize / 2 || iyin >= nPadSize / 2) {
+      indata = sin->data.b + iyout * nxin;
+      for (i = 0; i < nxin; i++)
+        *indata++ = fillVal;
 
     } else {
       
+      // Wrap if negative
+      if (iyin < 0)
+        iyin += nPadSize;
+
       // Copy as many values as fit or exist
-      ncopy = nxin < nPadSize + 2 ? nxin : nPadSize + 2;
-      for (i = ixbase; i < ixbase + ncopy; i += 2)
+      ixbase = iyin * (nPadSize + 2);
+      indata = sin->data.b + iyout * nxin + ixcen;
+      ixnd = B3DMIN(ixcen + nPadSize / 2, nxin - 1);
+      ncopy = 2 * (ixnd + 1 - ixcen);
+      for (i = ixbase; i <  ixbase + ncopy; i += 2)
         *indata++ = (b3dUByte)(scale * log(logScale * fftArray[i] + 1.) + 
                                sin->min);
-      
-      // Mirror something on the left edge if this is a legal line to mirror
-      iyMirror = 2 * (nyin / 2) - iyout;
-      if (iyMirror < nyin) {
 
-        // If there are more pixels take one; otherwise take 0
-        if (ncopy < nPadSize + 2)
-          val = (b3dUByte)(scale * log(logScale * fftArray[i] + 1.) + 
-                           sin->min);
-        else 
-          val = 0.;
-        sin->data.b[iyMirror * nxin] = val;
+      // Fill the right side
+      for (i = ixcen + nPadSize / 2 + 1; i < nxin; i++)
+        *indata++ = fillVal;
 
-        // Take care of orphan pixel in lower left corner
-        if (iyMirror && 
-            (iyout == nyin - 1 || iyout == nyin / 2 + nPadSize /2 - 1))
-          sin->data.b[(iyMirror - 1) * nxin] = val;
+      // Get Y line to mirror from, copy data in reverse
+      if (iyin) {
+        iyin = nPadSize - iyin;
+        if (iyin == nPadSize / 2)
+          iyin--;
       }
-
-      // Fill right edge if necessary
-      for (i = ncopy / 2; i < nxin / 2; i++)
-        *indata++ = 0;
+      ixbase = iyin * (nPadSize + 2) + 2;
+      indata = sin->data.b + iyout * nxin + ixcen - 1;
+      ixnd = B3DMAX(ixcen - nPadSize / 2, 0);
+      ncopy = 2 *(ixcen - ixnd);
+      for (i = ixbase; i <  ixbase + ncopy; i += 2)
+        *indata-- = (b3dUByte)(scale * log(logScale * fftArray[i] + 1.) + 
+                               sin->min);
+      
+      // Fill left side
+      for (i = 0; i < ixcen - nPadSize / 2; i++)
+        *indata-- = fillVal;
     }
-    
-    // Advance iyin and wrap when needed
-    iyin++;
-    if (iyin == nPadSize)
-      iyin = 0;
-  }
-
-  // Mirror the lines in Y around the center
-  for (iyout = 0; iyout < nyin; iyout++) {
-    iyin = 2 * (nyin / 2) - iyout;
-    if (iyin == nyin)
-      iyin--;
-    indata = sin->data.b + iyin * nxin + nxin / 2 + 1;
-    indata2 = sin->data.b + iyout * nxin + nxin / 2 - 1;
-    for (i = 0; i < nxin / 2 - 1; i++)
-      *indata2-- = *indata++;
   }
 
   return (float)(1. / nPadSize);
@@ -192,10 +193,10 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
   float ctf[8193];
   float delta, outMin, outMax;
 
-  padx = 0.05 * nx;
+  padx = (int)(0.05 * nx);
   if (padx < 8)
     padx = 8;
-  pady = 0.05 * ny;
+  pady = (int)(0.05 * ny);
   if (pady < 8)
     pady = 8;
   nxpad = XCorrNiceFrame(nx + padx, 2, 19);
@@ -557,7 +558,7 @@ void XCorrFilterPart(float *fft, float *array, int nx, int ny, float *ctf,
       ind = 2 * (index + ix);
       indp1 = ind + 1;
       s = sqrt(x*x + y2);
-      indf = s/delta + 0.5;
+      indf = (int)(s/delta + 0.5f);
       array[ind] = fft[ind] * ctf[indf];
       array[indp1] = fft[indp1] * ctf[indf];
       x = x + delx;
