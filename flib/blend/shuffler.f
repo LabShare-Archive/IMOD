@@ -11,6 +11,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/19 04:28:29  mast
+c	  Changed to use include file and to not take ARRAY as an argument.
+c	
 c
 	subroutine shuffler(izwant,index)
 c	  
@@ -42,7 +45,7 @@ c	print *,'reading section',izwant-1,'  index',index
 	call imposn(1,izwant-1,0)		!yes izwant starts at 1
 	call irdsec(1,array(index),*99)
 	return
-99	stop 'error reading file'
+99	call errorexit('reading file')
 	end
 
 
