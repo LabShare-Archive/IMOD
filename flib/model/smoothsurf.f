@@ -39,15 +39,21 @@ c	  smoothing of individual contours.
 c	  
 c	  David Mastronarde, 9/9/97
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	include 'model.inc'
 	parameter (idim=1000,limpt=10000,idzlim=16)
 C   
 	REAL*4 xt(limpt),yt(limpt),zt(limpt),pt(limpt,3),p_new(2,max_pt)
 	equivalence (xt,pt),(yt,pt(1,2)),(zt,pt(1,3))
-	common /dumcom/ dummy(15000000)
 C   
 	CHARACTER*80 FILin,filout
-C   
 c	  
 	logical readw_or_imod,failed
 	include 'statsize.inc'
