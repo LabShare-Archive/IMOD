@@ -16,6 +16,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/03/12 21:00:46  sueh
+ * <p> bug# 373 Changed parseComScriptCommand() - copied data to tiltFile,
+ * <p> firstTiltAngle, tiltIncrement, filterSigma1, filterSigma2, filterRadius1, filterRadius2.
+ * <p>
  * <p> Revision 3.4  2004/03/12 20:04:44  sueh
  * <p> bug# 412 added absoluteCosineStretch, cumulativeCorreslation, noCosineStretch,
  * <p> testOutput, xMinAndMax, yMinAndMax
@@ -324,13 +328,13 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("BordersInXandY");
     }
-    if (xMinAndMax.valuesSet()) {
+    if (xMinAndMax.valuesSet() && !xMinAndMax.isDefault()) {
       scriptCommand.setValue("XMinAndMax", xMinAndMax.toString());
     }
     else {
       scriptCommand.deleteKey("XMinAndMax");
     }
-    if (yMinAndMax.valuesSet()) {
+    if (yMinAndMax.valuesSet() && !yMinAndMax.isDefault()) {
       scriptCommand.setValue("YMinAndMax", yMinAndMax.toString());
     }
     else {
