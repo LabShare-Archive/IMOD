@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2004/11/19 23:57:05  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 1.4.4.4  2004/11/16 02:29:10  sueh
  * <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
  * <p> EtomoFloat, and EtomoLong with EtomoNumber.
@@ -96,8 +99,8 @@ public class LabeledSpinner {
     return label.getText();
   }
   
-  public Object getValue() {
-    return spinner.getValue();
+  public Number getValue() {
+    return (Number) spinner.getValue();
   }
 
   public void setValue(Object value) {
