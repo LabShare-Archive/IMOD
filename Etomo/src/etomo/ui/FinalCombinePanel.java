@@ -44,6 +44,10 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/03/05 18:19:29  sueh
+ * bug# 250 added getCombineParameters() - retrieve parameters found in
+ * Combine from final tab
+ *
  * Revision 3.2  2004/03/02 21:54:24  sueh
  * bug# 250 setting useBoudaryModel() with Use Patch Region Model
  *
@@ -168,14 +172,14 @@ public class FinalCombinePanel implements ContextMenu {
     new LabeledTextField("Number of rows to exclude on bottom (in Y): ");
   private LabeledTextField ltfZUpperExclude =
     new LabeledTextField("Number of rows to exclude on top (in Y): ");
+  private JCheckBox cbUseLinearInterpolation =
+    new JCheckBox("Use linear interpolation");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private MultiLineButton btnMatchorwarpRestart =
     new MultiLineButton("<html><b>Restart at Matchorwarp</b>");
   private MultiLineButton btnMatchorwarpTrial =
     new MultiLineButton("<html><b>Matchorwarp Trial Run</b>");
-
   private JPanel pnlButton = new JPanel();
-
   private MultiLineButton btnPatchVectorModel =
     new MultiLineButton("<html><b>Examine Patch Vector Model</b>");
   private MultiLineButton btnReplacePatchOut =
@@ -296,6 +300,8 @@ public class FinalCombinePanel implements ContextMenu {
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlMatchorwarp.add(ltfZUpperExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlMatchorwarp.add(cbUseLinearInterpolation);
+    pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlMatchorwarpButtons.setLayout(
       new BoxLayout(pnlMatchorwarpButtons, BoxLayout.X_AXIS));
@@ -347,6 +353,7 @@ public class FinalCombinePanel implements ContextMenu {
   void setAdvanced(boolean state) {
     pnlBoundary.setVisible(state);
     ltfRefineLimit.setVisible(state);
+    cbUseLinearInterpolation.setVisible(state);
   }
 
   /**
@@ -454,6 +461,8 @@ public class FinalCombinePanel implements ContextMenu {
     if (matchorwarpParam.getZUpperExclude() > 0) {
       ltfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
+    
+    cbUseLinearInterpolation.setSelected(matchorwarpParam.isUseLinearInterpolation());
   }
 
   /**
@@ -517,6 +526,8 @@ public class FinalCombinePanel implements ContextMenu {
       else {
         matchorwarpParam.setZUpperExclude(0);
       }
+      badParameter = cbUseLinearInterpolation.getText();
+      matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -736,6 +747,11 @@ public class FinalCombinePanel implements ContextMenu {
       "Exclude rows of patches on the top from the fits. Number of rows of "
         + "patches on the top in Y to exclude from the fits.";
     ltfZUpperExclude.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text =
+      "Uses linear instead of quadratic interpolation for transforming"
+        + "the volume with Matchvol or Warpvol.";
+    cbUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "Restart the combine operation at Matchorwarp, which tries to fit "
