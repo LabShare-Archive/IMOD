@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/07/21 04:19:41  mast
+#  Initial creation
+#
 
 set pn = splitcombine
 
@@ -95,14 +98,17 @@ EOF
     else
         awk "/COMBINING PIECE *$num /, /REASSEMBLING PIECES/" $comname >! $tmpname
     endif
+
+    # doctor the filenames.  Need to replace all leading paths before rec. and
+    # mat. to get rid of temporary directory.  Match all back to space or tab
     sed -e '/STATUS:/d' \
         -e "/localscratch/s//scratch\/$hostroot/g" \
         -e '/rec\.st/s//rec.st.\$tmpext/g' \
         -e '/mat\.st/s//mat.st.\$tmpext/g' \
         -e '/rec\.fft/s//rec.fft.\$tmpext/g' \
         -e '/mat\.fft/s//mat.fft.\$tmpext/g' \
-        -e "/rec\./s//$tmprec/g" \
-        -e "/mat\./s//$tmpmat/g" < $tmpname >> $thiscom
+        -e "/[^ 	]*rec\./s//$tmprec/g" \
+        -e "/[^ 	]*mat\./s//$tmpmat/g" < $tmpname >> $thiscom
     \rm -r $tmpname
     cat <<EOF >> $thiscom
 \$echo CHUNK DONE
