@@ -1,6 +1,40 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/4/03: IMOD_3-0-11
+6/4/03: Provided an empty seed model for Copytomocoms to copy.
+
+6/4/03: Made 3dmodv not overwrite files when making snapshots, just like the
+image windows do.  Added message to go to model mode.
+
+6/3/03: Made Header program report pixel size and tilt axis rotation angle
+from first section's entries in the extended header of Agard/FEI style headers.
+
+6/2/03: Added PIP package (for Parsing Input Parameters) to the libraries.
+
+6/1/03: Changed output from f and F hot keys to use integer coordinates 
+numbered from 1.
+
+5/31/03: Fixed alignlog output for local alignments and added an output of
+local area sizes and number of fiducials.
+
+5/31/03: Fixed ambient slider in 3dmodv object edit window.
+
+5/28/03: Added align*.log filter for beadfix plugin.
+
+5/25/03: Added a red indicator of which mouse action has been activated to
+Midas.
+
+5/22/03: Moved creation of temporary directory for combining from combine.com
+to individual command files to allow this to work with Etomo.
+
+5/22/03: Added message to raise all 3dmod windows, made windows get raised
+in order by type (image then dialog), and fixed problem with secondary Zap
+windows not syncing to point position for an added point.
+
 5/20/03: IMOD_3-0-10
+5/20/03: Modified Vmstocsh and Submfg so that all command files will output
+the process ID, so Etomo can kill operations properly.
+
 5/20/03: Made Setupcombine and Copytomocoms able to accept corresponding
 fiducial lists or exclude lists with spaces embedded in them, and remove the
 spaces so that Etomo will parse them correctly.  Also modified the list-writing
