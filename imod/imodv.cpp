@@ -301,7 +301,7 @@ static int openWindow(ImodvApp *a)
   int xleft, ytop, newHeight;
 
   a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
-  a->lowres = Imodv->imod->view->world & VIEW_WORLD_LOWRES;
+  a->lowres = (Imodv->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
   a->mainWin = new ImodvWindow(a->standalone, a->enableDepthDB, 
                                a->enableDepthSB, a->lighting, a->lowres);
 
@@ -647,6 +647,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.21  2004/09/21 20:30:52  mast
+Added call to synchronize object color change to info window
+
 Revision 4.20  2004/07/07 19:25:29  mast
 Changed exit(-1) to exit(3) for Cygwin
 
