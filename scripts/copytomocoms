@@ -22,6 +22,9 @@ set seedname = "empty.seed"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2003/07/08 21:06:49  mast
+#  Add test for existence of .resid file in align.com before running patch2imod
+#
 #  Revision 3.9  2003/06/05 00:09:17  mast
 #  Copy seed model only if it does not exist
 #
@@ -394,7 +397,6 @@ EOF
 	    # IF MONTAGED, START THE FILE WITH PREBLEND - LIMIT SIZE TO 1024
 
 	    set preblend = "1"
-	    set shiftopt = "-6"
 	    set srcfile = $srcdir/"blend"$srcext
 	    @ xcxsize = $xsize
 	    @ xcysize = $ysize
@@ -406,11 +408,13 @@ EOF
 	    @ yend = ($ysize + $xcysize) / 2 - 1
 	    set xcsrc = $setname.bl
 	    sed -e s/$srcname/$dstname/g\
-	        -e "/-2 shift/s/.*	/-5	/"\
 	        -e s/$setname.ali/$xcsrc/\
-	        -e s/$setname.xf//\
-	        -e "/COMMENT THIS/s/.*	/#\/	/"\
-		-e "/Min & max X/s/.*	/$xstart,$xend,$ystart,$yend	/"\
+	        -e "/^TransformFile/s/^T/#T/"\
+	        -e "/^[# ]*SloppyMontage/s/^[# ]*//"\
+	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
+		-e "/^StartingAndEndingX/s/	.*/	$xstart $xend/"\
+		-e "/^StartingAndEndingY/s/	.*/	$ystart $yend/"\
+                -e /mrctaper/d\
 		    <$srcfile >>$dstfile
 	endif
 
@@ -465,9 +469,11 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
-	        -e "/-2 shift/s/.*	/-6	/"\
-		-e "/Min & max X/s/.*	/,,$ymin,$ymax	/"\
-	        -e "/build new/s/.*	/1	/"\
+	        -e "/^[# ]*SloppyMontage/s/^[# ]*//"\
+	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
+	        -e "/^[# ]*ReadInXcorrs/s/^[# ]*//"\
+	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*//"\
+		-e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -481,8 +487,8 @@ EOF
 	set tracksrc = $setname.st
 
 	if ($montage == "1") then
-	    set buildnew = "0"
-	    set shiftopt = "0"
+	    set buildnew = "#O"
+	    set shiftopt = "#S"
 
 	    # IF PREBLEND, GET FILE, SET UP THINGS DIFFERENTLY FOR BLEND
 
@@ -492,11 +498,13 @@ EOF
 		set srcfile = $srcdir/"blend"$srcext
 		set dstfile = "preblend"$dstext
 		set backuplist = ($backuplist $dstfile)
-		set buildnew = "1"
-		set shiftopt = "2"
+		set buildnew = "O"
+		set shiftopt = "S"
 		if (-e $dstfile) \mv -f $dstfile $dstfile~
 		sed -e s/$srcname/$dstname/g\
-		    -e "/-2 shift/s/.*	/$shiftopt	/"\
+                    -e "/^TransformFile/s/^T/#T/"\
+                    -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
+                    -e /mrctaper/d\
 		    -e s/$setname.ali/$tracksrc/\
 		    <$srcfile >$dstfile
 		echo '$'"if (-e $backupname) $backupname" >> $dstfile
@@ -509,9 +517,9 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
-	        -e "/-2 shift/s/.*	/$shiftopt	/"\
-		-e "/Min & max X/s/.*	/,,$ymin,$ymax	/"\
-	        -e "/build new/s/.*	/$buildnew	/"\
+                -e "/^[# ]*ShiftPieces/s/^[# ]*S/$shiftopt/"\
+		-e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
+	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/$buildnew/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -690,8 +698,7 @@ EOF
 	    -e "/mrctaper/d"\
 	    < newst$dstext >$dstfile
     else
-        sed -e "/build new/s/.*	/1	/"\
-	    -e "/-2 shift/s/.*	/$shiftopt	/"\
+        sed -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/O/"\
 	    -e "/if (-e/d"\
 	    -e "/mrctaper/d"\
 	    < blend$dstext >$dstfile
@@ -719,9 +726,8 @@ EOF
 		<newst$dstext >>$dstfile
 	endif
     else
-	sed -e "/Min & max X/s/.*	/,,$ymin,$ymax	/"\
-	    -e "/build new/s/.*	/1	/"\
-	    -e "/-2 shift/s/.*	/$shiftopt	/"\
+        sed -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/O/"\
+	    -e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
 	    -e "/if (-e/d"\
 	    -e "/mrctaper/d"\
 	    <blend$dstext >>$dstfile
@@ -747,9 +753,8 @@ EOF
 		<newst$dstext >>$dstfile
 	endif
     else
-	sed -e "/Min & max X/s/.*	/,,$ymin,$ymax	/"\
-	    -e "/build new/s/.*	/1	/"\
-	    -e "/-2 shift/s/.*	/$shiftopt	/"\
+        sed -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/O/"\
+	    -e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
 	    -e "/if (-e/d"\
 	    -e "/mrctaper/d"\
 	    <blend$dstext >>$dstfile
