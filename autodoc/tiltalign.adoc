@@ -215,7 +215,7 @@ long = AngleOffset
 type = F
 usage = Amount to add to all entered tilt angles
 tooltip = Total amount to add to all tilt angles.
-manpage = 
+manpage = Amount to add to all entered tilt angles.
 
 [Field = ProjectionStretch]
 short = 
@@ -295,7 +295,7 @@ long = LocalRotDefaultGrouping
 type = I
 usage = Default group size when automapping local rotation variables
 tooltip = Grouping size for local rotations.
-manpage = 
+manpage = Default group size when automapping local rotation variables.
 
 [Field = LocalRotNondefaultGroup]
 short = 
@@ -786,7 +786,7 @@ long = MaximumCycles
 type = I
 usage = Limit on number of cycles for minimization procedure (default 500)
 tooltip = Limit on number of iterations to find a solution.
-manpage = 
+manpage = Limit on number of cycles for minimization procedure (default 500).
 
 [Field = AxisZShift]
 short = 
