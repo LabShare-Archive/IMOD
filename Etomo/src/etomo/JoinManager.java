@@ -48,6 +48,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2004/11/24 18:10:12  sueh
+* <p> bug# 520 Added binning in XY.
+* <p>
 * <p> Revision 1.5  2004/11/24 00:58:08  sueh
 * <p> bug# 520 makejoincom: set nextProcess to "" when running process
 * <p> makejoincom() throws anexception.
@@ -430,6 +433,9 @@ public class JoinManager extends BaseManager {
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
+    if (paramFile == null) {
+      endSetupMode();
+    }
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
