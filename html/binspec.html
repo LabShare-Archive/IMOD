@@ -40,6 +40,7 @@ Length Type Name          Description
 4      int  objsize       Number of objects in model.
 
 4      uint flags         Model flags  (IMODF_FLAG...)
+                           Bit 12 on : multiple clip planes are possible
                            Bit 13 on : mat1 and mat3 are stored as bytes
                            Bit 14 on : otrans has image origin values
                            Bit 15 on : current tilt angles are stored correctly
@@ -287,16 +288,39 @@ size  char   point label string padded to 4 byte chunks.
 </pre>
 
 <HR>
-CLIP  Clipping planes for object. (28 bytes data)
+OLBL  Label surfaces in object. (Variable data)
+<br>      Each object has a pointer to a label structure.
 <pre>
-Length Type      Description
+Length Type  Description
 -------------------------------------------------------------------
-1     char       Number of additional clip planes. maximum is 8.
-1     char       Which clip planes are on.
-1     char       Transparency for clipped area. (future)
-1     char       Current clip plane.
-12    float * 3  normal
-12    float * 3  point
+4     int    # of label items for surfaces in object
+4     int    size of top-level label = 0 (unused)
+size  char   unused
+
+for each surface label item:
+4     int    surface index.
+4     int    size of label string.
+size  char   surface label string padded to 4 byte chunks.
+</pre>
+
+<HR>
+<br>CLIP  Clipping planes for object. (Variable data size)
+<br>MCLP  Global clipping planes for model. (Variable data size)
+<br>As of IMOD 2.4.9, the object structure, model view structure, and object
+view structure each has a clipping planes structure as a member, named
+clips.  The latter structures are currently defined to hold 6 clipping
+planes, but these chunks are written with only the number of planes
+that exist, so their size is 4 + 24 * count.
+<pre>
+Length     Type      Name  Description
+-------------------------------------------------------------------
+1         uchar      count  Number of additional clipping planes
+1         uchar      flags  Which clipping planes are on; for object planes,
+                             bit 7 means ignore global planes
+1         uchar      trans  Transparency for clipped area. (future)
+1         uchar      plane  Current clipping plane.
+12*count  float * 3  normal Normals to clipping planes
+12*count  float * 3  point  Point values of clipping planes
 </pre>
 
 
@@ -363,7 +387,7 @@ Length Type     Name    Description
                         Bit 3 on : Wireframe - draw wireframes, not surfaces
                         Bit 7 on : Draw lower resolution meshes
                         Bits 8,9,10 : Global point quality
-32    char      label   ??
+32    char      label   Name for the view
 -------------------------------------------------------------------
 4     float     dcstart Fog starting distance
 4     float     dcend   Fog ending distance
@@ -375,7 +399,7 @@ Length Type     Name    Description
 4     int       bytesObjv Bytes per Iobjview structure
 
 </pre>
-Currently there are 67 bytes per object view, as follows:
+Currently there are 187 bytes per object view, as follows:
 <pre>
 4     uint      flags        bit flags IMOD_OBJFLAG... (see above)
 4     float     red          Red (0 - 1.0)                 
@@ -385,12 +409,12 @@ Currently there are 67 bytes per object view, as follows:
 1     uchar     linewidth    linewidth in 3-D              
 1     uchar     linesty      line draw style               
 1     uchar     trans        transparency                 
-1     uchar     clip         number of additional clip planes. 
-1     uchar     clip_flags   Which clip planes are on.         
-1     uchar     clip_trans   Transparency for clipped area    
-1     uchar     clip_plane   Current clip plane
-12    float * 3 clip_normal  Normal for clipping plane
-12    float * 3 clip_point   Point value for clipping plane
+1     uchar     clips.count  number of additional clip planes. 
+1     uchar     clips.flags  Which clip planes are on.         
+1     uchar     clips.trans  Transparency for clipped area    
+1     uchar     clips.plane  Current clip plane
+12    float * 3 clips.normal Normal for first clipping plane
+12    float * 3 clips.point  Point value for first clipping plane
 1     uchar 	ambient      Ambient property.  (see above)
 1     uchar 	diffuse      Diffuse property.  (see above)
 1     uchar 	specular     Specular property.  (see above)
@@ -404,6 +428,8 @@ Currently there are 67 bytes per object view, as follows:
 1     uchar 	mat3b1       White level for showing normal magnitudes in mesh.
 1     uchar 	mat3b2       Unused.
 1     uchar 	mat3b3       Unused.
+60    float * 3 clips.normal Normals for clipping planes 2-6
+60    float * 3 clips.point  Point values for clipping planes 2-6
 
 Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
 as a UINT.  If bit 13 of model flags is off, mat1 and mat3 are assumed to be
