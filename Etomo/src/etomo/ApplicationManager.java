@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2004/05/03 18:04:41  sueh
+ * <p> bug# 418 adding printStackTrace for more information
+ * <p>
  * <p> Revision 3.45  2004/04/28 22:16:57  sueh
  * <p> bug# 320 user interaction goes in app manager
  * <p>
@@ -3431,8 +3434,28 @@ public class ApplicationManager {
   /**
    * Open the matching models in the 3dmod reconstruction instances  
    */
-  public void imodMatchingModel() {
+  public void imodMatchingModel(int fromTab) {
+    if (tomogramCombinationDialog == null) {
+      return;
+    }
+    boolean binBy2 = tomogramCombinationDialog.getBinBy2(fromTab);
+    int toTab;
+      if (fromTab == TomogramCombinationDialog.SETUP_TAB) {
+         toTab = TomogramCombinationDialog.INITIAL_TAB;
+      }
+      else {
+        toTab = TomogramCombinationDialog.SETUP_TAB;
+      }
+      tomogramCombinationDialog.setBinBy2(toTab, binBy2);
     try {
+      if (binBy2) {
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 2);
+      }
+      else {
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 1);
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 1);
+      }
       imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, metaData
         .getDatasetName()
           + AxisID.FIRST.getExtension() + ".matmod", true);
