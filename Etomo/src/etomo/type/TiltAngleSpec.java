@@ -1,6 +1,11 @@
 package etomo.type;
 
 import java.util.Properties;
+
+import etomo.comscript.BadComScriptException;
+import etomo.comscript.ComScriptCommand;
+import etomo.comscript.InvalidParameterException;
+import etomo.comscript.ParamUtilities;
 import etomo.storage.Storable;
 
 /*
@@ -16,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/08/03 18:49:01  sueh
+ * <p> bug# 519 removing rangeMax
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -40,19 +48,46 @@ import etomo.storage.Storable;
  * <p> </p>
  */
 public class TiltAngleSpec implements Storable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
-  TiltAngleType type = TiltAngleType.EXTRACT;
-  double rangeMin = -60;
-  double rangeStep = 1;
+  TiltAngleType type;
+  double rangeMin;
+  double rangeStep;
   double tiltAngles[];
-  String tiltAngleFilename = "";
+  String tiltAngleFilename;
+  private String rangeMinKey = "";
+  private String rangeStepKey = "";
+  private String tiltAngleFilenameKey = "";
 
   public TiltAngleSpec() {
+    reset();
+  }
+
+  public TiltAngleSpec(String rangeMinKey, String rangeStepKey,
+      String tiltAngleFilenameKey) {
+    reset();
+    this.rangeMinKey = rangeMinKey;
+    this.rangeStepKey = rangeStepKey;
+    this.tiltAngleFilenameKey = tiltAngleFilenameKey;
   }
 
   public TiltAngleSpec(TiltAngleSpec src) {
+    set(src);
+    rangeMinKey = src.rangeMinKey;
+    rangeStepKey = src.rangeStepKey;
+    tiltAngleFilenameKey = src.tiltAngleFilenameKey;
+  }
+  
+  public void reset() {
+    type = TiltAngleType.EXTRACT;
+    rangeMin = -60;
+    rangeStep = 1;
+    tiltAngles = null;
+    tiltAngleFilename = "";
+  }
+  
+  public void set(TiltAngleSpec src) {
+    reset();
     type = src.getType();
     rangeMin = src.getRangeMin();
     rangeStep = src.getRangeStep();
@@ -141,6 +176,7 @@ public class TiltAngleSpec implements Storable {
   public void store(Properties props) {
     store(props, "");
   }
+
   public void store(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -161,6 +197,7 @@ public class TiltAngleSpec implements Storable {
   public void load(Properties props) {
     load(props, "");
   }
+
   public void load(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -169,11 +206,78 @@ public class TiltAngleSpec implements Storable {
     else {
       group = prepend + ".TiltAngle.";
     }
-    type =
-      TiltAngleType.fromString(props.getProperty(group + "Type", "Extract"));
+    type = TiltAngleType.fromString(props
+        .getProperty(group + "Type", "Extract"));
     rangeMin = Double.parseDouble(props.getProperty(group + "RangeMin", "-90"));
     rangeStep = Double.parseDouble(props.getProperty(group + "RangeStep", "1"));
     tiltAngleFilename = props.getProperty(group + "TiltAngleFilename", "");
+  }
+
+  public void set(ComScriptCommand scriptCommand, String rangeMinShortKey,
+      String rangeStepShortKey, String tiltAngleFilenameShortKey)
+      throws InvalidParameterException {
+    EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    //Get rangeMin
+    number.set(scriptCommand.getValue(rangeMinKey));
+    if (number.isNull() && rangeMinShortKey != null
+        && !rangeMinShortKey.matches("\\s*")) {
+      number.set(scriptCommand.getValue(rangeMinShortKey));
+    }
+    if (!number.isNull()) {
+      type = TiltAngleType.RANGE;
+      rangeMin = number.getDouble();
+    }
+    //Get rangeStep
+    number.set(scriptCommand.getValue(rangeStepKey));
+    if (number.isNull() && rangeStepShortKey != null
+        && !rangeStepShortKey.matches("\\s*")) {
+      number.set(scriptCommand.getValue(rangeStepShortKey));
+    }
+    if (!number.isNull()) {
+      rangeStep = number.getDouble();
+    }
+    else if ((rangeStepKey == null || rangeStepKey.matches("\\s*"))
+        && (rangeMinShortKey == null || rangeMinShortKey.matches("\\s*"))) {
+      throw new IllegalStateException("Missing rangeStep key.");
+    }
+    //Get tiltAngleFilename
+    tiltAngleFilename = scriptCommand.getValue(tiltAngleFilenameKey);
+    if ((tiltAngleFilename == null || tiltAngleFilename.matches("\\s*"))
+        && tiltAngleFilenameShortKey != null
+        && !tiltAngleFilenameShortKey.matches("\\s*")) {
+      tiltAngleFilename = scriptCommand.getValue(tiltAngleFilenameShortKey);
+    }
+    if (tiltAngleFilename != null && !tiltAngleFilename.matches("\\s*")) {
+      type = TiltAngleType.FILE;
+    }
+    else {
+      tiltAngleFilename = "";
+      if ((tiltAngleFilenameKey == null || tiltAngleFilenameKey.matches("\\s*"))
+          && (tiltAngleFilenameShortKey == null || tiltAngleFilenameShortKey.matches("\\s*"))) {
+        if ((rangeMinKey == null || rangeMinKey.matches("\\s*"))
+            && (rangeMinShortKey == null || rangeMinShortKey.matches("\\s*"))) {
+          throw new IllegalStateException("Missing keys.");
+        }
+        throw new IllegalStateException("Missing tiltAngleFilename key.");
+      }
+    }
+  }
+
+  public void update(ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    if (type == TiltAngleType.RANGE) {
+      ParamUtilities.updateScriptParameter(scriptCommand, rangeMinKey,
+          rangeMin);
+      ParamUtilities.updateScriptParameter(scriptCommand, rangeStepKey,
+          rangeStep);
+    }
+    else if (type == TiltAngleType.FILE) {
+      ParamUtilities.updateScriptParameter(scriptCommand,
+          tiltAngleFilenameKey, tiltAngleFilename);
+    }
+    else {
+      throw new BadComScriptException("Type " + type + ", cannot be updated in ComScriptCommand");
+    }
   }
 
 }
