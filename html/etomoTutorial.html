@@ -140,8 +140,8 @@ ul
 -->
   </style>
 </head>
-<body bgcolor="white" lang="EN-US" style="">
-<h2 align="center">ETomo Tutorial for IMOD Version 3.3.4<br>
+<body style="" bgcolor="white" lang="EN-US">
+<h2 align="center">ETomo Tutorial for IMOD Version 3.5.2<br>
 </h2>
 <h3 align="center">Eileen O'Toole</h3>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
@@ -246,7 +246,7 @@ To start eTomo, type:<br>
 <p class="MsoNormal"><span style="color: black;"></span><o:p></o:p></p>
 <p class="MsoNormal"></p>
 <div style="text-align: center;"><img src="etomoImages/setupwindow1.png"
- title="" alt="" >&nbsp; <br>
+ title="" alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
 </p>
@@ -270,15 +270,16 @@ empty if you don't wish to use a backup directory. <br>
 <p class="MsoNormal"><o:p></o:p></p>
 <p class="MsoNormal"><br>
 Select whether the data set is <b>Single Axis</b> or <b>Dual Axis.</b>
-The <b>Frame Type</b> and&nbsp;<b> Tomogram Type</b> are currently
+The <b>Frame Type</b> is currently
 under
-development and will remain unavailable at this time. <br>
+development but will be available soon for processing montaged tilt
+series. <br>
 </p>
 <p class="MsoNormal"><br>
 The next fields specify Pixel size (nm), the size of gold fiducials
 (nm) and Image rotation (degrees). <b>&nbsp;&nbsp;&nbsp; Pixel size </b>(in
 nm) is dependent on the microscope, camera, and magnification. The<b>
-Image&nbsp; rotation</b> (tilt axis angle from vertical, in degrees)
+Image rotation</b> (tilt axis angle from vertical, in degrees)
 will
 also vary based on the microscope and magnification. Pressing the <b>Scan
 Header button </b>will retrieve the<b> Pixel size</b> and<b> Image
@@ -310,7 +311,7 @@ for viewing in 3dmod.<br>
 <p class="MsoNormal"><br>
 </p>
 <div align="center"><img src="etomoImages/setupwindow2.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
 Details specific for the tutorial sample data set are shown above. For
@@ -334,7 +335,7 @@ current process or the last process completed.<br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/mainwindow.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"></p>
 <p class="MsoNormal"><br clear="all">
@@ -380,7 +381,7 @@ proceed with &nbsp;creating a coarse-aligned stack.</p>
 </h1>
 <span style="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <div style="text-align: center;"><img src="etomoImages/coarseA1.png"
- title="" alt="" ><br>
+ title="" alt=""><br>
 <br>
 </div>
 <h1 align="center">&nbsp; <br>
@@ -389,10 +390,9 @@ proceed with &nbsp;creating a coarse-aligned stack.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/coarseA2.png"
- title="" alt="" >&nbsp;&nbsp;&nbsp;
+ title="" alt="">&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <img
- src="etomoImages/coarseA3.png" title="" alt=""
- ><br>
+ src="etomoImages/coarseA3.png" title="" alt=""><br>
 </div>
 <p class="MsoNormal"><br>
 </p>
@@ -413,14 +413,14 @@ BBa.preali. One can view the prealigned stack by pressing the <b>View
 Aligned Stack in 3dmod </b>button. Large image shifts can be edited
 manually using the the interactive program, Midas. This is not an issue
 with this data set; see the <a
- href="tomoguide.html/#COARSE ALIGNMENT">COARSE
+ href="tomoguide.html/#COARSE%20ALIGNMENT">COARSE
 ALIGNMENT</a> section of the Tomography Guide for details. The <span
  style="font-weight: bold;">Tilt axis rotation</span> entry is used if
 Midas is run, because Midas will rotate images so that the tilt axis is
 vertical.&nbsp; The <span style="font-weight: bold;">Fiducialless
 alignment</span> check box can be selected for making a tomogram
 without a fiducial alignment; see <a
- href="tomoguide.html#Fiducialless Quick">Making a Quick Tomogram
+ href="tomoguide.html#Fiducialless%20Quick">Making a Quick Tomogram
 with Correlation Alignment</a> in the Tomography Guide for
 details.&nbsp; Once you are
 satisfied with the prealigned stack, press the <b>Done</b> button to
@@ -431,8 +431,8 @@ proceed to the next step.</p>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b>VI. Creating a
 fiducial model based on the position of gold particles.<o:p></o:p></b></span></p>
 <h1>&nbsp;<o:p></o:p></h1>
-<h1 align="center"><img src="etomoImages/fiducialA1.png" title="" alt=""
- >&nbsp; <br>
+<h1 align="center"><img src="etomoImages/fiducialA1.png" title="" alt="">&nbsp;
+<br>
 </h1>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <p class="MsoNormal"><b>&nbsp;Press the </b><b>'Seed Fiducial Model'
@@ -449,7 +449,7 @@ often the 0&deg; tilt).</p>
 <p class="MsoNormal" align="center">&nbsp; <br>
 </p>
 <div align="center"><img src="etomoImages/seedmodel1.jpg" title=""
- alt="" ><br>
+ alt=""><br>
 </div>
 <p class="MsoNormal"></p>
 <div align="center">&nbsp;&nbsp; &nbsp; <br>
@@ -477,8 +477,7 @@ button.</b><br>
 <br>
 <b></b></p>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/fiducialA2.png" title="" alt=""
- > <o:p></o:p></p>
+ src="etomoImages/fiducialA2.png" title="" alt=""> <o:p></o:p></p>
 <p class="MsoNormal">This will run the Beadtrack program to find the
 gold on all other sections. The output file created by tracka.com is
 BBa.fid, which is the completed fiducial model. This computer-generated
@@ -488,19 +487,18 @@ process to edit this fiducial model.</p>
 <h1>&nbsp;Press the 'Fix Fiducial Model' process
 button.</h1>
 <p class="MsoNormal" align="center"><img
- src="etomoImages/fiducialA3.png" title="" alt=""
- >&nbsp; <o:p></o:p></p>
+ src="etomoImages/fiducialA3.png" title="" alt="">&nbsp; <o:p></o:p></p>
 <p class="MsoNormal"><br>
 This procedure will open the prealigned stack (BBa.preali) and the
 fiducial model file (BBa.fid) in 3dmod. </p>
 <p class="MsoNormal"><br>
 <br>
 <b></b></p>
-<div align="center"><img src="etomoImages/3dmodmain.png" title="" alt=""
- > &nbsp;&nbsp;&nbsp;
+<div align="center"><img src="etomoImages/3dmodmain.png" title="" alt="">
+&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp; &nbsp; <img src="etomoImages/beadfixer.png"
- title="" alt="" >&nbsp; <br>
+ title="" alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
 A dialog box called Bead Fixer will come up. Bead Fixer facilitates
@@ -534,7 +532,7 @@ alignment</b> button at the bottom of the<b> Fine Alignment</b> box. <br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/finealignment1.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
 This command file runs the program, Tiltalign, to solve for the
@@ -560,8 +558,7 @@ Alignment</span> run gave a Residual error mean of 0.351<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
- src="etomoImages/alignlogerrors.png" title="" alt=""
- ><br>
+ src="etomoImages/alignlogerrors.png" title="" alt=""><br>
 </p>
 <p class="MsoNormal"><br>
 </p>
@@ -581,10 +578,8 @@ Alignment</b> box:</p>
 <h1><br>
 </h1>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/3Dmodel1.png" title="" alt=""
- ><img
- src="etomoImages/3Dmodel2.png" title="" alt=""
- >&nbsp;<span style=""> </span><o:p></o:p></p>
+ src="etomoImages/3Dmodel1.png" title="" alt=""><img
+ src="etomoImages/3Dmodel2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p class="MsoNormal"><br>
 You should see a nice distribution of pink and green spheres across the
 field of view. Rotate the model to view edge-on by holding down the
@@ -605,8 +600,7 @@ the <b>Fine Alignment</b> box. This will open the prealigned stack in
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal" align="center"><img
- src="etomoImages/residualvector.jpg" title="" alt=""
- >&nbsp; <br>
+ src="etomoImages/residualvector.jpg" title="" alt="">&nbsp; <br>
 </p>
 <p class="MsoNormal"><br>
 The model will show the current model point as a red X, and the
@@ -635,12 +629,11 @@ box. Select the aligna.log file.<br>
 <br>
 </p>
 <p class="MsoNormal" align="center"><img
- src="etomoImages/beadfixer2.png" title="" alt=""
- >&nbsp;&nbsp; &nbsp;&nbsp;
+ src="etomoImages/beadfixer2.png" alt=""
+ style="width: 182px; height: 426px;">&nbsp;&nbsp; &nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;<img
- src="etomoImages/beadfixer3.png" title="" alt=""
- > &nbsp;<o:p></o:p></p>
+ src="etomoImages/beadfixer3.png" title="" alt=""> &nbsp;<o:p></o:p></p>
 <p class="MsoNormal"><br>
 Click<span style="">&nbsp; </span>&#8216;<b>Go to Next Big Residual</b>&#8217; in
 the <b>Bead Fixer</b> dialog box.</p>
@@ -658,11 +651,10 @@ then clicking the right mouse button.<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
- src="etomoImages/beadfixer4.png" title="" alt=""
- >&nbsp;&nbsp;&nbsp;
+ src="etomoImages/beadfixer4.png" title="" alt="">&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; <img src="etomoImages/beadfixer5.png" title=""
- alt="" ><br>
+ alt=""><br>
 </p>
 <p class="MsoNormal"><br>
 </p>
@@ -679,8 +671,7 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 <br>
 </p>
 <div style="text-align: center;"><img
- src="etomoImages/alignlogsurface.png" title="" alt=""
- ><br>
+ src="etomoImages/alignlogsurface.png" title="" alt=""><br>
 </div>
 <p class="MsoNormal"></p>
 <p class="MsoNormal"><br>
@@ -703,14 +694,14 @@ Alignment</span> box:&nbsp;</p>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal" align="center"><img
- src="etomoImages/finealignAglobal.png" title="" alt=""
- >&nbsp; <br>
+ src="etomoImages/finealignAglobal.png" title="" alt="">&nbsp; <br>
 </p>
 <p class="MsoNormal"><o:p></o:p></p>
 <p class="MsoNormal"><br>
 <span style=""></span></p>
 <p class="MsoNormal"><span style="">Select the </span><span style=""> '<span
- style="font-weight: bold;">Full solution</span>' &nbsp;</span><span style="">option
+ style="font-weight: bold;">Full solution</span>' &nbsp;</span><span
+ style="">option
 in the <span style="font-weight: bold;">Distortion Solution Type</span>
 area at the bottom of the panel. This will activate solving for two
 types of distortion: X-axis stretch and Skew. Keep the default group
@@ -718,7 +709,8 @@ size and hit the '<span style="font-weight: bold;">Compute Alignment</span>'
 button to run the alignment.<br>
 </span><b><o:p></o:p></b></p>
 <p class="MsoNormal"><br>
-Return to the 3dmod windows and select, &#8216;Reread log file&#8217; in the
+Return to the 3dmod windows and select <span style="font-weight: bold;">Reread
+Log File</span> in the
 Bead Fixer dialog window. Repeat fixing the new residuals that
 Tiltalign
 came up with after solving for distortion. This time press the <span
@@ -733,7 +725,7 @@ mean was 0.308.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/finalAerror.png"
- title="" alt="" ><br>
+ title="" alt=""><br>
 </div>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h2>VIII.<span style="">&nbsp; </span>Sampling the data set to create
@@ -745,7 +737,7 @@ the smallest volume. This is done by sampling three regions of the
 tomogram, ones computed from near the top, middle, and bottom of the
 tilt images. (When these samples are not adequate, you can do this
 instead with a whole, binned down tomogram; see <a
- href="tomoguide.html/#Whole Tomogram Positioning">Positioning with
+ href="tomoguide.html/#Whole%20Tomogram%20Positioning">Positioning with
 a Whole Tomogram</a> in the Tomography Guide for details.)&nbsp; There
 are two rotations which can be adjusted: the
 rotation about the tilt axis, to make the section level when viewed in
@@ -758,7 +750,7 @@ reconstruction that is much thicker than the original section.</p>
 <p class="MsoNormal"><b>&nbsp;<o:p></o:p></b><br>
 <span style="font-weight: bold;"> Press Create Sample Tomograms</span></p>
 <div align="center"><img src="etomoImages/TomopositionA2.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 <br>
 </div>
 <p class="MsoNormal">This command file first extracts and aligns a
@@ -770,8 +762,7 @@ These output files are named topa.rec, mida.rec, bota.rec.</p>
 <h1 style="">&nbsp;<o:p></o:p></h1>
 <h1 style="">Press Create Boundary Models</h1>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/TomopositionA3.png" title="" alt=""
- > <o:p></o:p></p>
+ src="etomoImages/TomopositionA3.png" title="" alt=""> <o:p></o:p></p>
 <p class="MsoNormal"><br>
 <span style="font-weight: bold;">This step involves creating a model to
 define the top and bottom surfaces of each reconstruction.</span> </p>
@@ -784,7 +775,7 @@ tomopitcha.mod.<br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/TomopositionA4.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
 The top bar of the Zap window has a feature &#8216;4<sup>th</sup> D&#8217; and a
@@ -815,8 +806,7 @@ file creates an output file &#8216;tomopitcha.log&#8217;. &nbsp;This log
 &nbsp;file will automatically open &nbsp;after the program is finished.
 <o:p></o:p></span></h1>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/TomopositionA5.png" title="" alt=""
- > <o:p></o:p></p>
+ src="etomoImages/TomopositionA5.png" title="" alt=""> <o:p></o:p></p>
 <h2>IX. The final runs to create the full-size tomogram</h2>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b>&nbsp;<o:p></o:p></b></span><br>
 &nbsp;An example of the tomopitcha.log from my example is shown
@@ -825,7 +815,7 @@ below: <br>
 </p>
 <h1><o:p></o:p></h1>
 <h1 align="center"><img src="etomoImages/TomopositionA6.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </h1>
 <h1><br>
 </h1>
@@ -842,13 +832,13 @@ the <span style="font-weight: bold;">Total Z shift</span> in the eTomo
 field (below). After adding these values, hit the <span
  style="font-weight: bold;">Create Final Alignment</span> button.
 &nbsp;
-After the &nbsp;final alignment transforms are created, press the <span
+After the final alignment transforms are created, press the <span
  style="font-weight: bold;">Done</span> button to advance to the next
 step.<br>
 <br>
 </p>
 <h1 align="center"><img src="etomoImages/TomopositionA7.png" title=""
- alt="" >&nbsp; <br>
+ alt="">&nbsp; <br>
 </h1>
 <h1><br>
 </h1>
@@ -869,8 +859,8 @@ the final, aligned stack. The output file is named BBa.ali <br>
 <h1>&nbsp;<o:p></o:p></h1>
 <h1><o:p></o:p></h1>
 <h1></h1>
-<div align="center"><img src="etomoImages/TomogenA1.png" title="" alt=""
- >&nbsp; <br>
+<div align="center"><img src="etomoImages/TomogenA1.png" title="" alt="">&nbsp;
+<br>
 </div>
 <h1><span style="font-weight: normal;"></span></h1>
 <h1><br>
@@ -883,7 +873,7 @@ here.&nbsp; The default filtering parameters in the <span
  style="font-weight: bold;">Tilt Parameters</span> section are
 appropriate for many cases, but can be changed, or the aligned stack
 can be filtered, to reduce noise in the reconstruction (see the <a
- href="tomoguide.html/#TOMOGRAM GENERATION">TOMOGRAM GENERATION</a>
+ href="tomoguide.html/#TOMOGRAM%20GENERATION">TOMOGRAM GENERATION</a>
 section of the Tomography Guide for details).&nbsp; <br>
 </span></h1>
 <h1><br>
@@ -893,14 +883,13 @@ tomopitcha.log file (see above). Edit</span> <span
  style="font-weight: normal;">the fields for <span
  style="font-weight: bold;">Tomogram thickness in Z</span> and <span
  style="font-weight: bold;">X axis tilt</span>. In my example, the
-tomopitcha.log file contained a recommended x-axis tilt of 2.29 and
+tomopitcha.log file contained a recommended X-axis tilt of 2.29 and
 the thickness is 74. I generally make the thickness ~20 pixels greater
 than the tomopitch result (i.e. 95).</span></h1>
 <br>
 <br>
 <h1 style="text-align: center;"><span style="font-weight: normal;"><img
- src="etomoImages/TomogenA2.png" title="" alt=""
- >&nbsp;<o:p></o:p></span></h1>
+ src="etomoImages/TomogenA2.png" title="" alt="">&nbsp;<o:p></o:p></span></h1>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1>Press 'Generate Tomogram'</h1>
 <p class="MsoNormal">When the tomogram is computed,&nbsp; examine it by
@@ -928,10 +917,10 @@ described above for Axis A.<br>
 <p class="MsoNormal"><b> <o:p></o:p></b></p>
 <p class="MsoNormal"><b><o:p></o:p></b></p>
 <p class="MsoNormal" style="text-align: center;"><img
- src="etomoImages/coarseB1.png" title="" alt=""
- >&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+ src="etomoImages/coarseB1.png" title="" alt="">&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;<img src="etomoImages/coarseB2.png" title=""
- alt="" > &nbsp;&nbsp;
+ alt=""> &nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; <br>
 </p>
 <p class="MsoNormal" align="center"><b> <o:p></o:p></b></p>
@@ -953,8 +942,7 @@ two series. </span>To accomplish this, use the program Transferfid.</span></p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1>&nbsp;Press 'Transfer Fiducials From Other Axis'</h1>
 <div align="center"><span style="color: black;"><img
- src="etomoImages/transferfid.png" title="" alt=""
- >&nbsp; </span><br>
+ src="etomoImages/transferfid.png" title="" alt="">&nbsp; </span><br>
 <span style="color: black;"></span></div>
 <p class="MsoNormal"><span style="color: black;">&nbsp;Pressing the <span
  style="font-weight: bold;">Transfer Fiducials From Other Axis</span>
@@ -969,8 +957,7 @@ and this information is stored in the transferfid.log file. The log
 file from my example is:&nbsp;<br>
 </span></p>
 <div align="center"><span style="color: black;"><img
- src="etomoImages/transferfid1.png" title="" alt=""
- >&nbsp; </span><br>
+ src="etomoImages/transferfid1.png" title="" alt="">&nbsp; </span><br>
 <span style="color: black;"></span></div>
 <h1>&nbsp;<o:p></o:p></h1>
 <h1><br>
@@ -998,8 +985,7 @@ named BBb.seed. Proceed to <span style="font-weight: bold;">Track
 Fiducial Seed Model</span> in the Axis B window. <br>
 </span></h1>
 <div align="center"><br>
-<img src="etomoImages/trackB.png" title="" alt=""
- >&nbsp; <br>
+<img src="etomoImages/trackB.png" title="" alt="">&nbsp; <br>
 </div>
 <br>
 <h1><span style="font-weight: normal;">This will automatically track
@@ -1033,7 +1019,7 @@ outlined above for the A Axis.</b></p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1><font size="+1">XI. Combining the two axes</font></h1>
 <h1 align="center">&nbsp;<img src="etomoImages/combine.png" title=""
- alt="" > <o:p></o:p></h1>
+ alt=""> <o:p></o:p></h1>
 <h1>Tomogram Combination Panel</h1>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <p class="MsoNormal"><o:p></o:p></p>
@@ -1059,7 +1045,7 @@ fiducials (1-24) correspond.&nbsp;</p>
 </p>
 <p class="MsoNormal">The next section contains information for <span
  style="font-weight: bold;">Patch Parameters for Refining the Alignment</span>
-using a 3D cross-correlation. Selecting <span
+using local 3D cross-correlations. Selecting <span
  style="font-weight: bold;">Medium</span>
 patches works well for most data sets.&nbsp;When specifying the limits
 of the volume from which the patches will be extracted, it is important
@@ -1082,7 +1068,7 @@ box "Use patch region model file" and press the <span
  style="font-weight: bold;">Create/Edit Patch Region Model</span>
 button to open up the axis that is being matched to. In model mode,
 trace closed contours around the areas that contain biological
-material. Do this every 5 sections or so in the tomogram. Save the
+material. Do this every 10 slices or so in the tomogram. Save the
 model, which is named patch_region.mod. Creating the patch region model
 is particularly useful when reconstructing data sets that have large
 amounts of resin or open areas in the images.&nbsp; &nbsp;This example
@@ -1090,7 +1076,7 @@ data set does not need a patch region model.&nbsp;</p>
 <p class="MsoNormal">&nbsp;<br>
 When the parameters for the <span style="font-weight: bold;">Setup
 panel</span> have been entered, press <span style="font-weight: bold;">Create
-&nbsp;Combine Scripts</span> to create a series of command files that
+Combine Scripts</span> to create a series of command files that
 will run various programs in the combine procedure.&nbsp; Press <span
  style="font-weight: bold;">Start Combine</span> to begin the process
 of dual-axis tomogram combination.&nbsp; eTomo will automatically
@@ -1107,16 +1093,19 @@ advance to the final step.<br>
 </p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1><font size="+1">XII. &nbsp;Post-Processing and Clean-up of
-intermediate files.</font><br>
-</h1>
-<h1 align="center">&nbsp; <br>
-</h1>
-<h1 style="text-align: center;"><img src="etomoImages/trim.png" title=""
- alt="" ><br>
-</h1>
-<p class="MsoNormal">&nbsp;Post-processing
+intermediate files.</font></h1>
+<br>
+Post-processing
 involves a volume trimming and byte scaling step, followed by deletion
-of intermediate files. The final reconstruction of the two axes
+of intermediate files.&nbsp; There is also an option to create a
+squeezed
+down volume,&nbsp; which is useful when working with very large data
+sets,
+particularly when reconstructing serial sections.&nbsp;&nbsp;
+<h1 style="text-align: center;"><img src="etomoImages/trim.png" title=""
+ alt=""></h1>
+<br>
+<>The final reconstruction of the two axes
 combined
 into one will always be called sum.rec. Open the sum.rec reconstruction
 by pressing <b>3dmod Full Volume</b>. <span style="color: black;">Step
@@ -1127,7 +1116,7 @@ Zap window, press the left mouse button over the upper left corner of
 the desired area, and drag the mouse to the lower right corner. When
 you press <span style="font-weight: bold;">Get XY Volume Range from
 3dmod,</span> eTomo will retrieve the X and Y values of the rubberband
-from 3dmod. In this example, the default range for X and Y
+from 3dmod. In this example, the default ranges for X and Y
 are used. The Z axis (in the flipped tomogram) range has been set from
 a Z min of 20 to a Z max of 68 to exclude non-cellular material.
 Finally a scaling range is set to find the range of slices that exclude
@@ -1136,7 +1125,7 @@ range between slices 34 and 64. &nbsp;Press the <b>Trim Volume</b>
 button
 to run Trimvol. Trimvol is a single tool for trimming a volume and
 converting it to bytes. Finally, view the final, trimmed volume
-&nbsp;(named BB.rec) by pressing <b>3dmod Trimmed Volume</b>.&nbsp; </span></p>
+(named BB.rec) by pressing <b>3dmod Trimmed Volume</b>.&nbsp; </span></>
 <h1><br>
 </h1>
 <h1>Cleanup of intermediate files:</h1>
@@ -1145,13 +1134,13 @@ converting it to bytes. Finally, view the final, trimmed volume
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 </div>
 <div style="text-align: center;"><img src="etomoImages/delete.png"
- title="" alt="" ><br>
+ title="" alt=""><br>
 </div>
 <br>
 Cleaning up of your files is very important! The tomogram generation
 process creates many large, intermediate files. The <span
  style="font-weight: bold;">Intermediate file cleanup</span> box lists
-what we consider intermediate, nonessential files&nbsp; that can be
+what we consider intermediate, nonessential files that can be
 deleted. Once you are satisfied that the final tomogram is truly final,
 you can select by highlighting the intermediate files and hitting the <span
  style="font-weight: bold;">Delete Selected</span> button. <br>
