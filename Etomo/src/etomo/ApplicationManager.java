@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2002/10/16 17:37:18  rickg
+ * <p> Construct a imodManager when a new data set is opened
+ * <p>
  * <p> Revision 1.14  2002/10/14 22:44:27  rickg
  * <p> Added combine to execute section of doneCombine
  * <p>
@@ -784,7 +787,7 @@ public class ApplicationManager {
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
-              if(isDualAxis()) {
+              if (isDualAxis()) {
                 imodManager.quitCoarseAligned(AxisID.FIRST);
                 imodManager.quitCoarseAligned(AxisID.SECOND);
               }
@@ -843,11 +846,11 @@ public class ApplicationManager {
    */
   private boolean updateAlignCom(AlignmentEstimationDialog alignmentEstimationDialog) {
     TiltalignParam tiltalignParam;
-    TiltParam tiltParam;
 
     AxisID currentAxis = AxisID.ONLY;
     try {
       if (isDualAxis()) {
+        //  First axis
         currentAxis = AxisID.FIRST;
         tiltalignParam = comScriptMgr.getTiltalignParam(currentAxis);
 
@@ -855,53 +858,29 @@ public class ApplicationManager {
           tiltalignParam,
           currentAxis);
         comScriptMgr.saveAlignCom(tiltalignParam, currentAxis);
+        //  Update the tilt.com script with the dependent parameters
+        updateTiltDependsOnAlign(tiltalignParam, currentAxis);
 
-        comScriptMgr.loadTiltCom(currentAxis);
-        tiltParam = comScriptMgr.getTiltParam(currentAxis);
-        if (tiltalignParam.getLocalAlignments()) {
-          tiltParam.setLocalAlignFile(getFilesetName() + "alocal.xf");
-        }
-        else {
-          tiltParam.setLocalAlignFile("");
-        }
-        comScriptMgr.saveTiltCom(tiltParam, currentAxis);
-
+        // Second axis
         currentAxis = AxisID.SECOND;
         tiltalignParam = comScriptMgr.getTiltalignParam(currentAxis);
         alignmentEstimationDialog.getTiltalignParams(
           tiltalignParam,
           currentAxis);
         comScriptMgr.saveAlignCom(tiltalignParam, currentAxis);
-
-        comScriptMgr.loadTiltCom(currentAxis);
-        tiltParam = comScriptMgr.getTiltParam(currentAxis);
-        if (tiltalignParam.getLocalAlignments()) {
-          tiltParam.setLocalAlignFile(getFilesetName() + "blocal.xf");
-        }
-        else {
-          tiltParam.setLocalAlignFile("");
-        }
-        comScriptMgr.saveTiltCom(tiltParam, currentAxis);
-
+        //  Update the tilt.com script with the dependent parameters
+        updateTiltDependsOnAlign(tiltalignParam, currentAxis);
       }
       else {
+        //  Single axis
         currentAxis = AxisID.ONLY;
         tiltalignParam = comScriptMgr.getTiltalignParam(currentAxis);
         alignmentEstimationDialog.getTiltalignParams(
           tiltalignParam,
           currentAxis);
         comScriptMgr.saveAlignCom(tiltalignParam, currentAxis);
-
-        comScriptMgr.loadTiltCom(currentAxis);
-        tiltParam = comScriptMgr.getTiltParam(currentAxis);
-        if (tiltalignParam.getLocalAlignments()) {
-          tiltParam.setLocalAlignFile(getFilesetName() + "local.xf");
-        }
-        else {
-          tiltParam.setLocalAlignFile("");
-        }
-        comScriptMgr.saveTiltCom(tiltParam, currentAxis);
-
+        //  Update the tilt.com script with the dependent parameters
+        updateTiltDependsOnAlign(tiltalignParam, currentAxis);
       }
 
       mainFrame.setAlignmentEstState(ProcessState.INPROGRESS);
@@ -924,6 +903,31 @@ public class ApplicationManager {
     }
 
     return true;
+  }
+
+  /**
+   * Update the tilt parameters dependent on the align script
+   * - local alignments file
+   * - the exclude list
+   */
+  private void updateTiltDependsOnAlign(
+    ConstTiltalignParam tiltalignParam,
+    AxisID currentAxis) {
+
+    comScriptMgr.loadTiltCom(currentAxis);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
+
+    String alignFileExtension = currentAxis.getExtension() + "local.xf";
+
+    if (tiltalignParam.getLocalAlignments()) {
+      tiltParam.setLocalAlignFile(getFilesetName() + alignFileExtension);
+    }
+    else {
+      tiltParam.setLocalAlignFile("");
+    }
+
+    tiltParam.setExcludeList(tiltalignParam.getIncludeExcludeList());
+    comScriptMgr.saveTiltCom(tiltParam, currentAxis);
   }
 
   /**
@@ -1020,13 +1024,13 @@ public class ApplicationManager {
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
-              if(isDualAxis()) {
+              if (isDualAxis()) {
                 imodManager.quitSample(AxisID.FIRST);
                 imodManager.quitSample(AxisID.SECOND);
               }
               else {
-               imodManager.quitSample(AxisID.FIRST);
-              } 
+                imodManager.quitSample(AxisID.FIRST);
+              }
             }
           }
         }
