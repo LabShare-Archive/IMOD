@@ -50,6 +50,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.17  2003/10/15 17:27:05  sueh
+ * <p> Bug266 added a file filter to getTestParamFilename()
+ * <p>
  * <p> Revision 2.16  2003/09/30 03:13:38  rickg
  * <p> bug248 File / open now calls the correct function in the
  * <p> AppManager (as does the MRU list opens)
@@ -172,7 +175,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuTomoGuide =
     new JMenuItem("Tomography Guide", KeyEvent.VK_T);
-  private JMenuItem menuImodGuide = new JMenuItem("Imod Guide", KeyEvent.VK_I);
+  private JMenuItem menuImodGuide = new JMenuItem("Imod Users Guide", KeyEvent.VK_I);
+  private JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide", KeyEvent.VK_3);
+	private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide", KeyEvent.VK_E);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
 
   private JLabel statusBar = new JLabel("No data set loaded");
@@ -482,42 +487,44 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   private void menuHelpAction(ActionEvent event) {
-    if (event.getActionCommand().equals(menuTomoGuide.getActionCommand())) {
-      String imodURL = "";
-      try {
-        imodURL =
-          applicationManager.getIMODDirectory().toURL().toString() + "/html/";
-      }
-      catch (MalformedURLException except) {
-        except.printStackTrace();
-        System.err.println("Malformed URL:");
-        System.err.println(applicationManager.getIMODDirectory().toString());
-        return;
-      }
 
+		// Get the URL to the IMOD html directory
+		String imodURL = "";
+		try {
+			imodURL =
+				applicationManager.getIMODDirectory().toURL().toString() + "/html/";
+		}
+		catch (MalformedURLException except) {
+			except.printStackTrace();
+			System.err.println("Malformed URL:");
+			System.err.println(applicationManager.getIMODDirectory().toString());
+			return;
+		}
+  	
+    if (event.getActionCommand().equals(menuTomoGuide.getActionCommand())) {
       HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "tomoguide.html");
       manpage.setVisible(true);
     }
 
     if (event.getActionCommand().equals(menuImodGuide.getActionCommand())) {
-      String imodURL = "";
-      try {
-        imodURL =
-          applicationManager.getIMODDirectory().toURL().toString() + "/html/";
-      }
-      catch (MalformedURLException except) {
-        except.printStackTrace();
-        System.err.println("Malformed URL:");
-        System.err.println(applicationManager.getIMODDirectory().toString());
-        return;
-      }
-
       HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "guide.html");
       manpage.setVisible(true);
-
     }
+
+		if (event.getActionCommand().equals(menu3dmodGuide.getActionCommand())) {
+			HTMLPageWindow manpage = new HTMLPageWindow();
+			manpage.openURL(imodURL + "3dmodguide.html");
+			manpage.setVisible(true);
+		}
+
+		if (event.getActionCommand().equals(menuEtomoGuide.getActionCommand())) {
+			HTMLPageWindow manpage = new HTMLPageWindow();
+			manpage.openURL(imodURL + "UsingEtomo.html");
+			manpage.setVisible(true);
+		}
+
 
     if (event.getActionCommand().equals(menuHelpAbout.getActionCommand())) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
@@ -825,6 +832,8 @@ public class MainFrame extends JFrame implements ContextMenu {
     HelpActionListener helpActionListener = new HelpActionListener(this);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
+		menu3dmodGuide.addActionListener(helpActionListener);
+		menuEtomoGuide.addActionListener(helpActionListener);
     menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
@@ -854,6 +863,8 @@ public class MainFrame extends JFrame implements ContextMenu {
     // Help menu
     menuHelp.add(menuTomoGuide);
     menuHelp.add(menuImodGuide);
+		menuHelp.add(menu3dmodGuide);
+		menuHelp.add(menuEtomoGuide);
     menuHelp.add(menuHelpAbout);
 
     //  Construct menu bar
