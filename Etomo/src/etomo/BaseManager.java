@@ -42,6 +42,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/02/09 18:39:41  sueh
+* <p> bug# 595 There is no way to stop the user from running combine when
+* <p> another combine is still running from a previous Etomo session in the same
+* <p> dataset.  So warn the user that they won't receive a warning if they do
+* <p> this.
+* <p>
 * <p> Revision 1.7  2005/01/21 22:07:29  sueh
 * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
 * <p> class.
@@ -308,58 +314,67 @@ public abstract class BaseManager {
   }
  
   /**
-   * Exit the program
+   * Exit the program.  To guarantee that etomo can always exit, catch all
+   * unrecognized Exceptions and Errors and return true.
    */
   public boolean exitProgram() {
-    //  Check to see if any processes are still running
-    ArrayList messageArray = new ArrayList();
-    //handle background processes
-    if (!threadNameA.equals("none") && backgroundProcessA) {
-      messageArray.add("The " + backgroundProcessNameA
-        + " process will continue to run after Etomo ends.");
-      String osName = System.getProperty("os.name").toLowerCase();
-      if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
-        messageArray.add("Etomo will not be able to warn you if you interfere with this process by running another at the same time.");
-      }
-      messageArray.add("Check " + backgroundProcessNameA
-        + ".log for status.");
-      messageArray.add(" ");
-    }
-    //handle regular processes
-    if ((!threadNameA.equals("none") && !backgroundProcessA)
-      || !threadNameB.equals("none")) {
-      messageArray.add("There are still processes running.");
-      messageArray.add("Exiting Etomo now may terminate those processes.");
-    }
-    if (messageArray.size() > 0) {
-      messageArray.add("Do you still wish to exit the program?");
-      if (!mainFrame.openYesNoDialog(
-        (String[]) messageArray.toArray(new String[messageArray.size()]))) {
-        return false;
-      }
-    }
-    saveTestParamOnExit();
-    //  Should we close the 3dmod windows
     try {
-      if (imodManager.isOpen()) {
-        String[] message = new String[3];
-        message[0] = "There are still 3dmod programs running.";
-        message[1] = "Do you wish to end these programs?";
-        if (mainFrame.openYesNoDialog(message)) {
-          imodManager.quit();
+      //  Check to see if any processes are still running
+      ArrayList messageArray = new ArrayList();
+      //handle background processes
+      if (!threadNameA.equals("none") && backgroundProcessA) {
+        messageArray.add("The " + backgroundProcessNameA
+            + " process will continue to run after Etomo ends.");
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
+          messageArray
+              .add("Etomo will not be able to warn you if you interfere with this process by running another at the same time.");
+        }
+        messageArray
+            .add("Check " + backgroundProcessNameA + ".log for status.");
+        messageArray.add(" ");
+      }
+      //handle regular processes
+      if ((!threadNameA.equals("none") && !backgroundProcessA)
+          || !threadNameB.equals("none")) {
+        messageArray.add("There are still processes running.");
+        messageArray.add("Exiting Etomo now may terminate those processes.");
+      }
+      if (messageArray.size() > 0) {
+        messageArray.add("Do you still wish to exit the program?");
+        if (!mainFrame.openYesNoDialog((String[]) messageArray
+            .toArray(new String[messageArray.size()]))) {
+          return false;
         }
       }
+      saveTestParamOnExit();
+      //  Should we close the 3dmod windows
+      try {
+        if (imodManager.isOpen()) {
+          String[] message = new String[3];
+          message[0] = "There are still 3dmod programs running.";
+          message[1] = "Do you wish to end these programs?";
+          if (mainFrame.openYesNoDialog(message)) {
+            imodManager.quit();
+          }
+        }
+      }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        getMainPanel().openMessageDialog(except.getMessage(),
+            "AxisType problem");
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        getMainPanel().openMessageDialog(except.getMessage(),
+            "Problem closing 3dmod");
+      }
+      return true;
     }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      getMainPanel().openMessageDialog(except.getMessage(), "AxisType problem");
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      getMainPanel().openMessageDialog(except.getMessage(),
-          "Problem closing 3dmod");
-    }
-    return true;
   }
   
   protected void saveTestParamOnExit() {
