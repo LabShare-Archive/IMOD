@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/04: IMOD_3-2-6
+2/27/04: Fixed problem in midas with transforms getting screwed up after 
+moving the center point, created by changes on 12/17/03.
+
 1/27/04: Made Midas redisplay properly when the box size changes.
 
 1/26/04: Made distributions have only the startup files needed for the machine.
