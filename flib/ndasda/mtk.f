@@ -1,152 +1,24 @@
 c	  MTK analyzes the distribution of distances of closest approach
-c	  between microtubules in 3 dimensions (i.e. MicroTubule Kissing).
-c	  The program was adapted from NDA, and many of the entries and
-c	  commands are identical.  Here, only differences from MTK will be
-c	  described; consult the file NDA.DOC for full details on common
-c	  features.  As with NDA, the "type" of a MT is its IMOD model object
-c	  number, or for data from a WIMP model file, 256 minus the object
-c	  color. 
+c	  between objects in 3 dimensions.
 c	  
-c	  Entries required to get going:
+c	  See the man page for details
 c
-c	  The first 3 entries are the same as to NDA.
-c	  
-c	  0 for analysis of points of closest appraoch, or 1 for analysis of
-c	  the frequency of MT ends as a function of distance from a bundle.
-c	  The latter analysis is not documented here.
-c
-c	  The name of the model file.  After this, there are 1 or 4 entries
-c	  to describe the scaling of the coordinates in 3-D:
-c
-c	  Name of file with tilt information, or Return if none
-c	  If the sections were significantly tilted during microscopy, the
-c	  program can adjust for these tilts given the proper information.
-c	  Prepare a file in which the first line shows the Z value and the
-c	  tilt of the first tilted section (or of the first section, if that
-c	  one was tilted), and each successive line shows the Z value and tilt
-c	  for each section on which tilt was changed.  Z values should occur in
-c	  ascending order.
-c	  
-c	  IF the model file has no information about scaling in its header,
-c	  the next three entries are required:
-c	  
-c	  .  Magnification of negatives (without any commas)
-c	  
-c	  .  Scale, in microns per pixel, at which negatives were digitized
-c	  
-c	  .  Section thickness in nanometers
-c	  
-c	  Next enter the lower and upper section numbers within which to
-c	  perform the analysis, or enter 0,0 to have no limits in Z and include
-c	  everything, or 0,-1 to go back and read from a new model.
-c	  
-c	  The bin width in microns, and the number of bins to include in the
-c	  density graphs
-c	  
-c	  The power to apply in scaling the counts of numbers of MTs into
-c	  relative density values, and the number of points to fit over to
-c	  determine the 3-D trajectory of an MT.  Counts are divided by
-c	  distance to the given power.  In choosing a power, the goal is to
-c	  have a scaled graph that is relatively flat over medium distances; a
-c	  power near 0.4 generally accomplishes this.  If the number of points
-c	  to fit is 2, then the actual coordinates of digitized points, and the
-c	  line segments connecting them, will be used to describe the position
-c	  of the MT.  With a number great than 2, each segment of the MT will
-c	  be represented by a line least-squares fit to that number of points.
-c	  
-c	  Number of density graphs to compute.  After this, enter two lines
-c	  for each graph:
-c	  
-c	  .  A list of types of "reference" MTs to measure distances FROM
-c	  .  A list of types of "neighboring" MTs to measure the distances TO,
-c	  .     from those reference MTs.
-c	  
-c	  At this point, the program will compute the distributions then go to
-c	  the central option point.  Here are the options that differ from NDA:
-c	  
-c	  13: Loop back to specify a new range of sections to analyze, or a
-c	  new model file entirely.  The new results will replace any previously
-c	  obtained results.
-c	  
-c	  14: Rescale an existing graph by applying a different power to
-c	  distance in scaling the counts of numbers of MTs at each differt
-c	  distance.
-c
-c	  15: Average a new range of sections, or a completely different
-c	  model, with the results already obtained.
-c	  
-c	  17: Set minimum and maximum distances for determined the mean angle
-c	  of closest approach and obtaining markers of points of closest
-c	  approach when outputting a model file.  After setting these limits,
-c	  redo the analysis with option 16.  For any closest approach between
-c	  these two limits, the program will compute the angle between the two
-c	  MTs.  It will also save the information about the closest approach
-c	  in case you write out a new model file.
-c	  
-c	  20: Do the current region(s) after applying random shifts in X and Y
-c	  to the positions of certain MTs.  There are several entries to make:
-c
-c	  .  Minimum and maximum distance to shift.  The program will attempt
-c	  .  to shift MTs by a distance between these limits for a certain
-c	  .  number of trials, then attempt to shift it by up to twice the
-c	  .  maximum distance for that number of trials again, then give up if
-c	  .  none of those attempts succeed.  Each MT is shifted as a single
-c	  .  rigid object in X and Y only.
-c	  
-c	  .  List of types of MTs to shift, or Return for all MTs.
-c	  
-c	  .  List of types of MTs to check distances from, or Return for all
-c	  .  MTs.  When the program attempts to shift an MT, it checks the
-c	  .  distance of closest approach of this MT to other MTs of the types
-c	  .  specified in this entry.  If some of these types are being
-c	  .  shifted, then the program checks the distance only to the Mts of
-c	  .  these types that have already been shifted.
-c	  
-c	  .  IF you have previously saved probability values with option 18,
-c	  .  enter 1 to use these values, or 0 not to.
-c
-c	  .  IF you are not using stored probability values, make the
-c	  .  following entries:
-c
-c	  .     The number of bins of probability values to use for rejecting
-c	  .     sampled points as being too close to other points, and the bin
-c	  .     size (a radial distance).  Enter 0,0 for no rejection of close
-c	  .     points.
-c
-c	  .     The probability values (between 0 and 1)
-c
-c	  22, 27, and 23 work just as for NDA: you first make the entries
-c	  required by options 19, 26, and 20, respectively, then the series
-c	  of entries required to specify how to compute integrals.
-c	  
-c	  21 can be used to save the current model, which can be either the
-c	  original model or a model after shuffling or converting types or 
-c	  shifting objects randomly.  If you have run an analysis on this model
-c	  with limits set for storing information on closest appraoches, then 
-c	  after entering the output file name, make the following entries:
-c
-c	  .  Color to make connecting lines between two MTs at their points of
-c	  .  closest approach
-c	  
-c	  .  WIMP symbol types to mark the points at the beginning, middle, and
-c	  .  end of the connecting lines (use 0 for no marks).
-c	  
-c	  .  MT types whose colors you want to change if they have made a
-c	  .  closest appraoch within the specified limits, or Return for no
-c	  .  such changes
-c	  
-c	  .  IF you want to change colors, then enter the new colors for each
-c	  .  type
-c
-c	  Modules: MTK, MTKMODEL, CLOSEDIST, MTKSUBS, MTKRANDOM, NDMTKSUBS,
-c	  NDMTKRAND, BUNDLEDIST, CONVEXBOUND
-c	  
 c	  David Mastronarde  November 1991
+c         General object version March 2000
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 	parameter (limgraphs=50,limbins=301,limwobj=30000,limxyz=100000,
      &	    limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000,limflag=512)
 	parameter (limprobs=50,limprobsets=50)
+	parameter (nOptNeedModel=11)
 	real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
 	real*4 xmt(limxyz),ymt(limxyz),zmt(limxyz)
 	integer*4 iobjflag(limflag)
@@ -167,8 +39,8 @@ c
 	real*4 xymask(4),xymaskregion(4,limregion),zofsregion(limregion)
 	real*4 zgapst(10*limregion),zgapnd(10*limregion)
 c
-	character*80 modelfile,modelregion(limregion)
-	character*80 tiltfile,tiltregion(limregion)
+	character*120 modelfile,modelregion(limregion)
+	character*120 tiltfile,tiltregion(limregion)
 	logical forceload,grapheach,shuffled,onlyshifted
 	logical sampled,converted,checkgrf,checkextra
 c
@@ -187,6 +59,11 @@ c
 	real*4 endsep(limwobj),xyzend(3,limwobj)
 	real*4 probnear(limprobs,limprobsets),delnear(limprobsets)
 	integer*4 nrestrict(limprobsets),iuseprob(limprobsets)
+	integer*4 ioptNeedModel(nOptNeedModel)
+     &	    /13,15,16,19,26,20,21,22,27,23,40/
+	logical OptionNeedsModel
+	character*40 objname
+	integer*4 getimodobjname
 c	  
 	ifanyplot=0
 	nextragrf=0
@@ -213,13 +90,14 @@ c
 	read(5,*)iffil
 	call grfopn(iffil)
 c	  
-	write(*,'(1x,a,$)')'0 for closest approach analysis or 1 '//
-     &	    'for ends versus bundle analysis: '
+	write(*,'(1x,a,/,a,$)')'0 for 3D density/closest approach '//
+     &	    'analysis','  or 1 for ends versus bundle analysis: '
 	read(5,*)ifbundend
 c
 	modelfile=' '
 	call read_model(modelfile,tiltfile,xyscal,zscal,xofs,yofs,zofs,
      &	    ifflip,iobjflag, limflag,zgapst,zgapnd,ngaps)
+	  if (modelfile .eq. ' ') go to 38
 	indgap=1
 c	  
 c	  initialize for first region
@@ -245,6 +123,7 @@ c
 	  call read_model(modelfile,tiltfile,xyscal,zscal,xofs,yofs,
      &	      zofs,ifflip, iobjflag, limflag,zgapst(indgap),
      &	      zgapnd(indgap),ngaps)
+	  if (modelfile .eq. ' ') go to 40
 	  if(nregion.eq.1)go to 12
 	  call checkflags(ngraph,itypref, nreftyp, itypneigh,
      &	      nneightyp, iobjflag,limflag,irefflag,neighflag)
@@ -306,18 +185,24 @@ c
 	  endif
 	enddo
 c	  
-	write(*,*)'Type   kind    number'
+	write(*,*)'Object   kind    number     name'
 	do ity=-limflag,limflag
 	  i=itypcrosind(ity)
+	  objname=' '
 	  if(i.gt.0)then
+	    ierr = getimodobjname(abs(ity), objname)
 	    if(iobjflag(abs(ity)).eq.1)then
-	      write(*,'(i5,a,i8)')ity,'  lines',ninclass(i,nregion)
+	      write(*,'(i5,2x,a,i8,4x,a)')ity,'  lines',ninclass(i,nregion),
+     &		  objname
 	    else
-	      write(*,'(i5,a,i8)')ity,' points',ninclass(i,nregion)
+	      write(*,'(i5,2x,a,i8,4x,a,)')ity,' points',ninclass(i,nregion),
+     &		  objname
 	    endif
 	  endif
-	  if(ity.gt.0.and.iobjflag(abs(ity)).eq.4)
-     &	      write(*,'(i5,a)')ity,' meshes'
+	  if(ity.gt.0.and.iobjflag(abs(ity)).eq.4) then
+	    ierr = getimodobjname(abs(ity), objname)
+	    write(*,'(i5,2x,a,12x,a)')ity,' meshes',objname
+	  endif
 	enddo
 	write(*,*)
 c	  
@@ -401,14 +286,17 @@ c
      &	    ' list of graphs from file/Read&Add from file',/,
      &	    ' 40: Unshift an object',/,
      &	    ' 41: Toggle between including and excluding items that ',
-     &	    'failed to shift')
+     &	    'failed to shift',/,
+     &	    ' 42: Export graph values or points for drawing to file')
 c
 40	write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
 	read(5,*,err=40, end=225)iopt
 	if(iopt.eq.-1)go to 38
+	if (OptionNeedsModel(modelfile, ioptNeedModel,
+     &	    nOptNeedModel, iopt)) go to 40
 	go to(201,202,203,204,205,206,207,208,209,210, 210,212,213,214,
      &	    215,216,217,218,219,220, 221,222,222,224,225,226,222,228,
-     &	    228,228,228,228,228,213,235,235,228,228,228,240,241),iopt
+     &	    228,228,228,228,228,213,235,235,228,228,228,240,241,228),iopt
 	go to 40
 c	  
 c	  type bins
@@ -663,24 +551,25 @@ c
      &	    ,(nintmp(i),i=iregst,nregion)
 	if(iregst.ne.nregion)write(iout,112)'         Total:',nintot
 c	  
-	write(iout,114)' Reference types:',
+	write(iout,114)' Reference objects:',
      &	    (itypref(ity,jgrbas),ity=1,nreftyp(jgrbas))
 114	format(a,(12i5))
-	write(iout,114)' Neighboring types:',
+	write(iout,114)' Neighboring objects:',
      &	    (itypneigh(ity,jgrbas),ity=1,nneightyp(jgrbas))
 	write(iout,'(a,f12.5)')' Delta r =',delrgrf(jgrf)
 	write(iout,'(5g15.8)')(graphs(i,jgrf),i=1,nbingrf(jgrf))
 	go to 40
 c	  
 c	  Specify new boundary object: but check first if averaging
+c	  8/5/03: remove confirmation to make it easier to do command files
 c
-213	if(nregion.gt.1)then
-	  write(*,'(1x,a,$)')'This will destroy the stored average.'//
-     &	      '  Enter 1 to do so: '
-	  read(5,*)ifreally
-	  if(ifreally.ne.1)go to 40
-	endif
-	if(iopt.eq.13)go to 10
+c$$$213	if(nregion.gt.1)then
+c$$$	  write(*,'(1x,a,$)')'This will destroy the stored average.'//
+c$$$     &	      '  Enter 1 to do so: '
+c$$$	  read(5,*)ifreally
+c$$$	  if(ifreally.ne.1)go to 40
+c$$$	endif
+213	if(iopt.eq.13)go to 10
 	if(nobjwin.gt.0.and.winmin.lt.winmax)then
 	  do iow=1,nobjwin
 	    iobjwin(iow)=iobjmod(iobjwin(iow))
@@ -852,11 +741,11 @@ c
 	  if(ifnewconv.ne.0)nchange=0
 	endif
 	if(nchange.eq.0)then
-	  write(*,'(1x,a,$)')'Number of types to convert: '
+	  write(*,'(1x,a,$)')'Number of objects to convert: '
 	  read(5,*)nchange
-	  print *,'For each conversion, enter the type to change',
-     &	      ' from, the type to change to,',
-     &	      ' and the fraction of points of that type to convert.'
+	  print *,'For each conversion, enter the object to change',
+     &	      ' from, the object to change to,',
+     &	      ' and the fraction of contours of that object to convert.'
 	  do i=1,nchange
 	    write(*,'(1x,a,i3,a$)')'Conversion',i,': '
 	    read(5,*)ityfrom(i),ityto(i),chngfrac(i)
@@ -892,7 +781,7 @@ c
      &	    //'to X/Y shift (0 for no Z shift): '
 	read(5,*)ranzrel
 c
-	print *,'Enter list of types for objects to shift',
+	print *,'Enter list of objects to shift',
      &	    ' (Return for all)'
 	call rdlist(5,itypshift,nshiftyp)
 	if(nshiftyp.eq.0)then
@@ -917,7 +806,7 @@ c
 	  endif
 	enddo
 c	  
-	print *,'Enter list of types for other objects to check'//
+	print *,'Enter list of other objects to check'//
      &	    ' distances from' ,' (Return for all other)'
 	call rdlist(5,itypchck,nchcktyp)
 	if(nchcktyp.eq.0)then
@@ -991,7 +880,7 @@ c
 	if(nprobsets.gt.1.and.nchcktyp.gt.0)then
 	  write(*,'(1x,a,i3,/,a,$)')'Enter the # of the curve to '//
      &	      'use for each of the',nchcktyp,
-     &	      'types being checked against: '
+     &	      'objects being checked against: '
 	  read(5,*)(iuseprob(i),i=1,nchcktyp)
 	  do i=1,nchcktyp
 	    if(iuseprob(i).lt.1.or.iuseprob(i).gt.nprobsets)then
@@ -1074,16 +963,20 @@ c
 116	  format(' Graph #',i3,', real integral =',f10.5)
 	enddo
 c	  
+	write(*,'(1x,a,$)')'Enter 1 to accumulate mean and standard '
+     &	    //'deviation graphs or 0 not to: '
+	read(5,*)ifdomeansd
+
 	maxtmp=jgrfadd+3*ngraph
-	if(maxtmp.le.limgraphs)then
-	  write(*,'(1x,a,i3,a,i3,/,a,$)')'Mean and standard deviation'
-     &	      //' graphs would be stored in graphs',
-     &	      jgrfadd+ngraph+1,' to',maxtmp,
-     &	      ' Enter 1 to accumulate these or 0 not to: '
-	  read(5,*)ifdomeansd
-	else
-	  ifdomeansd=0
-	  print *,'Too many graphs to accumulate mean and SD graphs'
+	if (ifdomeansd.ne.0) then
+	  if(maxtmp.le.limgraphs)then
+	    write(*,'(1x,a,i3,a,i3)')'Mean and standard deviation'
+     &		//' graphs will be stored in graphs',
+     &		jgrfadd+ngraph+1,' to',maxtmp
+	  else
+	    ifdomeansd=0
+	    print *,'Too many graphs to accumulate mean and SD graphs'
+	  endif
 	endif
 	if(ifdomeansd.ne.0)maxgraph=maxtmp
 	ntotcontrol=0
