@@ -33,7 +33,7 @@ be set.
 The model must be in the IMOD model format.  Images can be in the MRC
 image format; in the TIFF format, if the appropriate TIFF library is
 available; in any of the formats supported by the Qt image-reading
-function, which include JPEG, PNG, PPM, and BMP; or in a "raw" format where
+function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
 data are packed sequentially as in MRC files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
@@ -405,7 +405,7 @@ tooltips can be disabled in the Preferences dialog.
 Snapshots can be taken of image and model view windows with hot keys.
 A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats such as
 JPEG, PNG, and SGI RGB can be
-taken with "S".  The format of these non-TIFF snapshots can be selected in the
+taken with S.  The format of these non-TIFF snapshots can be selected in the
 Preferences dialog.
 
 The Escape key can be used to close all windows except the Information
