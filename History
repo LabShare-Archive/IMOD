@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/6/04: Fixed imodinfo -a -f output_file for getting ascii file.
+
 12/4/04: IMOD_3-4-14
 12/5/04: Fixed problem with converting backslashes in Makejoincom.
 
