@@ -7,6 +7,14 @@
 #
 # configure supplies FBPLIB and USFFTLIBS, which specify libfbp.a and the
 # USFFT libraries needed, or nolibfbp.a and nothing if USFFT not available
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 include ../configure
 
@@ -26,7 +34,7 @@ handnox.o: handnox.s
 handxtilt.o: handxtilt.s
 handlocal.o: handlocal.s
 
-tilt.o: tilt.inc
+tilt.o: tilt.inc fbpswitch.inc
 
 install: tilt
 	strip tilt
