@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2003/11/18 19:29:32  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
 Revision 3.6  2003/10/24 02:28:42  mast
 strip directory from program name and/or use routine to make backup file
 
@@ -202,6 +205,10 @@ main( int argc, char *argv[] )
 
   /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
+  if (imodBackupFile(argv[argc - 1])) {
+    fprintf(stderr, "%s: Error, couldn't create backup", progname);
+    exit(-1);
+  }
   fout = fopen(argv[argc - 1], "wb");
   if (!fout){
     fprintf(stderr, "%s: error opening %s for output\n", progname,

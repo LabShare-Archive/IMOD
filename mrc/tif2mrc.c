@@ -202,6 +202,10 @@ int main( int argc, char *argv[])
         read_tiffentries(tiffp, &tiff);
       }
 
+      if (imodBackupFile(argv[argc - 1])) {
+        fprintf(stderr, "%s: Error, couldn't create backup", progname);
+        exit(-1);
+      }
       mrcfp = fopen(argv[argc - 1], "wb");
       if (!mrcfp){
         perror("tif2mrc");
@@ -347,6 +351,10 @@ int main( int argc, char *argv[])
 
 
   /* Write out mrcheader */
+  if (imodBackupFile(argv[argc - 1])) {
+    fprintf(stderr, "%s: Error, couldn't create backup", progname);
+    exit(-1);
+  }
   mrcfp = fopen(argv[argc - 1], "wb");
   if (!mrcfp){
     perror("tif2mrc");
