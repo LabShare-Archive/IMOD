@@ -468,7 +468,7 @@ public class FinalCombinePanel {
     if (event
       .getActionCommand()
       .equals(buttonPatchRegionModel.getActionCommand())) {
-      //TODO call imod on the patch region model
+      applicationManager.imodPatchRegionModel();
     }
 
     if (event
@@ -486,7 +486,7 @@ public class FinalCombinePanel {
     if (event
       .getActionCommand()
       .equals(buttonPatchVectorModel.getActionCommand())) {
-      //TODO open imod on the patch vector model
+      applicationManager.imodPatchVectorModel();
     }
     if (event
       .getActionCommand()
