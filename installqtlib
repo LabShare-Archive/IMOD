@@ -43,6 +43,11 @@ if ($#qtlibdir == 0) exit 0
 if ($qtlibdir == "") exit 0
 
 #
+# Make directory, copy the real file, make the links
+#
+if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
+
+#
 # Get the library extension, but don't worry if it's not defined
 #
 set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
@@ -130,11 +135,6 @@ while ($whichlib < 2)
         exit 1
     endif
 
-    #
-    # Make directory, copy the real file, make the links
-    #
-    if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
-
     cd $instdir/$qtlibdir
     \cp $realname .
     foreach i ($QTDIR/lib/${qtlib}*${libext}*)
@@ -155,6 +155,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.22  2004/11/22 05:32:19  mast
+#  Check for existence of qassistant lib before going through loop again
+#
 #  Revision 3.21  2004/11/22 00:19:51  mast
 #  Added Qt assistant and library if needed
 #
