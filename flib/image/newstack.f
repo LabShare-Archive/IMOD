@@ -56,7 +56,8 @@
 *      Hint: offsets of 50,50 will take the center of the output image
 *      from the upper right quadrant of the input image.
 *
-*   0 for no transforms, or 1 to transform images
+*   0 for no transforms, or 1 to transform images using cubic interpolation, or
+*      2 to transform using bilinear interpolation
 *
 *   IF transforming is selected, next specify the file for transforms, and
 *      on a separate line, a list of lines to use in the file (first is 0!!!).
@@ -140,6 +141,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2002/08/18 23:12:47  mast
+c	  Changed to call iclavgsd in library
+c	
 c	  Revision 3.6  2002/08/17 05:38:04  mast
 c	  Standardized error outputs
 c	
@@ -159,18 +163,20 @@ c
 c	  Revision 3.1  2001/12/29 00:57:49  mast
 c	  Added an entry to -1 floating option to disable all rescaling
 c	
+	integer idim,lmfil,lmsec,maxchunks,maxextra
 	parameter (idim=19000000,lmfil=1000,lmsec=50000,maxchunks=20)
 	parameter (maxextra=1000000)
+	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 c
 c	  9/25/01: make the buffer be in common to avoid stack limit size on
 c	  the SGI
 	common /buffer/ARRAY(idim)
 C   
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3), TITLE(20),
-     &      NXYZ2(3),MXYZ2(3),CELL2(6),cell(6)
+	integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
+	real*4 CELL2(6),cell(6), TITLE(20)
 C   
-	CHARACTER*80 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
+	CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
 C   
 	EQUIVALENCE (NX,NXYZ)
 C   
@@ -187,12 +193,30 @@ C
      &      16383.,32767./
 	logical rescale
 	character dat*9,tim*8,tempext*9
-	character*80 tempname,temp_filename
+	character*120 tempname,temp_filename
 	logical nbytes_and_flags
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
-       character*80 titlech
+	character*80 titlech
+	integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3
+	integer*4 newmode,ifoffset,ifxform,nxforms,nlineuse,ifmean,iffloat
+	integer*4 nsum,ilis,ifil,nsecred,loadyst,loadynd,isec,isecout
+	real*4 xofsall,yofsall,fraczero,dminspec,dmaxspec,conlo,conhi
+	real*4 zmin,zmax,diffmin,diffmax,grandsum,sdsec
+	real*4 grandmean,shiftmin,shiftmax,shiftmean,dminin,dmaxin,dmeanin
+	integer*4 ifileout,ntrunclo,ntrunchi,ifheaderout,iftempopen,nbsymin
+	integer*4 nbytexin,iflagxin,mode,nbytexout,nbsymout,indxout
+	real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
+	real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
+	integer*4 linesleft,nchunk,nextline,ichunk,ifoutchunk,iscan,iytest
+	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase
+	real*4 dmeansec,dsum,dsumsq,tmpmin,tmpmax,tsum,val,tsum2,dminnew
+	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
+	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
+	integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear
+	real*4 const,denoutmin,den
+
 C   
 C	  Read in list of input files
 C   
@@ -301,7 +325,8 @@ c
 C   
 C	  Get list of transforms
 C   
-	write(*,'(1x,a,$)')'1 to transform images, 0 not to: '
+	write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
+     &	    //' linear interpolation, 0 not to: '
 	read(5,*)ifxform
 	if(ifxform.ne.0)then
 	  write(*,'(1x,a,$)')'Name of transform file: '
@@ -800,7 +825,7 @@ c
      &		    lineoutst(ichunk)
 		call cubinterp(array,array(ibchunk),nx,nyload,
      &		    nx3, nych,
-     &		    f(1,1,lnu),xci ,yci, dx,dy,1.,dmeansec)
+     &		    f(1,1,lnu),xci ,yci, dx,dy,1.,dmeansec, ifxform - 1)
 	      else
 c		  
 c		  otherwise repack array into output space nx3 by ny3, with
@@ -1107,7 +1132,10 @@ c	  dimensioned MX by MY, and the starting and ending index coordinates
 c	  (numbered from 0) are given by NX1, NX2, NY1, NY2
 c
         subroutine irepak2(brray,array,mx,my,nx1,nx2,ny1,ny2,dmean)
-        dimension brray(*),array(mx,my)
+	implicit none
+	integer*4 mx,my,nx1,nx2,ny1,ny2
+        real*4 brray(*),array(mx,my),dmean
+	integer*4 ind, iy,ix
         ind=1
         do iy=ny1+1,ny2+1
 	  if(iy.ge.1.and.iy.le.my)then
@@ -1139,7 +1167,11 @@ c	  starting and ending lines (numbered from 0) that are left in ARRAY.
 c
 	subroutine scansection(array,idim,nx,ny,nsecred,iffloat,dmin2,
      &	    dmax2,dmean2,sdsec,loadyst,loadynd)
-	real*4 array(idim)
+	implicit none
+	integer*4 idim,nx,ny,nsecred,iffloat,loadyst,loadynd
+	real*4 array(idim),dmin2,dmax2,dmean2,sdsec
+	integer*4 maxlines,nloads,iline,iload,nlines
+	real*4 dsum,dsumsq,tsum,tmin2,tmax2,tmean2,tsumsq,avgsec
 c	  
 c	  load in chunks if necessary, based on the maximum number
 c	  of lines that will fit in the array
@@ -1195,7 +1227,10 @@ c	  coordinate of the input image; AMAT is the 2x2 transformation matrix
 c	  and XT, YT are the translations.
 c
 	SUBROUTINE backxform(NXA,NYA,NXB,NYB,AMAT,XC,YC,XT,YT,ix,iy,xp,yp)
-	DIMENSION AMAT(2,2)
+	implicit none
+	integer*4 NXA,NYA,NXB,NYB,ix,iy
+	real*4 AMAT(2,2),XC,YC,XT,YT,xp,yp
+	real*4 xcen,ycen,xco,yco,denom,a11,a12,a21,a22,dyo,dxo
 C
 C   Calc inverse transformation
 C
