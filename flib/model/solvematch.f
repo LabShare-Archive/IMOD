@@ -72,12 +72,12 @@ c	  Name of file with coordinate of fiducials from the second series
 c	  
 c	  A list of the points in series 1 for which a corresponding point in
 c	  .  series 2 is known with confidence.  Ranges may be entered
-c	  .  (e.g. 1-5,7,6,-12).  Enter / if all points correspond between the
-c	  .  two series.
+c	  .  (e.g. 1-5,7,6,12).  Enter / if all points correspond between the
+c	  .  two series.  
 c	  
 c	  A list of the corresponding points in the second series.  The same
 c	  .  number of values must be entered in this list as in the preceding
-c	  .  list.  Again,  enter / if all points correspond between the
+c	  .  list.  Again, enter / if all points correspond between the
 c	  .  two series.
 c
 c	  The values of X axis tilt that were used in generating the first and
@@ -134,6 +134,15 @@ c	  transformation of the corresponding point in the second tomogram.  It
 c	  reports the mean and S.D. of these deviations, the number of the
 c	  point with the highest deviation, and the magnitude of its deviation.
 c
+c	  When you enter point numbers, use the numbers listed on the left in
+c	  the fiducial coordinate file.  These numbers may not correspond to
+c	  the contour numbers in the original fiducial model if some contours
+c	  were not included in the solution.  These numbers do not need to be
+c	  sequential; i.e., you can delete points from the coordinate file.
+c	  The program will refer to points by these numbers.  When you have
+c	  both fiducial coordinates and points from matching models, it will
+c	  refer to the latter points by the negative of their point number.
+c
 c	  $Author$
 c
 c	  $Date$
@@ -141,6 +150,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/21 19:26:30  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.1  2002/07/21 19:24:27  mast
 c	  Resurrected the ability to use matching models, added scaling of
 c	  coordinates based on information from model header, and added
@@ -160,8 +172,9 @@ c
         real*4 pnta(3,idim),pntb(3,idim),a(3,4),dxyz(3),devxyz(3)
 	real*4 devxyzmax(3),orig(3,2),ptrot(3),cenloc(3)
 	integer*4 idrop(idim),iorig(idim),mapped(idim)
-	integer*4 listcorra(idim),listcorrb(idim)
+	integer*4 listcorra(idim),listcorrb(idim),icont2ptb(idim)
         integer*4 mapab(idim),nxyz(3,2),jxyz(3)/1,3,2/
+	integer*4 iconta(idim),icontb(idim),icont2pta(idim)
         character*80 filename
         logical readw_or_imod
 	integer*4 nstartmin,itry,npnta,npntb,nlist,nlista,nlistb,ndat
@@ -171,7 +184,7 @@ c
 	real*4 addratio,cosa,cosb,tmpy,addcrit,distmin,devavg,devsd
 	real*4 devmax,dx,dist,crit,elimmin,critabs,stoplim,xtilta,xtiltb
 	real*4 sina,sinb,dy,dz
-	integer*4 ierr,ifflip,ncolfit
+	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb
 	integer*4 getimodhead,getimodscales
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 sind,cosd
@@ -208,9 +221,11 @@ c	  inverted relative to the solution produced by TILTALIGN
 c
 	ncolfit = 4
 	itry=0
-10	read(1,*,end=15)idum,(pnta(j,npnta+1),j=1,3)
+10	read(1,*,end=15)iconta(npnta+1),(pnta(j,npnta+1),j=1,3)
 	npnta=npnta+1
 	pnta(3,npnta)=-pnta(3,npnta)
+	if (npnta.ge.idim)call errorexit(
+     &	    'TOO MANY POINTS IN A FOR ARRAYS')
 	go to 10
 15	print *,npnta,' points from A'
 	close(1)
@@ -219,27 +234,52 @@ c
 	read(*,'(a)')filename
 	call dopen(1,filename,'old','f')
 
-20	read(1,*,end=25)idum,(pntb(j,npntb+1),j=1,3)
+20	read(1,*,end=25)icontb(npntb+1),(pntb(j,npntb+1),j=1,3)
 	npntb=npntb+1
 	pntb(3,npntb)=-pntb(3,npntb)
+	if (npntb.ge.idim)call errorexit(
+     &	    'TOO MANY POINTS IN B FOR ARRAYS')
 	go to 20
 25	print *,npntb,' points from B'
 	close(1)
 c	  
+c	  fill listcorr with actual contour numbers, and find maximum contours
+c
+	maxconta = 0
+	maxcontb = 0
 	do i=1,npnta
-	  listcorra(i)=i
+	  listcorra(i)=iconta(i)
 	  mapab(i)=0
+	  maxconta=max(maxconta,iconta(i))
 	enddo
 	do i=1,npntb
-	  listcorrb(i)=i
+	  listcorrb(i)=icontb(i)
 	  mapped(i)=0
+	  maxcontb=max(maxcontb,icontb(i))
 	enddo
+c	  
+c	  build index from contour numbers to points in array
+c
+	if (maxconta.gt.idim.or.maxcontb.gt.idim)call errorexit(
+     &	    'CONTOUR NUMBERS TOO HIGH FOR ARRAYS')
+	do i=1,max(maxconta,maxcontb)
+	  icont2pta(i)=0
+	  icont2ptb(i)=0
+	enddo
+	do i=1,npnta
+	  icont2pta(iconta(i))=i
+	enddo
+	do i=1,npntb
+	  icont2ptb(icontb(i))=i
+	enddo
+c
 	nlist=min(npnta,npntb)
 	write (*,113)nlist
 113	format('Enter a list of points in the first series for which',
      &	    ' you are sure of the',/,' corresponding point in the',
-     &	    ' second series (Ranges are OK;',/' enter / if points 1-',
-     &	    i3, ' are in one-to-one correspondence between the series')
+     &	    ' second series (Ranges are OK;',/' enter / if the first',
+     &	    i3, ' points are in one-to-one correspondence between',
+     &	    ' the series')
 	nlista=nlist
 	call rdlist(5,listcorra,nlista)
 	if(nlista.lt.nstartmin)then
@@ -251,9 +291,10 @@ c
 	if(nlista.gt.nlist)call errorexit(
      &	    'YOU HAVE ENTERED MORE NUMBERS THAN THE',
      &	      ' MINIMUM NUMBER OF POINTS IN A AND B')
-	write (*,114)nlista
+	write (*,114)
 114	format('Enter a list of the corresponding points in the',
-     &	    ' second series ',/,' (enter / for 1-', i3, ')')
+     &	    ' second series ',/,' - enter / for', $)
+	call wrlist(listcorrb, nlist)
 	nlistb=nlista
 	call rdlist(5,listcorrb,nlistb)
 	if(nlistb.ne.nlista)then
@@ -270,25 +311,33 @@ c
 	  if(listcorra(i).le.0.or.listcorrb(i).le.0)call errorexit(
      &	      'YOU ENTERED A POINT NUMBER LESS '//
      &		'THAN OR EQUAL TO ZERO')
-	  if(listcorra(i).gt.npnta)call errorexit(
+	  if(listcorra(i) .gt. maxconta)call errorexit(
      &	      ' YOU ENTERED A POINT NUMBER HIGHER'//
      &		' THAN THE NUMBER OF POINTS IN A')
-	  if(listcorrb(i).gt.npntb)call errorexit(
+	  ipta = icont2pta(listcorra(i))
+	  if(ipta .eq. 0)call errorexit(
+     &	      ' YOU ENTERED A POINT NUMBER THAT IS NOT INCLUDED'//
+     &		' IN THE POINTS FROM A')
+	  if(listcorrb(i).gt. maxcontb)call errorexit(
      &	      ' YOU ENTERED A POINT NUMBER HIGHER'//
      &		' THAN THE NUMBER OF POINTS IN B')
-	  if(mapab(listcorra(i)).ne.0)then
+	  iptb = icont2ptb(listcorrb(i))
+	  if(iptb .eq. 0)call errorexit(
+     &	      ' YOU ENTERED A POINT NUMBER THAT IS NOT INCLUDED'//
+     &		' IN THE POINTS FROM B')
+	  if(mapab(ipta).ne.0)then
 	    print *
 	    print *,'ERROR: SOLVEMATCH - POINT #',listcorra(i),
      &		' IN A REFERRED TO TWICE'
 	    call exit(1)
-	  elseif(mapped(listcorrb(i)).ne.0)then
+	  elseif(mapped(iptb).ne.0)then
 	    print *
 	    print *,'ERROR: SOLVEMATCH - POINT #',listcorrb(i),
      &		' IN B REFERRED TO TWICE'
 	    call exit(1)
 	  endif
-	  mapab(listcorra(i))=listcorrb(i)
-	  mapped(listcorrb(i))=listcorra(i)
+	  mapab(ipta)=iptb
+	  mapped(iptb)=ipta
 	enddo
 c	  
 	write(*,'(1x,a,$)')'Tilts around the X-axis applied in '//
@@ -328,7 +377,7 @@ c
               xr(j+5,ndat)=pnta(jxyz(j),ia)
             enddo
             xr(4,ndat)=1.
-	    iorig(ndat)=ia
+	    iorig(ndat)=iconta(ia)
 	  endif
         enddo
 c
@@ -375,7 +424,8 @@ c	    print *,(nxyz(i,model),i=1,3)
 		xr(3+iofs,ndat+nmodpt)=(p_coord(3,ipt)-zofs)/zimscale
      &		    - 0.5*nxyz(3,model)
 		xr(4,ndat+nmodpt)=0.
-		iorig(ndat+nmodpt)=npnta+nmodpt
+		iorig(ndat+nmodpt)=-nmodpt
+		if (npnta .eq. 0)iorig(ndat+nmodpt)=nmodpt
 	      enddo
 	    enddo
 	    if(model.eq.1)ndata=nmodpt
@@ -391,7 +441,7 @@ c	    print *,(nxyz(i,model),i=1,3)
 	    do j=1,8
 	      xr(j,ndat+mod)=0.
 	    enddo
-	    iorig(ndat+mod)=npnta+mod
+	    iorig(ndat+mod)=-mod
 	  enddo
 	  if(abs(nsurf).eq.1)then
 	    xr(2,ndat+1)=-100.
@@ -463,13 +513,34 @@ c	  print *,iptbmin,iptamin,distmin,devavg,devmax
               xr(j+5,ndat)=pnta(jxyz(j),iptamin)
             enddo
             xr(4,ndat)=1.
-	    iorig(ndat)=iptamin
+	    iorig(ndat)=iconta(iptamin)
 	  endif
 	enddo
 	if(ifadded.ne.0)then
-	  print *,'The final list of correspondences used for fits is:'
-	  call wrlist(mapab,npnta)
+c	    
+c	    rebuild lists of actual contour numbers
+c
+	  print *,'In the final list of correspondences used for',
+     &	      ' fits, points from A are:'
+	  nlista=0
+	  do i=1,npnta
+	    if (mapab(i) .ne. 0)then
+	      nlista=nlista+1
+	      listcorra(nlista) = iconta(i)
+	    endif
+	  enddo
+	  call wrlist(listcorra,nlista)
+	  print *,'Points from B are:'
+	  nlistb=0
+	  do i=1,npntb
+	    if (mapped(i) .ne. 0)then
+	      nlistb=nlistb+1
+	      listcorrb(nlistb) = icontb(i)
+	    endif
+	  enddo
+	  call wrlist(listcorrb,nlistb)
 	endif
+
 c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=6,8),j=1,ndat)
 105	format(7f9.2)
 	maxdrop=nint(0.1*ndat)
@@ -485,13 +556,13 @@ c
 	  write(*,115)(xr(5,i),i=ndat+1-ndrop,ndat)
 104	  format(/,i3,' points dropped by outlier elimination; ',
      &	      'residual mean =',f7.2,', SD =',f7.2,/,
-     &	      ' point-pairs:',(11i6))
-115	  format(' deviations :',(11f6.1))
+     &	      ' point # in A:',(11i6))
+115	  format(' deviations  :',(11f6.1))
 	endif
 c
         write(*,101)devavg,devmax,iorig(ipntmax),(devxyzmax(i),i=1,3)
 101     format(//,' Mean residual',f8.3,',  maximum',f8.3,
-     &      ' at point-pair',i4,/,'  Deviations:',3f8.3)
+     &      ' at point #',i4,' (in A)'/,'  Deviations:',3f8.3)
 c
 	write(*,103)(a(i,4),i=1,3)
 103	format(/,' X, Y, Z offsets for fiducial dummy variable:',3f10.3)
