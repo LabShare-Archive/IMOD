@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/04/08 17:33:59  rickg
+ * <p> Use Utilities.milliesToMinAndSecs to get time string
+ * <p>
  * <p> Revision 3.4  2004/03/22 23:44:09  sueh
  * <p> bug# 83 allowed findNSections() to be overridden, allowed for a 
  * <p> non-standard log file name
@@ -89,6 +92,8 @@ public abstract class LogFileProcessMonitor implements Runnable {
   }
 
   public void run() {
+    applicationManager.setProgressBar(" ", 1, axisID);
+    applicationManager.setProgressBarValue(0, "Starting...", axisID);
     //  Instantiate the logFile object
     String logFileName;
     if (standardLogFileName) {
