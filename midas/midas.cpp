@@ -460,6 +460,10 @@ void MidasWindow::createParameterDisplay(QVBox *col)
   int i;
   QLabel *label;
   
+  VW->mouseLabel = new QLabel(" ", col);
+  VW->mouseLabel->setAlignment(Qt::AlignCenter);
+  VW->mouseLabel->setPaletteForegroundColor(QColor("red"));
+
   QSignalMapper *paramMapper = new QSignalMapper(col);
   QSignalMapper *incMapper = new QSignalMapper(col);
   VW->wParameter[3] = makeArrowRow
@@ -547,6 +551,7 @@ void MidasWindow::createParameterDisplay(QVBox *col)
     QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
 		     SLOT(slotLeave_out()));
   }
+
 }
 
 void MidasWindow::createSectionControls(QVBox *parent)
@@ -744,6 +749,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.5  2003/02/28 21:36:08  mast
+    connect to focusLost signal of ToolEdit
+
     Revision 3.4  2003/02/28 18:10:58  mast
     Fix include fiddling
 
