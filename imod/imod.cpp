@@ -757,11 +757,13 @@ int imodLoopStarted()
 /* Close everything as gracefully as possible */
 void imod_exit(int retcode)
 {
-  if (ImodPrefs)                     // Save settings first to get zap sizes
-    ImodPrefs->saveSettings();
+  if (ImodPrefs)                     // Tell prefs to get zap sizes
+    ImodPrefs->recordZapGeometry();
   imodv_close();                     // Imodv and associated dialogs
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
+  if (ImodPrefs)                     // Now save settings after windows get to 
+    ImodPrefs->saveSettings();       // specify settings
   // It did NOT work to use qApp->closeAllWindows after this
   if (!loopStarted)
     exit(retcode);
@@ -989,6 +991,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.36  2004/06/05 00:10:24  mast
+Prevented accessing vi.image with no image loaded - crashed on FC1
+
 Revision 4.35  2004/05/31 23:27:19  mast
 Added functions for printing to standard error, with flush on windows
 
