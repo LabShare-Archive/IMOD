@@ -104,7 +104,7 @@ ColorSelector::~ColorSelector()
 {
 }
 
-void ColorSelector::buttonPressed(int which)
+void ColorSelector::buttonClicked(int which)
 {
   if (which == 0)
     donePressed();
@@ -219,6 +219,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.7  2004/01/22 19:14:30  mast
+swicthed from actionPressed to actionClicked
+
 Revision 1.6  2003/04/14 05:05:43  mast
 add initial redraw
 
