@@ -16,6 +16,10 @@ import java.util.ArrayList;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/03 20:21:10  sueh
+* <p> bug# 556 Support older versions of volcombine.com.  Check for an
+* <p> incorrect set name and set "valid = false" instead of throw an exception.
+* <p>
 * <p> Revision 1.1  2004/11/30 00:34:02  sueh
 * <p> bug# 556 Object to parse the first set commmand in volcombine.com.
 * <p> </p>
@@ -70,7 +74,7 @@ public class SetParam extends ConstSetParam implements CommandParam {
     cmdLineArgs.add(name);
     cmdLineArgs.add(delimiter);
     if (numeric) {
-      cmdLineArgs.add(numericValue.toString(true));
+      cmdLineArgs.add(numericValue.toString());
     }
     else {
       cmdLineArgs.add(value);
