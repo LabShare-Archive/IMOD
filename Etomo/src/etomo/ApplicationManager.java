@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.30  2003/05/08 20:14:30  rickg
+ * <p> Don't set main window location to (0,0) confuses SGI
+ * <p>
  * <p> Revision 2.29  2003/05/08 19:58:53  rickg
  * <p> Work around for bug in File.getParent
  * <p>
@@ -301,7 +304,7 @@ public class ApplicationManager {
   public static final String rcsid =
     "$Id$";
 
-  private boolean debug = true;
+  private boolean debug = false;
   private boolean demo = false;
 
   private boolean isDataParamDirty = false;
@@ -2839,6 +2842,10 @@ public class ApplicationManager {
         testParamFilename = args[i];
       }
 
+      if (args[i].equals("--debug")) {
+        debug = true;
+      }
+      
       if (args[i].equals("--demo")) {
         demo = true;
       }
@@ -3012,7 +3019,7 @@ public class ApplicationManager {
     //  since the primary method was deprecated
     SystemProgram echoHome = new SystemProgram("env");
     try {
-      echoHome.enableDebug(debug);
+      echoHome.setDebug(debug);
       echoHome.run();
     }
     catch (Exception excep) {
