@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/26 22:45:17  rickg
+ * <p> Copy a seed in from data source directory at beginning
+ * <p>
  * <p> Revision 3.1  2004/03/29 21:01:52  sueh
  * <p> bug# 409 added commented out mtffilter code
  * <p>
@@ -33,34 +36,35 @@
  * <p> *** empty log message ***
  * <p> </p>
  */
+
 package etomo;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.process.SystemProcessException;
-import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.ui.MainFrame;
+import etomo.util.Utilities;
 
 public class DataFlowTests {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   static ApplicationManager applicationManager;
   static MainFrame mainFrame;
   static String datasetName;
+
   public static void main(String[] args) {
 
-		if(args.length < 1) {
-			System.err.println("usage: dataFlowTests.jar datasetName");
-			System.exit(1);
-		}
+    if (args.length < 1) {
+      System.err.println("usage: dataFlowTests.jar datasetName");
+      System.exit(1);
+    }
     datasetName = args[0];
-    
-    System.out.println(
-      "Current working directory: " + System.getProperty("user.dir"));
-      
-      
+
+    System.out.println("Current working directory: "
+        + System.getProperty("user.dir"));
+
     System.out.println("Dataset name: " + datasetName);
     try {
       copyFromDataSource(datasetName + "a.st");
@@ -73,7 +77,6 @@ public class DataFlowTests {
       copycoms("b");
     }
     catch (SystemProcessException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
       System.exit(1);
     }
@@ -81,8 +84,8 @@ public class DataFlowTests {
     //  Simple test: create a new ApplicationManager and cause it to quit
     String[] argsIn = new String[2];
     argsIn[0] = "--debug";
-    argsIn[1] =
-      System.getProperty("user.dir") + File.separator + datasetName + ".edf";
+    argsIn[1] = System.getProperty("user.dir") + File.separator + datasetName
+        + ".edf";
     applicationManager = new ApplicationManager(argsIn);
     mainFrame = applicationManager.getMainFrame();
 
@@ -108,7 +111,7 @@ public class DataFlowTests {
   }
 
   private static void copycoms(String axisExtension)
-    throws SystemProcessException {
+      throws SystemProcessException {
     copyFromDataSource("align" + axisExtension + ".com");
     copyFromDataSource("eraser" + axisExtension + ".com");
     copyFromDataSource("findsec" + axisExtension + ".com");
@@ -127,30 +130,27 @@ public class DataFlowTests {
         Thread.sleep(1000);
       }
       catch (InterruptedException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
   }
 
   private static void copyFromDataSource(String filename)
-    throws SystemProcessException {
+      throws SystemProcessException {
     System.out.println("Copying from DataSource directory: " + filename);
-    String commandLine =
-      "cp "
-        + System.getProperty("user.dir")
-        + File.separator
-        + "DataSource"
-        + File.separator
-        + filename
-        + " "
-        + System.getProperty("user.dir");
-    SystemProgram cp = new SystemProgram(commandLine);
-    cp.run();
-    if (cp.getExitValue() != 0) {
-      throw new SystemProcessException(
-        "Unable to copy " + filename + " from DataSource directory");
+    File source = new File(System.getProperty("user.dir") + File.separator
+        + "DataSource", filename);
+    File dest = new File(System.getProperty("user.dir"), filename);
+    try {
+      Utilities.copyFile(source, dest);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      System.err.println("Unable to copy " + source.getAbsolutePath() + " to "
+          + dest.getAbsolutePath());
+      System.exit(-1);
+    }
+
   }
 
   private static void preProcessing(AxisID axisID) {
@@ -195,13 +195,11 @@ public class DataFlowTests {
       copyFromDataSource(datasetName + axisID.getExtension() + ".fid");
     }
     catch (SystemProcessException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
       return;
     }
     applicationManager.openFineAlignmentDialog(axisID);
     mainFrame.pack();
-    //  FIXME: obviously one of these names should be changed
     applicationManager.fineAlignment(axisID);
     waitForThread(axisID);
     applicationManager.doneAlignmentEstimationDialog(axisID);
@@ -216,14 +214,12 @@ public class DataFlowTests {
       copyFromDataSource("tomopitch" + axisID.getExtension() + ".mod");
     }
     catch (SystemProcessException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
       return;
     }
 
     applicationManager.tomopitch(axisID);
     waitForThread(axisID);
-    // TODO modify thickness angle offset and z shift
     applicationManager.finalAlign(axisID);
     waitForThread(axisID);
     applicationManager.doneTomogramPositioningDialog(axisID);
