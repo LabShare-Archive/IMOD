@@ -29,6 +29,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/03/30 23:46:01  sueh
+ * <p> bug# 622 Adding actions for the axis buttons.
+ * <p>
  * <p> Revision 1.7  2005/03/30 21:43:30  sueh
  * <p> bug# 622 Temporarily hiding working with newstuff flag.
  * <p>
@@ -94,8 +97,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.POST_PROCESSING);
   private ProcessControlPanel procCtlCleanUp = new ProcessControlPanel(
       DialogType.CLEAN_UP);
-  private JButton btnBothAxis = new JButton("Both");
-  private JButton btnOtherAxis = null;
+  private JButton axisButton1 = new JButton();
+  private JButton axisButton2 = new JButton();
+  JPanel axisButtonPanel = new JPanel();
+  private String bothAxisTooltip = null;
+  private String axisATooltip = null;
+  private String axisBTooltip = null;
   
   private ApplicationManager applicationManager;
 
@@ -249,6 +256,39 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlCleanUp.setState(state);
   }
 
+  void showBothAxis() {
+    if (axisID == AxisID.FIRST) {
+      axisButton1.setText(axisAString);
+      axisButton1.setToolTipText(axisATooltip);
+      axisButton2.setText(axisBString);
+      axisButton2.setToolTipText(axisBTooltip);
+    }
+    else if (axisID == AxisID.SECOND) {
+      axisButtonPanel.setVisible(false);
+    }
+  }
+  
+  void showAxisA() {
+    if (axisID != AxisID.FIRST) {
+      throw new IllegalStateException("Function should only be called for A axis panel.");
+    }
+    axisButton1.setText(axisBString);
+    axisButton1.setToolTipText(axisBTooltip);
+    axisButton2.setText(bothAxisString);
+    axisButton2.setToolTipText(bothAxisTooltip);
+  }
+  
+  void showAxisB() {
+    if (axisID != AxisID.SECOND) {
+      throw new IllegalStateException("Function should only be called for B axis panel.");
+    }
+    axisButton1.setText(axisAString);
+    axisButton1.setToolTipText(axisATooltip);
+    axisButton2.setText(bothAxisString);
+    axisButton2.setToolTipText(bothAxisTooltip);
+    axisButtonPanel.setVisible(true);
+  }
+  
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
     //  Bind each button to action listener and the generic mouse listener
@@ -259,25 +299,16 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         this);
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
-    JPanel axisButtonPanel = new JPanel();
     axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel,
         BoxLayout.X_AXIS));
-    if (axisID == AxisID.FIRST) {
-      btnOtherAxis = new JButton("Axis B");
-    }
-    else if (axisID == AxisID.SECOND) {
-      btnOtherAxis = new JButton("Axis A");
-    }
-    if (btnOtherAxis != null ) {
-      btnOtherAxis.addActionListener(axisButtonListener);
-      btnBothAxis.addActionListener(axisButtonListener);
-      axisButtonPanel.add(btnBothAxis);
+    if (EtomoDirector.getInstance().isNewStuff() && axisID != AxisID.ONLY) {
+      axisButton1.addActionListener(axisButtonListener);
+      axisButton2.addActionListener(axisButtonListener);
+      axisButtonPanel.add(axisButton1);
       axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
-      axisButtonPanel.add(btnOtherAxis);
+      axisButtonPanel.add(axisButton2);
       panelProcessSelect.add(axisButtonPanel);
-    }
-    if (!EtomoDirector.getInstance().isNewStuff()) {
-      axisButtonPanel.setVisible(false);
+      showBothAxis();
     }
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     procCtlPreProc.setButtonActionListener(buttonListener);
@@ -405,6 +436,10 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    bothAxisTooltip = tooltipFormatter.setText("See Axis A and B.").format();
+    axisATooltip = tooltipFormatter.setText("See Axis A only.").format();
+    axisBTooltip = tooltipFormatter.setText("See Axis B only.").format();
+    
     text = "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
         + " CCD rows from the raw projection stack.";
     procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
@@ -445,7 +480,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         .format());
     
     text = "Open the Clean Up panel to delete the intermediate files.";
-  procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text)
+    procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text)
       .format());
   }
 
