@@ -5,6 +5,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/03 22:52:05  mast
+c	  Break up an if statement to keep outside_boundary from being called
+c	  with no boundaries.
+c	
 c
 	subroutine random_shifts(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &	    iobjflag,ranmin,ranmax,probnear,limprobs,delnear,nrestrict,
