@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/27 06:36:51  mast
+c	  Fix number of options needing model
+c	
 c	  Revision 3.5  2003/10/26 05:33:27  mast
 c	  change command files to use unit 4 instead reopening 5
 c	
@@ -92,6 +95,8 @@ c
 	in5 = 5
 	ifanyplot=0
 	nextragrf=0
+	ntypbound = 0
+
 	call opencomfile
 c
 	print *,'Enter name of output file to store density values in ',
