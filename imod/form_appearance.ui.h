@@ -14,13 +14,44 @@ void AppearanceForm::init()
     
     // Load the style combo box and figure  out which one is the current one
     int ind = 0;
+#ifdef EXCLUDE_STYLES    
+    
+    // If have a list of ones to exclude, get the whole list with the factory and insert
+   // ones that are OK, i.e. not on the exclude list
     QStringList keyList = QStyleFactory::keys();
     for ( QStringList::Iterator it = keyList.begin(); it != keyList.end(); ++it ) {
+	if (!ImodPrefs->styleOK(*it))
+	    continue;
 	styleComboBox->insertItem(*it);
 	if ((*it).lower() == mPrefs->styleKey.lower())
 	    styleComboBox->setCurrentItem(ind);
 	ind++;
     }
+#else
+    
+    // If the list is of ones to include, then go through the list and insert ones that
+    // can be created
+    char **styleList =ImodPrefs->getStyleList();
+    int *styleStatus = ImodPrefs->getStyleStatus();
+    for (int i = 0;  ; i++) {
+	QString str = styleList[i];
+	if (str.isEmpty())
+	    break;
+	if (!styleStatus[i]) {
+	    // fprintf(stderr, "FA testing %s\n", str.latin1());
+	    if (QStyleFactory::create(str) == NULL)
+		styleStatus[i] = -1;
+	    else
+		styleStatus[i] = 1;
+	}
+	if (styleStatus[i] < 0)
+	    continue;
+	styleComboBox->insertItem(str);
+	if (str.lower() == mPrefs->styleKey.lower())
+	    styleComboBox->setCurrentItem(ind);
+	ind++;
+    }
+#endif
 }
 
 // Update the dialog based on current values
