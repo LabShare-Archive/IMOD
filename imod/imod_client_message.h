@@ -31,30 +31,8 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.5  2003/10/02 01:30:22  mast
-Added message to open bead fixer
-
-Revision 3.4  2003/08/01 05:52:54  mast
-*** empty log message ***
-
-Revision 3.3  2003/06/04 23:42:54  mast
-Move message defines here to avoid recompiling everything
-
-Revision 3.2  2003/02/27 19:22:40  mast
-Qt version that works on windows
-
-Revision 3.1  2003/02/10 20:41:55  mast
-Merge Qt source
-
-Revision 3.0.2.1  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 3.0  2002/09/27 20:35:04  rickg
-Initital version of code moved from imod_menu_cb.c
-
+Log at end of file
 */
-/* imod_client_message.h */
 
 #ifndef IMOD_CLIENT_MESSAGE_H
 #define IMOD_CLIENT_MESSAGE_H
@@ -68,6 +46,7 @@ Initital version of code moved from imod_menu_cb.c
 #define MESSAGE_MODEL_MODE  6
 #define MESSAGE_OPEN_KEEP_BW 7
 #define MESSAGE_OPEN_BEADFIXER 8
+#define MESSAGE_ONE_ZAP_OPEN 9
 
 #include <qobject.h>
 #include <qstring.h>
@@ -101,3 +80,30 @@ class ImodClipboard : public QObject
 
 
 #endif /* IMOD_CLIENT_MESSAGE_H */
+/*
+$Log$
+Revision 3.6  2003/11/12 18:48:55  mast
+Added method to get relevant window ID
+
+Revision 3.5  2003/10/02 01:30:22  mast
+Added message to open bead fixer
+
+Revision 3.4  2003/08/01 05:52:54  mast
+*** empty log message ***
+
+Revision 3.3  2003/06/04 23:42:54  mast
+Move message defines here to avoid recompiling everything
+
+Revision 3.2  2003/02/27 19:22:40  mast
+Qt version that works on windows
+
+Revision 3.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
+Revision 3.0.2.1  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 3.0  2002/09/27 20:35:04  rickg
+Initital version of code moved from imod_menu_cb.c
+
+*/
