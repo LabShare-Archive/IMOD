@@ -740,7 +740,7 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
     for (i = 0; i < imod->objsize; i++){
       index.object = i;
       temp_distance = imod_obj_nearest
-        (&(imod->obj[i]), &index , &pnt, selsize);
+        (vi, &(imod->obj[i]), &index , &pnt, selsize);
       if (temp_distance == -1)
         continue;
       if (distance == -1 || distance > temp_distance){
@@ -2295,6 +2295,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.24  2004/08/12 17:05:17  mast
+Added message to get slicer angles
+
 Revision 4.23  2004/06/16 00:13:01  mast
 Constrain keypad movements when locked
 
