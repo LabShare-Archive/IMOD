@@ -35,6 +35,10 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/09/13 21:03:58  mast
+    Changes to minimize crashes with Ti4600 when resizing window with R -
+    elimination of interfering draws, and postpone of draw after expose events
+
     Revision 3.4  2002/07/28 22:58:42  mast
     Made I pop Info window to front and added a button to toolbar to do this
 
@@ -847,11 +851,14 @@ void zap_expose_cb(Widget w, XtPointer client, XtPointer call)
 	  zap->resizedraw2x = 0;
 #ifdef ZAP_EXPOSE_HACK
      } else {
-#ifdef XZAP_DEBUG
-	  fprintf(stderr, "Starting an expose timeout");
-#endif
-	  if (zap->exposeTimeOut)
+	  if (zap->exposeTimeOut) {
 	       XtRemoveTimeOut(zap->exposeTimeOut);
+#ifdef XZAP_DEBUG
+	       fprintf(stderr, "Restarting expose timeout for %d", interval);
+	  } else {
+	       fprintf(stderr, "Starting an expose timeout for %d", interval);
+#endif
+	  }
 	  zap->exposeTimeOut = XtAppAddTimeOut(Dia_context, interval, 
 					       expose_to, (XtPointer)zap);
      }
