@@ -910,7 +910,7 @@ void ContourJoin::closeEvent ( QCloseEvent * e )
 /*  CONTOUR MOVING                                                           */
 /*****************************************************************************/
 /*
- * Move a contour to a different object.
+ * Move a contour to a different object/surface/Z section
  *
  */
 static struct contour_move_struct comv;
@@ -1002,7 +1002,7 @@ void imodContEditMove(void)
   float firstz, size, delz;
   double weight;
   Ipoint ccent;
-  int conew, ptnew;
+  int conew, ptnew, ob2;
   double rad, dz, delAng, circRad;
   int dzLim, iz, izCen, npts;
   float xCen, yCen, zCen, zscale;
@@ -1189,12 +1189,17 @@ void imodContEditMove(void)
     /* Do current contour, all in surface if that is selected, or all 
        selected contours if whole surface not selected */
     delz = comv.upOrDown ? -1. : 1.;
-    for (co = 0; co < obj->contsize; co++) {
-      if (co == conew || (comv.wholeSurf && cont->surf == obj->cont[co].surf)
-          || (!comv.wholeSurf && imodSelectionListQuery(vi, ob, co) > -2)) {
-        vi->undo->contourDataChg(ob, co);
-        for (pt = 0; pt < obj->cont[co].psize; pt++)
-          obj->cont[co].pts[pt].z += delz;
+    for (ob2 = 0; ob2 < imod->objsize; ob2++) {
+      obj = &imod->obj[ob2];
+      for (co = 0; co < obj->contsize; co++) {
+        if ((ob2 == ob && 
+             (co == conew || 
+              (comv.wholeSurf && cont->surf == obj->cont[co].surf)))
+            || (!comv.wholeSurf && imodSelectionListQuery(vi, ob2, co) > -2)) {
+          vi->undo->contourDataChg(ob2, co);
+          for (pt = 0; pt < obj->cont[co].psize; pt++)
+            obj->cont[co].pts[pt].z += delz;
+        }
       }
     }
 
@@ -1985,6 +1990,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.18  2005/02/09 01:10:02  mast
+Adjusted text for contour shifting, migrated help for contour Move
+
 Revision 4.17  2004/11/24 05:08:19  mast
 Implemented multiple contour join and control over method of joining
 
