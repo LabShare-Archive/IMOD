@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.17  2004/01/27 05:16:26  mast
+#  Start out by copying needed files from dist
+#
 #  Revision 3.16  2003/12/30 17:24:58  mast
 #  Delete stray .libs in windows install
 #
@@ -71,7 +74,7 @@ if ($qtlibdir == "") exit 0
 #
 # Get the library extension, but don't worry if it's not defined
 #
-set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
+set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
 
 #
 # Copy DLL's from various places to the install directory
