@@ -8,7 +8,7 @@ set PATCHZ = (32 40 50)
 set DELPATCHXY = 100
 set NZPATCH3 = 75      # Thickness at which to do 3 patches in Z
 set NZPATCH4 = 150     # Thickness at which to do 4 patches in Z
-set MAXPIXELS = 20000  # KPixels for maximum FFT
+set MAXPIXELS = 20000  # KPixels for maximum FFT - check FFT3D if increase
 set TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 set TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
 set MAXPIECEY = 1       # Maximum pieces in Y
@@ -16,6 +16,9 @@ set MINOVERLAP = 10     # Minimum overlap between pieces
 set MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
 set MATCHSHIFTY  = (40 60 76 90)      # Y sizes per increment of Y dimension
 set MATCHSHIFTINC = 100
+
+# Set this to "clip fft" if MAXPIXELS is increased near to value in ftbuf.inc
+set FFT3D = "fftrans -q"   # Command to get get fft - assumes -3d argument
 
 set to_srcname = "g5a"
 set from_srcname = "g5b"
@@ -535,14 +538,14 @@ $recfile
 ${tmppath}rec.st
 $ranlist[1]
 $TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
-\$clip fft -3d ${tmppath}rec.st ${tmppath}rec.fft
+\$$FFT3D -3d ${tmppath}rec.st ${tmppath}rec.fft
 \$\\rm ${tmppath}rec.st
 \$taperoutvol
 $tmpmatfile
 ${tmppath}mat.st
 $ranlist[1]
 $TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
-\$clip fft -3d ${tmppath}mat.st ${tmppath}mat.fft
+\$$FFT3D -3d ${tmppath}mat.st ${tmppath}mat.fft
 \$\\rm ${tmppath}mat.st
 \$combinefft \$combinefft_options -StandardInput
 AInputFFT	${tmppath}rec.fft
@@ -551,7 +554,7 @@ InverseTransformFile	$invfile
 ATiltFile	$atlt
 BTiltFile	$btlt
 \$\\rm ${tmppath}rec.fft
-\$clip fft -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
+\$$FFT3D -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
 \$\\rm ${tmppath}mat.fft
 EOCAT
             shift ranlist
@@ -621,6 +624,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.26  2004/08/12 17:42:02  mast
+#  Put back right version for 3.4
+#
 #  Revision 3.24  2004/07/22 18:17:12  mast
 #  Change to better sed command for stripping Ctrl M
 #
