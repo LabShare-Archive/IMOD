@@ -10,7 +10,5 @@ imodhelp.h : imodhelp mkargv
 
 install	:
 	$(CP) $(VCEXEDIR)/3dmod.exe $(INSTBINDIR)
-	$(CP) 3dmodbg $(INSTBINDIR)
-	$(CP) 3dmodv $(INSTBINDIR)
 
 clean :
