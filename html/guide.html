@@ -200,8 +200,8 @@ Linux under <code>bash</code>, enter:</dd>
 installed package has placed an incompatible Qt or OpenGL library on
 your library load path. &nbsp;The sign of a problem with the Qt library
 is an error message about an undefined symbol, usually a very long
-string containing "QGLWidget". &nbsp;The top IMOD directory contains
-two files, <code>IMOD-qtconflict.sh</code> and <code>IMOD-qtconflict.csh</code>,
+string containing "QGLWidget". &nbsp;The top IMOD directory contains two
+files, <code>IMOD-qtconflict.sh</code> and <code>IMOD-qtconflict.csh</code>,
 that can be used to solve this problem. &nbsp;Try sourcing the
 appropriate file, then try following the directions in the file and
 sourcing it again. &nbsp;If this solves the problem, make any needed
@@ -349,8 +349,10 @@ not get a home directory unless you log in as an another user.<br>
 To install Cygwin from the package in <code>cygwinForIMOD.exe</code>:<br>
   <br>
   <ol>
-    <li>Click on the package to extract it.  You will get the <code>setup.exe</code>
-program and a <code>cygwinMaster</code> folder with all the packages.</li>
+    <li>Click on the package to extract it.  Press "Browse" and select
+a folder to unzip to that is conveniently accessed (the Desktop will
+do). &nbsp;You will get the <code>setup.exe</code> program and a <code>cygwinMaster</code>
+folder with all the packages.</li>
     <li>Click on <code>setup.exe</code></li>
     <li>Select install from a Local Directory</li>
     <li>Set the root drive to <code>C:\cygwin</code> unless you want it
@@ -399,13 +401,15 @@ needs to not have the option "<code>NOCACHE</code>". Just copy the file <code>ma
 from the <code>cygwinMaster</code> folder to <code>/etc</code> (<code>C:\cygwin\etc</code>).<br>
     </li>
   </ol>
-You can use Winzip instead to unpack IMOD, but first you must turn off
-"Tar file smart CR/LF conversion" under
-Options-Configuration-Miscellaneous.<br>
+You will have to open a new Cygwin window for these changes to take
+effect. &nbsp;You can use Winzip instead to unpack IMOD, but first you
+must turn off "Tar file smart CR/LF conversion" under
+Options-Configuration-Miscellaneous, since most of the complicated shell
+scripts will not work if they get converted to DOS line endings.<br>
   <br>
-After these steps, everything but eTomo can be run from inside a new
-Cygwin window. &nbsp;In order to run eTomo, you also need to install
-Java and define some environment variables inside Windows:<br>
+After these steps, everything but eTomo can be run from a Cygwin
+window. &nbsp;In order to run eTomo, you also need to install Java and
+define some environment variables inside Windows:<br>
   <br>
   <ol>
     <li> To install Java, get the latest Java Run-time Environment from <a
@@ -417,7 +421,7 @@ you are done, you can delete any Java icons from your desktop.</li>
     <li> To define environment variables, right click My Computer,
 select Properties, Advanced, Environment Variables. Define all of these
 paths in Windows format.  Press "New" to define a variable.</li>
-    <li>Define &nbsp;<code>IMOD_DIR</code> &nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code>.</li>
+    <li>Define &nbsp;<code>IMOD_DIR</code> &nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code></li>
     <li>Define <code>&nbsp;HOME</code> &nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
     <li> You also need to add the Cygwin bin to your path, e.g., select <code>PATH</code>,
 press "Edit", and add <code>C:\cygwin\bin; </code>to the front of the
@@ -450,7 +454,7 @@ it fails to preserve entries on your Windows path that have spaces in
 them, but it does filename completion of Windows filenames (starting
 with C:/) better than <code>bash</code> does.<br>
   <br>
-If you want to be able to display and print postscript graphs from the
+If you want to be able to display and print Postscript graphs from the
 Fortran graphics programs (e.g., <code>nda, mtk, mtoverlap</code>), you
 can install <a
  href="http://bio3d.colorado.edu/imod/windows/gs811w32.exe">ghostscript</a>
@@ -484,9 +488,9 @@ in the <code>IMOD/lib</code> directory. </p>
 developed by Gregory Beylkin and Kristian Sandberg at the University of
 Colorado. This method produces reconstructions 1.5-2.5 times faster,
 depending on   the computer architecture and the size of the slice being
-reconstructed (the larger, the  better).  It works    when there is
-tilt around the X-axis but not with local alignments. Unfortunately,
-the advantage is very small on Pentium 4 machines with our current
+reconstructed (the larger, the  better).  It works    when there is tilt
+around the X-axis but not with local alignments. Unfortunately, the
+advantage is very small on Pentium 4 machines with our current
 distribution, compiled with gnu compilers. To take advantage of the
 algorithm, you need a license to  use the USFFT library, which is
 commercial software for doing unequally  spaced FFTs. A license  is free
@@ -607,12 +611,12 @@ image; the programs consistently  refer to this as a list of "f"
 transforms. If you think about it, you  will realize that simply
 applying these f transforms to all of the images in the stack will not
 help, because each section would be aligned to the previous one only if
-that previous one were not itself transformed. A second stage is thus  
+that previous one were not itself transformed. A second stage is thus
 necessary: one must obtain the transforms for each image that will
-produce   an aligned stack when actually applied to the images. This
-list is consistently   referred to as a list of "g" transforms. In
-summary, "f" transforms align each section to the preceding one; "g"
-transforms align each section to the  whole stack.
+produce an aligned stack when actually applied to the images. This list
+is consistently   referred to as a list of "g" transforms. In summary,
+"f" transforms align each section to the preceding one; "g" transforms
+align each section to the  whole stack.
 <p>There are three general methods for obtaining alignment transforms:
 manual adjustment of transformation parameters, solving for a transform
 from a set of fiducial points that correspond between two sections, and
@@ -761,16 +765,15 @@ tomograms with eTomo, including a sample data set.</li>
     <li> <a href="tomojoin.html"> Guide for joining tomograms from
 serial sections.</a> </li>
     <li> <a href="serialalign.txt">Guide to serial section alignment.</a> </li>
+    <br>
+    <br>
   </ul>
-  <hr><i>Last updated: November 7, 2003</i>
-[<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
-[<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
-  <br>
-  <br>
 </dl>
 <br>
 <br>
-<br>
+<hr><i>Last updated: November 7, 2003</i> [<a
+ href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] 
+[<a href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
 <br>
 </body>
