@@ -20,7 +20,7 @@ public class NewstParamTest extends TestCase {
   private String xformFile = "xformfile";
   private String size = "0,1";
   private String offset = "3,4";
-  private String sizeOption = "-size";
+  private String sizeOption = "-SizeToOutputInXandY";
   private String offsetOption = "-offset";
   private String xformOption = "-xform";
   private String linearOption = "-linear";
@@ -74,13 +74,19 @@ public class NewstParamTest extends TestCase {
   }
 
   private void testParseAllOptions(NewstParam np, ComScriptCommand csc) {
-    np.parseComScriptCommand(csc);
-    assertEquals(np.getInputFile(), inputFile);
-    assertEquals(np.getOutputFile(), outputFile);
-    assertEquals(np.getTransformFile(), xformFile);
-    assertEquals(np.getSize(), size);
-    assertEquals(np.getOffset(), offset);
-    assertTrue(np.isUseLinearInterpolation());
+    try {
+      np.parseComScriptCommand(csc);
+    }
+    catch (Exception e) {
+      fail("Unexpected exception: " + e.getClass().getName() + ": "
+        + e.getMessage());
+    }
+    assertEquals(inputFile, np.getInputFile());
+    assertEquals(outputFile, np.getOutputFile());
+    assertEquals(xformFile, np.getTransformFile());
+    assertEquals(size, np.getSizeToOutputInXandY());
+    assertEquals(offset, np.getOffsetsInXandY());
+    assertTrue(np.isLinearInterpolation());
   }
   
   private String[] testUpdate(NewstParam np) throws BadComScriptException {
@@ -97,13 +103,19 @@ public class NewstParamTest extends TestCase {
   }
 
   private void testParseNoOptions(NewstParam np, ComScriptCommand csc) {
-    np.parseComScriptCommand(csc);
+    try {
+      np.parseComScriptCommand(csc);
+    }
+    catch (Exception e) {
+      fail("Unexpected exception: " + e.getClass().getName() + ": "
+        + e.getMessage());
+    }
     assertEquals(np.getInputFile(), "");
     assertEquals(np.getOutputFile(), "");
     assertEquals(np.getTransformFile(), "");
-    assertEquals(np.getSize(), "");
-    assertEquals(np.getOffset(), "");
-    assertFalse(np.isUseLinearInterpolation());
+    assertEquals(np.getSizeToOutputInXandY(), "");
+    assertEquals(np.getOffsetsInXandY(), "");
+    assertFalse(np.isLinearInterpolation());
   }
  
   private ComScriptCommand getAllOptionsComScriptCommand() {
