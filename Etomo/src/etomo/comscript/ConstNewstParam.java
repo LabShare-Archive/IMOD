@@ -16,6 +16,10 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/14 00:16:12  rickg
+ * <p> Updated for PIP based newstack, fixed return values where
+ * <p> internal objects were returned.
+ * <p>
  * <p> Revision 3.1  2004/02/13 01:04:08  rickg
  * <p> Updated for PIP based newstack
  * <p>
@@ -189,7 +193,9 @@ public class ConstNewstParam {
       buffer.append(",");
     }
     // Remove the trailing comma
-    buffer.deleteCharAt(buffer.length()-1);
+    if(buffer.length() > 0) {
+      buffer.deleteCharAt(buffer.length()-1);
+    }
     return buffer.toString();
   }
   
