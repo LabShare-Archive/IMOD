@@ -28,6 +28,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.0  2003/11/07 23:19:01  rickg
+* <p> Version 1.0.0
+* <p>
 * <p> Revision 1.7  2003/10/21 02:33:38  sueh
 * <p> Bug325 Pulled out common button functionality and placed it in ButtonHelper.
 * <p>
@@ -68,7 +71,8 @@ final public class MultiLineToggleButton extends JToggleButton {
   public static final String DISABLED_UNSELECTED_TEXT_COLOR_PROPERTY =
     "ToggleButton.disabledText";
   public static final String DISABLED_SELECTED_TEXT_COLOR_PROPERTY =
-    "ToggleButton.disabledSelectedText";
+    "ToggleButton.darkShadow"; //in the default is is the same color as 
+                               //disabledSelectedText;
 
   public MultiLineToggleButton() {
     this(null, null, false);
