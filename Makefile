@@ -194,6 +194,7 @@ install : configure man
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
 	cd libdiaqt  ; $(MAKE) $@
+	cd libcfft   ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd sendevent ; $(MAKE) $@
@@ -222,6 +223,7 @@ installclibs : configure
 	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
+	cd libcfft   ; $(MAKE) install
 
 installlibs : installclibs
 	cd flib; $(MAKE) installlibs
@@ -233,6 +235,7 @@ clean : configure
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
 	cd libdiaqt  ; $(MAKE) $@
+	cd libcfft   ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
 	cd imodutil  ; $(MAKE) $@
 	cd sendevent ; $(MAKE) $@
@@ -259,6 +262,7 @@ cleanclibs : configure
 	cd libimod   ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
+	cd libcfft   ; $(MAKE) clean
 
 cleanlibs : cleanclibs
 	cd flib; $(MAKE) $@
@@ -289,6 +293,7 @@ clibs : configure
 	cd libimod   ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
+	cd libcfft   ; $(MAKE) all
 
 libs : clibs
 	cd flib; $(MAKE) $@
@@ -299,6 +304,7 @@ libs : clibs
 o32clibs : configure
 	cd libimod   ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
+	cd libcfft   ; $(MAKE) all
 
 o32libs : o32clibs
 	cd flib; $(MAKE) libs
@@ -306,6 +312,7 @@ o32libs : o32clibs
 installo32clibs : configure
 	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
+	cd libcfft   ; $(MAKE) install
 
 installo32libs : installo32clibs
 	cd flib; $(MAKE) installlibs
@@ -366,7 +373,7 @@ csrc : ALWAYS
 	installqtlib packMacApps $(ARCDIR)_src/
 	tar cBf - \
 	machines \
-	lib*/*.[ch] lib*/*.cpp libi*/Makefile libdiaqt/Makefile.dummy \
+	lib*/*.[ch] lib*/*.cpp lib[ic]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
@@ -421,6 +428,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.41  2004/08/31 02:23:48  mast
+#  Moved copying of .version to VERSION from dist to install (packMacApps)
+#
 #  Revision 3.40  2004/07/22 18:20:20  mast
 #  Fixed the fix
 #
