@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/11/04 23:31:07  mast
+Changes for rounded button style
+
 Revision 3.2  2004/06/04 02:57:28  mast
 Implement export/import macro for making libdiaqt be a DLL
 
@@ -47,7 +50,7 @@ class QCheckBox;
 class QLabel;
 class QPushButton;
 class QRadioButton;
-class QVBoxLayout;
+class QBoxLayout;
 class QWidget;
 class QSlider;
 class QSpinBox;
@@ -57,15 +60,16 @@ class QString;
 extern DLL_IM_EX char *Dia_title;
 
 void DLL_IM_EX diaSetSpinBox(QSpinBox *box, int value);
+void DLL_IM_EX diaSetSpinMMVal(QSpinBox *box, int min, int max, int value);
 void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
 void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
 void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
-QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
+QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
 QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
 QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
-			   QVBoxLayout *layout);
+			   QBoxLayout *layout);
 QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
-                                 QVBoxLayout *layout);
+                                 QBoxLayout *layout);
 int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
                       const QString &text);
 int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
