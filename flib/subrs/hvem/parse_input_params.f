@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/10 20:43:41  mast
+c	  Added subroutine for getting input/output files
+c	
 c	  Revision 3.5  2003/10/08 17:20:16  mast
 c	  Changes to work with autodoc files
 c	
@@ -224,7 +227,7 @@ c
 c	    Otherwise get interactive input with the prompt
 c
 	  write(*,'(1x,a,a,$)')prompt,': '
-	  read(5,*)filename
+	  read(5,'(a)')filename
 	endif
 	return
 	end
