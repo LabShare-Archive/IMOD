@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/01/28 00:15:29  rickg
+ * <p> Main window now remembers its size
+ * <p>
  * <p> Revision 2.1  2003/01/27 18:12:41  rickg
  * <p> Fixed bug from single window transition in positioning dialog
  * <p> opening function
@@ -413,14 +416,7 @@ public class ApplicationManager {
       mainFrame.showBlankProcess(axisID);
     }
     else {
-      //  Get the user input data from the dialog box.  The CCDEraserParam
-      //  is first initialized from the currently loaded com script to
-      //  provide deafault values for those not handled by the dialog box
-      //  get function needs some error checking
-      CCDEraserParam ccdEraserParam = new CCDEraserParam();
-      ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
-      preProcDialog.getCCDEraserParams(ccdEraserParam);
-      comScriptMgr.saveEraserCom(ccdEraserParam, axisID);
+      updateEraserCom(axisID);
 
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
@@ -495,9 +491,33 @@ public class ApplicationManager {
   }
 
   /**
+   * Get the eraser{|a|b}.com script
+   */
+  private void updateEraserCom(AxisID axisID) {
+    PreProcessingDialog preProcDialog;
+    if (axisID == AxisID.SECOND) {
+      preProcDialog = preProcDialogB;
+    }
+    else {
+      preProcDialog = preProcDialogA;
+    }
+
+    //  Get the user input data from the dialog box.  The CCDEraserParam
+    //  is first initialized from the currently loaded com script to
+    //  provide deafault values for those not handled by the dialog box
+    //  get function needs some error checking
+    CCDEraserParam ccdEraserParam = new CCDEraserParam();
+    ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
+    preProcDialog.getCCDEraserParams(ccdEraserParam);
+    comScriptMgr.saveEraserCom(ccdEraserParam, axisID);
+
+  }
+
+  /**
    * Run the eraser script
    */
   public void eraser(AxisID axisID) {
+    updateEraserCom(axisID);
     String threadName = processMgr.eraser(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Erasing pixels", axisID);
@@ -974,10 +994,11 @@ public class ApplicationManager {
   /**
    * Execute the fine alignment script (align.com) for the appropriate axis
    * @param the AxisID identifying the axis to align.
-   * @param the AlignmentEstimationDialog that contains the parameters for the
-   * alignment script.
    */
   public void fineAlignment(AxisID axisID) {
+    if (!updateAlignCom(axisID)) {
+      return;
+    }
     String threadName = processMgr.fineAlignment(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Aligning stack", axisID);
@@ -2146,7 +2167,7 @@ public class ApplicationManager {
     Dimension size = mainFrame.getSize();
     userConfig.setMainWindowWidth(size.width);
     userConfig.setMainWindowHeight(size.height);
-    
+
     //  Write out the user configuration data
     File userConfigFile = new File(homeDirectory, ".etomo");
 
