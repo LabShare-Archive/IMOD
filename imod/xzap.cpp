@@ -799,12 +799,19 @@ int imod_zap_open(struct ViewInfo *vi)
               toolSize.width(), toolSize.height(), zap->gfx->width(), 
               zap->gfx->height(), newWidth, newHeight);
 
-    zap->startingGeom.setRect(xleft, ytop, newWidth, newHeight);
   } else {
 
-    // Existing geometry - adjust zoom either way to fit window
-    needWiny = oldGeom.height() - toolHeight;
-    needWinx = oldGeom.width();
+    // Existing geometry - better fit it to current screen
+    xleft = oldGeom.x();
+    ytop = oldGeom.y();
+    newWidth = oldGeom.width();
+    newHeight = oldGeom.height();
+    zapLimitWindowSize(newWidth, newHeight);
+    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+
+    // adjust zoom either way to fit window
+    needWiny = newHeight - toolHeight;
+    needWinx = newWidth;
     if (vi->xsize < needWinx && vi->ysize < needWiny) {
 
       // If images are too small, start big and find first zoom that fits
@@ -828,13 +835,12 @@ int imod_zap_open(struct ViewInfo *vi)
       }
     }
 
-    zap->startingGeom = oldGeom;
   }
 
   // 9/23/03: changed setGeometry to resize/move and this allowed elimination
   // of the setting again on the first real draw
-  zap->qtWindow->resize(zap->startingGeom.width(),zap->startingGeom.height());
-  zap->qtWindow->move(zap->startingGeom.x(),zap->startingGeom.y());
+  zap->qtWindow->resize(newWidth, newHeight);
+  zap->qtWindow->move(xleft, ytop);
   zap->qtWindow->show();
   zap->popup = 1;
 
@@ -2812,6 +2818,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.32  2003/09/24 17:40:31  mast
+Switch to restorable geometry call for resizing
+
 Revision 4.31  2003/09/24 00:49:04  mast
 Switched from keeping track of geometry to keeping track of pos() and
 size() when saving and restoring positions and sizes
