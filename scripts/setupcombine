@@ -425,6 +425,7 @@ sed -e s/$from_srcname/$fromname/g\
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
     -e "/savework-file/s//$backupsed/g"\
@@ -433,6 +434,7 @@ sed -e s/$from_srcname/$fromname/g\
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
 	<$srcdir/$matchvol2 | cat >$matchvol2
@@ -440,6 +442,7 @@ sed -e s/$from_srcname/$fromname/g\
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
 	<$srcdir/$warpvol | cat >$warpvol
@@ -455,6 +458,7 @@ sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpat
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
     -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $modelin -size/"\
     -e "/$tempdirarg/s///"\
@@ -467,9 +471,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/savework-file/s//$backupsed/g"\
     	<$srcdir/$volcombine | cat >$volcombine
 
-sed -e "s/$tmp_srcname/$sedtmpdir/g"\
-    -e "/mkdir/s/.*if/$ifmkdir/"\
-    -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
+sed -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
     -e "/$uncomment/s/"'^[\$#]*\([ve]\)/\$\1/g'\
 	<$srcdir/combine.com | cat >combine.com
 
@@ -598,6 +600,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.11  2003/05/20 21:39:47  mast
+#  Strip spaces from corresponding fiducial list
+#
 #  Revision 3.10  2003/05/19 22:50:25  mast
 #  *** empty log message ***
 #
