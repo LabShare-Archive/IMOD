@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2005/02/17 02:43:37  sueh
+ * <p> bug# 605 Added abstract saveDisplayState().  If both axis panels have
+ * <p> width = 0, show both panels and do a plain pack().
+ * <p>
  * <p> Revision 1.7  2005/02/11 19:03:31  sueh
  * <p> bug# 594 Add show to fitWindow() to handle the case when autofit is off.
  * <p> This updates the main frame tabs.
@@ -414,7 +418,8 @@ public abstract class MainPanel extends JPanel {
       //if the frame has a greater height then the mainPanel + the frame's border
       //height, then a scroll bar will be used.
       //Make room for the scroll bar when calling pack()
-      if (getSize().height - getSize().height > frameBorder.height) {
+      if (EtomoDirector.getInstance().getMainFrame().getSize().height
+          - getSize().height > frameBorder.height) {
         setVerticalScrollBarPolicy(true);
         packAxis();
         setVerticalScrollBarPolicy(false);
