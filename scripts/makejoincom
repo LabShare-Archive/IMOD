@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/07/12 19:03:07  mast
+#  Added an output of the command line for running Midas with the -c size list
+#
 #  Revision 3.1  2004/06/29 03:52:22  mast
 #  Fixed path-setting
 #
@@ -27,6 +30,7 @@ set anglelist = ""
 set sizelist = ""
 set ifrotlist = ""
 set chunklist = ""
+set avglist = ""
 
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
@@ -269,6 +273,7 @@ while ($itomo <= $ntomo)
                     else
                         @ chunksize = $zst + 1 - $znd
                     endif
+                    set avglist = ($avglist $chunksize)
 		endif
 	    endif
 	end
@@ -320,8 +325,10 @@ while ($itomo <= $ntomo)
 		    if ($zst == $znd) set toprange = $zst
                     if ($znd >= $zst) then
                         @ chunksize += $znd + 1 - $zst
+                        set avglist = ($avglist $znd + 1 - $zst)
                     else
                         @ chunksize += $zst + 1 - $znd
+                        set avglist = ($avglist $zst + 1 - $znd)
                     endif
 		endif
 	    endif
@@ -455,10 +462,40 @@ cat >> $joincom <<EOF
 EOF
 endif
 
-echo ""
-echo "The command file $joincom has been written and is ready to submit."
-echo "Run it to create the file $joinroot.sample"
-echo "Then run:"
-echo "   midas -c $chunklist $joinroot.sample $joinroot.xf"
-echo "to run midas in chunk alignment mode and create a transform file"
-echo "Then run finishjoin to create the joined tomogram"
+# Now make the average commands
+@ ind = 0
+@ startsec = 0
+set tmplist = ""
+while ($ind < $#avglist)
+    @ ind++
+    @ numavg = avglist[$ind]
+    @ endsec = $startsec + $numavg - 1
+    cat >> $joincom <<EOF
+\$avgstack
+$joinroot.sample
+$joinroot.tmpavg.$ind
+$startsec,$endsec
+EOF
+    @ startsec += $numavg
+    set tmplist = ($tmplist $joinroot.tmpavg.$ind)
+end
+
+cat >> $joincom <<EOF
+\$newstack $tmplist $joinroot.sampavg
+\$\\rm -f $joinroot.tmpavg.*
+EOF
+
+cat <<EOF
+
+The command file $joincom has been written and is ready to submit.
+Run it to create the files $joinroot.sample and $joinroot.sampavg
+For optional automatic alignment of the top/bottom averages, try:
+   xfalign -tomo -pre $joinroot.sampavg $joinroot.xf
+Then run:
+   midas -c $chunklist $joinroot.sample $joinroot.xf
+to run midas in chunk alignment mode and create or edit the transform file
+For optional automatic refinement of transforms, then try:
+   xfalign -tomo -ini joinroot.xf $joinroot.sampavg $joinroot.xf
+(after which you should check results with the midas command again).
+Finally run finishjoin to create the joined tomogram
+EOF
