@@ -15,6 +15,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/23 22:03:47  rickg
+ * <p> Added -P to command string to get shell PID output
+ * <p>
  * <p> Revision 2.4  2003/05/21 21:24:03  rickg
  * <p> *** empty log message ***
  * <p>
@@ -65,10 +68,12 @@ public class TransferfidParam {
   int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
   int centerViewA = 0; // 0 => default selected by script
   int centerViewB = 0;
+  int numberViews = 5;
 
   File IMODDirectory;
 
   boolean createLog = false;
+
 
   public TransferfidParam(File IMOD_DIR) {
     IMODDirectory = IMOD_DIR;
@@ -108,6 +113,10 @@ public class TransferfidParam {
 
     if (centerViewB > 0) {
       commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
+    }
+    
+    if (numberViews != 5) {
+    	commandLine.append("-n " + String.valueOf(numberViews) + " ");
     }
 
     if (searchDirection > 0) {
@@ -165,7 +174,22 @@ public class TransferfidParam {
   public boolean isRunMidas() {
     return runMidas;
   }
+  
+	/**
+	  * Returns numberViews 
+		* @return int
+		*/
+	 public int getNumberViews() {
+		 return numberViews;
+	 }
 
+	 /**
+		* @param numberViews
+		*/
+	 public void setNumberViews(int numberViews) {
+		 this.numberViews = numberViews;
+	 }
+	 
   /**
    * Sets the inputImageFile.
    * @param inputImageFile The inputImageFile to set

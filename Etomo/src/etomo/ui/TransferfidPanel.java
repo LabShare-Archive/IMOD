@@ -23,7 +23,9 @@ public class TransferfidPanel {
     new LabeledTextField("Center view A: ");
   private LabeledTextField ltfCenterViewB =
     new LabeledTextField("Center view B: ");
-
+	private LabeledTextField ltfNumberViews =
+		new LabeledTextField("Number of views in the search: ");
+		
   private JPanel panelSearchDirection = new JPanel();
   private ButtonGroup bgSearchDirection = new ButtonGroup();
   private JRadioButton rbSearchBoth = new JRadioButton("Both directions");
@@ -43,7 +45,8 @@ public class TransferfidPanel {
     panelTransferfid.add(Box.createHorizontalStrut(300));
     panelTransferfid.add(ltfCenterViewA.getContainer());
     panelTransferfid.add(ltfCenterViewB.getContainer());
-
+		panelTransferfid.add(ltfNumberViews.getContainer());
+		
     bgSearchDirection.add(rbSearchBoth);
     bgSearchDirection.add(rbSearchPlus90);
     bgSearchDirection.add(rbSearchMinus90);
@@ -70,6 +73,10 @@ public class TransferfidPanel {
 
     if (params.getCenterViewB() > 0) {
       ltfCenterViewB.setText(params.getCenterViewB());
+    }
+    
+    if (params.getNumberViews() > 0) {
+    	ltfNumberViews.setText(params.getNumberViews());
     }
 
     if (params.getSearchDirection() == 0) {
@@ -110,7 +117,7 @@ public class TransferfidPanel {
     if (rbSearchMinus90.isSelected()) {
       params.setSearchDirection(-1);
     }
-
+		params.setNumberViews(Integer.parseInt(ltfNumberViews.getText()));
   }
 
   public Container getContainer() {
@@ -120,6 +127,7 @@ public class TransferfidPanel {
   public void setAdvanced(boolean isAdvanced) {
     ltfCenterViewA.setVisible(isAdvanced);
     ltfCenterViewB.setVisible(isAdvanced);
+		ltfNumberViews.setVisible(isAdvanced);
     panelSearchDirection.setVisible(isAdvanced);
   }
 }
