@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/06/27 20:11:38  mast
+    Add function to set a view to default scaling, redefine imodViewModelDefault
+
 */
 
 #ifndef IVIEW_H
@@ -44,23 +47,28 @@
 extern "C" {
 #endif
 
-Iview *imodViewNew(int size);
-void   imodViewDelete(Iview *vw);
-void   imodViewDefault(Iview *vw);
+  Iview *imodViewNew(int size);
+  void   imodViewDelete(Iview *vw);
+  void   imodViewDefault(Iview *vw);
   void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax);
-void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax);
-int imodViewWrite(Iview *vw, FILE *fout);
-int imodViewWrite(Iview *vw, FILE *fout);
-int imodViewModelWrite(Imod *imod);
-int imodViewModelRead(Imod *imod);
-int imodViewModelNew(Imod *imod);
-void imodViewUse(Imod *imod);
-int imodViewStore(Imod *imod, int cview);
+  void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax);
+  int imodViewWrite(Iview *vw, FILE *fout);
+  int imodViewWrite(Iview *vw, FILE *fout);
+  int imodViewModelWrite(Imod *imod);
+  int imodViewModelRead(Imod *imod);
+  int imodViewModelNew(Imod *imod);
+  void imodViewUse(Imod *imod);
+  int imodViewStore(Imod *imod, int cview);
+  void imodObjviewToObject(Iobjview *objview, Iobj *obj);
+  void imodObjviewFromObject(Iobj *obj, Iobjview *objview);
+  int imodObjviewComplete(Imod *imod);
+  void imodObjviewDelete(Imod *imod, int index);
+  void imodObjviewsFree(Imod *imod);
 
 
 /* Image File view functions. */
-int imodIMNXRead(Imod *imod);
-int imodIMNXWrite(Imod *imod);
+  int imodIMNXRead(Imod *imod);
+  int imodIMNXWrite(Imod *imod);
 
 #ifdef __cplusplus
 }
