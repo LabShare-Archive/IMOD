@@ -11,7 +11,10 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/03/25 00:48:11  sueh
+ * <p> $bug# 409, bug# 418 Utility functions for Param objects
+ * <p> $$ </p>
  */
 package etomo.comscript;
 
@@ -97,7 +100,7 @@ public class ParamUtilities {
     if (key == null) {
       throw new NullPointerException();
     }
-    if (!value.isDefault()) {
+    if (value.valuesSet() && !value.isDefault()) {
       scriptCommand.setValue(key, value.toString());
     }
     else {
