@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/16 23:20:36  rickg
+ * <p> Reformat
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -61,48 +64,48 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Min.# of fiducials (total, each surface): ");
 
   //  Tilt angle pane
-  JRadioButton rbTiltAngleFixed = new JRadioButton("Fixed tilt angles");
-  JRadioButton rbTiltAngleAll =
+  private JRadioButton rbTiltAngleFixed = new JRadioButton("Fixed tilt angles");
+  private JRadioButton rbTiltAngleAll =
     new JRadioButton("Solve for all except minimum tilt");
-  JRadioButton rbTiltAngleAutomap =
+  private JRadioButton rbTiltAngleAutomap =
     new JRadioButton("Group tilt angles (linear)");
   private ButtonGroup bgTiltAngleSolution = new ButtonGroup();
   private JPanel panelTiltAngleSolution = new JPanel();
 
-  LabeledTextField ltfTiltAngleGroupSize =
+  private LabeledTextField ltfTiltAngleGroupSize =
     new LabeledTextField("Tilt angle group size: ");
   private LabeledTextField ltfTiltAngleAdditionalGroups =
     new LabeledTextField("Tilt angle additional group list: ");
 
   //  Local tilt angle pane
-  JRadioButton rbLocalTiltAngleFixed = new JRadioButton("Fixed tilt angles");
-  JRadioButton rbLocalTiltAngleAll =
+  private JRadioButton rbLocalTiltAngleFixed = new JRadioButton("Fixed tilt angles");
+  private JRadioButton rbLocalTiltAngleAll =
     new JRadioButton("Solve for all except minimum tilt");
-  JRadioButton rbLocalTiltAngleAutomap =
+  private JRadioButton rbLocalTiltAngleAutomap =
     new JRadioButton("Group tilt angles (linear)");
   private ButtonGroup bgLocalTiltAngleSolution = new ButtonGroup();
   private JPanel panelLocalTiltAngleSolution = new JPanel();
 
-  LabeledTextField ltfLocalTiltAngleGroupSize =
+  private LabeledTextField ltfLocalTiltAngleGroupSize =
     new LabeledTextField("Tilt angle group size: ");
-  LabeledTextField ltfLocalTiltAngleAdditionalGroups =
+  private LabeledTextField ltfLocalTiltAngleAdditionalGroups =
     new LabeledTextField("Tilt angle additional group list: ");
 
   //  Magnfication pane
-  JRadioButton rbMagnificationFixed =
+  private JRadioButton rbMagnificationFixed =
     new JRadioButton("Fixed magnification at 1.0");
-  JRadioButton rbMagnificationAll =
+  private JRadioButton rbMagnificationAll =
     new JRadioButton("Solve for all magnifications");
-  JRadioButton rbMagnificationAutomapLinear =
+  private JRadioButton rbMagnificationAutomapLinear =
     new JRadioButton("Group magnification (first order fit)");
-  JRadioButton rbMagnificationAutomapFixed =
+  private JRadioButton rbMagnificationAutomapFixed =
     new JRadioButton("Group magnification (zeroth order fit)");
-  ButtonGroup bgMagnificationSolution = new ButtonGroup();
+  private ButtonGroup bgMagnificationSolution = new ButtonGroup();
   private JPanel panelMagnificationSolution = new JPanel();
 
   private LabeledTextField ltfMagnificationReferenceView =
     new LabeledTextField("Magnification reference view: ");
-  LabeledTextField ltfMagnificationGroupSize =
+  private LabeledTextField ltfMagnificationGroupSize =
     new LabeledTextField("Magnification group size: ");
   private LabeledTextField ltfMagnificationAdditionalGroups =
     new LabeledTextField("Magnification additional group list: ");
@@ -144,37 +147,37 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Compression additional group list: ");
 
   // Distortion pane
-  JRadioButton rbDistortionNone = new JRadioButton("No distortion solution");
-  JRadioButton rbDistortionCombined =
+  private JRadioButton rbDistortionNone = new JRadioButton("No distortion solution");
+  private JRadioButton rbDistortionCombined =
     new JRadioButton("X-stretch and skew with the same parameters");
-  JRadioButton rbDistortionIndependent =
+  private JRadioButton rbDistortionIndependent =
     new JRadioButton("Independent X-stretch and skew parameters");
   private ButtonGroup bgDistortionSolution = new ButtonGroup();
   private JPanel panelDistortionSolution = new JPanel();
 
-  JRadioButton rbXstretchAll = new JRadioButton("Independently for each tilt");
+  private JRadioButton rbXstretchAll = new JRadioButton("Independently for each tilt");
   JRadioButton rbXstretchAutomapLinear =
     new JRadioButton("Group x-stretch (first order fit)");
-  JRadioButton rbXstretchAutomapFixed =
+  private JRadioButton rbXstretchAutomapFixed =
     new JRadioButton("Group x-stretch (zeroth order fit)");
   private ButtonGroup bgXstretchSolution = new ButtonGroup();
   private JPanel panelXstretchSolution = new JPanel();
 
-  LabeledTextField ltfXstretchGroupSize =
+  private LabeledTextField ltfXstretchGroupSize =
     new LabeledTextField("X-stretch group size: ");
-  LabeledTextField ltfXstretchAdditionalGroups =
+  private LabeledTextField ltfXstretchAdditionalGroups =
     new LabeledTextField("X-stretch additional group list: ");
 
-  JRadioButton rbSkewAll = new JRadioButton("Independently for each tilt");
-  JRadioButton rbSkewAutomapLinear =
+  private JRadioButton rbSkewAll = new JRadioButton("Independently for each tilt");
+  private JRadioButton rbSkewAutomapLinear =
     new JRadioButton("Group skew (first order fit)");
-  JRadioButton rbSkewAutomapFixed =
+  private JRadioButton rbSkewAutomapFixed =
     new JRadioButton("Group skew (zeroth order fit)");
   private ButtonGroup bgSkewSolution = new ButtonGroup();
   private JPanel panelSkewSolution = new JPanel();
 
-  LabeledTextField ltfSkewGroupSize = new LabeledTextField("Skew group size: ");
-  LabeledTextField ltfSkewAdditionalGroups =
+  private LabeledTextField ltfSkewGroupSize = new LabeledTextField("Skew group size: ");
+  private LabeledTextField ltfSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
   //  Local distortion pane
@@ -748,6 +751,32 @@ public class TiltalignPanel implements ContextMenu {
     panelAdvanced.setVisible(state);
   }
 
+  void setTiltAndMagnificationDefaults(){
+    rbTiltAngleAll.setSelected(true);
+    rbDistortionNone.setSelected(true);
+    rbLocalDistortionNone.setSelected(true);
+    updateEnabled();
+  }
+  
+  void setDistortionDefaults() {
+    rbTiltAngleAutomap.setSelected(true);
+    ltfTiltAngleGroupSize.setText(10);
+
+    rbDistortionIndependent.setSelected(true);
+    rbXstretchAutomapLinear.setSelected(true);
+    ltfXstretchGroupSize.setText(7);
+    rbSkewAutomapLinear.setSelected(true);
+    ltfSkewGroupSize.setText(11);
+
+    rbLocalDistortionIndependent.setSelected(true);    
+    rbLocalXstretchAutomapLinear.setSelected(true);
+    ltfLocalXstretchGroupSize.setText(7);
+    rbLocalSkewAutomapLinear.setSelected(true);
+    ltfLocalSkewGroupSize.setText(11);
+
+    updateEnabled();
+  }
+  
   void setLargestTab() {
     tabPane.setSelectedComponent(panelDistortionSolution);
   }
@@ -1200,6 +1229,7 @@ public class TiltalignPanel implements ContextMenu {
     tabPane.addTab("Distortion", panelDistortionSolution);
 
   }
+
   private void createLocalDistortionTab() {
     JRadioButton[] items = new JRadioButton[3];
     //  Local distortion solution
