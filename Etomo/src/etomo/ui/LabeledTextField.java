@@ -17,10 +17,14 @@ import javax.swing.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class LabeledTextField {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panel = new JPanel();
   private JLabel label = new JLabel();
@@ -29,7 +33,7 @@ public class LabeledTextField {
   public LabeledTextField(String tfLabel) {
     label.setText(tfLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-//    panel.setAlignmentX(0.0F);
+    //    panel.setAlignmentX(0.0F);
     panel.add(label);
     panel.add(textField);
   }
@@ -64,7 +68,7 @@ public class LabeledTextField {
   }
 
   public boolean isEnabled() {
-    return(textField.isEnabled());
+    return (textField.isEnabled());
   }
 
   public void setVisible(boolean isVisible) {
@@ -75,20 +79,28 @@ public class LabeledTextField {
     textField.setEditable(editable);
   }
 
-  public void setTextPreferredSize(Dimension size){
+  public void setTextPreferredSize(Dimension size) {
     textField.setPreferredSize(size);
   }
 
-  public void setTextMaxmimumSize(Dimension size){
+  public void setTextMaxmimumSize(Dimension size) {
     textField.setMinimumSize(size);
   }
 
-  public void setPreferredSize(Dimension size){
+  public void setPreferredSize(Dimension size) {
     textField.setPreferredSize(size);
   }
 
   public void setMaximumSize(Dimension size) {
     panel.setMaximumSize(size);
+  }
+
+  public void setSize(Dimension size) {
+    textField.setSize(size);
+  }
+
+  public Dimension getSize() {
+    return textField.getSize();
   }
 
   public void setToolTipText(String toolTipText) {
