@@ -4,7 +4,8 @@ FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
 OBJS = obj_manager.$(O) read_mod.$(O) readw_or_imod.$(O) repack_mod.$(O) \
- store_mod.$(O) write_wmod.$(O) iobjfromcont.$(O) objtocont.$(O)
+ store_mod.$(O) write_wmod.$(O) iobjfromcont.$(O) objtocont.$(O) \
+ scale_model.$(O)
 
 
 all: $(OBJS)
@@ -22,3 +23,4 @@ store_mod.$(O):	$(INCDIR)model.inc
 write_wmod.$(O):	$(INCDIR)model.inc
 iobjfromcont.$(O):	$(INCDIR)model.inc
 objtocont.$(O):	$(INCDIR)model.inc
+scale_model.$(O):	$(INCDIR)model.inc
