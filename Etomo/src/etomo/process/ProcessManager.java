@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.28  2003/10/09 05:58:41  rickg
+ * <p> Forget to get transferfid command line from BackgroundProcess
+ * <p>
  * <p> Revision 2.27  2003/10/06 21:59:52  rickg
  * <p> split mapAxisThread and mapAxisProcessMonitor
  * <p>
@@ -379,7 +382,8 @@ public class ProcessManager {
   public String transferFiducials(TransferfidParam transferfidParam)
     throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
-    if (!transferfidParam.isBToA()) {
+    //Run transferfid on the destination axis.
+    if (transferfidParam.isBToA()) {
       axisID = AxisID.FIRST;
     }
 
