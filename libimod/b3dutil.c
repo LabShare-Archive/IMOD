@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/11/01 16:41:56  mast
+changed to use new error processing routine
+
 Revision 1.2  2003/10/24 19:53:25  mast
 Add stdlib.h for SGI
 
@@ -30,8 +33,22 @@ initial creation, consolidating routines from elsewhere
 #include "imodconfig.h"
 #include "b3dutil.h"
 
-/* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not crash 
-   imod under Windows */
+#ifdef WIN32_BIGFILE
+#include <io.h>
+#define fileno _fileno
+#define read _read
+#define write _write
+#define lseek _lseeki64
+#define off_t __int64
+#endif
+
+#ifdef MAC103_BIGFILE
+#include <sys/types.h>
+#include <sys/uio.h>
+#endif
+
+/* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
+   crash imod under Windows */
 int imodVersion(char *pname)
 {
   if (pname)
@@ -204,4 +221,86 @@ void b3dError(FILE *out, char *format, ...)
 char *b3dGetError()
 {
   return &errorMess[0];
+}
+
+/* These routines will simply call the standard C routine unless under Windows,
+   then they will get the matching file handle and call the low-level Windows
+   routine */
+int b3dFseek(FILE *fp, int offset, int flag)
+{
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
+  int handle = fileno(fp);
+  off_t err;
+  err = lseek(handle, (off_t)offset, flag);
+  return (err == -1 ? -1 : 0);
+#else
+  return fseek(fp, offset, flag);
+#endif
+}
+
+size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
+{
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
+  int handle = fileno(fp);
+  return (size_t)(read(handle, buf, size * count) / size);
+#else
+  return fread(buf, size, count, fp);
+#endif
+}
+ 
+size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
+{
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
+  int handle = fileno(fp);
+  return (size_t)(write(handle, buf, size * count) / size);
+#else
+  return fwrite(buf, size, count, fp);
+#endif
+}
+
+void b3dRewind(FILE *fp)
+{
+  b3dFseek(fp, 0, SEEK_SET);
+}
+
+#define SEEK_LIMIT 2000000000
+
+int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
+{
+  int smaller, bigger, ntodo, ndo, abs1, abs2;
+  int steplimit, err;
+
+  /* Do the base seek if it is non-zero, or if the rest of the seek is
+     zero and we are doing a SEEK_SET */
+  if (base || ((!size1 || !size2) && (flag == SEEK_SET))) {
+    if (err = b3dFseek(fp, base, flag))
+      return err;
+    flag = SEEK_CUR;
+  }
+
+  if (!size1 || !size2)
+    return 0;
+
+  /* Find smaller and larger size */
+  abs1 = size1 >= 0 ? size1 : -size1;
+  abs2 = size2 >= 0 ? size2 : -size2;
+  smaller = abs1 < abs2 ? abs1 : abs2;
+  bigger = abs1 < abs2 ? abs2 : abs1;
+
+  /* Step by multiples of the larger size, but not by more than the limit */
+  steplimit = SEEK_LIMIT / bigger;
+  ntodo = smaller;
+
+  /* If one of the size entries is negative, negate the steps */
+  if ((size1 < 0 && size2 >= 0) || (size1 >= 0 && size2 < 0))
+    bigger = -bigger;
+
+  while (ntodo > 0) {
+    ndo = ntodo <= steplimit ? ntodo : steplimit;
+    if (err = b3dFseek(fp, ndo * bigger, flag))
+      return err;
+    ntodo -= ndo;
+    flag = SEEK_CUR;
+  }
+  return 0;
 }
