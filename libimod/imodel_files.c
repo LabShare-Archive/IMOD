@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/05 16:00:46  mast
+    Make conversion of VMS floats be a globally available function instead of
+    conditionally compiled static
+
 */
 
 /*
@@ -330,7 +334,9 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout)
 	  id =  SIZE_IMAT;
 	  imodPutInt(fout, &id);
 	  imodPutBytes(fout, &obj->ambient, 4);
-	  imodPutInts(fout, (int *)&obj->mat1, 3);
+	  imodPutBytes(fout, (int *)&obj->mat1, 4);
+	  imodPutInts(fout, (int *)&obj->mat2, 1);
+	  imodPutBytes(fout, (int *)&obj->mat3, 4);
      }
      if (error = ferror(fout))
 	  return(IMOD_ERROR_WRITE);
@@ -899,7 +905,9 @@ static int imodel_read_imat(Iobj *obj, FILE *fin)
      size = imodGetInt(fin);
 
      imodGetBytes(fin, (unsigned char *)&obj->ambient, 4);
-     imodGetInts(fin, (int *)&obj->mat1, 3);     
+     imodGetBytes(fin, (int *)&obj->mat1, 4);     
+     imodGetInts(fin, (int *)&obj->mat2, 1);     
+     imodGetBytes(fin, (int *)&obj->mat3, 4);     
      return 0;
 }
 
