@@ -9,22 +9,22 @@
 # 
 # $Revision$
 # 
-# $Log$
-# Revision 1.8  2003/09/03 17:40:01  mast
-# Modified to use system-dependent 'setlibpath' to fix library paths
-#
-# Revision 1.7  2003/07/22 22:13:32  rickg
-# Use JVM defined by the PATH
-# Check to see if we have our our QTLIB
-# Force the system QTLIB to the front of LD_LIBRARY_PATH if
-# it exists.
-#
-# Revision 1.6  2003/06/13 19:24:29  rickg
-# Added LD_ASSUME_KERNEL=2.4.1 export
-#
-# Revision 1.5  2003/04/25 22:04:07  rickg
-# Added echoing at startup
-#
+
+# If you wish to use a different java runtime than the default uncomment the
+# following line and define the path to the desired runtime direcotory
+
+#export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
+
+if [ ! -z "$IMOD_JAVADIR" ]; then
+  export PATH=${IMOD_JAVADIR}/bin:${PATH}
+fi
+
+# Test for appropriate java run time
+if ! which java 2>&1 > /dev/null ; then
+  echo "There is no java runtime in the current search path.  A Java runtime"
+  echo "environment needs to be installed and the command search path needs"
+  echo "to be defined to locate the java command."
+fi
 
 #  Workaround for java 1.4.0 / new threading library clash
 export LD_ASSUME_KERNEL=2.4.1
@@ -41,12 +41,6 @@ if [ ! -e $IMOD_DIR ]; then
   exit
 fi
 
-# Test for appropriate java run time
-if ! type -t java 2>&1 > /dev/null ; then
-  echo "There is no java runtime in the current search path.  A Java runtime"
-  echo "environment needs to be installed and the command search path needs"
-  echo "to be defined to locate the java command."
-fi
 
 # If the system-dependent script for setting the library search path exists,
 # source it.  This takes care of putting our Qt libraries on the right path
@@ -67,3 +61,25 @@ fi
 echo "starting eTomo"
 java -cp ${IMOD_DIR}/bin/etomo -jar ${IMOD_DIR}/bin/etomo.jar $@ \
   2>etomo_err.log >etomo_out.log &
+
+
+# $Log$
+# Revision 1.9  2003/09/03 20:04:50  mast
+# There is no source command in sh - needed  . instead
+#
+# Revision 1.8  2003/09/03 17:40:01  mast
+# Modified to use system-dependent 'setlibpath' to fix library paths
+#
+# Revision 1.7  2003/07/22 22:13:32  rickg
+# Use JVM defined by the PATH
+# Check to see if we have our our QTLIB
+# Force the system QTLIB to the front of LD_LIBRARY_PATH if
+# it exists.
+#
+# Revision 1.6  2003/06/13 19:24:29  rickg
+# Added LD_ASSUME_KERNEL=2.4.1 export
+#
+# Revision 1.5  2003/04/25 22:04:07  rickg
+# Added echoing at startup
+#
+  
