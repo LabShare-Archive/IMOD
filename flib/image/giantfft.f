@@ -25,9 +25,8 @@ C									*
 C************************************************************************
 C
 	SUBROUTINE GIANTFFT(INUNIT,IOUTUNIT,NX,NY,DMIN,DMAX,DMEAN,IDIR)
-	parameter (ibufreal=3100*3100)
+	include 'ftbuf.inc'
       	PARAMETER (INOUTMAX=10240)
-	COMMON/FTBUF/ NBUFSIZ,ARRAY(ibufreal)
       	DIMENSION BRRAY(2*INOUTMAX)
 	COMPLEX CRAY(ibufreal/2),CLINE(INOUTMAX),CRRAY(INOUTMAX)
 	EQUIVALENCE (ARRAY,CRAY),(CLINE,CRRAY,BRRAY)

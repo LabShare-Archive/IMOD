@@ -25,8 +25,7 @@ C									*
 C************************************************************************
 C
 	SUBROUTINE BIGFFT(INUNIT,IOUTUNIT,NX,NY,DMIN,DMAX,DMEAN,IDIR)
-	parameter (ibufreal=3100*3100)
-	COMMON/FTBUF/ NBUFSIZ,ARRAY(ibufreal)
+	include 'ftbuf.inc'
 	COMPLEX CRAY(ibufreal/2),CLINE(10240)
 	EQUIVALENCE (ARRAY,CRAY)
 C

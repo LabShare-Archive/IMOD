@@ -39,8 +39,7 @@ C************************************************************************
 C
 	SUBROUTINE BIGFILT(INUNIT,IOUTUNIT,NX,NY,CTF,DELTA,
      .	scl,off,omin,omax,dmin,DMAX,DMEAN)
-	parameter (ibufreal=3100*3100)
-	COMMON/FTBUF/ NBUFSIZ,ARRAY(ibufreal)
+	include 'ftbuf.inc'
 	COMPLEX CRAY(ibufreal/2),CLINE(10240)
 	DIMENSION CTF(*)
 	EQUIVALENCE (ARRAY,CRAY)
