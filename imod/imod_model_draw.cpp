@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -23,15 +26,14 @@ Changes to get clean compilation with g++
 #include "imod.h"
 #include "imod_display.h"
 
-#include <GL/gl.h>
+#include <qgl.h>
 #include <GL/glu.h>
 
-void imodDrawModel(Imod *imod);
-void imodDrawContourLines(Icont *cont, GLenum mode);
-void imodDrawObjectSymbols(Iobj *obj);
-void imodDrawSpheres(Iobj *obj);
+static void imodDrawContourLines(Icont *cont, GLenum mode);
+static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj);
+static void imodDrawSpheres(ImodView *vi, Iobj *obj);
 
-void imodDrawModel(Imod *imod)
+void imodDrawModel(ImodView *vi, Imod *imod)
 {
   Iobj  *obj;
   Icont *cont;
@@ -49,7 +51,7 @@ void imodDrawModel(Imod *imod)
     glLineWidth((GLfloat)obj->linewidth2);
 
     if (iobjScat(obj->flags))
-      imodDrawSpheres(obj);
+      imodDrawSpheres(vi, obj);
     else {
       
       /* Draw all of the objects lines first. */
@@ -58,6 +60,11 @@ void imodDrawModel(Imod *imod)
 	if (!cont->psize)
 	  continue;
 	
+        /* DNM 2/21/03: don't draw contours from other times */
+        if (vi->nt && iobjTime(obj->flags) && cont->type && 
+            (vi->ct != cont->type))
+          continue;
+
 	/* todo: ghost contour ? */
 	/* check ghostmode and surface ghostmode. */
 	
@@ -71,7 +78,7 @@ void imodDrawModel(Imod *imod)
 	  imodDrawContourLines(cont, GL_LINE_LOOP);
       }
     }
-    imodDrawObjectSymbols(obj);
+    imodDrawObjectSymbols(vi, obj);
   }
      
   /* draw ends of current contour. */
@@ -80,7 +87,7 @@ void imodDrawModel(Imod *imod)
   return;
 }
 
-void imodDrawContourLines(Icont *cont, GLenum mode)
+static void imodDrawContourLines(Icont *cont, GLenum mode)
 {
   Ipoint *point;
   int pt, lpt;
@@ -103,7 +110,7 @@ void imodDrawContourLines(Icont *cont, GLenum mode)
   return;
 }
 
-void imodDrawObjectSymbols(Iobj *obj)
+static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
 {
   static GLUquadricObj *qobj = NULL;
   Icont  *cont;
@@ -122,9 +129,7 @@ void imodDrawObjectSymbols(Iobj *obj)
   if (!qobj)
     qobj = gluNewQuadric();
 
-  switch(obj->symbol){
-
-  case IOBJ_SYM_CIRCLE:
+  if (obj->symbol ==  IOBJ_SYM_CIRCLE) {
     outer = obj->symsize;
     if (obj->symflags  & IOBJ_SYMF_FILL)
       inner = 0.0;
@@ -132,20 +137,30 @@ void imodDrawObjectSymbols(Iobj *obj)
       inner = outer - obj->linewidth2;
     slices = (int)(outer + 4);
     loops = 1;
-    for(co = 0; co < obj->contsize; co++)
-      for(pt = 0,lpt = obj->cont[co].psize,
-	    point = obj->cont[co].pts; pt < lpt; pt++, point++){
+  }
+
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    if (vi->nt && iobjTime(obj->flags) && cont->type && 
+        (vi->ct != cont->type))
+      continue;
+
+    lpt = cont->psize;
+    point = cont->pts;
+
+    switch(obj->symbol){
+
+    case IOBJ_SYM_CIRCLE:
+      for (pt = 0; pt < lpt; pt++, point++){
 	glPushMatrix();
 	glTranslatef(point->x, point->y, point->z);
 	gluDisk(qobj, inner, outer, slices, loops);
 	glPopMatrix();
       }
-    break;
+      break;
 
-  case IOBJ_SYM_SQUARE:
-    for(co = 0; co < obj->contsize; co++)
-      for(pt = 0,lpt = obj->cont[co].psize,
-	    point = obj->cont[co].pts; pt < lpt; pt++, point++){
+    case IOBJ_SYM_SQUARE:
+      for (pt = 0; pt < lpt; pt++, point++) {
 	glBegin(mode);
 	vert = *point;
 	vert.x -= (obj->symsize/2);
@@ -159,12 +174,10 @@ void imodDrawObjectSymbols(Iobj *obj)
 	glVertex3fv((float *)&vert);
 	glEnd();
       }
-    break;
+      break;
 
-  case IOBJ_SYM_TRIANGLE:
-    for(co = 0; co < obj->contsize; co++)
-      for(pt = 0,lpt = obj->cont[co].psize,
-	    point = obj->cont[co].pts; pt < lpt; pt++, point++){
+    case IOBJ_SYM_TRIANGLE:
+      for (pt = 0; pt < lpt; pt++, point++) {
 	glBegin(mode);
 	vert = *point;
 	vert.y += obj->symsize;
@@ -176,23 +189,22 @@ void imodDrawObjectSymbols(Iobj *obj)
 	glVertex3fv((float *)&vert);
 	glEnd();
       }
-    break;
+      break;
 
-  case IOBJ_SYM_STAR:
-    break;
+    case IOBJ_SYM_STAR:
+      break;
 
-  case IOBJ_SYM_NONE:
-    glBegin(GL_POINTS);
-    for(co = 0; co < obj->contsize; co++)
-      for(pt = 0,lpt = obj->cont[co].psize, 
-	    point = obj->cont[co].pts; pt < lpt; pt++, point++)
+    case IOBJ_SYM_NONE:
+      glBegin(GL_POINTS);
+      for (pt = 0; pt < lpt; pt++, point++)
 	glVertex3fv((float *)point);
-    glEnd();
-    break;
 
-  default:
-    break;
+      glEnd();
+      break;
 
+    default:
+      break;
+    }
   }
 
   /* todo: draw ends */
@@ -200,7 +212,7 @@ void imodDrawObjectSymbols(Iobj *obj)
   return;
 }
 
-void imodDrawSpheres(Iobj *obj)
+static void imodDrawSpheres(ImodView *vi, Iobj *obj)
 {
   static GLUquadricObj *qobj = NULL;
   Icont *cont;
@@ -227,11 +239,15 @@ void imodDrawSpheres(Iobj *obj)
     glEndList();
   }
 
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
     if (!cont->psize)
       continue;
-    for(pt = 0, point = cont->pts; pt < cont->psize; pt++, point++){
+    if (vi->nt && iobjTime(obj->flags) && cont->type && 
+        (vi->ct != cont->type))
+      continue;
+
+    for (pt = 0, point = cont->pts; pt < cont->psize; pt++, point++) {
       drawsize = imodPointGetSize(obj, cont, pt);
       if (!drawsize)
 	continue;
