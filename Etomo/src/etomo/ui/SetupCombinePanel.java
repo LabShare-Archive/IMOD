@@ -43,7 +43,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p>
- * $Log$
+ * $Log$ Revision 2.11 2003/10/18 00:53:22 rickg
+ * Added multiline toggle button for matching models Updated matching model
+ * button state in setParameters method
+ * 
  * <p>
  * Revision 2.10 2003/10/15 22:48:03 rickg
  * <p>
@@ -188,8 +191,8 @@ public class SetupCombinePanel implements ContextMenu {
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbPatchRegionModel =
     new JCheckBox("Use patch region model");
-  private JButton btnPatchRegionModel =
-    new JButton("<html><b>Create/Edit Patch Region Model</b>");
+  private MultiLineToggleButton btnPatchRegionModel =
+    new MultiLineToggleButton("<html><b>Create/Edit Patch Region Model</b>");
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -209,12 +212,12 @@ public class SetupCombinePanel implements ContextMenu {
   private JButton btnImodVolumeB = new JButton("<html><b>3dmod Volume B</b>");
   private JToggleButton btnCreate =
     new JToggleButton("<html><b>Create Combine Scripts</b>");
-  private JToggleButton btnCombine =
-    new JToggleButton("<html><b>Start Combine</b>");
+  private MultiLineToggleButton btnCombine =
+    new MultiLineToggleButton("<html><b>Start Combine</b>");
 
   /**
-	 * Default constructor
-	 */
+   * Default constructor
+   */
   public SetupCombinePanel(ApplicationManager appMgr) {
 
     applicationManager = appMgr;
@@ -325,6 +328,11 @@ public class SetupCombinePanel implements ContextMenu {
     rbOneSideInverted.addActionListener(radioButtonListener);
     rbUseModel.addActionListener(radioButtonListener);
 
+    // Bind the patch region model check box to its action listener
+    SetupCombinePatchCBListener patchCBListener =
+      new SetupCombinePatchCBListener(this);
+    cbPatchRegionModel.addActionListener(patchCBListener);
+    
     //  Get the current text height from one of the
     double height = cbPatchRegionModel.getPreferredSize().getHeight();
 
@@ -373,7 +381,9 @@ public class SetupCombinePanel implements ContextMenu {
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
-    checkUseFiducialModel();
+    updateUseFiducialModel();
+    updatePatchRegionModel();
+    updateStartCombine();
   }
 
   public Container getContainer() {
@@ -426,8 +436,10 @@ public class SetupCombinePanel implements ContextMenu {
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
     chkManualCleanup.setSelected(combineParams.getManualCleanup());
-    
-    checkUseFiducialModel();
+
+    updateUseFiducialModel();
+    updatePatchRegionModel();
+    updateStartCombine();
   }
 
   public void getParameters(CombineParams combineParams)
@@ -522,35 +534,46 @@ public class SetupCombinePanel implements ContextMenu {
         applicationManager.combine();
       }
     }
+    updateStartCombine();
   }
 
   /**
    * Manage radio button action events
+   * 
    * @param event
    */
   private void radioButtonAction(ActionEvent event) {
-    checkUseFiducialModel();
+    updateUseFiducialModel();
+  }
+
+  private void cbPatchRegionAction(ActionEvent event) {
+    updatePatchRegionModel();
   }
 
   /**
    * Enable/disable the matching model button
-   *
    */
-  private void checkUseFiducialModel() {
-    if (rbUseModel.isSelected()) {
-      btnImodMatchModels.setEnabled(true);
-    }
-    else {
-      btnImodMatchModels.setEnabled(false);
-    }
+  private void updateUseFiducialModel() {
+    btnImodMatchModels.setEnabled(rbUseModel.isSelected());
   }
-  
-  private void updateStartCombine() {
-    
-  }
+
   /**
-	 * Right mouse btn context menu
-	 */
+   * Enable/disable the patch region model button
+   */
+  private void updatePatchRegionModel() {
+    btnPatchRegionModel.setEnabled(cbPatchRegionModel.isSelected());
+  }
+
+  /**
+   * Enable/disable the start combine button w.r.t. the existence of the scripts
+   */
+  private void updateStartCombine() {
+    btnCombine.setEnabled(applicationManager.combineScriptsExist());
+  }
+
+  /**
+   * Right mouse btn context menu
+   */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel =
       { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
@@ -611,4 +634,17 @@ public class SetupCombinePanel implements ContextMenu {
       adaptee.radioButtonAction(event);
     }
   }
+
+  class SetupCombinePatchCBListener implements ActionListener {
+
+    SetupCombinePanel adaptee;
+    public SetupCombinePatchCBListener(SetupCombinePanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.cbPatchRegionAction(event);
+    }
+  }
+
 }
