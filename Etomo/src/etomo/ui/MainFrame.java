@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.HeadlessException;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -48,6 +50,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/06/10 05:14:53  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.13  2003/05/27 08:54:18  rickg
  * <p> Determinant progress bar now takes a string
  * <p>
@@ -270,7 +275,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.eraseDialogPanel();
   }
-  
+
   /**
    * Show the specified processing panel
    */
@@ -310,7 +315,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.setProgressBarValue(value, string);
   }
-  
+
   /**
    *  Start the indeterminate progress bar on the specified axis 
    */
@@ -614,6 +619,60 @@ public class MainFrame extends JFrame implements ContextMenu {
   public void selectButton(AxisID axisID, String name) {
     mapAxis(axisID).selectButton(name);
   }
+
+  /**
+   * Open a Yes or No question dialog
+   * @param message
+   * @return boolean True if the Yes option was selected
+   */
+  public boolean openYesNoDialog(String[] message) {
+    try {
+      int answer =
+        JOptionPane.showConfirmDialog(
+          this,
+          message,
+          "Etomo question",
+          JOptionPane.YES_NO_OPTION);
+
+      if (answer == JOptionPane.YES_OPTION) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    catch (HeadlessException except) {
+      except.printStackTrace();
+      return false;
+    }
+  }
+
+  /**
+   * Open a Yes, No or Cancel question dialog
+   * @param message
+   * @return int state of the users select
+   */
+  public int openYesNoCancelDialog(String[] message) {
+    return JOptionPane.showConfirmDialog(
+      this,
+      message,
+      "Etomo question",
+      JOptionPane.YES_NO_CANCEL_OPTION);
+  }
+
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  public void openMessageDialog(Object message, String title) {
+    JOptionPane.showMessageDialog(
+      this,
+      message,
+      title,
+      JOptionPane.ERROR_MESSAGE);
+  }
+
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
@@ -637,12 +696,12 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @return
    */
   private AxisProcessPanel mapAxis(AxisID axisID) {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       return axisPanelB;
     }
     return axisPanelA;
   }
-  
+
   /**
    * Set the advanced label to to the opposite state
    */
