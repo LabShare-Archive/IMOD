@@ -38,7 +38,7 @@ install : $(LIBS)
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.obj" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
 	$(FIND) . -type f -name $(LIBI) -exec rm -f "{}" \;
 	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
