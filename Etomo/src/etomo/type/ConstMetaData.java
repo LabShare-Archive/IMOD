@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/06 03:00:40  rickg
+ * <p> Updated imageRotation to store axis separately
+ * <p>
  * <p> Revision 3.5  2004/02/24 18:52:22  sueh
  * <p> bug# 385 initialized binning to null
  * <p>
@@ -214,7 +217,7 @@ public class ConstMetaData {
     return comScriptsCreated;
   }
 
-  public boolean getFiducialessAlignment() {
+  public boolean isFiducialessAlignment() {
     return fiducialessAlignment;
   }
 
@@ -451,7 +454,7 @@ public class ConstMetaData {
       return false;
     if (!(binning == cmd.getBinning()))
       return false;
-    if (!(fiducialessAlignment == cmd.getFiducialessAlignment()))
+    if (!(fiducialessAlignment == cmd.isFiducialessAlignment()))
       return false;
 
     // TODO tilt angle spec needs to be more complete
