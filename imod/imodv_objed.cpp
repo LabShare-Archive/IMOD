@@ -89,6 +89,7 @@ static void mkScalar_cb(int index);
 static void setClip_cb(void);
 static void mkClip_cb(int index);
 static void mkMove_cb(int index);
+static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
 static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
@@ -130,15 +131,15 @@ static int olistNcol = 1;
 
 static int      CurrentObjectField       = 0;
 ObjectEditField objectEditFieldData[]    = {
-  {"Line Color", mkLineColor_cb, setLineColor_cb, NULL},
-  {"Fill Color", mkFillColor_cb, setFillColor_cb, NULL},
-  {"Points",     mkPoints_cb,    setPoints_cb,    NULL},
-  {"Lines",      mkLines_cb,     setLines_cb,     NULL},
-  {"Mesh View",  mkScalar_cb,    setScalar_cb,    NULL},
-  {"Clip",       mkClip_cb,      setClip_cb,      NULL},
-  {"Material",   mkMaterial_cb,  setMaterial_cb,  NULL},
-  {"Move",       mkMove_cb,      NULL,            NULL},
-  {"Subsets",    mkSubsets_cb,   NULL,            NULL},
+  {"Line Color", mkLineColor_cb, setLineColor_cb, NULL,       NULL},
+  {"Fill Color", mkFillColor_cb, setFillColor_cb, NULL,       NULL},
+  {"Points",     mkPoints_cb,    setPoints_cb,    NULL,       NULL},
+  {"Lines",      mkLines_cb,     setLines_cb,     NULL,       NULL},
+  {"Mesh View",  mkScalar_cb,    setScalar_cb,    NULL,       NULL},
+  {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
+  {"Material",   mkMaterial_cb,  setMaterial_cb,  NULL,       NULL},
+  {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
+  {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
 
   NULL,
 };
@@ -1231,6 +1232,7 @@ static char *moveLabels[] = {"Top", "Front", "Bottom", "Back",
                              "Front", "Left", "Back", "Right"};
 static int moveQuarters[] = {0, -1, 2, 1, 0, 1, 2, -1, 0, 1, 2, -1};
 static char *axisLabels[] = {"X", "Y", "Z"};
+static QPushButton *moveButtons[12];
 
 void ImodvObjed::moveCenterSlot()
 {
@@ -1283,7 +1285,7 @@ void ImodvObjed::moveAxisSlot(int which)
 
 static void mkMove_cb(int index)
 {
-  int width, icol;
+  int icol;
   QPushButton *button;
   QLabel *label;
   ObjectEditField *oef = &objectEditFieldData[index];
@@ -1301,7 +1303,6 @@ static void mkMove_cb(int index)
   QSignalMapper *mapper = new QSignalMapper(oef->control);
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
                    SLOT(moveAxisSlot(int)));
-  width = (int)(1.2 * label->fontMetrics().width("Bottom"));
 
   // Make the buttons, put in mapper and grid
   for (int i = 0; i < 12; i++) {
@@ -1312,16 +1313,23 @@ static void mkMove_cb(int index)
       label->setAlignment(Qt::AlignCenter);
     }
 
-    button = new QPushButton(moveLabels[i], oef->control);
-    button->setFocusPolicy(QWidget::NoFocus);
-    button->setFixedWidth(width);
-    grid->addWidget(button, i % 4 + 1, icol);
-    mapper->setMapping(button, i);
-    QObject::connect(button, SIGNAL(clicked()), mapper, SLOT(map()));
+    moveButtons[i] = new QPushButton(moveLabels[i], oef->control);
+    moveButtons[i]->setFocusPolicy(QWidget::NoFocus);
+    grid->addWidget(moveButtons[i], i % 4 + 1, icol);
+    mapper->setMapping(moveButtons[i], i);
+    QObject::connect(moveButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
   }    
+  fixMove_cb();
 
   finalSpacer(oef->control, layout1);
 }         
+
+static void fixMove_cb() 
+{
+  int width = (int)(1.2 * moveButtons[0]->fontMetrics().width("Bottom"));
+  for (int i = 0; i < 12; i++)
+    moveButtons[i]->setFixedWidth(width);
+}
 
 /*****************************************************************************
  * The subsets edit field
@@ -1555,6 +1563,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.6  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.5  2003/03/04 21:42:22  mast
 Refresh imod image windows when objects turned on/off or point size changes
 

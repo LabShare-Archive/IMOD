@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
 Revision 1.1.2.3  2003/01/29 01:52:41  mast
 make gl widget public
 
@@ -34,6 +37,7 @@ initial creation
 #include <qmainwindow.h>
 #include <qgl.h>
 
+class QPushButton;
 class QToolButton;
 class QSignalMapper;
 class QHBox;
@@ -115,6 +119,7 @@ class TumblerWindow : public QMainWindow
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
+  void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
   
  private:
   void setupToggleButton(QHBox *toolBar, QSignalMapper *mapper, 
@@ -127,7 +132,7 @@ class TumblerWindow : public QMainWindow
   void drawSubArea(TumblerStruct *xtum, unsigned short *sdata, int llx,
 		       int urx);
   void computeRotation(float x, float y, float z);
-
+  void setFontDependentWidths();
   
   TumblerStruct *mTum;
   QToolButton *mToggleButs[MAX_XTUM_TOGGLES];
@@ -136,6 +141,7 @@ class TumblerWindow : public QMainWindow
   MultiSlider *mSliders;
   QSpinBox *mZoomBox;
   QSpinBox *mSizeBoxes[3];
+  QPushButton *mHelpButton;
 
 };
 

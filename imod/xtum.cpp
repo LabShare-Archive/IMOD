@@ -72,7 +72,7 @@ Log at end of file
 #define XTUM_SIZE_MIN 8
 #define XTUM_SIZE_MAX 148
 #define XTUM_SIZE_INC 8
-#define XTUM_SIZE_INI 32
+#define XTUM_SIZE_INI 48
 #define XTUM_MAX_ZOOM 12
 
 #define AUTO_RAISE false
@@ -239,11 +239,10 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
   QToolTip::add(mToggleButs[1], "Lock X/Y/Z position being displayed");
 
   // Help button
-  QPushButton *pbutton = new QPushButton("Help", topHBox, "Help button");
-  int width = (int)(1.2 * pbutton->fontMetrics().width("Help"));
-  pbutton->setFixedWidth(width);
-  pbutton->setFocusPolicy(QWidget::NoFocus);
-  connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
+  mHelpButton = new QPushButton("Help", topHBox, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(pressed()), this, SLOT(help()));
+  setFontDependentWidths();
 
   // Spacer for the top row
   QHBox *topSpacer = new QHBox(topHBox);
@@ -301,6 +300,12 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
 
   resize(XTUM_WIDTH, XTUM_HEIGHT);
   setFocusPolicy(QWidget::StrongFocus);
+}
+
+void TumblerWindow::setFontDependentWidths()
+{
+  int width = (int)(1.2 * mHelpButton->fontMetrics().width("Help"));
+  mHelpButton->setFixedWidth(width);
 }
 
 // Set up one toggle button, making bitmaps for the two state
@@ -1360,6 +1365,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.5  2003/03/24 17:56:46  mast
+Register with dialogManager so it can be parked with info window
+
 Revision 4.4  2003/03/13 01:20:08  mast
 Convert numlock keypad keys so num lock can be on
 

@@ -241,12 +241,24 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
     ImodInfoWidget->setFloat(-1);
   
 
-  // Get the status window and fix its minimum size; 
-  // set its starting size by adjusting the window size
+  // Get the status window 
   mStatusEdit = new QTextEdit(central);
+  setFontDependentWidths();
+
+  setFocusPolicy(StrongFocus);
+  mStatusEdit->setFocusPolicy(NoFocus);
+  wprintWidget(mStatusEdit);
+
+  mHideTimer = new QTimer(this, "imod info hide timer");
+  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
+}
+
+void InfoWindow::setFontDependentWidths()
+{
+  // fix the minimum size of the status window
+  // set its starting size by adjusting the window size
   mStatusEdit->setMinimumHeight((int)(INFO_MIN_LINES * 
 				      fontMetrics().height()));
-
   // This is needed to get the right hint out of the info widget
   imod_info_input();
 
@@ -258,13 +270,12 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   hint = sizeHint();
   resize(hint.width(), hint.height() - editHint.height() +
 	 (int)(INFO_STARTING_LINES * fontMetrics().height()));
-  
-  setFocusPolicy(StrongFocus);
-  mStatusEdit->setFocusPolicy(NoFocus);
-  wprintWidget(mStatusEdit);
+}
 
-  mHideTimer = new QTimer(this, "imod info hide timer");
-  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
+void InfoWindow::fontChange( const QFont & oldFont )
+{
+  ImodInfoWidget->setFontDependentWidths();
+  setFontDependentWidths();
 }
 
 void InfoWindow::pluginSlot(int item)
@@ -466,6 +477,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.9  2003/03/24 17:58:09  mast
+    Changes for new preferences capability
+
     Revision 4.8  2003/03/18 19:30:23  mast
     Add a timer hack to keep window on top
 

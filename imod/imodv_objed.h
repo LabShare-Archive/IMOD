@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -42,6 +45,7 @@ typedef struct
   char    *label;                  /* Label used for list widget.      */
   void    (*mkwidget)(int index);  /* Function used to make edit area. */
   void    (*setwidget)(void);      /* Function to adjust internal data */
+  void    (*fixwidget)(void);      /* Function to set widget sizes     */
   QWidget *control;                /* Runtime widget storage.          */
 
 }ObjectEditField;

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
 Revision 1.1.2.3  2003/01/30 00:53:49  mast
 New timer logic for clean first image
 
@@ -33,6 +36,7 @@ initila creation
 #include <qgl.h>
 
 class QToolButton;
+class QPushButton;
 class ToolEdit;
 class QLabel;
 class QSignalMapper;
@@ -85,10 +89,12 @@ class SlicerWindow : public QMainWindow
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
+  void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
   
  private:
   void setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
 			 int index);
+  void setFontDependentWidths();
   
   SlicerStruct *mSlicer;
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
@@ -98,6 +104,7 @@ class SlicerWindow : public QMainWindow
   FloatSpinBox *mModelBox;
   MultiSlider *mSliders;
   QComboBox *mZscaleCombo;
+  QPushButton *mHelpButton;
 };
 
 class SlicerGL : public QGLWidget

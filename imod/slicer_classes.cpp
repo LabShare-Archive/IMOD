@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/28 21:39:32  mast
+Changing name of tooledit focus signal
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 
@@ -160,11 +163,10 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 	  SLOT(zScaleSelected(int)));
 
   // Help button
-  QPushButton *pbutton = new QPushButton("Help", mToolBar, "Help button");
-  int width = (int)(1.2 * pbutton->fontMetrics().width("Help"));
-  pbutton->setFixedWidth(width);
-  pbutton->setFocusPolicy(QWidget::NoFocus);
-  connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
+  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(pressed()), this, SLOT(help()));
+  setFontDependentWidths();
 
   // SECOND TOOLBAR
   mToolBar2 = new HotToolBar(this);
@@ -239,6 +241,12 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
+}
+
+void SlicerWindow::setFontDependentWidths()
+{
+  int width = (int)(1.2 * mHelpButton->fontMetrics().width("Help"));
+  mHelpButton->setFixedWidth(width);
 }
 
 

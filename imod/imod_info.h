@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2003/03/24 17:58:09  mast
+    Changes for new preferences capability
+
     Revision 3.5  2003/03/18 19:30:36  mast
     Add timer to keep window on top
 
@@ -94,6 +97,7 @@ class InfoWindow : public QMainWindow
   ~InfoWindow() {};
   void manageMenus();
   void keepOnTop(bool state);
+  void setFontDependentWidths();
 
   public slots:
   void fileSlot(int item);
@@ -117,6 +121,7 @@ class InfoWindow : public QMainWindow
     void showEvent(QShowEvent *e);
     void hideEvent(QHideEvent *e);
     void timerEvent(QTimerEvent *e);
+    void fontChange( const QFont & oldFont );
 
  private:
   QPopupMenu *mFileMenu;

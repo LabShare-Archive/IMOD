@@ -523,9 +523,10 @@
 </connections>
 <includes>
     <include location="global" impldecl="in declaration">qwidgetstack.h</include>
-    <include location="local" impldecl="in implementation">hotslider.h</include>
-    <include location="local" impldecl="in implementation">imodv_objed.h</include>
+    <include location="global" impldecl="in implementation">qapplication.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
+    <include location="local" impldecl="in implementation">imodv_objed.h</include>
+    <include location="local" impldecl="in implementation">hotslider.h</include>
     <include location="local" impldecl="in implementation">formv_objed.ui.h</include>
 </includes>
 <variables>
@@ -533,6 +534,8 @@
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentSizes( int width, int height )</slot>
+    <slot>fontChange( const QFont &amp; oldFont )</slot>
     <slot>objectSelected( int which )</slot>
     <slot>editSelected( int item )</slot>
     <slot>objSliderChanged( int value )</slot>

@@ -33,10 +33,6 @@ void imodvObjedForm::init()
 	oef->control = new QWidget(panelFrame);
 	oef->mkwidget(i);	
 	
-	// See if we can avoid setting all widgets at start
-	// if (oef->setwidget)
-	 //   eof->setwidget();
-	
 	// You have to put it in layout and assess geometry before putting in stack
 	panelFrameLayout->addWidget(oef->control);
 	QSize size = oef->control->sizeHint();
@@ -47,18 +43,45 @@ void imodvObjedForm::init()
 	mStack->addWidget(oef->control, i);
     }
     
+    setFontDependentSizes(width, height);
+    mStack->raiseWidget(0);
+    
+    imodvObjedMakeOnOffs(checkBoxFrame);
+}
+
+void imodvObjedForm::setFontDependentSizes(int width, int height)
+{
     // Set frame size for all widgets
     // 20 needed to be added with margin 11, 8 with margin 5
     panelFrame->setMinimumWidth(width + 8);   
     panelFrame->setMinimumHeight(height + 8);
-    mStack->raiseWidget(0);
-    
-    imodvObjedMakeOnOffs(checkBoxFrame);
     
     // Set size of list box
-    panelListBox->setMinimumWidth(panelListBox->maxItemWidth() + 2);
+    panelListBox->setMinimumWidth(panelListBox->maxItemWidth() + 4);
     panelListBox->setMinimumHeight(panelListBox->count() * 
-				   panelListBox->itemHeight() + 2);
+				   panelListBox->itemHeight() + 4);
+}
+
+// Need to adjust and measure sizes of widgets on font change
+void imodvObjedForm::fontChange( const QFont & oldFont )
+{
+    int i;
+    int width = 0, height = 0;
+    ObjectEditField *oef;
+    for  (i = 0; (objectEditFieldData[i].label); i++) {
+	oef = &objectEditFieldData[i];
+	if (oef->fixwidget)
+	    oef->fixwidget();
+	
+	// Processing events makes the size hints good
+	qApp->processEvents();
+	QSize size = oef->control->sizeHint();
+	if (width < size.width())
+	    width = size.width();
+	if (height < size.height())
+	    height = size.height();
+    }	
+    setFontDependentSizes(width, height);
 }
 
 // Pass on changes in the valious controls
@@ -167,3 +190,4 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
     }
      imodvKeyRelease(e);
 }
+
