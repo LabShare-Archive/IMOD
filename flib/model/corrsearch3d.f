@@ -583,7 +583,7 @@ c
 		enddo
 	      enddo
 	    enddo
-	    if(indmax.ne.0.or.idx.ne.0.or.idy.ne.0)iseq=0
+	    if(indmax.ne.0.or.idy.ne.0.or.idz.ne.0)iseq=0
 	  endif
 	  iseq=iseq+1
 	enddo
@@ -595,21 +595,21 @@ c
 	y2=corrs(0,0,0)
 	y3=corrs(1,0,0)
 	denom=2.*(y1+y3-2.*y2)
-	if(abs(denom).gt.-1.e6)cx=(y1-y3)/denom
+	if(abs(denom).gt.1.e-6)cx=(y1-y3)/denom
 	if(abs(cx).gt.0.5)cx=sign(0.5,cx)
 c	  
 	cy=0.
 	y1=corrs(0,-1,0)
 	y3=corrs(0,1,0)
 	denom=2.*(y1+y3-2.*y2)
-	if(abs(denom).gt.-1.e6)cy=(y1-y3)/denom
+	if(abs(denom).gt.1.e-6)cy=(y1-y3)/denom
 	if(abs(cy).gt.0.5)cy=sign(0.5,cy)
 c	  
 	cz=0.
 	y1=corrs(0,0,-1)
 	y3=corrs(0,0,1)
 	denom=2.*(y1+y3-2.*y2)
-	if(abs(denom).gt.-1.e6)cz=(y1-y3)/denom
+	if(abs(denom).gt.1.e-6)cz=(y1-y3)/denom
 	if(abs(cz).gt.0.5)cz=sign(0.5,cz)
 c	  
 	dxadj=idxglb+cx+loadbx0-loadax0
