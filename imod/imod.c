@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2002/09/18 02:51:35  mast
+    Started event handler right after the fork, so it can receive events during
+    the image load.
+
     Revision 3.5  2002/09/17 18:40:33  mast
     Moved the report to window ID to before fork and data loading
 
@@ -545,8 +549,12 @@ int main( int argc, char *argv[])
 #ifndef NO_IMOD_FORK
      /* put imod in background if not debug. */
      if (!Imod_debug)
-	  if ((cpid = fork()) != 0)
-	       exit(0);
+       if ((cpid = fork()) != 0) {
+         if(print_wid) {
+           fprintf(stderr, "Process id = %u\n", cpid);
+         }
+         exit(0);
+       }
 #endif
 
      XtAddEventHandler(App->toplevel, 0, True, 
