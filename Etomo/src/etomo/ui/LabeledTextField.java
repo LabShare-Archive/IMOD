@@ -18,6 +18,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.4.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -104,6 +107,9 @@ public class LabeledTextField {
     textField.setEditable(editable);
   }
 
+  //
+  //  Dimension methods
+  //
   public void setTextPreferredSize(Dimension size) {
     textField.setPreferredSize(size);
   }
@@ -128,6 +134,10 @@ public class LabeledTextField {
     return textField.getSize();
   }
 
+  public Dimension getLabelPreferredSize() {
+    return label.getPreferredSize();
+  }
+  
   public void setColumns(int columns) {
     textField.setColumns(columns);
   }
