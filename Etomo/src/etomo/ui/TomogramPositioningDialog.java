@@ -37,6 +37,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/06/01 18:56:32  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
  * <p> Revision 3.9  2004/05/25 23:25:52  rickg
  * <p> Bug #391 added fiducialess parameter interface and UI objects
  * <p>
@@ -144,7 +147,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   private LabeledTextField ltfSampleTomoThickness = new LabeledTextField(
     "Sample tomogram thickness: ");
 
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
+  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
   "Tilt axis rotation:");
   

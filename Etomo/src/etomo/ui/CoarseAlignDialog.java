@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.8  2004/05/25 23:24:32  rickg
  * <p> Bug #391 added fiducialess parameter interface and UI objects
  * <p>
@@ -124,7 +127,7 @@ public class CoarseAlignDialog extends ProcessDialog
     "View Aligned<br>Stack In 3dmod");
 
   private JPanel pnlFiducialess = new JPanel();
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
+  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
     "Tilt axis rotation:");
 
@@ -266,10 +269,12 @@ public class CoarseAlignDialog extends ProcessDialog
     btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use 3dmod to view the coarsely aligned images.";
     btnImod.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Enable or disable the fiducialess align processing flow.";
+    text = "Enable or disable the processing flow using cross-correlation alignment only.";
     cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use Midas to adjust bad alignments.";
     btnMidas.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Initial rotation angle of tilt axis when viewing images in Midas.";
+    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   /**

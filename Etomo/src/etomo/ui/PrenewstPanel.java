@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2004/05/25 23:25:28  rickg
+ * <p> Bug #391 moved fiducialess parameters to the parent dialog
+ * <p>
  * <p> Revision 1.5  2004/04/07 21:03:10  rickg
  * <p> Fixed layout using UIUtilities
  * <p>
@@ -58,7 +61,7 @@ public class PrenewstPanel implements ContextMenu {
 
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner("Pre-aligned image stack binning ",
+    spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
       integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
 
@@ -70,6 +73,7 @@ public class PrenewstPanel implements ContextMenu {
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
+    setToolTipText();
   }
 
   JPanel getPanel() {
@@ -112,5 +116,16 @@ public class PrenewstPanel implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
       "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile);
   }
+  
+  /**
+   * Tooltip string initialization
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text = "Binning for the image stack used to generate and fix the fiducial model.";
+    spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+  }
+
 
 }

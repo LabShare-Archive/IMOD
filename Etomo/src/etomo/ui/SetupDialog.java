@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/04/26 03:17:54  rickg
+ * <p> Normalized button size
+ * <p>
  * <p> Revision 3.12  2004/04/06 04:13:28  rickg
  * <p> Updated imageRotation to store axis separately
  * <p>
@@ -840,7 +843,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     if (xPixelSize == 1.0) {
       applicationManager.openMessageDialog(
-        "X & Y pixels sizes are not defined", "Pixel sizes are not defined");
+        "Pixel size is not defined in the image file header",
+        "Pixel size is missing");
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
@@ -934,10 +938,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     text = "Enter the view image rotation in degrees. This is the rotation (CCW positive) from the Y-axis (the tilt axis after the views are aligned) to the suspected tilt axis in the unaligned views.";
     ltfImageRotation.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the correct binning if following spin control.";
+    text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the CCD camera binning in the following spin control.";
     ltfDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "If have selected to correct for the image distortion, the correct binning must be entered here.  It might be avilable by scanning the header of the projection image stack.";
+    text = "Specify the binning in the CCD camera when the raw image stack was acquired.";
     spnBinning.setToolTipText(tooltipFormatter.setText(text).format());
 
     tiltAnglesA.setToolTipText();

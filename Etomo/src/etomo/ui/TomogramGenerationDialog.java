@@ -55,6 +55,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2004/06/01 19:02:33  rickg
+ * Bug #391 moved fiducialess parameters in with newstack
+ * parameters, fixed trash javadoc header
+ *
  * Revision 3.14  2004/05/26 04:54:08  rickg
  * Bug #391 added fiducialess parameter interface and UI objects
  *
@@ -225,7 +229,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
+  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
 
