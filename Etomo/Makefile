@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.8  2003/08/08 23:57:15  mast
+# *** empty log message ***
+#
 # Revision 2.7  2003/08/08 19:05:17  rickg
 # Fixed cp and rm invokations
 #
@@ -24,7 +27,7 @@ SOURCEPATH = src
 CLASSPATH = bin
 
 CLASS_FILES = $(CLASSPATH)/etomo/ApplicationManager.class
-JAR_FILE = jar/etomo.jar
+JAR_FILE = jar_dir/etomo.jar
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui etomo.util
 
@@ -37,10 +40,11 @@ all: $(JAR_FILE)
 	echo "Make completed."
 
 $(JAR_FILE): cpimages compile
-	mkdir -p jar
+	mkdir -p jar_dir
 	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
+	if (! (-e $(CLASSPATH)))  mkdir $(CLASSPATH)
 	$(CP) -r $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
