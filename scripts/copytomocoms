@@ -652,6 +652,9 @@ EOF
     @ halfsampali = $SAMPALISIZE / 2
     if ($halfsampali > $border - 10) @ halfsampali = $border - 10
     @ sampali = 2 * $halfsampali
+    @ slmin = $halfsampali - $SAMPLESIZE / 2
+    @ slmax = $slmin + $SAMPLESIZE - 1
+    @ sllimit = $SAMPALISIZE - 1
 
     set offarr = (0 $offset -$offset)
     set bmtarr = (mid$recext top$recext bot$recext)
@@ -662,6 +665,16 @@ EOF
 
     # MAKE UP SAMPLE FILE WITH VARIOUS CASES
 
+    cat > $dstfile <<EOF
+# THIS IS A COMMAND FILE TO MAKE 3 TOMOGRAM SAMPLES
+#
+# The sample aligned stacks will each be $SAMPALISIZE pixels in Y
+# The sample tomograms will have $SAMPLESIZE slices
+# To get more slices in the samples, change "SLICE $slmin $slmax" by
+# decreasing $slmin and increasing $slmax by equal amounts, up to 0 and $sllimit
+#
+EOF
+
     @ ind = 0
     while ($ind < 3)
         @ ind++
@@ -669,8 +682,6 @@ EOF
         # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
         @ ymin = ($ofsize / 2 + $offind) - $halfsampali
         @ ymax = ($ofsize / 2 + $offind) + $halfsampali
-        @ slmin = $halfsampali - $SAMPLESIZE / 2
-        @ slmax = $slmin + $SAMPLESIZE - 1
         if ($montage == "0") then
             if ($filmccd == "F") then
                 sed -e "/single offset/s/.*	/0,$offind	/"\
@@ -683,6 +694,7 @@ EOF
                     -e "/\(-size *[0-9]*,\)[0-9]* /s//\1$sampali /"\
                     -e "/if (-e/d"\
                     -e "/mrctaper/d"\
+                    -e "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/"\
                     <newst$dstext >>$dstfile
             endif
         else
@@ -690,6 +702,7 @@ EOF
                 -e "/^StartingAndEndingY/s/	.*/	$ymin $ymax/"\
                 -e "/if (-e/d"\
                 -e "/mrctaper/d"\
+                 -e "/Command file/s//Commands/"\
                 <blend$dstext >>$dstfile
         endif
 
@@ -836,6 +849,9 @@ EOF
 endif
 #
 #  $Log$
+#  Revision 3.14  2003/11/18 04:00:43  mast
+#  Fix format of sed append in sample.com so it works on Mac 10.3
+#
 #  Revision 3.13  2003/10/16 20:51:14  mast
 #  Increased Y dimension of aligned stacks used to make samples, modified
 #  sample.com to use the central 10 slices, and protected samples from
