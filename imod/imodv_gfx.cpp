@@ -55,7 +55,6 @@ Log at end of file
 
 /* local functions */
 static int imodv_snapshot(ImodvApp *a, char *fname);
-static void imodv_swapbuffers(ImodvApp *a);
 static void imodv_clear(ImodvApp *a);
 
 
@@ -75,7 +74,7 @@ int imodv_winset(ImodvApp *a)
 /*
  *  A swap buffer command (should not be needed)
  */
-static void imodv_swapbuffers(ImodvApp *a)
+void imodv_swapbuffers(ImodvApp *a)
 {
   if (a->doPick) return;
   a->mainWin->mCurGLw->makeCurrent();
@@ -248,11 +247,9 @@ void imodvPaintGL()
 /****************************************************************************/
 /****************************************************************************/
 
-static int snap_fileno = 0;
-
 void imodvResetSnap()
 {
-  snap_fileno = 0;
+  Imodv->snap_fileno = 0;
 }
 
 int imodv_auto_snapshot(char *inName, int format_type)
@@ -260,27 +257,13 @@ int imodv_auto_snapshot(char *inName, int format_type)
   ImodvApp *a = Imodv;
   char fname[32];
   char *usename = inName;
-  char *fext = "rgb";
-  FILE *tfp = NULL;
-
-  if (format_type == SnapShot_TIF)
-    fext = "tif";
 
   if (!inName) {
     usename = fname;
 
     /* DNM 6/4/03: add logic to avoid overwriting files */
-    do {
-      if (tfp) {
-        fclose(tfp);
-        tfp = NULL;
-      }
-      if (snap_fileno < 10000)
-        sprintf(fname, "modv%04d.%s", snap_fileno++, fext);
-      else
-        sprintf(fname, "modv%d.%s", snap_fileno++, fext);
-    } while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
-                         "rb")));
+    /* DNM 12/28/03: use common routine to get filename */
+    b3dGetSnapshotName(fname, "modv", format_type, 4, a->snap_fileno);
   }
 
   printf("3dmodv: Saving image to %s", usename);
@@ -389,6 +372,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.6  2003/12/04 06:13:45  mast
+Fix crash when snapping as... by not freeing name
+
 Revision 4.5  2003/06/04 23:30:15  mast
 Change to not overwriting modv snapshot files.
 
