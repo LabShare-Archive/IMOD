@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2004/04/28 05:30:24  mast
+    Added flag for drawing current contour thicker
+
     Revision 3.1  2003/06/27 20:10:28  mast
     Add functions to set object color and get specific contour from object
 
@@ -146,6 +149,7 @@ float imodObjectVolume(Iobj *obj);
 Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes);
 int   imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur);
 int   imodObjectRemoveContour(Iobj *obj, int index);
+void  imodObjectCleanSurf(Iobj *obj);
 
 int   imodObjectGetMaxContour(Iobj *inObject);
 char *imodObjectGetName(Iobj *inObject);
