@@ -25,6 +25,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.4  2002/11/14 04:41:11  rickg
  * <p> Fined matchorwarp man page entry
  * <p>
@@ -309,13 +312,18 @@ public class SetupCombinePanel implements ContextMenu {
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "matchorwarp" };
     String[] manPage = { "matchorwarp.html" };
+    String[] logFileLabel = { "transferfid" };
+    String[] logFile = {"transferfid.log" };
     ContextPopup contextPopup =
       new ContextPopup(
         contentPane,
         mouseEvent,
         "COMBINING TWO TOMOGRAMS",
         manPagelabel,
-        manPage);
+        manPage,
+        logFileLabel,
+        logFile);
+
   }
 
   /**
