@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/10/30 20:00:32  mast
+c	  Needed to decalre PipGetInOutFile as integer
+c	
 c	  Revision 3.7  2003/10/24 03:46:15  mast
 c	  switch to calling routine to make backup edf file
 c	
@@ -93,7 +96,7 @@ c
 	integer*4 ixpclo(15),ixpcup(15),iypclo(15),iypcup(15)
 c
 	integer*4 iblend(2)			!blending width in x and y
-	integer*4 indoneedge(2),indedge4(3,2),nedgetmp(2)
+	integer*4 indoneedge(2),indedge4(3,2),nedgetmp(5,2)
 	integer*4 listz(limsect),izwant(limsect)
 	logical skipxforms
 	character dat*9, tim*8
@@ -126,7 +129,7 @@ c
 c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c
 	integer numOptions
-	parameter (numOptions = 25)
+	parameter (numOptions = 28)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -144,11 +147,13 @@ c
      &      'oldedge:OldEdgeFunctions:B:@'//
      &      'perneg:FramesPerNegativeXandY:IP:@'//
      &      'missing:MissingFromFirstNegativeXandY:IP:@'//
-     &      'width:BlendingWidthXandY:IP:@param:ParameterFile:PF:@'//
+     &      'width:BlendingWidthXandY:IP:@'//
+     &      'boxsize:BoxSizeShortAndLong:IP:@'//
+     &      'grid:GridSpacingShortAndLong:IP:@'//
+     &      'indents:IndentShortAndLong:IP:@param:ParameterFile:PF:@'//
      &      'help:usage:B:'
 c
-c	  initialization of elements in common; this is done with statements
-c	  to avoid huge executables on SGI
+c	  initialization of elements in common
 c
 	iunedge(1)=7
 	iunedge(2)=8
@@ -574,26 +579,41 @@ c
 c
 	if(ifoldedge.ne.0)then
 c	    
-c	    for old files, open, get edge count and make sure it matches
+c	    for old files, open, get edge count and # of grids in X and Y
 c
-	  do ixy=1,2
-	    call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
-     &	        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
-	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
+	  do ixy = 1, 2
+	    lenrec = 24 / nbytes_recl_item
 	    edgenam=concat(filnam,edgeext(ixy))
-c
-c 7/20/00 CER remove readonly for gnu
-c
 	    open(iunedge(ixy),file=edgenam,status='old',
      &		form='unformatted',access='direct', recl=lenrec, err=53)
-	    read(iunedge(ixy),rec=1)nedgetmp(ixy)
+	    read(iunedge(ixy),rec=1)(nedgetmp(i,ixy), i = 1, 5)
+	    close(iunedge(ixy))
 	  enddo
-	  if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))then
-	    call convert_longs(nedgetmp,2)
-	    if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))
+c	    
+c	    make sure edge counts match and intgrid was consistent
+c
+	  if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))then
+	    call convert_longs(nedgetmp,10)
+	    if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
      &		call errorexit('wrong # of edges in edge function file')
 	    needbyteswap=1
 	  endif
+	  if (nedgetmp(4,1) .ne. nedgetmp(5,2) .or.
+     &	      nedgetmp(5,1) .ne. nedgetmp(4,2)) call errorexit(
+     &	      'inconsistent grid spacings between edge function files')
+	  intgrid(1) = nedgetmp(4,1)
+	  intgrid(2) = nedgetmp(5,1)
+c	    
+c	    set up record size and reopen with right record size
+c
+	  do ixy=1,2
+	    nxgrid(ixy) = nedgetmp(2,ixy)
+	    nygrid(ixy) = nedgetmp(3,ixy)
+	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
+	    edgenam=concat(filnam,edgeext(ixy))
+	    open(iunedge(ixy),file=edgenam,status='old',
+     &		form='unformatted',access='direct', recl=lenrec, err=53)
+	  enddo
 	  go to 54
 c	    
 c	    8/8/03: if there is an error opening old files, just build new ones
@@ -615,15 +635,24 @@ c	  read(5,*)ifdiddle
 	  sdcrit=2.
 	  devcrit=2.
 	  norder=2
+c	    
+c	    make smart defaults for grid parameters
+c
+	  gridScale = max(1., max(nxin, nyin) / 1024.)
+	  do ixy = 1, 2
+	    iboxsiz(ixy) = nint(iboxsiz(ixy) * gridScale)
+	    indent(ixy) = nint(indent(ixy) * gridScale)
+	    intgrid(ixy) = nint(intgrid(ixy) * gridScale)
+	  enddo
+c
+	  if (pipinput) then
+	    ierr = PipGetIntegerArray('BoxSizeShortAndLong', iboxsiz, 2, 2)
+	    ierr = PipGetIntegerArray('IndentShortAndLong', indent, 2, 2)
+	    ierr = PipGetIntegerArray('GridSpacingShortAndLong', intgrid, 2, 2)
+	  endif
+c	  print *,'box size', (iboxsiz(i), i=1,2),'  grid',(intgrid(i), i=1,2)
+
 	  if(ifdiddle.ne.0)then
-	    write(*,'(1x,a,$)')
-     &		'grid intervals in short and long directions: '
-	    read(5,*)(intgrid(i),i=1,2)
-	    write(*,'(1x,a,$)')'box size in short and long directions: '
-	    read(5,*)(iboxsiz(i),i=1,2)
-	    write(*,'(1x,a,$)')
-     &		'minimum indentation in short and long directions: '
-	    read(5,*)(indent(i),i=1,2)
 	    write(*,'(1x,a,$)')'criterion # of sds away from mean'//
      &		' of sd and deviation: '
 	    read(5,*)sdcrit,devcrit
@@ -670,8 +699,8 @@ c
 	    call exit(1)
 	  endif
 	  call dopen(4,edgenam,'ro','f')
-	  read(4,*)nedgetmp(1),nedgetmp(2)
-	  if(nedgetmp(1).ne.nedge(1).or.nedgetmp(2).ne.nedge(2))then
+	  read(4,*)nedgetmp(1,1),nedgetmp(1,2)
+	  if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))then
 	    print *,'wrong # of edges in edge correlation file'
 	    call exit(1)
 	  endif
