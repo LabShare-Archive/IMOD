@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/06/17 19:26:39  rickg
+ * Bug #477 added USE_MODEL_ONLY option
+ *
  * Revision 3.2  2004/04/22 23:28:28  rickg
  * *** empty log message ***
  *
@@ -132,6 +135,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstMetaData;
@@ -146,10 +150,12 @@ public class SetupCombine {
   int exitValue;
   ConstMetaData metaData;
   Vector warningMessage;
+  boolean debug;
 
   public SetupCombine(ConstMetaData metaData) {
 
     this.metaData = metaData;
+    debug = EtomoDirector.getInstance().isDebug();
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
@@ -266,7 +272,7 @@ public class SetupCombine {
     int exitValue;
 
     //  Execute the script
-    setupcombine.setDebug(true);
+    setupcombine.setDebug(debug);
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
 

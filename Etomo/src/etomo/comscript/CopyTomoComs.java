@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/11/19 22:53:54  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.4.4.1  2004/10/11 02:02:02  sueh
  * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * property.  This property would need a different value for each manager.
@@ -159,10 +162,12 @@ public class CopyTomoComs {
   int exitValue;
   ConstMetaData metaData;
   Vector options;
+  boolean debug;
 
   public CopyTomoComs(ConstMetaData metaData) {
 
     this.metaData = metaData;
+    debug = EtomoDirector.getInstance().isDebug();
 
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
@@ -420,7 +425,7 @@ public class CopyTomoComs {
     checkTiltAngleFiles();
 
     //  Execute the script
-    copytomocoms.setDebug(true);
+    copytomocoms.setDebug(debug);
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
 
