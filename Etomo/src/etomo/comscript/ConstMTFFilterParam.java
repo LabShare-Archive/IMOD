@@ -11,7 +11,10 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$
+ * <p> $$Log$
+ * <p> $Revision 1.7  2004/06/14 23:25:55  rickg
+ * <p> $Bug #383  ParamUtilities interface change.
+ * <p> $$
  * <p> Revision 1.6  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p> 
@@ -79,5 +82,8 @@ public class ConstMTFFilterParam {
   }
   public String getStartingAndEndingZString() {
     return startingAndEndingZ.toString(true);
+  }
+  public String getOutputFile() {
+    return outputFile;
   }
 }
