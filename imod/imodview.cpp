@@ -1637,6 +1637,7 @@ int ivwLoadImage(ImodView *iv)
     iv->li->axis = 3;
     if (iv->imod->flags & IMODF_FLIPYZ)
       iv->li->axis = 2;
+    ImodPrefs->setInfoGeometry();
     return(0);
   }
 
@@ -2190,6 +2191,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.16  2003/11/01 18:12:17  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.15  2003/10/01 05:09:11  mast
 Changes for recreation of plugin compilation capability
 
