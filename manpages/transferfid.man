@@ -39,6 +39,17 @@ the image by 180 degrees, unless you specify the angle in advance with the
 .B -a
 option, but this large rotation will not cause problems.
 
+Once the seed model is created, the program analyzes contours in the fiducial
+model from the first axis and indicates what the correspondence between points
+should be when running solvematch(1).  The list of points in A could be in 
+error in some cases unless a fiducial coordinate file (setnameafid.xyz) is
+also available.  For this reason, it is advisable to run tiltalign(1) at least
+once on the first fiducial model before running transferfid.  The lists could
+also become erroneous if one of the points in the new seed model fails to 
+track, or if fiducials are deleted from either model after running transferfid.
+If such changes occur, just enter a small starting subset of points and let
+solvematch(1) come up with the rest of the correspondences.
+
 Finding the best pair of views is somewhat time-consuming.  Two ways to
 reduce this time are to reduce the number of views in the search with the
 .B -n
@@ -111,4 +122,4 @@ with the ~ extension.
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
 beadtrack(1), tiltxcorr(1), remapmodel(1), clipmodel(1), xfsimplex(1),
-xfmodel(1), midas(1)
+xfmodel(1), midas(1), solvematch(1), tiltalign(1)

@@ -217,7 +217,7 @@ display images with different contrasts.  The default
 .I value 
 is 1 and the allowed range is 1-12.  This option is ignored on
 8-bit and RGB graphics displays.  On SGI machines, imod attempts to
-determine the number of other imods are already running and selects a
+determine the number of other imods that are already running and selects a
 color table value one
 higher than this number.  The color table can be changed from within imod
 using the
@@ -525,7 +525,7 @@ c  -  Go to previous contour
 5  -  Go to previous contour in current surface
 6  -  Go to next contour in current surface
 7  -  Go to previous surface in current object
-8  -  Go to nextsurface in current object
+8  -  Go to next surface in current object
 e  -  Unselect current point
 E  -  Unselect current contour
 {  -  Go to first point in contour
@@ -558,7 +558,8 @@ Ctrl-S - Snapshot image in window to TIFF file
 i  -  Toggle the modeling direction
 Z  -  Toggle auto section advance on and off
 B  -  Toggle rubber band on and off
-I  -  Print information about window, image size, and offsets
+I  -  Print information about window, image size, and offsets,
+         also bring the Information Window to the front
 R  -  Resize window to size of image or rubber band
 Keypad Ins - Add point(s) in model mode, like middle mouse button
 Esc - Close ZaP window
