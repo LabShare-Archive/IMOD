@@ -24,6 +24,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/09 04:52:54  sueh
+* <p> bug# 565 Saving meta data on each top of start function.
+* <p>
 * <p> Revision 1.4  2004/11/24 00:59:23  sueh
 * <p> bug# 520 msgBackgroundProcess:  call errorProcess is exitValue != 0.
 * <p>
@@ -545,7 +548,7 @@ public abstract class BaseProcessManager {
       }
 
     }
-
+    getManager().saveMetaData();
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -732,6 +735,7 @@ public abstract class BaseProcessManager {
       else {
         postProcess(process);
       }
+      getManager().saveMetaData();
     }
 
     // Null the reference to the appropriate thread
@@ -748,6 +752,7 @@ public abstract class BaseProcessManager {
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
     postProcess(program);
+    getManager().saveMetaData();
   }
 
 }
