@@ -22,6 +22,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/10/24 21:12:29  rickg
+ * <p> Got folder icon working
+ * <p>
  * <p> Revision 1.5  2002/10/24 19:54:52  rickg
  * <p> Moved fileset specification to after axis type specification
  * <p>
@@ -51,7 +54,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //  Fileset GUI objects
   //
   private JPanel panelFileset = new JPanel();
-  private ImageIcon iconFolder = new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
+  private ImageIcon iconFolder =
+    new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
   private JLabel labelFileset = new JLabel("Fileset Name:");
   private JTextField textFieldFileset = new JTextField();
@@ -345,9 +349,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   public void initializeFields(ConstMetaData metaData) {
 
-    if(! metaData.getFilesetName().equals("")) {
-      String canonicalPath = metaData.getWorkingDirectory() + "/" +
-        metaData.getFilesetName();
+    if (!metaData.getFilesetName().equals("")) {
+      String canonicalPath =
+        metaData.getWorkingDirectory() + "/" + metaData.getFilesetName();
       textFieldFileset.setText(canonicalPath);
     }
 
