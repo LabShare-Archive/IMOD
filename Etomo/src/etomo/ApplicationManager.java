@@ -76,6 +76,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2003/11/11 00:24:52  sueh
+ * <p> Bug349 imodFixFiducials(AxisID): call
+ * <p> imodManager.openBeadFixer()
+ * <p>
  * <p> Revision 3.1  2003/11/10 07:28:54  rickg
  * <p> ContextPopup initialization no longer needed
  * <p> Some more stderr printing on exceptions
@@ -552,7 +556,7 @@ public class ApplicationManager {
   public static final String rcsid =
     "$Id$";
 
-  private boolean debug = false;
+  private static boolean debug = false;
   private boolean demo = false;
 
   private boolean isDataParamDirty = false;
@@ -4183,7 +4187,7 @@ public class ApplicationManager {
    * 
    * @return boolean
    */
-  public boolean isDebug() {
+  static public boolean isDebug() {
     return debug;
   }
 
