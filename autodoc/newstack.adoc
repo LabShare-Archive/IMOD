@@ -184,7 +184,7 @@ manpage = Use linear instead of cubic interpolation to transform images.
 Linear interpolation is more suitable when images are
 very noisy, but cubic interpolation will preserve fine detail better when
 noise is not an issue.  Images are
-transformed when the -xform, -expand, -rotate, or -distort
+transformed when the -xform, -expand, -rotate, -distort, or -gradient
 option is entered.
 
 [Field = FloatDensities]
@@ -242,6 +242,19 @@ tooltip =
 manpage = The current binning of the images, so that the distortion field can
 be applied correctly.  This entry is required unless
 the program can determine the binning unambiguously from the image size.
+
+[Field = GradientFile]
+short  = gradient
+long = GradientFile
+type = FN
+usage = File with magnification gradients to be applied for each image
+tooltip = 
+manpage = File with magnification gradients to be applied for each image.
+This should be a file listing the tilt angle, the percent magnification change
+per micron of Z height, and the degrees of rotation per micron of Z height
+for each image, such as is produced by Extractmaggrad.  The mag gradient
+correction is applied before a distortion field correction and before any
+transformations.
 
 [Field = TestLimits]
 short = test
