@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef NOFFTLIB
 
@@ -565,10 +573,27 @@ int clip_3dfft(struct MRCheader *hin, struct MRCheader *hout,
 
      mrc_head_new(hout, v->vol[0]->xsize, v->vol[0]->ysize, 
 		  v->zsize, v->vol[0]->mode);
-     mrc_head_label(hout, "Clip: 3D FFT");     
+
+     /* DNM 7/31/02: copy labels over, make label specify direction */
+     mrc_head_label_cp(hin, hout);
+     hout->nlabl = hin->nlabl;
+     if (hin->mode != MRC_MODE_COMPLEX_FLOAT)
+	  mrc_head_label(hout, "Clip: Forward 3D FFT");
+     else
+	  mrc_head_label(hout, "Clip: Inverse 3D FFT");
 
      if (grap_volume_write(v, hout, opt))
 	  return(-1);
+
+     /* DNM 7/31/02: Copy cell and sample sizes over just like fftrans
+	so that inverse transform will retain pixel spacing */
+     hout->mx = hin->mx;
+     hout->my = hin->my;
+     hout->mz = hin->mz;
+     hout->xlen = hin->xlen;
+     hout->ylen = hin->ylen;
+     hout->zlen = hin->zlen;
+     mrc_head_write(hout->fp, hout);
 
      grap_volume_free(v);
      return(0);
