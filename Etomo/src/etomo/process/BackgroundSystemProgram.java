@@ -16,7 +16,12 @@ package etomo.process;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:50:00  sueh
+ * <p> $bug# 508 Inherits SystemProgram.  Waits for the end of the
+ * <p> $process by watching the process monitor.  Gets the exit
+ * <p> $value by asking the process monitor.
+ * <p> $$ </p>
  */
 public class BackgroundSystemProgram extends SystemProgram {
   public static final String rcsid = "$$Id$$";
@@ -43,7 +48,6 @@ public class BackgroundSystemProgram extends SystemProgram {
    * 
    */
   protected void waitForProcess() {
-    //System.out.println("start waitForProcess:isProcessRunning=" + backgroundProcessMonitor.isProcessRunning());
     //wait until process is finished
     while (backgroundProcessMonitor.isProcessRunning()) {
       try {
@@ -64,7 +68,7 @@ public class BackgroundSystemProgram extends SystemProgram {
       throw new IllegalStateException(
         "getExitValue() called while process is running.");
     }
-    if (backgroundProcessMonitor.isDone()) {
+    if (backgroundProcessMonitor.isSuccessful()) {
       return 0;
     }
     return 1;
