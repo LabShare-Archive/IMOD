@@ -12,7 +12,8 @@ This is the format used by IMOD Version 2.0 available from the
 Boulder Laboratory for Three-Dimensional Electron Microscopy of Cells.
 The format is backwards compatible with IMOD 1.2.
 All numbers are stored in big-endian format regardless of 
-machine architecture.
+machine architecture.  In the descriptions of flags below, 
+bits are numbered from 0.
 
 
 <H3>The File Header</H3>
@@ -51,7 +52,7 @@ Length Type Name          Description
 
 4      float xoffset       Offsets used for display & conversion,
 4      float yoffset       should be set to 0.
-4      float zoffset       (unused, superceded by IMNX information)
+4      float zoffset       (unused, superceded by MINX information)
 
 4      float xscale        Scaling for pixel size. xscale and yscale should
 4      float yscale        be 1.0 and zscale should be adjusted to account
@@ -73,7 +74,7 @@ Length Type Name          Description
 
 4      float alpha         Angles used for orientation of the model with
 4      float beta          image. Should be set to 0.0
-4      float gamma         (unused, superceded by IMNX information)
+4      float gamma         (unused, superceded by MINX information)
 </pre>
 
 <HR>
@@ -231,7 +232,7 @@ DRAW  Model Draw structure.
 Description of current optional data chunks.
 </H4>
 <HR>
-IMNX  Model to image transformation information.  (72 bytes data)
+MINX  Model to image transformation information.  (72 bytes data)
 <p>
 Coordinates are stored in an IMOD model file as image index coordinates 
 relative to the last subset of image file that the model was displayed on.
