@@ -30,6 +30,7 @@ public class BlendmontParam implements CommandParam {
   public static final int PREBLEND_MODE = -2;
   public static final int BLEND_MODE = -3;
   public static final int LINEAR_INTERPOLATION_ORDER = 1;
+  public static final String OUTPUT_FILE_EXTENSION = ".ali";
   
   private AxisID axisID;
   private String datasetName;
@@ -146,6 +147,9 @@ public class BlendmontParam implements CommandParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/03/11 01:32:20  sueh
+* <p> bug# 533 Added interpolationOrder
+* <p>
 * <p> Revision 1.3  2005/03/09 17:59:41  sueh
 * <p> bug# 533 Added a mode for blendmont in the blend.com script.  In this
 * <p> mode readInXcorrs and oldEdgeFunctions are always true.
