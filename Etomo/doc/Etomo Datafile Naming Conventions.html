@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.0.2  (Linux)">
+	<META NAME="CREATED" CONTENT="20030818;10403300">
+	<META NAME="CHANGED" CONTENT="20030818;13504600">
+</HEAD>
+<BODY LANG="en-US">
+<P>Data file naming conventions within Etomo</P>
+<P>The data set name is specified by <I>dataset</I></P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=3>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=33%>
+				<P>Procedure</P>
+			</TH>
+			<TH WIDTH=33%>
+				<P>Single Axis</P>
+			</TH>
+			<TH WIDTH=33%>
+				<P>Double Axis</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Raw data</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.st</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>a.st, <I>dataset</I>b.st</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Pre-processing</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.st</P>
+				<P>moves raw data to <I>dataset</I>_orig.st</P>
+				<P>intermediate stack name <I>dataset</I>_fixed.st</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>a.st, <I>dataset</I>b.st</P>
+				<P>moves raw data to <I>dataset</I>_orig{a|b}.st</P>
+				<P>intermediate stack name <I>dataset</I>_fixed{a|b}.st</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Coarse Alignment</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.preali</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>a.preali, <I>dataset</I>b.preali</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Fiducial Model Generation</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>N/A</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>N/A</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Fine Alignment</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.ali</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>a.ali, <I>dataset</I>b.ali</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Tomogram Positioning</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>top.rec, mid.rec, bot.rec</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>topa.rec, mida.rec, bota.rec, topb.rec, midb.rec, botb.rec</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Tomogram Generation</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.rec</P>
+				<P>renamed to full.rec when the post processing dialog is open. 
+				<FONT COLOR="#ff0000">This causes a problem if the user opens the
+				post-processing dialog and then goes back to the tomogram
+				generation dialog.  They can not open the tomogram any more
+				because of the rec name change</FONT></P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>a.rec, <I>dataset</I>b.rec</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Tomogram Combination</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>N/A</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P>sum.rec</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=33%>
+				<P>Post Processing</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.rec</P>
+			</TD>
+			<TD WIDTH=33%>
+				<P><I>dataset</I>.rec</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Single Axis Tomograms</P>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
