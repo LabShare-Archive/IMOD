@@ -31,14 +31,6 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 1.10  2003/09/24 00:48:55  mast
-Switched from keeping track of geometry to keeping track of pos() and
-size() when saving and restoring positions and sizes
-
-Revision 1.9  2003/09/18 05:57:47  mast
-Add autocontrast targets
-
 Log at end of file
 */
 
@@ -810,6 +802,17 @@ void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 }
 
 /*
+$Log$
+Revision 1.11  2003/09/24 17:38:53  mast
+Switch to using restorable geometries, and setting info window position here
+
+Revision 1.10  2003/09/24 00:48:55  mast
+Switched from keeping track of geometry to keeping track of pos() and
+size() when saving and restoring positions and sizes
+
+Revision 1.9  2003/09/18 05:57:47  mast
+Add autocontrast targets
+
 Revision 1.8  2003/09/17 04:48:01  mast
 Added ability to remember window geometries for Info and Zap windows
 
