@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2003/02/10 20:29:01  mast
+    autox.cpp
+
     Revision 1.1.2.3  2002/12/18 04:15:14  mast
     new includes for imodv modules
 
@@ -53,7 +56,7 @@
 
 
 #include <math.h>
-#include <GL/gl.h>
+#include <qgl.h>
 #include "imodv.h"
 #include "imodv_light.h"
 

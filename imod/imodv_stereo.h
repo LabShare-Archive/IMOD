@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.3  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -26,7 +29,7 @@ initial creation
 #ifndef IMODV_STEREO_H
 #define IMODV_STEREO_H
 
-#include <GL/gl.h>
+#include <qgl.h>
 
 typedef struct __imodv_struct ImodvApp;
 

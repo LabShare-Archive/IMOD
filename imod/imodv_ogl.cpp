@@ -31,46 +31,14 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.7  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.6  2002/12/30 06:44:21  mast
-change position of imodv_image include
-
-Revision 1.1.2.5  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.4  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.3  2002/12/17 19:25:56  mast
-fixing braces after removing color index code
-
-Revision 1.1.2.2  2002/12/17 17:44:18  mast
-changes for Qt version
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/09/03 19:36:05  mast
-Eliminated initialized of scalar mesh whitelevel value because endian
-problem is now fixed
-
-Revision 3.1  2001/12/05 15:42:31  mast
-Fixed problem with transparency when lighting both sides
-
+Log at end of file
 */
 
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
 
-#include <GL/gl.h>
+#include <qgl.h>
 #include <GL/glu.h>
 #include "imodv_image.h"
 #include "imod.h"
@@ -953,6 +921,12 @@ static void myCombine( GLdouble coords[3], Ipoint *d[4],
 }
 #endif
 
+#ifdef _WIN32
+#define GLU_CALLBACK void (__stdcall *)(void)
+#else
+#define GLU_CALLBACK GLvoid (*)()
+#endif
+
 static void imodvDraw_filled_contours(Iobj *obj)
 {
   static GLUtesselator *tobj = NULL;
@@ -970,17 +944,16 @@ static void imodvDraw_filled_contours(Iobj *obj)
 
   if (!obj->contsize)
     return;
-
   if (!tobj){
     tobj = gluNewTess();
-    gluTessCallback(tobj, GLU_BEGIN, (GLvoid (*)())glBegin);
-    gluTessCallback(tobj, GLU_VERTEX, (GLvoid (*)())glVertex3fv);
+    gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
+    gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
     gluTessCallback(tobj, GLU_END, glEnd);
     /*        gluTessCallback(tobj, GLU_EDGE_FLAG, glEdgeFlag); */
 #ifdef TESS_HACK
-    gluTessCallback(tobj, GLU_TESS_COMBINE, (GLvoid (*)())myCombine);
+    gluTessCallback(tobj, GLU_TESS_COMBINE, (GLU_CALLBACK)myCombine);
 #endif
-    gluTessCallback(tobj, GLU_ERROR, (GLvoid (*)())myerror);
+    gluTessCallback(tobj, GLU_ERROR, (GLU_CALLBACK)myerror);
   }
 
   glPushName(NO_NAME);
@@ -1371,8 +1344,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
 
     case IMOD_MESH_BGNBIGPOLY:
       tobj = gluNewTess();
-      gluTessCallback(tobj, GLU_BEGIN, (GLvoid (*)())glBegin);
-      gluTessCallback(tobj, GLU_VERTEX, (GLvoid (*)())glVertex3fv);
+      gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
+      gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
       gluTessCallback(tobj, GLU_END, glEnd);
       glPushMatrix();
       glScalef(1.0f, 1.0f, z);
@@ -1691,8 +1664,8 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
     case IMOD_MESH_BGNBIGPOLY:
       tobj = gluNewTess();
-      gluTessCallback(tobj, GLU_BEGIN, (GLvoid (*)())glBegin);
-      gluTessCallback(tobj, GLU_VERTEX, (GLvoid (*)())glVertex3fv);
+      gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
+      gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
       gluTessCallback(tobj, GLU_END, glEnd);
       glPushMatrix();
       glScalef(1.0f, 1.0f, z);
@@ -1728,3 +1701,40 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 }
 
 
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.7  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.6  2002/12/30 06:44:21  mast
+change position of imodv_image include
+
+Revision 1.1.2.5  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.4  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.3  2002/12/17 19:25:56  mast
+fixing braces after removing color index code
+
+Revision 1.1.2.2  2002/12/17 17:44:18  mast
+changes for Qt version
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.2  2002/09/03 19:36:05  mast
+Eliminated initialized of scalar mesh whitelevel value because endian
+problem is now fixed
+
+Revision 3.1  2001/12/05 15:42:31  mast
+Fixed problem with transparency when lighting both sides
+
+*/

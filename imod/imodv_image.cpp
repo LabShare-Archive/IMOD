@@ -31,46 +31,12 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/18 00:58:37  mast
-add tooltips to dialogframe call
-
-Revision 1.1.2.8  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.7  2003/01/01 05:43:44  mast
-rationalizing toplevel versus dialog style
-
-Revision 1.1.2.6  2002/12/30 17:32:42  mast
-eliminate unused variables
-
-Revision 1.1.2.5  2002/12/30 06:40:53  mast
-Qt version
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include <qcheckbox.h>
 #include <qlayout.h>
-#include <GL/gl.h>
+#include <qgl.h>
 #include <GL/glu.h>
 #include "hotslider.h"
 #include "multislider.h"
@@ -478,3 +444,43 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
   }
   imodvKeyRelease(e);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.9  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
+Revision 1.1.2.8  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.7  2003/01/01 05:43:44  mast
+rationalizing toplevel versus dialog style
+
+Revision 1.1.2.6  2002/12/30 17:32:42  mast
+eliminate unused variables
+
+Revision 1.1.2.5  2002/12/30 06:40:53  mast
+Qt version
+
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
