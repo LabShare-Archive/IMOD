@@ -43,6 +43,11 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2004/08/19 02:48:33  sueh
+ * bug# 508 Added a way to set the don't run volcombine checkbox
+ * Added:
+ * setRunVolcombine(boolean runVolcombine)
+ *
  * Revision 3.13  2004/07/21 00:19:15  sueh
  * bug# 507 added Don't run volcombine checkbox, non-persistant
  *
@@ -225,7 +230,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     "<html><b>Open Volume Being Matched To</b>");
   private MultiLineButton btnImodCombined = new MultiLineButton(
     "<html><b>Open Combined Volume</b>");
-  private JCheckBox cbNoVolcombine = new JCheckBox("Don't run volcombine");
+  private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
   /**
    * Default constructor
    * 
