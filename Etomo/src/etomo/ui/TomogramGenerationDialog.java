@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.3  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -84,7 +87,9 @@ public class TomogramGenerationDialog
   LabeledTextField ltfTomoThickness =
     new LabeledTextField("Tomogram thickness: ");
 
-  LabeledTextField ltfXAxisTilt = new LabeledTextField("X Axis Tilt: ");
+  LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
+  LabeledTextField ltfRadialMax = new LabeledTextField("Radial max: ");
+  LabeledTextField ltfRadialFallOff = new LabeledTextField("Radial falloff: ");
 
   JCheckBox chkBoxUseLocalAlignment = new JCheckBox("Use local alignments");
 
@@ -123,8 +128,15 @@ public class TomogramGenerationDialog
     panelTilt.add(buttonNewst);
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
     panelTilt.add(ltfTomoThickness.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(ltfXAxisTilt.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfRadialMax.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTilt.add(ltfRadialFallOff.getContainer());
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(chkBoxUseLocalAlignment);
+    panelTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTilt.add(buttonTilt);
     panelTilt.add(Box.createRigidArea(FixedDim.x0_y10));
     panelTilt.add(buttonImod);
@@ -150,6 +162,8 @@ public class TomogramGenerationDialog
   public void setTiltParams(ConstTiltParam tiltParam) {
     ltfTomoThickness.setText(tiltParam.getThickness());
     ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
+    ltfRadialMax.setText(tiltParam.getRadialBandwidth());
+    ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
     chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
   }
 
@@ -161,7 +175,9 @@ public class TomogramGenerationDialog
     try {
       tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
       tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
-
+      tiltParam.setRadialBandwidth(Double.parseDouble(ltfRadialMax.getText()));
+      tiltParam.setRadialFalloff(
+        Double.parseDouble(ltfRadialFallOff.getText()));
       if (chkBoxUseLocalAlignment.isSelected()) {
         tiltParam.setLocalAlignFile(
           applicationManager.getDatasetName()
