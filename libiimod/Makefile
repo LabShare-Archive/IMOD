@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/04/08 17:04:36  mast
+#  Changed to use a separate LIBCFLAGS variable
+#
 #  Revision 3.7  2003/12/30 17:29:15  mast
 #  changes for windows DLLs and to produce nolibtiff only when needed
 #
@@ -25,7 +28,7 @@ LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
- mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O)
+ mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O) sliceproc.$(O)
 
 INCS  = $(INCDIR)mrcfiles.h $(INCDIR)mrcslice.h $(INCDIR)mrcproc.h \
  $(INCDIR)mrcspectral.h $(INCDIR)mrcc.h $(INCDIR)/b3dutil.h
@@ -76,6 +79,7 @@ $(OBJS) : $(INCS)
 iimage.$(O) : $(INCDIR)iimage.h
 iimrc.$(O) : $(INCDIR)iimage.h
 iitif.$(O) : $(INCDIR)iimage.h
+sliceproc.$(O) : $(INCDIR)sliceproc.h
 
 ALWAYS :
 
