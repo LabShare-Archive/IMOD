@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/09/10 21:34:01  mast
+Eliminated long variables
+
 Revision 3.5.4.1  2004/07/07 19:26:21  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -408,11 +411,11 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
     obj = &(model->obj[ob]);
     tsa = 0; tvol = 0;
     doclip = 0;
-    if (useclip && obj->clip) {
+    if (useclip && obj->clips.count && (obj->clips.flags & 1)) {
       /* Get clipping plane in 4 parameter form; c is already
          multiplied by zscale so no need to 
          multiply z coordinates by zscale for tests*/
-      imodPlaneSetPN(&plane, &(obj->clip_point), &(obj->clip_normal));
+      imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
       doclip = useclip;
     }
 
@@ -743,7 +746,7 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
   int objheader;
   double rsum, rsqsum, rcubsum;
   float rad, area, volume;
-  int nsum;
+  int nsum, clipOK;
   float pi = 3.14159;
   int skip, goodside;
   Ipoint *p1;
@@ -751,12 +754,13 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
+    clipOK = obj->clips.count && (obj->clips.flags & 1) ? 1 : 0;
     objheader = 0;
     rsum = rsqsum = rcubsum = 0.0;
     nsum = 0;
 
-    if (useclip && obj->clip) {
-      imodPlaneSetPN(&plane, &(obj->clip_point), &(obj->clip_normal));
+    if (useclip && clipOK) {
+      imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
       /* plane.c *= imod->zscale; */
     }
 
@@ -771,7 +775,7 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
         if (verbose >= 0) {
           fprintf(fout, "\tCONTOUR #%d,%d,%d  %d points", 
                   co + 1, ob + 1,  cont->surf, cont->psize);
-          if (subarea || (useclip && obj->clip))
+          if (subarea || (useclip && clipOK))
             fprintf(fout, " total, before constraints");
           fprintf(fout,"\n");
         }
@@ -789,7 +793,7 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
 
           /* if using clipping plane, skip points that don't
              pass the test */
-          if (!skip && useclip && obj->clip) {
+          if (!skip && useclip && clipOK) {
             goodside = imodPlaneClip(&plane, p1);
             if ((goodside && useclip < 0) || 
                 (!goodside && useclip > 0))
@@ -940,18 +944,18 @@ static void imodinfo_full_object_report(Imod *imod, int ob)
   }
   fprintf(fout, "\tVolume                  = %g ^3\n", vol);
 
-  if (obj->clip){
+  if (obj->clips.count && (obj->clips.flags & 1)) {
     /* DNM 8/3/01: divide normal.z by zscale for consistency with imod 
        and SDA output */
     fprintf(fout, "\tClip Normal    = (%g, %g, %g)\n", 
-            obj->clip_normal.x,
-            obj->clip_normal.y,
-            obj->clip_normal.z / imod->zscale);
+            obj->clips.normal[0].x,
+            obj->clips.normal[0].y,
+            obj->clips.normal[0].z / imod->zscale);
     fprintf(fout, "\tClip Point     = (%g, %g, %g)\n", 
-            obj->clip_point.x,
-            obj->clip_point.y,
-            obj->clip_point.z);
-    imodPlaneSetPN(&plane, &(obj->clip_point), &(obj->clip_normal));
+            obj->clips.point[0].x,
+            obj->clips.point[0].y,
+            obj->clips.point[0].z);
+    imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
     clip_obj = imodinfo_ObjectClip(obj, &plane, 1);
     if (!clip_obj){
       fprintf(fout, "\tError getting clip data.\n");
