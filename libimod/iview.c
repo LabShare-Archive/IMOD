@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/09/10 21:33:46  mast
+Eliminated long variables
+
 Revision 3.5  2003/07/31 21:37:00  mast
 Extracted the transfer of object data to and from an objview to functions
 Added new functions for making the list of object views complete for a
@@ -99,6 +102,8 @@ void imodViewDefault(Iview *vw)
   vw->dcend   = 1.0f;
   vw->objview = NULL;
   vw->objvsize = 0;
+  
+  imodClipsInitialize(&vw->clips);
   return;
 }
 
@@ -157,15 +162,22 @@ void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
 }
 
 
+/* First definition was 67
+   9/19/04, added clip plane arrays */
+#define BYTES_PER_OBJVIEW (43 + 24 * IMOD_CLIPSIZE)
 
-#define BYTES_PER_OBJVIEW 67
+/* Write a view, including object views and model clip plane chunk
+   For backward compatibility, need to add all new elements at end of write
+   so the array elements after the first have to be written at end */
 
 int imodViewWrite(Iview *vw, FILE *fout)
 {
   unsigned int id;
-  int i;
+  int i, j;
   int nbwrite;
   Iobjview *ov;
+  IclipPlanes *clips;
+  b3dUByte clipOut;
 
   id = ID_VIEW;
   imodPutInt(fout, &id);
@@ -183,17 +195,39 @@ int imodViewWrite(Iview *vw, FILE *fout)
     imodPutInt(fout, &nbwrite);
     for (i = 0; i < vw->objvsize; i++) {
       ov = &vw->objview[i];
+      clips = &ov->clips;
       imodPutInts(fout, &ov->flags, 1);
       imodPutFloats(fout, &ov->red, 3);
       imodPutInts(fout, &ov->pdrawsize, 1);
       imodPutBytes(fout, &ov->linewidth, 3);
-      imodPutBytes(fout, &ov->clip, 4);
-      imodPutFloats(fout, (float *)&ov->clip_normal, 6);
+
+      /* For backward compatibility, if there is one clip plane and it is
+         off, set clip to 0 */
+      clipOut = clips->count;
+      if (clipOut == 1 && (clips->flags & 1) == 0)
+        clipOut = 0;
+      imodPutBytes(fout, &clipOut, 1);
+      imodPutBytes(fout, &clips->flags, 3);
+      imodPutFloats(fout, (float *)&clips->normal[0], 3);
+      imodPutFloats(fout, (float *)&clips->point[0], 3);
       imodPutBytes(fout, &ov->ambient, 4);
       imodPutBytes(fout, (unsigned char *)&ov->mat1, 4);
       imodPutInts(fout, (int *)&ov->mat2, 1);
       imodPutBytes(fout, (unsigned char *)&ov->mat3, 4);
+      imodPutFloats(fout, (float *)&clips->normal[1], 3 * (IMOD_CLIPSIZE - 1));
+      imodPutFloats(fout, (float *)&clips->point[1], 3 * (IMOD_CLIPSIZE - 1));
     }
+  }
+
+  /* Write the clip plane chunk */
+  if (vw->clips.count) {
+    id = ID_MCLP;
+    imodPutInt(fout, &id);
+    id = 4 + 24 * vw->clips.count;
+    imodPutInt(fout, &id);
+    imodPutBytes(fout, &vw->clips.count, 4);
+    imodPutFloats(fout, (float *)&vw->clips.normal[0], 3 * vw->clips.count);
+    imodPutFloats(fout, (float *)&vw->clips.point[0], 3 * vw->clips.count);
   }
 
   if (ferror(fout))
@@ -228,6 +262,7 @@ int imodViewModelRead(Imod *imod)
   Iview *nvw = imodViewNew(ni);
   Iview *vw;
   int lbuf;
+  IclipPlanes *clips;
   Iobjview *ov;
   int bytesMissing, bytesObjv;
   int bytesRead = 0;
@@ -238,6 +273,11 @@ int imodViewModelRead(Imod *imod)
   vw = &nvw[imod->viewsize];
   vw->objvsize = 0;
   vw->objview = NULL;
+
+  /* Need to initialize clip planes for view and for all object views because
+     they may not be read in (for view), or ones past the first may not be
+     read in (for object views) */
+  imodClipsInitialize(&vw->clips);
      
   /* only current value selected. */
   if (lbuf == 4){
@@ -272,12 +312,20 @@ int imodViewModelRead(Imod *imod)
         malloc(vw->objvsize * sizeof(Iobjview));
       for (i = 0; i < vw->objvsize; i++) {
         ov = &vw->objview[i];
+        clips = &ov->clips;
+        imodClipsInitialize(clips);
         imodGetInts(fin, &ov->flags, 1);
         imodGetFloats(fin, &ov->red, 3);
         imodGetInts(fin, &ov->pdrawsize, 1);
         imodGetBytes(fin, &ov->linewidth, 3);
-        imodGetBytes(fin, &ov->clip, 4);
-        imodGetFloats(fin, (float *)&ov->clip_normal, 6);
+
+        /* Get clip parameters and first clip plane, then fix the count */
+        imodGetBytes(fin, &clips->count, 4);
+        imodGetFloats(fin, (float *)&clips->normal[0], 3);
+        imodGetFloats(fin, (float *)&clips->point[0], 3);
+
+        imodClipsFixCount(clips, imod->flags);
+
         imodGetBytes(fin, &ov->ambient, 4);
             
         /* DNM 9/4/03: read mat1 and mat3 as bytes, or as ints 
@@ -292,7 +340,17 @@ int imodViewModelRead(Imod *imod)
         bytesRead += 67;
             
         /* If more elements are added in future, will need to test
-           bytesMissing before reading them in */
+           bytesMissing before reading them in.  For each one, test against
+           total bytes in elements beyond this one */
+
+        /* Read additional clip planes */
+        if (bytesMissing <= 0) {
+          imodGetFloats(fin, (float *)&clips->normal[1], 
+                        3 * (IMOD_CLIPSIZE - 1));
+          imodGetFloats(fin, (float *)&clips->point[1], 
+                        3 * (IMOD_CLIPSIZE - 1));
+          bytesRead += 24 * (IMOD_CLIPSIZE - 1);
+        }
 
         /* But if this code tries to read a future file, it needs
            to skip over the rest of the data per object */
@@ -318,6 +376,13 @@ int imodViewModelRead(Imod *imod)
     return(IMOD_ERROR_READ);
   else
     return(0);
+}
+
+/* Read the variable-sized model clip plane chunk */
+int imodViewClipRead(Imod *imod)
+{
+  Iview *vw = &imod->view[imod->viewsize - 1];
+  return(imodClipsRead(&vw->clips, imod->file));
 }
 
 int imodViewModelNew(Imod *imod)
@@ -349,9 +414,7 @@ void imodObjviewToObject(Iobjview *objview, Iobj *obj)
   obj->linewidth = objview->linewidth;
   obj->linesty = objview->linesty;
   obj->trans = objview->trans;
-  memcpy (&obj->clip, &objview->clip, 4);
-  obj->clip_normal = objview->clip_normal;
-  obj->clip_point = objview->clip_point;
+  obj->clips = objview->clips;
   memcpy (&obj->ambient, &objview->ambient, 4);
   memcpy (&obj->mat1, &objview->mat1, 12);
 }
@@ -368,9 +431,7 @@ void imodObjviewFromObject(Iobj *obj, Iobjview *objview)
   objview->linewidth = obj->linewidth;
   objview->linesty = obj->linesty;
   objview->trans = obj->trans;
-  memcpy (&(objview->clip), &(obj->clip), 4);
-  objview->clip_normal = obj->clip_normal;
-  objview->clip_point = obj->clip_point;
+  objview->clips = obj->clips;
   memcpy (&objview->ambient, &obj->ambient, 4);
   memcpy (&objview->mat1, &obj->mat1, 12);
 }
@@ -528,4 +589,51 @@ int imodIMNXWrite(Imod *imod)
 
   imodPutFloats(imod->file, (float *)imod->refImage, 18);
   return(0);
+}
+
+/* Initialize all clip planes and other parameters of the clip plane set */
+void   imodClipsInitialize(IclipPlanes *clips)
+{
+  int i;
+  clips->count       = 0;
+  clips->flags = 0;
+  clips->trans = 0;
+  clips->plane = 0;
+  for (i = 0; i < IMOD_CLIPSIZE; i++) {
+    clips->normal[i].x = clips->normal[i].y = 0.0f;
+    clips->normal[i].z = -1.0f;
+    clips->point[i].x = clips->point[i].y = clips->point[i].z = 0.0f;
+  }
+}
+
+/* Read all the clip planes of a set based on the size of the chunk */
+int imodClipsRead(IclipPlanes *clips, FILE *fin)
+{
+  int size, nread;
+  size = imodGetInt(fin);
+  nread = (size - SIZE_CLIP) / 24 + 1;
+
+  imodGetBytes(fin, (unsigned char *)&clips->count, 4);
+  imodGetFloats(fin, (float *)&clips->normal[0], 3 * nread);
+  imodGetFloats(fin, (float *)&clips->point[0], 3 * nread);
+  return(ferror(fin));
+}
+
+/* Fix the count of clip planes for old files or for a count set to zero
+   when written in a new file.
+   If clip is 0 and the first plane is not in initialized state,
+   turn off first flag and set clip 1; otherwise, if old model
+   and clip is nonzero, set the first flag and make sure clip is 1 */
+void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags)
+{
+  if (!clips->count && 
+      (clips->point[0].x || clips->point[0].y || 
+       clips->point[0].z || clips->normal[0].x || 
+       clips->normal[0].y || clips->normal[0].z != -1.f)) {
+    clips->flags &= 254;
+    clips->count = 1;
+  } else if (clips->count && !(flags & IMODF_MULTIPLE_CLIP)) {
+    clips->flags |= 1;
+    clips->count = 1;
+  }
 }
