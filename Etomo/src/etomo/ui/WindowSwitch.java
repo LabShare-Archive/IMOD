@@ -1,0 +1,298 @@
+package etomo.ui;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import etomo.Controller;
+import etomo.EtomoDirector;
+import etomo.util.HashedArray;
+import etomo.util.UniqueKey;
+
+/**
+ * <p>Description: Manages switching between windows associated with different
+ * .edf and .ejf files.  Keeps the menu and the tabs in sync on the display.
+ * Hides the tabs when there is only one window.
+ * 
+ * MainFrame constructs one instance of WindowSwitch.  MainFrame retrieves and 
+ * displays the window menu from it.
+ * 
+ * MainFrame uses the add, remove, and rename functions to manipulate windows
+ * and keep in sync with EtomoDirector.controllerList.
+ * MainFrame.setCurrentManager() displays the panel by removing everything from
+ * the rootPanel in mainFrame and then calling getPanel() and placing its result
+ * in rootPanel.</p>
+ * 
+ * GetPanel() return a MainPanel when there is only one window.  When there are
+ * multiple windows getPanel() builds a tabbed panel containing only the
+ * selected mainPanel.  Putting only one MainPanel in the tabPane allows 
+ * resizing to work correctly.  When a new window is selected,
+ * EtomoDirector.setCurrentManager() is called, which calls
+ * MainFrame.setCurrentManager().
+ * 
+ * WindowSwitch keeps a HashedArray of menuItems and a menu.  It also keeps a
+ * HashedArray of MainPanels.  It gets UniqueKeys for the HashedArrays from
+ * EtomoDirector.controllerList.  It never builds its own keys.
+ * 
+ * 
+ * 
+ * <P>Copyright: Copyright (c) 2002,2003,2004,2005</p>
+ * 
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
+public class WindowSwitch {
+  public static final String rcsid = "$Id$";
+
+  private static final char menuItemDividerChar = ':';
+  private static final String menuItemDivider = menuItemDividerChar + " ";
+  
+  private JMenu menu = new JMenu("Window");
+  private HashedArray menuList = null;
+  private HashedArray mainPanelList = null;
+  private JTabbedPane tabbedPane = null;
+  private MenuActionListener menuActionListener;
+  private TabChangeListener tabChangeListener;
+
+  WindowSwitch() {
+    menuActionListener = new MenuActionListener(
+        this);
+    tabChangeListener = new TabChangeListener(this);
+  }
+  
+  /**
+   * Add a controller:  Add a menu item to the menu list.  Add the controller's
+   * mainPanel to the mainPanelList.  Add the menu item to the menu.
+   * @param controller
+   * @param key
+   */
+  void add(Controller controller, UniqueKey key) {
+    if (controller == null || key == null) {
+      return;
+    }
+    if (menuList == null) {
+      menuList = new HashedArray();
+      mainPanelList = new HashedArray();
+      tabbedPane = new JTabbedPane();
+    }
+    JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+    menuItem.addActionListener(menuActionListener);
+    int index = menuList.size();
+    menuItem.setText(Integer.toString(index + 1) + menuItemDivider + key.getName());
+    menuItem.setVisible(true);
+    menu.add(menuItem);
+    menuList.add(key, menuItem);
+    mainPanelList.add(key, controller.getManager().getMainPanel());
+  }
+
+  /**
+   * Rename a window.  Change the menu item, rekey the menuList and the
+   * mainPanelList.  Change tabbedPane title (this may be unnecessary
+   * because tabbedPane is rebuilt each time getPanel() is called.
+   * @param oldKey
+   * @param newKey
+   */
+  void rename(UniqueKey oldKey, UniqueKey newKey) {
+    if (oldKey == null || newKey == null || menuList == null) {
+      return;
+    }
+    JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(oldKey);
+    int index = menuList.getIndex(oldKey);
+    menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
+    menuList.rekey(oldKey, newKey);
+    mainPanelList.rekey(oldKey, newKey);
+    tabbedPane.setTitleAt(index, newKey.getName());
+  }
+
+  /**
+   * Remove a window.  Removed the associated menuItem from the menu and from 
+   * menuList.  Removes the associated mainPanel from mainPanelList.
+   * @param key
+   */
+  void remove(UniqueKey key) {
+    if (key == null || menuList == null) {
+      return;
+    }
+    JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(key);
+    int index = menuList.getIndex(key);
+    menu.remove(menuItem);
+    menuList.remove(key);
+    mainPanelList.remove(key);
+    renumberMenu();
+  }
+
+  /**
+   * Renumbers the menu's displayed text.  Used when a window is removed.
+   *
+   */
+  private void renumberMenu() {
+    if (menuList == null) {
+      return;
+    }
+    for (int i = 0; i < menuList.size(); i++) {
+      JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(i);
+      String text = menuItem.getText();
+      menuItem.setText(Integer.toString(i + 1) + text.substring(text.indexOf(menuItemDividerChar)));
+    }
+  }
+
+  /**
+   * Returns the menu.
+   * @return
+   */
+  JMenu getMenu() {
+    return menu;
+  }
+
+  /**
+   * Returns the mainPanel associated with key, if there is only one window.
+   * For multiple windows, returns a tabbed pane, with the mainPanel on the
+   * selected tab.
+   * @param key
+   * @return
+   */
+  JComponent getPanel(UniqueKey key) {
+    if (mainPanelList == null || mainPanelList.size() == 0) {
+      return null;
+    }
+    if (mainPanelList.size() == 1) {
+      return (MainPanel) mainPanelList.get(key);
+    }
+    setTabs(menuList.getIndex(key));
+    return tabbedPane;
+  }
+
+  /**
+   * Allows the program to select a window.
+   * @param key
+   */
+  void selectWindow(UniqueKey key) {
+    if (menuList == null || key == null) {
+      return;
+    }
+    int newIndex = menuList.getIndex(key);
+    selectMenuItem(newIndex);
+    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex));
+  }
+  
+  /**
+   * Selects a menu item at index.  Unselects all other menu items.  Index
+   * starts from zero.
+   * @param index
+   */
+  private void selectMenuItem(int index) {
+    if (menuList == null) {
+      return;
+    }
+    JMenuItem menuItem;
+    for (int i = 0; i < menuList.size(); i++) {
+      menuItem = (JMenuItem) menuList.get(i);
+      if (i == index) {
+        menuItem.setSelected(true);
+      }
+      else {
+        menuItem.setSelected(false);
+      }
+    }
+  }
+  
+  /**
+   * Sets up the tabbed pane:
+   * - Remove the change listener since it responds to changes caused by the
+   *   program.
+   * - Remove everything on the pane.
+   * - Add the tabs, placing the selected mainPanel on the associated tab.
+   * - Select the selected tab.
+   * - Add the change listener.
+   * This is necessary because adding mainPanel to existing tabs causes new tabs
+   * to be created.
+   * @param selectedTabIndex
+   */
+  private void setTabs(int selectedTabIndex) {
+    if (menuList == null) {
+      return;
+    }
+    tabbedPane.removeChangeListener(tabChangeListener);
+    tabbedPane.removeAll();
+    if (menuList.size() < 2) {
+      return;
+    }
+    for (int i = 0; i < menuList.size(); i++) {
+      String tabName = ((JMenuItem) menuList.get(i)).getText();
+      tabName = tabName.substring(tabName.indexOf(menuItemDivider) + menuItemDivider.length());
+      if (i == selectedTabIndex) {
+        tabbedPane.addTab(tabName, (MainPanel) mainPanelList.get(i));
+      }
+      else {
+        JLabel placeHolder = new JLabel();
+        placeHolder.setVisible(false);
+        tabbedPane.addTab(tabName, placeHolder);
+      }
+    }
+    tabbedPane.setSelectedIndex(selectedTabIndex);
+    tabbedPane.addChangeListener(tabChangeListener);
+  }
+
+  /**
+   * Open the specified window when the user chooses a window menu item.
+   * @param event
+   */
+  private void menuAction(ActionEvent event) {
+    String menuChoice = event.getActionCommand();
+    int newIndex = Integer.parseInt(menuChoice.substring(0, menuChoice.indexOf(menuItemDividerChar))) - 1;
+    selectMenuItem(newIndex);
+    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex));
+  }
+  
+  /**
+   * Open the specified window when the user chooses a tab.
+   * @param event
+   */
+  private void tabChanged(ChangeEvent event) {
+    int newIndex = tabbedPane.getSelectedIndex();
+    selectMenuItem(newIndex);
+    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex));
+  }
+
+  //  window list menu action listener
+  class MenuActionListener implements ActionListener {
+    WindowSwitch adaptee;
+
+    MenuActionListener(WindowSwitch adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+      adaptee.menuAction(e);
+    }
+  }
+  
+  class TabChangeListener implements ChangeListener {
+    WindowSwitch adaptee;
+    public TabChangeListener(WindowSwitch dialog) {
+      adaptee = dialog;
+    }
+    
+     public void stateChanged(ChangeEvent event) {
+       adaptee.tabChanged(event);
+     }
+  }
+
+}
+
+/**
+ * <p>$Log$</p>
+ */
