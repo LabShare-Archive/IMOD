@@ -8,6 +8,7 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
+import etomo.EtomoDirector;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
@@ -29,6 +30,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:03:43  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.20  2004/11/19 00:28:13  sueh
 * <p> bug# 520 Added equals function to check whether the screen fields have
 * <p> changed since meta data was updated.  Added equalsSample to check
@@ -148,6 +152,7 @@ public class SectionTableRow {
   private FieldCell rotationAngleZ = null;
   private SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
       this);
+  private String invalidReason = null;
   
   /**
    * Create colors, fields, and buttons.  Add the row to the table
@@ -454,12 +459,12 @@ public class SectionTableRow {
   private void displayData() {
     rowNumber.setText(data.getRowNumber().toString(true));
     setSectionText();
-    sampleBottomStart.setText(data.getSampleBottomStart().toString(true));
-    sampleBottomEnd.setText(data.getSampleBottomEnd().toString(true));
-    sampleTopStart.setText(data.getSampleTopStart().toString(true));
-    sampleTopEnd.setText(data.getSampleTopEnd().toString(true));
-    finalStart.setText(data.getFinalStartString());
-    finalEnd.setText(data.getFinalEndString());
+    sampleBottomStart.setText(data.getSampleBottomStart().toString());
+    sampleBottomEnd.setText(data.getSampleBottomEnd().toString());
+    sampleTopStart.setText(data.getSampleTopStart().toString());
+    sampleTopEnd.setText(data.getSampleTopEnd().toString());
+    finalStart.setText(data.getFinalStart().toString());
+    finalEnd.setText(data.getFinalEnd().toString());
     rotationAngleX.setText(data.getRotationAngleX().toString());
     rotationAngleY.setText(data.getRotationAngleY().toString());
     rotationAngleZ.setText(data.getRotationAngleZ().toString());
@@ -468,22 +473,57 @@ public class SectionTableRow {
   /**
    * Copy data from screen to data.
    * Copies all fields that can be modified on the screen and are stored in data
-   * 
+   * Checks for errors.  Prints a error message based on the first error found
+   * and returns false.
+   * Tries to retrieve all values, regardless of errors.
    * @return
    */
-  private boolean retrieveData() {
-    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid()
-        || !data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid()
-        || !data.setSampleTopStart(sampleTopStart.getText()).isValid()
-        || !data.setSampleTopEnd(sampleTopEnd.getText()).isValid()
-        || !data.setFinalStart(finalStart.getText())
-        || !data.setFinalEnd(finalEnd.getText())
-        || !data.setRotationAngleX(rotationAngleX.getText())
-        || !data.setRotationAngleY(rotationAngleY.getText())
-        || !data.setRotationAngleZ(rotationAngleZ.getText())) {
+  private boolean retrieveData(boolean displayErrorMessage) {
+    invalidReason = null;
+    MainPanel mainPanel = EtomoDirector.getInstance().getCurrentManager().getMainPanel();
+    String errorTitle = "Invalid number in row " + rowNumber.getText();
+    String errorMessage = null;
+    ConstEtomoNumber number;
+    if (!(number = data.setSampleBottomStart(sampleBottomStart.getText())).isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setSampleBottomEnd(sampleBottomEnd.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setSampleTopStart(sampleTopStart.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setSampleTopEnd(sampleTopEnd.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setFinalStart(finalStart.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setFinalEnd(finalEnd.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setRotationAngleX(rotationAngleX.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setRotationAngleY(rotationAngleY.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (!(number = data.setRotationAngleZ(rotationAngleZ.getText())).isValid() && isValid()) {
+      setInvalidReason(number);
+    }
+    if (displayErrorMessage && !isValid()) {
+      mainPanel.openMessageDialog(invalidReason, errorTitle);
       return false;
     }
-    return true;
+    return isValid();
+  }
+  
+  private void setInvalidReason(ConstEtomoNumber number){
+    invalidReason = number.getDescription() + ": " + number.getInvalidReason();
+  }
+  
+  boolean isValid() {
+    return invalidReason == null;
   }
 
   /**
@@ -604,9 +644,7 @@ public class SectionTableRow {
   }
   
   ConstSectionTableRowData getData() {
-    if (!retrieveData()) {
-      return null;
-    }
+    retrieveData(true);
     return data;
   }
   
@@ -622,17 +660,17 @@ public class SectionTableRow {
   }
   
   public boolean equals(SectionTableRow that) {
-    retrieveData();
+    retrieveData(false);
     return data.equals(that.data);
   }
   
   public boolean equals(ConstSectionTableRowData thatData) {
-    retrieveData();
+    retrieveData(false);
     return data.equals(thatData);
   }
 
   public boolean equalsSample(ConstSectionTableRowData thatData) {
-    retrieveData();
+    retrieveData(false);
     return data.equalsSample(thatData);
   }
  
