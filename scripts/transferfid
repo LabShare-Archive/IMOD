@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/05/23 04:43:12  mast
+#  Changes to call repackseed and provide for Ctrl-C to stop search
+#
 #  Revision 3.1  2002/05/20 19:48:17  mast
 #  Initial deposit into repository
 #
@@ -46,10 +49,14 @@ set tmprot90    = $tmpdir/$com.rot90.$$
 set tmpminxf    = $tmpdir/$com.minxf.$$
 set tmptwoxf    = $tmpdir/$com.twoxf.$$
 set tmpxflog    = $tmpdir/$com.xflog.$$
+set tmpbtlog    = $tmpdir/$com.btlog.$$
+set tmprplog    = $tmpdir/$com.rplog.$$
 set tmpclip    = $tmpdir/$com.clip.$$
 set tmpxfmod    = $tmpdir/$com.xfmod.$$
 set tmpseed    = $tmpdir/$com.seed.$$
-set tmpfid    = $tmpdir/$com.fid.$$
+set tmpmap1    = $tmpdir/$com.map1.$$
+set tmpmap2    = $tmpdir/$com.map2.$$
+set tmpmap3    = $tmpdir/$com.map3.$$
 
 #
 # set default set name from current directory
@@ -71,6 +78,7 @@ set darklight = 0
 set outfile = ""
 set pmstart = 0
 set pmend = 1
+set leavetmp = 0
 
 while ($#argv)
   switch ($argv[1])
@@ -118,6 +126,10 @@ while ($#argv)
       breaksw
     case -l:
       set lightdark = 1
+      shift
+      breaksw
+    case -t:
+      set leavetmp = 1
       shift
       breaksw
     case -h:
@@ -504,7 +516,7 @@ EOF
 
 remapmodel > /dev/null <<EOF
 $tmpclip
-$tmpxfmod
+$tmpmap1
 1
 0,0,0
 EOF
@@ -517,15 +529,15 @@ EOF
 xfmodel > /dev/null <<EOF
 $imagea
 
-$tmpxfmod
+$tmpmap1
 1
 0
-$tmpclip
+$tmpxfmod
 $tmptwoxf
 EOF
 remapmodel > /dev/null <<EOF
-$tmpclip
-$tmpseed
+$tmpxfmod
+$tmpmap2
 1
 $xadd,$yadd,0
 EOF
@@ -550,11 +562,11 @@ endif
 #
 echo "Transferring fiducials from view $aview in A to view $bview in B with Beadtrack:"
 echo "              (Type Ctrl-C to interrupt)"
-beadtrack >! $tmpxflog <<EOF
+beadtrack >! $tmpbtlog <<EOF
 $tmpstack
 
+$tmpmap2
 $tmpseed
-$tmpfid
 
 0
 0
@@ -580,30 +592,34 @@ $radiusdark
 EOF
 @ aview = $asecbest + 1
 @ bview = $bsecbest + 1
-set btresult = `tail -1 $tmpxflog`
+set btresult = `tail -1 $tmpbtlog`
 echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
 #
 # Remap seed model to the section in B
 remapmodel <<EOF  > /dev/null
-$tmpfid
 $tmpseed
+$tmpmap3
 $bsecbest,-999
 0,0,0
 EOF
 #
 # Repack the model to remove empty points, and pass through mapping report
 #
-repackseed <<EOF > $tmpxflog
+repackseed <<EOF > $tmprplog
 $fidfile
-$tmpseed
+$tmpmap3
 $outfile
 EOF
 echo " "
-tail -4 $tmpxflog
+tail -4 $tmprplog
 
 clean:
-\rm -f $tmpdir/$com.*.$$*
+if ($leavetmp == 0) then
+    \rm -f $tmpdir/$com.*.$$*
+else
+    echo "Temporary files left in $tmpdir"
+endif
 exit 0
 
 usage:
@@ -625,6 +641,7 @@ Usage: $pn [options]
                       all work, default is to search both directions)
      -r radius     Bead radius for Beadtrack; default is taken from tracka.com
      -l            Search for light rather than dark beads (only works with -r)
+     -t            Leave temporary files in $tmpdir
      -h            Help - print this usage
 EOF
 exit 1
