@@ -33,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.6  2003/10/14 20:30:25  rickg
  * <p> Bug#279  Label layout and name changes
  * <p>
@@ -221,7 +224,7 @@ public class TiltalignPanel {
   private JRadioButton rbTiltAngleAll =
     new JRadioButton("Solve for all except minimum tilt");
   private JRadioButton rbTiltAngleAutomap =
-    new JRadioButton("Group tilt angles (linear)");
+    new JRadioButton("Group tilt angles ");
   private ButtonGroup bgTiltAngleSolution = new ButtonGroup();
   private JPanel pnlTiltAngleSolution = new JPanel();
 
