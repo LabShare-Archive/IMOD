@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/11/05 23:24:46  mast
+    Change to call copyright function
+
     Revision 3.3  2002/07/31 20:11:27  mast
     Changed copyright to use defined variable
 
