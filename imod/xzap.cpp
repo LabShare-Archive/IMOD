@@ -74,6 +74,7 @@ static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
 static void zapDrawContour(ZapStruct *zap, int co, int ob);
 static void zapDrawCurrentPoint(ZapStruct *zap, int undraw);
+static void zapDrawExtraObject(ZapStruct *zap);
 static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
 static void zapDrawTools(ZapStruct *zap);
@@ -549,6 +550,8 @@ void zapPaint(ZapStruct *zap)
   zapDrawGraphics(zap);
 
   zapDrawModel(zap);
+  zapDrawCurrentPoint(zap, 0);
+  zapDrawExtraObject(zap);
   zapDrawAuto(zap);
   if (zap->rubberband) {
     b3dColorIndex(App->endpoint);
@@ -2123,11 +2126,17 @@ static void zapDrawModel(ZapStruct *zap)
       zapDrawContour(zap, co, ob); 
     }
   }
+}
 
-  // Moved current point drawing into this routine so it could happen before
-  // the extra object
-  zapDrawCurrentPoint(zap, 0);
-  if (!xobj->contsize)
+// A separate routine to draw the extra object so that model - current point -
+// extra object drawing could happen in the right order
+static void zapDrawExtraObject(ZapStruct *zap)
+{
+  ImodView *vi = zap->vi;
+  Iobj *xobj = vi->extraObj;
+  int co;
+
+  if (vi->imod->drawmode <= 0 || !xobj->contsize)
     return;
 
   // If there are contours in the extra object, set color or red, and draw
@@ -2657,6 +2666,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.24  2003/06/27 19:25:28  mast
+Add ability to draw extra object that is not part of model
+
 Revision 4.23  2003/06/18 05:54:33  mast
 Start a new contour if section or time changes while dragging
 
