@@ -36,6 +36,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2005/02/24 20:08:03  sueh
+ * <p> Comments for dealing with java 1.5.0
+ * <p>
  * <p> Revision 1.11  2005/02/24 02:24:53  sueh
  * <p> bug# 605 In fitWindows: Tab height is different in Mac.  Adjust the
  * <p> tabHeight for mac os.
@@ -338,8 +341,29 @@ public abstract class MainPanel extends JPanel {
       panelCenter.add(splitPane);
     }
   }
-
-
+  
+  void showBothAxis() {
+    panelCenter.removeAll();
+    splitPane =
+      new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+    splitPane.setDividerLocation(0.5);
+    splitPane.setOneTouchExpandable(true);
+    panelCenter.add(splitPane);
+    fitWindow();
+  }
+  
+  void showAxisA() {
+    panelCenter.removeAll();
+    panelCenter.add(scrollPaneA);
+    fitWindow();
+  }
+  
+  void showAxisB() {
+    panelCenter.removeAll();
+    panelCenter.add(scrollPaneB);
+    fitWindow();
+  }
+  
   /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
