@@ -25,6 +25,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:46:32  rickg
+ * <p> Task tags moved to bugzilla
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -69,6 +72,7 @@ public class TextPageWindow extends JFrame {
       reader = new FileReader(filename);
       editorPane.read(reader, filename);
       editorPane.setEditable(false);
+			reader.close();
     }
     catch (FileNotFoundException except) {
       String[] messages = new String[2];
