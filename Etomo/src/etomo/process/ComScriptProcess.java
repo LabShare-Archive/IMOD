@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2003/06/05 04:22:36  rickg
+ * <p> method name change to getShellProcessID
+ * <p>
  * <p> Revision 1.4  2003/06/04 23:48:33  rickg
  * <p> Rename log file if it exists
  * <p>
@@ -156,10 +159,9 @@ public class ComScriptProcess
 
       // Remove the existing log file
       String logFileName = parseBaseName(name, ".com") + ".log";
-      File logFile =
-        new File(workingDirectory, logFileName);
+      File logFile = new File(workingDirectory, logFileName);
       if (logFile.exists()) {
-        File oldLog = new File(workingDirectory, logFileName+"~");
+        File oldLog = new File(workingDirectory, logFileName + "~");
         if (!logFile.renameTo(oldLog)) {
           // FIXME: what do if log file is not renamed
         }
@@ -365,7 +367,7 @@ public class ComScriptProcess
   }
 
   /**
-   * Parse the log file for errors.  Since the fortran code is no smart enough
+   * Parse the log file for errors.  Since the fortran code is not smart enough
    * handle formatted output we need find ERROR: in the middle of the output
    * stream.  The error report starts with the ERROR: text instead of the whole
    * line.
@@ -384,10 +386,17 @@ public class ComScriptProcess
 
     ArrayList errors = new ArrayList();
     String line;
+    boolean foundError = false;
     while ((line = fileBuffer.readLine()) != null) {
-      int index = line.indexOf("ERROR:");
-      if (index != -1) {
-        errors.add(line.substring(index));
+      if (!foundError) {
+        int index = line.indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(line);
+        }
+      }
+      else {
+        errors.add(line);
       }
     }
     return (String[]) errors.toArray(new String[errors.size()]);
