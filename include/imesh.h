@@ -32,43 +32,36 @@
 #include <imodel.h>
 
 /****************************************************************************/
-/* Mod_Mesh instructions for list arrary. */
-
-/* These definitions are obsolete, they were used in the old Iris GL
- * version of imod.  They were used by similar to the IrisGL funcions
- * bgntmesh(), endtmesh(), and swaptmesh().
- * OpenGL has no Triangle Mesh type calls.
+/*
+ * Instruction values for mesh list array.  Positive values are indexes into
+ the vertex point data. 
  */
-#define IMOD_MESH_BGNTRI      -11  /* bgntmesh();                          */
-#define IMOD_MESH_ENDTRI      -12  /* endtmesh();                          */
+
+/* These definitions are obsolete, but still appear in imodv_ogl.cpp
+ */
+#define IMOD_MESH_BGNTRI      -11  /* begin triangle strip                 */
+#define IMOD_MESH_ENDTRI      -12  /* end triangle strip                   */
 #define IMOD_MESH_SWAP        -10  /* swaptmesh();                         */
 
-/* When one of these values are reached no more drawing is done
+/* When this value is reached no more drawing is done
  * The end of the list is assumed, even if there is data left.
  */
 #define IMOD_MESH_END          -1  /* end of list array                    */
-#define IMOD_MESH_ENDLIST  -1
 
 /* Quit drawing the current polygon but keep processing data.
  */
-#define IMOD_MESH_ENDPOLY     -22  /* endpolygon();                        */
-
+#define IMOD_MESH_ENDPOLY     -22  /* end of polygon data                  */
 
 #define IMOD_MESH_NORMAL      -20  /* next item on list is normal vector.  */
-#define IMOD_MESH_BGNPOLY     -21  /* bngpolygon();                        */
+#define IMOD_MESH_BGNPOLY     -21  /* begin polygon                        */
 #define IMOD_MESH_BGNBIGPOLY  -24  /* poly not simple, can be concave.     */
 
-
-/* Most commont drawing command used by imodmesh.
+/* Most common drawing command used by imodmesh.
  * Data is sets of triangles.
  * Normal, Vertex, Normal, Vertex, Normal, Vertex.
- * It probably should have been called BGNTRINORM.
  */
 #define IMOD_MESH_BGNPOLYNORM -23  /* vertex, normal pairs                 */
-
-/* Not used yet. */
-#define IMOD_MESH_BGN_VN   -23 /* triangle list (vertex, normal)       */
-#define IMOD_MESH_BGN_VNM  -25 /* triangle list (vertex, normal, map)  */
+#define IMOD_MESH_BGNTRINORM  -23  /* vertex, normal pairs                 */
 
 /****************************************************************************/
 /* mesh flags */
@@ -82,11 +75,19 @@
 extern "C" {
 #endif
 
+/*
+ *  Create or delete a mesh that is not part of an object or model.
+ *
+ *  NOTE: There is no imodMeshGet, imodMeshGetFirst or imodMeshGetNext
+ *        functions because the model doesn't store a current mesh 
+ *        because mesh data is not editable directly by the user.
+ */
 Imesh *imodMeshesNew(int size);
 Imesh *imodMeshNew(void);
-int    imodMeshCopy(Imesh *from, Imesh *to);
 int    imodMeshDelete(Imesh *mesh);
 int    imodMeshesDelete(Imesh *mesh, int size);
+int    imodMeshCopy(Imesh *from, Imesh *to);
+
 int    imodMeshAddIndex(Imesh *mesh, int index);
 void   imodMeshDeleteIndex(Imesh *mesh, int index);
 int    imodMeshAddVert(Imesh *mesh, Ipoint *vert);
@@ -102,26 +103,9 @@ int     imodMeshAddNormal(Imesh *mesh, Ipoint *normal);
 
 int     imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres);
 
-void   imodel_mesh_skin2draw(Imesh *mesh);
 Imesh *imodel_mesh_add(struct Mod_Mesh *nmesh,
 				 struct Mod_Mesh *mray, int *size);
 
-/*
-Imesh *imodel_mesh_mkskin(struct Mod_Contour *bc, 
-				    struct Mod_Contour *tc);
-void   imeshObjectSkin(Iobj *obj, int cap, int res);
-Imesh *imeshContourMakeMesh(Iobj *obj, Icont **xscan, Icont **yscan,
-			    int firstc, int nextc, int lastc);
-Imesh *imeshSkinContours(Icont *tc, Icont *bc);
-Imesh *imodMeshContours(Icont *bc, Icont *tc, Ipoint *scale);
-int imodMeshesNormal(Imesh *meshes, int size, Ipoint *scale);
-
-int imeshSkinObject(Iobj *obj, Ipoint *scale, int cap, int skip);
-Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol);
-Imesh *imodMeshContourCap(Icont *cont, int side);
-Imesh *imeshContourCap(Icont *cont, int side);
-Imesh *imeshContours();
-*/
 
 /* get info from meshes. */
 float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
