@@ -38,34 +38,9 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 1.1.2.4  2003/01/23 20:02:15  mast
-    rearrange contour menu
-
-    Revision 1.1.2.3  2003/01/18 01:15:00  mast
-    fix enabling of cache filler menu items
-
-    Revision 1.1.2.2  2003/01/14 21:49:06  mast
-    Initialize hiding timer properly
-
-    Revision 1.1.2.1  2003/01/13 01:00:08  mast
-    Qt version
-
-    Revision 3.2.2.2  2002/12/19 04:37:12  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.2.2.1  2002/12/07 01:23:44  mast
-    changed calls to get model name string
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-    Revision 3.1  2001/12/17 18:45:19  mast
-    Added menu entries for cache filling
-
+    Log at end of file
 */
-#include <stdio.h>
+
 #include "form_info.h"
 #include <qmenubar.h>
 #include <qpopupmenu.h>
@@ -115,7 +90,6 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mFileMenu->insertItem("S&ave Model As...", FILE_MENU_SAVEAS);
   mFileMenu->insertItem("&Write Model As", mFWriteMenu);
   mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
-  mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
   mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
 
   mFWriteMenu->insertItem("&Imod", FWRITE_MENU_IMOD);
@@ -199,9 +173,9 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEImageMenu->insertItem("F&ill Cache", EIMAGE_MENU_FILLCACHE);
   mEImageMenu->insertItem("C&ache Filler...", EIMAGE_MENU_FILLER);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
-			      App->cvi->vmSize != 0 | App->cvi->nt > 0);
+			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
-			      App->cvi->vmSize != 0 | App->cvi->nt > 0);
+			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 
   // The image menu
   mImageMenu = new QPopupMenu();
@@ -270,15 +244,19 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
     ImodInfoWidget->setFloat(-1);
   
 
-  // Fix the minimum size of the ImodInfoWidget
-  QSize hint = ImodInfoWidget->sizeHint();
-  ImodInfoWidget->setMinimumHeight(hint.height());
-  
   // Get the status window and fix its minimum size; 
   // set its starting size by adjusting the window size
   mStatusEdit = new QTextEdit(central);
   mStatusEdit->setMinimumHeight((int)(INFO_MIN_LINES * 
 				      fontMetrics().height()));
+
+  // This is needed to get the right hint out of the info widget
+  imod_info_input();
+
+  // Fix the minimum size of the ImodInfoWidget
+  QSize hint = ImodInfoWidget->sizeHint();
+  ImodInfoWidget->setMinimumHeight(hint.height());
+  
   QSize editHint = mStatusEdit->sizeHint();
   hint = sizeHint();
   resize(hint.width(), hint.height() - editHint.height() +
@@ -349,6 +327,12 @@ void InfoWindow::hideTimeout()
     mMinimized = true;
     imodDialogManager.hide();
   }
+}
+
+// Enable menu items based on new information
+void InfoWindow::manageMenus()
+{
+  mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
 }
 
 
@@ -445,3 +429,34 @@ static char *truncate_name(char *name, int limit)
   free(name);
   return(newName);
 }
+
+/*
+    $Log$
+    Revision 4.1  2003/02/10 20:29:00  mast
+    autox.cpp
+
+    Revision 1.1.2.4  2003/01/23 20:02:15  mast
+    rearrange contour menu
+
+    Revision 1.1.2.3  2003/01/18 01:15:00  mast
+    fix enabling of cache filler menu items
+
+    Revision 1.1.2.2  2003/01/14 21:49:06  mast
+    Initialize hiding timer properly
+
+    Revision 1.1.2.1  2003/01/13 01:00:08  mast
+    Qt version
+
+    Revision 3.2.2.2  2002/12/19 04:37:12  mast
+    Cleanup of unused global variables and defines
+
+    Revision 3.2.2.1  2002/12/07 01:23:44  mast
+    changed calls to get model name string
+
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+    Revision 3.1  2001/12/17 18:45:19  mast
+    Added menu entries for cache filling
+
+*/
