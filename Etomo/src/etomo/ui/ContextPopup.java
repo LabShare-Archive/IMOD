@@ -14,6 +14,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
@@ -30,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/11/19 23:50:26  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.2.4.2  2004/10/11 02:12:11  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -102,6 +106,9 @@ import etomo.type.AxisID;
 public class ContextPopup {
   public static final String rcsid =
     "$Id$";
+  
+  public static final String TOMO_GUIDE = "tomoguide.html";
+  public static final String JOIN_GUIDE = "joinguide.html";
 
   private JPopupMenu contextMenu = new JPopupMenu("Help Documents");
   private JMenuItem[] manPageItem;
@@ -110,6 +117,7 @@ public class ContextPopup {
   private JMenuItem modelGuideItem = new JMenuItem("IMOD Users Guide ...");
   private JMenuItem it3dmodGuide = new JMenuItem("3dmod Users Guide ...");
   private JMenuItem etomoGuideItem = new JMenuItem("Etomo Users Guide ...");
+  private JMenuItem joinGuideItem = new JMenuItem("Join Users Guide ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -166,6 +174,7 @@ public class ContextPopup {
     Component component,
     MouseEvent mouseEvent,
     String tomoAnchor,
+    final String guideToAnchor,
     String[] manPageLabel,
     String[] manPage) {
 
@@ -183,9 +192,9 @@ public class ContextPopup {
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-        String tomoGuideLocation = "tomoguide.html";
+        String guideLocation = guideToAnchor;
         if (anchor != null && !anchor.equals("")) {
-          tomoGuideLocation += "#" + anchor;
+          guideLocation += "#" + anchor;
         }
 
         for (int i = 0; i < manPageItem.length; i++) {
@@ -196,7 +205,7 @@ public class ContextPopup {
           }
         }
 
-        globalItemAction(actionEvent, tomoGuideLocation);
+        globalItemAction(actionEvent, guideLocation);
 
         //  Close the menu
         contextMenu.setVisible(false);
@@ -214,81 +223,83 @@ public class ContextPopup {
    * the standard menu items.
    * @param component The component to which the popup is attached.
    * @param mouseEvent The mouse event that opened the menu.
-   * @param tomoAnchor The tomography guide HTML anchor for the current popup.
+   * @param tomoAnchor The guide HTML anchor for the current popup.
+   * @param guideToAnchor The guide containing the HTML anchor.
    * @param manPageLabel The string array of man page labels for the menu.
    * @param manPage The name of the HTML man pages.
-   * @param logFileLabel The tring array of log file labels for the menu.
-   * @param logFile The names of the log files.
+   * @param logFileLabel The string arrays of log file labels for the menu.
+   * @param logFile The string arrays of names of the log files.
+   * @param manager
    */
   public ContextPopup(
-    Component component,
-    MouseEvent mouseEvent,
-    String tomoAnchor,
-    String[] manPageLabel,
-    String[] manPage,
-    String[] logFileLabel,
-    String[] logFile,
-    final ApplicationManager applicationManager) {
+      Component component,
+      MouseEvent mouseEvent,
+      String tomoAnchor,
+      final String guideToAnchor,
+      String[] manPageLabel,
+      String[] manPage,
+      String[] logFileLabel,
+      String[] logFile,
+      final BaseManager manager) {
 
-    // Check to make sure that the menu label and man page arrays are the same
-    // length
-    if (manPageLabel.length != manPage.length) {
-      String message = "menu label and man page arrays must be the same length";
-      throw new IllegalArgumentException(message);
-    }
-    if (logFileLabel.length != logFile.length) {
-      String message =
-        "log file label and log file arrays must be the same length";
-      throw new IllegalArgumentException(message);
-    }
+      // Check to make sure that the menu label and man page arrays are the same
+      // length
+      if (manPageLabel.length != manPage.length) {
+        String message = "menu label and man page arrays must be the same length";
+        throw new IllegalArgumentException(message);
+      }
+      if (logFileLabel.length != logFile.length) {
+        String message =
+          "log file label and log file arrays must be the same length";
+        throw new IllegalArgumentException(message);
+      }
 
-    this.mouseEvent = mouseEvent;
-    anchor = tomoAnchor;
-    calcImodURL();
+      this.mouseEvent = mouseEvent;
+      anchor = tomoAnchor;
+      calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
-    actionListener = new ActionListener() {
-      public void actionPerformed(ActionEvent actionEvent) {
-        String tomoGuideLocation = "tomoguide.html";
-        if (anchor != null && !anchor.equals("")) {
-          tomoGuideLocation += "#" + anchor;
-        }
-
-        for (int i = 0; i < manPageItem.length; i++) {
-          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
-            HTMLPageWindow manpage = new HTMLPageWindow();
-            manpage.openURL(imodURL + "man/" + manPageName[i]);
-            manpage.setVisible(true);
+      //  Instantiate a new ActionListener to handle the menu selection
+      actionListener = new ActionListener() {
+        public void actionPerformed(ActionEvent actionEvent) {
+          String guideLocation = guideToAnchor;
+          if (anchor != null && !anchor.equals("")) {
+            guideLocation += "#" + anchor;
           }
-        }
 
-        //  Search the logfile items
-        for (int i = 0; i < logFileItem.length; i++) {
+          for (int i = 0; i < manPageItem.length; i++) {
+            if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+              HTMLPageWindow manpage = new HTMLPageWindow();
+              manpage.openURL(imodURL + "man/" + manPageName[i]);
+              manpage.setVisible(true);
+            }
+          }
+
+          //  Search the logfile items
+          for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
-            logFileWindow.setVisible(
-              logFileWindow.setFile(
-                applicationManager.getPropertyUserDir()
-                  + File.separator
-                  + logFileName[i]));
+            logFileWindow.setVisible(logFileWindow.setFile(manager
+                .getPropertyUserDir()
+                + File.separator + logFileName[i]));
           }
         }
 
-        //  Search the standard items
-        globalItemAction(actionEvent, tomoGuideLocation);
+          //  Search the standard items
+          globalItemAction(actionEvent, guideLocation);
 
-        //  Close the  the menu
-        contextMenu.setVisible(false);
-      }
-    };
+          //  Close the  the menu
+          contextMenu.setVisible(false);
+        }
+      };
 
-    addLogFileMenuItems(logFileLabel, logFile);
-    contextMenu.add(new JPopupMenu.Separator());
-    addManPageMenuItems(manPageLabel, manPage);
-    contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
-    showMenu(component);
-  }
+      addLogFileMenuItems(logFileLabel, logFile);
+      contextMenu.add(new JPopupMenu.Separator());
+      addManPageMenuItems(manPageLabel, manPage);
+      contextMenu.add(new JPopupMenu.Separator());
+      addStandardMenuItems();
+      showMenu(component);
+    }
+
 
   /**
    * Constructor to show a man page list and tabbed log file items in addition
@@ -417,6 +428,8 @@ public class ContextPopup {
     it3dmodGuide.addActionListener(actionListener);
     contextMenu.add(etomoGuideItem);
     etomoGuideItem.addActionListener(actionListener);
+    contextMenu.add(joinGuideItem);
+    joinGuideItem.addActionListener(actionListener);
   }
 
   /**
@@ -465,6 +478,12 @@ public class ContextPopup {
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
       HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "UsingEtomo.html");
+      manpage.setVisible(true);
+    }
+    
+    if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "tomojoin.html");
       manpage.setVisible(true);
     }
   }
