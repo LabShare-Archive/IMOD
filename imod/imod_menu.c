@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/09/13 23:44:44  mast
+    Changes after testing out most error conditions for messages
+
     Revision 3.3  2002/09/13 21:09:54  mast
     Added message handler to process external ClientMessage events for opening
     and saving model files.
@@ -1228,7 +1231,7 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
 	case MESSAGE_OPEN_MODEL:
 	  if (!message_string) {
 	       fprintf(stderr, "imodHandleClientMessage: no filename sent"
-		       " with command to open model\n", message_action);
+		       " with command to open model\n");
 	       break;
 	  }
 	  imod_file_cb(w, (XtPointer)1, NULL);

@@ -1,0 +1,49 @@
+:>setupcombine 
+ 
+This program sets up the file combine.com for combining two tomograms.
+There are no command line arguments.
+Just answer each of the questions in turn.
+To interrupt, type Ctrl-C then Return
+ 
+Enter root name of data sets (omitting a or b and extension): hvemuni5
+Enter letter of tomogram being matched TO (a or b): b
+
+Specify the correspondence between fiducial points in the two tilt alignments.
+Enter a list of the points in tilt series b for which you
+are sure of the corresponding point in tilt series a
+ (ranges may be entered).
+Or just Return if the points are in one-to-one correspondence.
+1-10
+Enter a list of the corresponding points in tilt series a
+1-10
+
+Enter 0 to use models of corresponding points (hvemuni5b.matmod and
+ hvemuni5a.matmod) to specify initial registration between tomograms;
+ otherwise enter:
+   1 if fiducials are on only one surface and tomograms are NOT inverted,
+  -1 if fiducials are on only one surface and tomograms are inverted
+           relative to each other, or
+   2 if there are fiducials on both surfaces: 2
+
+Enter s for small patches (64 x 32 x 64), m for medium patches (80 x 40 x 80),
+ or l for large patches (100 x 50 x 100) (Return for m): s
+
+Now specify the limits of the volume from which patches will be
+      extracted by patchcrawl3d.
+The default upper limits for X and Y are based on a border of 36 pixels.
+Lower X (left) limit of area (Return for 36): 
+Upper X (right) limit of area (Return for 988): 
+Lower Y (bottom) limit of area in flipped tomogram (Return for 36): 
+Upper Y (top) limit of area in flipped tomogram (Return for 988): 
+Lower Z limit of volume (bottom slice) in flipped tomogram: 1
+Upper Z limit of volume (top slice) in flipped tomogram: 180
+Enter name of model file with contours enclosing patches to use for fits,
+   or Return to use all patches: 
+ 
+1226 MBytes of disk space will be needed for combining
+If you want to use a local temporary directory, enter the path name of a
+ directory in which the temporary directory can be created (e.g., /usr/tmp)
+ or Return for no temporary directory: 
+ 
+The number of patches for PATCHCRAWL3D is 10 in X, 4 in Y, and 10 in Z
+   (Y and Z are not flipped on the PATCHCRAWL3D command line)
