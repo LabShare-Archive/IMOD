@@ -1,5 +1,6 @@
 package etomo.ui;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -74,6 +78,9 @@ public class AxisProcessPanel implements ContextMenu {
     //  Create the process control panel    
     createProcessControlPanel();
 
+    panelProcessSelect.setAlignmentY(Component.TOP_ALIGNMENT);
+    panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
+    
     // panel layout structure
     //    panelProcessInfo.setLayout(
     //      new BoxLayout(panelProcessInfo, BoxLayout.Y_AXIS));
