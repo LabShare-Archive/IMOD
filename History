@@ -1,5 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/25/04: IMOD_3-2-21
+6/25/04: Solvematch problems and other combine parameter synchronization 
+problems solved in eTomo.
+
+6/24/04: Rewrote bead fixer to store all residual data when reading the input
+file, changed it to go from one local area to the next area without the user
+pushing buttons, to go to the first residual in an area when next area is
+pushed, to back up more predictably, and to allow all points seen when backing
+up to be seen again when going forward.  Changed " hot key from Go to Next
+Area to Back Up.
+
+6/24/04: Added -c option to subm (submfg) to allow it to continue with
+multiple command files after one fails; used this in chunksetup.
+
+6/22/04: Fixed computation of output file mean density by Matchvol, Rotatevol,
+and Warpvol.
+
 6/22/04: Added ability for bead fixer and line tracker windows to save and
 restore their positions, and for line tracker settings to be saved.
 
