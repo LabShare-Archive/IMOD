@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2005/03/11 22:33:48  mast
+    Added output mode option and slice # and iterations to title
+
     Revision 3.1  2005/03/11 19:42:16  mast
     Added to package
 
@@ -946,6 +949,7 @@ return;
 #include "b3dutil.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
+#include "imodel.h"
 
 void usage(char *progname, float ht, int pmax, float sigma, float lambda)
 {
