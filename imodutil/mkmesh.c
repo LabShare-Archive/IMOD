@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/09/27 21:58:33  mast
+Prevented polygons from being combined on second run of imeshReMeshNormal
+
 Revision 3.6  2004/09/10 21:34:01  mast
 Eliminated long variables
 
@@ -3205,14 +3208,14 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
 	if (!mesh->lsize)
 	  continue;
 	chunkMeshAddIndex(nm, IMOD_MESH_BGNPOLYNORM, &maxlist);
-        linc = 1;
+        linc = 0;
 	for(l = 0; l < mesh->lsize; l++) {
 	  if (mesh->list[l] == IMOD_MESH_BGNPOLY || 
 	      mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
 
             /* Preserve polynorms polygons: start a new polygon if this is a 
                polynorm or if the last one was - use linc to indicate this */
-            if (mesh->list[l] == IMOD_MESH_BGNPOLYNORM || linc == 2) {
+            if ((linc && mesh->list[l] == IMOD_MESH_BGNPOLYNORM) || linc == 2) {
               chunkMeshAddIndex(nm, IMOD_MESH_ENDPOLY, &maxlist);
               chunkMeshAddIndex(nm, IMOD_MESH_BGNPOLYNORM, &maxlist);
             }
