@@ -504,7 +504,7 @@ int main( int argc, char *argv[])
   if (mrcfp)
        fclose(mrcfp);
 
-  exit(1);
+  exit(0);
 
 }
 
