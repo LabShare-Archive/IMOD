@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 	     }
 
      for(i = first; i < argc; i++){
-	 fin = fopen(argv[i], "r");
+	 fin = fopen(argv[i], "rb");
 	 if (!fin) exit(1);
 	 tiff_print_info(fin);
 	 fclose(fin);

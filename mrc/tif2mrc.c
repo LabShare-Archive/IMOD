@@ -35,6 +35,7 @@
 #include <string.h>
 #include <mrcc.h>
 #include "b3dtiff.h"
+#include "b3dutil.h"
 
 #define XSIZE 512
 #define YSIZE 480
@@ -73,8 +74,9 @@ int main( int argc, char *argv[])
   short int *sptr;
   short int *bgshort;
   int bgBits, bgxsize, bgysize, xdo, ydo;
-  char *openmode = "r";
+  char *openmode = "rb";
   char *bgfile;
+  char *progname = imodProgName(argv[0]);
 
   xsize = 0;
   ysize = 0;
@@ -90,7 +92,7 @@ int main( int argc, char *argv[])
        imodCopyright();
        fprintf(stderr,
 	       "Usage: %s [options] <tiff files...> <mrcfile>\n"
-	       , argv[0]);
+	       , progname);
        fprintf(stderr, "Options:\n");
        fprintf(stderr, "\t-g      Convert 24-bit RGB to 8-bit grayscale\n");
        fprintf(stderr, "\t-u      Convert unsigned 16-bit values by "
@@ -140,7 +142,7 @@ int main( int argc, char *argv[])
  
 	       case 'b':
 		 bgfile = strdup(argv[++i]);
-		 /*  bgfp = fopen(argv[++i], "r"); */
+		 /*  bgfp = fopen(argv[++i], "rb"); */
 		 bg = TRUE;
 		 break;
 		 
@@ -155,7 +157,7 @@ int main( int argc, char *argv[])
   }
   if ( (argc - 1) < (i + 1)){
 	  fprintf(stderr, "%s: argument error: no output file specified.\n",
-		  argv[0]);
+		  progname);
 	  exit(-1);
   }
 
@@ -200,7 +202,7 @@ int main( int argc, char *argv[])
 		 read_tiffentries(tiffp, &tiff);
 	    }
 
-	    mrcfp = fopen(argv[argc - 1], "w");
+	    mrcfp = fopen(argv[argc - 1], "wb");
 	    if (!mrcfp){
 		 perror("tif2mrc");
 		 fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
@@ -345,7 +347,7 @@ int main( int argc, char *argv[])
 
 
   /* Write out mrcheader */
-  mrcfp = fopen(argv[argc - 1], "w");
+  mrcfp = fopen(argv[argc - 1], "wb");
   if (!mrcfp){
     perror("tif2mrc");
     fprintf(stderr, "Error opening %s\n", argv[argc - 1]);

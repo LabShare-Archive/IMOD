@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/02/27 20:14:38  mast
+    set default upper right values to -1
+
 */
 
 #include <stdio.h>
@@ -310,7 +313,7 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
         free(tiff->iifile->filename);
       free(tiff->iifile);
       tiff->iifile = NULL;
-      tiff->fp = fopen(filename, "r");
+      tiff->fp = fopen(filename, "rb");
       if (!tiff->fp)
         return 1;
       /* This is needed to set swapping correctly */

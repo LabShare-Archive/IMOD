@@ -33,12 +33,16 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:48:02  mast
+    Changed to call imodCopyright
+
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <mrcfiles.h>
 #include "b3dtiff.h"
+#include "b3dutil.h"
 
 main(int argc, char *argv[])
 {
@@ -50,11 +54,12 @@ main(int argc, char *argv[])
 
      char iname[255];
      int *buf;
+     char *progname = imodProgName(argv[0]);
 
      if (argc != 3){
-	  fprintf(stderr, "%s version %s \n", argv[0], VERSION_NAME);
+	  fprintf(stderr, "%s version %s \n", progname, VERSION_NAME);
 	  imodCopyright();
-	  fprintf(stderr, "%s [mrc file] [tiff name/root]\n\n", argv[0]);
+	  fprintf(stderr, "%s [mrc file] [tiff name/root]\n\n", progname);
 	  fprintf(stderr, "A series of tiff files will be created "
 		  "with the prefix [tiff root name]\n"
 		  "and with the suffex nnn.tif, "
@@ -62,14 +67,14 @@ main(int argc, char *argv[])
 	  exit(1);
      }
 
-     if (NULL == (fin = fopen(argv[1], "r"))){
-	  fprintf(stderr, "%s: Couldn't open %s\n", argv[0], argv[1]);
+     if (NULL == (fin = fopen(argv[1], "rb"))){
+	  fprintf(stderr, "%s: Couldn't open %s\n", progname, argv[1]);
 	  exit(-1);
      }
 
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "%s: Can't Read Input Header from %s.\n",
-		  argv[0],argv[1]);
+		  progname,argv[1]);
 	  exit(-1);
      }
 
@@ -109,7 +114,7 @@ main(int argc, char *argv[])
 	  if (zsize == 1)
 	       sprintf(iname, "%s", argv[2]);
 
-	  fpTiff = fopen(iname, "w");
+	  fpTiff = fopen(iname, "wb");
 	  if (!fpTiff){
 	       fprintf(stderr, "mrc2tif Error: Opening %s\n", iname);
 	       perror("mrc2tif system message");

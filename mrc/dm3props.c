@@ -34,13 +34,14 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/31 19:19:52  mast
+    Initial version
+
 */
 #include <string.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <utime.h>
 
 #define BUFSIZE 160000
 int main(int argc, char **argv)
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 	       fprintf(stderr, "Error doing stat of %s\n", argv[i]);
 	       exit(1);
 	  }
-	  fp = fopen(argv[i], "r");
+	  fp = fopen(argv[i], "rb");
 	  if (!fp) {
 	       fprintf(stderr, "Error opening %s\n", argv[i]);
 	       exit(1);

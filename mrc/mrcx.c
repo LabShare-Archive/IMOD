@@ -61,6 +61,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/03/28 05:07:51  mast
+    Use new unique little endian flag
+
     Revision 3.3  2003/02/21 22:22:34  mast
     Changed all types to use new b3d types
 
@@ -83,6 +86,7 @@
 
 /*#include <environ.h> */
 #include <mrcfiles.h>
+#include "b3dutil.h"
 
 /* prototypes */
 void convertBytes(FILE  *fp, b3dUByte *buffer, int   noBytes, int direction); 
@@ -112,6 +116,7 @@ main( int argc, char *argv[])
      int   inplace;
      unsigned char bdata;
      long int filesize, datasize;
+     char *progname = imodProgName(argv[0]);
 
 #ifdef SWAP_IEEE_FLOATS
      swapieee = TRUE;
@@ -122,7 +127,7 @@ main( int argc, char *argv[])
 #ifndef B3D_LITTLE_ENDIAN
      if (argc < 2){
 	  fprintf(stderr, "Usage: %s [-vms|-ieee] filename [optional output filename]\n",
-		  argv[0]);
+		  progname);
 #ifdef SWAP_IEEE_FLOATS
 	  fprintf(stderr, "options: choose only one, default is -ieee.\n");
 #else
@@ -148,37 +153,37 @@ main( int argc, char *argv[])
 
      if (i >= argc){
 	  fprintf(stderr, "%s: Usage [-vms|-ieee] [filename] [optional output filename]\n",
-		  argv[0]);
+		  progname);
 	  exit(1);
      }
 #else
      if (argc < 2 || argc > 3 || argv[1][0] == '-') {
 	  fprintf(stderr, "%s: Usage [filename] [opt filename]\n",
-		  argv[0]);
+		  progname);
 	  fprintf(stderr, "There is no option to convert VMS data on this machine.\n");
 	  exit(1);
      }
      i = 1;
 #endif
      
-     fin = fopen(argv[i], "r");
+     fin = fopen(argv[i], "rb");
      if (fin == NULL){
-	  fprintf(stderr, "%s: Couldn't open %s.\n", argv[0], argv[i]);
+	  fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
 	  exit(10);
      }
      i++;
 
      if (i >= argc){
 	  inplace = TRUE;
-	  fout = fopen(argv[i-1], "r+");
+	  fout = fopen(argv[i-1], "rb+");
      }
      else{
-	  fout = fopen(argv[i], "w");
+	  fout = fopen(argv[i], "wb");
 	  inplace = FALSE;
      }
 
      if (fout == NULL){
-	  fprintf(stderr, "%s: Couldn't open %s.\n", argv[0], argv[i]);
+	  fprintf(stderr, "%s: Couldn't open %s.\n", progname, argv[i]);
 	  exit(10);
      }
 
@@ -188,7 +193,7 @@ main( int argc, char *argv[])
 	  floatFunc = convertFloats;
 
      if (fread(&hdata, 56, 4, fin) == 0){
-	  fprintf(stderr, "%s: Error Reading header.\n", argv[0]);
+	  fprintf(stderr, "%s: Error Reading header.\n", progname);
 	  exit(-1);
      }
 
@@ -219,7 +224,7 @@ main( int argc, char *argv[])
 	 hdata.maps < 0 || hdata.maps > 4 ||
 	 hdata.mode > 16 || hdata.mode < 0) {
 	  fprintf(stderr, "%s: This is not an MRC file, even after "
-		  "swapping bytes in header.\n", argv[0]);
+		  "swapping bytes in header.\n", progname);
 	  
 	  exit(-1);
      }
@@ -274,7 +279,7 @@ main( int argc, char *argv[])
 
 	default:
 	  fprintf(stderr, "%s: data type %d unsupported.\n",
-		  argv[0], hdata.mode);
+		  progname, hdata.mode);
 	  exit(-1);
 	  break;
      }

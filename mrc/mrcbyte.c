@@ -32,10 +32,14 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:49:50  mast
+    Changed to call imodCopyright
+
 */
 
 #include <stdio.h>
 #include "mrcfiles.h"
+#include "b3dutil.h"
 
 void mrcbyte_help(char *name)
 {
@@ -76,13 +80,14 @@ main( int argc, char *argv[] )
      short sdata;
      float fdata;
      int cdat;
+     char *progname = imodProgName(argv[0]);
 
 
      if (argc < 2){
 	  fprintf(stderr, 
-		  "%s version %s\n", argv[0], VERSION_NAME);
+		  "%s version %s\n", progname, VERSION_NAME);
 	  imodCopyright();
-	  mrcbyte_help(argv[0]);
+	  mrcbyte_help(progname);
 	  exit(-1);
      }
 
@@ -150,8 +155,8 @@ main( int argc, char *argv[] )
 		    break;
 
 		  default:
-		    fprintf(stderr, "%s: illegal option\n", argv[0]);
-		    mrcbyte_help(argv[0]);
+		    fprintf(stderr, "%s: illegal option\n", progname);
+		    mrcbyte_help(progname);
 		    exit(1);
 		    break;
 		    
@@ -160,7 +165,7 @@ main( int argc, char *argv[] )
      if (i < (argc - 1)){
 	  
 
-	  fin = fopen(argv[i], "r");
+	  fin = fopen(argv[i], "rb");
 	  if (fin == NULL)
 	       {
 		    fprintf(stderr, "Error opening %s.\n", argv[i]);
@@ -168,14 +173,14 @@ main( int argc, char *argv[] )
 	       }
 
 	  i++;
-	  fout = fopen(argv[i], "w");
+	  fout = fopen(argv[i], "wb");
 	  if (fout == NULL)
 	       {
 		    fprintf(stderr, "Error opening %s.\n", argv[i]);
 		    exit(-1);
 	       }
      }else{
-	  mrcbyte_help(argv[0]);
+	  mrcbyte_help(progname);
 	  exit(-1);	  
      }
      
@@ -217,7 +222,7 @@ main( int argc, char *argv[] )
      
      if (!idata)
 	  {
-	       fprintf(stderr, "%s: Error reading image data\n", argv[0]);
+	       fprintf(stderr, "%s: Error reading image data\n", progname);
 	       exit(-1);
 	  }
 

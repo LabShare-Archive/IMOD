@@ -50,7 +50,7 @@ main( int argc, char *argv[] )
      }
 
      data = &hdata;          
-     fin = fopen(argv[1], "r");
+     fin = fopen(argv[1], "rb");
      
      if (fin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[1]);

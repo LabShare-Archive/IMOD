@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/11/05 23:52:15  mast
+    Changed to call imodCopyright, fixed bug in outputting usage
+
     Revision 3.1  2002/06/26 16:50:03  mast
     Allowed writing back to byte-swapped files
 
@@ -41,6 +44,7 @@
 #include <math.h>
 #include "mrcslice.h"
 #include "mrcfiles.h"
+#include "b3dutil.h"
 
 #define DEFAULT_TAPER 16
 static int taper_slice(Islice *sl, int ntaper, int inside);
@@ -71,12 +75,13 @@ main( int argc, char *argv[] )
      Islice slice;
      int zmin = -1, zmax = -1;
      int secofs;
+     char *progname = imodProgName(argv[0]);
 
      if (argc < 2){
 	  fprintf(stderr, 
-		  "%s version %s\n", argv[0], VERSION_NAME);
+		  "%s version %s\n", progname, VERSION_NAME);
 	  imodCopyright();
-	  mrctaper_help(argv[0]);
+	  mrctaper_help(progname);
 	  exit(-1);
      }
 
@@ -103,8 +108,8 @@ main( int argc, char *argv[] )
 		    break;
 
 		  default:
-		    fprintf(stderr, "%s: illegal option\n", argv[0]);
-		    mrctaper_help(argv[0]);
+		    fprintf(stderr, "%s: illegal option\n", progname);
+		    mrctaper_help(progname);
 		    exit(1);
 		    break;
 		    
@@ -113,19 +118,19 @@ main( int argc, char *argv[] )
      
 
      if (i < (argc - 2) || i == argc){
-	  mrctaper_help(argv[0]);
+	  mrctaper_help(progname);
 	  exit(-1);	  
      }
 
      if (ntaper < 1 || ntaper > 127) {
-	  fprintf(stderr, "%s: Taper must be between 1 and 127.\n", argv[0]);
+	  fprintf(stderr, "%s: Taper must be between 1 and 127.\n", progname);
 	  exit(-1);
      }
 
      if (i < argc - 1)
-	  fin = fopen(argv[i++], "r");
+	  fin = fopen(argv[i++], "rb");
      else
-	  fin = fopen(argv[i++], "r+");
+	  fin = fopen(argv[i++], "rb+");
 
      if (fin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[i - 1]);
@@ -138,7 +143,7 @@ main( int argc, char *argv[] )
 
      if (hdata.mode != MRC_MODE_BYTE && hdata.mode != MRC_MODE_SHORT &&
 	 hdata.mode != MRC_MODE_FLOAT) {
-	  fprintf(stderr, "%s: Can operate only on byte, integer and real data.\n", argv[0]);
+	  fprintf(stderr, "%s: Can operate only on byte, integer and real data.\n", progname);
 	  exit(-1);
      }
      
@@ -153,7 +158,7 @@ main( int argc, char *argv[] )
      }
      
      if (i < argc){
-	  fout = fopen(argv[i], "w");
+	  fout = fopen(argv[i], "wb");
 	  if (fout == NULL) {
 	       fprintf(stderr, "Error opening %s.\n", argv[i]);
 	       exit(-1);
@@ -175,7 +180,7 @@ main( int argc, char *argv[] )
      }else{
 	  /* DNM 6/26/02: it it OK now */
 	  /* if (hdata.swapped) {
-	       fprintf(stderr, "%s: Cannot write to byte-swapped file.\n", argv[0]);
+	       fprintf(stderr, "%s: Cannot write to byte-swapped file.\n", progname);
 	       exit(-1);
 	       } */
 	  hptr = &hdata;
@@ -189,7 +194,7 @@ main( int argc, char *argv[] )
      buf = (unsigned char *)malloc(dsize * csize * bsize);
      
      if (!buf){
-	  fprintf(stderr, "%s: Couldn't get memory for slice.\n", argv[0]);
+	  fprintf(stderr, "%s: Couldn't get memory for slice.\n", progname);
 	  exit(-1);
      }
      mrc_slice_init(&slice, hdata.nx, hdata.ny, hdata.mode, buf);

@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:55:30  mast
+    Changed to call imodCopyright
+
 */
 
 /* System include files */
@@ -120,6 +123,7 @@ main( int argc, char *argv[])
      int resize = FALSE;
      int ntscwin = FALSE;
      int fullwin = FALSE;
+     char *progname = imodProgName(argv[0]);
 
      if (argc == 3){
 	  if ((argv[1][0] == '-') && (argv[1][1] == 'e')){
@@ -135,9 +139,9 @@ main( int argc, char *argv[])
 	  imodCopyright();
 	  fprintf(stderr, 
 		  "%s: Usage, %s [-r] [-f] [-n] [-q] [-b] [-h]\n", 
-		  argv[0], argv[0]);
+		  progname, progname);
 	  fprintf(stderr,"\t[-c #] [-x #,#] [-y #,#] [-z #,#]  filename\n");
-	  fprintf(stderr, "%s -h for help\n", argv[0]);
+	  fprintf(stderr, "%s -h for help\n", progname);
 	  exit(1);
      }
 
@@ -193,7 +197,7 @@ main( int argc, char *argv[])
 		    Mrcv_model = imodRead(argv[i]);
 		    if (!Mrcv_model){
 			 fprintf(stderr, "%s: error reading model file %s\n",
-				 argv[0], argv[i]);
+				 progname, argv[i]);
 			 exit(-1);
 		    }
 		    break;
@@ -272,7 +276,7 @@ main( int argc, char *argv[])
 	  exit(-1);
      
      filearg = i;
-     fin = fopen(argv[i], "r");
+     fin = fopen(argv[i], "rb");
      
      if (fin == NULL){
 	  fprintf(stderr, "Couldn't read input file %s.\n", argv[i]);

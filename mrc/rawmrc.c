@@ -73,8 +73,8 @@ main( int argc, char *argv[] )
 	  exit(-1);
      }
      
-     fin = fopen(argv[1], "r");
-     fout = fopen(argv[2], "w");
+     fin = fopen(argv[1], "rb");
+     fout = fopen(argv[2], "wb");
 
      fflush(stdout);
      fflush(stdin);

@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/11/05 23:22:22  mast
+    Changed to use library routine for writing header
+
     Revision 3.4  2002/11/05 23:35:08  mast
     Changed to call imodCopyright
 
@@ -52,6 +55,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "mrcfiles.h"
+#include "b3dutil.h"
 
 /* input data types */
 #define DTYPE_CHAR   1
@@ -137,6 +141,7 @@ main( int argc, char *argv[] )
      float *fdata, fval;
      void *indata;
      int val;
+     char *progname = imodProgName(argv[0]);
 
      if (argc < 3){
 	  usage();
@@ -184,7 +189,7 @@ main( int argc, char *argv[] )
      }
      
      if ( (argc - 1) < (i + 1)){
-	  fprintf(stderr, "%s: argument error.\n", argv[0]);
+	  fprintf(stderr, "%s: argument error.\n", progname);
 	  usage();
 	  exit(-1);
      }
@@ -194,9 +199,9 @@ main( int argc, char *argv[] )
 
      /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
-     fout = fopen(argv[argc - 1], "w");
+     fout = fopen(argv[argc - 1], "wb");
      if (!fout){
-	  fprintf(stderr, "%s: error opening %s for output\n", argv[0],
+	  fprintf(stderr, "%s: error opening %s for output\n", progname,
 		  argv[argc -1]);
 	  exit(-1);
      }
@@ -209,14 +214,14 @@ main( int argc, char *argv[] )
 
      indata = (void *)malloc(pixsize * csize * xysize);
      if (!indata){
-	  fprintf(stderr, "%s: error getting memory.\n", argv[0]);
+	  fprintf(stderr, "%s: error getting memory.\n", progname);
 	  exit(-1);
      }
 
      for(j = i ; j < argc-1 ; j++) {
-       fin = fopen(argv[j], "r");
+       fin = fopen(argv[j], "rb");
        if (!fin){
-	 fprintf(stderr, "%s: error opening %s for input\n", argv[0],
+	 fprintf(stderr, "%s: error opening %s for input\n", progname,
 		 argv[j]);
 	 exit(-1);
        }

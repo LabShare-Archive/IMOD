@@ -32,10 +32,14 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:45:56  mast
+    Changed to call imodCopyright
+
 */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "b3dutil.h"
 
 #ifndef __sgi
 main(int argc, char **argv)
@@ -104,13 +108,14 @@ main(int argc, char *argv[])
      unsigned char **idata;
      short *buf;
      int i, x, y, z;
+     char *progname = imodProgName(argv[0]);
      
 
      if (argc != 3){
 	  fprintf(stderr, 
-		  "%s version 1.0\n",  argv[0]);
+		  "%s version 1.0\n",  progname);
 	  imodCopyright();
-	  fprintf(stderr, "%s [mrc file] [rgb name/root]\n\n", argv[0]);
+	  fprintf(stderr, "%s [mrc file] [rgb name/root]\n\n", progname);
 	  fprintf(stderr, "A series of rgb files will be created ");
 	  fprintf(stderr, "with the prefix [rgb root name]\n");
 	  fprintf(stderr, "and with the suffex nnn.rgb, ");
@@ -118,14 +123,14 @@ main(int argc, char *argv[])
 	  exit(1);
      }
 
-     if (NULL == (fin = fopen(argv[1], "r"))){
-	  fprintf(stderr, "%s: Couldn't open %s\n", argv[0], argv[1]);
+     if (NULL == (fin = fopen(argv[1], "rb"))){
+	  fprintf(stderr, "%s: Couldn't open %s\n", progname, argv[1]);
 	  exit(-1);
      }
 
      if (mrc_head_read(fin, &hdata)){
 	  fprintf(stderr, "%s: Can't Read Input Header from %s.\n",
-		  argv[0], argv[1]);
+		  progname, argv[1]);
 	  exit(-1);
      }
 

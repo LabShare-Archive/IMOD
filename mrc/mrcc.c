@@ -51,14 +51,14 @@ main( int argc, char *argv[] )
 	  exit(-1);
      }
      
-     fin = fopen(argv[1], "r");
+     fin = fopen(argv[1], "rb");
      if (fin == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[1]);
 	       exit(-1);
 	  }
      
-     fout = fopen(argv[2], "w");
+     fout = fopen(argv[2], "wb");
      if (fout == NULL)
 	  {
 	       fprintf(stderr, "Error opening %s.\n", argv[2]);

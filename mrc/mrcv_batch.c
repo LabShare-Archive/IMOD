@@ -1117,7 +1117,7 @@ load_mrc(char *filename)
      vi = Mrcv_vi;
      
      
-     fin = fopen(filename, "r");
+     fin = fopen(filename, "rb");
      
      if (vi->viewdata)
 	  free(vi->viewdata);
@@ -1360,7 +1360,7 @@ int mrcvb_loadsec(char *fname, int section, int black, int white, char axis)
 	  ival = black; black = white; white = ival;
      }
 
-     fin = fopen(fname, "r");
+     fin = fopen(fname, "rb");
      if (!fin){
 	  fprintf(stderr, "mrcv: Couldn't open %s\n", fname);
 	  return(-1);

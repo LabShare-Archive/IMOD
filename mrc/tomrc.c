@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:53:13  mast
+    Changed to call imodCopyright
+
 */
 
 /* To compile:  cc tomrc.c -o readimage -limage */
@@ -48,6 +51,7 @@ main(int argc, char **argv)
 
 #include <gl/image.h>
 #include "mrcfiles.h"
+#include "b3dutil.h"
 
 main(argc,argv)
      int argc;
@@ -109,7 +113,7 @@ main(argc,argv)
      }
 
      
-     fout = fopen(argv[argc - 1], "w");
+     fout = fopen(argv[argc - 1], "wb");
      
      if (fout == NULL){
 	  fprintf(stderr,"tomrc: Couldn't open output file %s\n", argv[2]);

@@ -83,15 +83,15 @@ main(int argc, char *argv[])
 	  exit(1);
      }
 
-     if (NULL == (mrcrf = fopen(argv[1], "r"))){
+     if (NULL == (mrcrf = fopen(argv[1], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[1]);
 	  exit(-1);
      }
-     if (NULL == (mrcgf = fopen(argv[2], "r"))){
+     if (NULL == (mrcgf = fopen(argv[2], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[2]);
 	  exit(-1);
      }
-     if (NULL == (mrcbf = fopen(argv[3], "r"))){
+     if (NULL == (mrcbf = fopen(argv[3], "rb"))){
 	  fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[3]);
 	  exit(-1);
      }
@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 
 	  sprintf(iname, "%s.%3.3d.rgb", argv[4], z);
 
-	  if (NULL == (of  = fopen(iname, "w"))){
+	  if (NULL == (of  = fopen(iname, "wb"))){
 	       fprintf(stderr, "mrc2rgb: Couldn't open %s\n", argv[4]);
 	       exit(-1);
 	  }

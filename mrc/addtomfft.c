@@ -103,17 +103,17 @@ int main(int argc, char **argv)
 	       break;
      }
 
-     afin = fopen(argv[i++], "r");
+     afin = fopen(argv[i++], "rb");
      if (afin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[1]);
 	  exit(-1);
      }
-     bfin = fopen(argv[i++], "r");
+     bfin = fopen(argv[i++], "rb");
      if (bfin == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[1]);
 	  exit(-1);
      }
-     fout = fopen(argv[i], "w");
+     fout = fopen(argv[i], "wb");
      if (fout == NULL){
 	  fprintf(stderr, "Error opening %s.\n", argv[2]);
 	  exit(-1);

@@ -57,7 +57,7 @@ main(int argc, char **argv)
 	  exit(1);
      }
 
-     fin = fopen(argv[1], "r");
+     fin = fopen(argv[1], "rb");
      if (!fin){
 	  fprintf(stderr, "%s: error opening %s.\n", argv[0], argv[1]);
 	  exit(1);
