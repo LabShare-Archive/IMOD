@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.32  2003/05/09 17:52:59  rickg
+ * <p> include this in ImodManager constructor, needed for fiducial model calls
+ * <p>
  * <p> Revision 2.31  2003/05/08 23:18:45  rickg
  * <p> Added --debug option, off by default
  * <p>
@@ -2768,11 +2771,17 @@ public class ApplicationManager {
       System.setProperty("user.dir", workingDirectory);
     }
 
-    // Get the IMOD directory so we know which program to run
-    IMODDirectory = getEnvironmentVariable("IMOD_DIR");
-    if (homeDirectory == "") {
-      String[] message = new String[2];
-      message[0] = "Can not find IMOD directory! Unable to run programs";
+    // Get the IMOD directory so we know where to find documentation
+    // Check to see if is defined on the command line first with -D
+    // Otherwise check to see if we can get it from the environment
+    // If not punt...
+    IMODDirectory = System.getProperty("IMOD_DIR");
+    if (IMODDirectory == null) {
+      IMODDirectory = getEnvironmentVariable("IMOD_DIR");
+    }
+    if (IMODDirectory == "") {
+      String[] message = new String[3];
+      message[0] = "Can not find IMOD directory! Unable to view documentation";
       message[1] =
         "Set IMOD_DIR environment variable and restart program to fix this problem";
       openMessageDialog(message, "Program Initialization Error");
@@ -2848,7 +2857,7 @@ public class ApplicationManager {
       if (args[i].equals("--debug")) {
         debug = true;
       }
-      
+
       if (args[i].equals("--demo")) {
         demo = true;
       }
