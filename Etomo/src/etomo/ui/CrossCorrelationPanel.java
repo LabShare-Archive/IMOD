@@ -21,6 +21,10 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/03/11 19:43:45  sueh
+ * <p> bug# 372 removing FilterSigma2, change text and order of FilterSigma1,
+ * <p> FilterRadius2, FilterRadius1
+ * <p>
  * <p> Revision 3.4  2004/02/05 04:49:22  rickg
  * <p> Added tiltxcorr border, simplified layout
  * <p>
@@ -79,6 +83,8 @@ public class CrossCorrelationPanel implements ContextMenu {
 
   private JPanel pnlCrossCorrelation = new JPanel();
   private JPanel pnlAdvanced = new JPanel();
+  private JPanel pnlXMinAndMax = new JPanel();
+  private JPanel pnlYMinAndMax = new JPanel();
 
   private BeveledBorder borderCoarseAlignment =
     new BeveledBorder("Cross-Correlation");
@@ -86,21 +92,29 @@ public class CrossCorrelationPanel implements ContextMenu {
   private JCheckBox cbExcludeCentralPeak =
     new JCheckBox("Exclude central peak due to fixed pattern noise");
 
-  private LabeledTextField ltfInputFile = new LabeledTextField("Input file: ");
-  private LabeledTextField ltfOutputFile =
-    new LabeledTextField("Output file: ");
+  private LabeledTextField ltfTestOutput = new LabeledTextField("Test output: ");
   private LabeledTextField ltfFilterSigma1 =
     new LabeledTextField("Low frequency rolloff sigma: ");
   private LabeledTextField ltfFilterRadius2 =
     new LabeledTextField("High frequency cutoff radius: ");
   private LabeledTextField ltfFilterSigma2 =
     new LabeledTextField("High frequency rolloff sigma: ");
-
   private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
+  private LabeledTextField ltfXMin = new LabeledTextField("Min ");
+  private LabeledTextField ltfXMax = new LabeledTextField("max ");
+  private JLabel lblXMinAndMax = new JLabel("pixels in X");
+  private LabeledTextField ltfYMin = new LabeledTextField("Min ");
+  private LabeledTextField ltfYMax = new LabeledTextField("max ");
+  private JLabel lblYMinAndMax = new JLabel("pixels in Y");
   private LabeledTextField ltfPadPercent =
     new LabeledTextField("Pixels to pad: ");
   private LabeledTextField ltfTaperPercent =
     new LabeledTextField("Pixels to taper: ");
+  private JCheckBox cbCumulativeCorrelation =
+    new JCheckBox("Cumulative correlation");
+  private JCheckBox cbAbsoluteCosineStretch = 
+    new JCheckBox("Absolute Cosine Stretch");
+  private JCheckBox cbNoCosineStretch = new JCheckBox("No Cosine Stretch");
   private LabeledTextField ltfViewRange = new LabeledTextField("View range: ");
 
   AxisID axisID;
@@ -108,15 +122,23 @@ public class CrossCorrelationPanel implements ContextMenu {
   public CrossCorrelationPanel(AxisID id) {
     setToolTipText();
     axisID = id;
+    pnlXMinAndMax.setLayout(new BoxLayout(pnlXMinAndMax, BoxLayout.X_AXIS));
+    pnlXMinAndMax.add(ltfXMin.getContainer());
+    pnlXMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlXMinAndMax.add(ltfXMax.getContainer());
+    pnlXMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlXMinAndMax.add(lblXMinAndMax);
+    
+    pnlYMinAndMax.setLayout(new BoxLayout(pnlYMinAndMax, BoxLayout.X_AXIS));
+    pnlYMinAndMax.add(ltfYMin.getContainer());
+    pnlYMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlYMinAndMax.add(ltfYMax.getContainer());
+    pnlYMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlYMinAndMax.add(lblYMinAndMax);
+    
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
    
     cbExcludeCentralPeak.setAlignmentX((float) 0.5);
-    pnlAdvanced.add(cbExcludeCentralPeak);
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlAdvanced.add(ltfInputFile.getContainer());
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlAdvanced.add(ltfOutputFile.getContainer());
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfFilterSigma1.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfFilterRadius2.getContainer());
@@ -127,9 +149,23 @@ public class CrossCorrelationPanel implements ContextMenu {
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfTrim.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(pnlXMinAndMax);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(pnlYMinAndMax);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfPadPercent.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfTaperPercent.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(cbCumulativeCorrelation);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(cbAbsoluteCosineStretch);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(cbNoCosineStretch);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(cbExcludeCentralPeak);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfTestOutput.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfViewRange.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -145,7 +181,11 @@ public class CrossCorrelationPanel implements ContextMenu {
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlCrossCorrelation.addMouseListener(mouseAdapter);
-
+    
+    CrossCorrelationActionListener actionListener =
+      new CrossCorrelationActionListener(this);
+    cbCumulativeCorrelation.addActionListener(actionListener);
+    cbNoCosineStretch.addActionListener(actionListener);
   }
 
   JPanel getPanel() {
@@ -157,15 +197,22 @@ public class CrossCorrelationPanel implements ContextMenu {
    */
   public void setParameters(ConstTiltxcorrParam tiltXcorrParams) {
     cbExcludeCentralPeak.setSelected(tiltXcorrParams.getExcludeCentralPeak());
-    ltfInputFile.setText(tiltXcorrParams.getInputFile());
-    ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
     ltfFilterSigma1.setText(tiltXcorrParams.getFilterSigma1());
     ltfFilterRadius2.setText(tiltXcorrParams.getFilterRadius2());
     ltfFilterSigma2.setText(tiltXcorrParams.getFilterSigma2());
     ltfTrim.setText(tiltXcorrParams.getBordersInXandY());
+    ltfXMin.setText(tiltXcorrParams.getXMinString());
+    ltfXMax.setText(tiltXcorrParams.getXMaxString());
+    ltfYMin.setText(tiltXcorrParams.getYMinString());
+    ltfYMax.setText(tiltXcorrParams.getYMaxString());
     ltfPadPercent.setText(tiltXcorrParams.getPadsInXandY());
     ltfTaperPercent.setText(tiltXcorrParams.getTaperPercent());
+    cbCumulativeCorrelation.setSelected(tiltXcorrParams.isCumulativeCorrelation());
+    cbAbsoluteCosineStretch.setSelected(tiltXcorrParams.isAbsoluteCosineStretch());
+    cbNoCosineStretch.setSelected(tiltXcorrParams.isNoCosineStretch());
+    ltfTestOutput.setText(tiltXcorrParams.getTestOutput());
     ltfViewRange.setText(tiltXcorrParams.getStartingEndingViews());
+    updateCrossCorrelationPanel();
   }
 
   /**
@@ -174,8 +221,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   public void getParameters(TiltxcorrParam tiltXcorrParams)
     throws FortranInputSyntaxException {
     tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
-    tiltXcorrParams.setInputFile(ltfInputFile.getText());
-    tiltXcorrParams.setOutputFile(ltfOutputFile.getText());
+    tiltXcorrParams.setTestOutput(ltfTestOutput.getText());
     String currentParam = "unknown";
     try {
       currentParam = ltfFilterSigma1.getLabel();
@@ -189,10 +235,24 @@ public class CrossCorrelationPanel implements ContextMenu {
         Double.parseDouble(ltfFilterSigma2.getText()));
       currentParam = ltfTrim.getLabel();
       tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
+      currentParam = "X" + ltfXMin.getLabel();
+      tiltXcorrParams.setXMin(ltfXMin.getText());
+      currentParam = "X" + ltfXMax.getLabel();
+      tiltXcorrParams.setXMax(ltfXMax.getText());
+      currentParam = "Y" + ltfYMin.getLabel();
+      tiltXcorrParams.setYMin(ltfYMin.getText());
+      currentParam = "Y" + ltfYMax.getLabel();
+      tiltXcorrParams.setYMax(ltfYMax.getText());
       currentParam = ltfPadPercent.getLabel();
       tiltXcorrParams.setPadsInXandY(ltfPadPercent.getText());
       currentParam = ltfTaperPercent.getLabel();
       tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText());
+      currentParam = cbCumulativeCorrelation.getText();
+      tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation.isSelected());
+      currentParam = cbAbsoluteCosineStretch.getText();
+      tiltXcorrParams.setAbsoluteCosineStretch(cbAbsoluteCosineStretch.isSelected());
+      currentParam = cbNoCosineStretch.getText();
+      tiltXcorrParams.setNoCosineStretch(cbNoCosineStretch.isSelected());
       currentParam = ltfViewRange.getLabel();
       tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
     }
@@ -208,6 +268,21 @@ public class CrossCorrelationPanel implements ContextMenu {
 
   void setAdvanced(boolean state) {
     pnlAdvanced.setVisible(state);
+  }
+  
+  void updateCrossCorrelationPanel() {
+    if (cbCumulativeCorrelation.isSelected() && !cbNoCosineStretch.isSelected()) {
+      cbAbsoluteCosineStretch.setEnabled(true);
+    }
+    else {
+      cbAbsoluteCosineStretch.setSelected(false);
+      cbAbsoluteCosineStretch.setEnabled(false);
+    }
+  }
+  
+  //  Action functions for setup panel buttons
+  private void buttonAction(ActionEvent event) {
+    updateCrossCorrelationPanel();
   }
 
   /**
@@ -229,6 +304,21 @@ public class CrossCorrelationPanel implements ContextMenu {
         logFileLabel,
         logFile);
   }
+  
+  
+  class CrossCorrelationActionListener implements ActionListener {
+
+    CrossCorrelationPanel adaptee;
+    public CrossCorrelationActionListener(CrossCorrelationPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+
+  }
+
 
   /**
    * Tooltip string initialization
@@ -249,14 +339,9 @@ public class CrossCorrelationPanel implements ContextMenu {
       except.printStackTrace();
     }
 
-    text = TooltipFormatter.getText(autodoc, "InputFile");
+    text = TooltipFormatter.getText(autodoc, "TestOutput");
     if (text != null) {
-      ltfInputFile.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-
-    text = TooltipFormatter.getText(autodoc, "OutputFile");
-    if (text != null) {
-      ltfOutputFile.setToolTipText(tooltipFormatter.setText(text).format());
+      ltfTestOutput.setToolTipText(tooltipFormatter.setText(text).format());
     }
     text = TooltipFormatter.getText(autodoc, "FilterSigma1");
     if (text != null) {
@@ -274,7 +359,14 @@ public class CrossCorrelationPanel implements ContextMenu {
     if (text != null) {
       ltfTrim.setToolTipText(tooltipFormatter.setText(text).format());
     }
-
+    text = TooltipFormatter.getText(autodoc, "XMinAndMax");
+    if (text != null) {
+      pnlXMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
+    }
+    text = TooltipFormatter.getText(autodoc, "YMinAndMax");
+    if (text != null) {
+      pnlYMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
+    }
     text = TooltipFormatter.getText(autodoc, "PadsInXandY");
     if (text != null) {
       ltfPadPercent.setToolTipText(tooltipFormatter.setText(text).format());
@@ -283,6 +375,21 @@ public class CrossCorrelationPanel implements ContextMenu {
     text = TooltipFormatter.getText(autodoc, "TapersInXandY");
     if (text != null) {
       ltfTaperPercent.setToolTipText(tooltipFormatter.setText(text).format());
+    }
+
+    text = TooltipFormatter.getText(autodoc, "CumulativeCorrelation");
+    if (text != null) {
+      cbCumulativeCorrelation.setToolTipText(tooltipFormatter.setText(text).format());
+    }
+
+    text = TooltipFormatter.getText(autodoc, "AbsoluteCosineStretch");
+    if (text != null) {
+      cbAbsoluteCosineStretch.setToolTipText(tooltipFormatter.setText(text).format());
+    }
+
+    text = TooltipFormatter.getText(autodoc, "NoCosineStretch");
+    if (text != null) {
+      cbNoCosineStretch.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
     text = TooltipFormatter.getText(autodoc, "StartingEndingViews");
