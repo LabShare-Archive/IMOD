@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2004/05/27 22:51:04  rickg
+ * Bug #391 setupFiducialAlign will now remove .xf and .tlt if its
+ * source files don't exist
+ *
  * Revision 3.10  2004/05/25 23:21:55  rickg
  * Bug #391 midas now opens the image rotated by the tilt axis
  * angle
@@ -1395,10 +1399,26 @@ public class ProcessManager {
     systemProgram.run();
     if (systemProgram.getExitValue() != 0) {
       String message = "";
+      // Copy any stderr output to the message
       String[] stderr = systemProgram.getStdError();
-
       for (int i = 0; i < stderr.length; i++) {
         message = message + stderr[i] + "\n";
+      }
+      
+      // Also scan stdout for ERROR: lines
+      String[] stdOutput = systemProgram.getStdOutput();
+      boolean foundError = false;
+      for (int i = 0; i < stdOutput.length; i++) {
+        if (!foundError) {
+          int index = stdOutput[i].indexOf("ERROR:");
+          if (index != -1) {
+            foundError = true;
+            message = message + stdOutput[i];
+          }
+        }
+        else {
+          message = message + stdOutput[i];
+        }
       }
       throw new SystemProcessException(message);
     }
