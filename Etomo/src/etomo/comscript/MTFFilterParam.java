@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/03/25 00:47:18  sueh
+ * <p> $bug# 409, bug# 418 added InverseRooloffRadiusSigma, moved utilities functions
+ * <p> $to ParamUtilities
+ * <p> $
  * <p> $Revision 1.1  2004/03/24 18:15:51  sueh
  * <p> $bug# 409 MTF filter params
  * <p> $$ </p>
@@ -63,6 +67,9 @@ public class MTFFilterParam
     ParamUtilities.updateParameter(scriptCommand, "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
   }
 
+  public void setInputFile(String inputFile) {
+    this.inputFile = new String(inputFile);
+  }
   public void setOutputFile(String outputFile) {
     this.outputFile = new String(outputFile);
   }
