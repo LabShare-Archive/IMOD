@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -32,6 +35,10 @@ void imcSetMovierate(ImodView *vw, int newrate);
 void imcResetAll(ImodView *vw);
 int imcGetLoopMode(ImodView *vw);
 int imcGetSnapshot(ImodView *vw);
+int imcStartSnapHere(ImodView *vw);
+int imcGetStarterID();
+void imcSetStarterID(int value);
+void imcSetSpecialLimits(int axis, int inStart, int inEnd);
 void imcStartTimer(void);
 void imcReadTimer(void);
 
@@ -41,6 +48,7 @@ void imcResetPressed();
 void imcSliderChanged(int which, int value);
 void imcAxisSelected(int which);
 void imcExtentSelected(int which);
+void imcStartHereSelected(int which);
 void imcSnapSelected(int which);;
 void imcRateEntered(float value);
 void imcIncrementRate(int dir);
