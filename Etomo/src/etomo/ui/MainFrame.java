@@ -46,6 +46,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/04/01 00:11:45  sueh
+ * <p> bug# 622 Disable A, B, and Both menu items when doing a single axis
+ * <p> tomogram.
+ * <p>
  * <p> Revision 3.21  2005/03/30 23:44:14  sueh
  * <p> bug# 622 Removed the divider in Axis A only and B only.
  * <p>
@@ -589,7 +593,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
       mainPanel.fitWindow(true);
+      if (newStuff) {
+        menuFitWindow.setEnabled(false);
+      }
     }
+  }
+  
+  void setEnabledFit(boolean enabled) {
+    menuFitWindow.setEnabled(enabled);
   }
   
   public void showAxisA() {
