@@ -20,6 +20,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.8  2005/02/09 18:41:58  sueh
+ * <p> $Adding revision to comment.
+ * <p> $
  * <p> $Revision 3.7  2004/11/24 22:14:26  sueh
  * <p> $bug# 520 Getting the root test directory name from TypeTests.
  * <p> $
@@ -75,6 +78,7 @@ public class ConstMetaDataTest extends TestCase {
     new String(validDatasetName + ".st");
   private static final String validAFileName =
     new String(validDatasetName + "a.st");
+  private boolean windowsOs = false;
     
   private SystemProgram program;
 
@@ -83,7 +87,10 @@ public class ConstMetaDataTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
-   
+
+    //Don't do tests involving file permissions in Windows, since they can't be set.
+    String osName = System.getProperty("os.name").toLowerCase();
+    windowsOs = osName.indexOf("windows") != -1;
     //create test site
     testInst = new MetaData();
     testDir = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot);
@@ -95,7 +102,9 @@ public class ConstMetaDataTest extends TestCase {
 
     //make instance of a non-existant directory
     dummyDir = new File(testDir, dummyDirName);
-    assertTrue(!dummyDir.exists() || dummyDir.delete());
+    if (!windowsOs) {
+      assertTrue(!dummyDir.exists() || dummyDir.delete());
+    }
 
     //make a second instance of a non-existant directory
     dummyDir2 = new File(testDir, dummyDir2Name);
@@ -129,18 +138,19 @@ public class ConstMetaDataTest extends TestCase {
       program.setWorkingDirectory(testDir);
       program.run();
     }
-    assertFalse(unreadableDir.canRead());
+    if (!windowsOs) {
+      assertFalse(unreadableDir.canRead());
+    }
 
     //create unwritable directory
     unwritableDir = new File(testDir, unwritableDirName);
     if (!unwritableDir.exists()) {
       assertTrue(unwritableDir.mkdir() && unwritableDir.setReadOnly());
     }
-    assertTrue(
-      unwritableDir.isDirectory()
-        && unwritableDir.canRead()
-        && !unwritableDir.canWrite());
-
+    if (!windowsOs) {
+      assertTrue(unwritableDir.isDirectory() && unwritableDir.canRead()
+          && !unwritableDir.canWrite());
+    }
     //create a directory containing unreadable files
     unreadableFileDir = new File(testDir, unreadableFileDirName);
     if (!unreadableFileDir.exists()) {
@@ -200,7 +210,9 @@ public class ConstMetaDataTest extends TestCase {
       program.setWorkingDirectory(dir);
       program.run();
     }
-    assertFalse(file.canRead());
+    if (!windowsOs) {
+      assertFalse(file.canRead());
+    }
     return file;
   }
 
@@ -233,10 +245,11 @@ public class ConstMetaDataTest extends TestCase {
     //file doesn't exist
     assertFalse(ConstMetaData.isValid(dummyFile, false));
     //file not readable
-    assertFalse(ConstMetaData.isValid(unreadableFile, false));
-    //file not writable
-    assertFalse(ConstMetaData.isValid(unwritableDir, true));
-
+    if (!windowsOs) {
+      assertFalse(ConstMetaData.isValid(unreadableFile, false));
+      //file not writable
+      assertFalse(ConstMetaData.isValid(unwritableDir, true));
+    }
     //Test successes
 
     //file exists & readable
@@ -266,11 +279,12 @@ public class ConstMetaDataTest extends TestCase {
     }
 
     //invalid directory
-    try {
-      testInst.findValidFile(validFileName, dummyDir);
-      fail("Should raise an IllegalArgumentException");
-    }
-    catch (IllegalArgumentException success) {
+    if (!windowsOs) {
+      try {
+        testInst.findValidFile(validFileName, dummyDir);
+        fail("Should raise an IllegalArgumentException");
+      } catch (IllegalArgumentException success) {
+      }
     }
 
     //file doesn't exist
@@ -283,12 +297,13 @@ public class ConstMetaDataTest extends TestCase {
       fail("invalidReason =" + invalidReason);
     }
     //file not readable
-    assertNull(testInst.findValidFile(unreadableFileName, unreadableFileDir));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("read") == -1
-      || invalidReason.indexOf(unreadableFileName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertNull(testInst.findValidFile(unreadableFileName, unreadableFileDir));
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("read") == -1
+          || invalidReason.indexOf(unreadableFileName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
 
     //Test successes
@@ -326,23 +341,25 @@ public class ConstMetaDataTest extends TestCase {
     catch (IllegalArgumentException success) {
     }
 
-    //invalid directory
-    try {
-      testInst.findValidFile(validFileName, dummyDir, validFileDir);
-      fail("Should raise an IllegalArgumentException");
-    }
-    catch (IllegalArgumentException success) {
+    if (!windowsOs) {
+      //invalid directory
+      try {
+        testInst.findValidFile(validFileName, dummyDir, validFileDir);
+        fail("Should raise an IllegalArgumentException");
+      } catch (IllegalArgumentException success) {
+      }
     }
 
     //file doesn't exist
     //check one directory, second one invalid
-    assertNull(testInst.findValidFile(validFileName, emptyDir, dummyDir));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("exist") == -1
-      || invalidReason.indexOf(validFileName) == -1
-      || invalidReason.indexOf(emptyDirName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertNull(testInst.findValidFile(validFileName, emptyDir, dummyDir));
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
+          || invalidReason.indexOf(validFileName) == -1
+          || invalidReason.indexOf(emptyDirName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //check one directory
     assertNull(testInst.findValidFile(validFileName, emptyDir, emptyDir));
@@ -365,25 +382,24 @@ public class ConstMetaDataTest extends TestCase {
 
     //file not readable
     //file found in first directory
-    assertNull(
-      testInst.findValidFile(
-        unreadableFileName,
-        unreadableFileDir,
-        validFileDir));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("read") == -1
-      || invalidReason.indexOf(unreadableFileName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertNull(testInst.findValidFile(unreadableFileName, unreadableFileDir,
+          validFileDir));
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("read") == -1
+          || invalidReason.indexOf(unreadableFileName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //file found in second directory
-    assertNull(
-      testInst.findValidFile(unreadableFileName, emptyDir, unreadableFileDir));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("read") == -1
-      || invalidReason.indexOf(unreadableFileName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertNull(testInst.findValidFile(unreadableFileName, emptyDir,
+          unreadableFileDir));
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("read") == -1
+          || invalidReason.indexOf(unreadableFileName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
 
     //Test successes
@@ -412,55 +428,60 @@ public class ConstMetaDataTest extends TestCase {
     String workingDir = etomoDirector.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
     testInst.setDatasetName(validDatasetName);
-    assertFalse(testInst.isDatasetNameValid());
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("exist") == -1
-      || invalidReason.indexOf(dummyDirName) == -1
-      || invalidReason.indexOf(dummyDir2Name) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
+          || invalidReason.indexOf(dummyDirName) == -1
+          || invalidReason.indexOf(dummyDir2Name) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //problems with the working directory
     //invalid backup directory is ignored while invalid working directory exists
     //unreadable working directory
     etomoDirector.setCurrentPropertyUserDir(unreadableDir.getAbsolutePath());
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("read") == -1
-      || invalidReason.indexOf(unreadableDirName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("read") == -1
+          || invalidReason.indexOf(unreadableDirName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //unwritable working directory
     etomoDirector.setCurrentPropertyUserDir(unwritableDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("writ") == -1
-      || invalidReason.indexOf(unwritableDirName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("writ") == -1
+          || invalidReason.indexOf(unwritableDirName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //problems with the backup directory
     //unreadable backup directory
     etomoDirector.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("read") == -1
-      || invalidReason.indexOf(unreadableDirName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("read") == -1
+          || invalidReason.indexOf(unreadableDirName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
     //unwritable backup directory
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("writ") == -1
-      || invalidReason.indexOf(unwritableDirName) == -1) {
-      fail("invalidReason =" + invalidReason);
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+      invalidReason = testInst.getInvalidReason();
+      if (invalidReason.equals("") || invalidReason.indexOf("writ") == -1
+          || invalidReason.indexOf(unwritableDirName) == -1) {
+        fail("invalidReason =" + invalidReason);
+      }
     }
 
     //file not found
@@ -469,12 +490,16 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setAxisType(AxisType.DUAL_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
     etomoDirector.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+    }
     //single axis
     testInst.setAxisType(AxisType.SINGLE_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
     etomoDirector.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
-    assertFalse(testInst.isDatasetNameValid());
+    if (!windowsOs) {
+      assertFalse(testInst.isDatasetNameValid());
+    }
     
     //Test successes
     testInst.setDatasetName(validDatasetName);
