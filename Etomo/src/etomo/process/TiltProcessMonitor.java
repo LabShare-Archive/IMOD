@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/14 17:26:47  sueh
+ * <p> bug# 460 set startTime in the constructor
+ * <p>
  * <p> Revision 3.1  2004/03/24 03:09:28  rickg
  * <p> Tilt getter name change for incrSlice
  * <p>
@@ -48,7 +51,6 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
 
   public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
-    startTime = System.currentTimeMillis();
   }
 
   /* (non-Javadoc)

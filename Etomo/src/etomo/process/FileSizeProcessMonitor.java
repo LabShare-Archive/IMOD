@@ -1,7 +1,10 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -21,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/17 01:29:12  sueh
+ * <p> removed unnecessary import
+ * <p>
  * <p> Revision 3.2  2004/06/14 17:26:08  sueh
  * <p> bug# 460 set startTime earlier, allow startTime to be set in
  * <p> the child class, make sure the instance is still reuseable
@@ -52,11 +58,12 @@ import etomo.util.Utilities;
 public abstract class FileSizeProcessMonitor implements Runnable {
   public static final String rcsid =
     "$Id$";
-  long startTime = Long.MIN_VALUE;
   ApplicationManager applicationManager;
   AxisID axisID;
   long processStartTime;
   File watchedFile;
+  FileChannel watchedChannel;
+  
   int nKBytes;
 
   int updatePeriod = 500;
@@ -73,13 +80,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   // - set the watchedFile reference to the output file being monitored.
   abstract void calcFileSize() throws InvalidParameterException, IOException;
 
-  /* (non-Javadoc)
-   * @see java.lang.Runnable#run()
-   */
   public void run() {
-    if (startTime == Long.MIN_VALUE) {
-      startTime = System.currentTimeMillis();
-    }
     try {
       // Reset the progressBar 
       applicationManager.setProgressBar(" ", 1, axisID);
@@ -94,23 +95,19 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     }
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
-      startTime = Long.MIN_VALUE;
       return;
     }
     catch (InvalidParameterException except) {
       except.printStackTrace();
-      startTime = Long.MIN_VALUE;
       return;
     }
     catch (IOException except) {
       except.printStackTrace();
-      startTime = Long.MIN_VALUE;
       return;
     }
 
     // Periodically update the process bar by checking the size of the file
     updateProgressBar();
-    startTime = Long.MIN_VALUE;
   }
 
   /**
@@ -120,14 +117,44 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * time since we don't have access to the file creation time.  
    */
   void waitForFile() throws InterruptedException {
-    long modTime;
+    long lastSize = 0;
+    long currentSize = 0;
     boolean newOutputFile = false;
+    boolean needChannel = true;
     while (!newOutputFile) {
       if (watchedFile.exists()) {
-        modTime = watchedFile.lastModified();
-        if (modTime > startTime) {
-          processStartTime = modTime;
-          newOutputFile = true;
+        if(needChannel) {
+          FileInputStream stream = null;
+          try {
+            stream = new FileInputStream(watchedFile);
+          }
+          catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.err.println(
+              "Shouldn't be in here, we already checked for existence");
+          }
+          watchedChannel = stream.getChannel();
+          needChannel = false;
+          try {
+            lastSize = watchedChannel.size();
+          }
+          catch (IOException except) {
+            except.printStackTrace();
+          }
+        }
+        
+        try {
+          currentSize = watchedChannel.size();
+          if(currentSize > lastSize) {
+            newOutputFile = true;
+            processStartTime = System.currentTimeMillis();
+          }
+          else {
+            lastSize = currentSize;
+          }
+        }
+        catch (IOException except) {
+          except.printStackTrace();
         }
       }
       Thread.sleep(updatePeriod);
@@ -143,7 +170,13 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     boolean fileWriting = true;
 
     while (fileWriting) {
-      int currentLength = (int) (watchedFile.length() / 1024);
+      int currentLength = 0;
+      try {
+        currentLength = (int) (watchedChannel.size() / 1024);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
       double fractionDone = (double) currentLength / nKBytes;
       int percentage = (int) Math.round(fractionDone * 100);
 
@@ -169,6 +202,12 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       }
       catch (InterruptedException exception) {
         fileWriting = false;
+        try {
+          watchedChannel.close();
+        }
+        catch (IOException e1) {
+          e1.printStackTrace();
+        }
       }
     }
   }
