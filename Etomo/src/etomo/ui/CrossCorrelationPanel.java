@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/04/07 21:03:10  rickg
+ * <p> Fixed layout using UIUtilities
+ * <p>
  * <p> Revision 3.7  2004/03/13 00:25:00  sueh
  * <p> bug# 412 Right justified checkboxes, changed labels.
  * <p>
@@ -190,16 +193,16 @@ public class CrossCorrelationPanel implements ContextMenu {
    */
   public void setParameters(ConstTiltxcorrParam tiltXcorrParams) {
     cbExcludeCentralPeak.setSelected(tiltXcorrParams.getExcludeCentralPeak());
-    ltfFilterSigma1.setText(tiltXcorrParams.getFilterSigma1());
-    ltfFilterRadius2.setText(tiltXcorrParams.getFilterRadius2());
-    ltfFilterSigma2.setText(tiltXcorrParams.getFilterSigma2());
+    ltfFilterSigma1.setText(tiltXcorrParams.getFilterSigma1String());
+    ltfFilterRadius2.setText(tiltXcorrParams.getFilterRadius2String());
+    ltfFilterSigma2.setText(tiltXcorrParams.getFilterSigma2String());
     ltfTrim.setText(tiltXcorrParams.getBordersInXandY());
     ltfXMin.setText(tiltXcorrParams.getXMinString());
     ltfXMax.setText(tiltXcorrParams.getXMaxString());
     ltfYMin.setText(tiltXcorrParams.getYMinString());
     ltfYMax.setText(tiltXcorrParams.getYMaxString());
-    ltfPadPercent.setText(tiltXcorrParams.getPadsInXandY());
-    ltfTaperPercent.setText(tiltXcorrParams.getTaperPercent());
+    ltfPadPercent.setText(tiltXcorrParams.getPadsInXandYString());
+    ltfTaperPercent.setText(tiltXcorrParams.getTaperPercentString());
     cbCumulativeCorrelation.setSelected(tiltXcorrParams
       .isCumulativeCorrelation());
     cbAbsoluteCosineStretch.setSelected(tiltXcorrParams
@@ -220,14 +223,11 @@ public class CrossCorrelationPanel implements ContextMenu {
     String currentParam = "unknown";
     try {
       currentParam = ltfFilterSigma1.getLabel();
-      tiltXcorrParams.setFilterSigma1(Double.parseDouble(ltfFilterSigma1
-        .getText()));
+      tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText());
       currentParam = ltfFilterRadius2.getLabel();
-      tiltXcorrParams.setFilterRadius2(Double.parseDouble(ltfFilterRadius2
-        .getText()));
+      tiltXcorrParams.setFilterRadius2(ltfFilterRadius2.getText());
       currentParam = ltfFilterSigma2.getLabel();
-      tiltXcorrParams.setFilterSigma2(Double.parseDouble(ltfFilterSigma2
-        .getText()));
+      tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText());
       currentParam = ltfTrim.getLabel();
       tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
       currentParam = "X" + ltfXMin.getLabel();
