@@ -40,6 +40,7 @@
 #include <Xm/MainW.h>
 
 #include "imodv.h"
+#include "imod.h"
 
 ImodvApp *Imodv;
 extern int Imod_debug;
@@ -52,24 +53,115 @@ extern int Imod_debug;
 
 #include <GL/glx.h>
 
-static int OpenGLAttrib[] =
+/* the default graphics rendering attributes for OpenGL */
+
+/* These visuals are for displays that only have color index modes */
+/* Decided to leave depth out of the requests */
+static int Pseudo12[] = 
 {
-     GLX_BUFFER_SIZE, 8,
      GLX_DOUBLEBUFFER,
+     GLX_BUFFER_SIZE, 12,
      GLX_DEPTH_SIZE, 8,
      None
 };
-static int OpenGLPoorAttrib[] =
+
+static int Pseudo8[] = 
 {
-     GLX_DEPTH_SIZE, 0,
+     GLX_DOUBLEBUFFER,
+     GLX_BUFFER_SIZE, 8,
+     GLX_DEPTH_SIZE, 8,
+     None
+};
+
+/*
+ * These visuals are for displays with TrueColor
+ * force it to be TrueColor on SGI, since the code doesn't handle 
+ * DirectColor ? - by analogy withy imod visuals;
+ * put in some minimal
+ * R, G, B sizes in the second selection to 
+ * force us past an 8-bit RGB visual, which is pretty bad
+ */
+static int True24[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 8,
+    GLX_GREEN_SIZE, 8,
+    GLX_BLUE_SIZE, 8,
+    GLX_DEPTH_SIZE, 8,
+    None
+};
+static int True12[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 4,
+    GLX_GREEN_SIZE, 4,
+    GLX_BLUE_SIZE, 4,
+    GLX_DEPTH_SIZE, 8,
+    None
+};
+
+/* Some visuals with no depth for the truly desperate */
+static int True24nodep[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 8,
+    GLX_GREEN_SIZE, 8,
+    GLX_BLUE_SIZE, 8,
+    None
+};
+static int True12nodep[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 4,
+    GLX_GREEN_SIZE, 4,
+    GLX_BLUE_SIZE, 4,
+    None
+};
+static int Pseudo12nodep[] = 
+{
+     GLX_DOUBLEBUFFER,
+     GLX_BUFFER_SIZE, 12,
+     None
+};
+
+static int Pseudo8nodep[] = 
+{
+     GLX_DOUBLEBUFFER,
      GLX_BUFFER_SIZE, 8,
      None
 };
+
+/* List the attribute lists in order of priority, indicate if they are
+   truecolor (rgb) type */
+static int *OpenGLAttribList[] = {
+     True24, True24 + 1, Pseudo12, Pseudo12 + 1,
+     True12, True12 + 1, Pseudo8, Pseudo8 + 1,
+     True24nodep, True24nodep + 1, Pseudo12nodep, Pseudo12nodep + 1,
+     True12nodep, True12nodep + 1, Pseudo8nodep, Pseudo8nodep + 1,
+     NULL
+};
+static int AttribRGB[] = {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+static int AttribDepth[] = {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /*void __eprintf(void){return;} */
 
 static void usage(char *pname);
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md);
 static int load_models(int n, char **fname, ImodvApp *a);
 static int setmodelview(ImodvApp *a);
 
@@ -129,102 +221,17 @@ static int load_models(int n, char **fname, ImodvApp *a)
 	  a->ob = a->imod->cindex.object;
 	  a->obj = &(a->imod->obj[a->ob]);
      }
-     setmodelview(a);
+   
+     /* DNM 9/2/02: this did nothing */
+     /* setmodelview(a); */
      return(0);
 }
 
-/* DNM: As far as I can tell, everything set in here is unused later */
+/* DNM 9/2/02: eliminate unused setmodelview */
 
-static int setmodelview(ImodvApp *a)
-{
-#ifdef DELETE_THIS
-     int i,n;
-     Ipoint maxp, minp;
-     n = a->nm;
-
-     a->minp.x = a->minp.y = a->minp.z =  IPOINT_MAX;
-     a->maxp.x = a->maxp.y = a->maxp.z = -IPOINT_MAX;
-
-     for(i = 0; i < n; i++){
-	  imodel_maxpt(a->mod[i], &maxp);
-	  imodel_minpt(a->mod[i], &minp);
-	  a->mod[i]->tmax = imodGetMaxTime(a->mod[i]);
-	  maxp.z *= a->mod[i]->zscale;
-	  minp.z *= a->mod[i]->zscale;
-	  if (minp.x < a->minp.x) a->minp.x = minp.x;
-	  if (minp.y < a->minp.y) a->minp.y = minp.y;
-	  if (minp.z < a->minp.z) a->minp.z = minp.z;
-	  if (maxp.x > a->maxp.x) a->maxp.x = maxp.x;
-	  if (maxp.y > a->maxp.y) a->maxp.y = maxp.y;
-	  if (maxp.z > a->maxp.z) a->maxp.z = maxp.z;
-     }
-
-     /* fill default object with bounding box data. */
-     a->dobj->contsize = 1;
-     a->dobj->cont = imodContourNew();
-     maxp.x = a->maxp.x;
-     maxp.y = a->maxp.y;
-     maxp.z = a->maxp.z;
-     minp.x = a->minp.x;
-     minp.y = a->minp.y;
-     minp.z = a->minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.x -= minp.x;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.y -= minp.y;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.x += minp.x;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.y += minp.y;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z -= minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.x -= minp.x;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z += minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z -= minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.y -= minp.y;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z += minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z -= minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.x += minp.x;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z += minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.z -= minp.z;
-     imodPointAppend(a->dobj->cont, &maxp);
-     maxp.y += minp.y;
-     imodPointAppend(a->dobj->cont, &maxp);
-
-     /* set up origin to center of bounding box */
-/*     a->md->xorg = ((a->maxp.x - a->minp.x) / 2) + minp.x;
-     a->md->yorg = ((a->maxp.y - a->minp.y) / 2) + minp.y;
-     a->md->zorg = ((a->maxp.z - a->minp.z) / 2) + minp.z;
-*/
-
-
-     a->wxt = ((a->maxp.x - a->minp.x) / 2) + minp.x;
-     a->wyt = ((a->maxp.y - a->minp.y) / 2) + minp.y;
-     a->wzt = ((a->maxp.z - a->minp.z) / 2) + minp.z;
-
-     /* find radius of sphere enclosing bounding box. */
-     a->r = ((a->maxp.x - a->minp.x) * (a->maxp.x - a->minp.x)) +
-	  ((a->maxp.y - a->minp.y) * (a->maxp.y - a->minp.y)) +
-	       ((a->maxp.z - a->minp.z) * (a->maxp.z - a->minp.z));
-     a->r = (float)sqrt((double)a->r);
-     a->view.rad = a->r * 0.85;
-     /* DNM: this is probably unused and set later by imodViewModelDefault*/
-     a->view.world = VIEW_WORLD_LIGHT;
-#endif
-     return(0);
-}
-
-
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
+/* Initialize the structure: 
+   9/2/02: also called for model view initialization in imod */
+int imodv_init(ImodvApp *a, struct Mod_Draw *md)
 {
      a->nm = 0;
      a->cm = 0;
@@ -306,6 +313,7 @@ static String Imodv_fallback_resources[] = {
      NULL,
 };
 
+/* DNM 9/2/02: add -D argument to get debug mode to work */
 static XrmOptionDescRec Imodv_options[] = {
      {"-noborder",     "*noborder",     XrmoptionNoArg, "True"},
      {"-fullscreen",    "*fullscreen",   XrmoptionNoArg, "True"},
@@ -314,6 +322,7 @@ static XrmOptionDescRec Imodv_options[] = {
      {"-renderbackground", "*renderbackground", XrmoptionSepArg, "black"}, 
      {"-rbg",       "*renderbackground", XrmoptionSepArg, "black"},
      {"-cindex",    "*colorindex",       XrmoptionNoArg, "True"},
+     {"-D",    "*debug",       XrmoptionNoArg, "True"},
 };
 
 /* DNM: There are default settings for the the stereo commands in case there
@@ -358,6 +367,7 @@ int myDebugError(Display *inDisplay, XErrorEvent *inError)
 
 static int open_display(int *argc, char **argv, ImodvApp *a)
 {
+     int err;
      Colormap cmap;
 
      a->topLevel = XtVaAppInitialize
@@ -397,16 +407,23 @@ static int open_display(int *argc, char **argv, ImodvApp *a)
      a->rbgcolor.blue &= 0xff00;
 
 
-     if (a->cindex)
-	  imodvSetCmap(a);
-     else
-	  XtVaGetValues(a->topLevel,
-			XmNdepth, &a->depth,
-			XmNvisual, &a->visual,
-			XmNcolormap, &a->cmap,
-			NULL);
+     /* DNM 9/2/02: first get these values from the topLevel, then get the
+	visuals, which may modify them for color index mode */
+     XtVaGetValues(a->topLevel,
+		   XmNdepth, &a->depth,
+		   XmNvisual, &a->visual,
+		   XmNcolormap, &a->cmap,
+		   NULL);
 
-     a->gcmap = a->cmap;
+     if ((err = imodvGetVisuals(a)) != 0) {
+	  if (err > 0)
+	       fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
+	  else
+	       fprintf(stderr, "imodv error: Couldn't get color map.\n");
+	  exit(-1);
+     }
+
+     a->gcmap = a->cmap;  /* ?? */
      return(0);
 }
 
@@ -469,7 +486,12 @@ static int open_window(ImodvApp *a)
      return(0);
 }
 
-void imodvSetCmap(ImodvApp *a)
+/* DMN 9/2/02: replaced old imodvSetCmap with this, which is accessed from
+   both imodv and ximodv (model view startup in imod), and which gets the
+   best visuals for double and single buffering then does the old work of
+   imodvSetCmap to get color map if needed in color index mode */
+
+int imodvGetVisuals(ImodvApp *a)
 {
      XVisualInfo vistemp;
      XVisualInfo *vlist;
@@ -483,57 +505,99 @@ void imodvSetCmap(ImodvApp *a)
 
      a->display = XtDisplay(a->topLevel);
      screen  = DefaultScreenOfDisplay(a->display);
+     screen_num  = DefaultScreen(a->display);
      window  = RootWindowOfScreen(screen);
-     depth   = DefaultDepthOfScreen(screen);
-     a->visual  = DefaultVisualOfScreen(screen);
-     a->cmap = DefaultColormapOfScreen(screen);
 
-     a->visualInfo = glXChooseVisual
-	  (a->display,
-	   DefaultScreen(a->display),
-	   OpenGLAttrib);
-     if (!a->visualInfo){
-	  fprintf(stderr,
-		  "imodv warning: substandard visual being used.\n");
-	  a->visualInfo = glXChooseVisual
-	       (a->display, screen_num, OpenGLPoorAttrib);
-	  if (!a->visualInfo){
-	       fprintf(stderr, 
-		       "imodv error: couldn't get rendering visual.\n");
-	       exit(-1);
+     a->visualInfoSB = NULL;
+     a->visualInfoDB = NULL;
+     for (i = 0; OpenGLAttribList[i] != NULL; i += 2) {
+
+	  /* If want a color index visual and this is not one, skip */
+	  if (a->cindex && AttribRGB[i])
+	       continue;
+
+	  /* Insist on a RGB visual in model view from imod because of bugs */
+	  if (!a->standalone && !AttribRGB[i])
+	       continue;
+
+	  a->visualInfoDB = glXChooseVisual(a->display, screen_num,
+					     OpenGLAttribList[i]);
+
+	  a->visualInfoSB = glXChooseVisual(a->display, screen_num,
+					     OpenGLAttribList[i + 1]);
+
+	  /* If got one or the other, stop the loop */
+	  if (a->visualInfoDB || a->visualInfoSB) {
+	       if (!AttribRGB[i])
+		    a->cindex = 1;
+	       if (!AttribDepth[i])
+		    fprintf(stderr, "Imodv warning: using a visual with"
+			    " no depth buffer\n");
+	       break;
 	  }
      }
-     
-     a->visual = a->visualInfo->visual;
-     a->depth  = a->visualInfo->depth;
 
-     a->gcmap = a->cmap = XCreateColormap
-	  (a->display, window,  a->visual, AllocNone);
-     if (!a->cmap){
-	  fprintf(stderr, "imodv error: Couldn't get color map.\n");
-	  exit(-1);
+     /* error if no visuals */
+     if (!a->visualInfoDB && !a->visualInfoSB)
+	  return 1;
+
+     if (Imod_debug) {
+	  if (a->visualInfoDB)
+	       printf("DB class %d, depth %d, ID 0x%x\n", a->visualInfoDB->class, 
+		      a->visualInfoDB->depth, a->visualInfoDB->visualid);
+	  if (a->visualInfoSB)
+	       printf("SB class %d, depth %d, ID 0x%x\n", a->visualInfoSB->class, 
+		      a->visualInfoSB->depth, a->visualInfoSB->visualid);
      }
 
+     /* done if RGB */
+     if (!a->cindex)
+	  return 0;
+
+     fprintf(stderr, "Imodv warning: using color index visual\n");
+
+     /* If color index and no DB, set SB into DB */
+     if (!a->visualInfoDB) {
+	  a->visualInfoDB = a->visualInfoSB;
+	  a->db = False;
+     }
+
+     /* get properties from this visualInfo */
+     a->visual = a->visualInfoDB->visual;
+     a->depth  = a->visualInfoDB->depth;
+
+     /* If not standalone, and the visual matches the App visual, then
+	we use the same colormap, otherwise need a new colormap */
+     if (a->standalone || a->visual != App->visual) {
+	  a->gcmap = a->cmap = XCreateColormap
+	       (a->display, window,  a->visual, AllocNone);
+	  if (!a->cmap)
+	       return -1;
+     }
+
+     /* set toplevel properties */
      XtVaSetValues(a->topLevel,
 		   XmNdepth, a->depth,
 		   XmNvisual, a->visual,
 		   XmNcolormap, a->cmap,
 		   NULL);
 
-     if (!XAllocColorCells(a->display, a->cmap, True,
-			   plane, 0, pixels, IMODV_MAX_INDEX)){
-	  fprintf(stderr, "Imodv Warning: Couldn't get colors\n");
+     /* Get the colors */
+     if (a->standalone) { /* || a->visual != App->visual) {*/
+	  if (!XAllocColorCells(a->display, a->cmap, True,
+				plane, 0, pixels, IMODV_MAX_INDEX)){
+	       fprintf(stderr, "Imodv Warning: Couldn't get colors\n");
+	  }
+	  for (i = 0; i < IMODV_MAX_INDEX; i++){
+	       color.pixel = i;
+	       color.flags = DoRed|DoGreen|DoBlue;
+	       XQueryColor (a->display,
+			    DefaultColormap(a->display,screen_num),
+			    &color);
+	       XStoreColors(a->display, a->cmap, &color, 1); 
+	  }
      }
-     for (i = 0; i < IMODV_MAX_INDEX; i++){
-	  color.pixel = i;
-	  color.flags = DoRed|DoGreen|DoBlue;
-	  XQueryColor (a->display,
-		       DefaultColormap(a->display,screen_num),
-		       &color);
-	  XStoreColors(a->display, a->cmap, &color, 1); 
-     }
-
-     return;
+     return 0;
 }
 
 int imodv_main(int argc, char **argv)
@@ -544,7 +608,7 @@ int imodv_main(int argc, char **argv)
      Imodv = &imodv_application;
 
      imodv_init(&imodv_application, &mdraw);
-     
+
      open_display(&argc, argv, &imodv_application);
 
      if (argc < 2)
