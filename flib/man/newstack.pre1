@@ -22,10 +22,10 @@ DDEESSCCRRIIPPTTIIOONN
   Newstack uses the PIP package for input (see the manual page for pip(1))
   and can take input interactively only for options available before
   conversion to PIP, to maintain compatibility with old command files.  The
-  options accepted by the old newst script are all accepted by newstack.  The
-  following options can be specified either as command line arguments (with
-  the -) or one per line in a command file or parameter file (without 
-  the -):
+  options accepted by the old newst script are all accepted by newstack.
+  Almost all options can be abbreviated to one or two letters.  The following
+  options can be specified either as command line arguments (with the -) or
+  one per line in a command file or parameter file (without the -):
 
 INSERT OPTION TEXT HERE
 
@@ -168,5 +168,5 @@ HHIISSTTOORRYY
         12/24/03: converted to PIP input, added undistorting and binning
 
 SEE ALSO
-	newst(1), mrcbyte(1).
+	mrcbyte(1)
 
