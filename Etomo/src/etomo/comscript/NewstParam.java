@@ -15,6 +15,13 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/02 18:57:46  sueh
+ * <p> bug236 added testing:
+ * <p> NewstParamTest
+ * <p> ComScriptTest
+ * <p>
+ * <p> Removed marks
+ * <p>
  * <p> Revision 2.5  2003/09/29 23:34:57  sueh
  * <p> bug236 Added UseLinearInterpolation to
  * <p> TomogramGenerationDialog.
@@ -66,8 +73,6 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
 
-    System.out.println("in parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
-         ", useLinearInterpolation=" + useLinearInterpolation);
     reset();
 
     for (int i = 0; i < cmdLineArgs.length - 2; i++) {
@@ -92,10 +97,6 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     }
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
-    
-
-    System.out.println("after parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
-         ", useLinearInterpolation=" + useLinearInterpolation);
   }
 
   /**
@@ -134,9 +135,6 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
       (String[]) cmdLineArgs.toArray(new String[nArgs]));
-
-    System.out.println("in updateComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
-         ", useLinearInterpolation=" + useLinearInterpolation);
   }
 
   public void setInputFile(String filename) {
