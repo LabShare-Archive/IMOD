@@ -1,8 +1,0 @@
-.nh
-.na
-.TH imodv 1 3.0.7 BL3DEMC
-.SH NAME
-imodv \- View an Imod model.
-.SH DESCRIPTION
-Use "man 3dmodv" to see this manual page.  imodv was renamed to 3dmodv to
-elimination confusion between the IMOD package and the imod program.
