@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/01/11 18:07:38  sueh
+ * <p> bug# 578 Added useZFactors.
+ * <p>
  * <p> Revision 3.11  2004/12/14 21:47:48  sueh
  * <p> bug# 572:  Removing state object from meta data and managing it with a
  * <p> manager class.  All state variables saved after a process is run belong in
@@ -131,7 +134,8 @@ public class MetaData extends ConstMetaData {
     revisionNumber = "";
     distortionFile = "";
     binning = 1;
-    useZFactors.set(false);
+    useLocalAlignments = true;
+    useZFactors.reset();
   }
 
   /**
