@@ -57,8 +57,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/03/15 01:04:15  mast
+c	  Standardize error output
+c	
 
-	parameter (inpdim=200,limdim=10000,lmcube=limdim/inpdim)
+c	  keep limdim less than 2/3 of inpdim**2
+	parameter (inpdim=256,limdim=16200,lmcube=limdim/inpdim)
 	parameter (limout=(inpdim*3)/2)
 	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
 	real*4 cxyzin(3),cxyzout(3),cell(6),title(20)
@@ -75,8 +79,9 @@ c	  $Log$
 	integer*4 inmin(3),inmax(3)
 	integer*2 ifile(lmcube,lmcube),izinfile(lmcube,lmcube,limout)
 c
-	character*80 filein,fileout,tempdir,tempext,tempname
-	character*80 temp_filename
+	character*120 filein,fileout,tempdir,tempext,tempname
+	character*120 temp_filename
+	common /bigarr/array
 c
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c
@@ -190,11 +195,9 @@ c	  volume, store the starting index coordinates
 c
 	do i=1,3
 	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) then
-	    print *,'ERROR: ROTATEVOL - TOO MANY CUBES IN LONGEST',
-     &		' DIRECTION TO FIT IN ARRAYS'
-	    call exit(1)
-	  endif
+	  if(ncubes(i).gt.lmcube) call errorexit(
+     &	      'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS')
+
 	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
 	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
 	  ind=0
@@ -206,6 +209,9 @@ c
 	  enddo
 	  nxyzscr(i)=nxyzcubas(i)+1
 	enddo
+	if (nxout * (nxyzcubas(2) + 1) .ge. inpdim**3)
+     &	    call errorexit('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
+
 	write(*,103)ncubes(3),ncubes(1),ncubes(2)
 103	format(' Rotations done in',i3,' layers, with',i3,' by',i3,
      &	    ' cubes in each layer')
@@ -400,26 +406,26 @@ C
 	  enddo
 c	    
 c	    whole layer of cubes in z is done.  now reread and compose one
-c	    output section at a time in array
+c	    row of the output section at a time in array
 c	    
 	  do iz=1,nxyzcube(3,izcube)
-	    do ixcube=1,ncubes(1)
-	      do iycube=1,ncubes(2)
+	    do iycube=1,ncubes(2)
+	      nLinesOut = nxyzcube(2,iycube)
+	      do ixcube=1,ncubes(1)
 		iunit=ifile(ixcube,iycube)
 		longint=izinfile(ixcube,iycube,iz)
 		call imposn(iunit,longint,0)
 		call irdsec(iunit,brray,*99)
 		call pack_piece(array,nxout,nyout,ixyzcube(1,ixcube),
-     &		    ixyzcube(2,iycube),brray,nxyzcube(1,ixcube),
-     &		    nxyzcube(2,iycube))
+     &		    0,brray,nxyzcube(1,ixcube), nLinesOut)
 	      enddo
+	      call iclden(array,nxout,nLinesOut,1,nxout,1,nLinesOut,tmin,tmax,
+     &		  tmean)
+	      dmin=min(dmin,tmin)
+	      dmax=max(dmax,tmax)
+	      tsum=tsum+tmean
+	      call iwrsecl(6,array, nLinesOut)
 	    enddo
-	    call iclden(array,nxout,nyout,1,nxout,1,nyout,tmin,tmax,
-     &		tmean)
-	    dmin=min(dmin,tmin)
-	    dmax=max(dmax,tmax)
-	    tsum=tsum+tmean
-	    call iwrsec(6,array)
 	  enddo
  	enddo
 c
@@ -429,8 +435,7 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	print *, 'ERROR: ROTATEVOL - reading file'
-	call exit(1)
+99	call errorexit('READING FILE')
 	end
 
 	subroutine pack_piece (array,ixdout,iydout,ixofs,iyofs,
@@ -443,3 +448,11 @@ c
 	enddo
 	return
 	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: ROTATEVOL - ',message
+	call exit(1)
+	end
+
