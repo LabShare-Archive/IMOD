@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/06 03:00:40  rickg
+ * <p> Updated imageRotation to store axis separately
+ * <p>
  * <p> Revision 3.3  2004/02/24 18:53:22  sueh
  * <p> bug# 385 added resetToDefault() - for defaults need before
  * <p> MetaData is loaded
@@ -300,7 +303,7 @@ public class MetaData extends ConstMetaData implements Storable {
     dataSource = DataSource.fromString(props.getProperty(group + "DataSource",
       "CCD"));
     axisType = AxisType.fromString(props.getProperty(group + "AxisType",
-      "Single Axis"));
+      "Not Set"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType",
       "Single View"));
     sectionType = SectionType.fromString(props.getProperty(group
