@@ -62,7 +62,7 @@ Log at end of file
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
-static char *message_string = NULL;
+static QStringList messageStrings;
 static int message_stamp = -1;
 
 ImodClipboard::ImodClipboard()
@@ -97,7 +97,7 @@ void ImodClipboard::clipboardChanged()
     QClipboard *cb = QApplication::clipboard();
     cb->setSelectionMode(false);
     QString text = cb->text();
-    imodPrintStderr("imodHandleClientMessage - clipboard = %s\n", 
+    imodPrintStderr("imodHCM in clipboardChanged - clipboard = %s\n", 
             text.latin1());
     if (ImodInfoWin)
       wprint("clipboardChanged = %s\n", text.latin1());
@@ -174,41 +174,27 @@ bool ImodClipboard::handleMessage()
     wprint("handleMessage = %s\n", text.latin1());
   }                   
 
-  // Return if text is empty, starts with a space or has no spaces
+  // Return if text is empty
   if (text.isEmpty())
     return false;
-  index = text.find(" ");
-  if (index <= 0)
-    return false;
 
-  // Remove multiple spaces
-  text = text.replace(QRegExp("  *"), " ");
+  // Split the string, ignoring multiple spaces, and return false if fewer
+  // than 3 elements
+  messageStrings = QStringList::split(" ", text);
+  if (messageStrings.count() < 3)
+    return false;
 
   // Return false if this is not our info window ID
-  if ((text.left(index)).toInt() != ourWindowID())
-    return false;
-
-  // Return false if it is our own string
-  QString text2 = text.mid(index + 1);
-  index = text2.find(" ");
-  if (text2.left(index) == "OK" || text2.left(index) == "ERROR")
+  if (messageStrings[0].toInt() != ourWindowID())
     return false;
 
   // If we see the same message again, send the last response again
-  newStamp = text2.left(index).toInt();
+  newStamp = messageStrings[1].toInt();
   if (newStamp == message_stamp) {
     sendResponse(-1);
     return false;
   }
   message_stamp = newStamp;
-
-  QString text3 = text2.mid(index + 1);
-  index = text3.find(" ");
-
-  // get the action value, and the string if there is one
-  message_action = text3.left(index).toInt();
-  if (text3.length() > index + 1)
-    message_string = strdup((text3.mid(index + 1)).latin1());
   return true;
 }
 
@@ -216,226 +202,242 @@ bool ImodClipboard::handleMessage()
 // true if the program is still to quit
 bool ImodClipboard::executeMessage()
 {
-  int returnValue;
+  int returnValue, arg;
   int succeeded = 1;
   QString convName;
+  QDir *curdir;
   int movieVal, xaxis, yaxis, zaxis, taxis;
   int objNum, type, symbol, symSize, ptSize;
-  Imod *imod = App->cvi->imod;
+  Imod *imod;
   Iobj *obj;
   int symTable[] = 
     { IOBJ_SYM_NONE, IOBJ_SYM_CIRCLE, IOBJ_SYM_SQUARE, IOBJ_SYM_TRIANGLE };
 
-  if (Imod_debug)
-    wprint("Executing message\n");
+  // Number of arguments required - for backward compatibility, going to
+  // model mode does not require one but should have one
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5};
+  int numArgs = messageStrings.count();
 
-  /* Execute the action */
-  if (ImodvClosed || !Imodv->standalone) {
-    switch (message_action) {
+  // Loop on the actions in the list; set arg to numArgs to break loop
+  for (arg = 2; arg < numArgs; arg++) {
+    imod = App->cvi->imod;
 
-    case MESSAGE_OPEN_MODEL:
-    case MESSAGE_OPEN_KEEP_BW:
-      if (!message_string) {
-        imodPrintStderr("imodExecuteMessage: no filename sent"
-                " with command to open model\n");
+    // Get the action, then check that there are enough values for it
+    message_action = messageStrings[arg].toInt();
+    if (message_action < sizeof(requiredArgs) / sizeof(int) &&
+        arg + requiredArgs[message_action] >= numArgs) {
+        imodPrintStderr("imodExecuteMessage: not enough values sent"
+                " with action command %d\n", message_action);
         succeeded = 0;
         break;
-      } else {
+    }
 
-        // DNM 6/3/04: moved this down here, do it only if needed
-        QDir *curdir = new QDir();
-        convName = curdir->cleanDirPath(QString(message_string));
-        delete curdir;
-      }
-    
-      // Since this could open a dialog with an indefinite delay, just send
-      // the OK signal now
-      succeeded = -1;
-      sendResponse(1);
-      inputRaiseWindows();
+    if (Imod_debug) {
+      wprint("Executing message action %d\n", message_action);
+      imodPrintStderr("imodHCM in executeMessage: executing message action "
+                      "%d\n", message_action);
+    }
 
-      // DNM 6/3/04: switch to keeping BW values in the first place
-      returnValue = openModel((char *)convName.latin1(), 
-                              message_action == MESSAGE_OPEN_KEEP_BW);
-      if(returnValue == IMOD_IO_SUCCESS) {
-        wprint("%s loaded.\n", 
-               (QDir::convertSeparators(QString(Imod_filename))).latin1());
-
-      }
-      else if(returnValue == IMOD_IO_SAVE_ERROR) {
-        wprint("Error Saving Model. New model not loaded.\n");
-      }
-      else if(returnValue == IMOD_IO_SAVE_CANCEL) {
-        wprint("Operation cancelled. New model not loaded.\n");
-      }
-
-      // The model does not exist yet.  Try creating a new model.
-      else if(returnValue == IMOD_IO_DOES_NOT_EXIST) {
-        returnValue = createNewModel((char *)convName.latin1());
-        if(returnValue == IMOD_IO_SUCCESS) {
+    if (ImodvClosed || !Imodv->standalone) {
+      switch (message_action) {
         
-          wprint("New model %s created.\n", 
+      case MESSAGE_OPEN_MODEL:
+      case MESSAGE_OPEN_KEEP_BW:
+        curdir = new QDir();
+        convName = curdir->cleanDirPath(messageStrings[++arg]);
+        delete curdir;
+    
+        // Since this could open a dialog with an indefinite delay, just send
+        // the OK signal now
+        succeeded = -1;
+        sendResponse(1);
+        inputRaiseWindows();
+
+        // DNM 6/3/04: switch to keeping BW values in the first place
+        returnValue = openModel((char *)convName.latin1(), 
+                                message_action == MESSAGE_OPEN_KEEP_BW);
+        if(returnValue == IMOD_IO_SUCCESS) {
+          wprint("%s loaded.\n", 
                  (QDir::convertSeparators(QString(Imod_filename))).latin1());
+
+        }
+        else if(returnValue == IMOD_IO_SAVE_ERROR) {
+          wprint("Error Saving Model. New model not loaded.\n");
+          arg = numArgs;
+        }
+        else if(returnValue == IMOD_IO_SAVE_CANCEL) {
+          wprint("Operation cancelled. New model not loaded.\n");
+          arg = numArgs;
+        }
+
+        // The model does not exist yet.  Try creating a new model.
+        else if(returnValue == IMOD_IO_DOES_NOT_EXIST) {
+          returnValue = createNewModel((char *)convName.latin1());
+          if(returnValue == IMOD_IO_SUCCESS) {
+        
+            wprint("New model %s created.\n", 
+                   (QDir::convertSeparators(QString(Imod_filename))).latin1());
+          }
+          else {
+            wprint("Could not create a new model %s.\n", 
+                   messageStrings[arg].latin1());
+            arg = numArgs;
+          }
+        }
+        else if(returnValue == IMOD_IO_NO_ACCESS_ERROR) {
+          wprint("Error opening model. Check file permissions\n.");
+          arg = numArgs;
         }
         else {
-          wprint("Could not create a new model %s.\n", message_string);
+          wprint("Unknown return code, new model not loaded!!\n");
+          arg = numArgs;
         }
-      }
-      else if(returnValue == IMOD_IO_NO_ACCESS_ERROR) {
-        wprint("Error opening model. Check file permissions\n.");
-      }
-      else {
-        wprint("Unknown return code, new model not loaded!!\n");
-      }
-      break;
+        break;
 
-    case MESSAGE_SAVE_MODEL:
-      succeeded = -1;
-      sendResponse(1);
-      imod->blacklevel = App->cvi->black;
-      imod->whitelevel = App->cvi->white;
-      returnValue = SaveModel(imod);
-      break;
+      case MESSAGE_SAVE_MODEL:
+        succeeded = -1;
+        sendResponse(1);
+        imod->blacklevel = App->cvi->black;
+        imod->whitelevel = App->cvi->white;
+        returnValue = SaveModel(imod);
+        break;
 
-    case MESSAGE_VIEW_MODEL:
-      imod_autosave(imod);
-      imodv_open();
-      break;
-
-    case MESSAGE_QUIT:
-      //    imod_quit();
-      break;
-
-    case MESSAGE_RAISE_WINDOWS:
-      inputRaiseWindows();
-      break;
-
-    case MESSAGE_MODEL_MODE:
-      movieVal = 1;
-      if (message_string)
-        movieVal = atoi(message_string);
-      if (movieVal > 0)
-        imod_set_mmode(IMOD_MMODEL);
-      else {
-        imod_set_mmode(IMOD_MMOVIE);
-        if (movieVal < 0) {
-          xaxis = (-movieVal) & 1 ? 1 : 0;
-          yaxis = (-movieVal) & 2 ? 1 : 0;
-          zaxis = (-movieVal) & 4 ? 1 : 0;
-          taxis = (-movieVal) & 8 ? 1 : 0;
-          imodMovieXYZT(App->cvi, xaxis, yaxis, zaxis, taxis);
-        }
-      }
-      break;
-
-    case MESSAGE_OPEN_BEADFIXER:
-      imodPlugOpenByName("Bead Fixer");
-      break;
-
-    case MESSAGE_ONE_ZAP_OPEN:
-      if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE) || !imodLoopStarted())
+      case MESSAGE_VIEW_MODEL:
+        imod_autosave(imod);
         inputRaiseWindows();
-      else
-        imod_zap_open(App->cvi);
-      break;
-
-    case MESSAGE_RUBBERBAND:
-      zapReportRubberband();
-      break;
-
-    case MESSAGE_OBJ_PROPERTIES:
-    case MESSAGE_NEWOBJ_PROPERTIES:
-      objNum = 1;
-      type = symbol = symSize = ptSize = -1;
-      if (!message_string) {
-        imodPrintStderr("imodExecuteMessage: no values sent with object"
-                " property command\n");
-        succeeded = 0;
-        break;
-      }
-      
-      sscanf(message_string, "%d %d %d %d %d", &objNum, &type, &symbol,
-             &symSize, &ptSize);
-
-      // Object is numbered from 1, so decrement and test for substituting
-      // current object
-      if (--objNum < 0)
-        objNum = imod->cindex.object;
-      if (objNum < 0 || objNum >= imod->objsize) {
-        imodPrintStderr("imodExecuteMessage: illegal object # sent with object"
-                " property command\n");
-        succeeded = 0;
-        break;
-      }
-      obj = &imod->obj[objNum];
-
-      // If object has contours, skip for NEWOBJ message
-      if (obj->contsize && message_action == MESSAGE_NEWOBJ_PROPERTIES)
+        imodv_open();
         break;
 
-      // Process the changes if not -1: object type
-      if (type >= 0 && type < 3) {
-        switch (type) {
-        case 0:
-          obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
-          break;
-        case 1:
-          obj->flags |= IMOD_OBJFLAG_OPEN;
-          obj->flags &= ~IMOD_OBJFLAG_SCAT;
-          break;
-        case 2:
-          obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
+      case MESSAGE_QUIT:
+        arg = numArgs;
+        break;
+
+      case MESSAGE_RAISE_WINDOWS:
+        inputRaiseWindows();
+        break;
+
+      case MESSAGE_MODEL_MODE:
+        movieVal = 1;
+        if (arg < numArgs - 1)
+        movieVal = messageStrings[++arg].toInt();
+        if (movieVal > 0)
+          imod_set_mmode(IMOD_MMODEL);
+        else {
+          imod_set_mmode(IMOD_MMOVIE);
+          if (movieVal < 0) {
+            xaxis = (-movieVal) & 1 ? 1 : 0;
+            yaxis = (-movieVal) & 2 ? 1 : 0;
+            zaxis = (-movieVal) & 4 ? 1 : 0;
+            taxis = (-movieVal) & 8 ? 1 : 0;
+            imodMovieXYZT(App->cvi, xaxis, yaxis, zaxis, taxis);
+          }
+        }
+        break;
+
+      case MESSAGE_OPEN_BEADFIXER:
+        imodPlugOpenByName("Bead Fixer");
+        break;
+
+      case MESSAGE_ONE_ZAP_OPEN:
+        inputRaiseWindows();
+        if (!imodDialogManager.windowCount(ZAP_WINDOW_TYPE) &&
+            imodLoopStarted())
+          imod_zap_open(App->cvi);
+        break;
+
+      case MESSAGE_RUBBERBAND:
+        zapReportRubberband();
+        break;
+
+      case MESSAGE_OBJ_PROPERTIES:
+      case MESSAGE_NEWOBJ_PROPERTIES:
+        objNum = messageStrings[++arg].toInt();
+        type = messageStrings[++arg].toInt();
+        symbol = messageStrings[++arg].toInt();
+        symSize = messageStrings[++arg].toInt();
+        ptSize = messageStrings[++arg].toInt();
+
+        // Object is numbered from 1, so decrement and test for substituting
+        // current object
+        if (--objNum < 0)
+          objNum = imod->cindex.object;
+        if (objNum < 0 || objNum >= imod->objsize) {
+          imodPrintStderr("imodExecuteMessage: illegal object # sent with "
+                          "object property command\n");
+          succeeded = 0;
+          arg = numArgs;
           break;
         }
+        obj = &imod->obj[objNum];
+
+        // If object has contours, skip for NEWOBJ message
+        if (obj->contsize && message_action == MESSAGE_NEWOBJ_PROPERTIES)
+          break;
+
+        // Process the changes if not -1: object type
+        if (type >= 0 && type < 3) {
+          switch (type) {
+          case 0:
+            obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
+            break;
+          case 1:
+            obj->flags |= IMOD_OBJFLAG_OPEN;
+            obj->flags &= ~IMOD_OBJFLAG_SCAT;
+            break;
+          case 2:
+            obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
+            break;
+          }
+        }
+        
+        // Symbol type and filled
+        if (symbol >= 0) {
+          if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
+            obj->symbol = symTable[symbol & 7];
+          if (symbol & 8)
+            obj->symflags |= IOBJ_SYMF_FILL;
+          else
+            obj->symflags &= ~IOBJ_SYMF_FILL;
+        }
+        
+        // Symbol size, 3d point size
+        if (symSize > 0)
+          obj->symsize = symSize;
+        if (ptSize >= 0)
+          obj->pdrawsize = ptSize;
+        
+        // The general draw updates object edit window, but need to call 
+        // imodv object edit for it to update
+        imodDraw(App->cvi, IMOD_DRAW_MOD);
+        imodvObjedNewView();
+        break;
+        
+      default:
+        imodPrintStderr("imodExecuteMessage: action %d not recognized\n"
+                        , message_action);
+        succeeded = 0;
+        arg = numArgs;
       }
-
-      // Symbol type and filled
-      if (symbol >= 0) {
-        if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
-          obj->symbol = symTable[symbol & 7];
-        if (symbol & 8)
-          obj->symflags |= IOBJ_SYMF_FILL;
-        else
-          obj->symflags &= ~IOBJ_SYMF_FILL;
+    } else {
+      
+      // Messages for 3dmodv
+      switch (message_action) {
+      case MESSAGE_QUIT:
+        arg = numArgs;
+        break;
+        
+      case MESSAGE_RAISE_WINDOWS:
+        imodvInputRaise();
+        break;
+        
+      default:
+        imodPrintStderr("imodExecuteMessage: action %d not recognized by"
+                        " 3dmodv\n" , message_action);
+        succeeded = 0;
+        arg = numArgs;
       }
-
-      // Symbol size, 3d point size
-      if (symSize > 0)
-        obj->symsize = symSize;
-      if (ptSize >= 0)
-        obj->pdrawsize = ptSize;
-
-      // The general draw updates object edit window, but need to call 
-      // imodv object edit for it to update
-      imodDraw(App->cvi, IMOD_DRAW_MOD);
-      imodvObjedNewView();
-      break;
-
-    default:
-      imodPrintStderr("imodExecuteMessage: action %d not recognized\n"
-              , message_action);
-      succeeded = 0;
-    }
-  } else {
-
-    // Messages for 3dmodv
-    switch (message_action) {
-    case MESSAGE_QUIT:
-      break;
-
-    case MESSAGE_RAISE_WINDOWS:
-      imodvInputRaise();
-      break;
-
-    default:
-      imodPrintStderr("imodExecuteMessage: action %d not recognized by"
-              " 3dmodv\n" , message_action);
-      succeeded = 0;
     }
   }
-  if (message_string)
-    free(message_string);
-  message_string = NULL;
 
   // Now set the clipboard with the response
   if (succeeded >= 0)
@@ -465,6 +467,10 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.17  2004/06/04 03:21:27  mast
+Simplified code for keeping black/white level by just keeping the level
+the same in the open function - seemed to help crashing problem on Linux
+
 Revision 4.16  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
