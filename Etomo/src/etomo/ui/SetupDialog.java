@@ -41,6 +41,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 18:50:47  sueh
+ * <p> bug332 isValid(): Added call to
+ * <p> TiltAngleDialogPanel.getErrorMessage() for Axis' A and B.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -194,6 +198,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JRadioButton rbSingleSection = new JRadioButton("Single tomogram");
   private JRadioButton rbSerialSection = new JRadioButton("Serial tomogram");
   private ButtonGroup bgSectionType = new ButtonGroup();
+  private JButton btnViewRawStackA = new JButton("View Raw Image Stack");
+  private JButton btnViewRawStackB = new JButton("View Raw Image Stack");
 
   private JPanel pnlPixelAndLocalAlign = new JPanel();
   private JButton btnScanHeader = new JButton("Scan Header");
@@ -274,7 +280,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
     rbDualAxis.addActionListener(new DualAxisActionListener(this));
     btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
-
+    btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
+    btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
+    
     //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
@@ -376,12 +384,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisInfoA.add(tiltAnglesA.getPanel());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
+    pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAxisInfoA.add(btnViewRawStackA);
 
     pnlAxisInfoB.setBorder(borderAxisInfoB.getBorder());
     pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
 
     pnlAxisInfoB.add(tiltAnglesB.getPanel());
+    pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
+    pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAxisInfoB.add(btnViewRawStackB);
 
     pnlPerAxisInfo.setLayout(new BoxLayout(pnlPerAxisInfo, BoxLayout.X_AXIS));
     pnlPerAxisInfo.add(pnlAxisInfoA);
@@ -415,6 +428,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       tiltAnglesB.setEnabled(false);
       ltfExcludeListB.setEnabled(false);
+      btnViewRawStackB.setEnabled(false);
     }
   }
 
@@ -610,11 +624,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private void rbSingleAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(false);
     ltfExcludeListB.setEnabled(false);
+    btnViewRawStackB.setEnabled(false);
   }
 
   private void rbDualAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
+    btnViewRawStackB.setEnabled(true);
   }
 
   private void btnScanHeaderAction(ActionEvent event) {
@@ -636,7 +652,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
       }
     }
-
+    
     // Run header on the dataset to the extract whatever information is
     // available
     MRCHeader header = new MRCHeader(datasetName);
@@ -681,6 +697,19 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
+  }
+
+  private void btnViewRawStackAAction(ActionEvent event) {
+    if (getAxisType() == AxisType.SINGLE_AXIS) {
+      applicationManager.imodRawStack(AxisID.ONLY);
+    }
+    else {
+      applicationManager.imodRawStack(AxisID.FIRST);
+    }
+  }
+
+  private void btnViewRawStackBAction(ActionEvent event) {
+    applicationManager.imodRawStack(AxisID.SECOND);
   }
 
   /**
@@ -849,5 +878,28 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       adaptee.btnScanHeaderAction(event);
     }
   }
+  
+  class ViewRawStackAActionListener implements ActionListener {
+    SetupDialog adaptee;
+    ViewRawStackAActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+    
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnViewRawStackAAction(event);
+    }
+  }
+  
+  class ViewRawStackBActionListener implements ActionListener {
+    SetupDialog adaptee;
+    ViewRawStackBActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+    
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnViewRawStackBAction(event);
+    }
+  }
+
 
 }
