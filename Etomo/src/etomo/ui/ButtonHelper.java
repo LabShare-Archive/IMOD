@@ -1,7 +1,7 @@
 /**
 * <p>Description: </p>
 *
-* <p>Copyright: Copyright © 2002, 2003</p>
+* <p>Copyright: Copyright ?? 2002, 2003</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.0  2003/11/07 23:19:01  rickg
+* <p> Version 1.0.0
+* <p>
 * <p> Revision 1.2  2003/11/03 22:18:11  sueh
 * <p> constructor should be private
 * <p>
@@ -36,7 +39,7 @@ public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
 
   public static String format(String text) {
-    if (text.substring(0, 6).equalsIgnoreCase("<html>")) {
+    if (text.toLowerCase().startsWith("<html>")) {
       return text;
     }
     text = "<html><b>".concat(text).concat("</b>");
