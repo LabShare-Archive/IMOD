@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/01/30 02:11:38  sueh
+ * <p> bug# 373 formatting
+ * <p>
  * <p> Revision 3.2  2004/01/30 02:08:59  sueh
  * <p> bug# 373 initialized values
  * <p>
@@ -46,28 +49,34 @@ public class ConstTiltxcorrParam {
     "$Id$";
 
   //PIP and sequential input
-  protected String inputFile = "";
-  protected String pieceListFile = "";
-  protected String outputFile = "";
+  protected String inputFile;
+  protected String pieceListFile;
+  protected String outputFile;
   protected boolean excludeCentralPeak;
   protected double rotationAngle; //was imageRotation
   protected FortranInputString bordersInXandY; //was trim
+  protected FortranInputString xMinAndMax;
+  protected FortranInputString yMinAndMax;
   protected FortranInputString padsInXandY; // was padPercent;
   protected FortranInputString tapersInXandY; //was taperPercent
+  protected boolean cumulativeCorrelation;
+  protected boolean absoluteCosineStretch;
+  protected boolean noCosineStretch;
+  protected String testOutput;
   protected FortranInputString startingEndingViews; //was viewRange
 
   //PIP only
   //was tiltAngleSpec
-  protected double firstTiltAngle = Double.NaN;
-  protected double tiltIncrement = Double.NaN;
-  protected String tiltFile = "";
-  protected double[] tiltAngles = null;
+  protected double firstTiltAngle;
+  protected double tiltIncrement;
+  protected String tiltFile;
+  protected double[] tiltAngles;
 
   //was filterParams
-  protected double filterRadius1 = Double.NaN;
-  protected double filterRadius2 = Double.NaN;
-  protected double filterSigma1 = Double.NaN;
-  protected double filterSigma2 = Double.NaN;
+  protected double filterRadius1;
+  protected double filterRadius2;
+  protected double filterSigma1;
+  protected double filterSigma2;
 
   //sequential input only
   protected TiltAngleSpec tiltAngleSpec;
@@ -79,6 +88,12 @@ public class ConstTiltxcorrParam {
     bordersInXandY = new FortranInputString(2);
     bordersInXandY.setIntegerType(0, true);
     bordersInXandY.setIntegerType(1, true);
+    xMinAndMax = new FortranInputString(2);
+    xMinAndMax.setIntegerType(0, true);
+    xMinAndMax.setIntegerType(1, true);
+    yMinAndMax = new FortranInputString(2);
+    yMinAndMax.setIntegerType(0, true);
+    yMinAndMax.setIntegerType(1, true);
     padsInXandY = new FortranInputString(2);
     padsInXandY.setIntegerType(0, true);
     padsInXandY.setIntegerType(1, true);
@@ -88,6 +103,39 @@ public class ConstTiltxcorrParam {
     startingEndingViews = new FortranInputString(2);
     startingEndingViews.setIntegerType(0, true);
     startingEndingViews.setIntegerType(1, true);
+    reset();
+  }
+  
+  protected void reset() {
+    inputFile = new String("");
+    pieceListFile = new String("");
+    outputFile = new String("");
+    excludeCentralPeak = false;
+    rotationAngle = Double.NaN;
+    bordersInXandY.set(0, Double.NaN);
+    bordersInXandY.set(1, Double.NaN);
+    xMinAndMax.set(0, Double.NaN);
+    xMinAndMax.set(1, Double.NaN);
+    yMinAndMax.set(0, Double.NaN);
+    yMinAndMax.set(1, Double.NaN);
+    padsInXandY.set(0, Double.NaN);
+    padsInXandY.set(1, Double.NaN);
+    tapersInXandY.set(0, Double.NaN);
+    tapersInXandY.set(1, Double.NaN);
+    cumulativeCorrelation = false;
+    absoluteCosineStretch = false;
+    noCosineStretch = false;
+    testOutput = new String("");
+    startingEndingViews.set(0, Double.NaN);
+    startingEndingViews.set(1, Double.NaN);
+    firstTiltAngle = Double.NaN;
+    tiltIncrement = Double.NaN;
+    tiltFile = new String("");
+    tiltAngles = null;
+    filterRadius1 = Double.NaN;
+    filterRadius2 = Double.NaN;
+    filterSigma1 = Double.NaN;
+    filterSigma2 = Double.NaN;
   }
 
   public String getInputFile() {
@@ -130,11 +178,32 @@ public class ConstTiltxcorrParam {
   public String getBordersInXandY() {
     return bordersInXandY.toString();
   }
+  public String getXMinString() {
+    return xMinAndMax.toString(0);
+  }
+  public String getXMaxString() {
+    return xMinAndMax.toString(1);
+  }
+  public String getYMinString() {
+    return yMinAndMax.toString(0);
+  }
+  public String getYMaxString() {
+    return yMinAndMax.toString(1);
+  }
   public String getPadsInXandY() {
     return padsInXandY.toString();
   }
   public String getTaperPercent() {
     return tapersInXandY.toString();
+  }
+  public boolean isCumulativeCorrelation() {
+    return cumulativeCorrelation;
+  }
+  public boolean isAbsoluteCosineStretch() {
+    return absoluteCosineStretch;
+  }
+  public boolean isNoCosineStretch() {
+    return noCosineStretch;
   }
   public String getStartingEndingViews() {
     return startingEndingViews.toString();
@@ -142,5 +211,7 @@ public class ConstTiltxcorrParam {
   public boolean getExcludeCentralPeak() {
     return excludeCentralPeak;
   }
-
+  public String getTestOutput() {
+    return testOutput;
+  }
 }
