@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.7  2003/10/16 20:43:34  mast
 #  Changed error message upon check volume mismatch to be more helpful
 #
@@ -81,6 +84,20 @@ endif
 if($#argv >6 ) then
   set outfile = $argv[7]
 endif
+
+# Detect non-zero shifts in input file and just copy the data
+#
+set deltas = `awk '{print 1000. * $4}' $infile`
+@ deltax = $deltas[1]
+@ deltay = $deltas[1]
+@ deltaz = $deltas[1]
+if ($deltax != 0 || $deltay != 0 || $deltaz != 0) then
+    if (-e $outfile) \mv -f $outfile $outfile~
+    \cp $infile $outfile
+    echo "SOLVEMATCH: Found non-zero shifts in $infile, copied it to $outfile"
+    exit 0
+endif
+
 set nx = $argv[3]
 set ny = $argv[4]
 @ nz = $argv[5]
