@@ -1,0 +1,62 @@
+<head>
+<title>Model Movie & Montage Control</title>
+</head>
+<H3>Model Movie & Montage Control</H3>
+<H4>Movie Making</H4>
+The upper controls make a movie by stepping through 
+from the values in the left column of text boxes (starting values) to 
+the values in the right column (ending values).
+<P>
+Press the <B>Set Start</B> button to set the starting values to the 
+values of the current display, or the <B>Set End</B> button to set 
+the ending values.  You can also edit the values.
+<P>
+If the model view window is opened from 3dmod, then text boxes will 
+appear for starting and ending image slices in X, Y, and Z.  These 
+values will be relevant if you use the <B>Edit-Image</B> dialog to turn on 
+display of image slices in the model view window.  There are also boxes 
+showing the transparency of the image display and the thickness, or 
+number of slices displayed.
+<P>
+Pressing the <B>Make</B> button will cause 3dmodv to 
+display the number of frames given.  The rotation between the 
+starting and ending positions will be resolved into a rotation 
+around a single axis, and the rotation will occur at even 
+increments around that axis.
+<P>
+Press the <B>Stop</B> button to stop after the next display.
+<P>
+If <B>Write Files</B> is selected then a snapshot will 
+be taken of each image.  The file will be a TIFF file or in the current
+non-TIFF format, depending on which radio button is selected.  To change 
+the format of the non-Tiff option,
+use the menu entry <B>Edit-Options</B> and
+go to the <B>Behavior</B> panel.
+<P>
+To make a movie through 360 degrees around the X or the Y axis, 
+select the <B>Full 360 X</B> or <B>Full 360 Y</B> button.  Then select the 
+<B>Make</B> button.  The number of frames can be set before or 
+after selecting a <B>Full 360</B> button.  Pressing <B>Set Start</B> or 
+<B>Set End</B> will cancel the <B>Full 360</B> selection.
+<P>
+If <B>Reverse</B> is selected, the movie will run in reverse, from 
+the ending to the starting position, or rotate in the opposite 
+direction for a <B>Full 360</B> movie.
+<P>
+If <B>Long way</B> is selected, the rotation will go the long way 
+around, through an angle greater instead of less than 180 
+degrees.
+<P>
+<H4>Montage Making</H4>
+The lower controls allow one to save a montage of zoomed-up views 
+of the model into a single TIFF file, in order to get a high-resolution 
+rendering of the model.  The model will be zoomed up by a 
+factor equal to the number of montage frames, then translated to a 
+regular array of positions.  
+If <B>Write Files</B> is selected, then images will be montaged into an 
+array that is saved into a TIFF 
+file at the end.  Perspective must be set to zero in order for 
+this to work correctly.
+
+<P>
+<A HREF="index.html">Help Index<A>
