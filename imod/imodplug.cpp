@@ -14,21 +14,10 @@ $Revision$
 Log at end of file
 */
 
-#ifdef _WIN32
-#define NOPLUGS
-#endif
-#ifdef SVR3
-#define NOPLUGS
-#endif
-
-#ifndef NOPLUGS
-#include <sys/types.h>
-#include <dlfcn.h>
-#include <dirent.h>
-#endif
-
 #include <string.h>
 #include <qpopupmenu.h>
+#include <qdir.h>
+#include <qlibrary.h>
 #include "imod.h"
 #include "imodplug.h"
 #include "special_module.h"
@@ -42,13 +31,13 @@ enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS};
 typedef struct
 {
   char *name;
-  void *handle;
+  QLibrary *library;
   SpecialModule *module;
   int   type;
 }PlugData;
 
 static int imodPlugLoadDir(char *plugdir);
-static int imodPlugLoad(char *plugpath);
+static int imodPlugLoad(QString plugpath);
 static int ipAddInternalModules();
 static void *ipGetFunction(PlugData *pd, int which);
 
@@ -64,15 +53,8 @@ int imodPlugInit(void)
   char *defdir3 = "/usr/freeware/lib/imodplugs/";
   char *defdir2 = "/usr/local/IMOD/plugins";
   char *defdir1 = "/usr/IMOD/plugins";
-#ifndef NOPLUGS  
   char *envdir = getenv("IMOD_PLUGIN_DIR");
 
-  DIR *dirp;
-  struct dirent *dp;
-#endif
-
-  int len, type;
-  char *ext;
   int maxPlug = 0;
 
   plugList = ilistNew(sizeof(PlugData), 8);
@@ -81,10 +63,10 @@ int imodPlugInit(void)
   ipAddInternalModules();
 
 #ifndef NOPLUGS  
-  /* load system plugins. */
+  /* load plugs in environment varialble. */
   imodPlugLoadDir(envdir);
 
-  /* load plugs in environment varialble. */
+  /* load system plugins. */
   imodPlugLoadDir(defdir1);
   imodPlugLoadDir(defdir2);
   imodPlugLoadDir(defdir3);
@@ -114,9 +96,9 @@ static int ipAddInternalModules()
   for (i = 0; i < mi; i++){
     lplug = (PlugData *)ilistItem(plugList, i);
     lplug->name = (*lplug->module->mInfo)(&(lplug->type));
-    lplug->handle = NULL;
+    lplug->library = NULL;
     if (Imod_debug)
-      fprintf(stderr, "Added %s module to Special menu\n", lplug->name);
+      imodPrintStderr("Added %s module to Special menu\n", lplug->name);
   }
   return mi;
 }
@@ -127,37 +109,23 @@ static int ipAddInternalModules()
  */
 static int imodPlugLoadDir(char *plugdir)
 {
-  char soname[1024];
-
-  DIR *dirp;
-  struct dirent *dp;
-  int len, type;
-  char *ext;
-
+#ifdef _WIN32
+  char *filter = "*.dll";
+#else 
+#ifdef Q_OS_MACX
+    char *filter = "*.dylib";
+#else
+    char *filter = "*.so";
+#endif    
+#endif    
   int pload = 0; /* Return the number of plugs loaded. */
+  int i;
+  QDir *dir = new QDir(QString(plugdir), QString(filter));
+  for (i = 0; i < dir->count(); i++)
+    if (!imodPlugLoad(dir->absFilePath(dir->entryList()[i])))
+      pload++;
 
-  if (!plugdir) 
-    return pload;
-
-  dirp = opendir(plugdir);
-  if (!dirp)
-    return pload;
-     
-  while ((dp = readdir(dirp)) != NULL) {
-    len = strlen(dp->d_name);
-    ext = dp->d_name + len - 3;
-
-    if (!(strcmp(ext, ".so") == 0))
-      continue;
-
-    /* try and load plug */
-    sprintf(soname, "%s/%s", plugdir, dp->d_name);
-          
-    if (imodPlugLoad(soname))
-      continue;
-  }
-  closedir(dirp);
-
+  delete dir;
   return(pload);
 }
 
@@ -165,35 +133,29 @@ static int imodPlugLoadDir(char *plugdir)
  * Loads the plugin given by the plugpath in to the
  * global pluglist.
  */
-static int imodPlugLoad(char *plugpath)
+static int imodPlugLoad(QString plugpath)
 {
   PlugData thePlug, *lplug;
   SpecialInfo fptr;
+  QLibrary *library;
+  QString str;
   void *handle;
   int i, mi, type;
 
-  handle = dlopen(plugpath, RTLD_LAZY);
-  if (!handle){
-    fprintf(stderr, "warning: %s failed to open. %s\n",
-	    plugpath, dlerror());
-    return (1);
-  }
-    
+  library = new QLibrary(plugpath);
+
   /* find address of function and data objects */
-  fptr = (SpecialInfo)dlsym (handle, "imodPlugInfo");
+  fptr = (SpecialInfo)library->resolve("imodPlugInfo");
 
   if (!fptr){
-    thePlug.name = dlerror();
     if (Imod_debug)
-      fprintf(stderr, "warning: %s not an imod plugin (%s)\n",
-	      plugpath, thePlug.name);
-
-    dlclose(handle);
+      imodPrintStderr("Warning: %s not a 3dmod plugin.\n", plugpath.latin1());
+    delete library;
     return(2);
   }
 
   /* invoke imodPlugInfo function */
-  thePlug.handle = handle;
+  thePlug.library = library;
   thePlug.name = (*fptr)(&type);
   thePlug.type = type;
 
@@ -202,21 +164,20 @@ static int imodPlugLoad(char *plugpath)
    * then add this plug to plug list.
    */
   mi = ilistSize(plugList);
-  for(i = 0; i < mi; i++){
+  for (i = 0; i < mi; i++) {
     lplug = (PlugData *)ilistItem(plugList, i);
     if (thePlug.type != lplug->type)
       continue;
     if (strcmp(thePlug.name, lplug->name) == 0){
-      dlclose(handle);
+      delete library;
       return(3);
     }
   }
   ilistAppend(plugList, &thePlug);
     
   if (Imod_debug)
-    fprintf(stderr, "loaded plugin : %s %s\n",
-	    plugpath, thePlug.name);
-    
+    imodPrintStderr("loaded plugin : %s %s\n",
+                    plugpath.latin1(), thePlug.name);
   return 0;
 }
 #endif
@@ -383,7 +344,7 @@ void imodPlugClean(void)
  */
 static void *ipGetFunction(PlugData *pd, int which)
 {
-  if (!pd->handle) {
+  if (!pd->library) {
     switch (which) {
     case IP_INFO:
       return (void *)pd->module->mInfo;
@@ -400,13 +361,13 @@ static void *ipGetFunction(PlugData *pd, int which)
   } else {
     switch (which) {
     case IP_INFO:
-      return dlsym(pd->handle, "imodPlugInfo");
+      return pd->library->resolve("imodPlugInfo");
     case IP_EXECUTE:
-      return dlsym(pd->handle, "imodPlugExecute");
+      return pd->library->resolve("imodPlugExecute");
     case IP_EXECUTETYPE:
-      return dlsym(pd->handle, "imodPlugExecuteType");
+      return pd->library->resolve("imodPlugExecuteType");
     case IP_KEYS:
-      return dlsym(pd->handle, "imodPlugKeys");
+      return pd->library->resolve("imodPlugKeys");
     default:
       return NULL;
     }
@@ -470,6 +431,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.8  2003/10/25 16:17:34  mast
+added linetrack as special module, conditionally
+
 Revision 4.7  2003/10/02 01:31:11  mast
 Added ability to open a plugin by name
 
