@@ -15,6 +15,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/21 21:24:03  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.3  2003/05/13 19:57:43  rickg
  * <p> Explicit call to full path for transferfid
  * <p> don't use -c for tcsh
@@ -78,7 +81,7 @@ public class TransferfidParam {
     String IMODBinPath =
       IMODDirectory.getAbsolutePath() + File.separator + "bin" + File.separator;
     StringBuffer commandLine =
-      new StringBuffer("tcsh -ef " + IMODBinPath + "transferfid ");
+      new StringBuffer("tcsh -ef " + IMODBinPath + "transferfid -P ");
 
     if (bToA) {
       commandLine.append("-b ");

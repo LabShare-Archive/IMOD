@@ -19,6 +19,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2003/05/21 21:23:46  rickg
+ * <p> Added e flag to tcsh execution
+ * <p>
  * <p> Revision 1.6  2003/05/14 21:45:59  rickg
  * <p> Added full path to trimvol script for windows
  * <p>
@@ -70,7 +73,7 @@ public class TrimvolParam {
     String IMODBinPath =
       IMODDirectory.getAbsolutePath() + File.separator + "bin" + File.separator;
     StringBuffer commandLine =
-      new StringBuffer("tcsh -ef " + IMODBinPath + "trimvol");
+      new StringBuffer("tcsh -ef " + IMODBinPath + "trimvol -P ");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
