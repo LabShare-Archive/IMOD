@@ -273,7 +273,7 @@ Third = movie down, modify point)</string>
                                         <cstring>RadioButton17</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Left, Right, MIddle</string>
+                                        <string>Left, Right, Middle</string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
