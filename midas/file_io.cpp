@@ -43,7 +43,7 @@ int load_image(struct Midas_view *vw, char *filename)
   struct MRCheader *hin = &ImageHeader;
   float smin, smax;
 
-  hin->fp = fopen(filename, "r");
+  hin->fp = fopen(filename, "rb");
   if (!hin->fp){
     midas_error("Couldn't open", filename, 0);
     return(1);
@@ -83,7 +83,7 @@ int load_refimage(struct Midas_view *vw, char *filename)
   struct LoadInfo li;
   float smin, smax;
 
-  hin.fp = fopen(filename, "r");
+  hin.fp = fopen(filename, "rb");
   if (!hin.fp) {
     fprintf(stderr, "Error opening reference image %s\n",
 	    filename);
@@ -142,7 +142,7 @@ int save_view(struct Midas_view *vw, char *filename)
   }
 
   /* Open up file to save. */
-  hout->fp = fopen(filename, "w");
+  hout->fp = fopen(filename, "wb");
   if (!hout->fp){
     midas_error("Couldn't open", filename, 0);
     return(-1);
