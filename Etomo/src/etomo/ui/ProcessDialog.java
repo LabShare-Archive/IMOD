@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/11/20 00:02:01  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.2.4.1  2004/10/08 16:34:54  sueh
  * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
  * <p> member variables non-static.
@@ -58,9 +61,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
+import etomo.type.DialogType;
 
 public class ProcessDialog implements ExitButtons {
   public static final String rcsid = "$Id$";
@@ -71,7 +74,7 @@ public class ProcessDialog implements ExitButtons {
 
   protected boolean isAdvanced;
 
-  protected DialogExitState exitState = DialogExitState.CANCEL;
+  protected DialogExitState exitState = DialogExitState.SAVE;
 
   protected Dimension rootSize = new Dimension(620, 680);
 
@@ -87,18 +90,21 @@ public class ProcessDialog implements ExitButtons {
   protected MultiLineButton btnExecute = new MultiLineButton("Execute");
 
   protected MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
+  
+  protected DialogType dialogType;
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog(ApplicationManager appManager, AxisID axisID) {
+  public ProcessDialog(ApplicationManager appManager, AxisID axisID, DialogType dialogType) {
     applicationManager = appManager;
     this.axisID = axisID;
+    this.dialogType = dialogType;
 
     //  Get the default initial advanced state
-    isAdvanced = EtomoDirector.getInstance().getAdvanced();
+    isAdvanced = appManager.isAdvanced(dialogType, axisID);
     setAdvanced(isAdvanced);
     setToolTipText();
 
@@ -127,6 +133,14 @@ public class ProcessDialog implements ExitButtons {
 
   public Container getContainer() {
     return rootPanel;
+  }
+  
+  public DialogType getDialogType() {
+    return dialogType;
+  }
+  
+  public boolean isAdvanced() {
+    return isAdvanced;
   }
 
   public void fixRootPanel(Dimension size) {
