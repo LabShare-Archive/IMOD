@@ -4,7 +4,9 @@ LIBRARY      "libiimod"
 DESCRIPTION  'libiimod Windows Dynamic Link Library'
 
 EXPORTS
+	sliceByteConvolve
 	sliceBoxIn
+	sliceByteShrink
 	iiSetMM
 	mrc_plist_create
 	mrc_getdcsize
@@ -39,6 +41,7 @@ EXPORTS
 	mrc_default_status
 	mrcMirrorSource
 	corr_conj
+	sliceByteEdgeLaplacian
 	mrcReadSection
 	mrc_plist_li
 	sliceMultConst
@@ -52,6 +55,7 @@ EXPORTS
 	mrc_zoom_center
 	mrc_slice_zooms
 	get_byte_map
+	sliceByteGraham
 	mrc_swap_header
 	sliceWriteMRCfile
 	iiPlistLoad
@@ -65,7 +69,9 @@ EXPORTS
 	mrc_slice_free
 	mrc_liso
 	sliceReadSubm
+	sliceByteThreshold
 	sliceNewMode
+	sliceMedianFilter
 	mrcGetComplexScale
 	mrc_slice_lie
 	mrcReadY
@@ -90,12 +96,14 @@ EXPORTS
 	sliceMode
 	getfilename
 	mrc_biquad
+	sliceByteEdgeTwo
 	iiWriteSection
 	mrc_rotate
 	mrc_vol_wrap
 	mrc_slice_rotates
 	sliceReadMRC
 	mrcReadSectionByte
+	sliceByteAdd
 	mrc_head_read
 	mrc_putval
 	mrc_slice_resize
@@ -117,6 +125,7 @@ EXPORTS
 	sliceResizeIn
 	tiffClose
 	mrc_read_image
+	sliceByteGrow
 	mrc_slice_getmagnitude
 	mrc_data_new
 	mrc_slice_getval
@@ -128,6 +137,8 @@ EXPORTS
 	mrc_write_byte
 	mrc_1dfft
 	sliceFree
+	sliceMinMax
+	sliceByteEdgePrewitt
 	tiffReadSection
 	sliceMirror
 	mrc_write_slice
@@ -142,6 +153,9 @@ EXPORTS
 	mrc_read_slice
 	sliceInit
 	mrc_byte_mmm
+	sliceByteSmooth
+	sliceByteEdgeSobel
+	sliceByteSharpen
 	mrc_fft
 	mrc_slice_getvol
 	mrc_head_label
