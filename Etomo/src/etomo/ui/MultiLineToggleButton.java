@@ -4,6 +4,8 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JToggleButton;
 import javax.swing.plaf.ColorUIResource;
+
+import java.awt.Insets;
 import java.lang.String;
 
 /**
@@ -28,6 +30,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.1  2004/01/30 22:46:17  sueh
+* <p> bug# 356 eliminated the "missing ui" error message
+* <p>
 * <p> Revision 3.0  2003/11/07 23:19:01  rickg
 * <p> Version 1.0.0
 * <p>
@@ -144,6 +149,7 @@ final public class MultiLineToggleButton extends JToggleButton {
 
   protected void init(String text, Icon icon) {
     super.init(ButtonHelper.format(text), icon);
+    setMargin(new Insets(2,2,2,2));
   }
 
   //private implementation
@@ -155,6 +161,7 @@ final public class MultiLineToggleButton extends JToggleButton {
 
   //if changing this class to inheritable, make this method protected
   private void init() {
+    setMargin(new Insets(2,2,2,2));
     enabledUnselectedTextColor =
       getDefaultUIColor(ENABLED_UNSELECTED_TEXT_COLOR_PROPERTY);
     enabledSelectedTextColor =
