@@ -549,7 +549,7 @@ void BeadFixer::nextRes()
       for (cont = 0; cont < ncont; cont++)  {
         npnt = imodContourGetMaxPoint(con);
         if (npnt > 1) curpt++;
-        if(curpt == inpt) {
+        if(curpt == incont) {
           found = 1;
           break;
         }
@@ -1358,6 +1358,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.20  2004/11/20 05:05:27  mast
+    Changes for undo/redo capability
+
     Revision 1.19  2004/11/04 23:30:55  mast
     Changes for rounded button style
 
