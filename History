@@ -1,6 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/13/02: IMOD_2-6-6
+1/15/02: Fixed a problem with midas in montage fixing mode that occurred
+if there was only one section.
+
+=============================================================================
+1/13/02: IMOD_2-6-6 - released to provide Red Hat 7.1 distributed version that
+later patches would be compatible with, and to provide Sun version that would
+work with large files.
+
 1/13/02: Made imodmesh work with inside-out annular-horseshoe transitions.
 
 1/10/02: Added alignlog to makefile so it would be properly installed.
