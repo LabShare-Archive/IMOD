@@ -82,6 +82,8 @@ public class TransferfidPanel {
       panelTransferfid.add(buttonTransferfid);  
       panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));   
     }
+    
+    setToolTipText();
   }
   /**
    * Set the values of the panel using a TransferfidParam parameter
@@ -171,7 +173,40 @@ public class TransferfidPanel {
     
     return null;
   }
- 
+  //  ToolTip string setup
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "Run Midas to adjust initial alignment manually.";
+    chkRunMidas.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "View from A around which to search for the best pair of views.";
+    ltfCenterViewA.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View from B around which to search for the best pair of views.";
+    ltfCenterViewB.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Number of views from each axis to consider in searching for best pair.";
+    ltfNumberViews.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Try both +90 and -90 degree rotations in searching for best pair of "
+      + "views.";
+    rbSearchBoth.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Try only +90 degree rotations in searching for best pair of views.";
+    rbSearchPlus90.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Try only -90 degree rotations in searching for best pair of views.";
+    rbSearchMinus90.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = 
+      "Run Transferfid to make a seed model for this axis from fiducial model for "
+      + "the other axis.";
+    buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format()); 
+  }
+
 }
 
 
