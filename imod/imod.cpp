@@ -1000,12 +1000,15 @@ bool imodDebug(char key)
   return (Imod_debug && debugKeys && (strchr(debugKeys, key) != NULL));
 }
 
-/* Show a help page in Qt Assistant; set absolute to true to provide a full
-   path instead of a path relative to IMOD_DIR/html/3dmodHelp */
-void imodShowHelpPage(const char *page, bool absolute)
+/* Show a help page in Qt Assistant; provide a full
+   path if the path is not relative to IMOD_DIR/html/3dmodHelp
+   Returns 1 for error, 0 for success */
+int imodShowHelpPage(const char *page)
 {
   if (ImodHelp)
-    ImodHelp->showPage(page, absolute);
+    return (ImodHelp->showPage(page) > 0 ? 1 : 0);
+  else
+    return 1;
 }
 
 /***********************************************************************
@@ -1054,6 +1057,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.50  2004/12/06 04:39:54  mast
+Changed call to ImodAssistant constructor
+
 Revision 4.49  2004/12/04 02:10:31  mast
 Moved declaration of ImodHelp into here
 
