@@ -20,6 +20,25 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.30  2004/08/19 02:39:18  sueh
+ * bug# 508 Passing CombineComscriptState to combine() so it can be
+ * passed to BackgroundComScriptProcess.  In kill(), when the thread is
+ * an instance of BackgroundComScriptProcess, call
+ * BackgroundComScriptProcess.setKilled() to stop the process monitor.
+ * Added:
+ * combine(CombineComscriptState combineComscriptState)
+ * startBackgroundComScript(String command,
+ *     Runnable processMonitor, AxisID axisID,
+ *     ComscriptState comscriptState)
+ * Changed:
+ * kill(AxisID axisID)
+ * Deleted:
+ * combine()
+ * startBackgroundComScript(
+ *     String command,
+ *     Runnable processMonitor,
+ *     AxisID axisID)
+ *
  * Revision 3.29  2004/08/06 23:08:55  sueh
  * bug# 508 modified combine() to use BackgroundComScriptProcess.
  * Modified startComScript to accept a ComScriptProcess parameter,
@@ -952,7 +971,7 @@ public class ProcessManager {
    */
   public String combine(CombineComscriptState combineComscriptState) throws SystemProcessException {
     //  Create the required combine command
-    String command = "combine.com";
+    String command = CombineComscriptState.COMSCRIPT_NAME + ".com";
     
     CombineProcessMonitor combineProcessMonitor = new CombineProcessMonitor(
       appManager, AxisID.ONLY, combineComscriptState);
@@ -960,7 +979,7 @@ public class ProcessManager {
     //  Start the com script in the background
     ComScriptProcess comScriptProcess =
       startBackgroundComScript(command, combineProcessMonitor, AxisID.ONLY, 
-        combineComscriptState);
+        combineComscriptState, CombineComscriptState.COMSCRIPT_WATCHED_FILE);
     return comScriptProcess.getName();
 
   }
@@ -1108,11 +1127,11 @@ public class ProcessManager {
    */
   private ComScriptProcess startBackgroundComScript(String command, 
     Runnable processMonitor, AxisID axisID, 
-    ComscriptState comscriptState)
+    ComscriptState comscriptState, String watchedFileName)
     throws SystemProcessException {
     return startComScript(new BackgroundComScriptProcess(command, this, axisID,
-        null, (BackgroundProcessMonitor) processMonitor, comscriptState),
-      command, processMonitor, axisID, null);
+      watchedFileName, (BackgroundProcessMonitor) processMonitor, comscriptState),
+      command, processMonitor, axisID);
   }
   /**
    * Start a managed command script for the specified axis
@@ -1131,8 +1150,7 @@ public class ProcessManager {
       new ComScriptProcess(command, this, axisID, null),
       command,
       processMonitor,
-      axisID,
-      null);
+      axisID);
   }
   /**
    * Start a managed command script for the specified axis
@@ -1153,8 +1171,7 @@ public class ProcessManager {
       new ComScriptProcess(command, this, axisID, watchedFileName),
       command,
       processMonitor,
-      axisID,
-      null);
+      axisID);
   }
   /**
    * Start a managed command script for the specified axis
@@ -1168,8 +1185,7 @@ public class ProcessManager {
   private ComScriptProcess startComScript(ComScriptProcess comScriptProcess, 
     String command,
     Runnable processMonitor,
-    AxisID axisID,
-    String watchedFileName)
+    AxisID axisID)
     throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
@@ -1513,7 +1529,7 @@ public class ProcessManager {
     if (thread != null) {
       processID = thread.getShellProcessID();
       if (thread instanceof BackgroundComScriptProcess) {
-        ((BackgroundComScriptProcess) thread).setKilled(true);
+        ((BackgroundComScriptProcess) thread).kill();
       }
     }
     killProcessAndDescendants(processID);
