@@ -47,6 +47,7 @@ EXPORTS
 	sliceMultConst
 	sliceClear
 	mrc_slice_mat_mult
+	sliceAnisoDiff
 	sliceCreate
 	mrc_init_li
 	mrc_get_scale
@@ -109,6 +110,8 @@ EXPORTS
 	mrc_slice_resize
 	mrc_fftx
 	corr_conj3d
+	sliceByteAnisoDiff
+	allocate2D_double
 	tiffReadSectionByte
 	mrc_swap_longs
 	mrc_head_write
@@ -127,6 +130,7 @@ EXPORTS
 	mrc_read_image
 	sliceByteGrow
 	mrc_slice_getmagnitude
+	updateMatrix
 	mrc_data_new
 	mrc_slice_getval
 	mrc_bilinear
