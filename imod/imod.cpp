@@ -114,6 +114,8 @@ void imod_usage(char *name)
          "coordinates.\n";
   qstr += "         -m    Load model with model coords (override scaling).\n";
   qstr += "         -2    Treat model as 2D only.\n";
+  qstr += "         -T    Display multiple single-image files as times not "
+    "sections.\n";
   qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
   qstr += "         -ci   Display images in color index mode with colormap.\n";
   qstr += "         -h    Print this help message.\n";
@@ -399,6 +401,10 @@ int main( int argc, char *argv[])
         
       case 'Z':
         zapOpen = TRUE;
+        break;
+        
+      case 'T':
+        vi.multiFileZ = -1;
         break;
         
       case 'W':
@@ -957,6 +963,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.27  2003/11/24 16:47:39  mast
+needed to cast argument to printInfo to char *
+
 Revision 4.26  2003/11/01 18:12:16  mast
 changed to put out virtually all error messages to a window
 
