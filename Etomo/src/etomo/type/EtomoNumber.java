@@ -19,6 +19,12 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/29 00:07:40  sueh
+* <p> bug# 567 Added set(ComScriptCommand) to get the value in
+* <p> ComScriptCommand value where thekeyword in ComScriptCommand
+* <p> equals name.  Calling validate() when value is changed.  Added
+* <p> set(double).
+* <p>
 * <p> Revision 1.2  2004/11/19 23:34:47  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -48,20 +54,24 @@ public class EtomoNumber extends ConstEtomoNumber {
     super(type, initialValue);
   }
   
+  public EtomoNumber(int type, String name, int initialValue) {
+    super(type, name, initialValue);
+  }
+  
   public EtomoNumber(ConstEtomoNumber that) {
     super(that);
   }
   
   public void load(Properties props) {
-    set(props.getProperty(name, resetValue.toString()));
+    set(props.getProperty(name, toString(resetValue)));
   }
   public void load(Properties props, String prepend) {
-    set(props.getProperty(prepend + "." + name, resetValue.toString()));
+    set(props.getProperty(prepend + "." + name, toString(resetValue)));
   }
   
   public EtomoNumber set(String value) {
     invalidReason = null;
-    if (value == null || !value.matches("\\S+")) {
+    if (value == null || value.matches("\\s*")) {
       this.value = newNumber();
     }
     else {
@@ -72,7 +82,7 @@ public class EtomoNumber extends ConstEtomoNumber {
         this.value = newNumber();
       }
     }
-    if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
+    if (!isNull(ceilingValue) && isSet() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     validate();
@@ -103,7 +113,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   public EtomoNumber set(int value) {
     invalidReason = null;
     this.value = newNumber(value);
-    if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
+    if (!isNull(ceilingValue) && isSet() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     validate();
@@ -113,7 +123,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   public EtomoNumber set(long value) {
     invalidReason = null;
     this.value = newNumber(value);
-    if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
+    if (!isNull(ceilingValue) && isSet() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     validate();
@@ -123,7 +133,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   public EtomoNumber set(double value) {
     invalidReason = null;
     this.value = newNumber(value);
-    if (!isNull(ceilingValue) && !isNull() && gt(this.value, ceilingValue)) {
+    if (!isNull(ceilingValue) && isSet() && gt(this.value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     validate();
