@@ -29,42 +29,45 @@
 #ifndef BD_IPROC_H_
 #define BD_IPROC_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PROC_BACKGROUND 0
 #define PROC_FOREGROUND 255
 
 
-typedef struct
-{
-     diaDialog     *dia;
-     ImodView      *vw;        /* image data to model                       */
-     unsigned char *idata;     /* Image data processing buffer.             */
-     int           idatasec;   /* data section. */
-     int           idatatime;  /* time value of section */
-     int           procnum;
-     int           modified;   /* flag that section data are modified */
-     Widget        frame;
-     Widget        curcont;   /* current control widget. */
+  typedef struct
+  {
+    diaDialog     *dia;
+    ImodView      *vw;        /* image data to model                       */
+    unsigned char *idata;     /* Image data processing buffer.             */
+    int           idatasec;   /* data section. */
+    int           idatatime;  /* time value of section */
+    int           procnum;
+    int           modified;   /* flag that section data are modified */
+    Widget        frame;
+    Widget        curcont;   /* current control widget. */
 
-     int           threshold;
-     int           edge;
+    int           threshold;
+    int           edge;
 
-} ImodIProc;
-
-
-typedef struct
-{
-     char *name;         /* Name of index */
-     void (*cb)(Widget, XtPointer, XtPointer);       /* callback */
-     void (*mkwidget)(Widget, XtPointer, XtPointer);
-     XtPointer client;
-     Widget control;
-} ImodIProcData;
-
-int inputIProcOpen(struct ViewInfo *vw);
+  } ImodIProc;
 
 
-/* internal functions. */
-static void clearsec(ImodIProc *ip);
-static void savesec(ImodIProc *ip);
+  typedef struct
+  {
+    char *name;         /* Name of index */
+    void (*cb)(Widget, XtPointer, XtPointer);       /* callback */
+    void (*mkwidget)(Widget, XtPointer, XtPointer);
+    XtPointer client;
+    Widget control;
+  } ImodIProcData;
 
+  int inputIProcOpen(struct ViewInfo *vw);
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* BD_IPROC_H_ */
