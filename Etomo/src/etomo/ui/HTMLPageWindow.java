@@ -1,15 +1,15 @@
 package etomo.ui;
 
-import java.io.*;
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
 import java.net.URL;
 
-//TODO the scrollbar does not work in this window when it is opened in a modal
-//dialog box
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLEditorKit;
 
 /**
  * <p>Description: </p>
@@ -24,6 +24,9 @@ import java.net.URL;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/05/10 19:12:20  rickg
  * <p> OS independent path implementation
  * <p>
@@ -55,7 +58,7 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
   String url;
   JEditorPane editorPane = new JEditorPane();
   JScrollPane scrollPane = new JScrollPane(editorPane);
-  FileReader reader;
+
 
   public HTMLPageWindow() {
     editorPane.setEditorKit(new HTMLEditorKit());
