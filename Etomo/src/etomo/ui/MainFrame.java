@@ -1,14 +1,39 @@
 package etomo.ui;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.net.MalformedURLException;
 
-import etomo.*;
-import etomo.type.*;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+
+import etomo.ApplicationManager;
 import etomo.process.ProcessState;
 import etomo.storage.EtomoFileFilter;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.MetaData;
+import etomo.type.ProcessTrack;
 
 /**
  * <p>Description: </p>
@@ -23,6 +48,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/05/19 04:54:18  rickg
+ * <p> Added mnemonics for menus
+ * <p>
  * <p> Revision 2.9  2003/05/15 22:25:14  rickg
  * <p> created separate setDividerLocation method to correctly update
  * <p> panel
@@ -104,6 +132,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuBar menuBar = new JMenuBar();
 
   private JMenu menuFile = new JMenu("File");
+  private JMenuItem menuFileNew = new JMenuItem("New", KeyEvent.VK_N);
   private JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
   private JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
   private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
@@ -116,6 +145,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
 
   private JMenu menuHelp = new JMenu("Help");
+  private JMenuItem menuTomoGuide =
+    new JMenuItem("Tomography Guide", KeyEvent.VK_T);
+  private JMenuItem menuImodGuide = new JMenuItem("Imod Guide", KeyEvent.VK_I);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
 
   private JLabel statusBar = new JLabel("No data set loaded");
@@ -307,41 +339,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  void menuFileOpenAction(ActionEvent e) {
-    //
-    //  Open up the file chooser in current working directory
-    //
-    JFileChooser chooser =
-      new JFileChooser(new File(System.getProperty("user.dir")));
-    EtomoFileFilter edfFilter = new EtomoFileFilter();
-    chooser.setFileFilter(edfFilter);
-
-    chooser.setDialogTitle("Open etomo data file");
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File paramFile = chooser.getSelectedFile();
-      if (applicationManager.openTestParamFile(paramFile)) {
-        applicationManager.openProcessingPanel();
-      }
-    }
-  }
-
-  void menuFileSaveAction(ActionEvent e) {
-
-    //  Check to see if there is a current parameter file chosen
-    //  if not open a dialog box to select the name
-
-    boolean haveTestParamFilename = true;
-    if (applicationManager.getTestParamFile() == null) {
-      haveTestParamFilename = getTestParamFilename();
-    }
-    if (haveTestParamFilename) {
-      applicationManager.saveTestParamFile();
-    }
-  }
-
   public boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
     JFileChooser chooser =
@@ -367,32 +364,18 @@ public class MainFrame extends JFrame implements ContextMenu {
     return true;
   }
 
-  void menuFileSaveAsAction(ActionEvent e) {
-    boolean haveTestParamFilename = getTestParamFilename();
-    if (haveTestParamFilename) {
-      applicationManager.saveTestParamFile();
-    }
-  }
-
-  /**File | Exit action performed*/
-  void menuFileExitAction(ActionEvent e) {
-
-    //  Check to see if we need to save any data
-    if (applicationManager.exitProgram()) {
-      System.exit(0);
-    }
-  }
-
-  void menuFileMRUListAction(ActionEvent e) {
-    if (applicationManager.openTestParamFile(new File(e.getActionCommand()))) {
+  void menuFileMRUListAction(ActionEvent event) {
+    if (applicationManager
+      .openTestParamFile(new File(event.getActionCommand()))) {
       applicationManager.openProcessingPanel();
     }
   }
 
   /**
-   * Options/Settings action
+   * Handle the options menu events
+   * @param event
    */
-  void menuOptionsAction(ActionEvent event) {
+  private void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
@@ -410,24 +393,62 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
-  /**Help | About action performed*/
-  void menuHelpAboutAction(ActionEvent e) {
-    MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
-    Dimension dlgSize = dlg.getPreferredSize();
-    Dimension frmSize = getSize();
-    Point loc = getLocation();
-    dlg.setLocation(
-      (frmSize.width - dlgSize.width) / 2 + loc.x,
-      (frmSize.height - dlgSize.height) / 2 + loc.y);
-    dlg.setModal(true);
-    dlg.show();
+  private void menuHelpAction(ActionEvent event) {
+    if (event.getActionCommand().equals(menuTomoGuide.getActionCommand())) {
+      String imodURL = "";
+      try {
+        imodURL =
+          applicationManager.getIMODDirectory().toURL().toString() + "/html/";
+      }
+      catch (MalformedURLException except) {
+        except.printStackTrace();
+        System.err.println("Malformed URL:");
+        System.err.println(applicationManager.getIMODDirectory().toString());
+        return;
+      }
+
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "tomoguide.html");
+      manpage.setVisible(true);
+    }
+
+    if (event.getActionCommand().equals(menuImodGuide.getActionCommand())) {
+      String imodURL = "";
+      try {
+        imodURL =
+          applicationManager.getIMODDirectory().toURL().toString() + "/html/";
+      }
+      catch (MalformedURLException except) {
+        except.printStackTrace();
+        System.err.println("Malformed URL:");
+        System.err.println(applicationManager.getIMODDirectory().toString());
+        return;
+      }
+
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "guide.html");
+      manpage.setVisible(true);
+
+    }
+
+    if (event.getActionCommand().equals(menuHelpAbout.getActionCommand())) {
+      MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
+      Dimension dlgSize = dlg.getPreferredSize();
+      Dimension frmSize = getSize();
+      Point loc = getLocation();
+      dlg.setLocation(
+        (frmSize.width - dlgSize.width) / 2 + loc.x,
+        (frmSize.height - dlgSize.height) / 2 + loc.y);
+      dlg.setModal(true);
+      dlg.show();
+    }
   }
 
   /**Overridden so we can exit when window is closed*/
-  protected void processWindowEvent(WindowEvent e) {
-    super.processWindowEvent(e);
-    if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-      menuFileExitAction(null);
+  protected void processWindowEvent(WindowEvent event) {
+    super.processWindowEvent(event);
+    if (event.getID() == WindowEvent.WINDOW_CLOSING) {
+      menuFileExit.doClick();
     }
   }
 
@@ -569,22 +590,42 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Create the menus for the main window
    */
   private void createMenus() {
+    //  Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
     menuOptions.setMnemonic(KeyEvent.VK_O);
     menuHelp.setMnemonic(KeyEvent.VK_H);
-    
-    //  Menu bar text and adapters
-    menuFileOpen.addActionListener(new menuFileOpenActionAdapter(this));
-    menuFileSave.addActionListener(new menuFileSaveActionAdapter(this));
-    menuFileSaveAs.addActionListener(new menuFileSaveAsActionAdapter(this));
-    menuFileExit.addActionListener(new menuFileExitActionAdapter(this));
 
-    menuSettings.addActionListener(new menuOptionsActionAdapter(this));
-    menuFitWindow.addActionListener(new menuOptionsActionAdapter(this));
-    menuAdvanced.addActionListener(new menuOptionsActionAdapter(this));
-    menuHelpAbout.addActionListener(new menuHelpAboutActionAdapter(this));
+    //  Accelerators
+    menuSettings.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+
+    menuAdvanced.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
+
+    menuFitWindow.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+
+    //  Bind the menu items to their listeners
+    FileActionListener fileActionListener = new FileActionListener(this);
+    menuFileNew.addActionListener(fileActionListener);
+    menuFileOpen.addActionListener(fileActionListener);
+    menuFileSave.addActionListener(fileActionListener);
+    menuFileSaveAs.addActionListener(fileActionListener);
+    menuFileExit.addActionListener(fileActionListener);
+
+    OptionsActionListener optionsActionListener =
+      new OptionsActionListener(this);
+    menuSettings.addActionListener(optionsActionListener);
+    menuFitWindow.addActionListener(optionsActionListener);
+    menuAdvanced.addActionListener(optionsActionListener);
+
+    HelpActionListener helpActionListener = new HelpActionListener(this);
+    menuTomoGuide.addActionListener(helpActionListener);
+    menuImodGuide.addActionListener(helpActionListener);
+    menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
+    menuFile.add(menuFileNew);
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
@@ -592,104 +633,134 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuFile.addSeparator();
 
     //  Initialize all of the MRU file menu items
-    menuFileMRUListActionAdapter mRUListActionAdapter =
-      new menuFileMRUListActionAdapter(this);
+    FileMRUListActionListener fileMRUListActionListener =
+      new FileMRUListActionListener(this);
     for (int i = 0; i < nMRUFileMax; i++) {
       menuMRUList[i] = new JMenuItem();
-      menuMRUList[i].addActionListener(mRUListActionAdapter);
+      menuMRUList[i].addActionListener(fileMRUListActionListener);
       menuMRUList[i].setVisible(false);
       menuFile.add(menuMRUList[i]);
     }
 
-    menuHelp.add(menuHelpAbout);
-    menuBar.add(menuFile);
-
+    // Options menu
     menuOptions.add(menuSettings);
     setAdvancedLabel();
     menuOptions.add(menuAdvanced);
     menuOptions.add(menuFitWindow);
+
+    // Help menu
+    menuHelp.add(menuTomoGuide);
+    menuHelp.add(menuImodGuide);
+    menuHelp.add(menuHelpAbout);
+
+    //  Construct menu bar
+    menuBar.add(menuFile);
     menuBar.add(menuOptions);
     menuBar.add(menuHelp);
     setJMenuBar(menuBar);
   }
-}
 
-//
-//  Action adapters to handle file events
-//
-class menuFileOpenActionAdapter implements ActionListener {
-  MainFrame adaptee;
+  /**
+   * Handle File menu actions
+   * @param event
+   */
+  private void menuFileAction(ActionEvent event) {
+    if (event.getActionCommand().equals(menuFileNew.getActionCommand())) {
+      applicationManager.openNewDataset();
+    }
 
-  menuFileOpenActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileOpenAction(e);
-  }
-}
+    if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
+      //  Open up the file chooser in current working directory
+      JFileChooser chooser =
+        new JFileChooser(new File(System.getProperty("user.dir")));
+      EtomoFileFilter edfFilter = new EtomoFileFilter();
+      chooser.setFileFilter(edfFilter);
 
-class menuFileSaveActionAdapter implements ActionListener {
-  MainFrame adaptee;
+      chooser.setDialogTitle("Open etomo data file");
+      chooser.setPreferredSize(FixedDim.fileChooser);
+      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      int returnVal = chooser.showOpenDialog(this);
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        File paramFile = chooser.getSelectedFile();
+        if (applicationManager.openTestParamFile(paramFile)) {
+          applicationManager.openProcessingPanel();
+        }
+      }
+    }
 
-  menuFileSaveActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileSaveAction(e);
-  }
-}
+    if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
+      //  Check to see if there is a current parameter file chosen
+      //  if not open a dialog box to select the name
+      boolean haveTestParamFilename = true;
+      if (applicationManager.getTestParamFile() == null) {
+        haveTestParamFilename = getTestParamFilename();
+      }
+      if (haveTestParamFilename) {
+        applicationManager.saveTestParamFile();
+      }
+    }
 
-class menuFileSaveAsActionAdapter implements ActionListener {
-  MainFrame adaptee;
+    if (event.getActionCommand().equals(menuFileSaveAs.getActionCommand())) {
+      boolean haveTestParamFilename = getTestParamFilename();
+      if (haveTestParamFilename) {
+        applicationManager.saveTestParamFile();
+      }
+    }
 
-  menuFileSaveAsActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
+    if (event.getActionCommand().equals(menuFileExit.getActionCommand())) {
+      //  Check to see if we need to save any data
+      if (applicationManager.exitProgram()) {
+        System.exit(0);
+      }
+    }
   }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileSaveAsAction(e);
-  }
-}
 
-class menuFileExitActionAdapter implements ActionListener {
-  MainFrame adaptee;
+  //  File menu action listener
+  class FileActionListener implements ActionListener {
+    MainFrame adaptee;
 
-  menuFileExitActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
+    FileActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent event) {
+      adaptee.menuFileAction(event);
+    }
   }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileExitAction(e);
-  }
-}
 
-class menuOptionsActionAdapter implements ActionListener {
-  MainFrame adaptee;
+  //  MRU file list action listener
+  class FileMRUListActionListener implements ActionListener {
+    MainFrame adaptee;
 
-  menuOptionsActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
+    FileMRUListActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+      adaptee.menuFileMRUListAction(e);
+    }
   }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuOptionsAction(e);
-  }
-}
 
-class menuFileMRUListActionAdapter implements ActionListener {
-  MainFrame adaptee;
+  // Options file action listener
+  class OptionsActionListener implements ActionListener {
+    MainFrame adaptee;
 
-  menuFileMRUListActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
+    OptionsActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+      adaptee.menuOptionsAction(e);
+    }
   }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuFileMRUListAction(e);
-  }
-}
 
-class menuHelpAboutActionAdapter implements ActionListener {
-  MainFrame adaptee;
+  // Help file action listener
+  class HelpActionListener implements ActionListener {
+    MainFrame adaptee;
 
-  menuHelpAboutActionAdapter(MainFrame adaptee) {
-    this.adaptee = adaptee;
+    HelpActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+      adaptee.menuHelpAction(e);
+    }
   }
-  public void actionPerformed(ActionEvent e) {
-    adaptee.menuHelpAboutAction(e);
-  }
+
 }
