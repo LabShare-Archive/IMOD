@@ -45,6 +45,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/02/11 23:14:14  sueh
+ * <p> bug# 594 Removing the Window menu, since it is redundant.
+ * <p>
  * <p> Revision 3.18  2005/02/09 22:29:53  sueh
  * <p> bug# 594 Calling pack() for a new window and MainPanel.fitWindow() for
  * <p> an existing window.  MainPanel.fitWindow() functionality doesn't work
@@ -533,32 +536,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   private void menuFileMRUListAction(ActionEvent event) {
     EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
         true);
-  }
-
-  /**
-   * Open the specified window
-   * @param event
-   */
-  /*private void menuWindowListAction(ActionEvent event) {
-    String menuChoice = event.getActionCommand();
-    int index = menuChoice.indexOf(":");
-    if (index < 1 || index > menuChoice.length()) {
-      throw new IllegalStateException(menuChoice);
-    }
-    int keyIndex = Integer.parseInt(menuChoice.substring(0, index)) - 1;
-    EtomoDirector.getInstance().setCurrentManager(menuWindowList.getKey(keyIndex));
-  }*/
-
-  /**
-   * checks for a bug in windows that causes MainFrame.fitScreen() to move the
-   * divider almost all the way to the left
-   * @return
-   */
-  protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
-    if (axisPanel.getWidth() <= 16) {
-      return true;
-    }
-    return false;
   }
 
   /**
