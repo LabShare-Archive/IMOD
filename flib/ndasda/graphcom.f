@@ -4,9 +4,11 @@
 	logical checkgrf
 	integer*4 listextra(*),igrplt(100)
 	data xgutter/0.2/,ygutter/0.2/
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	print *,'Enter list of graphs to plot (ranges ok)'
-	call rdlist(5,igrplt,ngrplt)
+	call rdlist(in5,igrplt,ngrplt)
 	if(ngrplt.le.0)return
 	do i=1,ngrplt
 	  if(.not.checkgrf(igrplt(i),maxgraph,nextragrf,listextra))then
@@ -15,19 +17,19 @@ c
 	  endif
 	enddo
 	write(*,'(1x,a,$)')'# of columns and rows: '
-	read(5,*)ncol,nrow
+	read(in5,*)ncol,nrow
 	if(nrow.le.0.or.ncol.le.0)return
 	write(*,'(1x,a,$)')
      &	    '0 to fill row by row, 1 to fill column by column: '
-	read(5,*)ifbycol
+	read(in5,*)ifbycol
 	write(*,'(1x,a,$)')'# of ticks along X and Y: '
-	read(5,*)nxtick,nytick
+	read(in5,*)nxtick,nytick
 	write(*,'(1x,a,2f5.2,a,$)')'X and Y gutter size (/ for',xgutter
      &	    ,ygutter,'): '
-	read(5,*)xgutter,ygutter
+	read(in5,*)xgutter,ygutter
 	write(*,'(1x,a,$)')
      &	    'Value to scale Y to, or 0 for no rescale of Y: '
-	read(5,*)comymax
+	read(in5,*)comymax
 c	  
 	close(5)
 c 7/14/00 CER remove carriagecontrol for  g77

@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/08 23:55:16  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.2  2003/08/08 17:48:13  mast
 c	  Eliminated STOP statements, provided for model file to be skipped,
 c	  fixed Z limiting code to not assume contours in order by Z.  Fixed
@@ -34,12 +37,14 @@ c
 	integer*4 listgap(1000)
 	real*4 zgapst(*),zgapnd(*)
 	integer*4 getimodhead,getimodflags
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	newfile=.false.
 	if(modelfile.ne.' ')go to 92
 91	print *,'Enter name of input model file, or Return to skip',
      &	    ' to entering options'
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 	if (modelfile .eq.' ') return
 	newfile=.true.
 c
@@ -49,7 +54,7 @@ c
 	if(newfile)then
 	  write(*,'(1x,a,$)')
      &	      'Name of file of tilt info (Return if none): '
-	  read(5,'(a)')tiltfile
+	  read(in5,'(a)')tiltfile
 	endif
 c
 	if(tiltfile.ne.' ')then
@@ -92,12 +97,12 @@ c
 	  else
 	    ifflip=0
 	    write(*,'(1x,a,$)')'Magnification of negatives: '
-	    read(*,*)xmag
+	    read(in5,*)xmag
 	    write(*,'(1x,a,$)')'Scale at which negatives were digitized'
      &		//' (microns per pixel): '
-	    read(*,*)umperpix
+	    read(in5,*)umperpix
 	    write(*,'(1x,a,$)')'Nominal section thickness (nm): '
-	    read(*,*)secthick
+	    read(in5,*)secthick
 c	      
 	    xyscal=umperpix/xmag
 	    zscal=secthick/1000.
@@ -143,7 +148,7 @@ c
 	if(newfile)then
 	  print *,'Enter list of Z values (numbered from 0) across ',
      &	      'which surfaces should be connected (Return for none)'
-	  call rdlist(5,listgap,nlistgap)
+	  call rdlist(in5,listgap,nlistgap)
 	  ngaps=0
 	  if(nlistgap.gt.0)then
 c	      
@@ -255,16 +260,18 @@ c
 	integer*4 icolold(limchg),icolnew(limchg),iobjflag(*),icolused(limchg)
 	character*120 lastmodel
 	integer*4 getimodobjsize
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 95	write(*,'(1x,a,$)')'Name of output model file: '
-	read(5,'(a)')lastmodel
+	read(in5,'(a)')lastmodel
 c	  
 	lastobject = getimodobjsize()
 	ncolchg=0
 	if(nobjwin.ne.0)then
 	  print *,'Enter list of objects for which to put',
      &	      'contours in window into new objects (Return for none)'
-	  call rdlist(5,icolold,ncolchg)
+	  call rdlist(in5,icolold,ncolchg)
 	  do i = 1, ncolchg
 	    icolnew(i) = lastobject + i
 	    icolused(i) = 0
@@ -272,7 +279,7 @@ c
 	  if(ncolchg.ne.0 .and. nobjwin.lt.0)then
 	    print *,'Enter lower and upper limits of end separation',
      &		' for each object change'
-	    read(5,*)(chnglo(i),chnghi(i),i=1,ncolchg)
+	    read(in5,*)(chnglo(i),chnghi(i),i=1,ncolchg)
 	  endif
 	endif
 	icolcon = lastobject + ncolchg + 1

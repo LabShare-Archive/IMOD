@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/08/12 05:10:53  mast
+c	  Return if no model file entered
+c	
 c	  Revision 3.3  2002/09/09 21:36:00  mast
 c	  Eliminate stat_source: and nimp_source: from all includes
 c	
@@ -33,12 +36,14 @@ c
 	character*(*) modelfile
 	logical exist,readw_or_imod,newfile
 	integer*4 getimodhead
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	newfile=.false.
 	if(modelfile.ne.' ')go to 92
 91	print *,'Enter name of input model file, or Return to skip',
      &	    ' to entering options'
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 	if (modelfile .eq.' ') return
 	newfile=.true.
 c
@@ -54,21 +59,21 @@ c
 c	  
 	    write(*,'(1x,a,$)')'1 to scale to microns, -1 to enter '//
      &		'scaling factor directly, 0 no rescaling: '
-	    read(5,*)ifscale
+	    read(in5,*)ifscale
 	    if(ifscale.ne.0)then
 	      if(ifscale.gt.0)then 
 c
 		write(*,'(1x,a,$)')'Magnification of negatives: '
-		read(5,*)xmag
+		read(in5,*)xmag
 		write(*,'(1x,a,$)')'Scale at which negatives were '//
      &		    'digitized (microns per pixel from VIDS): '
-		read(5,*)umperpix
+		read(in5,*)umperpix
 		xyscal=umperpix/xmag
 c	      
 	      else
 		write(*,'(1x,a,$)')
      &		    'Scaling factor to multiply X and Y coordinates by: '
-		read(5,*)xyscal
+		read(in5,*)xyscal
 	      endif
 	    endif
 	  endif
@@ -103,6 +108,8 @@ c
 	character*80 modelfile
 	integer*4 iobjflag(limtyp)
 	integer*4 getimodflags
+	integer*4 in5
+	common /nmsinput/ in5
 c
 	do ii=1,limtyp
 	  ninclass(ii)=0
@@ -304,7 +311,7 @@ c
 	entry save_model(bx,by,nvert,sx,sy,itype,npnts,zz,ifscal,xyscal)
 c
 91	write(*,'(1x,a,$)')'Name of model file to store points in: '
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 C
 C 7/20/00 CER remove recordtype='setmented' for gnu
 C

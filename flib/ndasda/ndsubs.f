@@ -3,16 +3,18 @@ c	  graphs being done
 c
 	subroutine getbinspec(ifangdiff,delr,nbins,rmin,rmax)
 	parameter (limbins=301)
+	integer*4 in5
+	common /nmsinput/ in5
 	if(ifangdiff.eq.0)then
 	  write(*,'(1x,a,$)')
      &	      'Bin width (radial distance), number of bins: '
-	  read(5,*)delr,nbins
+	  read(in5,*)delr,nbins
 	  if(nbins.ge.limbins)print *,'# of bins truncated to',limbins-1
 	  nbins=min(nbins,limbins-1)
 	else
 	  write(*,'(1x,a,$)')
      &	      'Minimum and maximum radii of annulus, number of bins: '
-	  read(5,*)rmin,rmax,nbins
+	  read(in5,*)rmin,rmax,nbins
 	  if(nbins.ge.limbins)print *,'# of bins truncated to',limbins-1
 	  nbins=min(nbins,limbins-1)
 	  delr=180./nbins
@@ -40,31 +42,33 @@ c
 	integer*4 nreftyp(*),nneightyp(*)	!# of types for ref and neigh
 	integer*4 itypref(limtyp,*),itypneigh(limtyp,*)
 	integer*4 nangtyp(*),itypang(limtyp,*)
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 30	ifchange=1
 	if(ifangdiff.eq.lastangdiff)then
 	  ifchange=0
 	  write(*,'(1x,a,$)')'0 to keep same graph specifications or'//
      &	      ' 1 to specify new graphs: '
-	  read(5,*)ifchange
+	  read(in5,*)ifchange
 	endif
 	if(ifchange.ne.0)then
 	  write(*,'(1x,a,$)')'Number of different graphs to compute: '
-	  read(5,*)ngraph
+	  read(in5,*)ngraph
 c	    
 	  do ii=1,ngraph
 	    write(*,102)ii,'reference'
 102	    format(' For graph #',i3,', enter list of types for ',
      &		'points to be considered',/,5x,a,' points',
      &		' (Return for all, ranges OK)')
-	    call rdlist(5,itypref(1,ii),nreftyp(ii))
+	    call rdlist(in5,itypref(1,ii),nreftyp(ii))
 	    if(nreftyp(ii).eq.0)then
 	      nreftyp(ii)=1
 	      itypref(1,ii)=itypall
 	    endif
 c	      
 	    write(*,102)ii,'neighboring'
-	    call rdlist(5,itypneigh(1,ii),nneightyp(ii))
+	    call rdlist(in5,itypneigh(1,ii),nneightyp(ii))
 	    if(nneightyp(ii).eq.0)then
 	      nneightyp(ii)=1
 	      itypneigh(1,ii)=itypall
@@ -80,7 +84,7 @@ c
      &		  'points to be considered angular',/,' neighbors ',
      &		  'to those neighboring points (Return for all, / ',
      &		  'for same as neighbors)')
-	      call rdlist(5,itypang(1,ii),nangtyp(ii))
+	      call rdlist(in5,itypang(1,ii),nangtyp(ii))
 	      if(nangtyp(ii).eq.0)then
 		nangtyp(ii)=1
 		itypang(1,ii)=itypall

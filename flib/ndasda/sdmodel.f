@@ -18,13 +18,15 @@
 	real*4 cgam(maxtri),sgam(maxtri)
 	equivalence (modind,xyrot)
 	equivalence (prtx,prtxyz(1)),(prty,prtxyz(2)),(prtz,prtxyz(3))
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	newfile=.false.
 	firsttime=modelfile.eq.'SDAFIRSTTIME'
 	if(firsttime)modelfile=' '
 	if(modelfile.ne.' ')go to 92
 91	write(*,'(1x,a,$)')'Name of input model file: '
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 	if(firsttime.and.modelfile.eq.' ')return
 	newfile=.true.
 c
@@ -59,7 +61,7 @@ c
 c
 	if(newfile)then
 	  write(*,'(1x,a,$)')'Object # of surface to be analyzed: '
-	  read(5,*)iobjsurf
+	  read(in5,*)iobjsurf
 	endif
 c
 	ierr=getimodmesh(iobjsurf,verts,modind,maxverts,maxverts*6)
@@ -516,6 +518,8 @@ c	      print *,npore,itydrop
 	real*4 pore(3,*),porout(3,*)
 	integer*4 itypore(*)
 	character*80 modelout
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	iobj=-1
 	do ipore=1,npore
@@ -537,7 +541,7 @@ c
 	if(ierr.ne.0)print *,'error',ierr,' putting object', iobj
 	write(*,'(/,a,$)')
      &	    'Filename to save model in now, Return not to: '
-	read(5,'(a)')modelout
+	read(in5,'(a)')modelout
 	if(modelout.ne.' ')call writeimod(modelout)
 	return
 	end

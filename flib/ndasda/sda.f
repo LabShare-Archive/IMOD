@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/29 17:32:35  mast
+c	  Change to use new multithreaded Plax graphics
+c	
 c	  Revision 3.2  2003/08/08 16:41:16  mast
 c	  Added option to export graph
 c	
@@ -62,7 +65,10 @@ c
 	real*4 delrgrf(limgraphs),rmingrf(limgraphs),rmaxgrf(limgraphs)
 	common /grfarr/nrow,ncol,irow,icol,ifbycol,nxtick, nytick,
      &	    xgutter,ygutter,ymaxfix
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
+	in5 = 5
 	ndredo=1
 	ndfirst=5
 	ifanyplot=0
@@ -72,7 +78,7 @@ c
 c
 	print *,'Enter name of output file to store density values in ',
      &	    '(Return for none)'
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 	if(modelfile.eq.' ')then
 	  iout=6
 	else
@@ -83,12 +89,12 @@ c
 c
 	write(*,'(1x,a,$)')
      &	    '0 for graphs on plax, 1 to suppress graphs: '
-	read(5,*)iffil
+	read(in5,*)iffil
 	call grfopn(iffil)
 c	  
 c	write(*,'(1x,a,$)')
 c     &	    'Minimum distance between pore and surface in um: '
-c	read(5,*)dropcrit
+c	read(in5,*)dropcrit
 	modelfile='SDAFIRSTTIME'
 	print *,'Just Return to skip reading a model . . .'
 	call read_model(modelfile,iobjsurf,xyscal,zscal,clipplanes,
@@ -107,7 +113,7 @@ c
 c8	write(*,'(1x,a,/,a,$)')'Enter 0 for graphs of density versus'//
 c     &	    ' radial distance','    or 1 for graphs of density versus'//
 c     &	    ' angular difference within an annulus: '
-c	read(5,*)ifangdiff
+c	read(in5,*)ifangdiff
 c	  
 c	  initialize for first region
 c
@@ -121,7 +127,7 @@ c	  get surface and pores on it
 c
 12	print *,'Enter list of clipping planes to apply, Return for '//
      &	    'none,','     / for same as last time, or 0 for new model'
-	call rdlist(5,iclip,nclip)
+	call rdlist(in5,iclip,nclip)
 	if(nclip.gt.0.and.iclip(1).eq.0)then
 	  modelfile=' '
 	  call read_model(modelfile,iobjsurf,xyscal,zscal, clipplanes,
@@ -139,7 +145,7 @@ c
      &	    //', then Z of region to analyze (in image index',
      &	    'coords, 0,0 for no limits, / for',
      &	    (xyzlimin(i),i=1,6),')'
-	read(5,*)(xyzlimin(i),i=1,6)
+	read(in5,*)(xyzlimin(i),i=1,6)
 	do i=1,6
 	  xyzlim(i)=xyscal*xyzlimin(i)
 	  if(i.gt.4)xyzlim(i)=zscal*xyzlim(i)
@@ -158,7 +164,7 @@ c
 c	  find points in region and area
 c
 c	write(*,'(1x,a,$)')'Number of subdivisions for triangles: '
-c	read(5,*)ndiv
+c	read(in5,*)ndiv
 	call find_points_area(itypcrosind,ntypes,clipuse,nuseclip,
      &	    xyzlim,indlim,nlim,ndfirst,poreinreg,vertinreg,npnts,
      &	    ninclass(1,nregion),areainreg)
@@ -266,7 +272,7 @@ c
      &	    ' 42: Export graph values or points for drawing to file')
 c
 40	write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
-	read(5,*,err=40)iopt
+	read(in5,*,err=40)iopt
 	if(iopt.eq.-1)go to 38
 	if(nregion.eq.0.and.((iopt.ge.14.and.iopt.lt.22).or.
      &	    iopt.eq.26.or.iopt.eq.27))go to 40
@@ -284,7 +290,7 @@ c
 	ibtynd=-1
 	write(*,'(1x,a,$)')'Window # (- for raw counts), starting,'
      &	    //' ending bins to type (/ for all): '
-	read(5,*)iwin,ibtyst,ibtynd
+	read(in5,*)iwin,ibtyst,ibtynd
 	ifraw=iwin
 	iwin=abs(iwin)
 	if(iwin.le.0.or.iwin.gt.4)go to 40
@@ -315,7 +321,7 @@ c	  average bins
 c
 202	write(*,'(1x,a,i2,2i4,a$)')'Window #, starting, ending bins'//
      &	    ' to average [',iwin,ibavst,ibavnd,']: '
-	read(5,*)iwin,ibavst,ibavnd
+	read(in5,*)iwin,ibavst,ibavnd
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	if(igrfdsp(iwin).eq.0)go to 40
 	jgrf=igrfdsp(iwin)
@@ -343,7 +349,7 @@ c
 203	write(*,'(1x,a,/,a,i2,2i4,f15.8,a,$)')'Enter window #, starting'
      &	    //' & ending bins to integrate,','     and base value '//
      &	    'to subtract [',iwin,ibinst,ibinnd,baseval,']: '
-	read(5,*)iwin,ibinst,ibinnd,baseval
+	read(in5,*)iwin,ibinst,ibinnd,baseval
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	if(igrfdsp(iwin).eq.0)go to 40
 	jgrf=igrfdsp(iwin)
@@ -366,7 +372,7 @@ c	  Display graph in window
 c
 204	write(*,'(1x,a,$)')
      &	    'Display graph in window; Enter graph # and window #: '
-	read(5,*)jgrf,iwin
+	read(in5,*)jgrf,iwin
 	if(iwin.le.0.or.iwin.gt.4.or.
      &	    .not.checkgrf(jgrf,maxgraph,nextragrf,listextra)) go to 40
 	xmaxdsp(iwin)=-1.
@@ -382,7 +388,7 @@ c
 	do jj=1,4
 	  igrfdsp(jj)=0
 	enddo
-	call rdlist(5,igrfdsp,ndisp)
+	call rdlist(in5,igrfdsp,ndisp)
 	if(ndisp.eq.0)go to 40
 	do jj=1,min(4,ndisp)
 	  if(.not.checkgrf(igrfdsp(jj),maxgraph,nextragrf,listextra))
@@ -396,7 +402,7 @@ c	  Rescale X or Y axis of graph in window
 c
 206	write(*,'(1x,a,$)')
      &	    'Number of window to rescale; 0 or 1 to rescale X or Y: '
-	read(5,*)iwin,ifxy
+	read(in5,*)iwin,ifxy
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	jgrf=igrfdsp(iwin)
 	if(jgrf.eq.0)go to 40
@@ -405,14 +411,14 @@ c
 	  write(*,106)' X',rmax,xmaxdsp(iwin)
 106	  format(a,' ranges up to',f13.6,' and current full scale',
      &	      ' value is',f13.6,/,'   Enter new full scale value: ',$)
-	  read(5,*)xmaxdsp(iwin)
+	  read(in5,*)xmaxdsp(iwin)
 	else
 	  ymax=0.
 	  do i=1,nbingrf(jgrf)
 	    ymax=max(ymax,graphs(i,igrfdsp(iwin)))
 	  enddo
 	  write(*,106)' Y',ymax,ymaxdsp(iwin)
-	  read(5,*)ymaxdsp(iwin)
+	  read(in5,*)ymaxdsp(iwin)
 	endif
 	call graphdsp(graphs(1,jgrf),nbingrf(jgrf),delrgrf(jgrf),iwin,
      &	    jgrf, xmaxdsp(iwin),ymaxdsp(iwin))
@@ -445,7 +451,7 @@ c	  Plot one window to metacode file
 c
 208	write(*,'(1x,a,$)')
      &	    'Window number to plot, plot number or 0 to specify plot: '
-	read(5,*)iwin,iplot
+	read(in5,*)iwin,iplot
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	jgrf=igrfdsp(iwin)
 	if(jgrf.eq.0)go to 40
@@ -453,7 +459,7 @@ c
 	  write(*,2081)
 2081	  format(' 0 for plot on same page as previous plot(s),',
      &	      ' 1 for new page: ',$)
-	  read(5,*)ifpag
+	  read(in5,*)ifpag
 	  call imset(1,c1,c2,c3,0)
 	  if(ifpag.ne.0)call frame
 	endif
@@ -466,7 +472,7 @@ c	  Quick plot all 4 windows
 c
 209	if(ifanyplot.ne.0)then
 	  write(*,2081)
-	  read(5,*)ifpag
+	  read(in5,*)ifpag
 	  call imset(1,c1,c2,c3,0)
 	  if(ifpag.ne.0)call frame
 	endif
@@ -520,7 +526,7 @@ c
 c	  write graph to file with lots of info
 c	  
 212	write(*,'(1x,a,$)')'Graph #: '
-	read(5,*)jgrf
+	read(in5,*)jgrf
 	if(.not.checkgrf(jgrf,maxgraph,nextragrf,listextra))go to 40
 	if(jgrf.le.ngraph)then
 	  iregst=nregion
@@ -609,7 +615,7 @@ c
 213	if(nregion.gt.1)then
 	  write(*,'(1x,a,$)')'This will destroy the stored average.'//
      &	      '  Enter 1 to do so: '
-	  read(5,*)ifreally
+	  read(in5,*)ifreally
 	  if(ifreally.ne.1)go to 40
 	endif
 	if(iopt.eq.13)go to 10
@@ -675,7 +681,7 @@ c
 	  write(*,'(1x,a,/,a,$)')'The data to be analyzed have been'//
      &	      ' modified/randomized.',' Enter 1 to work with the'//
      &	      ' altered data or 0 to reload original data: '
-	  read(5,*)ifdorand
+	  read(in5,*)ifdorand
 	  forceload=ifdorand.eq.0
 	endif
 	grapheach=.true.
@@ -696,7 +702,7 @@ c	  save bins of some graph to specify restriction on distances
 c	  
 218	write(*,'(1x,a,$)')
      &	    'Graph #, baseline level corresponding to probability 1.0: '
-	read(5,*)jgrf,base
+	read(in5,*)jgrf,base
 	if(.not.checkgrf(jgrf,maxgraph,nextragrf,listextra))go to 40
 	nbinsave=0
 	delsave=delrgrf(jgrf)
@@ -726,18 +732,18 @@ c
 	if(nchange.gt.0)then
 	  write(*,'(1x,a,$)')
      &	      '0 to use last conversions, 1 to specify new ones: '
-	  read(5,*)ifnewconv
+	  read(in5,*)ifnewconv
 	  if(ifnewconv.ne.0)nchange=0
 	endif
 	if(nchange.eq.0)then
 	  write(*,'(1x,a,$)')'Number of types to convert: '
-	  read(5,*)nchange
+	  read(in5,*)nchange
 	  print *,'For each conversion, enter the type to change',
      &	      ' from, the type to change to,',
      &	      ' and the fraction of points of that type to convert.'
 	  do i=1,nchange
 	    write(*,'(1x,a,i3,a$)')'Conversion',i,': '
-	    read(5,*)ityfrom(i),ityto(i),chngfrac(i)
+	    read(in5,*)ityfrom(i),ityto(i),chngfrac(i)
 	  enddo
 	endif
 	if(iopt.eq.26)go to 315
@@ -762,7 +768,7 @@ c
 	if(iopt.eq.36)then
 	  write(*,'(1x,a,$)')'Range value to use '//
      &	      '(1=range, 2,3,4=95,90,80%ile, 5 = SD): '
-	  read(5,*)kernret
+	  read(in5,*)kernret
 	  go to 2212
 	endif
 c	  
@@ -776,7 +782,7 @@ c
 	    print *,'Enter list of types of pores to randomize ',
      &		'(Return for all types)'
 	  endif
-	  call rdlist(5,itypshft(1,ireg),ntypshft(ireg))
+	  call rdlist(in5,itypshft(1,ireg),ntypshft(ireg))
 	  if(ntypshft(ireg).eq.0)then
 	    ntypshft(ireg)=1
 	    itypshft(1,ireg)=itypall
@@ -787,7 +793,7 @@ c
 	if(nbinsave.gt.0)then
 	  write(*,'(1x,a,$)')
      &	      '1 to use saved probability bins, 0 not to: '
-	  read(5,*)ifusesave
+	  read(in5,*)ifusesave
 	endif
 c
 	if(ifusesave.ne.0)then
@@ -799,17 +805,17 @@ c
 	else
 c
 	  write(*,'(1x,a,$)')'# of bins for rejection, bin size: '
-	  read(5,*)nrestrict,delnear
+	  read(in5,*)nrestrict,delnear
 	  if(nrestrict.gt.0)then
 	    write(*,'(1x,a,$)')'Probability values: '
-	    read(5,*)(probnearin(i),i=1,nrestrict)
+	    read(in5,*)(probnearin(i),i=1,nrestrict)
 	  endif
 	endif
 c	  
 	if(nrestrict.gt.0)then
 c	  write(*,'(1x,a,$)')'Power to raise the probability values to'
 c     &	      //' for use (try about 3): '
-c	  read(5,*)power
+c	  read(in5,*)power
 c	  if(power.eq.0.)power=1.
 	  power=1.
 	  do ii=1,nrestrict
@@ -837,7 +843,7 @@ c
 	if(nregion.gt.1)jgrfadd=ngraph
 	write(*,'(1x,a,$)')'0 to specify integral for each graph '//
      &	    'separately, 1 to use same bins for all: '
-	read(5,*)ifallsame
+	read(in5,*)ifallsame
 c
 	do jj=1,ngraph
 	  if(ifallsame.eq.0)write(*,'(10x,a,i3)')
@@ -845,20 +851,20 @@ c
 c
 	  if(ifallsame.eq.0.or.jj.eq.1)then
 321	    write(*,'(1x,a,$)')'Starting and ending bins to integrate: '
-	    read(5,*)integstrt(jj),integend(jj)
+	    read(in5,*)integstrt(jj),integend(jj)
 	    if(integend(jj).lt.integstrt(jj).or.integstrt(jj).lt.1
      &		.or.integend(jj).gt.nbins)go to 321
 c
 322	    write(*,'(1x,a,$)')'Start & end bins to compute baseline'//
      &		' from, or 0,0 to used fixed value: '
-	    read(5,*)ibasestrt(jj),ibasend(jj)
+	    read(in5,*)ibasestrt(jj),ibasend(jj)
 	    if((ibasestrt(jj).ne.0.or.ibasend(jj).ne.0) .and.
      &		(ibasend(jj).lt.ibasestrt(jj) .or. ibasend(jj).gt.nbins
      &		.or. ibasestrt(jj).lt.1)) go to 322
 c
 	    if(ibasestrt(jj).eq.0 .and. ibasend(jj).eq.0)then 
 	      write(*,'(1x,a,$)')'Fixed baseline value: '
-	      read(5,*)baseline(jj)
+	      read(in5,*)baseline(jj)
 	    endif
 c
 	  else
@@ -886,7 +892,7 @@ c
      &	      //' graphs would be stored in graphs',
      &	      jgrfadd+ngraph+1,' to',maxtmp,
      &	      ' Enter 1 to accumulate these or 0 not to: '
-	  read(5,*)ifdomeansd
+	  read(in5,*)ifdomeansd
 	else
 	  ifdomeansd=0
 	  print *,'Too many graphs to accumulate mean and SD graphs'
@@ -896,12 +902,12 @@ c
 c
 324	write(*,'(1x,a,$)')
      &	    'Number of control sets to run, or 0 to enter new option: '
-	read(5,*)ndocontrol
+	read(in5,*)ndocontrol
 	if(ndocontrol.le.0)go to 40
 	if(ntotcontrol.ne.0.and.ndocontrol.ne.0)then
 	  write(*,'(1x,a,$)')'Enter 1 if you really want to do more'//
      &	      ' sets, or 0 if that was a mistake: '
-	  read(5,*)ifreally
+	  read(in5,*)ifreally
 	  if(ifreally.ne.1)go to 40
 	endif
 	print *,' '
@@ -1008,13 +1014,13 @@ c	  save normals as local densities
 c	  
 221	kernret=0
 2212	write(*,'(1x,a,$)')'Mean # of pores to include in kernel area: '
-	read(5,*)desired
+	read(in5,*)desired
 	h=sqrt(desired/(3.14159*density))
 	write(*,1221)h
 1221	format(' Half-width of kernel = ',f7.3)
 	print *,'Enter list of types to find density of (Return for',
      &	    ' all, / for same as before)'
-	call rdlist(5,itypkern,ntypkern)
+	call rdlist(in5,itypkern,ntypkern)
 c
 	call kerneldens(h,poreinreg,vertinreg,itypkern,ntypkern,kernret,
      &	    rangekern)

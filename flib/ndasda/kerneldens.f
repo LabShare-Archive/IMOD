@@ -5,6 +5,8 @@
 	real*4 sumvert(maxverts),sumord(maxverts)
 	character*60 filename
 	logical*1 poreinreg(*),vertinreg(*),poreonlist(maxpore)
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 c	  go by triangle, looking at each vertex
 c
@@ -126,7 +128,7 @@ c
      &	      ', mean =',f8.3,', sd =',f8.3)
 
 	  write(*,'(1x,a,$)')'Output model file name (Return for none): '
-	  read(5,'(a)')filename
+	  read(in5,'(a)')filename
 	  if(filename.ne.' ')call writeimod(filename)
 	else
 	  rangekern=sdden

@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/08/08 17:53:03  mast
+c	  Change terminology from points to objects
+c	
 c
 c	  GETBINSPEC gets a bin specification appropriate for the type of
 c	  graphs being done
@@ -14,10 +17,12 @@ c
 	parameter (limbins=301)
 	logical didonce/.false./
 	save didonce
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	write(*,'(1x,a,$)')
      &	    'Bin width (radial distance), number of bins: '
-	read(5,*)delr,nbins
+	read(in5,*)delr,nbins
 	if(nbins.ge.limbins)print *,'# of bins truncated to',limbins-1
 	nbins=min(nbins,limbins-1)
 c
@@ -25,32 +30,32 @@ c
 	if(didonce)then
 	  write(*,'(1x,a,$)')'0 to keep other parameters the same,'//
      &	      ' 1 to change them: '
-	  read(5,*)ifchange
+	  read(in5,*)ifchange
 	endif
 	didonce=.true.
 	if(ifbundend.eq.0.and.ifchange.ne.0)then
 	  write(*,'(1x,a,$)')'Sampling length for lines, or 0 to find '
      &	      //'closest approach to whole line: '
-	  read(5,*)samplen
+	  read(in5,*)samplen
 	  write(*,'(1x,a,/,a,$)')'(For whole lines) Power for radial '
      &	      //'weighting,','  number of points to fit over: '
-	  read(5,*)power,limfit
+	  read(in5,*)power,limfit
 	  limfit=max(1,limfit)
 	  write(*,'(1x,a,/,a,$)')'(For line segments) 0 to find '//
      &	      'distance from start of sample segment,',
      &	      '  or 1 to find closest approach to segment: '
-	  read(5,*)ifcloseg
+	  read(in5,*)ifcloseg
 	  write(*,'(1x,a,$)')'0 to measure from center of scattered '
      &	      //'points or 1 to measure from surface: '
-	  read(5,*)ifscatsurf
+	  read(in5,*)ifscatsurf
 	elseif(ifchange.ne.0)then
 	  write(*,'(1x,a,/,a,$)')'Enter distance to pad boundaries (- '
      &	      //'if in pixels to be scaled),','   and fraction '//
      &	      'of farthest points to omit from bundle: '
-	  read(5,*)padbound,fracomit
+	  read(in5,*)padbound,fracomit
 	  write(*,'(1x,a,$)')'0 or 1 to analyze distances to all '//
      &	      'bundles or only to nearest bundle: '
-	  read(5,*)limfit
+	  read(in5,*)limfit
 	endif
 	return
 	end
@@ -73,33 +78,35 @@ c
 	integer*4 iwhichend(limtyp,*),iobjflag(*)
 	logical didonce/.false./
 	save didonce
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	ifchange=1
 	if(didonce)then
 	  write(*,'(1x,a,$)')'0 to keep same graph specifications or'//
      &	      ' 1 to specify new graphs: '
-	  read(5,*)ifchange
+	  read(in5,*)ifchange
 	endif
 	didonce=.true.
 10	if(ifchange.ne.0)then
 	  irefflag=-1
 	  neighflag=-1
 	  write(*,'(1x,a,$)')'Number of different graphs to compute: '
-	  read(5,*)ngraph
+	  read(in5,*)ngraph
 c	    
 	  do ii=1,ngraph
 	    write(*,102)ii,'from (reference'
 102	    format(' For graph #',i3,', enter list of objects to ',
      &		'measure distances',/,5x,a,' objects)',
      &		' (Return for all, ranges OK)')
-	    call rdlist(5,itypref(1,ii),nreftyp(ii))
+	    call rdlist(in5,itypref(1,ii),nreftyp(ii))
 	    if(nreftyp(ii).eq.0)then
 	      nreftyp(ii)=1
 	      itypref(1,ii)=itypall
 	    endif
 c	      
 	    write(*,102)ii,'to (neighboring'
-	    call rdlist(5,itypneigh(1,ii),nneightyp(ii))
+	    call rdlist(in5,itypneigh(1,ii),nneightyp(ii))
 	    if(nneightyp(ii).eq.0)then
 	      nneightyp(ii)=1
 	      itypneigh(1,ii)=itypall
@@ -109,7 +116,7 @@ c
 	      print *,'For each neighbor object, enter 0 to count ',
      &		  'neither end, 1 to count the end','    at low Z, 2 to'
      &		  ,' count the end at high Z, or 3 to count both ends'
-	      read(5,*)(iwhichend(j,ii),j=1,nneightyp(ii))
+	      read(in5,*)(iwhichend(j,ii),j=1,nneightyp(ii))
 	    endif
 	  enddo
 	endif

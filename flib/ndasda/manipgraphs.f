@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/08/08 16:38:55  mast
+c	  Add option to export graphs
+c	
 c
 	subroutine manipgraphs(iopt,prog,graphs,areas,nbingrf,delrgrf,
      &	    ifadgrf,rmingrf,rmaxgrf,maxgraph,nextragrf,listextra,
@@ -21,6 +24,8 @@ c
 	save iredextra,igrfstor,ncomb,icomstr,icomend,igrfrep,ngrfrep
 	save igrfadd,nrgfadd,iaddextra,irdsmextra,itmpextra,nredextra
 	save lsrdextra,lsrdrec,nredrec
+	integer*4 in5
+	common /nmsinput/ in5
 c
 	go to(228,229,230,231,232,233,40,40,40,237,238,239,40,40,242)iopt-27
 40	return
@@ -29,7 +34,7 @@ c	  Save or add graphs to extra graph locations
 c	  
 228	write(*,'(1x,a,$)')
      &	    '# of graph to save, # of graph location to save it into: '
-	read(5,*)igrfmov,movextra
+	read(in5,*)igrfmov,movextra
 	igrfsav=igrfmov
 	igrfextra=movextra
 	if(checkgrf(igrfsav,maxgraph,nextragrf,listextra))go to 2281
@@ -38,14 +43,14 @@ c
 c
 229	write(*,'(1x,a,$)')'#''s of two graphs to average, # of'//
      &	    ' graph location to place average: '
-	read(5,*)igrfav1,igrfav2,iavgextra
+	read(in5,*)igrfav1,igrfav2,iavgextra
 	igrfextra=iavgextra
 	go to 2291
 c
 230	write(*,'(1x,a,/,a,$)')'Linearly combine two graphs: Enter'//
      &	    ' #''s of the two graphs to combine,','   the '//
      &	    'coefficient for each, # of graph to place result in: '
-	read(5,*)igrfav1,igrfav2,coef1,coef2,iavgextra
+	read(in5,*)igrfav1,igrfav2,coef1,coef2,iavgextra
 	igrfextra=iavgextra
 c
 2291	if(.not.(checkgrf(igrfav1,maxgraph,nextragrf,listextra).and.
@@ -60,7 +65,7 @@ c
 c	  
 232	write(*,'(1x,a,$)')'Read graph from file: First enter # of '//
      &	    'graph position to read it into: '
-	read(5,*)iredextra
+	read(in5,*)iredextra
 	igrfextra=iredextra
 c
 2281	if(.not.checkextra(igrfextra,limgraphs,listextra,
@@ -93,7 +98,7 @@ c	  save graph to file for rereading
 c	  
 231	write(*,'(1x,a,$)')
      &	    'Save graph to file: Enter number of graph to save: '
-	read(5,*)igrfstor
+	read(in5,*)igrfstor
 	igrfsav=igrfstor
 	if(checkgrf(igrfsav,maxgraph,nextragrf,listextra))then
 	  call save_graph(graphs(1,igrfsav),areas(1,igrfsav),
@@ -111,11 +116,11 @@ c
      &	    ' replacement for regular combining,',' or - the desired'//
      &	    ' # of final bins to get new bins based on nearly equal '//
      &	    'areas;',' and enter starting and ending bins to replace: '
-	read(5,*)ncomb,icomstr,icomend
+	read(in5,*)ncomb,icomstr,icomend
 	if(abs(ncomb).le.1.or.icomstr.ge.icomend)go to 40
 	print *,'Enter list of graphs to do replacement in (Return',
      &	    ' for all graphs)'
-	call rdlist(5,igrfrep,ngrfrep)
+	call rdlist(in5,igrfrep,ngrfrep)
 	if(ngrfrep.eq.0)then
 	  ngrfrep=limgraphs
 	  do i=1,ngrfrep
@@ -148,7 +153,7 @@ c
 c	  add list of graphs
 c
 237	write(*,'(1x,a,$)')'List of graphs to average (ranges OK): '
-	call rdlist(5,igrfadd,ngrfadd)
+	call rdlist(in5,igrfadd,ngrfadd)
 	nadd=0
 	do igadd=1,ngrfadd
 	  if(checkgrf(igrfadd(igadd),maxgraph,nextragrf,listextra))then
@@ -162,7 +167,7 @@ c
 	  go to 40
 	endif
 	write(*,'(1x,a,$)')'Extra graph location in which to place sum:  '
-	read(5,*)iaddextra
+	read(in5,*)iaddextra
 	if(.not.checkextra(iaddextra,limgraphs,listextra,
      &	    nextragrf))go to 40
 c
@@ -187,9 +192,9 @@ c
 238	write(*,'(1x,a,/,a,$)')'Read list of graphs: first enter '//
      &	    'list of extra graph locations in which to',
      &	    '   place graphs (ranges OK): '
-	call rdlist(5,lsrdextra,nredextra)
+	call rdlist(in5,lsrdextra,nredextra)
 	write(*,'(1x,a,$)')'List of graph #s in file: '
-	call rdlist(5,lsrdrec,nredrec)
+	call rdlist(in5,lsrdrec,nredrec)
 	if(nredrec.ne.nredextra)then
 	  print *,'Number of graphs does not match'
 	  go to 40
@@ -216,7 +221,7 @@ c
 239	write(*,'(1x,a,/,a,$)')'Read and average series of graphs:'//
      &	    ' First enter 2 extra graph locations,',
      &	    '   one for the final average and one for temporary use: '
-	read(5,*)irdsmextra,itmpextra
+	read(in5,*)irdsmextra,itmpextra
 	if(irdsmextra.le.0.or.irdsmextra.gt.limgraphs.or.
      &	    itmpextra.le.0.or.itmpextra.gt.limgraphs.or.
      &	    irdsmextra.eq.itmpextra)then
@@ -224,7 +229,7 @@ c
 	  go to 40
 	endif
 	write(*,'(1x,a,$)')'List of graph #s in file: '
-	call rdlist(5,lsrdrec,nredrec)
+	call rdlist(in5,lsrdrec,nredrec)
 	if(nredrec.le.0)go to 40
 	igrfextra=irdsmextra
 	needname=1
@@ -251,7 +256,7 @@ c	  export graph to file for use in other programs
 c	  
 242	write(*,'(1x,a,$)')
      &	    'Export graph to file: Enter number of graph to export: '
-	read(5,*)igrfstor
+	read(in5,*)igrfstor
 	igrfsav=igrfstor
 	if(checkgrf(igrfsav,maxgraph,nextragrf,listextra))then
 	  call export_graph(graphs(1,igrfsav),areas(1,igrfsav),

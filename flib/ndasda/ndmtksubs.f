@@ -5,6 +5,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/08/08 16:40:06  mast
+c	  Added function to export graph and function to check if model file
+c	  is needed for a particular option
+c	
 c
 C	  GRAPHDSP displays one graph in histogram format in one of 4 windows
 c	  on the parallax.
@@ -208,6 +212,8 @@ c
 	character*8 formt
 	common /grfarr/nrow,ncol,irow,icol,ifbycol,nxtick, nytick,
      &	    xgutter,ygutter,ymaxfix
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 c	  parameters controlling label output
 c
@@ -295,7 +301,7 @@ c	    get characteristics for non-standard graph
 c
 10	  write(*,'(1x,a,$)')
      &	      'X and Y size, lower left X and Y in inches: '
-	  read(5,*)xsize,ysize,xlo,ylo
+	  read(in5,*)xsize,ysize,xlo,ylo
 	  xpls=xextra/2.
 	  ypls=yextra/2.
 	  if(xsize.le.0..or.xlo.lt.-xpls.or.xsize+xlo.gt.xpls+width-0.2
@@ -306,7 +312,7 @@ c
 	  ylo=ylo+0.1
 	  write(*,'(1x,a,/,a,$)')'# of ticks in X, in Y, tick size,'//
      &	      ' axis and graph line', ' thickness, 1 for box: '
-	  read(5,*)ntx,nty,tiksiz,iaxthick,igrfthick,ifbox
+	  read(in5,*)ntx,nty,tiksiz,iaxthick,igrfthick,ifbox
 	endif
 c	  
 c	  set scaling, do grids
@@ -356,22 +362,24 @@ c
 	common /grfarr/nrow,ncol,irow,icol,ifbycol,nxtick, nytick,
      &	    xgutter,ygutter,ymaxfix
 	data xgutter/0.2/,ygutter/0.2/
+	integer*4 in5
+	common /nmsinput/ in5
 	irow=0
 	icol=0
 	write(*,'(1x,a,$)')'# of columns and rows: '
-	read(5,*)ncol,nrow
+	read(in5,*)ncol,nrow
 	if(nrow.le.0.or.ncol.le.0)return
 	write(*,'(1x,a,$)')
      &	    '0 to fill row by row, 1 to fill column by column: '
-	read(5,*)ifbycol
+	read(in5,*)ifbycol
 	write(*,'(1x,a,$)')'# of ticks along X and Y: '
-	read(5,*)nxtick,nytick
+	read(in5,*)nxtick,nytick
 	write(*,'(1x,a,2f5.2,a,$)')'X and Y gutter size (/ for',xgutter
      &	    ,ygutter,'): '
-	read(5,*)xgutter,ygutter
+	read(in5,*)xgutter,ygutter
 	write(*,'(1x,a,$)')
      &	    'Value to scale Y to for ALL graphs, or 0 for no rescale: '
-	read(5,*)ymaxfix
+	read(in5,*)ymaxfix
 	irow=1
 	icol=1
 	return
@@ -385,24 +393,22 @@ c	  if no file name is entered, or if end of file or error occurs.
 c
 	subroutine opencomfile
 	character*120 comfile
-	logical istty/.true./
-	save istty
+	integer*4 in5, inlast
+	common /nmsinput/ in5
+c
+	inlast = in5
+	if (in5 .ne. 5) close(in5)
+	in5 = 5
 	write(*,*) 'Enter name of file with commands,',
-     &	    ' or Return for input from keyboard'
-	read(5,'(a)',err=10,end=10)comfile
-	if(comfile.ne.' ')go to 20
-10	if(istty)return
-	comfile='/dev/tty'
-20	close(5)
+     &	    ' or Return for input from keyboard'	
+	read(inlast,'(a)',err=10,end=10)comfile
+	if(comfile.eq.' ')return
 c
 c 7/20/00 CER remove readonly,shared for gnu
 c	  
-	istty=.false.
-	open(5,file=comfile,status='old',err=10)
-	if((.not.istty).and.comfile.eq.'/dev/tty') print *,
-     &	    'TYPE RETURN BEFORE YOUR NEXT ENTRY'
-	istty=comfile.eq.'/dev/tty'
-	return
+	open(4,file=comfile,status='old',err=10)
+	in5 = 4
+10	return
 	end
 
 
@@ -500,6 +506,8 @@ c
 	character*120 namein,filename
 	save filename,nch
 	integer*4 nch/0/
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	rminsav=rmin
 	if(ifangdiff.eq.0)rminsav=areas(nbins+1)
@@ -509,7 +517,7 @@ c
 	  write(*,'(1x,a,a,a,$)')'File name (Return for ',
      &	      filename(1:nch),'): '
 	endif
-        read(5,'(a)') namein
+        read(in5,'(a)') namein
         nchin = lnblnk(namein)
 	if(nch.eq.0.and.nchin.eq.0)go to 40
 	if(nchin.ne.0.and..not.(namein.eq.'/'))then
@@ -543,6 +551,8 @@ c
 	character*120 namein,filename
 	save filename,nch
 	integer*4 nch/0/
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	if(needfile.gt.0)then
 	  if(nch.eq.0)then
@@ -551,7 +561,7 @@ c
 	    write(*,'(1x,a,a,a,$)')'File name (Return for ',
      &		filename(1:nch),'): '
 	  endif
-          read(5,'(a)') namein
+          read(in5,'(a)') namein
 	  nchin = lnblnk(namein)
 	  irecgrf=irecget
 	  if(nch.eq.0.and.nchin.eq.0)go to 40
@@ -564,7 +574,7 @@ c
 	open(9,file=filename,err=40,status='old')
 	if(irecgrf.lt.0)then
 	  write(*,'(1x,a,$)')'Number of graph in file: '
-	  read(5,*)irecgrf
+	  read(in5,*)irecgrf
 	endif
 	if(irecgrf.le.0)go to 40
 	do irec=1,irecgrf
@@ -603,19 +613,21 @@ c
 	real*4 delr
 	integer*4 itype, ifcounts, i
 	real*4 yval,xstart,xmid,xend
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
 	write(*,'(1x,a,$)')'0 to output densities, 1 to output counts: '
-	read(5,*)ifcounts
+	read(in5,*)ifcounts
 
 	write(*,'(a,/,a,/,a,/a,$)')
      &	    ' Enter 1 to output points for drawing histogram graph,',
      &	    '       2 to output bin starting distance and bin value,',
      &	    '       3 to output bin middle distance and bin value,',
      &	    '    or 4 to output starting and ending distance and value: '
-	read(5,*)itype
+	read(in5,*)itype
 
 	write(*,'(1x,a,$)')'Output file name: '
-        read(5,'(a)') filename
+        read(in5,'(a)') filename
 	call dopen(9, filename, 'new', 'f')
 
 	if (itype .eq. 1) write(9,101)0., 0.

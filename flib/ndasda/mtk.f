@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/29 17:32:42  mast
+c	  Change to use new multithreaded Plax graphics
+c	
 c	  Revision 3.2  2003/08/08 17:56:05  mast
 c	  Added ability to start with no model, added option to export graph,
 c	  made general changes in terminology, added report of object names
@@ -69,11 +72,14 @@ c
 	real*4 probnear(limprobs,limprobsets),delnear(limprobsets)
 	integer*4 nrestrict(limprobsets),iuseprob(limprobsets)
 	integer*4 ioptNeedModel(nOptNeedModel)
-     &	    /13,15,16,19,26,20,21,22,27,23,40/
+     &	    /15,16,19,26,20,21,22,27,23,40/
 	logical OptionNeedsModel
 	character*40 objname
 	integer*4 getimodobjname
+	integer*4 in5
+	common /nmsinput/ in5
 c	  
+	in5 = 5
 	ifanyplot=0
 	nextragrf=0
 	winmin=0.
@@ -85,7 +91,7 @@ c
 c
 	print *,'Enter name of output file to store density values in ',
      &	    '(Return for none)'
-	read(5,'(a)')modelfile
+	read(in5,'(a)')modelfile
 	if(modelfile.eq.' ')then
 	  iout=6
 	else
@@ -96,12 +102,12 @@ c
 c
 	write(*,'(1x,a,$)')
      &	    '0 for graphs in Plax window, 1 to suppress graphs: '
-	read(5,*)iffil
+	read(in5,*)iffil
 	call grfopn(iffil)
 c	  
 	write(*,'(1x,a,/,a,$)')'0 for 3D density/closest approach '//
      &	    'analysis','  or 1 for ends versus bundle analysis: '
-	read(5,*)ifbundend
+	read(in5,*)ifbundend
 c
 	modelfile=' '
 	call read_model(modelfile,tiltfile,xyscal,zscal,xofs,yofs,zofs,
@@ -119,9 +125,14 @@ c
 	irefflag=-1
 	neighflag=-1
 c	  
-12	write(*,'(1x,a,$)')'Starting and ending Z to include (0,0 '//
-     &	    'for all; 0,-1 for new model): '
-	read(5,*)zstart,zend
+12	if (modelfile .ne. ' ') then
+	  write(*,'(1x,a,$)')'Starting and ending Z to include (0,0 '//
+     &	      'for all; 0,-1 for new model): '
+	  read(in5,*)zstart,zend
+	else
+	  zstart = 0
+	  zend = -1
+	endif
 	if(zstart.eq.0..and.zend.eq.-1.)then
 	  if(nregion.eq.1)then
 	    indgap=1
@@ -151,7 +162,7 @@ c
      &	      //'and lower & upper limits of Y,','   within which to'//
      &	      ' include points for analysis;','   and 0 if in pixels'//
      &	      ' or 1 if in microns (/ for no limits): '
-	  read(5,*)(xymask(i),i=1,4),ifmskscl
+	  read(in5,*)(xymask(i),i=1,4),ifmskscl
 	  do i=1,4
 	    if(ifmskscl.eq.0)xymask(i)=xyscal*xymask(i)
 	    xymaskregion(i,nregion)=xymask(i)
@@ -299,7 +310,7 @@ c
      &	    ' 42: Export graph values or points for drawing to file')
 c
 40	write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
-	read(5,*,err=40, end=225)iopt
+	read(in5,*,err=40, end=225)iopt
 	if(iopt.eq.-1)go to 38
 	if (OptionNeedsModel(modelfile, ioptNeedModel,
      &	    nOptNeedModel, iopt)) go to 40
@@ -314,7 +325,7 @@ c
 	ibtynd=-1
 	write(*,'(1x,a,$)')'Window # (- for raw counts), starting,'
      &	    //' ending bins to type (/ for all): '
-	read(5,*)iwin,ibtyst,ibtynd
+	read(in5,*)iwin,ibtyst,ibtynd
 	ifraw=iwin
 	iwin=abs(iwin)
 	if(iwin.le.0.or.iwin.gt.4)go to 40
@@ -332,7 +343,7 @@ c
 	  ib2=min(ibtynd,ib1+5)
 	  if(ifraw.gt.0)then
 	    write(*,108)ib1,(graphs(ib,jgrf),ib=ib1+1,ib2)
-108	    format(i4,'/',5f15.8)
+108	    format(i4,'/',f14.8,4f15.8)
 	  else
 	    write(*,1108)ib1,(nint(graphs(ib,jgrf)*areas(ib,jgrf))
      &		,ib=ib1+1,ib2)
@@ -345,7 +356,7 @@ c	  average bins
 c
 202	write(*,'(1x,a,i2,2i4,a$)')'Window #, starting, ending bins'//
      &	    ' to average [',iwin,ibavst,ibavnd,']: '
-	read(5,*)iwin,ibavst,ibavnd
+	read(in5,*)iwin,ibavst,ibavnd
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	if(igrfdsp(iwin).eq.0)go to 40
 	jgrf=igrfdsp(iwin)
@@ -373,7 +384,7 @@ c
 203	write(*,'(1x,a,/,a,i2,2i4,f15.8,a,$)')'Enter window #, starting'
      &	    //' & ending bins to integrate,','     and base value '//
      &	    'to subtract [',iwin,ibinst,ibinnd,baseval,']: '
-	read(5,*)iwin,ibinst,ibinnd,baseval
+	read(in5,*)iwin,ibinst,ibinnd,baseval
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	if(igrfdsp(iwin).eq.0)go to 40
 	jgrf=igrfdsp(iwin)
@@ -392,7 +403,7 @@ c	  Display graph in window
 c
 204	write(*,'(1x,a,$)')
      &	    'Display graph in window; Enter graph # and window #: '
-	read(5,*)jgrf,iwin
+	read(in5,*)jgrf,iwin
 	if(iwin.le.0.or.iwin.gt.4.or.
      &	    .not.checkgrf(jgrf,maxgraph,nextragrf,listextra)) go to 40
 	xmaxdsp(iwin)=-1.
@@ -408,7 +419,7 @@ c
 	do jj=1,4
 	  igrfdsp(jj)=0
 	enddo
-	call rdlist(5,igrfdsp,ndisp)
+	call rdlist(in5,igrfdsp,ndisp)
 	if(ndisp.eq.0)go to 40
 	do jj=1,min(4,ndisp)
 	  if(.not.checkgrf(igrfdsp(jj),maxgraph,nextragrf,listextra))
@@ -422,7 +433,7 @@ c	  Rescale X or Y axis of graph in window
 c
 206	write(*,'(1x,a,$)')
      &	    'Number of window to rescale; 0 or 1 to rescale X or Y: '
-	read(5,*)iwin,ifxy
+	read(in5,*)iwin,ifxy
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	jgrf=igrfdsp(iwin)
 	if(jgrf.eq.0)go to 40
@@ -431,14 +442,14 @@ c
 	  write(*,106)' X',rmax,xmaxdsp(iwin)
 106	  format(a,' ranges up to',f13.6,' and current full scale',
      &	      ' value is',f13.6,/,'   Enter new full scale value: ',$)
-	  read(5,*)xmaxdsp(iwin)
+	  read(in5,*)xmaxdsp(iwin)
 	else
 	  ymax=0.
 	  do i=1,nbingrf(jgrf)
 	    ymax=max(ymax,graphs(i,igrfdsp(iwin)))
 	  enddo
 	  write(*,106)' Y',ymax,ymaxdsp(iwin)
-	  read(5,*)ymaxdsp(iwin)
+	  read(in5,*)ymaxdsp(iwin)
 	endif
 	call graphdsp(graphs(1,jgrf),nbingrf(jgrf),delrgrf(jgrf),iwin,
      &	    jgrf, xmaxdsp(iwin),ymaxdsp(iwin))
@@ -471,7 +482,7 @@ c	  Plot one window to metacode file
 c
 208	write(*,'(1x,a,$)')
      &	    'Window number to plot, plot number or 0 to specify plot: '
-	read(5,*)iwin,iplot
+	read(in5,*)iwin,iplot
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	jgrf=igrfdsp(iwin)
 	if(jgrf.eq.0)go to 40
@@ -479,7 +490,7 @@ c
 	  write(*,2081)
 2081	  format(' 0 for plot on same page as previous plot(s),',
      &	      ' 1 for new page: ',$)
-	  read(5,*)ifpag
+	  read(in5,*)ifpag
 	  call imset(1,c1,c2,c3,0)
 	  if(ifpag.ne.0)call frame
 	endif
@@ -492,7 +503,7 @@ c	  Quick plot all 4 windows
 c
 209	if(ifanyplot.ne.0)then
 	  write(*,2081)
-	  read(5,*)ifpag
+	  read(in5,*)ifpag
 	  call imset(1,c1,c2,c3,0)
 	  if(ifpag.ne.0)call frame
 	endif
@@ -515,7 +526,7 @@ c
 c	  write graph to file with lots of info
 c	  
 212	write(*,'(1x,a,$)')'Graph #: '
-	read(5,*)jgrf
+	read(in5,*)jgrf
 	if(.not.checkgrf(jgrf,maxgraph,nextragrf,listextra))go to 40
 	if(jgrf.le.ngraph)then
 	  iregst=nregion
@@ -575,7 +586,7 @@ c
 c$$$213	if(nregion.gt.1)then
 c$$$	  write(*,'(1x,a,$)')'This will destroy the stored average.'//
 c$$$     &	      '  Enter 1 to do so: '
-c$$$	  read(5,*)ifreally
+c$$$	  read(in5,*)ifreally
 c$$$	  if(ifreally.ne.1)go to 40
 c$$$	endif
 213	if(iopt.eq.13)go to 10
@@ -587,7 +598,7 @@ c$$$	endif
 	endif
 	if(winmin.lt.winmax)then
 	  write(*,'(1x,a,$)')'New min and max distances: '
-	  read(5,*)winmin,winmax
+	  read(in5,*)winmin,winmax
 	endif
 	ifbundend=max(1,ifbundend)-ifbundend
 	go to 10
@@ -596,7 +607,7 @@ c	  change power of a graph in a window
 c
 214	write(*,'(1x,a,$)') 'Change power of graph; Enter window #'//
      &	    ' and new power: '
-	read(5,*)iwin,pownew
+	read(in5,*)iwin,pownew
 	if(iwin.le.0.or.iwin.gt.4)go to 40
 	jgrf=igrfdsp(iwin)
 	if(jgrf.eq.0)go to 40
@@ -647,7 +658,7 @@ c	  do other kind of histogram on region(s)
 c	  
 217	write(*,'(1x,a,$)')'Min & max distance for adding connecting'
      &	    //' lines and computing angles: '
-	read(5,*)winmin,winmax
+	read(in5,*)winmin,winmax
 c	  
 c	  Redo region(s) with new bins and/or graphs
 c	  
@@ -696,7 +707,7 @@ c
 	  write(*,'(1x,a,/,a,$)')'The data to be analyzed have been'//
      &	      ' modified/randomized.',' Enter 1 to work with the'//
      &	      ' altered data or 0 to reload original data: '
-	  read(5,*)ifdorand
+	  read(in5,*)ifdorand
 	  forceload=ifdorand.eq.0
 	endif
 	grapheach=.true.
@@ -710,7 +721,7 @@ c	  save bins of some graph to specify restriction on distances
 c	  
 218	write(*,'(1x,a,$)')
      &	    'Graph #, baseline level corresponding to probability 1.0: '
-	read(5,*)jgrf,base
+	read(in5,*)jgrf,base
 	if(.not.checkgrf(jgrf,maxgraph,nextragrf,listextra))go to 40
 	nbinsave=0
 	delsave=delrgrf(jgrf)
@@ -746,18 +757,18 @@ c
 	if(nchange.gt.0)then
 	  write(*,'(1x,a,$)')
      &	      '0 to use last conversions, 1 to specify new ones: '
-	  read(5,*)ifnewconv
+	  read(in5,*)ifnewconv
 	  if(ifnewconv.ne.0)nchange=0
 	endif
 	if(nchange.eq.0)then
 	  write(*,'(1x,a,$)')'Number of objects to convert: '
-	  read(5,*)nchange
+	  read(in5,*)nchange
 	  print *,'For each conversion, enter the object to change',
      &	      ' from, the object to change to,',
      &	      ' and the fraction of contours of that object to convert.'
 	  do i=1,nchange
 	    write(*,'(1x,a,i3,a$)')'Conversion',i,': '
-	    read(5,*)ityfrom(i),ityto(i),chngfrac(i)
+	    read(in5,*)ityfrom(i),ityto(i),chngfrac(i)
 	  enddo
 	endif
 	if(iopt.eq.26)go to 315
@@ -784,15 +795,15 @@ c	  shift objects randomly in X/Y
 c	  
 220	write(*,'(1x,a,$)')'Minimum and maximum distance to shift'//
      &	    'in X/Y plane: '
-	read(5,*)ranmin,ranmax
+	read(in5,*)ranmin,ranmax
 c	  
 	write(*,'(1x,a,$)')'Maximum amount to shift in Z relative '
      &	    //'to X/Y shift (0 for no Z shift): '
-	read(5,*)ranzrel
+	read(in5,*)ranzrel
 c
 	print *,'Enter list of objects to shift',
      &	    ' (Return for all)'
-	call rdlist(5,itypshift,nshiftyp)
+	call rdlist(in5,itypshift,nshiftyp)
 	if(nshiftyp.eq.0)then
 	  itypshift(1)=itypall
 	  do i=1,limflag
@@ -817,7 +828,7 @@ c
 c	  
 	print *,'Enter list of other objects to check'//
      &	    ' distances from' ,' (Return for all other)'
-	call rdlist(5,itypchck,nchcktyp)
+	call rdlist(in5,itypchck,nchcktyp)
 	if(nchcktyp.eq.0)then
 	  itypchck(1)=itypall
 	  do i=1,limflag
@@ -844,7 +855,7 @@ c
 c
 	write(*,'(1x,a,$)')'# of probability curves to use '//
      &	    'for rejection of close spacings: '
-	read(5,*)nprobsets
+	read(in5,*)nprobsets
 	if(nprobsets.gt.limprobsets)then
 	  print *,'Too many curves for arrays'
 	  go to 40
@@ -861,7 +872,7 @@ c
 	    if(nbinsave.gt.0.and.j.eq.1)then
 	      write(*,'(1x,a,$)') '1 to use saved probability '//
      &		  'bins for the first curve, 0 not to: '
-	      read(5,*)ifusesave
+	      read(in5,*)ifusesave
 	    endif
 c
 	    if(ifusesave.ne.0)then
@@ -874,14 +885,14 @@ c
 c
 	      write(*,'(1x,a,i3,a,$)')'Curve #',j,
      &		  ': Enter # of bins for rejection and  bin size: '
-	      read(5,*)nrestrict(j),delnear(j)
+	      read(in5,*)nrestrict(j),delnear(j)
 	      if(nrestrict(j).gt.limprobs)then
 		print *,'Too many bins for arrays'
 		go to 40
 	      endif
 	      if(nrestrict(j).gt.0)then
 		write(*,'(1x,a,$)')'Probability values: '
-		read(5,*)(probnear(i,j),i=1,nrestrict(j))
+		read(in5,*)(probnear(i,j),i=1,nrestrict(j))
 	      endif
 	    endif
 	  enddo
@@ -890,7 +901,7 @@ c
 	  write(*,'(1x,a,i3,/,a,$)')'Enter the # of the curve to '//
      &	      'use for each of the',nchcktyp,
      &	      'objects being checked against: '
-	  read(5,*)(iuseprob(i),i=1,nchcktyp)
+	  read(in5,*)(iuseprob(i),i=1,nchcktyp)
 	  do i=1,nchcktyp
 	    if(iuseprob(i).lt.1.or.iuseprob(i).gt.nprobsets)then
 	      print *,'Illegal curve number'
@@ -905,19 +916,19 @@ c
 c	  
 	write(*,'(1x,a,$)')'Maximum distance to shift outside '//
      &	    'bounding box of original data: '
-	read(5,*)boxtol
+	read(in5,*)boxtol
 	write(*,'(1x,a,$)')
      &	    'Object # of object with bounding contours, or 0 if none: '
-	read(5,*)iobjbound
+	read(in5,*)iobjbound
 	write(*,'(1x,a,/,a,$)')'1 to check shifted items against'//
      &	    ' ones yet to be shifted, or 0 to check',
      &	    ' only against ones that have been shifted already: '
-	read(5,*)ifcheckunshifted
+	read(in5,*)ifcheckunshifted
 	write(*,'(1x,a,$)')'Maximum number of trials: '
-	read(5,*)maxtrials
+	read(in5,*)maxtrials
 	write(*,'(1x,a,$)')'# of trials per cycle, factor to change '
      &	    //'maximum shift by per cycle: '
-	read(5,*)ntrialcycle,cyclefac
+	read(in5,*)ntrialcycle,cyclefac
 	ifshuffle=0
 	ifsample=1
 	ifconvert=0
@@ -930,7 +941,7 @@ c
 	if(nregion.gt.1)jgrfadd=ngraph
 	write(*,'(1x,a,$)')'0 to specify integral for each graph '//
      &	    'separately, 1 to use same bins for all: '
-	read(5,*)ifallsame
+	read(in5,*)ifallsame
 c
 	do jj=1,ngraph
 	  if(ifallsame.eq.0)write(*,'(10x,a,i3)')
@@ -938,20 +949,20 @@ c
 c
 	  if(ifallsame.eq.0.or.jj.eq.1)then
 321	    write(*,'(1x,a,$)')'Starting and ending bins to integrate: '
-	    read(5,*)integstrt(jj),integend(jj)
+	    read(in5,*)integstrt(jj),integend(jj)
 	    if(integend(jj).lt.integstrt(jj).or.integstrt(jj).lt.1
      &		.or.integend(jj).gt.nbins)go to 321
 c
 322	    write(*,'(1x,a,$)')'Start & end bins to compute baseline'//
      &		' from, or 0,0 to used fixed value: '
-	    read(5,*)ibasestrt(jj),ibasend(jj)
+	    read(in5,*)ibasestrt(jj),ibasend(jj)
 	    if((ibasestrt(jj).ne.0.or.ibasend(jj).ne.0) .and.
      &		(ibasend(jj).lt.ibasestrt(jj) .or. ibasend(jj).gt.nbins
      &		.or. ibasestrt(jj).lt.1)) go to 322
 c
 	    if(ibasestrt(jj).eq.0 .and. ibasend(jj).eq.0)then 
 	      write(*,'(1x,a,$)')'Fixed baseline value: '
-	      read(5,*)baseline(jj)
+	      read(in5,*)baseline(jj)
 	    endif
 c
 	  else
@@ -974,7 +985,7 @@ c
 c	  
 	write(*,'(1x,a,$)')'Enter 1 to accumulate mean and standard '
      &	    //'deviation graphs or 0 not to: '
-	read(5,*)ifdomeansd
+	read(in5,*)ifdomeansd
 
 	maxtmp=jgrfadd+3*ngraph
 	if (ifdomeansd.ne.0) then
@@ -992,12 +1003,12 @@ c
 c
 324	write(*,'(1x,a,$)')
      &	    'Number of control sets to run, or 0 to enter new option: '
-	read(5,*)ndocontrol
+	read(in5,*)ndocontrol
 	if(ndocontrol.le.0)go to 40
 	if(ntotcontrol.ne.0.and.ndocontrol.ne.0)then
 	  write(*,'(1x,a,$)')'Enter 1 if you really want to do more'//
      &	      ' sets, or 0 if that was a mistake: '
-	  read(5,*)ifreally
+	  read(in5,*)ifreally
 	  if(ifreally.ne.1)go to 40
 	endif
 	print *,' '
@@ -1111,7 +1122,7 @@ c
 235	if(nobjwin.ge.0)go to 40
 	write(*,'(1x,a,$)')
      &	    'Graph # to place histogram in, bin width, # of bins: '
-	read(5,*)igrfextra,delhist,nbhist
+	read(in5,*)igrfextra,delhist,nbhist
 	if(nbhist.le.0.or.delhist.le.0.)go to 40
 	if(.not.checkextra(igrfextra,limgraphs,listextra,
      &	    nextragrf))go to 40
@@ -1157,7 +1168,7 @@ c	  unshift selected object
 c	  
 240	write(*,'(1x,a,$)')
      &	    'Object # to unshift: '
-	read(5,*)iobjshift
+	read(in5,*)iobjshift
 	call unshift_object(iobjshift,iobjflag(iobjshift),
      &	    xmt,ymt,zmt,icolor,nmt, indstrt,npntobj,xyscal,zscal,
      &	    zgapst(indgap),zgapnd(indgap), ngaps)

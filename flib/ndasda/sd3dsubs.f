@@ -103,6 +103,8 @@ c	  pnorm(i)=coeff(1,i)+dotproduct(pt,coeff(2,i))
 	parameter (limtyp=50,itypall=999)
 	integer*4 nreftyp(*),nneightyp(*)	!# of types for ref and neigh
 	integer*4 itypref(limtyp,*),itypneigh(limtyp,*)
+	integer*4 in5
+	common /nmsinput/ in5
 	do ii=1,ngraph
 c	  
 c	  copy last region's specifications
@@ -121,14 +123,14 @@ c
 102	  format(' For graph #',i3,', enter list of types for ',
      &	      'points to be considered',/,5x,a,' points',
      &		' (/ for same as last region, Return for all)')
-	  call rdlist(5,itypref(1,next),nreftyp(next))
+	  call rdlist(in5,itypref(1,next),nreftyp(next))
 	  if(nreftyp(next).eq.0)then
 	    nreftyp(next)=1
 	    itypref(1,next)=itypall
 	  endif
 c	      
 	  write(*,102)ii,'neighboring'
-	  call rdlist(5,itypneigh(1,next),nneightyp(next))
+	  call rdlist(in5,itypneigh(1,next),nneightyp(next))
 	  if(nneightyp(next).eq.0)then
 	    nneightyp(next)=1
 	    itypneigh(1,next)=itypall
