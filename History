@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/3/05: Converted Tiltalign command files to PIP input; eTomo has been
+modified to handle new or old files and output new files and it now allows
+grouping of global rotations and easy selection of skew-only distortion
+solution, and produces a Z factor file when distortion solution is obtained.
+
+12/23/04: Fixed handling of italics, bold, and special characters in program
+that makes html files from man pages.
+
+12/23/04: Fixed bug that made 3dmod lose track of the Z offset from a previous
+loading of a model on a subset stack.
+
+12/22/04: Added imodqtassist, a program to allow eTomo to use Qt assistant to
+show help pages.
+
 12/17/04: IMOD_3-4-16
 12/16/04:  The flipped state will now be monitored properly for the squeezevol
 interface. 
