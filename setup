@@ -494,8 +494,13 @@ else
     echo "FBPLIB = libfbp.a" >> $configure
 endif
 
-if (-e $tilt_dir/fbpswitch.inc) \rm $tilt_dir/fbpswitch.inc
-\cp $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc
+# Remove fbpswitch if it is different, then copy if it doesn't exist
+#
+if (-e $tilt_dir/fbpswitch.inc) then
+    set tiltdiff = `diff $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc`
+    if ($status) \rm $tilt_dir/fbpswitch.inc
+endif
+if (! -e $tilt_dir/fbpswitch.inc) \cp $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc
 
 if ($shared_libs == false) set inst_lib_dir = $lib_dir
 
@@ -557,7 +562,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo INCLUDEPATH += $inc_dir >> $midas_qconf
-    echo LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff >> $midas_qconf
+    echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff >> $midas_qconf
     echo MOC_DIR = tmp >> $midas_qconf
     echo OBJECTS_DIR = tmp >> $midas_qconf
     echo target.path = $inst_bin_dir >> $midas_qconf
@@ -731,6 +736,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.31  2003/10/25 16:46:11  mast
+#  set default to dummy out plugins
+#
 #  Revision 3.30  2003/10/24 04:17:18  mast
 #  Changes for Windows/Intel compilation
 #
