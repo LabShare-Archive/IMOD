@@ -166,6 +166,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   case Qt::Key_Apostrophe: 
     plug->window->nextRes();
     break;
+  case Qt::Key_QuoteDbl: 
+    plug->window->nextLocal();
+    break;
   case Qt::Key_Space:
     plug->window->nextGap();
     break;
@@ -879,7 +882,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
   nextLocalBut->setFixedWidth(width);
-  QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
+  QToolTip::add(nextLocalBut, "Skip to residuals in next local area - "
+                "Hot key: double quote");
 
   nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
@@ -937,7 +941,8 @@ void BeadFixer::buttonPressed(int which)
        "---------------------\n"
        "spacebar\tGo to next gap\n"
        "' (apostrophe)\tGo to next big residual\n"
-       ";\t\tMove point by resiual\n"
+       "\" (double quote)\tGo to next local set\n"
+       ";\t\tMove point by residual\n"
        "U\t\tUndo last moved point\n\n",
        "Select the Go to Next Gap button or hit the space bar key to "
        "move to the next gap or incomplete place in the model.  If "
@@ -1028,6 +1033,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.2  2004/01/22 19:12:43  mast
+    changed from pressed() to clicked() or accomodated change to actionClicked
+
     Revision 1.1  2003/10/01 05:09:36  mast
     Conversion to internal module in 3dmod
 
