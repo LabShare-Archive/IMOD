@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2002/09/04 00:21:59  mast
     Changed to call imodvGetVisuals so as to get proper visuals to pass to
     GLw; also modified initstruct to call imodv_init and just modify items that
@@ -52,7 +55,7 @@
 #include <Xm/AtomMgr.h>
 #include <math.h>
 
-#include "ximodv.h"
+#include "imodv.h"
 #include "imod.h"
 
 ImodvApp  ImodvStruct;
