@@ -602,9 +602,9 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
   for (m = mstrt; m < mend; m++) {
     imod = a->mod[m];
     imodMatId(mat);
-    imodMatRot(mat, -(double)imod->view->rot.x, X);
-    imodMatRot(mat, -(double)imod->view->rot.y, Y);
-    imodMatRot(mat, -(double)imod->view->rot.z, Z);
+    imodMatRot(mat, -(double)imod->view->rot.x, b3dX);
+    imodMatRot(mat, -(double)imod->view->rot.y, b3dY);
+    imodMatRot(mat, -(double)imod->view->rot.z, b3dZ);
 
     scrnscale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / 
       imod->view->rad;
@@ -691,9 +691,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   alpha = 0.1 * (x * cos(-gamrad) - y * sin(-gamrad));
 
   imodMatId(mat);
-  imodMatRot(mat, -gamma, Z);
-  imodMatRot(mat, alpha, X);
-  imodMatRot(mat, gamma + (double)(0.1 * z), Z);
+  imodMatRot(mat, -gamma, b3dZ);
+  imodMatRot(mat, alpha, b3dX);
+  imodMatRot(mat, gamma + (double)(0.1 * z), b3dZ);
 
   if (!(maskr & Qt::ControlButton)){
 
@@ -712,9 +712,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
       /* Compute current rotation matrix */
       imodMatId(mato);
-      imodMatRot(mato, (double)imod->view->rot.z, Z);
-      imodMatRot(mato, (double)imod->view->rot.y, Y);
-      imodMatRot(mato, (double)imod->view->rot.x, X);
+      imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
+      imodMatRot(mato, (double)imod->view->rot.y, b3dY);
+      imodMatRot(mato, (double)imod->view->rot.x, b3dX);
 
       /* Multiply by the new rotation, then get back to 3 angles */
       imodMatMult(mato, mat, matp);
@@ -739,9 +739,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
     /* get current rotation transform into viewing space */
     imodMatId(mato);
-    imodMatRot(mato, (double)imod->view->rot.z, Z);
-    imodMatRot(mato, (double)imod->view->rot.y, Y);
-    imodMatRot(mato, (double)imod->view->rot.x, X);
+    imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
+    imodMatRot(mato, (double)imod->view->rot.y, b3dY);
+    imodMatRot(mato, (double)imod->view->rot.x, b3dX);
 
     /* Get product of that with screen-oriented rotation */
     imodMatMult(mato, mat, matp);
@@ -750,9 +750,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
     /* Back-transform normal by inverse of current transform */
 
     imodMatId(mato);
-    imodMatRot(mato, -(double)imod->view->rot.x, X);
-    imodMatRot(mato, -(double)imod->view->rot.y, Y);
-    imodMatRot(mato, -(double)imod->view->rot.z, Z);
+    imodMatRot(mato, -(double)imod->view->rot.x, b3dX);
+    imodMatRot(mato, -(double)imod->view->rot.y, b3dY);
+    imodMatRot(mato, -(double)imod->view->rot.z, b3dZ);
     imodMatTransform(mato, &normal, &scalePoint);
 
     /* Rescale components to get back to unscaled model normal */
@@ -1026,6 +1026,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.2  2003/02/21 22:19:00  mast
+    Use new b3d types
+
     Revision 4.1  2003/02/10 20:29:01  mast
     autox.cpp
 

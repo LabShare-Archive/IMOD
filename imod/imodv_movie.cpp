@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <qapplication.h>
 #include "formv_movie.h"
@@ -331,21 +339,21 @@ static void imodvMakeMovie(int frames)
     delangle *= -1.0;
 
   if(movie->fullaxis == IMODV_MOVIE_FULLAXIS_X)
-    imodMatRot(mati, delangle, X);
+    imodMatRot(mati, delangle, b3dX);
   else if(movie->fullaxis == IMODV_MOVIE_FULLAXIS_Y)
-    imodMatRot(mati, delangle, Y);
+    imodMatRot(mati, delangle, b3dY);
   else {
 
     /* In general case, net change is final matrix times inverse of starting
        matrix - then find the vector and angle for that rotation and
        divide angle by # of frames to get incremental matrix */
 
-    imodMatRot(mat, (double)-astart, X);
-    imodMatRot(mat, (double)-bstart, Y);
-    imodMatRot(mat, (double)-gstart, Z);
-    imodMatRot(mat, (double)(gstart + frame * gstep), Z);
-    imodMatRot(mat, (double)(bstart + frame * bstep), Y);
-    imodMatRot(mat, (double)(astart + frame * astep), X);
+    imodMatRot(mat, (double)-astart, b3dX);
+    imodMatRot(mat, (double)-bstart, b3dY);
+    imodMatRot(mat, (double)-gstart, b3dZ);
+    imodMatRot(mat, (double)(gstart + frame * gstep), b3dZ);
+    imodMatRot(mat, (double)(bstart + frame * bstep), b3dY);
+    imodMatRot(mat, (double)(astart + frame * astep), b3dX);
     imodMatFindVector(mat, &angle, &v);
     delangle = angle / frame;
     if (movie->longway)
@@ -380,9 +388,9 @@ static void imodvMakeMovie(int frames)
       /* Get current rotation matrix, multiply by increment rotation,
          and convert back to angles */
       imodMatId(mat);
-      imodMatRot(mat, (double)vw->rot.z, Z);
-      imodMatRot(mat, (double)vw->rot.y, Y);
-      imodMatRot(mat, (double)vw->rot.x, X);
+      imodMatRot(mat, (double)vw->rot.z, b3dZ);
+      imodMatRot(mat, (double)vw->rot.y, b3dY);
+      imodMatRot(mat, (double)vw->rot.x, b3dX);
       imodMatMult(mat, mati, matp);
       imodMatGetNatAngles(matp, &alpha, &beta, &gamma);
 
@@ -445,9 +453,9 @@ static void imodvMakeMontage(int frames, int overlap)
      Y in the display, using same code as imodv_translated */
   mat = imodMatNew(3);
   imodMatId(mat);
-  imodMatRot(mat, -(double)vw->rot.x, X);
-  imodMatRot(mat, -(double)vw->rot.y, Y);
-  imodMatRot(mat, -(double)vw->rot.z, Z);
+  imodMatRot(mat, -(double)vw->rot.x, b3dX);
+  imodMatRot(mat, -(double)vw->rot.y, b3dY);
+  imodMatRot(mat, -(double)vw->rot.z, b3dZ);
      
   scrnscale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / vw->rad;
     
