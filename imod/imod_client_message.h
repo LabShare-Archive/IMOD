@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/08/01 05:52:54  mast
+*** empty log message ***
+
 Revision 3.3  2003/06/04 23:42:54  mast
 Move message defines here to avoid recompiling everything
 
@@ -61,6 +64,7 @@ Initital version of code moved from imod_menu_cb.c
 #define MESSAGE_RAISE_WINDOWS 5
 #define MESSAGE_MODEL_MODE  6
 #define MESSAGE_OPEN_KEEP_BW 7
+#define MESSAGE_OPEN_BEADFIXER 8
 
 #include <qobject.h>
 #include <qstring.h>

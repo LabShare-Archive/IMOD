@@ -50,6 +50,7 @@ Log at end of file
 #include "imod_info.h"
 #include "imod_input.h"
 #include "imod_client_message.h"
+#include "imodplug.h"
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
@@ -308,6 +309,10 @@ bool ImodClipboard::executeMessage()
       imod_set_mmode(IMOD_MMODEL);
     break;
 
+  case MESSAGE_OPEN_BEADFIXER:
+    imodPlugOpenByName("Bead Fixer");
+    break;
+
   default:
     fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
             , message_action);
@@ -340,6 +345,10 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.8  2003/09/24 16:20:05  mast
+Remove multiple spaces in message before processing, and keep track of
+and send last response if a message is repeated
+
 Revision 4.7  2003/09/24 15:07:11  mast
 Improved debug mode, added a repeated response to same message
 
