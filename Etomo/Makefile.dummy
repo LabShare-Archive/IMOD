@@ -1,8 +1,0 @@
-#  The purpose of this dummy make make file is to allow IMOD to compile
-#  successfully when the necessary java environment is not available.
-
-all : 
-
-install	:
-
-clean :
