@@ -27,7 +27,6 @@ HEADERS	+= autox.h \
 	imod_workprocs.h \
 	iproc.h \
 	menus.h \
-	sliceproc.h \
 	slicer_classes.h \
 	sslice.h \
 	xtum.h \
@@ -110,7 +109,6 @@ SOURCES	+= autox.cpp \
 	iproc.cpp \
 	pixelview.cpp \
 	samplemeansd.c \
-	sliceproc.c \
 	slicer.cpp \
 	slicer_classes.cpp \
 	wprint.cpp \
