@@ -1,7 +1,6 @@
 package etomo;
 
 import java.io.*;
-import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 
@@ -26,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/09/30 23:44:43  rickg
+ * <p> Started implementing updateCombineCom
+ * <p>
  * <p> Revision 1.6  2002/09/30 22:01:29  rickg
  * <p> Added check to verify dual axis for combination
  * <p>
@@ -1355,12 +1357,11 @@ public class ApplicationManager {
 
   }
 
-  //FIXME get the combine parameters from the dialog box and 
   private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
     CombineParams combineParams = new CombineParams();
     tomogramCombinationDialog.getCombineParams(combineParams);
 
-    //  FIXME we need to get the metadat combine parameters object to match the tomogramd Combination
+    //  FIXME we need to get the metadata combine parameters object to match the tomogram Combination
     //  dialog.  Be consistent with previous methods i.e. setup
     return true;
   }
