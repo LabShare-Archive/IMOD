@@ -24,9 +24,12 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.MatchorwarpParam;
+import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
+import etomo.comscript.SolvematchmodParam;
+import etomo.comscript.SolvematchshiftParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
@@ -83,6 +86,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.77  2004/06/22 23:00:12  sueh
+ * <p> bug# 455 Added open contours to sample() and fullSample().
+ * <p> Substituted open() calls for model() calls.  Removed extra
+ * <p> model() calls.  Setting preserveContrast separately.
+ * <p>
  * <p> Revision 3.76  2004/06/22 02:04:28  sueh
  * <p> bug# 441 Created updateTrimvolParam() and added it to
  * <p> trimVolume() and donePostProcessing().  Moved the logic
@@ -3539,12 +3547,7 @@ public class ApplicationManager {
           loadSolvematch();
         }
         else {
-          if (metaData.getCombineParams().isModelBased()) {
-            loadSolvematchMod();
-          }
-          else {
-            loadSolvematchShift();
-          }
+          loadSolvematch(metaData.getCombineParams().isModelBased());
         }
         loadPatchcorr();
         loadMatchorwarp();
@@ -3824,6 +3827,33 @@ public class ApplicationManager {
     comScriptMgr.loadSolvematch();
     tomogramCombinationDialog.setSolvematchParams(comScriptMgr.getSolvematch());
   }
+  /**
+   * Merge solvematchshift and solvematchmod com scripts in solvematch and
+   * load solvematchinto the tomogram
+   * combination dialog
+   */
+  public void loadSolvematch(boolean modelBased) {
+    //get solvematchshift param
+    comScriptMgr.loadSolvematchshift();
+    SolvematchshiftParam solvematchshiftParam =
+      comScriptMgr.getSolvematchshift();
+    //get solvematchmod param
+    comScriptMgr.loadSolvematchmod();
+    SolvematchmodParam solvematchmodParam = comScriptMgr.getSolvematchmod();
+    //merge shift and mod into solvematch param
+    SolvematchParam solvematchParam = new SolvematchParam();
+    solvematchParam.mergeSolvematchshift(solvematchshiftParam, modelBased);
+    solvematchParam.mergeSolvematchmod(solvematchmodParam, modelBased);
+    //update the dialog from the same source
+    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+    //create the new solvematch com script
+    comScriptMgr.loadSolvematch();
+    comScriptMgr.saveSolvematch(solvematchParam);
+    //add matchshifts to the solvematch com script
+    MatchshiftsParam matchshiftsParam =
+      comScriptMgr.getMatchshiftsFromSolvematchshifts();
+    comScriptMgr.saveSolvematch(matchshiftsParam);
+  }
 
   /**
    * Update the solvematch com file from the tomogramCombinationDialog
@@ -3860,8 +3890,8 @@ public class ApplicationManager {
   public void loadSolvematchShift() {
     comScriptMgr.loadSolvematchshift();
     SolvematchParam solvematchParam = new SolvematchParam();
-    solvematchParam.parseSolvematchshift(comScriptMgr.getSolvematchshift(),
-      metaData.getDatasetName());
+//    solvematchParam.parseSolvematchshift(comScriptMgr.getSolvematchshift(),
+//      metaData.getDatasetName());
     createNewSolvematch(solvematchParam);
   }
 
@@ -3872,7 +3902,7 @@ public class ApplicationManager {
   public void loadSolvematchMod() {
     comScriptMgr.loadSolvematchmod();
     SolvematchParam solvematchParam = new SolvematchParam();
-    solvematchParam.parseSolvematchmod(comScriptMgr.getSolvematchmod());
+//    solvematchParam.parseSolvematchmod(comScriptMgr.getSolvematchmod());
     createNewSolvematch(solvematchParam);
   }
 
