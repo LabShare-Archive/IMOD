@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 2.6.0<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 2.7.0<BR>
 </H2>
 <H3 ALIGN=center>BOULDER LABORATORY FOR 3-D FINE STRUCTURE</H3>
 <HR>
@@ -8,54 +8,61 @@
 <H3>Table of Contents</H3>
 
 <UL>
-<LI><A HREF = "#PRELIMINARIES">PRELIMINARIES</A>
-<LI><A HREF = "#Program Names">Program Names</A>
-<LI><A HREF = "#Command Files">Command Files</A>
-<LI><A HREF = "#Entries to Programs">Entries to Programs</A>
-<LI><A HREF = "#Numbering System">Numbering System</A>
-<LI><A HREF = "#Backup Files">Backup Files</A>
-<LI><A HREF = "#NON-BOULDER NOTES">NOTES FOR NON-BOULDER USERS</A>
-<LI><A HREF = "#Film versus CCD Images">Film versus CCD Images</A>
-<LI><A HREF = "#Image Scaling">Image Scaling and Contrast Polarity</A>
-<LI><A HREF = "#Image File Header">Image File Header</A>
-<LI><A HREF = "#ALIGNING IMAGES">ALIGNING IMAGES AND GENERATING A TOMOGRAM</A>
-<LI><A HREF = "#Getting Files">Getting Command Files</A>
-<LI><A HREF = "#Using Insecure Storage">Using Temporary or Insecure Storage</A>
-<LI><A HREF = "#Preliminary Steps">
-Preliminary Steps for Images from a CCD Camera</A>
-<LI><A HREF = "#Montage Preliminary">Preliminary Steps with Montaged CCD Images</A>
-<LI><A HREF = "#Getting Fiducial">Getting a Fiducial Model</A>
-<LI><A HREF = "#Running Tiltalign">Running Tiltalign</A>
-<LI><A HREF = "#Background Grouping">Background on Grouping Variables and Solving for Distortion</A>
-<LI><A HREF = "#Distortion Two">Solving for Distortion - Fiducials on Both Surfaces</A>
-<LI><A HREF = "#Distortion One">Solving for Distortion - Fiducials on Only One Surface</A>
-<LI><A HREF = "#Using Local Alignments">Using Local Alignments</A>
-<LI><A HREF = "#Getting Trial">Getting a Trial Aligned Stack and Tomogram</A>
-<LI><A HREF = "#Sampling">Sampling 3 Areas of Tomogram and Positioning the 
+<BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
+<BR><A HREF = "#Program Names">1.1. Program Names</A>
+<BR><A HREF = "#Command Files">1.2. Command Files</A>
+<BR><A HREF = "#Entries to Programs">1.3. Entries to Programs</A>
+<BR><A HREF = "#Numbering System">1.4. Numbering System</A>
+<BR><A HREF = "#Backup Files">1.5. Backup Files</A>
+<BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR NON-BOULDER USERS</A>
+<BR><A HREF = "#Film versus CCD Images">2.1. Film versus CCD Images</A>
+<BR><A HREF = "#Image Scaling">2.2. Image Scaling and Contrast Polarity</A>
+<BR><A HREF = "#Image File Header">2.3. Image File Header</A>
+<BR><A HREF = "#INITIAL STEPS">3. PREALIGNMENT AND OTHER INITIAL STEPS</A>
+<BR><A HREF = "#Getting Files">3.1. Getting Command Files</A>
+<BR><A HREF = "#Using Insecure Storage">3.2. Using Temporary or Insecure Storage</A>
+<BR><A HREF = "#Preliminary Steps">
+3.3. Preliminary Steps for Images from a CCD Camera</A>
+<BR><A HREF = "#Montage Preliminary">3.4. Preliminary Steps with Montaged CCD Images</A>
+<BR><A HREF = "#TRACKING FIDUCIALS">4. TRACKING FIDUCIALS</A>
+<BR><A HREF = "#Getting Fiducial">4.1. Getting a Fiducial Model</A>
+<BR><A HREF = "#Transferring Fiducial">4.2. Getting Fiducials for a Second Axis</A>
+<BR><A HREF = "#FINAL ALIGNMENT">5. GETTING THE FINAL ALIGNMENT</A>
+<BR><A HREF = "#Running Tiltalign">5.1. Running Tiltalign</A>
+<BR><A HREF = "#Background Grouping">5.2. Background on Grouping Variables and Solving for Distortion</A>
+<BR><A HREF = "#Distortion Two">5.3. Solving for Distortion - Fiducials on Both Surfaces</A>
+<BR><A HREF = "#Distortion One">5.4. Solving for Distortion - Fiducials on Only One Surface</A>
+<BR><A HREF = "#Using Local Alignments">5.5. Using Local Alignments</A>
+<BR><A HREF = "#Excluding Views">5.6. Excluding Views</A>
+<BR><A HREF = "#GENERATING THE TOMOGRAM">6. POSITIONING AND GENERATING THE TOMOGRAM</A>
+<BR><A HREF = "#Getting Trial">6.1. Getting a Trial Aligned Stack and Tomogram</A>
+<BR><A HREF = "#Sampling">6.2. Sampling 3 Areas of Tomogram and Positioning the 
 Section Optimally</A>
-<LI><A HREF = "#Doing Tilted Samples">
-Doing Samples with X-axis Tilt or Local Alignments</A>
-<LI><A HREF = "#Final Runs">The Final Runs</A>
-<LI><A HREF = "#COMBINING TWO TOMOGRAMS">COMBINING TWO TOMOGRAMS</A>
-<LI><A HREF = "#Setting Up">Setting Up</A>
-<LI><A HREF = "#Temporary Combining Storage">Using Temporary Storage for Combining</A>
-<LI><A HREF = "#Proceeding">Proceeding</A>
-<LI><A HREF = "#Problems in Combining">Problems in Combining</A>
-<LI><A HREF = "#SCALING AND TRIMMING">SCALING AND TRIMMING A TOMOGRAM</A>
-<LI><A HREF = "#CLEANING UP">CLEANING UP</A>
+<BR><A HREF = "#Doing Tilted Samples">
+6.3. Doing Samples with X-axis Tilt or Local Alignments</A>
+<BR><A HREF = "#Final Runs">6.4. The Final Runs</A>
+<BR><A HREF = "#COMBINING TWO TOMOGRAMS">7. COMBINING TWO TOMOGRAMS</A>
+<BR><A HREF = "#Setting Up">7.1. Setting Up</A>
+<BR><A HREF = "#Temporary Combining Storage">7.2. Using Temporary Storage for Combining</A>
+<BR><A HREF = "#Proceeding">7.3. Proceeding</A>
+<BR><A HREF = "#Initial Problems in Combining">7.4. Initial Registration Problems in Combining</A>
+<BR><A HREF = "#Patch Problems in Combining">7.5. Patch Correlation Problems in Combining</A>
+<BR><A HREF = "#POST-PROCESSING">8. POST-PROCESSING</A>
+<BR><A HREF = "#Scaling and Trimming">8.1. Scaling and Trimming a Tomogram</A>
+<BR><A HREF = "#Cleaning Up">8.2. Cleaning Up</A>
 </UL>
-<A NAME = "PRELIMINARIES"><H3>
-PRELIMINARIES
+<A NAME = "BACKGROUND"><H3>
+1. BACKGROUND
 </H3></A>
 <A NAME = "Program Names"><H4>
-Program Names
+1.1. Program Names
 </H4></A>
 In this document, program names are capitalized.  However, their true
 names are all lower case, and they must be run by entering these names in
 lower case because UNIX is case-sensitive.
 
 <A NAME = "Command Files"><H4>
-Command Files
+1.2. Command Files
 </H4></A>
 Nearly all of the processing for tomography is done by running command
 files.  The format of these files was originally based on the batch files used
@@ -91,7 +98,7 @@ determine which one is the process in question, then use, for example, "fg %2"
 to bring job 2 to the foreground.
 
 <A NAME = "Entries to Programs"><H4>
-Entries to Programs
+1.3. Entries to Programs
 </H4></A>
 The programs that you will run have many parameters or options to control
 their behavior.  There are two basic ways to enter these options: as arguments
@@ -176,12 +183,12 @@ after lists.
 </OL>
 
 <A NAME = "Numbering System"><H4>
-Numbering System
+1.4. Numbering System
 </H4></A>
 You need to distinguish three numbering systems:
 <OL>
 <LI>The "section number" of a view is its physical location in file,
-numbered from zero.  It is used when referring to sections within Cids or
+numbered from zero.  It is used when referring to sections in SerialEM or
 <A HREF = "man/newstack.html">Newstack</A>.
 
 <LI>The "Z value" of a view is what its section number would be in a file
@@ -198,15 +205,11 @@ refer to views by
 <P>
 Yes, this presents endless possibilities for confusion.  To reduce the
 confusion, I'll at least refer to them consistently as "section number", "Z
-value", and "view number". Before you start digitizing from film, it's a good
-idea to write the section number and either the Z value or the view number on
-the data sheets.  Then you can check for errors periodically as you digitize.
-Note that when Cids says that N sections have been stored, the section number
-of the last section stored is N-1 and N is the section number of the NEXT
-section.
+value", and "view number".
+
 
 <A NAME = "Backup Files"><H4>
-Backup Files
+1.5. Backup Files
 </H4></A>
      Nearly every program that you run will create a backup file if an output
 file already exists, rather than simply deleting the old version of the output
@@ -221,11 +224,11 @@ alias for purging backup files in your .cshrc: <BR><CODE> alias purge '\rm *~'
 confirmation.
 
 <A NAME = "NON-BOULDER NOTES"><H3>
-NOTES FOR NON-BOULDER USERS
+2. NOTES FOR NON-BOULDER USERS
 </H3></A>
 
 <A NAME = "Film versus CCD Images"><H4>
-Film versus CCD Images
+2.1. Film versus CCD Images
 </H4></A>
      Some of the programs make a distinction between images from film and ones
 acquired on a CCD camera.  This is based on a virtually obsolete method of
@@ -236,7 +239,7 @@ if they will need a prealignment step, treat them as data from "CCD".
 
 
 <A NAME = "Image Scaling"><H4>
-Image Scaling and Contrast Polarity
+2.2. Image Scaling and Contrast Polarity
 </H4></A>
      Some of the programs and command files assume that the numbers in your
 images are linearly related to the number of transmitted electrons caught
@@ -259,30 +262,31 @@ Simply change the entry on the line ending in "0 for dark beads" from 0 to 1
 in track.com.
 
 <A NAME = "Image File Header"><H4>
-Image File Header
+2.3. Image File Header
 </H4></A>
-The programs described here will work most reliably if the header in the
-raw MRC image stack indicates that the "Pixel spacing" is 1,1,1 and the
-"Origin" is 0,0,0.  If the stack is generated from files of another format
-with
-<A HREF = "man/Raw2mrc.html">Raw2mrc</A> or
-<A HREF = "man/tif2mrc.html">Tif2mrc</A>, these conditions should be satisfied.  If the stack
-is generated by other means, that may not be the case.  Check the header with:
+As of IMOD 2.6.19, the 
+programs described here will work when the header of the raw MRC stack 
+indicates a "Pixel spacing" other than 1.0 or "Origin" values other than 0.0.
+Earlier versions required the 
+pixel spacing to be 1,1,1 and the
+origin to be at 0,0,0.
+Check the header with:
 <BR><CODE>     header filename
 <BR></CODE>
- If you need to change the pixel spacing or origin, run:
+ If you need to change the pixel spacing or origin to conform to the old
+requirements, run:
 <BR><CODE>     alterheader filename
 <BR></CODE>
- enter "fixpixel" to fix the pixel size, enter "org" and 0,0,0 to fix the
-origin, and enter "done" to rewrite the header and exit.
+ enter "fixpixel" to fix the pixel size at 1,1,1, enter "org" and 0,0,0 to fix
+the origin, and enter "done" to rewrite the header and exit.
 
 
-<A NAME = "ALIGNING IMAGES"><H3>
-ALIGNING IMAGES AND GENERATING A TOMOGRAM
+<A NAME = "INITIAL STEPS"><H3>
+3. PREALIGNMENT AND OTHER INITIAL STEPS
 </H3></A>
 
 <A NAME = "Getting Files"><H4>
-Getting Command Files
+3.1. Getting Command Files
 </H4></A>
      There is a program to provide you with a complete set of command files
 for your particular situation; just enter
@@ -376,7 +380,7 @@ something goes wrong, you can copy files from there manually.
 
 
 <A NAME = "Using Insecure Storage"><H4>
-Using Temporary or Insecure Storage
+3.2. Using Temporary or Insecure Storage
 </H4></A>
      It is possible to have your small working files automatically saved to
 another directory every time that you run a command file.  This will provide
@@ -399,7 +403,7 @@ model for a while).
 
 
 <A NAME = "Preliminary Steps"><H4>
-Preliminary Steps for Images from a CCD Camera
+3.3. Preliminary Steps for Images from a CCD Camera
 </H4></A>
 <P>
      1) If necessary, convert files from Digital Micrograph to a single MRC
@@ -433,16 +437,20 @@ prealigned stack (setname.preali), or by running
 each pair of images in turn.
 
 <P>
-     5) If there are serious alignment errors, run 
-<A HREF = "man/midas.html">Midas</A>.  The image file is
-the raw image stack setname.st, and the transform file to edit is
-setname.prexf.
+     5) If there are serious alignment errors, which show up as a sudden jump 
+in features positions when movieing through the prealigned stack, run 
+<A HREF = "man/midas.html">Midas</A> with the command:
+<BR><CODE>    midas setname.st setname.prexf </CODE><BR>
+Go to each section pair that is not well lined up and shift the current
+section with the left mouse button to fix the alignment.  You may need to fix
+only one section pair to bring your whole stack into alignment.
+
 <P>
      6) After fixing bad transforms with <A HREF = "man/midas.html">Midas</A>,
  run prenewst.com.
 
 <A NAME = "Montage Preliminary"><H4>
-Preliminary Steps with Montaged CCD Images
+3.4. Preliminary Steps with Montaged CCD Images
 </H4></A>
 
      If you have montaged images, the last three steps are a little different.
@@ -513,13 +521,16 @@ tilt in a horizontal montage), your only recourse is to examine each edge in
 turn in 
 <A HREF = "man/midas.html">Midas</A>.
 
+<A NAME = "TRACKING FIDUCIALS"><H3>
+4. TRACKING FIDUCIALS
+</H3></A>
 
 <A NAME = "Getting Fiducial"><H4>
-Getting a Fiducial Model
+4.1. Getting a Fiducial Model
 </A></H4>
      The first step is to set up a seed model.  Run
- <A HREF = "man/imod.html">Imod</A> on the stack (using
-the piece list) and pick a view near zero tilt that has good images of the
+ <A HREF = "man/imod.html">Imod</A> on the stack
+and pick a view near zero tilt that has good images of the
 beads.  Put one point exactly in the center of each desired bead (zoom up to 3
 or 4 to do this accurately).  Each bead should be in a separate contour;
 <A HREF = "man/beadtrack.html">Beadtrack</A>
@@ -530,19 +541,10 @@ if necessary.  Try to have at least 8 beads well distributed over the area.
 The more beads you have, the better the alignment will be, up to a point, but
 the longer it will take to run.  If the beads are all on one surface, there is
 not much point in having more than 12 or so; if they are on both surfaces, 20
-or more may be useful.  Save the model with the extension ".seed".
-<P>
-     If you are doing a double-tilt series, at least some (8-10) of the beads
-that you track must be the same in the two series.  In the simplest cases, you
-can run <A HREF = "man/imod.html">Imod</A>
- on both stacks at once and add the beads in the same order in the
-two models.  This can be burdensome if you are tracking many beads or if the
-density of beads is high.  In these cases, you can make sure that the first 5
-beads correspond between the two series, then add the rest in any order.  If
-you do this, then when you prepare to combine the two tomograms, you would
-specify that only the first 5 beads correspond.  If there are beads on both
-surfaces, be sure to include at least one bead from each surface of the
-section in this initial subset.
+or more may be useful.  (If you will be using local alignments, see the
+recommendations in 
+<A HREF = "#Using Local Alignments">Using Local Alignments</A>.)
+Save the model with the extension ".seed".
 <P>
      <A HREF = "man/beadtrack.html">Beadtrack</A>
  proceeds from one view to the next, tracking as many beads as
@@ -573,13 +575,14 @@ list of VIEW NUMBERS for each series on a separate line.
 <LI>      If you have a sudden lurch in tilt angles or in magnification, you may
 need to change the grouping of tilt or mag variables to avoid having these
 variables grouped across the discontinuity.
-<LI>      If you have finer that 1.5 degree tilts, you may need to increase the
-minimum number views for doing tilt alignment.
+<LI>      If you have finer than 1.5 degree tilts, you may need to increase the
+minimum number of views for doing tilt alignment.
 <LI>      If you have partially tracked a bead in the seed model and left a gap
 because of ambiguity, you should set the entry for "fill in gaps" to 0.
 </OL>
 <P>
-     Run the command file.  You can examine the log file to see how well the
+     Run the command file, track.com.  
+You can examine the log file to see how well the
 tilt alignment did, but the program will end with a summary of which beads
 could not be tracked completely.  To see this, use
 <BR><CODE>     tail -40 track.log</CODE><BR>
@@ -598,9 +601,57 @@ their 3-D positions can be solved for accurately.  If you do need to add
 several fiducials, you could put some "seeds" into your edited fiducial model
 and allow Beadtrack to track those beads as far as possible.
 
+<A NAME = "Transferring Fiducial"><H4>
+4.2. Getting Fiducials for a Second Axis
+</A></H4>
+     If you are doing a double-tilt series, at least some (8-10) of the beads
+that you track must be the same in the two series.  The shell script 
+<A HREF = "man/transferfid.html">Transferfid</A> will help ensure this
+by making a seed model for the second axis based on the fiducial model
+for the first axis.  To use this tool, first make a seed model for the
+first axis, then run tracka.com.
+It is recommended that you also run aligna.com
+at least once before running 
+<A HREF = "man/transferfid.html">Transferfid</A> so that the program
+can make the most reliable estimate of how the fiducials will
+correspond between the two series.  You can do this even before fixing
+the first fiducial model.  Next enter the command:
+<BR><CODE>    transferfid setname </CODE><BR>
+ and the program will search for the pair of views in the two series
+that correspond the best, then transfer the fiducials from the first
+series to make the seed model for the second series.  At the end, the
+program indicates how corresponding fiducials should be specified when
+setting up to combine the tomograms; make a note of this output.
+<P>
+     If <A HREF = "man/transferfid.html">Transferfid</A> fails to work
+on the first attempt, you may need to set the translational and
+rotational alignment between the two series manually with 
+<A HREF = "man/midas.html">Midas</A>.  Do this with the command:
+<BR><CODE>    transferfid -m setname </CODE><BR>
+If the operation still fails, you
+can run <A HREF = "man/imod.html">Imod</A>
+ on both stacks at once and add some initial points to the second seed
+model in the same order that they occur in the first seed model.  It
+is helpful to open one of the images in the Slicer window and rotate
+it by 90 degrees with the Z slider.  You
+only need to make the first 5 beads correspond, or however many are
+needed to sample beads on both surfaces, if beads are on two surfaces.
+After that, you can add the rest in any order.
+If
+you do this, then when you prepare to combine the two tomograms, you would
+specify that only the first 5 beads correspond.
 
+<A NAME = "FINAL ALIGNMENT"><H3>
+5. GETTING THE FINAL ALIGNMENT
+</H3></A>
+The goal of the final alignment is to transform the images so that they
+represent projections of a solid body tilted around the Y axis, as well as to
+refine the projection angles.  In order to transform the images, one needs to
+determine the rotation, translation, and scaling (magnification) to be applied
+to each image.  It is also possible to solve for variables which will correct
+for distortions of the specimen.
 <A NAME = "Running Tiltalign"><H4>
-Running Tiltalign
+5.1. Running Tiltalign
 </A></H4>
      Whether you have fiducials on one surface or two determines what
 variables can be solved for.  If there are beads on only one surface, you can
@@ -618,7 +669,8 @@ group the tilt angles as appropriate.
 <P>
      For your first run, modify the align.com file as follows:
 <OL>
-<LI> Put in the lists of reshoots.  Put the number of series of reshoots
+<LI> Put in the lists of reshoots or views to be treated separately, if any.
+Put the number of series of reshoots
 (typically 1) on the line "# of separate sets for automapping", then put the
 list of VIEW NUMBERS for each series on a separate line.
 <LI> Set "the # of the reference view..." to the number of the view that
@@ -628,33 +680,44 @@ reference view.
 one or two surfaces.
 </OL>
 <P>
-     Run the alignment and examine the solution.  The program 
+     Run align.com and examine the results in the log file.  The program 
 <A HREF = "man/alignlog.html">Alignlog</A> can be
-used to extract particular sections of the lengthy log file.  You may want to
+used to extract particular sections of the lengthy log file.  For example, to
+see the solved parameters for each view, you can enter "alignlog -s" for
+a single axis data set or "alignlog -s a" or "alignlog -s b" for a dual-axis
+set.  You may want to
 look at some of the fiducials with the largest errors, particularly ones with
-errors greater than 2 pixels.  Adjust point positions in the model, if
-appropriate.  The Bead Fixer plugin allows you to look easily at the points
-with the greatest error.
+errors greater than 2 pixels ("alignlog -r").  Adjust point positions in the
+model, if appropriate.  The Bead Fixer plugin allows you to look easily at the
+points with the greatest error.
 <P>
      Every time you run <A HREF = "man/tiltalign.html">Tiltalign</A>,
  it will analyze the bead positions and
 recommend a change in tilt angles that would make the beads lie in a
-horizontal plane.  Make this change before the next run of 
-<A HREF = "man/tiltalign.html">Tiltalign</A>.
+horizontal plane.  This information is in a section starting with "SURFACE
+ANALYSIS" that you can extract with "alignlog -a".  Make the recommended
+change at least after the first run of 
+<A HREF = "man/tiltalign.html">Tiltalign</A> by taking the final value
+shown for "Total tilt angle change" and using it for the value of
+"amount to add to all angles" in align.com.
 <P>
      In the section of <A HREF = "man/tiltalign.html">Tiltalign</A>'s
  output where it reports parameters for each
-view, the last column ("mean resid") shows the mean error (residual) for all
+view (use "alignlog -s" to see), the last column ("mean resid") shows the mean
+error (residual) in pixels
+for all
 of the points on each particular view.  This information will reveal whether
 some views give a poorer fit than others.
 
 <A NAME = "Background Grouping"><H4>
-Background on Grouping Variables and Solving for Distortion
+5.2. Background on Grouping Variables and Solving for Distortion
 </A></H4>
-     Examine the tilt angles, looking for places where they change by unusual
-amounts.  The column labeled "deltilt" shows the difference between the solved
+     Examine the tilt angles (with "alignlog -s"), looking for places where
+they change by unusual amounts.  The column labeled "deltilt" shows the
+difference between the solved
 tilt angle and the original, nominal tilt angle.  This column should change
-gradually (except at reshoots), with a local variability of 0.1 to 0.2
+gradually (except at reshoots), varying from one view to the next by only
+0.1 to 0.2
 degrees.  Low tilt angles cannot be solved for as accurately, so variability
 might be somewhat greater there, but should not be much greater.
 <P>
@@ -715,13 +778,13 @@ sizes, switch from linear grouping to grouping in blocks, solve only for skew
 angle, or give up on solving for distortion.
 
 <A NAME = "Distortion Two"><H4>
-Solving for Distortion - Fiducials on Both Surfaces
+5.3. Solving for Distortion - Fiducials on Both Surfaces
 </A></H4>
      If you have fiducials on both surfaces, make the following changes to
 include distortion:
 <OL>
 <LI> Change the entry for "0 fixed, 1/2/3 all vary..." to 5 for
-automapping.
+automapping of tilt angle variables.
 <LI>      Uncomment the following line to specify the tilt angle grouping;
 for example, "10,0" will
 combine tilt angles for sets of 10 views at a time.
@@ -767,11 +830,11 @@ would add a line with "1,20,10", so that views from 1 to 20 would be grouped
 separately with a group size of 10.  Make similar entries for the distortion
 variables.
 <P>
-     A good alignment has a mean error of 0.25 to 0.5 pixels, or more for
-larger gold particles.
+     A good alignment has a mean residual error of 0.25 to 0.5 pixels, or more
+for larger gold particles.
 
 <A NAME = "Distortion One"><H4>
-Solving for Distortion - Fiducials on Only One Surface
+5.4. Solving for Distortion - Fiducials on Only One Surface
 </A></H4>
      If you have fiducials on only one surface, you can't properly solve for
 both tilt angle and distortion.  If the section has thinned but not distorted,
@@ -802,7 +865,7 @@ can then group tilt angle and skew by 5-10.
 </OL>
 
 <A NAME = "Using Local Alignments"><H4>
-Using Local Alignments
+5.5. Using Local Alignments
 </A></H4>
 
      If you are reconstructing a large area, particularly if you are
@@ -819,7 +882,7 @@ but keep the ratio of measurements to unknowns fairly high (~15).
 <LI> If you did not indicate that you might need to do local alignments when
 you ran Copytomocoms, then you need to add entries to your align.com.  First
 add a line at the end specifying the file in which to place the local
-alignments, typically setnamelocal.xf.  The append the contents of the file
+alignments, typically setnamelocal.xf.  Then append the contents of the file
 $IMOD_DIR/com/localpart.com.
 <LI> Change the entry from 0 to 1 on the line "0 to exit, or 1 to do local
 alignments".
@@ -841,8 +904,25 @@ with:
  The typical result has been that a global mean residual of 0.75-1 is reduced
 to about 0.5 in the local alignments.
 
+<A NAME = "Excluding Views"><H4>
+5.6. Excluding Views
+</A></H4>
+Sometimes there are images in the original data that do not align well or
+that have poor image quality, and that you want to exclude 
+from the alignment and reconstruction.  This can be done by inserting a list
+(comma-separated ranges) of view numbers on the line "list of views to
+exclude" in align.com.  The alignment solution will then be based only on the
+rest of the views.  However, the excluded views will still be included in the
+final aligned stack, so it is important to enter the same list of views to
+exclude in tilt.com to have them excluded from the reconstruction, as described
+in the next section.
+
+
+<A NAME = "GENERATING THE TOMOGRAM"><H3>
+6. POSITIONING AND GENERATING THE TOMOGRAM
+</H3></A>
 <A NAME = "Getting Trial"><H4>
-Getting a Trial Aligned Stack and Tomogram
+6.1. Getting a Trial Aligned Stack and Tomogram
 </A></H4>
      To obtain a sliver of an aligned stack, run newst.com for a non-montaged
 set or blend.com for a montaged one.  Edit these files (the size entry in a
@@ -865,6 +945,10 @@ will not depend on the size of the image.
 level for film, but must be 0 for images from CCD camera.
 <LI> For extra speed, or if your aligned stack is bigger than 10 in Y, add
 a line "slice 1 5 1" to do just 5 slices.
+<LI> If you excluded any views in align.com, add a line
+<BR><CODE>excludelist list_of_views<BR></CODE>
+where <CODE>list_of_views</CODE> should be the same list of views excluded in
+align.com (be sure not to have any spaces in the list).
 </OL>
 <P>
      Examine the tomogram piece in cross-section with 
@@ -886,7 +970,7 @@ amount.  Make this change in align.com and rerun this file.
 
 
 <A NAME = "Sampling"><H4>
-Sampling 3 Areas of Tomogram and Positioning the Section Optimally
+6.2. Sampling 3 Areas of Tomogram and Positioning the Section Optimally
 </A></H4>
 
      The goal of the next step is to shift and rotate your reconstruction so
@@ -917,19 +1001,27 @@ so you may prefer to skip it completely and just use
 <A HREF = "man/tomopitch.html">Tomopitch</A>.
 <P>
      To use <A HREF = "man/tomopitch.html">Tomopitch</A>,
- first load each of the 3 tomograms into Imod.
+ first load all 3 sample tomograms into Imod with a command such as:
+<BR><CODE>    imod top.rec mid.rec bot.rec tomopitch.mod </CODE><BR>
+ (use tomopitcha.mod and topa.rec, etc., for the first axis of a dual-axis 
+data set.)
 Model each edge of the section by drawing a line along
-the boundary.  Just use two points, one on the left and one on the right side
+the boundary in one of the slices for a tomogram sample.
+Just use two points, one on the left and one on the right side
 of the tomogram.  Put the lines for the top and bottom edges in separate
-contours.  In other words, the model should have one object, two contours, two
-points per contour.  Save the model on top.rec as top.mod for a single axis
-data set, or topa.mod or topb.mod for a dual-axis data set.  Then run
+contours.  Use the "1" and "2" keys to switch between samples, and model
+two contours in each sample in the same way.  When you are done, the model 
+should have one object with six contours (two per sample), and two
+points per contour.  Save the model.  
+<P>
+     Next run
 tomopitch.com and examine the result.  For each sample, there is an estimate
 of shift, rotation, and thickness, but your main interest is in the estimates
 based on all three samples.  These appear at the end of the log file as four
 recommendations: the amount of tilt around the X axis, the amount to rotate
 the tilt angles, the amount to shift the tilt axis in Z, and the required
-thickness for the full tomogram.  If the X-axis tilt is small and your
+thickness for the full tomogram.  If the X-axis tilt is small (less
+than 0.4 degrees) and your
 tomogram is going to be small, don't bother with it, and use the
 recommendations before this tilt is taken into account.  Otherwise, use the
 final recommendations.  Note that there is one entry in tomopitch.com
@@ -953,7 +1045,7 @@ back to using <A HREF = "man/tomopitch.html">Tomopitch</A>.
 
 
 <A NAME = "Doing Tilted Samples"><H4>
-Doing Samples with X-axis Tilt or Local Alignments
+6.3. Doing Samples with X-axis Tilt or Local Alignments
 </A></H4>
 
      It is possible to run samples of the tomogram with local alignments or
@@ -969,15 +1061,15 @@ line if you are running sample.com, because sample.com substitutes the correct
 values.  To get samples with these features, modify tilt.com by entering the
 desired X-axis tilt, and/or adding a line with the name of your local
 alignment file, i.e., add
-     localfile setnamelocal.xf
+<CODE><BR>localfile setnamelocal.xf</CODE><BR>.
  Run sample.com.  If you do this on your initial run then make models and run
 <A HREF = "man/tomopitch.html">Tomopitch</A>,
 be sure to ADD the recommended X-axis tilt to the value already
-applied tilt.com.
+applied in tilt.com.
 
 
 <A NAME = "Final Runs"><H4>
-The Final Runs
+6.4. The Final Runs
 </A></H4>
 
      Based on these recommendations from 
@@ -1000,12 +1092,14 @@ Run tilt.com.
 
 
 <A NAME = "COMBINING TWO TOMOGRAMS"><H3>
-COMBINING TWO TOMOGRAMS
+7. COMBINING TWO TOMOGRAMS
 </A></H3>
 
-     To combine two tomograms, you use the file combine.com, which is
-generated by running Setupcombine.  This command file runs a long series
-of programs.  The main programs or shell scripts being run, and the essential
+     To combine two tomograms, you run combine.com, which is a master
+command file to run
+a series of other command files.  All of these command files are 
+generated by running Setupcombine.
+The main programs or shell scripts being run, and the essential
 steps are:
 <UL>
 <LI> <A HREF = "man/solvematch.html">Solvematch</A>:
@@ -1015,15 +1109,16 @@ to determine the 3-D rotation and distortion between the two tomograms.
  Project a zero-degree view of each tomogram, rotate one,
 and use 2-D cross-correlation to find shifts in X and Y.  Then extract a
 small volume from each tomogram (one of which is rotated) and use 3-D
-cross-correlation to find shifts in X, Y and Z.
+cross-correlation to find shifts in X, Y and Z.  This operation and
+the preceding one are run by solvematchshifts.com.
 <LI> <A HREF = "man/matchvol.html">Matchvol</A>:
  Using this initial alignment, generate an initial matching
-volume from one of the tomograms.
+volume from one of the tomograms.  This operation is run by matchvol1.com
 <LI> <A HREF = "man/patchcrawl3d.html">Patchcrawl3d</A>:
  Extract small patches from a regular 3-D array of
 positions in the two volumes (one original, one transformed to match), and
 use 3-D cross-correlation to determine the error (displacement) between the
-two volumes at each position.
+two volumes at each position.  This operation is run by patchcorr.com.
 <LI> <A HREF = "man/matchorwarp.html">Matchorwarp</A>:
  Analyze the displacements with 
 <A HREF = "man/refinematch.html">Refinematch</A>, and if they
@@ -1036,7 +1131,7 @@ then run <A HREF = "man/warpvol.html">Warpvol</A>
  to produce a final matching volume with a series of linear
 transformations.  Warping is done by solving for a series of local 3-D
 transformations and making a gradual transition from one to another in the
-plane of the section.
+plane of the section.  All of these operations are run by matchorwarp.com.
 <LI> Match the density between the two volumes 
 (<A HREF = "man/densmatch.html">Densmatch</A>), then take
 Fourier transforms of each (<A HREF = "man/clip.html">Clip</A>),
@@ -1046,23 +1141,24 @@ Fourier transforms of each (<A HREF = "man/clip.html">Clip</A>),
 (<A HREF = "man/taperoutvol.html">Taperoutvol</A>)
 and recombined (<A HREF = "man/assemblevol.html">Assemblevol</A>),
 because it is much faster to take Fourier transforms of these pieces.
+All of these operations are run by volcombine.com.
 </UL>
 
 <A NAME = "Setting Up"><H4>
-Setting Up
+7.1. Setting Up
 </A></H4>
 
      Go through the following steps before running Setupcombine:
 <OL>
 <LI> Decide which tomogram will be transformed to match the other.
-Typically, the "b" set is matched to the "a" set.  However, if the two
-tomograms are not the same thickness, then the thicker one must be matched to
-the thinner one.  If the section is appreciably flatter in one tomogram, then
+Typically, the "b" set is matched to the "a" set.
+However, if the section is appreciably flatter in one tomogram, then
 the other one should be matched to that one.
 <LI> Examine the tomogram being matched TO and determine the first and last
 slices that contain useful information for cross-correlating the tomograms
-(i.e., are inside the section).  Ignore the gold particles; there is
-too much empty space around them.
+(i.e., are inside the section over most of the area).
+Ignore the gold particles; there is
+too much empty space around them.  
 <LI> Try to determine if there are regions within the section that should
 not be used for correlating the tomograms because they are either empty of
 material or contain reconstruction of poor quality.  You can exclude such
@@ -1092,7 +1188,10 @@ must include at least one from each surface.  To specify correspondences to
 Setupcombine, you enter two lists of numbers.  For example, if
 you are matching "b" to "a", first enter the list of points from "a" which
 have corresponding points in "b", then enter the list of corresponding points
-in "b".
+in "b".  If you used
+<A HREF = "man/transferfid.html">Transferfid</A>, enter the lists that
+it
+provided.
 <LI>
 Decide what size patches to use in Patchcrawl3D.  Ideally, this
 decision would be based on how much high frequency information is in the
@@ -1105,7 +1204,7 @@ particularly fuzzy, go up one size in either case.
 </OL>
 
 <A NAME = "Temporary Combining Storage"><H4>
-Using Temporary Storage for Combining
+7.2. Using Temporary Storage for Combining
 </A></H4>
      It is possible to use temporary disk space when combining two tomograms;
 this is useful if you want to run the combine operation on a machine different
@@ -1130,10 +1229,11 @@ will create a new temporary directory.
 
 
 <A NAME = "Proceeding"><H4>
-Proceeding
+7.3. Proceeding
 </A></H4>
 
-     Run Setupcombine.  There should be nothing to change in combine.com,
+     Run Setupcombine.  After this, there should be nothing to change
+in any of the command files,
 unless you have special needs based on prior experience.
 <P>
      Make sure that the "....tlt" and "...fid.xyz" files produced by
@@ -1142,19 +1242,20 @@ unless you have special needs based on prior experience.
      Check free disk space (df -k). Typically, you need 3 times as much free
 space as one tomogram occupies; Setupcombine provides a more accurate
 estimate.  You may need to delete the aligned tilt
-series (and tape and delete raw tilt series) before proceeding.
+series (and archive and delete raw tilt series) before proceeding.
 <P>
      Run combine.com.  You can monitor the status of the combine operation
-by checking the combine.log file.
-This file is obnoxiously long, but periodically it contains a line starting
-with "STATUS" to report overall progress.  You can pick out these lines by
+by checking the combine.log file, or the log files for the individual
+steps.
+Once it starts running
+volcombine.com, you can check the progress easily by
 entering
 <BR><CODE>
-   grep STATUS combine.log
+   grep STATUS volcombine.log
 <BR></CODE>
 <P>
 When the combining is done (or sooner, if the tomogram is large),
-check the combine.log file to see how good the registration between the two
+check the matchorwarp.log file to see how good the registration between the two
 volumes is.  After <A HREF = "man/patchcrawl3d.html">Patchcrawl3d</A>
 runs, you
 will see <A HREF = "man/refinematch.html">Refinematch</A>'s
@@ -1163,7 +1264,7 @@ locations after applying a single linear transformation.  Then there will be
 either a message that <A HREF = "man/matchvol.html">Matchvol</A>
  is being run, or a message that warping is
 needed.  In the latter case, <A HREF = "man/findwarp.html">Findwarp</A>
- may run several times; just above a
+may run several times; just above a
 message that <A HREF = "man/warpvol.html">Warpvol</A>
  is being run next will be a report on the mean and
 maximum of the mean residuals.  If the mean is reasonable but the maximum is
@@ -1174,8 +1275,8 @@ and consider whether to take any of the remedial
 actions described below.
 
 
-<A NAME = "Problems in Combining"><H4>
-Problems in Combining
+<A NAME = "Initial Problems in Combining"><H4>
+7.4. Initial Registration Problems in Combining
 </A></H4>
 
      If combine.com fails right away, this is probably because of a bad
@@ -1205,9 +1306,15 @@ make models of corresponding points by loading both tomograms into Imod with
 corresponding points, as described in the man page for
  <A HREF = "man/solvematch.html">Solvematch</A>.  If you are
 marking gold particles, put the model point on the section with the strongest
-white side bands around the black bead.  Uncomment the "goto usemodels"
-entry in combine.com and rerun it.
-<P>
+white side bands around the black bead.  Edit combine.com to comment
+out the two lines referring
+to solvematchshift.com (the "echo" and "vmstocsh" lines),
+and uncomment the two corresponding lines referring to solvematchmod.com.
+Rerun combine.com.
+
+<A NAME = "Patch Problems in Combining"><H4>
+7.5. Patch Correlation Problems in Combining
+</A></H4>
      If combine.com exits because neither 
 <A HREF = "man/refinematch.html">Refinematch</A>
  nor <A HREF = "man/findwarp.html">Findwarp</A> could find
@@ -1235,20 +1342,21 @@ with larger patches.  Modify the first three entries on the
 <A HREF = "man/patchcrawl3d.html">Patchcrawl3d</A>
 command line in combine.com.  A 25% increase in each dimension is recommended,
 as this will double the volume of the patches and substantially improve
-accuracy.  Uncomment the "goto dopatch" entry at the top of combine.com and
+accuracy.  Uncomment the "goto patchcorr" entry at the top of combine.com and
 rerun the command file.
 <P>
      2) If displacements generally look fairly regular but there are a large 
 number of bad patches in well-defined regions, it may be easiest to make a
 model with contours enclosing the regions with good patches, or to modify
-such a model if you have already made one.  Do do this while looking at the
+such a model if you have already made one.  To do this while looking at the
 patch vector model, you would have to load the tomogram being matched to into
 a separate Imod and make or edit the boundary contour model there, while
 trying to correlate positions between the tomogram and the patch vector model.
 If you do make a new model of boundary contours, add the entries "-modelfile"
-and the model filename right after the "matchorwarp" line in combine.com.
-With either a new or a modified model, uncomment the "goto domatchorwarp" 
-entry at the top of combine.com and rerun the command file.
+and the model filename right after the "matchorwarp" line in matchorwarp.com.
+With either a new or a modified model, uncomment and change the "goto"
+entry to be "goto matchorwarp" 
+at the top of combine.com and rerun combine.com.
 <P>
      3) If bad patches are fairly scattered and not too numerous, it is most
 appropriate to edit them out.  To do this, position the mouse on an aberrant
@@ -1257,7 +1365,7 @@ view window and press the third mouse button to select
 this contour in the Zap window.  If you have any doubt about which contour you
 selected, use the [ and ] hotkeys in the Zap window to examine the
 starting and ending points of the contour.  The starting point will be at a
-regular position in array, while the ending point should be
+regular position in the array, while the ending point should be
 displaced by an unusual amount.
 Delete the contour with the "D" hotkey in the Zap window;
 it will disappear from the model view
@@ -1265,33 +1373,69 @@ window also.  When finished, save the model and exit.  Then run
 <A HREF = "man/imod2patch.html">Imod2patch</A>:
 <CODE><BR>     imod2patch patchvector.mod patch.out    </CODE><BR>
  You may want to rename the existing patch.out before doing this.  Uncomment
-the "goto domatchorwarp" entry at the top of combine.com and rerun the command
-file.
+and change the "goto" entry to be "goto matchorwarp" at the top of
+combine.com and rerun combine.com. 
 <P>
      4) If the patch vector model indicates that bad patches are numerous near
-edges of the volume, or if all else fails, you will need to run 
+edges of the volume, next explore whether omitting
+a whole column or row of patches will give an acceptable fit to
+the remaining patches.  To do this, run 
+<A HREF = "man/matchorwarp.html">Matchorwarp</A>
+in trial mode by editing matchorwarp.com and inserting the argument
+"-trial" on the "matchorwarp" command line.  Also insert one or more
+arguments such as
+"-xlower 1," or "-zupper 2" to exclude one column of patches on the
+left or two rows of patches on the top.  Be sure to place any added
+arguments before the continuation mark, "\".  Run this command file with
+<CODE><BR>subm matchorwarp</CODE><BR> and examine results in matchorwarp.log.
+Do this repeatedly to assess different row or column exclusions.
+If you find an exclusion that gives a good fit, and the excluded area is not
+a critical area where you would expect a better fit, then proceed with this
+exclusion.  Remove the "-trial" argument from matchorwarp.com, uncomment
+and change the "goto" entry to be "goto matchorwarp" at the top of
+combine.com and rerun combine.com. 
+<P>
+     5) Sometimes the lowest mean residual that
+Findwarp is able to achieve (the last message in matchorwarp.log saying
+ "Findward failed to find
+a warping with a mean residual below") is actually an acceptable value, just a
+bit higher than the highest acceptable mean residual specified in
+matchorwarp.com.  If
+this is the case, just change the highest value in the "-warplimit" argument in
+matchorwarp.com to be higher than the value shown in this message.
+Uncomment
+and change the "goto" entry to be "goto matchorwarp" at the top of
+combine.com and rerun combine.com. 
+<P>
+     6) If all else fails, it may help to run 
 <A HREF = "man/findwarp.html">Findwarp</A>
-interactively.  See the man page for 
-<A HREF = "man/findwarp.html">Findwarp</A>.  First explore whether omitting
-a whole column or row of patches will dramatically improve the fit to all of
-the remaining patches.  If this fit is adequate (e.g., residual < 0.3), then
-you can exit, saving a single refining transformation in a file named
-refine.xf.  In this case, uncomment the "goto domatch" entry at the top of
-combine.com and rerun the command file.  Otherwise, examine results with
+interactively.  This will allow you to explore omitting
+columns or rows of patches as well as select the number of patches that will
+be used in each local fit.
+See the man page for 
+<A HREF = "man/findwarp.html">Findwarp</A>.
+When running the program, examine results with
 transformations based on various subsets of patches, but no fewer than 3 by 3
 by 2 or 4 by 2 by 2.  Try to retain all of the rows and columns if possible.
 Use the largest subset of patches that will give a mean residual error under
 about 0.2 pixels.  Save the transformations in a file named warp.xf.
-Uncomment the "goto dowarp" entry at the top of combine.com and rerun the
-command file.
+Uncomment and change the "goto" entry to "goto warpvol" at the top of 
+combine.com, uncomment the "vmstocsh" line that runs warpvol.com, and rerun
+combine.com.
 
 
-<A NAME = "SCALING AND TRIMMING"><H3>
-SCALING AND TRIMMING A TOMOGRAM
-</A></H3>
+<A NAME = "POST-PROCESSING"><H3>
+8. POST-PROCESSING
+</H3></A>
 
-     <A HREF = "man/trimvol.html">Trimvol</A> is a single tool for trimming a volume and converting it to
-bytes.  It can run Findcontrast to find optimal contrast settings for
+<A NAME = "Scaling and Trimming"><H4>
+8.1. Scaling and Trimming a Tomogram
+</A></H4>
+
+     <A HREF = "man/trimvol.html">Trimvol</A> is a single tool for
+trimming a volume and converting it to
+bytes.  It can run <A HREF = "man/findcontrast.html">Findcontrast</A>
+ to find optimal contrast settings for
 converting it to bytes, and runs Newstack to make the final byte file. If you
 simply convert a tomogram to bytes without a contrast setting, then the
 contrast range for features of interest can be quite compressed and it can be
@@ -1328,7 +1472,10 @@ show up as white pixels; this slider value is the upper contrast limit.  Enter
 <BR><CODE>
    trimvol -c black,white sum.rec setname.rec
 <BR></CODE>
-
+<P>
+     Finally, you can also use the "-yz" flag to 
+<A HREF = "man/trimvol.html">Trimvol</A> to flip the
+tomogram, so that you no longer have to load it into Imod with -Y.
 <P>
      If your images were acquired on a CCD camera with limited spatial
 resolution, you may be able to reduce the size of the final volume
@@ -1337,7 +1484,7 @@ considerably with no perceptible loss of image detail.  The shell script
 provides an easy interface for scaling a volume down by
 interpolation using 
 <A HREF = "man/matchvol.html">Matchvol</A>.  Since resolution is worse in the direction
-perpendicular to the plane of the section (the Y direction in a flipped
+perpendicular to the plane of the section (the Y direction in an unflipped
 tomogram), it could be appropriate to squeeze the volume more in that
 dimension.  For example, if the CCD camera provides no useful information
 above 0.8 of Nyquist, an overall reduction by 1.25 would be appropriate, 
@@ -1348,12 +1495,18 @@ with:
 <BR><CODE>
    squeezevol -f 1.25 -y 1.62 setname.rec setname.sqz
 <BR></CODE>
+Note that if you have already flipped the volume, you would use "-z"
+instead of "-y".  If you choose anistropic squeezing, you need to
+increase the Z-scale that you use for viewing models built on that
+volume
+by the amount of extra squeezing in that dimension.  For example, if
+you usually have a Z-scale of 1.6, you would need a Z-scale of 2.07
+after the squeezing operation shown above.
 
 
-
-<A NAME = "CLEANING UP"><H3>
-CLEANING UP
-</A></H3>
+<A NAME = "Cleaning Up"><H4>
+8.2. Cleaning Up
+</A></H4>
 
 
      Cleaning up your files is very important!  If you do want a copy of one
