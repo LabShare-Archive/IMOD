@@ -24,18 +24,32 @@ import etomo.util.Montagesize;
 public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
+  private String title;
+  
   public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
     super(appMgr, id);
     logFileBasename = BlendmontParam.getCommandFileName(mode);
+    switch (mode) {
+    case BlendmontParam.XCORR_MODE:
+      title = "Cross-correlation";
+      break;
+    case BlendmontParam.PREBLEND_MODE:
+      title = "Coarse alignment";
+      break;
+    case BlendmontParam.BLEND_MODE:
+      title = "Full alignment";
+      break;
+
+    }
   }
   
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("blendmont", 1, axisID);
+      applicationManager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("blendmont", nSections, axisID);
+    applicationManager.getMainPanel().setProgressBar(title + ": blendmont", nSections, axisID);
   }
   
   protected void getCurrentSection() throws NumberFormatException, IOException {
@@ -71,6 +85,11 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/03/09 22:28:07  sueh
+* <p> bug# 533 Documenting how timeout starts.  Timeout is necessary when
+* <p> blendmont is run from xcorr since it finishes before tiltxcorr and no
+* <p> interrupt is sent until xcorr.com is complete.
+* <p>
 * <p> Revision 1.2  2005/03/09 18:01:36  sueh
 * <p> bug# 533 Passing the mode (xcorr, blend, preblend) to the blendmont
 * <p> process monitor.
