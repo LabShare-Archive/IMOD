@@ -12,6 +12,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/09/05 00:15:52  mast
+c	  Incorporated changes from "supermtl" version for correcting for
+c	  obliqueness, and implemented PIP input
+c	
 c	  
 c	  David Mastronarde  1/27/90; modified for IMOD 4/4/97
 c
@@ -483,8 +487,12 @@ c		  write(iout,'(i4,i5,f12.4)')imodobj,imodcont,sum
 c	  SCALEZ will scale the Z index coordinate ZZ by first remapping
 c	  the Z values via the tilt remappings, then by multiplying by ZSCAL
 c
-	function scalez(zz,zscal,tiltzstrt,remapz,costilt,ntilts)
+	real*4 function scalez(zz,zscal,tiltzstrt,remapz,costilt,ntilts)
+	implicit none
 	real*4 tiltzstrt(*),remapz(*),costilt(*)
+	real*4 zz,zscal
+	real*4 scalezz
+	integer*4 itilt,ntilts
 	scalez=zz
 	if(ntilts.gt.0)then
 	  if(zz.ge.tiltzstrt(1))then
@@ -500,8 +508,10 @@ c
 	end
 
 
-	function untiltlen(dx,dy,dz,zscal,costilt,sintilt,cosaxis,
+	real*4 function untiltlen(dx,dy,dz,zscal,costilt,sintilt,cosaxis,
      &	    sinaxis)
+	implicit none
+	real*4 dx,dy,dz,zscal,costilt,sintilt,cosaxis,sinaxis, xv, yv, t
 	xv=dx*cosaxis-dy*sinaxis
 	yv=dx*sinaxis+dy*cosaxis
 	t=dz*zscal
@@ -509,8 +519,10 @@ c
 	return
 	end
 
-	function lookuptilt(zz,tiltzstrt,ntilts)
-	real*4 tiltzstrt(*)
+	integer*4 function lookuptilt(zz,tiltzstrt,ntilts)
+	implicit none
+	real*4 tiltzstrt(*),zz
+	integer*4 ntilts, itilt
 	itilt=0
 	if(ntilts.gt.0.and.zz.ge.tiltzstrt(1))then
 	  itilt=ntilts
