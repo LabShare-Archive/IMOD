@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/23 22:29:29  sueh
+* <p> bug# 520 Converted finalStart and end to EtomoNumbers.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:56:59  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -168,6 +171,7 @@ public class FinishjoinParam implements Command {
   
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
+    options.add("-P");
     if (metaData.getUseAlignmentRefSection()) {
       options.add("-r");
       options.add(metaData.getAlignmentRefSection().toString());
