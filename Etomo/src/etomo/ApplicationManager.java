@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/02/05 18:05:32  sueh
+ * <p> bug# 306 get the trimvol params from the screen and set
+ * <p> swapYZ for 3dmod
+ * <p>
  * <p> Revision 3.10  2004/02/05 00:19:07  sueh
  * <p> bug# 292 preserving contrast in view x-ray model, changed
  * <p> imodXrayModel()
@@ -637,7 +641,8 @@ public class ApplicationManager {
   public ApplicationManager(String[] args) {
     //  Initialize the program settings
     String testParamFilename = initProgram(args);
-
+    imodManager = new ImodManager(this);
+    
     //  Create a new main window and wait for an event from the user
     if (!test) {
       mainFrame = new MainFrame(this);
@@ -723,8 +728,8 @@ public class ApplicationManager {
 
         isDataParamDirty = true;
 
-        //  Initialize a new IMOD manager
-        imodManager = new ImodManager(this, metaData);
+        //final initialization of IMOD manager
+        imodManager.setMetaData(metaData);
       }
       else {
         String[] errorMessage = new String[2];
@@ -1123,23 +1128,31 @@ public class ApplicationManager {
     mainFrame.stopProgressBar(axisID);
   }
 
-  public void imodRawStack(AxisID axisID) {
-    if (imodManager == null) {
-      if (setupDialog != null) {
-        metaData = setupDialog.getFields();
-      }
-      if (metaData.isDatasetNameValid()) {
-        imodManager = new ImodManager(this, metaData);
-      }
-      else {
-        mainFrame.openMessageDialog(
-          metaData.getInvalidReason(),
-          "Raw Image Stack");
-        return;
-      }
+  public void imodPreview(AxisID axisID) {
+    if (setupDialog == null) {
+      return;
+    }
+    String key = ImodManager.PREVIEW_KEY;
+    MetaData metaData = setupDialog.getFields();
+    imodManager.setPreviewMetaData(metaData);
+    File previewWorkingDir =
+      metaData.getValidDatasetDirectory(
+        setupDialog.getWorkingDirectory().getAbsolutePath());
+    if (previewWorkingDir == null) {
+      mainFrame.openMessageDialog(
+        metaData.getInvalidReason(),
+        "Raw Image Stack");
+      return;
     }
     try {
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID);
+      int previewNumber = imodManager.create(key, axisID);
+      imodManager.setWorkingDirectory(
+        key,
+        axisID,
+        previewNumber,
+        previewWorkingDir);
+
+      imodManager.open(key, axisID, previewNumber);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1151,8 +1164,8 @@ public class ApplicationManager {
         except.getMessage(),
         "Problem opening raw stack");
     }
-
   }
+
   /**
    * Open the coarse alignment dialog
    */
@@ -3564,7 +3577,9 @@ public class ApplicationManager {
     TrimvolParam trimvolParam = new TrimvolParam();
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
-      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam.isSwapYZ());
+      imodManager.setSwapYZ(
+        ImodManager.TRIMMED_VOLUME_KEY,
+        !trimvolParam.isSwapYZ());
       //imodManager.openTrimmedVolume();
       imodManager.open(ImodManager.TRIMMED_VOLUME_KEY);
     }
@@ -3841,7 +3856,7 @@ public class ApplicationManager {
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
 
       //  Initialize a new IMOD manager
-      imodManager = new ImodManager(this, metaData);
+      imodManager.setMetaData(metaData);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -4098,10 +4113,10 @@ public class ApplicationManager {
       if (args[i].equals("--demo")) {
         demo = true;
       }
-      
-			if (args[i].equals("--test")) {
-				test = true;
-			}
+
+      if (args[i].equals("--test")) {
+        test = true;
+      }
     }
     return testParamFilename;
   }
@@ -4184,12 +4199,8 @@ public class ApplicationManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(
-        except.getMessage(),
-        "Problem closing 3dmod");
+      mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
     }
-
-
     return true;
   }
 
