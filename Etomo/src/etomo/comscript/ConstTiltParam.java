@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/24 18:11:55  rickg
+ * <p> xAxisTilt default value corrected
+ * <p>
  * <p> Revision 3.1  2004/03/24 02:55:44  rickg
  * <p> Bug# 395 Implemented ability to create binned tomogram
  * <p>
@@ -136,6 +139,8 @@ public class ConstTiltParam {
   protected String xTiltFile;
 
   protected int xTiltInterp;
+  
+  protected boolean fiducialess;
 
   public ConstTiltParam() {
     reset();
@@ -185,6 +190,7 @@ public class ConstTiltParam {
     xAxisTilt = Float.NaN;
     xTiltFile = "";
     xTiltInterp = Integer.MIN_VALUE;
+    fiducialess = false;
   }
 
   public String getInputFile() {
