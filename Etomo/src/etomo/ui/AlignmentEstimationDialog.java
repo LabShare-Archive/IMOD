@@ -2,16 +2,22 @@ package etomo.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.TiltalignParam;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -26,6 +32,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/10/28 00:22:07  rickg
+ * <p> Bug# 309 Capitalized align log tabs
+ * <p>
  * <p> Revision 2.12  2003/10/28 00:13:41  rickg
  * <p> Bug# 309 Capitalized align log tabs
  * <p>
@@ -154,15 +163,15 @@ public class AlignmentEstimationDialog
 
   private JPanel panelButton = new JPanel();
 
-  private JToggleButton buttonComputeAlignment =
+  private JToggleButton btnComputeAlignment =
     new JToggleButton("<html><b>Compute Alignment</b>");
 
-  private JButton buttonImod =
-    new JButton("<html><b>View/Edit Model In 3dmod</b>");
+  private JButton btnImod =
+    new JButton("<html><b>View/Edit Fiducial Model</b>");
 
-  private JButton buttonView3DModel = new JButton("<html><b>View 3D Model</b>");
+  private JButton btnView3DModel = new JButton("<html><b>View 3D Model</b>");
 
-  private JButton buttonViewResiduals =
+  private JButton btnViewResiduals =
     new JButton("<html><b>View Residual Vectors</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
@@ -173,19 +182,25 @@ public class AlignmentEstimationDialog
     buttonExecute.setText("Done");
 
     //  Create the first tiltalign panel
-    GridLayout buttonLayout = new GridLayout(1, 4);
-    buttonLayout.setHgap(10);
-    panelButton.setLayout(buttonLayout);
+    panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.X_AXIS));
 
-    Dimension dimButton = new Dimension(80, 60);
-    buttonComputeAlignment.setPreferredSize(dimButton);
-    buttonImod.setPreferredSize(dimButton);
-    buttonViewResiduals.setPreferredSize(dimButton);
-    buttonView3DModel.setPreferredSize(dimButton);
-    panelButton.add(buttonComputeAlignment);
-    panelButton.add(buttonImod);
-    panelButton.add(buttonView3DModel);
-    panelButton.add(buttonViewResiduals);
+    Dimension dimButton = UIParameters.getButtonDimension();
+    btnComputeAlignment.setPreferredSize(dimButton);
+    btnComputeAlignment.setMaximumSize(dimButton);
+    btnImod.setPreferredSize(dimButton);
+    btnImod.setMaximumSize(dimButton);
+    btnViewResiduals.setPreferredSize(dimButton);
+    btnViewResiduals.setMaximumSize(dimButton);
+    btnView3DModel.setPreferredSize(dimButton);
+    btnView3DModel.setMaximumSize(dimButton);
+
+    panelButton.add(btnComputeAlignment);
+    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButton.add(btnImod);
+    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButton.add(btnView3DModel);
+    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButton.add(btnViewResiduals);
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.Y_AXIS));
     panelAlignEst.setBorder(border.getBorder());
 
@@ -207,10 +222,10 @@ public class AlignmentEstimationDialog
     AlignmentEstimationActionListner actionListener =
       new AlignmentEstimationActionListner(this);
 
-    buttonComputeAlignment.addActionListener(actionListener);
-    buttonView3DModel.addActionListener(actionListener);
-    buttonViewResiduals.addActionListener(actionListener);
-    buttonImod.addActionListener(actionListener);
+    btnComputeAlignment.addActionListener(actionListener);
+    btnView3DModel.addActionListener(actionListener);
+    btnViewResiduals.addActionListener(actionListener);
+    btnImod.addActionListener(actionListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -220,6 +235,7 @@ public class AlignmentEstimationDialog
     // Set the default advanced state
     updateAdvanced(isAdvanced);
     panelTiltalign.setFirstTab();
+    setToolTipText();
   }
 
   public void setTiltalignParams(TiltalignParam tiltalignParam) {
@@ -248,7 +264,7 @@ public class AlignmentEstimationDialog
     String[] logWindowLabel = { "Align" };
 
     if (axisID != AxisID.ONLY) {
-      logWindowLabel[0] = "Align Axis:" + axisID.getExtension();  
+      logWindowLabel[0] = "Align Axis:" + axisID.getExtension();
     }
 
     String[] alignLabels =
@@ -288,27 +304,6 @@ public class AlignmentEstimationDialog
         logFile);
   }
 
-  //  Event handler for panel buttons
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
-
-    if (command.equals(buttonComputeAlignment.getActionCommand())) {
-      applicationManager.fineAlignment(axisID);
-    }
-
-    else if (command.equals(buttonImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID);
-    }
-
-    else if (command.equals(buttonView3DModel.getActionCommand())) {
-      applicationManager.imodView3DModel(axisID);
-    }
-
-    else if (command.equals(buttonViewResiduals.getActionCommand())) {
-      applicationManager.imodViewResiduals(axisID);
-    }
-  }
-
   //  Action function overides for exit buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
@@ -332,21 +327,62 @@ public class AlignmentEstimationDialog
 
   //  This is a separate function so it can be called at initialization time
   //  as well as from the button action above
-  void updateAdvanced(boolean state) {
+  private void updateAdvanced(boolean state) {
     panelTiltalign.setAdvanced(isAdvanced);
     applicationManager.packMainWindow();
   }
-}
 
-//  ActionListener class for buttons
-class AlignmentEstimationActionListner implements ActionListener {
+  //  Event handler for panel buttons
+  private void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
 
-  AlignmentEstimationDialog adaptee;
-  AlignmentEstimationActionListner(AlignmentEstimationDialog adaptee) {
-    this.adaptee = adaptee;
+    if (command.equals(btnComputeAlignment.getActionCommand())) {
+      applicationManager.fineAlignment(axisID);
+    }
+
+    else if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodFixFiducials(axisID);
+    }
+
+    else if (command.equals(btnView3DModel.getActionCommand())) {
+      applicationManager.imodView3DModel(axisID);
+    }
+
+    else if (command.equals(btnViewResiduals.getActionCommand())) {
+      applicationManager.imodViewResiduals(axisID);
+    }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
+  //	ActionListener class for buttons
+  class AlignmentEstimationActionListner implements ActionListener {
+
+    AlignmentEstimationDialog adaptee;
+    AlignmentEstimationActionListner(AlignmentEstimationDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+  }
+
+  /**
+   * Initialize the tooltip text for the axis panel objects
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text = "Run Tiltalign with current parameters.";
+    btnComputeAlignment.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View fiducial model on the image stack in 3dmod.";
+    btnImod.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View model of solved 3D locations of fiducial points in 3dmodv.";
+    btnView3DModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Show model of residual vectors (exaggerated 10x) on the image stack.";
+    btnViewResiduals.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
