@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import junit.framework.TestCase;
 
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 
 /**
@@ -18,7 +19,10 @@ import etomo.process.SystemProgram;
  *
  * @version $$$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 3.5  2004/05/26 17:16:39  sueh
+ * <p> $bug# 355 correcting tests
+ * <p> $$ </p>
 */
 
 public class ConstMetaDataTest extends TestCase {
@@ -77,7 +81,7 @@ public class ConstMetaDataTest extends TestCase {
    
     //create test site
     testInst = new MetaData();
-    testDir = new File(System.getProperty("user.dir"), testDirName);
+    testDir = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), testDirName);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
     }
@@ -399,10 +403,8 @@ public class ConstMetaDataTest extends TestCase {
 
     //invalid directories
     //non-existant directories
-
-    String workingDir =
-      System.setProperty(
-        "user.dir", dummyDir.getAbsolutePath());
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    String workingDir = etomoDirector.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
     testInst.setDatasetName(validDatasetName);
     assertFalse(testInst.isDatasetNameValid());
@@ -416,7 +418,7 @@ public class ConstMetaDataTest extends TestCase {
     //problems with the working directory
     //invalid backup directory is ignored while invalid working directory exists
     //unreadable working directory
-    System.setProperty("user.dir", unreadableDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(unreadableDir.getAbsolutePath());
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
@@ -426,7 +428,7 @@ public class ConstMetaDataTest extends TestCase {
       fail("invalidReason =" + invalidReason);
     }
     //unwritable working directory
-    System.setProperty("user.dir", unwritableDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(unwritableDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
@@ -437,7 +439,7 @@ public class ConstMetaDataTest extends TestCase {
     }
     //problems with the backup directory
     //unreadable backup directory
-    System.setProperty("user.dir", dummyDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
@@ -461,28 +463,28 @@ public class ConstMetaDataTest extends TestCase {
     //file A not found
     testInst.setAxisType(AxisType.DUAL_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
-    System.setProperty("user.dir", unreadableFileDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     //single axis
     testInst.setAxisType(AxisType.SINGLE_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
-    System.setProperty("user.dir", unreadableFileDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
     assertFalse(testInst.isDatasetNameValid());
     
     //Test successes
     testInst.setDatasetName(validDatasetName);
-    System.setProperty("user.dir", validFileDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
 
     //working dir, single axis
     assertTrue(testInst.isDatasetNameValid());
 
     //backup dir, dual axis
-    System.setProperty("user.dir", emptyDir.getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isDatasetNameValid());
 
-    System.setProperty("user.dir", workingDir);
+    etomoDirector.setCurrentPropertyUserDir(workingDir);
 
   }
 
@@ -492,8 +494,8 @@ public class ConstMetaDataTest extends TestCase {
    */
   final public void testIsValid() {
     String invalidReason;
-    String workingDir =
-      System.setProperty("user.dir", validFileDir.getAbsolutePath());
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    String workingDir = etomoDirector.setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
     //Test failures
     
     //Testing boolean isValid(boolean fromSetupScreen)
@@ -565,7 +567,7 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setFiducialDiameter(15);
     assertTrue(testInst.isValid(true));
 
-    System.setProperty("user.dir", workingDir);
+    etomoDirector.setCurrentPropertyUserDir(workingDir);
 
   }
 }
