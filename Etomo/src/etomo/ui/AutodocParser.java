@@ -4,7 +4,7 @@ import java.io.File;
 //import java.io.FileReader;
 //import java.lang.IllegalArgumentException;
 import java.io.IOException;
-//import java.lang.IllegalStateException;
+import java.lang.IllegalStateException;
 //import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 import java.util.Vector;
@@ -23,6 +23,10 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2003/12/23 21:32:25  sueh
+* <p> $bug# 372 Reformating.  Creating parser.  Test function for
+* <p> $preprocessor.  Fixing preprocessor.
+* <p> $
 * <p> $Revision 1.1  2003/12/22 23:48:50  sueh
 * <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
 * <p> $autodoc data.
@@ -37,13 +41,42 @@ public class AutodocParser {
   private String name = null;
   private File file = null;
   private Vector line = null;
-  private int lineIndex = 0;
+  private Vector prevLine = null;
+  private int tokenIndex = 0;
   private Autodoc autodoc = null;
-  Token token = null;
+  private Token token = null;
+  private Token prevToken = null;
+
+  //error flags
+  private boolean errorsFound = false;
+  private boolean error = false;
+
+  //testing flags
+  private boolean test = false;
+  private boolean detailedTest = false;
+  private boolean testWithTokens = false;
+  private int lastTokenType = Token.NULL;
+  private int testIndent = -1;
+
   //Preprocessor flags
   private boolean startOfLine = true;
   private boolean delimiterInLine = false;
   private boolean emptyLine = false;
+  private int lineNum = 0;
+
+  //Postprocessor flags
+  private boolean versionFound = false;
+  private boolean pipFound = false;
+
+  //Values
+  private Token sectionTypeStart = null;
+  private Token sectionTypeEnd = null;
+  private Token sectionNameStart = null;
+  private Token sectionNameEnd = null;
+  private Token attributeNameStart = null;
+  private Token attributeNameEnd = null;
+  private Token valueStart = null;
+  private Token valueEnd = null;
 
   public AutodocParser(Autodoc autodoc, File file) {
     if (autodoc == null) {
@@ -68,22 +101,28 @@ public class AutodocParser {
    * @throws IOException
    */
   public void parse() throws IOException {
-    do {
-      nextToken();
+    testStartFunction("parse");
+    nextToken();
+    while (!token.is(Token.EOF)) {
+      error = false;
       if (emptyLine) {
-        break;
+        nextToken();
+        continue;
       }
-      if (comment()) {
-        break;
+      if (testEndFunction(comment())) {
+        continue;
       }
-      if (section()) {
-        break;
+      if (testEndFunction(section())) {
+        continue;
       }
-      if (attribute()) {
-        break;
+      if (testEndFunction(attribute(autodoc))) {
+        processMetaData();
+        continue;
       }
+      reportError("Unknown statement.");
     }
-    while (!token.is(Token.EOF));
+    postprocess();
+    testEndFunction(true);
   }
 
   /**
@@ -93,6 +132,7 @@ public class AutodocParser {
    * @throws IOException
    */
   private boolean comment() throws IOException {
+    testStartFunction("comment");
     if (!startOfLine) {
       return false;
     }
@@ -106,7 +146,9 @@ public class AutodocParser {
     while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
       nextToken();
     }
-
+    if (!token.is(Token.EOF)) {
+      nextToken();
+    }
     return true;
   }
 
@@ -117,7 +159,9 @@ public class AutodocParser {
    * @throws IOException
    */
   private boolean section() throws IOException {
-    if (!startOfLine || !delimiterInLine) {
+    AttributeInterface section = null;
+    testStartFunction("section");
+    if (!startOfLine) {
       return false;
     }
     if (token.is(Token.WHITESPACE)) {
@@ -126,20 +170,32 @@ public class AutodocParser {
     if (!token.is(Token.OPEN)) {
       return false;
     }
+    if (!delimiterInLine) {
+      reportError(
+        "A section header must contain a delimiter (\""
+          + tokenizer.getDelimiterString()
+          + "\").");
+      return false;
+    }
     nextToken();
-    if (!sectionHeader()) {
+    section = sectionHeader();
+    if (testEndFunction(section == null)) {
       return false;
     }
     if (!token.is(Token.CLOSE)) {
+      reportError(
+        "A section header must end with '"
+          + AutodocTokenizer.CLOSE_CHAR
+          + "'.");
       return false;
     }
     nextToken();
     while (!token.is(Token.EOF)) {
-      if (emptyLine) {
+      if (token.is(Token.WHITESPACE) || token.is(Token.EOL) || emptyLine) {
         nextToken();
       }
       else {
-        if (!attribute()) {
+        if (!testEndFunction(attribute(section))) {
           return true;
         }
       }
@@ -154,29 +210,48 @@ public class AutodocParser {
    * @return true if sectionHeader found
    * @throws IOException
    */
-  private boolean sectionHeader() throws IOException {
-    if (startOfLine || !delimiterInLine) {
-      return false;
+  private Section sectionHeader() throws IOException {
+    testStartFunction("sectionHeader");
+    if (startOfLine) {
+      reportError(
+        "A section header must start with '"
+          + AutodocTokenizer.OPEN_CHAR
+          + "'.");
+      return null;
     }
-    if (!token.is(Token.WORD)) {
-      return false;
+    if (!delimiterInLine) {
+      reportError(
+        "A section header must contain a delimiter (\""
+          + tokenizer.getDelimiterString()
+          + "\").");
+      return null;
     }
+    if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
+      reportError("A section header must contain a section type.");
+      return null;
+    }
+    sectionTypeStart = token;
+    sectionTypeEnd = sectionTypeStart;
     nextToken();
     if (token.is(Token.WHITESPACE)) {
       nextToken();
     }
-    nextToken();
     if (!token.is(Token.DELIMITER)) {
-      return false;
+      reportError(
+        "A section header must contain a delimiter (\""
+          + tokenizer.getDelimiterString()
+          + "\").");
+      return null;
     }
     nextToken();
     if (token.is(Token.WHITESPACE)) {
       nextToken();
     }
-    if (!sectionName()) {
-      return false;
+    if (!testEndFunction(sectionName())) {
+      reportError("A section header must contain a section name.");
+      return null;
     }
-    return true;
+    return autodoc.addSection(sectionTypeStart, sectionNameStart);
   }
 
   /**
@@ -185,9 +260,23 @@ public class AutodocParser {
    * @return true if sectionName found
    */
   private boolean sectionName() throws IOException {
-    if (startOfLine || !delimiterInLine) {
+    testStartFunction("sectionName");
+    if (startOfLine) {
+      reportError(
+        "A section header must start with '"
+          + AutodocTokenizer.OPEN_CHAR
+          + "'.");
       return false;
     }
+    if (!delimiterInLine) {
+      reportError(
+        "A section header must contain a delimiter (\""
+          + tokenizer.getDelimiterString()
+          + "\").");
+      return false;
+    }
+    sectionNameStart = token;
+    sectionNameEnd = sectionNameStart;
     boolean found = false;
     while (!token.is(Token.CLOSE)
       && !token.is(Token.WHITESPACE)
@@ -195,8 +284,12 @@ public class AutodocParser {
       && !token.is(Token.EOF)) {
       found = true;
       nextToken();
+      sectionNameEnd = sectionNameEnd.setNext(token);
     }
+    sectionNameEnd = sectionNameEnd.dropFromList();
     if (!found) {
+      sectionNameStart = null;
+      reportError("A section header must contain a section name.");
       return false;
     }
     return true;
@@ -208,17 +301,31 @@ public class AutodocParser {
    * @return true if attribute found
    * @throws IOException
    */
-  private boolean attribute() throws IOException {
-    if (!startOfLine || !delimiterInLine) {
+  private boolean attribute(AttributeInterface attribute) throws IOException {
+    Attribute newAttribute = null;
+    testStartFunction("attribute");
+    if (!delimiterInLine) {
+      reportError(
+        "A multi-line value cannot contain embedded empty lines or comments starting with '"
+          + AutodocTokenizer.COMMENT_CHAR
+          + "'.");
       return false;
     }
-    if (!token.is(Token.WORD)) {
+    if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
       return false;
     }
+    attributeNameStart = token;
+    attributeNameEnd = attributeNameStart;
+    newAttribute = (Attribute) attribute.addAttribute(attributeNameStart);
     nextToken();
     if (token.is(Token.SEPARATOR)) {
-      while (token.is(Token.SEPARATOR) && !token.is(Token.EOF)) {
-        if (!attribute()) {
+      while (token.is(Token.SEPARATOR)) {
+        nextToken();
+        if (!testEndFunction(attribute(newAttribute))) {
+          reportError(
+            "An attribute names cannot end with a separator ('"
+              + AutodocTokenizer.SEPARATOR_CHAR
+              + "').");
           return false;
         }
       }
@@ -228,84 +335,184 @@ public class AutodocParser {
         nextToken();
       }
       if (!token.is(Token.DELIMITER)) {
+        reportError(
+          "A full-line value cannot contain the delimiter string (\""
+            + tokenizer.getDelimiterString()
+            + "\").");
         return false;
       }
       nextToken();
       if (token.is(Token.WHITESPACE)) {
         nextToken();
       }
-      value();
+      boolean oneLine =
+        attributeNameStart.equals(
+          Token.KEYWORD,
+          AutodocTokenizer.DELIMITER_KEYWORD);
+      testEndFunction(value(newAttribute, oneLine));
     }
 
     return true;
   }
 
   /**
-   * value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine) { \DELIMITER,EOL\ } EOL }
+   * value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine && !comment) { \DELIMITER,EOL\ } EOL }
    * 
    * @return true if value found
    * @throws IOException
    */
-  private boolean value() throws IOException {
+  private boolean value(Attribute attribute, boolean oneLine)
+    throws IOException {
+    testStartFunction("value");
+    valueStart = token;
+    valueEnd = valueStart;
     boolean found = false;
     while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
       found = true;
       nextToken();
+      valueEnd = valueEnd.setNext(token);
     }
-    if (!token.is(Token.EOF)) {
+    if (!oneLine) {
       nextToken();
+      while (!delimiterInLine
+        && !emptyLine
+        && !token.is(Token.EOF)
+        && !testEndFunction(comment())) {
+        valueEnd = valueEnd.setNext(token);
+        while (!token.is(Token.DELIMITER)
+          && !token.is(Token.EOL)
+          && !token.is(Token.EOF)) {
+          found = true;
+          nextToken();
+          valueEnd = valueEnd.setNext(token);
+        }
+        if (token.is(Token.DELIMITER)) {
+          valueStart = null;
+          reportError(
+            "A full-line value cannot contain the delimiter string (\""
+              + tokenizer.getDelimiterString()
+              + "\").");
+          return false;
+        }
+        nextToken();
+      }
     }
-    while (!delimiterInLine && !emptyLine && !token.is(Token.EOF)) {
-      while (!token.is(Token.DELIMITER)
-        && !token.is(Token.EOL)
-        && !token.is(Token.EOF)) {
-        found = true;
+    if (found) {
+      valueEnd = valueEnd.dropFromList();
+      attribute.setValue(valueStart);
+      if (oneLine) {
+        if (attributeNameStart.equals(Token.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
+          tokenizer.setDelimiterString(valueStart.getValue(true));
+        }
         nextToken();
       }
-      if (token.is(Token.DELIMITER)) {
-        return false;
-      }
-      if (!token.is(Token.EOF)) {
-        nextToken();
-      }
+
+    }
+    else {
+      valueStart = null;
     }
     return found;
+  }
+
+  private void reportError(String message) throws IOException {
+    if (error) {
+      return;
+    }
+    if (message == null) {
+      message = "Unknown error.";
+    }
+    error = true;
+    String errorMessage =
+      new String("Line# " + lineNum + ": " + token + ": " + message);
+    int errorIndex = tokenIndex - 1;
+    int size = line.size();
+    Token token = null;
+    String value = null;
+    int errorPosition = 0;
+    int index = 0;
+    StringBuffer printLine = new StringBuffer(124);
+    StringBuffer carat = new StringBuffer(124);
+    for (index = 0; index <= errorIndex && index < size - 1; index++) {
+      token = (Token) line.get(index);
+      value = token.getValue();
+      if (index < errorIndex) {
+        errorPosition += value.length();
+      }
+      printLine.append(value);
+    }
+    for (index = errorIndex + 1; index < size - 1; index++) {
+      token = (Token) line.get(index);
+      printLine.append(token.getValue());
+    }
+    for (index = 0; index < errorPosition; index++) {
+      carat.append(' ');
+    }
+    carat.append("^");
+    if (!errorsFound) {
+      errorsFound = true;
+      System.err.println("Errors in " + name);
+      System.err.println();
+    }
+    System.err.println(errorMessage);
+    System.err.println(printLine);
+    System.err.println(carat);
+    System.err.println();
+    if (detailedTest) {
+      throw new IllegalStateException();
+    }
+    tokenIndex = line.size();
+    nextToken();
   }
 
   /**
    * set token level preprocessor flag: startOfLine
    */
   private void nextToken() throws IOException {
-    if (line == null || lineIndex == line.size()) {
+    if (line == null || tokenIndex == line.size()) {
       preprocess();
+      tokenIndex = 0;
     }
-    token = (Token) line.get(lineIndex);
-    lineIndex++;
-    if (startOfLine
-      && (!token.is(Token.WHITESPACE)
-        && !token.is(Token.EOL)
-        && !token.is(Token.EOF))) {
+    if (test && tokenIndex == 0) {
+      printTestLine();
+    }
+    prevToken = token;
+    token = (Token) line.get(tokenIndex);
+    if (tokenIndex == 0
+      || (tokenIndex == 1 && prevToken.is(Token.WHITESPACE))) {
+      startOfLine = true;
+    }
+    else {
       startOfLine = false;
+    }
+    tokenIndex++;
+    if (detailedTest) {
+      System.out.println(
+        tokenIndex
+          + ":"
+          + token
+          + ",startOfLine="
+          + startOfLine
+          + ",emptyLine="
+          + emptyLine
+          + ",delimiterInLine="
+          + delimiterInLine);
     }
   }
 
   /**
-   * set line level preprocessor flags: emptyLine, delimiterInLine
+   * set line level preprocessor flags: emptyLine, delimiterInLine, lineNum
    */
   private void preprocess() throws IOException {
     Token token = null;
-    if (line == null) {
-      line = new Vector();
+    lineNum++;
+    if (line != null) {
+      prevLine = line;
     }
-    else {
-      line.clear();
-    }
-    lineIndex = 0;
-    startOfLine = true;
+    line = new Vector();
     delimiterInLine = false;
     emptyLine = true;
     do {
-      token = new Token(tokenizer.next());
+      token = tokenizer.next();
       if (emptyLine
         && (!token.is(Token.WHITESPACE)
           && !token.is(Token.EOL)
@@ -316,9 +523,36 @@ public class AutodocParser {
         delimiterInLine = true;
       }
       line.add(token);
-      ;
     }
     while (!token.is(Token.EOL) && !token.is(Token.EOF));
+  }
+
+  //postprocessor
+
+  private void processMetaData() {
+    if (attributeNameStart
+      .equals(Token.KEYWORD, AutodocTokenizer.VERSION_KEYWORD)) {
+      versionFound = true;
+      return;
+    }
+    if (attributeNameStart
+      .equals(Token.KEYWORD, AutodocTokenizer.PIP_KEYWORD)) {
+      pipFound = true;
+      return;
+    }
+  }
+
+  private void postprocess() {
+    if (!versionFound) {
+      System.err.println();
+      System.err.println("Missing meta data:  Version not found.");
+      System.err.println();
+    }
+    if (!pipFound) {
+      System.err.println();
+      System.err.println("Missing meta data:  Pip not found.");
+      System.err.println();
+    }
   }
 
   public void testStreamTokenizer(boolean tokens) throws IOException {
@@ -330,21 +564,7 @@ public class AutodocParser {
   }
 
   public void testAutodocTokenizer(boolean tokens) throws IOException {
-    tokenizer.initialize();
-    Token token = null;
-    do {
-      token = tokenizer.next();
-      if (tokens) {
-        System.out.println(token.toString());
-      }
-      else if (token.is(Token.EOL)) {
-        System.out.println();
-      }
-      else if (!token.is(Token.EOF)) {
-        System.out.print(token.getValue());
-      }
-    }
-    while (!token.is(Token.EOF));
+    tokenizer.test(tokens);
   }
 
   public void testPreprocessor(boolean tokens) throws IOException {
@@ -374,286 +594,62 @@ public class AutodocParser {
     while (!token.is(Token.EOF));
   }
 
-}
+  public void testParser(boolean tokens) throws IOException {
+    test = true;
+    testWithTokens = tokens;
+    initialize();
+    parse();
+  }
 
-/*  public void parse() throws IOException {
-    if (token == null) {
-      initialize();
+  public void testParser(boolean tokens, boolean details) throws IOException {
+    detailedTest = true;
+    testParser(tokens);
+  }
+
+  private void testStartFunction(String functionName) {
+    if (test) {
+      testIndent++;
+      printTestIndent();
+      System.out.println(functionName + " {");
     }
-    boolean versionFound = false;
-    boolean pipFound = false;
+  }
 
-    getEol(zeroOrMore);
-    while (tokenEquals(AutodocTokenizer.DELIMITER_CHANGE_KEYWORD)
-      || tokenEquals(AutodocTokenizer.VERSION_KEYWORD)
-      || tokenEquals(AutodocTokenizer.PIP_KEYWORD)
-      || tokenEquals(AutodocTokenizer.WORD)) {
-      if (tokenEquals(AutodocTokenizer.VERSION_KEYWORD)) {
-        versionFound = attributePair();
-      }
-      else if (tokenEquals(AutodocTokenizer.PIP_KEYWORD)) {
-        pipFound = attributePair();
-      }
-      else if (tokenEquals(AutodocTokenizer.DELIMITER_CHANGE_KEYWORD)) {
-        delimiterChange();
+  private boolean testEndFunction(boolean result) {
+    //System.out.println("in testEndFunction");
+    if (test) {
+      printTestIndent();
+      if (result) {
+        System.out.println("} succeeded");
       }
       else {
-        attributePair();
+        System.out.println("} failed");
       }
-      if (failed) {
-        return;
+      testIndent--;
+    }
+    return result;
+  }
+
+  private void printTestLine() {
+    Token token = null;
+    int size = line.size();
+    printTestIndent();
+    System.out.print("\tLine# " + lineNum + ": ");
+    for (int index = 0; index < size; index++) {
+      token = (Token) line.get(index);
+      if (testWithTokens) {
+        System.out.print(token);
       }
-      getEol(zeroOrMore);
-    }
-
-    while (tokenEquals(AutodocTokenizer.OPEN_BRACKET)) {
-      section();
-    }
-
-    if (!versionFound) {
-      fail("Version information not found");
-    }
-    else if (!pipFound) {
-      fail("PIP setting not found");
-    }
-  }
-
-  private boolean attributePair() throws IOException {
-    if (failIf(isEof(), true, "unexpected end of file in an attribute")) {
-      return false;
-    }
-    if (failIf(token.isSol(),
-      false,
-      "only whitespace may appear on a line before an attribute",
-      token.getValue())) {
-      return false;
-    }
-    if (!tokenEquals(AutodocTokenizer.DELIMITER_CHANGE_KEYWORD)
-      && !tokenEquals(AutodocTokenizer.VERSION_KEYWORD)
-      && !tokenEquals(AutodocTokenizer.PIP_KEYWORD)
-      && !tokenEquals(AutodocTokenizer.WORD)) {
-      fail("invalid attribute name", token.getValue());
-      return false;
-    }
-    String attributeName = token.getValue();
-
-    token.next();
-    if (failIf(isEof(), true, "unexpected end of file in an attribute")) {
-      return false;
-    }
-    if (failIf(tokenEquals(AutodocTokenizer.DELIMITER),
-      false,
-      "illegal delimiter in an attribute",
-      token.getValue())) {
-      return false;
-    }
-
-    token.next();
-    if (failIf(isEof(), true, "unexpected end of file in an attribute")) {
-      return false;
-    }
-    String value = fullValue();
-    if (failed) {
-      return false;
-    }
-    if (!map.setAttributePair(attributeName, value) && !processErrorLevel()) {
-      return false;
-    }
-
-    return !failed;
-  }
-
-  private boolean delimiterChange() throws IOException {
-    if (failIf(isEof(), true,
-      "unexpected end of file in a delimiter change")) {
-      return false;
-    }
-    if (failIf(token.isSol(), false,
-      "only whitespace may appear on a line before a delimiter change",
-      token.getValue())) {
-      return false;
-    }
-    if (failIf(tokenEquals(AutodocTokenizer.DELIMITER_CHANGE_KEYWORD),
-      false,
-      "invalid attribute name in a delimiter change",
-      token.getValue())) {
-      return false;
-    }
-    String attributeName = token.getValue();
-
-    token.next();
-    if (failIf(isEof(),
-      true,
-      "unexpected end of file in a delimiter change.")) {
-      return false;
-    }
-    if (failIf(tokenEquals(AutodocTokenizer.DELIMITER),
-      false,
-      "illegal delimiter in a delimiter change",
-      token.getValue())) {
-      return false;
-    }
-
-    token.next();
-    if (isEol()) {
-      token.next();
-    }
-    if (failIf(tokenEquals(AutodocTokenizer.SPECIAL_CHARACTER),
-      false,
-      "illegal new delimiter character",
-      token.getValue())) {
-      return false;
-    }
-    StringBuffer value = new StringBuffer();
-    value.append(token.getValue());
-    while (tokenEquals(AutodocTokenizer.SPECIAL_CHARACTER)) {
-      value.append(token.getValue());
-      token.next();
-    }
-    if (!isEol() && !isEof()) {
-      fail(
-        "only whitespace may appear on a line after a delimiter change",
-        token.getValue());
-      return false;
-    }
-
-    if (!map.setAttributePair(attributeName, value.toString()) && !processErrorLevel()) {
-      return false;
-    }
-    changeDelimiter(value.toString());
-
-    token.next();
-    return true;
-
-  }
-
-  private void section() throws IOException {
-    token.next();
-    while (!tokenEquals(AutodocTokenizer.OPEN_BRACKET) && !isEof() && !tokenEquals(AutodocTokenizer.ERROR)) {
-      token.next();
-    }
-  }
-
-  private String fullValue() throws IOException {
-    StringBuffer value = new StringBuffer();
-    while (!isEol() && !isEof() && !tokenEquals(AutodocTokenizer.ERROR)) {
-      token.next();
-      value.append(token.getValue());
-    }
-    return value.toString();
-  }
-
-
-  private boolean isEol() {
-    return tokenEquals(AutodocTokenizer.END_OF_LINE);
-  }
-
-
-  private boolean getEol(String amount) throws IOException {
-    if (amount == null) {
-      throw new IllegalArgumentException("amount is null.");
-    }
-    if (amount.equals(zeroOrMore)) {
-      while (tokenEquals(AutodocTokenizer.END_OF_LINE)) {
-        token.next();
+      else if (!token.is(Token.EOL) && !token.is(Token.EOF)) {
+        System.out.print(token.getValue());
       }
-      return true;
     }
-    throw new IllegalArgumentException(
-      "amount has an illegal value, " + amount + ".");
+    System.out.println();
   }
 
-  private boolean isEof() {
-    return tokenEquals(AutodocTokenizer.END_OF_FILE);
+  private void printTestIndent() {
+    for (int i = 0; i < testIndent; i++) {
+      System.out.print("\t");
+    }
   }
 
-  private boolean tokenEquals(int type) {
-    return token.getType() == type;
-  }
-
-  private void changeDelimiter(String newDelimiter) {
-    token.setDelimiterString(newDelimiter);
-  }
-
-  private void warn(String message) {
-    if (message == null) {
-      throw new IllegalArgumentException("autodocFile is null.");
-    }
-    errorMessage = new String("Warning in " + fileName + ", line# " + token.getLineno() + ": " + message + ".");
-  }
-  
-  private void fail(String message) {
-    if (message == null) {
-      throw new IllegalArgumentException("autodocFile is null.");
-    }
-    errorMessage =
-      new String("Error in " + fileName + ", line# " + token.getLineno() + ": " + message + ".");
-    failed = true;
-    System.err.println(errorMessage);
-  }
-
-  private void fail(String message, String tokenValue) {
-    if (message == null) {
-      throw new IllegalArgumentException("autodocFile is null.");
-    }
-    if (tokenValue == null) {
-      fail(message);
-    }
-    failed = true;
-    errorMessage =
-      new String("Error in " + fileName + ", line# " + token.getLineno() + ", " + tokenValue + ": " + message + ".");
-    System.err.println(errorMessage);
-  }
-
-  private boolean failIf(
-    boolean test,
-    boolean failureState,
-    String message,
-    String tokenValue) {
-    if (test == failureState) {
-      fail(message, tokenValue);
-      return true;
-    }
-    return false;
-  }
-
-  private boolean failIf(boolean test, boolean failureState, String message) {
-    if (test == failureState) {
-      fail(message);
-      return true;
-    }
-    return false;
-  }
-  
-  private boolean processErrorLevel() {
-    int errorLevel = map.getErrorLevel();
-    if (errorLevel == AutodocMap.NO_ERROR) {
-      throw new IllegalStateException("Incorrect error level, " + errorLevel + " in AutodocMap.");
-    }
-    else if (errorLevel == AutodocMap.WARNING) {
-      warn(map.getErrorMessage());
-    }
-    else if (errorLevel == AutodocMap.ERROR) {
-      fail(map.getErrorMessage());
-      return false;
-    }
-    else {
-      throw new IllegalStateException("Unknown error level, " + errorLevel + "In AutodocMap.");
-    }
-    return true;
-  }
-
-  public AutodocMap getMap() {
-    map.lock();
-    AutodocMap constMap = (AutodocMap) map;
-    return constMap;
-  }
-
-  public final boolean isFailed() {
-    return failed;
-  }
-
-  public final String getErrorMessage() {
-    return errorMessage;
-  }
-*/
+}
