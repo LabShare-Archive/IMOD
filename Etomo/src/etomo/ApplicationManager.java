@@ -39,6 +39,8 @@ import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.storage.EtomoFileFilter;
+import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -89,6 +91,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.123  2005/02/07 21:48:17  sueh
+ * <p> bug# 594 Added isSetupChanged() to check if user has enter data into
+ * <p> Setup dialog.
+ * <p>
  * <p> Revision 3.122  2005/01/26 04:23:18  sueh
  * <p> bug# 83 mtfFilter():  Removed called to startProgressBar().
  * <p>
@@ -1288,6 +1294,114 @@ public class ApplicationManager extends BaseManager {
   }
   
   /**
+   * Checks for an existing reconstruction on a different stack in the current
+   * Assumes that the .edf file for this instance has not been created yet.
+   * propertyUserDir.
+   */
+  private boolean checkForSharedDirectory() {
+    if (setupDialog == null) {
+      throw new IllegalStateException("Function can only be run during setup phase,\nbefore the .edf file has been created.");
+    }
+    File directory = new File(propertyUserDir);
+    File[] edfFiles = directory.listFiles(new EtomoFileFilter());
+    if (edfFiles == null) {
+      return false;
+    }
+    String datasetName = metaData.getDatasetName();
+    AxisType axisType = metaData.getAxisType();
+    String extension = metaData.getFileExtension();
+    File firstStack = null;
+    File secondStack = null;
+    String firstStackName = null;
+    String secondStackName = null;
+    if (axisType == AxisType.DUAL_AXIS) {
+      firstStack = new File(propertyUserDir, datasetName + AxisID.FIRST.getExtension() + ".st");
+      firstStackName = firstStack.getName();
+      System.out.println("firstStackName="+firstStackName);
+      secondStack = new File(propertyUserDir, datasetName + AxisID.SECOND.getExtension() + ".st");
+      secondStackName = secondStack.getName();
+      System.out.println("secondStackName="+secondStackName);
+    }
+    else if (axisType == AxisType.SINGLE_AXIS) {
+      firstStack = new File(propertyUserDir, datasetName + AxisID.ONLY.getExtension() + ".st");
+      firstStackName = firstStack.getName();
+    }
+    //open any .edf files in the directory - assuming the .edf file for this
+    //instance hasn't been created yet.
+    //If there is at least one .edf file referencing existing stacks which don't
+    //match the stacks used in this instance, then the directory is already in
+    //use.
+    for (int i = 0; i < edfFiles.length; i++) {
+      MetaData savedMetaData = new MetaData();
+      ParameterStore paramStore = new ParameterStore(edfFiles[i]);
+      Storable[] storable = new Storable[1];
+      storable[0] = savedMetaData;
+      try {
+        paramStore.load(storable);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        continue;
+      }
+      AxisType savedAxisType = savedMetaData.getAxisType();
+      String savedDatasetName = savedMetaData.getDatasetName(); 
+      File savedFirstStack;
+      File savedSecondStack;
+      String savedFirstStackName;
+      String savedSecondStackName;
+      if (savedAxisType == AxisType.DUAL_AXIS) {
+        savedFirstStack = new File(propertyUserDir, savedDatasetName + AxisID.FIRST.getExtension() + ".st");
+        savedFirstStackName = savedFirstStack.getName();
+        savedSecondStack = new File(propertyUserDir, savedDatasetName + AxisID.SECOND.getExtension() + ".st");
+        savedSecondStackName = savedSecondStack.getName();
+        if (axisType == AxisType.DUAL_AXIS) {
+          //compare dual axis A against saved dual axis A
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+          //compare dual axis B against saved dual axis B
+          if (savedSecondStack.exists()
+              && !secondStackName.equals(savedSecondStackName)) {
+            return true;
+          }
+        }
+        else if (axisType == AxisType.SINGLE_AXIS) {
+          //compare single axis against saved dual axis A
+          //compare single axis against saved dual axis B
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName) &&
+              (!savedSecondStack.exists() || (savedSecondStack.exists()
+                  && !firstStackName.equals(savedSecondStackName)))) {
+            return true;
+          }
+        }
+      }
+      else if (savedAxisType == AxisType.SINGLE_AXIS) {
+        savedFirstStack = new File(propertyUserDir, savedDatasetName + AxisID.ONLY.getExtension() + ".st");
+        savedFirstStackName = savedFirstStack.getName();
+        if (axisType == AxisType.DUAL_AXIS) {
+          //compare dual axis A against saved single axis
+          //compare dual axis B against saved single axis
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)
+              && !secondStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+        }
+        else if (axisType == AxisType.SINGLE_AXIS) {
+          //compare single axis against saved single axis
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  
+  /**
    * Close message from the setup dialog window
    */
   public void doneSetupDialog() {
@@ -1312,6 +1426,13 @@ public class ApplicationManager extends BaseManager {
         return;
       }
       if (metaData.isValid()) {
+        if (checkForSharedDirectory()) {
+          mainPanel.openMessageDialog("This directory (" + propertyUserDir
+              + ") is already being used by an .edf file.  Either open the "
+              + "existing .edf file or create a new directory for the new "
+              + "reconstruction.", "WARNING:  CANNOT PROCEED");
+          return;
+        }
         processTrack.setSetupState(ProcessState.INPROGRESS);
         //final initialization of IMOD manager
         imodManager.setMetaData(metaData);
