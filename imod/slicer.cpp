@@ -53,6 +53,7 @@ Log at end of file
 #include "xcramp.h"
 #include "imod_edit.h"
 #include "preferences.h"
+//#include "imodv_input.h"
 
 
 /* internal functions. */
@@ -446,6 +447,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   Ipoint *p1, *p2;
   int ob, co, pt, axis;
   Icont *cont;
+
+  if (testMetaKey(event))
+    return;
 
   inputConvertNumLock(keysym, keypad);
 
@@ -1020,6 +1024,36 @@ static int fake_GetValue(int x, int y, int z)
   return(0);
 }
 
+void findIndexLimits(int isize, int xsize, float xo, float xsx, float offset,
+                     float *fstart, float *fend)
+{
+  float flower, fupper, ftmp;
+  float endCoord = xo + (isize - 1) * xsx + offset;
+  float startCoord = xo + offset;
+ 
+  /* If start and end is all to one side of data, set limits to middle to skip
+     the line */
+  if ((startCoord < 0 && endCoord < 0) || 
+      (startCoord >= xsize && endCoord >= xsize)) {
+    *fstart = isize / 2.;
+    *fend = *fstart;
+ 
+    /* Otherwise evaluate place where line cuts volume for this coordinate */
+  } else if (xsx > 1.e-6 || xsx < -1.e-6) {
+    flower = -startCoord / xsx;
+    fupper = (xsize - startCoord) / xsx;
+    if (flower > fupper) {
+      ftmp = flower;
+      flower = fupper;
+      fupper = ftmp;
+    }
+    if (flower > *fstart)
+      *fstart = flower;
+    if (fupper < *fend)
+      *fend = fupper;
+  }
+}
+
 static void fillImageArray(SlicerStruct *ss)
 {
   int i, j, k, isize, jsize, ksize;
@@ -1032,6 +1066,9 @@ static void fillImageArray(SlicerStruct *ss)
   float xsx, ysx, zsx; /* steps for moving x in zap. */
   float xsy, ysy, zsy; /* steps for moving y in zap. */
   float xsz, ysz, zsz; /* steps for moving z in zap. */
+  int xsize = ss->vi->xsize;
+  int ysize = ss->vi->ysize;
+  int zsize = ss->vi->zsize;
 
   /* for 3-D quadratic interpolation */
   float dx, dy, dz;
@@ -1053,7 +1090,9 @@ static void fillImageArray(SlicerStruct *ss)
 
   int cindex;
   unsigned int *cmap = App->cvi->cramp->ramp;
-
+  int innerStart, innerEnd, outerStart, outerEnd;
+  float fstart, fend;
+  
   if (!ss->image)
       return;
   unsigned short *cidata = ss->image->id1;
@@ -1263,6 +1302,7 @@ static void fillImageArray(SlicerStruct *ss)
     izoom = 1;
   }
 
+  //  int timeStart = imodv_sys_time();
   /* DNM: don't need to clear array in advance */
 
   for(k = 0; k < ksize; k++){
@@ -1272,24 +1312,84 @@ static void fillImageArray(SlicerStruct *ss)
           
     /* (i,j) location in zap window data. */
     for(j = 0; j < jsize; j++){
-      x = xo;
-      y = yo;
-      z = zo;
-      cindex = j * ss->winx;
-      for(i = 0; i < isize; i++){
 
-        /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
-           Pentium 4 below 2.6 GHz... */
-        xi = (int)x;
-        yi = (int)y;
-        zi = (int)(z + 0.5);
+      /* Compute starting and ending index that intersects data volume
+         for each dimension, and find smallest range of indexes */
+      fstart = 0;
+      fend = isize;
+      findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
+      findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
+      findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
+
+      /* If there is no range, set up for fills to cover the range */
+      if (fstart >= fend) {
+        outerStart = isize / 2;
+        innerStart = innerEnd = outerEnd = outerStart;
+      } else {
+
+        /* Otherwise, set outer region safely outside the index limits */
+        outerStart = fstart - 2.;
+        if (outerStart < 0)
+          outerStart = 0;
+        outerEnd = fend + 2.;
+        if (outerEnd > isize)
+          outerEnd = isize;
+
+        /* If not doing HQ, compute inner limits of region that needs no
+           testing */
+        if (!ss->hq) {
+          innerStart = outerStart + 4;
+          innerEnd = outerEnd - 4;
+          if (innerStart >= innerEnd)
+            innerStart = innerEnd = outerStart;
+          
+        } else if (shortcut) {
+          /* If doing shortcuts, set up for whole line if it is a line to skip
+             or make sure start is a multiple of the zoom */
+          if (j >= izoom && j < jlimshort && j % izoom) {
+            outerStart = 0;
+            outerEnd = isize;
+          } else
+            outerStart = izoom * (outerStart / izoom);
+        }
+
+      }
+
+      cindex = j * ss->winx;
+      
+      /* Fill outer regions */
+      
+      if (k) {
+        for (i = 0; i < outerStart; i++)
+          cidata[i + cindex] += noDataVal;
+        for (i = outerEnd; i < isize; i++)
+          cidata[i + cindex] += noDataVal;
+      } else {
+        for (i = 0; i < outerStart; i++)
+          cidata[i + cindex] = noDataVal;
+        for (i = outerEnd; i < isize; i++)
+          cidata[i + cindex] = noDataVal;
+      }
+
+      x = xo + outerStart * xsx;
+      y = yo + outerStart * ysx;
+      z = zo + outerStart * zsx;
+
+      if (ss->hq) {
+        /* For HQ, do tests all the time since they are minor component */
+        for (i = outerStart; i < outerEnd; i++) {
+
+          /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
+             Pentium 4 below 2.6 GHz... */
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
                     
-        if ((xi >= 0) && (xi < ss->vi->xsize) &&
-            (yi >= 0) && (yi < ss->vi->ysize) &&
-            (z > -0.5) && (zi < ss->vi->zsize)){
-          val = (*best_GetValue)(xi, yi, zi);
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize) {
+            val = (*best_GetValue)(xi, yi, zi);
                          
-          if (ss->hq){ /* do quadratic interpolation. */
+            /* do quadratic interpolation. */
             dx = x - xi - 0.5;
             dy = y - yi - 0.5;
             dz = z - zi;
@@ -1302,12 +1402,12 @@ static void fillImageArray(SlicerStruct *ss)
             nzi = zi + 1;
                               
             if (pxi < 0) pxi = 0;
-            if (nxi >= ss->vi->xsize) nxi = xi;
+            if (nxi >= xsize) nxi = xi;
             if (pyi < 0) pyi = 0;
-            if (nyi >= ss->vi->ysize) nyi = yi;
+            if (nyi >= ysize) nyi = yi;
             if (pzi < 0) pzi = 0;
-            if (nzi >= ss->vi->zsize) nzi = zi;
-                              
+            if (nzi >= zsize) nzi = zi;
+                            
             x1 = (*best_GetValue)(pxi,  yi,  zi);
             x2 = (*best_GetValue)(nxi,  yi,  zi);
             y1 = (*best_GetValue)( xi, pyi,  zi);
@@ -1332,31 +1432,99 @@ static void fillImageArray(SlicerStruct *ss)
               ival = minval;
             val = (unsigned char)(ival + 0.5f);
                               
+          } else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
+
+          if (shortcut != 0 && ((i >= izoom && j % izoom == 0) ||
+                                (i >= izoom - 1 && j % izoom != 0))
+              && i < ilimshort && j >= izoom && j < jlimshort) {
+            ishort = izoom - 1;
+            if (j % izoom)
+              ishort = ilimshort - izoom;
+            x += xsx * ishort;
+            y += ysx * ishort;
+            z += zsx * ishort;
+            i += ishort;
           }
         }
-        else
-          val = noDataVal;
-                    
-        if (k)
-          cidata[i + cindex] += val;
-        else
-          cidata[i + cindex] = val;
-                    
-        x += xsx;
-        y += ysx;
-        z += zsx;
+      } else {
 
-        if (shortcut != 0 && ((i >= izoom && j % izoom == 0) ||
-                              (i >= izoom - 1 && j % izoom != 0))
-            && i < ilimshort && j >= izoom && j < jlimshort) {
-          ishort = izoom - 1;
-          if (j % izoom)
-            ishort = ilimshort - izoom;
-          x += xsx * ishort;
-          y += ysx * ishort;
-          z += zsx * ishort;
-          i += ishort;
+        /* Non HQ data */
+        for (i = outerStart; i < innerStart; i++) {
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
+                    
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize)
+            val = (*best_GetValue)(xi, yi, zi);
+          else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
         }
+
+        if (k) {
+          for (i = innerStart; i < innerEnd; i++) {
+            xi = (int)x;
+            yi = (int)y;
+            zi = (int)(z + 0.5);
+            val = (*best_GetValue)(xi, yi, zi);
+            cidata[i + cindex] += val;
+            x += xsx;
+            y += ysx;
+            z += zsx;
+          }
+        } else {
+          for (i = innerStart; i < innerEnd; i++) {
+            xi = (int)x;
+            yi = (int)y;
+            zi = (int)(z + 0.5);
+            val = (*best_GetValue)(xi, yi, zi);
+            cidata[i + cindex] = val;
+            x += xsx;
+            y += ysx;
+            z += zsx;
+          }
+        }
+
+        for (i = innerEnd; i < outerEnd; i++) {
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
+                    
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize)
+            val = (*best_GetValue)(xi, yi, zi);
+          else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
+        }
+
       }
       xo += xsy;
       yo += ysy;
@@ -1376,6 +1544,7 @@ static void fillImageArray(SlicerStruct *ss)
 		      minval * ss->nslice, maxval * ss->nslice);
   }
 
+  // printf("%d msec\n", imodv_sys_time() - timeStart);
   cindex = ss->image->width * ss->image->height;
   k = ss->nslice;
 
@@ -1866,6 +2035,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.13  2003/04/17 20:11:56  mast
+resolve merge conflict
+
 Revision 4.12  2003/04/17 19:06:50  mast
 various changes for Mac
 
