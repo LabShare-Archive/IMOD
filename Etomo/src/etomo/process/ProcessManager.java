@@ -8,9 +8,7 @@ import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.TransferfidParam;
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.FileWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +27,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2003/01/08 03:56:17  rickg
+ * <p> Mods in progress
+ * <p>
  * <p> Revision 1.12  2003/01/04 00:23:36  rickg
  * <p> Added a test method.
  * <p> TransferFiducials method reports command name
@@ -96,7 +97,7 @@ public class ProcessManager {
     int exitValue = copyTomoComs.run();
 
     if (exitValue != 0) {
-      System.out.println("Exit value: " + String.valueOf(exitValue));
+      System.err.println("Exit value: " + String.valueOf(exitValue));
 
       //  Compile the exception message from the stderr stream
       String[] stdError = copyTomoComs.getStdError();
@@ -218,7 +219,7 @@ public class ProcessManager {
   public void transferFiducials(TransferfidParam transferfidParam) {
     BackgroundProcess transferfid =
       new BackgroundProcess(transferfidParam.getCommandString(), this);
-    System.out.println(transferfidParam.getCommandString());
+    System.err.println(transferfidParam.getCommandString());
     transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
@@ -293,7 +294,7 @@ public class ProcessManager {
     int exitValue = setupCombine.run();
 
     if (exitValue != 0) {
-      System.out.println("Exit value: " + String.valueOf(exitValue));
+      System.err.println("Exit value: " + String.valueOf(exitValue));
 
       //  Compile the exception message from the stderr stream
       String[] stdError = setupCombine.getStdError();
@@ -337,8 +338,8 @@ public class ProcessManager {
     command.setDebug(appManager.isDebug());
     command.start();
 
-    System.out.println("Started " + commandLine);
-    System.out.println("  Name: " + command.getName());
+    System.err.println("Started " + commandLine);
+    System.err.println("  Name: " + command.getName());
   }
 
   /**
@@ -349,18 +350,6 @@ public class ProcessManager {
   public void msgBackgroundProcessDone(
     BackgroundProcess process,
     int exitValue) {
-
-    System.err.println("exit value: " + String.valueOf(exitValue));
-    String[] out = process.getStdError();
-    System.err.println("err lines: " + String.valueOf(out.length));
-    for (int i = 0; i < out.length; i++) {
-      System.err.println("err: " + out[i]);
-    }
-    out = process.getStdOutput();
-    System.err.println("out lines: " + String.valueOf(out.length));
-    for (int i = 0; i < out.length; i++) {
-      System.err.println("out: " + out[i]);
-    }
 
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
@@ -380,7 +369,7 @@ public class ProcessManager {
     //  Command succeeded, check to see if we need to show any application specific info
     else {
       if (process.getCommand().equals("transferfid")) {
-
+        handleTransferfidMessage(process);
       }
     }
   }
@@ -443,8 +432,8 @@ public class ProcessManager {
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
-    System.out.println("Started " + command);
-    System.out.println(
+    System.err.println("Started " + command);
+    System.err.println(
       "  working directory: " + appManager.getWorkingDirectory());
   }
 
@@ -456,30 +445,26 @@ public class ProcessManager {
     comScript.setDemoMode(appManager.isDemo());
     comScript.start();
 
-    System.out.println("Started " + command);
-    System.out.println("  Name: " + comScript.getName());
+    System.err.println("Started " + command);
+    System.err.println("  Name: " + comScript.getName());
   }
 
   private void handleTransferfidMessage(BackgroundProcess process) {
     try {
-
       String[] stdOutput = process.getStdOutput();
-    // Open the com file for writing using a buffered writer
-    BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
-    
       //  Write the standard output to a the log file
-      FileOutputStream fileStream =
-        new FileOutputStream(
-          appManager.getWorkingDirectory() + "/transferfid.log");
 
       BufferedWriter fileBuffer =
-        new BufferedWriter(new OutputStreamWriter(fileStream));
+        new BufferedWriter(
+          new FileWriter(
+            appManager.getWorkingDirectory() + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
         fileBuffer.write(stdOutput[i]);
         fileBuffer.newLine();
       }
-
+      fileBuffer.close();
+      
       //  Show a dialog box to the user
       String[] message = new String[stdOutput.length + 1];
       int j = 0;
