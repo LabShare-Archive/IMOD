@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/07/09 21:06:01  mast
+#  Switched from /usr/tmp to tmpdir set in standard way
+#
 #  Revision 3.3  2004/07/08 22:54:18  mast
 #  Switched some echos to \echo to dodge Cygwin tcsh bug
 #
@@ -43,6 +46,7 @@ if ($?IMOD_DIR) then
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 
+set retval = 0
 set rangelist = ""
 set xflist = ""
 set joinroot = ""
@@ -72,30 +76,65 @@ while ($#argv > 2 && $joinroot == "")
 end
 
 if ($joinroot == "" || (! -e $joinroot.info)) then
-    echo "Illegal entry, or $joinroot.info does not exist"
+    echo "ERROR: $pn - Illegal entry, or $joinroot.info does not exist"
     exit 1
 endif
 
-set info1 = `head -1 $joinroot.info`
-set matlist = `head -2 $joinroot.info | tail -1`
-set invertlist = `tail -1 $joinroot.info`
-
+set info1 = `head -n 1 $joinroot.info`
 @ ntomo = $info1[1]
 set ifsquoze = $info1[2]
 
-# New info file has default size in it; use it unless user entered size
+# 2nd version info file has default size in it
+# The fifth entry was added as a version number at version 3
+set version = 1
+if ($#info1 > 2) set version = 2
+if ($#info1 > 4) set version = $info1[5]
+
+# use default size unless user entered size
 # Note, wasn't able to test on "/" because csh tried to do a division
-if ($newsize == "" && $#info1 > 2) set newsize = "$info1[3],$info1[4]"
-if ($newsize == "") set newsize = "/"
+if ($newsize == "" && $version > 1) set newsize = "$info1[3],$info1[4]"
+
+# Early versions just had list of filenames then list of inversion flags
+if ($version < 3) then
+    set matlist = `head -n 2 $joinroot.info | tail -n 1`
+    set invertlist = `head -n 3 $joinroot.info | tail -n 1`
+    set scalelist = ""
+else
+
+# Later versions have lines of information for all tomos, then tomo file names
+# one per line to handle spaces
+    set invertlist = `head -n 2 $joinroot.info | tail -n 1`
+    set scalelist = `head -n 3 $joinroot.info | tail -n 1`
+    if ($#scalelist < $ntomo) then
+        echo "ERROR: $pn - $joinroot.info does not have enough scaling entries"
+        exit 1
+    endif
+
+    # Read in the lines one by one.  
+    # Have to build a wordlist big enough before starting
+    @ linestart = 4
+    @ ind = 0
+    set matlist = ()
+    while ($ind < $ntomo)
+        @ ind++
+        set matlist = ($matlist "dummy")
+    end
+    @ ind = 0
+    while ($ind < $ntomo)
+        @ ind++
+        set matlist[$ind] = `head -n $linestart $joinroot.info | tail -n 1`
+        @ linestart++
+    end
+endif
 
 if ($#argv != $ntomo) then
-    echo "You entered $#argv Z-ranges but $ntomo are required"
+    echo "ERROR: $pn - You entered $#argv Z-ranges but $ntomo are required"
     exit 1
 endif
 
 if ($ref != "") then
     if ($nref < 1 || $nref > $ntomo) then
-	echo "Illegal entry for reference tomogram number"
+	echo "ERROR: $pn - Illegal entry for reference tomogram number"
 	exit 1
     endif
 endif
@@ -103,19 +142,19 @@ endif
 
 @ itomo = 1
 while ($itomo <= $ntomo)
-    if (! -e $matlist[$itomo]) then
+    if (! -e "$matlist[$itomo]") then
 	set size = `echo "1024 1024 100"`
 	echo "WARNING: $matlist[$itomo] NO LONGER EXISTS.  SETTING SIZE TO $size FOR TESTING"
 #	exit 1
     else
-    set size = `header $matlist[$itomo] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+    set size = `header "$matlist[$itomo]" | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
     endif
     @ nz = $size[3]
 
     set zentry = `echo $argv[1] | sed '/[,-]/s// /g'`
     shift
     if ($#zentry < 2) then
-        echo "The Z range for tomogram # $itomo does not have two numbers"
+        echo "ERROR: $pn - The Z range for tomogram # $itomo does not have two numbers"
 	exit 1
     endif
     @ zst = $zentry[1]
@@ -123,7 +162,7 @@ while ($itomo <= $ntomo)
     @ zst--
     @ znd--
     if ($zst < 0 || $zst >= $nz || $znd < 0 || $znd >= $nz) then
-	echo "The Z range for tomogram # $itomo has coordinates out of range"
+	echo "ERROR: $pn - The Z range for tomogram # $itomo has coordinates out of range"
 	exit 1
     endif
     set ifinvert = $invertlist[$itomo]
@@ -153,19 +192,31 @@ while ($itomo <= $ntomo)
     @ itomo++
 end
 
-# Now work on getting the transforms
 if (-e $joinroot.tomoxf) \mv $joinroot.tomoxf $joinroot.tomoxf~
 
-\echo "1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000" > $joinroot.tomoxf
-sed '/1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000/d' $joinroot.xf >> $joinroot.tomoxf
-set wcout = `wc -l $joinroot.tomoxf`
+set wcout = `wc -l $joinroot.xf`
 @ nlines = $wcout[1]
 
-if ($nlines != $ntomo) then
-    @ nlines--
-    echo "There are $nlines lines in $joinroot.xf with non-unit transforms"
-    echo "This is not the right number of lines for joining $ntomo tomograms"
-    exit 1
+# For new-style file, lines match, just copy it
+#
+if ($nlines == $ntomo) then
+    \cp $joinroot.xf $joinroot.tomoxf
+else
+
+    # Now work on getting the transforms if it is an old file
+    # Note the bug, if there was a unit transform intentionally
+
+    \echo "1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000" > $joinroot.tomoxf
+    sed '/1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000/d' $joinroot.xf >> $joinroot.tomoxf
+    set wcout = `wc -l $joinroot.tomoxf`
+    @ nlines = $wcout[1]
+
+    if ($nlines != $ntomo) then
+        @ nlines--
+        echo "ERROR: $pn - There are $nlines lines in $joinroot.xf with non-unit transforms"
+        echo "This is not the right number of lines for joining $ntomo tomograms"
+        exit 1
+    endif
 endif
 
 xftoxg <<EOF
@@ -173,6 +224,7 @@ xftoxg <<EOF
 $joinroot.tomoxf
 $joinroot.tomoxg
 EOF
+if ($status) goto error
 
 if ($ifsquoze == "1") then
     \mv $joinroot.tomoxg $joinroot.tmpxg
@@ -181,51 +233,58 @@ $joinroot.sqzxf
 $joinroot.tmpxg
 $joinroot.tmpsqz
 EOF
+    if ($status) goto error
     xfproduct <<EOF
 $joinroot.tmpsqz
 $joinroot.xpndxf
 $joinroot.tomoxg
 EOF
+    if ($status) goto error
 endif
 
 if ($ref != "") then
     \mv $joinroot.tomoxg $joinroot.tmpxg
-    head -$nref $joinroot.tmpxg | tail -1 >! $joinroot.tmpref
+    head -n $nref $joinroot.tmpxg | tail -n 1 >! $joinroot.tmpref
     xfinverse <<EOF
 $joinroot.tmpref
 $joinroot.tmpinv
 1
 EOF
+    if ($status) goto error
     xfproduct <<EOF
 $joinroot.tmpxg
 $joinroot.tmpinv
 $joinroot.tomoxg
 EOF
+    if ($status) goto error
 endif
 
 set newstin = $tmpdir/joinnewst.$$
 
-echo $ntomo >! $newstin
+echo -n >! $newstin
 @ itomo = 1
 while ($itomo <= $ntomo)
-    echo $matlist[$itomo] >> $newstin
-    echo $rangelist[$itomo] >> $newstin
+    echo "InputFile $matlist[$itomo]" >> $newstin
+    echo "SectionsToRead $rangelist[$itomo]" >> $newstin
+    if ("$scalelist" != "") then
+        echo "MultiplyAndAdd $scalelist[$itomo]" >> $newstin
+    endif
     @ itomo++
 end
+if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
 cat >> $newstin <<EOF
-1
-$joinroot.join
-$newsize
-/
--1
-$offset
-1
-$joinroot.tomoxg
-$xflist
-0
+OutputFile $joinroot.join
+OffsetsInXandY $offset
+TransformFile $joinroot.tomoxg
+UseTransformLines $xflist
 EOF
 
-newstack < $newstin
+newstack -StandardInput < $newstin
+if (! $status) goto clean
+error:
+set retval = 1
 
+clean:
 \rm -f $newstin
 \find . -name "$joinroot.*tmp*"  -exec rm "{}" \;
+exit $retval
