@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -38,6 +39,7 @@ import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.ImodManager;
+import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
@@ -84,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2004/05/06 20:22:33  sueh
+ * <p> bug# 33 added getRubberbandCoordinates()
+ * <p>
  * <p> Revision 3.48  2004/05/05 21:24:53  sueh
  * <p> bug #430  If changes to .seed happened more recently then .fid, do not
  * <p> mv .fid .seed.  Otherwise backup .seed to .seed~ if not backing up
@@ -4321,6 +4326,28 @@ public class ApplicationManager {
       except.printStackTrace();
       mainFrame.openMessageDialog(except.getMessage(),
         "Can't get rubberband coordinates from " + imodKey);
+    }
+    String message = null;
+    Vector messages = new Vector();
+    if (coordinates == null) {
+      messages.add("Unable to retrieve rubberband coordinates.");
+    }
+    else {
+      Iterator i = coordinates.iterator();
+      while (i.hasNext()) {
+        message = (String) i.next();
+        if (message.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
+          || message.indexOf(ImodProcess.ERROR_STRING) != -1
+          || message.indexOf(ImodProcess.WARNING_STRING) != -1) {
+          messages.add(message);
+          i.remove();
+        }
+      }
+    }
+    if (messages.size() > 0) {
+      String[] messageString =
+        (String[]) messages.toArray(new String[messages.size()]);
+      mainFrame.openMessageDialog(messageString, "Rubberband Coordinates");
     }
     return coordinates;
   }
