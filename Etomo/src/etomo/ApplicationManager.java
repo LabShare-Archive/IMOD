@@ -91,6 +91,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.125  2005/02/17 02:38:36  sueh
+ * <p> Removing print statements.
+ * <p>
  * <p> Revision 3.124  2005/02/16 22:31:23  sueh
  * <p> bug# 604 Added checkForSharedDirectory() to check if there is an .edf
  * <p> file using different stacks in the directory.
@@ -3580,22 +3583,22 @@ public class ApplicationManager extends BaseManager {
     boolean newstFiducialessAlignment = false;
     boolean usedLocalAlignments = false;
     //madeZFactors
-    if (!state.getMadeZFactors().isNull()) {
-      madeZFactors = state.getMadeZFactors().is();
+    if (!state.getMadeZFactors(axisID).isNull()) {
+      madeZFactors = state.getMadeZFactors(axisID).is();
     }
     else {
       madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
     }
     //newstFiducialessAlignment
-    if (!state.getNewstFiducialessAlignment().isNull()) {
-      newstFiducialessAlignment = state.getNewstFiducialessAlignment().is();
+    if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
+      newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID).is();
     }
     else {
       newstFiducialessAlignment = tomogramGenerationDialog.isFiducialessAlignment();
     }
     //usedLocalAlignments
-    if (!state.getUsedLocalAlignments().isNull()) {
-      usedLocalAlignments = state.getUsedLocalAlignments().is();
+    if (!state.getUsedLocalAlignments(axisID).isNull()) {
+      usedLocalAlignments = state.getUsedLocalAlignments(axisID).is();
     }
     else {
       usedLocalAlignments = state

@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2005/02/12 01:28:02  sueh
+ * bug# 601 Calling handleTransferfidMessage() from errorProcess().
+ *
  * Revision 3.53  2005/01/26 04:27:52  sueh
  * bug# 83 Adding mtffilter process monitor to mtffilter.
  *
@@ -1350,13 +1353,14 @@ public class ProcessManager extends BaseProcessManager {
     ProcessName processName = script.getProcessName();
     Command command = script.getCommand();
     TomogramState state = appManager.getState();
+    AxisID axisID = script.getAxisID();
     if (processName == ProcessName.ALIGN) {
-      generateAlignLogs(script.getAxisID());
-      copyFiducialAlignFiles(script.getAxisID());
+      generateAlignLogs(axisID);
+      copyFiducialAlignFiles(axisID);
       if (command != null) {
-        state.setMadeZFactors(command
+        state.setMadeZFactors(axisID, command
             .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
-        state.setUsedLocalAlignments(command.getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
+        state.setUsedLocalAlignments(axisID, command.getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
         appManager.enableTiltParameters(script.getAxisID());
       }
     }
@@ -1365,7 +1369,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     else if (processName == ProcessName.NEWST) {
       if (command != null && command.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
-        appManager.getState().setNewstFiducialessAlignment(
+        appManager.getState().setNewstFiducialessAlignment(axisID,
             command.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
         appManager.enableTiltParameters(script.getAxisID());
       }
