@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/08/20 22:56:19  sueh
+ * <p> bug# 515 catching exceptions on numeric fields
+ * <p> Changed:
+ * <p> getFields()
+ * <p>
  * <p> Revision 3.15  2004/07/12 17:39:08  sueh
  * <p> bug# 492 add getDataset() to return a MetaData with the
  * <p> minumum fields needed to run 3dmod
@@ -563,8 +568,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       if (getAxisType() == AxisType.DUAL_AXIS) {
         metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
           AxisID.SECOND);
-      }
+      } 
+      currentField = "Axis A starting and step angles";
       tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
+      currentField = "Axis B starting and step angles";
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
