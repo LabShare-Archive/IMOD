@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.91  2003/11/06 22:45:47  sueh
+ * <p> cleaning up task tags and prints
+ * <p>
  * <p> Revision 2.90  2003/11/06 21:41:27  sueh
  * <p> bug348 imodFineAlign(AsixID): removed calls to
  * <p> setFineAlignmentState() for processTrack and mainFrame.
@@ -1675,27 +1678,28 @@ public class ApplicationManager {
 
   }
 
-  /**
-   * Run transferfid
-   */
-  public void transferfid(AxisID sourceAxisID) {
+	/**
+	 * Transfer the fiducial to the specified axis
+	 * @param destAxisID
+	 */
+  public void transferfid(AxisID destAxisID) {
     //  Set a reference to the correct object
     FiducialModelDialog fiducialModelDialog;
-    if (sourceAxisID == AxisID.SECOND) {
+    if (destAxisID == AxisID.SECOND) {
       fiducialModelDialog = fiducialModelDialogB;
     }
     else {
       fiducialModelDialog = fiducialModelDialogA;
     }
 
-    if (sourceAxisID != AxisID.ONLY
+    if (destAxisID != AxisID.ONLY
       && !Utilities.fileExists(
         metaData,
         "fid.xyz",
-        (sourceAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
+        (destAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
       mainFrame.openMessageDialog(
         "It is recommended that you run Fine Alignment on axis "
-          + (sourceAxisID == AxisID.FIRST ? "B" : "A")
+          + (destAxisID == AxisID.FIRST ? "B" : "A")
           + " at least once",
         "Warning");
     }
@@ -1707,7 +1711,7 @@ public class ApplicationManager {
       String datasetName = metaData.getDatasetName();
       transferfidParam.setDatasetName(datasetName);
 
-      if (sourceAxisID == AxisID.FIRST) {
+      if (destAxisID == AxisID.FIRST) {
         transferfidParam.setBToA(true);
       }
       else {
@@ -1728,9 +1732,9 @@ public class ApplicationManager {
         mainFrame.openMessageDialog(message, "Unable to execute command");
         return;
       }
-      setThreadName(threadName, sourceAxisID);
-      mainFrame.startProgressBar("Transferring fiducials", sourceAxisID);
-      updateTransferfidEnabled(fiducialModelDialog, sourceAxisID);
+      setThreadName(threadName, destAxisID);
+      mainFrame.startProgressBar("Transferring fiducials", destAxisID);
+      updateTransferfidEnabled(fiducialModelDialog, destAxisID);
     }
   }
 
@@ -2508,7 +2512,7 @@ public class ApplicationManager {
    * @param axisID
    */
   public void deleteAlignedStacks(AxisID axisID) {
-		mainFrame.setProgressBar("Deleting aligned image stacks", 1, axisID);
+    mainFrame.setProgressBar("Deleting aligned image stacks", 1, axisID);
     File preali =
       new File(
         System.getProperty("user.dir"),
@@ -2532,7 +2536,7 @@ public class ApplicationManager {
           "Can not delete file");
       }
     }
-		mainFrame.stopProgressBar(axisID);
+    mainFrame.stopProgressBar(axisID);
   }
 
   /**
@@ -4277,7 +4281,6 @@ public class ApplicationManager {
     if (fiducialModelDialogB != null) {
       updateTransferfidEnabled(fiducialModelDialogB, AxisID.SECOND);
     }
-
   }
 
   /**
@@ -4319,4 +4322,20 @@ public class ApplicationManager {
     }
   }
 
+	//  Test helper functions
+	/**
+	 * Return the currently executing thread name for the specified axis
+	 * @param axisID
+	 * @return
+	 */
+	String getThreadName(AxisID axisID) {
+		if (axisID == AxisID.SECOND) {
+			return threadNameB;
+		}
+		return threadNameA;
+	}
+
+	MainFrame getMainFrame() {
+		return mainFrame;
+	}
 }
