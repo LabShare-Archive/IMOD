@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/02/07 02:36:59  mast
+Compute zmin correctly so it will work with negative z's; add some tests
+for empty contours in early setup of contour lists
+
 Revision 3.2  2002/04/09 19:07:15  mast
 Fixed a bug in scan_points_to_segments found by Lambert Zipj.
 
@@ -398,10 +402,10 @@ static int mkcont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
   /* DNM: modify method of getting rotation matrix to end up in correct
      quadrant, using atan2 */
 
-  imodMatRot(mat, b, Y);
+  imodMatRot(mat, b, b3dY);
   a = atan2((double)n->y, (double)n->x);
   a *= 57.29578;
-  imodMatRot(mat, a, Z);
+  imodMatRot(mat, a, b3dZ);
 
 
   spt.x = 0.0f;
@@ -410,7 +414,7 @@ static int mkcont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
 
   imodMatScale(mat, &rscale);  /* DNM: Move this outside the loop */
   for(sl = 0; sl < slices; sl++){
-    imodMatRot(rmat, astep, Z);
+    imodMatRot(rmat, astep, b3dZ);
     imodMatTransform(rmat, &spt, &tpt);
     imodMatTransform(mat, &tpt, &cpt);
 
@@ -470,8 +474,8 @@ static Imesh *jcont(Icont *c1, Icont *c2, Ipoint *norm)
   b *= 57.29578;
   a = atan2((double)norm->y, (double)norm->x);
   a *= 57.29578;
-  imodMatRot(mat, -a, Z);
-  imodMatRot(mat, -b, Y);
+  imodMatRot(mat, -a, b3dZ);
+  imodMatRot(mat, -b, b3dY);
 
 
   /* Start at top point of each back-transformed circle */
