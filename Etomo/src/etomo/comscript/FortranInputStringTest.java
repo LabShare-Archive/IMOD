@@ -11,18 +11,14 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/02/12 04:35:59  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 package etomo.comscript;
 
 import junit.framework.TestCase;
-
-/**
- * @author rickg
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 
 public class FortranInputStringTest extends TestCase {
   public static final String rcsid = "$Id$";
