@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/06/12 00:58:11  mast
+Switched to reading in whole file at once
+
 Revision 1.5  2004/05/28 18:57:42  mast
 Enable fixer to run align if thread support exists
 
@@ -75,9 +78,9 @@ class BeadFixer : public DialogFrame
   void buttonPressed(int which);
   void nextGap();
   void openFile();
-  void rereadFile() {reread(0);};
-  void nextLocal() {reread(1);};
+  void rereadFile() {reread();};
   void nextRes();
+  void nextLocal();
   void backUp();
   void movePoint();
   void undoMove();
@@ -93,10 +96,9 @@ class BeadFixer : public DialogFrame
   void timerEvent(QTimerEvent *e);
 
  private:
-  void reread(int which);
+  int reread();
   int foundgap(int obj, int cont, int ipt, int before);
   void clearExtraObj();
-  int getNextLine(char *line, int maxline);
 
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
