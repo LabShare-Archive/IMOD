@@ -40,6 +40,11 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2002/10/23 15:36:50  mast
+#  Made it set up for one patch in Z if patch thickness is two-thirds of the
+#  spacing between the limits in Z.  Also made warnings start on a new line
+#  and all start with WARNING:
+#
 #  Revision 3.4  2002/08/03 00:36:02  mast
 #  Added a blank line before last STATUS in volcombine.com
 #
@@ -106,7 +111,7 @@ if ((-e tilta.com) && (-e tiltb.com)) then
     set xaxisb = `grep -i xaxistilt $tiltb`
 else
     echo " "
-    echo "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
+    echo2 "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
     set xaxisa = "xaxistilt 0."
     set xaxisb = "xaxistilt 0."
 endif
@@ -129,7 +134,7 @@ if (-e $recfile) then
 else
     set size = `echo "1024 60 1024"`
     echo " "
-    echo "WARNING: $recfile NOT FOUND; SETTING SIZE TO $size FOR TEST PURPOSES"
+    echo2 "WARNING: $recfile NOT FOUND; SETTING SIZE TO $size FOR TEST PURPOSES"
 endif
 
 echo ""
@@ -300,7 +305,7 @@ if ($modelin != "") then
     set modeltext = "matchorwarp -size"
     if (! -e $modelin) then
 	echo " "
-	echo "WARNING: file $modelin does not yet exist."
+	echo2 "WARNING: file $modelin does not yet exist."
     endif
 endif
 
@@ -315,7 +320,7 @@ if (($patchzu - $patchzl) >= $NZPATCH4) @ npatchz = 4
 if ($PATCHZ[$indpatch] > (2 * ($patchzu - $patchzl)) / 3) then
     @ npatchz = 1
     echo " "
-    echo "WARNING: Only one layer of patches will be computed in Z"
+    echo2 "WARNING: Only one layer of patches will be computed in Z"
 endif
 
 # compute disk space needed before asking about temp directory
