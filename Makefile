@@ -286,7 +286,6 @@ flibs: configure
 dist : ALWAYS
 	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
 	mkdir $(ARCDIR)
-	mkdir $(ARCDIR)/dist
 	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
@@ -385,6 +384,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.34  2004/01/27 05:19:59  mast
+#  Probably better not to remove ImodTests, it screws up sandbox
+#
 #  Revision 3.33  2004/01/27 05:15:33  mast
 #  Added .distname to dist file name, added make for ImodTests
 #
