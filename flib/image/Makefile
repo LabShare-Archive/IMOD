@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/10/28 21:14:36  mast
+#  Added maxjoinsize
+#
 #  Revision 3.5  2004/10/24 20:44:10  mast
 #  Added dependecies on ftbuf.inc
 #
@@ -36,8 +39,9 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
- xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E)
- 
+ xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
+ binvol$(E)
+
 LIBS = $(FORTCLIBS)
 
 all: $(PROGS)
@@ -56,6 +60,9 @@ avganova$(E): avganova.$(O)
 
 avgstack$(E): avgstack.$(O)
 	$(FC) -o avgstack avgstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+binvol$(E): binvol.$(O)
+	$(FC) -o binvol binvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 boxavg$(E): boxavg.$(O)
 	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
