@@ -1199,14 +1199,16 @@ int imodel_contour_invert(struct Mod_Contour *cont)
 }
 
 /* set wild flag if Z is not the same throughout */
-
+/* DNM 7/22/04: switch from perfect equality to same nearest integer */
 void imodel_contour_check_wild(Icont *cont)
 {
-  int pt;
+  int pt, cz;
      
+  if (cont->psize)
+    cz = (int)floor(cont->pts[0].z + 0.5);
   cont->flags &= ~ICONT_WILD;
   for (pt = 1; pt < cont->psize; pt++){
-    if (cont->pts[0].z != cont->pts[pt].z) {
+    if ((int)floor(cont->pts[pt].z + 0.5) != cz) {
       cont->flags |= ICONT_WILD;
       break;
     }
