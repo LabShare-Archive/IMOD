@@ -89,8 +89,8 @@ if ($debug == true) then
         set optimization = "-ggdb -O0"
 endif
 
-set cflags = $flags $optimization $defines $include_flags $c_includes
-set fflags = $flags $ldfflags $optimization $include_flags
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $ldfflags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure

@@ -199,8 +199,8 @@ endif
 #  SGI; just define them the same as non-fallback versions.
 #
 set flags = "$flags /MD"
-set cflags = $flags $optimization $defines $include_flags $c_includes
-set fflags = $flags $ldfflags $optimization $include_flags
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $ldfflags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
