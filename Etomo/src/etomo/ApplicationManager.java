@@ -73,6 +73,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.19  2003/03/26 00:52:25  rickg
+ * <p> Added button to convert patch_vector.mod to patch.out
+ * <p>
  * <p> Revision 2.18  2003/03/22 00:40:35  rickg
  * <p> slovematchmod label change
  * <p>
@@ -2306,18 +2309,10 @@ public class ApplicationManager {
     //  processing
     PostProcessingDialog postProcessingDialog = new PostProcessingDialog(this);
 
-    DialogExitState exitState = postProcessingDialog.getExitState();
 
-    if (exitState == DialogExitState.POSTPONE
-      || exitState == DialogExitState.EXECUTE) {
-      //
-      //  Get the user input data from the dialog box
-      //
-      //TODO      mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
-    }
-    if (exitState == DialogExitState.EXECUTE) {
-      //TODO      mainFrame.setPostProcessingState(ProcessState.COMPLETE);
-    }
+    mainFrame.showProcess(
+      postProcessingDialog.getContainer(),
+      AxisID.ONLY);
 
   }
 
@@ -2675,7 +2670,25 @@ public class ApplicationManager {
    * Exit the program
    */
   public boolean exitProgram() {
+    //  Check to see if any processes are still running
+    if (!threadNameA.equals("none") || !threadNameB.equals("none")) {
+      String[] message = new String[3];
+      message[0] = "There are still processes running.";
+      message[1] = "Exiting Etomo now may terminate those processes.";
+      message[2] = "Do you still wish to exit the program?";
+      int returnValue =
+        JOptionPane.showConfirmDialog(
+          mainFrame,
+          message,
+          "Processes are still running",
+          JOptionPane.YES_NO_OPTION);
 
+      if (returnValue == JOptionPane.NO_OPTION) {
+        return false;
+      }      
+    }
+    
+    //  Check to see the meta data / process info is dirty
     if (isDataParamDirty || processTrack.isModified()) {
       int returnValue =
         JOptionPane.showConfirmDialog(
@@ -2697,7 +2710,9 @@ public class ApplicationManager {
       }
     }
 
-    //  Get the current window size
+    //  Should we close the imod windows
+       
+    //  Save the current window size to the user config
     Dimension size = mainFrame.getSize();
     userConfig.setMainWindowWidth(size.width);
     userConfig.setMainWindowHeight(size.height);
