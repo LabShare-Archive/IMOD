@@ -344,6 +344,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2003/10/24 03:44:56  mast
+c	  took out flush call for Windows/Intel
+c	
 c	  Revision 3.12  2003/10/16 20:38:32  mast
 c	  Adding to option documentation
 c	
@@ -2668,8 +2671,10 @@ C real number has occured in a field where an integer is expected.
 	CHARACTER ASTER*1,BLANK*1,CARD*80,TAGS(NTAGS)*20,upcase*80
 	DATA ASTER,BLANK/'*',' '/
 c	  DNM: switch from Q format to using LNBLNK
-	READ(5,10,END=999)CARD
+c	  12/8/03: swallow blank lines
+5	READ(5,10,END=999)CARD
 10	FORMAT(A)
+	if (card .eq. ' ') go to 5
 	NCHAR = lnblnk(CARD)
 	do while (nchar.gt.1.and.card(1:1).eq.blank)
 	  nchar=nchar-1
