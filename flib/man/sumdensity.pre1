@@ -1,0 +1,29 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennsssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+SUMDENSITY(1)							 SUMDENSITY(1)
+
+NNAAMMEE
+  sumdensity - subtracts one image from another
+
+SSYYNNOOPPSSIISS
+  sumdensity [options] image_file model_file_B output_file
+
+DDEESSCCRRIIPPTTIIOONN
+  Sumdensity will sum the density within contours of selected IMOD model
+  objects.  Pixels within a specified distance of the boundary contour can be
+  excluded.  A threshold can be set so that only pixels above threshold are
+  summed, and the threshold value subtracted from the pixel values in the sum.
+  Data are reported by surface if there are surfaces defined in the model
+  contours.
+
+
+
+  Sumdensity uses the PIP package for input exclusively (see the manual page
+  for pip(1)).  The following options can be specified either as command line
+  arguments (with the -) or one per line in a command file or parameter file
+  (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
