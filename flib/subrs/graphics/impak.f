@@ -10,10 +10,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/08/29 17:31:09  mast
+c	  Made screen displayer call imodpsview, changed name of file to 
+c	  gmeta.ps
+c	
 c
 	subroutine imset(ithset,widset,upiset,safset,ifset)
-	logical exist
-	integer rename
 	common /imparm/ nthick,width,upi,safe,xcur,ycur
      &	    ,udlen,exlen,hafthk,symscl,ifgks,cscrit
 	data nthick,width,upi,safe,xcur,ycur,symscl,cscrit,ifgks
@@ -24,13 +26,9 @@ c
 	data fname /'gmeta.ps'/
 
 	if(ifgks.eq.0)then
-	  inquire(file=fname,exist=exist)
-	  namlen=lnblnk(fname)
-	  if(exist)then
-	    ierr=rename(fname,fname(1:namlen)//'~')
-	    if(ierr.ne.0)write(6,*)
-     &		' Error attempting to rename existing file'
-	  endif
+	  ierr = imodBackupFile(fname)
+	  if(ierr.ne.0)write(6,*)
+     &	      ' Error attempting to rename existing file ',fname
 	  call psopen(fname(1:namlen),0.5,1.75,upi)
 	  ifgks=1
 	endif
