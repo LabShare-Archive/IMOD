@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 /* imod_io.h */
 
 #ifndef IMOD_IO_H
@@ -39,12 +47,12 @@ int imod_model_changed(struct Mod_Model *imodel);
 void imod_cleanup_autosave(void);
 int reqask(char *prompt);
 int imod_autosave(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin);
+struct Mod_Model *LoadModel(FILE *mfin, char *filename);
 int SaveModel(struct Mod_Model *mod);
 int SaveasModel(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin);
 int SaveModelQuit(struct Mod_Model *mod);
-struct Mod_Model *LoadModel(FILE *mfin);
-int imod_io_image_reload(struct ViewInfo *vi);
+unsigned char **imod_io_image_load(ImodImageFile *im,
+				   struct LoadInfo *li,
+				   void (*func)(char *));
 
 #endif
