@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/04: Improved filter function in clip to work for non-square images, to
+work properly for high-pass filtering, and to not have abrupt onset of
+filtering.  Made sure it works with either or non-mirrored FFTs.
+
+11/4/04: 3dmod will now automatically mirror FFTs around the origin when the
+input file has an odd dimension in X.  Clip will now no longer produce
+mirrored 2D FFTs and will take in either mirrored or non-mirrored FFTs.  FFTs
+produced by Clip and Fftrans are now identical.
+
+11/2/04: Allowed various drawing colors (e.g., for current point marker) to be
+changed as storable settings.  Made the Defaults button in Edit-Options restore
+defaults only for the current tab.  Added ability to shift a whole contour with
+first mouse button after activating with hot key P or button in Contour Move
+dialog.
+
 11/1/04: Changes to 3dmod:
    Changed attach function for zap, slicer and Xyz windows to enable attaching
 to a 3D point as long as it is visible, even if it is not on the current
