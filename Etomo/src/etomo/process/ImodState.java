@@ -56,6 +56,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/02/04 18:11:03  sueh
+ * <p> $bug# 171 return window id when running 3dmodv, so that
+ * <p> $3dmodv can be closed automatically
+ * <p> $
  * <p> $Revision 1.2  2003/12/04 22:07:35  sueh
  * <p> $bug242 fixing reset() - 3dmod remembers last modelName.
  * <p> $Must replace modelName to do a real reset.
@@ -203,6 +207,11 @@ public class ImodState {
      preserveContrast = false;
   }
 
+
+  public void setSwapYZ(boolean swapYZ) {
+      this.swapYZ = swapYZ;
+      process.setSwapYZ(swapYZ);
+    }
 
   //Set functions
   

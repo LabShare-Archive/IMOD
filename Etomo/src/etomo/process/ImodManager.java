@@ -29,6 +29,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/02/04 18:09:44  sueh
+ * <p> bug# 171 added isOpen() to find out if any 3dmod is open,
+ * <p> added quit() to quit all 3dmods
+ * <p>
  * <p> Revision 3.9  2003/12/04 22:01:27  sueh
  * <p> bug242 Added create() functions, to create an ImodState
  * <p> without opening it.  Deprecating old interface.  fixing
@@ -572,6 +576,14 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
       imodState.reset();
+    }
+  }
+  
+  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState != null) {
+      imodState.setSwapYZ(swapYZ);
     }
   }
 
