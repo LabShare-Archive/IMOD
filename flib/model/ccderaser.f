@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2003/10/10 20:42:23  mast
+c	  Used new subroutine for getting input/output files
+c	
 c	  Revision 3.10  2003/10/09 02:33:42  mast
 c	  converted to use autodoc
 c	
@@ -90,7 +93,7 @@ c
 	real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
 	real*4 scanOverlap
 	integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels
-	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut
+	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -101,20 +104,20 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
 c
 	integer numOptions
-	parameter (numOptions = 22)
+	parameter (numOptions = 23)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'find:FindPeaks:B:@peak:PeakCriterion:F:@'//
      &      'diff:DiffCriterion:F:@grow:GrowCriterion:F:@'//
      &      'scan:ScanCriterion:F:@radius:MaximumRadius:F:@'//
-     &      'outer:OuterRadius:F:@xyscan:XYScanSize:I:@'//
-     &      'edge:EdgeExclusionWidth:I:@points:PointModel:FN:@'//
-     &      'model:ModelFile:FN:@lines:LineObjects:LI:@'//
-     &      'allsec:AllSectionObjects:LI:@border:BorderSize:I:@'//
-     &      'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@'//
-     &      'trial:TrialMode:B:@verbose::B:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      'maxdiff:MaxPixelsInDiffPatch:I:@outer:OuterRadius:F:@'//
+     &      'xyscan:XYScanSize:I:@edge:EdgeExclusionWidth:I:@'//
+     &      'points:PointModel:FN:@model:ModelFile:FN:@'//
+     &      'lines:LineObjects:LI:@allsec:AllSectionObjects:LI:@'//
+     &      'border:BorderSize:I:@order:PolynomialOrder:I:@'//
+     &      'exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'//
+     &      'verbose::B:@param:ParameterFile:PF:@help:usage:B:'
 c
 c	  Set all defaults here
 c
@@ -137,6 +140,7 @@ c
 	ifVerbose = 0
 	ifTrialMode = 0
 	nEdgePixels = 0
+	maxInDiffPatch = 2
 
 	call date(dat)
 	call time(tim)
@@ -243,6 +247,7 @@ c
 	  ierr = PipGetFloat('ScanCriterion', critScan)
 	  ierr = PipGetFloat('DiffCriterion', critDiff)
 	  ierr = PipGetInteger('verbose', ifVerbose)
+	  ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
 
 	  modelout = ' '
 	  ierr = PipGetString('PointModel', modelout)
@@ -421,7 +426,8 @@ c
      &	      nEdgePixels, critMain, critDiff, critGrow, critScan,
      &	      radiusMax, outerRadius, nborder,iorder,ifincadj, ixfix,
      &	      iyfix, limpatch,numPatch,numPixels,ifVerbose,
-     &	      numPtOut, numPatchOut, indPatch, exceedCrit, limpatchout,
+     &	      numPtOut, numPatchOut, indPatch, exceedCrit,
+     &	      maxInDiffPatch, limpatchout,
      &	      ixout, iyout, izout, limptout)
 	  if (numPatch .gt. 0)write(*,102)numPixels,numPatch
 102	  format(i5,' pixels replaced in',i4,' peaks -',$)
@@ -503,8 +509,8 @@ c       encode(80,109,title)
      &	    critGrow, critScan,
      &	    radiusMax, outerRadius, nborder,iorder,ifincadj, ixfix,
      &	    iyfix, limpatch,numPatch, numPixels,ifVerbose, numPtOut,
-     &	    numPatchOut, indPatch, exceedCrit, limpatchout, ixout, iyout,
-     &	    izout, limptout)
+     &	    numPatchOut, indPatch, exceedCrit, maxInDiffPatch,
+     &	    limpatchout, ixout, iyout, izout, limptout)
 
 	implicit none
 	integer limlist
@@ -515,7 +521,7 @@ c       encode(80,109,title)
 	real*4 scanOverlap, array(nx,ny), diffarr(limdiff,limdiff)
 	real*4 exceedCrit(*)
 	integer*4 numPtOut, numPatchOut, indPatch(*),ixout(*),iyout(*),izout(*)
-	integer*4 nEdgePixels
+	integer*4 nEdgePixels, maxInDiffPatch, numPtSave, numPatchSave
 	integer*4 numScanX, numScanY, nxScan, nyScan, iScanY, iScanX, iyStart
 	integer*4 iyEnd, ixStart, ixEnd, jx, jxs, jxn, jy, jys, jyn, ix, iy
 	real*4 dmin, dmax, sum, sumsq, scanAvg, scanSd, polarity, scanCrit
@@ -790,6 +796,8 @@ c
 		  iymax = iymin
 		  storePatch = (numPatchOut .lt. limpatchout - 1 .and.
      &		      numPtOut .lt. limptout)
+		  numPtSave = numPtOut
+		  numPatchSave = numPatchOut
 		  if (storePatch) then
 		    numPtOut = numPtOut + 1
 		    ixout(numPtOut) = ixlist(1)
@@ -834,33 +842,40 @@ c
 		      endif
 		    endif
 		  enddo
-		  pixDiff = diffArr(ixfix(1) + ixofs, iyfix(1) + iyofs)
-		  sdDiff = abs(pixDiff - diffAvg) / diffSd
-		  if (storePatch) then
-		    exceedCrit(numPatchOut + 1) = sdDiff - critDiff
-		    numPatchOut = numPatchOut + 1
-		    indPatch(numPatchOut + 1) = numPtOut + 1
-		  endif
-c		    
-c		    report if verbose, fix the patch
-c
-		  if (ifVerbose.gt.0)write (*,104)ixfix(1),iyfix(1),
+		  
+		  if (ninPatch .le. maxInDiffPatch) then
+		    pixDiff = diffArr(ixfix(1) + ixofs, iyfix(1) + iyofs)
+		    sdDiff = abs(pixDiff - diffAvg) / diffSd
+		    if (storePatch) then
+		      exceedCrit(numPatchOut + 1) = sdDiff - critDiff
+		      numPatchOut = numPatchOut + 1
+		      indPatch(numPatchOut + 1) = numPtOut + 1
+		    endif
+c		      
+c		      report if verbose, fix the patch
+c		      
+		    if (ifVerbose.gt.0)write (*,104)ixfix(1),iyfix(1),
      &			array(ix,iy),pixDiff,sdDiff
-104		  format(/,'Diff peak at',2i6,' = ',f8.0,', diff =',f8.0,
-     &		      ', ',f7.2, ' SDs above mean',$)
-		  call cleanarea(array,nx,ny,nx,ny,ixfix,iyfix,
-     &		      ninPatch,nborder,iorder,ifincadj,ifVerbose)
-		  numPatch=numPatch + 1
-		  numPixels=numPixels + ninPatch
-c		    
-c		    fix the difference array 1 pixel beyonds limits of patch
+104		    format(/,'Diff peak at',2i6,' = ',f8.0,', diff =',f8.0,
+     &			', ',f7.2, ' SDs above mean',$)
+		    call cleanarea(array,nx,ny,nx,ny,ixfix,iyfix,
+     &			ninPatch,nborder,iorder,ifincadj,ifVerbose)
+		    numPatch=numPatch + 1
+		    numPixels=numPixels + ninPatch
+c		      
+c		      fix the difference array 1 pixel beyonds limits of patch
 c
-		  ixmin = max(ixmin - 1, ixStart + 1)
-		  ixmax = min(ixmax + 1, ixEnd - 1)
-		  iymin = max(iymin - 1, iyStart + 1)
-		  iymax = min(iymax + 1, iyEnd - 1)
-		  call compute_diffs(array, nx, ny, diffArr, limdiff, limdiff,
-     &		      ixmin, ixmax, iymin, iymax, ixofs, iyofs, sum, sumsq)
+		    ixmin = max(ixmin - 1, ixStart + 1)
+		    ixmax = min(ixmax + 1, ixEnd - 1)
+		    iymin = max(iymin - 1, iyStart + 1)
+		    iymax = min(iymax + 1, iyEnd - 1)
+		    call compute_diffs(array, nx, ny, diffArr, limdiff,
+     &			limdiff, ixmin, ixmax, iymin, iymax, ixofs,
+     &			iyofs, sum, sumsq)
+		  else
+		    numPtOut = numPtSave
+		    numPatchOut = numPatchSave
+		  endif
 		endif
 	      enddo
 	    enddo
