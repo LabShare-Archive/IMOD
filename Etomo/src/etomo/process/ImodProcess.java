@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/04/28 23:25:26  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.4  2003/03/19 00:23:22  rickg
  * <p> Added model view option
  * <p>
@@ -69,7 +72,8 @@ public class ImodProcess {
   private String windowID = "";
   private boolean swapYZ = false;
   private boolean modelView = false;
-  
+  private boolean fillCache = false;
+
   private Thread imodThread;
 
   /**
@@ -106,11 +110,16 @@ public class ImodProcess {
     if (swapYZ) {
       options = "-Y ";
     }
-    
-    if(modelView) {
+
+    if (modelView) {
       options = "-V ";
     }
-    
+
+    // FIXME: Fill cache implementation
+    if (fillCache) {
+      //options = "-F ";
+    }
+
     // TODO: Change imod command to 3dmod and remove debug flag
     String command = "imod -D -W " + options + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
@@ -316,6 +325,20 @@ public class ImodProcess {
    */
   public void setModelView(boolean modelView) {
     this.modelView = modelView;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isFillCache() {
+    return fillCache;
+  }
+
+  /**
+   * @param b
+   */
+  public void setFillCache(boolean b) {
+    fillCache = b;
   }
 
 }
