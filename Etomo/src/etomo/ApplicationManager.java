@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.81  2003/10/23 23:06:13  sueh
+ * <p> bug271 called isValid() in SetupDialog
+ * <p>
  * <p> Revision 2.80  2003/10/22 21:32:02  rickg
  * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
  * <p>
@@ -1699,7 +1702,7 @@ public class ApplicationManager {
         return;
       }
       setThreadName(threadName, sourceAxisID);
-      mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
+      mainFrame.startProgressBar("Transferring fiducials", sourceAxisID);
       updateTransferfidEnabled(fiducialModelDialog, sourceAxisID);
     }
   }
