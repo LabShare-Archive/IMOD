@@ -642,6 +642,10 @@ EOF
     endif
 
     (cd $midas_dir ; qmake midas.pro)
+    if ($status) then
+        echo "ERROR: setup - executing qmake"
+        exit 1
+    endif
     (cd $sendevent_dir ; qmake imodsendevent.pro)
     (cd $qtassist_dir ; qmake imodqtassist.pro)
 
@@ -785,6 +789,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.51  2005/01/18 22:07:09  mast
+#  New variables to configure to get junit tests to work on windows
+#
 #  Revision 3.50  2005/01/17 19:32:22  mast
 #  Cleanup unused architectures
 #
