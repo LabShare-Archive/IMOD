@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
+
 */
 
 #include <stdlib.h>
@@ -130,6 +133,11 @@ void MidasGL::paintGL()
     glEnd();
   }
      
+  // On the first draw, update parameter display
+  // 12/7/03, move up above drawing of stretch line so it is correct
+  if (!VW->exposed)
+    VW->midasSlots->update_parameters();
+
   /* First line is for the defined stretch angle */
      
   tcrit = atan(((double)ydrawn)/xdrawn);
@@ -159,9 +167,6 @@ void MidasGL::paintGL()
 
   glFlush();
 
-  // On the first draw, update parameter display
-  if (!VW->exposed)
-    VW->midasSlots->update_parameters();
   VW->exposed = 1;
 }
 
@@ -416,13 +421,11 @@ void MidasGL::draw_image(struct Midas_view *vw, unsigned long *image,
 /* Refill all image data buffers with refreshed data. */
 int MidasGL::fill_viewdata( struct Midas_view *vw)
 {
-  int xfd;
   int refz = vw->refz;
 
   Islice *prevSlice;
-  Islice *curSlice  = midasGetSlice(VW, MIDAS_SLICE_CURRENT, &xfd);
+  Islice *curSlice  = midasGetSlice(vw, MIDAS_SLICE_CURRENT);
 
-     
   unsigned char *currImageData = curSlice->data.b;
   unsigned char *prevImageData = NULL;
 
@@ -430,7 +433,8 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
   switch(vw->xtype){
   case XTYPE_XF:
   case XTYPE_MONT:
-    prevSlice = midasGetSlice(VW, MIDAS_SLICE_OPREVIOUS, &xfd);
+    prevSlice = midasGetSlice(vw, vw->rotMode ? MIDAS_SLICE_PREVIOUS : 
+                              MIDAS_SLICE_OPREVIOUS);
     if (prevSlice)
       prevImageData = prevSlice->data.b;
     break;
@@ -441,17 +445,16 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
     break;
   case XTYPE_XG:
   default:
-    prevSlice = midasGetSlice(VW, MIDAS_SLICE_PREVIOUS, &xfd);
+    prevSlice = midasGetSlice(vw, MIDAS_SLICE_PREVIOUS);
     if (prevSlice)
       prevImageData = prevSlice->data.b;
     break;
   }
 
-
   if (vw->vmode == MIDAS_VIEW_COLOR){
 	  
     /* fill the current transformed slice image data. */
-    fill_rgb(currImageData, vw->id, vw->xysize, 2, &VW->tr[vw->cz]);
+    fill_rgb(currImageData, vw->id, vw->xysize, 2, &vw->tr[vw->cz]);
 
     /* fill the previous slice image data. */
     fill_rgb(prevImageData, vw->id, vw->xysize, 3, &vw->tr[refz]);
@@ -461,9 +464,9 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
      
   if (vw->vmode == MIDAS_VIEW_SINGLE){
     if (vw->showref){
-      fill_rgb(prevImageData, vw->id, vw->xysize, 0, &VW->tr[refz]);
+      fill_rgb(prevImageData, vw->id, vw->xysize, 0, &vw->tr[refz]);
     }else{
-      fill_rgb(currImageData, vw->id, vw->xysize, 0, &VW->tr[vw->cz]);
+      fill_rgb(currImageData, vw->id, vw->xysize, 0, &vw->tr[vw->cz]);
     }
   }
 
@@ -477,8 +480,7 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
  */
 int MidasGL::update_slice_view(void)
 {
-  int xformed;
-  Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT, &xformed);
+  Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
 
   if (VW->vmode == MIDAS_VIEW_SINGLE)
     fill_viewdata(VW);
@@ -544,34 +546,34 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
   VW->lastmx = e->x();
   VW->lastmy = VW->height - e->y();
 
+  mMousePressed = true;
   if (button2 && (state & Qt::ControlButton) &&
       VW->xtype != XTYPE_MONT) {
     VW->xcenter = (VW->lastmx - VW->xoffset) / VW->truezoom;
     VW->ycenter = (VW->lastmy - VW->yoffset) / VW->truezoom;
     draw();
   } else if (button1 && (state & Qt::ControlButton))
-    VW->mouseLabel->setText("PANNING IMAGE");
+    manageMouseLabel("PANNING IMAGE");
   else if (button1 && ! (state & Qt::ShiftButton))
-    VW->mouseLabel->setText("TRANSLATING");
+    manageMouseLabel("TRANSLATING");
   else if (VW->xtype != XTYPE_MONT) {
     if (button2 && !(state & (Qt::ControlButton | Qt::ShiftButton)))
-      VW->mouseLabel->setText("ROTATING");
+      manageMouseLabel("ROTATING");
     if (button3 && !(state & Qt::ControlButton)) {
       if (state & Qt::ShiftButton)
-        VW->mouseLabel->setText("CHANGING MAG");
+        manageMouseLabel("CHANGING MAG");
       else
-        VW->mouseLabel->setText("STRETCHING");
+        manageMouseLabel("STRETCHING");
     }
   }
-  mMousePressed = true;
 }
 
 // Release: update parameters now
 void MidasGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   VW->midasSlots->update_parameters();
-  VW->mouseLabel->setText(" ");
   mMousePressed = false;
+  manageMouseLabel(" ");
 }
 
 
@@ -620,4 +622,20 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
     VW->lastmy = VW->my;
   }
   VW->mousemoving = 0;
+}
+
+void MidasGL::manageMouseLabel(char *string)
+{
+  if (mMousePressed) {
+    VW->mouseLabel->setPaletteForegroundColor(QColor("red"));
+    VW->mouseLabel->setText(QString(string));
+  } else {
+    VW->mouseLabel->setPaletteForegroundColor(QColor("blue"));
+    if (VW->ctrlPressed)
+      VW->mouseLabel->setText("pan -- new center --     ");
+    else if (VW->shiftPressed)
+      VW->mouseLabel->setText("        --        -- magnify");
+    else
+      VW->mouseLabel->setText("shift -- rotate -- stretch");
+  }
 }
