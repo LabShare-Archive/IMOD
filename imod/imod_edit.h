@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/10/01 05:05:54  mast
+change to rationalize location of ivw functions
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -30,9 +33,13 @@ typedef struct ViewInfo ImodView;
 
 int imod_setxyzmouse(void);
 void imod_contour_move(int ob);
-int imod_obj_nearest(struct Mod_Object *obj, 
+int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
 		     struct Mod_Index *index,
 		     struct Mod_Point *pnt,
 		     float selsize);
 int imod_redraw(ImodView *vw);
+void imodSelectionListAdd(ImodView *vi, Iindex newIndex);
+int imodSelectionListClear(ImodView *vi);
+int imodSelectionListQuery(ImodView *vi, int ob, int co);
+void imodSelectionListRemove(ImodView *vi, int ob, int co);
 #endif
