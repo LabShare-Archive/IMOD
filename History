@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/12/04: Fixed a bug in writing meshes in a model to an NFF file.
+
+10/12/04: Fixed a bug in Tilt in the Y-positioning of a tomogram when it falls
+back to old style X-axis tilting, and fixed/optimized fallback strategies for
+X-axis tilting and cosine stretch when running out of memory.
+
 10/10/04: Fixed a bug causing local alignments to be scaled erroneously 
 in Tilt (typically by 2-10%).
 
