@@ -25,11 +25,19 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef XXYZ_H
 #define XXYZ_H
 
-#define XYZ_BSIZE 6
+#define XYZ_BSIZE 8
 #define XYZ_STRINGSIZE 128
 
 struct xxyzwin
@@ -39,7 +47,8 @@ struct xxyzwin
      Widget glw;            /* The drawing widget of the xyz window */
      XID    context;
      
-     unsigned char *fdata;  /* tmp data storage nx by ny            */
+     unsigned char *fdataxz; /* tmp data storage for xz image       */
+     unsigned char *fdatayz; /* tmp data storage for yz image       */
      B3dCIImage *xydata;    /* Draw buffer for Z slices.            */
      B3dCIImage *xzdata;    /* Draw buffer for Y slices.            */
      B3dCIImage *yzdata;    /* Draw buffer for X slices.            */
@@ -50,6 +59,12 @@ struct xxyzwin
      float zoom;
 
      int lx, ly, lz;
+
+     int xtrans, ytrans;     /* translation (pan) in image coords */
+     int xwoffset,ywoffset;  /* offset in window coordinates */
+     int lmx, lmy;           /* last mouse position for panning */
+     int hq;                 /* High resolution flag */
+     int whichbox;           /* box that left mouse button went down in */
 };
 
 
