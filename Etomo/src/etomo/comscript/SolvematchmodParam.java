@@ -125,7 +125,7 @@ public class SolvematchmodParam
    * @param fiducialMatchListB The fiducialMatchListB to set
    */
   public void setFiducialMatchListB(String list) {
-    fiducialMatchListA.parseString(list);
+    fiducialMatchListB.parseString(list);
   }
 
   /**
