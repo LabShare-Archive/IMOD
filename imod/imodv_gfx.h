@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -34,5 +37,6 @@ void imodvPaintGL();
 void imodvResizeGL(ImodvGL *GLw, int winx, int winy);
 void imodvInitializeGL();
 void imodv_setbuffer(ImodvApp *a);
+void imodv_swapbuffers(ImodvApp *a);
 
 #endif
