@@ -410,6 +410,10 @@ bool ImodClipboard::executeMessage()
         // imodv object edit for it to update
         imodDraw(App->cvi, IMOD_DRAW_MOD);
         imodvObjedNewView();
+
+        // If no contours and only 1 obj, set checksum to avoid save requests
+        if (imod->objsize == 1 && !obj->contsize)
+          imod->csum = imodChecksum(imod);
         break;
         
       default:
@@ -467,6 +471,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.18  2004/06/05 00:17:43  mast
+Converted to allowing multiple actions in one message
+
 Revision 4.17  2004/06/04 03:21:27  mast
 Simplified code for keeping black/white level by just keeping the level
 the same in the open function - seemed to help crashing problem on Linux
