@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/02/16 18:54:38  sueh
+ * <p> bug# 276 Added makeFiducialModelSeedModel() to copy the
+ * <p>  .seed file to the .fid file.
+ * <p>
  * <p> Revision 3.12  2004/02/07 03:12:02  sueh
  * <p> bug# 169 Create ImodManager just once, set metadata
  * <p> separately, reformatted, changed imodRawStack() to
@@ -646,6 +650,7 @@ public class ApplicationManager {
   public ApplicationManager(String[] args) {
     //  Initialize the program settings
     String testParamFilename = initProgram(args);
+    //imodManager should be created only once.
     imodManager = new ImodManager(this);
     
     //  Create a new main window and wait for an event from the user
@@ -734,7 +739,18 @@ public class ApplicationManager {
         isDataParamDirty = true;
 
         //final initialization of IMOD manager
-        imodManager.setMetaData(metaData);
+        try {
+          imodManager.setMetaData(metaData);
+        }
+        catch (AxisTypeException except) {
+          except.printStackTrace();
+          mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
+        }
+
       }
       else {
         String[] errorMessage = new String[2];
@@ -3855,8 +3871,6 @@ public class ApplicationManager {
     comScriptMgr = new ComScriptManager(this);
     processMgr = new ProcessManager(this);
     processTrack = new ProcessTrack();
-    //  This will be created in the doneSetupDialog method
-    imodManager = null;
   }
 
   /**
@@ -3950,6 +3964,17 @@ public class ApplicationManager {
         "Test parameter file read error");
       return false;
     }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      return false;
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
+      return false;
+    }
+
     return true;
   }
 
