@@ -210,13 +210,6 @@ extern int Rampbase;
 #define IMOD_GHOST_SECTION (3)
 #define IMOD_GHOST_SURFACE (1<<2)
 
-#define MESSAGE_NO_ACTION   0
-#define MESSAGE_OPEN_MODEL  1
-#define MESSAGE_SAVE_MODEL  2
-#define MESSAGE_VIEW_MODEL  3
-#define MESSAGE_QUIT  4
-#define MESSAGE_RAISE_WINDOWS 5
-
 /* Colors for 12-bit colormap systems */
 #define RAMPBASE 256
 #define RAMPSIZE 256  
@@ -284,6 +277,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.14  2003/05/23 02:47:34  mast
+Defined message for raising windows
+
 Revision 3.13  2003/05/18 22:08:48  mast
 Changes to add an application icon
 
