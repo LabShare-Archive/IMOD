@@ -103,6 +103,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2002/05/21 03:18:27  mast
+c	  Equivalenced the array used for test output to part of the first big
+c	  array, to reduce stack size for SGI
+c	
 c	  Revision 3.5  2002/05/20 15:45:16  mast
 c	  Increased dimension of input array to handle 4Kx4K image, reduced
 c	  dimensions of other arrays to rely on binning down to 1024
@@ -132,6 +136,7 @@ C
 	complex array(idim/2),brray(idim2/2),crray(idim2/2)
 C
 	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs),(crray(1),array(idim/4))
+	common /bigarr/ array
 c
 	character*80 filin,plfile,imfilout
         real*4 f(2,3,limview),fs(2,3),fsinv(2,3)
