@@ -36,6 +36,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/12/30 19:35:14  sueh
+ * <p> bug# 567 in createGeneralTab(): capitalized radio box title.
+ * <p>
  * <p> Revision 3.10  2004/12/30 19:33:53  sueh
  * <p> bug# 567 In createGeneralTab() Maved the items in the Resdual Reporting
  * <p> box to make two rows.
@@ -272,7 +275,7 @@ public class TiltalignPanel {
   private LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
     "Min. local patch size or overlap factor (x,y): ");
   private LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
-    "Min. number of fiducials (total, each surface): ");
+    "Min. # of fiducials (total, each surface): ");
 
   //  Global variables pane
   private JPanel pnlGlobalVariable = new JPanel();
@@ -1056,7 +1059,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
    */
   private void createRadioBox(JPanel panel, ButtonGroup group,
     JRadioButton[] items, ActionListener listener) {
-    int width = 300;
+    int width = 250;
     int radioButtonHeight = 18;
     Dimension radioButtonItemSize = new Dimension(width, radioButtonHeight);
 
@@ -1163,6 +1166,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //local alignment
+    ltfMinLocalFiducials.setTextPreferredWidth(FixedDim.integerPairWidth);
     createVariablePanel(pnlLocalParameters, cbLocalAlignments,
         ltfNLocalPatches, ltfMinLocalPatchSize, ltfMinLocalFiducials,
         "Local Alignment Parameters");
@@ -1241,7 +1245,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       this);
     createRadioBox(pnlRBDistortion, bgDistortionSolution, items,
         distortionRadioListener);
-    
+    ltfXstretchNonDefaultGroups.setTextPreferredWidth(FixedDim.integerTripletWidth);
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion,
       ltfXstretchGroupSize, ltfXstretchNonDefaultGroups, ltfSkewGroupSize,
       ltfSkewNonDefaultGroups, "Distortion Solution Type");
@@ -1333,6 +1337,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       this);
     createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items,
         localDistortionRadioListener);
+    ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(FixedDim.integerTripletWidth);
     
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
       ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
@@ -1392,7 +1397,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
-    panel.add(Box.createRigidArea(FixedDim.x25_y0));
+    panel.add(Box.createRigidArea(FixedDim.x40_y0));
     SpacedPanel fieldPanel = new SpacedPanel(FixedDim.x0_y5);
     fieldPanel.setLayout(new BoxLayout(fieldPanel.getContainer(), BoxLayout.Y_AXIS));
     fieldPanel.add(field1);
