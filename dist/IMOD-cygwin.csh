@@ -1,4 +1,4 @@
-# IMOD 3.0.9
+# IMOD 3.0.17
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -16,15 +16,10 @@ if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH "$IMOD_DIR"/bin:"$PATH"
+    setenv PATH `cygpath $IMOD_DIR`/bin:"$PATH"
 else
-    setenv PATH "$IMOD_DIR"/bin
+    setenv PATH `cygpath $IMOD_DIR`/bin
 endif
-
-#
-# Set variable with location of the IMOD plugins
-#
-setenv IMOD_PLUGIN_DIR "$IMOD_DIR"/lib/imodplug
 
 #
 # A subm alias to run command files in the background with submfg

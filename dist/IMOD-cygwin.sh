@@ -1,4 +1,4 @@
-# IMOD 3.0.9
+# IMOD 3.0.17
 #
 # Startup file for bash users of IMOD under Linux
 #
@@ -16,12 +16,7 @@ export IMOD_DIR=${IMOD_DIR:=/usr/local/IMOD}
 #
 # Put the IMOD programs on the path
 #
-export PATH=$IMOD_DIR/bin:$PATH
-
-#
-# Set variable with location of the IMOD plugins
-#
-export IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
+export PATH=`cygpath $IMOD_DIR`/bin:$PATH
 
 #
 # A subm function to run command files in the background with submfg
