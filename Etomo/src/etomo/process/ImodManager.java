@@ -28,6 +28,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2004/06/07 00:16:44  sueh
+ * <p> bug# 452 call open() in place of model().  If was calling open() with
+ * <p> a model name, set openWithModel to true.
+ * <p>
  * <p> Revision 3.21  2004/05/06 20:20:50  sueh
  * <p> bug# 33 added getRubberbandCoordinates()
  * <p>
@@ -573,14 +577,6 @@ public class ImodManager {
     }
   }
   
-  public void reset(String key, AxisID axisID) throws AxisTypeException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState != null) {
-      imodState.reset();
-    }
-  }
-
   public void setSwapYZ(String key, boolean swapYZ)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
@@ -818,8 +814,8 @@ public class ImodManager {
   protected ImodState newSample(AxisID axisID) {
     ImodState imodState =
       new ImodState(axisID, "top", "mid", "bot", ".rec", "tomopitch", ".mod");
-    imodState.setUseMode(true);
-    imodState.setMode(ImodState.MODEL);
+    imodState.setInitialUseMode(true);
+    imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
   protected ImodState newFullVolume(AxisID axisID) {
@@ -830,29 +826,27 @@ public class ImodManager {
     else {
       imodState = new ImodState(axisID, datasetName, ".rec");
     }
-    imodState.initialize(true, false, false);
+    imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newCombinedTomogram() {
     ImodState imodState = new ImodState("sum.rec");
-    imodState.initialize(true, false, false);
+    imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState("patch_vector.mod");
-    imodState.initialize(false, false, true);
-    imodState.setUseMode(true);
-    imodState.setMode(ImodState.MODEL);
+    ImodState imodState = new ImodState("patch_vector.mod", ImodState.MODEL_VIEW);
+    imodState.setInitialUseMode(true);
+    imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
   protected ImodState newMatchCheck() {
     ImodState imodState = new ImodState("matchcheck.mat matchcheck.rec");
-    imodState.initialize(true, true, false);
+    imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newFiducialModel() {
-    ImodState imodState = new ImodState();
-    imodState.setUseModv(true);
+    ImodState imodState = new ImodState(ImodState.MODV);
     return imodState;
   }
   protected ImodState newTrimmedVolume() {
@@ -861,7 +855,7 @@ public class ImodManager {
   }
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
     ImodState imodState = new ImodState(datasetName);
-    imodState.initialize(true, false, false);
+    imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newMtfFilter(AxisID axisID) {
