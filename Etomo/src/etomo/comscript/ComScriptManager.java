@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/02/23 18:48:09  sueh
+ * <p> bug# 607 Fix problem: Etomo unable to exit because of null pointer
+ * <p> exception.
+ * <p>
  * <p> Revision 3.22  2005/01/29 00:17:58  sueh
  * <p> Checking for null values in initialize() to prevent null value exception on
  * <p> exit.
@@ -349,6 +353,41 @@ public class ComScriptManager {
       scriptXcorr = scriptXcorrA;
     }
     updateComScript(scriptXcorr, tiltXcorrParam, "tiltxcorr", axisID);
+  }
+  
+  /**
+   * Save the blendmont param object to xcorr.com.
+   * @param blendmontParam
+   * @param axisID
+   */
+  public void saveXcorr(BlendmontParam blendmontParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptXcorr;
+    if (axisID == AxisID.SECOND) {
+      scriptXcorr = scriptXcorrB;
+    }
+    else {
+      scriptXcorr = scriptXcorrA;
+    }
+    updateComScript(scriptXcorr, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
+  }
+  
+  /**
+   * Save the goto param object to xcorr.com.
+   * Saves to the first instance of the goto command in xcorr.com.
+   * @param gotoParam
+   * @param axisID
+   */
+  public void saveXcorr(GotoParam gotoParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptXcorr;
+    if (axisID == AxisID.SECOND) {
+      scriptXcorr = scriptXcorrB;
+    }
+    else {
+      scriptXcorr = scriptXcorrA;
+    }
+    updateComScript(scriptXcorr, gotoParam, GotoParam.COMMAND_NAME, axisID);
   }
 
   /**
@@ -863,6 +902,50 @@ public class ComScriptManager {
     initialize(matchshiftsParam, scriptSolvematchshift, "matchshifts",
       AxisID.ONLY);
     return matchshiftsParam;
+  }
+  
+  /**
+   * Get the blendmont command from xcorr.com
+   * @param axisID
+   * @return
+   */
+  public BlendmontParam getBlendmontParamFromTiltxcorr(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript xcorr;
+    if (axisID == AxisID.SECOND) {
+      xcorr = scriptXcorrB;
+    }
+    else {
+      xcorr = scriptXcorrA;
+    }
+
+    // Initialize a TiltxcorrParam object from the com script command object
+    BlendmontParam blendmontParam = new BlendmontParam(appManager.getMetaData()
+        .getDatasetName(), axisID);
+    initialize(blendmontParam, xcorr, BlendmontParam.COMMAND_NAME, axisID);
+    return blendmontParam;
+  }
+
+  /**
+   * Get the first goto command from xcorr.com
+   * @param axisID
+   * @return
+   */
+  public GotoParam getGotoParamFromTiltxcorr(AxisID axisID) {
+    ComScript xcorr;
+    if (axisID == AxisID.SECOND) {
+      xcorr = scriptXcorrB;
+    }
+    else {
+      xcorr = scriptXcorrA;
+    }
+    // Initialize a GotoParam object from the com script command
+    // object
+    GotoParam gotoParam = new GotoParam();
+    if (!initialize(gotoParam, xcorr, GotoParam.COMMAND_NAME, axisID)) {
+      return null;
+    }
+    return gotoParam;
   }
 
   /**
