@@ -344,6 +344,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2003/10/16 20:38:32  mast
+c	  Adding to option documentation
+c	
 c	  Revision 3.11  2003/08/02 22:36:49  mast
 c	  Revert from the version that padded thickness for x-axis tilting now
 c	  that fbp takes care of this.
@@ -748,7 +751,8 @@ c	    print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
 C
 C Write out current slice
 	  CALL DUMP(LSLICEout,DMIN,DMAX,DTOT)
-	  call flush(6)
+c	  DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
+c	  call flush(6)
 c	    
 c	    write out header periodically, restore writing position
 c
