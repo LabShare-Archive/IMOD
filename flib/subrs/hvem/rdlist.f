@@ -8,18 +8,37 @@ c	  return an unmodified list. Negative numbers can be entered provided
 c	  that the minus sign immediately precedes the number.  E.g.: -3 - -1
 c	  or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1.
 c
-        subroutine rdlist(iunit,list,nlist)
+c	  $Author$
 c
-        dimension list(*)
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+        subroutine rdlist(iunit,list,nlist)
+c	  
+	implicit none
+        integer*4 list(*),iunit,nlist
         character*1024 line
+        read(iunit,'(a)')line
+	call parselist(line,list,nlist)
+	return
+	end
+
+
+	subroutine parselist(line,list,nlist)
+	implicit none
+	character*(*) line
+        integer*4 list(*),nlist
         character*10 intern
         character next
         logical dashlast,negnum,gotcomma
+	integer*4 nchars,ind,lastnum,numst,loopst,number,idir,i
 c
         dashlast=.false.
 	negnum=.false.
 	gotcomma=.false.
-        read(iunit,'(a)')line
         nchars=len(line)
 	if(line(1:1).eq.'/')return
         nlist=0
