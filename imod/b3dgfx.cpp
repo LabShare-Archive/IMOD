@@ -427,7 +427,10 @@ void b3dBufferImage(B3dCIImage *image)
   /* DNM 1/20/02: removed factor of 2 from malloc */
   image->id2 = (unsigned short *)malloc
     ((image->width + 3) * (image->height + 3) * pixsize);
-  image->bufSize = 2;
+
+  /* DNM 3/12/03: only commit to having two buffers if it succeeded */
+  if (image->id2)
+    image->bufSize = 2;
 }
 
 void b3dFlushImage(B3dCIImage *image)
@@ -442,6 +445,9 @@ void b3dFlushImage(B3dCIImage *image)
   return;
 }
 
+
+/* Get the buffer for composing imageto send to GL */
+/* DNM 3/12/03: be sure to return NULL if anything fails */
 B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth, 
                                  int width, int height)
 {
@@ -456,6 +462,8 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
     b3dFreeCIImage(image);
 
   ri = (B3dCIImage *)malloc(sizeof(B3dCIImage));
+  if (!ri)
+    return NULL;
 
   /* DNM: test on passed depth rather than App->depth so that slicer can
      get a short array even if depth = 8 */
@@ -465,6 +473,10 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
     pixsize = 1;
   /* DNM 1/20/02: removed factor of 2 from malloc */
   ri->id1 = (unsigned short *)malloc((width+3) * (height+3) * pixsize);
+  if (!ri->id1) {
+    free(ri);
+    return NULL;
+  }
   ri->id2 = NULL;
   ri->width = width;
   ri->height = height;
@@ -704,6 +716,8 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 
   double zoom = xzoom;
   int i, j, istart, ilim, di;
+  if (!image)
+    return;
   unsigned short *sdata = (unsigned short *)image->id1;
   unsigned char *bdata = (unsigned char *)sdata;
   unsigned int  *idata = (unsigned int *)sdata;
@@ -823,6 +837,8 @@ static void b3dDrawGreyScalePixels15
 {
   int i, j, istart, ilim, di;
   int iextra;
+  if (!image)
+    return;
   unsigned short *sdata = (unsigned short *)image->id1;
   unsigned char  *bdata = (unsigned char *)sdata;
   unsigned int   *idata = (unsigned int *)sdata;
@@ -1040,6 +1056,8 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
                               int quality, int slice)  
 {
   float zoom = xzoom;
+  if (!image)
+    return;
   unsigned short *sdata = (unsigned short *)image->id1;
   unsigned char  *bdata = (unsigned char *)sdata;
   unsigned int   *idata = (unsigned int *)sdata;
@@ -1798,6 +1816,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.5  2003/03/04 23:23:07  mast
+Fixed bug in accessing non-existent data with zoomed down images
+
 Revision 4.4  2003/02/27 17:36:58  mast
 Convert filenames with Qt routines
 
