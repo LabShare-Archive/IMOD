@@ -41,6 +41,7 @@ Log at end of file
 #include <qclipboard.h>
 #include <qpoint.h>
 #include <qtimer.h>
+#include <qobjectlist.h>
 #include "zap_classes.h"
 
 #include "imod.h"
@@ -88,6 +89,7 @@ static void zapAutoTranslate(ZapStruct *zap);
 static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
 static void setControlAndLimits(ZapStruct *zap);
+static void zapToggleRubberband(ZapStruct *zap);
 
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
@@ -614,6 +616,10 @@ void zapStateToggled(ZapStruct *zap, int index, int state)
     zap->vi->insertmode = zap->insertmode;
     break;
 
+  case ZAP_TOGGLE_RUBBER:
+    zapToggleRubberband(zap);
+    break;
+
   case ZAP_TOGGLE_TIMELOCK:
     ivwGetTime(zap->vi, &time);
     zap->timeLock = state ? time : 0;
@@ -1069,16 +1075,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   case Qt::Key_B:
     if (shifted) { 
-      if (zap->rubberband || zap->startingBand) {
-        zap->rubberband = 0;
-        zap->startingBand = 0;
-        setControlAndLimits(zap);
-      } else {
-        zap->startingBand = 1;
-	/* Eliminated old code for making initial band */
-      }
-      zapSetCursor(zap, zap->mousemode);
-      zapDraw(zap);
+      zapToggleRubberband(zap);
     } else
       autox_build(vi->ax);
     handled = 1;
@@ -2170,6 +2167,67 @@ int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse,
   return 0;
 }
 
+// Toggle the rubber band
+void zapToggleRubberband(ZapStruct *zap)
+{
+  if (zap->rubberband || zap->startingBand) {
+    zap->rubberband = 0;
+    zap->startingBand = 0;
+    setControlAndLimits(zap);
+  } else {
+    zap->startingBand = 1;
+    /* Eliminated old code for making initial band */
+  }
+  zapSetCursor(zap, zap->mousemode);
+  zapDraw(zap);
+}
+
+// Report the rubberband coordinates of the first zap window with a band
+void zapReportRubberband()
+{
+  QObjectList objList;
+  ZapStruct *zap;
+  int i, bin;
+  float xl, xr, yb, yt;
+  int ixl, ixr, iyb, iyt;
+
+  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    bin = zap->vi->xybin;
+    if (zap->rubberband) {
+      zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
+      zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
+      ixl = (int)(xl + 0.5);
+      ixr = (int)(xr - 0.5);
+      iyb = (int)(yb + 0.5);
+      iyt = (int)(yt - 0.5);
+      if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
+          iyb > zap->vi->ysize - 2)
+        continue;
+
+      if (ixl < 0)
+        ixl = 0;
+      if (ixr >= zap->vi->xsize)
+        ixr = zap->vi->xsize - 1;
+      if (iyb < 0)
+        iyb = 0;
+      if (iyt >= zap->vi->ysize)
+        iyt = zap->vi->ysize - 1;
+      ixl *= bin;
+      iyb *= bin;
+      ixr = ixr * bin + bin - 1;
+      iyt = iyt * bin + bin - 1;
+        
+      fprintf(stderr, "%d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1, iyt + 1);
+      return;
+    }
+  }
+  fprintf(stderr, "ERROR: No Zap window has usable rubberband coordinates\n");
+}
+
+
 /****************************************************************************/
 /* drawing routines.                                                        */
 
@@ -2805,6 +2863,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.39  2004/01/05 18:35:46  mast
+Divide point sizes by xy binning for display
+
 Revision 4.38  2003/12/18 22:47:27  mast
 Fixed problem with float when starting movie snapshots, implemented ability
 to start at current point, and made changes because of slicer movies
