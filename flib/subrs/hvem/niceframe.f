@@ -1,12 +1,17 @@
-
-
-
-c	  function NICEFRAME returns NUM if it has no prime factor greater
-c	  than LIMIT, or adds IDNUM to NUM until it reaches a number with this
-c	  tractable property
+c	  function NICEFRAME returns NUM if it is even and has no prime factor 
+c	  greater than LIMIT, or adds IDNUM to NUM until it reaches a number
+c	  with this tractable property
+c	  
+c	  $Author$
 c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
 	function niceframe(num,idnum,limit)
-	numin=num
+	numin=num+mod(num,2)
 10	numtmp=numin
         do ifac=2,limit
          do while (mod(numtmp,ifac).eq.0)
