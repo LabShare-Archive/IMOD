@@ -22,6 +22,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/10/09 00:01:57  rickg
+ * <p> added copy constructor
+ * <p> convert whitespace strings to zero length string in set methods
+ * <p> added patchBoundaries to load and store
+ * <p> added revision number
+ * <p>
  * <p> Revision 1.6  2002/10/08 04:39:59  rickg
  * <p> Added setDefaultPatchBoundaryMethod
  * <p>
@@ -62,7 +68,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     matchBtoA = src.matchBtoA;
     fiducialMatch = src.fiducialMatch;
     fiducialMatchListA = new StringList(src.fiducialMatchListA);
-    fiducialMatchListB = new StringList(src.fiducialMatchListA);
+    fiducialMatchListB = new StringList(src.fiducialMatchListB);
     patchSize = src.patchSize;
     patchXMin = src.patchXMin;
     patchXMax = src.patchXMax;
@@ -243,7 +249,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     fiducialMatchListB.parseString(
       props.getProperty(
         group + "FiducialMatchListB",
-        fiducialMatchListA.toString()));
+        fiducialMatchListB.toString()));
 
     patchSize =
       CombinePatchSize.fromString(
