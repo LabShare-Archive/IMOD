@@ -243,7 +243,7 @@ cleanqt : configure
 # Clean up executables in Windows
 #
 cleanexe : configure
-	\find . -type f -name '*.exe' -exec /bin/rm -f '{}' \;
+	\find . \( -type d -name bin -prune \) -o -type f -name '*.exe' -exec /bin/rm -f '{}' \;
 #
 # Shortcut for making libs only, helps for debugging.
 #
@@ -377,6 +377,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.30  2003/12/04 16:30:52  mast
+#  Remove unused dsp's from make src and add tests entry
+#
 #  Revision 3.29  2003/12/02 03:27:46  mast
 #  add ndasda to cleanqt and revise instructions for Windows
 #
