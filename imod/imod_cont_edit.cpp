@@ -1188,6 +1188,12 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                 " are moved");
   diaSetChecked(mKeepSizeBox, comv.keepsize != 0);
 
+  QPushButton *button = diaPushButton("Shift contour with first mouse button",
+                                     this, mLayout);
+  connect(button, SIGNAL(clicked()), this, SLOT(shiftContClicked()));
+  QToolTip::add(button, "Activate shifting of current contour with mouse in "
+                "Zap window (hot key P)");
+
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Move Contour"));
 }
@@ -1261,6 +1267,13 @@ void ContourMove::objSelected(int value)
   }
 }
 
+void ContourMove::shiftContClicked()
+{
+  QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_P, 'P', 
+                               ShiftButton);
+  ivwControlKey(0, e);
+}
+
 // Respond to action buttons
 void ContourMove::buttonPressed(int which)
 {
@@ -1284,9 +1297,9 @@ void ContourMove::buttonPressed(int which)
     dia_vasmsg
       ("Contour Move Help\n",
        "---------------------------\n",
-       "This dialog is used to move contours to a different object "
-       "or to a different surface.  ",
-       "Use the spin box to select the object or surface # to move "
+       "This dialog is used to move contours to a different object or to a "
+       "different surface, or to activate shifting a contour with the mouse. ",
+       " Use the spin box to select the object or surface # to move "
        "the current contour to.  ",
        "3dmod remembers the object #, so the hot key 'M' in the ",
        "Zap window can be used to move contours quickly.\n\n",
@@ -1324,7 +1337,7 @@ void ContourMove::buttonPressed(int which)
        "target object so that they can be manipulated together or deleted "
        "easily.\n\n"
        "When the current object consists of scattered points, the "
-       "\Preserve sizes of points with default size\" button can be used to "
+       "\"Preserve sizes of points with default size\" button can be used to "
        "specify whether the sizes of "
        "the points will be completely preserved when they are "
        "transferred to the new object.  If the button is selected, "
@@ -1348,8 +1361,16 @@ void ContourMove::buttonPressed(int which)
        "move all of the contours in an object with no surfaces into "
        "a different object and have them occupy a separate surface "
        "in that object, select the option to move all contours with "
-       "the same surface number.\n",
-     
+       "the same surface number.\n\n",
+       "\"Shift contour with first mouse button\" allows you to shift the "
+       "current contour in the active Zap window by dragging with the first "
+       "mouse button held down.  After "
+       "pressing this key, position the mouse anywhere, press the first mouse "
+       "button, and shift the contour to the desired position.  Shifting mode "
+       "is terminated when you release the mouse button.  Shifting "
+       "works for any contours in closed contour objects and for coplanar "
+       "contours in open contour objects.\n",
+
        NULL);
     break;
   }
@@ -1779,6 +1800,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.12  2004/11/01 23:36:44  mast
+Added conversion of point to circles and uses of multiple selections
+
 Revision 4.11  2004/09/21 20:18:21  mast
 Added surface labels
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/01 23:36:10  mast
+changes for external join call and conversion of point to circles
+
 Revision 4.2  2003/03/26 06:30:56  mast
 adjusting to font changes
 
@@ -70,6 +73,7 @@ class ContourMove : public ContourFrame
   void replaceToggled(bool state);
   void expandToggled(bool state);
   void keepSizeToggled(bool state);
+  void shiftContClicked();
 
  protected:
   void closeEvent ( QCloseEvent * e );

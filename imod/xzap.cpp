@@ -71,6 +71,10 @@ static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
 static void zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
+static void endContourShift(ZapStruct *zap);
+static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
+static void setupContourShift(ZapStruct *zap);
+static void startShiftingContour(ZapStruct *zap, int x, int y);
 static void shiftContour(ZapStruct *zap, int x, int y);
 static void startMovieCheckSnap(ZapStruct *zap, int dir);
 
@@ -194,6 +198,13 @@ void zapHelp()
      "off, all eligible contours on the section will be added; with the "
      "rubber band on, only contours completely within the rubber band will be "
      "selected.\n",
+     "\tP Allows you to shift the whole current "
+     "contour by dragging with the first mouse button held down.  After "
+     "pressing this key, position the mouse anywhere, press the first mouse "
+     "button, and shift the contour to the desired position.  Shifting mode "
+     "is terminated when you release the mouse button.  Shifting "
+     "works for any contours in closed contour objects and for coplanar "
+     "contours in open contour objects.\n"
      "\tArrow keys and the keypad: In movie mode, the arrow keys and "
      "the PageUp and PageDown keys move the current viewing point (the "
      "small cross), while the keypad keys pan the image horizontally,"
@@ -237,10 +248,6 @@ void zapHelp()
      "\tSecond Button Click: Add one point to the current contour.\n"
      "\tSecond Button Drag: Continually add points to the current "
      "contour as the mouse is moved, or move the rubber band.\n",
-     "\t"CTRL_STRING" - Second Button Click or Drag: Shift the whole current "
-     "contour by moving the current point to the mouse position.  Shifting "
-     "works for any contours in closed contour objects and for coplanar "
-     "contours in open contour objects.\n"
      "\tThird Button Click: Modify the current model point to be at the "
      "selected position.\n",
      "\tThird Button Drag: Continually modify points as the mouse is "
@@ -734,6 +741,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->mousemode = 0;
   zap->rubberband = 0;
   zap->startingBand = 0;
+  zap->shiftingCont = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
 
@@ -1148,6 +1156,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     handled = 1;
     break;
           
+  case Qt::Key_P:
+    if (shifted) {
+      setupContourShift(zap);
+      handled = 1;
+    }
+    break;
+
   case Qt::Key_S:
     if (shifted || 
         (event->state() & Qt::ControlButton)){
@@ -1287,20 +1302,24 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
   if (event->button() == ImodPrefs->actualButton(1)) {
-      but1downt.start();
-      firstmx = event->x();
-      firstmy = event->y();
-      if (zap->startingBand)
-        zapButton1(zap, firstmx, firstmy, ctrlDown);
-      else
-        firstdrag = 1;
+    but1downt.start();
+    firstmx = event->x();
+    firstmy = event->y();
+    if (zap->shiftingCont)
+      startShiftingContour(zap, firstmx, firstmy);
+    else if (zap->startingBand)
+      zapButton1(zap, firstmx, firstmy, ctrlDown);
+    else
+      firstdrag = 1;
       
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
+    endContourShift(zap);
     zapButton2(zap, event->x(), event->y(), ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
+    endContourShift(zap);
     zapButton3(zap, event->x(), event->y(), ctrlDown);
 
   }
@@ -1314,6 +1333,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   setControlAndLimits(zap);
   if (event->button() == ImodPrefs->actualButton(1)){
+    endContourShift(zap);
     if (dragband) {
       dragband = 0;
       zapSetCursor(zap, zap->mousemode);
@@ -1557,11 +1577,6 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   int cz, pz;
   int curTime = zap->timeLock ? zap->timeLock : vi->ct;
 
-  if (controlDown) {
-    shiftContour(zap, x, y);
-    return;
-  }
-
   zapGetixy(zap, x, y, &ix, &iy);
 
   if (vi->ax){
@@ -1737,6 +1752,11 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
   int   pt;
   float ix, iy;
 
+  if (zap->shiftingCont) {
+    startShiftingContour(zap, x, y);
+    return;
+  }
+
   zapGetixy(zap, x, y, &ix, &iy);
 
   if (vi->ax){
@@ -1790,6 +1810,11 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   // For zooms less than one, move image along with mouse; for higher zooms,
   // Translate 1 image pixel per mouse pixel (accelerated)
   double transFac = zap->zoom < 1. ? 1. / zap->zoom : 1.;
+
+  if (zap->shiftingCont) {
+    shiftContour(zap, x, y);
+    return;
+  }
 
   if (zap->rubberband && firstdrag) {
 
@@ -1927,11 +1952,6 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   int pt;
   int dx, dy;
      
-  if (controlDown) {
-    shiftContour(zap, x, y);
-    return;
-  }
-
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       zapGetixy(zap, x, y, &ix, &iy);
@@ -2099,43 +2119,80 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   return;
 }
 
-static void shiftContour(ZapStruct *zap, int x, int y)
+static void endContourShift(ZapStruct *zap)
+{
+  if (!zap->shiftingCont)
+    return;
+  zap->shiftingCont = 0;
+  zapSetCursor(zap, zap->mousemode);
+}
+
+static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
 {
   ImodView *vi = zap->vi;
-  Iobj *obj;
-  Icont *cont;
-  int   pt;
-  float ix, iy;
-  static int warned;
-  
-  obj = imodObjectGet(vi->imod);
-  cont = imodContourGet(vi->imod);
+  Iobj *obj = imodObjectGet(vi->imod);
+  Icont *cont = imodContourGet(vi->imod);
   pt = vi->imod->cindex.point;
-
+  
+  err = 0;
   if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || pt < 0)
-    return;
+    err = 1;
+  else if (iobjScat(obj->flags) ||
+      (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
+    err = -1;
 
-  if (iobjScat(obj->flags) ||
-      (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))) {
-    if (!warned)
-      wprint("\aYou cannot shift scattered point or non-planar open contours."
-             "To shift this contour, temporarily make the object type be "
-             "closed.\n");
-    warned = 1;
+  if (err)
+    endContourShift(zap);
+  return cont;
+}
+                             
+static void setupContourShift(ZapStruct *zap)
+{
+  int   pt, err;
+  Icont *cont = checkContourShift(zap, pt, err);
+  if (err < 0)
+    wprint("\aYou cannot shift scattered point or non-planar open contours."
+           "To shift this contour, temporarily make the object type be "
+           "closed.\n");
+  if (err)
     return;
-  }
+  zap->shiftingCont = 1;
+  zap->startingBand = 0;
+  zapSetCursor(zap, zap->mousemode);
+}
+
+static Ipoint contShiftBase;
+
+static void startShiftingContour(ZapStruct *zap, int x, int y)
+{
+  int   pt, err;
+  float ix, iy;
+  Icont *cont = checkContourShift(zap, pt, err);
+  if (err)
+    return;
 
   zapGetixy(zap, x, y, &ix, &iy);
-  vi->xmouse = ix;
-  vi->ymouse = iy;
+  contShiftBase.x = cont->pts[pt].x - ix;
+  contShiftBase.y = cont->pts[pt].y - iy;
+}
 
-  ix -= cont->pts[pt].x;
-  iy -= cont->pts[pt].y;
+static void shiftContour(ZapStruct *zap, int x, int y)
+{
+  int   pt, err;
+  float ix, iy;
+  Icont *cont = checkContourShift(zap, pt, err);
+  if (err)
+    return;
+
+  zapGetixy(zap, x, y, &ix, &iy);
+
+  ix += contShiftBase.x - cont->pts[pt].x;
+  iy += contShiftBase.y - cont->pts[pt].y;
   for (pt = 0; pt < cont->psize; pt++) {
     cont->pts[pt].x += ix;
     cont->pts[pt].y += iy;
   }
-  imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+  imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
 }
 
 /********************************************************
@@ -2424,6 +2481,7 @@ void zapToggleRubberband(ZapStruct *zap)
     setControlAndLimits(zap);
   } else {
     zap->startingBand = 1;
+    zap->shiftingCont = 0;
     /* Eliminated old code for making initial band */
   }
   zapSetCursor(zap, zap->mousemode);
@@ -3064,8 +3122,9 @@ static void zapSetCursor(ZapStruct *zap, int mode)
   int shape;
 
   // Set up a special cursor for the rubber band
-  if (zap->startingBand || (zap->rubberband && (moveband || dragband))) {
-    if (zap->startingBand || moveband)
+  if (zap->startingBand || (zap->rubberband && (moveband || dragband)) ||
+      zap->shiftingCont) {
+    if (zap->startingBand || moveband || zap->shiftingCont)
       shape = Qt::SizeAllCursor;
     else if (dragging[0] && dragging[2] || dragging[1] && dragging[3])
       shape = Qt::SizeFDiagCursor;
@@ -3122,6 +3181,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.50  2004/11/02 20:22:35  mast
+Added contour shift capability; switched to curpoint color for current point
+
 Revision 4.49  2004/11/02 00:52:32  mast
 Added multiple selection logic and image-based rubber band
 

@@ -68,6 +68,7 @@ typedef struct zapwin
   int    rbMouseY0;
   int    rbMouseY1;
   int    startingBand;
+  int    shiftingCont; /* Flag for shifting contour */
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
@@ -134,6 +135,9 @@ void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.11  2004/11/01 22:58:32  mast
+New rubberband image variables
+
 Revision 3.10  2004/05/05 17:33:46  mast
 Added call to get rubberband coordinates
 
