@@ -33,6 +33,11 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/10 19:49:35  mast
+    Needed to flush events before movie image draw as well as after, to
+    prevent crashes possibly due to expose events after a resize with
+    Nvidia Ti 4600
+
     Revision 3.1  2002/01/28 16:47:12  mast
     Fixed problem with movie rate counter when movie was stopped with mouse
     button
@@ -403,7 +408,7 @@ void imodMovieProc(XtPointer client_data, XtIntervalId *id)
 	  return;
 
      /* DNM 9/10/02: Process events before the draw to prevent expose events
-	from crashing dual-processor PC */
+	from crashing with Ti 4600 */
      xinput();
 
      /*  fprintf(stderr, "calling imodDraw..."); */
