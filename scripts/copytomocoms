@@ -13,8 +13,8 @@ set RESIDUAL_SCALE = 10           # scaling for tiltalign residuals
 set backupname = "./savework"
 
 set single_srcname = "g5a"
-set dual_srcname = "g5"
 set seedname = "empty.seed"
+set pn = "copytomocoms"
 
 #  $Author$
 #
@@ -45,137 +45,356 @@ if ("$PWD" == $srcdir) then
 endif
 
 set noglob
+set srcname = $single_srcname
+set disttext = "-xf"
 
-echo " "
-echo "This program will set up the command files needed for tomography."
-echo "There are no command line arguments."
-echo "Just answer each of the questions in turn."
-echo "To interrupt, type Ctrl-C then Return."
-echo " "
+if ($#argv > 0) then
 
-
-set naxis = "0"
-while ($naxis != "1" && $naxis != "2")
-    echo -n "Do you have tilts around one axis or two axes (Enter 1 or 2)? "
-    set naxis = $<
-end
-
-# FIND OUT IF FILM OR CCD
-
-set filmccd = "0"
-while ($filmccd != "C" && $filmccd != 'c' && $filmccd != 'F')
-    echo "Enter f (for film) if your tilt images are already fairly well aligned,"
-    echo -n " or c (for CCD) if the images need prealignment: "
-    set filmccd = $<
-    if ($filmccd == "f") set filmccd = "F"
-end
-
-    # IN EITHER CASE, FIND OUT IF MONTAGE
-
-set montage = "-1"
-while ($montage == "-1")
-    echo -n "Are the data montaged (Enter y or n)? "
-    set ifmont = $<
-    if ($ifmont == "y" || $ifmont == "Y") set montage = "1"
-    if ($ifmont == "n" || $ifmont == "N") set montage = "0"
-end
-
-if ($filmccd == "F") then
-    set logbase = "-250"
+    # Initialize
+    set interactive = 0
+    set filmccd = "C"
+    set montage = "0"
+    set naxis = "1"
+    set backup = 0
+    set userawtlt = 0
+    set buserawtlt = 0
+    set ifextract = 0
+    set bifextract = 0
+    set excludelistin = ""
+    set bexcludelistin = ""
+    set local = "1"
     set preblend = "0"
+    @ numsec = 0
+    @ bnumsec = 0
+    set imsec = ""
+    set bimsec = ""
+    set angles = 0
+    set bangles = 0
+    set firstinc = 0
+    set bfirstinc = 0
+    set binning = 1
 
-    # IF FILM AND MONTAGE, FIND OUT IF NEED PREBLEND
-    if ($montage == "1") then
-	set preblend = "-1"
-	while ($preblend == "-1")
-	    echo  "Do you need to correct for errors in overlap between pieces"
-	    echo -n " when you blend the pieces together (Enter y or n)? "
-	    set ifpre = $<
-	    if ($ifpre == "y" || $ifpre == "Y") set preblend = "1"
-	    if ($ifpre == "n" || $ifpre == "N") set preblend = "0"
-	end
-    endif
-else
-
-    set logbase = "0"
-
-    # IF CCD, ASK IF NEED ERASER
-
-    set erase = "-1"
-    while ($erase == "-1")
-	echo -n "Do you need to run CCDERASER on the data (Enter y or n)? "
-	set ifera = $<
-	if ($ifera == "y" || $ifera == "Y") set erase = "1"
-	if ($ifera == "n" || $ifera == "N") set erase = "0"
+    # process arguments
+    while ($#argv > 0)
+      switch ($argv[1])
+        case -h*:
+          goto usage
+          breaksw
+        case -n*:
+          set rootname = $argv[2]
+          shift; shift
+          breaksw
+        case -du*:
+          set naxis = "2"
+          shift
+          breaksw
+        case -fil*:
+          set filmccd = "F"
+          shift
+          breaksw
+        case -pre*:
+          set preblend = "1"
+          shift
+          breaksw
+        case -m*:
+          set montage = "1"
+          shift
+          breaksw
+        case -bac*:
+          set backupdir = $argv[2]
+          set backup = 1
+          shift; shift
+          breaksw
+        case -x*:
+          @ xsize = $argv[2]
+          shift; shift
+          breaksw
+        case -y*:
+          @ ysize = $argv[2]
+          shift; shift
+          breaksw
+        case -pi*:
+          set pixsize = $argv[2]
+          shift; shift
+          breaksw
+        case -g*:
+          set beadnm = $argv[2]
+          shift; shift
+          breaksw
+        case -r*:
+          set axisangle = $argv[2]
+          shift; shift
+          breaksw
+        case -br*:
+          set baxisangle = $argv[2]
+          shift; shift
+          breaksw
+        case -a*:
+          set angles = $argv[2]
+          shift; shift
+          breaksw
+        case -ban*:
+          set bangles = $argv[2]
+          shift; shift
+          breaksw
+        case -fir*:
+          set firstinc = $argv[2]
+          shift; shift
+          breaksw
+        case -bf*:
+          set bfirstinc = $argv[2]
+          shift; shift
+          breaksw
+        case -u*:
+          set userawtlt = 1
+          shift
+          breaksw
+        case -bu*:
+          set buserawtlt = 1
+          shift
+          breaksw
+        case -e*:
+          set ifextract = "Y"
+          set userawtlt = 1
+          shift
+          breaksw
+        case -be*:
+          set bifextract = "Y"
+          set buserawtlt = 1
+          shift
+          breaksw
+        case -s*:
+          set excludelistin = $argv[2]
+          shift; shift
+          breaksw
+        case -bs*:
+          set bexcludelistin = $argv[2]
+          shift; shift
+          breaksw
+        case -z*:
+          @ numsec = $argv[2]
+          shift; shift
+          breaksw
+        case -bz*:
+          @ bnumsec = $argv[2]
+          shift; shift
+          breaksw
+        case -o*:
+          set imsec = $argv[2]
+          shift; shift
+          breaksw
+        case -bo*:
+          set bimsec = $argv[2]
+          shift; shift
+          breaksw
+        case -di*:
+          set distort = $argv[2]
+          shift; shift
+          breaksw
+        case -bi*:
+          set binning = $argv[2]
+          shift; shift
+          breaksw
+        default:
+          echo "ERROR: $pn - unrecognized option"
+          exit 1
+      endsw
     end
 
-endif
+    # Check validity of inputs
+    #
+    if (! $?rootname) then
+        echo "ERROR: $pn - You must enter a root name"
+        exit 1
+    endif
+    if (! $?beadnm) then
+        echo "ERROR: $pn - You must enter a size for fiducials"
+        exit 1
+    endif
+    if (! $?axisangle) then
+        echo "ERROR: $pn - You must enter the rotation angle of the tilt axis"
+        exit 1
+    endif
+    @ numin = 0
+    if ($angles != 0) @ numin++
+    if ($firstinc != 0) @ numin++
+    if ($userawtlt != 0) @ numin++
+    if ($numin != 1) then
+        echo "ERROR: $pn - You must enter one and only one of -angles, -firstinc, and -userawtlt"
+        exit 1
+    endif
 
-# ASK IF WANT TO DO LOCAL ALIGNMENTS
+    if ($naxis == "2") then
+        if (! $?baxisangle) then
+            echo "ERROR: $pn - You must enter the rotation angle of the tilt axis for second axis"
+            exit 1
+        endif
+        @ numin = 0
+        if ($bangles != 0) @ numin++
+        if ($bfirstinc != 0) @ numin++
+        if ($buserawtlt != 0) @ numin++
+        if ($numin != 1) then
+            echo "ERROR: $pn - You must enter one and only one of -bangles, -bfirstinc, and -buserawtlt"
+            exit 1
+        endif
+    endif
 
-set local = "-1"
-while ($local == "-1")
-    echo -n "Is it possible that you will need to use local alignments (Enter y or n)? "
-    set ifloc = $<
-    if ($ifloc == "y" || $ifloc == "Y") set local = "1"
-    if ($ifloc == "n" || $ifloc == "N") set local = "0"
-end
+    # Set a few things based on film/ccd or number of axes
+    if ($filmccd == "C") then
+        set erase = "1"
+        set logbase = "0"
+    else
+        set logbase = "-250"
+    endif
+    if ($naxis == 1) then
+        set stackname = $rootname.st
+        set piecename = $rootname.pl
+    else
+        set stackname = $rootname"a.st"
+        set piecename = $rootname"a.pl"
+    endif
 
-
-
-# GET ROOT NAME OF DATA SET AND DIMENSIONS 
-
-if ($naxis == "1") then
-    set srcname = $single_srcname
-    echo -n "Enter root name of data set (omitting .st): "
-    set rootname = $<
-    set stackname = $rootname.st
-    set piecename = $rootname.pl
+    # set distortion parameters
+    if ($?distort) then
+        set disttext = "-distort $distort -imagebinned $binning -xf"
+    endif
 
 else
-    set srcname = $single_srcname
-    echo -n "Enter root name of data sets (omitting a.st or b.st): "
-    set rootname = $<
-    set stackname = $rootname"a.st"
-    set piecename = $rootname"a.pl"
+
+    # INTERACTIVE INPUT
+
+    set interactive = 1
+    echo " "
+    echo "This program will set up the command files needed for tomography."
+    echo "You can run it with command line arguments instead of interactively;"
+    echo " enter  copytomocoms -h  to see options."
+    echo "Just answer each of the questions in turn."
+    echo "To interrupt, type Ctrl-C then Return."
+    echo " "
+
+    set naxis = "0"
+    while ($naxis != "1" && $naxis != "2")
+        echo -n "Do you have tilts around one axis or two axes (Enter 1 or 2)? "
+        set naxis = $<
+    end
+
+    # FIND OUT IF FILM OR CCD
+
+    set filmccd = "0"
+    while ($filmccd != "C" && $filmccd != 'c' && $filmccd != 'F')
+        echo "Enter f (for film) if your tilt images are already fairly well aligned,"
+        echo -n " or c (for CCD) if the images need prealignment: "
+        set filmccd = $<
+        if ($filmccd == "f") set filmccd = "F"
+    end
+
+        # IN EITHER CASE, FIND OUT IF MONTAGE
+
+    set montage = "-1"
+    while ($montage == "-1")
+        echo -n "Are the data montaged (Enter y or n)? "
+        set ifmont = $<
+        if ($ifmont == "y" || $ifmont == "Y") set montage = "1"
+        if ($ifmont == "n" || $ifmont == "N") set montage = "0"
+    end 
+
+
+    if ($filmccd == "F") then
+        set logbase = "-250"
+        set preblend = "0"
+
+        # IF FILM AND MONTAGE, FIND OUT IF NEED PREBLEND
+        if ($montage == "1") then
+    	set preblend = "-1"
+    	while ($preblend == "-1")
+    	    echo  "Do you need to correct for errors in overlap between pieces"
+    	    echo -n " when you blend the pieces together (Enter y or n)? "
+    	    set ifpre = $<
+    	    if ($ifpre == "y" || $ifpre == "Y") set preblend = "1"
+    	    if ($ifpre == "n" || $ifpre == "N") set preblend = "0"
+    	end
+        endif
+    else
+
+        set logbase = "0"
+
+        # IF CCD, ASK IF NEED ERASER
+
+        set erase = "-1"
+        while ($erase == "-1")
+    	echo -n "Do you need to run CCDERASER on the data (Enter y or n)? "
+    	set ifera = $<
+    	if ($ifera == "y" || $ifera == "Y") set erase = "1"
+    	if ($ifera == "n" || $ifera == "N") set erase = "0"
+        end
+
+    endif
+
+    # ASK IF WANT TO DO LOCAL ALIGNMENTS
+
+    set local = "-1"
+    while ($local == "-1")
+        echo -n "Is it possible that you will need to use local alignments (Enter y or n)? "
+        set ifloc = $<
+        if ($ifloc == "y" || $ifloc == "Y") set local = "1"
+        if ($ifloc == "n" || $ifloc == "N") set local = "0"
+    end
+
+    # GET ROOT NAME OF DATA SET
+
+    if ($naxis == "1") then
+        echo -n "Enter root name of data set (omitting .st): "
+        set rootname = $<
+        set stackname = $rootname.st
+        set piecename = $rootname.pl
+
+    else
+        echo -n "Enter root name of data sets (omitting a.st or b.st): "
+        set rootname = $<
+        set stackname = $rootname"a.st"
+        set piecename = $rootname"a.pl"
+
+    endif
+
+    # GET BACKUP AND POSSIBLE TRUE SOURCE DIRECTORY OF FILES
+
+    set backup = "-1"
+    while ($backup == "-1")
+        echo "If you want command files and small result files to be saved to another"
+        echo " directory for backup protection, enter the path name of the directory;"
+        echo -n " otherwise Return: "
+        set backupdir = "$<"
+        if ("$backupdir" == "") then
+            set backup = "0"
+        else if ((-d "$backupdir") && (-w "$backupdir")) then
+    	    set backup = "1"
+        endif
+    end 
 
 endif
 
-# GET BACKUP AND POSSIBLE TRUE SOURCE DIRECTORY OF FILES
+# HANDLE BACKUP DIRECTORY TASKS LIKE LINKS
 
-set backup = "-1"
-while ($backup == "-1")
-    echo "If you want command files and small result files to be saved to another"
-    echo " directory for backup protection, enter the path name of the directory;"
-    echo -n " otherwise Return: "
-    set backupdir = "$<"
-    if ("$backupdir" == "") then
-	set backup = "0"
-    else
-        echo $backupdir
-	if ((-d "$backupdir") && (-w "$backupdir")) then
-	    set backup = "1"
-	    if ((! -e $stackname) && (-e "$backupdir/$stackname")) then
-		echo "Creating link to $backupdir/$stackname in current directory"
-		ln -s "$backupdir/$stackname" .
-	    endif
-	    if ($naxis == "2")then
-		set bname = $rootname"b.st"
-		if (! -e $bname) then
-                    if (-e "$backupdir/$bname") then
-                        echo "Creating link to $backupdir/$bname in current directory"
-                        ln -s "$backupdir/$bname" .
-                    else
-                        echo2 " "
-                        echo2 "WARNING: $bname does not exist yet."
-                        echo2 "  If you place it in the backup directory later, you will have to run:"
-                        echo2 "  ln -s $backupdir/$bname ."
-                    endif
-		endif
-	    endif
+if ($backup) then
+    if ((! -e $stackname) && (-e "$backupdir/$stackname")) then
+	echo "Creating link to $backupdir/$stackname in current directory"
+	ln -s "$backupdir/$stackname" .
+    endif
+    if ($naxis == "2")then
+	set bname = $rootname"b.st"
+	if (! -e $bname) then
+            if (-e "$backupdir/$bname") then
+                echo "Creating link to $backupdir/$bname in current directory"
+                ln -s "$backupdir/$bname" .
+            else
+                echo2 " "
+                echo2 "WARNING: $bname does not exist yet."
+                echo2 "  If you place it in the backup directory later, you will have to run:"
+                echo2 "  ln -s $backupdir/$bname ."
+            endif
 	endif
     endif
-end
+endif
 set backuplist = ""
 
 # GET X AND Y SIZE FROM STACK IF IT EXISTS AND IS NOT MONTAGE
@@ -196,7 +415,7 @@ if ($#xysize == 3) then
     @ xsize = $xysize[1]
     @ ysize = $xysize[2]
 
-else
+else if ($interactive) then
 
     # OTHERWISE ASK THE USER FOR THE SIZES
 
@@ -207,18 +426,31 @@ else
     set xsize = $<
     echo -n "Enter Y dimension of tilt images$sayaset "
     set ysize = $<
+else
+    if (! ($?xsize && $?ysize)) then
+        echo "ERROR: $pn - Stack not is present; you must enter -xsize and -ysize"
+        exit 1
+    endif
 endif
 
 # GET INFORMATION FOR SETTING UP TRACK.COM RADIUS AND BOX SIZE
 
-echo -n "Pixel size in nanometers (Return if unavailable): "
-set pixsize = $<
+if ($interactive) then
+    echo -n "Pixel size in nanometers (Return if unavailable): "
+    set pixsize = $<
+endif
 if ($pixsize == "") then
-    echo -n "Diameter of gold beads in PIXELS (not nanometers): "
-    set beadsize = $<
+    if ($interactive) then
+        echo -n "Diameter of gold beads in PIXELS (not nanometers): "
+        set beadsize = $<
+    else
+        set beadsize = $beadnm
+    endif
 else
-    echo -n "Diameter of gold beads in NANOMETERS: "
-    set beadnm = $<
+    if ($interactive) then
+        echo -n "Diameter of gold beads in NANOMETERS: "
+        set beadnm = $<
+    endif
     set beadsize = `echo $beadnm $pixsize | awk '{print $1 / $2}'`
 endif
 set beadrad = `echo $beadsize | awk '{printf "%.2f", 0.5 * ($1 + 3)}'`
@@ -256,25 +488,41 @@ while ($iaxis < $numax)
         set sayaset = 'first ("a")'
 	if ($iaxis == 1) then
             set setlet = "b"
-        set sayaset = 'second ("b")'
+            set sayaset = 'second ("b")'
         endif
-	echo ' '
-	echo "Now make entries specific to the $sayaset set"
-	echo ' '
+        if ($interactive) then
+            echo ' '
+            echo "Now make entries specific to the $sayaset set"
+            echo ' '
+        endif
 	set setname = $rootname$setlet
 	set dstext = "$setlet.com"
 	set modext = "$setlet.mod"
 	set logext = "$setlet.log"
 	set recext = "$setlet.rec"
+
+        if ($iaxis == 1 && (! $interactive)) then
+            set axisangle = $baxisangle
+            set excludelistin = $bexcludelistin
+            set ifextract = $bifextract
+            @ numsec = $bnumsec
+            set imsec = $bimsec
+            set bangles = $angles
+            set userawtlt = $buserawtlt
+            set firstinc = $bfirstinc
+        endif
+
     endif
 
     set dstname = $setname
 
     # GET TILT ANGLE AND AXIS INFORMATION
 
-    echo  "Enter estimated angle of rotation from the vertical axis to the "
-    echo -n "   tilt axis in the raw images (counterclockwise positive): " 
-    set axisangle = $<
+    if ($interactive) then
+        echo  "Enter estimated angle of rotation from the vertical axis to the "
+        echo -n "   tilt axis in the raw images (counterclockwise positive): " 
+        set axisangle = $<
+    endif
 
     @ axangnum = `echo $axisangle | awk '{ print int($1)}'` 
     set newstwidth = ""
@@ -286,9 +534,11 @@ while ($iaxis < $numax)
 
 	set tiltspec = $setname".rawtlt"
         if (! -e $tiltspec) then
-	    echo "Do you want to make a .rawtlt file by extracting tilt angles"
-	    echo -n "  from the image file (Enter y or n)? "
-	    set ifextract = $<
+            if ($interactive) then
+                echo "Do you want to make a .rawtlt file by extracting tilt angles"
+                echo -n "  from the image file (Enter y or n)? "
+                set ifextract = $<
+            endif
 	    if ($ifextract == "y" || $ifextract == "Y") then
                 if (-e $setname".st") then
                     extracttilts $setname".st" $tiltspec | tail  -1
@@ -319,23 +569,38 @@ while ($iaxis < $numax)
 	endif
     endif
 
-    echo "Enter -1 to specify all tilt angles, 1 to specify a starting and increment"
-    echo -n "   tilt angle, or 0 to take tilt angles from a .rawtlt file: "
-    @ tiltopt = $<
+    if ($interactive) then
+        echo "Enter -1 to specify all tilt angles, 1 to specify a starting and increment"
+        echo -n "   tilt angle, or 0 to take tilt angles from a .rawtlt file: "
+        @ tiltopt = $<
     
-    if ($tiltopt < 0) then
-	echo "Enter all of the tilt angles, all in one line, separated by commas"
-	set tiltspec = $<
-    else if ($tiltopt > 0) then
-	echo "Enter starting tilt angle and tilt increment, separated by a comma: "
-	set tiltspec = $<
+        if ($tiltopt < 0) then
+            echo "Enter all of the tilt angles, all in one line, separated by commas"
+            set tiltspec = $<
+        else if ($tiltopt > 0) then
+            echo "Enter starting tilt angle and tilt increment, separated by a comma: "
+            set tiltspec = $<
+        else
+            set tiltspec = $setname".rawtlt"
+        endif
+
+        echo "Enter list of views to exclude from tracking, alignment, and reconstruction,"
+        echo "  or Return if none (enter ranges separated by commas, e.g. 1,77-80)"
+        set excludelistin = "$<"
     else
-	set tiltspec = $setname".rawtlt"
+
+        if ($angles != 0) then
+            @ tiltopt = -1
+            set tiltspec = $angles
+        else if ($firstinc != 0) then
+            @ tiltopt = 1
+            set tiltspec = $firstinc
+        else
+            @ tiltopt = 0
+            set tiltspec = $setname".rawtlt"
+        endif
     endif
 
-    echo "Enter list of views to exclude from tracking, alignment, and reconstruction,"
-    echo "  or Return if none (enter ranges separated by commas, e.g. 1,77-80)"
-    set excludelistin = "$<"
     set excludelistin = ($excludelistin)
     set excludelist = ""
     while ($#excludelistin > 0)
@@ -421,6 +686,7 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
+                -e "/newst/s/-xf/$disttext/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
@@ -431,6 +697,7 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
+                -e "/newst/s/-xf/$disttext/"\
 		-e "/newst/s/-size ,,/-size $newstwidth,$SAMPLESIZE/g"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
@@ -517,17 +784,27 @@ EOF
 	    if (-e $setname.st) then
 		@ numsec =  `header $setname.st | sed -n '/rows, sections/p'| awk '{print $9}'`
 	    else
-		echo -n "Cannot find $setname.st - Enter the total number of views in the stack: "
-		@ numsec = $<
+                if ($interactive) then
+                    echo -n "Cannot find $setname.st - Enter the total number of views in the stack: "
+                    @ numsec = $<
+                else if (! $numsec) then
+                    echo "Cannot find $setname.st - you must enter # of sections with -zsize or -bzsize"
+                    exit 1
+                endif 
 	    endif
 
 	    @ numsec--
 	    set xfsec = "0-"$numsec
 
 	    if (-e $setname.pl) then
-		echo "Enter list of section numbers needed to put the images"
-		echo "   in the proper order in an aligned stack"
-		set imsec = $<
+                if ($interactive) then
+                    echo "Enter list of section numbers needed to put the images"
+                    echo "   in the proper order in an aligned stack"
+                    set imsec = $<
+                else if ($imsec == "") then
+                    echo "There is a .pl file, so you must enter list to order images with -orderlist or -borderlist"
+                    exit 1
+                endif
 	    else
 		echo "Assuming images are in order in file because there is no $setname.pl file"
 		set imsec = $xfsec
@@ -613,10 +890,8 @@ EOF
 #
 # COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS
 #
-\$xfproduct
-$setname.prexg
-$setname.tltxf
-$setname.xf
+\$xfproduct $setname.prexg $setname.tltxf $setname.fidxf
+\$\\cp $setname.fidxf $setname.xf
 EOF
     endif
     cat >> $dstfile <<EOF
@@ -760,7 +1035,7 @@ EOF
     set dstfile = "tomopitch"$dstext
     set backuplist = ($backuplist $dstfile top$modext mid$modext bot$modext tomopitch$modext)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
-    sed -e "/spacing between sample/s/.*	/-$offset	/"\
+    sed -e "/^SpacingInY/s/	.*/	-$offset/"\
 	-e "s/\.mod/$modext/g"\
 	-e "s/\.rec/$recext/g"\
 	<$srcfile >$dstfile
@@ -870,8 +1145,53 @@ files.  To back up these files at other times, give the command line command
    $backupname
 EOF
 endif
+
+exit 0
+
+usage:
+cat <<EOF
+Usage: copytomocoms -options
+Options may be abbreviated to unique strings, characters in [] are optional.
+When there are two axes, for some options the basic entry applies to the
+first axis and there is a separate entry for the second axis.
+Current options:
+  -na[me]  name      Root name of data set (omitted a or b for dual-axis set)
+  -du[al]            Dual-axis data set
+  -mo[ntage]         Data are montaged
+  -bac[kup]  dir     Set directory for backing up small files
+  -pi[xel]  #        Pixel size in nanometers
+  -go[ld]   #        Size of gold beads in nanometers
+  -ro[tation]  #     Angle from the vertical to the tilt axis in raw images
+  -bro[tation] #     Angle from the vertical to the tilt axis for b axis
+  -fir[stinc] #,#    First tilt angle and tilt angle increment
+  -bfi[rstinc] #,#   First tilt angle and tilt angle increment for b axis
+  -us[erawtlt]       Take tilt angle from a .rawtlt file
+  -bus[erawtlt]      Take tilt angle from a .rawtlt file for b axis
+  -ex[tract]         Extract tilt angles from data file
+  -be[xtract]        Extract tilt angles from data file for b axis
+  -sk[ip]  list      List of views to exclude from processing
+  -bs[kip]  list     List of views to exclude from processing for b axis
+  -di[stort]  name   Undistort images with the given .idf file
+  -bi[nning]  #      Binning of raw stacks (needed to undistort if ambiguous)
+Options for special cases or film data:
+  -xs[ize]  #        X size of image data (needed if data file not present)
+  -ys[ize]  #        Y size of image data (needed if data file not present)
+  -an[gles] list     Complete list of tilt angles, on one line with no spaces
+  -ban[gles] list    Complete list of tilt angles for b axis
+  -fil[m]            Data are from film, not CCD
+  -zs[ize]  #        Number of sections (needed if stack not present for film)
+  -bzs[ize]  #       Number of sections for b axis
+  -or[derlist] list  List of section numbers for reordering film data
+  -bor[derlist] list List of section numbers for reordering data for b axis
+EOF
+exit 0
+
+
 #
 #  $Log$
+#  Revision 3.18  2004/01/13 20:02:06  mast
+#  ($<) does not work in true csh on SGI, so make wordlist in two steps
+#
 #  Revision 3.17  2003/12/22 19:15:37  mast
 #  Allow the B axis data file to not exist yet and issue appropriate warnings
 #
