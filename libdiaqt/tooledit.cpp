@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:35:32  mast
 adding as library file
 
@@ -54,7 +57,7 @@ ToolEdit::~ToolEdit()
 
 void ToolEdit::focusOutEvent(QFocusEvent *event)
 {
-  emit lostFocus();
+  emit focusLost();
 }
 
 // Set the edit box to fit a given number of characters, or resize it to fit
