@@ -1,5 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/16/04: IMOD_3-2-7
+3/15/04: Many Etomo changes including change to using command line input
+to Copytomocoms, ability to specify a distortion field and apply it when
+generating prealigned and aligned stack, an option for binning the prealigned
+stack, entries for new options to Tiltxcorr for using subareas and doing 
+cumulative correlations, a button for rerunning Beadtrack with the fiducial
+model as a seed.
+
+3/12/04: Fixed problem in tumbler window with Z size changes coming from Y 
+value instead.
+
+3/12/04: Added options to Blendmont to set the size parameters for finding the
+edge functions and made these parameters scale up for images above 1K.
+
+3/9/04: Fixed problem in Zap window with a panned image not holding its
+offset position when redisplayed at some zooms.
+
 2/27/04: IMOD_3-2-6
 2/27/04: Fixed problem in midas with transforms getting screwed up after 
 moving the center point, created by changes on 12/17/03.
