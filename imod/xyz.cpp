@@ -942,6 +942,9 @@ void XyzWindow::DrawImage()
           if (imdata[y]) {
             for (z = 0; z < nz; z++) 
               fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
+          } else {
+            for (z = 0; z < nz; z++) 
+              fdata[z + y * nz] = 0.;
           }
       } else {
         for(z = 0; z < nz; z++) {
@@ -1734,6 +1737,10 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.16  2004/01/05 18:35:15  mast
+Changes to deal with flipped cache properly and to scale point size by
+binning
+
 Revision 4.15  2003/12/18 22:46:26  mast
 Register with movie controller when start movie
 
