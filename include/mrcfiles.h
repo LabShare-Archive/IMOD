@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.9  2004/01/17 20:34:51  mast
+    Move b3d file routines and mrc_big_seek to b3dutil
+
     Revision 3.8  2004/01/12 17:26:55  mast
     Change complex min max routine from float to void
 
@@ -271,9 +274,10 @@ struct LoadInfo
   float slope;
   float offset;
   float smin,smax; /* Scale to min and max values of input */
-  int contig;    /* Load idata in contigous memory */
+  int contig;      /* Load idata in contigous memory */
   
   int outmin, outmax; /* clamp values to outmin and outmax after scaling. */
+  int mirrorFFT;   /* Return mirrored FFT when scaling to bytes */
   
   int   plist;         /* Size of piece list.         */
   float opx, opy, opz; /* origin of pieces.           */
@@ -341,6 +345,8 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
   float mrcGetComplexScale();
   void mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
                            float *outMax);
+  void mrcMirrorSource(int nx, int ny, int imageX, int imageY, int *fileX,
+                       int *fileY);
 
 unsigned char **read_mrc_byte(FILE *fin, struct MRCheader *hdata, 
 			      struct LoadInfo *li);
