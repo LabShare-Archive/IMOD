@@ -51,7 +51,6 @@ typedef struct zapwin
   int    xdrawsize, ydrawsize;
   int    xtrans,    ytrans,    ztrans;
   int    lmx,       lmy;
-  QRect  startingGeom;
 
   int    ginit;
 
@@ -130,6 +129,9 @@ int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse,
 
 /*
 $Log$
+Revision 3.8  2003/09/18 00:44:13  mast
+Added declaration for function to get subset boundaries
+
 Revision 3.7  2003/09/17 04:43:51  mast
 Add declarations for window size functions
 
