@@ -74,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/02/25 22:42:23  sueh
+ * <p> bug# 403 removed unnecessary code
+ * <p>
  * <p> Revision 3.14  2004/02/25 22:17:52  sueh
  * <p> bug# 403 resetState() is no longer setting imodManager to
  * <p> null
@@ -3115,6 +3118,10 @@ public class ApplicationManager {
     loadPatchcorr();
     loadMatchorwarp();
     tomogramCombinationDialog.enableCombineTabs(true);
+    tomogramCombinationDialog.setUseMatchingModels(
+      TomogramCombinationDialog.INITIAL_TAB,
+      tomogramCombinationDialog.getUseMatchingModels(
+        TomogramCombinationDialog.SETUP_TAB));
     mainFrame.stopProgressBar(AxisID.ONLY);
   }
 
