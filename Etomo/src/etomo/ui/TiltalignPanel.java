@@ -17,7 +17,6 @@ import javax.swing.JTabbedPane;
 
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.StringList;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.util.FidXyz;
@@ -37,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/08/31 21:51:19  sueh
+ * <p> bug# 545 SetParameters: handle the situation where fid.xyz exists but is empty.
+ * <p> Substitute the pixel spacing from pre-aligned stack.
+ * <p>
  * <p> Revision 3.3  2004/07/02 17:42:18  sueh
  * <p> bug#461 removing prints
  * <p>
@@ -174,7 +177,7 @@ public class TiltalignPanel {
   private AxisID axisID;
 
   private int prealignedBinning = 1;
-
+/*
   //  TODO need recomended default for all sub groups see (align.com)
   private final int defaultTiltAngleType = 5;
   private final int defaultTiltAngleGroupSize = 5;
@@ -195,7 +198,7 @@ public class TiltalignPanel {
   private final int defaultLocalXstretchType = 3;
   private final int defaultLocalXstretchGroupSize = 7;
   private final int defaultLocalSkewType = 3;
-  private final int defaultLocalSkewGroupSize = 11;
+  private final int defaultLocalSkewGroupSize = 11;*/
 
   private JTabbedPane tabPane = new JTabbedPane();
 
@@ -296,7 +299,12 @@ public class TiltalignPanel {
    */
   // GlobalDistortion pane
   private JPanel pnlDistortionSolution = new JPanel();
-  private JCheckBox cbDistortion = new JCheckBox("Enable");
+  private JRadioButton rbDistortionDisabled = new JRadioButton("Disabled");
+  private JRadioButton rbDistortionFullSolution = new JRadioButton(
+      "Full solution");
+  private JRadioButton rbDistortionSkew = new JRadioButton(
+      "Skew only");
+  private ButtonGroup bgDistortionSolution = new ButtonGroup();
 
   private LabeledTextField ltfXstretchGroupSize = new LabeledTextField(
     "X stretch group size: ");
@@ -340,7 +348,10 @@ public class TiltalignPanel {
 
   //  Local distortion pane
   private JPanel pnlLocalDistortionSolution = new JPanel();
-  private JCheckBox cbLocalDistortion = new JCheckBox("Enable");
+  private JRadioButton rbLocalDistortionDisabled = new JRadioButton("Disabled");
+  private JRadioButton rbLocalDistortionFullSolution = new JRadioButton("Full solution");
+  private JRadioButton rbLocalDistortionSkew = new JRadioButton("Skew only");
+  private ButtonGroup bgLocalDistortionSolution = new ButtonGroup();
 
   private LabeledTextField ltfLocalXstretchGroupSize = new LabeledTextField(
     "X stretch group size: ");
@@ -377,7 +388,7 @@ public class TiltalignPanel {
     createLocalSolutionTab();
     setToolTipText();
   }
-
+  
   /**
    * Set the values of the panel using a constant tiltalign parameter
    * object
@@ -398,61 +409,60 @@ public class TiltalignPanel {
     }
     //  General panel parameters
 
-    if (params.getNSurfaceAnalysis() == 2) {
+    if (params.getSurfacesToAnalyze().getInteger() == 2) {
       rbDualFiducialSurfaces.setSelected(true);
     }
     else {
       rbSingleFiducialSurface.setSelected(true);
     }
 
-    ltfResidualThreshold.setText(Math.abs(params.getResidualThreshold()));
-    if (params.getResidualThreshold() < 0) {
+    ltfResidualThreshold.setText(Math.abs(params.getResidualReportCriterion().getDouble()));
+    if (params.getResidualReportCriterion().getDouble() < 0) {
       rbResidNeighboring.setSelected(true);
     }
     else {
       rbResidAllViews.setSelected(true);
     }
 
-    int excludeType = params.getIncludeExcludeType();
-    if (excludeType == 0 || excludeType == 3) {
+    if (params.isExcludeListAvailable()) {
       ltfExcludeList.setEnabled(true);
-      ltfExcludeList.setText(params.getIncludeExcludeList());
+      ltfExcludeList.setText(params.getExcludeList());
     }
     else {
       ltfExcludeList.setEnabled(false);
     }
 
-    ltfSeparateViewGroups.setText(params.getSeparateViewGroups());
-    ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
+    ltfSeparateViewGroups.setText(params.getSeparateGroup());
+    ltfTiltAngleOffset.setText(params.getAngleOffset().toString());
     
     if (fidXyz.exists() && fidXyz.isEmpty()) {
       //if file exists but is empty, assume that tilt align failed and use
       //pre align instead
       //multiply by the binning previously used by pre align
-      ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
+      ltfTiltAxisZShift.setText(params.getAxisZShift().getDouble()
         * Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
     }
     else if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
       //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
       //have been 1 the last time align.com was run.
-      ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
+      ltfTiltAxisZShift.setText(params.getAxisZShift().toString());
     }
     else {
       //multiply by the binning previously used by align.com
-      ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
+      ltfTiltAxisZShift.setText(params.getAxisZShift().getDouble()
         * Math.round(fidXyz.getPixelSize() / rawstackHeader.getXPixelSpacing()));
     }
       
-    ltfMetroFactor.setText(params.getMetroFactor());
-    ltfCycleLimit.setText(params.getCycleLimit());
+    ltfMetroFactor.setText(params.getMetroFactor().toString());
+    ltfCycleLimit.setText(params.getMaximumCycles().toString());
 
-    cbLocalAlignments.setSelected(params.getLocalAlignments());
-    ltfNLocalPatches.setText(params.getNLocalPatches());
-    ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
-    ltfMinLocalFiducials.setText(params.getMinLocalFiducials());
+    cbLocalAlignments.setSelected(params.getLocalAlignments().is());
+    ltfNLocalPatches.setText(params.getNumberOfLocalPatchesXandY());
+    ltfMinLocalPatchSize.setText(params.getMinSizeOrOverlapXandY());
+    ltfMinLocalFiducials.setText(params.getMinFidsTotalAndEachSurface());
 
     //  Tilt angle solution parameters
-    int solutionType = params.getTiltAngleSolutionType();
+    int solutionType = params.getTiltOption().getInteger();
     if (solutionType == 0) {
       rbTiltAngleFixed.setSelected(true);
     }
@@ -462,34 +472,25 @@ public class TiltalignPanel {
     if (solutionType == 5) {
       rbTiltAngleAutomap.setSelected(true);
     }
-    if (solutionType == 5) {
-      ltfTiltAngleGroupSize.setText(params.getTiltAngleSolutionGroupSize());
-      ltfTiltAngleNonDefaultGroups.setText(params
-        .getTiltAngleSolutionAdditionalGroups());
-    }
+    ltfTiltAngleGroupSize.setText(params.getTiltDefaultGrouping().toString());
+    ltfTiltAngleNonDefaultGroups.setText(params.getTiltNondefaultGroup());
 
     //  Magnification solution parameters
     //  TODO what to do if the magnification type is not one of the cases
     //  below
-    ltfMagnificationReferenceView.setText(params
-      .getMagnificationSolutionReferenceView());
-    solutionType = params.getMagnificationSolutionType();
+    ltfMagnificationReferenceView.setText(params.getMagReferenceView().toString());
+    solutionType = params.getMagOption().getInteger();
     if (solutionType == 0) {
       rbMagnificationFixed.setSelected(true);
     }
     if (solutionType == 1) {
       rbMagnificationAll.setSelected(true);
     }
-    if (solutionType == defaultMagnificationType) {
+    if (solutionType == TiltalignParam.AUTOMAPPED_OPTION) {
       rbMagnificationAutomap.setSelected(true);
     }
-
-    if (solutionType > 2) {
-      ltfMagnificationGroupSize.setText(params
-        .getMagnificationSolutionGroupSize());
-      ltfMagnificationNonDefaultGroups.setText(params
-        .getMagnificationSolutionAdditionalGroups());
-    }
+    ltfMagnificationGroupSize.setText(params.getMagDefaultGrouping().toString());
+    ltfMagnificationNonDefaultGroups.setText(params.getMagNondefaultGroup());
 
     //  Compression solution parameters
     /*
@@ -513,84 +514,78 @@ public class TiltalignPanel {
      }
      */
     //  Global distortion solution type
-    solutionType = params.getDistortionSolutionType();
-    if (solutionType == 0) {
-      cbDistortion.setSelected(false);
+    int xStretchSolutionType = params.getXStretchOption().getInteger();
+    int skewSolutionType = params.getSkewOption().getInteger();
+    if (xStretchSolutionType == 0 && skewSolutionType == 0) {
+      rbDistortionDisabled.setSelected(true);
+    }
+    else if (xStretchSolutionType == 3 && skewSolutionType == 3) {
+      rbDistortionFullSolution.setSelected(true);
     }
     else {
-      cbDistortion.setSelected(true);
-
-      ltfXstretchGroupSize.setText(params.getXstretchSolutionGroupSize());
-      ltfXstretchNonDefaultGroups.setText(params
-        .getXstretchSolutionAdditionalGroups());
-
-      //   skew solution parameters
-      ltfSkewGroupSize.setText(params.getSkewSolutionGroupSize());
-      ltfSkewNonDefaultGroups.setText(params.getSkewSolutionAdditionalGroups());
+      this.rbDistortionSkew.setSelected(true);
     }
+    ltfXstretchGroupSize.setText(params.getXStretchDefaultGrouping().toString());
+    ltfXstretchNonDefaultGroups.setText(params.getXStretchNondefaultGroup());
+    //   skew solution parameters
+    ltfSkewGroupSize.setText(params.getSkewDefaultGrouping().toString());
+    ltfSkewNonDefaultGroups.setText(params.getSkewNondefaultGroup());
 
     // Local rotation solution parameters
     // NOTE this is brittle since we are mapping a numeric value to a boolean
     // at David's request
-    solutionType = params.getLocalRotationSolutionType();
+    solutionType = params.getLocalRotOption().getInteger();
     if (solutionType == 0) {
       cbLocalRotation.setSelected(false);
     }
     else {
       cbLocalRotation.setSelected(true);
-      ltfLocalRotationGroupSize.setText(params
-        .getLocalRotationSolutionGroupSize());
-      ltfLocalTiltAngleNonDefaultGroups.setText(params
-        .getLocalTiltAdditionalGroups());
     }
+    ltfLocalRotationGroupSize.setText(params.getLocalRotDefaultGrouping().toString());
+    ltfLocalTiltAngleNonDefaultGroups.setText(params.getLocalRotNondefaultGroup());
 
     // Local tilt angle solution parameters
-    solutionType = params.getLocalTiltSolutionType();
+    solutionType = params.getLocalTiltOption().getInteger();
     if (solutionType == 0) {
       cbLocalTiltAngle.setSelected(false);
     }
     else {
       cbLocalTiltAngle.setSelected(true);
-      ltfLocalTiltAngleGroupSize
-        .setText(params.getLocalTiltSolutionGroupSize());
-      ltfLocalTiltAngleNonDefaultGroups.setText(params
-        .getLocalTiltAdditionalGroups());
     }
+    ltfLocalTiltAngleGroupSize.setText(params.getLocalTiltDefaultGrouping().toString());
+    ltfLocalTiltAngleNonDefaultGroups.setText(params.getLocalTiltNondefaultGroup());
 
     //  Local magnification solution parameters
-    solutionType = params.getLocalMagnificationSolutionType();
+    solutionType = params.getLocalMagOption().getInteger();
     if (solutionType == 0) {
       cbLocalMagnification.setSelected(false);
     }
     else {
       cbLocalMagnification.setSelected(true);
-      ltfLocalMagnificationGroupSize.setText(params
-        .getLocalMagnificationSolutionGroupSize());
-      ltfLocalMagnificationNonDefaultGroups.setText(params
-        .getLocalMagnificationSolutionAdditionalGroups());
     }
+    ltfLocalMagnificationGroupSize.setText(params.getLocalMagDefaultGrouping().toString());
+    ltfLocalMagnificationNonDefaultGroups.setText(params.getLocalMagNondefaultGroup());
 
     //  Local distortion solution type
-    solutionType = params.getLocalDistortionSolutionType();
-    if (solutionType == 0) {
-      cbLocalDistortion.setSelected(false);
+    xStretchSolutionType = params.getLocalXStretchOption().getInteger();
+    skewSolutionType = params.getLocalSkewOption().getInteger();
+    if (xStretchSolutionType == 0 && skewSolutionType == 0) {
+      rbLocalDistortionDisabled.setSelected(true);
+    }
+    else if (xStretchSolutionType == 3 && skewSolutionType == 3) {
+      rbLocalDistortionFullSolution.setSelected(true);
     }
     else {
-      cbLocalDistortion.setSelected(true);
-
-      ltfLocalXstretchGroupSize.setText(params
-        .getLocalXstretchSolutionGroupSize());
-      ltfLocalXstretchNonDefaultGroups.setText(params
-        .getLocalXstretchSolutionAdditionalGroups());
-
-      //  Local skew solution parameters
-      ltfLocalSkewGroupSize.setText(params.getLocalSkewSolutionGroupSize());
-      ltfLocalSkewNonDefaultGroups.setText(params
-        .getLocalSkewSolutionAdditionalGroups());
+      rbLocalDistortionSkew.setSelected(true);
     }
+    ltfLocalXstretchGroupSize.setText(params.getLocalXStretchDefaultGrouping().toString());
+    ltfLocalXstretchNonDefaultGroups.setText(params.getLocalXStretchNondefaultGroup());
+    //  Local skew solution parameters
+    ltfLocalSkewGroupSize.setText(params.getLocalSkewDefaultGrouping().toString());
+    ltfLocalSkewNonDefaultGroups.setText(params.getLocalSkewNondefaultGroup());
 
     //  Set the UI to match the data
-    updateEnabled();
+    enableFields();
   }
 
   /**
@@ -617,10 +612,10 @@ public class TiltalignPanel {
     String badParameter = "";
     try {
       if (rbDualFiducialSurfaces.isSelected()) {
-        params.setNSurfaceAnalysis(2);
+        params.setSurfacesToAnalyze(2);
       }
       else {
-        params.setNSurfaceAnalysis(1);
+        params.setSurfacesToAnalyze(1);
       }
 
       badParameter = ltfResidualThreshold.getLabel();
@@ -628,32 +623,23 @@ public class TiltalignPanel {
       if (rbResidNeighboring.isSelected()) {
         resid *= -1;
       }
-      params.setResidualThreshold(resid);
+      params.setResidualReportCriterion(resid);
 
       //  Currently only supports Exclude list or blank entries
       badParameter = ltfExcludeList.getLabel();
       if (ltfExcludeList.isEnabled()) {
-        StringList temp = new StringList(0);
-        temp.parseString(ltfExcludeList.getText());
-        if (temp.getNElements() > 0) {
-          params.setIncludeExcludeType(3);
-        }
-        else {
-          params.setIncludeExcludeType(0);
-        }
-        params.setIncludeExcludeList(temp.toString());
-
+        params.setExcludeList(ltfExcludeList.getText());
       }
       badParameter = ltfSeparateViewGroups.getLabel();
-      params.setSeparateViewGroups(ltfSeparateViewGroups.getText());
+      params.setSeparateGroup(ltfSeparateViewGroups.getText());
 
       badParameter = ltfTiltAngleOffset.getLabel();
-      params.setTiltAngleOffset(ltfTiltAngleOffset.getText());
+      params.setAngleOffset(ltfTiltAngleOffset.getText());
 
       badParameter = ltfTiltAxisZShift.getLabel();
       
       //divide by the binning used to create the .preali file
-      params.setTiltAxisZShift(
+      params.setAxisZShift(
         Double.parseDouble(ltfTiltAxisZShift.getText())
           / Math.round(
             prealiHeader.getXPixelSpacing()
@@ -663,19 +649,19 @@ public class TiltalignPanel {
       params.setMetroFactor(ltfMetroFactor.getText());
 
       badParameter = ltfCycleLimit.getLabel();
-      params.setCycleLimit(ltfCycleLimit.getText());
+      params.setMaximumCycles(ltfCycleLimit.getText());
 
       badParameter = cbLocalAlignments.getText();
       params.setLocalAlignments(cbLocalAlignments.isSelected());
 
       badParameter = ltfNLocalPatches.getLabel();
-      params.setNLocalPatches(ltfNLocalPatches.getText());
+      params.setNumberOfLocalPatchesXandY(ltfNLocalPatches.getText());
 
       badParameter = ltfMinLocalPatchSize.getLabel();
-      params.setMinLocalPatchSize(ltfMinLocalPatchSize.getText());
+      params.setMinSizeOrOverlapXandY(ltfMinLocalPatchSize.getText());
 
       badParameter = ltfMinLocalFiducials.getLabel();
-      params.setMinLocalFiducials(ltfMinLocalFiducials.getText());
+      params.setMinFidsTotalAndEachSurface(ltfMinLocalFiducials.getText());
 
       // Tilt angle pane
       int type = 0;
@@ -685,39 +671,33 @@ public class TiltalignPanel {
         type = 2;
       if (rbTiltAngleAutomap.isSelected())
         type = 5;
-      params.setTiltAngleSolutionType(type);
+      params.setTiltOption(type);
       if (type > 2) {
         badParameter = ltfTiltAngleGroupSize.getLabel();
-        params.setTiltAngleSolutionGroupSize(ltfTiltAngleGroupSize.getText());
+        params.setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText());
 
         badParameter = ltfTiltAngleNonDefaultGroups.getLabel();
-        params
-          .setTiltAngleSolutionAdditionalGroups(ltfTiltAngleNonDefaultGroups
-            .getText());
+        params.setTiltNondefaultGroup(ltfTiltAngleNonDefaultGroups.getText());
       }
 
       // Magnification pane
       badParameter = ltfMagnificationReferenceView.getLabel();
-      params.setMagnificationReferenceView(ltfMagnificationReferenceView
-        .getText());
+      params.setMagReferenceView(ltfMagnificationReferenceView.getText());
 
       if (rbMagnificationFixed.isSelected())
         type = 0;
       if (rbMagnificationAll.isSelected())
         type = 1;
       if (rbMagnificationAutomap.isSelected())
-        type = defaultMagnificationType;
-      params.setMagnificationType(type);
+        type = TiltalignParam.AUTOMAPPED_OPTION;
+      params.setMagOption(type);
 
       if (type > 2) {
         badParameter = ltfMagnificationGroupSize.getLabel();
-        params.setMagnificationSolutionGroupSize(ltfMagnificationGroupSize
-          .getText());
+        params.setMagDefaultGrouping(ltfMagnificationGroupSize.getText());
 
         badParameter = ltfMagnificationNonDefaultGroups.getLabel();
-        params
-          .setMagnificationSolutionAdditionalGroups(ltfMagnificationNonDefaultGroups
-            .getText());
+        params.setMagNondefaultGroup(ltfMagnificationNonDefaultGroups.getText());
       }
 
       // Compression pane
@@ -745,28 +725,31 @@ public class TiltalignPanel {
 
       // Distortion pane
       type = 0;
-      if (cbDistortion.isSelected()) {
-        //  Set the necessary types for distortion xstretch and skew
-        params.setDistortionSolutionType(defaultDistortionType);
-        params.setXstretchType(defaultXstretchType);
-        params.setSkewType(defaultSkewType);
-
-        badParameter = ltfXstretchGroupSize.getLabel();
-        params.setXstretchSolutionGroupSize(ltfXstretchGroupSize.getText());
-
-        badParameter = ltfXstretchNonDefaultGroups.getLabel();
-        params.setXstretchSolutionAdditionalGroups(ltfXstretchNonDefaultGroups
-          .getText());
-
-        badParameter = ltfSkewGroupSize.getLabel();
-        params.setSkewSolutionGroupSize(ltfSkewGroupSize.getText());
-
-        badParameter = ltfSkewNonDefaultGroups.getLabel();
-        params.setSkewSolutionAdditionalGroups(ltfSkewNonDefaultGroups
-          .getText());
+      //  Set the necessary types for distortion xstretch and skew
+      if (rbDistortionDisabled.isSelected()) {
+        params.setSkewOption(TiltalignParam.FIXED_OPTION);
+        params.setXStretchOption(TiltalignParam.FIXED_OPTION);
       }
       else {
-        params.setDistortionSolutionType(0);
+        params.setSkewOption(TiltalignParam.AUTOMAPPED_OPTION);
+        badParameter = ltfSkewGroupSize.getLabel();
+        params.setSkewDefaultGrouping(ltfSkewGroupSize.getText());
+
+        badParameter = ltfSkewNonDefaultGroups.getLabel();
+        params.setSkewNondefaultGroup(ltfSkewNonDefaultGroups.getText());
+        
+        if (rbDistortionFullSolution.isSelected()) {
+          params.setXStretchOption(TiltalignParam.AUTOMAPPED_OPTION);
+
+          badParameter = ltfXstretchGroupSize.getLabel();
+          params.setXStretchDefaultGrouping(ltfXstretchGroupSize.getText());
+
+          badParameter = ltfXstretchNonDefaultGroups.getLabel();
+          params.setXStretchNondefaultGroup(ltfXstretchNonDefaultGroups.getText());
+        }
+        else {
+          params.setXStretchOption(TiltalignParam.FIXED_OPTION);
+        }
       }
 
       //  Get the local alignment parameters
@@ -774,81 +757,71 @@ public class TiltalignPanel {
       // NOTE this only works if 0 and 5 are valid local tilt angle codes
       type = 0;
       if (cbLocalRotation.isSelected())
-        type = defaultLocalRotationType;
-      params.setLocalRotationSolutionType(type);
+        type = params.getLocalRotOption().getResetInteger();
+      params.setLocalRotOption(type);
 
-      if (type == defaultLocalRotationType) {
+      if (type == TiltalignParam.AUTOMAPPED_OPTION) {
         badParameter = ltfLocalRotationGroupSize.getLabel();
-        params.setLocalRotationSolutionGroupSize(ltfLocalRotationGroupSize
-          .getText());
+        params.setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText());
 
         badParameter = ltfLocalRotationNonDefaultGroups.getLabel();
-        params
-          .setLocalRotationSolutionAdditionalGroups(ltfLocalRotationNonDefaultGroups
-            .getText());
+        params.setLocalRotNondefaultGroup(ltfLocalRotationNonDefaultGroups.getText());
       }
 
       // Tilt angle pane
       type = 0;
       if (cbLocalTiltAngle.isSelected())
-        type = defaultLocalTiltAngleType;
-      params.setLocalTiltSolutionType(type);
+        type = params.getLocalTiltOption().getResetInteger();
+      params.setLocalTiltOption(type);
 
-      if (type == defaultLocalTiltAngleType) {
+      if (type == TiltalignParam.TILT_AUTOMAPPED_OPTION) {
         badParameter = ltfLocalTiltAngleGroupSize.getLabel();
-        params.setLocalTiltSolutionGroupSize(ltfLocalTiltAngleGroupSize
-          .getText());
+        params.setLocalTiltDefaultGrouping(ltfLocalTiltAngleGroupSize.getText());
 
         badParameter = ltfLocalTiltAngleNonDefaultGroups.getLabel();
-        params
-          .setLocalTiltSolutionAdditionalGroups(ltfLocalTiltAngleNonDefaultGroups
-            .getText());
+        params.setLocalTiltNondefaultGroup(ltfLocalTiltAngleNonDefaultGroups.getText());
       }
 
       // Local magnification pane
       if (cbLocalMagnification.isSelected()) {
-        params.setLocalMagnificationType(defaultLocalMagnificationType);
+        params.setLocalMagOption(params.getLocalMagOption().getResetInteger());
         badParameter = ltfLocalMagnificationGroupSize.getLabel();
-        params
-          .setLocalMagnificationSolutionGroupSize(ltfLocalMagnificationGroupSize
-            .getText());
+        params.setLocalMagDefaultGrouping(ltfLocalMagnificationGroupSize.getText());
 
         badParameter = ltfLocalMagnificationNonDefaultGroups.getLabel();
-        params
-          .setLocalMagnificationSolutionAdditionalGroups(ltfLocalMagnificationNonDefaultGroups
-            .getText());
+        params.setLocalMagNondefaultGroup(ltfLocalMagnificationNonDefaultGroups.getText());
 
       }
       else {
-        params.setLocalMagnificationType(0);
+        params.setLocalMagOption(0);
       }
 
       // Distortion pane
       type = 0;
-      if (cbLocalDistortion.isSelected()) {
-        params.setLocalDistortionSolutionType(defaultLocalDistortionType);
-        params.setLocalXstretchType(defaultLocalXstretchType);
-        params.setLocalSkewType(defaultLocalXstretchType);
-
-        badParameter = ltfLocalXstretchGroupSize.getLabel();
-        params.setLocalXstretchSolutionGroupSize(ltfLocalXstretchGroupSize
-          .getText());
-
-        badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
-        params
-          .setLocalXstretchSolutionAdditionalGroups(ltfLocalXstretchNonDefaultGroups
-            .getText());
-
-        badParameter = ltfLocalSkewGroupSize.getLabel();
-        params.setLocalSkewSolutionGroupSize(ltfLocalSkewGroupSize.getText());
-
-        badParameter = ltfLocalSkewNonDefaultGroups.getLabel();
-        params
-          .setLocalSkewSolutionAdditionalGroups(ltfLocalSkewNonDefaultGroups
-            .getText());
+      if (rbLocalDistortionDisabled.isSelected()) {
+        params.setLocalSkewOption(TiltalignParam.FIXED_OPTION);
+        params.setLocalXStretchOption(TiltalignParam.FIXED_OPTION);
       }
       else {
-        params.setLocalDistortionSolutionType(0);
+        params.setLocalSkewOption(TiltalignParam.AUTOMAPPED_OPTION);
+        badParameter = ltfLocalSkewGroupSize.getLabel();
+        params.setLocalSkewDefaultGrouping(ltfLocalSkewGroupSize.getText());
+
+        badParameter = ltfLocalSkewNonDefaultGroups.getLabel();
+        params.setLocalSkewNondefaultGroup(ltfLocalSkewNonDefaultGroups.getText());
+        
+        if (rbLocalDistortionFullSolution.isSelected()) {
+          params.setLocalXStretchOption(TiltalignParam.AUTOMAPPED_OPTION);
+
+          badParameter = ltfLocalXstretchGroupSize.getLabel();
+          params.setLocalXStretchDefaultGrouping(ltfLocalXstretchGroupSize.getText());
+
+          badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
+          params.setLocalXStretchNondefaultGroup(ltfLocalXstretchNonDefaultGroups.getText());
+        }
+        else {
+          params.setLocalXStretchOption(TiltalignParam.FIXED_OPTION);
+        }
       }
     }
     catch (FortranInputSyntaxException except) {
@@ -899,72 +872,6 @@ public class TiltalignPanel {
     ltfMinLocalPatchSize.setVisible(state);
   }
 
-  void selectGlobalDistortion() {
-    if (cbDistortion.isSelected()) {
-      cbLocalDistortion.setSelected(true);
-      setDistortionDefaults();
-      setLocalDistortionDefaults();
-    }
-    else {
-      cbLocalDistortion.setSelected(false);
-      setTiltAndMagnificationDefaults();
-    }
-    updateEnabled();
-  }
-
-  void selectLocalDistortion() {
-    if (cbLocalDistortion.isSelected()) {
-      setLocalDistortionDefaults();
-    }
-    updateEnabled();
-  }
-
-  /**
-   * Set the UI parameters to the defaults for a tilt/mag solution.
-   */
-  void setTiltAndMagnificationDefaults() {
-    rbTiltAngleAll.setSelected(true);
-    cbDistortion.setSelected(false);
-    cbLocalDistortion.setSelected(false);
-  }
-
-  /**
-   * Set the UI parameters to the default for a distortion solution.  If the
-   * group size and additional group lists do not contain any text set them
-   * to the defaults.
-   */
-  void setDistortionDefaults() {
-    rbTiltAngleAutomap.setSelected(true);
-    if (ltfTiltAngleGroupSize.getText().matches("^\\s*$")) {
-      ltfTiltAngleGroupSize.setText(defaultTiltAngleGroupSize);
-    }
-
-    cbDistortion.setSelected(true);
-    cbLocalDistortion.setSelected(true);
-
-    // If any of the size fields are empty fill them in with the defaults
-    // This will happen if someone starts with a com file with distortion
-    // disabled and then enables distortion
-    if (ltfXstretchGroupSize.getText().matches("^\\s*$")) {
-      ltfXstretchGroupSize.setText(defaultXstretchGroupSize);
-    }
-    if (ltfSkewGroupSize.getText().matches("^\\s*$")) {
-      ltfSkewGroupSize.setText(defaultSkewGroupSize);
-    }
-  }
-
-  void setLocalDistortionDefaults() {
-    // If any of the size fields are empty fill them in with the defaults
-    // This will happen if someone starts with a com file with distortion
-    // disabled and then enables distortion
-    if (ltfLocalXstretchGroupSize.getText().matches("^\\s*$")) {
-      ltfLocalXstretchGroupSize.setText(defaultLocalXstretchGroupSize);
-    }
-    if (ltfLocalSkewGroupSize.getText().matches("^\\s*$")) {
-      ltfLocalSkewGroupSize.setText(defaultLocalSkewGroupSize);
-    }
-  }
-
   // Residual solution panel, nothing much to do.  This is here so that
   // this section matches the other's pattern
   void updateResidualSolutionPanel() {
@@ -978,7 +885,7 @@ public class TiltalignPanel {
   }
 
   //  Local alignment state
-  void updateLocalAlignmentState() {
+  void enableLocalAlignmentFields() {
     boolean state = cbLocalAlignments.isSelected();
     ltfNLocalPatches.setEnabled(state);
     ltfMinLocalPatchSize.setEnabled(state);
@@ -989,31 +896,30 @@ public class TiltalignPanel {
   /**
    * Signal each pane to update its enabled/disabled state.
    */
-  public void updateEnabled() {
+  public void enableFields() {
     //  update all of the enable/disable states
-    updateLocalAlignmentState();
+    enableLocalAlignmentFields();
+    
+    enableTiltAngleSolutionFields();
+    enableMagnificationSolutionFields();
+    enableDistortionSolutionFields();
 
-    updateTiltAngleSolutionPanel();
-    updateMagnificationSolutionPanel();
-    //    updateCompressionSolutionPanel();
-    updateDistortionSolutionPanel();
-
-    updateLocalRotationSolutionPanel();
-    updateLocalTiltAngleSolutionPanel();
-    updateLocalMagnificationSolutionPanel();
-    updateLocalDistortionSolutionPanel();
+    enableLocalRotationSolutionFields();
+    enableLocalTiltAngleSolutionFields();
+    enableLocalMagnificationSolutionFields();
+    enableLocalDistortionSolutionFields();
   }
 
   /**
    * Update the enabled/disabled state of the specified solution panel.
    */
-  void updateTiltAngleSolutionPanel() {
+  void enableTiltAngleSolutionFields() {
     boolean state = rbTiltAngleAutomap.isSelected();
     ltfTiltAngleGroupSize.setEnabled(state);
     ltfTiltAngleNonDefaultGroups.setEnabled(state);
   }
 
-  void updateMagnificationSolutionPanel() {
+  void enableMagnificationSolutionFields() {
     boolean state = rbMagnificationAutomap.isSelected();
     ltfMagnificationGroupSize.setEnabled(state);
     ltfMagnificationNonDefaultGroups.setEnabled(state);
@@ -1029,39 +935,58 @@ public class TiltalignPanel {
    }
    */
 
-  void updateDistortionSolutionPanel() {
-    //  Xstretch and skew panel state
-    boolean state = cbDistortion.isSelected();
-    ltfXstretchGroupSize.setEnabled(state);
-    ltfXstretchNonDefaultGroups.setEnabled(state);
-    ltfSkewGroupSize.setEnabled(state);
-    ltfSkewNonDefaultGroups.setEnabled(state);
+  void setDistortionSolutionState() {
+    if (rbDistortionDisabled.isSelected()) {
+      rbLocalDistortionDisabled.setSelected(true);
+    }
+    else {
+      rbTiltAngleAutomap.setSelected(true);
+      enableTiltAngleSolutionFields();
+      if (rbDistortionFullSolution.isSelected()) {
+        rbLocalDistortionFullSolution.setSelected(true);
+      }
+      else if (rbDistortionSkew.isSelected()) {
+        rbLocalDistortionSkew.setSelected(true);
+      }
+    }
+    enableLocalDistortionSolutionFields();
+    enableDistortionSolutionFields();
+  }
+  
+  void enableDistortionSolutionFields() {
+    boolean xStretchState = rbDistortionFullSolution.isSelected();
+    ltfXstretchGroupSize.setEnabled(xStretchState);
+    ltfXstretchNonDefaultGroups.setEnabled(xStretchState);
+    boolean skewState = rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected();
+    ltfSkewGroupSize.setEnabled(skewState);
+    ltfSkewNonDefaultGroups.setEnabled(skewState);
   }
 
-  void updateLocalRotationSolutionPanel() {
+  void enableLocalRotationSolutionFields() {
     boolean state = cbLocalRotation.isSelected();
     ltfLocalRotationGroupSize.setEnabled(state);
     ltfLocalRotationNonDefaultGroups.setEnabled(state);
   }
 
-  void updateLocalTiltAngleSolutionPanel() {
+  void enableLocalTiltAngleSolutionFields() {
     boolean state = cbLocalTiltAngle.isSelected();
     ltfLocalTiltAngleGroupSize.setEnabled(state);
     ltfLocalTiltAngleNonDefaultGroups.setEnabled(state);
   }
 
-  void updateLocalMagnificationSolutionPanel() {
+  void enableLocalMagnificationSolutionFields() {
     boolean state = cbLocalMagnification.isSelected();
     ltfLocalMagnificationGroupSize.setEnabled(state);
     ltfLocalMagnificationNonDefaultGroups.setEnabled(state);
   }
 
-  void updateLocalDistortionSolutionPanel() {
-    boolean state = cbLocalDistortion.isSelected();
-    ltfLocalXstretchGroupSize.setEnabled(state);
-    ltfLocalXstretchNonDefaultGroups.setEnabled(state);
-    ltfLocalSkewGroupSize.setEnabled(state);
-    ltfLocalSkewNonDefaultGroups.setEnabled(state);
+  void enableLocalDistortionSolutionFields() {
+    boolean xStretchState = rbLocalDistortionFullSolution.isSelected();
+    ltfLocalXstretchGroupSize.setEnabled(xStretchState);
+    ltfLocalXstretchNonDefaultGroups.setEnabled(xStretchState);
+    boolean skewState = rbLocalDistortionSkew.isSelected() || rbLocalDistortionFullSolution.isSelected();
+    ltfLocalSkewGroupSize.setEnabled(skewState);
+    ltfLocalSkewNonDefaultGroups.setEnabled(skewState);
   }
 
   Container getContainer() {
@@ -1246,7 +1171,21 @@ public class TiltalignPanel {
       "Magnification Solution Type").getBorder());
 
     // Layout the global distortion pane
-    createVariablePanel(pnlDistortionSolution, cbDistortion,
+    
+    //Create radio box
+    items = new JRadioButton[3];
+    items[0] = rbDistortionDisabled;
+    items[1] = rbDistortionFullSolution;
+    items[2] = rbDistortionSkew;
+    JPanel pnlRBDistortion = new JPanel();
+    pnlRBDistortion.setLayout(new BoxLayout(pnlRBDistortion, BoxLayout.Y_AXIS));
+
+    DistortionRadioListener distortionRadioListener = new DistortionRadioListener(
+      this);
+    createRadioBox(pnlRBDistortion, bgDistortionSolution, items,
+        distortionRadioListener);
+    
+    createVariablePanel(pnlDistortionSolution, pnlRBDistortion,
       ltfXstretchGroupSize, ltfXstretchNonDefaultGroups,
       "Distortion Solution Type");
 
@@ -1255,10 +1194,6 @@ public class TiltalignPanel {
 
     pnlDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlDistortionSolution.add(ltfSkewNonDefaultGroups.getContainer());
-
-    DistortionCheckListener DistortionCheckListener = new DistortionCheckListener(
-      this);
-    cbDistortion.addActionListener(DistortionCheckListener);
 
     //  Add the individual panes to the tab
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1316,7 +1251,7 @@ public class TiltalignPanel {
     //  Construct the tilt angle solution objects
     createVariablePanel(pnlLocalTiltAngleSolution, cbLocalTiltAngle,
       ltfLocalTiltAngleGroupSize, ltfLocalTiltAngleNonDefaultGroups,
-      "Local Tilt Angle Aolution Type");
+      "Local Tilt Angle Solution Type");
 
     LocalTiltAngleCheckListener localTiltAngleCheckListener = new LocalTiltAngleCheckListener(
       this);
@@ -1332,7 +1267,21 @@ public class TiltalignPanel {
     cbLocalMagnification.addActionListener(localMagnificationCheckListener);
 
     //  Construction the local distortion pane
-    createVariablePanel(pnlLocalDistortionSolution, cbLocalDistortion,
+    
+    //Create radio box
+    JRadioButton[] items = new JRadioButton[3];
+    items[0] = rbLocalDistortionDisabled;
+    items[1] = rbLocalDistortionFullSolution;
+    items[2] = rbLocalDistortionSkew;
+    JPanel pnlRBLocalDistortion = new JPanel();
+    pnlRBLocalDistortion.setLayout(new BoxLayout(pnlRBLocalDistortion, BoxLayout.Y_AXIS));
+
+    LocalDistortionRadioListener localDistortionRadioListener = new LocalDistortionRadioListener(
+      this);
+    createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items,
+        localDistortionRadioListener);
+    
+    createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
       ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
       "Local Distortion Solution Type");
 
@@ -1340,11 +1289,7 @@ public class TiltalignPanel {
     pnlLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
     pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlLocalDistortionSolution.add(ltfLocalSkewNonDefaultGroups.getContainer());
-
-    LocalDistortionCheckListener localDistortionCheckListener = new LocalDistortionCheckListener(
-      this);
-    cbLocalDistortion.addActionListener(localDistortionCheckListener);
-
+    
     pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlLocalSolution.add(pnlLocalRotationSolution);
 
@@ -1383,6 +1328,22 @@ public class TiltalignPanel {
 
     panel.setBorder(new EtchedBorder(title).getBorder());
   }
+  
+  /*
+   * create a variable panel with an internal panel (can contain a radio button
+   * group
+   */
+  private void createVariablePanel(JPanel panel, JPanel internalPanel,
+      LabeledTextField groupSize, LabeledTextField additionalGroups,
+      String title) {
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.add(internalPanel);
+    panel.add(groupSize.getContainer());
+    panel.add(Box.createRigidArea(FixedDim.x0_y5));
+    panel.add(additionalGroups.getContainer());
+    panel.setBorder(new EtchedBorder(title).getBorder());
+  }
+  
   class ResidualRadioListener implements ActionListener {
     TiltalignPanel panel;
 
@@ -1415,7 +1376,7 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateTiltAngleSolutionPanel();
+      panel.enableTiltAngleSolutionFields();
     }
   }
 
@@ -1427,19 +1388,19 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateMagnificationSolutionPanel();
+      panel.enableMagnificationSolutionFields();
     }
   }
 
-  class DistortionCheckListener implements ActionListener {
+  class DistortionRadioListener implements ActionListener {
     TiltalignPanel panel;
 
-    DistortionCheckListener(TiltalignPanel adaptee) {
+    DistortionRadioListener(TiltalignPanel adaptee) {
       panel = adaptee;
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.selectGlobalDistortion();
+      panel.setDistortionSolutionState();
     }
   }
 
@@ -1451,7 +1412,7 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateLocalAlignmentState();
+      panel.enableLocalAlignmentFields();
     }
   }
 
@@ -1463,7 +1424,7 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateLocalRotationSolutionPanel();
+      panel.enableLocalRotationSolutionFields();
     }
   }
 
@@ -1475,7 +1436,7 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateLocalTiltAngleSolutionPanel();
+      panel.enableLocalTiltAngleSolutionFields();
     }
   }
 
@@ -1487,19 +1448,19 @@ public class TiltalignPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.updateLocalMagnificationSolutionPanel();
+      panel.enableLocalMagnificationSolutionFields();
     }
   }
 
-  class LocalDistortionCheckListener implements ActionListener {
+  class LocalDistortionRadioListener implements ActionListener {
     TiltalignPanel panel;
 
-    LocalDistortionCheckListener(TiltalignPanel adaptee) {
+    LocalDistortionRadioListener(TiltalignPanel adaptee) {
       panel = adaptee;
     }
 
     public void actionPerformed(ActionEvent event) {
-      panel.selectLocalDistortion();
+      enableLocalDistortionSolutionFields();
     }
   }
 
@@ -1622,8 +1583,14 @@ public class TiltalignPanel {
     ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
       text).format());
 
-    text = "Solve for distortions in the plane of section.";
-    cbDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Do not solve for distortions in the plane of section.";
+    rbDistortionDisabled.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Solve for X-stretch and skew in the plane of section.";
+    rbDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Solve for skew in the plane of section.";
+    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Basic grouping size for X stretch (grouping will be less at high tilt "
       + "and more at low tilt).";
@@ -1684,9 +1651,15 @@ public class TiltalignPanel {
       + "separate multiple sets with spaces";
     ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter
       .setText(text).format());
-
-    text = "Solve for local distortions.";
-    cbLocalDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Do not solve for local distortions in the plane of section.";
+    rbLocalDistortionDisabled.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Solve for local X-stretch and skew in the plane of section.";
+    rbLocalDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Solve for local skew in the plane of section.";
+    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Grouping size for local X stretch variables.";
     ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(text)
