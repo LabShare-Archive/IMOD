@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/24/03: IMOD_3-0-20
+9/24/03: Resolved problems with the Fortran graphics package so it works
+on all systems, at least briefly.
+
+9/24/03: Fixed some problems with event sending under Windows, added a
+retry capability to make it work reliably on the Mac, and found that it
+did not work with the multi-threaded Qt library on the SGI.
+
+9/24/03: Used different window properties for saving and restoring window
+positions, which fixed problems in Redhat 7.3 and Irix.  Made it not restore
+Info window size since that is highly font-dependent.
+
+9/23/03: Put Fortran graphics programs inside application directories on the
+Mac, which made them work correctly, with the window raisable and resizable.
+
+9/22/03: Removed a large unused common from smoothsurf, which wss making it
+fail under Cygwin.
+
+9/19/03: Made sample.com files produce top.rec, etc, directly as the output
+of Tilt to avoid replacing existing .rec files.
+
+9/19/03: Made 3dmod require only a 15-bit RGB visual, not 16 bit.
+
 9/18/03: IMOD_3-0-19
 9/18/03: Added the ability to float (match contrast between sections) based
 on a subarea, either the image displayed or the area inside of a rubberband
