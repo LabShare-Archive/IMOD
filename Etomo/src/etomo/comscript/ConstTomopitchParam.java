@@ -23,12 +23,18 @@ public class ConstTomopitchParam {
   public static final String rcsid =
     "$$Id$$";
 
+  public static final String COMMAND = "tomopitch";
+  public static final String MODEL_FILE = "ModelFile";
+  public static final String EXTRA_THICKNESS = "ExtraThickness";
+  public static final String SPACING_IN_Y = "SpacingInY";
+  public static final String SCALE_FACTOR = "ScaleFactor";
+  public static final String PARAMETER_FILE = "ParameterFile";
+  
   protected Vector modelFiles;
   protected double extraThickness;
   protected double spacingInY;
   protected double scaleFactor;
   protected String parameterFile;
-  protected int numberOfModelFiles; //old-style comscript
   
   public ConstTomopitchParam() {
     reset();
@@ -40,7 +46,6 @@ public class ConstTomopitchParam {
     spacingInY = Double.NaN;
     scaleFactor = Double.NaN;
     parameterFile = new String();
-    numberOfModelFiles = Integer.MIN_VALUE;
   }
 
   public int getModelFilesSize() {
@@ -61,8 +66,21 @@ public class ConstTomopitchParam {
   public String getParameterFile() {
     return parameterFile;
   }
-  public int getNumberOfModelFiles() {
-    return numberOfModelFiles;
-  }
   
+  /**
+   * Return a multiline string describing the class attributes.
+   */
+  public String toString() {
+    StringBuffer string = new StringBuffer("\n");
+    string.append("ModelFilesSize:" + getModelFilesSize() + "\n");
+    for (int i = 0; i < getModelFilesSize(); i++) {
+      string.append(MODEL_FILE + ":" + getModelFile(i) + "\n");
+    }
+    string.append(EXTRA_THICKNESS + ":" + getExtraThicknessString() + "\n");
+    string.append(SCALE_FACTOR + ":" + getScaleFactorString() + "\n");
+    string.append(SPACING_IN_Y + ":" + getSpacingInYString() + "\n");
+    string.append(PARAMETER_FILE + ":" + getParameterFile() + "\n");
+    return string.toString();
+
+  }
 }
