@@ -12,11 +12,10 @@ c	  One line for each displacement consisting of the X, Y, and Z
 c	  .  coordinates in the first volume, then the displacements in X, Y
 c	  .  and Z involved in moving from the first to the second volume
 c	  
-c	  The program is meant to be run interactively; it loops on the
-c	  specification of the subsets of displacements to use until the user
-c	  decides to write out a particular subset.  However, it can also be
-c	  told to find the best warping automatically, in which case it does so
-c	  then exits.
+c	  If the program is run interactively, it loops on the specification
+c	  of the subsets of displacements to use until the user decides to
+c	  write out a particular subset.  However, it can also be told to find
+c	  the best warping automatically, in which case it does so then exits.
 c
 c	  The program will automatically eliminate "outliers", patch
 c	  displacements that are likely to be incorrect because they are so
@@ -71,31 +70,34 @@ c
 c	  .  The minimum and maximum ratio of measurements to unknowns to be
 c	  .    allowed in the local fits, or / to use the default values.
 c
-c	  .  At this point, the program proceeds by fitting to the largest
-c	  .  possible area in X and Z that does not exceed the maximum ratio
-c	  .  of measurements to unknowns, and it tries progressively smaller
-c	  .  areas until the desired mean residual is achieved.  It does this
-c	  .  using the parameters (e.g., row or column elimination) that were
-c	  .  set on any previous interactive rounds of fitting.  If the target
-c	  .  residual is reached, it requests the names of the initial
-c	  .  transformation file and the output file, as described below, and
-c	  .  exits.  If the residual is not reached, it exits with an error.
-c
 c	  0 to use all of the data, or 1 to specify a subset of patches to use
 c	  
-c	  IF you enter 1, next enter two or three lines:
+c	  IF you enter 1, next enter three lines:
 c	  
 c	  .  Number of columns of patches to eliminate from the left and right
 c	  .    sides of the data, 0,0 to use all patches in X, or / to use
 c	  .    previous values.
-c	  .  IF there are more than two "slabs" of patches in Y (through the
-c	  .    depth of the tomogram), enter the number of slabs of patches to
-c	  .    eliminate from the bottom and top of the section, 0,0 to use
-c	  .    all patches in Y, or / to use previous values.
+c
+c	  .  Number of slabs of patches to eliminate from the bottom and top
+c	  .    of the section, 0,0 to use all patches in Y, or / to use
+c	  .    previous values.
 c
 c	  .  Number of rows of patches to eliminate from the bottom and top
 c	  .    (when viewing the flipped tomogram), 0,0 to use all patches in
 c	  .    Z, or / to use previous values.
+c
+c	  IF you selected automatic warping, the program now proceeds by
+c	  .  fitting to the largest possible area in X and Z that does not
+c	  .  exceed the maximum ratio of measurements to unknowns, and it
+c	  .  tries progressively smaller areas until the desired mean residual
+c	  .  is achieved.  It does this using the parameters (e.g., row or
+c	  .  column elimination) that were set on any previous interactive
+c	  .  rounds of fitting.  If the target residual is reached, it
+c	  .  requests the names of the initial transformation file and the
+c	  .  output file, as described below, and exits.  If the residual is
+c	  .  not reached, it exits with an error.
+c	  
+c	  IF you are proceeding interactively, continue with the following:
 c
 c	  IF there are more than 2 patches in Y, the program next asks whether
 c	  .  you always want to do the local fits to all patches in Y.  Just
@@ -154,6 +156,13 @@ c	  an arrangement that contains as many patches as possible in each
 c	  direction yet has residuals comparable to those found with a volume
 c	  that does not need warping (typically 0.1 to 0.2).
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 c	  David Mastronarde, January 30, 1997
 c	  12/24/98: added outlier elimination, integrated complex options.
@@ -161,8 +170,10 @@ c	  6/6/99: added ability to output single refining transformation.
 c	  1/1/00: added model exclusion and automatic finding of best warp
 c	  6/7/01: rewrote data input to handle data with missing patches
 c
+	implicit none
         include 'stat_source:statsize.inc'
 	include 'model.inc'
+	integer idim,limpatch,limvert,limaxis
         parameter (idim=10000,limpatch=10000,limvert=100000)
 	parameter (limaxis=1000)
         real*4 xr(msiz,idim)
@@ -177,7 +188,7 @@ c	integer*4 ixdrop(idim),iydrop(idim),izdrop(idim),ntimes(idim)
 	integer*4 inddrop(idim),ntimes(idim)
 	real*4 dropsum(idim)
 	logical inside,exist,readw_or_imod
-	integer getimodhead
+	integer getimodhead,getimodscales
 	real*4 xvert(limvert),yvert(limvert),zcont(idim)
 	integer*4 indvert(idim),nvert(idim)
 	integer*4 nfxauto(limpatch),nfzauto(limpatch)
@@ -187,6 +198,20 @@ c	integer*4 ixdrop(idim),iydrop(idim),izdrop(idim),ntimes(idim)
 	real*4 cxyzin(3),dxyzin(3)
 	equivalence (npatx,npatxyz(1)),(npaty,npatxyz(2)),
      &	    (npatz,npatxyz(3))
+	integer*4 ndat,npatx,npaty,npatz,i,j,ipos,inlist,k,itmp,ind
+	integer*4 ncont,ierr,indy,indz,iobj,ip,indcur,ipt
+	integer*4 nxtot,nytot,nztot,nofsx,nofsy,nofsz,ifsubset,ifdoy
+	real*4 xofs,yofs,zofs,ximscale,yimscale,zimscale
+	real*4 ratmin,ratmax,fracdrop,crit,critabs,elimmin,targetres
+	integer*4 ifauto,nauto,niny,ix,iy,iz,iauto,nfitx,nfity,nfitz
+	integer*4 nlocdone,nexclxhi,nexclyhi,nexclzhi
+	integer*4 ifdiddle,nfitxin,nfityin,nfitzin,nlocx,nlocy,nlocz
+	integer*4 induse,nlistd,ndroptot,locx,locy,locz,lx,ly,lz,ifuse
+	real*4 ratio,devavmin,dist,distmin,devavsum,devmaxsum,devmaxmax
+	real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal
+	real*4 devavavg,devmaxavg,devavmax
+	integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop,ixd,iyd,izd
+	integer*4 left,ifon,ndrop,ifflip,indpat,indloc
 	indpat(ix,iy,iz)=ix + (iy-1)*npatx + (iz-1)*npatx*npaty
 	indloc(ix,iy,iz)=ix + (iy-1)*nlocx + (iz-1)*nlocx*nlocy
 c
@@ -195,10 +220,8 @@ c
         read(*,'(a)')filename
         call dopen(1,filename,'old','f')
         read(1,*)ndat
-	if(ndat.gt.limpatch)then
-	  print *,'TOO MANY PATCHES FOR ARRAYS IN FINDWARP'
-	  call exit(1)
-	endif
+	if(ndat.gt.limpatch)call errorexit
+     &	    ('TOO MANY PATCHES FOR ARRAYS')
 	npatx=0
 	npaty=0
 	npatz=0
@@ -214,7 +237,8 @@ c
 	    enddo
 	    if(inlist.eq.0)then
 	      if(npatxyz(j).gt.limaxis)then
-		print *,'TOO MANY POSITIONS ALONG AXIS',j
+		write(*,'(//,a,i2)')
+     &		    'ERROR: FINDWARP - TOO MANY POSITIONS ALONG AXIS',j
 		call exit(1)
 	      endif
 	      npatxyz(j)=npatxyz(j)+1
@@ -292,16 +316,14 @@ c
 	ncont=0
 	if(filename.ne.' ')then
 	  exist=readw_or_imod(filename)
-	  if(.not.exist)then
-	    print *, 'FINDWARP: ERROR READING MODEL'
-	    call exit(1)
-	  endif
+	  if(.not.exist)call errorexit('ERROR READING MODEL')
 	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+	  ierr=getimodscales(ximscale,yimscale,zimscale)
 c	  print *,'Offsets:',xofs,yofs,zofs
 	  do i=1,n_point
-	    p_coord(1,i)=p_coord(1,i)-xofs
-	    p_coord(2,i)=p_coord(2,i)-yofs
-	    p_coord(3,i)=p_coord(3,i)-zofs
+	    p_coord(1,i)=(p_coord(1,i)-xofs)/ximscale
+	    p_coord(2,i)=(p_coord(2,i)-yofs)/yimscale
+	    p_coord(3,i)=(p_coord(3,i)-zofs)/zimscale
 	  enddo
 	  indy=2
 	  indz=3
@@ -313,15 +335,11 @@ c	  print *,'Offsets:',xofs,yofs,zofs
 	  do iobj=1,max_mod_obj
 	    if(npt_in_obj(iobj).ge.3)then
 	      ncont=ncont+1
-	      if(ncont.gt.idim)then
-		print *,'FINDWARP: TOO MANY CONTOURS IN MODEL'
-		call exit(1)
-	      endif
+	      if(ncont.gt.idim)call errorexit(
+     &		  'TOO MANY CONTOURS IN MODEL')
 	      nvert(ncont)=npt_in_obj(iobj)
-	      if(indcur+nvert(ncont).gt.limvert)then
-		print *,'FINDWARP: TOO MANY POINTS IN CONTOURS'
-		call exit(1)
-	      endif
+	      if(indcur+nvert(ncont).gt.limvert)call errorexit(
+     &		  'TOO MANY POINTS IN CONTOURS')
 	      do ip=1,nvert(ncont)
 		ipt=abs(object(ibase_obj(iobj)+ip))
 		xvert(ip+indcur)=p_coord(1,ipt)
@@ -372,6 +390,69 @@ c
 c	    set up parameters for automatic finding: make list of possible
 c	    nxfit and nzfit values
 c
+	endif
+c
+	write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
+     &	    'exclude rows or columns of patches: '
+	read(5,*)ifsubset
+c
+	if(ifsubset.ne.0)then
+10	  nexclxhi = npatx-nofsx-nxtot
+	  write(*,'(1x,a,2i3,a,$)')'# of columns to exclude'
+     &	      //' on the left and right in X (/ for',nofsx,
+     &	      nexclxhi,'): '
+	  read(5,*)nofsx,nexclxhi
+	  nxtot=npatx-nofsx-nexclxhi
+	  if(nxtot+nofsx.gt.npatx.or.nxtot.lt.2)then
+	    if (ifauto .ne. 0) call errorexit(
+     &		'ILLEGAL ENTRY FOR NUMBER OF COLUMNS TO EXCLUDE IN X')
+	    print *,'Illegal entry'
+	    nofsx=0
+	    nxtot=npatx
+	    go to 10
+	  endif
+
+12	  nexclyhi = npaty-nofsy-nytot
+	  write(*,'(1x,a,2i3,a,$)')'# of slabs to exclude'
+     &	      //' on the bottom and top of section in Y (/ for',nofsy,
+     &	      nexclyhi,'): '
+	  read(5,*)nofsy,nexclyhi
+	  nytot=npaty-nofsy-nexclyhi
+	  if(nytot+nofsy.gt.npaty.or.nytot.lt.2 )then
+	    if (ifauto .ne. 0) call errorexit(
+     &		'ILLEGAL ENTRY FOR NUMBER OF SLABS TO EXCLUDE IN Y')
+	    print *,'Illegal entry'
+	    nofsy=0
+	    nytot=npaty
+	    go to 12
+	  endif
+
+14	  nexclzhi = npatz-nofsz-nztot
+	  write(*,'(1x,a,2i3,a,$)')'# of rows to exclude'
+     &	      //' on the bottom and top in Z (/ for',nofsz,
+     &	      nexclzhi,'): '
+	  read(5,*)nofsz,nexclzhi
+	  nztot=npatz-nofsz-nexclzhi
+	  if(nztot+nofsz.gt.npatz.or.nztot.lt.2)then
+	    if (ifauto .ne. 0) call errorexit(
+     &		'ILLEGAL ENTRY FOR NUMBER OF ROWS TO EXCLUDE IN Z')
+	    print *,'Illegal entry'
+	    nofsz=0
+	    nztot=npatz
+	    go to 14
+	  endif
+	  print *,'Remaining # of patches in X, Y and Z is:',
+     &	      nxtot,nytot,nztot
+	else
+	  nxtot=npatx
+	  nytot=npaty
+	  nztot=npatz
+	  nofsx=0
+	  nofsy=0
+	  nofsz=0
+	endif
+c
+	if(ifauto.ne.0)then
 	  niny=nytot
 	  if(ifdoy.ne.0)niny=nfity
 	  do ix=nxtot,2,-1
@@ -417,60 +498,6 @@ c
 	  go to 20
 	endif
 
-	write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
-     &	    'exclude rows or columns of patches: '
-	read(5,*)ifsubset
-c
-	if(ifsubset.ne.0)then
-10	  nexclxhi = npatx-nofsx-nxtot
-	  write(*,'(1x,a,2i3,a,$)')'# of columns to exclude'
-     &	      //' on the left and right in X (/ for',nofsx,
-     &	      nexclxhi,'): '
-	  read(5,*)nofsx,nexclxhi
-	  nxtot=npatx-nofsx-nexclxhi
-	  if(nxtot+nofsx.gt.npatx.or.nxtot.lt.2)then
-	    print *,'Illegal entry'
-	    nofsx=0
-	    nxtot=npatx
-	    go to 10
-	  endif
-	  if(npaty.gt.2) then
-12	    nexclyhi = npaty-nofsy-nytot
-	    write(*,'(1x,a,2i3,a,$)')'# of slabs to exclude'
-     &	      //' on the bottom and top of section in Y (/ for',nofsy,
-     &		nexclyhi,'): '
-	    read(5,*)nofsy,nexclyhi
-	    nytot=npaty-nofsy-nexclyhi
-	    if(nytot+nofsy.gt.npaty.or.nytot.lt.2 )then
-	      print *,'Illegal entry'
-	      nofsy=0
-	      nytot=npaty
-	      go to 12
-	    endif
-	  endif
-14	  nexclzhi = npatz-nofsz-nztot
-	  write(*,'(1x,a,2i3,a,$)')'# of rows to exclude'
-     &	      //' on the bottom and top in Z (/ for',nofsz,
-     &	      nexclzhi,'): '
-	  read(5,*)nofsz,nexclzhi
-	  nztot=npatz-nofsz-nexclzhi
-	  if(nztot+nofsz.gt.npatz.or.nztot.lt.2)then
-	    print *,'Illegal entry'
-	    nofsz=0
-	    nztot=npatz
-	    go to 14
-	  endif
-	  print *,'Remaining # of patches in X, Y and Z is:',
-     &	      nxtot,nytot,nztot
-	else
-	  nxtot=npatx
-	  nytot=npaty
-	  nztot=npatz
-	  nofsx=0
-	  nofsy=0
-	  nofsz=0
-	endif
-c
 	ifdoy=1
 	if(nytot.le.2)ifdoy=0
 	if(ifdoy.gt.0)then
@@ -540,10 +567,14 @@ c
 	  nlocz=nztot+1-nfitzin
 	  if(nfitxin.lt.2.or.nfitzin.lt.2.or.nlocx.lt.1.or.nlocz.lt.1
      &	      .or.nfityin.lt.2.or.nlocy.lt.1)then
+	    if (ifauto .ne. 0) call errorexit(
+     &		'IMPROPER NUMBER TO INCLUDE IN FIT')
 	    print *,'Illegal entry, try again'
 	    go to 20
 	  endif
 	  if(nfitxin*nfityin*nfitzin.gt.idim)then
+	    if (ifauto .ne. 0) call errorexit(
+     &		'TOO MANY PATCHES FOR ARRAY SIZES')
 	    print *,'Too many patches for array sizes, try again'
 	    go to 20
 	  endif
@@ -631,11 +662,9 @@ c     &			(censave(j,ind),censave(j,induse),j=1,3)
 	nlistd=0
 	ndroptot=0
 	nlocdone=0
-	if (max(nfitx,nfity,nfitz).gt.limaxis) then
-	  print *,'TOO MANY POINTS IN FIT IN ONE DIMENSION FOR ARRAYS'
-     &	      ,' IN FINDWARP'
-	  call exit(1)
-	endif
+	if (max(nfitx,nfity,nfitz).gt.limaxis) call errorexit(
+     &	    'TOO MANY POINTS IN FIT IN ONE DIMENSION FOR ARRAYS')
+
 	do locz=1,nlocz
 	  do locy=1,nlocy
 	    do locx=1,nlocx
@@ -804,9 +833,9 @@ c
 c	    print *,iauto,' Did fit to',nfitx,nfity,nfitz
 	    if(iauto.gt.nauto)then
 	      write(*,108)devavmin
-108	      format('Failed to find a warping with a mean residual ',
-     &		  'less than',f9.3)
-	      call exit(1)
+108	      format(//,'FINDWARP: Failed to find a warping with a ',
+     &		  'mean residual less than',f9.3,/)
+	      call exit(2)
 	    endif
 	  endif
 	endif
@@ -840,3 +869,11 @@ c
 	endif
 	go to 20
         end
+
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: FINDWARP - ',message
+	call exit(1)
+	end
