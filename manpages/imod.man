@@ -383,12 +383,12 @@ Contour
                  points up to the first selected point from the
                  first contour and from the second selected point
                  to the last point from the second contour.
-   Fill In Z  For an open contour that traverses through Z, add
-                 points by interpolation to fill in any gaps where
-                 the contour skips one or more sections.
    Break by Z Break a closed contour at every change in Z,
                  creating as many contours as necessary so that 
                  each lies in a single Z plane.
+   Fill In Z  For an open contour that traverses through Z, add
+                 points by interpolation to fill in any gaps where
+                 the contour skips one or more sections.
    Loopback   Add points to the end of a contour so that it loops
                  back from its current end to its start along the 
                  same path.  Such a contour can be used to make a
@@ -403,9 +403,9 @@ Contour
 Point
    Delete        Delete Current point.  (Delete)
    Size...       Set size of individual points.
-   Value         Show current voxel value from image file.
    Distance      Show distance between current and last model
                     points.
+   Value         Show current voxel value from image file.
    Sort by Z     Sort points in a contour by Z value.
    Sort by dist  Sort points in a contour by interpoint distance.
 
@@ -421,7 +421,7 @@ Movies...    Open window to control movie limits in X, Y, Z and
                  time.
 
 .I Image Menu
-   ZaP         Open the ZaP window.  (Z)
+   ZaP         Open a ZaP window.  (Z)
    XYZ         Open the XYZ window.
    Slicer      Open an image Slicer window.  (\\)
    Model View  Open an imod model view window.  (v)

@@ -115,33 +115,33 @@ void imodvHelpMenu(int item)
     dia_vasmsg
       ("Imodv Help for menus\n",
        "---------------------------------\n",
-       "File\n",
-       "    Open Model     - Load a new model to view.\n",
-       "    Save Model     - Save the current model.\n",
-       "    Save Model As. - Save model under a different name.\n",
-       "    Snap RGB As... - Save a snapshot to a specified RGB file.\n",
-       "    Snap TIFF As.. - Save a snapshot a specified TIFF file.\n",
-       "    Zero Snap File # - Reset the counter for snapshot files to 0.\n",
-       "    Movie...       - Program a sequence of displays and save them.\n",
-       "    Quit           - Quit this program.\n",
+       "File Menu:\n",
+       "     Open Model\t\tLoad a new model to view.\n",
+       "     Save Model\t\tSave the current model.\n",
+       "     Save Model As...\tSave model under a different name.\n",
+       "     Snap RGB As...\tSave a snapshot to a specified RGB file.\n",
+       "     Snap TIFF As...\tSave a snapshot a specified TIFF file.\n",
+       "     Zero Snap File #\tReset the counter for snapshot files to 0.\n",
+       "     Movie...\t\tProgram a sequence of displays and save them.\n",
+       "     Close\t\tQuit imodv or close model view window in imod.\n",
                 
-       "\nEdit\n",
-       "    Objects...     - Open the object edit dialog.\n",
-       "    Controls...    - Open the display control dialog.\n",
-       "    Object List... - Show objects by name with On/Off buttons.\n",
-       "    Background...  - Change the background color.\n",
-       "    Models...      - Control the display of multiple models.\n",
-       "    Views...       - Open a dialog to save and restore views.\n",
-       "    Image...       - Display an image slice on the model.\n",
+       "\nEdit Menu:\n",
+       "     Objects...\t\tOpen the object edit dialog.\n",
+       "     Controls...\t\tOpen the display control dialog.\n",
+       "     Object List...\t\tShow objects by name with On/Off buttons.\n",
+       "     Background...\tChange the background color.\n",
+       "     Models...\t\tControl the display of multiple models.\n",
+       "     Views...\t\tOpen a dialog to save and restore views.\n",
+       "     Image...\t\tDisplay an image slice on the model.\n",
                 
        "\nView - Rendering Options\n",
-       "    Double Buffer  - Change between double and single\n",
-       "                     buffer visual.\n",
-       "    Lighting       - Turn rendering with a light on or off.\n"
-       "    Wireframe      - Render data in wireframe only.\n",
-       "    Low Res        - Display low resolution mesh.\n",
-       "    Stereo...      - Open stereo control dialog.\n",
-       "    Depth Cue...   - Control dimming of display with distance.\n",
+       "     Double Buffer\tChange between double and single\n",
+       "\t\t\t     buffer visual.\n",
+       "     Lighting\t\tTurn rendering with a light on or off.\n"
+       "     Wireframe\t\tRender data in wireframe only.\n",
+       "     Low Res\t\tDisplay low resolution mesh.\n",
+       "     Stereo...\t\tOpen stereo control dialog.\n",
+       "     Depth Cue...\t\tControl dimming of display with distance.\n",
        NULL);
     break;
 
@@ -200,8 +200,6 @@ void imodvHelpMenu(int item)
        "\tWhen the Ctrl key is held down the middle mouse button "
        "rotates the current object clipping plane instead.\n\n",
        "Right Mouse Button\n",
-       "\tThe right mouse button controls the pop up menus when",
-       "imodv is started with the -noborder option.\n\n",
        "\tWhen running Model View from Imod, clicking on a point in the "
        "model with the right mouse button will select the nearest, "
        "frontmost point in the model as the current model point within "
@@ -211,10 +209,10 @@ void imodvHelpMenu(int item)
 
   case VHELP_MENU_ABOUT:
     dia_vasmsg
-      ("Imodv OpenGL Version ",
+      ("Imodv Qt Version ",
        VERSION_NAME,
-       ", originally written by James Kremer and revised",
-       "by David Mastronarde\n",
+       ", written by James Kremer and",
+       "David Mastronarde\n",
        "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
        "& Regents of the University of Colorado\n\n",
        NULL);
@@ -578,6 +576,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.3  2003/02/27 17:38:02  mast
 Convert filenames with Qt routines
 

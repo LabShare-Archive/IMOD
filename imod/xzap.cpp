@@ -103,14 +103,22 @@ void zapHelp()
   dia_vasmsg
     ("Imod Zap Help\n",
      "---------------------------------------------------------------\n",
+     "Mouse Button Assignments\n\n",
+     "\tDescriptions below refer to the first, second, and third mouse "
+     "buttons.  By default, these correspond to left, middle, and right "
+     "buttons of a 3-button mouse, but you can change these assignments in "
+     "the Imod Preferences dialog, accessed via the Edit-Options menu entry."
+     "\n\n"
      "The Tool Bar\n\n",
      "\tThe Up and Down Arrows step the zoom factor up or down.\n",
      "\tThe Zoom edit box shows the current zoom factor and allows ",
      "one to type in a custom zoom.\n",
      "\tThe checkerboard button toggles between fast rendering and ",
-     "slower but higher quality image rendering.\n",
-     "\tThe lock button can lock out movements within the Zap window ",
-     "and prevent centering on the current model point.\n",
+     "slower but higher quality interpolated image rendering.\n",
+     "\tThe lock button can lock the Zap window at the current Z value.",
+     "  When locked, the Z value of a Zap window can be changed with "
+     "controls or hot keys in the window, but that will not change the current"
+     " Z value of other windows in the program.\n",
      "\tThe centering button toggles between having the image always ",
      "centered ",
      "on the current model point, and recentering the image only when ",
@@ -118,6 +126,8 @@ void zapHelp()
      "\tThe modeling direction button toggles between inserting new ",
      "points after the current point (when pointing up) or before ",
      "the current point (when pointing down).\n"
+     "\tThe Z slider allows one to riffle through images or select a "
+     "particular section to display.\n"
      "\tThe section edit box shows the current section and allows one ",
      "to go directly to a section by typing in a number.\n",
      "\tThe Info button (I) brings the Information Window to the "
@@ -145,12 +155,12 @@ void zapHelp()
      "used to select an area, then snapshot the area, resize the window "
      "to that area, or find its coordinates.  After pressing B to turn on the "
      "rubber band, position the mouse at the desired upper left corner, click "
-     "the left mouse button and hold it down while you move to the lower "
+     "the first mouse button and hold it down while you move to the lower "
      "right corner.  After initially defining the band, you can adjust its "
      "size by placing the pointer near an edge or corner and "
-     "dragging with the left mouse button.  The band can be moved as a "
+     "dragging with the first mouse button.  The band can be moved as a "
      "unit by placing the pointer near an edge and dragging with the "
-     "middle mouse button.\n",
+     "second mouse button.\n",
      "\tI prints information about the window and image size and "
      "the coordinates of the image in the window.  If the rubber band "
      "is on, the sizes and coordinates are relative to the rubber band "
@@ -173,42 +183,42 @@ void zapHelp()
      "the image, the numeric keypad arrows move the current model point "
      "laterally, and the numeric keypad PageUp and PageDown keys move "
      "the current model point in Z.\n"
-     "\tIns on the keypad: In movie mode, this key works the same as "
-     "the middle mouse button.  A single keystrike adds one point; "
+     "\tIns on the keypad: In model mode, this key works the same as "
+     "the second mouse button.  A single keystrike adds one point; "
      "holding the key down allows points to be added continuously.\n"
      "\tESC will close the Zap window.\n\n"
      "For other keys, see Help - Hot Keys in the Imod Info Window.\n\n",
      "---------------------------------------------------------------\n",
      "\nMouse button function in movie mode\n\n",
-     "\tLeft Button Click: Select the current viewing point, marked by "
+     "\tFirst Button Click: Select the current viewing point, marked by "
      "a small cross.\n",
-     "\tLeft Button Drag: Pan the image if it is larger than the "
+     "\First Button Drag: Pan the image if it is larger than the "
      "window, or adjust the size of the rubber band."
      "\n"
-     "\tMiddle Button: Start movie in forward direction, or stop movie."
+     "\tSecond Button: Start movie in forward direction, or stop movie."
      "\n"
-     "\tMiddle Button Drag: Move the rubber band.\n",
-     "\tRight Button: Start movie in backward direction, or stop movie."
+     "\tSecond Button Drag: Move the rubber band.\n",
+     "\tThird Button: Start movie in backward direction, or stop movie."
      "\n\n"
      "Mouse button function in model mode\n\n",
-     "\tLeft Button Click: Make the nearest model point be the current "
+     "\tFirst Button Click: Make the nearest model point be the current "
      "model point.  If there is no point nearby, this detaches from the "
      "current point and contour and selects a current viewing point "
      "instead.\n",
-     "\tLeft Button Drag: Pan the image if it is larger than the "
+     "\tFirst Button Drag: Pan the image if it is larger than the "
      "window, or adjust the size of the rubber band."
      "\n"
-     "\tMiddle Button Click: Add one point to the current contour.\n"
-     "\tMiddle Button Drag: Continually add points to the current "
+     "\tSecond Button Click: Add one point to the current contour.\n"
+     "\tSecond Button Drag: Continually add points to the current "
      "contour as the mouse is moved, or move the rubber band.\n",
-     "\tRight Button Click: Modify the current model point to be at the "
+     "\tThird Button Click: Modify the current model point to be at the "
      "selected position.\n",
-     "\tRight Button Drag: Continually modify points as the mouse is "
+     "\tThird Button Drag: Continually modify points as the mouse is "
      "moved.  This only works when the current model point is in the "
      "interior of the contour, not at its end.\n",
-     "\tCtrl - Right Button Click: Delete any points under the cursor "
+     "\tCtrl - Third Button Click: Delete any points under the cursor "
      "in the current contour.\n",
-     "\tCtrl - Right Button Drag: Continually delete points under the "
+     "\tCtrl - Third Button Drag: Continually delete points under the "
      "cursor as the mouse is moved.  At the end, the current point is "
      "set before the last deletion (or after, if modeling direction is "
      "inverted.)\n",
@@ -2592,6 +2602,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.13  2003/03/25 23:01:35  mast
+Take nearest int in checking for current point Z value when adding points
+
 Revision 4.12  2003/03/24 17:56:46  mast
 Register with dialogManager so it can be parked with info window
 
