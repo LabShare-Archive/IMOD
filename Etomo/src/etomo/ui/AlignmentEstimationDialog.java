@@ -22,6 +22,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/12/05 01:22:44  rickg
+ * <p> Previous commit comment was incorrect
+ * <p> Split advanced functionality from action handler
+ * <p> so that it can be called at startup.
+ * <p>
  * <p> Revision 1.6  2002/12/05 01:20:37  rickg
  * <p> Added isAdvanced stub
  * <p>
@@ -63,20 +68,15 @@ public class AlignmentEstimationDialog
 
   private JPanel panelButtonA = new JPanel();
 
-  private JToggleButton buttonTiltDefaultsA =
-    new JToggleButton("<html><b>Set tilt angle and<br>magnification defaults</b>");
-
-  private JToggleButton buttonTiltEstA =
-    new JToggleButton("<html><b>Estimate tilt and<br>magnification</b>");
-
-  private JToggleButton buttonDistortionDefaultsA =
-    new JToggleButton("<html><b>Set distortion<br>defaults</b>");
-
-  private JToggleButton buttonDistortionEstA =
-    new JToggleButton("<html><b>Estimate<br>distortion</b>");
+  private JToggleButton buttonComputeAlignmentA =
+    new JToggleButton("<html><b>Compute<br>alignment</b>");
 
   private JToggleButton buttonImodA =
-    new JToggleButton("<html><b>View/Fix model<br>in imod</b>");
+    new JToggleButton("<html><b>View/Edit model<br>in imod</b>");
+
+  private JToggleButton buttonView3DModelA =
+    new JToggleButton("<html><b>View 3D<br>model</b>");
+
 
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -85,25 +85,19 @@ public class AlignmentEstimationDialog
 
   private JPanel panelButtonB = new JPanel();
 
-  private JToggleButton buttonTiltDefaultsB =
-    new JToggleButton("<html><b>Set tilt angle and<br>magnification defaults</b>");
+  private JToggleButton buttonComputeAlignmentB =
+    new JToggleButton("<html><b>Compute<br>alignment</b>");
 
-  private JToggleButton buttonTiltEstB =
-    new JToggleButton("<html><b>Estimate tilt and<br>magnification</b>");
-
-  private JToggleButton buttonDistortionDefaultsB =
-    new JToggleButton("<html><b>Set distortion<br>defaults</b>");
-
-  private JToggleButton buttonDistortionEstB =
-    new JToggleButton("<html><b>Estimate<br>distortion</b>");
+  private JToggleButton buttonView3DModelB =
+    new JToggleButton("<html><b>View 3D<br>model</b>");
 
   private JToggleButton buttonImodB =
-    new JToggleButton("<html><b>View/Fix model<br>in imod</b>");
+    new JToggleButton("<html><b>View/Edit model<br>in imod<</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr) {
     applicationManager = appMgr;
     contentPane = (JPanel) getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
+    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
     setTitle(
       "eTomo Fine Alignment Estimation: "
         + applicationManager.getFilesetName());
@@ -120,43 +114,37 @@ public class AlignmentEstimationDialog
     buttonExecute.setText("Done");
 
     //  Create the first panel
-    panelButtonA.setLayout(new BoxLayout(panelButtonA, BoxLayout.Y_AXIS));
-    panelButtonA.add(buttonTiltDefaultsA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelButtonA.add(buttonTiltEstA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y20));
-    panelButtonA.add(buttonDistortionDefaultsA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelButtonA.add(buttonDistortionEstA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y40));
+    panelButtonA.setLayout(new BoxLayout(panelButtonA, BoxLayout.X_AXIS));
+    panelButtonA.add(buttonComputeAlignmentA);
+    panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonA.add(buttonImodA);
+    panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButtonA.add(buttonView3DModelA);
+    buttonView3DModelA.setEnabled(false);
 
-    panelAlignEstA.setLayout(new BoxLayout(panelAlignEstA, BoxLayout.X_AXIS));
+    panelAlignEstA.setLayout(new BoxLayout(panelAlignEstA, BoxLayout.Y_AXIS));
     panelAlignEstA.setBorder(borderA.getBorder());
 
-    panelAlignEstA.add(panelButtonA);
-    panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
     panelAlignEstA.add(panelTiltalignA.getContainer());
+    panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
+    panelAlignEstA.add(panelButtonA);
 
     //  Create the second panel
-    panelButtonB.setLayout(new BoxLayout(panelButtonB, BoxLayout.Y_AXIS));
-    panelButtonB.add(buttonTiltDefaultsB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelButtonB.add(buttonTiltEstB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y20));
-    panelButtonB.add(buttonDistortionDefaultsB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelButtonB.add(buttonDistortionEstB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y40));
+    panelButtonB.setLayout(new BoxLayout(panelButtonB, BoxLayout.X_AXIS));
+    panelButtonB.add(buttonComputeAlignmentB);
+    panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonB.add(buttonImodB);
+    panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButtonB.add(buttonView3DModelB);
+    buttonView3DModelB.setEnabled(false);
 
-    panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.X_AXIS));
+    panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
     panelAlignEstB.setBorder(borderB.getBorder());
 
-    panelAlignEstB.add(panelButtonB);
-    panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
     panelAlignEstB.add(panelTiltalignB.getContainer());
-
+    panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+    panelAlignEstB.add(panelButtonB);
+    
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.X_AXIS));
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
     contentPane.add(Box.createHorizontalGlue());
@@ -176,25 +164,13 @@ public class AlignmentEstimationDialog
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    buttonTiltDefaultsA.addActionListener(new AlignementEstTiltDefaultsA(this));
-    buttonTiltEstA.addActionListener(new AlignementEstTiltEstA(this));
+    buttonComputeAlignmentA.addActionListener(new AlignementComputeA(this));
+    buttonView3DModelA.addActionListener(new AlignementView3DModelA(this));
+    buttonImodA.addActionListener(new AlignementImodA(this));
 
-    buttonDistortionDefaultsA.addActionListener(
-      new AlignementEstDistortionDefaultsA(this));
-    buttonDistortionEstA.addActionListener(
-      new AlignementEstDistortionEstA(this));
-
-    buttonImodA.addActionListener(new AlignementEstImodA(this));
-
-    buttonTiltDefaultsB.addActionListener(new AlignementEstTiltDefaultsB(this));
-    buttonTiltEstB.addActionListener(new AlignementEstTiltEstB(this));
-
-    buttonDistortionDefaultsB.addActionListener(
-      new AlignementEstDistortionDefaultsB(this));
-    buttonDistortionEstB.addActionListener(
-      new AlignementEstDistortionEstB(this));
-
-    buttonImodB.addActionListener(new AlignementEstImodB(this));
+    buttonComputeAlignmentB.addActionListener(new AlignementComputeB(this));
+    buttonView3DModelB.addActionListener(new AlignementCompute3DModelB(this));
+    buttonImodB.addActionListener(new AlignementImodB(this));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -287,24 +263,7 @@ public class AlignmentEstimationDialog
   }
 
   //  Action funtions for process buttons
-  void buttonTiltDefaultsAAction(ActionEvent event) {
-    panelTiltalignA.setTiltAndMagnificationDefaults();
-  }
-
-  void buttonTiltEstAAction(ActionEvent event) {
-    if (applicationManager.isDualAxis()) {
-      applicationManager.fineAlignment(AxisID.FIRST);
-    }
-    else {
-      applicationManager.fineAlignment(AxisID.ONLY);
-    }
-  }
-
-  void buttonDistortionDefaultsAAction(ActionEvent event) {
-    panelTiltalignA.setDistortionDefaults();
-  }
-
-  void buttonDistortionEstAAction(ActionEvent event) {
+  void buttonComputeAAction(ActionEvent event) {
     if (applicationManager.isDualAxis()) {
       applicationManager.fineAlignment(AxisID.FIRST);
     }
@@ -322,25 +281,20 @@ public class AlignmentEstimationDialog
     }
   }
 
-  void buttonTiltDefaultsBAction(ActionEvent event) {
-    panelTiltalignB.setTiltAndMagnificationDefaults();
-
+  void buttonView3DModelAAction(ActionEvent event) {
   }
 
-  void buttonTiltEstBAction(ActionEvent event) {
-    applicationManager.fineAlignment(AxisID.SECOND);
-  }
 
-  void buttonDistortionDefaultsBAction(ActionEvent event) {
-    panelTiltalignB.setDistortionDefaults();
-  }
-
-  void buttonDistortionEstBAction(ActionEvent event) {
+  void buttonComputeBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND);
   }
 
   void buttonImodBAction(ActionEvent event) {
     applicationManager.imodFixFiducials(AxisID.SECOND);
+  }
+
+  void buttonView3DModelBAction(ActionEvent event) {
+
   }
 
   //  Action function overides for exit buttons
@@ -379,63 +333,38 @@ public class AlignmentEstimationDialog
   }
 }
 
-class AlignementEstTiltDefaultsA implements ActionListener {
+//  ActionListener classes for buttons
+class AlignementComputeA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstTiltDefaultsA(AlignmentEstimationDialog adaptee) {
+  AlignementComputeA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltDefaultsAAction(event);
+    adaptee.buttonComputeAAction(event);
   }
 }
 
-class AlignementEstTiltEstA implements ActionListener {
+class AlignementView3DModelA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstTiltEstA(AlignmentEstimationDialog adaptee) {
+  AlignementView3DModelA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltEstAAction(event);
+    adaptee.buttonView3DModelAAction(event);
   }
 }
 
-class AlignementEstDistortionDefaultsA implements ActionListener {
+class AlignementImodA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstDistortionDefaultsA(AlignmentEstimationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonDistortionDefaultsAAction(event);
-  }
-}
-
-class AlignementEstDistortionEstA implements ActionListener {
-
-  AlignmentEstimationDialog adaptee;
-
-  AlignementEstDistortionEstA(AlignmentEstimationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonDistortionEstAAction(event);
-  }
-}
-
-class AlignementEstImodA implements ActionListener {
-
-  AlignmentEstimationDialog adaptee;
-
-  AlignementEstImodA(AlignmentEstimationDialog adaptee) {
+  AlignementImodA(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -444,63 +373,37 @@ class AlignementEstImodA implements ActionListener {
   }
 }
 
-class AlignementEstTiltDefaultsB implements ActionListener {
+class AlignementComputeB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstTiltDefaultsB(AlignmentEstimationDialog adaptee) {
+  AlignementComputeB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltDefaultsBAction(event);
+    adaptee.buttonComputeBAction(event);
   }
 }
 
-class AlignementEstTiltEstB implements ActionListener {
+class AlignementCompute3DModelB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstTiltEstB(AlignmentEstimationDialog adaptee) {
+  AlignementCompute3DModelB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonTiltEstBAction(event);
+    adaptee.buttonView3DModelBAction(event);
   }
 }
 
-class AlignementEstDistortionDefaultsB implements ActionListener {
+class AlignementImodB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignementEstDistortionDefaultsB(AlignmentEstimationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonDistortionDefaultsBAction(event);
-  }
-}
-
-class AlignementEstDistortionEstB implements ActionListener {
-
-  AlignmentEstimationDialog adaptee;
-
-  AlignementEstDistortionEstB(AlignmentEstimationDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonDistortionEstBAction(event);
-  }
-}
-
-class AlignementEstImodB implements ActionListener {
-
-  AlignmentEstimationDialog adaptee;
-
-  AlignementEstImodB(AlignmentEstimationDialog adaptee) {
+  AlignementImodB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
