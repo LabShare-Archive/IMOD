@@ -47,7 +47,10 @@ type=F
 usage=Distance from contour within which to exclude pixels from consideration
 tooltip=
 manpage=Distance from contour within which to exclude pixels from
-consideration.  The deafult is to include all pixels within the contour.
+consideration.  For example, if the contours are drawn on the centers of
+membranes, this entry can be used to exclude pixels in the membrane as well as
+within a certain distance of the membrane.  The default is to include all
+pixels within the contour. 
 
 [StartGroup = Threshold setting]
 [Field = Absolute threshold]
@@ -84,7 +87,9 @@ long=ReversePolarity
 type=B
 usage=Count and sum pixels lower than the threshold instead of higher
 tooltip=
-manpage=
+manpage= Count and sum pixels lower than the threshold instead of higher.  The
+densities to be summed can have either positive or negative contrast; use this
+option in the latter case.
 
 [Field = Verbose output]
 short=verbose
