@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2003/12/27 19:43:35  mast
+c	  Moved distortion routines into library
+c	
 c	  Revision 3.11  2003/12/25 00:39:39  mast
 c	  Completed documentation and other changes
 c	
@@ -134,7 +137,6 @@ c
 	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*4 cosd, sind
-	external cosd, sind
 	integer*4 lnblnk
 c
 	logical pipinput
