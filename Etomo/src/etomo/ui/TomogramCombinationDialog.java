@@ -2,6 +2,7 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -34,6 +35,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/03/18 23:45:28  rickg
+ * <p> Added combine tab enabling and solvematchmod parameter
+ * <p> pass through
+ * <p>
  * <p> Revision 2.7  2003/03/18 00:32:33  rickg
  * <p> combine development in progress
  * <p>
@@ -87,7 +92,9 @@ import etomo.type.AxisID;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class TomogramCombinationDialog extends ProcessDialog {
+public class TomogramCombinationDialog
+  extends ProcessDialog
+  implements ContextMenu {
   public static final String rcsid =
     "$Id$";
   SetupCombinePanel pnlSetup;
@@ -222,8 +229,8 @@ public class TomogramCombinationDialog extends ProcessDialog {
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
 
-  public void enableCombineTabs(boolean state){
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);  
+  public void enableCombineTabs(boolean state) {
+    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Final Match"), state);
   }
   /**
@@ -267,4 +274,32 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.packMainWindow();
   }
 
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel =
+      { "solvematch", "matchshifts", "patchcrawl3d", "matchorwarp" };
+    String[] manPage =
+      {
+        "solvematch.html",
+        "matchshifts.html",
+        "patchcrawl3d.html",
+        "matchorwarp.html" };
+    String[] logFileLabel =
+      {
+        "solvematchshift.log",
+        "solvematchmod.log",
+        "patchcorr.log",
+        "matchorwarp.log" };
+    ContextPopup contextPopup =
+      new ContextPopup(
+        rootPanel,
+        mouseEvent,
+        "Final Runs",
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFileLabel);
+  }
 }
