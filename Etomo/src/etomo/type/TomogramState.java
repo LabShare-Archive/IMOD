@@ -22,6 +22,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/16 02:31:24  sueh
+* <p> bug# 564 Manage trimvol flipped state and squeezevol flipped state
+* <p> separately.  If trimvol flipped state changes and squeezevol is not rerun,
+* <p> the squeezevol parameters with still load onto the screen correctly.
+* <p>
 * <p> Revision 1.3  2004/12/14 21:49:04  sueh
 * <p> bug# 572:  Removing state object from meta data and managing it with a
 * <p> manager class.  All state variables saved after a process is run belong in
@@ -38,9 +43,11 @@ public class TomogramState implements BaseState {
   public static  final String  rcsid =  "$Id$";
   
   private static final String groupString = "ReconstructionState";
+  
   EtomoBoolean trimvolFlipped = new EtomoBoolean("TrimvolFlipped");
   EtomoBoolean squeezevolFlipped = new EtomoBoolean("SqueezevolFlipped");
- 
+  EtomoNumber alignSkewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "AlignSkewOption");
+  EtomoNumber alignXStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "AlignXStretchOption");
   
   public TomogramState() {
     trimvolFlipped.setBackwardCompatibleValue(new EtomoBoolean()).setResetValue(false);
@@ -50,6 +57,8 @@ public class TomogramState implements BaseState {
   void reset() {
     trimvolFlipped.reset();
     squeezevolFlipped.reset();
+    alignSkewOption.reset();
+    alignXStretchOption.reset();
   }
   
   public void store(Properties props) {
@@ -61,6 +70,8 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.store(props, prepend);
     squeezevolFlipped.store(props, prepend);
+    alignSkewOption.store(props, prepend);
+    alignXStretchOption.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -68,6 +79,12 @@ public class TomogramState implements BaseState {
       return false;
     }
     if (!squeezevolFlipped.equals(that.squeezevolFlipped)) {
+      return false;
+    }
+    if (!alignSkewOption.equals(that.alignSkewOption)) {
+      return false;
+    }
+    if (!alignXStretchOption.equals(that.alignSkewOption)) {
       return false;
     }
     return true;
@@ -90,6 +107,8 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.load(props, prepend);
     squeezevolFlipped.load(props, prepend);
+    alignSkewOption.load(props, prepend);
+    alignXStretchOption.load(props, prepend);
   }
   
   public ConstEtomoBoolean setTrimvolFlipped(boolean trimvolFlipped) {
@@ -98,6 +117,14 @@ public class TomogramState implements BaseState {
   
   public ConstEtomoBoolean setSqueezevolFlipped(boolean squeezevolFlipped) {
     return this.squeezevolFlipped.set(squeezevolFlipped);
+  }
+  
+  public ConstEtomoNumber setAlignSkewOption(int alignSkewOption) {
+    return this.alignSkewOption.set(alignSkewOption);
+  }
+  
+  public ConstEtomoNumber setAlignXStretchOption(int alignXStretchOption) {
+    return this.alignXStretchOption.set(alignXStretchOption);
   }
   
   public ConstEtomoBoolean getTrimvolFlipped() {
@@ -109,7 +136,8 @@ public class TomogramState implements BaseState {
   }
   
   /**
-   * function decide whether trimvol is flipped base on the header
+   * Backward compatibility
+   * function decide whether trimvol is flipped based on the header
    * @return
    */
   public boolean getTrimvolFlippedFromHeader() {
