@@ -23,6 +23,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/27 00:01:27  rickg
+ * <p> logFile is now a member object
+ * <p> made sure the the logFile is closed when the monitor is done
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -47,8 +51,10 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected int nSections;
   protected int currentSection;
   protected int remainingTime;
+//  protected int waitingForExit = 0;
 
   protected int updatePeriod = 500;
+//  protected int stopWaiting = 20;
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
@@ -82,6 +88,8 @@ public abstract class LogFileProcessMonitor implements Runnable {
       findNSections();
       initializeProgressBar();
 
+//TODO
+//      while (processRunning && waitingForExit < stopWaiting) {
       while (processRunning) {
         Thread.sleep(updatePeriod);
         getCurrentSection();
