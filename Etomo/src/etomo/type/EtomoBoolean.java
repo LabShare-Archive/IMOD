@@ -15,20 +15,38 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/14 21:45:16  sueh
+* <p> bug# 564 A three state boolean (null, true, false).
+* <p> </p>
 */
 public class EtomoBoolean extends ConstEtomoBoolean {
   public static  final String  rcsid =  "$Id$";
+  
+  public EtomoBoolean() {
+    super();
+  }
   
   public EtomoBoolean(String name) {
     super(name);
   }
   
   public void load(Properties props) {
-    set(props.getProperty(name, toString(resetValue)));
+    if (useBackwardCompatibleValue) {
+      set(props.getProperty(name, toString(backwardCompatibleValue)));
+    }
+    else {
+      set(props.getProperty(name, toString(resetValue)));
+    }
   }
+  
   public void load(Properties props, String prepend) {
-    set(props.getProperty(prepend + "." + name, toString(resetValue)));
+    if (useBackwardCompatibleValue) {
+      set(props.getProperty(prepend + "." + name, toString(backwardCompatibleValue)));
+    }
+    else {
+      set(props.getProperty(prepend + "." + name, toString(resetValue)));
+    }
   }
   
   public ConstEtomoBoolean set(String value) {
