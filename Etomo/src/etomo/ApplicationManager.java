@@ -86,6 +86,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.112  2004/12/14 21:21:26  sueh
+ * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+ * <p> only saving metadata.  bug# 572:  Removing state object from meta data
+ * <p> and managing it with a manager object.
+ * <p>
  * <p> Revision 3.111  2004/12/13 19:08:19  sueh
  * <p> bug# 565 Saving process track to edf file as well as meta data in
  * <p> doneSetupDialog.
@@ -4878,8 +4883,15 @@ public class ApplicationManager extends BaseManager {
    * Open the squeezed volume in 3dmod
    */
   public void imodSqueezedVolume() {
-    SqueezevolParam squeezevolParam = new SqueezevolParam();
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      mainPanel.openMessageDialog("Post processing dialog not open",
+        "Program logic error");
+      return;
+    }
     try {
+      imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY,
+          !postProcessingDialog.isSqueezevolFlipped());
       imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY);
     }
     catch (SystemProcessException except) {
@@ -4981,9 +4993,6 @@ public class ApplicationManager extends BaseManager {
    *
    */
   protected ConstSqueezevolParam updateSqueezevolParam() {
-    //Get trimvol param data from dialog.
-    SqueezevolParam dialogSqueezevolParam = new SqueezevolParam();
-    postProcessingDialog.getParameters(dialogSqueezevolParam);
     //Get the metadata trimvol param.
     SqueezevolParam squeezevolParam = metaData.getSqueezevolParam();
     postProcessingDialog.getParameters(squeezevolParam);
