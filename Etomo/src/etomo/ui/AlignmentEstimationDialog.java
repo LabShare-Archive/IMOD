@@ -26,6 +26,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.10  2003/10/09 23:23:19  rickg
  * <p> Fixed context menu (needed to remove transferfid entries)
  * <p>
@@ -242,19 +245,19 @@ public class AlignmentEstimationDialog
     String[] logWindowLabel = { "align" };
 
     if (axisID != AxisID.ONLY) {
-      logWindowLabel[0] = "align Axis: " + axisID.getExtension();
+      logWindowLabel[0] = "Align";
     }
 
     String[] alignLabels =
       {
-        "errors",
-        "solution",
-        "surface angles",
-        "locals",
-        "complete log",
-        "large residual",
-        "mappings",
-        "coordinates" };
+        "Errors",
+        "Solution",
+        "Surface Angles",
+        "Locals",
+        "Complete Log",
+        "Large Residual",
+        "Mappings",
+        "Coordinates" };
     logFileLabel.add(alignLabels);
 
     Vector logFile = new Vector(1);
