@@ -140,6 +140,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/04/18 20:02:55  mast
+c	  Made it transfer extra header data correctly if it consists of
+c	  integers and reals
+c	
 c	  Revision 3.2  2002/04/18 20:00:34  mast
 c	  wrong comment was here
 c	
@@ -908,7 +912,7 @@ c
 	      elseif(iffloat.eq.2)then
 c		  :float to mean, it's very hairy
 		call sums_to_avgsd(dsum,dsumsq,nx3*ny3,avgsec,sdsec)
-		print *,'overall mean & sd',avgsec,sdsec
+c		print *,'overall mean & sd',avgsec,sdsec
 		zminsec=(tmpmin-avgsec)/sdsec
 		zmaxsec=(tmpmax-avgsec)/sdsec
 		dmin2=(zminsec-zmin)*optout/(zmax-zmin)
