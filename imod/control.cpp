@@ -58,6 +58,7 @@ typedef struct imodv_dialog
   QWidget *widget;
   int iconified;
   int dlgClass;
+  int dlgType;
   QRect geometry;
 } ImodvDialog;
 
@@ -319,7 +320,7 @@ DialogManager::DialogManager()
 }
 
 // Add a dialog to the list
-void DialogManager::add(QWidget *widget, int dlgClass)
+void DialogManager::add(QWidget *widget, int dlgClass, int dlgType)
 {
   ImodvDialog dia;
 
@@ -335,6 +336,7 @@ void DialogManager::add(QWidget *widget, int dlgClass)
   dia.widget = widget;
   dia.iconified = 0;
   dia.dlgClass = dlgClass;
+  dia.dlgType = dlgType;
   ilistAppend(mDialogList, &dia);
 
   // Set the icon from the appropriate place
@@ -465,8 +467,29 @@ void DialogManager::raise(int dlgClass)
   }
 }
 
+QRect DialogManager::biggestGeometry(int dlgType)
+{
+  QRect biggest(0, 0, 0, 0);
+  
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if (dia->dlgType == dlgType) {
+      QRect geom = dia->widget->geometry();
+      if (geom.width() * geom.height() > biggest.width() * biggest.height())
+        biggest = geom;
+    }
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+  }
+  return biggest;
+}
+
 /*
 $Log$
+Revision 4.8  2003/08/26 02:04:49  mast
+Save geometry when hiding and set it when restoring to keep windows from
+moving around
+
 Revision 4.7  2003/08/01 01:01:29  mast
 Switch from showMinimized to hide (except on Mac) because it didn't work
 under RedHat 9.0
