@@ -22,6 +22,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/17 22:40:55  rickg
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -43,10 +46,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   private JPanel panelFileset = new JPanel();
   private ImageIcon iconFolder = new ImageIcon("etomo/images/openFile.gif");
-
-  private JLabel labelWorkingDirectory = new JLabel("Working Directory:");
-  private JTextField textFieldWorkingDirectory = new JTextField();
-  private JButton buttonWorkingDirectory = new JButton(iconFolder);
 
   private JLabel labelFileset = new JLabel("Fileset Name:");
   private JTextField textFieldFileset = new JTextField();
@@ -156,14 +155,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     Dimension dimTextPref = new Dimension(120, 20);
     Dimension dimTextMax = new Dimension(1000, 20);
-    textFieldWorkingDirectory.setPreferredSize(dimTextPref);
-    textFieldWorkingDirectory.setMaximumSize(dimTextMax);
     textFieldFileset.setPreferredSize(dimTextPref);
     textFieldFileset.setMaximumSize(dimTextMax);
     textFieldBackupDirectory.setPreferredSize(dimTextPref);
     textFieldBackupDirectory.setMaximumSize(dimTextMax);
-    buttonWorkingDirectory.setPreferredSize(FixedDim.folderButton);
-    buttonWorkingDirectory.setMaximumSize(FixedDim.folderButton);
     buttonFileset.setPreferredSize(FixedDim.folderButton);
     buttonFileset.setMaximumSize(FixedDim.folderButton);
     buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
@@ -174,8 +169,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     //  Bind the buttons to their adapters
     //
-    buttonWorkingDirectory.addActionListener(
-      new SetupDialogWorkingDirectoryActionAdapter(this));
     buttonFileset.addActionListener(new SetupDialogFilesetActionAdapter(this));
     buttonBackupDirectory.addActionListener(
       new SetupDialogBackupDirectoryActionAdapter(this));
@@ -187,11 +180,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Add the GUI objects to the panel
     //
     panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelFileset.add(labelWorkingDirectory);
-    panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelFileset.add(textFieldWorkingDirectory);
-    panelFileset.add(buttonWorkingDirectory);
-    panelFileset.add(Box.createRigidArea(FixedDim.x10_y0));
 
     panelFileset.add(labelFileset);
     panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -350,8 +338,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   public void initializeFields(ConstMetaData metaData) {
-    textFieldWorkingDirectory.setText(metaData.getWorkingDirectory());
-    textFieldFileset.setText(metaData.getFilesetName());
+
+    if(! metaData.getFilesetName().equals("")) {
+      String canonicalPath = metaData.getWorkingDirectory() + "/" +
+        metaData.getFilesetName();
+      textFieldFileset.setText(canonicalPath);
+    }
+
     textFieldBackupDirectory.setText(metaData.getBackupDirectory());
     setDataSource(metaData.getDataSource());
     setAxisType(metaData.getAxisType());
@@ -373,7 +366,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   public MetaData getFields() {
     MetaData metaData = new MetaData();
-    metaData.setWorkingDirectory(textFieldWorkingDirectory.getText());
     metaData.setFilesetName(textFieldFileset.getText());
     metaData.setBackupDirectory(textFieldBackupDirectory.getText());
     metaData.setDataSource(getDataSource());
@@ -389,8 +381,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
     tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
-    //  Fix the fileset name
-    metaData.fixFilesetName();
+
     return metaData;
   }
 
@@ -488,37 +479,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   //  Action functions for buttons
   //
-  void buttonWorkingDirectoryAction(ActionEvent event) {
-    //
-    //  Get the current working directory
-    //
-    String cwd = System.getProperty("user.dir");
-
-    //
-    //  Open up the file chooser in current working directory
-    //
-    JFileChooser chooser = new JFileChooser(new File(cwd));
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
-
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File newWorkingDir = chooser.getSelectedFile();
-      try {
-        textFieldWorkingDirectory.setText(newWorkingDir.getCanonicalPath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
-    }
-  }
 
   void buttonFilesetAction(ActionEvent event) {
     //
     //  Open up the file chooser in the working directory
     //
     JFileChooser chooser =
-      new JFileChooser(new File(textFieldWorkingDirectory.getText()));
+      new JFileChooser(new File(applicationManager.getWorkingDirectory()));
+
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
@@ -526,7 +494,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File filesetName = chooser.getSelectedFile();
       try {
-        textFieldFileset.setText(filesetName.getName());
+        textFieldFileset.setText(filesetName.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -594,17 +562,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7, line8;
-    line1 = "<html>Enter the directory which contains the projection<br>";
-    line2 = "data file(s).  You can also search the file system and<br>";
-    line3 = "select the directory by pressing the folder button.";
-    labelWorkingDirectory.setToolTipText(line1 + line2 + line3);
-    textFieldWorkingDirectory.setToolTipText(
-      labelWorkingDirectory.getToolTipText());
-
-    line1 = "<html>This button will open a file chooser dialog box<br>";
-    line2 = "allowing you to select the directory which contains<br>";
-    line3 = "the projection data file(s).";
-    buttonWorkingDirectory.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>Enter the name of projection data file(s). You can<br>";
     line2 = "also select the projection data file  by pressing the<br>";
@@ -697,19 +654,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 //
 //  Button action listener classes
 //
-class SetupDialogWorkingDirectoryActionAdapter implements ActionListener {
-
-  SetupDialog adaptee;
-
-  SetupDialogWorkingDirectoryActionAdapter(SetupDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonWorkingDirectoryAction(event);
-  }
-}
-
 class SetupDialogFilesetActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
