@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/03/19 04:34:19  mast
+c	  had to declare lnblnk
+c	
 c	  Revision 3.2  2004/03/18 16:37:44  mast
 c	  Converted to PIP and added options for extracting other info
 c	
@@ -59,6 +62,7 @@ C
 	ifmag = 0
 	ifstage = 0
 	ifC2 = 0
+	iftilt = 0
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
