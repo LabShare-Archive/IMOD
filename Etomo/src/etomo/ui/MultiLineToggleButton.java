@@ -30,6 +30,9 @@ import etomo.ApplicationManager;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.5  2003/10/20 17:06:11  sueh
+* <p> bug317
+* <p>
 * <p> Revision 1.4  2003/10/20 16:48:35  sueh
 * <p> bug317 removing diagnostic prints
 * <p>
@@ -147,15 +150,6 @@ final public class MultiLineToggleButton extends JToggleButton {
     return text;
   }
   
-  private static String format(String text0, String text1) {
-    //assuming no html tags
-    return "<html><b>" + text0 + "<br>" + text1 + "</b>";
-  }
-
-  private static String format(String text0, String text1, String text2) {
-    //assuming no html tags
-    return "<html><b>" + text0 + "<br>" + text1 + "<br>" + text2 + "</b>";
-  }
 
   //if changing this class to inheritable, make this method protected
   private void init() {
