@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2004/06/17 20:18:22  sueh
+ * bug# 472
+ *
  * Revision 3.16  2004/06/17 18:49:55  sueh
  * bug# 472
  *
@@ -378,11 +381,13 @@ public class TomogramGenerationDialog extends ProcessDialog
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
     ltfStartingAndEndingZ
         .addKeyListener(new StartingAndEndingZKeyListener(this));
+    cbFiducialess.addActionListener(tomogramGenerationListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
+    updateRotation();
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
@@ -397,6 +402,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
+    updateRotation();
   }
 
   public boolean isFiducialessAlignment() {
@@ -673,7 +679,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlAdvanced2.setVisible(isAdvanced);
     pnlAdvanced3.setVisible(isAdvanced);
     pnlTrial.setVisible(isAdvanced);
-    pnlNewstParams.setVisible(isAdvanced);
+    cbBoxUseLinearInterpolation.setVisible(isAdvanced);
     pnlFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
@@ -900,6 +906,10 @@ public class TomogramGenerationDialog extends ProcessDialog
       btnUseFilter.setEnabled(false);
     }
   }
+  
+  protected void updateRotation() {
+    ltfRotation.setEnabled(cbFiducialess.isSelected());
+  }
 
   //  Action function overides for process state buttons
   public void buttonCancelAction(ActionEvent event) {
@@ -973,6 +983,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(btnDeleteStacks.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID);
+    }
+    else if (command.equals(cbFiducialess.getActionCommand())) {
+      updateRotation();
     }
   }
 
