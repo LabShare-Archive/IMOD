@@ -4,7 +4,7 @@
 # Add BordersInXandY to use a centered region smaller than the default
 # or XMinAndMax and YMinAndMax  to specify a non-centered region
 #
-$tiltxcorr
+$tiltxcorr -StandardInput
 InputFile	g5a.st
 OutputFile	g5a.prexf
 FirstTiltAngle	-60.
