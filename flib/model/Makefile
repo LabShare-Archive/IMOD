@@ -1,10 +1,18 @@
 include ../configure
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 PROGS = convertmod model2point imavgstat solvematch xfmodel\
  boxstartend endmodel realscalemod scalemodel checkmtmod joinmodel mtsmooth\
  reducemtmod xfinterstack clipmodel mtmodel remapmodel mtlengths contourmod\
  smoothsurf reducecont fenestra ccderaser edgeeraser refinematch findwarp\
- tomopitch fiberpitch corrsearch3d
+ tomopitch fiberpitch corrsearch3d repackseed
 
 LIBS = $(FORTCLIBS)
 
@@ -96,6 +104,9 @@ fiberpitch: fiberpitch.o
 
 corrsearch3d: corrsearch3d.o
 	$(FC) -o corrsearch3d corrsearch3d.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+
+repackseed: repackseed.o
+	$(FC) -o repackseed repackseed.o $(LDFLAGS) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
