@@ -86,15 +86,22 @@ static int  zapPointVisable(ZapStruct *zap, Ipoint *pnt);
 static void zapAutoTranslate(ZapStruct *zap);
 static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
+static void setControlAndLimits(ZapStruct *zap);
 
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
 
-/* DNM 3/9/01: add this to provide gloabl lock on movie snapshot use */
+/* DNM 3/9/01: add this to provide global lock on movie snapshot use */
 static int movieSnapLock = 0;
 static QTime insertTime;
 static QTime but1downt;
+
+static int numZapWindows = 0;
+static int subStartX = 0;
+static int subStartY = 0;
+static int subEndX = 0;
+static int subEndY = 0;
 
 static int zapDebug = 0;
 
@@ -247,6 +254,7 @@ void zapClosing(ZapStruct *zap)
     movieSnapLock = 0;
   ivwRemoveControl(zap->vi, zap->ctrl);
   imodDialogManager.remove((QWidget *)zap->qtWindow);
+  numZapWindows--;
 
   // What for?  flush any events that might refer to this zap
   imod_info_input();     
@@ -570,13 +578,14 @@ void zapPaint(ZapStruct *zap)
 
 void zapStepZoom(ZapStruct *zap, int step)
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   zap->zoom = b3dStepPixelZoom(zap->zoom, step);
   zapDraw(zap);
 }
 
 void zapEnteredZoom(ZapStruct *zap, float newZoom)
 {
+  setControlAndLimits(zap);
   zap->zoom = newZoom;
   if (zap->zoom <= 0.01)
     zap->zoom = 0.01;
@@ -587,7 +596,7 @@ void zapEnteredZoom(ZapStruct *zap, float newZoom)
 void zapStateToggled(ZapStruct *zap, int index, int state)
 {
   int time;
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   switch (index) {
   case ZAP_TOGGLE_RESOL:
     zap->hqgfx = state;
@@ -631,7 +640,7 @@ void zapStateToggled(ZapStruct *zap, int index, int state)
 
 void zapEnteredSection(ZapStruct *zap, int sec)
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   if (zap->lock != 2)
     zap->vi->zmouse = sec-1;
   zap->section = sec-1;
@@ -642,7 +651,7 @@ void zapEnteredSection(ZapStruct *zap, int sec)
 
 void zapStepTime(ZapStruct *zap, int step)
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   
   // if time locked, advance the time lock and draw this window
   // Does this make sense?
@@ -790,6 +799,7 @@ int imod_zap_open(struct ViewInfo *vi)
               toolSize.width(), toolSize.height(), zap->gfx->width(), 
               zap->gfx->height(), newWidth, newHeight);
 
+    zap->startingGeom.setRect(xleft, ytop, newWidth, newHeight);
   } else {
 
     // Existing geometry - adjust zoom either way to fit window
@@ -818,18 +828,15 @@ int imod_zap_open(struct ViewInfo *vi)
       }
     }
 
-    xleft = oldGeom.x();
-    ytop =  oldGeom.y();
-    newWidth =  oldGeom.width();
-    newHeight =  oldGeom.height();
+    zap->startingGeom = oldGeom;
   }
 
-  // On Linux (at least RH 7.3) setting geometry before the show ended up
+  // On Linux setting geometry before the show ended up
   // with the window having a lower top (bigger Y when geometry is read back),
-  // so set geometry after the show
+  // So the first draw will start a timer to do the first real paint, and
+  // when that happens, set the geometry again.
+  zap->qtWindow->setGeometry(zap->startingGeom);
   zap->qtWindow->show();
-  imod_info_input();
-  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
   zap->popup = 1;
 
   if (zapDebug)
@@ -838,7 +845,7 @@ int imod_zap_open(struct ViewInfo *vi)
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
   zapSetCursor(zap, vi->imod->mousemode);
-
+  numZapWindows++;
   insertTime.start();
   return(0);
 }
@@ -917,7 +924,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   inputConvertNumLock(keysym, keypad);
 
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   ivwControlActive(vi, 0);
 
   if (imodPlugHandleKey(vi, event)) 
@@ -1209,7 +1216,7 @@ static int firstmx, firstmy;
 void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
 
   button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
@@ -1243,7 +1250,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 // respond to mouse release event
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   if (event->button() == ImodPrefs->actualButton(1)){
     if (dragband) {
       dragband = 0;
@@ -1287,7 +1294,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   if (!(mousePressed || insertDown))
     return;
 
-  ivwControlPriority(zap->vi, zap->ctrl);
+  setControlAndLimits(zap);
   
   button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = (event->state() & ImodPrefs->actualButton(2)) 
@@ -1658,6 +1665,10 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
   int minedgex, minedgey;
 
+  // For zooms less than one, move image along with mouse; for higher zooms,
+  // Translate 1 image pixel per mouse pixel (accelerated)
+  double transFac = zap->zoom < 1. ? 1. / zap->zoom : 1.;
+
   if (zap->rubberband && firstdrag) {
     /* First time if rubberbanding, analyze for whether close to a
        corner or an edge */
@@ -1769,8 +1780,8 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
 
   } else {
     /* Move the image */
-    zap->xtrans += (x - zap->lmx);
-    zap->ytrans -= (y - zap->lmy);
+    zap->xtrans += (int)floor(transFac * (x - zap->lmx) + 0.5);
+    zap->ytrans -= (int)floor(transFac * (y - zap->lmy) + 0.5);
   }
 
   zap->hqgfxsave = zap->hqgfx;
@@ -2115,17 +2126,53 @@ static void zapResizeToFit(ZapStruct *zap)
   /* printf("newdx %d newdy %d\n", newdx, newdy); */
   zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
 
-  /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, add this one to take care of
-     problems with Qt 3.2.1 on Mac */
-#ifdef ZAP_RESIZETOFIT_HACK 
-  imod_info_input();
-  zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
-#endif
+  /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, and a second set geometry that
+     was needed temporarily with Qt 3.2.1 on Mac */
+
   if (zapDebug)
     fprintf(stderr, "back\n");
 }
      
-     
+// Set the control priority and record the limits of the image displayed in
+// the window or in the rubber band
+static void setControlAndLimits(ZapStruct *zap)
+{
+  float xl, xr, yb, yt;
+  ivwControlPriority(zap->vi, zap->ctrl);
+  if (zap->rubberband) {
+    zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
+    zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
+  } else {
+    zapGetixy(zap, 0, 0, &xl, &yt);
+    zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
+  }
+  subStartX = (int)(xl + 0.5);
+  subEndX = (int)(xr - 0.5);
+  subStartY = (int)(yb + 0.5);
+  subEndY = (int)(yt - 0.5);
+  if (subStartX < 0)
+    subStartX = 0;
+  if (subEndX >= zap->vi->xsize)
+    subEndX = zap->vi->xsize;
+  if (subStartY < 0)
+    subStartY = 0;
+  if (subEndY >= zap->vi->ysize)
+    subEndY = zap->vi->ysize;
+}     
+
+// Return the subset limits from the active window
+int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
+                    int &nyUse)
+{
+  if (numZapWindows <= 0 || subStartX >= subEndX || subStartY >= subEndY ||
+      subEndX >= vi->xsize || subEndY >= vi->ysize)
+    return 1;
+  ixStart = subStartX;
+  nxUse = subEndX + 1 - subStartX;
+  iyStart = subStartY;
+  nyUse = subEndY + 1 - subStartY;
+  return 0;
+}
 
 /****************************************************************************/
 /* drawing routines.                                                        */
@@ -2762,6 +2809,11 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.28  2003/09/17 04:45:37  mast
+Added ability to use window size from settings, made it zoom images
+up or down as appropriate to fit window, and rationalized the window
+size and position limiting logic
+
 Revision 4.27  2003/09/16 02:58:39  mast
 Changed to access image data using new line pointers and adjust for
 slight changes in X zoom with fractional zooms
