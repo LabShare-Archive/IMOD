@@ -8,6 +8,7 @@ class BeadFixer2 : public DialogFrame
  public:
   BeadFixer2(QWidget *parent, const char *name = NULL);
   ~BeadFixer2() {};
+  void reread(int which);
 
   public slots:
   void buttonPressed(int which);
@@ -28,7 +29,6 @@ class BeadFixer2 : public DialogFrame
   void keyReleaseEvent ( QKeyEvent * e );
 
  private:
-  void reread(int which);
   int foundgap(int obj, int cont, int ipt, int before);
   void clearExtraObj();
   QPushButton *rereadBut;
