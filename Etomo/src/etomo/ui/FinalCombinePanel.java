@@ -47,6 +47,12 @@ import etomo.comscript.SetParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2004/12/03 20:23:18  sueh
+ * bug# 556 Support older versions of volcombine.com.  Since the set param
+ * may be missing or setting the wrong name, check it before loading or
+ * unloading ReductionFactor text.  Added enableReductionFactor() to
+ * disable ReductionFactor when the set param is missing or invalid.
+ *
  * Revision 3.19  2004/12/02 20:39:41  sueh
  * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * the join guide.  Need to specify the guide to anchor.
@@ -527,7 +533,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     if (setParam == null || !setParam.isValid()) {
       return;
     }
-    ltfReductionFactor.setText(setParam.getValue(true));
+    ltfReductionFactor.setText(setParam.getValue());
   }
   
   void getVolcombineParams(SetParam setParam) {

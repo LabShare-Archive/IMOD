@@ -29,6 +29,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/24 01:05:05  sueh
+* <p> bug# 520 removed invalidReason.  Simplified retrieveData().
+* <p>
 * <p> Revision 1.3  2004/11/23 22:37:21  sueh
 * <p> bug# 520 retrieveData(): Display error message if a numeric field is
 * <p> incorrect.   Retrieve all correct fields.  Since retrieveData() is called by
@@ -208,7 +211,7 @@ public class SectionTableRow {
   } 
 
   void create(int mode) {
-    rowNumber = new HeaderCell(data.getRowNumber().toString(true),
+    rowNumber = new HeaderCell(data.getRowNumber().toString(),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
@@ -462,7 +465,7 @@ public class SectionTableRow {
    *
    */
   private void displayData() {
-    rowNumber.setText(data.getRowNumber().toString(true));
+    rowNumber.setText(data.getRowNumber().toString());
     setSectionText();
     sampleBottomStart.setText(data.getSampleBottomStart().toString());
     sampleBottomEnd.setText(data.getSampleBottomEnd().toString());
