@@ -17,6 +17,10 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/08/23 23:33:48  sueh
+ * <p> $bug# 508 changed BackgroundProcessMonitor.isDone() to
+ * <p> $isSuccessful
+ * <p> $
  * <p> $Revision 1.1  2004/08/19 01:50:00  sueh
  * <p> $bug# 508 Inherits SystemProgram.  Waits for the end of the
  * <p> $process by watching the process monitor.  Gets the exit
@@ -29,10 +33,6 @@ public class BackgroundSystemProgram extends SystemProgram {
   private static final int SLEEP = 100;
   
   BackgroundProcessMonitor backgroundProcessMonitor = null;
-  
-  
-  //Public constructors should have a BackgroundProcessMonitor parameter, so
-  //that processMonitor is never null
   
   /**
    * 
@@ -49,12 +49,12 @@ public class BackgroundSystemProgram extends SystemProgram {
    */
   protected void waitForProcess() {
     //wait until process is finished
-    while (backgroundProcessMonitor.isProcessRunning()) {
-      try {
+    try {
+      while (backgroundProcessMonitor.isProcessRunning()) {
         Thread.sleep(SLEEP);
       }
-      catch (InterruptedException e) {
-      }
+    }
+    catch (InterruptedException e) {
     }
   }
   
