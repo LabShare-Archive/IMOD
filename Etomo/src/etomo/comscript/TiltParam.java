@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/08 01:46:13  sueh
+ * <p> bug# 578 Added dataset name and axis id to constructor.  Read and
+ * <p> update ZFACTORFILE in comscript.
+ * <p>
  * <p> Revision 3.3  2004/07/20 23:06:28  sueh
  * <p> bug# 502 adding fiducialess, which is not stored in tilt.  It
  * <p> inactivates the local file parameter
@@ -127,6 +131,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
       if (tokens[0].equals("EXCLUDELIST")) {
         excludeList.parseString(tokens[1]);
+      }
+      if (tokens[0].equals("EXCLUDELIST2")) {
+        excludeList2.parseString(tokens[1]);
       }
       if (tokens[0].equals("FBPINTERP")) {
         fastBackProjInterpOrder = Integer.parseInt(tokens[1]);
@@ -282,6 +289,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     if (excludeList.getNElements() > 0) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("EXCLUDELIST " + excludeList.toString());
+      cmdLineArgs.add(newArg);
+    }
+    if (excludeList2.getNElements() > 0) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("EXCLUDELIST2 " + excludeList2.toString());
       cmdLineArgs.add(newArg);
     }
     if (fastBackProjInterpOrder > Integer.MIN_VALUE) {
@@ -456,6 +468,14 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setExcludeList(String list) {
     excludeList.parseString(list);
+  }
+  
+  /**
+   * Sets the excludeList2.
+   * @param excludeList2 The excludeList2 to set
+   */
+  public void setExcludeList2(String list) {
+    excludeList2.parseString(list);
   }
 
   public void resetExcludeList() {

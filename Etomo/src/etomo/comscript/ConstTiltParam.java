@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/08 01:37:28  sueh
+ * <p> bug# 578  Added useZFactors, which is set by the user, and
+ * <p> zFactorFileName, which is generated or comes from the comscript.
+ * <p>
  * <p> Revision 3.3  2004/07/20 23:05:29  sueh
  * <p> bug# 502 adding fiducialess, which is not retrieved from tilt
  * <p>
@@ -148,8 +152,8 @@ public class ConstTiltParam {
   protected boolean fiducialess;
   
   protected boolean useZFactors;
-  
   protected String zFactorFileName;
+  protected StringList excludeList2;
   
   protected String datasetName;
   protected AxisID axisID;
@@ -206,6 +210,7 @@ public class ConstTiltParam {
     xTiltInterp = Integer.MIN_VALUE;
     fiducialess = false;
     useZFactors = false;
+    excludeList2 = new StringList(0);
   }
 
   public String getInputFile() {
@@ -294,6 +299,14 @@ public class ConstTiltParam {
    */
   public String getExcludeList() {
     return excludeList.toString();
+  }
+  
+  /**
+   * Gets the excludeList2.
+   * @return Returns a String
+   */
+  public String getExcludeList2() {
+    return excludeList2.toString();
   }
 
 
