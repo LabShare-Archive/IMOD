@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-3
+9/17/02: Added a signature code to the X events and made Imod ignore events
+without the signature.
+
 IMOD_2-7-2
 9/13/02: Fixed the way Imod was storing scale in the model header when header
 "grid" values are 1,1,1 instead of nx,ny,nz.  Beadtrack now works with this
