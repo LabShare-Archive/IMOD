@@ -5,10 +5,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/27 16:18:31  mast
+c	  Increased dimension maxerr to 10000 so that it will work
+c	  on large sets with Refinematch
+c	
 
-	subroutine solve_wo_outliers(xr,ndat,ncol,maxdrop,critprob,
-     &	    critabs, elimmin, idrop,ndrop,a,dxyz,cenloc,devavg,devsd,
-     &	    devmax, ipntmax, devxyzmax)
+	subroutine solve_wo_outliers(xr,ndat,ncol,icolfix,maxdrop,
+     &	    critprob, critabs, elimmin, idrop,ndrop,a,dxyz,cenloc,
+     &	    devavg,devsd, devmax, ipntmax, devxyzmax)
 	implicit none
         include 'statsize.inc'
 	integer maxerr
@@ -17,7 +21,7 @@ c	  $Log$
         real*4 xr(msiz,*)
         real*4 a(3,*),dxyz(3),devxyz(3),devxyzmax(3),cenloc(3),centmp(3)
 	integer*4 index(maxerr)
-	integer*4 ndat,ncol,maxdrop,ndrop,ipntmax
+	integer*4 ndat,ncol,maxdrop,ndrop,ipntmax,icolfix
 	real*4 critprob,critabs,elimmin,devavg,devsd,devmax
 	integer*4 i,j,lastdrop,itmp,nkeep,jdrop
 	real*4 probperpt,absperpt,sigfromavg,sigfromsd,sigma,z,prob
@@ -37,8 +41,8 @@ c
 	  enddo
 	enddo
 
-	call do3multr(xr,ndat,ncol,ndat,a,dxyz,cenloc,devavg,devsd,
-     &	    devmax, ipntmax, devxyzmax)
+	call do3multr(xr,ndat,ncol,ndat,icolfix,a,dxyz,cenloc,devavg,
+     &	    devsd, devmax, ipntmax, devxyzmax)
 	ndrop = 0
 	if(maxdrop.eq.0.or.devmax.lt.elimmin) return
 c	  
@@ -78,8 +82,19 @@ c	  points and check how many of the points pass the criterion
 c	  for outliers.  
 c	  
 	do jdrop = 1, maxdrop+1
-	  call do3multr(xr,ndat,ncol,ndat-jdrop,a,dxyz,centmp,devavg,
-     &	      devsd, devmax, ipntmax, devxyzmax)
+c	  
+c	  reload the data if there is a fixed column
+c	    
+	  if (jdrop.gt.1.and.icolfix.gt.0)then
+	    do i=1,ndat
+	      do j=1,ncol+4
+		xr(j,i)=xr(j+ncol+4,index(i))
+	      enddo
+	    enddo
+	  endif
+c
+	  call do3multr(xr,ndat,ncol,ndat-jdrop,icolfix,a,dxyz,centmp,
+     &	      devavg, devsd, devmax, ipntmax, devxyzmax)
 
 c	    
 c	    estimate the sigma for the error distribution as the maximum of
@@ -111,42 +126,74 @@ c     &	      ',  ndrop =',ndrop
 	enddo
 c	  
 c	  when finish loop, need to redo with right amount of data
-c
+c	  and reload the data if there is a fixed column
+c	    
+	if (icolfix.gt.0)then
+	  do i=1,ndat
+	    do j=1,ncol+4
+	      xr(j,i)=xr(j+ncol+4,index(i))
+	    enddo
+	  enddo
+	endif
 	do i=1,ndrop
 	  idrop(i)=index(ndat+i-ndrop)
 	enddo
-	call do3multr(xr,ndat,ncol,ndat-ndrop,a,dxyz,centmp,devavg,
-     &	    devsd, devmax, ipntmax, devxyzmax)
+	call do3multr(xr,ndat,ncol,ndat-ndrop,icolfix,a,dxyz,centmp,
+     &	    devavg, devsd, devmax, ipntmax, devxyzmax)
 	ipntmax=index(ipntmax)
 	return
 	end
 
 
 
-	subroutine do3multr(xr,ndat,ncol,ndo,a,dxyz,cenloc,devavg,devsd,
-     &	    devmax, ipntmax, devxyzmax)
+	subroutine do3multr(xr,ndat,ncolin,ndo,icolfix,a,dxyz,cenloc,
+     &	    devavg,devsd, devmax, ipntmax, devxyzmax)
 	implicit none
         include 'statsize.inc'
         real*4 xr(msiz,*), sx(msiz), xm(msiz), sd(msiz)
      1      , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      2      , b(msiz), b1(msiz)
         real*4 a(3,*),dxyz(3),devxyz(3),devxyzmax(3),cenloc(3)
-	integer*4 ndat,ncol,ndo,ipntmax
+	integer*4 ndat,ncolin,ndo,ipntmax,icolfix
 	real*4 devavg,devsd,devmax
-	integer*4 ixyz,i,j,ipnt
+	integer*4 ixyz,i,j,ipnt,ncoldo
 	real*4 const,rsq,fra,devsum,devsq,devpnt
 
+c	  
+c	  if one column is fixed, decrement the number of columns to do
+c	  subtract that column's independent var from its dependent var
+c	  and pack the dependent vars into the smaller number of columns
+c
+	ncoldo = ncolin
+	if (icolfix.ne.0) then
+	  ncoldo = ncolin - 1
+	  do i = 1,ndat
+	    xr(ncolin + 1 + icolfix, i) = xr(ncolin + 1 + icolfix, i) -
+     &		xr(icolfix,i)
+	    do j = icolfix,ncoldo
+	      xr(j,i) = xr(j+1, i)
+	    enddo
+	  enddo
+	endif
+
+c	  
+c	  do the three multr's, moving the appropriate column of independent
+c	  var data into the one past the dependent vars
+c
         do ixyz=1,3
+c	  print *,'FIT #',ixyz
           do i=1,ndat
-            xr(ncol+1,i)=xr(ncol+1+ixyz,i)
+            xr(ncoldo+1,i)=xr(ncolin+1+ixyz,i)
+c	    if (mod(i,10).eq.1)write(*,'(i4,4f9.2)')i,(xr(j,i),j=1,ncoldo+1)
           enddo
-          call multr(xr,ncol+1,ndo,sx,ss,ssd,d,r,xm,sd,b,b1,const,rsq,
+          call multr(xr,ncoldo+1,ndo,sx,ss,ssd,d,r,xm,sd,b,b1,const,rsq,
      &	      fra)
-          do j=1,ncol
+          do j=1,ncoldo
             a(ixyz,j)=b1(j)
           enddo
+c	  print *,'solution:',(b1(j),j=1,ncoldo),const
           dxyz(ixyz)=const
-	  cenloc(ixyz)=xm(ncol+1)
+	  cenloc(ixyz)=xm(ncoldo+1)
         enddo
 c       
         devsum=0.
@@ -154,13 +201,13 @@ c
 	devsq=0.
         do ipnt=1,ndat
           do ixyz=1,3
-            devxyz(ixyz)=dxyz(ixyz)-xr(ncol+1+ixyz,ipnt)
-            do j=1,ncol
+            devxyz(ixyz)=dxyz(ixyz)-xr(ncolin+1+ixyz,ipnt)
+            do j=1,ncoldo
               devxyz(ixyz)=devxyz(ixyz)+a(ixyz,j)*xr(j,ipnt)
             enddo
           enddo
           devpnt=sqrt(devxyz(1)**2+devxyz(2)**2+devxyz(3)**2)
-	  xr(ncol+1,ipnt)=devpnt
+	  xr(ncolin+1,ipnt)=devpnt
 	  if(ipnt.le.ndo)then
 	    devsum=devsum+devpnt
 	    devsq=devsq+devpnt**2
@@ -174,6 +221,20 @@ c
 	  endif
         enddo
 	call sums_to_avgsd(devsum,devsq,ndo,devavg,devsd)
+
+	if (icolfix.ne.0)then
+c	  
+c	    open up the a matrix and insert the fixed solution values
+c	    
+	  do ixyz = 1,3
+	    do j = ncoldo,icolfix,-1
+	      a(ixyz,j+1) = a(ixyz,j)
+	    enddo
+	    a(ixyz,icolfix) = 0.
+	  enddo
+	  a(icolfix,icolfix) = 1.
+	endif
+
 	return
 	end
 
