@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.8  2005/01/17 19:34:28  mast
+# Switched from if statement to mkdir -p
+#
 # Revision 2.7  2004/02/10 04:52:18  rickg
 # Clean up JUnitTest directory
 #
@@ -54,7 +57,6 @@ CLASS_FILES = $(CLASSPATH)/etomo/ApplicationManager.class
 JAR_FILE = jar_dir/etomo.jar
 TEST_JAR_FILE = jar_dir/etomoTest.jar
 
-JUNIT_HOME = /usr/local/junit
 TESTPATH = $(JUNIT_HOME)/junit.jar
 
 
@@ -93,7 +95,7 @@ install: $(JAR_FILE)
 	\cp -p scripts/etomo $(INSTBINDIR)
 
 tests: testjarfile
-	java -classpath $(TESTPATH):$(TEST_JAR_FILE) -Djava.awt.headless=true junit.textui.TestRunner etomo.EtomoTests
+	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.EtomoTests
 	echo "Make tests completed"
 
 javadocs:
