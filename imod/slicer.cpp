@@ -614,7 +614,8 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
   Ipoint pnt;
   Ipoint *spnt;
-  int i, temp_distance, distance;
+  int i, temp_distance;
+  int distance = -1;
   ImodView *vi = ss->vi;
   Imod *imod = vi->imod;
   Iindex index;
@@ -1855,6 +1856,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.8  2003/03/13 01:20:08  mast
+Convert numlock keypad keys so num lock can be on
+
 Revision 4.7  2003/03/12 21:35:23  mast
 Test if no CIImage is returned and give error message
 
