@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/02/26 17:58:30  sueh
+ * <p> bug# 404 fixing typo
+ * <p>
  * <p> Revision 3.3  2004/02/13 01:03:25  rickg
  * <p> Renamed valuesSet method
  * <p>
@@ -242,6 +245,10 @@ public class FortranInputString {
     }
   }
 
+  /**
+   * Are any of the values unset
+   * @return
+   */
   public boolean valuesSet(){
     for(int i=0; i <nParams; i++) {
       if(value[i].isInfinite()){
@@ -250,6 +257,20 @@ public class FortranInputString {
     }
     return true;
   }
+  
+  /**
+   * Are all of the values set to their defaults
+   * @return
+   */
+  public boolean isDefault() {
+    for(int i=0; i <nParams; i++) {
+      if(! value[i].isNaN()){
+        return false;
+      }
+    }
+    return true;
+  }
+  
   
   /**
    * Compare given value range specified for index.
