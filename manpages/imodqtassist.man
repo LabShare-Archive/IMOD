@@ -13,7 +13,7 @@ standard input.
 .P
 The 
 .B document_path
-is treated as a path relative to the path in the environemt variable IMOD_DIR,
+is treated as a path relative to the path in the environment variable IMOD_DIR,
 unless the
 .B -a
 option is entered to indicate that the path is absolute.
