@@ -1763,8 +1763,6 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
 {
   ImodView *vi = zap->vi;
   Imod *imod = vi->imod;
-  float dx1, dy1, x2s, x2e, y2s, y2e, dx2, dy2, dxs, dys, tnum, unum, den;
-  float x1s, x1e, y1s, y1e;
   int ob, co, pt, ptStart, lastPt, thisZ, lastZ;
   Iindex index;
   Icont *cont;
@@ -1779,8 +1777,6 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
   ob = imod->cindex.object;
   zapGetixy(zap, x, y, &pnt2.x, &pnt2.y);
   zapGetixy(zap, zap->lmx, zap->lmy, &pnt1.x, &pnt1.y);
-  dx1 = x1e - x1s;
-  dy1 = y1e - y1s;
   if (imodDebug('z'))
     imodPrintStderr("mouse segment %f,%f to %f,%f\n", pnt1.x, pnt1.y, pnt2.x,
                     pnt2.y);
@@ -2832,16 +2828,6 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
   // 11/11/04: Reset line width for slice lines or current image point,
   // set it below with object-specific thickness
   b3dLineWidth(1);
-  if (zap->showslice){
-    b3dColorIndex(App->foreground);
-    b3dDrawLine(x, y,
-                zapXpos(zap, vi->slice.zx1+0.5f),
-                zapYpos(zap, vi->slice.zy1+0.5f));
-    b3dDrawLine(x, y,
-                zapXpos(zap, vi->slice.zx2+0.5f), 
-                zapYpos(zap, vi->slice.zy2+0.5f));
-    zap->showslice = 0;
-  }
 
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
@@ -2891,6 +2877,19 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
       }
     }
   }
+
+  b3dLineWidth(1);
+  if (zap->showslice){
+    b3dColorIndex(App->foreground);
+    b3dDrawLine(x, y,
+                zapXpos(zap, vi->slice.zx1+0.5f),
+                zapYpos(zap, vi->slice.zy1+0.5f));
+    b3dDrawLine(x, y,
+                zapXpos(zap, vi->slice.zx2+0.5f), 
+                zapYpos(zap, vi->slice.zy2+0.5f));
+    zap->showslice = 0;
+  }
+  
   return;
 }
 
@@ -3106,6 +3105,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.57  2004/12/02 21:41:59  mast
+Fixed method for detecting segment crossing in new drag select
+
 Revision 4.56  2004/12/01 18:19:14  mast
 Added Ctrl-drag selection, converted help to html
 

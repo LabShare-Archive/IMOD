@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/11/07 23:01:42  mast
+    Added fast min-max routine
+
     Revision 3.2  2004/11/05 19:08:12  mast
     Include local files with quotes, not brackets
 
@@ -28,7 +31,7 @@ int sliceByteEdgeSobel(Islice *sin);
 int sliceByteEdgePrewitt(Islice *sin);
 int sliceByteEdgeLaplacian(Islice *sin);
 int sliceByteSharpen(Islice *sin);
-int *sliceByteSmooth(Islice *sin);
+int sliceByteSmooth(Islice *sin);
 int sliceByteConvolve(Islice *sin, int mask[3][3]);
 int sliceByteThreshold(Islice *sin, int val);
 int sliceByteGrow(Islice *sin, int val);

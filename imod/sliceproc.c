@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2004/11/07 23:01:27  mast
+    Really fixed scaling, used short slices to prevent loss of resolution
+
     Revision 3.4  2004/11/05 19:08:12  mast
     Include local files with quotes, not brackets
 
@@ -167,9 +170,9 @@ int sliceByteSharpen(Islice *sin)
 /* DNM 11/07/04: Removed smoothing routine that did the same as convolving with
    this kernel */
 
-int *sliceByteSmooth(Islice *sin)
+int sliceByteSmooth(Islice *sin)
 {
-  sliceByteConvolve(sin, SmoothKernel);
+  return(sliceByteConvolve(sin, SmoothKernel));
 }
 
 int sliceByteConvolve(Islice *sin, int mask[3][3])
