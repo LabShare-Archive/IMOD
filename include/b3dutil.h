@@ -13,9 +13,14 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/24 02:44:36  mast
+Initial creation
+
 */
 #ifndef B3DUTIL_H
 #define B3DUTIL_H
+
+#define MAX_IMOD_ERROR_STRING  512
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +32,9 @@ extern "C" {
   int imodBackupFile(char *filename);
   char *f2cString(char *str, int strSize);
   int c2fString(char *cStr, char *fStr, int fSize);
+  void b3dSetStoreError(int ival);
+  void b3dError(FILE *stream, char *format, ...);
+  char *b3dGetError();
 
 #ifdef __cplusplus
 }
