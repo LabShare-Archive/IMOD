@@ -18,6 +18,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/02/24 23:26:14  rickg
+ * <p> Added a get label preferred size method
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -107,31 +110,36 @@ public class LabeledTextField {
     textField.setEditable(editable);
   }
 
-  //
-  //  Dimension methods
-  //
+  /**
+   * Set the absolute preferred size of the text field
+   * @param size
+   */
   public void setTextPreferredSize(Dimension size) {
     textField.setPreferredSize(size);
   }
 
+  /**
+   * Set the absolute maximum size of the text field
+   * @param size
+   */
   public void setTextMaxmimumSize(Dimension size) {
     textField.setMinimumSize(size);
   }
 
+  /**
+   * Set the absolute preferred size of the panel
+   * @param size
+   */
   public void setPreferredSize(Dimension size) {
-    textField.setPreferredSize(size);
+    panel.setPreferredSize(size);
   }
 
+  /**
+   * Set the absolute maximum size of the panel
+   * @param size
+   */
   public void setMaximumSize(Dimension size) {
     panel.setMaximumSize(size);
-  }
-
-  public void setSize(Dimension size) {
-    textField.setSize(size);
-  }
-
-  public Dimension getSize() {
-    return textField.getSize();
   }
 
   public Dimension getLabelPreferredSize() {
