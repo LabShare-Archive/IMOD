@@ -37,6 +37,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/06/22 02:19:39  sueh
+ * <p> bug# 459 switch tooltips on btnSample when switch button
+ * <p> title.
+ * <p>
  * <p> Revision 3.13  2004/06/22 02:07:12  sueh
  * <p> bug# 481 Fixed display error.
  * <p>
@@ -477,12 +481,14 @@ public class TomogramPositioningDialog extends ProcessDialog
       btnSample.setText("Create Whole Tomogram");
       text = "Create whole tomogram for drawing positioning model.";
       btnSample.setToolTipText(tooltipFormatter.setText(text).format());
+      ltfRotation.setEnabled(true);
     }
     else {
       spinBinning.setEnabled(false);
       btnSample.setText("Create Sample Tomograms");
       text = SAMPLE_TOMOGRAMS_TOOLTIP;
       btnSample.setToolTipText(tooltipFormatter.setText(text).format());
+      ltfRotation.setEnabled(false);
     }
   }
 
