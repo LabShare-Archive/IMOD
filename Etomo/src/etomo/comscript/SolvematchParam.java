@@ -17,6 +17,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/06/24 21:40:07  sueh
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 3.5  2004/06/24 20:21:35  sueh
  * <p> bug# 482 removed commented out code
  * <p>
@@ -82,6 +85,9 @@ public class SolvematchParam extends ConstSolvematchParam
       TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
     fromTomogramOrSizeXYZ = ParamUtilities.setParamIfPresent(scriptCommand,
       FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
+    
+    //  Set the matching state based on the toFiducialFile name
+    setMatchBToA(toFiducialFile);
   }
 
   /**
