@@ -16,6 +16,12 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/29 00:01:20  sueh
+ * <p> bug# 567 Placed the version of TiltalignParam for the old-style comscript
+ * <p> into OldTiltalignParam.  This version updates and parses only the new
+ * <p> parameters and converts from the old-style comscript to the new
+ * <p> parameters.
+ * <p>
  * <p> Revision 3.1  2004/04/12 16:50:58  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -755,36 +761,36 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * @param rotationAngle The rotationAngle to set.
    */
-  public void setRotationAngle(EtomoNumber rotationAngle) {
-    this.rotationAngle = rotationAngle;
+  public void setRotationAngle(double rotationAngle) {
+    this.rotationAngle.set(rotationAngle);
   }
 
   /**
    * @param rotationFixedView The rotationFixedView to set.
    */
-  public void setRotationFixedView(EtomoNumber rotationFixedView) {
-    this.rotationFixedView = rotationFixedView;
+  public void setRotationFixedView(int rotationFixedView) {
+    this.rotationFixedView.set(rotationFixedView);
   }
 
   /**
    * @param rotDefaultGrouping The rotDefaultGrouping to set.
    */
-  public void setRotDefaultGrouping(EtomoNumber rotDefaultGrouping) {
-    this.rotDefaultGrouping = rotDefaultGrouping;
+  public void setRotDefaultGrouping(String rotDefaultGrouping) {
+    this.rotDefaultGrouping.set(rotDefaultGrouping);
   }
 
   /**
    * @param rotNondefaultGroup The rotNondefaultGroup to set.
    */
-  public void setRotNondefaultGroup(FortranInputString[] rotNondefaultGroup) {
-    this.rotNondefaultGroup = rotNondefaultGroup;
+  public void setRotNondefaultGroup(String rotNondefaultGroup) throws FortranInputSyntaxException {
+    this.rotNondefaultGroup = ParamUtilities.parse(rotNondefaultGroup, true);
   }
 
   /**
    * @param rotOption The rotOption to set.
    */
-  public void setRotOption(EtomoNumber rotOption) {
-    this.rotOption = rotOption;
+  public void setRotOption(int rotOption) {
+    this.rotOption.set(rotOption);
   }
 
   /**
