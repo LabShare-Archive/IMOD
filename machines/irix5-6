@@ -8,10 +8,17 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:59  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/28 15:41:50  mast
 #  Changed instdir to inst_dir
 #
 #
+# 
+set glwincdir = /usr/include/X11/GLw
+set c_includes =  "-I$glwincdir"
+
 goto $machine
 irix6-32:
 set flags = "-32 -mips2 $flags"
@@ -115,7 +122,7 @@ endif
 #set cflags = "$defines $optimization $include_flags $cflags"
 #echo "CFLAGS   = $defines $optimization $include_flags" >> $configure
 
-echo "CFLAGS   = $flags $optimization $defines $include_flags" >> $configure
+echo "CFLAGS   = $flags $optimization $defines $include_flags $c_includes" >> $configure
 echo "CXXFLAGS = $flags $optimization $defines $include_flags" >> $configure
 echo "FFLAGS   = $flags $foptimization $defines $include_flags" >> $configure
 echo "NOOPFFLAGS = $flags $foptimization -O0 $defines $include_flags" >> $configure
