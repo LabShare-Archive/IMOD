@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2004/06/17 21:49:21  sueh
+ * <p> bug# 474 added setButtonSize(AbstractButton...)
+ * <p>
  * <p> Revision 1.1  2004/04/07 21:02:30  rickg
  * <p> Initial revision
  * <p> </p>
@@ -25,6 +28,7 @@ import java.awt.Dimension;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
 public class UIUtilities {
@@ -86,7 +90,8 @@ public class UIUtilities {
   public static void setButtonSizeAll(Container container, Dimension size) {
     Component[] children = container.getComponents();
     for (int i = 0; i < children.length; i++) {
-      if (children[i] instanceof AbstractButton) {
+      if (children[i] instanceof AbstractButton
+        && !(children[i] instanceof JCheckBox)) {
         AbstractButton btn = (AbstractButton) children[i];
         btn.setPreferredSize(size);
         btn.setMaximumSize(size);
