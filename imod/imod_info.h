@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/27 19:33:51  mast
+    Add function to manage menus based on current state
+
     Revision 3.2  2003/02/10 20:41:55  mast
     Merge Qt source
 
@@ -84,6 +87,7 @@ class InfoWindow : public QMainWindow
               WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~InfoWindow() {};
   void manageMenus();
+  void keepOnTop(bool state);
 
   public slots:
   void fileSlot(int item);
