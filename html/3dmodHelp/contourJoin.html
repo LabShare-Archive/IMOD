@@ -1,0 +1,60 @@
+<H3>Contour Join Help</H3>
+
+Contour joining will 
+make a single contour from two or more separate contours and
+remove the old contours.  Basically, one first selects the contours to join and
+then presses <B>Apply</B> or the hot key J.
+<P>
+There are two ways to select contours to join.  The easiest is to use
+multiple contour selection.
+First select a model point within the first contour, then select
+a point in the second contour with Ctrl and the first mouse
+button.  If two or more contours are selected in this way, they will be the
+ones joined, regardless of any set points appearing in the dialog box.
+The second way is to
+select a point in the first contour and press the
+<B>Set 1</B> button, then select a point in the second contour and
+press <B>Set 2</B>.  The latter step is actually superfluous, because if
+only one join point is set and another point is selected as the
+current point, that point will be used as the second point.
+<P>
+How the contours are joined depends on the type of object and the options
+selected by the radio buttons.  
+<UL>
+<LI> For closed contour type objects, the
+contours can either be joined by a connecting line or concatenated end to end.
+If <B>Concatenate</B> is selected, all of the points from one contour will be
+added after all of the points in the other contour, so that the contours will
+appear joined at their nearest endpoints.  If <B>Join near pts</B> is
+selected, a connecting line will be generated between the contours at their
+points of closest approach.  If <B>Auto-choose</B> is selected, the program
+will automatically choose between these two approaches based upon whether a
+pair of contours have openings at their ends larger than the distance between
+their endpoints.  If <B>Join set pts</B> is selected, two contours will be
+joined with a connecting line between the selected points in the contours.
+Thus, these options give you complete control over the process, but the
+default <B>Auto-choose</B> will probably do what you want.
+
+<LI> For open contour type objects, the contours can be concatenated end to
+end or spliced at the selected points.  If <B>Concatenate</B> is selected, a
+pair of contours will be joined end to end just as described above for closed
+contours.  If <B>Splice set pts</B> is selected, the new contour will contain
+points from the first contour up to first set point then points from the
+second contour starting at the second set point through the end of the
+contour.
+
+
+<LI>For scattered point type objects, All of the points from the selected
+contours will be combined into one contour, regardless of
+which points are selected.  No points will be discarded.
+</UL>
+<P>
+When more than two contours are selected, the pairs with the least distance
+between them are joined first.
+<P>
+The hot key J can be used in place of the <B>Apply</B> button.  It can
+also be used when the join dialog is not open, when two or more contours are
+selected.  The radio box selections will be remembered and applied after the
+dialog is closed. 
+<P>
+<A HREF="index.html">Help Index<A>
