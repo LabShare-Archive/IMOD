@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/06/04 02:57:28  mast
+Implement export/import macro for making libdiaqt be a DLL
+
 Revision 3.4  2004/01/22 19:06:35  mast
 Added actionClicked signal
 
@@ -57,9 +60,13 @@ class DLL_IM_EX DialogFrame : public QWidget
 
  public:
   DialogFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
-	      bool equalSized, char *caption, char *fallback,
-	      const char *name = 0, 
-	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+              bool equalSized, char *caption, char *fallback,
+              const char *name = 0, 
+              WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+  DialogFrame(QWidget *parent, int numButtons, int numRows, char *labels[], 
+              char *tips[], bool equalSized, char *caption, char *fallback,
+              const char *name = 0, 
+              WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~DialogFrame() {};
   void setFontDependentWidths();
 
@@ -77,6 +84,10 @@ class DLL_IM_EX DialogFrame : public QWidget
   QPushButton *mButtons[BUTTON_ARRAY_MAX];
 
  private:
+  void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
+                       char *labels[], char *tips[], bool equalSized,
+                       char *caption, char *fallback, const char *name = 0, 
+                       WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   bool mEqualSized;
   int mNumButtons;
 };
