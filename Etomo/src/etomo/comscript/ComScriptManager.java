@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/01/29 00:17:58  sueh
+ * <p> Checking for null values in initialize() to prevent null value exception on
+ * <p> exit.
+ * <p>
  * <p> Revision 3.21  2005/01/08 01:28:20  sueh
  * <p> bug# 578 Passing axisID to NewstParam constructor.  Passing dataset
  * <p> name and axisID to TiltParam constructor.
@@ -1574,6 +1578,9 @@ public class ComScriptManager {
    * @return The 
    */
   private String newstOrNewstack(ComScript comScript) {
+    if (comScript == null) {
+      return "";
+    }
     String[] commands = comScript.getCommandArray();
     for (int i = 0; i < commands.length; i++) {
       if (commands[i].equals("newst")) {
