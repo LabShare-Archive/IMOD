@@ -16,6 +16,7 @@ class BeadFixer : public DialogFrame
   void rereadFile() {reread(0);};
   void nextLocal() {reread(1);};
   void nextRes();
+  void backUp();
   void movePoint();
   void undoMove();
   void clearList();
@@ -33,6 +34,7 @@ class BeadFixer : public DialogFrame
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
+  QPushButton *backUpBut;
   QPushButton *movePointBut;
   QPushButton *undoMoveBut;
   QPushButton *clearListBut;
