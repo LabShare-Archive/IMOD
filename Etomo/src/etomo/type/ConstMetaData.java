@@ -20,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/23 19:11:16  sueh
+ * <p> bug267 look for stack in the working directory and the
+ * <p> backup directory when validating directories.
+ * <p>
  * <p> Revision 2.7  2003/10/06 22:35:18  sueh
  * <p> transferfidNumberViews needs a default because there is
  * <p> no conscript
@@ -232,8 +236,6 @@ public class ConstMetaData {
     }
 
     // Does the appropriate image stack exist in the working directory
-    //SUEH 267
-    System.out.println("1: currentDir=" + currentDir);
     if (axisType == AxisType.DUAL_AXIS) {
       currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
       if (currentDir == null) {
