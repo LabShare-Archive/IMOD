@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
@@ -23,6 +24,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2003/01/08 05:28:25  rickg
+ * <p> Still working to fix window layout :(
+ * <p>
  * <p> Revision 1.16  2003/01/08 04:00:21  rickg
  * <p> Mods in progress
  * <p>
@@ -163,6 +167,12 @@ public class AlignmentEstimationDialog
     buttonLayout.setHgap(10);
     panelButtonA.setLayout(buttonLayout);
 
+    Dimension dimButton = new Dimension(80, 60);
+    buttonComputeAlignmentA.setPreferredSize(dimButton);
+    buttonImodA.setPreferredSize(dimButton);
+    buttonViewResidualsA.setPreferredSize(dimButton);
+    buttonView3DModelA.setPreferredSize(dimButton);
+    buttonTransferFiducialsA.setPreferredSize(dimButton);
     panelButtonA.add(buttonComputeAlignmentA);
     panelButtonA.add(buttonImodA);
     panelButtonA.add(buttonViewResidualsA);
@@ -188,6 +198,13 @@ public class AlignmentEstimationDialog
     //  Create the second tiltalign panel
     if (applicationManager.isDualAxis()) {
       GridLayout buttonLayoutB = new GridLayout(1, 5);
+      buttonLayoutB.setHgap(10);
+      buttonComputeAlignmentB.setPreferredSize(dimButton);
+      buttonImodB.setPreferredSize(dimButton);
+      buttonViewResidualsB.setPreferredSize(dimButton);
+      buttonView3DModelB.setPreferredSize(dimButton);
+      buttonTransferFiducialsB.setPreferredSize(dimButton);
+
       panelButtonB.setLayout(buttonLayoutB);
       panelButtonB.add(buttonComputeAlignmentB);
       panelButtonB.add(buttonImodB);
@@ -202,6 +219,7 @@ public class AlignmentEstimationDialog
 
       panelAlignEstB.add(panelTiltalignB.getContainer());
       panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
+      panelAlignEstB.add(Box.createVerticalGlue());
       panelAlignEstB.add(panelButtonB);
     }
 
