@@ -38,7 +38,6 @@ Log at end of file
 #include <limits.h>
 #include <string.h>
 #include <qcursor.h>
-#include <qbitmap.h>
 #include <qapplication.h>
 
 #include "slicer_classes.h"
@@ -54,8 +53,6 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "xcramp.h"
 
-#include "qcursor.bits"
-#include "qcursor_mask.bits"
 
 /* internal functions. */
 static void sslice_cube_draw(SlicerStruct *ss);
@@ -155,6 +152,7 @@ void slicerHelp()
      "0.1 degree\n",
      "2/8\t(Down/Up) Decrease/Increase last adjusted angle by "
      "0.5 degree\n",
+     "1/3\t(End/PgDn) Decrease/Increase last adjusted angle by 15 degrees\n",
      "0\t(Insert) Set last adjusted angle to 0\n",
      NULL);
   return;
@@ -348,6 +346,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->zslast = 1.0;
   ss->pending = 0;
   ss->imageFilled = 0;
+  ss->mousemode = vi->imod->mousemode;
 
   slice_trans_step(ss);
   ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
@@ -371,10 +370,8 @@ int sslice_open(struct ViewInfo *vi)
                                (void *)ss);
 
   // Set up cursor
-  QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits, true);
-  QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
-  QCursor cursor(bmCursor, bmMask, qcursor_x_hot, qcursor_y_hot);
-  ss->glw->setCursor(cursor);
+  if (ss->mousemode == IMOD_MMODEL)
+    ss->glw->setCursor(*App->modelCursor);
 
   // Initialize controls
   ss->qtWindow->setZoomText(ss->zoom);
@@ -1490,6 +1487,15 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     return;
   }
 
+  /* Adjust the cursor if necessary */
+  if (vi->imod->mousemode != ss->mousemode) {
+    ss->mousemode = vi->imod->mousemode;
+    if (ss->mousemode == IMOD_MMODEL)
+      ss->glw->setCursor(*App->modelCursor);
+    else
+      ss->glw->unsetCursor();
+  }
+
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){
     ss->zslast = ss->vi->imod->zscale;
@@ -1749,6 +1755,13 @@ void slicerCubePaint(SlicerStruct *ss)
   v[2]  = zo + (ss->xstep[2] * winx * zs) 
     + (ss->ystep[2] * winy * zs);
 
+  /*
+  printf("xo,yo,zo %.0f %.0f %0.f\n", xo, yo, zo);
+  printf("vx %.0f %.0f %0.f\n", vx[0], vx[1], vx[2]);
+  printf("vy %.0f %.0f %0.f\n", vy[0], vy[1], vy[2]);
+  printf("v %.0f %.0f %0.f\n", v[0], v[1], v[2]);
+  */
+
   glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
   glEnable(GL_BLEND); 
 
@@ -1782,6 +1795,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 23:46:05  mast
+Add keypad keys to move by +/-15 degrees.
+
 Revision 4.3  2003/02/27 19:27:16  mast
 Using new b3dX,Y,Z and adding argument to imodDrawModel call
 
