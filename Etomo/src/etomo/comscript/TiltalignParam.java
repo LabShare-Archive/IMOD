@@ -16,6 +16,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/01/06 18:09:28  sueh
+ * <p> bug# 567 Changed setOutputZFactorFile() to set it based on member
+ * <p> variable values.  Bug# 578 Made the logic of when to use outputZFileFile()
+ * <p> public.
+ * <p>
  * <p> Revision 3.6  2005/01/05 19:47:35  sueh
  * <p> bug# 567 Changed setProjectionStretch() to accept booleans.  Bug# 578
  * <p> Added AxisID to the constructor.
@@ -760,22 +765,11 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    */
   public void setOutputZFactorFile() {
     if (useOutputZFactorFile()) {
-      outputZFactorFile = datasetName + axisID.getExtension()
-          + zFactorFileExtension;
+      outputZFactorFile = getOutputZFactorFileName(datasetName, axisID);
     }
     else {
       outputZFactorFile = "";
     }
-  }
-   
-  /**
-   * This must called after skewOption, or localAlignment, and localSkewOption
-   * have been set.
-   * @return
-   */
-  public boolean useOutputZFactorFile() {
-    return !skewOption.equals(FIXED_OPTION)
-        || (localAlignments.is() && !localSkewOption.equals(FIXED_OPTION));
   }
 
   /**
