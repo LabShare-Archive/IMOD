@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/01/12 00:42:45  sueh
+ * <p> bug# 579 Make the reset value on useZFactors true.
+ * <p>
  * <p> Revision 3.16  2005/01/11 18:07:27  sueh
  * <p> bug# 578 Added useZFactors.
  * <p>
@@ -190,8 +193,8 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected CombineParams combineParams = new CombineParams();
   protected TrimvolParam trimvolParam = new TrimvolParam();
   protected SqueezevolParam squeezevolParam = new SqueezevolParam();
-
-  protected int transferfidNumberViews = 5;
+  protected TransferfidParam transferfidParamA = new TransferfidParam(AxisID.FIRST);
+  protected TransferfidParam transferfidParamB = new TransferfidParam(AxisID.SECOND);
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -239,8 +242,6 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + "AxisB.ExcludeProjections", String
         .valueOf(excludeProjectionsB));
 
-    props.setProperty(group + "TransferfidNumberViews", String
-        .valueOf(transferfidNumberViews));
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
@@ -251,6 +252,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
     useZFactors.store(props, prepend);
+    transferfidParamA.store(props, prepend);
+    transferfidParamB.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -261,10 +264,14 @@ public abstract class ConstMetaData extends BaseMetaData {
     return squeezevolParam;
   }
   
-  public void initializeTransferfid(TransferfidParam param) {
-    param.setNumberViews(transferfidNumberViews);
+  public void getTransferfidAFields(TransferfidParam transferfidParam) {
+    this.transferfidParamA.getStorableFields(transferfidParam);
   }
-
+  
+  public void getTransferfidBFields(TransferfidParam transferfidParam) {
+    this.transferfidParamB.getStorableFields(transferfidParam);
+  }
+  
   public String getDatasetName() {
     return datasetName;
   }
