@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-21
+8/18/02: Implemented an include file for the commons in Blendmont and
+Reducemont, placed large arrays in common to avoid stack limits, and
+made changes so that shifts could be solved for with > 1000 pieces.
+
+8/18/02: Changed Midas's montage fixing mode so that it would do a series
+of local solutions for displacement errors when there are more than ~80
+pieces.  This makes interactive use possible with > 1000 pieces.
+
+8/18/02: Made ICLAVGSD a library function after finding 2 versions in 4
+programs; changed Newstack, Alterheader, Xfsimplex, and Subimage to use it.
+
+8/16/02: Made Alterheader able to set the RMS value in the new-style MRC
+header.
+
 IMOD_2-6-20
 7/31/02: More modifications to Clip, Matchvol, Warpvol, Taperoutvol, and
 Assemblevol to propagate a pixel size as well as all titles in the header
@@ -15,7 +30,7 @@ IMOD_2-6-19
 1.4-1.6.
 
 7/28/02: Made the I hotkey in the Zap window pop the Information Window to
-the front as well as print image informationl and added a button to the toolbar
+the front as well as print image information and added a button to the toolbar
 to do the same thing.
 
 7/28/02: Modified Transferfid and Repackseed to use a fiducial coordinate
