@@ -1,5 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-6
+4/18/03: Added a script to run command files, which can run several files in
+sequence, report on successful completion or give an error report, and can
+be run in the background with a simpler "subm" alias.
+
+4/18/03: Speeded up slicer by computing range of pixels on each line where
+image data exist and where limits need to be checked, so the penalty when 
+making the window much bigger than the image is greatly reduced.
+
+4/18/03: Allowed proper updates to appear in the info window from the cache
+filler, and allowed user to quit program quickly when using image reload or
+cache filling.
+
+4/17/03: Fixed problem with new contours acquiring the current time when 
+modeling multiple times.
+
+IMOD_3-0-5
+4/17/03: Various changes for Mac OS X.
+
 IMOD_3-0-4
 3/26/03: Implemented stored preferences in Imod for style, font, mouse and 
 hot slider behavior, beeps, tooltips, contrast step size, window iconifying
