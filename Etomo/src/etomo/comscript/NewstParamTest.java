@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/12 17:04:07  rickg
+ * <p> Some of the ComScriptCommand objects didn't have their
+ * <p> command string specified
+ * <p>
  * <p> Revision 3.3  2004/02/18 00:52:42  rickg
  * <p> Restructured testing to match newstack PIP
  * <p> Remove == from string comparisons
@@ -28,12 +32,12 @@ public class NewstParamTest extends TestCase {
   private String size = "0,1";
   private String offset = "3,4";
 
-  private String inputFileOption = "-InputFile";
-  private String outputFileOption = "-OutputFile";
-  private String sizeOption = "-SizeToOutputInXandY";
-  private String offsetOption = "-OffsetsInXandY";
-  private String xformOption = "-TransformFile";
-  private String linearOption = "-LinearInterpolation";
+  private String inputFileOption = "-input";
+  private String outputFileOption = "-output";
+  private String sizeOption = "-size";
+  private String offsetOption = "-offset";
+  private String xformOption = "-xform";
+  private String linearOption = "-linear";
 
   /*
    * @see TestCase#setUp()
