@@ -1,3 +1,11 @@
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdlib.h>
 #include <mrcc.h>
 #include "iimage.h"
@@ -146,12 +154,15 @@ int iiMRCCheck(ImodImageFile *i)
 
 #define TILT_FLAG    1
 #define MONTAGE_FLAG 2
+#define FLAG_COUNT 5
 
 int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 		    int nz)
 {
      int i;
      short int pcoords[3];
+     int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 4};
+     int extratot = 0;
      int offset=1024;
      int nread = nz;
      struct MRCheader *hdr = (struct MRCheader *)inFile->header;     
@@ -159,6 +170,17 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
      int nbytes = hdr->nint;
      int nextra = hdr->next;
      if(!nextra || !(iflag & MONTAGE_FLAG))
+	  return 0;
+
+     /* DNM 12/10/01: as partial protection against mistaking other entries
+	for montage information, at least make sure that the total bytes
+	implied by the bits in the flag equals the nint entry.  Also
+	reject deltavision files */
+     for (i = 0; i < FLAG_COUNT; i++)
+	  if (iflag & (1 << i))
+	       extratot += extra_bytes[i];
+
+     if (extratot != nbytes || hdr->creatid == -16224)
 	  return 0;
 
      if (iflag & TILT_FLAG)
