@@ -29,6 +29,11 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.18  2003/07/01 19:28:27  rickg
+ * <p> startComScript and mapThreadAxis now manage the
+ * <p> processMonitor
+ * <p> prenewst, newst and tilt switched fileSizeProcessMonitors
+ * <p>
  * <p> Revision 2.17  2003/06/27 20:17:19  rickg
  * <p> Added process monitor class members and management
  * <p>
@@ -866,6 +871,13 @@ public class ProcessManager {
     String command,
     Runnable processMonitor,
     AxisID axisID) {
+
+    Thread processMonitorThread = null;
+    if (processMonitor != null) {
+      processMonitorThread = new Thread(processMonitor);
+      processMonitorThread.start();
+    }
+
     //  Run the script as a thread in the background
     ComScriptProcess comScript = new ComScriptProcess(command, this);
     comScript.setWorkingDirectory(new File(System.getProperty("user.dir")));
@@ -878,11 +890,6 @@ public class ProcessManager {
       System.err.println("  Name: " + comScript.getName());
     }
 
-    Thread processMonitorThread = null;
-    if (processMonitor != null) {
-      processMonitorThread = new Thread(processMonitor);
-      processMonitorThread.start();
-    }
     mapThreadAxis(comScript, processMonitorThread, axisID);
     return comScript;
   }
