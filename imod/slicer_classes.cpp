@@ -31,28 +31,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 4.3  2003/03/26 17:15:30  mast
-Adjust sizes for font changes
-
-Revision 4.2  2003/02/28 21:39:32  mast
-Changing name of tooledit focus signal
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/01/30 00:52:36  mast
-new timer logic for getting clean first image
-
-Revision 1.1.2.3  2003/01/29 01:45:29  mast
-Make cube be a rgb widget regardless
-
-Revision 1.1.2.2  2003/01/06 18:59:43  mast
-fixing problems with float spin box
-
-Revision 1.1.2.1  2003/01/06 15:48:30  mast
-initial creation
-
+Log at end of file
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -138,7 +117,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   QToolTip::add(arrow, "Decrease zoom factor");
   
   // Zoom edit box
-  mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
+  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
@@ -376,7 +355,9 @@ void SlicerWindow::setToggleState(int index, int state)
 void SlicerWindow::setZoomText(float zoom)
 {
   QString str;
-  str.sprintf("%.2f", zoom);
+  str.sprintf("%.4f", zoom);
+  if (str.endsWith("00"))
+    str.truncate(str.length() - 2);
   mZoomEdit->setText(str);
 }
 
@@ -486,4 +467,30 @@ int FloatSpinBox::mapTextToValue( bool *ok )
   return (int) ( 10 * text().toFloat() + 0.5);
 }
 
- 
+ /*
+$Log$
+Revision 4.4  2003/04/11 21:47:28  mast
+adding tooltips
+
+Revision 4.3  2003/03/26 17:15:30  mast
+Adjust sizes for font changes
+
+Revision 4.2  2003/02/28 21:39:32  mast
+Changing name of tooledit focus signal
+
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.4  2003/01/30 00:52:36  mast
+new timer logic for getting clean first image
+
+Revision 1.1.2.3  2003/01/29 01:45:29  mast
+Make cube be a rgb widget regardless
+
+Revision 1.1.2.2  2003/01/06 18:59:43  mast
+fixing problems with float spin box
+
+Revision 1.1.2.1  2003/01/06 15:48:30  mast
+initial creation
+
+*/

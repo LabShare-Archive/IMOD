@@ -125,7 +125,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
   QToolTip::add(arrow, "Decrease zoom factor");
 
-  mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
+  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
@@ -337,7 +337,9 @@ void ZapWindow::setToggleState(int index, int state)
 void ZapWindow::setZoomText(float zoom)
 {
   QString str;
-  str.sprintf("%.2f", zoom);
+  str.sprintf("%.4f", zoom);
+  if (str.endsWith("00"))
+    str.truncate(str.length() - 2);
   mZoomEdit->setText(str);
 }
 
@@ -439,6 +441,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/04/11 21:47:28  mast
+adding tooltips
+
 Revision 4.6  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
