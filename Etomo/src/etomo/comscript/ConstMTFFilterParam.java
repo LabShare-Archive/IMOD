@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/03/25 00:43:23  sueh
+ * <p> $bug# 409, bug# 418 remove default, add InverseRolloffRadiusSigma, use
+ * <p> $ParamUtilities
+ * <p> $
  * <p> $Revision 1.1  2004/03/24 18:15:18  sueh
  * <p> $bug# 409 MTF Filter const params
  * <p> $$ </p>
@@ -37,16 +41,13 @@ public class ConstMTFFilterParam {
   
   protected void reset() {
     inputFile = new String();
-    outputFile = new String("datasetname_filt.ali");
+    outputFile = new String();
     mtfFile = new String();
     maximumInverse = 4.0;
     highFrequencyRadiusSigma.setDefault();
     inverseRolloffRadiusSigma.setDefault();
   }
   
-  public String getOutputFile() {
-    return outputFile;
-  }
   public String getMtfFile() {
     return mtfFile;
   }
