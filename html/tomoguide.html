@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.3.4<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.5.2<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -30,9 +30,10 @@
 <BR><A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
 <BR><A HREF = "#Distortion Two">7.3. Solving for Distortion - Fiducials on Both Surfaces</A>
 <BR><A HREF = "#Distortion One">7.4. Solving for Distortion - Fiducials on Only One Surface</A>
-<BR><A HREF = "#Using Local Alignments">7.5. Using Local Alignments</A>
-<BR><A HREF = "#Excluding Views">7.6. Excluding Views</A>
-<BR><A HREF = "#Residual Model Output">7.7. Residual Model Output</A>
+<BR><A HREF = "#Projection Stretch">7.5. Solving for Projection Stretch</A>
+<BR><A HREF = "#Using Local Alignments">7.6. Using Local Alignments</A>
+<BR><A HREF = "#Excluding Views">7.7. Excluding Views</A>
+<BR><A HREF = "#Residual Model Output">7.8. Residual Model Output</A>
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
 <BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples with Z Shift or X-axis Tilt</A>
 <BR><A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
@@ -42,15 +43,18 @@
 <BR><A HREF = "#Filtering Guidelines">9.3. Filtering Guidelines</A>
 <BR><A HREF = "#Building Tomogram">9.4. Building the Tomogram</A>
 <BR><A HREF = "#Making Trial Tomograms">9.5. Making Trial Tomograms</A>
+<BR><A HREF = "#Z factors">9.6. Using Z Factors in the Backprojection</A>
 <BR><A HREF = "#TOMOGRAM COMBINATION">10. COMBINING TWO TOMOGRAMS</A>
 <BR><A HREF = "#Setting Up">10.1. Setting Up</A>
 <BR><A HREF = "#Temporary Combining Storage">10.2. Using Temporary Storage for Combining</A>
 <BR><A HREF = "#Proceeding">10.3. Proceeding</A>
 <BR><A HREF = "#Initial Problems in Combining">10.4. Initial Registration Problems in Combining</A>
 <BR><A HREF = "#Patch Problems in Combining">10.5. Patch Correlation Problems in Combining</A>
+<BR><A HREF = "#Linen Pattern">10.6. Linen Patterns in the Combined Tomogram</A>
 <BR><A HREF = "#POST-PROCESSING">11. POST-PROCESSING</A>
 <BR><A HREF = "#Scaling and Trimming">11.1. Scaling and Trimming a Tomogram</A>
-<BR><A HREF = "#Cleaning Up">11.2. Cleaning Up</A>
+<BR><A HREF = "#Squeezing">11.2. Squeezing a Tomogram</A>
+<BR><A HREF = "#Cleaning Up">11.3. Cleaning Up</A>
 </UL>
 <HR>
 <P>
@@ -89,9 +93,8 @@ and settings that appear in the panel.
 When you run an operation,
 it writes the current parameters into the command file.  eTomo also
 makes sure that the command file matches your entries when you leave a
-panel by pressing <B>Done</B> or <B>Postpone</B>.  Thus, if you need to run a
-command file yourself for some reason, be sure to close the relevant
-panel with <B>Done</B> or <B>Postpone</B> first.
+panel by pressing <B>Done</B> or <B>Postpone</B> or simply by selecting
+another panel with a button on the left.
 <P>
 You can run a command file at the command line with the "subm" alias,
 which is defined in the IMOD startup files.
@@ -217,6 +220,10 @@ remove the zero entry in the <B>Log offset</B> box in the <B>Tomogram
 Generation Panel</B>; if your images are in arbitrarily scaled
 units, you may need to remove that entry or at least adjust the offset value
 that is added so that all values will be positive before taking the log.
+If you remove the log entry, you also need to change the <B>Output density
+scaling factor</B> to 1; the default value is a large number that is needed to
+scale the logs up again after backprojection.
+<P>
 If your data were derived from unsigned 16-bit integers and have had 32768
 subtracted from them for storage as signed integers in the MRC file, the
 programs will try to detect this and set the base to 32768.
@@ -508,7 +515,7 @@ magnification.
 Stack</B>.  The speed of tomogram computation is roughly proportional to the 
 cube of the binning.
 <LI>Press <B>View Full Aligned Stack</B> and check the alignment.  If
-something needs to be fixed, press <B>Postpone</B>. then <B>Coarse
+something needs to be fixed, press <B>Coarse
 Alignment</B>, then <B>Fix Alignment with Midas</B>.  After fixing the
 alignment, come back to the <B>Tomogram Generation</B> panel.
 <LI>Set an appropriate <B>Tomogram thickness in Z</B>.  Thickness is specified
@@ -782,11 +789,13 @@ tilt angle and the original, nominal tilt angle.  This column should change
 gradually (except at pictures taken out of sequence), varying from one view
 to the next by only 0.1 to 0.2
 degrees.  Low tilt angles cannot be solved for as accurately, so variability
-might be somewhat greater there, but should not be much greater.  The
+might be somewhat greater there, sometimes by a lot.  For this reason, you
+should always turn on grouping of tilt angles for your final alignment,
+regardless of whether you solve for distortion as well.  The
 "mag" column shows the effect of overall shrinkage and slight magnification
 changes due to changes in focus.  If either the "mag" or the "deltilt"
 column shows a sudden
-change that is much larger than surrounding changes, consider making the
+change that is much larger than surrounding changes, consider making
 all of the views after this change be a separate view group,
 as described above.  When
 you start grouping views in later steps, this
@@ -843,17 +852,34 @@ when local alignments are to be used.
 <A NAME = "Background Grouping"><H4>
 7.2. Background on Grouping Variables and Solving for Linear Distortion
 </A></H4>
-     Before you get into trying to solve for linear distortion and grouping
-variables, you should be aware of several points.  First, the grouping of
-variables can be done in two different ways.  In one way, the particular
-parameter will change linearly from the first view in one group to the first
-view in the next group, and will appear to change smoothly over the whole tilt
-series.  This is referred to as linear grouping or linear mapping.  This
-method is used for every variable except stretch along the X-axis.  For that
-variable, 
-all of the views in a group will have exactly the same value.
+Before you get into trying to solve for linear distortion and grouping
+variables, you should be aware of several points.  First, variables are
+grouped in order to reduce the number of variables being solved for.
+Instead of solving for a different tilt angle for each view, with grouping
+by 5 the program will solve for a tilt angle for every fifth view and determine
+the angle for the rest of the views from the ones that it is solving for.
+This reduces the number of tilt variables being solved for by a factor of 5,
+and also averages over a larger number of measurements when solving for
+each individual value.  Because of this averaging out of random errors, 
+grouping will actually give a more reliable solution for variables that are
+hard to solve for, such as tilt angle near zero degrees.  It is for this
+reason that you should always switch to grouping of tilt angles even when
+you are not solving for distortion.  The reduction in number of variables by
+grouping becomes particularly important when you have a large number of
+fiducials (e.g., more than 150) or a large number of views (e.g., more than
+140).  In these cases, the program may have trouble finding a solution
+unless you also group some variables that are not grouped by default, namely
+rotation angle and magnification.
 <P>
-     The second point concerns the nature of the distortion solution, a
+The grouping of variables can be done in two different ways.  In one way,
+the particular parameter will change linearly from the first view in one
+group to the first view in the next group, and will appear to change
+smoothly over the whole tilt series.  This is referred to as linear grouping
+or linear mapping.  This method is used for every variable except stretch
+along the X-axis.  For that variable, all of the views in a group will have
+exactly the same value.
+<P>
+     The next point concerns the nature of the distortion solution, a
 strange beast.  Even if the only thing happening to the section is a stretch
 along the X-axis, solving for distortion will successfully account for these
 changes, but the resulting solution will not numerically reproduce the
@@ -878,7 +904,7 @@ occurs at a regular rate through the series.  Thus, regardless of whether
 there is section distortion or thinning, or both, it is almost inevitable that
 the X-axis stretch will change most rapidly at high tilt.
 <P>
-The third point to be aware of is that some group sizes will vary with
+The last point to be aware of is that some group sizes will vary with
 tilt angle.  Group size for tilt angle will be
 proportional to the cosine of the angle, and will be set so that the average
 size equals the value that you specify for grouping.  Because of the peculiar
@@ -891,16 +917,15 @@ excessively.  This can occur when there are too few fiducials, too great an
 imbalance between the number of fiducials on the two surfaces, substantial
 random errors in the locations of the model points, or a ratio of measurements
 to unknowns that is too low.  The potential remedies are to increase group
-sizes, switch from linear grouping to grouping in blocks, solve only for skew
-angle, or give up on solving for distortion.
+sizes, solve only for skew angle, or give up on solving for distortion.
 
 <P>
 <A NAME = "Distortion Two"><H4>
 7.3. Solving for Distortion - Fiducials on Both Surfaces
 </A></H4>
 To solve for distortion, open the <B>Global Variables</B> page of the
-<B>Fine Alignment</B> panel and check the <B>Enable</B> box in the 
-<B>Distortion solution type</B> section.  This will automatically switch
+<B>Fine Alignment</B> panel and select <B>Full solution</B> in the 
+<B>Distortion Solution Type</B> section.  This will automatically switch
 to some good default values 
 if you have fiducials on both surfaces, namely a grouping of 5 for tilt
 angles, 7 for the stretch variable, and 11 for the skew variable.
@@ -920,8 +945,8 @@ quickly (but don't be fooled by big changes for pictures taken out of
 sequence).  Conversely, if the ratio of measurements to unknowns is lower
 than 10-12, you would want to make
 the default group sizes large.  In this case, you could also switch to grouping
-magnification variables as well, provided that the solution for this
-variable already looks fairly smooth.
+rotation and magnification variables as well, provided that the solutions
+for these variables already looks fairly smooth.
 <P>
 The stretch variable ("dmag" in the <B>Solution</B> page of the log file)
 will typically range from 0.001 to 0.02 but
@@ -977,7 +1002,7 @@ completely is likely to be problematic.  The simplest and safest thing to do
 in this situation is not to solve for distortion, but some exploration of 
 the distortion solution is worthwhile first.
 <OL>
-<LI> Enable the distortion solution, and set the grouping for tilt angles
+<LI> Select the full distortion solution, and set the grouping for tilt angles
 to a large number (~30).  Compute an alignment and check the behavior of
 the solution for "dmag" and "deltilt".  It 
 is possible for tilt angle and stretch to
@@ -990,15 +1015,35 @@ the following:
 solve for distortion, and set the group size for tilt angles at 5 to
 provide a better solution at low tilt angles.
 
-<LI> If skew is significant, select <B>Fixed tilt angles</B>
+<LI> If skew is significant, you have two options.  
+One is to select <B>Fixed tilt angles</B>
 and continue to solve for distortion, perhaps reducing the group size
 accordingly.  If skew is no longer significant in this solution, abandon
-solving for distortion as in the previous step.
+solving for distortion as in the previous step; i.e., return to solving for
+tilt angles with a group size of 5.
+<LI> The second option with significant skew is to select <B>Skew only</B>
+and return to grouping tilt angles by 5.
 </OL>
 
+
+<P>
+<A NAME = "Projection Stretch"><H4>
+7.5. Solving for Projection Stretch
+</A></H4>
+In some cases, distortions may occur because of stretching
+along an axis during the projection of the images, instead of from
+changes in the specimen.  To accommodate this situation, 
+<A HREF = "man/tiltalign.html">Tiltalign</A><P> can solve for a single
+image stretch that occurs in all images.  This is much easier than solving
+for a specimen distortion that changes through the tilt series, and does not
+require fiducials distributed in Z.  In Advanced mode, check <B>Solve for
+single stretch during projection</B> on the <B>Global Variables</B> page.
+If you have fiducials on only one surface or only a few fiducials, disable
+the distortion solution since it could be redundant to the projection
+stretch solution.
 <P>
 <A NAME = "Using Local Alignments"><H4>
-7.5. Using Local Alignments
+7.6. Using Local Alignments
 </A></H4>
 
      If you are reconstructing a large area, particularly if you are
@@ -1080,7 +1125,7 @@ patches.
 
 <P>
 <A NAME = "Excluding Views"><H4>
-7.6. Excluding Views
+7.7. Excluding Views
 </A></H4>
 Sometimes there are images in the original data that do not align well or
 that have poor image quality, and that you want to exclude 
@@ -1094,7 +1139,7 @@ reconstruction.
 
 <P>
 <A NAME = "Residual Model Output"><H4>
-7.7. Residual Model Output
+7.8. Residual Model Output
 </A></H4>
 <A HREF = "man/tiltalign.html">Tiltalign</A> produces a text file
 with the residuals for each point, and <A HREF =
@@ -1188,10 +1233,8 @@ X-axis tilt taken into account.  (You might want to do this even for your
 initial samples if your alignment solution indicates a large X-axis tilt.)
 To do this, follow these steps:
 <OL>
-<LI> Press <B>Postpone</B> to close the <B>Tomogram Positioning</B> panel,
-then open the <B>Tomogram Generation</B> panel.  
-<LI> Insert the estimated X-axis tilt in the text box then press
-<B>Postpone</B> to close this panel.
+<LI> Open the <B>Tomogram Generation</B> panel.  
+<LI> Insert the estimated X-axis tilt in the text box.
 <LI> Reopen the <B>Tomogram Positioning</B> panel and recreate the samples.
 </OL>
 <P>
@@ -1212,14 +1255,25 @@ locations.  See the man page for <A HREF = "man/tomopitch.html">Tomopitch</A>
 for more details on acceptable boundary lines.
 You have 3 options:
 <OL>
-<LI>Scroll through the X/Y planes in the Zap window and draw each line by
-depositing points on
-the left and right sides of the tomogram at appropriate Z levels.
+<LI>Scroll through the X/Y planes in the Zap window and draw each line
+by depositing points on the left and right sides of the tomogram at
+appropriate Z levels.  Specifically, first pick a promising region in
+Y.  Scroll through until you see the top of the section on the left
+side, and deposit the first point of a contour there.  Then find the
+slice that shows the comparable view of the top of the section on the
+right, at about the same Y level, and add a point there.  Start a new
+contour and repeat this procedure on the bottom of the section.  The
+pick another two levels in Y and repeat the provedure of drawing top
+and bottom lines at each.
 <LI>Open a Slicer window, scroll in Z to one surface of the specimen,
-and adjust X and Y rotation angles until the surface is flat.  Draw lines
-just outside the surface.  Go to the other surface and repeat.
+and adjust X and Y rotation angles until the surface is flat.  Change Z
+until you are just outside the surface.  Draw a horizontal line by adding
+a point on the left then a point on the right side.
+Draw two more lines at different Y levels (starting a new contour for each).
+Go to the other surface and repeat.
 <LI>Flip the tomogram to show the X/Z planes that ordinarily appear with 
-3 samples.  Pick slices where the lines can be drawn and draw them as usual.
+3 samples (use the menu entry Edit-Image-Flip).  Pick slices where the
+lines can be drawn and draw them as usual.
 Be sure to start a
 new contour for each line, since this will not happen
 automatically in this situation as it does with 3 samples.
@@ -1437,6 +1491,30 @@ an entry for <B>Z offset</B> that has the same effect as the
 doing an alignment without fiducials.  Do not use them when
 working on a dual-axis tomogram, because they will make the initial
 matching be incorrect when you go to combine the two tomograms.
+<P>
+<A NAME = "Z factors"><H4>
+9.6. Using Z Factors in the Backprojection
+</A></H4>
+When a specimen shrinks along an oblique axis during a tilt series, it is
+actually not possible to transform the 2D images to correct fully for this
+shrinkage.  That is, the aligned images will not represent projections of
+an unchanging rotated object.  The result is that features such as gold
+fiducials do not stay at one Y level in the aligned images, producing
+characteristic artifacts in the reconstruction.  This effect can be
+corrected by varying the
+location that voxels in the reconstruction backproject from systematically
+as a function of their Z-height.  Since IMOD 3.4.17, 
+<A HREF = "man/tiltalign.html">Tiltalign</A>
+can output the factors needed to adjust the backprojection position when
+distortion is solved for, and
+<A HREF = "man/tilt.html">Tilt</A> can use them when computing the
+reconstruction.  These factors will be used if present when the
+<B>Use Z factors</B> box is checked in the <B>Tilt Parameters</B> section
+of the <B>Tomogram Generation</B> panel.  The box is checked by default,
+under the assumption that the distortion solution in the fine alignment will 
+usually reflect changes in the specimen rather than stretches during
+imaging.  However, in situations where imaging is a more likely source of
+stretch, the option should be turned off.  
 
 <P>
 <A NAME = "TOMOGRAM COMBINATION"><H3>
@@ -1791,10 +1869,43 @@ Use the largest subset of patches that will give a mean residual error under
 about 0.3 pixels.  Save the transformations in a file named warp.xf.
 Once you have done this, you can finish the combine operation by entering
 <CODE><BR>
-   subm warpvol combine
+   subm warpvol volcombine
 </CODE><BR>
 </OL>
 
+<P>
+<A NAME = "Linen Pattern"><H4>
+10.6. Linen Patterns in the Combined Tomogram
+</A></H4>
+Some combined tomograms show a pattern of vertically
+and horizontally oriented lines that we refer to as "linen".  This pattern
+can appear when the reconstructions are particularly noisy or when the
+registration between them is not very good.  In a 2D Fourier transform, it
+shows up as greater power near the X and Y axes than between the axes.
+In the 3D Fourier transform, the pattern shows up as greater power in 
+locations where
+data were taken from only one tomogram (locations in the missing wedge of the
+other tomogram) than in locations where data were averaged from the two
+tomograms.  Apparently, when data from the
+two tomograms do not agree very well, because of either noise or misalignment,
+the averaging reduces the Fourier amplitude significantly.  The solution to
+this problem is to reduce the amplitudes of data taken from only one tomogram
+to match the amplitudes of data averaged from both.  Since this is a filtering
+operation, it does not happen by default.
+<P>
+The reduce amplitudes, go to Advanced mode on the <B>Final Match</B> page
+and enter 1 in the text box for <B>Reduction factor for matching amplitudes
+in combined FFT</B>.  A value of 1 should improve the linen pattern;
+smaller
+or larger values will give less or more reduction.
+See the man page for 
+<A HREF = "man/combinefft.html">Combinefft</A> for more details.
+Press <B>Restart at Volcombine</B> to recompute the combined volume.
+<P>
+If the text box is disabled, you have an older version of
+volcombine.com.  To use the reduction, return to the <B>Setup</B>
+page, recreate the combine
+scripts, then restart at volcombine.com.
 <P>
 <A NAME = "POST-PROCESSING"><H3>
 11. POST-PROCESSING
@@ -1821,7 +1932,7 @@ eTomo collect this information.
 Press <B>3dmod Full Volume</B> to load the tomogram into <A HREF = "man/3dmod.html">3dmod</A>.  In <A HREF = "man/3dmod.html">3dmod</A>, 
 press the
 dotted rectangle in the Zap toolbar to turn on the rubberband.  Press the
-firstmouse button at the upper left corner of the desired area, and hold it
+first mouse button at the upper left corner of the desired area, and hold it
 down while dragging to the lower right corner.  After the rubberband is set,
 press <B>Get XY Volume Range from 3dmod</B> in the eTomo
 <B>Post-processing</B> panel to fill in the <B>X min</B>, <B>X max</B>, 
@@ -1845,7 +1956,12 @@ that you want to keep, as well as limiting coordinates near the left, right,
 bottom, and top edges if you want to trim the lateral size of the volume.
 Change the entries in the <B>Volume Range</B> section as desired.
 <P>
-If the automatic contrast limits are unsatisfactory, you can select
+Do not be satisfied if the trimmed volume does not have a good dynamic range
+for specimen features, e.g., if it
+requires Black and White sliders settings less than 100 units apart to get good
+contrast in <A HREF = "man/3dmod.html">3dmod</A>.  This can happen if there
+is gold or stain precipitate in the sampled slices.  When this happens,
+select
 the <B>Scale to match contrast</B> radio button instead and find the
 appropriate settings in <A HREF = "man/3dmod.html">3dmod</A>.
 The simplest
@@ -1864,37 +1980,49 @@ show up as white pixels; this slider value is the upper contrast limit.
 Enter these
 limits into the <B>black</B> and <B>white</B> text boxes.
 <P>
+<A NAME = "Squeezing"><H4>
+11.2. Squeezing a Tomogram
+</A></H4>
      If your images were acquired on a CCD camera with limited spatial
 resolution, you may be able to reduce the size of the final volume
-considerably with no perceptible loss of image detail.  The shell script
-<A HREF = "man/squeezevol.html">Squeezevol</A>
+considerably with no perceptible loss of image detail.  
+The <B>Squeeze Volume</B> section of the <B>Post-processing</B> panel
 provides an easy interface for scaling a volume down by
 interpolation using 
-<A HREF = "man/matchvol.html">Matchvol</A>.  Since resolution is worse in the direction
-perpendicular to the plane of the section (the Z direction in the flipped
-tomogram), it could be appropriate to squeeze the volume more in that
+<A HREF = "man/matchvol.html">Matchvol</A>.  The squeezing is specified
+by two reduction factors, one applied in X and Y, the other applied in Z.
+The default values are the same, but
+since resolution is worse in the 
+Z direction, it could be appropriate to squeeze the volume more in that
 dimension.  For example, if the CCD camera provides no useful information
 above 0.8 of Nyquist, an overall reduction by 1.2 or 1.25 would be
 appropriate, and a reduction 1.3 times higher in the Z dimension would also be
 appropriate
 given the extra point-spread in that dimension in a tomographic
-reconstruction.  The size of the volume can be reduced by a factor of 2.5 
-with:
-<BR><CODE>
-   squeezevol -f 1.25 -z 1.62 setname.rec setname.sqz
-<BR></CODE>
-Note that if you did not flip the volume in the trimming step,
-you would use "-y"
-instead of "-z".  If you choose anistropic squeezing, you need to
+reconstruction.  Squeezing by 1.25 in X and Y and 1.62 in Z will reduce
+the size of the volume by a factor of 2.5.  Squeezing isotropically by 1.2
+will reduce the volume by a factor of 1.73.
+<P>
+Press <B>Squeeze Volume</B> to perform the operation on the trimmed volume.
+The output file has the extension .sqz.
+<P>
+If you choose anistropic squeezing, you need to
 increase the Z-scale that you use for viewing models built on that
 volume
 by the amount of extra squeezing in that dimension.  For example, if
-you usually have a Z-scale of 1.6, you would need a Z-scale of 2.07
-(1.6 * 1.62 / 1.25) after the squeezing operation shown above.
-
+you have a Z-scale of 1.6 before squeezing, you would need a Z-scale of 2.07
+(1.6 * 1.62 / 1.25) after squeezing by 1.25 in X/Y and 1.62 in Z.  If you are
+computing the Z-scale by comparing the thickness of the section in the
+squeezed volume with the original thickness at which the section was cut, then
+<pre>
+   Z-scale = O / (S * P)
+   where  O = original section thickness, in nm
+          S = thickness of section in squeezed volume, in pixels 
+          P = pixel size in X and Y after squeezing, in nm
+</pre>
 <P>
 <A NAME = "Cleaning Up"><H4>
-11.2. Cleaning Up
+11.3. Cleaning Up
 </A></H4>
 Cleaning up your files is very important!  The lower pane of the
 <B>Post-processing</B> panel makes cleanup easy.  The philosophy here
