@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/10/03: IMOD_3-0-23
 10/10/03: Reorganized code for Rotatevol, Matchvol, and Warpvol to eliminate
 duplicate code, converted them to PIP input, and added an option for linear
 interpolation for each.  Modified scripts command files for combine operation
