@@ -12,6 +12,22 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/09/29 23:34:57  sueh
+ * <p> bug236 Added UseLinearInterpolation to
+ * <p> TomogramGenerationDialog.
+ * <p>
+ * <p> UseLinearInterpolation:
+ * <p> check box
+ * <p> Advanced
+ * <p> newst -linear
+ * <p>
+ * <p> Files:
+ * <p> ComScriptManager.java
+ * <p> ConstNewstParam.java
+ * <p> NewstParam.java
+ * <p> TomogramGenerationDialog.java
+ * <p> ApplicationManager.java
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -44,7 +60,7 @@ public class ConstNewstParam {
   /**
    * @return
    */
-  //MARK Bug236 new interface: boolean isUseLinearInterpolation()
+
   public boolean isUseLinearInterpolation() {
     return useLinearInterpolation;
   }

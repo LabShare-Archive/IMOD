@@ -74,6 +74,13 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.67  2003/09/30 03:18:43  rickg
+ * <p> Bug# 248
+ * <p> changed openTestParamFile to loadTestParamFile
+ * <p> split out resetState method
+ * <p> added logic to openExistingData use a File object or
+ * <p> open the File Dialog and drop into the setup page if it fails.
+ * <p>
  * <p> Revision 2.66  2003/09/30 02:18:57  rickg
  * <p> Bug 249
  * <p> Proper New dialog behavior when not saving the EDF
@@ -1995,7 +2002,7 @@ public class ApplicationManager {
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
-    //MARK Bug236 review
+
     comScriptMgr.loadNewst(axisID);
     tomogramGenerationDialog.setNewstParams(
       comScriptMgr.getNewstComNewstParam(axisID));
@@ -2124,7 +2131,6 @@ public class ApplicationManager {
     return true;
   }
 
-  //MARK Bug236 review
   /**
    * Update the newst.com from the TomogramGenerationDialog
    * @param axisID

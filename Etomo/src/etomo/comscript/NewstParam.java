@@ -15,6 +15,22 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/09/29 23:34:57  sueh
+ * <p> bug236 Added UseLinearInterpolation to
+ * <p> TomogramGenerationDialog.
+ * <p>
+ * <p> UseLinearInterpolation:
+ * <p> check box
+ * <p> Advanced
+ * <p> newst -linear
+ * <p>
+ * <p> Files:
+ * <p> ComScriptManager.java
+ * <p> ConstNewstParam.java
+ * <p> NewstParam.java
+ * <p> TomogramGenerationDialog.java
+ * <p> ApplicationManager.java
+ * <p>
  * <p> Revision 2.4  2003/07/25 22:54:14  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -49,7 +65,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void parseComScriptCommand(ComScriptCommand scriptCommand) {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
-    //MARK Bug236 print
+
     System.out.println("in parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
          ", useLinearInterpolation=" + useLinearInterpolation);
     reset();
@@ -77,7 +93,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
     
-    //MARK Bug236 print
+
     System.out.println("after parseComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
          ", useLinearInterpolation=" + useLinearInterpolation);
   }
@@ -118,7 +134,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
       (String[]) cmdLineArgs.toArray(new String[nArgs]));
-      //MARK Bug236 print
+
     System.out.println("in updateComScriptCommand:  cmdLineArgs=" + cmdLineArgs +
          ", useLinearInterpolation=" + useLinearInterpolation);
   }
@@ -146,7 +162,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     useOffset = true;
   }
 
-//MARK Bug236 new interface: void setUseLinearInterpolation(boolean b)
+
 	public void setUseLinearInterpolation(boolean b) {
 		useLinearInterpolation = b;
 	}
