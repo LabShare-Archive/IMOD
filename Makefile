@@ -1,11 +1,12 @@
 ############################################################################# 
-# Makefile for BL3DFS IMOD distribution.
+# Makefile for BL3DEMC IMOD distribution.
 #
-# Copyright (C) 1996-2002
-# by Boulder Laboratory for 3-Dimensional Fine Structure ("BL3DFS" or "3DFS")
+# Copyright (C) 1996-2004
+# by Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
+# ("BL3DEMC", formerly "BL3DFS")
 # and the Regents of the University of Colorado.
 #
-# BL3DFS reserves the exclusive rights of preparing derivative works,
+# BL3DEMC reserves the exclusive rights of preparing derivative works,
 # distributing copies for sale, lease or lending and dispalying this
 # software and documentation.
 # Users may reproduce the software and documentation as long as the
@@ -20,7 +21,7 @@
 #############################################################################
 # BUILD AND INSTALLATION INSTRUCTIONS:
 #
-# SIMPLE CASE OF PC UNDER LINUX:
+# PC UNDER LINUX:
 #
 # 1. "setup -i [install directory]" to set the install directory.
 #
@@ -28,8 +29,24 @@
 # 
 # 3. "make install"
 #
+# 4. "installqtlibs" to copy install files to install directory.  If you
+#    ran "setup" initially with the -packqt flag (which you should do If you 
+#    built against a non-default Qt library), installqtlibs" will also copy the 
+#    Qt library 
 #
-# CASE OF MIXED OLD AND NEW 32-BIT CODE, IRIX 6.3 - 6.5:
+#
+# MAC OS X:
+#
+# 1. "setup -i [install directory]" to set the install directory.
+#
+# 2. "make" to make all the programs.
+# 
+# 3. "make install"
+#
+# 4. "installqtlibs" to copy Qt library and install files to install directory
+#
+#
+# IRIX 6.5, MIXED OLD AND NEW 32-BIT CODE:
 #
 # 1. "setup -m irix6-32 -tiff -i [install directory]" 
 #
@@ -39,11 +56,13 @@
 #
 # 4. "make cleanlibs"     to clean directories for new make
 #
-# 5.  "setup -i [install directory]"
+# 5. "setup -i [install directory]"
 #
-# 6.  "make"  to make all new 32-bit libraries and programs
+# 6. "make"  to make all new 32-bit libraries and programs
 #
-# 7.  "make install"
+# 7. "make install"
+#
+# 8. "installqtlibs" to copy Qt library and install files to install directory
 #
 #
 # BUILDING UNDER CYGWIN/WINDOWS WITH Visual C++ ONLY
@@ -92,7 +111,8 @@
 #	set LD_LIBRARY_PATH to include the buildlib directory.
 #
 # MAKE TAR ARCHIVES:
-# 	To make the full distribution run "make dist"
+# 	To make the full distribution run "make dist"; it will use the last
+#          setup options when running setup again
 # 	To archive the source code run "make src"
 #
 #############################################################################
@@ -111,6 +131,7 @@ SHELL    = /bin/csh
 VERSION = `sed '/.\(*\[0-9.]*\).*/s//\1/' .version`
 ARCNAME  = imod_$(VERSION)
 DISTNAME = `if (-e .distname) sed '/.\(*\[0-9._-a-zA-Z]*\).*/s//\1/' .distname`
+LAST_OPTIONS = `if (-e .options) sed '/.\(*\[0-9._-a-zA-Z]*\).*/s//\1/' .options`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -144,11 +165,11 @@ all : configure clibs
 	cd midas     ; $(MAKE) all
 	cd plugs     ; $(MAKE) all
 	cd Etomo     ; $(MAKE) all
+
 ##############################################################################
-# set environment variable SETUP_OPTIONS to change configuration.
-# type setup -help for list of options.
+# If a setup gets run automatically, it uses the last options
 configure : setup .version
-	setup $(SETUP_OPTIONS)
+	./setup $(LAST_OPTIONS)
 
 #
 # Install cstuff
@@ -280,13 +301,12 @@ flibs: configure
 	cd flib; $(MAKE) libs
 
 #
-# Make the full software distribution.  Be sure SETUP_OPTIONS is set if 
-# anything is going to get made and non-default options are needed
+# Make the full software distribution.  Use the options from last setup
 #
 dist : ALWAYS
 	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
 	mkdir $(ARCDIR)
-	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
+	./setup -inst $(ARCDIR) $(LAST_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
@@ -384,6 +404,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.35  2004/01/27 06:07:02  mast
+#  Don't need to make dist directory
+#
 #  Revision 3.34  2004/01/27 05:19:59  mast
 #  Probably better not to remove ImodTests, it screws up sandbox
 #
