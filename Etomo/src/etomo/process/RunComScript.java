@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/10/14 19:03:59  rickg
+ * <p> vmstocsh and csh -ef are executed directly and separately now.
+ * <p>
  * <p> Revision 1.4  2002/10/11 23:32:30  rickg
  * <p> Implementing individual execution of vmstocsh and csh
  * <p>
@@ -37,7 +40,7 @@ public class RunComScript extends Thread {
   private String comScript = null;
   private File workingDirectory = null;
   private ProcessManager processManager;
-  private boolean isDemo = false;
+  private boolean demoMode = false;
   private boolean enableDebug = false;
   private String message = "";
   
@@ -72,9 +75,9 @@ public class RunComScript extends Thread {
 
 
     int exitValue = 0;
-    if (isDemo) {
+    if (demoMode) {
       try {
-        sleep(5000);
+        sleep(3000);
       }
       catch (InterruptedException except) {
         except.printStackTrace();
@@ -206,4 +209,20 @@ public class RunComScript extends Thread {
     }
     return (String[]) lines.toArray(new String[lines.size()]);
   }
+  /**
+   * Returns the demoMode.
+   * @return boolean
+   */
+  public boolean isDemoMode() {
+    return demoMode;
+  }
+
+  /**
+   * Sets the demoMode.
+   * @param demoMode The demoMode to set
+   */
+  public void setDemoMode(boolean demoMode) {
+    this.demoMode = demoMode;
+  }
+
 }

@@ -12,7 +12,7 @@ import etomo.ui.*;
 
 // FIXME check that the dispose method is called in all appropriate places
 /**
- * <p>Description: Provides the main entry point, handles high level message
+ * <p>Description: Provides the main entry point, handles high level message 
  *  processing, management of other high-level</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
@@ -25,6 +25,11 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2002/10/17 22:47:35  rickg
+ * <p> process dialogs are now managed attributes
+ * <p> setVisible calls changed to show
+ * <p> unused variable dialogFinshed removed
+ * <p>
  * <p> Revision 1.16  2002/10/17 16:23:04  rickg
  * <p> Added private method to update the dependent tilt parameters when the
  * <p> align.com parameters are changed
@@ -85,6 +90,9 @@ public class ApplicationManager {
   public static final String rcsid =
     "$Id$";
 
+  private boolean debug = true;
+  private boolean demo = true;
+  
   private boolean isDataParamDirty = false;
   private String homeDirectory;
   private String IMODDirectory;
@@ -1979,4 +1987,20 @@ public class ApplicationManager {
       title,
       JOptionPane.ERROR_MESSAGE);
   }
+  /**
+   * Returns the debug.
+   * @return boolean
+   */
+  public boolean isDebug() {
+    return debug;
+  }
+
+  /**
+   * Returns the demo.
+   * @return boolean
+   */
+  public boolean isDemo() {
+    return demo;
+  }
+
 }

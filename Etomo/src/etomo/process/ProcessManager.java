@@ -24,6 +24,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/10/14 22:45:07  rickg
+ * <p> Enabled debug output for com scripts
+ * <p>
  * <p> Revision 1.6  2002/10/14 19:02:37  rickg
  * <p> Opens a dialog through the app manager if a process returns
  * <p> an error
@@ -319,7 +322,7 @@ public class ProcessManager {
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
 
-    sysProgram.enableDebug(true);
+    sysProgram.enableDebug(appManager.isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
@@ -333,7 +336,8 @@ public class ProcessManager {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
     comScript.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
-    comScript.setEnableDebug(true);
+    comScript.setEnableDebug(appManager.isDebug());
+    comScript.setDemoMode(appManager.isDemo());
     comScript.start();
 
     System.out.println("Started " + command);
