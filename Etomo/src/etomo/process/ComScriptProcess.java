@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2003/06/05 20:48:58  rickg
+ * <p> Added multiline error messages
+ * <p>
  * <p> Revision 1.5  2003/06/05 04:22:36  rickg
  * <p> method name change to getShellProcessID
  * <p>
@@ -141,7 +144,17 @@ public class ComScriptProcess
       }
     }
     else {
-      //  Covert the com script to a sequence of csh command
+      // Rename the existing log file
+      String logFileName = parseBaseName(name, ".com") + ".log";
+      File logFile = new File(workingDirectory, logFileName);
+      if (logFile.exists()) {
+        File oldLog = new File(workingDirectory, logFileName + "~");
+        if (!logFile.renameTo(oldLog)) {
+          // FIXME: what do if log file is not renamed
+        }
+      }
+
+      //  Covert the com script to a sequence of csh commands
       String[] commands;
       try {
         commands = vmsToCsh();
@@ -157,15 +170,6 @@ public class ComScriptProcess
         return;
       }
 
-      // Remove the existing log file
-      String logFileName = parseBaseName(name, ".com") + ".log";
-      File logFile = new File(workingDirectory, logFileName);
-      if (logFile.exists()) {
-        File oldLog = new File(workingDirectory, logFileName + "~");
-        if (!logFile.renameTo(oldLog)) {
-          // FIXME: what do if log file is not renamed
-        }
-      }
       // Execute the csh commands
       started = true;
       try {
