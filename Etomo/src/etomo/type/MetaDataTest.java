@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2004/12/08 00:13:07  sueh
+ * <p> bug# 520 Passing a relative vector to checkoutVector.
+ * <p>
  * <p> Revision 3.8  2004/12/07 23:36:26  sueh
  * <p> bug# 520 Changing print statements.
  * <p>
@@ -88,7 +91,7 @@ public class MetaDataTest extends TestCase {
         //etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
         fail("Error checking out test vector: " + edfList[i] + " in "
-            + testDir.getAbsolutePath() + "CVSROOT="
+            + TypeTests.testRoot + " in " + EtomoDirector.getInstance().getCurrentPropertyUserDir() + ",CVSROOT="
             + Utilities.getEnvironmentVariable("CVSROOT"));
       }
     }
