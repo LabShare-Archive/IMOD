@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/04/17 19:00:59  mast
+new function to provide machine-dependent parent widget
+
 Revision 4.1  2003/02/10 20:41:54  mast
 Merge Qt source
 
@@ -142,6 +145,7 @@ class DialogManager
   void hide();
   void show();
   QWidget *parent(int dlgClass);
+  void raise(int dlgClass);
 
  private:
   Ilist *mDialogList;
