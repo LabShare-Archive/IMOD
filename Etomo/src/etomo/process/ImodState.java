@@ -57,6 +57,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2004/04/27 23:18:07  sueh
+ * <p> $bug# 320 adding boolean warnedStaleFile, to prevent ImodManager
+ * <p> $from asking to close a 3dmod over and over.
+ * <p> $
  * <p> $Revision 1.5  2004/02/07 03:05:56  sueh
  * <p> $bug# 169 Added setWorkingDirectory().
  * <p> $
@@ -269,6 +273,9 @@ public class ImodState {
     }
     if (useModv) {
       process.setUseModv(useModv);
+    }
+    if (modelView && process.isRunning()) {
+      process.viewModel();
     }
     process.open();
     warnedStaleFile = false;
