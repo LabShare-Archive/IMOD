@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/06/27 20:10:28  mast
+    Add functions to set object color and get specific contour from object
+
 */
 
 #ifndef IOBJ_H
@@ -63,6 +66,7 @@
 #define IMOD_OBJFLAG_MCOLOR  (1l << 17) /* Use color map for scalar values.  */
 #define IMOD_OBJFLAG_TIME    (1l << 18) /* Contours contain time data.       */
 #define IMOD_OBJFLAG_TWO_SIDE   (1l << 19) /* Light both sides of surface    */
+#define IMOD_OBJFLAG_THICK_CONT (1l << 20) /* Draw current contour thicker   */
 
 /* macros for testing above flags. */
 #define iobjConnect(flag) ( (~(flag)) & IMOD_OBJFLAG_SCAT)
