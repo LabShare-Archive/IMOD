@@ -31,6 +31,15 @@ manpage= Output file for results. If this option is not entered, the
 third non-option argument will be used for this output file.  If no output
 file is entered, results will be printed to standard output.
 
+[Field = Pixel model]
+short=pixel
+long=PixelModel
+type=FN
+usage=Output file for model with scattered points on pixels in sum
+tooltip=
+manpage= Output file for model with added scattered-point objects containing
+points on all of the pixels that were included in the sum
+
 [Field = Objects to do]
 short=objects
 long=ObjectsToDo
