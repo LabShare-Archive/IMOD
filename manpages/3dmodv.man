@@ -116,7 +116,10 @@ Print clip plane information to standard output.
 .TP
 .B o
 Print model transformations to standard output.
-
+.TP
+.B D
+Delete the current contour if it was selected with the third mouse button
+(active only when program is started as 3dmod).
 .P
 Use the online help for more information on using 3dmodv.
 .SH AUTHORS
