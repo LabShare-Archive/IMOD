@@ -11,16 +11,19 @@
 
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.2  2004/07/07 19:25:30  mast
-    Changed exit(-1) to exit(3) for Cygwin
+$Log$
+Revision 3.3  2005/01/26 22:28:40  mast
+Made all points with sizes be displayed as spheres
 
-    Revision 3.1  2002/12/23 21:37:14  mast
-    fixed exit status
+Revision 3.2  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.1  2002/12/23 21:37:14  mast
+fixed exit status
 
 */
 
@@ -47,7 +50,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout);
 static void usage(int error)
 {
   printf("\nConverts an imod model to the Virtual Reality Modeling "
-	 "Language format.\n");
+         "Language format.\n");
   printf("Usage: imod2vrml [-l] <imod model file> <output_file.wrl>\n");
   printf("       The -l option selects low-resolution meshes, if any.\n");
   exit(error);
@@ -69,12 +72,12 @@ int main( int argc, char *argv[])
     if (argv[i][0] == '-')
       switch (argv[i][1]){
       case 'l':
-	lowres = 1;
-	break;
+        lowres = 1;
+        break;
 
       default:
-	usage(-1);
-	break;
+        usage(-1);
+        break;
 
       }
     else
@@ -93,7 +96,7 @@ int main( int argc, char *argv[])
   imod = imodRead(argv[i]);
   if (!imod){
     fprintf(stderr, "%s: Error reading imod model %s\n", argv[0], 
-	    argv[i]);
+            argv[i]);
     exit(3);
   }
      
@@ -148,7 +151,7 @@ static void printCamera(Imod *imod, FILE *fout)
   fprintf(fout, "\tDEF Viewer Info { string \"examiner\" }\n");
 
   fprintf(fout, "\tTranslation { \n\t\ttranslation %g %g %g\n\t}\n",
-	  -xpos, -ypos, -zpos);
+          -xpos, -ypos, -zpos);
 
   fprintf(fout, "\tPerspectiveCamera {\n");
   {
@@ -160,11 +163,11 @@ static void printCamera(Imod *imod, FILE *fout)
              
   if (imod->cview) {
     fprintf(fout, "\tRotation {\n\t\trotation  1 0 0  %g\n\t}\n",
-	    ator * imod->view[imod->cview].rot.x);
+            ator * imod->view[imod->cview].rot.x);
     fprintf(fout, "\tRotation {\n\t\trotation  0 1 0  %g\n\t}\n",
-	    ator * imod->view[imod->cview].rot.y);
+            ator * imod->view[imod->cview].rot.y);
     fprintf(fout, "\tRotation {\n\t\trotation  0 0 1  %g\n\t}\n",
-	    ator * imod->view[imod->cview].rot.z);
+            ator * imod->view[imod->cview].rot.z);
   }    
 
   return;
@@ -174,7 +177,7 @@ static void printLight( Imod *imod, FILE *fout)
 {
 
   fprintf(fout, "\tDirectionalLight {\n"
-	  "\t\tdirection 1 -1 -1  \n\t}\n");
+          "\t\tdirection 1 -1 -1  \n\t}\n");
      
 }
 
@@ -219,15 +222,15 @@ static void printMaterial(Iobj *obj, int *lastuse, int usefill, FILE *fout)
      display, did affect line display, so no need to figure out if
      displaying lines or surfaces and scaling by obj->ambient */
   fprintf(fout, "\t\tambientColor %g %g %g\n",
-	  red, green, blue);
+          red, green, blue);
   fprintf(fout, "\t\tdiffuseColor %g %g %g\n",
-	  red * diffuse, green * diffuse, blue * diffuse);
+          red * diffuse, green * diffuse, blue * diffuse);
   fprintf(fout, "\t\tspecularColor %g %g %g\n",
-	  red * specular, green * specular, blue * specular);
+          red * specular, green * specular, blue * specular);
           
   /*      if (!iobjLight(flags))
-	  fprintf(fout, "\t\temissiveColor %g %g %g\n",
-	  red, green, blue); */
+          fprintf(fout, "\t\temissiveColor %g %g %g\n",
+          red, green, blue); */
 
   /* DNM 1/18/01: this needed to be 0's for proper display */
   fprintf(fout, "\t\temissiveColor 0 0 0\n");
@@ -323,25 +326,25 @@ static void printContours(Imod *imod, Iobj *obj, FILE *fout)
     fprintf(fout, "\t\tpoint [\n");
     for(pt = 0; pt < cont->psize; pt++)
       fprintf(fout, "\t\t%g %g %g%c\n",
-	      cont->pts[pt].x,
-	      cont->pts[pt].y,
-	      cont->pts[pt].z * zscale,
-	      (pt == (cont->psize-1))?']':',');
+              cont->pts[pt].x,
+              cont->pts[pt].y,
+              cont->pts[pt].z * zscale,
+              (pt == (cont->psize-1))?']':',');
     fprintf(fout, "\t}\n");
     if (iobjLine(obj->flags)) {
       fprintf(fout, "\tIndexedLineSet {\n");
       fprintf(fout, "\t\tcoordIndex [");
       for(pt = 0; pt < cont->psize; pt++) {
-	fprintf(fout, "%d,", pt);
-	if ((pt % 10) == 9)
-	  fprintf(fout, "\n");
+        fprintf(fout, "%d,", pt);
+        if ((pt % 10) == 9)
+          fprintf(fout, "\n");
       }
       if (iobjClose(obj->flags))
-	fprintf(fout, "0");
+        fprintf(fout, "0");
       fprintf(fout, "]\n\t}\n");
     } else {
       fprintf(fout, "\tPointSet {\n\t\tstartIndex 0\n"
-	      "\t\tnumPoints -1\n\t}\n");
+              "\t\tnumPoints -1\n\t}\n");
     }            
   }
   return;
@@ -367,17 +370,17 @@ static void printFilledContours(Imod *imod, Iobj *obj, FILE *fout)
     fprintf(fout, "\t\tpoint [\n");
     for(pt = 0; pt < cont->psize; pt++)
       fprintf(fout, "\t\t%g %g %g%c\n",
-	      cont->pts[pt].x,
-	      cont->pts[pt].y,
-	      cont->pts[pt].z * zscale,
-	      (pt == (cont->psize-1))?']':',');
+              cont->pts[pt].x,
+              cont->pts[pt].y,
+              cont->pts[pt].z * zscale,
+              (pt == (cont->psize-1))?']':',');
     fprintf(fout, "\t}\n");
     fprintf(fout, "\tIndexedFaceSet {\n");
     fprintf(fout, "\t\tcoordIndex [");
     for(pt = 0; pt < cont->psize; pt++) {
       fprintf(fout, "%d,", pt);
       if (pt % 10 == 9)
-	fprintf(fout, "\n");
+        fprintf(fout, "\n");
     }
     if (iobjClose(obj->flags))
       fprintf(fout, "0");
@@ -387,9 +390,9 @@ static void printFilledContours(Imod *imod, Iobj *obj, FILE *fout)
       fprintf(fout, "\tIndexedLineSet {\n");
       fprintf(fout, "\t\tcoordIndex [");
       for(pt = 0; pt < cont->psize; pt++) {
-	fprintf(fout, "%d,", pt);
-	if (pt % 10 == 9)
-	  fprintf(fout, "\n");
+        fprintf(fout, "%d,", pt);
+        if (pt % 10 == 9)
+          fprintf(fout, "\n");
       }
       fprintf(fout, "0");
       fprintf(fout, "]\n\t}\n");
@@ -428,28 +431,28 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
     ilist = (int *)malloc(sizeof(int) * mesh->lsize);
     lsize = 0;
     fprintf(fout, "\tDEF Obj%dMesh%dData  Coordinate3 {\n",
-	    ob, me);
+            ob, me);
     fprintf(fout, "\t\tpoint [\n");
     for(i = 0; i < mesh->vsize; i+=2){
       fprintf(fout, "%.5g %.5g %.5g%c\n",
-	      mesh->vert[i].x,
-	      mesh->vert[i].y,
-	      mesh->vert[i].z * zscale,
-	      (i >= (mesh->vsize-2))?']':',');
+              mesh->vert[i].x,
+              mesh->vert[i].y,
+              mesh->vert[i].z * zscale,
+              (i >= (mesh->vsize-2))?']':',');
     }
     fprintf(fout, "\t}\n");
      
           
     if (iobjFill(obj->flags)) {
       fprintf(fout, "\tDEF Obj%dMesh%dNData Normal {\n",
-	      ob, me);
+              ob, me);
       fprintf(fout, "\t\tvector [\n");
       for(i = 1; i < mesh->vsize; i+=2){
-	norm = mesh->vert[i];
-	imodPointNormalize(&norm);
-	fprintf(fout, "%.3f %.3f %.3f%c\n",
-		norm.x, norm.y, norm.z,
-		(i >= (mesh->vsize-1))?']':',');
+        norm = mesh->vert[i];
+        imodPointNormalize(&norm);
+        fprintf(fout, "%.3f %.3f %.3f%c\n",
+                norm.x, norm.y, norm.z,
+                (i >= (mesh->vsize-1))?']':',');
       }
       fprintf(fout, "\t}\n");
     }
@@ -457,63 +460,67 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
     if (iobjFill(obj->flags) || iobjLine(obj->flags)) {
       for(i = 0; i < mesh->lsize; i++){
           
-	if (mesh->list[i] == IMOD_MESH_END)
-	  break;
+        if (mesh->list[i] == IMOD_MESH_END)
+          break;
                
-	if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM){
-	  lsize = 0;
-	  i++;
-	  while(mesh->list[i] != IMOD_MESH_ENDPOLY){
-	    i++;
-	    ilist[lsize] = mesh->list[i]/2;
-	    lsize++;
-	    i+=2;
-	    ilist[lsize] = mesh->list[i]/2;
-	    lsize++;
-	    i+=2;
-	    ilist[lsize] = mesh->list[i]/2;
-	    lsize++;
-	    i++;
-	  }
-	  /* If showing surface, put out face set */
-	  if (iobjFill(obj->flags)){
-	    printMaterial(obj, &lastuse,
-			  obj->flags & IMOD_OBJFLAG_FCOLOR, 
-			  fout);
-	    fprintf(fout, "\tIndexedFaceSet {\n");
-	    fprintf(fout, "\t\tcoordIndex [");
-	    for(index = 0; index < lsize / 3; index++){
-	      ind = 3 * index;
-	      fprintf(fout, "%d,%d,%d,-1%c\n", 
-		      ilist[ind],
-		      ilist[ind + 1], ilist[ind + 2],
-		      (index >= (lsize/3-1))?']':',');
-	    }
-	    fprintf(fout,"\t}\n");
-	  }
-	  /* If showing lines, put out line set */
-	  if (iobjLine(obj->flags)){
-	    printMaterial(obj, &lastuse, 0, fout);
-	    fprintf(fout, "\tIndexedLineSet {\n");
-	    fprintf(fout, "\t\tcoordIndex [");
-	    for(index = 0; index < lsize / 3; index++){
-	      ind = 3 * index;
-	      fprintf(fout, "%d,%d,%d,%d,-1%c\n",
-		      ilist[ind],
-		      ilist[ind + 1], ilist[ind + 2],
-		      ilist[ind],
-		      (index >= (lsize/3-1))?']':',');
-	    }
-	    fprintf(fout, "\t}\n");
-	  }
+        if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM){
+          lsize = 0;
+          i++;
+          while(mesh->list[i] != IMOD_MESH_ENDPOLY){
+            i++;
+            ilist[lsize] = mesh->list[i]/2;
+            lsize++;
+            i+=2;
+            ilist[lsize] = mesh->list[i]/2;
+            lsize++;
+            i+=2;
+            ilist[lsize] = mesh->list[i]/2;
+            lsize++;
+            i++;
+          }
+
+          if (!lsize)
+            continue;
+
+          /* If showing surface, put out face set */
+          if (iobjFill(obj->flags)){
+            printMaterial(obj, &lastuse,
+                          obj->flags & IMOD_OBJFLAG_FCOLOR, 
+                          fout);
+            fprintf(fout, "\tIndexedFaceSet {\n");
+            fprintf(fout, "\t\tcoordIndex [");
+            for(index = 0; index < lsize / 3; index++){
+              ind = 3 * index;
+              fprintf(fout, "%d,%d,%d,-1%c\n", 
+                      ilist[ind],
+                      ilist[ind + 1], ilist[ind + 2],
+                      (index >= (lsize/3-1))?']':',');
+            }
+            fprintf(fout,"\t}\n");
+          }
+          /* If showing lines, put out line set */
+          if (iobjLine(obj->flags)){
+            printMaterial(obj, &lastuse, 0, fout);
+            fprintf(fout, "\tIndexedLineSet {\n");
+            fprintf(fout, "\t\tcoordIndex [");
+            for(index = 0; index < lsize / 3; index++){
+              ind = 3 * index;
+              fprintf(fout, "%d,%d,%d,%d,-1%c\n",
+                      ilist[ind],
+                      ilist[ind + 1], ilist[ind + 2],
+                      ilist[ind],
+                      (index >= (lsize/3-1))?']':',');
+            }
+            fprintf(fout, "\t}\n");
+          }
                          
-	} 
+        } 
       }
     } else {
       /* If showing neither, define a point set */
       printMaterial(obj, &lastuse, 0, fout);
       fprintf(fout, "\tPointSet {\n\t\tstartIndex 0\n"
-	      "\t\tnumPoints -1\n\t}\n");
+              "\t\tnumPoints -1\n\t}\n");
     }
     if (ilist) free(ilist);
   }
