@@ -212,44 +212,6 @@ The bottom panel of the Info Window contains
 additional information and status messages.  You can expand the window
 vertically to see more of the information at once.
 
-<p>
-The table below gives an overview of the mouse controls with each mode.
-<TABLE  BORDER=2>
-<CAPTION><B> Mouse Controls </B></CAPTION>
-<TR>
-<TH> Mouse Button </TH>
-<TH COLSPAN=3> Movie Mode   </TH>
-<TH COLSPAN=3> Model Mode   </TH>
-</TR>
-
-<TR>
-<TD>Left </TD>
-<TD ALIGN=LEFT COLSPAN=3> Select position or drag mouse to pan image.</TD>
-<TD ALIGN=LEFT COLSPAN=3> Attach to nearby model point or drag mouse to 
-pan image.</TD>
-</TR>
-
-<TR>
-<TD> Middle </TD>
-<TD ALIGN=LEFT COLSPAN=3>Movie image forward, or stop movie.</TD>
-<TD ALIGN=LEFT COLSPAN=3>Add new model point
-or drag mouse to add several points. </TD>
-</TR>
-
-<TR>
-<TD> Right </TD>
-<TD ALIGN=LEFT COLSPAN=3> Movie image backward, or stop movie.</TD>
-<TD ALIGN=LEFT COLSPAN=3> Modify the current model point or 
-drag mouse to modify several points.</TD>
-</TR>
-
-</TABLE>
-
-See the
-<A HREF = "man/3dmod.html">3dmod</A> 
-manual page section on mouse controls for more details.  
-<p>
-
 <HR>
 <CENTER>
 <A NAME = "Zap Window">
@@ -307,10 +269,86 @@ right is a box for a scattered point object; here no symbol is
 selected but the sphere radius for points has been set to 5, which
 makes circles show up on 4 sections before or after the central slice.
 
+
+<p>
+Modeling in the ZaP Window
+<P>
+Model points are added or changed using a 3-button mouse with the
+program in Model mode.
+The table below gives an overview of the mouse controls in Movie and
+Model mode.
+<TABLE  BORDER=2>
+<CAPTION><B> Mouse Controls </B></CAPTION>
+<TR>
+<TH> Mouse Button </TH>
+<TH COLSPAN=3> Movie Mode   </TH>
+<TH COLSPAN=3> Model Mode   </TH>
+</TR>
+
+<TR>
+<TD>Left </TD>
+<TD ALIGN=LEFT COLSPAN=3> Select position or drag mouse to pan image.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Attach to nearby model point or drag mouse to 
+pan image.</TD>
+</TR>
+
+<TR>
+<TD> Middle </TD>
+<TD ALIGN=LEFT COLSPAN=3>Movie image forward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3>Add new model point
+or drag mouse to add several points. </TD>
+</TR>
+
+<TR>
+<TD> Right </TD>
+<TD ALIGN=LEFT COLSPAN=3> Movie image backward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Modify the current model point or 
+drag mouse to modify several points.</TD>
+</TR>
+
+</TABLE>
+
+See the
+<A HREF = "man/3dmod.html">3dmod</A> 
+manual page section on mouse controls for more details.  
+<p>
+When you first start a new model or a new object in a model, your
+first model point will be added to an empty contour.  There are two
+basic ways to add model points to a contour.  You can click
+the middle mouse button to add each individual point after moving to a
+desired position.  The other way is to hold
+down the middle button while dragging the pointer over a desired
+path, which will add closely spaced points along the path.  
+<P>
+Once you have finished a contour and want to start another one, you
+need to create a new contour.  This can be done with the menu entry
+Edit-Contour-New, but is much more conveniently done by pressing "n",
+which is one of many hot keys available to assist modeling.  If you
+are modeling with closed contours, a new contour is created
+automatically when you switch to a new section and press the middle
+mouse button.
+<P>
+As you model, the last point added is left as the current model
+point.  You can change the current model point by clicking with the
+left mouse button near a point in any contour that is present on the
+section.  This is one way to change the contour or object being
+modeled.
+If you click with the left button at a position that is far
+from any model points, the current point and contour become
+undefined.  If you then add a model point, it will be placed in a new
+contour, so this is yet another way to begin a new contour.
+<P>
+The right mouse button is used to modify existing points by either
+moving or deleting them.  Use this button alone to move one or more
+points; hold down the Ctrl key to delete points under the cursor while
+clicking or holding down the right button.
+
+<p>
+The Zap Toolbar
 <P>
 The zoom can be adjusted by either clicking with 
-the left mouse button on the arrows in the
-upper left hand corner or by selecting the
+the left mouse button on the arrows at the
+left side of the toolbar or by selecting the
 text field next to the arrows and entering in a
 number.  The current zoom level in the image above
 is 1.25x.  </I>( Fractional zooms may be slower on some machines. )</i>
