@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2004/08/31 02:24:05  mast
+#  Added copying of .version to VERSION
+#
 #  Revision 1.2  2003/09/25 00:03:26  mast
 #  Fix test for empty entry
 #
@@ -44,3 +47,13 @@ foreach prog ($fprogs)
     sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
     \mv $instdir/bin/$prog $contents/MacOS
 end
+
+#
+# Convert Ctrl to Apple in selected files if this is not the install directory
+#
+if (`pwd` == $instdir) exit 0
+foreach i ($instdir/html/3dmodguide.html $instdir/html/3dmodHelp/*.html)
+    sed '/Ctrl/s//Apple/g' < $i >! ctrltmp
+    \mv ctrltmp $i
+end
+\rm -f ctrltmp
