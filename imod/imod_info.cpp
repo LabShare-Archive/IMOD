@@ -345,8 +345,15 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
-  if (App->cvi->fakeImage || App->cvi->rawImageStore)
+  mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, App->cvi->rawImageStore == 0);
+  mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, App->cvi->rawImageStore == 0);
+  if (App->cvi->fakeImage || App->cvi->rawImageStore) {
     ImodInfoWidget->setFloat(-1);
+    mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
+    mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
+    mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);
+  }
+
 }
 
 
@@ -479,6 +486,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.22  2003/09/18 05:57:08  mast
+    Disable float button later in process to exclude RGB images
+
     Revision 4.21  2003/08/01 00:13:56  mast
     Make event reports happen in debug mode
 
