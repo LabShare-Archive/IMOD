@@ -11,8 +11,8 @@
 # YOU MAY WANT TO ADJUST THE THICKNESS TO ADD OUTSIDE YOUR MODEL LINES
 #
 $tomopitch -StandardInput
-ModelFile       tomopitch.mod
+ModelFile	tomopitch.mod
 #
 # Pixels to add to thickness on each side, above and below model lines
-ExtraThickness  2	
-SpacingInY      0
+ExtraThickness	2
+SpacingInY	0
