@@ -50,6 +50,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.15  2003/09/30 02:15:09  rickg
+ * <p> Added message dialogs that were originally in the
+ * <p> ApplicationManager
+ * <p>
  * <p> Revision 2.14  2003/06/10 05:14:53  rickg
  * <p> *** empty log message ***
  * <p>
@@ -401,11 +405,52 @@ public class MainFrame extends JFrame implements ContextMenu {
     return true;
   }
 
-  void menuFileMRUListAction(ActionEvent event) {
-    if (applicationManager
-      .openTestParamFile(new File(event.getActionCommand()))) {
-      applicationManager.openProcessingPanel();
+  /**
+   * Handle File menu actions
+   * @param event
+   */
+  private void menuFileAction(ActionEvent event) {
+    if (event.getActionCommand().equals(menuFileNew.getActionCommand())) {
+      applicationManager.openNewDataset();
     }
+
+    if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
+      applicationManager.openExistingDataset(null);
+    }
+
+    if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
+      //  Check to see if there is a current parameter file chosen
+      //  if not open a dialog box to select the name
+      boolean haveTestParamFilename = true;
+      if (applicationManager.getTestParamFile() == null) {
+        haveTestParamFilename = getTestParamFilename();
+      }
+      if (haveTestParamFilename) {
+        applicationManager.saveTestParamFile();
+      }
+    }
+
+    if (event.getActionCommand().equals(menuFileSaveAs.getActionCommand())) {
+      boolean haveTestParamFilename = getTestParamFilename();
+      if (haveTestParamFilename) {
+        applicationManager.saveTestParamFile();
+      }
+    }
+
+    if (event.getActionCommand().equals(menuFileExit.getActionCommand())) {
+      //  Check to see if we need to save any data
+      if (applicationManager.exitProgram()) {
+        System.exit(0);
+      }
+    }
+  }
+
+  /**
+   * Open the specified MRU EDF file
+   * @param event
+   */
+  private void menuFileMRUListAction(ActionEvent event) {
+    applicationManager.openExistingDataset(new File(event.getActionCommand()));
   }
 
   /**
@@ -673,6 +718,30 @@ public class MainFrame extends JFrame implements ContextMenu {
       JOptionPane.ERROR_MESSAGE);
   }
 
+  /**
+   * Open a File Chooser dialog with an EDF filter, if the user selects
+   * or names a file return a File object wiht that slected, otherwise
+   * return null.
+   * @return A File object specifiying the selected file or null if none
+   * was selected. 
+   */
+  public File openEtomoDataFileDialog() {
+    //  Open up the file chooser in current working directory
+    JFileChooser chooser =
+      new JFileChooser(new File(System.getProperty("user.dir")));
+    EtomoFileFilter edfFilter = new EtomoFileFilter();
+    chooser.setFileFilter(edfFilter);
+
+    chooser.setDialogTitle("Open etomo data file");
+    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      return chooser.getSelectedFile();
+    }
+    return null;
+  }
+
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
@@ -786,61 +855,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuBar.add(menuOptions);
     menuBar.add(menuHelp);
     setJMenuBar(menuBar);
-  }
-
-  /**
-   * Handle File menu actions
-   * @param event
-   */
-  private void menuFileAction(ActionEvent event) {
-    if (event.getActionCommand().equals(menuFileNew.getActionCommand())) {
-      applicationManager.openNewDataset();
-    }
-
-    if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
-      //  Open up the file chooser in current working directory
-      JFileChooser chooser =
-        new JFileChooser(new File(System.getProperty("user.dir")));
-      EtomoFileFilter edfFilter = new EtomoFileFilter();
-      chooser.setFileFilter(edfFilter);
-
-      chooser.setDialogTitle("Open etomo data file");
-      chooser.setPreferredSize(FixedDim.fileChooser);
-      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      int returnVal = chooser.showOpenDialog(this);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File paramFile = chooser.getSelectedFile();
-        if (applicationManager.openTestParamFile(paramFile)) {
-          applicationManager.openProcessingPanel();
-        }
-      }
-    }
-
-    if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
-      //  Check to see if there is a current parameter file chosen
-      //  if not open a dialog box to select the name
-      boolean haveTestParamFilename = true;
-      if (applicationManager.getTestParamFile() == null) {
-        haveTestParamFilename = getTestParamFilename();
-      }
-      if (haveTestParamFilename) {
-        applicationManager.saveTestParamFile();
-      }
-    }
-
-    if (event.getActionCommand().equals(menuFileSaveAs.getActionCommand())) {
-      boolean haveTestParamFilename = getTestParamFilename();
-      if (haveTestParamFilename) {
-        applicationManager.saveTestParamFile();
-      }
-    }
-
-    if (event.getActionCommand().equals(menuFileExit.getActionCommand())) {
-      //  Check to see if we need to save any data
-      if (applicationManager.exitProgram()) {
-        System.exit(0);
-      }
-    }
   }
 
   //  File menu action listener
