@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #ifndef MKMESH_H
 #define MKMESH_H
@@ -40,6 +48,7 @@
 #define IMESH_MK_SURF  (1l << 6) /* connect to same surface only        */
 #define IMESH_MK_TUBE  (1l << 7) /* open contours are tubes. */
 #define IMESH_MK_TIME  (1l << 8) /* connect to same time (type) only. */
+#define IMESH_CAP_TUBE (1l << 9) /* cap ends of tubes */
 
 #define IMESH_CAP_OFF      0    /* Don't cap ends of surfaces. */
 #define IMESH_CAP_END      1    /* Just cap min and max ends.  */
