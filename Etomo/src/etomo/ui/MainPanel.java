@@ -37,6 +37,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2005/01/27 00:13:03  sueh
+ * <p> bug# 543 Checking autofit before fitting window.  Added
+ * <p> fitWindow(boolean force) to force a fit window for Ctrl-F.
+ * <p>
  * <p> Revision 1.2  2004/11/19 23:58:52  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -382,15 +386,17 @@ public abstract class MainPanel extends JPanel {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
       return;
     }
-    packAxis();
-    //the mainPanel has a limited size, but the frame does not
-    //if the frame has a greater height then the mainPanel + the frame's border
-    //height, then a scroll bar will be uses.
-    //Make room for the scroll bar when calling pack()
-    if (getSize().height - getSize().height > frameBorder.height) {
-      setVerticalScrollBarPolicy(true);
+    synchronized (MainFrame.class) {
       packAxis();
-      setVerticalScrollBarPolicy(false);
+      //the mainPanel has a limited size, but the frame does not
+      //if the frame has a greater height then the mainPanel + the frame's border
+      //height, then a scroll bar will be uses.
+      //Make room for the scroll bar when calling pack()
+      if (getSize().height - getSize().height > frameBorder.height) {
+        setVerticalScrollBarPolicy(true);
+        packAxis();
+        setVerticalScrollBarPolicy(false);
+      }
     }
   }
 
