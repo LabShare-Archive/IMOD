@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2003/08/20 22:02:21  rickg
+ * <p> Added log message when unable to rename log file
+ * <p>
  * <p> Revision 1.7  2003/08/05 21:18:18  rickg
  * <p> Moved log file renaming to the beginning of the process
  * <p>
@@ -106,6 +109,7 @@ public class ComScriptProcess
   private File workingDirectory = null;
   private ProcessManager processManager;
   private boolean demoMode = false;
+  private int demoTime = 5000;
   private boolean debug = false;
   private String[] errorMessage;
   private String[] warningMessage;
@@ -115,6 +119,13 @@ public class ComScriptProcess
 
   private boolean started = false;
   private boolean done = false;
+
+  /**
+   * @return
+   */
+  public int getDemoTime() {
+    return demoTime;
+  }
 
   public ComScriptProcess(String comScript, ProcessManager processManager) {
     this.name = comScript;
@@ -137,9 +148,10 @@ public class ComScriptProcess
 
     if (demoMode) {
       try {
+				started = true;
         csh = new SystemProgram("nothing");
         csh.setExitValue(0);
-        sleep(3000);
+        sleep(demoTime);
       }
       catch (InterruptedException except) {
         except.printStackTrace();
