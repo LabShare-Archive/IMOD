@@ -1,8 +1,13 @@
 package etomo.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
 import etomo.ApplicationManager;
 
 /**
@@ -18,6 +23,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.4  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -40,7 +48,7 @@ public class ContextPopup {
   private JMenuItem[] manPageItem;
   private JMenuItem[] logFileItem;
   private JMenuItem tomoGuideItem = new JMenuItem("Tomography Guide ...");
-  private JMenuItem modelGuideItem = new JMenuItem("Setup & Model Guide ...");
+  private JMenuItem modelGuideItem = new JMenuItem("Imod Users Guide ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -216,9 +224,9 @@ public class ContextPopup {
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFile = new TextPageWindow();
-            logFile.setFile(
-              appManager.getWorkingDirectory() + "/" + logFileName[i]);
-            logFile.setVisible(true);
+            logFile.setVisible(
+              logFile.setFile(
+                appManager.getWorkingDirectory() + "/" + logFileName[i]));
           }
         }
 
@@ -231,7 +239,7 @@ public class ContextPopup {
 
         if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(appManager.getIMODDirectory() + "guide.html");
+          manpage.openURL(imodURL + "guide.html");
           manpage.setVisible(true);
         }
 
