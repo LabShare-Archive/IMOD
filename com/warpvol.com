@@ -1,3 +1,5 @@
+#$if (! -e g5tmpdir) mkdir g5tmpdir
+#
 # THIS FILE RUNS WARPVOL 
 #
 # IT IS RUN ONLY IF YOU HAVE TO DO FINDWARP BY HAND AND

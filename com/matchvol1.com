@@ -1,3 +1,5 @@
+#$if (! -e g5tmpdir) mkdir g5tmpdir
+#
 $if (-e savework-file) savework-file
 #
 # THIS DOES THE FIRST RUN OF MATCHVOL TO MAKE AN INITIAL MATCHING VOLUME

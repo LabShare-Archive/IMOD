@@ -12,8 +12,6 @@
 #
 #$goto patchcorr
 #
-#$if (! -e g5tmpdir) mkdir g5tmpdir
-#
 $echo "This is the master log file for combine.com"
 $echo "It will end with COMBINE SUCCESSFULLY COMPLETED upon success"
 $echo "Look in individual log files for the results of particular operations"
