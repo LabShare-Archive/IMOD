@@ -165,6 +165,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/09/05 05:36:45  mast
+c	  Changes to take scaling information from model header and to scale
+c	  coordinates properly to index coordinates.  Also put in error
+c	  checks, standardize error outputs and made declarations for implicit
+c	  none
+c	
 c
 	implicit none
 	include 'model.inc'
@@ -354,12 +360,13 @@ c
 	  write(*,'(1x,a,$)')'Name of new file of f transforms: '
 	  read(*,'(a)')newxffile
 c
-	  print *,'Enter / to find transforms for all section pairs,',
-     &	      '      or -999 to find transforms relative to a single'
-     &	      //' section,',
-     &	      '      or a list of the section numbers to find'//
-     &	      ' transforms for','         (enter number of second'//
-     &	      ' section of each pair, ranges are ok)'
+	  write(*,118)
+118	  format(' Enter / to find transforms for all section pairs,',/,
+     &	      '      or -999 to find transforms relative to a single',
+     &	      ' section,',/,
+     &	      '      or a list of the section numbers to find',
+     &	      ' transforms for',/,'         (enter number of second',
+     &	      ' section of each pair, ranges are ok)')
 	  ntofind=0
 	  ifsingle=0
 	  call rdlist(5,nsec,ntofind)

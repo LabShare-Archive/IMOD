@@ -375,6 +375,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/29 17:34:17  mast
+c	  Change to use new multithreaded Plax graphics
+c	
 c
 	call plax_initialize('mtoverlap')
 	call exit(0)
@@ -518,12 +521,13 @@ c
 	  endif
 	enddo
 c
-	print *,'Enter 1 to have each bundle''s center computed',
-     &	    ' separately,','      2 to have one center computed',
-     &	    ' for all bundles together,',
-     &	    '      3 to specify one center for all bundles, or',
-     &	    '      4 to have combinations of centers specified/',
-     &	    'computed together/separate'
+	write(* ,117)
+117	format(' Enter 1 to have each bundle''s center computed',
+     &	    ' separately,',/,'       2 to have one center computed',
+     &	    ' for all bundles together,',/,
+     &	    '       3 to specify one center for all bundles, or',/,
+     &	    '       4 to have combinations of centers specified/',
+     &	    'computed together/separate')
 	read(5,*)icenopt
 c
 	if(icenopt.le.3)then
@@ -540,13 +544,14 @@ c
 	    center(ibun)=cenval
 	  enddo
 	else
-	  print *,'Enter one value per bundle: either a specific center',
-     &	      ' Z value as a section #,','  or the negative of a',
-     &	      ' specific center Z value in microns,',
-     &	      ' or 0 to have the center ',
-     &	      'computed separately for that bundle,',' or - a number ',
+	  write(*,118)
+118	  format(' Enter one value per bundle: either a specific center',
+     &	      ' Z value as a section #,',/,'  or the negative of a',
+     &	      ' specific center Z value in microns,',/,
+     &	      '  or 0 to have the center ',
+     &	      'computed separately for that bundle,',/,'  or - a number',
      &	      ' >100 to have center computed together with other'//
-     &	      ' bundles', '   having the same negative number'
+     &	      ' bundles',/, '   having the same negative number')
 	  read(5,*)(center(i),i=1,nlistbund)
 	endif
 c	  
@@ -717,16 +722,18 @@ c
 	    call rdlist(5,icoldisp,ncoldisp)
 	    ncoldisp=ntypdisp
 c	      
-	    print *,'For each type, enter a positive number to order',
-     &		' from low to high',
-     &		'    or negative number to order from high to low.',
+	    write(*,119)
+119	    format(' For each type, enter a positive number to order',
+     &		' from low to high',/,
+     &		'    or negative number to order from high to low.',/,
      &		' Enter: 1 or -1 to order by starts, 2 or -2 to',
-     &		' order by ends,',' or 3 or -3 to order by lengths.'
+     &		' order by ends,',/,' or 3 or -3 to order by lengths.')
 	    read(5,*)(iorder(i),i=1,ntypdisp)
 c	      
-	    print *,'Enter position (numbered from top down) in which',
-     &		' to plot each type;', '(types with the same',
-     &		' position number will be interleaved)'
+	    write(*,120)
+120	    format(' Enter position (numbered from top down) in which',
+     &		' to plot each type;',/, ' (types with the same',
+     &		' position number will be interleaved)')
 	    read(5,*)(ipos(i),i=1,ntypdisp)
 	    call reduce_list(ipos,ntypdisp,ndispsets)
 	  endif
@@ -1321,18 +1328,19 @@ c
      &	      zptscal)
 	endif
 c
-70	print *,'Enter 1 to combine computations for subsets of',
-     &	    ' bundles,',' 2 to set display size,',
-     &	    '      3 to put bundles in graphs,',
-     &	    ' 4 or 5 to specify types to display or compute,',
-     &	    '      6 to specify bundles to work with,',
-     &	    ' 7 to control output to file',
-     &	    '      8 or 9 to read in bundles (8 to add to existing',
-     &	    ' ones, 9 to replace them)',
-     &	    '     10 to take commands from file,',
-     &	    ' 11 to exit, 12 to fit lines to endpoints,',
-     &	    '     13 to change mapping of types,',
-     &	    ' 14/15/16 to do/view/print plot'
+70	write(*,121)
+121	format(' Enter 1 to combine computations for subsets of',
+     &	    ' bundles,',' 2 to set display size,',/,
+     &	    '       3 to put bundles in graphs,',
+     &	    ' 4/5 to specify types to display/compute,',/,
+     &	    '       6 to specify bundles to work with,',
+     &	    ' 7 to control output to file',/,
+     &	    '       8 or 9 to read in bundles (8 to add to existing',
+     &	    ' ones, 9 to replace them)',/,
+     &	    '      10 to take commands from file,',
+     &	    ' 11 to exit, 12 to fit lines to endpoints,',/,
+     &	    '      13 to change mapping of types,',
+     &	    ' 14/15/16 to do/view/print plot')
 	read(5,*)iopt
 	ifdefault=0
 	changeone=.true.
