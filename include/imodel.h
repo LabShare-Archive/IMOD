@@ -159,16 +159,16 @@ typedef struct Mod_Index
 
 /* Describes a 3D view of a model. */
 #define VIEW_WORLD_ON         1
-#define VIEW_WORLD_LIGHT      2
-#define VIEW_WORLD_DEPTH_CUE  4
-#define VIEW_WORLD_WIREFRAME  8
+#define VIEW_WORLD_LIGHT      (1l << 1)
+#define VIEW_WORLD_DEPTH_CUE  (1l << 2)
+#define VIEW_WORLD_WIREFRAME  (1l << 3)
 
-#define VIEW_WORLD_STEREO   16 /* Stereo flags */
-#define VIEW_WORLD_HARDWARE 32
-#define VIEW_WORLD_UPDOWN   64
-#define VIEW_WORLD_LOWRES  128
+#define VIEW_WORLD_STEREO   (1l << 4) /* Stereo flags */
+#define VIEW_WORLD_HARDWARE (1l << 5)
+#define VIEW_WORLD_UPDOWN   (1l << 6)
+#define VIEW_WORLD_LOWRES  (1l << 7)
 
-/* Shift and actual bits reserved for point quality */
+/* Shift and actual bits reserved for point quality (8, 9, 10) */
 #define WORLD_QUALITY_SHIFT  8
 #define WORLD_QUALITY_BITS   (7l << WORLD_QUALITY_SHIFT)
 
@@ -713,6 +713,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.14  2004/01/05 17:22:25  mast
+    Added binning run-time member of model structure
+
     Revision 3.13  2003/10/24 04:07:51  mast
     move some functions to new b3dutil
 
