@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/11/01 16:42:16  mast
+changed to use new error processing routine
+
 Revision 3.4  2003/02/27 17:06:50  mast
 Changed tests on upper coordinates to respect a value of 0
 
@@ -56,14 +59,13 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
     li.zmax = inFile->urz;
   li.slope = inFile->slope;
   li.offset = inFile->offset;
-  li.imin = inFile->imin;
-  li.imax = inFile->imax;
+  li.outmin = inFile->smin;
+  li.outmax = inFile->smax;
   li.black = 0;
   li.white = 255;
   li.axis = inFile->axis;
   h->fp = inFile->fp;
-  mrcReadSection(h, &li, (unsigned char *)buf, inSection);
-  return(0);
+  return (mrcReadSection(h, &li, (unsigned char *)buf, inSection));
 }
 
 int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
@@ -88,12 +90,11 @@ int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 
   li.slope  = inFile->slope;
   li.offset = inFile->offset;
-  li.imin   = 0;
-  li.imax   = 255;
+  li.outmin   = 0;
+  li.outmax   = 255;
   li.axis   = inFile->axis;
   h->fp = inFile->fp; 
-  mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection);
-  return(0);
+  return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
 }
 
 void iiMRCdelete(ImodImageFile *inFile)
@@ -149,8 +150,8 @@ int iiMRCCheck(ImodImageFile *i)
   i->mode  = hdr->mode;
   i->amin  = hdr->amin;
   i->amax  = hdr->amax;
-  i->imin  = i->amin;
-  i->imax  = i->amax;
+  i->smin  = i->amin;
+  i->smax  = i->amax;
   i->amean = hdr->amean;
   /* DNM 11/5/98: inverted these expressions to give proper usage */
   /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
