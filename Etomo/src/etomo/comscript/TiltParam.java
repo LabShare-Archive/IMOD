@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/12 16:51:07  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.1  2004/03/24 02:55:44  rickg
  * <p> Bug# 395 Implemented ability to create binned tomogram
  * <p>
@@ -288,7 +291,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("INCLUDE " + include);
       cmdLineArgs.add(newArg);
     }
-    if (!localAlignFile.equals("")) {
+    if (!localAlignFile.equals("") && !fiducialess) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("LOCALFILE " + localAlignFile);
       cmdLineArgs.add(newArg);
@@ -666,6 +669,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
   public void resetZOffset() {
     zOffset = Float.NaN;
+  }
+  
+  public void setFiducialess(boolean fiducialess) {
+    this.fiducialess = fiducialess;
   }
 
   /**
