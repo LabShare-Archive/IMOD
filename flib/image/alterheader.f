@@ -8,21 +8,36 @@ c   The file name can be entered on the command line; if not, the program
 c   will ask for it.
 c
 c   David Mastronarde 10/24/88
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 C   
-        parameter (nfunc=15)
-	parameter (idim=3100)
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),delt(3),tilt(3),mcrs(3),
-     &      TITLE(20,10),cell(6),listdel(1000),array(idim*idim)
+	implicit none
+	integer nfunc,idim,nx,ny,nz
+        parameter (nfunc=16)
+	parameter (idim=4100)
+	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
+	real*4 delt(3),tilt(3),
+     &      TITLE(20,10),cell(6),array(idim*idim)
 	equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
 C   
 	CHARACTER*80 FILIN,funcin,funcup
         character*8 param(nfunc)
         data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT'
-     &      ,'TLT_ORIG','TLT_ROT','LAB','MMM','FIXPIXEL','FIXEXTRA',
-     &	    'HELP','DONE'/
+     &      ,'TLT_ORIG','TLT_ROT','LAB','MMM','RMS','FIXPIXEL',
+     &	    'FIXEXTRA','HELP','DONE'/
 C   
 C   
 	DATA NXYZST/0,0,0/
+	integer*4 mode,iwhich,i,itype,lens,n1,n2,n3,ntitle,ndel
+	integer*4 newtitle,iold,ifdel,id,j,nbytex,iflag,ifok,iz
+	real*4 dmin,dmax,dmean,origx,origy,origz,v1,v2,tsum,sumsq
+	real*4 dmins,dmaxs,dmeans,sd,sums,sumsqs,totn,rms
 C   
 C   Read in input file
 C	  
@@ -36,7 +51,7 @@ C
 30      write(*,102)
 102     format(1x,'Options: org, cel, dat, del, map, sam, tlt, ',
      &	    'tlt_orig, tlt_rot, lab, mmm,',/,
-     &	    ' fixpixel, fixextra, help, OR done')
+     &	    ' rms, fixpixel, fixextra, help, OR done')
 	write(*,'(1x,a,$)')'Enter option: '
         read(5,101)funcin
 101	FORMAT(A)
@@ -45,7 +60,7 @@ C
         do i=1,nfunc
           if(funcup.eq.param(i))iwhich=i
         enddo
-        go to(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),iwhich
+        go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,14,15),iwhich
         print *,'Not a legal entry, try again'
         go to 30
 C   
@@ -261,15 +276,30 @@ c
 	dmin=1.e10
 	dmax=-1.e10
 	tsum=0.
+	sumsq=0.
 	do iz=1,nz
 	  call irdsec(2,array,*99)
-	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
+c	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
+	  call iclavgsd(array,nx,ny,dmins,dmaxs,sums,sumsqs,dmeans,sd)
 	  dmin=min(dmin,dmins)
 	  dmax=max(dmax,dmaxs)
 	  tsum=tsum+dmeans
+	  sumsq=sumsq+sumsqs
 	enddo
 	dmean=tsum/nz
+	totn = float(nx*ny)*nz
+	rms=sqrt((sumsq - totn * dmean**2) / totn)
+	call ialrms(2,rms)
+	if(iwhich.eq.12)write(*,162)rms
+162	format(' New RMS value = ', g13.5)
 	go to 30
+c	  
+c	  RMS - first inform of current RMS value
+c	  
+16	call irtrms(2,rms)
+	write(*,161)rms
+161	format(' Current RMS value = ', g13.5)
+	go to 11
 c	  
 12	write(*,122)
 122	format(' Changing sample and cell sizes to match image size, '
@@ -283,7 +313,8 @@ c
 	go to 30
 c
 13	write(*,123)
-123	format(' Marking header as not containing any piece coodinates.')
+123	format(' Marking header as not containing any ',
+     &	    'piece coordinates.')
 	call irtsymtyp(2,nbytex,iflag)
 	if (mod(iflag/2,2).gt.0)iflag = iflag-2
 	call ialsymtyp(2,nbytex,iflag)
@@ -301,7 +332,9 @@ c
      &	    /,' tlt_orig = change original tilt angles',
      &	    /,' tlt_rot = rotate current tilt angles',
      &	    /,' lab = delete selected labels',
-     &	    /,' mmm = fix min/max/mean by reading all images'
+     &	    /,' mmm = fix min/max/mean and set RMS value by ',
+     &	    'reading all images'
+     &	    /,' rms = set RMS value, does same actions as mmm',
      &	    /,' fixpixel = fix pixel spacing by setting cell and',
      &	    ' sample sizes to image size',
      &	    /,' fixextra = fix extra header so that file',
@@ -314,5 +347,43 @@ c
         call irdhdr(2,nxyz,mxyz,mode,dmin,dmax,dmean)
 	CALL IMCLOSE(2)
 	call exit(0)
-99	stop 'error reading file'
+99	print *
+	print *,'ERROR: ALTERHEADER - reading file'
+	call exit(1)
 	END
+
+c	  
+c	  ICLAVGSD computes the min DMIN, max DMAX, mean AVG, and standard
+c	  deviation SD from data in ARRAY, dimensioned NX by NY.  It also
+c	  returns the sum in SUM and sum of squares in SUMSQ
+c
+	subroutine iclavgsd(array,nx,ny,dmin,dmax,sum,sumsq,avg,sd)
+	implicit none
+	real*4 array(*)
+	integer*4 nx,ny,iy,ibas,i,nsum
+	real*4 dmin,dmax,sum,sumsq,avg,sd,smtm,smtmsq,den
+	sum=0.
+	sumsq=0.
+	dmin=1.e10
+	dmax=-1.e10
+	do iy=0,ny-1
+	  smtm=0.
+	  smtmsq=0.
+	  ibas=iy*nx
+	  do i=1+ibas,nx+ibas
+	    den=array(i)
+	    smtm=smtm+den
+	    smtmsq=smtmsq+den**2
+	    dmin=min(dmin,den)
+ 	    dmax=max(dmax,den)
+	  enddo
+	  sum=sum+smtm
+	  sumsq=sumsq+smtmsq
+	enddo
+	nsum=nx*ny
+	avg=sum/nsum
+	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
+	return
+	end
+
+
