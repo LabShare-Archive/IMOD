@@ -167,7 +167,7 @@ int main (int argc, char **argv)
 	break;
 
       case 'a':
-	vw->globalRot = atoi(argv[++i]);
+	vw->globalRot = atof(argv[++i]);
         vw->rotMode = 1;
 	break;
 
@@ -796,6 +796,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.9  2003/12/17 21:44:19  mast
+    Changes to implement global rotations
+
     Revision 3.8  2003/11/01 16:43:10  mast
     changed to put out virtually all error messages to a window
 
