@@ -5,6 +5,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/12/24 18:05:18  mast
+c	  Implemented constrained solution with in-plane linear
+c	  transformation and two rotation angles, using a simplex search,
+c	  when one column is "fixed"
+c	
 c	  Revision 3.2  2002/10/23 15:38:57  mast
 c	  Added the ability to fix the solution for a single column and solve
 c	  only for the dependence on two variables.
@@ -320,6 +325,21 @@ c
 	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=var(i)+delfac*da(i)
 	      ptmp(i)=pp(j,i)
 	      ptol(i)=da(i)*ptol1
+	    enddo
+	    yy(j)=func(ptmp)
+	  enddo
+	  call amoeba(pp,yy,7,7,6,ftol1,func,iter,ptol,jmin)
+c	    
+c	    per Press et al. recommendation, just restart at current location
+c	    
+	  do i=1,6
+	    pp(1,i)=pp(jmin,i)
+	  enddo
+	  do j=1,7
+	    do i=1,6
+	      pp(j,i)=pp(1,i)
+	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i)
+	      ptmp(i)=pp(j,i)
 	    enddo
 	    yy(j)=func(ptmp)
 	  enddo
