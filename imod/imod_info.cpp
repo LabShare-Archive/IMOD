@@ -55,7 +55,6 @@
 #include "imodplug.h"
 #include "preferences.h"
 #include "control.h"
-#include "3dicon.xpm"
 
 #define INFO_MIN_LINES 3.5
 #define INFO_STARTING_LINES 4.75
@@ -471,6 +470,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.18  2003/05/18 22:08:48  mast
+    Changes to add an application icon
+
     Revision 4.17  2003/04/25 03:28:32  mast
     Changes for name change to 3dmod
 
