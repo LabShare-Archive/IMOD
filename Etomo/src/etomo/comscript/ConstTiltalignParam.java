@@ -1,5 +1,9 @@
 package etomo.comscript;
 
+import java.io.File;
+
+import etomo.EtomoDirector;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoBoolean;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean;
@@ -20,6 +24,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/12/29 23:30:51  sueh
+ * <p> bug# 567 Corrected a parameter name in the constructor.
+ * <p>
  * <p> Revision 3.2  2004/12/29 01:51:57  sueh
  * <p> bug# 567 Adding reset value for rotDefaultGrouping.  Getting
  * <p> rotNondefaultGroup as a string.
@@ -57,7 +64,7 @@ import etomo.type.TiltAngleSpec;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ConstTiltalignParam {
+public class ConstTiltalignParam implements Command {
   public static final String rcsid =
     "$Id$";
 
@@ -110,6 +117,8 @@ public class ConstTiltalignParam {
   private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localTiltOptionValidValues = { FIXED_OPTION, TILT_AUTOMAPPED_OPTION };
   private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
+  private static final String commandFileName = "align";
+  private static final String commandFileExtension = ".com";
   
   protected String modelFile;
   protected String imageFile;
@@ -169,8 +178,11 @@ public class ConstTiltalignParam {
   protected FortranInputString numberOfLocalPatchesXandY;
   protected FortranInputString minSizeOrOverlapXandY;
   protected FortranInputString minFidsTotalAndEachSurface;
+  
+  private AxisID axisID;
 
-  public ConstTiltalignParam() {
+  public ConstTiltalignParam(AxisID axisID) {
+    this.axisID = axisID;
     rotationAngle = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
     angleOffset = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
@@ -335,6 +347,36 @@ public class ConstTiltalignParam {
   }
 
   
+  public String getCommandLine() {
+    return commandFileName + axisID.getExtension() + commandFileExtension;
+  }
+  public String getCommandName() {
+    return commandFileName;
+  }
+  
+  public File getOutputFile() {
+    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), modelFile);
+  }
+  
+  public int getMode() {
+    return 0;
+  }
+  
+  public int getBinning() {
+    return 1;
+  }
+  
+  public int getIntegerValue(int name) {
+    return 0;
+  }
+  public boolean getBooleanValue(int name) {
+    return false;
+  }
+  
+  public String[] getCommandArray() {
+    String[] array = {commandFileName + axisID.getExtension() + commandFileExtension};
+    return array;
+  }
   
   /**
    * @return Returns the angleOffset.
