@@ -233,11 +233,16 @@ type = I
 usage = Type of rotation solution: 0 for none, 1 for independent, 2 for
 mapped, 3 or 4 for automapped, -1 for single variable
 tooltip = 
-manpage = Type of rotation solution: 0 for all rotations fixed at the initial
-angle, 1 for each view having an independent rotation, 2 to enter general
-mapping of rotation variables, 3 or 4 for automapping of rotation variables (3
-for linearly changing values or 4 for values all the same within a group), or
--1 to solve for a single rotation variable.
+manpage = Type of rotation solution: 
+^  0 for all rotations fixed at the initial angle,
+^  1 for each view having an independent rotation,
+^  2 to enter general mapping of rotation variables,
+^  3 or 4 for automapping of rotation variables (3 for linearly 
+^    changing values or 4 for values all the same within a group), or
+^ -1 to solve for a single rotation variable.
+enum.0.tooltip = Do not solve for rotations.
+enum.1.tooltip = Solve for each rootation independently.
+enum.3.tooltip = Group views to solve for fewer rotation variables.
 
 [Field = RotDefaultGrouping]
 short = 
@@ -276,11 +281,13 @@ type = I
 usage = Type of local rotation solution: 0 for none, 1 for independent, 2 for
 mapped, 3 or 4 for automapped, -1 for single variable
 tooltip = Solve for local in-plane rotations.
-manpage = Type of local rotation solution: 0 for local rotations fixed,
-1 for each view having an independent rotation, 2 to enter general
-mapping of variables, 3 or 4 for automapping of rotation variables (3
-for linearly changing values or 4 for values all the same within a group),
-or -1 to solve for a single rotation variable.
+manpage = Type of local rotation solution: 
+^  0 for local rotations fixed,
+^  1 for each view having an independent rotation, 
+^  2 to enter general mapping of variables,
+^  3 or 4 for automapping of rotation variables (3 for linearly 
+^    changing values or 4 for values all the same within a group), or
+^ -1 to solve for a single rotation variable.
 
 [Field = LocalRotDefaultGrouping]
 short = 
@@ -296,9 +303,9 @@ long = LocalRotNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 local rotation variables.
-tooltip = Sets of views with non-default grouping.  For each set, enter starting
-and ending view number and group size, separated by commas; separate multiple
-sets with spaces.
+tooltip = Sets of views with non-default grouping.  For each set, enter 
+starting and ending view number and group size, separated by commas; separate
+multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose local rotation variables should be grouped differently from the default.
 
@@ -309,15 +316,17 @@ type = I
 usage = Type of tilt angle solution: 0 for all fixed, 2 for all independent, 5
 for automapping
 tooltip = 
-manpage = Type of tilt angle solution:   0 to fix all tilt angles at their 
-initial values, 1 to solve for all tilt angles except for a specified view,
-2 to solve for all tilt angles except for the view at minimum tilt, 3 to solve
-for all tilt angles except for a specified view and the view at minimum tilt,
-4 to specify a mapping of tilt angle variables,
-5 or 6 to automap groups of tilt angles (5 for linearly
-changing values or 6 for values all the same within a group), 
-or 7 or 8 to automap and fix two tilt angles (7 for linearly changing values
-or 8 for values all the same within a group)
+manpage = Type of tilt angle solution:
+^  0 to fix all tilt angles at their initial values,
+^  1 to solve for all tilt angles except for a specified view,
+^  2 to solve for all tilt angles except for the view at minimum tilt, 
+^  3 to solve for all tilt angles except for a specified view and 
+^    the view at minimum tilt,
+^  4 to specify a mapping of tilt angle variables,
+^  5 or 6 to automap groups of tilt angles (5 for linearly changing 
+^    values or 6 for values all the same within a group), or
+^  7 or 8 to automap and fix two tilt angles (7 for linearly changing 
+^    values or 8 for values all the same within a group)
 
 enum.0.tooltip = Do not solve for tilt angles.
 enum.2.tooltip = Solve for each tilt angle independently.
@@ -348,7 +357,7 @@ type = I
 usage = Average default group size when automapping tilt variables
 tooltip = Basic grouping size for tilt angles (grouping will be less at high 
 tilt and more at low tilt).
-manpage =
+manpage = Average default group size when automapping tilt variables
 
 [Field = TiltNondefaultGroup]
 short = 
@@ -356,9 +365,9 @@ long = TiltNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 tilt variables.
-tooltip = Sets of views with non-default grouping.  For each set, enter starting
-and ending view number and group size, separated by commas; separate multiple
-sets with spaces.
+tooltip = Sets of views with non-default grouping.  For each set, enter 
+starting and ending view number and group size, separated by commas; separate
+multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose tilt variables should be grouped differently from the default.
 
@@ -395,7 +404,7 @@ long = LocalTiltDefaultGrouping
 type = I
 usage = Average default group size when automapping local tilt variables
 tooltip = Grouping size for local tilt angle changes.
-manpage = 
+manpage = Average default group size when automapping local tilt variables
 
 [Field = LocalTiltNondefaultGroup]
 short = 
@@ -403,9 +412,9 @@ long = LocalTiltNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 local tilt variables
-tooltip = Sets of views with non-default grouping.  For each set, enter starting
-and ending view number and group size, separated by commas; separate multiple
-sets with spaces.
+tooltip = Sets of views with non-default grouping.  For each set, enter
+starting and ending view number and group size, separated by commas; separate
+multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose local tilt variables should be grouped differently from the default.
 
@@ -425,10 +434,12 @@ type = I
 usage = Type of magnification solution: 0 fixed, 1 independent, 2 mapped, 3 or
 4 automapped.
 tooltip = 
-manpage = Type of magnification solution: 0 to fix all magnifications at 1.0,
-1 to vary all magnifications independently, 2 to specify a mapping of
-magnification variables, or 3 or 4 for automapping of variables (3 for
-linearly changing values or 4 for values all the same within a group).
+manpage = Type of magnification solution: 
+^  0 to fix all magnifications at 1.0,
+^  1 to vary all magnifications independently,
+^  2 to specify a mapping of magnification variables, or 
+^  3 or 4 for automapping of variables (3 for linearly changing 
+^    values or 4 for values all the same within a group).
 
 enum.0.tooltip = Do not solve for magnifications.
 enum.1.tooltip = Solve for magnification at each view independently.
@@ -440,7 +451,7 @@ long = MagDefaultGrouping
 type = I
 usage = Default group size when automapping magnification variables
 tooltip = Grouping size for magnifications.
-manpage =
+manpage = Default group size when automapping magnification variables
 
 [Field = MagNondefaultGroup]
 short = 
@@ -448,9 +459,9 @@ long = MagNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 magnification variables.
-tooltip = Sets of views with non-default grouping.  For each set, enter starting
-and ending view number and group size, separated by commas; separate multiple
-sets with spaces.
+tooltip = Sets of views with non-default grouping.  For each set, enter
+starting and ending view number and group size, separated by commas; separate
+multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose magnification variables should be grouped differently from the default.
 
@@ -478,7 +489,7 @@ long = LocalMagDefaultGrouping
 type = I
 usage = Default group size when automapping local magnification variables
 tooltip = Grouping size for local magnification changes.
-manpage = 
+manpage = Default group size when automapping local magnification variables
 
 [Field = LocalMagNondefaultGroup]
 short = 
@@ -486,9 +497,9 @@ long = LocalMagNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 local magnification variables.
-tooltip = Sets of views with non-default grouping.  For each set, enter starting
-and ending view number and group size, separated by commas; separate multiple
-sets with spaces
+tooltip = Sets of views with non-default grouping.  For each set, enter
+starting and ending view number and group size, separated by commas; separate
+multiple sets with spaces
 manpage = Starting and ending view numbers and group size for a set of views
 whose local magnification variables should be grouped differently from the
 default.
@@ -510,10 +521,12 @@ type = I
 usage = Type of compression solution: 0 fixed, 1 independent, 2 mapped, 3 or
 4 automapped
 tooltip = 
-manpage = Type of compression solution: 0 to fix all compressions at 1.0,
-1 to vary all compressions independently, 2 to specify a mapping of
-compression variables, or 3 or 4 for automapping of variables (3 for
-linearly changing values or 4 for values all the same within a group).
+manpage = Type of compression solution: 
+^  0 to fix all compressions at 1.0,
+^  1 to vary all compressions independently, 
+^  2 to specify a mapping of compression variables, or 
+^  3 or 4 for automapping of variables (3 for linearly changing 
+^    values or 4 for values all the same within a group).
 
 [Field = CompDefaultGrouping]
 short = 
@@ -540,10 +553,12 @@ type = I
 usage = Type of X-stretch solution: 0 fixed, 1 independent, 2 mapped, 3 or
 4 automapped
 tooltip = 
-manpage = Type of X-stretch solution: 0 to fix all X stretches at 0,
-1 to vary all X stretches independently, 2 to specify a mapping of
-X-stretch variables, or 3 or 4 for automapping of variables (3 for
-values all the same within a group or 4 for linearly changing values).
+manpage = Type of X-stretch solution: 
+^  0 to fix all X stretches at 0,
+^  1 to vary all X stretches independently, 
+^  2 to specify a mapping of X-stretch variables, or
+^  3 or 4 for automapping of variables (3 for values all the 
+^    same within a group or 4 for linearly changing values).
 
 [Field = XStretchDefaultGrouping]
 short = 
@@ -552,7 +567,7 @@ type = I
 usage = Default average group size when automapping X stretch variables
 tooltip = Basic grouping size for X stretch (grouping will be less at high tilt
 and more at low tilt).
-manpage = 
+manpage = Default average group size when automapping X stretch variables.
 
 [Field = XStretchNondefaultGroup]
 short = 
@@ -581,7 +596,7 @@ long = LocalXStretchDefaultGrouping
 type = I
 usage = Default average group size when automapping local X stretch variables
 tooltip = Grouping size for local X stretch variables.
-manpage = 
+manpage = Default average group size when automapping local X stretch variables
 
 [Field = LocalXStretchNondefaultGroup]
 short = 
@@ -603,10 +618,12 @@ type = I
 usage = Type of skew solution: 0 fixed, 1 independent, 2 mapped, 3 or
 4 automapped
 tooltip = Solve for skew in the plane of section.
-manpage = Type of skew solution: 0 to fix all skew angles at 0.0,
-1 to vary all skew angles independently, 2 to specify a mapping of
-skew variables, or 3 or 4 for automapping of variables (3 for
-linearly changing values or 4 for values all the same within a group).
+manpage = Type of skew solution: 
+^  0 to fix all skew angles at 0.0,
+^  1 to vary all skew angles independently,
+^  2 to specify a mapping of skew variables, or 
+^  3 or 4 for automapping of variables (3 for linearly changing 
+^    values or 4 for values all the same within a group).
 
 [Field = SkewDefaultGrouping]
 short = 
@@ -614,7 +631,7 @@ long = SkewDefaultGrouping
 type = I
 usage = Default group size when automapping skew variables
 tooltip = Grouping size for skew angles.
-manpage = 
+manpage = Default group size when automapping skew variables
 
 [Field = SkewNondefaultGroup]
 short = 
@@ -624,7 +641,7 @@ usage = Starting and ending views and group size for nondefault grouping of
 skew variables.
 tooltip = Sets of views with non-default grouping for skew angles.  For each
 set, enter starting and ending view number and group size, separated by commas;
-separate multiple sets with spaces."
+separate multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose skew variables should be grouped differently from the default.
 
@@ -643,7 +660,7 @@ long = LocalSkewDefaultGrouping
 type = I
 usage = Default group size when automapping local skew variables
 tooltip = Grouping size for local skew angle variables.
-manpage = 
+manpage = Default group size when automapping local skew variables
 
 [Field = LocalSkewNondefaultGroup]
 short = 
@@ -651,9 +668,9 @@ long = LocalSkewNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 local skew variables.
-tooltip = Sets of views with non-default grouping for skew angles.  For each set,
-enter starting and ending view number and group size, separated by commas;
-separate multiple sets with spaces.
+tooltip = Sets of views with non-default grouping for skew angles.  For each
+set, enter starting and ending view number and group size, separated by
+commas; separate multiple sets with spaces.
 manpage = Starting and ending view numbers and group size for a set of views
 whose local skew variables should be grouped differently from the default.
 
@@ -664,10 +681,12 @@ type = I
 usage = Type of X-axis tilt solution: 0 fixed, 1 independent, 2 mapped, 3 or
 4 automapped
 tooltip = 
-manpage = Type of X-axis tilt solution: 0 to fix all X tilts at 0.,
-1 to vary all X-tilts independently, 2 to specify a mapping of
-X-tilt variables, or 3 or 4 for automapping of variables (3 for
-linearly changing values or 4 for values all the same within a group).
+manpage = Type of X-axis tilt solution:
+^  0 to fix all X tilts at 0.,
+^  1 to vary all X-tilts independently, 
+^  2 to specify a mapping of X-tilt variables, or 
+^  3 or 4 for automapping of variables (3 for linearly changing 
+^    values or 4 for values all the same within a group).
 
 [Field = XTiltDefaultGrouping]
 short = 
@@ -858,10 +877,11 @@ type = IT
 usage = 1 for parameter output, 1 for X-Y-Z coordinate output, and 1 for
 high residual output
 tooltip = 
-manpage = These three entries to control the output of results for each local
-alignment: 1 to output the values of the parameters for each
-view or 0 not to; 1 to output the X-Y-Z coordinates of fiducials
-or 0 not to; 1 to output points with high residuals, or 0 not to
+manpage = These three entries control the output of results for each local
+alignment: 
+^  1 to output the values of the parameters for each view or 0 not to;
+^  1 to output the X-Y-Z coordinates of fiducials or 0 not to; and
+^  1 to output points with high residuals, or 0 not to
 
 [Field = RotMapping]
 short = 
