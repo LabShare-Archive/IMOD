@@ -63,13 +63,20 @@ DDEESSCCRRIIPPTTIIOONN
   Imposing this constraint can make the shifting process very time-consuming.
 
   Mtk was first written to analyze closest approaches between the trajectories
-  of microtubules in 3 dimensions (i.e. MicroTubule Kissing).  It
-  was adapted from Nda, and many of the entries and commands are identical.
-  Some the terminology used here is a holdover from these origins; for
-  example, a "region" refers to the portion of a model being analyzed, which
-  is generally the whole model here, and an IMOD model object is sometimes
-  referred to as a "type".
+  of microtubules in 3 dimensions (i.e. MicroTubule Kissing).  It was adapted
+  from Nda, and many of the entries and commands are identical. Some the
+  terminology used here is a holdover from these origins; for example, a
+  "region" refers to the portion of a model being analyzed, which is generally
+  the whole model here, and an IMOD model object is sometimes referred to as a
+  "type".
   
+  Because these analyses can be very time consuming, you will probably want to
+  run mtk through a command file.  The $IMOD_DIR/com directory has 4 sample
+  command files that you can examine and adapt for your use: mtksimple.com for
+  complete analysis of a simple model; mtkgraph.com showing how to plot a
+  saved graph to a postscript file; and mtkcomplex1.com and mtcomplex2.com,
+  based on part of the analysis of Brad Marsh's HIT cell model.
+
   Mtk starts with a number of entries required to define a model file and the
   first analysis and get to the point where numerous options can be selected.
   These entries are:
