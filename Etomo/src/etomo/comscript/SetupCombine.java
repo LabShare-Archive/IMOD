@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/10/24 23:49:53  rickg
+ * <p> Added getStdout method
+ * <p>
  * <p> Revision 1.4  2002/10/10 18:55:38  rickg
  * <p> Output blank line when there is no match lists
  * <p> Enabled SystemProgram debugging and remove local
@@ -63,8 +66,8 @@ public class SetupCombine {
     if (combineParams.getMatchBtoA()) {
       tempStdInput[lineCount++] = "a";
       if (combineParams.getFiducialMatchListA() != "") {
-        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
       }
       else {
         tempStdInput[lineCount++] = "";
@@ -119,17 +122,17 @@ public class SetupCombine {
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
 
     tempStdInput[lineCount++] = combineParams.patchRegionModel;
-    
+
     tempStdInput[lineCount++] = combineParams.tempDirectory;
-    if(! combineParams.tempDirectory.equals("")) {
-      if(combineParams.getManualCleanup()) {
+    if (!combineParams.tempDirectory.equals("")) {
+      if (combineParams.getManualCleanup()) {
         tempStdInput[lineCount++] = "y";
       }
       else {
         tempStdInput[lineCount++] = "n";
       }
     }
-      
+
     //
     //  Copy the temporary stdInput to the real stdInput to get the number
     //  of array elements correct
