@@ -769,6 +769,7 @@ void IProcWindow::startProcess()
     return;
 #ifdef QT_THREAD_SUPPORT
 
+
   // If running in a thread, set flag, disable buttons except help,
   // start timer and start thread
   mRunningProc = true;
@@ -777,7 +778,14 @@ void IProcWindow::startProcess()
   ImodInfoWin->manageMenus();
   mTimerID = startTimer(50);
   mProcThread = new IProcThread;
+
+  // Priorities not available in Qt 3.1, status in 3.2 unknown
+#if QT_VERSION > 0x030300
   mProcThread->start(QThread::LowPriority);
+#else
+  mProcThread->start();
+#endif
+
 #else
 
   // Otherwise just start the process directly
@@ -884,6 +892,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.9  2004/11/07 23:05:24  mast
+    Execute in thread, added FFT and fourier filter, fixed scaling problems
+
     Revision 4.8  2004/11/04 23:30:55  mast
     Changes for rounded button style
 
