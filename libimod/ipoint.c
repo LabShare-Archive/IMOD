@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/11/20 04:29:23  mast
+    Changes to add point function
+
     Revision 3.3  2004/11/05 18:53:00  mast
     Include local files with quotes, not brackets
 
@@ -361,63 +364,61 @@ int imodPointIsEqual(Ipoint *a, Ipoint *b)
   return(0);
 }
 
-int imodPointIntersect(Ipoint *a, Ipoint *b,
-                       Ipoint *c, Ipoint *d)
+/* Return 1 if line segment a-b intersects line segment c-d */
+int imodPointIntersect(Ipoint *a, Ipoint *b, Ipoint *c, Ipoint *d)
 {
-  /* question: does line segment a-b intersect linesegment c-d? */
 
-  float slope[2], intery[2];
-  float xd[2], yd[2];
-  float xi;  /* xcoord where lines intercept. */
+  float dx1, dy1, dx2, dy2, dxs, dys;
+  double den, tnum, unum, t, u;
 
-  /* first check for common points. */
-  if ((imodPointIsEqual(a,c)) || imodPointIsEqual(a,d) ||
-      (imodPointIsEqual(b,c)) || imodPointIsEqual(b,d))
-    return(1);     
-     
-  xd[0] = b->x - a->x;
-  xd[1] = d->x - c->x;
+  /* First compute parameters t and u for point of intersection along each
+     extended line (t and u between 0 and 1 parameterize each line segment) */
+  dx1 = b->x - a->x;
+  dy1 = b->y - a->y;
+  dx2 = d->x - c->x;
+  dy2 = d->y - c->y;
+  dxs = c->x - a->x;
+  dys = c->y - a->y;
+  den = dx2 * dy1 - dx1 * dy2;
+  tnum = dys * dx2 - dxs * dy2;
+  unum = dx1 * dys - dy1 * dxs;
 
-  /* slope must be defined for both line segments. */
-  if ((xd[0]) && (xd[1])){
-    slope[0] = (b->y - a->y) / xd[0];
-    slope[1] = (d->y - c->y) / xd[1];
-    intery[0] = a->y - (slope[0] * a->x);
-    intery[1] = c->y - (slope[1] * c->x);
+  /* Check for parallel lines */
+  if (fabs(den) < 1.e-20 || 
+      fabs(den) < 1.e-6 * B3DMAX(fabs(tnum), fabs(unum))) {
 
-    if (slope[0] == slope[1]){
-      if (intery[0] == intery[1]){
-            
-      }
-      return(0);
-    }
-      
-    xi = (intery[1] - intery[0]) / (slope[0] - slope[1]);
+    /* For parallel lines, check segment length, then check each endpoint
+       against the other segment for being within the segment */
+    den = dx1 * dx1 + dy1 * dy1;
+    if (fabs(den) < 1.e-20)
+      return 0;
+    t = (dx1 * (c->x - a->x) + dy1 * (c->y - a->y)) / den;
+    if (t >= -0.000001 && t <= 1.000001 && fabs(a->x + t * dx1 - c->x) < 1.e-6
+        && fabs(a->y + t * dy1 - c->y) < 1.e-6)
+      return 1;
+    t = (dx1 * (d->x - a->x) + dy1 * (d->y - a->y)) / den;
+    if (t >= -0.000001 && t <= 1.000001 && fabs(a->x + t * dx1 - d->x) < 1.e-6
+        && fabs(a->y + t * dy1 - d->y) < 1.e-6)
+      return 1;
 
-    /* if both lines segments contain xi return true */
-    if ( (((a->x > xi)&&(b->x < xi)) || ((a->x < xi)&&(b->x > xi)))  &&
-         (((c->x > xi)&&(d->x < xi)) || ((c->x < xi)&&(d->x > xi))))
-      return(1);
-
-    return(0);
+    den = dx2 * dx2 + dy2 * dy2;
+    if (fabs(den) < 1.e-20)
+      return 0;
+    t = (dx2 * (a->x - c->x) + dy2 * (a->y - c->y)) / den;
+    if (t >= -0.000001 && t <= 1.000001 && fabs(c->x + t * dx2 - a->x) < 1.e-6
+        && fabs(c->y + t * dy2 - a->y) < 1.e-6)
+      return 1;
+    t = (dx2 * (b->x - c->x) + dy2 * (b->y - c->y)) / den;
+    if (t >= -0.000001 && t <= 1.000001 && fabs(c->x + t * dx2 - b->x) < 1.e-6
+        && fabs(c->y + t * dy2 - b->y) < 1.e-6)
+      return 1;
+    return 0;
   }
 
-  if (xd[1]){
-    if (a->y > b->y){
-      yd[0] = b->y; yd[1] = a->y;
-    }else{
-      yd[0] = a->y; yd[1] = b->y;
-    }
-    if ((c->y > yd[0]) && (c->y < yd[1]))
-      return(1);
-      
-    if ((d->y > yd[0]) && (d->y < yd[1]))
-      return(1);
-  }
-     
-     
-
-  return(0);
+  /* Non-parallel lines: test for point of intersection within each line */
+  t = tnum / den;
+  u = unum / den;
+  return (t >= 0. && t <= 1. && u >= 0. && u <= 1.) ? 1 : 0;
 }
 
 
