@@ -121,12 +121,11 @@ void imodvMovieForm::setButtonStates( bool longWay, bool reverse, int movieMont,
     reverseBox->setChecked(reverse);
     writeBox->setChecked(writeFiles);
     makeGroup->setButton(movieMont);
-    writeGroup->setButton(rgbTiff);
+    mRgbTiff = rgbTiff;
     manageSensitivities(movieMont);
     mLongWay = longWay;
     mReverse = reverse;
     mMovieMont = movieMont;
-    mRgbTiff = rgbTiff;
     mWriteFiles = writeFiles;
 }
 
@@ -141,28 +140,20 @@ void imodvMovieForm::getButtonStates( int &longWay, int &reverse, int &movieMont
     writeFiles = mWriteFiles ? 1 : 0;
 }
 
-// Get the values in the three edit boxes not in the start-end lists
-void imodvMovieForm::getFrameBoxes( int &nMovieFrames, int &nMontFrames, 
-				    int &montOverlap )
+// Get the values in the boxes not in the start-end lists
+void imodvMovieForm::getFrameBoxes( int &nMovieFrames, int &nMontFrames)
 {
     mStr = framesEdit->text();
     nMovieFrames = atoi(mStr.latin1());
-    mStr = montageFramesEdit->text();
-    nMontFrames = atoi(mStr.latin1());
-    mStr =montageOverlapEdit->text();
-    montOverlap = atoi(mStr.latin1());
+    nMontFrames = montageFramesBox->value();
 }
 
-// Set the 3 edit boxes that are not in the start-end lists
-void imodvMovieForm::setFrameBoxes( int nMovieFrames, int nMontFrames, 
-				    int montOverlap )
+// Set the boxes that are not in the start-end lists
+void imodvMovieForm::setFrameBoxes( int nMovieFrames, int nMontFrames)
 {
     mStr.sprintf("%d", nMovieFrames);
     framesEdit->setText(mStr);
-    mStr.sprintf("%d", nMontFrames);
-    montageFramesEdit->setText(mStr);
-    mStr.sprintf("%d", montOverlap);
-    montageOverlapEdit->setText(mStr);
+    montageFramesBox->setValue(nMontFrames);
 }
 
 // Enable the movie or montage part of the form
@@ -181,8 +172,13 @@ void imodvMovieForm::manageSensitivities( int movieMont )
     setEndButton->setEnabled(!movieMont);
     longWayBox->setEnabled(!movieMont);
     reverseBox->setEnabled(!movieMont);
-    montageFramesEdit->setEnabled(movieMont);
-    montageOverlapEdit->setEnabled(movieMont);
+    montageFramesBox->setEnabled(movieMont);
+    tiffRadioButton->setEnabled(!movieMont);
+    rgbRadioButton->setEnabled(!movieMont);
+    writeGroup->setEnabled(!movieMont);
+    writeGroup->blockSignals(true);
+    writeGroup->setButton(movieMont ? 1 : mRgbTiff);
+    writeGroup->blockSignals(false);
 }
 
 void imodvMovieForm::closeEvent( QCloseEvent * e )

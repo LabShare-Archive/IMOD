@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>imodvMovieForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>290</width>
-            <height>524</height>
+            <width>293</width>
+            <height>501</height>
         </rect>
     </property>
     <property name="caption">
@@ -608,36 +608,35 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout38</cstring>
+                <cstring>layout7</cstring>
             </property>
-            <grid>
+            <hbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
-                <spacer row="2" column="2" rowspan="1" colspan="2">
+                <widget class="QSpinBox">
                     <property name="name">
-                        <cstring>Spacer11</cstring>
+                        <cstring>montageFramesBox</cstring>
                     </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
                     </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
+                    <property name="minimumSize">
                         <size>
-                            <width>30</width>
+                            <width>60</width>
                             <height>0</height>
                         </size>
                     </property>
-                </spacer>
-                <widget class="QLabel" row="0" column="1" rowspan="2" colspan="3">
+                    <property name="minValue">
+                        <number>2</number>
+                    </property>
+                </widget>
+                <widget class="QLabel">
                     <property name="name">
                         <cstring>TextLabel3</cstring>
                     </property>
@@ -648,79 +647,7 @@
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="0" column="0" rowspan="2" colspan="1">
-                    <property name="name">
-                        <cstring>montageFramesEdit</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>60</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Enter number of adjacent frames to capture in X and Y</string>
-                    </property>
-                </widget>
-                <spacer row="1" column="3">
-                    <property name="name">
-                        <cstring>Spacer10</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>30</width>
-                            <height>0</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLabel" row="2" column="1">
-                    <property name="name">
-                        <cstring>TextLabel3_2</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Montage overlap in pixels</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="2" column="0">
-                    <property name="name">
-                        <cstring>montageOverlapEdit</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>60</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Enter overlap between adjacent frames</string>
-                    </property>
-                </widget>
-            </grid>
+            </hbox>
         </widget>
         <widget class="Line">
             <property name="name">
@@ -816,7 +743,7 @@
                         </property>
                         <widget class="QRadioButton">
                             <property name="name">
-                                <cstring>RadioButton3</cstring>
+                                <cstring>rgbRadioButton</cstring>
                             </property>
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
@@ -830,7 +757,7 @@
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
-                                <cstring>RadioButton4</cstring>
+                                <cstring>tiffRadioButton</cstring>
                             </property>
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
@@ -1126,8 +1053,8 @@
     <slot>setEnd( int item, float value )</slot>
     <slot>setButtonStates( bool longWay, bool reverse, int movieMont, int rgbTiff, bool writeFiles )</slot>
     <slot>getButtonStates( int &amp; longWay, int &amp; reverse, int &amp; movieMont, int &amp; rgbTiff, int &amp; writeFiles )</slot>
-    <slot>getFrameBoxes( int &amp; nMovieFrames, int &amp; nMontFrames, int &amp; montOverlap )</slot>
-    <slot>setFrameBoxes( int nMovieFrames, int nMontFrames, int montOverlap )</slot>
+    <slot>getFrameBoxes( int &amp; nMovieFrames, int &amp; nMontFrames )</slot>
+    <slot>setFrameBoxes( int nMovieFrames, int nMontFrames )</slot>
     <slot>manageSensitivities( int movieMont )</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
