@@ -61,6 +61,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/07/31 20:07:33  mast
+    Changes to accommodate new or old style MRC headers
+
 */
 
 /******************************************************************************
@@ -83,7 +86,7 @@ void convertLongs(FILE  *fp, UCHAR *buffer, int   noLongs, int   direction);
 void convertBody(void (*convertFunc)(), struct MRCheader *header, int size,
 		 int factor, int direction, FILE *infp, FILE *outfp);
 void convertHeader(void (*floatFunc)(), int nextra, struct MRCheader  *header,
-		   FILE *infp, FILE *outfp, int direction, UCHAR *cmap);
+		   FILE *infp, FILE *outfp, int direction, char *cmap);
 
 
 main( int argc, char *argv[])
@@ -486,7 +489,7 @@ void convertHeader(void (*floatFunc)(),
 		   FILE         *infp,        /*input file pointer*/
 		   FILE         *outfp,       /*input file pointer*/
 		   int direction,
-		   UCHAR *cmap)
+		   char *cmap)
 
 {
      int lcv;
