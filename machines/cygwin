@@ -350,6 +350,8 @@ echo VCEXEDIR = $vcexedir >> $configure
 # Set up to copy qt lib to bin dir for a distribution
 #
 echo 'QTINSTLIBDIR = bin' >> $configure
+echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
+if ($distname == "") set distname = _win
 
 # Add scripts for running from command line.  The chmod doesn't work but it
 # might be needed in the future

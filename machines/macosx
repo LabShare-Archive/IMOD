@@ -205,3 +205,5 @@ echo 'QTINSTLIBDIR = qtlib' >> $configure
 set ld_lib_var      = DYLD_LIBRARY_PATH
 echo 'MACAPPS = mtk nda sda genhstplt mtoverlap mtpairing avgstatplot' >> $configure
 set qtapp_path  = '$1.app/Contents/MacOS/'
+echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc linklibs-mac' >> $configure
+if ($distname == "") set distname = _osx
