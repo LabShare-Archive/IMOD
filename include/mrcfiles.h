@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2004/01/12 17:26:55  mast
+    Change complex min max routine from float to void
+
     Revision 3.7  2004/01/08 06:43:05  mast
     Added functions for complex scaling
 
@@ -387,13 +390,8 @@ int fgetline(FILE *fp, char s[],int limit);
 void mrc_swap_shorts(short int *data, int amt);
 void mrc_swap_longs(int *data, int amt);
 void mrc_swap_floats(float *data, int amt);
-int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
 void mrc_swap_header(struct MRCheader *hdata);
 void mrc_set_cmap_stamp(struct MRCheader *hdata);
-
-int b3dFseek(FILE *fp, int offset, int flag);
-size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp);
-size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp);
 
 #ifdef __cplusplus
 }
