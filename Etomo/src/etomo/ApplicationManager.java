@@ -48,6 +48,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
+import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
@@ -87,6 +88,14 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.117  2005/01/08 00:28:05  sueh
+ * <p> bug# 578 Added enableZFactors() to enable useZFactors checkbox in
+ * <p> tomogram generation.  Set commandMode in NewstParam so
+ * <p> ProcessManager.postProcess() can tell whether Full Align Stack was run.
+ * <p> Set fiducialessAlignment in NewstParam when Full Align Stack is run.
+ * <p> Pass newstParam to ProcessManager.newst() so it can be queried in
+ * <p> postProcess().
+ * <p>
  * <p> Revision 3.116  2005/01/05 18:53:12  sueh
  * <p> bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
  * <p> back from updateAlignCom().
@@ -1217,6 +1226,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.updateDataParameters(paramFile, metaData);
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedTestParamFile = true;
+        state.initialize(EtomoState.NO_RESULT_VALUE);
       }
       else {
         String[] errorMessage = new String[2];
@@ -3215,21 +3225,18 @@ public class ApplicationManager extends BaseManager {
     if (tomogramGenerationDialog == null) {
       return;
     }
-    boolean madeZFactors;
-    if (state.getMadeZFactors().isNull()) {
-      madeZFactors = state.getBackwordCompatibleMadeZFactors(axisID);
+    if (!state.getMadeZFactors().isSet() ) {
+      if (!state.getNewstFiducialessAlignment().isSet()) {
+        tomogramGenerationDialog.enableUseZFactors(false);
+      }
+      else {
+        tomogramGenerationDialog.enableUseZFactors(state.getBackwordCompatibleMadeZFactors(axisID)
+            && !state.getNewstFiducialessAlignment().is());
+      }
     }
     else {
-      madeZFactors = state.getMadeZFactors().is();
-    }
-    boolean newstFiducialessAlignment;
-    if (state.getNewstFiducialessAlignment().isNull()) {
-      newstFiducialessAlignment = state.getBackwordCompatibleNewstFiducialessAlignment(axisID);
-    }
-    else {
-      newstFiducialessAlignment = state.getNewstFiducialessAlignment().is();
-    }
-    tomogramGenerationDialog.enableUseZFactors(madeZFactors && !newstFiducialessAlignment);
+    tomogramGenerationDialog.enableUseZFactors(state.getMadeZFactors().is()
+        && !state.getNewstFiducialessAlignment().is());}
   }
 
   /**
