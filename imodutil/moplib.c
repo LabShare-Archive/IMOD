@@ -341,8 +341,8 @@ void *mrc_readz(FILE *fin, struct MRCheader *hdata, int z)
   b3dInt32 *fdata;
   long xysize;
      
-  rewind(fin);
-  b3dFseek(fin, 1024, SEEK_CUR);
+  /* DNM 1/17/04: remove rewind, seek to headerSize not 1024 */
+  b3dFseek(fin, hdata->headerSize, SEEK_SET);
   xysize = hdata->nx * hdata->ny;
      
 
