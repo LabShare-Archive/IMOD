@@ -18,6 +18,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/05 21:11:47  mast
+c	  Added check for overrunning internal arrays and output arrays, and
+c	  increased size of internal arrays
+c	
 
 	subroutine convexbound(sx,syin,npnts,fracomit,pad,bx,by,nvert,
      &	    xcen,ycen,maxverts)
