@@ -8,7 +8,8 @@ g5a.fid
 # next line, name of image file, or blank line followed by NX,NY/
 g5a.st
 #1024,1024/	size and origin information; comment out if use image file
-# next line, filename for model output of X-Y-Z coordinates, blank for none
+# next line, filename for model output of X-Y-Z coordinates, or
+# a name containing ".res" for text output of residuals, or blank for neither
 
 # next line, filename for text output of X-Y-Z coordinates, blank for none
 g5afid.xyz
