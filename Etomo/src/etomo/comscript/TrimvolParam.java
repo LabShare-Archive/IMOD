@@ -11,6 +11,12 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/22 01:53:33  sueh
+ * <p> bug# 441 Added store(), load(), and equals().  Prevented
+ * <p> setDefaultRange from overriding non-default values.  Moved
+ * <p> the logic for creating the inputFile and outputFile names into
+ * <p> this class
+ * <p>
  * <p> Revision 3.1  2004/04/22 23:27:28  rickg
  * <p> Switched getIMODBinPath method
  * <p>
@@ -504,6 +510,7 @@ public class TrimvolParam {
   public void setDefaultRange() throws InvalidParameterException, IOException {
     setDefaultRange(inputFile);
   }
+  
   public void setDefaultRange(String fileName)
       throws InvalidParameterException, IOException {
     //Don't override existing values
@@ -567,6 +574,10 @@ public class TrimvolParam {
    */
   public String getOutputFile() {
     return outputFile;
+  }
+  
+  public static String getOutputFile(String datasetName) {
+    return datasetName + ".rec";
   }
   /**
    * 
