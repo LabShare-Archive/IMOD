@@ -549,7 +549,6 @@ void zapPaint(ZapStruct *zap)
   zapDrawGraphics(zap);
 
   zapDrawModel(zap);
-  zapDrawCurrentPoint(zap, 0);
   zapDrawAuto(zap);
   if (zap->rubberband) {
     b3dColorIndex(App->endpoint);
@@ -2089,6 +2088,7 @@ static void zapDrawModel(ZapStruct *zap)
   int ob, co;
   int surf = -1;
   Icont *cont = imodContourGet(vi->imod);
+  Iobj *xobj = vi->extraObj;
 
   if (vi->imod->drawmode <= 0)
     return;
@@ -2098,13 +2098,13 @@ static void zapDrawModel(ZapStruct *zap)
   if (cont)
     surf = cont->surf;
 
-  for(ob = 0; ob < vi->imod->objsize; ob++){
+  for (ob = 0; ob < vi->imod->objsize; ob++){
     if (iobjOff(vi->imod->obj[ob].flags))
       continue;
     imodSetObjectColor(ob); 
     b3dLineWidth(vi->imod->obj[ob].linewidth2); 
 
-    for(co = 0; co < vi->imod->obj[ob].contsize; co++){
+    for (co = 0; co < vi->imod->obj[ob].contsize; co++){
       if (ob == vi->imod->cindex.object){
         if (co == vi->imod->cindex.contour){
           zapDrawContour(zap, co, ob);
@@ -2123,7 +2123,20 @@ static void zapDrawModel(ZapStruct *zap)
       zapDrawContour(zap, co, ob); 
     }
   }
-  return;
+
+  // Moved current point drawing into this routine so it could happen before
+  // the extra object
+  zapDrawCurrentPoint(zap, 0);
+  if (!xobj->contsize)
+    return;
+
+  // If there are contours in the extra object, set color or red, and draw
+  if (App->rgba)
+    glColor3f(xobj->red, xobj->green, xobj->blue);
+  else
+    b3dColorIndex(App->endpoint);
+  for (co = 0; co < xobj->contsize; co++)
+    zapDrawContour(zap, co, -1);
 }
 
 void zapDrawSymbol(int mx, int my, 
@@ -2169,14 +2182,20 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
 {
   ImodView *vi = zap->vi;
   float delz;
-  Iobj  *obj  = &(vi->imod->obj[ob]);
-  Icont *cont = &(vi->imod->obj[ob].cont[co]);
+  Iobj  *obj;
+  Icont *cont;
   Ipoint *point;
   int pt, radius, lastX, lastY, thisX, thisY;
   float drawsize;
   bool lastVisible, thisVisible;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
+
+  if (ob >= 0)
+    obj  = &(vi->imod->obj[ob]);
+  else
+    obj = zap->vi->extraObj;
+  cont = &(obj->cont[co]);
 
   if ((!cont) || (!cont->psize))
     return;
@@ -2638,6 +2657,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.23  2003/06/18 05:54:33  mast
+Start a new contour if section or time changes while dragging
+
 Revision 4.22  2003/05/23 02:44:20  mast
 Fix syncing to new point in other Zap windows
 
