@@ -54,7 +54,7 @@ public class XcorrProcessWatcher implements Runnable {
             if (fields.length > 9) {
               nSections = Integer.parseInt(fields[9]);
               applicationManager.setProgressBar(
-                "Creating coarse stack",
+                "Cross-correlating stack",
                 nSections,
                 axisID);
               foundNSections = true;
