@@ -112,7 +112,7 @@ if ($compiler == intel) then
     set ltiff = libtiff.lib
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo "IMLIBS     =  libhvem.lib libim.lib libifft.lib libimod.lib librandm.lib libdtrigs.lib" >> $configure
+    echo "IMLIBS     =  libhvem.lib libim.lib libifft.lib libimod.lib" >> $configure
     echo 'LINUXFLIBS = ' >> $configure
 else
     echo "CLIBS   = -lc -lm" >> $configure
