@@ -70,6 +70,7 @@ import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
 import etomo.ui.UIParameters;
+import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
@@ -88,6 +89,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84  2004/06/28 22:10:29  rickg
+ * <p> Bug #470 Moved the fiducial mode file copying to the same sections
+ * <p> where the fiducialless is handled.
+ * <p>
  * <p> Revision 3.83  2004/06/28 04:36:39  rickg
  * <p> Bug #470 Added method to update prexf and _nonfid.xf
  * <p>
@@ -1578,6 +1583,7 @@ public class ApplicationManager {
     if (updatePrenewstCom(axisID)) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
       mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+      nextProcess = "checkUpdateFiducialModel";
       String threadName;
       try {
         threadName = processMgr.coarseAlign(axisID);
@@ -5390,6 +5396,10 @@ public class ApplicationManager {
       volcombine();
       return;
     }
+    if (nextProcess.equals("checkUpdateFiducialModel")) {
+      checkUpdateFiducialModel(axisID);
+      return;
+    }
   }
 
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -5495,4 +5505,40 @@ public class ApplicationManager {
   MainFrame getMainFrame() {
     return mainFrame;
   }
+  
+  protected void checkUpdateFiducialModel(AxisID axisID) {
+    nextProcess = "";
+    FidXyz fidXyz =
+      new FidXyz(metaData.getDatasetName() + axisID.getExtension() + "fid.xyz");
+    MRCHeader mrcHeader =
+      new MRCHeader(
+        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+    try {
+      fidXyz.read();
+      mrcHeader.read();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
+    if (!fidXyz.exists()) {
+      return;
+    }
+
+    if (fidXyz.getPixelSize() != mrcHeader.getXPixelSpacing()) {
+      mainFrame.openMessageDialog(
+        "The prealigned image stack binning has changed.  You must:\n    1. Go "
+        + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
+        + "fiducial model.\n    2. Save the fiducial model by pressing "
+        + "\"s\".\n    3. Go to Fine Alignment and press Compute Alignment to"
+        + " rerun align" + axisID.getExtension() + ".com.",
+        "Prealigned image stack binning has changed");
+      return;
+    }
+  }
+  
 }
