@@ -238,6 +238,11 @@ will be displayed as black (0) and white (255) on the screen.  Without this
 option, intensities are scaled between the minimum and maximum intensities in
 the image file.  Images can be rescaled after imod is running using the
 .TP
+.B -view   -imodv
+.br
+Either option will run imod in model view mode, the same as using the command
+imodv to start the program.  Only imodv(1) options are allowed in this case.
+.TP
 .B -W
 Output the window ID of the imod Information Window and do not put put imod
 in the background automatically.
@@ -653,7 +658,7 @@ Ctrl-S - Snapshot to TIFF file
 .TP
 .I Mouse Buttons in the XYZ Window
  Actions in Movie Mode:
-    Clicking the left mouse button will select the current
+    Clicking the first mouse button will select the current
 point.  In one of the three image planes, this will generally change the
 coordinates displayed in the other two planes.  Clicking in the horizontal
 gutter region occupied by the X marker line will change the current X
