@@ -16,6 +16,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/03/13 02:27:10  sueh
+ * <p> bug# 373 Changed updateComScriptCommand() - not saving default
+ * <p> FortranInputStrings
+ * <p>
  * <p> Revision 3.6  2004/03/12 21:19:24  sueh
  * <p> bug# 373 Changed UpdateComScriptCommand() - removed XMinAndMax,
  * <p> YMinAndMax from comscript when they are blank.
@@ -389,6 +393,9 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("StartingEndingViews");
     }
+  }
+  
+  public void initializeDefaults() {
   }
 
   protected void sequentialInputToPip() {

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/18 17:59:34  rickg
+ * <p> Bug #363 Spelling error correction on AllSectionObjects
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -257,6 +260,9 @@ public class CCDEraserParam
     else {
       scriptCommand.deleteKey("TrialMode");
     }
+  }
+  
+  public void initializeDefaults() {
   }
 
   public void setInputFile(String inputFile) {

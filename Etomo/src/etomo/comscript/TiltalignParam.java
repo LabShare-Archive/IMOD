@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.7  2003/10/14 20:30:56  rickg
  * <p> Bug#279  Label layout and name changes
  * <p>
@@ -411,6 +414,9 @@ public class TiltalignParam
 
     inputArgs = putComScriptArguments(inputArgs);
     scriptCommand.setInputArguments(inputArgs);
+  }
+  
+  public void initializeDefaults() {
   }
 
   //

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/24 02:55:44  rickg
+ * <p> Bug# 395 Implemented ability to create binned tomogram
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -418,6 +421,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setInputArguments(
     (ComScriptInputArg[]) cmdLineArgs.toArray(new ComScriptInputArg[nArgs]));
+  }
+  
+  public void initializeDefaults() {
   }
 
   /**

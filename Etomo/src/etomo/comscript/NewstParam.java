@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/03/13 00:31:36  rickg
+ * <p> Bug# 390 Add parsing for the rest of the options
+ * <p>
  * <p> Revision 3.5  2004/03/12 00:16:37  rickg
  * <p> Bug #410 Newstack PIP transition
  * <p> Change instances of newst command to newstack when updating
@@ -318,6 +321,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     if (scriptCommand.getCommand().equals("newst")) {
       scriptCommand.setCommand("newstack");
     }
+  }
+  
+  public void initializeDefaults() {
   }
 
   public void setOffset(String newOffset) throws FortranInputSyntaxException {

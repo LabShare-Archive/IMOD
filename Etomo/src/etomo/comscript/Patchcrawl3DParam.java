@@ -15,6 +15,9 @@ import java.util.Vector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/11 18:14:32  sueh
+ * <p> bug# 386 changing updateComScriptCommand()
+ * <p>
  * <p> Revision 3.2  2004/03/05 18:17:44  sueh
  * <p> bug# 250 changed updateComScriptCommand() - allow cmdLineArgs to grow
  * <p>
@@ -199,6 +202,10 @@ public class Patchcrawl3DParam
     scriptCommand.setCommandLineArgs(
       (String[]) cmdLineArgs.toArray(new String[cmdLineArgs.size()]));
   }
+  
+  public void initializeDefaults() {
+  }
+
   /**
    * Sets the fileA.
    * @param fileA The fileA to set

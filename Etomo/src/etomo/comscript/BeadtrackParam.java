@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/08/07 17:59:06  rickg
  * <p> Merged in tilt angle fix from beta2a branch
  * <p>
@@ -160,6 +163,9 @@ public class BeadtrackParam
       throw new FortranInputSyntaxException(message, except.getNewString());
     }
 
+  }
+  
+  public void initializeDefaults() {
   }
 
   /**
