@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/10/02 01:30:22  mast
+Added message to open bead fixer
+
 Revision 3.4  2003/08/01 05:52:54  mast
 *** empty log message ***
 
@@ -80,7 +83,7 @@ class ImodClipboard : public QObject
   bool handleMessage();
   bool executeMessage();
   void sendResponse(int succeeded);
-
+  unsigned int ourWindowID();
 
   QTimer *mClipTimer;
   QTimer *mClipHackTimer;
