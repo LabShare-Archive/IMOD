@@ -2,8 +2,8 @@ package etomo.type;
 
 import java.io.File;
 
+import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
-
 /*
  * <p>Description: </p>
  *
@@ -17,6 +17,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/30 23:48:32  rickg
+ * <p> Reformatted after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -128,7 +131,7 @@ public class ConstMetaData {
     return invalidReason;
   }
 
-  public CombineParams getCombineParams() {
+  public ConstCombineParams getCombineParams() {
     return combineParams;
   }
 
