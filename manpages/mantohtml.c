@@ -1,3 +1,11 @@
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdio.h>
 
 int main(int argc , char **argv)
@@ -74,4 +82,5 @@ int main(int argc , char **argv)
      }
 
      printf("</pre></body></html>\n");
+     return 0;
 }
