@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2003/10/08 17:20:04  mast
+Changes to work with autodoc files
+
 Revision 3.6  2003/08/09 17:01:00  mast
 Fix bug in new functions
 
@@ -419,13 +422,13 @@ int PipNextArg(char *argString)
       PipSetError("Illegal argument: - or --");
       return -1;
     }
-    numOptionArguments++;
 
     /* First check for StandardInput */
     if (StartsWith(STANDARD_INPUT_STRING, argString + indStart)) {
       err = ReadParamFile(stdin);
       return err;
     }
+    numOptionArguments++;
 
     /* Lookup the option among true defined options */
     err = LookupOption(argString + indStart, nextOption);
@@ -1164,9 +1167,10 @@ static int ReadParamFile(FILE *pFile)
     if (PipMemoryError(token, "ReadParamFile"))
       return -1;
 
-    /* Add the token as a value string */
+    /* Add the token as a value string and increment argument number */
     if ((err = AddValueString(optNum, token)))
       return err;
+    numOptionArguments++;
   }
   return 0;
 }
@@ -1220,7 +1224,7 @@ static int ReadNextLine(FILE *pFile, char *lineStr, int strSize,
     /* adjust line length back further to remove white space and newline */
     while (lineLen > 0) {
       ch = lineStr[lineLen - 1]; 
-      if (ch != ' ' && ch != '\t' && ch != '\n')
+      if (ch != ' ' && ch != '\t' && ch != '\n' && ch != '\r')
         break;
       lineLen--;
     }
