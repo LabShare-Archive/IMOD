@@ -2,6 +2,7 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.comscript.ComScriptCommand;
 import etomo.storage.Storable;
 
 /**
@@ -18,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/16 02:27:28  sueh
+* <p> bug# 564 Remove recommendedValue.  Use resetValue instead.  Added
+* <p> is().
+* <p>
 * <p> Revision 1.1  2004/12/14 21:43:15  sueh
 * <p> bug# 564 A three state boolean (null, true, false).
 * <p> </p>
@@ -25,6 +30,8 @@ import etomo.storage.Storable;
 public abstract class ConstEtomoBoolean implements Storable {
   public static  final String  rcsid =  "$Id$";
   
+  public static final int UPDATE_AS_KEYWORD = -1;
+  public static final int UPDATE_AS_INTEGER = -2;
   private static final int nullValue = Integer.MIN_VALUE;
   
   protected String name;
@@ -35,6 +42,8 @@ public abstract class ConstEtomoBoolean implements Storable {
   protected int resetValue;
   protected boolean useBackwardCompatibleValue;
   protected int backwardCompatibleValue;
+  private int updateAs = UPDATE_AS_KEYWORD;
+  
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
 
@@ -97,6 +106,18 @@ public abstract class ConstEtomoBoolean implements Storable {
     return this;
   }
   
+  /**
+   * Set updateAs, which changes how the object is stored in ComScriptCommand.
+   * UPDATE_AS_KEYWORD (default) stores the name only if the object is true.
+   * UPDATE_AS_INTEGER stores the name and 0 or 1.
+   * @param updateAs
+   * @return
+   */
+  public ConstEtomoBoolean setUpdateAs(int updateAs) {
+    this.updateAs = updateAs;
+    return this;
+  }
+  
   public void setDescription(String description) {
     if (description != null) {
       this.description = description;
@@ -135,6 +156,35 @@ public abstract class ConstEtomoBoolean implements Storable {
       return false;
     }
      return true;
+  }
+  
+  /**
+   * update name and value in ComScriptCommand
+   * @param scriptCommand
+   * @return
+   */
+  public ConstEtomoBoolean update(ComScriptCommand scriptCommand) {
+    if (value == 0 || isNull()) {
+      switch (updateAs) {
+      case UPDATE_AS_KEYWORD:
+        scriptCommand.deleteKey(name);
+        break;
+      case UPDATE_AS_INTEGER:
+        scriptCommand.setValue(name, "0");
+        break;
+      }
+    }
+    else {
+      switch (updateAs) {
+      case UPDATE_AS_KEYWORD:
+        scriptCommand.setValue(name, "");
+        break;
+      case UPDATE_AS_INTEGER:
+        scriptCommand.setValue(name, "1");
+        break;
+      }
+    }
+    return this;
   }
 
   public boolean isNull() {
@@ -203,15 +253,39 @@ public abstract class ConstEtomoBoolean implements Storable {
   }
   
   protected int toInteger(String value) {
-    if (value.equals("true") || value.equals("TRUE") || value.equals("t")
-        || value.equals("T") || value.equals("1")) {
+    value = value.toLowerCase();
+    if (value == null || value.matches("\\s*") || value.equals("null")) {
+      return Integer.MIN_VALUE;
+    }
+    if (value.equals("true") || value.equals("t") || value.equals("yes")) {
       return 1;
     }
-    if (value.equals("false") || value.equals("FALSE") || value.equals("f")
-        || value.equals("F") || value.equals("0")) {
+    if (value.equals("false") || value.equals("f") || value.equals("no")) {
       return 0;
     }
-    return Integer.MIN_VALUE;
+    long longValue;
+    try {
+      longValue = Long.parseLong(value);
+    }
+    catch (NumberFormatException eLong) {
+      double doubleValue;
+      try {
+        doubleValue = Double.parseDouble(value);
+      }
+      catch (NumberFormatException eDouble) {
+        return Integer.MIN_VALUE;
+      }
+      //convert floating point value
+      if (doubleValue == 0) {
+        return 0;
+      }
+      return 1;
+    }
+    //convert integer value
+    if (longValue == 0) {
+      return 0;
+    }
+    return 1;
   }
   
   protected String toString(int value) {
