@@ -1,13 +1,3 @@
-
-package etomo.util;
-
-import java.io.File;
-
-import etomo.ApplicationManager;
-import etomo.type.ConstMetaData;
-import etomo.type.AxisID;
-import etomo.process.SystemProgram;
-
 /**
  * <p>Description: A class containing utility methods.</p>
  *
@@ -22,6 +12,9 @@ import etomo.process.SystemProgram;
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.3  2004/04/08 19:12:10  rickg
+ * <p> $Added millisToMinAndSecs method
+ * <p> $
  * <p> $Revision 3.2  2003/12/05 01:24:23  sueh
  * <p> $bug242 moved getEnvironmentVariable() to Utilities
  * <p> $
@@ -39,13 +32,19 @@ import etomo.process.SystemProgram;
  * <p> $to fiducial model dialog
  * <p> $$</p>
  */
+package etomo.util;
 
-/**
- * @author sueh
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+import etomo.ApplicationManager;
+import etomo.type.ConstMetaData;
+import etomo.type.AxisID;
+import etomo.process.SystemProgram;
+
 public class Utilities {
   private Utilities() {
   }
@@ -67,15 +66,47 @@ public class Utilities {
     return String.valueOf(minutes) + ":" + strSeconds;
   }
 
-  static public boolean fileExists(ConstMetaData metaData, String fileName,
-      AxisID axisID) {
+  /**
+   * Check see if the particular dataset file exists
+   * @param metaData
+   * @param extension
+   * @param axisID
+   * @return true if the file exist
+   */
+  static public boolean fileExists(ConstMetaData metaData, String extension,
+    AxisID axisID) {
     String workingDirectory = System.getProperty("user.dir");
     File file = new File(workingDirectory, metaData.getDatasetName()
-        + axisID.getExtension() + fileName);
+      + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
     return false;
+  }
+
+  public static void copyFile(File source, File destination) throws IOException {
+    // Try using the nio method but if it fails fall back to BufferedFileReader/
+    // BufferedFileWriter approach
+    FileInputStream sourceStream = new FileInputStream(source);
+    FileOutputStream destStream = new FileOutputStream(destination);
+    FileChannel sourceChannel = null;
+    FileChannel destChannel = null;
+    try {
+      sourceChannel = sourceStream.getChannel();
+      destChannel = destStream.getChannel();
+
+      sourceChannel.transferTo(0L, sourceChannel.size(), destChannel);
+    }
+
+    catch (IOException exception) {
+      int byteIn;
+      while ((byteIn = sourceStream.read()) != -1)
+         destStream.write(byteIn);
+    }
+    sourceChannel.close();
+    sourceStream.close();
+    destChannel.close();
+    destStream.close();
   }
 
   /**
@@ -110,7 +141,7 @@ public class Utilities {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run cmd command to find " + varName
-            + " environment variable");
+          + " environment variable");
 
         return "";
       }
@@ -140,7 +171,7 @@ public class Utilities {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run env command to find " + varName
-            + " environment variable");
+          + " environment variable");
 
         return "";
       }
