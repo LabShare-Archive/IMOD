@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/13 20:57:45  mast
+    Added defines for MESSAGES's, removed redundant declarations that are also
+    in imod_io.h
+
 */
 
 #ifndef IMODP_H
@@ -323,6 +327,7 @@ extern int Rampbase;
 #define MESSAGE_OPEN_MODEL  1
 #define MESSAGE_SAVE_MODEL  2
 #define MESSAGE_VIEW_MODEL  3
+#define MESSAGE_QUIT  4
 
 /* Colors for 12-bit colormap systems */
 #define RAMPBASE 256
