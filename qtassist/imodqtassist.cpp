@@ -16,8 +16,12 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2004/12/22 05:49:02  mast
+    Addition to package
+
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #ifndef _WIN32
 #include <sys/select.h>
@@ -54,7 +58,7 @@ static int readLine(char *line)
 // MAIN
 int main(int argc, char *argv[])
 {
-  int retval, ind;
+  int retval, ind = 1;
   char *adp = NULL;
   bool absolute = false;
 
@@ -89,7 +93,7 @@ int main(int argc, char *argv[])
   }
 
   // start the help object
-  imodHelp = new ImodAssistant(argv[1], adp, NULL, absolute);
+  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absolute);
 
   // Get a listener for the errors
   AssistantListener *listener = new AssistantListener();
