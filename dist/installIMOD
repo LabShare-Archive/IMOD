@@ -2,7 +2,7 @@
 #
 # Multi-platform install script for IMOD. 
 # Usage : installIMOD [-d install_dir] [package name]
-# If run with no arguments, it will look for a package in the current 
+# If run with no package name, it will look for a package in the current 
 # directory and try to install it if there is only one.
 #
 #  $Author$
@@ -23,6 +23,7 @@ if ($#argv > 0) then
     if ("$argv[1]" == "-d" || "$argv[1]" == "-dir") then
         set installdir = $argv[2]
         shift; shift
+    endif
 endif
 
 if ($#argv > 0) then
@@ -64,7 +65,7 @@ switch ($system)
         set os = irix
         # leave out /etc/profile because it is more likely used by sh than
         # bash users
-        set scripts = (sgi.cshrc)
+        set scripts = (sgi.cshrc IMOD-sgi.csh IMOD-sgi.sh)
         set sysfiles = (/etc/cshrc)
         breaksw
     case *Linux*:
@@ -79,7 +80,7 @@ switch ($system)
     case *Darwin*:
         set os = osx
         set defaultdir = /Applications
-        set scripts = (mac.cshrc mac.bashrc)
+        set scripts = (mac.cshrc mac.bashrc IMOD-mac.csh IMOD-mac.sh)
         set sysfiles = (/etc/csh.login /etc/profile)
         breaksw
 
@@ -215,14 +216,23 @@ set defaultstr = `echo $defaultdir/IMOD | sed '/\//s//\\\//g'`
 set installstr = `echo $installdir/IMOD | sed '/\//s//\\\//g'`
 
 cd IMOD
+
+# Edit scripts in place before copying; needed on mac/sgi
+#
+if ($custom == 1) then
+    echo "Editing startup scripts for custom install location"
+    foreach i ($scripts)
+        sed "/$defaultstr/s//$installstr/g" $i >! custom.tmp
+        \mv custom.tmp $i
+    end
+endif    
+
 if ($os == windows || $os == linux) then
 
     # The easy ones: copy to /etc/profile.d
     #
     echo "Copying startup scripts to /etc/profile.d: $scripts"
-    foreach i ($scripts)
-        sed "/$defaultstr/s//$installstr/g" $i >! /etc/profile.d/$i
-    end
+    \cp $scripts /etc/profile.d
 else
 
     # The hard ones: append a source command to a system file if files exist
@@ -230,7 +240,7 @@ else
     #
     set warned = 0
     @ ind = 1
-    while ($ind <= $#scripts)
+    while ($ind <= $#sysfiles)
         set sysfil = $sysfiles[$ind]
         if (-e $scripts[$ind] && -e $sysfil) then
             if ($custom == 1) then
@@ -257,8 +267,7 @@ else
                 endif
                 echo "Adding source of startup script to $sysfil"
                 echo "# Set environment for IMOD" >> $sysfil
-                echo "" >> $sysfil
-                tail -n 2 $scripts[$ind] | sed "/$defaultstr/s//$installstr/g" >> $sysfil
+                tail -n 2 $scripts[$ind] >> $sysfil
             else
                 echo "Source command already exists in $sysfil"
             endif
@@ -284,6 +293,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.9  2005/01/10 16:32:13  mast
+#  Added option to install elsewhere
+#
 #  Revision 3.8  2004/08/27 05:48:20  mast
 #  Switched to tail -n
 #
