@@ -167,10 +167,13 @@ EOF
 
 #
 # Set up to copy qt lib for a distribution
-echo 'QTINSTLIBDIR = lib' >> $configure
+echo 'QTINSTLIBDIR = lib32' >> $configure
 
 
 #  $Log$
+#  Revision 3.7  2003/05/08 20:23:27  mast
+#  *** empty log message ***
+#
 #  Revision 3.6  2003/05/08 20:22:32  mast
 #  *** empty log message ***
 #
