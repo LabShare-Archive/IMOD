@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/09/21 20:08:59  mast
+    Added clipping plane declarations
+
     Revision 3.2  2003/07/31 21:32:24  mast
     New functions to operate on objviews
 
@@ -68,9 +71,6 @@ extern "C" {
   int imodObjviewComplete(Imod *imod);
   void imodObjviewDelete(Imod *imod, int index);
   void imodObjviewsFree(Imod *imod);
-  void imodClipsInitialize(IclipPlanes *clips);
-  void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags);
-  int imodClipsRead(IclipPlanes *clips, FILE *fin);
 
 
 /* Image File view functions. */

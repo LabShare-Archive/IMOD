@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/09/21 20:12:26  mast
+Changes for multiple and global clip planes, added clip functions
+
 Revision 3.6  2004/09/10 21:33:46  mast
 Eliminated long variables
 
@@ -589,51 +592,4 @@ int imodIMNXWrite(Imod *imod)
 
   imodPutFloats(imod->file, (float *)imod->refImage, 18);
   return(0);
-}
-
-/* Initialize all clip planes and other parameters of the clip plane set */
-void   imodClipsInitialize(IclipPlanes *clips)
-{
-  int i;
-  clips->count       = 0;
-  clips->flags = 0;
-  clips->trans = 0;
-  clips->plane = 0;
-  for (i = 0; i < IMOD_CLIPSIZE; i++) {
-    clips->normal[i].x = clips->normal[i].y = 0.0f;
-    clips->normal[i].z = -1.0f;
-    clips->point[i].x = clips->point[i].y = clips->point[i].z = 0.0f;
-  }
-}
-
-/* Read all the clip planes of a set based on the size of the chunk */
-int imodClipsRead(IclipPlanes *clips, FILE *fin)
-{
-  int size, nread;
-  size = imodGetInt(fin);
-  nread = (size - SIZE_CLIP) / 24 + 1;
-
-  imodGetBytes(fin, (unsigned char *)&clips->count, 4);
-  imodGetFloats(fin, (float *)&clips->normal[0], 3 * nread);
-  imodGetFloats(fin, (float *)&clips->point[0], 3 * nread);
-  return(ferror(fin));
-}
-
-/* Fix the count of clip planes for old files or for a count set to zero
-   when written in a new file.
-   If clip is 0 and the first plane is not in initialized state,
-   turn off first flag and set clip 1; otherwise, if old model
-   and clip is nonzero, set the first flag and make sure clip is 1 */
-void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags)
-{
-  if (!clips->count && 
-      (clips->point[0].x || clips->point[0].y || 
-       clips->point[0].z || clips->normal[0].x || 
-       clips->normal[0].y || clips->normal[0].z != -1.f)) {
-    clips->flags &= 254;
-    clips->count = 1;
-  } else if (clips->count && !(flags & IMODF_MULTIPLE_CLIP)) {
-    clips->flags |= 1;
-    clips->count = 1;
-  }
 }
