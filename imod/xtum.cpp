@@ -242,7 +242,7 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
   // Help button
   mHelpButton = new QPushButton("Help", topHBox, "Help button");
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
-  connect(mHelpButton, SIGNAL(pressed()), this, SLOT(help()));
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   setFontDependentWidths();
 
   // Spacer for the top row
@@ -1313,6 +1313,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.13  2003/09/16 02:11:18  mast
+Changed to access image data using new line pointers
+
 Revision 4.12  2003/04/28 04:01:40  mast
 Fx hot key text
 

@@ -156,7 +156,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
     QToolTip::add(mEditBox[i], boxTips[i]);
   }
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Model Header"));
 
   update();
@@ -442,6 +442,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.4  2003/04/17 18:43:38  mast
 adding parent to window creation
 

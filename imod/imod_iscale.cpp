@@ -135,7 +135,7 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
   showFileAndMMM();
   updateLimits();
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Image Scale"));
   show();
 }
@@ -357,6 +357,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2004/01/09 15:55:32  mast
+Use image smin/msax instead of li values when updating
+
 Revision 4.9  2004/01/08 06:42:45  mast
 Fixed treatment of complex data
 

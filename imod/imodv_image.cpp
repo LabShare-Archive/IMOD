@@ -339,7 +339,7 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   mFalseBox->setChecked(Falsecolor);
   connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
 
 // Viewing image is turned on or off
@@ -438,6 +438,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2003/10/27 04:57:22  mast
+Fixed problem with reverse contrast
+
 Revision 4.7  2003/09/16 02:09:14  mast
 Changed to access image data using new line pointers
 

@@ -138,7 +138,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   QToolButton *button = new QToolButton(mToolBar, "show slice");
   button->setPixmap(*showBitmap);
   button->setAutoRaise(AUTO_RAISE);
-  connect(button, SIGNAL(pressed()), this, SLOT(showslicePressed()));
+  connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
   
   // The Z scale combo box
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
@@ -154,7 +154,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   // Help button
   mHelpButton = new QPushButton("Help", mToolBar, "Help button");
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
-  connect(mHelpButton, SIGNAL(pressed()), this, SLOT(help()));
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   QToolTip::add(mHelpButton, "Open help window");
   setFontDependentWidths();
 
@@ -446,6 +446,9 @@ void SlicerCube::resizeGL( int wdth, int hght )
 
  /*
 $Log$
+Revision 4.7  2003/12/16 23:54:13  mast
+Move floatspinbox to libdiaqt
+
 Revision 4.6  2003/10/01 05:04:19  mast
 change include from imodP to imod after eliminating imod.h from imodP.h
 

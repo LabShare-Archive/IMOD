@@ -469,7 +469,7 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   connect(mSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
 
 // User selects a new option
@@ -579,6 +579,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 

@@ -916,7 +916,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   clearListBut->setFixedWidth(width);
   QToolTip::add(clearListBut, "Allow all points to be examined again");
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
 }
 
@@ -1028,6 +1028,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.1  2003/10/01 05:09:36  mast
+    Conversion to internal module in 3dmod
+
     Revision 3.9  2003/08/01 00:16:51  mast
     Made "examine once" be default and rearranged buttons
 

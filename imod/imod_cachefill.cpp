@@ -606,7 +606,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
   for (int i = 0; i < 3; i++)
     mOverlapRadio[i]->setEnabled(imodCacheFillData.autofill != 0);
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setCaption(imodCaption("3dmod Cache Filler"));
   show();
@@ -731,6 +731,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2004/01/06 16:54:33  mast
+Needed to save axis flag before starting to load data in case it changes
+
 Revision 4.6  2004/01/05 18:08:45  mast
 Changes to use new cache index, to avoid loading while other loading
 is going on, and to use ivwReadBinned.  Renamed vw to vi.

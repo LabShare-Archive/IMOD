@@ -362,6 +362,10 @@ static int last_time = 0;
 static MeanSDData *secData = NULL;
 static int table_size = 0;
 static int tdim = 0;
+static int singleCleared = 0;
+static int clearedSection, clearedTime;
+static float clearedMean, clearedSD;
+
 
 
 /*
@@ -426,7 +430,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   int i, newwhite, newblack, err1;
   int needsize, iref, isec;
   int ixStart, iyStart, nxUse, nyUse;
-  float sloperatio, tmp_black, tmp_white;
+  float sloperatio, tmp_black, tmp_white, refMean, refSD;
   unsigned char **image;
   int retval = 0;
 
@@ -467,20 +471,34 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     /* Get information about reference and current sections if necessary;
      i.e. if there is no SD already or if area doesn't match*/
     err1 = 0;
-    if (secData[iref].sd < 0. || ixStart != secData[iref].ixStart || 
-        iyStart != secData[iref].iyStart || 
-        nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) {
-      image = ivwGetZSectionTime(vw, last_section, last_time);
-      err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
-                          ixStart, iyStart, nxUse, nyUse, 
-                          &secData[iref].mean, &secData[iref].sd);
-      if (!err1 && secData[iref].sd < 0.1)
-        secData[iref].sd = 0.1;
+    /* printf("sc %d iref %d isec %d lastsec %d clearedsec %d sd %f\n",
+          singleCleared, iref, isec, last_section, clearedSection, 
+          secData[iref].sd); */
+    if (singleCleared && iref == isec && last_section == clearedSection && 
+        last_time == clearedTime && secData[iref].sd < 0.) {
 
-      /* Adjust for compressed data in 8-bit CI mode */
-      if (!err1 && App->depth == 8)
-	secData[iref].mean = (secData[iref].mean - vw->rampbase) * 256. /
-          vw->rampsize;
+      // If this is a section that was cleared, use the saved values
+      refMean = clearedMean;
+      refSD = clearedSD;
+
+    } else {
+      if (secData[iref].sd < 0. || ixStart != secData[iref].ixStart || 
+          iyStart != secData[iref].iyStart || 
+          nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) {
+        image = ivwGetZSectionTime(vw, last_section, last_time);
+        err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
+                            ixStart, iyStart, nxUse, nyUse, 
+                          &secData[iref].mean, &secData[iref].sd);
+        if (!err1 && secData[iref].sd < 0.1)
+          secData[iref].sd = 0.1;
+        
+        /* Adjust for compressed data in 8-bit CI mode */
+        if (!err1 && App->depth == 8)
+          secData[iref].mean = (secData[iref].mean - vw->rampbase) * 256. /
+            vw->rampsize;
+      }
+      refMean = secData[iref].mean;
+      refSD = secData[iref].sd;
     }
 	       
     if (!err1 && (secData[isec].sd < 0. || ixStart != secData[isec].ixStart || 
@@ -503,14 +521,13 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       secData[iref].iyStart = secData[isec].iyStart = iyStart;
       secData[iref].nyUse = secData[isec].nyUse = nyUse;
 
-      /*printf("ref %.2f %.2f  sec %.2f %.2f\n", secData[iref].mean,
-        secData[iref].sd, secData[isec].mean, secData[isec].sd); */
+      /* printf("ref %.2f %.2f  sec %.2f %.2f\n", refMean,
+         refSD, secData[isec].mean, secData[isec].sd); */
 
       /* Compute new black and white sliders; keep floating values */
-      sloperatio = secData[isec].sd / secData[iref].sd;
+      sloperatio = secData[isec].sd / refSD;
 
-      tmp_black = (secData[isec].mean - 
-        (secData[iref].mean - ref_black) * sloperatio);
+      tmp_black = (secData[isec].mean - (refMean - ref_black) * sloperatio);
       tmp_white = (tmp_black + sloperatio * (ref_white - ref_black));
 		    
       /* printf("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black, ref_white,
@@ -555,6 +572,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
 void imod_info_float_clear(int section, int time)
 {
   int i;
+  singleCleared = 0;
 
   if (section < 0 && time < 0) {
     if (secData)
@@ -570,8 +588,16 @@ void imod_info_float_clear(int section, int time)
       secData[i * tdim + time].sd = -1;
     }
   } else if (section * tdim + time < table_size) {
+
+    // If a single section is being cleared, keep track of its values
+    clearedSection = section;
+    clearedTime = time;
+    clearedMean = secData[section * tdim + time].mean;
+    clearedSD = secData[section * tdim + time].sd;
     secData[section * tdim + time].mean = -1;
     secData[section * tdim + time].sd = -1;
+    if (clearedSD >= 0.)
+      singleCleared = 1;
   }
   return;
 }
@@ -722,6 +748,10 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.10  2003/12/30 06:46:06  mast
+Made SD be at least 0.1 to prevent crash on floating to blank image,
+and fixed initialization of float_subsets
+
 Revision 4.9  2003/11/18 19:33:21  mast
 fix bug in clearing float tables when reload
 

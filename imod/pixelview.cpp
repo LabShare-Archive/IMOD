@@ -128,7 +128,7 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
       mButtons[i][j]->setFocusPolicy(NoFocus);
       layout->addWidget(mButtons[i][j], PV_ROWS - 1 - i, j + 1);
       mapper->setMapping(mButtons[i][j], i * PV_COLS + j);
-      connect(mButtons[i][j], SIGNAL(pressed()), mapper, SLOT(map()));
+      connect(mButtons[i][j], SIGNAL(clicked()), mapper, SLOT(map()));
     }
   }
   setButtonWidths();
@@ -280,6 +280,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/12/31 05:32:07  mast
+Identify whether floats or not after getting first pixel so file is set
+
 Revision 4.5  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 

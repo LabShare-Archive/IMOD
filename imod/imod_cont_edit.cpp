@@ -149,7 +149,7 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
   mButton1 = new QPushButton("Set 1", this);
   grid->addWidget(mButton1, 0, 0);
   mButton1->setFocusPolicy(NoFocus);
-  connect(mButton1, SIGNAL(pressed()), this, SLOT(set1Pressed()));
+  connect(mButton1, SIGNAL(clicked()), this, SLOT(set1Pressed()));
   QToolTip::add(mButton1, "Set first or only break point in contour");
 
   mSet1Label = new QLabel(" ", this);
@@ -158,14 +158,14 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
   mButton2 = new QPushButton("Set 2", this);
   grid->addWidget(mButton2, 1, 0);
   mButton2->setFocusPolicy(NoFocus);
-  connect(mButton2, SIGNAL(pressed()), this, SLOT(set2Pressed()));
+  connect(mButton2, SIGNAL(clicked()), this, SLOT(set2Pressed()));
   QToolTip::add(mButton2, "Set second break point in contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
   setCaption(imodCaption("3dmod Break Contours"));
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
   setLabels();
@@ -472,7 +472,7 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   mButton1 = new QPushButton("Set 1", this);
   grid->addWidget(mButton1, 0, 0);
   mButton1->setFocusPolicy(NoFocus);
-  connect(mButton1, SIGNAL(pressed()), this, SLOT(set1Pressed()));
+  connect(mButton1, SIGNAL(clicked()), this, SLOT(set1Pressed()));
   QToolTip::add(mButton1, "Set join point in first contour");
 
   mSet1Label = new QLabel(" ", this);
@@ -481,14 +481,14 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   mButton2 = new QPushButton("Set 2", this);
   grid->addWidget(mButton2, 1, 0);
   mButton2->setFocusPolicy(NoFocus);
-  connect(mButton2, SIGNAL(pressed()), this, SLOT(set2Pressed()));
+  connect(mButton2, SIGNAL(clicked()), this, SLOT(set2Pressed()));
   QToolTip::add(mButton2, "Set join point in second contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
   setCaption(imodCaption("3dmod Join Contours"));
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
   setlabel(mSet1Label, cojoin.i1);
@@ -1028,7 +1028,7 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                 " are moved");
   diaSetChecked(mKeepSizeBox, comv.keepsize != 0);
 
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Move Contour"));
 }
 
@@ -1566,6 +1566,10 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.8  2004/01/05 18:25:07  mast
+Improved explanation of point display; made conversion from contour to
+point multiply by the binning in X and Y.
+
 Revision 4.7  2004/01/05 18:21:19  mast
 Add explanation of point size being in unbinned size to help.
 

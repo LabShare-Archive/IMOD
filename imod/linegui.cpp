@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/11/27 06:08:01  mast
+Fixed bug in copying image that made it work only for square images
+
 Revision 1.1  2003/10/25 16:16:06  mast
 convert from plugin to internal module
 
@@ -344,7 +347,7 @@ LineTrack::LineTrack(QWidget *parent, const char *name)
               "Pixels to move between points when tracking");
 
   mButtons[2]->setEnabled(false);    
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
 
 // Make one edit row and store information about it
