@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/03/12 17:30:33  sueh
+ * <p> bug# 412 fixed null pointer bug, added valueSet(int) and isDefault(int)
+ * <p>
  * <p> Revision 3.5  2004/03/11 23:28:44  rickg
  * <p> Added isDefault method
  * <p>
@@ -194,6 +197,10 @@ public class FortranInputString {
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
   }
+  
+  public void setDefault(int index) {
+    value[index] = new Double(Double.NaN);
+  }
 
   /**
    * Return the string representation of the parameters
@@ -231,6 +238,21 @@ public class FortranInputString {
       idxValue--;
     }
     return buffer.toString();
+  }
+
+  public String toString(int index) {
+    if (!valueSet(index)) {
+      return "Uninitialized!";
+    }
+    if (isDefault(index)) {
+      return "";
+    }
+    if (isInteger[index]) {
+      return String.valueOf(value[index].intValue());
+    }
+    else {
+      return String.valueOf(value[index]);
+    }
   }
 
   /**
