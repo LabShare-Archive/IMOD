@@ -38,6 +38,7 @@ Log at end of file
 #include <qcombobox.h>
 #include <qlayout.h>
 #include <qslider.h>
+#include <qapplication.h>
 #include "multislider.h"
 #include "dialog_frame.h"
 #include "dia_qtutils.h"
@@ -50,6 +51,12 @@ Log at end of file
 #include "imodv_stereo.h"
 #include "preferences.h"
 #include "control.h"
+#include "xzap.h"
+
+#ifdef __sgi
+#include <X11/Xlib.h>
+#include <X11/extensions/SGIStereo.h>
+#endif
 
 
 static void stereoInit(void);
@@ -65,6 +72,7 @@ static struct{
   int       hw;
   ImodvStereo *dia;
   ImodvApp  *a;
+  int       tbVoffset;
   int       cw;
   int       omode; /* the default mode when on */
 
@@ -76,7 +84,7 @@ static struct{
   char        *restoreCommand;
      
 
-}imodvStereoData = {0, 0, 0, 0};
+}imodvStereoData = {0, 0, 0, 0, 0};
 
 
 
@@ -106,14 +114,48 @@ static void stereoDisable(void)
   stereoHWOff();
 }
 
+// Set the draw buffer to the given mode
 void stereoDrawBuffer(GLenum mode)
 {
-  // 6/6/04: Eliminated abstruse buffer-changing logic from SGI
+
+  // 6/8/04: This retains the essential calls needed to get stereo on the SGI
+
+  /* sync with GL command stream before calling X (not essential) */
+  glFinish();
+
+#ifdef __sgi
+  XSGISetStereoBuffer(Imodv->mainWin->x11Display(), 
+                      Imodv->mainWin->mCurGLw->winId(),
+		      mode == GL_BACK_LEFT ? STEREO_BUFFER_LEFT : 
+                      STEREO_BUFFER_RIGHT);
+  /* imodPrintStderr("mode %d  buffer %d\n", mode, mode == GL_BACK_LEFT ?
+     STEREO_BUFFER_LEFT : STEREO_BUFFER_RIGHT); */
+
+  // This used to be done, is not needed.  There was more buffer-switching
+  // in the old X-Motif version but none of it happened.
+  //if (mode == GL_BACK_RIGHT)
+  // mode = GL_BACK;
+
+  /* sync with X command stream before calling GL (essential) */
+  XSync(Imodv->mainWin->x11Display(), False);
+#endif
+
   glDrawBuffer(mode);
 }
 
-// 6/6/04: Eliminated stereoClear as unneeded and detrimental
+// Return an offset: sum of the offset due to window size and the user offset
+// winy has been divided by 2 already by the caller
+int imodvStereoVoffset(void)
+{
+  return (QApplication::desktop()->height() / 2 - Imodv->winy) +
+    imodvStereoData.tbVoffset;
+}
 
+// Clear the current buffer, or not as appropriate
+void imodvStereoClear()
+{
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
 // DNM 12/16/02: removed unused  stereoMakeCurrent
 
@@ -139,8 +181,8 @@ static void stereoSetUp(void)
   height = oldGeom.height();
   x = oldGeom.x();
   y = oldGeom.y();
-  if (Imodv->stereo == IMODV_STEREO_HW){
-    imodvStereoData.hw = 1;
+
+  if (Imodv->stereo == IMODV_STEREO_HW || Imodv->stereo == IMODV_STEREO_TB) {
     imodvStereoData.width = width;
     imodvStereoData.height = height;
     imodvStereoData.x = x;
@@ -152,45 +194,54 @@ static void stereoSetUp(void)
     nheight = height;
     nx = x;
     nwidth = width;
-    /* DNM: move any window that will go below edge to the top, and
-       cut the width and move windows left if necessary too */
-    // These numbers are based on the flawed SGI geometry setting where
-    // they are actually client window positions...  Will need to parameterize
-    // if it ever works elsewhere
-    if (nheight > 450) 
-      nheight = 450;
-    if (y + nheight > 484){  
-      ny = 34;
-    }
-    if (width > 1260) {
-      nwidth = 1260;
-      scalefac = (nwidth * scalefac) / width;
-    }
-    if (x + nwidth > 1270)
-      nx = 1270 - nwidth;
-             
-    /* DNM: set the zoom and enable the stereo before configuring,
-       so that the redraw will be useful, then set flag so that
-       the resize events can be skipped */
 
-    Imodv->imod->view->rad = 0.5 * 
-      (nwidth > nheight ? nheight : nwidth) / scalefac;
-    stereoEnable();
+    if (Imodv->stereo == IMODV_STEREO_HW) {
+      /* DNM: move any window that will go below edge to the top, and
+         cut the width and move windows left if necessary too */
+      // These numbers are based on the flawed SGI geometry setting where
+      // they are actually client window positions...  Will need to 
+      // parameterize if it ever works elsewhere
+      imodvStereoData.hw = 1;
+      if (nheight > 450) 
+        nheight = 450;
+      if (y + nheight > 484){  
+        ny = 34;
+      }
+      if (width > 1260) {
+        nwidth = 1260;
+        scalefac = (nwidth * scalefac) / width;
+      }
+      if (x + nwidth > 1270)
+        nx = 1270 - nwidth;
+      stereoEnable();
+      Imodv->imod->view->rad = 0.5 * 
+        (nwidth > nheight ? nheight : nwidth) / scalefac;
+
+    } else {
+
+      // For top/bottom, make the window as tall as possible
+      nheight = QApplication::desktop()->height();
+      zapLimitWindowSize(nwidth, nheight);
+      zapLimitWindowPos(nwidth, nheight, nx, ny);
+    }
+
+    // Resize and move window as needed
     if ( (y != ny) || (height != nheight) || (x != nx) || 
          (width != nwidth)){
-                 
       Imodv->mainWin->resize(nwidth, nheight);
       Imodv->mainWin->move(nx, ny);
       configured = 1;
     }
-  }else{
-    if (imodvStereoData.hw){
-      Imodv->imod->view->rad = imodvStereoData.rad;
+
+    // Turning stereo off: reset window
+  } else if (imodvStereoData.omode == IMODV_STEREO_TB || imodvStereoData.hw) {
+    if (imodvStereoData.hw) {
       stereoDisable();
-      Imodv->mainWin->resize(imodvStereoData.width, imodvStereoData.height);
-      Imodv->mainWin->move(imodvStereoData.x, imodvStereoData.y);
-      configured = 1;
+      Imodv->imod->view->rad = imodvStereoData.rad;
     }
+    Imodv->mainWin->resize(imodvStereoData.width, imodvStereoData.height);
+    Imodv->mainWin->move(imodvStereoData.x, imodvStereoData.y);
+    configured = 1;
   }
 
   if (!configured) {
@@ -213,8 +264,8 @@ static void stereoInit(void)
   // Set up stereo commands: have default for SGI, then get from environment
 #ifdef __sgi
   imodvStereoData.stereoCommand = "/usr/gfx/setmon -n STR_TOP";
-  imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 1600x1024_72";
-  //imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 72HZ";
+  imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 72HZ";
+  //imodvStereoData.restoreCommand = "/usr/gfx/setmon -n 1600x1024_72";
 #else
   imodvStereoData.stereoCommand = NULL;
   imodvStereoData.restoreCommand = NULL;
@@ -229,6 +280,12 @@ static void stereoInit(void)
     imodPrintStderr("Stereo enable and restore commands:\n%s\n%s\n",
                     imodvStereoData.stereoCommand,
                     imodvStereoData.restoreCommand);
+
+  envtmp = getenv("IMOD_STEREO_TBOFFSET");
+  if (envtmp) {
+    imodvStereoData.tbVoffset = atoi(envtmp);
+    imodvStereoData.omode = IMODV_STEREO_TB;
+  }
 }
 
 void stereoHWOff(void)
@@ -288,7 +345,7 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
 
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"Angle"};
+static char *sliderLabels[] = {"Angle", "Vertical Offset",};
 
 ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Stereo", "",
@@ -305,9 +362,11 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   connect(mComboBox, SIGNAL(activated(int)), this, SLOT(newOption(int)));
 
   // Make the slider with 1 decimal point
-  mSlider = new MultiSlider(this, 1, sliderLabels, -100, 100, 1);
+  mSlider = new MultiSlider(this, 2, sliderLabels, -100, 100, 1);
   mLayout->addLayout(mSlider->getLayout());
   mSlider->getSlider(0)->setPageStep(5);
+  mSlider->setDecimals(1, 0);
+  mSlider->setValue(1, imodvStereoData.tbVoffset);
   connect(mSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
 
@@ -344,7 +403,10 @@ void ImodvStereo::newOption(int item)
 
 void ImodvStereo::sliderMoved(int which, int value, bool dragging)
 {
-  Imodv->plax = (float)(value / 10.);
+  if (which)
+    imodvStereoData.tbVoffset = value;
+  else
+    Imodv->plax = (float)(value / 10.);
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
     imodvDraw(Imodv);
@@ -354,12 +416,44 @@ void ImodvStereo::buttonPressed(int which)
 {
   if (which)
     dia_vasmsg
-    ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-     "Stereo Edit Dialog Help.\n"
-     "~~~~~~~~~~~~~~~~~~~~~~~~"
+    ("~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+     "   Stereo Dialog Help.\n"
+     "~~~~~~~~~~~~~~~~~~~~~~~~~"
      "\n\n",
-     "Manipulate stereo view.",
-     NULL);
+     "This window provides control over two or three kinds of stereo "
+     "displays, depending on whether the graphics hardware supports stereo.  "
+     "The combo box allows one to turn a particular kind of stereo on or off, "
+     "the \"Angle\" slider allows one to adjust the angle of parallax between "
+     "the two views, and the \"Vertical Offset\" slider allows one to adjust "
+     "the offset between views in top/bottom stereo to bring the views "
+     "into register when the monitor does two vertical scans per frame.\n\n",
+     "\tSIDE-BY-SIDE: This mode is the default when no internal or external "
+     "hardware seems to available.  Some people may find this useful if they "
+     "can fuse the two images somehow.\n\n"
+     "\tTOP/BOTTOM: This mode is designed to be used when the monitor can be "
+     "set to display the top and bottom of the display in two successive "
+     "scans.  When you activate this mode, the model view window will be "
+     "stretched to the full height of the screen and the model will be shown "
+     "in the top and bottom of this window.  After you switch the "
+     "monitor to display two scans, adjust the vertical offset slider until "
+     "the two images coincide.  Once you have determined this offset, you can "
+     "define an environment variable IMOD_STEREO_TBOFFSET to have this value, "
+     "and this offset will be applied automatically in the future.\n\n"
+     "\tHARDWARE: This mode is available only if the display hardware "
+     "supports left and right stereo buffers in OpenGL.  When the mode is "
+     "activated, the command defined in the environment variable "
+     "IMOD_STEREO_COMMAND is executed.  The two images are then drawn into "
+     "the left and right buffers.  When the mode is turned off, the command "
+     "defined in the environment variable IMOD_STEREO_RESTORE is executed.  "
+     "This mode is known "
+     "to work only on an SGI, where the proper specialized calls are made to "
+     "use the stereo buffers, and the proper commands are built in to call "
+     "setmon and change the monitor mode.\n\n"
+     "Stereo is toggled with the \"s\" hot key.  The first time this is used, "
+     "the program will go into Top/Bottom mode if IMOD_STEREO_TBOFFSET is "
+     "defined, otherwise into Hardware mode if stereo buffers are available, "
+     "otherwise into Side-by-side mode."
+     , NULL);
   else
     close();
 }
@@ -421,6 +515,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2004/06/06 21:27:47  mast
+Cleanup and changes to get it working on SGI
+
 Revision 4.6  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
