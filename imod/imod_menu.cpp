@@ -77,6 +77,8 @@ Log at end of file
 
 
 static int obj_moveto = 0;
+/* Temporary function - may include in libimod */
+static Icont *imodContourBreakByZ(Iobj *obj, int co);
 
 /*
  * THE FILE MENU
@@ -336,7 +338,8 @@ void InfoWindow::editModelSlot(int item)
 void InfoWindow::editObjectSlot(int item)
 {
   struct Mod_Object *obj;
-  int co;
+  struct Mod_Contour *cont;
+  int ob,co,pt, coind;
   float vol;
   int cosave, ptsave;
 
@@ -492,6 +495,27 @@ void InfoWindow::editObjectSlot(int item)
     imodDraw(App->cvi, IMOD_DRAW_RETHINK);
     break;
 
+  case EOBJECT_MENU_FIXZ: /* break all contours at z transitions */
+    if (!iobjClose(obj->flags)){
+      wprint("\aError: Only Closed contour objects can be broken by Z\n");
+      break;
+    }
+    if (!dia_ask("Break all contours in object that cross Z values?"))
+      break;
+    imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+    for (coind = obj->contsize - 1; coind >= 0; coind--) {
+      cont = &obj->cont[coind];
+      if (cont->psize)
+	imodContourBreakByZ(obj, coind);
+    }
+    if (co >= 0) {
+      if (pt >= obj->cont[co].psize)
+	pt = obj->cont[co].psize - 1;
+      imodSetIndex(App->cvi->imod, ob, co, pt);
+    }
+    imodDraw(App->cvi, IMOD_DRAW_MOD);
+    break;
+
   default:
     break;
 	  
@@ -529,7 +553,7 @@ void InfoWindow::editSurfaceSlot(int item)
 void InfoWindow::editContourSlot(int item)
 {
   struct Mod_Object *obj;
-  struct Mod_Contour *cont, *cont2;
+  struct Mod_Contour *cont;
   int ob,co,pt, ptb;
   double dist;
 
@@ -653,26 +677,7 @@ void InfoWindow::editContourSlot(int item)
       break;
     }
     imodGetIndex(App->cvi->imod, &ob, &co, &pt);
-    for (ptb = cont->psize - 1; ptb > 0; ptb--) {
-      int ni, oi, zcur, zprev;
-      zcur = (int)(floor(cont->pts[ptb].z + 0.5));
-      zprev = (int)(floor(cont->pts[ptb - 1].z + 0.5));
-      if (zcur != zprev) {
-        cont2 = imodContourDup(cont);
-        ni = 0;
-        for (oi = ptb; oi < (int)cont->psize; oi++, ni++) {
-          cont2->pts[ni] = cont->pts[oi];
-          if (cont->sizes)
-            cont2->sizes[ni] = cont->sizes[oi];
-        }
-        cont2->psize = ni;
-        cont->psize = ptb;
-        imodel_contour_check_wild(cont2);
-        imodObjectAddContour(obj, cont2);
-        cont = imodContourGet(App->cvi->imod);
-      }
-    }
-    imodel_contour_check_wild(cont);
+    cont = imodContourBreakByZ(obj, co);
     if (pt >= (int)cont->psize)
       pt = cont->psize - 1;
     imodSetIndex(App->cvi->imod, ob, co, pt);
@@ -1003,8 +1008,41 @@ void InfoWindow::helpSlot(int item)
   return;
 }
 
+/* imodContourBreakByZ will break contour number co of object obj into 
+   contours that are all coplanar in Z.  It returns the starting fragment of
+   the original contour in cont */
+static Icont *imodContourBreakByZ(Iobj *obj, int co)
+{
+  int ni, oi, zcur, zprev, ptb;
+  Icont *cont2, *cont;
+  cont = &obj->cont[co];
+  for (ptb = cont->psize - 1; ptb > 0; ptb--) {
+    zcur = (int)(floor(cont->pts[ptb].z + 0.5));
+    zprev = (int)(floor(cont->pts[ptb - 1].z + 0.5));
+    if (zcur != zprev) {
+      cont2 = imodContourDup(cont);
+      ni = 0;
+      for (oi = ptb; oi < (int)cont->psize; oi++, ni++) {
+	cont2->pts[ni] = cont->pts[oi];
+	if (cont->sizes)
+	  cont2->sizes[ni] = cont->sizes[oi];
+      }
+      cont2->psize = ni;
+      cont->psize = ptb;
+      imodel_contour_check_wild(cont2);
+      imodObjectAddContour(obj, cont2);
+      cont = &obj->cont[co];
+    }
+  }
+  imodel_contour_check_wild(cont);
+  return cont;
+}
+
 /*
 $Log$
+Revision 4.9  2003/06/04 23:32:25  mast
+Output coordinates numbered from one in point value output
+
 Revision 4.8  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
