@@ -21,6 +21,9 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:40:22  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -38,9 +41,6 @@ public class TomogramGenerationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
-
-  ApplicationManager applicationManager;
-  JPanel contentPane;
 
   JPanel panelTilt = new JPanel();
 
@@ -83,10 +83,9 @@ public class TomogramGenerationDialog
     new JToggleButton("<html><b>View tomogram<br>in imod</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr) {
-    applicationManager = appMgr;
+    super(appMgr);
 
-    contentPane = (JPanel) getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle(
       "eTomo Tomogram Generation: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
@@ -139,15 +138,15 @@ public class TomogramGenerationDialog
     panelTilt.add(panelTiltA);
     panelTilt.add(panelTiltB);
 
-    contentPane.add(panelTilt);
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelTilt);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    contentPane.addMouseListener(mouseAdapter);
+    rootPanel.addMouseListener(mouseAdapter);
 
     //
     // Calcute the necessary window size
@@ -261,7 +260,7 @@ public class TomogramGenerationDialog
 
     ContextPopup contextPopup =
       new ContextPopup(
-        contentPane,
+        rootPanel,
         mouseEvent,
         "Final Runs",
         manPagelabel,

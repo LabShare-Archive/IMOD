@@ -21,6 +21,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/17 22:40:16  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.3  2002/10/08 23:55:39  rickg
  * <p> createCombineScript call now include a reference to this
  * <p> added NoumberFormatException
@@ -36,23 +40,20 @@ import etomo.type.AxisID;
 public class TomogramCombinationDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
-
-  ApplicationManager applicationManager;
-  JPanel contentPane;
   SetupCombinePanel panelSetupCombine = new SetupCombinePanel();
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
-    applicationManager = appMgr;
-    contentPane = (JPanel) getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    super(appMgr);
+
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle(
       "eTomo Tomogram Combination: " + applicationManager.getFilesetName());
 
-    contentPane.add(panelSetupCombine.getContainer());
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelSetupCombine.getContainer());
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //
     // Calcute the necessary window size

@@ -18,6 +18,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/17 22:39:55  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -30,22 +34,18 @@ public class PostProcessingDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
 
-  JPanel contentPane;
-  ApplicationManager applicationManager;
-
   public PostProcessingDialog(ApplicationManager appManager) {
-    applicationManager = appManager;
+    super(appManager);
 
-    contentPane = (JPanel) this.getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     this.setTitle(
       "eTomo Post-processing and Trimming: "
         + applicationManager.getFilesetName());
 
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //
     // Calcute the necessary window size

@@ -23,6 +23,9 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2002/12/09 04:17:07  rickg
+ * <p> Added stack file filter to open dialog
+ * <p>
  * <p> Revision 1.9  2002/11/19 02:34:24  rickg
  * <p> Tooltip spelling correction
  * <p>
@@ -56,8 +59,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager applicationManager;
-  private JPanel panelSetup;
   private JPanel panelDataParameters = new JPanel();
 
   //
@@ -133,10 +134,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //  Construct the setup dialog
   //
   public SetupDialog(ApplicationManager appMgr) {
-    applicationManager = appMgr;
+    super(appMgr);
 
-    panelSetup = (JPanel) getContentPane();
-    panelSetup.setLayout(new BoxLayout(panelSetup, BoxLayout.Y_AXIS));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     setTitle("eTomo Setup");
 
@@ -151,18 +151,18 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonExecute.setText("Create com scripts");
 
     //  Add the panes to the dialog box
-    panelSetup.add(panelDataParameters);
-    panelSetup.add(Box.createVerticalGlue());
-    panelSetup.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelSetup.add(panelPerAxisInfo);
-    panelSetup.add(Box.createVerticalGlue());
-    panelSetup.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelSetup.add(panelExitButtons);
-    panelSetup.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelDataParameters);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelPerAxisInfo);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    panelSetup.addMouseListener(mouseAdapter);
+    rootPanel.addMouseListener(mouseAdapter);
 
     // Calcute the necessary window size
     pack();
@@ -498,7 +498,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup =
-      new ContextPopup(panelSetup, mouseEvent, "INITIAL STEPS");
+      new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
   }
 
   //

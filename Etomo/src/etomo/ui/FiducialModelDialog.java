@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:39:42  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -38,9 +41,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager applicationManager;
-
-  JPanel contentPane;
   JPanel panelFiducialModel = new JPanel();
 
   JPanel panelFiducialModelA = new JPanel();
@@ -60,9 +60,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
 
   public FiducialModelDialog(ApplicationManager appMgr) {
-    contentPane = (JPanel) getContentPane();
-    applicationManager = appMgr;
-
+    super(appMgr);
+    
     if (applicationManager.isDualAxis()) {
       panelBeadtrackA = new BeadtrackPanel("a");
     }
@@ -115,20 +114,20 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     panelFiducialModel.setLayout(
       new BoxLayout(panelFiducialModel, BoxLayout.X_AXIS));
     panelFiducialModel.add(Box.createRigidArea(FixedDim.x10_y0));
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelFiducialModel.add(panelFiducialModelA);
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelFiducialModel.add(Box.createRigidArea(FixedDim.x10_y0));
     panelFiducialModel.add(panelFiducialModelB);
-    contentPane.add(Box.createHorizontalGlue());
+    rootPanel.add(Box.createHorizontalGlue());
     panelFiducialModel.add(Box.createRigidArea(FixedDim.x10_y0));
 
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    contentPane.add(panelFiducialModel);
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.add(panelFiducialModel);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //
     //  Action listener assignments for the buttons

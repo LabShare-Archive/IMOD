@@ -24,6 +24,9 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.4  2002/10/17 22:40:29  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -45,9 +48,6 @@ public class TomogramPositioningDialog
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager applicationManager;
-
-  private JPanel contentPane;
   private JPanel panelPosition = new JPanel();
   private JPanel panelPositionA = new JPanel();
   private BeveledBorder borderA = new BeveledBorder("Axis: A");
@@ -96,10 +96,9 @@ public class TomogramPositioningDialog
     new JToggleButton("<html><b>Create final alignment</b>");
 
   public TomogramPositioningDialog(ApplicationManager appMgr) {
-    applicationManager = appMgr;
-
-    contentPane = (JPanel) this.getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    super(appMgr);
+    
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle("eTomo Tomogram Position: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
 
@@ -172,11 +171,11 @@ public class TomogramPositioningDialog
     panelPosition.setLayout(new BoxLayout(panelPosition, BoxLayout.X_AXIS));
     panelPosition.add(panelPositionA);
     panelPosition.add(panelPositionB);
-    contentPane.add(panelPosition);
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelPosition);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Set the default advanced state for the window
     //  FIXME: this needs to be defined by the options and
@@ -185,7 +184,7 @@ public class TomogramPositioningDialog
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    contentPane.addMouseListener(mouseAdapter);
+    rootPanel.addMouseListener(mouseAdapter);
 
     //
     // Calcute the necessary window size
@@ -310,7 +309,7 @@ public class TomogramPositioningDialog
 
     ContextPopup contextPopup =
       new ContextPopup(
-        contentPane,
+        rootPanel,
         mouseEvent,
         "GENERATING THE TOMOGRAM",
         manPagelabel,
@@ -393,7 +392,7 @@ public class TomogramPositioningDialog
     setAdvanced(isAdvanced);
   }
 
-  private void setAdvanced(boolean state) {
+  void setAdvanced(boolean state) {
     ltfTiltAxisXShiftA.setVisible(state);
     ltfTiltAxisXShiftB.setVisible(state);
     pack();

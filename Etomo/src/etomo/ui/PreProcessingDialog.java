@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/19 02:40:37  rickg
+ * <p> Label spelling correction
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:40:02  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -38,10 +41,6 @@ public class PreProcessingDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
 
-  ApplicationManager applicationManager;
-
-  JPanel contentPane;
-
   JLabel textDM2MRC = new JLabel("No digital micrograph files detected:  ");
   JPanel panelConvertDM2MRC = new JPanel();
   JCheckBox chkBoxUniqueHeaders =
@@ -55,9 +54,9 @@ public class PreProcessingDialog extends ProcessDialog {
   CCDEraserPanel panelCCDEraserB = new CCDEraserPanel("Axis: B");
 
   public PreProcessingDialog(ApplicationManager appManager) {
-    applicationManager = appManager;
-    contentPane = (JPanel) this.getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    super(appManager);
+
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle("eTomo Pre-processing: " + applicationManager.getFilesetName());
 
     //
@@ -86,13 +85,13 @@ public class PreProcessingDialog extends ProcessDialog {
     //  Build the base panel
     //
     buttonExecute.setText("Done");
-    contentPane.add(panelConvertDM2MRC);
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(panelCCDEraser);
-    contentPane.add(Box.createVerticalGlue());
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
-    contentPane.add(panelExitButtons);
-    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelConvertDM2MRC);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(panelCCDEraser);
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(panelExitButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //
     //  Bind the button action adapters to their listeners

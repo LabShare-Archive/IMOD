@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.event.*;
 import javax.swing.*;
 
+import etomo.ApplicationManager;
 import etomo.type.DialogExitState;
 
 /**
@@ -20,6 +21,10 @@ import etomo.type.DialogExitState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -28,7 +33,11 @@ public class ProcessDialog extends JDialog implements ExitButtons {
   public static final String rcsid =
     "$Id$";
 
-  protected boolean isAdvanced = false;
+  protected ApplicationManager applicationManager;
+  protected JPanel rootPanel;
+  
+  protected boolean isAdvanced;
+  
   protected DialogExitState exitState = DialogExitState.CANCEL;
 
   //
@@ -38,14 +47,20 @@ public class ProcessDialog extends JDialog implements ExitButtons {
   protected JButton buttonCancel = new JButton("Cancel");
   protected JButton buttonPostpone = new JButton("Postpone");
   protected JButton buttonExecute = new JButton("Execute");
-  protected JToggleButton buttonAdvanced = new JToggleButton("Advanced");
+  protected JButton buttonAdvanced = new JButton("Advanced");
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog() {
+  public ProcessDialog(ApplicationManager appManager) {
+    applicationManager = appManager;
+    rootPanel = (JPanel) getContentPane();
+
+    //  Get the default initial advanced state
+    isAdvanced = applicationManager.getAdvanced();
+    setAdvanced(isAdvanced);
     setToolTipText();
 
     //
@@ -105,13 +120,19 @@ public class ProcessDialog extends JDialog implements ExitButtons {
    * button.  Call this method first before checking the state of isAdvanced.
    */
   public void buttonAdvancedAction(ActionEvent event) {
-    if (isAdvanced) {
-      isAdvanced = false;
-      buttonAdvanced.setSelected(false);
+    setAdvanced(! isAdvanced);
+  }
+
+  /**
+   * Set the advanced state variable and update the button text
+   */
+  void setAdvanced(boolean state) {
+    isAdvanced = state;
+    if(isAdvanced) {
+      buttonAdvanced.setText("Basic");
     }
     else {
-      isAdvanced = true;
-      buttonAdvanced.setSelected(true);
+      buttonAdvanced.setText("Advanced");
     }
   }
 
