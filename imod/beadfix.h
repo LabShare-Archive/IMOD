@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2004/06/25 20:06:09  mast
+Made plug variables be class members instead to eliminate plug->
+
 Revision 1.7  2004/06/24 15:34:37  mast
 Changes for read and analyze at once
 
@@ -106,6 +109,8 @@ class BeadFixer : public DialogFrame
  public:
   BeadFixer(QWidget *parent, const char *name = NULL);
   ~BeadFixer() {};
+  int openFileByName(const char *filename);
+  int reread();
 
   public slots:
   void buttonPressed(int which);
@@ -129,9 +134,9 @@ class BeadFixer : public DialogFrame
   void timerEvent(QTimerEvent *e);
 
  private:
-  int reread();
   int foundgap(int obj, int cont, int ipt, int before);
   void clearExtraObj();
+  void setCurArea(int area);
 
   int    mIfdidgap;
   int    mLastob, mLastco, mLastpt, mLastbefore;
