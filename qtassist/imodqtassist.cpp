@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2004/12/22 05:58:49  mast
+    Fixed bugs that showed up on SGI
+
     Revision 1.1  2004/12/22 05:49:02  mast
     Addition to package
 
@@ -90,6 +93,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "ERROR: too many arguments\n");
       exit(1);
     }
+    ind++;
   }
 
   // start the help object
