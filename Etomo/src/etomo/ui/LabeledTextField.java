@@ -18,6 +18,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/24 03:04:41  rickg
+ * <p> Added setText(float) methof
+ * <p> Fixed setMaximumSize bug
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -162,12 +166,7 @@ public class LabeledTextField {
   }
 
   public void setAlignmentX(float alignment) {
-    if (alignment == Component.LEFT_ALIGNMENT) {
-      label.setAlignmentX(Component.LEFT_ALIGNMENT);
-    }
-    if (alignment == Component.RIGHT_ALIGNMENT) {
-      textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    }
+    panel.setAlignmentX(alignment);
   }
 
   public void setToolTipText(String toolTipText) {
