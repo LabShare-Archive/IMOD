@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2004/11/08 05:46:34  mast
+Fixed an int32 to be int16
+
 Revision 1.1  2004/11/07 22:59:09  mast
 Initial creation
 
@@ -41,7 +44,7 @@ float sliceByteBinnedFFT(Islice *sin, int binning)
   float padFrac = 0.02;
   float taperFrac = 0.02;
   int iyMirror, idir = 0;
-  int nPadSize, squareSize, nTaper, nPad, i, iylo, iyin, iyout, ixbase, ncopy;
+  int nPadSize, squareSize, nTaper, nPad, i, iyin, iyout, ixbase, ncopy;
   double logScale = mrcGetComplexScale();
   float val, max, max2, scale;
   
@@ -190,15 +193,24 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
   if (!brray)
     return 1;
 
+  /*for (i = 0; i < nx; i++)
+    imodPrintStderr("%d %d %d %d\n", i,sin->data.b[i + nx * (ny / 2 - 1)],
+    sin->data.b[i + nx * (ny / 2)],sin->data.b[i + nx * (ny / 2 + 1)]); */
+  
   XCorrSetCTF(sigma1, sigma2, radius1, radius2, ctf, nxpad, nypad, &delta);
   XCorrTaperOutPad((void *)sin->data.b, sin->mode, nx, ny, brray, nxpad + 2,
                    nxpad, nypad);
+  /* for (i = 0; i < nxpad; i++)
+     imodPrintStderr("%d %f %f %f\n", i, brray[i + (nxpad + 2) *
+     ( nypad / 2 -1 )], brray[i + (nxpad + 2) * nypad / 2], 
+     brray[i + (nxpad + 2) * (nypad / 2 + 1)]); */
+  
   idir = 0;
   todfft(brray, &nxpad, &nypad, &idir);
   XCorrFilterPart(brray, brray, nxpad, nypad, ctf, delta);
   idir = 1;
   todfft(brray, &nxpad, &nypad, &idir);
-  
+
   ixlo = (nxpad - nx) / 2;
   iylo = (nypad - ny) / 2;
   outMin = sin->min;
@@ -241,30 +253,30 @@ void XCorrTaperOutPad(void *array, int type, int nxbox, int nybox,
   iylo = (ny - nybox) / 2;
   iyhi = iylo + nybox;
   for (iy = nybox - 1; iy >= 0; iy--) {
-    out = brray + ixlo + (iylo + iy) * nxdim;
+    out = brray + ixhi + (iylo + iy) * nxdim - 1;
     switch (type) {
     case SLICE_MODE_BYTE:
-      bytein = (b3dUByte *)array + iy * nxbox;
+      bytein = (b3dUByte *)array + (iy + 1) * nxbox - 1;
       for (ix = nxbox - 1; ix >= 0; ix--)
-        *out++ = *bytein++;
+        *out-- = *bytein--;
       break;
       
     case SLICE_MODE_SHORT:
-      intin = (b3dInt16 *)array + iy * nxbox;
+      intin = (b3dInt16 *)array + (iy + 1) * nxbox - 1;
       for (ix = nxbox - 1; ix >= 0; ix--)
-        *out++ = *intin++;
+        *out-- = *intin--;
       break;
       
     case SLICE_MODE_USHORT:
-      uintin = (b3dUInt16 *)array + iy * nxbox;
+      uintin = (b3dUInt16 *)array + (iy + 1) * nxbox - 1;
       for (ix = nxbox - 1; ix >= 0; ix--)
-        *out++ = *uintin++;
+        *out-- = *uintin--;
       break;
       
     case SLICE_MODE_FLOAT:
-      floatin = (float *)array + iy * nxbox;
+      floatin = (float *)array + (iy + 1) * nxbox - 1;
       for (ix = nxbox - 1; ix >= 0; ix--)
-        *out++ = *floatin++;
+        *out-- = *floatin--;
       break;
     }
   }
@@ -273,11 +285,11 @@ void XCorrTaperOutPad(void *array, int type, int nxbox, int nybox,
   if (nxbox != nx || nybox != ny) {
     sum=0.;
     for (ix = ixlo; ix < ixhi; ix++)
-      sum += brray[ix] + brray[ix + (iyhi - 1) * nxdim];
+      sum += brray[ix + iylo * nxdim] + brray[ix + (iyhi - 1) * nxdim];
 
     for (iy = iylo + 1; iy < iyhi - 1; iy++)
       sum += brray[ixlo + iy * nxdim] + brray[ixhi - 1 + iy * nxdim];
-    
+
     dmean = sum / (2 * (nxbox + nybox - 2));
     nxtop = nx - 1;
     nytop = ny - 1;
@@ -374,20 +386,20 @@ void XCorrExtractConvert(float *array, int nxdim, int ixlo, int iylo,
       intout = (b3dInt16 *)brray + iy * nx;
       if (scale)
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dInt16 )(*in++ * scale + base);
+          *intout++ = (b3dInt16)(*in++ * scale + base);
       else
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dInt16 )*in++;
+          *intout++ = (b3dInt16)*in++;
       break;
 
     case SLICE_MODE_USHORT:
       uintout = (b3dUInt16 *)brray + iy * nx;
       if (scale)
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dUInt16 )(*in++ * scale + base);
+          *uintout++ = (b3dUInt16)(*in++ * scale + base);
       else
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dUInt16 )*in++;
+          *uintout++ = (b3dUInt16)*in++;
       break;
 
     case SLICE_MODE_FLOAT:
