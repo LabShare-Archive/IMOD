@@ -1,4 +1,4 @@
-/*   control.h  -  declarations for control.cpp
+/*   control.h  -  public declarations for control.cpp
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -24,8 +24,7 @@ Log at end of file
 /* Types of windows for finding geometries */
 enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
 
-  // Include rather than forward declare - Ilist has no structure name
-#include "ilist.h"
+typedef struct ilist_struct Ilist;
 
 #ifndef IMODP_H
   typedef struct ViewInfo ImodView;
@@ -35,45 +34,15 @@ enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
   class QWidget;
 class QRect;
 
-/* Each window that shows the view below uses this control 
- * stucture to have the view update the window.
- */
 typedef void (*ImodControlProc)(struct ViewInfo *, void *, int);
 typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
 
-typedef struct
-{
-  void *userData;
-  ImodControlProc draw_cb;
-  ImodControlProc close_cb;
-  ImodControlKey  key_cb;
-  int  id;
-  int  status;
-  
-}ImodControl;
+#ifndef CONTROLP_H
+#include "controlP.h"
+#endif
 
-/* This structure sits inside of each view and is the
- * master controller.
- */
-typedef struct imod_control_list
-{ 
-  Ilist *      list;
-  int          active;
-  int          top;
-  int          reason;
-  int          workID;
-}ImodControlList;
+extern "C" {
 
-
-/* private control functions.  The rest were declared in imod.h */
-void ivwControlListDrawCancel(ImodView *iv);
-void ivwControlListDraw(ImodView *iv, int reason);
-void ivwControlListDelete(ImodView *iv);
-void ivwControlKey(/*ImodView *iv,*/ int released, QKeyEvent *e);
-void ivwWorkProc(ImodView *iv);
-QRect ivwRestorableGeometry(QWidget *widget);
-
-       /* The functions from imod.h */
 /****************************************************************************/
 /* Create a new drawing control for an imod view. 
  * A nonzero integer that is used as the inCtrlId
@@ -114,6 +83,11 @@ int ivwControlPriority(ImodView *iv, int inCtrlId);
  */
 void ivwControlActive(ImodView *iv, int inCtrlId);    
 
+/* Pass a key event on to the first control on the list that has a callback
+ */
+void ivwControlKey(int released, QKeyEvent *e);
+
+
 // A dialog manager class for hiding, showing, and closing windows in concert
 class DialogManager
 {
@@ -138,11 +112,14 @@ class DialogManager
 /* Global instances */
 extern DialogManager imodvDialogManager;
 extern DialogManager imodDialogManager;
-
+}
 #endif
 
 /*
 $Log$
+Revision 4.6  2003/09/24 17:32:25  mast
+Add declaration for restorable geometry call
+
 Revision 4.5  2003/09/17 05:54:36  mast
 Add variable for geometry of last zap window closed
 
