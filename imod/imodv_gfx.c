@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/06/20 00:39:09  mast
+    Making GLw use that visual didn't work under Linux, remove the change
+
     Revision 3.1  2002/06/20 00:26:58  mast
     Force GLw to use the already chosen visual when getting a drawing area
 
@@ -80,6 +83,8 @@ String ImodvTranslations =
 
 /* DNM: got this working - although it makes no noticeable difference - see
    note below.*/
+/* DNM 9.2.02: this now makes no sense even as a call because it is not testing
+   the visual actually in use */
 int DisplayHasAlpha(Display  *display, int doublebuffer)
 {
     XVisualInfo *visualinfo;
@@ -124,11 +129,14 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 
      a->gc = a->dgc = 0;
      a->first = a->dfirst = 1;
+     a->dgfx_init = 0;
+     a->gfx_init = 0;
+     a->gfx = a->dgfx = NULL;
      
      if (a->cindex){
 	  a->gfx = XtVaCreateManagedWidget
 	       ("rgbwidget", B3dDrawingAreaWidgetClass, form,
-		GLwNvisualInfo, Imodv->visualInfo,
+		GLwNvisualInfo, a->visualInfoDB,
 		XmNnavigationType, XmNONE,
 		XmNtraversalOn, True,
 		XmNwidth, width,
@@ -154,82 +162,93 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 	  a->cgfx = a->dgfx = a->gfx;
 
      }else{
-	  /* Double buffered widget */
-	  /* altmp = DisplayHasAlpha(a->display, 1) */
-	  a->dgfx = XtVaCreateManagedWidget
-	       ("drgbwidget", B3dDrawingAreaWidgetClass, form,
-		GLwNrgba, True, 
-		GLwNdoublebuffer, True, 
-		GLwNdepthSize, 8,
-		GLwNredSize, 1,
-		GLwNgreenSize, 1,
-		GLwNblueSize, 1,
-		GLwNalphaSize, altmp, 
-		/*GLwNstereo, True,*/
-		XmNnavigationType, XmNONE,
-		XmNtraversalOn, True,
-		XmNwidth, width,
-		XmNheight, height,
-		XmNbottomAttachment, XmATTACH_FORM,
-		XmNleftAttachment, XmATTACH_FORM,
-		XmNrightAttachment, XmATTACH_FORM,
-		XmNtopAttachment, XmATTACH_FORM,
-		XmNtranslations, XtParseTranslationTable(ImodvTranslations),
-		NULL);
-	  XtManageChild(a->dgfx);
-	  
-	  imodOverrideTransTable(a->dgfx, ImodvTranslations);
-	  XtAddCallback(a->dgfx, GLwNresizeCallback,
-			imodv_resize_cb, (XtPointer)a);
-	  XtAddCallback(a->dgfx, GLwNexposeCallback,
-			imodv_expose_cb, (XtPointer)a);
-	  XtAddCallback(a->dgfx, GLwNinputCallback,
-			imodv_input_cb, (XtPointer)a);
-	  XtSetMappedWhenManaged(a->dgfx, True);
-	  a->dgfx_init = 0;
-	  if (!a->dgfx){
-	      a->db = False;
-	      fprintf(stderr, "Imodv warning: double buffer init failed.\n");
+
+	  /* DNM 9/2/03: modified to use the chosen visuals and avoid
+	     having GLw try to pick a visual.  Rearranged a bit to avoid
+	     assumptions that one or the other gfx exists */
+	  if (a->visualInfoDB) {
+
+	       /* Double buffered widget */
+	       /* altmp = DisplayHasAlpha(a->display, 1) */
+	       a->dgfx = XtVaCreateManagedWidget
+		    ("drgbwidget", B3dDrawingAreaWidgetClass, form,
+		     GLwNvisualInfo, a->visualInfoDB,
+		     /* GLwNrgba, True, 
+			GLwNdoublebuffer, True, 
+			GLwNdepthSize, 8,
+			GLwNredSize, 1,
+			GLwNgreenSize, 1,
+			GLwNblueSize, 1,
+			GLwNalphaSize, altmp, */
+		     /*GLwNstereo, True,*/
+		     XmNnavigationType, XmNONE,
+		     XmNtraversalOn, True,
+		     XmNwidth, width,
+		     XmNheight, height,
+		     XmNbottomAttachment, XmATTACH_FORM,
+		     XmNleftAttachment, XmATTACH_FORM,
+		     XmNrightAttachment, XmATTACH_FORM,
+		     XmNtopAttachment, XmATTACH_FORM,
+		     XmNtranslations, 
+		     XtParseTranslationTable(ImodvTranslations),
+		     NULL);
 	  }
+	  if (!a->dgfx) {
+	      a->db = False;
+	      fprintf(stderr, "Imodv warning: no double buffer visual available.\n");
+	  } else {
+	       XtManageChild(a->dgfx);
+	       
+	       imodOverrideTransTable(a->dgfx, ImodvTranslations);
+	       XtAddCallback(a->dgfx, GLwNresizeCallback,
+			     imodv_resize_cb, (XtPointer)a);
+	       XtAddCallback(a->dgfx, GLwNexposeCallback,
+			     imodv_expose_cb, (XtPointer)a);
+	       XtAddCallback(a->dgfx, GLwNinputCallback,
+			     imodv_input_cb, (XtPointer)a);
+	       XtSetMappedWhenManaged(a->dgfx, True);
+	  }
+
 	  /* Single buffered widget */
 
-	  /* altmp = DisplayHasAlpha(a->display, 0) */
-	  a->gfx = XtVaCreateManagedWidget
-	       ("rgbwidget", B3dDrawingAreaWidgetClass, form,
-		GLwNrgba, True,
-		GLwNdoublebuffer, False,
-		GLwNdepthSize, 8,
-		GLwNgreenSize, 1,
-		GLwNredSize, 1,
-		GLwNblueSize, 1,
-		GLwNalphaSize, altmp, 
-		XmNnavigationType, XmNONE,
-		XmNtraversalOn, True,
-		XmNwidth, width,
-		XmNheight, height,
-		XmNbottomAttachment, XmATTACH_FORM,
-		XmNleftAttachment, XmATTACH_FORM,
-		XmNrightAttachment, XmATTACH_FORM,
-		XmNtopAttachment, XmATTACH_FORM,
-		XmNtranslations, XtParseTranslationTable(ImodvTranslations),
-		NULL);
-
-	  if (!a->gfx){
-	      fprintf(stderr, "Imodv warning: single buffer init failed.\n");
+	  if (a->visualInfoSB) {
+	       /* altmp = DisplayHasAlpha(a->display, 0) */
+	       a->gfx = XtVaCreateManagedWidget
+		    ("rgbwidget", B3dDrawingAreaWidgetClass, form,
+		     GLwNvisualInfo, a->visualInfoSB,
+		     /* GLwNrgba, True,
+			GLwNdoublebuffer, False,
+			GLwNdepthSize, 8,
+			GLwNgreenSize, 1,
+			GLwNredSize, 1,
+			GLwNblueSize, 1,
+			GLwNalphaSize, altmp,  */
+		     XmNnavigationType, XmNONE,
+		     XmNtraversalOn, True,
+		     XmNwidth, width,
+		     XmNheight, height,
+		     XmNbottomAttachment, XmATTACH_FORM,
+		     XmNleftAttachment, XmATTACH_FORM,
+		     XmNrightAttachment, XmATTACH_FORM,
+		     XmNtopAttachment, XmATTACH_FORM,
+		     XmNtranslations, XtParseTranslationTable(ImodvTranslations),
+		     NULL);
 	  }
-
-	  imodOverrideTransTable(a->gfx, ImodvTranslations);
-	  XtAddCallback(a->gfx, GLwNresizeCallback,
-			imodv_resize_cb, (XtPointer)a);
-	  XtAddCallback(a->gfx, GLwNexposeCallback,
-			imodv_expose_cb, (XtPointer)a);
-	  XtAddCallback(a->gfx, GLwNginitCallback,
-			imodv_ginit_rgbsb_cb, (XtPointer)a);
-	  XtAddCallback(a->gfx, GLwNinputCallback,
-			imodv_input_cb, (XtPointer)a);
-	  
-	  XtSetMappedWhenManaged(a->gfx, True);
-	  
+	  if (!a->gfx) {
+	      fprintf(stderr, "Imodv warning: no single buffer visual available.\n");
+	  } else {
+	       imodOverrideTransTable(a->gfx, ImodvTranslations);
+	       XtAddCallback(a->gfx, GLwNresizeCallback,
+			     imodv_resize_cb, (XtPointer)a);
+	       XtAddCallback(a->gfx, GLwNexposeCallback,
+			     imodv_expose_cb, (XtPointer)a);
+	       XtAddCallback(a->gfx, GLwNginitCallback,
+			     imodv_ginit_rgbsb_cb, (XtPointer)a);
+	       XtAddCallback(a->gfx, GLwNinputCallback,
+			     imodv_input_cb, (XtPointer)a);
+	       
+	       XtSetMappedWhenManaged(a->gfx, True);
+	  }	  
 /*	  a->db = False;*/
 
 	  if (a->db){
@@ -327,7 +346,8 @@ void imodv_clear(ImodvApp *a)
 
 void imodv_setbuffer(ImodvApp *a)
 {
-     if (a->cindex)
+     /* DNM 9/2/02: skip if one of the visuals didn't exist */
+     if (a->cindex || !a->gfx || !a->dgfx)
 	  return;
 
      imodv_clear(a);
@@ -344,7 +364,8 @@ void imodv_setbuffer(ImodvApp *a)
 	  a->cgfx = a->dgfx; 
      }
      /* DNM: set alpha after switching the db flag */
-     a->alpha = DisplayHasAlpha(a->display, a->db);
+     /* DNM 9/2/02: don't! */
+     /* a->alpha = DisplayHasAlpha(a->display, a->db); */
      imodv_winset(a);
      glEnable(GL_DEPTH_TEST);
      glDepthMask(GL_TRUE);
