@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2003/10/24 03:03:04  mast
+change to use correct f-to-c string converter
+
 Revision 3.10  2003/08/08 16:25:17  mast
 Added functions to get object name and # of objects
 
@@ -85,6 +88,8 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define FWRAP_ERROR_BAD_OBJNUM    -6
 #define FWRAP_ERROR_MEMORY        -7
 
+#define NO_VALUE_PUT           -9999.
+
 /*#define FWRAP_DEBUG */
 
 #ifdef F77FUNCAP
@@ -112,6 +117,8 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define putscatsize  PUTSCATSIZE
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
+#define putimodzscale PUTIMODZSCALE
+#define putimodrotation PUTIMODROTATION
 #define getimodtimes  GETIMODTIMES
 #define getimodsurfaces  GETIMODSURFACES
 #define getimodobjname  GETIMODOBJNAME
@@ -141,6 +148,8 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define putscatsize  putscatsize_
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
+#define putimodzscale putimodzscale_
+#define putimodrotation putimodrotation_
 #define getimodtimes  getimodtimes_
 #define getimodsurfaces  getimodsurfaces_
 #define getimodobjname  getimodobjname_
@@ -161,6 +170,8 @@ static int nflags_put = 0;
 static int *flags_put = NULL;
 static int maxes_put = 0;
 static int xmax_put, ymax_put, zmax_put;
+static float zscale_put = NO_VALUE_PUT;
+static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
 
 #define SCAT_SIZE_FLAG  (1 << 2)
 #define SYMBOL_SIZE_FLAG (1 << 3)
@@ -178,6 +189,8 @@ static void deleteFimod()
   flags_put = NULL;
   nflags_put = 0;
   maxes_put = 0;
+  zscale_put = NO_VALUE_PUT;
+  rotation_put.x = rotation_put.y = rotation_put.z = NO_VALUE_PUT;
 }
 
 
@@ -906,6 +919,12 @@ int writeimod(
     Fimod->ymax = ymax_put;
     Fimod->zmax = zmax_put;
   }
+
+  /* Save Zscale, save rotation in current view if there is one */
+  if (zscale_put != NO_VALUE_PUT)
+    Fimod->zscale = zscale_put;
+  if (Fimod->cview > 0 && rotation_put.x != NO_VALUE_PUT)
+    Fimod->view[Fimod->cview].rot = rotation_put;
      
   /* Complete the set of object views just before writing */
   imodObjviewComplete(Fimod);
@@ -1158,6 +1177,18 @@ void putimodflag(int *objnum, int *flag)
   flags_put[nflags_put * 2] = *objnum - 1;
   flags_put[nflags_put * 2 + 1] = *flag;
   nflags_put++;
+}
+
+/* Setting the Z-scale and rotations: save until actually writing */
+void putimodzscale(float *zscale)
+{
+  zscale_put = *zscale;
+}
+void putimodrotation(float *xrot, float *yrot, float *zrot)
+{
+  rotation_put.x = *xrot;
+  rotation_put.y = *yrot;
+  rotation_put.z = *zrot;
 }
 
 /* DNM 12/3/01: added so that old wimp models can be converted */
