@@ -16,6 +16,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/01/30 02:12:10  sueh
+ * <p> bug# 373 removing prints and formatting
+ * <p>
  * <p> Revision 3.2  2004/01/30 02:09:43  sueh
  * <p> bug# 373 corrected updating comscript and parsing comscript
  * <p>
@@ -126,11 +129,32 @@ public class TiltxcorrParam
           Double.parseDouble(scriptCommand.getValue("FilterSigma2"));
       }
       excludeCentralPeak = scriptCommand.hasKeyword("ExcludeCentralPeak");
-      bordersInXandY.validateAndSet(scriptCommand.getValue("BordersInXandY"));
-      padsInXandY.validateAndSet(scriptCommand.getValue("PadsInXandY"));
-      tapersInXandY.validateAndSet(scriptCommand.getValue("TapersInXandY"));
-      startingEndingViews.validateAndSet(
-        scriptCommand.getValue("StartingEndingViews"));
+      
+      if (scriptCommand.hasKeyword("BordersInXandY")) {
+        bordersInXandY.validateAndSet(scriptCommand.getValue("BordersInXandY"));
+      }
+      if (scriptCommand.hasKeyword("XMinAndMax")) {
+        xMinAndMax.validateAndSet(scriptCommand.getValue("XMinAndMax"));
+      }
+      if (scriptCommand.hasKeyword("YMinAndMax")) {
+        yMinAndMax.validateAndSet(scriptCommand.getValue("YMinAndMax"));
+      }
+      if (scriptCommand.hasKeyword("PadsInXandY")) {
+        padsInXandY.validateAndSet(scriptCommand.getValue("PadsInXandY"));
+      }
+      if (scriptCommand.hasKeyword("TapersInXandY")) {
+        tapersInXandY.validateAndSet(scriptCommand.getValue("TapersInXandY"));
+      }
+      cumulativeCorrelation = scriptCommand.hasKeyword("CumulativeCorrelation");
+      absoluteCosineStretch = scriptCommand.hasKeyword("AbsoluteCosineStretch");
+      noCosineStretch = scriptCommand.hasKeyword("NoCosineStretch");
+      if (scriptCommand.hasKeyword("TestOutput")) {
+        testOutput = scriptCommand.getValue("TestOutput");
+      }
+      if (scriptCommand.hasKeyword("StartingEndingViews")) {
+        startingEndingViews.validateAndSet(
+          scriptCommand.getValue("StartingEndingViews"));
+      }
       return;
     }
 
@@ -281,25 +305,62 @@ public class TiltxcorrParam
     else {
       scriptCommand.deleteKey("ExcludeCentralPeak");
     }
-    if (!bordersInXandY.equals("")) {
+    if (bordersInXandY.valuesSet()) {
       scriptCommand.setValue("BordersInXandY", bordersInXandY.toString());
     }
     else {
       scriptCommand.deleteKey("BordersInXandY");
     }
-    if (!padsInXandY.equals("")) {
+    if (xMinAndMax.valuesSet()) {
+      scriptCommand.setValue("XMinAndMax", xMinAndMax.toString());
+    }
+    else {
+      scriptCommand.deleteKey("XMinAndMax");
+    }
+    if (yMinAndMax.valuesSet()) {
+      scriptCommand.setValue("YMinAndMax", yMinAndMax.toString());
+    }
+    else {
+      scriptCommand.deleteKey("YMinAndMax");
+    }
+
+    if (padsInXandY.valuesSet()) {
       scriptCommand.setValue("PadsInXandY", padsInXandY.toString());
     }
     else {
       scriptCommand.deleteKey("PadsInXandY");
     }
-    if (!tapersInXandY.equals("")) {
+    if (tapersInXandY.valuesSet()) {
       scriptCommand.setValue("TapersInXandY", tapersInXandY.toString());
     }
     else {
       scriptCommand.deleteKey("TapersInXandY");
     }
-    if (!startingEndingViews.equals("")) {
+    if (cumulativeCorrelation) {
+      scriptCommand.setValue("CumulativeCorrelation", "");
+    }
+    else {
+      scriptCommand.deleteKey("CumulativeCorrelation");
+    }
+    if (absoluteCosineStretch) {
+      scriptCommand.setValue("AbsoluteCosineStretch", "");
+    }
+    else {
+      scriptCommand.deleteKey("AbsoluteCosineStretch");
+    }
+    if (noCosineStretch) {
+      scriptCommand.setValue("NoCosineStretch", "");
+    }
+    else {
+      scriptCommand.deleteKey("NoCosineStretch");
+    }
+    if (testOutput != null && testOutput.length() > 0) {
+      scriptCommand.setValue("TestOutput", testOutput);
+    }
+    else {
+      scriptCommand.deleteKey("TestOutput");
+    }
+    if (startingEndingViews.valuesSet()) {
       scriptCommand.setValue(
         "StartingEndingViews",
         startingEndingViews.toString());
@@ -365,7 +426,43 @@ public class TiltxcorrParam
     throws FortranInputSyntaxException {
     bordersInXandY.validateAndSet(newBordersInXandYValues);
   }
+  
+  public void setXMin(String xMin) {
+    if (xMin.equals("")) {
+      xMinAndMax.setDefault(0);
+    }
+    else {
+      xMinAndMax.set(0, Double.parseDouble(xMin));
+    }
+  }
+  
+  public void setXMax(String xMax) {
+    if (xMax.equals("")) {
+      xMinAndMax.setDefault(1);
+    }
+    else {
+      xMinAndMax.set(1, Double.parseDouble(xMax));
+    }
+  }
 
+  public void setYMin(String yMin) {
+    if (yMin.equals("")) {
+      yMinAndMax.setDefault(0);
+    }
+    else {
+      yMinAndMax.set(0, Double.parseDouble(yMin));
+    }
+  }
+  
+  public void setYMax(String yMax) {
+    if (yMax.equals("")) {
+      yMinAndMax.setDefault(1);
+    }
+    else {
+      yMinAndMax.set(1, Double.parseDouble(yMax));
+    }
+  }
+  
   /**
    * Set the pads in x and y.
    */
@@ -381,7 +478,18 @@ public class TiltxcorrParam
     throws FortranInputSyntaxException {
     tapersInXandY.validateAndSet(newTapersInXandY);
   }
+  
+  public void setCumulativeCorrelation(boolean cumulativeCorrelation) {
+    this.cumulativeCorrelation = cumulativeCorrelation;
+  }
 
+  public void setAbsoluteCosineStretch(boolean absoluteCosineStretch) {
+    this.absoluteCosineStretch = absoluteCosineStretch;
+  }
+
+  public void setNoCosineStretch(boolean noCosineStretch) {
+    this.noCosineStretch = noCosineStretch;
+  }
   /**
    * Set the range of view to process.
    */
@@ -396,6 +504,13 @@ public class TiltxcorrParam
   public void setExcludeCentralPeak(boolean excludeCentralPeak) {
     this.excludeCentralPeak = excludeCentralPeak;
   }
+  
+  public void setTestOutput(String testOutput) {
+    this.testOutput = new String(testOutput);
+  }
+  
+
+
 
   /**
    * Return a multiline string describing the class attributes.
