@@ -20,6 +20,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
@@ -79,6 +80,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.103  2004/11/19 22:31:32  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.101.2.14  2004/11/12 22:42:54  sueh
  * <p> bug# 520 Moved imodGetRubberbandCoordinates to base class.
  * <p>
@@ -3823,6 +3827,7 @@ public class ApplicationManager extends BaseManager {
         }
         loadPatchcorr();
         loadMatchorwarp();
+        loadVolcombine();
         loadCombineComscript();
         tomogramCombinationDialog.synchronize(
           TomogramCombinationDialog.lblSetup,
@@ -3992,6 +3997,9 @@ public class ApplicationManager extends BaseManager {
         if (!updateMatchorwarpCom(false)) {
           return;
         }
+        if (!updateVolcombineCom()) {
+          return;
+        }
       }
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -4067,6 +4075,7 @@ public class ApplicationManager extends BaseManager {
     loadSolvematch();
     loadPatchcorr();
     loadMatchorwarp();
+    loadVolcombine();
     loadCombineComscript();
     
     tomogramCombinationDialog.enableCombineTabs(true);
@@ -4196,6 +4205,11 @@ public class ApplicationManager extends BaseManager {
     comScriptMgr.loadPatchcorr();
     tomogramCombinationDialog.setPatchcrawl3DParams(comScriptMgr.getPatchcrawl3D());
   }
+  
+  private void loadVolcombine() {
+    comScriptMgr.loadVolcombine();
+    tomogramCombinationDialog.setVolcombineParams(comScriptMgr.getSetParamFromVolcombine());
+  }
 
   /**
    * Update the patchcorr.com script from the information in the tomogram
@@ -4226,6 +4240,37 @@ public class ApplicationManager extends BaseManager {
     }
     return true;
   }
+  
+  /**
+   * Update the volcombine.com script from the information in the tomogram
+   * combination dialog box
+   * 
+   * @return boolean
+   */
+  private boolean updateVolcombineCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      mainPanel.openMessageDialog(
+        "Can not update volcombine.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+    try {
+      SetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+      tomogramCombinationDialog.getVolcombineParams(setParam);
+      comScriptMgr.saveVolcombine(setParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Volcombine Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      mainPanel.openMessageDialog(errorMessage,
+        "Volcombine Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
 
   /**
    * Load the matchorwarp com script into the tomogram combination dialog
@@ -4360,6 +4405,9 @@ public class ApplicationManager extends BaseManager {
     if (!updateMatchorwarpCom(false)) {
       return;
     }
+    if (!updateVolcombineCom()) {
+      return;
+    }
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -4400,6 +4448,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
       return;
     }
     updateCombineParams();
@@ -4453,6 +4504,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
       return;
     }
 
@@ -4517,32 +4571,35 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from matchorwarp step
    */
   public void matchorwarpCombine() {
-    CombineComscriptState combineComscriptState =
-      updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
     if (combineComscriptState == null) {
       return;
     }
-    if (updateMatchorwarpCom(false)) {
-      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    
-      //  Set the next process to execute when this is finished
-      //nextProcess = next;
-      String threadName;
-      try {
-        threadName = processMgr.combine(combineComscriptState);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute combine.com";
-        message[1] = e.getMessage();
-        mainPanel.openMessageDialog(message, "Unable to execute com script");
-        return;
-      }
-      setBackgroundThreadName(threadName, AxisID.FIRST, 
-        CombineComscriptState.COMSCRIPT_NAME);
+    if (!updateMatchorwarpCom(false)) {
+      return;
     }
+    if (!updateVolcombineCom()) {
+      return;
+    }
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+
+    //  Set the next process to execute when this is finished
+    //nextProcess = next;
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = e.getMessage();
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
   }
 
   /**
@@ -4578,6 +4635,10 @@ public class ApplicationManager extends BaseManager {
   public void volcombine() {
     CombineComscriptState combineComscriptState = 
       updateCombineComscriptState(CombineComscriptState.VOLCOMBINE_INDEX);
+    updateCombineParams();
+    if (!updateVolcombineCom()) {
+      return;
+    }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     //  Set the next process to execute when this is finished
