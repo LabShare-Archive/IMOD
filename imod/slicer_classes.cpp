@@ -54,6 +54,7 @@ Log at end of file
 #include "slicer_classes.h"
 #include "sslice.h"
 #include "tooledit.h"
+#include "floatspinbox.h"
 #include "arrowbutton.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -207,7 +208,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 
   // Thickness of model spin box
   label = new QLabel("Model", thickBox);
-  mModelBox = new FloatSpinBox(1, 10000, 10, thickBox);
+  mModelBox = new FloatSpinBox(1, 1, 10000, 10, thickBox);
   mModelBox->setFocusPolicy(QWidget::ClickFocus);
   mModelBox->setMaximumWidth(labelSize.width()- 4);
   connect(mModelBox, SIGNAL(valueChanged(int)), this, 
@@ -443,32 +444,11 @@ void SlicerCube::resizeGL( int wdth, int hght )
   slicerCubeResize(mSlicer, wdth, hght);
 }
 
-///////////////////////////////////////////////
-// A one-decimal place float spin box class
-
-FloatSpinBox::FloatSpinBox( int minValue, int maxValue, int step, 
-		QWidget * parent, const char * name)
-  : QSpinBox(minValue, maxValue, step, parent, name)
-{
-  QDoubleValidator *validator = new QDoubleValidator(minValue / 10., 
-						     maxValue / 10.,
-						     1, this);
-  setValidator(validator);
-}
-
-QString FloatSpinBox::mapValueToText( int value )
-{
-  return QString( "%1.%2" ).arg( value / 10 ).arg( value % 10 );
-}
-
-int FloatSpinBox::mapTextToValue( bool *ok )
-{
-  *ok = true;
-  return (int) ( 10 * text().toFloat() + 0.5);
-}
-
  /*
 $Log$
+Revision 4.6  2003/10/01 05:04:19  mast
+change include from imodP to imod after eliminating imod.h from imodP.h
+
 Revision 4.5  2003/09/15 21:04:02  mast
 Allow zooms to 4 decimal places
 

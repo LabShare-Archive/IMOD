@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
 Revision 4.1  2003/02/10 20:41:56  mast
 Merge Qt source
 
@@ -150,20 +153,6 @@ protected:
  private:
   SlicerStruct *mSlicer;
 };
-
-// A floating spin button class
-class FloatSpinBox : public QSpinBox
-{
-  Q_OBJECT
-    public:
-  FloatSpinBox( int minValue, int maxValue, int step = 10, 
-		QWidget * parent = 0, const char * name = 0);
-  ~FloatSpinBox() {};
-
-  QString mapValueToText( int value );
-  int mapTextToValue( bool *ok );
-};
-  
 
 // A toolbar class that will pass on keys
 class HotToolBar : public QToolBar
