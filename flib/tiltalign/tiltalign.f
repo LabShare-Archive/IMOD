@@ -967,8 +967,9 @@ c
 c	  
 	if(pointfile.ne.' ')then
 	  call dopen(13,pointfile,'new','f')
-	  write(13,'(i4,3f10.2,i7,i5,3x,a,f12.5)')1,(allxyz(i,1),i=1,3),
-     &	      imodobj(1),imodcont(1),'Pixel size:',xdelt
+	  write(13,'(i4,3f10.2,i7,i5,a,f12.5,a,2i6)')1,(allxyz(i,1),i=1,3),
+     &	      imodobj(1),imodcont(1),' Pix:',xdelt,' Dim:',nint(2.*xcen),
+     &	      nint(2.*ycen)
 	  write(13,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
      &	      imodobj(j),imodcont(j),j=2,nrealpt)
 	  close(13)
@@ -1334,6 +1335,10 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.19  2004/10/24 22:38:13  mast
+c	  Fixed a line length - forgot to say changes to compute the image
+c	  transformations more robustly and to put out Z factors
+c	
 c	  Revision 3.18  2004/10/24 22:30:27  mast
 c	  Converted to PIP input
 c	
