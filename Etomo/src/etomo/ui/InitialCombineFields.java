@@ -13,9 +13,13 @@ package etomo.ui;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2004/05/11 20:50:39  sueh
+* <p> $bug #302 interface to initial combine screen fields.  Used by
+* <p> $setup panel and initial panel.
+* <p> $$ </p>
 */
-public interface InitialCombineFields {
+interface InitialCombineFields {
   public static final String rcsid = "$$Id$$";
   
   public abstract void setUseMatchingModels(boolean useMatchingModels);
