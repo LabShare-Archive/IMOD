@@ -14,6 +14,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.ApplicationManager;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -28,6 +29,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:42:08  rickg
+ * <p> No longer needs to be initialized with applicationManager since
+ * <p> getIMODDirectory is static
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -278,6 +283,10 @@ public class ContextPopup {
    * @param logFileLabel The vector string arrays of log file labels for the
    * menu.
    * @param logFile The vector of string arrays of names of the log files.
+   * @param applicationManager used to update the log file
+   * @param updateLogCommandName name of the log that must be updated before it
+   * is displayed
+   * @param axisID used for updating the log file
    */
   public ContextPopup(
     Component component,
@@ -287,7 +296,10 @@ public class ContextPopup {
     String[] manPage,
     final String[] logWindowLabel,
     final Vector logFileLabel,
-    final Vector logFile) {
+    final Vector logFile,
+    final ApplicationManager applicationManager,
+    final String updateLogCommandName,
+    final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -325,6 +337,11 @@ public class ContextPopup {
         //  Search the logfile items
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+            if (actionEvent
+              .getActionCommand()
+              .startsWith(updateLogCommandName)) {
+              applicationManager.updateLog(updateLogCommandName, axisID);
+            }
             //  Create full path to the appropriate log file items
             String[] logFileList = (String[]) logFile.get(i);
             String[] logFileFullPath = new String[logFileList.length];
