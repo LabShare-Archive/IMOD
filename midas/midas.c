@@ -30,6 +30,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -719,7 +728,7 @@ static Widget createSectionControls(Widget parent)
 	  XtVaCreateManagedWidget ("Edge", xmLabelWidgetClass, row, NULL);
 	  VW->edgetext = XtVaCreateManagedWidget ("curedge", xmTextWidgetClass,
 						 row, 
-						 XmNcolumns, 3, NULL);
+						 XmNcolumns, 4, NULL);
 	  XtAddCallback(VW->edgetext, XmNactivateCallback, edgetext_cb, NULL);
 	  XtManageChild(row);
 
