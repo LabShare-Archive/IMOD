@@ -46,26 +46,40 @@
 # 7.  "make install"
 #
 #
-# BUILDING UNDER CYGWIN/WINDOWS
+# BUILDING UNDER CYGWIN/WINDOWS WITH Visual C++ ONLY
 #
 # 0. If the source came from a unix tar, convert the project files with:
 #    find . -name '*.ds*' -exec unix2dos '{}' \;
 #
-# 1. "setup -i [install directory]" to set the install directory.
+# 1. "setup -i [install directory] -compiler gnu" to set the compiler and
+#    install directory.
 #
 # 2. "make" to make all the non-graphical programs under Cygwin
 #
-# 3. In VisualC++, open the workspace libimod/libimod.dsw and build release
+# 3. In Visual C++, open the workspace libimod/libimod.dsw and build release
 #    versions of all three libraries
 #
-# 4. Open the workspace vcimod.dsw and build imod, midas, and imodsendevent.
+# 4. Open the workspace vcimod.dsw and build 3dmod, midas, and imodsendevent.
 # 
 # 5. "make install"
 #
 #
+# BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
+#
+# 1. "setup -i [install directory]" to set the install directory.
+#
+# 2. "make" to make everything
+#
+# 3. "make install"
+#
+# In either case, if there are other users who do not have the build tools
+# on their path, run ./installqtlib to copy the Qt, Tiff, and Intel DLLs to
+# the install bin.
+#
+#
 # The install commands will build .1 and .html versions of all man pages and
 # install them in man and html/man directories.  If the install directory is
-# omitted, then installation will be into bin, lib, com, man, and html
+# omitted, then installation will be into bin, lib, man, and html
 # directories under the top-level source directory.
 #
 #
@@ -78,7 +92,7 @@
 #	set LD_LIBRARY_PATH to include the buildlib directory.
 #
 # MAKE TAR ARCHIVES:
-# 	To make the full distribution run "make dist" or "make cygdist"
+# 	To make the full distribution run "make dist"
 # 	To archive the source code run "make src"
 #
 #############################################################################
@@ -223,6 +237,7 @@ cleanqt : configure
 	cd sendevent ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
+	cd flib/subrs/ndasda ; $(MAKE) clean
 
 #
 # Clean up executables in Windows
@@ -356,6 +371,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.28  2003/11/26 21:46:31  mast
+#  A few additions for make src
+#
 #  Revision 3.27  2003/11/18 19:31:36  mast
 #  Add entry to clean windows .exe files
 #
