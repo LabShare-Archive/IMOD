@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.util.TestFiles;
 
 /**
  * <p>Description: This class provides a high level manager for loading and
@@ -29,6 +28,9 @@ import etomo.util.TestFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.12  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -145,24 +147,6 @@ public class ComScriptManager {
   private ComScript scriptTomopitchA;
   private ComScript scriptTomopitchB;
 
-  private ComScript selfTest1OldScriptXcorrA;
-  private ComScript selfTest1NewScriptXcorrA;
-  private ComScript selfTest2OldScriptXcorrA;
-  private ComScript selfTest2NewScriptXcorrA;
-  private ComScript selfTest1OldScriptXcorrB;
-  private ComScript selfTest1NewScriptXcorrB;
-  private ComScript selfTest2OldScriptXcorrB;
-  private ComScript selfTest2NewScriptXcorrB;
-
-  private CommandParam selfTest1OldParamXcorrA;
-  private CommandParam selfTest1NewParamXcorrA;
-  private CommandParam selfTest2OldParamXcorrA;
-  private CommandParam selfTest2NewParamXcorrA;
-  private CommandParam selfTest1OldParamXcorrB;
-  private CommandParam selfTest1NewParamXcorrB;
-  private CommandParam selfTest2OldParamXcorrB;
-  private CommandParam selfTest2NewParamXcorrB;
-
   private boolean selfTest = false;
 
   public ComScriptManager(ApplicationManager appManager) {
@@ -238,7 +222,6 @@ public class ComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadXcorr(AxisID axisID) {
-    loadTest(new ConstTiltxcorrParam(), axisID);
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptXcorrB = loadComScript("xcorr", axisID, true);
@@ -267,7 +250,6 @@ public class ComScriptManager {
     // Initialize a TiltxcorrParam object from the com script command object
     TiltxcorrParam tiltXcorrParam = new TiltxcorrParam();
     initialize(tiltXcorrParam, xcorr, "tiltxcorr", axisID);
-    initializeTestParam(axisID);
     return tiltXcorrParam;
   }
 
@@ -758,6 +740,19 @@ public class ComScriptManager {
     updateComScript(scriptSolvematch, solveMatchParam, "solvematch",
       AxisID.ONLY);
   }
+  
+  /**
+   * Save the matchshifts command to the solvematch com script
+   * @param matchshiftsParam
+   */
+  public void saveSolvematch(MatchshiftsParam matchshiftsParam) {
+    updateComScript(
+      scriptSolvematch,
+      matchshiftsParam,
+      matchshiftsParam.getCommand(),
+      AxisID.ONLY,
+      true);
+  }
 
   /**
    * Load the solvematchshift com script
@@ -778,6 +773,16 @@ public class ComScriptManager {
     initialize(solveMatchshiftParam, scriptSolvematchshift, "solvematch",
       AxisID.ONLY);
     return solveMatchshiftParam;
+  }
+  
+  public MatchshiftsParam getMatchshiftsFromSolvematchshifts() {
+
+    // Initialize a MatchshiftsParam object from the com script command
+    // object
+    MatchshiftsParam matchshiftsParam = new MatchshiftsParam();
+    initialize(matchshiftsParam, scriptSolvematchshift, "matchshifts",
+      AxisID.ONLY);
+    return matchshiftsParam;
   }
 
   /**
@@ -953,39 +958,15 @@ public class ComScriptManager {
   }
 
   /**
-   * Load the specified com script into this class.
-   * @param scriptName
-   * @param axisID
-   * @param parseComments
-   * @return
-   */
-  private ComScript loadComScript(String scriptName, AxisID axisID,
-    boolean parseComments) {
-    return loadComScript(scriptName, axisID, parseComments, -1, -1);
-  }
-
-  /**
    * Load the specified Com script 
    * @param scriptName
    * @param axisID
    * @return ComScript
    */
   private ComScript loadComScript(String scriptName, AxisID axisID,
-    boolean parseComments, int testNumber, int testScriptVersion) {
-
-    File comFile;
-    if (selfTest && testNumber < 0 && testScriptVersion < 0) {
-      comFile = TestFiles.getTestFiles().getComscript(scriptName, axisID,
-        testNumber, testScriptVersion, true);
-      if (comFile == null) {
-        return null;
-      }
-    }
-    else {
-      String command = scriptName + axisID.getExtension() + ".com";
-
-      comFile = new File(System.getProperty("user.dir"), command);
-    }
+    boolean parseComments) {
+    String command = scriptName + axisID.getExtension() + ".com";
+    File comFile = new File(System.getProperty("user.dir"), command);
 
     ComScript comScript = new ComScript(comFile);
     try {
@@ -1014,7 +995,11 @@ public class ComScriptManager {
    * @param axisID
    */
   private void updateComScript(ComScript script, CommandParam params,
-    String command, AxisID axisID) {
+      String command, AxisID axisID) {
+    updateComScript(script, params, command, axisID, false); 
+  }
+  private void updateComScript(ComScript script, CommandParam params,
+    String command, AxisID axisID, boolean addNew) {
 
     if (script == null) {
       String[] errorMessage = new String[2];
@@ -1027,7 +1012,7 @@ public class ComScriptManager {
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command);
+    int commandIndex = script.getScriptCommandIndex(command, addNew);
 
     try {
       comScriptCommand = script.getScriptCommand(command);
@@ -1117,73 +1102,4 @@ public class ComScriptManager {
     }
     return "";
   }
-
-  protected void loadTest(ConstCommandParam constParam, AxisID axisID) {
-    if (!selfTest) {
-      return;
-    }
-    if (axisID == AxisID.SECOND) {
-      selfTest1OldScriptXcorrB = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_LOAD, TestFiles.OLD_VERSION);
-      selfTest1NewScriptXcorrB = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_LOAD, TestFiles.NEW_VERSION);
-      selfTest2OldScriptXcorrB = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_SET, TestFiles.OLD_VERSION);
-      selfTest2NewScriptXcorrB = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_SET, TestFiles.NEW_VERSION);
-    }
-    else {
-      selfTest1OldScriptXcorrA = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_LOAD, TestFiles.OLD_VERSION);
-      selfTest1NewScriptXcorrA = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_LOAD, TestFiles.NEW_VERSION);
-      selfTest2OldScriptXcorrA = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_SET, TestFiles.OLD_VERSION);
-      selfTest2NewScriptXcorrA = loadComScript(constParam
-        .getProcessNameString(), axisID, constParam.isParseComments(),
-        TestFiles.TEST_TYPE_SET, TestFiles.NEW_VERSION);
-    }
-  }
-
-  protected void initializeTestParam(AxisID axisID) {
-    if (!selfTest) {
-      return;
-    }
-    if (axisID == AxisID.SECOND) {
-      selfTest1OldParamXcorrB = new TiltxcorrParam();
-      initialize(selfTest1OldParamXcorrB, selfTest1OldScriptXcorrB,
-        "tiltxcorr", axisID);
-      selfTest1NewParamXcorrB = new TiltxcorrParam();
-      initialize(selfTest2OldParamXcorrB, selfTest2OldScriptXcorrB,
-        "tiltxcorr", axisID);
-      selfTest2OldParamXcorrB = new TiltxcorrParam();
-      initialize(selfTest1NewParamXcorrB, selfTest1NewScriptXcorrB,
-        "tiltxcorr", axisID);
-      selfTest2NewParamXcorrB = new TiltxcorrParam();
-      initialize(selfTest2NewParamXcorrB, selfTest2NewScriptXcorrB,
-        "tiltxcorr", axisID);
-    }
-    else {
-      selfTest1OldParamXcorrA = new TiltxcorrParam();
-      initialize(selfTest1OldParamXcorrA, selfTest1OldScriptXcorrA,
-        "tiltxcorr", axisID);
-      selfTest1NewParamXcorrA = new TiltxcorrParam();
-      initialize(selfTest2OldParamXcorrA, selfTest2OldScriptXcorrA,
-        "tiltxcorr", axisID);
-      selfTest2OldParamXcorrA = new TiltxcorrParam();
-      initialize(selfTest1NewParamXcorrA, selfTest1NewScriptXcorrA,
-        "tiltxcorr", axisID);
-      selfTest2OldParamXcorrA = new TiltxcorrParam();
-      initialize(selfTest2NewParamXcorrA, selfTest2NewScriptXcorrA,
-        "tiltxcorr", axisID);
-    }
-  }
-
 }
