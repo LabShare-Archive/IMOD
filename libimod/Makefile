@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/21 19:26:59  mast
+#  Added dependencies on imodel.h
+#
 #  Revision 3.0  2001/11/29 18:10:57  rickg
 #  *** empty log message ***
 #
@@ -25,11 +28,13 @@ IMODELOBJS = imodel.o iobj.o icont.o imodel_to.o\
              imodel_fwrap.o imat.o iplane.o iview.o\
 	     ilist.o ilabel.o
 
+PIPOBJS = parse_params.o pip_fwrap.o
+
 all : $(LIB)
 
-$(LIB) : $(IMODELOBJS)
+$(LIB) : $(IMODELOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIB) $(LIB) $(IMODELOBJS)
+	$(MAKELIB) $(LIB) $(IMODELOBJS) $(PIPOBJS)
 	$(RANLIB) $(LIB)
 	$(CP) $(LIB) $(LIBDIR)
 
@@ -45,7 +50,7 @@ clean :
 # make a working version of the lib while debugging
 # other subsystems
 work : clean
-	touch $(IMODELOBJS)
+	touch $(IMODELOBJS) $(PIPOBJS)
 	touch $(LIB)
 
 #
@@ -58,8 +63,8 @@ iobj.o   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 imesh.o  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 icont.o  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 ipoint.o : $(INCDIR)/ipoint.h
-
 iplane.o : $(INCDIR)/iplane.h
 iview.o  : $(INCDIR)/iview.h
 imat.o   : $(INCDIR)/imat.h
 ilist.o  : $(INCDIR)/ilist.h
+$(PIPOBJS) : $(INCDIR)parse_params.h
