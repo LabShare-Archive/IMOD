@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/05/03 19:12:22  mast
+Added routines for enhanced image display
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -39,7 +42,7 @@ typedef struct __imodv_struct ImodvApp;
 #define IMODV_DRAW_CX (1 << 2)
 
 /* Image Control functions. */
-void imodvDrawImage(ImodvApp *a);
+void imodvDrawImage(ImodvApp *a, int drawTrans);
 void imodvImageEditDialog(ImodvApp *a, int state);
 void imodvImageUpdate(ImodvApp *a);
 
@@ -55,6 +58,7 @@ class ImodvImage : public DialogFrame
   ImodvImage(QWidget *parent, const char *name = NULL) ;
   ~ImodvImage() {};
   void viewToggled(bool state, int flag);
+  void updateCoords();
 
   QCheckBox *mViewXBox, *mViewYBox, *mViewZBox;
   MultiSlider *mSliders;
