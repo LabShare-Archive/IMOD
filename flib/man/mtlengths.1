@@ -43,7 +43,10 @@ DDEESSCCRRIIPPTTIIOONN
   obliqueness of the fibers by as much as possible.  This fraction is
   reported for each range of Z values at a single tilt angle, and
   overall.  If the fraction better is less than 0.5, one should rerun the
-  program, selecting the option to invert tilt angles.
+  program, selecting the option to invert tilt angles.  On this run, the
+  angles will be considered to be specified as the negative of the angles
+  in the tilt file, and the fraction of segments that are longer with the
+  angles as specified will be greater than 0.5.
 
   The program can also be provided with an object containing a contour
   that serves as a length marker.  It will report the length of this
@@ -54,6 +57,14 @@ DDEESSCCRRIIPPTTIIOONN
   set of transformations that can be applied to produce the model that
   would have been obtained if the sections had not been tilted.
   Imodtrans(1) or Xfmodel(1) can be used to transform the model.
+
+  The output of the program depends on whether one is correcting for
+  obliqeness.  If one is not, the output consists of the object number and
+  the length for each MT.  With obliqueness correction, the output consists
+  of the object and contour number, the length uncorrected for obliqueness,
+  the length with angles as specified, and the length with angles inverted.
+  On the final run, with the polarity of angles selected as inverted if
+  necessary, the desired lengths will be in the fourth column.
 
   Mtlengths uses the PIP package for input (see the manual page for pip(1))
   and can take input interactively only for specifying manual replacement
@@ -150,7 +161,7 @@ DDEESSCCRRIIPPTTIIOONN
   
   List of IMOD objects to exclude from the output, or Return to output
      all objects.
-  
+
   
 HHIISSTTOORRYY
   Written by David Mastronarde, 1/27/90; modified for IMOD 4/24/97;
