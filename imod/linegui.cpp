@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2004/11/05 19:08:12  mast
+Include local files with quotes, not brackets
+
 Revision 1.6  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
@@ -626,7 +629,7 @@ void LineTrack::track(int client)
     }
   } else  {
 
-    p_copy = (float *)malloc(2 * maxpoint * sizeof(Ipoint));
+    p_copy = (float *)malloc(npoint * sizeof(Ipoint));
     if (!p_copy){
       wprint("\aLineTrack memory allocation error!\n");
       return;
