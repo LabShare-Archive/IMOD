@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:45:54  mast
+    Added calls for cache filling
+
 */
 #include <stdio.h>
 #include <math.h>
@@ -64,6 +67,7 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
      XmString filename;
      char *filestr;
      int namelen;
+     Iobj *obj;
 
      if (ImodForbidLevel){
 	  if (item == 6)
@@ -100,6 +104,12 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 	  App->cvi->imod->ymax = App->cvi->ysize;
 	  App->cvi->imod->zmax = App->cvi->zsize;
 	  imodNewObject(App->cvi->imod);
+
+	  /* DNM 5/16/02: if multiple image files, set time flag by default */
+	  obj = imodObjectGet(App->cvi->imod);
+	  if (App->cvi->nt)
+	       obj->flags |= IMOD_OBJFLAG_TIME;
+
 	  App->cvi->imod->mousemode = mode;
 	  imod_cmap(App->cvi->imod);
 	  if (App->rgba)
@@ -112,6 +122,7 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 	  imodDraw(App->cvi, IMOD_DRAW_MOD);
 	  Imod_filename[0] = 0x00;
 	  imod_info_setocp();
+	  imod_object_edit_draw();    /* the setocp may not have called */
 	  ivwSetModelTrans(App->cvi);
 	  imod_cmap(App->cvi->imod);
 	  break;
