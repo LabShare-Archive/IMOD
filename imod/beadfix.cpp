@@ -1284,7 +1284,7 @@ void AlignThread::run()
   QString comStr, fileStr, vmsStr;
   int dotPos;
   char *imodDir = getenv("IMOD_DIR");
-  char *cshell = getenv("IMD_CSHELL");
+  char *cshell = getenv("IMOD_CSHELL");
   if (!imodDir) {
     plug->alignExitCode = ERROR_NO_IMOD_DIR;
     return;
@@ -1292,19 +1292,29 @@ void AlignThread::run()
   if (!cshell)
     cshell = "tcsh";
   fileStr = plug->filename;
+  
+  // Remove the leading path and the extension
+  dotPos = fileStr.findRev('/');
+  if (dotPos >= 0)
+    fileStr = fileStr.right(fileStr.length() - dotPos - 1);
   dotPos = fileStr.findRev('.');
   if (dotPos > 0)
     fileStr.truncate(dotPos);
+
   vmsStr = QString(imodDir) + "/bin/vmstocsh";
-  comStr.sprintf("%s %s < %s.com | %s -ef", 
+  comStr.sprintf("%s %s.log < %s.com | %s -ef", 
                  (QDir::convertSeparators(vmsStr)).latin1(),
-                 plug->filename, fileStr.latin1(), cshell);
+                 fileStr.latin1(), fileStr.latin1(), cshell);
   plug->alignExitCode = system(comStr.latin1());
 }
 #endif
 
 /*
     $Log$
+    Revision 1.16  2004/06/25 20:05:40  mast
+    Based the move by residual on residual data instead of current point value,
+    and rewrote to make most plug variables be class members
+
     Revision 1.15  2004/06/24 15:34:15  mast
     Rewrote to read in all data to internal structures at once, and made it
     move between areas automatically, improved backup logic
