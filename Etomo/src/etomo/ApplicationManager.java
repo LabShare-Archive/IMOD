@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.31  2003/05/08 23:18:45  rickg
+ * <p> Added --debug option, off by default
+ * <p>
  * <p> Revision 2.30  2003/05/08 20:14:30  rickg
  * <p> Don't set main window location to (0,0) confuses SGI
  * <p>
@@ -444,7 +447,7 @@ public class ApplicationManager {
         isDataParamDirty = true;
 
         //  Initialize a new IMOD manager
-        imodManager = new ImodManager(metaData);
+        imodManager = new ImodManager(this, metaData);
       }
       else {
         String[] errorMessage = new String[2];
@@ -2608,7 +2611,7 @@ public class ApplicationManager {
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
 
       //  Initialize a new IMOD manager
-      imodManager = new ImodManager(metaData);
+      imodManager = new ImodManager(this, metaData);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
