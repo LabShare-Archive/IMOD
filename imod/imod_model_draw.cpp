@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.7  2003/10/27 22:25:07  mast
+Fix bug of trying to draw end symbols for empty contours
+
 Revision 4.6  2003/04/17 19:02:59  mast
 adding hack for GL-context dependent gluQuadric
 
@@ -318,7 +321,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   gluQuadricDrawStyle(qobj, GLU_FILL);
 
   /* Make a display list for the default size */
-  drawsize = obj->pdrawsize;
+  drawsize = obj->pdrawsize / vi->xybin;
   if (drawsize) {
     stepRes = (int)(drawsize < 5 ? drawsize + 4 : 8);
     listIndex = glGenLists(1);
@@ -335,7 +338,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
       continue;
 
     for (pt = 0, point = cont->pts; pt < cont->psize; pt++, point++) {
-      drawsize = imodPointGetSize(obj, cont, pt);
+      drawsize = imodPointGetSize(obj, cont, pt)  / vi->xybin;
       if (!drawsize)
 	continue;
       glPushMatrix();
