@@ -22,7 +22,6 @@ import etomo.storage.StackFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
-//SUEH 263
 import etomo.type.MetaData;
 import etomo.type.SectionType;
 import etomo.type.ViewType;
@@ -42,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/10/23 22:08:28  sueh
+ * <p> Bug322 changed labels and a tooltip.
+ * <p>
  * <p> Revision 2.12  2003/10/10 22:56:59  sueh
  * <p> bug265
  * <p> changed file.pathSeparator (“:”) to file.separator (“/”)
@@ -166,7 +168,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
-//SUEH 263
   private JPanel pnlAxisType = new JPanel();
   private JRadioButton rbSingleAxis = new JRadioButton("Single axis");
   private JRadioButton rbDualAxis = new JRadioButton("Dual axis");
@@ -280,7 +281,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private void createDataTypePanel() {
 
     //  Datatype subpnls: DataSource AxisType Viewtype SectionType
-    //SUEH 263
     Dimension dimDataTypePref = new Dimension(150, 80);
 
     bgAxisType.add(rbSingleAxis);
@@ -290,7 +290,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
     pnlAxisType.add(rbSingleAxis);
     pnlAxisType.add(rbDualAxis);
-//SUEH 263
     rbSingleView.setEnabled(false);
     rbMontage.setEnabled(false);
     
@@ -316,7 +315,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Datatype panel
     pnlDataType.setLayout(new BoxLayout(pnlDataType, BoxLayout.X_AXIS));
     pnlDataType.setBorder(new EtchedBorder("Data Type").getBorder());
-//SUEH 263
     pnlDataType.add(pnlAxisType);
     pnlDataType.add(Box.createHorizontalGlue());
     pnlDataType.add(pnlViewType);
@@ -391,7 +389,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
-    //SUEH 263
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
     setSectionType(metaData.getSectionType());
@@ -413,7 +410,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     MetaData metaData = new MetaData();
 
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
-    //SUEH 263
     metaData.setAxisType(getAxisType());
 
     //  The dataset name needs to be set after the axis type so the metadata
@@ -438,20 +434,42 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     return metaData;
   }
 
+  public boolean isValid() {
+    //SUEH 271
+    System.out.println("in isValid");
+    String errorMessageTitle = new String("Setup Dialog Error");
+    String datasetText = ltfDataset.getText();
+    //SUEH 271
+    System.out.println("datasetText=" + datasetText);    
+    if (datasetText.equals("")) {
+      applicationManager.openMessageDialog(
+        "Dataset name has not been entered",
+        errorMessageTitle);
+      return false;
+    }
+    File dataset = new File(datasetText);
+    String datasetFileName = dataset.getName();
+    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")) {
+      applicationManager.openMessageDialog(
+        "The name " + datasetFileName + " cannot be used as a dataset name",
+        errorMessageTitle);
+      return false;
+    }
+    return true;
+    
+  }
   // Return the working directory as a File object  
   public File getWorkingDirectory() {
     String datasetText = ltfDataset.getText();
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
-      //SUEH 265 done use File.separator to get "/"
+
       dataset =
         new File(
           System.getProperty("user.dir") + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
-//SUEH 263
-//SUEH 263
 
   //  Axis type radio button
   void setAxisType(AxisType axisType) {
@@ -690,7 +708,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>Attempt to extract pixel size and tilt axis rotation<br>";
     line2 = "angle from data stack.";
     btnScanHeader.setToolTipText(line1 + line2);
-//SUEH 263
+
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
     pnlAxisType.setToolTipText(line1 + line2);
