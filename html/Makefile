@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/03/20 19:45:07  mast
+#  Added libhelp directory to distribution
+#
 #  Revision 3.5  2005/02/25 04:26:24  mast
 #  Added libdoc calls
 #
@@ -40,6 +43,6 @@ install : clean
 	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
 
 clean : 
-	cd libdoc ; $(MAKE) clean
+	if [ -e libhelp ] ; then \rm -r libhelp ; fi
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
