@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,10 +69,12 @@ String B3DGFX_Translations =
  <BtnMotion>: DrawingAreaInput()\n\
 ";
 #endif
+/* DNM 1/20/02: add button 1 up since xyz window needs it now */
 #ifdef DRAW_OpenGL
 String B3DGFX_Translations =
 "<KeyDown>:   glwInput()\n\
  <BtnDown>:   glwInput()\n\
+ <Btn1Up>:    glwInput()\n\
  <BtnMotion>: glwInput()\n\
 ";
 #endif
@@ -946,6 +956,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
 */
 	       /* try and fill corners. */
 	       if (*drawsize < (imsize-1)) (*drawsize)++;
+	       /* printf("ds do offset wo %d %d %d %d\n", *drawsize, *doff, *offset, *woff); */
 	       return;
 	  }
 
@@ -963,7 +974,6 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
 		    *offset   = ((float)imsize * 0.5) - (float)(*doff) -
 			 (((float)winsize*0.5f)/(float)zoom) - 2.0f;
 	       }
-/*       printf("ds do offset %d %d %d\n", *drawsize, *doff, *offset);  */
 
 /* Old way: */
 /*
@@ -1020,8 +1030,9 @@ void b3dBufferImage(B3dCIImage *image)
 	  pixsize = 4;
      else if (App->depth == 8)
 	  pixsize = 1;
+     /* DNM 1/20/02: removed factor of 2 from malloc */
      image->id2 = (unsigned short *)malloc
-	  (2 * (image->width + 3) * (image->height + 3) * pixsize);
+	  ((image->width + 3) * (image->height + 3) * pixsize);
      image->bufSize = 2;
 #else
      return;
@@ -1064,8 +1075,8 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
 	  pixsize = 4;
      else if (depth == 8) 
 	  pixsize = 1;
-     ri->id1 = (unsigned short *)malloc
-	  (2 * (width+3) * (height+3) * pixsize);
+     /* DNM 1/20/02: removed factor of 2 from malloc */
+     ri->id1 = (unsigned short *)malloc((width+3) * (height+3) * pixsize);
      ri->id2 = NULL;
      ri->width = width;
      ri->height = height;
@@ -1110,8 +1121,8 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
 #endif
 }
 
-/* used by xyz window.  For OpenGL, this routine fills the temporary
-   data array - then xyz window uses glDrawPixels with OpenGL zoom */
+/* 1/20/02: No longer used by xyz window.  For OpenGL, this routine fills the
+   temporary data array - then xyz window used glDrawPixels with OpenGL zoom */
 void b3dFillGreyScalePixels(unsigned char *data,      /* input data      */
 			    int xsize, int ysize,     /* size of input   */
 			    B3dCIImage *image,        /* tmp image data. */
@@ -1139,6 +1150,8 @@ void b3dFillGreyScalePixels(unsigned char *data,      /* input data      */
 	  unsigned char *idb = (unsigned char *)ids;
 	  unsigned int *idi = (unsigned int *)ids;
 	  unsigned int *cindex = App->cvi->cramp->ramp;
+
+	  /* This would be a wrong thing to do */
 	  if (!data){
 	       b3dColorIndex(base);
 	       glColor3f(0.0f, 0.0f, 0.0f);
@@ -1239,6 +1252,7 @@ void b3dPutCIImage(B3dCIImage *image,
 
 /* This is used by the tumbler and tilt windows (11/1/00) - it sets up 
    offsets correctly to call b3dDrawGreyScalePixels, using OpenGl zoom */
+/* DNM 1/20/02: added slice argument to govern image re-use */
 void b3dDrawGreyScalePixelsSubArea
 (B3dCIImage *image,                    /* window image data. */
  unsigned char *data,                  /* input image data. */
@@ -1246,7 +1260,8 @@ void b3dDrawGreyScalePixelsSubArea
  int xtrans, int ytrans,               /* offset from data center. */
  int llx, int lly,  int urx, int ury,  /* window coords or sub area. */
  int base, int zoom,                   /* colorindex ramp base, zoom factor. */
- int *xo, int *yo)                     /* return window origin */
+ int *xo, int *yo,                     /* return window origin */
+ int slice)
 {
      int xstart = 0, ystart = 0;
      int xborder = 0, yborder = 0;
@@ -1297,7 +1312,7 @@ void b3dDrawGreyScalePixelsSubArea
      b3dDrawGreyScalePixels(data, xsize, ysize, xstart, ystart,
 			    llx + xborder, lly + yborder, 
 			    xdrawsize, ydrawsize,
-			    image, base, zoom, zoom);
+			    image, base, zoom, zoom, slice);
 
      return;
 }
@@ -1306,36 +1321,39 @@ void b3dDrawGreyScalePixelsSubArea
 #ifdef DRAW_OpenGL
 /* Tests if the image in either buffer matches the needs for the current
    display, and sets the image in *ri if so */
+/* DNM 1/20/02: made it match when single buffering, fixed logic for
+ making sure zoom matches under HQ display */
 static int b3dImageMatch( B3dCIImage *image, unsigned short **ri,
 		  int xo, int yo, int width, int height,
 		  double zoom, int hq, int cz)
 {
-     if (image->bufSize == 1) return(0);
+     /* Negative z is never to match */
+     if (cz < 0)
+	  return(0);
 
+     /* Does it match first buffer? */
      if ((image->dw1 == width) && 
 	 (image->dh1 == height) &&
 	 (image->xo1 == xo)  &&
 	 (image->yo1 == yo) &&
 	 (image->cz1 == cz) &&
-	 (image->hq1 == hq)){
-	  if (image->hq1)
-	       if (image->zx1 != zoom)
-		    return(0);
+	 (image->hq1 == hq) && 
+	 (!image->hq1 || image->zx1 == zoom)) {
 	  *ri = image->id1;
 	  image->buf = 1;
 	  return(1);
      }
 
+     if (image->bufSize == 1) return(0);
 
+     /* If two in use, does it match second one? */
      if ((image->dw2 == width) &&
 	 (image->dh2 == height) &&
 	 (image->xo2 == xo)  &&
 	 (image->yo2 == yo) &&
 	 (image->cz2 == cz) &&
-	 (image->hq2 == hq)){
-	  if (image->hq2)
-	       if (image->zx2 != zoom)
-		    return(0);
+	 (image->hq2 == hq) && 
+	 (!image->hq2 || image->zx2 == zoom)) {
 	  *ri = image->id2;
 	  image->buf = 2;
 	  return(1);
@@ -1344,36 +1362,38 @@ static int b3dImageMatch( B3dCIImage *image, unsigned short **ri,
      return(0);
 }
 
-/* Sets up to use the other temporary image buffer, if two are in use */
+/* Sets up to use the other temporary image buffer, if two are in use; or
+ (1/20/02) sets characteristics for the one image buffer */
 static void b3dImageSet(B3dCIImage *image, unsigned short **ri,
 		 int xo, int yo, int width, int height,
 		 double zoom, int hq, int cz)
 {
-     if (image->bufSize == 1){
+     /* Do not store a negative Z */
+     if (cz < 0)
+	  cz = -cz - 1;
+
+     /* Use first buffer if one in use or if last one was # 2 */
+     if (image->bufSize == 1 || image->buf == 2){
+	  image->dw1 = width;
+	  image->dh1 = height;
+	  image->xo1 = xo;
+	  image->yo1 = yo;
+	  image->zx1 = zoom;
+	  image->hq1 = hq;
 	  *ri = image->id1;
+	  image->buf = 1;
+	  image->cz1 = cz;
 	  return;
      }
-     if (image->buf == 1){
-	  image->dw2 = width;
-	  image->dh2 = height;
-	  image->xo2 = xo;
-	  image->yo2 = yo;
-	  image->zx2 = zoom;
-	  image->hq2 = hq;
-	  *ri = image->id2;
-	  image->buf = 2;
-	  image->cz2 = cz;
-	  return;
-     }
-     image->dw1 = width;
-     image->dh1 = height;
-     image->xo1 = xo;
-     image->yo1 = yo;
-     image->zx1 = zoom;
-     image->hq1 = hq;
-     *ri = image->id1;
-     image->buf = 1;
-     image->cz1 = cz;
+     image->dw2 = width;
+     image->dh2 = height;
+     image->xo2 = xo;
+     image->yo2 = yo;
+     image->zx2 = zoom;
+     image->hq2 = hq;
+     *ri = image->id2;
+     image->buf = 2;
+     image->cz2 = cz;
      return;
 }
 #endif
@@ -1387,13 +1407,8 @@ int b3dGetImageType(GLenum *otype, GLenum *oformat)
      if (App->rgba){
 	 unpack = 4;
 	 type = GL_UNSIGNED_BYTE; 
-
-#ifdef __sgi
-	     format   = GL_ABGR_EXT;
-#else
-	     format   = GL_RGBA;
-#endif
-	     format   = GL_RGBA;
+	 /* DNM 1/20/02: eliminated unused conditional on SGI */
+	 format   = GL_RGBA;
      }else{
 	 if (App->depth > 8){ 
 	     unpack = 2; 
@@ -1447,6 +1462,8 @@ static void chunkdraw(int xysize, float zoom, int wxdraw, int wy,
 #endif
 
 /* This routine will draw pixels from the input image using the OpenGL zoom */
+/* DNM 1/20/02: Added slice argument to govern image re-use, rather than
+   assuming CurZ */
 void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 			    int xsize, int ysize,     /* size of input   */
 			    int xoffset, int yoffset, /* data offsets    */
@@ -1455,7 +1472,7 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 			    B3dCIImage *image,        /* tmp image data. */
 			    int base,                 /* colorindex ramp */
 			    double xzoom,
-			    double yzoom)  
+			    double yzoom, int slice)  
 {
 
 #ifdef DRAW_OpenGL
@@ -1489,9 +1506,9 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 	     the array that is copied into was made large enough to hold the
 	     data being zoomed donw, rather than restricted to window size */
 	 if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
-			    width, height, zoom, 0, CurZ)){
+			    width, height, zoom, 0, slice)){
 	     b3dImageSet(image, &sdata, xoffset, yoffset,
-			 width, height, zoom, 0, CurZ);
+			 width, height, zoom, 0, slice);
 	     bdata = (unsigned char *)sdata;
 	     idata = (unsigned int  *)sdata;
 	     for (j = 0, di = 0;  j < height; j++){
@@ -1621,6 +1638,8 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
 
 /* This routine is used to draw with rapid 1.5 x zoom, called only from 
    b3dDrawGreyScalePixelsHQ (11/1/00) */
+/* DNM 1/20/02: Added slice argument to govern image re-use, rather than
+   assuming CurZ */
 static void b3dDrawGreyScalePixels15
 (unsigned char *data,      /* input data          */
  int xsize, int ysize,     /* size of input data  */
@@ -1628,7 +1647,7 @@ static void b3dDrawGreyScalePixels15
  int wx, int wy,           /* window start    */
  int width, int height,    /* sub-area size   */
  B3dCIImage *image,        /* tmp image data. */
- int base
+ int base, int slice
  )
 {
      int i, j, istart, ilim, di;
@@ -1691,9 +1710,9 @@ static void b3dDrawGreyScalePixels15
      maxi = width;
 	  
      if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
-			sw, sh, 1.5, 1, CurZ)){
+			sw, sh, 1.5, 1, slice)){
 	 b3dImageSet(image, &sdata, xoffset, yoffset,
-		     sw, sh, 1.5, 1, CurZ);
+		     sw, sh, 1.5, 1, slice);
 	 bdata = (unsigned char *)sdata;
          idata = (unsigned int  *)sdata;
 	 /*	       if (rbase) */
@@ -1838,6 +1857,8 @@ static void b3dDrawGreyScalePixels15
 
 /* This is the display routine called from the zap window, for regular or
    high quality data */
+/* DNM 1/20/02: Added slice argument to govern image re-use, rather than
+   assuming CurZ */
 void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 			      int xsize, int ysize,     /* size of input   */
 			      int xoffset, int yoffset, /* data offsets    */
@@ -1847,7 +1868,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 			      int base,                 /* colorindex ramp */
 			      double xzoom,
 			      double yzoom,
-			      int quality)  
+			      int quality, int slice)  
 {
 #ifdef DRAW_OpenGL
     if (!data){
@@ -1860,7 +1881,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
     /* special optimization. DNM: don't take if want quality*/
     if (!quality && (xzoom == 1.50) && (yzoom == 1.50)){
 	b3dDrawGreyScalePixels15(data, xsize, ysize, xoffset, yoffset,
-				 wx, wy, width, height, image, base);
+				 wx, wy, width, height, image, base, slice);
 	return;
 	} 
 
@@ -1874,7 +1895,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	     /* If relying on OpenGL zoom completely, just call this */
 	     b3dDrawGreyScalePixels(data, xsize, ysize, xoffset, yoffset,
 				    wx, wy, width, height, image, base,
-				    xzoom, yzoom);
+				    xzoom, yzoom, slice);
 	    return;
 	}else{
 	    int hz = xzoom * 100.0;
@@ -1884,7 +1905,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 		b3dDrawGreyScalePixels(data, xsize, ysize, 
 				       xoffset, yoffset,
 				       wx, wy, width, height, image, base,
-				       xzoom, yzoom);
+				       xzoom, yzoom, slice);
 		return;
 	    } else {
 		 /* DNM: encode fractional zooms as negative quality because
@@ -1969,9 +1990,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	fractional zooms are truly hq or not */
 
      if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
-			width, height, zoom, quality, CurZ)){
+			width, height, zoom, quality, slice)){
 	  b3dImageSet(image, &sdata, xoffset, yoffset,
-	  width, height, zoom , quality, CurZ); 
+	  width, height, zoom , quality, slice); 
 
 	  bdata = (unsigned char *)sdata;
 	  idata = (unsigned int  *)sdata;
@@ -2144,7 +2165,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
      if (zoom <= 1){
 	  b3dDrawGreyScalePixels
 	       (data,xsize,ysize,xoffset,yoffset,wx,wy,
-		width, height, image, base, zoom, zoom);
+		width, height, image, base, zoom, zoom, slice);
 	  return;
      }
      ystop = yoffset + height + soffset;
