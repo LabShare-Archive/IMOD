@@ -49,6 +49,7 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
 	endif
 
 	write(6,101)'if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)'
+	write(6,101)'echo2 Shell PID: $$'
 
 	iffirst=-1
 	reading=.true.
