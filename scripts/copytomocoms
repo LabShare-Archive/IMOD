@@ -1014,8 +1014,8 @@ EOF
 	 set modeline = `header $stackname | sed -n '/Map mode/p'`
 	 if ($modeline[4] == 2) set mode = 2
          @ mindens = `header $stackname | sed -n '/Minimum den/p' | awk '{print int($4)}'`
-         @ maxdens = `header $stackname | sed -n '/Maximum den/p' | awk '{print int($4)}'`
-         if ($mode == 1 && $maxdens < 0 && $mindens < -10000) set logbase = 32768
+         @ meandens = `header $stackname | sed -n '/Mean den/p' | awk '{print int($4)}'`
+         if ($mode == 1 && $meandens < -1000 && $mindens < -10000) set logbase = 32768
     endif
 
     set delexclude = "gibberish"
@@ -1288,6 +1288,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.35  2005/02/17 17:25:10  mast
+#  Added goto to xcorr.com for blend, to skip the blendmont
+#
 #  Revision 3.34  2005/02/11 23:14:20  mast
 #  Handle distortion and mag gradient filenames better in case of spaces
 #  in path or Windows filenames
