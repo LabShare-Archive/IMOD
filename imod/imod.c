@@ -34,6 +34,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2002/12/03 15:45:08  mast
+Call SaveModel instead of SaveModelQuit when quitting, to give user a chance
+to set the filename to save to
+
 Revision 3.10  2002/12/01 16:51:34  mast
 Changes to eliminate warnings on SGI
 
@@ -549,16 +553,15 @@ int main( int argc, char *argv[])
     memcpy(Model->fileName, Imod_filename, namelen);
 
   /* report window before forking and loading data */
-  if (print_wid)
+  if (print_wid) {
     fprintf(stderr, "Window id = %u\n", XtWindow(App->toplevel));
+    fprintf(stderr, "Process id = %u\n", getpid());
+  }
 
 #ifndef NO_IMOD_FORK
-  /* put imod in background if not debug. */
-  if (!Imod_debug)
+  /* put imod in background if not debug and not forking . */
+  if (!Imod_debug && !print_wid)
     if ((cpid = fork()) != 0) {
-      if(print_wid) {
-        fprintf(stderr, "Process id = %u\n", cpid);
-      }
       exit(0);
     }
 #endif
