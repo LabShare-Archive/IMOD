@@ -4,419 +4,37 @@ C TILT......A program for reconstructing a three-dimensional object
 C           from a series of two-dimensional projections.
 C 	    The projections are assumed to arise from rotation about
 C           a fixed tilt axis.
+c	  
+c	  See man page for details
 C
-C	  The program will accept file names either from the command line or as
-C	  entries to the program after it is started.  If there are two names
-C	  on the command line, they will be taken as the input and output file
-C	  names; if there is one name, it will be taken as the input file name
-C	  and the program will ask for the output file name; if there are no
-C	  command line arguments, the program will ask for both input and
-c	  output file names.
-C
-c	  The program uses a number of different numerical strategies
-c	  depending on whether the reconstructed volume is rotated around the
-c	  X axis and depending on the amount of memory available.  If there is
-c	  no X-axis tilt being imposed, then each output plane is derived from
-c	  one line of the input data.  The program tries first to use the fast
-c	  backprojection algorithm developed by Sandberg and Beylkin.  If there
-c	  is insufficient memory for this, or if other preconditions are not
-c	  satisfied, it then tries to use preliminary stretching of each input
-c	  line by the cosine of the tilt angle, which speeds up the direct
-c	  backprojection.  If there is not enough memory for this method
-c	  either, the program falls back to direct backprojection from the
-c	  unstretched input lines. 
-c
-c	  When a tilt around the X axis is specified, then each output slice
-c	  derives from several lines of input data.  The program tries to do
-c	  this first by computing untilted slices, one per input line, and
-c	  interpolating an output slice from the relevant untilted slices.
-c	  It uses fast backprojection if possible; if not, it tries to use
-c	  cosine stretching if possible, or falls back to direct computation.
-c	  If there is insufficient memory for this approach, the program
-c	  reverts to "old-style" X-axis tilting, in which the output slice is
-c	  computed directly from the various input slices.  In this case,it
-c	  also tries to use cosine stretching if memory is available.
-c
-c	  The user can disable various strategies by specifying an
-c	  interpolation order of 0: cosine stretching by entering
-c	  "COSINTERP 0", fast backprojection by entering "FBPINTERP 0", or the
-c	  new style of X-axis tilting by entering "XTILTINTERP 0".  There are
-c	  some cases where the fast backprojection is slower than the
-c	  conventional approach (e.g., few input views).  The program attempts
-c	  to detect these cases and use conventional summation instead.  If
-c	  you use "FBPINTERP 1", you can bypass this checking and force the 
-c	  program to use fast backprojection as long as other conditions are
-c	  met.
-c
-C -----------------------------------------------------------------
-C
-C	  INPUTS TO THE PROGRAM
-C
-C	  Each line of input to the program consists of a keyword, usually
-c	  followed by one or more values.  The following are all possible
-c	  input lines.  Many of these are optional, and they can be input in
-c	  any order.  The keyword can be un upper or lower case.
-C
-C	  ANGLES  TILT_ANGLES
-C	  ------
-C	  Use this line to specify the tilt angles of the views.  Put the tilt
-c	  angles after ANGLES, separated by spaces.  You must enter one tilt
-c	  angle for each view.  Use more than one ANGLES line if necessary.
-c	  This information will override tilt angles specified in the file
-c	  header.  If you enter angles in this way, the file header need not
-c	  contain tilt information.
-C	  
-C	  COMPFRACTION   FRACTION
-C	  ------
-C	  Use this line if the compression measured by TILTALIGN occurred over
-c	  only a FRACTION of the distance between the fiducials.
-C
-C	  COMPRESS   COMPRESSIONS
-C	  ------
-C	  With this line, the program will assume that the section has
-c	  compressed in Z by the amount given by the COMPRESSION for each
-c	  view.  The compressions would be taken directly from the  output of
-c	  TILTALIGN for incremental compression.  A value must be entered for
-c	  each view.
-C
-C	  COSINTERP  ORDER  FACTOR
-C	  ------
-C	  Use this line to control the interpolation ORDER and sampling FACTOR
-C	  for cosine stretching of the input data.  ORDER can be 1 for linear,
-c	  2 for quadratic, 3 for cubic, or 0 to disable cosine stretching.
-c	  The default is linear to provide some smoothing of the data; higher
-c	  orders are appropriate if data are relatively noise-free.  FACTOR is
-c	  optional; the default is 2, which prevents further smoothing when
-c	  the stretched data are linearly interpolated during backprojection.  
-C
-C	  DENSWEIGHT   NADJACENT   WEIGHTS
-C	  ------
-C	  Use this line to weight each view proportionally to the local
-c	  average tilt increment between views.  NADJACENT specifies the
-c	  number of intervals on EACH side of a view to consider; the default
-c	  is 2.  Optionally, one may also enter that number of WEIGHTS to be
-c	  applied in averaging the adjacent increments.
-C
-C	  DONE
-C	  ------
-C	  Put this line at the end to terminate data entry if you wish to put
-c	  commands to run another program in the same command file.
-C
-C	  EXCLUDE  VIEWS	  
-C	  ------
-C	  Use this line to specify a subset of views to be excluded from the
-c	  reconstruction.  Put the view numbers after the EXCLUDE statement,
-c	  separated by spaces.  Use more than one EXCLUDE line if the numbers
-c	  do not all fit on one line.  You may not have both an INCLUDE and an
-c	  EXCLUDE line.
-c
-C	  EXCLUDELIST  VIEWLIST
-C	  EXCLUDELIST2  VIEWLIST
-C	  ------
-C	  This line is an alternative way to specify views to be excluded.  The
-c	  VIEWLIST should be a list of ranges, separated by commas, and with no
-c	  embedded spaces; e.g., 1-3,54,67,85-88.  You may have any number of
-c	  EXCLUDE, EXCLUDELIST, and EXLCUDELIST2 lines, but they cannot be 
-c	  combined with INCLUDE lines.
-C
-C	  FBPINTERP  ORDER
-C	  ------
-C	  Use this line to specify the interpolation ORDER for the fast
-c	  backprojection algorithm: 1 for linear interpolation (the default),
-c	  3 for cubic spline interpolation, which will low-pass filter the
-c	  input data more, or 0 to disable fast backprojection.  Entering a 
-c	  value with this option will also force the program to use fast
-c	  backprojection even if the width, thickness, and number of views
-c	  are small enough so that fast backprojection will run slower than
-c	  direct summation.
-C
-C	  FULLIMAGE XSIZE YSIZE
-C	  ------
-C	  Use this line to specify the full size XSIZE by YSIZE of the
-c	  original stack of tilted views, so that a subset of the aligned
-c	  stack can be handled properly when using a global X-axis tilt or
-c	  local alignments.
-C
-C	  INCLUDE  VIEWS	  
-C	  ------
-C	  Use this line to specify a subset of views to be used for the
-c	  reconstruction.  Put the view numbers after the INCLUDE statement,
-c	  separated by spaces.  Use more than one INCLUDE line if the numbers
-c	  do not all fit on one line.
-C
-C	  LOCALFILE   Filename
-C	  ------
-C	  Use this line to specify a file containing local tilt alignment
-c	  information.
-C
-C	  LOCALSCALE  FACTOR   
-C	  ------
-C	  If local tilt alignments were obtained from unreduced data, but the
-c	  aligned stack was reduced by binning or transforming, use this line
-c	  to specify the FACTOR by which the data were scaled, so that the
-c	  local alignment information can be adjusted.
-C
-C	  LOG BASE
-C	  ------
-C	  This line allows one to generate a reconstruction using the
-c	  logarithm of the densities in the input file, with the value BASE 
-c	  added before taking the logarithm.
-C
-C	  MASK   RMASK
-C	  ------
-C	  This line allows a mask to be applied so as to exclude from the
-c	  reconstructed volume those parts which  lie outside the volume for
-c	  which reconstruction is actually possible.  The volume for which
-c	  reconstruction is possible is a cylinder whose axis lies along the
-c	  tilt axis. Grid points outside this volume will be set to value
-c	  RMASK.  THIS OPTION CAN BE IGNORED FOR THIN SECTIONS, where the
-c	  thickness is considerably smaller than the maximum radius about the
-c	  tilt axis on the zero angle projection.  For 'thick' sections, this
-c	  option saves some execution time.
-C
-C	  MODE    NEWMODE
-C	  ------
-C	  This line allows one to specify the data mode of the output file,
-c	  which is 2 by default.  Be sure to use an appropriate SCALE line so
-c	  that data will be scaled to the proper range.
-C
-C	  OFFSET   DELANG DELXX
-C	  ------
-C	  This line allows an offset of DELANG degrees to be applied to all
-c	  tilt angles and indicates that the tilt axis is offset in the
-c	  projection images, cutting the X-axis at  NX/2. + DELXX instead of
-c	  NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
-c	  The DELXX entry is optional and defaults to 0 when omitted.
-C
-C	  PERPENDICULAR or  PARALLEL
-C	  ------
-C	  This line controls which axis order is used for the final
-c	  reconstruction.  PARALLEL mode produces sections parallel to the
-c	  plane of the zero tilt projection, PERPENDICULAR mode produces
-c	  sections normal to the tilt axis.
-C
-C	  RADIAL   IRMAX IFALL  or RMAX RFALL
-C	  ------
-C	  This line controls the radial weighting function.  The radial
-c	  weighting function is linear away from the origin for a distance of
-c	  IRMAX in reciprocal space followed by a gaussian fall-off of s.d.
-c	  IFALL.  The distances may be specified either as pixels (values
-c	  greater than 1) or as frequencies (cycles/pixel) in Fourier space
-c	  (values < 1).
-C
-C	  REPLICATE  NREPLIC REPINC
-C	  ------
-C	  With this line, the input views will be replicated NREPLIC times,
-c	  with an increment of REPIN degrees added to the original angles for
-c	  each replication.  For example, if you can assume 9-fold symmetry,
-c	  enter REPLICATE 8 40.  More than one REPLICATE line can be entered.
-C	  
-C	  REPROJECT
-C	  ------
-C	  With this line, the program will output a single image, a
-C	  reprojection at zero degrees.  To get a reprojection at an arbitrary
-C	  angle, combine this with an OFFSET entry; you will have to increase
-C	  the reconstructed thickness to get a proper reprojection with high
-C	  angles.
-C
-C	  SCALE   FLEVL SCALE
-C	  ------
-C	  This line allows a linear change of density in the  reconstructed
-c	  image according to the formula
-C	  ARRAY(I)=(ARRAY(I)+FLEVL)*SCALE
-C	  After the reconstruction is complete, the program will output the
-c	  scale values that would make the data range from 10 to 245.
-C
-C	  SHIFT   XOFFSET  ZOFFSET
-C	  ------
-C	  This line allows one to shift the reconstructed slice in X or Z
-c	  before it is output.  If XOFFSET is positive, the slice will be
-c	  shifted to the right, and the output will contain the left part of
-c	  the whole potentially reconstructable area.  If ZOFFSET is positive,
-c	  the slice is shifted upward.  The ZOFFSET entry is optional and
-c	  defaults to 0 when omitted.
-C	  
-C	  SLICE   ISLICE JSLICE IDELSLICE
-C	  ------
-C	  This line allows a limited part of the map to be reconstructed and
-c	  is useful for test purposes. A slab from column ISLICE to column
-c	  JSLICE (that is, along the medium axis, perpendicular to the tilt
-c	  axis) of the volume is reconstructed, at intervals of IDELSLICE.
-c	  Slices are numbered from 0.  The IDELSLICE entry is optional and
-c	  defaults to 1 when omitted.
-C
-C	  SUBSETSTART IX IY
-C	  ------
-C	  If the aligned stack contains a subset of the area in the original
-c	  images, and a global X-axis tilt or local alignments are being used,
-c	  use this line to enter the index coordinates IX, IY of the lower
-c	  left corner of the subset within the original images.  A FULLIMAGE 
-c	  line must also be entered.
-C
-C	  THICKNESS   ITHICK
-C	  ------
-C	  This line controls the thickness (along the z-axis) of the
-c	  reconstructed volume, the thickness being ITHICK pixels.
-C	
-C	  TILTFILE   Filename
-C	  ------
-C	  Use this line to specify a file containing a list of all tilt
-c	  angles.  The angles may be one per line or many per line.
-C
-C	  TITLE   string
-C	  ----- 
-C	  An alphanumeric string giving the title for the job, which will be
-c	  added to the output map.  Limit 50 characters.  This entry is
-c	  optional; the default is "Tomographic reconstruction".
-C
-C	  WIDTH   IWIDE
-C	  ------
-C	  This line specifies the width of the output image; the default is
-c	  the width of the input image.
-C
-C	  XAXISTILT   ANGLE
-C	  ------
-C	  This line allows one to rotate the reconstruction around the X axis,
-c	  so that a section that appears to be tilted around the X axis can be
-c	  made flat to fit into a smaller volume.  The ANGLE should be the
-c	  tilt of the section relative to the X-Y plane in an unrotated
-c	  reconstruction.  For example, if the reconstruction extends 500
-c	  slices, and the section is 5 pixels below the middle in the first
-c	  slice and 5 pixels above the middle in the last slice, ANGLE should
-c	  be 1.1 (the arc sine of 10/500).
-C	  
-C	  XTILTFILE   Filename
-C	  ------
-C	  Use this line to specify a file containing a list of tilts around
-c	  the X axis for the individual views.  A global tilt specified by the
-c	  XAXISTILT line, if any, will be added to these tilts.
-c
-c	  XTILTINTERP  ORDER
-c	  ------
-c	  This line controls the order for interpolating an output slice
-c	  tilted around the X axis from vertical, untilted slices each computed
-c	  from a single line of input data.  Set ORDER to 1 for linear, 2 for
-c	  quadratic, 3 for cubic, or 0 to disable this method of X-axis
-c	  tilting and revert to computing the output slice directly from input
-c	  data.  The default is 1; higher orders are appropriate if data are
-c	  particularly noise-free.
-C
-C
-C------------------------------------------------------------------------------
-C
-C	  Some notes:
-C
-C	  There are NVIEWS projections taken at tilt angles ANGLES(NV).
-C
-C	  The projections have size NPRJ x MPRJ where NPRJ is taken 
-C	  perpendicular to the tilt axis.
-C
-C	  The reconstructed image has size 
-c	  IWIDE x ITHICK x 1+(JSLICE-ISLICE)/IDELSLICE.
-C	  1+(JSLICE-ISLICE)/IDELSLICE planes are reconstructed, of size 
-c	  IWIDE x ITHICK  lying perpendicular to the tilt axis.
-C 
-C	  With perpendicular slices, the header of the output file will set up
-c	  a coordinate system congruent with that of the original views.  If
-c	  slices are output in order of increasing slice number, this
-c	  represents a 90 degree rotation about X, so the slices are inverted
-c	  about their new Z axis (by using the negative of the tilt angles).
-c	  If slices are output in inverted order (IDELSLICE < 0), this
-c	  represents a -90 degree rotation about X; slices are not inverted in
-c	  this case. 
-c
-C	  Originally written by Mike Lawrence.  Storage of tilt angle data 
-c	  altered by Guy Vigers; angles can be stored in image stack header by
-c	  the program ALTERHEADER.
-C	  David Mastronarde added ability to output slices at selected
-c	  intervals and in inverse direction, and setting of header
-c	  information so that coordinates correspond between output file and
-c	  tilt data set.  Also added ability to specify a subset of views to
-c	  use or exclude, control of output mode, abilities to take log,
-c	  replicate views, enter specific tilt angles or read in angles from a
-c	  file, adjust for compression, set width of output, and shift the
-c	  output.  Implemented weighting by local tilt increment and padding
-c	  before filtering.  Added ability to adjust for tilt around the X axis
-c	  and to use local alignments.  Implemented subroutine calls for the
-c	  inner loops so that assembly code could be adjusted to minimize very
-c	  slow steps on the PC.  Implemented cosine stretching of the input
-c	  data as an alternative solution to this problem that is faster on
-c	  all machines.  Incorporated the fast backprojection code developed by
-c	  Kristian Sandberg and Gregory Beylkin.  Implemented X-axis tilting
-c	  by interpolation from untilted slices, so that the fast
-c	  backprojection could be used with X-axis tilting.
-c
 c	  $Author$
 c	  
 c	  $Date$
 c	  
 c	  $Revision$
 c
-c	  $Log$
-c	  Revision 3.19  2004/10/11 05:15:28  mast
-c	  Fixed integer truncation of pixel size from local file
-c	
-c	  Revision 3.18  2004/09/24 18:24:52  mast
-c	  Incorporated reprojection capability from old code
-c	
-c	  Revision 3.17  2004/07/19 04:10:54  mast
-c	  Needed to declare inum external for Intel/Windows
-c	
-c	  Revision 3.16  2004/07/16 23:38:13  mast
-c	  Made it determine local scale from pixel sizes if present; fixed a bug
-c	  that was setting log base 0 after read the fullimage line; added
-c	  a EXCLUDELIST2 option
-c	
-c	  Revision 3.15  2004/04/01 01:44:23  mast
-c	  Used input file range to avoid taking logs of very small numbers
-c	
-c	  Revision 3.14  2003/12/09 00:11:49  mast
-c	  Have card reader accept blank lines in case sed in new sample.com
-c	  creates one
-c	
-c	  Revision 3.13  2003/10/24 03:44:56  mast
-c	  took out flush call for Windows/Intel
-c	
-c	  Revision 3.12  2003/10/16 20:38:32  mast
-c	  Adding to option documentation
-c	
-c	  Revision 3.11  2003/08/02 22:36:49  mast
-c	  Revert from the version that padded thickness for x-axis tilting now
-c	  that fbp takes care of this.
-c	  Limit stack usage so that when loaded data is bigger than a certain
-c	  size, only enough is loaded to reconstruct 10 output slices.
-c	
-c	  Revision 3.8  2003/04/29 23:33:54  mast
-c	  Set default for radial filter and increase thickness limit
-c	
-c	  Revision 3.7  2002/07/28 00:03:40  mast
-c	  Made it preserve pixel spacings in output file
-c	
-c	  Revision 3.6  2002/07/26 19:19:04  mast
-c	  Added machine-specific switch-points for not doing fast
-c	  backprojection
-c	
-c	  Revision 3.5  2002/07/21 19:37:25  mast
-c	  Replaced STOP with call exit(1) and standardized error outputs
-c	
-c	  Revision 3.4  2002/05/07 02:02:53  mast
-c	  Added EXCLUDELIST option
-c	
-c	  Revision 3.3  2002/02/01 15:27:31  mast
-c	  Made it write extra data periodically with PARALLEL option to 
-c	  partially demangle the output file and prevent very slow reading
-c	  under Linux.
-c	
-c	  Revision 1.2  2001/11/22 00:41:57  mast
-c	  Fixed computation of mean for files > 2 GPixels
-c	
+c	  Log at end of file
 c
+	implicit none
 	include 'tilt.inc'
 	real*4 fp(2,3)
 	integer*4 nxyztmp(3),nxyzst(3)
 	data nxyzst/0.,0.,0./
 	character*20 radtxt1/'Radial weighting'/
 	character*18 radtxt2/'   function'/
+c	  
+	integer*4 interhsave,nsliceout,memBigCrit,memBigOutLim,nslice,nprj2
+	integer*4 inloadstr,inloadend,lastready,lastcalc,idir,nextfreevs
+	integer*4 lvsstart,lvsend,nvsinring,nplanes,ni,loadlimit,LSLICEout
+	integer*4 lsstart,lsend,lsmin,lsmax,lslice,needstart,needend,itryend
+	integer*4 itry,ifenough,laststart,lastend,ixleft,nxassay,minslice,i
+	integer*4 maxslice,iassay,ixsam,iv,iy,ind1,ind2,ind3,ind4,iyp,nalready
+	real*4 dtot,dmin,dmax,ycenfix,abssal,tanalpha,dxassay,dxtmp,xx,yy,zz
+	real*4 xp,yp,xp2,yp2,xp3,yp3,xp4,yp4,f1,f2,f3,f4,valmin,xsum,stmean
+	integer*4 ibase,lstart,nv,ISTART,NL,iyload,nsum,ix,ipad,ioffset
+	integer*4 iringstart,mode
+	real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN
+
 	TMASK = -1.E+30
 	maxSTACK=limstack
 	interhsave=20
@@ -585,16 +203,9 @@ c
 		  do iassay=1,nxassay
 		    ixsam=nint(ixleft+(iassay-1)*dxassay)
 		    do iv=1,nviews
-		      if(nxwarp.ne.0)	then
-			call local_factors
+		      if(nxwarp.ne.0) call local_factors
      &			    (ixsam,itry,mapuse(iv),ind1,ind2,ind3,ind4,
      &			    f1,f2,f3,f4)
-			cosb=cwarpb(ind1)
-			sinb=swarpb(ind1)
-		      else
-			cosb=cbet(iv)
-			sinb=sbet(iv)
-		      endif
 		      do iy=1,ithick,ithick-1
 c			  
 c			  for each position, find back-projection location
@@ -604,26 +215,40 @@ c
 			xx=ixsam-xcen
 			yy=itry-slicen
 			zz=iy-ycen
-			xp=xx*cosb+yy*sal(iv)*sinb+zz*cal(iv)*sinb+
-     &			    xcenin+delxx
-			yp=yy*cal(iv)-zz*sal(iv)+slicen
+			xp=xx*cbet(iv)+yy*sal(iv)*sbet(iv)+
+     &			    zz*(cal(iv)*sbet(iv)+xzfac(iv))+ xcenin+delxx
+			yp=yy*cal(iv)-zz*(sal(iv)-yzfac(iv))+slicen
 			if(nxwarp.ne.0)then
+			  xp=xx*cwarpb(ind1)+yy*swarpa(ind1)*swarpb(ind1)+
+     &			      zz*(cwarpa(ind1)*swarpb(ind1)+warpxzfac(ind1))+
+     &			      xcenin+delxx
+			  yp=yy*cwarpa(ind1)-
+     &			      zz*(swarpa(ind1)-warpyzfac(ind1))+slicen
 			  call xfapply(fw(1,1,ind1),xcenin,slicen,xp,yp,
-     &			      xp1,yp1)
-			  xp2=xx*cwarpb(ind2)+yy*sal(iv)*swarpb(ind2)+
-     &			      zz*cal(iv)*swarpb(ind2)+ xcenin+delxx
-			  call xfapply(fw(1,1,ind2),xcenin,slicen,xp2,yp,
+     &			      xp,yp)
+			  xp2=xx*cwarpb(ind2)+yy*swarpa(ind2)*swarpb(ind2)+
+     &			      zz*(cwarpa(ind2)*swarpb(ind2)+warpxzfac(ind2))+
+     &			      xcenin+delxx
+			  yp2=yy*cwarpa(ind2)-
+     &			      zz*(swarpa(ind2)-warpyzfac(ind2))+slicen
+			  call xfapply(fw(1,1,ind2),xcenin,slicen,xp2,yp2,
      &			      xp2,yp2)
-			  xp3=xx*cwarpb(ind3)+yy*sal(iv)*swarpb(ind3)+
-     &			      zz*cal(iv)*swarpb(ind3)+ xcenin+delxx
-			  call xfapply(fw(1,1,ind3),xcenin,slicen,xp3,yp,
+			  xp3=xx*cwarpb(ind3)+yy*swarpa(ind3)*swarpb(ind3)+
+     &			      zz*(cwarpa(ind3)*swarpb(ind3)+warpxzfac(ind3))+
+     &			      xcenin+delxx
+			  yp3=yy*cwarpa(ind3)-
+     &			      zz*(swarpa(ind3)-warpyzfac(ind3))+slicen
+			  call xfapply(fw(1,1,ind3),xcenin,slicen,xp3,yp3,
      &			      xp3,yp3)
-			  xp4=xx*cwarpb(ind4)+yy*sal(iv)*swarpb(ind4)+
-     &			      zz*cal(iv)*swarpb(ind4)+ xcenin+delxx
-			  call xfapply(fw(1,1,ind4),xcenin,slicen,xp4,yp,
+			  xp4=xx*cwarpb(ind4)+yy*swarpa(ind4)*swarpb(ind4)+
+     &			      zz*(cwarpa(ind4)*swarpb(ind4)+warpxzfac(ind4))+
+     &			      xcenin+delxx
+			  yp4=yy*cwarpa(ind4)-
+     &			      zz*(swarpa(ind4)-warpyzfac(ind4))+slicen
+			  call xfapply(fw(1,1,ind4),xcenin,slicen,xp4,yp4,
      &			      xp4,yp4)
-			  xp=f1*xp1+f2*xp2+f3*xp3+f4*xp4
-			  yp=f1*yp1+f2*yp2+f3*yp3+f4*yp4
+			  xp=f1*xp+f2*xp2+f3*xp3+f4*xp4
+			  yp=f1*yp+f2*yp2+f3*yp3+f4*yp4
 			endif
 			iyp=max(1.,yp)
 			minslice=min(minslice,iyp)
@@ -833,7 +458,7 @@ C Close files
 	write(6,905)recflevl,recscale
 	WRITE(6,910)NSLICE
 	call exit(0)
-999	WRITE(6,920)mapuse(NV),L
+999	WRITE(6,920)mapuse(NV),nL
 	call exit(1)
 C
 C
@@ -854,14 +479,22 @@ C
 930	FORMAT(//' Header on reconstructed map file'/
 	1        ' --------------------------------'//)
 	END
+
+
 C --------------------------------------------------------------------
 	SUBROUTINE RADWT(IRMAXin,IFALLin)
 C	-----------------------------
 C
 C Set Radial Transform weighting
 C Linear ramp plus Gaussian fall off
+	implicit none
 	include 'tilt.inc'
-	COMMON/DENSWT/nweight,wincr(20)
+	integer*4 nweight,IRMAXin,IFALLin
+	real*4 wincr(20)
+	COMMON/DENSWT/nweight,wincr
+	integer*4 nprj2,IEND,irmax,ifall,iv,iw,ibase,i
+	real*4 stretch,avgint,atten,sumint,wsum,z,arg
+	
 c
 	nprj2=nprj+2+npad
 	IEND=NPRJ2/2
@@ -925,7 +558,10 @@ C	----------------
 C
 C This subroutine prepares the limits of the slice width to be computed if
 c masking is used
+	implicit none
 	include 'tilt.inc'
+	real*4 radlft,radrt,y, yy
+	integer*4 i, ixlft, ixrt
 C
 C Compute left and right edges of unmasked area
 	IF(MASK)THEN
@@ -957,7 +593,9 @@ C ---------------------------------------------------------------------
 C	----------------
 C
 C This subroutine zeros the slice and applies the mask if requested
+	implicit none
 	include 'tilt.inc'
+	integer*4 index, i, j,iend
 C
 C Zero and apply mask
 	IF(MASK)THEN
@@ -986,6 +624,8 @@ C Zero only
 	END IF
 	RETURN
 	END
+
+
 C ---------------------------------------------------------------------
 	SUBROUTINE TRANSFORM(ibase)
 C       ----------------------------
@@ -994,7 +634,13 @@ C This subroutine applies a one-dimensional Fourier transform to
 C all views corresponding to a given slice, applies the radial 
 C weighting function and then applies an inverse Fourier transform.
 C
+	implicit none
 	include 'tilt.inc'
+	integer*4 nprj2, istart, index, indrad, nv, i, ibfrom, ibto, ixp
+	integer*4 ixpp1, ixpm1, ixpp2, ibase
+	real*4 x, xp, dx, dxm1, v4, v5, v6, a, c, dennew, dxdxm1, diffmax
+	real*4 fx1, fx2, fx3, fx4
+
 	NPRJ2=NPRJ+2+npad
 	istart=ibase+ipextra
 C
@@ -1004,11 +650,13 @@ C
 C Apply Radial weighting
 	INDEX=ISTART
 	indrad=1
-	DO 10 NV=1,NVIEWS
-	DO 10 I=1,NPRJ2
-	ARRAY(INDEX)=ARRAY(INDEX)*ARRAY(indrad)
-	indrad=indrad+1
-10	INDEX=INDEX+1
+	DO  NV=1,NVIEWS
+	  DO I=1,NPRJ2
+	    ARRAY(INDEX)=ARRAY(INDEX)*ARRAY(indrad)
+	    indrad=indrad+1
+	    INDEX=INDEX+1
+	  enddo
+	enddo
 C
 C Apply inverse transform
 	CALL ODFFT(ARRAY(ISTART),NPRJ+npad,NVIEWS,1)
@@ -1094,13 +742,16 @@ c     &		array(ixpp2)))
 
 	RETURN
 	END
+
+
 C ---------------------------------------------------------------------
 	SUBROUTINE PROJECT(ISTART,lslice)
 C	--------------------------
 C
 C This subroutine assembles one reconstructed slice perpendicular
 C to the tilt axis, using a back projection method.
-C
+C	  
+	implicit none
 	include 'tilt.inc'
 	real*4 xprojf(limwidth),xprojz(limwidth)
 	real*4 yprojf(limwidth),yprojz(limwidth)
@@ -1108,6 +759,19 @@ C
 	real*8 xp,yp,xp2,xp3,xp4
 	real*4 fp(2,3)
 	real*8 xproj8
+	integer*4 nprj2,isshift,ifshift,ipdel,irep,IPOINT,NV,iv,INDEX,i,j
+	real*4 fbpshift,ycenorig,CBETA,SBETA,zz,zpart,yy,yproj,YFRAC,omyfrac
+	integer*4 jPROJ,jlft,jrt,iproj,ip1,ip2,ind,ipbase,ifytest,ixc
+	integer*4 ind1,ind2,ind3,ind4,jtstlft,jtstrt,ISTART,lslice,jregion
+	real*4 xlft,xrt,x,xfrac,omxfrac,zbot,ztop,f1,f2,f3,f4,xx
+	real*4 calf,salf,a11,a12,a21,a22,xadd,yadd,xalladd,yalladd,xproj
+	real*4 calf2,salf2,a112,a122,a212,a222,xadd2,yadd2
+	real*4 calf3,salf3,a113,a123,a213,a223,xadd3,yadd3
+	real*4 calf4,salf4,a114,a124,a214,a224,xadd4,yadd4
+	real*4 f1x,f2x,f3x,f4x,f1xy,f2xy,f3xy,f4xy
+	real*4 f1y,f2y,f3y,f4y,f1yy,f2yy,f3yy,f4yy
+	real*4 xp1f,xp1z,yp1f,xp2f,xp2z,yp2f,xp3f,xp3z,yp3f,xp4f,xp4z,yp4f
+	real*4 cbeta2,sbeta2,cbeta3,sbeta3,cbeta4,sbeta4
 
 	if(fastbp)then
 	  nprj2=nprj+npad
@@ -1159,9 +823,9 @@ c		    If x-axis tilting, find interpolation factor between the
 c		    slices
 c
 		  yy=lslice-slicen
-		  zpart= yy*sal(iv)*sbeta + zz*cal(iv)*sbeta +
+		  zpart= yy*sal(iv)*sbeta + zz*(cal(iv)*sbeta +xzfac(iv)) +
      &		      xcenin+delxx
-		  yproj=yy*cal(iv) - zz*sal(iv) + slicen
+		  yproj=yy*cal(iv) - zz*(sal(iv)-yzfac(iv)) + slicen
 		  jPROJ=YPROJ
 		  jproj=min(mprj-1,jproj)
 		  YFRAC=YPROJ-JPROJ
@@ -1368,26 +1032,14 @@ c
 		xx=j-xcen
 		yy=lslice-slicen
 		xp1f=xx*cbeta + yy*salf*sbeta + xcenin+delxx
-		xp1z=calf*sbeta
+		xp1z=calf*sbeta + warpxzfac(ind1)
 		xp2f=xx*cbeta2 + yy*salf2*sbeta2 + xcenin+delxx
-		xp2z=calf2*sbeta2
+		xp2z=calf2*sbeta2 + warpxzfac(ind2)
 		xp3f=xx*cbeta3 + yy*salf3*sbeta3 + xcenin+delxx
-		xp3z=calf3*sbeta3
+		xp3z=calf3*sbeta3 + warpxzfac(ind3)
 		xp4f=xx*cbeta4 + yy*salf4*sbeta4 + xcenin+delxx
-		xp4z=calf4*sbeta4
-c		  
-c		xp1f=xx*cbeta + yy*sal(iv)*sbeta + xcenin+delxx
-c		xp1z=cal(iv)*sbeta
-c		xp2f=xx*cbeta2 + yy*sal(iv)*sbeta2 + xcenin+delxx
-c		xp2z=cal(iv)*sbeta2
-c		xp3f=xx*cbeta3 + yy*sal(iv)*sbeta3 + xcenin+delxx
-c		xp3z=cal(iv)*sbeta3
-c		xp4f=xx*cbeta4 + yy*sal(iv)*sbeta4 + xcenin+delxx
-c		xp4z=cal(iv)*sbeta4
+		xp4z=calf4*sbeta4 + warpxzfac(ind4)
 
-c		  
-c		ypf=yy*cal(iv) + slicen
-c		ypz=-sal(iv)
 		yp1f=yy*calf + slicen
 		yp2f=yy*calf2 + slicen
 		yp3f=yy*calf3 + slicen
@@ -1398,16 +1050,14 @@ c		  projection coordinates
 c		  
 		xprojf(j)=f1x*xp1f+f2x*xp2f+f3x*xp3f+f4x*xp4f+
      &		    f1xy*yp1f+f2xy*yp2f+f3xy*yp3f+f4xy*yp4f+xalladd
-c     &		    fxfromy*ypf+xalladd
-		xprojz(j)=f1x*xp1z+f2x*xp2z+f3x*xp3z+f4x*xp4z
-     &		    -(f1xy*salf+f2xy*salf2+f3xy*salf3+f4xy*salf4)
-c     &		    +fxfromy*ypz
+		xprojz(j)=f1x*xp1z+f2x*xp2z+f3x*xp3z+f4x*xp4z-
+     &		    (f1xy*(salf-warpyzfac(ind1))+f2xy*(salf2-warpyzfac(ind2))+
+     &		    f3xy*(salf3-warpyzfac(ind3))+f4xy*(salf4-warpyzfac(ind4)))
 		yprojf(j)=f1y*xp1f+f2y*xp2f+f3y*xp3f+f4y*xp4f+
      &		    f1yy*yp1f+f2yy*yp2f+f3yy*yp3f+f4yy*yp4f+yalladd
-c     &		    fyfromy*ypf+yalladd
-		yprojz(j)=f1y*xp1z+f2y*xp2z+f3y*xp3z+f4y*xp4z
-     &		    -(f1yy*salf+f2yy*salf2+f3yy*salf3+f4yy*salf4)
-c     &		    +fyfromy*ypz
+		yprojz(j)=f1y*xp1z+f2y*xp2z+f3y*xp3z+f4y*xp4z-
+     &		    (f1yy*(salf-warpyzfac(ind1))+f2yy*(salf2-warpyzfac(ind2))+
+     &		    f3yy*(salf3-warpyzfac(ind3))+f4yy*(salf4-warpyzfac(ind4)))
 c		  
 c		  see if any y testing is needed in the inner loop by checking
 c		  yproj at top and bottom in Z
@@ -1533,8 +1183,15 @@ c	  reconstruction, and IRINGSTART is the position of LVSSTART in the
 c	  ring buffer.
 c
 	subroutine compose(lsliceout,lvsstart,lvsend,idir,iringstart)
+	implicit none
 	include 'tilt.inc'
+	integer*4 lsliceout,lvsstart,lvsend,idir,iringstart
 	integer*4 ind1(4),ind2(4),ind3(4),ind4(4)
+	real*4 tanalpha,vertcen,cenj,cenl,vsl,vycen,fx,vy,fy,f22,f23,f32,f33
+	integer*4 ivsl,ifmiss,i,lvsl,iring,ibase,ivy,indcen,jnd5,jnd2,j,k
+	real*4 fx1,fx2,fx3,fx4,fy1,fy2,fy3,fy4,v1,v2,v3,v4,f5,f2,f8,f4,f6
+	integer*4 jnd8,jnd4,jnd6
+
 	tanalpha=sal(1)/cal(1)
 	vertcen=ithick/2+0.5
 c	  
@@ -1711,7 +1368,11 @@ C-------------------------------------------------------------------------
 	SUBROUTINE DUMP(LSLICE,DMIN,DMAX,DTOT)
 C	--------------------------------------
 C
+	implicit none
 	include 'tilt.inc'
+	integer*4 lslice,nparextra,iend,index,i,j
+	real*4 DMIN,DMAX,DTOT,dtmp
+c
 	nparextra=100
 	IEND=IMAP+ITHickout*iwide-1
 C
@@ -1749,7 +1410,7 @@ C--------------Scale
 	  return
 	endif
 c
-	DO 1 I=IMAP,IEND
+	DO I=IMAP,IEND
 	  IF(MASK.and.array(i).eq.tmask)THEN
 C--------------mask
 	    ARRAY(I)=RMASK
@@ -1761,13 +1422,13 @@ C--------------Scale
 	  DMAX=AMAX1(ARRAY(I),DMAX)
 	  DTmp=DTmp+ARRAY(I)
 C
-1       CONTINUE
+	enddo
 	dtot=dtot+dtmp
 C
 C Dump slice
 	IF(PERP)THEN
 C ....slices correspond to sections of map
-		CALL IWRSEC(2,ARRAY(IMAP))
+	  CALL IWRSEC(2,ARRAY(IMAP))
 	ELSE
 C ....slices must be properly stored
 C	Take each line of array and place it in the correct section
@@ -1797,6 +1458,8 @@ C	----------------
 	
 	implicit none
 	include 'tilt.inc'
+	integer numtags
+	parameter (numtags = 35)
 	integer*4 nweight
 	real*4 wincr(20)
 	COMMON /DENSWT/nweight,wincr
@@ -1813,7 +1476,7 @@ c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 C
-	CHARACTER TAGS(34)*20,CARD*80
+	CHARACTER TAGS(numtags)*20,CARD*80
 	CHARACTER*80 FILIN,FILOUT
 	DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
      &	    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
@@ -1822,7 +1485,7 @@ C
      &	    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
      &	    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &	    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
-     &	    'XTILTINTERP','REPROJECT','DONE'/
+     &	    'XTILTINTERP','REPROJECT','*ZFACTORFILE','DONE'/
 	integer*4 ntags, nfields
 	real*4 XNUM(50)
 	COMMON /CARDS/NTAGS,XNUM,NFIELDS
@@ -1838,12 +1501,12 @@ c
 	real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
 	integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
 	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
-	integer*4 npadtmp,nprpad,ithicknew,nocosPlanes
+	integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
 	real*4 pixelLocal
 	integer*4 inum,licenseusfft,niceframe
 	external inum
 c
-	NTAGS = 34
+	NTAGS = numtags
 	WRITE(6,50)
 	call getinout(2,filin,filout)
 C-------------------------------------------------------------
@@ -1894,9 +1557,12 @@ c......Default overall and individual compression of 1; no alpha tilt
 	do nv=1,nviews
 	  compress(nv)=1.
 	  alpha(nv)=0.
+	  xzfac(nv) = 0.
+	  yzfac(nv) = 0.
 	enddo
 	ifalpha=0
 	globalpha=0.
+	ifZfac = 0
 c	  
 c......Default weighting by density of adjacent views
 	nweight=2
@@ -1941,7 +1607,7 @@ C
 1	CALL CREAD(CARD,TAGS,LABEL,*999)
 	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
      &	    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
-     &	    2400,2500, 2600,2700,2800,2900,3000,3100,999),LABEL
+     &	    2400,2500, 2600,2700,2800,2900,3000,3100,3200,999),LABEL
 C
 C TITLE card
 C100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
@@ -2144,6 +1810,8 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	ifdelalpha=0
 	if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
 	if (ninp .gt. 7) pixelLocal = delbeta(8)
+	localZfacs = 0
+	if (ninp .gt. 8) localZfacs = delbeta(9)
 	nxwarp=nint(delbeta(1))
 	nywarp=nint(delbeta(2))
 	ixswarp=nint(delbeta(3))
@@ -2164,6 +1832,19 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	      delalpha(i)=0.
 	    enddo
 	  endif
+c	    
+c	    Set z factors to zero, read in if supplied, then negate them
+c
+	  do i=indbase+1,indbase+nviews
+	    warpxzfac(i)=0.
+	    warpyzfac(i)=0.
+	  enddo
+	  if (localZfacs .gt. 0) read(3,*)(warpxzfac(i), warpyzfac(i),
+     &	      i=indbase+1,indbase+nviews)
+	  do i=indbase+1,indbase+nviews
+	    warpxzfac(i) = -warpxzfac(i)
+	    warpyzfac(i) = -warpyzfac(i)
+	  enddo
 	  do i=1,nviews
 	    call xfread(3,fw(1,1,i+indbase),2410,2410)
 	  enddo
@@ -2230,6 +1911,15 @@ C REPROJECT card
 3100	reproj=.TRUE.
 	WRITE(6,3101)
 	GO TO 1
+c	  
+c ZFACTORFILE card
+3200	call dopen(3,card,'ro','f')
+	read(3,*)(xzfac(i),yzfac(i),i=1,nviews)
+	close(3)
+	ifZfac = 1
+	write(6,3201)
+	go to 1
+c	  
 c
 C End of data deck
 C-------------------------------------------------------------
@@ -2374,18 +2064,24 @@ c
 	  enddo
 	enddo
 c	  
-c	  pack angles down as specified by MAPUSE
+c	  pack angles and other data down as specified by MAPUSE
+c	  Negate the z factors since things are upside down here
+c	  Note that local data is not packed but always referenced by mapuse
 c
-	do 1130 i=1,nvuse
+	do i=1,nvuse
 	  sbet(i)=angles(mapuse(i))
 	  cbet(i)=compress(mapuse(i))
 	  sal(i)=alpha(mapuse(i))
-1130	continue
-	do 1132 i=1,nvuse
+	  cal(i)=-xzfac(mapuse(i))
+	  array(i)=-yzfac(mapuse(i))
+	enddo
+	do i=1,nvuse
 	  angles(i)=sbet(i)
 	  compress(i)=cbet(i)
 	  alpha(i)=sal(i)
-1132	continue
+	  xzfac(i)=cal(i)
+	  yzfac(i)=array(i)
+	enddo
 	nvorig=nviews
 	nviews=nvuse
 	scale=scale/(nviews*nreplic)
@@ -2419,8 +2115,10 @@ c	  if fixed x axis tilt, set up to try to compute vertical planes
 c	  and interpolate output planes: adjust thickness that needs to 
 c	  be computed, and find number of vertical planes that are needed
 c	  
+	if (ifZfac .gt. 0 .and. ifalpha .eq. 0) ifalpha = 1
 	ithickout=ithick
-	if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0)then
+	if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0 .and.
+     &	    ifZfac .eq. 0)then
 	  ifalpha=-1
 	  ithickout=ithick
 	  ithick=ithick/cal(1)+4.5
@@ -2449,8 +2147,8 @@ c
 	  else
 	    fastbp=ifalpha.le.0.and.nxwarp.eq.0
 	    if(.not.fastbp)then
-	      write(*,'(/a/)')' No fast back projection is available'
-     &		  //' with old-style X-tilt or local alignments'
+	      write(*,'(/,a,/,a,/)')' No fast back projection is available'
+     &		  //' with old-style X-tilt,',' Z factors, or local alignments'
 	    else
 	      fastbp=.not.mask.and.delxx.eq.0..and.nreplic.eq.1.and.
      &		  ncompress.eq.0.and.iwide.le.npxyz(1).and.xoffset.eq.0.
@@ -2652,7 +2350,8 @@ C	    Set up radial weighting
 	  CALL RADWT(IRMAX,IFALL)
 	endif
 c	  
-c	if doing warping, convert the angles to radians and set sign
+c	  if doing warping, convert the angles to radians and set sign
+c	  Also cancel the z factors if global entry was not made
 c
 	if(nxwarp.gt.0)then
 	  do i=1,nvorig*nxwarp*nywarp
@@ -2666,6 +2365,10 @@ c
 	      cwarpa(ind)=cos(dtor*(alpha(iv)+delalpha(ind)))
 	      swarpa(ind)=sign(1,-idelslice)*
      &		  sin(dtor*(alpha(iv)+delalpha(ind)))
+	      if (ifZfac .eq. 0) then
+		warpxzfac(ind)= 0.
+		warpyzfac(ind)= 0.
+	      endif
 	    enddo
 	  enddo
 c	    
@@ -2681,15 +2384,19 @@ c	    pixel size and local align pixel size
 c	    
 c	    scale the x and y dimensions and shifts if aligned data were
 c	    shrunk relative to the local alignment solution
+c	    10/16/04: fixed to use mapuse to scale used views properly
 c
 	  if(scalelocal.ne.1.)then
 	    ixswarp=nint(ixswarp*scalelocal)
 	    iyswarp=nint(iyswarp*scalelocal)
 	    idxwarp=nint(idxwarp*scalelocal)
 	    idywarp=nint(idywarp*scalelocal)
-	    do i=1,nxwarp*nywarp*nviews
-	      fw(1,3,i)=fw(1,3,i)*scalelocal
-	      fw(2,3,i)=fw(2,3,i)*scalelocal
+	    do iv=1,nviews
+	      do i=1,nxwarp*nywarp
+		ind=indwarp(i)+mapuse(iv)
+		fw(1,3,ind)=fw(1,3,ind)*scalelocal
+		fw(2,3,ind)=fw(2,3,ind)*scalelocal
+	      enddo
 	    enddo
 	  endif
 c	    
@@ -2759,6 +2466,8 @@ C
 3001	format(/,' X-tilting with vertical slices, if any, will have ',
      &	    'interpolation order', i2)
 3101	format(/,' Output will be a reprojection at zero degrees')
+3201	format(/,' Z-dependent shifts to be applied with factors from file'
+     &	    )
 
 	END
 C
@@ -2768,7 +2477,8 @@ C       -----------------------------------
 C
 C This subroutine performs the free format read. The calling program must
 C contain the common block
-	integer*4 ntags,nfields
+	implicit none
+	integer*4 ntags,nfields,label
 	real*4 xnum(50)
 	COMMON /CARDS/NTAGS,XNUM,NFIELDS
 C In the calling program, TAGS is an array of Character*20 variables
@@ -2780,8 +2490,10 @@ C Alphanumeric data is placed in the array CARD and numeric data is
 C placed element by element in the real array XNUM.  
 C The function INTEG can be used for checking whether a non-integral 
 C real number has occured in a field where an integer is expected.
-	CHARACTER ASTER*1,BLANK*1,CARD*80,TAGS(NTAGS)*20,upcase*80
+	CHARACTER ASTER*1,BLANK*1,CARD*80,TAGS(*)*20,upcase*80
 	DATA ASTER,BLANK/'*',' '/
+	integer*4 nchar,ktag,ipoint,istar,istart,i,iend,npoint
+
 c	  DNM: switch from Q format to using LNBLNK
 c	  12/8/03: swallow blank lines
 5	READ(5,10,END=999)CARD
@@ -2858,8 +2570,9 @@ C End of file
 
 	integer*4 FUNCTION INUM(I)
 C 	----------------
-	integer*4 ntags, nfields
-	real*4 XNUM(50)
+	implicit none
+	integer*4 i,ntags, nfields
+	real*4 XNUM(50),x
 	COMMON /CARDS/NTAGS,XNUM,NFIELDS
 	X=XNUM(I)
 	INUM=INT(X)
@@ -2875,7 +2588,10 @@ C 	----------------
 	subroutine local_factors(ix,iy,iv,ind1,ind2,ind3,ind4,f1,f2,f3,
      &	    f4)
 c	  
+	implicit none
 	include 'tilt.inc'
+	integer*4 ix,iy,iv,ind1,ind2,ind3,ind4,ixt,ixpos,iyt,iypos
+	real*4 f1,f2,f3,f4,fx,fy
 c	
 	ixt=min(max(ix-ixswarp,0),(nxwarp-1)*idxwarp)
 	ixpos=min(ixt/idxwarp+1,nxwarp-1)
@@ -2901,8 +2617,10 @@ c	  Compute space needed for cosine stretched data, returning the
 c	  number of needed input slices in NSNEED
 c	    
 	subroutine set_cos_stretch(nsneed)
+	implicit none
 	include 'tilt.inc'
-
+	integer*4 nsneed,lsmin,lsmax,iv,ix,iy,lslice
+	real*4 tanal,xpmax,xpmin,zz,zpart,yy,xproj
 c	  make the indexes be bases, numbered from 0
 c	  
 	indstretch(1)=0
@@ -2938,7 +2656,7 @@ c
 		  zPART=zz*SBET(iv)+XCENin+DELXX
 		else
 		  yy=lslice-slicen
-		  zpart= yy*sal(iv)*sbet(iv) + zz*cal(iv)*sbet(iv) +
+		  zpart= yy*sal(iv)*sbet(iv) + zz*(cal(iv)*sbet(iv)+xzfac(iv))+
      &		      xcenin+delxx
 		endif
 		xproj=zpart+(ix-xcen)*cbet(iv)
@@ -2955,15 +2673,83 @@ c
 	  nstretch(iv)=interpfac*(xpmax-xpmin)/cbet(iv)+2.
 	  indstretch(iv+1)=indstretch(iv)+nstretch(iv)
 c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
-	  if(ifalpha.gt.0)nsneed=max(nsneed,int(abs(ithick*sal(iv))+2))
+	  if(ifalpha.gt.0)nsneed=max(nsneed,
+     &	      int(ithick*(abs(sal(iv))+abs(yzfac(iv)))+2))
 	enddo
 	return
 	end
 
 
 	subroutine errorexit(message)
+	implicit none
 	character*(*) message
 	print *,' '
 	print *,'ERROR: TILT - ',message
 	call exit(1)
 	end
+
+c
+c	  $Log$
+c	  Revision 3.20  2004/10/13 05:49:32  mast
+c	  Fixed bug in Y positioning when falling back to old-style X tilting,
+c	  Fixed fallback strategies to go to old-style with cosine stretch,
+c	  new-style without cosine stretch, then old-style w/o stretch and 
+c	  fixed bug in evaluating slices needed at that stage.
+c	
+c	  Revision 3.19  2004/10/11 05:15:28  mast
+c	  Fixed integer truncation of pixel size from local file
+c	
+c	  Revision 3.18  2004/09/24 18:24:52  mast
+c	  Incorporated reprojection capability from old code
+c	
+c	  Revision 3.17  2004/07/19 04:10:54  mast
+c	  Needed to declare inum external for Intel/Windows
+c	
+c	  Revision 3.16  2004/07/16 23:38:13  mast
+c	  Made it determine local scale from pixel sizes if present; fixed a bug
+c	  that was setting log base 0 after read the fullimage line; added
+c	  a EXCLUDELIST2 option
+c	
+c	  Revision 3.15  2004/04/01 01:44:23  mast
+c	  Used input file range to avoid taking logs of very small numbers
+c	
+c	  Revision 3.14  2003/12/09 00:11:49  mast
+c	  Have card reader accept blank lines in case sed in new sample.com
+c	  creates one
+c	
+c	  Revision 3.13  2003/10/24 03:44:56  mast
+c	  took out flush call for Windows/Intel
+c	
+c	  Revision 3.12  2003/10/16 20:38:32  mast
+c	  Adding to option documentation
+c	
+c	  Revision 3.11  2003/08/02 22:36:49  mast
+c	  Revert from the version that padded thickness for x-axis tilting now
+c	  that fbp takes care of this.
+c	  Limit stack usage so that when loaded data is bigger than a certain
+c	  size, only enough is loaded to reconstruct 10 output slices.
+c	
+c	  Revision 3.8  2003/04/29 23:33:54  mast
+c	  Set default for radial filter and increase thickness limit
+c	
+c	  Revision 3.7  2002/07/28 00:03:40  mast
+c	  Made it preserve pixel spacings in output file
+c	
+c	  Revision 3.6  2002/07/26 19:19:04  mast
+c	  Added machine-specific switch-points for not doing fast
+c	  backprojection
+c	
+c	  Revision 3.5  2002/07/21 19:37:25  mast
+c	  Replaced STOP with call exit(1) and standardized error outputs
+c	
+c	  Revision 3.4  2002/05/07 02:02:53  mast
+c	  Added EXCLUDELIST option
+c	
+c	  Revision 3.3  2002/02/01 15:27:31  mast
+c	  Made it write extra data periodically with PARALLEL option to 
+c	  partially demangle the output file and prevent very slow reading
+c	  under Linux.
+c	
+c	  Revision 1.2  2001/11/22 00:41:57  mast
+c	  Fixed computation of mean for files > 2 GPixels
+c	
