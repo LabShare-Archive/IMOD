@@ -19,6 +19,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/02/07 22:58:16  sueh
+* <p> bug# 594 Handling null keys and index = -1 where necessary.
+* <p>
 * <p> Revision 1.3  2005/01/29 00:20:26  sueh
 * <p> bug# 594 Added tab for each window.
 * <p>
@@ -59,7 +62,10 @@ public class ConstHashedArray {
   }
   
   public Object get(int index) {
-    if (index == -1) {
+    if (index < 0) {
+      return null;
+    }
+    if (index >= keyArray.size()) {
       return null;
     }
     UniqueKey key = (UniqueKey) keyArray.get(index);
