@@ -40,6 +40,9 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2002/08/03 00:36:02  mast
+#  Added a blank line before last STATUS in volcombine.com
+#
 #  Revision 3.3  2002/07/27 23:57:02  mast
 #  Change volcombine STATUS line to say piece n of m
 #
@@ -102,6 +105,7 @@ if ((-e tilta.com) && (-e tiltb.com)) then
     set xaxisa = `grep -i xaxistilt $tilta`
     set xaxisb = `grep -i xaxistilt $tiltb`
 else
+    echo " "
     echo "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
     set xaxisa = "xaxistilt 0."
     set xaxisb = "xaxistilt 0."
@@ -124,6 +128,7 @@ if (-e $recfile) then
     if ($modeline[4] == 2) set mode = 2
 else
     set size = `echo "1024 60 1024"`
+    echo " "
     echo "WARNING: $recfile NOT FOUND; SETTING SIZE TO $size FOR TEST PURPOSES"
 endif
 
@@ -293,14 +298,25 @@ echo -n "   or Return to use all patches: "
 set modelin = $<
 if ($modelin != "") then
     set modeltext = "matchorwarp -size"
-    if (! -e $modelin) echo "Warning: file $modelin does not yet exist."
+    if (! -e $modelin) then
+	echo " "
+	echo "WARNING: file $modelin does not yet exist."
+    endif
 endif
 
 @ npatchx = ($patchxu + $DELPATCHXY / 2 - $patchxl) / $DELPATCHXY
 @ npatchy = ($patchyu + $DELPATCHXY / 2 - $patchyl) / $DELPATCHXY
+
+# set number of patches in Z based on criteria, but if patch thickness
+# is greater than two-thirds of extent, do only one row of patches
 @ npatchz = 2
 if (($patchzu - $patchzl) >= $NZPATCH3) @ npatchz = 3
 if (($patchzu - $patchzl) >= $NZPATCH4) @ npatchz = 4
+if ($PATCHZ[$indpatch] > (2 * ($patchzu - $patchzl)) / 3) then
+    @ npatchz = 1
+    echo " "
+    echo "WARNING: Only one layer of patches will be computed in Z"
+endif
 
 # compute disk space needed before asking about temp directory
 @ kpixel = ((($nx * $nz) / 100) * $ny) / 10
