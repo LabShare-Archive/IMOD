@@ -47,6 +47,7 @@ Log at end of file
 class QGLColormap;
 class QCursor;
 class QPixmap;
+typedef struct ilist_struct Ilist;
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
@@ -159,9 +160,10 @@ typedef struct ViewInfo
   /* Grey Scale Ramp Data. */
   Cramp *cramp;
 
-  /* THE MODEL and an extra object */
+  /* THE MODEL and an extra object and the selection list */
   Imod  *imod;
   Iobj  *extraObj;
+  Ilist *selectionList;
 
   /* storage for list of line pointers and a blank line */
   unsigned char **linePtrs;
@@ -268,6 +270,9 @@ QString imodCaption(char *intro);
 
 /*
 $Log$
+Revision 3.26  2004/07/11 18:16:27  mast
+Added new ghost mode flags
+
 Revision 3.25  2004/05/31 23:09:37  mast
 moved printing functions to imod.h
 
