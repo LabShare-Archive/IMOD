@@ -2,6 +2,13 @@
 #############################################################################
 # $Id$
 # Set up configuration file for building BL3DFS Software.
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 #
 # Global setup
 #
@@ -31,7 +38,7 @@ set swap_ieee       = true
 
 set inst_bin_dir    = default
 set inst_lib_dir    = default
-set instdir         = default
+set inst_dir         = default
 set glwincdir       = .
 set glwlibdir       = .
 set tifflibs        = default
@@ -80,7 +87,7 @@ while($#argv > 0)
 		case -i:
 		case -inst:
 			shift
-			set instdir = $argv[1]
+			set inst_dir = $argv[1]
 			breaksw
 
 		case -compiler:
@@ -371,15 +378,15 @@ goto standard_defines
 #
 standard_defines:
 
-if ($instdir != default) then
+if ($inst_dir != default) then
 	if ($inst_bin_dir == default) then
-		set inst_bin_dir = $instdir/bin
+		set inst_bin_dir = $inst_dir/bin
 	endif
 	if ($inst_lib_dir == default) then
-		set inst_lib_dir = $instdir/lib
+		set inst_lib_dir = $inst_dir/lib
 	endif
-	set inst_plug_dir = $instdir/lib/imodplug
-	set inst_plug_parent = $instdir/lib
+	set inst_plug_dir = $inst_dir/lib/imodplug
+	set inst_plug_parent = $inst_dir/lib
 else
 	set inst_bin_dir = $bin_dir
 	if ($inst_lib_dir == default) then
@@ -387,6 +394,7 @@ else
 	endif
 	set inst_plug_dir = $source_dir/lib/imodplug
 	set inst_plug_parent = $source_dir/lib
+	set inst_dir = $source_dir
 endif
 
 if (($tifflibs == default) || ($tifflibs == false)) then
@@ -417,6 +425,7 @@ echo "BINDIR  = $bin_dir" >> $configure
 echo "INSTBINDIR = $inst_bin_dir"  >> $configure
 echo "LIBDIR  = $lib_dir" >> $configure
 echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
+echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
 echo "# end of configure"          >> $configure
@@ -453,6 +462,24 @@ if (! -e $inst_plug_parent) then
 endif
 if (! -e $inst_plug_dir) then
         mkdir $inst_plug_dir
+endif
+if (! -e $inst_dir/com) then
+        mkdir $inst_dir/com
+endif
+if (! -e $inst_dir/html) then
+        mkdir $inst_dir/html
+endif
+if (! -e $inst_dir/html/man) then
+        mkdir $inst_dir/html/man
+endif
+if (! -e $inst_dir/man) then
+        mkdir $inst_dir/man
+endif
+if (! -e $inst_dir/man/cat1) then
+        mkdir $inst_dir/man/cat1
+endif
+if (! -e $inst_dir/man/cat5) then
+        mkdir $inst_dir/man/cat5
 endif
 
 exit
