@@ -18,6 +18,8 @@ void StartupForm::init()
     cacheGroup->setButton(0);
     windowSizeGroup->setButton(0);
     openZapBox->setChecked(true);
+    binXYSpinBox->setValue(1);
+    binZSpinBox->setValue(1);
     
     manageForModView();
     
@@ -49,6 +51,11 @@ void StartupForm::manageForModView()
    zFromEdit->setEnabled(!mModvMode);
    zToLabel->setEnabled(!mModvMode);
    zToEdit->setEnabled(!mModvMode);
+   binByLabel->setEnabled(!mModvMode);
+   binByXYLabel->setEnabled(!mModvMode);
+   binByZLabel->setEnabled(!mModvMode);
+   binXYSpinBox->setEnabled(!mModvMode);
+   binZSpinBox->setEnabled(!mModvMode);
    openWhichBox->setEnabled(!mModvMode);
    openZapBox->setEnabled(!mModvMode);
    openXYZBox->setEnabled(!mModvMode);
@@ -67,6 +74,7 @@ void StartupForm::manageForModView()
    fillCacheBox->setEnabled(!mModvMode);
    showRGBGrayBox->setEnabled(!mModvMode);
    loadFramesBox->setEnabled(!mModvMode);
+   loadSepTimesBox->setEnabled(!mModvMode);
    loadUnscaledBox->setEnabled(!mModvMode);
    showMontageBox->setEnabled(!mModvMode);
    xMontageLabel->setEnabled(!mModvMode);
@@ -212,7 +220,7 @@ void StartupForm::addArg( const char *arg )
 char ** StartupForm::getArguments( int & argc )
 {
     char numstr[32];
-    int fromVal, toVal;
+    int fromVal, toVal, xybin, zbin;
     if (mModvMode) {
 	
 	// Model mode: add v for it, then size options
@@ -249,8 +257,19 @@ char ** StartupForm::getArguments( int & argc )
 	addArg("-G");
     if (loadFramesBox->isChecked())
 	addArg("-f");
+    if (loadSepTimesBox->isChecked())
+	addArg("-T");
     if (loadUnscaledBox->isChecked())
 	addArg("-m");
+    
+    // Binning
+    xybin = binXYSpinBox->value();
+    zbin = binZSpinBox->value();
+    if (xybin * zbin != 1) {
+        addArg("-b");
+        sprintf(numstr, "%d,%d", xybin,zbin);
+        addArg(numstr);
+    }
     
     // Montage and overlap
     if (showMontageBox->isChecked()) {

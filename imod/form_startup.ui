@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>821</width>
-            <height>433</height>
+            <width>788</width>
+            <height>462</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout16</cstring>
+                <cstring>layout22</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -35,7 +35,7 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout13</cstring>
+                        <cstring>layout21</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -222,250 +222,310 @@
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>Layout13</cstring>
+                                <cstring>layout20</cstring>
                             </property>
                             <hbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <property name="margin">
-                                    <number>0</number>
-                                </property>
-                                <property name="spacing">
-                                    <number>6</number>
-                                </property>
-                                <widget class="QGroupBox">
+                                <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>subsetsBox</cstring>
-                                    </property>
-                                    <property name="title">
-                                        <string>Load image subset (numbered from 0)</string>
+                                        <cstring>layout19</cstring>
                                     </property>
                                     <vbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <property name="margin">
-                                            <number>11</number>
-                                        </property>
-                                        <property name="spacing">
-                                            <number>6</number>
-                                        </property>
-                                        <widget class="QLayoutWidget">
+                                        <widget class="QGroupBox">
                                             <property name="name">
-                                                <cstring>Layout2</cstring>
+                                                <cstring>subsetsBox</cstring>
                                             </property>
-                                            <hbox>
+                                            <property name="title">
+                                                <string>Load image subset (numbered from 0)</string>
+                                            </property>
+                                            <vbox>
                                                 <property name="name">
                                                     <cstring>unnamed</cstring>
                                                 </property>
                                                 <property name="margin">
-                                                    <number>0</number>
+                                                    <number>11</number>
                                                 </property>
                                                 <property name="spacing">
                                                     <number>6</number>
                                                 </property>
-                                                <widget class="QLabel">
+                                                <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>xMinLabel</cstring>
+                                                        <cstring>Layout2</cstring>
                                                     </property>
-                                                    <property name="text">
-                                                        <string>X from:</string>
-                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <property name="margin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="spacing">
+                                                            <number>6</number>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>xMinLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>X from:</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>xFromEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>xToLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>to:</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignVCenter|AlignRight</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>xToEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
                                                 </widget>
-                                                <widget class="QLineEdit">
+                                                <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>xFromEdit</cstring>
+                                                        <cstring>Layout2_2</cstring>
                                                     </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <property name="margin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="spacing">
+                                                            <number>6</number>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>yMinLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Y from:</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>yFromEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>yToLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>to:</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignVCenter|AlignRight</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>yToEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
                                                 </widget>
-                                                <widget class="QLabel">
+                                                <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>xToLabel</cstring>
+                                                        <cstring>Layout2_2_2</cstring>
                                                     </property>
-                                                    <property name="text">
-                                                        <string>to:</string>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignVCenter|AlignRight</set>
-                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <property name="margin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="spacing">
+                                                            <number>6</number>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>zMinLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Z from:</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>zFromEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>zToLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>to:</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignVCenter|AlignRight</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>zToEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>60</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
                                                 </widget>
-                                                <widget class="QLineEdit">
-                                                    <property name="name">
-                                                        <cstring>xToEdit</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
-                                                </widget>
-                                            </hbox>
+                                            </vbox>
                                         </widget>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>Layout2_2</cstring>
+                                                <cstring>layout18</cstring>
                                             </property>
                                             <hbox>
                                                 <property name="name">
                                                     <cstring>unnamed</cstring>
                                                 </property>
-                                                <property name="margin">
-                                                    <number>0</number>
-                                                </property>
-                                                <property name="spacing">
-                                                    <number>6</number>
-                                                </property>
                                                 <widget class="QLabel">
                                                     <property name="name">
-                                                        <cstring>yMinLabel</cstring>
+                                                        <cstring>binByLabel</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Y from:</string>
+                                                        <string>Bin by</string>
                                                     </property>
                                                 </widget>
-                                                <widget class="QLineEdit">
+                                                <widget class="QSpinBox">
                                                     <property name="name">
-                                                        <cstring>yFromEdit</cstring>
+                                                        <cstring>binXYSpinBox</cstring>
                                                     </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
+                                                    <property name="maxValue">
+                                                        <number>32</number>
                                                     </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
+                                                    <property name="minValue">
+                                                        <number>1</number>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLabel">
                                                     <property name="name">
-                                                        <cstring>yToLabel</cstring>
+                                                        <cstring>binByXYLabel</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>to:</string>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignVCenter|AlignRight</set>
+                                                        <string>in X/Y, </string>
                                                     </property>
                                                 </widget>
-                                                <widget class="QLineEdit">
+                                                <widget class="QSpinBox">
                                                     <property name="name">
-                                                        <cstring>yToEdit</cstring>
+                                                        <cstring>binZSpinBox</cstring>
                                                     </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
+                                                    <property name="maxValue">
+                                                        <number>32</number>
                                                     </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
-                                                </widget>
-                                            </hbox>
-                                        </widget>
-                                        <widget class="QLayoutWidget">
-                                            <property name="name">
-                                                <cstring>Layout2_2_2</cstring>
-                                            </property>
-                                            <hbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
-                                                <property name="margin">
-                                                    <number>0</number>
-                                                </property>
-                                                <property name="spacing">
-                                                    <number>6</number>
-                                                </property>
-                                                <widget class="QLabel">
-                                                    <property name="name">
-                                                        <cstring>zMinLabel</cstring>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>Z from:</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QLineEdit">
-                                                    <property name="name">
-                                                        <cstring>zFromEdit</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
+                                                    <property name="minValue">
+                                                        <number>1</number>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLabel">
                                                     <property name="name">
-                                                        <cstring>zToLabel</cstring>
+                                                        <cstring>binByZLabel</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>to:</string>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignVCenter|AlignRight</set>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QLineEdit">
-                                                    <property name="name">
-                                                        <cstring>zToEdit</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>0</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>60</width>
-                                                            <height>32767</height>
-                                                        </size>
+                                                        <string>in Z</string>
                                                     </property>
                                                 </widget>
                                             </hbox>
@@ -638,7 +698,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout14</cstring>
+                        <cstring>layout17</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -731,6 +791,14 @@
                             </property>
                             <property name="text">
                                 <string>Show RGB images as grayscale</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>loadSepTimesBox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Load single-image files as separate times, not sections</string>
                             </property>
                         </widget>
                         <widget class="QCheckBox">
