@@ -12,6 +12,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2004/03/29 21:00:48  sueh
+ * <p> bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
+ * <p> result as the full
+ * <p> aligned stack
+ * <p>
  * <p> Revision 3.25  2004/03/24 03:08:17  rickg
  * <p> Bug# 395 Implemented ability to create binned tomogram
  * <p>
@@ -146,7 +151,8 @@
  * <p> called backupFile(File) from saveTestParamFile()
  * <p>
  * <p> Revision 2.84  2003/11/04 20:55:42  rickg
- * <p> Bug #345 IMOD Diriectory supplied by a static function from ApplicationManager
+ * <p> Bug #345 IMOD Diriectory supplied by a static function from 
+ * <p> ApplicationManager
  * <p>
  * <p> Revision 2.83  2003/10/27 23:55:41  rickg
  * <p> Bug# 283 Added method to open the tomopitch log file
@@ -164,7 +170,8 @@
  * <p> Added function to delete the aligned stacks
  * <p>
  * <p> Revision 2.78  2003/10/21 02:34:20  sueh
- * <p> Bug325 Pulled out generic default UI retrieval functionality and placed it in ButtonHelper.
+ * <p> Bug325 Pulled out generic default UI retrieval functionality and placed
+ * <p> it in ButtonHelper.
  * <p>
  * <p> Revision 2.77  2003/10/20 22:02:13  rickg
  * <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
@@ -581,9 +588,11 @@ package etomo;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.swing.JOptionPane;
@@ -1165,34 +1174,26 @@ public class ApplicationManager {
   public void useMtfFilter(AxisID axisID) {
     mainFrame.setProgressBar("Using filtered full aligned stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed stack
-    String fullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
+    String fullAlignedStackFilename = System.getProperty("user.dir")
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
         + ".ali";
 
     File fullAlignedStack = new File(fullAlignedStackFilename);
-    String renamedFullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
+    String renamedFullAlignedStackFilename = System.getProperty("user.dir")
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
         + "_orig.ali";
     File renamedFullAlignedStack = new File(renamedFullAlignedStackFilename);
 
-    String filteredFullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
+    String filteredFullAlignedStackFilename = System.getProperty("user.dir")
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
         + "_filt.ali";
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
 
     if (!filteredFullAlignedStack.exists()) {
-      mainFrame.openMessageDialog(
-        "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-        "Filtered full aligned stack missing");
+      mainFrame
+        .openMessageDialog(
+          "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
+          "Filtered full aligned stack missing");
       return;
     }
 
@@ -1291,7 +1292,14 @@ public class ApplicationManager {
       .getTiltxcorrParam(axisID));
     comScriptMgr.loadPrenewst(axisID);
     comScriptMgr.loadAlign(axisID);
-    coarseAlignDialog.setPrenewstParams(comScriptMgr.getPrenewstParam(axisID));
+
+    // Overwrite the tilt axis angle with the negative of the angle
+    // specified in the metaData
+    NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+    prenewstParam.setRotateByAngle(-1 * metaData.getImageRotation(axisID));
+    coarseAlignDialog.setPrenewstParams(prenewstParam);
+    coarseAlignDialog.setFiducialessAlignment(metaData
+      .getFiducialessAlignment());
     mainFrame.showProcess(coarseAlignDialog.getContainer(), axisID);
   }
 
@@ -1333,7 +1341,12 @@ public class ApplicationManager {
         processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
         mainFrame.setCoarseAlignState(ProcessState.COMPLETE, axisID);
         //  Go to the fiducial model dialog by default
-        openFiducialModelDialog(axisID);
+        if (metaData.getFiducialessAlignment()) {
+          openTomogramPositioningDialog(axisID);
+        }
+        else {
+          openFiducialModelDialog(axisID);
+        }
       }
       else {
         processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
@@ -1484,8 +1497,20 @@ public class ApplicationManager {
     }
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     coarseAlignDialog.getPrenewstParams(prenewstParam);
-    comScriptMgr.savePrenewst(prenewstParam, axisID);
 
+    metaData.setImageRotation(-1 * prenewstParam.getRotateByAngle(), axisID);
+    // Is a fidcualess alignment requested?
+    if (coarseAlignDialog.isFiducialessAlignment()) {
+      metaData.setFiducialessAlignment(true);
+      updateRotationXF(axisID, prenewstParam.getRotateByAngle());
+    }
+    else {
+      metaData.setFiducialessAlignment(false);
+      // Unset the image rotation parameter for the prenewst script 
+      prenewstParam.setRotateByAngle(Float.NaN);
+    }
+    comScriptMgr.savePrenewst(prenewstParam, axisID);
+    
     XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
     int binning = prenewstParam.getBinByFactor();
     try {
@@ -1496,6 +1521,7 @@ public class ApplicationManager {
         xfproductParam.setScaleShifts("/");
       }
       comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
+
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -1506,6 +1532,39 @@ public class ApplicationManager {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Write out the rotation transform for the specified axis
+   * @param axisID
+   */
+  private void updateRotationXF(AxisID axisID, float angle) {
+    //  Open the appropriate rotation file
+    String fnRotationXF = System.getProperty("user.dir") + File.separator
+        + "rotation" + axisID.getExtension() + ".xf";
+    File rotationXF = new File(fnRotationXF);
+
+    try {
+      BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
+      //  Write out the transform to perform the rotation
+      double rads = angle * Math.PI / 180;
+      out.write(String.valueOf(Math.cos(rads)) + "   "
+          + String.valueOf(Math.sin(-rads)) + "   "
+          + String.valueOf(Math.sin(rads)) + "   "
+          + String.valueOf(Math.cos(rads)) + "   0   0");
+      out.newLine();
+
+      //  Close the file
+      out.close();
+    }
+    catch (IOException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Rotation Transform IO Exception";
+      errorMessage[1] = except.getMessage();
+      errorMessage[2] = fnRotationXF;
+      mainFrame.openMessageDialog(errorMessage,
+        "Rotation Transform IO Exception");
+    }
   }
 
   /**
@@ -2521,7 +2580,8 @@ public class ApplicationManager {
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
     tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
-    tomogramGenerationDialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
+    tomogramGenerationDialog.setMTFFilterParam(comScriptMgr
+      .getMTFFilterParam(axisID));
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
 
@@ -2553,7 +2613,8 @@ public class ApplicationManager {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateNewstCom(axisID) || !updateTiltCom(axisID, true) || !updateMTFFilterCom(axisID)) {
+      if (!updateNewstCom(axisID) || !updateTiltCom(axisID, true)
+          || !updateMTFFilterCom(axisID)) {
         return;
       }
       if (exitState == DialogExitState.POSTPONE) {
@@ -2672,9 +2733,10 @@ public class ApplicationManager {
     }
 
     if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
-        "Can not update mtffilter?.com without an active tomogram generation dialog",
-        "Program logic error");
+      mainFrame
+        .openMessageDialog(
+          "Can not update mtffilter?.com without an active tomogram generation dialog",
+          "Program logic error");
       return false;
     }
 
@@ -2689,9 +2751,10 @@ public class ApplicationManager {
         outputFileName = metaData.getDatasetName() + AxisID.ONLY + "_filt.ali";
       }
       else {
-        inputFileName =
-          metaData.getDatasetName() + axisID.getExtension() + ".ali";
-        outputFileName = metaData.getDatasetName() + axisID.getExtension() + "_filt.ali";
+        inputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + ".ali";
+        outputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + "_filt.ali";
       }
       mtfFilterParam.setInputFile(inputFileName);
       mtfFilterParam.setOutputFile(outputFileName);
@@ -2702,8 +2765,7 @@ public class ApplicationManager {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(
-        errorMessage,
+      mainFrame.openMessageDialog(errorMessage,
         "MTF Filter Parameter Syntax Error");
       return false;
     }
@@ -2712,8 +2774,7 @@ public class ApplicationManager {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(
-        errorMessage,
+      mainFrame.openMessageDialog(errorMessage,
         "MTF Filter Parameter Syntax Error");
       return false;
     }
@@ -2815,8 +2876,8 @@ public class ApplicationManager {
       catch (SystemProcessException e) {
         e.printStackTrace();
         String[] message = new String[2];
-        message[0] =
-          "Can not execute mtffilter" + axisID.getExtension() + ".com";
+        message[0] = "Can not execute mtffilter" + axisID.getExtension()
+            + ".com";
         message[1] = e.getMessage();
         mainFrame.openMessageDialog(message, "Unable to execute com script");
         return;
