@@ -437,9 +437,23 @@ QWidget *DialogManager::parent(int dlgClass)
 #endif
 }
 
+// Raise all windows of the given type
+void DialogManager::raise(int dlgClass)
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if (dia->dlgClass == dlgClass && dia->widget->isVisible())
+      dia->widget->raise();
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+  }
+}
 
 /*
 $Log$
+Revision 4.5  2003/05/18 22:08:48  mast
+Changes to add an application icon
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
