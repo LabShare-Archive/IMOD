@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/10 20:29:03  mast
+    autox.cpp
+
     Revision 3.1.2.3  2003/02/07 01:03:23  mast
     a little cleanup
 
@@ -105,8 +108,8 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize,
      iputbyte (fout,   0);       /* STORAGE is VERBATIM  */
      iputbyte (fout,   1);       /* BPC is 1             */
      iputshort(fout,   3);       /* DIMENSION is 3       */
-     iputshort(fout, xsize);     /* XSIZE                */
-     iputshort(fout, ysize);     /* YSIZE                */
+     iputshort(fout, (b3dInt16)xsize);     /* XSIZE                */
+     iputshort(fout, (b3dInt16)ysize);     /* YSIZE                */
      iputshort(fout,   3);       /* ZSIZE                */
      iputlong (fout, 0l);        /* PIXMIN is 0          */
      iputlong (fout, 255l);      /* PIXMAX is 255        */
