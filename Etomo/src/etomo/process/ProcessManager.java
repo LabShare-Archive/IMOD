@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2004/07/02 16:50:39  sueh
+ * bug# 490 in startComScript() constucting ComScriptProcess with
+ * watchedFileName.  In patchcorr() sending the watched file
+ * name to startComScript()
+ *
  * Revision 3.19  2004/06/28 22:10:29  rickg
  * Bug #470 Moved the fiducial mode file copying to the same sections
  * where the fiducialless is handled.
@@ -588,11 +593,10 @@ public class ProcessManager {
     // Files to be managed
     File xf = new File(workingDirectory, axisDataset + ".xf");
     File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
+    File nonfidXF = new File(workingDirectory, axisDataset + "_nonfid.xf");
     File tlt = new File(workingDirectory, axisDataset + ".tlt");
     File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
     File tltxf = new File(workingDirectory, axisDataset + ".tltxf");
-    File rotation = new File(workingDirectory, "rotation"
-      + axisID.getExtension() + ".xf");
     if (tltxf.exists()) {
       // Align{|a|b}.com shows evidence of being run
       if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
@@ -602,23 +606,15 @@ public class ProcessManager {
         Utilities.copyFile(fidTlt, tlt);
       }
       else {
-        // An older align.com that just wrote out an .xf and .tlt was run 
-        if (rotation.exists()) {
-          // The .xf and .tlt could have been written over by the fiducialess
-          // processing sequence compare the modification date on the .xf to
-          // the .tltxf and rotation.xf
-          if ((xf.lastModified() - tltxf.lastModified()) < (xf.lastModified() - rotation
-            .lastModified())) {
-            Utilities.copyFile(xf, fidXF);
-            Utilities.copyFile(tlt, fidTlt);
-          }
-          else {
+        // An older align.com that just wrote out an .xf and .tlt was run
+        // if the nonfid.xf was run it overwrote the the original data
+        // delete the xf and tlt so that an error occurs
+        if (nonfidXF.exists()) {
             xf.delete();
             tlt.delete();
-          }
         }
         else {
-          // No rotation{|a|b}.xf exists so the .xf and .tlt came from align
+          // No nonfid{|a|b}.xf exists so the .xf and .tlt came from align
           // create the protected copies
           Utilities.copyFile(xf, fidXF);
           Utilities.copyFile(tlt, fidTlt);
