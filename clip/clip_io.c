@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <mrcc.h>
@@ -255,7 +263,7 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
      FILE *fp = hout->fp;
      int zs, ks, z;
      int i,j,k;
-     float min, max, mean;
+     float min, max, mean, zscale;
      Ival val;
      struct MRCslice  *s, *ps;
      int labels;
@@ -289,6 +297,7 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
      }
      mean /= (float)v->zsize;
 
+     /* DNM 6/26/02: do not make a new header if appending or overwriting! */
      switch(opt->add2file){
 	case IP_APPEND_OVERWRITE:
 	  ks = opt->isec;
@@ -300,7 +309,15 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 		       "overwriting requires data modes to be the same.\n");
 	       return(-1);
 	  }
-	  /* todo: recalc mmm. */
+	  /* DNM 6/26/02: fix min and max, also fix mz and zlen */
+	  /* todo: recalc mmm.  This is a start but not much */
+	  if (min < hout->amin)
+	       hout->amin = min;
+	  if (max > hout->amax)
+	       hout->amax = max;
+	  zscale = hout->xlen / hout->mz;
+	  hout->mz = hout->nz;
+	  hout->xlen = hout->mz * zscale;
 	  break;
 
 	case IP_APPEND_ADD:
@@ -318,25 +335,31 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 	  if (max > hout->amax)
 	       hout->amax = max;
 	  hout->amean = ((hout->amean * ks) + (mean * opt->oz)) / hout->nz; 
-	  mean = hout->amean;
+	  /*  mean = hout->amean;
 	  min = hout->amin;
-	  max = hout->amax;
+	  max = hout->amax; */
+	  zscale = hout->xlen / hout->mz;
+	  hout->mz = hout->nz;
+	  hout->xlen = hout->mz * zscale;
+	  break;
 	  break;
 
 	case IP_APPEND_FALSE:
-	  hout->nx = opt->ox;
+	  /* Notice in this mode that the output file completely inherits
+	     the whole input file's min/max/mean! */
+	  /* hout->nx = opt->ox;
 	  hout->ny = opt->oy;
 	  hout->nz = opt->oz;
-	  hout->mode =  v->vol[0]->mode;
+	  hout->mode =  v->vol[0]->mode; */
+	  labels = hout->nlabl;
+	  mrc_head_new(hout, opt->ox, opt->oy, opt->oz, v->vol[0]->mode);
+	  hout->nlabl = labels;
+	  hout->amin = min;
+	  hout->amax = max;
+	  hout->amean = mean;
 	  ks = 0;
 
      }
-     labels = hout->nlabl;
-     mrc_head_new(hout, hout->nx, hout->ny, hout->nz, hout->mode);
-     hout->amin = min;
-     hout->amax = max;
-     hout->amean = mean;
-     hout->nlabl = labels;
 
      ps = mrc_slice_create(hout->nx, hout->ny, hout->mode);
      if (!ps){
