@@ -590,7 +590,7 @@ int main( int argc, char *argv[])
              
   /* If one file, use its smin, smax to set li's smin,smax - may not be
      needed but used to happen */
-  if (vi.nt <= 1) {
+  if (!vi.fakeImage && vi.nt <= 1) {
     li.smin = vi.image->smin;
     li.smax = vi.image->smax;
   }
@@ -989,6 +989,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.35  2004/05/31 23:27:19  mast
+Added functions for printing to standard error, with flush on windows
+
 Revision 4.34  2004/05/28 23:30:13  mast
 Add function to report in whether event loop has started
 
