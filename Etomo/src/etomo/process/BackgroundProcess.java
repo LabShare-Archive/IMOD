@@ -16,6 +16,11 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/12/04 00:39:14  sueh
+ * <p> bug# 569 Handling directory paths with spaces:  converting from a
+ * <p> command line to a command array to prevent the command line from
+ * <p> being split on white space.
+ * <p>
  * <p> Revision 3.2  2004/11/19 23:17:18  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -225,11 +230,11 @@ public class BackgroundProcess
     if (commandArray != null) {
       program = new SystemProgram(commandArray);
     }
+    else if (command != null) {
+      program = new SystemProgram(command.getCommandArray());
+    }
     else if (commandLine != null) {
       program = new SystemProgram(commandLine);
-    }
-    else if (command != null) {
-      program = new SystemProgram(command.getCommandLine());
     }
     else {
       processManager.msgBackgroundProcessDone(this, 1);
