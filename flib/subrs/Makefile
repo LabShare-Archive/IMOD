@@ -1,39 +1,45 @@
 include ../configure
 
 O        = $(OBJEXT)
-LIBHVEM  = libhvem.$(LIBEXT)
-LIBIFFT  = libifft.$(LIBEXT)
-LIBIM    = libim.$(LIBEXT)
+LIBHVEM  = libhvem.$(DLLEXT)
+LIBIFFT  = libifft.$(DLLEXT)
+LIBIM    = libim.$(DLLEXT)
 LIBNMCAR = libdnmncar.$(LIBEXT)
-LIBDTRIGS = libdtrigs.$(LIBEXT)
-LIBRANDM  = librandm.$(LIBEXT)
-LIBTRACK  = libtrack.$(LIBEXT)
+LIBDTRIGS = libdtrigs.$(DLLEXT)
+LIBRANDM  = librandm.$(DLLEXT)
+LIBTRACK  = libtrack.$(DLLEXT)
 
 LIBS = $(LIBHVEM) $(LIBIFFT) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS)
 
+all : $(LIBS) $(BLOCKIO) $(LIBWMOD)
 
-all : $(LIBS) $(BLOCKIO)
 
-
-$(LIBHVEM):	model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
+$(LIBHVEM): $(LIBIM) model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd model ; $(MAKE) all)
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
 	(cd statsubs ; $(MAKE) all)
 	\rm -f $(LIBHVEM)
-	$(AR) $(ARFLAGS)$(LIBHVEM) \
-	model/*.$(O) piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
+	$(AR) $(ARFLAGS)$(LIBHVEM) $(LIBHVEMDEF) \
+	$(MODELALLO) piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
 	$(RANLIB) $(LIBHVEM)
-	$(CP) $(LIBHVEM) $(LIBDIR)
+	$(CP) libhvem.$(LIBEXT) $(LIBDIR)
 
-$(LIBIM):	imsubs/*.f imsubs/*.c imsubs2/*.f
+libwmod.lib: model/*.f 
+	(cd model ; $(MAKE) all)
+	\rm -f $(LIBWMOD)
+	$(MAKENONDLL)$(LIBWMOD) model/*.$(O)
+	$(RANLIB) $(LIBWMOD)
+	$(CP) $(LIBWMOD) $(LIBDIR)
+
+$(LIBIM): $(LIBIFFT) imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	\rm -f $(LIBIM)
-	$(AR) $(ARFLAGS)$(LIBIM) imsubs/$(IMSUBSOBJ) imsubs2/*.$(O)
+	$(AR) $(ARFLAGS)$(LIBIM) $(LIBIMDEF) imsubs/$(IMSUBSOBJ) imsubs2/*.$(O)
 	$(RANLIB) $(LIBIM)
-	$(CP) $(LIBIM) $(LIBDIR)
+	$(CP) libim.$(LIBEXT) $(LIBDIR)
 
 libblockio.a:  imsubs/blockio.c
 	(cd imsubs; make blockio.o)
@@ -45,37 +51,37 @@ libblockio.a:  imsubs/blockio.c
 $(LIBIFFT):	ifftsub/*.f
 	(cd ifftsub ; $(MAKE) all)
 	\rm -f $(LIBIFFT)
-	$(AR) $(ARFLAGS)$(LIBIFFT) ifftsub/*.$(O)
+	$(AR) $(ARFLAGS)$(LIBIFFT) $(LIBIFFTDEF) ifftsub/*.$(O)
 	$(RANLIB) $(LIBIFFT)
-	$(CP) $(LIBIFFT) $(LIBDIR)
+	$(CP) libifft.$(LIBEXT) $(LIBDIR)
 
 $(LIBNMCAR):	graphics/*.f graphics/*.c*
 	(cd graphics ; $(MAKE) all)
 	\rm -f $(LIBNMCAR)
-	$(AR) $(ARFLAGS)$(LIBNMCAR) graphics/*.$(O)
+	$(MAKENONDLL)$(LIBNMCAR) graphics/*.$(O)
 	$(RANLIB) $(LIBNMCAR)
-	$(CP) $(LIBNMCAR) $(LIBDIR)
+	$(CP) libdnmncar.$(LIBEXT) $(LIBDIR)
 
 $(LIBDTRIGS):	dtrigs/*.f
 	(cd dtrigs ; $(MAKE) all)
 	\rm -f $(LIBDTRIGS)
 	$(AR) $(ARFLAGS)$(LIBDTRIGS) dtrigs/*.$(O)
 	$(RANLIB) $(LIBDTRIGS)
-	$(CP) $(LIBDTRIGS) $(LIBDIR)
+	$(CP) libdtrigs.$(LIBEXT) $(LIBDIR)
 
 $(LIBRANDM):	randm/ransub.f randm/ourrnd.c
 	(cd randm; $(MAKE) all)
 	\rm -f $(LIBRANDM)
 	$(AR) $(ARFLAGS)$(LIBRANDM) randm/*.$(O)
 	$(RANLIB) $(LIBRANDM)
-	$(CP) $(LIBRANDM) $(LIBDIR)
+	$(CP) librandm.$(LIBEXT) $(LIBDIR)
 
 $(LIBTRACK):	linetrack/*.f
 	(cd linetrack; $(MAKE) all)
 	\rm -f $(LIBTRACK)
-	$(AR) $(ARFLAGS)$(LIBTRACK) linetrack/*.$(O)
+	$(AR) $(ARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)
 	$(RANLIB) $(LIBTRACK)
-	$(CP) $(LIBTRACK) $(LIBDIR)
+	$(CP) libtrack.$(LIBEXT) $(LIBDIR)
 
 
 install:
@@ -87,6 +93,8 @@ clean :
 	$(FIND) . -type f -name "*.so" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.a" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.*lib" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.dll" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/11/04 17:18:35  mast
+#  Add dependencies on b3dutil.h
+#
 #  Revision 3.4  2003/10/26 15:30:28  mast
 #  fix dependency on version -> b3dutil.o
 #
@@ -30,7 +33,7 @@
 #
 include ../configure
 
-LIB   = libimod.$(LIBEXT)
+LIBI   = libimod.$(DLLEXT)
 O     = $(OBJEXT)
 
 
@@ -41,19 +44,20 @@ IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
 
-all : $(LIB)
+all : $(LIBI)
 
-$(LIB) : $(IMODELOBJS) $(PIPOBJS)
-	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIB)$(LIB) $(IMODELOBJS) $(PIPOBJS)
-	$(RANLIB) $(LIB)
-	$(CP) $(LIB) $(LIBDIR)
+$(LIBI) : $(IMODELOBJS) $(PIPOBJS)
+	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
+	$(MAKELIB)$(LIBI) $(LIBIMODDEF) $(IMODELOBJS) $(PIPOBJS)
+	$(RANLIB) $(LIBI)
+	$(CP) libimod.$(LIBEXT) $(LIBDIR)
 
-install : $(LIB)
-	$(CP) $(LIB) $(INSTLIBDIR)
+install : $(LIBI)
+	$(CP) $(LIBI) $(INSTLIBDIR)
 
 clean : 
-	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
+	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
+	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
@@ -62,7 +66,7 @@ clean :
 # other subsystems
 work : clean
 	touch $(IMODELOBJS) $(PIPOBJS)
-	touch $(LIB)
+	touch $(LIBI)
 
 #
 # Some depends.
