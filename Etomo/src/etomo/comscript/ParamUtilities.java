@@ -12,11 +12,16 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/03/29 20:53:36  sueh
+ * <p> $bug# 418 avoid updating a null FortranInputString parameter
+ * <p> $
  * <p> $Revision 1.1  2004/03/25 00:48:11  sueh
  * <p> $bug# 409, bug# 418 Utility functions for Param objects
  * <p> $$ </p>
  */
 package etomo.comscript;
+
+import java.util.Vector;
 
 public class ParamUtilities {
   public static final String rcsid = "$$Id$$";
@@ -106,6 +111,23 @@ public class ParamUtilities {
     else {
       scriptCommand.deleteKey(key);
     }
+  }
+  
+  public static void updateParameterStrings(
+    ComScriptCommand scriptCommand,
+    String key,
+    Vector strings)
+    throws BadComScriptException {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (strings.size() == 0) {
+      scriptCommand.deleteKeyAll("ModelFile");
+      return;
+    }
+    scriptCommand.setValues(
+      key,
+      (String[]) strings.toArray(new String[strings.size()]));
   }
 
 }
