@@ -37,9 +37,9 @@ Length Type Name          Description
 4      int   ymax          set to the image dimensions.
 4      int   zmax
 
-4      long  objsize       Number of objects in model.
+4      int  objsize       Number of objects in model.
 
-4      long  flags         Model flags  (IMODF_FLAG...)
+4      uint flags         Model flags  (IMODF_FLAG...)
                            Bit 13 on : mat1 and mat3 are stored as bytes
                            Bit 14 on : otrans has image origin values
                            Bit 15 on : current tilt angles are stored correctly
@@ -70,7 +70,7 @@ Length Type Name          Description
 4      int   units         0 = pixels, 3 = km, 1 = m, -2 = cm, -3 = mm, 
                            -6 = microns, -9 = nm, -10 = Angstroms, -12 = pm
 
-4      long  csum          Checksum storage. Used for autosave only.
+4      int   csum          Checksum storage. Used for autosave only.
 
 4      float alpha         Angles used for orientation of the model with
 4      float beta          image. Should be set to 0.0
@@ -86,10 +86,10 @@ with the following format.
 Length Type  Name       Description
 ------------------------------------------------------------------------------
 64     char  name       Name of Object. Null terminated string.
-64     int              Extra data reserved for future use.
+64     uint             Extra data reserved for future use.
 
-4      long  contsize   Number of Contours in object.
-4      long  flags      bit flags for object (IMOD_OBJFLAG...).
+4      int   contsize   Number of Contours in object.
+4      uint  flags      bit flags for object (IMOD_OBJFLAG...).
                         Bit 1 on : Off - turns off display
                         Bit 3 on : Open - contours are not closed
                         Bit 4 on : Wild - contours not constrained in Z
@@ -146,8 +146,8 @@ contours are allowed.
 <pre>
 Length    Type         Name      Description.
 ------------------------------------------------------------------------------
-4         long         psize   Number of points in contour.
-4         long         flags   Bit 3 on : open, do not connect endpoints
+4         int          psize   Number of points in contour.
+4         uint         flags   Bit 3 on : open, do not connect endpoints
                                Bit 4 on : wild, not in one Z plane
                                Bit 15 on : type variable contains time index
 4         int          type    The time index used by this contour.
@@ -165,7 +165,7 @@ Length    Type         Name    Description
 ------------------------------------------------------------------------------
 4         int          vsize   Size of vertex array (# of triple floats).
 4         int          lsize   Size of index array.
-4         long         flag    Bit 16 on  : normals have magnitudes.
+4         uint         flag    Bit 16 on  : normals have magnitudes.
                 	       Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
 2         short        type    Contains a time index or 0
@@ -291,10 +291,10 @@ CLIP  Clipping planes for object. (28 bytes data)
 <pre>
 Length Type      Description
 -------------------------------------------------------------------
-1     byte       Number of additional clip planes. maximum is 8.
-1     byte       Which clip planes are on.
-1     byte       Transparency for clipped area. (future)
-1     byte       Current clip plane.
+1     char       Number of additional clip planes. maximum is 8.
+1     char       Which clip planes are on.
+1     char       Transparency for clipped area. (future)
+1     char       Current clip plane.
 12    float * 3  normal
 12    float * 3  point
 </pre>
@@ -305,24 +305,24 @@ IMAT  material definition for object.        (16 bytes data)
 <pre>
 Length Type         Description
 -------------------------------------------------------------------
-1  UBYTE ambient    Ambient property.  Range 0-255, scaled to 0-1, multiplied
+1  uchar ambient    Ambient property.  Range 0-255, scaled to 0-1, multiplied
                        by red, green and blue to set the GL_AMBIENT property.
-1  UBYTE diffuse    Diffuse property.  Range 0-255, scaled to 0-1, multiplied
+1  uchar diffuse    Diffuse property.  Range 0-255, scaled to 0-1, multiplied
                        by red, green and blue to set the GL_DIFFUSE property.
-1  UBYTE specular   Specular property.  Range 0-255, scaled to 0-1, added
+1  uchar specular   Specular property.  Range 0-255, scaled to 0-1, added
                        to red, green and blue to set the GL_SPECULAR property.
-1  UBYTE shininess  Shininess exponent in specular term.  Range 0-255, scaled
+1  uchar shininess  Shininess exponent in specular term.  Range 0-255, scaled
                        to 6.1 to 1.1 to set the GL_SHININESS property.
   
-1  UBYTE mat1       Fill color red.
-1  UBYTE mat1b1     Fill color green.
-1  UBYTE mat1b2     Fill color blue.
-1  UBYTE mat1b3     Unused.
-4  UINT  mat2       Set to 0, use as flags.  Unused.
-1  UBYTE mat3       Black level for showing normal magnitudes in mesh.
-1  UBYTE mat3b1     White level for showing normal magnitudes in mesh.
-1  UBYTE mat3b2     Unused.
-1  UBYTE mat3b3     Unused.
+1  uchar mat1       Fill color red.
+1  uchar mat1b1     Fill color green.
+1  uchar mat1b2     Fill color blue.
+1  uchar mat1b3     Unused.
+4  uint  mat2       Set to 0, use as flags.  Unused.
+1  uchar mat3       Black level for showing normal magnitudes in mesh.
+1  uchar mat3b1     White level for showing normal magnitudes in mesh.
+1  uchar mat3b2     Unused.
+1  uchar mat3b3     Unused.
 
 Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
 as a UINT (big-endian, thus reversed from the current definition).  If bit 13
@@ -376,33 +376,33 @@ Length Type     Name    Description
 </pre>
 Currently there are 67 bytes per object view, as follows:
 <pre>
-4     UINT      flags        bit flags IMOD_OBJFLAG... (see above)
+4     uint      flags        bit flags IMOD_OBJFLAG... (see above)
 4     float     red          Red (0 - 1.0)                 
 4     float     green        Green (0 - 1.0)               
 4     float     blue         Blue (0 - 1.0)                
-4     INT       pdrawsize    size to draw scattered objs   
-1     UBYTE     linewidth    linewidth in 3-D              
-1     UBYTE     linesty      line draw style               
-1     UBYTE     trans        transparency                 
-1     UBYTE     clip         number of additional clip planes. 
-1     UBYTE     clip_flags   Which clip planes are on.         
-1     UBYTE     clip_trans   Transparency for clipped area    
-1     UBYTE     clip_plane   Current clip plane
+4     int       pdrawsize    size to draw scattered objs   
+1     uchar     linewidth    linewidth in 3-D              
+1     uchar     linesty      line draw style               
+1     uchar     trans        transparency                 
+1     uchar     clip         number of additional clip planes. 
+1     uchar     clip_flags   Which clip planes are on.         
+1     uchar     clip_trans   Transparency for clipped area    
+1     uchar     clip_plane   Current clip plane
 12    float * 3 clip_normal  Normal for clipping plane
 12    float * 3 clip_point   Point value for clipping plane
-1     UBYTE 	ambient      Ambient property.  (see above)
-1     UBYTE 	diffuse      Diffuse property.  (see above)
-1     UBYTE 	specular     Specular property.  (see above)
-1     UBYTE 	shininess    Shininess exponent in specular term.  (see above)
-1     UBYTE 	mat1         Fill color red.
-1     UBYTE 	mat1b1       Fill color green.
-1     UBYTE 	mat1b2       Fill color blue.
-1     UBYTE 	mat1b3       Unused.
-4     UINT  	mat2         Set to 0, use as flags.  Unused.
-1     UBYTE 	mat3         Black level for showing normal magnitudes in mesh.
-1     UBYTE 	mat3b1       White level for showing normal magnitudes in mesh.
-1     UBYTE 	mat3b2       Unused.
-1     UBYTE 	mat3b3       Unused.
+1     uchar 	ambient      Ambient property.  (see above)
+1     uchar 	diffuse      Diffuse property.  (see above)
+1     uchar 	specular     Specular property.  (see above)
+1     uchar 	shininess    Shininess exponent in specular term.  (see above)
+1     uchar 	mat1         Fill color red.
+1     uchar 	mat1b1       Fill color green.
+1     uchar 	mat1b2       Fill color blue.
+1     uchar 	mat1b3       Unused.
+4     uint  	mat2         Set to 0, use as flags.  Unused.
+1     uchar 	mat3         Black level for showing normal magnitudes in mesh.
+1     uchar 	mat3b1       White level for showing normal magnitudes in mesh.
+1     uchar 	mat3b2       Unused.
+1     uchar 	mat3b3       Unused.
 
 Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
 as a UINT.  If bit 13 of model flags is off, mat1 and mat3 are assumed to be
