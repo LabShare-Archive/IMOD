@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/11/20 03:29:35  mast
+Make calls take Q or H box layout, add call to set spin box all at once
+
 Revision 3.3  2004/11/04 23:31:07  mast
 Changes for rounded button style
 
@@ -56,6 +59,7 @@ class QSlider;
 class QSpinBox;
 class QButtonGroup;
 class QString;
+class QLineEdit;
 
 extern DLL_IM_EX char *Dia_title;
 
@@ -64,6 +68,7 @@ void DLL_IM_EX diaSetSpinMMVal(QSpinBox *box, int min, int max, int value);
 void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
 void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
 void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
+void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
 QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
 QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
 QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 

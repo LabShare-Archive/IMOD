@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.5  2004/11/20 05:07:23  mast
+Add spin box min/max/val function, allow H or V layouts in dia functions
+
 Revision 1.4  2004/11/04 23:32:44  mast
 Changes for rounded button style
 
@@ -154,6 +157,14 @@ void diaSetGroup(QButtonGroup *group, int value)
   group->blockSignals(true);
   group->setButton(value);
   group->blockSignals(false);
+}
+
+// Set a text edit and block signals
+void diaSetEditText(QLineEdit *edit, const QString &text)
+{
+  edit->blockSignals(true);
+  edit->setText(text);
+  edit->blockSignals(false);
 }
 
 // Determine a button width appropriate for the given text, multiplying by
