@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/24 18:33:48  sueh
+ * <p> bug# 482 getScriptCommandIndex will add a command that
+ * <p> it doesn't find when addNew is on.
+ * <p>
  * <p> Revision 3.4  2004/04/19 19:23:32  sueh
  * <p> bug# 409 creating command when ComScript is empty
  * <p>
@@ -278,7 +282,41 @@ public class ComScript {
     }
     throw (new BadComScriptException("Did not find command: " + cmdName));
   }
+  
+  /**
+   * Return the instance of ComScriptCommand with the specified command
+   * corresponding to commandIndex
+   * @param cmdName a String containing the name of the command.
+   * @return the first ComScriptCommand in the collection that matches cmdName,
+   * null if no command with the specified name is found.
+   */
+  public ComScriptCommand getScriptCommand(String cmdName, int commandIndex, 
+    boolean addNew)
+    throws BadComScriptException {
+    if (!commandLoaded) {
+      createCommand(cmdName, commandIndex);
+    }
+    ComScriptCommand command = 
+      (ComScriptCommand) scriptCommands.get(commandIndex);
+    if (command.getCommand().equals(cmdName)) {
+      return command;
+    }
+    if (addNew) {
+      createCommand(cmdName, commandIndex);
+      command = (ComScriptCommand) scriptCommands.get(commandIndex);
+      if (command.getCommand().equals(cmdName)) {
+        return command;
+      }
+    }
+    throw (new BadComScriptException("Did not find command: " + cmdName + 
+      " at index " + commandIndex));
+  }
 
+  /**
+   * 
+   * @param cmdName
+   * @return
+   */
   protected int createCommand(String cmdName) {
     ComScriptCommand currentScriptCommand = new ComScriptCommand();
     scriptCommands.add(currentScriptCommand);
@@ -286,6 +324,28 @@ public class ComScript {
     commandLoaded = true;
     return scriptCommands.size() - 1;
   }
+  
+  /**
+   * 
+   * @param cmdName
+   * @param commandIndex
+   * @return
+   */
+  protected void createCommand(String cmdName, int commandIndex) {
+    ComScriptCommand currentScriptCommand = new ComScriptCommand();
+    scriptCommands.add(commandIndex, currentScriptCommand);
+    currentScriptCommand.setCommand(cmdName);
+    commandLoaded = true;
+  }
+  
+  public void deleteCommand(int commandIndex) {
+    scriptCommands.remove(commandIndex);
+    if (scriptCommands.isEmpty()) {
+      commandLoaded = true;
+    }
+  }
+
+
   /**
    * Return the index of the specified command or -1 if the command is not
    * present in the script
@@ -311,6 +371,24 @@ public class ComScript {
     return -1;
   }
   
+  /**
+   * 
+   * @param cmdName
+   * @param commandIndex
+   * @return
+   */
+  public int getScriptCommandIndex(String cmdName, int commandIndex) {
+    if (!commandLoaded) {
+      createCommand(cmdName);
+    }
+    ComScriptCommand command =
+      (ComScriptCommand) scriptCommands.get(commandIndex);
+    if (command.getCommand().equals(cmdName)) {
+      return commandIndex;
+    }
+    return -1;
+  }
+
   
   /**
    * Write out the command file currently represented by this object
