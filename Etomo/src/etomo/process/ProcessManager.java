@@ -29,6 +29,12 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/05/23 14:26:35  rickg
+ * <p> RunComscript renamed to ComScriptProcess
+ * <p> StartComScript method returns ComScriptProcess instead
+ * <p> of string name
+ * <p> Starting to implement determinant progress bar functions
+ * <p>
  * <p> Revision 2.11  2003/05/22 23:34:53  rickg
  * <p> Kill process now kills by walking the process tree.
  * <p>
@@ -274,6 +280,26 @@ public class ProcessManager {
     ComScriptProcess comScript = startComScript(command, axisID);
     return comScript.getName();
 
+  }
+
+  /**
+   * Generate the split align log file for the given axis ID
+   * @param axisID
+   */
+  public void generateAlignLogs(AxisID axisID) {
+    AlignLogGenerator alignLogGenerator =
+      new AlignLogGenerator(
+        appManager.getIMODDirectory().getAbsolutePath(),
+        axisID);
+
+    try {
+      alignLogGenerator.run();
+    }
+    catch (IOException except) {
+      appManager.openMessageDialog(
+        "Unable to create alignlog files",
+        "Alignlog Error");
+    }
   }
 
   /**
@@ -704,6 +730,18 @@ public class ProcessManager {
         script.getScriptName() + " failed");
     }
     else {
+      // Script specific post processing
+      
+      if(script.getScriptName().equals("aligna.com")) {
+        generateAlignLogs(AxisID.FIRST);
+      }
+      if(script.getScriptName().equals("alignb.com")) {
+        generateAlignLogs(AxisID.SECOND);
+      }
+      if(script.getScriptName().equals("align.com")) {
+        generateAlignLogs(AxisID.ONLY);
+      }
+
       String[] warningMessages = script.getWarningMessage();
       String[] dialogMessage;
       if (warningMessages != null && warningMessages.length > 0) {
@@ -718,6 +756,7 @@ public class ProcessManager {
           dialogMessage,
           script.getScriptName() + " warnings");
       }
+      
     }
 
     // Null out the appropriate thread reference
