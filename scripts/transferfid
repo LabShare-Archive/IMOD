@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2002/09/05 05:42:14  mast
+#  Fixed output of chosen view numbers
+#
 #  Revision 3.5  2002/07/28 21:59:44  mast
 #  Modified high-pass filter from 0.1 (which was based on default in xfalign)
 #  to match new value of 0.03 for Tiltxcorr, based on alignment failures in
@@ -71,6 +74,7 @@ set tmpmap1    = $tmpdir/$com.map1.$$
 set tmpmap2    = $tmpdir/$com.map2.$$
 set tmpmap3    = $tmpdir/$com.map3.$$
 set tmpmidxf   = $tmpdir/$com.midxf.$$
+set tmperrlog    = $tmpdir/$com.errlog.$$
 
 #
 # set default set name from current directory - NOT ANY MORE
@@ -376,7 +380,7 @@ while ($bsecind <= $nviews)
 	    # extract the rotated section from A
 	    #
 
-newstack  > /dev/null <<EOF
+newstack  >! $tmperrlog <<EOF
 1
 $imagea
 $asec
@@ -390,10 +394,15 @@ $tmprot90
 0
 0
 EOF
+	    if ($status) then
+		grep ERROR $tmperrlog
+		echo "ERROR: Transferfid - extracting rotated section from A"
+		goto clean
+	    endif
 	    #
 	    # Stack this rotated section on top of the sec from b
 	    #
-newstack > /dev/null <<EOF
+newstack >! $tmperrlog <<EOF
 2
 $imageb
 $bsec
@@ -407,6 +416,11 @@ $tmpstack
 0
 0
 EOF
+	    if ($status) then
+		grep ERROR $tmperrlog
+		echo "ERROR: Transferfid - Stacking rotated A on B"
+		goto clean
+	    endif
 	    if ($midas) then
 		if ($asecind == 1 && $bsecind == 1) then
 		    # 
@@ -415,10 +429,11 @@ EOF
 		    #
 		    echo "Starting midas - you should align translation and rotation,"
 		    echo " and save the transform to the already-defined output file"
+		    echo " "
 		    sleep 3
 		    midas -D -b 1 $tmpstack $tmpmidxf
 		    if (! -e $tmpmidxf) then
-			echo "ERROR: Transform file not found - cannot proceed"
+			echo "ERROR: Transferfid - Transform file not found - cannot proceed"
 			goto clean
 		    endif
 		    tail -1 $tmpmidxf >! $tmpxf1
@@ -430,7 +445,7 @@ EOF
 		#
 		# Run tiltxcorr
 		#
-tiltxcorr  > /dev/null <<EOF
+tiltxcorr  >! $tmperrlog <<EOF
 $tmpstack
 
 $tmpxcxf
@@ -444,13 +459,17 @@ $xcfilter
 /
 /
 EOF
-    
+		if ($status) then
+		    grep ERROR $tmperrlog
+		    echo "ERROR: Transferfid - Running Tiltxcorr"
+		    goto clean
+		endif
 		#
 		# Run xfsimplex looking for rotation only
 		#
 		#	    echo "first simplex"
 		tail -1 $tmpxcxf >! $tmpxfin
-xfsimplex <<EOF  > /dev/null
+xfsimplex <<EOF  >! $tmperrlog
 $tmpstack
 $tmpimga
 $tmpxf1
@@ -463,6 +482,11 @@ $reduce
 0
 0
 EOF
+		if ($status) then
+		    grep ERROR $tmperrlog
+		    echo "ERROR: Transferfid - Running first Xfsimplex"
+		    goto clean
+		endif
 	    endif
 	    #
 	    # Run xfsimplex again from there, looking for full transform
@@ -481,6 +505,11 @@ $reduce
 0
 0
 EOF
+	    if ($status) then
+		grep ERROR $tmpxflog
+		echo "ERROR: Transferfid - Running second Xfsimplex"
+		goto clean
+	    endif
 
 	    # 
 	    # extract the difference from the log file
@@ -497,11 +526,16 @@ EOF
 		@ diffmin = $diff
 		@ asecbest = $asec
 		@ bsecbest = $bsec
-xfproduct > /dev/null <<EOF
+xfproduct >! $tmperrlog <<EOF
 $tmprot90
 $tmpxf2
 $tmpminxf
 EOF
+		if ($status) then
+		    grep ERROR $tmperrlog
+		    echo "ERROR: Transferfid - Running Xfproduct"
+		    goto clean
+		endif
 	    else
 		echo ' '
 	    endif
@@ -534,7 +568,7 @@ onintr clean
 #
 echo "1 0 0 1 0 0" >! $tmptwoxf
 cat $tmpminxf >> $tmptwoxf
-newstack > /dev/null <<EOF
+newstack >! $tmperrlog <<EOF
 2
 $imageb
 $bsecbest
@@ -550,34 +584,52 @@ $tmptwoxf
 0,1
 2
 EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Stacking two best views"
+    goto clean
+endif
 
 #
 # clip out the model and remap it to z = 1
 #
-clipmodel > /dev/null <<EOF
+set seclower = `echo $asecbest | awk '{print $1 - 0.5}'`
+set secupper = `echo $asecbest | awk '{print $1 + 0.5}'`
+
+clipmodel >! $tmperrlog <<EOF
 $fidfile
 $tmpclip
 0
 0
 0
 /
-$asecbest,$asecbest
+$seclower,$secupper
 0
 EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Clipping out best view from A fiducial model"
+    goto clean
+endif
 
-remapmodel > /dev/null <<EOF
+remapmodel >! $tmperrlog <<EOF
 $tmpclip
 $tmpmap1
 1
 0,0,0
 EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Remapping A fiducials to section 1"
+    goto clean
+endif
 
 #
 # transform model then adjust its coordinates to new center
 #
 @ xadd = ($nxb - $nxa) / 2
 @ yadd = ($nyb - $nya) / 2
-xfmodel > /dev/null <<EOF
+xfmodel >! $tmperrlog <<EOF
 $imagea
 
 $tmpmap1
@@ -586,12 +638,23 @@ $tmpmap1
 $tmpxfmod
 $tmptwoxf
 EOF
-remapmodel > /dev/null <<EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Transforming A fiducials to match B image"
+    goto clean
+endif
+
+remapmodel >! $tmperrlog <<EOF
 $tmpxfmod
 $tmpmap2
 1
 $xadd,$yadd,0
 EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Recentering transformed A fiducials"
+    goto clean
+endif
 
 #
 # Get the bead radius 
@@ -643,17 +706,27 @@ $radiusdark
 9,5
 .04,2
 EOF
+if ($status) then
+    grep ERROR $tmpbtlog
+    echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto B view "
+    goto clean
+endif
 set btresult = `tail -1 $tmpbtlog`
 echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
 #
 # Remap seed model to the section in B
-remapmodel <<EOF  > /dev/null
+remapmodel <<EOF  >! $tmperrlog
 $tmpseed
 $tmpmap3
 $bsecbest,-999
 0,0,0
 EOF
+if ($status) then
+    grep ERROR $tmperrlog
+    echo "ERROR: Transferfid - Remapping seed model up to view in B"
+    goto clean
+endif
 #
 # Repack the model to remove empty points, and pass through mapping report
 # First find out if the fid.xyz is availabel and has contour data
