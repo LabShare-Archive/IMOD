@@ -41,6 +41,7 @@ public class SettingsDialog extends JDialog {
     new LabeledTextField("Tooltips dismiss delay");
   JCheckBox cbNativeLAF = new JCheckBox("Native look & feel");
   JCheckBox cbAdvancedDialogs = new JCheckBox("Always use advanced dialogs");
+  JCheckBox cbAutoFit = new JCheckBox("Auto-fit");
 
   JPanel panelButtons = new JPanel();
   JButton buttonCancel = new JButton("Cancel");
@@ -71,6 +72,7 @@ public class SettingsDialog extends JDialog {
     panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
+    panelSettings.add(cbAutoFit);
     panelSettings.add(cbNativeLAF);
     panelSettings.add(cbAdvancedDialogs);
     panelSettings.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -96,6 +98,7 @@ public class SettingsDialog extends JDialog {
       userConfig.getToolTipsInitialDelay() / 1000);
     ltfTooltipsDismissDelay.setText(
       userConfig.getToolTipsDismissDelay() / 1000);
+    cbAutoFit.setSelected(userConfig.isAutoFit());
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
 
@@ -132,6 +135,7 @@ public class SettingsDialog extends JDialog {
 
     delay = Float.parseFloat(ltfTooltipsDismissDelay.getText());
     userConfig.setToolTipsDismissDelay((int) (delay * 1000));
+    userConfig.setAutoFit(cbAutoFit.isSelected());
     userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
     userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
