@@ -7,17 +7,22 @@ package etomo.ui;
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
+* University of Colorado</p>
 *
 * @author $$Author$$
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/22 23:51:49  sueh
+* <p> $bug# 372 encapsulates token type and value.  Handles
+* <p> $comparisons.
+* <p> $$ </p>
 */
 public class Token {
-  public static final String rcsid = "$$Id$$";
-  
+  public static final String rcsid =
+    "$$Id$$";
+
   public static final int NULL = -1;
   public static final int EOF = -2;
   public static final int EOL = -3;
@@ -35,23 +40,23 @@ public class Token {
   int type = NULL;
   String value = null;
   String comparableValue = null;
-  
+
   public Token() {
-    
+
   }
-  
+
   public Token(Token token) {
     set(token);
   }
-  
+
   public final int getType() {
     return type;
   }
-  
+
   public final String typeToString() {
     return typeToString(type);
   }
-  
+
   public static final String typeToString(int type) {
     if (type == NULL) {
       return "NULL";
@@ -94,17 +99,17 @@ public class Token {
     }
     return "UNKNOWN";
   }
-  
+
   public final String getValue() {
     return value;
   }
-  
+
   public final void reset() {
     type = NULL;
     value = null;
     comparableValue = null;
   }
-  
+
   public final void set(Token token) {
     type = token.type;
     if (token.value == null) {
@@ -122,46 +127,46 @@ public class Token {
     this.type = type;
     set(value);
   }
-  
+
   public final void set(int type, char cValue) {
     this.type = type;
     set(new StringBuffer().append(cValue).toString());
   }
-  
+
   public final void set(int type, StringBuffer valueBuffer) {
     set(type, valueBuffer.toString());
   }
-  
+
   public final void set(int type) {
     this.type = type;
     set();
   }
-  
+
   public final void set(String value) {
     this.value = new String(value);
     comparableValue = this.value.toLowerCase();
     set();
   }
-  
+
   private void set() {
     if (type == NULL || type == EOF || type == EOL) {
       value = null;
       comparableValue = null;
     }
   }
-  
+
   public final boolean is(int type) {
     return this.type == type;
   }
-  
+
   public final boolean equals(Token token) {
     return type == token.type && valueEquals(token.value);
   }
-  
+
   public final boolean equals(int type, String value) {
     return this.type == type && valueEquals(value);
   }
-  
+
   public final boolean valueEquals(String value) {
     if (this.value == value) {
       return true;
@@ -174,7 +179,7 @@ public class Token {
     }
     return false;
   }
-  
+
   public final String toString() {
     if (value == null) {
       return "(" + typeToString() + ")";
@@ -182,5 +187,5 @@ public class Token {
     return "(" + typeToString() + "," + value + ")";
 
   }
-  
+
 }
