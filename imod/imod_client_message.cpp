@@ -216,7 +216,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2};
   int numArgs = messageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -421,6 +421,15 @@ bool ImodClipboard::executeMessage()
           imod->csum = imodChecksum(imod);
         break;
         
+      case MESSAGE_PLUGIN_EXECUTE:
+        arg++;
+        if (imodPlugMessage(App->cvi, &messageStrings, &arg)) {
+          succeeded = 0;
+          arg = numArgs;
+          break;
+        }
+        break;
+
       default:
         imodPrintStderr("imodExecuteMessage: action %d not recognized\n"
                         , message_action);
@@ -476,6 +485,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.20  2004/08/12 17:15:02  mast
+Added message to get slicer angles
+
 Revision 4.19  2004/06/22 23:59:28  mast
 Made it redo checksum after changing object type of blank model
 
