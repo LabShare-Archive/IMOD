@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/24 03:01:06  mast
+#  Changes for Windows/Intel
+#
 #  Revision 3.2  2003/06/05 00:08:50  mast
 #  Added PIP files here since this library is already in Fortran builds
 #
@@ -63,7 +66,7 @@ work : clean
 #
 $(IMODELOBJS) : $(INCDIR)imodel.h
 imodel.$(O) : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
-$(INCDIR)/ipoint.h $(INCDIR)/imesh.h ../.version
+$(INCDIR)/ipoint.h $(INCDIR)/imesh.h
 iobj.$(O)   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 imesh.$(O)  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 icont.$(O)  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
@@ -72,5 +75,5 @@ iplane.$(O) : $(INCDIR)/iplane.h
 iview.$(O)  : $(INCDIR)/iview.h
 imat.$(O)   : $(INCDIR)/imat.h
 ilist.$(O)  : $(INCDIR)/ilist.h
-b3dutil.$(O) : $(INCDIR)/b3dutil.h
+b3dutil.$(O) : $(INCDIR)/b3dutil.h  ../.version
 $(PIPOBJS) : $(INCDIR)parse_params.h
