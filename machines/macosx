@@ -80,8 +80,8 @@ echo '#define MAC103_BIGFILE' >> $hconfigure
 set optimization = "-O3 -w"
 if ($debug == true) set optimization = "-g -O0"
 
-set cflags = $flags $optimization $defines $include_flags $c_includes
-set fflags = $flags $ldfflags $optimization $include_flags
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $ldfflags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
