@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/04: IMOD_3-4-14
+12/3/04: Added interface on the eTomo post-processing page to run Squeezevol
+on the trimmed volume.  (Will not work right yet if the trimmed volume is not
+flipped).
+
+12/3/04: Fixed some eTomo problems in combine and joining when there are
+spaces in the path to the working directory.
+
+12/3/04: Fixed bug that crashed 3dmod when pressing Delete with no current
+contour, and also changed Delete behavior to delete last point in a contour
+without deleting contour, and to delete an empty contour.
+
 12/2/04: Added ability for 3dmod to read raw image files; properties can be
 defined with command-line options and/or in a dialog box that comes up when
 a file cannot be read otherwise.
