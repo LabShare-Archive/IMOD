@@ -15,6 +15,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/05 21:16:50  mast
+c	  Made GET_POINTS reject a contour only if was in a closed object
+c	  and was completely planar; made it work with scattered points by
+c	  not rejecting multiple points on a Z plane for scattered points.
+c	  Also added check on overrunning boundary vertex arrays.
+c	
 c
 	subroutine read_model(modelfile,ifscale,xyscal)
 	character*(*) modelfile
@@ -265,7 +271,7 @@ c
 	    by(4)=by(3)
 	  else
 	    call convexbound(sx,sy,nconsid,fracomit,padbound,bx,by,nvert,
-     &		xcen,ycen)
+     &		xcen,ycen,maxverts)
 	  endif
 	endif
 	bx(nvert+1)=bx(1)
