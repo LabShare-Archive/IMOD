@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2004/11/20 01:58:47  sueh
+ * bug# 520 Passing exitValue to postProcess(BackgroundProcess).
+ *
  * Revision 3.40  2004/11/19 23:24:22  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -1324,7 +1327,11 @@ public class ProcessManager extends BaseProcessManager {
     }  
   }
   
-  protected void postProcess(BackgroundProcess process, int exitValue) {
+  protected void errorProcess(ComScriptProcess script) {
+    
+  }
+  
+  protected void postProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
     }
