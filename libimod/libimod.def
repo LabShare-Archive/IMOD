@@ -15,6 +15,7 @@ EXPORTS
 	imodDeleteObject
 	imodMeshNearestRes
 	imodReadAscii
+	imodObjectCleanSurf
 	imodUnits
 	imod_to_RIB
 	ilistPop
@@ -87,6 +88,7 @@ EXPORTS
 	imodPointLineDistance
 	FROMVMSFLOATS
 	imodBackupFile
+	imodClipsRead
 	imodel_contour_sort
 	imodMatDelete
 	imodPutScaledPoints
@@ -161,6 +163,7 @@ EXPORTS
 	imodel_contour_scan
 	imodContourPrincipalAxis
 	imodel_contour_shave
+	imodClipsFixCount
 	imodel_contour_mm
 	imodel_contour_nearest
 	imodSetIndex
@@ -334,6 +337,7 @@ EXPORTS
 	imodPointArea
 	imodPointAppend
 	ilistDelete
+	imodClipsInitialize
 	imodMatRotateVector
 	b3dRewind
 	IMODGETENV
@@ -382,6 +386,7 @@ EXPORTS
 	imodel_contour_sorty
 	imodObjviewDelete
 	imodMeshNew
+	imodViewClipRead
 	GETIMODHEAD
 	imodViewDelete
 	imod_to_synu
