@@ -67,6 +67,7 @@ Log at end of file
 #include "imod_iscale.h"
 #include "b3dgfx.h"
 #include "autox.h"
+#include "preferences.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -250,6 +251,8 @@ void InfoWindow::editSlot(int item)
 {
   if (item == EDIT_MENU_MOVIES)
     imodMovieConDialog(App->cvi);
+  else if (item == EDIT_MENU_PREFS)
+    ImodPrefs->editPrefs();
 }
 
 
@@ -989,7 +992,7 @@ void InfoWindow::helpSlot(int item)
     dia_vasmsg
       ("Imod Version ",
        VERSION_NAME, "[", __DATE__, __TIME__, "]",
-       "originally written by James Kremer and revised by",
+       "written by James Kremer and",
        "David Mastronarde\n",
        "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
        "& Regents of the University of Colorado\n\n",
@@ -1002,6 +1005,9 @@ void InfoWindow::helpSlot(int item)
 
 /*
 $Log$
+Revision 4.3  2003/02/27 19:29:31  mast
+Use Qt functions to manage filenames
+
 Revision 4.2  2003/02/12 21:39:51  mast
 Fix problem with getting new object after deleting all objects
 

@@ -44,6 +44,7 @@ Log at end of file
 #include "imod_workprocs.h"
 #include "imod_moviecon.h"
 #include "control.h"
+#include "preferences.h"
 
 // The constructor for the class: set up the timers and connections
 ImodWorkproc::ImodWorkproc(ImodView *vw)
@@ -68,23 +69,14 @@ void ImodWorkproc::autoSaveTimeout()
     imod_autosave(mVi->imod);
 }
 
-/* DNM: make negative numbers specify seconds instead of minutes */
-
+/* Start or restart the timer based on the current timeout value */
 int imod_start_autosave(ImodView *vw)
 {
-  int autosave_timeout = 300000;
-  char *userto = getenv("IMOD_AUTOSAVE");
-  if (userto){
-    autosave_timeout = atoi(userto);
-    if (autosave_timeout == 0) 
-      return(0);
-    else if (autosave_timeout < 0)
-      autosave_timeout *= - 1000;
-    else 
-      autosave_timeout *= 60000;
-  }
+  int autosave_timeout = ImodPrefs->autosaveSec();
 
-  vw->timers->mAutoSaveTimer->start(autosave_timeout);
+  vw->timers->mAutoSaveTimer->stop();
+  if (autosave_timeout > 0)
+    vw->timers->mAutoSaveTimer->start(1000 * autosave_timeout);
   return(0);
 }
 
@@ -298,6 +290,9 @@ int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
 
 /*
 $Log$
+Revision 4.2  2003/02/27 19:25:07  mast
+Fiddles in and out for new Qt messaging scheme
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 

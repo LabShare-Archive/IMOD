@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -38,6 +41,7 @@ Changes to get clean compilation with g++
 #include <stdarg.h>
 #include <qtextedit.h>
 #include <qapplication.h>
+#include "preferences.h"
 
 extern int Imod_debug;
 
@@ -76,7 +80,8 @@ void wprint(char *fmt, ...)
   len = strlen(fmt);
   for(i = 0; i < len; i++)
     if (fmt[i] == 0x07) {
-      QApplication::beep();
+      if (!ImodPrefs->silentBeep())
+	QApplication::beep();
       beep = 1;
     }
 

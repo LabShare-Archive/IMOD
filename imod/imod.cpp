@@ -62,6 +62,7 @@ Log at the end of file
 #include "xcramp.h"
 #include "dia_qtutils.h"
 #include "imod_client_message.h"
+#include "preferences.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -145,6 +146,7 @@ int main( int argc, char *argv[])
   Iobj *obj;
   QString qname;
   int doFork = 1;
+  char *cmdLineStyle = NULL;
 
   /* Initialize data. */
   App = &app;
@@ -164,8 +166,14 @@ int main( int argc, char *argv[])
       App->rgba = -1;  /* Set to -1 to force worthless Color index visual */
     }
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
-        && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
+        && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e') {
       styleSet = 1;
+      if (argv[i][6] == '=')
+	cmdLineStyle = strdup(&(argv[i][7]));
+      else if (i < argc - 1)
+	cmdLineStyle = strdup(argv[i + 1]);
+	    
+    }
   }
 
 #ifndef NO_IMOD_FORK
@@ -204,12 +212,14 @@ int main( int argc, char *argv[])
   
   QApplication qapp(argc, argv);
   
+  ImodPrefs = new ImodPreferences(cmdLineStyle);
+
   imod_display_init(App, argv);
   mrc_init_li(&li, NULL);
   vi.li = &li;
 
-  if (!styleSet)
-    QApplication::setStyle("windows");
+  //  if (!styleSet)
+  //  QApplication::setStyle("platinum");
 
   /*******************/
   /* Initialize Data */
@@ -701,6 +711,8 @@ void imod_exit(int retcode)
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
   // It did NOT work to use qApp->closeAllWindows after this
+  if (ImodPrefs)
+    ImodPrefs->saveSettings();
   if (loopStarted)
     QApplication::exit(retcode);
   exit(retcode);
@@ -871,6 +883,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.7  2003/03/12 20:50:32  mast
+make starting with no arguments allow file selection in Windows
+
 Revision 4.6  2003/02/28 01:31:08  mast
 fixing include fiddles
 

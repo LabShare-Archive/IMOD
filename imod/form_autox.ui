@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>176</width>
-            <height>219</height>
+            <height>230</height>
         </rect>
     </property>
     <property name="caption">
@@ -501,6 +501,7 @@
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>contrastSelected( int which )</slot>
     <slot>sliderChanged( int which, int value, bool dragging )</slot>
     <slot>altMouse( bool state )</slot>
@@ -517,6 +518,7 @@
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
+    <slot access="protected">fontChange( const QFont &amp; oldFont )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

@@ -42,6 +42,7 @@ Log at end of file
 #include "b3dgfx.h"
 #include "b3dfile.h"
 #include "xcramp.h"
+#include "preferences.h"
 
 
 static int          CurWidth;
@@ -1336,45 +1337,28 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 }
 
 
-/* DNM 7/28/02: this is the one that gets used, but better maintain zoomvals
-   to have MAXZOOMI + 1 values too */
-static double szoomvals[] =
-  { 0.1, 0.16, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0,
-    10.0, 12.0, 15.0, 18.0, 20.0};
-
-static double zoomvals[] =
-  { 0.1, 0.16, 0.25, 0.33, 0.5, 0.75, 1.0,
-    1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0};
-
-#define MAXZOOMI 15
-
 double b3dStepPixelZoom(double czoom, int step)
 {
-  double *zv;
+  double *zv = ImodPrefs->getZooms();
   int i=0;
   int zoomi;
-
-  if (App->wzoom)
-    zv = szoomvals;
-  else
-    zv = zoomvals;
 
   if (step > 0) {
     /* DNM: need to cast both to floats because czoom was stored as a
        float and some comparisons can fail on PC */
-    for(i = 0; i < MAXZOOMI; i++)
+    for(i = 0; i < MAXZOOMS - 1; i++)
       if ((float)zv[i] > (float)czoom) break;
     zoomi = (i - 1) + step;
 
   } else {
           
-    for(i = MAXZOOMI; i >= 0; i--)
+    for (i = MAXZOOMS - 1; i >= 0; i--)
       if ((float)zv[i] < (float)czoom) break;
     zoomi = (i + 1) + step;
   }
 
   if (zoomi < 0) zoomi = 0;
-  if (zoomi > MAXZOOMI) zoomi = MAXZOOMI;
+  if (zoomi >= MAXZOOMS) zoomi = MAXZOOMS - 1;
   /* printf ("%f %d %d %f\n", czoom, step, zoomi, zv[zoomi]); */
   return(zv[zoomi]);
 }
@@ -1816,6 +1800,11 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.6  2003/03/12 21:34:19  mast
+Made b3dGetNewCIImageSize return null if there is failure to get memory for
+image, and made pixel drawing routines test for null image, all to protect
+against memory errors.
+
 Revision 4.5  2003/03/04 23:23:07  mast
 Fixed bug in accessing non-existent data with zoomed down images
 

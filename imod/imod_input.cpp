@@ -59,6 +59,7 @@ Log at end of file
 #include "imod_moviecon.h"
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
+#include "preferences.h"
 
 void inputRaiseWindows()
 {
@@ -816,6 +817,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int keysym = event->key();
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
+  int bwStep = ImodPrefs->getBwStep();
 
   if (keypad)
     keysym = inputConvertNumLock(keysym);
@@ -1059,52 +1061,52 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
           
     /* DNM 3/14/01: took out the DRAW_GL versions for readability */
   case Qt::Key_F1:
-    xcramp_level(vw->cramp, -1, 0);
+    xcramp_level(vw->cramp, -bwStep, 0);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F2:
     /* DNM: move in tandem if they're equal; xcramp_ramp takes care
        of it in the F3 case */
-    if (vw->black == vw->white)
-      xcramp_level(vw->cramp, 1, 1);
+    if (vw->black >= vw->white)
+      xcramp_level(vw->cramp, bwStep, bwStep);
     else
-      xcramp_level(vw->cramp, 1, 0);
+      xcramp_level(vw->cramp, bwStep, 0);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F3:
-    xcramp_level(vw->cramp, 0, -1);
+    xcramp_level(vw->cramp, 0, -bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F4:
-    xcramp_level(vw->cramp, 0, 1);
+    xcramp_level(vw->cramp, 0, bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F5:
-    xcramp_level(vw->cramp, -1, 1);
+    xcramp_level(vw->cramp, -bwStep, bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F6:
     /* DNM 3/14/01: don't move if they are equal */
-    if (vw->black == vw->white)
+    if (vw->black + bwStep > vw->white - bwStep)
       break;
-    xcramp_level(vw->cramp, 1, -1);
+    xcramp_level(vw->cramp, bwStep, -bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
 
     /* DNm 2/27/03: it makes more sense to decrease then increase brightness */
   case Qt::Key_F7:
-    xcramp_level(vw->cramp, 1, 1);
+    xcramp_level(vw->cramp, bwStep, bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F8:
-    xcramp_level(vw->cramp, -1, -1);
+    xcramp_level(vw->cramp, -bwStep, -bwStep);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
@@ -1167,6 +1169,9 @@ int inputConvertNumLock(int keysym)
 
 /*
 $Log$
+Revision 4.6  2003/03/13 07:15:33  mast
+Make raise window function global
+
 Revision 4.5  2003/03/13 01:17:25  mast
 Add function to convert numlocked keypad keys, and add function and
 hotkey to raise all windows

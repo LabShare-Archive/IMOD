@@ -59,6 +59,7 @@ Log at end of file
 #include "imodv.h"
 #include "imod_io.h"
 #include "imodv_views.h"
+#include "preferences.h"
 
 //  Module private functions
 static void initModelData(Imod *newModel);
@@ -76,14 +77,7 @@ static int lastError = IMOD_IO_SUCCESS;
 
 extern int errno;
 
-/* The VMS operating system doesn't allow filenames with the
- * charactor '#'
- */
-#ifdef __vms
-static char *autosave_string = "_autosave";
-#else
 static char *autosave_string = "#autosave#";
-#endif
 
 static char dummystring[] = "         ";
 
@@ -183,7 +177,7 @@ int imod_autosave(struct Mod_Model *mod)
   int new_checksum, i;
   char *timestr;
   char *convname;
-  char *savedir = getenv("IMOD_AUTOSAVE_DIR");
+  QString savedir = ImodPrefs->autosaveDir();
 
   lastError = IMOD_IO_SUCCESS;
      
@@ -200,14 +194,15 @@ int imod_autosave(struct Mod_Model *mod)
   // Clean up with the existing name
   imod_cleanup_autosave();
 
-  if (savedir) {
+  if (!savedir.isEmpty()) {
     /* Strip the path off the name */
     timestr = Imod_filename;
     for (i = 0; Imod_filename[i]; i++)
       if (Imod_filename[i] == '/')
         timestr = &(Imod_filename[i]) + 1;
         
-    sprintf(autosave_filename, "%s/%s%s", savedir, timestr, autosave_string);
+    sprintf(autosave_filename, "%s/%s%s", savedir.latin1(), timestr, 
+	    autosave_string);
       
   } else
     sprintf(autosave_filename, "%s%s", Imod_filename, autosave_string);
@@ -828,6 +823,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.4  2003/03/03 22:14:34  mast
+cleanup
+
 Revision 4.3  2003/02/28 18:33:44  mast
 fix = to == in if statement
 

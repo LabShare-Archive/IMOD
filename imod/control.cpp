@@ -35,34 +35,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.5  2003/01/14 21:46:32  mast
-renamed dialog manager for imod
-
-Revision 1.1.2.4  2003/01/13 07:20:04  mast
-Adapted dialog manager calss from imodv_input
-
-Revision 1.1.2.3  2003/01/10 23:48:47  mast
-Made diagnostic output conditional on a flag
-
-Revision 1.1.2.2  2003/01/04 03:45:12  mast
-Add a function to remove a control without calling its close function
-to deconvolute the closing logic
-
-Revision 1.1.2.1  2003/01/02 15:37:07  mast
-Added key callback so that keys can be passed from dialog boxes to active
-window
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/11/25 19:18:37  mast
-Eliminated conditional on USE_IMOD_CONTROL
-
+Log at end of file
 */
 
 #include <stdio.h>
@@ -75,6 +48,7 @@ Eliminated conditional on USE_IMOD_CONTROL
 #include "imod.h"
 #include "control.h"
 #include "imod_workprocs.h"
+#include "preferences.h"
 
 /* Structure used by dialog manager */
 typedef struct imodv_dialog
@@ -93,9 +67,6 @@ DialogManager imodDialogManager;
 static int removeControl(ImodView *iv, int inCtrlId, int callClose);
 
 static int controlDebug = 0;
-
-// Flags for whether dialog classes should be hidden together
-static int hideTogether[] = {1, 1, 0};
 
 /****************************************************************************/
 
@@ -407,7 +378,13 @@ void DialogManager::close()
 // Iconify any dialogs that are shown now; keep track of them
 void DialogManager::hide()
 {
+  int hideTogether[6];
   ImodvDialog *dia;
+
+  // Get flags for whether dialog classes should be hidden together
+  hideTogether[IMODV_DIALOG] = ImodPrefs->iconifyImodvDlg();
+  hideTogether[IMOD_DIALOG] = ImodPrefs->iconifyImodDlg();
+  hideTogether[IMOD_IMAGE] = ImodPrefs->iconifyImageWin();
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
     // Do not iconify if it is already minimized or if this class should
@@ -433,3 +410,36 @@ void DialogManager::show()
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.6  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.5  2003/01/14 21:46:32  mast
+renamed dialog manager for imod
+
+Revision 1.1.2.4  2003/01/13 07:20:04  mast
+Adapted dialog manager calss from imodv_input
+
+Revision 1.1.2.3  2003/01/10 23:48:47  mast
+Made diagnostic output conditional on a flag
+
+Revision 1.1.2.2  2003/01/04 03:45:12  mast
+Add a function to remove a control without calling its close function
+to deconvolute the closing logic
+
+Revision 1.1.2.1  2003/01/02 15:37:07  mast
+Added key callback so that keys can be passed from dialog boxes to active
+window
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/11/25 19:18:37  mast
+Eliminated conditional on USE_IMOD_CONTROL
+
+*/

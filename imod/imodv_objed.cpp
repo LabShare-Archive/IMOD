@@ -1545,7 +1545,7 @@ static void setObjFlag(long flag, int state)
   return;
 }
 
-/* Utility for adding final spacer, hot slider orphans for now */
+/* Utility for adding final spacer  */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 {
   QVBox *spacer = new QVBox(parent);
@@ -1553,18 +1553,11 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
   layout->setStretchFactor(spacer, 100);
 }
 
-int hotSliderFlag()
-{
-  return HOT_SLIDER_KEYUP;
-}
-
-int hotSliderKey() 
-{
-  return Qt::Key_Control;
-}
-
 /*
 $Log$
+Revision 4.5  2003/03/04 21:42:22  mast
+Refresh imod image windows when objects turned on/off or point size changes
+
 Revision 4.4  2003/02/28 21:40:32  mast
 Changing name of tooledit focus signal
 

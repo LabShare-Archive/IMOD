@@ -113,7 +113,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEditMenu->insertItem("&Contour", mEContourMenu);
   mEditMenu->insertItem("&Point", mEPointMenu);
   mEditMenu->insertItem("&Image", mEImageMenu); 
-  mEditMenu->insertItem("Movies...", EDIT_MENU_MOVIES);
+  mEditMenu->insertItem("M&ovies...", EDIT_MENU_MOVIES);
+  mEditMenu->insertItem("Op&tions...", EDIT_MENU_PREFS);
 
   // Edit model submenu
   mEModelMenu->insertItem("&Header...", EMODEL_MENU_HEADER);
@@ -465,6 +466,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.8  2003/03/18 19:30:23  mast
+    Add a timer hack to keep window on top
+
     Revision 4.7  2003/03/15 00:29:40  mast
     disable peg on the SGI
 

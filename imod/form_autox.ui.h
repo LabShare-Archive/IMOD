@@ -22,8 +22,12 @@ void AutoxWindow::init()
 	    SLOT(sliderChanged(int, int, bool)));
     QToolTip::add(mSliders->getSlider(0), "Set threshold for high-contrast viewing");
     QToolTip::add(mSliders->getSlider(1), "Set resolution in pixels for making contours");
- 
-    // Adjust button widths
+    setFontDependentWidths();
+}
+
+// Adjust button widths
+void AutoxWindow::setFontDependentWidths()
+{
     int width = (int)(1.2 * fontMetrics().width("Clear"));
     fillButton->setFixedWidth(width);
     clearButton->setFixedWidth(width);
@@ -142,3 +146,9 @@ void AutoxWindow::keyReleaseEvent( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+
+void AutoxWindow::fontChange( const QFont & oldFont )
+{
+    setFontDependentWidths();
+    QWidget::fontChange(oldFont);
+}
