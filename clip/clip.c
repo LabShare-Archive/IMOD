@@ -116,7 +116,7 @@ void default_options(ClipOptions *opt)
   opt->cx = IP_DEFAULT; opt->cy = IP_DEFAULT; opt->cz = IP_DEFAULT;
   opt->outBefore = opt->outAfter = IP_DEFAULT;
   opt->red = IP_DEFAULT; opt->green = IP_DEFAULT; opt->blue = IP_DEFAULT;
-  opt->high = 0; opt->low = 1.0;
+  opt->high = 0; opt->low = IP_DEFAULT;
   opt->thresh = IP_DEFAULT;
   opt->weight = IP_DEFAULT;
   opt->pad    = IP_DEFAULT;
@@ -609,6 +609,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.14  2005/01/27 05:55:17  mast
+Added anisotropic diffusion option
+
 Revision 3.13  2005/01/17 17:07:15  mast
 Removed rotate, translate, zoom; used new typedefs
 
