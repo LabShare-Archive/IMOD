@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +67,7 @@ int setintype(char *stype, int *size, int *otype);
 void usage(void)
 {	  
      fprintf(stderr, "raw2mrc version 2.00 %s %s.\n", __DATE__,__TIME__);
-     fprintf(stderr, "Copyright (C)1994 Boulder Laboratory for\n");
+     fprintf(stderr, "Copyright (C)1994-2001 Boulder Laboratory for\n");
      fprintf(stderr, "3-Dimensional Fine Structure, ");
      fprintf(stderr, "Regents of the University of Colorado.\n"); 
      fprintf(stderr, "Converts raw data into mrc file format.\n");
@@ -109,7 +117,7 @@ main( int argc, char *argv[] )
      float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
      long start = 0;
      signed char *sbdata, sbval;
-     char *bdata, bval;
+     unsigned char *bdata, bval;
      short *sdata, sval;
      unsigned short *usdata;
      long *ldata;
@@ -130,7 +138,7 @@ main( int argc, char *argv[] )
 
 		  case 't': /* input file type */
 		    intype = setintype(argv[++i], &pixsize, &outtype);
-		    printf("pixsize = %d\n", pixsize);
+		    /* printf("pixsize = %d\n", pixsize); */
 		    break;
 		    
 		  case 'o':
@@ -172,7 +180,7 @@ main( int argc, char *argv[] )
      nfiles = argc - (i + 1);
      nsecs = z *nfiles;
 
-     printf("nfiles = %d, argc = %d\n",nfiles, argc);
+     /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
      fout = fopen(argv[argc - 1], "w");
      if (!fout){
@@ -291,11 +299,14 @@ main( int argc, char *argv[] )
 	       }
 	       break;
 
+	       /* DNM 12/27/01: fixed these two types on the PC by making the 
+		  signed and unsigned types explicit */
 	     case DTYPE_SBYTE:
-	       bdata  = (char *)indata;
+	       sbdata  = (signed char *)indata;
+	       bdata = (unsigned char *)indata;
 	       for(i = 0; i < xysize; i++){
-		   val = bdata[i];
-		   if (val >= 128) val -= 256;
+		   val = sbdata[i];
+		   /*  if (val >= 128) val -= 256; */
 		   val += 127;
 		   bdata[i] = val;
 		    pixel = bdata[i];
@@ -308,7 +319,7 @@ main( int argc, char *argv[] )
 	       break;
 
 	     case DTYPE_BYTE:
-	       bdata = (char *)indata;
+	       bdata = (unsigned char *)indata;
 	       for(i = 0; i < xysize; i++){
 		    pixel = bdata[i];
 		    tmean += pixel;
@@ -460,7 +471,8 @@ int setintype(char *stype, int *size, int *otype)
 	  return(DTYPE_USHORT);
      }
 
-     if (!strcmp(stype,"")){
+     /* DNM 12/27/01: long was missing from the quotes here */
+     if (!strcmp(stype,"long")){
 	  *size = 4;
 	  *otype = MRC_MODE_FLOAT;
 	  return(DTYPE_LONG);
