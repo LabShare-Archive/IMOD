@@ -88,6 +88,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.80  2004/06/24 21:41:39  sueh
+ * <p> bug# 482 making the call to
+ * <p> loadSolvematch(boolean modelBased) compatible with
+ * <p> previous versions of the .edf file.
+ * <p>
  * <p> Revision 3.79  2004/06/24 20:22:05  sueh
  * <p> bug# 482 removed loadSolvematchshift and mod functions
  * <p>
@@ -3252,8 +3257,8 @@ public class ApplicationManager {
         "Filtered full aligned stack missing");
       return;
     }
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     //don't have to rename full aligned stack because it is a generated
     // file
     try {
