@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2003/10/01 05:13:28  mast
+Changes to use special internal modules
+
 Revision 4.4  2003/04/17 19:09:33  mast
 plugs OK on Mac now
 
@@ -46,20 +49,15 @@ Changes to get clean compilation with g++
 #include <dlfcn.h>
 #include <dirent.h>
 #endif
-#include <string.h>
 
+#include <string.h>
 #include <qpopupmenu.h>
 #include "imod.h"
 #include "imodplug.h"
 #include "special_module.h"
 #include "beadfix.h"
 
-static int imodPlugLoadDir(char *plugdir);
-static int imodPlugLoad(char *plugpath);
-static int addInternalModules();
-
-static Ilist *plugList = NULL;
-
+enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS};
 
 typedef struct
 {
@@ -68,6 +66,14 @@ typedef struct
   SpecialModule *module;
   int   type;
 }PlugData;
+
+static int imodPlugLoadDir(char *plugdir);
+static int imodPlugLoad(char *plugpath);
+static int ipAddInternalModules();
+static void *ipGetFunction(PlugData *pd, int which);
+
+static Ilist *plugList = NULL;
+
 
 /* Load all plugins that we can use. */
 /* Return the number we have loaded. */
@@ -78,7 +84,7 @@ int imodPlugInit(void)
   char *defdir3 = "/usr/freeware/lib/imodplugs/";
   char *defdir2 = "/usr/local/IMOD/plugins";
   char *defdir1 = "/usr/IMOD/plugins";
-#ifndef NO_PLUGS  
+#ifndef NOPLUGS  
   char *envdir = getenv("IMOD_PLUGIN_DIR");
 
   DIR *dirp;
@@ -92,9 +98,9 @@ int imodPlugInit(void)
   plugList = ilistNew(sizeof(PlugData), 8);
 
   /* Add internal modules to list first */
-  addInternalModules();
+  ipAddInternalModules();
 
-#ifndef NO_PLUGS  
+#ifndef NOPLUGS  
   /* load system plugins. */
   imodPlugLoadDir(envdir);
 
@@ -111,7 +117,7 @@ int imodPlugInit(void)
 /*
  * Add special modules to the list
  */
-static int addInternalModules()
+static int ipAddInternalModules()
 {
   PlugData thePlug, *lplug;
   int mi, i;
@@ -125,10 +131,11 @@ static int addInternalModules()
     lplug = (PlugData *)ilistItem(plugList, i);
     lplug->name = (*lplug->module->mInfo)(&(lplug->type));
     lplug->handle = NULL;
+    if (Imod_debug)
+      fprintf(stderr, "Added %s module to Special menu\n", lplug->name);
   }
   return mi;
 }
-
 
 #ifndef NOPLUGS
 /*
@@ -177,7 +184,7 @@ static int imodPlugLoadDir(char *plugdir)
 static int imodPlugLoad(char *plugpath)
 {
   PlugData thePlug, *lplug;
-  char *(*fptr)(int *);
+  SpecialInfo fptr;
   void *handle;
   int i, mi, type;
 
@@ -189,8 +196,7 @@ static int imodPlugLoad(char *plugpath)
   }
     
   /* find address of function and data objects */
-  fptr = (char *(*)(int *))dlsym
-    (handle, "imodPlugInfo");
+  fptr = (SpecialInfo)dlsym (handle, "imodPlugInfo");
 
   if (!fptr){
     thePlug.name = dlerror();
@@ -204,7 +210,6 @@ static int imodPlugLoad(char *plugpath)
 
   /* invoke imodPlugInfo function */
   thePlug.handle = handle;
-  fptr = (char *(*)(int *))dlsym(handle, "imodPlugInfo");
   thePlug.name = (*fptr)(&type);
   thePlug.type = type;
 
@@ -237,28 +242,17 @@ static int imodPlugLoad(char *plugpath)
  */
 void imodPlugOpen(int item)
 {
-  void (*fptr)(ImodView *) = NULL;
-  void (*nfptr)(ImodView *, int, int) = NULL;
+  SpecialExecute fptr = NULL;
+  SpecialExecuteType nfptr = NULL;
   PlugData *pd = (PlugData *)ilistItem(plugList, item);
   if (!pd) 
     return;
 
-  /* Get function from internal module */
-  if (!pd->handle) {
-    fptr = pd->module->mExecute;
-    if (!fptr)
-      nfptr = pd->module->mExecuteType;
-
-#ifndef NO_PLUGS
-  } else {
-
-    /* or find address of function and data objects */
-    fptr = (void (*)(ImodView *))dlsym(pd->handle, "imodPlugExecute");
-    if (!fptr)
-      nfptr = (void (*)(ImodView *, int, int))dlsym
-        (pd->handle, "imodPlugExecuteType");
-#endif
-  }
+  /* Get function from internal module or plugin*/
+  
+  fptr = (SpecialExecute)ipGetFunction(pd, IP_EXECUTE);
+  if (!fptr)
+    nfptr = (SpecialExecuteType)ipGetFunction(pd, IP_EXECUTETYPE);
     
   /* invoke function */
   if (fptr) {
@@ -327,7 +321,7 @@ int imodPlugCall(ImodView *vw, int type, int reason)
 {
   PlugData *pd;
   int i, mi = ilistSize(plugList);
-  void (*fptr)(ImodView *, int, int);
+  SpecialExecuteType fptr;
   int retval = 0;
     
   if (!mi) 
@@ -339,13 +333,7 @@ int imodPlugCall(ImodView *vw, int type, int reason)
     if (!pd)
       continue;
          
-    if (!pd->handle)
-      fptr = pd->module->mExecuteType;
-#ifndef NOPLUGS
-    else
-      fptr = (void (*)(ImodView *, int, int))dlsym
-        (pd->handle, "imodPlugExecuteType");
-#endif
+    fptr = (SpecialExecuteType)ipGetFunction(pd, IP_EXECUTETYPE);
     if (fptr){
       (*fptr)(vw, type, reason);
       retval++;
@@ -371,12 +359,7 @@ int imodPlugHandleKey(ImodView *vw, QKeyEvent *event)
     if (!pd) continue;
           
     if (pd->type & IMOD_PLUG_KEYS){
-      if (!pd->handle)
-        fptr = pd->module->mKeys;
-#ifndef NOPLUGS
-      else
-        fptr = (SpecialKeys)dlsym(pd->handle, "imodPlugKeys");
-#endif
+      fptr = (SpecialKeys)ipGetFunction(pd, IP_KEYS);
       if (fptr){
 	keyhandled = (*fptr)(vw, event);
 	if (keyhandled) return 1;
@@ -391,6 +374,44 @@ void imodPlugClean(void)
 {
   imodPlugCall(App->cvi, 0, IMOD_REASON_CLEANUP);
   return;
+}
+
+/*
+ * Get a function - handle internal versus external and possibly 
+ * system-dependent stuff here
+ */
+static void *ipGetFunction(PlugData *pd, int which)
+{
+  if (!pd->handle) {
+    switch (which) {
+    case IP_INFO:
+      return (void *)pd->module->mInfo;
+    case IP_EXECUTE:
+      return (void *)pd->module->mExecute;
+    case IP_EXECUTETYPE:
+      return (void *)pd->module->mExecuteType;
+    case IP_KEYS:
+      return (void *)pd->module->mKeys;
+    default:
+      return NULL;
+    }
+#ifndef NOPLUGS
+  } else {
+    switch (which) {
+    case IP_INFO:
+      return dlsym(pd->handle, "imodPlugInfo");
+    case IP_EXECUTE:
+      return dlsym(pd->handle, "imodPlugExecute");
+    case IP_EXECUTETYPE:
+      return dlsym(pd->handle, "imodPlugExecuteType");
+    case IP_KEYS:
+      return dlsym(pd->handle, "imodPlugKeys");
+    default:
+      return NULL;
+    }
+#endif
+  }
+  return NULL;
 }
 
 
