@@ -1230,6 +1230,12 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 
       /* For low quality, non-integer zooms, use nearest neighbor
 	 interpolation at each pixel */
+      /* DNM 3/4/03: make sure stop values are not too large */
+      if (int(xstop + 0.5) >= xsize)
+        xstop = xsize - 1.5;
+      if (int(ystop + 0.5) >= ysize)
+        ystop = ysize - 1.5;
+
       for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
 	yi = (int)(cy + 0.5);
 	ibase = j * drawwidth;
@@ -1792,6 +1798,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 17:36:58  mast
+Convert filenames with Qt routines
+
 Revision 4.3  2003/02/21 23:56:34  mast
 open snapshot files in binary mode
 
