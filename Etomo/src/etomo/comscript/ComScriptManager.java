@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2004/12/03 20:19:45  sueh
+ * <p> bug# 556 SetupParam may be missing in volcombine.com in older .com
+ * <p> scripts.
+ * <p>
  * <p> Revision 3.17  2004/11/30 00:33:11  sueh
  * <p> bug# 556 Adding functions to parse volcombine.com.
  * <p>
@@ -488,7 +492,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    TiltalignParam tiltalignParam = new TiltalignParam();
+    TiltalignParam tiltalignParam = new TiltalignParam(axisID);
     initialize(tiltalignParam, align, "tiltalign", axisID);
     return tiltalignParam;
   }
