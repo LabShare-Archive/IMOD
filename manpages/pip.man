@@ -14,7 +14,7 @@ one option name per line followed by its value.  The multi-line entry can be
 made via standard input, on lines following the command line invoking the 
 program; in addition, the program may also allow entries in this format to be
 read from a separate parameter file.  These different methods may even be used
-togther, with some options taken from the command line and some from line
+together, with some options taken from the command line and some from line
 entries.
 
 Options are generally given both a short and long name, with the short name
@@ -52,6 +52,13 @@ default values.  For example, 23,,15 takes the default for the second value
 and ,42,17 takes the default for the first; 1,1024/ takes the default for
 all values after the first two and / takes the default for all values.
 Defaults can be used only when a fixed number of values are expected.
+
+Boolean options are ones that turn a particular feature on or off.  When
+entered as command lines arguments, they must not be followed by a value; in
+other words, the presence of the entry sets the option to true or on.
+However, when a boolean option is entered in a separate line in a command
+file, it may be followed by 0, F, f, FALSE, false, OFF, off, 1, T, t, TRUE,
+true, ON, or on.
 
 Options can be entered more than once.  In most cases a later value will
 supercede a previous entry, but in some cases the multiple entries will
