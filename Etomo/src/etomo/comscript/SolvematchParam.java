@@ -17,6 +17,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/18 15:50:56  rickg
+ * <p> Bug #383 Forced outputFile to be solvezero.xf when converting
+ * <p> from a solvematchmod.com script.
+ * <p>
  * <p> Revision 3.2  2004/06/14 23:36:47  rickg
  * <p> Bug #383  Initial revision
  * <p>
@@ -112,52 +116,59 @@ public class SolvematchParam extends ConstSolvematchParam
   }
 
   /**
-   * Parse a solvematchshift param object into this object
+   * Merge a solvematchshift param object into this object
    * @param solvematchshift
    */
-  public void parseSolvematchshift(ConstSolvematchshiftParam solvematchshift,
-    String datasetName) {
-    toFiducialFile = solvematchshift.getToFiducialCoordinatesFile();
-    setMatchBToA(toFiducialFile);
-    fromFiducialFile = solvematchshift.getFromFiducialCoordinatesFile();
-    toCorrespondenceList = solvematchshift.getFiducialMatchListA();
-    fromCorrespondenceList = solvematchshift.getFiducialMatchListB();
-    xAxistTilt = solvematchshift.getXAxistTilt();
-    maximumResidual = solvematchshift.getResidualThreshold();
-    surfacesOrModel = solvematchshift.getNSurfaces();
+  public void mergeSolvematchshift(ConstSolvematchshiftParam solvematchshift,
+    boolean modelBased) {
+    if (!modelBased) {
+
+      toFiducialFile = solvematchshift.getToFiducialCoordinatesFile();
+      setMatchBToA(toFiducialFile);
+      fromFiducialFile = solvematchshift.getFromFiducialCoordinatesFile();
+      toCorrespondenceList = solvematchshift.getFiducialMatchListA();
+      fromCorrespondenceList = solvematchshift.getFiducialMatchListB();
+      xAxistTilt = solvematchshift.getXAxistTilt();
+      surfacesOrModel = solvematchshift.getNSurfaces();
+    }
     outputFile = solvematchshift.getOutputTransformationFile();
-    
-    // Fill in the matching model and tomogram names since they will now be
-    // ignored in non-model mode and are needed int model mode 
-    if (matchBToA) {
-      toMatchingModel = datasetName + "a.matmod";
-      fromMatchingModel = datasetName + "b.matmod";
-      toTomogramOrSizeXYZ = datasetName + "a.rec";
-      fromTomogramOrSizeXYZ = datasetName + "b.rec";
-    }
-    else {
-      toMatchingModel = datasetName + "b.matmod";
-      fromMatchingModel = datasetName + "a.matmod";
-      toTomogramOrSizeXYZ = datasetName + "b.rec";
-      fromTomogramOrSizeXYZ = datasetName + "a.rec";
-    }
+    maximumResidual = solvematchshift.getResidualThreshold();
   }
 
+  /*
+   *   protected boolean matchBToA = true;
+
+  protected String outputFile = "";
+  protected String toFiducialFile = "";
+  protected String fromFiducialFile = "";
+  protected StringList toCorrespondenceList = new StringList(0);
+  protected StringList fromCorrespondenceList = new StringList(0);
+  protected FortranInputString xAxistTilt = new FortranInputString(2);
+  protected int surfacesOrModel = Integer.MIN_VALUE;
+  protected float maximumResidual = Float.NaN;
+  protected String toMatchingModel = "";
+  protected String fromMatchingModel = "";
+  protected String toTomogramOrSizeXYZ = "";
+  protected String fromTomogramOrSizeXYZ = "";
+  protected FortranInputString scaleFactors = new FortranInputString(2);
+*/
+   
+
   /**
-   * Parse a solvematchmod param object into this object
+   * Merge a solvematchmod param object into this object
    * @param solvematchmod
    */
-  public void parseSolvematchmod(ConstSolvematchmodParam solvematchmod) {
-    toFiducialFile = solvematchmod.getToFiducialCoordinatesFile();
-    setMatchBToA(toFiducialFile);
-    fromFiducialFile = solvematchmod.getFromFiducialCoordinatesFile();
-    toCorrespondenceList = solvematchmod.getFiducialMatchListA();
-    fromCorrespondenceList = solvematchmod.getFiducialMatchListB();
-    xAxistTilt = solvematchmod.getXAxistTilt();
-    maximumResidual = solvematchmod.getResidualThreshold();
-    surfacesOrModel = solvematchmod.getNSurfaces();
-    //  As per David force output file to be solve.xf
-    outputFile = "solvezero.xf";
+  public void mergeSolvematchmod(ConstSolvematchmodParam solvematchmod,
+    boolean modelBased) {
+    if (modelBased) {
+      toFiducialFile = solvematchmod.getToFiducialCoordinatesFile();
+      setMatchBToA(toFiducialFile);
+      fromFiducialFile = solvematchmod.getFromFiducialCoordinatesFile();
+      toCorrespondenceList = solvematchmod.getFiducialMatchListA();
+      fromCorrespondenceList = solvematchmod.getFiducialMatchListB();
+      xAxistTilt = solvematchmod.getXAxistTilt();
+      surfacesOrModel = solvematchmod.getNSurfaces();
+    }
     toMatchingModel = solvematchmod.getToMatchingModel();
     fromMatchingModel = solvematchmod.getFromMatchingModel();
     toTomogramOrSizeXYZ = solvematchmod.getToReconstructionFile();
