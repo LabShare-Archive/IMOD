@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/01/05 20:07:20  sueh
+ * <p> bug# 567 Added ProjectionStretch checkbox to the global tab.
+ * <p>
  * <p> Revision 3.12  2005/01/05 00:08:31  sueh
  * <p> bug# 567 Set the preferred width of fields that are too small
  * <p>
@@ -952,6 +955,7 @@ public class TiltalignPanel {
     ltfMagnificationNonDefaultGroups.setVisible(state);
     ltfXstretchNonDefaultGroups.setVisible(state);
     ltfSkewNonDefaultGroups.setVisible(state);
+    cbProjectionStretch.setVisible(state);
     ltfLocalRotationNonDefaultGroups.setVisible(state);
     ltfLocalTiltAngleNonDefaultGroups.setVisible(state);
     ltfLocalMagnificationNonDefaultGroups.setVisible(state);
