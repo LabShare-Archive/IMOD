@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/07/31 21:41:25  mast
+Delete object view and view data when deleting model, also delete
+object view data when deleting a single object
+
 Revision 3.4  2003/06/27 20:19:48  mast
 Made min and max functions return (-1,-1,-1) if there are no model points,
 and improved the checksum computation to include real and integer values
@@ -64,7 +68,7 @@ Changed imodCopyright to use defined lab name
  * int   imodNextObject(Imod *imod)
  * int   imodPrevObject(Imod *imod)
  * int   imodFreeObject(Imod *imod, int index)
- *
+ * 
  * int   imodNewContour(Imod *imod)
  * void  imodDeleteContour(Imod *imod)
  * int   imodNextContour(Imod *imod)
@@ -1275,7 +1279,7 @@ int imodChecksum(Imod *imod)
   sum += imod->units;
   sum += imod->pixsize;
   sum += imod->viewsize;
-  sum += imod->flags;
+  sum += imod->flags & ~IMODF_FLIPYZ;
 
   /* DNM: add # of contours, # of points, and point sizes */
 
@@ -1419,3 +1423,4 @@ void  imodFlipYZ(Imod *imod)
 int   imodGetMaxObject(Imod *imod) { return(imod->objsize); }
 float imodGetZScale(Imod *imod){ return(imod->zscale); }
 float imodGetPixelSize(Imod *imod){ return(imod->pixsize); }
+int   imodGetFlipped(Imod *imod) { return(imod->flags & IMODF_FLIPYZ); }
