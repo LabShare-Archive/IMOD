@@ -66,9 +66,11 @@ import java.util.Vector;
 *                ( {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} {1 value 1} )
 *              )
 * 
-* value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine && !comment)
-*                          { \DELIMITER & EOL\ } EOL
-*                        }
+* value => { \EOL\ } EOL  
+*          { (!delimiterInLine && !emptyLine && !comment)
+*            (startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
+*            { \DELIMITER & EOL\ } EOL
+*          }
 * 
 * Required Elements:
 * Top level attributes (meta data):  Version and Pip.
@@ -98,6 +100,9 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2004/01/01 00:45:17  sueh
+* <p> $bug# 372 correcting interface name
+* <p> $
 * <p> $Revision 1.4  2003/12/31 17:47:41  sueh
 * <p> $bug# 372 add doc, get file from Autodoc
 * <p> $
@@ -145,6 +150,7 @@ public class AutodocParser {
   private boolean startOfLine = true;
   private boolean delimiterInLine = false;
   private boolean emptyLine = false;
+  private boolean breakInLine = false;
   private int lineNum = 0;
 
   //Postprocessor flags
@@ -432,7 +438,11 @@ public class AutodocParser {
   }
 
   /**
-   * @return true if value found
+   * 
+   * @param attribute
+   * @param oneLine - if its a known one line attribute, such as the keyword to
+   * set the delimiter
+   * @return
    * @throws IOException
    */
   private boolean value(Attribute attribute, boolean oneLine)
@@ -441,11 +451,16 @@ public class AutodocParser {
     valueStart = token;
     valueEnd = valueStart;
     boolean found = false;
+    //{ \EOL\ }
     while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
       found = true;
       nextToken();
       valueEnd = valueEnd.setNext(token);
     }
+    //{ (!delimiterInLine && !emptyLine && !comment)
+    //            (startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
+    //            { \DELIMITER & EOL\ } EOL
+    //}
     if (!oneLine) {
       nextToken();
       while (!delimiterInLine
@@ -453,6 +468,26 @@ public class AutodocParser {
         && !token.is(Token.EOF)
         && !testEndFunction(comment())) {
         valueEnd = valueEnd.setNext(token);
+        //(startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
+        if (startOfLine && breakInLine) {
+          //ignore whitespace before a break
+          if (token.is(Token.WHITESPACE)) {
+            valueEnd = valueEnd.dropFromList();
+            nextToken();
+          }
+          if (!token.is(Token.BREAK)) {
+            reportError("breakInLine is true, but BREAK is missing (" + token + ").");
+              return false;
+          }
+          //found break
+          nextToken();
+          valueEnd = valueEnd.setNext(token);
+          //find optional indent
+          if (token.is(Token.INDENT)) {
+            nextToken();
+            valueEnd = valueEnd.setNext(token);
+          }
+        }
         while (!token.is(Token.DELIMITER)
           && !token.is(Token.EOL)
           && !token.is(Token.EOF)) {
@@ -570,14 +605,17 @@ public class AutodocParser {
           + ",emptyLine="
           + emptyLine
           + ",delimiterInLine="
-          + delimiterInLine);
+          + delimiterInLine
+          + ",breakInLine="
+          + breakInLine);
     }
   }
 
   /**
-   * set line level preprocessor flags: emptyLine, delimiterInLine, lineNum
+   * set line level preprocessor flags: emptyLine, delimiterInLine, lineNum, breakInLine
    */
   private void preprocess() throws IOException {
+    boolean breakDetected = false;
     Token token = null;
     lineNum++;
     if (line != null) {
@@ -586,8 +624,37 @@ public class AutodocParser {
     line = new Vector();
     delimiterInLine = false;
     emptyLine = true;
+    breakInLine = false;
     do {
       token = tokenizer.next();
+      //Handle an indent following a break:
+      //If the next token is whitespace, make all the spaces following the break
+      //character into an indent token.
+      if (breakDetected) {
+        breakDetected = false;
+        if (token.is(Token.WHITESPACE)) {
+          int indentSize = token.numberOf(' ', 0);
+          if (indentSize != 0) {
+            if (indentSize == token.length()) {
+              token.set(Token.INDENT);
+            }
+            else {
+              line.add(token.split(Token.INDENT, 0, indentSize));
+            }
+          }
+        }
+      }
+      //BREAK token only functions as a break if it is at the beginning of the
+      //line, except for whitespace.
+      if (token.is(Token.BREAK)) {
+        if (emptyLine) {
+          breakDetected = true;
+          breakInLine = true;
+        }
+        else {
+          token.set(Token.WORD);
+        }
+      }
       if (emptyLine
         && (!token.is(Token.WHITESPACE)
           && !token.is(Token.EOL)
@@ -644,20 +711,14 @@ public class AutodocParser {
 
   public void testPreprocessor(boolean tokens) throws IOException {
     if (tokens) {
-      System.out.println("(type,value):startOfLine,emptyLine,delimiterInLine");
+      System.out.println("(type,value):startOfLine,emptyLine,delimiterInLine,breakInLine");
     }
     tokenizer.initialize();
     do {
       nextToken();
       if (tokens) {
-        System.out.println(
-          token.toString()
-            + ":"
-            + startOfLine
-            + ","
-            + emptyLine
-            + ","
-            + delimiterInLine);
+        System.out.println(token.toString() + ":" + startOfLine + ","
+            + emptyLine + "," + delimiterInLine + "," + breakInLine);
       }
       else if (token.is(Token.EOL)) {
         System.out.println();
