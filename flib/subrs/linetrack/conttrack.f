@@ -5,6 +5,7 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	
 c	  Revision 1.2  2004/06/04 16:56:04  mast
 c	  Eliminated degree-type trig functions
 c	
@@ -162,7 +163,7 @@ c	  print *,'offset',cxnew,cynew
 c
 	  indkcen=indmap(indkcen+1,npool)
 	enddo
-c	call cputs('got through main loop')
+c	call b3dputs('got through main loop')
 c	  
 c	  eliminate close points
 c
@@ -194,7 +195,7 @@ c	    print *,'eliminating segment',iseg,' of',ninobj
 	  p_coord(1,i)=p_copy(1,i)
 	  p_coord(2,i)=p_copy(2,i)
 	enddo
-c	call cputs('got through elimination')
+c	call b3dputs('got through elimination')
 c	  
 c	  track between points that are far apart
 c
@@ -213,7 +214,7 @@ c
 	  endif
 	  iptcen=iptcen+1
 	enddo
-c	call cputs('got through tracking')
+c	call b3dputs('got through tracking')
 c	  
 c	  smoothing next
 c	    
@@ -254,7 +255,7 @@ c	    print *,nfit,iptcen,p_copy(1,iptcen),p_copy(2,iptcen),bint,xmid,ymid
 	  p_coord(2,iptcen)=ymid
 	enddo
 	endif
-c	call cputs('got through smoothing')
+c	call b3dputs('got through smoothing')
 c	  
 c	  fix up points that are crossed
 c	  
