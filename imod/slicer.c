@@ -26,7 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
 
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <X11/Intrinsic.h>
 #include <Xm/MainW.h>
 #include <Xm/DrawingA.h>
@@ -604,7 +611,7 @@ int sslice_open(struct ViewInfo *vi)
      sslice->iid    = 0;
      sslice->work_id = 0;
      sslice->hq     = 0;
-     sslice->fasthq     = 0;
+     sslice->fasthq     = 1;
      sslice->tang[X] = 0.0f;
      sslice->tang[Y] = 0.0f;
      sslice->tang[Z] = 0.0f;
@@ -1244,10 +1251,11 @@ static void slice_keyinput(XKeyEvent *event, struct Super_slicer *sslice)
 	  sslice_showslice(sslice);
 	  break;
 
-	case XK_h:
-	  sslice->fasthq = 1 - sslice->fasthq;
-	  printf("fasthq = %d\n",sslice->fasthq);
-	  break;
+	  /* case XK_h:
+	     sslice->fasthq = 1 - sslice->fasthq;
+	     printf("fasthq = %d\n",sslice->fasthq);
+	     break;
+	  */
 
 	default:
 	  inputDefaultKeys(event, sslice->vi);
@@ -1973,6 +1981,10 @@ static void sslice_draw(struct Super_slicer *ss)
 	  shortcut = 1;
 	  ilimshort = izoom * ((isize - 1) / izoom - 1);
 	  jlimshort = izoom * ((jsize - 1) / izoom - 1);
+     } else if (!izoom) {
+	  /* DNM 11/22/01: workaround to Intel compiler bug - it insists on
+	   doing j % izoom even when shortcut is 0 */ 
+	  izoom = 1;
      }
 
      /* DNM: don't need to clear array in advance */
