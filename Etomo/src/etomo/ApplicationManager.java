@@ -77,6 +77,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.89  2003/11/05 20:31:48  rickg
+ * <p> Bug #292 Added preserve contrast seed model and residual model
+ * <p> opens
+ * <p>
  * <p> Revision 2.88  2003/11/05 20:04:05  rickg
  * <p> Bug# 347 Message written to process monitor area
  * <p>
@@ -1655,8 +1659,6 @@ public class ApplicationManager {
   public void imodFineAlign(AxisID axisID) {
     try {
       imodManager.openFineAligned(axisID);
-      processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-      mainFrame.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
