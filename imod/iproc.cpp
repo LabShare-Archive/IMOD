@@ -59,8 +59,6 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent,
                         QVBoxLayout *layout);
 static void smooth_cb();
 static void sharpen_cb();
-static void grow_cb();
-static void shrink_cb();
 static void mkFourFilt_cb(IProcWindow *win, QWidget *parent, 
                           QVBoxLayout *layout);
 static void fourFilt_cb();
@@ -84,8 +82,6 @@ ImodIProcData proc_data[] = {
   {"edge", edge_cb, mkedge_cb, NULL},
   {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
   {"threshold", thresh_cb, mkthresh_cb, NULL},
-  {"dilation", grow_cb, NULL, "Grow Threshold Area."},
-  {"erosion", shrink_cb, NULL, "Shrink Threshold Area."},
   NULL,
 };
 
@@ -146,6 +142,7 @@ static void thresh_cb()
   int xysize, thresh, minv, maxv;
   unsigned char *idat, *last;
      
+  setSliceMinMax(false);
   thresh = ip->threshold;
      
   if (App->depth == 8){
@@ -165,6 +162,11 @@ static void thresh_cb()
     else
       *idat = minv;
   }
+
+  if (ip->threshGrow)
+    sliceByteGrow(&s,  (int)s.max);
+  if (ip->threshShrink)
+    sliceByteShrink(&s,  (int)s.max);
 }
 
 // Smoothing
@@ -181,34 +183,7 @@ static void sharpen_cb()
   sliceByteSharpen(&s);
 }
 
-// Growing a thresholded area
-static void grow_cb()
-{
-  ImodIProc *ip = &proc;
-
-  setSliceMinMax(false);
-
-  // If the slice is not modified, run a threshold on it
-  if (!ip->modified)
-    thresh_cb();
-
-  sliceByteGrow(&s,  (int)s.max);
-}
-
-// Shrinking a thresholded area
-static void shrink_cb()
-{
-  ImodIProc *ip = &proc;
-
-  setSliceMinMax(false);
-
-  // If the slice is not modified, run a threshold on it
-  if (!ip->modified)
-    thresh_cb();
-
-  sliceByteShrink(&s,  (int)s.max);
-}
-
+// Fourier filter
 static void fourFilt_cb()
 {
   ImodIProc *ip = &proc;
@@ -216,6 +191,7 @@ static void fourFilt_cb()
   sliceFourierFilter(&s, ip->sigma1, ip->sigma2, ip->radius1, ip->radius2);
 }
 
+// FFT
 static void fft_cb()
 {
   int ix0, ix1, iy0, iy1, nxuse, nyuse;
@@ -230,6 +206,7 @@ static void fft_cb()
   proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning, ix0, ix1, iy0, iy1);
 }
 
+// Median filter
 static void median_cb()
 {
   unsigned char *to;
@@ -276,6 +253,7 @@ static void median_cb()
   free(ip->medianVol.vol);
 }
 
+// Anisotropic diffusion
 static void anisoDiff_cb()
 {
   ImodIProc *ip = &proc;
@@ -337,6 +315,8 @@ int inputIProcOpen(struct ViewInfo *vi)
     if (!proc.vi) {
       proc.procnum = 0;
       proc.threshold = 128;
+      proc.threshGrow = false;
+      proc.threshShrink = false;
       proc.edge = 0;
       proc.sigma1 = 0.;
       proc.sigma2 = 0.05f;
@@ -530,6 +510,16 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
           SLOT(threshChanged(int, int, bool)));
   layout->addLayout(slider->getLayout());
+  QCheckBox *check = diaCheckBox("Grow thresholded area", parent,
+                                 layout);
+  diaSetChecked(check, proc.threshGrow);
+  QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(growChanged(bool)));
+  QToolTip::add(check, "Apply dilation to grow area selected area ");
+  check = diaCheckBox("Shrink thresholded area", parent, layout);
+  diaSetChecked(check, proc.threshShrink);
+  QObject::connect(check, SIGNAL(toggled(bool)), win, 
+                   SLOT(shrinkChanged(bool)));
+  QToolTip::add(check, "Apply erosion to shrink selected area");
 }
 
 static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
@@ -686,8 +676,9 @@ static void setUnscaledK()
 /* THE WINDOW CLASS CONSTRUCTOR */
 static char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
                                "Done", "Help"};
-static char *buttonTips[] = {"Operate on current section",
-                             "Reiterate operation on current section",
+static char *buttonTips[] = {"Operate on current section (hot key a)",
+                             "Reiterate operation on current section (hot key"
+                             " b)",
                              "Toggle between processed and original image",
                              "Reset section to unprocessed image",
                              "Replace section in memory with processed image",
@@ -786,11 +777,18 @@ void IProcWindow::binningChanged(int val)
 {
   setFocus();
   proc.fftBinning = val;
-  
 }
 void IProcWindow::subsetChanged(bool state)
 {
   proc.fftSubset = state;
+}
+void IProcWindow::growChanged(bool state)
+{
+  proc.threshGrow = state;
+}
+void IProcWindow::shrinkChanged(bool state)
+{
+  proc.threshShrink = state;
 }
 
 // To switch filters, set the size policy of the current widget back to ignored
@@ -1074,7 +1072,14 @@ void IProcWindow::closeEvent ( QCloseEvent * e )
 // Close on escape, pass on keys
 void IProcWindow::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  int modkey = e->state() & (Qt::ShiftButton | Qt::ControlButton);
+  if (e->key() == Qt::Key_A && !modkey) {
+    if (!iprocBusy() && !proc.vi->loadingImage)
+      apply();
+  } else if (e->key() == Qt::Key_B && !modkey) {
+    if (!iprocBusy() && !proc.vi->loadingImage)
+      buttonClicked(1);
+  } else if (e->key() == Qt::Key_Escape)
     close();
   else
     ivwControlKey(0, e);
@@ -1096,6 +1101,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.18  2005/03/09 21:20:12  mast
+    converted diffusion to floats
+
     Revision 4.17  2005/02/12 01:36:18  mast
     Made call to save bwfloat data on every apply, rearranged list
 
