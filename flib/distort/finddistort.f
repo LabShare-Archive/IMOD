@@ -242,7 +242,7 @@ c
      &		infile(1:lnblnk(infile)), stFile(1:lnblnk(stFile)),
      &		quietStr(1:lnblnk(quietStr))
 102	    format(a,a,a,i3,a,a,1x,a,1x,a,1x,a)
-	    print *,comString
+c	    print *,comString
 c	    
 c		check for result
 c	    
@@ -618,12 +618,12 @@ c
      &		  lenRwrk, iwrk, rwrk, uu, vv, ww, xx, se, atol, btol, conlim,
      &		  itnlim, -1, istop, itndone, anorm, acond, rnorm,
      &		  arnorm, xnorm)
-	      print *,'condition #',rsq1,acond
 	      
 	      do i = 1, numVars
 		solLsqr(i, ixy) = xx(i) / sumEntries(i)
 	      enddo
 	    enddo
+	    print *,'condition #',rsq1,acond
 	  endif
 c	      
 	  if (doMultr) then
