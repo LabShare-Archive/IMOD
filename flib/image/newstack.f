@@ -140,6 +140,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/04/18 20:00:34  mast
+c	  wrong comment was here
+c	
 c	  Revision 3.1  2001/12/29 00:57:49  mast
 c	  Added an entry to -1 floating option to disable all rescaling
 c	
