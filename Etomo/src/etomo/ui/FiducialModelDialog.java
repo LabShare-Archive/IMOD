@@ -24,6 +24,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/10/07 22:43:13  sueh
+ * <p> bug251 moved transferfid from fine alignment dialog
+ * <p> to fiducial model dialog
+ * <p>
  * <p> Revision 2.3  2003/05/19 04:31:36  rickg
  * <p> Toggle button for Fix Model
  * <p>
@@ -78,7 +82,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   JToggleButton buttonSeed =
     new JToggleButton("<html><b>Seed fiducial<br>model using 3dmod</b>");
 //MARK 251 done FiducialModelDialog
-  TransferfidPanel panelTransferfid;
+  TransferfidPanel panelTransferfid = null;
   BeadtrackPanel panelBeadtrack;
 
   private JToggleButton buttonTrack =
@@ -176,7 +180,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   }
 
   public void updateEnabled() {
-    panelTransferfid.setEnabled(transferfidEnabled);
+    if (applicationManager.isDualAxis()) {
+      panelTransferfid.setEnabled(transferfidEnabled);
+    }
   }
   /**
    * Set the parameters for the specified beadtrack panel
@@ -186,7 +192,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   }
 //MARK 251 done setTransferFidParams
   public void setTransferFidParams(TransferfidParam transferFidParam) {
-    panelTransferfid.setParameters(transferFidParam);
+    if (applicationManager.isDualAxis()) {
+      panelTransferfid.setParameters(transferFidParam);
+    }
   }
 
   /**
@@ -198,7 +206,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   }
 //MARK 251 done getTransferFidParams
   public void getTransferFidParams(TransferfidParam transferFidParam) {
-    panelTransferfid.getParameters(transferFidParam);
+    if (applicationManager.isDualAxis()) {
+      panelTransferfid.getParameters(transferFidParam);
+    }
   }
 
   public void setTransferfidEnabled(boolean fileExists)
