@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/03/18 15:01:31  rickg
+ * <p> Combine development in progress
+ * <p>
  * <p> Revision 2.11  2003/03/18 00:32:32  rickg
  * <p> combine development in progress
  * <p>
@@ -1648,7 +1651,8 @@ public class ApplicationManager {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
 
-    //  Get the setupcombine parameters and 
+    // Get the setupcombine parameters and set the default patch boundaries if they have
+    // not already been set
     CombineParams combineParams =
       new CombineParams(metaData.getCombineParams());
 
@@ -1702,6 +1706,9 @@ public class ApplicationManager {
       AxisID.FIRST);
   }
 
+  /**
+   * Open the matching models in the imod reconstruction instances  
+   */
   public void imodMatchingModel() {
     try {
       imodManager.matchingModel(metaData.getFilesetName());
@@ -1767,16 +1774,9 @@ public class ApplicationManager {
     }
   }
 
-  private void matchvol1() {
-    //  Set the next process to execute when this is finished   
-    nextProcess = "patchcorr";
-    String threadName = processMgr.matchvol1();
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Initial Match");
-    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
-  }
-  
-
+  /**
+   * Initiate the combine process using solvematchmod
+   */
   public void modelCombine() {
     if (updateSolvematchmodCom()
       && updatePatchcorrCom()
@@ -1793,6 +1793,18 @@ public class ApplicationManager {
   }
 
   /**
+   * Execute the matchvol1 com script and put patchcorr in the execution queue 
+   */
+  private void matchvol1() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "patchcorr";
+    String threadName = processMgr.matchvol1();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Initial Match");
+    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
+  }
+  
+  /**
    * Initiate the combine process from patchcorr step
    */
   public void patchcorrCombine() {
@@ -1800,6 +1812,11 @@ public class ApplicationManager {
       //TODO implement: walk through each of the combine steps
     }
   }
+
+  /**
+   * Exececute the patchcorr com script and put matchorwarp in the execution
+   * queue
+   */
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
@@ -1828,6 +1845,9 @@ public class ApplicationManager {
     mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);    
   }
 
+  /**
+   * Exececute the volcombine com script and clear the execution queue
+   */
   private void volcombine() {
     //  Set the next process to execute when this is finished   
     nextProcess = "";
@@ -1844,7 +1864,7 @@ public class ApplicationManager {
    * combination dialog box
    * @return boolean
    */
-  private boolean updateSolvematchshiftCom() {
+  public boolean updateSolvematchshiftCom() {
     //  Set a reference to the correct object
     if (tomogramCombinationDialog == null) {
       openMessageDialog(
@@ -1874,7 +1894,7 @@ public class ApplicationManager {
    * combination dialog box
    * @return boolean
    */
-  private boolean updateSolvematchmodCom() {
+  public boolean updateSolvematchmodCom() {
     //  Set a reference to the correct object
     if (tomogramCombinationDialog == null) {
       openMessageDialog(
