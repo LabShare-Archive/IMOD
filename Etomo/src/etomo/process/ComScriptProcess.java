@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2004/11/19 23:19:18  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.17.2.1  2004/09/29 17:49:24  sueh
  * bug# 520 changing to BaseProcessManager.
  *
@@ -575,6 +578,10 @@ public class ComScriptProcess
     }
 
     return vmstocsh.getStdOutput();
+  }
+  
+  String getComScriptName() {
+    return name;
   }
 
   /**
