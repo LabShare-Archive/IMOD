@@ -16,6 +16,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.1  2003/05/21 22:55:31  rickg
  * <p> Intitial revision
  * <p> </p>
@@ -58,12 +61,13 @@ public class ParsePID implements Runnable {
         return;
       }
     }
+    System.out.println("PID:" + PID);
   }
 
   /**
    * Walk the standard error output to parse the PID string
    */
-  private void parsePIDString() {
+  protected void parsePIDString() {
     String[] stderr = csh.getStdError();
     for (int i = 0; i < stderr.length; i++) {
       if (stderr[i].startsWith("Shell PID:")) {
