@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.2  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -42,9 +45,9 @@ public class Patchcrawl3DParam
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
 
-    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 19) {
+    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 20) {
       String message =
-        "Incorrect number of arguments, expected 16 - 19 found: "
+        "Incorrect number of arguments, expected 16 - 20 found: "
           + String.valueOf(cmdLineArgs.length);
       throw (new BadComScriptException(message));
     }
