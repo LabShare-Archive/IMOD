@@ -98,7 +98,8 @@ void imodvImageEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  imodvImageData.dia = new ImodvImage(NULL, "image view");
+  imodvImageData.dia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG),
+                                      "image view");
   imodvImageData.a = a;
 
   mkcmap();
@@ -446,6 +447,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/03/28 05:01:50  mast
+Needed to remove include of glu.h for Mac
+
 Revision 4.3  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 

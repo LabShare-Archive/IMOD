@@ -27,52 +27,13 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 /*  $Author$
+    
+$Date$
 
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 1.1.2.12  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.11  2003/01/23 20:09:19  mast
-    update z scale in model-header dialog
-
-    Revision 1.1.2.10  2003/01/18 01:10:17  mast
-    add include of dia_qtutils
-
-    Revision 1.1.2.9  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
-
-    Revision 1.1.2.8  2002/12/30 06:49:50  mast
-    rationalizing dialogs as widgets and using dialog list
-
-    Revision 1.1.2.7  2002/12/23 05:00:25  mast
-    Make imodv mainwindow be parent
-
-    Revision 1.1.2.6  2002/12/17 22:28:20  mast
-    cleanup of unused variables and SGI errors
-
-    Revision 1.1.2.5  2002/12/17 18:33:19  mast
-    using new includes for imodv compoennts
-
-    Revision 1.1.2.4  2002/12/13 06:08:40  mast
-    simplification in dealing with filename string
-
-    Revision 1.1.2.3  2002/12/07 01:21:44  mast
-    Taking care of window title
-
-    Revision 1.1.2.2  2002/12/06 22:12:13  mast
-    *** empty log message ***
-
-    Revision 1.1.2.1  2002/12/05 16:31:25  mast
-    Qt version
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+$Revision$
+Log at end of file
 */
+
 #include <qstring.h>
 #include "formv_control.h"
 #include "dia_qtutils.h"
@@ -121,7 +82,7 @@ void imodvControlHelp(void)
              "between views during rotation, as well as the step size for "
              "single steps with the arrows or mumeric pad keys.  The same "
              "step size is used when rotating an object clipping with "
-             "Ctrl and the keypad keys.\n",
+             CTRL_STRING" and the keypad keys.\n",
              NULL);
 }
 
@@ -408,7 +369,7 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  dialog = new imodvControlForm(NULL, NULL, //false,
+  dialog = new imodvControlForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                 Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!dialog){
     dia_err("Failed to create imodv controls window!");
@@ -431,3 +392,49 @@ int imodv_control(ImodvApp *a, int state)
     
   return(0);
 }
+
+/*
+    $Log$
+    Revision 4.1  2003/02/10 20:29:00  mast
+    autox.cpp
+
+    Revision 1.1.2.12  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 1.1.2.11  2003/01/23 20:09:19  mast
+    update z scale in model-header dialog
+
+    Revision 1.1.2.10  2003/01/18 01:10:17  mast
+    add include of dia_qtutils
+
+    Revision 1.1.2.9  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
+    Revision 1.1.2.8  2002/12/30 06:49:50  mast
+    rationalizing dialogs as widgets and using dialog list
+
+    Revision 1.1.2.7  2002/12/23 05:00:25  mast
+    Make imodv mainwindow be parent
+
+    Revision 1.1.2.6  2002/12/17 22:28:20  mast
+    cleanup of unused variables and SGI errors
+
+    Revision 1.1.2.5  2002/12/17 18:33:19  mast
+    using new includes for imodv compoennts
+
+    Revision 1.1.2.4  2002/12/13 06:08:40  mast
+    simplification in dealing with filename string
+
+    Revision 1.1.2.3  2002/12/07 01:21:44  mast
+    Taking care of window title
+
+    Revision 1.1.2.2  2002/12/06 22:12:13  mast
+    *** empty log message ***
+
+    Revision 1.1.2.1  2002/12/05 16:31:25  mast
+    Qt version
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/

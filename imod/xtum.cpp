@@ -168,8 +168,9 @@ int xtumOpen(struct ViewInfo *vi)
   xtum->gamma = 0.0;
      
   xtum->dialog = new TumblerWindow(xtum, App->rgba, 
-				      App->doublebuffer, App->qtEnableDepth,
-				      NULL, "tumbler window");
+                                   App->doublebuffer, App->qtEnableDepth,
+                                   imodDialogManager.parent(IMOD_IMAGE),
+                                   "tumbler window");
   if (!xtum->dialog){
     free(xtum);
     wprint("Error opening tumbler window.");
@@ -405,7 +406,7 @@ void TumblerWindow::help()
      "\tF7/F8\tDecrease/Increase white threshold level.\n",
      "\t,/.\tDecrease/Increase angular increment when rotating.\n"
      "\tS\tMake RGB snapshot of image in window.\n"
-     "\tCtrl-S\tMake TIFF snapshot of image in window.\n"
+     "\t"CTRL_STRING"-S\tMake TIFF snapshot of image in window.\n"
      "\tKeypad up and down arrows rotate the volume around the X axis.\n",
      "\tKeypad left and right arrows rotate the volume around the Y axis.\n",
      "\tKeypad PgUp and PgDn rotate the volume around the Z axis.\n",
@@ -458,13 +459,13 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   int key = event->key();
   int shift = event->state() & Qt::ShiftButton;
   int ctrl = event->state() & Qt::ControlButton;
+  int keypad = event->state() & Qt::Keypad;
   int dodraw = 1;
   int handled = 1;
   int newdata = 1;
   float xrot, yrot, zrot;
   
-  if (event->state() & Qt::Keypad)
-    key = inputConvertNumLock(key);
+  inputConvertNumLock(key, keypad);
 
   if (key == hotSliderKey()) {
     mCtrlPressed = true;
@@ -534,7 +535,7 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   case Qt::Key_Down:
   case Qt::Key_Right:
   case Qt::Key_Left:
-    if (event->state() & Qt::Keypad) {
+    if (keypad) {
 
       // Someone with a better eye than mine may see that the directions
       // of X and Y need to be reversed
@@ -1365,6 +1366,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.7  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.6  2003/03/26 17:15:30  mast
 Adjust sizes for font changes
 

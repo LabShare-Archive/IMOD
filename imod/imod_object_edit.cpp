@@ -271,7 +271,7 @@ int imod_object_edit()
     return(0);
   }
      
-  Ioew_dialog = new objectEditForm(NULL, NULL, 
+  Ioew_dialog = new objectEditForm(imodDialogManager.parent(IMOD_DIALOG), NULL, 
 				   Qt::WType_TopLevel | Qt::WDestructiveClose);
 
   if (!Ioew_dialog){
@@ -414,7 +414,8 @@ ImodObjColor::ImodObjColor(int objNum)
   Iobj *obj = &(Model->obj[objNum]);
   qstr.sprintf("Select color for object %d.", objNum + 1);
 
-  mSelector = new ColorSelector(NULL, qstr.latin1(),
+  mSelector = new ColorSelector(imodDialogManager.parent(IMOD_DIALOG), 
+                                qstr.latin1(),
                                 (int)(obj->red * 255.),
                                 (int)(obj->green * 255.),
                                 (int)(obj->blue * 255.), hotSliderFlag(), 
@@ -479,6 +480,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.2  2003/02/27 19:40:06  mast
 Add parentheses to fix call to set symbol properties
 

@@ -432,7 +432,8 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  imodvStereoData.dia = new ImodvStereo(NULL, "stereo dialog");
+  imodvStereoData.dia = new ImodvStereo(imodvDialogManager.parent(IMODV_DIALOG),
+                                        "stereo dialog");
   imodvStereoData.a = a;
 
   imodvDialogManager.add((QWidget *)imodvStereoData.dia, IMODV_DIALOG);
@@ -578,6 +579,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 

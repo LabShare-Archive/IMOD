@@ -28,23 +28,10 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
-
-    $Log$
-    Revision 1.1.2.2  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.1  2003/01/23 19:57:06  mast
-    Qt version
-
-    Revision 3.2.2.1  2003/01/13 01:15:43  mast
-    changes for Qt version of info window
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+$Revision$
+Log at end of file
 */
 
 #include <qlabel.h>
@@ -280,7 +267,7 @@ int inputIProcOpen(struct ViewInfo *vw)
 
     if (!proc.idata)
       return(-1);
-    proc.dia = new IProcWindow(NULL, NULL);
+    proc.dia = new IProcWindow(imodDialogManager.parent(IMOD_DIALOG), NULL);
     imodDialogManager.add((QWidget *)proc.dia, IMOD_DIALOG);
 
   }else{
@@ -582,3 +569,22 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+/*
+
+    $Log$
+    Revision 4.1  2003/02/10 20:29:02  mast
+    autox.cpp
+
+    Revision 1.1.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 1.1.2.1  2003/01/23 19:57:06  mast
+    Qt version
+
+    Revision 3.2.2.1  2003/01/13 01:15:43  mast
+    changes for Qt version of info window
+
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/

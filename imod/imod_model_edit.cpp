@@ -33,29 +33,9 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 4.2  2003/02/28 21:40:57  mast
-Changing name of tooledit focus signal
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:01:04  mast
-Full Qt version
-
-Revision 1.1.2.1  2003/01/18 01:16:20  mast
-half Qt version
-
-Revision 3.0.2.2  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 3.0.2.1  2002/12/23 04:59:19  mast
-Make routine for parsing pixel size string
-
+Log at end of file
 */
+
 #include <qlineedit.h>
 #include <tooledit.h>
 #include <qcheckbox.h>
@@ -93,7 +73,8 @@ int openModelEdit(ImodView *vw)
   }
      
   HeaderDialog.vw = vw;
-  HeaderDialog.dia = new ModelHeaderWindow(NULL, "model offset");
+  HeaderDialog.dia = new ModelHeaderWindow
+    (imodDialogManager.parent(IMOD_DIALOG), "model offset");
 
   imodDialogManager.add((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
   return 0;
@@ -284,7 +265,8 @@ int openModelOffset(ImodView *vw)
   OffsetDialog.base.x = OffsetDialog.base.y = OffsetDialog.base.z = 0.0;
   OffsetDialog.applied = OffsetDialog.base;
 
-  OffsetDialog.dia = new ModelOffsetWindow(NULL, "model offset");
+  OffsetDialog.dia = new ModelOffsetWindow
+    (imodDialogManager.parent(IMOD_DIALOG), "model offset");
 
   imodDialogManager.add((QWidget *)OffsetDialog.dia, IMOD_DIALOG);
   return 0;
@@ -458,3 +440,30 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
     ivwControlKey(1, e);
 }
 
+/*
+$Log$
+Revision 4.3  2003/04/11 21:47:28  mast
+adding tooltips
+
+Revision 4.2  2003/02/28 21:40:57  mast
+Changing name of tooledit focus signal
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.2  2003/01/23 20:01:04  mast
+Full Qt version
+
+Revision 1.1.2.1  2003/01/18 01:16:20  mast
+half Qt version
+
+Revision 3.0.2.2  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 3.0.2.1  2002/12/23 04:59:19  mast
+Make routine for parsing pixel size string
+
+*/

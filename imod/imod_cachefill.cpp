@@ -492,7 +492,8 @@ void imodCacheFillDialog(ImodView *vw)
 
   imodCacheFillData.vw = vw;
 
-  imodCacheFillData.dia = new ImodCacheFill(NULL, "cache filler");
+  imodCacheFillData.dia = new ImodCacheFill
+    (imodDialogManager.parent(IMOD_DIALOG), "cache filler");
   imodDialogManager.add((QWidget *)imodCacheFillData.dia, IMOD_DIALOG);
   return;
 }
@@ -692,6 +693,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/02/27 17:40:55  mast
+Use Qt routines for directory operations
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 

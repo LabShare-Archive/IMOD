@@ -29,27 +29,11 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 /*  $Author$
+    
+$Date$
 
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 4.1  2003/02/10 20:29:02  mast
-    autox.cpp
-
-    Revision 1.1.2.8  2003/01/18 01:10:17  mast
-    add include of dia_qtutils
-
-    Revision 1.1.2.7  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
-
-    Revision 1.1.2.6  2002/12/30 06:40:24  mast
-    Prevent multiple draws, adapt to dialog-widget control
-
-    Revision 1.1.2.5  2002/12/27 17:45:01  mast
-    clean up unused variable
-
+$Revision$
+Log at end of file
 */
 
 #include <stdio.h>
@@ -245,7 +229,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   }
   ved->a = a;
 
-  ved->dia = new imodvViewsForm(NULL, NULL, //false,
+  ved->dia = new imodvViewsForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                 Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   // Set title bar
@@ -391,3 +375,26 @@ static void build_list(ImodvApp *a)
   for(i = 0; i < a->imod->viewsize; i++)
     ved->dia->addItem(a->imod->view[i].label);
 }
+
+/*
+
+    $Log$
+    Revision 4.2  2003/03/04 21:41:29  mast
+    Refresh the imod windows when the view changes
+
+    Revision 4.1  2003/02/10 20:29:02  mast
+    autox.cpp
+
+    Revision 1.1.2.8  2003/01/18 01:10:17  mast
+    add include of dia_qtutils
+
+    Revision 1.1.2.7  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
+    Revision 1.1.2.6  2002/12/30 06:40:24  mast
+    Prevent multiple draws, adapt to dialog-widget control
+
+    Revision 1.1.2.5  2002/12/27 17:45:01  mast
+    clean up unused variable
+
+*/

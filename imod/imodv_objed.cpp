@@ -611,7 +611,8 @@ void objed(ImodvApp *a)
   if (!a->imod)
     return;
 
-  objed_dialog = new imodvObjedForm(NULL, NULL, //false,
+  objed_dialog = new imodvObjedForm(imodvDialogManager.parent(IMODV_DIALOG),
+                                    NULL,
                                     Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   Imodv_objed_all = 0;  // May want to retain this setting
@@ -1242,7 +1243,7 @@ static void mkClip_cb(int index)
   QToolTip::add(button, 
                 "Make clipped part visible, clip visible part of object");
 
-  diaLabel("Hold down the Ctrl Key", oef->control, layout1);
+  diaLabel("Hold down the "CTRL_STRING" Key", oef->control, layout1);
   diaLabel("to move & rotate clip", oef->control, layout1);
   diaLabel("plane with mouse or", oef->control, layout1);
   diaLabel("keypad & arrow keys", oef->control, layout1);
@@ -1431,7 +1432,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
     return;
   }
 
-  Oolist_dialog = new ImodvOlist(NULL);
+  Oolist_dialog = new ImodvOlist(imodvDialogManager.parent(IMODV_DIALOG));
 
   // Get number of buttons, number of columns and number per column
   // Make maximum number of buttons needed for all loaded models
@@ -1592,6 +1593,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.10  2003/04/15 06:07:53  mast
+Use invisible button group for subset radios instead of manual management
+
 Revision 4.9  2003/04/15 05:23:47  mast
 Added tooltips
 

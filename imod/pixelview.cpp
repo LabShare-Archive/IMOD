@@ -70,7 +70,8 @@ int open_pixelview(struct ViewInfo *vi)
     return(-1);
   }
 
-  PixelViewDialog = new PixelView(NULL, "pixel view");
+  PixelViewDialog = new PixelView(imodDialogManager.parent(IMOD_IMAGE),
+                                  "pixel view");
 
   PixelViewDialog->setCaption(imodCaption("Imod Pixel View"));
 
@@ -92,6 +93,7 @@ int open_pixelview(struct ViewInfo *vi)
 }
 
 PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
+  : QWidget(parent, name, fl)
 {
   int i, j;
   int width;
@@ -271,6 +273,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/03/26 06:30:56  mast
+adjusting to font changes
+
 Revision 4.2  2003/03/24 17:56:46  mast
 Register with dialogManager so it can be parked with info window
 

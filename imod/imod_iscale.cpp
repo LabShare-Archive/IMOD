@@ -32,22 +32,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.1.2.1  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include <stdio.h>
@@ -91,7 +76,8 @@ void imodImageScaleDialog(ImodView *vw)
     vw->li->smax = vw->hdr->amax;
   }
 
-  imodImageScaleData.dia = new ImageScaleWindow(NULL, "image scale");
+  imodImageScaleData.dia = new ImageScaleWindow
+    (imodDialogManager.parent(IMOD_DIALOG), "image scale");
 
   imodDialogManager.add((QWidget *)imodImageScaleData.dia, IMOD_DIALOG);
 
@@ -325,3 +311,24 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+/*
+$Log$
+Revision 4.2  2003/03/03 22:14:34  mast
+cleanup
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
+Revision 3.1.2.1  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/

@@ -32,26 +32,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:42:02  mast
-Merge Qt source
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/14 21:39:49  mast
-qt version
-
-Revision 3.2.2.1  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2001/12/17 18:41:51  mast
-Add calls for smooth and next section to be done from hotkeys
-
+Log at end of file 
 */
 #include "form_autox.h"
 #include "imod.h"
@@ -428,8 +409,8 @@ int autox_open(ImodView *vw)
   ax->cz        = (int)(vw->zmouse + 0.5);
   ax->diagonal  = 0;
 
-  autoWindow = new AutoxWindow(NULL, NULL, Qt::WType_TopLevel |
-			       Qt::WDestructiveClose);
+  autoWindow = new AutoxWindow(imodDialogManager.parent(IMOD_DIALOG), NULL, 
+                               Qt::WType_TopLevel | Qt::WDestructiveClose);
 			       
   if (!autoWindow){
     free(ax);
@@ -862,3 +843,28 @@ static void autox_clear(Autox *ax, unsigned char bit)
     for(i = 0; i < ax->vw->xysize; i++)
       ax->data[i] &= ~bit;
 }
+
+/*
+$Log$
+Revision 4.2  2003/02/14 01:13:08  mast
+cleanup unused variables
+
+Revision 4.1  2003/02/10 20:42:02  mast
+Merge Qt source
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/14 21:39:49  mast
+qt version
+
+Revision 3.2.2.1  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2001/12/17 18:41:51  mast
+Add calls for smooth and next section to be done from hotkeys
+
+*/

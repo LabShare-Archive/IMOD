@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2003/02/27 17:29:20  mast
+    Use new b3dX,Y,Z
+
 */
 
 #include <qapplication.h>
@@ -242,7 +245,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->saved   = 0;
   movie->abort = 1;   /* DNM: make this a flag that not making movie */
 
-  movie->dia = new imodvMovieForm(NULL, NULL, //false, 
+  movie->dia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                   Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!movie->dia){
     dia_err("Failed to create imodv movie window!");

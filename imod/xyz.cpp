@@ -114,8 +114,9 @@ int xxyz_open(ImodView *vi)
   }
      
   xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, 
-			     App->qtEnableDepth, NULL,
-			     "xyz window");
+			     App->qtEnableDepth, 
+                             imodDialogManager.parent(IMOD_IMAGE),
+                             "xyz window");
   if ((!xx->dialog)||
       (!xx->fdataxz) || (!xx->fdatayz)) {
     wprint("Error:\n\tXYZ window can't open due to low memory\n");
@@ -1728,6 +1729,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.8  2003/03/25 23:01:43  mast
+Take nearest int in checking for current point Z value when adding points
+
 Revision 4.7  2003/03/24 17:56:46  mast
 Register with dialogManager so it can be parked with info window
 

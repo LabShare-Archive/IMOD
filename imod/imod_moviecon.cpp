@@ -216,7 +216,7 @@ void imodMovieConDialog(ImodView *vw)
   view = vw;
   imcResetAll(view);
 
-  dia = new MovieController(NULL, NULL, 
+  dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), NULL, 
 			    Qt::WType_TopLevel | Qt::WDestructiveClose);
   dia->setCaption(imodCaption("Imod Movies"));
 
@@ -369,6 +369,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.2  2003/02/27 23:08:35  mast
+Change to Qt time function
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 

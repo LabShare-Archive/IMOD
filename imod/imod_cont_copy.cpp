@@ -31,41 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.4  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.3  2003/02/27 19:31:35  mast
-remove include of unistd.h for windows
-
-Revision 4.2  2003/02/14 01:14:06  mast
-Add error report if duplication fails
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/02/07 01:03:23  mast
-a little cleanup
-
-Revision 1.1.2.3  2003/01/31 01:01:22  mast
-Fixed spin box focus policy and combo box initial setting
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/09/26 21:28:55  rickg
-Removed empty string sprintf formats and unused variables.
-
-Revision 3.1  2002/09/13 20:56:01  mast
-Changed include of libgen.h to be on sun only
-
+Log at end of file
 */
 
 
@@ -243,7 +209,8 @@ int openContourCopyDialog(ImodView *vw)
   }
      
   ThisDialog.vw = vw;
-  ThisDialog.dia = new ContourCopy(NULL, "contour join");
+  ThisDialog.dia = new ContourCopy(imodDialogManager.parent(IMOD_DIALOG), 
+                                   "contour join");
 
   if (!ThisDialog.dia) return(1);
 
@@ -636,3 +603,43 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 {
     ivwControlKey(1, e);
 }
+
+/*
+$Log$
+Revision 4.5  2003/04/11 21:47:28  mast
+adding tooltips
+
+Revision 4.4  2003/03/03 22:14:34  mast
+cleanup
+
+Revision 4.3  2003/02/27 19:31:35  mast
+remove include of unistd.h for windows
+
+Revision 4.2  2003/02/14 01:14:06  mast
+Add error report if duplication fails
+
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.4  2003/02/07 01:03:23  mast
+a little cleanup
+
+Revision 1.1.2.3  2003/01/31 01:01:22  mast
+Fixed spin box focus policy and combo box initial setting
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.2  2002/09/26 21:28:55  rickg
+Removed empty string sprintf formats and unused variables.
+
+Revision 3.1  2002/09/13 20:56:01  mast
+Changed include of libgen.h to be on sun only
+
+*/

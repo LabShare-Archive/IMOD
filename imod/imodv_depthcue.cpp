@@ -124,8 +124,8 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  idcData.dia = new imodvDepthcueForm(NULL, NULL,// false,
-				      Qt::WDestructiveClose |
+  idcData.dia = new imodvDepthcueForm(imodvDialogManager.parent(IMODV_DIALOG), 
+                                      NULL, Qt::WDestructiveClose |
 				      Qt::WType_TopLevel);
 
   imodvDepthCueSetWidgets();
@@ -167,6 +167,9 @@ void imodvDepthcueToggle(int state)
 
 /*
 $Log$
+Revision 4.2  2003/02/27 17:39:06  mast
+Had to include qgl.h instead of GL/gl.h under windows
+
 Revision 4.1  2003/02/10 20:29:01  mast
 autox.cpp
 

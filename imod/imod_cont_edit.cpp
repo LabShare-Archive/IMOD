@@ -37,26 +37,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.2  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.1.2.1  2002/12/19 04:37:12  mast
-Cleanup of unused global variables and defines
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
 
 #include <qspinbox.h>
@@ -132,7 +113,8 @@ void imodContEditBreak(ImodView *vw)
   cobrk.i1 = vw->imod->cindex;
   cobrk.i2 = nullIndex;
 
-  cobrk.dia = new ContourBreak(NULL, "contour break");
+  cobrk.dia = new ContourBreak(imodDialogManager.parent(IMOD_DIALOG), 
+                               "contour break");
 
   cobrk.dia->show();
 }
@@ -466,7 +448,8 @@ void imodContEditJoin(ImodView *vw, int x, int y)
   cojoin.i1 = vw->imod->cindex;
   cojoin.i2 = nullIndex;
 
-  cojoin.dia = new ContourJoin(NULL, "contour join");
+  cojoin.dia = new ContourJoin(imodDialogManager.parent(IMOD_DIALOG), 
+                               "contour join");
 
   cojoin.dia->show();
 }
@@ -768,7 +751,8 @@ void imodContEditMoveDialog(ImodView *vw)
 
   comv.vw = vw;
 
-  comv.dia = new ContourMove(NULL, "contour move");
+  comv.dia = new ContourMove(imodDialogManager.parent(IMOD_DIALOG), 
+                             "contour move");
 
   imodContEditMoveDialogUpdate();
   comv.dia->show();
@@ -1209,7 +1193,8 @@ void imodContEditSurf(ImodView *vw)
   }
   surf.vw = vw;
      
-  surf.dia = new ContSurfPoint(NULL, "surface edit",
+  surf.dia = new ContSurfPoint(imodDialogManager.parent(IMOD_DIALOG), 
+                               "surface edit",
                                Qt::WType_TopLevel | Qt::WDestructiveClose);
   imodContEditSurfShow();
   imodDialogManager.add((QWidget *)surf.dia, IMOD_DIALOG);
@@ -1576,3 +1561,28 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+/*
+
+$Log$
+Revision 4.3  2003/03/26 06:30:56  mast
+adjusting to font changes
+
+Revision 4.2  2003/03/03 22:14:34  mast
+cleanup
+
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
+Revision 3.1.2.1  2002/12/19 04:37:12  mast
+Cleanup of unused global variables and defines
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/

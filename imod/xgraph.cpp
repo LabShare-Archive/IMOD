@@ -103,7 +103,9 @@ int xgraphOpen(struct ViewInfo *vi)
   xg->highres = 0;
 
   xg->dialog = new GraphWindow(xg, App->rgba, App->doublebuffer,
-			       App->qtEnableDepth, NULL, "graph window");
+			       App->qtEnableDepth, 
+                               imodDialogManager.parent(IMOD_IMAGE),
+                               "graph window");
   if (!xg->dialog){
     free(xg);
     wprint("Error opening graph window.");
@@ -805,6 +807,9 @@ void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
 
 /*
     $Log$
+    Revision 4.2  2003/03/24 17:56:46  mast
+    Register with dialogManager so it can be parked with info window
+
     Revision 4.1  2003/02/10 20:29:02  mast
     autox.cpp
 

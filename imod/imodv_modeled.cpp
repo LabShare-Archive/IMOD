@@ -129,7 +129,7 @@ void imodvModelEditDialog(ImodvApp *a, int state)
   }
   med->a = a;
 
-  med->dia = new imodvModeledForm(NULL, NULL, //false,
+  med->dia = new imodvModeledForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                   Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   updateWorkArea();
