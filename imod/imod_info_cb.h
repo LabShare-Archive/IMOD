@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2003/02/10 20:41:55  mast
+    Merge Qt source
+
     Revision 1.1.2.3  2003/01/27 00:30:07  mast
     Pure Qt version and general cleanup
 
@@ -40,7 +43,6 @@ void imod_info_setxyz(void);
 void imod_info_setbw(int black, int white);
 int imod_info_bwfloat(ImodView *vw, int section, int time);
 void imod_info_float_clear(int section, int time);
-int imod_open(FILE *mfin);
 void show_status(char *info);
 void imod_show_info(char *info, int line);
 void imod_info_msg(char *top, char *bot);
