@@ -608,6 +608,7 @@ int midas_transform(struct MRCslice *slin,
 
   for(j = 0, y = oy, x = ox; j < ysize + 1 - box; 
       j += box, y += ydy * box, x += ydx * box){
+
     oy = y; ox = x;
 
     /* compute constrained, safe coordinates to use */
@@ -654,6 +655,12 @@ int midas_transform(struct MRCslice *slin,
       xst = nxa;
       xnd = 1;
     }
+
+    /* Limit these values before truncating because they can be > 2147... */
+    if (xst > xsize + 10.)
+      xst = xsize + 10.;
+    if (xnd < -10)
+      xnd = -10.;
 
     /* truncate ending down, starting up */
     ixnd = (int)xnd;
@@ -1628,6 +1635,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.4  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
+
 Revision 3.3  2003/10/24 03:56:19  mast
 fixed array overruns that showed up in Windows/Intel
 
