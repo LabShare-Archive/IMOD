@@ -75,6 +75,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.61  2003/09/08 22:18:50  rickg
+ * <p> Catch exception thrown buy ProcessManager.startComScript
+ * <p>
  * <p> Revision 2.60  2003/09/08 05:44:47  rickg
  * <p> Added trial tilt
  * <p> Output for a single axis tomogram is changed to
@@ -890,8 +893,11 @@ public class ApplicationManager {
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
 
-    //  Rename the fixed stack to the raw stack file name
-    rawStack.renameTo(rawRename);
+    // Rename the fixed stack to the raw stack file name and save the orginal
+    // raw stack to _orig.st if that does not already exist 
+    if (!rawRename.exists()) {
+      rawStack.renameTo(rawRename);
+    }
     fixedStack.renameTo(rawStack);
 
     if (imodManager.isRawStackOpen(axisID)) {
