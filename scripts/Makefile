@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/04/18 22:55:59  mast
+#  Add submfg
+#
 #  Revision 3.3  2002/05/20 19:48:41  mast
 #  Add transferfid
 #
@@ -21,7 +24,7 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid submfg
+ dm2mrc alignlog transferfid submfg runimodqtapp setlibpath
 
 all:
 
