@@ -17,6 +17,11 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/01/25 23:50:52  sueh
+* <p> Switching from inheriting EtomoNumber to inheritying ScriptParameters.
+* <p> Overriding isUseInScript(), getValueFromScript(), and addToScript().
+* <p> Changing update to setInScript().
+* <p>
 * <p> Revision 1.3  2005/01/21 23:23:26  sueh
 * <p> bug# 509 bug# 591  Moved the prevention of null values to
 * <p> ConstEtomoNumber.  No longer need to override initialize() functions or
@@ -71,6 +76,11 @@ public class EtomoBoolean2 extends ScriptParameter {
       return trueString;
     }
     return falseString;
+  }
+  
+  public ConstEtomoNumber setUpdateAsInteger(boolean updateAsInteger) {
+    this.updateAsInteger = updateAsInteger;
+    return this;
   }
 
   /**
@@ -157,7 +167,7 @@ public class EtomoBoolean2 extends ScriptParameter {
         return newNumber(TRUE_VALUE);
       }
     }
-    return newNumber(value, invalidBuffer);
+    return super.newNumber(value, invalidBuffer);
   }
 
 }
