@@ -23,7 +23,10 @@ import javax.swing.JTextField;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/04/09 23:14:48  rickg
+ * <p> Moved out of FinalCombinePanel
+ * <p> </p>
  */
 class CheckBoxTextField extends JPanel {
   private JCheckBox checkBox;
@@ -31,11 +34,10 @@ class CheckBoxTextField extends JPanel {
 
   /**
    * Default constructor
-   * @param label
+   *
    */
-  public CheckBoxTextField(String label) {
-
-    checkBox = new JCheckBox(label);
+  public CheckBoxTextField() {
+    checkBox = new JCheckBox();
     textField = new JTextField();
     this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     this.add(checkBox);
@@ -48,7 +50,15 @@ class CheckBoxTextField extends JPanel {
     textField.setMaximumSize(dim);
     textField.setEnabled(checkBox.isSelected());
     checkBox.addActionListener(new CheckBoxActionListener(this));
-
+  }
+  
+  /**
+   * Label string constructor
+   * @param label
+   */
+  public CheckBoxTextField(String label) {
+    this();
+    checkBox.setText(label);
   }
 
   String getCheckBoxLabel() {
