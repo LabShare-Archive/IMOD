@@ -64,6 +64,7 @@ void imodvViewsForm::deletePressed()
     viewListBox->removeItem(item);
     viewListBox->blockSignals(false);
     imodvViewsDelete(item, viewListBox->currentItem());
+    deleteButton->setEnabled(viewListBox->count() > 1);
 }
 
 void imodvViewsForm::savePressed()
@@ -118,13 +119,7 @@ void imodvViewsForm::addItem( char * label )
 {
     QString str = label;
     viewListBox->insertItem(str);
-}
-
-// Disable some buttons that are meaningless for default view
-void imodvViewsForm::enableButtons( int current )
-{
-    storeButton->setEnabled(current > 0);
-    deleteButton->setEnabled(current > 0);
+    deleteButton->setEnabled(viewListBox->count() > 1);
 }
 
 // Select an item in the list

@@ -362,12 +362,6 @@
     </connection>
     <connection>
         <sender>viewListBox</sender>
-        <signal>highlighted(int)</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>enableButtons(int)</slot>
-    </connection>
-    <connection>
-        <sender>viewListBox</sender>
         <signal>selected(int)</signal>
         <receiver>imodvViewsForm</receiver>
         <slot>viewSelected(int)</slot>
@@ -448,7 +442,6 @@
     <slot>helpPressed()</slot>
     <slot>setAutostore( int state )</slot>
     <slot>addItem( char * label )</slot>
-    <slot>enableButtons( int current )</slot>
     <slot>selectItem( int item, bool block )</slot>
     <slot>removeAllItems()</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
