@@ -2,9 +2,6 @@ package etomo.type;
 
 import java.util.Properties;
 
-import etomo.comscript.ComScriptCommand;
-import etomo.comscript.InvalidParameterException;
-
 /**
 * <p>Description: </p>
 * 
@@ -19,6 +16,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/22 04:12:44  sueh
+* <p> bug# 509, bug# 591  In set(long) and set(double), and setResetValue(double)
+* <p> through an exception if the type of the instance is not compatible.
+* <p>
 * <p> Revision 1.6  2005/01/21 23:26:02  sueh
 * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
 * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
@@ -123,11 +124,8 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public EtomoNumber set(String value) {
     invalidReason = null;
-    if (value == null) {
+    if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
-    }
-    else if (value.matches("\\s*")){
-      currentValue = newEmptyNumber();
     }
     else {
       StringBuffer invalidBuffer = new StringBuffer();
@@ -140,27 +138,6 @@ public class EtomoNumber extends ConstEtomoNumber {
     currentValue = applyCeilingValue(currentValue);
     validate();
     return this;
-  }
-  
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
-      throws InvalidParameterException {
-    return parse(scriptCommand, name);
-  }
-  
-  /**
-   * Parse scriptCommand for keyword.  If keyword is not found, call reset().
-   * If keyword is found, call set with the string value found in scriptCommand.
-   * @param scriptCommand
-   * @param keyword
-   * @return
-   * @throws InvalidParameterException
-   */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
-      throws InvalidParameterException {
-    if (!scriptCommand.hasKeyword(keyword)) {
-      reset();
-    }
-    return set(scriptCommand.getValue(keyword));
   }
   
   public EtomoNumber set(Number value) {
@@ -208,7 +185,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber reset() {
-    currentValue = applyCeilingValue(newNumber(resetValue));
+    currentValue = applyCeilingValue(newNumber());
     validate();
     return this;
   }
