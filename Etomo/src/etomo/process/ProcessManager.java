@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2004/12/02 18:28:29  sueh
+ * bug# 557 Added squeezeVolume().
+ *
  * Revision 3.42  2004/11/24 01:03:00  sueh
  * bug# 520 ADded errorProcess(ComScriptProcess) and removed exitValue
  * parameter from postProcess(BackgroundProcess).
@@ -557,6 +560,7 @@ import etomo.ui.TextPageWindow;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CombineComscriptState;
+import etomo.comscript.Command;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.CopyTomoComs;
@@ -1177,7 +1181,7 @@ public class ProcessManager extends BaseProcessManager {
   public String trimVolume(TrimvolParam trimvolParam)
     throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam
-      .getCommandString(), AxisID.ONLY);
+      .getCommandLine(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -1349,6 +1353,19 @@ public class ProcessManager extends BaseProcessManager {
   protected void postProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
+    }
+    else {
+      String commandName = process.getCommandName();
+      if (commandName == null) {
+        return;
+      }
+      Command command = process.getCommand();
+      if (command == null) {
+        return;
+      }
+      if (commandName.equals(TrimvolParam.getName())) {
+        appManager.getTomogramMetaData().getState().setFlipped(command.getBooleanValue(TrimvolParam.SWAPYZ));
+      }
     }
   }
   
