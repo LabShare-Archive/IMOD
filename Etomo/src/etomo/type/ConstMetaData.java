@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/12/08 22:31:16  sueh
+ * <p> bug# 169 adding a new function isDatasetNameValid.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -272,9 +275,6 @@ public class ConstMetaData {
     if (axisType == AxisType.DUAL_AXIS) {
       currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
       if (currentDir == null) {
-        return false;
-      }
-      if (findValidFile(datasetName + "b.st", currentDir) == null) {
         return false;
       }
     }
