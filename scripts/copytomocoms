@@ -231,6 +231,7 @@ while ($iaxis < $numax)
     set dstext = ".com"
     set modext = ".mod"
     set logext = ".log"
+    set recext = ".rec"
     if ($numax == 2) then
 	set setlet = "a"
 	if ($iaxis == 1) set setlet = "b"
@@ -241,6 +242,7 @@ while ($iaxis < $numax)
 	set dstext = "$setlet.com"
 	set modext = "$setlet.mod"
 	set logext = "$setlet.log"
+	set recext = "$setlet.rec"
     endif
 
     set dstname = $setname
@@ -580,7 +582,7 @@ EOF
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e s/$srcname/$dstname/g\
-        -e "/LOG/s/LOG.*/LOG $logbase/"\
+        -e "/^LOG/s/LOG.*/LOG $logbase/"\
         -e "/MODE/s/MODE.*/MODE $mode/"\
 	-e "/FULLIMAGE/s//FULLIMAGE $xsize $ysize/"\
         <$srcfile >$dstfile
@@ -617,7 +619,7 @@ EOF
 
     @ ymin = $ofsize / 2 - 5
     echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec mid.rec >>$dstfile
+    echo \$ \\mv $setname.rec mid$recext >>$dstfile
 
     # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
     @ ymin = ($ofsize / 2 + $offset) - 5
@@ -644,7 +646,7 @@ EOF
     endif
 
     echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec top.rec >>$dstfile
+    echo \$ \\mv $setname.rec top$recext >>$dstfile
 
     @ ymin = ($ofsize / 2 - $offset) - 5
     @ ymax = ($ofsize / 2 - $offset) + 5
@@ -670,7 +672,7 @@ EOF
     endif
 
     echo \$sed -e \'/^[\$\#]/d\' -e \'/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/\' tilt$dstext \|tilt >>$dstfile
-    echo \$ \\mv $setname.rec bot.rec >>$dstfile
+    echo \$ \\mv $setname.rec bot$recext >>$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
     # GET FINDSEC
@@ -684,6 +686,7 @@ EOF
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e "/size of patch/s/,.*	/,$npatch	/"\
 	-e "/spacing between sample/s/.*	/-$offset	/"\
+	-e "s/\.rec/$recext/"\
 	<$srcfile >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
     
@@ -771,8 +774,8 @@ endif
 
 cat <<EOF
 tilt$dstext   to create   $setname.rec
-sample$dstext   to create   top.rec, mid.rec, bot.rec
-findsec$dstext   to find section in top.rec, mid.rec, and bot.rec
+sample$dstext   to create   top$moda.rec, mid$moda.rec, bot$moda.rec
+findsec$dstext   to find section in top$moda.rec, mid$moda.rec, and bot$moda.rec
 tomopitch$dstext   to find angles of section from top$moda.mod, mid$moda.mod, and bot$moda.mod
 EOF
 
