@@ -47,6 +47,13 @@ c	  patch file to a model file where displacements are represented
 c	  by vectors, examine the file in Imod, eliminate aberrant contours,
 c	  and convert the model file to a new patch file with Imod2patch.
 c
+c	  If there is only one layer of patches in the Y dimension, there is
+c	  insufficient information to solve for the full transformation, so
+c	  the program will solve for only two of the three columns of each
+c	  local transformation matrix, and set the second column of each
+c	  matrix to 0, 1, 0.  The same procedure is used if a particular
+c	  local area does not have sufficient data on more than one layer in Y.
+c
 c	  Inputs to the program:
 c	  
 c	  Name of file with positions and displacements
@@ -163,6 +170,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/09/09 21:36:00  mast
+c	  Eliminate stat_source: and nimp_source: from all includes
+c	
 c	  Revision 3.3  2002/09/06 00:40:18  mast
 c	  Had it exit with error if no patch arrangements will fit the minimum
 c	  required measurement to unknown ratio in automatic mode
@@ -223,7 +233,7 @@ c	integer*4 ixdrop(idim),iydrop(idim),izdrop(idim),ntimes(idim)
 	real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal
 	real*4 devavavg,devmaxavg,devavmax
 	integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop,ixd,iyd,izd
-	integer*4 left,ifon,ndrop,ifflip,indpat,indloc
+	integer*4 left,ifon,ndrop,ifflip,indpat,indloc,icolfix
 	indpat(ix,iy,iz)=ix + (iy-1)*npatx + (iz-1)*npatx*npaty
 	indloc(ix,iy,iz)=ix + (iy-1)*nlocx + (iz-1)*nlocx*nlocy
 c
@@ -430,7 +440,7 @@ c
      &	      nexclyhi,'): '
 	  read(5,*)nofsy,nexclyhi
 	  nytot=npaty-nofsy-nexclyhi
-	  if(nytot+nofsy.gt.npaty.or.nytot.lt.2 )then
+	  if(nytot+nofsy.gt.npaty.or.nytot.lt.1 )then
 	    if (ifauto .ne. 0) call errorexit(
      &		'ILLEGAL ENTRY FOR NUMBER OF SLABS TO EXCLUDE IN Y')
 	    print *,'Illegal entry'
@@ -580,7 +590,7 @@ c
 	  nlocy=nytot+1-nfityin
 	  nlocz=nztot+1-nfitzin
 	  if(nfitxin.lt.2.or.nfitzin.lt.2.or.nlocx.lt.1.or.nlocz.lt.1
-     &	      .or.nfityin.lt.2.or.nlocy.lt.1)then
+     &	      .or.nfityin.lt.1.or.nlocy.lt.1)then
 	    if (ifauto .ne. 0) call errorexit(
      &		'IMPROPER NUMBER TO INCLUDE IN FIT')
 	    print *,'Illegal entry, try again'
@@ -758,18 +768,22 @@ c		solve for this location if there are at least half of the
 c		normal number of patches present and if there are guaranteed
 c		to be at least 3 patches in a different row from the dominant
 c		one, even if the max are dropped from other rows
+c		But treat Y differently: if there are not enough data
+c		on another layer in Y, or if there is only one layer being fit,
+c		then set the second column as fixed in the fits
 c
 	      solved(indlc)=ndat.ge.nfitx*nfity*nfitz/2
+	      icolfix = 0
 	      do i=1,max(nfitx,nfity,nfitz)
 		if(inrowx(i).gt.ndat-3-maxdrop.or.
-     &		    inrowy(i).gt.ndat-3-maxdrop.or.
      &		    inrowz(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
+		if (inrowy(i).gt.ndat-3-maxdrop .or. nfity.eq.1)icolfix=2
 	      enddo
 	      if(solved(indlc))then
 		maxdrop=nint(fracdrop*ndat)
-		call solve_wo_outliers(xr,ndat,3,maxdrop,crit,critabs,
-     &		    elimmin,idrop, ndrop, a,dxyz, cenloc, devavg,devsd,
-     &		    devmax, ipntmax,devxyzmax)
+		call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,
+     &		    critabs, elimmin,idrop, ndrop, a,dxyz, cenloc,
+     &		    devavg,devsd, devmax, ipntmax,devxyzmax)
 c
 c$$$		if (dxyz(1).gt.20.)then
 c$$$		  do i=1,ndat
