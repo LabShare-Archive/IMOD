@@ -99,8 +99,8 @@ typedef struct
   ImodView      *vi;        /* image data to model                       */
   unsigned char *iwork;     /* Image data processing buffer.             */
   unsigned char *isaved;     /* buffer for saving original data.         */
-  double        **andfImage; /* Double buffers for aniso diff */
-  double        **andfImage2;
+  float         **andfImage; /* Double buffers for aniso diff */
+  float         **andfImage2;
 
   int           idatasec;   /* data section. */
   int           idatatime;  /* time value of section */
@@ -153,6 +153,9 @@ bool iprocBusy(void);
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.11  2005/01/28 05:39:44  mast
+    Added anisotropic diffusion
+
     Revision 3.10  2005/01/07 21:59:13  mast
     Added median filter
 

@@ -313,8 +313,8 @@ int iprocRethink(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
-    proc.andfImage2 = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage2 = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
     proc.andfIterDone = 0;
     proc.andfDoneLabel->setText("0 done");
 
@@ -365,8 +365,8 @@ int inputIProcOpen(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
-    proc.andfImage2 = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage2 = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
 
     if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
       freeArrays(&proc);
@@ -857,6 +857,7 @@ void IProcWindow::buttonClicked(int which)
   ImodIProc *ip = &proc;
 
   int cz =  (int)(ip->vi->zmouse + 0.5f);
+  setFocus();
 
   if (which < 5 && ip->vi->loadingImage)
     return;
@@ -1095,6 +1096,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.17  2005/02/12 01:36:18  mast
+    Made call to save bwfloat data on every apply, rearranged list
+
     Revision 4.16  2005/02/10 00:12:00  mast
     Fixed allocation of diffusion arrays to be right when not square
 
