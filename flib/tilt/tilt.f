@@ -341,6 +341,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2003/07/23 23:00:19  mast
+c	  Temporary fix to pad thickness to nice value for fast bp
+c	
 c	  Revision 3.8  2003/04/29 23:33:54  mast
 c	  Set default for radial filter and increase thickness limit
 c	
@@ -2307,9 +2310,9 @@ c
 	  ifalpha=-1
 	  ithickout=ithick
 	  ithickneed=ithick/cal(1)+4.5
-	  call nice_pad(ithickneed, ithick)
+	  ithick = niceframe(ithickneed, 2, 5)
 	  nvertneed=ithickout*abs(sal(1))+5.
-	  print *,'Calculated thickness of vertical slice =',ithick
+c	  print *,'Calculated thickness of vertical slice =',ithick
 	endif
 C
 C	    Set centre of output plane and center of input for transformations
