@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.3  2003/10/02 05:38:25  mast
 Fixed point info output so it does subareas correctly for scattered points or points
 with sizes; and made hush suppress individual point data
@@ -256,7 +259,8 @@ int main( int argc, char *argv[])
         break;
 
       }
-    }
+    } else
+      break;
   }
   /* DNM: took out section that was #ifdef OLDOPT, it's irrelevant */
       

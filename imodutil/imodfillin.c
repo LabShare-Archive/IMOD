@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.4  2003/08/01 00:16:14  mast
 Complete object views when saving model, since there may be new objects
 
@@ -133,7 +136,8 @@ main( int argc, char *argv[])
         break;
                
       }
-    }
+    } else
+      break;
   }
 
   if (i >= argc - 1)

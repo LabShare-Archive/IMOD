@@ -262,7 +262,8 @@ int main(int argc, char **argv)
         break;
         fprintf(stderr, "imod2meta: unknown option %s\n", argv[i]);
       }
-    }
+    } else
+      break;
   }
      
 

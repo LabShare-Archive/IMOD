@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
 Revision 3.2  2003/08/26 03:51:50  mast
 Fix usage statement for -E option
 
@@ -290,7 +293,8 @@ void main(int argc, char **argv)
         break;
                
       }
-    }
+    } else
+      break;
   }
 
   if (i >= argc)
@@ -507,10 +511,8 @@ void resecobj(Iobj *obj, int minz, int maxz, int incz)
       (incz == 1))
     return;
 
-#ifndef NDEBUG
-  printf("Z section filter from %d to %d, step by %d\n", minz, maxz, incz);
-  printf("%d contours\n", obj->contsize);
-#endif
+  /* printf("Z section filter from %d to %d, step by %d\n", minz, maxz, incz);
+     printf("%d contours\n", obj->contsize); */
 
   for(co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);

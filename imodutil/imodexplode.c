@@ -132,7 +132,8 @@ int main(int argc, char **argv)
         break;
                
       }
-    }
+    } else
+      break;
   }    
 
   if (i != argc - 2)
