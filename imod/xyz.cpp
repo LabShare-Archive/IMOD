@@ -50,6 +50,7 @@ Log at end of file
 #include "imod_input.h"
 #include "autox.h"
 #include "imod_edit.h"
+#include "imod_model_edit.h"
 #include "imod_workprocs.h"
 #include "imod_moviecon.h"
 #include "preferences.h"
@@ -291,7 +292,7 @@ void XyzWindow::GetCIImages()
 }
 
 
-int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
+int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
 {
   struct xxyzwin *xx = mXyz;
   int nx, ny, nz;
@@ -313,8 +314,8 @@ int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
 
   /* Click in main image, Z-Section */
   if (mouse_in_box(0, 0, nx, ny, x, y)) {
-    *mx = (int)(x * scale);
-    *my = (int)(y * scale);
+    *mx = x * scale;
+    *my = y * scale;
     *mz = (int)vi->zmouse;
     ivwBindMouse(vi);
     return(3);
@@ -323,8 +324,8 @@ int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
   /* Click in top image, Y-Section */
   if (mouse_in_box(0, ny + b2,
                    nx,  ny + nz - 1 + b2, x, y)) {
-    *mx = (int)(x * scale);
-    *my = (int)vi->ymouse;
+    *mx = x * scale;
+    *my = vi->ymouse;
     *mz = (int)((y - b2 - ny) * scale);
     ivwBindMouse(vi);
     return(2);
@@ -334,8 +335,8 @@ int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
   if (mouse_in_box(nx + b2, 0,
                    nx + b2 + nz - 1,
                    ny, x, y)) {
-    *mx = (int)vi->xmouse;
-    *my = (int)(y * scale);
+    *mx = vi->xmouse;
+    *my = y * scale;
     *mz = (int)((x - b2 - nx) * scale);
     return(1);
   }
@@ -344,24 +345,24 @@ int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
   if (mouse_in_box(nx + b2 - 1, ny + b2 - 1,
                    nx + b2 + nz + 1,
                    ny + b2 + nz + 1, x, y)) {
-    *mx = (int)vi->xmouse;
-    *my = (int)vi->ymouse;
+    *mx = vi->xmouse;
+    *my = vi->ymouse;
     *mz = (int)(0.5 * ((y - b2 - ny) + (x - b2 - nx)) * scale);
     return(6);
   }
      
   /* Y-Section Gadget */
   if (mouse_in_box(-1, ny, nx + 1, ny + b2, x, y)) {
-    *mx = (int)(x * scale);
-    *my = (int)vi->ymouse;
+    *mx = x * scale;
+    *my = vi->ymouse;
     *mz = (int)vi->zmouse;
     return(5);
   }
      
   /* X-Section Gadget */
   if (mouse_in_box(nx, -1, nx + b2, ny + 1, x, y)) {
-    *mx = (int)vi->xmouse;
-    *my = (int)(y * scale);
+    *mx = vi->xmouse;
+    *my = y * scale;
     *mz = (int)vi->zmouse;
     return(4);
   }
@@ -373,7 +374,8 @@ int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
 void XyzWindow::B1Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
-  int mx, my, mz;
+  float mx, my;
+  int mz;
   ImodView *vi   = xx->vi;
   Imod     *imod = vi->imod;
   Ipoint pnt, *spnt;
@@ -388,7 +390,7 @@ void XyzWindow::B1Press(int x, int y)
 
   if (xx->vi->ax) {
     if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_fillmouse(xx->vi, mx, my);
+      autox_fillmouse(xx->vi, (int)mx, (int)my);
       return;
     }
   }
@@ -408,7 +410,7 @@ void XyzWindow::B1Press(int x, int y)
     for (i = 0; i < imod->objsize; i++) {
       index.object = i;
       temp_distance = imod_obj_nearest
-        (&(vi->imod->obj[i]), &index , &pnt, selsize);
+        (vi, &(vi->imod->obj[i]), &index , &pnt, selsize);
       if (temp_distance == -1)
         continue;
       if (distance == -1 || distance > temp_distance) {
@@ -441,7 +443,8 @@ void XyzWindow::B1Press(int x, int y)
 void XyzWindow::B2Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
-  int mx, my, mz;
+  float mx, my;
+  int mz;
   int movie;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
@@ -454,7 +457,7 @@ void XyzWindow::B2Press(int x, int y)
 
   if (xx->vi->ax) {
     if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_sethigh(xx->vi, mx, my);
+      autox_sethigh(xx->vi, (int)mx, (int)my);
       return;
     }
   }
@@ -538,7 +541,8 @@ void XyzWindow::B2Press(int x, int y)
 void XyzWindow::B3Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
-  int mx, my, mz;
+  float mx, my;
+  int mz;
   int movie;
   Icont *cont;
   Iobj *obj;
@@ -550,7 +554,7 @@ void XyzWindow::B3Press(int x, int y)
 
   if (xx->vi->ax) {
     if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_setlow(xx->vi, mx, my);
+      autox_setlow(xx->vi, (int)mx, (int)my);
       return;
     }
   }
@@ -667,7 +671,8 @@ void XyzWindow::B1Drag(int x, int y)
 void XyzWindow::B2Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
-  int mx, my, mz, box;
+  float mx, my;
+  int mz, box;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
   struct Mod_Point   point;
@@ -679,7 +684,7 @@ void XyzWindow::B2Drag(int x, int y)
       box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
-      autox_sethigh(xx->vi, mx, my);
+      autox_sethigh(xx->vi, (int)mx, (int)my);
       return;
     }
   }
@@ -714,7 +719,7 @@ void XyzWindow::B2Drag(int x, int y)
   point.z = mz;
 
   dist = imodel_point_dist(&point, &(cont->pts[pt]));
-  if (dist < xx->vi->imod->res)
+  if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
     return;
 
   if ((cont->psize - 1) == pt)
@@ -737,7 +742,8 @@ void XyzWindow::B2Drag(int x, int y)
 void XyzWindow::B3Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
-  int mx, my, mz, box;
+  float mx, my;
+  int mz, box;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
   struct Mod_Point   point;
@@ -749,7 +755,7 @@ void XyzWindow::B3Drag(int x, int y)
       box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
-      autox_setlow(xx->vi, mx, my);
+      autox_setlow(xx->vi, (int)mx, (int)my);
       return;
     }
   }
@@ -779,7 +785,7 @@ void XyzWindow::B3Drag(int x, int y)
   point.z = mz;
 
   dist = imodel_point_dist(&point, &(cont->pts[pt]));
-  if (dist < xx->vi->imod->res)
+  if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
     return;
 
   pt++;
@@ -1086,7 +1092,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   Ipoint *point, *thisPt, *lastPt;
   int pt, next, radius;
   bool thisVis, lastVis;
-  float drawsize, delz;
+  float drawsize, delz, zscale;
   float z = xx->zoom;
   int bx = XYZ_BSIZE + xx->xwoffset;
   int by = XYZ_BSIZE + xx->ywoffset;
@@ -1099,6 +1105,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
      
   if (zapTimeMismatch(vi, 0, obj, cont))
     return;
+
+  zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
 
   if (!iobjScat(obj->flags)) {
 
@@ -1273,7 +1281,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
              that */
           if (drawsize > 1) {
             /* draw a smaller circ if further away. */
-            delz = (point->z - vi->zmouse) * App->cvi->imod->zscale;
+            delz = (point->z - vi->zmouse) * zscale;
             if (delz < 0)
               delz = -delz;
             
@@ -1668,7 +1676,8 @@ void XyzGL::resizeGL( int winx, int winy )
 void XyzGL::mousePressEvent(QMouseEvent * event )
 {
   int button1, button2, button3;
-  int mx, my, mz;
+  float mx, my;
+  int mz;
   mMousePressed = true;
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
@@ -1729,6 +1738,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.20  2004/09/10 02:31:04  mast
+replaced long with int
+
 Revision 4.19  2004/07/11 18:27:53  mast
 Made it use new function for getting contour to add points
 
