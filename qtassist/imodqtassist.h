@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2004/12/22 05:49:02  mast
+    Addition to package
+
 */
 #ifndef IMODQTASSIST_H
 #define IMODQTASSIST_H
@@ -25,7 +28,7 @@ class AssistantListener : public QObject
   Q_OBJECT
 
 public: 
-  AssistantListener() {};  
+  AssistantListener() {mWarned = false;};  
   ~AssistantListener() {};
 
   public slots:
@@ -34,6 +37,8 @@ public:
  protected:
   void timerEvent(QTimerEvent *e);
 
+ private:
+  bool mWarned;
 };
 
 #ifdef QT_THREAD_SUPPORT
