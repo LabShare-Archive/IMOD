@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
 import etomo.comscript.ComScriptManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
@@ -43,6 +41,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/03 02:30:44  sueh
+* <p> bug# 568 Added setDataParamDirty() so that meta data can be changed
+* <p> in other objects.
+* <p>
 * <p> Revision 1.3  2004/11/23 00:14:11  sueh
 * <p> bug# 520 Allowed propertyUserDir to be set.  Prevented the construction
 * <p> of mainPanel when test is true.
@@ -157,7 +159,6 @@ public abstract class BaseManager {
   protected File paramFile = null;
   //FIXME homeDirectory may not have to be visible
   protected String homeDirectory;
-  protected boolean isDataParamDirty = false;
   // Control variable for process execution
   // FIXME: this going to need to expand to handle both axis
   protected String nextProcess = "";
@@ -244,18 +245,30 @@ public abstract class BaseManager {
    * information to a file.
    */
   public void saveTestParamFile() {
+    Storable[] storable = new Storable[2];
+    storable[0] = getBaseMetaData();
+    storable[1] = getProcessTrack();
+    save(storable);
+    //  Update the MRU test data filename list
+    userConfig.putDataFile(paramFile.getAbsolutePath());
+    mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
+    // Reset the process track flag
+    getProcessTrack().resetModified();
+  }
+  
+  /** 
+   * Saves Storables in a synchronized function.  Only this function should use
+   * the ParameterStore.save() call.  This prevents problems when multiple
+   * threads try to save to the paramFile.
+   * Backs up paramFile before saving.
+   * paramFile must not be null.
+   * @param storable
+   */
+  private synchronized void save(Storable[] storable) {
+    backupFile(paramFile);
+    ParameterStore paramStore = new ParameterStore(paramFile);
     try {
-      backupFile(paramFile);
-      ParameterStore paramStore = new ParameterStore(paramFile);
-      Storable[] storable = new Storable[2];
-      storable[0] = getBaseMetaData();
-      storable[1] = getProcessTrack();
       paramStore.save(storable);
-      //  Update the MRU test data filename list
-      userConfig.putDataFile(paramFile.getAbsolutePath());
-      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
-      // Reset the process track flag
-      getProcessTrack().resetModified();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -265,30 +278,16 @@ public abstract class BaseManager {
       errorMessage[2] = except.getMessage();
       getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
     }
-    isDataParamDirty = false;
   }
   
   /**
    * save the meta data parameter
-   * information to a file.
+   * information to file.
    */
   public void saveMetaData() {
-    try {
-      backupFile(paramFile);
-      ParameterStore paramStore = new ParameterStore(paramFile);
-      Storable[] storable = new Storable[1];
-      storable[0] = getBaseMetaData();
-      paramStore.save(storable);
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Test parameter file save error";
-      errorMessage[1] = "Could not save meta data to file:";
-      errorMessage[2] = except.getMessage();
-      getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
-    }
-    isDataParamDirty = false;
+    Storable[] storable = new Storable[1];
+    storable[0] = getBaseMetaData();
+    save(storable);
   }
   
   /**
@@ -318,30 +317,34 @@ public abstract class BaseManager {
         return false;
       }
     }
-    if (saveTestParamIfNecessary()) {
-      //  Should we close the 3dmod windows
-      try {
-        if (imodManager.isOpen()) {
-          String[] message = new String[3];
-          message[0] = "There are still 3dmod programs running.";
-          message[1] = "Do you wish to end these programs?";
-          if (mainFrame.openYesNoDialog(message)) {
-            imodManager.quit();
-          }
+    saveTestParamOnExit();
+    //  Should we close the 3dmod windows
+    try {
+      if (imodManager.isOpen()) {
+        String[] message = new String[3];
+        message[0] = "There are still 3dmod programs running.";
+        message[1] = "Do you wish to end these programs?";
+        if (mainFrame.openYesNoDialog(message)) {
+          imodManager.quit();
         }
       }
-      catch (AxisTypeException except) {
-        except.printStackTrace();
-        getMainPanel().openMessageDialog(except.getMessage(), "AxisType problem");
-      }
-      catch (SystemProcessException except) {
-        except.printStackTrace();
-        getMainPanel().openMessageDialog(except.getMessage(),
-          "Problem closing 3dmod");
-      }
-      return true;
     }
-    return false;
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      getMainPanel().openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      getMainPanel().openMessageDialog(except.getMessage(),
+          "Problem closing 3dmod");
+    }
+    return true;
+  }
+  
+  protected void saveTestParamOnExit() {
+    if (paramFile != null) {
+      saveTestParamFile();
+    }
   }
   
   /**
@@ -502,7 +505,6 @@ public abstract class BaseManager {
     return true;
   }
   
-  
   protected void backupFile(File file) {
     if (file.exists()) {
       File backupFile = new File(file.getAbsolutePath() + "~");
@@ -517,40 +519,6 @@ public abstract class BaseManager {
     }
   }
   
-  /**
-   * If the current state needs to be saved the users is queried with a dialog
-   * box.
-   * @return True if either: the current state does not need to be saved, the
-   * state is successfully saved, or the user chooses not to save the current
-   * state by selecting no.  False is returned if the state can not be
-   * successfully saved, or the user chooses cancel.
-   */
-  protected boolean saveTestParamIfNecessary() {
-    // Check to see if the current dataset needs to be saved
-    if (isDataParamDirty || getProcessTrack().isModified()) {
-      String[] message = {"Save the current data file ?"};
-      int returnValue = mainFrame.openYesNoCancelDialog(message);
-      if (returnValue == JOptionPane.CANCEL_OPTION) {
-        return false;
-      }
-      if (returnValue == JOptionPane.NO_OPTION) {
-        return true;
-      }
-      // If the selects Yes then try to save the current EDF file
-      if (paramFile == null) {
-        if (!getMainPanel().getTestParamFilename()) {
-          return false;
-        }
-      }
-      // Be sure the file saving was successful
-      saveTestParamFile();
-      if (isDataParamDirty) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   private static boolean getTest() {
     return test;
   }
@@ -600,10 +568,6 @@ public abstract class BaseManager {
   public void packMainWindow() {
     mainFrame.repaint();
     getMainPanel().fitWindow();
-  }
-  
-  public void setDataParamDirty(boolean dataParamDirty) {
-    isDataParamDirty = dataParamDirty;
   }
 
 }
