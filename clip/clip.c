@@ -59,22 +59,22 @@ void usage(void)
   fprintf(stderr, "\tmedian      - Do median filtering.\n");
   fprintf(stderr, "\tprewitt     - Apply Prewitt filter as in 3dmod.\n");
   fprintf(stderr, "\tresize      - cut out and/or pad image data.\n");
-  fprintf(stderr, "\trotation    - rotate image\n");
+  /* fprintf(stderr, "\trotation    - rotate image\n"); */
   fprintf(stderr, "\tshadow      - Increase or decrease image shadows.\n");
   fprintf(stderr, "\tsharpen     - Sharpen image as in 3dmod.\n");
   fprintf(stderr, "\tsmooth      - Smooth image as in 3dmod.\n");
   fprintf(stderr, "\tsobel       - Apply Sobel filter as in 3dmod.\n");
   fprintf(stderr, "\tsplitrgb    - Split RGB image file into 3 byte files.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
-  fprintf(stderr, "\ttranslate   - translate image.\n");
-  fprintf(stderr, "\tzoom        - magnify image.\n");
+  /* fprintf(stderr, "\ttranslate   - translate image.\n");
+  fprintf(stderr, "\tzoom        - magnify image.\n"); */
   fprintf(stderr, "\noptions:\n");
   fprintf(stderr, "\t[-v]  view output data.\n");
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
   fprintf(stderr, "\t[-s] Switch, [-n #] Amount; Depends on function.\n");
   fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
-  fprintf(stderr, "\t[-x #,#] [-y #,#] [-z #,#] input variables.\n");
+  /*  fprintf(stderr, "\t[-x #,#] [-y #,#] [-z #,#] input variables.\n"); */
   fprintf(stderr, "\t[-cx #]  [-cy #]  [-cz #]  center coords.\n");
   fprintf(stderr, "\t[-ix #]  [-iy #]  [-iz #]  input sizes.\n");
   fprintf(stderr, "\t[-ox #]  [-oy #]  [-oz #]  output sizes.\n");
@@ -91,13 +91,18 @@ void show_error(char *reason)
   printf("ERROR: %s\n", reason);
 }
 
+void show_warning(char *reason)
+{
+  printf("WARNING: %s\n", reason);
+}
+
 void show_status(char *info)
 {
   printf("%s", info);
   fflush(stdout);
 }
 
-void default_options(struct Grap_options *opt)
+void default_options(ClipOptions *opt)
 {
   opt->hin = opt->hin2 = opt->hout = NULL;
   opt->x  = IP_DEFAULT; opt->x2 = IP_DEFAULT;
@@ -107,6 +112,7 @@ void default_options(struct Grap_options *opt)
   opt->iz = IP_DEFAULT; opt->iz2 = IP_DEFAULT;
   opt->ox = IP_DEFAULT; opt->oy = IP_DEFAULT; opt->oz = IP_DEFAULT;
   opt->cx = IP_DEFAULT; opt->cy = IP_DEFAULT; opt->cz = IP_DEFAULT;
+  opt->outBefore = opt->outAfter = IP_DEFAULT;
   opt->red = IP_DEFAULT; opt->green = IP_DEFAULT; opt->blue = IP_DEFAULT;
   opt->high = 0; opt->low = 1.0;
   opt->thresh = IP_DEFAULT;
@@ -127,8 +133,8 @@ void default_options(struct Grap_options *opt)
 
 int main( int argc, char *argv[] )
 {
-  struct MRCheader hin, hin2, hout;
-  struct Grap_options opt;
+  MrcHeader hin, hin2, hout;
+  ClipOptions opt;
 
   int process = IP_NONE;  /* command to run.             */
   int view    = FALSE;    /* view file at end?           */
@@ -148,8 +154,8 @@ int main( int argc, char *argv[] )
   opt.command = argv[1];
 
   /* Find which process to run */
-  if (!strncmp( argv[1], "add", 3))
-    process = IP_ADD;
+  /*if (!strncmp( argv[1], "add", 3))
+    process = IP_ADD; */
   if ((!strncmp( argv[1], "avg", 3)) || 
       (!strncmp( argv[1], "average", 3)) )
     process = IP_AVERAGE;
@@ -183,16 +189,16 @@ int main( int argc, char *argv[] )
     process = IP_LAPLACIAN;
   if (!strncmp( argv[1], "median", 2))
     process = IP_MEDIAN;
-  if (!strncmp( argv[1], "peak", 3)){
+  /*  if (!strncmp( argv[1], "peak", 3)){
     process = IP_PEAK;
     procout = FALSE;
-  }
+    } */
   if (!strncmp( argv[1], "prewitt", 2))
     process = IP_PREWITT;
   if (!strncmp( argv[1], "resize", 3))
     process = IP_RESIZE;
-  if (!strncmp( argv[1], "rotate", 3))
-    process = IP_ROTATE;
+  /* if (!strncmp( argv[1], "rotate", 3))
+     process = IP_ROTATE; */
   if (!strncmp( argv[1], "shadow", 4))
     process = IP_SHADOW;
   if (!strncmp( argv[1], "sharpen", 4))
@@ -205,15 +211,13 @@ int main( int argc, char *argv[] )
     process = IP_STAT;
     procout = FALSE;
   }
-  if (!strncmp( argv[1], "translate", 2))
+  /* if (!strncmp( argv[1], "translate", 2))
     process = IP_TRANSLATE;
   if (!strncmp( argv[1], "zoom", 3))
-    process = IP_ZOOM;
-
-
+     process = IP_ZOOM;
   if (!strncmp( argv[1], "project", 3)){
     process = IP_PROJECT;
-  }
+    } */
 
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
@@ -434,7 +438,7 @@ int main( int argc, char *argv[] )
 
     } else if (process != IP_SPLITRGB) {
 
-      /* DNm 10/20/03: swicth to calling routine for backup file */
+      /* DNm 10/20/03: switch to calling routine for backup file */
       imodBackupFile(argv[argc - 1]);
 
       hout.fp = fopen(argv[argc - 1], "wb+");
@@ -463,6 +467,7 @@ int main( int argc, char *argv[] )
   case IP_BRIGHTNESS:
   case IP_CONTRAST:
   case IP_SHADOW:
+  case IP_RESIZE:
     retval = clip_scaling(&hin, &hout, &opt, process);
     break;
   case IP_COLOR:
@@ -484,7 +489,7 @@ int main( int argc, char *argv[] )
     retval = clip_fft(&hin, &hout, &opt);
     break;
   case IP_FILTER:
-    opt.dim = 2;
+    /* opt.dim = 2; */
     retval = clip_bandpass_filter(&hin, &hout, &opt);
     break;
   case IP_FLIP:
@@ -503,9 +508,6 @@ int main( int argc, char *argv[] )
     break;
   case IP_PEAK:
     retval = puts("peak: future function\n");
-    break;
-  case IP_RESIZE:
-    retval = grap_resize(&hin, &hout, &opt);
     break;
   case IP_ROTATE:
     retval = grap_rotate(&hin, &hout, &opt);
@@ -597,6 +599,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.12  2005/01/07 23:54:25  mast
+Fix brightness listing in usage
+
 Revision 3.11  2005/01/07 20:06:52  mast
 Added various filters including simple 3dmod ones and median filter
 
