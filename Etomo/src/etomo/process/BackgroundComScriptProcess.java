@@ -30,6 +30,17 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2004/08/28 00:45:08  sueh
+ * <p> bug# 508 adding isComScriptBusy() - uses lsof to check for an open
+ * <p> combine.log.  This will only work on Mac and Linux.
+ * <p> Changed renameFiles so it can report an error if the rename fails.
+ * <p> In Windows this could mean that combine.com is already running.
+ * <p> Adding code to parse combine.out because ParseBackgroundPID runs
+ * <p> on a separate thread and watches a system program.  Tried to put the
+ * <p> code I needed from ParseBackgroundPID.parsePIDString() into a static
+ * <p> function in ParseBackgroundPID, but it gave a file not found error, so
+ * <p> I created a function parsePIDString(File) in this object.
+ * <p>
  * <p> Revision 1.5  2004/08/24 20:43:35  sueh
  * <p> bug# 508 change kill() to killMonitor()
  * <p>
@@ -128,7 +139,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     String header = stdout[0].trim();
     String[] labels = header.split("\\s+");
     int idxNAME = -1;
-    int idxTYPE = -1;
 
     int found = 0;
     for (int i = 0; i < labels.length; i++) {
@@ -136,16 +146,12 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         idxNAME = i;
         found++;
       }
-      else if (labels[i].equals("TYPE")) {
-        idxTYPE = i;
-        found++;
-      }
-      if (found >= 2) {
+      if (found >= 1) {
         break;
       }
     }
     //  Return null if the PID or PPID fields are not found
-    if (idxNAME == -1 || idxTYPE == -1) {
+    if (idxNAME == -1) {
       return false;
     }
     String[] fields;
@@ -153,12 +159,11 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
       int nameIndex = idxNAME;
-      //check for missing size entry
-      if (fields.length == idxNAME) {
-        nameIndex = idxNAME - 1;
+      //check for missing size entry - assume name is last
+      if (fields.length <= idxNAME) {
+        nameIndex = fields.length - 1;
       }
-      if (fields[idxTYPE].equals("REG") && 
-          fields[nameIndex].equals(comscriptLog.getAbsolutePath())){
+      if (fields[nameIndex].equals(comscriptLog.getAbsolutePath())){
         killMonitor();
         return true;
       }
