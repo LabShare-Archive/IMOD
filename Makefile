@@ -327,7 +327,6 @@ dist : ALWAYS
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
-	\cp .version $(ARCDIR)/VERSION
 	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	./installqtlib
 	echo "Compressing..."
@@ -422,6 +421,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.40  2004/07/22 18:20:20  mast
+#  Fixed the fix
+#
 #  Revision 3.39  2004/07/22 18:17:39  mast
 #  Change to better sed command for stripping Ctrl M
 #
