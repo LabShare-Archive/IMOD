@@ -210,6 +210,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/07 02:01:33  mast
+c	  Changes to accommodate distinction in tiltalign between views in
+c	  solution and views in file
+c	
 c	  Revision 3.1  2002/01/07 22:35:15  mast
 c	  Increased dimension for centroid calculation pixel lists, and added
 c	  checks to catch errors in future
@@ -297,8 +301,8 @@ C
 c	  
 c	    if no pieces, set up mocklist
 c
-	if(npclist.gt.limpcl)stop
-     &	    'TOO MANY PIECE COORDINATES FOR ARRAYS'
+	if(npclist.gt.limpcl)call errorexit(
+     &	    'TOO MANY PIECE COORDINATES FOR ARRAYS',0)
 	if(npclist.eq.0)then
 	  do i=1,nz
 	    ixpclist(i)=0
@@ -309,8 +313,8 @@ c
 	endif
 	call fill_listz(izpclist,npclist,listz,nvuall)
 c	print *,nvuall,maxview
-	if(nvuall.gt.maxview)stop
-     &	    'TOO MANY VIEWS FOR ARRAYS'
+	if(nvuall.gt.maxview)call errorexit(
+     &	    'TOO MANY VIEWS FOR ARRAYS',0)
 	call checklist(ixpclist,npclist,1,nx,minxpiece
      &	    ,nxpieces,nxoverlap)
 	nxtotpix=nx+(nxpieces-1)*(nx-nxoverlap)
@@ -339,6 +343,7 @@ c
 	do i=1,n_point
 	  p_coord(1,i)=(p_coord(1,i)+xorig)/delta(1)
 	  p_coord(2,i)=(p_coord(2,i)+yorig)/delta(2)
+	  p_coord(3,i)=(p_coord(3,i)+zorig)/delta(3)
 	enddo
 	xorig=0.
 	yorig=0.
@@ -578,11 +583,12 @@ c
 	  enddo
 	enddo
 c
-	if(nobjdo.gt.maxreal.or.nvuall*max_mod_obj.gt.maxprojpt)stop
-     &	    'TOO MANY OBJECTS OR VIEWS AND OBJECTS FOR ARRAYS'
+	if(nobjdo.gt.maxreal.or.nvuall*max_mod_obj.gt.maxprojpt)
+     &	    call errorexit(
+     &	    'TOO MANY OBJECTS OR VIEWS AND OBJECTS FOR ARRAYS',0)
 c	  
-	if(nobjdo*maxsum*npixbox.gt.maxnbox*maxbox**2) stop
-     &	    'TOO MUCH SUMMING IN BOXES TOO LARGE FOR TOO MANY POINTS'
+	if(nobjdo*maxsum*npixbox.gt.maxnbox*maxbox**2) call errorexit(
+     &	    'TOO MUCH SUMMING IN BOXES TOO LARGE FOR TOO MANY POINTS',0)
 c	  
 	do i=1,nobjdo
 	  do j=1,maxsum
@@ -611,8 +617,8 @@ c
 	      idxedge(nedge)=ix
 	      idyedge(nedge)=iy
 	    endif
-	    if (ninside.gt.liminside.or.nedge.gt.limedge) stop
-     &		'BEAD RADIUS FOR CENTROIDS TOO LARGE FOR ARRAYS'
+	    if (ninside.gt.liminside.or.nedge.gt.limedge) call errorexit(
+     &		'BEAD RADIUS FOR CENTROIDS TOO LARGE FOR ARRAYS',0)
 	  enddo
 	enddo
 c	  
@@ -1240,6 +1246,7 @@ c
 	do i=1,n_point
 	  p_coord(1,i)=delta(1)*p_coord(1,i)-xorig
 	  p_coord(2,i)=delta(2)*p_coord(2,i)-yorig
+	  p_coord(3,i)=delta(3)*p_coord(3,i)-zorig
 	enddo
 	call write_wmod(modelfile)
 	if(filout.ne.' ')then
@@ -1254,5 +1261,15 @@ c
 	  CALL IMCLOSE(2)
 	endif
 	call exit(0)
-99	stop 'ERROR READING IMAGE FILE'
+99	call errorexit('ERROR READING IMAGE FILE',0)
 	end
+
+	subroutine errorexit(message, iflocal)
+	implicit none
+	integer*4 iflocal
+	character*(*) message
+	print *
+	print *,'ERROR: BEADTRACK - ', message
+	call exit(1)
+	end
+	
