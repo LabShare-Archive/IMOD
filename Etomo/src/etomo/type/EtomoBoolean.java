@@ -19,6 +19,11 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2004/12/29 00:06:47  sueh
+ * <p> bug# 567 Added set(ComScriptCommand) to get the value in
+ * <p> ComScriptCommand value where thekeyword in ComScriptCommand
+ * <p> equals name.
+ * <p>
  * <p> Revision 1.2  2004/12/16 02:29:15  sueh
  * <p> bug# 564 Added backwardCompatibleValue, which overrides resetValue
  * <p> as the default when loading.
@@ -64,7 +69,7 @@ public class EtomoBoolean extends ConstEtomoBoolean {
 
   public ConstEtomoBoolean set(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
-    value = toInteger(scriptCommand.hasKeyword(name));
+    value = toInteger(scriptCommand.getValue(name));
     return this;
   }
 
