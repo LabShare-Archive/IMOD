@@ -1,7 +1,7 @@
 /**
- * <p>Description: </p>
+ * <p>Description: Panel to modify the newstack parameters in prenewst</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright (c) 2002-2004</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/04/06 17:00:21  rickg
+ * <p> Implemented basic fiducialess alignment interface
+ * <p>
  * <p> Revision 1.3  2004/03/13 00:33:13  rickg
  * <p> Bug# 390 Add set/get Parameters and context menu
  * <p>
@@ -25,6 +28,7 @@
 
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
@@ -52,17 +56,21 @@ public class PrenewstPanel implements ContextMenu {
   public PrenewstPanel(AxisID id) {
     axisID = id;
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
-
+    
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Pre-aligned image stack binning ",
       integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    
     pnlPrenewst.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
-    pnlPrenewst.add(spinBinning.getContainer());
-    pnlPrenewst.add(cbFiducialess);
-    pnlPrenewst.add(ltfRotation.getContainer());
+    UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
+    UIUtilities.addWithYSpace(pnlPrenewst, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlPrenewst, ltfRotation.getContainer());
 
+    //  Align the UI objects along their left sides
+    UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
+    
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
@@ -71,7 +79,11 @@ public class PrenewstPanel implements ContextMenu {
   JPanel getPanel() {
     return pnlPrenewst;
   }
-
+  
+  void setAlignmentX(float align) {
+    pnlPrenewst.setAlignmentX(align);
+  }
+  
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
   }
@@ -104,15 +116,7 @@ public class PrenewstPanel implements ContextMenu {
     else {
       prenewstParams.setBinByFactor(Integer.MIN_VALUE);
     }
-
-    //  Should this test be here or somewhere else?
     prenewstParams.setRotateByAngle(-1 * Float.parseFloat(ltfRotation.getText()));
-/*    if (cbFiducialess.isSelected()) {
-      prenewstParams.setRotateByAngle(-1 * Float.parseFloat(ltfRotation.getText()));
-    }
-    else {
-      prenewstParams.setRotateByAngle(Float.NaN);
-    }*/
   }
 
   /**
