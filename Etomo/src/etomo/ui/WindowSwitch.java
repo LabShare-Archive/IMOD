@@ -227,6 +227,14 @@ public class WindowSwitch {
     if (menuList == null) {
       return;
     }
+    //The MainPanel can't always measure its display state accurately when it is 
+    //displayed on a tab.  Saving the display state allow MainPanel to display
+    //correctly when it is brought up again.
+    int oldIndex  = tabbedPane.getSelectedIndex();
+    if (oldIndex != -1) {
+      MainPanel oldMainPanel = (MainPanel) mainPanelList.get(oldIndex);
+      oldMainPanel.saveDisplayState();
+    }
     tabbedPane.removeChangeListener(tabChangeListener);
     tabbedPane.removeAll();
     if (menuList.size() < 2) {
@@ -297,6 +305,11 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.3  2005/02/11 19:05:17  sueh
+ * <p>bug# 594 Putting setting tab title back into rename because it doesn't
+ * <p>refresh New Join  when make sample is run.  Add checks to make sure
+ * <p>this doesn't crash.
+ * <p>
  * <p>Revision 1.2  2005/02/11 16:48:13  sueh
  * <p>bug# 594 bug fix:  trying to rename a tab when there is only one window,
  * <p>which means that the tab pane may not exist.
