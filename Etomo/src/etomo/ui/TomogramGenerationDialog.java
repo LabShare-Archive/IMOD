@@ -58,6 +58,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.30  2005/01/12 02:39:20  sueh
+ * bug# 579 setting use local alignment correctly
+ *
  * Revision 3.29  2005/01/12 00:48:10  sueh
  * bug# 579 Stop enabling/disabling Use local alignments checkbox when
  * fiducialess checkbox is selected/unselected.  This needs to initiated from
@@ -398,6 +401,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z Factors");
       
   private JPanel pnlTiltButtons = new JPanel();
+  private LabeledTextField ltfExtraExcludeList = new LabeledTextField(
+  "Extra views to exclude: ");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -543,6 +548,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments());
     cbUseZFactors.setSelected(metaData.getUseZFactors().is());
+    ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
@@ -706,6 +712,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       tiltParam.setFiducialess(cbFiducialess.isSelected());
       tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
       metaData.setUseZFactors(cbUseZFactors.isSelected());
+      tiltParam.setExcludeList2(ltfExtraExcludeList.getText());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -756,6 +763,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlTrial.setVisible(isAdvanced);
     ltfStartingAndEndingZ.setVisible(isAdvanced);
     pnlInverseFilter.setVisible(isAdvanced);
+    ltfExtraExcludeList.setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
 
@@ -881,6 +889,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTiltParams, ltfXAxisTilt.getContainer());
     pnlTiltParams.add(pnlAdvanced3);
     UIUtilities.addWithYSpace(pnlTiltParams, pnlRadialFilter);
+    UIUtilities.addWithYSpace(pnlTiltParams, ltfExtraExcludeList.getContainer());
 
     //UIUtilities.addWithYSpace(pnlUseLocalAlignment, cbBoxUseLocalAlignment);
     UIUtilities.addWithYSpace(pnlTiltParams, cbBoxUseLocalAlignment);
