@@ -22,6 +22,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.3  2003/03/20 17:22:18  rickg
  * <p> Comment update
  * <p>
@@ -71,6 +74,8 @@ public class CopyTomoComs {
 
     //  compile the input sequence to copytomocoms
     int lineCount = 0;
+    
+    //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       tempStdInput[lineCount++] = "1";
     }
@@ -78,6 +83,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "2";
     }
 
+    //  Data source: CCD or film
     if (metaData.getDataSource() == DataSource.CCD) {
       tempStdInput[lineCount++] = "c";
     }
@@ -85,6 +91,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "f";
     }
 
+    //  View type: single or montaged
     if (metaData.getViewType() == ViewType.SINGLE_VIEW) {
       tempStdInput[lineCount++] = "n";
     }
@@ -92,28 +99,34 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "y";
     }
 
-    //  CCDEraser and local align entries
+    //  CCDEraser and local alignment entries
     //  Always yes tiltalign relies on local entries to save default values
     //  even if they are not used.
     tempStdInput[lineCount++] = "y";
     tempStdInput[lineCount++] = "y";
 
+    //  Dataset name
     tempStdInput[lineCount++] = metaData.getDatasetName();
+    
+    //  Backup directory
     tempStdInput[lineCount++] = metaData.getBackupDirectory();
 
+    //  Pixel size
     tempStdInput[lineCount++] = String.valueOf(metaData.getPixelSize());
+    
+    //  Fiducial diameter
     tempStdInput[lineCount++] = String.valueOf(metaData.getFiducialDiameter());
 
-    //
     // Image rotation
-    //
     tempStdInput[lineCount++] = String.valueOf(metaData.getImageRotation());
 
-    //  tilt angle data
+    //  Extract the tilt angle data from the stack
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
       tempStdInput[lineCount++] = "y";
       tempStdInput[lineCount++] = "0";
     }
+    
+    //  Specify a range, creating the rawtilt file
     else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "1";
@@ -123,10 +136,12 @@ public class CopyTomoComs {
             + ","
             + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
     }
+    // Use an existing rawtilt file (this assumes that one is there and has
+    // not been deleted by checkTiltAngleFiles()
     else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "0";
     }
+
     else {
       //  TODO Specification of all tilt alngles is not yet implemented
       tempStdInput[lineCount++] = "n";
@@ -138,15 +153,20 @@ public class CopyTomoComs {
     //  Exclude list
     tempStdInput[lineCount++] = metaData.getExcludeProjectionsA();
 
-    //  Second axis angle specification
+
+    // Second axis entries
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
 
+      //    Image rotation
       tempStdInput[lineCount++] = String.valueOf(metaData.getImageRotation());
 
+      //    Extract the tilt angle data from the stack
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
         tempStdInput[lineCount++] = "y";
         tempStdInput[lineCount++] = "0";
       }
+      
+      //    Specify a range, creating the rawtilt file
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "1";
@@ -156,10 +176,12 @@ public class CopyTomoComs {
               + ","
               + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
+      
+      //    Specify a range, creating the rawtilt file
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "0";
       }
+      
       else {
         //  TODO Specification of all tilt alngles is not yet implemented
         tempStdInput[lineCount++] = "n";
@@ -181,6 +203,11 @@ public class CopyTomoComs {
     copytomocoms.setStdInput(stdInput);
   }
 
+  /**
+   * Execute the copytomocoms script
+   * @return
+   * @throws IOException
+   */
   public int run() throws IOException {
     int exitValue;
 
@@ -204,13 +231,13 @@ public class CopyTomoComs {
   }
 
   /**
-   * Check to see if the tilt angle files exist and the tilt angle type is
-   * extract. They need to be deleted because the copytomocoms script is not
+   * Check to see if the tilt angle files exist and the tilt angle type is not
+   * FILE. They need to be deleted because the copytomocoms script is not
    * consistent in the sequence of responses expected.
    */
   private void checkTiltAngleFiles() {
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
+      if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
@@ -221,7 +248,7 @@ public class CopyTomoComs {
       }
     }
     else {
-      if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
+      if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
@@ -230,7 +257,7 @@ public class CopyTomoComs {
           rawTiltFile.delete();
         }
       }
-      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
+      if (metaData.getTiltAngleSpecB().getType() != TiltAngleType.FILE) {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
