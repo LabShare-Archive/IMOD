@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/04/16 01:50:33  sueh
+ * <p> $bug# 409 added startingAndEndingZ, formatted
+ * <p> $
  * <p> $Revision 1.4  2004/04/12 17:15:46  sueh
  * <p> $bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  Add
  * <p> $initializeDefaults() to set the default comscript values.
@@ -108,7 +111,7 @@ public class MTFFilterParam
     this.mtfFile = new String(mtfFile);
   }
   public void setMaximumInverse(String maximumInverse) {
-    this.maximumInverse = ParamUtilities.setDouble(maximumInverse);
+    this.maximumInverse = ParamUtilities.getDouble(maximumInverse);
   }
   public void setLowPassRadiusSigma(String lowPassRadiusSigma)
     throws FortranInputSyntaxException {
