@@ -357,7 +357,8 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int *woff,       /* window offset in wpixels.        */
                        int *doff)       /* data offset in ipixels           */
 {
-
+  /* printf("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
+     zoom, *offset); */
   /* Fits compleatly inside of window. */
   if ( ((imsize - 1) * zoom) < winsize ){
     *drawsize = imsize;
@@ -377,17 +378,16 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
       /* maxborder. */
       int maxwoff = winsize/6;
       *woff = (int)(-(*doff) * zoom);
-      if (*woff > maxwoff)
+
+      /* DNM 3/8/04: only change offset if woff needs to be limited, to 
+         prevent image creep */
+      if (*woff > maxwoff) {
         *woff = maxwoff;
+        *offset   = (int)(imsize*0.5f - ((winsize*0.5f - *woff)/zoom));
+      }
       *doff = 0;
       *drawsize = (int)((winsize - *woff) / zoom);
-      *offset   = (int)(imsize*0.5f - ((winsize*0.5f - *woff)/zoom));
 
-      /* old way: force offset in lower corner */
-      /*             *doff += *offset;
-       *offset = *doff;
-       *doff -= *offset;
-       */
       /* try and fill corners. */
       if (*drawsize < (imsize-1)) (*drawsize)++;
       /* printf("ds do offset wo %d %d %d %d\n", *drawsize, *doff, *offset, *woff); */
@@ -407,13 +407,6 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
         *doff     = imsize - *drawsize;
         *offset   = (int)(imsize * 0.5 - *doff - (winsize*0.5f)/zoom - 2.0f);
       }
-
-      /* Old way: */
-      /*
-       *doff += *offset;
-       *offset = *doff - (imsize - 1 - *drawsize);
-       *doff -= *offset;
-       */
       return;
     }
     if (*drawsize < (imsize-1)) (*drawsize)++;
@@ -1907,6 +1900,10 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.17  2003/12/30 06:34:24  mast
+Make snapshot name in a single routine, and change snapshotting from
+an array to take 3 or 4 byte data
+
 Revision 4.16  2003/09/16 05:54:32  mast
 Ditto!
 
