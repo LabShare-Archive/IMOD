@@ -22,6 +22,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/05/14 21:48:04  rickg
+ * <p> Added Threaded reader for output (stdout and error) of command to
+ * <p> keep command from hanging on full buffers.
+ * <p>
  * <p> Revision 2.6  2003/05/14 14:37:44  rickg
  * <p> Workaround attempts for IO buffer bugs
  * <p>
@@ -185,15 +189,16 @@ public class SystemProgram implements Runnable {
       //  stdInput array if it is not null
       if (stdInput != null) {
         for (int i = 0; i < stdInput.length; i++) {
-          System.err.print(i);
-          System.err.println(":" + stdInput[i]);
           cmdInBuffer.write(stdInput[i]);
           cmdInBuffer.newLine();
           cmdInBuffer.flush();
           cmdInputStream.flush();
         }
       }
-      System.err.println("Done writting stdout");
+			if(debug){
+				System.err.println("Done writting to process stdin");
+			}
+
       cmdInputStream.close();
 
       if (debug) {
