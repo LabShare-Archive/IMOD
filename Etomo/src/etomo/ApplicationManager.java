@@ -25,6 +25,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/10/09 00:04:37  rickg
+ * <p> Added default patch boundary logic
+ * <p> still needs work on getting combine parameters at the correct times
+ * <p>
  * <p> Revision 1.8  2002/10/07 22:20:21  rickg
  * <p> removed unused imports
  * <p>
@@ -1329,7 +1333,8 @@ public class ApplicationManager {
         combineParams.setDefaultPatchBoundaries(recFileName);
       }
       catch (Exception except) {
-        openMessageDialog(except.getMessage(), "Error getting stack dimensions");
+        openMessageDialog(except.getMessage(), 
+        "Error getting stack dimensions");
       }
     }
     // Fill in the dialog box params and set it to the appropriate state
@@ -1337,7 +1342,8 @@ public class ApplicationManager {
 
   }
 
-  public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
+  public void doneTomogramCombinationDialog(
+    TomogramCombinationDialog tomogramCombinationDialog) {
 
     DialogExitState exitState =
       tomogramCombinationDialog.getExitState();
@@ -1349,11 +1355,8 @@ public class ApplicationManager {
       //  Get the user input data from the dialog box
       boolean dialogFinished =
         updateCombineCom(tomogramCombinationDialog);
+
       if (dialogFinished) {
-        CombineParams combineParams = new CombineParams();
-        tomogramCombinationDialog.getCombineParams(
-          combineParams);
-        metaData.setCombineParams(combineParams);
         processTrack.setTomogramCombinationState(
           ProcessState.INPROGRESS);
 
@@ -1386,8 +1389,16 @@ public class ApplicationManager {
     }
 
   }
-
-  private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
+  
+  /**
+   * Update the combine parameters from the calling dialog
+   * @param tomogramCombinationDialog the calling dialog.
+   * @return true if the combine parameters are valid false otherwise.  If the
+   * combine parameters are invalid a message dialog describing the invalid
+   * parameters is presented to the user.
+   */
+  private boolean updateCombineCom(
+    TomogramCombinationDialog tomogramCombinationDialog) {
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
@@ -1404,18 +1415,23 @@ public class ApplicationManager {
       return false;
     }
 
-    // FIXME we need to get the metadata combine parameters object to match
-    // the tomogram Combination dialog.  Be consistent with previous methods 
-    // i.e. setup
+    metaData.setCombineParams(combineParams);
     return true;
   }
 
   /**
    * Run the setupcombine script with the current combine parameters stored in
-   * metaData object
+   * metaData object.  updateCombineCom is called first to get the currect
+   * parameters from the dialog.
+   * @param tomogramCombinationDialog the calling dialog.
+   * 
    */
-  public void createCombineScripts(TomogramCombinationDialog tomogramCombinationDialog) {
-
+  public void createCombineScripts(
+    TomogramCombinationDialog tomogramCombinationDialog) {
+    if(! updateCombineCom(tomogramCombinationDialog)) {
+      return;
+    }
+    
     try {
       processMgr.createCombineScripts(metaData);
     }
