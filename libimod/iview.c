@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.20
- *
+/*  
  *  iview.c -- view or camera handleing functions.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-1998 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -33,38 +16,10 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.8  2004/09/28 15:12:29  mast
-Move clipping plane functions to iplane
-
-Revision 3.7  2004/09/21 20:12:26  mast
-Changes for multiple and global clip planes, added clip functions
-
-Revision 3.6  2004/09/10 21:33:46  mast
-Eliminated long variables
-
-Revision 3.5  2003/07/31 21:37:00  mast
-Extracted the transfer of object data to and from an objview to functions
-Added new functions for making the list of object views complete for a
-view, and for deleting and freeing object views
-
-Revision 3.4  2003/06/27 20:14:45  mast
-Implemented new function to set default scaling of a view and added ability
-to pass image size and have it provide fallback scaling when there is no
-model extent yet.
-
-Revision 3.3  2002/09/04 23:50:23  mast
-FIxed bug in last change
-
-Revision 3.2  2002/09/04 23:13:29  mast
-Read mat1 and mat3 the old way if a flag is not set
-
-Revision 3.1  2002/09/03 20:04:46  mast
-Changed to read and write mat1 and mat3 in object view structures as
-bytes to avoid endian problems
-
+Log at end
 */
 
+#include <string.h>
 #include <math.h>
 #include "imodel.h"
 
@@ -607,3 +562,39 @@ int imodIMNXWrite(Imod *imod)
   imodPutFloats(imod->file, &imod->refImage->crot.x, 3);
   return(0);
 }
+
+/*
+$Log$
+Revision 3.9  2004/12/23 22:31:54  mast
+Fixed bug in reading image translations
+
+Revision 3.8  2004/09/28 15:12:29  mast
+Move clipping plane functions to iplane
+
+Revision 3.7  2004/09/21 20:12:26  mast
+Changes for multiple and global clip planes, added clip functions
+
+Revision 3.6  2004/09/10 21:33:46  mast
+Eliminated long variables
+
+Revision 3.5  2003/07/31 21:37:00  mast
+Extracted the transfer of object data to and from an objview to functions
+Added new functions for making the list of object views complete for a
+view, and for deleting and freeing object views
+
+Revision 3.4  2003/06/27 20:14:45  mast
+Implemented new function to set default scaling of a view and added ability
+to pass image size and have it provide fallback scaling when there is no
+model extent yet.
+
+Revision 3.3  2002/09/04 23:50:23  mast
+FIxed bug in last change
+
+Revision 3.2  2002/09/04 23:13:29  mast
+Read mat1 and mat3 the old way if a flag is not set
+
+Revision 3.1  2002/09/03 20:04:46  mast
+Changed to read and write mat1 and mat3 in object view structures as
+bytes to avoid endian problems
+
+*/

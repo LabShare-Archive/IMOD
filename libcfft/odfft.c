@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2004/10/25 16:37:13  mast
+Fixed test for even-ness of size
+
 Revision 1.1  2004/10/24 21:18:39  mast
 Added C version of library to package
 
@@ -43,6 +46,7 @@ Added C version of library to package
 
 #include "cfft.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 void odfft(float *array, int *nxp, int *nyp, int *idirp)

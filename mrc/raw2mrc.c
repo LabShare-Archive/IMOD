@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.30
- *
+/*
  *  raw2mrc.c -- Convert raw image data to an mrc image file.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -33,51 +15,9 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.11.2.2  2004/07/08 22:55:03  mast
-Backport to 3.3
-
-Revision 3.13  2004/07/08 22:29:33  mast
-Had to make prewriting of header bytes us 3dFwrite too
-
-Revision 3.12  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.11  2004/06/19 22:13:36  mast
-Fixed seek error message
-
-Revision 3.10  2004/06/06 00:48:39  mast
-Added an option for converting long to short
-
-Revision 3.9  2004/01/17 20:38:45  mast
-Eliminate unneeded rewind call
-
-Revision 3.8  2004/01/06 21:20:07  mast
-Made it make a backup file of an existing output file
-
-Revision 3.7  2003/11/18 19:29:32  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.6  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.5  2002/11/05 23:22:22  mast
-Changed to use library routine for writing header
-
-Revision 3.4  2002/11/05 23:35:08  mast
-Changed to call imodCopyright
-
-Revision 3.3  2001/12/29 01:30:23  mast
-Fixed byte swapping for 4-byte entities
-
-Revision 3.2  2001/12/29 01:04:09  mast
-*** empty log message ***
-
-Revision 3.1  2001/12/29 00:49:24  mast
-Made signed long work, made signed and unsigned bytes work on PC,
-eliminated two lines of diagnostic output
-
+Log at end
 */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -135,7 +75,7 @@ void usage(void)
   return;
 }
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
   struct MRCheader hdata;
   int    i, j, k;
@@ -568,3 +508,52 @@ int setintype(char *stype, int *size, int *otype)
   return(-1);
 }
 
+/*
+$Log$
+Revision 3.14  2004/09/10 21:33:31  mast
+Eliminated long variables
+
+Revision 3.11.2.2  2004/07/08 22:55:03  mast
+Backport to 3.3
+
+Revision 3.13  2004/07/08 22:29:33  mast
+Had to make prewriting of header bytes us 3dFwrite too
+
+Revision 3.12  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.11  2004/06/19 22:13:36  mast
+Fixed seek error message
+
+Revision 3.10  2004/06/06 00:48:39  mast
+Added an option for converting long to short
+
+Revision 3.9  2004/01/17 20:38:45  mast
+Eliminate unneeded rewind call
+
+Revision 3.8  2004/01/06 21:20:07  mast
+Made it make a backup file of an existing output file
+
+Revision 3.7  2003/11/18 19:29:32  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
+Revision 3.6  2003/10/24 02:28:42  mast
+strip directory from program name and/or use routine to make backup file
+
+Revision 3.5  2002/11/05 23:22:22  mast
+Changed to use library routine for writing header
+
+Revision 3.4  2002/11/05 23:35:08  mast
+Changed to call imodCopyright
+
+Revision 3.3  2001/12/29 01:30:23  mast
+Fixed byte swapping for 4-byte entities
+
+Revision 3.2  2001/12/29 01:04:09  mast
+*** empty log message ***
+
+Revision 3.1  2001/12/29 00:49:24  mast
+Made signed long work, made signed and unsigned bytes work on PC,
+eliminated two lines of diagnostic output
+
+*/

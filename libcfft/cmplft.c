@@ -32,9 +32,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 void cmplft (float *x, float *y, int n, int *d)

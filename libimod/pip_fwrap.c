@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/10/24 03:02:14  mast
+move routines to new b3dutil file
+
 Revision 3.4  2003/10/08 17:20:55  mast
 New functions for autodoc files
 
@@ -26,10 +29,11 @@ Addition to IMOD
 
 */
 
+#include <stdlib.h>
+#include <string.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
 #include "parse_params.h"
-#include <string.h>
 
 #ifdef F77FUNCAP
 #define pipinitialize PIPINITIALIZE

@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/12/02 21:49:44  mast
+Add declarations for mrc functions needed elsewhere
+
 Revision 3.5  2004/11/30 03:47:10  mast
 Declared new function to add check functions
 
@@ -129,6 +132,11 @@ extern "C" {
   int iiMRCCheck(ImodImageFile *inFile);
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx,
+                      int ny, int nz);
+  int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
+  void tiffClose(ImodImageFile *inFile);
 
 #ifdef __cplusplus
 }

@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/07/07 19:25:30  mast
+    Changed exit(-1) to exit(3) for Cygwin
+
     Revision 3.3  2003/10/24 02:28:42  mast
     strip directory from program name and/or use routine to make backup file
 
@@ -64,7 +67,7 @@ void mrctaper_help(char *name)
      puts("\tWith no output file, images are written back to input file.");
 }
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
 
      int    i = 0;
@@ -146,7 +149,8 @@ main( int argc, char *argv[] )
 
      if (hdata.mode != MRC_MODE_BYTE && hdata.mode != MRC_MODE_SHORT &&
 	 hdata.mode != MRC_MODE_FLOAT) {
-	  fprintf(stderr, "%s: Can operate only on byte, integer and real data.\n", progname);
+	  fprintf(stderr, "%s: Can operate only on byte, integer and real data.\n",
+              progname);
 	  exit(3);
      }
      
@@ -222,7 +226,8 @@ main( int argc, char *argv[] )
      }
      puts("\nDone!");
 
-     mrc_head_label(hptr, "mrctaper: Image tapered down to fill value at edges");
+     mrc_head_label(hptr, "mrctaper: Image tapered down to fill value at "
+                    "edges");
 
      mrc_head_write(fout, hptr);
 

@@ -154,7 +154,7 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
     return(-1);
   }
 
-  printf("clip: %s %ld slices...\n", message, opt->nofsecs);
+  printf("clip: %s %d slices...\n", message, opt->nofsecs);
   for (k = 0; k < opt->nofsecs; k++) {
     s = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
@@ -253,7 +253,7 @@ int clip_convolve(MrcHeader *hin,
     return(-1);
   }
 
-  printf("clip: %s %ld slices...\n", message, opt->nofsecs);
+  printf("clip: %s %d slices...\n", message, opt->nofsecs);
   for (k = 0; k < opt->nofsecs; k++) {
     s = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
@@ -305,7 +305,7 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
 
   sprintf(title, "clip: %dD median filter, size %d", opt->dim, size);
   mrc_head_label(hout, title);
-  printf("clip: median filtering %ld slices...\n", opt->nofsecs);
+  printf("clip: median filtering %d slices...\n", opt->nofsecs);
 
   /* Get slice for output */
   slice = sliceCreate(opt->ix, opt->iy, opt->mode);
@@ -408,7 +408,7 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   /* give message, add title */
   mrc_head_label(hout, "clip: diffusion");
 
-  printf("clip: anistropic diffusion %ld slices...\n", opt->nofsecs);
+  printf("clip: anistropic diffusion %d slices...\n", opt->nofsecs);
   for (k = 0; k < opt->nofsecs; k++) {
     slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
@@ -1433,6 +1433,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.11  2005/01/28 05:43:08  mast
+Changed defaults for diffusion to match 3dmod
+
 Revision 3.10  2005/01/27 05:55:17  mast
 Added anisotropic diffusion option
 

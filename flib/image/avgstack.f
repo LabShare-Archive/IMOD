@@ -12,7 +12,7 @@ c	-------------------------------------------------------------------
 	parameter (maxarr=2100)
 
 	real	array(maxarr*maxarr), brray(maxarr*maxarr)
-	real	max, min, title(20), cell(6)
+	real	dmax, dmin, dmean, title(20), cell(6)
 	integer	nxyz(3), mxyz(3), nxyzst(3)
 	equivalence (nxyz,nx)
 	common//nx,ny,nz

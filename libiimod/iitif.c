@@ -1,5 +1,5 @@
 /*
- *    iimage.c    - specific routines for tiff-type ImodImageFile's
+ *    iitif.c    - specific routines for tiff-type ImodImageFile's
  *
  *    Authors:  James Kremer and David Mastronarde
  *
@@ -41,6 +41,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.4  2004/11/05 18:53:04  mast
+    Include local files with quotes, not brackets
+
     Revision 3.3  2004/01/21 00:56:50  mast
     Stopped freeing map from byte_map
 
@@ -54,6 +57,8 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 */
 
 
+#include <stdlib.h>
+#include <string.h>
 #include "imodconfig.h"
 #ifdef NOTIFFLIBS
 #include "notiffio.h"
@@ -377,7 +382,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   TIFFSetDirectory(tif, 0);
 
   if (!((samples == 1 && (bits == 8 || bits ==16)) ||
-        (samples == 3 & photometric == 2 && bits == 8))) {
+        (samples == 3 && photometric == 2 && bits == 8))) {
     TIFFClose(tif);
     return(6);
   }

@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodel_files.c -- Open, Read and Write Imod files.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -167,7 +150,7 @@ int imodReadFile(Imod *imod)
   }
 
   id = imodGetInt(imod->file);
-  if (error = imodel_read(imod, id))
+  if ((error = imodel_read(imod, id)))
     return(error);
   return(0);
 }
@@ -271,7 +254,7 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
   imodPutFloats(fout, &mod->alpha, 3);
      
   for(i = 0; i < mod->objsize; i++)
-    if (error = imodel_write_object( &(mod->obj[i]), fout, &scale))
+    if ((error = imodel_write_object( &(mod->obj[i]), fout, &scale)))
       return(error);
      
 #ifndef IMODEL_FILES_VERSION_01
@@ -312,7 +295,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
     imodLabelWrite(obj->label, ID_OLBL, fout);
 
   for(i = 0; i < obj->contsize; i++)
-    if (error = imodel_write_contour( &(obj->cont[i]), fout, scale))
+    if ((error = imodel_write_contour( &(obj->cont[i]), fout, scale)))
       return(error);
 
   for(i = 0; i < obj->meshsize; i++)
@@ -356,7 +339,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
     imodPutInts(fout, (int *)&obj->mat2, 1);
     imodPutBytes(fout, (unsigned char *)&obj->mat3, 4);
   }
-  if (error = ferror(fout))
+  if ((error = ferror(fout)))
     return(IMOD_ERROR_WRITE);
   return(0);
 }
@@ -501,7 +484,7 @@ static int imodel_read(Imod *imod, int version)
     return(IMOD_ERROR_READ);
   }
 
-  if (error = imodel_read_header(imod, fin)){
+  if ((error = imodel_read_header(imod, fin))) {
 #ifdef IMODEL_FILES_DEBUG
     fprintf(stderr, "error %d reading header\n", error);
 #endif
@@ -530,7 +513,7 @@ static int imodel_read(Imod *imod, int version)
     switch(id){
     case ID_OBJT:
       obj++;
-      if (error = imodel_read_object(obj, imod->file)){
+      if ((error = imodel_read_object(obj, imod->file))) {
         return(error);
       }
       if (obj->contsize){
@@ -563,7 +546,7 @@ static int imodel_read(Imod *imod, int version)
 
     case ID_CONT:
       cont++;
-      if (error = imodel_read_contour(cont, imod->file))
+      if ((error = imodel_read_contour(cont, imod->file)))
         return(error);
 #ifdef IMODEL_FILES_DEBUG
       fprintf(stderr, "imodel_read: cont ok. %x\n", id);
@@ -577,13 +560,13 @@ static int imodel_read(Imod *imod, int version)
       break;
 
     case ID_SIZE:
-      if (error = imodel_read_ptsizes(cont, imod->file))
+      if ((error = imodel_read_ptsizes(cont, imod->file)))
         return(error);
       break;
 
     case ID_MESH:
       mesh++;
-      if (error = imodel_read_mesh(mesh, imod->file)){
+      if ((error = imodel_read_mesh(mesh, imod->file))) {
 #ifdef IMODEL_FILES_DEBUG
         fprintf(stderr, "imodel_read: mesh error %d.\n", error);
 #endif
@@ -769,7 +752,7 @@ static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin)
   }
 
   for(i = 0; i < obj->contsize; i++)
-    if (error = imodel_read_contour_v01( &(obj->cont[i]), fin))
+    if ((error = imodel_read_contour_v01( &(obj->cont[i]), fin)))
       return(error);
 
   return(0);
@@ -882,7 +865,7 @@ static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
   mesh->type  = imodGetShort(fin);
   mesh->pad   = imodGetShort(fin);
      
-  if (error = ferror(fin)){
+  if ((error = ferror(fin))) {
     mesh->vsize = 0;
     mesh->lsize = 0;
     return(error);
@@ -896,8 +879,8 @@ static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
       mesh->lsize = 0;
       return(IMOD_ERROR_MEMORY);
     }
-    if (error = imodGetFloats(fin, (float *)mesh->vert, 
-                              mesh->vsize * 3)){
+    if ((error = imodGetFloats(fin, (float *)mesh->vert,
+                              mesh->vsize * 3))) {
       mesh->vsize = 0;
       mesh->lsize = 0;
       free(mesh->vert);
@@ -913,7 +896,7 @@ static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
       free(mesh->vert);
       return(IMOD_ERROR_MEMORY);
     }
-    if (error = imodGetInts(fin, mesh->list, mesh->lsize)){
+    if ((error = imodGetInts(fin, mesh->list, mesh->lsize))) {
       mesh->vsize = 0;
       mesh->lsize = 0;
       if (mesh->vert)
@@ -1531,6 +1514,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.15  2004/11/20 04:15:58  mast
+  Eliminated virtual stiff
+
   Revision 3.14  2004/09/21 20:12:01  mast
   Changes for multiple and global clip planes, surface labels
 

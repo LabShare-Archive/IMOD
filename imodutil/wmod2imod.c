@@ -1,30 +1,13 @@
-/*  IMOD VERSION 2.02
- *
+/*
  *  $Id$
  *
  *  Author: James Kremer email: kremer@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-1996 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +20,7 @@ float Zscale = 1.0;
 
 static int fgetline(FILE *fp, char s[],int limit);
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
 
 
@@ -125,16 +108,16 @@ main( int argc, char *argv[])
 #define MAXOBJ  256
 
 /* Display 247 - 255 */
-float Wmod_Colors[9][3]  =   { 0.90, 0.82, 0.37,  /* Dim Yellow  */
-			       0.54, 0.51, 0.01,  /* Olive Brown */
-			       0.94, 0.49, 0.0,   /* Orange      */
-			       1.00, 0.0,  0.0,   /* Red         */
-			       0.0,  1.0,  0.0,   /* Green       */
-			       0.0,  0.0,  1.0,   /* Blue        */
-			       1.0,  1.0,  0.0,   /* Yellow      */
-			       1.0,  0.0,  1.0,   /* Magenta     */
-			       0.0,  1.0,  1.0    /* Cyan        */
-			       };
+float Wmod_Colors[9][3]  =   { {0.90, 0.82, 0.37},  /* Dim Yellow  */
+                               {0.54, 0.51, 0.01},  /* Olive Brown */
+                               {0.94, 0.49, 0.0},   /* Orange      */
+                               {1.00, 0.0,  0.0},   /* Red         */
+                               {0.0,  1.0,  0.0},   /* Green       */
+                               {0.0,  0.0,  1.0},   /* Blue        */
+                               {1.0,  1.0,  0.0},   /* Yellow      */
+                               {1.0,  0.0,  1.0},   /* Magenta     */
+                               {0.0,  1.0,  1.0}    /* Cyan        */
+};
 
 
 

@@ -36,10 +36,14 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 void todfft(float *array, int *nxp, int *nyp, int *idirp)

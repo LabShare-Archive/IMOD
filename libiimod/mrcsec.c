@@ -1,30 +1,14 @@
-/*  IMOD VERSION 2.42
- *
+/*
+ *  mrcsec.c - routines for reading defined parts of sections as byte or raw
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -34,8 +18,10 @@ $Revision$
 Log at end of file */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "b3dutil.h"
 #include "mrcfiles.h"
 
 static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
@@ -156,9 +142,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
       llx = llfx;
 
     /* Get xmax, ymin, ymax from these corners; get y limits and xsize */
-    b3dMax("iiii", urfx, llfx, llfx2, &urx);
-    b3dMin("iiiiiii", llfy, ulfy, lrfy, urfy, llfy2, ulfy2, &ymin);
-    b3dMax("iiiiiii", llfy, ulfy, lrfy, urfy, llfy2, ulfy2, &ymax);
+    urx = b3dIMax(3, urfx, llfx, llfx2);
+    ymin = b3dIMin(6, llfy, ulfy, lrfy, urfy, llfy2, ulfy2);
+    ymax = b3dIMax(6, llfy, ulfy, lrfy, urfy, llfy2, ulfy2);
     lly = readY ? li->zmin : ymin;
     ury = readY ? li->zmax : ymax;
     xsize = urx - llx + 1;
@@ -443,6 +429,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.8  2004/12/02 21:53:27  mast
+Removed setting of header size to min of 1024 so raw reader can use
+
 Revision 3.7  2004/11/12 15:22:36  mast
 Changed to use new min/max functions
 

@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.6  2004/11/21 05:53:03  mast
+Added routine to set text with blocked signals
+
 Revision 1.5  2004/11/20 05:07:23  mast
 Add spin box min/max/val function, allow H or V layouts in dia functions
 
@@ -309,7 +312,7 @@ void dia_vasmsg(char *msg, ...)
 
   tmsg = msg;
   va_start(ap, msg);
-  while( emsg = va_arg(ap, char *)){
+  while ((emsg = va_arg(ap, char *))) {
     argc++;
   }
   va_end(ap);
@@ -319,7 +322,7 @@ void dia_vasmsg(char *msg, ...)
   argc = 1;
   va_start(ap, msg);
   argv[0] = tmsg;
-  while( emsg = va_arg(ap, char *)){
+  while ((emsg = va_arg(ap, char *))) {
     argv[argc] = emsg;
     argc++;
   }

@@ -15,9 +15,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2004/11/21 06:15:27  mast
+Fixed a declaration for Windows
+
 */
 
 #include <stdlib.h>
+#include <string.h>
 #include "ilist.h"
 
 static void ilistShift(Ilist *list, int from, int to);

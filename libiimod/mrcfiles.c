@@ -19,6 +19,7 @@ Log at end of file */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 #include <time.h>
 #include <math.h>
@@ -484,7 +485,7 @@ int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
 
 /* writes image data */
 /* changed 8-95 to increase speed: JRK */
-mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
+int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
   int i,j=0,k;
   int  xysize;
@@ -1366,7 +1367,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   /* Loop on sections */
   for (k = 0; k < zsize; k++){
     if (func != ( void (*)() ) NULL){
-      sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
+      sprintf(statstr, "\rReading Image # %3.3d",k+1); 
       (*func)(statstr);
     }
     pindex = 0;
@@ -1568,11 +1569,12 @@ int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz)
     li->zmin = mz - 1;
 
   /* don't let zmax be undefined or less than zmin. */
-  if ((li->zmax < 0) || (li->zmax < li->zmin))
+  if ((li->zmax < 0) || (li->zmax < li->zmin)) {
     if (li->zmin >= 0)
       li->zmax = li->zmin;
     else
       li->zmax = mz - 1;
+  }
 
   if ((li->zmin < 0)  || (li->zmin > li->zmax))
     li->zmin = 0;
@@ -2039,6 +2041,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.22  2005/01/17 17:12:21  mast
+Switched to header typedef, fixed initialization of min/max
+
 Revision 3.21  2005/01/06 17:57:54  mast
 Made label copy set label number, fixed label adding function to work on
 all platforms using only time.h functions and strftime, and to replace the

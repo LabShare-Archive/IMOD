@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.13  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 1.12  2004/04/08 17:06:12  mast
 Used a separate define for killing process at exit
 
@@ -78,7 +81,6 @@ Changes to try to help text drawingon the Mac
 #endif
 #endif
 
-static int   PlaxCIndex[PLAX_RAMPSIZE];
 static QRgb  PlaxRGB[PLAX_RAMPSIZE];
 static float PlaxScaleX;
 static float PlaxScaleY;

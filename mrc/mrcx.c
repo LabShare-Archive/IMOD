@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  mrcx.c -- Convert between Vax, SGI, and PC data formats
  *
  *  Original author: Ross Darghi, Integrated Crystollagraphy Environment
  *  Revised by: Jim Kremer, David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /* 
  *
  * PURPOSE....:
@@ -61,6 +44,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/11/05 18:53:10  mast
+Include local files with quotes, not brackets
+
 Revision 3.9  2004/09/10 21:33:31  mast
 Eliminated long variables
 
@@ -121,7 +107,7 @@ void convertHeader(void (*floatFunc)(), int nextra, struct MRCheader  *header,
                    FILE *infp, FILE *outfp, int direction, char *cmap);
 
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
   void  (*convertFunc)();
   void  (*floatFunc)();

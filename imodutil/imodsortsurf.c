@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2005/01/28 19:32:41  mast
+Make it zero out existing surface information to avoid empty surfaces
+
 Revision 3.4  2004/11/05 19:05:29  mast
 Include local files with quotes, not brackets
 
@@ -29,6 +32,7 @@ Open output file in binary mode
 
 */
 
+#include <string.h>
 #include "imodel.h"
 
 static void usage(char *prog)

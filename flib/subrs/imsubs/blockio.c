@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.15  2004/11/08 05:55:30  mast
+Backed out atexit, will not compile in AMD64 or work in Windows
+
 Revision 3.13  2004/07/07 19:25:31  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -73,6 +76,7 @@ Include Files
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>   /* JRK: added for strcmp */
+#include <stdlib.h>
 #include <math.h>
 #include <errno.h>
 
@@ -288,8 +292,9 @@ void qclose(int *iunit)
       fclose(u->fp);
 
       /* JRK: Delete scratch files */
+      /* DNM 2/10/05: switch from unlink to remove to avoid unistd.h */
       if (u->attribute == UNIT_ATBUT_SCRATCH)
-        unlink(u->fname);
+        remove(u->fname);
     }
   }
 }
@@ -478,7 +483,7 @@ void fill(a, b, np, lb)
  ************************************************************************/
 
 /* Compares a C and Fortran string */
-static fcmp(char *s, int  l, char *str)
+static int fcmp(char *s, int  l, char *str)
 {
   while (*str && l--)
     {

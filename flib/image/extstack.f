@@ -34,6 +34,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/03/14 01:07:52  mast
+c	  Add linear argument for interpolation call
+c	
 
 
 	parameter ( maxarr=2100*2100 )	!--- Maximum array size ---
@@ -41,9 +44,9 @@ c	  $Log$
 
 c	--- Working variables ---
 	integer x(maxpts), y(maxpts), z(maxpts), plen, nlen,
-	2	xref, yref, zref, ztmp
+     &	    xref, yref, zref, ztmp
 	real	xtmp(maxpts), ytmp(maxpts), amat(2,2),
-	2	xcen(maxpts), ycen(maxpts), ccnt(maxpts)
+     &	    xcen(maxpts), ycen(maxpts), ccnt(maxpts)
 	logical done
 	character*80 imgfil, omgfil, reffil, extfil
 	      
@@ -54,7 +57,7 @@ c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 	real	array(maxarr), brray(maxarr), trray(maxarr)
-	real	max, min, title(20), cell(6)
+	real	dmax, dmin, title(20), cell(6)
 
 	integer	nxyza(3), mxyza(3), nxyzsta(3)
 	integer	nxyzb(3), mxyzb(3), nxyzstb(3)

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
 Revision 3.7  2004/07/07 19:25:30  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -79,7 +82,7 @@ static void imodfillin_usage(char *name, int retcode)
   exit(retcode);
 }
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
   int  i, c, ob;
   int  zinc = 1;
@@ -312,12 +315,12 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
                 jnd1 = listp[jndv];
                 jnd2 = listp[jndv + 2];
                 jnd3 = listp[jndv + 4];
-                if (ind1 == jnd1 && ind2 == jnd2 ||
-                    ind2 == jnd1 && ind1 == jnd2 ||
-                    ind1 == jnd2 && ind2 == jnd3 ||
-                    ind2 == jnd2 && ind1 == jnd3 ||
-                    ind1 == jnd3 && ind2 == jnd1 ||
-                    ind2 == jnd3 && ind1 == jnd1) {
+                if ((ind1 == jnd1 && ind2 == jnd2) ||
+                    (ind2 == jnd1 && ind1 == jnd2) ||
+                    (ind1 == jnd2 && ind2 == jnd3) ||
+                    (ind2 == jnd2 && ind1 == jnd3) ||
+                    (ind1 == jnd3 && ind2 == jnd1) ||
+                    (ind2 == jnd3 && ind1 == jnd1)) {
                   done = 1;
                   break;
                 }
@@ -329,12 +332,11 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
                  matches - then need to swap the points */
               if (done) {
                 if (itri == 1 && 
-                    (ind1 == jnd1 && ind2 == jnd2 ||
-                     ind2 == jnd1 && ind1 == jnd2 ||
+                    ((ind1 == jnd1 && ind2 == jnd2) ||
+                     (ind2 == jnd1 && ind1 == jnd2) ||
                      (vertp[jnd1].z == vertp[jnd2].z &&
-                      (ind1 == jnd2 && ind2 == jnd3 ||
-                       ind2 == jnd2 && 
-                       ind1 == jnd3)))) {
+                      ((ind1 == jnd2 && ind2 == jnd3) ||
+                       (ind2 == jnd2 && ind1 == jnd3))))) {
                                              
                   ptadd = cont->pts[0];
                   cont->pts[0] = cont->pts[1];
@@ -348,10 +350,8 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
                  point */
               frac = (zadd - z1) / (z2 - z1);
               ptadd.z = zadd;
-              ptadd.x = (1. - frac) * vertp[ind1].x +
-                frac * vertp[ind2].x;
-              ptadd.y = (1. - frac) * vertp[ind1].y +
-                frac * vertp[ind2].y;
+              ptadd.x = (1. - frac) * vertp[ind1].x + frac * vertp[ind2].x;
+              ptadd.y = (1. - frac) * vertp[ind1].y + frac * vertp[ind2].y;
               imodPointAppend(cont, &ptadd);
             }
           }
