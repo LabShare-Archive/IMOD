@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -20,6 +21,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -37,6 +39,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/01/26 00:06:49  sueh
+ * <p> Converted ConstEtomoNumber.resetValue to displayValue.
+ * <p>
  * <p> Revision 3.16  2005/01/11 01:01:05  sueh
  * <p> bug# 567 Varying the widths of the radio button panels.
  * <p>
@@ -1627,75 +1632,53 @@ public class TiltalignPanel {
    */
   private void setToolTipText() {
     String text;
+    Section section;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.get(Autodoc.TILTALIGN);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
     // General tab
-    text = "List of views to exclude from alignment and reconstruction.";
-    ltfExcludeList.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Lists of views to group separately from other views.  Multiple "
-        + "lists can be entered; separate them by spaces.";
-    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-    text = "Threshold number of SDs above mean for reporting large residuals.";
-    ltfResidualThreshold
-        .setToolTipText(tooltipFormatter.setText(text).format());
+    ltfExcludeList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "ExcludeList")).format());
+    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "SeparateGroup")).format());
+    
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "ResidualReportCriterion");
+    if (section  != null ) {
+      ltfResidualThreshold.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section)).format());
+      rbResidAllViews.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
+      rbResidNeighboring.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "neighboring")).format());
+    }
+    
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "SurfacesToAnalyze");
+    if (section != null) {
+      rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "one")).format());
+      rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "two")).format());
+    }
 
-    text = "Apply criterion relative to mean/SD of residuals on all views.";
-    rbResidAllViews.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Apply criterion relative to mean/SD of residuals on neighboring views.";
-    rbResidNeighboring.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Fit one plane to all points to find angles of section.";
-    rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Divide points into two groups and fit two planes to find angles of "
-        + "section.";
-    rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Total amount to add to all tilt angles.";
-    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Distance to shift tilt axis in Z for reconstruction.";
-    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "A step size factor; try changing by +/-10% if solutions fail.";
-    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Limit on number of iterations to find a solution.";
-    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Compute alignments in local areas after finding global solution.";
-    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Number of overlapping local areas to use in the X and Y directions.";
-    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Minimum size of patches in pixels, or minimum fractional overlap between"
-        + " patches, in the X and Y directions.";
-    ltfMinLocalPatchSize
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Minimum total number of fiducials required in each local area, and "
-        + "minimum on each surface if two surfaces were analyzed for.";
-    ltfMinLocalFiducials
-        .setToolTipText(tooltipFormatter.setText(text).format());
+    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "AngleOffset")).format());
+    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "AxisZShift")).format());
+    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MetroFactor")).format());
+    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MaximumCycles")).format());
+    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalAlignments")).format());
+    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "NumberOfLocalPatchesXandY")).format());
+    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "NumberOfLocalPatchesXandY")).format());
+    ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "MinFidsTotalAndEachSurface")).format());
 
     //  Global variables
-    text = "Do not solve for tilt angles.";
-    rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Solve for each tilt angle independently.";
-    rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Group views to solve for fewer tilt angle variables.";
-    rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Basic grouping size for tilt angles (grouping will be less at high tilt"
-        + " and more at low tilt).";
-    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(text)
-        .format());
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, "TiltOption");
+    if (section != null) {
+      rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "no")).format());
+      rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
+      rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "group")).format());
+    }
+    
+    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "TiltDefaultGrouping")).format());
 
     text = "Sets of views with non-default grouping.  For each set, enter starting"
         + " and ending view number and group size, separated by commas; "
