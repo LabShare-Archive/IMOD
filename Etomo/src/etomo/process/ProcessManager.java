@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.47  2004/12/16 02:26:20  sueh
+ * bug# 564 Save flipped state in Squeezevol post processing.
+ *
  * Revision 3.46  2004/12/14 21:38:39  sueh
  * bug# 572:  Removing state object from meta data and managing it with a
  * manager class.  All state variables saved after a process is run belong in
@@ -576,8 +579,8 @@ import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
-import etomo.comscript.ComscriptState;
 import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
@@ -864,14 +867,15 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run align.com on.
    */
-  public String fineAlignment(AxisID axisID) throws SystemProcessException {
+  public String fineAlignment(ConstTiltalignParam param, AxisID axisID)
+      throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
     String command = "align" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID);
     return comScriptProcess.getName();
 
   }
@@ -1228,46 +1232,6 @@ public class ProcessManager extends BaseProcessManager {
     }
     return command.getName();
   }
-  
-  /**
-   * Start a managed background command script for the specified axis
-   * @param command
-   * @param processMonitor
-   * @param axisID
-   * @return
-   * @throws SystemProcessException
-   */
-  private ComScriptProcess startBackgroundComScript(String command, 
-    Runnable processMonitor, AxisID axisID, 
-    ComscriptState comscriptState, String watchedFileName)
-    throws SystemProcessException {
-    return startComScript(new BackgroundComScriptProcess(command, this, axisID,
-      watchedFileName, (BackgroundProcessMonitor) processMonitor, comscriptState),
-      command, processMonitor, axisID);
-  }
-
-  /**
-   * Start a managed command script for the specified axis
-   * @param command
-   * @param processMonitor
-   * @param axisID
-   * @param watchedFileName watched file to delete
-   * @return
-   * @throws SystemProcessException
-   */
-  private ComScriptProcess startComScript(
-    String command,
-    Runnable processMonitor,
-    AxisID axisID,
-    String watchedFileName)
-    throws SystemProcessException {
-    return startComScript(
-      new ComScriptProcess(command, this, axisID, watchedFileName),
-      command,
-      processMonitor,
-      axisID);
-  }
-
 
   /**
    * Unique case to parse the output of transferfid and save it to a file
@@ -1356,13 +1320,14 @@ public class ProcessManager extends BaseProcessManager {
     // TODO: Should this script specific processing be handled by the
     // nextProcess attribute of the application manager.
     // Script specific post processing
-    if (script.getProcessName() == ProcessName.ALIGN) {
+    ProcessName processName = script.getProcessName();
+    if (processName == ProcessName.ALIGN) {
       generateAlignLogs(script.getAxisID());
       copyFiducialAlignFiles(script.getAxisID());
     }
-    if (script.getProcessName() == ProcessName.TOMOPITCH) {
+    else if (processName == ProcessName.TOMOPITCH) {
       appManager.openTomopitchLog(script.getAxisID());
-    }  
+    }
   }
   
   protected void errorProcess(ComScriptProcess script) {
