@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/22 23:19:30  sueh
+ * <p> bug# 250 synchronizing fiducialMatch and modelBased
+ * <p>
  * <p> Revision 3.1  2004/03/06 00:25:31  sueh
  * <p> bug# 318 add maxPatchZMax - set, setDefault, load, store
  * <p>
@@ -121,7 +124,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
   public void setFiducialMatch(FiducialMatch match) {
     fiducialMatch = match;
-    if (match == FiducialMatch.USE_MODEL) {
+    if (match == FiducialMatch.USE_MODEL || match == FiducialMatch.USE_MODEL_ONLY) {
       modelBased = true;
     }
     else {
