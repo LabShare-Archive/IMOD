@@ -484,13 +484,13 @@ sed -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
     -e "/$uncomment/s/"'^[\$#]*\([ve]\)/\$\1/g'\
 	<$srcdir/combine.com | cat >combine.com
 
-
-set ranlist = `tomopieces $recfile $MAXMEMORY $TAPERPADXZ $TAPERPADY $MINOVERLAP`
+set ranlist = `tomopieces $recfile $MAXMEMORY $TAPERPADXZ $TAPERPADY $MINOVERLAP | sed '/[^0-9, ]/s///g'`
 
 if ($status) then
     echo "Error running tomopieces - does $recfile exist?"
     exit 1
 endif
+
 
 cat <<EOF | cat >> $volcombine
 \$touch prevent-error
@@ -506,6 +506,7 @@ $origfile
 $invfile
 /
 EOF
+
 @ npiecex = $ranlist[1]
 shift ranlist
 @ npiecez = $ranlist[1]
@@ -609,6 +610,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.14  2003/10/16 20:43:06  mast
+#  Make matchshift patches bigger in X and Y to reduce check volume failures
+#
 #  Revision 3.13  2003/10/11 00:05:52  mast
 #  Changes for new input methods for matchvol/warpvol
 #

@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/06/20 20:06:39  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.3  2002/09/06 00:37:42  mast
 #  Made it catch error status from corrsearch3d and pass it on
 #
@@ -40,15 +43,11 @@ EOCAT
 exit 1
 endif
 
+set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
-
-set tmpdir = /usr/tmp
-if ($?IMOD_TMPDIR) then
-    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
-endif
-if (! -w $tmpdir) set tmpdir = /tmp
 
 set modelfile = ""
 

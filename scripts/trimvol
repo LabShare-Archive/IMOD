@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/06/20 20:14:44  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 
 # default setting for entering flipped versus unflipped coordinates, index
 # versus imod coordinates
@@ -45,15 +48,11 @@ EOF
   exit 0
 endif
 
+set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
-
-set tmpdir = /usr/tmp
-if ($?IMOD_TMPDIR) then
-    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
-endif
-if (! -w $tmpdir) set tmpdir = /tmp
 
 while ($#argv > 2)
   switch ($argv[1])

@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/07/29 16:08:24  mast
+#  For Windows, needed to run script files explicitly with csh
+#
 #  Revision 3.4  2003/07/28 16:43:37  mast
 #  Switch from using 'file' command to using 'header' to test for MRC file
 #  versus text input file, because there is no 'file' in cygwin
@@ -44,15 +47,11 @@ usage:
 	exit 1
 endif
 
+set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
-
-set tmpdir = /usr/tmp
-if ($?IMOD_TMPDIR) then
-    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
-endif
-if (! -w $tmpdir) set tmpdir = /tmp
 
 set pname      = xfalign
 set com        = $pname:t

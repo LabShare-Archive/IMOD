@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/06/20 20:04:28  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.2  2002/01/07 18:21:58  mast
 #  Change usage output to say dm2mrc, not dm3mrc
 #
@@ -16,15 +19,11 @@
 #  Addition to IMOD suite
 #
 
+set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
-
-set tmpdir = /usr/tmp
-if ($?IMOD_TMPDIR) then
-    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
-endif
-if (! -w $tmpdir) set tmpdir = /tmp
 
 if ($#argv < 2) then
 	echo "Usage: dm2mrc [-d] Input_files Output_file"
