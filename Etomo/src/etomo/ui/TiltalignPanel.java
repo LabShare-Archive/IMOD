@@ -36,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/12/30 18:01:54  sueh
+ * <p> bug# 567 Fixed a bug in setParameters(ConstTiltalignParam):
+ * <p> localRotationNonDefaultGroups was being set incorrectly.
+ * <p>
  * <p> Revision 3.7  2004/12/29 23:50:23  sueh
  * <p> bug# 567 Put checkbox or radio buttons to the left on the fields in global and
  * <p> local tabs and in the local alignment panel on the general tab.
@@ -1089,6 +1093,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       this);
     createRadioBox(pnlRBResidual, bgResidualThreshold, items,
       residualRadioListener);
+    //TODO to narrow, change this
     pnlResidualThreshold.add(pnlRBResidual);
 
     pnlGeneral.add(pnlResidualThreshold);
@@ -1366,10 +1371,9 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       LabeledTextField field3, LabeledTextField field4,
       String title) {
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.add(Box.createRigidArea(FixedDim.x10_y0));
+    panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
-    panel.add(Box.createRigidArea(FixedDim.x20_y0));
-    panel.add(Box.createRigidArea(FixedDim.x20_y0));
+    panel.add(Box.createRigidArea(FixedDim.x25_y0));
     SpacedPanel fieldPanel = new SpacedPanel(FixedDim.x0_y5);
     fieldPanel.setLayout(new BoxLayout(fieldPanel.getContainer(), BoxLayout.Y_AXIS));
     fieldPanel.add(field1);
