@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2004/12/06 04:39:19  mast
+    Made truly standalone, took out of library back into 3dmod
+
     Revision 1.2  2004/12/04 19:21:21  mast
     Added DLL macro definition and use
 
@@ -37,7 +40,7 @@ public:
   ImodAssistant(const char *path, const char *adpFile, char *messageTitle,
                 bool absolute = false);
   ~ImodAssistant();
-  int showPage(const char *page, bool absolute = false);
+  int showPage(const char *page);
 
  signals:
   void error(const QString &msg);
