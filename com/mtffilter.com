@@ -13,7 +13,7 @@
 # TO USE THE OUTPUT FOR GENERATING A TOMOGRAM, 
 #  RENAME g5a_filt.ali TO g5a.ali
 #
-$/home/mast/fort/mtffilter -StandardInput
+$mtffilter -StandardInput
 InputFile       g5a.ali
 OutputFile      g5a_filt.ali
 LowPassRadiusSigma        0.35,0.05
