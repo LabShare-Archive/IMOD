@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.LayoutManager;
 
 import javax.swing.AbstractButton;
+import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -24,6 +25,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:54:26  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/13 23:08:10  sueh
 * <p> bug# 520 A panel which sizes its buttons and can set alignment for its
 * <p> components.
@@ -51,6 +55,10 @@ public class FormattedPanel {
       comp.setAlignmentX(alignmentX);
     }
     return panel.add(comp);
+  }
+  
+  Component add(FormattedPanel formattedPanel) {
+    return panel.add(formattedPanel.getContainer());
   }
   
   Component add(SpacedPanel spacedPanel) {
@@ -84,6 +92,10 @@ public class FormattedPanel {
       button.setAlignmentX(alignmentX);
     }
     return panel.add(button);
+  }
+  
+  Component addHorizontalGlue() {
+    return panel.add(Box.createHorizontalGlue());
   }
   
   void setComponentAlignmentX(float alignmentX) {
