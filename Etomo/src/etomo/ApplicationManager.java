@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.44  2003/05/21 22:56:54  rickg
+ * <p> Initial kill implementation
+ * <p>
  * <p> Revision 2.43  2003/05/19 22:05:31  rickg
  * <p> Added openNewDataset method
  * <p> unset isDataParamDirty in daving method
@@ -811,7 +814,6 @@ public class ApplicationManager {
     if (updateXcorrCom(axisID)) {
       String threadName = processMgr.crossCorrelate(axisID);
       setThreadName(threadName, axisID);
-      mainFrame.startProgressBar("Cross-correlating raw stack", axisID);
     }
   }
 
@@ -3327,12 +3329,31 @@ public class ApplicationManager {
   }
 
   /**
-   * Notification message of the percent complete of a process
+   * Set the progress bar to the beginning of determinant sequence
+   * @param label
+   * @param nSteps
    */
-  public void processProgress(String threadName, double percent) {
-
+  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+    mainFrame.setProgressBar(label, nSteps, axisID);
   }
 
+  /**
+   * Set the progress bar to the specified value
+   * @param value
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, AxisID axisID) {
+    mainFrame.setProgressBarValue(value, axisID);
+  }
+
+  /**
+   * 
+   * @param axisID
+   */
+  public void progressBarDone(AxisID axisID){
+    mainFrame.stopProgressBar(axisID);
+  }
+  
   /**
    * Notification message that a background process is done.
    * @param threadName The name of the thread that has finished
