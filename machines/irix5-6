@@ -7,59 +7,9 @@
 #  $Date$
 #
 #  $Revision$
+#   Log at end of file
 #
-#  $Log$
-#  Revision 3.5  2003/03/28 23:53:41  mast
-#  new version of Plax
-#
-#  Revision 3.4  2003/03/18 19:27:08  mast
-#  Add hack definition for keeping window on top
-#
-#  Revision 3.3  2003/02/10 20:58:00  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.9  2003/01/30 05:50:02  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.8  2003/01/27 00:38:37  mast
-#  fine-tuning the build after pure Qt imod
-#
-#  Revision 3.2.2.7  2002/12/06 22:04:56  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.6  2002/12/06 17:16:41  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.5  2002/12/06 05:18:42  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.4  2002/12/05 19:48:32  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.3  2002/12/05 19:04:19  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.2  2002/12/05 18:57:00  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.1  2002/12/05 18:10:18  mast
-#  *** empty log message ***
-#
-#  Revision 3.2  2002/07/26 19:15:27  mast
-#  *** empty log message ***
-#
-#  Revision 3.1  2002/07/19 01:23:56  rickg
-#  Changed include directory search path to explicitly use /usr/include/X11/GLw
-#  so that GLw include are picked up without preceeding path arguments in the
-#  source code.
-#
-#  Revision 3.0  2001/11/29 18:10:59  rickg
-#  *** empty log message ***
-#
-#  Revision 1.2  2001/11/28 15:41:50  mast
-#  Changed instdir to inst_dir
-#
-#
+
 # 
 #set glwincdir = /usr/include/X11/GLw
 set c_includes =  '-I$(QTDIR)/include'
@@ -218,3 +168,59 @@ EOF
 #
 # Set up to copy qt lib for a distribution
 echo 'QTINSTLIBDIR = lib' >> $configure
+
+
+#  $Log$
+#  Revision 3.6  2003/05/08 20:22:32  mast
+#  *** empty log message ***
+#
+#  Revision 3.5  2003/03/28 23:53:41  mast
+#  new version of Plax
+#
+#  Revision 3.4  2003/03/18 19:27:08  mast
+#  Add hack definition for keeping window on top
+#
+#  Revision 3.3  2003/02/10 20:58:00  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.9  2003/01/30 05:50:02  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.8  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
+#  Revision 3.2.2.7  2002/12/06 22:04:56  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.6  2002/12/06 17:16:41  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.5  2002/12/06 05:18:42  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.4  2002/12/05 19:48:32  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.3  2002/12/05 19:04:19  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.2  2002/12/05 18:57:00  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.1  2002/12/05 18:10:18  mast
+#  *** empty log message ***
+#
+#  Revision 3.2  2002/07/26 19:15:27  mast
+#  *** empty log message ***
+#
+#  Revision 3.1  2002/07/19 01:23:56  rickg
+#  Changed include directory search path to explicitly use /usr/include/X11/GLw
+#  so that GLw include are picked up without preceeding path arguments in the
+#  source code.
+#
+#  Revision 3.0  2001/11/29 18:10:59  rickg
+#  *** empty log message ***
+#
+#  Revision 1.2  2001/11/28 15:41:50  mast
+#  Changed instdir to inst_dir
+#
