@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.70  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.69  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -3661,21 +3664,16 @@ public class ApplicationManager {
   /**
    * Check to see if the combine scripts exist
    * 
-   * @return
+   * @return true if the combine scripts exist
    */
   public boolean combineScriptsExist() {
-    File solvematchshift = new File(System.getProperty("user.dir"),
-      "solvematchshift.com");
-    File solvematchmod = new File(System.getProperty("user.dir"),
-      "solvematchmod.com");
     File matchvol1 = new File(System.getProperty("user.dir"), "matchvol1.com");
     File matchorwarp = new File(System.getProperty("user.dir"),
       "matchorwarp.com");
     File patchcorr = new File(System.getProperty("user.dir"), "patchcorr.com");
     File volcombine = new File(System.getProperty("user.dir"), "volcombine.com");
     File warpvol = new File(System.getProperty("user.dir"), "warpvol.com");
-    return solvematchshift.exists() && solvematchmod.exists()
-      && matchvol1.exists() && matchorwarp.exists() && patchcorr.exists()
+    return  matchvol1.exists() && matchorwarp.exists() && patchcorr.exists()
       && volcombine.exists() && warpvol.exists();
   }
 
@@ -3934,19 +3932,19 @@ public class ApplicationManager {
     nextProcess = "matchvol1";
     String threadName;
     try {
-      threadName = processMgr.solvematchshift();
+      threadName = processMgr.solvematch();
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute solvematchshift.com";
+      message[0] = "Can not execute solvematch.com";
       message[1] = e.getMessage();
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Initial Match");
-    mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+    mainFrame.startProgressBar("Combine: solvematch", AxisID.FIRST);
   }
 
   /**
