@@ -86,7 +86,7 @@ short = radius2
 long = FilterRadius2
 type = F
 usage = Right cutoff radius for filter
-tooltip = 
+tooltip = High frequency cutoff radius for Gaussian filter
 manpage = High spatial frequencies in the cross-correlation will be attenuated
 by a Gaussian curve that is 1 at this cutoff radius and falls off above this
 radius with a standard deviation specified by FilterSigma2.
@@ -106,7 +106,8 @@ short = sigma2
 long = FilterSigma2
 type = F
 usage = Sigma for Gaussian rolloff below radius1 and above radius2
-tooltip = 
+tooltip = Sigma for Gaussian rolloff below low frequency cutoff and above 
+high frequency cutoff
 manpage = Sigma value for the Gaussian rolloff below and above the cutoff
 frequencies specified by FilterRadius1 and FilterRadius2
 
@@ -116,7 +117,7 @@ long = ExcludeCentralPeak
 type = B
 usage = Exclude central correlation peak due to fixed pattern noise
 tooltip = Ignore correlation peaks near (0, 0); do not use unless necessary because
-nearly aligned images can become misaligned.
+nearly aligned images will become misaligned.
 manpage = Exclude central correlation peak due to fixed pattern noise in the
 images.  This option will misalign images that are already nearly aligned.
 
@@ -125,7 +126,7 @@ short = border
 long = BordersInXandY
 type = IP
 usage = Number of pixels to trim off each edge in X and in Y
-tooltip = Pixels to trim off each side in X, and in Y; or / to use whole image.
+tooltip = Pixels to trim off each side in X, and in Y; the default is 0.
 manpage = Number of pixels to trim off each edge in X and in Y (the default is
 to use the whole image).
 
@@ -134,7 +135,8 @@ short = xminmax
 long = XMinAndMax
 type = IP
 usage = Starting and ending coordinates to correlate in X (overrides X border)
-tooltip = 
+tooltip = Starting and ending coordinates to correlate in X (overrides
+trimming in X)
 manpage = Starting and ending X coordinates of a region to correlate, based on
 the position of the region at zero tilt.  This
 entry will override an X border value entered with BordersInXandY.
@@ -144,9 +146,10 @@ short = yminmax
 long = YMinAndMax
 type = IP
 usage = Starting and ending coordinates to correlate in Y (overrides Y border)
-tooltip = 
+tooltip = Starting and ending coordinates to correlate in Y (overrides
+trimming in Y)
 manpage = Starting and ending Y coordinates of a region to correlate.  This
-entry will override an Y border value entered with BordersInXandY.
+entry will override a Y border value entered with BordersInXandY.
 
 [Field = LeaveTiltAxisShifted]
 short = leaveaxis
@@ -163,7 +166,7 @@ short = pad
 long = PadsInXandY
 type = IP
 usage = Number of pixels to pad images in X and in Y
-tooltip = Padding in X, and in Y; or / for 5% of the image size up to 20 pixels.
+tooltip = Padding in X, and in Y; the default is 5% of the image size up to 20 pixels.
 manpage = Number of pixels to pad images in X and in Y.  The default is 5% of
 the image dimensions up to 20 pixels.
 
@@ -172,7 +175,7 @@ short = taper
 long = TapersInXandY
 type = IP
 usage = Number of pixels to taper images in X and in Y
-tooltip = Pixels to taper in X, and in Y; or / for 10% of the image size up to 100 pixels.
+tooltip = Pixels to taper in X, and in Y; the default is 10% of the image size up to 100 pixels.
 manpage = Number of pixels to taper images in X and in Y.  The default
 is 10% of the image dimensions up to 100 pixels.
 
@@ -181,7 +184,7 @@ short = views
 long = StartingEndingViews
 type = IP
 usage = Starting and ending view numbers for doing a subset of views
-tooltip = Starting and ending view numbers to correlate, or / for all views.
+tooltip = Starting and ending view numbers to correlate; the default is all views.
 manpage = 
 
 [Field = CumulativeCorrelation]
@@ -211,7 +214,7 @@ usage = Do not do any cosine stretching for correlations or for accumulating
 into the reference (overrides -absstretch)
 tooltip = 
 manpage = Do not do any cosine stretching for correlations or for accumulating
-into the reference (this option overrides NoCosineStretch).
+into the reference (this option overrides AbsoluteCosineStretch).
 
 [Field = TestOutput]
 short = test
