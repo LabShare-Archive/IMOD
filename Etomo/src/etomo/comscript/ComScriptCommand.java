@@ -17,6 +17,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/07/09 16:00:58  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.1  2003/03/06 01:19:17  rickg
  * <p> Combine changes in progress
  * <p>
@@ -35,10 +38,12 @@ public class ComScriptCommand {
   public static final String rcsid =
     "$Id$";
 
+  private boolean keywordValuePairs = false;
+
   private String[] headerComments = new String[0];
   private String command = null;
   private String[] commandLineArgs = new String[0];
-  private LinkedList comScriptInputArgs = new LinkedList();
+  private LinkedList stdinArgs = new LinkedList();
 
   /**
    * Default constructor.  A zero length String array is created to represent
@@ -57,7 +62,7 @@ public class ComScriptCommand {
     commandLineArgs = src.getCommandLineArgs();
     ComScriptInputArg[] inputArgs = src.getInputArguments();
     for (int i = 0; i < inputArgs.length; i++) {
-      comScriptInputArgs.add(inputArgs[i]);
+      stdinArgs.add(inputArgs[i]);
     }
   }
 
@@ -72,15 +77,15 @@ public class ComScriptCommand {
       this.headerComments[i] = headerComments[i];
     }
   }
-  
+
   public void appendHeaderComments(String[] moreComments) {
     String[] oldComments = headerComments;
     headerComments = new String[oldComments.length + moreComments.length];
-    for(int i=0; i < oldComments.length; i++){
+    for (int i = 0; i < oldComments.length; i++) {
       headerComments[i] = oldComments[i];
     }
-    for(int i=0; i < moreComments.length; i++){
-      headerComments[i+oldComments.length] = moreComments[i];
+    for (int i = 0; i < moreComments.length; i++) {
+      headerComments[i + oldComments.length] = moreComments[i];
     }
   }
 
@@ -121,11 +126,19 @@ public class ComScriptCommand {
    * @param a String array containing the command line arguments for the command
    * .
    */
-  public void setCommandLineArgs(String[] commandLineArgs) {
-    //  make a defensive copy of the array
-    this.commandLineArgs = new String[commandLineArgs.length];
-    for (int i = 0; i < commandLineArgs.length; i++) {
-      this.commandLineArgs[i] = commandLineArgs[i];
+  public void setCommandLineArgs(String[] args) {
+
+    if (args.length == 1 && args[0].equals("-StandardInput")) {
+      commandLineArgs = new String[args.length];
+      commandLineArgs[0] = args[0];
+      keywordValuePairs = true;
+    }
+    else {
+      //  make a defensive copy of the array
+      commandLineArgs = new String[args.length];
+      for (int i = 0; i < args.length; i++) {
+        commandLineArgs[i] = args[i];
+      }
     }
   }
 
@@ -170,19 +183,18 @@ public class ComScriptCommand {
    * argument list.
    */
   public void appendInputArgument(ComScriptInputArg inputArg) {
-    comScriptInputArgs.add(new ComScriptInputArg(inputArg));
+    stdinArgs.add(new ComScriptInputArg(inputArg));
   }
 
   /**
    * Get the command input arguments.  These are the values (and associated
    * comments) that are meant for the standard input to the command.
-   * @return a array of ComScriptInputArgs, this is a copy of the internal
+   * @return a array of stdinArgs, this is a copy of the internal
    * representation.
    */
   public ComScriptInputArg[] getInputArguments() {
-    ComScriptInputArg[] inputArgs =
-      new ComScriptInputArg[comScriptInputArgs.size()];
-    return (ComScriptInputArg[]) comScriptInputArgs.toArray(inputArgs);
+    ComScriptInputArg[] inputArgs = new ComScriptInputArg[stdinArgs.size()];
+    return (ComScriptInputArg[]) stdinArgs.toArray(inputArgs);
   }
 
   /**
@@ -192,7 +204,7 @@ public class ComScriptCommand {
    */
   public void setInputArgument(int index, ComScriptInputArg inputArg) {
     //  create a defensive copy of the input argument object
-    comScriptInputArgs.set(index, new ComScriptInputArg(inputArg));
+    stdinArgs.set(index, new ComScriptInputArg(inputArg));
   }
 
   /**
@@ -202,12 +214,126 @@ public class ComScriptCommand {
    */
   public void setInputArguments(ComScriptInputArg[] inputArgs) {
     //  Clear the current list
-    comScriptInputArgs.clear();
+    stdinArgs.clear();
 
     //  create a defensive copy of the input argument object
     for (int i = 0; i < inputArgs.length; i++) {
-      comScriptInputArgs.add(new ComScriptInputArg(inputArgs[i]));
+      stdinArgs.add(new ComScriptInputArg(inputArgs[i]));
     }
+  }
+
+  /**
+   * Switch to using keyword/value pairs.  All of the current input arguments
+   * are deleted, and -StandardInput is added to the command line.  This
+   * should be done right before updating all of the values for converting a
+   * old style script to new.  The function has no effect if the script is
+   * already using keyword/value pairs.
+   */
+  public void useKeywordValue() {
+    if (!keywordValuePairs) {
+      stdinArgs.clear();
+      keywordValuePairs = true;
+      commandLineArgs = new String[1];
+      commandLineArgs[0] = "-StandardInput";
+    }
+  }
+
+  /**
+   * Returns true if the command uses keyword/value pairs and the specified
+   * keyword is being used  
+   * @param keyword
+   * @return
+   */
+  public boolean hasKeyword(String keyword) throws InvalidParameterException {
+    if (!keywordValuePairs) {
+      throw new InvalidParameterException(
+        "Command " + command + " does not use keyword/value pairs");
+    }
+    if (findKey(keyword) >= 0) {
+      return true;
+    }
+    return false;
+  }
+
+  // TODO these need to throw appropriate exceptions
+
+  public String getValue(String keyword) throws InvalidParameterException {
+    int idx = findKey(keyword);
+    if (idx >= 0) {
+      ComScriptInputArg inputArg = (ComScriptInputArg) stdinArgs.get(idx);
+      String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
+      if (tokens.length < 2) {
+        throw new InvalidParameterException(tokens[0] + " has no parameters");
+      }
+      return tokens[1];
+    }
+    return "";
+  }
+
+  /**
+   * Sets the specified key to the specified value.  The key will be created if
+   * it does not exist.
+   * @param keyword
+   * @param value
+   */
+  public void setValue(String keyword, String value) {
+    ComScriptInputArg inputArg;
+    int idx = findKey(keyword);
+    if (idx == -1) {
+      inputArg = new ComScriptInputArg();
+      stdinArgs.add(inputArg);
+    }
+    else {
+      inputArg = (ComScriptInputArg) stdinArgs.get(idx);
+    }
+    inputArg.setArgument(keyword + "\t" + value);
+  }
+
+  /**
+   * Add a new key and value to the standard input argument list
+   * @param keyword
+   * @param value
+   */
+  public void addKey(String keyword, String value) {
+    ComScriptInputArg newArg = new ComScriptInputArg();
+    newArg.setArgument(keyword + "\t" + value);
+    stdinArgs.add(newArg);
+  }
+
+  /**
+   * Delete the comScriptInputArg elements it contains the specified key 
+   * @param keyword
+   */
+  public void deleteKey(String keyword) {
+    int idx = findKey(keyword);
+    if (idx >= 0) {
+      stdinArgs.remove(idx);
+    }
+  }
+
+  /**
+   * Returns the index within the stdinArgs list of the first
+   * ComScriptInputArg containing the specified key or -1 if the keyword is 
+   * not found.
+   * @param keyword
+   * @return Index into the linked list
+   */
+  private int findKey(String keyword) {
+    for (int i = 0; i < stdinArgs.size(); i++) {
+      ComScriptInputArg inputArg = (ComScriptInputArg) stdinArgs.get(i);
+      String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
+      if (tokens[0].equals(keyword)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isKeywordValuePairs() {
+    return keywordValuePairs;
   }
 
 }
