@@ -81,6 +81,13 @@ static char *styleList[] = {"Windows", "compact",
 #endif
 static int styleStatus[MAX_STYLES];
 
+typedef struct generic_settings
+{
+  char *key;
+  int numVals;
+  double *values;
+} GenericSettings;
+
 
 /* CONSTRUCTOR TO READ PREFERENCES AND FUNCTION TO SAVE UPON EXIT */
 
@@ -93,8 +100,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   bool readin;
   QString str;
   ImodPrefStruct *prefs = &mCurrentPrefs;
+  QSettings *settings = getSettingsObject();
   mTabDlg = NULL;
   mCurrentTab = 0;
+  mRecordedZapGeom = QRect(0, 0, 0, 0);
+  mGenericList = ilistNew(sizeof(GenericSettings), 4);
 
   // Set the default values
   prefs->hotSliderKeyDflt = 0;
@@ -115,60 +125,49 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autoTargetMeanDflt = 150;
   prefs->autoTargetSDDflt = 40;
 
-  // Read the settings
-  QSettings settings;
-
-  // The Mac format is not compatible with QT 3.0.5
-  // Need to check if this will work on other systems without breaking old files.
-  // Be sure to modify in saveSettings too
-#ifdef Q_OS_MACX
-  settings.setPath("", "3dmod", QSettings::User);
-#else
-  settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
-#endif
-  prefs->hotSliderKey = settings.readNumEntry(IMOD_NAME"hotSliderKey", 
+  prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
                                               prefs->hotSliderKeyDflt,
                                               &prefs->hotSliderKeyChgd);
-  prefs->hotSliderFlag = settings.readNumEntry(IMOD_NAME"hotSliderFlag",
+  prefs->hotSliderFlag = settings->readNumEntry(IMOD_NAME"hotSliderFlag",
                                                prefs->hotSliderFlagDflt,
                                                &prefs->hotSliderFlagChgd);
-  prefs->mouseMapping = settings.readNumEntry(IMOD_NAME"mouseMapping",
+  prefs->mouseMapping = settings->readNumEntry(IMOD_NAME"mouseMapping",
                                             prefs->mouseMappingDflt,
                                             &prefs->mouseMappingChgd);
-  prefs->silentBeep = settings.readBoolEntry(IMOD_NAME"silentBeep",
+  prefs->silentBeep = settings->readBoolEntry(IMOD_NAME"silentBeep",
                                             prefs->silentBeepDflt,
                                             &prefs->silentBeepChgd);
-  prefs->tooltipsOn = settings.readBoolEntry(IMOD_NAME"tooltipsOn",
+  prefs->tooltipsOn = settings->readBoolEntry(IMOD_NAME"tooltipsOn",
                                             prefs->tooltipsOnDflt,
                                             &prefs->tooltipsOnChgd);
   QToolTip::setGloballyEnabled(prefs->tooltipsOn);
 
-  prefs->bwStep = settings.readNumEntry(IMOD_NAME"bwStep",
+  prefs->bwStep = settings->readNumEntry(IMOD_NAME"bwStep",
                                         prefs->bwStepDflt,
                                         &prefs->bwStepChgd);
-  prefs->iconifyImodvDlg = settings.readBoolEntry(IMOD_NAME"iconifyImodvDlg",
+  prefs->iconifyImodvDlg = settings->readBoolEntry(IMOD_NAME"iconifyImodvDlg",
                                                  prefs->iconifyImodvDlgDflt,
                                                  &prefs->iconifyImodvDlgChgd);
-  prefs->iconifyImodDlg = settings.readBoolEntry(IMOD_NAME"iconifyImodDlg",
+  prefs->iconifyImodDlg = settings->readBoolEntry(IMOD_NAME"iconifyImodDlg",
                                                 prefs->iconifyImodDlgDflt,
                                                 &prefs->iconifyImodDlgChgd);
-  prefs->iconifyImageWin = settings.readBoolEntry(IMOD_NAME"iconifyImageWin",
+  prefs->iconifyImageWin = settings->readBoolEntry(IMOD_NAME"iconifyImageWin",
                                                  prefs->iconifyImageWinDflt,
                                                  &prefs->iconifyImageWinChgd);
-  prefs->minModPtSize = settings.readNumEntry(IMOD_NAME"minModPtSize",
+  prefs->minModPtSize = settings->readNumEntry(IMOD_NAME"minModPtSize",
                                         prefs->minModPtSizeDflt,
                                         &prefs->minModPtSizeChgd);
-  prefs->minImPtSize = settings.readNumEntry(IMOD_NAME"minImPtSize",
+  prefs->minImPtSize = settings->readNumEntry(IMOD_NAME"minImPtSize",
                                         prefs->minImPtSizeDflt,
                                         &prefs->minImPtSizeChgd);
-  prefs->rememberGeom = settings.readBoolEntry(IMOD_NAME"rememberGeom",
+  prefs->rememberGeom = settings->readBoolEntry(IMOD_NAME"rememberGeom",
                                                  prefs->rememberGeomDflt,
                                                  &prefs->rememberGeomChgd);
-  mGeomLastSaved = settings.readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
-  prefs->autoTargetMean = settings.readNumEntry(IMOD_NAME"autoTargetMean",
+  mGeomLastSaved = settings->readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
+  prefs->autoTargetMean = settings->readNumEntry(IMOD_NAME"autoTargetMean",
                                         prefs->autoTargetMeanDflt,
                                         &prefs->autoTargetMeanChgd);
-  prefs->autoTargetSD = settings.readNumEntry(IMOD_NAME"autoTargetSD",
+  prefs->autoTargetSD = settings->readNumEntry(IMOD_NAME"autoTargetSD",
                                         prefs->autoTargetSDDflt,
                                         &prefs->autoTargetSDChgd);
 
@@ -177,7 +176,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   for (i = 0; i < MAXZOOMS; i++) {
     prefs->zoomsDflt[i] = szoomvals[i];
     str.sprintf(IMOD_NAME"zooms/%d", i);
-    prefs->zooms[i] = settings.readDoubleEntry(str, szoomvals[i], &readin);
+    prefs->zooms[i] = settings->readDoubleEntry(str, szoomvals[i], &readin);
     if (readin)
       prefs->zoomsChgd = true;
   }
@@ -188,32 +187,32 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     mGeomZapWin[i].setRect(0, 0, 0, 0);
     mGeomInfoWin[i].setRect(0, 0, 0, 0);
     str.sprintf(IMOD_NAME"geomImageSize/%d", i);
-    str = settings.readEntry(str);
+    str = settings->readEntry(str);
     if (!str.isEmpty())
       sscanf(str.latin1(), "%d,%d", &mGeomImageXsize[i], &mGeomImageYsize[i]);
 
     str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
-    str = settings.readEntry(str);
+    str = settings->readEntry(str);
     if (!str.isEmpty()) {
       sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomZapWin[i].setRect(left, top, width, height);
     }
 
     str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
-    str = settings.readEntry(str);
+    str = settings->readEntry(str);
     if (!str.isEmpty()) {
       sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomInfoWin[i].setRect(left, top, width, height);
     }
   }
 
-  prefs->autosaveInterval = settings.readNumEntry
+  prefs->autosaveInterval = settings->readNumEntry
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
      &prefs->autosaveIntervalChgd);
-  prefs->autosaveDir = settings.readEntry(IMOD_NAME"autosaveDir",
+  prefs->autosaveDir = settings->readEntry(IMOD_NAME"autosaveDir",
                                           prefs->autosaveDirDflt,
                                           &prefs->autosaveDirChgd);
-  prefs->autosaveOn = settings.readBoolEntry(IMOD_NAME"autosaveOn",
+  prefs->autosaveOn = settings->readBoolEntry(IMOD_NAME"autosaveOn",
                                             prefs->autosaveOnDflt,
                                             &prefs->autosaveOnChgd);
 
@@ -234,7 +233,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     prefs->autosaveDir = autosaveDir();
 
   // Look for font; either set the font or get the current font
-  str = settings.readEntry(IMOD_NAME"fontString");
+  str = settings->readEntry(IMOD_NAME"fontString");
   prefs->fontChgd = !str.isEmpty() && prefs->font.fromString(str);
   if (prefs->fontChgd)
     QApplication::setFont(prefs->font);
@@ -251,7 +250,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
 
     // Otherwise, look for a key and use it; or set the key to windows
   } else {
-    str = settings.readEntry(IMOD_NAME"styleKey");
+    str = settings->readEntry(IMOD_NAME"styleKey");
     prefs->styleChgd = styleOK(str) &&  QStyleFactory::create(str) != NULL;
     if (prefs->styleChgd)
       prefs->styleKey = str;
@@ -263,7 +262,10 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   // Set status to 0; it will be 1 if OK after checking, -1 if not OK
   for (i = 0; i < MAX_STYLES; i++)
     styleStatus[i] = 0;
+
+  delete settings;
 }
+
 
 bool ImodPreferences::styleOK(QString key)
 {
@@ -299,15 +301,9 @@ bool ImodPreferences::styleOK(QString key)
 void ImodPreferences::saveSettings()
 {
   ImodPrefStruct *prefs = &mCurrentPrefs;
-  QSettings settings;
   QString str, str2;
   int i, geomInd, firstEmpty;
-
-#ifdef Q_OS_MACX
-  settings.setPath("", "3dmod", QSettings::User);
-#else
-  settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
-#endif
+  QSettings *settings = getSettingsObject();
 
   // Get current geometries of info and zap windows
   // first find where in the table this will go
@@ -342,82 +338,111 @@ void ImodPreferences::saveSettings()
 
     // Get the current geometries and put in table
     mGeomInfoWin[geomInd] = ivwRestorableGeometry(ImodInfoWin);
-    mGeomZapWin[geomInd] = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
+    mGeomZapWin[geomInd] = mRecordedZapGeom;
 
-    settings.writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
+    settings->writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
 
     for (i = 0; i < MAX_GEOMETRIES; i++) {
       if (mGeomImageXsize[i]) {
         str.sprintf(IMOD_NAME"geomImageSize/%d", i);
         str2.sprintf("%d,%d", mGeomImageXsize[i], mGeomImageYsize[i]);
-        settings.writeEntry(str, str2);
+        settings->writeEntry(str, str2);
         
         str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
         str2.sprintf("%d,%d,%d,%d", mGeomZapWin[i].left(), 
                      mGeomZapWin[i].top(),
                      mGeomZapWin[i].width(), mGeomZapWin[i].height());
-        settings.writeEntry(str, str2);
+        settings->writeEntry(str, str2);
         
         str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
         str2.sprintf("%d,%d,%d,%d", mGeomInfoWin[i].left(), 
                      mGeomInfoWin[i].top(),
                      mGeomInfoWin[i].width(), mGeomInfoWin[i].height());
-        settings.writeEntry(str, str2);
+        settings->writeEntry(str, str2);
       }
     }
   }
 
   if (prefs->hotSliderKeyChgd)
-    settings.writeEntry(IMOD_NAME"hotSliderKey", prefs->hotSliderKey);
+    settings->writeEntry(IMOD_NAME"hotSliderKey", prefs->hotSliderKey);
   if (prefs->hotSliderFlagChgd)
-    settings.writeEntry(IMOD_NAME"hotSliderFlag", prefs->hotSliderFlag);
+    settings->writeEntry(IMOD_NAME"hotSliderFlag", prefs->hotSliderFlag);
   if (prefs->mouseMappingChgd)
-    settings.writeEntry(IMOD_NAME"mouseMapping", prefs->mouseMapping);
+    settings->writeEntry(IMOD_NAME"mouseMapping", prefs->mouseMapping);
   if (prefs->silentBeepChgd)
-    settings.writeEntry(IMOD_NAME"silentBeep", prefs->silentBeep);
+    settings->writeEntry(IMOD_NAME"silentBeep", prefs->silentBeep);
   if (prefs->tooltipsOnChgd)
-    settings.writeEntry(IMOD_NAME"tooltipsOn", prefs->tooltipsOn);
+    settings->writeEntry(IMOD_NAME"tooltipsOn", prefs->tooltipsOn);
   if (prefs->bwStepChgd)
-    settings.writeEntry(IMOD_NAME"bwStep", prefs->bwStep);
+    settings->writeEntry(IMOD_NAME"bwStep", prefs->bwStep);
   if (prefs->iconifyImodvDlgChgd)
-    settings.writeEntry(IMOD_NAME"iconifyImodvDlg", prefs->iconifyImodvDlg);
+    settings->writeEntry(IMOD_NAME"iconifyImodvDlg", prefs->iconifyImodvDlg);
   if (prefs->iconifyImodDlgChgd)
-    settings.writeEntry(IMOD_NAME"iconifyImodDlg", prefs->iconifyImodDlg);
+    settings->writeEntry(IMOD_NAME"iconifyImodDlg", prefs->iconifyImodDlg);
   if (prefs->iconifyImageWinChgd)
-    settings.writeEntry(IMOD_NAME"iconifyImageWin", prefs->iconifyImageWin);
+    settings->writeEntry(IMOD_NAME"iconifyImageWin", prefs->iconifyImageWin);
   if (prefs->minModPtSizeChgd)
-    settings.writeEntry(IMOD_NAME"minModPtSize", prefs->minModPtSize);
+    settings->writeEntry(IMOD_NAME"minModPtSize", prefs->minModPtSize);
   if (prefs->minImPtSizeChgd)
-    settings.writeEntry(IMOD_NAME"minImPtSize", prefs->minImPtSize);
+    settings->writeEntry(IMOD_NAME"minImPtSize", prefs->minImPtSize);
   if (prefs->rememberGeomChgd)
-    settings.writeEntry(IMOD_NAME"rememberGeom", prefs->rememberGeom);
+    settings->writeEntry(IMOD_NAME"rememberGeom", prefs->rememberGeom);
   if (prefs->autoTargetMeanChgd)
-    settings.writeEntry(IMOD_NAME"autoTargetMean", prefs->autoTargetMean);
+    settings->writeEntry(IMOD_NAME"autoTargetMean", prefs->autoTargetMean);
   if (prefs->autoTargetSDChgd)
-    settings.writeEntry(IMOD_NAME"autoTargetSD", prefs->autoTargetSD);
+    settings->writeEntry(IMOD_NAME"autoTargetSD", prefs->autoTargetSD);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
       str.sprintf(IMOD_NAME"zooms/%d", i);
-      settings.writeEntry(str, prefs->zooms[i]); 
+      settings->writeEntry(str, prefs->zooms[i]); 
     }
   }
 
   if (prefs->autosaveIntervalChgd)
-    settings.writeEntry(IMOD_NAME"autosaveInterval", 
+    settings->writeEntry(IMOD_NAME"autosaveInterval", 
                             prefs->autosaveInterval);
   if (prefs->autosaveDirChgd)
-    settings.writeEntry(IMOD_NAME"autosaveDir", prefs->autosaveDir);
+    settings->writeEntry(IMOD_NAME"autosaveDir", prefs->autosaveDir);
   if (prefs->autosaveOnChgd)
-    settings.writeEntry(IMOD_NAME"autosaveOn", prefs->autosaveOn);
+    settings->writeEntry(IMOD_NAME"autosaveOn", prefs->autosaveOn);
   if (prefs->fontChgd) {
     str = prefs->font.toString();
-    settings.writeEntry(IMOD_NAME"fontString", str);
+    settings->writeEntry(IMOD_NAME"fontString", str);
   }
   if (prefs->styleChgd)
-    settings.writeEntry(IMOD_NAME"styleKey", prefs->styleKey);
-  
+    settings->writeEntry(IMOD_NAME"styleKey", prefs->styleKey);
+
+  // Write generic settings if any
+  if (mGenericList) {
+    GenericSettings *listSet = (GenericSettings *)ilistFirst(mGenericList);
+    while (listSet) {
+      for (i = 0; i < listSet->numVals; i++) {
+        str.sprintf(IMOD_NAME"%s/%d", listSet->key, i);
+        settings->writeEntry(str, listSet->values[i]);
+      }
+      listSet = (GenericSettings *)ilistNext(mGenericList);
+    }
+  }
+
+  delete settings;
 }
+
+// Create the settings object and return pointer
+QSettings *ImodPreferences::getSettingsObject()
+{
+  QSettings *settings = new QSettings();
+  // The Mac format is not compatible with QT 3.0.5
+  // Need to check if this will work on other systems without breaking old files.
+  // Be sure to modify in saveSettings too
+#ifdef Q_OS_MACX
+  settings->setPath("", "3dmod", QSettings::User);
+#else
+  settings->insertSearchPath( QSettings::Windows, "/BL3DEMC" );
+#endif
+  return settings;
+}
+
 
 
 /* FUNCTIONS RELATED TO THE PREFERENCE SETTING DIALOG */
@@ -817,14 +842,80 @@ QRect ImodPreferences::getZapGeometry()
   return QRect(0, 0, 0, 0);
 }
 
+// Fetch the biggest zap window geometry before closing windows
+void ImodPreferences::recordZapGeometry()
+{
+  mRecordedZapGeom = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
+}
+
 void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 {
   mean = mCurrentPrefs.autoTargetMean;
   sd = mCurrentPrefs.autoTargetSD;
 }
 
+
+// Keep a list of settings to save under the given key
+int ImodPreferences::saveGenericSettings(char *key, int numVals, double *values)
+{
+  GenericSettings genSet, *listSet;
+  int i;
+
+  if (!mGenericList)
+    return 1;
+
+  // First see if the key is already on list and just copy values if so
+  listSet = (GenericSettings *)ilistFirst(mGenericList);
+  while (listSet) {
+    if (!strcmp(key, listSet->key)) {
+      for (i = 0; i < listSet->numVals; i++)
+        listSet->values[i] =  values[i];
+      return 0;
+    }
+    listSet = (GenericSettings *)ilistNext(mGenericList);
+  }
+
+  // Copy the key and the values to this set
+  genSet.key = strdup(key);
+  genSet.numVals = numVals;
+  genSet.values = (double *)malloc(numVals * sizeof(double));
+  if (!genSet.key || !genSet.values)
+    return 1;
+  for (i = 0; i < numVals; i++)
+        genSet.values[i] =  values[i];
+  
+  // Append to list and return 0 if OK
+  ilistAppend(mGenericList, &genSet);
+  return 0;
+}
+
+// Read the settings under the given key, return up to maxVals values
+int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
+{
+  QString str;
+  QSettings *settings = getSettingsObject();
+  bool readin;
+  double val;
+  int i;
+
+  // Read each possible number and load into array if present, quit if not
+  for (i = 0; i < maxVals; i++) {
+    str.sprintf(IMOD_NAME"%s/%d", key, i);
+    val = settings->readDoubleEntry(str, 0., &readin);
+    if (!readin)
+      break;
+    values[i] = val;
+  }
+  delete settings;
+  return i;
+}
+
+
 /*
 $Log$
+Revision 1.15  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 1.14  2004/05/19 15:41:36  mast
 Changed to new setPath call on the Mac to get back to user's file with Qt 3.3
 
