@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/03: IMOD_3-0-9
+5/12/03: Changes to vmstocsh and setupcombine for running under Cygwin, and
+other minor changes for Cygwin (like the name change)
+
 5/9/03: IMOD_3-0-8 released
 5/9/03: Added new introduction to 3dmod as a separate document, revised other
 guides and man pages.

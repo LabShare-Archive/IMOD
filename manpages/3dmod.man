@@ -621,7 +621,7 @@ B  -  Toggle rubber band on and off
 I  -  Print information about window, image size, and offsets,
          also bring the Information Window to the front
 R  -  Resize window to size of image or rubber band
-Keypad Ins - Add point(s) in model mode, like middle mouse button
+Keypad Ins - Add point(s) in model mode, like second mouse button
 Esc - Close ZaP window
 
         Keys to control position or move current viewing point
@@ -647,7 +647,7 @@ Arrows        -  Pan in ZaP window in model mode
 \\  -  Open Slicer Window
 v  -  Open Model View Window
 G  -  Open Graph window
-z  -  Open ZaP window (from XYZ window)
+z  -  Open ZaP window
 .fi
 
 .SH Slicer Window
