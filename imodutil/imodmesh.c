@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/08/26 03:49:52  mast
+Added option to cap tubes
+
 */
 
 #include <stdlib.h>
@@ -78,7 +81,7 @@ static int imodmesh_usage(char *prog, int retcode)
     fprintf(stderr, "\t-f  \tForce more connections to non-overlapping contours.\n");
     fprintf(stderr, "\t-t list\tRender open contour objects in list as tubes.\n");
     fprintf(stderr, "\t-d #\tSet diameter for tubes (default is 3D line width).\n");
-    fprintf(stderr, "\t-E #\tCap ends of tubes.\n");
+    fprintf(stderr, "\t-E  \tCap ends of tubes.\n");
     fprintf(stderr, "\t-T  \tDo time consuming calculations, "
 	    "may help reduce artifacts.\n");
     
