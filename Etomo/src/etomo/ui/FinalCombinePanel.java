@@ -44,6 +44,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 1.19  2003/10/23 17:09:41  rickg
+ * Bug# 323 Label change
+ *
  * Revision 1.18  2003/10/21 23:44:30  rickg
  * Changed patch region model button ot a multiline button
  *
@@ -144,13 +147,13 @@ public class FinalCombinePanel implements ContextMenu {
   private LabeledTextField ltfRefineLimit =
     new LabeledTextField("Residual limit for single transform: ");
 
-  private LabeledTextField cbtfXLowerExclude =
+  private LabeledTextField ltfXLowerExclude =
     new LabeledTextField("Number of columns to exclude on left (in X): ");
-  private LabeledTextField cbtfXUpperExclude =
+  private LabeledTextField ltfXUpperExclude =
     new LabeledTextField("Number of columns to exclude on right (in X): ");
-  private LabeledTextField cbtfZLowerExclude =
+  private LabeledTextField ltfZLowerExclude =
     new LabeledTextField("Number of rows to exclude on bottom (in Y): ");
-  private LabeledTextField cbtfZUpperExclude =
+  private LabeledTextField ltfZUpperExclude =
     new LabeledTextField("Number of rows to exclude on top (in Y): ");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private JButton btnMatchorwarpRestart =
@@ -162,7 +165,7 @@ public class FinalCombinePanel implements ContextMenu {
 
   private JButton btnPatchVectorModel =
     new JButton("<html><b>Examine Patch Vector Model</b>");
-  private JButton btnCommitPatchOut =
+  private JButton btnReplacePatchOut =
     new JButton("<html><b>Replace Patch Vectors</b>");
   private JButton btnImodMatchedTo =
     new JButton("<html><b>Open Volume Being Matched To</b>");
@@ -170,10 +173,10 @@ public class FinalCombinePanel implements ContextMenu {
     new JButton("<html><b>Open Combined Volume</b>");
 
   /**
-	 * Default constructor
-	 * 
-	 * @param appMgr
-	 */
+   * Default constructor
+   * 
+   * @param appMgr
+   */
   public FinalCombinePanel(ApplicationManager appMgr) {
 
     applicationManager = appMgr;
@@ -186,8 +189,8 @@ public class FinalCombinePanel implements ContextMenu {
     btnPatchRegionModel.setMaximumSize(dimButton);
     btnPatchVectorModel.setPreferredSize(dimButton);
     btnPatchVectorModel.setMaximumSize(dimButton);
-    btnCommitPatchOut.setPreferredSize(dimButton);
-    btnCommitPatchOut.setMaximumSize(dimButton);
+    btnReplacePatchOut.setPreferredSize(dimButton);
+    btnReplacePatchOut.setMaximumSize(dimButton);
     btnImodMatchedTo.setPreferredSize(dimButton);
     btnImodMatchedTo.setMaximumSize(dimButton);
     btnImodCombined.setPreferredSize(dimButton);
@@ -211,10 +214,9 @@ public class FinalCombinePanel implements ContextMenu {
     pnlPatchRegionModel.setBorder(
       new EtchedBorder("Patch Region Model").getBorder());
     pnlPatchRegionModel.add(cbUsePatchRegionModel);
-		pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlPatchRegionModel.add(btnPatchRegionModel);
-		pnlPatchRegionModel.add(Box.createHorizontalGlue());
-
+    pnlPatchRegionModel.add(Box.createHorizontalGlue());
 
     // Layout the Patchcorr panel
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
@@ -262,25 +264,24 @@ public class FinalCombinePanel implements ContextMenu {
     pnlPatchcorr.add(btnPatchcorrRestart);
     pnlPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
 
-
     //  Layout the Matchorwarp panel
     pnlMatchorwarp.setLayout(new BoxLayout(pnlMatchorwarp, BoxLayout.Y_AXIS));
     pnlMatchorwarp.setBorder(
       new EtchedBorder("Matchorwarp Parameters").getBorder());
 
-		pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
-		pnlMatchorwarp.add(ltfRefineLimit.getContainer());
+    pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlMatchorwarp.add(ltfRefineLimit.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlMatchorwarp.add(ltfWarpLimit.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    pnlMatchorwarp.add(cbtfXLowerExclude.getContainer());
+    pnlMatchorwarp.add(ltfXLowerExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfXUpperExclude.getContainer());
+    pnlMatchorwarp.add(ltfXUpperExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfZLowerExclude.getContainer());
+    pnlMatchorwarp.add(ltfZLowerExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarp.add(cbtfZUpperExclude.getContainer());
+    pnlMatchorwarp.add(ltfZUpperExclude.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlMatchorwarpButtons.setLayout(
@@ -298,7 +299,7 @@ public class FinalCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnPatchVectorModel);
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnCommitPatchOut);
+    pnlButton.add(btnReplacePatchOut);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodMatchedTo);
     pnlButton.add(Box.createHorizontalGlue());
@@ -306,9 +307,9 @@ public class FinalCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
 
     //  Root panel layout
-		pnlRoot.add(pnlPatchRegionModel);
-		pnlRoot.add(pnlPatchcorr);
-		pnlRoot.add(pnlMatchorwarp);		
+    pnlRoot.add(pnlPatchRegionModel);
+    pnlRoot.add(pnlPatchcorr);
+    pnlRoot.add(pnlMatchorwarp);
     pnlRoot.add(Box.createVerticalGlue());
     pnlRoot.add(pnlButton);
 
@@ -321,7 +322,7 @@ public class FinalCombinePanel implements ContextMenu {
     btnMatchorwarpRestart.addActionListener(actionListener);
     btnMatchorwarpTrial.addActionListener(actionListener);
     btnPatchVectorModel.addActionListener(actionListener);
-    btnCommitPatchOut.addActionListener(actionListener);
+    btnReplacePatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
 
@@ -336,20 +337,20 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-	 * Return the pnlRoot reference
-	 * 
-	 * @return Container
-	 */
+   * Return the pnlRoot reference
+   * 
+   * @return Container
+   */
   public Container getContainer() {
     return pnlRoot;
   }
 
   /**
-	 * Set the values of the patchcrawl3D UI objects from the
-	 * ConstPatchcrawl3DParam object.
-	 * 
-	 * @param patchrawlParam
-	 */
+   * Set the values of the patchcrawl3D UI objects from the
+   * ConstPatchcrawl3DParam object.
+   * 
+   * @param patchrawlParam
+   */
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchrawlParam) {
     ltfXPatchSize.setText(patchrawlParam.getXPatchSize());
     ltfYPatchSize.setText(patchrawlParam.getYPatchSize());
@@ -366,11 +367,11 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-	 * Set the Patchcrawl3DParam object values from the UI values.
-	 * 
-	 * @param patchrawlParam
-	 * @throws NumberFormatException
-	 */
+   * Set the Patchcrawl3DParam object values from the UI values.
+   * 
+   * @param patchrawlParam
+   * @throws NumberFormatException
+   */
   public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParam)
     throws NumberFormatException {
     String badParameter = "";
@@ -412,11 +413,11 @@ public class FinalCombinePanel implements ContextMenu {
   }
 
   /**
-	 * Set the values of the matchorwarp UI objects from the
-	 * ConstMatchorwarpParam object.
-	 * 
-	 * @param matchorwarpParam
-	 */
+   * Set the values of the matchorwarp UI objects from the
+   * ConstMatchorwarpParam object.
+   * 
+   * @param matchorwarpParam
+   */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
     cbUsePatchRegionModel.setSelected(
       !matchorwarpParam.getModelFile().equals(""));
@@ -424,27 +425,27 @@ public class FinalCombinePanel implements ContextMenu {
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
     if (matchorwarpParam.getXLowerExclude() > 0) {
-      cbtfXLowerExclude.setText(matchorwarpParam.getXLowerExclude());
+      ltfXLowerExclude.setText(matchorwarpParam.getXLowerExclude());
     }
     if (matchorwarpParam.getXUpperExclude() > 0) {
-      cbtfXUpperExclude.setText(matchorwarpParam.getXUpperExclude());
+      ltfXUpperExclude.setText(matchorwarpParam.getXUpperExclude());
     }
 
     if (matchorwarpParam.getZLowerExclude() > 0) {
-      cbtfZLowerExclude.setText(matchorwarpParam.getZLowerExclude());
+      ltfZLowerExclude.setText(matchorwarpParam.getZLowerExclude());
     }
 
     if (matchorwarpParam.getZUpperExclude() > 0) {
-      cbtfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
+      ltfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
   }
 
   /**
-	 * Set the MatchorwarpParam object values from the UI values.
-	 * 
-	 * @param matchorwarpParam
-	 * @throws NumberFormatException
-	 */
+   * Set the MatchorwarpParam object values from the UI values.
+   * 
+   * @param matchorwarpParam
+   * @throws NumberFormatException
+   */
   public void getMatchorwarpParams(MatchorwarpParam matchorwarpParam)
     throws NumberFormatException {
     String badParameter = "";
@@ -465,8 +466,8 @@ public class FinalCombinePanel implements ContextMenu {
       matchorwarpParam.setRefineLimit(
         Double.parseDouble(ltfRefineLimit.getText()));
 
-      badParameter = cbtfXLowerExclude.getLabel();
-      String text = cbtfXLowerExclude.getText();
+      badParameter = ltfXLowerExclude.getLabel();
+      String text = ltfXLowerExclude.getText();
       if (text.matches("\\S+")) {
         matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
       }
@@ -474,8 +475,8 @@ public class FinalCombinePanel implements ContextMenu {
         matchorwarpParam.setXLowerExclude(0);
       }
 
-      badParameter = cbtfXUpperExclude.getLabel();
-      text = cbtfXUpperExclude.getText();
+      badParameter = ltfXUpperExclude.getLabel();
+      text = ltfXUpperExclude.getText();
       if (text.matches("\\S+")) {
         matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
       }
@@ -483,8 +484,8 @@ public class FinalCombinePanel implements ContextMenu {
         matchorwarpParam.setXUpperExclude(0);
       }
 
-      badParameter = cbtfZLowerExclude.getLabel();
-      text = cbtfZLowerExclude.getText();
+      badParameter = ltfZLowerExclude.getLabel();
+      text = ltfZLowerExclude.getText();
       if (text.matches("\\S+")) {
         matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
       }
@@ -492,8 +493,8 @@ public class FinalCombinePanel implements ContextMenu {
         matchorwarpParam.setZLowerExclude(0);
       }
 
-      badParameter = cbtfZUpperExclude.getLabel();
-      text = cbtfZUpperExclude.getText();
+      badParameter = ltfZUpperExclude.getLabel();
+      text = ltfZUpperExclude.getText();
       if (text.matches("\\S+")) {
         matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
       }
@@ -506,8 +507,8 @@ public class FinalCombinePanel implements ContextMenu {
       throw new NumberFormatException(message);
     }
   } /**
-		 * Right mouse button context menu
-		 */
+             		 * Right mouse button context menu
+             		 */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "Patchcrawl3d", "Matchorwarp" };
     String[] manPage = { "patchcrawl3d.html", "matchorwarp.html" };
@@ -524,7 +525,9 @@ public class FinalCombinePanel implements ContextMenu {
         logFile);
   }
 
-  private void buttonAction(ActionEvent event) { // Decrease patch sizes by 20%
+  private void buttonAction(ActionEvent event) {
+
+    // Decrease patch sizes by 20%
     // and then round to ints
     // since they are in
     // pixels
@@ -537,7 +540,9 @@ public class FinalCombinePanel implements ContextMenu {
         Math.round(Integer.parseInt(ltfYPatchSize.getText()) / 1.2f));
       ltfZPatchSize.setText(
         Math.round(Integer.parseInt(ltfZPatchSize.getText()) / 1.2f));
-    } //  Increase patch sizes by 20% and then round to ints since they are
+    }
+
+    //  Increase patch sizes by 20% and then round to ints since they are
     // in
     // pixels
     if (event
@@ -583,7 +588,7 @@ public class FinalCombinePanel implements ContextMenu {
 
     if (event
       .getActionCommand()
-      .equals(btnCommitPatchOut.getActionCommand())) {
+      .equals(btnReplacePatchOut.getActionCommand())) {
       applicationManager.modelToPatch();
     }
 
@@ -605,5 +610,123 @@ public class FinalCombinePanel implements ContextMenu {
     public void actionPerformed(ActionEvent event) {
       listenee.buttonAction(event);
     }
+  }
+
+  /**
+  * Initialize the tooltip text
+  */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "Size of correlation patches in X.";
+    ltfXPatchSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Size of correlation patches in Y.";
+    ltfYPatchSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Size of correlation patches in Z.";
+    ltfZPatchSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Increase all patch dimensions by 20%.";
+    btnPatchsizeIncrease.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Decrease all patch dimensions by 20%.";
+    btnPatchsizeDecrease.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Number of patches to correlate in the X dimension.";
+    ltfXNPatches.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Number of patches to correlate in the Y dimension.";
+    ltfYNPatches.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Number of patches to correlate in the Z dimension.";
+    ltfZNPatches.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum X coordinate for left edge of correlation patches.";
+    ltfXLow.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum Y coordinate for upper edge of correlation patches.";
+    ltfYLow.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Minimum Z coordinate for top edge of correlation patches.";
+    ltfZLow.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum X coordinate for right edge of correlation patches.";
+    ltfXHigh.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum Y coordinate for lower edge of correlation patches.";
+    ltfYHigh.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum Z coordinate for bottom edge of correlation patches.";
+    ltfZHigh.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Compute new displacements between patches by cross-correlation.";
+    btnPatchcorrRestart.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Use a model with contours around the areas where patches should be "
+        + "correlated to prevent bad patches outside those areas.";
+    cbUsePatchRegionModel.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Open the volume being matched to and create the patch region model.";
+    btnPatchRegionModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter a comma-separate series of mean residual limits to try in "
+        + "succession when fitting warping transformations to the patch "
+        + "displacements.";
+    ltfRefineLimit.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "The mean residual limit for fit all patch displacements to a single "
+        + "linear transformation.";
+    ltfWarpLimit.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Exclude columns of patches on the left from the fits. Number of columns "
+        + "of patches on the left to exclude from the fits.";
+    ltfXLowerExclude.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Exclude columns of patches on the right from the fits. Number of columns"
+        + " of patches on the right to exclude from the fits.";
+    ltfXUpperExclude.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Exclude rows of patches on the bottom from the fits. Number of rows of "
+        + "patches on the bottom in Y to exclude from the fits.";
+    ltfZLowerExclude.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Exclude rows of patches on the top from the fits. Number of rows of "
+        + "patches on the top in Y to exclude from the fits.";
+    ltfZUpperExclude.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Restart the combine operation at Matchorwarp, which tries to fit "
+        + "transformations to the patch displacements.";
+    btnMatchorwarpRestart.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Run Matchorwarp in trial mode; find transformations then stop.";
+    btnMatchorwarpTrial.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "View the patch displacement vectors in and possibly delete bad vectors.";
+    btnPatchVectorModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Replace the patch displacements with the vectors from the edited model.";
+    btnReplacePatchOut.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the volume being matched to in 3dmod.";
+    btnImodMatchedTo.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the final combined volume.";
+    btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
