@@ -121,7 +121,7 @@ void imodvKeyPress(QKeyEvent *event)
   ImodvApp *a = Imodv;
   int keysym = event->key();
   int tstep = 1;
-  int newval;
+  int newval, fastdraw;
   float elapsed;
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
@@ -175,16 +175,21 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_G: /* gooder (sic) */
+    fastdraw = (a->imod->view->world & WORLD_QUALITY_BITS) >>
+      WORLD_QUALITY_SHIFT;
     if (!(state & Qt::ShiftButton))
-      Imodv->fastdraw++;
+      fastdraw++;
     else
-      Imodv->fastdraw--;
-    if (Imodv->fastdraw < 0)
-      Imodv->fastdraw = 0;
-    if (Imodv->fastdraw > 3)
-      Imodv->fastdraw = 3;
-    printf("Sphere draw quality %d\n", Imodv->fastdraw);
+      fastdraw--;
+    if (fastdraw < 0)
+      fastdraw = 0;
+    if (fastdraw > 3)
+      fastdraw = 3;
+    printf("Sphere draw quality %d\n", fastdraw + 1);
+    a->imod->view->world = (a->imod->view->world & ~WORLD_QUALITY_BITS) |
+      (fastdraw << WORLD_QUALITY_SHIFT);
     imodvDraw(Imodv);
+    imodvObjedNewView();
     break;
 
   case Qt::Key_Minus:
@@ -1008,6 +1013,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.7  2003/04/18 20:13:40  mast
+    Reject Ctrl Key (Meta) on Mac
+
     Revision 4.6  2003/04/17 19:27:13  mast
     keypad workaround for Mac
 
