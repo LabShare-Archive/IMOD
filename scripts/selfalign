@@ -131,12 +131,12 @@ EOF
 # search for first and last non-unit transforms
 @ numlines = `cat $tmpxf | wc -l`
 
-head -1 $tmpxf > $unitxf
+head -n 1 $tmpxf > $unitxf
 @ startnum = 2
 set gotstart = "0"
 
 while ($gotstart == "0" && $startnum < $numlines)
-    head -$startnum $tmpxf | tail -1 >! $startxf
+    head -n $startnum $tmpxf | tail -n 1 >! $startxf
     cmp -s $startxf $unitxf
     if ($status) then
 	set gotstart = "1"
@@ -149,7 +149,7 @@ end
 set gotend = "0"
 
 while ($gotend == "0" && $endnum < $numlines)
-    tail -$endnum $tmpxf | head -1 >! $endxf
+    tail -n $endnum $tmpxf | head -n 1 >! $endxf
     cmp -s $endxf $unitxf
     if ($status) then
 	set gotend = "1"
@@ -169,7 +169,7 @@ while ($startnum > 1)
     cat $startxf >> $selfxf
     @ startnum--
 end
-head -$headnum $tmpxf | tail -$tailnum >> $selfxf
+head -n $headnum $tmpxf | tail -n $tailnum >> $selfxf
 while ($endnum > 0)
     cat $endxf >> $selfxf
     @ endnum--

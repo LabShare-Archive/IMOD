@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/07/07 18:56:40  mast
+#  Fixed bug in scanning arguments
+#
 #  Revision 3.5  2004/06/29 03:41:22  mast
 #  Added nice option and nohup
 #
@@ -117,7 +120,7 @@ while ($#argv > 0)
     endif
     if ($exitstat) then
 	echo Error executing $rootname.com $bell
-	if (-e $rootname.log) tail -1 $rootname.log
+	if (-e $rootname.log) tail -n 1 $rootname.log
 	if ($continue == 0) goto clean
     else
 	echo $rootname.com $message

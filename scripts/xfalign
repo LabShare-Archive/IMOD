@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/07/21 14:19:59  mast
+#  Added option to break alignment instead of skipping section and added
+#  special serial tomogram mode that maintains fewer transforms
+#
 #  Revision 3.7  2004/06/29 03:50:57  mast
 #  Added nohup
 #
@@ -385,10 +389,10 @@ EOF
     #
     if ($iftomo == 1) then
         set tmptrim = $com.trim.$$
-        head -2 $prexffile >! $tmptrim
+        head -n 2 $prexffile >! $tmptrim
         @ secnum = 4
         while ($secnum <= $numsec)
-            head -$secnum $prexffile | tail -1 >> $tmptrim
+            head -n $secnum $prexffile | tail -n 1 >> $tmptrim
             @ secnum += 2
         end
         \mv -f $tmptrim $prexffile
@@ -564,7 +568,7 @@ while ($#filesect != 0 )
 	    if ($prexffile != "") then
 		@ headnum = $insect + 1
                 if ($iftomo == 1) @ headnum = ($insect + 1) / 2 + 1
-		head -$headnum $prexffile | tail -1 >! $tmpxfin
+		head -n $headnum $prexffile | tail -n 1 >! $tmpxfin
 	    endif
 #
 #      Now do search for transform

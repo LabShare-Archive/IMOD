@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/07/23 00:09:00  mast
+#  Set default nice to 18 per user request
+#
 #  Revision 3.3  2004/07/21 17:00:27  mast
 #  Output the all file list when it is used.
 #
@@ -115,10 +118,10 @@ while ($num < $#machines)
     if ($checkit == 1) then
         if ("$machname" == $hostroot || $machname == localhost) then
             echo $machname
-            w | head -1
+            w | head -n 1
             set laststat = 0
         else
-            ssh -x $machname "hostname ; w | head -1"
+            ssh -x $machname "hostname ; w | head -n 1"
             set laststat = $status
             if ($laststat != 0) then
                 echo "Dropping $machname from list because it does not respond"
@@ -175,7 +178,7 @@ else
         @ num++
         set logname = $comlist[$num]:r.log
         if (-e $logname) then
-            set lastline = `tail -1 $logname`
+            set lastline = `tail -n 1 $logname`
             if ("$lastline" == "CHUNK DONE") then
                 set flags[$num] = 2
                 @ numdone++
@@ -208,7 +211,7 @@ while ($numdone < $#comlist)
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
             if (-e $logname) then
-                set lastline = `tail -1 $logname`
+                set lastline = `tail -n 1 $logname`
                 if ("$lastline" == "CHUNK DONE") then
 
                     # If it is DONE, then set flag to done and deassign

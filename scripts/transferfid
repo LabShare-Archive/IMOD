@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.18  2004/08/03 02:05:55  mast
+#  Made it insist both prealis have same pixel size
+#
 #  Revision 3.17  2004/07/22 18:16:45  mast
 #  Change to better sed command for stripping Ctrl M
 #
@@ -500,7 +503,7 @@ while ($bsecind <= $nviews)
 			echo "ERROR: Transferfid - Transform file not found - cannot proceed"
 			goto clean
 		    endif
-		    tail -1 $tmpmidxf >! $tmpxf1
+		    tail -n 1 $tmpmidxf >! $tmpxf1
 		    echo "Finding the best matched pair of views in the two series:"
 		    echo "              (Type Ctrl-C to end search)"
 
@@ -519,7 +522,7 @@ tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstac
 		# Run xfsimplex looking for rotation only
 		#
 		#	    echo "first simplex"
-		tail -1 $tmpxcxf >! $tmpxfin
+		tail -n 1 $tmpxcxf >! $tmpxfin
 xfsimplex <<EOF  >! $tmperrlog
 $tmpstack
 $tmpimga
@@ -565,7 +568,7 @@ EOF
 	    # 
 	    # extract the difference from the log file
 	    # 
-	    set simplexout = `tail -1 $tmpxflog`
+	    set simplexout = `tail -n 1 $tmpxflog`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    @ bview = $bsec + 1
@@ -743,7 +746,7 @@ if ($status) then
     echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto $BB view "
     goto clean
 endif
-set btresult = `tail -1 $tmpbtlog`
+set btresult = `tail -n 1 $tmpbtlog`
 echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
 #
@@ -780,7 +783,7 @@ $tmpmap3
 $outfile
 EOF
 echo " "
-tail -10 $tmprplog
+tail -n 10 $tmprplog
 
 clean:
 if ($leavetmp == 0) then

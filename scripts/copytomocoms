@@ -571,7 +571,7 @@ while ($iaxis < $numax)
 	    if (! -e $plspec) then
                 if (-e $setname.st) then
                     echo "Extracting piece list file from the image file..."
-                    extractpieces $stackname $plspec | tail -1
+                    extractpieces $stackname $plspec | tail -n 1
                 else
                     echo2 " "
                     echo2 "WARNING: $stackname does not exist yet."
@@ -588,7 +588,7 @@ while ($iaxis < $numax)
 	    if (! -e $gradspec) then
                 if (-e $stackname) then
                     echo "Extracting mag gradients from the image file..."
-                    extractmagrad -rot $axisangle -grad $gradient $stackname $gradspec | tail -2
+                    extractmagrad -rot $axisangle -grad $gradient $stackname $gradspec | tail -n 2
                     if ($status) then
                         echo2 " "
                         echo2 "WARNING: Could not extract mag gradients from $stackname"
@@ -1275,6 +1275,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.29  2004/07/12 18:16:56  mast
+#  Fixed problem with increment angle not getting into align.com and track.com
+#
 #  Revision 3.28  2004/06/10 22:45:52  mast
 #  Added automatic setting of log base to 32767 if densities are negative
 #

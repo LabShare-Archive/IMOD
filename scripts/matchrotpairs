@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
 #  Revision 1.2  2004/03/16 06:58:58  mast
 #  Fixed something with section limits
 #
@@ -285,7 +288,7 @@ while ($bsecind <= $#bseclist)
 			echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
 			goto clean
 		    endif
-		    tail -1 $tmpmidxf >! $tmpxf1
+		    tail -n 1 $tmpmidxf >! $tmpxf1
 		    echo "Finding the best matched pair of views in the two series:"
 		    echo "              (Type Ctrl-C to end search)"
 
@@ -304,7 +307,7 @@ tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstac
 		# Run xfsimplex looking for rotation only
 		#
 		#	    echo "first simplex"
-		tail -1 $tmpxcxf >! $tmpxfin
+		tail -n 1 $tmpxcxf >! $tmpxfin
 xfsimplex <<EOF  >! $tmperrlog
 $tmpstack
 $tmpimga
@@ -350,7 +353,7 @@ EOF
 	    # 
 	    # extract the difference from the log file
 	    # 
-	    set simplexout = `tail -1 $tmpxflog`
+	    set simplexout = `tail -n 1 $tmpxflog`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    @ bview = $bsec + 1

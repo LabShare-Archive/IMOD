@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/06/29 03:49:52  mast
+#  Added nohup, fixed path-setting
+#
 #  Revision 3.2  2004/01/15 23:33:37  mast
 #  Switched to using PIP input to matchvol, added linear interpolation
 #  option, and made it adjust pixel size
@@ -114,7 +117,7 @@ set pixelz = `echo $zs $pixelxyz[3] | awk '{printf "%.3f", $1 * $2}'`
 
 echo "Squeezing the volume with matchvol..."
 
-matchvol -StandardInput <<HERESTRING | tail -1
+matchvol -StandardInput <<HERESTRING | tail -n 1
 InputFile $argv[1]
 OutputFile $argv[2]
 $tempdir

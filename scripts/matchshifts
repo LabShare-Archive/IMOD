@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
 #  Revision 3.11  2004/06/29 03:48:54  mast
 #  Added nohup
 #
@@ -206,7 +209,7 @@ EOF
 
 if ($status) goto error
 
-set txcshift = `tail -1 $txcxf`
+set txcshift = `tail -n 1 $txcxf`
 
 \echo "$sol[1]   $sol[2]   $sol[3]   $txcshift[5]"  > $midfile
 \echo "$sol[5]   $sol[6]   $sol[7]   0"  >> $midfile
