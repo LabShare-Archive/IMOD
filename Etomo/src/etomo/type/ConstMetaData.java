@@ -57,6 +57,8 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected String excludeProjectionsB = "";
   protected EtomoBoolean2 useZFactorsA = new EtomoBoolean2("UseZFactorsA");
   protected EtomoBoolean2 useZFactorsB = new EtomoBoolean2("UseZFactorsB");
+  protected EtomoBoolean2 adjustedFocusA = new EtomoBoolean2("AdjustedFocusA");
+  protected EtomoBoolean2 adjustedFocusB = new EtomoBoolean2("AdjustedFocusB");
 
   protected boolean comScriptsCreated = false;
 
@@ -182,6 +184,14 @@ public abstract class ConstMetaData extends BaseMetaData {
   
   public String getMagGradientFile() {
     return magGradientFile;
+  }
+  
+  public ConstEtomoNumber getAdjustedFocusA() {
+    return adjustedFocusA;
+  }
+  
+  public ConstEtomoNumber getAdjustedFocusB() {
+    return adjustedFocusB;
   }
 
   public DataSource getDataSource() {
@@ -559,6 +569,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2005/03/02 00:12:01  sueh
+ * <p> bug# 611 Added mag gradients correction file.
+ * <p>
  * <p> Revision 3.21  2005/02/19 00:09:01  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.

@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/03/02 00:12:11  sueh
+ * <p> bug# 611 Added mag gradients correction file.
+ * <p>
  * <p> Revision 3.16  2005/02/19 00:09:57  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.
@@ -215,6 +218,14 @@ public class MetaData extends ConstMetaData {
   
   public void setMagGradientFile(String magGradientFile) {
     this.magGradientFile = magGradientFile;
+  }
+  
+  public void setAdjustedFocusA(boolean adjustedFocus) {
+    this.adjustedFocusA.set(adjustedFocus);
+  }
+  
+  public void setAdjustedFocusB(boolean adjustedFocus) {
+    this.adjustedFocusB.set(adjustedFocus);
   }
 
   public void setAxisType(AxisType at) {
