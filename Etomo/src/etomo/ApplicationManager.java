@@ -82,6 +82,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2004/04/26 21:20:32  sueh
+ * <p> bug# 427 added code for tomopitch comscript (not finished)
+ * <p>
  * <p> Revision 3.37  2004/04/26 18:36:52  rickg
  * <p> bug #426 Added full image code, fixed order of com script
  * <p> loading for tomogram positioning
@@ -2299,7 +2302,7 @@ public class ApplicationManager {
     tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
     
     comScriptMgr.loadTomopitch(axisID);
-    //tomogramPositioningDialog.setTomopitch(comScriptMgr.getTomopitchParam(axisID));
+    tomogramPositioningDialog.setTomopitchParams(comScriptMgr.getTomopitchParam(axisID));
 
     //  Set the fidcialess state
     tomogramPositioningDialog.setFiducialessAlignment(metaData
@@ -2499,22 +2502,25 @@ public class ApplicationManager {
    * 
    */
   public void tomopitch(AxisID axisID) {
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.tomopitch(axisID);
+    if (updateTomopitchCom(axisID)) {
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.tomopitch(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] =
+          "Can not execute tomopitch" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
+      setThreadName(threadName, axisID);
+      mainFrame.startProgressBar("Finding sample position", axisID);
     }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute tomopitch" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
-      return;
-    }
-    setThreadName(threadName, axisID);
-    mainFrame.startProgressBar("Finding sample position", axisID);
   }
 
   /**
@@ -2629,7 +2635,7 @@ public class ApplicationManager {
     // parameters back to the tilt{|a|b}.com
     try {
       TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
-      //tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
+      tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
       comScriptMgr.saveTomopitch(tomopitchParam, axisID);
     }
     catch (NumberFormatException except) {
