@@ -217,9 +217,10 @@ void autoxBuild()
   ImodView *vw = App->cvi;
   Icont *cont;
   Icont *newconts;
-  int ncont, i;
+  Iobj *obj = imodObjectGet(vw->imod);
+  int ncont, i, surf;
 
-  if (!vw->ax->filled)
+  if (!vw->ax->filled || !obj)
     return;
 
   /* First have to turn off any pixels that are marked as black */
@@ -239,9 +240,27 @@ void autoxBuild()
 
   /* add each contour to the model */
   for (i = 0; i < ncont; i++) {
-    NewContour( vw->imod );
+
+    // If there is no current contour, set to last one; get current surface
+    surf = 0;
+    if (vw->imod->cindex.contour < 0)
+      vw->imod->cindex.contour = obj->contsize - 1;
     cont = imodContourGet(vw->imod);
+    if (cont)
+      surf = cont->surf;
+
+    // If contour is non-empty or nonexistent, get a new one
+    if (!cont || cont->psize) {
+      NewContour( vw->imod );
+      cont = imodContourGet(vw->imod);
+      if (!cont)
+        break;
+    }
+
+    // Copy structure, set surface and fix time setting
     imodContourCopy(&newconts[i], cont);
+    cont->surf = surf;
+    ivwSetNewContourTime(vw, obj, cont);
 
     /* DNM: switch to ContourReduce method, but keep the Strip call as a
        quick pre-filter - it eliminates points ON the lines */
@@ -857,6 +876,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 
 /*
 $Log$
+Revision 4.5  2003/09/16 02:08:43  mast
+Changed to access image data using new line pointers
+
 Revision 4.4  2003/05/08 05:16:34  mast
 Expanding help with a introductory list of steps
 
