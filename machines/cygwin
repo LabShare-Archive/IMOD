@@ -238,8 +238,8 @@ set class_sep       = ';'
 # Start Qt include files
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
-echo LIBS += qassistantclient.lib 
-cat <<EOF >! $qtassist_qconf
+echo LIBS += qassistantclient.lib >! $qtassist_qconf
+cat <<EOF >! $sourcedoc_qconf
 CONFIG += CONSOLE
 LIBS += libimod.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib"
