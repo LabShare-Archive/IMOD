@@ -70,8 +70,6 @@ typedef struct __imodv_struct
   struct Mod_Draw  *md;  /* transformations   */
   Imat  *mat;     /* Transformation matrix storage.   */
   Imat  *rmat;    /* rotation matrix. */
-  int    dlist;   /* use display list           */
-  int    update_dlist; /* update display list    */
 
   /* windowing data */
   int          wpid;
@@ -84,11 +82,6 @@ typedef struct __imodv_struct
   int          enableDepthDB;
   int          stereoSB;   /* Flags for whether visuals have stereo */
   int          stereoDB;
-
-  char * stereoCommand;
-  char * restoreCommand;
-  char * SGIStereoCommand;
-  char * SGIRestoreCommand;
 
   /* global viewing flags */
   int cnear;       /* clipping planes.                        */
@@ -158,6 +151,9 @@ void imodvQuit();
 
 /*
 $Log$
+Revision 3.13  2003/12/30 06:32:16  mast
+Make snap_fileno be part of imodvApp structure
+
 Revision 3.12  2003/11/26 18:15:49  mast
 Add function to determine if byte images exist
 

@@ -136,8 +136,6 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->cnear = 0;
   a->cfar = 1000;
   a->fovy = 0;
-  a->dlist = 0;
-  a->update_dlist = 1;
   a->movie = 0;
   a->movieFrames = 0;
   a->movieSpeed = 36.;
@@ -179,8 +177,9 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->depthcue  = 0;
   a->wireframe = 0;
   a->lowres = 0;
-  a->SGIStereoCommand = NULL;
-  a->SGIRestoreCommand = NULL;
+
+  // DNM 6/6/04: Gte rid of stereo command initialization
+
   return(0);
 }
 
@@ -211,9 +210,6 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->texMap  = 0;
   a->texTrans = 0;
   a->vi = vw;
-
-  a->SGIStereoCommand  = ImodRes_SGIStereoCommand();
-  a->SGIRestoreCommand = ImodRes_SGIRestoreCommand();
 
   // Recompute scale and shift of operating view and current view - replaces
   // old method of setting up views
@@ -515,7 +511,6 @@ void imodv_open()
   ImodvStruct.md = &Imodv_mdraw;
   ImodvApp *a = Imodv;
 
-  int ob, co;
   Imod *imod = vw->imod;
 
   /* mt model ? */
@@ -651,6 +646,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.18  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.17  2004/03/30 18:57:19  mast
 Did initial size-setting and coordinate limiting the same as for Zap window,
 which made it work right under Windows

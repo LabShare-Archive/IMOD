@@ -57,23 +57,6 @@ Log at end of file
 #include "qcursor_mask.bits"
 #endif
 
-char *ImodRes_SGIStereoCommand(void)
-{
-#ifdef __sgi
-  return("/usr/gfx/setmon -n STR_TOP");
-#else
-  return(" ");
-#endif
-}
-char *ImodRes_SGIRestoreCommand(void)
-{
-#ifdef __sgi
-  return("/usr/gfx/setmon -n 1600x1024_72");
-#else
-  return(" ");
-#endif
-}
-
 // The numbers are single/double buffer, rgba, colorBits, depthBits, stereo
 static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0};
 static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0, 0};
@@ -552,6 +535,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.11  2004/06/05 23:46:38  mast
+Set stereo in gl format when stereo requested - gets stereo visuals!
+
 Revision 4.10  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

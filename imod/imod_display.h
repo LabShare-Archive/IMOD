@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -59,9 +62,7 @@ int  imod_color_init(ImodApp *ap);
 void imod_cmap(Imod *m);
 void imodSetObjectColor(int ob);
 int  imodDraw(ImodView *vw, int flag);
- int mapcolor(int color, int red, int green, int blue);
-char *ImodRes_SGIStereoCommand(void);
-char *ImodRes_SGIRestoreCommand(void);
+int mapcolor(int color, int red, int green, int blue);
 
 
 #endif
