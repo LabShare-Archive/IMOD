@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine nextpos(iobj,ipnear,idir,iznext,tilt,nfit,minfit,
      &	    iaxtilt, tiltmin, xnext, ynext)
 	include 'model.inc'
@@ -428,7 +436,7 @@ c
 	logical failed
 c
 	call object_mover(iobj,failed)
-	if(failed)stop 'insufficient object space'
+	if(failed)call errorexit('insufficient object space',0)
 	ibase=ibase_obj(iobj)
 	n_point=n_point+1
 	p_coord(1,n_point)=xpos
