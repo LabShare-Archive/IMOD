@@ -142,12 +142,15 @@ void imodv_open(void);
 void imodv_draw(void);
 void imodv_close(void);
 void imodv_new_model(Imod *mod);
-int  imodv_main(int argc, char **argv, int styleSet);
+int  imodv_main(int argc, char **argv, char *cmdLineStyle);
 void imodvSetCaption();
 void imodvDrawImodImages();
 
 /*
 $Log$
+Revision 3.6  2003/03/04 21:42:37  mast
+Add function to draw imod windows
+
 Revision 3.5  2003/02/27 23:11:24  mast
 Changes for using Qt timing functions
 
