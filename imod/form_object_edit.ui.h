@@ -95,7 +95,9 @@ void objectEditForm::setDrawBox( bool state )
 void objectEditForm::setObjectName( char *name )
 {
     QString str = name;
+    nameEdit->blockSignals(true);
     nameEdit->setText(str);
+    nameEdit->blockSignals(false);
 }
 
 void objectEditForm::setTimeBox( bool state, bool enabled )
