@@ -52,6 +52,7 @@ Log at the end of file
 #endif
 #include "imod_workprocs.h"
 #include "imodv.h"
+#include "imodv_views.h"
 #include "xzap.h"
 #include "imod_display.h"
 #include "imod_info.h"
@@ -563,12 +564,13 @@ int main( int argc, char *argv[])
   } else {
     Model = imodNew();
     Imod_filename[0] = 0x00;
-          new_model_created = TRUE;
+    new_model_created = TRUE;
   }
 
   /* If new model created, make first object, and 
      if there are multiple image files, set time flag by default */
   if (new_model_created) {
+    imodvViewsInitialize(Model);
     imodNewObject(Model);
     obj = imodObjectGet(Model);
     if (vi.nt)
@@ -907,6 +909,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.18  2003/05/18 22:59:00  mast
+Create icon pixmap here to be able to set it for startup dialog
+
 Revision 4.17  2003/05/18 22:07:37  mast
 changes for new startup dialog
 
