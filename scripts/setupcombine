@@ -32,12 +32,6 @@ set warpvol = warpvol.com
 set matchvol2 = matchvol2.com
 set volcombine = volcombine.com
 
-set pipecom = ""
-if ($?CYGWIN) then
-    if (`echo $CYGWIN | grep nobinmode` != "") set pipecom = "| cat"
-endif
-
-echo $pipecom
 
 #  $Author$
 #
@@ -46,6 +40,9 @@ echo $pipecom
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/05/12 18:53:24  mast
+#  Pipe command files through cat for dos line endings in cygwin
+#
 #  Revision 3.6  2002/11/04 20:38:02  mast
 #  Made WARNINGS go to standard error with echo2
 #
