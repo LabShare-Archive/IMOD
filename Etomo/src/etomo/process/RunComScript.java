@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.1  2003/01/29 20:44:48  rickg
  * <p> Debug messages to stderr instead of stdout
  * <p>
@@ -223,7 +226,7 @@ public class RunComScript extends Thread {
    */
   private void execCsh(String[] commands)
     throws IOException, SystemProcessException {
-    csh = new SystemProgram("csh -ef");
+    csh = new SystemProgram("tcsh -ef");
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);

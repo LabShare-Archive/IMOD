@@ -22,6 +22,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.6  2003/05/07 22:31:59  rickg
  * <p> Don't need to set working directory since it defaults to user.dir
  * <p> System property user.dir now defines the working directory
@@ -75,7 +78,7 @@ public class CopyTomoComs {
     //  Create a new SystemProgram object for copytomocom, set the
     //  working directory and stdin array.
     //
-    copytomocoms = new SystemProgram("copytomocoms");
+    copytomocoms = new SystemProgram("tcsh -c copytomocoms");
 
     String[] tempStdInput = new String[19];
 
