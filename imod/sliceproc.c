@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2004/09/24 18:15:55  mast
+    Fixed bug in Sobel filter
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -130,7 +133,7 @@ int sliceByteEdgeTwo(Islice *sin, int center)
   sliceMMM(sout);
   imax = sin->xsize * sin->ysize;
   aval = sout->min;
-  mval = (sout->max - sout->min)/256.0f;
+  mval = 255.9f/(sout->max - sout->min);
   for(i = 0; i < imax; i++){
     sin->data.b[i] = (unsigned char)
       ((sout->data.f[i] - aval) * mval);
@@ -431,7 +434,7 @@ int sliceByteGraham(Islice *sin)
   sliceMMM(sout);
   imax = sin->xsize * sin->ysize;
   aval = sout->min;
-  mval = (sout->max - sout->min)/256.0f;
+  mval = 255.9f/(sout->max - sout->min);
   for(i = 0; i < imax; i++){
     sin->data.b[i] = (unsigned char)
       ((sout->data.f[i] - aval) * mval);
