@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2003/09/17 04:47:24  mast
+Added members for remembering window geometry
+
 Revision 1.3  2003/03/26 23:06:42  mast
 only check status of a style once
 
@@ -104,9 +107,16 @@ typedef struct imod_pref_struct
   QString autosaveDir;    // Location to save autosave file
   QString autosaveDirDflt;
   bool autosaveDirChgd;
-  bool rememberGeom;
+  bool rememberGeom;     // Remember window size and locations
   bool rememberGeomDflt;
   bool rememberGeomChgd;
+  int autoTargetMean;      // Target mean for autocontrast
+  int autoTargetMeanDflt;
+  bool autoTargetMeanChgd;
+  int autoTargetSD;        // Target SD
+  int autoTargetSDDflt;
+  bool autoTargetSDChgd;
+
 } ImodPrefStruct;
 
 
@@ -144,6 +154,7 @@ class ImodPreferences : public QObject
   int *getStyleStatus();
   QRect getInfoGeometry();
   QRect getZapGeometry();
+  void getAutoContrastTargets(int &mean, int &sd);
 
   public slots:
     void donePressed();
