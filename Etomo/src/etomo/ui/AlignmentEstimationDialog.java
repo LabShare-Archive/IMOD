@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/12/30 18:00:31  sueh
+ * <p> bug# 567 Changing the buttons so they in two rows of two.
+ * <p>
  * <p> Revision 3.5  2004/07/02 00:34:46  sueh
  * <p> bug# 461 construct TiltalignPanel with info from fid.xyz,
  * <p> preali header, and raw stack header
@@ -226,7 +229,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     topButtonPanel.add(btnImod);
     panelButton.add(topButtonPanel.getContainer());
-    panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButton.add(Box.createRigidArea(FixedDim.x0_y10));
     SpacedPanel bottomButtonPanel = new SpacedPanel(FixedDim.x10_y0);
     bottomButtonPanel.setLayout(new BoxLayout(bottomButtonPanel.getContainer(), BoxLayout.X_AXIS));
     bottomButtonPanel.add(btnView3DModel);
