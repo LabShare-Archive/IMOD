@@ -91,8 +91,21 @@ Skip the sections that are given in the
 argument; i.e., do not find the transform for aligning a listed section to
 the previous one.  Section numbers are separated by the ',' character
 for single sections or the '-' character for ranges.
-Section numbers start with zero and go up to n-1.
+Section numbers start with zero and go up to nz-1.  When a section is skipped,
+the following section will be aligned to the previous section and a unit
+transform will be output for the skipped section.
 The default is to use all of the sections.
+.TP
+.B -break <section list>
+Break the alignment at the sections that are given in the
+.I section list
+argument.  This option is like
+.B -skip 
+in that no transform is found for aligning a listed section to
+the previous one and a unit transform is written for the listed section.
+However, the following section will be aligned to the
+listed section, and nothing will be aligned to the previous section.  This
+breaks the chain of alignment through the series of sections.
 .TP
 .B -size <X,Y>
 Set the X and Y dimensions of the images extracted by newstack to be 
@@ -155,6 +168,18 @@ Find preliminary translational alignments with tiltxcorr(1).
 Change the filter that is used in cross-correlation by tiltxcorr(1) to
 have Sigma1, Sigma2, Radius1, Radius2 as given by
 .I s1,s2,r1,r2.
+.TP
+.B -tomo
+Align averaged slices from the top and bottom of tomograms of serial sections.
+The image file is assumed to contain pairs of top and bottom averages, i.e.,
+from the top of the first tomogram, the bottom of the second, the top of the
+second, etc., ending in the bottom of the last tomogram.  The program will 
+align only a bottom average to the previous top average, and the number of
+transforms output will equal the number of tomograms, not the number of
+averages in the image file.  The same number of transforms are assumed to be
+present in a file of initial alignments entered with the 
+.B -initial
+option.
 .SH FILES
 When using prealignment by cross-correlation, the initial transforms will
 be placed into a file with the same root name as the transform output file but
