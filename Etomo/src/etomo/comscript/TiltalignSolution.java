@@ -12,10 +12,14 @@ package etomo.comscript;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltalignSolution {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public int type;
   public FortranInputString referenceView;
@@ -24,8 +28,8 @@ public class TiltalignSolution {
 
   public TiltalignSolution() {
     params = new FortranInputString(2);
-    params .setIntegerType(0, true);
-    params .setIntegerType(1, true);
+    params.setIntegerType(0, true);
+    params.setIntegerType(1, true);
     referenceView = new FortranInputString(1);
     referenceView.setIntegerType(0, true);
     additionalGroups = new StringList(0);
