@@ -47,6 +47,7 @@ Log at end of file
 #include "dia_qtutils.h"
 
 #include "imodv.h"
+#include "imodv_views.h"
 #include "imod.h"
 #include "imod_object_edit.h"
 #include "imod_display.h"
@@ -152,7 +153,6 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   md->zrotm = 0;
 
   /* control flags */
-  a->fastdraw   = 0;
   a->current_subset = 0;
   a->crosset    = 0;
   a->fullscreen = 0;
@@ -178,6 +178,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
 /* DNM 9/2/02: changed to call imodv_init for bulk of the initialization */
 static void initstruct(ImodView *vw, ImodvApp *a)
 {
+  Ipoint imageMax;
 
   imodv_init(a, &Imodv_mdraw);
 
@@ -204,13 +205,13 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->SGIStereoCommand  = ImodRes_SGIStereoCommand();
   a->SGIRestoreCommand = ImodRes_SGIRestoreCommand();
 
-  imodViewStore(a->imod, 0);
-  if (!a->imod->cview)
-    imodViewModelDefault(a->imod, a->imod->view);
-  else {
-    imodViewUse(a->imod);
-    imodvDrawImodImages();
-  }
+  // Recompute scale and shift of operating view and current view - replaces
+  // old method of setting up views
+  imageMax.x = vw->xsize;
+  imageMax.y = vw->ysize;
+  imageMax.z = vw->zsize;
+  imodViewDefaultScale(a->imod, a->imod->view, &imageMax);
+  imodViewDefaultScale(a->imod, &a->imod->view[a->imod->cview], &imageMax);
   return;
 }
 
@@ -372,14 +373,12 @@ static int load_models(int n, char **fname, ImodvApp *a)
 
     /* DNM: changes for storage of object properties in view and 
        relying on default scaling.  Also, make sure every model has
-       the view to use set up */
+       the view to use set up 
+       6/26/03: switch to new method, just initialize views in each model */
 
-    imodViewStore(a->mod[i], 0);
-    if (!a->mod[i]->cview){
-      imodViewModelDefault(a->mod[i], a->mod[i]->view);
-    } else
-      imodViewUse(a->mod[i]);
+    imodvViewsInitialize(a->mod[i]);
   }
+
   a->imod = (a->mod[a->cm]);
   /* DNM 8/3/01: start with current object if defined */
   if (a->imod->cindex.object >= 0 && 
@@ -481,7 +480,6 @@ void imodv_open()
 
   int ob, co;
   Imod *imod = vw->imod;
-  int hasPoints = 0;
 
   /* mt model ? */
   if (!imod){
@@ -489,17 +487,9 @@ void imodv_open()
            "there is no model loaded.\n");
     return;
   }
-  for(ob = 0; ob < imod->objsize; ob++){
-    if (hasPoints > 1) break;
-    for(co = 0; co < imod->obj[ob].contsize; co++){
-      hasPoints += imod->obj[ob].cont[co].psize;
-      if (hasPoints > 1) break;
-    }
-  }
-  if (hasPoints < 2){
-    wprint("Model View didn't open because model has no points.\n");
-    return;
-  }
+
+  /* DNM 6/26/03: eliminate test for 2 points, now that it can use image size
+     to set scaling */
 
   /* check for already open? */
   if (!ImodvClosed){
@@ -519,7 +509,7 @@ void imodv_open()
   }
 
   if (openWindow(a)) {
-    wprint("Failed to open model view window window.\n");
+    wprint("Failed to open model view window.\n");
     return;
   }
     
@@ -543,20 +533,22 @@ void imodv_draw()
 /* DNM: a routine for imod to notify imodv of a change in model */
 void imodv_new_model(Imod *mod)
 {
+  Ipoint imageMax;
+
   if (ImodvClosed)
     return;
+
   Imodv->imod = mod;
   Imodv->mod[0] = mod;
 
-  /* Set up the views and scaling, notify everybody of changes */
-  imodViewStore(mod, 0);
-     
-  if (!mod->cview){
-    imodViewModelDefault(mod, mod->view);
-  }else {
-    imodViewUse(mod);
-    imodvDrawImodImages();
-  }
+  // Recompute scale and shift of operating view and current view - replaces
+  // earlier method of setting up views
+  imageMax.x = App->cvi->xsize;
+  imageMax.y = App->cvi->ysize;
+  imageMax.z = App->cvi->zsize;
+  imodViewDefaultScale(mod, mod->view, &imageMax);
+  imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax);
+
   imodvSelectModel(Imodv, 0);
 }
 
@@ -591,6 +583,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.8  2003/05/18 22:58:33  mast
+simplify creating icon pixmap
+
 Revision 4.7  2003/05/18 22:06:37  mast
 Changed to start QApplication before calling, and to create icon pixmap
 
