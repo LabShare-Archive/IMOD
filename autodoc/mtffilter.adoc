@@ -32,7 +32,8 @@ short = lowpass
 long = LowPassRadiusSigma
 type = FP
 usage = Radius and sigma for high-frequency roll-off to 0.0 (default no filter)
-tooltip =
+tooltip = Cutoff radius and sigma for low pass filter to provide a
+high-frequency Gaussian roll-off to 0.0.  (The default is no filtering)
 manpage = Cutoff radius and sigma for a low pass filter that imposes a
 high-frequency Gaussian roll-off to 0.0.
 The default is no high-frequency filtering.
