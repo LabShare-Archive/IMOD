@@ -33,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/22 22:53:37  rickg
+ * <p> Bug# 279 Removed "linear"
+ * <p>
  * <p> Revision 2.7  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -230,7 +233,7 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfTiltAngleGroupSize =
     new LabeledTextField("Group size: ");
-  private LabeledTextField ltfTiltAngleAdditionalGroups =
+  private LabeledTextField ltfTiltAngleNonDefaultGroups =
     new LabeledTextField("Non-default grouping: ");
 
   //  Magnfication pane
@@ -247,7 +250,7 @@ public class TiltalignPanel {
     new LabeledTextField("Reference view: ");
   private LabeledTextField ltfMagnificationGroupSize =
     new LabeledTextField("Group size: ");
-  private LabeledTextField ltfMagnificationAdditionalGroups =
+  private LabeledTextField ltfMagnificationNonDefaultGroups =
     new LabeledTextField("Non-default grouping: ");
 
   //  Compression pane
@@ -273,12 +276,12 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
-  private LabeledTextField ltfXstretchAdditionalGroups =
+  private LabeledTextField ltfXstretchNonDefaultGroups =
     new LabeledTextField("X stretch non-default grouping: ");
 
   private LabeledTextField ltfSkewGroupSize =
     new LabeledTextField("Skew group size: ");
-  private LabeledTextField ltfSkewAdditionalGroups =
+  private LabeledTextField ltfSkewNonDefaultGroups =
     new LabeledTextField("Skew non-default grouping: ");
 
   //  Local variables pane
@@ -290,7 +293,7 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfLocalRotationGroupSize =
     new LabeledTextField("Group size: ");
-  private LabeledTextField ltfLocalRotationAdditionalGroups =
+  private LabeledTextField ltfLocalRotationNonDefaultGroups =
     new LabeledTextField("Non-default grouping: ");
 
   //  Local tilt angle pane
@@ -299,7 +302,7 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfLocalTiltAngleGroupSize =
     new LabeledTextField("Group size: ");
-  private LabeledTextField ltfLocalTiltAngleAdditionalGroups =
+  private LabeledTextField ltfLocalTiltAngleNonDefaultGroups =
     new LabeledTextField("Non-default grouping: ");
 
   // Local magnfication pane
@@ -308,7 +311,7 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfLocalMagnificationGroupSize =
     new LabeledTextField("Group size: ");
-  private LabeledTextField ltfLocalMagnificationAdditionalGroups =
+  private LabeledTextField ltfLocalMagnificationNonDefaultGroups =
     new LabeledTextField("Non-default grouping: ");
 
   //  Local distortion pane
@@ -317,12 +320,12 @@ public class TiltalignPanel {
 
   private LabeledTextField ltfLocalXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
-  private LabeledTextField ltfLocalXstretchAdditionalGroups =
+  private LabeledTextField ltfLocalXstretchNonDefaultGroups =
     new LabeledTextField("X stretch non-default grouping: ");
 
   private LabeledTextField ltfLocalSkewGroupSize =
     new LabeledTextField("Skew group size: ");
-  private LabeledTextField ltfLocalSkewAdditionalGroups =
+  private LabeledTextField ltfLocalSkewNonDefaultGroups =
     new LabeledTextField("Skew non-default grouping: ");
 
   /**
@@ -337,7 +340,7 @@ public class TiltalignPanel {
     createGeneralTab();
     createGlobalSolutionTab();
     createLocalSolutionTab();
-
+    setToolTipText();
   }
 
   /**
@@ -396,7 +399,7 @@ public class TiltalignPanel {
     }
     if (solutionType == 5) {
       ltfTiltAngleGroupSize.setText(params.getTiltAngleSolutionGroupSize());
-      ltfTiltAngleAdditionalGroups.setText(
+      ltfTiltAngleNonDefaultGroups.setText(
         params.getTiltAngleSolutionAdditionalGroups());
     }
 
@@ -419,7 +422,7 @@ public class TiltalignPanel {
     if (solutionType > 2) {
       ltfMagnificationGroupSize.setText(
         params.getMagnificationSolutionGroupSize());
-      ltfMagnificationAdditionalGroups.setText(
+      ltfMagnificationNonDefaultGroups.setText(
         params.getMagnificationSolutionAdditionalGroups());
     }
 
@@ -453,12 +456,12 @@ public class TiltalignPanel {
       chkDistortion.setSelected(true);
 
       ltfXstretchGroupSize.setText(params.getXstretchSolutionGroupSize());
-      ltfXstretchAdditionalGroups.setText(
+      ltfXstretchNonDefaultGroups.setText(
         params.getXstretchSolutionAdditionalGroups());
 
       //   skew solution parameters
       ltfSkewGroupSize.setText(params.getSkewSolutionGroupSize());
-      ltfSkewAdditionalGroups.setText(params.getSkewSolutionAdditionalGroups());
+      ltfSkewNonDefaultGroups.setText(params.getSkewSolutionAdditionalGroups());
     }
 
     // Local rotation solution parameters
@@ -472,7 +475,7 @@ public class TiltalignPanel {
       chkLocalRotation.setSelected(true);
       ltfLocalRotationGroupSize.setText(
         params.getLocalRotationSolutionGroupSize());
-      ltfLocalTiltAngleAdditionalGroups.setText(
+      ltfLocalTiltAngleNonDefaultGroups.setText(
         params.getLocalTiltAdditionalGroups());
     }
 
@@ -485,7 +488,7 @@ public class TiltalignPanel {
       chkLocalTiltAngle.setSelected(true);
       ltfLocalTiltAngleGroupSize.setText(
         params.getLocalTiltSolutionGroupSize());
-      ltfLocalTiltAngleAdditionalGroups.setText(
+      ltfLocalTiltAngleNonDefaultGroups.setText(
         params.getLocalTiltAdditionalGroups());
     }
 
@@ -498,7 +501,7 @@ public class TiltalignPanel {
       chkLocalMagnification.setSelected(true);
       ltfLocalMagnificationGroupSize.setText(
         params.getLocalMagnificationSolutionGroupSize());
-      ltfLocalMagnificationAdditionalGroups.setText(
+      ltfLocalMagnificationNonDefaultGroups.setText(
         params.getLocalMagnificationSolutionAdditionalGroups());
     }
 
@@ -512,12 +515,12 @@ public class TiltalignPanel {
 
       ltfLocalXstretchGroupSize.setText(
         params.getLocalXstretchSolutionGroupSize());
-      ltfLocalXstretchAdditionalGroups.setText(
+      ltfLocalXstretchNonDefaultGroups.setText(
         params.getLocalXstretchSolutionAdditionalGroups());
 
       //  Local skew solution parameters
       ltfLocalSkewGroupSize.setText(params.getLocalSkewSolutionGroupSize());
-      ltfLocalSkewAdditionalGroups.setText(
+      ltfLocalSkewNonDefaultGroups.setText(
         params.getLocalSkewSolutionAdditionalGroups());
     }
 
@@ -603,9 +606,9 @@ public class TiltalignPanel {
         badParameter = ltfTiltAngleGroupSize.getLabel();
         params.setTiltAngleSolutionGroupSize(ltfTiltAngleGroupSize.getText());
 
-        badParameter = ltfTiltAngleAdditionalGroups.getLabel();
+        badParameter = ltfTiltAngleNonDefaultGroups.getLabel();
         params.setTiltAngleSolutionAdditionalGroups(
-          ltfTiltAngleAdditionalGroups.getText());
+          ltfTiltAngleNonDefaultGroups.getText());
       }
 
       // Magnification pane
@@ -626,9 +629,9 @@ public class TiltalignPanel {
         params.setMagnificationSolutionGroupSize(
           ltfMagnificationGroupSize.getText());
 
-        badParameter = ltfMagnificationAdditionalGroups.getLabel();
+        badParameter = ltfMagnificationNonDefaultGroups.getLabel();
         params.setMagnificationSolutionAdditionalGroups(
-          ltfMagnificationAdditionalGroups.getText());
+          ltfMagnificationNonDefaultGroups.getText());
       }
 
       // Compression pane
@@ -665,16 +668,16 @@ public class TiltalignPanel {
         badParameter = ltfXstretchGroupSize.getLabel();
         params.setXstretchSolutionGroupSize(ltfXstretchGroupSize.getText());
 
-        badParameter = ltfXstretchAdditionalGroups.getLabel();
+        badParameter = ltfXstretchNonDefaultGroups.getLabel();
         params.setXstretchSolutionAdditionalGroups(
-          ltfXstretchAdditionalGroups.getText());
+          ltfXstretchNonDefaultGroups.getText());
 
         badParameter = ltfSkewGroupSize.getLabel();
         params.setSkewSolutionGroupSize(ltfSkewGroupSize.getText());
 
-        badParameter = ltfSkewAdditionalGroups.getLabel();
+        badParameter = ltfSkewNonDefaultGroups.getLabel();
         params.setSkewSolutionAdditionalGroups(
-          ltfSkewAdditionalGroups.getText());
+          ltfSkewNonDefaultGroups.getText());
       }
       else {
         params.setDistortionSolutionType(0);
@@ -693,9 +696,9 @@ public class TiltalignPanel {
         params.setLocalRotationSolutionGroupSize(
           ltfLocalRotationGroupSize.getText());
 
-        badParameter = ltfLocalRotationAdditionalGroups.getLabel();
+        badParameter = ltfLocalRotationNonDefaultGroups.getLabel();
         params.setLocalRotationSolutionAdditionalGroups(
-          ltfLocalRotationAdditionalGroups.getText());
+          ltfLocalRotationNonDefaultGroups.getText());
       }
 
       // Tilt angle pane
@@ -709,9 +712,9 @@ public class TiltalignPanel {
         params.setLocalTiltSolutionGroupSize(
           ltfLocalTiltAngleGroupSize.getText());
 
-        badParameter = ltfLocalTiltAngleAdditionalGroups.getLabel();
+        badParameter = ltfLocalTiltAngleNonDefaultGroups.getLabel();
         params.setLocalTiltSolutionAdditionalGroups(
-          ltfLocalTiltAngleAdditionalGroups.getText());
+          ltfLocalTiltAngleNonDefaultGroups.getText());
       }
 
       // Local magnification pane
@@ -721,9 +724,9 @@ public class TiltalignPanel {
         params.setLocalMagnificationSolutionGroupSize(
           ltfLocalMagnificationGroupSize.getText());
 
-        badParameter = ltfLocalMagnificationAdditionalGroups.getLabel();
+        badParameter = ltfLocalMagnificationNonDefaultGroups.getLabel();
         params.setLocalMagnificationSolutionAdditionalGroups(
-          ltfLocalMagnificationAdditionalGroups.getText());
+          ltfLocalMagnificationNonDefaultGroups.getText());
 
       }
       else {
@@ -741,16 +744,16 @@ public class TiltalignPanel {
         params.setLocalXstretchSolutionGroupSize(
           ltfLocalXstretchGroupSize.getText());
 
-        badParameter = ltfLocalXstretchAdditionalGroups.getLabel();
+        badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
         params.setLocalXstretchSolutionAdditionalGroups(
-          ltfLocalXstretchAdditionalGroups.getText());
+          ltfLocalXstretchNonDefaultGroups.getText());
 
         badParameter = ltfLocalSkewGroupSize.getLabel();
         params.setLocalSkewSolutionGroupSize(ltfLocalSkewGroupSize.getText());
 
-        badParameter = ltfLocalSkewAdditionalGroups.getLabel();
+        badParameter = ltfLocalSkewNonDefaultGroups.getLabel();
         params.setLocalSkewSolutionAdditionalGroups(
-          ltfLocalSkewAdditionalGroups.getText());
+          ltfLocalSkewNonDefaultGroups.getText());
       }
       else {
         params.setLocalDistortionSolutionType(0);
@@ -792,15 +795,15 @@ public class TiltalignPanel {
     //    ltfCycleLimit.setVisible(state);
     pnlMinimizationParams.setVisible(state);
     ltfMagnificationReferenceView.setVisible(state);
-    ltfTiltAngleAdditionalGroups.setVisible(state);
-    ltfMagnificationAdditionalGroups.setVisible(state);
-    ltfXstretchAdditionalGroups.setVisible(state);
-    ltfSkewAdditionalGroups.setVisible(state);
-    ltfLocalRotationAdditionalGroups.setVisible(state);
-    ltfLocalTiltAngleAdditionalGroups.setVisible(state);
-    ltfLocalMagnificationAdditionalGroups.setVisible(state);
-    ltfLocalXstretchAdditionalGroups.setVisible(state);
-    ltfLocalSkewAdditionalGroups.setVisible(state);
+    ltfTiltAngleNonDefaultGroups.setVisible(state);
+    ltfMagnificationNonDefaultGroups.setVisible(state);
+    ltfXstretchNonDefaultGroups.setVisible(state);
+    ltfSkewNonDefaultGroups.setVisible(state);
+    ltfLocalRotationNonDefaultGroups.setVisible(state);
+    ltfLocalTiltAngleNonDefaultGroups.setVisible(state);
+    ltfLocalMagnificationNonDefaultGroups.setVisible(state);
+    ltfLocalXstretchNonDefaultGroups.setVisible(state);
+    ltfLocalSkewNonDefaultGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
   }
 
@@ -915,13 +918,13 @@ public class TiltalignPanel {
   void updateTiltAngleSolutionPanel() {
     boolean state = rbTiltAngleAutomap.isSelected();
     ltfTiltAngleGroupSize.setEnabled(state);
-    ltfTiltAngleAdditionalGroups.setEnabled(state);
+    ltfTiltAngleNonDefaultGroups.setEnabled(state);
   }
 
   void updateMagnificationSolutionPanel() {
     boolean state = rbMagnificationAutomap.isSelected();
     ltfMagnificationGroupSize.setEnabled(state);
-    ltfMagnificationAdditionalGroups.setEnabled(state);
+    ltfMagnificationNonDefaultGroups.setEnabled(state);
   }
 
   /*
@@ -938,35 +941,35 @@ public class TiltalignPanel {
     //  Xstretch and skew panel state
     boolean state = chkDistortion.isSelected();
     ltfXstretchGroupSize.setEnabled(state);
-    ltfXstretchAdditionalGroups.setEnabled(state);
+    ltfXstretchNonDefaultGroups.setEnabled(state);
     ltfSkewGroupSize.setEnabled(state);
-    ltfSkewAdditionalGroups.setEnabled(state);
+    ltfSkewNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalRotationSolutionPanel() {
     boolean state = chkLocalRotation.isSelected();
     ltfLocalRotationGroupSize.setEnabled(state);
-    ltfLocalRotationAdditionalGroups.setEnabled(state);
+    ltfLocalRotationNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalTiltAngleSolutionPanel() {
     boolean state = chkLocalTiltAngle.isSelected();
     ltfLocalTiltAngleGroupSize.setEnabled(state);
-    ltfLocalTiltAngleAdditionalGroups.setEnabled(state);
+    ltfLocalTiltAngleNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalMagnificationSolutionPanel() {
     boolean state = chkLocalMagnification.isSelected();
     ltfLocalMagnificationGroupSize.setEnabled(state);
-    ltfLocalMagnificationAdditionalGroups.setEnabled(state);
+    ltfLocalMagnificationNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalDistortionSolutionPanel() {
     boolean state = chkLocalDistortion.isSelected();
     ltfLocalXstretchGroupSize.setEnabled(state);
-    ltfLocalXstretchAdditionalGroups.setEnabled(state);
+    ltfLocalXstretchNonDefaultGroups.setEnabled(state);
     ltfLocalSkewGroupSize.setEnabled(state);
-    ltfLocalSkewAdditionalGroups.setEnabled(state);
+    ltfLocalSkewNonDefaultGroups.setEnabled(state);
   }
 
   Container getContainer() {
@@ -1070,9 +1073,9 @@ public class TiltalignPanel {
     pnlVolumeParameters.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlVolumeParameters.add(ltfTiltAxisZShift.getContainer());
     pnlVolumeParameters.add(Box.createRigidArea(FixedDim.x0_y5));
-		pnlGeneral.add(pnlVolumeParameters);
-		pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
-		
+    pnlGeneral.add(pnlVolumeParameters);
+    pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
+
     pnlMinimizationParams.setLayout(
       new BoxLayout(pnlMinimizationParams, BoxLayout.Y_AXIS));
     pnlMinimizationParams.setBorder(
@@ -1087,7 +1090,7 @@ public class TiltalignPanel {
 
     pnlLocalParameters.setLayout(
       new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
-		pnlLocalParameters.setBorder(
+    pnlLocalParameters.setBorder(
       new EtchedBorder("Local Alignment Parameters").getBorder());
     pnlLocalParameters.add(chkLocalAlignments);
     chkLocalAlignments.setAlignmentX(Container.RIGHT_ALIGNMENT);
@@ -1134,7 +1137,7 @@ public class TiltalignPanel {
     pnlTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTiltAngleSolution.add(ltfTiltAngleGroupSize.getContainer());
     pnlTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlTiltAngleSolution.add(ltfTiltAngleAdditionalGroups.getContainer());
+    pnlTiltAngleSolution.add(ltfTiltAngleNonDefaultGroups.getContainer());
 
     pnlTiltAngleSolution.setBorder(
       new EtchedBorder("Tilt Angle Solution Type").getBorder());
@@ -1161,7 +1164,7 @@ public class TiltalignPanel {
     pnlMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlMagnificationSolution.add(
-      ltfMagnificationAdditionalGroups.getContainer());
+      ltfMagnificationNonDefaultGroups.getContainer());
     pnlMagnificationSolution.setBorder(
       new EtchedBorder("Magnification Solution Type").getBorder());
 
@@ -1170,14 +1173,14 @@ public class TiltalignPanel {
       pnlDistortionSolution,
       chkDistortion,
       ltfXstretchGroupSize,
-      ltfXstretchAdditionalGroups,
+      ltfXstretchNonDefaultGroups,
       "Distortion Solution Type");
 
     pnlDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlDistortionSolution.add(ltfSkewGroupSize.getContainer());
 
     pnlDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlDistortionSolution.add(ltfSkewAdditionalGroups.getContainer());
+    pnlDistortionSolution.add(ltfSkewNonDefaultGroups.getContainer());
 
     DistortionCheckListener DistortionCheckListener =
       new DistortionCheckListener(this);
@@ -1233,7 +1236,7 @@ public class TiltalignPanel {
       pnlLocalRotationSolution,
       chkLocalRotation,
       ltfLocalRotationGroupSize,
-      ltfLocalRotationAdditionalGroups,
+      ltfLocalRotationNonDefaultGroups,
       "Local Rotation Solution Type");
     LocalRotationCheckListener localRotationCheckListener =
       new LocalRotationCheckListener(this);
@@ -1244,7 +1247,7 @@ public class TiltalignPanel {
       pnlLocalTiltAngleSolution,
       chkLocalTiltAngle,
       ltfLocalTiltAngleGroupSize,
-      ltfLocalTiltAngleAdditionalGroups,
+      ltfLocalTiltAngleNonDefaultGroups,
       "Local Tilt Angle Aolution Type");
 
     LocalTiltAngleCheckListener localTiltAngleCheckListener =
@@ -1256,7 +1259,7 @@ public class TiltalignPanel {
       pnlLocalMagnificationSolution,
       chkLocalMagnification,
       ltfLocalMagnificationGroupSize,
-      ltfLocalMagnificationAdditionalGroups,
+      ltfLocalMagnificationNonDefaultGroups,
       "Local Magnification Solution Type");
 
     LocalMagnificationCheckListener localMagnificationCheckListener =
@@ -1268,13 +1271,13 @@ public class TiltalignPanel {
       pnlLocalDistortionSolution,
       chkLocalDistortion,
       ltfLocalXstretchGroupSize,
-      ltfLocalXstretchAdditionalGroups,
-      "Local Distortion Dolution Type");
+      ltfLocalXstretchNonDefaultGroups,
+      "Local Distortion Solution Type");
 
-		pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
     pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlLocalDistortionSolution.add(ltfLocalSkewAdditionalGroups.getContainer());
+    pnlLocalDistortionSolution.add(ltfLocalSkewNonDefaultGroups.getContainer());
 
     LocalDistortionCheckListener localDistortionCheckListener =
       new LocalDistortionCheckListener(this);
@@ -1444,4 +1447,212 @@ public class TiltalignPanel {
   }
   */
 
+  /**
+   * Initialize the tooltip text for the axis panel objects
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    // General tab
+    text = "List of views to exclude from alignment and reconstruction.";
+    ltfExcludeList.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "Lists of views to group separately from other views.  Multiple "
+        + "lists can be entered; separate them by spaces.";
+    ltfSeparateViewGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text = "Threshold number of SDs above mean for reporting large residuals.";
+    ltfResidualThreshold.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Apply criterion relative to mean/SD of residuals on all views.";
+    rbResidAllViews.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "Apply criterion relative to mean/SD of residuals on neighboring views.";
+    rbResidNeighboring.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Fit one plane to all points to find angles of section.";
+    rbSingleFiducialSurface.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Divide points into two groups and fit two planes to find angles of "
+        + "section.";
+    rbDualFiducialSurfaces.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Total amount to add to all tilt angles.";
+    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Distance to shift tilt axis in Z for reconstruction.";
+    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "A step size factor; try changing by +/-10% if solutions fail.";
+    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Limit on number of iterations to find a solution.";
+    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Compute alignments in local areas after finding global solution.";
+    chkLocalAlignments.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Number of overlapping local areas to use in the X and Y directions.";
+    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Minimum size of patches in pixels, or minimum fractional overlap between"
+        + " patches, in the X and Y directions.";
+    ltfMinLocalPatchSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Minimum total number of fiducials required in each local area, and "
+        + "minimum on each surface if two surfaces were analyzed for.";
+    ltfMinLocalFiducials.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    //  Global variables
+    text = "Do not solve for tilt angles.";
+    rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Solve for each tilt angle independently.";
+    rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Group views to solve for fewer tilt angle variables.";
+    rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Basic grouping size for tilt angles (grouping will be less at high tilt"
+        + " and more at low tilt).";
+    ltfTiltAngleGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping.  For each set, enter starting"
+        + " and ending view number and group size, separated by commas; "
+        + "separate multiple sets with spaces.";
+    ltfTiltAngleNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Do not solve for magnifications.";
+    rbMagnificationFixed.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for magnification at each view independently.";
+    rbMagnificationAll.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Group views to solve for fewer magnification variables.";
+    rbMagnificationAutomap.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "View at which magnification will be fixed at 1.0.";
+    ltfMagnificationReferenceView.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for magnifications.";
+    ltfMagnificationGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping.  For each set, enter starting"
+        + " and ending view number and group size, separated by commas; "
+        + "separate multiple sets with spaces.";
+    ltfMagnificationNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for distortions in the plane of section.";
+    chkDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Basic grouping size for X stretch (grouping will be less at high tilt "
+        + "and more at low tilt).";
+    ltfXstretchGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping for X stretch.  For each set, "
+        + "enter starting and ending view number and group size, separated by"
+        + " commas; separate multiple sets with spaces.";
+    ltfXstretchNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for skew angles.";
+    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping for skew angles.  For each set,"
+        + " enter starting and ending view number and group size, separated by"
+        + " commas; separate multiple sets with spaces.";
+    ltfSkewNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for local in-plane rotations.";
+    chkLocalRotation.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for local rotations.";
+    ltfLocalRotationGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping.  For each set, enter starting"
+        + " and ending view number and group size, separated by commas; "
+        + "separate multiple sets with spaces.";
+    ltfLocalRotationNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for local changes in tilt angle.";
+    chkLocalTiltAngle.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for local tilt angle changes.";
+    ltfLocalTiltAngleGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping.  For each set, enter starting"
+        + " and ending view number and group size, separated by commas; "
+        + "separate multiple sets with spaces.";
+    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for local changes in magnification.";
+    chkLocalMagnification.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for local magnification changes.";
+    ltfLocalMagnificationGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping.  For each set, enter starting"
+        + " and ending view number and group size, separated by commas; "
+        + "separate multiple sets with spaces";
+    ltfLocalMagnificationNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Solve for local distortions.";
+    chkLocalDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for local X stretch variables.";
+    ltfLocalXstretchGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Sets of views with non-default grouping for X stretch.  For each set,"
+        + " enter starting and ending view number and group size, separated by"
+        + " commas; separate multiple sets with spaces.";
+    ltfLocalXstretchNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text = "Grouping size for local skew angle variables.";
+    ltfLocalSkewGroupSize.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Sets of views with non-default grouping for skew angles.  For each set,"
+        + " enter starting and ending view number and group size, separated by"
+        + " commas; separate multiple sets with spaces.";
+    ltfLocalSkewNonDefaultGroups.setToolTipText(
+      tooltipFormatter.setText(text).format());
+  }
 }
