@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.1  2002/08/19 04:29:03  mast
 #  Added dependencies on blend.inc
 #
@@ -17,7 +20,7 @@ E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS) $(LDFLAGS)
 PROGS = blendmont$(E) reducemont$(E)
 
-BLOBJS = blendmont.$(O) bsubs.$(O) shuffler.$(O) smoothgrid.$(O) \
+BLOBJS = blendmont.$(O) bsubs.$(O) edgesubs.$(O) shuffler.$(O) smoothgrid.$(O)\
  sdsearch.$(O) sdcalc.$(O) setoverlap.$(O)
 
 REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O)
