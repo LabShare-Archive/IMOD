@@ -27,8 +27,8 @@
 /*!
  * Constructs the [ImodAssistant] object.  ^
  * {path} is a path to the help files ^
- * {adpFile} is the name of Assistant Document Profile file in that
- * location or NULL for none ^
+ * {adpFile} is the name of An Assistant Document Profile file OR NULL for 
+ * none, where the file can be relative to the path or an absolute path ^
  * {messageTitle} should be a program name to have errors reported in a
  * message box, or NULL not to ^
  * {absolute} (default false) should be [true] if {path} is an absolute 
@@ -71,7 +71,7 @@ ImodAssistant::~ImodAssistant()
  * Returns 0 if the page is found, 1 if not, and -1 if the adp file is not
  * found.
  */
-int ImodAssistant::showPage(const char *page, bool absolute)
+int ImodAssistant::showPage(const char *page)
 {
   QString fullPath;
   QString fileOnly, assPath;
@@ -103,7 +103,10 @@ int ImodAssistant::showPage(const char *page, bool absolute)
     QStringList args;
     args << "-hideSidebar";
     if (!mAdp.isEmpty()) {
-      fileOnly = mPath + sep + mAdp;
+      if (QDir::isRelativePath(mAdp))
+        fileOnly = mPath + sep + mAdp;
+      else
+        fileOnly = mAdp;
       if (QFile::exists(fileOnly))
         args << "-profile" <<  fileOnly;
       else
@@ -114,10 +117,10 @@ int ImodAssistant::showPage(const char *page, bool absolute)
   }
 
   // Get full path name and clean it
-  if (absolute)
-    fullPath = page;
-  else
+  if (QDir::isRelativePath(page))
     fullPath = mPath + sep + page;
+  else
+    fullPath = page;
   fullPath = QDir::cleanDirPath(fullPath);
   if (QDir::isRelativePath(fullPath))
     fullPath = QDir::currentDirPath() + sep + fullPath;
@@ -154,6 +157,10 @@ void ImodAssistant::assistantError(const QString &msg)
 
 /*
     $Log$
+    Revision 1.8  2004/12/22 23:15:17  mast
+    Have it determine if adp file not found and give a different return code
+    instead of generating the error signal
+
     Revision 1.7  2004/12/06 04:39:19  mast
     Made truly standalone, took out of library back into 3dmod
 
