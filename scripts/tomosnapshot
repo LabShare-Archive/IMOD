@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/10/07 16:18:22  mast
+#  Initial creation
+#
 
 # Defaults
 #
@@ -15,6 +18,8 @@ set pn = tomosnapshot
 set curdir = .
 set edffile = ""
 set outfile = ""
+set setname = ""
+set axistype = ""
 
 # The file lists
 #
@@ -25,7 +30,7 @@ set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
 fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_region.mod etomo_err.log etomo_err.log~ \
-etomo_out.log)
+etomo_out.log lslrt.out uname.out)
 
 echo "$pn : enter $pn -h for usage"
 while ($#argv > 0)
@@ -63,36 +68,39 @@ cd $curdir
 
 # Get edf file
 #
-if ($edffile == "") then
+if ("$edffile" == "") then
     set edfFiles = `ls *.edf`
     if ($status) then
-        echo "ERROR: $pn - No edf file found in this directory"
-        goto usage
+        echo "WARNING: $pn - No edf file found in this directory"
+    else
+        set edffile = $edfFiles[1]
     endif
-    set edffile = $edfFiles[1]
-endif
-if (! -e $edffile) then
-    echo "ERROR: $pn - $edffile does not exist"
+else if (! -e "$edffile") then
+    echo "WARNING: $pn - $edffile does not exist"
+    set edffile = ""
 endif
 
 # Get set name and axis type from edf file
 #
-set setname = `sed -n '/Setup.DatasetName=/s///p' $edffile`
-set axistype = `sed -n '/Setup.AxisType=/s///p' $edffile`
-
-if ("$setname" == "" || "axistype" == "") then
-    echo "ERROR: $pn - Cannot find DatasetName or AxisType in edf file"
-    exit 1
+if ("$edffile" != "")then
+    set setname = `sed -n '/Setup.DatasetName=/s///p' $edffile`
+    set axistype = `sed -n '/Setup.AxisType=/s///p' $edffile`
 endif
 
-# Set up the output file
+# Get the axis type from xcorr.com as fallback
 #
-if ("$outfile" == "") then
-    set outfile = $rundir/$setname-snapshot.tar.gz
-else
-    if (-d "$outfile") set outfile = $outfile/$setname-snapshot.tar.gz
-    set leadslash = `echo $outfile | sed -n '/^\//p'`
-    if ("$leadslash" == "") set outfile = $rundir/$outfile
+if ("$axistype" == "") then
+    set xcorrfile = `\ls xcorr.com`
+    if ($status) then
+        set xcorrfile = `\ls xcorra.com`
+        if ($status) then
+            echo "ERROR: $pn - Cannot find AxisType in edf file or from command files"
+            exit 1
+        endif
+        set axistype = "Dual Axis"
+    else
+        set axistype = "Single Axis"
+    endif
 endif
 
 # Initialize for loops
@@ -105,10 +113,33 @@ if ("$axistype" == "Dual Axis") then
 endif
 @ axnum = 1
 
+# Get the setname from xcorr.com as fallback
+#
+if ("$setname" == "") then
+    set setname = `sed -n "/InputFile[:space:]*\(.*\)$axislet.st/s//\1/p" $xcorrfile`
+    if ($setname == "") then
+        echo "ERROR: $pn - Cannot find DatasetName in edf file or $xcorrfile"
+        exit 1
+    endif
+endif
+
+# Set up the output file
+#
+if ("$outfile" == "") then
+    set outfile = $rundir/$setname-snapshot.tar.gz
+else
+    if (-d "$outfile") set outfile = $outfile/$setname-snapshot.tar.gz
+    set leadslash = `echo $outfile | sed -n '/^\//p'`
+    if ("$leadslash" == "") set outfile = $rundir/$outfile
+endif
+
 # Get uname output if it can be written to current dir
 #
-if (-w .) uname -a >! uname.out
-set list = ($edffile uname.out)
+if (-w .) then
+    uname -a >! uname.out
+    \ls -lrt >! lslrt.out
+endif
+set list = ($edffile)
 
 # Loop on axis files, adding files if they exist
 #
@@ -138,6 +169,7 @@ end
 #
 tar -cvzf $outfile $list
 if (-e uname.out) \rm -f uname.out
+if (-e lslrt.out) \rm -f lslrt.out
 if ($status) then
     echo "ERROR: $pn - making snapshot tar file"
     exit 1
