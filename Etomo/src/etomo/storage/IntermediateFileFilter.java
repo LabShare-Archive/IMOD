@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.4  2003/11/06 18:30:40  sueh
  * <p> bug321 accept(File f): added matchcheck.rec
  * <p>
@@ -34,6 +37,7 @@ public class IntermediateFileFilter extends FileFilter {
   public static final String rcsid =
     "$Id$";
   private String datasetName;
+  boolean acceptPretrimmedTomograms = false;
   
   public IntermediateFileFilter(String datasetName) {
     this.datasetName = datasetName;
@@ -45,8 +49,6 @@ public class IntermediateFileFilter extends FileFilter {
     String[] endsWith =
       {
         "~",
-        "sum.rec",
-        "full.rec",
         "matchcheck.rec",
         ".mat",
         ".ali",
@@ -61,10 +63,18 @@ public class IntermediateFileFilter extends FileFilter {
         "topa.rec",
         "topb.rec",
         "volcombine.log" };
+    String[] pretrimmedTomograms = {"sum.rec","full.rec"};
     if (f.isFile()) {
       for (int i = 0; i < endsWith.length; i++) {
         if (f.getAbsolutePath().endsWith(endsWith[i])) {
           return true;
+        }
+      }
+      if (acceptPretrimmedTomograms) {
+        for (int i = 0; i < pretrimmedTomograms.length; i++) {
+          if (f.getAbsolutePath().endsWith(pretrimmedTomograms[i])) {
+            return true;
+          }
         }
       }
       if (f.getAbsolutePath().endsWith(datasetName + "a.rec")) {
@@ -82,6 +92,10 @@ public class IntermediateFileFilter extends FileFilter {
    */
   public String getDescription() {
     return "Intermediate files";
+  }
+  
+  public void setAcceptPretrimmedTomograms(boolean acceptPretrimmedTomograms) {
+    this.acceptPretrimmedTomograms = acceptPretrimmedTomograms;
   }
 
 }
