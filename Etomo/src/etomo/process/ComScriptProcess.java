@@ -19,6 +19,22 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2004/08/19 02:06:34  sueh
+ * bug# 508 Put the rename files functionality into a separate function,
+ * so it can be overriden.  Placed the rename files code into a separate
+ * function that could handle different command names.  Placed the
+ * parseError() code into a separate function that could handle different
+ * log file names and missing log files.  Made parseBaseName() static.
+ * Added:
+ * parseError(String name, boolean mustExist)
+ * renameFiles()
+ * renameFiles(String name, String watchedFileName,
+ *     File workingDirectory)
+ * Changed:
+ * parseBaseName(String filename, String extension)
+ * parseError()
+ * run()
+ *
  * Revision 3.13  2004/08/06 23:00:44  sueh
  * bug# 508 Base class for BackgroundComScriptProcess.
  * Changing functions and variables needed by
@@ -359,7 +375,8 @@ public class ComScriptProcess
     renameFiles(name, watchedFileName, workingDirectory);
   }
   
-  static protected void renameFiles(String name, String watchedFileName, File workingDirectory) {
+  static protected void renameFiles(String name, String watchedFileName, 
+      File workingDirectory) {
     // Rename the logfile so that any log file monitor does not get confused
     // by an existing log file
     String logFileName = parseBaseName(name, ".com") + ".log";
@@ -575,8 +592,7 @@ public class ComScriptProcess
     ArrayList errors = new ArrayList();
     
     File file = 
-        new File(workingDirectory.getAbsolutePath(), 
-        parseBaseName(name, ".com") + ".log");
+        new File(workingDirectory, parseBaseName(name, ".com") + ".log");
     if (!file.exists() && !mustExist) {
       return errors;
     }
@@ -606,26 +622,41 @@ public class ComScriptProcess
   }
 
   /**
+   * 
+   * @return
+   * @throws IOException
+   */
+  protected String[] parseWarning() throws IOException {
+    ArrayList errors = parseWarning(name, true);
+    return (String[]) errors.toArray(new String[errors.size()]);
+  }
+  
+  /**
    * Parse the log file for warnings. Since the fortran code is no smart enough
    * handle formatted output we need find WARNING: in the middle of the output
    * stream. The error report starts with the WARNING: text instead of the
    * whole line.
    * 
-   * @return A String[] containing any errors. If the com script has not been
+   * @return A ArrayList containing any errors. If the com script has not been
    *         run then null is returned. If the com script ran with no warnings
    *         then zero length array will be returned.
    */
-  private String[] parseWarning() throws IOException {
+  protected ArrayList parseWarning(String name, boolean mustExist) throws IOException {
     boolean nextLineIsWarning = false;
+    
+    ArrayList errors = new ArrayList();
+    
+    File file = 
+        new File(workingDirectory, parseBaseName(name, ".com") + ".log");
+    if (!file.exists() && !mustExist) {
+      return errors;
+    }
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
-        + "/" + parseBaseName(name, ".com") + ".log");
+    InputStream fileStream = new FileInputStream(file);
 
     BufferedReader fileBuffer = new BufferedReader(new InputStreamReader(
       fileStream));
 
-    ArrayList errors = new ArrayList();
     String line;
     while ((line = fileBuffer.readLine()) != null) {
       int index = line.indexOf("WARNING:");
@@ -633,7 +664,8 @@ public class ComScriptProcess
         nextLineIsWarning = false;
         int trimIndex = line.trim().indexOf("PIP WARNING:");
         if (trimIndex != -1
-            && line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
+            && line.trim().length() 
+              <= trimIndex + 1 + "PIP WARNING:".length()) {
           nextLineIsWarning = true;
         }
         errors.add(line.substring(index));
@@ -651,7 +683,7 @@ public class ComScriptProcess
       }
     }
     fileBuffer.close();
-    return (String[]) errors.toArray(new String[errors.size()]);
+    return errors;
   }
 
   /**
