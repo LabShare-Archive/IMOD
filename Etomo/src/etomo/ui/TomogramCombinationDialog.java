@@ -36,6 +36,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/06/25 23:25:28  sueh
+ * <p> bug# 485 made Syncronize public
+ * <p>
  * <p> Revision 3.9  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -389,6 +392,10 @@ public class TomogramCombinationDialog
    */
   public boolean isCombinePanelEnabled() {
     return combinePanelEnabled;
+  }
+  
+  public boolean isRunVolcombine() {
+    return pnlFinal.isRunVolcombine();
   }
 
   /**
