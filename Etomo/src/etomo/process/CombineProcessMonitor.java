@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/08/20 21:41:53  sueh
+ * <p> $bug# 508 CombineComscriptState match string is now static.
+ * <p> $Improved selfTest()
+ * <p> $
  * <p> $Revision 1.2  2004/08/19 20:09:01  sueh
  * <p> $bug# 508 Made finding the .com file names more robust.  After 
  * <p> $finding the string "running" or "Running", find a string that 
@@ -56,8 +60,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   public static final String rcsid = "$$Id$$";
   public static final String COMBINE_LABEL = "Combine";
   private static final long SLEEP = 100;
-  private static final double timeoutMinutes = 1;
-  private static final double timeoutCount = timeoutMinutes * 60 * 1000 / SLEEP;
   
   private ApplicationManager applicationManager = null;
   private AxisID axisID = null;
@@ -71,17 +73,9 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private boolean processRunning = true;
   
   private File logFile = null;
-  private boolean standardLogFileName = true;
   private LogFileProcessMonitor childMonitor = null;
-  
-  //status variables - more then one could be set at a time because some of them
-  //can be set on different threads
-  private boolean done = false; //success
-  private boolean error = false;
-  private boolean killed = false;
-  private boolean timedOut = false;
-  private boolean ioException = false;
-  
+  Thread childThread = null;
+  private boolean success = false;
   private CombineComscriptState combineComscriptState = null;
   private int currentCommandIndex = CombineComscriptState.NULL_INDEX;
   
@@ -124,16 +118,15 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   /**
    * true if finished successfully
    */
-  public boolean isDone() {
-    return done;
+  public boolean isSuccessful() {
+    return success;
   }
   
   /**
    * called when the process is killed by the user
    */
-  public void setKilled(boolean killed) {
+  public void kill() {
     endMonitor();
-    this.killed = true;
   }
   
   private void initializeProgressBar() {
@@ -164,12 +157,11 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
         }
       }
       else if (line.startsWith("ERROR:")) {
-        error = true;
         endMonitor();
       }
       else if (
         line.startsWith(CombineComscriptState.getSuccessText())) {
-        done = true;
+        success = true;
         endMonitor();
 
       }
@@ -217,7 +209,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
       return;
     }
     childMonitor.setLastProcess(false);
-    Thread childThread = new Thread(childMonitor);
+    childThread = new Thread(childMonitor);
     childThread.start();
   }
   
@@ -227,10 +219,11 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    *
    */
   private void endCurrentChildMonitor() {
-    if (childMonitor != null) {
-      childMonitor.setProcessRunning(false);
+    if (childThread != null) {
+      childThread.interrupt();
     }
     childMonitor = null;
+    childThread = null;
   }
 
   /**
@@ -239,6 +232,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    */
   private void endMonitor() {
     endCurrentChildMonitor();
+    Thread.currentThread().interrupt();
     processRunning = false;
   }
   
@@ -266,43 +260,35 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    * After loop, turn off the monitor if that hasn't been done already.
    */
   public void run() {
-    if (!processRunning) {
-      throw new IllegalStateException(
-          "Cannot run this instance more then once");
-    }
     initializeProgressBar();
     //  Instantiate the logFile object
-    String logFileName;
-    logFileName = CombineComscriptState.COMSCRIPT_NAME + axisID.getExtension() + ".log";
+    String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
     logFile = new File(System.getProperty("user.dir"), logFileName);
 
+    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile();
       initializeProgressBar();
 
-      while (processRunning && sleepCount <= timeoutCount) {
-        try {
-          Thread.sleep(SLEEP);
-        }
-        catch (InterruptedException e) {
-        } 
+      while (processRunning) {
+        Thread.sleep(SLEEP);
         getCurrentSection();
       }
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
     }
+    catch (InterruptedException e) {
+      processRunning = false;
+    }
+    catch (NumberFormatException e) {
+      e.printStackTrace();
+    }
     catch (IOException e) {
       e.printStackTrace();
-      ioException = true;
-      endMonitor();
     }
-    
-    if (processRunning) {
-      timedOut = true;
-      endMonitor();
-    }
+
     //  Close the log file reader
     try {
       Utilities
@@ -316,6 +302,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
       e1.printStackTrace();
     }
     applicationManager.progressBarDone(axisID);
+    endMonitor();
     runSelfTest(RAN_STATE);
   }
 
@@ -323,25 +310,20 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws FileNotFoundException {
+  private void waitForLogFile() throws InterruptedException, 
+      FileNotFoundException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
     }
     boolean newLogFile = false;
-    while (!newLogFile &&  sleepCount <= timeoutCount) {
+    while (!newLogFile) {
       // Check to see if the log file exists that signifies that the process
       // has started
       if (logFile.exists()) {
         newLogFile = true;
-        sleepCount = 0;
       }
       else {
-        try {
-          Thread.sleep(SLEEP);
-          sleepCount++;
-        }
-        catch (InterruptedException e) {
-        }
+        Thread.sleep(SLEEP);
       }
     }
     //  Open the log file
@@ -382,11 +364,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
           throw new IllegalStateException(stateString 
               + "ProcessRunning must be true");
         }               
-        if (done || error || killed || timedOut || ioException) {
-          throw new IllegalStateException(stateString 
-              + "Status variables must be false.  "
-              + "done=" + done + ",error=" + error + ",killed=" + killed              + ",timedOut=" + timedOut + ",ioException=" + ioException);
-        }               
             
         break;
 
@@ -396,11 +373,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
           throw new IllegalStateException(stateString 
               + "The sleepCount should be reset when the log file is found.  "
               + "sleepCount=" + sleepCount);
-        }               
-        if (!logFile.exists() && sleepCount < timeoutCount) {
-          throw new IllegalStateException(stateString
-              + "If the log file is not found, waitForLogFile() should end on a"              + "timeout.  "
-              + "sleepCount=" + sleepCount + ",timeoutCount=" + timeoutCount);
         }              
             
         break;
@@ -411,15 +383,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
           throw new IllegalStateException(stateString 
               + "ProcessRunning should be false.");
         }               
-        if (!done && !error && !killed && !timedOut && !ioException) {
-          throw new IllegalStateException(stateString
-              + "One of the status variables should be true.");
-        } 
-        if (timedOut && sleepCount < timeoutCount) {
-          throw new IllegalStateException(stateString
-              + "If timeout is true, then a timeout should have occurred.  "
-              + "sleepCount=" + sleepCount + ",timeoutCound=" + timeoutCount);
-        }             
 
         break;
        
