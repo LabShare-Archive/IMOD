@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2004/09/10 21:33:46  mast
+Eliminated long variables
+
 Revision 3.10  2004/04/27 21:44:47  mast
 Eliminated rotation angle fo first view from checksum
 
@@ -159,8 +162,8 @@ int imodDefault(Imod *model)
   model->cview    = 0;    /* current view.    */
   model->viewsize = 0;    /* number of views. */
   imodViewModelNew(model); /* default view */
+  model->editGlobalClip = 0;
 
-  model->clipList = NULL;
   model->refImage = NULL;
   model->fileName = NULL;
   model->xybin = 1;
@@ -739,6 +742,9 @@ int DelContour(struct Mod_Model *mod, int index)
 
   }
 
+  /* DMN 9/20/04: clean out labels for non-existing surfaces */
+  imodObjectCleanSurf(obj);
+
   mod->cindex.contour = -1;
   mod->cindex.point   = -1;
   return(obj->contsize);
@@ -1259,10 +1265,11 @@ int imodGetMaxTime(Imod *imod)
 
 int imodChecksum(Imod *imod)
 {
-  int ob, co, pt, isum;
+  int ob, co, pt, isum, i;
   Iobj *obj;
   Icont *cont;
   Iview *view;
+  IclipPlanes *clips;
   Iobjview *obv;
   double sum = 0.;
   double osum, psum;
@@ -1296,10 +1303,15 @@ int imodChecksum(Imod *imod)
     osum += obj->trans;     
     osum += obj->contsize;      
     osum += obj->ambient + obj->diffuse + obj->specular + obj->shininess;
-    osum += obj->clip + obj->clip_flags + obj->clip_trans;
-    osum += obj->clip_plane + obj->mat2;
-    osum += obj->clip_normal.x + obj->clip_normal.y + obj->clip_normal.z;
-    osum += obj->clip_point.x + obj->clip_point.y + obj->clip_point.z;
+    clips = &obj->clips;
+    osum += clips->count + clips->flags + clips->trans;
+    osum += clips->plane + obj->mat2;
+    for (i = 0; i < clips->count; i++) {
+      osum += clips->normal[i].x + clips->normal[i].y + 
+        clips->normal[i].z;
+      osum += clips->point[i].x + clips->point[i].y + 
+        clips->point[i].z;
+    }
     osum += obj->mat1 + obj->mat1b1 + obj->mat1b2 + obj->mat1b3;
     osum += obj->mat3 + obj->mat3b1 + obj->mat3b2 + obj->mat3b3;
     for(co = 0; co < obj->contsize; co++){
@@ -1341,10 +1353,15 @@ int imodChecksum(Imod *imod)
         osum += obv->linewidth;
         osum += obv->trans;
         osum += obv->ambient + obv->diffuse + obv->specular + obv->shininess;
-        osum += obv->clip + obv->clip_flags + obv->clip_trans;
-        osum += obv->clip_plane + obv->mat2;
-        osum += obv->clip_normal.x + obv->clip_normal.y + obv->clip_normal.z;
-        osum += obv->clip_point.x + obv->clip_point.y + obv->clip_point.z;
+        clips = &obv->clips;
+        osum += clips->count + clips->flags + clips->trans;
+        osum += clips->plane + obv->mat2;
+        for (i = 0; i < clips->count; i++) {
+          osum += clips->normal[i].x + clips->normal[i].y + 
+            clips->normal[i].z;
+          osum += clips->point[i].x + clips->point[i].y + 
+            clips->point[i].z;
+        }
         osum += obv->mat1 + obv->mat1b1 + obv->mat1b2 + obv->mat1b3;
         osum += obv->mat3 + obv->mat3b1 + obv->mat3b2 + obv->mat3b3;
         sum += osum;
