@@ -27,6 +27,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/08/23 23:31:49  sueh
+ * <p> bug# 508 moved rename combine.out, removed unecessary
+ * <p> throws from parseWarning and parseError, changed setKilled(boolean)
+ * <p> to kill()
+ * <p>
  * <p> Revision 1.3  2004/08/20 21:39:45  sueh
  * <p> bug# 508 added parseWarning()
  * <p>
@@ -173,7 +178,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * set killed in the process monitor
    * @param killed
    */
-  public void kill() {
+  public void killMonitor() {
     if (backgroundProcessMonitor != null) {
       backgroundProcessMonitor.kill();
     }
