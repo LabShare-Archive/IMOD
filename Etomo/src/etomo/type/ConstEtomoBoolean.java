@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/29 23:46:17  sueh
+* <p> bug# 567 Fixing toInteger(String):  a blank string returns 0 (false).
+* <p>
 * <p> Revision 1.3  2004/12/29 00:04:09  sueh
 * <p> bug# 567 Added update(ComScriptCommand) to update value where the
 * <p> keyword in ComScriptCommand equals name.  The value can be placed
@@ -266,8 +269,7 @@ public abstract class ConstEtomoBoolean implements Storable {
     if (value.equals("true") || value.equals("t") || value.equals("yes")) {
       return 1;
     }
-    if (value.equals("false") || value.equals("f") || value.equals("no")
-        || value.matches("\\s*")) {
+    if (value.equals("false") || value.equals("f") || value.equals("no")) {
       return 0;
     }
     long longValue;
