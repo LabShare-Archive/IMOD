@@ -349,6 +349,8 @@ static int openWindow(ImodvApp *a)
 static int load_models(int n, char **fname, ImodvApp *a)
 {
   int i, ob, co;
+  Ipoint imageMax = {0., 0., 0.};
+  Imod *mod;
 
   if (n < 1)
     return(0);
@@ -362,21 +364,26 @@ static int load_models(int n, char **fname, ImodvApp *a)
       fprintf(stderr, "Error loading %s\n", fname[i]);
       return(-1);
     }
+    mod = a->mod[i];
+
 
     /* DNM 6/20/01: find out max time and set current time */
-    a->mod[i]->tmax = 0;
-    for (ob = 0; ob < a->mod[i]->objsize; ob++)
-      for (co = 0; co < a->mod[i]->obj[ob].contsize; co++)
-        if (a->mod[i]->tmax < a->mod[i]->obj[ob].cont[co].type)
-          a->mod[i]->tmax = a->mod[i]->obj[ob].cont[co].type;
-    a->mod[i]->ctime = a->mod[i]->tmax ? 1 : 0;
+    mod->tmax = 0;
+    for (ob = 0; ob < mod->objsize; ob++)
+      for (co = 0; co < mod->obj[ob].contsize; co++)
+        if (mod->tmax < mod->obj[ob].cont[co].type)
+          mod->tmax = mod->obj[ob].cont[co].type;
+    mod->ctime = mod->tmax ? 1 : 0;
 
     /* DNM: changes for storage of object properties in view and 
        relying on default scaling.  Also, make sure every model has
        the view to use set up 
        6/26/03: switch to new method, just initialize views in each model */
+    /* 7/17/03: trouble.  Restore default scaling of current view if exists */
+    if (mod->cview)
+      imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax);
 
-    imodvViewsInitialize(a->mod[i]);
+    imodvViewsInitialize(mod);
   }
 
   a->imod = (a->mod[a->cm]);
@@ -583,6 +590,11 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.9  2003/06/27 20:04:47  mast
+Changes for new scheme in which there is always a view 1: initialize
+views when reading in a model; adjust scaling when opening model view
+from imod
+
 Revision 4.8  2003/05/18 22:58:33  mast
 simplify creating icon pixmap
 
