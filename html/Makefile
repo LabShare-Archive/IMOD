@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/02/25 04:26:24  mast
+#  Added libdoc calls
+#
 #  Revision 3.4  2005/01/17 19:33:44  mast
 #  Switched to sh format of if
 #
@@ -30,7 +33,7 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp
 
 install : clean
 	cd libdoc ; $(MAKE)
