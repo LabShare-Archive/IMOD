@@ -19,6 +19,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/08 23:59:22  rickg
+ * <p> Added isPatchBoundarySet method
+ * <p> Added basic isValid method
+ * <p>
  * <p> Revision 1.2  2002/10/03 03:59:31  rickg
  * <p> Added path X,Y,Z min and max attributes
  * <p>
@@ -72,7 +76,7 @@ public class ConstCombineParams {
 
   /**
    * Checks the validity of the attribute values.
-   * @returns true if all entries are valid, otherwise the reasons are 
+   * @return true if all entries are valid, otherwise the reasons are 
    * available through the method getInvalidReasons.
    */
   public boolean isValid() {
