@@ -49,9 +49,13 @@ Log at end of file
 #include "xcramp.h"
 #include "dia_qtutils.h"
 
+#ifdef Q_OS_MACX
+#include "qcursor.mac.bits"
+#include "qcursor_mask.mac.bits"
+#else
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
-
+#endif
 
 char *ImodRes_SGIStereoCommand(void)
 {
@@ -543,6 +547,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.2  2003/03/03 22:10:55  mast
+Make modeling cursor when open the display
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
