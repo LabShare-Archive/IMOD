@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/12 16:57:24  sueh
+ * <p> bug# 409 allow ComScript to function when the comscript
+ * <p> file doesn't exist.
+ * <p>
  * <p> Revision 3.2  2004/03/12 00:04:22  rickg
  * <p> Comment fixes
  * <p>
@@ -285,6 +289,9 @@ public class ComScript {
    * @return index of the command or -1 if not present
    */
   public int getScriptCommandIndex(String cmdName){
+    if (!commandLoaded) {
+      createCommand(cmdName);
+    }
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
       if (command.getCommand().equals(cmdName)) {
