@@ -22,6 +22,9 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -197,14 +200,14 @@ public class TomogramGenerationDialog
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(buttonNewst.getActionCommand())) {
-      applicationManager.newst(AxisID.SECOND);
+      applicationManager.newst(axisID);
     }
     else if (command.equals(buttonTilt.getActionCommand())) {
-      applicationManager.tilt(AxisID.SECOND);
+      applicationManager.tilt(axisID);
     }
 
     else if (command.equals(buttonImod.getActionCommand())) {
-      applicationManager.imodTomogram(AxisID.SECOND);
+      applicationManager.imodTomogram(axisID);
     }
   }
 
