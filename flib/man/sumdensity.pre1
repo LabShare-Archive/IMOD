@@ -20,7 +20,7 @@ DDEESSCCRRIIPPTTIIOONN
   entered as an absolute density value, such as one would view in the Pixel
   View window in 3dmod.  If you do not want to apply a threshold at all you
   could specify the minimum density in the file, or zero, whichever is less.
-  The second way to enter the desity is as a contrast setting.  Load the data
+  The second way to enter the density is as a contrast setting.  Load the data
   into 3dmod without any intensity scaling (i.e., without using "-s").  Bring
   the black and white sliders together and adjust until structures of interest
   are selected by the threshold.  The slider value would be entered with the
