@@ -4,12 +4,14 @@
 .SH NAME
 newst \- Front end to the newstack program.
 .SH SYNOPSIS
-newst [options] <input file>  <output file>
+newst [options] <input file(s)>  <output file>
 .SH DESCRIPTION
-newst will create a new MRC image file from an old one
-while doing several types of image processing options.
+newst will create a new MRC image file from one or more existing ones
+while doing several types of image processing options.  If more than one
+input file is given, then all sections will be stacked together from all
+files.
 The available options are given below.  See the newstack
-command manual page for in depth discussion on the various
+command manual page for in depth discussion of the various
 available options.
 .SS Options
 
@@ -33,6 +35,12 @@ is entered, then expanded (if
 .B -expand
 is entered.)
 
+If multiple input files are entered, the 
+.B -secs
+option may not be used, and a transform file specified with the 
+.B -xform
+option may contain only one transform, which will be applied to all sections
+in all files.
 
 .TP
 .B -secs <section list>
