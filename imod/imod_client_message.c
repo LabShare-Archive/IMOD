@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2002/10/15 21:18:09  rickg
+executeMessage() call moved so that it get called for all messages.
+
 Revision 3.0  2002/09/27 20:30:06  rickg
 Initital version of code moved from imod_menu_cb.c
 
@@ -46,11 +49,7 @@ Initital version of code moved from imod_menu_cb.c
 #include <dia.h>
 #include "imod.h"
 #include "imod_info.h"
-#include "imodel.h"
-#include "mrcfiles.h"
-#include "options.h"
-#include "iproc.h"
-#include "imod_io.h"
+#include "imod_client_message.h"
 
 extern int Imod_debug;
 
