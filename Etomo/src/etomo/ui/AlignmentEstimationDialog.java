@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
+import java.util.Vector;
+
 import javax.swing.*;
 
 import etomo.ApplicationManager;
@@ -25,6 +27,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/23 22:50:13  rickg
+ * <p> Removed any extensions from log file labels in context menu
+ * <p>
  * <p> Revision 2.2  2003/04/28 23:25:26  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -202,6 +207,7 @@ public class AlignmentEstimationDialog
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
+    panelTiltalign.getContainer().addMouseListener(mouseAdapter);
 
     // Set the default advanced state
     updateAdvanced(isAdvanced);
@@ -238,14 +244,31 @@ public class AlignmentEstimationDialog
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
+    String[] logWindowLabel = {"align", "transferfid"};
+    Vector logFileLabel = new Vector(2);
+    String[] alignLabels = {
+    "align errors",
+    "align residual",
+    "align solution",
+    "align mappings",
+    "align coordinates",
+    "align angles"};
+    logFileLabel.add(alignLabels);
+    String[] transferfidLabels = {"transferfid"};
+    logFileLabel.add(transferfidLabels);
 
-    String[] logFileLabel;
-    String[] logFile;
-    logFileLabel = new String[1];
-    logFileLabel[0] = "align";
-    logFile = new String[1];
-    logFile[0] = "align" + axisID.getExtension() + ".log";
-
+    Vector logFile = new Vector(2);
+    String[] logFileList = new String[6];
+    logFileList[0] = "alignError" + axisID.getExtension() + ".log";
+    logFileList[1] = "alignResiduals" + axisID.getExtension() + ".log";
+    logFileList[2] = "alignSolution" + axisID.getExtension() + ".log";
+    logFileList[3] = "alignMappings" + axisID.getExtension() + ".log";
+    logFileList[4] = "alignCoordinates" + axisID.getExtension() + ".log";
+    logFileList[5] = "alignAngles" + axisID.getExtension() + ".log";
+    logFile.add(logFileList);
+    String[] tfLogFile = {"transferfid.log"};
+    logFile.add(tfLogFile);
+    
     ContextPopup contextPopup =
       new ContextPopup(
         rootPanel,
@@ -253,6 +276,7 @@ public class AlignmentEstimationDialog
         "FINAL ALIGNMENT",
         manPagelabel,
         manPage,
+        logWindowLabel,
         logFileLabel,
         logFile);
   }
