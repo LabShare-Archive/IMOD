@@ -1,5 +1,34 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/03: IMOD_3-0-12
+6/26/03: Made bead fixer able to display a vector at the current residual, and
+added the ability to back up to the previous residual.
+
+6/26/03: Made models always start with one "view" whose properties are
+continuously saved as the user changes the display in the model view window.
+Eliminated the "default view", which should make the use of views easier and
+less confusing.
+
+6/26/03: Improved the model checksum routine to detect more changes (including
+view changes) in the model, thus providing better protection against losing
+changes.
+
+6/25/03: Implemented control of sphere quality in 3dmodv-Edit-Object window,
+allowed independent quality for different objects, and made quality be saved
+in model file.
+
+6/20/02: Modified Tiltxcorr to use PIP input, but did not update man page yet.
+
+6/20/03: Made shell scripts use a temporary directory defined in IMOD_TMPDIR,
+then /usr/tmp, then /tmp if /usr/tmp does not exist.
+
+6/19/03: Made Zap window start a new contour for closed contour objects
+if user changes section while dragging with little mouse button.  Also added
+Edit-Object-Break by Z to fix all contours in an object.
+
+6/16/03: Implemented new version of Ccderaser with automatic X-ray removal,
+changed input to use PIP for new options.
+
 6/4/03: IMOD_3-0-11
 6/4/03: Provided an empty seed model for Copytomocoms to copy.
 
