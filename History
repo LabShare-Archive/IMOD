@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/04: IMOD_3-2-16  (eTomo unstable)
+5/19/04: Changed to new Qt calls on the Mac to get the 3dmod preferences file
+back to being user-specific instead of global.
+
+5/16/04: Made depth cueing of image display in model window work when there are
+no model points.
+
 5/16/04: IMOD_3-2-15  (eTomo unstable)
 5/16/04: Computed factors correctly for displaying multiple slices in the
 model view window, which improves the display.  Added ability to limit size of
