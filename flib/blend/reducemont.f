@@ -65,6 +65,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/12/12 20:36:47  mast
+c	  Preserve pixel size of input file in Z
+c	
 c	  Revision 3.3  2003/06/20 20:19:07  mast
 c	  Standardized error exits
 c	
@@ -276,22 +279,7 @@ c
 	dmaxout=-1.e10
 	grandsum=0.
 	call ialsiz(2,nxyzout,nxyzst)
-	call ialsam(2,nxyzout)
-	cell(1)=nint(nxout*nreduce*delt(1))
-	cell(2)=nint(nyout*nreduce*delt(2))
-	cell(3)=nint(nzout*delt(3))
-	call ialcel(2,cell)
-	call date(dat)
-	call time(tim)
-c
-c 7/7/00 CER: remove the encodes
-c
-c       encode(80,90,title) nreduce,dat,tim
-	write(titlech,90) nreduce,dat,tim
-90	format( 'REDUCEMONT: recut and reduced by factor of',i3,
-     &	    t57, a9, 2x, a8 )
-        read(titlech,'(20a4)')(title(kti),kti=1,20)
-	call iwrhdr(2,title,1,dmin,dmax,dmean)
+
 	nzout=0
 c	  
 c	  initialize memory allocator
@@ -564,20 +552,34 @@ c
 		write(*,'(a,i5)')' wrote new frame #',nzout
 		nzout=nzout+1
 c
-c		  keep header up to date in case of crashes
+c		12/12/03: no longer keep header up to date in case of crashes
 c
-		call ialsiz(2,nxyzout,nxyzst)
-		call ialsam(2,nxyzout)
-		cell(3)=nzout
-		call ialcel(2,cell)
-		tmean=grandsum/(nzout*float(nxout*nyout))
-		call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
 		write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
 	      endif
 c
 	    enddo
 	  enddo
 92	enddo
+c
+	tmean=grandsum/(nzout*float(nxout*nyout))
+	call ialsiz(2,nxyzout,nxyzst)
+	call ialsam(2,nxyzout)
+	cell(1)=nxout*nreduce*delt(1)
+	cell(2)=nyout*nreduce*delt(2)
+	cell(3)=nzout*delt(3)
+	print *,'delta:',(delt(i),i= 1,3),'  cell:',(cell(i),i= 1,3)
+	call ialcel(2,cell)
+	call date(dat)
+	call time(tim)
+c
+c 7/7/00 CER: remove the encodes
+c
+c       encode(80,90,title) nreduce,dat,tim
+	write(titlech,90) nreduce,dat,tim
+90	format( 'REDUCEMONT: recut and reduced by factor of',i3,
+     &	    t57, a9, 2x, a8 )
+        read(titlech,'(20a4)')(title(kti),kti=1,20)
+	call iwrhdr(2,title,1,dmin,dmax,dmean)
 	close(3)
 	call imclose(2)
 	call exit(0)
