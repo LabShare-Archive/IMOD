@@ -1,9 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/18/05: Etomo log files can be placed in a chosen directory by defining
-the environment variable ETOMO_LOG_DIR with the path to the directory.  The
-log files will be given a date/time stamp and the directory will be purged to 
-60 files.
+1/18/05: IMOD_3-4-18
+1/18/05: Etomo log files can be placed in a chosen directory by defining the
+environment variable ETOMO_LOG_DIR with the path to the directory.  The log
+files will be given a date/time stamp; the directory will be purged to 60 files.
 
 1/17/05: Doubled size of model that can be used in Fortran programs.
 
