@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/19 22:53:36  rickg
+    Added MESSAGE_QUIT define
+
     Revision 3.2  2002/09/13 20:57:45  mast
     Added defines for MESSAGES's, removed redundant declarations that are also
     in imod_io.h
@@ -440,7 +443,6 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /* workprocs */
 int imodv_add_anim(void);
-int imod_add_xyzwp(struct ViewInfo *vi);
 int imod_start_autosave(void);
 int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t);
 
@@ -464,7 +466,6 @@ int free_object_colors(Imod *m, int obstart, int obend);
 int handle_input(struct ViewInfo *vi);
 char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filename);
-int imodMovie(struct ViewInfo *vi);
 void imod_imgcnt(char *string);
 
 
