@@ -27,6 +27,12 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.5  2004/11/24 01:02:08  sueh
+* <p> bug# 520 Added errorProcess(ComScriptProcess): turn off sample
+* <p> produced in meta data when startjoin is killed.  Moved kill background
+* <p> process handling to errorProcess().  Do not setMode in JoinManager until
+* <p> after startjoin has completed successfully.
+* <p>
 * <p> Revision 1.4  2004/11/23 22:31:17  sueh
 * <p> bug# 520 changing postProcess(BackgroundProcess) to delete output
 * <p> files when the Flipyx was killed
@@ -164,7 +170,6 @@ public class JoinProcessManager extends BaseProcessManager {
   }
 
   protected void postProcess(ComScriptProcess process) {
-    System.out.println("postProcess");
     String commandName = process.getComScriptName();
     if (commandName == null) {
       return;
