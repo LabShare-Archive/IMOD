@@ -31,6 +31,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/03/12 20:42:09  mast
+c	  Made size parameters for finding edge functions be option entries,
+c	  made defaults scale up above 1024, and made it read and use the grid
+c	  spacing from the edge function file.
+c	
 c	  Revision 3.8  2003/10/30 20:00:32  mast
 c	  Needed to decalre PipGetInOutFile as integer
 c	
@@ -67,6 +72,7 @@ c
 	character*4 xcorrext/'.ecd'/
 	integer*4 mxyzin(3),nxyzst(3)/0,0,0/
 	real*4 cell(6)/1.,1.,1.,0.,0.,0./
+	real*4 delta(3)
 c
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
@@ -492,9 +498,10 @@ c
 	grandsum=0.
 	call ialsiz(2,nxyzout,nxyzst)
 	call ialsam(2,nxyzout)
-	cell(1)=nxout
-	cell(2)=nyout
-	cell(3)=nzout
+	call irtdel(1,delta)
+	cell(1)=nxout*delta(1)
+	cell(2)=nyout*delta(2)
+	cell(3)=nzout*delta(3)
 	call ialcel(2,cell)
 	call date(dat)
 	call time(tim)
@@ -2221,7 +2228,7 @@ c		  keep header up to date in case of crashes
 c		  
 		call ialsiz(2,nxyzout,nxyzst)
 		call ialsam(2,nxyzout)
-		cell(3)=nzout
+		cell(3)=nzout*delta(3)
 		call ialcel(2,cell)
 		tmean=grandsum/(nzout*nxout*nyout)
 		call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
