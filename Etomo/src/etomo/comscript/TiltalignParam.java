@@ -1,6 +1,6 @@
 package etomo.comscript;
 
-import etomo.type.EtomoBoolean;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 
 /**
@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/12/30 19:49:26  sueh
+ * <p> bug# 567 Removed OutputModelAndResidual when writing command file.
+ * <p> Already converting it to OutputModelFile and OutputResidualFile.
+ * <p>
  * <p> Revision 3.4  2004/12/29 23:44:00  sueh
  * <p> bug# 567 In ParamUtilities, added the FortranInputString to parse(String...) and
  * <p> parse(StringList...).
@@ -93,8 +97,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * Constructor for TiltalignParam.
    */
-  public TiltalignParam() {
-    super();
+  public TiltalignParam(AxisID axisID) {
+    super(axisID);
   }
 
   /**
@@ -752,8 +756,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * @param projectionStretch The projectionStretch to set.
    */
-  public void setProjectionStretch(EtomoBoolean projectionStretch) {
-    this.projectionStretch = projectionStretch;
+  public void setProjectionStretch(boolean projectionStretch) {
+    this.projectionStretch.set(projectionStretch);
   }
 
   /**
