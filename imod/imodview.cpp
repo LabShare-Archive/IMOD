@@ -32,53 +32,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/01/29 17:54:18  mast
-changed ivwGetLocation to get nearest intgere from zmouse
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:12:25  mast
-initialize new ghostdist variable
-
-Revision 1.1.2.1  2003/01/18 01:12:48  mast
-convert to cpp
-
-Revision 3.4.2.5  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 3.4.2.4  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 3.4.2.3  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 3.4.2.2  2002/12/12 01:21:53  mast
-xyz no longer a member of ImodView structure
-
-Revision 3.4.2.1  2002/12/11 00:39:45  mast
-Kept it from flipping images while loading data
-
-Revision 3.4  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.3  2002/07/20 23:28:14  mast
-Store image origin in model's refImage.otrans so programs can get back
-to index corrdinates of full-sized volume
-
-Revision 3.2  2002/01/28 16:56:07  mast
-Moved setting of vi->[xyz]size up before image loading so that movie
-controller will have good sizes if it is opened while image is loading
-
-Revision 3.1  2001/12/17 18:50:42  mast
-Changed the way section usage in the cache is kept track of and added
-logic for cache filling
-
+Log at end of file
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -1798,7 +1752,7 @@ int ivwLoadIMODifd(ImodView *iv)
       }else{
         filename = strdup(&line[6]);
       }
-      image = iiOpen(filename, "r");
+      image = iiOpen(filename, "rb");
       if (!image){
         if (!xsize || !ysize) {
           fprintf(stderr, "IMOD Error: " 
@@ -2080,5 +2034,54 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
   return(objIndex);
 }
 
-      
-  
+/*
+$Log$
+Revision 4.2  2003/02/14 01:15:44  mast
+treat zmouse values more carefully, cleanup unused variables
+
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.4  2003/01/29 17:54:18  mast
+changed ivwGetLocation to get nearest intgere from zmouse
+
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.2  2003/01/23 20:12:25  mast
+initialize new ghostdist variable
+
+Revision 1.1.2.1  2003/01/18 01:12:48  mast
+convert to cpp
+
+Revision 3.4.2.5  2003/01/14 21:52:38  mast
+include new movie controller include file
+
+Revision 3.4.2.4  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 3.4.2.3  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 3.4.2.2  2002/12/12 01:21:53  mast
+xyz no longer a member of ImodView structure
+
+Revision 3.4.2.1  2002/12/11 00:39:45  mast
+Kept it from flipping images while loading data
+
+Revision 3.4  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.3  2002/07/20 23:28:14  mast
+Store image origin in model's refImage.otrans so programs can get back
+to index corrdinates of full-sized volume
+
+Revision 3.2  2002/01/28 16:56:07  mast
+Moved setting of vi->[xyz]size up before image loading so that movie
+controller will have good sizes if it is opened while image is loading
+
+Revision 3.1  2001/12/17 18:50:42  mast
+Changed the way section usage in the cache is kept track of and added
+logic for cache filling
+
+*/
