@@ -89,7 +89,7 @@ class XyzWindow : public QMainWindow
 
   XyzGL *mGLw;
   void Draw();
-  int Getxyz(int x, int y, int *mx, int *my, int *mz);
+  int Getxyz(int x, int y, float *mx, float *my, int *mz);
   void B1Press(int x, int y);
   void B2Press(int x, int y);
   void B3Press(int x, int y);
@@ -146,6 +146,9 @@ int xxyz_open(struct ViewInfo *vi);
 
 /*
 $Log$
+Revision 3.4  2003/03/03 22:18:10  mast
+Added variables for keeping tracking of cursor and side-view projection
+
 Revision 3.3  2003/02/10 20:41:56  mast
 Merge Qt source
 
