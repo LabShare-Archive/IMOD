@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/06/05 21:07:12  rickg
+ * <p> Label change to match log file
+ * <p>
  * <p> Revision 2.3  2003/05/23 22:13:47  rickg
  * <p> Removed any extensions from log file labels in context menu
  * <p>
@@ -86,22 +89,20 @@ public class TomogramPositioningDialog
   private LabeledTextField ltfSampleTomoThickness =
     new LabeledTextField("Sample tomogram thickness: ");
   private JToggleButton buttonSample =
-    new JToggleButton("<html><b>Create sample tomograms</b>");
+    new JToggleButton("<html><b>Create Sample Tomograms</b>");
 
   private JToggleButton buttonCreateBoundary =
-    new JToggleButton("<html><b>Create boundary models</b>");
+    new JToggleButton("<html><b>Create Boundary Models</b>");
 
   private JToggleButton buttonTomopitch =
-    new JToggleButton("<html><b>Execute tomopitch</b>");
+    new JToggleButton("<html><b>Compute Z Shift & Pitch Angles</b>");
 
   private LabeledTextField ltfTiltAngleOffset =
-    new LabeledTextField("Add to all angles: ");
+    new LabeledTextField("Total angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
-    new LabeledTextField("Shift up: ");
-  private LabeledTextField ltfTiltAxisXShift =
-    new LabeledTextField("Tilt axis x shift: ");
+    new LabeledTextField("Total Z shift: ");
   private JToggleButton buttonAlign =
-    new JToggleButton("<html><b>Create final alignment</b>");
+    new JToggleButton("<html><b>Create Final Alignment</b>");
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -151,8 +152,6 @@ public class TomogramPositioningDialog
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
     panelPosition.add(ltfTiltAxisZShift.getContainer());
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPosition.add(ltfTiltAxisXShift.getContainer());
-    panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
     panelPosition.add(buttonAlign);
 
     //  Create dialog content pane
@@ -190,7 +189,6 @@ public class TomogramPositioningDialog
   public void setAlignParams(ConstTiltalignParam tiltalignParam) {
     ltfTiltAngleOffset.setText(tiltalignParam.getTiltAngleOffset());
     ltfTiltAxisZShift.setText(tiltalignParam.getTiltAxisZShift());
-    ltfTiltAxisXShift.setText(tiltalignParam.getTiltAxisXShift());
   }
 
   public void getAlignParams(TiltalignParam tiltalignParam)
@@ -198,7 +196,6 @@ public class TomogramPositioningDialog
     try {
       tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
       tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShift.getText());
-      tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShift.getText());
     }
     catch (NumberFormatException except) {
       throw new NumberFormatException(except.getMessage());
@@ -209,18 +206,19 @@ public class TomogramPositioningDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "newst", "3dmod", "tomopitch", "tilt" };
+    String[] manPagelabel = { "tomopitch", "newst", "3dmod", "tilt" };
     String[] manPage =
-      { "newst.html", "3dmod.html", "tomopitch.html", "tilt.html" };
+      { "tomopitch.html", "newst.html", "3dmod.html",  "tilt.html" };
 
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-    logFileLabel[0] = "sample";
-    logFileLabel[1] = "tomopitch";
+		logFileLabel[0] = "tomopitch";
+    logFileLabel[1] = "sample";
+
     logFile = new String[2];
-    logFile[0] = "sample" + axisID.getExtension() + ".log";
-    logFile[1] = "tomopitch" + axisID.getExtension() + ".log";
+		logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
+    logFile[1] = "sample" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =
       new ContextPopup(
@@ -278,7 +276,6 @@ public class TomogramPositioningDialog
   }
 
   void updateAdvanced() {
-    ltfTiltAxisXShift.setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
 }
