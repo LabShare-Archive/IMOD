@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/03/13 01:18:49  mast
+Add new default object color scheme
+
 Revision 3.2  2003/02/27 00:34:40  mast
 add projects' *.dsw *.dsp
 
@@ -215,22 +218,25 @@ void imodSetIndex(Imod *imod, int object, int contour, int point)
   return;
 }
 
-
+/* DNM 6/26/03: for these 3 functions, return -1, -1, -1 if no points in
+   model; also actually stop on first point. */
 void imodel_maxpt(struct Mod_Model *imod, struct Mod_Point *pnt)
 {
   int ob, co, pt;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
 
+  pnt->x = pnt->y = pnt->z = -1.;
+
   /* Get first point */
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        pnt->x = cont->pts[pt].x;
-        pnt->y = cont->pts[pt].y;
-        pnt->z = cont->pts[pt].z;
+      if (cont->psize) {
+        pnt->x = cont->pts->x;
+        pnt->y = cont->pts->y;
+        pnt->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
       }
@@ -260,15 +266,17 @@ void imodel_minpt(struct Mod_Model *imod, struct Mod_Point *pnt)
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
      
+  pnt->x = pnt->y = pnt->z = -1.;
+
   /* Get first point */
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        pnt->x = cont->pts[pt].x;
-        pnt->y = cont->pts[pt].y;
-        pnt->z = cont->pts[pt].z;
+      if (cont->psize) {
+        pnt->x = cont->pts->x;
+        pnt->y = cont->pts->y;
+        pnt->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
       }
@@ -297,16 +305,19 @@ void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
   int ob, co, pt;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
+
+  min->x = min->y = min->z = -1.;
+  max->x = max->y = max->z = -1.;
      
   /* Get first point */
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        min->x = max->x = cont->pts[pt].x;
-        min->y = max->y = cont->pts[pt].y;
-        min->z = max->z = cont->pts[pt].z;
+      if (cont->psize) {
+        min->x = max->x = cont->pts->x;
+        min->y = max->y = cont->pts->y;
+        min->z = max->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
       }
@@ -1234,13 +1245,15 @@ int imodGetMaxTime(Imod *imod)
   return maxtime;
 }
 
-long imodChecksum(Imod *imod)
+int imodChecksum(Imod *imod)
 {
-  int ob, co, pt;
+  int ob, co, pt, isum;
   Iobj *obj;
   Icont *cont;
-  long sum = 0;
-  long osum, psum;
+  Iview *view;
+  Iobjview *obv;
+  double sum = 0.;
+  double osum, psum;
 
   sum += imod->zscale;
   sum += imod->pixsize;
@@ -1250,12 +1263,15 @@ long imodChecksum(Imod *imod)
   sum += imod->res;
   sum += imod->thresh;
   sum += imod->units;
+  sum += imod->pixsize;
+  sum += imod->viewsize;
+  sum += imod->flags;
 
   /* DNM: add # of contours, # of points, and point sizes */
 
-  for(ob = 0; ob < imod->objsize; ob++){
+  for (ob = 0; ob < imod->objsize; ob++){
     osum = ob;
-    psum = 0;
+    psum = 0.;
     obj = &(imod->obj[ob]);
     osum += obj->red + obj->green + obj->blue;
     osum += obj->flags;
@@ -1267,6 +1283,13 @@ long imodChecksum(Imod *imod)
     osum += obj->symflags;
     osum += obj->trans;     
     osum += obj->contsize;      
+    osum += obj->ambient + obj->diffuse + obj->specular + obj->shininess;
+    osum += obj->clip + obj->clip_flags + obj->clip_trans;
+    osum += obj->clip_plane + obj->mat2;
+    osum += obj->clip_normal.x + obj->clip_normal.y + obj->clip_normal.z;
+    osum += obj->clip_point.x + obj->clip_point.y + obj->clip_point.z;
+    osum += obj->mat1 + obj->mat1b1 + obj->mat1b2 + obj->mat1b3;
+    osum += obj->mat3 + obj->mat3b1 + obj->mat3b2 + obj->mat3b3;
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       psum += cont->surf;
@@ -1280,13 +1303,45 @@ long imodChecksum(Imod *imod)
         for(pt = 0; pt < cont->psize; pt++)
           psum += cont->sizes[pt];
     }
-    /* DNM: switch to adding up everything and  reducing when it gets
-       very big */
+   
     sum += osum + psum;
-    if (sum > 1000000000) 
-      sum -= 1000000000;
   }
-  return(sum);
+
+  /* Add properties of views.  Do not add rad and trans because they are
+     changed just by opening model view window */
+  for (co = 0; co < imod->viewsize; co++) {
+    view = &imod->view[co];
+    sum += view->fovy + view->cnear + view->cfar;
+    sum += view->rot.x + view->rot.y + view->rot.z; 
+    sum += view->scale.x + view->scale.y + view->scale.z; 
+    sum += view->world + view->dcstart + view->dcend + view->plax;
+    sum += view->lightx + view->lighty;
+    if (co) {
+      for (ob = 0; ob < view->objvsize; ob++) {
+        obv = &view->objview[ob];
+        osum = ob;
+        osum += obv->red + obv->green + obv->blue;
+        osum += obv->flags;
+        osum += obv->pdrawsize;
+        osum += obv->linewidth;
+        osum += obv->trans;
+        osum += obv->ambient + obv->diffuse + obv->specular + obv->shininess;
+        osum += obv->clip + obv->clip_flags + obv->clip_trans;
+        osum += obv->clip_plane + obv->mat2;
+        osum += obv->clip_normal.x + obv->clip_normal.y + obv->clip_normal.z;
+        osum += obv->clip_point.x + obv->clip_point.y + obv->clip_point.z;
+        osum += obv->mat1 + obv->mat1b1 + obv->mat1b2 + obv->mat1b3;
+        osum += obv->mat3 + obv->mat3b1 + obv->mat3b2 + obv->mat3b3;
+        sum += osum;
+      }
+    }
+  }
+  
+  /* This will catch fractional values - not perfect but probably good */
+  isum = sum / 1000000.;
+  isum = (int)(1000. * (sum - 1000000. * isum));
+
+  return (isum);
 }
 
 /* clean model file due to dirty surface info */
