@@ -18,6 +18,17 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.4.4.1  2004/10/11 02:02:02  sueh
+ * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * property.  This property would need a different value for each manager.
+ * This variable can be retrieved from the manager if the object knows its
+ * manager.  Otherwise it can retrieve it from the current manager using the
+ * EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * gets the value from the "user.dir" property.
+ *
+ * Revision 3.4  2004/04/22 23:28:13  rickg
+ * *** empty log message ***
+ *
  * Revision 3.3  2004/04/06 03:00:40  rickg
  * Updated imageRotation to store axis separately
  *
@@ -131,6 +142,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -429,7 +441,7 @@ public class CopyTomoComs {
    * consistent in the sequence of responses expected.
    */
   private void checkTiltAngleFiles() {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {
         File rawTiltFile = new File(workingDirectory, metaData.getDatasetName()
