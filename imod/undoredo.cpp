@@ -1,30 +1,13 @@
-/*  IMOD VERSION 3.4.13
- *
+/*
  *  undoredo.cpp - provide undo/redo capability for all model changes
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DEMC") and the Regents of the University of Colorado.    *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
     $Date$
@@ -32,12 +15,66 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2004/11/20 05:04:55  mast
+    Initial addition to program
+
 */
+
+/* This module records various kinds of changes to the model so that changes 
+   can be undone and redone.  An individual change is specified by one call
+   to one of the four change routines.  Changes are organized into groups 
+   called units, so each undo or redo operation does all of the changes in one
+   unit.  The units are maintained in an ilist, mUnitList.  Each unit contains
+   an ilist of the changes.  The unit also contains values for the current
+   object/contour/point before and after the change, as well as state
+   information that is required to match before a unit will be undone or 
+   redone: the # of objects, the # of contours in the current object, and the
+   number of points in the current contour.
+
+   A unit is "opened" automatically when a change call comes in, i.e., it is
+   created and added to the list and the starting state recorded.  Further
+   changes are added to the same unit until an explicit call is made to
+   finishUnit to close the unit.  If an error occurs while recording a change,
+   the entire undo stack is flushed and further changes are ignore until the
+   the next finishUnit call.
+
+   This protocol dictates that a change call be made before any actual changes
+   to the model (except current contour and point changes).  Also, the 
+   finishUnit call must be made after all changes to the model, preferably
+   after the current contour and point are set.  If an error occurs after
+   starting a unit, flushUnit can be used to clear the changes within that
+   unit but leave the previous undo stack intact.
+
+   Most changes involve recording some data such as a contour structure or
+   complete contour including points.  These data are copied into backup pool
+   items maintained on the list mItemPool.  Each pool item has a unique 
+   identifier that is also recorded in the change structure.  Data are freed 
+   from these items when no longer needed and the pool list is periodically 
+   repacked to remove empty items.  The number of backup units is limited by
+   mMaxUnits and can be quite large; in practice it will be limited by the
+   maximum number of bytes of data allowed in the pool, mMaxBytes.
+
+   The variety of changes allow for relatively efficient recording of most 
+   changes.  Points may be added or deleted singly or in groups, or the current
+   point may be moved, without registering a contour change.  Contour changes
+   may be of properties only (including labels), in which case points will not
+   be stored, or of data, in which case the whole contour is duplicated.
+   Object changes will duplicate labels but not contours and meshes, unless an
+   object is being deleted.  Model changes are excessive in copying all of the 
+   views every time.  Object rearrangements invoke a model change.  A change
+   of model view invokes an object change for each view, since that is the only
+   way to preserve the current state of the objects and of the object views 
+   separately. 
+ */
+
 #include "undoredo.h"
 #include "imod.h"
+#include "imodv.h"
+#include "imodv_views.h"
 #include "imod_edit.h"
 #include "imod_model_edit.h"
 #include "imodv_objed.h"
+#include "imodv_modeled.h"
 #include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_info.h"
@@ -272,6 +309,11 @@ void UndoRedo::modelChange(int type, Ipoint *point)
   Imod *mod = mVi->imod;
   int i;
 
+  // If view has changed, need to save all objects
+  if (type == ViewChanged)
+    for (i = 0; i < mod->objsize; i++)
+      objectPropChg(i);
+
   // Get a new or existing open unit
   unit = getOpenUnit();
   if (!unit)
@@ -397,6 +439,7 @@ void UndoRedo::finishUnit()
   mUnitOpen = false;
   mRejectChanges = false;
   mID %= 2000000000;
+  trimLists(1);
   if (mNumFreedInPool > ilistSize(mItemPool) / 8)
     compactPool();
   updateButtons();
@@ -534,6 +577,7 @@ int UndoRedo::undo()
       if (imodMoveObject(mVi->imod, change->obj2_pt1, change->object))
         err = MemoryError;
       break;
+    case ViewChanged:
     case ModelChanged:
       err = exchangeModels(change, item);
       break;
@@ -619,6 +663,7 @@ int UndoRedo::redo()
       if (imodMoveObject(mVi->imod, change->object, change->obj2_pt1))
         err = MemoryError;
       break;
+    case ViewChanged:
     case ModelChanged:
       err = exchangeModels(change, item);
       break;
@@ -662,6 +707,7 @@ void UndoRedo::finishUndoRedo()
   imod_info_setobjcolor();
   imodvObjedNewView();
   imodModelEditUpdate();
+  imodvPixelChanged();
   mID %= 2000000000;
   if (mNumFreedInPool > ilistSize(mItemPool) / 8)
     compactPool();
@@ -921,6 +967,8 @@ int UndoRedo::exchangeModels(UndoChange *change, BackupItem *item)
   item->p.mod->fileName = NULL;
   item->p.mod->refImage = NULL;
   change->bytes = modelBytes(item->p.mod);
+  if (!ImodvClosed)
+    imodvUpdateModel(Imodv, false);
   return NoError;
 }
 
@@ -1066,7 +1114,7 @@ void UndoRedo::freePoolItem(BackupItem *item)
 }
 
 // Add up the space occupied by the everything from the end backwards and
-// trim uinits from the front of the list if space is exceeded
+// trim units from the front of the list if space is exceeded
 void UndoRedo::trimLists(int numKeep)
 {
   int sum = 0;
@@ -1092,6 +1140,9 @@ void UndoRedo::trimLists(int numKeep)
       break;
     }
   }
+  if (imodDebug('u'))
+    imodPrintStderr("Backup pool sum %d back to unit %d%s", sum, 
+                    B3DMAX(i, 0), i >= 0 ? ", removed units\n" : "\n");
 }
 
 // Remove undo units and all of their changes between start and end of list
@@ -1101,6 +1152,8 @@ void UndoRedo::removeUnits(int start, int end)
   UndoUnit *unit;
   UndoChange *change;
   BackupItem *item;
+  if (imodDebug('u'))
+    imodPrintStderr("Removing backup units %d to %d\n", start, end);
   for (i = end; i >= start; i--) {
     unit = (UndoUnit *)ilistItem(mUnitList, i);
     
@@ -1123,6 +1176,8 @@ void UndoRedo::compactPool()
 {
   int i, j;
   BackupItem *item, *item2;
+  if (imodDebug('u'))
+    imodPrintStderr("Compacting backup pool, # freed = %d\n", mNumFreedInPool);
   j = 0;
   for (i = 0; i < ilistSize(mItemPool); i++) {
     item = (BackupItem *)ilistItem(mItemPool, i);
