@@ -21,28 +21,30 @@ tooltip =
 manpage = Output image file.  The last filename on the command line will
 also be treated as an output file, following any specified by this option.
 
-[Field = ListOfInputs]
-short = listin
-long = ListOfInputs
+[Field = FileOfInputs]
+short = fileinlist
+long = FileOfInputs
 type = FN
 usage = Name of file with list of input files and sections to read
 tooltip = 
 manpage = Name of file with list of input files and sections to read.  The
-format of the file is filename on first line, list of sections to read on
+format of the file is the number of input files on the first line, the first
+file to read on the next line, the list of sections to read on
 next line, next filename on next line, etc.  If this
 option is used, no input filenames may be specified with the -input option
 or following options on the command line.
 
-[Field = ListOfOutputs]
-short = listout
-long = ListOfOutputs
+[Field = FileOfOutputs]
+short = fileoutlist
+long = FileOfOutputs
 type = FN
 usage = Name of file with list of output files and number of sections in each
 tooltip = Name of file with list of output files and number of sections to 
 place in each
 manpage = Name of file with list of output files and number of sections to 
 place in each.  The
-format of the file is filename on first line, number of sections to write on
+format of the file is the number of output files on the first line, the first
+file to write on the next line, number of sections to write on
 next line, next filename on next line, etc.  If this
 option is used, no output filenames may be specified with the -output option
 or as the last file on the command line.
