@@ -7,27 +7,30 @@ clip \- command line image processing for mrc files.
 clip [process] [options] [input files...] [output file]
 .SH DESCRIPTION
 The processes that clip can do are listed below. One and only one
-process	must be selected on the command line.  Only the first three
-letters of the process name have to be entered.
+process	must be selected on the command line.  Only the first three or
+four letters of the process name have to be entered.
 .TP
 .I average (avg) 
 Average several images together.
 .PD 0
 .TP
 .I brighten
-Brighten image using linear interpolation.
+Brighten image by scaling intensities.
 .TP
 .I color
 Add false color to image.
 .TP
 .I contrast
-Adjust contrast using linear interpolation.
+Adjust contrast by scaling intensities.
 .TP
 .I correlation   
 Do a auto/cross correlation.
 .TP
-.I edge		
-Calculate an edge map from the image.
+.I gradient
+Calculate a gradient as in 3dmod image processing.
+.TP
+.I graham
+Apply Graham filter as in 3dmod image processing.
 .TP
 .I info		
 Print header information to stdout.
@@ -44,6 +47,15 @@ Flip an image by x y or z.
 .I joinrgb
 Join images from 3 byte files into one RGB file.
 .TP
+.I laplacian
+Apply Laplacian filter as in 3dmod image processing.
+.TP
+.I median
+Apply median filter.
+.TP
+.I prewitt
+Apply Prewitt filter as in 3dmod image processing.
+.TP
 .I resize
 Box out image to a new size.
 .TP
@@ -51,10 +63,16 @@ Box out image to a new size.
 Transform image by a given rotattion.
 .TP
 .I shadow
-Adjust darkness of image using linear interpolation.
+Adjust darkness of image by scaling intensities.
 .TP
 .I sharpen
-Adjust image sharpness, or blur image.
+Sharpen image as in 3dmod image processing.
+.TP
+.I smooth
+Smooth image as in 3dmod image processing.
+.TP
+.I sobel
+Apply Sobel filter as in 3dmod image processing.
 .TP
 .I splitrgb
 Split an RGB file into 3 byte files.
@@ -93,8 +111,8 @@ Range is from 0 (first section) to z size - 1 (last section).
 .TP
 .B \-p <value>
 Image coordinates with no image data are padded with the given 
--I value.
-The default is mean value of the input image.
+.I value.
+The default is the mean value of the input image.
 .TP
 .B -c[xyz] <value>
 Adjust the center of input image. Default is center of first input 
@@ -113,7 +131,13 @@ option will center the z coordinate on the given
 .I value.
 
 .TP
-.B -i[xyz] <value>
+.B -ix <value>
+.PD 0
+.TP
+.B -iy <value>
+.TP
+.B -iz <value>
+.PD
 Sets the size of input image.  
 The default is the size of the first input file.
 The 
@@ -121,22 +145,22 @@ The
 option sets the x input size,
 the
 .B -iy
-option sets the y input size, and
-the
-.B -iz option sets the z input size.
-If the
-.B -2d 
-option is given, the 
-.B -iz 
-option can take additional 
+option sets the y input size.  The
+.B -iz
+option sets the z input size, or specifies a list of Z values if the
+.B -2d
+option is included.  In the latter case, the 
 .I value
-arguments seperated by commas or by dashes to indicate a list
-of section numbers to be used.  Commas indicate individual
-section numbers and dashes (or minus symbol) indicate a
-range of sections.
-
+is interpreted as a comma-separated list of ranges. Commas indicate individual
+section numbers and dashes (or minus symbol) indicate a range of sections.
 .TP
-.B -o[xyz] <value>
+.B -ox <value>
+.PD 0
+.TP
+.B -oy <value>
+.TP
+.B -oz <value>
+.PD
 Size of output file.  Default is same as input size, 
 options 
 .B -a 
@@ -168,12 +192,8 @@ Modifies z variable or range.
 Switch, use depends on process.
 .TP
 .B -m <mode>
-Output modes: 'byte', 'short', 'float', 
-'complex', 'rgb', or (0-16). mode 0 = byte,
-	mode 1 = short, mode 2 = float,
-	mode 3 = complex short, mode 4 = complex float,
-	modes 9-15 are 9-15 unsigned bit pixels and
-	mode 16 = rgb.
+Output modes: 'byte', 'short', 'float', 'complex', 'rgb', or (0-16). 
+0 = byte, 1 = short, 2 = float, 3 = complex short, 4 = complex float, 16 = rgb.
 .TP
 .B -h <level>
 Level for high pass filter. Range is (0.0 - 1.0).
@@ -195,14 +215,14 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 .B -b <value>
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 
-.SH PROCESES
+.SH PROCESSES
 
 A brief discription of each process is given below.
 .TP
 .B average 
 (avg) Average images together.
 Average 3d version:  Average will add all of the input 
-files together slice by slice and then devide the
+files together slice by slice and then divide the
 results by the number of input files.  All input images 
 must be the same size.
 (Standard options not implemented)
@@ -210,11 +230,28 @@ Average 2d version: Averages slices together, use
 the -n option to set a threshold. 
 .TP
 .B brightness 
-Increase or Decrease image brightness.
-Brightness will change depending upon the -n value given.
-The default value is 1.0.  Values less then 1 darken the
-image, values greater then 1 brighten the image.
-(Not tested with all data modes)
+.PD 0
+.TP
+.B contrast
+.TP 
+.B shadow
+.PD
+Increase or Decrease image brightness, contrast, or darkness.
+These options scale the image intensity by the
+value entered with the
+.B -n
+option, with intensity fixed at one point.  With
+.B brightness,
+intensity is fixed at the minimum so scaling up increasing brightness.
+With
+.B contrast,
+intensity is fixed at the mean; with 
+.B shadow,
+intensity is fixed at the maximum so dark parts are scaled more.
+Scaling values less then 1 will decrease the chosen
+property, values greater then 1 increase it.  With the
+.B -2d
+option, the min, max, or mean are taken from the individual sections.
 .TP
 .B color
 Colorize a black and white image.
@@ -222,13 +259,6 @@ Color converts an mrc file to byte data and then scales
 the image to a color ramp that starts at black and goes to
 the -r -g and -b values given on the command line.
 The default color values are 1.0.  Only 3D input available.
-.TP
-.B contrast
-Increase or decrease image contrast.
-Contrast will change depending upon the -n value given.
-The default value is 1.0, values greater then 1.0 
-increase contrast, values between 1.0 and 0.0 decrease 
-contrast and values less then 0 invert the contrast.
 .TP
 .B correlation 
 Calculate auto or cross correlation functions.
@@ -250,13 +280,6 @@ The -n option selects the type of padding.
 '-n 1' selects padding with mean value. (default)
 Float is the only output mode supported.
 Input sizes must fit fft dimensions.
-.TP
-.B info
-Print information about an image.
-All header information in the mrc file is printed to 
-standard output.  If the file isn't an mrc file the 
-information is still printed with a warning that the
-file is not an mrc file.
 .TP
 .B fft
 Calculate a Fast Fourier Transform.
@@ -296,6 +319,30 @@ The flipxy, flipyz, flipzx commands will flip the
 xy, yz or zx indices and change the size of the
 output file to match.
 .TP
+.B gradient
+.PD 0
+.TP
+.B graham
+.TP
+.B prewitt
+.TP
+.B sobel
+.PD
+These options apply simple 2D filters to the input image, using the same
+same method as for the respective entry in the 3dmod
+image processing dialog.  The
+.B prewitt
+and
+.B sobel
+filters seem to be the most useful.
+.TP
+.B info
+Print information about an image.
+All header information in the mrc file is printed to 
+standard output.  If the file isn't an mrc file the 
+information is still printed with a warning that the
+file is not an mrc file.
+.TP
 .B joinrgb
 Combine 3 input files containing red, green, and blue information into one 
 RGB file.  The 3 input files must all be byte mode and their names must
@@ -308,6 +355,16 @@ options can be used to scale the components (default scaling is 1).
 No other options except 
 .B -v
 will work with this process.
+.TP
+.B median
+Apply a median filter by replacing each pixel with the median of the values
+in a block of neighboring pixels.  The size of the block is given by the
+.B -n
+option; its default is 3.  The default is to do a 3D filter (thus taking the
+median in cubes of data), but the 
+.B -2d
+option can be used to apply a 2D filter that considers only the pixels in one 
+section.  Note that even size will offset the data by half a pixel.
 .TP
 .B resize 
 Cut out or pad an image to a new size.
@@ -333,11 +390,21 @@ Rotation center can be changed by the cx, cy and cz flags.
 (See rotatevol(1), it works better and has similar options.)
 (2d rotation should be done with newstack)
 .TP
-.B shadows
-Increase or decrease shadows in an image.
-Shadows will change depending upon the -n value given.
-The default value is 1.0. Values less than 1 make the image
-darker, values greater then 1 make the image brighter.
+.B sharpen
+.PD 0
+.TP
+.B smooth
+.TP
+.B laplacian
+.PD
+These options will filter images by convolving with a simple 3x3 kernel, using
+the same method as for the respective entry in the 3dmod image processing
+dialog.  The smoothing filter is the most useful; its kernel is
+.nf
+    1 2 1
+    2 4 2
+    1 2 1
+.fi
 .TP
 .B splitrgb
 Output the 3 color channels of an RGB file into three separate files, so that
@@ -370,11 +437,13 @@ The cx, cy and cz values place the center of the scaling.
 The default value is the center of the input file.
 
 .SH AUTHORS
+.nf
 Jim Kremer 
 David Mastronarde
+.fi
 
 .SH SEE ALSO
-mrcv(1), newstack(1), rotatevol(1), fftrans(1)
+3dmod(1), newstack(1), rotatevol(1), fftrans(1)
 
 .SH BUGS
 Clip has still not been fully tested with all types of data.  Not all options
