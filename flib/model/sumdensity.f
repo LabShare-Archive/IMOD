@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/09/10 05:56:49  mast
+c	  Initial addition to package
+c	
 c	  
 	implicit none
 	integer imsiz,limflag,limsurf,limobj
@@ -69,7 +72,7 @@ c
 
 	nobjdo=0
 	border=0.
-	irefObject = -1;
+	irefObject = -1
 	polarity = 1.
 	ifReverse = 0
 	ifVerbose = 0
