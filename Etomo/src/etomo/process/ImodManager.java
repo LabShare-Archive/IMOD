@@ -1,7 +1,5 @@
 package etomo.process;
 
-import java.lang.IllegalArgumentException;
-import java.lang.UnsupportedOperationException;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.Set;
@@ -13,6 +11,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
+import etomo.ui.MainFrame;
 
 /*p
  * <p>Description: This class manages the opening, closing and sending of 
@@ -30,6 +29,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/03/29 20:54:09  sueh
+ * <p> bug# 409 add MTF Filter
+ * <p>
  * <p> Revision 3.15  2004/03/07 22:35:04  sueh
  * <p> bug# 399 removed deprecated code
  * <p>
@@ -245,21 +247,21 @@ public class ImodManager {
 
   //public keys
 
-  public static final String RAW_STACK_KEY = new String("rawStack");
-  public static final String ERASED_STACK_KEY = new String("erasedStack");
-  public static final String COARSE_ALIGNED_KEY = new String("coarseAligned");
-  public static final String FINE_ALIGNED_KEY = new String("fineAligned");
+  public static final String RAW_STACK_KEY = new String("raw stack");
+  public static final String ERASED_STACK_KEY = new String("erased stack");
+  public static final String COARSE_ALIGNED_KEY = new String("coarse aligned");
+  public static final String FINE_ALIGNED_KEY = new String("fine aligned");
   public static final String SAMPLE_KEY = new String("sample");
-  public static final String FULL_VOLUME_KEY = new String("fullVolume");
+  public static final String FULL_VOLUME_KEY = new String("full volume");
   public static final String COMBINED_TOMOGRAM_KEY =
-    new String("combinedTomogram");
-  public static final String FIDUCIAL_MODEL_KEY = new String("fiducialModel");
-  public static final String TRIMMED_VOLUME_KEY = new String("trimmedVolume");
+    new String("combined tomogram");
+  public static final String FIDUCIAL_MODEL_KEY = new String("fiducial model");
+  public static final String TRIMMED_VOLUME_KEY = new String("trimmed volume");
   public static final String PATCH_VECTOR_MODEL_KEY =
-    new String("patchVectorModel");
-  public static final String MATCH_CHECK_KEY = new String("matchCheck");
-  public static final String TRIAL_TOMOGRAM_KEY = new String("trialTomogram");
-  public static final String MTF_FILTER_KEY = new String("mtfFilter");
+    new String("patch vector model");
+  public static final String MATCH_CHECK_KEY = new String("match check");
+  public static final String TRIAL_TOMOGRAM_KEY = new String("trial tomogram");
+  public static final String MTF_FILTER_KEY = new String("mtf filter");
   public static final String PREVIEW_KEY = new String("preview");
 
   //private keys - used with imodMap
@@ -568,6 +570,22 @@ public class ImodManager {
     ImodState imodState = get(key, axisID, vectorIndex);
     if (imodState != null) {
       imodState.setWorkingDirectory(workingDirectory);
+    }
+  }
+  
+  public void warnStaleFile(String key, MainFrame mainFrame)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (!imodState.isWarnedStaleFile() && imodState.isOpen()) {
+      imodState.setWarnedStaleFile(true);
+      String[] message = new String[3];
+      message[0] = "3dmod is open to the existing " + key + ".";
+      message[1] = "A new " + key + " has been or will be created on disk.";
+      message[2] = "Do you wish to quit this 3dmod?";
+      if (mainFrame.openYesNoDialog(message)) {
+        imodState.quit();
+      }
     }
   }
 
