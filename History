@@ -1,8 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/30/04: Added Mtffilter to do filtering by the inverse of an MTF and/or general
-low-pass filtering to the package and made Copytomocoms generate command files
-for running it between Newstack and Tilt.
+3/31/04: Reduced the artifacts that Tilt produces when taking logs of numbers
+that would be negative after adding the log offset.
+
+3/30/04: Added Mtffilter to do filtering by the inverse of an MTF and/or 
+general low-pass filtering to the package and made Copytomocoms generate
+command files for running it between Newstack and Tilt.
 
 3/30/04: Made initial size-setting of model view windows work the same as for
 Zap window, so now it works in Windows.

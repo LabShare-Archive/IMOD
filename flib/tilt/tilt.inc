@@ -24,29 +24,60 @@ c         interpfac  interpolation factor for cosine stretched data, or 0
 c	  interpord  interpolation order for cosine stretching
 c	  nvertneed  # of vertical slices needed to make tilted output slice
 c	  intordxtilt  order for interpolating X-tilted slice
-c
+c	  
+	integer limstack, limmask, limview, limwpos, limwidth, limwarp
         parameter (limstack=60000000)
 c        parameter (limstack=2200000)
 	parameter (limmask=4096)
 	parameter (limview=720,limwidth=20000)
 	parameter (limwpos=400,limwarp=40000)
-	COMMON /BUFFER/NSTACK,maxstack,ARRAY(limstack)
-	COMMON /HEADER/npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE
-     &      ,ANGLES(limview),TITLE(20),npad,ithickout
+c
+	integer*4 NSTACK,maxstack
+	real*4 ARRAY(limstack)
+	COMMON /BUFFER/NSTACK,maxstack,ARRAY
+c
+	integer*4 npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE,npad,ithickout
+	integer*4 nprj, mprj, nviews
+	real*4 ANGLES(limview),TITLE(20),pmin,pmax
+	COMMON /HEADER/npxyz,pmin,pmax,IWIDE,ITHICK,ISLICE,JSLICE
+     &      ,ANGLES,TITLE,npad,ithickout
 	equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
+c
 	LOGICAL MASK,PERP,fastbp
+c
+	real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
+	integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
+     &	    iflog,nreplic ,iplane,ipextra,interpfac,interpord ,ifbpwrk,
+     &	    ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp ,nvertneed,intordxtilt
 	COMMON /MISCEL/PERP,DELXX,IMAP,nbase,ITHWID,xcenin,slicen,XCEN,YCEN
-     &	    ,idelslice,newmode,mapuse(limview),iflog,baselog,nreplic
-     &	    ,compress(limview),iplane,ipextra,interpfac,interpord,fastbp
+     &	    ,idelslice,newmode,mapuse,iflog,baselog,nreplic
+     &	    ,compress,iplane,ipextra,interpfac,interpord,fastbp
      &      ,ifbpwrk,ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp,yoffset
      &      ,nvertneed,intordxtilt
-	common /strtch/nstretch(limview),indstretch(limview),ofstretch(limview)
-	COMMON /MASK/MASK,RMASK,TMASK,masklft(limmask),maskrt(limmask)
+c
+	integer*4 nstretch(limview),indstretch(limview)
+	real*4 ofstretch(limview)
+	common /strtch/nstretch,indstretch,ofstretch
+c
+	integer*4 masklft(limmask),maskrt(limmask)
+	real*4 RMASK,TMASK
+	COMMON /MASK/MASK,RMASK,TMASK,masklft,maskrt
+c
+	real*4 FLEVL,SCALE
 	COMMON /BPSCAL/FLEVL,SCALE
-	COMMON /SINCOS/sbet(limview),cbet(limview),SAL(limview),CAL(limview)
-	common /alfcor/ifalpha,alpha(limview)
-        real*4 fw(2,3,limwarp)
+c
+	real*4 sbet(limview),cbet(limview),SAL(limview),CAL(limview)
+	COMMON /SINCOS/sbet,cbet,SAL,CAL
+c	  
+	integer*4 ifalpha
+	real*4 alpha(limview)
+	common /alfcor/ifalpha,alpha
+c
+	integer*4 nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,
+     &	    ifdelalpha,indwarp(limwpos)
+	real*4 delalpha(limwarp),cwarpb(limwarp),swarpb(limwarp),
+     &      cwarpa(limwarp),swarpa(limwarp),fw(2,3,limwarp),
+     &	    delbeta(limwarp)
 	common /warps/ nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,
-     &	    ifdelalpha,indwarp(limwpos),delbeta(limwarp),
-     &      delalpha(limwarp),cwarpb(limwarp),swarpb(limwarp),
-     &      cwarpa(limwarp),swarpa(limwarp),fw
+     &	    ifdelalpha,indwarp,delbeta, delalpha,cwarpb,swarpb,
+     &      cwarpa,swarpa,fw
