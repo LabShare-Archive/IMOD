@@ -17,6 +17,26 @@
 
 #ifndef PLAX_CTEST
 
+#ifdef F77FUNCAP
+
+#define plax_open     P_START
+#define plax_close    P_END
+#define plax_flush    P_B_FLUSH
+#define plax_mapcolor P_CLT8
+#define plax_box      P_BOX
+#define plax_boxo     P_BOXO
+#define plax_vect     P_VECT
+#define plax_vectw    P_VECTW
+#define plax_circ     P_CIRC
+#define plax_circo    P_CIRCO
+#define plax_poly     P_POLY
+#define plax_polyo    P_POLYO
+#define plax_sctext   P_SCTEXT
+#define plax_erase    PLAX_ERASE
+#define plax_initialize  PLAX_INITIALIZE
+
+#else
+
 #ifdef G77__HACK
 /* add HACK for gnu FORTRAN...  __  7/20/00 CER   */
 #define plax_open     p_start__
@@ -53,6 +73,8 @@
 #define plax_sctext   p_sctext_
 #define plax_erase    plax_erase_
 #define plax_initialize  plax_initialize_
+
+#endif
 
 #endif
 
