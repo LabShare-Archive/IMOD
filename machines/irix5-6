@@ -18,11 +18,12 @@ goto $machine
 irix6-32:
 set flags = "-32 -mips2 $flags"
 set fallback = "$flags"
-echo "MAKELIB = ld -32 -mips2 -shared -all -o" >> $configure
+echo "MAKELIB = ld -32 -mips2 -shared -all -o " >> $configure
 echo 'LDFLAGS = -32 -mips2 -L$(LIBDIR)  -woff 84'       >> $configure
 echo "SHELL     = /sbin/csh"         >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)  -woff 84'       >> $configure
 set usfftdir = $source_dir/USFFTlib/sgi
+set xplax = noplax.o
 goto irix5
 
 irix6:
@@ -30,7 +31,7 @@ irix6-n32:
 
 set fallback = "-32 -mips2 $flags"
 set flags = "-n32 -mips3 $flags"
-echo "MAKELIB = ld -n32 -mips3 -shared -all -o" >> $configure
+echo "MAKELIB = ld -n32 -mips3 -shared -all -o " >> $configure
 echo 'LDFLAGS = -n32 -mips3 -L$(LIBDIR) -woff 84'       >> $configure
 echo "LDFALLBACK = -32 -mips2 -L$lib_dir  -woff 84"       >> $configure
 if ($inst_dir != default) then
@@ -90,7 +91,7 @@ else
 	echo "LIBEXT  = a"                  >> $configure
 endif
 echo "RANLIB    = true"                     >> $configure
-echo "MAKELIBSO = ld $flags -shared -all -o"       >> $configure
+echo "MAKELIBSO = ld $flags -shared -all -o "       >> $configure
 echo 'MAKELIBCPP = $(MAKELIB)'              >> $configure
 
 if ($debug == true) then
@@ -156,7 +157,7 @@ echo '#define SGI_GEOMETRY_HACK' >> $hconfigure
 
 # Build tilt from Fortran subroutines, skip extra libraries, make sgi-specific
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-st rgbprogs = "frommrc tomrc mrcv"
+set rgbprogs = "frommrc tomrc mrcv"
 
 
 #
@@ -184,6 +185,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.14  2003/10/24 04:18:43  mast
+#  changes for WIndows/Intel compilation
+#
 #  Revision 3.13  2003/09/24 23:06:05  mast
 #  reinstate qtplax!
 #
