@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef B3DGFX_H
 #define B3DGFX_H
@@ -210,7 +218,7 @@ void b3dPutCIImage(B3dCIImage *image, int src_x, int src_y,
 void b3dDrawGreyScalePixels
 (unsigned char *data, int xsize, int ysize, int xoffset, int yoffset,
 int wx, int wy, int width, int height, B3dCIImage *image, int base, 
-double xzoom, double yzoom);
+double xzoom, double yzoom, int slice);
 
 void b3dDrawGreyScalePixelsHQ
 (unsigned char *data, int xsize, int ysize, 
@@ -218,7 +226,7 @@ void b3dDrawGreyScalePixelsHQ
  int wx, int wy, 
  int width, int height, 
  B3dCIImage *image, int base, 
- double xzoom, double yzoom, int quality);
+ double xzoom, double yzoom, int quality, int slice);
 
 
 void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
@@ -227,7 +235,7 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 				   int xtrans, int ytrans,
 				   int llx, int lly,  int urx, int ury,
 				   int base, int zoom,
-				   int *xo, int *yo);
+				   int *xo, int *yo, int slice);
 
 
 /*****************************************************************************
