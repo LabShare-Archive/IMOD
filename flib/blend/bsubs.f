@@ -26,6 +26,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/19 04:27:43  mast
+c	  Changed to use blend.inc.  Made declarations for implicit none in
+c	  all routines that used the include file.  Changed DOEDGE to use
+c	  ARRAY from common, and made FIND_BEST_SHIFTS get its big array as
+c	  an argument then invalidate the part of the array that it uses.
+c	
 c
 c	  READ_LIST get the name of a piece list file, reads the file
 c	  and returns the # of pieces NPCLIST, the min and max z values MINZPC
@@ -1329,7 +1335,7 @@ c
      &	    legacy)
 	real*4 crray(*),drray(*)
 	integer*4 nxy(*),noverlap(*)
-	parameter (idimt=200*400, idimc=256*512)
+	parameter (idimt=400*800, idimc=512*1024)
 	real*4 trray(idimt)
 	complex*8 array(idimc/2), brray(idimc/2)
 	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2)
@@ -1362,8 +1368,8 @@ c
 	nxtap=max(5,nint(0.05*nxybox(1)))
 	nytap=max(5,nint(0.05*nxybox(2)))
 
-	if(nxybox(1)*nxybox(2).gt.idimt.or.nxpad*nypad.gt.idimc)
-     &	    stop 'Overlap area too big for cross-correlation array'
+	if(nxybox(1)*nxybox(2).gt.idimt.or.nxpad*nypad.gt.idimc)call errorexit
+     &	    ('Overlap area too big for cross-correlation array')
 c	  
 c	  get the first image, lower piece
 c
@@ -1579,8 +1585,8 @@ c
      &		iedgeupper(ipc,1).gt.0.or.
      &		iedgeupper(ipc,2).gt.0)then
 	      nvar=nvar+1
-	      if (nvar.gt.limvar)stop
-     &		  'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS'
+	      if (nvar.gt.limvar)call errorexit(
+     &		  'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
 	      ivarpc(nvar)=ipc
 	      indvar(ipc)=nvar
 	    endif
