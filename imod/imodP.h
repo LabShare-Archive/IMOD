@@ -28,87 +28,10 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
-
-    $Log$
-    Revision 3.8.2.18  2003/01/29 01:33:37  mast
-    remove qtRgba and qtDoubleBuffer
-
-    Revision 3.8.2.17  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.8.2.16  2003/01/23 20:00:02  mast
-    Changes for Qt versions of final dialog boxes
-
-    Revision 3.8.2.15  2003/01/18 01:06:34  mast
-    remove imod_cachefill declarations
-
-    Revision 3.8.2.14  2003/01/14 21:43:17  mast
-    changes for Qt versions of autox and imod_moviecon
-
-    Revision 3.8.2.13  2003/01/13 01:15:42  mast
-    changes for Qt version of info window
-
-    Revision 3.8.2.12  2003/01/10 23:50:09  mast
-    Changes for Qt version of tumbler an elimination of tilt window
-
-    Revision 3.8.2.11  2003/01/06 15:44:23  mast
-    changes for making Qt version of slicer
-
-    Revision 3.8.2.10  2003/01/02 15:38:16  mast
-    remove declarations for control.c functions
-
-    Revision 3.8.2.9  2002/12/23 04:55:43  mast
-    A little more cleanup
-
-    Revision 3.8.2.8  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.8.2.7  2002/12/17 18:40:24  mast
-    Changes and new includes with Qt version of imodv
-
-    Revision 3.8.2.6  2002/12/14 05:40:43  mast
-    new visual-assessing code
-
-    Revision 3.8.2.5  2002/12/13 06:09:09  mast
-    include file changes
-
-    Revision 3.8.2.4  2002/12/12 01:21:09  mast
-    Changes for xyz window to become Qt
-
-    Revision 3.8.2.3  2002/12/09 17:49:19  mast
-    changes to get Zap as a Qt window
-
-    Revision 3.8.2.2  2002/12/07 01:23:50  mast
-    *** empty log message ***
-
-    Revision 3.8.2.1  2002/12/05 16:29:02  mast
-    declare ioew_sgicolor_cb
-
-    Revision 3.8  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-    Revision 3.7  2002/11/25 19:19:06  mast
-    Eliminated conditional on USE_IMOD_CONTROL
-
-    Revision 3.6  2002/10/23 15:56:23  mast
-    Blew away part of file before previous checkin
-
-    Revision 3.5  2002/10/22 22:45:34  mast
-    Removed some declarations from old workproc routines
-
-    Revision 3.4  2002/10/22 22:39:24  mast
-    *** empty log message ***
-
-    Revision 3.3  2002/09/19 22:53:36  rickg
-    Added MESSAGE_QUIT define
-
-    Revision 3.2  2002/09/13 20:57:45  mast
-    Added defines for MESSAGES's, removed redundant declarations that are also
-    in imod_io.h
-
+$Revision$
+Log at end of file
 */
 
 #ifndef IMODP_H
@@ -118,7 +41,6 @@
 
 #include <stdio.h>
 #include <qstring.h>
-#define NO_X_INCLUDES
 #include <imodel.h> 
 #include <imodi.h>
 
@@ -267,8 +189,8 @@ extern int ImodTrans;
 extern int Imod_debug;
 
 extern char *Imod_imagefile;
-extern char *Imod_cwdpath;
-extern char *Imod_IFDpath;
+extern QString Imod_cwdpath;
+extern QString Imod_IFDpath;
 
 extern int Rampbase;
 
@@ -310,19 +232,6 @@ extern int Rampbase;
 #define RAMPMAX         (IMOD_MAX_INDEX - 11)
 #define RAMPMIN         101
 #define IMOD_MIN_INDEX  16
-
-
-#ifndef X
-#define X 0
-#endif
-
-#ifndef Y
-#define Y 1
-#endif
-
-#ifndef Z
-#define Z 2
-#endif
 
 
 
@@ -368,6 +277,85 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 #endif     
 
 
+/*
+$Log$
+Revision 3.9  2003/02/10 20:36:28  mast
+Merge Qt source
 
+Revision 3.8.2.18  2003/01/29 01:33:37  mast
+remove qtRgba and qtDoubleBuffer
 
+Revision 3.8.2.17  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
 
+Revision 3.8.2.16  2003/01/23 20:00:02  mast
+Changes for Qt versions of final dialog boxes
+
+Revision 3.8.2.15  2003/01/18 01:06:34  mast
+remove imod_cachefill declarations
+
+Revision 3.8.2.14  2003/01/14 21:43:17  mast
+changes for Qt versions of autox and imod_moviecon
+
+Revision 3.8.2.13  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 3.8.2.12  2003/01/10 23:50:09  mast
+Changes for Qt version of tumbler an elimination of tilt window
+
+Revision 3.8.2.11  2003/01/06 15:44:23  mast
+changes for making Qt version of slicer
+
+Revision 3.8.2.10  2003/01/02 15:38:16  mast
+remove declarations for control.c functions
+
+Revision 3.8.2.9  2002/12/23 04:55:43  mast
+A little more cleanup
+
+Revision 3.8.2.8  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 3.8.2.7  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
+Revision 3.8.2.6  2002/12/14 05:40:43  mast
+new visual-assessing code
+
+Revision 3.8.2.5  2002/12/13 06:09:09  mast
+include file changes
+
+Revision 3.8.2.4  2002/12/12 01:21:09  mast
+Changes for xyz window to become Qt
+
+Revision 3.8.2.3  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
+Revision 3.8.2.2  2002/12/07 01:23:50  mast
+*** empty log message ***
+
+Revision 3.8.2.1  2002/12/05 16:29:02  mast
+declare ioew_sgicolor_cb
+
+Revision 3.8  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.7  2002/11/25 19:19:06  mast
+Eliminated conditional on USE_IMOD_CONTROL
+
+Revision 3.6  2002/10/23 15:56:23  mast
+Blew away part of file before previous checkin
+
+Revision 3.5  2002/10/22 22:45:34  mast
+Removed some declarations from old workproc routines
+
+Revision 3.4  2002/10/22 22:39:24  mast
+*** empty log message ***
+
+Revision 3.3  2002/09/19 22:53:36  rickg
+Added MESSAGE_QUIT define
+
+Revision 3.2  2002/09/13 20:57:45  mast
+Added defines for MESSAGES's, removed redundant declarations that are also
+in imod_io.h
+
+*/
