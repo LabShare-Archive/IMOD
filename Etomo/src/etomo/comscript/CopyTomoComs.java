@@ -17,6 +17,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.4  2002/10/10 18:54:01  rickg
  * <p> Enabled SystemProgram debugging and remove local
  * <p> writing to stdout.
@@ -114,7 +117,7 @@ public class CopyTomoComs {
       //  FIXME rjg:
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "-1";
-      System.out.println(
+      System.err.println(
         "Specification of all tilt alngles is not yet implemented");
     }
 
@@ -147,7 +150,7 @@ public class CopyTomoComs {
         //  FIXME rjg:
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "-1";
-        System.out.println(
+        System.err.println(
           "Specification of all tilt alngles is not yet implemented");
       }
 

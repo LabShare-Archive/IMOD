@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3.2.1  2003/01/24 18:28:09  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -124,7 +127,7 @@ public class BackgroundProcess extends Thread {
       }
       catch (InterruptedException except) {
         except.printStackTrace();
-        System.out.println("Sleep interrupted");
+        System.err.println("Sleep interrupted");
       }
     }
     else {
