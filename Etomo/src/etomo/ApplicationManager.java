@@ -27,6 +27,14 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/03/18 23:56:54  rickg
+ * <p> ComScript method name changes
+ * <p> Apropriate loading of combine scripts
+ * <p> Added pass through method to open matching models
+ * <p> Done not longer executes combine
+ * <p> Updated combine related methods to match new
+ * <p> combination dialog
+ * <p>
  * <p> Revision 2.13  2003/03/18 17:03:15  rickg
  * <p> Combine development in progress
  * <p>
@@ -1729,6 +1737,39 @@ public class ApplicationManager {
     }
   }
 
+  public void imodPatchRegionModel() {
+    try {
+      if (metaData.getCombineParams().getMatchBtoA()) {
+        imodManager.patchRegionModel(AxisID.FIRST);
+      }
+      else {
+        imodManager.patchRegionModel(AxisID.SECOND);
+      }
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on tomogram for patch region models");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+  }
+
+  public void imodPatchVectorModel() {
+    try {
+      imodManager.openPatchVectorModel();
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on tomogram for patch vector model");
+    }
+  }
+
   /**
    * 
    */
@@ -1793,12 +1834,12 @@ public class ApplicationManager {
     // scripts
     metaData.getCombineParams().setScriptsCreated(true);
     isDataParamDirty = true;
-    
+
     loadSolvematchShift();
     loadPatchcorr();
     loadMatchorwarp();
     tomogramCombinationDialog.enableCombineTabs(true);
-    
+
   }
 
   /**
@@ -1860,7 +1901,8 @@ public class ApplicationManager {
 
     try {
       comScriptMgr.loadSolvematchshift();
-      SolvematchshiftParam solvematchshiftParam = comScriptMgr.getSolvematchshift();
+      SolvematchshiftParam solvematchshiftParam =
+        comScriptMgr.getSolvematchshift();
       tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
       comScriptMgr.saveSolvematchshift(solvematchshiftParam);
     }
