@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/26 00:20:21  rickg
+ * <p> bug #426 Implemented full tomogram sampling
+ * <p>
  * <p> Revision 3.3  2004/04/22 23:25:05  rickg
  * <p> bug #391 adding non-fid alignement capability
  * <p>
@@ -92,6 +95,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -113,7 +117,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 
 public class TomogramPositioningDialog extends ProcessDialog
-  implements ContextMenu {
+    implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlPosition = new JPanel();
@@ -152,6 +156,8 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private MultiLineToggleButton btnAlign = new MultiLineToggleButton(
     "<html><b>Create Final Alignment</b>");
+
+  private Dimension fullImageSize = new Dimension();
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -195,7 +201,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
     UIUtilities
       .setButtonSizeAll(pnlPosition, UIParameters.getButtonDimension());
-    
+
     //  Create dialog content pane
     rootPanel.add(pnlPosition);
     rootPanel.add(Box.createVerticalGlue());
@@ -246,7 +252,7 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @throws NumberFormatException
    */
   public void getAlignParams(TiltalignParam tiltalignParam)
-    throws NumberFormatException {
+      throws NumberFormatException {
     try {
       tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
       tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShift.getText());
@@ -261,7 +267,9 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param tiltParam
    */
   public void setTiltParams(ConstTiltParam tiltParam) {
-    ltfSampleTomoThickness.setText(tiltParam.getThickness());
+    int binning = ((Integer) spinBinning.getValue()).intValue();
+
+    ltfSampleTomoThickness.setText(tiltParam.getThickness() * binning);
   }
 
   /**
@@ -270,9 +278,14 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @throws NumberFormatException
    */
   public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
+    int binning = ((Integer) spinBinning.getValue()).intValue();
     try {
-      tiltParam
-        .setThickness(Integer.parseInt(ltfSampleTomoThickness.getText()));
+      // Set the appropriate FULLIMAGE line
+      tiltParam.setFullImageX(fullImageSize.width / binning);
+      tiltParam.setFullImageY(fullImageSize.height / binning);
+
+      tiltParam.setThickness(Integer.parseInt(ltfSampleTomoThickness.getText())
+          / binning);
     }
     catch (NumberFormatException except) {
       String message = "Axis " + axisID.getExtension() + except.getMessage();
@@ -290,7 +303,7 @@ public class TomogramPositioningDialog extends ProcessDialog
       spinBinning.setValue(binning);
     }
   }
-  
+
   /**
    * Get the newst.com parameters from the dialog
    * @param newstParam
@@ -307,7 +320,23 @@ public class TomogramPositioningDialog extends ProcessDialog
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
   }
-  
+
+  /**
+   * @return Returns the fullImageSize.
+   */
+  public Dimension getFullImageSize() {
+    return new Dimension(fullImageSize);
+  }
+
+  /**
+   * Set the full image size
+   * @param width
+   * @param height
+   */
+  public void setFullImageSize(int width, int height) {
+    fullImageSize.setSize(width, height);
+  }
+
   /**
    * Right mouse button context menu
    */
@@ -330,8 +359,8 @@ public class TomogramPositioningDialog extends ProcessDialog
     String command = event.getActionCommand();
 
     if (command.equals(btnSample.getActionCommand())) {
-      if(cbWholeTomogram.isSelected()) {
-         applicationManager.wholeTomogram(axisID);
+      if (cbWholeTomogram.isSelected()) {
+        applicationManager.wholeTomogram(axisID);
       }
       else {
         applicationManager.createSample(axisID);
@@ -339,7 +368,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
 
     else if (command.equals(btnCreateBoundary.getActionCommand())) {
-      if(cbWholeTomogram.isSelected()) {
+      if (cbWholeTomogram.isSelected()) {
         applicationManager.imodFullSample(axisID);
       }
       else {
@@ -426,26 +455,26 @@ public class TomogramPositioningDialog extends ProcessDialog
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     text = "Thickness of sample slices.  Make this much larger than expected section"
-      + " thickness to see borders of section.";
+        + " thickness to see borders of section.";
     ltfSampleTomoThickness.setToolTipText(tooltipFormatter.setText(text)
       .format());
     text = "Build 3 sample tomograms for finding location and angles of section.";
     btnSample.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Open samples in 3dmod to make a model with lines along top and bottom "
-      + "edges of the section in each sample.";
+        + "edges of the section in each sample.";
     btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Run tomopitch.  You need to examine the log file to determine the"
-      + "Z shift, additional angle offset, and X-axis tilt.";
+        + "Z shift, additional angle offset, and X-axis tilt.";
     btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Add the additional offset from tomopitch to the amount already "
-      + "shown here to get the total offset.";
+        + "shown here to get the total offset.";
     ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Add the additional shift from tomopitch to the amount shown here to get "
-      + "the total shift.";
+        + "the total shift.";
     ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Run tiltalign with these final offset parameters.";
