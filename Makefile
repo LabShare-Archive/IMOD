@@ -357,12 +357,16 @@ fsrc :
 etomosrc :
 	if (! (-e $(ARCDIR)_src/Etomo/)) mkdir $(ARCDIR)_src/Etomo/
 	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
-	Etomo/MANIFEST.MF Etomo/src Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
+	Etomo/MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
+	Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
 
 ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.17  2003/08/10 02:05:01  mast
+#  Added etomo to the src make, fixed this make from 3dmod name change
+#
 #  Revision 3.16  2003/08/08 05:17:03  rickg
 #  Added entries for Etomo
 #  explicitly specified ./setup because it was clashing with the system command
