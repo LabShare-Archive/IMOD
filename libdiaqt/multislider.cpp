@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:35:41  mast
 adding as library file
 
@@ -232,6 +235,8 @@ void MultiSlider::sliderActive(int which)
 // When a slider is released, emit another signal that it changed
 void MultiSlider::sliderReleased(int which)
 {
+  if (!mPressed[which])
+    return;
   mPressed[which] = false;
   emit sliderChanged(which, mSliders[which]->value(), false);
 }
