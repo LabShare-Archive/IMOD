@@ -7,6 +7,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -50,6 +51,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/05/15 01:42:12  sueh
+ * <p> bug# 415 MainFrame is already calling System.exit(), so don't
+ * <p> do EXIT_ON_CLOSE when X button is pressed.
+ * <p>
  * <p> Revision 3.2  2004/04/28 22:38:14  sueh
  * <p> bug# 268 if a panel was hidden, set the divider location to
  * <p> continue to hide it
@@ -501,6 +506,38 @@ public class MainFrame extends JFrame implements ContextMenu {
     applicationManager.openExistingDataset(new File(event.getActionCommand()));
   }
 
+
+  protected void packAxis(int widthA, int widthB) {
+    if (applicationManager.isDualAxis()) {
+      boolean hideA = axisPanelA.hide(widthA);
+      boolean hideB = axisPanelB.hide(widthB);
+      pack();
+      splitPane.resetToPreferredSizes();
+      axisPanelA.show();
+      axisPanelB.show();
+      if (hideA) {
+        setDividerLocation(0);
+      }
+      else if (hideB) {
+        setDividerLocation(1);
+      }
+    }
+    else {
+      pack();
+    }
+  }
+  
+  protected void setScrollBarPolicy(boolean always) {
+    int policy = always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
+    if (scrollPaneA != null) {
+      scrollPaneA.setVerticalScrollBarPolicy(policy);
+    }
+    if (scrollPaneB != null) {
+      scrollPaneB.setVerticalScrollBarPolicy(policy);
+    }
+  }
+  
+  
   /**
    * Handle the options menu events
    * @param event
@@ -515,23 +552,91 @@ public class MainFrame extends JFrame implements ContextMenu {
       setAdvancedLabel();
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
-      if (applicationManager.isDualAxis()) {
-        boolean hideA = axisPanelA.hide();
-        boolean hideB = axisPanelB.hide();
-        pack();
-        splitPane.resetToPreferredSizes();
-        axisPanelA.show();
-        axisPanelB.show();
-        if (hideA) {
-          setDividerLocation(0);
-        }
-        else if (hideB) {
-          setDividerLocation(1);
-        }
+      //find out width before calling packAxis because setDividerLocation() with
+      //0 or 1 does not cause the width of either panel to be 0 until after this
+      //this function is finished
+      int widthA = axisPanelA.getWidth();
+      int widthB = axisPanelB.getWidth();
+      packAxis(widthA, widthB);
+      Toolkit toolkit = Toolkit.getDefaultToolkit();
+      Dimension screenSize = toolkit.getScreenSize();
+      Dimension windowSize = getSize();
+      //guess the menu height
+      screenSize.height -= screenSize.height * .1;
+      if (windowSize.height > screenSize.height) {
+        //want to shorten window, so make sure that the window is wide enough
+        //to have vertical scroll bars
+        setScrollBarPolicy(true);
+        packAxis(widthA, widthB);
+        windowSize = getSize();
+        windowSize.height = screenSize.height;
+        //this allows the view port to update correctly most of the time
+        setExtendedState(JFrame.MAXIMIZED_VERT);
+        setSize(windowSize);
+        setScrollBarPolicy(false);
       }
-      else {
-        pack();
+      
+/*    things that didn't work:
+
+      int changeInHeight = window.height - screen.height;
+      System.out.println("changeInHeight: " + changeInHeight);
+      System.out.println("window: " + window);
+      Rectangle bounds = getBounds();
+      System.out.println("bounds:" + bounds);
+      bounds.height = screen.height;
+      System.out.println("bounds:" + bounds);
+
+      setBounds(bounds);
+      scrollPaneA.setVerticalScrollBarPolicy(
+        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      if (splitPane != null) {
+        System.out.println("scrollpane");
+        float dividerLocation = splitPane.getDividerLocation();
+        setDividerLocation(0);
+        float minDivider = splitPane.getDividerLocation();
+        setDividerLocation(1);
+        float maxDivider = splitPane.getDividerLocation();
+        JScrollBar vertScrollBar = scrollPaneA.getVerticalScrollBar();
+        float width = vertScrollBar.getWidth();
+        setDividerLocation(
+          (dividerLocation + width + 1) / (maxDivider - minDivider + 1));
+        Rectangle viewportBounds = scrollPaneA.getViewportBorderBounds();
+        System.out.println("viewportBounds:" + viewportBounds);
+        viewportBounds.height -= changeInHeight;
+        System.out.println("viewportBounds:" + viewportBounds);
+        JViewport viewPort = scrollPaneA.getViewport();
+        System.out.println("viewPort:" + viewPort);
+        viewPort.setBounds(viewportBounds);
+        viewPort.scrollRectToVisible(viewportBounds);
+        Dimension viewSize =
+          new Dimension(viewportBounds.width, viewportBounds.height);
+        viewPort.setViewSize(viewSize);
+        viewPort.doLayout();
+        viewPort.revalidate();
+        viewPort.validate();
+        scrollPaneA.setViewport(viewPort);
+        viewPort.doLayout();
+        viewPort.revalidate();
+        viewPort.validate();
+        System.out.println("viewPort:" + viewPort);
+        scrollPaneA.setBounds(viewportBounds);
+        setDividerLocation(dividerLocation + width);
+        Rectangle bounds = scrollPaneA.getVisibleRect();
+        System.out.println("old bounds:" + bounds);
+        bounds.height -= changeInHeight;
+        System.out.println("new bounds:" + bounds);
+        scrollPaneA.setBounds(bounds);
+        scrollPaneA.doLayout();
+        scrollPaneA.revalidate();
+        scrollPaneA.validate();
+        scrollPaneA.isValidateRoot();
+        scrollPaneB.doLayout();
+        splitPane.doLayout();
+        splitPane.revalidate();
+        splitPane.validate();
       }
+*/
+
     }
   }
   
