@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/31/01: IMOD_2-6-3
+12/31/01: Added dm2mrc for converting Digital Micrograph version 2.5 and 3 
+images files.
+
+12/28/01: Added option to newstack to disable scaling upon mode changes.
+
+12/27/01: Fixed raw2mrc to do long integers, to do bytes correctly on PC, and
+to swap floats and long integers correctly.
+
 12/17/01: IMOD_2-6-2
 12/13/01: Added hotkeys to the zap window for smoothing and advancing to the
 next section when using autocontouring; removed the b hotkey from the xyz 
