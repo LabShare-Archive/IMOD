@@ -51,6 +51,7 @@ Log at end of file
 #include "autox.h"
 #include "imod_edit.h"
 #include "imod_workprocs.h"
+#include "imod_moviecon.h"
 #include "preferences.h"
 
 #define XYZ_BSIZE 11
@@ -458,25 +459,26 @@ void XyzWindow::B2Press(int x, int y)
     }
   }
 
-
+  /* DNM 12/18/93: do not start movie in slider areas */
   if (xx->vi->imod->mousemode == IMOD_MMOVIE) {
     switch(movie) {
     case 1:
-    case 4:
       imodMovieXYZT(xx->vi, 1,
                     MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case 2:
-    case 5:
       imodMovieXYZT(xx->vi, MOVIE_DEFAULT, 1,
                     MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case 3:
-    case 6:
       imodMovieXYZT(xx->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1,
                     MOVIE_DEFAULT);
       break;
+    default:
+      break;
     }
+    if (movie > 0 && movie < 4)
+      imcSetStarterID(xx->ctrl);
     return;
   }
 
@@ -579,6 +581,8 @@ void XyzWindow::B3Press(int x, int y)
     default:
       break;
     }
+    if (movie > 0 && movie < 4)
+      imcSetStarterID(xx->ctrl);
     return;
   }
 
@@ -1723,6 +1727,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.14  2003/09/16 02:11:30  mast
+Changed to access image data using new line pointers
+
 Revision 4.13  2003/05/06 02:18:45  mast
 Fixed problem with displaying z = -1 on first section
 
