@@ -3,145 +3,7 @@ c
 c	  SOLVEMATCH will solve for a 3-dimensional linear transformation
 c	  relating the tomogram volumes resulting from tilt series around two
 c	  different axes.  It uses information from the 3-D coordinates of
-c	  fiducials found by TILTALIGN.  With this information alone, it can
-c	  solve for the 3 by 3 transformation but not for the shifts in X, Y
-c	  and Z.  There are two ways to get these shifts: by cross-correlation
-c	  of one transformed volume with the other, and by giving SOLVEMATCH
-C	  models describing corresponding points in the two tomograms.  The
-c	  shell script that does correlations, MATCHSHIFTS, should be able to
-c	  handle large displacements between the two volumes, so it should
-c	  rarely be necessary to use models.  
-c	  
-c	  To use correlation, simply indicate to SOLVEMATCH whether the gold
-c	  fiducials are on one or two surfaces.  If there is gold on only one
-c	  surface, you also need to determine beforehand whether the two
-c	  tomograms are inverted in Y (Z in flipped orientation); i.e. whether
-c	  the gold is on the "top" of the section in one tomogram and the
-c	  "bottom" in the other.  The program needs to know this because it
-c	  introduces two dummy fiducials to fix the scaling in Y at either 1.0
-c	  or -1.0.  After SOLVEMATCH is run, the shell script "matchshifts"
-c	  will perform the necessary operations to find the shifts and
-c	  incorporate them into the transformation.
-c
-c	  If you do need to create models of corresponding points, pick a set
-c	  of points that can be localized well in both tomograms and enter them
-c	  in the same order into a model for each tomogram.  The points can be
-c	  in the same or in different objects or contours, as long as they
-c	  occur in the same order in each model.  If the fiducials from
-c	  TILTALIGN are not confined to one surface, then they provide nearly
-c	  all of the information needed to determine the transformation, and
-c	  the modeled points are needed only to determine the X, Y, and Z
-c	  shift between the tomograms.  In this case, three modeled points are
-c	  sufficient.  However, if fiducials are essentially on one surface,
-c	  then the modeled points are needed to find the scaling in Y (Z in
-c	  flipped orientation) between the two tomograms.  In this case, be
-c	  sure to distribute the points in depth (rather than all on one
-c	  surface) so as to provide information on this scaling.  Here, 5 or 6
-c	  points are recommended.
-c	  
-c	  You can also use models of corresponding points alone to register
-c	  two volumes for which fiducial points from TILTALIGN are not
-c	  available.  In this case, you should have points well-distributed in
-c	  in all dimensions.  At least 8 points are recommended.  If this is to
-c	  provide the basis for the final alignment of the volumes, they should
-c	  be relatively near the 8 corners of the volume; but if the alignment
-c	  is to be refined with correlation, this is not necessary.
-c
-c	  The program needs to know how the fiducial points correspond between
-c	  the two tilt series.  If it is given a small list of points which do
-c	  correspond, it can find the rest of the correspondences and ignore
-c	  any points from either set that do not have a mate.  There are two
-c	  restrictions in using this capability.  First, one must identify at
-c	  least 4 initial correspondences; in fact, having at least 5 is
-c	  recommended.  Second, if there are fiducials on both surfaces of the
-c	  section, this initial list must include at least one from each
-c	  surface.
-c
-c	  The program will automatically remove "outliers", pairs of points
-c	  that are likely to be incorrect because their residual errors are
-c	  so extreme relative to the other points.  Up to 10% of points may
-c	  be removed in this way.  If, even after removing such outliers, the
-c	  maximum residual in the linear fit is still higher than a value that
-c	  you specify, than the program will exit with an error.
-c
-c	  Inputs to the program when fiducials from TILTALIGN are available:
-c	  
-c	  Name of file with coordinate of fiducials from the first tilt series
-c
-c	  Name of file with coordinate of fiducials from the second series
-c	  
-c	  A list of the points in series 1 for which a corresponding point in
-c	  .  series 2 is known with confidence.  Ranges may be entered
-c	  .  (e.g. 1-5,7,6,12).  Enter / if all points correspond between the
-c	  .  two series.  
-c	  
-c	  A list of the corresponding points in the second series.  The same
-c	  .  number of values must be entered in this list as in the preceding
-c	  .  list.  Again, enter / if all points correspond between the
-c	  .  two series.
-c
-c	  The values of X axis tilt that were used in generating the first and
-c	  .  second tomograms.  These angles are needed to make the fiducial
-c	  .  coordinates from TILTALIGN correspond to the actual positions of
-c	  .  the particles in the tomograms.
-c
-c	  The limiting value for the maximum residual, so that the program will
-c	  .  exit with an error if this value is exceeded.
-c
-c	  Enter either 0 to determine shifts from model files of corresponding
-c	  .  points, or -1, 1, or 2 to determine just the 3 by 3 transformation
-c	  .  and not the shifts.  Enter 2 if there are fiducials on two
-c	  .  surfaces, 1 if fiducials are on one surface and the tomograms are
-c	  .  NOT inverted relative to each other, or -1 if the tomograms are
-c	  .  inverted and there are fiducials on only one surface.
-c
-c	  IF you entered 0, make the following four entries:
-c
-c	  .  Either the file name or the X, Y and Z dimensions of the first
-c	  .    tomogram
-c
-c	  .  Name of model of points from the first tomogram
-c	  
-c	  .  Either the file name or the X, Y and Z dimensions of the second
-c	  .    tomogram
-c
-c	  .  Name of model of points from the second tomogram
-c	  
-c	  Finally, enter name of file for output of the transformation, or
-c	  .  Return for none
-c
-c	  
-c	  Inputs to the program when matching models alone are being used:
-c	  
-c	  A blank line (Return) in place of the name of the first fiducial file
-c	  
-c	  The limiting value for the maximum residual
-c
-c	  Either the file name or the X, Y and Z size of the first tomogram
-c
-c	  Name of model of points from the first tomogram
-c	  
-c	  Either the file name or the X, Y and Z size of the second tomogram
-c
-c	  Name of model of points from the second tomogram
-c	  
-c	  Name of file for output of the transformation, or Return for none
-c	  
-c
-c	  The program determines the transformation and computes the deviation
-c	  between each actual point in the first tomogram and the
-c	  transformation of the corresponding point in the second tomogram.  It
-c	  reports the mean and S.D. of these deviations, the number of the
-c	  point with the highest deviation, and the magnitude of its deviation.
-c
-c	  When you enter point numbers, use the numbers listed on the left in
-c	  the fiducial coordinate file.  These numbers may not correspond to
-c	  the contour numbers in the original fiducial model if some contours
-c	  were not included in the solution.  These numbers do not need to be
-c	  sequential; i.e., you can delete points from the coordinate file.
-c	  The program will refer to points by these numbers.  When you have
-c	  both fiducial coordinates and points from matching models, it will
-c	  refer to the latter points by the negative of their point number.
+c	  fiducials found by TILTALIGN.  See man page for further information.
 c
 c	  $Author$
 c
@@ -150,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/05/20 23:43:45  mast
+c	  Add space before wrlist output
+c	
 c	  Revision 3.4  2002/11/11 22:26:37  mast
 c	  Added argument to calls to do3multr and solve_wo_outlier for
 c	  fixed column
@@ -194,10 +59,36 @@ c
 	real*4 addratio,cosa,cosb,tmpy,addcrit,distmin,devavg,devsd
 	real*4 devmax,dx,dist,crit,elimmin,critabs,stoplim,xtilta,xtiltb
 	real*4 sina,sinb,dy,dz
-	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb
+	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix
 	integer*4 getimodhead,getimodscales
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 sind,cosd
+c
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger
+	integer*4 PipGetString,PipGetTwoFloats,PipGetFloat
+	integer*4 PipGetInOutFile
+	character*6 modelOption(2)/'AMatch','BMatch'/
+	character*9 tomoOption(2)/'ATomogram','BTomogram'/
+	character*10240 listString
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  solvematch
+c	  
+	integer numOptions
+	parameter (numOptions = 14)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'output:OutputFile:FN:@afiducials:AFiducialFile:FN:@'//
+     &      'bfiducials:BFiducialFile:FN:@'//
+     &      'alist:ACorrespondenceList:LI:@'//
+     &      'blist:BCorrespondenceList:LI:@xtilts:XAxisTilts:FP:@'//
+     &      'surfaces:SurfacesOrUseModels:I:@'//
+     &      'maxresid:MaximumResidual:F:@amatch:AMatchingModel:FN:@'//
+     &      'bmatch:BMatchingModel:FN:@'//
+     &      'atomogram:ATomogramOrSizeXYZ:CH:@'//
+     &      'btomogram:BTomogramOrSizeXYZ:CH:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  don't add a point if it's this much higher than the limit for
 c	  quitting
@@ -217,11 +108,27 @@ c
         ndat=0
 	nsurf = 0
 	ncolfit = 3
+	icolfix = 0
+	filename = ' '
+	xtilta = 0.
+	xtiltb = 0.
+	stoplim = 8.
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	write(*,'(1x,a,/,a$)') 'Name of file with 3-D fiducial'//
-     &	    ' coordinates for first tilt series,',
-     &	    ' or Return to align with matching model files only: '
-	read(*,'(a)')filename
+	call PipReadOrParseOptions(options, numOptions, 'solvematch',
+     &	    'ERROR: SOLVEMATCH - ', .true., 3, 0, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+c
+	if (pipinput) then
+	  ierr = PipGetString('AFiducialFile', filename)
+	else
+	  write(*,'(1x,a,/,a$)') 'Name of file with 3-D fiducial'//
+     &	      ' coordinates for first tilt series,',
+     &	      ' or Return to align with matching model files only: '
+	  read(*,'(a)')filename
+	endif
 	if (filename .eq. ' ')go to 40
 
 	call dopen(1,filename,'old','f')
@@ -239,9 +146,15 @@ c
 	go to 10
 15	print *,npnta,' points from A'
 	close(1)
-	write(*,'(1x,a,$)') 'Name of file with 3-D fiducial'//
-     &	    ' coordinates for second tilt series: '
-	read(*,'(a)')filename
+
+	if (pipinput) then
+	  if (PipGetString('BFiducialFile', filename) .gt. 0) call errorexit
+     &	      ('NO FILE SPECIFIED FOR FIDUCIALS IN SECOND TILT SERIES')
+	else
+	  write(*,'(1x,a,$)') 'Name of file with 3-D fiducial'//
+     &	      ' coordinates for second tilt series: '
+	  read(*,'(a)')filename
+	endif
 	call dopen(1,filename,'old','f')
 
 20	read(1,*,end=25)icontb(npntb+1),(pntb(j,npntb+1),j=1,3)
@@ -284,14 +197,20 @@ c
 	enddo
 c
 	nlist=min(npnta,npntb)
-	write (*,113)nlist
-113	format('Enter a list of points in the first series for which',
-     &	    ' you are sure of the',/,' corresponding point in the',
-     &	    ' second series (Ranges are OK;',/' enter / if the first',
-     &	    i3, ' points are in one-to-one correspondence between',
-     &	    ' the series')
 	nlista=nlist
-	call rdlist(5,listcorra,nlista)
+	if (pipinput) then
+	  if (PipGetString('ACorrespondenceList', listString) .eq. 0)
+     &	      call parselist(listString, listcorra,nlista)
+	else
+	  write (*,113)nlist
+113	  format('Enter a list of points in the first series for which',
+     &	      ' you are sure of the',/,' corresponding point in the',
+     &	      ' second series (Ranges are OK;',/' enter / if the first',
+     &	      i3, ' points are in one-to-one correspondence between',
+     &	      ' the series')
+	  call rdlist(5,listcorra,nlista)
+	endif
+	if (nlista .gt. idim) call errorexit('TOO MANY POINTS FOR ARRAYS')
 	if(nlista.lt.nstartmin)then
 	  print *
 	  print *,'ERROR: SOLVEMATCH - NEED AT LEAST',nstartmin,
@@ -301,12 +220,19 @@ c
 	if(nlista.gt.nlist)call errorexit(
      &	    'YOU HAVE ENTERED MORE NUMBERS THAN THE'//
      &	      ' MINIMUM NUMBER OF POINTS IN A AND B')
-	write (*,114)
-114	format('Enter a list of the corresponding points in the',
-     &	    ' second series ',/,' - enter / for ', $)
-	call wrlist(listcorrb, nlist)
+c	
 	nlistb=nlista
-	call rdlist(5,listcorrb,nlistb)
+	if (pipinput) then
+	  if (PipGetString('BCorrespondenceList', listString) .eq. 0)
+     &	      call parselist(listString, listcorrb,nlistb)
+	else
+	  write (*,114)
+114	  format('Enter a list of the corresponding points in the',
+     &	      ' second series ',/,' - enter / for ', $)
+	  call wrlist(listcorrb, nlist)
+	  call rdlist(5,listcorrb,nlistb)
+	endif
+c
 	if(nlistb.ne.nlista)then
 	  print *
  	  print *,'ERROR: SOLVEMATCH - YOU MUST HAVE THE SAME NUMBER '
@@ -350,9 +276,13 @@ c
 	  mapped(iptb)=ipta
 	enddo
 c	  
-	write(*,'(1x,a,$)')'Tilts around the X-axis applied in '//
-     &	    'generating tomograms A and B: '
-	read(5,*)xtilta,xtiltb
+	if (pipinput) then
+	  ierr = PipGetTwoFloats('XAxisTilts', xtilta, xtiltb)
+	else
+	  write(*,'(1x,a,$)')'Tilts around the X-axis applied in '//
+     &	      'generating tomograms A and B: '
+	  read(5,*)xtilta,xtiltb
+	endif
 c	  
 c	  use the negative of the angle to account for the inversion of the
 c	  tomogram; rotate the 3-d points about the X axis
@@ -372,9 +302,13 @@ c
 	  pntb(2,i)=tmpy
 	enddo
 c	  
-40	write(*,'(1x,a,/,a,$)')'Maximum residual value above which '//
-     &	    'this program should',' exit with an error: '
-	read(5,*)stoplim
+40	if (pipinput) then
+	  ierr = PipGetFloat('MaximumResidual', stoplim)
+	else
+	  write(*,'(1x,a,/,a,$)')'Maximum residual value above which '//
+     &	      'this program should',' exit with an error: '
+	  read(5,*)stoplim
+	endif
 	if (npnta.eq.0) go to 50
 c       
 c       fill array for regression
@@ -392,14 +326,19 @@ c
         enddo
 c
 	print *,ndat,' pairs of fiducial points'
-	write(*,'(1x,a,/,a,/,a,/,a,$)')'Enter 0 to solve for '//
-     &	    'displacements using matching model files, or -1, 1 or 2'
-     &	    ,'  to solve only for 3x3 matrix (2 if fiducials are on 2'//
-     &	    ' surfaces, 1 if they are',
-     &	    '  on one surface and tomograms are NOT inverted,'//
-     &	    ' or -1 if fiducials ARE on one','  surface'
-     &	    //' and tomograms are inverted relative to each other): '
-	read(5,*)nsurf
+	nsurf = 2
+	if (pipinput) then
+	  ierr = PipGetInteger('SurfacesOrUseModels', nsurf)
+	else
+	  write(*,'(1x,a,/,a,/,a,/,a,$)')'Enter 0 to solve for '//
+     &	      'displacements using matching model files, or -1, 1 or 2'
+     &	      ,'  to solve only for 3x3 matrix (2 if fiducials are on 2'
+     &	      //' surfaces, 1 if they are',
+     &	      '  on one surface and tomograms are NOT inverted,'//
+     &	      ' or -1 if fiducials ARE on one','  surface'
+     &	      //' and tomograms are inverted relative to each other): '
+	  read(5,*)nsurf
+	endif
 50	if(nsurf.eq.0)then
 	  iofs=ncolfit+1
 	  do model=1,2
@@ -409,13 +348,23 @@ c	      origin from the image file; to use model header information
 c	      to scale back to image index coordinates; and to not use or mess
 c	      up the y-z transposition variable
 c
-	    write(*,'(1x,a,i2,a)')'Enter NX, NY, NZ of '//
+	    if (.not.pipinput) write(*,'(1x,a,i2,a)')'Enter NX, NY, NZ of '//
      &		'tomogram', model, ', or name of tomogram file'
-	    call get_nxyz(1,nxyz(1,model))
+	    call get_nxyz(pipinput, tomoOption(model), 'SOLVEMATCH', 1,
+     &		nxyz(1,model))
 c	    print *,(nxyz(i,model),i=1,3)
-	    write(*,'(1x,a,i2,a,$)')
-     &		'Name of model file from tomogram',model,': '
-	    read(*,'(a)')filename
+	    if (pipinput) then
+	      if (PipGetString(modelOption(model), filename) .gt. 0) then
+		print *
+		print *,'ERROR: SOLVEMATCH - NO MATCHING MODEL FOR TOMOGRAM',
+     &		    model
+		call exit(1)
+	      endif
+	    else
+	      write(*,'(1x,a,i2,a,$)')
+     &		  'Name of model file from tomogram',model,': '
+	      read(*,'(a)')filename
+	    endif
 	    if(.not.readw_or_imod(filename))call errorexit(
      &		'READING MODEL FILE')
 
@@ -444,21 +393,25 @@ c	    print *,(nxyz(i,model),i=1,3)
 	  if(nmodpt.ne.ndata)call errorexit(
      &		'# OF POINTS DOES NOT MATCH BETWEEN MATCHING MODELS')
 	  print *,nmodpt,' point pairs from models'
+	  iofs = ncolfit + 1
 	else
-	  nmodpt=1
-	  if(abs(nsurf).eq.1)nmodpt=2
-	  do mod=1,nmodpt
-	    do j=1,8
-	      xr(j,ndat+mod)=0.
+c
+c	    If no model points
+c	    get rid of dummy column: fit 3 columns, pack dependent vars to
+c	    the left, and set the offset for adding more dependent var data
+c
+	  nmodpt=0
+	  ncolfit = 3
+	  do i = 1, ndat
+	    do j = 5,7
+	      xr(j, i) = xr(j + 1, i)
 	    enddo
-	    iorig(ndat+mod)=-mod
 	  enddo
-	  if(abs(nsurf).eq.1)then
-	    xr(2,ndat+1)=-100.
-	    xr(7,ndat+1)=-sign(100,nsurf)
-	    xr(2,ndat+2)=100.
-	    xr(7,ndat+2)=sign(100,nsurf)
-	  endif
+	  iofs = 4
+c
+c	    if only one surface, "fix" column 2, encode sign in icolfix
+c
+	  if(abs(nsurf).eq.1) icolfix = sign(2, nsurf)
 	endif
 	ndat=ndat+nmodpt
 c	  
@@ -469,9 +422,10 @@ c
 	ifadded=0
 	addcrit=addratio*stoplim
 	distmin=0.
+c
 	do while(ndat-nmodpt.lt.min(npnta,npntb).and.distmin.lt.addcrit)
-	  call do3multr(xr,ndat,4,ndat,0,a,dxyz,cenloc, devavg,devsd,
-     &	      devmax,ipntmax, devxyzmax)
+	  call do3multr(xr,ndat,ncolfit,ndat,icolfix,a,dxyz,cenloc,
+     &	      devavg,devsd, devmax,ipntmax, devxyzmax)
 	  distmin=1.e10
 c	    
 c	    apply to each point in B that is not mapped to
@@ -520,7 +474,7 @@ c	  print *,iptbmin,iptamin,distmin,devavg,devmax
 	    mapped(iptbmin)=iptamin
 	    do j=1,3
               xr(j,ndat)=pntb(jxyz(j),iptbmin)
-              xr(j+5,ndat)=pnta(jxyz(j),iptamin)
+              xr(j+iofs,ndat)=pnta(jxyz(j),iptamin)
             enddo
             xr(4,ndat)=1.
 	    iorig(ndat)=iconta(iptamin)
@@ -557,13 +511,13 @@ c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=6,8),j=1,ndat)
 	crit=0.01
 	elimmin=3.
 	critabs=0.002
-	call solve_wo_outliers(xr,ndat,ncolfit,0,maxdrop,crit,critabs,
+	call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,critabs,
      &	    elimmin, idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,
      &	    ipntmax, devxyzmax)
 c
 	if(ndrop.ne.0)then
 	  write(*,104)ndrop,devavg,devsd,(iorig(idrop(i)),i=1,ndrop)
-	  write(*,115)(xr(5,i),i=ndat+1-ndrop,ndat)
+	  write(*,115)(xr(ncolfit+1,i),i=ndat+1-ndrop,ndat)
 104	  format(/,i3,' points dropped by outlier elimination; ',
      &	      'residual mean =',f7.2,', SD =',f7.2,/,
      &	      ' point # in A:',(11i6))
@@ -574,14 +528,29 @@ c
 101     format(//,' Mean residual',f8.3,',  maximum',f8.3,
      &      ' at point #',i4,' (in A)'/,'  Deviations:',3f8.3)
 c
-	write(*,103)(a(i,4),i=1,3)
-103	format(/,' X, Y, Z offsets for fiducial dummy variable:',3f10.3)
+	if (ncolfit .gt. 3) then
+	  write(*,103)(a(i,4),i=1,3)
+103	  format(/,' X, Y, Z offsets for fiducial dummy variable:',3f10.3)
+	else if (nmodpt .eq. 0) then
+	  write(*,107)(dxyz(i),i=1,3)
+107	  format(/,' X, Y, Z offsets from fiducial fit:',3f10.3)
+	  dxyz(1) = 0.
+	  dxyz(2) = 0.
+	  dxyz(3) = 0.
+	endif
 	print *,'Transformation matrix for matchvol:'
         write(*,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 102     format(3f10.6,f10.3)
-	print *,'Enter name of file to place transformation in, or ',
-     &	    'Return for none'
-	read(5,'(a)')filename
+
+	filename = ' '
+	if (pipinput) then
+	  if (PipGetInOutFile('OutputFile', 0, ' ', filename)
+     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+	else
+	  print *,'Enter name of file to place transformation in, or ',
+     &	      'Return for none'
+	  read(5,'(a)')filename
+	endif
 	if(filename.ne.' ')then
 	  call dopen(1,filename,'new','f')
 	  write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
