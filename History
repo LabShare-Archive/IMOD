@@ -1,17 +1,29 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/22/03: Added button to image process window so that one could toggle between
+1/25/04: Made distributions have only the startup files needed for the machine.
+
+1/25/04: Converted Copytomocoms to accept command line argument input and
+added option to insert distortion correction in newstack commands.
+
+1/25/04: Converted Xftoxg to PIP input, retired Xf2xg, and fixed hybrid method
+in Xftoxg which never worked for eliminating trends in rotation or
+magnification.
+
+1/25/04: Converted Xfproduct to PIP input and added option to scale
+translations when there is mismatch in scale between images at the two stages.
+
+1/22/04: Added button to image process window so that one could toggle between
 original and processed image, and made intensity floating work with processing.
 
-1/20/03: Stopped trying to free a static array when loading data.
+1/20/04: Stopped trying to free a static array when loading data.
 
-1/19/03: IMOD_3-2-5
-1/19/03: Added an option to Xfmodel to apply a single line of the transform
+1/19/04: IMOD_3-2-5
+1/19/04: Added an option to Xfmodel to apply a single line of the transform
 file to the whole model, made this behavior the default when there is just
 one line of input, and fixed two problems with transforming and
 back-transforming when using PIP input.
 
-1/17/03: Made Mac version work for files > 2 Gb by using the file I/O routines
+1/17/04: Made Mac version work for files > 2 Gb by using the file I/O routines
 set up for solving the problem in Windows (the old way of doing it broke going
 from 10.2 to 10.3).
 
