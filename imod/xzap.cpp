@@ -2163,8 +2163,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   Iobj  *obj  = &(vi->imod->obj[ob]);
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
-  int pt, radius;
+  int pt, radius, lastX, lastY, thisX, thisY;
   float drawsize;
+  bool lastVisible, thisVisible;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
 
@@ -2178,30 +2179,50 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
-
   /* Open or closed contour */
   // Skip if not wild and not on section
-  if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) ||
-        zapPointVisable(zap, &(cont->pts[0])))) {
+  lastVisible = zapPointVisable(zap, &(cont->pts[0]));
+  if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) || lastVisible)) {
+    if (cont->flags & ICONT_WILD) {
 
-    // Draw interior points
-    b3dBeginLine();
-    for (pt = 0; pt < cont->psize; pt++){
-      if (!zapPointVisable(zap, &(cont->pts[pt])))
-        continue;
-      b3dVertex2i(zapXpos(zap, cont->pts[pt].x),
-                  zapYpos(zap, cont->pts[pt].y));
+      // For wild contour, test every point and connect only pairs on section
+      lastX = zapXpos(zap, cont->pts[0].x);
+      lastY = zapYpos(zap, cont->pts[0].y);
+      for (pt = 1; pt < cont->psize; pt++) {
+        thisVisible = zapPointVisable(zap, &(cont->pts[pt]));
+        if (thisVisible) {
+          thisX = zapXpos(zap, cont->pts[pt].x);
+          thisY = zapYpos(zap, cont->pts[pt].y);
+          if (lastVisible)
+            b3dDrawLine(lastX, lastY, thisX, thisY);
+          lastX = thisX;
+          lastY = thisY;
+        }
+        lastVisible = thisVisible;
+      }
+
+      // IF closed contour in closed object and not current, draw closure as
+      // long as both points are visible
+      if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && 
+          !currentCont && lastVisible && zapPointVisable(zap, cont->pts))
+        b3dDrawLine(lastX, lastY, zapXpos(zap, cont->pts->x),
+                    zapYpos(zap, cont->pts->y));
+
+    } else {
+
+      // For non-wild contour, draw all points without testing
+      b3dBeginLine();
+      for (pt = 0; pt < cont->psize; pt++)
+        b3dVertex2i(zapXpos(zap, cont->pts[pt].x),
+                    zapYpos(zap, cont->pts[pt].y));
+
+      // IF closed contour in closed object and not current, draw closure
+      if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont)
+        b3dVertex2i(zapXpos(zap, cont->pts->x), zapYpos(zap, cont->pts->y));
+
+      b3dEndLine();
     }
           
-    // IF closed contour in closed object and not current, draw closure
-    if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont) {
-      point = &(cont->pts[0]);
-      if (zapPointVisable(zap, point))
-        b3dVertex2i(zapXpos(zap, point->x),
-                    zapYpos(zap, point->y));
-
-    }
-    b3dEndLine();
 
     // Draw symbols
     if (obj->symbol != IOBJ_SYM_NONE)
@@ -2608,6 +2629,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.19  2003/04/25 03:28:33  mast
+Changes for name change to 3dmod
+
 Revision 4.18  2003/04/18 20:16:39  mast
 Rename meta test function
 
