@@ -1,58 +1,30 @@
-/*  IMOD VERSION 2.02
- *
+/*
  *  clip.h -- Header file for command line image proccessing.
  *
  *  Author: James Kremer email: kremer@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
+/*  $Author$
 
-/*****************************************************************************
- *   Copyright (C) 1995-1996 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+$Date$
 
+$Revision$
+
+$Log$
+*/
 #ifndef CLIP_H
 #define CLIP_H
 
 /* processes */
-#define IP_NONE        0
-#define IP_ADD         1
-#define IP_AVERAGE     2
-#define IP_BRIGHTNESS  3 
-#define IP_COLOR       4
-#define IP_CONTRAST    5
-#define IP_CORRELATE   6
-#define IP_EDGE        19
-#define IP_INFO        7
-#define IP_FFT         8
-#define IP_FILTER      9
-#define IP_FLIP       10
-#define IP_JOINRGB    21
-#define IP_PEAK       11
-#define IP_PROJECT    20
-#define IP_RESIZE     12
-#define IP_ROTATE     13
-#define IP_SHADOW     14
-#define IP_SHARPEN    15
-#define IP_SPLITRGB   20
-#define IP_STAT       16
-#define IP_TRANSLATE  17
-#define IP_ZOOM       18
+enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_BRIGHTNESS, IP_COLOR, 
+      IP_CONTRAST, IP_CORRELATE, IP_FFT, IP_FILTER, IP_FLIP, IP_GRADIENT, 
+      IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
+      IP_PREWITT,
+      IP_PROJECT, IP_RESIZE, IP_ROTATE, IP_SHADOW, IP_SHARPEN, IP_SMOOTH,
+      IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM};
 
 
 #define IP_DEFAULT -99999
@@ -111,22 +83,10 @@ int *clipMakeSecList(char *clst, int *nofsecs);
 /* clip_proc.c */
 int grap_resize(struct MRCheader *hin, struct MRCheader *hout,
 		struct Grap_options *opt);
-int grap_oresize(struct MRCheader *hin, struct MRCheader *hout,
-		 struct Grap_options *opt);
-int clip_brightness(struct MRCheader *hin, struct MRCheader *hout,
-		    struct Grap_options *opt);
-int clip2d_brightness(struct MRCheader *hin, struct MRCheader *hout,
-		      struct Grap_options *opt);
-int clip_contrast(struct MRCheader *hin, struct MRCheader *hout,
-		  struct Grap_options *opt);
-int clip2d_contrast(struct MRCheader *hin, struct MRCheader *hout,
-		    struct Grap_options *opt);
-int clip_shadow(struct MRCheader *hin, struct MRCheader *hout,
-		struct Grap_options *opt);
-int clip2d_shadow(struct MRCheader *hin, struct MRCheader *hout,
-		  struct Grap_options *opt);
+int clip_scaling(struct MRCheader *hin, struct MRCheader *hout,
+		    struct Grap_options *opt, int process);
 int clipEdge(struct MRCheader *hin, struct MRCheader *hout,
-	     struct Grap_options *opt);
+	     struct Grap_options *opt, int process);
 int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
 	      struct Grap_options *opt);
 int grap_color(struct MRCheader *hin, struct MRCheader *hout,
@@ -148,8 +108,10 @@ int clip_get_stat3d(struct MRCvolume *v,
 		    float *rmin, float *rmax, float *rmean,
 		    int *rx, int *ry, int *rz);
 int grap_stat(struct MRCheader *hin, struct Grap_options *opt);
-int clip_sharpen(struct MRCheader *hin, struct MRCheader *hout,
-		 struct Grap_options *opt);
+int clip_convolve(struct MRCheader *hin, struct MRCheader *hout,
+		 struct Grap_options *opt, int process);
+int clipMedian(struct MRCheader *hin, struct MRCheader *hout,
+               struct Grap_options *opt);
 int write_vol(struct MRCslice **vol, struct MRCheader *hout);
 int free_vol(struct MRCslice **vol, int z);
 
@@ -175,7 +137,7 @@ int grap_volume_write(struct MRCvolume *v,  struct MRCheader *hout,
 		      struct Grap_options *opt);
 int grap_volume_free(struct MRCvolume *v);
 int mrc_head_print(struct MRCheader *data);
-void set_mrc_coords(struct Grap_options *opt);
+int set_mrc_coords(struct Grap_options *opt);
 
 /* fft.c */
 int slice_fft(Islice *slice);
