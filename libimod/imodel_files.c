@@ -69,7 +69,7 @@ Log at end of file
 #define IMODEL_FILES_VERSION_12
 #define IMODEL_FILES_VERSION 12   /* imod 1.2 */
 
-/*#define IMODEL_FILES_DEBUG   */
+/* #define IMODEL_FILES_DEBUG */
 
 static int imodel_read_v01(struct Mod_Model *mod, FILE *fin);
 static int imodel_read(Imod *imod, int version);
@@ -83,7 +83,7 @@ static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin);
 static int imodel_read_contour(Icont *cont, FILE *fin);
 static int imodel_read_contour_v01(Icont *cont, FILE *fin);
 static int imodel_read_mesh(Imesh *mesh, FILE *fin);
-static int imodel_read_clip(Iobj *obj, FILE *fin);
+static int imodel_read_clip(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_ptsizes(Icont *cont, FILE *fin);
 
@@ -246,7 +246,7 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
   rewind(fout);
      
   /* DNM 9/4/02: set flag that mat1 and mat3 are written as bytes */
-  mod->flags |= IMODF_MAT1_IS_BYTES;
+  mod->flags |= IMODF_MAT1_IS_BYTES | IMODF_MULTIPLE_CLIP;
 
   scale.x = mod->xybin;
   scale.y = mod->xybin;
@@ -292,6 +292,8 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
 {
   int i, error;
   int id;
+  b3dUByte clipOut;
+  IclipPlanes *clips;
 
   id = ID_OBJT;
   imodPutInt(fout, &id);
@@ -306,6 +308,9 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
   imodPutInt(fout, &obj->surfsize);
 #endif        
 
+  if (obj->label)
+    imodLabelWrite(obj->label, ID_OLBL, fout);
+
   for(i = 0; i < obj->contsize; i++)
     if (error = imodel_write_contour( &(obj->cont[i]), fout, scale))
       return(error);
@@ -319,22 +324,24 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
    * Note version 2 readers were in IMOD 1.2
    */
   if (IMODEL_FILES_VERSION > 2){
-    /* DNM: add test on point locations as well, otherwise an unrotated
-       clip plane that is turned off will not be stored */
-    if ((obj->clip) || 
-        (obj->clip_normal.x) ||
-        (obj->clip_normal.y) ||
-        (obj->clip_normal.z != -1.0f) ||
-        (obj->clip_point.x) ||
-        (obj->clip_point.y) ||
-        (obj->clip_point.z)
-        ){
+    /* DNM 9/19/04: remove test on point and normal, clip no longer 0 if off */
+    clips = &obj->clips;
+    if (clips->count) {
+
       id = ID_CLIP;
       imodPutInt(fout, &id);
-      id =  SIZE_CLIP;
+      id =  SIZE_CLIP + 24 * (clips->count - 1);
       imodPutInt(fout, &id);
-      imodPutBytes(fout, &obj->clip, 4);
-      imodPutFloats(fout, (float *)&obj->clip_normal, 6);
+
+      /* For backward compatibility, if there is one clip plane and it is
+         off, set clip to 0 */
+      clipOut = clips->count;
+      if (clipOut == 1 && (clips->flags & 1) == 0)
+        clipOut = 0;
+      imodPutBytes(fout, &clipOut, 1);
+      imodPutBytes(fout, &clips->flags, 3);
+      imodPutFloats(fout, (float *)&clips->normal[0], 3 * clips->count);
+      imodPutFloats(fout, (float *)&clips->point[0], 3 * clips->count);
     }
 	  
     /* Matierial data. */
@@ -373,7 +380,7 @@ static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
   }
      
   if (cont->label)
-    imodLabelWrite(cont->label, fout);
+    imodLabelWrite(cont->label, ID_LABL, fout);
 
   if (cont->sizes) {
     id = ID_SIZE;
@@ -548,6 +555,12 @@ static int imodel_read(Imod *imod, int version)
 #endif
       break;
 	       
+    case ID_OLBL:
+      obj->label = imodLabelRead(imod->file, &error);
+      if (!obj->label)
+        return(error);
+      break;
+
     case ID_CONT:
       cont++;
       if (error = imodel_read_contour(cont, imod->file))
@@ -590,7 +603,10 @@ static int imodel_read(Imod *imod, int version)
       break;
 
     case ID_CLIP:
-      imodel_read_clip(obj, imod->file); 
+#ifdef IMODEL_FILES_DEBUG
+      fprintf(stderr, "imodel_read_v02: clip %x.\n", id);
+#endif
+      imodel_read_clip(obj, imod->file, imod->flags); 
       break; 
 
       /* DNM 9/4/02: pass flags so mat1 & mat3 can be read two ways */
@@ -604,6 +620,13 @@ static int imodel_read(Imod *imod, int version)
 #endif
 	       
       imodViewModelRead(imod);
+      break;
+
+    case ID_MCLP:
+#ifdef IMODEL_FILES_DEBUG
+      fprintf(stderr, "imodel_read_v02: mclp %x.\n", id);
+#endif
+      imodViewClipRead(imod);
       break;
 
     case ID_IMNX: /* image nat. transform */
@@ -903,20 +926,11 @@ static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
   return(0);
 }
 
-static int imodel_read_clip(Iobj *obj, FILE *fin)
+static int imodel_read_clip(Iobj *obj, FILE *fin, b3dUInt32 flags)
 {
-  unsigned int size;
-  int error = 0;
-
-  size = imodGetInt(fin);
-
-  if (size != SIZE_CLIP){
-    fseek(fin, size, SEEK_CUR);
-  }else{
-    imodGetBytes(fin, (unsigned char *)&obj->clip, 4);
-    imodGetFloats(fin, (float *)&obj->clip_normal, 6);
-  }
-  return(ferror(fin));
+  int error = imodClipsRead(&obj->clips, fin);
+  imodClipsFixCount(&obj->clips, flags);
+  return error;
 }
 
 static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags)
@@ -1526,6 +1540,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.13  2004/09/10 21:33:46  mast
+  Eliminated long variables
+
   Revision 3.12  2004/01/05 18:30:26  mast
   Removed print statement about scaling
 
