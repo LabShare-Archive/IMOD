@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.19  2004/04/03 20:01:00  mast
+#  Added ability to copy install files and rename them
+#
 #  Revision 3.18  2004/01/27 05:53:54  mast
 #  Needed to define LIBEXT line better
 #
@@ -119,19 +122,19 @@ if ($qtlibdir == "bin") then
     \find $instdir/$qtlibdir -name '*.lib' -print -exec \rm '{}' \;
     if (`\find $QTDIR/lib -name 'qt-mt*.dll' -print` != "") then
         \cp $QTDIR/lib/qt-mt*.dll $instdir/$qtlibdir
-        exit 0
-    endif
-    if (`\find $QTDIR/lib -name 'qt-*.dll' -print` != "") then
+    else if (`\find $QTDIR/lib -name 'qt-*.dll' -print` != "") then
         \cp $QTDIR/lib/qt-*.dll $instdir/$qtlibdir
-        exit 0
-    endif
-    if (`\find $QTDIR/lib -name 'qt*.dll' -print` != "") then
+    else if (`\find $QTDIR/lib -name 'qt*.dll' -print` != "") then
         \cp $QTDIR/lib/qt*.dll $instdir/$qtlibdir
-        exit 0
+    else
+        echo "INSTALLQTLIB CANNOT FIND LIBRARY IN $QTDIR/lib"
+        exit 1
     endif
 
-    echo "INSTALLQTLIB CANNOT FIND LIBRARY IN $QTDIR/lib"
-    exit 1
+    # 6/25/04: discovered these were not coming through right, and it matters
+    #
+    chmod a+rx $instdir/$qtlibdir/*.dll
+    exit 0
 endif
 
 set qtlib = $qtlib[1]
