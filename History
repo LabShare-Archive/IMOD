@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/05: Reworked Clip so that all but a few processes operate slice-by-slice
+instead of reading whole volume; made sure that input and output size and
+mode options and appending worked with this new mode of processing.  Abandoned
+rotate, translate, and zoom processes.
+
+1/13/05: Made reducemont work with negative piece overlaps (spaces between
+pieces) up to 10% of frame size, made it check for image size, and increased 
+buffer for blendmont and reducemont to hold two 4Kx4K images.
+
+1/12/05: Fixed clip 2D correlation, broken by changes on 11/4/04.
+
 1/11/05: IMOD_3-4-17
 1/11/05: eTomo can now generate tomograms using the Z-dependent factors from a
 Tiltalign stretch solution.  The check boxes to use Z factors and to do local
