@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/03/18 17:03:15  rickg
+ * <p> Combine development in progress
+ * <p>
  * <p> Revision 2.12  2003/03/18 15:01:31  rickg
  * <p> Combine development in progress
  * <p>
@@ -234,7 +237,7 @@ public class ApplicationManager {
   //  The ProcessManager manages the execution of com scripts
   private ProcessManager processMgr = new ProcessManager(this);
   private ProcessTrack processTrack = new ProcessTrack();
-  
+
   // Control variable for process execution
   private String nextProcess = "";
   private String threadNameA = "none";
@@ -318,7 +321,7 @@ public class ApplicationManager {
     DialogExitState exitState = setupDialog.getExitState();
 
     if (exitState != DialogExitState.CANCEL) {
-      //  FIXME?  should this totally write over the metaData object?
+      // TODO  should this totally write over the metaData object?
       metaData = setupDialog.getFields();
 
       if (metaData.isValid()) {
@@ -397,7 +400,7 @@ public class ApplicationManager {
       return;
     }
 
-    // FIXME: When a panel is overwriten by another should it be nulled and
+    // TODO: When a panel is overwriten by another should it be nulled and
     // closed or left and and reshown when needed?
     // Problem with stale data for align and tilt info since they are on
     // multiple panels
@@ -1578,8 +1581,6 @@ public class ApplicationManager {
    *
    */
   public void newst(AxisID axisID) {
-    // FIXME  how should Generation be modified
-
     try {
       NewstParam newstParam;
       comScriptMgr.loadNewst(axisID);
@@ -1651,8 +1652,8 @@ public class ApplicationManager {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
 
-    // Get the setupcombine parameters and set the default patch boundaries if they have
-    // not already been set
+    // Get the setupcombine parameters and set the default patch boundaries if
+    // they have not already been set
     CombineParams combineParams =
       new CombineParams(metaData.getCombineParams());
 
@@ -1689,18 +1690,21 @@ public class ApplicationManager {
     // Fill in the dialog box params and set it to the appropriate state
     tomogramCombinationDialog.setCombineParams(combineParams);
 
-    comScriptMgr.loadSolvematchshift();
-    tomogramCombinationDialog.setSolvematchshiftParams(
-      comScriptMgr.getSolvematchshift());
+    // If setupcombine has been run load the com scripts, otherwise disable the
+    // apropriate panels in the tomogram combination dialog
+    tomogramCombinationDialog.enableCombineTabs(
+      metaData.getCombineParams().isScriptsCreated());
 
-    comScriptMgr.loadPatchcorr();
-    tomogramCombinationDialog.setPatchcrawl3DParams(
-      comScriptMgr.getPatchcrawl3D());
-
-    comScriptMgr.loadMatchorwarp();
-    tomogramCombinationDialog.setMatchorwarpParams(
-      comScriptMgr.getMatchorwarParam());
-
+    if (metaData.getCombineParams().isScriptsCreated()) {
+      if (metaData.getCombineParams().isModelBased()) {
+        loadSolvematchMod();
+      }
+      else {
+        loadSolvematchShift();
+      }
+      loadPatchcorr();
+      loadMatchorwarp();
+    }
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
       AxisID.FIRST);
@@ -1758,226 +1762,43 @@ public class ApplicationManager {
   }
 
   /**
-   * Initiate the combine process from the beginning
+   * Run the setupcombine script with the current combine parameters stored in
+   * metaData object.  updateCombineCom is called first to get the currect
+   * parameters from the dialog.
+   * @param tomogramCombinationDialog the calling dialog.
    */
-  public void combine() {
-    if (updateSolvematchshiftCom()
-      && updatePatchcorrCom()
-      && updateMatchorwarpCom()) {
-
-        //  Set the next process to execute when this is finished   
-        nextProcess = "matchvol1";
-        String threadName = processMgr.solvematchshift();
-        setThreadName(threadName, AxisID.FIRST);
-        tomogramCombinationDialog.showPane("Initial Match");
-        mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
-    }
-  }
-
-  /**
-   * Initiate the combine process using solvematchmod
-   */
-  public void modelCombine() {
-    if (updateSolvematchmodCom()
-      && updatePatchcorrCom()
-      && updateMatchorwarpCom()) {
-
-        //  Set the next process to execute when this is finished   
-        nextProcess = "matchvol1";
-        String threadName = processMgr.solvematchshift();
-        setThreadName(threadName, AxisID.FIRST);
-        tomogramCombinationDialog.showPane("Initial Match");
-        mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
-    }
-
-  }
-
-  /**
-   * Execute the matchvol1 com script and put patchcorr in the execution queue 
-   */
-  private void matchvol1() {
-    //  Set the next process to execute when this is finished   
-    nextProcess = "patchcorr";
-    String threadName = processMgr.matchvol1();
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Initial Match");
-    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
-  }
-  
-  /**
-   * Initiate the combine process from patchcorr step
-   */
-  public void patchcorrCombine() {
-    if (updatePatchcorrCom() && updateMatchorwarpCom()) {
-      //TODO implement: walk through each of the combine steps
-    }
-  }
-
-  /**
-   * Exececute the patchcorr com script and put matchorwarp in the execution
-   * queue
-   */
-  private void patchcorr() {
-    //  Set the next process to execute when this is finished   
-    nextProcess = "matchorwarp";
-    String threadName = processMgr.patchcorr();
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
-  }
-
-  /**
-   * Initiate the combine process from matchorwarp step
-   */
-  public void matchorwarpCombine() {
-    if (updateMatchorwarpCom()) {
-      //    TODO implement: walk through each of the combine steps
-    }
-  }
-
-  private void matchorwarp() {
-    //  Set the next process to execute when this is finished   
-    nextProcess = "volcombine";
-
-    String threadName = processMgr.matchorwarp();
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);    
-  }
-
-  /**
-   * Exececute the volcombine com script and clear the execution queue
-   */
-  private void volcombine() {
-    //  Set the next process to execute when this is finished   
-    nextProcess = "";
-
-    String threadName = processMgr.volcombine();
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);    
-  }
-
-
-  /**
-   * Update the solvematchshift.com script from the information in the tomogram
-   * combination dialog box
-   * @return boolean
-   */
-  public boolean updateSolvematchshiftCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      openMessageDialog(
-        "Can not update solvematchshift.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
+  public void createCombineScripts() {
+    if (!updateCombineCom()) {
+      return;
     }
 
     try {
-      SolvematchshiftParam solvematchshiftParam =
-        comScriptMgr.getSolvematchshift();
-      tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
-      comScriptMgr.saveSolvematchshift(solvematchshiftParam);
+      processMgr.setupCombineScripts(metaData);
     }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Solvematchshift Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
-      return false;
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "Can't run setupcombine");
+      return;
     }
-    return true;
-  }
 
-  /**
-   * Update the solvematchmod.com script from the information in the tomogram
-   * combination dialog box
-   * @return boolean
-   */
-  public boolean updateSolvematchmodCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
+    catch (IOException except) {
+      except.printStackTrace();
       openMessageDialog(
-        "Can not update solvematchmod.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
+        "Can't run setupcombine\n" + except.getMessage(),
+        "Setupcombine IOException");
+      return;
     }
 
-    try {
-      //FIXME!!!
-      SolvematchshiftParam solvematchshiftParam =
-        comScriptMgr.getSolvematchshift();
-      tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
-      comScriptMgr.saveSolvematchshift(solvematchshiftParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Solvematchshift Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
-      return false;
-    }
-    return true;
-  }
-
-
-  
-  /**
-   * Update the patchcorr.com script from the information in the tomogram
-   * combination dialog box
-   * @return boolean
-   */
-  private boolean updatePatchcorrCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      openMessageDialog(
-        "Can not update patchcorr.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
-    }
-
-    try {
-      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
-      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
-      comScriptMgr.savePatchcorr(patchcrawl3DParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Patchcorr Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      openMessageDialog(errorMessage, "Patchcorr Parameter Syntax Error");
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Update the matchorwarp.com script from the information in the tomogram
-   * combination dialog box
-   * @return boolean
-   */
-  private boolean updateMatchorwarpCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      openMessageDialog(
-        "Can not update matchorwarp.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
-    }
-
-    try {
-      MatchorwarpParam matchorwarpParam = comScriptMgr.getMatchorwarParam();
-      tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
-      comScriptMgr.saveMatchorwarp(matchorwarpParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Matchorwarp Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      openMessageDialog(errorMessage, "Matchorwarp Parameter Syntax Error");
-      return false;
-    }
-    return true;
+    // Reload the initial and final match paramaters from the newly created
+    // scripts
+    metaData.getCombineParams().setScriptsCreated(true);
+    isDataParamDirty = true;
+    
+    loadSolvematchShift();
+    loadPatchcorr();
+    loadMatchorwarp();
+    tomogramCombinationDialog.enableCombineTabs(true);
+    
   }
 
   /**
@@ -2015,47 +1836,257 @@ public class ApplicationManager {
   }
 
   /**
-   * Run the setupcombine script with the current combine parameters stored in
-   * metaData object.  updateCombineCom is called first to get the currect
-   * parameters from the dialog.
-   * @param tomogramCombinationDialog the calling dialog.
+   * Load the solvematchshift com script into the tomogram combination dialog
    */
-  public void createCombineScripts() {
-    if (!updateCombineCom()) {
-      return;
-    }
-
-    try {
-      processMgr.setupCombineScripts(metaData);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      openMessageDialog(except.getMessage(), "Can't run setupcombine");
-      return;
-    }
-
-    catch (IOException except) {
-      except.printStackTrace();
-      openMessageDialog(
-        "Can't run setupcombine\n" + except.getMessage(),
-        "Setupcombine IOException");
-        return;
-    }
-    
-    // Reload the initial and final match paramaters from the newly created
-    // scripts
+  public void loadSolvematchShift() {
     comScriptMgr.loadSolvematchshift();
     tomogramCombinationDialog.setSolvematchshiftParams(
       comScriptMgr.getSolvematchshift());
+  }
 
+  /**
+   * Update the solvematchshift.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  public boolean updateSolvematchshiftCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update solvematchshift.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      comScriptMgr.loadSolvematchshift();
+      SolvematchshiftParam solvematchshiftParam = comScriptMgr.getSolvematchshift();
+      tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
+      comScriptMgr.saveSolvematchshift(solvematchshiftParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Solvematchshift Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Load the solvematchmod com script into the tomogram combination dialog
+   */
+  public void loadSolvematchMod() {
+    comScriptMgr.loadSolvematchmod();
+    tomogramCombinationDialog.setSolvematchmodParams(
+      comScriptMgr.getSolvematchmod());
+  }
+
+  /**
+   * Update the solvematchmod.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  public boolean updateSolvematchmodCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update solvematchmod.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      comScriptMgr.loadSolvematchmod();
+      SolvematchmodParam solvematchmodParam = comScriptMgr.getSolvematchmod();
+      tomogramCombinationDialog.getSolvematchmodParams(solvematchmodParam);
+      comScriptMgr.saveSolvematchmod(solvematchmodParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Solvematchmod Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Solvematchmod Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Load the patchcorr com script into the tomogram combination dialog
+   */
+  private void loadPatchcorr() {
     comScriptMgr.loadPatchcorr();
     tomogramCombinationDialog.setPatchcrawl3DParams(
       comScriptMgr.getPatchcrawl3D());
+  }
 
+  /**
+   * Update the patchcorr.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updatePatchcorrCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update patchcorr.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
+      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
+      comScriptMgr.savePatchcorr(patchcrawl3DParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Patchcorr Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Patchcorr Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Load the matchorwarp com script into the tomogram combination dialog
+   */
+  private void loadMatchorwarp() {
     comScriptMgr.loadMatchorwarp();
     tomogramCombinationDialog.setMatchorwarpParams(
       comScriptMgr.getMatchorwarParam());
-    
+  }
+
+  /**
+   * Update the matchorwarp.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updateMatchorwarpCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update matchorwarp.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      MatchorwarpParam matchorwarpParam = comScriptMgr.getMatchorwarParam();
+      tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
+      comScriptMgr.saveMatchorwarp(matchorwarpParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Matchorwarp Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Matchorwarp Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Initiate the combine process from the beginning
+   */
+  public void combine() {
+    if (updateSolvematchshiftCom()
+      && updatePatchcorrCom()
+      && updateMatchorwarpCom()) {
+
+      //  Set the next process to execute when this is finished   
+      nextProcess = "matchvol1";
+      String threadName = processMgr.solvematchshift();
+      setThreadName(threadName, AxisID.FIRST);
+      tomogramCombinationDialog.showPane("Initial Match");
+      mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+    }
+  }
+
+  /**
+   * Initiate the combine process using solvematchmod
+   */
+  public void modelCombine() {
+    if (updateSolvematchmodCom()
+      && updatePatchcorrCom()
+      && updateMatchorwarpCom()) {
+
+      //  Set the next process to execute when this is finished   
+      nextProcess = "matchvol1";
+      String threadName = processMgr.solvematchmod();
+      setThreadName(threadName, AxisID.FIRST);
+      tomogramCombinationDialog.showPane("Initial Match");
+      mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+    }
+  }
+
+  /**
+   * Execute the matchvol1 com script and put patchcorr in the execution queue 
+   */
+  private void matchvol1() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "patchcorr";
+    String threadName = processMgr.matchvol1();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Initial Match");
+    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
+  }
+
+  /**
+   * Initiate the combine process from patchcorr step
+   */
+  public void patchcorrCombine() {
+    if (updatePatchcorrCom() && updateMatchorwarpCom()) {
+      patchcorr();
+    }
+  }
+
+  /**
+   * Exececute the patchcorr com script and put matchorwarp in the execution
+   * queue
+   */
+  private void patchcorr() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "matchorwarp";
+    String threadName = processMgr.patchcorr();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
+  }
+
+  /**
+   * Initiate the combine process from matchorwarp step
+   */
+  public void matchorwarpCombine() {
+    if (updateMatchorwarpCom()) {
+      matchorwarp();
+    }
+  }
+
+  private void matchorwarp() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "volcombine";
+
+    String threadName = processMgr.matchorwarp();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);
+  }
+
+  /**
+   * Exececute the volcombine com script and clear the execution queue
+   */
+  private void volcombine() {
+    //  Set the next process to execute when this is finished   
+    nextProcess = "";
+
+    String threadName = processMgr.volcombine();
+    setThreadName(threadName, AxisID.FIRST);
+    tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);
   }
 
   /**
@@ -2080,10 +2111,10 @@ public class ApplicationManager {
       //
       //  Get the user input data from the dialog box
       //
-      //FIXME      mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
+      //TODO      mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
     }
     if (exitState == DialogExitState.EXECUTE) {
-      //FIXME      mainFrame.setPostProcessingState(ProcessState.COMPLETE);
+      //TODO      mainFrame.setPostProcessingState(ProcessState.COMPLETE);
     }
 
   }
@@ -2687,22 +2718,22 @@ public class ApplicationManager {
    *
    */
   private void startNextProcess() {
-    if(nextProcess.equals("matchvol1")) {
+    if (nextProcess.equals("matchvol1")) {
       matchvol1();
       return;
     }
-    
-    if(nextProcess.equals("patchcorr")) {
+
+    if (nextProcess.equals("patchcorr")) {
       patchcorr();
       return;
     }
-    
-    if(nextProcess.equals("matchorwarp")) {
+
+    if (nextProcess.equals("matchorwarp")) {
       matchorwarp();
       return;
     }
 
-    if(nextProcess.equals("volcombine")) {
+    if (nextProcess.equals("volcombine")) {
       volcombine();
       return;
     }
@@ -2723,7 +2754,7 @@ public class ApplicationManager {
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
-      if(exitValue == 0 && !nextProcess.equals("")) {
+      if (exitValue == 0 && !nextProcess.equals("")) {
         startNextProcess();
       }
     }
@@ -2759,5 +2790,4 @@ public class ApplicationManager {
       threadNameA = name;
     }
   }
-
 }
