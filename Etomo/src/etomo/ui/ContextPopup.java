@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.net.MalformedURLException;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -23,6 +24,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/07 17:51:09  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.1  2003/03/20 17:43:32  rickg
  * <p> Only display window if URL is sucessfully opened
  * <p>
@@ -86,7 +90,15 @@ public class ContextPopup {
     actionListener = new ActionListener() {
 
       public void actionPerformed(ActionEvent actionEvent) {
-        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
+        String imodURL;
+        try {
+          imodURL = appManager.getIMODDirectory().toURL().toString() + "/html/";
+        } catch (MalformedURLException except) {
+          except.printStackTrace();
+          System.err.println("Malformed URL:");
+          System.err.println(appManager.getIMODDirectory().toString());
+          return;
+        }
         String tomoGuideLocation = "tomoguide.html";
 
         if (anchor != null && !anchor.equals("")) {

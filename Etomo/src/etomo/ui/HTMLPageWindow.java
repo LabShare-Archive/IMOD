@@ -24,6 +24,9 @@ import java.net.URL;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/20 17:41:54  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -70,6 +73,8 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
       editorPane.setEditable(false);
     }
     catch (Exception except) {
+      System.err.println("Cannot open URL:");
+	  System.err.println(newURL);
       except.printStackTrace();
     }
   }

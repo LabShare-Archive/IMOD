@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.34  2003/05/10 18:01:56  rickg
+ * <p> Fixes to get IMOD_DIR home and current working directory
+ * <p> in a OS agnostic manner
+ * <p>
  * <p> Revision 2.33  2003/05/09 23:25:36  rickg
  * <p> Working change to get env vars from all OSs
  * <p>
@@ -318,7 +322,7 @@ public class ApplicationManager {
 
   private boolean isDataParamDirty = false;
   private String homeDirectory;
-  private String IMODDirectory;
+  private File IMODDirectory;
 
   private UserConfiguration userConfig = new UserConfiguration();
   private MetaData metaData = new MetaData();
@@ -2769,10 +2773,10 @@ public class ApplicationManager {
     // Get the IMOD directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    IMODDirectory = System.getProperty("IMOD_DIR");
-    if (IMODDirectory == null) {
-      IMODDirectory = getEnvironmentVariable("IMOD_DIR");
-      if (IMODDirectory == "") {
+    String imodDirectoryName = System.getProperty("IMOD_DIR");
+    if (imodDirectoryName == null) {
+      imodDirectoryName = getEnvironmentVariable("IMOD_DIR");
+      if (imodDirectoryName == "") {
         String[] message = new String[3];
         message[0] =
           "Can not find IMOD directory! Unable to view documentation";
@@ -2782,16 +2786,17 @@ public class ApplicationManager {
       }
       else {
         if (debug) {
-          System.err.println("IMOD_DIR (env): " + IMODDirectory);
+          System.err.println("IMOD_DIR (env): " + imodDirectoryName);
         }
       }
     }
     else {
       if (debug) {
-        System.err.println("IMOD_DIR (-D): " + IMODDirectory);
+        System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
       }
     }
-
+	IMODDirectory = new File(imodDirectoryName);
+	
     //  Create a File object specifying the user configuration file
     File userConfigFile = new File(homeDirectory, ".etomo");
 
@@ -3013,8 +3018,8 @@ public class ApplicationManager {
   /**
    * Return the IMOD directory
    */
-  public String getIMODDirectory() {
-    return IMODDirectory;
+  public File getIMODDirectory() {
+    return new File(IMODDirectory.getAbsolutePath());
   }
 
   /**
