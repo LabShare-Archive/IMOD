@@ -1,3 +1,4 @@
+        integer nfbplimits
 	parameter (nfbplimits=15)
 	integer*4 limitfbp(3,nfbplimits)
 	data limitfbp/256,50,80, 256,400,60, 512,25,66, 512,400,40,
