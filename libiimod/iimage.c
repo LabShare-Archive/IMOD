@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
 Revision 3.4  2004/01/08 06:41:07  mast
 Fixed complex scaling
 
@@ -34,11 +37,41 @@ upper limit of 0
 #include <string.h>
 
 #include "iimage.h"
+#include "ilist.h"
 #include "b3dutil.h"
 
 int iiTIFFCheck(ImodImageFile *inFile);
 int iiMRCCheck(ImodImageFile *inFile);
 
+/* The resident check list */
+static Ilist *checkList = NULL;
+
+/* Initialize check list: if it does not exist, allocate it and place TIFF and
+   MRC functions on the list */
+static int initCheckList()
+{
+  IIFileCheckFunction func;
+  if (checkList)
+    return 0;
+  checkList = ilistNew(sizeof(IIFileCheckFunction), 4);
+  if (!checkList)
+    return 1;
+  func = iiTIFFCheck;
+  ilistAppend(checkList, &func);
+  func = iiMRCCheck;
+  ilistAppend(checkList, &func);
+  return 0;
+}
+
+/* Add the given function to the check list */
+void iiAddCheckFunction(IIFileCheckFunction func)
+{
+  if (initCheckList())
+    return;
+  ilistAppend(checkList, &func);
+}
+
+/* Create a new file structure and initialize to null values */ 
 ImodImageFile *iiNew()
 {
   ImodImageFile *ofile = (ImodImageFile *)malloc(sizeof(ImodImageFile));
@@ -70,6 +103,8 @@ ImodImageFile *iiNew()
   return(ofile);
 }
 
+/* Initialize the image file structure for the given size and other
+   characteristics */
 int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
            int file, int format, int type)
 {
@@ -83,38 +118,52 @@ int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize,
   return(0);
 }
 
+/* Try to open an image file with the given name and with the given mode */
 ImodImageFile *iiOpen(char *filename, char *mode)
 {
   ImodImageFile *ofile;
-  if ((ofile = iiNew()) == NULL) return NULL;
+  IIFileCheckFunction *checkFunc;
+  int i;
+
+  if ((ofile = iiNew()) == NULL) 
+    return NULL;
   ofile->fp = fopen(filename, mode);
 
-  if (ofile->fp == NULL){
+  if (ofile->fp == NULL || initCheckList()) {
     iiDelete(ofile);
     return(NULL);
   }
   ofile->filename = strdup(filename);
   ofile->fmode = mode;
     
-  /* Set file format, add new formats here.
-   * Formats should fill in rest of sturcture as needed. 
+  /* Try to open the file with each of the check functions in turn 
+   * until one succeeds
    */
   ofile->format = IIFILE_UNKNOWN;
-  if (iiTIFFCheck(ofile))
-    if (iiMRCCheck(ofile)){
-      b3dError(stderr, "warning (%s) : unknown format.\n", filename);
-      iiDelete(ofile);
-      return NULL;
+  for (i = 0; i < ilistSize(checkList); i++) {
+    checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+    if (!(*checkFunc)(ofile)) {
+      ofile->state = IISTATE_READY;
+      return ofile;
     }
-  ofile->state = IISTATE_READY;
-  return ofile;
+  }
+  b3dError(stderr, "warning (%s) : unknown format.\n", filename);
+  iiDelete(ofile);
+  return NULL;
 }
 
+/* Reopen a file that has already been opened and analyzed */
 int  iiReopen(ImodImageFile *inFile)
 {
-  if (!inFile) return -1;
-  if (inFile->fp) return 1;
-  if (!inFile->fmode) inFile->fmode = "r";
+  IIFileCheckFunction *checkFunc;
+  int i;
+
+  if (!inFile)
+    return -1;
+  if (inFile->fp)
+    return 1;
+  if (!inFile->fmode)
+    inFile->fmode = "rb";
   if (inFile->reopen) {
     if ((*inFile->reopen)(inFile))
       return 2;
@@ -123,18 +172,20 @@ int  iiReopen(ImodImageFile *inFile)
   }
 
   inFile->fp = fopen(inFile->filename, inFile->fmode);
-  if (!inFile->fp) return 2;
+  if (!inFile->fp)
+    return 2;
 
   if (inFile->state == IISTATE_NOTINIT){
     inFile->format = IIFILE_UNKNOWN;
-    if (iiTIFFCheck(inFile))
-      if (iiMRCCheck(inFile)){
-        return -1;
+    for (i = 0; i < ilistSize(checkList); i++) {
+      checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+      if (!(*checkFunc)(inFile)) {
+        inFile->state = IISTATE_READY;
+        return 0;
       }
+    }
   }
-
-  inFile->state = IISTATE_READY;
-  return 0;
+  return -1;
 }
 
 /* Set the scaling min/max for this file and compute scaling slope/offset
@@ -179,6 +230,7 @@ int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
   return(0);
 }
 
+/* Close an image file */
 void iiClose(ImodImageFile *inFile)
 {
   if (inFile->close)
@@ -190,6 +242,7 @@ void iiClose(ImodImageFile *inFile)
     inFile->state = IISTATE_PARK;
 }
 
+/* Delete an image file; first close and call any cleanup functions */
 void iiDelete(ImodImageFile *inFile)
 {
   if (!inFile) 
@@ -204,9 +257,11 @@ void iiDelete(ImodImageFile *inFile)
   free(inFile);
 }
 
+/* Read the given section from the file as raw data into the given buffer */
 int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
-  if (!inFile->readSection) return -1;
+  if (!inFile->readSection) 
+    return -1;
   if (!inFile->fp){
     if (iiReopen(inFile))
       return -1;
@@ -214,6 +269,7 @@ int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
   return( (*inFile->readSection)(inFile, buf, inSection) );
 }
 
+/* Read the given section from the file as bytes into the given buffer */
 int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
   if (!inFile->readSectionByte) return -1;
@@ -224,13 +280,14 @@ int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
   return( (*inFile->readSectionByte)(inFile, buf, inSection) );
 }
 
-
+/* Write data in the buffer to the given section of the file */
 int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
 {
   if (!inFile->writeSection) return -1;
   return( (*inFile->writeSection)(inFile, buf, inSection) );
 }
 
+/* Load piece coordinates from an MRC file */
 int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny, 
                  int nz)
 {
