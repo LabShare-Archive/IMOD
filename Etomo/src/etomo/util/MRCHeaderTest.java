@@ -22,6 +22,12 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2004/11/23 00:37:01  sueh
+ * <p> bug# 520 Using get and setPropertyUserDir instead of Property.  Don't
+ * <p> use File.separator with propertyUserDir since it may end in "/".  Construct
+ * <p> a new file with originalDirectory as the base directory and get the absolute
+ * <p> file.
+ * <p>
  * <p> Revision 3.9  2004/11/20 00:12:00  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -67,16 +73,15 @@ import junit.framework.TestCase;
  * <p> </p>
  */
 public class MRCHeaderTest extends TestCase {
-  private static final String testRoot = new String("JUnitTests/etomo/util/");
   private static final String testDirectory1 = new String("Test");
   private static final String testDirectory2 = new String("With Spaces");
   private static final String headerTestStack = "headerTest.st";
   MRCHeader emptyFilename = new MRCHeader("");
-  MRCHeader badFilename = new MRCHeader(testRoot + testDirectory1
+  MRCHeader badFilename = new MRCHeader(UtilTests.testRoot + testDirectory1
       + "/non_existant_image_file");
-  MRCHeader mrcHeader = new MRCHeader(testRoot + testDirectory1
+  MRCHeader mrcHeader = new MRCHeader(UtilTests.testRoot + testDirectory1
       + "/headerTest.st");
-  MRCHeader mrcWithSpaces = new MRCHeader(testRoot + testDirectory2
+  MRCHeader mrcWithSpaces = new MRCHeader(UtilTests.testRoot + testDirectory2
       + "/headerTest.st");
 
   /**
@@ -136,12 +141,11 @@ public class MRCHeaderTest extends TestCase {
   public void testRead() throws IOException, InvalidParameterException {
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
-    TestUtilites.makeDirectories(testRoot + testDirectory1);
+    TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory1);
 
     // Set the working directory to the current test directory
     String originalDirectory = etomoDirector.getCurrentPropertyUserDir();
-    System.out.println("originalDirectory="+originalDirectory);
-    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory, testRoot).getAbsolutePath());
+    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory, UtilTests.testRoot).getAbsolutePath());
 
     // Check out the test header stack into the required directories
     try {
@@ -150,7 +154,7 @@ public class MRCHeaderTest extends TestCase {
     catch (SystemProcessException except) {
       etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
-      fail("Error checking out test vector: " + testRoot + testDirectory1
+      fail("Error checking out test vector: " + UtilTests.testRoot + testDirectory1
           + headerTestStack);
     }
 
@@ -166,12 +170,12 @@ public class MRCHeaderTest extends TestCase {
   public void testWithSpaces() throws IOException, InvalidParameterException {
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
-    TestUtilites.makeDirectories(testRoot + testDirectory2);
+    TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory2);
 
     // Set the working directory to the current test directory
     String originalDirectory = etomoDirector.getCurrentPropertyUserDir();;
     etomoDirector.setCurrentPropertyUserDir(originalDirectory + File.separator
-        + testRoot);
+        + UtilTests.testRoot);
 
     // Check out the test header stack into the required directories
     try {
@@ -180,7 +184,7 @@ public class MRCHeaderTest extends TestCase {
     catch (SystemProcessException except) {
       etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
-      fail("Error checking out test vector: " + testRoot + testDirectory1
+      fail("Error checking out test vector: " + UtilTests.testRoot + testDirectory1
           + headerTestStack);
     }
 
