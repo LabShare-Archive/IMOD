@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import javax.swing.*;
+import java.awt.Component;
 
 import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.BeadtrackParam;
@@ -20,6 +21,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/11/06 22:44:33  sueh
  * <p> cleaning up tasks
  * <p>
@@ -107,6 +111,7 @@ public class BeadtrackPanel {
     new LabeledTextField("Residual change limits: ");
   private LabeledTextField ltfDeletionParams =
     new LabeledTextField("Deletion residual parameters: ");
+  private JPanel pnlCheckbox = new JPanel();
 
   /**
    * Construct a new beadtrack panel.
@@ -131,8 +136,12 @@ public class BeadtrackPanel {
     panelBeadtrack.add(ltfMagnificationGroups.getContainer());
     panelBeadtrack.add(ltfNMinViews.getContainer());
     panelBeadtrack.add(ltfFiducialParams.getContainer());
-    cbFillGaps.setAlignmentX(1.0f);
-    panelBeadtrack.add(cbFillGaps);
+    
+    pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
+    pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlCheckbox.add(cbFillGaps);
+    
+    panelBeadtrack.add(pnlCheckbox);
     panelBeadtrack.add(ltfMaxGap.getContainer());
     panelBeadtrack.add(ltfTiltAngleMinRange.getContainer());
     panelBeadtrack.add(ltfSearchBoxPixels.getContainer());
