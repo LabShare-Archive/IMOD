@@ -1,35 +1,3 @@
-package etomo.ui;
-
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.SpinnerNumberModel;
-
-import etomo.ApplicationManager;
-import etomo.storage.StackFileFilter;
-import etomo.storage.DistortionFileFilter;
-import etomo.type.AxisID;
-import etomo.type.AxisType;
-import etomo.type.ConstMetaData;
-import etomo.type.MetaData;
-import etomo.type.SectionType;
-import etomo.type.ViewType;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
-
 /**
  * <p>Description: </p>
  *
@@ -43,6 +11,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/03/15 23:14:10  sueh
+ * <p> progress button names changed to "btn"
+ * <p>
  * <p> Revision 3.8  2004/03/11 01:13:09  sueh
  * <p> bug# 386 retrieved binning from MRCHeader
  * <p>
@@ -86,7 +57,7 @@ import etomo.util.MRCHeader;
  * <p>
  * <p> Revision 2.12  2003/10/10 22:56:59  sueh
  * <p> bug265
- * <p> changed file.pathSeparator (“:”) to file.separator (“/”)
+ * <p> changed file.pathSeparator (???:???) to file.separator (???/???)
  * <p>
  * <p> Revision 2.11  2003/10/09 20:27:43  sueh
  * <p> bug264
@@ -188,29 +159,56 @@ import etomo.util.MRCHeader;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.SpinnerNumberModel;
+
+import etomo.ApplicationManager;
+import etomo.storage.StackFileFilter;
+import etomo.storage.DistortionFileFilter;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.ConstMetaData;
+import etomo.type.MetaData;
+import etomo.type.SectionType;
+import etomo.type.ViewType;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
+
 public class SetupDialog extends ProcessDialog implements ContextMenu {
-  public static final String rcsid =
+  public static final String rcsid = 
     "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
 
   //  Dataset GUI objects
   private JPanel pnlDataset = new JPanel();
-  private ImageIcon iconFolder =
-    new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
+  private ImageIcon iconFolder = new ImageIcon(ClassLoader
+    .getSystemResource("images/openFile.gif"));
 
   private LabeledTextField ltfDataset = new LabeledTextField("Dataset name: ");
   private JButton btnDataset = new JButton(iconFolder);
 
-  private LabeledTextField ltfBackupDirectory =
-    new LabeledTextField("Backup directory: ");
+  private LabeledTextField ltfBackupDirectory = new LabeledTextField(
+    "Backup directory: ");
   private JButton btnBackupDirectory = new JButton(iconFolder);
-  
-  private JPanel pnlDistortionFile = new JPanel();
-  private LabeledTextField ltfDistortionFile =
-    new LabeledTextField("Image distortion field file: ");
-  private JButton btnDistortionFile = new JButton(iconFolder);
-
 
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
@@ -228,35 +226,44 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JRadioButton rbSingleSection = new JRadioButton("Single tomogram");
   private JRadioButton rbSerialSection = new JRadioButton("Serial tomogram");
   private ButtonGroup bgSectionType = new ButtonGroup();
-  private JButton btnViewRawStackA = new JButton("View Raw Image Stack");
-  private JButton btnViewRawStackB = new JButton("View Raw Image Stack");
+  private MultiLineButton btnViewRawStackA = new MultiLineButton(
+    "View Raw Image Stack");
+  private MultiLineButton btnViewRawStackB = new MultiLineButton(
+    "View Raw Image Stack");
 
-  private JPanel pnlPixelAndLocalAlign = new JPanel();
-  private JButton btnScanHeader = new JButton("Scan Header");
-  private LabeledTextField ltfPixelSize =
-    new LabeledTextField("Pixel size (nm): ");
-  private LabeledTextField ltfFiducialDiameter =
-    new LabeledTextField("Fiducial diameter (nm): ");
-  private LabeledTextField ltfImageRotation =
-    new LabeledTextField("Image rotation (degrees): ");
-    
-  private JPanel pnlBinning = new JPanel();
-  private LabeledSpinner spnBinning =
-    new LabeledSpinner("Binning: ", new SpinnerNumberModel(1, 1, 50, 1));
+  //  Image parameter objects
+  private JPanel pnlImageParams = new JPanel();
+  private MultiLineButton btnScanHeader = new MultiLineButton("Scan Header");
+  private JPanel pnlImageRows = new JPanel();
+
+  private JPanel pnlStackInfo = new JPanel();
+  private LabeledTextField ltfPixelSize = new LabeledTextField(
+    "Pixel size (nm): ");
+  private LabeledTextField ltfFiducialDiameter = new LabeledTextField(
+    "Fiducial diameter (nm): ");
+  private LabeledTextField ltfImageRotation = new LabeledTextField(
+    "Image rotation (degrees): ");
+
+  private JPanel pnlDistortionInfo = new JPanel();
+  private LabeledTextField ltfDistortionFile = new LabeledTextField(
+    "Image distortion field file: ");
+  private JButton btnDistortionFile = new JButton(iconFolder);
+  private LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
+    new SpinnerNumberModel(1, 1, 50, 1));
 
   //  Tilt angle GUI objects
   private JPanel pnlPerAxisInfo = new JPanel();
   private JPanel pnlAxisInfoA = new JPanel();
   private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A: ");
   private TiltAngleDialogPanel tiltAnglesA = new TiltAngleDialogPanel();
-  private LabeledTextField ltfExcludeListA =
-    new LabeledTextField("Exclude views: ");
+  private LabeledTextField ltfExcludeListA = new LabeledTextField(
+    "Exclude views: ");
 
   private JPanel pnlAxisInfoB = new JPanel();
   private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   private TiltAngleDialogPanel tiltAnglesB = new TiltAngleDialogPanel();
-  private LabeledTextField ltfExcludeListB =
-    new LabeledTextField("Exclude views: ");
+  private LabeledTextField ltfExcludeListB = new LabeledTextField(
+    "Exclude views: ");
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
@@ -306,24 +313,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnBackupDirectory.setMaximumSize(FixedDim.folderButton);
     btnDistortionFile.setPreferredSize(FixedDim.folderButton);
     btnDistortionFile.setMaximumSize(FixedDim.folderButton);
-    ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
+    //ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
 
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
-    pnlDistortionFile.setLayout(new BoxLayout(pnlDistortionFile, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
     btnDataset.addActionListener(new DatasetActionListener(this));
-    btnBackupDirectory.addActionListener(
-      new BackupDirectoryActionListener(this));
-    btnDistortionFile.addActionListener(
-      new DistortionFileActionListener(this));
-      
+    btnBackupDirectory
+      .addActionListener(new BackupDirectoryActionListener(this));
+    btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
+
     rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
     rbDualAxis.addActionListener(new DualAxisActionListener(this));
     btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
     btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
     btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
-    
+
     //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
@@ -334,11 +339,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDataset.add(ltfBackupDirectory.getContainer());
     pnlDataset.add(btnBackupDirectory);
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
-    
-    pnlDistortionFile.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlDistortionFile.add(ltfDistortionFile.getContainer());
-    pnlDistortionFile.add(btnDistortionFile);
-    pnlDistortionFile.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Add the tooltip text
     setToolTipText();
@@ -391,52 +391,73 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     ltfPixelSize.setColumns(5);
     ltfFiducialDiameter.setColumns(5);
     ltfImageRotation.setColumns(5);
-    pnlPixelAndLocalAlign.setLayout(
-      new BoxLayout(pnlPixelAndLocalAlign, BoxLayout.X_AXIS));
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    pnlPixelAndLocalAlign.add(btnScanHeader);
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    pnlPixelAndLocalAlign.add(ltfPixelSize.getContainer());
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    pnlPixelAndLocalAlign.add(ltfFiducialDiameter.getContainer());
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    pnlPixelAndLocalAlign.add(ltfImageRotation.getContainer());
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
-    pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
-    
+    btnScanHeader.setPreferredSize(UIParameters.getButtonDimension());
+    btnScanHeader.setMaximumSize(UIParameters.getButtonDimension());
     spnBinning.setMaximumSize(UIParameters.getSpinnerDimension());
-    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
-    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinning.add(spnBinning.getContainer());
-    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
-    
+
+    pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlStackInfo.add(ltfPixelSize.getContainer());
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlStackInfo.add(Box.createHorizontalGlue());
+    pnlStackInfo.add(ltfFiducialDiameter.getContainer());
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlStackInfo.add(Box.createHorizontalGlue());
+    pnlStackInfo.add(ltfImageRotation.getContainer());
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlStackInfo.add(Box.createHorizontalGlue());
+    pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
+
+    pnlDistortionInfo.setLayout(new BoxLayout(pnlDistortionInfo,
+      BoxLayout.X_AXIS));
+    pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlDistortionInfo.add(ltfDistortionFile.getContainer());
+    pnlDistortionInfo.add(btnDistortionFile);
+    pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlDistortionInfo.add(spnBinning.getContainer());
+    pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x5_y0));
+
+    pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
+    pnlImageRows.add(pnlStackInfo);
+    pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlImageRows.add(pnlDistortionInfo);
+
+    btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
+    pnlImageRows.setAlignmentY(Component.CENTER_ALIGNMENT);
+    pnlImageParams.setLayout(new BoxLayout(pnlImageParams, BoxLayout.X_AXIS));
+    pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlImageParams.add(Box.createHorizontalGlue());
+    pnlImageParams.add(btnScanHeader);
+    pnlImageParams.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlImageParams.add(pnlImageRows);
+    pnlImageParams.add(Box.createHorizontalGlue());
+    pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
+
     //  Create Data Parameters panel
-    pnlDataParameters.setLayout(
-      new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
+    pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters,
+      BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlDataParameters.add(pnlDistortionFile);
-    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataType);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlDataParameters.add(pnlPixelAndLocalAlign);
+    pnlDataParameters.add(pnlImageParams);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlDataParameters.add(pnlBinning);
-    pnlDataParameters.add(Box.createHorizontalGlue());
   }
 
   private void createPerAxisInfoPanel() {
+    // Set the button size
+    btnViewRawStackA.setPreferredSize(UIParameters.getButtonDimension());
+    btnViewRawStackA.setMaximumSize(UIParameters.getButtonDimension());
+    btnViewRawStackB.setPreferredSize(UIParameters.getButtonDimension());
+    btnViewRawStackB.setMaximumSize(UIParameters.getButtonDimension());
 
-    //  Tilt angle specification pnl
+    //  Tilt angle specification panels
     pnlAxisInfoA.setBorder(borderAxisInfoA.getBorder());
     pnlAxisInfoA.setLayout(new BoxLayout(pnlAxisInfoA, BoxLayout.Y_AXIS));
-
+    tiltAnglesA.getPanel().setAlignmentX(Component.CENTER_ALIGNMENT);
+    ltfExcludeListA.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnViewRawStackA.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlAxisInfoA.add(tiltAnglesA.getPanel());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
@@ -445,7 +466,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     pnlAxisInfoB.setBorder(borderAxisInfoB.getBorder());
     pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
-
+    tiltAnglesB.getPanel().setAlignmentX(Component.CENTER_ALIGNMENT);
+    ltfExcludeListB.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnViewRawStackB.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlAxisInfoB.add(tiltAnglesB.getPanel());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
@@ -464,8 +487,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public void initializeFields(ConstMetaData metaData) {
 
     if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath =
-        System.getProperty("user.dir") + "/" + metaData.getDatasetName();
+      String canonicalPath = System.getProperty("user.dir") + "/"
+          + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
 
@@ -503,14 +526,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       metaData.setDatasetName(ltfDataset.getText());
     }
     else {
-      metaData.setDatasetName(
-        System.getProperty("user.dir") + "/" + ltfDataset.getText());
+      metaData.setDatasetName(System.getProperty("user.dir") + "/"
+          + ltfDataset.getText());
     }
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
-    metaData.setFiducialDiameter(
-      Double.parseDouble(ltfFiducialDiameter.getText()));
+    metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
+      .getText()));
     metaData.setImageRotation(Double.parseDouble(ltfImageRotation.getText()));
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
     tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
@@ -527,18 +550,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     if (datasetText.equals("")) {
       applicationManager.openMessageDialog(
-        "Dataset name has not been entered.",
-        errorMessageTitle);
+        "Dataset name has not been entered.", errorMessageTitle);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st")
-      || datasetFileName.equals("b.st")
-      || datasetFileName.equals(".")) {
-      applicationManager.openMessageDialog(
-        "The name " + datasetFileName + " cannot be used as a dataset name.",
-        errorMessageTitle);
+    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
+        || datasetFileName.equals(".")) {
+      applicationManager.openMessageDialog("The name " + datasetFileName
+          + " cannot be used as a dataset name.", errorMessageTitle);
       return false;
     }
     //validate image distortion field file name
@@ -549,25 +569,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        applicationManager.openMessageDialog(
-          "The image distortion field file "
-            + distortionFileName
-            + " does not exist.",
-          errorMessageTitle);
+        applicationManager.openMessageDialog("The image distortion field file "
+            + distortionFileName + " does not exist.", errorMessageTitle);
         return false;
       }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(
-        panelErrorMessage + " in Axis A.",
+      applicationManager.openMessageDialog(panelErrorMessage + " in Axis A.",
         errorMessageTitle);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(
-        panelErrorMessage + " in Axis B.",
+      applicationManager.openMessageDialog(panelErrorMessage + " in Axis B.",
         errorMessageTitle);
       return false;
     }
@@ -581,8 +596,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset =
-        new File(System.getProperty("user.dir") + File.separator + datasetText);
+      dataset = new File(System.getProperty("user.dir") + File.separator
+          + datasetText);
     }
     return dataset.getParentFile();
   }
@@ -648,8 +663,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    **/
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup =
-      new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+      "INITIAL STEPS");
   }
 
   //
@@ -657,8 +672,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   private void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser =
-      new JFileChooser(new File(System.getProperty("user.dir")));
+    JFileChooser chooser = new JFileChooser(new File(System
+      .getProperty("user.dir")));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -696,15 +711,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       }
     }
   }
-  
+
   private void btnDistortionFileAction(ActionEvent event) {
     //Open up the file chooser in the calibration directory, if available,
     //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
     if (currentDistortionDirectory.equals("")) {
       File calibrationDir = ApplicationManager.getIMODCalibDirectory();
-      File distortionDir =
-        new File(calibrationDir.getAbsolutePath(), "Distortion");
+      File distortionDir = new File(calibrationDir.getAbsolutePath(),
+        "Distortion");
       if (distortionDir.exists()) {
         currentDistortionDirectory = distortionDir.getAbsolutePath();
       }
@@ -712,8 +727,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
         currentDistortionDirectory = System.getProperty("user.dir");
       }
     }
-    JFileChooser chooser =
-      new JFileChooser(new File(currentDistortionDirectory));
+    JFileChooser chooser = new JFileChooser(
+      new File(currentDistortionDirectory));
     DistortionFileFilter distortionFileFilter = new DistortionFileFilter();
     chooser.setFileFilter(distortionFileFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -729,7 +744,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       }
     }
   }
-
 
   private void rbSingleAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(false);
@@ -747,8 +761,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      applicationManager.openMessageDialog(
-        "Dataset name has not been entered",
+      applicationManager.openMessageDialog("Dataset name has not been entered",
         "Missing dataset name");
       return;
     }
@@ -762,7 +775,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
       }
     }
-    
+
     // Run header on the dataset to the extract whatever information is
     // available
     MRCHeader header = new MRCHeader(datasetName);
@@ -770,8 +783,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       header.read();
     }
     catch (InvalidParameterException except) {
-      applicationManager.openMessageDialog(
-        except.getMessage(),
+      applicationManager.openMessageDialog(except.getMessage(),
         "Invalid Parameter Exception");
     }
     catch (IOException except) {
@@ -802,8 +814,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     if (xPixelSize == 1.0) {
       applicationManager.openMessageDialog(
-        "X & Y pixels sizes are not defined",
-        "Pixel sizes are not defined");
+        "X & Y pixels sizes are not defined", "Pixel sizes are not defined");
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
@@ -855,88 +866,73 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
 
   private void setToolTipText() {
-    String line1, line2, line3, line4;
-    line1 = "<html>Enter the name of view data file(s). You can<br>";
-    line2 = "also select the view data file  by pressing the<br>";
-    line3 = "folder button.";
-    ltfDataset.setToolTipText(line1 + line2 + line3);
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
-    line1 = "<html>This button will open a file chooser dialog box<br>";
-    line2 = "allowing you to select the view data file.";
-    btnDataset.setToolTipText(line1 + line2);
+    text = "Enter the name of view data file(s). You can also select the view data file by pressing the folder button.";
+    ltfDataset.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Enter the name of the directory where you want the<br>";
-    line2 = "small data files .com and .log files to be backed up.  You<br>";
-    line3 = "can use the folder button on the right to create a new<br>";
-    line4 = "directory to store the backups.";
-    ltfBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
+    text = "This button will open a file chooser dialog box allowing you to select the view data file.";
+    btnDataset.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This button will open a file chooser dialog box<br>";
-    line2 = "allowing you to select and/or create the backup directory.";
-    btnBackupDirectory.setToolTipText(line1 + line2);
+    text = "Enter the name of the directory where you want the small data files .com and .log files to be backed up.  You can use the folder button on the right to create a new directory to store the backups.";
+    ltfBackupDirectory.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Attempt to extract pixel size and tilt axis rotation<br>";
-    line2 = "angle from data stack.";
-    btnScanHeader.setToolTipText(line1 + line2);
+    text = "This button will open a file chooser dialog box allowing you to select and/or create the backup directory.";
+    btnBackupDirectory.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of one or two tilt axis.";
-    pnlAxisType.setToolTipText(line1 + line2);
-    rbSingleAxis.setToolTipText(line1 + line2);
-    rbDualAxis.setToolTipText(line1 + line2);
+    text = "Attempt to extract pixel size and tilt axis rotation angle from data stack.";
+    btnScanHeader.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of a single frame per view or multiple frames<br>";
-    line3 = "per view (montaged).";
-    pnlViewType.setToolTipText(line1 + line2 + line3);
-    rbSingleView.setToolTipText(line1 + line2 + line3);
-    rbMontage.setToolTipText(line1 + line2 + line3);
+    text = "This radio button selector will choose whether the data consists of one or two tilt axis.";
+    pnlAxisType.setToolTipText(tooltipFormatter.setText(text).format());
+    rbSingleAxis.setToolTipText(tooltipFormatter.setText(text).format());
+    rbDualAxis.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of a single tomogram or several serial tomograms.";
-    pnlSectionType.setToolTipText(line1 + line2);
-    rbSingleSection.setToolTipText(line1 + line2);
-    rbSerialSection.setToolTipText(line1 + line2);
+    text = "This radio button selector will choose whether the data consists of a single frame per view or multiple frames per view (montaged).";
+    pnlViewType.setToolTipText(tooltipFormatter.setText(text).format());
+    rbSingleView.setToolTipText(tooltipFormatter.setText(text).format());
+    rbMontage.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Enter the view image pixel size in nanometers here.";
-    ltfPixelSize.setToolTipText(line1);
+    text = "This radio button selector will choose whether the data consists of a single tomogram or several serial tomograms.";
+    pnlSectionType.setToolTipText(tooltipFormatter.setText(text).format());
+    rbSingleSection.setToolTipText(tooltipFormatter.setText(text).format());
+    rbSerialSection.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Enter the fiducial size in nanometers here.";
-    ltfFiducialDiameter.setToolTipText(line1);
+    text = "Enter the view image pixel size in nanometers here.";
+    ltfPixelSize.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>Enter the view image rotation in degrees. This is<br>";
-    line2 = "the rotation (CCW positive) from the Y-axis (the tilt axis<br>";
-    line3 = "after the views are aligned) to the suspected tilt axis in<br>";
-    line4 = "the unaligned views.";
-    ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
+    text = "Enter the fiducial size in nanometers here.";
+    ltfFiducialDiameter.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Enter the view image rotation in degrees. This is the rotation (CCW positive) from the Y-axis (the tilt axis after the views are aligned) to the suspected tilt axis in the unaligned views.";
+    ltfImageRotation.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the correct binning if following spin control.";
+    ltfDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "If have selected to correct for the image distortion, the correct binning must be entered here.  It might be avilable by scanning the header of the projection image stack.";
+    spnBinning.setToolTipText(tooltipFormatter.setText(text).format());
 
     tiltAnglesA.setToolTipText();
     tiltAnglesB.setToolTipText();
 
-    line1 =
-      "<html>Enter the view images to <b>exclude</b> from the processing<br>";
-    line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
-    line3 = "commas.  For example to exclude the first four and last<br>";
-    line4 = "four images of a 60 view stack enter 1-4,57-60.";
-    ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
-    ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
+    text = "Enter the view images to <b>exclude</b> from the processing of this axis.  Ranges are allowed, separate ranges by commas.  For example to exclude the first four and last four images of a 60 view stack enter 1-4,57-60.";
+    ltfExcludeListA.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfExcludeListB.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This button will setup the processing for existing<br>";
-    line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
-    line3 = "the existing command scripts.</b>";
-    btnPostpone.setToolTipText(line1 + line2 + line3);
+    text = "This button will setup the processing for existing command scripts.  <b>Be sure that parameters entered match the existing command scripts.";
+    btnPostpone.setToolTipText(tooltipFormatter.setText(text).format());
 
-    line1 = "<html>This button will create a new set of command scripts<br>";
-    line2 = "overwriting any of the same name in the specified working<br>";
-    line3 = "directory.  Be sure to save the data file after creating the<br>";
-    line4 = "command script if you wish to keep the results.";
-    btnExecute.setToolTipText(line1 + line2 + line3 + line4);
+    text = "This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.";
+    btnExecute.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   //  Button action listener classes
   class DatasetActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     DatasetActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -949,6 +945,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   class BackupDirectoryActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     BackupDirectoryActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -961,6 +958,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   class DistortionFileActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     DistortionFileActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -973,6 +971,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   class SingleAxisActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     SingleAxisActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -985,6 +984,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   class DualAxisActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     DualAxisActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -997,6 +997,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   class ScanHeaderActionListener implements ActionListener {
 
     SetupDialog adaptee;
+
     ScanHeaderActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
@@ -1005,28 +1006,29 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       adaptee.btnScanHeaderAction(event);
     }
   }
-  
+
   class ViewRawStackAActionListener implements ActionListener {
     SetupDialog adaptee;
+
     ViewRawStackAActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
-    
+
     public void actionPerformed(ActionEvent event) {
       adaptee.btnViewRawStackAAction(event);
     }
   }
-  
+
   class ViewRawStackBActionListener implements ActionListener {
     SetupDialog adaptee;
+
     ViewRawStackBActionListener(SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
-    
+
     public void actionPerformed(ActionEvent event) {
       adaptee.btnViewRawStackBAction(event);
     }
   }
-
 
 }
