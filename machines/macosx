@@ -122,7 +122,7 @@ set ctrl_string = Apple
 (cd $sendevent_dir ; qmake imodsendevent.pro)
 set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
 set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
-set midas_target = `echo $imod_target | sed '/imod/s/imod/midas/g'`
+set midas_target = `echo $send_target | sed '/imod/s/imodsendevent/midas/g'`
 set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
 
 # Tell plugins where imod is
