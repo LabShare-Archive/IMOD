@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/26 05:33:27  mast
+c	  change command files to use unit 4 instead reopening 5
+c	
 c	  Revision 3.3  2003/08/08 23:55:16  mast
 c	  *** empty log message ***
 c	
@@ -36,7 +39,7 @@ c
 	real*4 tiltzstrt(1000),tilt(1000),costilt(1000),remapz(1000)
 	integer*4 listgap(1000)
 	real*4 zgapst(*),zgapnd(*)
-	integer*4 getimodhead,getimodflags
+	integer*4 getimodhead,getimodflags,getimodscales
 	integer*4 in5
 	common /nmsinput/ in5
 c	  
@@ -87,9 +90,12 @@ c
 	  print *,'new maximum z is',zmax
 	endif
 c	  
+c	  DNM 10/7/04: Better get scale and offset regardless of new or not
+c
+	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
 	if(newfile)then
 	  defscal=1.e6
-	  ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
 	  if(ierr.eq.0.and.abs(xyscal-defscal)/defscal.gt.1.e-5)then
 	    write(*,'(a,f10.6,a)')' Scale set from model header at',
      &		xyscal,' microns/pixel'
@@ -112,9 +118,9 @@ c
 c	  flip, shift back to imod coordinates, and scale points
 c	  
 	do i=1,n_point
-	  xt=p_coord(1,i)-xofs
-	  yt=p_coord(2,i)-yofs
-	  zt=p_coord(3,i)-zofs
+	  xt=(p_coord(1,i)-xofs) / ximscale
+	  yt=(p_coord(2,i)-yofs) / yimscale
+	  zt=(p_coord(3,i)-zofs) / zimscale
 	  if(ifflip.ne.0)then
 	    ftmp=yt
 	    yt=zt
@@ -259,7 +265,7 @@ c
 	integer*4 indstrt(*),npntobj(*),icolor(*),iobjwin(*),iobjmod(*)
 	integer*4 icolold(limchg),icolnew(limchg),iobjflag(*),icolused(limchg)
 	character*120 lastmodel
-	integer*4 getimodobjsize
+	integer*4 getimodobjsize,getimodscales
 	integer*4 in5
 	common /nmsinput/ in5
 c	  
@@ -287,6 +293,7 @@ c
 c	  
 c	  zero out the model first; all non-mesh objects
 c	  
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
 	do i=1,max_mod_obj
 	  if(npt_in_obj(i).gt.0)then
 	    iflag=iobjflag(256-obj_color(2,i))
@@ -409,9 +416,9 @@ c
 	    yt=zt
 	    zt=ftmp
 	  endif
-	  p_coord(1,i)=xt+xofs
-	  p_coord(2,i)=yt+yofs
-	  p_coord(3,i)=zt+zofs
+	  p_coord(1,i)=ximscale*xt+xofs
+	  p_coord(2,i)=yimscale*yt+yofs
+	  p_coord(3,i)=zimscale*zt+zofs
 	enddo
 c
 	call write_wmod(lastmodel)
