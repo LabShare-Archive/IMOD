@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/01/30 02:08:59  sueh
+ * <p> bug# 373 initialized values
+ * <p>
  * <p> Revision 3.1  2004/01/30 01:27:09  sueh
  * <p> bug# 373 Changed fields and functions to match autodoc
  * <p>
@@ -52,24 +55,23 @@ public class ConstTiltxcorrParam {
   protected FortranInputString padsInXandY; // was padPercent;
   protected FortranInputString tapersInXandY; //was taperPercent
   protected FortranInputString startingEndingViews; //was viewRange
-  
+
   //PIP only
   //was tiltAngleSpec
   protected double firstTiltAngle = Double.NaN;
   protected double tiltIncrement = Double.NaN;
   protected String tiltFile = "";
   protected double[] tiltAngles = null;
-  
+
   //was filterParams
   protected double filterRadius1 = Double.NaN;
   protected double filterRadius2 = Double.NaN;
   protected double filterSigma1 = Double.NaN;
   protected double filterSigma2 = Double.NaN;
-  
+
   //sequential input only
   protected TiltAngleSpec tiltAngleSpec;
   protected FortranInputString filterParams;
-
 
   public ConstTiltxcorrParam() {
     tiltAngleSpec = new TiltAngleSpec();
@@ -100,7 +102,7 @@ public class ConstTiltxcorrParam {
   public double getFirstTiltAngle() {
     return firstTiltAngle;
   };
- 
+
   public double getTiltIncrement() {
     return tiltIncrement;
   };
