@@ -43,6 +43,10 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2004/01/30 22:45:07  sueh
+ * bug# 356 Changing buttons with html labels to
+ * MultiLineButton and MultiLineToggleButton
+ *
  * Revision 3.0  2003/11/07 23:19:01  rickg
  * Version 1.0.0
  *
@@ -357,6 +361,7 @@ public class FinalCombinePanel implements ContextMenu {
    * @param patchrawlParam
    */
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchrawlParam) {
+    cbUsePatchRegionModel.setSelected(patchrawlParam.isUseBoundaryModel());
     ltfXPatchSize.setText(patchrawlParam.getXPatchSize());
     ltfYPatchSize.setText(patchrawlParam.getYPatchSize());
     ltfZPatchSize.setText(patchrawlParam.getZPatchSize());
@@ -382,6 +387,8 @@ public class FinalCombinePanel implements ContextMenu {
     String badParameter = "";
 
     try {
+      badParameter = cbUsePatchRegionModel.getText();
+      patchcrawl3DParam.setUseBoundaryModel(cbUsePatchRegionModel.isSelected());
       badParameter = ltfXPatchSize.getLabel();
       patchcrawl3DParam.setXPatchSize(
         Integer.parseInt(ltfXPatchSize.getText()));
