@@ -17,6 +17,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/06/21 00:45:49  mast
+c	  New version to use PIP as an option
+c	
 c
 	subroutine get_tilt_angles(nview,nunit,tilt, limtilt, ifpip)
 	implicit none
@@ -55,6 +58,7 @@ c
 	      ninLine = 0
 	      ierr = PipGetFloatArray('TiltAngles', tilt(index + 1), ninLine,
      &		  limtilt - index)
+	      index = index + ninLine
 	    enddo
 	    if (nview .eq. 0) nview = index
 	    if (index .ne. nview) then 
