@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2003/04/17 21:50:31  mast
+Using older remove statement for QString
+
 Revision 4.3  2003/04/17 19:05:26  mast
 eliminate Ctrl-A from text strings
 
@@ -51,8 +54,7 @@ Changes to get clean compilation with g++
 
 extern int Imod_debug;
 
-void wprint(char *fmt, ...);
-
+extern "C" void wprint(char *fmt, ...);
 
 static QTextEdit *Wprint_text_output = NULL;
 
