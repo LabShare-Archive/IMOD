@@ -37,6 +37,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -51,6 +52,11 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/07/16 22:05:13  sueh
+ * <p> bug# 501 adjusting divider to fix problem with
+ * <p> JsplitPane.resetToPreferedSizes() that happens when
+ * <p> etomo is too wide for the screen
+ * <p>
  * <p> Revision 3.5  2004/05/19 23:17:14  sueh
  * <p> bug# 425 fixing single axis bug
  * <p>
@@ -514,22 +520,22 @@ public class MainFrame extends JFrame implements ContextMenu {
 
 
   protected void packAxis(int widthA, int widthB) {
-    System.out.println("in packAxis");
+    Utilities.debugPrint("in packAxis", true);
     if (applicationManager.isDualAxis()) {
-      System.out.println("A:");
+      Utilities.debugPrint("A:", true);
       boolean hideA = axisPanelA.hide(widthA);
-      System.out.println("B:");
+      Utilities.debugPrint("B:", true);
       boolean hideB = axisPanelB.hide(widthB);
-      System.out.println("hideA=" + hideA + ",hideB=" + hideB);
+      Utilities.debugPrint("hideA=" + hideA + ",hideB=" + hideB, true);
       pack();
-      System.out.println("after pack(): widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth());
+      Utilities.debugPrint("after pack(): widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       splitPane.resetToPreferredSizes();
       if (!hideA && !hideB && axisPanelA.tooSmall()) {
-        System.out.println("fixing divider location");
+        Utilities.debugPrint("fixing divider location", true);
         setDividerLocation(.8);
         splitPane.resetToPreferredSizes();
       }
-      System.out.println("after split pane reset: widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth());
+      Utilities.debugPrint("after split pane reset: widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       axisPanelA.show();
       axisPanelB.show();
       if (hideA) {
@@ -542,7 +548,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       pack();
     }
-    System.out.println("end packAxis");
+    Utilities.debugPrint("end packAxis", true);
   }
   
   protected void setScrollBarPolicy(boolean always) {
@@ -561,7 +567,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuOptionsAction(ActionEvent event) {
-    System.out.println("In menuOptionsAction");
+    Utilities.debugPrint("In menuOptionsAction", true);
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
@@ -582,7 +588,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       if (axisPanelB != null) {
         widthB = axisPanelB.getWidth();
       }
-      System.out.println("widthA=" + widthA + ",widthB=" + widthB);
+      Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
       packAxis(widthA, widthB);
       Toolkit toolkit = Toolkit.getDefaultToolkit();
       Dimension screenSize = toolkit.getScreenSize();
@@ -592,9 +598,9 @@ public class MainFrame extends JFrame implements ContextMenu {
       if (windowSize.height > screenSize.height) {
         //want to shorten window, so make sure that the window is wide enough
         //to have vertical scroll bars
-        System.out.println("shortening window");
+        Utilities.debugPrint("shortening window", true);
         setScrollBarPolicy(true);
-        System.out.println("widthA=" + widthA + ",widthB=" + widthB);
+        Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
         packAxis(widthA, widthB);
         packAxis(widthA, widthB);
         windowSize = getSize();

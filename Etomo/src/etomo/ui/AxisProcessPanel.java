@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import etomo.ApplicationManager;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -25,6 +26,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/07/16 22:03:51  sueh
+ * <p> bug# 501 adjusting divider to fix problem with
+ * <p> JsplitPane.resetToPreferedSizes() that happens when
+ * <p> etomo is too wide for the screen
+ * <p>
  * <p> Revision 3.3  2004/05/19 23:09:46  sueh
  * <p> bug# 425 separating getting the panel width from deciding to hide
  * <p> because computeVisibleRect() is inaccurate after
@@ -164,13 +170,13 @@ public class AxisProcessPanel implements ContextMenu {
       return hide;
     }
     hide = true;
-    System.out.println("hiding");
+    Utilities.debugPrint("hiding" , true);
     panelRoot.setVisible(false);
     return hide;
   }
   
   public boolean tooSmall() {
-    System.out.println("in tooSmall: getWidth()=" + getWidth());
+    Utilities.debugPrint("in tooSmall: getWidth()=" + getWidth(), true);
     if (getWidth() <= 16) {
       return true;
     }

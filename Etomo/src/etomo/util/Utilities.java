@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.8  2004/07/13 17:26:50  sueh
+ * <p> $bug# 429 make fix global
+ * <p> $
  * <p> $Revision 3.7  2004/04/28 19:57:30  rickg
  * <p> $bug #429 Created file rename function to handle windows bug
  * <p> $
@@ -196,15 +199,30 @@ public class Utilities {
   }
 
   /**
-   * Print out the specified string if the debug flag is set
+   * Print out the specified string to err if the debug flag is set
    *
    * @param string
    */
   static public void debugPrint(String string) {
+    debugPrint(string, false);
+  }
+  
+  /**
+   * Print out the specified string to err or out if the debug flag is set
+   *
+   * @param string
+   */
+  static public void debugPrint(String string, boolean toOut) {
     if (ApplicationManager.isDebug()) {
-      System.err.println(string);
+      if (toOut) {
+        System.out.println(string);
+      }
+      else {
+        System.err.println(string);
+      }
     }
   }
+
 
   /**
    * Return an environment variable value
