@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2003/06/29 14:34:41  mast
+    Fix problem of multiple vector displays
+
     Revision 3.6  2003/06/29 14:23:20  mast
     Added ability to back up to previous residual
 
@@ -529,7 +532,7 @@ void BeadFixer::nextRes()
 
       // Keep track of starting offset for reading this point
       if (plug->offsetSize >= plug->offsetMax) {
-        if (plug->offsetMax)
+        if (!plug->offsetMax)
           plug->offsetList = (long *)malloc(100 * sizeof(long));
         else
           plug->offsetList = (long *)realloc(plug->offsetList, 
