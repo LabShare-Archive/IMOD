@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/03/17 05:38:19  mast
+Corrected byte count for 5th extra header entry (now one short)
+
 Revision 3.6  2004/01/05 17:40:14  mast
 Renamed imin/imax to outmin/outmax, and returned errors from mrcRead... calls
 
@@ -183,14 +186,13 @@ int iiMRCCheck(ImodImageFile *i)
 
 #define TILT_FLAG    1
 #define MONTAGE_FLAG 2
-#define FLAG_COUNT 5
 
 int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
                     int nz)
 {
   int i;
   short int pcoords[3];
-  int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 2};
+  int extra_bytes[32];
   int extratot = 0;
   int offset=1024;
   int nread = nz;
@@ -198,20 +200,23 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   int iflag = hdr->nreal;
   int nbytes = hdr->nint;
   int nextra = hdr->next;
+  int flag_count;
   if(!nextra || !(iflag & MONTAGE_FLAG))
     return 0;
+
+  b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
 
   /* DNM 12/10/01: as partial protection against mistaking other entries
      for montage information, at least make sure that the total bytes
      implied by the bits in the flag equals the nint entry.  Also
      reject deltavision files */
   /* DNM 2/3/02: make sure nreal also does not have bits beyond the flags */
-  for (i = 0; i < FLAG_COUNT; i++)
+  for (i = 0; i < flag_count; i++)
     if (iflag & (1 << i))
       extratot += extra_bytes[i];
 
   if (extratot != nbytes || hdr->creatid == -16224 || 
-      iflag >= (1 << FLAG_COUNT))
+      iflag >= (1 << flag_count))
     return 0;
 
   if (iflag & TILT_FLAG)
