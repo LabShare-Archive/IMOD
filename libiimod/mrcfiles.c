@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/08/02 17:18:19  mast
+    Fixed bug in reading swapped files, standardized error outputs
+
     Revision 3.3  2002/07/31 17:34:44  mast
     Changes to accommodate new header format for origin values
 
@@ -1896,15 +1899,16 @@ int mrc_getdcsize(int mode, int *dsize, int *csize)
 /* DNM 12/25/00: Scale is defined as ratio of sample to cell, so change the
    nx, ny, nz below to mx, my, mz.  But also return 0 instead of 1 if cell
    size is zero; so that the mrc_set_scale will fix both cell and sample */
+/* DNM 9/13/02: Invert these to correspond to all other usage */
 void mrc_get_scale(struct MRCheader *h, float *xs, float *ys, float *zs)
 {
      *xs = *ys = *zs = 0.0f;
      if (h->xlen)
-	  *xs = (float)h->mx/h->xlen;
+	  *xs = h->xlen/(float)h->mx;
      if (h->ylen)
-	  *ys = (float)h->my/h->ylen;
+	  *ys = h->ylen/(float)h->my;
      if (h->zlen)
-	  *zs = (float)h->mz/h->zlen;
+	  *zs = h->zlen/(float)h->mz;
 }
 
 /* DNM 12/25/00: change this 1) if 0 scale comes in, set both cell and sample
@@ -1916,19 +1920,19 @@ void mrc_set_scale(struct MRCheader *h,
 	  h->xlen = h->nx;
 	  h->mx = h->nx;
      } else
-	  h->xlen = (double)h->mx/x;
+	  h->xlen = h->mx * x;
 
      if (!y) {
 	  h->ylen = h->ny;
 	  h->my = h->ny;
      } else
-	  h->ylen = (double)h->my/y;
+	  h->ylen = h->my * y;
 
      if (!z) {
 	  h->zlen = h->nz;
 	  h->mz = h->nz;
      } else
-	  h->zlen = (double)h->mz/z;
+	  h->zlen = h->mz * z;
 
 }
 
