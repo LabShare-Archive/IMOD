@@ -2,9 +2,12 @@ package etomo.ui;
 
 import etomo.type.FiducialMatch;
 import etomo.type.CombinePatchSize;
+import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.type.AxisID;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.*;
@@ -23,6 +26,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:42:55  rickg
+ * <p> Swtiched checkbox to jcheckbox
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -53,21 +59,19 @@ public class SetupCombinePanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
+  private ApplicationManager applicationManager;
+
   private JPanel contentPane = new JPanel();
   private BeveledBorder brdrContent =
     new BeveledBorder("Combination parameters");
 
   private JPanel panelToSelector = new JPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
-  private BeveledBorder brdrToSelector =
-    new BeveledBorder("Tomogram matching relationship");
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
   private JRadioButton rbAtoB =
     new JRadioButton("Match the A tomogram to B                                               ");
 
   private JPanel panelFiducialParams = new JPanel();
-  private BeveledBorder brdrFiducialParams =
-    new BeveledBorder("Volume alignment method");
   private ButtonGroup bgFiducialParams = new ButtonGroup();
   private JRadioButton rbBothSides =
     new JRadioButton("Fiducials on both sides");
@@ -84,13 +88,12 @@ public class SetupCombinePanel implements ContextMenu {
     new LabeledTextField("Corresponding fiducial list B: ");
 
   private JPanel panelPatchParams = new JPanel();
-  private BeveledBorder brdrPatchParams = new BeveledBorder("Patch parameters");
   private JRadioButton rbSmallPatch = new JRadioButton("Small patches");
   private JRadioButton rbMediumPatch = new JRadioButton("Medium patches");
   private JRadioButton rbLargePatch = new JRadioButton("Large patches");
   private ButtonGroup bgPatchSize = new ButtonGroup();
-  private LabeledTextField ltfPatchRegionModel =
-    new LabeledTextField("Patch region model file: ");
+  private JCheckBox cbPatchRegionModel =
+    new JCheckBox("Use patch region model file");
 
   private JPanel panelPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -101,34 +104,44 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfZMax = new LabeledTextField("Z axis max: ");
 
   private JPanel panelTempDirectory = new JPanel();
-  private BeveledBorder brdrIntermediateStorage =
-    new BeveledBorder("Intermediate data storage");
   private LabeledTextField ltfTempDirectory =
     new LabeledTextField("Temporary directory: ");
   private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
 
-  public SetupCombinePanel() {
+  private JPanel panelButton = new JPanel();
+  private JToggleButton buttonImodVolumeA = new JToggleButton("Imod volume A");
+  private JToggleButton buttonImodVolumeB = new JToggleButton("Imod volume B");
+  private JButton buttonCreate = new JButton("Create combine script");
+
+  /**
+   * Default constructor
+   */
+  public SetupCombinePanel(ApplicationManager appMgr) {
+
+    applicationManager = appMgr;
 
     //  Create the matching direction selector panel
-    rbAtoB.setAlignmentX(0.0f);
-    rbBtoA.setAlignmentX(0.0f);
+    rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
-    panelToSelector.setBorder(brdrToSelector.getBorder());
+    panelToSelector.setBorder(
+      new EtchedBorder("Tomogram matching relationship").getBorder());
     panelToSelector.setLayout(new BoxLayout(panelToSelector, BoxLayout.Y_AXIS));
     panelToSelector.add(rbBtoA);
     panelToSelector.add(rbAtoB);
 
     //  Create the fiducial relationship panel
-    rbBothSides.setAlignmentX(0.0f);
-    rbOneSide.setAlignmentX(0.0f);
-    rbOneSideInverted.setAlignmentX(0.0f);
-    rbUseModel.setAlignmentX(0.0f);
+    rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgFiducialParams.add(rbBothSides);
     bgFiducialParams.add(rbOneSide);
     bgFiducialParams.add(rbOneSideInverted);
     bgFiducialParams.add(rbUseModel);
-    panelFiducialParams.setBorder(brdrFiducialParams.getBorder());
+    panelFiducialParams.setBorder(
+      new EtchedBorder("Volume alignment method").getBorder());
     panelFiducialParams.setLayout(
       new BoxLayout(panelFiducialParams, BoxLayout.Y_AXIS));
     panelFiducialParams.add(rbBothSides);
@@ -137,22 +150,24 @@ public class SetupCombinePanel implements ContextMenu {
     panelFiducialParams.add(rbUseModel);
     panelFiducialParams.add(Box.createRigidArea(FixedDim.x0_y10));
     panelFiducialParams.add(ltfFiducialMatchListA.getContainer());
+    panelFiducialParams.add(Box.createRigidArea(FixedDim.x0_y5));
     panelFiducialParams.add(ltfFiducialMatchListB.getContainer());
 
     //  Create the patch parmeters panel
-    rbSmallPatch.setAlignmentX(0.0f);
-    rbMediumPatch.setAlignmentX(0.0f);
-    rbLargePatch.setAlignmentX(0.0f);
+    rbSmallPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbMediumPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbLargePatch.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgPatchSize.add(rbSmallPatch);
     bgPatchSize.add(rbMediumPatch);
     bgPatchSize.add(rbLargePatch);
-    panelPatchParams.setBorder(brdrPatchParams.getBorder());
+    panelPatchParams.setBorder(
+      new EtchedBorder("Patch Parameters").getBorder());
     panelPatchParams.setLayout(
       new BoxLayout(panelPatchParams, BoxLayout.Y_AXIS));
     panelPatchParams.add(rbSmallPatch);
     panelPatchParams.add(rbMediumPatch);
     panelPatchParams.add(rbLargePatch);
-    panelPatchParams.add(ltfPatchRegionModel.getContainer());
+    panelPatchParams.add(cbPatchRegionModel);
 
     panelPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
     panelPatchRegion.add(ltfXMin.getContainer());
@@ -161,16 +176,31 @@ public class SetupCombinePanel implements ContextMenu {
     panelPatchRegion.add(ltfXMax.getContainer());
     panelPatchRegion.add(ltfYMax.getContainer());
     panelPatchRegion.add(ltfZMax.getContainer());
+    panelPatchParams.add(Box.createRigidArea(FixedDim.x0_y10));
     panelPatchParams.add(panelPatchRegion);
 
     //  Create the temporary storage panel
-    panelTempDirectory.setBorder(brdrIntermediateStorage.getBorder());
+    panelTempDirectory.setBorder(
+      new EtchedBorder("Intermediate Data Storate").getBorder());
     panelTempDirectory.setLayout(
       new BoxLayout(panelTempDirectory, BoxLayout.Y_AXIS));
     panelTempDirectory.add(ltfTempDirectory.getContainer());
     panelTempDirectory.add(chkManualCleanup);
 
-    panelToSelector.setAlignmentX(0.0f);
+    //  Bind the buttons to the action listener
+    SetupCombineActionListener actionListener =
+      new SetupCombineActionListener(this);
+    buttonImodVolumeA.addActionListener(actionListener);
+    buttonImodVolumeB.addActionListener(actionListener);
+    buttonCreate.addActionListener(actionListener);
+
+    //  Button panel
+    panelButton.setLayout(new GridLayout(1, 2, 30, 10));
+    panelButton.add(buttonImodVolumeA);
+    panelButton.add(buttonImodVolumeB);
+    panelButton.add(buttonCreate);
+
+    panelToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
     contentPane.setBorder(brdrContent.getBorder());
     contentPane.add(panelToSelector);
@@ -183,6 +213,8 @@ public class SetupCombinePanel implements ContextMenu {
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
     contentPane.add(Box.createVerticalGlue());
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
+    contentPane.add(panelButton);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -228,7 +260,7 @@ public class SetupCombinePanel implements ContextMenu {
       rbLargePatch.setSelected(true);
     }
 
-    ltfPatchRegionModel.setText(combineParams.getPatchRegionModel());
+    cbPatchRegionModel.setSelected(combineParams.usePatchRegionModel());
 
     ltfXMin.setText(combineParams.getPatchXMin());
     ltfXMax.setText(combineParams.getPatchXMax());
@@ -275,7 +307,10 @@ public class SetupCombinePanel implements ContextMenu {
         combineParams.setPatchSize(CombinePatchSize.LARGE);
       }
 
-      combineParams.setPatchRegionModel(ltfPatchRegionModel.getText());
+      if (cbPatchRegionModel.isSelected()) {
+        combineParams.setDefaultPatchRegionModel();
+      }
+
       badParameter = ltfXMin.getLabel();
       combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
       badParameter = ltfXMax.getLabel();
@@ -301,6 +336,20 @@ public class SetupCombinePanel implements ContextMenu {
 
   }
 
+  //  Action functions for setup panel buttons
+  void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(buttonImodVolumeA.getActionCommand())) {
+      applicationManager.imodTomogram(AxisID.FIRST);
+    }
+    if (command.equals(buttonImodVolumeB.getActionCommand())) {
+      applicationManager.imodTomogram(AxisID.SECOND);
+    }
+    if (command.equals(buttonCreate.getActionCommand())) {
+      applicationManager.createCombineScripts();
+    }
+  }
+
   /**
    * Right mouse button context menu
    */
@@ -318,6 +367,18 @@ public class SetupCombinePanel implements ContextMenu {
         manPage,
         logFileLabel,
         logFile);
+  }
+}
 
+//  Button action listener
+class SetupCombineActionListener implements ActionListener {
+
+  SetupCombinePanel adaptee;
+  public SetupCombineActionListener(SetupCombinePanel adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonAction(event);
   }
 }
