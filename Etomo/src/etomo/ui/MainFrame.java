@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/05/08 19:58:25  rickg
+ * <p> Addd post processing state update on an updateAll... call
+ * <p>
  * <p> Revision 2.6  2003/05/07 17:49:12  rickg
  * <p> System property user.dir now defines the working directory
  * <p> Updated status bar
@@ -191,6 +194,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       //      panelCenter.add(scrollPaneB);
       splitPane.setDividerLocation(0.5);
       panelCenter.add(splitPane);
+      panelCenter.validate();
     }
   }
 
