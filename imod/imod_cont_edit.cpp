@@ -67,10 +67,11 @@ struct contour_edit_struct{
 struct contour_move_struct{
   ImodView  *vw;
   ContourMove *dia;
-  int       store;
+  int       wholeSurf;
   int       movetosurf;
   int       surf_moveto;
   int       replace;
+  int       expand;
   int       enabled;
   int       keepsize;
 };
@@ -436,9 +437,10 @@ void ContourBreak::closeEvent ( QCloseEvent * e )
 /*               CONTOUR JOINING                                            */
 /***************************************************************************/
 
-static struct contour_join_struct cojoin = {NULL, NULL, 0, 0};
+static struct contour_join_struct cojoin = {NULL, NULL, {-1, -1, -1}, 
+                                            {-1, -1, -1}};
 
-void imodContEditJoin(ImodView *vw, int x, int y)
+void imodContEditJoinOpen(ImodView *vw)
 {
   if (cojoin.dia){
     cojoin.dia->raise();
@@ -532,22 +534,38 @@ void ContourJoin::set2Pressed()
 }
 
 /*
- * The main join routine - for now it is a member instead of externally called
+ * The main join routine - can be called externally
  */
-void ContourJoin::join()
+void imodContEditJoin(ImodView *vw)
 {
-  ImodView *vw = cojoin.vw;
   Iindex *i1p = &cojoin.i1;
   Iindex *i2p = &cojoin.i2;
+  Iindex *indp;
   int ob, co, pt;
   Icont *cont1, *cont2, *jcont;
   Iobj *obj;
 
+
   /* DNM 2/12/01: put in initial test for a "None" selection */
-  if (i1p->object < 0 || i1p->contour < 0 || i1p->point < 0 ||
-      i2p->object < 0 || i2p->contour < 0 || i2p->point < 0) {
-    wprint("\a\nContour Join Error: No contour selected.\n");
-    return;
+  if (!(indexGood(*i1p) && indexGood(*i2p))) {
+
+    // If two set points are not good, first see if two selection points
+    // and take them; then if one point is set take the current point as 
+    // the other point as long as it is a different contour
+    if (ilistSize(vw->selectionList) == 2) {
+      indp = (Iindex *)ilistItem(vw->selectionList, 0);
+      *i1p = *indp;
+      indp = (Iindex *)ilistItem(vw->selectionList, 1);
+      *i2p = *indp;
+    } else if (indexGood(*i1p) & i1p->contour != vw->imod->cindex.contour)
+      *i2p = vw->imod->cindex;
+    else if (indexGood(*i2p) & i2p->contour != vw->imod->cindex.contour)
+      *i1p = vw->imod->cindex;
+      
+    if (!(indexGood(*i1p) && indexGood(*i2p))) {
+      wprint("\a\nContour Join Error: Two contours not selected.\n");
+      return;
+    }
   }
 
   /*  DNM: separate objects are not allowed because the way joining is
@@ -660,9 +678,12 @@ void ContourJoin::join()
   /* Clear out the labels */
   i1p->point = -1;
   i2p->point = -1;
-  setlabel(mSet1Label, cojoin.i1);
-  setlabel(mSet2Label, cojoin.i2);
+  if (cojoin.dia) {
+    setlabel(cojoin.dia->mSet1Label, cojoin.i1);
+    setlabel(cojoin.dia->mSet2Label, cojoin.i2);
+  }
 
+  imodSelectionListClear(vw);
   imodDraw(vw, IMOD_DRAW_MOD);
   return;
 }
@@ -672,7 +693,7 @@ void ContourJoin::buttonPressed(int which)
 {
   switch (which) {
   case 0:  // Apply
-    join();
+    imodContEditJoin(cojoin.vw);
     break;
 
   case 1:  // Done
@@ -685,11 +706,21 @@ void ContourJoin::buttonPressed(int which)
        "Make a single contour from two separate contours and "
        "remove the old contours.\n",
 
-       "To select contours to join, first select a model point "
-       "within the contour and then "
-       "select the [Set 1] or [Set 2] button.  "
-       "Both set points must be set.\n\n",
-                
+       "There are two ways to select contours to join.  One way is to "
+       "select a model point within the first contour and press the "
+       "[Set 1] button, then select a point within the second contour and "
+       "press [Set 2].  The latter step is actually superfluous, because if "
+       "only one join point is set and another point is selected as the "
+       "current poitn, that point will be used as the second point.  The "
+       "second way is to select a point in the first contour, then select "
+       "a point in the second contour with "CTRL_STRING" and the first mouse "
+       "button.  If two contours are selected in this way, they will be the "
+       "ones joined if one or no join points are set in the dialog box.\n\n",
+        
+       "The hot key J can be used in place of the [Apply] button.  It can "
+       "also be used when the join dialog is not open, when two contours are "
+       "selected.\n\n"
+        
        "For open type objects, the new contour will contain "
        "points from the first contour up to [Set 1] and will "
        "contain points from the second contour starting at "
@@ -716,6 +747,8 @@ void ContourJoin::closeEvent ( QCloseEvent * e )
 {
   imodDialogManager.remove((QWidget *)cojoin.dia);
   cojoin.dia = NULL;
+  cojoin.i1 = nullIndex;
+  cojoin.i2 = nullIndex;
   e->accept();
 }
 
@@ -731,14 +764,15 @@ static struct contour_move_struct comv;
 static int movefirst = 1;
 
 /* Open a dialog box */
-void imodContEditMoveDialog(ImodView *vw)
+void imodContEditMoveDialog(ImodView *vw, int moveSurf)
 {
   if (movefirst){
     comv.dia = NULL;
-    comv.store = 0;
+    comv.wholeSurf = moveSurf;
     comv.movetosurf = 0;
     comv.surf_moveto = 0;
     comv.replace = 0;
+    comv.expand = 0;
     comv.enabled = 1;
     comv.keepsize = 0;
     movefirst = 0;
@@ -750,6 +784,7 @@ void imodContEditMoveDialog(ImodView *vw)
   }
 
   comv.vw = vw;
+  comv.wholeSurf = moveSurf;
 
   comv.dia = new ContourMove(imodDialogManager.parent(IMOD_DIALOG), 
                              "contour move");
@@ -804,18 +839,25 @@ void imodContEditMoveDialogUpdate(void)
   return;
 }
 
+#ifndef ICON_ONLIST
+#define ICONT_ONLIST ICONT_CONNECT_TOP
+#endif
 
 /* move the current contour in the model to the selected moveto object. */
 void imodContEditMove(void)
 {
   Iobj *obj, *tobj;
-  Icont *cont;
+  Icont *cont , *newCont;
+  Imod *imod = App->cvi->imod;
   int surf, ob, co, pt;
   int nsurf;
   float firstz, size;
   double weight;
   Ipoint ccent;
   int conew, ptnew;
+  double rad, dz, delAng, circRad;
+  int dzLim, iz, izCen, npts, firstCont;
+  float xCen, yCen, zCen, zscale;
   char *surfLabel = NULL;
 
   /* Check that user has set up the move operation. */
@@ -830,22 +872,22 @@ void imodContEditMove(void)
     return;
   }
 
-  imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+  imodGetIndex(imod, &ob, &co, &pt);
   /* object to move current contour to. */
-  tobj = &(App->cvi->imod->obj[App->cvi->obj_moveto - 1]);
+  tobj = &(imod->obj[App->cvi->obj_moveto - 1]);
 
   /* Get current object and contour. */
-  obj = imodObjectGet(App->cvi->imod);
+  obj = imodObjectGet(imod);
   if (!obj)  return;
-  cont = imodContourGet(App->cvi->imod);
+  cont = imodContourGet(imod);
   if (!cont)  return;
 
   /* DNM 3/29/01: set up values for new contour and point */
-  co = App->cvi->imod->cindex.contour;
+  co = imod->cindex.contour;
   conew = co;
   ptnew = pt;
 
-  /* Option to replace contour by point supercedes other options */
+  /* REPLACE CONTOUR BY POINT IS FIRST */
 
   if (iobjScat(tobj->flags) && comv.replace && !comv.movetosurf && 
       !iobjScat(obj->flags)) {
@@ -881,33 +923,108 @@ void imodContEditMove(void)
     conew = co - 1;
     ptnew = -1;
 
+  } else if (!iobjScat(tobj->flags) && comv.expand && !comv.movetosurf && 
+      iobjScat(obj->flags)) {
+
+    /* EXPAND A SCATTERED POINT INTO CONTOURS IS NEXT */
+    if (pt < 0)
+      return;
+
+    rad = imodPointGetSize(obj, cont, pt) / App->cvi->xybin;
+    if (rad < 1.) {
+      wprint("\aError: Point radius must be at least 1.\n");
+      return;
+    }
+
+    // Get range of Z values and center values
+    zscale = ((imod->zscale ?  imod->zscale : 1.) * App->cvi->zbin) / 
+              App->cvi->xybin;
+    dzLim = (int)(rad / zscale + 1.);
+    xCen = cont->pts[pt].x;
+    yCen = cont->pts[pt].y;
+    zCen = cont->pts[pt].z;
+    izCen = (int)floor(zCen + 0.5);
+    nsurf = 0;
+
+    // Loop on the potential Z slices, skipping if not far enough into sphere
+    for (iz = izCen - dzLim; iz <= izCen + dzLim; iz++) {
+      dz = (iz - zCen) * zscale;
+      if (fabs(dz) >= rad)
+        continue;
+      circRad = sqrt(rad * rad - dz * dz);
+      if (circRad < 1.)
+        continue;
+      newCont = imodContourNew();
+      if (!newCont) {
+        wprint("\aError getting memory for new contour.\n");
+        return;
+      }
+
+      // Get number of points, angular increment, and add points to contour
+      npts = (2. * 3.14159 * circRad * App->cvi->xybin) / imod->res;
+      if (npts < 6)
+        npts = 6;
+      delAng = 2. * 3.14159 / npts;
+      for (pt = 0; pt < npts; pt++) {
+        ccent.x = xCen + (float)(circRad * cos(pt * delAng));
+        ccent.y = yCen + (float)(circRad * sin(pt * delAng));
+        ccent.z = iz;
+        imodPointAppend(newCont, &ccent);
+      }
+
+      // Get a new surface number for destination object the first time - this
+      // can be done before the contour is added to the object
+      if (!nsurf) {
+        imodel_contour_newsurf(tobj, newCont);
+        nsurf = newCont->surf;
+      } else
+        newCont->surf = nsurf;
+      imodObjectAddContour(tobj, newCont);
+      if (iz == izCen)
+        conew = tobj->contsize - 1;
+    }
+
+    imodPointDelete(cont, ptnew);
+    ptnew = 0;
+    imod->cindex.object = App->cvi->obj_moveto - 1;
+    obj = tobj;
+
   } else if (comv.movetosurf) {
-    /* move contours to different surface */
-    if (comv.store){
+
+    /* MOVE CONTOURS TO DIFFERENT SURFACE */
+    if (comv.wholeSurf){
       /* Move all contours with the same surface number. */
       surf = cont->surf;
       for(co = 0; co < obj->contsize; co++){
         if (obj->cont[co].surf == surf)
           obj->cont[co].surf = comv.surf_moveto;
       }
-    } else
-      cont->surf = comv.surf_moveto;
+    } else {
 
+      // Move single (or multiple selected) contours
+      if (ilistSize(App->cvi->selectionList)) {
+        for (co = 0; co < obj->contsize; co++)
+          if (imodSelectionListQuery(App->cvi, ob, co) > -2)
+            obj->cont[co].surf = comv.surf_moveto;
+      } else
+        cont->surf = comv.surf_moveto;
+    }
     if (obj->surfsize < comv.surf_moveto)
       obj->surfsize = comv.surf_moveto;
     imodObjectCleanSurf(obj);
     imodContEditMoveDialogUpdate();
 
   } else {
-    /* move contours to other object: require a different object */
+
+    /* MOVE CONTOURS TO OTHER OBJECT: REQUIRE A DIFFERENT OBJECT */
     if (tobj == obj) {
       wprint("\aError: Trying to move contour to object it"
              " is already in.\n");
       return;
     }
                
-    if (comv.store){
-      /* Move all contours with the same surface number. */
+    if (comv.wholeSurf){
+      /* MOVE ALL CONTOURS WITH THE SAME SURFACE NUMBER. */
       /* Assign them the first free surface # in destination object */
       surf = cont->surf;
       nsurf = imodel_unused_surface(tobj);
@@ -947,22 +1064,40 @@ void imodContEditMove(void)
       }
           
     }else{
-      /* Moving one contour, just keep the surface number as is and
+      /* MOVING ONE CONTOUR (OR MULTIPLE SELECTED CONTOURS)
+         just keep the surface number as is and
          Adjust surface # limit if necessary; fix point sizes if
          scattered points and that option selected */
-      if (cont->surf > tobj->surfsize)
-        tobj->surfsize = cont->surf;
-      if (iobjScat(obj->flags) && comv.keepsize)
-        for (pt = 0; pt < cont->psize; pt++)
-          imodPointSetSize(cont, pt, 
-                           imodPointGetSize(obj, cont, pt));
-      imodObjectAddContour(tobj, cont);
-      imodObjectRemoveContour(obj, co);
 
-      /* DNM 3/29/01: drop back to previous contour and set no 
-         current point */
-      conew = co - 1;
-      ptnew = -1;
+      // Set flags for contours to do
+      if (ilistSize(App->cvi->selectionList)) {
+        for (co = 0; co < obj->contsize; co++)
+          if (imodSelectionListQuery(App->cvi, ob, co) > -2)
+            obj->cont[co].flags |= ICONT_ONLIST; 
+
+      } else
+        cont->flags |= ICONT_ONLIST;
+
+      // Move all contours with flags set
+      for (co = 0; co < obj->contsize; co++) {
+        cont = &obj->cont[co];
+        if (cont->flags & ICONT_ONLIST) {
+          if (cont->surf > tobj->surfsize)
+            tobj->surfsize = cont->surf;
+          if (iobjScat(obj->flags) && comv.keepsize)
+            for (pt = 0; pt < cont->psize; pt++)
+              imodPointSetSize(cont, pt, 
+                               imodPointGetSize(obj, cont, pt));
+          imodObjectAddContour(tobj, cont);
+          imodObjectRemoveContour(obj, co);
+          cont->flags &= ~ICONT_ONLIST;
+
+          /* DNM 3/29/01: drop back to previous contour and set no 
+             current point */
+          conew = co - 1;
+          ptnew = -1;
+        }
+      }
     }
   }
      
@@ -979,8 +1114,10 @@ void imodContEditMove(void)
   } else {
     ptnew = -1;
   }
-  App->cvi->imod->cindex.contour = conew;
-  App->cvi->imod->cindex.point = ptnew;
+  imod->cindex.contour = conew;
+  imod->cindex.point = ptnew;
+  imodSelectionListClear(App->cvi);
+
   return;
 }
 
@@ -1019,11 +1156,13 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                          mLayout);
   connect(mMoveAllBox, SIGNAL(toggled(bool)), this, SLOT(surfToggled(bool)));
   QToolTip::add(mMoveAllBox, "Move entire current surface");
+  diaSetChecked(mMoveAllBox, comv.wholeSurf);
 
   mToSurfBox = diaCheckBox("Move contour to different surface, not object",
                            this, mLayout);
   connect(mToSurfBox, SIGNAL(toggled(bool)), this, SLOT(toSurfToggled(bool)));
   QToolTip::add(mToSurfBox, "Move to new surface within current object");
+  diaSetChecked(mToSurfBox, comv.movetosurf);
 
   mReplaceBox = diaCheckBox("Replace contour by single point of same size",
                             this, mLayout);
@@ -1031,6 +1170,15 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
           SLOT(replaceToggled(bool)));
   QToolTip::add(mReplaceBox, "Make scattered point with size based on"
                 " mean radius of contour");
+  diaSetChecked(mReplaceBox, comv.replace != 0);
+
+  mExpandBox = diaCheckBox("Replace spherical point with circular contours",
+                            this, mLayout);
+  connect(mExpandBox, SIGNAL(toggled(bool)), this, 
+          SLOT(expandToggled(bool)));
+  QToolTip::add(mExpandBox, "Replace scattered point with circular contour on"
+                " each section where the point appears");
+  diaSetChecked(mExpandBox, comv.expand != 0);
 
   mKeepSizeBox = diaCheckBox("Preserve sizes of points with default size",
                            this, mLayout);
@@ -1044,35 +1192,37 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   setCaption(imodCaption("3dmod Move Contour"));
 }
 
-/* Manage the three check box sensitivities to reflect the mutual exclusivity 
+/* Manage the four check box sensitivities to reflect the mutual exclusivity 
    of the two options */
 void ContourMove::manageCheckBoxes()
 {
   Iobj *obj;
-  unsigned int scat = 0;
-  bool replaceable, replaceOn;
+  unsigned int destScat, curScat = 0;
+  bool replaceable, replaceOn, expandable, expandOn;
   obj = imodObjectGet(comv.vw->imod);
   if (obj)
-    scat = iobjScat(obj->flags);
-  replaceable = iobjScat(comv.vw->imod->obj[comv.vw->obj_moveto - 1].flags) &&
-    !comv.movetosurf && !scat;
+    curScat = iobjScat(obj->flags);
+  destScat = iobjScat(comv.vw->imod->obj[comv.vw->obj_moveto - 1].flags);
+  replaceable = destScat && !comv.movetosurf && !curScat;
   replaceOn = comv.replace && replaceable;
 
-  diaSetChecked(mReplaceBox, replaceOn);
   mReplaceBox->setEnabled(replaceable);
 
-  diaSetChecked(mMoveAllBox, comv.store && !replaceOn);
-  diaSetChecked(mToSurfBox, comv.movetosurf && !replaceOn);
-  mMoveAllBox->setEnabled(!replaceOn);
-  mToSurfBox->setEnabled(!replaceOn);
+  expandable = !destScat && !comv.movetosurf && curScat;
+  expandOn = comv.expand && expandable;
 
-  mKeepSizeBox->setEnabled(scat && !comv.movetosurf);
+  mExpandBox->setEnabled(expandable);
+
+  mMoveAllBox->setEnabled(!replaceOn && !expandOn);
+  mToSurfBox->setEnabled(!replaceOn && !expandOn);
+
+  mKeepSizeBox->setEnabled(curScat && !comv.movetosurf);
 }
 
 /* Respond to state changes */
 void ContourMove::surfToggled(bool state)
 {
-    comv.store = state ? 1 : 0;
+    comv.wholeSurf = state ? 1 : 0;
 }
 
 void ContourMove::toSurfToggled(bool state)
@@ -1086,6 +1236,12 @@ void ContourMove::toSurfToggled(bool state)
 void ContourMove::replaceToggled(bool state)
 {
   comv.replace = state ? 1 : 0;
+  manageCheckBoxes();
+}
+
+void ContourMove::expandToggled(bool state)
+{
+  comv.expand = state ? 1 : 0;
   manageCheckBoxes();
 }
 
@@ -1130,28 +1286,46 @@ void ContourMove::buttonPressed(int which)
        "---------------------------\n",
        "This dialog is used to move contours to a different object "
        "or to a different surface.  ",
-       "Use the slider to select the object or surface # to move "
+       "Use the spin box to select the object or surface # to move "
        "the current contour to.  ",
        "3dmod remembers the object #, so the hot key 'M' in the ",
        "Zap window can be used to move contours quickly.\n\n",
-       "When the first toggle button is selected, all contours with ",
-       "the same surface number as the current contour will also ",
-       "be moved to the selected object.  If no surfaces have been "
-       "assigned in the object, then all contours in the object will"
-       " be moved.\n\n",
-       "When the second toggle button is selected, contours are "
-       "assigned to a different surface in the same object rather "
-       "than moved to a new object.\n\n",
-       "When the type of the selected target object is scattered "
-       "points and the current object is not scattered points, "
-       "the third toggle button can be used to convert the current "
+       "Ordinarily, a single contour will be moved, the current contour.  "
+       "If you have selected multiple contours using "CTRL_STRING" and the "
+       "first mouse button, all selected contours will be moved to the other "
+       "object or surface, unless you have checked the option to "
+       "move all contours in a surface.\n\n"
+       "When \"Move all contours with same surface #\" is selected, all "
+       "contours with the same surface number as the current contour will "
+       "also be moved to the selected object or surface.  If no surfaces have "
+       "been assigned in the current object, then all contours in the object "
+       "will be moved.\n\n",
+       "When \"Move contour to different surface, not object\" is selected, "
+       "contours are assigned to a different surface in the same object "
+       "rather than moved to a new object.\n\n",
+       "\"Replace contour by single point of same size\" can be "
+       "used when the type of the selected target object is scattered "
+       "points and the current object is not scattered points.  "
+       "Moving a contour will convert the current "
        "contour into a single point centered on the contour and with "
        "a size that corresponds to the area of the contour.  The new "
        "point will be added to the end of the last contour in the "
        "target object.  The "
        "current contour will be deleted.\n\n",
+       "\Replace spherical point with circular contours\" can be "
+       "used when the type of the current object is scattered points and the "
+       "selected target object is not scattered points.  "
+       "Moving will convert just the current point to a set of circular "
+       "contours, one on each of the sections where the sphere of the current "
+       "point appears.  The radius of the contours, and the range in Z over "
+       "which they appear, will thus depend on the model's Z-scale, just as "
+       "the appearance of a spherical point does.  The current point will be "
+       "deleted.  The contours will be given a unique surface number in the "
+       "target object so that they can be manipulated together or deleted "
+       "easily.\n\n"
        "When the current object consists of scattered points, the "
-       "fourth button can be used to specify whether the sizes of "
+       "\Preserve sizes of points with default size\" button can be used to "
+       "specify whether the sizes of "
        "the points will be completely preserved when they are "
        "transferred to the new object.  If the button is selected, "
        "points that do not have their own individual sizes will be "
@@ -1322,10 +1496,12 @@ void iceSurfGoto(int target)
     return;
 
   /* if target is next or previous surface, use the AdjacentSurface call */
+  // But update the window in case contour didn't change
   cont = imodContourGet(surf.vw->imod);
   if (cont)
     if (cont->surf == target + 1 || cont->surf == target - 1) {
       inputAdjacentSurface(surf.vw, target - cont->surf);
+      imodContEditSurfShow();
       return;
     }
      
@@ -1603,6 +1779,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.11  2004/09/21 20:18:21  mast
+Added surface labels
+
 Revision 4.10  2004/07/11 18:23:45  mast
 Changes for more ghost flags
 
