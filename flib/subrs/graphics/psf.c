@@ -1,12 +1,25 @@
-/* Fortran interface for postscript fuctions. 
+/*   psf.c  -  Fortran interface for postscript fuctions. 
  *
- */ 
+ *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *   Colorado.
+ */                                                                           
+
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* DNM 8/17/00: add this to get the flags in as needed */
 #include <imodconfig.h>
+#include <b3dutil.h>
 
 #ifdef F77STRING
 typedef struct
@@ -61,10 +74,11 @@ int psopen(
      char *filename      = f77str->string;
 #endif
      double ddpi, dlm, dbm;
-     char *fname = (char *)malloc(filename_size + 1);
-     memcpy(fname, filename, filename_size);
-     fname[filename_size] = 0x00;
-
+     char *fname = f2cString(filename, filename_size);
+     if (!fname) {
+       fprintf(stderr, "libps: error getting memory\n");
+       return(-1);
+     }
      ddpi = *dpi; dlm = *lm; dbm = *bm;
      ps = PSopen(fname, ddpi, dlm, dbm);
 
