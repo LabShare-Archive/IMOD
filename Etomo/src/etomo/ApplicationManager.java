@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2004/04/28 22:16:57  sueh
+ * <p> bug# 320 user interaction goes in app manager
+ * <p>
  * <p> Revision 3.44  2004/04/28 20:13:10  rickg
  * <p> bug #429 all file renames are now handled by the utilities static
  * <p> function to deal with the windows bug
@@ -1494,6 +1497,7 @@ public class ApplicationManager {
       comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
     }
     catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Xcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -1502,6 +1506,7 @@ public class ApplicationManager {
       return false;
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Xcorr Align Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
