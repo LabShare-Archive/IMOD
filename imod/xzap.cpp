@@ -1480,30 +1480,29 @@ void zapButton2(ZapStruct *zap, int x, int y)
       cont->type = curTime;
     
     /* If contours are closed and Z has changed, start a new contour */
-    /* Also check for a change in time, if time data are being modeled */
-    if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)){
-      cpoint = imodPointGet(vi->imod);
-      if (cpoint){
-        cz = (int)floor(cpoint->z + 0.5); 
-        pz = (int)point.z;
-
-        if (cz != pz || zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
-          if (cont->psize == 1) {
-            wprint("Started a new contour even though last "
-                   "contour had only 1 pt.  ");
-            if (cz != pz)
-              wprint("\aUse open contours to model across sections.\n");
-            else
-              wprint("\aSet contour time to 0 to model across times.\n");
-          }
-          NewContour(vi->imod);
-          cont = imodContourGet(vi->imod);
-          if (!cont)
-            return;
-          if (iobjFlagTime(obj)){
-            cont->type = curTime;
-            cont->flags |= ICONT_TYPEISTIME;
-          }
+    /* Also check for a change in time, if time data are being modeled  */
+    /* and start new contour for any kind of contour */
+    cpoint = imodPointGet(vi->imod);
+    if (cpoint) {
+      cz = (int)floor(cpoint->z + 0.5); 
+      pz = (int)point.z;
+      if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) ||
+          zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
+        if (cont->psize == 1) {
+          wprint("Started a new contour even though last "
+                 "contour had only 1 pt.  ");
+          if (cz != pz)
+            wprint("\aUse open contours to model across sections.\n");
+          else
+            wprint("\aSet contour time to 0 to model across times.\n");
+        }
+        NewContour(vi->imod);
+        cont = imodContourGet(vi->imod);
+        if (!cont)
+          return;
+        if (iobjFlagTime(obj)) {
+          cont->type = curTime;
+          cont->flags |= ICONT_TYPEISTIME;
         }
       }
     }
@@ -1852,9 +1851,10 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
 
   /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
      new contour can be started */
-  if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
-      ((int)floor(lpt->z + 0.5) != (int)cpt.z ||
-       zapTimeMismatch(vi, zap->timeLock, obj, cont))) {
+  // DNM 6/30/04: change to start new for any kind of contour with time change
+  if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
+      (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
+       zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
     zapButton2(zap, x, y);
     return;
   }
@@ -2864,6 +2864,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.41  2004/05/07 22:10:45  mast
+Added text to identify rubberband report
+
 Revision 4.40  2004/05/05 17:34:51  mast
 Added rubberband toolbutton and call to report coordinates from first\zap window with
 
