@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.72  2004/06/17 16:23:34  sueh
+ * <p> bug# 466 in imodFullSample() turning on model mode.
+ * <p>
  * <p> Revision 3.71  2004/06/15 20:08:49  rickg
  * <p> Bug #383 Run solvematch instead of solvematch{shift|mod}
  * <p>
@@ -1253,6 +1256,9 @@ public class ApplicationManager {
    * Open 3dmod to view the erased stack
    */
   public void imodErasedStack(AxisID axisID) {
+    if (getFile(true, axisID, "_fixed.st", "erased stack") == null) {
+      return;
+    }
     try {
       imodManager.open(ImodManager.ERASED_STACK_KEY, axisID);
     }
@@ -1268,6 +1274,33 @@ public class ApplicationManager {
   }
 
   /**
+   * Creates a file name and a file.  If the file doesn't exist and mustExist is
+   * true, it complains and returns null, otherwise it returns the file.
+   * @param mustExist
+   * @param axisID
+   * @param extension
+   * @param fileType A string used in the error dialog
+   * @return
+   */
+  protected File getFile(
+    boolean mustExist,
+    AxisID axisID,
+    String extension,
+    String fileDescription) {
+    String filename = System.getProperty("user.dir") + File.separator
+      + metaData.getDatasetName() + axisID.getExtension() + extension;
+    File file = new File(filename);
+    if (!file.exists() && mustExist) {
+      mainFrame.openMessageDialog(
+        "The " + fileDescription + " doesn't exist.  Create the "
+         + fileDescription + " first",
+      fileDescription + " missing");
+      return null;
+    }
+    return file;
+  }
+  
+  /**
    * Replace the raw stack with the fixed stack created from eraser
    * @param axisID
    */
@@ -1280,13 +1313,8 @@ public class ApplicationManager {
     String rawStackRename = System.getProperty("user.dir") + File.separator
       + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
     File rawRename = new File(rawStackRename);
-    String fixedStackFilename = System.getProperty("user.dir") + File.separator
-      + metaData.getDatasetName() + axisID.getExtension() + "_fixed.st";
-    File fixedStack = new File(fixedStackFilename);
-    if (!fixedStack.exists()) {
-      mainFrame.openMessageDialog(
-        "The erased stack doesn't exist.  Create the erased stack first",
-        "Erased stack missing");
+    File fixedStack = getFile(true, axisID, "_fixed.st", "erased stack");
+    if (fixedStack == null) {
       return;
     }
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
