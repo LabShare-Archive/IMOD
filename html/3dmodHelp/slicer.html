@@ -1,0 +1,141 @@
+<head>
+<title>Slicer Window</title>
+</head>
+<H2>The Slicer Window</H2>
+The slicer allows you to display a slice at an arbitrary angle through the
+volume, centered around a selected point.  Multiple slices can be averaged.
+<P>
+Slicer has two dockable toolbars that may be floated as separate
+windows so that the image will fill the entire window area.  When they 
+are floated, they will still pass hot keys on to the slicer window.
+
+<H3>The First Toolbar</H3>
+<UL>
+<LI>The <B>Up</B> and <B>Down Arrows</B> step the zoom factor up or down.
+<LI>The <B>zoom</B> text box shows the current zoom and allows you to type in 
+intermediate zoom factors.
+<LI>The <B>checkerboard</B> button toggles between fast rendering
+(nearest neighbor interpolation) and 
+slower but higher quality image rendering (quadratic interpolation).
+<LI>The <B>lock</B> button will keep the image locked to the current 
+position, even when drawing model points.
+<LI>The <B>IM/FT</B> button toggles between displaying the image slice or
+its Fourier transform.  The entire image in the whole window, including any
+gray borders, will be padded into a square array and Fourier
+transformed, then the portion that fits will be drawn in the window.
+Thus a non-square window will give a transform that is isotropic in X
+and Y, but portions will be not be visible in one of the dimensions.
+Gray borders in the image will create artifacts, so for best results
+make the window small enough, or zoom up enough, to eliminate such
+borders.  Zooming up does not change the scale of the transform for
+zooms above 1; it just decreases the number of pixels that the
+transform is based on.  To see the transform at a higher zoom,
+increase the zoom and increase the window size by the same amount.
+High-resolution mode will sample pixels with accurate interpolation
+without changing the number of pixels that the transform is based on.
+<LI>The <B>show slice</b> button will cause lines to be drawn in the 
+XYZ and ZaP windows to show the intersection of the current 
+slice.
+<LI>The <B>Z-Scale</B> box lets you 
+control whether the volume will be displayed with Z-
+scaling.  If you choose <B>Z-Scale Before</B> then the volume will be 
+scaled before it is rotated and sliced, and thus the rotation 
+angles will not select the same slice as with no Z-scaling.  These 
+angles will be correct in a Z-scaled volume, but would not be correct 
+for using Rotatevol to achieve the same rotation of the original volume.
+If you choose <B>Z-Scale After</B> the volume is scaled after being 
+rotated, and the same slice is selected as with no Z-scaling.  If you 
+plan to use angles in Rotatevol, use <B>Z-Scale After</B> or no Z-scaling.
+<P>
+When images are loaded in with a different binning in Z versus X and
+Y, the angles are correct for the original, unbinned volume.  This is 
+accomplished by applying an implicit Z scaling before rotation.  In 
+this case, you can select <B>Z-Scale Before</B> to apply an additional 
+Z-scaling, but <B>Z-Scale After</B> will be unavailable.
+</UL>
+
+<H3>The Second Toolbar</H3>
+On the left are three sliders 
+with which you can adjust the rotations about the 
+X, Y, and Z axes.  The rotation angles are applied to the volume, 
+not to the slicing plane, and they are applied in the order Z, Y, 
+X; thus these same angles can be used directly in other programs 
+that rotate the volume.  Clicking a slider with the left mouse 
+button will change the angle by 1 degree; clicking with the 
+middle button moves the slider immediately to the position of 
+mouse.  If you drag the slider, the representation of the slice 
+in the data volume will change continuously, and the image will 
+also be updated if the slider is continuously active.  If the slider is 
+not continuously active, the image 
+will not be updated until you release the slider.  Typically the 
+sliders will be continuously active unless you press the Ctrl
+key, although you can change this default behavior in the 3dmod 
+Preferences dialog, accessed through the Edit-Options menu entry.
+<P>
+In the middle is a representation of the slice that is being cut 
+from the data volume.
+<P>
+On the right are controls for adjusting the thickness of 
+the image slice and the thickness of model that is shown on the slice.
+
+<H3>Mouse Actions and Movies</H3>
+All mouse buttons behave as in the Zap and XYZ windows. 
+The first mouse button in movie mode, and all mouse buttons in model 
+mode, will change the current viewing point in the data 
+volume, unless the image position is locked by the lock button.
+<P>
+In movie mode, the buttons do the following:
+<UL>
+<LI><B>First button:</B> Set current viewing point
+<LI><B>Second button:</B> Start movie forward, perpendicular to viewed slice
+<LI><B>Third button:</B> Start movie backward, perpendicular to viewed slice
+</UL>
+<P>In model mode, the buttons do the following:
+<UL>
+<LI><B>First button:</B> Attach to the nearest model point, or detach from the 
+current contour
+<LI><B>Second button:</B> Insert a point after the current point
+<LI><B>Third button:</B> Move the current point to the selected location
+</UL>
+By default, these buttons correspond to the left, middle, and right 
+buttons, but you can change these assignments in the 3dmod Preferences 
+dialog.
+<P>
+When a movie is started with an obliquely oriented slice, the range 
+of the movie is determined by two sets of limits.  One set of limits is 
+imposed to keep the central displayed point within the data volume.  
+The other limits are based on the starting and ending movie limits for 
+the axis that is closest to perpendicular to the slice.  These limits 
+are set in the 3dmod Movie Controller (opened with Edit - Movies...).  
+The slice angles can be changed while movieing and these limits will 
+be adjusted dynamically.
+
+<H3>Hot Keys</H3>
+<BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase zoom
+<BR><B>_/+</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase displayed image thickness
+<BR><B>9/0</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase displayed model thickness
+<BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Show slice in ZaP and XYZ windows
+<BR><B>S</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Snapshot to non-TIFF file
+<BR><B>Ctrl-S</B> &nbsp;
+Snapshot to TIFF file
+<BR><B>x/y/z</B> &nbsp;&nbsp;
+Align current and previous model points along X, Y or Z axis
+<BR><B>X/Y/Z</B> &nbsp;
+Align first and last points of contour along X, Y or Z axis
+<P>
+<B>Numeric Keypad:</B>
+<BR><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
+Decrease/Increase last adjusted angle by 0.1 degree
+<BR><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
+Decrease/Increase last adjusted angle by 0.5 degree
+<BR><B>1/3 (End/PgDn)</B> &nbsp;
+Decrease/Increase last adjusted angle by 15 degrees
+<BR><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Set last adjusted angle to 0
+<P>
+<A HREF="index.html">Help Index<A>
