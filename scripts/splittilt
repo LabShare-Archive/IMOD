@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/07/22 18:16:56  mast
+#  Change to better sed command for stripping Ctrl M
+#
 #  Revision 3.1  2004/07/21 17:00:07  mast
 #  Initial creation
 #
@@ -80,6 +83,7 @@ while ($#argv > 1)
 
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
+      exit 1
   endsw
 end
 
