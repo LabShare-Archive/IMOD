@@ -1,9 +1,26 @@
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,
      &	    fixedgmag2,iflin,maplist,nview,ireftilt,iref2,
-     &	    defval,name,var,varname,nvarsrch)
-	integer*4 mapgmag(*),maplist(*),lingmag(*),mapvarno(360)
+     &	    defval,name,var,varname,nvarsrch,mapviewtofile)
+	implicit none
+	integer*4 mapgmag(*),maplist(*),lingmag(*),mapviewtofile(*)
+	integer*4 mapvarno(720)
 	real*4 gmag(*),var(*),frcgmag(*)
 	character*(*) varname(*),name
+	real*4 fixedgmag,fixedgmag2,defval
+	integer*4 iflin,nview,ireftilt,iref2,nvarsrch
+c	  
+	integer*4 nmagsrch,iv,mapref1,mapref2,imap,it,listmax,ivmin,ivmax
+	integer*4 ningrp,nexvmin,nexvmax,ninnex,nadd,ivadd,ivfix,linval
+	integer*4 ivvar,lastadded,iadd
 c
 	nmagsrch=0
 	do iv=1,nview
@@ -34,7 +51,8 @@ c
 		nmagsrch=nmagsrch+1
 		mapvarno(nmagsrch)=maplist(iv)
 		var(nvarsrch+nmagsrch)=gmag(iv)
-		write(varname(nvarsrch+nmagsrch),'(a4,i4)')name,iv
+		write(varname(nvarsrch+nmagsrch),'(a4,i4)')name,
+     &		    mapviewtofile(iv)
 		imap=nmagsrch
 	      endif
 c	      
@@ -122,7 +140,8 @@ c
 		if(nmagsrch.eq.0.or.lastadded.ne.ivadd)then
 		  nmagsrch=nmagsrch+1
 		  var(nvarsrch+nmagsrch)=gmag(ivadd)
-		  write(varname(nvarsrch+nmagsrch),'(a4,i4)')name,ivadd
+		  write(varname(nvarsrch+nmagsrch),'(a4,i4)')name,
+     &		      mapviewtofile(ivadd)
 		  lastadded=ivadd
 		  mapgmag(ivadd)=nvarsrch+nmagsrch
 		  lingmag(ivadd)=0
@@ -185,24 +204,59 @@ c
 	end
 
 
-	subroutine automap(nview,maplist,grpsize)
-	integer*4 maplist(*)
+	subroutine automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	implicit none
+	integer*4 maplist(*),nview,nfileviews
 	real*4 grpsize(*)
-	parameter (maxview=490,maxgrp=20)
+	integer*4 mapfiletoview(*)
+	integer maxview,maxgrp
+	parameter (maxview=720,maxgrp=20)
 	integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),inran(maxview)
 	integer*4 ivspecstr(maxgrp),ivspecend(maxgrp),nmapspec(maxgrp)
 	common /mapsep/ ivsep,nsepingrp,ngsep
 c	  
+	integer*4 nrantrue,nranspec,iran,ivstr,ivend,nran,ir,ivar
+	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii
+c
 	print *,'Enter the negative of a group size to NOT treat ',
      &	    'any views separately here.'
 	write(*,'(1x,a,$)')
      &	    'Default group size, # of ranges with special group sizes: '
 	read(5,*)nmapdef,nranspec
+	nrantrue=0
 	do iran=1,nranspec
 	  write(*,'(1x,a,i3,a,$)')'Starting and ending views in range',
      &	      iran, ', group size: '
-	  read(5,*)ivspecstr(iran),ivspecend(iran),nmapspec(iran)
+	  read(5,*)ivstr,ivend,nmapspec(iran)
+c	    
+c	    convert and trim nonexistent views from range
+c	    
+	  if (ivstr.gt.ivend)then
+	    print *,'Start past end of range:',ivstr, ivend
+	    call exit(1)
+	  endif
+	  if(ivstr.lt.0.or.ivstr.gt.nFileViews.or.ivend.lt.0.or.
+     &	      ivend.gt.nfileviews)then
+	    print *,'View number not in file: ',ivstr,ivend
+	    call exit(1)
+	  endif
+	  do while(ivstr.le.ivend.and.mapfiletoview(ivstr).eq.0)
+	    ivstr=ivstr+1
+	  enddo
+	  do while(ivstr.le.ivend.and.mapfiletoview(ivend).eq.0)
+	    ivend=ivend-1
+	  enddo
+c	    
+c	    if there is still a range, add it to list
+c
+	  if(ivstr.le.ivend)then
+	    nrantrue=nrantrue+1
+	    ivspecstr(nrantrue)=mapfiletoview(ivstr)
+	    ivspecend(nrantrue)=mapfiletoview(ivend)
+c	    print *,ivspecstr(nrantrue),ivspecend(nrantrue)
+	  endif
 	enddo
+	nranspec=nrantrue
 c	  
 c	  build list of all uninterrupted ranges
 c	  
@@ -307,8 +361,14 @@ c	write(*,'(26i3)')(maplist(i),i=1,nview)
 
 
 	subroutine grouplist(inran,ninran,nmap,grpsize,ivar,maplist)
+	implicit none
 	integer*4 inran(*),maplist(*)
 	real*4 grpsize(*)
+	integer*4 ninran,nmap,ivar
+c	  
+	integer*4 nsets,isetstr,isetend,lastmap,iset,ninvar,i
+	real*4 setsum,setcum,settarg
+c
 	if(ninran.eq.0)return
 
 	setsum=0.
@@ -360,7 +420,9 @@ c
 
 
 	subroutine groupminmax(maplist,nview,imap,ivmin,ivmax,ningrp)
-	integer*4 maplist(*)
+	implicit none
+	integer*4 maplist(*),nview,imap,ivmin,ivmax,ningrp
+	integer*4 iv
 	ivmin=0
 	ivmax=0
 	ningrp=0
@@ -377,7 +439,10 @@ c
 
 
 	subroutine setgrpsize(tilt,nview,power,grpsize)
-	real*4 grpsize(*),tilt(*)
+	implicit none
+	real*4 grpsize(*),tilt(*),power
+	integer*4 nview,i
+	real*4 sum
 	if(power.eq.0.)then
 	  do i=1,nview
 	    grpsize(i)=1.

@@ -2,13 +2,25 @@ c	  INPUT_VARS gets the specifications for the geometric variables
 c	  rotation, tilt, mag and compression.  It fills the VAR array and
 c	  the different variable and mapping arrays.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &	    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart,
-     &	    mapalfstart) 
+     &	    mapalfstart,tiltorig,tiltadd) 
+	implicit none
+	integer*4 inputalf,nvarsrch,nvarang,nvarscl, imintilt,ncompsrch
+	integer*4 iflocal,maptiltstart,mapalfstart
 	include 'alivar.inc'
+	integer maxgrp
 	parameter (maxgrp=20)
 	character*8 varname(*)
-	real*4 var(*)
+	real*4 var(*),tiltorig(*),tiltadd
 	integer*4 maplist(maxview)
 	real*4 grpsize(maxview)
 c
@@ -19,7 +31,16 @@ c
 	data disttext/'distortion','X stretch ','axis skew '/
 	character*17 lintmp,lintext(2)
 	data lintext/'3 block, 4 linear','3 linear, 4 block'/
-	data dtor/0.0174532/
+	real*4 dtor/0.0174532/
+c	  
+	real*4 powertilt,powercomp,powermag,powerskew,powerdmag,power
+	real*4 powerrot,poweralf,rotstart,fixdum1,fixdum2
+	real*4 tiltmin,origdev,fixdum
+	integer*4 i,iview,ioptrot,iref1,iflin,ioptilt,nviewfix,j,ig
+	integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
+	integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist,ioptalf
+	integer*4 ireftilt,ndmagvar,ivl,ivh
+	integer*4 nearest_view
 c
 	powertilt=1.
 	powercomp=1.
@@ -47,7 +68,7 @@ c
      &	      ' or a positive # to fix one view at the initial angle: '
 
 	  read(5,*)ifrotfix
-	  if(ifrotfix.gt.nview)go to 6
+	  if(ifrotfix.gt.0)ifrotfix=nearest_view(ifrotfix)
 c	    
 	  if(ifrotfix.ge.0)then
 	    if(ifrotfix.eq.0)then
@@ -66,7 +87,7 @@ c
 	      rot(iview)=rotstart
 	      nvarsrch=nvarsrch+1
 	      var(nvarsrch)=0.
-	      write(varname(nvarsrch),'(a4,i4)')'drot',iview
+	      write(varname(nvarsrch),'(a4,i4)')'drot',mapviewtofile(iview)
 	    enddo
 	  else
 	    ifrotfix=-2
@@ -75,7 +96,7 @@ c
 	    enddo
 	    call analyze_maps(rot,maprot,linrot,frcrot,fixdum1,fixdum2,
      &		0, maplist,nview, 0,0,rotstart,'rot ',var,varname,
-     &		nvarsrch)
+     &		nvarsrch,mapviewtofile)
 	  endif
 c	  
 c	    Get list of views to treat separately in automapping
@@ -87,17 +108,40 @@ c
 	  read(5,*)ngsep
 	  do ig=1,ngsep
 	    write(*,'(1x,a,i3,a,$)')'List of views in set',ig,
-     &		'(ranges OK): '
+     &		' (ranges OK): '
 	    call rdlist(5,ivsep(1,ig),nsepingrp(ig))
+c	      
+c	      check legality and trim ones not in included views
+c
+	    i=1
+	    do while(i.le.nsepingrp(ig))
+	      if(ivsep(i,ig).le.0.or.ivsep(i,ig).gt.nfileviews)then
+		print *,'View',ivsep(i,ig),
+     &		    ' is outside known range of image file'
+		call exit(1)
+	      endif
+	      ivsep(i,ig)=mapfiletoview(ivsep(i,ig))
+	      if(ivsep(i,ig).eq.0)then
+		nsepingrp(ig)=nsepingrp(ig)-1
+		do j=i,nsepingrp(ig)
+		  ivsep(j,ig)=ivsep(j+1,ig)
+		enddo
+	      else
+		i=i+1
+	      endif
+	    enddo
+c	    print *,(ivsep(i,ig),i=1,nsepingrp(ig))
 	  enddo
 c
 c	    get initial tilt angles for all views, convert to radians
+c	    save adjusted angles in tiltorig, then map as radians into tilt
 c	    
-	  call get_tilt_angles(nview,3,tilt)
+	  call get_tilt_angles(nfileviews,3,tiltorig)
 	  write(*,'(1x,a,$)')'Amount to add to all angles: '
 	  read(5,*)tiltadd
-	  do i=1,nview
-	    tilt(i)=(tilt(i)+tiltadd)*dtor
+	  do i=1,nfileviews
+	    tiltorig(i)=tiltorig(i)+tiltadd
+	    if(mapfiletoview(i).ne.0)tilt(mapfiletoview(i))=tiltorig(i)*dtor
 	  enddo
 	else
 c	    
@@ -138,8 +182,12 @@ c
 	    enddo
 	  elseif(ioptrot.eq.2)then
 	    print *,'For each view, enter a rotation variable #'
-	    write(*,'(a,i4)')'   to fix the rotation of a view,'//
-     &		' give it the same variable # as view',irotfix
+c
+c	      5/2/02: changed irotfix (?) to iref1 and made output conditional
+c
+	    if (iref1.gt.0)
+     &		write(*,'(a,i4)')'   to fix the rotation of a view,'//
+     &		' give it the same variable # as view',mapviewtofile(iref1)
 	    read(5,*)(maplist(i),i=1,nview)
 	  else
 	    power=0.
@@ -148,7 +196,7 @@ c
 	      power=powerrot
 	    endif
 	    call setgrpsize(tilt,nview,power,grpsize)
-	    call automap(nview,maplist,grpsize)
+	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 	    write(6,111)(maplist(i),i=1,nview)
 	  endif
 c	  
@@ -156,7 +204,7 @@ c	    analyze map list
 c	  
 	  call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
      &	      iflin, maplist,nview, iref1,0,0.,'rot ',var,varname,
-     &	      nvarsrch)
+     &	      nvarsrch,mapviewtofile)
 	endif
 c	  
 c	  For tilt, set up default on increments and maps
@@ -201,6 +249,7 @@ c
 	  if(ioptilt.ne.2)then
 	    write(*,'(1x,a,$)')'Number of view to fix tilt angle for: '
 	    read(5,*)nviewfix
+	    nviewfix=nearest_view(nviewfix)
 	    maplist(nviewfix)=0
 	  endif
 	elseif(ioptilt.eq.4)then
@@ -211,6 +260,7 @@ c
 	  if(ioptilt.gt.6)then
 	    write(*,'(1x,a,$)')'Second view to fix tilt angle for: '
 	    read(5,*)nviewfix
+	    nviewfix=nearest_view(nviewfix)
 	  endif
 c	    
 c	    automap: get map, then set variable # 0 for ones mapped to 
@@ -222,7 +272,7 @@ c
 	    power=powertilt
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 	  write(6,111)(maplist(i),i=1,nview)
 111	  format(/,' Variable mapping list:',(1x,25i3))
 	endif
@@ -237,7 +287,7 @@ c
 	endif
 	call analyze_maps(tilt,maptilt,lintilt,frctilt,fixedtilt,
      &	    fixedtilt2,iflin, maplist,nview, iref1,iref2,-999.,
-     &	    'tilt',var,varname,nvarsrch)
+     &	    'tilt',var,varname,nvarsrch,mapviewtofile)
 c	  
 c	  set tiltinc so it will give back the right tilt for whatever
 c	  mapping or interpolation scheme is used
@@ -263,12 +313,13 @@ c
 c	  
 c	  get reference view to fix magnification at 1.0
 c	  
-	ireftilt=imintilt
+	ireftilt=mapviewtofile(imintilt)
 	print *,
      &	    'Enter # of reference view to fix at magnification of 1.0'
 	write(*,'(1x,a,i3,a,$)')
      &	    '   [default =',ireftilt,', view at minimum tilt]: '
 	read(5,*)ireftilt
+	ireftilt=nearest_view(ireftilt)
 c	
 c	  get type of mag variable set up
 c	
@@ -294,7 +345,7 @@ c
 	elseif(ioptmag.eq.2)then
 	  print *,'For each view, enter a magnification variable #'
 	  write(*,'(a,i4)')'   to fix the mag of a view at 1.0,'//
-     &	      ' give it the same variable # as view',ireftilt
+     &	      ' give it the same variable # as view',mapviewtofile(ireftilt)
 	  read(5,*)(maplist(i),i=1,nview)
 	else
 	  power=0.
@@ -303,7 +354,7 @@ c
 	    power=powermag
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 	  write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
@@ -313,7 +364,7 @@ c
 	if(iflocal.gt.1.and.ioptmag.ne.0)iref1=0
 	call analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,fixdum,
      &	    iflin, maplist,nview, iref1,0,1.,'mag ',var,varname,
-     &	    nvarsrch)
+     &	    nvarsrch,mapviewtofile)
 c
 c	  set up compression variables if desired: the ones at fixed zero tilt
 c	  and at least one other one must have compression of 1.0
@@ -332,6 +383,7 @@ c
 	  enddo
 	  irefcomp=1
 	else
+	  irefcomp=nearest_view(irefcomp)
 c	
 c	    get type of comp variable set up
 c	
@@ -352,7 +404,7 @@ c
 	  elseif(ioptcomp.eq.2)then
 	    print *,'For each view, enter a compression variable #;'
 	    write(*,'(a,i4)')'   to fix the comp of a view at 1.0,'//
-     &		' give it the same variable # as view',irefcomp
+     &		' give it the same variable # as view',mapviewtofile(irefcomp)
 	    read(5,*)(maplist(i),i=1,nview)
 	  else
 	    power=0.
@@ -361,7 +413,7 @@ c
 	      power=powercomp
 	    endif
 	    call setgrpsize(tilt,nview,power,grpsize)
-	    call automap(nview,maplist,grpsize)
+	    call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 	    write(6,111)(maplist(i),i=1,nview)
 	  endif
 	endif
@@ -385,7 +437,7 @@ c
 	nvartmp=nvarsrch
 	call analyze_maps(comp,mapcomp,lincomp,frccomp,fixedcomp,fixdum,
      &	    iflin, maplist,nview, irefcomp,0,1.,'comp',var,varname,
-     &	    nvarsrch)
+     &	    nvarsrch,mapviewtofile)
 c	  
 	ncompsrch=nvarsrch-nvartmp
 c	  get type of distortion variable set up
@@ -435,7 +487,8 @@ c
 	      elseif(ioptdist.eq.2)then
 		print *,'For each view, enter a ',distmp,' variable #'
 		write(*,'(a,i4)')'   to fix '//distmp//' of a view at'//
-     &		    ' 0.0, give it the same variable # as view',ireftilt
+     &		    ' 0.0, give it the same variable # as view',
+     &		    mapviewtofile(ireftilt)
 		read(5,*)(maplist(i),i=1,nview)
 	      else
 		if(idist.eq.1)then
@@ -449,7 +502,7 @@ c
 		  endif
 		endif
 		call setgrpsize(tilt,nview,power,grpsize)
-		call automap(nview,maplist,grpsize)
+		call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 		write(6,111)(maplist(i),i=1,nview)
 	      endif
 	    endif
@@ -463,7 +516,7 @@ c
 	    mapdmagstart=nvarsrch+1
 	    call analyze_maps(dmag,mapdmag,lindmag,frcdmag,fixeddmag,
      &		fixdum,iflin, maplist,nview, iref1,0,0.,'dmag',var,
-     &		varname,nvarsrch)
+     &		varname,nvarsrch,mapviewtofile)
 	    mapdumdmag=mapdmagstart-2
 c	      
 c	      provided there are at least two dmag variables, turn 
@@ -522,7 +575,7 @@ c	      dumdmagfac=1./(ndmagvar-1.)
 	  else
 	    call analyze_maps(skew,mapskew,linskew,frcskew,fixedskew,
      &		fixdum,iflin, maplist,nview, iref1,0,0.,'skew',var,
-     &		varname,nvarsrch)
+     &		varname,nvarsrch,mapviewtofile)
 	  endif
 	  power=powerskew
 	enddo
@@ -556,7 +609,7 @@ c
 	elseif(ioptalf.eq.2)then
 	  print *,'For each view, enter an X-axis tilt variable #'
 	  write(*,'(a,i4)')'   to fix the tilt of a view at 0,'//
-     &	      ' give it the same variable # as view',ireftilt
+     &	      ' give it the same variable # as view',mapviewtofile(ireftilt)
 	  read(5,*)(maplist(i),i=1,nview)
 	else
 	  power=0.
@@ -565,7 +618,7 @@ c
 	    power=poweralf
 	  endif
 	  call setgrpsize(tilt,nview,power,grpsize)
-	  call automap(nview,maplist,grpsize)
+	  call automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
 	  write(6,111)(maplist(i),i=1,nview)
 	endif
 c	  
@@ -573,7 +626,8 @@ c	  analyze map list - fix reference at minimum tilt
 c	  
 	mapalfstart=nvarsrch+1
 	call analyze_maps(alf,mapalf,linalf,frcalf,fixedalf,fixdum,iflin,
-     &	    maplist,nview, imintilt,0,0.,'Xtlt',var,varname,nvarsrch)
+     &	    maplist,nview, imintilt,0,0.,'Xtlt',var,varname,nvarsrch,
+     &	    mapviewtofile)
 c	  
 	if(iflocal.lt.2.and.ncompsrch.ne.0.and.
      &	    (ioptilt.eq.1.or.(ioptilt.gt.1.and.nviewfix.eq.0)))
@@ -620,10 +674,10 @@ c
 	  call setdumpname(mapalf(iv),linalf(iv),-1,varname,dump(8))
 	  if(inputalf.eq.0)then
 	    write(*,'(i4,3x,a8,3x,a8,1x,a8,3x,a8,3x,a8,3x,a8,3x,a8)')
-     &		iv,(dump(i),i=1,7)
+     &		mapviewtofile(iv),(dump(i),i=1,7)
 	  else
 	    write(*,'(i4,2x,a8,2x,a8,a7,2x,a8,1x,a8,1x,a8,2x,a8,2x,a8)')
-     &		iv,(dump(i),i=1,8)
+     &		mapviewtofile(iv),(dump(i),i=1,8)
 	  endif
 	enddo
 	write(*,*)
@@ -631,7 +685,9 @@ c
 	end
 
 	subroutine setdumpname(map,lin,mapdum,varname,dump)
+	implicit none
 	character*8 varname(*), dump
+	integer*4 map,mapdum,lin
 	if(map.eq.0)return
 	if(map.eq.mapdum)then
 	  if(lin.eq.0)then
@@ -659,8 +715,12 @@ c
 
 	subroutine reload_vars(glb,vlocal,map,frc,nview,
      &	    mapstart,mapend,var,fixed,incr)
-	integer*4 map(*)
-	real*4 glb(*),frc(*),var(*),vlocal(*)
+	implicit none
+	integer*4 map(*),nview,mapstart,mapend,incr
+	real*4 glb(*),frc(*),var(*),vlocal(*),fixed
+c	  
+	integer*4 i,m,nsum
+	real*4 sum
 c	  
 c	  first just reload all of the local parameters from the global
 c	  fixed will have the right value for any case where there is ONE
@@ -698,6 +758,50 @@ c
 	    stop
 	  endif
 	  var(m)=sum/nsum
+	enddo
+	return
+	end
+
+
+c	  It turned out that entered views always should be converted to
+c	  the nearest view rather than generating an error
+c$$$	subroutine filetoview(iview)
+c$$$	implicit none
+c$$$	integer*4 iview
+c$$$	include 'alivar.inc'
+c$$$	if(iview.gt.nfileviews.or.iview.le.0)then
+c$$$	  print *,'View',iview,' is beyond the known range of the file'
+c$$$	  call exit(1)
+c$$$	endif
+c$$$	if(mapfiletoview(iview).eq.0)then
+c$$$	  print *,'View',iview,' has not been included in this analysis'
+c$$$	  call exit(1)
+c$$$	endif
+c$$$	iview=mapfiletoview(iview)
+c$$$	return
+c$$$	end
+
+
+	integer*4 function nearest_view(iview)
+	implicit none
+	integer*4 iview,ivdel
+	include 'alivar.inc'
+	if(iview.gt.nfileviews.or.iview.le.0)then
+	  print *,'View',iview,' is beyond the known range of the file'
+	  call exit(1)
+	endif
+	nearest_view=mapfiletoview(iview)
+	ivdel=1
+	do while(nearest_view.eq.0)
+	  if(iview-ivdel.gt.0)then
+	    if(mapfiletoview(iview-ivdel).gt.0)
+     &		nearest_view=mapfiletoview(iview-ivdel)
+	  endif
+	  if(iview+ivdel.le.nfileviews)then
+	    if(mapfiletoview(iview+ivdel).gt.0)
+     &		nearest_view=mapfiletoview(iview+ivdel)
+	  endif
+	  ivdel=ivdel+1
 	enddo
 	return
 	end

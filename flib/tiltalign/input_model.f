@@ -3,12 +3,24 @@ c	  image file, sorts out the model points that are to be included in
 c	  the analysis, and converts the coordinates to "index" coordinates
 c	  with the origin at the center of the section
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &	    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
-     &	    iwhichout, xcen, ycen,modelfile,iupoint, iuangle, iuxtilt)
-c
-	real*4 xx(*),yy(*)
+     &	    iwhichout, xcen, ycen,listz,mapfiletoview,nfileviews,
+     &	    modelfile,iupoint, iuangle, iuxtilt)
+c	  
+	implicit none
+	real*4 xx(*),yy(*),xcen,ycen
 	integer*4 isecview(*),irealstr(*),ninreal(*),imodobj(*),imodcont(*)
+	integer*4 mapfiletoview(*),maxprojpt,maxreal,nview,nprojpt,nrealpt
+	integer*4 iwhichout, iupoint,iuangle,iuxtilt,nfileviews
 	character*(*) modelfile
 c
 	character*80 solufile,anglefile,pointfile
@@ -16,8 +28,13 @@ c
 c
 	include 'model.inc'
 c
-	integer*4 nxyz(3),mxyz(3),listz(max_pt)
+	integer*4 nxyz(3),mxyz(3),listz(*)
 	real*4 delta(3)
+c	  
+	integer*4 nzlist,iobject,ninobj,ipt,iz,i,j,itmp,minzval,ifspecify
+	integer*4 ninoutlist,ivstr,ivend,ivinc,ifonlist,ibase,nprojtmp
+	integer*4 inlist,mode
+	real*4 xorig,yorig,zorig,xdelt,ydelt,dmin,dmax,dmean
 c
 c	  read model in
 c
@@ -45,9 +62,27 @@ c
 20	    enddo
 	  endif
 	enddo
-
+c
+c	  order list of z values
+c
+	do i=1,nzlist-1
+	  do j=i+1,nzlist
+	    if(listz(i).gt.listz(j))then
+	      itmp=listz(i)
+	      listz(i)=listz(j)
+	      listz(j)=itmp
+	    endif
+	  enddo
+	enddo
+c
+c	  set minimum z value if any are negative, and set number of views
+c	  in file from range of z values
+c
+	minzval=min(0,listz(1))
+	nfileviews=listz(nzlist)-minzval+1
+c
 c	  get dimensions of file and header info on origin and delta
-
+c
 	print *,'Image file with matching header info'//
      &	    ' (Return to enter nx,ny directly)'
 	read(5,'(a)')modelfile
@@ -67,6 +102,14 @@ c
 	  call irtorg(1,xorig,yorig,zorig)
 	  call irtdel(1,delta)
 	  call imclose(1)
+c
+c	    minimum z value is determined by origin, but make it as low as
+c	    actual minimum
+c	    # of file views should be the size of file, but make it big
+c	    enough to hold all z values implied by origin
+c
+	  minzval=min(listz(1),-nint(zorig))
+	  nfileviews=max(listz(nzlist)-minzval+1,nxyz(3))
 	endif
 	xdelt=delta(1)
 	ydelt=delta(2)
@@ -124,34 +167,52 @@ c
 c
 c	  find out which z values to include; end up with a list of z values
 c
-	write(*,'(1x,a,i3,a,/,a,/,a,$)')'Enter 0 to include all',nzlist,
-     &	    ' z values','    or 1 to specify start, end, increment z,',
-     &	    '    or 2 to specify all z values: '
+	write(*,'(1x,a,i3,a,/,a,/,a,/,a,$)')'Enter 0 to include all',nzlist,
+     &	    ' views with points',
+     &	    '    or 1 to enter start, end, and increment view numbers,',
+     &	    '    or 2 to specify a list of views to include',
+     &	    '    or 3 to specify a list of views to exclude: '
 	read(5,*)ifspecify
 c
-	if(ifspecify.eq.1)then
-	  write(*,'(1x,a,$)')'Start, end, increment z to include: '
-	  read(5,*)zstr,zend,zinc
-	  nzlist=1.001+(zend-zstr)/zinc
-	  do i=1,nzlist
-	    listz(i)=nint(zstr+(i-1)*zinc)
-	  enddo
-	elseif(ifspecify.gt.1)then
-	  write(*,'(1x,a,$)')'Enter z values (ranges ok): '
-	  call rdlist(5,listz,nzlist)
-	endif
+	if (ifspecify.gt.0)then
+	  if(ifspecify.eq.1)then
+	    write(*,'(1x,a,$)')
+     &		'Start, end, and increment of views to include: '
+	    read(5,*)ivstr,ivend,ivinc
+	    ninoutlist=1+(ivend-ivstr)/ivinc
+	    do i=1,ninoutlist
+	      isecview(i)=ivstr+(i-1)*ivinc
+	    enddo
+	  elseif(ifspecify.eq.2)then
+	    write(*,'(1x,a,$)')'Enter views to include (ranges ok): '
+	    call rdlist(5,isecview,ninoutlist)
+	  else
+	    write(*,'(1x,a,$)')'Enter views to exclude (ranges ok): '
+	    call rdlist(5,isecview,ninoutlist)
+	  endif
+c	    
+c	    go through list of z values in model and make sure they are on
+c	    an include list or not on an exclude list
+c	    
+	  i=1
+	  do while(i.le.nzlist)
+	    ifonlist=0
+	    do j=1,ninoutlist
+	      if(listz(i)+1.eq.isecview(j))ifonlist=1
+	    enddo
+c	      
+c	      remove points on exclude list or not on include list
 c
-c	  order list of z values
-c
-	do i=1,nzlist-1
-	  do j=i+1,nzlist
-	    if(listz(i).gt.listz(j))then
-	      itmp=listz(i)
-	      listz(i)=listz(j)
-	      listz(j)=itmp
+	    if(ifspecify.le.2.xor.ifonlist.eq.1)then
+	      nzlist=nzlist-1
+	      do j=i,nzlist
+		listz(j)=listz(j+1)
+	      enddo
+	    else
+	      i=i+1
 	    endif
 	  enddo
-	enddo
+	endif
 c
 c	  go through model finding objects with more than one point in the
 c	  proper z range, and convert to index coordinates, origin at center
@@ -215,6 +276,16 @@ c
 	enddo
 	irealstr(nrealpt+1)=nprojpt+1		!for convenient looping
 	nview=max(2,nzlist)			!nzlist maybe 1 for stereo pair
+c	  
+c	  shift listz to be a view list, and make the map of file to view
+c
+	do i=1,nfileviews
+	  mapfiletoview(i)=0
+	enddo
+	do i=1,nzlist
+	  listz(i)=listz(i)-minzval+1
+	  mapfiletoview(listz(i))=i
+	enddo
 	return
 	end
 
@@ -227,11 +298,14 @@ c	  if the points have been assigned to surfaces.
 c
 	subroutine write_xyz_model(modelfile,xyz,igroup,nrealpt)
 c
+	implicit none
 	real*4 xyz(3,*)
-	integer*4 igroup(*)
+	integer*4 igroup(*),nrealpt
 	character*(*) modelfile
 	include 'model.inc'
 c	  
+	integer*4 ireal,iobject,ipt,i
+c
 	if(modelfile.eq.' ')return
 c	  
 c	  loop on model objects that are non-zero, stuff point coords into 
