@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/27 19:38:56  mast
+Change include to qgl, and have it only draw at the current time
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
@@ -38,6 +41,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
   Iobj  *obj;
   Icont *cont;
   int ob, co;
+  bool hasSpheres;
 
   if (imod->drawmode <= 0)
     return;
@@ -50,9 +54,14 @@ void imodDrawModel(ImodView *vi, Imod *imod)
     imodSetObjectColor(ob);
     glLineWidth((GLfloat)obj->linewidth2);
 
-    if (iobjScat(obj->flags))
+    hasSpheres = iobjScat(obj->flags) || obj->pdrawsize;
+    for (co = 0; co < obj->contsize && !hasSpheres; co++)
+      hasSpheres = obj->cont[co].sizes != NULL;
+
+    if (hasSpheres)
       imodDrawSpheres(vi, obj);
-    else {
+    
+    if (!iobjScat(obj->flags)) {
       
       /* Draw all of the objects lines first. */
       for(co = 0; co < obj->contsize; co++){
@@ -116,7 +125,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
   Icont  *cont;
   Ipoint *point;
   Ipoint vert;
-  unsigned int co, pt, lpt;
+  int co, pt, lpt;
   int mode;
   double inner, outer;
   int slices, loops;
@@ -217,7 +226,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   static GLUquadricObj *qobj = NULL;
   Icont *cont;
   Ipoint *point;
-  unsigned int pt, co;
+  int pt, co;
   int stepRes;
   GLdouble drawsize;
   GLuint listIndex;
@@ -232,7 +241,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   /* Make a display list for the default size */
   drawsize = obj->pdrawsize;
   if (drawsize) {
-    stepRes = drawsize < 5 ? drawsize + 4 : 8;
+    stepRes = (int)(drawsize < 5 ? drawsize + 4 : 8);
     listIndex = glGenLists(1);
     glNewList(listIndex, GL_COMPILE);
     gluSphere(qobj, drawsize , stepRes * 2, stepRes);
