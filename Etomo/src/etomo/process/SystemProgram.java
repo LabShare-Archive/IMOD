@@ -3,10 +3,13 @@ package etomo.process;
 import java.io.*;
 import java.util.*;
 
-
 /**
- * <p>Description: </p>
+ * <p>Description: SystemProgram provides a class to execute programs under the
+ * host operating system.  The class provides access to stdin, stdout and stderr
+ * streams and implements the Runnable interface so that it can be threaded.</p>
  *
+ * <p> If the working directory is not explicitly set then the current working
+ * directory for the command is set to the system property "user.dir"
  * <p>Copyright: Copyright (c) 2002</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
@@ -16,10 +19,14 @@ import java.util.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class SystemProgram implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   /**
    * The exit value of the command
@@ -92,19 +99,19 @@ public class SystemProgram implements Runnable {
 
   /**
    * Execute the command.
-   * @return The exit value of the executed command.
    */
   public void run() {
-
 
     //  Setup the Process object and run the command
     Process process = null;
     try {
-      if(workingDirectory == null) {
-	process = Runtime.getRuntime().exec(command);
+      if (workingDirectory == null) {
+        File currentUserDirectory = new File(System.getProperty("user.dir"));
+        process =
+          Runtime.getRuntime().exec(command, null, currentUserDirectory);
       }
       else {
-	process = Runtime.getRuntime().exec(command, null, workingDirectory);
+        process = Runtime.getRuntime().exec(command, null, workingDirectory);
       }
 
       //  Create a buffered writer to handle the stdin, stdout and stderr
@@ -123,37 +130,39 @@ public class SystemProgram implements Runnable {
 
       //  Write out to the program's stdin pipe each line of the
       //  stdInput array if it is not null
-      if(stdInput != null) {
-	for(int i = 0; i < stdInput.length; i++) {
-	  cmdInBuffer.write(stdInput[i]);
-	  cmdInBuffer.newLine();
-	  cmdInBuffer.flush();
-	}
+      if (stdInput != null) {
+        for (int i = 0; i < stdInput.length; i++) {
+          cmdInBuffer.write(stdInput[i]);
+          cmdInBuffer.newLine();
+          cmdInBuffer.flush();
+        }
       }
 
       //  Read in the command's stdout and stderr
       String line;
       while ((line = cmdOutBuffer.readLine()) != null)
-	stdOutput.add(line);
+        stdOutput.add(line);
 
       while ((line = cmdErrBuffer.readLine()) != null)
-	stdError.add(line);
+        stdError.add(line);
     }
 
     //  FIXME need better error handling, what should be the state if an
     // exception is thrown i.e. the exitValue
-    catch(IOException except) {
+    catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
 
     try {
-      //  Wait for the prcess to exit
+      //  Wait for the process to exit
       //  why can we read the stdout and stderr above before this completes
+      System.out.println("Starting wait");
       process.waitFor();
+      System.out.println("Process done");
       exitValue = process.exitValue();
     }
-    catch(InterruptedException except) {
+    catch (InterruptedException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
