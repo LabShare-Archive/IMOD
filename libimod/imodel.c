@@ -33,6 +33,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/06/27 20:19:48  mast
+Made min and max functions return (-1,-1,-1) if there are no model points,
+and improved the checksum computation to include real and integer values
+and include all view data.
+
 Revision 3.3  2003/03/13 01:18:49  mast
 Add new default object color scheme
 
@@ -168,6 +173,10 @@ void imodFree(Imod *imod)
 {
   if (!imod)
     return;
+
+  /* DNM 7/24/03: free the object view and view data also */
+  imodObjviewsFree(imod);
+  imodViewDelete(imod->view);
   imodObjectsDelete(imod->obj, imod->objsize);
   if (imod->fileName)
     free(imod->fileName);
@@ -493,9 +502,11 @@ int imodFreeObject(struct Mod_Model *mod, int index)
      
   /* Copy objects above deleted object down one. */
   if (index != mod->objsize - 1 )
-    for (i = index; i < mod->objsize; i++){
+    for (i = index; i < mod->objsize; i++)
       imodObjectCopy(&(mod->obj[i + 1]), &(mod->obj[i]));
-    } 
+
+  /* Delete all object views for this object */
+  imodObjviewDelete(mod, index);
 
   if (mod->objsize > 1){
 
@@ -520,10 +531,9 @@ int imodFreeObject(struct Mod_Model *mod, int index)
       if (mod->cindex.point >= tobj->cont[mod->cindex.contour].psize)
         mod->cindex.point  = tobj->cont[mod->cindex.contour].psize  - 1;
 
-  }
+  } else{
 
-  /* Delete last object in model */
-  else{
+    /* Delete last object in model */
     free(mod->obj);
     mod->cindex.point  = -1;
     mod->cindex.contour = -1;
