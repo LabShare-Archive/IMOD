@@ -84,28 +84,12 @@ void b3dResizeViewportXY(int winx, int winy)
 
 void b3dColorIndex(int pix)
 {
+  QColor qcol;
   glIndexi(pix);
   if (App->rgba){
-    if (pix == App->select)
-      glColor3ub(255, 255,   0);
-    else if (pix == App->shadow)
-      glColor3ub(128, 128,   0);
-    else if (pix == App->endpoint)
-      glColor3ub(255,   0,   0);
-    else if (pix == App->bgnpoint)
-      glColor3ub(  0, 255,   0);
-    else if (pix == App->curpoint)
-      glColor3ub(255,   0,   0);
-    else if (pix == App->foreground)
-      glColor3ub(255, 255, 128);
-    else if (pix == App->background)
-      glColor3ub(64,  64,  96);
-    else if (pix == App->ghost)
-      glColor3ub(16, 16, 16);
+    qcol = ImodPrefs->namedColor(pix);
+    glColor3ub(qcol.red(), qcol.green(), qcol.blue());
   }
-
-
-  return;
 }
 
 void b3dLineStyle(int style)
@@ -1914,6 +1898,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.23  2004/11/02 00:51:59  mast
+Fixed tiff writing to allow proper numbmber of bytes after image
+
 Revision 4.22  2004/10/04 18:29:01  mast
 Changed snapshot functions to give error returnd
 
