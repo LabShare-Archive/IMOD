@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/09/17 23:44:56  rickg
+ * <p> Adding ImodManager, in progress
+ * <p>
  * <p> Revision 1.2  2002/09/13 21:29:57  rickg
  * <p> Started updating for ImodManager
  * <p>
@@ -47,13 +50,13 @@ public class ApplicationManager {
   //  This object controls the reading and writing of David's com scripts
   private ComScriptManager comScriptMgr = new ComScriptManager(this);
 
-  //  This object manages the execution of com scripts and the running of imod
+  //  The ProcessManager manages the execution of com scripts
   private ProcessManager processMgr = new ProcessManager(this);
   private ProcessTrack processTrack = new ProcessTrack();
 
-  // This object manages the opening and closing closing of imod(s), message 
+  // imodManager manages the opening and closing closing of imod(s), message 
   // passing for loading model
-  private ImodManager imodManager = new ImodManager(this);
+  private ImodManager imodManager;
 
   private MainFrame mainFrame;
   private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -282,7 +285,22 @@ public class ApplicationManager {
    * Open imod to create the erase model
    */
   public void imodErase(AxisID axisID) {
-    processMgr.imodErase(axisID);
+    String extension = "";
+
+    String eraseModelName =
+      metaData.getFilesetName() + axisID.getExtension() + ".erase";
+
+    try {
+      imodManager.modelRawStack(eraseModelName, axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod on raw stack",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /**
@@ -390,7 +408,17 @@ public class ApplicationManager {
    * Open imod to view the coarsely aligned stack
    */
   public void imodAlign(AxisID axisID) {
-    processMgr.imodAlign(axisID);
+    try {
+      imodManager.openCoarseAligned(axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod on coarse aligned stack",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /**
@@ -540,7 +568,19 @@ public class ApplicationManager {
    * Open imod with the seed model
    */
   public void imodSeedFiducials(AxisID axisID) {
-    processMgr.imodSeedFiducials(axisID);
+    String seedModel = 
+    metaData.getFilesetName() + axisID.getExtension() + ".seed";
+    try {
+      imodManager.modelCoarseAligned(seedModel, axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod on coarse aligned stack with model: " + seedModel,
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /**
@@ -559,8 +599,21 @@ public class ApplicationManager {
    * Open imod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID) {
-    processMgr.imodFixFiducials(axisID);
+    String fiducialModel = 
+      metaData.getFilesetName() + axisID.getExtension() + ".fid";
+    try {
+      imodManager.modelCoarseAligned(fiducialModel, axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod on coarse aligned stack with model: " + fiducialModel,
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
+
 
   /**
    * Update the specified track com script
@@ -707,9 +760,20 @@ public class ApplicationManager {
 
   /**
    * Open imod to view the coarsely aligned stack
+   * @param axisID the AxisID to coarse align.
    */
   public void imodFineAlign(AxisID axisID) {
-    processMgr.imodFineAlign(axisID);
+    try {
+      imodManager.openFineAligned(axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod on fine aligned stack",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /**
@@ -915,7 +979,17 @@ public class ApplicationManager {
   }
 
   public void imodSample(AxisID axisID) {
-    processMgr.imodSample(axisID);
+    try {
+      imodManager.openSample(axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod with the sample reconstructions",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   public void tomopitch(AxisID axisID) {
@@ -1158,7 +1232,7 @@ public class ApplicationManager {
   }
 
   /**
-   *
+   * 
    *
    */
   public void tilt(
@@ -1171,9 +1245,20 @@ public class ApplicationManager {
 
   /**
    * Open imod to view the coarsely aligned stack
+   * @param axisID the AxisID of the tomogram to open.
    */
   public void imodTomogram(AxisID axisID) {
-    processMgr.imodTomogram(axisID);
+    try {
+      imodManager.openTomogram(axisID);
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      JOptionPane.showMessageDialog(
+        mainFrame,
+        except.getMessage(),
+        "Can't open imod with the tomogram",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /**
@@ -1352,13 +1437,13 @@ public class ApplicationManager {
   /**
    * A message asking the ApplicationManager to load in the information from the
    * test parameter file.
-   * @param the File object specifiying the data parameter file.
+   * @param paramFile the File object specifiying the data parameter file.
    */
   public void openTestParamFile(File paramFile) {
     FileInputStream processDataStream;
+
     try {
 
-      //
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
@@ -1389,6 +1474,9 @@ public class ApplicationManager {
       if (metaData.getWorkingDirectory().length() > 0) {
         System.setProperty("user.dir", metaData.getWorkingDirectory());
       }
+
+      //  Initialize a new IMOD manager
+      imodManager = new ImodManager(metaData);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
