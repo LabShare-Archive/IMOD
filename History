@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/10/04: IMOD_3-4-8
+9/10/04: Fixed tif2mrc, mrc2tif problems on AMD64 (in 3.3).
+
+9/10/04: Added a program, Sumdensity, for summing densities within contours.
+
+9/9/04: Fixed problems with 3dmod writing tiff files on AMD64 (in 3.3).
+
+9/9/04: Fixed a problem that led to combine.com not running.
+
 9/9/04: IMOD_3-4-7
 9/9/04: Made Newstack work properly with PIP input when a transform file has
 only one line, which is needed for new startjoin command file.
