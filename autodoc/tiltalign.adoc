@@ -1,0 +1,961 @@
+Version = 1.0
+Pip = 1
+
+[Field = ModelFile]
+short = 
+long = ModelFile
+type = FN
+usage = Input fiducial model file
+tooltip =
+manpage =
+
+[Field = ImageFile]
+short = 
+long = ImageFile
+type = FN
+usage = Image file that fiducial model was built on (optional)
+tooltip =
+manpage = Image file that fiducial model was built on, used to obtain
+information for scaling the model.  If this entry is
+omitted, the program will use values entered with ImageSizeXandY,
+ImageOriginXandY, and ImagePixelSizeXandY, or values from the model itself if
+those options are omitted.  In general, the information from the model header
+should be sufficient and none of these entries should be needed.
+
+[Field = ImageSizeXandY]
+short = 
+long = ImageSizeXandY
+type = IP
+usage = Dimensions of image file (optional)
+tooltip = 
+manpage = 
+
+[Field = ImageOriginXandY]
+short = 
+long = ImageOriginXandY
+type = FP
+usage = X and Y origin values from image file header (optional)
+tooltip = 
+manpage = 
+
+[Field = ImagePixelSizeXandY]
+short = 
+long = ImagePixelSizeXandY
+type = FP
+usage = X and Y Pixel spacing from image file header (optional)
+tooltip = 
+manpage = 
+
+[Field = OutputModelFile]
+short = 
+long = OutputModelFile
+type = FN
+usage = Output file for 3-D model of solved fiducial positions
+tooltip = 
+manpage = File in which to place 3-D model of the fiducials based on their
+solved positions
+
+[Field = OutputResidualFile]
+short = 
+long = OutputResidualFile
+type = FN
+usage = Output file for list of all residuals
+tooltip = 
+manpage = Output file for a list of the residuals at all projection points,
+which can be converted to a model with Patch2imod.
+
+[Field = OutputModelAndResidual]
+short = 
+long = OutputModelAndResidual
+type = FN
+usage = Root name for output of both a 3-D model and residuals
+tooltip = 
+manpage = Root name for output of both a 3-D model and residuals; the files
+will have extensions .3dmod and .resid, respectively.
+
+[Field = OutputTopBotResiduals]
+short = 
+long = OutputTopBotResiduals
+type = FN
+usage = Root name for separate output of residuals for top and bottom points
+tooltip = 
+manpage = Root name for output of residuals for fiducials on the top and 
+bottom surfaces into separate files, with extensions .topres and .botres.
+
+[Field = OutputFidXYZFile]
+short = 
+long = OutputFidXYZFile
+type = FN
+usage = File for text output of the solved X-Y-Z coordinates
+tooltip = 
+manpage = 
+
+[Field = OutputTiltFile]
+short = 
+long = OutputTiltFile
+type = FN
+usage = Output file for the solved tilt angles
+tooltip = 
+manpage = 
+
+[Field = OutputXAxisTiltFile]
+short = 
+long = OutputXAxisTiltFile
+type = FN
+usage = Output file for tilts around the X axis.
+tooltip = 
+manpage = 
+
+[Field = OutputTransformFile]
+short = 
+long = OutputTransformFile
+type = FN
+usage = Output file for 2-D transformations needed to align images
+tooltip = 
+manpage = 
+
+[Field = OutputZFactorFile]
+short = 
+long = OutputZFactorFile
+type = FN
+usage = Output file for factors to adjust X and Y as function of Z in
+backprojection
+tooltip = 
+manpage = Output file for factors to adjust X and Y as function of Z in
+backprojection.  When there is specimen stretch along an axis, a 2-D
+transformation of the projections cannot fully correct for this effect, and
+these factors are needed to adjust the backprojection position for different
+Z heights in the reconstructed slice.
+
+[Field = IncludeStartEndInc]
+short = 
+long = IncludeStartEndInc
+type = IT
+usage = Starting and ending view numbers, and increment between views, to
+include in analysis
+tooltip = 
+manpage = Starting and ending view numbers, and increment between views, to
+include in analysis.  This option, IncludeList, and ExcludeList are mutually
+exclusive.  The default is to include all views that have points in the model.
+
+[Field = IncludeList]
+short = 
+long = IncludeList
+type = LI
+usage = List of views to include in the analysis
+tooltip = 
+manpage = List of views to include in the analysis (ranges allowed)
+
+[Field = ExcludeList]
+short = 
+long = ExcludeList
+type = LI
+usage = List of views to exclude from the analysis
+tooltip = 
+manpage = List of views to exclude from the analysis (ranges allowed)
+
+[Field = RotationAngle]
+short = 
+long = RotationAngle
+type = F
+usage = Initial rotation angle from the Y axis to the tilt axis
+tooltip =
+manpage = Initial angle of rotation in the plane of projection.	 This is the
+rotation (CCW positive) from the Y-axis (the tilt axis after the
+views are aligned) to the suspected tilt axis in the unaligned views.
+
+[Field = SeparateGroup]
+short = 
+long = SeparateGroup
+type = LIM
+usage = List of views that should be grouped separately in automapping
+tooltip =
+manpage = List of views that should be grouped separately in automapping.
+Multiple entries can be used to specify more than one set of separate views.
+
+[Field = FirstTiltAngle]
+short = first
+long = FirstTiltAngle
+type = F
+usage = Tilt angle of first view in degrees
+tooltip = 
+manpage = Tilt angle of first view, in degrees.  Use this option together with
+TiltIncrement.
+
+[Field = TiltIncrement]
+short = increment
+long = TiltIncrement
+type = F
+usage = Increment between tilt angles
+tooltip = 
+manpage = Increment between tilt angles, in degrees.  Use this option together
+with FirstTiltAngle.
+
+[Field = TiltFile]
+short = tiltfile
+long = TiltFile
+type = FN
+usage = File with tilt angles
+tooltip = 
+manpage = Use this option if tilt angles are in a file, one per line.
+
+[Field = TiltAngles]
+short = angles
+long = TiltAngles
+type = FAM
+usage = Individual tilt angles for each view
+tooltip = 
+manpage = Use this option to enter the tilt angles for each view individually,
+in degrees.
+
+[Field = AngleOffset]
+short = 
+long = AngleOffset
+type = F
+usage = Amount to add to all entered tilt angles
+tooltip = 
+manpage = 
+
+[Field = ProjectionStretch]
+short = 
+long = ProjectionStretch
+type = B
+usage = Solve for stretch along an axis applying to projection of all images.
+tooltip = 
+manpage = Solve for a single pair of parameters describing a stretch along
+an axis that occurs during projection of all images.
+
+[Field = RotOption]
+short = 
+long = RotOption
+type = I
+usage = Type of rotation solution: 0 for none, 1 for independent, 2 for
+mapped, 3 or 4 for automapped, -1 for single variable
+tooltip = 
+manpage = Type of rotation solution: 0 for all rotations fixed at the initial
+angle, 1 for each view having an independent rotation, 2 to enter general
+mapping of rotation variables, 3 or 4 for automapping of rotation variables (3
+for linearly changing values or 4 for values all the same within a group), or
+-1 to solve for a single rotation variable.
+
+[Field = RotDefaultGrouping]
+short = 
+long = RotDefaultGrouping
+type = I
+usage = Default group size when automapping rotation variables
+tooltip = 
+manpage = 
+
+[Field = RotNondefaultGroup]
+short = 
+long = RotNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+rotation variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose rotation variables should be grouped differently from the default.
+Multiple entries can be used to specify more than one set of views with
+nondefault grouping.
+
+[Field = RotationFixedView]
+short = 
+long = RotationFixedView
+type = I
+usage = View to fix at the initial rotation angle
+tooltip = 
+manpage = Number of view whose rotation should be fixed at the initial
+rotation angle.  This entry is relevant with any of the positive RotOption
+entries.
+
+[Field = LocalRotOption]
+short = 
+long = LocalRotOption
+type = I
+usage = Type of local rotation solution: 0 for none, 1 for independent, 2 for
+mapped, 3 or 4 for automapped, -1 for single variable
+tooltip = 
+manpage = Type of local rotation solution: 0 for local rotations fixed,
+1 for each view having an independent rotation, 2 to enter general
+mapping of variables, 3 or 4 for automapping of rotation variables (3
+for linearly changing values or 4 for values all the same within a group),
+or -1 to solve for a single rotation variable.
+
+[Field = LocalRotDefaultGrouping]
+short = 
+long = LocalRotDefaultGrouping
+type = I
+usage = Default group size when automapping local rotation variables
+tooltip = 
+manpage = 
+
+[Field = LocalRotNondefaultGroup]
+short = 
+long = LocalRotNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local rotation variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local rotation variables should be grouped differently from the default.
+
+[Field = TiltOption]
+short = 
+long = TiltOption
+type = I
+usage = Type of tilt angle solution: 0 for all fixed, 2 for all independent, 5
+for automapping
+tooltip = 
+manpage = Type of tilt angle solution:   0 to fix all tilt angles at their 
+initial values, 1 to solve for all tilt angles except for a specified view,
+2 to solve for all tilt angles except for the view at minimum tilt, 3 to solve
+for all tilt angles except for a specified view and the view at minimum tilt,
+4 to specify a mapping of tilt angle variables,
+5 or 6 to automap groups of tilt angles (5 for linearly
+changing values or 6 for values all the same within a group), 
+or 7 or 8 to automap and fix two tilt angles (7 for linearly changing values
+or 8 for values all the same within a group)
+
+[Field = TiltFixedView]
+short = 
+long = TiltFixedView
+type = I
+usage = View at which to fix the tilt angle (TiltOption 1, 3, 7, or 8)
+tooltip = 
+manpage = Number of view at which to fix the tilt angle (required with
+TiltOption 1, 3, 7, or 8)
+
+[Field = TiltSecondFixedView]
+short = 
+long = TiltSecondFixedView
+type = I
+usage = Second view at which to fix the tilt angle (TiltOption 7 or 8)
+tooltip = 
+manpage = Number of second view at which to fix the tilt angle (required with
+TiltOption 7 or 8)
+
+[Field = TiltDefaultGrouping]
+short = 
+long = TiltDefaultGrouping
+type = I
+usage = Average default group size when automapping tilt variables
+tooltip =
+manpage =
+
+[Field = TiltNondefaultGroup]
+short = 
+long = TiltNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+tilt variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose tilt variables should be grouped differently from the default.
+
+[Field = LocalTiltOption]
+short = 
+long = LocalTiltOption
+type = I
+usage = Type of local tilt angle solution; same values as for global
+tooltip = 
+manpage = Type of local tilt angle solution; values 0-8 have same meaning as
+for global solution.
+
+[Field = LocalTiltFixedView]
+short = 
+long = LocalTiltFixedView
+type = I
+usage = View at which to fix the tilt angle (LocalTiltOption 1, 3, 7, or 8)
+tooltip = 
+manpage = Number of view at which to fix the tilt angle in the local solution
+(required with LocalTiltOption 1, 3, 7, or 8)
+
+[Field = LocalTiltSecondFixedView]
+short = 
+long = LocalTiltSecondFixedView
+type = I
+usage = Second view at which to fix the tilt angle (LocalTiltOption 7 or 8)
+tooltip = 
+manpage = Number of second view at which to fix the tilt angle in the local 
+solution (required with LocalTiltOption 7 or 8)
+
+[Field = LocalTiltDefaultGrouping]
+short = 
+long = LocalTiltDefaultGrouping
+type = I
+usage = Average default group size when automapping local tilt variables
+tooltip = 
+manpage = 
+
+[Field = LocalTiltNondefaultGroup]
+short = 
+long = LocalTiltNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local tilt variables
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local tilt variables should be grouped differently from the default.
+
+[Field = MagReferenceView]
+short = 
+long = MagReferenceView
+type = I
+usage = Reference view whose magnification will be fixed at 1.0
+tooltip = 
+manpage = Number of reference view whose magnification will be fixed at 1.0.
+The default is the view at minimum tilt.
+
+[Field = MagOption]
+short = 
+long = MagOption
+type = I
+usage = Type of magnification solution: 0 fixed, 1 independent, 2 mapped, 3 or
+4 automapped.
+tooltip = 
+manpage = Type of magnification solution: 0 to fix all magnifications at 1.0,
+1 to vary all magnifications independently, 2 to specify a mapping of
+magnification variables, or 3 or 4 for automapping of variables (3 for
+linearly changing values or 4 for values all the same within a group).
+
+[Field = MagDefaultGrouping]
+short = 
+long = MagDefaultGrouping
+type = I
+usage = Default group size when automapping magnification variables
+tooltip =
+manpage =
+
+[Field = MagNondefaultGroup]
+short = 
+long = MagNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+magnification variables.
+tooltip =
+manpage = Starting and ending view numbers and group size for a set of views
+whose magnification variables should be grouped differently from the default.
+
+[Field = LocalMagReferenceView]
+short = 
+long = LocalMagReferenceView
+type = I
+usage = Reference view whose local magnification will be fixed at 1.0
+tooltip = 
+manpage = Number of reference view whose local magnification will be fixed at
+1.0.  The default is the view at minimum tilt.
+
+[Field = LocalMagOption]
+short = 
+long = LocalMagOption
+type = I
+usage = Type of local magnification solution; same values as for global
+tooltip = 
+manpage = Type of local magnification solution; values 0-3 have same meaning as
+for global solution.
+
+[Field = LocalMagDefaultGrouping]
+short = 
+long = LocalMagDefaultGrouping
+type = I
+usage = Default group size when automapping local magnification variables
+tooltip = 
+manpage = 
+
+[Field = LocalMagNondefaultGroup]
+short = 
+long = LocalMagNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local magnification variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local magnification variables should be grouped differently from the
+default.
+ 
+[Field = CompReferenceView]
+short = 
+long = CompReferenceView
+type = I
+usage = View to fix at compression 1.0
+tooltip = 
+manpage = Number of the view to fix at compression 1.0 (something
+other than a view whose tilt angle is fixed at zero.)  Required if CompOption
+not 0.
+
+[Field = CompOption]
+short = 
+long = CompOption
+type = I
+usage = Type of compression solution: 0 fixed, 1 independent, 2 mapped, 3 or
+4 automapped
+tooltip = 
+manpage = Type of compression solution: 0 to fix all compressions at 1.0,
+1 to vary all compressions independently, 2 to specify a mapping of
+compression variables, or 3 or 4 for automapping of variables (3 for
+linearly changing values or 4 for values all the same within a group).
+
+[Field = CompDefaultGrouping]
+short = 
+long = CompDefaultGrouping
+type = I
+usage = Default group size when automapping compression variables
+tooltip = 
+manpage = 
+
+[Field = CompNondefaultGroup]
+short = 
+long = CompNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+compression variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose compression variables should be grouped differently from the default.
+
+[Field = XStretchOption]
+short = 
+long = XStretchOption
+type = I
+usage = Type of X-stretch solution: 0 fixed, 1 independent, 2 mapped, 3 or
+4 automapped
+tooltip = 
+manpage = Type of X-stretch solution: 0 to fix all X stretches at 0,
+1 to vary all X stretches independently, 2 to specify a mapping of
+X-stretch variables, or 3 or 4 for automapping of variables (3 for
+values all the same within a group or 4 for linearly changing values).
+
+[Field = XStretchDefaultGrouping]
+short = 
+long = XStretchDefaultGrouping
+type = I
+usage = Default average group size when automapping X stretch variables
+tooltip = 
+manpage = 
+
+[Field = XStretchNondefaultGroup]
+short = 
+long = XStretchNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+X stretch variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose X stretch variables should be grouped differently from the default. 
+
+[Field = LocalXStretchOption]
+short = 
+long = LocalXStretchOption
+type = I
+usage = Type of local X-stretch solution; same values as for global
+tooltip = 
+manpage = Type of local X-stretch solution; values 0-3 have same meaning as
+for global solution.
+
+[Field = LocalXStretchDefaultGrouping]
+short = 
+long = LocalXStretchDefaultGrouping
+type = I
+usage = Default average group size when automapping local X stretch variables
+tooltip = 
+manpage = 
+
+[Field = LocalXStretchNondefaultGroup]
+short = 
+long = LocalXStretchNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local X stretch variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local X stretch variables should be grouped differently from the
+default.
+
+[Field = SkewOption]
+short = 
+long = SkewOption
+type = I
+usage = Type of skew solution: 0 fixed, 1 independent, 2 mapped, 3 or
+4 automapped
+tooltip = 
+manpage = Type of skew solution: 0 to fix all skew angles at 0.0,
+1 to vary all skew angles independently, 2 to specify a mapping of
+skew variables, or 3 or 4 for automapping of variables (3 for
+linearly changing values or 4 for values all the same within a group).
+
+[Field = SkewDefaultGrouping]
+short = 
+long = SkewDefaultGrouping
+type = I
+usage = Default group size when automapping skew variables
+tooltip = 
+manpage = 
+
+[Field = SkewNondefaultGroup]
+short = 
+long = SkewNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+skew variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose skew variables should be grouped differently from the default.
+
+[Field = LocalSkewOption]
+short = 
+long = LocalSkewOption
+type = I
+usage = Type of local skew solution; same values as for global
+tooltip = 
+manpage = Type of local skew solution; values 0-3 have same meaning as
+for global solution.
+
+[Field = LocalSkewDefaultGrouping]
+short = 
+long = LocalSkewDefaultGrouping
+type = I
+usage = Default group size when automapping local skew variables
+tooltip = 
+manpage = 
+
+[Field = LocalSkewNondefaultGroup]
+short = 
+long = LocalSkewNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local skew variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local skew variables should be grouped differently from the default.
+
+[Field = XTiltOption]
+short = 
+long = XTiltOption
+type = I
+usage = Type of X-axis tilt solution: 0 fixed, 1 independent, 2 mapped, 3 or
+4 automapped
+tooltip = 
+manpage = Type of X-axis tilt solution: 0 to fix all X tilts at 0.,
+1 to vary all X-tilts independently, 2 to specify a mapping of
+X-tilt variables, or 3 or 4 for automapping of variables (3 for
+linearly changing values or 4 for values all the same within a group).
+
+[Field = XTiltDefaultGrouping]
+short = 
+long = XTiltDefaultGrouping
+type = I
+usage = Default group size when automapping X-axis tilt variables
+tooltip = 
+manpage = 
+
+[Field = XTiltNondefaultGroup]
+short = 
+long = XTiltNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+X-axis tilt variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose X-axis tilt variables should be grouped differently from the default.
+
+[Field = LocalXTiltOption]
+short = 
+long = LocalXTiltOption
+type = I
+usage = Type of local X-axis tilt solution; same values as for global
+tooltip = 
+manpage = Type of local X-axis tilt solution; values 0-3 have same meaning as
+for global solution.
+
+[Field = LocalXTiltDefaultGrouping]
+short = 
+long = LocalXTiltDefaultGrouping
+type = I
+usage = Default group size when automapping local X-axis tilt variables
+tooltip = 
+manpage = 
+
+[Field = LocalXTiltNondefaultGroup]
+short = 
+long = LocalXTiltNondefaultGroup
+type = ITM
+usage = Starting and ending views and group size for nondefault grouping of
+local X-axis tilt variables.
+tooltip = 
+manpage = Starting and ending view numbers and group size for a set of views
+whose local X-axis tilt variables should be grouped differently from the
+default.
+
+[Field = ResidualReportCriterion]
+short = 
+long = ResidualReportCriterion
+type = F
+usage = Criterion number of SDs above mean residual error
+to report (negative for SDs relative to neighbors)
+tooltip = 
+manpage =  Criterion number of standard deviations above mean residual error
+that should be reported. This can be based on either the overall
+mean and S.d. of the residual errors, or on a mean and S.d.
+computed from points in nearby views.  Enter a positive value 
+for a report based on overall mean, or a negative value for a
+report based on the mean residual in the same and nearby views.
+
+
+[Field = SurfacesToAnalyze]
+short = 
+long = SurfacesToAnalyze
+type = I
+usage = 1 or 2 to determine surface angles by fitting points to 1 or 2
+surfaces, or 0 for no fit
+tooltip = 
+manpage = 0 to omit surface analysis, or 1 or 2 to fit points to one or two
+surfaces and derive a surface angles and recommended tilt angle offset.  This
+entry has no effect on the global alignment solution.
+
+[Field = MetroFactor]
+short = 
+long = MetroFactor
+type = F
+usage = Step size for minimization procedure
+tooltip = 
+manpage = This entry determines how large a step the variable metric
+minimization procedure (METRO) tries to take.  The default for is 0.5, but
+smaller values of 0.35 or even 0.25 are needed for large data sets.
+When METRO fails for various reasons, the program will retry with several
+other, mostly smaller values of the factor.
+
+[Field = MaximumCycles]
+short = 
+long = MaximumCycles
+type = I
+usage = Limit on number of cycles for minimization procedure (default 500)
+tooltip = 
+manpage = 
+
+[Field = AxisZShift]
+short = 
+long = AxisZShift
+type = F
+usage = Amount to shift tilt axis in Z, or 1000 to put at midpoint of range
+tooltip = 
+manpage = Amount to shift the tilt axis in Z, relative to the centroid in
+Z of the fiducial points, or 1000 to shift the tilt axis to the
+midpoint of the range of Z values
+
+[Field = AxisXShift]
+short = 
+long = AxisXShift
+type = F
+usage = Amount to shift the tilt axis in X
+tooltip = 
+manpage = Amount to shift the tilt axis in X away from the center of the
+image
+
+
+[Field = LocalAlignments]
+short = 
+long = LocalAlignments
+type = B
+usage = Do alignments with subsets of points in local areas
+tooltip = 
+manpage = Do alignments with subsets of points in local areas.  When this
+option is selected, the appropriate Local...Option values must be entered to 
+control what variables are solved for;
+the default is 0 for all of the local option values.
+
+[Field = OutputLocalFile]
+short = 
+long = OutputLocalFile
+type = FN
+usage = Output file for transformations for local alignments
+tooltip = 
+manpage = 
+
+[Field = NumberOfLocalPatchesXandY]
+`short = 
+long = NumberOfLocalPatchesXandY
+type = IP
+usage = Number of local patches in X and Y for local solutions
+tooltip = 
+manpage = Number of local patches in X and in Y in which to obtain a solution
+from the fiducials located in that patch
+
+[Field = MinSizeOrOverlapXandY]
+short = 
+long = MinSizeOrOverlapXandY
+type = FP
+usage = Minimum size of patches in X and Y (if > 1) or minimum fractional
+overlap (if < 1)
+tooltip = 
+manpage = Either the minimum size of each patch in X and Y (enter values > 1)
+or the minimum fractional overlap between patches (values < 1)
+
+[Field = MinFidsTotalAndEachSurface]
+short = 
+long = MinFidsTotalAndEachSurface
+type = IP
+usage = Minimum total number of fiducials, and minimum number present on each
+surface if two surfaces exist
+tooltip = 
+manpage = Minimum total number of fiducials, and minimum number present on each
+surface if two surfaces were assumed in the analysis of
+surfaces.  A patch will be expanded about its center until it
+contains enough points to meet both of these criteria.
+
+[Field = FixXYZCoordinates]
+short = 
+long = FixXYZCoordinates
+type = B
+usage = Fix the X-Y-Z coordinates of the fiducials at their global values 
+tooltip = 
+manpage = Fix the X-Y-Z coordinates of the fiducials at their values from the
+global solution; the default is to solve for them independently
+in each local area, 
+
+[Field = LocalOutputOptions]
+short = 
+long = LocalOutputOptions
+type = IT
+usage = 1 for parameter output, 1 for X-Y-Z coordinate output, and 1 for
+high residual output
+tooltip = 
+manpage = These three entries to control the output of results for each local
+alignment: 1 to output the values of the parameters for each
+view or 0 not to; 1 to output the X-Y-Z coordinates of fiducials
+or 0 not to; 1 to output points with high residuals, or 0 not to
+
+[Field = RotMapping]
+short = 
+long = RotMapping
+type = IAM
+usage = Rotation variable number for each view (if RotOption 2)
+tooltip = 
+manpage = If RotOption is 2, this option must be used to enter a rotation
+variable number for each view.  These variable numbers can be completely
+arbitrary, e.g. 1,1,1,3,3,3,5,5,5.  The numbers are used to define block
+grouping.
+
+[Field = LocalRotMapping]
+short = 
+long = LocalRotMapping
+type = IAM
+usage = Local rotation variable number for each view (if LocalRotOption 2)
+tooltip = 
+manpage = If LocalRotOption is 2, this option must be used to enter a local
+rotation variable number for each view.
+
+[Field = TiltMapping]
+short = 
+long = TiltMapping
+type = IAM
+usage = Tilt variable number for each view (if TiltOption 4)
+tooltip = 
+manpage = If TiltOption is 2, this option must be used to enter a 
+tilt variable number for each view.
+
+[Field = LocalTiltMapping]
+short = 
+long = LocalTiltMapping
+type = IAM
+usage = Local tilt variable number for each view (if LocalTiltOption 4)
+tooltip = 
+manpage = If LocalTiltOption is 4, this option must be used to enter a 
+local tilt variable number for each view.
+
+[Field = MagMapping]
+short = 
+long = MagMapping
+type = IAM
+usage = Magnification variable number for each view (if MagOption 2)
+tooltip = 
+manpage = If MagOption is 2, this option must be used to enter a
+magnification variable number for each view.
+
+[Field = LocalMagMapping]
+short = 
+long = LocalMagMapping
+type = IAM
+usage = Local magnification variable number for each view (if LocalMagOption 2)
+tooltip = 
+manpage = If LocalMagOption is 2, this option must be used to enter a
+local magnification variable number for each view.
+
+[Field = CompMapping]
+short = 
+long = CompMapping
+type = IAM
+usage = Compression variable number for each view (if CompOption 2)
+tooltip = 
+manpage = If CompOption is 2, this option must be used to enter a compression
+variable number for each view.
+
+[Field = XStretchMapping]
+short = 
+long = XStretchMapping
+type = IAM
+usage = X stretch variable number for each view (if XStretchOption 2)
+tooltip = 
+manpage = If XStretchOption is 2, this option must be used to enter an X
+stretch variable number for each view.
+
+[Field = LocalXStretchMapping]
+short = 
+long = LocalXStretchMapping
+type = IAM
+usage = Local X stretch variable number for each view (if 
+LocalXStretchOption 2)
+tooltip = 
+manpage = If LocalXStretchOption is 2, this option must be used to enter a 
+local X stretch variable number for each view.
+
+[Field = SkewMapping]
+short = 
+long = SkewMapping
+type = IAM
+usage = Skew variable number for each view (if SkewOption 2)
+tooltip = 
+manpage = If SkewOption is 2, this option must be used to enter a skew
+variable number for each view.
+
+[Field = LocalSkewMapping]
+short = 
+long = LocalSkewMapping
+type = IAM
+usage = Local skew variable number for each view (if LocalSkewOption 2)
+tooltip = 
+manpage = If LocalSkewOption is 2, this option must be used to enter a local
+skew variable number for each view.
+
+[Field = XTiltMapping]
+short = 
+long = XTiltMapping
+type = IAM
+usage = X-axis tilt variable number for each view (if XTiltOption 2)
+tooltip = 
+manpage = If XTiltOption is 2, this option must be used to enter an X-axis
+tilt variable number for each view.
+
+[Field = LocalXTiltMapping]
+short = 
+long = LocalXTiltMapping
+type = IAM
+usage = Local X-axis tilt variable number for each view (if LocalXTiltOption 2)
+tooltip = 
+manpage = If LocalXTiltOption is 2, this option must be used to enter a local
+X-axis tilt variable number for each view.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
