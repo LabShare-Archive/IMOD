@@ -38,8 +38,6 @@ Log at end of file
 #include <qgl.h>
 #include <qcursor.h>
 #include <qbitmap.h>
-#include <qimage.h>
-#include <qpixmap.h>
 
 #include "imod.h"
 #include "b3dgfx.h"
@@ -58,8 +56,6 @@ Log at end of file
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
 #endif
-
-#include "b3dicon.xpm"
 
 char *ImodRes_SGIStereoCommand(void)
 {
@@ -106,10 +102,6 @@ int imod_display_init(ImodApp *ap, char **argv)
   QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
   ap->modelCursor = new QCursor(bmCursor, bmMask, qcursor_x_hot, 
                                 qcursor_y_hot);
-
-  // Set up the application icon for windows to use
-  QImage iconImage(b3dicon);
-  ap->iconPixmap = new QPixmap (iconImage);
 
   diaSetTitle("3dmod");
   return(0);
@@ -555,6 +547,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.5  2003/05/18 22:08:48  mast
+Changes to add an application icon
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
