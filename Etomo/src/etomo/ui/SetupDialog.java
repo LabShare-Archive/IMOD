@@ -8,6 +8,7 @@ import javax.swing.border.*;
 
 import etomo.*;
 import etomo.type.*;
+import etomo.storage.StackFileFilter;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/11/19 02:34:24  rickg
+ * <p> Tooltip spelling correction
+ * <p>
  * <p> Revision 1.8  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -507,7 +511,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     JFileChooser chooser =
       new JFileChooser(new File(applicationManager.getWorkingDirectory()));
-
+    StackFileFilter stackFilter = new StackFileFilter();
+    chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
@@ -527,8 +532,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     //  Open up the file chooser in the working directory
     //
+    String currentBackupDirectory = textFieldBackupDirectory.getText();
+    if(currentBackupDirectory.equals("")) {
+      currentBackupDirectory = applicationManager.getWorkingDirectory();
+    }
     JFileChooser chooser =
-      new JFileChooser(new File(textFieldBackupDirectory.getText()));
+      new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
