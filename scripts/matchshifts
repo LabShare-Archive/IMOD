@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2004/06/29 03:48:54  mast
+#  Added nohup
+#
 #  Revision 3.10  2004/06/15 23:18:05  mast
 #  Fix the message that it gives when copying
 #
@@ -154,8 +157,8 @@ EOF
 if ($status) goto error
 
 set sol = `cat $infile`
-echo "1 0 0 1 0 0" > $rotxf
-echo "$sol[1] $sol[3] $sol[9] $sol[11] 0 0" >> $rotxf
+\echo "1 0 0 1 0 0" > $rotxf
+\echo "$sol[1] $sol[3] $sol[9] $sol[11] 0 0" >> $rotxf
 
 echo "MATCHSHIFTS: STACKING PROJECTIONS WITH ROTATION"
 
@@ -205,9 +208,9 @@ if ($status) goto error
 
 set txcshift = `tail -1 $txcxf`
 
-echo "$sol[1]   $sol[2]   $sol[3]   $txcshift[5]"  > $midfile
-echo "$sol[5]   $sol[6]   $sol[7]   0"  >> $midfile
-echo "$sol[9]   $sol[10]   $sol[11]   $txcshift[6]"  >> $midfile
+\echo "$sol[1]   $sol[2]   $sol[3]   $txcshift[5]"  > $midfile
+\echo "$sol[5]   $sol[6]   $sol[7]   0"  >> $midfile
+\echo "$sol[9]   $sol[10]   $sol[11]   $txcshift[6]"  >> $midfile
 
 
 @ nzt = $nxyz[3]
@@ -280,9 +283,9 @@ set displ = `$clipcom | grep '^(' | sed '/.*(\(.*\)).*/s//\1/'`
 set xshift = `echo "$txcshift[5] $displ[1]" | awk '{print $1 + $2}'`
 set yshift = `echo "$txcshift[6] $displ[3]" | awk '{print $1 + $2}'`
 if (-e $outfile) \mv -f $outfile $outfile~
-echo "$sol[1]   $sol[2]   $sol[3]   $xshift"  > $outfile
-echo "$sol[5]   $sol[6]   $sol[7]   $displ[2]"  >> $outfile
-echo "$sol[9]   $sol[10]   $sol[11]   $yshift"  >> $outfile
+\echo "$sol[1]   $sol[2]   $sol[3]   $xshift"  > $outfile
+\echo "$sol[5]   $sol[6]   $sol[7]   $displ[2]"  >> $outfile
+\echo "$sol[9]   $sol[10]   $sol[11]   $yshift"  >> $outfile
 
 echo "MATCHSHIFTS: GETTING VOLUMES TO CHECK THE MATCH"
 

@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2004/03/16 06:58:58  mast
+#  Fixed something with section limits
+#
 #  Revision 1.1  2004/02/29 18:54:13  mast
 #  Initial version
 #
@@ -242,10 +245,10 @@ while ($bsecind <= $#bseclist)
 	set pmdiffs = ()
 	while ($plusminus <= $pmend)
 	    if ($plusminus) then
-		echo "0 -1 1 0 -1 0" >! $tmprot90
+		\echo "0 -1 1 0 -1 0" >! $tmprot90
 		set pmangle = +90
 	    else
-		echo "0 1 -1 0 0 -1" >! $tmprot90
+		\echo "0 1 -1 0 0 -1" >! $tmprot90
 		set pmangle = -90
 	    endif
 	    # 
@@ -395,7 +398,7 @@ onintr clean
 #
 # Stack the two best sections
 #
-echo "1 0 0 1 0 0" >! $outfile
+\echo "1 0 0 1 0 0" >! $outfile
 cat $tmpminxf >> $outfile
 newstack -sec $bsecbest -sec $asecbest -float 2 $distort $imbin $imageb $imagea $beststack >! $tmperrlog
 if ($status) then

@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.15  2004/06/29 03:50:14  mast
+#  Added nohup
+#
 #  Revision 3.14  2004/03/06 21:36:14  mast
 #  Converted newstack commands to command-line format
 #
@@ -429,16 +432,15 @@ while ($bsecind <= $nviews)
 	set pmdiffs = ()
 	while ($plusminus <= $pmend)
 	    if ($plusminus) then
-		echo "0 -1 1 0 -1 0" >! $tmprot90
+		\echo "0 -1 1 0 -1 0" >! $tmprot90
 		set pmangle = +90
 	    else
-		echo "0 1 -1 0 0 -1" >! $tmprot90
+		\echo "0 1 -1 0 0 -1" >! $tmprot90
 		set pmangle = -90
 	    endif
 	    # 
 	    # extract the rotated section from A
 	    #
-
             newstack -sec $asec -size $nxb,$nyb -xf $tmprot90 -use 0 $imagea $tmpimga >! $tmperrlog
 	    if ($status) then
 		grep ERROR $tmperrlog
@@ -582,7 +584,7 @@ onintr clean
 #
 # Stack the two best sections
 #
-echo "1 0 0 1 0 0" >! $tmptwoxf
+\echo "1 0 0 1 0 0" >! $tmptwoxf
 cat $tmpminxf >> $tmptwoxf
 newstack -sec $bsecbest -sec $asecbest -xf $tmptwoxf -use 0,1 -float 2 $imageb $imagea $tmpstack >! $tmperrlog
 if ($status) then

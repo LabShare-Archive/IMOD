@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/06/29 03:47:22  mast
+#  Added nohup, fixed path setting
+#
 
 nohup
 set pn = "finishjoin"
@@ -148,7 +151,7 @@ end
 # Now work on getting the transforms
 if (-e $joinroot.tomoxf) \mv $joinroot.tomoxf $joinroot.tomoxf~
 
-echo "1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000" > $joinroot.tomoxf
+\echo "1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000" > $joinroot.tomoxf
 sed '/1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000/d' $joinroot.xf >> $joinroot.tomoxf
 set wcout = `wc -l $joinroot.tomoxf`
 @ nlines = $wcout[1]
