@@ -65,7 +65,7 @@ DDEESSCCRRIIPPTTIIOONN
   Each line of input to the program consists of a keyword, usually
   followed by one or more values.  The following are all possible
   input lines.  Many of these are optional, and they can be input in
-  any order.  The keyword can be un upper or lower case.
+  any order.  The keyword can be in upper or lower case.
 
   ANGLES  TILT_ANGLES
   ------
@@ -314,6 +314,13 @@ DDEESSCCRRIIPPTTIIOONN
   data.  The default is 1; higher orders are appropriate if data are
   particularly noise-free.
 
+  ZFACTORFILE   Filename
+  ------
+  Use this line to specify a file containing factors for adjusting the
+  backprojection position in each image as a function of Z height in the
+  output slice.  These factors are necessary when input images have been
+  transformed to correct for an apparent specimen stretch.  If this entry is
+  absent, Z factors in a local alignment file will not be applied.
 
 -----------------------------------------------------------------------
 

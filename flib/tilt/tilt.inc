@@ -47,6 +47,7 @@ c
 	LOGICAL MASK,PERP,fastbp,reproj
 c
 	real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
+	real*4 xzfac(limview), yzfac(limview)
 	integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
      &	    iflog,nreplic ,iplane,ipextra,interpfac,interpord ,ifbpwrk,
      &	    ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp ,nvertneed,intordxtilt
@@ -54,7 +55,7 @@ c
      &	    ,idelslice,newmode,mapuse,iflog,baselog,nreplic
      &	    ,compress,iplane,ipextra,interpfac,interpord,fastbp
      &      ,ifbpwrk,ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp,yoffset
-     &      ,nvertneed,intordxtilt,reproj
+     &      ,nvertneed,intordxtilt,reproj,xzfac,yzfac
 c
 	integer*4 nstretch(limview),indstretch(limview)
 	real*4 ofstretch(limview)
@@ -78,7 +79,7 @@ c
      &	    ifdelalpha,indwarp(limwpos)
 	real*4 delalpha(limwarp),cwarpb(limwarp),swarpb(limwarp),
      &      cwarpa(limwarp),swarpa(limwarp),fw(2,3,limwarp),
-     &	    delbeta(limwarp)
+     &	    delbeta(limwarp),warpXZfac(limwarp),warpYZfac(limwarp)
 	common /warps/ nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,
      &	    ifdelalpha,indwarp,delbeta, delalpha,cwarpb,swarpb,
-     &      cwarpa,swarpa,fw
+     &      cwarpa,swarpa,fw,warpXZfac, warpYZfac
