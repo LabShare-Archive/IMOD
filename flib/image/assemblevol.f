@@ -40,6 +40,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/06/14 19:26:06  mast
+c	  Made it able to deal with more than 19 files in X and Y by having
+c	  it open and close files for every section in Z.
+c	
 c	  Revision 3.2  2002/07/31 23:59:04  mast
 c	  Have it transfer titles also
 c	
@@ -98,26 +102,26 @@ c
 	maxx=0
 	maxy=0
 	do i=1,nfx
-	  write(*,'(1x,a,i3,a,$)')'X coordinates for file #',i,' in X: '
+	  write(*,'(1x,a,i3,a,$)')'X coordinates for files at position #'
+     &	      ,i,' in X: '
 	  read(5,*)ixlo(i),ixhi(i)
-	  if (ixlo(i).lt.0)call errorexit(
-     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
+	  if (ixlo(i).lt.0)call errorexit('ILLEGAL COORDINATE LESS THAN ZERO')
 	  nx3=nx3+ixhi(i)+1-ixlo(i)
 	  maxx=max(maxx,ixhi(i)+1-ixlo(i))
 	enddo
 	do i=1,nfy
-	  write(*,'(1x,a,i3,a,$)')'Y coordinates for file #',i,' in Y: '
+	  write(*,'(1x,a,i3,a,$)')'Y coordinates for files at position #',
+     &	      i,' in Y: '
 	  read(5,*)iylo(i),iyhi(i)
-	  if (iylo(i).lt.0)call errorexit(
-     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
+	  if (iylo(i).lt.0)call errorexit('ILLEGAL COORDINATE LESS THAN ZERO')
 	  ny3=ny3+iyhi(i)+1-iylo(i)
 	  maxy=max(maxy,iyhi(i)+1-iylo(i))
 	enddo
 	do i=1,nfz
-	  write(*,'(1x,a,i3,a,$)')'Z coordinates for file #',i,' in Z: '
+	  write(*,'(1x,a,i3,a,$)')'Z coordinates for files at position #',
+     &	      i,' in Z: '
 	  read(5,*)izlo(i),izhi(i)
-	  if (izlo(i).lt.0)call errorexit(
-     &	      'ILLEGAL COORDINATE LESS THAN ZERO')
+	  if (izlo(i).lt.0)call errorexit('ILLEGAL COORDINATE LESS THAN ZERO')
 	  nz3=nz3+izhi(i)+1-izlo(i)
 	enddo
 c	  
