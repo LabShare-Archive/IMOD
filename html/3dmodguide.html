@@ -456,6 +456,8 @@ s          Save the model
 n          Start a new contour
 Ctrl-S     Snapshot an image window to a Tiff file
 t          Toggle model drawing off or on
+,          Slow down movie or model rotation
+.          Speed up movie or model rotation
 </pre>
 </DD>
 
@@ -507,18 +509,121 @@ functions as in the Zap window.
 <IMG SRC="3dmodimages/slicer.jpg" ALT="Slicer Window"> 
 </CENTER> 
 <P>
-The Slicer Window can display a slice at an arbitrary orientation
+The Slicer Window provides a much more flexible view of structures than the
+XYZ Window because it can display a slice at an arbitrary orientation
 through the image volume.  The orientation is set by adjusting the X,
-Y, and Z rotation sliders in the second toolbar.  
+Y, and Z rotation sliders in the second toolbar.  In the example, one
+of the oblique microtubules was centered in the window, then the
+Z rotation was adjusted slightly to orient the microtubule vertically,
+then the X rotation was adjusted to bring the microtubule into
+longitudinal section.
+<P>
 The center of the displayed slice is the current
 image point and is marked by a red cross.  This center point may be
 moved either by changing the current image point in some other window,
 or by clicking on the image in this Slicer Window with any mouse button.
-
 <P>
-All of this power comes with a cost, in that it is 
+The most useful items in the slicer toolbars are the following.
+<UL>
+<LI>
+The arrow buttons can be used to change zoom, and the text box
+displays the current zoom and allows a custom zoom to be entered.
+<LI>The checkerboard allows you to toggle between rapid,
+low-resolution drawing using nearest-neighbor interpolation, and
+high resolution drawing using quadratic and cubic
+interpolation.  The latter may be considerably slower, but it will
+also be more accurate as well as giving a smoother image.
+<LI>The lock button will prevent the slice position from being moved.
+There are three main uses for this feature.  First, it allows you to
+maintain a selected view in a Slicer Window while changing to other
+views in other windows (including other Slicers).  Second, it allows
+you to model in the slicer without having the slice jump around.
+Third, it prevents the slow drawing in the slicer from slowing down
+the program when you want to work in or movie through other windows.
+<LI>The image thickness spin box lets you display a slicer thicker
+than 1 pixel thick.  The Slicer computes a projection through the
+number of slices that you select, effectively averaging those slices.
+<LI>The model thickness spin box lets you control the thickness of the
+slice of model that is displayed on the image.  In the example, the
+circles at each microtubule point are considered to lie in the XY
+plane and only a fragment of each intersects the tilted slice.
+Increasing the model thickness would make the whole circle show up.
+</UL>
+<P>It is possible to model in the Slicer, again with the same mouse
+button functions as in the Zap window.  This provides a convenient way
+to track trajectories on 3D.  If the lock button is not on,
+every mouse click will bring the selected point to the center.  Sometimes
+this behavior is desirable, sometimes not.  If not, just lock the
+slicer
+for modeling.
+<P>
+The power of the Slicer comes at a cost - it is the first window
+that we have seen where the computation time can easily make the
+display unacceptably slow.  Display time depends on three factors:
+image thickness, high versus low resolution, and image size.  If you
+need to average through many slices with a high resolution display, be
+sure to make the image as small as possible.  If you must work with a
+very slow slicer window, remember that the hot sliders can be tamed
+with the Ctrl key.
 </DD>
 
+<DD><H4>Viewing the Model in 3D</H4>
+<table border="0" align="center">
+  <tbody>
+    <tr>
+      <td valign="top" align="center"><img src="3dmodimages/modvraw.png" 
+            alt="View of raw model">
+      <br>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/modvnomesh.png"
+            alt="View of model with spheres and lines enhanced">
+      <br>
+      </td>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/modvmesh.png"
+            alt="View of fully meshed model">
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<P>
+These are different views of the example model in the Model View
+Window, opened while running 3dmod.  This same window can be opened in
+a standalone mode with
+<br><code>    3dmodv example.mod</code>
+<br>
+The model has been
+tilted around the X and Y axes using the arrow keys on the keypad.
+The model can also be rotated with the middle mouse button, or using
+arrows and text boxes in the
+Control dialog box that can be opened using the Edit-Controls menu
+entry, but the arrow keys are often more convenient.  A single keystrike
+rotates the model by one step.  Continuous rotation is started by
+pressing the keypad Enter key followed by the desired arrow key;
+another press of the Enter key stops the rotation.
+<P>
+On the left is the initial view of the model, before any of the
+default viewing parameters have been changed.  These 
+
+<table border="0" align="center">
+  <tbody>
+    <tr>
+      <td valign="top" align="center"><img src="3dmodimages/objedmtlines.png" 
+            alt="Objects Window: Setting line width">
+      <br>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/objedspheremesh.png" 
+            alt="Objects Window: Setting spheres to mesh">
+      <br>
+      </td>
+      <td valign="top" align="center"><img src="3dmodimages/objedmaterial.png" 
+            alt="Objects Window: Lighting both sides of sheet">
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 <DD><H4>Automated Model Building</H4>
 <P>
