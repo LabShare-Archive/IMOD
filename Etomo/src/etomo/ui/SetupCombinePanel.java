@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/09/25 23:29:28  rickg
+ * <p> Bug #246 fixed to the appropriate combine method in the app manager
+ * <p>
  * <p> Revision 2.7  2003/09/08 05:49:07  rickg
  * <p> Method name change for opening the complete volume
  * <p>
@@ -93,7 +96,7 @@ public class SetupCombinePanel implements ContextMenu {
 
   private JPanel pnlRoot = new JPanel();
   private BeveledBorder brdrContent =
-    new BeveledBorder("Combination parameters");
+    new BeveledBorder("Combination Parameters");
 
   private JPanel pnlToSelector = new JPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
@@ -110,7 +113,7 @@ public class SetupCombinePanel implements ContextMenu {
   private JRadioButton rbOneSideInverted =
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
-    new JRadioButton("Models of corresponding points");
+    new JRadioButton("Use models of corresponding points, not cross-correlation");
 
   private LabeledTextField ltfFiducialMatchListA =
     new LabeledTextField("Corresponding fiducial list A: ");
@@ -126,7 +129,7 @@ public class SetupCombinePanel implements ContextMenu {
   private JCheckBox cbPatchRegionModel =
     new JCheckBox("Use patch region model");
   private JButton btnPatchRegionModel =
-    new JButton("<html><b>Create/edit patch region model</b>");
+    new JButton("<html><b>Create/Edit Patch Region Model</b>");
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -142,12 +145,12 @@ public class SetupCombinePanel implements ContextMenu {
   private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodVolumeA = new JButton("<html><b>3dmod volume A</b>");
-  private JButton btnImodVolumeB = new JButton("<html><b>3dmod volume B</b>");
+  private JButton btnImodVolumeA = new JButton("<html><b>3dmod Volume A</b>");
+  private JButton btnImodVolumeB = new JButton("<html><b>3dmod Volume B</b>");
   private JToggleButton btnCreate =
-    new JToggleButton("<html><b>Create combine scripts</b>");
+    new JToggleButton("<html><b>Create Combine Scripts</b>");
   private JToggleButton btnCombine =
-    new JToggleButton("<html><b>Start combine</b>");
+    new JToggleButton("<html><b>Start Combine</b>");
 
   /**
    * Default constructor
@@ -162,7 +165,7 @@ public class SetupCombinePanel implements ContextMenu {
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
     pnlToSelector.setBorder(
-      new EtchedBorder("Tomogram matching relationship").getBorder());
+      new EtchedBorder("Tomogram Matching Relationship").getBorder());
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlToSelector.add(rbBtoA);
     pnlToSelector.add(rbAtoB);
@@ -177,7 +180,7 @@ public class SetupCombinePanel implements ContextMenu {
     bgFiducialParams.add(rbOneSideInverted);
     bgFiducialParams.add(rbUseModel);
     pnlFiducialParams.setBorder(
-      new EtchedBorder("Volume alignment method").getBorder());
+      new EtchedBorder("Initial Volume Alignment Method").getBorder());
     pnlFiducialParams.setLayout(
       new BoxLayout(pnlFiducialParams, BoxLayout.Y_AXIS));
     pnlFiducialParams.add(rbBothSides);
@@ -196,7 +199,8 @@ public class SetupCombinePanel implements ContextMenu {
     bgPatchSize.add(rbSmallPatch);
     bgPatchSize.add(rbMediumPatch);
     bgPatchSize.add(rbLargePatch);
-    pnlPatchParams.setBorder(new EtchedBorder("Patch Parameters").getBorder());
+    pnlPatchParams.setBorder(
+      new EtchedBorder("Patch Parameters for Refining Alignment").getBorder());
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
     pnlPatchParams.add(rbSmallPatch);
     pnlPatchParams.add(rbMediumPatch);
@@ -220,7 +224,7 @@ public class SetupCombinePanel implements ContextMenu {
 
     //  Create the temporary storage panel
     pnlTemdDirectory.setBorder(
-      new EtchedBorder("Intermediate Data Storate").getBorder());
+      new EtchedBorder("Intermediate Data Storage").getBorder());
     pnlTemdDirectory.setLayout(
       new BoxLayout(pnlTemdDirectory, BoxLayout.Y_AXIS));
     pnlTemdDirectory.add(ltfTempDirectory.getContainer());
