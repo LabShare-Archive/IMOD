@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/07/21 20:28:52  mast
+    Changed imodwfname to return a string with number of image files when
+    multiple files are loaded.
+
     Revision 3.1  2002/05/20 15:32:39  mast
     Added -S option to open slicer first; made it set a new model so that time
     index modeling is the default if multiple files are opened.
@@ -85,6 +89,7 @@ extern Widget Imod_widget_float;
 void imod_quit(void);
 int  SaveModelQuit(Imod *mod);
 void imod_cleanup_backup(void);
+void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event);
 
 void imod_usage(char *name)
 {
@@ -127,6 +132,7 @@ int main( int argc, char *argv[])
      char *plistfname = NULL;
      int xyzwinopen   = FALSE;
      int sliceropen   = FALSE;
+     int print_wid    = FALSE;
      int loadinfo     = FALSE;
      int new_model_created = FALSE;
      int i      = 0;
@@ -338,6 +344,10 @@ int main( int argc, char *argv[])
 		    sliceropen = TRUE;
 		    break;
 
+		  case 'W':
+		    print_wid = TRUE;
+		    break;
+
 		  default:
 		    break;
 
@@ -375,7 +385,7 @@ int main( int argc, char *argv[])
 	       /*
 		* Try loading file as a model.
 		*/
-	       Model = (struct Mod_Model *)LoadModel(mfin);
+	       Model = (struct Mod_Model *)LoadModel(mfin, NULL);
 	       if (Model){
 		    if (Imod_debug)
 			 fprintf(stderr, "Loaded model %s\n", argv[argc -1]);
@@ -504,6 +514,7 @@ int main( int argc, char *argv[])
      /*********************/
      /* Open Main Window. */
      imod_info_open(argc, argv); 
+
      if (vi.fakeImage)
           XtSetSensitive(Imod_widget_float, False);
      if (Imod_debug)
@@ -633,6 +644,13 @@ int main( int argc, char *argv[])
      /* Start main application input loop. */
      if (Imod_debug) puts("mainloop");
      imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
+
+     XtAddEventHandler(App->toplevel, 0, True, imodHandleClientMessage, 
+		       (XtPointer)App);
+
+     if (print_wid)
+	  fprintf(stderr, "Window id = %u\n", XtWindow(App->toplevel));
+
      dia_mainloop();
      return 0;
 }
