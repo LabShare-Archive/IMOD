@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2004/06/29 03:52:22  mast
+#  Fixed path-setting
+#
 
 set MIDASLIMIT = 1024
 set defdir = ""
@@ -23,6 +26,8 @@ set toplist = ""
 set anglelist = ""
 set sizelist = ""
 set ifrotlist = ""
+set chunklist = ""
+
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
 endif
@@ -216,6 +221,7 @@ while ($itomo <= $ntomo)
 
     # GET THE SLICES TO EXTRACT FROM BOTTOM OF SECTION
 
+    @ chunksize = 0
     set botrange = "0"
     if ($itomo > 1) then
 	set botrange = ""
@@ -258,6 +264,11 @@ while ($itomo <= $ntomo)
 			endif
 		    set botrange = $zstout"-"$zndout
 		    if ($zst == $znd) set botrange = $zst
+                    if ($znd >= $zst) then
+                        @ chunksize = $znd + 1 - $zst
+                    else
+                        @ chunksize = $zst + 1 - $znd
+                    endif
 		endif
 	    endif
 	end
@@ -307,6 +318,11 @@ while ($itomo <= $ntomo)
 		    endif
 		    set toprange = $zstout"-"$zndout
 		    if ($zst == $znd) set toprange = $zst
+                    if ($znd >= $zst) then
+                        @ chunksize += $znd + 1 - $zst
+                    else
+                        @ chunksize += $zst + 1 - $znd
+                    endif
 		endif
 	    endif
 	end
@@ -323,6 +339,8 @@ while ($itomo <= $ntomo)
     set sizelist = ($sizelist $rotsize)
     set anglelist = ($anglelist $rotangle)
     set ifrotlist = ($ifrotlist $ifflip)
+    if ($itomo > 1) set chunklist = ${chunklist},
+    set chunklist = ${chunklist}$chunksize
 
     @ itomo++
 end
@@ -440,5 +458,7 @@ endif
 echo ""
 echo "The command file $joincom has been written and is ready to submit."
 echo "Run it to create the file $joinroot.sample"
-echo "Then run midas on $joinroot.sample and create a transform file $joinroot.xf"
+echo "Then run:"
+echo "   midas -c $chunklist $joinroot.sample $joinroot.xf"
+echo "to run midas in chunk alignment mode and create a transform file"
 echo "Then run finishjoin to create the joined tomogram"
