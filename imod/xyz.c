@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/11/25 19:23:38  mast
+    Made it add itself to list of controls, and restructured the
+    structure for closing the window to accomodate that change.
+
     Revision 3.3  2002/01/29 03:11:47  mast
     Fixed bug in xxyz_draw from accessing elements of xx before xx existence
     test
@@ -70,7 +74,7 @@ static void xyzClose_cb(ImodView *vi, void *client, int junk);
 static void xxyz_resize_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_expose_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_ginit(Widget w, XtPointer client, XtPointer call);
-static void xyzDraw_cb(ImodView *vi, void *client, long drawflag);
+static void xyzDraw_cb(ImodView *vi, void *client, int drawflag);
 
 static void xxyz_overex_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call);
@@ -1688,7 +1692,7 @@ static void xxyz_draw(struct xxyzwin *xx)
 
 
 
-static void xyzDraw_cb(ImodView *vi, void *client, long drawflag)
+static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 {
      struct xxyzwin *xx = (struct xxyzwin *)client;
 
