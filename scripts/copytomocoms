@@ -915,7 +915,10 @@ EOF
 #
 # COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS
 #
-\$xfproduct $setname.prexg $setname.tltxf ${setname}_fid.xf
+\$xfproduct -StandardInput
+InputFile1 $setname.prexg
+InputFile2 $setname.tltxf
+OutputFile ${setname}_fid.xf
 \$\\cp ${setname}_fid.xf $setname.xf
 EOF
     endif
@@ -1214,6 +1217,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.23  2004/03/12 00:07:31  mast
+#  Changed substitution text from tab to [space tab] for sed on PIP input
+#
 #  Revision 3.22  2004/03/11 21:31:27  mast
 #  Converted tiltxcorr to PIP input
 #
