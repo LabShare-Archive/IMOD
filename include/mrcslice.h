@@ -129,6 +129,9 @@ int sliceAddConst(Islice *slice, Ival c);
 int sliceFloat(Islice *slice);
 int sliceComplexFloat(Islice *slice);
 int mrc_slice_wrap(struct MRCslice *s);
+int sliceWrapFFTLines(Islice *s);
+int sliceReduceMirroredFFT(Islice *s);
+
 
 /*****************************************************************************/
 /* internal/test functions */
