@@ -28,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/27 08:54:52  rickg
+ * <p> Added constructor to open tabbed editor pane
+ * <p>
  * <p> Revision 2.5  2003/05/23 22:14:38  rickg
  * <p> Put log files before man pages in context menu
  * <p>
@@ -364,7 +367,9 @@ public class ContextPopup {
               new TabbedTextWindow(logWindowLabel[i]);
 
             try {
-              logFileWindow.openFiles(logFileFullPath);
+              logFileWindow.openFiles(
+                logFileFullPath,
+                (String[]) logFileLabel.get(i));
             }
             catch (FileNotFoundException e) {
               // TODO Auto-generated catch block

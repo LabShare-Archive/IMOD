@@ -26,10 +26,14 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2003/05/27 08:50:45  rickg
+ * <p> Initial revision
+ * <p>
  * <p> </p>
  */
 public class TabbedTextWindow extends JFrame {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private Container mainPanel;
   private JTabbedPane tabPane = new JTabbedPane();
@@ -48,7 +52,7 @@ public class TabbedTextWindow extends JFrame {
    * @throws IOException
    * @throws FileNotFoundException
    */
-  public void openFiles(String[] files)
+  public void openFiles(String[] files, String[] labels)
     throws IOException, FileNotFoundException {
     FileReader reader;
     int nFiles = files.length;
@@ -58,11 +62,10 @@ public class TabbedTextWindow extends JFrame {
       editorPane.setEditorKit(new StyledEditorKit());
       JScrollPane scrollPane = new JScrollPane(editorPane);
       File file = new File(files[i]);
-      tabPane.add(file.getName(), scrollPane);
+      tabPane.add(labels[i], scrollPane);
       reader = new FileReader(file);
       editorPane.read(reader, file);
       editorPane.setEditable(false);
     }
   }
-
 }
