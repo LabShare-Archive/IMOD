@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/08/08 16:22:26  mast
+Add functiond for getting two numbers
+
 Revision 3.2  2003/06/10 23:21:54  mast
 Avoid freeing strings that were never allocated
 
@@ -34,6 +37,8 @@ Addition to IMOD
 #define pipgetinteger pipgetinteger_
 #define pipgettwointegers pipgettwointegers_
 #define pipgettwofloats pipgettwofloats_
+#define pipgetthreeintegers pipgetthreeintegers_
+#define pipgetthreefloats pipgetthreefloats_
 #define pipgetfloat pipgetfloat_
 #define pipgetboolean pipgetboolean_
 #define pipgetintegerarray pipgetintegerarray_
@@ -45,6 +50,8 @@ Addition to IMOD
 #define pipdone pipdone_
 #define pipparseinput pipparseinput_
 #define pipallowcommadefaults pipallowcommadefaults_
+#define pipreadoptionfile pipreadoptionfile_
+#define pipsetmanpageoutput pipsetmanpageoutput_
 
 
 static int c2fString(char *cStr, char *fStr, int fSize);
@@ -70,6 +77,23 @@ int pipexitonerror(int *useStdErr, char *prefix, int stringSize)
 void pipallowcommadefaults(int *val)
 {
   PipAllowCommaDefaults(*val);
+}
+
+void pipsetmanpageoutput(int *val)
+{
+  PipSetManpageOutput(*val);
+}
+
+int pipreadoptionfile(char *progName, int *helpLevel, int *localDir, 
+                      int stringSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = f2cString(progName, stringSize)))
+    return -1;
+  err = PipReadOptionFile(cStr, *helpLevel, *localDir);
+  free(cStr);
+  return err;
 }
 
 int pipaddoption(char *optionString, int stringSize)
@@ -147,6 +171,17 @@ int pipgetinteger(char *option, int *val, int optionSize)
   return err;
 }
 
+int pipgetfloat(char *option, float *val, int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = f2cString(option, optionSize)))
+    return -1;
+  err = PipGetFloat(cStr, val);
+  free(cStr);
+  return err;
+}
+
 int pipgettwointegers(char *option, int *val1, int *val2, int optionSize)
 {
   char *cStr;
@@ -169,13 +204,26 @@ int pipgettwofloats(char *option, float *val1, float *val2, int optionSize)
   return err;
 }
 
-int pipgetfloat(char *option, float *val, int optionSize)
+int pipgetthreeintegers(char *option, int *val1, int *val2, int *val3,
+                        int optionSize)
 {
   char *cStr;
   int err;
   if (!(cStr = f2cString(option, optionSize)))
     return -1;
-  err = PipGetFloat(cStr, val);
+  err = PipGetThreeIntegers(cStr, val1, val2, val3);
+  free(cStr);
+  return err;
+}
+
+int pipgetthreefloats(char *option, float *val1, float *val2, float *val3,
+                      int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = f2cString(option, optionSize)))
+    return -1;
+  err = PipGetThreeFloats(cStr, val1, val2, val3);
   free(cStr);
   return err;
 }
