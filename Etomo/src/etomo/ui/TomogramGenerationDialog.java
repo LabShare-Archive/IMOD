@@ -54,6 +54,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2004/04/28 16:15:18  sueh
+ * bug# 409 changing border name (mast)
+ *
  * Revision 3.12  2004/04/24 21:28:42  rickg
  * bug #424 Fixed and organized UI layouts
  *
@@ -275,10 +278,17 @@ import etomo.util.InvalidParameterException;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog
-    implements ContextMenu {
+    implements ContextMenu, FiducialessParams {
   public static final String rcsid = "$Id$";
-
+  
   private JPanel pnlTilt = new JPanel();
+
+  // Fiducialess parameters
+  private JPanel pnlFiducialess = new JPanel();
+  private JCheckBox cbFiducialess = new JCheckBox("Fiducialess alignment");
+  private LabeledTextField ltfRotation = new LabeledTextField(
+  "Tilt axis rotation:");
+  
   // Newst/Newstack objects
   private JPanel pnlNewstParams = new JPanel();
   private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
@@ -389,6 +399,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     // Layout the main panel and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
+    pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlFiducialess, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlFiducialess, ltfRotation.getContainer());
+    UIUtilities.alignComponentsX(pnlFiducialess, Component.LEFT_ALIGNMENT);
+    UIUtilities.addWithYSpace(pnlTilt, pnlFiducialess);
     UIUtilities.addWithYSpace(pnlTilt, pnlNewstParams);
     UIUtilities.addWithYSpace(pnlTilt, pnlAlignedStack);
     UIUtilities.addWithYSpace(pnlTilt, pnlFilter);
@@ -436,6 +451,22 @@ public class TomogramGenerationDialog extends ProcessDialog
     btnFilter.setEnabled(enableFiltering);
     btnViewFilter.setEnabled(enableFiltering);
     enableUseFilter();
+  }
+
+  public void setFiducialessAlignment(boolean state) {
+    cbFiducialess.setSelected(state);
+  }
+
+  public boolean isFiducialessAlignment() {
+    return cbFiducialess.isSelected();
+  }
+  
+  public void setTiltAxisAngle(float tiltAxisAngle) {
+    ltfRotation.setText(tiltAxisAngle);
+  }
+
+  public float getTiltAxisAngle() throws NumberFormatException {
+    return Float.parseFloat(ltfRotation.getText());
   }
 
   public void setNewstParams(ConstNewstParam newstParam) {
