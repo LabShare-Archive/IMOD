@@ -39,6 +39,7 @@ Length Type Name          Description
 4      long  objsize       Number of objects in model.
 
 4      long  flags         Model flags  (IMODF_FLAG...)
+                           Bit 13 on : mat1 and mat3 are stored as bytes
                            Bit 14 on : otrans has image origin values
                            Bit 15 on : current tilt angles are stored correctly
                            Bit 16 on : model last viewed on Y/Z flipped image
@@ -321,6 +322,10 @@ Length Type         Description
 1  UBYTE mat3b1     White level for showing normal magnitudes in mesh.
 1  UBYTE mat3b2     Unused.
 1  UBYTE mat3b3     Unused.
+
+Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
+as a UINT (big-endian, thus reversed from the current definition).  If bit 13
+of model flags is off, mat1 and mat3 are assumed to be UINTs.
 </pre>
 
 <HR>
@@ -397,6 +402,10 @@ Currently there are 67 bytes per object view, as follows:
 1     UBYTE 	mat3b1       White level for showing normal magnitudes in mesh.
 1     UBYTE 	mat3b2       Unused.
 1     UBYTE 	mat3b3       Unused.
+
+Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
+as a UINT.  If bit 13 of model flags is off, mat1 and mat3 are assumed to be
+UINTs.
 </pre>
 
 </body></html>
