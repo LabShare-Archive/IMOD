@@ -31,59 +31,20 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.3.2.8  2003/01/29 01:32:01  mast
-add close call
-
-Revision 3.3.2.7  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 3.3.2.6  2003/01/18 01:00:01  mast
-remove dia_qtutils include
-
-Revision 3.3.2.5  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 3.3.2.4  2003/01/01 05:46:29  mast
-changes for qt version of stereo
-
-Revision 3.3.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 3.3.2.2  2002/12/17 17:41:58  mast
-Changes for Qt port of imodv
-
-Revision 3.3.2.1  2002/12/09 17:49:19  mast
-changes to get Zap as a Qt window
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/09/04 00:26:25  mast
-Added declarations for imodv_init and imodvGetVisuals
-
-Revision 3.1  2002/07/18 20:19:38  rickg
-Changed include of GLwMDrawA to rely upon -I compiler option
-
+Log at end of file
 */
 
 #ifndef IMODV_H
 #define IMODV_H
 
 #include <limits.h>
-#include <time.h>
 #include <imodconfig.h>
 
-#define NO_X_INCLUDES
 #include <imodel.h>       /* imod library include. */
 
 /* used for finding bounding box. */
 #ifndef FLT_MAX
-#include <limits.h>
-#ifndef FLT_MAX
 #define FLT_MAX 5e+29f
-#endif
 #endif
 
 #ifndef IMODV_WINDOW_H
@@ -146,8 +107,8 @@ typedef struct __imodv_struct
   int current_subset;  /* display subset of model (current element) */
                        /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
   int movieFrames;    /* Number of movie frames displayed     */
-  clock_t movieStart; /* Starting CPU time of movie           */
-  clock_t movieCurrent; /* Current CPU time of movie          */
+  int movieStart; /* Starting CPU time of movie           */
+  int movieCurrent; /* Current CPU time of movie          */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -183,5 +144,45 @@ void imodv_close(void);
 void imodv_new_model(Imod *mod);
 int  imodv_main(int argc, char **argv, int styleSet);
 void imodvSetCaption();
+
+/*
+$Log$
+Revision 3.4  2003/02/10 20:41:55  mast
+Merge Qt source
+
+Revision 3.3.2.8  2003/01/29 01:32:01  mast
+add close call
+
+Revision 3.3.2.7  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 3.3.2.6  2003/01/18 01:00:01  mast
+remove dia_qtutils include
+
+Revision 3.3.2.5  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
+Revision 3.3.2.4  2003/01/01 05:46:29  mast
+changes for qt version of stereo
+
+Revision 3.3.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 3.3.2.2  2002/12/17 17:41:58  mast
+Changes for Qt port of imodv
+
+Revision 3.3.2.1  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.2  2002/09/04 00:26:25  mast
+Added declarations for imodv_init and imodvGetVisuals
+
+Revision 3.1  2002/07/18 20:19:38  rickg
+Changed include of GLwMDrawA to rely upon -I compiler option
+
+*/
 
 #endif /* imodv.h */
