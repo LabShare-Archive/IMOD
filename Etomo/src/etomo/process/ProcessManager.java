@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2005/01/26 04:27:52  sueh
+ * bug# 83 Adding mtffilter process monitor to mtffilter.
+ *
  * Revision 3.52  2005/01/21 22:55:38  sueh
  * bug# 509 bug# 591  Converted transferfidParam.BToA to EtomoBoolean.
  *
@@ -1396,6 +1399,9 @@ public class ProcessManager extends BaseProcessManager {
   }
   
   protected void errorProcess(BackgroundProcess process) {
+    if (process.getCommandLine().equals(transferfidCommandLine)) {
+      handleTransferfidMessage(process);
+    }
   }
   
   protected void postProcess(InteractiveSystemProgram program) {
