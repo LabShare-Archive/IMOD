@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/24/03: Converted subimage to PIP input and made it default to subtracting
+all pairs of sections in two volumes.
+
+12/24/03: Converted Newstack to PIP input and made it replicate the behavior
+of the Newst script.  Added capabilities for binning and undistorting images, 
+and retired Newst.
+
 12/24/03: Implemented a better way to solve for 3D transformations when there
 are insufficient data in one dimension, and used this for Solvematch's solution
 when there are fiducials on only one surface, and for Refinematch and Findwarp
