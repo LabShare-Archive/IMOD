@@ -48,6 +48,7 @@ Log at end of file
 #include "imod.h"
 #include "imod_display.h"
 #include "imod_io.h"
+#include "imod_cachefill.h"
 #include "imod_info_cb.h"
 #include "control.h"
 #include "dia_qtutils.h"
@@ -55,14 +56,14 @@ Log at end of file
 
 struct{
   ImageScaleWindow *dia;
-  ImodView  *vw;
+  ImodView  *vi;
   float     min, max;
 }imodImageScaleData = {NULL, NULL, 0, 0};
 
 #define BLACKNEW  32
 #define WHITENEW  223
 
-void imodImageScaleDialog(ImodView *vw)
+void imodImageScaleDialog(ImodView *vi)
 {
      
   if (imodImageScaleData.dia){
@@ -70,10 +71,10 @@ void imodImageScaleDialog(ImodView *vw)
     return;
   }
 
-  imodImageScaleData.vw = vw;
-  if ((!vw->li->smin) && (!vw->li->smax)){
-    vw->li->smin = vw->hdr->amin;
-    vw->li->smax = vw->hdr->amax;
+  imodImageScaleData.vi = vi;
+  if ((!vi->li->smin) && (!vi->li->smax)){
+    vi->li->smin = vi->hdr->amin;
+    vi->li->smax = vi->hdr->amax;
   }
 
   imodImageScaleData.dia = new ImageScaleWindow
@@ -84,7 +85,7 @@ void imodImageScaleDialog(ImodView *vw)
   return;
 }
 
-void imodImageScaleUpdate(ImodView *vw)
+void imodImageScaleUpdate(ImodView *vi)
 {
   if (imodImageScaleData.dia) {
     imodImageScaleData.dia->showFileAndMMM();
@@ -203,113 +204,130 @@ void ImageScaleWindow::updateLimits()
 void ImageScaleWindow::showFileAndMMM()
 {
   int cz;
-  ImodView *vw = imodImageScaleData.vw;
+  ImodView *vi = imodImageScaleData.vi;
   QString str;
-  if (vw->multiFileZ > 0) {
-    cz = (int)(vw->zmouse + 0.5 + vw->li->zmin);
-    if (cz >= 0 && cz < vw->zsize && vw->image != &vw->imageList[cz]) {
-        iiClose(vw->image);
-        vw->hdr = vw->image = &vw->imageList[cz];
-        ivwReopen(vw->image);
+  if (vi->multiFileZ > 0) {
+    if (vi->loadingImage)
+      return;
+    cz = (int)(vi->zmouse + 0.5 + vi->li->zmin);
+    if (cz >= 0 && cz < vi->zsize && vi->image != &vi->imageList[cz]) {
+        iiClose(vi->image);
+        vi->hdr = vi->image = &vi->imageList[cz];
+        ivwReopen(vi->image);
     }
   }
-  str.sprintf("File: %s", vw->image->filename);
+  str.sprintf("File: %s", vi->image->filename);
   mFileLabel->setText(str);
-  str.sprintf("Min: %g    Max: %g    Mean: %g",  vw->hdr->amin,
-          vw->image->amax, vw->image->amean);
+  str.sprintf("Min: %g    Max: %g    Mean: %g",  vi->hdr->amin,
+          vi->image->amax, vi->image->amean);
   mMMMLabel->setText(str);
 }
 
 void ImageScaleWindow::computeScale()
 {
-  ImodView *vw = imodImageScaleData.vw;
+  ImodView *vi = imodImageScaleData.vi;
   float slidecur, rangecur, slidenew, rangenew;
-  slidecur = vw->white - vw->black;
-  rangecur = vw->li->smax - vw->li->smin;
+  slidecur = vi->white - vi->black;
+  rangecur = vi->li->smax - vi->li->smin;
   slidenew = WHITENEW - BLACKNEW;
   rangenew = slidecur * rangecur / slidenew;
   imodImageScaleData.min = (slidenew * rangenew / 255.0f) *
-    ( (255.0f * vw->li->smin / (slidecur * rangecur)) +
-      vw->black/slidecur - BLACKNEW/slidenew );
+    ( (255.0f * vi->li->smin / (slidecur * rangecur)) +
+      vi->black/slidecur - BLACKNEW/slidenew );
   imodImageScaleData.max = imodImageScaleData.min + rangenew;
 }
 
 void ImageScaleWindow::applyLimits()
 {
-  ImodView *vw = imodImageScaleData.vw;
+  ImodView *vi = imodImageScaleData.vi;
   int black = BLACKNEW, white = WHITENEW;
   int k;
+
+  /* Don't do it if someone else is busy loading */
+  if (vi->loadingImage)
+    return;
 
   imodImageScaleData.min = mEditBox[0]->text().toFloat();
   imodImageScaleData.max = mEditBox[1]->text().toFloat();
 
   /* DNM: the min and max will take care of all the scaling needs, so no longer
      need the li-black and li->white to be anything but 0 and 255 */
-
-  vw->black = black;
-  vw->li->black = 0;
-  vw->white = white;
-  vw->li->white = 255;
-  vw->li->smin = imodImageScaleData.min;
-  vw->li->smax = imodImageScaleData.max;
+  /* DNM 1/3/04: cleanup li->black, white, ivwSetScale, doubles to iiSetMM */
+  vi->black = black;
+  vi->white = white;
+  vi->li->smin = imodImageScaleData.min;
+  vi->li->smax = imodImageScaleData.max;
      
-  iiSetMM(vw->image, (double)vw->li->smin, (double)vw->li->smax);
-  ivwSetScale(vw);
+  iiSetMM(vi->image, vi->li->smin, vi->li->smax);
 
   /* For multi-file sections, apply to all the files */
-  if (vw->multiFileZ)
-    for (k = 0; k < vw->zsize; k++)
-      iiSetMM(&vw->imageList[k + vw->li->zmin], (double)vw->li->smin, 
-                             (double)vw->li->smax);
+  if (vi->multiFileZ)
+    for (k = 0; k < vi->zsize; k++)
+      iiSetMM(&vi->imageList[k + vi->li->zmin], vi->li->smin, vi->li->smax);
 
-  if (vw->vmSize){
-    /* flush the image cache. */
-    ivwFlushCache(vw);
-  }else{
-    /* flipped data will crash */
-    int reflip = 0;
-    if (vw->li->axis == 2){
-      ivwFlip(vw);
-      reflip = 1;
+  /* Flip data back first if it is flipped and is either non-cache or
+     full cache flipped */
+  int reflip = 0;
+  if (vi->li->axis == 2 && (!vi->vmSize || vi->fullCacheFlipped)) { 
+    ivwFlip(vi);
+    reflip = 1;
+  }
+
+  if (vi->vmSize) {
+
+    /* If cached data, flush the cache in all cases */
+    ivwFlushCache(vi);
+
+    /* Then reload if we are supposed to keep cache full */
+    if (vi->keepCacheFull) {
+      if (imodCacheFill(vi)) {
+        imodError(NULL, "3DMOD: Fatal error rereading image file\n");
+        exit(-1);
+      }
     }
+  } else {
           
-
-    if (vw->li->contig){
-      free(vw->idata[0]);
-    }else{
-      for (k = 0; k < vw->zsize; k++)
-        free(vw->idata[k]);
+    /* Uncached data: free memory and reload */
+    if (vi->li->contig){
+      free(vi->idata[0]);
+    } else {
+      for (k = 0; k < vi->zsize; k++)
+        free(vi->idata[k]);
     }
-    free(vw->idata);
+    free(vi->idata);
 
     /* DNM: got to reread header since it gets screwed up at end of read */
-    if (vw->image->file == IIFILE_MRC){
-      if (!vw->image->fp)
-        iiReopen(vw->image);
-      if (!vw->image->fp) return;
-      mrc_head_read(vw->image->fp, 
-                    (struct MRCheader *)vw->image->header);
+    if (vi->image->file == IIFILE_MRC){
+      if (!vi->image->fp)
+        iiReopen(vi->image);
+      if (!vi->image->fp) {
+        imodError(NULL, "3DMOD: Fatal Error. Cannot reopen image file.\n");
+        exit(-1);
+      }
+      mrc_head_read(vi->image->fp, 
+                    (struct MRCheader *)vi->image->header);
     }
-    vw->idata = imod_io_image_load
-      (vw->image, vw->li, imod_imgcnt);
 
-    if (!vw->idata){
-      imodError(NULL, "3DMOD: Fatal Error. Image LOST!\n");
+    vi->idata = imod_io_image_load(vi);
+    if (!vi->idata) {
+      imodError(NULL, "3DMOD: Fatal error rereading image file\n");
       exit(-1);
     }
           
     if (App->depth == 8)
-      ivwScale(vw);
-    if (reflip)
-      ivwFlip(vw);
+      ivwScale(vi);
   }
+  
+  /* reflip the data if it was unflipped */
+  if (reflip)
+    ivwFlip(vi);
 
   /* DNM: clear any information for floating windows for this time */
-  imod_info_float_clear(-vw->zsize, vw->ct);
+  imod_info_float_clear(-vi->zsize, vi->ct);
   imod_info_setbw(black, white);     
-  xcramp_setlevels(vw->cramp,black,white);
+  xcramp_setlevels(vi->cramp,black,white);
 
-  imodDraw(vw, IMOD_DRAW_IMAGE);
+  imodDraw(vi, IMOD_DRAW_IMAGE);
 }
 
 // The window is closing, remove from manager
@@ -336,6 +354,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/12/30 06:40:10  mast
+Changes for multi-file section display, to change all files when apply
+
 Revision 4.6  2003/11/01 18:12:17  mast
 changed to put out virtually all error messages to a window
 
