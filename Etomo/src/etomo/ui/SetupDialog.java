@@ -41,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.14  2003/10/23 23:07:44  sueh
+ * <p> bug271 added isValid() to contain all SetupDialog validation
+ * <p>
  * <p> Revision 2.13  2003/10/23 22:08:28  sueh
  * <p> Bug322 changed labels and a tooltip.
  * <p>
@@ -449,7 +452,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")) {
+    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st") ||
+        datasetFileName.equals(".")) {
       applicationManager.openMessageDialog(
         "The name " + datasetFileName + " cannot be used as a dataset name",
         errorMessageTitle);
