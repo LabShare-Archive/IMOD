@@ -43,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/03/11 01:13:09  sueh
+ * <p> bug# 386 retrieved binning from MRCHeader
+ * <p>
  * <p> Revision 3.7  2004/03/10 00:43:14  sueh
  * <p> bug# 408 opening distortion file chooser in $IMOD_CALIB_DIR/Distortion, if
  * <p> possible
@@ -268,12 +271,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     createPerAxisInfoPanel();
 
     //  Relabel the postpone button
-    buttonPostpone.setText("Use Existing Coms");
-    buttonExecute.setText("Create Com Scripts");
+    btnPostpone.setText("Use Existing Coms");
+    btnExecute.setText("Create Com Scripts");
 
     // There are no advanced settings for this dialog, remove the advanced
     // button
-    panelExitButtons.remove(buttonAdvanced);
+    pnlExitButtons.remove(btnAdvanced);
 
     //  Add the panes to the dialog box
     rootPanel.add(pnlDataParameters);
@@ -282,7 +285,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(pnlPerAxisInfo);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu
@@ -921,13 +924,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This button will setup the processing for existing<br>";
     line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
     line3 = "the existing command scripts.</b>";
-    buttonPostpone.setToolTipText(line1 + line2 + line3);
+    btnPostpone.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>This button will create a new set of command scripts<br>";
     line2 = "overwriting any of the same name in the specified working<br>";
     line3 = "directory.  Be sure to save the data file after creating the<br>";
     line4 = "command script if you wish to keep the results.";
-    buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
+    btnExecute.setToolTipText(line1 + line2 + line3 + line4);
   }
 
   //  Button action listener classes

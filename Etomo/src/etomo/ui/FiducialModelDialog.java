@@ -25,6 +25,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/15 20:23:06  sueh
+ * <p> bug# 276 Moved Use Model as Seed to be next to the Seed button.  Placed Use
+ * <p> Model as Seed in Advanced.
+ * <p>
  * <p> Revision 3.1  2004/02/16 18:52:01  sueh
  * <p> bug# 276 Added Use Fiducial Model as Seed button with
  * <p> action = call makeFiducialModelSeedModel() and untoggle
@@ -137,7 +141,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     pnlBeadtrack = new BeadtrackPanel(axisID);
 
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
 
     Dimension dimButton = UIParameters.getButtonDimension();
     btnSeed.setPreferredSize(dimButton);
@@ -184,7 +188,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(pnlFiducialModel);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //
