@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.1  2004/05/14 00:45:02  sueh
  * <p> bug# 434 added a match B to A state variable
  * <p>
@@ -32,7 +35,7 @@ package etomo.comscript;
  * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
- * <p> </p>
+ * </p>
  */
 
 public class ConstSolvematchshiftParam {
