@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/01/16 18:09:02  mast
+Added splitrgb and joinrgb options
+
 Revision 3.6  2003/10/24 03:09:26  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -403,7 +406,9 @@ int main( int argc, char *argv[] )
   /* Set output header default same as first input file. */
   hout = hin;
      
+  /* DNM 4/2/04: in addition to setting header size, need to zero out "next" */
   hout.headerSize = 1024;
+  hout.next = 0;
   hout.creatid    = 1000;
 
   /* Load additional input files. */
