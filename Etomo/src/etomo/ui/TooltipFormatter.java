@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/01/01 00:47:13  sueh
+ * <p> bug# 372 Section returns null when Section is not found
+ * <p>
  * <p> Revision 3.1  2003/12/31 01:32:57  sueh
  * <p> bug# 372 added getText() - finds the right tooltip in an
  * <p> autodoc
@@ -68,6 +71,7 @@ public class TooltipFormatter {
    * @return the HTML formatted string
    */
   public String format() {
+    if (rawString == null) {return null;}
     StringBuffer htmlFormat = new StringBuffer("<html>");
     boolean splitting = true;
     int idxStart = 0;
@@ -94,34 +98,6 @@ public class TooltipFormatter {
     }
     return htmlFormat.toString();
   }
+  
 
-  public static String getText(Autodoc autodoc, String fieldName) {
-    Section section = autodoc.getSection("field", fieldName);
-    if (section == null) {
-      return null;
-    }
-    String text = null;
-    Attribute attribute = section.getAttribute("tooltip");
-    if (attribute != null) {
-      text = attribute.getValue();
-      if (text != null) {
-        return text;
-      }
-    }
-    attribute = section.getAttribute("usage");
-    if (attribute != null) {
-      text = attribute.getValue();
-      if (text != null) {
-        return text;
-      }
-    }
-    attribute = section.getAttribute("manpage");
-    if (attribute != null) {
-      text = attribute.getValue();
-      if (text != null) {
-        return text;
-      }
-    }
-    return null;
-  }
 }

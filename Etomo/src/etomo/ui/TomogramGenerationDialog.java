@@ -36,6 +36,7 @@ import etomo.storage.MtfFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.util.InvalidParameterException;
 
@@ -59,6 +60,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.32  2005/01/14 03:11:32  sueh
+ * bug# 511 Added DialogType to super constructor.
+ *
  * Revision 3.31  2005/01/12 18:35:32  sueh
  * bug# 505 Added ltfExtraExcludeList.
  *
@@ -1156,26 +1160,26 @@ public class TomogramGenerationDialog extends ProcessDialog
     text = "Open the complete aligned stack in 3dmod";
     btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
     if (autodoc != null) {
-      text = TooltipFormatter.getText(autodoc, "StartingAndEndingZ");
+      text = EtomoAutodoc.getTooltip(autodoc, "StartingAndEndingZ");
       if (text != null) {
         ltfStartingAndEndingZ.setToolTipText(tooltipFormatter.setText(text)
             .format());
       }
-      text = TooltipFormatter.getText(autodoc, "LowPassRadiusSigma");
+      text = EtomoAutodoc.getTooltip(autodoc, "LowPassRadiusSigma");
       if (text != null) {
         ltfLowPassRadiusSigma.setToolTipText(tooltipFormatter.setText(text)
             .format());
       }
-      text = TooltipFormatter.getText(autodoc, "MtfFile");
+      text = EtomoAutodoc.getTooltip(autodoc, "MtfFile");
       if (text != null) {
         ltfMtfFile.setToolTipText(tooltipFormatter.setText(text).format());
       }
-      text = TooltipFormatter.getText(autodoc, "MaximumInverse");
+      text = EtomoAutodoc.getTooltip(autodoc, "MaximumInverse");
       if (text != null) {
         ltfMaximumInverse.setToolTipText(tooltipFormatter.setText(text)
             .format());
       }
-      text = TooltipFormatter.getText(autodoc, "InverseRolloffRadiusSigma");
+      text = EtomoAutodoc.getTooltip(autodoc, "InverseRolloffRadiusSigma");
       if (text != null) {
         ltfInverseRolloffRadiusSigma.setToolTipText(tooltipFormatter.setText(
             text).format());

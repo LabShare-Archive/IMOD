@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/12/02 20:39:19  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.10  2004/11/19 23:50:37  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -107,6 +111,7 @@ import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 
 public class CrossCorrelationPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
@@ -346,67 +351,67 @@ public class CrossCorrelationPanel implements ContextMenu {
       except.printStackTrace();
     }
 
-    text = TooltipFormatter.getText(autodoc, "TestOutput");
+    text = EtomoAutodoc.getTooltip(autodoc, "TestOutput");
     if (text != null) {
       ltfTestOutput.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "FilterSigma1");
+    text = EtomoAutodoc.getTooltip(autodoc, "FilterSigma1");
     if (text != null) {
       ltfFilterSigma1.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "FilterRadius2");
+    text = EtomoAutodoc.getTooltip(autodoc, "FilterRadius2");
     if (text != null) {
       ltfFilterRadius2.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "FilterSigma2");
+    text = EtomoAutodoc.getTooltip(autodoc, "FilterSigma2");
     if (text != null) {
       ltfFilterSigma2.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "BordersInXandY");
+    text = EtomoAutodoc.getTooltip(autodoc, "BordersInXandY");
     if (text != null) {
       ltfTrim.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "XMinAndMax");
+    text = EtomoAutodoc.getTooltip(autodoc, "XMinAndMax");
     if (text != null) {
       pnlXMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "YMinAndMax");
+    text = EtomoAutodoc.getTooltip(autodoc, "YMinAndMax");
     if (text != null) {
       pnlYMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
     }
-    text = TooltipFormatter.getText(autodoc, "PadsInXandY");
+    text = EtomoAutodoc.getTooltip(autodoc, "PadsInXandY");
     if (text != null) {
       ltfPadPercent.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "TapersInXandY");
+    text = EtomoAutodoc.getTooltip(autodoc, "TapersInXandY");
     if (text != null) {
       ltfTaperPercent.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "CumulativeCorrelation");
+    text = EtomoAutodoc.getTooltip(autodoc, "CumulativeCorrelation");
     if (text != null) {
       cbCumulativeCorrelation.setToolTipText(tooltipFormatter.setText(text)
         .format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "AbsoluteCosineStretch");
+    text = EtomoAutodoc.getTooltip(autodoc, "AbsoluteCosineStretch");
     if (text != null) {
       cbAbsoluteCosineStretch.setToolTipText(tooltipFormatter.setText(text)
         .format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "NoCosineStretch");
+    text = EtomoAutodoc.getTooltip(autodoc, "NoCosineStretch");
     if (text != null) {
       cbNoCosineStretch.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "StartingEndingViews");
+    text = EtomoAutodoc.getTooltip(autodoc, "StartingEndingViews");
     if (text != null) {
       ltfViewRange.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
-    text = TooltipFormatter.getText(autodoc, "ExcludeCentralPeak");
+    text = EtomoAutodoc.getTooltip(autodoc, "ExcludeCentralPeak");
     if (text != null) {
       cbExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text)
         .format());

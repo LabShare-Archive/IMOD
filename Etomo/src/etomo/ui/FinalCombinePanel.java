@@ -22,6 +22,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.CombineParams;
 import etomo.comscript.SetParam;
+import etomo.type.EtomoAutodoc;
 
 /**
  * <p>
@@ -47,6 +48,10 @@ import etomo.comscript.SetParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2005/01/26 00:02:33  sueh
+ * Removing ConstEtomoNumber.displayDefault.  To get the default to
+ * display, set displayValue and default the same.
+ *
  * Revision 3.20  2004/12/03 20:23:18  sueh
  * bug# 556 Support older versions of volcombine.com.  Since the set param
  * may be missing or setting the wrong name, check it before loading or
@@ -931,7 +936,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
     
     if (autodoc != null) {
-      text = TooltipFormatter.getText(autodoc, "ReductionFraction");
+      text = EtomoAutodoc.getTooltip(autodoc, "ReductionFraction");
       if (text != null) {
         ltfReductionFactor.setToolTipText(tooltipFormatter.setText(text)
             .format());
