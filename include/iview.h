@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IVIEW_H
 #define IVIEW_H
@@ -39,7 +47,8 @@ extern "C" {
 Iview *imodViewNew(int size);
 void   imodViewDelete(Iview *vw);
 void   imodViewDefault(Iview *vw);
-void imodViewModelDefault(Imod *imod, Iview *vw);
+  void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax);
+void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax);
 int imodViewWrite(Iview *vw, FILE *fout);
 int imodViewWrite(Iview *vw, FILE *fout);
 int imodViewModelWrite(Imod *imod);
