@@ -25,6 +25,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/04/28 23:25:26  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.1  2003/02/24 23:23:02  rickg
  * <p> Corrected acition spelling
  * <p>
@@ -239,7 +242,7 @@ public class AlignmentEstimationDialog
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[1];
-    logFileLabel[0] = "align" + axisID.getExtension();
+    logFileLabel[0] = "align";
     logFile = new String[1];
     logFile[0] = "align" + axisID.getExtension() + ".log";
 
