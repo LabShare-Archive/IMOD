@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/27 18:13:59  mast
+    Add ImodView argument to imodDrawModel so that times can be detected
+
     Revision 3.2  2003/02/10 20:41:55  mast
     Merge Qt source
 
@@ -156,6 +159,11 @@ float ivwGetFileValue(ImodView *inImodView, int inX, int inY, int inZ);
  *  Get the model associated with the view.
  */
 Imod *ivwGetModel(ImodView *inImodView);
+
+/*
+ *  Get the extra object
+ */
+Iobj *ivwGetExtraObject(ImodView *inImodView);
 
 /*
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
