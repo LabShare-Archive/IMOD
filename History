@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/2/04: IMOD_3-4-6
+9/2/04: Message now sent from eTomo to make object type be scattered points
+in matching models.
+
+9/1/04: Fixed bug in determining if piece list file was entered to Blendmont,
+only showed up on AMD64 (in 3.3).
+
+8/30/04: Fixed eTomo's treatment of an empty *fid.xyz (in 3.3).
+
 8/30/05: IMOD_3-4-5
 8/30/04: Fixed eTomo bug in which making matching models with data binned by 2
 would make further invocations of 3dmod load data binned by 2 (in 3.3).
