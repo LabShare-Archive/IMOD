@@ -78,6 +78,7 @@ clean :
 #	\rm -f *.o */*.o *~ */*~ *.a
 	$(FIND) . -type f -name "*.so" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.a" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.dylib" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
