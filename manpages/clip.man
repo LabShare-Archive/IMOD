@@ -1,13 +1,13 @@
 .na
 .nh
-.TH CLIP 1 2.00 BL3DEMC
+.TH CLIP 1 3.4.18 BL3DEMC
 .SH NAME
 clip \- command line image processing for mrc files.
 .SH SYNOPSIS
 clip [process] [options] [input files...] [output file]
 .SH DESCRIPTION
 The processes that clip can do are listed below. One and only one
-process	must be selected on the command line.  Only the first three or
+process must be selected on the command line.  Only the first three or
 four letters of the process name have to be entered.
 .TP
 .I average (avg) 
@@ -32,10 +32,10 @@ Calculate a gradient as in 3dmod image processing.
 .I graham
 Apply Graham filter as in 3dmod image processing.
 .TP
-.I info		
+.I info
 Print header information to stdout.
 .TP   
-.I fft		
+.I fft
 Calculate a fft or inverse fft transform.
 .TP
 .I filter
@@ -59,9 +59,6 @@ Apply Prewitt filter as in 3dmod image processing.
 .I resize
 Box out image to a new size.
 .TP
-.I rotation
-Transform image by a given rotattion.
-.TP
 .I shadow
 Adjust darkness of image by scaling intensities.
 .TP
@@ -79,12 +76,6 @@ Split an RGB file into 3 byte files.
 .TP
 .I stats
 Print min, max, location of max and std. dev.
-.TP
-.I translate
-Translate an image.
-.TP
-.I zoom		
-Magnify or demagnify an image.
 .PD
 .SH Options
 These options are available to most processes.
@@ -95,14 +86,19 @@ View output data file using 3dmod.
 .B \-2d
 Use 2d instead of 3d (default) processes if a
 2d process exists. Each input file is considered
-a stack of 2D images to be processed.
+a stack of 2D images to be processed.  For most processes, this will change
+only the way that the 
+.B -iz
+option is interpreted.
 .TP
 .B \-3d
 Use 3d process. Each input file is considered a 
 volume to be processed.
 .TP
 .B -a
-Append data to output file.
+Append data to output file.  Append and overwrite are not available for
+processing modes that do not take standard input and output size and centering
+options.
 .TP
 .B -ov <section>
 Overwrite output starting at section number
@@ -177,34 +173,25 @@ options sets the y output size and the
 option sets the z output size.
 
 .SH Selected options
-The following options are valid for selected processes:	
-.TP
-.B -x <value,value>
-Modifies x variable or range.
-.TP
-.B -y <value,value>
-Modifies y variable or range.
-.TP
-.B -z <value,value>
-Modifies z variable or range.
+The following options are valid for selected processes:
 .TP
 .B -s
 Switch, use depends on process.
 .TP
 .B -m <mode>
-Output modes: 'byte', 'short', 'float', 'complex', 'rgb', or (0-16). 
+Output modes: 'byte', 'short', 'float', 'complex', 'rgb', or 0-4 or 16. 
 0 = byte, 1 = short, 2 = float, 3 = complex short, 4 = complex float, 16 = rgb.
 .TP
 .B -h <level>
-Level for high pass filter. Range is (0.0 - 1.0).
+Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0.
 .TP
 .B -l <level>
-Level for low  pass filter. Range is (0.0 - 1.0).
+Level for low  pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 1.0.
 .TP
 .B -n <value>
-Input number. Use depends on process.	
+Input number. Use depends on process.
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -225,9 +212,10 @@ Average 3d version:  Average will add all of the input
 files together slice by slice and then divide the
 results by the number of input files.  All input images 
 must be the same size.
-(Standard options not implemented)
-Average 2d version: Averages slices together, use
-the -n option to set a threshold. 
+(Standard options for input and output size not implemented.)
+Average 2d version: Averages slices from the input file together, use
+the -n option to set a threshold such that pixels below threshold are not
+included in the average.  Standard options are available.
 .TP
 .B brightness 
 .PD 0
@@ -236,7 +224,7 @@ the -n option to set a threshold.
 .TP 
 .B shadow
 .PD
-Increase or Decrease image brightness, contrast, or darkness.
+Increase or decrease image brightness, contrast, or darkness.
 These options scale the image intensity by the
 value entered with the
 .B -n
@@ -255,10 +243,23 @@ option, the min, max, or mean are taken from the individual sections.
 .TP
 .B color
 Colorize a black and white image.
-Color converts an mrc file to byte data and then scales
+Color 3d version: reads in a whole mrc file as byte data and then scales
 the image to a color ramp that starts at black and goes to
-the -r -g and -b values given on the command line.
-The default color values are 1.0.  Only 3D input available.
+the 
+.B -r, -g,
+and
+.B -b
+values given on the command line.
+The default color values are 1.0.  Standard options for input and output size
+are not implemented.
+.br
+Color 2d version: reads in data slice by slice without scaling it to bytes,
+the scales the image to a color ramp using the 
+.B -r, -g,
+and
+.B -b
+values.  The size of these values may need to be adjusted to get output data
+within the desired range (0-255).  Standard options are available.
 .TP
 .B correlation 
 Calculate auto or cross correlation functions.
@@ -287,17 +288,13 @@ fft does either a forward or inverse fft, depending
 on the input data type.  The output for a forward 
 transformation is complex float.  The input sizes
 must be a multiple of two, and must have no prime factors
-greater than 19.  Both 2D and 3D output match the format of the fft ouput
+greater than 19.  Both 2D and 3D output match the format of the fft output
 by fftrans(1), in which no data is duplicated and the center is
 shifted to x = 0, y = ny/2.  Older fft files produced by clip, in
 which the data were replicated to the left of the Y axis, will still
-be accepted as input.
-The -s option for the 3D fft will cause a 3D fft to 
-use disk space instead of memory for intermediate
-steps.  The -s option allows for systems with limited 
-resources to do large fft's.  One thing to be aware of
-if using the -s option	is that the inverse fft uses the 
-input file disk space as storage.
+be accepted as input.  Input size and centering options can be used for the
+forward transform, and output size and mode can be set for the inverse
+transform.
 .TP
 .B filter
 High and/or low pass filtering in frequency space (2D only).
@@ -317,7 +314,8 @@ commands will each create a new file that is the mirror
 image of the input file along the x, y, or z axis.
 The flipxy, flipyz, flipzx commands will flip the
 xy, yz or zx indices and change the size of the
-output file to match.
+output file to match.  No input size or centering, or output size or mode 
+options will be applied.
 .TP
 .B gradient
 .PD 0
@@ -364,31 +362,21 @@ option; its default is 3.  The default is to do a 3D filter (thus taking the
 median in cubes of data), but the 
 .B -2d
 option can be used to apply a 2D filter that considers only the pixels in one 
-section.  Note that even size will offset the data by half a pixel.
+section.  Note that an even size will offset the data by half a pixel.
 .TP
 .B resize 
-Cut out or pad an image to a new size.
-Resize cuts out an image of size ix, iy, iz, centered
+Cut out or pad an image to a new sizewithout doing any other operations.
+Resize 3d cuts out an image of size ix, iy, iz, centered
 around cx, cy, and cz.  The output size of the file is 
 ox, oy, and oz.  The default input size is the size of the 
 input file, the default center is the center of the input 
 file and the default output size is the same as the input 
-size.  The default padding is the average value of the 
+size.  
+The default padding is the average value of the 
 input file; the padding can be changed with the -p option.
-.TP
-.B rotation 
-Rotate an image (3d only).
-Rotates an image by x, y and z; where x,y and z are angles
-of rotation for the x, y and z axis.  Counterclockwise rotations 
-are positive, looking down on the origin from positive
-values.
-The output filesize default is the same size as the input
-filesize. It can be changed with the ox, oy and oz flags.
-The center of rotation default is the center of the input 
-file.
-Rotation center can be changed by the cx, cy and cz flags.
-(See rotatevol(1), it works better and has similar options.)
-(2d rotation should be done with newstack)
+Resize 2d cuts out a list of slices specified by the
+.B -iz
+entry.  
 .TP
 .B sharpen
 .PD 0
@@ -420,21 +408,15 @@ Min, Max and Std. Deviation.  The location of the maximum
 is also printed.  The location is calculated by doing a
 quadratic fit to the maximum value.  The -s option is
 used to report the location for a cross-correlation.
-.TP
-.B translate 
-Translate an image.
-Translates image by x, y, and z.  Where x, y, and z are
-the number if pixels to translate.  The output size is
-given by ox, oy and oz.
-.TP
-.B zoom 
-Scale an image.
-Scales image by x, y and z.  The output size is also scaled
-by default.  Use the -s switch to keep output size the
-same as input size.  The ox, oy and oz inputs can also
-be used to change output size.
-The cx, cy and cz values place the center of the scaling.
-The default value is the center of the input file.
+
+.SH HISTORY
+Originally most processes loaded all data into memory unless the -2d option
+was given, and the -2d option did not provide for any output padding.
+Work in Jan 2005 fixed this so that only 3D correlation and FFTs and
+3D color load the whole volume; everything else does slice-by-slice
+processing, with proper handling of output padding and appending regardless of
+whether -2d or -3d is selected.  Rotation, translation, and zoom were not
+well-implemented and were abandoned.
 
 .SH AUTHORS
 .nf
@@ -443,11 +425,11 @@ David Mastronarde
 .fi
 
 .SH SEE ALSO
-3dmod(1), newstack(1), rotatevol(1), fftrans(1)
+3dmod(1), newstack(1), rotatevol(1), matchvol(1), fftrans(1)
 
 .SH BUGS
-Clip has still not been fully tested with all types of data.  Not all options
-work with all processes.  Some processes load all data into memory 
-unnecessarily, leading to slow performance or insufficient memory.
+There are not checks for the validity of all input values, and some
+nonsensical mode conversions are allowed.  Disk-based 3D FFTs (invoked with
+-s) do not work.
 
 Email bug reports to mast@colorado.edu.
