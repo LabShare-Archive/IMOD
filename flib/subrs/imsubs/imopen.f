@@ -12,6 +12,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/31 17:57:41  mast
+c	  Finished standardizing error output, added implicit none, changed
+c	  line spacing for output, used lnblnk instead of len to truncate
+c	  the filename output
+c	
 c	  Revision 3.2  2002/07/21 19:17:31  mast
 c	  Standardized error output to ERROR: ROUTINE
 c	
@@ -77,6 +82,7 @@ c
 	    call exit(1)
 	  endif
 	  mrctyp=.true.
+	  spityp = .false.
 	  do i=1,3
 	    mrctyp=mrctyp.and.(intbuf(i).ge.0.and.intbuf(i).le.60000)
 	  enddo
