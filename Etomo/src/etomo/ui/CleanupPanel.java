@@ -15,33 +15,51 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.storage.BackupFileFilter;
 import etomo.storage.IntermediateFileFilter;
 
 /**
- * <p>Description: </p>
+ * <p>
+ * Description:
+ * </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>
+ * Copyright: Copyright (c) 2002
+ * </p>
  * 
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
+ * <p>
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Colorado
+ * </p>
  * 
  * @author $Author$
  * 
  * @version $Revision$
  * 
- * <p> $Log$
- * <p> Revision 1.2  2003/04/24 17:46:54  rickg
- * <p> Changed fileset name to dataset name
  * <p>
- * <p> Revision 1.1  2003/04/17 23:12:00  rickg
- * <p> Initial revision
- * <p> </p>
+ * $Log$
+ * <p>
+ * Revision 1.3 2003/05/07 17:51:45 rickg
+ * <p>
+ * System property user.dir now defines the working directory
+ * <p>
+ * <p>
+ * Revision 1.2 2003/04/24 17:46:54 rickg
+ * <p>
+ * Changed fileset name to dataset name
+ * <p>
+ * <p>
+ * Revision 1.1 2003/04/17 23:12:00 rickg
+ * <p>
+ * Initial revision
+ * <p>
+ * </p>
  */
 /**
  * @author rickg
- *
- * To change this generated comment go to 
- * Window>Preferences>Java>Code Generation>Code Template
+ * 
+ * To change this generated comment go to Window>Preferences>Java>Code
+ * Generation>Code Template
  */
 public class CleanupPanel {
   public static final String rcsid =
@@ -50,12 +68,14 @@ public class CleanupPanel {
 
   private JPanel pnlCleanup = new JPanel();
   private JLabel instructions =
-    new JLabel("Select files to be deleted then press the \"Delete selected\" button");
+    new JLabel("Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
+
   JFileChooser fileChooser;
-  IntermediateFileFilter fileFilter;
+  IntermediateFileFilter intermediateFileFilter;
+  BackupFileFilter backupFileFilter;
   private JPanel pnlButton = new JPanel();
-  JButton btnDelete = new JButton("<html><b>Delete selected</b>");
-  JButton btnRescanDir = new JButton("<html><b>Rescan directory</b>");
+  JButton btnDelete = new JButton("<html><b>Delete Selected</b>");
+  JButton btnRescanDir = new JButton("<html><b>Rescan Directory</b>");
 
   public CleanupPanel(ApplicationManager appMgr) {
     applicationManager = appMgr;
@@ -71,11 +91,14 @@ public class CleanupPanel {
     btnRescanDir.setMaximumSize(dimButton);
 
     //  Create the filechooser
-    fileFilter =
+    intermediateFileFilter =
       new IntermediateFileFilter(applicationManager.getDatasetName());
+    backupFileFilter = new BackupFileFilter();
+
     fileChooser = new JFileChooser();
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-    fileChooser.setFileFilter(fileFilter);
+		fileChooser.setFileFilter(backupFileFilter);
+    fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
     fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -105,17 +128,16 @@ public class CleanupPanel {
   }
 
   /**
-   * 
-   * @return
-   */
+	 * @return
+	 */
   public Container getContainer() {
     return pnlCleanup;
   }
 
   /**
-   * 
-   *
-   */
+	 * 
+	 *  
+	 */
   private void deleteSelected() {
     File[] deleteList = fileChooser.getSelectedFiles();
     for (int i = 0; i < deleteList.length; i++) {
@@ -132,9 +154,8 @@ public class CleanupPanel {
   }
 
   /**
-   * 
-   * @param event
-   */
+	 * @param event
+	 */
   private void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnDelete.getActionCommand()) {
       deleteSelected();
@@ -145,8 +166,8 @@ public class CleanupPanel {
   }
 
   /*
-   * 
-   */
+	 *  
+	 */
   class ButtonActonListener implements ActionListener {
     CleanupPanel listenee;
 

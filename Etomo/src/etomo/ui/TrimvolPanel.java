@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2003/09/08 05:48:16  rickg
+ * <p> Method name change for opening the complete volume
+ * <p>
  * <p> Revision 1.8  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -74,21 +77,21 @@ public class TrimvolPanel {
 
   private JPanel pnlScale = new JPanel();
   private JPanel pnlScaleFixed = new JPanel();
-  private JRadioButton rbScaleFixed = new JRadioButton("Fixed scaling  ");
-  private LabeledTextField ltfFixedScaleMin = new LabeledTextField("min: ");
-  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" max: ");
+  private JRadioButton rbScaleFixed = new JRadioButton("Scale to match contrast  ");
+  private LabeledTextField ltfFixedScaleMin = new LabeledTextField("black: ");
+  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" white: ");
 
-  private JRadioButton rbScaleSection = new JRadioButton("Section based  ");
+  private JRadioButton rbScaleSection = new JRadioButton("Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
-  private LabeledTextField ltfSectionScaleMin = new LabeledTextField("min: ");
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" max: ");
+  private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
 
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
-  private JButton btnImodFull = new JButton("<html><b>3dmod full volume</b>");
-  private JButton btnTrimvol = new JButton("<html><b>Trim volume</b>");
-  private JButton btnImodTrim = new JButton("<html><b>3dmod trimmed volume</b>");
+  private JButton btnImodFull = new JButton("<html><b>3dmod Full Volume</b>");
+  private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
+  private JButton btnImodTrim = new JButton("<html><b>3dmod Trimmed Volume</b>");
 
   /**
    * Default constructor
@@ -111,7 +114,7 @@ public class TrimvolPanel {
 
     //  Layout the range panel
     pnlRange.setLayout(new GridLayout(3, 2));
-    pnlRange.setBorder(new EtchedBorder("Volume range").getBorder());
+    pnlRange.setBorder(new EtchedBorder("Volume Range").getBorder());
 
     pnlRange.add(ltfXMin.getContainer());
     pnlRange.add(ltfXMax.getContainer());
@@ -151,7 +154,7 @@ public class TrimvolPanel {
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
-    pnlTrimvol.setBorder(new BeveledBorder("Volume trimming").getBorder());
+    pnlTrimvol.setBorder(new BeveledBorder("Volume Trimming").getBorder());
 
     pnlTrimvol.add(pnlRange);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
