@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/06/05 00:19:44  mast
+*** empty log message ***
+
 */
 #ifndef PARSE_PARAMS_H
 #define PARSE_PARAMS_H
@@ -26,6 +29,8 @@ int PipGetString(char *option, char **string);
 int PipGetInteger(char *option, int *val);
 int PipGetFloat(char *option, float *val);
 int PipGetBoolean(char *option, int *val);
+int PipGetTwoIntegers(char *option, int *val1, int *val2);
+int PipGetTwoFloats(char *option, float *val1, float *val2);
 int PipGetIntegerArray(char *option, int *array, int *numToGet, int arraySize);
 int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize);
 int PipPrintHelp(char *progName, int useStdErr, int inputFiles,

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/06/20 23:56:37  mast
+Add ability to break output of help strings into limited-length lines
+
 Revision 3.3  2003/06/10 23:21:03  mast
 Add File name type
 
@@ -465,6 +468,35 @@ int PipGetFloat(char *option, float *val)
 {
   int num = 1;
   return PipGetFloatArray(option, val, &num, 1);
+}
+
+/* Get two integers or floats - move into array, get array with two elements */
+int PipGetTwoIntegers(char *option, int *val1, int *val2)
+{
+  int err;
+  int num = 2;
+  int tmp[2];
+  tmp[1] = *val1;
+  tmp[2] = *val2;
+  if ((err = PipGetIntegerArray(option, tmp, &num, 2)) != 0)
+    return err;
+  *val1 = tmp[1];
+  *val2 = tmp[2];
+  return 0;
+}
+
+int PipGetTwoFloats(char *option, float *val1, float *val2)
+{
+  int err;
+  int num = 2;
+  float tmp[2];
+  tmp[1] = *val1;
+  tmp[2] = *val2;
+  if ((err = PipGetFloatArray(option, tmp, &num, 2)) != 0)
+    return err;
+  *val1 = tmp[1];
+  *val2 = tmp[2];
+  return 0;
 }
 
 /* Getting an array of integers or floats calls the general routine for
