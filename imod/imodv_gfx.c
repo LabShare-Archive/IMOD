@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -147,6 +155,9 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 	  /* altmp = DisplayHasAlpha(a->display, 1) */
 	  a->dgfx = XtVaCreateManagedWidget
 	       ("drgbwidget", B3dDrawingAreaWidgetClass, form,
+		GLwNvisualInfo, a->visualInfo,
+		GLwNinstallBackground, False,
+		GLwNinstallColormap, False,
 		GLwNrgba, True, 
 		GLwNdoublebuffer, True, 
 		GLwNdepthSize, 8,
@@ -185,6 +196,9 @@ int imodv_init_drawing_widget(ImodvApp *a, Widget form)
 	  /* altmp = DisplayHasAlpha(a->display, 0) */
 	  a->gfx = XtVaCreateManagedWidget
 	       ("rgbwidget", B3dDrawingAreaWidgetClass, form,
+		GLwNvisualInfo, a->visualInfo,
+		GLwNinstallBackground, False,
+		GLwNinstallColormap, False,
 		GLwNrgba, True,
 		GLwNdoublebuffer, False,
 		GLwNdepthSize, 8,
