@@ -34,6 +34,8 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
+import etomo.type.MetaData;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -56,6 +58,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2005/01/11 18:08:21  sueh
+ * bug# 578 Sending useZFactors state to metaData to preserve it when it is
+ * disabled.
+ *
  * Revision 3.27  2005/01/08 01:56:11  sueh
  * bug# 578 Added z factors checkbox and a public function to
  * enable/disable it.
@@ -491,6 +497,7 @@ public class TomogramGenerationDialog extends ProcessDialog
    * @param tiltParam
    */
   public void setTiltParams(ConstTiltParam tiltParam) {
+    ConstMetaData metaData = applicationManager.getMetaData();
     int binning = ((Integer) spinBinning.getValue()).intValue();
     if (tiltParam.hasWidth()) {
       ltfTomoWidth.setText(tiltParam.getWidth() * binning);
@@ -528,8 +535,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     if (tiltParam.hasLogOffset()) {
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
-    cbBoxUseLocalAlignment.setSelected(tiltParam.hasLocalAlignFile());
-    cbUseZFactors.setSelected(applicationManager.getMetaData().getUseZFactors().is());
+    cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments());
+    cbUseZFactors.setSelected(metaData.getUseZFactors().is());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
@@ -554,7 +561,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       InvalidParameterException {
     int binning = ((Integer) spinBinning.getValue()).intValue();
     String badParameter = "";
-
+    MetaData metaData = applicationManager.getTomogramMetaData();
     try {
       // Set the appropriate FULLIMAGE line
       badParameter = "FULLIMAGE";
@@ -689,9 +696,10 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         tiltParam.setLocalAlignFile("");
       }
+      metaData.setUseLocalAlignments(cbBoxUseLocalAlignment.isSelected());
       tiltParam.setFiducialess(cbFiducialess.isSelected());
       tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
-      applicationManager.getTomogramMetaData().setUseZFactors(cbUseZFactors.isSelected());
+      metaData.setUseZFactors(cbUseZFactors.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -973,9 +981,12 @@ public class TomogramGenerationDialog extends ProcessDialog
     cbUseZFactors.setEnabled(enable);
   }
   
+  public void enableUseLocalAlignment(boolean enable) {
+    cbBoxUseLocalAlignment.setEnabled(enable);
+  }
+  
   protected void updateFiducialess() {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
-    cbBoxUseLocalAlignment.setEnabled(!cbFiducialess.isSelected());
   }
 
   //  Action function overides for process state buttons
