@@ -1,9 +1,11 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -17,18 +19,22 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/06/27 20:16:36  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 
 public abstract class FileSizeProcessMonitor implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   ApplicationManager applicationManager;
   AxisID axisID;
   long processStartTime;
   File watchedFile;
-  long nBytes;
+  int nKBytes;
 
-  int updatePeriod = 200;
+  int updatePeriod = 500;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
     applicationManager = appMgr;
@@ -41,25 +47,34 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   // - initialize the progress bar through the application manager, the maximum
   //   value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
-  abstract long calcFileSize();
+  abstract void calcFileSize() throws InvalidParameterException, IOException;
 
   /* (non-Javadoc)
    * @see java.lang.Runnable#run()
    */
   public void run() {
     //  Calculate the expected file size in bytes, initialize the progress bar
-    // and set the File object.
-    calcFileSize();
-
-    //  Wait for the output file to be created and set the process start time
+    //  and set the File object.
     try {
+      calcFileSize();
+
+      //  Wait for the output file to be created and set the process start time
       waitForFile();
     }
     //  Interrupted ???  kill the thread by exiting
-    catch (InterruptedException e) {
+    catch (InterruptedException except) {
       return;
     }
-    
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+
+    // Periodically update the process bar by checking the size of the file
     updateProgressBar();
   }
 
@@ -94,15 +109,15 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     boolean fileWriting = true;
 
     while (fileWriting) {
-      long currentLength = watchedFile.length();
-      double fractionDone = (double) currentLength / nBytes;
+      int currentLength = (int) (watchedFile.length() / 1024);
+      double fractionDone = (double) currentLength / nKBytes;
       int percentage = (int) Math.round(fractionDone * 100);
 
       long elapsedTime = System.currentTimeMillis() - processStartTime;
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
-      int minutes = (int) remainingTime / 60000;
+      int minutes = (int) Math.floor(remainingTime / 60000);
       int seconds =
-        (int) Math.round((remainingTime - minutes * 60000) / 1000.0);
+        (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
 
       String message =
         String.valueOf(percentage)
@@ -115,10 +130,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       else {
         message = message + String.valueOf(seconds);
       }
-      applicationManager.setProgressBarValue(
-        (int) (currentLength / 1024),
-        message,
-        axisID);
+      applicationManager.setProgressBarValue(currentLength, message, axisID);
 
       //  TODO: need to put a fail safe in here to
       try {
