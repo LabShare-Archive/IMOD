@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>290</width>
-            <height>252</height>
+            <width>295</width>
+            <height>259</height>
         </rect>
     </property>
     <property name="caption">
@@ -344,6 +344,9 @@
                                     </property>
                                     <property name="text">
                                         <string>Set from Current Contrast</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Set the target mean and SD so that they would generate the contrast currently seen</string>
                                     </property>
                                 </widget>
                                 <spacer>
