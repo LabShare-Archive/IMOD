@@ -39,7 +39,8 @@ Log at end of file
 #define ZAP_TOGGLE_ZLOCK 1
 #define ZAP_TOGGLE_CENTER 2
 #define ZAP_TOGGLE_INSERT 3
-#define ZAP_TOGGLE_TIMELOCK 4
+#define ZAP_TOGGLE_RUBBER 4
+#define ZAP_TOGGLE_TIMELOCK 5
 
 
 #include <qmainwindow.h>
@@ -74,6 +75,7 @@ class ZapWindow : public QMainWindow
 
   ZapGL *mGLw;
   QToolBar *mToolBar;
+  struct zapwin *mZap;
 
   public slots:
     void zoomUp();
@@ -100,7 +102,6 @@ class ZapWindow : public QMainWindow
                            int index);
     void setFontDependentWidths();
 
-    struct zapwin *mZap;
     QToolButton *mToggleButs[5];
     int mToggleStates[5];
     ToolEdit *mZoomEdit;
@@ -140,6 +141,9 @@ protected:
 
 /*
 $Log$
+Revision 4.3  2003/03/26 06:30:56  mast
+adjusting to font changes
+
 Revision 4.2  2003/03/07 15:49:11  mast
 Put z section slider under hot slider control
 
