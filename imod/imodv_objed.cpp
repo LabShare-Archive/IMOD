@@ -135,11 +135,11 @@ static int      CurrentObjectField       = 0;
 ObjectEditField objectEditFieldData[]    = {
   {"Line Color", mkLineColor_cb, setLineColor_cb, NULL,       NULL},
   {"Fill Color", mkFillColor_cb, setFillColor_cb, NULL,       NULL},
+  {"Material",   mkMaterial_cb,  setMaterial_cb,  NULL,       NULL},
   {"Points",     mkPoints_cb,    setPoints_cb,    NULL,       NULL},
   {"Lines",      mkLines_cb,     setLines_cb,     NULL,       NULL},
   {"Mesh View",  mkScalar_cb,    setScalar_cb,    NULL,       NULL},
   {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
-  {"Material",   mkMaterial_cb,  setMaterial_cb,  NULL,       NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
 
@@ -617,7 +617,7 @@ void objed(ImodvApp *a)
 
   Imodv_objed_all = 0;  // May want to retain this setting
 
-  window_name = imodwEithername("Imodv Objects: ", a->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv Objects: ", a->imod->fileName, 1);
   if (window_name) {
     qstr = window_name;
     free(window_name);
@@ -747,18 +747,10 @@ static void mkLineColor_cb(int index)
 
 static MultiSlider *fillSliders;
 static QCheckBox *wFillToggle = 0;
-static QCheckBox *wBothSides  = 0;
 
 void ImodvObjed::fillToggleSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_FCOLOR, state ? 1 : 0);
-  objset(Imodv);
-  imodvDraw(Imodv);
-}
-
-void ImodvObjed::bothSidesSlot(bool state)
-{
-  setObjFlag(IMOD_OBJFLAG_TWO_SIDE, state ? 1 : 0);
   objset(Imodv);
   imodvDraw(Imodv);
 }
@@ -786,7 +778,6 @@ static void setFillColor_cb(void)
   unsigned char *colors = (unsigned char *)&(obj->mat1);
 
   diaSetChecked(wFillToggle, obj->flags & IMOD_OBJFLAG_FCOLOR);
-  diaSetChecked(wBothSides, obj->flags & IMOD_OBJFLAG_TWO_SIDE);
   for (int i = 0; i < 3; i++)
     fillSliders->setValue(i, colors[i]);
 }
@@ -806,12 +797,6 @@ static void mkFillColor_cb(int index)
   QToolTip::add(wFillToggle, 
                 "Use fill color instead of object color for filled data");
 
-  wBothSides = diaCheckBox("Light Both Sides", oef->control, layout1);
-  QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
-          SLOT(bothSidesSlot(bool)));
-  QToolTip::add(wBothSides, 
-                "Make front and back surface both appear brightly lit"); 
-  
   finalSpacer(oef->control, layout1);
 
   QObject::connect(fillSliders, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
@@ -825,6 +810,7 @@ static void mkFillColor_cb(int index)
 
 static MultiSlider *matSliders;
 static char *matTitles[] = {"Ambient", "Diffuse", "Specular", "Shininess"};
+static QCheckBox *wBothSides  = 0;
 
 // Set the relevant object material property - including normal magnitude
 // Black and white levels
@@ -886,6 +872,13 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
     imodvDraw(Imodv);
 }
 
+void ImodvObjed::bothSidesSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_TWO_SIDE, state ? 1 : 0);
+  objset(Imodv);
+  imodvDraw(Imodv);
+}
+
 static void setMaterial_cb(void)
 {
   Iobj *obj = objedObject();
@@ -895,6 +888,7 @@ static void setMaterial_cb(void)
   matSliders->setValue(1, (int)obj->diffuse);
   matSliders->setValue(2, (int)obj->specular);
   matSliders->setValue(3, (int)obj->shininess);
+  diaSetChecked(wBothSides, obj->flags & IMOD_OBJFLAG_TWO_SIDE);
 }
 
 
@@ -917,6 +911,12 @@ static void mkMaterial_cb (int index)
                 "Set shininess of object");
   QObject::connect(matSliders, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(materialSlot(int, int, bool)));
+
+  wBothSides = diaCheckBox("Light Both Sides", oef->control, layout1);
+  QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(bothSidesSlot(bool)));
+  QToolTip::add(wBothSides, 
+                "Make front and back surface both appear brightly lit"); 
 }
 
 
@@ -1463,13 +1463,13 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   }
   setOnoffButtons();
 
-  window_name = imodwEithername("Imodv Object List: ", a->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv Object List: ", a->imod->fileName, 1);
   if (window_name) {
     qstr = window_name;
     free(window_name);
   }
   if (qstr.isEmpty())
-    qstr = "Imodv Object List";
+    qstr = "3dmodv Object List";
   Oolist_dialog->setCaption(qstr);
   imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
   Oolist_dialog->show();
@@ -1593,6 +1593,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.11  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.10  2003/04/15 06:07:53  mast
 Use invisible button group for subset radios instead of manual management
 
