@@ -1284,7 +1284,7 @@ void imodContEditMove(void)
         cont->flags |= ICONT_ONLIST;
 
       // Move all contours with flags set
-      for (co = 0; co < obj->contsize; co++) {
+      for (co = obj->contsize - 1; co >= 0; co--) {
         cont = &obj->cont[co];
         if (cont->flags & ICONT_ONLIST) {
           cont->flags &= ~ICONT_ONLIST;
@@ -1990,6 +1990,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.19  2005/02/24 22:33:15  mast
+Allowed contours from multiple objects to be moved in Z
+
 Revision 4.18  2005/02/09 01:10:02  mast
 Adjusted text for contour shifting, migrated help for contour Move
 
