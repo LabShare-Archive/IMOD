@@ -14,9 +14,10 @@
 <BR><A HREF = "#Backup Files">1.4. Backup Files</A>
 <BR><A HREF = "#Using Insecure Storage">1.5. Using Temporary or Insecure Storage</A>
 <BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR NON-BOULDER USERS</A>
-<BR><A HREF = "#Film versus CCD Images">2.1. Film versus CCD Images</A>
-<BR><A HREF = "#Image Scaling">2.2. Image Scaling and Contrast Polarity</A>
-<BR><A HREF = "#Image File Header">2.3. Image File Header</A>
+<BR><A HREF = "#File Naming Conventions">2.1. File Naming Conventions</A>
+<BR><A HREF = "#Film versus CCD Images">2.2. Film versus CCD Images</A>
+<BR><A HREF = "#Image Scaling">2.3. Image Scaling and Contrast Polarity</A>
+<BR><A HREF = "#Image File Header">2.4. Image File Header</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
 <BR><A HREF = "#COARSE ALIGNMENT">5. COARSE ALIGNMENT BY CROSS-CORRELATION</A>
@@ -160,8 +161,25 @@ model for a while).
 </H3></A>
 
 <P>
+<A NAME = "File Naming Conventions"><H4>
+2.1. File Naming Conventions
+</H4></A>
+In order for the processing sequence to work, the names of your starting files
+must follow several conventions.
+The raw image stacks must have the extension ".st"; so for a single axis
+tilt series the name should be dataSetName.st.  For a dual axis data set,
+the two files must end in "a.st" and "b.st", i.e. dataSetNamea.st and
+dataSetNameb.st.  The data set name can contain ".", "-", and "_" as
+separators but must not contain spaces or other characters that could
+confuse a Unix shell.
+<P>
+If you are supplying your own file of raw tilt angles, they must be named with
+the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
+dual axis tilt series.
+
+<P>
 <A NAME = "Film versus CCD Images"><H4>
-2.1. Film versus CCD Images
+2.2. Film versus CCD Images
 </H4></A>
      Some of the programs make a distinction between images from film and ones
 acquired on a CCD camera.  This is based on an obsolete method of
@@ -176,7 +194,7 @@ step.  This is worth it to avoid editing and running command files by hand.
 
 <P>
 <A NAME = "Image Scaling"><H4>
-2.2. Image Scaling and Contrast Polarity
+2.3. Image Scaling and Contrast Polarity
 </H4></A>
      The default parameters for reconstruction assume that the numbers in your
 images are linearly related to the number of transmitted electrons caught
@@ -203,7 +221,7 @@ box in the <B>Fiducial Model Generation Panel</B>.
 
 <P>
 <A NAME = "Image File Header"><H4>
-2.3. Image File Header
+2.4. Image File Header
 </H4></A>
 As of IMOD 2.6.19, the 
 programs described here will work when the header of the raw MRC stack 
@@ -1543,21 +1561,18 @@ region model, the patch vector model will still show bad patches outside of
 the region contours (and thus not a problem) unless you rerun patchcorr to
 generate new patches that are constrained to be within the region.
 
-<LI> <I>Edit out scattered bad patches.</I>  If bad patches are fairly scattered and not too numerous, it is most
-appropriate to edit them out.  To do this, press the <B>Examine Patch Vector
-Model</B> button and open a Zap window from 
-the Info window of the 3dmod that displays the patch vector model.
+<LI> <I>Edit out scattered bad patches.</I>  If bad patches are fairly 
+scattered and not too numerous, it is most appropriate to edit them out.  To
+do this, press the <B>Examine Patch Vector Model</B> button.
 Position the mouse on an aberrant
 vector in the model
-view window and press the third mouse button to select
-this contour in the Zap window.  If you have any doubt about which contour you
-selected, use the [ and ] hot keys in the Zap window to examine the
-starting and ending points of the contour.  The starting point will be at a
-regular position in the array, while the ending point should be
-displaced by an unusual amount.
-Delete the contour with the "D" hotkey in the Zap window;
-it will disappear from the model view
-window also.  When finished, save the model and exit.  
+view window and press the third mouse button to make this vector be
+the current contour for editing.  It should display as a thicker line; if a
+different vector shows up as thick, reposition and click again.  (If no vector
+shows up as thick, open the Edit-Objects dialog, select Lines, and turn on
+<B>Thicken current contour</B>.)
+Delete the contour with the "D" hotkey.
+When finished, save the model and exit.  
 Then press <B>Replace Patch Vectors</B> and <B>Restart at Matchorwarp</B>.
 
 <LI> <I>Eliminate rows or columns.</I>  If the patch vector model indicates that bad patches are numerous near
