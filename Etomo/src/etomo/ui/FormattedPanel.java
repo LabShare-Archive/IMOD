@@ -25,6 +25,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/01 03:47:00  sueh
+* <p> bug# 557 Added add(FormattedPanel) and addHorizontalGlue().
+* <p>
 * <p> Revision 1.2  2004/11/19 23:54:26  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -100,6 +103,10 @@ public class FormattedPanel {
   
   void setComponentAlignmentX(float alignmentX) {
     this.alignmentX = alignmentX;
+  }
+  
+  void setAlignmentX(float alignmentX) {
+    panel.setAlignmentX(alignmentX);
   }
   
   void resetComponentAlignmentX() {

@@ -27,6 +27,11 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/01 03:48:46  sueh
+* <p> bug# 557 Added add option to space with glue instead of rigid areas.
+* <p> Added an option to automatically use 5 pixels when spacing with rigid
+* <p> areas.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:04:29  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -204,6 +209,10 @@ public class SpacedPanel {
   
   void setBorder(Border border) {
     panel.setBorder(border);
+  }
+  
+  void setAlignmentX(float alignmentX) {
+    panel.setAlignmentX(alignmentX);
   }
   
   void setComponentAlignmentX(float alignmentX) {
