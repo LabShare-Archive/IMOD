@@ -110,6 +110,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
   int   outmin = li->outmin;
   int   outmax = li->outmax;
   int seek_line, seek_endline;
+  float kscale = mrcGetComplexScale();
      
   int pindex = 0;
   int pixel, i, j;
@@ -280,8 +281,8 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
           mrc_swap_floats(fdata, xsize * 2);
         for (i = 0; i < xsize; i++, pindex++) {
           fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
-                                 (fdata[(i*2)-1] * fdata[(i*2)-1])));
-          pixel = log((double)(1.0f + (5.0f * fpixel))) * slope + offset;
+                                 (fdata[(i*2)+1] * fdata[(i*2)+1])));
+          pixel = log((double)(1.0f + (kscale * fpixel))) * slope + offset;
           if (pixel < outmin)
             pixel = outmin;
           if (pixel > outmax)
@@ -324,4 +325,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.2  2004/01/05 17:37:12  mast
+Rewrote as a single input routine that branches for processing each line
+
 */
