@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/11/09 17:53:28  mast
+Fixed problems with taperoutpad
+
 Revision 1.2  2004/11/08 05:46:34  mast
 Fixed an int32 to be int16
 
@@ -33,11 +36,12 @@ Initial creation
  * Take an FFT with potential binning, place result back in input slice
  * Desired range of scaled output should be in sin->min, sin->max
  */
-float sliceByteBinnedFFT(Islice *sin, int binning)
+float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
+                         int iy1)
 {
   int nxin = sin->xsize;
   int nyin = sin->ysize;
-  int nxProc, nyProc;
+  int nxProc, nyProc, nxDim;
   b3dUByte *indata = sin->data.b;
   b3dUByte *indata2;
   float *fftArray;
@@ -51,20 +55,25 @@ float sliceByteBinnedFFT(Islice *sin, int binning)
   if (sin->mode != SLICE_MODE_BYTE)
     return -1.;
 
-  nxProc = nxin;
-  nyProc = nyin;
+  nxDim = sin->xsize;
 
   // If binning, reduce size, get array and bin into it
   if (binning > 1) {
-    nxProc /= binning;
-    nyProc /= binning;
-    indata = (b3dUByte *)malloc(nxProc * nyProc);
+    ix0 /= binning;
+    ix1 /= binning;
+    iy0 /= binning;
+    iy1 /= binning;
+    nxDim /= binning;
+    indata = (b3dUByte *)malloc(nxDim * (sin->ysize / binning));
     if (!indata)
       return 1;
     ivwBinByN(sin->data.b, sin->xsize, sin->ysize, binning, indata);
   }
   
   // Figure out size of square array and the padding and tapering
+  nxProc = ix1 + 1 - ix0;
+  nyProc = iy1 + 1 - iy0;
+
   squareSize = nxProc > nyProc ? nxProc : nyProc;
   nTaper = taperFrac * squareSize;
   nPad = padFrac * squareSize;
@@ -79,9 +88,11 @@ float sliceByteBinnedFFT(Islice *sin, int binning)
   }
 
   // Put into array, take FFT
-  XCorrTaperInPad(indata, SLICE_MODE_BYTE, nxProc, 0, nxProc - 1, 0,
-                  nyProc - 1,
+  XCorrTaperInPad(indata, SLICE_MODE_BYTE, nxDim, ix0, ix1, iy0, iy1,
                   fftArray, nPadSize + 2, nPadSize, nPadSize, nTaper, nTaper);
+  if (binning > 1)
+    free(indata);
+
   todfft(fftArray, &nPadSize, &nPadSize, &idir);
   
   // Find top two magnitudes while scaling real parts to magnitudes

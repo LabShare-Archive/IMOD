@@ -42,6 +42,7 @@ Log at end of file
 #include <qlistbox.h>
 #include <qspinbox.h>
 #include <qvbox.h>
+#include <qcheckbox.h>
 #include <qpushbutton.h>
 #include "dia_qtutils.h"
 #include "multislider.h"
@@ -50,6 +51,7 @@ Log at end of file
 #include "iproc.h"
 #include "sliceproc.h"
 #include "xcorr.h"
+#include "xzap.h"
 #include "imod_info.h"
 #include "imod_info_cb.h"
 #include "control.h"
@@ -223,8 +225,16 @@ static void fourFilt_cb()
 
 static void fft_cb()
 {
+  int ix0, ix1, iy0, iy1, nxuse, nyuse;
+  ix0 = iy0 = 0;
+  nxuse = s.xsize;
+  nyuse = s.ysize;
+  if (proc.fftSubset)
+    zapSubsetLimits(proc.vi, ix0, iy0, nxuse, nyuse);
+  ix1 = ix0 + nxuse - 1;
+  iy1 = iy0 + nyuse - 1;
   setSliceMinMax(false);
-  proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning);
+  proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning, ix0, ix1, iy0, iy1);
 }
 
 // Set the min and max of the static slice to full range, or actual values
@@ -285,6 +295,7 @@ int inputIProcOpen(struct ViewInfo *vi)
       proc.radius2 = 0.5f;
       proc.fftBinning = 1;
       proc.fftScale = 0.;
+      proc.fftSubset = false;
     }
     proc.vi = vi;
     proc.idatasec = -1;
@@ -476,6 +487,13 @@ static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   proc.fftBinSpin->setFocusPolicy(QWidget::ClickFocus);
   QObject::connect(proc.fftBinSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(binningChanged(int)));
+  QCheckBox *check = diaCheckBox("Use Zap window subarea", parent, layout);
+  diaSetChecked(check, proc.fftSubset);
+  QObject::connect(check, SIGNAL(toggled(bool)), win,
+                   SLOT(subsetChanged(bool)));
+  QToolTip::add(check, "Do FFT of area displayed or within rubber band "
+                "in active Zap window");
+
   proc.fftLabel1 = diaLabel("  ", parent, layout);
   proc.fftLabel2 = diaLabel("  ", parent, layout);
   win->limitFFTbinning();
@@ -583,6 +601,10 @@ void IProcWindow::binningChanged(int val)
   setFocus();
   proc.fftBinning = val;
   
+}
+void IProcWindow::subsetChanged(bool state)
+{
+  proc.fftSubset = state;
 }
 
 // To switch filters, set the size policy of the current widget back to ignored
@@ -702,6 +724,10 @@ void IProcWindow::buttonClicked(int which)
        "a non-square image, and also to reduce noise and execution time.  "
        "With binning, the smaller FFT will be embedded into a black "
        "background.\n"
+       "To do an FFT of a subregion, turn on \"Use Zap window subarea\".  If "
+       "the rubber band is on in the active Zap window, the FFT will be taken "
+       "of the area inside the rubber band.  Otherwise, the area used will be "
+       "the portion of the image showing in the window.\n"
        "The panel also shows a scale that can be used to convert from pixels "
        "in the FFT to frequency units.  To determine the frequency at a "
        "location, measure the distance from the origin (at the center of the "
@@ -900,6 +926,10 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.12  2004/11/09 17:54:24  mast
+    Fixed problem in running non-threaded, changed Qt version cutoff for
+    setting thread priority
+
     Revision 4.11  2004/11/08 06:03:10  mast
     Needed to make some more thread items conditional
 

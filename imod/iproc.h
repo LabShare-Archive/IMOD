@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2004/11/07 23:04:47  mast
+    Changes for thread and FFT stuff
+
     Revision 3.7  2004/11/04 23:30:55  mast
     Changes for rounded button style
 
@@ -107,6 +110,7 @@ class IProcWindow : public DialogFrame
   void threshChanged(int which, int value, bool dragging);
   void fourFiltChanged(int which, int value, bool dragging);
   void binningChanged(int val);
+  void subsetChanged(bool state);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -146,6 +150,7 @@ typedef struct
   float         sigma1;
   float         sigma2;
   int           fftBinning;
+  bool          fftSubset;
   float         fftScale;
   float         fftXrange;
   float         fftYrange;
