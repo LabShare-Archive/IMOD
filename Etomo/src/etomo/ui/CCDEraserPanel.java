@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/09/09 17:14:09  rickg
+ * <p> Changed replace text to commit
+ * <p>
  * <p> Revision 2.7  2003/08/06 21:56:44  rickg
  * <p> Switched stateful buttons to JToggleButton
  * <p>
@@ -325,6 +328,7 @@ public class CCDEraserPanel implements ContextMenu {
    * @param state
    */
   void setAdvanced(boolean state) {
+		cbXrayReplacement.setVisible(state);
     ltfGrowCriterion.setVisible(state);
     ltfEdgeExclusion.setVisible(state);
     ltfMaximumRadius.setVisible(state);
