@@ -20,6 +20,9 @@ import etomo.process.SystemProgram;
  * @version $$$$
  *
  * <p> $$Log$
+ * <p> $Revision 3.6  2004/11/23 00:25:16  sueh
+ * <p> $bug# 520 Using get and setPropertyUserDir instead of Property.
+ * <p> $
  * <p> $Revision 3.5  2004/05/26 17:16:39  sueh
  * <p> $bug# 355 correcting tests
  * <p> $$ </p>
@@ -42,7 +45,6 @@ public class ConstMetaDataTest extends TestCase {
   private File unreadableAFile;
   private File validFile;
   private File validAFile;
-  private static final String testDirName = new String("JUnitTests/etomo/type");
   private static final String dummyDirName = new String("ConstMetaData_dummy");
   private static final String dummyDir2Name =
     new String("ConstMetaData_dummy2");
@@ -81,7 +83,7 @@ public class ConstMetaDataTest extends TestCase {
    
     //create test site
     testInst = new MetaData();
-    testDir = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), testDirName);
+    testDir = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
     }
