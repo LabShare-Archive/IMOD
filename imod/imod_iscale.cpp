@@ -227,8 +227,8 @@ void ImageScaleWindow::computeScale()
 {
   ImodView *vi = imodImageScaleData.vi;
   float slidecur, rangecur, slidenew, rangenew;
-  float smin = vi->li->smin;
-  float smax = vi->li->smax;
+  float smin = vi->image->smin;
+  float smax = vi->image->smax;
   float kscale = mrcGetComplexScale();
   float minSign = 1.;
 
@@ -357,6 +357,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/01/08 06:42:45  mast
+Fixed treatment of complex data
+
 Revision 4.8  2004/01/05 18:41:38  mast
 Changed to deal with cache full mode, added error exits, prevented it
 from operating while loading is underway, and cleanup up a bit (vw to vi)
