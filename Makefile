@@ -403,7 +403,7 @@ csrc : ALWAYS
 	qtassist/*qt*.h qtassist/*qt*.cpp qtassist/imodqtassist.pro \
 	qtassist/Makefile.dummy qtassist/imodqtassist.dsp \
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
-	sourcedoc/Makefile.dummy sourcedoc/imodsourcedoc.dsp \
+	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts com manpages autodoc \
@@ -447,6 +447,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.47  2005/02/25 04:26:43  mast
+#  Added entries for sourcedoc and libdoc
+#
 #  Revision 3.46  2005/01/18 22:34:21  mast
 #  Needed to remove dist file before making on Windows
 #
