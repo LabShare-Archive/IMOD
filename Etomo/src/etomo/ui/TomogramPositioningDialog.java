@@ -41,6 +41,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2004/12/03 02:41:43  sueh
+ * <p> bug# Added updateMetaData().  For new it just copies wholeTomogram to
+ * <p> meta data.  Calling updateMetaData() from all getParam() functions.
+ * <p>
  * <p> Revision 3.19  2004/12/02 20:42:52  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -423,7 +427,6 @@ public class TomogramPositioningDialog extends ProcessDialog
     MetaData metaData = applicationManager.getTomogramMetaData();
     if (wholeTomogram != metaData.isWholeTomogramSample()) {
       metaData.setWholeTomogramSample(wholeTomogram);
-      applicationManager.setDataParamDirty(true);
     }
   }
 
