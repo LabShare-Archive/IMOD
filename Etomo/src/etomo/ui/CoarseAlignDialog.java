@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/19 22:06:43  rickg
+ * <p> Fixed cross correlation button text
+ * <p>
  * <p> Revision 2.1  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -168,11 +171,14 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
         "3dmod.html",
         "midas.html" };
 
-    String[] logFileLabel = new String[1];
-    String[] logFile = new String[1];
+    String[] logFileLabel = new String[2];
+    String[] logFile = new String[2];
 
-    logFileLabel[0] = "prenewst" + axisID.getExtension();
-    logFile[0] = "prenewst" + axisID.getExtension() + ".log";
+    logFileLabel[0] = "xcorr";
+    logFile[0] = "xcorr" + axisID.getExtension() + ".log";
+
+    logFileLabel[1] = "prenewst";
+    logFile[1] = "prenewst" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =
       new ContextPopup(
