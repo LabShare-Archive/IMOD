@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/4/04: IMOD_3-4-14
+12/5/04: Fixed problem with converting backslashes in Makejoincom.
+
 12/3/04: Added interface on the eTomo post-processing page to run Squeezevol
 on the trimmed volume.  (Will not work right yet if the trimmed volume is not
 flipped).
