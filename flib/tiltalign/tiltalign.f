@@ -313,7 +313,9 @@ c	  "Factor", and limit on number of cycles, for the variable metric
 c	  .   minimization (METRO).  "Factor" determines how large a step METRO
 c	  .   tries to take.  The default for "factor" is 0.5, but smaller
 c	  .   values of 0.35 or even 0.25 are needed for large data sets.  The
-c	  .   default # of cycles is 500.
+c	  .   default # of cycles is 500.  When METRO fails for various reasons,
+c	  .   the program will retry with several other, mostly smaller values
+c	  .   of the factor.
 c
 c	  IF transformations are being computed, next enter two more lines:
 c
@@ -402,6 +404,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2004/07/16 23:24:21  mast
+c	  Added pixel size to local alignment file
+c	
 c	  Revision 3.13  2004/06/10 05:39:18  mast
 c	  Output pixel size in fiducial file
 c	
@@ -451,9 +456,10 @@ c
 c
 	implicit none
 	include 'alivar.inc'
-	integer maxvar,maxmetro
+	integer maxvar,maxmetro,maxMetroTrials
 	parameter (maxvar=7*maxview)
 	parameter (maxmetro=1300)
+	parameter (maxMetroTrials = 5)
 c
 	integer*4 ninreal(maxreal),igroup(maxreal)
 	integer*4 imodobj(maxreal),imodcont(maxreal)
@@ -463,12 +469,13 @@ c
 	double precision error
 	real*4 erlist(100),tiltorig(maxview),viewres(maxview)
 	integer*4 ninview(maxview),indsave(maxprojpt),jptsave(maxprojpt)
-	real*4 errsave(maxprojpt)
+	real*4 errsave(maxprojpt) 
+	real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
 	real*4 viewerrsum(maxview),viewerrsq(maxview)
 	real*4 viewmeanres(maxview),viewsdres(maxview)
 	
 	logical ordererr,nearbyerr,residualout, resbothout
-	character*120 modelfile,residualfile
+	character*120 modelfile,residualfile,pointFile
 c
 	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3)
 c
@@ -492,7 +499,7 @@ c
 	integer*4 nvadd,ninvsum,ivst,ivnd,iunit2,nunknowtot,iunit
 	real*4 unkrat,tiltout,zmin,zmax,zmiddle,dysum,cosphi,sinphi
 	real*4 dyavg,offmin,dxmid,offsum,dxtry,xtfac,xtconst,off,yshft
-	integer*4 j,iuangle,iuxtilt,iupoint,ndxtry,iunlocal,nallrealpt
+	integer*4 j,iuangle,iuxtilt,ndxtry,iunlocal,nallrealpt
 	integer*4 mapalfstart,nord,jpt,npatchx,npatchy,kount,ivt,ipt
 	integer*4 nxpmin,nypmin,minfidtot,minfidsurf,ifxyzfix,nallprojpt
 	real*4 errmean,errsd,errnosd,tiltmax,fixedmax,xsum,ysum,zsum
@@ -500,7 +507,7 @@ c
 	integer*4 nxp,nyp,minsurf,nbot,ntop,ixmin,ixmax,iymin,iymax,kk
 	integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ier
 	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
-	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel
+	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel,metroLoop
 	real*4 xpmin,ypmin,xdelt
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
@@ -527,7 +534,7 @@ c
 	call input_model(xx,yy,isecview,maxprojpt,maxreal,irealstr,
      &	    ninreal,imodobj,imodcont,nview,nprojpt, nrealpt,iwhichout,
      &	    xcen,ycen, xdelt, mapviewtofile,mapfiletoview,nfileviews,
-     &	    modelfile, iupoint,iuangle,iuxtilt)
+     &	    modelfile, pointFile, iuangle,iuxtilt)
 c	  
 	if(nview.gt.maxview)call errorexit('TOO MANY VIEWS FOR ARRAYS',
      &	    0)
@@ -671,20 +678,52 @@ c
 	    var(nvarsrch)=xyz(i,jpt)
 	  enddo
 	enddo
-c
-	firsttime=.true.
-	call funct(nvarsrch,var,finit,grad)
-	WRITE(6,70)FINIT
-70	FORMAT(/' Variable Metric minimization',T48,
-     &	    'Initial F:',T65,E14.7)
+c	  
+c	  save the variable list for multiple trials
+c	  
+	do i = 1, nvarsrch
+	  varerr(i) = var(i)
+	enddo
+c	  
+	metroLoop = 1
+	ier = 1
+	do while (metroLoop.le.maxMetroTrials .and. ier.ne.0 .and. ier.ne.3)
+	  firsttime=.true.
+	  call funct(nvarsrch,var,finit,grad)
+	  if (metroLoop .eq. 1) WRITE(6,70)FINIT
+70	  FORMAT(/' Variable Metric minimization',T48,
+     &	      'Initial F:',T65,E14.7)
 C
 C  -----------------------------------------------------
 C  Call variable metric minimizer
 C  CALL METRO(N,X,F,G,FACTOR,EST,EPS,LIMIT,IER,H,KOUNT)
 C  -----------------------------------------------------
 C
-	CALL METRO (nvarsrch,var,F,Grad,facm,.0000001,.00001,NCYCLE,IER,
-     &	    H,KOUNT)
+	  CALL METRO (nvarsrch,var,F,Grad,facm * trialScale(metroLoop),
+     &	      .0000001,.00001,NCYCLE,IER, H,KOUNT)
+	  metroLoop = metroLoop +1
+
+c	    
+c	    For errors except limit reached, give warning message and
+c	    restart
+c
+	  if (ier .ne. 0 .and. ier .ne. 3) then
+	    if(ier.eq.1)call errorexit('IER=1 from metro - DG > 0', 1)
+	    if(ier.eq.2)call errorexit(
+     &		'IER=2 from metro - Linear search lost', 1)
+	    if(ier.eq.4)call errorexit(
+     &		'IER=2 from metro - Matrix non-positive definite', 1)
+
+	    if (metroLoop .le. maxMetroTrials) then
+	      print *,'Restarting with metro step factor of ',
+     &		  facm * trialScale(metroLoop)
+	      do i = 1, nvarsrch
+		var(i) = varerr(i)
+	      enddo
+	    endif
+	  endif
+	enddo
+
 C Final call to FUNCT
 	CALL FUNCT(nvarsrch,var,FFINAL,Grad)
 	WRITE(6,98)FFINAL,KOUNT
@@ -693,15 +732,9 @@ C Final call to FUNCT
 C-----------------------------------------------------------------------
 C Error returns:
 	IF(IER.NE.0)THEN
-	  if(ier.eq.1)then
-	    call errorexit('IER=1  DG > 0; try changing metro factor'//
-     &		' by +/-10%', iflocal)
-	  elseif(ier.eq.2)then
-	    call errorexit('IER=2  Linear search lost; try changing '
-     &		//'metro factor by +/-10%', iflocal)
-	  elseif(ier.eq.4)then
-	    call errorexit('IER=4  Matrix non-positive definite; try '
-     &		//'changing metro factor by +/-10%', iflocal)
+	  if(ier.ne.3)then
+	    call errorexit('Search failed even after varying step factor',
+     &		iflocal)
 	  else
 	    call errorexit('IER=3  Iteration limit exceeded....', 1)
 	  endif
@@ -1196,12 +1229,13 @@ c
 	  allxyz(3,i)=xyz(3,i)-znew
 	enddo
 c	  
-	if (iupoint.ne.0) then
-	  write(iupoint,'(i4,3f10.2,i7,i5,3x,a,f12.5)')1,(allxyz(i,1),i=1,3),
+	if(pointfile.ne.' ')then
+	  call dopen(13,pointfile,'new','f')
+	  write(13,'(i4,3f10.2,i7,i5,3x,a,f12.5)')1,(allxyz(i,1),i=1,3),
      &	      imodobj(1),imodcont(1),'Pixel size:',xdelt
-	  write(iupoint,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
+	  write(13,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
      &	      imodobj(j),imodcont(j),j=2,nrealpt)
-	  close(iupoint)
+	  close(13)
 	endif
 c	  
 c	  analyze for surfaces if desired.  Find the biggest tilt and the
