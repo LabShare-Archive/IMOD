@@ -210,6 +210,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/01/07 22:35:15  mast
+c	  Increased dimension for centroid calculation pixel lists, and added
+c	  checks to catch errors in future
+c	
 c
 	include 'model.inc'
 	include 'statsize.inc'
@@ -376,12 +380,21 @@ c
 c	  
 	call get_tilt_angles(nvuall,3,tltall)
 c	  
+c	  DNM 5/3/02: accommodate changes to tiltalign by setting up the
+c	  mapping arrays, adding to automap call
+c	  
+	nfileviews=nvuall
+	do i=1,nvuall
+	  mapfiletoview(i)=i
+	  mapviewtofile(i)=i
+	enddo
+c
 	print *,'Specify grouping for mapping of tilt variables'
 	call setgrpsize(tltall,nvuall,0.,boxes)
-	call automap(nvuall,mapalltilt,boxes)
+	call automap(nvuall,mapalltilt,boxes,mapfiletoview,nfileviews)
 c
 	print *,'Specify grouping for mapping of magnification variables'
-	call automap(nvuall,mapallmag,boxes)
+	call automap(nvuall,mapallmag,boxes,mapfiletoview,nfileviews)
 c
 	write(*,'(1x,a,$)')'Minimum # of views required for tilt'//
      &	    ' aligning: '
@@ -1175,6 +1188,7 @@ c
 	      enddo
 	    endif
 	    ivseq=ivseq+1
+	    call flush(6)
 	  enddo
 	  ivstr=minendz+1
 	  ivend=nvuall
