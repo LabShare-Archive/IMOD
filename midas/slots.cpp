@@ -32,38 +32,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.6  2004/01/27 21:16:26  mast
-Made it flush data and retransform when box size changes
-
-Revision 3.5  2003/12/17 21:44:19  mast
-Changes to implement global rotations
-
-Revision 3.4  2003/10/24 03:55:35  mast
-unknown change (untabified?)
-
-Revision 3.3  2003/09/25 21:09:36  mast
-Switched to sections numbered from 1 not 0
-
-Revision 3.2  2003/04/17 20:56:55  mast
-Changes for Mac key problems
-
-Revision 3.1  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 1.1.2.2  2003/01/26 23:20:33  mast
-using new library
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.2  2002/11/05 23:27:00  mast
-Changed copyright notice to use lab name and years
-
-Revision 3.1  2002/08/19 04:48:31  mast
-In montage-fixing mode, made it suppress updates during mouse moves
-when there are many pieces
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -179,15 +148,26 @@ void MidasSlots::update_parameters()
 void MidasSlots::update_sections()
 {
   QString str;
-  str.sprintf("%d", (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz) + 1);
-  VW->curtext->setText(str);
+ 
+  if (VW->numChunks) {
+    diaSetSpinBox(VW->chunkSpin, VW->curChunk + 1);
+    VW->curSpin->blockSignals(true);
+    VW->refSpin->blockSignals(true);
+    VW->curSpin->setMinValue(VW->chunk[VW->curChunk].start + 1);
+    VW->curSpin->setMaxValue(VW->chunk[VW->curChunk + 1].start);
+    VW->refSpin->setMinValue(VW->chunk[VW->curChunk - 1].start + 1);
+    VW->refSpin->setMaxValue(VW->chunk[VW->curChunk].start);
+  }
+
+  diaSetSpinBox(VW->curSpin, (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz)
+                + 1);
   if (VW->xtype == XTYPE_MONT) {
-    str.sprintf("%d", VW->curedge);
-    VW->edgetext->setText(str);
+    diaSetSpinBox(VW->edgeSpin, VW->curedge);
     return;
   }
-  str.sprintf("%d", VW->refz + 1);
-  VW->reftext->setText(str);
+  diaSetSpinBox(VW->refSpin, VW->refz + 1);
+  if (VW->numChunks)
+    
   if (!VW->difftoggle)
     return;
   str.sprintf("Keep Cur - Ref diff = %d", VW->cz - VW->refz);
@@ -459,6 +439,7 @@ void MidasSlots::slotEditmenu(int item)
       set_mont_pieces(VW);
     }
 
+    synchronizeChunk(VW->cz);
     update_parameters();
     retransform_slice();
     VW->changed = 1;
@@ -485,6 +466,7 @@ void MidasSlots::slotEditmenu(int item)
       set_mont_pieces(VW);
     }
 
+    synchronizeChunk(VW->cz);
     update_parameters();
     retransform_slice();
     VW->changed = 1;
@@ -504,20 +486,28 @@ void MidasSlots::control_help()
      "Control panel help.\n",
      "\n\n",
      "Section Controls:\n",
-     "\tThe two text boxes show the section numbers (numbered from 1) "
+     "\tThe two spin boxes show the section numbers (numbered from 1) "
      "of the reference and current sections.  The section can be "
-     "changed as desired by typing a number in one of these boxes "
-     "followed by Enter.  If the \"Keep Cur - Ref diff\" box is "
-     "selected, both reference and current sections will be changed "
-     "when a new number is entered in one of the boxes.\n"
-     "\tThe Up and Down Arrows for \"Section\" will increase or "
-     "decrease the current section number.  If the \"Keep Cur - Ref "
-     "diff\" box is selected, then the reference section will be "
-     "changed in tandem.\n\n",
+     "changed as desired by typing a number in one of the text boxes "
+     "or by pressing the up or down arrow buttons.\n"
+     "\tIf the \"Keep Cur - Ref diff\" check box is selected, both reference "
+     "and current sections will be changed in tandem.  (This control is "
+     "not present in reference alignment mode or when aligning chunks.)\n"
+     "\tWhen aligning chunks of sections, there is another spin box for "
+     "selecting the current chunk.  Alignment is always between successive "
+     "chunks.  The current section is constrained to stay within the current "
+     "chunk and the reference section is constrained to stay within the "
+     "previous chunk.  When a pair of chunks is first selected, the lowest "
+     "section of the current chunk and the highest section of the previous "
+     "chunk will be displayed.\n\n"
 
      "Contrast Controls:\n",
      "\tThe Black and White sliders control the intensity range that "
-     "will be scaled to run from black to white on the screen.\n"
+     "will be scaled to run from black to white on the screen.  Ordinarily, "
+     "the program will update the display continuously while a slider is "
+     "dragged.  If the update is too slow, you can press the "CTRL_STRING
+     " key to make the display update only when the mouse button is released, "
+     "just as in 3dmod.\n"
      "\tEach "
      "section has its own independent contrast setting.  If the \"Apply "
      "to only one section\" box is not selected, then changing the "
@@ -610,9 +600,9 @@ void MidasSlots::control_help()
      "to top in the left-most column, next column, etc.\n"
      "\tIn the top panel, the X and Y radio buttons can be used to "
      "select which type of edge, if there is more than one type of edge "
-     "in a section.  The edge number is displayed and can be changed by "
-     "typing a new number into the text box, followed by Enter.  The Up "
-     "and Down arrows can also be used to navigate between edges.\n"
+     "in a section.  The edge number is displayed in a spin box and can be "
+     "changed by typing a new number into the text box or by pressing the up "
+     "and down arrow buttons.\n"
      "\tOnly X and Y translations of one piece relative to another can "
      "be changed when fixing montages.\n"
      "\tThe bottom panel displays information about the errors in "
@@ -649,8 +639,12 @@ void MidasSlots::hotkey_help()
      "\t----------------------------------------------------\n"
      "a\tAdvance current section to next section\n"
      "b\tBack up current section to previous section\n"
-     "A\tAdvance to next edge on this section when fixing montages\n"
-     "B\tBack up to previous edge when fixing montages\n"
+     "A\tAdvance to next chunk when aligning chunks\n"
+     " \tAdvance to next edge on this section when fixing montages\n"
+     "B\tBack up to previous chunk when aligning chunks\n"
+     " \tBack up to previous edge when fixing montages\n"
+     "c\tAdvance reference to next section when aligning chunks\n"
+     "d\tBack up reference to previous section when aligning chunks\n"
      "s\tSave transforms to file\n"
      "\n",
      "\tDisplay control keys\n"
@@ -805,6 +799,7 @@ void MidasSlots::rotate(float step)
     tramat_rot(tr->mat, step); 
     tramat_translate(tr->mat, xofs, yofs);
   }
+  synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
   VW->changed = 1;
@@ -830,6 +825,7 @@ void MidasSlots::translate(float xstep, float ystep)
     VW->edgedy[VW->edgeind * 2 + VW->xory] += ystep;
   }
 
+  synchronizeChunk(VW->cz);
   update_parameters();
   if (ix == xstep && iy == ystep && ++fastcount % 10) {
     translate_slice(VW, ix, iy);
@@ -855,6 +851,7 @@ void MidasSlots::scale(float step)
     tramat_scale(tr->mat, step, step); 
     tramat_translate(tr->mat, xofs, yofs);
   }
+  synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
   VW->changed = 1;
@@ -876,6 +873,7 @@ void MidasSlots::stretch(float step, float angle)
     tramat_rot(tr->mat, angle);
     tramat_translate(tr->mat, xofs, yofs);
   }
+  synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
   VW->changed = 1;
@@ -971,8 +969,11 @@ void MidasSlots::try_section_change(int ds, int dsref)
   int newref = dsref + VW->refz;
   if ( (newcur < 0) || (newcur >= VW->zsize) ||
        ( (VW->xtype != XTYPE_XREF) &&
-	 ( (newref < 0) || (newref >= VW->zsize) 
-	   /*|| (newref == newcur) */))) {
+	 ( (newref < 0) || (newref >= VW->zsize) ) ) ||
+       (VW->numChunks && ((newcur < VW->chunk[VW->curChunk].start) ||
+                          (newcur >= VW->chunk[VW->curChunk + 1].start) ||
+                          (newref < VW->chunk[VW->curChunk - 1].start) ||
+                          (newref >= VW->chunk[VW->curChunk].start)))) {
     update_sections();
     return;
   }
@@ -986,6 +987,12 @@ void MidasSlots::try_section_change(int ds, int dsref)
   setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
   update_sections();
   backup_current_mat();
+
+  // Save the sections being displayed for a chunk
+  if (VW->numChunks) {
+    VW->chunk[VW->curChunk].curSec = newcur;
+    VW->chunk[VW->curChunk - 1].refSec = newref;
+  }
 }
 
 void MidasSlots::try_montage_section(int sec, int direction)
@@ -1012,11 +1019,6 @@ void MidasSlots::try_montage_section(int sec, int direction)
   backup_current_mat();
 }
 
-void MidasSlots::slotSection(int upDown)
-{
-  sectionInc(upDown);
-}
-
 void MidasSlots::sectionInc(int ds)
 {
   int dsref = 0;
@@ -1030,11 +1032,9 @@ void MidasSlots::sectionInc(int ds)
 
 // The user enters a current section
 // DNM 9/25/03: change to coordinates numbered from 1
-void MidasSlots::slotCurtext()
+void MidasSlots::slotCurValue(int sec)
 {
-  int sec;
-  QString st = VW->curtext->text();
-  sec = atoi(st.latin1()) - 1;
+  sec--;
   if (VW->xtype == XTYPE_MONT)
     try_montage_section(sec, 0);
   else {
@@ -1045,11 +1045,10 @@ void MidasSlots::slotCurtext()
 }
 
 // The user enters a reference section
-void MidasSlots::slotReftext()
+void MidasSlots::slotRefValue(int sec)
 {
-  int sec, ds;
-  QString st = VW->reftext->text();
-  sec = atoi(st.latin1()) - 1;
+  int ds;
+  sec--;
   if (VW->xtype != XTYPE_XREF) {
     sec -= VW->refz;
     ds = 0;
@@ -1083,6 +1082,22 @@ void MidasSlots::slotReftext()
   VW->midasWindow->setFocus();
 }
 
+// A new chunk pair is selected
+void MidasSlots::slotChunkValue(int sec)
+{
+  sec--;
+  if (sec < 1 || sec >= VW->numChunks) {
+    update_sections();
+  } else {
+  
+    // Change the current chunk and go to the sections last viewed
+    VW->curChunk = sec;
+    try_section_change(VW->chunk[VW->curChunk].curSec - VW->cz,
+                       VW->chunk[VW->curChunk - 1].refSec - VW->refz);
+  }
+  VW->midasWindow->setFocus();
+}
+
 /* Functions for changing the current edge */
 void MidasSlots::try_montage_edge(int sec, int direction)
 {
@@ -1111,11 +1126,8 @@ void MidasSlots::slotEdge(int upDown)
   try_montage_edge(VW->curedge + upDown, upDown);
 }
 
-void MidasSlots::slotEdgetext()
+void MidasSlots::slotEdgeValue(int sec)
 {
-  int sec;
-  QString st = VW->edgetext->text();
-  sec = atoi(st.latin1());
   try_montage_edge(sec, 0);
   VW->midasWindow->setFocus();
 }
@@ -1138,6 +1150,7 @@ void MidasSlots::slotXory(int which)
   if (newcur > VW->maxedge[VW->xory])
     newcur = VW->maxedge[VW->xory];
   VW->curedge = 0;
+  VW->edgeSpin->setMaxValue(VW->maxedge[VW->xory]);
   try_montage_edge(newcur, 0);
 }
 
@@ -1162,6 +1175,7 @@ void MidasSlots::manage_xory(struct Midas_view *vw)
 
   if (!vw->wXedge)
     return;
+  VW->edgeSpin->setMaxValue(VW->maxedge[VW->xory]);
   vw->edgeGroup->blockSignals(true);
   vw->edgeGroup->setButton(vw->xory);
   vw->edgeGroup->blockSignals(false);
@@ -1358,11 +1372,11 @@ void MidasSlots::slotBlacklevel(int value)
 
   black = value;
   white = VW->whitestate;
+  mBlackDisplayed = black;
 
-  /* If slider is being dragged, just display number */
-   if (mBlackPressed) {
+  /* If slider is being dragged with Ctrl down, just display number */
+   if (mBlackPressed && VW->ctrlPressed) {
      display_bwslider_value(VW->wBlackval, black);
-     mBlackDisplayed = black;
      return;
    }
 
@@ -1381,11 +1395,11 @@ void MidasSlots::slotWhitelevel(int value)
 
   white = value;
   black = VW->blackstate;
+  mWhiteDisplayed = white;
 
-  /* If slider is being dragged, just display number */
-  if (mWhitePressed) {
+  /* If slider is being dragged with Ctrl down, just display number */
+  if (mWhitePressed && VW->ctrlPressed) {
     display_bwslider_value(VW->wWhiteval, white);
-    mWhiteDisplayed = white;
     return;
   }
 
@@ -1678,15 +1692,29 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   case Key_A:
     if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
       slotEdge(1);
+    else if ((event->state() & ShiftButton) && VW->numChunks)
+      slotChunkValue(VW->curChunk + 2);
     else
-      slotSection(1);
+      sectionInc(1);
     break;
 
   case Key_B:
     if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
       slotEdge(-1);
+    else if ((event->state() & ShiftButton) && VW->numChunks)
+      slotChunkValue(VW->curChunk);
     else
-      slotSection(-1);
+      sectionInc(-1);
+    break;
+
+  case Key_C:
+    if (VW->numChunks)
+      try_section_change(0, 1);
+    break;
+
+  case Key_D:
+    if (VW->numChunks)
+      try_section_change(0, -1);
     break;
 
   case Key_Control:
@@ -1854,6 +1882,20 @@ void MidasSlots::backup_current_mat()
   VW->backup_edgedy = VW->edgedy[VW->edgeind * 2 + VW->xory];
 }
 
+// Copy transform for given section to all the other sections in a chunk
+void MidasSlots::synchronizeChunk(int sec)
+{
+  int i;
+  if (!VW->numChunks)
+    return;
+  for (i = VW->chunk[VW->curChunk].start;
+       i < VW->chunk[VW->curChunk + 1].start ; i++) {
+    if (i != sec)
+      tramat_copy(VW->tr[sec].mat, VW->tr[i].mat);
+  }
+}
+
+
 /* Convert numeric keypad keys that come through as numbers because NumLock is
    on to the named keys */
 /* But also turn off keypad on Mac if they are arrow keys */
@@ -1880,3 +1922,41 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 #endif
   return;
 }
+
+/*
+$Log$
+Revision 3.7  2004/02/27 21:37:46  mast
+Fixed treatment of x/ycenter when transforming and rotating, etc.
+
+Revision 3.6  2004/01/27 21:16:26  mast
+Made it flush data and retransform when box size changes
+
+Revision 3.5  2003/12/17 21:44:19  mast
+Changes to implement global rotations
+
+Revision 3.4  2003/10/24 03:55:35  mast
+unknown change (untabified?)
+
+Revision 3.3  2003/09/25 21:09:36  mast
+Switched to sections numbered from 1 not 0
+
+Revision 3.2  2003/04/17 20:56:55  mast
+Changes for Mac key problems
+
+Revision 3.1  2003/02/10 20:49:57  mast
+Merge Qt source
+
+Revision 1.1.2.2  2003/01/26 23:20:33  mast
+using new library
+
+Revision 1.1.2.1  2002/12/05 03:13:02  mast
+New Qt version
+
+Revision 3.2  2002/11/05 23:27:00  mast
+Changed copyright notice to use lab name and years
+
+Revision 3.1  2002/08/19 04:48:31  mast
+In montage-fixing mode, made it suppress updates during mouse moves
+when there are many pieces
+
+*/
