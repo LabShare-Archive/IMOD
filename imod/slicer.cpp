@@ -52,6 +52,8 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "xcramp.h"
 #include "imod_edit.h"
+#include "imod_moviecon.h"
+#include "imod_workprocs.h"
 #include "preferences.h"
 //#include "imodv_input.h"
 
@@ -76,6 +78,11 @@ static void fillImageArray(SlicerStruct *ss);
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag);
 static void slicerClose_cb(ImodView *vi, void *client, int junk);
 static int sslice_showslice(SlicerStruct *ss);
+static void startMovieCheckSnap(SlicerStruct *ss, int dir);
+static void checkMovieLimits(SlicerStruct *ss);
+static void setMovieLimits(SlicerStruct *ss, int axis);
+static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
+                          int *zmovie, int dir, int *axis);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -135,18 +142,32 @@ void slicerHelp()
      "from the data volume.\n"
      "\tOn the right are controls for adjusting the thickness of "
      "the image slice and the thickness of model that is shown on the slice.\n"
-     "\nMouse Actions\n",
+     "\nMouse Actions and Movies\n",
      "-----------------\n",
-     "\tAll mouse buttons will change the current viewing point in the data "
+     "\tAll mouse buttons behave as in the Zap and XYZ windows. "
+     "The first mouse button in movie mode, and all mouse buttons in model "
+     "mode, will change the current viewing point in the data "
      "volume, unless the image position is locked by the lock button.\n"
-     "\tIn model mode, the buttons will also perform as in other windows:\n"
-     "First button: Attach to the nearest model point, or detach from the"
+     "\tIn movie mode, the buttons do the following:\n"
+     "First button: Set current viewing point\n "
+     "Second button: Start movie forward, perpendicular to viewed slice\n"
+     "Third button: Start movie backward, perpendicular to viewed slice\n"
+     "\tIn model mode, the buttons do the following:\n"
+     "First button: Attach to the nearest model point, or detach from the "
      "current contour\n"
      "Second button: Insert a point after the current point\n"
      "Third button: Move the current point to the selected location\n",
      "\tBy default, these buttons correspond to the left, middle, and right "
      "buttons, but you can change these assignments in the 3dmod Preferences "
-     "dialog.\n\n"
+     "dialog.\n"
+     "\tWhen a movie is started with an obliquely oriented slice, the range "
+     "of the movie is determined by two sets of limits.  One set of limits is "
+     "imposed to keep the central displayed point within the data volume.  "
+     "The other limits are based on the starting and ending movie limits for "
+     "the axis that is closest to perpendicular to the slice.  These limits "
+     "are set in the 3dmod Movie Controller (opened with Edit - Movies...).  "
+     "The slice angles can be changed while movieing and these limits will "
+     "be adjusted dynamically.\n\n"
      "Hot Keys\n",
      "-----------\n",
      "-/=\tDecrease/Increase zoom\n",
@@ -254,6 +275,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     sslice_draw(ss);
     sslice_showslice(ss);
+    checkMovieLimits(ss);
   } else {
 
     // Otherwise, just draw the cube
@@ -364,6 +386,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->pending = 0;
   ss->imageFilled = 0;
   ss->mousemode = vi->imod->mousemode;
+  ss->movieSnapCount = 0;
 
   slice_trans_step(ss);
   ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
@@ -445,6 +468,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int lang = ss->lastangle;
   int dodraw = 1;
   int handled = 1;
+  int docheck = 0;
   int keypad = event->state() & Qt::Keypad;
   Ipoint *p1, *p2;
   int ob, co, pt, axis;
@@ -539,6 +563,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 	p1 = &cont->pts[0];
       }
       sliceSetAnglesFromPoints(ss, p1, p2, axis);
+      docheck = 1;
     } else
       dodraw = 0;
     break;
@@ -603,6 +628,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
     sslice_draw(ss);
     sslice_showslice(ss);
+    docheck = 1;
     break;
 
   case Qt::Key_Escape:
@@ -621,9 +647,11 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     return;
   }
 
-  // If draw still needed, do it
+  // If draw still needed, do it; then check movie limits if needed too
   if (dodraw)
     sslice_draw(ss);         
+  if (docheck)
+    checkMovieLimits(ss);
 }
 
 // On any key release, clear the ctrl pressed flag and release the keyboard
@@ -697,18 +725,165 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
   ss->pending = 0;
   imodDraw(ss->vi, drawflag);
 }
+
 static void slicer_insert_point(SlicerStruct *ss, int x, int y)
 {
-  sslice_setxyz(ss, x, y);
-  inputInsertPoint(ss->vi);
-  return;
+  if (ss->vi->imod->mousemode == IMOD_MMODEL) {
+    sslice_setxyz(ss, x, y);
+    inputInsertPoint(ss->vi);
+  } else
+    startMovieCheckSnap(ss, 1);
 }
 
 static void slicer_modify_point(SlicerStruct *ss, int x, int y)
 {
-  sslice_setxyz(ss, x, y);
-  inputModifyPoint(ss->vi);
-  return;
+  if (ss->vi->imod->mousemode == IMOD_MMODEL) {
+    sslice_setxyz(ss, x, y);
+    inputModifyPoint(ss->vi);
+  } else
+    startMovieCheckSnap(ss, -1);
+}
+
+/*
+ * MOVIE RELATED ROUTINES
+ */
+
+// Find dominant axis of this slicer window and set movie arguments to match
+static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
+                                int *zmovie, int dir, int *axis)
+{
+  *xmovie = *ymovie = *zmovie = 0;
+  double xcomp = fabs((double)ss->zstep[b3dX]);
+  double ycomp = fabs((double)ss->zstep[b3dY]);
+  double zcomp = fabs((double)ss->zstep[b3dZ]);
+
+  if (xcomp >= ycomp && xcomp >= zcomp) {
+    *xmovie = dir;
+    *axis = 0;
+  } else if (ycomp >= zcomp) {
+    *ymovie = dir;
+    *axis = 1;
+  } else {
+    *zmovie = dir;
+    *axis = 2;
+  }
+}
+
+// Set special movie limits on the dominant axis that will keep the other two
+// axes within bounds
+static void setMovieLimits(SlicerStruct *ss, int axis)
+{
+  int i, size, end, start = -1;
+  float cur, cx, cy, cz;
+
+  // Get the size and current value for the dominant axis
+  if (axis == 0) {
+    size = ss->vi->xsize;
+    cur = ss->cx;
+  } else if (axis == 1) {
+    size = ss->vi->ysize;
+    cur = ss->cy;
+  } else {
+    size = ss->vi->zsize;
+    cur = ss->cz;
+  }
+
+  // Loop on positions on dominant axis and find position on each axis
+  for (i = 0; i < size; i++) {
+    cx = ss->cx + (i - cur) * ss->zstep[0] / ss->zstep[axis];
+    cy = ss->cy + (i - cur) * ss->zstep[1] / ss->zstep[axis];
+    cz = ss->cz + (i - cur) * ss->zstep[2] / ss->zstep[axis];
+    if (cx >= 0. && cx <= ss->vi->xsize - 1 && 
+        cy >= 0. && cy <= ss->vi->ysize - 1 &&
+        cz >= 0. && cz <= ss->vi->zsize - 1) {
+
+      // Set start on first legal position and end on any legal one
+      end = i;
+      if (start < 0)
+        start = i;
+    }
+  }
+
+  imcSetSpecialLimits(axis, start, end);
+}
+
+// Check for movie and set new limits when angles have changed
+static void checkMovieLimits(SlicerStruct *ss)
+{
+  int xmovie, ymovie, zmovie;
+  int axis;
+  ImodView *vi = ss->vi;
+
+  // If no movie or it was not started by this slicer, done
+  if (!(vi->xmovie || vi->ymovie || vi->zmovie) || 
+      imcGetStarterID() != ss->ctrl)
+    return;
+
+  // See if dominant axis has changed and restart movie
+  findMovieAxis(ss, &xmovie, &ymovie, &zmovie, 1, &axis);
+  if ((vi->xmovie && axis != 0) || (vi->ymovie && axis != 1) || 
+      (vi->zmovie && axis != 2)) {
+
+    // If sign of new motion along old axis (xstep[old]/xstep[axis]) is 
+    // opposite to sign of old motion (oldmovie), then need to restart
+    // with negative direction.  Only one term of old sum counts.
+    if ((vi->xmovie * ss->zstep[b3dX] + vi->ymovie * ss->zstep[b3dY] + 
+         vi->zmovie * ss->zstep[b3dZ]) / ss->zstep[axis] < 0.)
+      findMovieAxis(ss, &xmovie, &ymovie, &zmovie, -1, &axis);
+    imodMovieXYZT(vi, xmovie, ymovie, zmovie, 0);
+  }
+
+  // In any case, set new movie limits
+  setMovieLimits(ss, axis);
+}
+
+// Start a movie and set up for autosnapshotting
+static void startMovieCheckSnap(SlicerStruct *ss, int dir)
+{
+  int xmovie, ymovie, zmovie;
+  int axis, start, end;
+  ImodView *vi = ss->vi;
+
+  // Find dominant axis and start/stop movie along that axis
+  findMovieAxis(ss, &xmovie, &ymovie, &zmovie, dir, &axis);
+  imodMovieXYZT(vi, xmovie, ymovie, zmovie, 0);
+  imcSetStarterID(ss->ctrl);
+
+  // Just zero the snap count
+  ss->movieSnapCount = 0;
+
+  /* done if no movie, otherwise set the movie limits */
+  if (!(vi->zmovie || vi->xmovie || vi->ymovie)) 
+    return;
+
+  setMovieLimits(ss, axis);
+
+  // now done if no snapshots are desired.
+  if (!imcGetSnapshot(vi))
+    return;
+     
+  /* Get start and end of loop, compute count */
+  imcGetStartEnd(vi, axis, &start, &end);
+  ss->movieSnapCount = (end - start) / imcGetIncrement(vi, axis) + 1;
+  if (ss->movieSnapCount < 1)
+    ss->movieSnapCount = 1;
+
+  /* double count for normal mode, leave as is for one-way */
+  if (!imcGetLoopMode(vi))
+    ss->movieSnapCount *= 2;
+
+  /* Set to start or end depending on which button was hit */
+  if (!imcStartSnapHere(vi)) {
+    if (axis == 0)
+      vi->xmouse = dir > 0 ? start : end;
+    else if (axis == 1)
+      vi->ymouse = dir > 0 ? start : end;
+    else
+      vi->zmouse = dir > 0 ? start : end;
+  }
+
+  /* draw - via imodDraw to get float and positioning done correctly */
+  imodDraw(vi, IMOD_DRAW_XYZ);
 }
 
 static void sslice_setxyz(SlicerStruct *ss, int x, int y)
@@ -1688,7 +1863,7 @@ void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   SlicerStruct *ss = (SlicerStruct *)client;
-  float usex, usey, usez;
+  float usex, usey, usez, factor = 0.;
 
   if (drawflag & IMOD_DRAW_COLORMAP) {
     ss->glw->setColormap(*(App->qColormap));
@@ -1710,6 +1885,58 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
   if (ss->zslast != ss->vi->imod->zscale){
     ss->zslast = ss->vi->imod->zscale;
     drawflag |= IMOD_DRAW_ACTIVE;
+  }
+
+  // Did this slicer start the current movie?
+  if ((vi->xmovie || vi->ymovie || vi->zmovie) && 
+      imcGetStarterID() == ss->ctrl) {
+
+    // Then determine factor for moving in one step on dominant axis
+    if (vi->xmovie && fabs((double)ss->zstep[b3dX]) > 1.e-6)
+      factor = (ss->vi->xmouse - ss->cx) / ss->zstep[b3dX];
+    else if (vi->ymovie && fabs((double)ss->zstep[b3dY]) > 1.e-6)
+      factor = (ss->vi->ymouse - ss->cy) / ss->zstep[b3dY];
+    else if (vi->zmovie && fabs((double)ss->zstep[b3dZ]) > 1.e-6)
+      factor = (ss->vi->zmouse - ss->cz) / ss->zstep[b3dZ];
+
+    /*fprintf(stderr, "%d %d %d factor %f mouse %.1f %.1f %.1f  "
+            "cur %.1f %.1f %.1f\n", vi->xmovie, 
+            vi->ymovie, vi->zmovie, factor, vi->xmouse, 
+            vi->ymouse, vi->zmouse, ss->cx, ss->cy, ss->cz); */
+
+    // Compute new position and bound it (may not be needed unless user
+    // clicks a new position during movie)
+    if (factor != 0.) {
+      vi->xmouse = ss->cx + factor * ss->zstep[b3dX];
+      vi->ymouse = ss->cy + factor * ss->zstep[b3dY];
+      ss->cz += factor * ss->zstep[b3dZ];
+      if (ss->cz < 0.)
+        ss->cz = 0.;
+      if (ss->cz > vi->zsize - 1.)
+        ss->cz = vi->zsize - 1.;
+      vi->zmouse = (int)floor(ss->cz + 0.5);
+      ivwBindMouse(vi);
+      ss->cx = vi->xmouse;
+      ss->cy = vi->ymouse;
+
+      ss->pending = 0;
+      ss->glw->updateGL();
+
+      // Get snapshots if there is a count for doing so
+      if (imcGetSnapshot(ss->vi) && ss->movieSnapCount) {
+        if (imcGetSnapshot(ss->vi) == 1)
+          b3dAutoSnapshot("slicer", SnapShot_TIF, NULL);
+        else
+          b3dAutoSnapshot("slicer", SnapShot_RGB, NULL);
+        ss->movieSnapCount--;
+
+        /* When count expires, stop movie */
+        if(!ss->movieSnapCount)
+          imodMovieXYZT(vi, 0, 0, 0, 0);
+      }
+      sslice_cube_draw(ss);
+      return;
+    }
   }
 
   if (drawflag & IMOD_DRAW_XYZ){
@@ -2012,6 +2239,10 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.20  2003/11/13 20:11:30  mast
+Made locked window respond to Up, Down, and arrows by moving current
+position without changing global position, consistent with locked zap
+
 Revision 4.19  2003/09/16 02:11:48  mast
 Changed to access image data using new line pointers
 
