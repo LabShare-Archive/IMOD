@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/03/26 17:15:30  mast
+Adjust sizes for font changes
+
 Revision 4.2  2003/02/28 21:39:32  mast
 Changing name of tooledit focus signal
 
@@ -57,6 +60,7 @@ initial creation
 #include <qlabel.h>
 #include <qbitmap.h>
 #include <qtoolbar.h>
+#include <qtooltip.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
@@ -127,9 +131,11 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  QToolTip::add(arrow, "Increase zoom factor");
   arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  QToolTip::add(arrow, "Decrease zoom factor");
   
   // Zoom edit box
   mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
@@ -137,6 +143,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
+  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
   
   // Make the 2 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -161,11 +168,14 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mZscaleCombo->setFocusPolicy(NoFocus);
   connect(mZscaleCombo, SIGNAL(activated(int)), this, 
 	  SLOT(zScaleSelected(int)));
+  QToolTip::add(mZscaleCombo, "Select whether to ignore Z scale, or apply it"
+                " before or after rotation");
 
   // Help button
   mHelpButton = new QPushButton("Help", mToolBar, "Help button");
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
   connect(mHelpButton, SIGNAL(pressed()), this, SLOT(help()));
+  QToolTip::add(mHelpButton, "Open help window");
   setFontDependentWidths();
 
   // SECOND TOOLBAR
@@ -214,6 +224,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mImageBox->setMaximumWidth(labelSize.width()- 4);
   connect(mImageBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(imageThicknessChanged(int)));
+  QToolTip::add(mImageBox, "Set number of slices to average");
 
   // Thickness of model spin box
   label = new QLabel("Model", thickBox);
@@ -222,6 +233,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mModelBox->setMaximumWidth(labelSize.width()- 4);
   connect(mModelBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(modelThicknessChanged(int)));
+  QToolTip::add(mModelBox, "Set thickness of model to project onto image");
 
   firstTime = 0;
 
@@ -249,6 +261,10 @@ void SlicerWindow::setFontDependentWidths()
   mHelpButton->setFixedWidth(width);
 }
 
+static char *toggleTips[] = {
+  "Toggle between regular and high-resolution (interpolated) image",
+  "Lock window at current position",
+  "Show slice cutting lines in Xyz and Zap windows"};
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
@@ -265,6 +281,7 @@ void SlicerWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper,
   mapper->setMapping(mToggleButs[ind],ind);
   connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
   mToggleStates[ind] = 0;
+  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
 }
 
 void SlicerWindow::zoomUp()

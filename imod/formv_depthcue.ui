@@ -38,6 +38,9 @@
             <property name="text">
                 <string>Depth Cue</string>
             </property>
+            <property name="toolTip" stdset="0">
+                <string>Turn depth cueing with fog on or off</string>
+            </property>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -68,6 +71,9 @@
                     </property>
                     <property name="orientation">
                         <enum>Horizontal</enum>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set relative depth where fog starts</string>
                     </property>
                 </widget>
                 <widget class="QLayoutWidget">
@@ -139,6 +145,9 @@
                     </property>
                     <property name="orientation">
                         <enum>Horizontal</enum>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set relative depth where fog reaches maximum</string>
                     </property>
                 </widget>
                 <widget class="QLayoutWidget">
@@ -233,6 +242,9 @@
                     <property name="text">
                         <string>Done</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -257,6 +269,9 @@
                     </property>
                     <property name="text">
                         <string>Help</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open help window</string>
                     </property>
                 </widget>
             </hbox>

@@ -69,6 +69,9 @@
                     <property name="frameShadow">
                         <enum>Plain</enum>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>The color of the current object</string>
+                    </property>
                 </widget>
                 <widget class="QLabel">
                     <property name="name">
@@ -99,6 +102,9 @@
                     </property>
                     <property name="value">
                         <number>9999</number>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>See and enter current object</string>
                     </property>
                 </widget>
                 <widget class="QLabel">
@@ -134,6 +140,9 @@
                     <property name="focusPolicy">
                         <enum>ClickFocus</enum>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select whether changes will be applied to only one object, all objects, or only the ones that are on</string>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -153,6 +162,9 @@
             <property name="orientation">
                 <enum>Horizontal</enum>
             </property>
+            <property name="toolTip" stdset="0">
+                <string>Select the current object</string>
+            </property>
         </widget>
         <widget class="QLineEdit">
             <property name="name">
@@ -160,6 +172,9 @@
             </property>
             <property name="focusPolicy">
                 <enum>ClickFocus</enum>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Enter the name of the object</string>
             </property>
         </widget>
         <widget class="QFrame">
@@ -177,6 +192,9 @@
             </property>
             <property name="frameShadow">
                 <enum>Sunken</enum>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Turn individual objects On/Off (use Edit-Object List for higher object #s)</string>
             </property>
         </widget>
         <widget class="QLayoutWidget">
@@ -234,6 +252,9 @@
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Select whether data will be drawn as points, lines, or filled/lit regions</string>
+                            </property>
                         </widget>
                         <widget class="QLabel" row="0" column="0">
                             <property name="name">
@@ -264,6 +285,9 @@
                             </property>
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Select whether no data, contour data, or mesh data will be drawn</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="1" column="0">
@@ -320,6 +344,9 @@
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                         </sizepolicy>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select a control panel</string>
                     </property>
                 </widget>
                 <widget class="QFrame">
@@ -387,6 +414,9 @@
                     <property name="text">
                         <string>Done</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -411,6 +441,9 @@
                     </property>
                     <property name="text">
                         <string>Help</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open help window</string>
                     </property>
                 </widget>
             </hbox>
@@ -523,14 +556,20 @@
 </connections>
 <includes>
     <include location="global" impldecl="in declaration">qwidgetstack.h</include>
-    <include location="global" impldecl="in implementation">qapplication.h</include>
-    <include location="local" impldecl="in implementation">imodv_input.h</include>
-    <include location="local" impldecl="in implementation">imodv_objed.h</include>
+    <include location="local" impldecl="in implementation">colorselector.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">imodv_objed.h</include>
+    <include location="local" impldecl="in implementation">imodv_input.h</include>
+    <include location="global" impldecl="in implementation">qapplication.h</include>
     <include location="local" impldecl="in implementation">formv_objed.ui.h</include>
 </includes>
+<forwards>
+    <forward>class ColorSelectorGL</forward>
+</forwards>
 <variables>
+    <variable>int mBoxRGB[3]</variable>
     <variable>QWidgetStack *mStack</variable>
+    <variable>ColorSelectorGL *mGLw</variable>
 </variables>
 <slots>
     <slot>init()</slot>

@@ -63,6 +63,9 @@
                     <property name="minValue">
                         <number>1</number>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select the current model to be displayed</string>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -115,6 +118,9 @@
                             <property name="text">
                                 <string>One</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move only the current model</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -125,6 +131,9 @@
                             </property>
                             <property name="text">
                                 <string>All</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move all models together</string>
                             </property>
                         </widget>
                     </vbox>
@@ -156,6 +165,9 @@
                             <property name="text">
                                 <string>One</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Edit properties only of current model</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -166,6 +178,9 @@
                             </property>
                             <property name="text">
                                 <string>All</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Edit properties of all models together</string>
                             </property>
                         </widget>
                     </vbox>
@@ -224,6 +239,9 @@
                     <property name="focusPolicy">
                         <enum>NoFocus</enum>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select which models to view with the current one, if any</string>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -245,6 +263,9 @@
             <property name="focusPolicy">
                 <enum>ClickFocus</enum>
             </property>
+            <property name="toolTip" stdset="0">
+                <string>Enter an internally stored name for this model</string>
+            </property>
         </widget>
         <widget class="QLabel">
             <property name="name">
@@ -263,6 +284,9 @@
             </property>
             <property name="focusPolicy">
                 <enum>ClickFocus</enum>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Set the pixel size of the model (add units of pixels, A, nm, um, mm, m, or km)</string>
             </property>
         </widget>
         <widget class="QLayoutWidget">
@@ -303,6 +327,9 @@
                     <property name="text">
                         <string>Done</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -327,6 +354,9 @@
                     </property>
                     <property name="text">
                         <string>Help</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open help window</string>
                     </property>
                 </widget>
             </hbox>

@@ -194,6 +194,9 @@
                             <property name="name">
                                 <cstring>autosaveDirEdit</cstring>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a directory for autosave files to be placed in</string>
+                            </property>
                         </widget>
                     </hbox>
                 </widget>

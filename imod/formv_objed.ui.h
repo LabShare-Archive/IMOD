@@ -15,6 +15,9 @@ void imodvObjedForm::init()
     int i;
     int width = 0, height = 0;
     ObjectEditField *oef;
+    
+    mGLw = new ColorSelectorGL(&mBoxRGB[0], colorFrame);
+    
     QVBoxLayout *panelFrameLayout = new QVBoxLayout(panelFrame, 5, 6,
 						    "panelFrameLayout"); 
     
@@ -137,7 +140,7 @@ void imodvObjedForm::helpPressed()
 void imodvObjedForm::updateObject(int ob, int numObj, int drawType, int drawStyle, 
 				  QColor color, char *name)
 {
-    colorFrame->setPaletteBackgroundColor(color);
+    updateColorBox(color);
     objectSpinBox->setMaxValue(numObj);
     objectSpinBox->setValue(ob);
     objectSpinBox->setEnabled(numObj > 1);
@@ -152,7 +155,10 @@ void imodvObjedForm::updateObject(int ob, int numObj, int drawType, int drawStyl
 
 void imodvObjedForm::updateColorBox( QColor color )
 {
-    colorFrame->setPaletteBackgroundColor(color);
+    mBoxRGB[0] = color.red();
+    mBoxRGB[1] = color.green();
+    mBoxRGB[2] = color.blue();
+    mGLw->updateGL();
 }
 
 // This is a call for final setup of the box 

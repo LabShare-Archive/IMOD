@@ -64,7 +64,7 @@
                                 <string>Control Key</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Pick key that will control whether sliders are continuously active (Alt may not work)</string>
+                                <string></string>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -84,7 +84,7 @@
                                         <string>Ctrl</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Control with Ctrl key</string>
+                                        <string>Make Ctrl key control whether sliders are continuously active (will not work on Mac)</string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
@@ -95,7 +95,7 @@
                                         <string>Shift</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Control with shift key</string>
+                                        <string>Make Shift key control whether sliders are continuously active</string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
@@ -106,7 +106,7 @@
                                         <string>Alt</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Control with Alt key - may not work with some window managers</string>
+                                        <string>Make Alt key control whether sliders are continuously active (may not work with X11 window managers)</string>
                                     </property>
                                 </widget>
                             </vbox>
@@ -119,7 +119,7 @@
                                 <string>Active when</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Select whether sliders will be active with key up or key down</string>
+                                <string></string>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -139,7 +139,7 @@
                                         <string>Key Up</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Sliders active unless you press the control key</string>
+                                        <string>Make sliders active unless you press the control key</string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
@@ -150,7 +150,7 @@
                                         <string>Key Down</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Sliders active only when you press the control key</string>
+                                        <string>Make sliders active only when you press the control key</string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
@@ -161,7 +161,7 @@
                                         <string>Never</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Sliders never continuously active</string>
+                                        <string>Make sliders never continuously active</string>
                                     </property>
                                 </widget>
                             </vbox>

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/28 21:40:57  mast
+Changing name of tooledit focus signal
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
@@ -159,6 +162,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   mDrawBox = diaCheckBox("Draw model", this, mLayout);
   QGridLayout *grid = new QGridLayout(mLayout, 3, 2);
   connect(mDrawBox, SIGNAL(toggled(bool)), this, SLOT(drawToggled(bool)));
+  QToolTip::add(mDrawBox, "Turn display of entire model on or off");
 
   for (int i = 0; i < 3; i++) {
     str = boxLabels[i];

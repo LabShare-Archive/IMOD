@@ -72,6 +72,9 @@
                     <property name="pixmap">
                         <pixmap>uparrow.png</pixmap>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Increase the zoom of the display</string>
+                    </property>
                 </widget>
                 <widget class="QToolButton">
                     <property name="name">
@@ -102,6 +105,9 @@
                     </property>
                     <property name="pixmap">
                         <pixmap>downarrow.png</pixmap>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Decrease the zoom of the display</string>
                     </property>
                 </widget>
                 <widget class="QLabel">
@@ -183,6 +189,9 @@
                     <property name="alignment">
                         <set>AlignRight</set>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>See or enter the pixels of display per pixel of model coordinate</string>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -229,6 +238,9 @@
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move the near Z clipping plane</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -307,6 +319,9 @@
                             <property name="orientation">
                                 <enum>Horizontal</enum>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move the far Z clipping plane</string>
+                            </property>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
@@ -377,6 +392,9 @@
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Select a perspective value rather than parallel projection</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -451,6 +469,9 @@
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Scale the model in Z relative to X and Y</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -547,6 +568,9 @@
                             <property name="autoRepeat">
                                 <bool>true</bool>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Increase rotation about X axis</string>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -560,6 +584,9 @@
                             </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Decrease rotation about X axis</string>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -601,6 +628,9 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignRight</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a rotation about X axis</string>
                             </property>
                         </widget>
                         <spacer>
@@ -657,6 +687,9 @@
                             <property name="autoRepeat">
                                 <bool>true</bool>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Increase rotation about Y axis</string>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -670,6 +703,9 @@
                             </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Decrease rotation about Y axis</string>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -711,6 +747,9 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignRight</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a rotation about Y axis</string>
                             </property>
                         </widget>
                         <spacer>
@@ -767,6 +806,9 @@
                             <property name="autoRepeat">
                                 <bool>true</bool>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Increase rotation about Z axis</string>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -780,6 +822,9 @@
                             </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Decrease rotation about Z axis</string>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -814,6 +859,9 @@
                             <property name="alignment">
                                 <set>AlignRight</set>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a rotation about Z axis</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -843,6 +891,9 @@
                     </property>
                     <property name="text">
                         <string>Start/Stop Rotation</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Start or stop continuous rotation (push arrow key next to start)</string>
                     </property>
                 </widget>
                 <widget class="QLayoutWidget">
@@ -877,6 +928,9 @@
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set step size of rotation</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -976,6 +1030,9 @@
                     <property name="autoDefault">
                         <bool>false</bool>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close this dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -1003,6 +1060,9 @@
                     </property>
                     <property name="autoDefault">
                         <bool>false</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open help window</string>
                     </property>
                 </widget>
             </hbox>

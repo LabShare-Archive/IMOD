@@ -52,6 +52,9 @@
                     <property name="text">
                         <string>Set Start</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set starting parameters from current position</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton" row="0" column="0">
                     <property name="name">
@@ -62,6 +65,9 @@
                     </property>
                     <property name="text">
                         <string>Full 360 X</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set start &amp; end parameters for complete rotation around X axis</string>
                     </property>
                 </widget>
                 <widget class="QPushButton" row="0" column="1">
@@ -74,6 +80,9 @@
                     <property name="text">
                         <string>Full 360 Y</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set start &amp; end parameters for complete rotation around Y axis</string>
+                    </property>
                 </widget>
                 <widget class="QCheckBox" row="0" column="2">
                     <property name="name">
@@ -84,6 +93,9 @@
                     </property>
                     <property name="text">
                         <string>Long way</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select to rotate by more than 180 degrees from start to end position</string>
                     </property>
                 </widget>
                 <widget class="QPushButton" row="1" column="1">
@@ -96,6 +108,9 @@
                     <property name="text">
                         <string>Set End</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set ending parameters from current position</string>
+                    </property>
                 </widget>
                 <widget class="QCheckBox" row="1" column="2">
                     <property name="name">
@@ -106,6 +121,9 @@
                     </property>
                     <property name="text">
                         <string>Reverse</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select to go backwards from end to start</string>
                     </property>
                 </widget>
             </grid>
@@ -543,6 +561,9 @@
                             <height>32767</height>
                         </size>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Enter total number of positions from start to end</string>
+                    </property>
                 </widget>
                 <widget class="QLabel">
                     <property name="name">
@@ -621,7 +642,7 @@
                         <cstring>TextLabel3</cstring>
                     </property>
                     <property name="text">
-                        <string># of montage frame in X &amp; Y</string>
+                        <string># of montage frames in X &amp; Y</string>
                     </property>
                     <property name="alignment">
                         <set>AlignVCenter|AlignLeft</set>
@@ -644,6 +665,9 @@
                             <width>60</width>
                             <height>32767</height>
                         </size>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Enter number of adjacent frames to capture in X and Y</string>
                     </property>
                 </widget>
                 <spacer row="1" column="3">
@@ -691,6 +715,9 @@
                             <width>60</width>
                             <height>32767</height>
                         </size>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Enter overlap between adjacent frames</string>
                     </property>
                 </widget>
             </grid>
@@ -750,6 +777,9 @@
                             <property name="text">
                                 <string>Movie</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make a movie of frames from starting to ending position</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -760,6 +790,9 @@
                             </property>
                             <property name="text">
                                 <string>Montage</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make a montage of adjacent zoomed-up frames</string>
                             </property>
                         </widget>
                     </vbox>
@@ -791,6 +824,9 @@
                             <property name="text">
                                 <string>RGBs</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Write frames as RGB files</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -801,6 +837,9 @@
                             </property>
                             <property name="text">
                                 <string>TIFFs</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Write frames as TIFF files</string>
                             </property>
                         </widget>
                     </vbox>
@@ -814,6 +853,9 @@
                     </property>
                     <property name="text">
                         <string>Write files</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Turn this on to save frames to files</string>
                     </property>
                 </widget>
             </hbox>
@@ -870,6 +912,9 @@
                     <property name="text">
                         <string>Make</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Start the sequence of frames for a movie or montage</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -894,6 +939,9 @@
                     </property>
                     <property name="text">
                         <string>Stop</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Stop an ongoing sequence of frames</string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
@@ -920,6 +968,9 @@
                     <property name="text">
                         <string>Done</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close this dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -944,6 +995,9 @@
                     </property>
                     <property name="text">
                         <string>Help</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open a help window</string>
                     </property>
                 </widget>
             </hbox>

@@ -60,6 +60,9 @@
                     <property name="focusPolicy">
                         <enum>ClickFocus</enum>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Enter a name for this object</string>
+                    </property>
                 </widget>
             </vbox>
         </widget>
@@ -72,6 +75,9 @@
             </property>
             <property name="text">
                 <string>Draw</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Turn display of object on or off</string>
             </property>
         </widget>
         <widget class="QGroupBox">
@@ -131,6 +137,9 @@
                             </property>
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Select shape of symbol to draw at each point</string>
                             </property>
                         </widget>
                         <widget class="QLayoutWidget">
@@ -215,6 +224,9 @@
                             <property name="orientation">
                                 <enum>Horizontal</enum>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set size of symbols</string>
+                            </property>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
@@ -296,6 +308,9 @@
                     <property name="minValue">
                         <number>1</number>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Increase, decrease, or enter the object's line width</string>
+                    </property>
                 </widget>
                 <spacer>
                     <property name="name">
@@ -325,6 +340,9 @@
             </property>
             <property name="text">
                 <string>Contours have time values</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Select whether contours should be drawn at all times (on all image files) or just at one time</string>
             </property>
         </widget>
         <widget class="QLayoutWidget">
@@ -356,6 +374,9 @@
                     <property name="title">
                         <string>Object type</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
+                    </property>
                     <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
@@ -376,6 +397,9 @@
                             <property name="text">
                                 <string>Closed</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours closed loops; connect end back to start</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -387,6 +411,9 @@
                             <property name="text">
                                 <string>Open</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours open (unconnected) at ends</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -397,6 +424,9 @@
                             </property>
                             <property name="text">
                                 <string>Scattered</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours consisting of unconnected points</string>
                             </property>
                         </widget>
                     </vbox>
@@ -415,6 +445,9 @@
                     </property>
                     <property name="title">
                         <string>Front face</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
                     </property>
                     <vbox>
                         <property name="name">
@@ -436,6 +469,9 @@
                             <property name="text">
                                 <string>Outside</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make the outside of contours be the brightly lit face</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -446,6 +482,9 @@
                             </property>
                             <property name="text">
                                 <string>Inside</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make the inside of contours be the brightly lit face</string>
                             </property>
                         </widget>
                     </vbox>
@@ -486,6 +525,9 @@
                     </property>
                     <property name="maxValue">
                         <number>999</number>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Increase, decrease, or enter a 3-D radius for scattered points</string>
                     </property>
                 </widget>
             </hbox>
@@ -545,6 +587,9 @@
                     <property name="autoDefault">
                         <bool>false</bool>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close this dialog box</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
@@ -572,6 +617,9 @@
                     </property>
                     <property name="autoDefault">
                         <bool>false</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open a help window</string>
                     </property>
                 </widget>
             </hbox>

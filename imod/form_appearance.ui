@@ -242,6 +242,9 @@
                             <property name="minValue">
                                 <number>1</number>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Minimum size for current model point marker (circle)</string>
+                            </property>
                         </widget>
                     </hbox>
                 </widget>

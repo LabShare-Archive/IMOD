@@ -38,6 +38,7 @@ Log at end of file
 #include <qlabel.h>
 #include <qbitmap.h>
 #include <qtoolbar.h>
+#include <qtooltip.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
@@ -118,15 +119,18 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  QToolTip::add(arrow, "Increase zoom factor");
   arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  QToolTip::add(arrow, "Decrease zoom factor");
 
   mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
+  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
 
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -139,6 +143,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mSecSlider = new QSlider(1, zap->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
 			  "section slider");
+
   QSize hint = mSecSlider->minimumSizeHint();
   /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
      mSecSlider->minimumWidth(), hint.width()); */
@@ -150,7 +155,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 	  SLOT(sliderChanged(int)));
   connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
   connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
-  
+  QToolTip::add(mSecSlider, "Select or riffle through sections");
 
   // Section edit box
   mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
@@ -158,15 +163,18 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mSectionEdit->setAlignment(Qt::AlignRight);
   connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
   connect(mSectionEdit, SIGNAL(focusLost()), this, SLOT(newSection()));
+  QToolTip::add(mSectionEdit, "Enter section to display");
   
   // Info and help buttons
   mInfoButton = new QPushButton("I", mToolBar, "I button");
   mInfoButton->setFocusPolicy(QWidget::NoFocus);
   connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
+  QToolTip::add(mInfoButton, "Bring Info Window to top, get Zap window info");
 
   mHelpButton = new QPushButton("Help", mToolBar, "Help button");
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
+  QToolTip::add(mHelpButton, "Open help window");
   setFontDependentWidths();
 
   // Optional section if time enabled
@@ -181,10 +189,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
     connect(arrow, SIGNAL(clicked()), this, SLOT(timeBack()));
     arrow->setAutoRaise(AUTO_RAISE);
     arrow->setAutoRepeat(true);
+    QToolTip::add(arrow, "Move back in 4th dimension (time)");
+
     arrow = new ArrowButton(Qt::RightArrow, mToolBar, "time forward button");
     connect(arrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     arrow->setAutoRaise(AUTO_RAISE);
     arrow->setAutoRepeat(true);
+    QToolTip::add(arrow, "Move forward in 4th dimension (time)");
 
     mTimeLabel = new QLabel(timeLabel, mToolBar, "time label");
   }
@@ -218,6 +229,13 @@ void ZapWindow::setFontDependentWidths()
   mHelpButton->setFixedWidth((int)(1.2 *fontMetrics().width("Help")));
 }
 
+static char *toggleTips[] = {
+  "Toggle between regular and high-resolution (interpolated) image",
+  "Lock window at current section unless section is changed in this window",
+  "Toggle between centering when model point nears edge and keeping model"
+  " point centered",
+  "Toggle between inserting points after or before current point",
+  "Lock window at current time unless time is changed in this window"};
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
@@ -234,6 +252,7 @@ void ZapWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper,
   mapper->setMapping(mToggleButs[ind],ind);
   connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
   mToggleStates[ind] = 0;
+  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
 }
 
 void ZapWindow::zoomUp()
@@ -420,6 +439,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.5  2003/03/26 06:30:56  mast
 adjusting to font changes
 

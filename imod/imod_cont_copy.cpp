@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2003/03/03 22:14:34  mast
+cleanup
+
 Revision 4.3  2003/02/27 19:31:35  mast
 remove include of unistd.h for windows
 
@@ -287,6 +290,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   connect(mRadioGroup, SIGNAL(clicked(int)), this, SLOT(rangeSelected(int)));
 
   radio = diaRadioButton("Just the current contour", mRadioGroup);
+  QToolTip::add(radio, "Copy only the current contour");
 
   radio = diaRadioButton("All contours in surface", mRadioGroup);
   QToolTip::add(radio,
