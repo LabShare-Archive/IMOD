@@ -43,6 +43,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/23 00:14:11  sueh
+* <p> bug# 520 Allowed propertyUserDir to be set.  Prevented the construction
+* <p> of mainPanel when test is true.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:33:55  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -596,6 +600,10 @@ public abstract class BaseManager {
   public void packMainWindow() {
     mainFrame.repaint();
     getMainPanel().fitWindow();
+  }
+  
+  public void setDataParamDirty(boolean dataParamDirty) {
+    isDataParamDirty = dataParamDirty;
   }
 
 }
