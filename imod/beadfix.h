@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/05/03 19:17:20  mast
+Added thread class to run tiltalign
+
 Revision 1.2  2004/04/29 00:28:51  mast
 Added button to keep window on top
 
@@ -33,7 +36,11 @@ class BeadFixerModule : public SpecialModule
   BeadFixerModule();
 };
 
-#ifdef QT_THREAD_SUPPORT
+/*#ifdef QT_THREAD_SUPPORT
+#define FIXER_CAN_RUN_ALIGN
+#endif*/
+
+#ifdef FIXER_CAN_RUN_ALIGN
 #include <qthread.h>
 
 class AlignThread : public QThread
@@ -95,7 +102,7 @@ class BeadFixer : public DialogFrame
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
-#ifdef QT_THREAD_SUPPORT
+#ifdef FIXER_CAN_RUN_ALIGN
   AlignThread *mTaThread;
 #endif
 };
