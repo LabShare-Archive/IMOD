@@ -49,19 +49,42 @@ c	  header to indicate that the output file is a tilt series.
 
 c	  David Mastronarde  10/13/89
 c
-	parameter (limstack=5000000,limray=361*10000,limpix=10000,
-     &	    limproj=360)
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+	implicit none
+	integer limpix,limstack,limproj,limray
+	parameter (limstack=5000000,limpix=10000,
+     &	    limproj=720,limray=(limproj+1)*10000)
 	real*4 array(limstack)
 	character*80 filin,filout
 	character*1 xyz
 	integer*4 nxyzin(3),mxyzin(3),nxyzout(3),nxyzst(3)
 	real*4 cell(6),title(20)
 	data nxyzst/0,0,0/,cell/0.,0.,0.,90.,90.,90./
+	integer*4 nxin,nyin,nzin,nxout,nyout,nzout
 	common /nxyz/nxin,nyin,nzin,nxout,nyout,nzout
 	equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
 	integer*2 nrayinc(limray)
 	real*4 xraystr(limray),yraystr(limray),pixtmp(limpix)
 	real*4 cosang(0:limproj),sinang(0:limproj),xgood(4),ygood(4)
+	integer*4 ix0, ix1,iy0,iy1,iz0,iz1,modein
+	integer*4 nxblock,nyblock,nzblock,idirz,nxslice,nyslice,lenload
+	integer*4 load0,loaddir,modeout,ifrayscale
+	real*4 dmin,dmax,dmean,tiltstr,tiltend,tiltinc,scaladd,scalfac
+	real*4 fill,dmin2,dmax2,dmean2,dsum,angle,xraytmp,yraytmp
+	integer*4 istackdel,limslices,nloads,ioutbase,iproj,ixout
+	integer*4 nraytmp,ngoodinter,indgood,iyoutstr,nslices,load1
+	integer*4 izsec,indstack,iraybase,nraypts,iray,ipix
+	real*4 tanang,rayintcp,xleft,xright,ybot,ytop,yleft,yright,xtop
+	real*4 xbot,xray,yray,dx,dy,v2,v4,v5,v6,v8,vmin,vmax,a,b,c,d
+	real*4 sumtmp,rayfac,rayadd,tmin,tmax,tmean
+	integer*4 ixr,iyr,ixy,ixy4,ixy6,ixy8,ixy2,indout,kti,i,ind,iload
+	real*4 sind,cosd
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -92,8 +115,10 @@ c
 	iy1=min(iy1,nyin-1)
 	iz0=max(0,min(iz0,nzin-1))
 	iz1=max(0,min(iz1,nzin-1))
-	if(ix0.gt.ix1.or.iy0.gt.iy1)
-     &	    stop 'No volume selected'
+	if(ix0.gt.ix1.or.iy0.gt.iy1)then
+	  print *,'XYZPROJ: No volume selected'
+	  call exit(1)
+	endif
 c	  
 	write(*,'(1x,a,$)')'Axis to project around (enter X, Y or Z): '
 	read(*,'(a)')xyz
@@ -116,6 +141,10 @@ c
 	if(tiltinc.lt.0.and.tiltend.gt.tiltstr)tiltend=tiltend-360.
 	nzout=1
 	if(tiltinc.ne.0.)nzout=(tiltend-tiltstr)/tiltinc + 1
+	if(nzout.gt.limproj)then
+	  print *,'XYZPROJ: TOO MANY PROJECTIONS FOR ARRAYS'
+	  call exit(1)
+	endif
 c	  
 	nxblock=ix1+1-ix0
 	nyblock=iy1+1-iy0
@@ -210,9 +239,14 @@ c	  set up stack loading with slices
 c
 	istackdel=nxslice*nyslice
 	limslices=min(limpix,limstack/(istackdel + max(nxout,lenload)))
-	if(limslices.lt.1)stop 'Amazingly, too huge for stack...'
-	if(nxout*nzout.gt.limray)
-     &	    stop 'too many projections for output this wide'
+	if(limslices.lt.1)then
+	  print *, 'XYZPROG: IMAGES TOO LARGE FOR STACK'
+	  call exit(1)
+	endif
+	if(nxout*nzout.gt.limray)then
+	  print *, 'XYZPROJ: TOO MANY PROJECTIONS FOR OUTPUT THIS WIDE'
+	  call exit(1)
+	endif
 	nloads=(nyout+limslices-1)/limslices
 	ioutbase=1+limslices*istackdel
 c
@@ -488,8 +522,9 @@ c
 	call iwrhdr(2,title,1,dmin2,dmax2,dmean2)
 	call imclose(2)
 	call imclose (1)
-	stop
-99	stop 'read error'
+	call exit(0)
+99	print *,'XYZPROJ: READ ERROR'
+	call exit(1)
 	end
 c
 c
