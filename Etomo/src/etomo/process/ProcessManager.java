@@ -7,9 +7,9 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.TransferfidParam;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -27,6 +27,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:46:40  rickg
+ * <p> Check debug mode for messages
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -88,6 +91,8 @@ public class ProcessManager {
     "$Id$";
 
   ApplicationManager appManager;
+  Thread threadAxisA = null;
+  Thread threadAxisB = null;
 
   public ProcessManager(ApplicationManager appMgr) {
     appManager = appMgr;
@@ -137,7 +142,7 @@ public class ProcessManager {
     String command = "eraser" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -150,7 +155,7 @@ public class ProcessManager {
     String command = "xcorr" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -163,7 +168,7 @@ public class ProcessManager {
     String command = "prenewst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -205,7 +210,7 @@ public class ProcessManager {
     String command = "track" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -219,7 +224,7 @@ public class ProcessManager {
     String command = "align" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -246,7 +251,7 @@ public class ProcessManager {
     String command = "sample" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -260,7 +265,7 @@ public class ProcessManager {
     String command = "tomopitch" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -274,7 +279,7 @@ public class ProcessManager {
     String command = "newst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -288,7 +293,7 @@ public class ProcessManager {
     String command = "tilt" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, axisID);
   }
 
   /**
@@ -336,9 +341,28 @@ public class ProcessManager {
     String command = "combine.com";
 
     //  Start the com script in the background
-    return startComScript(command);
+    return startComScript(command, AxisID.ONLY);
   }
 
+  /**
+   * Interrupt the thread for the specified axis
+   * @param commandLine
+   * @return String
+   */
+  public void interrupt(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        threadAxisB.interrupt();
+        threadAxisB = null;
+      }
+    }
+    else {
+      if (threadAxisA != null) {
+        threadAxisA.interrupt();
+        threadAxisA = null;
+      }
+    }
+  }
   /**
    * Run the comand specified by the argument string
    */
@@ -433,6 +457,14 @@ public class ProcessManager {
           script.getScriptName() + " warnings");
       }
     }
+
+    // Null out the appropriate thread reference
+    if (threadAxisA == script) {
+      threadAxisA = null;
+    }
+    if (threadAxisB == script) {
+      threadAxisB = null;
+    }
     appManager.processDone(script.getName());
   }
 
@@ -451,7 +483,7 @@ public class ProcessManager {
       "  working directory: " + appManager.getWorkingDirectory());
   }
 
-  private String startComScript(String command) {
+  private String startComScript(String command, AxisID axisID) {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
     comScript.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
@@ -459,11 +491,12 @@ public class ProcessManager {
     comScript.setDemoMode(appManager.isDemo());
     comScript.start();
 
-    if(appManager.isDebug()) {
+    if (appManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScript.getName());
     }
-    
+
+    mapThreadAxis(comScript, axisID);
     return comScript.getName();
   }
 
@@ -500,4 +533,12 @@ public class ProcessManager {
     }
   }
 
+  private void mapThreadAxis(Thread thread, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      threadAxisB = thread;
+    }
+    else {
+      threadAxisA = thread;
+    }
+  }
 }
