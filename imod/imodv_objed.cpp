@@ -40,8 +40,11 @@ Log at end of file
 #include <qlabel.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
+#include <qscrollview.h>
+#include <qapplication.h>
 #include <qpushbutton.h>
 #include <qbuttongroup.h>
+#include <qhbuttongroup.h>
 #include <qradiobutton.h>
 #include <qlayout.h>
 #include <qvbox.h>
@@ -55,6 +58,7 @@ Log at end of file
 
 #include "imodv.h"
 #include "imod.h"
+#include "imod_object_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_light.h"
 #include "imodv_objed.h"
@@ -96,8 +100,8 @@ static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
 static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
-static void setStartEndModel(int &mst, int &mnd);
-static bool changeModelObject(int m, int ob);
+static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
+static bool changeModelObject(int m, int ob, bool multipleOK = true);
 
 /* resident instance of the IModvObjed class, and pointers to the dialog
    box classes when they are created */
@@ -125,9 +129,10 @@ static int ctrlPressed = false;
 static QCheckBox *OnoffButtons[MAX_ONOFF_BUTTONS];
 static int numOnoffButtons = 0;
 
-#define MAX_OOLIST_BUTTONS  256
+#define MAX_OOLIST_BUTTONS  512
+#define MAX_OOLIST_WIDTH 384
 #define MAX_LIST_IN_COL 36
-#define MAX_LIST_NAME 48
+#define MAX_LIST_NAME 40
 static int oolist_name_limits[10] = {40, 25, 17, 13, 10, 8, 7, 6, 6, 6};
 static QCheckBox *OolistButtons[MAX_OOLIST_BUTTONS];
 static int numOolistButtons = 0;
@@ -228,7 +233,7 @@ void imodvObjedDrawData(int option)
   }
   setOnoffButtons();
   imodvDraw(Imodv);
-
+  imodvDrawImodImages();
 }
 
 
@@ -284,6 +289,8 @@ void imodvObjedName(const char *name)
   for(i = 0 ; i<mi; i++)
     obj->name[i] = name[i];
   obj->name[i] = 0x00;
+  setOnoffButtons();
+  imod_object_edit_draw();
 }
 
 // Respond to an On-Off button in either the objed or the object list window
@@ -366,7 +373,8 @@ void imodvObjedHelp()
      "object, all objects at once, or just the objects that are "
      "currently turned On.  Features that can be edited in tandem for "
      "many objects include: point size, line width, material "
-     "properties, and drawing data type and style."
+     "properties, and drawing data type and style.  Line color can also be "
+     "changed in tandem if a separate check box is selected."
      "\n\n"
      "The name of each object can be edited using the text edit box."
      "\n\n",
@@ -400,7 +408,12 @@ void imodvObjedHelp()
      "easily generate artifacts.  To minimize these artifacts, the back "
      "face of the object will not be displayed unless the "
      "\"Light Both Sides\" button is selected in the \"Fill "
-     "Color\" panel.  Try it both ways to see which looks best.\n\n",
+     "Color\" panel.  Try it both ways to see which looks best.  "
+     "By default, color changes will be applied to only one object in one "
+     "model.  Check \"Change multiple objects\" to modify more than one object"
+     " at a time.   The setting of the \"Edit\" combo box and the \"Edit\" "
+     "radio buttons in the Model Edit window will then control which objects "
+     "are changed together with the current object.\n\n",
 
      "\tFill color: Adjust the fill color of the current object.  "
      "If \"Use Fill Color\" is not selected the line color settings "
@@ -438,11 +451,28 @@ void imodvObjedHelp()
      "values with a false color rather than gray scale intensity "
      "ramp.\n\n",
 
-     "\tClip: Toggles clip planes on/off for each object.  The "
-     "\"Reset\" button moves the plane back to its default location "
-     "and orientation through the middle of the object.  The \"Invert\""
-     " button inverts the direction  of the clipping plane.\n\n"
-
+     "\tClip: These controls allow you to set up clipping planes for an "
+     "individual "
+     "object as well as global clipping planes that will be applied to all "
+     "objects.  Use the \"Object\" and \"Global\" radio buttons to select "
+     "whether to adjust global planes or planes for the current object.  "
+     "If you want the current object to be clipped only by its own planes "
+     "and not by any global planes, turn on \"Skip global planes\".  "
+     "The spin box allows you select the current plane, the one that is "
+     "adjusted by the remaining controls.  Use \"Clipping plane ON\" to "
+     "toggle the current clipping plane on or off.  The "
+     "\"Reset\" button moves the plane back to its default location and "
+     "orientation through the middle of the object or model.  The \"Invert\""
+     " button inverts the direction of the clipping plane.\n"
+     "\tOnce the current plane is turned on, hold down the "CTRL_STRING" key "
+     "to move and rotate the plane instead of the model.  Use the left mouse "
+     "button or the arrow keys to move the plane, and the middle mouse button "
+     "or the keypad keys to rotate the plane.\n"
+     "\tUp to 6 clipping planes may be defined for each object, as well as 6 "
+     "global planes.  However, the OpenGL implementation on your machine "
+     "limits the total number of planes that can be applied to an object.  "
+     "There are guaranteed to be at least 6 but probably are only 6.  If this "
+     "limit comes into play, object planes count first toward the limit.\n\n"
 
      "\tMaterial: "
      "The Ambient slider adjusts ambient, or non-directional, light "
@@ -532,7 +562,11 @@ static void setOnoffButtons(void)
   char obname[MAX_LIST_NAME];
   int len;
   ImodvApp *a = Imodv;
- 
+  QColor bkgColor;
+  QColor gray;
+
+  if (numOolistButtons)
+    gray = Oolist_dialog->paletteBackgroundColor();
 
   for (ob = 0; ob < numOnoffButtons; ob++) {
     if (ob < a->imod->objsize)
@@ -546,17 +580,26 @@ static void setOnoffButtons(void)
   for (ob = 0; ob < numOolistButtons; ob++) {
     if (ob < a->imod->objsize) {
       // Get a truncated name
+      // DMN 9/20/04: just truncate all columns a little bit now
       len = strlen(a->imod->obj[ob].name);
-      if (len > oolist_name_limits[olistNcol - 1])
-        len = oolist_name_limits[olistNcol - 1];
+      // if (len > oolist_name_limits[olistNcol - 1])
+      //  len = oolist_name_limits[olistNcol - 1];
+      if (len > MAX_LIST_NAME - 1)
+        len = MAX_LIST_NAME - 1;
       strncpy(obname, a->imod->obj[ob].name, len);
       obname[len] = 0x00;
       qstr.sprintf("%d: %s",ob + 1, obname);
       OolistButtons[ob]->setText(qstr);
       state = !(a->imod->obj[ob].flags & IMOD_OBJFLAG_OFF);
-    } else
+      bkgColor.setRgb((int)(255. * a->imod->obj[ob].red),
+                      (int)(255. * a->imod->obj[ob].green),
+                      (int)(255. * a->imod->obj[ob].blue));
+    } else {
       state = false;
+      bkgColor = gray;
+    }
     OolistButtons[ob]->setEnabled(ob < a->imod->objsize);
+    OolistButtons[ob]->setPaletteBackgroundColor(bkgColor);
     diaSetChecked(OolistButtons[ob], state);
   }
 }
@@ -673,38 +716,74 @@ void imodvObjedMakeOnOffs(QFrame *frame)
  *******************************************************************/
 static char *rgbTitles[] = {"Red", "Green", "Blue", "Transparency"};
 static MultiSlider *lineSliders;
-
+static bool multipleColorOK = false;
 
 void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
 {
+  int m, mst, mnd, ob, numChanged = 0;
+  float red, green, blue;
   Iobj *obj = Imodv->obj;
-  
+
+  // Compose the entire modified RGB triplet so all objects will change color
+  // together if desired
+  red = obj->red;
+  green = obj->green;
+  blue = obj->blue;
   switch(color){
   case 0:
-    obj->red = value / 255.0;
+    red = value / 255.0;
     break;
   case 1:
-    obj->green = value / 255.0;
+    green = value / 255.0;
     break;
   case 2:
-    obj->blue = value / 255.0;
+    blue = value / 255.0;
     break;
   case 3:
-    obj->trans = value;
-    if (Imodv->crosset)
-      for(int m = 0; m < Imodv->nm; m++)
-        if (Imodv->mod[m]->objsize > Imodv->ob)
-          Imodv->mod[m]->obj[Imodv->ob].trans = value;
     break;
   }
+
+  setStartEndModel(mst, mnd, multipleColorOK);
+    
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob, multipleColorOK)) {
+        obj = &(Imodv->mod[m]->obj[ob]);
+        numChanged++;
+        if (color < 3) {
+          obj->red = red;
+          obj->green = green;
+          obj->blue = blue;
+        } else
+          obj->trans = value;
+      }
+  }
+
+  obj = Imodv->obj;
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     objset(Imodv);
     imodvDraw(Imodv);
+    imodvDrawImodImages();
+
+    // Update all buttons if more than one changed, otherwise just the one
+    if (color < 3) {
+      if (numChanged > 1)
+        setOnoffButtons();
+      else if (Imodv->ob < numOolistButtons)
+        OolistButtons[Imodv->ob]->setPaletteBackgroundColor
+          (QColor((int)(255 * obj->red), (int)(255 * obj->green),
+                  (int)(255 * obj->blue)));
+    }
   } else if (color < 3)
     objed_dialog->updateColorBox(QColor((int)(255 * obj->red),
                                         (int)(255 * obj->green),
                                         (int)(255 * obj->blue)));
+}
+
+void ImodvObjed::multipleColorSlot(bool state)
+{
+  multipleColorOK = state;
 }
 
 static void setLineColor_cb(void)
@@ -726,10 +805,19 @@ static void mkLineColor_cb(int index)
   lineSliders = new MultiSlider(oef->control, 4, rgbTitles);
   lineSliders->setRange(3, 0,100);    // Transparency
   layout1->addLayout(lineSliders->getLayout());
-  finalSpacer(oef->control, layout1);
+  QObject::connect(lineSliders, SIGNAL(sliderChanged(int, int, bool)), 
+                   &imodvObjed, SLOT(lineColorSlot(int, int, bool)));
+  
+  QCheckBox *check = diaCheckBox("Change multiple objects", oef->control,
+                                 layout1);
+  QObject::connect(check, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(multipleColorSlot(bool)));
+  diaSetChecked(check, multipleColorOK);
+  QToolTip::add(check, "Apply color changes to all objects, all objects that "
+                "are on, or objects in multiple models");
 
-  QObject::connect(lineSliders, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
-          SLOT(lineColorSlot(int, int, bool)));
+  //finalSpacer(oef->control, layout1);
+
 }
 
 
@@ -782,6 +870,8 @@ static void mkFillColor_cb(int index)
                                          FIELD_SPACING, "fill color layout");
   fillSliders = new MultiSlider(oef->control, 3, rgbTitles);
   layout1->addLayout(fillSliders->getLayout());
+  QObject::connect(fillSliders, SIGNAL(sliderChanged(int, int, bool)), 
+                   &imodvObjed, SLOT(fillColorSlot(int, int, bool)));
 
   wFillToggle = diaCheckBox("Use Fill Color", oef->control, layout1);
   QObject::connect(wFillToggle, SIGNAL(toggled(bool)), &imodvObjed, 
@@ -791,8 +881,6 @@ static void mkFillColor_cb(int index)
 
   finalSpacer(oef->control, layout1);
 
-  QObject::connect(fillSliders, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
-          SLOT(fillColorSlot(int, int, bool)));
 }
 
 
@@ -1175,47 +1263,104 @@ static void mkScalar_cb(int index)
  * The clip edit field
  *****************************************************************************/
 static QCheckBox *wClipToggle;
+static QCheckBox *wClipSkipGlobal;
+static QButtonGroup *wClipGlobalGroup;
+static QSpinBox *wClipPlaneSpin;
+
+void ImodvObjed::clipGlobalSlot(int value)
+{
+  Imodv->imod->editGlobalClip = value;
+  setClip_cb();
+}
+
+void ImodvObjed::clipSkipSlot(bool state)
+{
+  Iobj *obj = objedObject();     
+  if (state)
+    obj->clips.flags |= (1 << 7);
+  else
+    obj->clips.flags &= ~(1 << 7);
+  imodvDraw(Imodv);
+}
+
+void ImodvObjed::clipPlaneSlot(int value)
+{
+  Iobj *obj = objedObject();     
+  objed_dialog->setFocus();
+  if (Imodv->imod->editGlobalClip)
+    Imodv->imod->view->clips.plane = value - 1;
+  else 
+    obj->clips.plane = value - 1;
+  setClip_cb();
+}
 
 void ImodvObjed::clipResetSlot()
 {
-  Iobj *obj = objedObject();     
   Ipoint min, max, mid;
+  int ip;
+  IclipPlanes *clips;
+  Iobj *obj = objedObject();     
 
-  imodObjectGetBBox(obj, &min, &max);
+  if (Imodv->imod->editGlobalClip) {
+    clips = &Imodv->imod->view->clips;
+    imodGetBoundingBox(Imodv->imod, &min, &max);
+  } else {
+    clips = &obj->clips;
+    imodObjectGetBBox(obj, &min, &max);
+  }
      
   mid.x = (max.x + min.x) * -0.5f;
   mid.y = (max.y + min.y) * -0.5f;
   mid.z = (max.z + min.z) * -0.5f;
-  obj->clip_point = mid;
-  obj->clip_normal.x = obj->clip_normal.y = 0.0f;
-  obj->clip_normal.z = -1.0f;
+  ip = clips->plane;
+  clips->point[ip] = mid;
+  clips->normal[ip].x = clips->normal[ip].y = 0.0f;
+  clips->normal[ip].z = -1.0f;
   imodvDraw(Imodv);
 }
 
 void ImodvObjed::clipInvertSlot()
 {
   Iobj *obj = objedObject();     
-  obj->clip_normal.x = -obj->clip_normal.x;
-  obj->clip_normal.y = -obj->clip_normal.y;
-  obj->clip_normal.z = -obj->clip_normal.z;
+  IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
+    &Imodv->imod->view->clips : &obj->clips;
+  int ip = clips->plane;
+  clips->normal[ip].x = -clips->normal[ip].x;
+  clips->normal[ip].y = -clips->normal[ip].y;
+  clips->normal[ip].z = -clips->normal[ip].z;
   imodvDraw(Imodv);
 }
 
 void ImodvObjed::clipToggleSlot(bool state)
 {
   Iobj *obj = objedObject();     
+  int ip;
   if (!obj)
     return;
+  IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
+    &Imodv->imod->view->clips : &obj->clips;
+  ip = clips->plane;
      
   if (!state)
-    obj->clip = 0;
+    clips->flags &= ~(1 << ip);
   else {
-    obj->clip = 1;
+    clips->flags |= (1 << ip);
+
+    // When a plane is turned on, increment clip count to include it
+    if (ip == clips->count) {
+      clips->count++;
+      setClip_cb();
+    }
+    /* imodPrintStderr("plane %d  flags %d  count %d\n", ip, clips->flags,
+       clips->count); */
     /* DNM: if this is the first time it's been turned on, set to
        middle of object */
-    if (obj->clip_point.x == 0.0 && obj->clip_point.y == 0.0 &&
-        obj->clip_point.z == 0.0 && obj->clip_normal.x == 0.0 &&
-        obj->clip_normal.y == 0.0 && obj->clip_normal.z == -1.0) {
+    /* imodPrintStderr("%f %f %f %f %f %f\n", clips->point[ip].x,
+                    clips->point[ip].y, clips->point[ip].z, clips->normal[ip].x,
+                    clips->normal[ip].y, clips->normal[ip].z); */
+    if (clips->point[ip].x == 0.0 && clips->point[ip].y == 0.0 &&
+        clips->point[ip].z == 0.0 && clips->normal[ip].x == 0.0 &&
+        clips->normal[ip].y == 0.0 && clips->normal[ip].z == -1.0) {
       clipResetSlot();
       return;
     }
@@ -1226,10 +1371,26 @@ void ImodvObjed::clipToggleSlot(bool state)
 
 static void setClip_cb(void)
 {
+  int max = IMOD_CLIPSIZE;
+  bool editGlobal = Imodv->imod->editGlobalClip != 0;
   Iobj *obj = objedObject();
-  if (!obj) return;
+  if (!obj) 
+    return;
+  IclipPlanes *clips = editGlobal ? &Imodv->imod->view->clips : &obj->clips;
+  
+  diaSetGroup(wClipGlobalGroup, editGlobal);
+  wClipSkipGlobal->setEnabled(!editGlobal);
+  diaSetChecked(wClipSkipGlobal, !editGlobal && (clips->flags & (1 << 7)));
 
-  diaSetChecked(wClipToggle, obj->clip != 0);
+  // Set spin box max to one past number of clip planes up to max size
+  wClipPlaneSpin->blockSignals(true);
+  if (max > clips->count + 1)
+    max = clips->count + 1;
+  wClipPlaneSpin->setMaxValue(max);
+  wClipPlaneSpin->setValue(clips->plane + 1);
+  wClipPlaneSpin->blockSignals(false);
+
+  diaSetChecked(wClipToggle, (clips->flags & (1 << clips->plane)) != 0);
 }
 
 static void mkClip_cb(int index)
@@ -1240,26 +1401,69 @@ static void mkClip_cb(int index)
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "clip layout");
 
-  wClipToggle = diaCheckBox("Turn clipping plane On", oef->control, layout1);
+  // Set up the radio button in a group box
+  wClipGlobalGroup = new QHButtonGroup("Planes to edit", oef->control);
+  layout1->addWidget(wClipGlobalGroup);
+  wClipGlobalGroup->setInsideMargin(4);
+  QRadioButton *radio = diaRadioButton("Object", wClipGlobalGroup);
+  wClipGlobalGroup->insert(radio);
+  QToolTip::add(radio, "Adjust object clip planes");
+  radio = diaRadioButton("Global", wClipGlobalGroup);
+  wClipGlobalGroup->insert(radio);
+  QToolTip::add(radio, "Adjust global clip planes, applied to whole model");
+  QObject::connect(wClipGlobalGroup, SIGNAL(clicked(int)), &imodvObjed, 
+                   SLOT(clipGlobalSlot(int)));
+
+  // The skip global planes checkbox
+  wClipSkipGlobal = diaCheckBox("Skip global planes", oef->control, layout1);
+  QObject::connect(wClipSkipGlobal, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(clipSkipSlot(bool)));
+  QToolTip::add(wClipSkipGlobal, 
+                "Do not apply any global clipping planes to this object");
+
+  // Set up the spin button
+  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+  QLabel *label = new QLabel("Plane #", oef->control);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  wClipPlaneSpin = new QSpinBox(1, 1, 1, oef->control, "clip plane spin");
+  hLayout->addWidget(wClipPlaneSpin);
+  wClipPlaneSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(wClipPlaneSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(clipPlaneSlot(int)));
+  QToolTip::add(wClipPlaneSpin, "Select plane to adjust");
+  QHBox *spacer = new QHBox(oef->control);
+  hLayout->addWidget(spacer);
+  hLayout->setStretchFactor(spacer, 100);
+
+  // The ON/OFF checkbox
+  wClipToggle = diaCheckBox("Clipping plane ON", oef->control, layout1);
   QObject::connect(wClipToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipToggleSlot(bool)));
-  QToolTip::add(wClipToggle, "Toggle clipping plane for this object");
+  QToolTip::add(wClipToggle, "Toggle selected clipping plane");
 
-  button = diaPushButton("Reset to Center", oef->control, layout1);
+  // reset and invert buttons
+  hLayout = new QHBoxLayout(layout1);
+  button = new QPushButton("Reset", oef->control);
+  hLayout->addWidget(button);
+  button->setFocusPolicy(QWidget::NoFocus);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(clipResetSlot()));
-  QToolTip::add(button, "Shift clipping plane back to center of object");
+  QToolTip::add(button, "Reset clipping plane back to X/Y plane through center "
+                "of object or model");
 
-  button = diaPushButton("Invert Polarity", oef->control, layout1);
+  button = new QPushButton("Invert", oef->control);
+  hLayout->addWidget(button);
+  button->setFocusPolicy(QWidget::NoFocus);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed,
                    SLOT(clipInvertSlot()));
   QToolTip::add(button, 
                 "Make clipped part visible, clip visible part of object");
 
-  diaLabel("Hold down the "CTRL_STRING" Key", oef->control, layout1);
-  diaLabel("to move & rotate clip", oef->control, layout1);
-  diaLabel("plane with mouse or", oef->control, layout1);
-  diaLabel("keypad & arrow keys", oef->control, layout1);
+  diaLabel("Press "CTRL_STRING" Key to adjust", oef->control, layout1);
+  //diaLabel("adjust with mouse or keys", oef->control, layout1);
+  //diaLabel("plane with mouse or", oef->control, layout1);
+  //diaLabel("keypad & arrow keys", oef->control, layout1); */
   finalSpacer(oef->control, layout1);
 }
 
@@ -1466,7 +1670,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   // Make the buttons, set properties and map them
   for (ob = 0; ob < numOolistButtons; ob++) {
     qstr.sprintf("%d: ",ob + 1);
-    OolistButtons[ob] = new QCheckBox(qstr, Oolist_dialog);
+    OolistButtons[ob] = new QCheckBox(qstr, Oolist_dialog->mFrame);
     OolistButtons[ob]->setFocusPolicy(QWidget::NoFocus);
     Oolist_dialog->mGrid->addWidget(OolistButtons[ob], ob % nPerCol, 
                                     ob / nPerCol);
@@ -1475,6 +1679,24 @@ void imodvObjectListDialog(ImodvApp *a, int state)
                      SLOT(map()));
   }
   setOnoffButtons();
+
+  // Get sizes to adjust window size with
+  QSize svSize = Oolist_dialog->mScroll->sizeHint();
+  QSize frameSize = Oolist_dialog->mFrame->sizeHint();
+  Oolist_dialog->adjustSize();
+
+  // 4 pixels added was enough to prevent scroll bars
+  // If width is constrained, allow more height for horizontal scroll bar
+  int newWidth = Oolist_dialog->width() + frameSize.width() - svSize.width() + 8;
+  int newHeight = Oolist_dialog->height() + frameSize.height() - 
+    svSize.height() + 8;
+  if (newWidth > MAX_OOLIST_WIDTH) {
+    newWidth = MAX_OOLIST_WIDTH;
+    newHeight += 20;
+  }
+  if (newHeight > QApplication::desktop()->height() - 100)
+    newHeight = QApplication::desktop()->height() - 100;
+  Oolist_dialog->resize(newWidth, newHeight);
 
   window_name = imodwEithername("3dmodv Object List: ", a->imod->fileName, 1);
   if (window_name) {
@@ -1493,7 +1715,14 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
   QVBoxLayout *layout = new QVBoxLayout(this, 11, 6, "list layout");
-  mGrid = new QGridLayout(layout, 1, 1, 2, "list grid");
+
+  mScroll = new QScrollView(this);
+  layout->addWidget(mScroll);
+  mFrame = new QFrame(mScroll->viewport());
+  mScroll->addChild(mFrame);
+  mScroll->viewport()->setPaletteBackgroundColor
+    (mFrame->paletteBackgroundColor());
+  mGrid = new QGridLayout(mFrame, 1, 1, 0, 2, "list grid");
 
   // Make a line
   QFrame *line = new QFrame(this);
@@ -1561,24 +1790,26 @@ static void setObjFlag(long flag, int state)
   }
 }
 
-/* Maintain Imodv->ob and set the starting and ending model to change */
-static void setStartEndModel(int &mst, int &mnd)
+/* Maintain Imodv->ob and set the starting and ending model to change based 
+   on global flags and possible flag for individual entity*/
+static void setStartEndModel(int &mst, int &mnd, bool multipleOK)
 {
   if (Imodv->ob > (Imodv->imod->objsize - 1))
     Imodv->ob = Imodv->imod->objsize - 1;
 
   mst = 0;
   mnd = Imodv->nm - 1;
-  if (!Imodv->crosset)
+  if (!(Imodv->crosset && multipleOK))
     mst = mnd = Imodv->cm;
 }
 
-/* test whether the object ob should be changed in model m */
-static bool changeModelObject(int m, int ob)
+/* test whether the object ob should be changed in model m based on global
+   flags and possible flag for individual entity */
+static bool changeModelObject(int m, int ob, bool multipleOK)
 {
-  return ((ob == Imodv->ob) || (Imodv_objed_all == editAll) || 
+  return ((ob == Imodv->ob) || (multipleOK && ((Imodv_objed_all == editAll) || 
       (Imodv_objed_all && 
-       !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF)));
+       !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF)))));
 }
 
 
@@ -1592,6 +1823,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.17  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.16  2004/04/28 05:28:52  mast
 Changes for drawing current contour thicker
 
