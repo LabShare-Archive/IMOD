@@ -485,13 +485,30 @@ void XyzWindow::B2Press(int x, int y)
     cont = imodContourGet(xx->vi->imod);
     if (!cont)
       return;
+    if (iobjFlagTime(obj)){
+      cont->type = xx->vi->ct;
+      cont->flags |= ICONT_TYPEISTIME;
+    }
   }
+
+  /* If contour is empty and time doesn't match, 
+     reassign it to the current time */
+  if (zapTimeMismatch(xx->vi, 0, obj, cont) && !cont->psize)
+    cont->type = xx->vi->ct;
+
+  /* Now if times still don't match refuse the point */
+  if (zapTimeMismatch(xx->vi, 0, obj, cont)) {
+    wprint("\aContour time does not match current time.\n"
+	   "Set contour time to 0 to model across times.\n");
+    return;
+  }
+
 
   /* DNM: don't make closed contours wild if they're not */
   if (cont->psize &&  iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)
       && cont->pts[0].z != mz) {
     wprint("\aXYZ will not add a point on a different section to"
-           " a co-planar closed contour");
+           " a co-planar closed contour.\n");
     return;
   }
   point.x = mx;
@@ -520,7 +537,8 @@ void XyzWindow::B3Press(int x, int y)
   struct xxyzwin *xx = mXyz;
   int mx, my, mz;
   int movie;
-  struct Mod_Contour *cont;
+  Icont *cont;
+  Iobj *obj;
   int pt;
 
   movie = Getxyz(x, y, &mx, &my, &mz);
@@ -558,14 +576,20 @@ void XyzWindow::B3Press(int x, int y)
   if (movie != 3)
     return;
 
+  
+  obj = imodObjectGet(xx->vi->imod);
   cont = imodContourGet(xx->vi->imod);
   pt   = xx->vi->imod->cindex.point;
-  if (!cont)
+  if (!cont || !obj)
     return;
   if (pt < 0)
     return;
   if (!ivwPointVisible(xx->vi, &(cont->pts[pt])))
     return;
+
+  if (zapTimeMismatch(xx->vi, 0, obj, cont))
+    return;
+
          
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
@@ -672,13 +696,14 @@ void XyzWindow::B2Drag(int x, int y)
   if (pt < 0)
     return;
 
+  if (zapTimeMismatch(xx->vi, 0, obj, cont))
+    return;
+
   /* DNM: don't make closed contours wild if they're not */
   if (cont->psize &&  iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)
-      && cont->pts[0].z != mz) {
-    wprint("\aXYZ will not add a point on a different section to"
-           " a co-planar closed contour");
+      && cont->pts[0].z != mz)
     return;
-  }
+
   point.x = mx;
   point.y = my;
   point.z = mz;
@@ -739,6 +764,9 @@ void XyzWindow::B3Drag(int x, int y)
     return;
   pt = xx->vi->imod->cindex.point;
   if (pt < 0)
+    return;
+
+  if (zapTimeMismatch(xx->vi, 0, obj, cont))
     return;
 
   point.x = mx;
@@ -1063,6 +1091,9 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (!cont->psize)
     return;
      
+  if (zapTimeMismatch(vi, 0, obj, cont))
+    return;
+
   if (!iobjScat(obj->flags)) {
 
     /* Open or closed contours, if they are wild then need to test every
@@ -1366,9 +1397,10 @@ void XyzWindow::DrawCurrentPoint()
       (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
     psize = backupSize;
 
-
   /* Draw begin and end points of selected contour in model mode. */
-  if (xx->vi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1) {
+  if (xx->vi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1 &&
+      !zapTimeMismatch(xx->vi, 0, obj, cont)) {
+
     b3dColorIndex(App->bgnpoint);
     point = cont->pts;
 
@@ -1393,7 +1425,7 @@ void XyzWindow::DrawCurrentPoint()
      otherwise draw crosses at current mouse point */
   if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
           
-    if ((int)(pnt->z) == cz) {
+    if ((int)(pnt->z) == cz && !zapTimeMismatch(xx->vi, 0, obj, cont)) {
       b3dColorIndex(App->foreground);
     }else{
       b3dColorIndex(App->shadow);
@@ -1695,6 +1727,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.3  2003/03/07 15:49:55  mast
+Fixed bug in drawing curretn point when no current contour
+
 Revision 4.2  2003/03/03 22:09:49  mast
 Added grab bars to the sliders and color coded the sliders and boxes.
 Added ability to display spheres for any objects with point sizes.
