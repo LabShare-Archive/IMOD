@@ -396,7 +396,7 @@ Imod *LoadModelFile(char *filename) {
   Imod *imod;
   int nChars;
   QString qname;
-  char *filter[] = {"Model files (*.*mod *.fid)"};
+  char *filter[] = {"Model files (*.*mod *.fid *.seed)"};
   
   lastError = IMOD_IO_SUCCESS;
 
@@ -821,6 +821,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.16  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.15  2004/11/04 17:01:31  mast
 Changes for loading FFTs with internal mirroring
 
