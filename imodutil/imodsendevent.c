@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/14 00:13:43  mast
+    SGI compiler flushed out a bug.
+
     Revision 3.1  2002/09/13 21:56:06  mast
     Initial addition to package
 
@@ -40,6 +43,7 @@
 #include <X11/Xlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <imodel.h>
 
 static void send_error(int num)
 {
@@ -96,8 +100,9 @@ int main(int argc, char **argv)
      /* Fill in crucial information - the win IS needed */
      event.format = 32;
      event.type = ClientMessage;
-     event.data.l[0] = action;
-     event.data.l[1] = npackets;
+     event.data.l[0] = ID_IMOD;
+     event.data.l[1] = action;
+     event.data.l[2] = npackets;
      event.window = win;
 
      /* send event with permissive mask */
