@@ -40,6 +40,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/02/26 23:03:37  mast
+c	  When supplying extended header data, use the values of nint and nreal
+c	  to test whether it consists of shorts or ints and reals, and swap
+c	  appropriately
+c	
 c
 	SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
 	DIMENSION INXYZ(3),MXYZ(3),LXYZ(3),LABELS(1),NXYZST(3)

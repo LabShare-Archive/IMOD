@@ -16,6 +16,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/02/26 23:07:14  mast
+c	  Added test for whether piece coordinates are packed as shorts or
+c	  reals, and ability to retrieve them if they are reals
+c	
 c
 	subroutine get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,
      &	    ixpiece,iypiece,izpiece,npiece,maxpiece)
