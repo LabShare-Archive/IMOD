@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2003/04/16 00:14:40  rickg
+ * <p> Trimvol in progress
+ * <p>
  * <p> Revision 1.4  2003/04/14 23:57:44  rickg
  * <p> In progress
  * <p>
@@ -74,8 +77,9 @@ public class TrimvolPanel {
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
+  private JButton btnImodFull = new JButton("<html><b>Imod full volume</b>");
   private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
-  private JButton btnImodVolume = new JButton("<html><b>Imod volume</b>");
+  private JButton btnImodTrim = new JButton("<html><b>Imod trimmed volume</b>");
 
   /**
    * Default constructor
@@ -89,10 +93,12 @@ public class TrimvolPanel {
     //  Set the button sizes
     Dimension dimButton = new Dimension();
     dimButton.setSize(8 * height, 2 * height);
+    btnImodFull.setPreferredSize(dimButton);
+    btnImodFull.setMaximumSize(dimButton);
     btnTrimvol.setPreferredSize(dimButton);
     btnTrimvol.setMaximumSize(dimButton);
-    btnImodVolume.setPreferredSize(dimButton);
-    btnImodVolume.setMaximumSize(dimButton);
+    btnImodTrim.setPreferredSize(dimButton);
+    btnImodTrim.setMaximumSize(dimButton);
 
     //  Layout the range panel
     pnlRange.setLayout(new GridLayout(3, 2));
@@ -128,9 +134,11 @@ public class TrimvolPanel {
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnImodFull);
+    pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnTrimvol);
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodVolume);
+    pnlButton.add(btnImodTrim);
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
@@ -151,8 +159,9 @@ public class TrimvolPanel {
     rbScaleSection.addActionListener(radioButtonActonListener);
 
     ButtonActonListener buttonActonListener = new ButtonActonListener(this);
+    btnImodFull.addActionListener(buttonActonListener);
     btnTrimvol.addActionListener(buttonActonListener);
-    btnImodVolume.addActionListener(buttonActonListener);
+    btnImodTrim.addActionListener(buttonActonListener);
   }
 
   /**
@@ -170,10 +179,11 @@ public class TrimvolPanel {
   public void setParameters(TrimvolParam trimvolParam) {
     ltfXMin.setText(trimvolParam.getXMin());
     ltfXMax.setText(trimvolParam.getXMax());
-    ltfYMin.setText(trimvolParam.getYMin());
-    ltfYMax.setText(trimvolParam.getYMax());
-    ltfZMin.setText(trimvolParam.getZMin());
-    ltfZMax.setText(trimvolParam.getZMax());
+    //  Y and Z  are swapped to present the user with Z as the depth domain
+    ltfYMin.setText(trimvolParam.getZMin());
+    ltfYMax.setText(trimvolParam.getZMax());
+    ltfZMin.setText(trimvolParam.getYMin());
+    ltfZMax.setText(trimvolParam.getYMax());
     cbSwapYZ.setSelected(trimvolParam.isSwapYZ());
 
     if (trimvolParam.isFixedScaling()) {
@@ -196,10 +206,11 @@ public class TrimvolPanel {
   public void getParameters(TrimvolParam trimvolParam) {
     trimvolParam.setXMin(Integer.parseInt(ltfXMin.getText()));
     trimvolParam.setXMax(Integer.parseInt(ltfXMax.getText()));
-    trimvolParam.setYMin(Integer.parseInt(ltfYMin.getText()));
-    trimvolParam.setYMax(Integer.parseInt(ltfYMax.getText()));
-    trimvolParam.setZMin(Integer.parseInt(ltfZMin.getText()));
-    trimvolParam.setZMax(Integer.parseInt(ltfZMax.getText()));
+    //  Y and Z  are swapped to present the user with Z as the depth domain
+    trimvolParam.setYMin(Integer.parseInt(ltfZMin.getText()));
+    trimvolParam.setYMax(Integer.parseInt(ltfZMax.getText()));
+    trimvolParam.setZMin(Integer.parseInt(ltfYMin.getText()));
+    trimvolParam.setZMax(Integer.parseInt(ltfYMax.getText()));
     trimvolParam.setSwapYZ(cbSwapYZ.isSelected());
     
     if (rbScaleFixed.isSelected()) {
@@ -246,12 +257,16 @@ public class TrimvolPanel {
   }
 
   private void buttonAction(ActionEvent event) {
+    if (event.getActionCommand() == btnImodFull.getActionCommand()) {
+      applicationManager.imodFullVolume();
+    }
+
     if (event.getActionCommand() == btnTrimvol.getActionCommand()) {
       applicationManager.trimVolume();
     }
 
-    if (event.getActionCommand() == btnImodVolume.getActionCommand()) {
-      //applicationManager.imodVolume();
+    if (event.getActionCommand() == btnImodTrim.getActionCommand()) {
+      applicationManager.imodTrimmedVolume();
     }
 
   }
