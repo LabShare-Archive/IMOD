@@ -759,8 +759,8 @@ void imod_imgcnt(char *string)
   // next time; stop when empty string is passed
   if (dumpCache) {
     if (!startDump)
-      ivwDumpFileSysCache(App->cvi->image->fp);
-    ivwGetFileStartPos(App->cvi->image->fp);
+      ivwDumpFileSysCache(App->cvi->image);
+    ivwGetFileStartPos(App->cvi->image);
     if (startDump)
       startDump--;
     if (string[0] == 0x00)
@@ -770,6 +770,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.13  2004/10/22 22:16:59  mast
+Added logic to dump file system cache after each call to imod_imgcnt
+
 Revision 4.12  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
