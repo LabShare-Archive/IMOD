@@ -15,7 +15,10 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/11/30 00:33:51  sueh
+* <p> bug# 556 Object to parse the first set commmand in volcombine.com.
+* <p> </p>
 */
 public class ConstSetParam {
   public static  final String  rcsid =  "$Id$";
@@ -29,6 +32,7 @@ public class ConstSetParam {
   protected EtomoNumber numericValue = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
   protected String value;
   protected boolean numeric = false;
+  protected boolean valid = true;
   
   public ConstSetParam(String expectedName, int etomoNumberType) {
     this.etomoNumberType = etomoNumberType;
@@ -44,6 +48,11 @@ public class ConstSetParam {
     name = "";
     value = "";
     numericValue.reset();
+    valid = true;
+  }
+  
+  public boolean isValid() {
+    return valid;
   }
   
   public String getValue(boolean displayDefault) {

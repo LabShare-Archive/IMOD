@@ -15,7 +15,10 @@ import java.util.ArrayList;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/11/30 00:34:02  sueh
+* <p> bug# 556 Object to parse the first set commmand in volcombine.com.
+* <p> </p>
 */
 public class SetParam extends ConstSetParam implements CommandParam {
   public static final String rcsid = "$Id$";
@@ -37,8 +40,7 @@ public class SetParam extends ConstSetParam implements CommandParam {
 
     name = cmdLineArgs[0];
     if (expectedName != null && !name.equals(expectedName)) {
-      throw new InvalidParameterException("Expecting " + expectedName
-          + ", not " + name);
+      valid = false;
     }
 
     if (!cmdLineArgs[1].equals(delimiter)) {
@@ -46,7 +48,7 @@ public class SetParam extends ConstSetParam implements CommandParam {
           + cmdLineArgs[1]);
     }
     if (cmdLineArgs.length > 2) {
-      if (numeric) {
+      if (numeric && valid) {
         numericValue.set(cmdLineArgs[2]);
       }
       else {
