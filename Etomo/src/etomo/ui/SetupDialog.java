@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2004/11/20 00:04:14  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.17.2.3  2004/10/11 02:18:09  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -234,6 +237,7 @@ import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
+import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.SectionType;
 import etomo.type.ViewType;
@@ -314,7 +318,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
-    super(appMgr, AxisID.ONLY);
+    super(appMgr, AxisID.ONLY, DialogType.SETUP);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 

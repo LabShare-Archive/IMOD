@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/12/02 20:37:18  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.11  2004/11/19 23:49:54  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -116,6 +120,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 
 public class CoarseAlignDialog extends ProcessDialog
     implements ContextMenu, FiducialessParams {
@@ -145,7 +150,7 @@ public class CoarseAlignDialog extends ProcessDialog
     "<html><b>Fix Alignment<br>With Midas</b>");
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
-    super(appMgr, axisID);
+    super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
     setToolTipText();
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID);

@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/15 20:33:55  rickg
+ * <p> button variable name changes to btn...
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -85,7 +88,7 @@ public class PreProcessingDialog extends ProcessDialog {
   private CCDEraserPanel panelCCDEraser;
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
-    super(appManager, axisID);
+    super(appManager, axisID, DialogType.PRE_PROCESSING);
     panelCCDEraser = new CCDEraserPanel(appManager, axisID);
     
     fixRootPanel(rootSize);

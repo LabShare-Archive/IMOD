@@ -16,6 +16,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 
 /**
  * <p>Description: </p>
@@ -30,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/12/30 18:37:27  sueh
+ * <p> bug# 567 Make space between the two rows of buttons.
+ * <p>
  * <p> Revision 3.6  2004/12/30 18:00:31  sueh
  * <p> bug# 567 Changing the buttons so they in two rows of two.
  * <p>
@@ -199,7 +203,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     "<html><b>View Residual Vectors</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
-    super(appMgr, axisID);
+    super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
     fixRootPanel(rootSize);
 
     pnlTiltalign =

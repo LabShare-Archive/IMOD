@@ -7,6 +7,7 @@ import javax.swing.*;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.TransferfidParam;
@@ -25,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/12/02 20:39:29  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.5  2004/11/19 23:53:35  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -148,7 +153,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   private boolean transferfidEnabled = false;
 
   public FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
-    super(appMgr, axisID);
+    super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
     setToolTipText();
     fixRootPanel(rootSize);
 

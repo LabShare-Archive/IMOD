@@ -24,6 +24,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 
 /**
  * <p>Description: </p>
@@ -38,6 +39,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2004/12/03 20:23:31  sueh
+ * <p> bug# 556 Support older versions of volcombine.com.  Added enableReductionFactor() to
+ * <p> disable ReductionFactor when the set param is missing or invalid.
+ * <p>
  * <p> Revision 3.16  2004/12/02 20:42:31  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -200,7 +205,7 @@ public class TomogramCombinationDialog
   private int idxLastTab;
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
-    super(appMgr, AxisID.FIRST);
+    super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
 
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager);

@@ -11,6 +11,7 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.TomogramState;
 
 /**
@@ -26,6 +27,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/01/12 00:45:42  sueh
+ * <p> bug# 579 Renamed TomogramState.getBackwordCompatible...() functions
+ * <p> to ...BackwardCompatible...
+ * <p>
  * <p> Revision 3.9  2005/01/10 23:56:32  sueh
  * <p> bug# 578 Modified isSqueezevolFlipped() and isTrimvolFlipped().
  * <p>
@@ -123,7 +128,7 @@ public class PostProcessingDialog
   private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(this);
   
   public PostProcessingDialog(ApplicationManager appMgr) {
-    super(appMgr, AxisID.ONLY);
+    super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));

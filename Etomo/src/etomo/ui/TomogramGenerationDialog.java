@@ -35,6 +35,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
+import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.util.InvalidParameterException;
 
@@ -58,6 +59,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.31  2005/01/12 18:35:32  sueh
+ * bug# 505 Added ltfExtraExcludeList.
+ *
  * Revision 3.30  2005/01/12 02:39:20  sueh
  * bug# 579 setting use local alignment correctly
  *
@@ -405,7 +409,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   "Extra views to exclude: ");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
-    super(appMgr, axisID);
+    super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");

@@ -24,6 +24,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -41,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2004/12/29 00:16:56  sueh
+ * <p> bug# 567 Adapting to new tiltalignParam.
+ * <p>
  * <p> Revision 3.21  2004/12/09 04:58:45  sueh
  * <p> bug# 565 Removed BaseManager.isDataParamDirty.  Automatically
  * <p> saving to param file on exit.
@@ -233,7 +237,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     "Build 3 sample tomograms for finding location and angles of section.";
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
-    super(appMgr, axisID);
+    super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
     fixRootPanel(rootSize);
     
     prealiHeader = appMgr.getMrcHeader(axisID, ".preali");
