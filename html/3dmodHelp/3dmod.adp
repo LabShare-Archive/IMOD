@@ -13,7 +13,7 @@
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>
-    <section ref="./modelMovie.html" title="Model Movie & Montage Control"/>
+    <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
     <section ref="./depthcue.html" title="Depth Cueing"/>
 </DCF>
 
