@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2004/10/07 16:18:30  mast
+#  Added tomosnapshot
+#
 #  Revision 3.12  2004/07/21 04:58:04  mast
 #  Added splittilt and splitcombine
 #
@@ -49,7 +52,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- chunksetup processchunks splittilt splitcombine tomosnapshot\
+ chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
  $(GENERATED_SCRIPTS)
 
 all:
