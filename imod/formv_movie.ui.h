@@ -29,19 +29,21 @@ void imodvMovieForm::init()
   endEdits[8] = ySliceEnd;
   endEdits[9] = zSliceEnd;
   if (Imodv->standalone) {
-    for (int i = 7; i < 10; i++) {
+    
+    // A hide alone was not good enough somewhere (Windows?)
+    // removing from layout was good but not available in Qt 3.0, so set height instead
+   for (int i = 7; i < 10; i++) {
       startEdits[i]->hide();
       endEdits[i]->hide();
-      bigLayout->remove(startEdits[i]);
-      bigLayout->remove(endEdits[i]);
+      startEdits[i]->setFixedHeight(1);
+      endEdits[i]->setFixedHeight(1);
     }
-    // removing from layout was good but not available in Qt 3.0
     xSliceLabel->hide();
     ySliceLabel->hide();
     zSliceLabel->hide();
-    xSliceLabel->setMaximumHeight(1);
-    ySliceLabel->setMaximumHeight(1);
-    zSliceLabel->setMaximumHeight(1);
+    xSliceLabel->setFixedHeight(1);
+    ySliceLabel->setFixedHeight(1);
+    zSliceLabel->setFixedHeight(1);
   }
   adjustSize();
 }  
