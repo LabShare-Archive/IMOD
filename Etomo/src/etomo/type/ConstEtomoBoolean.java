@@ -19,6 +19,12 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/29 00:04:09  sueh
+* <p> bug# 567 Added update(ComScriptCommand) to update value where the
+* <p> keyword in ComScriptCommand equals name.  The value can be placed
+* <p> in ComScriptCommand as a number or a string, or it can be added/deleted
+* <p> based on value.
+* <p>
 * <p> Revision 1.2  2004/12/16 02:27:28  sueh
 * <p> bug# 564 Remove recommendedValue.  Use resetValue instead.  Added
 * <p> is().
@@ -260,7 +266,8 @@ public abstract class ConstEtomoBoolean implements Storable {
     if (value.equals("true") || value.equals("t") || value.equals("yes")) {
       return 1;
     }
-    if (value.equals("false") || value.equals("f") || value.equals("no")) {
+    if (value.equals("false") || value.equals("f") || value.equals("no")
+        || value.matches("\\s*")) {
       return 0;
     }
     long longValue;
