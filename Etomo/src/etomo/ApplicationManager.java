@@ -74,6 +74,13 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.68  2003/10/02 18:57:46  sueh
+ * <p> bug236 added testing:
+ * <p> NewstParamTest
+ * <p> ComScriptTest
+ * <p>
+ * <p> Removed marks
+ * <p>
  * <p> Revision 2.67  2003/09/30 03:18:43  rickg
  * <p> Bug# 248
  * <p> changed openTestParamFile to loadTestParamFile
@@ -601,28 +608,26 @@ public class ApplicationManager {
       }
 
       // This is really the method to use the existing com scripts
-      if (exitState == DialogExitState.POSTPONE) {
-        metaData.setComScriptCreated(true);
-        processTrack.setSetupState(ProcessState.COMPLETE);
-      }
-      else {
+      if (exitState == DialogExitState.EXECUTE) {
         try {
           processMgr.setupComScripts(metaData);
-          processTrack.setSetupState(ProcessState.COMPLETE);
-          metaData.setComScriptCreated(true);
         }
         catch (BadComScriptException except) {
           except.printStackTrace();
           mainFrame.openMessageDialog(
             except.getMessage(),
             "Can't run copytomocoms");
+            return;
         }
         catch (IOException except) {
           mainFrame.openMessageDialog(
             "Can't run copytomocoms\n" + except.getMessage(),
             "Copytomocoms IOException");
+            return;
         }
       }
+			processTrack.setSetupState(ProcessState.COMPLETE);
+			metaData.setComScriptCreated(true);
     }
 
     //  Switch the main window to the procesing panel
