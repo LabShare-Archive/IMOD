@@ -339,6 +339,7 @@ while ($ifok == "0")
 	set tmpmatfile = $matfile
 	set sedtmpdir = ""
 	set sedmatfile = $matfile
+        set sedtempkey = "gibberish"
 	set ifok = "1"
     else
 	if (! -d $tmproot) then
@@ -353,6 +354,7 @@ while ($ifok == "0")
 	    set tmpmatfile = $tmppath$matfile
 	    set sedtmpdir = `echo $tmpdir | sed 's/\//\\\//g'`
 	    set sedmatfile = $sedtmpdir\\/$matfile
+            set sedtempkey = "TemporaryDir"
 	    set ifok = "1"
 	endif
     endif
@@ -427,7 +429,8 @@ sed -e s/$from_srcname/$fromname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
-    -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
+    -e "/$sedtempkey/s/\#//"\
+    -e "/OutputSizeXYZ/s/\//$size/g"\
     -e "/savework-file/s//$backupsed/g"\
 	<$srcdir/$matchvol1 | cat >$matchvol1
 
@@ -436,7 +439,8 @@ sed -e s/$from_srcname/$fromname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
-    -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
+    -e "/$sedtempkey/s/\#//"\
+    -e "/OutputSizeXYZ/s/\//$size/g"\
 	<$srcdir/$matchvol2 | cat >$matchvol2
 
 sed -e s/$from_srcname/$fromname/g\
@@ -444,7 +448,8 @@ sed -e s/$from_srcname/$fromname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
-    -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
+    -e "/$sedtempkey/s/\#//"\
+    -e "/OutputSizeXYZ/s/\//$size/g"\
 	<$srcdir/$warpvol | cat >$warpvol
 
 sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpatch] $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
@@ -600,6 +605,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.12  2003/05/23 00:38:25  mast
+#  Move creation of temporary directory into sub-command files
+#
 #  Revision 3.11  2003/05/20 21:39:47  mast
 #  Strip spaces from corresponding fiducial list
 #
