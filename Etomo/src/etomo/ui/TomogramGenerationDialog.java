@@ -1,9 +1,8 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.comscript.ConstTilt;
@@ -21,11 +20,16 @@ import etomo.comscript.TiltParam;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
-public class TomogramGenerationDialog extends ProcessDialog
+public class TomogramGenerationDialog
+  extends ProcessDialog
   implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   ApplicationManager applicationManager;
   JPanel contentPane;
@@ -42,8 +46,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   LabeledTextField ltfTomoThicknessA =
     new LabeledTextField("Tomogram thickness: ");
 
-  LabeledTextField ltfXAxisTiltA =
-    new LabeledTextField("X Axis Tilt: ");
+  LabeledTextField ltfXAxisTiltA = new LabeledTextField("X Axis Tilt: ");
 
   JCheckBox chkBoxUseLocalAlignmentA = new JCheckBox("Use local alignments");
 
@@ -62,8 +65,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   LabeledTextField ltfTomoThicknessB =
     new LabeledTextField("Tomogram thickness: ");
 
-  LabeledTextField ltfXAxisTiltB =
-    new LabeledTextField("X Axis Tilt: ");
+  LabeledTextField ltfXAxisTiltB = new LabeledTextField("X Axis Tilt: ");
 
   JCheckBox chkBoxUseLocalAlignmentB = new JCheckBox("Use local alignments");
 
@@ -79,7 +81,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
     setTitle("eTomo Tomogram Generation");
     buttonExecute.setText("Done");
-
 
     buttonNewstA.setAlignmentX(0.5F);
     buttonNewstA.addActionListener(new GenerationDialogNewstA(this));
@@ -146,12 +147,11 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   }
 
-
   /**
    * Populate the dialog box with the tilt paramaters
    */
   public void setTiltParams(ConstTilt tiltParam, AxisID axisID) {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
 
       ltfTomoThicknessB.setText(tiltParam.getThickness());
       ltfXAxisTiltB.setText(tiltParam.getXAxisTilt());
@@ -164,61 +164,57 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
   }
 
-
   /**
    * Get the tilt parameters from the requested axis panel
    */
   public void getTiltParams(TiltParam tiltParam, AxisID axisID)
-  throws NumberFormatException {
+    throws NumberFormatException {
 
     String currentAxisID = "unknown";
     try {
-      if(axisID == AxisID.SECOND) {
-	currentAxisID = "Axis B:";
-	tiltParam.setThickness(
-	  Integer.parseInt(ltfTomoThicknessB.getText()));
-	tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltB.getText()));
+      if (axisID == AxisID.SECOND) {
+        currentAxisID = "Axis B:";
+        tiltParam.setThickness(Integer.parseInt(ltfTomoThicknessB.getText()));
+        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltB.getText()));
 
-	if(chkBoxUseLocalAlignmentB.isSelected()) {
-	  tiltParam.setLocalAlignFile(
-	    applicationManager.getFilesetName() + "blocal.xf");
-	}
-	else {
-	  tiltParam.setLocalAlignFile("");
-	}
+        if (chkBoxUseLocalAlignmentB.isSelected()) {
+          tiltParam.setLocalAlignFile(
+            applicationManager.getFilesetName() + "blocal.xf");
+        }
+        else {
+          tiltParam.setLocalAlignFile("");
+        }
       }
 
       else {
-	currentAxisID = "Axis A:";
-	tiltParam.setThickness(
-	  Integer.parseInt(ltfTomoThicknessA.getText()));
-	tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltA.getText()));
+        currentAxisID = "Axis A:";
+        tiltParam.setThickness(Integer.parseInt(ltfTomoThicknessA.getText()));
+        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTiltA.getText()));
 
+        if (chkBoxUseLocalAlignmentA.isSelected()) {
+          if (axisID == AxisID.ONLY) {
+            tiltParam.setLocalAlignFile(
+              applicationManager.getFilesetName() + "local.xf");
+          }
+          else {
+            tiltParam.setLocalAlignFile(
+              applicationManager.getFilesetName() + "alocal.xf");
 
-	if(chkBoxUseLocalAlignmentA.isSelected()) {
-	  if(axisID == AxisID.ONLY) {
-	    tiltParam.setLocalAlignFile(
-	      applicationManager.getFilesetName() + "local.xf");
-	  }
-	  else {
-	    tiltParam.setLocalAlignFile(
-	      applicationManager.getFilesetName() + "alocal.xf");
-
-	  }
-	}
-	else {
-	  tiltParam.setLocalAlignFile("");
-	}
+          }
+        }
+        else {
+          tiltParam.setLocalAlignFile("");
+        }
       }
     }
-    catch(NumberFormatException except) {
+    catch (NumberFormatException except) {
       String message = currentAxisID + except.getMessage();
       throw new NumberFormatException(message);
     }
 
   }
 
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     panelTiltB.setVisible(state);
     pack();
     repaint();
@@ -228,14 +224,12 @@ public class TomogramGenerationDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      {"newst", "tilt", "imod"};
-    String[] manPage =
-      {"newst.html", "tilt.html", "imod.html"};
+    String[] manPagelabel = { "newst", "tilt", "imod" };
+    String[] manPage = { "newst.html", "tilt.html", "imod.html" };
 
     String[] logFileLabel;
     String[] logFile;
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       logFileLabel = new String[4];
       logFileLabel[0] = "newsta";
       logFileLabel[1] = "newstb";
@@ -257,14 +251,19 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
 
     ContextPopup contextPopup =
-      new ContextPopup(contentPane, mouseEvent,
-	manPagelabel, manPage, logFileLabel, logFile);
+      new ContextPopup(
+        contentPane,
+        mouseEvent,
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   //  Button action handler methods
   void buttonNewstA(ActionEvent event) {
 
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.newst(AxisID.FIRST);
     }
     else {
@@ -274,7 +273,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   void buttonTiltA(ActionEvent event) {
 
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.tilt(AxisID.FIRST, this);
     }
     else {
@@ -284,7 +283,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   void buttonImodA(ActionEvent event) {
 
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodTomogram(AxisID.FIRST);
     }
     else {
@@ -301,7 +300,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
 
   void buttonImodB(ActionEvent event) {
-     applicationManager.imodTomogram(AxisID.SECOND);
+    applicationManager.imodTomogram(AxisID.SECOND);
   }
 
   //  Action function overides for buttons
@@ -310,12 +309,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     applicationManager.doneTomogramGenerationDialog(this);
   }
 
-
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneTomogramGenerationDialog(this);
   }
-
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
@@ -323,9 +320,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
 }
 
-
-class GenerationDialogNewstA
-  implements ActionListener {
+class GenerationDialogNewstA implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
@@ -338,9 +333,7 @@ class GenerationDialogNewstA
   }
 }
 
-
-class GenerationDialogTiltA
-  implements ActionListener {
+class GenerationDialogTiltA implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
@@ -353,9 +346,7 @@ class GenerationDialogTiltA
   }
 }
 
-
-class GenerationDialogImodA
-  implements ActionListener {
+class GenerationDialogImodA implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
@@ -368,8 +359,7 @@ class GenerationDialogImodA
   }
 }
 
-class GenerationDialogNewstB
-  implements ActionListener {
+class GenerationDialogNewstB implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
@@ -382,9 +372,7 @@ class GenerationDialogNewstB
   }
 }
 
-
-class GenerationDialogTiltB
-  implements ActionListener {
+class GenerationDialogTiltB implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 
@@ -397,9 +385,7 @@ class GenerationDialogTiltB
   }
 }
 
-
-class GenerationDialogImodB
-  implements ActionListener {
+class GenerationDialogImodB implements ActionListener {
 
   TomogramGenerationDialog adaptee;
 

@@ -1,9 +1,8 @@
 package etomo.ui;
 
-import java.awt.*;
+
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.BeadtrackParam;
@@ -21,10 +20,14 @@ import etomo.comscript.FortranInputSyntaxException;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
-public class BeadtrackPanel implements ContextMenu  {
-  public static final String rcsid = "$Id$";
+public class BeadtrackPanel implements ContextMenu {
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panelBeadtrack = new JPanel();
   private String logSuffix;
@@ -53,8 +56,7 @@ public class BeadtrackPanel implements ContextMenu  {
     new LabeledTextField("Minimum number of views for tilt alignment: ");
   private LabeledTextField ltfFiducialParams =
     new LabeledTextField("Fiducial marker parameters: ");
-  JCheckBox chkboxFillGaps =
-    new JCheckBox("Fill seed model gaps");
+  JCheckBox chkboxFillGaps = new JCheckBox("Fill seed model gaps");
   private LabeledTextField ltfMaxGap =
     new LabeledTextField("Maximum gap size: ");
   private LabeledTextField ltfTiltAngleMinRange =
@@ -165,7 +167,6 @@ public class BeadtrackPanel implements ContextMenu  {
     ltfDeletionParams.setText(beadtrackParams.getDeletionParams());
   }
 
-
   public void getParameters(BeadtrackParam beadtrackParams)
     throws FortranInputSyntaxException {
     String badParameter = "";
@@ -183,14 +184,14 @@ public class BeadtrackPanel implements ContextMenu  {
 
       badParameter = ltfTiltAngleGroupSize.getLabel();
       beadtrackParams.setTiltAngleGroupSize(
-	Integer.parseInt(ltfTiltAngleGroupSize.getText()));
+        Integer.parseInt(ltfTiltAngleGroupSize.getText()));
 
       badParameter = ltfTiltAngleGroups.getLabel();
       beadtrackParams.setTiltAngleGroups(ltfTiltAngleGroups.getText());
 
       badParameter = ltfMagnificationGroupSize.getLabel();
       beadtrackParams.setMagnificationGroupSize(
-	Integer.parseInt(ltfMagnificationGroupSize.getText()));
+        Integer.parseInt(ltfMagnificationGroupSize.getText()));
 
       badParameter = ltfMagnificationGroups.getLabel();
       beadtrackParams.setMagnificationGroups(ltfMagnificationGroups.getText());
@@ -214,39 +215,39 @@ public class BeadtrackPanel implements ContextMenu  {
 
       badParameter = ltfMaxFiducialsAvg.getLabel();
       beadtrackParams.setMaxFiducialsAvg(
-	Integer.parseInt(ltfMaxFiducialsAvg.getText()));
+        Integer.parseInt(ltfMaxFiducialsAvg.getText()));
 
       badParameter = ltfFiducialExtrapolationParams.getLabel();
       beadtrackParams.setFiducialExtrapolationParams(
-	ltfFiducialExtrapolationParams.getText());
+        ltfFiducialExtrapolationParams.getText());
 
       badParameter = ltfRescueAttemptParams.getLabel();
       beadtrackParams.setRescueAttemptParams(ltfRescueAttemptParams.getText());
 
       badParameter = ltfMinRescueDistance.getLabel();
       beadtrackParams.setMinRescueDistance(
-	Integer.parseInt(ltfMinRescueDistance.getText()));
+        Integer.parseInt(ltfMinRescueDistance.getText()));
 
       badParameter = ltfRescueRelaxtionParams.getLabel();
       beadtrackParams.setRescueRelaxationParams(
-	ltfRescueRelaxtionParams.getText());
+        ltfRescueRelaxtionParams.getText());
 
       badParameter = ltfResidualDistanceLimit.getLabel();
       beadtrackParams.setResidualDistanceLimit(
-	Double.parseDouble(ltfResidualDistanceLimit.getText()));
+        Double.parseDouble(ltfResidualDistanceLimit.getText()));
 
       badParameter = ltfSecondPassParams.getLabel();
       beadtrackParams.setSecondPassParams(ltfSecondPassParams.getText());
 
       badParameter = ltfMeanResidChangeLimits.getLabel();
       beadtrackParams.setMeanResidChangeLimits(
-	ltfMeanResidChangeLimits.getText());
+        ltfMeanResidChangeLimits.getText());
 
       badParameter = ltfDeletionParams.getLabel();
       beadtrackParams.setDeletionParams(ltfDeletionParams.getText());
     }
-    catch(FortranInputSyntaxException except) {
-      String message = badParameter  + " " + except.getMessage();
+    catch (FortranInputSyntaxException except) {
+      String message = badParameter + " " + except.getMessage();
       throw new FortranInputSyntaxException(message);
     }
   }
@@ -255,15 +256,14 @@ public class BeadtrackPanel implements ContextMenu  {
     return panelBeadtrack;
   }
 
-  public void setVisible(boolean state){
+  public void setVisible(boolean state) {
     panelBeadtrack.setVisible(state);
   }
-
 
   /**
    * Makes the advanced components visible or invisible
    */
-  void setAdvanced(boolean state){
+  void setAdvanced(boolean state) {
     //  always visible components
     //ltfViewSkipList.setVisible(state);
     //ltfNAdditionalViewSets.setVisible(state);
@@ -296,19 +296,23 @@ public class BeadtrackPanel implements ContextMenu  {
 
   }
 
-
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"beadtrack"};
-    String[] manPage = {"beadtrack.html"};
-    String[] logFileLabel = {"track"};
+    String[] manPagelabel = { "beadtrack" };
+    String[] manPage = { "beadtrack.html" };
+    String[] logFileLabel = { "track" };
     String[] logFile = new String[1];
     logFile[0] = "track" + logSuffix + ".log";
-    ContextPopup contextPopup =
-      new ContextPopup(panelBeadtrack, mouseEvent, manPagelabel, manPage,
-	logFileLabel, logFile);
+//    ContextPopup contextPopup =
+      new ContextPopup(
+        panelBeadtrack,
+        mouseEvent,
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   public void setButtonTrackActionListener(ActionListener actionAdapter) {

@@ -1,14 +1,11 @@
 package etomo.ui;
 
-import java.io.File;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.ApplicationManager;
 import etomo.type.*;
-import etomo.process.SystemProgram;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.comscript.CCDEraserParam;
 
@@ -24,10 +21,14 @@ import etomo.comscript.CCDEraserParam;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class PreProcessingDialog extends ProcessDialog {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   ApplicationManager applicationManager;
 
@@ -35,16 +36,15 @@ public class PreProcessingDialog extends ProcessDialog {
 
   JLabel textDM2MRC = new JLabel("No digital micrgraph files detected:  ");
   JPanel panelConvertDM2MRC = new JPanel();
-  JCheckBox chkBoxUniqueHeaders = new
-    JCheckBox("Digital Micrograph files have unique headers");
-  BeveledBorder borderDM2MRC = new
-    BeveledBorder("Digital Micrograph Conversion");
+  JCheckBox chkBoxUniqueHeaders =
+    new JCheckBox("Digital Micrograph files have unique headers");
+  BeveledBorder borderDM2MRC =
+    new BeveledBorder("Digital Micrograph Conversion");
 
   JPanel panelCCDEraser = new JPanel();
   BeveledBorder borderCCDEraser = new BeveledBorder("CCD Eraser");
   CCDEraserPanel panelCCDEraserA = new CCDEraserPanel("Axis: A");
   CCDEraserPanel panelCCDEraserB = new CCDEraserPanel("Axis: B");
-
 
   public PreProcessingDialog(ApplicationManager applicationManager) {
     this.applicationManager = applicationManager;
@@ -89,17 +89,17 @@ public class PreProcessingDialog extends ProcessDialog {
     //
     //  Bind the button action adapters to their listeners
     //
-    panelCCDEraserA.setButtonCreateModelActionListener(new
-      PreProcDialogCreateModelAActionAdapter(this));
+    panelCCDEraserA.setButtonCreateModelActionListener(
+      new PreProcDialogCreateModelAActionAdapter(this));
 
-    panelCCDEraserB.setButtonCreateModelActionListener(new
-      PreProcDialogCreateModelBActionAdapter(this));
+    panelCCDEraserB.setButtonCreateModelActionListener(
+      new PreProcDialogCreateModelBActionAdapter(this));
 
-    panelCCDEraserA.setButtonErasePixelsActionListener(new
-      PreProcDialogErasePixelsAActionAdapter(this));
+    panelCCDEraserA.setButtonErasePixelsActionListener(
+      new PreProcDialogErasePixelsAActionAdapter(this));
 
-    panelCCDEraserB.setButtonErasePixelsActionListener(new
-      PreProcDialogErasePixelsBActionAdapter(this));
+    panelCCDEraserB.setButtonErasePixelsActionListener(
+      new PreProcDialogErasePixelsBActionAdapter(this));
 
     //
     //  Set the default advanced state for the window
@@ -115,13 +115,13 @@ public class PreProcessingDialog extends ProcessDialog {
     pack();
   }
 
-
   /**
    * Set the parameters for the specified CCD eraser panel
    */
-  public void setCCDEraserParams(ConstCCDEraserParam ccdEraserParams,
-    AxisID axisID){
-    if(axisID == AxisID.SECOND) {
+  public void setCCDEraserParams(
+    ConstCCDEraserParam ccdEraserParams,
+    AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
       panelCCDEraserB.setParameters(ccdEraserParams);
     }
     else {
@@ -132,8 +132,10 @@ public class PreProcessingDialog extends ProcessDialog {
   /**
    * Get the input parameters from the dialog box.
    */
-  public void getCCDEraserParams(CCDEraserParam ccdEraserParams, AxisID axisID){
-    if(axisID == AxisID.SECOND) {
+  public void getCCDEraserParams(
+    CCDEraserParam ccdEraserParams,
+    AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
       panelCCDEraserB.getParameters(ccdEraserParams);
     }
     else {
@@ -142,7 +144,7 @@ public class PreProcessingDialog extends ProcessDialog {
   }
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    if(isAdvanced) {
+    if (isAdvanced) {
       panelCCDEraserA.setAdvanced(true);
       panelCCDEraserB.setAdvanced(true);
     }
@@ -153,7 +155,7 @@ public class PreProcessingDialog extends ProcessDialog {
     pack();
   }
 
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     panelCCDEraserB.setVisible(state);
   }
 
@@ -166,7 +168,7 @@ public class PreProcessingDialog extends ProcessDialog {
   //  Button action methods
   //
   void buttonCreateModelA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodErase(AxisID.FIRST);
     }
     else {
@@ -174,14 +176,12 @@ public class PreProcessingDialog extends ProcessDialog {
     }
   }
 
-
   void buttonCreateModelB(ActionEvent event) {
     applicationManager.imodErase(AxisID.SECOND);
   }
 
-
   void buttonErasePixelsA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.eraser(AxisID.FIRST);
     }
     else {
@@ -215,8 +215,7 @@ public class PreProcessingDialog extends ProcessDialog {
 //
 //  Action adapters
 //
-class PreProcDialogCreateModelAActionAdapter
-  implements ActionListener {
+class PreProcDialogCreateModelAActionAdapter implements ActionListener {
 
   PreProcessingDialog adaptee;
 
@@ -229,8 +228,7 @@ class PreProcDialogCreateModelAActionAdapter
   }
 }
 
-class PreProcDialogCreateModelBActionAdapter
-  implements ActionListener {
+class PreProcDialogCreateModelBActionAdapter implements ActionListener {
 
   PreProcessingDialog adaptee;
 
@@ -243,8 +241,7 @@ class PreProcDialogCreateModelBActionAdapter
   }
 }
 
-class PreProcDialogErasePixelsAActionAdapter
-  implements ActionListener {
+class PreProcDialogErasePixelsAActionAdapter implements ActionListener {
 
   PreProcessingDialog adaptee;
 
@@ -257,8 +254,7 @@ class PreProcDialogErasePixelsAActionAdapter
   }
 }
 
-class PreProcDialogErasePixelsBActionAdapter
-  implements ActionListener {
+class PreProcDialogErasePixelsBActionAdapter implements ActionListener {
 
   PreProcessingDialog adaptee;
 

@@ -3,14 +3,11 @@ package etomo.ui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
-import etomo.type.DialogExitState;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
-
 
 /**
  * <p>Description: </p>
@@ -24,13 +21,18 @@ import etomo.comscript.FortranInputSyntaxException;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
-public class AlignmentEstimationDialog extends ProcessDialog
+public class AlignmentEstimationDialog
+  extends ProcessDialog
   implements ContextMenu {
 
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   private ApplicationManager applicationManager;
 
   private JPanel contentPane;
@@ -44,8 +46,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
   private JPanel panelButtonA = new JPanel();
 
   private JToggleButton buttonTiltDefaultsA =
-    new JToggleButton(
-      "<html><b>Set tilt angle and<br>magnification defaults</b>");
+    new JToggleButton("<html><b>Set tilt angle and<br>magnification defaults</b>");
 
   private JToggleButton buttonTiltEstA =
     new JToggleButton("<html><b>Estimate tilt and<br>magnification</b>");
@@ -58,7 +59,6 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
   private JToggleButton buttonImodA =
     new JToggleButton("<html><b>View/Fix model<br>in imod</b>");
-
 
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -80,8 +80,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     new JToggleButton("<html><b>Estimate<br>distortion</b>");
 
   private JToggleButton buttonImodB =
-     new JToggleButton("<html><b>View/Fix model<br>in imod</b>");
-
+    new JToggleButton("<html><b>View/Fix model<br>in imod</b>");
 
   public AlignmentEstimationDialog(ApplicationManager appMgr) {
     applicationManager = appMgr;
@@ -89,7 +88,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
     setTitle("eTomo Fine Alignment Estimation");
 
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       panelTiltalignA = new TiltalignPanel("a");
     }
     else {
@@ -100,9 +99,8 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
     buttonExecute.setText("Done");
 
-
     //  Create the first panel
-    panelButtonA.setLayout(new  BoxLayout(panelButtonA, BoxLayout.Y_AXIS));
+    panelButtonA.setLayout(new BoxLayout(panelButtonA, BoxLayout.Y_AXIS));
     panelButtonA.add(buttonTiltDefaultsA);
     panelButtonA.add(Box.createRigidArea(FixedDim.x0_y10));
     panelButtonA.add(buttonTiltEstA);
@@ -120,9 +118,8 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
     panelAlignEstA.add(panelTiltalignA.getContainer());
 
-
     //  Create the second panel
-    panelButtonB.setLayout(new  BoxLayout(panelButtonB, BoxLayout.Y_AXIS));
+    panelButtonB.setLayout(new BoxLayout(panelButtonB, BoxLayout.Y_AXIS));
     panelButtonB.add(buttonTiltDefaultsB);
     panelButtonB.add(Box.createRigidArea(FixedDim.x0_y10));
     panelButtonB.add(buttonTiltEstB);
@@ -139,7 +136,6 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelAlignEstB.add(panelButtonB);
     panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
     panelAlignEstB.add(panelTiltalignB.getContainer());
-
 
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.X_AXIS));
     panelAlignEst.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -160,38 +156,32 @@ public class AlignmentEstimationDialog extends ProcessDialog
     contentPane.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    buttonTiltDefaultsA.addActionListener(
-      new AlignementEstTiltDefaultsA(this));
-    buttonTiltEstA.addActionListener(
-      new AlignementEstTiltEstA(this));
+    buttonTiltDefaultsA.addActionListener(new AlignementEstTiltDefaultsA(this));
+    buttonTiltEstA.addActionListener(new AlignementEstTiltEstA(this));
 
     buttonDistortionDefaultsA.addActionListener(
       new AlignementEstDistortionDefaultsA(this));
     buttonDistortionEstA.addActionListener(
       new AlignementEstDistortionEstA(this));
 
-    buttonImodA.addActionListener(
-      new AlignementEstImodA(this));
+    buttonImodA.addActionListener(new AlignementEstImodA(this));
 
-    buttonTiltDefaultsB.addActionListener(
-      new AlignementEstTiltDefaultsB(this));
-    buttonTiltEstB.addActionListener(
-      new AlignementEstTiltEstB(this));
+    buttonTiltDefaultsB.addActionListener(new AlignementEstTiltDefaultsB(this));
+    buttonTiltEstB.addActionListener(new AlignementEstTiltEstB(this));
 
     buttonDistortionDefaultsB.addActionListener(
       new AlignementEstDistortionDefaultsB(this));
     buttonDistortionEstB.addActionListener(
       new AlignementEstDistortionEstB(this));
 
-    buttonImodB.addActionListener(
-      new AlignementEstImodB(this));
+    buttonImodB.addActionListener(new AlignementEstImodB(this));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     contentPane.addMouseListener(mouseAdapter);
 
     // Calcute the necessary window size
-    setSize(new Dimension(400,600));
+    setSize(new Dimension(400, 600));
     panelTiltalignA.setLargestTab();
     panelTiltalignB.setLargestTab();
     pack();
@@ -199,9 +189,10 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelTiltalignB.setFirstTab();
   }
 
-  public void setTiltalignParams(TiltalignParam tiltalignParam,
+  public void setTiltalignParams(
+    TiltalignParam tiltalignParam,
     AxisID axisID) {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       panelTiltalignB.setParameters(tiltalignParam);
     }
     else {
@@ -210,32 +201,31 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
   }
 
-  public void getTiltalignParams(TiltalignParam tiltalignParam,
-    AxisID axisID) throws FortranInputSyntaxException {
-    if(axisID == AxisID.SECOND) {
+  public void getTiltalignParams(TiltalignParam tiltalignParam, AxisID axisID)
+    throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
       try {
-	panelTiltalignB.getParameters(tiltalignParam);
+        panelTiltalignB.getParameters(tiltalignParam);
       }
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis B: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis B: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
 
     }
     else {
       try {
-	panelTiltalignA.getParameters(tiltalignParam);
+        panelTiltalignA.getParameters(tiltalignParam);
       }
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis A: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis A: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
     }
 
   }
 
-
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     panelAlignEstB.setEnabled(state);
   }
 
@@ -243,14 +233,12 @@ public class AlignmentEstimationDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      {"tiltalign", "xfproduct", "imod"};
-    String[] manPage =
-      {"tiltalign.html", "xfproduct.html", "imod.html"};
+    String[] manPagelabel = { "tiltalign", "xfproduct", "imod" };
+    String[] manPage = { "tiltalign.html", "xfproduct.html", "imod.html" };
 
     String[] logFileLabel;
     String[] logFile;
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       logFileLabel = new String[2];
       logFileLabel[0] = "aligna";
       logFileLabel[1] = "alignb";
@@ -266,10 +254,14 @@ public class AlignmentEstimationDialog extends ProcessDialog
     }
 
     ContextPopup contextPopup =
-      new ContextPopup(contentPane, mouseEvent,
-	manPagelabel, manPage, logFileLabel, logFile);
+      new ContextPopup(
+        contentPane,
+        mouseEvent,
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
-
 
   //  Action funtions for process buttons
   void buttonTiltDefaultsAAction(ActionEvent event) {
@@ -279,16 +271,14 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelTiltalignA.updateEnabled();
   }
 
-
   void buttonTiltEstAAction(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.fineAlignment(AxisID.FIRST, this);
     }
     else {
       applicationManager.fineAlignment(AxisID.ONLY, this);
     }
   }
-
 
   void buttonDistortionDefaultsAAction(ActionEvent event) {
     panelTiltalignA.rbTiltAngleAutomap.setSelected(true);
@@ -303,9 +293,8 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelTiltalignA.updateEnabled();
   }
 
-
   void buttonDistortionEstAAction(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.fineAlignment(AxisID.FIRST, this);
     }
     else {
@@ -314,14 +303,13 @@ public class AlignmentEstimationDialog extends ProcessDialog
   }
 
   void buttonImodAAction(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodFixFiducials(AxisID.FIRST);
     }
     else {
       applicationManager.imodFixFiducials(AxisID.ONLY);
     }
   }
-
 
   void buttonTiltDefaultsBAction(ActionEvent event) {
     panelTiltalignB.rbTiltAngleAll.setSelected(true);
@@ -330,11 +318,9 @@ public class AlignmentEstimationDialog extends ProcessDialog
     panelTiltalignB.updateEnabled();
   }
 
-
   void buttonTiltEstBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND, this);
   }
-
 
   void buttonDistortionDefaultsBAction(ActionEvent event) {
     panelTiltalignB.rbTiltAngleAutomap.setSelected(true);
@@ -348,7 +334,6 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
     panelTiltalignB.updateEnabled();
   }
-
 
   void buttonDistortionEstBAction(ActionEvent event) {
     applicationManager.fineAlignment(AxisID.SECOND, this);
@@ -364,12 +349,10 @@ public class AlignmentEstimationDialog extends ProcessDialog
     applicationManager.doneAlignmentEstimationDialog(this);
   }
 
-
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneAlignmentEstimationDialog(this);
   }
-
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
@@ -378,8 +361,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
 }
 
-class AlignementEstTiltDefaultsA
-  implements ActionListener {
+class AlignementEstTiltDefaultsA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -392,8 +374,7 @@ class AlignementEstTiltDefaultsA
   }
 }
 
-class AlignementEstTiltEstA
-  implements ActionListener {
+class AlignementEstTiltEstA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -406,8 +387,7 @@ class AlignementEstTiltEstA
   }
 }
 
-class AlignementEstDistortionDefaultsA
-  implements ActionListener {
+class AlignementEstDistortionDefaultsA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -420,8 +400,7 @@ class AlignementEstDistortionDefaultsA
   }
 }
 
-class AlignementEstDistortionEstA
-  implements ActionListener {
+class AlignementEstDistortionEstA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -434,9 +413,7 @@ class AlignementEstDistortionEstA
   }
 }
 
-
-class AlignementEstImodA
-  implements ActionListener {
+class AlignementEstImodA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -449,8 +426,7 @@ class AlignementEstImodA
   }
 }
 
-class AlignementEstTiltDefaultsB
-  implements ActionListener {
+class AlignementEstTiltDefaultsB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -463,9 +439,7 @@ class AlignementEstTiltDefaultsB
   }
 }
 
-
-class AlignementEstTiltEstB
-  implements ActionListener {
+class AlignementEstTiltEstB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -478,8 +452,7 @@ class AlignementEstTiltEstB
   }
 }
 
-class AlignementEstDistortionDefaultsB
-  implements ActionListener {
+class AlignementEstDistortionDefaultsB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -492,8 +465,7 @@ class AlignementEstDistortionDefaultsB
   }
 }
 
-class AlignementEstDistortionEstB
-  implements ActionListener {
+class AlignementEstDistortionEstB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
@@ -506,9 +478,7 @@ class AlignementEstDistortionEstB
   }
 }
 
-
-class AlignementEstImodB
-  implements ActionListener {
+class AlignementEstImodB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 

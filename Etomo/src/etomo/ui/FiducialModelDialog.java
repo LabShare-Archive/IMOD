@@ -1,9 +1,7 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -23,11 +21,14 @@ import etomo.comscript.FortranInputSyntaxException;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
-public class FiducialModelDialog extends ProcessDialog
-  implements ContextMenu {
-  public static final String rcsid = "$Id$";
+public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
 
@@ -40,8 +41,7 @@ public class FiducialModelDialog extends ProcessDialog
     new JToggleButton("<html><b>Seed fiducial<br>model using imod</b>");
   BeadtrackPanel panelBeadtrackA;
   JButton buttonFixA =
-     new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
-
+    new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
 
   JPanel panelFiducialModelB = new JPanel();
   BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -49,21 +49,19 @@ public class FiducialModelDialog extends ProcessDialog
     new JToggleButton("<html><b>Seed fiducial<br>model using imod</b>");
   BeadtrackPanel panelBeadtrackB;
   JButton buttonFixB =
-     new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
-
+    new JButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
 
   public FiducialModelDialog(ApplicationManager appMgr) {
     contentPane = (JPanel) getContentPane();
     applicationManager = appMgr;
 
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       panelBeadtrackA = new BeadtrackPanel("a");
     }
     else {
       panelBeadtrackA = new BeadtrackPanel("");
     }
     panelBeadtrackB = new BeadtrackPanel("b");
-
 
     setTitle("eTomo Fiducial Model Generation");
     buttonExecute.setText("Done");
@@ -75,7 +73,6 @@ public class FiducialModelDialog extends ProcessDialog
     buttonSeedB.setAlignmentX(0.5F);
     buttonSeedB.setPreferredSize(FixedDim.button2Line);
     buttonSeedB.setMaximumSize(FixedDim.button2Line);
-
 
     buttonFixA.setAlignmentX(0.5F);
     buttonFixA.setPreferredSize(FixedDim.button2Line);
@@ -136,7 +133,7 @@ public class FiducialModelDialog extends ProcessDialog
       new FiducialModelDialogTrackB(this));
 
     //  Disable the second CCDeraser panel if this is a single axis
-    if(! applicationManager.isDualAxis()) {
+    if (!applicationManager.isDualAxis()) {
       panelFiducialModelB.setVisible(false);
     }
 
@@ -149,7 +146,6 @@ public class FiducialModelDialog extends ProcessDialog
 
     pack();
   }
-
 
   /**
    * Set the advanced state for the dialog box
@@ -171,9 +167,10 @@ public class FiducialModelDialog extends ProcessDialog
   /**
    * Set the parameters for the specified beadtrack panel
    */
-  public void setBeadtrackParams(ConstBeadtrackParam beadtrackParams,
-      AxisID axisID){
-    if(axisID == AxisID.SECOND) {
+  public void setBeadtrackParams(
+    ConstBeadtrackParam beadtrackParams,
+    AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
       panelBeadtrackB.setParameters(beadtrackParams);
     }
     else {
@@ -184,25 +181,25 @@ public class FiducialModelDialog extends ProcessDialog
   /**
    * Get the parameters for the specified beadtrack command
    */
-  public void getBeadtrackParams(BeadtrackParam beadtrackParams,
-     AxisID axisID) throws FortranInputSyntaxException {
-    if(axisID == AxisID.SECOND) {
+  public void getBeadtrackParams(BeadtrackParam beadtrackParams, AxisID axisID)
+    throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
       try {
-	panelBeadtrackB.getParameters(beadtrackParams);
+        panelBeadtrackB.getParameters(beadtrackParams);
       }
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis B: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis B: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
 
     }
     else {
       try {
-	panelBeadtrackA.getParameters(beadtrackParams);
+        panelBeadtrackA.getParameters(beadtrackParams);
       }
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis A: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis A: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
     }
   }
@@ -211,20 +208,17 @@ public class FiducialModelDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = {"imod"};
-    String[] manPage = {"imod.html"};
-    ContextPopup contextPopup = new ContextPopup(panelFiducialModel,
-						 mouseEvent,
-						 label,
-						 manPage);
+    String[] label = { "imod" };
+    String[] manPage = { "imod.html" };
+    ContextPopup contextPopup =
+      new ContextPopup(panelFiducialModel, mouseEvent, label, manPage);
   }
-
 
   //
   //  Action function for stack buttons
   //
   void buttonSeedA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodSeedFiducials(AxisID.FIRST);
     }
     else {
@@ -233,7 +227,7 @@ public class FiducialModelDialog extends ProcessDialog
   }
 
   void buttonTrackA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.fiducialModelTrack(AxisID.FIRST, this);
     }
     else {
@@ -242,7 +236,7 @@ public class FiducialModelDialog extends ProcessDialog
   }
 
   void buttonFixA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodFixFiducials(AxisID.FIRST);
     }
     else {
@@ -262,8 +256,7 @@ public class FiducialModelDialog extends ProcessDialog
     applicationManager.imodFixFiducials(AxisID.SECOND);
   }
 
-
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     buttonSeedB.setEnabled(state);
     buttonFixB.setEnabled(state);
   }
@@ -295,8 +288,7 @@ public class FiducialModelDialog extends ProcessDialog
 //
 //  Action listener adapters
 //
-class FiducialModelDialogSeedA
-  implements ActionListener {
+class FiducialModelDialogSeedA implements ActionListener {
 
   FiducialModelDialog adaptee;
 
@@ -309,8 +301,7 @@ class FiducialModelDialogSeedA
   }
 }
 
-class FiducialModelDialogTrackA
-  implements ActionListener {
+class FiducialModelDialogTrackA implements ActionListener {
 
   FiducialModelDialog adaptee;
 
@@ -323,8 +314,7 @@ class FiducialModelDialogTrackA
   }
 }
 
-class FiducialModelDialogFixA
-  implements ActionListener {
+class FiducialModelDialogFixA implements ActionListener {
 
   FiducialModelDialog adaptee;
 
@@ -337,8 +327,7 @@ class FiducialModelDialogFixA
   }
 }
 
-class FiducialModelDialogSeedB
-  implements ActionListener {
+class FiducialModelDialogSeedB implements ActionListener {
 
   FiducialModelDialog adaptee;
 
@@ -351,9 +340,7 @@ class FiducialModelDialogSeedB
   }
 }
 
-
-class FiducialModelDialogTrackB
-  implements ActionListener {
+class FiducialModelDialogTrackB implements ActionListener {
 
   FiducialModelDialog adaptee;
 
@@ -366,9 +353,7 @@ class FiducialModelDialogTrackB
   }
 }
 
-
-class FiducialModelDialogFixB
-  implements ActionListener {
+class FiducialModelDialogFixB implements ActionListener {
 
   FiducialModelDialog adaptee;
 

@@ -11,7 +11,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 
 /**
  * <p>Description: </p>
@@ -25,10 +24,14 @@ import javax.swing.border.BevelBorder;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class SetupCombinePanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel contentPane = new JPanel();
   private BeveledBorder brdrContent =
@@ -39,8 +42,8 @@ public class SetupCombinePanel implements ContextMenu {
   private BeveledBorder brdrToSelector =
     new BeveledBorder("Tomogram matching relationship");
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
-  private JRadioButton rbAtoB = new JRadioButton(
-    "Match the A tomogram to B                                               ");
+  private JRadioButton rbAtoB =
+    new JRadioButton("Match the A tomogram to B                                               ");
 
   private JPanel panelFiducialParams = new JPanel();
   private BeveledBorder brdrFiducialParams =
@@ -55,14 +58,13 @@ public class SetupCombinePanel implements ContextMenu {
   private JRadioButton rbUseModel =
     new JRadioButton("Models of corresponding points");
 
-  private LabeledTextField ltfFiducialMatchListA  =
+  private LabeledTextField ltfFiducialMatchListA =
     new LabeledTextField("Corresponding fiducial list A: ");
   private LabeledTextField ltfFiducialMatchListB =
     new LabeledTextField("Corresponding fiducial list B: ");
 
   private JPanel panelPatchParams = new JPanel();
-  private BeveledBorder brdrPatchParams =
-    new BeveledBorder("Patch parameters");
+  private BeveledBorder brdrPatchParams = new BeveledBorder("Patch parameters");
   private JRadioButton rbSmallPatch = new JRadioButton("Small patches");
   private JRadioButton rbMediumPatch = new JRadioButton("Medium patches");
   private JRadioButton rbLargePatch = new JRadioButton("Large patches");
@@ -82,7 +84,6 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfZMin = new LabeledTextField("Z axis min: ");
   private LabeledTextField ltfZMax = new LabeledTextField("Z axis max: ");
 
-
   private JPanel panelTempDirectory = new JPanel();
   private BeveledBorder brdrIntermediateStorage =
     new BeveledBorder("Intermediate data storage");
@@ -100,8 +101,7 @@ public class SetupCombinePanel implements ContextMenu {
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
     panelToSelector.setBorder(brdrToSelector.getBorder());
-    panelToSelector.setLayout(
-      new BoxLayout(panelToSelector, BoxLayout.Y_AXIS));
+    panelToSelector.setLayout(new BoxLayout(panelToSelector, BoxLayout.Y_AXIS));
     panelToSelector.add(rbBtoA);
     panelToSelector.add(rbAtoB);
 
@@ -154,7 +154,6 @@ public class SetupCombinePanel implements ContextMenu {
     panelPatchRegion.add(ltfZMax.getContainer());
     panelPatchParams.add(panelPatchRegion);
 
-
     //  Create the temporary storage panel
     panelTempDirectory.setBorder(brdrIntermediateStorage.getBorder());
     panelTempDirectory.setLayout(
@@ -183,97 +182,110 @@ public class SetupCombinePanel implements ContextMenu {
 
   }
 
-
   public Container getContainer() {
     return contentPane;
   }
 
-
   public void setParameters(ConstCombineParams combineParams) {
 
-    if(combineParams.getMatchBtoA()) {
+    if (combineParams.getMatchBtoA()) {
       rbBtoA.setSelected(true);
     }
-    else{
+    else {
       rbAtoB.setSelected(true);
     }
 
-    if(combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
+    if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
     }
-    if(combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
+    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
       rbOneSide.setSelected(true);
     }
-    if(combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
+    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
       rbOneSideInverted.setSelected(true);
     }
-    if(combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
+    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
     }
     ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
     ltfFiducialMatchListB.setText(combineParams.getFiducialMatchListB());
 
-    if(combineParams.getPatchSize() == CombinePatchSize.SMALL) {
+    if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
       rbSmallPatch.setSelected(true);
     }
-    if(combineParams.getPatchSize() == CombinePatchSize.MEDIUM) {
+    if (combineParams.getPatchSize() == CombinePatchSize.MEDIUM) {
       rbMediumPatch.setSelected(true);
     }
-    if(combineParams.getPatchSize() == CombinePatchSize.LARGE) {
+    if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
       rbLargePatch.setSelected(true);
     }
 
     ltfPatchRegionModel.setText(combineParams.getPatchRegionModel());
 
+    ltfXMin.setText(combineParams.getPatchXMin());
+    ltfXMax.setText(combineParams.getPatchXMax());
+    ltfYMin.setText(combineParams.getPatchYMin());
+    ltfYMax.setText(combineParams.getPatchYMax());
+    ltfZMin.setText(combineParams.getPatchZMin());
+    ltfZMax.setText(combineParams.getPatchZMax());
+
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
-	chkManualCleanup.setState(combineParams.getManualCleanup());
+    chkManualCleanup.setState(combineParams.getManualCleanup());
   }
 
   public void getParameters(CombineParams combineParams) {
 
-	  combineParams.setMatchBtoA(rbBtoA.isSelected());
+    combineParams.setMatchBtoA(rbBtoA.isSelected());
 
-    if(rbBothSides.isSelected()) {
+    if (rbBothSides.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
     }
-    if(rbOneSide.isSelected()) {
+    if (rbOneSide.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
     }
-    if(rbOneSideInverted.isSelected()) {
+    if (rbOneSideInverted.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
     }
-    if(rbUseModel.isSelected()) {
+    if (rbUseModel.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
     }
 
-    if(rbSmallPatch.isSelected()) {
+    combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
+    combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+
+    if (rbSmallPatch.isSelected()) {
       combineParams.setPatchSize(CombinePatchSize.SMALL);
     }
-    if(rbMediumPatch.isSelected()) {
+    if (rbMediumPatch.isSelected()) {
       combineParams.setPatchSize(CombinePatchSize.MEDIUM);
     }
-    if(rbLargePatch.isSelected()) {
+    if (rbLargePatch.isSelected()) {
       combineParams.setPatchSize(CombinePatchSize.LARGE);
     }
 
     combineParams.setPatchRegionModel(ltfPatchRegionModel.getText());
+
+    combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
+    combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText()));
+    combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText()));
+    combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
+    combineParams.setPatchZMin(Integer.parseInt(ltfZMin.getText()));
+    combineParams.setPatchZMax(Integer.parseInt(ltfZMax.getText()));
 
     combineParams.setTempDirectory(ltfTempDirectory.getText());
 
     combineParams.setManualCleanup(chkManualCleanup.getState());
   }
 
-
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"matchwarp"};
-    String[] manPage = {"matchwarp.html"};
+    String[] manPagelabel = { "matchwarp" };
+    String[] manPage = { "matchwarp.html" };
     ContextPopup contextPopup =
-      new ContextPopup(contentPane, mouseEvent,
-		       manPagelabel, manPage);
+      new ContextPopup(contentPane, mouseEvent, manPagelabel, manPage);
   }
 
   /**

@@ -4,12 +4,9 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.filechooser.*;
 
 import etomo.*;
 import etomo.type.*;
-import etomo.util.CircularBuffer;
 import etomo.process.ProcessState;
 
 /**
@@ -24,10 +21,14 @@ import etomo.process.ProcessState;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class MainFrame extends JFrame implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel mainPanel;
   private BorderLayout borderMain = new BorderLayout();
@@ -90,7 +91,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   private ProcessControlPanel procCtlPanelPostProcessing =
     new ProcessControlPanel("Post\nProcessing");
 
-
   //
   //  Application manager object
   //
@@ -113,20 +113,19 @@ public class MainFrame extends JFrame implements ContextMenu {
     //
     //  Menu bar text and adapters
     //
-    menuFileOpen.addActionListener(new
-      MainFrame_menuFileOpenActionAdapter(this));
-    menuFileSave.addActionListener(new
-      MainFrame_menuFileSaveActionAdapter(this));
-    menuFileSaveAs.addActionListener(new
-      MainFrame_menuFileSaveAsActionAdapter(this));
-    menuFileExit.addActionListener(new
-      MainFrame_menuFileExitActionAdapter(this));
+    menuFileOpen.addActionListener(
+      new MainFrame_menuFileOpenActionAdapter(this));
+    menuFileSave.addActionListener(
+      new MainFrame_menuFileSaveActionAdapter(this));
+    menuFileSaveAs.addActionListener(
+      new MainFrame_menuFileSaveAsActionAdapter(this));
+    menuFileExit.addActionListener(
+      new MainFrame_menuFileExitActionAdapter(this));
 
-    menuOptions.addActionListener(new
-      MainFrame_menuOptionsActionAdapter(this));
+    menuOptions.addActionListener(new MainFrame_menuOptionsActionAdapter(this));
 
-    menuHelpAbout.addActionListener(new
-      MainFrame_menuHelpAboutActionAdapter(this));
+    menuHelpAbout.addActionListener(
+      new MainFrame_menuHelpAboutActionAdapter(this));
 
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
@@ -140,7 +139,7 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     MainFrame_menuFileMRUListActionAdapter mRUListActionAdapter =
       new MainFrame_menuFileMRUListActionAdapter(this);
-    for(int i = 0; i < nMRUFileMax; i++) {
+    for (int i = 0; i < nMRUFileMax; i++) {
       menuMRUList[i] = new JMenuItem();
       menuMRUList[i].addActionListener(mRUListActionAdapter);
       menuMRUList[i].setVisible(false);
@@ -177,7 +176,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  add the context menu to all of the main window objects
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     mainPanel.addMouseListener(mouseAdapter);
-    dataSetIDPanel.addMouseListener(mouseAdapter) ;
+    dataSetIDPanel.addMouseListener(mouseAdapter);
     dataSetTypePanel.addMouseListener(mouseAdapter);
     procCtlPanelSetup.addMouseListener(mouseAdapter);
     procCtlPanelPreProc.addMouseListener(mouseAdapter);
@@ -189,7 +188,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     procCtlPanelTomogramCombination.addMouseListener(mouseAdapter);
     procCtlPanelPostProcessing.addMouseListener(mouseAdapter);
   }
-
 
   /**
    * Update the window with the MetaData parameters
@@ -211,20 +209,19 @@ public class MainFrame extends JFrame implements ContextMenu {
     statusBar.setText("Parameter file: " + text);
   }
 
-
   /**
    * Set the MRU etomo data file list.  This fills in the MRU menu items
    * on the File menu
    */
   public void setMRUFileLabels(String[] mRUList) {
-    for(int i = 0; i < mRUList.length; i++) {
-      if(i == nMRUFileMax) {
-	return;
+    for (int i = 0; i < mRUList.length; i++) {
+      if (i == nMRUFileMax) {
+        return;
       }
       menuMRUList[i].setText(mRUList[i]);
       menuMRUList[i].setVisible(true);
     }
-    for(int i = mRUList.length; i < nMRUFileMax; i++) {
+    for (int i = mRUList.length; i < nMRUFileMax; i++) {
       menuMRUList[i].setVisible(false);
     }
   }
@@ -277,7 +274,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     procCtlPanelPostProcessing.setState(setupState);
   }
 
-  void menuFileOpen_actionPerformed(ActionEvent e){
+  void menuFileOpen_actionPerformed(ActionEvent e) {
     //
     //  Open a file dialog box to get a
     //
@@ -292,23 +289,22 @@ public class MainFrame extends JFrame implements ContextMenu {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
 
-    if(returnVal == JFileChooser.APPROVE_OPTION) {
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
       File paramFile = chooser.getSelectedFile();
       applicationManager.openTestParamFile(paramFile);
     }
   }
 
-
-  void menuFileSave_actionPerformed(ActionEvent e){
+  void menuFileSave_actionPerformed(ActionEvent e) {
 
     //  Check to see if there is a current parameter file chosen
     //  if not open a dialog box to select the name
 
     boolean haveTestParamFilename = true;
-    if(applicationManager.getTestParamFile() == null) {
+    if (applicationManager.getTestParamFile() == null) {
       haveTestParamFilename = getTestParamFilename();
     }
-    if(haveTestParamFilename) {
+    if (haveTestParamFilename) {
       applicationManager.saveTestParamFile();
     }
   }
@@ -324,16 +320,16 @@ public class MainFrame extends JFrame implements ContextMenu {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showSaveDialog(this);
 
-    if(returnVal != JFileChooser.APPROVE_OPTION) {
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
       return false;
     }
     applicationManager.setTestParamFile(chooser.getSelectedFile());
     return true;
   }
 
-  void menuFileSaveAs_actionPerformed(ActionEvent e){
+  void menuFileSaveAs_actionPerformed(ActionEvent e) {
     boolean haveTestParamFilename = getTestParamFilename();
-    if(haveTestParamFilename) {
+    if (haveTestParamFilename) {
       applicationManager.saveTestParamFile();
     }
   }
@@ -342,7 +338,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   void menuFileExit_actionPerformed(ActionEvent e) {
 
     //  Check to see if we need to save any data
-    if(applicationManager.exitProgram()) {
+    if (applicationManager.exitProgram()) {
       System.exit(0);
     }
   }
@@ -363,8 +359,9 @@ public class MainFrame extends JFrame implements ContextMenu {
     Dimension dlgSize = dlg.getPreferredSize();
     Dimension frmSize = getSize();
     Point loc = getLocation();
-    dlg.setLocation((frmSize.width - dlgSize.width) / 2 + loc.x,
-		    (frmSize.height - dlgSize.height) / 2 + loc.y);
+    dlg.setLocation(
+      (frmSize.width - dlgSize.width) / 2 + loc.x,
+      (frmSize.height - dlgSize.height) / 2 + loc.y);
     dlg.setModal(true);
     dlg.show();
   }
@@ -416,25 +413,25 @@ public class MainFrame extends JFrame implements ContextMenu {
   /**
    *  Build the process control panels
    */
-  private void createProcessControlPanel(){
-    procCtlPanelSetup.setButtonActionListener(new
-      MainFrame_buttonSetupActionAdapter(this));
-    procCtlPanelPreProc.setButtonActionListener(new
-      MainFrame_buttonPreProcActionAdapter(this));
-    procCtlPanelCoarseAlign.setButtonActionListener(new
-      MainFrame_buttonCoarseAlignActionAdapter(this));
-    procCtlPanelFiducialModel.setButtonActionListener(new
-      MainFrame_buttonFiducialModelActionAdapter(this));
-    procCtlPanelAlignmentEst.setButtonActionListener(new
-      MainFrame_buttonAlignmentEstimationActionAdapter(this));
-    procCtlPanelTomogramPositioning.setButtonActionListener(new
-      MainFrame_buttonTomogramPositioningActionAdapter(this));
-    procCtlPanelTomogramGeneration.setButtonActionListener(new
-      MainFrame_buttonTomogramGenerationActionAdapter(this));
-    procCtlPanelTomogramCombination.setButtonActionListener(new
-      MainFrame_buttonTomogramCombinationActionAdapter(this));
-    procCtlPanelPostProcessing.setButtonActionListener(new
-    MainFrame_buttonPostProcessingActionAdapter(this));
+  private void createProcessControlPanel() {
+    procCtlPanelSetup.setButtonActionListener(
+      new MainFrame_buttonSetupActionAdapter(this));
+    procCtlPanelPreProc.setButtonActionListener(
+      new MainFrame_buttonPreProcActionAdapter(this));
+    procCtlPanelCoarseAlign.setButtonActionListener(
+      new MainFrame_buttonCoarseAlignActionAdapter(this));
+    procCtlPanelFiducialModel.setButtonActionListener(
+      new MainFrame_buttonFiducialModelActionAdapter(this));
+    procCtlPanelAlignmentEst.setButtonActionListener(
+      new MainFrame_buttonAlignmentEstimationActionAdapter(this));
+    procCtlPanelTomogramPositioning.setButtonActionListener(
+      new MainFrame_buttonTomogramPositioningActionAdapter(this));
+    procCtlPanelTomogramGeneration.setButtonActionListener(
+      new MainFrame_buttonTomogramGenerationActionAdapter(this));
+    procCtlPanelTomogramCombination.setButtonActionListener(
+      new MainFrame_buttonTomogramCombinationActionAdapter(this));
+    procCtlPanelPostProcessing.setButtonActionListener(
+      new MainFrame_buttonPostProcessingActionAdapter(this));
 
     setToolTipText();
 
@@ -483,15 +480,24 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Initialize the tooltip text for the main window objects
    */
   private void setToolTipText() {
-    procCtlPanelSetup.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the entry of the data location, name, tilt angle<br>specification and other dataset parameters.");
-    procCtlPanelPreProc.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the conversion of Digital Micrograph files, specifying<br>the CCD eraser parameters and performing the corr-<br>correlation required for coarse alignment.");
-    procCtlPanelCoarseAlign.setToolTipText("<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability fix alignment problems using Midas.");
-    procCtlPanelFiducialModel.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the construction of the fiducial model used to<br>develop the fine alignment of the projection images");
-    procCtlPanelAlignmentEst.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the generation and examination of a finely aligned stack.");
-    procCtlPanelTomogramPositioning.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the bounding and positioning of the tomogram<br>volume and creating the final alignment parameters.");
-    procCtlPanelTomogramGeneration.setToolTipText("<html>This process control panel opens a dialog box allowing<br>for the generation of the final aligned stack and generation<br>and examination of the tomogram.");
-    procCtlPanelTomogramCombination.setToolTipText("<html>This process control panel is not yet complete<br>");
-    procCtlPanelPostProcessing.setToolTipText("<html>This process control panel is not yet complete<br>");
+    procCtlPanelSetup.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the entry of the data location, name, tilt angle<br>specification and other dataset parameters.");
+    procCtlPanelPreProc.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the conversion of Digital Micrograph files, specifying<br>the CCD eraser parameters and performing the corr-<br>correlation required for coarse alignment.");
+    procCtlPanelCoarseAlign.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability fix alignment problems using Midas.");
+    procCtlPanelFiducialModel.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the construction of the fiducial model used to<br>develop the fine alignment of the projection images");
+    procCtlPanelAlignmentEst.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the generation and examination of a finely aligned stack.");
+    procCtlPanelTomogramPositioning.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the bounding and positioning of the tomogram<br>volume and creating the final alignment parameters.");
+    procCtlPanelTomogramGeneration.setToolTipText(
+      "<html>This process control panel opens a dialog box allowing<br>for the generation of the final aligned stack and generation<br>and examination of the tomogram.");
+    procCtlPanelTomogramCombination.setToolTipText(
+      "<html>This process control panel is not yet complete<br>");
+    procCtlPanelPostProcessing.setToolTipText(
+      "<html>This process control panel is not yet complete<br>");
 
   }
 }
@@ -531,7 +537,6 @@ class MainFrame_menuFileSaveAsActionAdapter implements ActionListener {
     adaptee.menuFileSaveAs_actionPerformed(e);
   }
 }
-
 
 class MainFrame_menuFileExitActionAdapter implements ActionListener {
   MainFrame adaptee;
@@ -576,12 +581,10 @@ class MainFrame_menuHelpAboutActionAdapter implements ActionListener {
   }
 }
 
-
 //
 //  Action adapters to handle process panel events
 //
-class MainFrame_buttonSetupActionAdapter
-  implements ActionListener {
+class MainFrame_buttonSetupActionAdapter implements ActionListener {
   MainFrame adaptee;
 
   MainFrame_buttonSetupActionAdapter(MainFrame adaptee) {
@@ -592,8 +595,7 @@ class MainFrame_buttonSetupActionAdapter
   }
 }
 
-class MainFrame_buttonPreProcActionAdapter
-  implements ActionListener {
+class MainFrame_buttonPreProcActionAdapter implements ActionListener {
   MainFrame adaptee;
 
   MainFrame_buttonPreProcActionAdapter(MainFrame adaptee) {
@@ -604,8 +606,7 @@ class MainFrame_buttonPreProcActionAdapter
   }
 }
 
-class MainFrame_buttonCoarseAlignActionAdapter
-  implements ActionListener {
+class MainFrame_buttonCoarseAlignActionAdapter implements ActionListener {
   MainFrame adaptee;
 
   MainFrame_buttonCoarseAlignActionAdapter(MainFrame adaptee) {
@@ -616,9 +617,7 @@ class MainFrame_buttonCoarseAlignActionAdapter
   }
 }
 
-
-class MainFrame_buttonFiducialModelActionAdapter
-  implements ActionListener {
+class MainFrame_buttonFiducialModelActionAdapter implements ActionListener {
   MainFrame adaptee;
 
   MainFrame_buttonFiducialModelActionAdapter(MainFrame adaptee) {
@@ -677,8 +676,7 @@ class MainFrame_buttonTomogramCombinationActionAdapter
   }
 }
 
-class MainFrame_buttonPostProcessingActionAdapter
-  implements ActionListener {
+class MainFrame_buttonPostProcessingActionAdapter implements ActionListener {
   MainFrame adaptee;
 
   MainFrame_buttonPostProcessingActionAdapter(MainFrame adaptee) {

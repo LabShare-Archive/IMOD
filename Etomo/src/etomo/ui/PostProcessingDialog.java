@@ -1,9 +1,7 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 /**
  * <p>Description: </p>
@@ -17,10 +15,14 @@ import javax.swing.border.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class PostProcessingDialog extends ProcessDialog {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   JPanel contentPane;
 

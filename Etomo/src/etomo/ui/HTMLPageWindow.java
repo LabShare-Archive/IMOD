@@ -3,7 +3,6 @@ package etomo.ui;
 import java.io.*;
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.text.*;
 import javax.swing.text.html.*;
 
 //FIXME the scrollbar does not work in this window when it is opened in a modal
@@ -21,10 +20,14 @@ import javax.swing.text.html.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class HTMLPageWindow extends JFrame {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   Container mainPanel;
   String filename;
@@ -40,7 +43,7 @@ public class HTMLPageWindow extends JFrame {
     setSize(625, 800);
   }
 
-  public void setFile(String filename){
+  public void setFile(String filename) {
     this.filename = filename;
     setTitle(filename);
 
@@ -49,7 +52,7 @@ public class HTMLPageWindow extends JFrame {
       editorPane.read(reader, filename);
       editorPane.setEditable(false);
     }
-    catch(Exception excep) {
+    catch (Exception excep) {
       excep.printStackTrace();
     }
   }

@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -20,10 +19,14 @@ import etomo.type.DialogExitState;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ProcessDialog extends JDialog implements ExitButtons {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected boolean isAdvanced = false;
   protected DialogExitState exitState = DialogExitState.CANCEL;
@@ -70,7 +73,6 @@ public class ProcessDialog extends JDialog implements ExitButtons {
     buttonAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
   }
 
-
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -78,7 +80,6 @@ public class ProcessDialog extends JDialog implements ExitButtons {
   public void buttonCancelAction(ActionEvent event) {
     exitState = DialogExitState.CANCEL;
   }
-
 
   /**
    * Action to take when the postpone button is pressed, the default action is
@@ -88,17 +89,15 @@ public class ProcessDialog extends JDialog implements ExitButtons {
     exitState = DialogExitState.POSTPONE;
   }
 
-
   /**
    * Action to take when the execute button is pressed, the default action is
    * to set the exitState attribute to EXECUTE.
    */
   public void buttonExecuteAction(ActionEvent event) {
-    if(validateInput()) {
+    if (validateInput()) {
       exitState = DialogExitState.EXECUTE;
     }
   }
-
 
   /**
    * Action to take when the advanced button is pressed, this method
@@ -106,7 +105,7 @@ public class ProcessDialog extends JDialog implements ExitButtons {
    * button.  Call this method first before checking the state of isAdvanced.
    */
   public void buttonAdvancedAction(ActionEvent event) {
-    if(isAdvanced) {
+    if (isAdvanced) {
       isAdvanced = false;
       buttonAdvanced.setSelected(false);
     }
@@ -166,8 +165,7 @@ interface ExitButtons {
 /**
  *  Action adapters to bind the buttons their action functions
  */
-class buttonCancelActionAdapter
-  implements java.awt.event.ActionListener {
+class buttonCancelActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
@@ -179,8 +177,7 @@ class buttonCancelActionAdapter
   }
 }
 
-class buttonPostponeActionAdapter
-  implements java.awt.event.ActionListener {
+class buttonPostponeActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
@@ -192,8 +189,7 @@ class buttonPostponeActionAdapter
   }
 }
 
-class buttonExecuteActionAdapter
-  implements java.awt.event.ActionListener {
+class buttonExecuteActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
@@ -205,8 +201,7 @@ class buttonExecuteActionAdapter
   }
 }
 
-class buttonAdvancedActionAdapter
-  implements java.awt.event.ActionListener {
+class buttonAdvancedActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 

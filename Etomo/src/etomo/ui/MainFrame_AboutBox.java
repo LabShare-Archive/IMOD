@@ -3,7 +3,6 @@ package etomo.ui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 /**
  * <p>Description: </p>
@@ -17,10 +16,14 @@ import javax.swing.border.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class MainFrame_AboutBox extends JDialog implements ActionListener {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   JPanel panel1 = new JPanel();
   JPanel panel2 = new JPanel();
@@ -47,13 +50,13 @@ public class MainFrame_AboutBox extends JDialog implements ActionListener {
     try {
       jbInit();
     }
-    catch(Exception e) {
+    catch (Exception e) {
       e.printStackTrace();
     }
     pack();
   }
   /**Component initialization*/
-  private void jbInit() throws Exception  {
+  private void jbInit() throws Exception {
     //imageLabel.setIcon(new ImageIcon(MainFrame_AboutBox.class.getResource("[Your Image]")));
     this.setTitle("About");
     setResizable(false);

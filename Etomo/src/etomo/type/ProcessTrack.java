@@ -2,7 +2,6 @@ package etomo.type;
 
 import etomo.storage.Storable;
 import etomo.process.ProcessState;
-import java.util.HashMap;
 import java.util.Properties;
 
 /*
@@ -17,10 +16,14 @@ import java.util.Properties;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ProcessTrack implements Storable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected String revisionNumber = "1.1";
   private boolean isModified = false;
@@ -43,9 +46,9 @@ public class ProcessTrack implements Storable {
   public void store(Properties props) {
     store(props, "");
   }
-  public void store (Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "ProcessTrack.";
     }
     else {
@@ -57,11 +60,14 @@ public class ProcessTrack implements Storable {
     props.setProperty(group + "CoarseAlignment", coarseAlignment.toString());
     props.setProperty(group + "FiducialModel", fiducialModel.toString());
     props.setProperty(group + "FineAlignment", fineAlignment.toString());
-    props.setProperty(group + "TomogramPositioning",
+    props.setProperty(
+      group + "TomogramPositioning",
       tomogramPositioning.toString());
-    props.setProperty(group + "TomogramGeneration",
+    props.setProperty(
+      group + "TomogramGeneration",
       tomogramGeneration.toString());
-    props.setProperty(group + "TomogramCombination",
+    props.setProperty(
+      group + "TomogramCombination",
       tomogramCombination.toString());
     props.setProperty(group + "PostProcessing", postProcessing.toString());
   }
@@ -74,31 +80,38 @@ public class ProcessTrack implements Storable {
   }
   public void load(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "ProcessTrack.";
     }
     else {
       group = prepend + ".ProcessTrack.";
     }
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
-    setup = setup.fromString(props.getProperty(
-      group + "Setup", "Not started"));
-    preProcessing = preProcessing.fromString(
-      props.getProperty(group + "PreProcessing", "Not started"));
-    coarseAlignment = coarseAlignment.fromString(
-      props.getProperty(group + "CoarseAlignment", "Not started"));
-    fiducialModel = fiducialModel.fromString(
-      props.getProperty(group + "FiducialModel", "Not started"));
-    fineAlignment = fineAlignment.fromString(
-      props.getProperty(group + "FineAlignment", "Not started"));
-    tomogramPositioning = tomogramPositioning.fromString(
-      props.getProperty(group + "TomogramPositioning", "Not started"));
-    tomogramGeneration = tomogramGeneration.fromString(
-      props.getProperty(group + "TomogramGeneration", "Not started"));
-    tomogramCombination = tomogramCombination.fromString(
-      props.getProperty(group + "TomogramCombination", "Not started"));
-    postProcessing = postProcessing.fromString(
-      props.getProperty(group + "PostProcessing", "Not started"));
+    setup = setup.fromString(props.getProperty(group + "Setup", "Not started"));
+    preProcessing =
+      preProcessing.fromString(
+        props.getProperty(group + "PreProcessing", "Not started"));
+    coarseAlignment =
+      coarseAlignment.fromString(
+        props.getProperty(group + "CoarseAlignment", "Not started"));
+    fiducialModel =
+      fiducialModel.fromString(
+        props.getProperty(group + "FiducialModel", "Not started"));
+    fineAlignment =
+      fineAlignment.fromString(
+        props.getProperty(group + "FineAlignment", "Not started"));
+    tomogramPositioning =
+      tomogramPositioning.fromString(
+        props.getProperty(group + "TomogramPositioning", "Not started"));
+    tomogramGeneration =
+      tomogramGeneration.fromString(
+        props.getProperty(group + "TomogramGeneration", "Not started"));
+    tomogramCombination =
+      tomogramCombination.fromString(
+        props.getProperty(group + "TomogramCombination", "Not started"));
+    postProcessing =
+      postProcessing.fromString(
+        props.getProperty(group + "PostProcessing", "Not started"));
   }
 
   public String getRevisionNumber() {
@@ -124,7 +137,6 @@ public class ProcessTrack implements Storable {
     return setup;
   }
 
-
   public void setPreProcessingState(ProcessState state) {
     preProcessing = state;
     isModified = true;
@@ -133,7 +145,6 @@ public class ProcessTrack implements Storable {
   public ProcessState getPreProcessingState() {
     return preProcessing;
   }
-
 
   public void setCoarseAlignmentState(ProcessState state) {
     coarseAlignment = state;
@@ -144,7 +155,6 @@ public class ProcessTrack implements Storable {
     return coarseAlignment;
   }
 
-
   public void setFiducialModelState(ProcessState state) {
     fiducialModel = state;
     isModified = true;
@@ -153,7 +163,6 @@ public class ProcessTrack implements Storable {
   public ProcessState getFiducialModelState() {
     return fiducialModel;
   }
-
 
   public void setFineAlignmentState(ProcessState state) {
     fineAlignment = state;
@@ -164,7 +173,6 @@ public class ProcessTrack implements Storable {
     return fineAlignment;
   }
 
-
   public void setTomogramPositioningState(ProcessState state) {
     tomogramPositioning = state;
     isModified = true;
@@ -173,7 +181,6 @@ public class ProcessTrack implements Storable {
   public ProcessState getTomogramPositioningState() {
     return tomogramPositioning;
   }
-
 
   public void setTomogramGenerationState(ProcessState state) {
     tomogramGeneration = state;
@@ -201,6 +208,5 @@ public class ProcessTrack implements Storable {
   public ProcessState getPostProcessingState() {
     return postProcessing;
   }
-
 
 }

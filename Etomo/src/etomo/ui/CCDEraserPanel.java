@@ -1,9 +1,7 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.comscript.CCDEraserParam;
@@ -20,16 +18,20 @@ import etomo.comscript.CCDEraserParam;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class CCDEraserPanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panelCCDEraser = new JPanel();
 
   private JLabel labelAxis = new JLabel();
-  private JButton buttonCreateModel = new
-    JButton("<html><b>Create replacement<br>model using imod</b>");
+  private JButton buttonCreateModel =
+    new JButton("<html><b>Create replacement<br>model using imod</b>");
 
   private LabeledTextField ltfInputImage =
     new LabeledTextField("Input image file: ");
@@ -78,13 +80,12 @@ public class CCDEraserPanel implements ContextMenu {
 
   }
 
- public void setParameters(ConstCCDEraserParam ccdEraserParams) {
+  public void setParameters(ConstCCDEraserParam ccdEraserParams) {
     ltfInputImage.setText(ccdEraserParams.getInputFile());
     ltfOutputImage.setText(ccdEraserParams.getOutputFile());
     ltfGlobalReplacementList.setText(
       ccdEraserParams.getGlobalReplacementList());
-    ltfLocalReplacementList.setText(
-      ccdEraserParams.getlocalReplacementList());
+    ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
     ltfBorderPixels.setText(ccdEraserParams.getBorderPixels());
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
     chkboxIncludeAdjacentPoints.setSelected(
@@ -103,19 +104,18 @@ public class CCDEraserPanel implements ContextMenu {
       chkboxIncludeAdjacentPoints.isSelected());
   }
 
-
   public JPanel getPanel() {
     return panelCCDEraser;
   }
 
-  public void setVisible(boolean state){
+  public void setVisible(boolean state) {
     panelCCDEraser.setVisible(state);
   }
 
   /**
    * Makes the advanced components visible or invisible
    */
-  void setAdvanced(boolean state){
+  void setAdvanced(boolean state) {
     ltfInputImage.setVisible(state);
     ltfOutputImage.setVisible(state);
     ltfGlobalReplacementList.setVisible(state);
@@ -125,13 +125,12 @@ public class CCDEraserPanel implements ContextMenu {
     chkboxIncludeAdjacentPoints.setVisible(state);
   }
 
-
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = {"ccdEraser"};
-    String[] manPage = {"ccderaser.html"};
+    String[] label = { "ccdEraser" };
+    String[] manPage = { "ccderaser.html" };
     ContextPopup contextPopup =
       new ContextPopup(panelCCDEraser, mouseEvent, label, manPage);
   }
@@ -161,11 +160,11 @@ public class CCDEraserPanel implements ContextMenu {
     ltfInputImage.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>The ouput image stack filename.<br>";
-    line2 = "Leave blank to replace existing image stack file.  The default<br>";
+    line2 =
+      "Leave blank to replace existing image stack file.  The default<br>";
     line3 = "processing expects the image stack file to be replaced so a <br>";
     line4 = "blank entry should work for most situations.";
     ltfOutputImage.setToolTipText(line1 + line2 + line3 + line4);
-
 
     line1 = "<html>The global replacemnt list.<br>";
     line2 = "A list of objects in the model file which specify the points<br>";
@@ -174,8 +173,8 @@ public class CCDEraserPanel implements ContextMenu {
     line5 = "specify the pixels to be replaced.  A blank entry indicates<br>";
     line6 = "that no objects will be used for global replacement.<br>";
     line7 = "Ranges of objects are allowed";
-    ltfGlobalReplacementList.setToolTipText(line1 + line2 + line3 + line4
-      + line5 + line6 + line7);
+    ltfGlobalReplacementList.setToolTipText(
+      line1 + line2 + line3 + line4 + line5 + line6 + line7);
 
     line1 = "<html>The line replacemnt list.<br>";
     line2 = "A list of objects in the model file which specify lines<br>";
@@ -184,9 +183,8 @@ public class CCDEraserPanel implements ContextMenu {
     line5 = "specify the lines to be replaced.  A blank entry indicates<br>";
     line6 = "that no objects will be used for line replacement.<br>";
     line7 = "Ranges of objects are allowed";
-    ltfLocalReplacementList.setToolTipText(line1 + line2 + line3 + line4
-      + line5 + line6 + line7);
-
+    ltfLocalReplacementList.setToolTipText(
+      line1 + line2 + line3 + line4 + line5 + line6 + line7);
 
     line1 = "<html>The size of the border around the replaced pixels.<br>";
     line2 = "This specifes the number pixles are the replaced pixels to be<br>";
@@ -199,13 +197,16 @@ public class CCDEraserPanel implements ContextMenu {
     line4 = "default of a second order polynomial";
     ltfPolynomialOrder.setToolTipText(line1 + line2 + line3 + line4);
 
-
     line1 = "<html>Include point adjacent to the specified points in the<br>";
-    line2 = "polynomial fit.  <b>???</b>Selecting this check box will replace the erase<br>";
-    line3 = "model points <b>as well as the adjacent points</b> with interpolated values.<br>";
-    line4 = "Does this effectively increas the replacement patch by 1 pixel in all directions<br>";
+    line2 =
+      "polynomial fit.  <b>???</b>Selecting this check box will replace the erase<br>";
+    line3 =
+      "model points <b>as well as the adjacent points</b> with interpolated values.<br>";
+    line4 =
+      "Does this effectively increas the replacement patch by 1 pixel in all directions<br>";
     line5 = "<b>prior</b> to performing the interpolation<b>???</b>";
-    chkboxIncludeAdjacentPoints.setToolTipText(line1 + line2 + line3 + line4 + line5);
+    chkboxIncludeAdjacentPoints.setToolTipText(
+      line1 + line2 + line3 + line4 + line5);
 
   }
 }

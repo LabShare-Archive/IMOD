@@ -1,9 +1,7 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
@@ -22,10 +20,14 @@ import etomo.type.AxisID;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TomogramCombinationDialog extends ProcessDialog {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   ApplicationManager applicationManager;
   JPanel contentPane;
@@ -74,7 +76,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
 
   //  Action functions for setup panel buttons
   void buttonImodAAction(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodTomogram(AxisID.FIRST);
     }
     else {
@@ -90,19 +92,16 @@ public class TomogramCombinationDialog extends ProcessDialog {
     applicationManager.createCombineScripts();
   }
 
-
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneTomogramCombinationDialog(this);
   }
 
-
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneTomogramCombinationDialog(this);
   }
-
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
@@ -124,8 +123,7 @@ class CombineDialogImodAAdapter implements ActionListener {
     adaptee.buttonImodAAction(event);
   }
 }
-class CombineDialogImodBAdapter
-  implements ActionListener {
+class CombineDialogImodBAdapter implements ActionListener {
 
   TomogramCombinationDialog adaptee;
 
@@ -138,8 +136,7 @@ class CombineDialogImodBAdapter
   }
 }
 
-class CombineDialogCreateActionAdapter
-  implements ActionListener {
+class CombineDialogCreateActionAdapter implements ActionListener {
 
   TomogramCombinationDialog adaptee;
 

@@ -3,7 +3,7 @@ package etomo.ui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.comscript.ConstTilt;
@@ -24,13 +24,18 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/19 21:37:57  rickg
+ * <p> Removed stdout messages
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
 public class TomogramPositioningDialog
-  extends ProcessDialog implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  extends ProcessDialog
+  implements ContextMenu {
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
 
@@ -38,7 +43,6 @@ public class TomogramPositioningDialog
   private JPanel panelPosition = new JPanel();
   private JPanel panelPositionA = new JPanel();
   private BeveledBorder borderA = new BeveledBorder("Axis: A");
-
 
   private LabeledTextField ltfSampleTomoThicknessA =
     new LabeledTextField("Sample tomogram thickness: ");
@@ -83,7 +87,6 @@ public class TomogramPositioningDialog
   private JToggleButton buttonAlignB =
     new JToggleButton("<html><b>Create final alignment</b>");
 
-
   public TomogramPositioningDialog(ApplicationManager appMgr) {
     applicationManager = appMgr;
 
@@ -92,35 +95,29 @@ public class TomogramPositioningDialog
     setTitle("eTomo Tomogram Position");
     buttonExecute.setText("Done");
 
-    ltfSampleTomoThicknessA.setTextPreferredSize(new Dimension(50,20));
+    ltfSampleTomoThicknessA.setTextPreferredSize(new Dimension(50, 20));
     buttonSampleA.setAlignmentX(0.5F);
     buttonCreateBoundaryA.setAlignmentX(0.5F);
     buttonTomopitchA.setAlignmentX(0.5F);
     buttonAlignA.setAlignmentX(0.5F);
 
-    buttonSampleA.addActionListener(
-      new PositioningDialogSampleA(this));
+    buttonSampleA.addActionListener(new PositioningDialogSampleA(this));
     buttonCreateBoundaryA.addActionListener(
       new PositioningDialogCreateBoundaryA(this));
-    buttonTomopitchA.addActionListener(
-      new PositioningDialogTomopitchA(this));
-    buttonAlignA.addActionListener(
-      new PositioningDialogFinalAlignA(this));
+    buttonTomopitchA.addActionListener(new PositioningDialogTomopitchA(this));
+    buttonAlignA.addActionListener(new PositioningDialogFinalAlignA(this));
 
-    ltfSampleTomoThicknessB.setTextPreferredSize(new Dimension(50,20));
+    ltfSampleTomoThicknessB.setTextPreferredSize(new Dimension(50, 20));
     buttonSampleB.setAlignmentX(0.5F);
     buttonCreateBoundaryB.setAlignmentX(0.5F);
     buttonTomopitchB.setAlignmentX(0.5F);
     buttonAlignB.setAlignmentX(0.5F);
 
-    buttonSampleB.addActionListener(
-      new PositioningDialogSampleB(this));
+    buttonSampleB.addActionListener(new PositioningDialogSampleB(this));
     buttonCreateBoundaryB.addActionListener(
       new PositioningDialogCreateBoundaryB(this));
-    buttonTomopitchB.addActionListener(
-      new PositioningDialogTomopitchB(this));
-    buttonAlignB.addActionListener(
-      new PositioningDialogFinalAlignB(this));
+    buttonTomopitchB.addActionListener(new PositioningDialogTomopitchB(this));
+    buttonAlignB.addActionListener(new PositioningDialogFinalAlignB(this));
 
     //  Create the primary panels
     panelPositionA.setBorder(borderA.getBorder());
@@ -189,9 +186,8 @@ public class TomogramPositioningDialog
 
   }
 
-
   public void setTiltParams(ConstTilt tiltParam, AxisID axisID) {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       ltfSampleTomoThicknessB.setText(tiltParam.getThickness());
     }
     else {
@@ -199,37 +195,36 @@ public class TomogramPositioningDialog
     }
   }
 
-
   public void getTiltParams(TiltParam tiltParam, AxisID axisID)
-  throws NumberFormatException {
-    if(axisID == AxisID.SECOND) {
+    throws NumberFormatException {
+    if (axisID == AxisID.SECOND) {
       try {
-	tiltParam.setThickness(
-	  Integer.parseInt(ltfSampleTomoThicknessB.getText()));
+        tiltParam.setThickness(
+          Integer.parseInt(ltfSampleTomoThicknessB.getText()));
       }
-      catch(NumberFormatException except) {
-	String message = "Axis B: " + except.getMessage();
-	throw new NumberFormatException(message);
+      catch (NumberFormatException except) {
+        String message = "Axis B: " + except.getMessage();
+        throw new NumberFormatException(message);
       }
 
     }
     else {
       try {
-	tiltParam.setThickness(
-	  Integer.parseInt(ltfSampleTomoThicknessA.getText()));
+        tiltParam.setThickness(
+          Integer.parseInt(ltfSampleTomoThicknessA.getText()));
 
       }
-      catch(NumberFormatException except) {
-	String message = "Axis A: " + except.getMessage();
-	throw new NumberFormatException(message);
+      catch (NumberFormatException except) {
+        String message = "Axis A: " + except.getMessage();
+        throw new NumberFormatException(message);
       }
     }
   }
 
-
-  public void setAlignParams(ConstTiltalignParam tiltalignParam,
+  public void setAlignParams(
+    ConstTiltalignParam tiltalignParam,
     AxisID axisID) {
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       ltfTiltAngleOffsetB.setText(tiltalignParam.getTiltAngleOffset());
       ltfTiltAxisZShiftB.setText(tiltalignParam.getTiltAxisZShift());
       ltfTiltAxisXShiftB.setText(tiltalignParam.getTiltAxisXShift());
@@ -241,36 +236,34 @@ public class TomogramPositioningDialog
     }
   }
 
-
   public void getAlignParams(TiltalignParam tiltalignParam, AxisID axisID)
-  throws NumberFormatException {
-    if(axisID == AxisID.SECOND) {
+    throws NumberFormatException {
+    if (axisID == AxisID.SECOND) {
       try {
-	tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetB.getText());
-	tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftB.getText());
-	tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftB.getText());
+        tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetB.getText());
+        tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftB.getText());
+        tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftB.getText());
       }
-      catch(NumberFormatException except) {
-	String message = "Axis B: " + except.getMessage();
-	throw new NumberFormatException(message);
+      catch (NumberFormatException except) {
+        String message = "Axis B: " + except.getMessage();
+        throw new NumberFormatException(message);
       }
 
     }
     else {
       try {
-	tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetA.getText());
-	tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftA.getText());
-	tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftA.getText());
+        tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffsetA.getText());
+        tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShiftA.getText());
+        tiltalignParam.setTiltAxisXShift(ltfTiltAxisXShiftA.getText());
       }
-      catch(NumberFormatException except) {
-	String message = "Axis A: " + except.getMessage();
-	throw new NumberFormatException(message);
+      catch (NumberFormatException except) {
+        String message = "Axis A: " + except.getMessage();
+        throw new NumberFormatException(message);
       }
     }
   }
 
-
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     panelPositionB.setVisible(state);
   }
 
@@ -278,14 +271,13 @@ public class TomogramPositioningDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      {"newst", "imod", "tomopitch", "tilt"};
+    String[] manPagelabel = { "newst", "imod", "tomopitch", "tilt" };
     String[] manPage =
-      {"newst.html", "imod.html", "tomopitch.html", "tilt.html"};
+      { "newst.html", "imod.html", "tomopitch.html", "tilt.html" };
 
     String[] logFileLabel;
     String[] logFile;
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       logFileLabel = new String[4];
       logFileLabel[0] = "samplea";
       logFileLabel[1] = "sampleb";
@@ -307,13 +299,18 @@ public class TomogramPositioningDialog
     }
 
     ContextPopup contextPopup =
-      new ContextPopup(contentPane, mouseEvent,
-	manPagelabel, manPage, logFileLabel, logFile);
+      new ContextPopup(
+        contentPane,
+        mouseEvent,
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   //  Button action handler methods
   void buttonSampleA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.createSample(AxisID.FIRST, this);
     }
     else {
@@ -322,7 +319,7 @@ public class TomogramPositioningDialog
   }
 
   void buttonCreateBoundaryA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodSample(AxisID.FIRST);
     }
     else {
@@ -331,7 +328,7 @@ public class TomogramPositioningDialog
   }
 
   void buttonTomopitchA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.tomopitch(AxisID.FIRST);
     }
     else {
@@ -340,7 +337,7 @@ public class TomogramPositioningDialog
   }
 
   void buttonFinalAlignA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.finalAlign(this, AxisID.FIRST);
     }
     else {
@@ -370,12 +367,10 @@ public class TomogramPositioningDialog
     applicationManager.doneTomogramPositioningDialog(this);
   }
 
-
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneTomogramPositioningDialog(this);
   }
-
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
@@ -387,7 +382,7 @@ public class TomogramPositioningDialog
     setAdvanced(isAdvanced);
   }
 
-  private void setAdvanced(boolean state){
+  private void setAdvanced(boolean state) {
     ltfTiltAxisXShiftA.setVisible(state);
     ltfTiltAxisXShiftB.setVisible(state);
     pack();
@@ -395,12 +390,10 @@ public class TomogramPositioningDialog
   }
 }
 
-
 //
 //  Action listener adapters
 //
-class PositioningDialogSampleA
-  implements ActionListener {
+class PositioningDialogSampleA implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -413,9 +406,7 @@ class PositioningDialogSampleA
   }
 }
 
-
-class PositioningDialogCreateBoundaryA
-  implements ActionListener {
+class PositioningDialogCreateBoundaryA implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -428,9 +419,7 @@ class PositioningDialogCreateBoundaryA
   }
 }
 
-
-class PositioningDialogTomopitchA
-  implements ActionListener {
+class PositioningDialogTomopitchA implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -443,9 +432,7 @@ class PositioningDialogTomopitchA
   }
 }
 
-
-class PositioningDialogFinalAlignA
-  implements ActionListener {
+class PositioningDialogFinalAlignA implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -458,9 +445,7 @@ class PositioningDialogFinalAlignA
   }
 }
 
-
-class PositioningDialogSampleB
-  implements ActionListener {
+class PositioningDialogSampleB implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -473,9 +458,7 @@ class PositioningDialogSampleB
   }
 }
 
-
-class PositioningDialogCreateBoundaryB
-  implements ActionListener {
+class PositioningDialogCreateBoundaryB implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -488,9 +471,7 @@ class PositioningDialogCreateBoundaryB
   }
 }
 
-
-class PositioningDialogTomopitchB
-  implements ActionListener {
+class PositioningDialogTomopitchB implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 
@@ -503,9 +484,7 @@ class PositioningDialogTomopitchB
   }
 }
 
-
-class PositioningDialogFinalAlignB
-  implements ActionListener {
+class PositioningDialogFinalAlignB implements ActionListener {
 
   TomogramPositioningDialog adaptee;
 

@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 
 import javax.swing.*;
@@ -18,19 +17,23 @@ import javax.swing.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class DataSetIDPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   JPanel panelDataSetID = new JPanel();
 
-  LabeledTextField ltfWorkingDirectory  =
+  LabeledTextField ltfWorkingDirectory =
     new LabeledTextField("Working directory:");
 
-  LabeledTextField ltfDataSet  = new LabeledTextField("Data Set:");
+  LabeledTextField ltfDataSet = new LabeledTextField("Data Set:");
 
-  LabeledTextField ltfBackupDir  = new LabeledTextField("Backup Directory:");
+  LabeledTextField ltfBackupDir = new LabeledTextField("Backup Directory:");
 
   public DataSetIDPanel() {
     setToolTipText();
@@ -54,13 +57,13 @@ public class DataSetIDPanel {
 
     panelDataSetID.setLayout(new BoxLayout(panelDataSetID, BoxLayout.X_AXIS));
     panelDataSetID.setMaximumSize(new Dimension(2000, 100));
-	panelDataSetID.add(Box.createRigidArea(FixedDim.x5_y0));
+    panelDataSetID.add(Box.createRigidArea(FixedDim.x5_y0));
     panelDataSetID.add(ltfWorkingDirectory.getContainer());
-	  panelDataSetID.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelDataSetID.add(Box.createRigidArea(FixedDim.x10_y0));
     panelDataSetID.add(ltfDataSet.getContainer());
-	panelDataSetID.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelDataSetID.add(Box.createRigidArea(FixedDim.x10_y0));
     panelDataSetID.add(ltfBackupDir.getContainer());
-	  panelDataSetID.add(Box.createRigidArea(FixedDim.x5_y0));
+    panelDataSetID.add(Box.createRigidArea(FixedDim.x5_y0));
 
   }
 
@@ -88,14 +91,14 @@ public class DataSetIDPanel {
     ltfBackupDir.addMouseListener(listener);
   }
 
-  private void setToolTipText(){
-	ltfWorkingDirectory.setToolTipText(
+  private void setToolTipText() {
+    ltfWorkingDirectory.setToolTipText(
       "<html>This specifies the working directory where the input<br>data is stored and the command files and results are<br>placed.<br><br>To set this parameter run the setup process below<br>to start a new tomogram.");
 
     ltfDataSet.setToolTipText(
       "<html>This specifies the data set to use within the working<br>directory.  For single axis data sets ommit the .st<br>from the filename.  For dual axis data sets ommit the<br>a.st from the file name.<br><br>To set this parameter run the setup process below<br>to start a new tomogram.");
 
     ltfBackupDir.setToolTipText(
-       "<html>This specifies where the command files and small result<br>files are backed up.<br><br>To set this parameter run the setup process below<br>to start a new tomogram.");
+      "<html>This specifies where the command files and small result<br>files are backed up.<br><br>To set this parameter run the setup process below<br>to start a new tomogram.");
   }
 }

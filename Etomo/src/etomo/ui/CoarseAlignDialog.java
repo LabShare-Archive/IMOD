@@ -1,9 +1,7 @@
 package etomo.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -24,10 +22,14 @@ import etomo.comscript.FortranInputSyntaxException;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
 
@@ -42,7 +44,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   private JToggleButton buttonImodA =
     new JToggleButton("<html><b>View aligned<br>stack in imod</b>");
   private JToggleButton buttonMidasA =
-     new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
+    new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
 
   private JPanel panelCoarseAlignB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
@@ -50,10 +52,9 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   private JToggleButton buttonCoarseAlignB =
     new JToggleButton("<html><b>Generate coarse<br>aligned stack</b>");
   private JToggleButton buttonImodB =
-     new JToggleButton("<html><b>View aligned<br>stack in imod</b>");
+    new JToggleButton("<html><b>View aligned<br>stack in imod</b>");
   private JToggleButton buttonMidasB =
-     new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
-
+    new JToggleButton("<html><b>Fix alignment<br>with Midas</b>");
 
   public CoarseAlignDialog(ApplicationManager appMgr) {
     applicationManager = appMgr;
@@ -61,8 +62,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     contentPane = (JPanel) getContentPane();
     setTitle("eTomo Coarse Alignment");
 
-
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       panelCrossCorrelationA = new CrossCorrelationPanel("a");
     }
     else {
@@ -119,7 +119,8 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     panelCoarseAlignB.add(Box.createRigidArea(FixedDim.x0_y5));
     panelCoarseAlignB.add(buttonMidasB);
 
-    panelCoarseAlign.setLayout(new BoxLayout(panelCoarseAlign, BoxLayout.X_AXIS));
+    panelCoarseAlign.setLayout(
+      new BoxLayout(panelCoarseAlign, BoxLayout.X_AXIS));
     panelCoarseAlign.add(Box.createRigidArea(FixedDim.x10_y0));
     contentPane.add(Box.createHorizontalGlue());
     panelCoarseAlign.add(panelCoarseAlignA);
@@ -139,30 +140,25 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     //
     //  Action listener assignments for the buttons
     //
-    panelCrossCorrelationA.setButtonActionListener(new
-      CoarseAlignDialogCrossCorrelateA(this));
+    panelCrossCorrelationA.setButtonActionListener(
+      new CoarseAlignDialogCrossCorrelateA(this));
 
-    buttonCoarseAlignA.addActionListener(new
-      CoarseAlignDialogCoarseAlignA(this));
+    buttonCoarseAlignA.addActionListener(
+      new CoarseAlignDialogCoarseAlignA(this));
 
-    buttonImodA.addActionListener(new
-      CoarseAlignDialogImodA(this));
+    buttonImodA.addActionListener(new CoarseAlignDialogImodA(this));
 
-    buttonMidasA.addActionListener(new
-      CoarseAlignDialogMidasA(this));
+    buttonMidasA.addActionListener(new CoarseAlignDialogMidasA(this));
 
-    panelCrossCorrelationB.setButtonActionListener(new
-      CoarseAlignDialogCrossCorrelateB(this));
+    panelCrossCorrelationB.setButtonActionListener(
+      new CoarseAlignDialogCrossCorrelateB(this));
 
-    buttonCoarseAlignB.addActionListener(new
-      CoarseAlignDialogCoarseAlignB(this));
+    buttonCoarseAlignB.addActionListener(
+      new CoarseAlignDialogCoarseAlignB(this));
 
-    buttonImodB.addActionListener(new
-      CoarseAlignDialogImodB(this));
+    buttonImodB.addActionListener(new CoarseAlignDialogImodB(this));
 
-    buttonMidasB.addActionListener(new
-      CoarseAlignDialogMidasB(this));
-
+    buttonMidasB.addActionListener(new CoarseAlignDialogMidasB(this));
 
     //  Set the default advanced state for the window
     //  FIXME: this needs to be defined by the options and
@@ -179,13 +175,13 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     pack();
   }
 
-
   /**
    * Set the parameters for the specified cross correlation panel
    */
-  public void setCrossCorrelationParams(ConstTiltxcorrParam tiltXcorrParams,
-      AxisID axisID){
-    if(axisID == AxisID.SECOND) {
+  public void setCrossCorrelationParams(
+    ConstTiltxcorrParam tiltXcorrParams,
+    AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
       panelCrossCorrelationB.setParameters(tiltXcorrParams);
     }
     else {
@@ -196,35 +192,36 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   /**
    * Get the parameters from the specified cross correlation panel
    */
-  public void getCrossCorrelationParams(TiltxcorrParam tiltXcorrParams,
-     AxisID axisID) throws FortranInputSyntaxException {
-    if(axisID == AxisID.SECOND) {
+  public void getCrossCorrelationParams(
+    TiltxcorrParam tiltXcorrParams,
+    AxisID axisID)
+    throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
       try {
-	panelCrossCorrelationB.getParameters(tiltXcorrParams);
+        panelCrossCorrelationB.getParameters(tiltXcorrParams);
       }
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis B: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis B: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
 
     }
     else {
       try {
-	panelCrossCorrelationA.getParameters(tiltXcorrParams);
+        panelCrossCorrelationA.getParameters(tiltXcorrParams);
       }
       // FIXME specify exception
-      catch(FortranInputSyntaxException except) {
-	String message = "Axis A: " + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+      catch (FortranInputSyntaxException except) {
+        String message = "Axis A: " + except.getMessage();
+        throw new FortranInputSyntaxException(message);
       }
 
     }
   }
 
-
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    if(isAdvanced) {
+    if (isAdvanced) {
       panelCrossCorrelationA.setAdvanced(true);
       panelCrossCorrelationB.setAdvanced(true);
     }
@@ -239,19 +236,22 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     panelCrossCorrelationA.setButtonState(state);
   }
 
-
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      {"xftoxg", "newst", "newstack", "imod", "midas"};
+    String[] manPagelabel = { "xftoxg", "newst", "newstack", "imod", "midas" };
     String[] manPage =
-      {"xftoxg.html", "newst.html", "newstack.html", "imod.html", "midas.html"};
+      {
+        "xftoxg.html",
+        "newst.html",
+        "newstack.html",
+        "imod.html",
+        "midas.html" };
 
     String[] logFileLabel;
     String[] logFile;
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       logFileLabel = new String[2];
       logFileLabel[0] = "prenewsta";
       logFileLabel[1] = "prenewstb";
@@ -267,8 +267,13 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     }
 
     ContextPopup contextPopup =
-      new ContextPopup(panelCoarseAlign, mouseEvent,
-	manPagelabel, manPage, logFileLabel, logFile);
+      new ContextPopup(
+        panelCoarseAlign,
+        mouseEvent,
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   //
@@ -276,7 +281,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   //
   void buttonCrossCorrelateA(ActionEvent event) {
     panelCrossCorrelationA.setButtonState(true);
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.crossCorrelate(AxisID.FIRST, this);
     }
     else {
@@ -285,7 +290,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonCoarseAlignA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.coarseAlign(AxisID.FIRST);
     }
     else {
@@ -294,7 +299,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonImodA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.imodAlign(AxisID.FIRST);
     }
     else {
@@ -303,7 +308,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonMidasA(ActionEvent event) {
-    if(applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()) {
       applicationManager.midasRawStack(AxisID.FIRST);
     }
     else {
@@ -316,7 +321,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void buttonCoarseAlignB(ActionEvent event) {
-      applicationManager.coarseAlign(AxisID.SECOND);
+    applicationManager.coarseAlign(AxisID.SECOND);
   }
 
   void buttonImodB(ActionEvent event) {
@@ -335,28 +340,24 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     applicationManager.doneCoarseAlignDialog(this);
   }
 
-
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneCoarseAlignDialog(this);
   }
-
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneCoarseAlignDialog(this);
   }
 
-
-  public void setEnabledB(boolean state){
+  public void setEnabledB(boolean state) {
     buttonCoarseAlignB.setEnabled(state);
     buttonImodB.setEnabled(state);
     buttonMidasB.setEnabled(state);
   }
 }
 
-class CoarseAlignDialogCrossCorrelateA
-  implements ActionListener {
+class CoarseAlignDialogCrossCorrelateA implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -369,8 +370,7 @@ class CoarseAlignDialogCrossCorrelateA
   }
 }
 
-class CoarseAlignDialogCoarseAlignA
-  implements ActionListener {
+class CoarseAlignDialogCoarseAlignA implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -383,8 +383,7 @@ class CoarseAlignDialogCoarseAlignA
   }
 }
 
-class CoarseAlignDialogImodA
-  implements ActionListener {
+class CoarseAlignDialogImodA implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -397,8 +396,7 @@ class CoarseAlignDialogImodA
   }
 }
 
-class CoarseAlignDialogMidasA
-  implements ActionListener {
+class CoarseAlignDialogMidasA implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -411,8 +409,7 @@ class CoarseAlignDialogMidasA
   }
 }
 
-class CoarseAlignDialogCrossCorrelateB
-  implements ActionListener {
+class CoarseAlignDialogCrossCorrelateB implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -425,8 +422,7 @@ class CoarseAlignDialogCrossCorrelateB
   }
 }
 
-class CoarseAlignDialogCoarseAlignB
-  implements ActionListener {
+class CoarseAlignDialogCoarseAlignB implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -439,8 +435,7 @@ class CoarseAlignDialogCoarseAlignB
   }
 }
 
-class CoarseAlignDialogImodB
-  implements ActionListener {
+class CoarseAlignDialogImodB implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
@@ -453,8 +448,7 @@ class CoarseAlignDialogImodB
   }
 }
 
-class CoarseAlignDialogMidasB
-  implements ActionListener {
+class CoarseAlignDialogMidasB implements ActionListener {
 
   CoarseAlignDialog adaptee;
 
