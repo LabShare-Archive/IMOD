@@ -60,7 +60,8 @@ public class ImodManagerTest extends TestCase {
     Tester tester;
     //Test single axis
     setUpSingle();
-    imodManager = new ImodManager(applicationManager, metaData);
+    imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     //rawStack
     tester = newTester("rawStack");
     tester.equals(imodManager.get("rawStack"));
@@ -120,7 +121,8 @@ public class ImodManagerTest extends TestCase {
         trimmedVolume = new ImodProcess(datasetName + ".rec");
     */
     setUpDual();
-    imodManager = new ImodManager(applicationManager, metaData);
+    imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     AxisID a = AxisID.FIRST;
     AxisID b = AxisID.SECOND;
     AxisType dual = AxisType.DUAL_AXIS;
@@ -397,7 +399,8 @@ public class ImodManagerTest extends TestCase {
 
   private void testOpen(Tester tester, String key, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.open(key, axisID);
     assertTrue(imodManager.isOpen(key, axisID));
     tester.equals(imodManager.get(key, axisID));
@@ -407,7 +410,8 @@ public class ImodManagerTest extends TestCase {
 
   private void testOpen(Tester tester, String key)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.open(key);
     assertTrue(imodManager.isOpen(key));
     tester.equals(imodManager.get(key));
@@ -416,7 +420,8 @@ public class ImodManagerTest extends TestCase {
 
   private void testOpen(Tester tester, String key, AxisID axisID, String model)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.open(key, axisID, model);
     assertTrue(imodManager.isOpen(key, axisID));
     tester.equals(imodManager.get(key, axisID));
@@ -432,7 +437,8 @@ public class ImodManagerTest extends TestCase {
     boolean modelMode,
     boolean preserveContrast)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.model(key, axisID, modelName, modelMode, preserveContrast);
     assertTrue(imodManager.isOpen(key, axisID));
     tester.equals(imodManager.get(key, axisID));
@@ -447,7 +453,8 @@ public class ImodManagerTest extends TestCase {
     String modelName,
     boolean modelMode)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.model(key, axisID, modelName, modelMode);
     assertTrue(imodManager.isOpen(key, axisID));
     tester.equals(imodManager.get(key, axisID));
@@ -461,7 +468,8 @@ public class ImodManagerTest extends TestCase {
     AxisID axisID,
     String modelName)
     throws AxisTypeException, SystemProcessException {
-    ImodManager imodManager = new ImodManager(applicationManager, metaData);
+    ImodManager imodManager = new ImodManager(applicationManager);
+    imodManager.setMetaData(metaData);
     imodManager.model(key, axisID, modelName);
     assertTrue(imodManager.isOpen(key, axisID));
     tester.equals(imodManager.get(key, axisID));
