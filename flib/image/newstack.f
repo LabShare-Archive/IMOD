@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.24  2004/11/30 03:26:50  mast
+c	  Fixed bugs in binning large images
+c	
 c	  Revision 3.23  2004/09/09 16:16:09  mast
 c	  When run with PIP input, it was not setting up a transform line list
 c	  properly with only one transform in file
@@ -1487,7 +1490,12 @@ c
 		sclfac = scaleFacs(min(numScaleFacs, ifil))
 		const = scaleConsts(min(numScaleFacs, ifil))
 	      else
-		sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
+c		  
+c		  2/9/05: keep scale factor 1 if image has no range
+c		  
+		sclfac = 1.
+		if (dmax2.ne.dmin2 .and. tmpmax.ne.tmpmin)
+     &		    sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
 		const=dmin2-sclfac*tmpmin
 	      endif
 	      dmin2=1.e20
