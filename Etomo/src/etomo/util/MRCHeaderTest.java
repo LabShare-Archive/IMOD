@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
-import etomo.process.SystemProgram;
 
 import junit.framework.TestCase;
 
@@ -21,6 +20,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/02/13 00:08:13  rickg
+ * <p> Moved checkouts out of setup and into individual tests.
+ * <p>
  * <p> Revision 3.5  2004/02/10 04:53:50  rickg
  * <p> Changed CVS commans to export
  * <p>
@@ -136,16 +138,7 @@ public class MRCHeaderTest extends TestCase {
     System.setProperty("user.dir", testRoot);
 
     // Check out the test header stack into the required directories
-    String[] cvsCommand = new String[7];
-    cvsCommand[0] = "cvs";
-    cvsCommand[1] = "export";
-    cvsCommand[2] = "-D";
-    cvsCommand[3] = "today";    
-    cvsCommand[4] = "-d";
-    cvsCommand[5] = testDirectory1;
-    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
-    SystemProgram cvs = new SystemProgram(cvsCommand);
-    cvs.run();
+    TestUtilites.checkoutVector(testDirectory1, "headerTest.st");
 
     //  Switch back to the original working directory
     System.setProperty("user.dir", originalDirectory);  
@@ -168,16 +161,7 @@ public class MRCHeaderTest extends TestCase {
     System.setProperty("user.dir", testRoot);
 
     // Check out the test header stack into the required directories
-    String[] cvsCommand = new String[7];
-    cvsCommand[0] = "cvs";
-    cvsCommand[1] = "export";
-    cvsCommand[2] = "-D";
-    cvsCommand[3] = "today";    
-    cvsCommand[4] = "-d";
-    cvsCommand[5] = testDirectory2;
-    cvsCommand[6] = "ImodTests/EtomoTests/vectors/headerTest.st";
-    SystemProgram cvs = new SystemProgram(cvsCommand);
-    cvs.run();
+    TestUtilites.checkoutVector(testDirectory2, "headerTest.st");
 
     //  Switch back to the original working directory
     System.setProperty("user.dir", originalDirectory);
