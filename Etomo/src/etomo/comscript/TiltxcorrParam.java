@@ -14,11 +14,15 @@ import etomo.type.TiltAngleType;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class TiltxcorrParam extends ConstTiltxcorrParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   /**
    * Get the parameters from the ComScriptCommand
@@ -26,15 +30,15 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
    * and parameters.
    */
   public void initialize(ComScriptCommand scriptCommand)
-  throws BadComScriptException, FortranInputSyntaxException {
+    throws BadComScriptException, FortranInputSyntaxException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
     }
-    catch(BadComScriptException except) {
-      throw(except);
+    catch (BadComScriptException except) {
+      throw (except);
     }
 
     int inputLine = 0;
@@ -49,16 +53,18 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
     try {
       filterParams.validateAndSet(inputArgs[inputLine++].getArgument());
       excludeCentralPeak =
-	inputArgs[inputLine++].getArgument().matches("\\s*1\\s*");
+        inputArgs[inputLine++].getArgument().matches("\\s*1\\s*");
       trim.validateAndSet(inputArgs[inputLine++].getArgument());
       padPercent.validateAndSet(inputArgs[inputLine++].getArgument());
       taperPercent.validateAndSet(inputArgs[inputLine++].getArgument());
       viewList = inputArgs[inputLine++].getArgument();
     }
-    catch(FortranInputSyntaxException except) {
+    catch (FortranInputSyntaxException except) {
       String message =
-	"Parse error in tiltxcorr command, standard input argument: " +
-      String.valueOf(inputLine) + "\n" + except.getMessage();
+        "Parse error in tiltxcorr command, standard input argument: "
+          + String.valueOf(inputLine)
+          + "\n"
+          + except.getMessage();
       throw new FortranInputSyntaxException(message, except.getNewString());
     }
   }
@@ -69,15 +75,15 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScript(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+    throws BadComScriptException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
     }
-    catch(BadComScriptException except) {
-      throw(except);
+    catch (BadComScriptException except) {
+      throw (except);
     }
 
     //  Fill in the input argument sequence
@@ -89,7 +95,7 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
     inputArgs[4].setArgument(tiltAngleSpec.getTiltAngles());
     inputArgs[5].setArgument(String.valueOf(imageRotation));
     inputArgs[6].setArgument(filterParams.toString());
-    if(excludeCentralPeak) {
+    if (excludeCentralPeak) {
       inputArgs[7].setArgument("1");
     }
     else {
@@ -102,8 +108,6 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
     scriptCommand.setInputArguments(inputArgs);
 
   }
-
-
 
   /**
    * Set the input file name
@@ -176,14 +180,30 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
    * Return a multiline string describing the class attributes.
    */
   public String toString() {
-    return "Input file: " + inputFile + "\n"
-      + "Piece list file: " + pieceListFile + "\n"
-      + "Output file: " + outputFile + "\n"
-      + "Exclude central peak : " + String.valueOf(excludeCentralPeak) + "\n"
-      + "Trim x: " + trim + "\n"
-      + "Trim y: " + padPercent + "\n"
-      + "Pad x: " + taperPercent + "\n"
-      + "Pad y: " + viewList + "\n";
+    return "Input file: "
+      + inputFile
+      + "\n"
+      + "Piece list file: "
+      + pieceListFile
+      + "\n"
+      + "Output file: "
+      + outputFile
+      + "\n"
+      + "Exclude central peak : "
+      + String.valueOf(excludeCentralPeak)
+      + "\n"
+      + "Trim x: "
+      + trim
+      + "\n"
+      + "Trim y: "
+      + padPercent
+      + "\n"
+      + "Pad x: "
+      + taperPercent
+      + "\n"
+      + "Pad y: "
+      + viewList
+      + "\n";
   }
 
   /**
@@ -195,16 +215,18 @@ public class TiltxcorrParam extends ConstTiltxcorrParam {
     throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
-    if(! scriptCommand.getCommand().equals("tiltxcorr")) {
-      throw(new BadComScriptException("Not a tiltxcorr command"));
+    if (!scriptCommand.getCommand().equals("tiltxcorr")) {
+      throw (new BadComScriptException("Not a tiltxcorr command"));
     }
 
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if(inputArgs.length != 12) {
-      throw(new BadComScriptException(
-      "Incorrect number of input arguments to tiltxcorr command\nGot "
-      + String.valueOf(inputArgs.length) + " expected 12."));
+    if (inputArgs.length != 12) {
+      throw (
+        new BadComScriptException(
+          "Incorrect number of input arguments to tiltxcorr command\nGot "
+            + String.valueOf(inputArgs.length)
+            + " expected 12."));
     }
 
     return inputArgs;
