@@ -26,7 +26,7 @@ $(LIBI) : $(OBJS)
 # that the new one is the only one present in the target directory
 
 $(LIBD) : tiffstub.o ALWAYS
-	$(FIND) . -type f -name $(LIBD) -exec rm "{}" \;
+	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
 	$(MAKELIB) $(LIBD) tiffstub.o
 	$(RANLIB) $(LIBD)
 	$(FIND) $(LIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
