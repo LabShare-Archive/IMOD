@@ -335,7 +335,7 @@ if ($compiler == intel) then
     echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
     if ($shared_libs == true) then
         set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
-        echo "LIBDIAQTDEF = $qt_libs $opengl_lib" >> $configure
+        echo "LIBDIAQTDEF = $qt_libs qassistantclient.lib $opengl_lib" >> $configure
     endif
 
     cat <<EOF >> $imod_dir/Makefile
