@@ -345,6 +345,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.16  2004/07/16 23:38:13  mast
+c	  Made it determine local scale from pixel sizes if present; fixed a bug
+c	  that was setting log base 0 after read the fullimage line; added
+c	  a EXCLUDELIST2 option
+c	
 c	  Revision 3.15  2004/04/01 01:44:23  mast
 c	  Used input file range to avoid taking logs of very small numbers
 c	
@@ -1786,6 +1791,7 @@ c
 	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
 	integer*4 npadtmp,nprpad,localPixel
 	integer*4 inum,licenseusfft,niceframe
+	external inum
 c
 	NTAGS = 33
 	WRITE(6,50)
@@ -2785,9 +2791,11 @@ C End of file
 	END
 
 
-	FUNCTION INUM(I)
+	integer*4 FUNCTION INUM(I)
 C 	----------------
-	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
+	integer*4 ntags, nfields
+	real*4 XNUM(50)
+	COMMON /CARDS/NTAGS,XNUM,NFIELDS
 	X=XNUM(I)
 	INUM=INT(X)
 	IF(FLOAT(INUM).EQ.X)RETURN
