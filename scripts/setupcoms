@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2003/11/13 19:45:29  mast
+#  Added -f flag to csh invocations
+#
 #
 # SET DOBOTH to 1 to do both sets of runs, to 0 to do only 2nd alignment 
 set DOBOTH = "1"
@@ -73,7 +76,7 @@ set comm = ${P1}_m.com
 # HERE ARE THE FILTERPARAMS FOR THE FIRST ALIGNMENT
 #
 cat >! $com1 <<EOCAT
-# csh
+#! /bin/csh -f
 set FILTERPARAM = "-.06,0.,0.,0."
 cat >! filesectlist <<ENDOFDATA
 $TEMPNAME
@@ -84,7 +87,7 @@ EOCAT
 # HERE ARE THE FILTERPARAMS FOR THE SECOND ALIGNMENT
 #
 cat >! $com2 <<EOCAT
-# csh
+#! /bin/csh -f
 set FILTERPARAM = ".06,.001,.04,.2"
 cat >! filesectlist <<ENDOFDATA
 $TEMPNAME
