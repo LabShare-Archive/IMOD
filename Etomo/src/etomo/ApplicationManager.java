@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.48  2003/06/05 21:19:13  rickg
+ * <p> Explicit transferfid B to A false setting
+ * <p>
  * <p> Revision 2.47  2003/05/27 08:42:04  rickg
  * <p> Progress bar determinant delegate methods
  * <p>
@@ -686,6 +689,8 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
       imodManager.modelRawStack(eraseModelName, axisID);
+      processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -727,6 +732,8 @@ public class ApplicationManager {
    */
   public void eraser(AxisID axisID) {
     updateEraserCom(axisID);
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.eraser(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Erasing pixels", axisID);
@@ -818,9 +825,10 @@ public class ApplicationManager {
    * Get the parameters from dialog box and run the cross correlation script
    */
   public void crossCorrelate(AxisID axisID) {
-
     // Get the parameters from the dialog box
     if (updateXcorrCom(axisID)) {
+      processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       String threadName = processMgr.crossCorrelate(axisID);
       setThreadName(threadName, axisID);
     }
@@ -830,6 +838,8 @@ public class ApplicationManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID) {
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.coarseAlign(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Creating coarse stack", axisID);
@@ -857,6 +867,8 @@ public class ApplicationManager {
    */
   public void midasRawStack(AxisID axisID) {
     processMgr.midasRawStack(axisID);
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
   }
 
   /**
@@ -990,6 +1002,8 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
       imodManager.modelCoarseAligned(seedModel, axisID);
+      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1009,6 +1023,8 @@ public class ApplicationManager {
    */
   public void fiducialModelTrack(AxisID axisID) {
     if (updateTrackCom(axisID)) {
+      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       String threadName = processMgr.fiducialModelTrack(axisID);
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Tracking fiducials", axisID);
@@ -1210,6 +1226,8 @@ public class ApplicationManager {
     if (!updateAlignCom(axisID)) {
       return;
     }
+    processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.fineAlignment(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Aligning stack", axisID);
@@ -1253,6 +1271,8 @@ public class ApplicationManager {
   public void imodFineAlign(AxisID axisID) {
     try {
       imodManager.openFineAligned(axisID);
+      processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1505,6 +1525,8 @@ public class ApplicationManager {
   public void createSample(AxisID axisID) {
     //  Get the user input data from the dialog box
     if (updateSampleTiltCom(axisID)) {
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       String threadName = processMgr.createSample(axisID);
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Creating sample tomogram", axisID);
@@ -1517,6 +1539,8 @@ public class ApplicationManager {
   public void imodSample(AxisID axisID) {
     try {
       imodManager.openSample(axisID);
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1535,6 +1559,8 @@ public class ApplicationManager {
    * 
    */
   public void tomopitch(AxisID axisID) {
+    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.tomopitch(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Finding sample position", axisID);
@@ -1554,6 +1580,8 @@ public class ApplicationManager {
     }
 
     if (updateAlignCom(tomogramPositioningDialog, axisID)) {
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       String threadName = processMgr.fineAlignment(axisID);
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Calculating final alignment", axisID);
@@ -1768,6 +1796,9 @@ public class ApplicationManager {
       newstParam.setSize(",,");
       comScriptMgr.saveNewst(newstParam, axisID);
 
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+
       String threadName = processMgr.newst(axisID);
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Creating final stack", axisID);
@@ -1782,6 +1813,9 @@ public class ApplicationManager {
    */
   public void tilt(AxisID axisID) {
     if (updateTiltCom(axisID)) {
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+
       String threadName = processMgr.tilt(axisID);
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Calculating tomogram", axisID);
@@ -2047,6 +2081,8 @@ public class ApplicationManager {
 
     try {
       processMgr.setupCombineScripts(metaData);
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
@@ -2272,6 +2308,9 @@ public class ApplicationManager {
       && updatePatchcorrCom()
       && updateMatchorwarpCom(false)) {
 
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
       String threadName = processMgr.solvematchshift();
@@ -2288,6 +2327,9 @@ public class ApplicationManager {
     if (updateSolvematchmodCom()
       && updatePatchcorrCom()
       && updateMatchorwarpCom(false)) {
+      
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
@@ -2302,6 +2344,9 @@ public class ApplicationManager {
    * Execute the matchvol1 com script and put patchcorr in the execution queue 
    */
   private void matchvol1() {
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+
     //  Set the next process to execute when this is finished   
     nextProcess = "patchcorr";
     String threadName = processMgr.matchvol1();
@@ -2315,6 +2360,8 @@ public class ApplicationManager {
    */
   public void patchcorrCombine() {
     if (updatePatchcorrCom() && updateMatchorwarpCom(false)) {
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       patchcorr();
     }
   }
@@ -2337,6 +2384,8 @@ public class ApplicationManager {
    */
   public void matchorwarpCombine() {
     if (updateMatchorwarpCom(false)) {
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       matchorwarp("volcombine");
     }
   }
@@ -2346,6 +2395,8 @@ public class ApplicationManager {
    */
   public void matchorwarpTrial() {
     if (updateMatchorwarpCom(true)) {
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
       matchorwarp("");
     }
   }
@@ -2368,6 +2419,8 @@ public class ApplicationManager {
    * Exececute the volcombine com script and clear the execution queue
    */
   public void volcombine() {
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     //  Set the next process to execute when this is finished   
     nextProcess = "";
 
@@ -2565,6 +2618,9 @@ public class ApplicationManager {
     trimvolParam.setOutputFile(metaData.getDatasetName() + ".rec");
 
     // Start the trimvol process
+    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+    mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
+
     String threadName = processMgr.trimVolume(trimvolParam);
     setThreadName(threadName, AxisID.ONLY);
     mainFrame.startProgressBar("Trimming volume", AxisID.ONLY);
