@@ -596,7 +596,7 @@ int main( int argc, char *argv[])
   }
 
   /* Now look for piece coordinates - moved up from below 1/2/04 */
-  if (vi.nt <= 1 && !vi.li->plist) {
+  if (!vi.fakeImage && vi.nt <= 1 && !vi.li->plist) {
     /* Check for piece list file and read it */
     iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 
@@ -957,6 +957,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.32  2004/01/09 15:54:12  mast
+Turn keepcachefull back on if user enter -F and doesn't limit cache
+
 Revision 4.31  2004/01/07 01:53:59  mast
 Needed to reopen image file to read piece list from it
 
