@@ -11,7 +11,10 @@
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$</p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/06/24 18:37:01  sueh
+ * <p> $bug# 482 const param for matchshifts command
+ * <p> $$</p>
  */
 package etomo.comscript;
 
@@ -23,6 +26,8 @@ public class ConstMatchshiftsParam {
   int xDim;
   int yDim;
   int zDim;
+  String xfIn;
+  String xfOut;
   
   private static final String command = "matchshifts";
   
@@ -36,6 +41,8 @@ public class ConstMatchshiftsParam {
     xDim = Integer.MIN_VALUE;
     yDim = Integer.MIN_VALUE;
     zDim = Integer.MIN_VALUE;
+    xfIn = new String();
+    xfOut = new String();
   }
   
   public String getCommand() {
