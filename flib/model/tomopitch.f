@@ -12,6 +12,13 @@ c	  points do not have to be entered in any particular order, and the
 c	  lines do not need to be any particular length (the program will
 c	  extend them in X, if necessary, to within 5% of each edge of the
 c	  tomogram).
+c	  
+c	  As an alternative to making a separate model file for each sample,
+c	  you can load all of the samples into imod together and make a single
+c	  model file, creating a pair of contours at each different time index.
+c	  Make this model file be the sole entry to Tomopitch, and it will
+c	  analyze each if the time indexes separately, the same as if they were
+c	  in separate files.
 c
 c	  The program analyzes the model file for each tomogram sample
 c	  separately.  It  determines what rotation is required to make the
@@ -40,19 +47,37 @@ c
 c	  For each file, then enter the name of the file.
 c
 c	  David Mastronarde, January 2000
+c	  5/20/01: Added analysis of single file with multiple time indexes
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	implicit none
 	include 'model.inc'
+	integer limtot
 	parameter (limtot=500)
 C   
 	CHARACTER*120 FILIN
 C	
-	logical readw_or_imod
-	integer getimodhead,getimodmaxes
+	logical readw_or_imod,usetimes
+	integer getimodhead,getimodmaxes,getimodtimes
 	real*4 xcen(limtot),ycen(limtot),thkmid(limtot),ysamp(limtot)
-	integer*4 ifuse(limtot)
+	integer*4 ifuse(limtot),itimes(max_obj_num)
 	integer*4 ibottop(2)
 	real*4 slope(2),bintcp(2),xleft(2),xright(2)
+	character*120 message
 c	  
+	integer*4 npatch,nfiles,ifile,ipbase,ierr,ifflip,i,line,iobj
+	integer*4 maxx,maxy,maxz,mintime,maxtime,numobj,iobj1,iobj2
+	real*4 border,deltay,ysample,xyscal,zscal,xofs,yofs,zofs
+	integer*4 ip1,ip2,ibt
+	real*4 x1,y1,x2,y2,xlo,xhi,yll,ylr,yul,yur
+c
 	npatch=2
 c	
 	write(*,'(1x,a,$)')'Additional thickness to add outside model'
@@ -69,83 +94,158 @@ c
 c
 	write(*,'(1x,a,$)')'Number of model files: '
 	read(5,*)nfiles
-	if(nfiles*npatch.gt.limtot)stop
-     &	    'TOO MANY TOTAL PATCHES FOR ARRAYS'
 	ipbase=1
 	ysample = -deltay * (nfiles-1.)/2.
-	do ifile=1,nfiles
-	  write(*,'(1x,a,i2,a,$)')'Name of model file #',ifile,': '
-	  read(5,'(a)')FILIN
-	  if(.not.readw_or_imod(filin))stop '- ERROR READING MODEL FILE'
-	  ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
-	  ierr=getimodmaxes(maxx,maxy,maxz)
-	  do i=1,n_point
-	    p_coord(1,i)=p_coord(1,i)-xofs-maxx/2
-	    p_coord(2,i)=p_coord(2,i)-yofs-maxy/2
-	  enddo
-	  if (max_mod_obj.lt.2) stop 
-     &         ' - MODEL DOES NOT HAVE ENOUGH CONTOURS'
-	  if(npt_in_obj(1).lt.2.or.npt_in_obj(2).lt.2)stop 
-     &         '- THERE ARE NOT TWO POINTS IN FIRST TWO CONTOURS'
 
-	  ibottop(1)=1
-	  ibottop(2)=2
-	  if(p_coord(2,object(ibase_obj(1)+1)).gt.
-	1     p_coord(2,object(ibase_obj(2)+1)))then
-	    ibottop(1)=2
-	    ibottop(2)=1
+	ifile = 1
+	usetimes = .false.
+
+	do while(ifile.le.nfiles)
+	  if (.not.usetimes)then
+	    write(*,'(1x,a,i2,a,$)')'Name of model file #',ifile,': '
+	    read(5,'(a)')FILIN
+	    if(.not.readw_or_imod(filin))then
+	      print *, 'ERROR READING MODEL FILE ',filin
+	      call exit(1)
+	    endif
+	    ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+	    ierr=getimodmaxes(maxx,maxy,maxz)
+	    do i=1,n_point
+	      p_coord(1,i)=p_coord(1,i)-xofs-maxx/2
+	      p_coord(2,i)=p_coord(2,i)-yofs-maxy/2
+	    enddo
+c	      
+c	      If there is one file, see if there are multiple times
+c	      
+	    if (nfiles.eq.1) then
+	      ierr=getimodtimes(itimes)
+	      mintime=100000;
+	      maxtime=0;
+	      do iobj=1,max_mod_obj
+		if (npt_in_obj(iobj).gt.0)then
+		  mintime=min(mintime,itimes(iobj))
+		  maxtime=max(maxtime,itimes(iobj))
+		endif
+	      enddo
+	      if (maxtime .gt. 0) then
+		usetimes = .true.
+		nfiles = maxtime
+		if (mintime .eq. 0) then
+		  print *,'THE MODEL FILE HAS MULTIPLE TIMES BUT ',
+     &		      'HAS SOME CONTOURS WITH NO TIME INDEX',
+     &		      'THESE CONTOURS CANNOT BE INTERPRETED AND ',
+     &		      'SHOULD BE ELIMINATED'
+		  call exit(1)
+		endif
+	      endif
+	    endif
+	  endif
+	  if(nfiles*npatch.gt.limtot)then
+	    print *, 'TOO MANY TOTAL PATCHES FOR ARRAYS'
+	    call exit(1)
+	  endif
+c	      
+c	      now get the first 2 contours in model or time
+c
+	  if (usetimes) then
+	    numobj=0
+	    do iobj = 1, max_mod_obj
+	      if (npt_in_obj(iobj) .gt. 0 .and.
+     &		  itimes(iobj) .eq. ifile .and. numobj .le. 2) then
+		numobj = numobj + 1
+		if (numobj .eq. 1) iobj1 = iobj
+		if (numobj .eq. 2) iobj2 = iobj
+	      endif
+	    enddo
+	    write(message,'(a,i3)')'time index',ifile
+	  else
+	    numobj = min(2, max_mod_obj)
+	    iobj1 = 1
+	    iobj2 = 2
+	    message = filin
 	  endif
 
-	  do line=1,2
-	    ibt=ibottop(line)
-	    ip1=object(ibase_obj(ibt)+1)
-	    ip2=object(ibase_obj(ibt)+npt_in_obj(ibt))
-	    x1=p_coord(1,ip1)
-	    y1=p_coord(2,ip1)
-	    x2=p_coord(1,ip2)
-	    y2=p_coord(2,ip2)
-	    slope(line)=(y2-y1)/(x2-x1)
-	    bintcp(line)=y2-slope(line)*x2
-	    xleft(line)=min(x1,x2)
-	    xright(line)=max(x1,x2)
-	  enddo	  
+	  if (numobj.gt.0.or..not.usetimes) then
+	    if (numobj.lt.2) then
+	      print *,'MODEL OR TIME',ifile,
+     &		  ' DOES NOT HAVE ENOUGH CONTOURS'
+	      call exit(1)
+	    endif
+	    if(npt_in_obj(iobj1).lt.2.or.npt_in_obj(iobj2).lt.2)then
+     		print *,'THERE ARE NOT TWO POINTS IN FIRST TWO ',
+     &		'CONTOURS OF MODEL OR TIME',ifile
+	      call exit(1)
+	    endif
+
+	    ibottop(1)=iobj1
+	    ibottop(2)=iobj2
+	    if(p_coord(2,object(ibase_obj(iobj1)+1)).gt.
+     &		p_coord(2,object(ibase_obj(iobj2)+1)))then
+	      ibottop(1)=iobj2
+	      ibottop(2)=iobj1
+	    endif
+
+	    do line=1,2
+	      ibt=ibottop(line)
+	      ip1=object(ibase_obj(ibt)+1)
+	      ip2=object(ibase_obj(ibt)+npt_in_obj(ibt))
+	      x1=p_coord(1,ip1)
+	      y1=p_coord(2,ip1)
+	      x2=p_coord(1,ip2)
+	      y2=p_coord(2,ip2)
+	      slope(line)=(y2-y1)/(x2-x1)
+	      bintcp(line)=y2-slope(line)*x2
+	      xleft(line)=min(x1,x2)
+	      xright(line)=max(x1,x2)
+	    enddo	  
 	  
-	  xlo=min(xleft(1),xleft(2),-0.45*maxx)
-	  xhi=max(xright(1),xright(2),0.45*maxx)
-	  yll=xlo*slope(1)+bintcp(1)
-	  ylr=xhi*slope(1)+bintcp(1)
-	  yul=xlo*slope(2)+bintcp(2)
-	  yur=xhi*slope(2)+bintcp(2)
-	  xcen(ipbase)=xlo
-	  ycen(ipbase)=(yll+yul)/2.
-	  thkmid(ipbase)=2*border+yul-yll
-	  ysamp(ipbase)=ysample
-	  xcen(ipbase+1)=xhi
-	  ycen(ipbase+1)=(ylr+yur)/2.
-	  thkmid(ipbase+1)=2*border+yur-ylr
-	  ysamp(ipbase+1)=ysample
-	  ifuse(ipbase)=1
-	  ifuse(ipbase+1)=1
+	    xlo=min(xleft(1),xleft(2),-0.45*maxx)
+	    xhi=max(xright(1),xright(2),0.45*maxx)
+	    yll=xlo*slope(1)+bintcp(1)
+	    ylr=xhi*slope(1)+bintcp(1)
+	    yul=xlo*slope(2)+bintcp(2)
+	    yur=xhi*slope(2)+bintcp(2)
+	    xcen(ipbase)=xlo
+	    ycen(ipbase)=(yll+yul)/2.
+	    thkmid(ipbase)=2*border+yul-yll
+	    ysamp(ipbase)=ysample
+	    xcen(ipbase+1)=xhi
+	    ycen(ipbase+1)=(ylr+yur)/2.
+	    thkmid(ipbase+1)=2*border+yur-ylr
+	    ysamp(ipbase+1)=ysample
+	    ifuse(ipbase)=1
+	    ifuse(ipbase+1)=1
 c
-	  call analyzespots(filin(1:lnblnk(filin)),xcen(ipbase),
-     &	      ycen(ipbase), thkmid(ipbase),ifuse(ipbase),npatch,
-     &	      ysamp(ipbase),0.)
-	  ipbase=ipbase+npatch
+	    call analyzespots(message(1:lnblnk(message)),xcen(ipbase),
+     &		ycen(ipbase), thkmid(ipbase),ifuse(ipbase),npatch,
+     &		ysamp(ipbase),0.)
+	    ipbase=ipbase+npatch
+	  endif
 	  ysample=ysample+deltay
+	  ifile=ifile+1
 	enddo
-	call analyzespots('all files',xcen,ycen,
-     &	    thkmid,ifuse,npatch*nfiles, ysamp, deltay)
+	message='all files'
+	if(usetimes)message='all time indexes'
+	if(nfiles.eq.1)deltay=0.
+	call analyzespots(message(1:lnblnk(message)),xcen,ycen,
+     &	    thkmid,ifuse,ipbase-1, ysamp, deltay)
 	call exit(0)
-99	stop 'read error'
 	end
 
 
 	subroutine analyzespots(fillab,xcen,ycen,
      &	    thkmid,ifuse,nspots,ysamp,doxtilt)
+	implicit none
 	character*(*) fillab
 	real*4 xcen(*),ycen(*),thkmid(*),ysamp(*)
-	integer*4 ifuse(*)
-	real *4 xx(1000),yy(1000),zz(1000)
+	integer*4 ifuse(*),nspots
+	real*4 xx(1000),yy(1000),zz(1000),doxtilt
+c	  
+	integer*4 nd,i
+	real*4 ang,slop,bint,ro,a,b,c,alpha,theta,costh,sinth
+	real*4 cosal,sinal,zp
+	real*4 atand,cosd,sind
+c
 	write (6,101)fillab
 101	format(//,' Analysis of positions from ',a,':')
 	call findshift('unrotated',ycen,thkmid,ifuse,nspots)
@@ -197,9 +297,15 @@ c
 	end
 
 	subroutine findshift(rotlab,ycen,thick,ifuse,nspots)
+	implicit none
 	character*(*) rotlab
 	real*4 ycen(*),thick(*)
-	integer*4 ifuse(*)
+	integer*4 ifuse(*),nspots
+c	  
+	real*4 bot,top,realthk,shift
+	integer*4 i,ithick
+	integer*4 niceframe
+c
 	bot=1.e10
 	top=-1.e10
 	do i=1,nspots
