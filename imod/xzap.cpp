@@ -777,6 +777,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int shifted = event->state() & Qt::ShiftButton;
   int handled = 0;
   Iindex indadd;
+  Iindex *indp;
   Ipoint pmin, pmax, selmin, selmax;
   Iobj *obj;
   /* downtime.start(); */
@@ -942,13 +943,28 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         selmax.y = vi->ysize;
       }
 
+      // Look through selection list, remove any that do not fit constraints
+      for (i = ilistSize(vi->selectionList) - 1; i >= 0; i--) {
+        indp = (Iindex *)ilistItem(vi->selectionList, i);
+        if (indp->object < vi->imod->objsize) {
+          obj = &vi->imod->obj[indp->object];
+          if (indp->contour < obj->contsize) {
+            imodContourGetBBox(&(obj->cont[indp->contour]), &pmin, &pmax);
+            if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
+                pmin.y >= selmin.y && pmax.y <= selmax.y &&
+                pmin.z >= zap->section - 0.5 && pmax.z <= zap->section + 0.5)
+              continue;
+          }
+        }
+        ilistRemove(vi->selectionList, i);
+      }
+
       obj = imodObjectGet(vi->imod);
       if (!obj)
         break;
 
-      // Clear the list, set up an index to add, look for contours inside
+      // Set up an index to add, look for contours inside
       // the bounding box, add them, make last one be current
-      imodSelectionListClear(vi);
       indadd.object = vi->imod->cindex.object;
       indadd.point = -1;
       for (i = 0; i < obj->contsize; i++) {
@@ -1789,8 +1805,8 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
   Ipoint pnt1, pnt2;
   Iobj *obj = imodObjectGet(imod);
 
-  // Skip for scattered objects or movie mode
-  if (!obj || imod->mousemode == IMOD_MMOVIE || iobjScat(obj->flags))
+  // Skip for movie mode
+  if (!obj || imod->mousemode == IMOD_MMOVIE)
     return;
 
   // Get image positions of starting and current mouse positions
@@ -1803,50 +1819,55 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
 
   // Loop on contours
   // Skip single point, ones already selected, or non-wild with Z not matching
-  for (co = 0; co < obj->contsize; co++) {
-    cont = &obj->cont[co];
-    if (cont->psize < 2)
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    // Skip for scattered objects
+    if (iobjScat(obj->flags))
       continue;
-    if (imodSelectionListQuery(vi, ob, co) > -2 || imod->cindex.contour == co)
-      continue;
-    if (!(cont->flags & ICONT_WILD) && 
-        (int)floor(cont->pts->z + 0.5) != zap->section)
-      continue;
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &obj->cont[co];
+      if (cont->psize < 2)
+        continue;
+      if (imodSelectionListQuery(vi, ob, co) > -2 || 
+          (imod->cindex.contour == co && imod->cindex.object == ob))
+        continue;
+      if (!(cont->flags & ICONT_WILD) && 
+          (int)floor(cont->pts->z + 0.5) != zap->section)
+        continue;
 
-    // Set up to loop on second point in segment, starting at first point
-    // in contour for closed contour
-    ptStart = iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ? 1 : 0;
-    lastZ = zap->section;
-    if (imodDebug('z'))
-      imodPrintStderr("Examining contour %d\n", co);
+      // Set up to loop on second point in segment, starting at first point
+      // in contour for closed contour
+      ptStart = iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ? 1 : 0;
+      lastZ = zap->section;
+      if (imodDebug('z'))
+        imodPrintStderr("Examining contour %d\n", co);
 
-    // Loop on points, look for segments on the section
-    for (pt = ptStart; pt < cont->psize; pt++) {
-      lastPt = pt ? pt - 1 : cont->psize - 1;
-      thisZ = (int)floor(cont->pts[pt].z + 0.5);
-      if (lastZ == zap->section && thisZ == zap->section) {
-        if (imodDebug('z'))
-          imodPrintStderr("%f,%f to %f,%f\n", cont->pts[lastPt].x,
-                          cont->pts[lastPt].y, cont->pts[pt].x,
-                          cont->pts[pt].y);
+      // Loop on points, look for segments on the section
+      for (pt = ptStart; pt < cont->psize; pt++) {
+        lastPt = pt ? pt - 1 : cont->psize - 1;
+        thisZ = (int)floor(cont->pts[pt].z + 0.5);
+        if (lastZ == zap->section && thisZ == zap->section) {
+          if (imodDebug('z'))
+            imodPrintStderr("%f,%f to %f,%f\n", cont->pts[lastPt].x,
+                            cont->pts[lastPt].y, cont->pts[pt].x,
+                            cont->pts[pt].y);
 
-        if (imodPointIntersect(&pnt1, &pnt2, &cont->pts[lastPt], 
-                               &cont->pts[pt])) {
+          if (imodPointIntersect(&pnt1, &pnt2, &cont->pts[lastPt], 
+                                 &cont->pts[pt])) {
 
-          // Crosses.  Select this contour; add current contour if list empty
-          index.object = ob;
-          index.contour = co;
-          index.point = pt;
-          if (imod->cindex.contour < 0)
+            // Crosses.  Select this contour; add current contour if list empty
+            if (!ilistSize(vi->selectionList) && imod->cindex.contour >= 0)
+              imodSelectionListAdd(vi, imod->cindex);
+            imod->cindex.object = ob;
             imod->cindex.contour = co;
-          else if (!ilistSize(vi->selectionList) && imod->cindex.contour >= 0)
+            imod->cindex.point = pt;
             imodSelectionListAdd(vi, imod->cindex);
-          imodSelectionListAdd(vi, index);
-          imodDraw(zap->vi, IMOD_DRAW_MOD );
-          break;
+            imodDraw(zap->vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
+            break;
+          }
         }
+        lastZ = thisZ;
       }
-      lastZ = thisZ;
     }
   }
 }
@@ -2104,8 +2125,8 @@ static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
   err = 0;
   if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || !cont->psize)
     err = 1;
-  else if (iobjScat(obj->flags) ||
-      (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
+  else if (iobjScat(obj->flags) || 
+           (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
     err = -1;
 
   // If no current point, just use first
@@ -2142,10 +2163,11 @@ static Ipoint contShiftBase;
 static void startShiftingContour(ZapStruct *zap, int x, int y, int button,
                                  int ctrlDown)
 {
-  int   pt, err, co, ob, curco;
+  int   pt, err, co, ob, curco, curob;
   float ix, iy, area, areaSum;
   Ipoint cent, centSum;
-  Iobj *obj = imodObjectGet(zap->vi->imod);
+  Imod *imod = zap->vi->imod;
+  Iobj *obj;
   Icont *cont = checkContourShift(zap, pt, err);
   if (err)
     return;
@@ -2176,27 +2198,41 @@ static void startShiftingContour(ZapStruct *zap, int x, int y, int button,
 
       // Otherwise get center for transforms as center of mass
       // Loop on contours and analyze current or selected ones
-      imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
+      imodGetIndex(imod, &curob, &curco, &pt);
       contShiftBase.x = contShiftBase.y = 0;
       centSum.x = centSum.y = 0;
       areaSum = 0;
-      for (co = 0; co < obj->contsize; co++) {
-        if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
-          cont = &obj->cont[co];
+      for (ob = 0; ob < imod->objsize; ob++) {
+        obj = &imod->obj[ob];
+        if (iobjScat(obj->flags))
+          continue;
+        for (co = 0; co < obj->contsize; co++) {
           
-          // For each contour add centroid to straight sum, 
-          // accumulate area-weighted sum also
-          imodContourCenterOfMass(cont, &cent);
-          area = imodContourArea(cont);
-          areaSum += area;
-          contShiftBase.x += cent.x;
-          contShiftBase.y += cent.y;
-          centSum.x += cent.x * area;
-          centSum.y += cent.y * area;
-          err++;
+          if ((ob == curob && co == curco) || 
+              imodSelectionListQuery(zap->vi, ob, co) > -2) {
+            cont = &obj->cont[co];
+            if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
+              continue;
+
+            // For each contour add centroid to straight sum, 
+            // accumulate area-weighted sum also
+            imodContourCenterOfMass(cont, &cent);
+            area = imodContourArea(cont);
+            areaSum += area;
+            contShiftBase.x += cent.x;
+            contShiftBase.y += cent.y;
+            centSum.x += cent.x * area;
+            centSum.y += cent.y * area;
+            err++;
+          }
         }
       }
-      
+
+      if (!err) {
+        endContourShift(zap);
+        return;
+      }
+
       // Use plain sum if area small or if only one contour, otherwise
       // use an area-weighted sum
       if (areaSum < 1. || err == 1) {
@@ -2215,10 +2251,11 @@ static void startShiftingContour(ZapStruct *zap, int x, int y, int button,
 static void shiftContour(ZapStruct *zap, int x, int y, int button, 
                          int shiftDown)
 {
-  int   pt, err, ob, co, curco;
+  int   pt, err, ob, co, curco, curob;
   float ix, iy;
   float mat[2][2];
-  Iobj *obj = imodObjectGet(zap->vi->imod);
+  Imod *imod = zap->vi->imod;
+  Iobj *obj;
   Icont *cont = checkContourShift(zap, pt, err);
   if (err)
     return;
@@ -2238,33 +2275,42 @@ static void shiftContour(ZapStruct *zap, int x, int y, int button,
       return;
   }
 
-  imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
+  imodGetIndex(imod, &curob, &curco, &pt);
 
   // Loop on contours and act on current or selected ones
-  for (co = 0; co < obj->contsize; co++) {
-    if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    if (iobjScat(obj->flags))
+      continue;
+    for (co = 0; co < obj->contsize; co++) {
+      if ((ob == curob && co == curco) ||
+          imodSelectionListQuery(zap->vi, ob, co) > -2) {
 
-      // Register changes first time only
-      if (!zap->shiftRegistered)
-        zap->vi->undo->contourDataChg(ob, co);
-      cont = &obj->cont[co];
-      if (button == 1) {
+        cont = &obj->cont[co];
+        if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
+          continue;
         
-        // Shift points
-        for (pt = 0; pt < cont->psize; pt++) {
-          cont->pts[pt].x += ix;
-          cont->pts[pt].y += iy;
-        }
-      } else {
-        
-        // Transform points
-        for (pt = 0; pt < cont->psize; pt++) {
-          ix = mat[0][0] * (cont->pts[pt].x - contShiftBase.x) +
-            mat[0][1] * (cont->pts[pt].y - contShiftBase.y) + contShiftBase.x;
-          iy = mat[1][0] * (cont->pts[pt].x - contShiftBase.x) +
-            mat[1][1] * (cont->pts[pt].y - contShiftBase.y) + contShiftBase.y;
-          cont->pts[pt].x = ix;
-          cont->pts[pt].y = iy;
+        // Register changes first time only
+        if (!zap->shiftRegistered)
+          zap->vi->undo->contourDataChg(ob, co);
+        if (button == 1) {
+          
+          // Shift points
+          for (pt = 0; pt < cont->psize; pt++) {
+            cont->pts[pt].x += ix;
+            cont->pts[pt].y += iy;
+          }
+        } else {
+          
+          // Transform points
+          for (pt = 0; pt < cont->psize; pt++) {
+            ix = mat[0][0] * (cont->pts[pt].x - contShiftBase.x) + mat[0][1] *
+              (cont->pts[pt].y - contShiftBase.y) + contShiftBase.x;
+            iy = mat[1][0] * (cont->pts[pt].x - contShiftBase.x) + mat[1][1] *
+              (cont->pts[pt].y - contShiftBase.y) + contShiftBase.y;
+            cont->pts[pt].x = ix;
+            cont->pts[pt].y = iy;
+          }
         }
       }
     }
@@ -3364,6 +3410,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.60  2005/02/19 01:30:46  mast
+Set center of rotation wih ctrl-button 2; allow shift/xform when no
+current point is defined
+
 Revision 4.59  2005/02/09 01:18:45  mast
 Added ability to rotate/stretch/scale contours, made it work with multiple
 contours
