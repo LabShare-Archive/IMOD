@@ -39,10 +39,9 @@ set fallback        =
 set swap_ieee       = true
 set no_xlibs        = false
 
-set inst_bin_dir    = default
-set inst_lib_dir    = default
 set inst_dir        = default
 set tifflibs        = default
+set dummytiff       =
 set usfftdir        = default
 set blockio         =
 set imsubsobj       = '*.o'
@@ -72,10 +71,13 @@ set ltiff           = -ltiff
 set ldnmncar        = -ldnmncar
 set lifft           = -lifft
 set ldfflags        =
+set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
 set rgbprogs        = 
 set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
+set makenondll      = '$(AR) $(ARFLAGS)'
+set modelallo       = 'model/*.$(OBJEXT)'
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -217,24 +219,11 @@ set makefile_dirs = ($libdiaqt_dir)
 #
 # Set up directory names
 #
-if ($inst_dir != default) then
-	if ($inst_bin_dir == default) then
-		set inst_bin_dir = $inst_dir/bin
-	endif
-	if ($inst_lib_dir == default) then
-		set inst_lib_dir = $inst_dir/lib
-	endif
-	set inst_plug_dir = $inst_dir/lib/imodplug
-	set inst_plug_parent = $inst_dir/lib
-else
-	set inst_bin_dir = $bin_dir
-	if ($inst_lib_dir == default) then
-		set inst_lib_dir = $source_dir/lib
-	endif
-	set inst_plug_dir = $source_dir/lib/imodplug
-	set inst_plug_parent = $source_dir/lib
-	set inst_dir = $source_dir
-endif
+if ($inst_dir == default) set inst_dir = $source_dir
+set inst_bin_dir = $inst_dir/bin
+set inst_lib_dir = $inst_dir/lib
+set inst_plug_dir = $inst_dir/lib/imodplug
+set inst_plug_parent = $inst_dir/lib
 
 # Make this for some machine scripts to copy to
 #
@@ -488,7 +477,7 @@ if (($tifflibs == default) || ($tifflibs == false)) then
     echo '#define NOTIFFLIBS'  >> $hconfigure
 else
     if ($tifflibs == true) set tifflibs = $ltiff
-    echo 'DUMMYTIFF = nolibtiff' >> $configure
+    echo "DUMMYTIFF = $dummytiff" >> $configure
     echo "TIFFLIBS = $tifflibs" >> $configure
 endif
 
@@ -665,6 +654,9 @@ echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
 echo "MAKESTATICLIB = $makestaticlib" >> $configure
 echo "STATICRANLIB = $staticranlib" >> $configure
+echo "DLLEXT = $dllext" >> $configure
+echo "MAKENONDLL = $makenondll" >> $configure
+echo "MODELALLO = $modelallo" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -744,6 +736,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.34  2003/11/12 22:05:23  mast
+#  Output separate variables for making static lib for tilt
+#
 #  Revision 3.33  2003/11/08 02:11:58  mast
 #  create buildlib earlier for windows and mac to copy files to
 #
