@@ -6,8 +6,8 @@ transferfid \- make seed model for second axis from fiducials for first axis
 .SH SYNOPSIS
 transferfid [options] setname
 .SH DESCRIPTION
-transferfid will make a seed model for tracking fiducials in the second axis 
-of a dual-axis tilt series, using the fiducial model for the first axis.  It
+transferfid will make a seed model for tracking fiducials in one axis 
+of a dual-axis tilt series, using the fiducial model for the other axis.  It
 first finds a pair of views from the two axes that match up well after
 an appropriate translation, rotation, and stretching of the view from the
 first axis.  It then transforms the corresponding section of the fiducial
@@ -19,8 +19,15 @@ The program will do all of these operations without any arguments except the
 name of the data set if all files
 are named appropriately; specifically, if
 the command files for beadtrack are named tracka.com and
-trackb.com, the first fiducial model is named setnamea.fid, and the tilt
-angles are in files with extension .rawtlt.  By default, the program will
+trackb.com, and the tilt
+angles are in files with extension .rawtlt.  
+By default, the program will transfer fiducials from the "a" axis
+to the "b" axis, in which case it assumes the first fiducial model is named 
+setnamea.fid.  However, you can use the 
+.B -b
+option to transfer from the "b" axis to the "a" axis, in which case the 
+existing fiducial model is assumed to be named setnameb.fid.
+By default, the program will
 search for the best matching pair of views using the 5 views nearest to zero
 tilt from each data set.  It will consider rotations by both -90 and +90
 degrees, and it will set the bead radius for Beadtrack using the value
@@ -61,34 +68,42 @@ considering four pairs of views.
 
 .SS Options
 .TP
+.B -b
+Transfer backwards, from the "b" axis to the "a" axis.  You will generally
+not need to specify any filenames with this option.
+.TP
 .B -ia <image file>
-Set the name of the image file upon which the fiducial model for the first
+Set the name of the image file upon which the fiducial model for the "a" axis
 tilt series was built; the default is to take the name from the tracka.com
 command file.
 .TP
 .B -ib <image file>
-Set the name of the image file for tracking beads in the second tilt series;
+Set the name of the image file for tracking beads in the "b" axis tilt series;
 the default is to take the name from the trackb.com command file.
 .TP
 .B -f <model file>
-Set the name of the fiducial model file for the first tilt series; the default
-is setnamea.fid.
+Set the name of the fiducial model file for the first, already tracked tilt 
+series; the default is setnamea.fid (or setnameb.fid with the 
+.B -b
+option.)
 .TP
 .B -o <model file>
 Set the name of the output file for the seed model; the default is
-setnameb.seed.
+setnameb.seed (or setnamea.fid with the
+.B -b
+option.)
 .TP
 .B -n <value>
 Set the number of views from each data set to include in the search for the
 best matching pair of views; the default is 5.
 .TP
 .B -za <value>
-Set the number of the view from the first tilt series around which to search
+Set the number of the view from the "a" axis tilt series around which to search
 for the best match; the default is the view nearest to zero tilt, using
 tilt angles in the file setnamea.rawtlt.
 .TP
 .B -zb <value>
-Set the number of the view from the second tilt series around which to search
+Set the number of the view from the "b" axis tilt series around which to search
 for the best match; the default is the view nearest to zero tilt, using
 tilt angles in the file setnameb.rawtlt.
 .TP
@@ -104,13 +119,20 @@ Midas as the initial alignment for all pairs of views that are considered.
 .TP
 .B -r <value>
 Set the value of the radius for computing center of gravity in Beadtrack; the
-default is to take the value from tracka.com.
+default is to take the value from tracka.com (or trackb.com with the
+.B -b
+option.)
 .TP
 .B -l
 Use this option to specify that beads are light on a dark background.  It has
 an effect only if the 
 .B -r
-option is used; otherwise this parameter is taken from tracka.com.
+option is used; otherwise this parameter is taken from tracka.com (or 
+trackb.com with the
+.B -b
+option.)
+.TP -t
+Leave temporary files in /usr/tmp for diagnosing problems.
 .SH FILES
 Whether or not they fit the default naming conventions, the image files for
 fiducial tracking for each tilt series and the first fiducial model
