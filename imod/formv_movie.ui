@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>301</width>
-            <height>600</height>
+            <height>610</height>
         </rect>
     </property>
     <property name="caption">
@@ -124,14 +124,14 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>bigLayout</cstring>
+                <cstring>layout7</cstring>
             </property>
             <grid>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <property name="margin">
-                    <number>0</number>
+                <property name="spacing">
+                    <number>1</number>
                 </property>
                 <widget class="QLineEdit" row="6" column="1">
                     <property name="name">
@@ -161,9 +161,9 @@
                         <enum>Sunken</enum>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="9" column="1">
+                <widget class="QLineEdit" row="2" column="0">
                     <property name="name">
-                        <cstring>zSliceEnd</cstring>
+                        <cstring>zRotStart</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -183,9 +183,20 @@
                         <enum>ClickFocus</enum>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="8" column="0">
+                <widget class="QLabel" row="7" column="2">
                     <property name="name">
-                        <cstring>ySliceStart</cstring>
+                        <cstring>xSliceLabel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>X Slice</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="1">
+                    <property name="name">
+                        <cstring>xRotEnd</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -227,193 +238,6 @@
                         <enum>ClickFocus</enum>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="1" column="1">
-                    <property name="name">
-                        <cstring>yRotEnd</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="4" column="0">
-                    <property name="name">
-                        <cstring>yTransStart</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="8" column="2">
-                    <property name="name">
-                        <cstring>ySliceLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Y Slice</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="9" column="2">
-                    <property name="name">
-                        <cstring>zSliceLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Z Slice</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="0" column="1">
-                    <property name="name">
-                        <cstring>xRotEnd</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="1" column="0">
-                    <property name="name">
-                        <cstring>yRotStart</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="7" column="0">
-                    <property name="name">
-                        <cstring>xSliceStart</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="7" column="1">
-                    <property name="name">
-                        <cstring>xSliceEnd</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="1" column="2">
-                    <property name="name">
-                        <cstring>TextLabel1_2</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Y Rotation</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="9" column="0">
-                    <property name="name">
-                        <cstring>zSliceStart</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
                 <widget class="QLineEdit" row="3" column="1">
                     <property name="name">
                         <cstring>xTransEnd</cstring>
@@ -436,20 +260,9 @@
                         <enum>ClickFocus</enum>
                     </property>
                 </widget>
-                <widget class="QLabel" row="6" column="2">
+                <widget class="QLineEdit" row="10" column="0">
                     <property name="name">
-                        <cstring>TextLabel1_7</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Zoom Factor</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="0" column="0">
-                    <property name="name">
-                        <cstring>xRotStart</cstring>
+                        <cstring>transpStart</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -469,97 +282,42 @@
                         <enum>ClickFocus</enum>
                     </property>
                 </widget>
-                <widget class="QLabel" row="4" column="2">
+                <widget class="QLabel" row="9" column="2">
                     <property name="name">
-                        <cstring>TextLabel1_5</cstring>
+                        <cstring>zSliceLabel</cstring>
                     </property>
                     <property name="text">
-                        <string>Y Translation</string>
+                        <string>Z Slice</string>
                     </property>
                     <property name="alignment">
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="5" column="0">
+                <widget class="QLabel" row="10" column="2">
                     <property name="name">
-                        <cstring>zTransStart</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="5" column="1">
-                    <property name="name">
-                        <cstring>zTransEnd</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>90</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="7" column="2">
-                    <property name="name">
-                        <cstring>xSliceLabel</cstring>
+                        <cstring>transpLabel</cstring>
                     </property>
                     <property name="text">
-                        <string>X Slice</string>
+                        <string>Transparency</string>
                     </property>
                     <property name="alignment">
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLabel" row="3" column="2">
+                <widget class="QLabel" row="1" column="2">
                     <property name="name">
-                        <cstring>TextLabel1_4</cstring>
+                        <cstring>TextLabel1_2</cstring>
                     </property>
                     <property name="text">
-                        <string>X Translation</string>
+                        <string>Y Rotation</string>
                     </property>
                     <property name="alignment">
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLabel" row="2" column="2">
+                <widget class="QLineEdit" row="1" column="0">
                     <property name="name">
-                        <cstring>TextLabel1_3</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Z Rotation</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
-                    </property>
-                </widget>
-                <widget class="QLineEdit" row="8" column="1">
-                    <property name="name">
-                        <cstring>ySliceEnd</cstring>
+                        <cstring>yRotStart</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -601,6 +359,171 @@
                         <enum>ClickFocus</enum>
                     </property>
                 </widget>
+                <widget class="QLineEdit" row="4" column="0">
+                    <property name="name">
+                        <cstring>yTransStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="7" column="0">
+                    <property name="name">
+                        <cstring>xSliceStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="11" column="0">
+                    <property name="name">
+                        <cstring>thickStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="3" column="2">
+                    <property name="name">
+                        <cstring>TextLabel1_4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>X Translation</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="0">
+                    <property name="name">
+                        <cstring>xRotStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="10" column="1">
+                    <property name="name">
+                        <cstring>transpEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="11" column="2">
+                    <property name="name">
+                        <cstring>thickLabel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Thickness</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="8" column="2">
+                    <property name="name">
+                        <cstring>ySliceLabel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Y Slice</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="8" column="0">
+                    <property name="name">
+                        <cstring>ySliceStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
                 <widget class="QLabel" row="0" column="2">
                     <property name="name">
                         <cstring>TextLabel1</cstring>
@@ -612,9 +535,9 @@
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="2" column="0">
+                <widget class="QLineEdit" row="5" column="0">
                     <property name="name">
-                        <cstring>zRotStart</cstring>
+                        <cstring>zTransStart</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -645,9 +568,9 @@
                         <set>AlignVCenter|AlignLeft</set>
                     </property>
                 </widget>
-                <widget class="QLineEdit" row="3" column="0">
+                <widget class="QLineEdit" row="1" column="1">
                     <property name="name">
-                        <cstring>xTransStart</cstring>
+                        <cstring>yRotEnd</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
@@ -693,6 +616,193 @@
                     </property>
                     <property name="frameShadow">
                         <enum>Sunken</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="5" column="1">
+                    <property name="name">
+                        <cstring>zTransEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="8" column="1">
+                    <property name="name">
+                        <cstring>ySliceEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="4" column="2">
+                    <property name="name">
+                        <cstring>TextLabel1_5</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Y Translation</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="2" column="2">
+                    <property name="name">
+                        <cstring>TextLabel1_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Z Rotation</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="6" column="2">
+                    <property name="name">
+                        <cstring>TextLabel1_7</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Zoom Factor</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="9" column="1">
+                    <property name="name">
+                        <cstring>zSliceEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="11" column="1">
+                    <property name="name">
+                        <cstring>thickEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="3" column="0">
+                    <property name="name">
+                        <cstring>xTransStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="9" column="0">
+                    <property name="name">
+                        <cstring>zSliceStart</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="7" column="1">
+                    <property name="name">
+                        <cstring>xSliceEnd</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>90</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
                     </property>
                 </widget>
             </grid>
@@ -1193,14 +1303,14 @@
     <include location="local" impldecl="in implementation">formv_movie.ui.h</include>
 </includes>
 <variables>
-    <variable>bool mWriteFiles;</variable>
-    <variable>int mMovieMont;</variable>
-    <variable>int mRgbTiff;</variable>
-    <variable>bool mLongWay;</variable>
-    <variable>QLineEdit *startEdits[10];</variable>
-    <variable>QLineEdit *endEdits[10];</variable>
-    <variable>QString mStr;</variable>
     <variable>bool mReverse;</variable>
+    <variable>QString mStr;</variable>
+    <variable>QLineEdit *endEdits[12];</variable>
+    <variable>QLineEdit *startEdits[12];</variable>
+    <variable>bool mLongWay;</variable>
+    <variable>int mRgbTiff;</variable>
+    <variable>int mMovieMont;</variable>
+    <variable>bool mWriteFiles;</variable>
 </variables>
 <slots>
     <slot>init()</slot>

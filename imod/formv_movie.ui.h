@@ -6,6 +6,8 @@
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
 
+// Layout notes: set spacing to 2 for the big grid to conserve space
+
 void imodvMovieForm::init()
 {
   startEdits[0] = xRotStart;
@@ -18,6 +20,8 @@ void imodvMovieForm::init()
   startEdits[7] = xSliceStart;
   startEdits[8] = ySliceStart;
   startEdits[9] = zSliceStart;
+  startEdits[10] = transpStart;
+  startEdits[11] = thickStart;
   endEdits[0] = xRotEnd;
   endEdits[1] = yRotEnd;
   endEdits[2] = zRotEnd;
@@ -28,11 +32,13 @@ void imodvMovieForm::init()
   endEdits[7] = xSliceEnd;
   endEdits[8] = ySliceEnd;
   endEdits[9] = zSliceEnd;
+  endEdits[10] = transpEnd;
+  endEdits[11] = thickEnd;
   if (Imodv->standalone) {
     
     // A hide alone was not good enough somewhere (Windows?)
     // removing from layout was good but not available in Qt 3.0, so set height instead
-   for (int i = 7; i < 10; i++) {
+   for (int i = 7; i < 12; i++) {
       startEdits[i]->hide();
       endEdits[i]->hide();
       startEdits[i]->setFixedHeight(1);
@@ -41,9 +47,13 @@ void imodvMovieForm::init()
     xSliceLabel->hide();
     ySliceLabel->hide();
     zSliceLabel->hide();
+    transpLabel->hide();
+    thickLabel->hide();
     xSliceLabel->setFixedHeight(1);
     ySliceLabel->setFixedHeight(1);
     zSliceLabel->setFixedHeight(1);
+    transpLabel->setFixedHeight(1);
+    thickLabel->setFixedHeight(1);
   }
   adjustSize();
 }  
@@ -186,7 +196,7 @@ void imodvMovieForm::manageSensitivities( int movieMont )
   // It wouldn't take a for loop for some reason!
   int i = 0;
   bool enable = !movieMont;
-  while (i < 10) {
+  while (i < 12) {
     startEdits[i]->setEnabled(enable);
     endEdits[i++]->setEnabled(enable);
   }
