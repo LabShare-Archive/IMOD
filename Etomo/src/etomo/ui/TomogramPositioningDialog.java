@@ -41,6 +41,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2004/12/09 04:58:45  sueh
+ * <p> bug# 565 Removed BaseManager.isDataParamDirty.  Automatically
+ * <p> saving to param file on exit.
+ * <p>
  * <p> Revision 3.20  2004/12/03 02:41:43  sueh
  * <p> bug# Added updateMetaData().  For new it just copies wholeTomogram to
  * <p> meta data.  Calling updateMetaData() from all getParam() functions.
@@ -335,11 +339,11 @@ public class TomogramPositioningDialog extends ProcessDialog
       except.printStackTrace();
       return;
     }
-    ltfTiltAngleOffset.setText(tiltalignParam.getTiltAngleOffset());
+    ltfTiltAngleOffset.setText(tiltalignParam.getAngleOffset().toString());
     
     //multiply by the binning previously used to create the .preali file
     //assume that align.com is up-to-date and has the same pixel size as .preali
-    ltfTiltAxisZShift.setText(tiltalignParam.getTiltAxisZShift()
+    ltfTiltAxisZShift.setText(tiltalignParam.getAxisZShift().getDouble()
     * Math.round(
       prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
   }
@@ -365,10 +369,10 @@ public class TomogramPositioningDialog extends ProcessDialog
       return;
     }
     try {
-      tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
+      tiltalignParam.setAngleOffset(ltfTiltAngleOffset.getText());
       
       //divide by the binning used to create the .preali file
-      tiltalignParam.setTiltAxisZShift(
+      tiltalignParam.setAxisZShift(
         Double.parseDouble(ltfTiltAxisZShift.getText())
           / Math.round(
             prealiHeader.getXPixelSpacing()
