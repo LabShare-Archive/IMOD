@@ -23,6 +23,10 @@ Errors: print errors and ratio of measured to unknowns.
 .B -s
 Solution: print the alignment solution for each view.
 .TP
+.B -l
+Local: print the location and size of each local area, the number
+of fiducials on each surface, and the mean residual.
+.TP
 .B -c
 Coordinates: print the 3-D coordinates of the fiducials.
 .TP
