@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/09/17 18:40:33  mast
+    Moved the report to window ID to before fork and data loading
+
     Revision 3.4  2002/09/14 00:13:11  mast
     Set declarations and use of event handler right to make SGI compiler happy
 
@@ -546,6 +549,9 @@ int main( int argc, char *argv[])
 	       exit(0);
 #endif
 
+     XtAddEventHandler(App->toplevel, 0, True, 
+		       (XtEventHandler)imodHandleClientMessage,
+		       (XtPointer)App);
 
      /********************************************/
      /* Load in image data, set up image buffer. */
@@ -654,10 +660,6 @@ int main( int argc, char *argv[])
      /* Start main application input loop. */
      if (Imod_debug) puts("mainloop");
      imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
-
-     XtAddEventHandler(App->toplevel, 0, True, 
-		       (XtEventHandler)imodHandleClientMessage,
-		       (XtPointer)App);
 
      dia_mainloop();
      return 0;
