@@ -32,7 +32,6 @@
 #include <string.h>
 #include <math.h>
 #include "midas.h"
-#include <GL/gl.h>
 
 MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
   : QGLWidget(inFormat, parent, name)
