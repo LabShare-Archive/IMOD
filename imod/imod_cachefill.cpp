@@ -31,38 +31,24 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:02:57  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.1  2003/01/18 01:12:20  mast
-qt version
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2001/12/17 18:44:38  mast
-Initial version of module
-
+Log at end of file
 */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <qvbuttongroup.h>
 #include <qhbuttongroup.h>
 #include <qradiobutton.h>
 #include <qcheckbox.h>
 #include <qlayout.h>
 #include <qtooltip.h>
+#include <qdir.h>
 #include "dia_qtutils.h"
 
 #include "imod_cachefill.h"
 #include "imod.h"
 #include "control.h"
+
 
 static struct{
   ImodCacheFill *dia;
@@ -274,8 +260,8 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
   /* Prepare to access multiple files */
   if (vw->nt) {
     iiClose(&vw->imageList[vw->ct-1]);
-    if (Imod_IFDpath)
-      chdir(Imod_IFDpath);
+    if (!Imod_IFDpath.isEmpty())
+      QDir::setCurrent(Imod_IFDpath);
   }
      
   /* Load the slices that are needed */
@@ -399,8 +385,8 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
     vw->hdr = vw->image = &vw->imageList[vw->ct-1];
     ivwSetScale(vw);
     iiReopen(vw->image);
-    if (Imod_IFDpath)
-      chdir(Imod_cwdpath);
+    if (!Imod_IFDpath.isEmpty())
+      QDir::setCurrent(Imod_cwdpath);
   }
 
   /* Set priorities - move from farthest out times inward to current time */
@@ -703,3 +689,25 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.2  2003/01/23 20:02:57  mast
+switch from button pressed to clicked
+
+Revision 1.1.2.1  2003/01/18 01:12:20  mast
+qt version
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2001/12/17 18:44:38  mast
+Initial version of module
+
+*/
