@@ -18,6 +18,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/12/27 05:50:37  rickg
+ * <p> Set the text field maximum height to twice the largest of the
+ * <p> label and text font size in points.
+ * <p>
  * <p> Revision 1.2  2002/12/10 21:34:38  rickg
  * <p> Added get and set size methods
  * <p>
@@ -122,6 +126,15 @@ public class LabeledTextField {
     textField.setColumns(columns);
   }
 
+  public void setAlignmentX(float alignment) {
+    if(alignment == Component.LEFT_ALIGNMENT) {
+      label.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+    if(alignment == Component.RIGHT_ALIGNMENT) {
+      textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    }
+  }
+      
   public void setToolTipText(String toolTipText) {
     panel.setToolTipText(toolTipText);
     textField.setToolTipText(toolTipText);
