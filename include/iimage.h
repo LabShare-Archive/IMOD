@@ -1,12 +1,15 @@
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.1  2002/12/01 15:39:50  mast
-    Declare extern C if c++
+$Log$
+Revision 3.2  2004/01/05 17:24:00  mast
+Renamed imin/imax to smin/smax and changed iiSetMM arguments to float
+
+Revision 3.1  2002/12/01 15:39:50  mast
+Declare extern C if c++
 
 */
 #ifndef IIMAGE_H
@@ -45,67 +48,68 @@ extern "C" {
 #define IISTATE_READY   2
 #define IISTATE_BUSY    4
 
-struct  ImodImageFileStruct;
-typedef struct ImodImageFileStruct ImodImageFile; 
-struct  ImodImageFileStruct
-{
-     char *filename;
-     char *fmode;
-     FILE *fp;
-     char *description;
-     int   state;
+  struct  ImodImageFileStruct;
+  typedef struct ImodImageFileStruct ImodImageFile; 
+  struct  ImodImageFileStruct
+  {
+    char *filename;
+    char *fmode;
+    FILE *fp;
+    char *description;
+    int   state;
 
-     /* Data set by new and open functions. */
-     int   nx, ny, nz;
-     int   file;
-     int   format;
-     int   type;
-     int   mode;
+    /* Data set by new and open functions. */
+    int   nx, ny, nz;
+    int   file;       /* Type of file, i.e. MRC, TIF... */
+    int   format;     /* Kind of data represented: i.e. gray, color, complex */
+    int   type;       /* Type if numerical elements, i.e. byte, etc. */
+    int   mode;       /* MRC mode value */
 
-     /* optional data to be set if input file supports it. */
-     float amin, amax, amean;
-     float xscale, yscale, zscale;
-     float xtrans, ytrans, ztrans;
-     float xrot,   yrot,   zrot;
-     int   time, wave;
+    /* optional data to be set if input file supports it. */
+    float amin, amax, amean;
+    float xscale, yscale, zscale;
+    float xtrans, ytrans, ztrans;
+    float xrot,   yrot,   zrot;
+    int   time, wave;
 
-     /* load info: change these for loading sub sections. */
-     int   llx, lly, llz, urx, ury, urz;
-     float slope, offset, smin, smax;
-     int   axis;
+    /* load info: change these for loading sub sections. */
+    int   llx, lly, llz, urx, ury, urz;
+    float slope, offset, smin, smax;
+    int   axis;
+    int   mirrorFFT;   /* Return mirrored FFT when scaling to bytes */
 
-     /* extra storage used by each file format functions. */
-     int   headerSize;
-     char *header;
-     char *userData;
+    /* extra storage used by each file format functions. */
+    int   headerSize;
+    char *header;
+    char *userData;
 
-     /* Callback functions used by different file formats. */
-     int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);
-     int (*readSectionByte)(ImodImageFile *inFile, char *buf, int inSection);
-     void (*cleanUp)(ImodImageFile *inFile);
-     int (*writeSection)(ImodImageFile *inFile, char *buf, int inSection);
-     void (*close)(ImodImageFile *inFile);
-     int (*reopen)(ImodImageFile *inFile);
+    /* Callback functions used by different file formats. */
+    int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);
+    int (*readSectionByte)(ImodImageFile *inFile, char *buf, int inSection);
+    void (*cleanUp)(ImodImageFile *inFile);
+    int (*writeSection)(ImodImageFile *inFile, char *buf, int inSection);
+    void (*close)(ImodImageFile *inFile);
+    int (*reopen)(ImodImageFile *inFile);
 
-};
+  };
 
 
-ImodImageFile *iiNew(void);
-ImodImageFile *iiOpen(char *filename, char *mode);
-int  iiReopen(ImodImageFile *inFile);
-void iiClose(ImodImageFile *inFile);
-void iiDelete(ImodImageFile *inFile);
-int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax);
+  ImodImageFile *iiNew(void);
+  ImodImageFile *iiOpen(char *filename, char *mode);
+  int  iiReopen(ImodImageFile *inFile);
+  void iiClose(ImodImageFile *inFile);
+  void iiDelete(ImodImageFile *inFile);
+  int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax);
 
-int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
-int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
-int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny, 
-		 int nz);
+  int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
+  int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny, 
+                   int nz);
 
-/* Create and write support. */
-int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
-	   int file, int format, int type);
-int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection);
+  /* Create and write support. */
+  int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
+             int file, int format, int type);
+  int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection);
 
 #ifdef __cplusplus
 }
