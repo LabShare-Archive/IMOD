@@ -28,6 +28,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2004/06/10 17:24:16  sueh
+ * <p> bug# 462 remove reset() function, only set initial and unchanging
+ * <p> settings when constructing and initializing ImodState
+ * <p>
  * <p> Revision 3.22  2004/06/07 00:16:44  sueh
  * <p> bug# 452 call open() in place of model().  If was calling open() with
  * <p> a model name, set openWithModel to true.
@@ -345,17 +349,17 @@ public class ImodManager {
     }
   }
 
-  public int create(String key)
+  public int newImod(String key)
     throws AxisTypeException, SystemProcessException {
-    return create(key, null, null);
+    return newImod(key, null, null);
   }
 
-  public int create(String key, AxisID axisID)
+  public int newImod(String key, AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-    return create(key, axisID, null);
+    return newImod(key, axisID, null);
   }
 
-  public int create(String key, AxisID axisID, String datasetName)
+  public int newImod(String key, AxisID axisID, String datasetName)
     throws AxisTypeException, SystemProcessException {
     Vector vector;
     ImodState imodState;
@@ -397,7 +401,7 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      create(key, axisID);
+      newImod(key, axisID);
       imodState = get(key, axisID);
     }
     if (imodState != null) {
@@ -463,7 +467,7 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      create(key, axisID);
+      newImod(key, axisID);
       imodState = get(key, axisID);
     }
     if (imodState != null) {
@@ -481,7 +485,7 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      create(key, axisID);
+      newImod(key, axisID);
       imodState = get(key, axisID);
     }
     if (imodState != null) {
@@ -500,7 +504,7 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      create(key, axisID);
+      newImod(key, axisID);
       imodState = get(key, axisID);
     }
     if (imodState != null) {
@@ -520,19 +524,6 @@ public class ImodManager {
     return imodState.getModelName();
   }
 
-  public void openBeadFixer(String key, AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      return;
-    }
-    if (imodState.isUseModv()) {
-      throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
-    }
-    imodState.openBeadFixer();
-  }
-  
   public Vector getRubberbandCoordinates(String key)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
@@ -582,9 +573,23 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
-      create(key);
+      newImod(key);
     }
     imodState.setSwapYZ(swapYZ);
+  }
+  
+  
+  public void setOpenBeadFixer(String key, AxisID axisID, boolean openBeadFixer)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    if (imodState.isUseModv()) {
+      throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
+    }
+    imodState.setOpenBeadFixer(openBeadFixer);
   }
   
   public void setBinning(String key, AxisID axisID, int binning)
@@ -592,7 +597,7 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      create(key, axisID);
+      newImod(key, axisID);
     }
     if (imodState != null) {
       imodState.setBinning(binning);
