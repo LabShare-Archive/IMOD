@@ -16,7 +16,18 @@ import etomo.comscript.InvalidParameterException;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/25 23:59:34  sueh
+* <p> An EtomoNumber which can read from and write to scripts.  Has a
+* <p> defaultValue member variable which is compared to currentValue in
+* <p> order to prevent unnecessary script entries.  Has it own getValue function
+* <p> called getValueForScript() which ignores useDisplayValue.
+* <p> Can set useDisplayValue to prevent the screen from showing the display
+* <p> value, but still allow the script to show it.  To force entries to appear in
+* <p> a script when they are defaulted, set the force parameter to true.  Can
+* <p> also use EtomoNumber.get functions, but these do not ignore
+* <p> useDisplayValue.
+* <p> </p>
 */
 public class ScriptParameter extends EtomoNumber {
   public static  final String  rcsid =  "$Id$";
@@ -93,7 +104,7 @@ public class ScriptParameter extends EtomoNumber {
      if (isNull(value) || isNull(defaultValue)) {
        return false;
      }
-     return equals(currentValue, defaultValue);
+     return equals(value, defaultValue);
    }
    
    public ConstEtomoNumber addToScript(StringBuffer optionBuffer, boolean force) {
