@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/1/03: IMOD_3-0-2
+12/1/03: IMOD_3-1-2
 12/1/03: In eTomo, log files are now explicitly closed as soon as possible.
 This is to address progress bars that do not initialize correctly.
 Log file renaming now works correctly under Windows.
