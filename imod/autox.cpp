@@ -69,7 +69,18 @@ void autoxHelp()
     ("Auto Contour Help\n",
      "-----------------\n",
      "Auto contour creates closed contours ",
-     "that belong to the current object.\n",
+     "that belong to the current object.  The contours surround areas that "
+     "are either above or below a selected threshold.\n",
+     "\n",
+     "To start using it, switch to High Contrast to see what areas fall above "
+     "or below threshold.  Adjust the threshold to the proper level to segment"
+     " your features of interest, switching back and forth between Regular and"
+     " High contrast as needed.  Select the Alternate mouse to use the mouse "
+     "buttons to control the filling operation.  Then click on the interior of"
+     " a desired area to flood that area in red.  Adjust the area if necessary"
+     " then press the Build button or the b hot key to build a contour around "
+     "the area.\n\n"
+     "Controls are as follows:\n"
      "\n",
      "Threshold - controls the grey level ",
      "that segments the data.\n",
@@ -85,11 +96,11 @@ void autoxHelp()
      "regular contrast shows the image data.\n",
      "\n",
      "Alt mouse - Use alternate mouse functions:\n"
-     "\tLeft   - Select area by flooding around point.\n",
-     "\tMiddle - Add pixel to flood area (it will appear as yellow).\n",
-     "\tRight  - Delete pixel from flood area (it will appear as dark)"
+     "\tFirst  - Select area by flooding around point.\n",
+     "\tSecond - Add pixel to flood area (it will appear as yellow).\n",
+     "\tThird  - Delete pixel from flood area (it will appear as dark)"
      ".\n",
-     "Middle and right buttons may be held down while moving the mouse "
+     "Second and third buttons may be held down while moving the mouse "
      "to add or delete a series of pixels.\n"
      "\n"
      "Follow diagonals - when flooding an area, add pixels that are "
@@ -846,6 +857,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/02/14 01:13:08  mast
 cleanup unused variables
 
