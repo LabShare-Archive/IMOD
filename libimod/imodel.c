@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/01/05 17:27:17  mast
+Added initialization of xybin and zbin
+
 Revision 3.8  2003/11/01 16:41:56  mast
 changed to use new error processing routine
 
@@ -1316,11 +1319,14 @@ int imodChecksum(Imod *imod)
   }
 
   /* Add properties of views.  Do not add rad and trans because they are
-     changed just by opening model view window */
+     changed just by opening model view window.  
+     34/27/04: Add the rotation angle only for added views, not for the basic
+     view */
   for (co = 0; co < imod->viewsize; co++) {
     view = &imod->view[co];
     sum += view->fovy + view->cnear + view->cfar;
-    sum += view->rot.x + view->rot.y + view->rot.z; 
+    if (co)
+      sum += view->rot.x + view->rot.y + view->rot.z; 
     sum += view->scale.x + view->scale.y + view->scale.z; 
     sum += view->world + view->dcstart + view->dcend + view->plax;
     sum += view->lightx + view->lighty;
