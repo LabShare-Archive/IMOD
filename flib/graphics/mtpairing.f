@@ -240,6 +240,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/29 17:33:56  mast
+c	  Change to use new multithreaded Plax graphics
+c	
 c
 	call plax_initialize('mtpairing')
 	call exit(0)
@@ -1229,7 +1232,9 @@ c	    if(newcolor.lt.5)indchg=1
 	enddo
 82	write(*,'(1x,a,$)')'Name of output model file: '
 	read(5,'(a)')modelout
+	call scale_model(1)
 	call write_wmod(modelout)
+	call scale_model(0)
 	do iobj=1,max_mod_obj
 	  obj_color(1,iobj)=icolsave(1,iobj)
 	  obj_color(2,iobj)=icolsave(2,iobj)
@@ -1412,6 +1417,7 @@ c
 
 	subroutine read_model(modelfile,inunit,xyscal,zscal,tiltzstrt,
      &	    remapz,costilt,ntilts,nfile)
+	include 'model.inc'
 	character*(*) modelfile
 	real*4 tiltzstrt(*),remapz(*),costilt(*)
 	character*50 newfile,tiltfile
@@ -1454,6 +1460,7 @@ c
 	  endif
 c	    
 	  defscal=1.e6
+	  call scale_model(0)
 	  ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
 	  if(ierr.eq.0.and.abs(xyscal-defscal)/defscal.gt.1.e-5)then
 	    write(*,'(a,f10.6,a)')' Scale set from model header at',

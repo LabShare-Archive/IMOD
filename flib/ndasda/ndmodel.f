@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/10/26 05:33:27  mast
+c	  change command files to use unit 4 instead reopening 5
+c	
 c	  Revision 3.4  2003/08/12 05:10:53  mast
 c	  Return if no model file entered
 c	
@@ -33,6 +36,7 @@ c	  Also added check on overrunning boundary vertex arrays.
 c	
 c
 	subroutine read_model(modelfile,ifscale,xyscal)
+	include 'model.inc'
 	character*(*) modelfile
 	logical exist,readw_or_imod,newfile
 	integer*4 getimodhead
@@ -78,8 +82,16 @@ c
 	    endif
 	  endif
 	endif
+c	  
+c	  Unscale points from pixel size in image file
 c
-	if(ifscale.ne.0)call scale_points(xyscal)
+	call scale_model(0)
+	if(ifscale.ne.0)then
+	  do i=1,n_point
+	    p_coord(1,i)=p_coord(1,i)*xyscal
+	    p_coord(2,i)=p_coord(2,i)*xyscal
+	  enddo
+	endif
 	return
 	end
 
@@ -105,7 +117,7 @@ c
 	real*4 bx(*),by(*)
 	integer*4 itypcrosind(-256:256),itype(*),ninclass(*)
 	real*4 sx(*),sy(*)
-	character*80 modelfile
+	character*120 modelfile
 	integer*4 iobjflag(limtyp)
 	integer*4 getimodflags
 	integer*4 in5
@@ -184,6 +196,8 @@ c
 	  endif
 	enddo
 	return
+	end
+
 c
 c	  
 c	  GET_BOUNDARY_OBJ gets the coordinates of a boundary object whose
@@ -191,8 +205,12 @@ c	  number is specified by IOBJBOUND.  NVERT is returned as 0 if there
 c	  is an error.  NVERT vertices are returned in BX, BY; ZZ is the Z
 c	  value (which must be the same throughout the object).
 c
-	entry get_boundary_obj(iobjbound,bx,by,nvert,zz,itype,
+	subroutine get_boundary_obj(iobjbound,bx,by,nvert,zz,itype,
      &	    ntypbound,padbound,ifconvex,fracomit,sx,sy,maxverts)
+	include 'model.inc'
+	real*4 bx(*),by(*)
+	integer*4 itype(*)
+	real*4 sx(*),sy(*)
 c
 	if(iobjbound.gt.0)then
 	  nvert=0
@@ -293,13 +311,7 @@ c
 	bx(nvert+1)=bx(1)
 	by(nvert+1)=by(1)
 	return
-c
-	entry scale_points(xyscal)
-	do i=1,n_point
-	  p_coord(1,i)=p_coord(1,i)*xyscal
-	  p_coord(2,i)=p_coord(2,i)*xyscal
-	enddo
-	return
+	end
 c	  
 c	  
 c	  SAVE_MODEL saves the boundary contour specified by the NVERT
@@ -308,7 +320,12 @@ c	  as a separate object with color ITYPE.  All points are given the Z
 c	  value zz.  If IFSCAL is non-zero, coordinates are all scaled by
 c	  1/XYSCAL so that they will correspond to the original model.
 c
-	entry save_model(bx,by,nvert,sx,sy,itype,npnts,zz,ifscal,xyscal)
+	subroutine save_model(bx,by,nvert,sx,sy,itype,npnts,zz,ifscal,xyscal)
+c
+	include 'model.inc'
+	integer*4 in5
+	common /nmsinput/ in5
+	character*120 modelfile
 c
 91	write(*,'(1x,a,$)')'Name of model file to store points in: '
 	read(in5,'(a)')modelfile
@@ -357,6 +374,8 @@ c
 	  p_coord(2,n_point)=sclfac*by(i)
 	  p_coord(3,n_point)=zz
 	enddo
+c
+	call scale_model(1)
 	call write_wmod(modelfile)
 	close(20)
 	return
