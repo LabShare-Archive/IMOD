@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2004/11/21 05:54:41  mast
+    Changes for working from model view; essay added
+
     Revision 4.1  2004/11/20 05:04:55  mast
     Initial addition to program
 
@@ -822,6 +825,10 @@ int UndoRedo::restoreContour(UndoChange *change, BackupItem *item)
 {
   if (!item)
     return NoBackupItem;
+  if (imodDebug('u'))
+    imodPrintStderr("Restoring contour %d, size %d to object %d, size %d\n",
+                    change->contour, item->p.cont->psize, change->object, 
+                    mVi->imod->obj[change->object].contsize);
   if (imodObjectInsertContour(&mVi->imod->obj[change->object], item->p.cont, 
                               change->contour) < 0)
     return MemoryError;
