@@ -112,6 +112,7 @@ static void usage(void)
      fprintf(stderr, "\t-s <min,max>    set intensity scaling; min to 0 and"
 	     " max to 255\n");
      fprintf(stderr, "\t-b <size>       set initial size for block copies\n");
+     fprintf(stderr, "\t-D              debug mode - do not run in background\n");
      exit(-1);
 }
 
@@ -129,7 +130,13 @@ main (int argc, char **argv)
      int command_height = 800;
      int i;
      int nxfopt = 0;
- 
+
+#ifdef NO_IMOD_FORK
+     int dofork = 0;
+#else
+     int dofork = 1;
+#endif
+
      vw = VW = &MidasView;
      /* open display */
      topLevel = XtVaAppInitialize
@@ -175,6 +182,10 @@ main (int argc, char **argv)
 
 		  case 's':
 		    sscanf(argv[++i], "%f%*c%f", &(vw->sminin), &(vw->smaxin));
+		    break;
+
+		  case 'D':
+		    dofork = 0;
 		    break;
 
 		  default:
@@ -236,10 +247,10 @@ main (int argc, char **argv)
 	  exit(-1);
      }
 
-#ifndef NO_IMOD_FORK
-     if (fork())
-	  exit(0);
-#endif
+     if (dofork) {
+	  if (fork())
+	       exit(0);
+     }
 
      XtAppAddActions(context, actionsTable, XtNumber(actionsTable));
      transTable = XtParseTranslationTable(defaultTranslations);
