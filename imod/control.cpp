@@ -317,6 +317,7 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
 DialogManager::DialogManager()
 {
   mDialogList = NULL;
+  mLastZapGeom.setRect(0, 0, 0, 0);
 }
 
 // Add a dialog to the list
@@ -362,6 +363,8 @@ void DialogManager::remove(QWidget * widget)
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
     if (dia->widget == widget) {
+      if (dia->dlgType == ZAP_WINDOW_TYPE)
+        mLastZapGeom = widget->geometry();
       ilistRemove(mDialogList, index);
       return;
     }
@@ -467,6 +470,8 @@ void DialogManager::raise(int dlgClass)
   }
 }
 
+// Return the size of the biggest Zap window still open, or of the last
+// Zap window closed if none are open
 QRect DialogManager::biggestGeometry(int dlgType)
 {
   QRect biggest(0, 0, 0, 0);
@@ -481,11 +486,16 @@ QRect DialogManager::biggestGeometry(int dlgType)
     }
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
+  if (!biggest.width())
+    return mLastZapGeom;
   return biggest;
 }
 
 /*
 $Log$
+Revision 4.9  2003/09/17 04:46:21  mast
+Added function to return size of biggest zap window
+
 Revision 4.8  2003/08/26 02:04:49  mast
 Save geometry when hiding and set it when restoring to keep windows from
 moving around
