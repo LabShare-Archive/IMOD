@@ -22,6 +22,12 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2004/12/29 00:05:29  sueh
+ * <p> bug# 567 Added update(ComScriptCommand) to update value where the
+ * <p> keyword in ComScriptCommand equals name.  Added validValues:  a list
+ * <p> of valid values.  Added validate() to check validValues when value is
+ * <p> changed.
+ * <p>
  * <p> Revision 1.5  2004/12/16 02:27:18  sueh
  * <p> bug# 564 Remove recommendedValue.  Use resetValue instead.  Added
  * <p> is().
@@ -69,7 +75,7 @@ public abstract class ConstEtomoNumber implements Storable {
 
   private static final double doubleNullValue = Double.NaN;
   private static final float floatNullValue = Float.NaN;
-  private static final int integerNullValue = Integer.MIN_VALUE;
+  public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   private static final long longNullValue = Long.MIN_VALUE;
 
   protected int type;
@@ -390,7 +396,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case FLOAT_TYPE:
       return new Float(floatNullValue);
     case INTEGER_TYPE:
-      return new Integer(integerNullValue);
+      return new Integer(INTEGER_NULL_VALUE);
     case LONG_TYPE:
       return new Long(longNullValue);
     default:
@@ -493,7 +499,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case FLOAT_TYPE:
       return Float.isNaN(value.floatValue());
     case INTEGER_TYPE:
-      return value.intValue() == integerNullValue;
+      return value.intValue() == INTEGER_NULL_VALUE;
     case LONG_TYPE:
       return value.longValue() == longNullValue;
     default:
@@ -508,7 +514,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case FLOAT_TYPE:
       return Float.isNaN(value);
     case INTEGER_TYPE:
-      return value == integerNullValue;
+      return value == INTEGER_NULL_VALUE;
     case LONG_TYPE:
       return value == longNullValue;
     default:
