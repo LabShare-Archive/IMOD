@@ -25,71 +25,124 @@ import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
 
 /**
- * <p>Description: </p>
- *
- * <p>Copyright: Copyright (c) 2002</p>
- *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
+ * <p>
+ * Description:
+ * </p>
+ * 
+ * <p>
+ * Copyright: Copyright (c) 2002
+ * </p>
+ * 
+ * <p>
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Colorado
+ * </p>
+ * 
  * @author $Author$
- *
+ * 
  * @version $Revision$
- *
- * <p> $Log$
- * <p> Revision 2.9  2003/10/15 16:56:56  rickg
- * <p> Bug# 294 Label changes
+ * 
  * <p>
- * <p> Revision 2.8  2003/09/25 23:29:28  rickg
- * <p> Bug #246 fixed to the appropriate combine method in the app manager
+ * $Log$
  * <p>
- * <p> Revision 2.7  2003/09/08 05:49:07  rickg
- * <p> Method name change for opening the complete volume
+ * Revision 2.10 2003/10/15 22:48:03 rickg
  * <p>
- * <p> Revision 2.6  2003/06/05 04:43:20  rickg
- * <p> Added create patch region model button
+ * Added create matching models button
  * <p>
- * <p> Revision 2.5  2003/04/28 23:25:25  rickg
- * <p> Changed visible imod references to 3dmod
+ * Label changes
  * <p>
- * <p> Revision 2.4  2003/03/20 17:46:21  rickg
- * <p> Added right button context menu
+ * Button size changes
  * <p>
- * <p> Revision 2.3  2003/03/18 00:32:33  rickg
- * <p> combine development in progress
  * <p>
- * <p> Revision 2.2  2003/02/24 23:49:36  rickg
- * <p> Panel layout for combination dialog
- * <p> Changed borders
+ * Revision 2.9 2003/10/15 16:56:56 rickg
  * <p>
- * <p> Revision 2.1  2003/01/29 20:42:55  rickg
- * <p> Swtiched checkbox to jcheckbox
+ * Bug# 294 Label changes
  * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
  * <p>
- * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
- * <p> Single window GUI layout initial revision
+ * Revision 2.8 2003/09/25 23:29:28 rickg
  * <p>
- * <p> Revision 1.6  2003/01/08 21:40:46  rickg
- * <p> Added transferfid.log to the context menu
+ * Bug #246 fixed to the appropriate combine method in the app manager
  * <p>
- * <p> Revision 1.5  2002/11/14 21:18:37  rickg
- * <p> Added anchors into the tomoguide
  * <p>
- * <p> Revision 1.4  2002/11/14 04:41:11  rickg
- * <p> Fined matchorwarp man page entry
+ * Revision 2.7 2003/09/08 05:49:07 rickg
  * <p>
- * <p> Revision 1.3  2002/10/09 00:06:28  rickg
- * <p> Added getting and setting of patch boundary parameters
+ * Method name change for opening the complete volume
  * <p>
- * <p> Revision 1.2  2002/10/07 22:31:18  rickg
- * <p> removed unused imports
- * <p> reformat after emacs trashed it
  * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
+ * Revision 2.6 2003/06/05 04:43:20 rickg
+ * <p>
+ * Added create patch region model button
+ * <p>
+ * <p>
+ * Revision 2.5 2003/04/28 23:25:25 rickg
+ * <p>
+ * Changed visible imod references to 3dmod
+ * <p>
+ * <p>
+ * Revision 2.4 2003/03/20 17:46:21 rickg
+ * <p>
+ * Added right button context menu
+ * <p>
+ * <p>
+ * Revision 2.3 2003/03/18 00:32:33 rickg
+ * <p>
+ * combine development in progress
+ * <p>
+ * <p>
+ * Revision 2.2 2003/02/24 23:49:36 rickg
+ * <p>
+ * Panel layout for combination dialog
+ * <p>
+ * Changed borders
+ * <p>
+ * <p>
+ * Revision 2.1 2003/01/29 20:42:55 rickg
+ * <p>
+ * Swtiched checkbox to jcheckbox
+ * <p>
+ * <p>
+ * Revision 2.0 2003/01/24 20:30:31 rickg
+ * <p>
+ * Single window merge to main branch
+ * <p>
+ * <p>
+ * Revision 1.6.2.1 2003/01/24 18:43:37 rickg
+ * <p>
+ * Single window GUI layout initial revision
+ * <p>
+ * <p>
+ * Revision 1.6 2003/01/08 21:40:46 rickg
+ * <p>
+ * Added transferfid.log to the context menu
+ * <p>
+ * <p>
+ * Revision 1.5 2002/11/14 21:18:37 rickg
+ * <p>
+ * Added anchors into the tomoguide
+ * <p>
+ * <p>
+ * Revision 1.4 2002/11/14 04:41:11 rickg
+ * <p>
+ * Fined matchorwarp man page entry
+ * <p>
+ * <p>
+ * Revision 1.3 2002/10/09 00:06:28 rickg
+ * <p>
+ * Added getting and setting of patch boundary parameters
+ * <p>
+ * <p>
+ * Revision 1.2 2002/10/07 22:31:18 rickg
+ * <p>
+ * removed unused imports
+ * <p>
+ * reformat after emacs trashed it
+ * <p>
+ * <p>
+ * Revision 1.1 2002/09/09 22:57:02 rickg
+ * <p>
+ * Initial CVS entry, basic functionality not including combining
+ * <p>
+ * </p>
  */
 public class SetupCombinePanel implements ContextMenu {
   public static final String rcsid =
@@ -119,8 +172,8 @@ public class SetupCombinePanel implements ContextMenu {
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private JButton btnImodMatchModels =
-    new JButton("<html><b>Create Matching Models in 3dmod</b>");
+  private MultiLineToggleButton btnImodMatchModels =
+    new MultiLineToggleButton("<html><b>Create Matching Models in 3dmod</b>");
 
   private LabeledTextField ltfFiducialMatchListA =
     new LabeledTextField("Corresponding fiducial list A: ");
@@ -160,8 +213,8 @@ public class SetupCombinePanel implements ContextMenu {
     new JToggleButton("<html><b>Start Combine</b>");
 
   /**
-   * Default constructor
-   */
+	 * Default constructor
+	 */
   public SetupCombinePanel(ApplicationManager appMgr) {
 
     applicationManager = appMgr;
@@ -272,7 +325,7 @@ public class SetupCombinePanel implements ContextMenu {
     rbOneSideInverted.addActionListener(radioButtonListener);
     rbUseModel.addActionListener(radioButtonListener);
 
-    //  Get the current text height from one of the 
+    //  Get the current text height from one of the
     double height = cbPatchRegionModel.getPreferredSize().getHeight();
 
     //  Set the button sizes
@@ -373,6 +426,8 @@ public class SetupCombinePanel implements ContextMenu {
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
     chkManualCleanup.setSelected(combineParams.getManualCleanup());
+    
+    checkUseFiducialModel();
   }
 
   public void getParameters(CombineParams combineParams)
@@ -469,10 +524,18 @@ public class SetupCombinePanel implements ContextMenu {
     }
   }
 
+  /**
+   * Manage radio button action events
+   * @param event
+   */
   private void radioButtonAction(ActionEvent event) {
     checkUseFiducialModel();
   }
 
+  /**
+   * Enable/disable the matching model button
+   *
+   */
   private void checkUseFiducialModel() {
     if (rbUseModel.isSelected()) {
       btnImodMatchModels.setEnabled(true);
@@ -481,12 +544,16 @@ public class SetupCombinePanel implements ContextMenu {
       btnImodMatchModels.setEnabled(false);
     }
   }
+  
+  private void updateStartCombine() {
+    
+  }
   /**
-   * Right mouse btn context menu
-   */
+	 * Right mouse btn context menu
+	 */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel =
-      { "solvematch", "matchshifts", "patchcrawl3d", "matchorwarp" };
+      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
     String[] manPage =
       {
         "solvematch.html",
@@ -495,12 +562,12 @@ public class SetupCombinePanel implements ContextMenu {
         "matchorwarp.html" };
     String[] logFileLabel =
       {
-        "transferfid",
-        "solvematchshift",
-        "solvematchmod",
-        "patchcorr",
-        "matchorwarp",
-        "volcombine" };
+        "Transferfid",
+        "Solvematchshift",
+        "Solvematchmod",
+        "Patchcorr",
+        "Matchorwarp",
+        "Volcombine" };
     String[] logFile =
       {
         "transferfid.log",
