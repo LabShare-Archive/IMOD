@@ -45,6 +45,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.6  2005/02/08 18:17:01  sueh
+ * bug# 596 Added closeDefaultWindow() to close the window that comes
+ * by default.  Closing default window when it is not in use and another
+ * window is opened.
+ *
  * Revision 1.5  2005/02/07 22:07:38  sueh
  * bug# 594 Using WindowSwitch through MainFrame to manage switching
  * between .edf and .ejf files.  Removed
@@ -212,7 +217,7 @@ public class EtomoDirector {
       mainFrame.createMenus();
       //mainFrame.setWindowMenuLabels(controllerList);
       mainFrame.setCurrentManager(((Controller) controllerList
-          .get(currentControllerKey)).getManager(), currentControllerKey);
+          .get(currentControllerKey)).getManager(), currentControllerKey, true);
       mainFrame.selectWindowMenuItem(currentControllerKey);
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
@@ -371,7 +376,11 @@ public class EtomoDirector {
     return controllerList.getKey(index);
   }
   
-  public synchronized void setCurrentManager(UniqueKey managerKey) {
+  public void setCurrentManager(UniqueKey managerKey) {
+    setCurrentManager(managerKey, false);
+  }
+  
+  public synchronized void setCurrentManager(UniqueKey managerKey, boolean newWindow) {
     BaseManager newCurrentManager = ((Controller) controllerList.get(managerKey)).getManager();
     if (newCurrentManager == null) {
       throw new NullPointerException("managerKey=" + managerKey); 
@@ -379,7 +388,7 @@ public class EtomoDirector {
     currentControllerKey = managerKey;
     if (!test) {
       //mainFrame.setWindowMenuLabels(controllerList);
-      mainFrame.setCurrentManager(newCurrentManager, currentControllerKey);
+      mainFrame.setCurrentManager(newCurrentManager, currentControllerKey, newWindow);
       //mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
@@ -431,7 +440,7 @@ public class EtomoDirector {
       mainFrame.addWindow(controller, controllerKey);
     }
     if (makeCurrent) {
-      setCurrentManager(controllerKey);
+      setCurrentManager(controllerKey, true);
       if (!test) {
         mainFrame.selectWindowMenuItem(controllerKey);
       }
