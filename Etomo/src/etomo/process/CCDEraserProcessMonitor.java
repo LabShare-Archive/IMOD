@@ -18,6 +18,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.1  2003/08/05 21:18:32  rickg
  * <p> Initial revision
  * <p> </p>
@@ -53,7 +56,7 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
   protected void getCurrentSection()
     throws NumberFormatException, IOException {
     String line;
-    while ((line = logFileBuffer.readLine()) != null) {
+    while ((line = logFileReader.readLine()) != null) {
       if (line.startsWith("Section")) {
         String[] fields = line.split("\\s+");
         if (fields.length > 1) {
