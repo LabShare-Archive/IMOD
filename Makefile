@@ -221,8 +221,14 @@ cleanqt : configure
 	cd imod      ; $(MAKE) clean
 	cd midas     ; $(MAKE) clean
 	cd sendevent ; $(MAKE) clean
-	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm '{}' \;
+	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
+
+#
+# Clean up executables in Windows
+#
+cleanexe : configure
+	\find . -type f -name '*.exe' -exec /bin/rm -f '{}' \;
 #
 # Shortcut for making libs only, helps for debugging.
 #
@@ -350,6 +356,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.26  2003/10/25 16:44:38  mast
+#  add new directories to make src
+#
 #  Revision 3.25  2003/10/24 04:17:18  mast
 #  Changes for Windows/Intel compilation
 #
