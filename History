@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/3/03: Fixed model view rotation so that it would change direction when a 
+different direction key or button is pressed.
+
 11/26/03: Fixed problem in Nda that showed up in Windows XP.
 
 11/26/03: Switched to GnuWin32 build of Tiff library and to using DLLs for
