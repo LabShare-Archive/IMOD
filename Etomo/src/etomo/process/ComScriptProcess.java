@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2003/11/26 23:49:28  rickg
+ * Bug# 366 Restructured renameLogFile to work on windows
+ *  Added necessary (for windows) closes on the fileBuffer
+ *
  * Revision 3.0  2003/11/07 23:19:00  rickg
  * Version 1.0.0
  *
@@ -570,6 +574,7 @@ public class ComScriptProcess
    *         then zero length array will be returned.
    */
   private String[] parseWarning() throws IOException {
+    boolean nextLineIsWarning = false;
     //  Open the file as a stream
     InputStream fileStream =
       new FileInputStream(
@@ -586,7 +591,23 @@ public class ComScriptProcess
     while ((line = fileBuffer.readLine()) != null) {
       int index = line.indexOf("WARNING:");
       if (index != -1) {
+        nextLineIsWarning = false;
+        int trimIndex = line.trim().indexOf("PIP WARNING:");
+        if (line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
+          nextLineIsWarning = true;
+        }
         errors.add(line.substring(index));
+      }
+      else if (nextLineIsWarning) {
+        if (!line.matches("\\s+")) {
+          errors.add(line.trim());
+          if (line.indexOf("Using fallback options in Fortran code") != -1) {
+            nextLineIsWarning = false;
+          }
+        }
+        else {
+          nextLineIsWarning = false;
+        }
       }
     }
     fileBuffer.close();
