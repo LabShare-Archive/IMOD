@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.1  2003/10/25 16:15:12  mast
+c	  convert to library for 3dmod internal module
+c	
 c	  Revision 3.1  2002/08/22 05:55:27  mast
 c	  Changed to take p_copy as an argument to avoid memory problems
 c	
@@ -26,6 +29,7 @@ C
 	real*4 aprod(-ndlim:ndlim,-ndlim:ndlim,limkern)
 	logical needprod(-ndlim:ndlim,-ndlim:ndlim,limkern)
 	common /linmen/izmean,dmean
+	real*4 dtor/0.01745329252/
 C	  
 	trackthresh=3.
 	closethresh=0.25
@@ -78,8 +82,8 @@ c	    print *,'offset',xcen(indk),ycen(indk)
 	    enddo
 	  enddo
 	  thetasrch=goodangle(theta(indkcen)+90.)
-	  dxsrch=cosd(thetasrch)
-	  dysrch=sind(thetasrch)
+	  dxsrch=cos(thetasrch * dtor)
+	  dysrch=sin(thetasrch * dtor)
 	  ndmax=0
 	  pmax=-1.e10
 	  moved=1
@@ -261,6 +265,7 @@ c
 	real*4 xt(-limrot:limrot),yt(-limrot:limrot)
 	real*4 patht(-limrot:limrot)
 	integer*4 irlim(-1:1)
+	real*4 dtor/0.01745329252/
 c	  
 	xcen=(nx+1)/2.
 	ycen=(ny+1)/2.
@@ -273,7 +278,7 @@ c
 	dlen=sqrt(dx**2+dy**2)
 	sinth=dy/dlen
 	costh=dx/dlen
-	theta=atan2d(dy,dx)
+	theta=atan2(dy,dx) / dtor
 	xmid=p_copy(1,ipt)
 	ymid=p_copy(2,ipt)
 	xt(0)=0.

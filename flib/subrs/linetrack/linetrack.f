@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine linetrack(array,nx,ny,p_coord,ninobj,iptcur,maxlen,
      &	    inksize,inkern,sigma,h,ifdark,step,redtol,ifreplace,offset,
      &	    ifclose,iffail)
@@ -21,6 +29,7 @@ C
 	real*4 endtoltry(maxtry)/1.,1.5/
 	real*4 tolpathangtry(maxtry)/15.,10./
 	integer*4 ndxlimtry(maxtry)/2.,1./
+	real*4 dtor/0.01745329252/
 	data ksizsav/0/
 	save bkern
 	save ksizsav,sigsav,hsav,nksav,ifdsav,kbase,theta,ixofs,iyofs
@@ -90,9 +99,9 @@ c
 	  xnd=p_coord(1,ipnd)+orig(1)+0.5
 	  ynd=p_coord(2,ipnd)+orig(2)+0.5
 	  if(offset.ne.0.)then
-	    tstnd=atan2d(ynd-yst,xnd-xst)
-	    sints=sind(tstnd)
-	    costs=cosd(tstnd)
+	    tstnd=atan2(ynd-yst,xnd-xst) / dtor
+	    sints=sin(tstnd * dtor)
+	    costs=cos(tstnd * dtor)
 	    xst=xst+sints*offset
 	    yst=yst-costs*offset
 	    xnd=xnd+sints*offset
@@ -107,7 +116,7 @@ c
 	  do ifback=1,2
 	    ixc=nint(xst)
 	    iyc=nint(yst)
-	    tstnd=atan2d(ynd-yst,xnd-xst)
+	    tstnd=atan2(ynd-yst,xnd-xst) / dtor
 c	      
 c	      scan for best overall direction from this point, limit
 c	      range of search by tolinitscan
@@ -140,8 +149,8 @@ c
 	    xstnew(ifback)=cxnew
 	    ystnew(ifback)=cynew
 	    tbestnew(ifback)=tbest
-	    dely(ifback)=-sind(tbest)*(xst-cxnew)+
-     &		cosd(tbest)*(yst-cynew)
+	    dely(ifback)=-sin(tbest * dtor)*(xst-cxnew)+
+     &		cos(tbest * dtor)*(yst-cynew)
 	    xtmp=xst
 	    xst=xnd
 	    xnd=xtmp
@@ -185,12 +194,12 @@ c
 	      xmodel=cxnew -orig(1)-0.5
 	      ymodel=cynew -orig(2)-0.5
 	      if(ifreplace.lt.0)then
-		xmodel=xmodel-sind(tbest)*dely(ifback)
-		ymodel=ymodel+cosd(tbest)*dely(ifback)
+		xmodel=xmodel-sin(tbest * dtor)*dely(ifback)
+		ymodel=ymodel+cos(tbest * dtor)*dely(ifback)
 	      endif
 	      if(offset.ne.0)then
-		xmodel=xmodel-sind(tbest)*offset*(3-2*ifback)
-		ymodel=ymodel+cosd(tbest)*offset*(3-2*ifback)
+		xmodel=xmodel-sin(tbest * dtor)*offset*(3-2*ifback)
+		ymodel=ymodel+cos(tbest * dtor)*offset*(3-2*ifback)
 	      endif
 c		
 c		is it at end?  If so decide whether to save or not
@@ -224,15 +233,15 @@ c		  endif
 		ypath(ninpath(ifback),ifback)=ymodel
 	      endif
 	      if(ifterm.eq.0)then
-		tcurnd=atan2d(ynd-cynew,xnd-cxnew)
+		tcurnd=atan2(ynd-cynew,xnd-cxnew) / dtor
 		if(abs(goodangle(tcurnd-tbest)).gt.tolangoff)then
 		  ifterm=-1
 		else
 c		    
 c		    set up new position, turn around if too close to edge
 c		    
-		  ixc=nint(cxnew+step*cosd(tbest))
-		  iyc=nint(cynew+step*sind(tbest))
+		  ixc=nint(cxnew+step*cos(tbest * dtor))
+		  iyc=nint(cynew+step*sin(tbest * dtor))
 		  if(ixc.lt.ksize/2.or.ixc.gt.nx-ksize/2.or.
      &		      iyc.lt.ksize/2.or.iyc.gt.ny-ksize/2.or.
      &		      ninpath(ifback).ge.limpath-1) ifterm=-1
@@ -284,13 +293,13 @@ c	  print *,'end of paths',ifback,ninpath(1),ifterm
 c	      
 	  elseif(ifback.eq.1)then
 	    ip1=ninpath(1)+1
-	    xpath(ip1,1)=xstnew(2)+sind(tbestnew(2))*offset
-	    ypath(ip1,1)=ystnew(2)-cosd(tbestnew(2))*offset
+	    xpath(ip1,1)=xstnew(2)+sin(tbestnew(2) * dtor)*offset
+	    ypath(ip1,1)=ystnew(2)-cos(tbestnew(2) * dtor)*offset
 	    ip2=0
 	  else
 	    ip1=1
-	    xpath(1,1)=xstnew(1)-sind(tbestnew(1))*offset
-	    ypath(1,1)=ystnew(1)+cosd(tbestnew(1))*offset
+	    xpath(1,1)=xstnew(1)-sin(tbestnew(1) * dtor)*offset
+	    ypath(1,1)=ystnew(1)+cos(tbestnew(1) * dtor)*offset
 	    ip2=ninpath(2)
 	  endif
 c	    

@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine findangpos(array,nx,ny,bkern,kbase,ksize,nkern,ixofs,
      &	    iyofs,dmean,thetinc,tolpathang,ndxlim,xnd,ynd,ixc,iyc,tbest,
      &	    cxnew,cynew)
@@ -7,14 +15,15 @@
 	parameter (limdx=10,limkern=40)
 	logical needprod(-limdx:limdx,limkern)
 	real*4 aprod(-limdx:limdx,limkern)
+	real*4 dtor/0.01745329252/
 c	  
 	tcurnd=tbest
-	if(ynd.ne.iyc.or.xnd.ne.ixc)tcurnd=atan2d(ynd-iyc,xnd-ixc)
+	if(ynd.ne.iyc.or.xnd.ne.ixc)tcurnd=atan2(ynd-iyc,xnd-ixc) / dtor
 	halfdiff=0.5*goodangle(tbest-tcurnd)
 	tcen=goodangle(tcurnd+halfdiff)
 	wideangle=abs(halfdiff)+tolpathang
-	normdx=nint(cosd(tbest+90.))
-	normdy=nint(sind(tbest+90.))
+	normdx=nint(cos((tbest+90.) * dtor))
+	normdy=nint(sin((tbest+90.) * dtor))
 	ndxmax=0
 	ndx=0
 	ktmp=nint(tbest/thetinc)
@@ -114,6 +123,7 @@ c
      &	    ixofs,iyofs)
 	real*4 array(nx,ny,*),theta(*)
 	integer*4 ixofs(*),iyofs(*)
+	real*4 dtor/0.01745329252/
 c	  
 	thetinc=180./nkern
 	xcen=(nx+1)/2.
@@ -123,8 +133,8 @@ c	const=(0.75/h)/(sqrt(2*3.14159)*sigma**3)
 	if(ifdark.eq.0)const=-const
 	do k=1,nkern
 	  theta(k)=(k-1)*thetinc
-	  costh=cosd(-theta(k))
-	  sinth=sind(-theta(k))
+	  costh=cos(-theta(k) * dtor)
+	  sinth=sin(-theta(k) * dtor)
 	  minx=nx
 	  miny=ny
 	  maxx=0
@@ -305,6 +315,7 @@ c$$$	end
 
 	subroutine uncrosscont(p_coord,ninobj,ipnt4,tol)
 	real*4 p_coord(3,*)
+	real*4 dtor/0.01745329252/
 	if(ninobj.le.3)return
 	ipnt3=indmap(ipnt4-1,ninobj)
 	ipnt1=indmap(ipnt4+1,ninobj)
@@ -320,9 +331,9 @@ c$$$	end
 	call point_to_line(x4,y4,x1,y1,x2,y2,tmin1,distsq1)
 	call point_to_line(x1,y1,x3,y3,x4,y4,tmin2,distsq2)
 	if(min(distsq1,distsq2).le.tol**2)then
-	  tstrt=atan2d(y2-y1,x2-x1)
-	  tend=atan2d(y4-y3,x4-x3)
-	  tcon=atan2d(y1-y4,x1-x4)
+	  tstrt=atan2(y2-y1,x2-x1) / dtor
+	  tend=atan2(y4-y3,x4-x3) / dtor
+	  tcon=atan2(y1-y4,x1-x4) / dtor
 	  halfdiff=0.5*goodangle(tstrt-tend)
 	  tmid=goodangle(tend+halfdiff)
 	  halfcrit=abs(halfdiff)+40.
@@ -338,7 +349,7 @@ c	    print *,'shifting point',ipnt4,' of',ninobj
 	      x4t=x4+fracnd*(x3-x4)
 	      y1t=y1+fracst*(y2-y1)
 	      y4t=y4+fracnd*(y3-y4)
-	      tcon=atan2d(y1t-y4t,x1t-x4t)
+	      tcon=atan2(y1t-y4t,x1t-x4t) / dtor
 	      if(abs(goodangle(tcon-tmid)).le.halfcrit)itry=10
 	      itry=itry+1
 	    enddo
