@@ -9,33 +9,7 @@ c	  position from the polynomial.  After this surface smoothing
 c	  operation, each contour is independently smoothed by local fitting to
 c	  2-D (ordinary) polynomials.
 c	  
-c	  Inputs to the program:
-c	  
-c	  Name of input model file
-c	  
-c	  Name of output model file
-c	  
-c	  List of IMOD objects to smooth, or Return to smooth all objects.
-c	  Ranges may be entered, e.g. 1-3,7,9-11.
-c
-c	  Order of 3-D polynomials to fit to the surface.  Note that a second-
-c	  order polynomial has 5 terms and a third-order has 9 terms.  The
-c	  polynomial should not have too high an order for the number of points
-c	  being fit.
-c	  
-c	  Number of levels in Z (i.e., number of different contours) to
-c	  include in the fit.
-c	  
-c	  Limiting distance in 3-D for points to be included in the fit.
-c	  
-c	  Polynomial order for smoothing of individual contours, or zero to
-c	  omit this smoothing.
-c	  
-c	  NOTE: The program has not been tested with a variety of models.  With
-c	  the particular models tested so far, good results were obtained with 
-c	  third-order 3-D polynomials fitted to 7 levels in Z and including
-c	  points within a distance of 15 pixels.  Order 2 was good for
-c	  smoothing of individual contours.
+c	  See man page for more details
 c	  
 c	  David Mastronarde, 9/9/97
 c
@@ -46,9 +20,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/09/22 19:29:08  mast
+c	  removed mysterious common /dumcom/dummy(1500000) - failed on Cygwin
+c	
 c
+	implicit none
+	integer idim, limpt, idzlim, limflags
 	include 'model.inc'
-	parameter (idim=1000,limpt=10000,idzlim=16)
+	parameter (idim=10000,limpt=50000,idzlim=50, limflags=2000)
 C   
 	REAL*4 xt(limpt),yt(limpt),zt(limpt),pt(limpt,3),p_new(2,max_pt)
 	equivalence (xt,pt),(yt,pt(1,2)),(zt,pt(1,3))
@@ -63,45 +42,96 @@ c
 	real*4 vect(msiz),slop(msiz)
 	integer*4 izobj(max_obj_num)
 	integer*4 iobjbest(-idzlim:idzlim),iptbest(-idzlim:idzlim)
-	integer*4 iobjdo(256)
-	integer*4 getimodhead
+	integer*4 iobjdo(limflags),iflags(limflags)
+	logical*1 objectOK(max_obj_num)
+
+	integer*4 minpts, nobjdo, iorder, nzfit, iorder2, ierr, ierr2, ifflip
+	real*4 tolcross, closethresh, ximscale,yimscale,zimscale,xofs,yofs,zofs
+	real*4 sepmin, distlim, xyscal, zscale, dzsq, distmin, dx, dy, distsq
+	integer*4 iobj, ninobj, ibase, ipnt1, i, ifonlist, imodobj, icheck, ipt
+	integer*4 ifspan, idzlo, idzhi, idzmin, idzmax, loop, iz, jobj, jbase
+	integer*4 jpnt, jpt, iplas, ipnex, mzfit, nfit, iftoofar, ifsave, j
+	real*4 xx, yy, dlen, sinth, costh, xlas, ylas, xrot, yrot, dist, frac
+	real*4 xcen, ycen, sep, distlas, distcen, ynew, c1, rsq, fra, xmid
+	real*4 ymid, tmp, bint
+	integer*4 ninsert, norder, nindep, ichek, ipnt, idz, ninj, idir, iptcen
+	integer*4 ipc, iflag, nobjSmooth, nTotPoints
+	integer*4 getimodhead, getimodscales, indmap, getimodflags
+	common /bigarr/p_new
+c
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger,PipGetBoolean
+	integer*4 PipGetString,PipGetFloat
+	integer*4 PipGetInOutFile
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  smoothsurf
+c
+	integer numOptions
+	parameter (numOptions = 8)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'objects:ObjectsToSmooth:LI:@nz:NumberOfSections:I:@'//
+     &      'distance:MaximumDistance:F:@contorder:ContourOrder:I:@'//
+     &      'surforder:SurfaceOrder:I:@help:usage:B:'
+c	  
+c	  defaults
 c
 	minpts=4
 	tolcross=4.
 	closethresh=1.
-c
-81	write(*,'(1x,a,$)')'Name of original model file: '
-	read(5,'(a)')filin
-	if(.not.readw_or_imod(filin))go to 81
-	print *,n_point,' points,',max_mod_obj,' contours'
-c
-	write(*,'(1x,a,$)')'Name of output model file: '
-	read(5,'(a)')filout
-c	  
-	print *,'Enter list of objects to smooth (ranges OK),',
-     &	    ' or Return for all'
 	nobjdo=0
-	call rdlist(5,iobjdo,nobjdo)
+	iorder = 3
+	iorder2 = 2
+	nzfit = 7
+	distlim = 15.
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'smoothsurf',
+     &	    'ERROR: SMOOTHSURF - ', .false., 2, 1, 1, numOptArg,
+     &	    numNonOptArg)
+c
+	if (PipGetInOutFile('InputFile', 1, ' ', filin) .ne. 0)
+     &	    call errorexit('NO INPUT FILE SPECIFIED')
+c
+	if (PipGetInOutFile('OutputFile', 2, ' ', filout) .ne. 0)
+     &	    call errorexit('NO OUTPUT FILE SPECIFIED')
+c
+	if(.not.readw_or_imod(filin))call errorexit('READING MODEL')
+c
 
-	write(*,'(1x,a,$)')'Order of 3-D polynomial to fit: '
-	read(5,*)iorder
-	write(*,'(1x,a,$)')
-     &	    '# of levels in Z to include in fit: '
-	read(5,*)nzfit
-	write(*,'(1x,a,$)')'Overall distance limit for fit: '
-	read(5,*)distlim
-	write(*,'(1x,a,$)') 'Polynomial order for single contour '//
-     &	    'smoothing (0 for none): '
-	read(5,*)iorder2
+	if (PipGetString('ObjectsToSmooth', filin) .eq. 0)
+     &	    call parselist(filin, iobjdo, nobjdo)
+	if (nobjdo .gt. limflags) call errorexit(
+     &	    'TOO MANY OBJECTS IN LIST FOR ARRAYS')
+
+	ierr = PipGetInteger('NumberOfSections', nzfit)
+	ierr = PipGetInteger('ContourOrder', iorder2)
+	ierr = PipGetInteger('SurfaceOrder', iorder)
+	ierr = PipGetFloat('MaximumDistance', distlim)
+	if (nzfit .lt. 1) call errorexit('NUMBER OF SECTIONS IS TOO SMALL')
+	if (iorder2 .lt. 0 .or. iorder2 .gt. 4) call errorexit(
+     &	    'CONTOUR SMOOTHING ORDER IS OUTSIDE OF ALLOWED RANGE')
+	if (iorder .lt. 1 .or. iorder .gt. 5) call errorexit(
+     &	    'SURFACE SMOOTHING ORDER IS OUTSIDE OF ALLOWED RANGE')
+	if (distlim .le. 1.) call errorexit('MAXIMUM DISTANCE IS TOO SMALL')
 c	  
 c	  unflip data if it was flipped
 c
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-	if (ierr.ne.0)then
-	  print *,'Error getting imod header, assuming model not ',
-     &	      'flipped'
-	  ifflip=0
-	endif
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
+	if (ierr.ne.0 .or. ierr2 .ne. 0)call errorexit(
+     &	    'READING MODEL HEADER INFORMATION FOR SCALING')
+c	  
+c	  shift the data to index coordinates then unflip
+c
+	do i=1,n_point
+	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
+	enddo
+c
 	if(ifflip.ne.0)then
 	  do i=1,n_point
 	    tmp=p_coord(2,i)
@@ -115,21 +145,70 @@ c	  each side of center
 c
 	sepmin=distlim/minpts
 c	  
-c	  uncross/straighten out start and end points, keep track of Z of
-c	  object
+c	  Get object flags
 c
+	do i=1,limflags
+	  iflags(i)=0
+	enddo
+	ierr=getimodflags(iflags,limflags)
+	if(ierr.ne.0)print *,'Error getting object types, assuming',
+     &	    ' all are closed contours'
+c	  
+c	  Mark all objects to include by seeing if they are on list, and
+c	  are closed contour or open coplanar contour
+c	  
+	nobjSmooth = 0
+	nTotPoints = 0
 	do iobj=1,max_mod_obj
+	  imodobj=256-obj_color(2,iobj)
 	  ninobj=npt_in_obj(iobj)
-	  if(ninobj.gt.2)then
-	    ibase=ibase_obj(iobj)
-	    ipnt1=object(ibase+1)
-	    izobj(iobj)=nint(p_coord(3,ipnt1))
+	  ibase=ibase_obj(iobj)
+	  ipnt1=object(ibase+1)
+	  izobj(iobj)=nint(p_coord(3,ipnt1))
+c	    
+c	    is IMOD object on list
+c
+	  ifonlist=0
+	  if(nobjdo.eq.0)then
+	    ifonlist=1
+	  else
+	    do ichek=1,nobjdo
+	      if(imodobj.eq.iobjdo(ichek))ifonlist=1
+	    enddo
+	  endif
+c	    
+c	    require at least 2 points and not scattered points
+c
+	  iflag = 0
+	  if (imodobj .le. limflags) iflag = mod(iflags(imodobj), 4)
+	  objectOK(iobj) = ifonlist .eq. 1 .and. iflag .lt. 2 .and.
+     &	      ninobj .gt. 2
+c	    
+c	    for open objects, make sure contour is coplanar
+c
+	  if (objectOK(iobj) .and. iflag .eq. 1) then
+	    do ipt=2,ninobj
+	      ipnt=object(ipt+ibase)
+	      if (nint(p_coord(3,ipnt)) .ne. izobj(iobj))
+     &		  objectOK(iobj) = .false.
+	    enddo
+	  endif
+c	  
+c	    uncross/straighten out start and end points, set Z of object
+c	    negative if not an OK one
+c
+	  if (objectOK(iobj)) then
 	    call uncrosscont(p_coord,3,object,ibase,ninobj,ninobj,20.,
      &		tolcross*2.)
+	    nobjSmooth = nobjSmooth +1
+	    nTotPoints = nTotPoints + ninobj
 	  else
-	    izobj(iobj)=-10000
+	    izobj(iobj)=-100000.
 	  endif
 	enddo
+	print *,nTotPoints,' points,',nobjSmooth,
+     &	    ' contours in objects being smoothed'
+	print *,'Smoothing by fitting to surfaces...'
 c	  
 c	  make copy into new coordinates
 c
@@ -141,16 +220,7 @@ c
 	do iobj=1,max_mod_obj
 	  ninobj=npt_in_obj(iobj)
 	  ibase=ibase_obj(iobj)
-	  ifonlist=0
-	  if(nobjdo.eq.0)then
-	    ifonlist=1
-	  else
-	    imodobj=256-obj_color(2,iobj)
-	    do ichek=1,nobjdo
-	      if(imodobj.eq.iobjdo(ichek))ifonlist=1
-	    enddo
-	  endif
-	  if(ninobj.gt.2.and.ifonlist.eq.1)then
+	  if(objectOK(iobj))then
 	    do ipt=1,ninobj
 	      ipnt=object(ipt+ibase)
 c		
@@ -178,7 +248,7 @@ c
 		    iz=izobj(iobj)+idz
 		    distmin=distlim**2
 		    do jobj=1,max_mod_obj
-		      if(izobj(jobj).eq.iz.and.
+		      if(objectOK(jobj) .and. izobj(jobj).eq.iz.and.
      &			  obj_color(2,jobj).eq.obj_color(2,iobj))then
 			jbase=ibase_obj(jobj)
 			do jpt=1,npt_in_obj(jobj)
@@ -200,15 +270,9 @@ c
 		    enddo
 		  endif
 c		    
-c		    if closest point is in an object of 1 or 2 points, ignore
-c		    
 		  if(iobjbest(idz).ne.0)then
-		    if(npt_in_obj(iobjbest(idz)).le.2)then
-		      iobjbest(idz)=0
-		    else
-		      idzmin=min(idzmin,idz)
-		      idzmax=max(idzmax,idz)
-		    endif
+		    idzmin=min(idzmin,idz)
+		    idzmax=max(idzmax,idz)
 		  endif
 		enddo
 c		  
@@ -268,7 +332,7 @@ c
 			  ifsave=1
 			  if(dist.gt.distlim)then
 c			      
-c			      if go past the distance limit, at a point within
+c			      if go past the distance limit, add a point within
 c			       the limit if is far from the last point
 c
 			    if(dist-distlas.gt.0.1*distlim)then
@@ -350,9 +414,10 @@ c
 c	  
 c	  now treat each individual contour
 c
+	print *,'Smoothing individual contours...'
 	do iobj=1,max_mod_obj
 	  ninobj=npt_in_obj(iobj)
-	  if(ninobj.gt.2)then
+	  if(ninobj.gt.4 .and. objectOK(iobj))then
 	    ibase=ibase_obj(iobj)
 c	  
 c	      smoothing the same way as above: take each point as a center
@@ -383,7 +448,7 @@ c
 c			
 c			rotate so tangent is horizontal
 c
-		      jpnt=object(jbase+jpt)
+		      jpnt=object(ibase+jpt)
 		      dx=p_new(1,jpnt)-xmid
 		      dy=p_new(2,jpnt)-ymid
 		      xrot=costh*dx-sinth*dy
@@ -451,10 +516,10 @@ c
 		      xr(norder+1,i)=yt(i)
 		    enddo
 		    call multr(xr,norder+1,nfit,sx,ss,ssd,d,r,xm,sd,b,b1,
-     &		      bint, rsq ,fra)
+     &			bint, rsq ,fra)
 c		    call polyfit(xt,yt,nfit,norder,slop,bint)
-		    xmid=sints*bint+xmid
-		    ymid=costs*bint+ymid
+		    xmid=sinth*bint+xmid
+		    ymid=costh*bint+ymid
 		  endif
 		endif
 	      endif
@@ -486,7 +551,16 @@ c
 	    p_coord(3,i)=tmp
 	  enddo
 	endif
+c	  
+c	  shift the data back for saving
+c
+	do i=1,n_point
+	  p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	  p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	  p_coord(3,i)=zimscale*p_coord(3,i)+zofs
+	enddo
 	call write_wmod(filout)
+	print *,'DONE'
 	call exit(0)
 	end
 
@@ -499,7 +573,9 @@ c	  set is the previous set multipled by x, plus the last term of the
 c	  previous set multiplied by y
 c
 	subroutine polyterm(x,y,norder,vect)
-	real*4 vect(*)
+	implicit none
+	real*4 vect(*), x, y
+	integer*4 norder, istr,iend, iorder, i
 	vect(1)=x
 	vect(2)=y
 	istr=1
@@ -516,7 +592,9 @@ c
 	end
 
 c
-	function goodangle(thin)
+	real*4 function goodangle(thin)
+	implicit none
+	real*4 thin, theta 
 	theta=thin
 	if(theta.lt.-180)theta=theta+360.
 	if(theta.ge.180.)theta=theta-360.
@@ -528,8 +606,16 @@ c
 
 	subroutine uncrosscont(p_coord,nxyz,object,ibase,ninobj,ip4,ang,
      &	    tol)
-	real*4 p_coord(nxyz,*)
-	integer*4 object(*)
+	implicit none
+	integer*4 object(*), nxyz, ibase, ninobj, ip4
+	real*4 p_coord(nxyz,*), ang, tol
+	integer*4 ip3, ip1, ip2, ipnt1, ipnt2, ipnt3, ipnt4, itry
+	real*4 x1, y1, x2, y2, x3, y3, x4, y4, tmin1, tmin2, distsq1, distsq2
+	real*4 tstrt, tend, tcon, halfdiff, tmid, halfcrit, fraclimst
+	real*4 fraclimnd, fracst, fracnd, x1t, x4t, y1t, y4t
+	integer*4 indmap
+	real*4 atan2d, goodangle
+c
 	if(ninobj.le.3)return
 	ip3=indmap(ip4-1,ninobj)
 	ip1=indmap(ip4+1,ninobj)
@@ -584,6 +670,8 @@ c	    print *,'shifting point',ipnt4,' of',ninobj
 
 
 	subroutine point_to_line(x0,y0,x1,y1,x2,y2,tmin,distsq)
+	implicit none
+	real*4 x0,y0,x1,y1,x2,y2,tmin,distsq
 	tmin=((x0-x1)*(x2-x1)+(y0-y1)*(y2-y1))/((x2-x1)**2+(y2-y1)**2)
 	tmin=max(0.,min(1.,tmin))
 	distsq=(x1+tmin*(x2-x1)-x0)**2+(y1+tmin*(y2-y1)-y0)**2
@@ -594,8 +682,13 @@ c	    print *,'shifting point',ipnt4,' of',ninobj
 
 	subroutine elimclose(p_new,nxyz,object,ibase,ninobj,closethresh,
      &	    minpts)
-	real*4 p_new(nxyz,*)
-	integer*4 object(*)
+	implicit none
+	integer*4 object(*), nxyz, ibase, ninobj, minpts
+	real*4 p_new(nxyz,*), closethresh
+	real*4 closesq
+	integer*4 iseg, idel, ip3, ipt3, ipseg, ip1, ip4, ipt1, ipt4, i
+	integer*4 indmap
+c
 	closesq=closethresh**2
 	iseg=1
 	idel=0
@@ -624,4 +717,11 @@ c	      print *,'eliminating segment',iseg,' of',ninobj
 	  endif
 	enddo
 	return
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: SMOOTHSURF - ',message
+	call exit(1)
 	end
