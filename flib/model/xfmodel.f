@@ -24,6 +24,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/12/27 19:42:45  mast
+c	  Work out some problems, finalized documentation and interface
+c	
 c	  Revision 3.3  2003/12/12 20:37:52  mast
 c	  Preliminary checkin with PIP conversion and distortion correction
 c	
@@ -110,6 +113,7 @@ c
 	xcen = 0.
 	ycen = 0.
 	ifBack = 0
+	iBinning = 1
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -345,8 +349,21 @@ c		insist on binning unless situation is unambiguous, and convert
 c		the distortion field by the difference in binning
 c
 	      if (PipGetInteger('BinningOfImages', iBinning) .ne. 0) then
-		if (2. * xcen .le. idfNx * idfBinning .and.
-     &		    2. * ycen .le. idfNy * idfBinning) call errorexit
+c	  
+c		  if the center is not yet defined, need to get it now
+c		  
+		if (xcen .eq. 0. .and. ycen .eq. 0.) then
+		  exist=readw_or_imod(modelfile)
+		  if(.not.exist)go to 91
+		  ierr = getimodmaxes(maxx, maxy, maxz)
+		  xcen = maxx / 2.
+		  ycen = maxy / 2.
+		  write(*,'(a,2f8.1)')'Using model header to determine '//
+     &		      'center coordinates:', xcen, ycen
+		endif
+
+		if (2. * xcen .le. idfNx * idfBinning / 2 .and.
+     &		    2. * ycen .le. idfNy * idfBinning / 2) call errorexit
      &		    ('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &		    'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
 	      endif
@@ -441,7 +458,7 @@ c
 c
 c	  read in the model
 c
-75	exist=readw_or_imod(modelfile)
+	exist=readw_or_imod(modelfile)
 	if(.not.exist)go to 91
 c
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)

@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.16  2004/01/08 23:02:52  mast
+c	  Fixed problem with linear option
+c	
 c	  Revision 3.15  2004/01/08 16:26:17  mast
 c	  Fixed problems with input and output lists and renamed options to
 c	  avoid conflicting with -linear
@@ -196,6 +199,7 @@ c
 	rotateAngle = 0.
 	expandFactor = 0.
 	iBinning = 1
+	inputBinning = 1
 	limdim = maxdim
 	lenTemp = maxtemp
 	applyFirst = 0
@@ -593,8 +597,8 @@ c
      &		iyGridStrt, yGridIntrv, nyGrid)
 c
 	    if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
-	      if (nxFirst .le. idfNx * idfBinning .and.
-     &		  nyFirst .le. idfNy * idfBinning) call errorexit
+	      if (nxFirst .le. idfNx * idfBinning / 2 .and.
+     &		  nyFirst .le. idfNy * idfBinning / 2) call errorexit
      &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &		  'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
 	    endif
