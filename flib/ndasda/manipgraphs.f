@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine manipgraphs(iopt,prog,graphs,areas,nbingrf,delrgrf,
      &	    ifadgrf,rmingrf,rmaxgrf,maxgraph,nextragrf,listextra,
      &	    igrfdsp,xmaxdsp,ymaxdsp)
@@ -14,7 +22,7 @@
 	save igrfadd,nrgfadd,iaddextra,irdsmextra,itmpextra,nredextra
 	save lsrdextra,lsrdrec,nredrec
 c
-	go to(228,229,230,231,232,233,40,40,40,237,238,239)iopt-27
+	go to(228,229,230,231,232,233,40,40,40,237,238,239,40,40,242)iopt-27
 40	return
 c	  
 c	  Save or add graphs to extra graph locations
@@ -237,6 +245,21 @@ c
 	    endif
 	  endif
 	enddo
+	go to 40
+c	  
+c	  export graph to file for use in other programs
+c	  
+242	write(*,'(1x,a,$)')
+     &	    'Export graph to file: Enter number of graph to export: '
+	read(5,*)igrfstor
+	igrfsav=igrfstor
+	if(checkgrf(igrfsav,maxgraph,nextragrf,listextra))then
+	  call export_graph(graphs(1,igrfsav),areas(1,igrfsav),
+     &	      nbingrf(igrfsav),delrgrf(igrfsav),ifadgrf(igrfsav),
+     &	      rmingrf(igrfsav),rmaxgrf(igrfsav))
+	else
+	  print *,'Illegal graph # to export'
+	endif
 	go to 40
 	end
 
