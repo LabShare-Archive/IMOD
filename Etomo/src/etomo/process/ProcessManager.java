@@ -24,6 +24,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/07 22:26:31  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs messed it up
+ * <p>
  * <p> Revision 1.2  2002/09/19 21:43:30  rickg
  * <p> Moved imod control to ImodManager/ImodProcess objects
  * <p>
@@ -286,6 +290,8 @@ public class ProcessManager {
   private void startSystemProgramThread(String command) {
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+
+    sysProgram.enableDebug(true);
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
