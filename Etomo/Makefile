@@ -18,48 +18,6 @@ JAVAC = $(JAVAC_EXE) $(CLASSPATH) $(OUTPUT) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
-CLASS_FILES = \
-bin/etomo/ui/FixedDim.class \
-bin/etomo/ui/AlignmentEstimationDialog.class \
-bin/etomo/ui/BeveledBorder.class \
-bin/etomo/ui/BoundaryRotationDialog.class \
-bin/etomo/ui/CCDEraserPanel.class \
-bin/etomo/ui/CoarseAlignDialog.class \
-bin/etomo/ui/ContextPopup.class \
-bin/etomo/ui/CrossCorrelationPanel.class \
-bin/etomo/ui/DataSetIDPanel.class \
-bin/etomo/ui/DataSetTypePanel.class \
-bin/etomo/ui/FiducialModelDialog.class \
-bin/etomo/ui/GenericProcessingDialog.class \
-bin/etomo/ui/HighlightList.class \
-bin/etomo/ui/HTMLPageWindow.class \
-bin/etomo/ui/LabeledTextField.class \
-bin/etomo/ui/MainFrame_AboutBox.class \
-bin/etomo/ui/MainFrame.class \
-bin/etomo/ui/PostProcessingDialog.class \
-bin/etomo/ui/PreProcessingDialog.class \
-bin/etomo/ui/ProcessControlPanel.class \
-bin/etomo/ui/ProcessDialog.class \
-bin/etomo/ui/SetupDialog.class \
-bin/etomo/ui/TiltAngleDialogPanel.class \
-bin/etomo/ui/TomogramCombinationDialog.class \
-bin/etomo/ui/TomogramGenerationDialog.class \
-bin/etomo/storage/Storable.class \
-bin/etomo/storage/ParameterStore.class \
-bin/etomo/AxisType.class \
-bin/etomo/CopyTomoComs.class \
-bin/etomo/SectionType.class \
-bin/etomo/TiltAngleType.class \
-bin/etomo/ViewType.class \
-bin/etomo/DataSource.class \
-bin/etomo/DialogExitState.class \
-bin/etomo/ConstSetupData.class \
-bin/etomo/SetupData.class \
-bin/etomo/ProcessManager.class \
-bin/etomo/ProcessState.class \
-bin/etomo/RunComScript.class \
-bin/etomo/SystemProgram.class \
-bin/etomo/TiltAngleSpec.class \
 
 TEST_BIN = \
 bin/test/test_CircularBuffer.class \
