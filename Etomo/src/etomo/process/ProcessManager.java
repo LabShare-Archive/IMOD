@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2004/08/02 23:02:37  sueh
+ * bug# 519 call ApplicationManager.makeRawtltFile() if .rawtlt
+ * doesn't exist
+ *
  * Revision 3.26  2004/07/20 20:06:20  sueh
  * bug# 405 changing to ps axl because mac requires ps x when
  * terminal has been exited and windows doesn't understand
@@ -419,6 +423,7 @@ import etomo.type.ProcessName;
 import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
+import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
@@ -594,7 +599,8 @@ public class ProcessManager {
    * Copy the .rawtlt to the .tlt file
    * @param axisID
    */
-  public void setupNonFiducialAlign(AxisID axisID) throws IOException {
+  public void setupNonFiducialAlign(AxisID axisID) throws IOException,
+    InvalidParameterException {
     String workingDirectory = System.getProperty("user.dir");
     String axisDataset = appManager.getDatasetName() + axisID.getExtension();
 
