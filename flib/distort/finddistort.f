@@ -88,11 +88,12 @@ c
 	real*4 radius2, sigma1, sigma2, sdcritSmooth, devcritSmooth
 	real*4 sourceTol, const, rsq, fval, gridIntrv, colSumCrit, rsq1
 	real*4 cosang, sinang, axisPos, sum, errorCrit, relax
-	real*4 val,  aa(2, 2), xOut, yOut, errorLast(maxGrids, 2), relaxInitial
-	real*4 bb(2, 2), dmag, theta, smag, str, phi, smagMean, alpha
+	real*4 val,  aa(2, 3), xOut, yOut, errorLast(maxGrids, 2), relaxInitial
+	real*4 bb(2, 3), dmag, theta, smag, str, phi, smagMean, alpha
 	real*4 ssqr, solSsqr, solNeg, solPos, pixelSize, resSum, resMax
 	integer*4 iBinning
 	real*4 cosd, sind, acosd, asind
+	integer*4 lnblnk
 
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger,PipGetBoolean
@@ -302,8 +303,8 @@ c
 	  enddo
 
 	  call setgridchars(nxyz, noverlap, iboxXY, indentXY, intgridXY,
-     &	      ixy, ixydispl(1), ixydispl(2), nxGrid(iPair), nyGrid(iPair),
-     &	      iGridStrt(1, iPair), iGridOfs(1, iPair))
+     &	      ixy, ixydispl(1), ixydispl(2), nxGrid(iPair), 
+     &	      nyGrid(iPair), iGridStrt(1, iPair), iGridOfs(1, iPair))
 	  print *,'Grid start',iGridStrt(1, iPair), iGridStrt(2, iPair),
      &	      '  offset', iGridOfs(1, iPair), iGridOfs(2, iPair)
 
