@@ -111,12 +111,13 @@ c	  do not all fit on one line.  You may not have both an INCLUDE and an
 c	  EXCLUDE line.
 c
 C	  EXCLUDELIST  VIEWLIST
+C	  EXCLUDELIST2  VIEWLIST
 C	  ------
 C	  This line is an alternative way to specify views to be excluded.  The
 c	  VIEWLIST should be a list of ranges, separated by commas, and with no
 c	  embedded spaces; e.g., 1-3,54,67,85-88.  You may have any number of
-c	  EXCLUDE and EXCLUDELIST lines, but they cannot be combined with
-c	  INCLUDE lines.
+c	  EXCLUDE, EXCLUDELIST, and EXLCUDELIST2 lines, but they cannot be 
+c	  combined with INCLUDE lines.
 C
 C	  FBPINTERP  ORDER
 C	  ------
@@ -344,6 +345,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.15  2004/04/01 01:44:23  mast
+c	  Used input file range to avoid taking logs of very small numbers
+c	
 c	  Revision 3.14  2003/12/09 00:11:49  mast
 c	  Have card reader accept blank lines in case sed in new sample.com
 c	  creates one
@@ -1736,38 +1740,54 @@ C
 C -----------------------------------------------------------------
 	SUBROUTINE INPUT
 C	----------------
-
+	
+	implicit none
 	include 'tilt.inc'
-	COMMON /DENSWT/nweight,wincr(20)
+	integer*4 nweight
+	real*4 wincr(20)
+	COMMON /DENSWT/nweight,wincr
 C
-	DIMENSION MPXYZ(3),MOXYZ(3),NOXYZ(3),NXYZST(3),outilt(3),cell(6)
+	integer*4 MPXYZ(3),MOXYZ(3),NOXYZ(3),NXYZST(3)
+	real*4 outilt(3),cell(6),dtor
 	data outilt/90.,0.,0./
 	data cell/0.,0.,0.,90.,90.,90./
 	DATA DTOR/0.0174532/
 	CHARACTER DAT*9,TIM*8
 	real*4 delta(3)
-	external inum
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 C
-	CHARACTER TAGS(32)*20,CARD*80
+	CHARACTER TAGS(33)*20,CARD*80
 	CHARACTER*80 FILIN,FILOUT
 	DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
      &	    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
-     &	    'INCLUDE','EXCLUDE','*EXCLUDELIST','LOG','REPLICATE',
-     &	    'ANGLES','COMPRESS',
+     &	    'INCLUDE','EXCLUDE','*EXCLUDELIST','*EXCLUDELIST2','LOG',
+     &	    'REPLICATE', 'ANGLES','COMPRESS',
      &	    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
      &	    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &	    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
      &	    'XTILTINTERP','DONE'/
-	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
+	integer*4 ntags, nfields
+	real*4 XNUM(50)
+	COMMON /CARDS/NTAGS,XNUM,NFIELDS
 c	  
-	dimension ivexcl(limview),repinc(limview)
+	integer*4 ivexcl(limview)
+	real*4 repinc(limview)
 	include 'fbpswitch.inc'
+	integer*4 mode,newangles,iftiltfile,nvuse,nvexcl
+	real*4 pmean, delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall
+	integer*4 irmax,ifall,ncompress,nxfull,nyfull,ixsubset,iysubset
+	integer*4 interpfbp,kti,indbase,ipos,idtype,lens,label
+	integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,irep,iv
+	real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
+	integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
+	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
+	integer*4 npadtmp,nprpad,localPixel
+	integer*4 inum,licenseusfft,niceframe
 c
-	NTAGS = 32
+	NTAGS = 33
 	WRITE(6,50)
 	call getinout(2,filin,filout)
 C-------------------------------------------------------------
@@ -1832,10 +1852,9 @@ c
 	xoffset=0
 	yoffset=0
 	delxx=0.
-	delang=0.
 	nxwarp=0
 	nywarp=0
-	scalelocal=1.
+	scalelocal=0.
 	nxfull=0
 	nyfull=0
 	ixsubset=0
@@ -1863,7 +1882,7 @@ C Begin reading in cards
 C
 1	CALL CREAD(CARD,TAGS,LABEL,*999)
 	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
-     &	    1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
+     &	    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
      &	    2400,2500, 2600,2700,2800,2900,3000,999),LABEL
 C
 C TITLE card
@@ -1969,6 +1988,7 @@ c EXCLUDELIST card
      &	      'Illegal view number in EXCLUDE list')
 	enddo
 	nvexcl=nvexcl+nexclist
+	go to 1
 c	  
 c LOG card
 1300	iflog=1
@@ -2065,6 +2085,7 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	call frefor(titlech,delbeta,ninp)
 	ifdelalpha=0
 	if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
+	if (ninp .gt. 7) localPixel = delbeta(8)
 	nxwarp=nint(delbeta(1))
 	nywarp=nint(delbeta(2))
 	ixswarp=nint(delbeta(3))
@@ -2578,6 +2599,16 @@ c
 	    enddo
 	  enddo
 c	    
+c	    See if local scale was entered; if not see if it can be set from
+c	    pixel size and local align pixel size
+	  if (scalelocal .le. 0.) then
+	    scalelocal = 1.
+	    if (localPixel .gt. 0) then
+	      scalelocal = localPixel / delta(1)
+	      if (abs(scalelocal - 1.).gt.0.001) write(6,53)scaleLocal
+	    endif
+	  endif
+c	    
 c	    scale the x and y dimensions and shifts if aligned data were
 c	    shrunk relative to the local alignment solution
 c
@@ -2610,6 +2641,8 @@ C
 	2,' ABOUT A COMMON TILT AXIS'/,1x,76('-')///)
 51	FORMAT(/' Projection angles:'//(8F9.2))
 52	FORMAT(//,1X,78('-'))
+53	format(/,'Scaling of local alignments by ',f8.3,
+     &	    ' determined from pixel sizes')
 101	FORMAT(/' Title:    ',20A4)
 201	FORMAT(/' Rows',I4,' to',I4,', (at intervals of',i4,') of the'
 	1,' projection planes will be reconstructed.')
@@ -2664,7 +2697,9 @@ C       -----------------------------------
 C
 C This subroutine performs the free format read. The calling program must
 C contain the common block
-	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
+	integer*4 ntags,nfields
+	real*4 xnum(50)
+	COMMON /CARDS/NTAGS,XNUM,NFIELDS
 C In the calling program, TAGS is an array of Character*20 variables
 C containing the data card flags. To indicate that alphanumeric data
 C is expected after a particular flag, an asterisk must occur before
