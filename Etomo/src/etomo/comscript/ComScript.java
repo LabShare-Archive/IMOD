@@ -1,9 +1,3 @@
-package etomo.comscript;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-
 /**
  * <p>Description: This object models a IMOD Com script.</p>
  *
@@ -17,6 +11,10 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/04 00:46:54  rickg
+ * <p> Bug# 406 Correctly write out command when it isn't the first in the
+ * <p> script
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -48,6 +46,17 @@ import java.util.Iterator;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.comscript;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 //TODO check for necessary defensive copying
 
@@ -212,8 +221,8 @@ public class ComScript {
   }
 
   /**
-   * Get the command name in script as a string array.  The array
-   * returned is in the same order as the command in the script.
+   * Get the command names in script as a string array.  The array
+   * returned is in the same order as the commands in the script.
    * @return a String array containing the commands in the script.
    */
   public String[] getCommandArray() {
