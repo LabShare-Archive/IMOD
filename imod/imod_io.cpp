@@ -248,12 +248,14 @@ int SaveModel(struct Mod_Model *mod)
      
   lastError = IMOD_IO_SUCCESS;
 
-  /* DNM 8./4/01: Here and in next functions, if imodv window is open,
-     save the view if appropriate */
-  if (!ImodvClosed)
-    imodvAutoStoreView(Imodv);
+  /* DNM 8./4/01: -> 6/26/03: Here and in next functions, if imodv window is 
+     closed, make sure Imodv->imod is set, and save the view if appropriate */
+  if (ImodvClosed)
+    Imodv->imod = mod;
+  imodvAutoStoreView(Imodv);
 
-  /* DNM 2/23/03: fopen crashes with empty filename in Windows, so just test for that */
+  /* DNM 2/23/03: fopen crashes with empty filename in Windows, so just test 
+     for that */
   if (Imod_filename[0] == 0x00) {
     retval = SaveasModel(mod);
     return(retval);
@@ -315,8 +317,9 @@ int SaveasModel(struct Mod_Model *mod)
     return IMOD_IO_SAVE_CANCEL;
   }
 
-  if (!ImodvClosed)
-    imodvAutoStoreView(Imodv);
+  if (ImodvClosed)
+    Imodv->imod = mod;
+  imodvAutoStoreView(Imodv);
 
   imod_make_backup((char *)qname.latin1());
   fout = fopen((QDir::convertSeparators(qname)).latin1(), "wb");
@@ -382,6 +385,7 @@ Imod *LoadModel(FILE *mfin) {
     return(NULL);
   }
 
+  imodvViewsInitialize(imod);
   imod->csum = imodChecksum(imod);
   imod_cleanup_autosave();
 
@@ -591,6 +595,7 @@ int createNewModel(char *modelFilename) {
   }
 
   App->cvi->imod = Model;
+  imodvViewsInitialize(Model);
 
   //  Copy the modelFilename into Imod_filename and then execute
   //  MaintainModelName to update the model structure and main window
@@ -823,6 +828,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.6  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.5  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 
