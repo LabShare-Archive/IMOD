@@ -1,5 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/7/04: Changed all exit(-1) to exit(3) because this was giving 0 exit status
+in Cygwin and failing to stop command file processing.
+
+7/7/04: Fixed a bug processing arguments in subm (submfg).
+
+7/3/04: Fixed Tiltxcorr to keep tilt axis in global center of aligned images
+rather than letting it start at center of zero-degree image and shift to the 
+center of shifted images.  This should improve tomograms generated using only
+the correlation alignment.
+
+7/2/04: eTomo changes: Fixed patchcorr process monitor from locking old
+patch.out in Windows. Moved basic 2D filtering to basic mode in tomogram
+generation page.  Fixed two bugs in dealing with .xf files from old data sets.
+Fixed problems with handling of tilt axis Z shift parameter with binned
+prealigned stacks and issued appropriate directions when user switches the
+binning of the prealigned stack after making a fiducial model.
+
 6/28/04: IMOD_3-4-0 and branch to IMOD_3-3-0
 6/28/04: Added nohup to submfg, vmstocsh output, and all scripts to keep
 submitted jobs alive upon logout.
