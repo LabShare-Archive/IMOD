@@ -12,8 +12,16 @@ c	  NDMTKRAND, NDMTKSUBS, CONVEXBOUND
 c	  
 c	  David Mastronarde  7/31/90
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (limgraphs=50,limbins=301,limpnts=50000,
-     &	    limvert=500,limregion=200,itypall=999)
+     &	    limvert=5000,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)
 	real*4 bx(limvert),by(limvert)		!boundary vertices
 	real*4 sx(limpnts),sy(limpnts)			!sample points
@@ -145,7 +153,7 @@ c
 	  if(iobjbound.eq.0)go to 12
 	endif
 	call get_boundary_obj(iobjbound,bx,by,nvert,zz,itypbound,
-     &	    ntypbound,padbound,ifconvex,fracomit,sx,sy)
+     &	    ntypbound,padbound,ifconvex,fracomit,sx,sy,limvert)
 	if(nvert.eq.0)go to 12
 c
 	iobjregion(nregion)=iobjbound
@@ -1002,7 +1010,7 @@ c
 	    call get_boundary_obj(iobjregion(ireg),bx,by,nvert,zz,
      &		itypbndregion(1,ireg), ntypbndregion(ireg),
      &		padbndregion(ireg),ifconvregion(ireg),
-     &		fracomregion(ireg),sx,sy)
+     &		fracomregion(ireg),sx,sy,limvert)
 	    call get_points(bx,by,nvert,zz,itypcrosind,ntypes,sx,sy,
      &		itype, npnts,ninclass(1,ireg))
 	    shuffled=.false.
