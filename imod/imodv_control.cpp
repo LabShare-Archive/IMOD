@@ -67,7 +67,11 @@ void imodvControlHelp(void)
              "\tThe Scale text box shows the number of pixels on the "
              "screen per unit of model coordinates; you can enter a "
              "specific scale to control model zoom.\n\n"
-             "\tThe Near and Far sliders adjust the Z clipping planes.\n\n",
+             "\tThe Near and Far sliders adjust the Z clipping planes.  When "
+             "the model is zoomed up, it will be clipped more for a given "
+             "setting of these sliders.  To prevent undesired clipping with "
+             "very high zooms, near clipping is effectively disabled with "
+             "Near at 0, and far clipping is disabled with Far at 1000.\n\n",
              "\tThe Z-scale slider adjusts the scale for section "
              "thickness relative to the pixel size in X and Y.\n\n",
              "\tThe Rotation box edits model rotation. ",
@@ -415,6 +419,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.6  2003/11/04 04:42:46  mast
+    Add new calls for rotation speed and remove code for changing [xyz]rotm
+
     Revision 4.5  2003/10/01 05:04:19  mast
     change include from imodP to imod after eliminating imod.h from imodP.h
 
