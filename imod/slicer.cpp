@@ -123,9 +123,13 @@ void slicerHelp()
      "button will change the angle by 1 degree; clicking with the "
      "middle button moves the slider immediately to the position of "
      "mouse.  If you drag the slider, the representation of the slice "
-     "in the data volume will change continuously, but the image will "
-     "not be updated until you release the slider, unless you press the "
-     CTRL_STRING" key to make the slider continuously active.\n",
+     "in the data volume will change continuously, and the image will "
+     "also be updated if the slider is continuously active.  If the slider is "
+     "not continuously active, the image "
+     "will not be updated until you release the slider.  Typically the "
+     "sliders will be continuously active unless you press the "CTRL_STRING
+     " key, although you can change this default behavior in the Imod "
+     "Preferences dialog, accessed through the Edit-Options menu entry.  \n",
      "\tIn the middle is a representation of the slice that is being cut "
      "from the data volume.\n"
      "\tOn the right are controls for adjusting the thickness of "
@@ -135,10 +139,13 @@ void slicerHelp()
      "\tAll mouse buttons will change the current viewing point in the data "
      "volume, unless the image position is locked by the lock button.\n"
      "\tIn model mode, the buttons will also perform as in other windows:\n"
-     "Left button: Attach to the nearest model point, or detach from the"
+     "First button: Attach to the nearest model point, or detach from the"
      "current contour\n"
-     "Middle button: Insert a point after the current point\n"
-     "Right button: Move the current point to the selected location\n\n",
+     "Second button: Insert a point after the current point\n"
+     "Third button: Move the current point to the selected location\n",
+     "\tBy default, these buttons correspond to the left, middle, and right "
+     "buttons, but you can change these assignments in the Imod Preferences "
+     "dialog.\n\n"
      "Hot Keys\n",
      "-----------\n",
      "-/=\tDecrease/Increase zoom\n",
@@ -1859,6 +1866,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.12  2003/04/17 19:06:50  mast
+various changes for Mac
+
 Revision 4.11  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
