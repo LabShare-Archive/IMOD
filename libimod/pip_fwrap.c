@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/06/10 23:21:54  mast
+Avoid freeing strings that were never allocated
+
 Revision 3.1  2003/06/05 00:24:02  mast
 Addition to IMOD
 
@@ -29,6 +32,8 @@ Addition to IMOD
 #define pipgetnonoptionarg pipgetnonoptionarg_
 #define pipgetstring pipgetstring_
 #define pipgetinteger pipgetinteger_
+#define pipgettwointegers pipgettwointegers_
+#define pipgettwofloats pipgettwofloats_
 #define pipgetfloat pipgetfloat_
 #define pipgetboolean pipgetboolean_
 #define pipgetintegerarray pipgetintegerarray_
@@ -138,6 +143,28 @@ int pipgetinteger(char *option, int *val, int optionSize)
   if (!(cStr = f2cString(option, optionSize)))
     return -1;
   err = PipGetInteger(cStr, val);
+  free(cStr);
+  return err;
+}
+
+int pipgettwointegers(char *option, int *val1, int *val2, int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = f2cString(option, optionSize)))
+    return -1;
+  err = PipGetTwoIntegers(cStr, val1, val2);
+  free(cStr);
+  return err;
+}
+
+int pipgettwofloats(char *option, float *val1, float *val2, int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = f2cString(option, optionSize)))
+    return -1;
+  err = PipGetTwoFloats(cStr, val1, val2);
   free(cStr);
   return err;
 }
