@@ -74,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/01/22 21:09:39  rickg
+ * <p> Get screen size in openSetupDialog instead of app init
+ * <p>
  * <p> Revision 3.7  2004/01/17 00:14:17  rickg
  * <p> Added a --test argument that prevents the main window from
  * <p> opening up.
@@ -4149,6 +4152,28 @@ public class ApplicationManager {
         }
       }
     }
+    try {
+      if (imodManager.isOpen()) {
+        String[] message = new String[3];
+        message[0] = "There are still 3dmod programs running.";
+        message[1] = "Do you wish to end these programs?";
+        if (mainFrame.openYesNoDialog(message)) {
+          imodManager.quit();
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(
+        except.getMessage(),
+        "Problem closing 3dmod");
+    }
+
+
     return true;
   }
 
