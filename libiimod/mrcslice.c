@@ -62,8 +62,8 @@ Log at end of file */
  * Islice *sliceGradient(Islice *sin);
  *      Return gradient of input slice.
  *
- * Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis);
- * Islice *sliceReadSubm(struct MRCheader *hin, 
+ * Islice *sliceReadMRC(MrcHeader *hin, int sno, char axis);
+ * Islice *sliceReadSubm(MrcHeader *hin, 
  *            int sno, char axis,
  *            int s1, int s2, int c1, int c2);
  *      Read in a sub area, sno = section number; axis = x,y or z; 
@@ -91,13 +91,15 @@ int sliceMode(char *mst)
     return(SLICE_MODE_COMPLEX_FLOAT);
   if (strcmp(mst, "4") == 0)
     return(SLICE_MODE_COMPLEX_FLOAT);
+  if (strcmp(mst, "16") == 0)
+    return(SLICE_MODE_RGB);
   if (strcmp(mst, "rgb") == 0)
     return(SLICE_MODE_RGB);
   return(SLICE_MODE_UNDEFINED);
 }
 
 /* Initialize elements in a slice to input values. */
-int mrc_slice_init(struct MRCslice *s,  int xsize, int ysize,
+int mrc_slice_init(Islice *s,  int xsize, int ysize,
                    int mode, void *data)
 { return(sliceInit(s,xsize,ysize,mode,data)); }
 
@@ -155,11 +157,11 @@ Islice *sliceCreate(int xsize, int ysize, int mode)
   return(mrc_slice_create(xsize,ysize,mode));
 }
 
-struct MRCslice *mrc_slice_create(int xsize, int ysize, int mode)
+Islice *mrc_slice_create(int xsize, int ysize, int mode)
 {
-  struct MRCslice *s;
+  Islice *s;
 
-  s = (struct MRCslice *)malloc(sizeof(struct MRCslice));
+  s = (Islice *)malloc(sizeof(Islice));
   if (!s)
     return(NULL);
      
@@ -238,7 +240,7 @@ void sliceFree(Islice *s)
   mrc_slice_free(s);
 }
 
-int mrc_slice_free(struct MRCslice *s)
+int mrc_slice_free(Islice *s)
 {
   if (!s)
     return(-1);
@@ -260,7 +262,7 @@ void sliceClear(Islice *s, Ival val)
 }
 
 
-int mrc_slice_putval(struct MRCslice *s, int x, int y, float *val)
+int mrc_slice_putval(Islice *s, int x, int y, float *val)
 { return(slicePutVal(s,x,y,val)); }
 
 int slicePutVal(Islice *s, int x, int y, Ival val)
@@ -310,7 +312,7 @@ int slicePutVal(Islice *s, int x, int y, Ival val)
   return(0);
 }
 
-int mrc_slice_getval(struct MRCslice *s, int x, int y, float *val)
+int mrc_slice_getval(Islice *s, int x, int y, float *val)
 { return(sliceGetVal(s,x,y,val)); }
 
 int sliceGetVal(Islice *s, int x, int y, Ival val)
@@ -406,7 +408,7 @@ Islice *sliceGradient(Islice *sin)
 
 
 /* reorders data so that fft center is at (datasize/2 <-> 0 )   */
-int mrc_slice_wrap(struct MRCslice *s)
+int mrc_slice_wrap(Islice *s)
 {
   int i,j;
   int mx, my;
@@ -486,9 +488,9 @@ int sliceReduceMirroredFFT(Islice *s)
 }
 
 /* returns a float slice that is the real part of an image for complex data. */
-struct MRCslice *mrc_slice_real(struct MRCslice *sin)
+Islice *mrc_slice_real(Islice *sin)
 {
-  struct MRCslice *sout;
+  Islice *sout;
   int i, xysize;
       
   if (sin->mode != MRC_MODE_COMPLEX_FLOAT)
@@ -503,7 +505,7 @@ struct MRCslice *mrc_slice_real(struct MRCslice *sin)
 }
 
 /* multiplies all values in a slice by scale. */
-int mrc_slice_valscale(struct MRCslice *s, double inScale)
+int mrc_slice_valscale(Islice *s, double inScale)
 {
   int i, j;
   Ival val;
@@ -530,7 +532,7 @@ void sliceMMM(Islice *slice)
   mrc_slice_calcmmm(slice);
 }
 
-int mrc_slice_calcmmm(struct MRCslice *s)
+int mrc_slice_calcmmm(Islice *s)
 {
   int i, j;
   Ival val;
@@ -572,12 +574,12 @@ int mrc_slice_calcmmm(struct MRCslice *s)
 
 
 
-struct MRCslice *mrc_slice_rotate(struct MRCslice *slin, double angle,
+Islice *mrc_slice_rotate(Islice *slin, double angle,
                                   int xsize, int ysize,
                                   double cx, double cy)
 {
   int i, j;
-  struct MRCslice *sout;
+  Islice *sout;
   Ival val;
   double x, y;
   double sino, coso;
@@ -604,7 +606,7 @@ struct MRCslice *mrc_slice_rotate(struct MRCslice *slin, double angle,
   return(sout);
 }
 
-int mrc_slice_rotates(struct MRCslice *slin, struct MRCslice *sout,
+int mrc_slice_rotates(Islice *slin, Islice *sout,
                       double angle, int xsize, int ysize,
                       double cx, double cy)
 {
@@ -664,12 +666,12 @@ int sliceMirror(Islice *s, char axis)
   return(-1);
 }
 
-struct MRCslice *mrc_slice_translate(struct MRCslice *sin,
+Islice *mrc_slice_translate(Islice *sin,
                                      double dx, double dy,
                                      int xsize, int ysize)
 {
   int i, j;
-  struct MRCslice *sout;
+  Islice *sout;
   Ival val;
   double x, y;
 
@@ -689,7 +691,7 @@ struct MRCslice *mrc_slice_translate(struct MRCslice *sin,
   return(sout);
 }
 
-struct MRCslice *mrc_slice_zoom(struct MRCslice *sin,
+Islice *mrc_slice_zoom(Islice *sin,
                                 double xz, double yz, 
                                 int xsize, int ysize,
                                 double cx,    double cy)
@@ -722,7 +724,7 @@ struct MRCslice *mrc_slice_zoom(struct MRCslice *sin,
 }
 
 
-int mrc_slice_zooms(struct MRCslice *sin, struct MRCslice *sout,
+int mrc_slice_zooms(Islice *sin, Islice *sout,
                     double xz, double yz, 
                     int xsize, int ysize,
                     double cx,    double cy)
@@ -752,7 +754,7 @@ int mrc_slice_zooms(struct MRCslice *sin, struct MRCslice *sout,
 
 Islice *sliceBox(Islice *sl, int llx, int lly, int urx, int ury)
 {
-  struct MRCslice *sout;
+  Islice *sout;
   int i, j, x, y;
   int nx, ny;
   Ival val;
@@ -774,7 +776,7 @@ Islice *sliceBox(Islice *sl, int llx, int lly, int urx, int ury)
 
 int sliceBoxIn(Islice *sl, int llx, int lly, int urx, int ury)
 {
-  struct MRCslice *sout;
+  Islice *sout;
 
   sout = sliceBox(sl, llx, lly, urx, ury);
   if (!sout)
@@ -804,10 +806,10 @@ int sliceResizeIn(Islice *sl, int x, int y)
 }
 
 
-struct MRCslice *mrc_slice_resize(struct MRCslice *slin,
+Islice *mrc_slice_resize(Islice *slin,
                                   int nx, int ny)
 {
-  struct MRCslice *sout;
+  Islice *sout;
   int i, j, x, y;
   int sx, sy;
   Ival pval, val;
@@ -844,7 +846,7 @@ struct MRCslice *mrc_slice_resize(struct MRCslice *slin,
 
 
 
-int mrc_slice_interpolate(struct MRCslice *sin,
+int mrc_slice_interpolate(Islice *sin,
                           double x, double y, float *val)
 {
   int channel;
@@ -897,7 +899,7 @@ void sliceQuadInterpolate(Islice *sl, double x, double y, Ival val)
 
 /* Extract a dim x dim matrix from the input slice centered around x,y; place
    result into mat */
-void mrc_slice_mat_getimat(struct MRCslice *sin, int x, int y, int dim, 
+void mrc_slice_mat_getimat(Islice *sin, int x, int y, int dim, 
                            float *mat)
 {
   int xs, ys, xe, ye;
@@ -929,9 +931,9 @@ float mrc_slice_mat_mult(float *m1, float *m2, int dim)
 }
 
 /* Filter a slice by convolving with a dim x dim matrix; returns float slice */
-struct MRCslice *slice_mat_filter(struct MRCslice *sin, float *mat, int dim)
+Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
 {
-  struct MRCslice *sout;
+  Islice *sout;
   float *imat;
   Ival val;
   int i,j;
@@ -954,8 +956,8 @@ struct MRCslice *slice_mat_filter(struct MRCslice *sin, float *mat, int dim)
   return(sout);
 }
 
-int mrc_slice_lie_img(struct MRCslice *sin, 
-                      struct MRCslice *mask, double alpha)
+int mrc_slice_lie_img(Islice *sin, 
+                      Islice *mask, double alpha)
 {
   int i, j;
   Ival val1, val2;
@@ -996,7 +998,7 @@ int mrc_slice_lie_img(struct MRCslice *sin,
 }
 
 /* Scales data in the slice by the factor alpha around the value in */
-int mrc_slice_lie(struct MRCslice *sin, double in, double alpha)
+int mrc_slice_lie(Islice *sin, double in, double alpha)
 {
   int i, j, c;
   Ival val;
@@ -1074,7 +1076,7 @@ float sliceGetPixelMagnitude(Islice *s, int x, int y)
   return(mrc_slice_getmagnitude(s, x, y));
 }
 
-float mrc_slice_getmagnitude(struct MRCslice *s, int x, int y)
+float mrc_slice_getmagnitude(Islice *s, int x, int y)
 {
   Ival val;
   float m = 0.0f;
@@ -1096,9 +1098,9 @@ float mrc_slice_getmagnitude(struct MRCslice *s, int x, int y)
 }
 
 
-struct MRCslice *mrc_slice_getvol(struct MRCvolume *v, int sno, char axis)
+Islice *mrc_slice_getvol(struct MRCvolume *v, int sno, char axis)
 {
-  struct MRCslice *sout;
+  Islice *sout;
   Ival val;
   int i, j, k;
 
@@ -1131,7 +1133,7 @@ struct MRCslice *mrc_slice_getvol(struct MRCvolume *v, int sno, char axis)
   return(sout);
 }
 
-int mrc_slice_putvol(struct MRCvolume *v, struct MRCslice *s, 
+int mrc_slice_putvol(struct MRCvolume *v, Islice *s, 
                      int sno, char axis)
 {
   Ival val;
@@ -1169,7 +1171,7 @@ int mrc_slice_putvol(struct MRCvolume *v, struct MRCslice *s,
 int mrc_vol_wrap(struct MRCvolume *v)
 {
   int k, z2;
-  struct MRCslice *s;
+  Islice *s;
   z2 = v->zsize / 2;
 
   for (k = 0; k < v->zsize; k++){
@@ -1186,7 +1188,7 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 int sliceWriteMRCfile(char *filename, Islice *slice)
 {
-  struct MRCheader hout;
+  MrcHeader hout;
   FILE *fp = fopen(filename, "wb");
   int error;
 
@@ -1204,7 +1206,7 @@ int sliceWriteMRCfile(char *filename, Islice *slice)
   return(error);
 }
 
-Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis)
+Islice *sliceReadMRC(MrcHeader *hin, int sno, char axis)
 {
   Islice *slice;
   void *buf;
@@ -1243,7 +1245,7 @@ Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis)
 }
 
 
-Islice *sliceReadSubm(struct MRCheader *hin, 
+Islice *sliceReadSubm(MrcHeader *hin, 
                       int sno, char axis,
                       int s1, int s2, int c1, int c2)
 {
@@ -1469,6 +1471,8 @@ int sliceNewMode(Islice *s, int mode)
   Ival val;
   int i, j;
   int default_copy = 0;
+  int limit_val = 0;
+  float minval, maxval;
 
   if (!s)
     return(-1);
@@ -1477,6 +1481,18 @@ int sliceNewMode(Islice *s, int mode)
     return(mode);
 
   ns = sliceCreate(s->xsize, s->ysize, mode);
+
+  /* Set up limiting values */
+  if (mode == MRC_MODE_BYTE || mode == MRC_MODE_RGB) {
+    limit_val = 1;
+    minval = 0.;
+    maxval = 255;
+  } else if (mode == MRC_MODE_SHORT) {
+    limit_val = 1;
+    minval = -32768.;
+    maxval = 32767.;
+  }
+
   if (!ns)
     return(-1);
 
@@ -1499,6 +1515,8 @@ int sliceNewMode(Islice *s, int mode)
       for(j = 0; j < s->ysize; j++)
         for(i = 0; i < s->xsize; i++){
           sliceGetVal(s,  i, j, val);
+          if (limit_val)
+            val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
           val[2] = val[1] = val[0];
           slicePutVal(ns, i, j, val);
         }
@@ -1522,6 +1540,8 @@ int sliceNewMode(Islice *s, int mode)
           val[1] *= val[1];
           val[0] += val[1];
           val[0] = (float)sqrt(val[0]);
+          if (limit_val)
+            val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
           slicePutVal(ns, i, j, val);
         }
       break;
@@ -1537,6 +1557,8 @@ int sliceNewMode(Islice *s, int mode)
           val[1] *= val[1];
           val[0] += val[1];
           val[0] = (float)sqrt(val[0]);
+          if (limit_val)
+            val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
           val[2] = val[1] = val[0];
           slicePutVal(ns, i, j, val);
         }
@@ -1554,6 +1576,8 @@ int sliceNewMode(Islice *s, int mode)
           sliceGetVal(s,  i, j, val);
           val[0] = (val[0] * 0.3f) +
             (val[1] * 0.59f) + (val[2] * 0.11f);
+          if (limit_val)
+            val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
           slicePutVal(ns, i, j, val);
         }
       break;
@@ -1586,6 +1610,8 @@ int sliceNewMode(Islice *s, int mode)
     for(j = 0; j < s->ysize; j++)
       for(i = 0; i < s->xsize; i++){
         sliceGetVal(s,  i, j, val);
+        if (limit_val)
+          val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
         slicePutVal(ns, i, j, val);
       }
   }
@@ -1598,6 +1624,9 @@ int sliceNewMode(Islice *s, int mode)
 
 /*
 $Log$
+Revision 3.9  2005/01/06 18:15:28  mast
+Fixed _lie scaling function, fixed matrix filtering function
+
 Revision 3.8  2004/12/02 21:54:53  mast
 Fixed sliceReadMRC to return null upon error
 
