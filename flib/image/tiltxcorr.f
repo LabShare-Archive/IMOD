@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2002/05/21 03:22:39  mast
+c	  Moved big array to common to avoid stack size problem on SGI
+c	
 c	  Revision 3.6  2002/05/21 03:18:27  mast
 c	  Equivalenced the array used for test output to part of the first big
 c	  array, to reduce stack size for SGI
@@ -171,14 +174,10 @@ c
 101     format(a)
         CALL IMOPEN(1,FILIN,'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-	IF (((NX+2)*NY.GT.idim)) then
-	  print *,'IMAGE TOO LARGE FOR ARRAYS'
-	  call exit(1)
-	endif
-	if (nz.gt.limview) then
-	  print *,'TOO MANY VIEWS FOR ARRAYS'
-	  call exit(1)
-	endif
+	IF (((NX+2)*NY.GT.idim)) call errorexit(
+     &	    'IMAGE TOO LARGE FOR ARRAYS')
+
+	if (nz.gt.limview) call errorexit('TOO MANY VIEWS FOR ARRAYS')
 C   
 	write(*,'(1x,a,$)')'Piece list file if there is one,'//
      &	    ' otherwise Return: '
@@ -196,7 +195,9 @@ c
 	  npclist=nz
 	endif
 	if(npclist.ne.nz)then
-	  print *,'Piece list should have an entry for each image; nz =',
+	  print *
+	  print *,'ERROR: TILTXCORR - Piece list should have an '//
+     &	      'entry for each image; nz =',
      &	      nz,', # in piece list =',npclist
 	  call exit(1)
 	endif
@@ -205,14 +206,14 @@ c
      &	    ,nxpieces,nxoverlap)
 	call checklist(iypclist,npclist,1,ny,minypiece
      &	    ,nypieces,nyoverlap)
-	if(nxpieces*nypieces.gt.1)then
-	  print *,'Program will not work with montages: ',
-     &	      'blend images into single frames first'
-	  call exit(1)
-	endif
+	if(nxpieces*nypieces.gt.1)call errorexit(
+     &	    'Program will not work with montages; '//
+     &	      'blend images into single frames first')
+
 	if(nview.ne.nz.or.listz(1).ne.0.or.listz(nview).ne.nz-1)then
-	  print *,'The piece list should specify all Z values from 0 to'
-     &	      ,nz-1
+	  print *
+	  print *,'ERROR: TILTXCORR - The piece list should specify',
+     &	      ' all Z values from 0 to' ,nz-1
 	  call exit(1)
 	endif
 c
@@ -233,8 +234,10 @@ c
 c	    
 	call get_tilt_angles(nview,3,tilt)
 	if(nview.ne.nz)then
-	  print *,'There must be a tilt angle for each image: nz =',
-     &	      nz,', but there are',nview,' tilt angles'
+	  print *
+	  print *,'ERROR: TILTXCORR - There must be a tilt angle for'
+     &	      //' each image: nz =', nz,', but there are',nview,
+     &	      ' tilt angles'
 	  call exit(1)
 	endif
 c
@@ -484,16 +487,17 @@ C
 	WRITE(6,500)
 500	FORMAT(' PROGRAM EXECUTED TO END.')
 	call exit(0)
-99	WRITE(6,450)
-450	FORMAT(' END OF IMAGE WHILE READING')
-	call exit(1)
-94	WRITE (6,660)
-660	FORMAT(' Input image too big .')
-	call exit(1)
-96	print *,'ERROR WRITING TRANSFORMS TO FILE'
-	call exit(1)
+99	call errorexit('END OF IMAGE WHILE READING')
+96	call errorexit('ERROR WRITING TRANSFORMS TO FILE')
 	END
 
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: TILTXCORR - ',message
+	call exit(1)
+	end
 
 
 c	  PEAKFIND finds the coordinates of the the absolute peak, XPEAK, YPEAK
