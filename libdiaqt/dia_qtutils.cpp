@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.3  2003/11/01 18:14:29  mast
+Allow repeated setting of title without leaking
+
 Revision 1.2  2003/02/10 20:51:22  mast
 Merge Qt source
 
@@ -140,7 +143,25 @@ void diaSetGroup(QButtonGroup *group, int value)
   group->blockSignals(false);
 }
 
+// Determine a button width appropriate for the given text, multiplying by
+// the given factor and adding height if rounded is true
+int diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
+                      const QString &text)
+{
+  int width = (int)(factor * widget->fontMetrics().width(text) + 0.5);
+  if (rounded)
+    width += (int)(1.5 * widget->fontMetrics().height());
+  return width;
+}
 
+// Set the fixed width of a button, returning the width for reuse
+int diaSetButtonWidth(QPushButton *button, bool rounded,
+                                float factor, const QString &text)
+{
+  int width = diaGetButtonWidth(button, rounded, factor, text);
+  button->setFixedWidth(width);
+  return width;
+}
 
 
 // Set a title into Dia_title
@@ -388,7 +409,7 @@ void dia_smsg( char **msg)
   QHBox *hbox = new QHBox(dlg);
   vbox->addWidget(hbox);
   QPushButton *button = new QPushButton("Close", hbox);
-  button->setFixedWidth((int)(1.3 * button->fontMetrics().width("Close")));
+  diaSetButtonWidth(button, true, 1.4, "Close");
   QObject::connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
 
   // Figure out width and height of text and height of button, and set size

@@ -55,6 +55,7 @@ Log at end of file
 #include "imod_display.h"
 #include "imod_edit.h"
 #include "control.h"
+#include "preferences.h"
 
 /* These have to be maintained as indexes for the combo box */
 #define COPY_TO_OBJECT     0
@@ -226,8 +227,8 @@ static char *buttonTips[] = {"Copy the selected contours",
                              "Close dialog box", "Open help box"};
 
 ContourCopy::ContourCopy(QWidget *parent, const char *name)
-  : DialogFrame(parent, 3, buttonLabels, buttonTips, true, 
-                " ", "", name)
+  : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, true, 
+                ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   QRadioButton *radio;
   QHBox *hBox = new QHBox(this);
@@ -582,6 +583,12 @@ void ContourCopy::buttonPressed(int which)
   }
 }
 
+void ContourCopy::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The window is closing, remove from manager
 void ContourCopy::closeEvent ( QCloseEvent * e )
 {
@@ -606,6 +613,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.6  2003/04/17 18:43:38  mast
 adding parent to window creation
 

@@ -48,6 +48,7 @@ Log at end of file
 #include "imodv_input.h"
 #include "imod_display.h"
 #include "control.h"
+#include "preferences.h"
 #include "xcramp.h"
 
 
@@ -610,8 +611,8 @@ static char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
                                "Black Level", "White Level"};
 
 ImodvImage::ImodvImage(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Image View",
-		"", name)
+  : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
+                ImodPrefs->getRoundedStyle(), "3dmodv Image View", "", name)
 {
   mCtrlPressed = false;
 
@@ -839,6 +840,12 @@ void ImodvImage::buttonPressed(int which)
     close();
 }
   
+void ImodvImage::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // Accept a close event and set dia to null
 void ImodvImage::closeEvent ( QCloseEvent * e )
 {
@@ -873,6 +880,10 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2004/06/15 01:14:55  mast
+Added functions to allow transparency and number of slices to be varied
+during movie-making
+
 Revision 4.12  2004/05/16 20:17:04  mast
 Made it draw solid and transparent planes separately to interact better
 with object transparency; added sliders to set display size; rewrote

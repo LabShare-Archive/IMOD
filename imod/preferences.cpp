@@ -600,6 +600,7 @@ void ImodPreferences::userCanceled()
 void ImodPreferences::timerEvent(QTimerEvent *e)
 {
   killTimer(mTimerID);
+
   if (mDialogPrefs.styleKey != mCurrentPrefs.styleKey)
     changeStyle(mCurrentPrefs.styleKey);
   if (mDialogPrefs.font != mCurrentPrefs.font)
@@ -697,9 +698,15 @@ void ImodPreferences::changeFont(QFont newFont)
 void ImodPreferences::changeStyle(QString newKey)
 {
   QApplication::setStyle(newKey);
+  qApp->processEvents();
 
   // Lazy way to get the sizes right, just call the font setting pathway
-  changeFont(QApplication::font());
+  // Not very reliable, slightly better with the specific calls
+  if (mTabDlg)
+    changeFont(mDialogPrefs.font);
+  else
+    changeFont(mCurrentPrefs.font);
+    //    changeFont(QApplication::font());
 }
 
 
@@ -791,6 +798,7 @@ void ImodPreferences::pointSizeChanged()
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
+// Return currently defined named color for the given index
 QColor ImodPreferences::namedColor(int index)
 {
   int i;
@@ -802,6 +810,18 @@ QColor ImodPreferences::namedColor(int index)
     }
   }
   return QColor(0, 0, 0);
+}
+
+// Test the current style to see if it is Aqua, which needs rounding
+bool ImodPreferences::getRoundedStyle()
+{
+  int index;
+  if (mTabDlg)
+    index = mDialogPrefs.styleKey.find(QString("aqua"), 0, false);
+  else
+    index = mCurrentPrefs.styleKey.find(QString("aqua"), 0, false);
+  //imodPrintStderr("index = %d\n", index);
+  return index >= 0;
 }
 
 
@@ -923,6 +943,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.17  2004/11/02 20:18:05  mast
+Added color settings, simplified dialog unload code, made default panel-only
+
 Revision 1.16  2004/06/23 03:32:52  mast
 Added ability to save generic settings from random callers
 

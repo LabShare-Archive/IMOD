@@ -77,8 +77,7 @@ void InfoControls::init()
 // Set a minimum width for spin boxes to keep arrows big
 void InfoControls::setFontDependentWidths()
 {
-    int width = (int)(1.35 * fontMetrics().width("Auto"));
-    autoButton->setFixedWidth(width);
+    diaSetButtonWidth(autoButton, ImodPrefs->getRoundedStyle(), 1.35, "Auto");
     int minWidth = fontMetrics().width("88888888");
     int minLabelWidth = fontMetrics().width("/ 8888");
     for (int i = 0; i < 3; i++) {

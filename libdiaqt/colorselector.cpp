@@ -64,9 +64,9 @@ static char *buttonTips[] =
 
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
                              int green, int blue, int hotFlag, int hotKey,
-                             const char *name, WFlags fl)
-  : DialogFrame(parent, 3, buttonLabels, buttonTips, false, "test", "test2",
-		name, fl)
+                             bool rounded, const char *name, WFlags fl)
+  : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, rounded, "test",
+                "test2", name, fl)
 {
   QString str;
 
@@ -219,6 +219,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.8  2004/03/22 00:42:55  mast
+Had to rename buttonPressed to buttonClicked
+
 Revision 1.7  2004/01/22 19:14:30  mast
 swicthed from actionPressed to actionClicked
 

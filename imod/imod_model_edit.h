@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/11/01 23:28:42  mast
+Added function to scale resolution
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -55,6 +58,7 @@ class ModelHeaderWindow : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QCheckBox *mDrawBox;
@@ -77,6 +81,7 @@ class ModelOffsetWindow : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QLabel *mBaseLabel[3];

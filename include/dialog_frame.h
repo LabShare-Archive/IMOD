@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/06/23 03:35:15  mast
+Changed to allow multiple rows of buttons
+
 Revision 3.5  2004/06/04 02:57:28  mast
 Implement export/import macro for making libdiaqt be a DLL
 
@@ -64,8 +67,8 @@ class DLL_IM_EX DialogFrame : public QWidget
               const char *name = 0, 
               WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   DialogFrame(QWidget *parent, int numButtons, int numRows, char *labels[], 
-              char *tips[], bool equalSized, char *caption, char *fallback,
-              const char *name = 0, 
+              char *tips[], bool equalSized, bool rounded, char *caption,
+              char *fallback, const char *name = 0, 
               WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~DialogFrame() {};
   void setFontDependentWidths();
@@ -82,13 +85,15 @@ class DLL_IM_EX DialogFrame : public QWidget
   virtual void fontChange(const QFont &oldFont);
   QVBoxLayout *mLayout;
   QPushButton *mButtons[BUTTON_ARRAY_MAX];
+  int mNumButtons;
+  bool mRoundedStyle;
 
  private:
   void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                        char *labels[], char *tips[], bool equalSized,
+                       bool rounded,
                        char *caption, char *fallback, const char *name = 0, 
                        WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   bool mEqualSized;
-  int mNumButtons;
 };
 #endif

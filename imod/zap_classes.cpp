@@ -228,8 +228,10 @@ ZapWindow::~ZapWindow()
 
 void ZapWindow::setFontDependentWidths()
 {
-  mInfoButton->setFixedWidth((int)(10. + fontMetrics().width("I")));
-  mHelpButton->setFixedWidth((int)(1.2 *fontMetrics().width("Help")));
+  
+  mInfoButton->setFixedWidth
+    (10 + diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1., "I"));
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
 static char *toggleTips[] = {
@@ -445,6 +447,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.15  2004/06/08 16:24:26  mast
+Stopped fooling around and just made it do two draws on starting window
+
 Revision 4.14  2004/05/07 22:15:59  mast
 Fixed array dimension problems caused by new toolbutton
 

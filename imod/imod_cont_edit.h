@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/11/04 17:02:41  mast
+Changes for switching to shifting contour as a mode that is turned on
+
 Revision 4.3  2004/11/01 23:36:10  mast
 changes for external join call and conversion of point to circles
 
@@ -77,6 +80,7 @@ class ContourMove : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QLabel *mObjSurfLabel;

@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/07/11 18:26:30  mast
+Made it set contour time correctly when copying
+
 Revision 1.4  2004/06/23 03:34:14  mast
 Added ability to save and restore all settings, and a button to restore
 defaults
@@ -365,8 +368,8 @@ char *buttonTips[] =
    "Open help window"};
 
 LineTrack::LineTrack(QWidget *parent, const char *name)
-  : DialogFrame(parent, 6, 2, buttonLabels, buttonTips, true, "Line Tracker", "",
-                name)
+  : DialogFrame(parent, 6, 2, buttonLabels, buttonTips, true, 
+                ImodPrefs->getRoundedStyle(), "Line Tracker", "", name)
 {
   PlugData *plug = &thisPlug;
 
@@ -566,7 +569,8 @@ void LineTrack::track(int client)
     free(tmpcont);
     ivwSetNewContourTime(plug->view, imodObjectGet(theModel), plug->cont);
     pts = plug->cont->pts;
-    for (i = 0; i < maxpoint; i++) pts++->z = curz;
+    for (i = 0; i < maxpoint; i++)
+      pts++->z = curz;
     imodGetIndex(theModel, &plug->ob, &plug->co, &curpt);
     curpt = plug->pt;
   }
@@ -639,6 +643,7 @@ void LineTrack::track(int client)
                &plug->copypool,
                &plug->copyfit);
 
+    imodPuts("Got index");
     free(p_copy);
   }
   plug->cont->psize = maxpoint;
@@ -800,6 +805,12 @@ void LineTrack::closeEvent ( QCloseEvent * e )
   if (plug->idata)
     free(plug->idata);
   e->accept();
+}
+
+void LineTrack::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
 }
 
 // Close on escape, pass on keys

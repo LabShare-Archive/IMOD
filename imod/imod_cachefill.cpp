@@ -50,7 +50,7 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "imod_display.h"
 #include "control.h"
-
+#include "preferences.h"
 
 static struct{
   ImodCacheFill *dia;
@@ -544,8 +544,8 @@ static char *buttonTips[] = {"Fill cache based on settings here",
 			     "Close dialog box", "Open help window"};
 
 ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
-  : DialogFrame(parent, 3, buttonLabels, buttonTips, true, 
-		" ", "", name)
+  : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, true, 
+		ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   // Set up fill fraction radio buttons
   mFillGroup = new QHButtonGroup("Fill fraction", this, "fill group");
@@ -707,6 +707,12 @@ void ImodCacheFill::autoToggled(bool state)
     mOverlapRadio[i]->setEnabled(state);
 }
 
+void ImodCacheFill::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The dialog is closing: remove from manager
 void ImodCacheFill::closeEvent ( QCloseEvent * e )
 {
@@ -731,6 +737,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.8  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/01/05 18:06:12  mast
+Make imodCacheFill return an error
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -57,6 +60,7 @@ class ImodCacheFill : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QHButtonGroup *mFillGroup;

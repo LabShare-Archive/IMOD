@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2004/11/02 20:17:00  mast
+Added color settings
+
 Revision 1.7  2004/06/23 03:33:10  mast
 New functions for generic settings
 
@@ -176,6 +179,7 @@ class ImodPreferences : public QObject
   int getGenericSettings(char *key, double *values, int maxVals);
   QSettings *getSettingsObject();
   void recordZapGeometry();
+  bool getRoundedStyle();
 
   public slots:
     void donePressed();

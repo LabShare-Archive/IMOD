@@ -305,8 +305,7 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
 
 void TumblerWindow::setFontDependentWidths()
 {
-  int width = (int)(1.2 * mHelpButton->fontMetrics().width("Help"));
-  mHelpButton->setFixedWidth(width);
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
 // Set up one toggle button, making bitmaps for the two state
@@ -1314,6 +1313,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.18  2004/09/10 02:31:03  mast
+replaced long with int
+
 Revision 4.17  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

@@ -28,15 +28,15 @@ void AutoxWindow::init()
 // Adjust button widths
 void AutoxWindow::setFontDependentWidths()
 {
-    int width = (int)(1.2 * fontMetrics().width("Clear"));
+    int width = diaSetButtonWidth(clearButton, ImodPrefs->getRoundedStyle(), 1.2, 
+                                  "Clear");
     fillButton->setFixedWidth(width);
-    clearButton->setFixedWidth(width);
     buildButton->setFixedWidth(width);
     nextButton->setFixedWidth(width);
-    width = (int)(1.2 * fontMetrics().width("Expand"));
+    width = diaSetButtonWidth(expandButton, ImodPrefs->getRoundedStyle(), 1.2, 
+                                  "Expand");
     smoothButton->setFixedWidth(width);
     shrinkButton->setFixedWidth(width);
-    expandButton->setFixedWidth(width);
 }
 
 void AutoxWindow::contrastSelected( int which )

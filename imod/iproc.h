@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2004/01/22 19:10:12  mast
+    Added slot for real button press
+
     Revision 3.5  2004/01/05 18:03:50  mast
     renamed vw to vi
 
@@ -86,6 +89,7 @@ class IProcWindow : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   QWidgetStack *mStack;

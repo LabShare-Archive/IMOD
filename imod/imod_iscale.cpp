@@ -51,6 +51,7 @@ Log at end of file
 #include "imod_cachefill.h"
 #include "imod_info_cb.h"
 #include "control.h"
+#include "preferences.h"
 #include "dia_qtutils.h"
 #include "xcramp.h"
 
@@ -104,8 +105,8 @@ static char *buttonTips[] =
 
 
 ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 4, buttonLabels, buttonTips, true, 
-                " ", "", name)
+  : DialogFrame(parent, 4, 1, buttonLabels, buttonTips, true, 
+                ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   char *uplow[] = {"Lower", "Upper"};
   QString str;
@@ -333,6 +334,12 @@ void ImageScaleWindow::applyLimits()
   imodDraw(vi, IMOD_DRAW_IMAGE);
 }
 
+void ImageScaleWindow::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The window is closing, remove from manager
 void ImageScaleWindow::closeEvent ( QCloseEvent * e )
 {
@@ -357,6 +364,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.12  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 4.11  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 

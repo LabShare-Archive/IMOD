@@ -423,7 +423,8 @@ ImodObjColor::ImodObjColor(int objNum)
                                 (int)(obj->red * 255.),
                                 (int)(obj->green * 255.),
                                 (int)(obj->blue * 255.), hotSliderFlag(), 
-				hotSliderKey(), "selector");
+				hotSliderKey(), ImodPrefs->getRoundedStyle(),
+                                "selector");
   connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
           SLOT(newColorSlot(int, int, int)));
   connect(mSelector, SIGNAL(done()), this, SLOT(doneSlot()));
@@ -485,6 +486,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2004/09/21 20:30:07  mast
+Added calls to synchronize on/off and name changes to model view windows
+
 Revision 4.9  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

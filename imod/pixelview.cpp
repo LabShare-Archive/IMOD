@@ -44,7 +44,9 @@ Log at end of file
 #include "imod.h"
 #include "imod_display.h"
 #include "control.h"
+#include "preferences.h"
 #include "imod_input.h"
+#include "dia_qtutils.h"
 
 
 static PixelView *PixelViewDialog = NULL;
@@ -96,7 +98,6 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
   int i, j;
-  int width;
   QGridLayout *layout = new QGridLayout(this, PV_ROWS + 1, PV_COLS + 1, 
 				       7, 5, "pixel view layout");
   // Add labels on left
@@ -121,7 +122,6 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   connect(mapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
 
   // Make the buttons - put them in array in order of right-handed coordinates
-  width = (int)(1.2 * labXY->fontMetrics().width("-88888"));
   for (i = 0; i < PV_ROWS; i++) {
     for (j = 0; j < PV_COLS; j++) {
       mButtons[i][j] = new QPushButton("8", this);
@@ -143,7 +143,8 @@ void PixelView::setButtonWidths()
 {
   // Fixed widths do not work well
   // This at least lets them resize smaller
-  int width = (int)(1.2 * fontMetrics().width("-88888"));
+  int width = diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1.2, 
+                                "-88888");
   for (int i = 0; i < PV_ROWS; i++)
     for (int j = 0; j < PV_COLS; j++)
       mButtons[i][j]->setMinimumWidth(width);
@@ -280,6 +281,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.6  2003/12/31 05:32:07  mast
 Identify whether floats or not after getting first pixel so file is set
 

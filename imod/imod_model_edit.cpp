@@ -51,6 +51,7 @@ Log at end of file
 #include "imod_model_edit.h"
 #include "imodv_modeled.h"
 #include "control.h"
+#include "preferences.h"
 
 static void imodTransXYZ(Imod *imod, Ipoint trans);
 
@@ -143,8 +144,8 @@ static char *headerTips[] = {"Open help window",
                              "Close dialog box using current values"};
 
 ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, headerLabels, headerTips, true, 
-                " ", "", name)
+  : DialogFrame(parent, 2, 1, headerLabels, headerTips, true, 
+                ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   char *boxLabels[] = {"Z-scale", "Resolution", "Pixel size"};
   char *boxTips[] = 
@@ -255,6 +256,12 @@ void ModelHeaderWindow::update()
   mEditBox[2]->setText(str);
 }
 
+void ModelHeaderWindow::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // Window is closing - unload values and remove dialog
 void ModelHeaderWindow::closeEvent ( QCloseEvent * e )
 {
@@ -356,8 +363,8 @@ static char *buttonTips[] =
 
 
 ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 4, buttonLabels, buttonTips, false, 
-                " ", "", name)
+  : DialogFrame(parent, 4, 1, buttonLabels, buttonTips, false, 
+                ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   char *xyz[] = {"X", "Y", "Z"};
   QString str;
@@ -458,6 +465,12 @@ void ModelOffsetWindow::updateLabels()
   mAppliedLabel->setText(str);
 }
 
+void ModelOffsetWindow::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The window is closing, remove from manager
 void ModelOffsetWindow::closeEvent ( QCloseEvent * e )
 {
@@ -482,6 +495,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2004/11/01 23:29:01  mast
+Added resolution scaling and help screen
+
 Revision 4.6  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 

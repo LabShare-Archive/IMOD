@@ -41,8 +41,9 @@ Log at end of file
    buttons will be equally sized if equalSized is true; otherwise they will
    all be just big enough for their respective text.  The window title will
    be set to "caption", or to "fallback" if "caption" is null.
-   The alternate construction with numRows allows the buttons to be on more
-   than one row.
+   The alternate construction with "numRows" and "rounded" allows the buttons 
+   to be on more than one row and allows specification of whether the style
+   has rounded buttons.
  */
 
 #include <qlayout.h>
@@ -51,6 +52,7 @@ Log at end of file
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
 #include "dialog_frame.h"
+#include "dia_qtutils.h"
 
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[], 
 			 char *tips[],
@@ -58,24 +60,24 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
 			 const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
-  makeDialogFrame(parent, numButtons, 1, labels, tips, equalSized, caption,
-              fallback, name, fl);
+  makeDialogFrame(parent, numButtons, 1, labels, tips, equalSized, false,
+                  caption, fallback, name, fl);
 }
 
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
-                         char *labels[], char *tips[],
-			 bool equalSized, char *caption, char *fallback,
+                         char *labels[], char *tips[], bool equalSized,
+                         bool rounded, char *caption, char *fallback,
 			 const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
-  makeDialogFrame(parent, numButtons, numRows, labels, tips, equalSized, caption,
-              fallback, name, fl);
+  makeDialogFrame(parent, numButtons, numRows, labels, tips, equalSized, 
+                  rounded, caption, fallback, name, fl);
 }
 
 void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                                   char *labels[], char *tips[],
-                                  bool equalSized, char *caption, char *fallback,
-                                  const char *name, WFlags fl)
+                                  bool equalSized, bool rounded, char *caption,
+                                  char *fallback, const char *name, WFlags fl)
 {
   int width = 0;
   int i, twidth, row = 0, rowStart = 0;
@@ -84,6 +86,7 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
   QHBoxLayout *layout2;  
   mEqualSized = equalSized;
   mNumButtons = numButtons;
+  mRoundedStyle = rounded;
 
   // Force it to a small size so it will end up at minumum size
   resize(50, 50);
@@ -153,7 +156,8 @@ void DialogFrame::setFontDependentWidths()
   // If equalsized buttons, find maximum width
   if (mEqualSized) {
     for (i = 0; i < numButtons; i++) {
-      twidth = (int)(1.25 * fontMetrics().width(mButtons[i]->text()));
+      twidth = diaGetButtonWidth(this, mRoundedStyle, 1.25, 
+                                 mButtons[i]->text());
       if (width < twidth)
 	width = twidth;
     }
@@ -162,7 +166,8 @@ void DialogFrame::setFontDependentWidths()
   // Set width of each button based on its own width or maximum width
   for (i = 0; i < numButtons; i++) {
     if (!mEqualSized)
-      width = (int)(1.25 * fontMetrics().width(mButtons[i]->text()));
+      width = diaGetButtonWidth(this, mRoundedStyle, 1.25, 
+                                mButtons[i]->text());
     mButtons[i]->setFixedWidth(width);
   }
 }
@@ -185,6 +190,9 @@ void DialogFrame::actionButtonClicked(int which)
 
 /*
 $Log$
+Revision 1.5  2004/06/23 03:35:41  mast
+Added ability to put buttons on multiple lines
+
 Revision 1.4  2004/01/22 19:06:18  mast
 Changed actionPressed to actionClicked and added real actionPressed
 

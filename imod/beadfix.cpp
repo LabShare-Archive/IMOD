@@ -987,16 +987,10 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mAreaMax = 0;
   mCurrentRes = -1;
   mBell = 0;
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
 
-  int width2 = fontMetrics().width("Move Point by Residual");
-  int width = fontMetrics().width("Open Tiltalign Log File");
-  if (width < width2)
-    width = width2;
-  width = (int)(1.15 * width);
-
-  QHBox *topBox = new QHBox(this);
+  topBox = new QHBox(this);
   mLayout->addWidget(topBox);
-  topBox->setFixedWidth(width);
   topBox->setSpacing(6);
 
   QToolButton *toolBut = new QToolButton(topBox);
@@ -1020,13 +1014,11 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
   openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
-  openFileBut->setFixedWidth(width);
   QToolTip::add(openFileBut, "Select an alignment log file to open");
 
 #ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut = diaPushButton("Save && Run Tiltalign", this, mLayout);
   connect(runAlignBut, SIGNAL(clicked()), this, SLOT(runAlign()));
-  runAlignBut->setFixedWidth(width);
   runAlignBut->setEnabled(false);
   QToolTip::add(runAlignBut, "Save model and run Tiltalign");
 #endif
@@ -1034,38 +1026,32 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   rereadBut = diaPushButton("Reread Log File", this, mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
   rereadBut->setEnabled(false);
-  rereadBut->setFixedWidth(width);
   QToolTip::add(rereadBut, "Read the previously specified file again");
 
   nextLocalBut = diaPushButton("Go to First Local Set", this, mLayout);
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
-  nextLocalBut->setFixedWidth(width);
   QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
 
   nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
-  nextResBut->setFixedWidth(width);
   QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
   movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
-  movePointBut->setFixedWidth(width);
   QToolTip::add(movePointBut, "Move point to position that fits alignment"
                 " solution - Hot key: semicolon");
 
   undoMoveBut = diaPushButton("Undo Move", this, mLayout);
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
-  undoMoveBut->setFixedWidth(width);
   QToolTip::add(undoMoveBut, 
                 "Move point back to previous position - Hot key: U");
 
   backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
   backUpBut->setEnabled(false);
-  backUpBut->setFixedWidth(width);
   QToolTip::add(backUpBut, "Back up to last point examined - "
                 "Hot key: double quote");
 
@@ -1076,7 +1062,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
   clearListBut = diaPushButton("Clear Examined List", this, mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
-  clearListBut->setFixedWidth(width);
   QToolTip::add(clearListBut, "Allow all points to be examined again");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
@@ -1295,6 +1280,36 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
+// Set widths of buttons and top box
+void BeadFixer::setFontDependentWidths()
+{
+  int width2 = diaGetButtonWidth(this, mRoundedStyle, 1.15,
+                                 "Move Point by Residual");
+  int width = diaGetButtonWidth(this, mRoundedStyle, 1.15,
+                                "Open Tiltalign Log File");
+  if (width < width2)
+    width = width2;
+  topBox->setFixedWidth(width);
+  openFileBut->setFixedWidth(width);
+#ifdef FIXER_CAN_RUN_ALIGN
+  runAlignBut->setFixedWidth(width);
+#endif
+  rereadBut->setFixedWidth(width);
+  nextLocalBut->setFixedWidth(width);
+  nextResBut->setFixedWidth(width);
+  movePointBut->setFixedWidth(width);
+  undoMoveBut->setFixedWidth(width);
+  backUpBut->setFixedWidth(width);
+  clearListBut->setFixedWidth(width);
+}
+
+void BeadFixer::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  setFontDependentWidths();
+  DialogFrame::fontChange(oldFont);
+}
+
 // Close on escape, pass on keys
 void BeadFixer::keyPressEvent ( QKeyEvent * e )
 {
@@ -1344,6 +1359,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.18  2004/09/24 17:58:01  mast
+    Added ability to execute messages for opening/rereading file
+
     Revision 1.17  2004/07/09 21:26:55  mast
     Strip directory path off when running align, to avoid spaces in path
 

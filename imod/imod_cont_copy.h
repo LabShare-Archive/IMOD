@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -49,6 +52,7 @@ class ContourCopy : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   void update();

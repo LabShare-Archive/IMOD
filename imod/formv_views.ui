@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>imodvViewsForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -237,6 +237,12 @@
             <property name="focusPolicy">
                 <enum>ClickFocus</enum>
             </property>
+            <property name="frameShape">
+                <enum>LineEditPanel</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
             <property name="toolTip" stdset="0">
                 <string>Change the name of the currently selected view</string>
             </property>
@@ -425,6 +431,8 @@
     <include location="local" impldecl="in implementation">imodv_menu.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="local" impldecl="in implementation">imodv_views.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">formv_views.ui.h</include>
 </includes>
 <slots>

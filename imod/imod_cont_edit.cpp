@@ -55,6 +55,7 @@ Log at end of file
 #include "imod_input.h"
 #include "imod_cont_edit.h"
 #include "control.h"
+#include "preferences.h"
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
@@ -175,13 +176,13 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
 
 void ContourBreak::setFontDependentWidths()
 {
-  int width = (int)(1.2 * fontMetrics().width("Set 2"));
-  mButton1->setFixedWidth(width);
+  int width = diaSetButtonWidth(mButton1, mRoundedStyle, 1.2, "Set 2");
   mButton2->setFixedWidth(width);
 }
 
 void ContourBreak::fontChange( const QFont & oldFont )
 {
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
   setFontDependentWidths();
   DialogFrame::fontChange(oldFont);
 }
@@ -500,13 +501,13 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
 
 void ContourJoin::setFontDependentWidths()
 {
-  int width = (int)(1.2 * fontMetrics().width("Set 2"));
-  mButton1->setFixedWidth(width);
+  int width = diaSetButtonWidth(mButton1, mRoundedStyle, 1.2, "Set 2");
   mButton2->setFixedWidth(width);
 }
 
 void ContourJoin::fontChange( const QFont & oldFont )
 {
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
   setFontDependentWidths();
   DialogFrame::fontChange(oldFont);
 }
@@ -1376,6 +1377,12 @@ void ContourMove::buttonPressed(int which)
   }
 }
 
+void ContourMove::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The window is closing, clean up and remove from manager
 void ContourMove::closeEvent ( QCloseEvent * e )
 {
@@ -1778,7 +1785,8 @@ void iceClosing()
  */
 ContourFrame::ContourFrame(QWidget *parent, int numButtons, char *labels[], 
                            char *tips[], const char *name)
-  : DialogFrame(parent, numButtons, labels, tips, true, " ", " ", name)
+  : DialogFrame(parent, numButtons, 1, labels, tips, true, 
+                ImodPrefs->getRoundedStyle(), " ", " ", name)
 {
   imodDialogManager.add((QWidget *)this, IMOD_DIALOG);
 }
@@ -1800,6 +1808,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.13  2004/11/04 17:02:41  mast
+Changes for switching to shifting contour as a mode that is turned on
+
 Revision 4.12  2004/11/01 23:36:44  mast
 Added conversion of point to circles and uses of multiple selections
 

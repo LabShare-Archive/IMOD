@@ -14,11 +14,12 @@ void imodvViewsForm::init()
 
 void imodvViewsForm::setFontDependentWidths()
 {
-    int width = newButton->fontMetrics().width(newButton->text());
-    int width2 = saveButton->fontMetrics().width(saveButton->text());
+    int width = diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1.2,
+                                  newButton->text());
+    int width2 = diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1.2,
+                                  saveButton->text());
     if (width < width2)
 	width = width2;
-    width = (int)(1.2 * width);
     storeButton->setFixedWidth(width);
     revertButton->setFixedWidth(width);
     newButton->setFixedWidth(width);

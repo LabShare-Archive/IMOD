@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.9  2004/09/24 18:00:36  mast
+Added message capability
+
 Revision 1.8  2004/06/25 20:06:09  mast
 Made plug variables be class members instead to eliminate plug->
 
@@ -73,6 +76,7 @@ class AlignThread : public QThread
 
 class QPushButton;
 class QCheckBox;
+class QHBox;
 
 // A structure to hold all of the residual data that is read in, plus what
 // local area it is in and whether it has been looked at in this run-through
@@ -126,12 +130,14 @@ class BeadFixer : public DialogFrame
   void onceToggled(bool state);
   void keepOnTop(bool state);
   void runAlign();
+  void setFontDependentWidths();
 
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void timerEvent(QTimerEvent *e);
+  void fontChange( const QFont & oldFont );
 
  private:
   int foundgap(int obj, int cont, int ipt, int before);
@@ -169,6 +175,7 @@ class BeadFixer : public DialogFrame
   QPushButton *clearListBut;
   QPushButton *runAlignBut;
   QPushButton *openFileBut;
+  QHBox *topBox;
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/06/15 01:15:51  mast
+Added functions for movie control
+
 Revision 4.3  2004/05/16 20:17:40  mast
 Added method for updating sliders
 
@@ -81,6 +84,7 @@ class ImodvImage : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   bool mCtrlPressed;

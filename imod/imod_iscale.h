@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/06/04 23:31:05  mast
+Add timer
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -50,6 +53,7 @@ class ImageScaleWindow : public DialogFrame
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void timerEvent(QTimerEvent *e);
+  void fontChange( const QFont & oldFont );
 
  private:
   QLineEdit *mEditBox[2];

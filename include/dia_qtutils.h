@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2004/06/04 02:57:28  mast
+Implement export/import macro for making libdiaqt be a DLL
+
 Revision 3.1  2003/02/10 20:57:02  mast
 Merge Qt source
 
@@ -63,6 +66,10 @@ QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent,
 			   QVBoxLayout *layout);
 QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
                                  QVBoxLayout *layout);
+int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
+                      const QString &text);
+int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
+                                float factor, const QString &text);
 void DLL_IM_EX diaSetTitle(char *title);
 
 // Get a single existing file name with a set of filters

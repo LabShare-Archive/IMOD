@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/06/04 02:57:28  mast
+Implement export/import macro for making libdiaqt be a DLL
+
 Revision 3.4  2004/03/22 00:43:29  mast
 Renamed buttonPressed to buttonClicked
 
@@ -58,7 +61,7 @@ class DLL_IM_EX ColorSelector : public DialogFrame
 
  public:
   ColorSelector(QWidget *parent, QString label, int red, int green, int blue, 
-                int hotFlag, int hotKey, const char *name = NULL, 
+                int hotFlag, int hotKey, bool rounded, const char *name = NULL,
                 WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~ColorSelector();
 

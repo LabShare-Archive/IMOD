@@ -351,8 +351,8 @@ static char *buttonTips[] = {"Close dialog box", "Open help window"};
 static char *sliderLabels[] = {"Angle", "Vertical Offset",};
 
 ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Stereo", "",
-                name)
+  : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true,
+                ImodPrefs->getRoundedStyle(), "3dmodv Stereo", "", name)
 {
   // Make combo box, with just the 2 software options
   mCtrlPressed = false;
@@ -462,6 +462,12 @@ void ImodvStereo::update()
   // Set the combo box
   mComboBox->setCurrentItem(Imodv->stereo);
 }
+
+void ImodvStereo::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
   
 // Accept a close event and set dia to null
 void ImodvStereo::closeEvent ( QCloseEvent * e )
@@ -498,6 +504,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/09/24 18:15:31  mast
+Made it fix window geometry if going from T/B to S/S.
+
 Revision 4.8  2004/06/09 05:38:20  mast
 Got top/bottom mode to work with double-scan setups, and really got SGI
 to work by incorporating old SGI-specific calls.

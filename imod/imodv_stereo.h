@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/06/08 15:41:41  mast
+Restore clear function
+
 Revision 4.3  2004/06/06 21:28:15  mast
 Eliminate unneeded clear function
 
@@ -78,6 +81,7 @@ class ImodvStereo : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont );
 
  private:
   bool mCtrlPressed;

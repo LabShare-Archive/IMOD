@@ -688,11 +688,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 	  
   case ECONTOUR_MENU_MOVE: /* move */
-    if (imod->objsize < 2){
-      wprint("Must have more than one object to move contours "
-             "to a new object\n");
-      break;
-    }
+    // 11/4/04: no longer require multiple objects
     imodContEditMoveDialog(vi, 0);
     break;
 	  
@@ -1159,6 +1155,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.19  2004/11/01 23:26:17  mast
+implemented surface deletion
+
 Revision 4.18  2004/10/12 15:23:09  mast
 Fixed string when writing as NFF
 

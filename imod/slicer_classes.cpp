@@ -58,6 +58,7 @@ Log at end of file
 #include "arrowbutton.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
+#include "preferences.h"
 
 #define AUTO_RAISE true
 
@@ -240,8 +241,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 
 void SlicerWindow::setFontDependentWidths()
 {
-  int width = (int)(1.2 * mHelpButton->fontMetrics().width("Help"));
-  mHelpButton->setFixedWidth(width);
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
 static char *toggleTips[] = {
@@ -449,6 +449,9 @@ void SlicerCube::resizeGL( int wdth, int hght )
 
  /*
 $Log$
+Revision 4.9  2004/08/12 17:14:43  mast
+Left out Z-scale after option when binnings differ
+
 Revision 4.8  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 

@@ -537,7 +537,8 @@ void ImodvBkgColor::openDialog()
                                 Imodv->rbgcolor->red(),
 				Imodv->rbgcolor->green(),
 				Imodv->rbgcolor->blue(), hotSliderFlag(), 
-				hotSliderKey(), "selector");
+				hotSliderKey(), ImodPrefs->getRoundedStyle(), 
+                                "selector");
   connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
           SLOT(newColorSlot(int, int, int)));
   connect(mSelector, SIGNAL(done()), this, SLOT(doneSlot()));
@@ -596,6 +597,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2004/05/15 21:24:31  mast
+Added hot key Z to help list
+
 Revision 4.12  2004/04/28 05:28:52  mast
 Changes for drawing current contour thicker
 

@@ -50,6 +50,7 @@ Log at end of file
 #include "sliceproc.h"
 #include "imod_info_cb.h"
 #include "control.h"
+#include "preferences.h"
 
 #define MAX_LIST_TO_SHOW 6
 
@@ -401,8 +402,8 @@ static char *buttonTips[] = {"Operate on current section",
                              "Close dialog box", "Open help window"};
 
 IProcWindow::IProcWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 7, buttonLabels, buttonTips, false, 
-                " ", "", name)
+  : DialogFrame(parent, 7, 1, buttonLabels, buttonTips, false, 
+                ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   int i;
   QString str;
@@ -632,6 +633,12 @@ void IProcWindow::apply()
   }
 }
 
+void IProcWindow::fontChange( const QFont & oldFont )
+{
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::fontChange(oldFont);
+}
+
 // The window is closing, clean up and remove from manager
 void IProcWindow::closeEvent ( QCloseEvent * e )
 {
@@ -666,6 +673,9 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.7  2004/02/12 00:16:18  mast
+    Changed the setSizePolicy calls to be compatible to Qt 3.0.5
+
     Revision 4.6  2004/01/22 19:09:38  mast
     Added a button to toggle between processed and original image, and changed
     geometry management to resize to the widget so large panels can be inserted

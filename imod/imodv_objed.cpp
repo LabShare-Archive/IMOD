@@ -1573,7 +1573,8 @@ static void mkMove_cb(int index)
 
 static void fixMove_cb() 
 {
-  int width = (int)(1.2 * moveButtons[0]->fontMetrics().width("Bottom"));
+  int width = diaGetButtonWidth(moveButtons[0], ImodPrefs->getRoundedStyle(), 
+                                1.2,"Bottom");
   for (int i = 0; i < 12; i++)
     moveButtons[i]->setFixedWidth(width);
 }
@@ -1732,8 +1733,7 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
 
   QHBox *box = new QHBox(this);
   QPushButton *button = new QPushButton("Done", box);
-  int width = (int)(1.4 * button->fontMetrics().width("Done"));
-  button->setFixedWidth(width);
+  diaSetButtonWidth(button, 1.4, ImodPrefs->getRoundedStyle(), "Done");
   button->setFocusPolicy(QWidget::NoFocus);
   layout->addWidget(box);
   connect(button, SIGNAL(clicked()), this, SLOT(donePressed()));
@@ -1823,6 +1823,13 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.18  2004/09/21 20:22:38  mast
+Implemented interface to multiple and global clipping planes, allowed
+colors to be changed in multiple objects, put object list in scroll view
+with much less truncation and with colors, fixed synchronization problems
+for on/off, color, and object name between imodv object edit, object list,
+and imod object edit and info windows.
+
 Revision 4.17  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
