@@ -159,6 +159,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/01/28 16:06:05  mast
+c	  Added ability to select data based on values in columns
+c	
 
 	parameter (len=100000,leng=5000)
 	dimension dmat(len*10),xx(len),ngx(len),zz(len)
@@ -172,7 +175,7 @@ c
 	iftypes=0
 	ncol=2
 	nskip=0
-	iflogx=0
+	iflogxin=0
 	zadd=0
 	nselect=0
 5	continue
