@@ -29,6 +29,10 @@ import etomo.ui.MainFrame;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2004/04/27 23:17:03  sueh
+ * <p> bug# 320 added warnStaleFile() to tell user and a file that has
+ * <p> changed on disk and ask to close it
+ * <p>
  * <p> Revision 3.16  2004/03/29 20:54:09  sueh
  * <p> bug# 409 add MTF Filter
  * <p>
@@ -579,10 +583,14 @@ public class ImodManager {
     ImodState imodState = get(key);
     if (!imodState.isWarnedStaleFile() && imodState.isOpen()) {
       imodState.setWarnedStaleFile(true);
-      String[] message = new String[3];
+      String[] message = new String[4];
       message[0] = "3dmod is open to the existing " + key + ".";
       message[1] = "A new " + key + " has been or will be created on disk.";
-      message[2] = "Do you wish to quit this 3dmod?";
+      message[2] =
+        "You will not be able to see the new version of "
+          + key
+          + " until you close this 3dmod.";
+      message[3] = "Do you wish to quit this 3dmod now?";
       if (mainFrame.openYesNoDialog(message)) {
         imodState.quit();
       }
