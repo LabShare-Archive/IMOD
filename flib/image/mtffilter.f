@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.1  2004/03/30 18:55:42  mast
+c	  Addition to package
+c	
 c
 	implicit none
 	integer idim,limmtf,limstockcurves,limstockpoints
@@ -80,8 +83,10 @@ c
 	integer*4 izoutbase,nsize,istock,nmtf,i,im,kk,ixst,iyst,modout
 	real*4 dminin,dmaxin,dmean,dmin,dmax,asize,xfac,scalefac,delta
 	real*4 ctfinvmax,radius1,sigma1,radius2,sigma2,s,dmsum,dmeanin
-	real*4 DMIN2,DMAX2,DMEAN2,atten,beta1,beta2
-	integer*4 ind,j,ierr
+	real*4 DMIN2,DMAX2,DMEAN2,atten,beta1,beta2,delx, dely, delz,xa,ya,za
+	real*4 zasq,yasq
+	integer*4 ind,j,ierr, indf,ix, iy
+	logical fftInput
 	integer*4 niceframe
 c
 	logical pipinput
@@ -131,12 +136,18 @@ c
 	  CALL IMOPEN(1,filbig,'RO')
 	endif
 	CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMINin,DMAXin,DMEANin)
+	fftInput = mode .eq. 3 .or. mode .eq. 4
 c
-C	  get padded size and make sure it will fit
-c
-	npad = 40
-	nxpad = niceframe(nx + npad, 2, 19)
-	nypad = niceframe(ny + npad, 2, 19)
+C	    get padded size and make sure it will fit
+c	    
+	if (fftInput) then
+	  nxpad = (nx - 1) / 2
+	  nypad = ny
+	else
+	  npad = 40
+	  nxpad = niceframe(nx + npad, 2, 19)
+	  nypad = niceframe(ny + npad, 2, 19)
+	endif
 
 	IF (((NXpad+2)*NYpad.GT.idim)) call errorexit(
      &	    'IMAGES TOO LARGE FOR ARRAYS')
@@ -152,6 +163,8 @@ c
 	izst=1
 	iznd=nz
 	ierr = PipGetTwoIntegers('StartingAndEndingZ', izst, iznd)
+	if (fftInput .and. ierr .eq. 0) call errorexit(
+     &	    'FFT INPUT FILE IS ASSUMED TO BE 3D FFT, NO Z RANGE ALLOWED')
 	if (izst.gt.iznd .or. izst.lt.1 .or. iznd.gt.nz) call
      &	    errorexit('ILLEGAL STARTING OR ENDING Z VALUES TO FILTER')
 	nzdo=iznd+1-izst
@@ -175,12 +188,14 @@ c
 	  call ialcel(3,cell)
 	endif
 c	  
-c	  set up the ctf scaling as usual
+c	  set up the ctf scaling as usual: but delta needs to be maximum
+c	  frequency over ctf array size
 c
         NSIZE = MIN(8192,MAX(1024,2*MAX(NXpad,NYpad)))
         ASIZE = NSIZE
         NSIZE = NSIZE + 1
-        DELTA = 1.0/(.71*ASIZE)
+	DELTA = 0.71 / ASIZE
+	if (fftInput) DELTA = 0.87 / ASIZE
 c
 c	  set default null mtf curve
 c
@@ -235,14 +250,14 @@ c
 	ctfa(1)=1.
 	im=1
 	s=0.
-	do j=2,nsize/2+3
+	do j=2,nsize
 	  s=s+delta
 	  if(im.lt.nmtf-1.and.s.gt.xmtf(min(im+1,nmtf)))im=im+1
 	  ctfa(j)=max(0.,ymtf(im)+(ymtf(im+1)-ymtf(im))*(s-xmtf(im))
      &	      /(xmtf(im+1)-xmtf(im)))
 	enddo
 
-c	write (*,'(10f7.4)')(ctfa(j), j=1,nsize/2)
+c	write (*,'(10f7.4)')(ctfa(j), j=1,nsize)
 
 	ierr = PipGetTwoFloats('InverseRolloffRadiusSigma', radius1, sigma1)
 	ierr = PipGetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
@@ -259,7 +274,7 @@ c	write (*,'(10f7.4)')(ctfa(j), j=1,nsize/2)
 	print *
 	print *,'The overall filter being applied is:'
 	print *,'radius  multiplier'
-	do j=1,nsize/2+3
+	do j=1,nsize
 	  atten=1.
 	  if (s.gt.radius1) atten = exp(beta1*(s - radius1)**2)
 	  if (ctfa(j).lt.0.01) then
@@ -279,26 +294,53 @@ c
 	dmsum=0.
 	dmax=-1.e10
 	dmin=1.e10
+	delx=0.5/(nx-1.)
+	dely=1./ny
+	delz=1./nz
         DO KK=izst,iznd
 C
 c	    print *,'reading section',kk
 	  call imposn(1, kk - 1, 0)
 	  call irdsec(1,array,*99)
-	  call taperoutpad(array,nx,ny,array,nxpad+2,nxpad,nypad,0,0.)
+	  if (fftInput) then
+c	      
+c	      Filter the 3D fft - assuming the usual ordering
+c
+	    ind=1
+	    za=delz*(kk-1.)-0.5
+	    zasq = za**2
+	    do iy=1,ny
+	      ya=dely*(iy-1.)-0.5
+	      yasq=ya**2
+	      do ix=1,nx
+		xa=delx*(ix-1.)
+		S = sqrt(xa**2 + yasq + zasq)
+		indf = s / delta + 1.5
+		array(ind) = array(ind) * ctfa(indf)
+		ind = ind + 1
+	      enddo
+	    enddo
+	    CALL iclcdn(array,nx,ny,1,nx,1,ny,dmin2,dmax2,dmean2)
+	  else
+c	      
+c	      Do ordinary 2D filter with padding/tapering, FFT, filter, repack
+c
+	    call taperoutpad(array,nx,ny,array,nxpad+2,nxpad,nypad,0,0.)
 C	    
-c	  print *,'taking fft'
-	  call todfft(array,nxpad,nypad,0)
-	  call filterpart(array,array,nxpad,nypad,ctfa,delta)
-c	    
-c	  print *,'taking back fft'
-	  call todfft(array,nxpad,nypad,1)
-	  
-c	    print *,'repack, set density, write'
-	  ixst = (nxpad - nx) / 2
-	  iyst = (nypad - ny) / 2
-	  call irepak(array,array,nxpad+2,nypad, ixst,ixst + nx-1,iyst,
-     &	      iyst+ny-1)
-	  CALL IclDeN(array,NX,NY,1,NX,1,NY,DMIN2,DMAX2,DMEAN2)
+c	      print *,'taking fft'
+	    call todfft(array,nxpad,nypad,0)
+	    call filterpart(array,array,nxpad,nypad,ctfa,delta)
+c	      
+c	      print *,'taking back fft'
+	    call todfft(array,nxpad,nypad,1)
+	    
+c	      print *,'repack, set density, write'
+	    ixst = (nxpad - nx) / 2
+	    iyst = (nypad - ny) / 2
+	    call irepak(array,array,nxpad+2,nypad, ixst,ixst + nx-1,iyst,
+     &		iyst+ny-1)
+	    CALL IclDeN(array,NX,NY,1,NX,1,NY,DMIN2,DMAX2,DMEAN2)
+	  endif
 C
 C	    Write out lattice.
 C	    
