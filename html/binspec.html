@@ -384,13 +384,19 @@ Currently there are 67 bytes per object view, as follows:
 1     UBYTE     clip_plane   Current clip plane
 12    float * 3 clip_normal  Normal for clipping plane
 12    float * 3 clip_point   Point value for clipping plane
-1     UBYTE     ambient      Ambient lighting value
-1     UBYTE     diffuse      Diffuse lighting value
-1     UBYTE     specular     specular IS shininess   
-1     UBYTE     shininess    shininess used as flags 
-4     UINT      mat1         set to 0, use as material color future. ABGR 
-4     UINT      mat2         set to 0, use as flags. 
-4     UINT      mat3         used  byte0 = bright, byte1 = contrast 
+1     UBYTE 	ambient      Ambient property.  (see above)
+1     UBYTE 	diffuse      Diffuse property.  (see above)
+1     UBYTE 	specular     Specular property.  (see above)
+1     UBYTE 	shininess    Shininess exponent in specular term.  (see above)
+1     UBYTE 	mat1         Fill color red.
+1     UBYTE 	mat1b1       Fill color green.
+1     UBYTE 	mat1b2       Fill color blue.
+1     UBYTE 	mat1b3       Unused.
+4     UINT  	mat2         Set to 0, use as flags.  Unused.
+1     UBYTE 	mat3         Black level for showing normal magnitudes in mesh.
+1     UBYTE 	mat3b1       White level for showing normal magnitudes in mesh.
+1     UBYTE 	mat3b2       Unused.
+1     UBYTE 	mat3b3       Unused.
 </pre>
 
 </body></html>
