@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/11/05 18:52:53  mast
+Include local files with quotes, not brackets
+
 Revision 3.3  2004/11/04 17:08:29  mast
 Added element for mirroring FFTs
 
@@ -28,6 +31,7 @@ extern "C" {
 #define IIFILE_UNKNOWN 0
 #define IIFILE_TIFF    1
 #define IIFILE_MRC     2
+#define IIFILE_QIMAGE  3
 
 #define IIFORMAT_LUMINANCE 0
 #define IIFORMAT_RGB       1
@@ -53,6 +57,8 @@ extern "C" {
 
   struct  ImodImageFileStruct;
   typedef struct ImodImageFileStruct ImodImageFile; 
+  typedef int (*IIFileCheckFunction)(ImodImageFile *);
+
   struct  ImodImageFileStruct
   {
     char *filename;
@@ -96,7 +102,7 @@ extern "C" {
 
   };
 
-
+  void iiAddCheckFunction(IIFileCheckFunction func);
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(char *filename, char *mode);
   int  iiReopen(ImodImageFile *inFile);
