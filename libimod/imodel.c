@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.13  2004/11/20 04:17:43  mast
+Added object move function and other changes for undo/redo structure
+
 Revision 3.12  2004/09/21 20:13:40  mast
 Changes for multiple and global clipping planes (i.e. checksum)
 
@@ -951,11 +954,6 @@ int imodInsertPoint(Imod *imod, Ipoint *point, int index)
 /* returns size of new array.                                                */
 /*****************************************************************************/
 
-int DelPoint(struct Mod_Model *mod)
-{
-  return(imodDeletePoint(mod));
-}
-
 /* Deletes the current point, or the current contour if it the last point in it
    Returns size of current contour or -1 if nothing was deleted */
 int imodDeletePoint(Imod *imod)
@@ -964,11 +962,12 @@ int imodDeletePoint(Imod *imod)
   int    index;
 
   cont = imodContourGet(imod);
-  if (!cont || imod->cindex.point < 0)
+  if (!cont || (cont->psize && imod->cindex.point < 0))
     return(-1);
 
-  /* If there is just one point, delete the whole contour */
-  if (cont->psize == 1){
+  /* If there are no points, delete the whole contour (12/3/04 swicthed from
+     deleting if one point) */
+  if (!cont->psize){
     DelContour(imod, imod->cindex.contour);
     return(0);
   }
@@ -977,7 +976,7 @@ int imodDeletePoint(Imod *imod)
 
   /* DNM 11/16/04: removed second test on size = 1 that just free points */
 
-  if (index)
+  if (index || cont->psize == 1)
     imod->cindex.point = index - 1;
   return(imodPointDelete(cont, index));
 
