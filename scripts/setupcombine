@@ -547,12 +547,13 @@ $ranlist[1]
 $TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
 \$$FFT3D -3d ${tmppath}mat.st ${tmppath}mat.fft
 \$\\rm ${tmppath}mat.st
-\$combinefft \$combinefft_options -StandardInput
+\$combinefft -StandardInput
 AInputFFT	${tmppath}rec.fft
 BInputFFT	${tmppath}mat.fft
 InverseTransformFile	$invfile
 ATiltFile	$atlt
 BTiltFile	$btlt
+ReductionFraction	\$combinefft_reduce
 \$\\rm ${tmppath}rec.fft
 \$$FFT3D -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
 \$\\rm ${tmppath}mat.fft
@@ -624,6 +625,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.27  2004/10/27 22:25:01  mast
+#  Switched to using fftrans
+#
 #  Revision 3.26  2004/08/12 17:42:02  mast
 #  Put back right version for 3.4
 #
