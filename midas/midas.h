@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/02/10 20:49:57  mast
+Merge Qt source
+
 Revision 3.2.2.2  2003/01/26 23:20:33  mast
 using new library
 
@@ -311,6 +314,7 @@ struct Midas_view
   float    backup_edgedx, backup_edgedy;
   QSlider  *anglescale;
   QLabel   *anglelabel;
+  QLabel   *mouseLabel;
   MidasWindow *midasWindow;
   MidasSlots *midasSlots;
   MidasGL    *midasGL;
