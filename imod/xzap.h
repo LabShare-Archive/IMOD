@@ -68,6 +68,7 @@ typedef struct zapwin
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
   float  zoom;
+  float  xzoom;    /* Possibly slightly different X zoom */
   char   *data;
 
   /* The graphic image buffer. */
@@ -123,6 +124,9 @@ int  imod_zap_open(struct ViewInfo *vi);
 
 /*
 $Log$
+Revision 3.5  2003/03/12 06:38:18  mast
+Added time mismatch function
+
 Revision 3.4  2003/03/03 22:13:38  mast
 Added variable for starting the rubber band
 
