@@ -27,6 +27,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/05 04:42:01  rickg
+ * <p> Button order swap
+ * <p>
  * <p> Revision 2.6  2003/06/04 23:42:29  rickg
  * <p> Added independent labels for tabs
  * <p> Log file tab name changes
@@ -148,7 +151,7 @@ public class AlignmentEstimationDialog
     new JButton("<html><b>View residual vectors</b>");
 
   private JToggleButton buttonTransferFiducials =
-    new JToggleButton("<html><b>Transfer fiducials to the other axis</b>");
+    new JToggleButton("<html><b>Transfer fiducials to other axis</b>");
 
   //  There only needs to be one transfer fiducial panel???
   private TransferfidPanel panelTransferFid;
