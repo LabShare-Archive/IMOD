@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/03/18 17:56:57  mast
+Added header byte count routine
+
 Revision 1.4  2004/01/17 20:34:03  mast
 Add b3d file routines
 
@@ -32,6 +35,9 @@ Initial creation
 #include <stdio.h>
 
 #define MAX_IMOD_ERROR_STRING  512
+
+#define B3DMIN(a,b) ((a) < (b) ? (a) : (b))
+#define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +60,9 @@ extern "C" {
   int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
 
   void b3dHeaderItemBytes(int *nflags, int *nbytes);
+
+  int b3dMin(char *types, ...);
+  int b3dMax(char *types, ...);
 
 #ifdef __cplusplus
 }
