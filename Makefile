@@ -330,12 +330,12 @@ csrc : ALWAYS
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/*.xpm imod/README imod/3dmod.dsp \
+	imod/*.bits imod/*.png imod/*.xpm imod/README \
 	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/*.cpp midas/midas.pro midas/midas.dsp \
+	midas/*.[ch] midas/*.cpp midas/midas.pro \
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
@@ -367,10 +367,19 @@ etomosrc :
 	Etomo/*MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
 	Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
 
+#
+# Tests
+#
+tests :
+	cd Etomo ; $(MAKE) tests
+
 ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.29  2003/12/02 03:27:46  mast
+#  add ndasda to cleanqt and revise instructions for Windows
+#
 #  Revision 3.28  2003/11/26 21:46:31  mast
 #  A few additions for make src
 #
