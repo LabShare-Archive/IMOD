@@ -62,6 +62,7 @@ set sendevent_qconf = sendevent/qconfigure
 set fort_cpplibs    =
 set ctrl_string     = Ctrl
 set ld_lib_var      = LD_LIBRARY_PATH
+set qtapp_path      =
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -614,7 +615,7 @@ EOF
 if (\$?IMOD_QTLIBDIR) then
     setenv $ld_lib_var \${IMOD_QTLIBDIR}:\$$ld_lib_var
 endif
-\$IMOD_DIR/bin/\$*
+\$IMOD_DIR/bin/${qtapp_path}\$*
 EOF
     chmod +x $scripts_dir/runimodqtapp
    
@@ -688,6 +689,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.26  2003/09/11 19:53:42  mast
+#  Added configure variable for generated scripts
+#
 #  Revision 3.25  2003/09/04 01:08:49  mast
 #  Modify identifying string for Windows to include XP
 #
