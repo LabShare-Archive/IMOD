@@ -55,28 +55,54 @@ c         in the polynomial fit.
 c	  
 c	  David Mastronarde 11/10/98
 c
-	parameter (imsiz=2100)
-	parameter (mxd=50)
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c	  
+	implicit none
+	integer imsiz,mxd,limpatch,limobj
+	parameter (imsiz=4100)
+	parameter (mxd=50,limpatch=5000,limobj=1000)
 	real*4 array(imsiz*imsiz),title(20),orig(3),delt(3)
-	integer*4 nxyz(3),mxyz(3)
+	integer*4 nxyz(3),mxyz(3),nx,ny,nz
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
 	character*80 infile,outfile,ptfile
-	integer*4 ixfix(5000),iyfix(5000),izfix(5000),iobjdoall(256)
-	integer*4 iobjline(256)
+	integer*4 ixfix(limpatch),iyfix(limpatch),izfix(limpatch)
+	integer*4 iobjline(limobj),iobjdoall(limobj)
 	include 'model.inc'
 	logical readw_or_imod, typeonlist
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
+	character dat*9, tim*8
+c	  
+	integer*4 mode,imfilout,i,j,nobjdoall,nobjline,nborder,iorder
+	integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt
+	real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
+	real*4 zmin,zmax,xmin,xmax,ymin,ymax
+	integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
+	integer*4 ierr,ierr2,ifflip
+	integer*4 getimodhead,getimodscales
+	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
+c
+	call date(dat)
+	call time(tim)
 c
 	write(*,'(1x,a,$)')'Input image file: '
 	read(*,'(a)')infile
 	call imopen(1,infile,'old')
 	call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-	if(nx*ny.gt.imsiz**2)stop 'IMAGE TOO LARGE'
-	call irtdel(1,delt)
-	call irtorg(1,orig(1),orig(2),orig(3))
+	if(nx*ny.gt.imsiz**2)then
+	  print *, 'CCDERASER: IMAGE TOO LARGE FOR ARRAYS'
+	  call exit(1)
+	endif
+c	call irtdel(1,delt)
+c	call irtorg(1,orig(1),orig(2),orig(3))
 c	  
 	print *,'Enter output file name (Return to put modified'//
      &	    ' sections back in input file)'
@@ -92,14 +118,23 @@ c
 75	write(*,'(1x,a,$)')'Model file: '
 	read(*,'(a)')ptfile
 	if(.not.readw_or_imod(ptfile))then
-	  print *,'Bad model file, try again'
-	  go to 75
+	  print *,'CCDERASER: ERROR READING MODEL FILE'
+	  call exit(1)
 	endif
 
+	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr2 = getimodscales(ximscale, yimscale, zimscale)
+	if (ierr .ne. 0 .or. ierr2 .ne. 0) then
+	  print *,'CCDERASER: Error getting model header'
+	  call exit(1)
+	endif
 	do i=1,n_point
-	  do j=1,3
-	    p_coord(j,i)=(p_coord(j,i)+orig(j))/delt(j)
-	  enddo
+	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
+c	  do j=1,3
+c	    p_coord(j,i)=(p_coord(j,i)+orig(j))/delt(j)
+c	  enddo
 	enddo
 c	  
 	print *,'Enter list of objects specifying replacement on ALL'//
@@ -139,21 +174,24 @@ c
 	    call objtocont(iobj,obj_color,imodobj,imodcont)
 	    if(typeonlist(itype,iobjline,nobjline)) then
 	      if(npt_in_obj(iobj).ne.2) then
-		print *,'object',imodobj,', contour',imodcont,
+		print *,'CCDERASER ERROR: object',imodobj,
+     &		    ', contour',imodcont,
      &              ' does not have only two points'
-		stop 'ERROR: LINE DOES NOT HAVE ONLY TWO POINTS'
+		call exit(1)
 	      endif
 	      ip1 = object(ibase+1)
 	      ip2 = object(ibase+2)
 	      if (nint(p_coord(3,ip1)).ne.nint(p_coord(3,ip2))) then
-		print *,'object',imodobj,', contour',imodcont,
+		print *,'CCDERASER ERROR: object',imodobj,', contour',
+     &		    imodcont, ' is supposed to be a line and ',
      &              ' is not in one Z-plane'
-		stop 'ERROR: LINE IS NOT IN ONE Z-PLANE'
+		call exit(1)
 	      elseif(nint(p_coord(1,ip1)).ne.nint(p_coord(1,ip2)).and.
      &		    nint(p_coord(2,ip1)).ne.nint(p_coord(2,ip2))) then
-		print *,'object',imodobj,', contour',imodcont,
-     &              ' is not horizontal or vertical'
-		stop 'ERROR: LINE IS NOT HORIZONTAL OR VERTICAL'
+		print *,'CCDERASER ERROR: object',imodobj,', contour',
+     &		    imodcont, ' is supposed to be a line and ',
+     &		    'is not horizontal or vertical'
+		call exit(1)
 	      endif
 	    else
 	      zmin=1.e10
@@ -163,6 +201,11 @@ c
 	      ymin=zmin
 	      ymax=zmax
 	      ninobj=npt_in_obj(iobj)
+	      if (ninobj.gt.limpatch)then
+		print *,'CCDERASER ERROR: object',imodobj,', contour',
+     &		    imodcont, ' has too many points for arrays'
+		call exit(1)
+	      endif
 	      do ip=1,ninobj
 		ipt=object(ibase+ip)
 		xmin=min(xmin,p_coord(1,ipt))
@@ -173,15 +216,16 @@ c
 		zmax=max(zmax,p_coord(3,ipt))
 	      enddo
 	      if(xmax-xmin.ge.mxd/2 .or.ymax-ymin.ge.mxd/2)then
-		print *,'object',imodobj,', contour',imodcont,
-     &              ' has points too far apart'
-		stop 'ERROR: PATCH IS TOO LARGE'
+		print *,'CCDERASER ERROR: object',imodobj,', contour',
+     &		    imodcont, ' has points too far apart, ',
+     &		    'so patch is too large'
+		call exit(1)
 	      endif
 	      if(.not.typeonlist(itype,iobjdoall,nobjdoall).and.
      &            zmax.ne.zmin)then
-		print *,'object',imodobj,', contour',imodcont,
-     &              ' is not in one Z-plane'
-		stop 'ERROR: PATCH IS NOT IN ONE Z-PLANE'
+		print *,'CCDERASER ERROR: object',imodobj,', contour',
+     &		    imodcont, ' is not in one Z-plane'
+		call exit(1)
 	      endif
 	    endif
 	  endif
@@ -252,17 +296,22 @@ c
 c 7/7/00 CER: remove the encodes
 c
 c       encode(80,109,title)
-        write(titlech,109) 
+        write(titlech,109)dat,tim
         read(titlech,'(20a4)')(title(kti),kti=1,20)
-109	format('ERASER3: bad points replaced with interpolated values')
+109	format('CCDERASER: Bad points replaced with interpolated values'
+     &	    , t57, a9, 2x, a8 )
 	call iwrhdr(imfilout,title,1,tmin,tmax,tmean)
 	call imclose(imfilout)
 	call exit(0)
-99	stop 'error'
+99	print *,'CCDERASER: ERROR READING FILE'
+	call exit(1)
 	end
 
 	subroutine cleanline(array,ixdim,iydim,ix1,iy1,ix2,iy2)
+	implicit none
+	integer*4 ixdim,iydim,ix1,ix2,iy1,iy2
 	real*4 array(ixdim,iydim)
+	integer*4 miny,maxy,iy,ix,minx,maxx
 	if (ix1.eq.ix2)then
 	  miny=iy1
 	  maxy=iy2
@@ -293,9 +342,13 @@ c       encode(80,109,title)
 	subroutine cleanarea(array,ixdim,iydim,nx,ny,ixfix,iyfix,
      &	    ninobj,nborder,iorder,ifincadj)
 c	  
+	implicit none
+	integer mxd,isdim
 	parameter (mxd=50)
+	integer*4 ixdim,iydim,nx,ny
 	real*4 array(ixdim,iydim)
 	integer*4 ixfix(*), iyfix(*)
+	integer*4 ninobj,nborder,iorder,ifincadj
 	logical*1 inlist(-mxd:mxd,-mxd:mxd),adjacent(-mxd:mxd,-mxd:mxd)
 	logical nearedge
 	parameter (isdim=1000)
@@ -303,6 +356,11 @@ c
 	real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz),vect(msiz)
+c	  
+	integer*4 ixcen,iycen,i,j,minxlist,minylist,maxxlist,maxylist
+	integer*4 k,ixl,iyl,nbordm1,ixbordlo,ixbordhi,iybordlo,iybordhi
+	integer*4 npixel,npnts,nindep,ix,iy,ixofs,iyofs
+	real*4 c1,rsq,fra,xsum
 c	  
 c	  initialize list
 c	  
@@ -396,7 +454,11 @@ c	  set is the previous set multipled by x, plus the last term of the
 c	  previous set multiplied by y
 c
 	subroutine polyterm(ix,iy,norder,vect)
+	implicit none
+	integer*4 ix,iy,norder
 	real*4 vect(*)
+	real*4 x,y
+	integer*4 istr,iend,iorder,i
 	x=ix
 	y=iy
 	vect(1)=x
@@ -415,7 +477,8 @@ c
 	end
 
 	logical function typeonlist(itype,ityplist,ntyplist)
-	integer*4 ityplist(*)
+	implicit none
+	integer*4 ityplist(*),itype,ntyplist,i
 	typeonlist=.true.
 	if(ntyplist.eq.1.and.ityplist(1).eq.-999)return
 	do i=1,ntyplist
