@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.io.IOException;
 
 import etomo.util.MRCHeader;
@@ -18,6 +19,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2003/04/16 22:19:30  rickg
+ * <p> Initial revision
+ * <p>
  * <p> Revision 1.4  2003/04/16 00:14:12  rickg
  * <p> Trimvol in progress
  * <p>
@@ -50,14 +54,20 @@ public class TrimvolParam {
   private String inputFile = "";
   private String outputFile = "";
 
-  public TrimvolParam() {
+  File IMODDirectory;
+
+  public TrimvolParam(File IMOD_DIR) {
+    IMODDirectory = IMOD_DIR;
   }
 
   /**
    * Get the command string specified by the current state
    */
   public String getCommandString() {
-    StringBuffer commandLine = new StringBuffer("trimvol");
+    String IMODBinPath =
+      IMODDirectory.getAbsolutePath() + File.separator + "bin" + File.separator;
+    StringBuffer commandLine =
+      new StringBuffer("tcsh -f " + IMODBinPath + "trimvol");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
@@ -93,7 +103,7 @@ public class TrimvolParam {
       commandLine.append(String.valueOf(sectionScaleMax));
     }
 
-    if(swapYZ) {
+    if (swapYZ) {
       commandLine.append(" -yz ");
     }
     // TODO check to see that filenames are apropriate
@@ -336,7 +346,7 @@ public class TrimvolParam {
     // Check the swapped YZ state to decide which dimension to use for the 
     // section range 
     sectionScaleMin = 1;
-    if(swapYZ){
+    if (swapYZ) {
       sectionScaleMax = yMax;
     }
     else {
