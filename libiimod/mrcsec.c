@@ -110,7 +110,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
   int needData = 0;
   b3dFloat fpixel;
   b3dFloat *fdata;
-
+  double returned;
   /* Buffer to read lines into; may be replaced by temporary buffer for 
      reading */
   unsigned char *bdata = buf;
@@ -156,23 +156,14 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
       llx = llfx;
 
     /* Get xmax, ymin, ymax from these corners; get y limits and xsize */
-    urx = llfx > urfx ? llfx : urfx;
-    urx = llfx2 > urx ? llfx2 : urx;
-    ymin = llfy < ulfy ? llfy : ulfy;
-    ymin = ymin < lrfy ? ymin : lrfy;
-    ymin = ymin < urfy ? ymin : urfy;
-    ymin = ymin < llfy2 ? ymin : llfy2;
-    ymin = ymin < ulfy2 ? ymin : ulfy2;
-    ymax = llfy > ulfy ? llfy : ulfy;
-    ymax = ymax > lrfy ? ymax : lrfy;
-    ymax = ymax > urfy ? ymax : urfy;
-    ymax = ymax > llfy2 ? ymax : llfy2;
-    ymax = ymax > ulfy2 ? ymax : ulfy2;
+    b3dMax("iiii", urfx, llfx, llfx2, &urx);
+    b3dMin("iiiiiii", llfy, ulfy, lrfy, urfy, llfy2, ulfy2, &ymin);
+    b3dMax("iiiiiii", llfy, ulfy, lrfy, urfy, llfy2, ulfy2, &ymax);
     lly = readY ? li->zmin : ymin;
     ury = readY ? li->zmax : ymax;
     xsize = urx - llx + 1;
 
-    /* Set up flip-flip between two lines if needed when reading in Y */
+    /* Set up flip-flop between two lines if needed when reading in Y */
     toggleY = -1;
     if (readY && ymin < ymax) {
       toggleY = 0;
@@ -454,6 +445,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.6  2004/11/04 17:10:27  mast
+libiimod.def
+
 Revision 3.5  2004/01/21 00:57:04  mast
 Stopped freeing map from byte_map
 
