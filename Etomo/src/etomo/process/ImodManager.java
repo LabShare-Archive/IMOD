@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/18 00:32:33  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.1  2003/03/07 07:22:50  rickg
  * <p> combine layout in progress
  * <p>
@@ -83,7 +86,7 @@ public class ImodManager {
   private ImodProcess tomogramA;
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
-  //private ImodProcess 
+  private ImodProcess patchVectorModel; 
 
   private Thread fiducialModelA;
   private Thread fiducialModelB;
@@ -119,6 +122,10 @@ public class ImodManager {
       tomogramA.setSwapYZ(true);
       tomogramB = new ImodProcess(filesetName + "b.rec");
       tomogramB.setSwapYZ(true);
+      combinedTomogram = new ImodProcess("sum.rec");
+      combinedTomogram.setSwapYZ(true);
+      patchVectorModel = new ImodProcess("patch_vector.mod");
+      patchVectorModel.setModelView(true);
     }
 
   }
@@ -336,7 +343,14 @@ public class ImodManager {
    */
   public void patchRegionModel(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-    // TODO implement
+    if(axisID == AxisID.SECOND) {
+      tomogramB.open();
+      tomogramB.openModel("patch_region.mod");
+    }
+    else {
+      tomogramA.open();
+      tomogramA.openModel("patch_region.mod");
+    }
   }
 
   /**
@@ -362,6 +376,28 @@ public class ImodManager {
   }
 
   /**
+   * Open the patch vector in imod if it is not already open
+   */
+  public void openPatchVectorModel() throws SystemProcessException {
+    patchVectorModel.open();
+  }
+
+  /**
+   * Check to see if the patch vector model is open
+   */
+  public boolean ispatchVectorModelOpen() {
+    return patchVectorModel.isRunning();
+  }
+
+  /**
+   * Close the patch vector model
+   */
+  public void quitPatchVectorModel()
+    throws SystemProcessException {
+      patchVectorModel.quit();
+  }
+
+  /**
    * Open the combined tomogram in imod if it is not already open
    */
   public void openCombinedTomogram() throws SystemProcessException {
@@ -378,7 +414,7 @@ public class ImodManager {
   /**
    * Close the combined tomogram
    */
-  public void quitCombinedTomogram(AxisID axisID)
+  public void quitCombinedTomogram()
     throws SystemProcessException {
     combinedTomogram.quit();
   }
