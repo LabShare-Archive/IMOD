@@ -34,7 +34,7 @@ EdgeExclusionWidth      4
 # This output model file will have points at all pixels replaced
 PointModel      g5a_peak.mod
 MaximumRadius   2.1
-OuterRadius     4.0
+AnnulusWidth    2.0
 XYScanSize      100
 ScanCriterion   3.
 BorderSize      2
