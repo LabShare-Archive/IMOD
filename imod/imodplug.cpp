@@ -139,7 +139,6 @@ static int imodPlugLoad(QString plugpath)
   SpecialInfo fptr;
   QLibrary *library;
   QString str;
-  void *handle;
   int i, mi, type;
 
   library = new QLibrary(plugpath);
@@ -431,6 +430,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.9  2004/05/31 23:26:17  mast
+Switched to QDir and QLibrary and thus was able to use plugins in Windows
+
 Revision 4.8  2003/10/25 16:17:34  mast
 added linetrack as special module, conditionally
 
