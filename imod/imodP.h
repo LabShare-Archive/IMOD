@@ -188,7 +188,8 @@ typedef struct ViewInfo
 /*****************************************************************************/
 /* Global Variables */
 extern struct Mod_Model *Model;
-extern char   Imod_filename[256];
+#define IMOD_FILENAME_SIZE 256
+extern char   Imod_filename[IMOD_FILENAME_SIZE];
 
 extern int ImodTrans;
 extern int Imod_debug;
@@ -278,6 +279,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.16  2003/06/27 19:25:02  mast
+Add extra object
+
 Revision 3.15  2003/06/04 23:43:20  mast
 Move message defines to imod_client_message.h
 
