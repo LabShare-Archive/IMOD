@@ -27,6 +27,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.33  2003/01/08 21:04:38  rickg
+ * <p> More descriptive error dialog when the are not
+ * <p> available for combining.
+ * <p>
  * <p> Revision 1.32  2003/01/07 00:30:16  rickg
  * <p> Added imodViewResidual method
  * <p>
@@ -181,18 +185,14 @@ public class ApplicationManager {
 
   /**Construct the application*/
   public ApplicationManager(String[] args) {
-
-    parseCommandLine(args);
-
     //  Initialize the program settings
-    initProgram();
+    String testParamFilename = initProgram(args);
 
     //  Initialize the static application manager reference for the
     //  context popup
     ContextPopup initContextPopup = new ContextPopup(this);
 
     //  Create a new main window and wait for an event from the user
-    //
     mainFrame = new MainFrame(this);
     mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
     mainFrame.pack();
@@ -200,6 +200,12 @@ public class ApplicationManager {
     mainFrame.setLocation(
       (screenSize.width - frameSize.width) / 2,
       (screenSize.height - frameSize.height) / 2);
+
+    // Open the etomo data file if one was found on the command line
+    if (! testParamFilename.equals("")) {
+      File etomoDataFile = new File(testParamFilename);
+      openTestParamFile(etomoDataFile);
+    }
 
     mainFrame.show();
   }
@@ -1890,14 +1896,14 @@ public class ApplicationManager {
   }
 
   /**
-   * Set the data set parameter file
+   * Set the data set parameter file.  This also updates the mainframe data
+   * parameters.
    * @param paramFile a File object specifying the data set parameter file.
    */
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
-    //
+
     //  Update main window information and status bar
-    //
     mainFrame.updateDataParameters(metaData);
     mainFrame.setStatusBar(paramFile.getAbsolutePath());
   }
@@ -1945,7 +1951,9 @@ public class ApplicationManager {
     return;
   }
 
-  private void initProgram() {
+  private String initProgram(String[] args) {
+    //  Parse the command line
+    String testParamFilename = parseCommandLine(args);
 
     // Get the HOME directory environment variable to find the program
     // configuration file
@@ -1986,13 +1994,10 @@ public class ApplicationManager {
       System.exit(1);
     }
 
-    //
     //  Create a File object specifying the user configuration file
-    //
     File userConfigFile = new File(homeDirectory, ".etomo");
-    //
+
     //  Make sure the config file exists, create it if it doesn't
-    //
     try {
       userConfigFile.createNewFile();
     }
@@ -2000,7 +2005,7 @@ public class ApplicationManager {
       System.out.println(
         "Could not create file:" + userConfigFile.getAbsolutePath());
       System.out.println(except.getMessage());
-      return;
+      return "";
     }
 
     // Load in the user configuration
@@ -2019,6 +2024,8 @@ public class ApplicationManager {
 
     //  Set the user preferences
     setUserPreferences();
+
+    return testParamFilename;
   }
 
   /**
@@ -2034,17 +2041,32 @@ public class ApplicationManager {
     isAdvanced = userConfig.getAdvancedDialogs();
   }
 
-  private void parseCommandLine(String[] args) {
+  /**
+   * Parse the command line.  This method will return a non-empty string if
+   * there is a etomo data .
+   * @param The command line arguments
+   * @return A string that will be set to the etomo data filename if one is
+   * found on the command line otherwise it is "".
+   */
+  private String parseCommandLine(String[] args) {
+    String testParamFilename = "";
 
     //  Parse the command line arguments
-    if (args.length > 0) {
-      for (int i = 0; i < args.length; i++) {
-        if (args[i].equals("--demo")) {
-          demo = true;
-          break;
-        }
+    for (int i = 0; i < args.length; i++) {
+
+      // Filename argument should be the only one not beginning with at least
+      // one dash
+      if (!args[i].startsWith("-")) {
+        testParamFilename = args[i];
+        break;
+      }
+
+      if (args[i].equals("--demo")) {
+        demo = true;
+        break;
       }
     }
+    return testParamFilename;
   }
 
   /**
