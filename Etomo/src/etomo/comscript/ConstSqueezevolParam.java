@@ -26,6 +26,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/16 02:12:28  sueh
+* <p> bug# 564 Implemented Command.  Saved flipped status.
+* <p>
 * <p> Revision 1.3  2004/12/14 21:32:29  sueh
 * <p> bug# 557 Made separate variables for x and y reduction factors to handle
 * <p> an unflipped tomogram.
@@ -43,7 +46,7 @@ import etomo.type.EtomoNumber;
 public abstract class ConstSqueezevolParam implements Command, Storable {
   public static  final String  rcsid =  "$Id$";
   
-  public static final int FLIPPED = -1;
+  public static final int GET_FLIPPED = -1;
   protected static final String groupString = "Squeezevol";
   protected static final String linearInterpolationString = "LinearInterpolation";
   protected static final boolean defaultLinearInterpolation = false;
@@ -162,7 +165,7 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
   
   public boolean getBooleanValue(int name) {
     switch (name) {
-    case FLIPPED:
+    case GET_FLIPPED:
       return flipped;
     }
     return false;
@@ -180,15 +183,11 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     return commandName;
   }
   
-  public int getBinning() {
-    return 1;
-  }
-
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return outputFile;
   }
   
