@@ -147,7 +147,7 @@ typedef struct Mod_Mesh
   b3dUInt32       flag;     /* Tells how to draw mesh */
   b3dInt32        type;     /* Set to 0. time data.   */
   b3dInt32        pad;      /* Set to 0. surf data.   */
-  Istore     store;
+  Istore          store;
 }Imesh;
 
 
@@ -291,15 +291,14 @@ typedef struct Mod_Contour
   Ipoint       *pts;    /* Points data.                      */
   b3dFloat     *sizes;  /* sizes for scattered points        */
 
-  /* data below is written to file                          */
+  /* data below is written to file, except store is run-time */
   b3dInt32     psize;  /* Number of points.                 */
   b3dUInt32    flags;  /* Default 0 means use object flags. */
   b3dInt32     type;   /* Time index.                       */
   b3dInt32     surf;   /* Surface number.                   */
+  Ilabel      *label;
 
-  Ilabel  *label;
-  /*     Istore store;*/
-
+  Istore       store;
 }Icont;
 
 
@@ -310,13 +309,10 @@ typedef struct Mod_Object
   struct Mod_Contour *cont;              /* Contour data.                 */
   struct Mod_Mesh    *mesh;
 
-  struct Mod_Contour *vcont;             /* virtual contour */
-  struct Mod_Mesh    *vmesh;
-
   b3dUInt32 fgcolor;  /* colors used for colorindex rendering. */
   b3dUInt32 bgcolor;
 
-  /* data below is written to file */
+  /* data below is written to file except store is runtime */
   b3dByte      name[IOBJ_STRSIZE];  /* Name of Object.              */
   b3dUInt32    extra[IOBJ_EXSIZE];  /* extra unused data = 0        */
 
@@ -368,7 +364,7 @@ typedef struct Mod_Object
   b3dUByte mat3b3;    /* Unused */
 
   Ilabel *label;      /* Labels for surfaces */
-  Istore store;
+  Istore  store;
 }Iobj;
 
 
@@ -383,7 +379,7 @@ typedef struct Mod_Model
   int   redraw;        /* Used for shared procs.             */
   int   ctime;         /* current time index.                */
 
-  /* data written to file    */
+  /* data written to file except store is runtime    */
   b3dByte   name[IMOD_STRSIZE];        /* file name of model.                */
                                        /* Use labels for model name.         */
   b3dInt32    xmax, ymax, zmax;  
@@ -512,10 +508,10 @@ extern "C" {
   int   imodFreeObject(Imod *imod, int index);
   int   imodNextObject(Imod *imod);
   int   imodPrevObject(Imod *imod);
+  int   imodMoveObject(Imod *imod, int obOld, int obNew);
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
-  int   imodVirtIn(Imod *imod);
 
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
@@ -616,6 +612,7 @@ extern "C" {
   /***************************************************************************/
   Ilabel *imodLabelNew(void);
   void    imodLabelDelete(Ilabel *label);
+  Ilabel *imodLabelDup(Ilabel *label);
   void    imodLabelName(Ilabel *label, char *val);
   void    imodLabelItemAdd(Ilabel *label, char *val, int index);
   void    imodLabelItemMove(Ilabel *label, int to_index, int from_index);
@@ -721,6 +718,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.19  2004/11/05 18:52:53  mast
+    Include local files with quotes, not brackets
+
     Revision 3.18  2004/09/28 22:21:59  mast
     Added parselist declaration
 
