@@ -43,6 +43,11 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/05/03 22:26:52  sueh
+ * bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
+ * imodMatchingModel so that checkbox settings can be copied between
+ * Setup and Initial tabs when the Matching Models button is pressed.
+ *
  * Revision 3.4  2004/03/06 00:29:32  sueh
  * bug# 318 add maxZMax - getParameters, setParameters, not displayed, used to
  * validate ZMax in CombineParams
@@ -222,8 +227,8 @@ public class SetupCombinePanel implements ContextMenu {
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private JPanel pnlBinBy2 = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Open 3dmod in binned by 2 mode");
+  private JPanel pnlImodMatchModels = new JPanel();
+  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -295,12 +300,11 @@ public class SetupCombinePanel implements ContextMenu {
     //  Create the fiducial relationship panel
     pnlFiducialRadio.setLayout(
       new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-    pnlBinBy2.setLayout(new BoxLayout(pnlBinBy2, BoxLayout.X_AXIS));
+
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlBinBy2.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgFiducialParams.add(rbBothSides);
     bgFiducialParams.add(rbOneSide);
     bgFiducialParams.add(rbOneSideInverted);
@@ -309,16 +313,16 @@ public class SetupCombinePanel implements ContextMenu {
     pnlFiducialRadio.add(rbOneSide);
     pnlFiducialRadio.add(rbOneSideInverted);
     pnlFiducialRadio.add(rbUseModel);
-    pnlBinBy2.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinBy2.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinBy2.add(cbBinBy2);
-    pnlFiducialRadio.add(pnlBinBy2);
+
+    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
+    pnlImodMatchModels.add(cbBinBy2);
+    pnlImodMatchModels.add(btnImodMatchModels);
     
 
     pnlFiducialSelect.setLayout(
       new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
     pnlFiducialSelect.add(pnlFiducialRadio);
-    pnlFiducialSelect.add(btnImodMatchModels);
+    pnlFiducialSelect.add(pnlImodMatchModels);
 
     pnlFiducialParams.setBorder(
       new EtchedBorder("Initial Volume Alignment Method").getBorder());

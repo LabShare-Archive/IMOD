@@ -32,6 +32,11 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/05/03 22:26:10  sueh
+ * <p> bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
+ * <p> imodMatchingModel so that checkbox settings can be copied between
+ * <p> Setup and Initial tabs when the Matching Models button is pressed.
+ * <p>
  * <p> Revision 3.4  2004/03/22 23:22:49  sueh
  * <p> bug# 250 synchronize tab with combineParams, matchorwarp does affect Setup
  * <p> tab
@@ -107,10 +112,10 @@ public class InitialCombinePanel implements ContextMenu {
     new LabeledTextField("Residual Threshold: ");
 
   private JPanel pnlModelSelect = new JPanel();
-  private JPanel pnlModelSelectCheckBoxes = new JPanel();
+  private JPanel pnlImodMatchModels = new JPanel();
   private JCheckBox cbUseModel =
     new JCheckBox("Use models of corresponding points, not cross-correlation");
-  private JCheckBox cbBinBy2 = new JCheckBox("Open 3dmod in binned by 2 mode");
+  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -148,12 +153,10 @@ public class InitialCombinePanel implements ContextMenu {
 
     pnlModelSelect.setLayout(new BoxLayout(pnlModelSelect, BoxLayout.X_AXIS));
     pnlModelSelect.add(cbUseModel);
-    pnlModelSelect.add(cbBinBy2);
-    pnlModelSelectCheckBoxes.setLayout(new BoxLayout(pnlModelSelectCheckBoxes, BoxLayout.Y_AXIS));
-    pnlModelSelectCheckBoxes.add(cbUseModel);
-    pnlModelSelectCheckBoxes.add(cbBinBy2);
-    pnlModelSelect.add(pnlModelSelectCheckBoxes);
-    pnlModelSelect.add(btnImodMatchModels);
+    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
+    pnlImodMatchModels.add(cbBinBy2);
+    pnlImodMatchModels.add(btnImodMatchModels);
+    pnlModelSelect.add(pnlImodMatchModels);
     pnlSolvematch.add(pnlModelSelect);
     pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSolvematch.add(ltfFiducialMatchListA.getContainer());
