@@ -1,30 +1,13 @@
-/*  IMOD VERSION 2.30
- *
+/*
  *  imodsortsurf: sort contours into surfaces based on their mesh connections
  *
  *  Author: David Mastronarde,  mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -32,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
 Revision 3.3  2004/07/07 19:25:30  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -258,13 +244,15 @@ int imodObjSortSurf(Iobj *obj)
 
   /* Now go through contours, looking for polygons with a matching vertex */
 
+  obj->surfsize = 0;
   for (co = 0; co < obj->contsize; co++) {
     found = 0;
-    for (pt = 0; pt < obj->cont[co].psize; pt++) {
+    obj->cont[co].surf = 0;
+    for (pt = 0; pt < obj->cont[co].psize && !found; pt++) {
       ptx = obj->cont[co].pts[pt].x;
       pty = obj->cont[co].pts[pt].y;
       ptz = obj->cont[co].pts[pt].z;
-      for (poly = 0; poly < npoly; poly++) {
+      for (poly = 0; poly < npoly && !found; poly++) {
         if (ptz >= zmins[poly] && ptz <= zmaxs[poly]) {
           vertp = obj->mesh[meshes[poly]].vert;
           scanp = starts[poly];
@@ -281,11 +269,7 @@ int imodObjSortSurf(Iobj *obj)
             scanp++;
           }
         }
-        if (found)
-          break;
       }
-      if (found)
-        break;
     } 
   }
   free(zmins);
