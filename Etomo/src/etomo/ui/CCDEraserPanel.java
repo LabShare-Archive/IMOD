@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/11 23:14:08  rickg
+ * <p> Add parameter set and get for new eraser mode
+ * <p>
  * <p> Revision 2.2  2003/07/08 20:49:43  rickg
  * <p> Restructure panel for new ccderaser
  * <p>
@@ -104,7 +107,7 @@ public class CCDEraserPanel implements ContextMenu {
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputImage =
     new LabeledTextField("Output file: ");
-  private JButton btnErase = new JButton("<html><b>Erase pixels</b>");
+  private JButton btnErase = new JButton("<html><b>Erase stack</b>");
   private JButton btnViewErased = new JButton("<html><b>View erased stack</b>");
   private JButton btnReplaceRawStack =
     new JButton("<html><b>Replace raw stack</b>");
@@ -209,6 +212,7 @@ public class CCDEraserPanel implements ContextMenu {
     btnFindXRays.addActionListener(ccdEraserActionListener);
     btnViewXRayModel.addActionListener(ccdEraserActionListener);
     btnCreateModel.addActionListener(ccdEraserActionListener);
+    btnErase.addActionListener(ccdEraserActionListener);
     btnViewErased.addActionListener(ccdEraserActionListener);
     btnReplaceRawStack.addActionListener(ccdEraserActionListener);
     cbXrayReplacement.addActionListener(ccdEraserActionListener);
@@ -223,12 +227,14 @@ public class CCDEraserPanel implements ContextMenu {
   }
 
   /**
-   * Set the 
+   * Set the fields
    * @param ccdEraserParams
    */
   public void setParameters(ConstCCDEraserParam ccdEraserParams) {
-    cbXrayReplacement.setSelected(ccdEraserParams.isFindPeaks());
+    ltfInputImage.setText(ccdEraserParams.getInputFile());
+    ltfOutputImage.setText(ccdEraserParams.getOutputFile());
 
+    cbXrayReplacement.setSelected(ccdEraserParams.isFindPeaks());
     ltfPeakCriterion.setText(ccdEraserParams.getPeakCriterion());
     ltfDiffCriterion.setText(ccdEraserParams.getDiffCriterion());
     ltfGrowCriterion.setText(ccdEraserParams.getGrowCriterion());
@@ -238,8 +244,7 @@ public class CCDEraserPanel implements ContextMenu {
     ltfScanRegionSize.setText(ccdEraserParams.getXyScanSize());
     ltfEdgeExclusion.setText(ccdEraserParams.getEdgeExclusion());
 
-    ltfInputImage.setText(ccdEraserParams.getInputFile());
-    ltfOutputImage.setText(ccdEraserParams.getOutputFile());
+    cbManualReplacement.setSelected(!ccdEraserParams.getModelFile().equals(""));
     ltfGlobalReplacementList.setText(
       ccdEraserParams.getGlobalReplacementList());
     ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
@@ -247,6 +252,7 @@ public class CCDEraserPanel implements ContextMenu {
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
     chkboxIncludeAdjacentPoints.setSelected(
       ccdEraserParams.getIncludeAdjacentPoints());
+
     enableXRayReplacement();
     enableManualReplacement();
   }
@@ -270,6 +276,13 @@ public class CCDEraserPanel implements ContextMenu {
     ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
     ccdEraserParams.setIncludeAdjacentPoints(
       chkboxIncludeAdjacentPoints.isSelected());
+    if (cbManualReplacement.isSelected()) {
+      ccdEraserParams.setModelFile(
+        applicationManager.getDatasetName() + axisID.getExtension() + ".erase");
+    }
+    else {
+      ccdEraserParams.setModelFile("");
+    }
   }
 
   /**
@@ -309,22 +322,22 @@ public class CCDEraserPanel implements ContextMenu {
     String command = event.getActionCommand();
 
     if (command.equals(btnFindXRays.getActionCommand())) {
-      //applicationManager.eraserTrial(axisID);
+      applicationManager.findXrays(axisID);
     }
     else if (command.equals(btnViewXRayModel.getActionCommand())) {
-      //applicationManager.imodXrayModel(axisID);
+      applicationManager.imodXrayModel(axisID);
     }
     else if (command.equals(btnCreateModel.getActionCommand())) {
-      applicationManager.imodErase(axisID);
+      applicationManager.imodManualErase(axisID);
     }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.eraser(axisID);
     }
     else if (command.equals(btnViewErased.getActionCommand())) {
-      //applicationManager.imodViewErased(axisID);
+      applicationManager.imodErasedStack(axisID);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
-      //applicationManager.replaceRawStack(axisID);
+      applicationManager.replaceRawStack(axisID);
     }
     else if (command.equals(cbXrayReplacement.getActionCommand())) {
       enableXRayReplacement();
