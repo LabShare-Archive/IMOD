@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/9/04: Added ability for 3dmod to bin images.  Made the cache fill completely
+upon startup when the user does not limit the size with a -C entry.
+Implemented flipping of cache data by using the existing data load if the data
+are completely loaded.  Relieved restrictions on flipping data: RGB data from
+an MRC file can be flipped, and any data can flipped without reloading if it
+is completely loaded into cache or otherwise, including data from TIFF files,
+montaged data, and data with non-isotropic binning.  Also fixed problems with
+image reload with complex data.
+
+1/9/04: Simplified startup and image loading code in 3dmod, consolidated
+mrc section loading routines into one routine, reorganized the multi-section 
+byte-loading routines to reduce duplicate code, and rationalized the scaling
+of complex data.  Made a test suite for 3dmod data loading.
+
+1/6/04: Made raw2mrc and tif2mrc preserve an existing output file by making it
+a backup file.
+
+12/30/03: Fixed a problem with pixelview with multiple single-image files.
+
+12/30/03: Sampling was broken with the new Newstack, so changed it to treat
+center offsets the old way, after transformations, with a new option to apply
+offsets before transformations.
+
 12/30/03: IMOD_3-2-3
 12/30/03: Made most libraries be DLLs under Windows.
  
