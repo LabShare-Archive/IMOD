@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/03/29 20:47:47  sueh
+ * <p> $bug# 409 user cannot change output file
+ * <p> $
  * <p> $Revision 1.2  2004/03/25 00:43:23  sueh
  * <p> $bug# 409, bug# 418 remove default, add InverseRolloffRadiusSigma, use
  * <p> $ParamUtilities
@@ -30,11 +33,11 @@ public class ConstMTFFilterParam {
   String outputFile;
   String mtfFile;
   double maximumInverse;
-  FortranInputString highFrequencyRadiusSigma;
+  FortranInputString lowPassRadiusSigma;
   FortranInputString inverseRolloffRadiusSigma;
   
   public ConstMTFFilterParam() {
-    highFrequencyRadiusSigma = new FortranInputString(2);
+    lowPassRadiusSigma = new FortranInputString(2);
     inverseRolloffRadiusSigma = new FortranInputString(2);
     reset();
   }
@@ -43,8 +46,8 @@ public class ConstMTFFilterParam {
     inputFile = new String();
     outputFile = new String();
     mtfFile = new String();
-    maximumInverse = 4.0;
-    highFrequencyRadiusSigma.setDefault();
+    maximumInverse = Double.NaN;
+    lowPassRadiusSigma.setDefault();
     inverseRolloffRadiusSigma.setDefault();
   }
   
@@ -54,8 +57,8 @@ public class ConstMTFFilterParam {
   public String getMaximumInverseString() {
     return ParamUtilities.getString(maximumInverse);
   }
-  public String getHighFrequencyRadiusSigmaString() {
-    return highFrequencyRadiusSigma.toString(true);
+  public String getLowPassRadiusSigmaString() {
+    return lowPassRadiusSigma.toString(true);
   }
   public String getInverseRolloffRadiusSigmaString() {
     return inverseRolloffRadiusSigma.toString(true);
