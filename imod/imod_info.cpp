@@ -1,5 +1,4 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imod_info.cpp -- open the imod information window.  Implements the
  *                    InfoWindow class declared in imod_info.h.  The control
  *                    widget is the InfoControls class implemented in 
@@ -10,28 +9,11 @@
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -402,7 +384,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     return;
   if (strchr(keys, 't'))
     editObjectSlot(EOBJECT_MENU_TYPE);
-  if (strchr(keys, 'C'))
+  if (strchr(keys, 'l'))
     editObjectSlot(EOBJECT_MENU_COLOR);
   if (strchr(keys, 'h'))
     editModelSlot(EMODEL_MENU_HEADER);
@@ -410,7 +392,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editModelSlot(EMODEL_MENU_OFFSETS);
   if (strchr(keys, 's'))
     editSurfaceSlot(ESURFACE_MENU_GOTO);
-  if (strchr(keys, 'm'))
+  if (strchr(keys, 'v'))
     editContourSlot(ECONTOUR_MENU_MOVE);
   if (strchr(keys, 'a'))
     editContourSlot(ECONTOUR_MENU_AUTO);
@@ -420,19 +402,21 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'c'))
     editContourSlot(ECONTOUR_MENU_COPY);
+  if (strchr(keys, 'p'))
+    editImageSlot(EIMAGE_MENU_PROCESS);
   if (strchr(keys, 'r'))
     editImageSlot(EIMAGE_MENU_RELOAD);
   if (strchr(keys, 'f'))
     editImageSlot(EIMAGE_MENU_FILLER);
   if (strchr(keys, 'g'))
     imageSlot(IMAGE_MENU_GRAPH);
-  if (strchr(keys, 'T'))
+  if (strchr(keys, 'u'))
     imageSlot(IMAGE_MENU_TUMBLER);
-  if (strchr(keys, 'p'))
+  if (strchr(keys, 'x'))
     imageSlot(IMAGE_MENU_PIXEL);
-  if (strchr(keys, 'l'))
+  if (strchr(keys, 'T'))
     imodPlugOpenByName("Line Track");
-  if (strchr(keys, 'B'))
+  if (strchr(keys, 'F'))
     imodPlugOpenByName("Bead Fixer");
 }
 
@@ -533,6 +517,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.28  2004/11/20 05:05:27  mast
+    Changes for undo/redo capability
+
     Revision 4.27  2004/11/07 23:04:20  mast
     Disabled flip and reload when processing
 
