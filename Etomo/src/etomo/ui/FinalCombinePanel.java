@@ -44,6 +44,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/03/09 01:57:23  sueh
+ * bug# 381 added Restart at Volcombine button
+ *
  * Revision 3.4  2004/03/06 03:48:05  sueh
  * bug# 380 added Use linear interpolation checkbox (advanced)
  *
@@ -458,8 +461,6 @@ public class FinalCombinePanel implements ContextMenu {
    * @param matchorwarpParam
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
-    cbUsePatchRegionModel.setSelected(
-      !matchorwarpParam.getModelFile().equals(""));
     ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
