@@ -512,11 +512,17 @@ static void imodvMakeMontage(int frames, int overlap)
   vw->trans.y += 0.5 * (frames - 1.) * (xunit.y + yunit.y) ;
   vw->trans.z += 0.5 * (frames - 1.) * (xunit.z + yunit.z) ;
 
-  /* 12/2/8/03: Disabling the auto swap and reading from back buffer for db 
+  /* 12/28/03: Disabling the auto swap and reading from back buffer for db 
      did not work here for protecting from occluding stuff (nor does it work 
      in regular snapshot) */
-  for(iy = 0; iy < frames; iy++){
-    for(ix = 0; ix < frames; ix++){
+  // But 4/6/05: It was needed to prevent getting an out-of-date image for
+  // one machine under xorg-6.7.0
+  if (a->db)
+    a->mainWin->mCurGLw->setBufferSwapAuto(false);
+  glReadBuffer(a->db ? GL_BACK : GL_FRONT);
+
+  for (iy = 0; iy < frames; iy++) {
+    for (ix = 0; ix < frames; ix++) {
       imodvDraw(a);
       if (movie->saved) {
         glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
@@ -564,6 +570,10 @@ static void imodvMakeMontage(int frames, int overlap)
     free(linePtrs);
   }
 
+  if (a->db) {
+    imodv_swapbuffers(a);
+    a->mainWin->mCurGLw->setBufferSwapAuto(true);
+  }
   movie->abort = 1;
   vw->rad = radsave;
   vw->trans = transave;
@@ -574,6 +584,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.10  2004/11/29 19:25:21  mast
+    Changes to do QImage instead of RGB snapshots
+
     Revision 4.9  2004/06/15 01:15:18  mast
     Added image transparency and thickness
 
