@@ -45,6 +45,12 @@ DDEESSCCRRIIPPTTIIOONN
   For a given patch, the program will find the contour at the nearest
   Z level and use that one to determine whether to include the patch.
 
+  If there is only one layer of patches in one dimension, there is
+  insufficient information to solve for the full transformation, so
+  the program will solve for only two of the three columns of the
+  transformation matrix.  This typically occurs in the Y dimension,
+  in which case the second column of the matrix is fixed at 0, 1, 0.
+
   
   Inputs to the program:
   

@@ -57,6 +57,13 @@ DDEESSCCRRIIPPTTIIOONN
   by vectors, examine the file in Imod, eliminate aberrant contours,
   and convert the model file to a new patch file with Imod2patch.
 
+  If there is only one layer of patches in the Y dimension, there is
+  insufficient information to solve for the full transformation, so
+  the program will solve for only two of the three columns of each
+  local transformation matrix, and set the second column of each
+  matrix to 0, 1, 0.  The same procedure is used if a particular
+  local area does not have sufficient data on more than one layer in Y.
+
   Inputs to the program:
   
   Name of file with positions and displacements
