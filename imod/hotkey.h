@@ -86,6 +86,7 @@ char *Imod_hotkey_help[] = {
 "v\tOpen Model View Window.\n",
 "G\tOpen Graph window.\n",
 "z\tOpen Zap window.\n",
+"Ctrl-R\tRaise all Imod windows above other windows.\n"
 "\n",
 "\n",
 "",
