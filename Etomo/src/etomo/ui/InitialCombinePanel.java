@@ -28,6 +28,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.10  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -135,8 +138,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
-    ///  Create the solvematch panel
-    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog, appMgr);
+    //  Create the solvematch panel
+    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
+      TomogramCombinationDialog.lblInitial, appMgr);
 
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));

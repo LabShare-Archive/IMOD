@@ -42,6 +42,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2004/06/14 23:39:53  rickg
+ * Bug #383 Transitioned to using solvematch
+ *
  * Revision 3.9  2004/06/13 17:03:23  rickg
  * Solvematch mid change
  *
@@ -280,7 +283,8 @@ public class SetupCombinePanel
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
-    pnlToSelector.setBorder(new EtchedBorder("Tomogram Matching Relationship").getBorder());
+    pnlToSelector.setBorder(new EtchedBorder("Tomogram Matching Relationship")
+      .getBorder());
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.X_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.add(rbBtoA);
@@ -289,7 +293,8 @@ public class SetupCombinePanel
     pnlToSelector.add(Box.createHorizontalGlue());
 
     // Create the solvematch panel
-    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog, appMgr);
+    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
+      TomogramCombinationDialog.lblSetup, appMgr);
     pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
@@ -330,8 +335,10 @@ public class SetupCombinePanel
     pnlPatchParams.add(pnlPatchRegion);
 
     //  Create the temporary storage panel
-    pnlTempDirectory.setBorder(new EtchedBorder("Intermediate Data Storage").getBorder());
-    pnlTempDirectory.setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
+    pnlTempDirectory.setBorder(new EtchedBorder("Intermediate Data Storage")
+      .getBorder());
+    pnlTempDirectory
+      .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(ltfTempDirectory.getContainer());
     pnlTempDirectory.add(cbManualCleanup);
 
@@ -665,11 +672,10 @@ public class SetupCombinePanel
         "Matchorwarp"};
     String[] manPage = {"solvematch.html", "matchshifts.html",
         "patchcrawl3d.html", "matchorwarp.html"};
-    String[] logFileLabel = {"Transferfid", "Solvematch",
-        "Patchcorr", "Matchorwarp", "Volcombine"};
-    String[] logFile = {"transferfid.log", "solvematch.log",
-        "patchcorr.log", "matchorwarp.log",
-        "volcombine.log"};
+    String[] logFileLabel = {"Transferfid", "Solvematch", "Patchcorr",
+        "Matchorwarp", "Volcombine"};
+    String[] logFile = {"transferfid.log", "solvematch.log", "patchcorr.log",
+        "matchorwarp.log", "volcombine.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
       "TOMOGRAM COMBINATION", manPagelabel, manPage, logFileLabel, logFile);

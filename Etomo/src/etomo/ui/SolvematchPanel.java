@@ -33,6 +33,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.1  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p> </p>
@@ -69,10 +72,12 @@ public class SolvematchPanel implements InitialCombineFields {
     "Residual Threshold: ");
 
   private TomogramCombinationDialog tomogramCombinationDialog;
+  private String parentTitle;
 
-  public SolvematchPanel(TomogramCombinationDialog parent,
+  public SolvematchPanel(TomogramCombinationDialog parent, String title,
     ApplicationManager appMgr) {
     tomogramCombinationDialog = parent;
+    parentTitle = title;
     applicationManager = appMgr;
     //  Create the fiducial relationship panel
     pnlFiducialRadio
@@ -297,8 +302,8 @@ public class SolvematchPanel implements InitialCombineFields {
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
-    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
-      true, TomogramCombinationDialog.ALL_FIELDS);
+    tomogramCombinationDialog.synchronize(parentTitle, true,
+      TomogramCombinationDialog.ALL_FIELDS);
 
     String command = event.getActionCommand();
     if (event.getActionCommand().equals(btnImodMatchModels.getActionCommand())) {
@@ -382,7 +387,7 @@ public class SolvematchPanel implements InitialCombineFields {
     text = "Select this option to use ONLY models of corresponding points to"
       + "find the shifts between volumes.";
     rbUseModelOnly.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text = "Using binning by 2 when opening matching models to allow the two 3dmods "
       + "to fit into the computer's memory.";
     cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
