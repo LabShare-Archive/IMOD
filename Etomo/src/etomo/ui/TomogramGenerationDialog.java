@@ -25,6 +25,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
@@ -61,6 +62,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2005/03/09 22:33:23  sueh
+ * bug# 533 Modify the context sensitive help so that it displays blendmont
+ * man pages and log files instead of newst when the view type is montage.
+ * Change "Newstack Parameters" to blendmont.
+ *
  * Revision 3.36  2005/03/09 18:12:29  sueh
  * bug# 533 In the final alignment box disable linear interpolation and binning
  * when the view type is montage.
@@ -521,6 +527,10 @@ public class TomogramGenerationDialog extends ProcessDialog
       spinBinning.setValue(binning);
     }
   }
+  
+  public void setBlendParams(BlendmontParam blendmontParam) {
+    cbBoxUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
+  }
 
   /**
    * Set the UI parameters with the specified tiltParam values
@@ -587,6 +597,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     else {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
+  }
+
+  public void getBlendParams(BlendmontParam blendmontParam) {
+    blendmontParam.setLinearInterpolation(cbBoxUseLinearInterpolation.isSelected());
   }
 
   /**
@@ -809,7 +823,6 @@ public class TomogramGenerationDialog extends ProcessDialog
           .getBorder());
     }
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      cbBoxUseLinearInterpolation.setEnabled(false);
       spinBinning.setEnabled(false);
     }
     UIUtilities.addWithYSpace(pnlNewstParams, cbBoxUseLinearInterpolation);
