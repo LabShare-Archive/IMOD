@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/26 05:33:27  mast
+c	  change command files to use unit 4 instead reopening 5
+c	
 c	  Revision 3.3  2003/08/29 17:32:42  mast
 c	  Change to use new multithreaded Plax graphics
 c	
@@ -30,7 +33,7 @@ c
      &	    limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000,limflag=512)
 	parameter (limprobs=50,limprobsets=50)
-	parameter (nOptNeedModel=11)
+	parameter (nOptNeedModel=10)
 	real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
 	real*4 xmt(limxyz),ymt(limxyz),zmt(limxyz)
 	integer*4 iobjflag(limflag)

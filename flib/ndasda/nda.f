@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/10/26 05:33:27  mast
+c	  change command files to use unit 4 instead reopening 5
+c	
 c	  Revision 3.4  2003/08/29 17:32:27  mast
 c	  Change to use new multithreaded Plax graphics
 c	
@@ -40,7 +43,7 @@ c
 	parameter (limgraphs=50,limbins=301,limpnts=50000,
      &	    limvert=5000,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)
-	parameter (nOptNeedModel=13)
+	parameter (nOptNeedModel=12)
 	real*4 bx(limvert),by(limvert)		!boundary vertices
 	real*4 sx(limpnts),sy(limpnts)			!sample points
 	real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
