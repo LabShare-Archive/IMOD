@@ -13,6 +13,10 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/07/22 22:14:47  rickg
+ * <p> Default parameters for automatic x-ray detection
+ * <p> Delete keys containing empty parameters.
+ * <p>
  * <p> Revision 2.4  2003/07/11 23:15:39  rickg
  * <p> New key/value parameters structure
  * <p> new ccderaser mode
@@ -48,7 +52,7 @@ public class CCDEraserParam
    * @param scriptCommand the ComScriptCommand containg the ccderaser command
    * and parameters.
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException, InvalidParameterException {
 
     //  Check to be sure that it is a ccderaser command
@@ -110,7 +114,7 @@ public class CCDEraserParam
   /**
    * Update the script command with the
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
 
     //  Check to be sure that it is a ccderaser xommand

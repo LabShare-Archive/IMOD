@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:23:37  rickg
  * <p> Comment update
  * <p>
@@ -40,7 +43,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void parseComScript(ComScriptCommand scriptCommand) {
+  public void parseComScriptCommand(ComScriptCommand scriptCommand) {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
@@ -71,7 +74,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * object
    * @param scriptCommand the script command to be updated
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     // Create a new command line argument array
 

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.6  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.5  2003/05/13 22:40:04  rickg
  * <p> Changed error string
  * <p>
@@ -38,7 +41,7 @@ public class SolvematchshiftParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,
@@ -71,7 +74,7 @@ public class SolvematchshiftParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     //  Check to be sure that it is a solvematch command
     if (!scriptCommand.getCommand().equals("solvematch")) {

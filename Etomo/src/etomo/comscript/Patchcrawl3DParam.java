@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.5  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.4  2003/04/29 20:13:40  rickg
  * <p> Corrected range for number of patchcrawl args
  * <p>
@@ -39,7 +42,7 @@ public class Patchcrawl3DParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,
@@ -119,7 +122,7 @@ public class Patchcrawl3DParam
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
-  public void updateComScript(ComScriptCommand scriptCommand) {
+  public void updateComScriptCommand(ComScriptCommand scriptCommand) {
     // TODO Complete parameter => command line mapping
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     String badParameter = "";

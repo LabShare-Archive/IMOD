@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:21:07  rickg
  * <p> Comment update
  * <p>
@@ -48,7 +51,7 @@ public class BeadtrackParam
    * @param scriptCommand the ComScriptCommand containg the beadtrack command
    * and parameters.
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException, FortranInputSyntaxException {
 
     //  get the input arguments from the command
@@ -142,7 +145,7 @@ public class BeadtrackParam
    * @throws BadComScriptException when the script command does not contain a
    * beadtrack command or the number of input arguments is incorrect.
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
 
     //  Get the existing input arguments from the command, this is so the

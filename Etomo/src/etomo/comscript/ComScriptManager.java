@@ -21,6 +21,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.7  2003/06/23 23:28:32  rickg
  * <p> Return exception class name in error dialog
  * <p>
@@ -622,7 +625,7 @@ public class ComScriptManager {
     ComScriptCommand comScriptCommand = null;
     try {
       comScriptCommand = script.getScriptCommand(command);
-      params.updateComScript(comScriptCommand);
+      params.updateComScriptCommand(comScriptCommand);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
@@ -678,7 +681,7 @@ public class ComScriptManager {
     AxisID axisID) {
 
     try {
-      param.parseComScript(comScript.getScriptCommand(command));
+      param.parseComScriptCommand(comScript.getScriptCommand(command));
     }
     catch (Exception except) {
       except.printStackTrace();

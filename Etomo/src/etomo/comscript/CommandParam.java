@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.2  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p> </p>
@@ -23,17 +26,17 @@ public interface CommandParam {
    * Initialize the parameter object from the ComScriptCommand object
    * @param scriptCommand
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws
       BadComScriptException,
       FortranInputSyntaxException,
       InvalidParameterException;
 
   /**
-   * Replace the parametes of the ComScriptCommand with the current 
+   * Replace the parameters of the ComScriptCommand with the current 
    * CommandParameter object's parameters
    * @param scriptCommand
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException;
 }

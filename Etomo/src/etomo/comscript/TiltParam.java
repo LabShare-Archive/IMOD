@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/06/25 22:15:32  rickg
+ * <p> Manage all tilt parameters
+ * <p>
  * <p> Revision 2.5  2003/06/23 23:27:39  rickg
  * <p> Stricter typing of parameters
  * <p>
@@ -52,7 +55,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void parseComScript(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
@@ -260,7 +263,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * object
    * @param scriptCommand the script command to be updated
    */
-  public void updateComScript(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     // Create a new command line argument array
 
