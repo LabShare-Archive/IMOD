@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.comscript.TiltalignParam;
 import etomo.comscript.TrimvolParam;
 import etomo.util.MRCHeader;
 
@@ -22,6 +23,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/06 18:19:05  sueh
+* <p> bug# 578 added alignSkewOption and alignXStretchOption.
+* <p>
 * <p> Revision 1.4  2004/12/16 02:31:24  sueh
 * <p> bug# 564 Manage trimvol flipped state and squeezevol flipped state
 * <p> separately.  If trimvol flipped state changes and squeezevol is not rerun,
@@ -46,8 +50,8 @@ public class TomogramState implements BaseState {
   
   EtomoBoolean trimvolFlipped = new EtomoBoolean("TrimvolFlipped");
   EtomoBoolean squeezevolFlipped = new EtomoBoolean("SqueezevolFlipped");
-  EtomoNumber alignSkewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "AlignSkewOption");
-  EtomoNumber alignXStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "AlignXStretchOption");
+  EtomoBoolean madeZFactors = new EtomoBoolean("MadeZFactors");
+  EtomoBoolean newstFiducialessAlignment = new EtomoBoolean("NewstFiducialessAlignment");
   
   public TomogramState() {
     trimvolFlipped.setBackwardCompatibleValue(new EtomoBoolean()).setResetValue(false);
@@ -57,8 +61,8 @@ public class TomogramState implements BaseState {
   void reset() {
     trimvolFlipped.reset();
     squeezevolFlipped.reset();
-    alignSkewOption.reset();
-    alignXStretchOption.reset();
+    madeZFactors.reset();
+    newstFiducialessAlignment.reset();
   }
   
   public void store(Properties props) {
@@ -70,8 +74,8 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.store(props, prepend);
     squeezevolFlipped.store(props, prepend);
-    alignSkewOption.store(props, prepend);
-    alignXStretchOption.store(props, prepend);
+    madeZFactors.store(props, prepend);
+    newstFiducialessAlignment.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -81,10 +85,10 @@ public class TomogramState implements BaseState {
     if (!squeezevolFlipped.equals(that.squeezevolFlipped)) {
       return false;
     }
-    if (!alignSkewOption.equals(that.alignSkewOption)) {
+    if (!madeZFactors.equals(that.madeZFactors)) {
       return false;
     }
-    if (!alignXStretchOption.equals(that.alignSkewOption)) {
+    if (!newstFiducialessAlignment.equals(that.newstFiducialessAlignment)) {
       return false;
     }
     return true;
@@ -107,8 +111,8 @@ public class TomogramState implements BaseState {
     String group = prepend + ".";
     trimvolFlipped.load(props, prepend);
     squeezevolFlipped.load(props, prepend);
-    alignSkewOption.load(props, prepend);
-    alignXStretchOption.load(props, prepend);
+    madeZFactors.load(props, prepend);
+    newstFiducialessAlignment.load(props, prepend);
   }
   
   public ConstEtomoBoolean setTrimvolFlipped(boolean trimvolFlipped) {
@@ -119,12 +123,12 @@ public class TomogramState implements BaseState {
     return this.squeezevolFlipped.set(squeezevolFlipped);
   }
   
-  public ConstEtomoNumber setAlignSkewOption(int alignSkewOption) {
-    return this.alignSkewOption.set(alignSkewOption);
+  public ConstEtomoBoolean setMadeZFactors(boolean madeZFactors) {
+    return this.madeZFactors.set(madeZFactors);
   }
   
-  public ConstEtomoNumber setAlignXStretchOption(int alignXStretchOption) {
-    return this.alignXStretchOption.set(alignXStretchOption);
+  public ConstEtomoBoolean setNewstFiducialessAlignment(boolean newstFiducialessAlignment) {
+    return this.newstFiducialessAlignment.set(newstFiducialessAlignment);
   }
   
   public ConstEtomoBoolean getTrimvolFlipped() {
@@ -135,12 +139,20 @@ public class TomogramState implements BaseState {
     return squeezevolFlipped;
   }
   
+  public ConstEtomoBoolean getMadeZFactors() {
+    return madeZFactors;
+  }
+  
+  public ConstEtomoBoolean getNewstFiducialessAlignment() {
+    return newstFiducialessAlignment;
+  }
+  
   /**
    * Backward compatibility
    * function decide whether trimvol is flipped based on the header
    * @return
    */
-  public boolean getTrimvolFlippedFromHeader() {
+  public boolean getBackwordCompatibleTrimvolFlipped() {
     //If trimvol has not been run, then assume that the tomogram has not been
     //flipped.
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
@@ -161,10 +173,85 @@ public class TomogramState implements BaseState {
       return false;
     }
     if (header.getNRows() < header.getNSections()) {
-      System.err.println("Assuming that " + trimvolFile.getName() + " has not been flipped\nbecause the Y is less then Z in the header.");
+      System.err.println("Assuming that " + trimvolFile.getName() + " has not been flipped\n"
+          + "because the Y is less then Z in the header.");
       return false;
     }
-    System.err.println("Assuming that " + trimvolFile.getName() + " has been flipped\nbecause the Y is greater or equal to Z in the header.");
+    System.err.println("Assuming that " + trimvolFile.getName() + " has been flipped\n" 
+        + "because the Y is greater or equal to Z in the header.");
     return true;
   }
+  
+  /**
+   * Backward compatibility
+   * function decide whether z factors where made based on the relationship
+   * between .zfac file and the .tltxf file
+   * @return
+   */
+  public boolean getBackwordCompatibleMadeZFactors(AxisID axisID) {
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    String userDir = etomoDirector.getCurrentPropertyUserDir();
+    ApplicationManager manager = (ApplicationManager) etomoDirector
+        .getCurrentManager();
+    String datasetName = manager.getMetaData().getDatasetName();
+    File zFactorFile = new File(userDir, TiltalignParam.getOutputZFactorFileName(datasetName, axisID));
+    File tltxfFile = new File(userDir, datasetName + axisID.getExtension() + ".tltxf");
+    if (!zFactorFile.exists()) {
+      System.err.println("Assuming that madeZFactors is false\n" 
+          + "because " + zFactorFile.getName() + " does not exist.");
+      return false;
+    }
+    if (!tltxfFile.exists()) {
+      System.err.println("Assuming that madeZFactors is false\n" 
+          + "because " + tltxfFile.getName() + " does not exist.");
+      return false;
+    }
+    if (zFactorFile.lastModified() < tltxfFile.lastModified()) {
+      System.err.println("Assuming that madeZFactors is false\n" 
+          + "because " + zFactorFile.getName() + " is older then " + tltxfFile.getName() + ".");
+
+      return false;
+    }
+    System.err.println("Assuming that madeZFactors is true\n" 
+        + "because " + zFactorFile.getName() + " was modified after " + tltxfFile.getName() + ".");
+    return true;
+  }
+  
+  /**
+   * Backward compatibility
+   * function to decide whether the .ali file was created with fiducials or not.
+   * @return
+   */
+  public boolean getBackwordCompatibleNewstFiducialessAlignment(AxisID axisID) {
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    String userDir = etomoDirector.getCurrentPropertyUserDir();
+    ApplicationManager manager = (ApplicationManager) etomoDirector
+        .getCurrentManager();
+    String datasetName = manager.getMetaData().getDatasetName();
+    File alignFile = new File(userDir, datasetName + axisID.getExtension() + ".ali");
+    File rotationFile = new File(userDir, "rotation" + axisID.getExtension() + ".xf");
+    File nonfidFile = new File(userDir, datasetName + axisID.getExtension() + "_nonfid.xf");
+    if (!alignFile.exists()) {
+      System.err.println("Assuming that newstFiducialessAlignment is false\n" 
+          + "because " + alignFile.getName() + " does not exist.");
+      return false;
+    }
+    if (!nonfidFile.exists()) {
+      System.err.println("Assuming that newstFiducialessAlignment is false\n" 
+          + "because " + nonfidFile.getName() + " does not exist.");
+      return false;
+    }
+    //rotation.xf is always modified before running newst.
+    //_nonfid.xf is created from rotation.xf when in nonfiducial mode
+    if (rotationFile.lastModified() > nonfidFile.lastModified()) {
+      System.err.println("Assuming that newstFiducialessAlignment is false\n" 
+          + "because " + rotationFile.getName() + " is older then " + nonfidFile.getName() + ".");
+
+      return false;
+    }
+    System.err.println("Assuming that newstFiducialessAlignment is true\n" 
+        + "because " + rotationFile.getName() + " was modified after " + nonfidFile.getName() + ".");
+    return true;
+  }
+
 }
