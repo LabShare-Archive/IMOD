@@ -6,8 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
@@ -48,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2004/12/04 00:32:13  sueh
+* <p> bug# 570 Setting paramFile by calling endSetupMode() when running
+* <p> makejoincom.
+* <p>
 * <p> Revision 1.6  2004/11/24 18:10:12  sueh
 * <p> bug# 520 Added binning in XY.
 * <p>
@@ -469,34 +471,19 @@ public class JoinManager extends BaseManager {
     return true;
   }
   
-  protected boolean saveTestParamIfNecessary() {
-    // Check to see if the screen has changed
-    if (!joinDialog.equals(metaData)) {
-      String[] message = {"Data has been changed on the screen.","Save data?"};
-      int returnValue = mainFrame.openYesNoCancelDialog(message);
-      if (returnValue == JOptionPane.CANCEL_OPTION) {
-        return false;
-      }
-      if (returnValue == JOptionPane.NO_OPTION) {
-        return true;
-      }
-      //if fields used to produce a sample have changed then the sample isn't
-      //up to date
-      if (!joinDialog.equalsSample(metaData)) {
-        metaData.setSampleProduced(false);
-      }
-      joinDialog.getMetaData(metaData);
-      // If the user selects Yes then try to save the current EDF file
-      if (paramFile == null && !endSetupMode() &&!getMainPanel().getTestParamFilename()) {
-        return false;
-      }
-      // Be sure the file saving was successful
-      saveTestParamFile();
-      if (isDataParamDirty) {
-        return false;
-      }
+  protected void saveTestParamOnExit() {
+    if (!joinDialog.equalsSample(metaData)) {
+      metaData.setSampleProduced(false);
     }
-    return true;
+    joinDialog.getMetaData(metaData);
+    // If the user selects Yes then try to save the current EDF file
+    if (paramFile == null && !endSetupMode()) {
+      return;
+    }
+    // Be sure the file saving was successful
+    if (paramFile != null) {
+      saveTestParamFile();
+    }
   }
   
   public boolean canChangeParamFileName() {
