@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/01: IMOD_2-6-1
+
 12/3/01: Restored capability of Fortran programs to read old Wimp binary
 models even though the package is compiled to convert IEEE floats rather than
 VMS floats, and made this work on both little and big endian machines.
