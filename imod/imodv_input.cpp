@@ -125,6 +125,10 @@ void imodvKeyPress(QKeyEvent *event)
   float elapsed;
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
+
+  if (keypad)
+    keysym = inputConvertNumLock(keysym);
+
   if (state & Qt::ShiftButton)
     tstep = 10;
 
@@ -328,6 +332,7 @@ void imodvKeyPress(QKeyEvent *event)
     else
       imodv_translated(a, tstep, 0, 0);
     break;
+  case Qt::Key_5:
   case Qt::Key_Enter:
     if (!keypad)
       break;
@@ -1001,6 +1006,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.4  2003/02/27 23:09:21  mast
+    Change to use Qt time functions for timing values
+
     Revision 4.3  2003/02/27 17:27:51  mast
     Use new b3dX,Y,Z
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/03/12 21:35:23  mast
+Test if no CIImage is returned and give error message
+
 Revision 4.2  2003/02/27 19:40:46  mast
 remove slow floor() calls
 
@@ -479,6 +482,9 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   int newdata = 1;
   float xrot, yrot, zrot;
   
+  if (event->state() & Qt::Keypad)
+    key = inputConvertNumLock(key);
+
   if (key == hotSliderKey()) {
     mCtrlPressed = true;
     grabKeyboard();

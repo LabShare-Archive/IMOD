@@ -132,11 +132,13 @@ void slicerHelp()
      "the image slice and the thickness of model that is shown on the slice.\n"
      "\nMouse Actions\n",
      "-----------------\n",
-     "Left button: Pick a new current viewing point in the data volume\n"
-     "Middle button: In model mode, insert a point after the current "
-     "point\n"
-     "Right button: In model mode, move the current point to the "
-     "selected location\n\n",
+     "\tAll mouse buttons will change the current viewing point in the data "
+     "volume, unless the image position is locked by the lock button.\n"
+     "\tIn model mode, the buttons will also perform as in other windows:\n"
+     "Left button: Attach to the nearest model point, or detach from the"
+     "current contour\n"
+     "Middle button: Insert a point after the current point\n"
+     "Right button: Move the current point to the selected location\n\n",
      "Hot Keys\n",
      "-----------\n",
      "-/=\tDecrease/Increase zoom\n",
@@ -276,6 +278,8 @@ void slicerImageThickness(SlicerStruct *ss, int sno)
 void slicerModelThickness(SlicerStruct *ss, float depth)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
+  if (fabs(ss->depth - 0.1) < 0.01 && fabs(depth - 1.1) < 0.01)
+    depth = 1.0;
   ss->depth = depth;
   if (ss->depth <= 0.0)
     ss->depth = 0.1;
@@ -432,6 +436,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int ob, co, pt, axis;
   Icont *cont;
 
+  if (event->state() & Qt::Keypad)
+    keysym = inputConvertNumLock(keysym);
+
   ivwControlPriority(ss->vi, ss->ctrl);
 
   if (imodPlugHandleKey(ss->vi, event)) 
@@ -536,9 +543,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }
     if (keysym == Qt::Key_Down) 
       ss->tang[lang] -= 0.5;
-    if (keysym == Qt::Key_Left) 
+    if (keysym == Qt::Key_Left)
       ss->tang[lang] -= 0.1;
-    if (keysym == Qt::Key_Right) 
+    if (keysym == Qt::Key_Right)
       ss->tang[lang] += 0.1;
     if (keysym == Qt::Key_Up)
       ss->tang[lang] += 0.5;
@@ -1848,6 +1855,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.7  2003/03/12 21:35:23  mast
+Test if no CIImage is returned and give error message
+
 Revision 4.6  2003/03/12 06:40:27  mast
 Prevented adding or modifying points at the wrong time, made lock really
 lock image for all mouse events so that one can model on a locked image,

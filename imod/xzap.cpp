@@ -828,7 +828,8 @@ static void zapTranslate(ZapStruct *zap, int x, int y)
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 {
   ZapStruct *zap = (ZapStruct *)client;
-  if ((e->state() & Qt::Keypad) && e->key() == Qt::Key_Insert)
+  if ((e->state() & Qt::Keypad) && (e->key() == Qt::Key_Insert ||
+                                    e->key() == Qt::Key_0))
     return;
   if (released)
     zapKeyRelease(zap, e);
@@ -836,8 +837,6 @@ static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
     zapKeyInput(zap, e);
 }
 
-/* DNM: change the key definitions that were #ifndef __sgi to #ifdef __vms
-   since they seemed to work under Linux */
 
 /* static QTime downtime; */
 
@@ -852,6 +851,9 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int keypad = event->state() & Qt::Keypad;
   int handled = 0;
   /* downtime.start(); */
+
+  if (keypad)
+    keysym = inputConvertNumLock(keysym);
 
   ivwControlPriority(zap->vi, zap->ctrl);
   ivwControlActive(vi, 0);
@@ -1122,7 +1124,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
 {
   /*  printf ("%d down\n", downtime.elapsed()); */
-  if (!insertDown || event->key() != Qt::Key_Insert)
+  if (!insertDown || !(event->state() & Qt::Keypad) ||
+      (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
   zap->gfx->setMouseTracking(false);
@@ -2589,6 +2592,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.10  2003/03/12 21:35:23  mast
+Test if no CIImage is returned and give error message
+
 Revision 4.9  2003/03/12 06:36:53  mast
 Fixed problem of adding or modifying points at the wrong time
 
