@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdio.h>
 #include <math.h>
 #include <Xm/Xm.h>
@@ -1009,6 +1017,20 @@ void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
 	  /* DNM: check wild flag here */
 	  ivwCheckWildFlag(App->cvi->imod);
 	  imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+	  break;
+
+	case 4:
+	  if (App->cvi->vmSize)
+	       imodCacheFill(App->cvi);
+	  else
+	       wprint("Cache is not active.\n");
+	  break;
+
+	case 5:
+	  if (App->cvi->vmSize)
+	       imodCacheFillDialog(App->cvi);
+	  else
+	       wprint("Cache is not active.\n");
 	  break;
 
 	default:
