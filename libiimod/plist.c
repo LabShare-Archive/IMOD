@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <mrcc.h>
 #include <stdlib.h>
-#include <errno.h>
 #include "b3dutil.h"
 
 static int plist_load(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
@@ -15,7 +14,9 @@ int mrc_plist_li(struct LoadInfo *li, struct MRCheader *hdata, char *fname)
      fin = fopen(fname, "r");
      if (!fin){
 	  li->plist = 0;
-      b3dError("ERROR in piece list load: %s", strerror(errno));
+
+	  /* DNM 11/24/03: took out errno-based report because it wouldn't link in Visual C */
+      b3dError(stderr, "ERROR opening piece list file");
 	  return(-1);
      }
      retval = (mrc_plist_load(li, hdata, fin));
