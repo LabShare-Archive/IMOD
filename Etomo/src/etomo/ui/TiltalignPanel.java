@@ -36,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/12/30 19:33:53  sueh
+ * <p> bug# 567 In createGeneralTab() Maved the items in the Resdual Reporting
+ * <p> box to make two rows.
+ * <p>
  * <p> Revision 3.9  2004/12/30 18:48:34  sueh
  * <p> bug# 567 In createVariablePanel(): Reduce the space between the
  * <p> checkbox and the text fields
@@ -1096,7 +1100,7 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     SpacedPanel bottomResidualPanel = new SpacedPanel(FixedDim.x10_y0);
     bottomResidualPanel.setLayout(new BoxLayout(bottomResidualPanel.getContainer(), BoxLayout.X_AXIS));
     bottomResidualPanel.setComponentAlignmentX(Container.RIGHT_ALIGNMENT);
-    bottomResidualPanel.add(new JLabel("relative to"));
+    bottomResidualPanel.add(new JLabel("Relative to"));
     //create radio button group
     JRadioButton[] items = new JRadioButton[2];
     items[0] = rbResidAllViews;
