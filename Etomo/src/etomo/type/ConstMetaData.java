@@ -17,6 +17,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.1  2003/03/18 23:47:20  rickg
  * <p> Changed method name to get CombineParams reference
  * <p>
@@ -40,10 +43,9 @@ public class ConstMetaData {
   public static final String rcsid =
     "$Id$";
 
-  protected String revisionNumber = "1.3";
+  protected String revisionNumber = "1.4";
   protected String datasetName = "";
   protected String backupDirectory = "";
-  protected String workingDirectory = "";
 
   protected DataSource dataSource = DataSource.CCD;
   protected AxisType axisType = AxisType.SINGLE_AXIS;
@@ -81,10 +83,6 @@ public class ConstMetaData {
 
   public String getBackupDirectory() {
     return backupDirectory;
-  }
-
-  public String getWorkingDirectory() {
-    return workingDirectory;
   }
 
   public DataSource getDataSource() {
@@ -150,18 +148,18 @@ public class ConstMetaData {
   public boolean isValid() {
 
     // Does the working directory exist
-    File cwd = new File(workingDirectory);
-    if (!cwd.exists()) {
+    File workingDirectory = new File(System.getProperty("user.dir"));
+    if (!workingDirectory.exists()) {
       invalidReason = "Working directory does not exist";
       return false;
     }
 
-    if (!cwd.canRead()) {
+    if (!workingDirectory.canRead()) {
       invalidReason = "Can't read working directory";
       return false;
     }
 
-    if (!cwd.canWrite()) {
+    if (!workingDirectory.canWrite()) {
       invalidReason = "Can't write working directory";
       return false;
     }
