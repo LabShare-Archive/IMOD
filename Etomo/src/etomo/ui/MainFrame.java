@@ -50,6 +50,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.18  2003/10/30 20:29:55  rickg
+ * <p> Bug# 341 3dmod and eTomo users guide
+ * <p>
  * <p> Revision 2.17  2003/10/15 17:27:05  sueh
  * <p> Bug266 added a file filter to getTestParamFilename()
  * <p>
@@ -391,14 +394,20 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   public boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
+    File workingDir = new File(System.getProperty("user.dir"));
     JFileChooser chooser =
-      new JFileChooser(new File(System.getProperty("user.dir")));
+      new JFileChooser(workingDir);
     EtomoFileFilter edfFilter = new EtomoFileFilter();
     chooser.setFileFilter(edfFilter);
     chooser.setDialogTitle("Save etomo data file");
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    File[] edfFiles = workingDir.listFiles(edfFilter);
+    if (edfFiles.length == 0) {
+      File defaultFile = new File(workingDir, applicationManager.getDatasetName() + ".edf");
+      chooser.setSelectedFile(defaultFile);
+    }
     int returnVal = chooser.showSaveDialog(this);
 
     if (returnVal != JFileChooser.APPROVE_OPTION) {
