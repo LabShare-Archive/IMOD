@@ -3894,6 +3894,30 @@ public class ApplicationManager {
     }
   }
 
+//SUEH 317
+  /**
+   * 
+   */
+  public static Object getDefaultUIResource(Object target, String name) {
+
+    // sets the default font for all Swing components.
+    // ex. 
+    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
+    // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    if (target == null || name == null) {
+      return null;
+    }
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (key.toString() == name && value.getClass() == target.getClass()) {
+        return value;
+      }
+    }
+    return null;
+  }
+
   /**
    * Return the IMOD directory
    */
