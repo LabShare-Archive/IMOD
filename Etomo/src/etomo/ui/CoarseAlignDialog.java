@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/15 20:33:55  rickg
+ * <p> button variable name changes to btn...
+ * <p>
  * <p> Revision 3.3  2004/03/13 00:34:13  rickg
  * <p> Bug# 390 Add set/get prenewst parameters
  * <p>
@@ -196,10 +199,15 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   public void getPrenewstParams(NewstParam prenewstParam) {
     pnlPrenewst.getParameters(prenewstParam);
   }
+
+  public void setFiducialessAlignment(boolean state) {
+    pnlPrenewst.setFiducialessAlignment(state);
+  }
   
-  /**
-   * Return the rootPanel object
-   */
+  public boolean isFiducialessAlignment() {
+    return pnlPrenewst.isFiducialessAlignment();
+  }
+  
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
     updateAdvanced();
@@ -290,15 +298,16 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     super.buttonExecuteAction(event);
     applicationManager.doneCoarseAlignDialog(axisID);
   }
-}
-class CoarseAlignActionListener implements ActionListener {
-  CoarseAlignDialog adaptee;
+  
+  class CoarseAlignActionListener implements ActionListener {
+    CoarseAlignDialog adaptee;
 
-  CoarseAlignActionListener(CoarseAlignDialog adaptee) {
-    this.adaptee = adaptee;
-  }
+    CoarseAlignActionListener(CoarseAlignDialog adaptee) {
+      this.adaptee = adaptee;
+    }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
   }
 }
