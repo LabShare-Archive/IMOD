@@ -130,12 +130,15 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/04/29 16:18:37  mast
+c	  Added test to keep it from failing when images match perfectly
+c	
 *   
-	parameter (ixlim=2100,iylim=2100)
+	parameter (ixlim=2100,iylim=2100,idima=4100*4100)
 	parameter (isub=ixlim*iylim/3,limspir=1000)
 	parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
 	COMMON //NX,NY,NZ
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(ixlim*iylim)
+	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(idima)
 	EQUIVALENCE (NX,NXYZ)
 C	  
 	CHARACTER*80 FILIN1,FILIN2,DATOUT,xfinfile
@@ -338,7 +341,7 @@ C	  Open data file for transform
 C	  
 	CALL DOPEN(4,DATOUT,'NEW','F')
 C	  
-	IF (NX*NY.GT.ixlim*iylim) GOTO 94
+	IF (NX*NY.GT.idima) GOTO 94
 C	  just get second section to work with 
 	call irdsec(2,array,*99)
 c	  
@@ -355,6 +358,9 @@ C
 	  a(1)=a(1)/2.
 	  a(2)=a(2)/2.
 	enddo
+c	  check reduced size against size of B
+	if (nx*ny.gt.ixlim*iylim) goto 94
+
 c	  Just deal with points in central portion
 	if(fracmatt.ge.1.)then
 	  mattx=nint(fracmatt/rds)
@@ -580,13 +586,13 @@ C
 	CALL IMCLOSE(1)
 	CALL IMCLOSE(2)
 C	  
-	STOP
+	call exit(0)
 C	  
 94	PRINT *,'IMAGE TOO BIG.'
-	STOP
+	call exit(1)
 99	WRITE(6,400)
 400	FORMAT(' END OF IMAGE WHILE READING')
-	STOP
+	call exit(1)
 	END
 C	  
 *********************************************************************
@@ -653,6 +659,9 @@ C
 C	  
 	DIMENSION ARRAY(nx,ny),BRRAY(nx,ny),A(6),amat(2,2)
 C	  
+	real*4 deltalast/0./
+	save deltalast
+
 	DELTA=0.
 	XCEN=FLOAT(NX)*0.5+1			!use +1 to be consistent
 	YCEN=FLOAT(NY)*0.5+1			!with qdinterp usage
@@ -731,7 +740,15 @@ C
 	  ENDDO
 	endif
 C	  
-	delta=(delta*nx*ny)/npix
+c	  DNM 5/17/02: if the number of pixels falls below a small threshold
+c	  return a big delta; otherwise adjust for # of pixels and save value
+c
+	if (npix.gt.0.01*nx*ny)then
+	  delta=(delta*nx*ny)/npix
+	  deltalast=delta
+	else
+	  delta = 10.*deltalast
+	endif
 	RETURN
 C	  
 	END
@@ -804,11 +821,11 @@ c	  Function to be called by minimization routine
 c
 	function func(x)
 	real*4 x(*),a(6)
-	parameter (ixlim=2100,iylim=2100,limspir=1000)
+	parameter (ixlim=2100,iylim=2100,limspir=1000,idima=4100*4100)
 	parameter (isub=ixlim*iylim/3)
 	parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
 	COMMON //NX,NY,NZ
-	real*4 array(ixlim*iylim),brray(ixlim*iylim)
+	real*4 array(idima),brray(ixlim*iylim)
 	integer*4 idxspir(limspir),idyspir(limspir)
 	integer*2 ixcomp(isub),iycomp(isub)
 	real*4 distspir(limspir),denlo(isub),denhi(isub)
