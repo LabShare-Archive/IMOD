@@ -40,6 +40,8 @@ set swap_ieee       = true
 set no_xlibs        = false
 set distname        = ""
 set packqt          = false
+set qtthread        = true
+set m64bit          = false
 
 set inst_dir        = default
 set tifflibs        = default
@@ -286,6 +288,14 @@ switch($target_computer)
                 set machine = rhlinux
                 goto rhlinux
                 breaksw
+        # AMD64 Linux (SuSe 9.0)
+        # added by CER  March 3, 2003
+        case x86_64__Linux__*__*:
+                echo $target_computer is AMD64 running Linux
+                set machine = rhlinux
+                goto amd64linux
+                breaksw
+
         # Cygwin on Intel 
         case i686__CYGWIN_NT-5.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows
@@ -430,6 +440,9 @@ goto standard_defines
 #############################################################################
 # Intel running Red Hat Linux 7.0
 #
+amd64linux:
+set m64bit = true
+
 rhlinux:
 source machines/rhlinux
 
@@ -588,15 +601,14 @@ target.path = $inst_bin_dir
 3dmodv.path = $inst_bin_dir
 EOF
 
-    if ($debug == true) then
-	echo CONFIG += debug warn_on >> $midas_qconf
-	echo CONFIG += debug warn_on >> $sendevent_qconf
-	echo CONFIG += debug warn_off >> $imod_qconf
-    else
-	echo CONFIG += release warn_off >> $midas_qconf
-	echo CONFIG += release warn_off >> $sendevent_qconf
-	echo CONFIG += release warn_off >> $imod_qconf
-    endif
+    foreach i ($midas_qconf $sendevent_qconf $imod_qconf)
+        if ($debug == true) then
+            echo CONFIG += debug warn_on >> $i
+        else
+            echo CONFIG += release warn_off >> $i
+        endif
+        if ($qtthread == true) echo CONFIG +=  thread >> $i
+    end
 
     # Finish qconfigure install instructions now that inst_bin_dir is defined
     #
@@ -750,8 +762,8 @@ usage:
 echo "setup [options]"
 echo "Options are: -help,-h     Print this message."
 echo "             -debug,-d    Set up with debug flags."
-echo "             -machine,-m  Set target machine to one of: (irix6-32 |" 
-echo "                          irix6-n32 | macosx | rhlinux | cygwin) "
+echo "             -machine,-m  Set target machine to one of: (irix6-n32 |"
+echo "                          macosx | rhlinux | amd64linux | cygwin) "
 echo "             -inst,-i     Set installation directory for bin and lib."
 echo "                          e.g., /usr/local/IMOD"
 echo "             -name        Set architecture name of dist file"
@@ -770,6 +782,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.39  2004/04/03 21:29:50  mast
+#  Rearranged .options code to work with DOS endings in cygwin
+#
 #  Revision 3.38  2004/04/03 20:00:29  mast
 #  Added a .options file to retain options for dist
 #
