@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2003/10/24 03:03:47  mast
+unrecalled change for Windows/Intel
+
 Revision 3.9  2003/10/11 04:22:02  mast
 Remove \/, a bad combination
 
@@ -1290,7 +1293,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
           break;
         }
         sprintf(tempStr, "Default entry with a / is not allowed"
-                " in value entry:\n");
+                " in value entry:\n%s  ", option);
         AppendToErrorString(fullStr);
         return -1;
       }
@@ -1306,7 +1309,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
               break;
           } else {
             sprintf(tempStr, "Default entries with commas are not allowed"
-                    " in value entry:\n");
+                    " in value entry:\n%s  ", option);
             AppendToErrorString(fullStr);
             return -1;
           }
@@ -1323,7 +1326,8 @@ static int GetLineOfValues(char *option, void *array, int valType,
 
     /* If we are already full, then it is an error */
     if (numGot >= arraySize) {
-      sprintf(tempStr, "Too many values for input array in value entry:\n");
+      sprintf(tempStr, "Too many values for input array in value entry:\n%s  ",
+              option);
       AppendToErrorString(fullStr);
       return -1;
     }
@@ -1336,7 +1340,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
 
     /* If invalid character is before end character, it is an error */
     if (invalid != endPtr) {
-      sprintf(tempStr, "Illegal character in value entry:\n");
+      sprintf(tempStr, "Illegal character in value entry:\n%s  ", option);
       AppendToErrorString(fullStr);
       return -1;
     }
@@ -1359,7 +1363,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
   /* If not enough values found, return error */
   if (numGot < *numToGet) {
     sprintf(tempStr, "%d values expected but only %d values found in value "
-            "entry\n", *numToGet, numGot);
+            "entry:\n%s  ", *numToGet, numGot, option);
     AppendToErrorString(fullStr);
     return -1;
   }
