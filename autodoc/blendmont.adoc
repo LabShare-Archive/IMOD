@@ -157,6 +157,20 @@ pixel size in nanometers, tilt axis rotation angle, and tilt angle to be used
 for the gradient computation.  The entry has no effect if a gradient file is
 provided.
 
+[Field = JustUndistort]
+short = justUndistort
+long = JustUndistort
+type = B
+usage = Just correct distortions in each frame without blending
+tooltip =
+manpage = With this entry, the program can be used just to correct for 
+magnification gradients and distortion fields, without computing edge functions
+or blending images.  The resulting images are the same as those used to 
+compute edge functions, and will be suitable for fixing edge functions in 
+Midas.  Either -distort or -gradient must be entered with this option.  The
+sections to do may be specified, but all entries with regard to frame and total
+sizes in X and Y and edge functions will be ignored.
+
 [Field = TestMode]
 short = test
 long = TestMode
