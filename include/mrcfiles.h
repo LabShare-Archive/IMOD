@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/07/31 17:39:04  mast
+    *** empty log message ***
+
     Revision 3.2  2002/07/31 17:29:29  mast
     Redefine header entries to comply with MRC image2000 standard
     Add declaration for mrc_set_cmap_stamp
@@ -101,15 +104,15 @@
 
 typedef struct  /*complex floating number*/
 {
-  FLOAT a;
-  FLOAT b;
+  b3dFloat a;
+  b3dFloat b;
 
 } ComplexFloat;
 
 typedef struct  /*complex short number*/
 {
-  short a;
-  short b;
+  b3dInt16 a;
+  b3dInt16 b;
 
 } ComplexShort;
 
@@ -117,98 +120,99 @@ typedef struct  /*complex short number*/
 
 struct MRCheader
 {
-  int     nx;         /*  # of Columns                  */
-  int     ny;         /*  # of Rows                     */
-  int     nz;         /*  # of Sections.                */
-  int     mode;       /*  given by #define MRC_MODE...  */
+  b3dInt32   nx;         /*  # of Columns                  */
+  b3dInt32   ny;         /*  # of Rows                     */
+  b3dInt32   nz;         /*  # of Sections.                */
+  b3dInt32   mode;       /*  given by #define MRC_MODE...  */
 
-  int     nxstart;    /*  Starting point of sub image.  */
-  int     nystart;
-  int     nzstart;
+  b3dInt32   nxstart;    /*  Starting point of sub image.  */
+  b3dInt32   nystart;
+  b3dInt32   nzstart;
 
-  int     mx;         /* Number of rows to read.        */
-  int     my;
-  int     mz;
+  b3dInt32   mx;         /* Number of rows to read.        */
+  b3dInt32   my;
+  b3dInt32   mz;
 
-  FLOAT   xlen;       /* length of x element in um.     */
-  FLOAT   ylen;       /* get scale = xlen/nx ...        */
-  FLOAT   zlen;
+  b3dFloat   xlen;       /* length of x element in um.     */
+  b3dFloat   ylen;       /* get scale = xlen/nx ...        */
+  b3dFloat   zlen;
 
-  FLOAT   alpha;      /* cell angles, ignore */
-  FLOAT   beta;
-  FLOAT   gamma;
+  b3dFloat   alpha;      /* cell angles, ignore */
+  b3dFloat   beta;
+  b3dFloat   gamma;
 
-  int     mapc;       /* map coloumn 1=x,2=y,3=z.       */
-  int     mapr;       /* map row     1=x,2=y,3=z.       */
-  int     maps;       /* map section 1=x,2=y,3=z.       */
+  b3dInt32   mapc;       /* map coloumn 1=x,2=y,3=z.       */
+  b3dInt32   mapr;       /* map row     1=x,2=y,3=z.       */
+  b3dInt32   maps;       /* map section 1=x,2=y,3=z.       */
 
-  FLOAT   amin;
-  FLOAT   amax;
-  FLOAT   amean;
+  b3dFloat   amin;
+  b3dFloat   amax;
+  b3dFloat   amean;
   
-  short     ispg;       /* image type */
-  short     nsymbt;     /* space group number */
+  b3dInt16   ispg;       /* image type */
+  b3dInt16   nsymbt;     /* space group number */
 
 
   /* 64 bytes */
 
-  int     next;
-  short   creatid;  /* Creator id, hvem = 1000, DeltaVision = -16224 */
+  b3dInt32   next;
+  b3dInt16   creatid;  /* Creator id, hvem = 1000, DeltaVision = -16224 */
 
   
-  char    blank[30];
+  b3dByte    blank[30];
   
-  short   nint;
-  short   nreal;
-  short   sub;
-  short   zfac;
+  b3dInt16   nint;
+  b3dInt16   nreal;
+  b3dInt16   sub;
+  b3dInt16   zfac;
 
-  float   min2;
-  float   max2;
-  float   min3;
-  float   max3;
-  float   min4;
-  float   max4;
+  b3dFloat   min2;
+  b3dFloat   max2;
+  b3dFloat   min3;
+  b3dFloat   max3;
+  b3dFloat   min4;
+  b3dFloat   max4;
 
   /*  UINT   extra[MRC_NEXTRA];*/
 
-    /* HVEM extra data */
-     /* DNM 3/16/01: divide idtype into two shorts */
-    short   idtype;
-    short   lens;
-    short   nd1;     /* Devide by 100 to get float value. */
-    short   nd2;
-    short   vd1;
-    short   vd2;
-    FLOAT   tiltangles[6];  /* 0,1,2 = original:  3,4,5 = current */
+  /* HVEM extra data */
+  /* DNM 3/16/01: divide idtype into two shorts */
+  b3dInt16   idtype;
+  b3dInt16   lens;
+  b3dInt16   nd1;     /* Devide by 100 to get float value. */
+  b3dInt16   nd2;
+  b3dInt16   vd1;
+  b3dInt16   vd2;
+  b3dFloat   tiltangles[6];  /* 0,1,2 = original:  3,4,5 = current */
 
 #ifdef OLD_STYLE_HEADER
-     /* before 2.6.20 */
-     /* DNM 3/16/01: redefine the last three floats as wavelength numbers */
-    short   nwave;   /* # of wavelengths and values */
-    short   wave1;
-    short   wave2;
-    short   wave3;
-    short   wave4;
-    short   wave5;
-     FLOAT   zorg;           /* origin */
-
-     FLOAT   xorg;
-     FLOAT   yorg;
+  /* before 2.6.20 */
+  /* DNM 3/16/01: redefine the last three floats as wavelength numbers */
+  b3dInt16   nwave;   /* # of wavelengths and values */
+  b3dInt16   wave1;
+  b3dInt16   wave2;
+  b3dInt16   wave3;
+  b3dInt16   wave4;
+  b3dInt16   wave5;
+  b3dFloat   zorg;           /* origin */
+  
+  b3dFloat   xorg;
+  b3dFloat   yorg;
 #else
-   /* MRC 2000 standard */
-     FLOAT   xorg;
-     FLOAT   yorg;
-     FLOAT   zorg;
-     char    cmap[4];
-     char    stamp[4];
-     FLOAT   rms;
+  /* MRC 2000 standard */
+  b3dFloat   xorg;
+  b3dFloat   yorg;
+  b3dFloat   zorg;
+  b3dByte    cmap[4];
+  b3dByte    stamp[4];
+  b3dFloat   rms;
 #endif
 
-  int   nlabl;
-  char  labels[MRC_NLABELS][MRC_LABEL_SIZE + 1];
+  b3dInt32 nlabl;
+  b3dByte  labels[MRC_NLABELS][MRC_LABEL_SIZE + 1];
 
-  UCHAR  *symops;
+  /* Internal data not stored in file header */
+  b3dUByte *symops;
   FILE   *fp;
   int    pos;
   struct LoadInfo *li;
