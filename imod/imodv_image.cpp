@@ -37,7 +37,6 @@ Log at end of file
 #include <qcheckbox.h>
 #include <qlayout.h>
 #include <qgl.h>
-#include <GL/glu.h>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -447,6 +446,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.2  2003/02/27 17:24:33  mast
 Had to include qgl.h instead of GL/gl.h under windows
 

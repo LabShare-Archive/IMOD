@@ -39,7 +39,6 @@ Log at end of file
 #include <limits.h>
 
 #include <qgl.h>
-#include <GL/glu.h>
 #include "imodv_image.h"
 #include "imod.h"
 #include "imodv.h"
@@ -1726,6 +1725,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.3  2003/03/03 22:15:08  mast
+Added ability to display spheres for any points with size
+
 Revision 4.2  2003/02/27 17:30:03  mast
 Had to include qgl.h instead of GL/gl.h under windows
 

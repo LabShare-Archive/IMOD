@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2003/03/12 06:37:42  mast
+Added end markers and current object markers, simplified time logic
+
 Revision 4.3  2003/03/03 22:15:55  mast
 Added ability to draw spheres for any points with size
 
@@ -32,7 +35,6 @@ Changes to get clean compilation with g++
 #include "imod.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
-#include <GL/glu.h>
 #include "xzap.h"
 
 static void imodDrawContourLines(Icont *cont, GLenum mode);
