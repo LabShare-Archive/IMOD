@@ -44,6 +44,7 @@ Log at end of file
 #include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
+#include "imod_edit.h"
 #include "imod_moviecon.h"
 #include "imod_iscale.h"
 #include "iproc.h"
@@ -2152,6 +2153,11 @@ int  ivwDraw(ImodView *inImodView, int inFlags)
   return(0);
 }
 
+int ivwRedraw(ImodView *vw)
+{
+  return (imod_redraw(vw));
+}
+
 void ivwGetRamp(ImodView *inImodView, int *outRampBase, int *outRampSize)
 {
   *outRampBase = inImodView->rampbase;
@@ -2182,6 +2188,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.14  2003/09/26 00:07:36  mast
+No longer ask for contiguous memory for more than 1 GB or image data
+
 Revision 4.13  2003/09/24 17:33:31  mast
 Add setting of info window geometry as soon as image size is known
 
