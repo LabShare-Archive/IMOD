@@ -238,10 +238,6 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   layout->addWidget(ImodInfoWidget);
   setCentralWidget(central);
 
-  if (App->cvi->fakeImage)
-    ImodInfoWidget->setFloat(-1);
-  
-
   // Get the status window 
   mStatusEdit = new QTextEdit(central);
   setFontDependentWidths();
@@ -349,6 +345,8 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
+  if (App->cvi->fakeImage || App->cvi->rawImageStore)
+    ImodInfoWidget->setFloat(-1);
 }
 
 
@@ -481,6 +479,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.21  2003/08/01 00:13:56  mast
+    Make event reports happen in debug mode
+
     Revision 4.20  2003/06/19 05:48:35  mast
     Added object break by Z
 
