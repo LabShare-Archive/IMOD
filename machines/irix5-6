@@ -142,6 +142,11 @@ endif
 #
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
+#
+# Do not use multiple threads in plax programs
+#
+echo '#define QTPLAX_NO_THREAD' >> $hconfigure
+
 # Build tilt from Fortran subroutines, skip extra libraries, make sgi-specific
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = ' >> $configure
@@ -172,6 +177,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.9  2003/08/25 19:48:16  mast
+#  *** empty log message ***
+#
 #  Revision 3.8  2003/05/08 20:46:04  mast
 #  *** empty log message ***
 #
