@@ -81,6 +81,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2004/04/26 00:24:59  rickg
+ * <p> bug #426 Implemented full tomogram sampling
+ * <p>
  * <p> Revision 3.34  2004/04/24 08:05:40  rickg
  * <p> bug #391 restructuring
  * <p>
@@ -3884,7 +3887,6 @@ public class ApplicationManager {
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
-    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
     String threadName;
     try {
       threadName = processMgr.patchcorr();
