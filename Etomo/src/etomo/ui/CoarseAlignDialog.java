@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/23 22:14:55  rickg
+ * <p> Added xcorr log file to context menu
+ * <p>
  * <p> Revision 2.2  2003/05/19 22:06:43  rickg
  * <p> Fixed cross correlation button text
  * <p>
@@ -73,6 +76,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
+    setToolTipText();
     fixRootPanel(rootSize);
 
     panelCrossCorrelation = new CrossCorrelationPanel(axisID);
@@ -189,6 +193,29 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
         manPage,
         logFileLabel,
         logFile);
+  }
+  /**
+   * Tooltip string initialization
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    
+    text = 
+      "Find alignment transformations between successive images by cross-correlation.";
+    buttonCrossCorrelate.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Use transformations to produce stack of aligned images.";
+    buttonCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Use 3dmod to view the coarsely aligned images.";
+    buttonImod.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Use Midas to adjust bad alignments.";
+    buttonMidas.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   //  Action function for stack buttons

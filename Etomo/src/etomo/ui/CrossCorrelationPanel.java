@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/10/13 23:00:48  sueh
+ * <p> removed PieceListFile, rename fields, move field to advanced
+ * <p>
  * <p> Revision 2.1  2003/09/09 17:15:02  rickg
  * <p> Changed view list to view range
  * <p>
@@ -68,6 +71,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   AxisID axisID;
 
   public CrossCorrelationPanel(AxisID id) {
+    setToolTipText();
     axisID = id;
     panelAdvanced.setLayout(new BoxLayout(panelAdvanced, BoxLayout.Y_AXIS));
     chkBoxExcludeCentralPeak.setAlignmentX((float) 0.5);
@@ -169,6 +173,49 @@ public class CrossCorrelationPanel implements ContextMenu {
         manPage,
         logFileLabel,
         logFile);
+  }
+  
+  
+  /**
+   * Tooltip string initialization
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    
+    text = "Image file to correlate.";
+    ltfInputFile.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Output file for transformations.";
+    ltfOutputFile.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Sigma for low-frequency filter, sigma for high-frequency filter, 0, and "
+      + "radius for start of high-frequency filter.";
+    ltfFilterParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Pixels to trim off each side in X, and in Y; or / to use "
+      + "whole image.";
+    ltfTrim.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Padding in X, and in Y; or / for 5% of the image size up to "
+      + "20 pixels.";
+    ltfPadPercent.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Pixels to taper in X, and in Y; or / for 10% of the image size up to 100 "
+      + "pixels.";
+    ltfTaperPercent.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Starting and ending view numbers to correlate, or / for all views.";
+    ltfViewRange.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Ignore correlation peaks near (0, 0); do not use unless necessary because "      + "nearly aligned images can become misaligned.";
+    chkBoxExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
 }
