@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>imodvDepthcueForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>138</width>
-            <height>174</height>
+            <width>172</width>
+            <height>207</height>
         </rect>
     </property>
     <property name="caption">
@@ -52,9 +52,6 @@
                 </property>
                 <property name="margin">
                     <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>-1</number>
                 </property>
                 <widget class="QSlider">
                     <property name="name">
@@ -126,9 +123,6 @@
                 </property>
                 <property name="margin">
                     <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>-1</number>
                 </property>
                 <widget class="QSlider">
                     <property name="name">
@@ -224,7 +218,7 @@
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
-                            <hsizetype>0</hsizetype>
+                            <hsizetype>1</hsizetype>
                             <vsizetype>0</vsizetype>
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
@@ -232,7 +226,7 @@
                     </property>
                     <property name="maximumSize">
                         <size>
-                            <width>54</width>
+                            <width>32767</width>
                             <height>32767</height>
                         </size>
                     </property>
@@ -252,7 +246,7 @@
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
-                            <hsizetype>0</hsizetype>
+                            <hsizetype>1</hsizetype>
                             <vsizetype>0</vsizetype>
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
@@ -260,7 +254,7 @@
                     </property>
                     <property name="maximumSize">
                         <size>
-                            <width>54</width>
+                            <width>32767</width>
                             <height>32767</height>
                         </size>
                     </property>

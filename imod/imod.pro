@@ -158,6 +158,22 @@ IMAGES	= uparrow.png \
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 TARGET = 3dmod
 INSTALLS += target
 
