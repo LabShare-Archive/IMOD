@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p> </p>
@@ -25,13 +28,14 @@ public class ConstSolvematchshiftParam {
   protected String fromfiducialCoordinatesFile;
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
-  protected FortranInputString xAxistTilt;
+  protected FortranInputString xAxistTilt =new FortranInputString(2);
   protected double residualThreshold;
   protected int nSurfaces;
   protected String outputTransformationFile;
 
   public ConstSolvematchshiftParam() {
   }
+
   /**
    * @return StringList
    */

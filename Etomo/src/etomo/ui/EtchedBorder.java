@@ -19,10 +19,14 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2003/02/24 23:21:44  rickg
+ * <p> Initial revision
+ * <p>
  */
 
 public class EtchedBorder {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private TitledBorder titledBorder;
   // TODO: these should be gotten from the app some how

@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.9.2.1  2003/01/24 18:36:17  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -77,6 +80,7 @@ public class ImodManager {
   private ImodProcess tomogramA;
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
+  private ImodProcess 
 
   private Thread fiducialModelA;
   private Thread fiducialModelB;
@@ -307,6 +311,29 @@ public class ImodManager {
     checkAxisID(axisID);
     ImodProcess tomogram = selectTomogram(axisID);
     tomogram.open();
+  }
+
+  /**
+   * Open both tomograms and their matching models
+   * @param filesetName
+   */
+  public void matchingModel(String filesetName)
+    throws AxisTypeException, SystemProcessException {
+    tomogramA.open();
+    tomogramA.openModel(filesetName + "a.matmod");
+
+    tomogramB.open();
+    tomogramB.openModel(filesetName + "b.matmod");
+  }
+
+  /**
+   * Open the patch region model and the volume being matched to if it is not
+   * already open
+   * @param axisID
+   */
+  public void patchRegionModel(AxisID axisID)
+    throws AxisTypeException, SystemProcessException {
+    // TODO implement
   }
 
   /**

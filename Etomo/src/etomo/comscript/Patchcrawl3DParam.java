@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p> </p>
@@ -35,41 +38,76 @@ public class Patchcrawl3DParam
       BadComScriptException,
       FortranInputSyntaxException,
       InvalidParameterException {
-    // FIXME this needs to throw some exceptions
+
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
-    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 22) {
-      throw (new BadComScriptException("Incorrect number of arguments"));
+
+    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 19) {
+      String message =
+        "Incorrect number of arguments, expected 16 - 19 found: "
+          + String.valueOf(cmdLineArgs.length);
+      throw (new BadComScriptException(message));
     }
 
     int i = 0;
-    xPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-    yPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-    zPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-    nX = Integer.parseInt(cmdLineArgs[i++]);
-    nY = Integer.parseInt(cmdLineArgs[i++]);
-    nZ = Integer.parseInt(cmdLineArgs[i++]);
-    xLow = Integer.parseInt(cmdLineArgs[i++]);
-    xHigh = Integer.parseInt(cmdLineArgs[i++]);
-    yLow = Integer.parseInt(cmdLineArgs[i++]);
-    yHigh = Integer.parseInt(cmdLineArgs[i++]);
-    zLow = Integer.parseInt(cmdLineArgs[i++]);
-    zHigh = Integer.parseInt(cmdLineArgs[i++]);
-    System.err.println(cmdLineArgs[i]);
-    maxShift = Integer.parseInt(cmdLineArgs[i++]);
-    fileA = cmdLineArgs[i++];
-    fileB = cmdLineArgs[i++];
-    outputFile = cmdLineArgs[i++];
+    String parameterID = "";
+    try {
+      parameterID = "xsize";
+      xPatchSize = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "ysize";
+      yPatchSize = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "zsize";
+      zPatchSize = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "nx";
+      nX = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "ny";
+      nY = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "nz";
+      nZ = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "xlo";
+      xLow = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "xhi";
+      xHigh = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "ylo";
+      yLow = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "yhi";
+      yHigh = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "zlo";
+      zLow = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "zhi";
+      zHigh = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "matchshift";
+      maxShift = Integer.parseInt(cmdLineArgs[i++]);
+      parameterID = "filea";
+      fileA = cmdLineArgs[i++];
+      parameterID = "fileb";
+      fileB = cmdLineArgs[i++];
+      parameterID = "output_file";
+      outputFile = cmdLineArgs[i++];
+      if (cmdLineArgs.length > 16) {
+        parameterID = "transform_file";
+        transformFile = cmdLineArgs[i++];
+      }
+      if (cmdLineArgs.length > 17) {
+        parameterID = "original_fileb";
+        originalFileB = cmdLineArgs[i++];
+      }
+      if (cmdLineArgs.length > 18) {
+        parameterID = "boundary_model";
+        boundaryModel = cmdLineArgs[i++];
+      }
+    }
+    catch (NumberFormatException except) {
+      String message =
+        "NumberFormatException Argument #: "
+          + String.valueOf(i)
+          + " value :"
+          + cmdLineArgs[i]
+          + " for parameter: "
+          + parameterID;
+      throw new BadComScriptException(message);
+    }
 
-    if (cmdLineArgs.length > 16) {
-      transformFile = cmdLineArgs[i++];
-    }
-    if (cmdLineArgs.length > 17) {
-      originalFileB = cmdLineArgs[i++];
-    }
-    if (cmdLineArgs.length > 18) {
-      boundaryModel = cmdLineArgs[i++];
-    }
   }
 
   /* (non-Javadoc)
@@ -79,13 +117,31 @@ public class Patchcrawl3DParam
     // TODO Complete parameter => command line mapping
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     String badParameter = "";
-    badParameter = "X patch size";
+    badParameter = "xsize";
     cmdLineArgs[0] = String.valueOf(xPatchSize);
-    badParameter = "Y patch size";
+    badParameter = "ysize";
     cmdLineArgs[1] = String.valueOf(yPatchSize);
-    badParameter = "Z patch size";
+    badParameter = "zsize";
     cmdLineArgs[2] = String.valueOf(zPatchSize);
-    
+    badParameter = "nx";
+    cmdLineArgs[3] = String.valueOf(nX);
+    badParameter = "ny";
+    cmdLineArgs[4] = String.valueOf(nY);
+    badParameter = "nz";
+    cmdLineArgs[5] = String.valueOf(nZ);
+    badParameter = "xlo";
+    cmdLineArgs[6] = String.valueOf(xLow);
+    badParameter = "xhi";
+    cmdLineArgs[7] = String.valueOf(xHigh);
+    badParameter = "ylo";
+    cmdLineArgs[8] = String.valueOf(yLow);
+    badParameter = "yhi";
+    cmdLineArgs[9] = String.valueOf(yHigh);
+    badParameter = "Zlo";
+    cmdLineArgs[10] = String.valueOf(zLow);
+    badParameter = "Zhi";
+    cmdLineArgs[11] = String.valueOf(zHigh);
+
     scriptCommand.setCommandLineArgs(cmdLineArgs);
   }
   /**

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p> </p>
@@ -98,8 +101,8 @@ public class SolvematchshiftParam
       inputArgs[6].setArgument(nSurfaces);
       scriptCommand.setInputArgument(6, inputArgs[6]);
       
-      inputArgs[6].setArgument(outputTransformationFile);
-      scriptCommand.setInputArgument(6, inputArgs[6]);
+      inputArgs[7].setArgument(outputTransformationFile);
+      scriptCommand.setInputArgument(7, inputArgs[7]);
 
   }
 

@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.2  2003/03/06 01:19:17  rickg
  * <p> Combine changes in progress
  * <p>
@@ -145,7 +148,7 @@ public class ComScript {
 
           // Split the line into tokens checking to see if the last token is
           // another line continuation 
-          String[] tokens = line.split("\\s+");
+          String[] tokens = line.trim().split("\\s+");
           int nShrink = 0;
           if (tokens[tokens.length - 1].equals("\\")) {
             nShrink = 1;

@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.2  2003/03/06 01:19:17  rickg
  * <p> Combine changes in progress
  * <p>
@@ -568,7 +571,7 @@ public class ComScriptManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Com file: " + comScript.getComFileName();
       errorMessage[1] = except.getMessage();
-      
+
       JOptionPane.showMessageDialog(
         null,
         errorMessage,
@@ -666,8 +669,8 @@ public class ComScriptManager {
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(
         null,
-        except.getClass().getName() + except.getMessage(),
-        "Can't parse " + command + " from " + comScript.getComFileName(),
+        errorMessage,
+        "Com Script Command Parse Error",
         JOptionPane.ERROR_MESSAGE);
       return false;
     }

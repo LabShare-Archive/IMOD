@@ -3,6 +3,7 @@
   script
 
 * create a r/w data structure derived from above
+  - implements the CommandParam interface
 
 * add an initializer to the r/w data structure from a Com Script command
 
@@ -17,3 +18,4 @@
 * add get and set parameter functions to the panel if necessary
 
 * add validation
+

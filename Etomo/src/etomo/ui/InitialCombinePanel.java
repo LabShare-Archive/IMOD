@@ -2,6 +2,8 @@ package etomo.ui;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -100,10 +102,20 @@ public class InitialCombinePanel {
     rootPanel.add(panelSolvematchshift);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(panelButton);
+    
+    //  Bind the buttons to the ActionListener
+    ButtonActionListener buttonAction = new ButtonActionListener(this);
+    imodMatchModels.addActionListener(buttonAction);
+    buttonCombineRestart.addActionListener(buttonAction);
+    buttonModelCombine.addActionListener(buttonAction);
   }
 
   public Container getContainer() {
     return rootPanel;
+  }
+  
+  public void setAdvanced(boolean state){
+    
   }
 
   public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParam) {
@@ -119,6 +131,40 @@ public class InitialCombinePanel {
     solvematchshiftParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
     solvematchshiftParam.setResidualThreshold(
       Double.parseDouble(ltfResidulThreshold.getText()));
+  }
+  
+  private void buttonAction(ActionEvent event) {
+
+    if (event
+      .getActionCommand()
+      .equals(imodMatchModels.getActionCommand())) {
+      applicationManager.imodMatchingModel();
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(buttonCombineRestart.getActionCommand())) {
+      applicationManager.combine();
+    }
+
+    if (event
+      .getActionCommand()
+      .equals(buttonModelCombine.getActionCommand())) {
+      applicationManager.modelCombine();
+    }
+
+  }
+  
+  class ButtonActionListener implements ActionListener {
+    InitialCombinePanel listenee;
+
+    ButtonActionListener(InitialCombinePanel initialCombinePanel) {
+      listenee = initialCombinePanel;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      listenee.buttonAction(event);
+    }
   }
 
 }

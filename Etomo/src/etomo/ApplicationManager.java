@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.8  2003/03/06 01:19:17  rickg
  * <p> Combine changes in progress
  * <p>
@@ -1672,17 +1675,37 @@ public class ApplicationManager {
     // Fill in the dialog box params and set it to the appropriate state
     tomogramCombinationDialog.setCombineParams(combineParams);
 
-    comScriptMgr.loadMatchorwarp();
-    tomogramCombinationDialog.setMatchorwarpParams(
-      comScriptMgr.getMatchorwarParam());
+    comScriptMgr.loadSolvematchshift();
+    tomogramCombinationDialog.setSolvematchshiftParams(
+      comScriptMgr.getSolvematchshift());
 
     comScriptMgr.loadPatchcorr();
     tomogramCombinationDialog.setPatchcrawl3DParams(
       comScriptMgr.getPatchcrawl3D());
 
+    comScriptMgr.loadMatchorwarp();
+    tomogramCombinationDialog.setMatchorwarpParams(
+      comScriptMgr.getMatchorwarParam());
+
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
       AxisID.FIRST);
+  }
+
+  public void imodMatchingModel() {
+    try {
+      imodManager.matchingModel(metaData.getFilesetName());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(
+        except.getMessage(),
+        "Can't open imod on tomograms for matching models");
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
   }
 
   /**
@@ -1728,10 +1751,15 @@ public class ApplicationManager {
       && updateMatchorwarpCom()) {
 
     }
+    // TODO implement: walk through each of the combine steps
 
     /*    String threadName = processMgr.combine();
         setThreadName(threadName, AxisID.FIRST);
         mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);*/
+  }
+
+  public void modelCombine() {
+    // TODO implement
   }
 
   /**
@@ -1739,7 +1767,7 @@ public class ApplicationManager {
    */
   public void patchcorrCombine() {
     if (updatePatchcorrCom() && updateMatchorwarpCom()) {
-
+      //TODO implement: walk through each of the combine steps
     }
   }
 
@@ -1748,7 +1776,7 @@ public class ApplicationManager {
    */
   public void matchorwarpCombine() {
     if (updateMatchorwarpCom()) {
-
+      //    TODO implement: walk through each of the combine steps
     }
   }
 

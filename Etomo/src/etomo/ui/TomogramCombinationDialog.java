@@ -1,11 +1,16 @@
 package etomo.ui;
 
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JTabbedPane;
 
 import etomo.ApplicationManager;
-import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSolvematchshiftParam;
@@ -27,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.4  2003/03/06 01:19:17  rickg
  * <p> Combine changes in progress
  * <p>
@@ -83,9 +91,6 @@ public class TomogramCombinationDialog extends ProcessDialog {
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST);
 
-    //  Nothing in advanced catagory
-    buttonAdvanced.setEnabled(false);
-
     //  Instantiate the tab pane contents
     panelSetupCombine = new SetupCombinePanel(applicationManager);
     panelInitialCombine = new InitialCombinePanel(applicationManager);
@@ -101,6 +106,10 @@ public class TomogramCombinationDialog extends ProcessDialog {
     tabbedPane.add("Final Match", panelFinalCombine.getContainer());
 
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
+    JLabel zWarning =
+      new JLabel("For all 3D parameters Z represents the depth domain");
+    zWarning.setAlignmentX(Component.CENTER_ALIGNMENT) ;
+    rootPanel.add(zWarning);
     rootPanel.add(tabbedPane);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(Box.createVerticalGlue());
@@ -108,17 +117,11 @@ public class TomogramCombinationDialog extends ProcessDialog {
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     // Set the default advanced dialog state
-    updateAdvanced();
+    updateAdvanced(isAdvanced);
   }
 
   public void showPane(String paneName) {
     tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(paneName));
-  }
-  /**
-   * Update the dialog with the current advanced state
-   */
-  private void updateAdvanced() {
-    applicationManager.packMainWindow();
   }
 
   /**
@@ -149,7 +152,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
   public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParams) {
     panelInitialCombine.setSolvematchshiftParams(solvematchshiftParams);
   }
-  
+
   /**
    * Get the the patchcrawl3d parameters of the UI returning them in the 
    * modified SolvematchshiftParam object
@@ -160,7 +163,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
     throws NumberFormatException {
     panelInitialCombine.getSolvematchshiftParams(solvematchshiftParams);
   }
-  
+
   /**
    * Set the patchcrawl3D parameters of the UI from the the
    * ConstPatchcrawl3DParam object
@@ -169,7 +172,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
     panelFinalCombine.setPatchcrawl3DParams(patchcrawl3DParams);
   }
-  
+
   /**
    * Get the the patchcrawl3d parameters of the UI returning them in the 
    * modified Patchcrawl3DParam object
@@ -180,7 +183,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
     throws NumberFormatException {
     panelFinalCombine.getPatchcrawl3DParams(patchcrawl3DParams);
   }
-  
+
   /**
    * Set the matchorwarp parameters of the UI from the the ConstMatchorwarp
    * object
@@ -215,6 +218,20 @@ public class TomogramCombinationDialog extends ProcessDialog {
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneTomogramCombinationDialog();
+  }
+
+  public void buttonAdvancedAction(ActionEvent event) {
+    super.buttonAdvancedAction(event);
+    updateAdvanced(isAdvanced);
+  }
+
+  /**
+   * Update the dialog with the current advanced state
+   */
+  private void updateAdvanced(boolean isAdvanced) {
+    panelInitialCombine.setAdvanced(isAdvanced);
+    panelFinalCombine.setAdvanced(isAdvanced);
+    applicationManager.packMainWindow();
   }
 
 }
