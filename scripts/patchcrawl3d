@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.4  2003/06/20 20:06:39  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -76,6 +79,15 @@ set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $
 @ xbh = $nxt - $xhi
 @ ybh = $nyt - $yhi
 @ zbh = $nzt - $zhi
+
+set axiserr = ""
+if ($xbl < 0 || $xbh < 0) set axiserr = "X"
+if ($ybl < 0 || $ybh < 0) set axiserr = "Y"
+if ($zbl < 0 || $zbh < 0) set axiserr = "Z"
+if ($axiserr != "") then
+    echo "ERROR: PATCHCRAWL3D - $axiserr COORDINATES OUTSIDE LIMITS OF VOLUME"
+    exit 1
+endif
 
 # If argument list is even, the last must be a patch model file
 #
