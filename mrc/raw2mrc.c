@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.11  2004/06/19 22:13:36  mast
 Fixed seek error message
 
@@ -256,7 +259,7 @@ main( int argc, char *argv[] )
   }
 
   for (j = 0; j < 1024; j++)
-    fwrite(&start , 1, 1, fout);
+    b3dFwrite(&start , 1, 1, fout);
 
   datasize = x * y * z;
   xysize = x * y * csize;
