@@ -29,6 +29,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.22  2003/09/08 22:20:35  rickg
+ * <p> Throw an exception if a process is already running for the current
+ * <p> axis
+ * <p>
  * <p> Revision 2.21  2003/08/20 22:01:34  rickg
  * <p> Explicitly wait for the comScriptProcess to start before starting the
  * <p> process monitor thread.
@@ -808,22 +812,6 @@ public class ProcessManager {
    * @param exitValue the exit value for the com script
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-    // Interrupt the process monitor and nulll out the appropriate references
-    if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
-      }
-      threadAxisA = null;
-    }
-    if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
-      }
-      threadAxisB = null;
-    }
-
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       String[] combined;
@@ -884,6 +872,24 @@ public class ProcessManager {
     }
 
     appManager.processDone(script.getName(), exitValue);
+
+		// Interrupt the process monitor and nulll out the appropriate references
+		if (threadAxisA == script) {
+			if (processMonitorA != null) {
+				processMonitorA.interrupt();
+				processMonitorA = null;
+			}
+			threadAxisA = null;
+		}
+		if (threadAxisB == script) {
+			if (processMonitorB != null) {
+				processMonitorB.interrupt();
+				processMonitorB = null;
+			}
+			threadAxisB = null;
+		}
+
+
   }
 
   //  Internal utility functions
