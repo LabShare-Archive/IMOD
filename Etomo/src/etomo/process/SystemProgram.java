@@ -20,6 +20,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/17 23:32:07  rickg
+ * <p> Description update
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -157,9 +160,7 @@ public class SystemProgram implements Runnable {
     try {
       //  Wait for the process to exit
       //  why can we read the stdout and stderr above before this completes
-      System.out.println("Starting wait");
       process.waitFor();
-      System.out.println("Process done");
       exitValue = process.exitValue();
     }
     catch (InterruptedException except) {
