@@ -2,6 +2,8 @@ package etomo.util;
 
 import java.io.IOException;
 
+import etomo.ApplicationManager;
+
 import junit.framework.TestCase;
 
 /**
@@ -17,6 +19,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -31,6 +36,7 @@ public class MRCHeaderTest extends TestCase {
   MRCHeader emptyFilename = new MRCHeader("");
   MRCHeader badFilename = new MRCHeader("non_existant_image_file");
   MRCHeader mrcHeader = new MRCHeader("tests/junk.st");
+  MRCHeader mrcWithSpaces = new MRCHeader("tests/With Spaces/junk.st");
 
   /**
    * Constructor for MRCHeaderTest.
@@ -60,26 +66,36 @@ public class MRCHeaderTest extends TestCase {
   public void testEmptyFilename() throws InvalidParameterException {
     try {
       emptyFilename.read();
-      fail("Should rise IOException excpetion");
+      fail("Should rise IOException exception");
     }
     catch (IOException success) {
     }
   }
 
   public void testReadBadFilename() {
-    boolean correctException = false;
-    //  First test, should throw an exception because the image stack is not present
+    // Need an application manger to get the IMOD_DIR environment
+    // variable
+    String[] args = { "" };
+    ApplicationManager appManager = new ApplicationManager(args);
+
+    // First test, should throw an exception because the image stack is not
+    // present
+    boolean exceptionThrown = false;
     try {
       badFilename.read();
     }
-    catch (InvalidParameterException except) {
-      correctException = true;
-    }
     catch (Exception except) {
-      correctException = false;
+      exceptionThrown = true;
+      assertEquals(
+        "Incorrect exception thrown",
+        "etomo.util.InvalidParameterException",
+        except.getClass().getName());
     }
-    assertTrue(correctException);
-
+    finally {
+      if (!exceptionThrown) {
+        fail("Exception not thrown");
+      }
+    }
   }
 
   public void testRead() throws IOException, InvalidParameterException {
@@ -88,4 +104,12 @@ public class MRCHeaderTest extends TestCase {
     assertEquals("Incorrect row count", 512, mrcHeader.getNRows());
     assertEquals("Incorrect section count", 1, mrcHeader.getNSections());
   }
+
+  public void testWithSpaces() throws IOException, InvalidParameterException {
+    mrcWithSpaces.read();
+    assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
+    assertEquals("Incorrect row count", 512, mrcWithSpaces.getNRows());
+    assertEquals("Incorrect section count", 1, mrcWithSpaces.getNSections());
+  }
+
 }
