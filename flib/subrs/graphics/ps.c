@@ -7,8 +7,12 @@ $Date$
 $Revision$
 
 $Log$
-#include "ps.h"
+Revision 3.1  2005/04/03 02:59:25  mast
+Added internal setting of linewidth, and filled and open circles, triangles
+and quadrangles
 */
+
+#include "ps.h"
 PS *PSopen(char *filename, double dpi, double x, double y)
 {
   PS *ps = (PS *)malloc(sizeof(PS));
