@@ -2,7 +2,6 @@ package etomo.comscript;
 
 import java.io.File;
 
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoBoolean;
 import etomo.type.ConstEtomoNumber;
@@ -24,6 +23,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/06 17:59:54  sueh
+ * <p> bug# 578 Changed getIntegerValue() to give access to skewOption and
+ * <p> xStretchOption  to Command interface.
+ * <p>
  * <p> Revision 3.4  2005/01/05 18:56:00  sueh
  * <p> bug# 578 Adding AxisID to constructor.  Implementing Command.
  * <p>
@@ -76,8 +79,7 @@ public class ConstTiltalignParam implements Command {
   public static final int AUTOMAPPED_OPTION = 3;
   public static final int TILT_AUTOMAPPED_OPTION = 5;
   
-  public static final int SKEW_OPTION_PARAM = -1;
-  public static final int X_STRETCH_OPTION_PARAM = -2;
+  public static final int GET_USE_OUTPUT_Z_FACTOR_FILE = -1;
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -363,36 +365,32 @@ public class ConstTiltalignParam implements Command {
     return commandFileName;
   }
   
-  public File getOutputFile() {
-    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), modelFile);
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
   
-  public int getBinning() {
-    return 1;
+  public File getCommandOutputFile() {
+    return null;
   }
   
   public int getIntegerValue(int name) {
-    switch (name) {
-    case SKEW_OPTION_PARAM:
-      return skewOption.getInteger();
-    case X_STRETCH_OPTION_PARAM:
-      return xStretchOption.getInteger();
-    }
     return EtomoNumber.INTEGER_NULL_VALUE;
   }
   
   public boolean getBooleanValue(int name) {
+    switch (name) {
+    case GET_USE_OUTPUT_Z_FACTOR_FILE:
+      return useOutputZFactorFile();
+    }
     return false;
   }
   
-  public String[] getCommandArray() {
-    String[] array = {commandFileName + axisID.getExtension() + commandFileExtension};
-    return array;
-  }
+
   
   /**
    * @return Returns the angleOffset.
@@ -610,12 +608,35 @@ public class ConstTiltalignParam implements Command {
   public String getOutputTransformFile() {
     return outputTransformFile;
   }
+  
+  
+  /**
+   * This must called after skewOption, or localAlignment, and localSkewOption
+   * have been set.
+   * @return
+   */
+  public boolean useOutputZFactorFile() {
+    return !skewOption.equals(FIXED_OPTION)
+        || (localAlignments.is() && !localSkewOption.equals(FIXED_OPTION));
+  }
+  
   /**
    * @return Returns the outputZFactorFile.
    */
   public String getOutputZFactorFile() {
     return outputZFactorFile;
   }
+  
+  /**
+   * build an outputZFactorFile value from datasetName and axisID
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
+  public static String getOutputZFactorFileName(String datasetName, AxisID axisID) {
+    return datasetName + axisID.getExtension() + zFactorFileExtension;
+  }
+  
   /**
    * @return Returns the projectionStretch.
    */
