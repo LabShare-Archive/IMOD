@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.35  2003/05/10 19:12:56  rickg
+ * <p> OS independent path implementation
+ * <p>
  * <p> Revision 2.34  2003/05/10 18:01:56  rickg
  * <p> Fixes to get IMOD_DIR home and current working directory
  * <p> in a OS agnostic manner
@@ -1067,7 +1070,8 @@ public class ApplicationManager {
       comScriptMgr.getTiltalignParam(axisID));
 
     //  Create a default transferfid object to populate the alignment dialog
-    fineAlignmentDialog.setTransferFidParams(new TransferfidParam());
+    fineAlignmentDialog.setTransferFidParams(
+      new TransferfidParam(getIMODDirectory()));
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
 
@@ -1234,7 +1238,8 @@ public class ApplicationManager {
     }
 
     if (fineAlignmentDialog != null) {
-      TransferfidParam transferfidParam = new TransferfidParam();
+      TransferfidParam transferfidParam =
+        new TransferfidParam(getIMODDirectory());
       // Setup the default parameters depending upon the axis to transfer the
       // fiducials from
       String datasetName = metaData.getDatasetName();
@@ -2795,8 +2800,8 @@ public class ApplicationManager {
         System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
       }
     }
-	IMODDirectory = new File(imodDirectoryName);
-	
+    IMODDirectory = new File(imodDirectoryName);
+
     //  Create a File object specifying the user configuration file
     File userConfigFile = new File(homeDirectory, ".etomo");
 
