@@ -19,7 +19,6 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
-import etomo.comscript.TiltalignParam;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
 
@@ -37,6 +36,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/02/23 01:44:35  sueh
+ * <p> bug# 600 Getting solvematch tooltips from autodoc.
+ * <p>
  * <p> Revision 3.5  2004/08/31 17:43:01  sueh
  * <p> bug# 542 Calling TomogramCombinationDialog.setBinningWarning(true)
  * <p> when Bin by 2 checkbox is first checked.
