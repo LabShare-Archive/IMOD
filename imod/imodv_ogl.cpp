@@ -1105,8 +1105,13 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
       }
     firstSphere = 0;
   }
-                              
-  quality = Imodv->fastdraw + 1;
+
+  /* Take maximum of quality from world flag setting and from object */
+  quality = ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
+    WORLD_QUALITY_SHIFT) + 1;
+  if (quality <= obj->mat1b3)
+    quality = obj->mat1b3 + 1;
+
   if (Imodv->lowres)
     quality = 0;
   if (quality >= MAX_QUALITY)
@@ -1734,6 +1739,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.5  2003/04/17 19:02:59  mast
+adding hack for GL-context dependent gluQuadric
+
 Revision 4.4  2003/03/28 05:01:39  mast
 Needed to remove include of glu.h for Mac
 
