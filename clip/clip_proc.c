@@ -429,8 +429,8 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
 
   hout->mode = hin->mode;
 
-  if ((!strncasecmp(opt->command, "flipxy",6)) || 
-      (!strncasecmp(opt->command, "flipyx",6))){
+  if ((!strncmp(opt->command, "flipxy",6)) || 
+      (!strncmp(opt->command, "flipyx",6))){
     hout->nz = hin->nz;
     hout->nx = hin->ny;
     hout->ny = hin->nx;
@@ -453,8 +453,8 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     return(0);
   }
 
-  if ((!strncasecmp(opt->command, "flipzx",6)) ||
-      (!strncasecmp(opt->command, "flipxz",6))){
+  if ((!strncmp(opt->command, "flipzx",6)) ||
+      (!strncmp(opt->command, "flipxz",6))){
     hout->nx = hin->nz;
     hout->mx = hin->mz;
     hout->xlen = hin->zlen;
@@ -484,8 +484,8 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     puts(" Done!");
     return(0);
   }
-  if ((!strncasecmp(opt->command, "flipyz",6)) ||
-      (!strncasecmp(opt->command, "flipzy",6))){
+  if ((!strncmp(opt->command, "flipyz",6)) ||
+      (!strncmp(opt->command, "flipzy",6))){
     hout->nx = hin->nx;
     hout->mx = hin->mx;
     hout->xlen = hin->xlen;
@@ -505,8 +505,8 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     puts(" Done!");
     return(0);
   }
-  if ((!strncasecmp(opt->command, "flipx",5)) ||
-      (!strncasecmp(opt->command, "flipy",5))){
+  if ((!strncmp(opt->command, "flipx",5)) ||
+      (!strncmp(opt->command, "flipy",5))){
     hout->nx = hin->nx;
     hout->ny = hin->ny;
     hout->nz = hin->nz;
@@ -522,7 +522,7 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     puts(" Done!");
     return(0);
   }
-  if (!strncasecmp(opt->command, "flipz",5)){
+  if (!strncmp(opt->command, "flipz",5)){
     hout->nx = hin->nx;
     hout->ny = hin->ny;
     hout->nz = hin->nz;
@@ -720,7 +720,7 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
     hdr[f] = (struct MRCheader *)malloc(sizeof(struct MRCheader));
     if (!hdr[f])
       return(-1);
-    hdr[f]->fp = fopen(opt->fnames[f], "r");
+    hdr[f]->fp = fopen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
       fprintf(stderr, "grap average: error opening %s.\n", 
               opt->fnames[f]);

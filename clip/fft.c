@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/08/01 00:00:16  mast
+    Preserve pixel size and lables when doing 3D FFT
+
 */
 
 #ifndef NOFFTLIB
@@ -408,7 +411,7 @@ int clip_3difft_swap(struct MRCheader *hin, struct MRCheader *hout,
      /* BIG WARNING: input file gets mangled. */
      show_status("Mangeling.\n");
      fclose(hin->fp);
-     hin->fp = fopen(opt->fnames[0], "r+");
+     hin->fp = fopen(opt->fnames[0], "rb+");
      clip_wrapfile(hin);
      show_status("Inverse in 3rd dim.\n");
      clip_fftfile3(hin, -2);
