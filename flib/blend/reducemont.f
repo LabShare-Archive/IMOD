@@ -65,6 +65,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/12/12 22:00:09  mast
+c	  Fixed problems with setting cell sizes and consolidated header entry
+c	  settings at end of file - no more intermediate saving of header
+c	
 c	  Revision 3.4  2003/12/12 20:36:47  mast
 c	  Preserve pixel size of input file in Z
 c	
@@ -567,7 +571,6 @@ c
 	cell(1)=nxout*nreduce*delt(1)
 	cell(2)=nyout*nreduce*delt(2)
 	cell(3)=nzout*delt(3)
-	print *,'delta:',(delt(i),i= 1,3),'  cell:',(cell(i),i= 1,3)
 	call ialcel(2,cell)
 	call date(dat)
 	call time(tim)
