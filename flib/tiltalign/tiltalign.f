@@ -119,10 +119,6 @@ c	  a relatively few fiducials; it also avoids distortions in the
 c	  resulting reconstruction that could be difficult to account for when
 c	  trying to combine reconstructions from tilts around two axes.
 c
-c	  NOTE that the set of N views whose alignment is being solved for are
-c	  referred to by number from 1 to N, while the Z values in the model
-c	  file would generally start at 0.
-c
 c	  Parameters are entered in the following order.  Lines starting with
 c	  IF are entered only for particular choices on the preceding line.
 c
@@ -150,17 +146,19 @@ c	  .   or 1 to put only transformations for aligning the images
 c	  .	into the output file,
 c	  .   or 0 to put both in the file.
 c
-c	  0 to include points with all of the Z values in the model file (these
-c	  .	Z values are linearly related to view number, so a selection
-c	  .	of Z values is in effect a selection of views to solve for)
-c	  .   or 1 to specify the starting, ending, and increment Z to include
-c	  .   or 2 to specify individually all of the Z values to include
+c	  0 to include all views that have points in the model file
+c	  .   or 1 to specify the starting, ending, and increment views to
+c	  .     include
+c	  .   or 2 to enter a list of the individual views to include
+c	  .   or 3 to enter a list of views to exclude
 c
-c	  IF 1 was selected, next enter the starting and ending Z and the
-c	  .   increment to use between those values
+c	  IF 1 was selected, next enter the starting and ending view number
+c	  .    and the increment to use between those values
 c
-c	  OR IF 2 was selected, enter the Z values to be included.  Ranges may
-c	  .   be entered; e.g. 0-3,6-8
+c	  OR IF 2 was selected, enter a list of views to be included.  Ranges 
+c	  .   may be entered; e.g. 0-3,6-8
+c	  
+c	  OR IF 3 was selected, enter a list of views to be excluded
 c
 c	  Initial angle of rotation in the plane of projection.	 This is the
 c	  .   rotation (CCW positive) from the Y-axis (the tilt axis after the
@@ -390,7 +388,17 @@ c	  10/17/98 added linear combinations to automapping
 c	  2/12/98 added local alignments; changed find_surfaces to find and
 c	  recommend an X-axis tilt.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	implicit none
 	include 'alivar.inc'
+	integer maxvar,maxmetro
 	parameter (maxvar=7*maxview)
 	parameter (maxmetro=1300)
 c
@@ -419,8 +427,30 @@ c
 c
 	logical firsttime,xyzfixed
 	common /functfirst/ firsttime,xyzfixed
-	data ncycle/500/,nsolve/95/
-	DATA DTOR/0.0174532/
+	integer*4 ncycle/500/,nsolve/95/
+	real*4 DTOR/0.0174532/
+c	  
+	integer*4 nlocalres,nsurface,iwhichout,metroerror,isolmin,i,itry
+	integer*4 inputalf,mapalfend,ifvarout,ifresout,ifxyzout,iflocal
+	integer*4 isolmininit,iv,nvarsrch,nvargeom,index,nvarang,nvarscl
+	real*4 errcrit,facm,znew,xtiltnew,scalexy,ermin,ermininit,errsum
+	real*4 errsqsm,residerr,vwerrsum,vwerrsq,sxoz,szox,sxox,szoz
+	real*4 xo,zo,xshft,zshft,rollpts,costh,sinth,xtmp,compinc,compabs
+	integer*4 nvadd,ninvsum,ivst,ivnd,iunit2,nunknowtot,iunit
+	real*4 unkrat,tiltout,zmin,zmax,zmiddle,dysum,cosphi,sinphi
+	real*4 dyavg,offmin,dxmid,offsum,dxtry,xtfac,xtconst,off,yshft
+	integer*4 j,iuangle,iuxtilt,iupoint,ndxtry,iunlocal,nallrealpt
+	integer*4 mapalfstart,nord,jpt,npatchx,npatchy,kount,ivt,ipt
+	integer*4 nxpmin,nypmin,minfidtot,minfidsurf,ifxyzfix,nallprojpt
+	real*4 errmean,errsd,errnosd,tiltmax,fixedmax,xsum,ysum,zsum
+	integer*4 idxpatch,idypatch,ipatchx,ipatchy,ixspatch,iyspatch
+	integer*4 nxp,nyp,minsurf,nbot,ntop,ixmin,ixmax,iymin,iymax,kk
+	integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ier
+	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
+	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel
+	real*4 atand,sind,cosd
+	integer*4 nearest_view
+c
 	nlocalres=50
 	firsttime=.true.
 	xyzfixed=.false.
@@ -438,17 +468,17 @@ c
 	iuxtilt=inputalf
 	call input_model(xx,yy,isecview,maxprojpt,maxreal,irealstr,
      &	    ninreal,imodobj,imodcont,nview,nprojpt, nrealpt,iwhichout,
-     &	    xcen,ycen, modelfile,iupoint,iuangle,iuxtilt)
+     &	    xcen,ycen, mapviewtofile,mapfiletoview,nfileviews,modelfile,
+     &	    iupoint,iuangle,iuxtilt)
 c	  
 	if(nview.gt.maxview)stop
      &	    'TOO MANY VIEWS FOR ARRAYS'
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart)
+     &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart,tiltorig,tiltadd)
 	mapalfend=nvarsrch
 c
 	do i=1,nview
-	  tiltorig(i)=tilt(i)/dtor
 	  viewres(i)=0.
 	  ninview(i)=0
 	enddo
@@ -768,9 +798,10 @@ c
 		write(iunit,'(/,a)') ' view   rotation    tilt    '//
      &		    'deltilt     mag      dmag      skew    mean resid'
 		do i=1,nview
-		  write(iunit,'(i4,2f10.1,f10.2,2f10.4,2f10.2)')i,rot(i),
-     &		      tilt(i), tilt(i)-tiltorig(i),gmag(i),dmag(i),
-     &		      skew(i), viewres(i)
+		  j=mapviewtofile(i)
+		  write(iunit,'(i4,2f10.1,f10.2,2f10.4,2f10.2)')
+     &		      j,rot(i), tilt(i), tilt(i)-tiltorig(j),
+     &		      gmag(i),dmag(i), skew(i), viewres(i)
 		enddo
 	      elseif(ifrotfix.eq.-1.or.ifrotfix.eq.-2)then
 		if(ifrotfix.eq.-1)write(iunit,'(/,a,f7.2)')
@@ -780,18 +811,20 @@ c
 		write(iunit,'(/,a)') ' view     tilt    deltilt   '//
      &		    '  mag      dmag      skew     X-tilt   mean resid'
 		do i=1,nview
-		  write(iunit,'(i4,f10.1,f10.2,2f10.4,3f10.2)')i,
-     &		      tilt(i), tilt(i)-tiltorig(i),gmag(i),dmag(i),
+		  j=mapviewtofile(i)
+		  write(iunit,'(i4,f10.1,f10.2,2f10.4,3f10.2)')
+     &		      j, tilt(i), tilt(i)-tiltorig(j),gmag(i),dmag(i),
      &		      skew(i), alf(i),viewres(i)
 		enddo		
 	      else
 		write(iunit,'(/,a)')'WARNING: SOLUTIONS FOR BOTH '//
-     &		    'ROTATION AND X-AXIS TILS ARE VERY UNRELIABLE'
+     &		    'ROTATION AND X-AXIS TILT ARE VERY UNRELIABLE'
 		write(iunit,'(/,a)') ' view rotation  tilt  deltilt'
      &		    //'    mag     dmag    skew   X-tilt  mean resid'
 		do i=1,nview
-		  write(iunit,'(i4,2f8.1,f8.2,2f9.4,3f8.2)')i,rot(i),
-     &		      tilt(i), tilt(i)-tiltorig(i),gmag(i),dmag(i),skew(i),
+		  j=mapviewtofile(i)
+		  write(iunit,'(i4,2f8.1,f8.2,2f9.4,3f8.2)') j,rot(i),
+     &		      tilt(i), tilt(i)-tiltorig(j),gmag(i),dmag(i),skew(i),
      &		      alf(i),viewres(i)
 		enddo
 	      endif
@@ -806,7 +839,8 @@ c
 		  compinc=comp(i)	
 		  compabs=compinc*gmag(i)
 		endif
-		write(iunit,'(i4,2f10.1,4f10.4,f10.2)')i,rot(i),tilt(i),
+		write(iunit,'(i4,2f10.1,4f10.4,f10.2)')mapviewtofile(i)
+     &		    ,rot(i),tilt(i),
      &		    gmag(i),compinc,compabs,dmag(i),skew(i)
 	      enddo
 	    endif
@@ -831,14 +865,24 @@ c
 	  write(iupoint,'(i4,3f10.2)')(j,(xyz(i,j),i=1,3),j=1,nrealpt)
 	  close(iupoint)
 	endif
+c	  
+c	  output lists of angles that are complete for all file views
 c
 	if(iflocal.eq.0.and.iuangle.ne.0)then
-	  write(iuangle,'(f7.2)')(tilt(i),i=1,nview)
+	  do i=1,nfileviews
+	    tiltout=tiltorig(i)
+	    if(mapfiletoview(i).ne.0)tiltout=tilt(mapfiletoview(i))
+	    write(iuangle,'(f7.2)')tiltout
+	  enddo
 	  close(iuangle)
 	endif
 c
 	if(iflocal.eq.0.and.iuxtilt.ne.0)then
-	  write(iuxtilt,'(f7.2)')(alf(i),i=1,nview)
+	  do i=1,nfileviews
+	    tiltout=0.
+	    if(mapfiletoview(i).ne.0)tiltout=alf(mapfiletoview(i))
+	    write(iuxtilt,'(f7.2)')tiltout
+	  enddo
 	  close(iuxtilt)
 	endif
 c	  
@@ -931,26 +975,51 @@ c
 	    do iv=1,nview
 	      fl(2,3,iv)=fl(2,3,iv)-dyavg
 	      fl(1,3,iv)=fl(1,3,iv)+xtconst+xtfac*h(iv)
-	      call xfwrite(7,fl(1,1,iv),*99)
+	    enddo
+c	      
+c	      output a transform for each file view, find the nearest one
+c	      for non-included view
+c
+	    do iv=1,nfileviews
+	      i=nearest_view(iv)
+	      call xfwrite(7,fl(1,1,i),*99)
 99	    enddo
 	  else
 c	      
-c	      if local, add the shifts to the dx and dy to get transforms that
+c	      if local, output an angle for all file views
+c	      
+	    do i=1,nfileviews
+	      iv=mapfiletoview(i)
+	      h(i)=0.
+	      if(iv.gt.0)h(i)=tilt(iv)-glbtilt(iv)/dtor
+	    enddo
+	    write(iunlocal,'(10f7.2)')(h(i),i=1,nfileviews)
+c	    write(6,'(f8.2)')(tilt(iv),iv=1,nview)
+	    if(mapalfstart.le.mapalfend)then
+	      do i=1,nfileviews
+		iv=mapfiletoview(i)
+		h(i)=0.
+		if(iv.gt.0)h(i)=alf(iv)-glbalf(iv)/dtor
+	      enddo
+	      write(iunlocal,'(10f7.2)')(h(i),i=1,nfileviews)
+	    endif
+c	      
+c	      add the shifts to the dx and dy to get transforms that
 c	      work to get back to the original point positions.
 c	      Compose the inverse of an adjusting transform
 c
-	    write(iunlocal,'(10f7.2)')
-     &		(tilt(iv)-glbtilt(iv)/dtor,iv=1,nview)
-c	    write(6,'(f8.2)')(tilt(iv),iv=1,nview)
-	    if(mapalfstart.le.mapalfend)write(iunlocal,'(10f7.2)')
-     &		(alf(iv)-glbalf(iv)/dtor,iv=1,nview)
-	    do iv=1,nview
-	      fl(1,3,iv)=fl(1,3,iv)+xshft*cosd(tilt(iv))
-	      fl(2,3,iv)=fl(2,3,iv)+yshft
-c	      call xfwrite(6,fl(1,1,iv),*199)
-	      call xfinvert(glbfl(1,1,iv),fa)
-	      call xfmult(fa,fl(1,1,iv),fb)
-	      call xfinvert(fb,fc)
+	    do i=1,nfileviews
+	      iv=mapfiletoview(i)
+	      if(iv.gt.0)then
+		fl(1,3,iv)=fl(1,3,iv)+xshft*cosd(tilt(iv))
+		fl(2,3,iv)=fl(2,3,iv)+yshft
+c		  call xfwrite(6,fl(1,1,iv),*199)
+		call xfinvert(glbfl(1,1,iv),fa)
+		call xfmult(fa,fl(1,1,iv),fb)
+		call xfinvert(fb,fc)
+	      else
+		call xfunit(fc,1.)
+	      endif
 	      call xfwrite(iunlocal,fc,*199)
 199	    enddo
 	  endif
@@ -987,7 +1056,8 @@ c
 		  jptsave(nord)=jpt
 		else
 		  write(*,114) imodobj(indallreal(jpt)),
-     &		      imodcont(indallreal(jpt)), isecview(i),xx(i)+xcen
+     &		      imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
+     &		      ,xx(i)+xcen
      &		      ,yy(i)+ycen, xresid(i), yresid(i),errnosd
 114		  format(i4,2i6,2f10.2,3f7.2)
 		endif
@@ -1013,7 +1083,8 @@ c
 	    do iord=1,nord
 	      i=indsave(iord)
 	      write(*,114) imodobj(indallreal(jptsave(iord))),
-     &		  imodcont(indallreal(jptsave(iord))),isecview(i),
+     &		  imodcont(indallreal(jptsave(iord))),
+     &		  mapviewtofile(isecview(i)),
      &		  xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i),
      &		  errsave(iord)
 	    enddo
@@ -1034,7 +1105,7 @@ c
 	enddo
 	if(fixedmax.ge.5.)tiltmax=fixedmax
 	if(nsurface.gt.0)call find_surfaces(xyz,nrealpt,nsurface,
-     &	    tiltmax,iunit2,tiltnew,igroup)
+     &	    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd)
 	call write_xyz_model(modelfile,xyz,igroup,nrealpt)
 c	  
 c	  Ask about local alignments
@@ -1118,7 +1189,8 @@ c	write(*,'(i4,3f10.2)',err=86)
 c     &	    (j,(allxyz(i,j),i=1,3),j=1,nrealpt)
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &	    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart)
+     &	    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,
+     &	    tiltorig,tiltadd)
 	mapalfend=nvarsrch
 c
 	idxpatch=(nint(2*xcen)-nxpmin)/max(1,npatchx-1)
