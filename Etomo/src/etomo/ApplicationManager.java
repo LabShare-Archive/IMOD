@@ -34,7 +34,6 @@ import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
-import etomo.process.SystemProgram;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -75,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2003/12/04 22:09:03  sueh
+ * <p> bug242 Converting to new interface.
+ * <p>
  * <p> Revision 3.3  2003/11/26 23:36:27  rickg
  * <p> Debug flag and getter changed to static.
  * <p>
@@ -3901,7 +3903,7 @@ public class ApplicationManager {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
-      imodDirectoryName = getEnvironmentVariable("IMOD_DIR");
+      imodDirectoryName = Utilities.getEnvironmentVariable("IMOD_DIR");
       if (imodDirectoryName == "") {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
@@ -4160,88 +4162,6 @@ public class ApplicationManager {
     return homeDirectory;
   }
 
-  /**
-   * Return an environment variable value
-   * 
-   * @param varName
-   * @return String
-   */
-  private String getEnvironmentVariable(String varName) {
-    //  There is not a real good way to access the system environment variables
-    //  since the primary method was deprecated
-    SystemProgram readEnvVar;
-    String osName = System.getProperty("os.name");
-
-    if (osName.startsWith("Windows")) {
-      readEnvVar = new SystemProgram("cmd.exe /C echo %" + varName + "%");
-      try {
-        readEnvVar.setDebug(debug);
-        readEnvVar.run();
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-        System.err.println(excep.getMessage());
-        System.err.println(
-          "Unable to run cmd command to find "
-            + varName
-            + " environment variable");
-
-        return "";
-      }
-      String[] stderr = readEnvVar.getStdError();
-      if (stderr.length > 0) {
-        System.err.println("Error running 'cmd.exe' command");
-        for (int i = 0; i < stderr.length; i++) {
-          System.err.println(stderr[i]);
-        }
-      }
-
-      // Return the first line from the command
-      String[] stdout = readEnvVar.getStdOutput();
-      if (stdout.length > 0) {
-        return stdout[0];
-      }
-    }
-
-    //  Non windows environment
-    else {
-
-      readEnvVar = new SystemProgram("env");
-      try {
-        readEnvVar.setDebug(debug);
-        readEnvVar.run();
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-        System.err.println(excep.getMessage());
-        System.err.println(
-          "Unable to run env command to find "
-            + varName
-            + " environment variable");
-
-        return "";
-      }
-      String[] stderr = readEnvVar.getStdError();
-      if (stderr.length > 0) {
-        System.err.println("Error running 'env' command");
-        for (int i = 0; i < stderr.length; i++) {
-          System.err.println(stderr[i]);
-        }
-      }
-
-      // Search through the evironment string array to find the request
-      // environment variable
-      String searchString = varName + "=";
-      int nChar = searchString.length();
-      String[] stdout = readEnvVar.getStdOutput();
-      for (int i = 0; i < stdout.length; i++) {
-        if (stdout[i].indexOf(searchString) == 0) {
-          return stdout[i].substring(nChar);
-        }
-      }
-    }
-    return "";
-  }
 
   /**
    * Returns the debug state.
