@@ -1,6 +1,6 @@
 	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc
 	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim
-	parameter (maxsiz=1024*1024*16)		!# of pixels
+	parameter (maxsiz=1024*1024*32)		!# of pixels
 c	  
 c	  set limvar to LESS THAN the square root of maxsiz
 c	  
