@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
-
 /**
 * <p>Description:</p>
 *
@@ -17,27 +16,34 @@ import java.util.Vector;
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
+* University of Colorado</p>
 *
 * @author $$Author$$
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/22 23:48:50  sueh
+* <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
+* <p> $autodoc data.
+* <p> $$ </p>
 */
 
 public class AutodocParser {
-  public static final String rcsid = "$$Id$$";
+  public static final String rcsid =
+    "$$Id$$";
 
-  private static final String zeroOrMore = new String("zeroOrMore");
   private AutodocTokenizer tokenizer;
   private String name = null;
   private File file = null;
   private Vector line = null;
   private int lineIndex = 0;
   private Autodoc autodoc = null;
+  Token token = null;
+  //Preprocessor flags
   private boolean startOfLine = true;
   private boolean delimiterInLine = false;
+  private boolean emptyLine = false;
 
   public AutodocParser(Autodoc autodoc, File file) {
     if (autodoc == null) {
@@ -55,50 +61,237 @@ public class AutodocParser {
   public void initialize() throws FileNotFoundException, IOException {
     tokenizer.initialize();
   }
-  
-  
-  public void parse() {
+
+  /**
+   * Autodoc => { (emptyLine) | comment | attribute | section }
+   * 
+   * @throws IOException
+   */
+  public void parse() throws IOException {
+    do {
+      nextToken();
+      if (emptyLine) {
+        break;
+      }
+      if (comment()) {
+        break;
+      }
+      if (section()) {
+        break;
+      }
+      if (attribute()) {
+        break;
+      }
+    }
+    while (!token.is(Token.EOF));
   }
-  
-  private boolean emptyLine() {
+
+  /**
+   * comment => (startOfLine) {1 WHITESPACE 1} COMMENT { \EOL\ } EOL
+   * 
+   * @return true if comment found
+   * @throws IOException
+   */
+  private boolean comment() throws IOException {
+    if (!startOfLine) {
+      return false;
+    }
+    if (token.is(Token.WHITESPACE)) {
+      nextToken();
+    }
+    if (!token.is(Token.COMMENT)) {
+      return false;
+    }
+    nextToken();
+    while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
+      nextToken();
+    }
+
     return true;
   }
-  
-  private boolean attribute() {
-    return true; 
-  }
-  
-  private boolean group() {
+
+  /**
+   * section => (startOfLine && delimiterInLine) {1 WHITESPACE 1} OPEN sectionHeader CLOSE { EmptyLine | attribute }
+   * 
+   * @return true if section found
+   * @throws IOException
+   */
+  private boolean section() throws IOException {
+    if (!startOfLine || !delimiterInLine) {
+      return false;
+    }
+    if (token.is(Token.WHITESPACE)) {
+      nextToken();
+    }
+    if (!token.is(Token.OPEN)) {
+      return false;
+    }
+    nextToken();
+    if (!sectionHeader()) {
+      return false;
+    }
+    if (!token.is(Token.CLOSE)) {
+      return false;
+    }
+    nextToken();
+    while (!token.is(Token.EOF)) {
+      if (emptyLine) {
+        nextToken();
+      }
+      else {
+        if (!attribute()) {
+          return true;
+        }
+      }
+    }
+
     return true;
   }
-  
-  private boolean comment() {
+
+  /**
+   * sectionHeader => (!startOfLine && delimiterInLine) WORD {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} sectionName
+   * 
+   * @return true if sectionHeader found
+   * @throws IOException
+   */
+  private boolean sectionHeader() throws IOException {
+    if (startOfLine || !delimiterInLine) {
+      return false;
+    }
+    if (!token.is(Token.WORD)) {
+      return false;
+    }
+    nextToken();
+    if (token.is(Token.WHITESPACE)) {
+      nextToken();
+    }
+    nextToken();
+    if (!token.is(Token.DELIMITER)) {
+      return false;
+    }
+    nextToken();
+    if (token.is(Token.WHITESPACE)) {
+      nextToken();
+    }
+    if (!sectionName()) {
+      return false;
+    }
     return true;
   }
-  
-  private boolean value() {
+
+  /**
+   * sectionName = (!startOfLine && delimiterInLine) [ \CLOSE,WHITESPACE,EOL\ ]
+   * 
+   * @return true if sectionName found
+   */
+  private boolean sectionName() throws IOException {
+    if (startOfLine || !delimiterInLine) {
+      return false;
+    }
+    boolean found = false;
+    while (!token.is(Token.CLOSE)
+      && !token.is(Token.WHITESPACE)
+      && !token.is(Token.EOL)
+      && !token.is(Token.EOF)) {
+      found = true;
+      nextToken();
+    }
+    if (!found) {
+      return false;
+    }
     return true;
   }
-  
-  private boolean nameValuePair() {
+
+  /**
+   * attribute => (startOfLine && delimiterInLine) ( ( WORD { SEPARATOR attribute } ) | ( {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} {1 value 1} ) )
+   * 
+   * @return true if attribute found
+   * @throws IOException
+   */
+  private boolean attribute() throws IOException {
+    if (!startOfLine || !delimiterInLine) {
+      return false;
+    }
+    if (!token.is(Token.WORD)) {
+      return false;
+    }
+    nextToken();
+    if (token.is(Token.SEPARATOR)) {
+      while (token.is(Token.SEPARATOR) && !token.is(Token.EOF)) {
+        if (!attribute()) {
+          return false;
+        }
+      }
+    }
+    else {
+      if (token.is(Token.WHITESPACE)) {
+        nextToken();
+      }
+      if (!token.is(Token.DELIMITER)) {
+        return false;
+      }
+      nextToken();
+      if (token.is(Token.WHITESPACE)) {
+        nextToken();
+      }
+      value();
+    }
+
     return true;
   }
-  
-  private boolean oneLineValue() {
-    return true;
+
+  /**
+   * value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine) { \DELIMITER,EOL\ } EOL }
+   * 
+   * @return true if value found
+   * @throws IOException
+   */
+  private boolean value() throws IOException {
+    boolean found = false;
+    while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
+      found = true;
+      nextToken();
+    }
+    if (!token.is(Token.EOF)) {
+      nextToken();
+    }
+    while (!delimiterInLine && !emptyLine && !token.is(Token.EOF)) {
+      while (!token.is(Token.DELIMITER)
+        && !token.is(Token.EOL)
+        && !token.is(Token.EOF)) {
+        found = true;
+        nextToken();
+      }
+      if (token.is(Token.DELIMITER)) {
+        return false;
+      }
+      if (!token.is(Token.EOF)) {
+        nextToken();
+      }
+    }
+    return found;
   }
-  
-  private Token getToken() throws IOException {
-    if (lineIndex == line.size()) {
+
+  /**
+   * set token level preprocessor flag: startOfLine
+   */
+  private void nextToken() throws IOException {
+    if (line == null || lineIndex == line.size()) {
       preprocess();
     }
-    Token token = (Token) line.get(lineIndex);
-    if (startOfLine && !token.is(Token.WHITESPACE)) {
+    token = (Token) line.get(lineIndex);
+    lineIndex++;
+    if (startOfLine
+      && (!token.is(Token.WHITESPACE)
+        && !token.is(Token.EOL)
+        && !token.is(Token.EOF))) {
       startOfLine = false;
     }
-    return null;
   }
-  
+
+  /**
+   * set line level preprocessor flags: emptyLine, delimiterInLine
+   */
   private void preprocess() throws IOException {
     Token token = null;
     if (line == null) {
@@ -106,47 +299,82 @@ public class AutodocParser {
     }
     else {
       line.clear();
-      lineIndex = 0;
-      startOfLine = true;
-      delimiterInLine = false;
     }
+    lineIndex = 0;
+    startOfLine = true;
+    delimiterInLine = false;
+    emptyLine = true;
     do {
       token = new Token(tokenizer.next());
+      if (emptyLine
+        && (!token.is(Token.WHITESPACE)
+          && !token.is(Token.EOL)
+          && !token.is(Token.EOF))) {
+        emptyLine = false;
+      }
       if (token.is(Token.DELIMITER)) {
         delimiterInLine = true;
       }
-      line.add(lineIndex, token);
-    } while (!token.is(Token.EOL) || !token.is(Token.EOF));
+      line.add(token);
+      ;
+    }
+    while (!token.is(Token.EOL) && !token.is(Token.EOF));
   }
-  
+
   public void testStreamTokenizer(boolean tokens) throws IOException {
     tokenizer.testStreamTokenizer(tokens);
   }
-  
+
   public void testPrimativeTokenizer(boolean tokens) throws IOException {
     tokenizer.testPrimativeTokenizer(tokens);
   }
-  
+
   public void testAutodocTokenizer(boolean tokens) throws IOException {
     tokenizer.initialize();
-    Token token = tokenizer.next();
-    while (!token.is(Token.EOF)) {
+    Token token = null;
+    do {
+      token = tokenizer.next();
       if (tokens) {
         System.out.println(token.toString());
       }
-      if (token.is(Token.EOL) && !tokens) {
+      else if (token.is(Token.EOL)) {
         System.out.println();
       }
-      else {
-        if (!tokens) {
-          System.out.print(token.getValue());
-        }
+      else if (!token.is(Token.EOF)) {
+        System.out.print(token.getValue());
       }
-      token = tokenizer.next();
     }
+    while (!token.is(Token.EOF));
   }
 
- }
+  public void testPreprocessor(boolean tokens) throws IOException {
+    if (tokens) {
+      System.out.println("(type,value):startOfLine,emptyLine,delimiterInLine");
+    }
+    tokenizer.initialize();
+    do {
+      nextToken();
+      if (tokens) {
+        System.out.println(
+          token.toString()
+            + ":"
+            + startOfLine
+            + ","
+            + emptyLine
+            + ","
+            + delimiterInLine);
+      }
+      else if (token.is(Token.EOL)) {
+        System.out.println();
+      }
+      else if (!token.is(Token.EOF)) {
+        System.out.print(token.getValue());
+      }
+    }
+    while (!token.is(Token.EOF));
+  }
+
+}
 
 /*  public void parse() throws IOException {
     if (token == null) {
