@@ -60,8 +60,6 @@ static int ivwProcessImageList(ImodView *vi);
 static int ivwManageInitialFlips(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
-static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
-                      unsigned char *brray);
 static void deletePlistBuf(void);
 
 /* default settings for the view info structure. */
@@ -2366,7 +2364,7 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 }
 
 /* Bin an array by the binning factor */
-static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
+void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
                       unsigned char *brray)
 {
   int i, j;
@@ -2453,6 +2451,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.30  2004/11/04 17:01:31  mast
+Changes for loading FFTs with internal mirroring
+
 Revision 4.29  2004/11/01 23:34:56  mast
 Initialized selection list
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/10/27 20:38:30  mast
+Changed arguments for cache dump routines
+
 Revision 1.4  2004/10/22 22:17:22  mast
 Added functions for dumping file system cache
 
@@ -62,6 +65,8 @@ void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 int ivwReadBinnedSection(ImodView *vi, char *buf, int section);
+void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
+                      unsigned char *brray);
 void ivwGetFileStartPos(ImodImageFile *image);
 void ivwDumpFileSysCache(ImodImageFile *image);
 void memreccpy
