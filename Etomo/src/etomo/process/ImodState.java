@@ -136,6 +136,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.15  2004/06/10 18:28:59  sueh
+ * <p> $bug# 463 openBeadFixer - a current state variable with no initial
+ * <p> $value.  Add message to open bead fixer in open().
+ * <p> $
  * <p> $Revision 1.14  2004/06/10 17:27:17  sueh
  * <p> $bug# 462 update comments, clarify how each state variable
  * <p> $is being used, add equals() functions for testing, update sets
@@ -345,7 +349,7 @@ public class ImodState {
     }
     datasetName = datasetName1 + axisExtension + datasetExt + " " + datasetName2 + axisExtension + datasetExt + " " + datasetName3 + axisExtension + datasetExt;
     initialModelName = modelName + axisExtension + modelExt;
-    process = new ImodProcess(datasetName, this.modelName);
+    process = new ImodProcess(datasetName, modelName);
     reset();
   }
 
@@ -426,12 +430,12 @@ public class ImodState {
    * @throws SystemProcessException
    */
   public void open(String modelName) throws SystemProcessException {
-    this.modelName = modelName;
+    setModelName(modelName);
     open();
   } 
   
   public void open(String modelName, boolean modelMode) throws SystemProcessException {
-    this.modelName = modelName;
+    setModelName(modelName);
     useMode = true;
     setModelMode(modelMode);
     open();
@@ -471,7 +475,7 @@ public class ImodState {
   
   protected void reset() {
     //reset to initial state
-    modelName = initialModelName;
+    setModelName(initialModelName);
     useMode = initialUseMode;
     mode = initialMode;
     swapYZ = initialSwapYZ;
@@ -523,6 +527,10 @@ public class ImodState {
    */
   public String getModelName() {
     return modelName;
+  }
+  public void setModelName(String modelName) {
+    this.modelName = modelName;
+    process.setModelName(modelName);
   }
   
   /**
