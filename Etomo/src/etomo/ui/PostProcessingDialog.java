@@ -11,6 +11,8 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoBoolean;
+import etomo.type.TomogramState;
 
 /**
  * <p>Description: </p>
@@ -25,6 +27,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/12/14 21:50:57  sueh
+ * <p> bug# 557 Made separate variables for x and y reduction factors to handle
+ * <p> an unflipped tomogram.
+ * <p>
  * <p> Revision 3.5  2004/12/04 01:27:19  sueh
  * <p> bug# 557 Added call to imodSqueezedVolume().
  * <p>
@@ -170,7 +176,12 @@ public class PostProcessingDialog
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
     ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX().toString());
-    ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
+    if (isSqueezevolFlipped()) {
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
+    }
+    else {
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY().toString());
+    }
     cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
   }
   
@@ -180,9 +191,37 @@ public class PostProcessingDialog
    */
   public void getParameters(SqueezevolParam squeezevolParam) {
     squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
-    squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
-    squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
+    boolean flipped = squeezevolParam.setFlipped(isTrimvolFlipped());
+    if (isTrimvolFlipped()) {
+      squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
+      squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
+    }
+    else {
+      squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText());
+      squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText());
+
+    }
     squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
+  }
+  
+  private boolean isTrimvolFlipped() {
+    TomogramState state = applicationManager.getState();
+    ConstEtomoBoolean stateFlipped = state.getTrimvolFlipped();
+    if (stateFlipped.isNull()) {
+      return state.getTrimvolFlippedFromHeader();
+    }
+    else {
+      return stateFlipped.is();
+    }
+  }
+  
+  public boolean isSqueezevolFlipped() {
+    TomogramState state = applicationManager.getState();
+    ConstEtomoBoolean flipped = state.getSqueezevolFlipped();
+    if (!flipped.isNull()) {
+      return flipped.is();
+    }
+    return isTrimvolFlipped();
   }
 
   /**
