@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/02/10 20:58:00  mast
+#  *** empty log message ***
+#
 #  Revision 3.2.2.9  2003/01/30 05:50:02  mast
 #  *** empty log message ***
 #
@@ -180,6 +183,11 @@ echo "NOOPFFALLBACK = $fallback $foptimization -O0 $defines $include_flags" >> $
 if ($swap_ieee == true) then
     echo "#define SWAP_IEEE_FLOATS"                 >> $hconfigure
 endif
+
+#
+# Use a workaround when window managers won't do StaysOnTop reliably
+#
+echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 # Build tilt from Fortran subroutines, skip extra libraries, make sgi-specific
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
