@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -36,7 +44,6 @@
 #include "mrcfiles.h"
 #include "imod.h"
 
-static void readZ(ImodView *iv, unsigned char *buf, int cz);
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
        char Ivw_string[64];
        int  ivwLoadIMODifd(ImodView *iv);
@@ -94,14 +101,33 @@ unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time)
      return(imageData);
 }
 
+/* DNM 12/12/01: make this a function, do it only if not raw images
+   Not sure if this is still needed, can't test it easily */
+void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr)
+{
+     int rbase = iv->rampbase;
+     float scale = iv->rampsize/256.0f;
+     int pix, i;
+     int mi = tempSlicePtr->sec->xsize * tempSlicePtr->sec->ysize;
+     unsigned char *id = tempSlicePtr->sec->data.b;
+     if (App->depth == 8 && !iv->rawImageStore){
+	  for(i = 0; i < mi; i++){
+	       pix   = id[i];
+	       pix  *= scale;
+	       pix  += rbase;
+	       id[i] = pix;
+	  }
+     }
+}
+
 /* Returns pointer to raw image data for given z section. */
+/* DNM 12/13/01: rewrote to use a use count for priority, instead of 
+   rearranging the cache array every time */
 unsigned char *ivwGetZSection(ImodView *iv, int section)
 {
      ivwSlice *tempSlicePtr = NULL;
-     ivwSlice tmpSlice;
-     int sl;
+     int sl, slmin, minused;
      int cz = section;
-     int stepStart = 0, stepStop = iv->vmSize;
 
      if (section < 0) return (NULL);
      if (section >= iv->zsize) return(NULL);
@@ -114,70 +140,57 @@ unsigned char *ivwGetZSection(ImodView *iv, int section)
      if (!iv->vmSize)
 	  return(iv->idata[section]);
 
-     if (!iv->nt){
-	  /* cached data, but no time dimension */
-	  if (iv->vmCache->cz == cz)
-	       return(iv->vmCache->sec->data.b);
-	  
-	  /* search in cache for section */
-	  for(sl = 1; sl < stepStop; sl++){
-	       if (iv->vmCache[sl].cz == cz){
-		    tempSlicePtr = &(iv->vmCache[sl]);
-		    stepStop = sl;
-	       }
-	  }
-     }else{
-	  /* cached data with time */
-	  if ((iv->vmCache->cz == cz) && 
-	      (iv->vmCache->ct == iv->ct))
-	       return(iv->vmCache->sec->data.b);
+     /* Cached data: check last used one before searching */
+     sl = iv->vmLastUsed;
+     if ((iv->vmCache[sl].cz == cz) &&
+	 (iv->vmCache[sl].ct == iv->ct)) {
+	  tempSlicePtr = &(iv->vmCache[iv->vmLastUsed]);
+
+     } else {
 
 	  /* search in cache for section and time */
-	  for(sl = 1; sl < stepStop; sl++){
+	  for (sl = 0; sl < iv->vmSize; sl++){
 	       if ((iv->vmCache[sl].cz == cz) &&
 		   (iv->vmCache[sl].ct == iv->ct)){
 		    tempSlicePtr = &(iv->vmCache[sl]);
-		    stepStop = sl;
+		    break;
 	       }
 	  }
      }
 
      /* Didn't find slice in cache, need to load it in. */
      if (!tempSlicePtr){
-	  stepStop = iv->vmSize - 1;
-	  tempSlicePtr = &(iv->vmCache[stepStop]);
+
+	  /* DNM 12/12/01: add call to cache filler */
+	  if (icfGetAutofill())
+	       return(icfDoAutofill(iv, cz));
+
+	  /* Find oldest slice to replace */
+	  minused = iv->vmCount + 1;
+	  for (sl = 0; sl < iv->vmSize; sl++)
+	       if (iv->vmCache[sl].used < minused) {
+		    minused = iv->vmCache[sl].used;
+		    slmin = sl;
+	       }
+
+	  sl = slmin;
+	  tempSlicePtr = &(iv->vmCache[sl]);
 	  
 	  /* Load in image */
-	  readZ(iv, tempSlicePtr->sec->data.b, section);
+	  ivwReadZ(iv, tempSlicePtr->sec->data.b, section);
 
-	  if (App->depth == 8){
-	       int rbase = iv->rampbase;
-	       float scale = iv->rampsize/256.0f;
-	       int pix, i;
-	       int mi = tempSlicePtr->sec->xsize * tempSlicePtr->sec->ysize;
-	       unsigned char *id = tempSlicePtr->sec->data.b;
-	       for(i = 0; i < mi; i++){
-		    pix   = id[i];
-		    pix  *= scale;
-		    pix  += rbase;
-		    id[i] = pix;
-	       }
-	  }
+	  ivwScaleDepth8(iv, tempSlicePtr);
 
+	  tempSlicePtr->cz = section;
+	  tempSlicePtr->ct = iv->ct;
      }
 
-     tmpSlice = *tempSlicePtr;
+     /* Adjust use count, assign to slice, record it as last used */
+     iv->vmCount++;
+     tempSlicePtr->used = iv->vmCount;
+     iv->vmLastUsed = sl;
 
-     /* put current slice at highest priority in Q. */
-     for(sl = stepStop; sl > stepStart; sl--){
-	  iv->vmCache[sl] = iv->vmCache[sl-1];
-     }
-
-     iv->vmCache[0] = tmpSlice;
-     iv->vmCache->cz = section;
-     iv->vmCache->ct = iv->ct;
-
-     return (iv->vmCache->sec->data.b);
+     return (tempSlicePtr->sec->data.b);
 }
 
 int (*best_ivwGetValue)(ImodView *iv, int x, int y, int z);
@@ -210,13 +223,18 @@ int cache_ivwGetValue(ImodView *iv, int x, int y, int z)
 {
      ivwSlice *tempSlicePtr = 0;
      unsigned char *image;
-     int sl;
+     int sl = iv->vmLastUsed;
 
      /* find pixel in cache */
-     for(sl = 0; sl < iv->vmSize; sl++){
-	  if (iv->vmCache[sl].cz == z && iv->vmCache[sl].ct == iv->ct){
+     /* DNM 12/13/01: look first in last used slice */
+     if (iv->vmCache[sl].cz == z && iv->vmCache[sl].ct == iv->ct) {
 	       tempSlicePtr = &iv->vmCache[sl];
-	       break;
+     } else {
+	  for(sl = 0; sl < iv->vmSize; sl++){
+	       if (iv->vmCache[sl].cz == z && iv->vmCache[sl].ct == iv->ct){
+		    tempSlicePtr = &iv->vmCache[sl];
+		    break;
+	       }
 	  }
      }
 
@@ -241,6 +259,7 @@ int fake_ivwGetValue(ImodView *iv, int x, int y, int z)
 
 /* print a message to the information window during disk loading. */
 char ivwStatstring[64];
+
 void ivwShowStatus(char *string)
 {
      wprint("%s\n%s\r", ivwStatstring, string);
@@ -315,7 +334,10 @@ void ivwFlushCache(ImodView *vi)
      for(i = 0; i < vi->vmSize; i++){
 	  vi->vmCache[i].cz = -1;
 	  vi->vmCache[i].ct = 0;
+	  vi->vmCache[i].used = -1;
      }
+     vi->vmLastUsed = 0;
+     vi->vmCount = 0;
      return;
 }
 
@@ -328,6 +350,9 @@ int ivwInitCache(ImodView *vi)
 
      if (vi->li->axis == 2)
 	  ysize = vi->li->zmax - vi->li->zmin + 1;
+
+     vi->vmLastUsed = 0;
+     vi->vmCount = 0;
 
      /* printf("xsize %d  ysize %d  vmsize %d\n", xsize, ysize, vi->vmSize); */
      /* get array of slice structures */
@@ -355,6 +380,7 @@ int ivwInitCache(ImodView *vi)
 	  }
 	  vi->vmCache[i].cz = -1;
 	  vi->vmCache[i].ct = 0;
+	  vi->vmCache[i].used = -1;
      }
      return(0);
 }
@@ -869,9 +895,7 @@ void ivwSetTime(ImodView *vw, int time)
      /* DNM 6/17/01: Don't do this */
      /* inputSetModelTime(vw, time); */  /* set model point to a good value. */
 
-     if (vw->ct > 0)
-
-     if (!vw->fakeImage)
+     if (vw->ct > 0 && !vw->fakeImage)
 	 iiClose(&vw->imageList[vw->ct-1]);
 
      vw->ct = time;
@@ -1080,7 +1104,7 @@ void memreccpy
 }
 
 /* Read a section of data into the cache */
-static void readZ(ImodView *iv, unsigned char *buf, int cz)
+void ivwReadZ(ImodView *iv, unsigned char *buf, int cz)
 {
 
      /* Image in not a stack but loaded into pieces. */
