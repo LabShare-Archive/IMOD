@@ -5,6 +5,8 @@ IMOD History
 Improved problem with 3dmod crashing when it receives message to load seed 
 model.
 
+6/3/04: Made the Qt utility library be a DLL in Windows
+
 6/2/04: IMOD_3-2-17
 6/2/04: eTomo changes include ability to build tomogram from cross-correlation
 alignment, ability to use a whole tomogram for positioning, and 2D filtering
