@@ -4,7 +4,6 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 
@@ -23,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2004/11/20 00:12:00  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.8.4.1  2004/09/03 21:19:14  sueh
  * <p> bug# 520 getting app mgr from EtomoDirector
  * <p>
@@ -113,19 +115,12 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testReadBadFilename() {
-    // Need an application manger to get the IMOD_DIR environment
-    // variable
-    String[] args = {"--test"};
-    EtomoDirector.createInstance(args);
-    ApplicationManager appManager = (ApplicationManager) EtomoDirector
-        .getInstance().getCurrentManager();
-
     // First test, should throw an exception because the image stack is not
     // present
     boolean exceptionThrown = false;
     try {
       badFilename.read();
-    }
+          }
     catch (Exception except) {
       exceptionThrown = true;
       assertEquals("Incorrect exception thrown",
@@ -139,27 +134,28 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testRead() throws IOException, InvalidParameterException {
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
     TestUtilites.makeDirectories(testRoot + testDirectory1);
 
     // Set the working directory to the current test directory
-    String originalDirectory = System.getProperty("user.dir");
-    System.setProperty("user.dir", originalDirectory + File.separator
-        + testRoot);
+    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();
+    System.out.println("originalDirectory="+originalDirectory);
+    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory, testRoot).getAbsolutePath());
 
     // Check out the test header stack into the required directories
     try {
       TestUtilites.checkoutVector(testDirectory1, headerTestStack);
     }
     catch (SystemProcessException except) {
-      System.setProperty("user.dir", originalDirectory);
+      etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
       fail("Error checking out test vector: " + testRoot + testDirectory1
           + headerTestStack);
     }
 
     // Switch back to the original working directory
-    System.setProperty("user.dir", originalDirectory);
+    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
 
     mrcHeader.read();
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
@@ -168,12 +164,13 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
     //  Create the test directory
     TestUtilites.makeDirectories(testRoot + testDirectory2);
 
     // Set the working directory to the current test directory
-    String originalDirectory = System.getProperty("user.dir");
-    System.setProperty("user.dir", originalDirectory + File.separator
+    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();;
+    etomoDirector.setCurrentPropertyUserDir(originalDirectory + File.separator
         + testRoot);
 
     // Check out the test header stack into the required directories
@@ -181,14 +178,14 @@ public class MRCHeaderTest extends TestCase {
       TestUtilites.checkoutVector(testDirectory2, "headerTest.st");
     }
     catch (SystemProcessException except) {
-      System.setProperty("user.dir", originalDirectory);
+      etomoDirector.setCurrentPropertyUserDir(originalDirectory);
       System.err.println(except.getMessage());
       fail("Error checking out test vector: " + testRoot + testDirectory1
           + headerTestStack);
     }
 
     //  Switch back to the original working directory
-    System.setProperty("user.dir", originalDirectory);
+    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
 
     mrcWithSpaces.read();
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
