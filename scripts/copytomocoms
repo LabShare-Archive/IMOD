@@ -161,9 +161,16 @@ while ($backup == "-1")
 	    endif
 	    if ($naxis == "2")then
 		set bname = $rootname"b.st"
-		if ((! -e $bname) && (-e "$backupdir/$bname")) then
-		    echo "Creating link to $backupdir/$bname in current directory"
-		    ln -s "$backupdir/$bname" .
+		if (! -e $bname) then
+                    if (-e "$backupdir/$bname") then
+                        echo "Creating link to $backupdir/$bname in current directory"
+                        ln -s "$backupdir/$bname" .
+                    else
+                        echo2 " "
+                        echo2 "WARNING: $bname does not exist yet."
+                        echo2 "  If you place it in the backup directory later, you will have to run:"
+                        echo2 "  ln -s $backupdir/$bname ."
+                    endif
 		endif
 	    endif
 	endif
@@ -283,7 +290,14 @@ while ($iaxis < $numax)
 	    echo -n "  from the image file (Enter y or n)? "
 	    set ifextract = $<
 	    if ($ifextract == "y" || $ifextract == "Y") then
-	        extracttilts $setname".st" $tiltspec | tail  -1
+                if (-e $setname".st") then
+                    extracttilts $setname".st" $tiltspec | tail  -1
+                else
+                    echo2 " "
+                    echo2 "WARNING: ${setname}.st does not exist yet."
+                    echo2 "  When it does, you will have to run:"
+                    echo2 "  extracttilts ${setname}.st $tiltspec"
+                endif
 	    endif
 	endif
 
@@ -291,9 +305,16 @@ while ($iaxis < $numax)
 
 	if ($montage == "1") then
 	    set plspec = $setname.pl
-	    if ((! -e $plspec)  && (-e $setname.st)) then
-		echo "Extracting piece list file from the image file..."
-		extractpieces $setname".st" $plspec | tail -1
+	    if (! -e $plspec) then
+                if (-e $setname.st) then
+                    echo "Extracting piece list file from the image file..."
+                    extractpieces $setname".st" $plspec | tail -1
+                else
+                    echo2 " "
+                    echo2 "WARNING: ${setname}.st does not exist yet."
+                    echo2 "  When it does, you will have to run:"
+                    echo2 "  extractpieces ${setname}.st $plspec"
+                endif
 	    endif
 	endif
     endif
@@ -850,6 +871,9 @@ EOF
 endif
 #
 #  $Log$
+#  Revision 3.16  2003/12/09 00:07:36  mast
+#  Make the sed append command in sample add new line after SLICE for Mac 10.2
+#
 #  Revision 3.15  2003/12/02 19:13:58  mast
 #  Added instructions for making thicker samples to sample.com
 #
