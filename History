@@ -1,5 +1,30 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/04: IMOD_3-4-10
+10/7/04: Fixed mtk to work with model built on image with pixel size in header.
+
+10/7/04: Added a script, tomosnapshot, to collect information for diagnosing
+tomogram building problems.
+
+9/29/04: Made Splitcombine check for writability of user's temporary directory
+to avoid runaway failures.
+
+9/28/04: Overhauled Imodinfo to add a volume computation that takes account of
+the spacing between contours connected by a mesh; to handle multiple clipping
+planes; and to give consistent volume and surface area results in the main
+output, full object, surface, and centroid outputs when there are inside
+contours, clipping plane, or a subset selected.
+
+9/27/04: Kept Imodmesh from combining polygons at different Z levels when there
+are low and high resolution meshes present, which would screw up other programs
+that rely on one polygon per Z plane.
+
+9/24/04: Added reprojection option to Tilt.
+
+9/24/04: Added interface for plugins to receive messages and added messages
+to open or reread align log file in Bead Fixer.
+
+9/24/04: IMOD_3-4-9
 9/23/04: Fixed reference mode in Midas, broken by block mode changes.
 
 9/21/04: Added ability to use multiple clipping planes per object, and to set
@@ -9,7 +34,7 @@ adjust the colors of multiple objects at once.  Changed the model view object
 list window to embed checkboxes in a scrolling view, not truncate names nearly
 as much, allow 512 objects, and display colors of objects.  Fixed
 synchronization of names, on/off state, and colors between 3dmod and model
-view components.
+view components.  Added a menu entry to rearrange (renumber) objects.
 
 9/17/04: Made Finishjoin detect if there is a large rotation between sections
 and warn that a reference section entry will probably be needed.
