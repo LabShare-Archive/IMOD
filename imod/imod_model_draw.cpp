@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2003/03/28 05:02:30  mast
+Needed to remove include of glu.h for Mac
+
 Revision 4.4  2003/03/12 06:37:42  mast
 Added end markers and current object markers, simplified time logic
 
@@ -156,7 +159,6 @@ static void imodDrawContourLines(Icont *cont, GLenum mode)
 
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
 {
-  static GLUquadricObj *qobj = NULL;
   Icont  *cont;
   Ipoint *point;
   Ipoint vert;
@@ -164,14 +166,20 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
   int mode;
   double inner, outer;
   int slices, loops;
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj;
+  if (obj->symbol == IOBJ_SYM_CIRCLE)
+    qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
+  if (!qobj)
+    qobj = gluNewQuadric();
+#endif
 
   if (obj->symflags  & IOBJ_SYMF_FILL)
     mode = GL_POLYGON;
   else
     mode = GL_LINE_LOOP;
-
-  if (!qobj)
-    qobj = gluNewQuadric();
 
   if (obj->symbol ==  IOBJ_SYM_CIRCLE) {
     outer = obj->symsize;
@@ -279,21 +287,28 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
       
     }
   }
+#ifdef GLU_QUADRIC_HACK
+  if (obj->symbol == IOBJ_SYM_CIRCLE)
+    gluDeleteQuadric(qobj);
+#endif
   return;
 }
 
 static void imodDrawSpheres(ImodView *vi, Iobj *obj)
 {
-  static GLUquadricObj *qobj = NULL;
   Icont *cont;
   Ipoint *point;
   int pt, co;
   int stepRes;
   GLdouble drawsize;
   GLuint listIndex;
-
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
   if (!qobj)
     qobj = gluNewQuadric();
+#endif
 
   /* The default is GLU_FILL, and it makes it dotty at the equator */
   /* But GLU_LINE does not give a circle on every slice */
@@ -335,6 +350,10 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   }
   if (obj->pdrawsize)
     glDeleteLists(listIndex, 1);
+
+#ifdef GLU_QUADRIC_HACK
+  gluDeleteQuadric(qobj);
+#endif
 }
 
 void imodDrawSymbol(Ipoint *point, 
@@ -342,12 +361,17 @@ void imodDrawSymbol(Ipoint *point,
 		    unsigned char size,
 		    unsigned char flags)
 {
-  static GLUquadricObj *qobj = NULL;
   double inner, outer;
   int slices, loops;
-
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj;
+  if (sym == IOBJ_SYM_CIRCLE)
+    qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
   if (!qobj)
     qobj = gluNewQuadric();
+#endif
 
   switch(sym){
           
@@ -385,5 +409,9 @@ void imodDrawSymbol(Ipoint *point,
     break;
   }
      
+#ifdef GLU_QUADRIC_HACK
+  if (sym == IOBJ_SYM_CIRCLE)
+    gluDeleteQuadric(qobj);
+#endif
   return;
 }

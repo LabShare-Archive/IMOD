@@ -193,17 +193,20 @@ void b3dDrawFilledTriangle(int x, int y, int size)
 
 void b3dDrawCircle(int x, int y, int radius)
 {
-  static GLUquadricObj *qobj = NULL;
   int linewidth = 1;
   GLdouble inrad;
   GLdouble dradius = radius;
-     
-
   if (radius <= 0)
     return;
 
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
   if (!qobj)
     qobj = gluNewQuadric();
+#endif
+
   /* DNM: by request, make circles have current thickness, which is similar
      to what triangles and squares do */
   /*     glLineWidth(1.0f); */
@@ -215,6 +218,9 @@ void b3dDrawCircle(int x, int y, int radius)
     inrad = 0;
   gluDisk(qobj, inrad, dradius, radius+4, 2);
   glPopMatrix();
+#ifdef GLU_QUADRIC_HACK
+  gluDeleteQuadric(qobj);
+#endif
 
   return;
 }
@@ -222,17 +228,25 @@ void b3dDrawCircle(int x, int y, int radius)
 
 void b3dDrawFilledCircle(int x, int y, int radius)
 {
-  static GLUquadricObj *qobj = NULL;
   if (radius <= 0)
     return;
 
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
   if (!qobj)
     qobj = gluNewQuadric();
+#endif
+
   glPushMatrix();
   glLineWidth(1.0f);
   glTranslatef((float)x, (float)y, 0.0f);
   gluDisk(qobj, 0, radius, radius+4, 1);
   glPopMatrix();
+#ifdef GLU_QUADRIC_HACK
+  gluDeleteQuadric(qobj);
+#endif
   return;
 }
 
@@ -1800,6 +1814,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.8  2003/03/28 05:08:23  mast
+*** empty log message ***
+
 Revision 4.7  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 

@@ -1072,13 +1072,19 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 {
   int co, pt;
   Icont *cont;
-  static GLUquadricObj *qobj = NULL;
   float z = zscale;
   int checkTime = (int)iobjTime(obj->flags);
   float drawsize;
   int pixsize, quality, i, j, k, mink, stepRes;
   float scale, diff, mindiff;
   GLuint listIndex;
+#ifdef GLU_QUADRIC_HACK
+  GLUquadricObj *qobj = gluNewQuadric();
+#else
+  static GLUquadricObj *qobj = NULL;
+  if (!qobj)
+    qobj = gluNewQuadric();
+#endif
 
   /* first time, build lookup tables for sphere resolution versus size and
      quality */
@@ -1198,6 +1204,9 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
   glDeleteLists(listIndex, 1);
   glPopMatrix();
   glPopName();
+#ifdef GLU_QUADRIC_HACK
+  gluDeleteQuadric(qobj);
+#endif
   return;
 }
 
@@ -1725,6 +1734,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.4  2003/03/28 05:01:39  mast
+Needed to remove include of glu.h for Mac
+
 Revision 4.3  2003/03/03 22:15:08  mast
 Added ability to display spheres for any points with size
 
