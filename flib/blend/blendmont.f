@@ -31,6 +31,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2005/02/17 17:58:04  mast
+c	  Rewrote edge function files at end and closed them so they would be
+c	  newer than the .ecd file
+c	
 c	  Revision 3.10  2004/09/14 22:34:44  mast
 c	  Made it preserve pixel sizes
 c	
@@ -689,7 +693,7 @@ c
 	    lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
 	    edgenam=concat(filnam,edgeext(ixy))
 	    ierr = imodBackupFile(edgenam)
-	    if(ierr.ne.0)write(6,*)' WARNING: blendmont - renaming',
+	    if(ierr.ne.0)write(6,*)' WARNING: blendmont - error renaming',
      &		  ' existing edge function file'
 	    open(iunedge(ixy),file=edgenam,status='new'
      &		,form='unformatted',access='direct',recl=lenrec)
