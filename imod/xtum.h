@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
 Revision 4.1  2003/02/10 20:41:56  mast
 Merge Qt source
 
@@ -129,6 +132,10 @@ class TumblerWindow : public QMainWindow
   void scaleData(TumblerStruct *xtum, unsigned short *sdata);
   void drawBoxLines(TumblerStruct *xtum, Imat *mat);
   void setSteps(TumblerStruct *xtum);
+  void setStepsPoints(TumblerStruct *xtum, Ipoint *xstep, Ipoint *ystep, 
+                      Ipoint *zstep, float beta);
+  void setSmallStepZero(Ipoint *xstep);
+
   void drawSubArea(TumblerStruct *xtum, unsigned short *sdata, int llx,
 		       int urx);
   void computeRotation(float x, float y, float z);
