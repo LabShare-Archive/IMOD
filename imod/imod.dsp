@@ -103,7 +103,15 @@ SOURCE=control.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\form_appearance.ui.h
+# End Source File
+# Begin Source File
+
 SOURCE=form_autox.ui.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\form_behavior.ui.h
 # End Source File
 # Begin Source File
 
@@ -112,6 +120,10 @@ SOURCE=form_cont_edit.ui.h
 # Begin Source File
 
 SOURCE=form_info.ui.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\form_mouse.ui.h
 # End Source File
 # Begin Source File
 
@@ -292,6 +304,10 @@ SOURCE=iproc.cpp
 # Begin Source File
 
 SOURCE=pixelview.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\preferences.cpp
 # End Source File
 # Begin Source File
 
@@ -919,6 +935,35 @@ InputPath=pixelview.h
 # End Source File
 # Begin Source File
 
+SOURCE=preferences.h
+
+!IF  "$(CFG)" == "imod - Win32 Release"
+
+USERDEP__PREFE="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing preferences.h...
+InputPath=preferences.h
+
+"tmp\moc_preferences.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc preferences.h -o tmp\moc_preferences.cpp
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "imod - Win32 Debug"
+
+USERDEP__PREFE="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing preferences.h...
+InputPath=preferences.h
+
+"tmp\moc_preferences.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc preferences.h -o tmp\moc_preferences.cpp
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=qcursor.bits
 # End Source File
 # Begin Source File
@@ -1104,11 +1149,62 @@ InputPath=zap_classes.h
 # PROP Default_Filter "ui"
 # Begin Source File
 
-SOURCE=form_autox.ui
+SOURCE=form_appearance.ui
 
 !IF  "$(CFG)" == "imod - Win32 Release"
 
 USERDEP__FORM_="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_appearance.ui...
+InputPath=form_appearance.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_appearance.ui -o tmp\form_appearance.h \
+	$(QTDIR)\bin\uic form_appearance.ui -i form_appearance.h -o tmp\form_appearance.cpp \
+	$(QTDIR)\bin\moc tmp\form_appearance.h -o tmp\moc_form_appearance.cpp \
+	
+
+"tmp\form_appearance.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_appearance.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_appearance.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "imod - Win32 Debug"
+
+USERDEP__FORM_="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_appearance.ui...
+InputPath=form_appearance.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_appearance.ui -o tmp\form_appearance.h \
+	$(QTDIR)\bin\uic form_appearance.ui -i form_appearance.h -o tmp\form_appearance.cpp \
+	$(QTDIR)\bin\moc tmp\form_appearance.h -o tmp\moc_form_appearance.cpp \
+	
+
+"tmp\form_appearance.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_appearance.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_appearance.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=form_autox.ui
+
+!IF  "$(CFG)" == "imod - Win32 Release"
+
+USERDEP__FORM_A="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
 # Begin Custom Build - Uic'ing form_autox.ui...
 InputPath=form_autox.ui
 
@@ -1130,7 +1226,7 @@ BuildCmds= \
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
-USERDEP__FORM_="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+USERDEP__FORM_A="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
 # Begin Custom Build - Uic'ing form_autox.ui...
 InputPath=form_autox.ui
 
@@ -1147,6 +1243,57 @@ BuildCmds= \
    $(BuildCmds)
 
 "tmp\moc_form_autox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\form_behavior.ui
+
+!IF  "$(CFG)" == "imod - Win32 Release"
+
+USERDEP__FORM_B="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_behavior.ui...
+InputPath=.\form_behavior.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_behavior.ui -o tmp\form_behavior.h \
+	$(QTDIR)\bin\uic form_behavior.ui -i form_behavior.h -o tmp\form_behavior.cpp \
+	$(QTDIR)\bin\moc tmp\form_behavior.h -o tmp\moc_form_behavior.cpp \
+	
+
+"tmp\form_behavior.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_behavior.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_behavior.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "imod - Win32 Debug"
+
+USERDEP__FORM_B="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_behavior.ui...
+InputPath=.\form_behavior.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_behavior.ui -o tmp\form_behavior.h \
+	$(QTDIR)\bin\uic form_behavior.ui -i form_behavior.h -o tmp\form_behavior.cpp \
+	$(QTDIR)\bin\moc tmp\form_behavior.h -o tmp\moc_form_behavior.cpp \
+	
+
+"tmp\form_behavior.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_behavior.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_behavior.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 # End Custom Build
 
@@ -1257,11 +1404,62 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=form_moviecon.ui
+SOURCE=form_mouse.ui
 
 !IF  "$(CFG)" == "imod - Win32 Release"
 
 USERDEP__FORM_M="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_mouse.ui...
+InputPath=form_mouse.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_mouse.ui -o tmp\form_mouse.h \
+	$(QTDIR)\bin\uic form_mouse.ui -i form_mouse.h -o tmp\form_mouse.cpp \
+	$(QTDIR)\bin\moc tmp\form_mouse.h -o tmp\moc_form_mouse.cpp \
+	
+
+"tmp\form_mouse.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_mouse.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_mouse.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "imod - Win32 Debug"
+
+USERDEP__FORM_M="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+# Begin Custom Build - Uic'ing form_mouse.ui...
+InputPath=form_mouse.ui
+
+BuildCmds= \
+	$(QTDIR)\bin\uic form_mouse.ui -o tmp\form_mouse.h \
+	$(QTDIR)\bin\uic form_mouse.ui -i form_mouse.h -o tmp\form_mouse.cpp \
+	$(QTDIR)\bin\moc tmp\form_mouse.h -o tmp\moc_form_mouse.cpp \
+	
+
+"tmp\form_mouse.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\form_mouse.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"tmp\moc_form_mouse.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=form_moviecon.ui
+
+!IF  "$(CFG)" == "imod - Win32 Release"
+
+USERDEP__FORM_MO="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
 # Begin Custom Build - Uic'ing form_moviecon.ui...
 InputPath=form_moviecon.ui
 
@@ -1283,7 +1481,7 @@ BuildCmds= \
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
-USERDEP__FORM_M="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
+USERDEP__FORM_MO="$(QTDIR)\bin\moc.exe"	"$(QTDIR)\bin\uic.exe"	
 # Begin Custom Build - Uic'ing form_moviecon.ui...
 InputPath=form_moviecon.ui
 
@@ -1677,6 +1875,10 @@ SOURCE=leftarrow.png
 # End Source File
 # Begin Source File
 
+SOURCE=raisewindow.png
+# End Source File
+# Begin Source File
+
 SOURCE=rightarrow.png
 # End Source File
 # Begin Source File
@@ -1685,18 +1887,18 @@ SOURCE=uparrow.png
 
 !IF  "$(CFG)" == "imod - Win32 Release"
 
-USERDEP__UPARR="uparrow.png"	"downarrow.png"	"rightarrow.png"	"leftarrow.png"	
+USERDEP__UPARR="uparrow.png"	"downarrow.png"	"rightarrow.png"	"leftarrow.png"	"raisewindow.png"	
 # Begin Custom Build - Creating image collection...
 InputPath=uparrow.png
 
 "tmp\qmake_image_collection.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(QTDIR)\bin\uic -embed imod -f images.tmp -o tmp\qmake_image_collection.cpp
+	$(QTDIR)\bin\uic -embed imod downarrow.png uparrow.png leftarrow.png rightarrow.png raisewindow.png -o tmp\qmake_image_collection.cpp
 
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
-USERDEP__UPARR="uparrow.png"	"downarrow.png"	"rightarrow.png"	"leftarrow.png"	
+USERDEP__UPARR="uparrow.png"	"downarrow.png"	"rightarrow.png"	"leftarrow.png"	"raisewindow.png"	
 # Begin Custom Build - Creating image collection...
 InputPath=uparrow.png
 
@@ -1714,11 +1916,27 @@ InputPath=uparrow.png
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=tmp\form_appearance.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\form_appearance.h
+# End Source File
+# Begin Source File
+
 SOURCE=tmp\form_autox.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=tmp\form_autox.h
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\form_behavior.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\form_behavior.h
 # End Source File
 # Begin Source File
 
@@ -1735,6 +1953,14 @@ SOURCE=tmp\form_info.cpp
 # Begin Source File
 
 SOURCE=tmp\form_info.h
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\form_mouse.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\form_mouse.h
 # End Source File
 # Begin Source File
 
@@ -1802,7 +2028,15 @@ SOURCE=tmp\formv_views.h
 # End Source File
 # Begin Source File
 
+SOURCE=tmp\moc_form_appearance.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=tmp\moc_form_autox.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\moc_form_behavior.cpp
 # End Source File
 # Begin Source File
 
@@ -1811,6 +2045,10 @@ SOURCE=tmp\moc_form_cont_edit.cpp
 # Begin Source File
 
 SOURCE=tmp\moc_form_info.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\moc_form_mouse.cpp
 # End Source File
 # Begin Source File
 
@@ -1907,6 +2145,10 @@ SOURCE=tmp\moc_iproc.cpp
 # Begin Source File
 
 SOURCE=tmp\moc_pixelview.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\moc_preferences.cpp
 # End Source File
 # Begin Source File
 

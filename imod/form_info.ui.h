@@ -65,7 +65,7 @@ void InfoControls::init()
 		      QIconSet::Off);
     keepOnTopButton->setIconSet(iconSet);
     keepOnTopButton->setOn(false);
-    QSize hint = raiseButton->sizeHint();
+    QSize hint = keepOnTopButton->sizeHint();
     raiseButton->setFixedWidth(hint.width());
     keepOnTopButton->setFixedWidth(hint.width());
 }
