@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:47  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/27 15:59:54  mast
 #  Add dependency on .version file
 #
@@ -20,7 +23,7 @@ IMOD_OBJS = imod.o imod_io.o imod_input.o imod_display.o \
  imodview.o imod_edit.o b3dgfx.o b3dfile.o \
  xtum.o xtilt.o xgraph.o xzap.o iproc.o sliceproc.o \
  imod_iscale.o imod_model_edit.o imod_cont_copy.o imod_moviecon.o imodplug.o \
- samplemeansd.o
+ samplemeansd.o imod_cachefill.o
 
 IMOD_X11_OBJS = ximodv.o imodv.o imod_model_draw.o
 
@@ -55,16 +58,26 @@ imodv : imod
 #############################################################################
 # Dependencies
 
-$(IMOD_OBJS) : imod.h imodP.h imodv.h
-imod_model_draw.o : imod.h imodP.h imodv.h
-imodv_gfx.o : imod.h imodP.h imodv.h
-imodv_image.o : imod.h imodP.h imodv.h
-imodv_input.o : imod.h imodP.h imodv.h
-imodv_ogl.o : imod.h imodP.h imodv.h
-ximodv.o : imod.h imodP.h imodv.h ximodv.h
+IMODDEPS = imod.h imodP.h b3dgfx.h autox.h imod_io.h sslice.h xxyz.h \
+ $(INCDIR)imodel.h $(INCDIR)imodi.h $(INCDIR)dia.h $(INCDIR)iobj.h \
+ $(INCDIR)icont.h $(INCDIR)imesh.h $(INCDIR)ipoint.h $(INCDIR)imat.h \
+ $(INCDIR)iplane.h $(INCDIR)iview.h $(INCDIR)hvemtypes.h $(INCDIR)ilist.h 
 
-$(IMODVOBJS) : imodv.h
-imodv.o : imodv.h
+IMODVDEPS = imodv.h $(INCDIR)imodel.h $(INCDIR)dia.h $(INCDIR)iobj.h \
+ $(INCDIR)icont.h $(INCDIR)imesh.h $(INCDIR)ipoint.h $(INCDIR)imat.h \
+ $(INCDIR)iplane.h $(INCDIR)iview.h $(INCDIR)hvemtypes.h $(INCDIR)ilist.h 
+
+
+$(IMOD_OBJS) : $(IMODDEPS) $(IMODVDEPS)
+imod_model_draw.o : $(IMODDEPS) $(IMODVDEPS)
+imodv_gfx.o : $(IMODDEPS) $(IMODVDEPS)
+imodv_image.o : $(IMODDEPS) $(IMODVDEPS)
+imodv_input.o : $(IMODDEPS) $(IMODVDEPS)
+imodv_ogl.o : $(IMODDEPS) $(IMODVDEPS)
+ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
+
+$(IMODVOBJS) : $(IMODVDEPS)
+imodv.o : $(IMODVDEPS)
 
 slicer.o : sslice.h slicer.h
 imod_menu.o : imodhelp.h hotkey.h menus.h imod_info.h iproc.h options.h
