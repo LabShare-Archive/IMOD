@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2005/01/17 17:08:24  mast
+Put in proper option checks and convrted to new 2D processing scheme
+
 
 */
 
@@ -62,6 +65,9 @@ int clip_bandpass_filter(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
+
+  if (opt->low == IP_DEFAULT)
+    opt->low = 1.;
 
   mrc_head_label(hout, "clip: fourier filter");
   show_status("Doing bandpass filter...\n");
