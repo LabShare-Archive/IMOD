@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2003/10/25 16:25:59  mast
+#  fix for Cygwin/Intel and add ability to copy other libraries
+#
 #  Revision 3.12  2003/10/25 02:52:27  mast
 #  find library in cygwin/Intel makefile
 #
@@ -53,14 +56,20 @@ set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
 #
 set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
 
-set dlldir = `sed -n '/DLLSOURCEDIR/s/^.*= *//p' configure`
+@ dllnum = 1
+while ($dllnum < 100)
+    set dlldir = `sed -n "/DLLSOURCEDIR$dllnum/s/^.*= *//p" configure`
 
-set dlllist = `sed -n '/DLLSTOCOPY/s/^.*= *//p' configure`
-if ("$dlllist" != "") then
-    foreach i ($dlllist)
-        \cp "$dlldir"/$i $instdir/$qtlibdir
-    end
-endif
+    set dlllist = `sed -n "/DLLSTOCOPY$dllnum/s/^.*= *//p" configure`
+    if ("$dlllist" != "") then
+        foreach i ($dlllist)
+            \cp "$dlldir"/$i $instdir/$qtlibdir
+        end
+    else
+        break
+    endif
+    @ dllnum++
+end
 
 set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
 
