@@ -239,6 +239,7 @@ while ($i < 3)
 
     if ($compiler == intel) then
         (cd $qdir[$i] ; qmake -o makefile.tmp $qpro[$i])
+        set badrules = `sed -n '/{.*}.*{.*}/p' < $qdir[$i]/makefile.tmp`
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
         -e '/DEL_FILE.*=.*del/s/del/rm -f/' -e '/makefile.tmp/s//Makefile/g' \
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
@@ -247,7 +248,10 @@ while ($i < 3)
         -e '/^install/a\	strip \$(TARGET) ; \\cp \$(TARGET) '"$inst_bin_dir" \
         < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
         \rm $qdir[$i]/makefile.tmp
-        cat <<EOF >> $qdir[$i]/Makefile
+
+        # append new build rules if the bad ones were there (Qt 3.1.1)
+        if ("$badrules" != "") then
+            cat <<EOF >> $qdir[$i]/Makefile
 .SUFFIXES: .c .cpp .obj
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$(INCPATH) \$<
@@ -255,6 +259,7 @@ while ($i < 3)
 .c.obj:
 	\$(CC) -c \$(CFLAGS) \$(INCPATH) \$<
 EOF
+        endif
     endif
 end
 
@@ -266,7 +271,9 @@ end
 \find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
 
 # Make new project files for 3dmod and midas if needed
+# set QMAKESPEC here for msvc, now that real makefiles are done
 #
+setenv QMAKESPEC win32-msvc
 set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
  -exec echo newer \;`
 if ($newer != newer) then
