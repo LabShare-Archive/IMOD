@@ -26,6 +26,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.24  2002/12/09 04:18:50  rickg
+ * <p> Better handling of current working directory, user.dir and
+ * <p> metaData always agree now.
+ * <p>
  * <p> Revision 1.23  2002/12/05 01:21:02  rickg
  * <p> Added isAdvanced stub
  * <p>
@@ -130,6 +134,8 @@ public class ApplicationManager {
   private TomogramPositioningDialog tomogramPositioningDialog = null;
   private TomogramGenerationDialog tomogramGenerationDialog = null;
   private TomogramCombinationDialog tomogramCombinationDialog = null;
+
+  private SettingsDialog settingsDialog = null;
 
   //  This object controls the reading and writing of David's com scripts
   private ComScriptManager comScriptMgr = new ComScriptManager(this);
@@ -1810,6 +1816,37 @@ public class ApplicationManager {
     mainFrame.setStatusBar(paramFile.getAbsolutePath());
   }
 
+  /**
+   * Open up the settings dialog box
+   */
+  public void openSettingsDialog() {
+
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    if (settingsDialog == null) {
+      settingsDialog = new SettingsDialog(this);
+      settingsDialog.setParameters(userConfig);
+      Dimension frmSize = mainFrame.getSize();
+      Point loc = mainFrame.getLocation();
+      settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
+      settingsDialog.setModal(false);
+    }
+    settingsDialog.show();
+  }
+
+  public void getSettingsParameters() {
+    if (settingsDialog != null) {
+      settingsDialog.getParameters(userConfig);
+      setUserPreferences();
+    }
+  }
+
+  public void closeSettingsDialog() {
+    if (settingsDialog != null) {
+      settingsDialog.dispose();
+    }
+  }
+
   private void setupRequestDialog() {
     String[] message = new String[2];
     message[0] = "The setup process has not been completed";
@@ -1877,9 +1914,7 @@ public class ApplicationManager {
       return;
     }
 
-    //
     // Load in the user configuration
-    //
     ParameterStore userParams = new ParameterStore(userConfigFile);
     Storable storable[] = new Storable[1];
     storable[0] = userConfig;
@@ -1893,9 +1928,14 @@ public class ApplicationManager {
           + userConfigFile.getAbsolutePath());
     }
 
-    //
-    //  Attempt to load the configuration file and set the user preferences
-    //
+    //  Set the user preferences
+    setUserPreferences();
+  }
+
+  /**
+   * Set the user preferences
+   */
+  private void setUserPreferences() {
     ToolTipManager.sharedInstance().setInitialDelay(
       userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(
