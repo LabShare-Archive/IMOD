@@ -36,12 +36,24 @@ c	  transformations, 7/23/97
 c	  DNM 2/26/01: add temporary directory entry and semi-unique filenames
 c	  DNM 11/6/01: fixed problem with output array size not being respected
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
+	implicit none
+	integer inpdim,limdim,lmcube,maxloc,limout
 	parameter (inpdim=200,limdim=10000,lmcube=limdim/inpdim,
      &	    maxloc=10000)
 	parameter (limout=(inpdim*3)/2)
 	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
 	real*4 cxyzin(3),cxyzout(3),cell(6),title(20),dxyzin(3)
 	integer*4 nxyzin(3),mxyzin(3),nxyzout(3),indcen(3)
+	integer*4 nxin,nyin,nzin,nxout,nyout,nzout
+	real*4 cxin,cyin,czin,cxout,cyout,czout
 	common /xyz/nxin,nyin,nzin,nxout,nyout,nzout,cxin,cyin,czin
      &	    ,cxout,cyout,czout
 	equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
@@ -67,6 +79,14 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
+	integer*4 nlocx,ninp,nlocy,nlocz,nloctot,i,j,mode,kti,ja,ix,iy
+	real*4 xlocst,ylocst,xlocmax,ylocmax,zlocst,zlocmax,cenlocx,cenlocy
+	real*4 cenlocz,dxloc,dyloc,dzloc,dmin,dmax,tsum,devmx,xcen,ycen,zcen
+	integer*4 idimout,ind,izcube,ixcube,iycube,ifx,ify,ifz,ival,ifempty
+	integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
+	real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
+	real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,dmeanin
+	integer*4 iunit,longint,l,izp,izpp1,izpm1
 c
 	write(*,'(1x,a,$)')'Name of input file: '
 	read(5,'(a)')filein
@@ -110,8 +130,12 @@ c
 	zlocst=1.e10
 	zlocmax=-1.e10
 	nloctot=nlocx*nlocz*nlocy
-	if(nloctot.gt.maxloc)stop
-     &	    'TOO MANY TRANSFORMATIONS TO FIT IN ARRAYS'
+	if(nloctot.gt.maxloc)then
+	  print *,'ERROR: WARPVOL TOO MANY TRANSFORMATIONS TO',
+     &	      ' FIT IN ARRAYS'
+	  call exit(1)
+	endif
+
 	do l=1,nloctot
 	  read(1,*)cenlocx,cenlocy,cenlocz
 	  read(1,*)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
@@ -176,8 +200,11 @@ c	  volume, store the starting index coordinates
 c
 	do i=1,3
 	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) stop
-     &	      'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS'
+	  if(ncubes(i).gt.lmcube) then
+	    print *,'ERROR: WARPVOL - TOO MANY CUBES IN LONGEST',
+     &		' DIRECTION TO FIT IN ARRAYS'
+	    call exit(1)
+	  endif
 	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
 	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
 	  ind=0
@@ -440,12 +467,14 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	print *, 'read error'
+99	print *, 'ERROR: WARPVOL - reading file'
 	call exit(1)
 	end
 
 	subroutine pack_piece (array,ixdout,iydout,ixofs,iyofs,
      &	    brray,nxin,nyin)
+	implicit none
+	integer*4 ixdout,iydout,ixofs,iyofs,nxin,nyin,ix,iy
 	real*4 array(ixdout,iydout),brray(nxin,nyin)
 	do iy=1,nyin
 	  do ix=1,nxin
@@ -458,8 +487,13 @@ c
 
 	subroutine interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,zlocst,
      &	    dzloc,nlocx, nlocy, nlocz, xcen,ycen,zcen,minv,dxyz)
+	implicit none
+	integer*4 nlocx, nlocy, nlocz
 	real*4 aloc(3,3,nlocx,nlocy,nlocz),dloc(3,nlocx,nlocy,nlocz)
-	real*4 minv(3,3),dxyz(3)
+	real*4 minv(3,3),dxyz(3),xlocst,dxloc,ylocst,dyloc,zlocst,dzloc
+	real*4  xcen,ycen,zcen
+	real*4 x,fx,fx1,y,fy,fy1,z,fz,fz1
+	integer*4 ix,ix1,iy,iy1,iz,iz1,i,j
 c	  
 	x=1.
 	if(nlocx.gt.0)then
