@@ -83,6 +83,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2004/05/03 22:29:21  sueh
+ * <p> bug# 416 Move Bin by 2 settings between tabs in
+ * <p> TomogramCombinationDialog.  Set binning in ImodManager.
+ * <p>
  * <p> Revision 3.46  2004/05/03 18:04:41  sueh
  * <p> bug# 418 adding printStackTrace for more information
  * <p>
@@ -1777,33 +1781,37 @@ public class ApplicationManager {
    * @param axisID
    */
   public void makeFiducialModelSeedModel(AxisID axisID) {
-    mainFrame.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
-    //.seed file must exist
     String seedModelFilename = System.getProperty("user.dir") + File.separator
         + metaData.getDatasetName() + axisID.getExtension() + ".seed";
     File seedModel = new File(seedModelFilename);
-    if (!seedModel.exists()) {
-      mainFrame.openMessageDialog(
-        "The seed model doesn't exist.  Create the seed model first",
-        "Seed model missing");
+    String fiducialModelFilename = System.getProperty("user.dir")
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
+        + ".fid";
+    File fiducialModel = new File(fiducialModelFilename);
+    if (seedModel.exists() && seedModel.lastModified() > fiducialModel.lastModified()) {
+      String[] message = new String[3];
+      message[0] = "WARNING: The seed model file is more recent the fiducial model file";
+      message[1] = "To avoid losing your changes to the seed model file,";
+      message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
+      mainFrame.openMessageDialog(message, "Use Fiducial Model as Seed Failed");
       return;
     }
+    mainFrame.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     String origSeedModelFilename = System.getProperty("user.dir")
         + File.separator + metaData.getDatasetName() + axisID.getExtension()
         + "_orig.seed";
     File origSeedModel = new File(origSeedModelFilename);
-    String fiducialModelFilename = System.getProperty("user.dir")
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + ".fid";
-    File fiducialModel = new File(fiducialModelFilename);
-    //backup original seed model file, if necessary
-    //rename fiducial model file to seed model file
+    //backup original seed model file
+    if (seedModel.exists() && origSeedModel.exists()) {
+      backupFile(seedModel);
+    }
     try {
-      if (!origSeedModel.exists()) {
+      if (seedModel.exists() && !origSeedModel.exists()) {
         Utilities.renameFile(seedModel, origSeedModel);
       }
+      //rename fiducial model file to seed model file
       Utilities.renameFile(fiducialModel, seedModel);
     }
     catch (IOException except) {
