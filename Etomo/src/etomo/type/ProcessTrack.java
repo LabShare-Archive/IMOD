@@ -4,7 +4,7 @@ import etomo.process.ProcessState;
 
 import java.util.Properties;
 
-/*
+/**
  * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
@@ -17,6 +17,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/14 21:48:28  sueh
+ * <p> bug# 565 Turning base class into an interface.
+ * <p>
  * <p> Revision 3.1  2004/11/19 23:36:32  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -66,6 +69,7 @@ public class ProcessTrack implements BaseProcessTrack {
 
   private ProcessState tomogramCombination = ProcessState.NOTSTARTED;
   private ProcessState postProcessing = ProcessState.NOTSTARTED;
+  private ProcessState cleanUp = ProcessState.NOTSTARTED;
 
   private ProcessState preProcessingB = ProcessState.NOTSTARTED;
   private ProcessState coarseAlignmentB = ProcessState.NOTSTARTED;
@@ -145,7 +149,8 @@ public class ProcessTrack implements BaseProcessTrack {
       group + "TomogramCombination",
       tomogramCombination.toString());
 
-    props.setProperty(group + "PostProcessing", postProcessing.toString());
+    props.setProperty(group + "PostProcessing", cleanUp.toString());
+    props.setProperty(group + "CleanUp", cleanUp.toString());
   }
 
   /**
@@ -172,6 +177,9 @@ public class ProcessTrack implements BaseProcessTrack {
     postProcessing =
       ProcessState.fromString(
         props.getProperty(group + "PostProcessing", "Not started"));
+    cleanUp =
+      ProcessState.fromString(
+        props.getProperty(group + "CleanUp", "Not started"));
 
     // Added separate process for A and B axis for 2.0 layout
     if (Float.parseFloat(revisionNumber) < 2.0) {
@@ -259,6 +267,7 @@ public class ProcessTrack implements BaseProcessTrack {
     setup = state;
     tomogramCombination = state;
     postProcessing = state;
+    cleanUp = state;
 
     preProcessingA = state;
     coarseAlignmentA = state;
@@ -407,6 +416,15 @@ public class ProcessTrack implements BaseProcessTrack {
   public ProcessState getPostProcessingState() {
     return postProcessing;
   }
+  
+  public void setCleanUpState(ProcessState state) {
+    cleanUp = state;
+    isModified = true;
+  }
+
+  public ProcessState getCleanUpState() {
+    return cleanUp;
+  }
 
   private ProcessState mapAxis(
     AxisID axisID,
@@ -428,7 +446,7 @@ public class ProcessTrack implements BaseProcessTrack {
       System.out.println("tomogramGenerationA: " + tomogramGenerationA);
       System.out.println("tomogramCombination: " + tomogramCombination);
       System.out.println("postProcessing: " + postProcessing);
-
+      System.out.println("cleanUp: " + cleanUp);
     }
     else {
       System.out.println("setup: " + setup);
@@ -447,7 +465,7 @@ public class ProcessTrack implements BaseProcessTrack {
 
       System.out.println("tomogramCombination: " + tomogramCombination);
       System.out.println("postProcessing: " + postProcessing);
-
+      System.out.println("cleanUp: " + cleanUp);
     }
   }
 }
