@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2003/12/23 21:53:16  sueh
+ * <p> bug# 371 Remove validation test for b stack.
+ * <p>
  * <p> Revision 3.1  2003/12/08 22:31:16  sueh
  * <p> bug# 169 adding a new function isDatasetNameValid.
  * <p>
@@ -215,10 +218,18 @@ public class ConstMetaData {
     return true;
   }
   
-  public boolean isDatasetNameValid() {
+  public boolean isDatasetNameValid() {    
+    if (getValidDatasetDirectory(System.getProperty("user.dir")) != null) {
+      return true;
+    }
+    return false;
+  }
+  
+  
+  public File getValidDatasetDirectory(String workingDirName) {
     // Does the working directory exist
     // If is doesn't then use the backup directory.    
-    File workingDir = new File(System.getProperty("user.dir"));
+    File workingDir = new File(workingDirName);
     File backupDir = new File(backupDirectory);
     File currentDir;
 
@@ -240,7 +251,7 @@ public class ConstMetaData {
             + " and the backup directory: "
             + backupDir.getAbsolutePath()
             + " do not exist";
-        return false;
+        return null;
       }
 
       //decide which directory to complain about:
@@ -255,13 +266,13 @@ public class ConstMetaData {
       if (!currentDir.canRead()) {
         invalidReason =
           "Can't read " + currentDir.getAbsolutePath() + " directory";
-        return false;
+        return null;
       }
 
       if (!currentDir.canWrite()) {
         invalidReason =
           "Can't write " + currentDir.getAbsolutePath() + " directory";
-        return false;
+        return null;
       }
 
       throw new IllegalStateException(
@@ -274,17 +285,15 @@ public class ConstMetaData {
     // Does the appropriate image stack exist in the working directory
     if (axisType == AxisType.DUAL_AXIS) {
       currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
-      if (currentDir == null) {
-        return false;
-      }
     }
     else {
-      if (findValidFile(datasetName + ".st", currentDir, backupDir) == null) {
-        return false;
-      }
+      currentDir = findValidFile(datasetName + ".st", currentDir, backupDir);
     }
-    return true;
+    return currentDir;
   }
+
+
+
 
   /**
    * Checks a file's state.  Checks whether a file exists and
@@ -325,14 +334,12 @@ public class ConstMetaData {
    * @throws IllegalArgumentException if any parameter is null
    */
   protected File findValidFile(String fileName, File curDir, File altDir) {
-
     if (fileName == null || curDir == null || altDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
     File file = new File(curDir, fileName);
-
     while (!file.exists()) {
       if (curDir == altDir || !isValid(altDir, true)) {
         invalidReason =
