@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2004/06/23 03:33:10  mast
+New functions for generic settings
+
 Revision 1.6  2003/09/24 17:35:54  mast
 Change to routine that sets info window geometry directly
 
@@ -57,6 +60,7 @@ int hotSliderKey();
 
 #define MAXZOOMS 18
 #define MAX_GEOMETRIES 10
+#define MAX_NAMED_COLORS 8
 
 // Define this to use a list of styles to exclude rather than ones to include
 //#define EXCLUDE_STYLES
@@ -124,6 +128,10 @@ typedef struct imod_pref_struct
   int autoTargetSD;        // Target SD
   int autoTargetSDDflt;
   bool autoTargetSDChgd;
+  int namedIndex[MAX_NAMED_COLORS];
+  QRgb namedColor[MAX_NAMED_COLORS];
+  QRgb namedColorDflt[MAX_NAMED_COLORS];
+  bool namedColorChgd[MAX_NAMED_COLORS];
 
 } ImodPrefStruct;
 
@@ -163,6 +171,7 @@ class ImodPreferences : public QObject
   void setInfoGeometry();
   QRect getZapGeometry();
   void getAutoContrastTargets(int &mean, int &sd);
+  QColor namedColor(int index);
   int saveGenericSettings(char *key, int numVals, double *values);
   int getGenericSettings(char *key, double *values, int maxVals);
   QSettings *getSettingsObject();
