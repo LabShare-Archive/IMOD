@@ -415,7 +415,8 @@ void imodvFileMenu(int item)
   case VFILE_MENU_SNAPRGB:
   case VFILE_MENU_SNAPTIFF:
     Imodv->mainWin->releaseKeyboard();
-    format = (item == VFILE_MENU_SNAPRGB) ? ImodPrefs->snapFormat() : "TIFF";
+    format = (item == VFILE_MENU_SNAPRGB) ? 
+      ImodPrefs->snapFormat() : QString("TIFF");
     qname = QFileDialog::getSaveFileName (QString::null, QString::null, 0, 0, 
                                           QString("File to save ") + format +
                                           " snapshot into:");
@@ -615,6 +616,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.17  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.16  2004/11/22 21:02:24  mast
 Added image window to selection
 
