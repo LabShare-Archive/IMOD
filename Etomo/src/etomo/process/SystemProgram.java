@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/14 14:37:44  rickg
+ * <p> Workaround attempts for IO buffer bugs
+ * <p>
  * <p> Revision 2.5  2003/05/09 06:07:00  rickg
  * <p> Work around for Java 1.4.1, yuk
  * <p>
@@ -70,41 +73,14 @@ public class SystemProgram implements Runnable {
     "$Id$";
 
   private boolean debug = false;
-
-  /**
-   * The exit value of the command
-   */
   private int exitValue = Integer.MIN_VALUE;
-  /**
-   * The command to run
-   */
   private String command = null;
-  /**
-   * The array containing the standard input for the program.  Each element of
-   * the is submitted followed by a newline.
-   */
   private String[] stdInput = null;
-  /**
-   * An ArrayList containing the standard out from the excution of the command.
-   */
   private ArrayList stdOutput = new ArrayList();
-  /**
-   * An ArrayList containing the standard error from the excution of the
-   * command.
-   */
   private ArrayList stdError = new ArrayList();
-  /**
-   * The directory in which the command will be run.
-   */
   private File workingDirectory = null;
-
   private String exceptionMessage = "";
 
-  /**
-   * Creates a SystemProgram object to execute the program specified by the
-   * argument <i>command</i>
-   * @param command The string containng the command to run
-   */
   public SystemProgram(String command) {
     this.command = command;
   }
@@ -170,12 +146,12 @@ public class SystemProgram implements Runnable {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
       process = Runtime.getRuntime().exec(command, null, workingDirectory);
-	  try {
-	    Thread.sleep(1000);
-	  }
-	  catch (InterruptedException except){
-	  	
-	  }
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException except) {
+
+      }
       if (debug)
         System.err.println("returned, process started");
 
@@ -189,9 +165,21 @@ public class SystemProgram implements Runnable {
       BufferedReader cmdOutputBuffer =
         new BufferedReader(new InputStreamReader(cmdOutputStream));
 
+      // Set up a reader thread to keep the stdout buffers of the process empty
+      OutputBufferManager stdoutReaderMgr =
+        new OutputBufferManager(cmdOutputBuffer, stdOutput);
+      Thread stdoutReaderThread = new Thread(stdoutReaderMgr);
+      stdoutReaderThread.start();
+
       InputStream cmdErrorStream = process.getErrorStream();
       BufferedReader cmdErrorBuffer =
         new BufferedReader(new InputStreamReader(cmdErrorStream));
+
+      // Set up a reader thread to keep the stdout buffers of the process empty
+      OutputBufferManager stderrReaderMgr =
+        new OutputBufferManager(cmdErrorBuffer, stdError);
+      Thread stderrReaderThread = new Thread(stderrReaderMgr);
+      stderrReaderThread.start();
 
       //  Write out to the program's stdin pipe each line of the
       //  stdInput array if it is not null
@@ -228,75 +216,51 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.print("SystemProgram: Waiting for process to end...");
 
-      //process.waitFor();
-
-      // Work around for Java 1.4.1 bug that does hangs because the ouput
-      // and standard error buffers fill
-
-      // Read in the command's stdout and stderr
-      String line;
-      int cntStdOutput = 0;
-      int cntStdError = 0;
-      boolean notDone = true;
-      while (notDone) {
-        try {
-          Thread.sleep(100);
-          exitValue = process.exitValue();
-          notDone = false;
-        }
-        catch (IllegalThreadStateException except) {
-          //  Empty anything in the ouput and error buffers
-          while ((line = cmdOutputBuffer.readLine()) != null) {
-            stdOutput.add(line);
-            cntStdOutput++;
-          }
-          while ((line = cmdErrorBuffer.readLine()) != null) {
-            stdError.add(line);
-            cntStdError++;
-          }
-        }
-        // Kill the underlying system command if we receive an interrupt exception
-        catch (InterruptedException except) {
-          if (debug) {
-            System.err.println(
-              "Received InterruptedException...destroying process");
-          }
-          process.destroy();
-          notDone = false;
-        }
-
+      try {
+        process.waitFor();
       }
+      catch (InterruptedException except) {
+        except.printStackTrace();
+        System.err.println(
+          "SystemProgram:: interrupted waiting for process to finish!");
+      }
+      // Inform the output manager threads that the process is done
+      stdoutReaderMgr.setProcessDone(true);
+      stderrReaderMgr.setProcessDone(true);
 
       if (debug)
         System.err.println("done");
-      //  uncomment when waitfor() works
-      //      exitValue = process.exitValue();
+
+      exitValue = process.exitValue();
 
       if (debug)
         System.err.println(
           "SystemProgram: Exit value: " + String.valueOf(exitValue));
 
+      //  Wait for the manager threads to complete
+      try {
+        stderrReaderThread.join(10000);
+        stdoutReaderThread.join(10000);
+      }
+      catch (InterruptedException except) {
+        except.printStackTrace();
+        System.err.println(
+          "SystemProgram:: interrupted waiting for reader threads!");
+      }
       if (debug)
         System.err.print("SystemProgram: Reading from process stdout: ");
-
-      while ((line = cmdOutputBuffer.readLine()) != null) {
-        stdOutput.add(line);
-        cntStdOutput++;
-      }
       cmdOutputStream.close();
 
+      int cntStdOutput = stdOutput.size();
       if (debug)
         System.err.println(String.valueOf(cntStdOutput) + " lines");
 
       if (debug)
         System.err.print("SystemProgram: Reading from process stderr: ");
 
-      while ((line = cmdErrorBuffer.readLine()) != null) {
-        stdError.add(line);
-        cntStdError++;
-      }
       cmdErrorStream.close();
 
+      int cntStdError = stdError.size();
       if (debug)
         System.err.println(String.valueOf(cntStdError) + " lines");
 
@@ -371,4 +335,48 @@ public class SystemProgram implements Runnable {
     debug = state;
   }
 
+  /**
+   * Runnable class to keep the output buffers of the child process from filling
+   * up and locking up the process.
+   * See Java bugs #: 4750978, 4098442, etc
+   */
+  class OutputBufferManager implements Runnable {
+    BufferedReader outputReader;
+    ArrayList outputList;
+    boolean processDone = false;
+
+    public OutputBufferManager(BufferedReader reader, ArrayList output) {
+      outputReader = reader;
+      outputList = output;
+    }
+
+    public void run() {
+      String line;
+      try {
+        while (!processDone) {
+          while ((line = outputReader.readLine()) != null) {
+            outputList.add(line);
+          }
+          Thread.sleep(100);
+
+        }
+        while ((line = outputReader.readLine()) != null) {
+          outputList.add(line);
+        }
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        System.err.println(
+          "IO Exception while reading SystemProgram process output");
+      }
+      catch (InterruptedException except) {
+        except.printStackTrace();
+        System.err.println("SystemProgram::OuputBufferManager interrupted!");
+      }
+    }
+
+    public void setProcessDone(boolean state) {
+      processDone = state;
+    }
+  }
 }
