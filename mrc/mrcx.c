@@ -61,6 +61,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2003/11/18 19:29:32  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
 Revision 3.5  2003/10/24 02:28:42  mast
 strip directory from program name and/or use routine to make backup file
 
@@ -91,10 +94,11 @@ Changes to accommodate new or old style MRC headers
 #include <mrcfiles.h>
 #include "b3dutil.h"
 
-#ifdef WIN32_BIGFILE
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
 #define fseek b3dFseek 
 #define fread b3dFread 
 #define fwrite b3dFwrite 
+#define rewind b3dRewind
 #endif
 
 /* prototypes */
