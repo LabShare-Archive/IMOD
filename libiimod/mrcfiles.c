@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/09/14 00:58:41  mast
+    Invert sense of scale factors in mrc_set_scale and mrc_get_scale to conform
+    to usage
+
     Revision 3.4  2002/08/02 17:18:19  mast
     Fixed bug in reading swapped files, standardized error outputs
 
@@ -51,6 +55,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 #ifdef __unix
 #include <sys/time.h>
 #endif
