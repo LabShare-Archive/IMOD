@@ -39,6 +39,9 @@ Log at end of file
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#ifdef __linux
+#include <fcntl.h>
+#endif
 #include <qdir.h>
 #include "imod_cachefill.h"
 #include "imod.h"
@@ -497,12 +500,15 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   b3dInt16 *binbuf = NULL;
   ImodImageFile im;
 
+  ivwGetFileStartPos(vi->image->fp);
+
   // If there is no binning, just call the raw or byte routines
   if (vi->xybin * vi->zbin == 1) {
     if (vi->rawImageStore) 
       iiReadSection(vi->image, buf, section);
     else
       iiReadSectionByte(vi->image, buf, section);
+    ivwDumpFileSysCache(vi->image->fp);
     return 0;
   }
 
@@ -556,7 +562,42 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   free(unbinbuf);
   if (binbuf)
     free(binbuf);
+  ivwDumpFileSysCache(vi->image->fp);
   return 0;
+}
+
+#ifdef __linux
+static fpos_t startPos;
+#endif
+
+void ivwGetFileStartPos(FILE *fp)
+{
+#ifdef __linux
+  if (!fp)
+    return;
+  fgetpos(fp, &startPos);
+#endif
+}
+
+void ivwDumpFileSysCache(FILE *fp)
+{
+#ifdef __linux
+  fpos_t endPos;
+  int filedes;
+  long long start, end;
+  off_t diff;
+  if (!fp)
+    return;
+  filedes = fileno(fp);
+  fgetpos(fp, &endPos);
+  start = startPos.__pos;
+  end = endPos.__pos;
+  if (end <= start)
+    return;
+  diff = (off_t)(end - start);
+  posix_fadvise(filedes, startPos.__pos, diff, POSIX_FADV_DONTNEED);
+  //imodPrintStderr("start %llu end %llu len %llu\n",  start, end, diff);
+#endif
 }
 
 /*
@@ -2393,6 +2434,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.26  2004/07/13 22:29:54  mast
+Fixed bug in getting file values for flipped data leaded as a subset
+
 Revision 4.25  2004/07/11 18:19:38  mast
 Functions to set time of new contour and get/make contour for adding points
 
