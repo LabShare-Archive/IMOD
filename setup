@@ -91,14 +91,19 @@ set int32           = "int"
 set uint32          = "unsigned int"
 set float32         = "float"
 
-set inargv = ($argv)
-
 #
 # Input options
 #
 
+set optlist =
 
 while($#argv > 0)
+
+        # Prepare to build list of options for make dist to use
+        #
+        set savearg = $argv[1]
+        @ numbefore = $#argv
+        set dumparg = 1
         switch($argv[1])
                 case -d:
 		case -debug:
@@ -128,12 +133,13 @@ while($#argv > 0)
 
 		case -flags:
 			shift
-			set flags  = $argv[1]        		
+			set flags  = "$argv[1]"
                         breaksw
 		case -i:
 		case -inst:
 			shift
 			set inst_dir = $argv[1]
+                        set dumparg = 0
 			breaksw
 
 		case -compiler:
@@ -171,6 +177,13 @@ while($#argv > 0)
 			goto usage
 			breaksw
 	endsw
+
+        # Add selected options to list, quoting values
+        #
+        if ($dumparg == 1) then
+            set optlist = "$optlist $savearg"
+            if ($#argv < $numbefore) set optlist = "$optlist "\""$argv[1]"\"
+        endif
         shift
 end
 
@@ -408,6 +421,8 @@ echo "CFLAGS   = $flags $defines $optimization $include_flags" >> $configure
 echo "CXXFLAGS = $flags $defines $optimization $include_flags" >> $configure
 echo "FFLAGS   = $flags $optimization  $include_flags"         >> $configure
 echo "NOOPFFLAGS   = $flags $optimization -O0  $include_flags"     >> $configure
+echo "LIBCFLAGS   = $flags $defines $optimization $include_flags" >> $configure
+echo "LIBFFLAGS   = $flags $optimization  $include_flags"         >> $configure
 echo "FFALLBACK   = $flags $optimization  $include_flags"         >> $configure
 echo "CFALLBACK   = $flags $defines $optimization $include_flags" >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
@@ -472,17 +487,6 @@ solaris:
 source machines/solaris
 
 goto standard_defines
-
-##############################################################################
-#
-# Dec Alpha running OSF1
-# NOT TESTED - MODIFIED ONLY FOR CONSISTENCY
-#
-alphaosf:
-source machines/alphaosf
-
-goto standard_defines
-
 
 #############################################################################
 # Alpha running SuSE Linux 7.1 axp
@@ -712,19 +716,8 @@ end
 #
 echo $distname >! .distname
 
-# Take care of .options file - stripping out install entry
-# It had to be done with index, and down here, to work with DOS line endings
+# Write .options file - with install entry stripped out
 #
-set optlist = ()
-@ ind = 1
-while ($ind <= $#inargv)
-    if ("$inargv[$ind]" == "-inst" || "$inargv[$ind]" == "-i") then
-        @ ind++
-    else
-        set optlist = ($optlist $inargv[$ind])
-    endif
-    @ ind++
-end
 echo $optlist >! .options
 
 # Test for javac and set up makefile for etomo
@@ -782,6 +775,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.40  2004/04/08 17:03:07  mast
+#  Changes for amd64linux and a Qt multithread flag
+#
 #  Revision 3.39  2004/04/03 21:29:50  mast
 #  Rearranged .options code to work with DOS endings in cygwin
 #
