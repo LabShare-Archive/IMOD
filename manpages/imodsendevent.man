@@ -26,6 +26,7 @@ Currently, 3dmod will accept 8 commands:
    7  Open model file but keep current black/white levels (follow with
          file)
    8  Open Bead Fixer window or raise it if already open
+   9  Open a Zap window if none are open, otherwise raise all windows
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
