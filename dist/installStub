@@ -6,13 +6,14 @@
 #
 
 set installer = installIMOD
-set this = $0
-set packname = $this:r.tar.gz
+set this = "$0"
+set rootname = "$this:t"
+set packname = $rootname:r.tar.gz
 set tempdir = IMODtempDir
 
 # Find the end of this script
 #
-set stubline = `awk '/END OF STUB/ {if (gotit > 0) {print NR ; exit} else { gotit = 1}}' $this`
+set stubline = `awk '/END OF STUB/ {if (gotit > 0) {print NR ; exit} else { gotit = 1}}' "$this"`
 if ($stubline == "" || $#stubline > 1) then
     echo "Could not find package in this file!"
     exit 1
@@ -41,10 +42,59 @@ while ($#argv > 0)
     endsw
 end
 
+
+set sysfiles = ""
+
+# DUPLICATION ALERT: THE FOLLOWING IS COPIED FROM installIMOD
+#
+set system = `uname -s`
+set installdir = /usr/local
+
+switch ($system)
+    case *IRIX*:
+        set os = irix
+        # leave out /etc/profile because it is more likely used by sh than
+        # bash users
+        set scripts = (sgi.cshrc)
+        set sysfiles = (/etc/cshrc)
+        breaksw
+    case *Linux*:
+        set os = linux
+        set scripts = (IMOD-linux.csh IMOD-linux.sh)
+        breaksw
+    case *CYGWIN*:
+        set os = windows
+        set scripts = (IMOD-cygwin.csh IMOD-cygwin.sh)
+        breaksw
+    case *Darwin*:
+        set os = osx
+        set installdir = /Applications
+        set scripts = (mac.cshrc mac.bashrc)
+        set sysfiles = (/etc/csh.login /etc/profile)
+        breaksw
+
+    default:
+        if ($extract == 1) breaksw
+        echo "IMOD will not run on this system ($system)"
+        echo "You can add the option -extract to just extract the tar file"
+        exit 1
+
+endsw
+
 if ($extract == 0) then
     echo ""
-    echo "This script will install IMOD at the default location and rename"
+    echo "This script will install IMOD in $installdir and rename"
     echo "any previous version, or remove another copy of this version."
+    echo ""
+    if ($sysfiles == "") then
+        echo "It will copy $scripts[1] and $scripts[2] to /etc/profile.d"
+    else
+        echo -n "It will edit $sysfiles[1]"
+        if ($#sysfiles == 2) echo -n " and $sysfiles[2]"
+        echo " to source a startup script in $installdir/IMOD"
+        echo " unless they already appear to do so"
+    endif
+    echo ""
     echo "You can add the option -extract to just extract the tar file and not install"
     echo ""
     echo -n "Enter Y if you want to proceed: "
@@ -55,16 +105,15 @@ endif
 mkdir -p $tempdir    
 
 echo "Extracting $packname ..."
-tail +$skip $this >! $tempdir/$packname
+tail +$skip "$this" >! $tempdir/$packname
 
-set version = `echo $this:t | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
+set version = `echo $rootname | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
 
 cd $tempdir
 
 echo "Extracting $installer"
-set irix = `uname -s | grep IRIX`
 
-if ($status) then
+if ($os != irix) then
     tar xzf $packname $version/$installer
 else
     gzcat $packname | tar xf - $version/$installer
@@ -102,6 +151,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/04/24 18:07:21  mast
+#  Even better awk command stops when it finds end
+#
 #  Revision 3.4  2004/04/24 17:41:12  mast
 #  Used awk instead of repeated head - tails to find end of script
 #

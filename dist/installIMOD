@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/04/24 17:42:04  mast
+#  Remove gzcat error warning, it happened because editing file added a newline
+#
 #  Revision 3.3  2004/04/24 04:32:59  mast
 #  Fixes for SGI; decided not to put source command in /etc/profile
 #
@@ -25,8 +28,8 @@
 # Set the package name from the argument and check it if there is one
 #
 if ($#argv > 0) then
-    set package = $argv[1]
-    if (! -r $package) then
+    set package = "$argv[1]"
+    if (! -r "$package") then
         echo "File $package does not exist or is not readable"
         exit 1
     endif
@@ -47,21 +50,16 @@ else
     endif
 endif
 
-# Construct absolute path to package if necessary
-#
-
-set packpath = ""
-set absolute = `echo $package | grep '^/'`
-if ($status) set packpath = `pwd`"/"
-
 # Get name that unpacked directory will have
 #
 set version = `echo $package:t | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
 
+echo "Checking system and package types"
+
+# DUPLICATION ALERT: THE FOLLOWING IS INCORPORATED IN THE installStub
+#
 set system = `uname -s`
 set installdir = /usr/local
-
-echo "Checking system and package types"
 
 switch ($system)
     case *IRIX*:
@@ -73,11 +71,12 @@ switch ($system)
         breaksw
     case *Linux*:
         set os = linux
-        set scripts = "IMOD-linux.csh IMOD-linux.sh"
+        set scripts = (IMOD-linux.csh IMOD-linux.sh)
         breaksw
     case *CYGWIN*:
         set os = windows
-        set scripts = "IMOD-cygwin.csh IMOD-cygwin.sh"
+        set scripts = (IMOD-cygwin.csh IMOD-cygwin.sh)
+        set package = `cygpath "$package"`
         breaksw
     case *Darwin*:
         set os = osx
@@ -117,6 +116,12 @@ if (! -w $installdir) then
     exit 1
 endif
 
+# Construct absolute path to package if necessary
+#
+set packpath = ""
+set absolute = `echo $package | grep '^/'`
+if ($status) set packpath = "`pwd`""/"
+
 cd $installdir
 
 # If file exists as a link, just remove it
@@ -135,9 +140,9 @@ endif
 
 echo "Unpacking IMOD in $installdir ..."
 if ($os == irix) then
-    gzcat $packpath$package | tar xf -
+    gzcat "$packpath$package" | tar xf -
 else
-    tar xzf $packpath$package
+    tar xzf "$packpath$package"
 endif
 
 if (-e IMOD) then
@@ -223,7 +228,13 @@ else
 endif
 
 echo ""
-echo "Installation completed.  IMOD-related files in $installdir :"
+echo "The installation is complete."
+echo "It is up to you to remove any previous versions when you are sure"
+echo " that you are done with them."
+echo "IMOD-related files in $installdir :"
 cd ..
-ls -l | grep -i imod
+ls -l | grep -i imod | grep -vi tempDir
+echo ""
+echo "If there are version-specific IMOD startup commands in individual user"
+echo " startup files (.cshrc, .bashrc) they should be changed or removed."
 exit 0
