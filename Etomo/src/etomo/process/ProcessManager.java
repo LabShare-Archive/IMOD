@@ -27,18 +27,21 @@ import javax.swing.JOptionPane;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
-public class ProcessManager{
-  public static final String rcsid = "$Id$";
+public class ProcessManager {
+  public static final String rcsid =
+    "$Id$";
 
   ApplicationManager appManager;
 
   public ProcessManager(ApplicationManager appMgr) {
     appManager = appMgr;
   }
-
 
   /**
    * Run the copytomocoms script
@@ -52,25 +55,25 @@ public class ProcessManager{
 
     int exitValue = copyTomoComs.run();
 
-    if(exitValue != 0) {
+    if (exitValue != 0) {
       System.out.println("Exit value: " + String.valueOf(exitValue));
 
       //  Compile the exception message from the stderr stream
       String[] stdError = copyTomoComs.getStdError();
-      if(stdError.length < 1) {
-	stdError = new String[1];
-	stdError[0] =
-	  "Get David to add some std error reporting to copytomocoms";
+      if (stdError.length < 1) {
+        stdError = new String[1];
+        stdError[0] =
+          "Get David to add some std error reporting to copytomocoms";
       }
       StringBuffer buffer = new StringBuffer();
       buffer.append("Copytomocoms Error\n");
       buffer.append("Standard error output:\n");
-      for(int i = 0; i < stdError.length; i++) {
-	buffer.append(stdError[i]);
-	buffer.append("\n");
+      for (int i = 0; i < stdError.length; i++) {
+        buffer.append(stdError[i]);
+        buffer.append("\n");
       }
 
-      throw(new BadComScriptException(buffer.toString()));
+      throw (new BadComScriptException(buffer.toString()));
     }
   }
 
@@ -87,22 +90,6 @@ public class ProcessManager{
     startComScript(command);
   }
 
-  /**
-   * Open imod on the raw stack with the er
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodErase(AxisID axisID) {
-    String extension = "";
-    String filesetName = appManager.getFilesetName();
-    String axisLabel = axisID.getExtension();
-
-    //  Create the required imod command
-    String command  = "imod " + filesetName + axisLabel + ".st "
-      + filesetName + axisLabel + ".erase";
-
-    //  Start the program thread
-    startSystemProgramThread(command);
-  }
 
   /**
    * Calculate the cross-correlation for the specified axis
@@ -130,28 +117,6 @@ public class ProcessManager{
     startComScript(command);
   }
 
-  /**
-   * Open imod on the coarse aligned stack for the selected axis
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodAlign(AxisID axisID) {
-    String extension = "";
-
-    //  Create the required imod command
-    if(axisID == AxisID.ONLY) {
-      extension = ".preali";
-    }
-    if(axisID == AxisID.FIRST) {
-      extension = "a.preali";
-    }
-    if(axisID == AxisID.SECOND) {
-      extension = "b.preali";
-    }
-    String command  = "imod " + appManager.getFilesetName() + extension;
-
-    //  Start the program thread
-    startSystemProgramThread(command);
-  }
 
   /**
    * Run midas on the specified raw stack
@@ -162,20 +127,20 @@ public class ProcessManager{
     String xform = "";
 
     //  Create the required midas command
-    if(axisID == AxisID.ONLY) {
+    if (axisID == AxisID.ONLY) {
       stack = appManager.getFilesetName() + ".st ";
       xform = appManager.getFilesetName() + ".prexf ";
     }
-    if(axisID == AxisID.FIRST) {
+    if (axisID == AxisID.FIRST) {
       stack = appManager.getFilesetName() + "a.st ";
       xform = appManager.getFilesetName() + "a.prexf ";
     }
-    if(axisID == AxisID.SECOND) {
+    if (axisID == AxisID.SECOND) {
       stack = appManager.getFilesetName() + "b.st ";
       xform = appManager.getFilesetName() + "b.prexf ";
     }
 
-    String command  = "midas " + stack + xform;
+    String command = "midas " + stack + xform;
 
     //  Start the system program thread
     startSystemProgramThread(command);
@@ -183,26 +148,9 @@ public class ProcessManager{
 
 
   /**
-   * Open imod to create the seed model for the specified axis
-   * @param axisID the AxisID to create a seed model for.
-   */
-  public void imodSeedFiducials(AxisID axisID) {
-    String filesetName = appManager.getFilesetName();
-    String axisExt = axisID.getExtension();
-
-    String command  = "imod "
-      + filesetName + axisExt + ".preali "
-      + filesetName + axisExt + ".seed";
-
-    //  Start the system program thread
-    startSystemProgramThread(command);
-  }
-
-
-   /**
-   * Run the appropriate track com file for the given axis ID
-   * @param axisID the AxisID to run track.com on.
-   */
+  * Run the appropriate track com file for the given axis ID
+  * @param axisID the AxisID to run track.com on.
+  */
   public void fiducialModelTrack(AxisID axisID) {
     //
     //  Create the required beadtrack command
@@ -211,22 +159,6 @@ public class ProcessManager{
 
     //  Start the com script in the background
     startComScript(command);
-  }
-
-
-  /**
-   * Open imod to fix the fiducial model for the specified axis
-   * @param axisID the AxisID to run imod on.
-   */
-  public void imodFixFiducials(AxisID axisID) {
-    String filesetName = appManager.getFilesetName();
-    String axisExt = axisID.getExtension();
-    String command  = "imod "
-      + filesetName + axisExt + ".preali "
-      + filesetName + axisExt + ".fid";
-
-    //  Start the system program thread
-    startSystemProgramThread(command);
   }
 
 
@@ -246,32 +178,6 @@ public class ProcessManager{
 
 
   /**
-   * Open imod on the coarse aligned stack for the selected axis
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodFineAlign(AxisID axisID) {
-    String extension = "";
-    //
-    //  Create the required imod command
-    //
-    if(axisID == AxisID.ONLY) {
-      extension = ".ali";
-    }
-    if(axisID == AxisID.FIRST) {
-      extension = "a.ali";
-    }
-    if(axisID == AxisID.SECOND) {
-      extension = "b.ali";
-    }
-
-    String command  = "imod " + appManager.getFilesetName() + extension;
-
-    //  Start the system program thread
-    startSystemProgramThread(command);
-  }
-
-
-  /**
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
    */
@@ -283,33 +189,6 @@ public class ProcessManager{
 
     //  Start the com script in the background
     startComScript(command);
-  }
-
-
-  /**
-   * Open imod on the coarse aligned stack for the selected axis
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodSample(AxisID axisID) {
-    String arguments = "";
-
-    //
-    //  Create the required imod command
-    //
-    if(axisID == AxisID.ONLY) {
-      arguments = "top.rec mid.rec bot.rec tomopitch.mod";
-    }
-    if(axisID == AxisID.FIRST) {
-      arguments = "topa.rec mida.rec bota.rec tomopitcha.mod";
-    }
-    if(axisID == AxisID.SECOND) {
-      arguments = "topb.rec midb.rec botb.rec tomopitchb.mod";
-    }
-
-    String command  = "imod " + arguments;
-
-    //  Start the system program thread
-    startSystemProgramThread(command);
   }
 
 
@@ -327,7 +206,6 @@ public class ProcessManager{
     startComScript(command);
   }
 
-
   /**
    * Run the appropriate newst com file for the given axis ID
    * @param axisID the AxisID to run newst on.
@@ -341,7 +219,6 @@ public class ProcessManager{
     //  Start the com script in the background
     startComScript(command);
   }
-
 
   /**
    * Run the appropriate tilt com file for the given axis ID
@@ -357,31 +234,7 @@ public class ProcessManager{
     startComScript(command);
   }
 
-  /**
-   * Open imod on the tomogram for the selected axis
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodTomogram(AxisID axisID) {
-    String extension = "";
-    //
-    //  Create the required imod command
-    //
-    if(axisID == AxisID.ONLY) {
-      extension = ".rec";
-    }
-    if(axisID == AxisID.FIRST) {
-      extension = "a.rec";
-    }
-    if(axisID == AxisID.SECOND) {
-      extension = "b.rec";
-    }
 
-    String command  = "imod -Y " + appManager.getFilesetName() + extension;
-
-
-    //  Start the system program thread
-    startSystemProgramThread(command);
-  }
 
   /**
    * Get the IMOD_DIR from the application manager and pass on to the calling
@@ -390,7 +243,6 @@ public class ProcessManager{
   public String getIMODDirectory() {
     return appManager.getIMODDirectory();
   }
-
 
   /**
    * Execute the setupcombine script
@@ -404,34 +256,33 @@ public class ProcessManager{
 
     int exitValue = setupCombine.run();
 
-    if(exitValue != 0) {
+    if (exitValue != 0) {
       System.out.println("Exit value: " + String.valueOf(exitValue));
 
       //  Compile the exception message from the stderr stream
       String[] stdError = setupCombine.getStdError();
-      if(stdError.length < 1) {
-	stdError = new String[1];
-	stdError[0] =
-	  "Get David to add some std error reporting to setupCombine";
+      if (stdError.length < 1) {
+        stdError = new String[1];
+        stdError[0] =
+          "Get David to add some std error reporting to setupCombine";
       }
       StringBuffer buffer = new StringBuffer();
       buffer.append("SetupCombine Error\n");
       buffer.append("Standard error output:\n");
-      for(int i = 0; i < stdError.length; i++) {
-	buffer.append(stdError[i]);
-	buffer.append("\n");
+      for (int i = 0; i < stdError.length; i++) {
+        buffer.append(stdError[i]);
+        buffer.append("\n");
       }
 
-      throw(new BadComScriptException(buffer.toString()));
+      throw (new BadComScriptException(buffer.toString()));
     }
   }
-
 
   /**
    * A message specifying that a com script has finished execution
    * @param exitValue the exit value for the com script
    */
-  public void msgComScriptDone(int exitValue, String command){
+  public void msgComScriptDone(int exitValue, String command) {
     //
     //  increment the state machine forward to allow for
     //
@@ -439,7 +290,6 @@ public class ProcessManager{
     System.out.println("  script: " + command);
     System.out.println("  Exit value: " + String.valueOf(exitValue));
   }
-
 
   //  Internal utility functions
   private void startSystemProgramThread(String command) {
@@ -450,10 +300,9 @@ public class ProcessManager{
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
     System.out.println("Started " + command);
-    System.out.println("  working directory: " +
-      appManager.getWorkingDirectory());
+    System.out.println(
+      "  working directory: " + appManager.getWorkingDirectory());
   }
-
 
   private void startComScript(String command) {
     //  Run the script as a thread in the background
