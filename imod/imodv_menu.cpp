@@ -36,6 +36,8 @@ Log at end of file
 
 #include <qfiledialog.h>
 #include <qdir.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "colorselector.h"
 #include "imodv_window.h"
 #include "dia_qtutils.h"
@@ -289,7 +291,8 @@ void imodvFileSave()
   FILE *fout = NULL;
   ImodvApp *a = Imodv;
   char *filename = a->imod->fileName;
-
+  struct stat buf;
+  
   /* DNM 8/4/01: store the current view when saving, if appropriate */
   imodvAutoStoreView(a);
 
@@ -297,8 +300,12 @@ void imodvFileSave()
 
   nfname1 = (char *)malloc(len + 1);
   sprintf(nfname1, "%s~", filename);
-  rename(filename, nfname1);
 
+  /* DNM 10/20/03: remove backup and rename only if file already exists */
+  if (!stat(filename, &buf)) {
+    remove(nfname1);
+    rename(filename, nfname1);
+  }
 
   if (a->imod->fileName)
     fout = fopen((QDir::convertSeparators(QString(a->imod->fileName))).
@@ -320,6 +327,9 @@ void imodvFileSave()
 
     dia_err("File not saved, bad filename or error;"
             " attempting to restore backup file.");
+    /* If the backup actually exists, remove regular file first */
+    if (!stat(nfname1, &buf))
+      remove(filename);
     rename (nfname1, filename);
   }
   free(nfname1);
@@ -336,6 +346,7 @@ void imodvSaveModelAs()
   int len, error;
   char *nfname1;
   QString qname;
+  struct stat buf;
   
   a->mainWin->releaseKeyboard();
   qname = QFileDialog::getSaveFileName (QString::null, QString::null, 0, 0, 
@@ -351,7 +362,10 @@ void imodvSaveModelAs()
 
   nfname1 = (char *)malloc(len + 1);
   sprintf(nfname1, "%s~", filename);
-  rename(filename, nfname1);
+  if (!stat(filename, &buf)) {
+    remove(nfname1);
+    rename(filename, nfname1);
+  }
 
   fout = fopen((QDir::convertSeparators(QString(filename))).latin1(), "wb");
   if (fout){
@@ -380,6 +394,8 @@ void imodvSaveModelAs()
   }
   if (error) {
     dia_err("Error writing model; attempting to restore backup file");
+    if (!stat(nfname1, &buf))
+      remove(filename);
     rename(nfname1, filename);
   }
   free(nfname1);
@@ -572,6 +588,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2003/06/27 20:03:30  mast
+Initial views using new scheme when reading in a model
+
 Revision 4.8  2003/05/05 15:07:10  mast
 Fix hotkey list
 
