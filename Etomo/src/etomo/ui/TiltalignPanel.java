@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2002/12/10 21:33:10  rickg
+ * <p> Add residual threshold control
+ * <p>
  * <p> Revision 1.13  2002/12/06 01:02:58  rickg
  * <p> Redesign in progress
  * <p>
@@ -668,7 +671,18 @@ public class TiltalignPanel implements ContextMenu {
 
   void setAdvanced(boolean state) {
     ltfMagnificationReferenceView.setVisible(state);
+    ltfTiltAngleAdditionalGroups.setVisible(state);
+    ltfMagnificationAdditionalGroups.setVisible(state);
+    ltfXstretchAdditionalGroups.setVisible(state);
+    ltfSkewAdditionalGroups.setVisible(state);
+    ltfLocalRotationAdditionalGroups.setVisible(state);
+    ltfLocalTiltAngleAdditionalGroups.setVisible(state);
+    ltfLocalMagnificationAdditionalGroups.setVisible(state);
+    ltfLocalXstretchAdditionalGroups.setVisible(state);
+    ltfLocalSkewAdditionalGroups.setVisible(state);
+
   }
+
 
   void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
