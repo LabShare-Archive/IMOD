@@ -134,6 +134,21 @@ usage = Transforms to apply to the model
 tooltip =
 manpage = File of g transforms to apply to transform the model
 
+[Field = UseTransformLine]
+short = useline
+long = UseTransformLine
+type = I
+usage = Line number of single transform to apply to whole model (numbered 
+from 0)
+tooltip =
+manpage = Line number of single transform to apply to all points in model,
+regardless of their Z values.  Line numbers start at 0.  This option can be
+used only when forward or back-transforming the model.  This option will be
+invoked automatically if there is only one transform in the file. 
+If prealignment
+transforms are specified when transforming or undistorting a model, they will
+be applied as usual, with a separate transform used for each Z value.
+
 [Field = BackTransform]
 short = back
 long = BackTransform
