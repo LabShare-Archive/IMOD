@@ -9,6 +9,9 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/04/18 22:22:41  mast
+#  Added LIBFFLAGS etc for 64-bit compilation
+#
 #  Revision 3.3  2003/12/24 18:08:43  mast
 #  Remove get_nxyz
 #
@@ -26,6 +29,9 @@ OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
  icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
  interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) \
  strupcase.$(O) iclavgsd.$(O)
+
+bigfft.$(O): $(INCDIR)/ftbuf.inc
+bigfilt.$(O): $(INCDIR)/ftbuf.inc
 
 
 all: $(OBJS)
