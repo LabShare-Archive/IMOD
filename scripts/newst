@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/11/14 20:18:41  mast
+#  Made it exit with an error if newstack does
+#
 
 if ($#argv == 0) then
 cat <<EOF
@@ -74,7 +77,6 @@ while ($#argv > 2)
           echo "newst: transform file $argv[2] does not exist"
           exit 1
         endif
-      @ numxf++
       shift; shift
       breaksw
     case -e*:
@@ -117,11 +119,6 @@ if ($floatnum < -2 || $floatnum > 4) then
   echo "newst: bad float option $float"
   exit 1
 endif
-if ($numxf > 1) then
-    echo "newst: The -xform, -expand, and -rotate options are mutually exclusive"
-    echo " - you can use only one of them at a time."
-    exit 1
-endif
 
 if ($ifcontrast == "1")then
     if ($float != "0") echo "Float option is superceded by contrast option; your -float entry is ignored"
@@ -148,14 +145,15 @@ if ($ifxf == "1") then
   endif
 endif
 
-set tmpfil = /tmp/newst.$$
-set tmpfil2 = /tmp/newstxf.$$
+set tmpfil = /usr/tmp/newst.$$
+set tmpexpxf = /usr/tmp/newstexpxf.$$
+set tmprotxf = /usr/tmp/newstrotxf.$$
+set tmpexprot = /usr/tmp/newstexprot.$$
+set tmpprod = /usr/tmp/newstprodxf.$$
 
+# Set up xf for expansion; set size if default taken
 if ($ifexpand == "1") then
-    echo "$expand 0. 0. $expand 0. 0." >! $tmpfil2
-    set xfsec = "0"
-    set ifxf = "1"
-    set xfile = $tmpfil2
+    echo "$expand 0. 0. $expand 0. 0." >! $tmpexpxf
     if ($size == ',,') then
 	set xysize = `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8}'`
 	set xsize = `echo $xysize[1] $expand | awk '{print int($1 * $2 + 0.5)}'`
@@ -164,15 +162,13 @@ if ($ifexpand == "1") then
     endif
 endif
 
+# set up xf for rotation; set size if it is still default
 if ($ifrotate == "1") then
-    set xfsec = "0"
-    set ifxf = "1"
-    set xfile = $tmpfil2
     switch ($rotate)
 	case 90:
 	case 90.:
 	case 90.0:
-	    echo "0 -1 1 0 -1 0" >! $tmpfil2
+	    echo "0 -1 1 0 -1 0" >! $tmprotxf
 	    if ($size == ',,') then
 		set xysize = `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8}'`
 		set size = "$xysize[2],$xysize[1]"
@@ -182,7 +178,7 @@ if ($ifrotate == "1") then
 	case -90:
 	case -90.:
 	case -90.0:
-	    echo "0 1 -1 0 0 -1" >! $tmpfil2
+	    echo "0 1 -1 0 0 -1" >! $tmprotxf
 	    if ($size == ',,') then
 		set xysize = `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8}'`
 		set size = "$xysize[2],$xysize[1]"
@@ -195,16 +191,49 @@ if ($ifrotate == "1") then
 	case -180:
 	case -180.:
 	case -180.0:
-	    echo "-1 0 0 -1 -1 -1" >! $tmpfil2
+	    echo "-1 0 0 -1 -1 -1" >! $tmprotxf
 	    breaksw
 
 	default:
 	    set cos = `echo $rotate | awk '{print cos(0.0174533 * $1)}'`
 	    set sin = `echo $rotate | awk '{print sin(0.0174533 * $1)}'`
 	    set msin = `echo $rotate | awk '{print -sin(0.0174533 * $1)}'`
-	    echo "$cos $msin $sin $cos 0. 0." >! $tmpfil2
+	    echo "$cos $msin $sin $cos 0. 0." >! $tmprotxf
 	    breaksw
     endsw
+endif
+
+if ($numxf) then
+
+    # if both expansion and rotation, get the product, rotation first
+    if ($numxf == 2) then
+	xfproduct <<EOF
+$tmprotxf
+$tmpexpxf
+$tmpexprot
+EOF
+	if ($status) goto clean
+    else if ($ifexpand == "1") then
+	set tmpexprot = $tmpexpxf
+    else
+	set tmpexprot = $tmprotxf	
+    endif
+
+    # If doing transforms also, multiply transforms by post rotation/expansion
+    if ($ifxf == "1") then
+	xfproduct <<EOF
+$xfile
+$tmpexprot
+$tmpprod
+EOF
+	if ($status) goto clean
+	set xfile = $tmpprod
+    else
+	# otherwise just setup to do the rot/trans
+	set xfsec = "0"
+	set ifxf = "1"
+	set xfile = $tmpexprot
+    endif
 endif
 
 onintr clean
@@ -234,8 +263,8 @@ if ($float == "-1" || $float == "-2" || $float == "4") echo $minmax >> $tmpfil
 echo EOF >>$tmpfil
 csh $tmpfil
 if ($status) goto clean
-\rm -f $tmpfil $tmpfil2
+\rm -f $tmpfil $tmpexpxf $tmprotxf $tmpexprot $tmpprod
 exit 0
 clean:
-\rm -f $tmpfil $tmpfil2
+\rm -f $tmpfil $tmpexpxf $tmprotxf $tmpexprot $tmpprod
 exit 1
