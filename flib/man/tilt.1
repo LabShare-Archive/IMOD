@@ -195,7 +195,10 @@ DDEESSCCRRIIPPTTIIOONN
   tilt angles and indicates that the tilt axis is offset in the
   projection images, cutting the X-axis at  NX/2. + DELXX instead of
   NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
-  The DELXX entry is optional and defaults to 0 when omitted.
+  The DELXX entry is optional and defaults to 0 when omitted.  If the
+  tilt axis is offset from the center because the projection images are a
+  non-centered subset of the full images, use the SUBSETSTART entry
+  instead.
 
   PERPENDICULAR or  PARALLEL
   ------
@@ -249,10 +252,10 @@ DDEESSCCRRIIPPTTIIOONN
   SUBSETSTART IX IY
   ------
   If the aligned stack contains a subset of the area in the original
-  images, and a global X-axis tilt or local alignments are being used,
-  use this line to enter the index coordinates IX, IY of the lower
-  left corner of the subset within the original images.  A FULLIMAGE 
-  line must also be entered.
+  images, and this area is not centered in X or a global X-axis tilt or
+  local alignments are being used, use this line to enter the index
+  coordinates IX, IY of the lower left corner of the subset within the
+  original images.  A FULLIMAGE line must also be entered.
 
   THICKNESS   ITHICK
   ------
