@@ -88,11 +88,11 @@ here are some
 <A HREF = "kernel_build7.1.txt">
 instructions</A> based on our experience in building kernels for Red Hat 7.1.
 <P>
-In order to use the <CODE>subm</CODE> alias with the -e flag on 
-<code>csh</code> (see the <A HREF="tomoguide.html">Tomography Guide</A>),
-you must eliminate or replace a faulty <code>csh</code>
-startup file, <code>/etc/profile.d/colorls.csh</code>.  Here is a replacement
-for <A HREF="colorls.csh">colorls.csh</A>.
+Versions earlier than IMOD 2.6.4 recommended replacing a <code>csh</code>
+startup file, <code>/etc/profile.d/colorls.csh</code>, because of problems
+with the <CODE>subm</CODE> alias, but this is no longer necessary
+if the alias has the -ef flag on 
+<code>csh</code> (see the <A HREF="tomoguide.html">Tomography Guide</A>).
 <P>
 Several window manager settings are also needed to keep imod from bogging down
 when it is displaying large images or complex models.
@@ -110,8 +110,6 @@ tomography with large files, you need to upgrade to <code>tcsh 6.11</code>,
 which is available as an
 <A HREF =
 "http://www.rpmfind.net//linux/RPM/cooker/cooker/i586/Mandrake/RPMS/tcsh-6.11-3mdk.i586.html">rpm</A>.
-If you install this, remove the file <code>/etc/profile.d/alias.csh</code>,
-which has the same problem as <code>colorls.csh</code>.
 
 <H4>Installing IMOD.</H4>
 All of the IMOD programs are available via the 

@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/4/01: IMOD_2-6-4
+1/4/01: Discovered that invoking csh with the -ef flags in the subm alias
+prevented problems with csh startup scripts that generate errors, so changed
+the ...install files and documentation accordingly.
+
 12/31/01: IMOD_2-6-3
 12/31/01: Added dm2mrc for converting Digital Micrograph version 2.5 and 3 
 images files.

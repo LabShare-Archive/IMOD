@@ -70,21 +70,19 @@ insert the lines:
 </PRE>
      The program Vmstocsh converts a command file to a script that can be run
 by the C shell, csh.  To run command files, put the following entry in your
-.cshrc file:
-<BR><CODE>     alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -e ; echo ^G&'
+.cshrc file if it is not already in the setup procedures that allow you to
+run IMOD programs:
+<BR><CODE>     alias subm 'vmstocsh <\!^:r.com \!^:r.log | csh -ef ; echo ^G&'
 <BR></CODE>
  The ^G should be a CTRL-G to get a bell when the command file finishes.  You
 could add "\!^ finished", (without the "") before the ^G to get a message
 also.  With this alias, you can say, e.g., "subm track", and a file named
 track.com will be executed in the background, a log file will be created
 called track.log, and the bell will ring when the command file is completed.
+You can also enter "subm track." or "subm track.com".
 <P>
-     The -e flag after csh in the alias is important to make a command file
+     The -ef flag after csh in the alias is important to make a command file
 stop executing if one of the programs that it runs generates an error.
-Unfortunately, it also makes the command fail if there are any errors in the
-startup scripts that run when you start a new shell (your .cshrc and possibly
-some system files).  If nothing happens when you use "subm", try again after
-redefining the alias without the -e flag.
 <P>
      If you need to interrupt a command file after you have started it, bring
 it to the foreground with "fg", then used CTRL-C to interrupt it.  If there is
