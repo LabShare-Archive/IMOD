@@ -26,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/07 22:43:13  sueh
+ * <p> bug251 moved transferfid from fine alignment dialog
+ * <p> to fiducial model dialog
+ * <p>
  * <p> Revision 2.8  2003/06/05 21:08:03  rickg
  * <p> Label change for transferfid button
  * <p>
@@ -151,19 +155,12 @@ public class AlignmentEstimationDialog
 
   private JButton buttonViewResiduals =
     new JButton("<html><b>View residual vectors</b>");
-//MARK 251 done AlignmentEstimationDialog
-
-
-  //  There only needs to be one transfer fiducial panel???
-  private TransferfidPanel panelTransferFid;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
     fixRootPanel(rootSize);
 
     panelTiltalign = new TiltalignPanel(axisID);
-    //MARK 251 done AlignmentEstimationDialog
-
     buttonExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -176,19 +173,15 @@ public class AlignmentEstimationDialog
     buttonImod.setPreferredSize(dimButton);
     buttonViewResiduals.setPreferredSize(dimButton);
     buttonView3DModel.setPreferredSize(dimButton);
-    //MARK 251 done AlignmentEstimationDialog
     panelButton.add(buttonComputeAlignment);
     panelButton.add(buttonImod);
     panelButton.add(buttonView3DModel);
     panelButton.add(buttonViewResiduals);
-    //MARK 251 done AlignmentEstimationDialog
-
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.Y_AXIS));
     panelAlignEst.setBorder(border.getBorder());
 
     panelAlignEst.add(panelTiltalign.getContainer());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
-    //MARK 251 done
     panelAlignEst.add(panelButton);
 
     //  Construct the main panel from the alignment panel and exist buttons
@@ -209,7 +202,6 @@ public class AlignmentEstimationDialog
     buttonView3DModel.addActionListener(actionListener);
     buttonViewResiduals.addActionListener(actionListener);
     buttonImod.addActionListener(actionListener);
-    //MARK 251 done AlignmentEstimationDialog
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -236,7 +228,6 @@ public class AlignmentEstimationDialog
     }
 
   }
-//MARK 251 done setTransferFidParams
 
   /**
    * Right mouse button context menu
@@ -245,8 +236,7 @@ public class AlignmentEstimationDialog
     String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
     Vector logFileLabel = new Vector(1);
-    //MARK 251 done popUpContextMenu
-    String[] logWindowLabel = { "align"};
+    String[] logWindowLabel = { "align" };
 
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "align Axis: " + axisID.getExtension();
@@ -261,10 +251,8 @@ public class AlignmentEstimationDialog
         "complete log",
         "large residual",
         "mappings",
-        "fiducial coordinates" };
+        "coordinates" };
     logFileLabel.add(alignLabels);
-    String[] transferfidLabels = { "transferfid" };
-    logFileLabel.add(transferfidLabels);
 
     Vector logFile = new Vector(1);
     String[] logFileList = new String[8];
@@ -278,9 +266,6 @@ public class AlignmentEstimationDialog
     logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
 
     logFile.add(logFileList);
-    //MARK 251 print
-    String[] s = (String[]) logFile.get(1);
-    System.out.println("logFile[1]=" + s);
 
     ContextPopup contextPopup =
       new ContextPopup(
@@ -313,8 +298,6 @@ public class AlignmentEstimationDialog
     else if (command.equals(buttonViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID);
     }
-//MARK 251 done buttonAction
-
   }
 
   //  Action function overides for exit buttons
@@ -342,7 +325,6 @@ public class AlignmentEstimationDialog
   //  as well as from the button action above
   void updateAdvanced(boolean state) {
     panelTiltalign.setAdvanced(isAdvanced);
-      //MARK 251 done updateAdvanced
     applicationManager.packMainWindow();
   }
 }
