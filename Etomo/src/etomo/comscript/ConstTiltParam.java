@@ -1,3 +1,5 @@
+package etomo.comscript;
+
 /**
  * <p>Description: </p>
  *
@@ -11,12 +13,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.1  2004/03/24 02:55:44  rickg
- * <p> Bug# 395 Implemented ability to create binned tomogram
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 2.6  2003/10/22 21:30:28  rickg
  * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
  * <p>
@@ -45,180 +41,140 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-package etomo.comscript;
 
 public class ConstTiltParam {
-  public static final String rcsid = 
-  "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
-  protected String inputFile;
+  protected String inputFile = "";
 
-  protected String outputFile;
+  protected String outputFile = "";
 
-  protected String angles;
+  protected String angles = "";
+  protected boolean useAngles = false;
 
-  protected float compressionFraction;
+  protected double compressionFraction;
+  protected boolean useCompressionFraction = false;
 
   protected String compression;
+  protected boolean useCompression = false;
 
   protected int cosInterpOrder;
+  protected double cosInterpFactor;
+  protected boolean useCosInterp = false;
 
-  protected float cosInterpFactor;
+  protected String densityWeightParams = "";
+  protected boolean useDensityWeight = false;
 
-  protected String densityWeightParams;
+  protected String exclude = "";
+  protected boolean useExclude = false;
 
-  protected String exclude;
-
-  protected StringList excludeList;
+  protected StringList excludeList = new StringList(0);
+  protected boolean useExcludeList = false;
 
   protected int fastBackProjInterpOrder;
+  protected boolean useFastBackProjInterpOrder = false;
 
   protected int fullImageX;
-
   protected int fullImageY;
+  protected boolean useFullImage = false;
 
-  protected String include;
+  protected String include = "";
+  protected boolean useInclude = false;
 
-  protected String localAlignFile;
+  protected String localAlignFile = "";
+  protected boolean useLocalAlignFile = false;
 
-  protected float localScale;
+  protected double localScale;
+  protected boolean useLocalScale = false;
 
-  protected float logOffset;
+  protected double logOffset;
+  protected boolean useLogOffset = false;
 
-  protected float mask;
+  protected double mask;
+  protected boolean useMask = false;
 
   protected int mode;
+  protected boolean useMode = false;
 
-  protected float tiltAngleOffset;
+  protected double tiltAngleOffset;
+	protected boolean useTiltAngleOffset = false;
+  protected double tiltAxisOffset;
+	protected boolean useTiltAxisOffset = false;
 
-  protected float tiltAxisOffset;
+  protected boolean parallel = false;
+  protected boolean useParallel = false;
 
-  protected boolean parallel;
+  protected boolean perpendicular = false;
+  protected boolean usePerpendicular = false;
 
-  protected boolean perpendicular;
+  protected double radialBandwidth = 0.0;
+  protected double radialFalloff = 0.0;
+  protected boolean useRadialWeightingFunction = false;
 
-  protected float radialBandwidth;
-
-  protected float radialFalloff;
-
-  protected int nReplicate;
-
-  protected int incReplicate;
-
-  protected float scaleFLevel;
-
-  protected float scaleCoeff;
-
-  protected float xOffset;
-
-  protected float zOffset;
+  protected int  nReplicate;
+  protected int  incReplicate;
+  protected boolean useReplicate = false;
+  
+  protected double scaleFLevel;
+  protected double scaleCoeff;
+  protected boolean useScale = false;
+ 
+  protected double xOffset;
+	protected boolean useXOffset = false;
+  protected double zOffset;
+	protected boolean useZOffset = false;
 
   protected int idxSliceStart;
-
   protected int idxSliceStop;
-
-  protected int incrSlice;
+	protected boolean useSlice = false;
+	
+  protected int idxSliceIncr;
+	protected boolean useSliceIncr = false;
 
   protected int idxXSubsetStart;
-
   protected int idxYSubsetStart;
+  protected boolean useSubsetStart = false;
 
   protected int thickness;
+  protected boolean useThickness = false;
 
-  protected String tiltFile;
+  protected String tiltFile = "";
+  protected boolean useTiltfile = false;
 
-  protected String title;
+  protected String title = "";
+  protected boolean useTitle = false;
 
   protected int width;
+  protected boolean useWidth = false;
 
-  protected float xAxisTilt;
+  protected double xAxisTilt;
+  protected boolean useXAxisTilt = false;
 
-  protected String xTiltFile;
+  protected String xTiltFile = "";
+  protected boolean useXTiltFile = false;
 
   protected int xTiltInterp;
-
-  public ConstTiltParam() {
-    reset();
-  }
-
-  protected void reset() {
-    inputFile = "";
-    outputFile = "";
-    angles = "";
-    compressionFraction = Float.NaN;
-    compression = "";
-    cosInterpOrder = Integer.MIN_VALUE;
-    cosInterpFactor = Float.NaN;
-    densityWeightParams = "";
-    exclude = "";
-    excludeList = new StringList(0);
-    fastBackProjInterpOrder = Integer.MIN_VALUE;
-    fullImageX = Integer.MIN_VALUE;
-    fullImageY = Integer.MIN_VALUE;
-    include = "";
-    localAlignFile = "";
-    localScale = Float.NaN;
-    logOffset = Float.NaN;
-    mask = Float.NaN;
-    mode = Integer.MIN_VALUE;
-    tiltAngleOffset = Float.NaN;
-    tiltAxisOffset = Float.NaN;
-    parallel = false;
-    perpendicular = false;
-    radialBandwidth = Float.NaN;
-    radialFalloff = Float.NaN;
-    nReplicate = Integer.MIN_VALUE;
-    incReplicate = Integer.MIN_VALUE;
-    scaleFLevel = Float.NaN;
-    scaleCoeff = Float.NaN;
-    xOffset = Float.NaN;
-    zOffset = Float.NaN;
-    idxSliceStart = Integer.MIN_VALUE;
-    idxSliceStop = Integer.MIN_VALUE;
-    incrSlice = Integer.MIN_VALUE;
-    idxXSubsetStart = Integer.MIN_VALUE;
-    idxYSubsetStart = Integer.MIN_VALUE;
-    thickness = Integer.MIN_VALUE;
-    tiltFile = "";
-    title = "";
-    width = Integer.MIN_VALUE;
-    xAxisTilt = Float.NaN;
-    xTiltFile = "";
-    xTiltInterp = Integer.MIN_VALUE;
-  }
+  protected boolean useXTiltInterp = false;
 
   public String getInputFile() {
     return inputFile;
   }
 
-  public float getLogShift() {
+  public double getLogShift() {
     return logOffset;
-  }
-
-  public boolean hasLogOffset() {
-    if (Float.isNaN(logOffset))
-      return false;
-    return true;
   }
 
   public int getMode() {
     return mode;
   }
 
-  public boolean hasMode() {
-    if (mode == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
   public String getLocalAlignFile() {
     return localAlignFile;
   }
 
-  public boolean hasLocalAlignFile() {
-    if (localAlignFile.equals(""))
-      return false;
-    return true;
+  public boolean getUseLocalAlignFile() {
+    return useLocalAlignFile;
   }
 
   public String getOutputFile() {
@@ -233,38 +189,20 @@ public class ConstTiltParam {
     return perpendicular;
   }
 
-  public float getRadialBandwidth() {
+  public double getRadialBandwidth() {
     return radialBandwidth;
-  }
-
-  public boolean hasRadialWeightingFunction() {
-    if (Float.isNaN(radialBandwidth))
-      return false;
-    return true;
   }
 
   public int getThickness() {
     return thickness;
   }
 
-  public boolean hasThickness() {
-    if (thickness == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
   public String getTiltFile() {
     return tiltFile;
   }
 
-  public float getXAxisTilt() {
+  public double getXAxisTilt() {
     return xAxisTilt;
-  }
-
-  public boolean hasXAxisTilt() {
-    if (Float.isNaN(xAxisTilt))
-      return false;
-    return true;
   }
 
   /**
@@ -275,11 +213,10 @@ public class ConstTiltParam {
     return excludeList.toString();
   }
 
-
   /**
    * @return
    */
-  public float getRadialFalloff() {
+  public double getRadialFalloff() {
     return radialFalloff;
   }
 
@@ -290,50 +227,26 @@ public class ConstTiltParam {
     return width;
   }
 
-  public boolean hasWidth() {
-    if (width == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
   /**
    * @return
    */
-  public float getXOffset() {
+  public double getXOffset() {
     return xOffset;
   }
 
-  public boolean hasXOffset() {
-    if (Float.isNaN(xOffset))
-      return false;
-    return true;
-  }
-
   /**
    * @return
    */
-  public float getZOffset() {
+  public double getZOffset() {
     return zOffset;
   }
 
-  public boolean hasZOffset() {
-    if (Float.isNaN(zOffset))
-      return false;
-    return true;
-  }
-
 
   /**
    * @return
    */
-  public int getIncrSlice() {
-    return incrSlice;
-  }
-
-  public boolean hasSliceIncr() {
-    if (incrSlice == Integer.MIN_VALUE)
-      return false;
-    return true;
+  public int getIdxSliceIncr() {
+    return idxSliceIncr;
   }
 
   /**
@@ -350,70 +263,264 @@ public class ConstTiltParam {
     return idxSliceStop;
   }
 
-  public boolean hasSlice() {
-    if (idxSliceStop == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-
   /**
    * @return
    */
-  public float getTiltAngleOffset() {
+  public double getTiltAngleOffset() {
     return tiltAngleOffset;
   }
 
-  public boolean hasTiltAngleOffset() {
-    if (Float.isNaN(tiltAngleOffset))
-      return false;
-    return true;
-  }
-
   /**
    * @return
    */
-  public float getTiltAxisOffset() {
+  public double getTiltAxisOffset() {
     return tiltAxisOffset;
   }
 
-  public boolean hasTiltAxisOffset() {
-    if (Float.isNaN(tiltAxisOffset))
-      return false;
-    return true;
+
+  /**
+   * @return
+   */
+  public boolean hasTiltAngleOffset() {
+    return useTiltAngleOffset;
+  }
+
+	/**
+	 * @return
+	 */
+	public boolean hasTiltAxisOffset() {
+		return useTiltAxisOffset;
+	}
+
+  /**
+   * @return
+   */
+  public boolean hasAngles() {
+    return useAngles;
   }
 
   /**
    * @return
    */
-  public float getScaleCoeff() {
+  public boolean hasCompression() {
+    return useCompression;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasCompressionFraction() {
+    return useCompressionFraction;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasCosInterp() {
+    return useCosInterp;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasDensityWeight() {
+    return useDensityWeight;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasExclude() {
+    return useExclude;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasExcludeList() {
+    return useExcludeList;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasFastBackProjInterpOrder() {
+    return useFastBackProjInterpOrder;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasFullImage() {
+    return useFullImage;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasInclude() {
+    return useInclude;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasLocalScale() {
+    return useLocalScale;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasLogOffset() {
+    return useLogOffset;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasMask() {
+    return useMask;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasMode() {
+    return useMode;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasParallel() {
+    return useParallel;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasPerpendicular() {
+    return usePerpendicular;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasRadialWeightingFunction() {
+    return useRadialWeightingFunction;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasReplicate() {
+    return useReplicate;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasScale() {
+    return useScale;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXOffset() {
+    return useXOffset;
+  }
+
+	/**
+	 * @return
+	 */
+	public boolean hasZOffset() {
+		return useZOffset;
+	}
+
+  /**
+   * @return
+   */
+  public boolean hasSlice() {
+    return useSlice;
+  }
+
+	/**
+	 * @return
+	 */
+	public boolean hasSliceIncr() {
+		return useSliceIncr;
+	}
+
+  /**
+   * @return
+   */
+  public boolean hasSubsetStart() {
+    return useSubsetStart;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasThickness() {
+    return useThickness;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasTiltfile() {
+    return useTiltfile;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasTitle() {
+    return useTitle;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasWidth() {
+    return useWidth;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXAxisTilt() {
+    return useXAxisTilt;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXTiltFile() {
+    return useXTiltFile;
+  }
+
+  /**
+   * @return
+   */
+  public boolean hasXTiltInterp() {
+    return useXTiltInterp;
+  }
+
+  /**
+   * @return
+   */
+  public double getScaleCoeff() {
     return scaleCoeff;
   }
 
   /**
    * @return
    */
-  public float getScaleFLevel() {
+  public double getScaleFLevel() {
     return scaleFLevel;
   }
 
-  public boolean hasScale() {
-    if (Float.isNaN(scaleFLevel))
-      return false;
-    return true;
-  }
-
-  /**
-   * @return Returns the fullImageX.
-   */
-  public int getFullImageX() {
-    return fullImageX;
-  }
-
-  /**
-   * @return Returns the fullImageY.
-   */
-  public int getFullImageY() {
-    return fullImageY;
-  }
 }

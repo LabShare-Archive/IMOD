@@ -25,9 +25,6 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/03/15 23:13:16  sueh
- * <p> progress button names changed to "btn"
- * <p>
  * <p> Revision 3.2  2004/03/15 20:23:06  sueh
  * <p> bug# 276 Moved Use Model as Seed to be next to the Seed button.  Placed Use
  * <p> Model as Seed in Advanced.
@@ -133,7 +130,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   private MultiLineToggleButton btnFixModel =
     new MultiLineToggleButton("<html><b>Fix Fiducial Model</b>");
     
-  private JPanel pnlTrack = new JPanel();
+  private JPanel pnlSeed = new JPanel();
 
   private boolean transferfidEnabled = false;
 
@@ -147,7 +144,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     btnExecute.setText("Done");
 
     Dimension dimButton = UIParameters.getButtonDimension();
-    btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnSeed.setPreferredSize(dimButton);
     btnSeed.setMaximumSize(dimButton);
 
@@ -172,19 +168,19 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-    pnlFiducialModel.add(btnSeed);    
+    pnlSeed.setLayout(new BoxLayout(pnlSeed, BoxLayout.X_AXIS));
+    pnlSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSeed.add(btnSeed);
+    pnlSeed.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSeed.add(btnUseModel);
+    
+    pnlFiducialModel.add(pnlSeed);
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-    
-    pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
-    pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlTrack.add(btnTrack);
-    pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlTrack.add(btnUseModel);
-    pnlFiducialModel.add(pnlTrack);
-    
+
+    pnlFiducialModel.add(btnTrack);
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(btnFixModel);

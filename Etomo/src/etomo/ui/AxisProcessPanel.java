@@ -25,10 +25,6 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.1  2004/02/13 17:36:43  sueh
- * <p> bug# 268 added hide and show function to make the root
- * <p> panel invisible and visible
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -150,16 +146,13 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessInfo);
   }
 
-  public boolean hide() {
-    boolean hide = false;
+  public void hide() {
     Rectangle size = new Rectangle();
     panelRoot.computeVisibleRect(size);
     if (size.getWidth() != 0) {
-      return hide;
+      return;
     }
-    hide = true;
     panelRoot.setVisible(false);
-    return hide;
   }
 
   public void show() {

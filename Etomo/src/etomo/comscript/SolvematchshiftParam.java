@@ -13,12 +13,6 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.1  2004/04/12 16:50:47  sueh
- * <p> bug# 409 changed interface class CommandParam
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 2.7  2003/07/25 22:54:14  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -71,16 +65,9 @@ public class SolvematchshiftParam
     }
     int i = 0;
     toFiducialCoordinatesFile = inputArgs[i++].getArgument();
-    setMatchBToA(toFiducialCoordinatesFile);
     fromFiducialCoordinatesFile = inputArgs[i++].getArgument();
-    if (matchBToA) {
-      fiducialMatchListA.parseString(inputArgs[i++].getArgument());
-      fiducialMatchListB.parseString(inputArgs[i++].getArgument());
-    }
-    else {
-      fiducialMatchListB.parseString(inputArgs[i++].getArgument());
-      fiducialMatchListA.parseString(inputArgs[i++].getArgument());;
-    }
+    fiducialMatchListA.parseString(inputArgs[i++].getArgument());
+    fiducialMatchListB.parseString(inputArgs[i++].getArgument());
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
     residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
@@ -107,10 +94,6 @@ public class SolvematchshiftParam
             + " expected 8."));
     }
 
-    //matchBToA has to be set correctly.  In case parseComScriptCommand() hasn't
-    //been called, set is here to.
-    setMatchBToA(inputArgs[0].getArgument());
-    
     //  Fill in the input argument sequence
     inputArgs[0].setArgument(toFiducialCoordinatesFile);
     scriptCommand.setInputArgument(0, inputArgs[0]);
@@ -118,20 +101,12 @@ public class SolvematchshiftParam
     inputArgs[1].setArgument(fromFiducialCoordinatesFile);
     scriptCommand.setInputArgument(1, inputArgs[1]);
 
-    if (matchBToA) {
-      inputArgs[2].setArgument(fiducialMatchListA.toString());
-      scriptCommand.setInputArgument(2, inputArgs[2]);
+    inputArgs[2].setArgument(fiducialMatchListA.toString());
+    scriptCommand.setInputArgument(3, inputArgs[3]);
 
-      inputArgs[3].setArgument(fiducialMatchListB.toString());
-      scriptCommand.setInputArgument(3, inputArgs[3]);
-    }
-    else {
-      inputArgs[2].setArgument(fiducialMatchListB.toString());
-      scriptCommand.setInputArgument(2, inputArgs[2]);
-      
-      inputArgs[3].setArgument(fiducialMatchListA.toString());
-      scriptCommand.setInputArgument(3, inputArgs[3]);
-    }
+    inputArgs[3].setArgument(fiducialMatchListB.toString());
+    scriptCommand.setInputArgument(3, inputArgs[3]);
+
     inputArgs[4].setArgument(xAxistTilt.toString());
     scriptCommand.setInputArgument(4, inputArgs[4]);
 
@@ -144,22 +119,6 @@ public class SolvematchshiftParam
     inputArgs[7].setArgument(outputTransformationFile);
     scriptCommand.setInputArgument(7, inputArgs[7]);
 
-  }
-  
-  protected void setMatchBToA(String toFile) {
-    if (toFile == null || toFile.matches("\\s*")) {
-      return;
-    }
-    if (toFile.matches("^\\s*\\S+?afid.xyz\\s*$")) {
-      matchBToA = true;
-    }
-    else if (toFile.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
-      matchBToA = false;
-    }
-    return;
-  }
-  
-  public void initializeDefaults() {
   }
 
   /**

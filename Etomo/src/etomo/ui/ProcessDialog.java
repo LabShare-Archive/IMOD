@@ -13,9 +13,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.1  2004/03/15 20:33:55  rickg
- * <p> button variable name changes to btn...
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -55,29 +52,22 @@ import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 
 public class ProcessDialog implements ExitButtons {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected ApplicationManager applicationManager;
-
   protected AxisID axisID;
-
   protected boolean isAdvanced;
-
   protected DialogExitState exitState = DialogExitState.CANCEL;
 
   protected Dimension rootSize = new Dimension(620, 680);
-
   protected JPanel rootPanel = new JPanel();
 
   //  Exit buttons
   protected JPanel pnlExitButtons = new JPanel();
-
   protected MultiLineButton btnCancel = new MultiLineButton("Cancel");
-  
   protected MultiLineButton btnPostpone = new MultiLineButton("Postpone");
-
   protected MultiLineButton btnExecute = new MultiLineButton("Execute");
-
   protected MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
 
   /**
@@ -94,8 +84,19 @@ public class ProcessDialog implements ExitButtons {
     setAdvanced(isAdvanced);
     setToolTipText();
 
+    //  Set the button sizes
+    //btnCancel.setPreferredSize(UIParameters.getButtonDimension());
+    btnCancel.setMaximumSize(UIParameters.getButtonDimension());
+    //btnPostpone.setPreferredSize(UIParameters.getButtonDimension());
+    btnPostpone.setMaximumSize(UIParameters.getButtonDimension());
+    //btnExecute.setPreferredSize(UIParameters.getButtonDimension());
+    btnExecute.setMaximumSize(UIParameters.getButtonDimension());
+    //btnAdvanced.setPreferredSize(UIParameters.getButtonDimension());
+    btnAdvanced.setMaximumSize(UIParameters.getButtonDimension());
+    
     //  Layout the buttons
-    pnlExitButtons.setLayout(new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
+    pnlExitButtons.setLayout(
+      new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
 
     pnlExitButtons.add(Box.createHorizontalGlue());
     pnlExitButtons.add(btnCancel);
@@ -106,9 +107,6 @@ public class ProcessDialog implements ExitButtons {
     pnlExitButtons.add(Box.createHorizontalGlue());
     pnlExitButtons.add(btnAdvanced);
     pnlExitButtons.add(Box.createHorizontalGlue());
-
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters
-      .getNarrowButtonDimension());
 
     //  Exit action listeners
     btnCancel.addActionListener(new buttonCancelActionAdapter(this));
@@ -126,7 +124,6 @@ public class ProcessDialog implements ExitButtons {
     //    rootPanel.setPreferredSize(rootSize);
     //    rootPanel.setMaximumSize(rootSize);
   }
-
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -217,11 +214,8 @@ public class ProcessDialog implements ExitButtons {
  */
 interface ExitButtons {
   void buttonCancelAction(ActionEvent event);
-
   void buttonPostponeAction(ActionEvent event);
-
   void buttonExecuteAction(ActionEvent event);
-
   void buttonAdvancedAction(ActionEvent event);
 }
 
@@ -235,7 +229,6 @@ class buttonCancelActionAdapter implements java.awt.event.ActionListener {
   buttonCancelActionAdapter(ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
-
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonCancelAction(e);
   }
@@ -248,7 +241,6 @@ class buttonPostponeActionAdapter implements java.awt.event.ActionListener {
   buttonPostponeActionAdapter(ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
-
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonPostponeAction(e);
   }
@@ -261,7 +253,6 @@ class buttonExecuteActionAdapter implements java.awt.event.ActionListener {
   buttonExecuteActionAdapter(ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
-
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonExecuteAction(e);
   }
@@ -274,7 +265,6 @@ class buttonAdvancedActionAdapter implements java.awt.event.ActionListener {
   buttonAdvancedActionAdapter(ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
-
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonAdvancedAction(e);
   }

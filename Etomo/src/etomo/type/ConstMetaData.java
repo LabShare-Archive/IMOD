@@ -1,4 +1,13 @@
-/**
+package etomo.type;
+
+import java.io.File;
+import java.lang.IllegalStateException;
+
+import etomo.comscript.ConstCombineParams;
+import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
+
+/*
  * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
@@ -11,9 +20,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.5  2004/02/24 18:52:22  sueh
- * <p> bug# 385 initialized binning to null
- * <p>
  * <p> Revision 3.4  2004/02/20 23:44:45  sueh
  * <p> bug# 386 added distortionFile and binning
  * <p>
@@ -85,21 +91,11 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.type;
-
-import java.io.File;
-import java.lang.IllegalStateException;
-
-import etomo.comscript.ConstCombineParams;
-import etomo.comscript.CombineParams;
-import etomo.comscript.TransferfidParam;
-
 public class ConstMetaData {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
-  protected String latestRevisionNumber = "1.6";
-  protected String revisionNumber = "";
+  protected String revisionNumber = "1.5";
   protected String datasetName = "";
   protected String backupDirectory = "";
   protected String distortionFile = "";
@@ -109,13 +105,11 @@ public class ConstMetaData {
   protected ViewType viewType = ViewType.SINGLE_VIEW;
   protected SectionType sectionType = SectionType.SINGLE;
 
-  protected double pixelSize = Double.NaN;
+  protected double pixelSize = 0.0;
   protected boolean useLocalAlignments = true;
-  protected double fiducialDiameter = Double.NaN;
-  protected float imageRotationA = Float.NaN;
-  protected float imageRotationB = Float.NaN;
+  protected double fiducialDiameter = 0.0;
+  protected double imageRotation = 0.0;
   protected int binning = Integer.MIN_VALUE;
-  protected boolean fiducialessAlignment = false;
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -150,7 +144,6 @@ public class ConstMetaData {
   public String getBackupDirectory() {
     return backupDirectory;
   }
-
   public String getDistortionFile() {
     return distortionFile;
   }
@@ -183,13 +176,10 @@ public class ConstMetaData {
     return fiducialDiameter;
   }
 
-  public float getImageRotation(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return imageRotationB;
-    }
-    return imageRotationA;
+  public double getImageRotation() {
+    return imageRotation;
   }
-
+  
   public int getBinning() {
     return binning;
   }
@@ -214,10 +204,6 @@ public class ConstMetaData {
     return comScriptsCreated;
   }
 
-  public boolean getFiducialessAlignment() {
-    return fiducialessAlignment;
-  }
-
   public String getInvalidReason() {
     return invalidReason;
   }
@@ -228,7 +214,7 @@ public class ConstMetaData {
 
   public boolean isValid() {
     boolean datasetNameValid = isDatasetNameValid();
-
+    
     if (!datasetNameValid) {
       return datasetNameValid;
     }
@@ -247,14 +233,15 @@ public class ConstMetaData {
 
     return true;
   }
-
-  public boolean isDatasetNameValid() {
+  
+  public boolean isDatasetNameValid() {    
     if (getValidDatasetDirectory(System.getProperty("user.dir")) != null) {
       return true;
     }
     return false;
   }
-
+  
+  
   public File getValidDatasetDirectory(String workingDirName) {
     // Does the working directory exist
     // If is doesn't then use the backup directory.    
@@ -274,9 +261,12 @@ public class ConstMetaData {
 
       //if no directory exists then exit
       if (!workingDir.exists() && !backupDir.exists()) {
-        invalidReason = "The working directory: "
-            + workingDir.getAbsolutePath() + " and the backup directory: "
-            + backupDir.getAbsolutePath() + " do not exist";
+        invalidReason =
+          "The working directory: "
+            + workingDir.getAbsolutePath()
+            + " and the backup directory: "
+            + backupDir.getAbsolutePath()
+            + " do not exist";
         return null;
       }
 
@@ -290,19 +280,22 @@ public class ConstMetaData {
       }
 
       if (!currentDir.canRead()) {
-        invalidReason = "Can't read " + currentDir.getAbsolutePath()
-            + " directory";
+        invalidReason =
+          "Can't read " + currentDir.getAbsolutePath() + " directory";
         return null;
       }
 
       if (!currentDir.canWrite()) {
-        invalidReason = "Can't write " + currentDir.getAbsolutePath()
-            + " directory";
+        invalidReason =
+          "Can't write " + currentDir.getAbsolutePath() + " directory";
         return null;
       }
 
-      throw new IllegalStateException("Working directory ="
-          + workingDir.toString() + ",backupDir=" + backupDir.toString());
+      throw new IllegalStateException(
+        "Working directory ="
+          + workingDir.toString()
+          + ",backupDir="
+          + backupDir.toString());
     }
 
     // Does the appropriate image stack exist in the working directory
@@ -314,6 +307,9 @@ public class ConstMetaData {
     }
     return currentDir;
   }
+
+
+
 
   /**
    * Checks a file's state.  Checks whether a file exists and
@@ -354,18 +350,16 @@ public class ConstMetaData {
    * @throws IllegalArgumentException if any parameter is null
    */
   protected File findValidFile(String fileName, File curDir, File altDir) {
-    if (fileName == null || curDir == null || altDir == null
-        || !isValid(curDir, true)) {
-      throw new IllegalArgumentException(
-        "ConstMetaData.findValidFile(String,File,File)");
+    if (fileName == null || curDir == null || altDir == null || !isValid(curDir, true)) {
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
     File file = new File(curDir, fileName);
     while (!file.exists()) {
       if (curDir == altDir || !isValid(altDir, true)) {
-        invalidReason = fileName + " does not exist in  "
-            + curDir.getAbsolutePath();
+        invalidReason =
+          fileName + " does not exist in  " + curDir.getAbsolutePath();
         return null;
       }
       curDir = altDir;
@@ -394,16 +388,15 @@ public class ConstMetaData {
    */
   protected File findValidFile(String fileName, File curDir) {
     if (fileName == null || curDir == null || !isValid(curDir, true)) {
-      throw new IllegalArgumentException(
-        "ConstMetaData.findValidFile(String,File)");
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
     File file = new File(curDir, fileName);
 
     if (!file.exists()) {
-      invalidReason = fileName + " does not exist in "
-          + curDir.getAbsolutePath();
+      invalidReason =
+        fileName + " does not exist in " + curDir.getAbsolutePath();
       return null;
     }
 
@@ -413,61 +406,6 @@ public class ConstMetaData {
     }
 
     return curDir;
-  }
-
-  public boolean equals(Object object) {
-    if (!(object instanceof ConstMetaData))
-      return false;
-
-    ConstMetaData cmd = (ConstMetaData) object;
-
-    // Ignore revision number, we are more concerned about the functional
-    // content of the object
-    //if (!revisionNumber.equals(cmd.getRevisionNumber()))
-    //  return false;
-    if (!datasetName.equals(cmd.getDatasetName()))
-      return false;
-    if (!backupDirectory.equals(cmd.getBackupDirectory()))
-      return false;
-    if (!distortionFile.equals(cmd.getDistortionFile()))
-      return false;
-    if (!dataSource.equals(cmd.getDataSource()))
-      return false;
-    if (!axisType.equals(cmd.getAxisType()))
-      return false;
-    if (!viewType.equals(cmd.getViewType()))
-      return false;
-    if (!sectionType.equals(cmd.getSectionType()))
-      return false;
-    if (!(pixelSize == cmd.getPixelSize()))
-      return false;
-    if (!(useLocalAlignments == cmd.getUseLocalAlignments()))
-      return false;
-    if (!(fiducialDiameter == cmd.getFiducialDiameter()))
-      return false;
-    if (!(imageRotationA == cmd.getImageRotation(AxisID.FIRST)))
-      return false;
-    if (!(imageRotationB == cmd.getImageRotation(AxisID.SECOND)))
-      return false;
-    if (!(binning == cmd.getBinning()))
-      return false;
-    if (!(fiducialessAlignment == cmd.getFiducialessAlignment()))
-      return false;
-
-    // TODO tilt angle spec needs to be more complete
-    if (!(tiltAngleSpecA.getType() == cmd.getTiltAngleSpecA().getType()))
-      return false;
-    if (!excludeProjectionsA.equals(cmd.getExcludeProjectionsA()))
-      return false;
-
-    if (!(tiltAngleSpecB.getType() == cmd.getTiltAngleSpecB().getType()))
-      return false;
-    if (!excludeProjectionsB.equals(cmd.getExcludeProjectionsB()))
-      return false;
-    if (!(comScriptsCreated == cmd.getComScriptCreated()))
-      return false;
-
-    return true;
   }
 
 }

@@ -13,7 +13,6 @@
  * <p> $Log: 
  * </p>
  */
-
 package etomo.process;
 
 import java.io.BufferedWriter;
@@ -31,11 +30,16 @@ public class AlignLogGenerator {
 
   public AlignLogGenerator(AxisID id) {
     axisID = id;
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    alignLogCommand = "tcsh -f " + ApplicationManager.getIMODBinPath()
-        + "alignlog ";
+    alignLogCommand = "tcsh -f " + imodBinPath + "alignlog ";
   }
 
   public void run() throws IOException {
@@ -48,9 +52,11 @@ public class AlignLogGenerator {
     runArgument("-s", "taSolution");
   }
 
-  private void runArgument(String argument, String logFile) throws IOException {
-    SystemProgram alignlog = new SystemProgram(alignLogCommand + argument + " "
-        + axisID.getExtension());
+  private void runArgument(String argument, String logFile)
+    throws IOException {
+    SystemProgram alignlog =
+      new SystemProgram(
+        alignLogCommand + argument + " " + axisID.getExtension());
 
     alignlog.run();
 
@@ -58,9 +64,14 @@ public class AlignLogGenerator {
     String[] stdError = alignlog.getStdError();
 
     BufferedWriter fileBuffer;
-    fileBuffer = new BufferedWriter(new FileWriter(System
-      .getProperty("user.dir")
-        + File.separator + logFile + axisID.getExtension() + ".log"));
+    fileBuffer =
+      new BufferedWriter(
+        new FileWriter(
+          System.getProperty("user.dir")
+            + File.separator
+            + logFile
+            + axisID.getExtension()
+            + ".log"));
 
     if (stdOutput == null) {
       if (stdError == null) {

@@ -1,8 +1,6 @@
-
 package etomo.process;
 
 import java.io.File;
-import java.util.Vector;
 
 import etomo.ApplicationManager;
 
@@ -21,35 +19,6 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.11  2004/05/07 19:43:57  sueh
- * <p> bug# 33 adding getRubberbandCoordinates(),
- * <p> imodSendAndReceive(), parseError().
- * <p> Keeping InteractiveSystemProgram imod around for send
- * <p> and receive.
- * <p>
- * <p> Revision 3.10  2004/05/06 20:21:47  sueh
- * <p> bug# 33 added getRubberbandCoordinates(), passing back the
- * <p> InteractiveSystemProgram from imodSendEvent()
- * <p>
- * <p> Revision 3.9  2004/05/03 22:22:25  sueh
- * <p> bug# 416 added binning (-B)
- * <p>
- * <p> Revision 3.8  2004/04/30 21:11:52  sueh
- * <p> bug# 428 add open ZaP window message
- * <p>
- * <p> Revision 3.7  2004/04/27 22:02:58  sueh
- * <p> bug# 320 removing test
- * <p>
- * <p> Revision 3.6  2004/04/26 17:05:05  sueh
- * <p> bug# 320 Commented out code - no functional change.
- * <p> Experimenting with a fix for this bug.
- * <p>
- * <p> Revision 3.5  2004/04/22 23:26:11  rickg
- * <p> Switched getIMODBinPath method
- * <p>
- * <p> Revision 3.4  2004/02/07 03:04:59  sueh
- * <p> bug# 169 Added setWorkingDirectory().
- * <p>
  * <p> Revision 3.3  2003/11/21 23:54:49  sueh
  * <p> bug242 Added toString() function
  * <p>
@@ -151,39 +120,29 @@ import etomo.ApplicationManager;
  * </p>
  */
 public class ImodProcess {
-  public static final String rcsid = "$Id$";
+	public static final String rcsid =
+		"$Id$";
 
-  public static final String MESSAGE_OPEN_MODEL = "1";
-  public static final String MESSAGE_SAVE_MODEL = "2";
-  public static final String MESSAGE_VIEW_MODEL = "3";
-  public static final String MESSAGE_CLOSE = "4";
-  public static final String MESSAGE_RAISE = "5";
-  public static final String MESSAGE_MODEL_MODE = "6";
-  public static final String MESSAGE_OPEN_KEEP_BW = "7";
-  public static final String MESSAGE_OPEN_BEADFIXER = "8";
-  public static final String MESSAGE_ONE_ZAP_OPEN = "9";
-  public static final String MESSAGE_RUBBERBAND = "10";
-  
-  public static final String ERROR_STRING = "ERROR:";
-  public static final String WARNING_STRING = "WARNING:";
-  public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
-  public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
-
-  private static final int defaultBinning = 1;
-
-  private String datasetName = "";
-  private String modelName = "";
-  private String windowID = "";
-  private boolean swapYZ = false;
-  private boolean modelView = false;
-  private boolean fillCache = false;
+	public static final String MESSAGE_OPEN_MODEL = "1";
+	public static final String MESSAGE_SAVE_MODEL = "2";
+	public static final String MESSAGE_VIEW_MODEL = "3";
+	public static final String MESSAGE_CLOSE = "4";
+	public static final String MESSAGE_RAISE = "5";
+	public static final String MESSAGE_MODEL_MODE = "6";
+	public static final String MESSAGE_OPEN_KEEP_BW = "7";
+	public static final String MESSAGE_OPEN_BEADFIXER = "8";
+	
+	private String datasetName = "";
+	private String modelName = "";
+	private String windowID = "";
+	private boolean swapYZ = false;
+	private boolean modelView = false;
+	private boolean fillCache = false;
   private boolean useModv = false;
   private boolean outputWindowID = true;
   private File workingDirectory = null;
-  private int binning = defaultBinning;
-  InteractiveSystemProgram imod = null;
-
-  private Thread imodThread;
+  
+	private Thread imodThread;
 
   /**
    * Constructor for using imodv
@@ -192,430 +151,376 @@ public class ImodProcess {
   public ImodProcess() {
   }
 
-  /**
-   * Dataset only constructor
-   * 
-   * @param A string specifying the path to the projection stack file
-   */
-  public ImodProcess(String dataset) {
-    datasetName = dataset;
-  }
+	/**
+	 * Dataset only constructor
+	 * 
+	 * @param A string specifying the path to the projection stack file
+	 */
+	public ImodProcess(String dataset) {
+		datasetName = dataset;
+	}
 
-  /**
-   * Dataset and model file constructor
-   * 
-   * @param dataset A string specifying the path to the projection stack file
-   * @param model A string specifying the path to the IMOD model file
-   */
-  public ImodProcess(String dataset, String model) {
-    datasetName = dataset;
-    modelName = model;
-  }
+	/**
+	 * Dataset and model file constructor
+	 * 
+	 * @param dataset A string specifying the path to the projection stack file
+	 * @param model A string specifying the path to the IMOD model file
+	 */
+	public ImodProcess(String dataset, String model) {
+		datasetName = dataset;
+		modelName = model;
+	}
 
-  /**
-   * Change the dataset name
-   * 
-   * @param datasetName
-   */
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
-  }
+	/**
+	 * Change the dataset name
+	 * 
+	 * @param datasetName
+	 */
+	public void setDatasetName(String datasetName) {
+		this.datasetName = datasetName;
+	}
 
-  /**
-   * Specify or change the model name
-   * 
-   * @param modelName
-   */
-  public void setModelName(String modelName) {
-    this.modelName = modelName;
-  }
+	/**
+	 * Specify or change the model name
+	 * 
+	 * @param modelName
+	 */
+	public void setModelName(String modelName) {
+		this.modelName = modelName;
+	}
+
 
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
+	/**
+	 * Open the 3dmod process if is not already open.
+	 */
+	public void open() throws SystemProcessException {
+		if (isRunning()) {
+			raise3dmod();
+			return;
+		}
 
-  /**
-   * Open the 3dmod process if is not already open.
-   */
-  public void open() throws SystemProcessException {
-    if (isRunning()) {
-      raise3dmod();
-      return;
-    }
+		//  Reset the window string
+		windowID = "";
 
-    //  Reset the window string
-    windowID = "";
-
-    //  Collect the command line options
-    StringBuffer options = new StringBuffer();
+		//  Collect the command line options
+		StringBuffer options = new StringBuffer();
     if (outputWindowID) {
       options.append("-W ");
     }
+    
+		if (swapYZ) {
+			options.append("-Y ");
+		}
 
-    if (swapYZ) {
-      options.append("-Y ");
-    }
-
-    if (modelView) {
-      options.append("-V ");
-    }
-
+		if (modelView) {
+			options.append("-V ");
+		}
+    
     if (useModv) {
       options.append("-view ");
     }
 
-    // Fill cache implementation
-    if (fillCache) {
-      options.append("-F ");
-    }
-    
-    if (binning > defaultBinning) {
-      options.append("-B " + binning + " ");
-    }
-    String command = ApplicationManager.getIMODBinPath() + "3dmod " + options
-        + datasetName + " " + modelName;
-    imod = new InteractiveSystemProgram(command);
+		// Fill cache implementation
+		if (fillCache) {
+			options.append("-F ");
+		}
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String command =
+			imodBinPath + "3dmod " + options + datasetName + " " + modelName;
+		InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
 
-    //  Start the 3dmod program thread and wait for it to finish
-    imodThread = new Thread(imod);
-    imodThread.start();
+		//  Start the 3dmod program thread and wait for it to finish
+		imodThread = new Thread(imod);
+		imodThread.start();
 
-    //  Check the stderr of the 3dmod process for the windowID and the
-    String line;
-    while (imodThread.isAlive() && windowID.equals("")) {
+		//  Check the stderr of the 3dmod process for the windowID and the
+		String line;
+		while (imodThread.isAlive() && windowID.equals("")) {
 
-      while ((line = imod.readStderr()) != null) {
-        if (line.indexOf("Window id = ") != -1) {
-          String[] words = line.split("\\s+");
-          if (words.length < 4) {
-            throw (new SystemProcessException(
-              "Could not parse window ID from imod\n"));
-          }
-          windowID = words[3];
-        }
-      }
+			while ((line = imod.readStderr()) != null) {
+				if (line.indexOf("Window id = ") != -1) {
+					String[] words = line.split("\\s+");
+					if (words.length < 4) {
+						throw (
+							new SystemProcessException("Could not parse window ID from imod\n"));
+					}
+					windowID = words[3];
+				}
+			}
 
-      //  Wait a litte while for 3dmod to generate some stderr output
-      try {
-        Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
-      }
-    }
+			//  Wait a litte while for 3dmod to generate some stderr output
+			try {
+				Thread.sleep(500);
+			}
+			catch (InterruptedException e) {
+			}
+		}
 
-    //  If imod exited before getting the window report the problem to the user
-    if (windowID.equals("") && outputWindowID) {
-      String message = "3dmod returned: " + String.valueOf(imod.getExitValue())
-          + "\n";
+		//  If imod exited before getting the window report the problem to the user
+		if (windowID.equals("") && outputWindowID) {
+			String message =
+				"3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
-      while ((line = imod.readStderr()) != null) {
-        System.err.println(line);
-        message = message + "stderr: " + line + "\n";
-      }
+			while ((line = imod.readStderr()) != null) {
+				System.err.println(line);
+				message = message + "stderr: " + line + "\n";
+			}
 
-      while ((line = imod.readStdout()) != null) {
-        message = message + "stdout: " + line + "\n";
-        line = imod.readStdout();
-      }
+			while ((line = imod.readStdout()) != null) {
+				message = message + "stdout: " + line + "\n";
+				line = imod.readStdout();
+			}
 
-      throw (new SystemProcessException(message));
-    }
-  }
+			throw (new SystemProcessException(message));
+		}
+	}
 
-  /**
-   * Send the quit messsage to imod
-   */
-  public void quit() throws SystemProcessException {
-    if (isRunning()) {
-      String[] messages = new String[1];
-      messages[0] = MESSAGE_CLOSE;
-      imodSendEvent(messages);
-    }
-  }
+	/**
+	 * Send the quit messsage to imod
+	 */
+	public void quit() throws SystemProcessException {
+		if (isRunning()) {
+			String[] messages = new String[1];
+			messages[0] = "4";
+			imodSendEvent(messages);
+		}
+	}
 
-  /**
-   * Check to see if this 3dmod process is running
-   */
-  public boolean isRunning() {
-    if (imodThread == null) {
-      return false;
-    }
-    return imodThread.isAlive();
-  }
+	/**
+	 * Check to see if this 3dmod process is running
+	 */
+	public boolean isRunning() {
+		if (imodThread == null) {
+			return false;
+		}
+		return imodThread.isAlive();
+	}
 
-  /**
-   * Open a new model file
-   */
-  public void openModel(String newModelName) throws SystemProcessException {
-    modelName = newModelName;
-    String[] args = new String[2];
-    args[0] = MESSAGE_OPEN_MODEL;
-    args[1] = newModelName;
-    imodSendEvent(args);
-  }
+	/**
+	 * Open a new model file
+	 */
+	public void openModel(String newModelName) throws SystemProcessException {
+		modelName = newModelName;
+		String[] args = new String[2];
+		args[0] = MESSAGE_OPEN_MODEL;
+		args[1] = newModelName;
+		imodSendEvent(args);
+	}
 
-  /**
-   * Open a new model file, Preserve the constrast settings
-   * 
-   * @throws SystemProcessException
-   */
-  public void openModelPreserveContrast(String newModelName)
-      throws SystemProcessException {
-    String[] args = new String[2];
-    args[0] = MESSAGE_OPEN_KEEP_BW;
-    args[1] = newModelName;
-    imodSendEvent(args);
-  }
-
-  /**
-   * Save the current model file
-   */
-  public void saveModel() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_SAVE_MODEL;
-    imodSendEvent(args);
-  }
-
-  /**
-   * View the current model file
-   */
-  public void viewModel() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_VIEW_MODEL;
-    imodSendEvent(args);
-  }
-
-  /**
-   * Switch the 3dmod process to model mode
-   * 
-   * @throws SystemProcessException
-   */
-  public void modelMode() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_MODEL_MODE;
-    imodSendEvent(args);
-  }
-
-  /**
-   * Switch the 3dmod process to movie mode
-   * 
-   * @throws SystemProcessException
-   */
-  public void movieMode() throws SystemProcessException {
-    String[] args = new String[2];
-    args[0] = MESSAGE_MODEL_MODE;
-    args[1] = "0";
-    imodSendEvent(args);
-  }
-
-  /**
-   * Raise the 3dmod window
-   * 
-   * @throws SystemProcessException
-   */
-  public void raise3dmod() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_RAISE;
-    imodSendEvent(args);
-  }
-  
-  public void openZapWindow() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_ONE_ZAP_OPEN;
-    imodSendEvent(args);
-  }
-
-  /**
-   * Open the beadfixer dialog
-   * 
-   * @throws SystemProcessException
-   */
-  public void openBeadFixer() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_OPEN_BEADFIXER;
-    imodSendEvent(args);
-  }
-  
-  public Vector getRubberbandCoordinates() throws SystemProcessException {
-    String[] args = new String[1];
-    args[0] = MESSAGE_RUBBERBAND;
-    return imodSendAndReceive(args);
-  }
-
-  protected Vector imodSendAndReceive(String[] args) throws SystemProcessException {
-    Vector results = new Vector();
-    imodSendEvent(args, results);
-    //3dmod sends the results before it returns 
-    //the exit value to imodSendEvent - no waiting
-    if (imod == null) {
-      return results;
-    }
-    String line;
-    line = imod.readStderr();
-    if (line == null) {
-      return results;
-    }
-    //Currently assuming results can only be on one line.
-    do {
-      if (!parseError(line, results)) {
-        String[] words = line.split("\\s+");
-        for (int i = 0; i < words.length; i++) {
-          results.add(words[i]);
-        } 
-      }
-    } while ((line = imod.readStderr()) != null);
-    return results;
-  }
-  
-  protected boolean parseError(String line, Vector errorMessage) {
-    //Currently assuming that an error or warning message will be only one
-    //line and contain ERROR_STRING or WARNING_STRING.
-    int index = line.indexOf(ERROR_STRING);
-    if (index != -1) {
-      errorMessage.add(line.substring(index));
-      return true;
-    }
-    index = line.indexOf(WARNING_STRING);
-    if (index != -1) {
-      errorMessage.add(line.substring(index));
-      return true;
-    }
-    return false;
-  }
+	/**
+	 * Open a new model file, Preserve the constrast settings
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void openModelPreserveContrast(String newModelName) throws SystemProcessException {
+		String[] args = new String[2];
+		args[0] = MESSAGE_OPEN_KEEP_BW;
+		args[1] = newModelName;
+		imodSendEvent(args);
+	}
 
 
-  private void imodSendEvent(String[] args) throws SystemProcessException {
-    imodSendEvent(args, null);
-  }
-  /**
-   * Send an event to 3dmod using the imodsendevent command
-   */
-  private void imodSendEvent(String[] args, Vector messages) throws SystemProcessException {
-    if (windowID.equals("")) {
-      throw (new SystemProcessException("No window ID available for imod"));
-    }
-    String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
-        + windowID + " ";
-    for (int i = 0; i < args.length; i++) {
-      command = command + args[i] + " ";
-    }
-    InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
-      command);
+	/**
+	 * Save the current model file
+	 */
+	public void saveModel() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_SAVE_MODEL;
+		imodSendEvent(args);
+	}
 
-    //  Start the imodSendEvent program thread and wait for it to finish
-    Thread sendEventThread = new Thread(imodSendEvent);
-    sendEventThread.start();
-    try {
-      sendEventThread.join();
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-    }
+	/**
+	 * View the current model file
+	 */
+	public void viewModel() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_VIEW_MODEL;
+		imodSendEvent(args);
+	}
 
-    // Check imodSendEvent's exit code, if it is not zero read in the
-    // stderr/stdout stream and throw an exception describing why the file
-    // was not loaded
-    if (imodSendEvent.getExitValue() != 0) {
+	/**
+	 * Switch the 3dmod process to model mode
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void modelMode() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_MODEL_MODE;
+		imodSendEvent(args);
+	}
 
-      String message = IMOD_SEND_EVENT_STRING + " "
-          + String.valueOf(imodSendEvent.getExitValue()) + "\n";
+	/**
+	 * Switch the 3dmod process to movie mode
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void movieMode() throws SystemProcessException {
+		String[] args = new String[2];
+		args[0] = MESSAGE_MODEL_MODE;
+		args[1] = "0";
+		imodSendEvent(args);
+	}
 
-      String line = imodSendEvent.readStderr();
-      while (line != null) {
-        message = message + "stderr: " + line + "\n";
-        line = imodSendEvent.readStderr();
-      }
+	/**
+	 * Raise the 3dmod window
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void raise3dmod() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_RAISE;
+		imodSendEvent(args);
+	}
 
-      line = imodSendEvent.readStdout();
-      while (line != null) {
-        message = message + "stdout: " + line + "\n";
-        line = imodSendEvent.readStdout();
-      }
-      
-      if (messages == null) {
-        throw (new SystemProcessException(message));
-      }
-      messages.add(message);
-    }
-  }
+	/**
+	 * Open the beadfixer dialog
+	 * 
+	 * @throws SystemProcessException
+	 */
+	public void openBeadFixer() throws SystemProcessException {
+		String[] args = new String[1];
+		args[0] = MESSAGE_OPEN_BEADFIXER;
+		imodSendEvent(args);
+	}
+	/**
+	 * Send an event to 3dmod using the imodsendevent command
+	 */
+	private void imodSendEvent(String[] args) throws SystemProcessException {
+		if (windowID == "") {
+			throw (new SystemProcessException("No window ID available for imod"));
+		}
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String command = imodBinPath + "imodsendevent " + windowID + " ";
+		for (int i = 0; i < args.length; i++) {
+			command = command + args[i] + " ";
+		}
+		InteractiveSystemProgram imodSendEvent =
+			new InteractiveSystemProgram(command);
 
-  /**
-   * Returns the datasetName.
-   * 
-   * @return String
-   */
-  public String getDatasetName() {
-    return datasetName;
-  }
+		//  Start the imodSendEvent program thread and wait for it to finish
+		Thread sendEventThread = new Thread(imodSendEvent);
+		sendEventThread.start();
+		try {
+			sendEventThread.join();
+		}
+		catch (Exception except) {
+			except.printStackTrace();
+		}
 
-  /**
-   * Returns the modelName.
-   * 
-   * @return String
-   */
-  public String getModelName() {
-    return modelName;
-  }
+		// Check imodSendEvent's exit code, if it is not zero read in the
+		// stderr/stdout stream and throw an exception describing why the file
+		// was not loaded
+		if (imodSendEvent.getExitValue() != 0) {
 
-  /**
-   * Returns the windowID.
-   * 
-   * @return String
-   */
-  public String getWindowID() {
-    return windowID;
-  }
+			String message =
+				"imodsendevent returned: "
+					+ String.valueOf(imodSendEvent.getExitValue())
+					+ "\n";
 
-  /**
-   * Returns the swapYZ.
-   * 
-   * @return String
-   */
-  public boolean getSwapYZ() {
-    return swapYZ;
-  }
+			String line = imodSendEvent.readStderr();
+			while (line != null) {
+				message = message + "stderr: " + line + "\n";
+				line = imodSendEvent.readStderr();
+			}
 
-  /**
-   * Returns the windowID.
-   * 
-   * @return String
-   */
-  public void setSwapYZ(boolean state) {
-    swapYZ = state;
-  }
+			line = imodSendEvent.readStdout();
+			while (line != null) {
+				message = message + "stdout: " + line + "\n";
+				line = imodSendEvent.readStdout();
+			}
 
-  /**
-   * @return boolean
-   */
-  public boolean isModelView() {
-    return modelView;
-  }
+			throw (new SystemProcessException(message));
+		}
+	}
 
-  /**
-   * Sets the modelView.
-   * 
-   * @param modelView The modelView to set
-   */
-  public void setModelView(boolean modelView) {
-    this.modelView = modelView;
-  }
+	/**
+	 * Returns the datasetName.
+	 * 
+	 * @return String
+	 */
+	public String getDatasetName() {
+		return datasetName;
+	}
 
-  /**
-   * @return
-   */
-  public boolean isFillCache() {
-    return fillCache;
-  }
+	/**
+	 * Returns the modelName.
+	 * 
+	 * @return String
+	 */
+	public String getModelName() {
+		return modelName;
+	}
 
-  /**
-   * @param b
-   */
-  public void setFillCache(boolean b) {
-    fillCache = b;
-  }
+	/**
+	 * Returns the windowID.
+	 * 
+	 * @return String
+	 */
+	public String getWindowID() {
+		return windowID;
+	}
+
+	/**
+	 * Returns the swapYZ.
+	 * 
+	 * @return String
+	 */
+	public boolean getSwapYZ() {
+		return swapYZ;
+	}
+
+	/**
+	 * Returns the windowID.
+	 * 
+	 * @return String
+	 */
+	public void setSwapYZ(boolean state) {
+		swapYZ = state;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public boolean isModelView() {
+		return modelView;
+	}
+
+	/**
+	 * Sets the modelView.
+	 * 
+	 * @param modelView The modelView to set
+	 */
+	public void setModelView(boolean modelView) {
+		this.modelView = modelView;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isFillCache() {
+		return fillCache;
+	}
+
+	/**
+	 * @param b
+	 */
+	public void setFillCache(boolean b) {
+		fillCache = b;
+	}
 
   /**
    * @return
@@ -630,7 +535,7 @@ public class ImodProcess {
   public void setUseModv(boolean b) {
     useModv = b;
   }
-
+  
   /**
    * @return
    */
@@ -645,24 +550,30 @@ public class ImodProcess {
     outputWindowID = b;
   }
   
-  public void setBinning(int binning) {
-    if (binning < defaultBinning) {
-      this.binning = defaultBinning;
-    }
-    else {
-      this.binning = binning;
-    }
-  }
-
+  
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
   protected String paramString() {
-    return ",datasetName=" + datasetName + ", modelName=" + modelName
-        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", fillCache="
-        + fillCache + ", modelView=" + modelView + ", useModv=" + useModv
-        + ", outputWindowID=" + outputWindowID + ", binning=" + binning;
+    return ",datasetName="
+      + datasetName
+      + ", modelName="
+      + modelName
+      + ", windowID="
+      + windowID
+      + ", swapYZ="
+      + swapYZ
+      + ", fillCache="
+      + fillCache
+      + ", modelView="
+      + modelView
+      + ", useModv="
+      + useModv
+      + ", outputWindowID="
+      + outputWindowID;
   }
+  
+
 
 }

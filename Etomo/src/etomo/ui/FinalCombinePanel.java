@@ -44,13 +44,6 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
- * Revision 3.6  2004/03/22 23:20:56  sueh
- * bug# 250 Use Patch Region Model checkbox should be set from Patchcorr, not
- * Matchorwarp
- *
- * Revision 3.5  2004/03/09 01:57:23  sueh
- * bug# 381 added Restart at Volcombine button
- *
  * Revision 3.4  2004/03/06 03:48:05  sueh
  * bug# 380 added Use linear interpolation checkbox (advanced)
  *
@@ -121,7 +114,7 @@ import etomo.comscript.CombineParams;
  * <p>
  * </p>
  */
-public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
+public class FinalCombinePanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -387,55 +380,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   public Container getContainer() {
     return pnlRoot;
   }
-  
-  public void setUsePatchRegionModel(boolean usePatchRegionModel) {
-    cbUsePatchRegionModel.setSelected(usePatchRegionModel);
-  }
-  public boolean isUsePatchRegionModel() {
-    return cbUsePatchRegionModel.isSelected();
-  }
-  
-  public void setXMin(String xMin) {
-    ltfXLow.setText(xMin);
-  }
-  public String getXMin() {
-    return ltfXLow.getText();
-  }
-  
-  public void setXMax(String xMax) {
-    ltfXHigh.setText(xMax);
-  }
-  public String getXMax() {
-    return ltfXHigh.getText();
-  }
-  
-  public void setYMin(String yMin) {
-    ltfZLow.setText(yMin);
-  }
-  public String getYMin() {
-    return ltfZLow.getText();
-  }
-  
-  public void setYMax(String yMax) {
-    ltfZHigh.setText(yMax);
-  }
-  public String getYMax() {
-    return ltfZHigh.getText();
-  }
-  
-  public void setZMin(String zMin) {
-    ltfYLow.setText(zMin);
-  }
-  public String getZMin() {
-    return ltfYLow.getText();
-  }
-  
-  public void setZMax(String zMax) {
-    ltfYHigh.setText(zMax);
-  }
-  public String getZMax() {
-    return ltfYHigh.getText();
-  }
 
   /**
    * Set the values of the patchcrawl3D UI objects from the
@@ -514,6 +458,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
    * @param matchorwarpParam
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
+    cbUsePatchRegionModel.setSelected(
+      !matchorwarpParam.getModelFile().equals(""));
     ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
@@ -671,14 +617,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     if (event
       .getActionCommand()
       .equals(btnPatchcorrRestart.getActionCommand())) {
-      applicationManager.patchcorrCombine(TomogramCombinationDialog.FINAL_TAB);
+      applicationManager.patchcorrCombine();
     }
 
     if (event
       .getActionCommand()
       .equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(
-        TomogramCombinationDialog.FINAL_TAB);
+      applicationManager.imodPatchRegionModel();
     }
 
     if (event

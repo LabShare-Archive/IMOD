@@ -1,3 +1,14 @@
+package etomo.process;
+
+import java.io.File;
+import java.io.IOException;
+import etomo.ApplicationManager;
+import etomo.comscript.ComScriptManager;
+import etomo.comscript.NewstParam;
+import etomo.type.AxisID;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
+
 /**
  * <p>Description: </p>
  * 
@@ -11,12 +22,6 @@
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.3  2004/04/08 16:59:27  rickg
- * <p> Account for binning in newstack command
- * <p>
- * <p> Revision 3.2  2004/02/13 01:05:13  rickg
- * <p> Simplified ouputFile for newstack
- * <p>
  * <p> Revision 3.1  2004/02/13 00:09:51  rickg
  * <p> Updated for PIP based newstack
  * <p>
@@ -27,16 +32,6 @@
  * <p> Initial revision
  * <p> </p>
  */
-package etomo.process;
-
-import java.io.File;
-import java.io.IOException;
-import etomo.ApplicationManager;
-import etomo.comscript.ComScriptManager;
-import etomo.comscript.NewstParam;
-import etomo.type.AxisID;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
 
 public class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
@@ -91,20 +86,12 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
       default :
         throw new InvalidParameterException("Unknown mode parameter");
     }
-    
-    // Get the binByFactor from newst.com script
-    int binBy = newstParam.getBinByFactor();
-    // If the bin by factor is unspecified it defaults to 1
-    if(binBy > 1) {
-      nX = nX / binBy;
-      nY = nY / binBy;
-    }
-    
+
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.setProgressBar("Creating aligned stack", nKBytes, axisID);
+    applicationManager.setProgressBar("Creating final stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile = 

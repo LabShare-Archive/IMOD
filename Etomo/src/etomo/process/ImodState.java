@@ -1,9 +1,12 @@
 package etomo.process;
 
+import java.lang.IllegalArgumentException;
 //import java.lang.IllegalStateException;
-import java.util.Vector;
+import java.lang.NullPointerException;
 import java.io.File;
 
+import etomo.process.ImodProcess;
+import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
 /**
@@ -54,26 +57,6 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
- * <p> $Revision 1.10  2004/05/06 20:22:12  sueh
- * <p> $bug# 33 added getRubberbandCoordinates()
- * <p> $
- * <p> $Revision 1.9  2004/05/03 22:22:53  sueh
- * <p> $bug# 416 added setBinning()
- * <p> $
- * <p> $Revision 1.8  2004/04/30 21:12:23  sueh
- * <p> $bug# 428 opening ZaP window on open() when not in model view mode
- * <p> $
- * <p> $Revision 1.7  2004/04/28 01:02:33  sueh
- * <p> $bug# 428 calling ImodProcess.viewModel() when reopening a
- * <p> $3dmod with a mode view window
- * <p> $
- * <p> $Revision 1.6  2004/04/27 23:18:07  sueh
- * <p> $bug# 320 adding boolean warnedStaleFile, to prevent ImodManager
- * <p> $from asking to close a 3dmod over and over.
- * <p> $
- * <p> $Revision 1.5  2004/02/07 03:05:56  sueh
- * <p> $bug# 169 Added setWorkingDirectory().
- * <p> $
  * <p> $Revision 1.4  2004/02/05 18:04:12  sueh
  * <p> $bug# 306 added setSwapYZ - used to set swapYZ before
  * <p> $opening 3dmod
@@ -114,7 +97,6 @@ public class ImodState {
   private boolean modelView = false;
   private boolean useModv = false;
   private boolean preserveContrast = false;
-  private boolean warnedStaleFile = false;
   
 
   
@@ -284,16 +266,7 @@ public class ImodState {
     if (useModv) {
       process.setUseModv(useModv);
     }
-    if (process.isRunning()) {
-      if (modelView) {
-        process.viewModel();
-      }
-      else {
-        process.openZapWindow();
-      }
-    }
     process.open();
-    warnedStaleFile = false;
     if (useMode) {
       if (mode.equals(MODEL)) {
         process.modelMode();
@@ -343,7 +316,6 @@ public class ImodState {
     }
     else {
       process.openModel(modelName);
-      warnedStaleFile = false;
     }
     if (useMode) {
       if (mode.equals(MODEL)) {
@@ -380,10 +352,6 @@ public class ImodState {
    */
   public void openBeadFixer() throws SystemProcessException {
     process.openBeadFixer();
-  }
-  
-  public Vector getRubberbandCoordinates() throws SystemProcessException {
-    return process.getRubberbandCoordinates();
   }
   /**
    * @return true if process is running
@@ -446,15 +414,6 @@ public class ImodState {
   }
   public boolean isPreserveContrast() {
     return preserveContrast;
-  }
-  public boolean isWarnedStaleFile() {
-    return warnedStaleFile;
-  }
-  public void setWarnedStaleFile(boolean warnedStaleFile) {
-    this.warnedStaleFile = warnedStaleFile;
-  }
-  public void setBinning(int binning) {
-    process.setBinning(binning);
   }
 
 

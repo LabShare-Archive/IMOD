@@ -50,14 +50,6 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.2  2004/04/28 22:38:14  sueh
- * <p> bug# 268 if a panel was hidden, set the divider location to
- * <p> continue to hide it
- * <p>
- * <p> Revision 3.1  2004/02/13 17:39:03  sueh
- * <p> bug# 268 during fit window, if the split bar is all the way to
- * <p> one side, hide the hidden side, resize as usual, then show it
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -249,7 +241,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  add the context menu to all of the main window objects
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     mainPanel.addMouseListener(mouseAdapter);
-    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
   }
 
   /**
@@ -516,18 +507,12 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
       if (applicationManager.isDualAxis()) {
-        boolean hideA = axisPanelA.hide();
-        boolean hideB = axisPanelB.hide();
+        axisPanelA.hide();
+        axisPanelB.hide();
         pack();
         splitPane.resetToPreferredSizes();
         axisPanelA.show();
         axisPanelB.show();
-        if (hideA) {
-          setDividerLocation(0);
-        }
-        else if (hideB) {
-          setDividerLocation(1);
-        }
       }
       else {
         pack();

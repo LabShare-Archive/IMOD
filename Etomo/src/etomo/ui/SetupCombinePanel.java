@@ -43,23 +43,6 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
- * Revision 3.7  2004/05/11 20:54:41  sueh
- * bug# 302 adding InitialCombineValues and FinalCombineValues interface
- * standardizing synchronization
- *
- * Revision 3.6  2004/05/05 22:26:01  sueh
- * bug# 416 moving binned by 2 checkbox to above matching models
- * button
- *
- * Revision 3.5  2004/05/03 22:26:52  sueh
- * bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
- * imodMatchingModel so that checkbox settings can be copied between
- * Setup and Initial tabs when the Matching Models button is pressed.
- *
- * Revision 3.4  2004/03/06 00:29:32  sueh
- * bug# 318 add maxZMax - getParameters, setParameters, not displayed, used to
- * validate ZMax in CombineParams
- *
  * Revision 3.3  2004/03/05 18:20:59  sueh
  * bug# 250 change setUseMatchingModels() - set to Both Sides when
  * Use Model is turned off, this is the default in the com script creation
@@ -202,8 +185,7 @@ import etomo.type.FiducialMatch;
  * <p>
  * </p>
  */
-public class SetupCombinePanel
-  implements ContextMenu, InitialCombineFields, FinalCombineFields {
+public class SetupCombinePanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -236,8 +218,6 @@ public class SetupCombinePanel
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private JPanel pnlImodMatchModels = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -309,7 +289,6 @@ public class SetupCombinePanel
     //  Create the fiducial relationship panel
     pnlFiducialRadio.setLayout(
       new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -323,15 +302,10 @@ public class SetupCombinePanel
     pnlFiducialRadio.add(rbOneSideInverted);
     pnlFiducialRadio.add(rbUseModel);
 
-    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
-    pnlImodMatchModels.add(cbBinBy2);
-    pnlImodMatchModels.add(btnImodMatchModels);
-    
-
     pnlFiducialSelect.setLayout(
       new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
     pnlFiducialSelect.add(pnlFiducialRadio);
-    pnlFiducialSelect.add(pnlImodMatchModels);
+    pnlFiducialSelect.add(btnImodMatchModels);
 
     pnlFiducialParams.setBorder(
       new EtchedBorder("Initial Volume Alignment Method").getBorder());
@@ -586,11 +560,11 @@ public class SetupCombinePanel
 
   }
 
-  public boolean isUseMatchingModels() {
+  protected boolean getUseMatchingModels() {
     return rbUseModel.isSelected();
   }
   
-  public void setUseMatchingModels(boolean state) {
+  void setUseMatchingModels(boolean state) {
     if (state) {
       rbUseModel.setSelected(true);
     }
@@ -599,78 +573,7 @@ public class SetupCombinePanel
         rbBothSides.setSelected(true); //default for solvematchshift
       }
     }
-    updateUseFiducialModel();
   }
-  
-  public boolean isBinBy2() {
-    return cbBinBy2.isSelected();
-  }
-  public void setBinBy2(boolean state) {
-      cbBinBy2.setSelected(state);
-  }
-  
-  public void setFiducialMatchListA(String fiducialMatchListA) {
-    ltfFiducialMatchListA.setText(fiducialMatchListA);
-  }
-  public String getFiducialMatchListA() {
-    return ltfFiducialMatchListA.getText();
-  }
-  public void setFiducialMatchListB(String fiducialMatchListB) {
-    ltfFiducialMatchListB.setText(fiducialMatchListB);
-  }
-  public String getFiducialMatchListB() {
-    return ltfFiducialMatchListB.getText();
-  }
-  public void setUsePatchRegionModel(boolean usePatchRegionModel) {
-    cbPatchRegionModel.setSelected(usePatchRegionModel);
-    updatePatchRegionModel();
-  }
-  public boolean isUsePatchRegionModel() {
-    return cbPatchRegionModel.isSelected();
-  }
-  
-  public void setXMin(String xMin) {
-   ltfXMin.setText(xMin);
-  }
-  public String getXMin() {
-    return ltfXMin.getText();
-  }
-  
-  public void setXMax(String xMax) {
-    ltfXMax.setText(xMax);
-  }
-  public String getXMax() {
-    return ltfXMax.getText();
-  }
-  
-  public void setYMin(String yMin) {
-    ltfYMin.setText(yMin);
-  }
-  public String getYMin() {
-    return ltfYMin.getText();
-  }
-  
-  public void setYMax(String yMax) {
-    ltfYMax.setText(yMax);
-  }
-  public String getYMax() {
-    return ltfYMax.getText();
-  }
-  
-  public void setZMin(String zMin) {
-    ltfZMin.setText(zMin);
-  }
-  public String getZMin() {
-    return ltfZMin.getText();
-  }
-  
-  public void setZMax(String zMax) {
-    ltfZMax.setText(zMax);
-  }
-  public String getZMax() {
-    return ltfZMax.getText();
-  }
-
   
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
@@ -678,13 +581,12 @@ public class SetupCombinePanel
     if (event
       .getActionCommand()
       .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(TomogramCombinationDialog.SETUP_TAB);
+      applicationManager.imodMatchingModel();
     }
     if (event
       .getActionCommand()
       .equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(
-        TomogramCombinationDialog.SETUP_TAB);
+      applicationManager.imodPatchRegionModel();
     }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
       applicationManager.imodFullVolume(AxisID.FIRST);
@@ -697,10 +599,10 @@ public class SetupCombinePanel
     }
     if (command.equals(btnCombine.getActionCommand())) {
       if (rbUseModel.isSelected()) {
-        applicationManager.modelCombine(TomogramCombinationDialog.SETUP_TAB);
+        applicationManager.modelCombine();
       }
       else {
-        applicationManager.combine(TomogramCombinationDialog.SETUP_TAB);
+        applicationManager.combine();
       }
     }
     updateStartCombine();
@@ -748,9 +650,8 @@ public class SetupCombinePanel
    * Enable/disable the matching model button
    */
   private void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected();
-    btnImodMatchModels.setEnabled(enable);
-    cbBinBy2.setEnabled(enable);
+    btnImodMatchModels.setEnabled(rbUseModel.isSelected());
+    //initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
   }
 
   /**
@@ -902,11 +803,6 @@ public class SetupCombinePanel
         + "likely to fail.";
     rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Using binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-    
     text = "Create models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 

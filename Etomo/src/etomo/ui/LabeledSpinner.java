@@ -12,18 +12,13 @@
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 1.3  2004/03/24 03:04:56  rickg
- * <p> Fixed setMaximumSize bug
- * <p>
- * <p> Revision 1.2  2004/03/13 00:32:11  rickg
- * <p> New setValue(int) method
- * <p>
  * <p> Revision 1.1  2004/02/05 04:37:15  rickg
  * <p> Initial revision
  * <p> </p>
  */
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.MouseListener;
@@ -112,7 +107,7 @@ public class LabeledSpinner {
    * @param size
    */
   public void setTextMaxmimumSize(Dimension size) {
-    spinner.setMaximumSize(size);
+    spinner.setMinimumSize(size);
   }
 
   /**
@@ -136,7 +131,12 @@ public class LabeledSpinner {
   }
   
   public void setAlignmentX(float alignment) {
-    panel.setAlignmentX(alignment);
+    if (alignment == Component.LEFT_ALIGNMENT) {
+      label.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+    if (alignment == Component.RIGHT_ALIGNMENT) {
+      spinner.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    }
   }
 
   public void setToolTipText(String toolTipText) {

@@ -12,9 +12,6 @@
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 1.2  2004/03/15 17:41:49  rickg
- * <p> Error message correction
- * <p>
  * <p> Revision 1.1  2004/03/12 21:18:41  rickg
  * <p> Bug# 390 Initial revision
  * <p> </p>
@@ -88,9 +85,6 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
     else {
       scriptCommand.deleteKey("ScaleShifts");
     }
-  }
-  
-  public void initializeDefaults() {
   }
 
   /**

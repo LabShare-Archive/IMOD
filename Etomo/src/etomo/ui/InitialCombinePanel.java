@@ -17,7 +17,6 @@ import etomo.comscript.ConstSolvematchshiftParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
 import etomo.comscript.CombineParams;
-import etomo.type.FiducialMatch;
 
 /**
  * <p>Description: </p>
@@ -32,30 +31,6 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.8  2004/05/11 20:57:07  sueh
- * <p> bug# 302
- * <p>
- * <p> Revision 3.7  2004/05/11 20:53:22  sueh
- * <p> bug# 302 adding InitialCombineValues interface
- * <p> standardizing synchronization
- * <p>
- * <p> Revision 3.6  2004/05/05 22:24:09  sueh
- * <p> bug# 416 moving binned by 2 checkbox to above matching models
- * <p> button
- * <p>
- * <p> Revision 3.5  2004/05/03 22:26:10  sueh
- * <p> bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
- * <p> imodMatchingModel so that checkbox settings can be copied between
- * <p> Setup and Initial tabs when the Matching Models button is pressed.
- * <p>
- * <p> Revision 3.4  2004/03/22 23:22:49  sueh
- * <p> bug# 250 synchronize tab with combineParams, matchorwarp does affect Setup
- * <p> tab
- * <p>
- * <p> Revision 3.3  2004/03/01 23:59:54  sueh
- * <p> bug# 250 add getCombineParams()
- * <p> Call combine and restart functions with tab information
- * <p>
  * <p> Revision 3.2  2004/02/27 20:01:58  sueh
  * <p> bug# 250 renamed setMatchingModels() to setUseMatchingModels()
  * <p> added getUseMatchingModels()
@@ -104,7 +79,7 @@ import etomo.type.FiducialMatch;
  * <p>
  * <p> </p>
  */
-public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
+public class InitialCombinePanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -123,10 +98,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     new LabeledTextField("Residual Threshold: ");
 
   private JPanel pnlModelSelect = new JPanel();
-  private JPanel pnlImodMatchModels = new JPanel();
   private JCheckBox cbUseModel =
     new JCheckBox("Use models of corresponding points, not cross-correlation");
-  private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -164,10 +137,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
 
     pnlModelSelect.setLayout(new BoxLayout(pnlModelSelect, BoxLayout.X_AXIS));
     pnlModelSelect.add(cbUseModel);
-    pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
-    pnlImodMatchModels.add(cbBinBy2);
-    pnlImodMatchModels.add(btnImodMatchModels);
-    pnlModelSelect.add(pnlImodMatchModels);
+    pnlModelSelect.add(btnImodMatchModels);
     pnlSolvematch.add(pnlModelSelect);
     pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSolvematch.add(ltfFiducialMatchListA.getContainer());
@@ -271,41 +241,18 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   public void getCombineParameters(CombineParams combineParams) {
     combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    if (cbUseModel.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
-    }
   }
 
   /**
    * Set the state of the matching model checkbox.
    * @param state
    */
-  public void setUseMatchingModels(boolean state) {
+  void setUseMatchingModels(boolean state) {
     cbUseModel.setSelected(state);
   }
   
-  public boolean isUseMatchingModels() {
+  protected boolean getUseMatchingModels() {
     return cbUseModel.isSelected();
-  }
-  
-  public void setBinBy2(boolean state) {
-    cbBinBy2.setSelected(state);
-  }
-  
-  public boolean isBinBy2() {
-    return cbBinBy2.isSelected();
-  }
-  public void setFiducialMatchListA(String fiducialMatchListA) {
-    ltfFiducialMatchListA.setText(fiducialMatchListA);
-  }
-  public String getFiducialMatchListA() {
-    return ltfFiducialMatchListA.getText();
-  }
-  public void setFiducialMatchListB(String fiducialMatchListB) {
-    ltfFiducialMatchListB.setText(fiducialMatchListB);
-  }
-  public String getFiducialMatchListB() {
-    return ltfFiducialMatchListB.getText();
   }
 
   /**
@@ -338,7 +285,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     if (event
       .getActionCommand()
       .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(TomogramCombinationDialog.INITIAL_TAB);
+      applicationManager.imodMatchingModel();
     }
 
     if (event.getActionCommand().equals(btnMatchcheck.getActionCommand())) {
@@ -366,14 +313,11 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
    */
   private void checkboxAction(ActionEvent event) {
     if (event.getActionCommand().equals(cbUseModel.getActionCommand())) {
-      //needs to load data from the screen - use update
       if (cbUseModel.isSelected()) {
-        //applicationManager.loadSolvematchMod();
-        applicationManager.updateSolvematchmodCom();
+        applicationManager.loadSolvematchMod();
       }
       else {
-        //applicationManager.loadSolvematchShift();
-        applicationManager.updateSolvematchshiftCom();
+        applicationManager.loadSolvematchShift();
       }
     }
   }
@@ -419,12 +363,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
       "Use models of corresponding points instead of cross-correlation to find"
         + " the shifts between volumes.";
     cbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text =
-      "Using binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text = "Open both volumes in 3dmod to make models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 
