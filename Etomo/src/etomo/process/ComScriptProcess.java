@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2003/08/05 21:18:18  rickg
+ * <p> Moved log file renaming to the beginning of the process
+ * <p>
  * <p> Revision 1.6  2003/06/05 20:48:58  rickg
  * <p> Added multiline error messages
  * <p>
@@ -150,8 +153,12 @@ public class ComScriptProcess
       if (logFile.exists()) {
         File oldLog = new File(workingDirectory, logFileName + "~");
         if (!logFile.renameTo(oldLog)) {
-          // FIXME: what do if log file is not renamed
-        }
+          System.err.println(
+            "Unable to rename log file: "
+              + workingDirectory
+              + logFileName
+              + "~");
+          }
       }
 
       //  Covert the com script to a sequence of csh commands
