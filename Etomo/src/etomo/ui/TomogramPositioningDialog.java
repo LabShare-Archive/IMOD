@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/27 01:02:46  sueh
+ * <p> bugt# 427 added set and get TomopitchParam
+ * <p>
  * <p> Revision 3.5  2004/04/26 18:32:05  rickg
  * <p> bug #426 Added full image code
  * <p>
@@ -273,7 +276,19 @@ public class TomogramPositioningDialog extends ProcessDialog
    */
   public void getTomopitchParams(TomopitchParam tomopitchParam) {
     //TODO set ScaleFactor
-    int binning = ((Integer) spinBinning.getValue()).intValue();
+    double binning = Double.parseDouble(spinBinning.getValue().toString());
+    //temp test
+    /*
+    tomopitchParam.setExtraThickness("3");
+    tomopitchParam.resetModelFiles();
+    tomopitchParam.setModelFile("topa.mod");
+    tomopitchParam.setModelFile("mida.mod");
+    tomopitchParam.setModelFile("bota.mod");
+    tomopitchParam.setParameterFile("bob");
+    tomopitchParam.setScaleFactor(binning);
+    tomopitchParam.setSpacingInY("-150");
+    */
+    //System.out.println("In getTomopitchParams:" + tomopitchParam.toString());
   }
 
   /**
@@ -319,6 +334,8 @@ public class TomogramPositioningDialog extends ProcessDialog
   }
   
   public void setTomopitchParams(ConstTomopitchParam tomopitchParam) {
+    //temp test
+    //System.out.println("In setTomopitchParams:" + tomopitchParam.toString());
   }
 
   /**
