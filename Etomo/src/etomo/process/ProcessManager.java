@@ -29,6 +29,11 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.20  2003/08/05 21:40:53  rickg
+ * <p> Implemented CCDEraserProcessMonitor
+ * <p> LogFileProcessMonitors now are passed to startComScriptProcess
+ * <p> comScript => comScriptProcess
+ * <p>
  * <p> Revision 2.19  2003/07/01 22:52:58  rickg
  * <p> Start process monitor thread before comscript thread
  * <p>
@@ -922,6 +927,16 @@ public class ProcessManager {
     //  Start the process monitor thread if a runnable process is provided
     Thread processMonitorThread = null;
     if (processMonitor != null) {
+      // Wait for the started flag within the comScriptProcess, this ensures
+      // that log file has already been moved
+      while (!comScriptProcess.isStarted()) {
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+          break;
+        }
+      }
       processMonitorThread = new Thread(processMonitor);
       processMonitorThread.start();
     }
