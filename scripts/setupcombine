@@ -40,6 +40,9 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2003/05/12 23:21:11  mast
+#  remove test for piping
+#
 #  Revision 3.7  2003/05/12 18:53:24  mast
 #  Pipe command files through cat for dos line endings in cygwin
 #
@@ -113,8 +116,9 @@ set tilta = "tilt$tolet.com"
 set tiltb = "tilt$fromlet.com"
 
 if ((-e tilta.com) && (-e tiltb.com)) then
-    set xaxisa = `grep -i xaxistilt $tilta`
-    set xaxisb = `grep -i xaxistilt $tiltb`
+    # This ugliness is for Cygwin Windows, with nobinmode not set
+    set xaxisa = `grep -i xaxistilt $tilta | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
+    set xaxisb = `grep -i xaxistilt $tiltb | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
 else
     echo " "
     echo2 "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
