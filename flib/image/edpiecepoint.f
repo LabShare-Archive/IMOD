@@ -42,7 +42,7 @@ c	  .  added after the remapping of Z values, if any.
 c	  
 c	  David Mastronarde  5/8/89
 c
-	parameter (limpcl=50000,limsec=1000)
+	parameter (limpcl=100000,limsec=100000)
 	character*80 pclfil
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
 	integer*4 listz(limsec),newlist(limsec),indxzlst(limsec)
