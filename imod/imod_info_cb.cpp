@@ -47,6 +47,7 @@ Log at end of file
 #include "imod_input.h"
 #include "imod_cont_edit.h"
 #include "imod_io.h"
+#include "imod_iscale.h"
 #include "imod_info_cb.h"
 #include "preferences.h"
 #include "xcramp.h"
@@ -69,7 +70,7 @@ static int ctrlPressed = 0;
 static int Imod_obj_cnum = -1;
 static int float_on = 0;
 static int doingFloat = 0;
-static int float_subsets = 1;
+static int float_subsets = 0;
 
 /*
  * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
@@ -337,6 +338,10 @@ void imod_info_setxyz(void)
   xyzs[2] = App->cvi->zsize;
 
   ImodInfoWidget->updateXYZ(xyz, xyzs);
+
+  /* 12/28/03: with multifile stack in Z, need to notify image scale window */
+  if (App->cvi->multiFileZ)
+    imodImageScaleUpdate(App->cvi);
 }
 
 // A structure to store means and SD's of areas
@@ -469,6 +474,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
                           ixStart, iyStart, nxUse, nyUse, 
                           &secData[iref].mean, &secData[iref].sd);
+      if (!err1 && secData[iref].sd < 0.1)
+        secData[iref].sd = 0.1;
 
       /* Adjust for compressed data in 8-bit CI mode */
       if (!err1 && App->depth == 8)
@@ -483,6 +490,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
                           ixStart, iyStart, nxUse, nyUse, 
                           &secData[isec].mean, &secData[isec].sd);
+      if (!err1 && secData[isec].sd < 0.1)
+        secData[isec].sd = 0.1;
       if (!err1 && App->depth == 8)
 	secData[isec].mean = (secData[isec].mean - vw->rampbase) * 256. /
           vw->rampsize;
@@ -713,6 +722,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.9  2003/11/18 19:33:21  mast
+fix bug in clearing float tables when reload
+
 Revision 4.8  2003/09/18 05:58:54  mast
 Added ability to do floating on a subarea and to set contrast automatically
 
