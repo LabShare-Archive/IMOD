@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.17  2003/12/04 16:31:21  mast
+c	  Added * for an error return from fwrite
+c	
 c	  Revision 3.16  2003/11/27 06:03:26  mast
 c	  Changed to determine binning after padding to allow large padding
 c	
@@ -125,7 +128,7 @@ c
 	integer*4 ixst, ixnd, iyst, iynd, ivCur
 	integer*4 ixstCen, ixndCen, iystCen, iyndCen
 	real*4 xBoxOfs, yBoxOfs, cosphi, sinphi, x0, y0, xshift, yshift
-	real*4 usemin, usemax, usemean
+	real*4 usemin, usemax, usemean, cumXshift, cumYshift, cumXrot, xAdjust
 	integer*4 niceframe
 	real*4 cosd, sind
 
@@ -426,35 +429,34 @@ c	  print *,i, tilt(i), ixBoxOffset(i), iyBoxOffset(i), axisOffset(i)
 
 c	print *,xBoxOfs,yBoxOfs,ixstCen,ixndCen,iystCen,iyndCen
 c	  
-c	  set up for one loop through data
+c	  set up for one forward loop through data - modified by case below
 c
 	nloops = 1
-	ivStart = izst + 1
-	ivEnd = iznd
 	loopDir = 1
-	if (ifcumulate .ne. 0)then
 c	    
-c	    find minimum tilt view
-c
-	  tiltAtMin = 10000.
-	  do i = 1, nview
-	    if (abs(tilt(i)) .lt. abs(tiltAtMin)) then
-	      minTilt = i
-	      tiltAtMin = tilt(i)
-	    endif
-	  enddo
-c	    
-c	    set up for first or only loop
-c
-	  if (minTilt .ge. iznd) then
-	    ivStart = iznd - 1
-	    ivEnd = izst
-	    loopDir = -1
-	  else if (minTilt .lt. iznd .and. minTilt .gt. izst) then
-	    ivStart = minTilt + 1
-	    ivEnd = iznd
-	    nloops = 2
+c	  find minimum tilt view
+c	  
+	tiltAtMin = 10000.
+	do i = 1, nview
+	  if (abs(tilt(i)) .lt. abs(tiltAtMin)) then
+	    minTilt = i
+	    tiltAtMin = tilt(i)
 	  endif
+	enddo
+c	  
+c	  set up for first or only loop
+c	  
+	if (minTilt .ge. iznd) then
+	  ivStart = iznd - 1
+	  ivEnd = izst
+	  loopDir = -1
+	else if (minTilt .lt. iznd .and. minTilt .gt. izst) then
+	  ivStart = minTilt + 1
+	  ivEnd = iznd
+	  nloops = 2
+	else
+	  ivStart = izst + 1
+	  ivEnd = iznd
 	endif
 
 	do iloop = 1, nloops
@@ -465,6 +467,8 @@ c
 	  usdy = 0.
 	  xpeak = 0.
 	  ypeak = 0.
+	  cumXshift = 0.
+	  cumYshift = 0.
 	  call xfunit(funit,1.0)
 
 	  DO iview=ivStart, ivEnd, loopDir
@@ -642,6 +646,26 @@ c
 	      xshift = xshift + xBoxOfs * cosphi
 	      yshift = yshift + xBoxOfs * sinphi
 	    endif
+c	      
+c	      If not cumulative, adjust the shift to bring the tilt axis
+c	      to the true center from the center of last view
+c	      If last view was shifted to right to line up with center,
+c	      then the true center is to the left of the center of that view
+c	      and the tilt axis (and this view) must be shifted to the left
+c
+	    if (ifcumulate .eq. 0) then
+	      cumXrot = cumXshift * cosphi + cumYshift * sinphi
+	      xAdjust = cumXrot *  (cosd(tilt(iview)) / cosd(tilt(ivRef)) - 1.)
+	      xshift = xshift + xAdjust * cosphi
+	      yshift = yshift + xAdjust * sinphi
+c		
+c		Add to cumulative shift and report and save the absolute shift
+c
+	      cumXshift = cumXshift + xshift
+	      cumYshift = cumYshift + yshift
+	      xshift = cumXshift
+	      yshift = cumYshift
+	    endif
 
 	    write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts', xshift, yshift
 c
@@ -669,7 +693,7 @@ C
 	    endif
 	  enddo
 c	    
-c	    set up for second loop if any
+c	    set up for second loop
 c
 	  ivStart = minTilt - 1
 	  ivEnd = izst
@@ -695,16 +719,41 @@ C         ENCODE(80,1500,TITLE) titstr,DAT,TIM
 	  CALL IWRHDR(3,TITLE,1,DMIN,DMAX,DMEAN)
 	  call imclose(3)
 	endif
-c
-c	  if accumulated, convert from g to f transforms by taking differences
 c	  
-	if (ifcumulate .ne. 0) then
-	  do iv = nz, 2, -1
-	    f(1,3,iv) = f(1,3,iv) - f(1,3,iv - 1)
-	    f(2,3,iv) = f(2,3,iv) - f(2,3,iv - 1)
+c	  Anticipate what xftoxg will do, namely get to transforms with zero
+c	  mean, and shift tilt axis to be at middle in that case
+c	  
+	iloop = 1
+	cumXshift = 10.
+	do while (iloop.le.10 .and. (cumXshift.gt.0.1 .or. cumYshift.gt.0.1))
+	  iloop = iloop + 1
+	  cumXshift = 0.
+	  cumYshift = 0.
+	  do iv = 1, nz
+	    cumXshift = cumXshift - f(1,3,iv) / nz
+	    cumYshift = cumYshift - f(2,3,iv) / nz
 	  enddo
-	  call xfunit(f(1,1,1), 1.)
-	endif
+c	  print *,iloop,', mean shift',cumXshift, cumYshift
+c	    
+c	    rotate the average shift to tilt axis vertical, adjust the X shift
+c	    to keep tilt axis in center and apply shift for all views
+c
+	  cumXrot = cumXshift * cosphi + cumYshift * sinphi
+	  yshift = -cumXshift * sinphi + cumYshift * cosphi
+	  do iv = 1,nz
+	    xAdjust = cumXrot * cosd(tilt(iv))
+	    f(1,3,iv) = f(1,3,iv) + xAdjust * cosphi - yshift * sinphi
+	    f(2,3,iv) = f(2,3,iv) + xAdjust * sinphi + yshift * cosphi
+	  enddo
+	enddo
+c
+c	  convert from g to f transforms by taking differences
+c	  
+	do iv = nz, 2, -1
+	  f(1,3,iv) = f(1,3,iv) - f(1,3,iv - 1)
+	  f(2,3,iv) = f(2,3,iv) - f(2,3,iv - 1)
+	enddo
+	call xfunit(f(1,1,1), 1.)
 	do iv=1,nz
 	  call xfwrite(1,f(1,1,iv),*96)
 	enddo
