@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2003/02/27 19:35:02  mast
+    Remove unneeded imod_open function
+
     Revision 4.1  2003/02/10 20:41:55  mast
     Merge Qt source
 
@@ -35,6 +38,7 @@ void imodInfoNewOCP(int which, int value, int edited);
 void imodInfoNewXYZ(int *values);
 void imodInfoNewBW(int which, int value, int dragging);
 void imodInfoFloat(int state);
+void imodInfoSubset(int state);
 void imodInfoMMSelected(int mode);
 void imodInfoCtrlPress(int pressed);
 void imod_info_setobjcolor(void);
@@ -42,6 +46,8 @@ void imod_info_setocp(void);
 void imod_info_setxyz(void);
 void imod_info_setbw(int black, int white);
 int imod_info_bwfloat(ImodView *vw, int section, int time);
+void imodInfoAutoContrast(int targetMean, int targetSD);
+int imodInfoCurrentMeanSD(float &mean, float &sd);
 void imod_info_float_clear(int section, int time);
 void show_status(char *info);
 void imod_show_info(char *info, int line);
