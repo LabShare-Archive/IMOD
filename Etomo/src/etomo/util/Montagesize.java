@@ -28,10 +28,17 @@ import etomo.type.EtomoNumber;
 */
 public class Montagesize {
   public static  final String  rcsid =  "$Id$";
+  
   private static Hashtable instances = new Hashtable();
   private File stack = null;
+  private boolean fileExists = false;
+  private EtomoNumber x = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private EtomoNumber y = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber z = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private long lastModified = EtomoNumber.LONG_NULL_VALUE;
+  private String directory;
+  private String datasetName;
+  private AxisID axisID;
   
   /**
    * private constructor initializes stack
@@ -40,9 +47,12 @@ public class Montagesize {
    * @param axisID
    */
   private Montagesize(String directory, String datasetName, AxisID axisID) {
-    stack = makeStack(directory, datasetName, axisID);
+    this.directory = directory;
+    this.datasetName = datasetName;
+    this.axisID = axisID;
+    stack = makeFile(directory, datasetName, axisID);
   }
-  
+
   /**
    * public function to get an instance of Montagesize
    * @param directory
@@ -50,8 +60,9 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(String directory, String datasetName, AxisID axisID) throws IOException, InvalidParameterException {
-    File key = makeStack(directory, datasetName, axisID);
+  public static Montagesize getInstance(String directory, String datasetName,
+      AxisID axisID) throws IOException, InvalidParameterException {
+    File key = makeFile(directory, datasetName, axisID);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
       montagesize = createInstance(directory, datasetName, axisID);
@@ -59,11 +70,19 @@ public class Montagesize {
     montagesize.read();
     return (Montagesize) instances.get(key);
   }
-  
-  private static File makeStack(String directory, String datasetName, AxisID axisID) {
+
+  /**
+   * 
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
+  private static File makeFile(String directory, String datasetName,
+      AxisID axisID) {
     return new File(directory, datasetName + axisID.getExtension() + ".st");
   }
-  
+
   /**
    * private synchronized function to create an instance of Montagesize
    * @param directory
@@ -71,30 +90,49 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  private static synchronized Montagesize createInstance(String directory, String datasetName, AxisID axisID) throws IOException, InvalidParameterException {
+  private static synchronized Montagesize createInstance(String directory,
+      String datasetName, AxisID axisID) throws IOException,
+      InvalidParameterException {
     Montagesize montagesize = new Montagesize(directory, datasetName, axisID);
     instances.put(montagesize.stack, montagesize);
     return montagesize;
   }
-  
+
+  /**
+   * 
+   * @throws IOException
+   * @throws InvalidParameterException
+   */
   private void read() throws IOException, InvalidParameterException {
     if (stack == null) {
       throw new IOException("No stack specified.");
     }
     if (!stack.exists()) {
-      throw new IOException(stack.getAbsolutePath() + 
-          " does not exist.");
+      fileExists = false;
+      return;
     }
+    fileExists = true;
     //If the stack hasn't changed, don't reread
     long curLastModified = stack.lastModified();
-    if (lastModified != EtomoNumber.LONG_NULL_VALUE && curLastModified == lastModified) {
+    if (lastModified != EtomoNumber.LONG_NULL_VALUE
+        && curLastModified == lastModified) {
       return;
     }
     lastModified = curLastModified;
     //Run the montagesize command on the stack.
-    String[] commandArray = new String[2];
+    File pieceListFile = new File(directory, datasetName + axisID.getExtension() + ".pl");
+    String[] commandArray;
+    if (pieceListFile.exists()) {
+      commandArray = new String[3];
+    }
+    else {
+      commandArray = new String[2];
+    }
     commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
     commandArray[1] = stack.getAbsolutePath();
+    if (pieceListFile.exists()) {
+      commandArray[2] = pieceListFile.getAbsolutePath();
+    }
     SystemProgram montagesize = new SystemProgram(commandArray);
     montagesize.setDebug(EtomoDirector.getInstance().isDebug());
     montagesize.run();
@@ -135,20 +173,59 @@ public class Montagesize {
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
         if (tokens.length < 7) {
-          throw new IOException("Montagesize returned less than three parameters for image size");
+          throw new IOException(
+              "Montagesize returned less than three parameters for image size");
         }
+        x.set(tokens[4]);
+        y.set(tokens[5]);
         z.set(tokens[6]);
+        if (!x.isValid() || x.isNull()) {
+          throw new NumberFormatException("NX is not set, token is "
+              + tokens[4] + "\n" + x.getInvalidReason());
+        }
+        if (!y.isValid() || y.isNull()) {
+          throw new NumberFormatException("NY is not set, token is "
+              + tokens[5] + "\n" + y.getInvalidReason());
+        }
         if (!z.isValid() || z.isNull()) {
-          throw new NumberFormatException("NZ is not set, token is " + tokens[6] + "\n" + z.getInvalidReason());
+          throw new NumberFormatException("NZ is not set, token is "
+              + tokens[6] + "\n" + z.getInvalidReason());
         }
       }
     }
   }
+
+  /**
+   * 
+   * @return
+   */
+  public ConstEtomoNumber getX() {
+    return x;
+  }
   
+  /**
+   * 
+   * @return
+   */
+  public ConstEtomoNumber getY() {
+    return y;
+  }
+  
+  /**
+   * 
+   * @return
+   */
   public ConstEtomoNumber getZ() {
     return z;
   }
+  
+  public boolean isFileExists() {
+    return fileExists;
+  }
 }
 /**
-* <p> $Log$ </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.1  2005/03/08 02:01:47  sueh
+ * <p> bug# 533 Object to call montagesize.
+ * <p> </p>
+ */
