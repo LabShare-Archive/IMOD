@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/12/21 00:02:38  mast
+c	  Add option for getting both residual and 3D model output
+c	
 c	  Revision 3.4  2002/07/28 22:54:03  mast
 c	  Applied scaling to 3-D model output
 c	
@@ -340,7 +343,7 @@ c
 	ireal=0
 	xyzmax=0.
 	do iobject=1,max_mod_obj
-	  if(npt_in_obj(iobject).gt.0)then
+	  if(npt_in_obj(iobject).gt.0.and.ireal.lt.nrealpt)then
 	    ipt=object(ibase_obj(iobject)+1)
 	    ireal=ireal+1
 	    do i=1,3
@@ -358,7 +361,7 @@ c
 	ierr=getimodscales(ximscale,yimscale,zimscale)
 	ireal=0
 	do iobject=1,max_mod_obj
-	  if(npt_in_obj(iobject).gt.0)then
+	  if(npt_in_obj(iobject).gt.0.and.ireal.lt.nrealpt)then
 	    ipt=object(ibase_obj(iobject)+1)
 	    ireal=ireal+1
 	    p_coord(1,ipt)=xyz(1,ireal)*ximscale
@@ -379,7 +382,7 @@ c
 	  endif
 	enddo
 c	  
-	n_object=nrealpt
+	n_object=ireal
 	call write_wmod(modelfile)
 	close(20)
 	return
