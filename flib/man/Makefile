@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/10/08 17:15:57  mast
+#  Changes to work with autodoc files
+#
 #  Revision 3.1  2003/04/29 05:25:36  mast
 #  Include configure from top level so fresh checkout can make src
 #
@@ -19,6 +22,7 @@
 #
 #
 include ../../configure
+O        = $(OBJEXT)
 
 THERE = ../../manpages
 
@@ -31,9 +35,9 @@ install : $(THERE)/mantohtml $(THERE)/autodoc2man
 $(THERE)/mantohtml : 
 	(cd $(THERE) ; $(CC) $(CFLAGS) -o mantohtml mantohtml.c)
 
-$(THERE)/autodoc2man : $(THERE)/autodoc2man.o ../../libimod/parse_params.o
-	(cd $(THERE) ; $(CC) $(CFLAGS) -o autodoc2man autodoc2man.o \
-	../libimod/parse_params.o $(CLIBS) )
+$(THERE)/autodoc2man : $(THERE)/autodoc2man.$(O) ../../libimod/parse_params.$(O)
+	(cd $(THERE) ; $(CC) $(CFLAGS) -o autodoc2man autodoc2man.$(O) \
+	../libimod/parse_params.$(O) $(CLIBS) )
 
 clean :
 	$(FIND) . -type f -name "*.html"   -exec rm "{}" \;

@@ -3,17 +3,19 @@ include ../../configure
 # 7/18/00 CER move strupcase to imsubs2
 #    (strupcase.o was in the OBJS list below)
 #
-OBJS = concat.o dopen.o getinout.o mypause.o\
- rdlist.o wrlist.o frefor.o copy_to_backup.o niceframe.o\
- get_tilt_angles.o int_iwrite.o inv_matrix.o xfmult3d.o xfcopy3d.o xfinv3d.o\
- taperoutpad.o taperinpad.o padfill.o meanzero.o setctf.o indmap.o\
- ialsiz_sam_cel.o get_extra_header_pieces.o get_extra_header_tilts.o\
- temp_filename.o taperinvol.o reduce_by_binning.o parse_input_params.o
+O        = $(OBJEXT)
+OBJS = concat.$(O) dopen.$(O) getinout.$(O) mypause.$(O)\
+ rdlist.$(O) wrlist.$(O) frefor.$(O) copy_to_backup.$(O) niceframe.$(O)\
+ get_tilt_angles.$(O) int_iwrite.$(O) inv_matrix.$(O) xfmult3d.$(O) \
+ xfcopy3d.$(O) xfinv3d.$(O) taperoutpad.$(O) taperinpad.$(O) padfill.$(O) \
+ meanzero.$(O) setctf.$(O) indmap.$(O) ialsiz_sam_cel.$(O) \
+ get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
+ taperinvol.$(O) reduce_by_binning.$(O) parse_input_params.$(O)
 
 
 all: $(OBJS)
 
 clean:
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

@@ -1,30 +1,33 @@
 include ../configure
+E        = $(BINEXT)
+O        = $(OBJEXT)
+LDFLG    = $(LDFFLAGS) $(LDFLAGS)
 
 # DNM 3/11/01: renamed MODLIBS and MODIMLIBS to GRAPHLIBS
 
-PROGS = genhstplt avgstatplot mtpairing mtoverlap
+PROGS = genhstplt$(E) avgstatplot$(E) mtpairing$(E) mtoverlap$(E)
 
 all: $(PROGS)
 
-genhstplt: genhstplt.o
-	$(FC) -o genhstplt genhstplt.o $(LDFLAGS) $(GRAPHLIBS) $(FORTCLIBS)
+genhstplt$(E): genhstplt.$(O)
+	$(FC) -o genhstplt genhstplt.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
 
-avgstatplot: avgstatplot.o
-	$(FC) -o avgstatplot avgstatplot.o $(LDFLAGS) $(GRAPHLIBS) $(FORTCLIBS)
+avgstatplot$(E): avgstatplot.$(O)
+	$(FC) -o avgstatplot avgstatplot.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
 
-mtpairing: mtpairing.o
-	$(FC) -o mtpairing mtpairing.o $(LDFLAGS) $(GRAPHLIBS) $(FORTCLIBS)
+mtpairing$(E): mtpairing.$(O)
+	$(FC) -o mtpairing mtpairing.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
 
-mtoverlap: mtoverlap.o
-	$(FC) -o mtoverlap mtoverlap.o $(LDFLAGS) $(GRAPHLIBS) $(FORTCLIBS)
+mtoverlap$(E): mtoverlap.$(O)
+	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ $(PROGS)
+	-\rm -f *.o* *.exe *~ $(PROGS)
 
-mtpairing.o: $(INCDIR)/model.inc
-mtoverlap.o: $(INCDIR)/model.inc
+mtpairing.$(O): $(INCDIR)/model.inc
+mtoverlap.$(O): $(INCDIR)/model.inc
 

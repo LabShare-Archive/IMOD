@@ -1,20 +1,25 @@
 include ../configure
+O        = $(OBJEXT)
+E        = $(BINEXT)
+LDFLG    = $(LDFFLAGS) $(LDFLAGS)
 
 # DNM 3/11/01: renamed MODIMLIBS to GRAPHLIBS
 
-PROGS = nda mtk sda
+PROGS = nda$(E) mtk$(E) sda$(E)
 
-NDAOBJS = nda.o ndmodel.o graphden.o angdist.o ndrandom.o ndsubs.o ndmtkrand.o\
- ndmtksubs.o convexbound.o manipgraphs.o
+NDAOBJS = nda.$(O) ndmodel.$(O) graphden.$(O) angdist.$(O) ndrandom.$(O) \
+ ndsubs.$(O) ndmtkrand.$(O) ndmtksubs.$(O) convexbound.$(O) manipgraphs.$(O)
 
-MTKOBJS = mtk.o mtkmodel.o closedist.o mtksubs.o mtkrandom.o mtkransubs.o\
- ndmtksubs.o ndmtkrand.o bundledist.o convexbound.o manipgraphs.o
+MTKOBJS = mtk.$(O) mtkmodel.$(O) closedist.$(O) mtksubs.$(O) mtkrandom.$(O)\
+ mtkransubs.$(O) ndmtksubs.$(O) ndmtkrand.$(O) bundledist.$(O) \
+ convexbound.$(O) manipgraphs.$(O)
 
-SDAOBJS = sda.o sdmodel.o sddist.o sd3dsubs.o surfden.o kerneldens.o\
- find_points_area.o ndmtksubs.o ndmtkrand.o ndsubs.o sdrandom.o manipgraphs.o\
- sdlength.o
+SDAOBJS = sda.$(O) sdmodel.$(O) sddist.$(O) sd3dsubs.$(O) surfden.$(O) \
+ kerneldens.$(O) find_points_area.$(O) ndmtksubs.$(O) ndmtkrand.$(O) \
+ ndsubs.$(O) sdrandom.$(O) manipgraphs.$(O) sdlength.$(O)
 
-INCOBJS = sda.o sdmodel.o sddist.o surfden.o kerneldens.o find_points_area.o
+INCOBJS = sda.$(O) sdmodel.$(O) sddist.$(O) surfden.$(O) kerneldens.$(O) \
+ find_points_area.$(O)
 
 
 
@@ -27,24 +32,24 @@ SDALIBS = $(GRAPHLIBS) $(FORTCLIBS)
 
 all: $(PROGS)
 
-nda: $(NDAOBJS)
-	$(FC)  -o nda $(LDFLAGS) $(NDAOBJS) $(NDALIBS)
+nda$(E): $(NDAOBJS)
+	$(FC)  -o nda $(NDAOBJS) $(LDFLG) $(NDALIBS)
 
-mtk: $(MTKOBJS)
-	$(FC)  -o mtk $(LDFLAGS) $(MTKOBJS) $(MTKLIBS)
+mtk$(E): $(MTKOBJS)
+	$(FC)  -o mtk $(MTKOBJS) $(LDFLG) $(MTKLIBS)
 
-sda: $(SDAOBJS)
-	$(FC)  -o sda $(LDFLAGS) $(SDAOBJS) $(SDALIBS)
+sda$(E): $(SDAOBJS)
+	$(FC)  -o sda $(SDAOBJS) $(LDFLG) $(SDALIBS)
 
 
 $(INCOBJS): sda.inc
-mtkmodel.o: $(INCDIR)/model.inc mtk.inc
-mtkransubs.o: $(INCDIR)/model.inc mtk.inc
-ndmodel.o: $(INCDIR)/model.inc
-sdmodel.o: $(INCDIR)/model.inc
-closedist.o: mtk.inc
-mtksubs.o: mtk.inc
-mtkrandom.o: mtk.inc
+mtkmodel.$(O): $(INCDIR)/model.inc mtk.inc
+mtkransubs.$(O): $(INCDIR)/model.inc mtk.inc
+ndmodel.$(O): $(INCDIR)/model.inc
+sdmodel.$(O): $(INCDIR)/model.inc
+closedist.$(O): mtk.inc
+mtksubs.$(O): mtk.inc
+mtkrandom.$(O): mtk.inc
 
 
 install: $(PROGS)
@@ -52,6 +57,6 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ nda mtk sda
+	-\rm -f *.o* *.exe *~ nda mtk sda
 
 

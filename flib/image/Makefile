@@ -5,177 +5,186 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2003/10/10 20:46:01  mast
+#  Changed rotatevol, matchvol, warpvol to use common include and subroutines
+#
 
 include ../configure
 
-PROGS = addtostack alterheader assemblevol avganova avgstack boxavg \
-        calc checkxforms combinefft \
-        densmatch edmont edpiecepoint enhance eraser excise extposition \
-        extracttilts extractpieces extstack fftrans filltomo findcontrast \
-        findsection fixmont goodframe header matchvol montagesize mtdetect\
-        mtteach newstack rotatevol rotmont subimage subimanova subimstat \
-        taperoutvol tapervoledge tiltxcorr tomopieces vmstocsh warpvol xcorr\
-        xfinverse xfproduct xfsimplex xftoxg xyzproj 
+O        = $(OBJEXT)
+E        = $(BINEXT)
+LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+
+PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
+ avgstack$(E) boxavg$(E) calc$(E) checkxforms$(E) combinefft$(E) \
+ densmatch$(E) edmont$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
+ extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
+ filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
+ header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
+ newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
+ subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
+ vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
+ xftoxg$(E) xyzproj$(E)
  
 LIBS = $(FORTCLIBS)
 
 all: $(PROGS)
 
-addtostack: addtostack.o
-	$(FC) -o addtostack addtostack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+addtostack$(E): addtostack.$(O)
+	$(FC) -o addtostack addtostack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-alterheader: alterheader.o
-	$(FC) -o alterheader alterheader.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+alterheader$(E): alterheader.$(O)
+	$(FC) -o alterheader alterheader.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-assemblevol: assemblevol.o
-	$(FC) -o assemblevol assemblevol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+assemblevol$(E): assemblevol.$(O)
+	$(FC) -o assemblevol assemblevol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-avganova: avganova.o
-	$(FC) -o avganova avganova.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+avganova$(E): avganova.$(O)
+	$(FC) -o avganova avganova.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-avgstack: avgstack.o
-	$(FC) -o avgstack avgstack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+avgstack$(E): avgstack.$(O)
+	$(FC) -o avgstack avgstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-boxavg: boxavg.o
-	$(FC) -o boxavg boxavg.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+boxavg$(E): boxavg.$(O)
+	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-calc: calc.o
-	$(FC) -o calc calc.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+calc$(E): calc.$(O)
+	$(FC) -o calc calc.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-calc.o: calc.f
+calc.$(O): calc.f
 	$(FC) $(NOOPFFLAGS) -c calc.f
 
-checkxforms: checkxforms.o
-	$(FC) -o checkxforms checkxforms.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+checkxforms$(E): checkxforms.$(O)
+	$(FC) -o checkxforms checkxforms.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-combinefft: combinefft.o
-	$(FC) -o combinefft combinefft.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+combinefft$(E): combinefft.$(O)
+	$(FC) -o combinefft combinefft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-densmatch: densmatch.o
-	$(FC) -o densmatch densmatch.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+densmatch$(E): densmatch.$(O)
+	$(FC) -o densmatch densmatch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-edmont: edmont.o
-	$(FC) -o edmont edmont.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+edmont$(E): edmont.$(O)
+	$(FC) -o edmont edmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-edpiecepoint: edpiecepoint.o
-	$(FC) -o edpiecepoint edpiecepoint.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+edpiecepoint$(E): edpiecepoint.$(O)
+	$(FC) -o edpiecepoint edpiecepoint.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-enhance: enhance.o
-	$(FC) -o enhance enhance.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+enhance$(E): enhance.$(O)
+	$(FC) -o enhance enhance.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-eraser: eraser.o
-	$(FC) -o eraser eraser.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+eraser$(E): eraser.$(O)
+	$(FC) -o eraser eraser.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-excise: excise.o
-	$(FC) -o excise  excise.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+excise$(E): excise.$(O)
+	$(FC) -o excise  excise.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-extposition: extposition.o
-	$(FC) -o extposition extposition.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+extposition$(E): extposition.$(O)
+	$(FC) -o extposition extposition.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-extractpieces: extractpieces.o
-	$(FC) -o extractpieces extractpieces.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+extractpieces$(E): extractpieces.$(O)
+	$(FC) -o extractpieces extractpieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-extracttilts: extracttilts.o
-	$(FC) -o extracttilts extracttilts.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+extracttilts$(E): extracttilts.$(O)
+	$(FC) -o extracttilts extracttilts.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-extstack: extstack.o
-	$(FC) -o extstack extstack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+extstack$(E): extstack.$(O)
+	$(FC) -o extstack extstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-fftrans: fftrans.o giantfft.o
-	$(FC) -o fftrans fftrans.o giantfft.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+fftrans$(E): fftrans.$(O) giantfft.$(O)
+	$(FC) -o fftrans fftrans.$(O) giantfft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-filltomo: filltomo.o
-	$(FC) -o filltomo filltomo.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+filltomo$(E): filltomo.$(O)
+	$(FC) -o filltomo filltomo.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-findcontrast: findcontrast.o
-	$(FC) -o findcontrast findcontrast.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+findcontrast$(E): findcontrast.$(O)
+	$(FC) -o findcontrast findcontrast.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-findsection: findsection.o
-	$(FC) -o findsection findsection.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+findsection$(E): findsection.$(O)
+	$(FC) -o findsection findsection.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-fixmont: fixmont.o
-	$(FC) -o fixmont fixmont.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+fixmont$(E): fixmont.$(O)
+	$(FC) -o fixmont fixmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-goodframe: goodframe.o
-	$(FC) -o goodframe goodframe.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+goodframe$(E): goodframe.$(O)
+	$(FC) -o goodframe goodframe.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-header: header.o
-	$(FC) -o header header.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+header$(E): header.$(O)
+	$(FC) -o header header.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-matchvol: matchvol.o rotmatwarpsubs.o
-	$(FC) -o matchvol matchvol.o rotmatwarpsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+matchvol$(E): matchvol.$(O) rotmatwarpsubs.$(O)
+	$(FC) -o matchvol matchvol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-montagesize: montagesize.o
-	$(FC) -o montagesize montagesize.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+montagesize$(E): montagesize.$(O)
+	$(FC) -o montagesize montagesize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-mtdetect: mtdetect.o mtsubs.o
-	$(FC) -o mtdetect mtdetect.o mtsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+mtdetect$(E): mtdetect.$(O) mtsubs.$(O)
+	$(FC) -o mtdetect mtdetect.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-mtteach: mtteach.o mtsubs.o
-	$(FC) -o mtteach mtteach.o mtsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+mtteach$(E): mtteach.$(O) mtsubs.$(O)
+	$(FC) -o mtteach mtteach.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-newstack: newstack.o
-	$(FC) -o newstack newstack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+newstack$(E): newstack.$(O)
+	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-rotatevol: rotatevol.o rotmatwarpsubs.o
-	$(FC) -o rotatevol rotatevol.o rotmatwarpsubs.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O)
+	$(FC) -o rotatevol rotatevol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-rotmont: rotmont.o
-	$(FC) -o rotmont rotmont.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+rotmont$(E): rotmont.$(O)
+	$(FC) -o rotmont rotmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-subimage: subimage.o
-	$(FC) -o subimage subimage.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+subimage$(E): subimage.$(O)
+	$(FC) -o subimage subimage.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-subimanova: subimanova.o
-	$(FC) -o subimanova subimanova.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+subimanova$(E): subimanova.$(O)
+	$(FC) -o subimanova subimanova.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-subimstat: subimstat.o
-	$(FC) -o subimstat subimstat.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+subimstat$(E): subimstat.$(O)
+	$(FC) -o subimstat subimstat.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-taperoutvol: taperoutvol.o
-	$(FC) -o taperoutvol taperoutvol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+taperoutvol$(E): taperoutvol.$(O)
+	$(FC) -o taperoutvol taperoutvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-tapervoledge: tapervoledge.o
-	$(FC) -o tapervoledge tapervoledge.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+tapervoledge$(E): tapervoledge.$(O)
+	$(FC) -o tapervoledge tapervoledge.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-tiltxcorr: tiltxcorr.o
-	$(FC) -o tiltxcorr tiltxcorr.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+tiltxcorr$(E): tiltxcorr.$(O)
+	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-tomopieces: tomopieces.o
-	$(FC) -o tomopieces tomopieces.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+tomopieces$(E): tomopieces.$(O)
+	$(FC) -o tomopieces tomopieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-vmstocsh: vmstocsh.o
-	$(FC) -o vmstocsh vmstocsh.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+vmstocsh$(E): vmstocsh.$(O)
+	$(FC) -o vmstocsh vmstocsh.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-warpvol: warpvol.o rotmatwarpsubs.o
-	$(FC) -o warpvol rotmatwarpsubs.o warpvol.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O)
+	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xcorr: xcorr.o
-	$(FC) -o xcorr xcorr.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xcorr$(E): xcorr.$(O)
+	$(FC) -o xcorr xcorr.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xfinverse: xfinverse.o
-	$(FC) -o xfinverse xfinverse.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xfinverse$(E): xfinverse.$(O)
+	$(FC) -o xfinverse xfinverse.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xfproduct: xfproduct.o
-	$(FC) -o xfproduct xfproduct.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xfproduct$(E): xfproduct.$(O)
+	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xfsimplex: xfsimplex.o
-	$(FC) -o xfsimplex xfsimplex.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xfsimplex$(E): xfsimplex.$(O)
+	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xftoxg: xftoxg.o
-	$(FC) -o xftoxg xftoxg.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xftoxg$(E): xftoxg.$(O)
+	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xyzproj: xyzproj.o
-	$(FC) -o xyzproj xyzproj.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xyzproj$(E): xyzproj.$(O)
+	$(FC) -o xyzproj xyzproj.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ $(PROGS)
+	-\rm -f *.o* *~ *.exe $(PROGS)
 
-rotatevol.o: rotmatwarp.inc
-matchvol.o: rotmatwarp.inc
-warpvol.o: rotmatwarp.inc
-rotmatwarpsubs.o: rotmatwarp.inc
+rotatevol.$(O): rotmatwarp.inc
+matchvol.$(O): rotmatwarp.inc
+warpvol.$(O): rotmatwarp.inc
+rotmatwarpsubs.$(O): rotmatwarp.inc

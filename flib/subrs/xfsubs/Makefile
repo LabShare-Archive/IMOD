@@ -1,12 +1,13 @@
 include ../../configure
 
-OBJS = amat_to_rotmag.o amat_to_rotmagstr.o rotmag_to_amat.o\
- rotmagstr_to_amat.o xfapply.o xfinvert.o xflincom.o xfcopy.o xfmult.o xfrdall.o\
- xfread.o xfunit.o xfwrite.o
+O        = $(OBJEXT)
+OBJS = amat_to_rotmag.$(O) amat_to_rotmagstr.$(O) rotmag_to_amat.$(O)\
+ rotmagstr_to_amat.$(O) xfapply.$(O) xfinvert.$(O) xflincom.$(O) xfcopy.$(O) \
+ xfmult.$(O) xfrdall.$(O) xfread.$(O) xfunit.$(O) xfwrite.$(O)
 
 all: $(OBJS)
 
 clean:
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

@@ -1,29 +1,33 @@
 include ../configure
+O        = $(OBJEXT)
 
 # 7/16/00 CER add dtrigs to library search
 
-TAOBJS = tiltalign.o input_model.o input_vars.o find_surfaces.o solve_xyzd.o\
- funct.o metro.o map_vars.o
+TAOBJS = tiltalign.$(O) input_model.$(O) input_vars.$(O) find_surfaces.$(O) \
+ solve_xyzd.$(O) funct.$(O) metro.$(O) map_vars.$(O)
 
-all: tiltalign
+PROG = tiltalign$(BINEXT)
 
-
-tiltalign.o: tiltalign.f
-	$(FC) -c $(NOOPFFLAGS) -g tiltalign.f
-
-tiltalign: $(TAOBJS)
-	$(FC) -o tiltalign $(TAOBJS) $(LDFLAGS) $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
+all: $(PROG)
 
 
-input_model.o: $(INCDIR)/model.inc
-funct.o:       alivar.inc
-input_vars.o:  alivar.inc
-tiltalign.o:   alivar.inc
+tiltalign.$(O): tiltalign.f
+	$(FC) -c $(NOOPFFLAGS) tiltalign.f
 
-install: tiltalign
-	strip tiltalign 
-	$(CP) tiltalign $(INSTBINDIR)
+$(PROG): $(TAOBJS)
+	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) \
+	$(FORTCLIBS) $(TILTALILIB)
+
+
+input_model.$(O): $(INCDIR)/model.inc
+funct.$(O):       $(INCDIR)/alivar.inc
+input_vars.$(O):  $(INCDIR)/alivar.inc
+tiltalign.$(O):   $(INCDIR)/alivar.inc
+
+install: $(PROG)
+	strip $(PROG) 
+	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ tiltalign
+	-\rm -f *.o* *.exe *~ tiltalign
 

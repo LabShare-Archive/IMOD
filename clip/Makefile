@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/02/28 18:09:32  mast
+#  Changes for cygwin/windows
+#
 #  Revision 3.1  2002/11/05 23:25:43  mast
 #  Add -limod to call copyright function
 #
@@ -21,34 +24,33 @@
 #
 include ../configure
 
-OBJS = clip.o clip_proc.o clip_transform.o clip_io.o\
-	correlation.o fft.o filter.o
+O = $(OBJEXT)
+OBJS = clip.$(O) clip_proc.$(O) clip_transform.$(O) clip_io.$(O)\
+	correlation.$(O) fft.$(O) filter.$(O)
 
-all : clip
+PROG = clip$(BINEXT)
+
+all : $(PROG)
 
 # DNM 3/12/01: put $(F77LIBS) back on the link list just in case it's needed
-clip : $(OBJS)
+$(PROG) : $(OBJS)
 	@echo "Making clip: libifft is in the flib source code."
 	$(FLCC) -o clip $(OBJS) $(LDFLAGS)  \
-	-limod -liimod -lifft $(TIFFLIBS) $(LIBS) $(F77LIBS)
+	$(LIMOD) $(LIIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS) $(F77LIBS)
 
-install : clip
-	strip clip
-	$(CP) clip $(INSTBINDIR)
-
-cyginstall : clip
-	strip clip.exe
-	$(CP) clip.exe $(INSTBINDIR)
+install : $(PROG)
+	strip $(PROG)
+	$(CP) $(PROG) $(INSTBINDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "clip" -exec rm "{}" \;
 	$(FIND) . -type f -name "clip.exe" -exec rm "{}" \;
 
 $(OBJS) : clip.h
-clip.o : ../.version
+clip.$(O) : ../.version
 
 
 #

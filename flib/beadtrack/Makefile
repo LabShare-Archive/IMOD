@@ -2,51 +2,48 @@ include ../configure
 
 # 7/17/00 CER add -ldtrigs to library seach
 
-BDOBJS = beadtrack.o proc_model.o proc_vars.o solve_xyzd.o\
- funct.o metro.o map_vars.o tracksubs.o findxf.o tiltali.o
+O        = $(OBJEXT)
+BDOBJS = beadtrack.$(O) proc_model.$(O) proc_vars.$(O) solve_xyzd.$(O)\
+ funct.$(O) metro.$(O) map_vars.$(O) tracksubs.$(O) findxf.$(O) tiltali.$(O)
 
-all: beadtrack
+PROG = beadtrack$(BINEXT)
+
+all: $(PROG)
 
 FFLAGS = $(FFALLBACK)
 
-tiltali.o: tiltali.f
+tiltali.$(O): tiltali.f
 	$(FC) -c $(NOOPFFALLBACK) tiltali.f
 
-beadtrack: $(BDOBJS)
-	$(FC) -o beadtrack $(BDOBJS) $(LDFALLBACK) $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
+$(PROG): $(BDOBJS)
+	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LDFALLBACK) $(IMLIBS) \
+	$(FORTCLIBS) $(TILTALILIB)
 
-beadtrack.o:   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc alivar.inc
-findxf.o:      $(INCDIR)/statsize.inc
-proc_model.o:  $(INCDIR)/model.inc
-tracksubs.o:   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc
-funct.o:       alivar.inc
-proc_vars.o:   alivar.inc
-tiltali.o:     alivar.inc
+beadtrack.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc $(INCDIR)/alivar.inc
+findxf.$(O):      $(INCDIR)/statsize.inc
+proc_model.$(O):  $(INCDIR)/model.inc
+tracksubs.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc
+funct.$(O):       $(INCDIR)/alivar.inc
+proc_vars.$(O):   $(INCDIR)/alivar.inc
+tiltali.$(O):     $(INCDIR)/alivar.inc
 
-metro.o:       metro.f
-solve_xyzd.o:  solve_xyzd.f
-funct.o:       funct.f
-map_vars.o:    map_vars.f
+metro.$(O):       ../tiltalign/metro.f
+	$(FC) $(FFLAGS) -c -o metro.$(O) ../tiltalign/metro.f
 
-alivar.inc:
-	if (! -e alivar.inc) ln -s ../tiltalign/alivar.inc .
+solve_xyzd.$(O):  ../tiltalign/solve_xyzd.f
+	$(FC) $(FFLAGS) -c -o solve_xyzd.$(O) ../tiltalign/solve_xyzd.f
 
-metro.f:
-	if (! -e metro.f) ln -s ../tiltalign/metro.f .
+funct.$(O):       ../tiltalign/funct.f
+	$(FC) $(FFLAGS) -c -o funct.$(O) ../tiltalign/funct.f
 
-funct.f:
-	if (! -e funct.f) ln -s ../tiltalign/funct.f .
+map_vars.$(O):    ../tiltalign/map_vars.f
+	$(FC) $(FFLAGS) -c -o map_vars.$(O) ../tiltalign/map_vars.f
 
-map_vars.f:
-	if (! -e map_vars.f) ln -s ../tiltalign/map_vars.f .
 
-solve_xyzd.f:
-	if (! -e solve_xyzd.f) ln -s ../tiltalign/solve_xyzd.f .
-
-install: beadtrack
-	strip beadtrack
-	$(CP) beadtrack $(INSTBINDIR)
+install: $(PROG)
+	strip $(PROG)
+	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ beadtrack
+	-\rm -f *.o* *.exe *~ beadtrack
 

@@ -1,6 +1,6 @@
 include ../configure
 
-
+O        = $(OBJEXT)
 LIBHVEM  = libhvem.$(LIBEXT)
 LIBIFFT  = libifft.$(LIBEXT)
 LIBIM    = libim.$(LIBEXT)
@@ -21,8 +21,8 @@ $(LIBHVEM):	model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd xfsubs ; $(MAKE) all)
 	(cd statsubs ; $(MAKE) all)
 	\rm -f $(LIBHVEM)
-	$(AR) $(ARFLAGS) $(LIBHVEM) \
-	model/*.o piecesubs/*.o hvem/*.o xfsubs/*.o statsubs/*.o
+	$(AR) $(ARFLAGS)$(LIBHVEM) \
+	model/*.$(O) piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
 	$(RANLIB) $(LIBHVEM)
 	$(CP) $(LIBHVEM) $(LIBDIR)
 
@@ -30,7 +30,7 @@ $(LIBIM):	imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	\rm -f $(LIBIM)
-	$(AR) $(ARFLAGS) $(LIBIM) imsubs/$(IMSUBSOBJ) imsubs2/*.o
+	$(AR) $(ARFLAGS)$(LIBIM) imsubs/$(IMSUBSOBJ) imsubs2/*.$(O)
 	$(RANLIB) $(LIBIM)
 	$(CP) $(LIBIM) $(LIBDIR)
 
@@ -44,28 +44,28 @@ libblockio.a:  imsubs/blockio.c
 $(LIBIFFT):	ifftsub/*.f
 	(cd ifftsub ; $(MAKE) all)
 	\rm -f $(LIBIFFT)
-	$(AR) $(ARFLAGS) $(LIBIFFT) ifftsub/*.o
+	$(AR) $(ARFLAGS)$(LIBIFFT) ifftsub/*.$(O)
 	$(RANLIB) $(LIBIFFT)
 	$(CP) $(LIBIFFT) $(LIBDIR)
 
 $(LIBNMCAR):	graphics/*.f graphics/*.c*
 	(cd graphics ; $(MAKE) all)
 	\rm -f $(LIBNMCAR)
-	$(AR) $(ARFLAGS) $(LIBNMCAR) graphics/*.o
+	$(AR) $(ARFLAGS)$(LIBNMCAR) graphics/*.$(O)
 	$(RANLIB) $(LIBNMCAR)
 	$(CP) $(LIBNMCAR) $(LIBDIR)
 
 $(LIBDTRIGS):	dtrigs/*.f
 	(cd dtrigs ; $(MAKE) all)
 	\rm -f $(LIBDTRIGS)
-	$(AR) $(ARFLAGS) $(LIBDTRIGS) dtrigs/*.o
+	$(AR) $(ARFLAGS)$(LIBDTRIGS) dtrigs/*.$(O)
 	$(RANLIB) $(LIBDTRIGS)
 	$(CP) $(LIBDTRIGS) $(LIBDIR)
 
 $(LIBRANDM):	randm/ransub.f randm/ourrnd.c
 	(cd randm; $(MAKE) all)
 	\rm -f $(LIBRANDM)
-	$(AR) $(ARFLAGS) $(LIBRANDM) randm/*.o
+	$(AR) $(ARFLAGS)$(LIBRANDM) randm/*.$(O)
 	$(RANLIB) $(LIBRANDM)
 	$(CP) $(LIBRANDM) $(LIBDIR)
 
@@ -78,7 +78,7 @@ clean :
 #	\rm -f *.o */*.o *~ */*~ *.a
 	$(FIND) . -type f -name "*.so" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.a" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.dylib" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.*lib" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

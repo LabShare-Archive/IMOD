@@ -1,19 +1,21 @@
 include ../../configure
 
-OBJS = bshst.o impak.o bsplt.o graphpak.o imsymb.o scale.o\
- chrout.o grupnt.o label_axis.o shiftpt.o dsaxes.o imdash.o minmax.o flnam.o\
- imgrid.o $(XPLAX) fracbx.o immisc.o pwrit.o psf.o ps.o trnc.o
+O        = $(OBJEXT)
+OBJS = bshst.$(O) impak.$(O) bsplt.$(O) graphpak.$(O) imsymb.$(O) scale.$(O) \
+ chrout.$(O) grupnt.$(O) label_axis.$(O) shiftpt.$(O) dsaxes.$(O) imdash.$(O) \
+ minmax.$(O) flnam.$(O) imgrid.$(O) $(XPLAX) fracbx.$(O) immisc.$(O) \
+ pwrit.$(O) psf.$(O) ps.$(O) trnc.$(O)
 
 
 all: $(OBJS)
 
-qtplax.o: qtplax.h
-xplax.o: xplax.h
-noplax.o: xplax.h
+qtplax.$(O): qtplax.h
+xplax.$(O): xplax.h
+noplax.$(O): xplax.h
 
-ps.o: ps.h
+ps.$(O): ps.h
 
 clean:
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

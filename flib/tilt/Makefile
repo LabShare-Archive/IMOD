@@ -15,36 +15,42 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/03/28 23:54:20  mast
+#  Add ranlib to make Mac happy
+#
 #  Revision 3.1  2002/07/26 19:16:29  mast
 #  Added dependency on fbpswitch.inc
 #
 
 include ../configure
 
-all: tilt
+O        = $(OBJEXT)
+PROG = tilt$(BINEXT)
 
-tilt: tilt.o licenseusfft.o $(TILTOBJS) $(FBPLIB) 
-	$(FC) $(FFLAGS) -o tilt tilt.o licenseusfft.o $(TILTOBJS) \
-	$(LDFLAGS) $(IMLIBS) $(FBPLIB) $(USFFTLIBS) $(FORTCLIBS)
+all: $(PROG)
+
+$(PROG): tilt.$(O) licenseusfft.$(O) $(TILTOBJS) $(FBPLIB) 
+	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O) $(TILTOBJS) \
+	$(LDFFLAGS) $(LDFLAGS) $(IMLIBS) $(FBPLIB) $(USFFTLIBS) $(FORTCLIBS)
 
 libfbp.a: fbplib/*.f
 	(cd fbplib ; $(MAKE) )
 
-nolibfbp.a: nolibfbp.o
-	ar cr nolibfbp.a nolibfbp.o
-	ranlib nolibfbp.a
+nolibfbp.a: nolibfbp.$(O)
+	$(AR) $(ARFLAGS)nolibfbp.a nolibfbp.$(O)
+	$(RANLIB) nolibfbp.a
 
-handnox.o: handnox.s
-handxtilt.o: handxtilt.s
-handlocal.o: handlocal.s
+handnox.$(O): handnox.s
+handxtilt.$(O): handxtilt.s
+handlocal.$(O): handlocal.s
 
-tilt.o: tilt.inc fbpswitch.inc
+tilt.$(O): tilt.inc fbpswitch.inc
 
-install: tilt
-	strip tilt
-	$(CP) tilt $(INSTBINDIR)
+install: $(PROG)
+	strip $(PROG)
+	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
 	(cd fbplib ; $(MAKE) clean)
-	-\rm -f *.o *.a *~ tilt
+	-\rm -f *.o* *.exe *.a *~ tilt
 

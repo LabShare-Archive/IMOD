@@ -1,4 +1,3 @@
-include ../configure
 #
 #  $Author$
 #
@@ -7,36 +6,43 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/08/19 04:29:03  mast
+#  Added dependencies on blend.inc
+#
 
+include ../configure
 
-PROGS = blendmont reducemont
+O        = $(OBJEXT)
+E        = $(BINEXT)
+LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+PROGS = blendmont$(E) reducemont$(E)
 
-BLOBJS = blendmont.o bsubs.o shuffler.o smoothgrid.o sdsearch.o sdcalc.o\
- setoverlap.o
+BLOBJS = blendmont.$(O) bsubs.$(O) shuffler.$(O) smoothgrid.$(O) \
+ sdsearch.$(O) sdcalc.$(O) setoverlap.$(O)
 
-REDOBJS = reducemont.o shuffler.o setoverlap.o
+REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O)
 
-SLOPOBJS = sloppymont.o shuffler.o setoverlap.o
+SLOPOBJS = sloppymont.$(O) shuffler.$(O) setoverlap.$(O)
 
 all: $(PROGS)
 
-blendmont: $(BLOBJS)
-	$(FC)  -o blendmont $(LDFLAGS) $(BLOBJS) $(IMLIBS) $(FORTCLIBS)
+blendmont$(E): $(BLOBJS)
+	$(FC)  -o blendmont $(BLOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
-reducemont: $(REDOBJS)
-	$(FC) -o reducemont $(LDFLAGS) $(REDOBJS) $(IMLIBS) $(FORTCLIBS)
+reducemont$(E): $(REDOBJS)
+	$(FC) -o reducemont $(REDOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
-sloppymont: $(SLOPOBJS)
-	$(FC) -o sloppymont $(LDFLAGS) $(SLOPOBJS) $(IMLIBS) $(FORTCLIBS)
+sloppymont$(E): $(SLOPOBJS)
+	$(FC) -o sloppymont $(SLOPOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ blendmont reducemont
+	-\rm -f *.o* *~ *.exe blendmont reducemont sloppymont
 
-blendmont.o:	blend.inc
-bsubs.o:	blend.inc
-shuffler.o:	blend.inc
-reducemont.o:	blend.inc
+blendmont.$(O):	blend.inc
+bsubs.$(O):	blend.inc
+shuffler.$(O):	blend.inc
+reducemont.$(O):	blend.inc

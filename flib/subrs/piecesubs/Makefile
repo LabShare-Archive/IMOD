@@ -1,12 +1,13 @@
 include ../../configure
 
-OBJS = checklist.o fill_listz.o lookup_piece.o read_piece_list.o
+O        = $(OBJEXT)
+OBJS = checklist.$(O) fill_listz.$(O) lookup_piece.$(O) read_piece_list.$(O)
 
 all: $(OBJS)
 
 
 clean:
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 

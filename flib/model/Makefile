@@ -1,4 +1,3 @@
-include ../configure
 #
 #  $Author$
 #
@@ -7,117 +6,131 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/09/06 00:02:06  mast
+#  Added resamplemod
+#
 #  Revision 3.1  2002/05/23 04:41:37  mast
 #  Added repackseed
 #
 
-PROGS = convertmod model2point imavgstat solvematch xfmodel\
- boxstartend endmodel realscalemod scalemodel checkmtmod joinmodel mtsmooth\
- reducemtmod xfinterstack clipmodel mtmodel remapmodel mtlengths contourmod\
- smoothsurf reducecont fenestra ccderaser edgeeraser refinematch findwarp\
- tomopitch fiberpitch corrsearch3d repackseed resamplemod
+include ../configure
+
+E        = $(BINEXT)
+O        = $(OBJEXT)
+LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+
+PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
+ xfmodel$(E) boxstartend$(E) endmodel$(E) realscalemod$(E) scalemodel$(E) \
+ checkmtmod$(E) joinmodel$(E) mtsmooth$(E) reducemtmod$(E) xfinterstack$(E) \
+ clipmodel$(E) mtmodel$(E) remapmodel$(E) mtlengths$(E) contourmod$(E)\
+ smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
+ refinematch$(E) findwarp$(E)\
+ tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E)
 
 LIBS = $(FORTCLIBS)
 
 all: $(PROGS)
 
-convertmod: convertmod.o
-	$(FC) -o convertmod convertmod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+addtostack$(E): addtostack.$(O)
+	$(FC) -o addtostack addtostack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-model2point: model2point.o
-	$(FC) -o model2point model2point.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+convertmod$(E): convertmod.$(O)
+	$(FC) -o convertmod convertmod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-imavgstat: imavgstat.o
-	$(FC) -o imavgstat imavgstat.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+model2point$(E): model2point.$(O)
+	$(FC) -o model2point model2point.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-solvematch: solvematch.o solve_wo_outliers.o
-	$(FC) -o solvematch solvematch.o solve_wo_outliers.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+imavgstat$(E): imavgstat.$(O)
+	$(FC) -o imavgstat imavgstat.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xfmodel: xfmodel.o
-	$(FC) -o xfmodel xfmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+solvematch$(E): solvematch.$(O) solve_wo_outliers.$(O)
+	$(FC) -o solvematch solvematch.$(O) solve_wo_outliers.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-boxstartend: boxstartend.o
-	$(FC) -o boxstartend boxstartend.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xfmodel$(E): xfmodel.$(O)
+	$(FC) -o xfmodel xfmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-endmodel: endmodel.o
-	$(FC) -o endmodel endmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+boxstartend$(E): boxstartend.$(O)
+	$(FC) -o boxstartend boxstartend.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-realscalemod: realscalemod.o
-	$(FC) -o realscalemod realscalemod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+endmodel$(E): endmodel.$(O)
+	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-scalemodel: scalemodel.o
-	$(FC) -o scalemodel scalemodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+realscalemod$(E): realscalemod.$(O)
+	$(FC) -o realscalemod realscalemod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-checkmtmod: checkmtmod.o
-	$(FC) -o checkmtmod checkmtmod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+scalemodel$(E): scalemodel.$(O)
+	$(FC) -o scalemodel scalemodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-joinmodel: joinmodel.o
-	$(FC) -o joinmodel joinmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+checkmtmod$(E): checkmtmod.$(O)
+	$(FC) -o checkmtmod checkmtmod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-mtsmooth: mtsmooth.o
-	$(FC) -o mtsmooth mtsmooth.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+joinmodel$(E): joinmodel.$(O)
+	$(FC) -o joinmodel joinmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-reducemtmod: reducemtmod.o
-	$(FC) -o reducemtmod reducemtmod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+mtsmooth$(E): mtsmooth.$(O)
+	$(FC) -o mtsmooth mtsmooth.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xfinterstack: xfinterstack.o
-	$(FC) -o xfinterstack xfinterstack.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+reducemtmod$(E): reducemtmod.$(O)
+	$(FC) -o reducemtmod reducemtmod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-clipmodel: clipmodel.o
-	$(FC) -o clipmodel clipmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+xfinterstack$(E): xfinterstack.$(O)
+	$(FC) -o xfinterstack xfinterstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-mtmodel: mtmodel.o
-	$(FC) -o mtmodel mtmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+clipmodel$(E): clipmodel.$(O)
+	$(FC) -o clipmodel clipmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-remapmodel: remapmodel.o
-	$(FC) -o remapmodel remapmodel.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+mtmodel$(E): mtmodel.$(O)
+	$(FC) -o mtmodel mtmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-mtlengths: mtlengths.o
-	$(FC) -o mtlengths mtlengths.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+remapmodel$(E): remapmodel.$(O)
+	$(FC) -o remapmodel remapmodel.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-contourmod: contourmod.o
-	$(FC) -o contourmod contourmod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+mtlengths$(E): mtlengths.$(O)
+	$(FC) -o mtlengths mtlengths.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-smoothsurf: smoothsurf.o
-	$(FC) -o smoothsurf smoothsurf.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+contourmod$(E): contourmod.$(O)
+	$(FC) -o contourmod contourmod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-reducecont: reducecont.o
-	$(FC) -o reducecont reducecont.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+smoothsurf$(E): smoothsurf.$(O)
+	$(FC) -o smoothsurf smoothsurf.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-fenestra: fenestra.o planefit.o
-	$(FC) -o fenestra fenestra.o planefit.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+reducecont$(E): reducecont.$(O)
+	$(FC) -o reducecont reducecont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-ccderaser: ccderaser.o
-	$(FC) -o ccderaser ccderaser.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+fenestra$(E): fenestra.$(O) planefit.$(O)
+	$(FC) -o fenestra fenestra.$(O) planefit.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-edgeeraser: edgeeraser.o
-	$(FC) -o edgeeraser edgeeraser.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+ccderaser$(E): ccderaser.$(O)
+	$(FC) -o ccderaser ccderaser.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-refinematch: refinematch.o solve_wo_outliers.o
-	$(FC) -o refinematch refinematch.o $(LDFLAGS) solve_wo_outliers.o $(IMLIBS) $(LIBS)
+edgeeraser$(E): edgeeraser.$(O)
+	$(FC) -o edgeeraser edgeeraser.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-findwarp: findwarp.o solve_wo_outliers.o
-	$(FC) -o findwarp findwarp.o $(LDFLAGS) solve_wo_outliers.o $(IMLIBS) $(LIBS)
+refinematch$(E): refinematch.$(O) solve_wo_outliers.$(O)
+	$(FC) -o refinematch refinematch.$(O) $(LDFLG) solve_wo_outliers.$(O) $(IMLIBS) $(LIBS)
 
-tomopitch: tomopitch.o
-	$(FC) -o tomopitch tomopitch.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+findwarp$(E): findwarp.$(O) solve_wo_outliers.$(O)
+	$(FC) -o findwarp findwarp.$(O) $(LDFLG) solve_wo_outliers.$(O) $(IMLIBS) $(LIBS)
 
-fiberpitch: fiberpitch.o
-	$(FC) -o fiberpitch fiberpitch.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+tomopitch$(E): tomopitch.$(O)
+	$(FC) -o tomopitch tomopitch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-corrsearch3d: corrsearch3d.o
-	$(FC) -o corrsearch3d corrsearch3d.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+fiberpitch$(E): fiberpitch.$(O)
+	$(FC) -o fiberpitch fiberpitch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-repackseed: repackseed.o
-	$(FC) -o repackseed repackseed.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+corrsearch3d$(E): corrsearch3d.$(O)
+	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-resamplemod: resamplemod.o
-	$(FC) -o resamplemod resamplemod.o $(LDFLAGS) $(IMLIBS) $(LIBS)
+repackseed$(E): repackseed.$(O)
+	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+resamplemod$(E): resamplemod.$(O)
+	$(FC) -o resamplemod resamplemod.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
 	strip $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o *~ $(PROGS)
+	-\rm -f *.o* *~ *.exe $(PROGS)
 

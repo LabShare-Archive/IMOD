@@ -6,17 +6,21 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/02/26 23:01:22  mast
+#  Added nbytes_and_flags to test for structure of extended header
+#
 
-OBJS = blockio.o altskip.o icllim.o imopen.o imposn.o imunit.o irdhdr.o\
- irdlin.o irdpas.o irepak.o isetdn.o iwrlin.o iwrpas.o convert_vms.o\
- nbytes_and_flags.o
+O        = $(OBJEXT)
+OBJS = blockio.$(O) altskip.$(O) icllim.$(O) imopen.$(O) imposn.$(O) \
+ imunit.$(O) irdhdr.$(O) irdlin.$(O) irdpas.$(O) irepak.$(O) isetdn.$(O) \
+ iwrlin.$(O) iwrpas.$(O) convert_vms.$(O) nbytes_and_flags.$(O)
 
 all: $(OBJS)
 
-blockio.o: environ.h
+blockio.$(O): environ.h
 $(OBJS):   imsubs.inc
 
 clean:
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
