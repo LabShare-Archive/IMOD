@@ -1,6 +1,7 @@
 package etomo.process;
 
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
@@ -37,6 +38,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/03/29 20:57:58  sueh
+ * bug# 409 added mtffilter()
+ *
  * Revision 3.4  2004/03/22 23:47:31  sueh
  * bug# 83 Use PatchcorrProcessWatcher when running patchcorr.
  *
@@ -929,7 +933,7 @@ public class ProcessManager {
     isAxisBusy(axisID);
 
     //  Run the script as a thread in the background
-    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
+    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this, axisID);
     comScriptProcess.setWorkingDirectory(
       new File(System.getProperty("user.dir")));
     comScriptProcess.setDebug(ApplicationManager.isDebug());
@@ -984,6 +988,7 @@ public class ProcessManager {
    *          the exit value for the com script
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
+    System.err.println("msgComScriptDone:scriptName=" + script.getScriptName() + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       String[] combined;
@@ -1016,25 +1021,11 @@ public class ProcessManager {
     }
     else {
       // Script specific post processing
-
-      if (script.getScriptName().equals("aligna.com")) {
-        generateAlignLogs(AxisID.FIRST);
+      if (script.getProcessName() == ProcessName.ALIGN) {
+        generateAlignLogs(script.getAxisID());
       }
-      if (script.getScriptName().equals("alignb.com")) {
-        generateAlignLogs(AxisID.SECOND);
-      }
-      if (script.getScriptName().equals("align.com")) {
-        generateAlignLogs(AxisID.ONLY);
-      }
-
-      if (script.getScriptName().equals("tomopitcha.com")) {
-        appManager.openTomopitchLog(AxisID.FIRST);
-      }
-      if (script.getScriptName().equals("tomopitchb.com")) {
-        appManager.openTomopitchLog(AxisID.SECOND);
-      }
-      if (script.getScriptName().equals("tomopitch.com")) {
-        appManager.openTomopitchLog(AxisID.ONLY);
+      if (script.getProcessName() == ProcessName.TOMOPITCH) {
+        appManager.openTomopitchLog(script.getAxisID());
       }
 
       String[] warningMessages = script.getWarningMessage();
@@ -1072,7 +1063,11 @@ public class ProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    appManager.processDone(script.getName(), exitValue);
+    appManager.processDone(
+      script.getName(),
+      exitValue,
+      script.getProcessName(),
+      script.getAxisID());
   }
 
   /**
@@ -1182,7 +1177,7 @@ public class ProcessManager {
     }
 
     //	Inform the app manager that this process is complete
-    appManager.processDone(process.getName(), exitValue);
+    appManager.processDone(process.getName(), exitValue, null, null);
   }
 
   /**
