@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.42  2003/05/15 22:24:24  rickg
+ * <p> Reordered method sequence in opening processing panel to
+ * <p> prevent slider from taking up all of the window.
+ * <p>
  * <p> Revision 2.41  2003/05/15 20:13:05  rickg
  * <p> Fixed PLAF for windows
  * <p>
@@ -535,7 +539,7 @@ public class ApplicationManager {
 
     mainFrame.doLayout();
     mainFrame.validate();
-    if(isDualAxis()){
+    if (isDualAxis()) {
       mainFrame.setDividerLocation(0.51);
     }
   }
@@ -2592,7 +2596,6 @@ public class ApplicationManager {
   /**
    * Get the current advanced state
    */
-
   public boolean getAdvanced() {
     return isAdvanced;
   }
@@ -2620,6 +2623,68 @@ public class ApplicationManager {
     return metaData.getDatasetName();
   }
 
+  /**
+   * Open a new dataset starting wiht the setup dialog
+   *
+   */
+  public void openNewDataset() {
+    // Check to see if the current dataset needs to be saved
+    if (isDataParamDirty || processTrack.isModified()) {
+      int returnValue =
+        JOptionPane.showConfirmDialog(
+          mainFrame,
+          "Save the current data file ?",
+          "Save data file?",
+          JOptionPane.YES_NO_CANCEL_OPTION);
+
+      if (returnValue == JOptionPane.CANCEL_OPTION) {
+        return;
+      }
+
+      if (returnValue == JOptionPane.YES_OPTION) {
+        if (paramFile == null) {
+          if (!mainFrame.getTestParamFilename()) {
+            return;
+          }
+        }
+        saveTestParamFile();
+      }
+    }
+    if (isDataParamDirty) {
+      return;
+    }
+
+    // Delete the objects associated with the current dataset
+    metaData = new MetaData();
+    paramFile = null;
+
+    setupDialog = null;
+    preProcDialogA = null;
+    preProcDialogB = null;
+    coarseAlignDialogA = null;
+    coarseAlignDialogB = null;
+    fiducialModelDialogA = null;
+    fiducialModelDialogB = null;
+    fineAlignmentDialogA = null;
+    fineAlignmentDialogB = null;
+    tomogramPositioningDialogA = null;
+    tomogramPositioningDialogB = null;
+    tomogramGenerationDialogA = null;
+    tomogramGenerationDialogB = null;
+    tomogramCombinationDialog = null;
+    postProcessingDialog = null;
+    settingsDialog = null;
+
+    comScriptMgr = new ComScriptManager(this);
+    processMgr = new ProcessManager(this);
+    processTrack = new ProcessTrack();
+    //  This will be created in the doneSetupDialog method
+    imodManager = null;
+
+    // Open the setup dialog
+    openSetupDialog();
+
+  }
   /**
    * A message asking the ApplicationManager to load in the information from the
    * test parameter file.
@@ -2700,6 +2765,7 @@ public class ApplicationManager {
       errorMessage[2] = except.getMessage();
       openMessageDialog(errorMessage, "Test parameter file save error");
     }
+    isDataParamDirty = false;
   }
 
   /**
