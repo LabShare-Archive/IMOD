@@ -279,6 +279,10 @@ instead of to the file that transforms were read from.
 .TP
 .B -D
 Run in debug mode, which means do not run the program in the background.
+.TP
+.B -p
+Suppress reminder to rebuild edge functions when exiting after fixing montage
+edges.
 .SH FILES
 The transformation files that midas uses are in the following format.
 The files are in ascii format with one line for each image in the image stack.
@@ -312,6 +316,6 @@ treated in 3dmod),
 and to provide completely new controls, menus, and help windows.  In the latest
 version, the graphical interface was rewritten in Qt.
 .SH SEE ALSO
-xftoxg(1), imodtrans(1), newstack(1), blendmont(1), 3dmod(1), tif2mrx(1)
+xftoxg(1), imodtrans(1), newstack(1), blendmont(1), 3dmod(1), tif2mrc(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.
