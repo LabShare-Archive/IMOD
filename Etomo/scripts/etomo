@@ -26,5 +26,5 @@ if [ -e etomo_err.log ]; then
   cp etomo_err.log etomo_err.log~
 fi
 
-java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar \
+java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@ \
   2>etomo_err.log >etomo_out.log &
