@@ -533,6 +533,8 @@ void imodvOpenSelectedWindows(char *keys)
       imodvModelEditDialog(Imodv, 1);
     if (strchr(keys, 'm'))
       imodvMovieDialog(Imodv, 1);
+    if (strchr(keys, 'I') && !Imodv->standalone)
+      imodvImageEditDialog(Imodv, 1);
     if (strchr(keys, 'S'))
       imodvStereoEditDialog(Imodv, 1);
     if (strchr(keys, 'D'))
@@ -611,6 +613,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.15  2004/11/21 06:07:49  mast
+Changes for undo/redo
+
 Revision 4.14  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
