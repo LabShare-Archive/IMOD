@@ -35,6 +35,7 @@ Log at end of file
 #include "imodplug.h"
 #include "dia_qtutils.h"
 #include "xcramp.h"
+#include "xcorr.h"
 #include "imod_edit.h"
 #include "imod_moviecon.h"
 #include "imod_workprocs.h"
@@ -78,110 +79,7 @@ static int ctrlPressed = false;
  */
 void slicerHelp()
 {
-  dia_vasmsg
-    ("3dmod Slicer Help\n",
-     "-------------------------------------------------------------\n",
-     "\nSlicer has two dockable toolbars that may be floated as separate "
-     "windows so that the image will fill the entire window area.  When they "
-     "are floated, they will still pass hot keys on to the slicer window\n",
-
-     "\nThe First Toolbar\n",
-     "-------------------\n",
-     "\tThe Up and Down Arrows step the zoom factor up or down.\n",
-     "\tThe text box shows the current zoom and allows  you to type in "
-     "intermediate zoom factors.\n",
-     "\tThe checkerboard button toggles between fast rendering and "
-     "slower but higher quality image rendering.\n",
-     "\tThe lock button will keep the image locked to the current "
-     "position.\n",
-     "\tThe show slice button will cause lines to be draw in the "
-     "XYZ and ZaP windows to show the intersection of the current "
-     "slice.\n",
-     "\tThe Z-Scale box lets you "
-     "control whether the volume will be displayed with Z-"
-     "scaling.  If you choose \"Z-Scale Before\", then the volume will be "
-     "scaled before it is rotated and sliced, and thus the rotation "
-     "angles will not select the same slice as with no Z-scaling.  These "
-     "angles will be correct in a Z-scaled volume, but would not be correct "
-     "for using Rotatevol to achieve the same rotation of the original volume."
-     "  If you choose \"Z-Scale After\", the volume is scaled after being "
-     "rotated, and the same slice is selected as with no Z-scaling.  If you "
-     "plan to use angles in Rotatevol, use \"Z-Scale After\" or no Z-scaling."
-     "\n\tWhen images are loaded in with a different binning in Z versus X and"
-     " Y, the angles are correct for the original, unbinned volume.  This is "
-     "accomplished by applying an implicit Z scaling before rotation.  In "
-     "this case, you can select \"Z-Scale Before\" to apply an additional "
-     "Z-scaling, but \"Z-Scale After\" will be unavailable.\n"
-
-     "\nThe Second Toolbar\n",
-     "-------------------\n",
-     "\tOn the left are three sliders "
-     "with which you can adjust the rotations about the "
-     "X, Y, and Z axes.  The rotation angles are applied to the volume, "
-     "not to the slicing plane, and they are applied in the order Z, Y, "
-     "X; thus these same angles can be used directly in other programs "
-     "that rotate the volume.  Clicking a slider with the left mouse "
-     "button will change the angle by 1 degree; clicking with the "
-     "middle button moves the slider immediately to the position of "
-     "mouse.  If you drag the slider, the representation of the slice "
-     "in the data volume will change continuously, and the image will "
-     "also be updated if the slider is continuously active.  If the slider is "
-     "not continuously active, the image "
-     "will not be updated until you release the slider.  Typically the "
-     "sliders will be continuously active unless you press the "CTRL_STRING
-     " key, although you can change this default behavior in the 3dmod "
-     "Preferences dialog, accessed through the Edit-Options menu entry.  \n",
-     "\tIn the middle is a representation of the slice that is being cut "
-     "from the data volume.\n"
-     "\tOn the right are controls for adjusting the thickness of "
-     "the image slice and the thickness of model that is shown on the slice.\n"
-     "\nMouse Actions and Movies\n",
-     "-----------------\n",
-     "\tAll mouse buttons behave as in the Zap and XYZ windows. "
-     "The first mouse button in movie mode, and all mouse buttons in model "
-     "mode, will change the current viewing point in the data "
-     "volume, unless the image position is locked by the lock button.\n"
-     "\tIn movie mode, the buttons do the following:\n"
-     "First button: Set current viewing point\n "
-     "Second button: Start movie forward, perpendicular to viewed slice\n"
-     "Third button: Start movie backward, perpendicular to viewed slice\n"
-     "\tIn model mode, the buttons do the following:\n"
-     "First button: Attach to the nearest model point, or detach from the "
-     "current contour\n"
-     "Second button: Insert a point after the current point\n"
-     "Third button: Move the current point to the selected location\n",
-     "\tBy default, these buttons correspond to the left, middle, and right "
-     "buttons, but you can change these assignments in the 3dmod Preferences "
-     "dialog.\n"
-     "\tWhen a movie is started with an obliquely oriented slice, the range "
-     "of the movie is determined by two sets of limits.  One set of limits is "
-     "imposed to keep the central displayed point within the data volume.  "
-     "The other limits are based on the starting and ending movie limits for "
-     "the axis that is closest to perpendicular to the slice.  These limits "
-     "are set in the 3dmod Movie Controller (opened with Edit - Movies...).  "
-     "The slice angles can be changed while movieing and these limits will "
-     "be adjusted dynamically.\n\n"
-     "Hot Keys\n",
-     "-----------\n",
-     "-/=\tDecrease/Increase zoom\n",
-     "_/+\tDecrease/Increase displayed image thickness\n",
-     "9/0\tDecrease/Increase displayed model thickness\n",
-     "s\tShow slice in ZaP and XYZ windows\n",
-     "S\tSnapshot to RGB file\n",
-     CTRL_STRING"-S\tSnapshot to TIFF file\n",
-     "x/y/z\tAlign current and previous model points along X, Y or Z "
-     "axis\n",
-     "X/Y/Z\tAlign first and last points of contour along X, Y or Z "
-     "axis\n\n",
-     "Numeric Keypad:\n"
-     "4/6\t(Left/Right) Decrease/Increase last adjusted angle by "
-     "0.1 degree\n",
-     "2/8\t(Down/Up) Decrease/Increase last adjusted angle by "
-     "0.5 degree\n",
-     "1/3\t(End/PgDn) Decrease/Increase last adjusted angle by 15 degrees\n",
-     "0\t(Insert) Set last adjusted angle to 0\n",
-     NULL);
-  return;
+  imodShowHelpPage("slicer.html");
 }
 
 
@@ -225,7 +123,8 @@ void slicerShowSlice(SlicerStruct *ss)
 void slicerStateToggled(SlicerStruct *ss, int index, int state)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
-  if (index) {
+  switch (index) {
+  case SLICER_TOGGLE_LOCK:
 
     /* toggle the lock button, redraw if unlocking */
     ss->locked = state;
@@ -236,11 +135,19 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
       ss->pending = 0;
       sslice_draw(ss);
     }
-  } else {
+    break;
+
+  case SLICER_TOGGLE_HIGHRES:
 
     /* toggle between fast rendering and highres rendering */
     ss->hq = state;
     sslice_draw(ss);
+    break;
+
+  case SLICER_TOGGLE_FFT:
+    ss->fftMode = state;
+    sslice_draw(ss);
+    break;
   }
 }
 
@@ -380,6 +287,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->imageFilled = 0;
   ss->mousemode = vi->imod->mousemode;
   ss->movieSnapCount = 0;
+  ss->fftMode = 0;
 
   slice_trans_step(ss);
   ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
@@ -1307,13 +1215,15 @@ static void fillImageArray(SlicerStruct *ss)
   unsigned int *cmap = App->cvi->cramp->ramp;
   int innerStart, innerEnd, outerStart, outerEnd;
   float fstart, fend;
-  unsigned char **imdata;
+  b3dUByte **imdata;
+  b3dUByte *bdata;
+  Islice *slice;
   int vmnullvalue;
   
   if (!ss->image)
       return;
-  unsigned short *cidata = ss->image->id1;
-  unsigned int   *idata = (unsigned int  *)cidata;
+  b3dUInt16 *cidata = ss->image->id1;
+  b3dUInt32 *idata = (b3dUInt32 *)cidata;
   int pixsize  = b3dGetImageType(NULL, NULL);
 
 
@@ -1387,9 +1297,10 @@ static void fillImageArray(SlicerStruct *ss)
   ss->ys = ys;
   ss->yline = 0;
 
-  if (ss->hq || (int)ss->zoom != ss->zoom){ 
+  if ((ss->hq || (int)ss->zoom != ss->zoom) && 
+      (!ss->fftMode || ss->zoom < 1.)){ 
     /* high quality image or fractional zoom */
-    isize = ss->winx; /* calculate each pixel for zoom. */
+    isize = ss->winx; /* calculate each pixel for zoom unless FFT. */
     jsize = ss->winy;
     xsx /= xzoom;
     ysx /= xzoom;
@@ -1481,7 +1392,7 @@ static void fillImageArray(SlicerStruct *ss)
 
   shortcut = 0;
   izoom = (int) zoom;
-  if ((ss->hq != 0) && (zoom == izoom) && (zoom > 1.0)) {
+  if ((ss->hq != 0) && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) {
     shortcut = 1;
     ilimshort = izoom * ((isize - 1) / izoom - 1);
     jlimshort = izoom * ((jsize - 1) / izoom - 1);
@@ -1736,6 +1647,32 @@ static void fillImageArray(SlicerStruct *ss)
   // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
   cindex = ss->image->width * ss->image->height;
   k = ss->nslice;
+
+  // Take FFT if flag is set
+  if (ss->fftMode) {
+    slice = sliceCreate(isize, jsize, SLICE_MODE_BYTE);
+    if (slice) {
+      bdata = slice->data.b;
+      for (j = 0; j < jsize; j++) {
+        if (k > 1)
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            *bdata++ = (b3dUByte)(cidata[i] / k);
+        else
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            *bdata++ = (b3dUByte)cidata[i];
+      }
+      slice->min = minval;
+      slice->max = maxval;
+      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1) > 0) {
+        bdata = slice->data.b;
+        for (j = 0; j < jsize; j++)
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            cidata[i] = *bdata++;
+      }
+      sliceFree(slice);
+      k = 1;
+    }
+  }
 
   /* for 8-bit displays, range is less then 256 gray scales. */
   if (!App->rgba && App->depth == 8){
@@ -2080,7 +2017,7 @@ void slicerPaint(SlicerStruct *ss)
   }
 
   /* DNM: one-to-one image for fractional zoom as well as in hq case */
-  if (ss->hq || ss->zoom != (int)ss->zoom)
+  if ((ss->hq || ss->zoom != (int)ss->zoom) && (!ss->fftMode || ss->zoom < 1.))
     glPixelZoom(1.0f, 1.0f);
   else
     /* DNM: don't make this xzoom, yzoom.  */
@@ -2281,6 +2218,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.27  2004/11/21 05:50:34  mast
+Switch from int to float for nearest point distance measurement
+
 Revision 4.26  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
