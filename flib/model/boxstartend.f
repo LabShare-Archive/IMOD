@@ -75,6 +75,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/03/15 23:54:47  mast
+c	  Redimensioned to 256x256x257 and put big arrays in common
+c	
 c	  Revision 3.2  2002/09/09 21:36:00  mast
 c	  Eliminate stat_source: and nimp_source: from all includes
 c	
@@ -92,7 +95,7 @@ c
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
 	logical exist,readw_or_imod
 	character*80 modelfile
-	real*4 delt(3),orig(3),cell(6),title(20)
+	real*4 delt(3),orig(3),cell(6),title(20),offset(3)
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl),
      &	    listz(limpcl),icolclip(256)
 	character*80 filin,filpcl,filpcl2
@@ -203,6 +206,8 @@ c
 	read(*,*)npixbox
 	npleft=(npixbox-1)/2
 	npright=npixbox-npleft-1
+	offset(1) = -0.5 * (1 + npright - npleft)
+	offset(2) = offset(1)
 	if (npixbox.gt.idim)then
 	  print *,'BOXSTARTEND ERROR: BOX SIZE TOO LARGE FOR ARRAYS'
 	  call exit(1)
@@ -212,6 +217,7 @@ c
      &	    ' after endpoint to clip out: '
 	read(*,*)nzbefore,nzafter
 	nzclip=nzbefore+nzafter+1
+	offset(3) = -0.495 * (1 + nzafter - nzbefore)
 	if (nzclip.gt.izdim)then
 	  print *,'BOXSTARTEND ERROR: MUMBER OF SECTIONS',
      &	      ' TOO LARGE FOR ARRAYS'
@@ -303,7 +309,7 @@ c
 c		  convert to index coords
 c		
 		do i=1,3
-		  ind(i)=nint((p_coord(i,ipnt)+orig(i))/delt(i))
+		  ind(i)=nint((p_coord(i,ipnt)+orig(i))/delt(i) + offset(i))
 		enddo
 c		
 c		  is it inside limits?
