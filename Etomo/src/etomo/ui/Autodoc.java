@@ -25,6 +25,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2003/12/31 17:46:43  sueh
+* <p> $bug# 372 add getFile()
+* <p> $
 * <p> $Revision 1.4  2003/12/31 02:01:36  sueh
 * <p> $bug# 372 fixed environment variable names
 * <p> $
@@ -41,7 +44,7 @@ import java.util.Iterator;
 * <p> $$ </p>
 */
 
-public class Autodoc implements AttributeInterface {
+public class Autodoc implements AttributeCollection {
   public static final String rcsid =
     "$$Id$$";
 
@@ -107,7 +110,7 @@ public class Autodoc implements AttributeInterface {
     return existingSection;
   }
 
-  public AttributeInterface addAttribute(Token name) {
+  public AttributeCollection addAttribute(Token name) {
     if (metaData == null) {
       metaData = new HashMap();
     }
@@ -124,13 +127,10 @@ public class Autodoc implements AttributeInterface {
 
   public final Section getSection(String type, String name) {
     if (sectionMap == null) {
-      return new Section();
+      return null;
     }
     String key = Section.getKey(type, name);
     Section section = (Section) sectionMap.get(key);
-    if (section == null) {
-      return new Section();
-    }
     return section;
   }
 
@@ -150,7 +150,7 @@ public class Autodoc implements AttributeInterface {
 
   public final Section nextSection(SectionLocation location) {
     if (location == null) {
-      return new Section();
+      return null;
     }
     Section section = null;
     for (int i = location.getIndex() + 1; i < sectionList.size(); i++) {
@@ -160,7 +160,7 @@ public class Autodoc implements AttributeInterface {
         return section;
       }
     }
-    return new Section();
+    return null;
   }
 
   public void print() {

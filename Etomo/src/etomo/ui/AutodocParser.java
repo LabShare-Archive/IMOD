@@ -98,6 +98,9 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2003/12/31 17:47:41  sueh
+* <p> $bug# 372 add doc, get file from Autodoc
+* <p> $
 * <p> $Revision 1.3  2003/12/31 01:27:04  sueh
 * <p> $bug# 372 save recognized data, testing, delimiter change on
 * <p> $the fly, checking for meta data
@@ -238,7 +241,7 @@ public class AutodocParser {
    * @throws IOException
    */
   private boolean section() throws IOException {
-    AttributeInterface section = null;
+    AttributeCollection section = null;
     testStartFunction("section");
     if (!startOfLine) {
       return false;
@@ -374,8 +377,8 @@ public class AutodocParser {
    * @return true if attribute found
    * @throws IOException
    */
-  private boolean attribute(AttributeInterface attribute) throws IOException {
-    Attribute newAttribute = null;
+  private boolean attribute(AttributeCollection attributeCollection) throws IOException {
+    Attribute attribute = null;
     testStartFunction("attribute");
     if (!delimiterInLine) {
       reportError(
@@ -389,12 +392,12 @@ public class AutodocParser {
     }
     attributeNameStart = token;
     attributeNameEnd = attributeNameStart;
-    newAttribute = (Attribute) attribute.addAttribute(attributeNameStart);
+    attribute = (Attribute) attributeCollection.addAttribute(attributeNameStart);
     nextToken();
     if (token.is(Token.SEPARATOR)) {
       while (token.is(Token.SEPARATOR)) {
         nextToken();
-        if (!testEndFunction(attribute(newAttribute))) {
+        if (!testEndFunction(attribute(attribute))) {
           reportError(
             "An attribute names cannot end with a separator ('"
               + AutodocTokenizer.SEPARATOR_CHAR
@@ -422,7 +425,7 @@ public class AutodocParser {
         attributeNameStart.equals(
           Token.KEYWORD,
           AutodocTokenizer.DELIMITER_KEYWORD);
-      testEndFunction(value(newAttribute, oneLine));
+      testEndFunction(value(attribute, oneLine));
     }
 
     return true;
