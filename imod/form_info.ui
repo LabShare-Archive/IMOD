@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>300</width>
-            <height>198</height>
+            <width>303</width>
+            <height>203</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -33,7 +33,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout36</cstring>
+                <cstring>Layout34</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -43,25 +43,64 @@
                     <number>0</number>
                 </property>
                 <property name="spacing">
-                    <number>4</number>
+                    <number>6</number>
                 </property>
-                <widget class="QLabel">
+                <widget class="QToolButton">
                     <property name="name">
-                        <cstring>imageLabel</cstring>
+                        <cstring>keepOnTopButton</cstring>
                     </property>
                     <property name="sizePolicy">
                         <sizepolicy>
-                            <hsizetype>5</hsizetype>
+                            <hsizetype>1</hsizetype>
                             <vsizetype>1</vsizetype>
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
                     <property name="text">
-                        <string>Image:</string>
+                        <string></string>
                     </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
+                    <property name="toggleButton">
+                        <bool>true</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Keep this window on top of all other windows</string>
+                    </property>
+                </widget>
+                <widget class="QToolButton">
+                    <property name="name">
+                        <cstring>raiseButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string></string>
+                    </property>
+                    <property name="iconSet">
+                        <iconset>raisewindow.png</iconset>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Raise all Imod windows above other windows (hotkey Ctrl-R)</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>showCheckBox</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>1</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>Show point</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Show current point when changing object, contour, or point</string>
                     </property>
                 </widget>
                 <widget class="QLabel">
@@ -80,7 +119,7 @@
                         <string>Model: </string>
                     </property>
                     <property name="alignment">
-                        <set>AlignVCenter|AlignLeft</set>
+                        <set>AlignVCenter|AlignRight</set>
                     </property>
                 </widget>
             </hbox>
@@ -845,32 +884,56 @@
         <receiver>InfoControls</receiver>
         <slot>movieModelSelected(int)</slot>
     </connection>
+    <connection>
+        <sender>showCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>InfoControls</receiver>
+        <slot>showPointToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>keepOnTopButton</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>InfoControls</receiver>
+        <slot>keepOnTopToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>raiseButton</sender>
+        <signal>clicked()</signal>
+        <receiver>InfoControls</receiver>
+        <slot>raisePressed()</slot>
+    </connection>
 </connections>
 <includes>
+    <include location="local" impldecl="in implementation">unpegged.xpm</include>
+    <include location="local" impldecl="in implementation">imod_info.h</include>
     <include location="global" impldecl="in implementation">stdio.h</include>
     <include location="global" impldecl="in implementation">qsignalmapper.h</include>
     <include location="local" impldecl="in implementation">imod_info_cb.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">imod_input.h</include>
+    <include location="local" impldecl="in implementation">pegged.xpm</include>
     <include location="local" impldecl="in implementation">form_info.ui.h</include>
 </includes>
 <variables>
-    <variable>QString mStr</variable>
-    <variable>QSpinBox *mXYZBox[3]</variable>
-    <variable>QSpinBox *mOCPBox[3]</variable>
-    <variable>int mLastOCPmax[3]</variable>
-    <variable>int mLastOCPval[3]</variable>
-    <variable>int mLastXYZmax[3]</variable>
-    <variable>int mLastXYZval[3]</variable>
-    <variable>bool mWhitePressed</variable>
-    <variable>bool mBlackPressed</variable>
-    <variable>bool mCtrlPressed</variable>
-    <variable>int mDisplayedBlack</variable>
-    <variable>int mDisplayedWhite</variable>
-    <variable>QLabel *mXYZLabel[3]</variable>
+    <variable>bool mShowPoint</variable>
     <variable>QLabel *mOCPLabel[3]</variable>
+    <variable>QLabel *mXYZLabel[3]</variable>
+    <variable>int mDisplayedWhite</variable>
+    <variable>int mDisplayedBlack</variable>
+    <variable>bool mCtrlPressed</variable>
+    <variable>bool mBlackPressed</variable>
+    <variable>bool mWhitePressed</variable>
+    <variable>int mLastXYZval[3]</variable>
+    <variable>int mLastXYZmax[3]</variable>
+    <variable>int mLastOCPval[3]</variable>
+    <variable>int mLastOCPmax[3]</variable>
+    <variable>QSpinBox *mOCPBox[3]</variable>
+    <variable>QSpinBox *mXYZBox[3]</variable>
+    <variable>QString mStr</variable>
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>xyzChanged( int item )</slot>
     <slot>ocpChanged( int item )</slot>
     <slot>blackChanged( int value )</slot>
@@ -883,6 +946,9 @@
     <slot>displayWhite( int value )</slot>
     <slot>movieModelSelected( int item )</slot>
     <slot>floatToggled( bool state )</slot>
+    <slot>raisePressed()</slot>
+    <slot>showPointToggled( bool state )</slot>
+    <slot>keepOnTopToggled( bool state )</slot>
     <slot>setFloat( int state )</slot>
     <slot>setBWSliders( int black, int white )</slot>
     <slot>setMovieModel( int which )</slot>
@@ -891,6 +957,7 @@
     <slot>setObjectColor( QColor foreColor, QColor backColor )</slot>
     <slot>setModelName( char * name )</slot>
     <slot>setImageName( char * name )</slot>
+    <slot>setShowPoint( int state )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

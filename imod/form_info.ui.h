@@ -23,6 +23,7 @@ void InfoControls::init()
     mCtrlPressed = false;
     mBlackPressed = false;
     mWhitePressed = false;
+    setShowPoint(true);
     
     // Set arrays of spin boxes
     mOCPBox[0] = objectSpinBox;
@@ -37,10 +38,6 @@ void InfoControls::init()
     mXYZLabel[0] = maxXLabel;
     mXYZLabel[1] = maxYLabel;
     mXYZLabel[2] = maxZLabel;
-    
-    // Get a minimum width for spin boxes to keep arrows big
-    int minWidth = fontMetrics().width("88888888");
-    int minLabelWidth = fontMetrics().width("/ 8888");
     
     // Get signal mappers for the combo boxes
     QSignalMapper *ocpMapper = new QSignalMapper(this);
@@ -58,6 +55,31 @@ void InfoControls::init()
 	connect(mXYZBox[i], SIGNAL(valueChanged(int)), xyzMapper, SLOT(map()));
 	mLastXYZval[i] = -2;
 	mLastXYZmax[i] = -2;
+    }
+    setFontDependentWidths();
+    
+    QIconSet iconSet;
+    iconSet.setPixmap(QPixmap(pegged), QIconSet::Automatic, QIconSet::Normal,
+		      QIconSet::On);
+    iconSet.setPixmap(QPixmap(unpegged), QIconSet::Automatic, QIconSet::Normal,
+		      QIconSet::Off);
+    keepOnTopButton->setIconSet(iconSet);
+    keepOnTopButton->setOn(false);
+    QSize hint = raiseButton->sizeHint();
+    raiseButton->setFixedWidth(hint.width());
+    keepOnTopButton->setFixedWidth(hint.width());
+    
+#ifndef _WIN32
+    keepOnTopButton->hide();
+#endif
+}
+
+// Set a minimum width for spin boxes to keep arrows big
+void InfoControls::setFontDependentWidths()
+{
+    int minWidth = fontMetrics().width("88888888");
+    int minLabelWidth = fontMetrics().width("/ 8888");
+    for (int i = 0; i < 3; i++) {
 	mOCPBox[i]->setMinimumWidth(minWidth);
 	mXYZBox[i]->setMinimumWidth(minWidth);
 	mOCPLabel[i]->setMinimumWidth(minLabelWidth);
@@ -82,7 +104,8 @@ void InfoControls::ocpChanged( int item )
     int diff = mLastOCPval[item] - value;
     if (diff < 0)
 	diff = -diff;
-    int edited = (diff == 1 || diff == mLastOCPmax[item]) ? 0 : 1;
+    // int edited = (diff == 1 || diff == mLastOCPmax[item]) ? 0 : 1;
+    int edited = mShowPoint ? 0 : 1;
     
     // Interpret a change to 0 and wrap around as appropriate
     if (!value) {
@@ -156,6 +179,21 @@ void InfoControls::movieModelSelected( int item )
 void InfoControls::floatToggled( bool state )
 {
     imodInfoFloat(state ? 1 : 0);
+}
+
+void InfoControls::raisePressed()
+{
+    inputRaiseWindows();
+}
+
+void InfoControls::showPointToggled( bool state )
+{
+    mShowPoint = state;
+}
+
+void InfoControls::keepOnTopToggled( bool state )
+{
+    ImodInfoWin->keepOnTop(state);
 }
 
 // ROUTINES FOR SETTING CONTROLS
@@ -256,5 +294,14 @@ void InfoControls::setModelName( char *name )
 void InfoControls::setImageName( char *name )
 {
     mStr = name;
-    imageLabel->setText(mStr);
+    //imageLabel->setText(mStr);
 }
+
+// Set the show point toggle
+void InfoControls::setShowPoint( int state )
+{
+    mShowPoint =  state != 0;
+    diaSetChecked(showCheckBox, mShowPoint);
+}
+
+
