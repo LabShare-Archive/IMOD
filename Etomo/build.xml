@@ -34,6 +34,14 @@
     </jar>
   </target>
 
+  <target name="DataFlowTestJar" depends="compile">
+    <mkdir dir="${jar-dir}" />
+    <jar jarfile="${jar-dir}/dataFlowTests.jar"
+     basedir="${build}"
+     manifest="DATAFLOWTEST_MANIFEST.MF" >
+    </jar>
+  </target>
+
   <target name="dist" depends="jar">
   	<mkdir dir="${dist}/${DSTAMP}/bin" />
     <copy file="scripts/etomo" todir="${dist}/${DSTAMP}/bin"></copy>
