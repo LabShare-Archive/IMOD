@@ -75,6 +75,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.72  2003/10/07 22:40:40  sueh
+ * <p> bug251 moved transferfid from fine alignment dialog
+ * <p> to fiducial model dialog
+ * <p>
  * <p> Revision 2.71  2003/10/05 23:59:35  rickg
  * <p> Bug# 252
  * <p> Adde complete message to progresss region for shor processes
@@ -1213,21 +1217,19 @@ public class ApplicationManager {
     else {
       fiducialModelDialogA = fiducialModelDialog;
     }
-//  MARK 251 done openFiducialModelDialog
+
     updateTransferfidEnabled(fiducialModelDialog, axisID);
     
     //  Load the required track{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
     comScriptMgr.loadTrack(axisID);
     //  Create a default transferfid object to populate the alignment dialog
-//MARK 251 done openFiducialModelDialog
     fiducialModelDialog.setTransferFidParams(getTransferfidParam());
     fiducialModelDialog.setBeadtrackParams(
       comScriptMgr.getBeadtrackParam(axisID));
     mainFrame.showProcess(fiducialModelDialog.getContainer(), axisID);
   }
 
-//MARK 251 done setTransferfidEnabled
   private void updateTransferfidEnabled(FiducialModelDialog dialog, AxisID axisID) {
     if (axisID == AxisID.ONLY) {
       return;
@@ -1259,7 +1261,7 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-    //MARK 251 done doneFiducialModelDialog(AxisID)
+
     TransferfidParam transferfidParam =
       new TransferfidParam(getIMODDirectory());
     fiducialModelDialog.getTransferFidParams(transferfidParam);
@@ -1449,7 +1451,6 @@ public class ApplicationManager {
       comScriptMgr.getTiltalignParam(axisID));
 
     //  Create a default transferfid object to populate the alignment dialog
-//MARK 251 done openFineAlignmentDialog
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
 
@@ -1472,7 +1473,6 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-//MARK 251 done doneAlignmentEstimationDialog
 
     DialogExitState exitState = fineAlignmentDialog.getExitState();
 
@@ -1608,9 +1608,7 @@ public class ApplicationManager {
     }
 
   }
-//MARK 251 done transferfidOld
 
-//MARK 251 done transferfid
   /**
    * Run transferfid
    */
@@ -1640,7 +1638,7 @@ public class ApplicationManager {
       // fiducials from
       String datasetName = metaData.getDatasetName();
       transferfidParam.setDatasetName(datasetName);
-      //MARK 251 done transfer from the other axis
+      
       if (sourceAxisID == AxisID.FIRST) {
         transferfidParam.setBToA(true);
       }
@@ -4103,7 +4101,6 @@ public class ApplicationManager {
         "Thread name: " + threadName);
     }
     
-//  MARK 251 done openFiducialModelDialog
     if (fiducialModelDialogA != null) {
       updateTransferfidEnabled(fiducialModelDialogA, AxisID.FIRST);   
     }

@@ -39,7 +39,7 @@ public class TransferfidPanel {
   public TransferfidPanel() {
     setup();
   }
-//MARK 251 done construct panel with button if button should go on panel TransferfidPanel
+
   public TransferfidPanel(boolean inclButton) {
     includeButton = inclButton;
     setup();
@@ -72,7 +72,7 @@ public class TransferfidPanel {
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
     panelTransferfid.add(panelSearchDirection);
     panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5)); 
-    //MARK 251 done place button on transferfid panel
+    
     if (includeButton) {
       buttonTransferfid =
         new JToggleButton("<html><b>Transfer fiducials from other axis</b>");
@@ -153,10 +153,7 @@ public class TransferfidPanel {
     panelSearchDirection.setVisible(isAdvanced);
   }
   
-  //MARK 251 done setEnabled
   public void setEnabled(boolean isEnabled) {
-    //MARK 251 print
-    System.out.println("in setEnabled: isEnabled=" + isEnabled);
     buttonTransferfid.setEnabled(isEnabled);
     chkRunMidas.setEnabled(isEnabled);
     ltfCenterViewA.setEnabled(isEnabled);

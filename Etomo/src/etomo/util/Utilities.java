@@ -18,7 +18,11 @@ import etomo.type.AxisID;
  *
  * @version $$Revision$
  *
- * <p> $$Log$$</p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2003/10/07 22:43:13  sueh
+ * <p> $bug251 moved transferfid from fine alignment dialog
+ * <p> $to fiducial model dialog
+ * <p> $$</p>
  */
 
 /**
@@ -30,22 +34,17 @@ import etomo.type.AxisID;
 public class Utilities {
   private Utilities() {
   }
-//MARK 251 done fileExists
+
   static public boolean fileExists(
     ConstMetaData metaData,
     String fileName,
     AxisID axisID) {
     String workingDirectory = System.getProperty("user.dir");
-    //MARK 251 print
-    System.out.println("in fileExists: workingDirectory=" + workingDirectory + ", filename=" + metaData.getDatasetName() + axisID.getExtension() + fileName);
     File file =
       new File(
         workingDirectory,
         metaData.getDatasetName() + axisID.getExtension() + fileName);
     if (file.exists()) {
-      //MARK 251 print
-      System.out.println("in fileExists: file exists.");
-
       return true;
     }
     return false;

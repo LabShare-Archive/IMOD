@@ -24,6 +24,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/09 22:49:42  sueh
+ * <p> bug251 fixed some null reference problems with transferfid
+ * <p> panel in single axis mode
+ * <p>
  * <p> Revision 2.4  2003/10/07 22:43:13  sueh
  * <p> bug251 moved transferfid from fine alignment dialog
  * <p> to fiducial model dialog
@@ -81,7 +85,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   private JToggleButton buttonTransferFiducials = null;
   JToggleButton buttonSeed =
     new JToggleButton("<html><b>Seed fiducial<br>model using 3dmod</b>");
-//MARK 251 done FiducialModelDialog
+
   TransferfidPanel panelTransferfid = null;
   BeadtrackPanel panelBeadtrack;
 
@@ -120,7 +124,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     panelFiducialModel.setBorder(border.getBorder());
 
-    //MARK 251 done place button, add transferfid panel, put button inside edge FiducialModelDialog
     if (applicationManager.isDualAxis()) { 
       panelTransferfid = new TransferfidPanel(true);
       panelFiducialModel.add(panelTransferfid.getContainer());
@@ -150,7 +153,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     buttonSeed.addActionListener(new FiducialModelActionListener(this));
     buttonTrack.addActionListener(new FiducialModelActionListener(this));
     buttonFixModel.addActionListener(new FiducialModelActionListener(this));
-//MARK 251 done FiducialModelDialog add action listener to transferfid button
+    
     if (applicationManager.isDualAxis()) { 
       buttonTransferFiducials = panelTransferfid.getButton();
       if (buttonTransferFiducials != null) {
@@ -190,7 +193,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   public void setBeadtrackParams(ConstBeadtrackParam beadtrackParams) {
     panelBeadtrack.setParameters(beadtrackParams);
   }
-//MARK 251 done setTransferFidParams
+
   public void setTransferFidParams(TransferfidParam transferFidParam) {
     if (applicationManager.isDualAxis()) {
       panelTransferfid.setParameters(transferFidParam);
@@ -204,7 +207,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     throws FortranInputSyntaxException {
     panelBeadtrack.getParameters(beadtrackParams);
   }
-//MARK 251 done getTransferFidParams
+
   public void getTransferFidParams(TransferfidParam transferFidParam) {
     if (applicationManager.isDualAxis()) {
       panelTransferfid.getParameters(transferFidParam);
@@ -213,8 +216,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   public void setTransferfidEnabled(boolean fileExists)
   {
-    //MARK 251 print
-    System.out.println("in setTransferfidEnabled: fileExists=" + fileExists);
     transferfidEnabled = fileExists;
   }
 
@@ -254,7 +255,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     else if (command.equals(buttonFixModel.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID);
     }
-//MARK 251 done buttonAction
+
     else if (command.equals(buttonTransferFiducials.getActionCommand())) {
       applicationManager.transferfid(axisID);
     }
