@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/28 20:28:07  sueh
+ * <p> bug# 451
+ * <p>
  * <p> Revision 3.4  2004/03/12 17:04:07  rickg
  * <p> Some of the ComScriptCommand objects didn't have their
  * <p> command string specified
@@ -23,6 +26,7 @@
 
 package etomo.comscript;
 
+import etomo.type.AxisID;
 import junit.framework.TestCase;
 
 public class NewstParamTest extends TestCase {
@@ -84,7 +88,7 @@ public class NewstParamTest extends TestCase {
     ComScriptCommand scriptCommand = new ComScriptCommand();
     scriptCommand.setCommand("newst");
     scriptCommand.setCommandLineArgs(s);
-    NewstParam newstParam = new NewstParam();
+    NewstParam newstParam = new NewstParam(AxisID.ONLY);
     try {
       newstParam.parseComScriptCommand(scriptCommand);
     }
@@ -118,7 +122,7 @@ public class NewstParamTest extends TestCase {
     //Case: all options
 
     ComScriptCommand csc = getAllOptionsComScriptCommand();
-    NewstParam np = new NewstParam();
+    NewstParam np = new NewstParam(AxisID.ONLY);
     //test Parse
     testParseAllOptions(np, csc);
     
@@ -128,7 +132,7 @@ public class NewstParamTest extends TestCase {
     //test compatibility of Update and Parse
     csc = new ComScriptCommand();
     csc.setCommandLineArgs(commandLine);
-    np = new NewstParam();
+    np = new NewstParam(AxisID.ONLY);
     testParseAllOptions(np, csc);
   }
 
@@ -140,7 +144,7 @@ public class NewstParamTest extends TestCase {
 
     //test Parse - should reset
     ComScriptCommand csc = getNoOptionsComScriptCommand();
-    NewstParam np = new NewstParam();
+    NewstParam np = new NewstParam(AxisID.ONLY);
     try {
       np.parseComScriptCommand(csc);
     }
