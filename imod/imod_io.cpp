@@ -35,64 +35,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.9  2003/01/27 03:22:17  mast
-Stripped model filename of directories when appending to an autosave dir
-
-Revision 1.1.2.8  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.7  2003/01/23 20:07:45  mast
-rely on imod_infor_setocp updating dialogs
-
-Revision 1.1.2.6  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 1.1.2.5  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:41:49  mast
-Changes to get imodv to set file name correctly in window title
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 4.1.2.2  2002/12/09 17:42:32  mast
-remove include of zap
-
-Revision 4.1.2.1  2002/12/05 16:30:00  mast
-Add include of imod_object_edit.h
-
-Revision 4.2  2002/12/03 16:08:28  mast
-Switched SavasModel to using dia_filename so that there would be no callback
-returns from file dialogs (thus preventing multiple file dialogs).  Refined
-the error return protocols and minimized error messages if user cancelled;
-also let user cancel as well as yes/no when asked whether to save current
-model upon new model or model load.
-
-Revision 4.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 4.0  2002/09/27 20:15:24  rickg
-Significant restructuring of the model io code
-- io funtionality moved imod_menu_cb to this module
-- added error reporting methods imodIOGetError*
-- reverted LoadModel to orignally calling structure and added LoadModelFile
-  to allow for cleaner handling of different cases especially w.r.t. freeing
-  allocated variables and arguments
-- still plenty left todo
-
-Revision 3.1  2002/09/13 21:07:07  mast
-Added argument to LoadModel so it can work from a filename passed in, and
-removed old version of imod_io_image_reload
-
+Log at end of file
 */
 
 // TODO:
@@ -103,7 +46,6 @@ removed old version of imod_io_image_reload
 //  * decide whether this module should have access to the GUI (such as wprint)
 //    this should only have access to the application data
 
-#include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
@@ -174,48 +116,47 @@ int imod_model_changed(Imod *imodel)
    file name */
 static void imod_make_backup(char *filename)
 {
-  char *nfname1, *nfname2;
-
+  QString qname, nfname1, nfname2;
+  int ok;
+  int err;
   if ((filename[0] != 0x00) && strcmp(filename, saved_filename)) {
-    nfname1 = (char *)malloc(strlen(filename) + 2);
-    nfname2 = (char *)malloc(strlen(filename) + 3);
-    sprintf(nfname1, "%s~", filename);
-    sprintf(nfname2, "%s~~", filename);
-    rename(nfname1, nfname2);
-    rename(filename, nfname1);
-    free(nfname1);
-    free(nfname2);
+    QDir *curdir = new QDir();
+    qname = QDir::convertSeparators(QString(filename));
+    nfname1 = qname + "~";
+    nfname2 = qname + "~~";
+    curdir->remove(nfname2.latin1());
+    curdir->rename(nfname1.latin1(), nfname2.latin1());
+    curdir->rename(qname.latin1(), nfname1.latin1());
     strcpy(saved_filename, filename);
+    delete curdir;
   }
 }
 
 /* undo the renaming of files to backup files if the save fails */
 static void imod_undo_backup()
 {
-  char *nfname1, *nfname2;
+  QString qname, nfname1, nfname2;
 
   if (saved_filename[0]) {
-    nfname1 = (char *)malloc(strlen(saved_filename) + 2);
-    nfname2 = (char *)malloc(strlen(saved_filename) + 3);
-    sprintf(nfname1, "%s~", saved_filename);
-    sprintf(nfname2, "%s~~", saved_filename);
-    rename(nfname1, saved_filename);
-    rename(nfname2, nfname1);
-    free(nfname1);
-    free(nfname2);
+    QDir *curdir = new QDir();
+    qname = saved_filename;
+    nfname1 = qname + "~";
+    nfname2 = qname + "~~";
+    curdir->remove(qname);
+    curdir->rename(nfname1, qname);
+    curdir->rename(nfname2, nfname1);
     saved_filename[0] = 0x00;
+    delete curdir;
   }
 }
 
 /* Or finish the making of a backup by cleaning up the ~~ file */
 static void imod_finish_backup()
 {
-  char *nfname2;
-
-  nfname2 = (char *)malloc(strlen(saved_filename) + 3);
-  sprintf(nfname2, "%s~~", saved_filename);
-  remove(nfname2);
-  free(nfname2);
+  QDir *curdir = new QDir();
+  QString nfname2 = QString(saved_filename) + "~~";
+  curdir->remove(nfname2);
+  delete curdir;
 }
 
 /* DNM: changed autosave functions to implement better cleanup of last autosave
@@ -227,8 +168,11 @@ void imod_cleanup_autosave(void)
 {
   lastError = IMOD_IO_SUCCESS;
 
-  if (autosave_filename[0])
-    remove(autosave_filename);
+  if (autosave_filename[0]) {
+    QDir *curdir = new QDir();
+    curdir->remove(QString(autosave_filename));
+    delete curdir;
+  }
   last_checksum = -1;
 }
 
@@ -240,6 +184,7 @@ int imod_autosave(struct Mod_Model *mod)
   FILE *tfilep;
   int new_checksum, i;
   char *timestr;
+  char *convname;
   char *savedir = getenv("IMOD_AUTOSAVE_DIR");
 
   lastError = IMOD_IO_SUCCESS;
@@ -254,6 +199,7 @@ int imod_autosave(struct Mod_Model *mod)
   if ((new_checksum == mod->csum) || (last_checksum == new_checksum))
     return(IMOD_IO_SUCCESS);
 
+  // Clean up with the existing name
   imod_cleanup_autosave();
 
   if (savedir) {
@@ -263,23 +209,28 @@ int imod_autosave(struct Mod_Model *mod)
       if (Imod_filename[i] == '/')
         timestr = &(Imod_filename[i]) + 1;
         
-      sprintf(autosave_filename, "%s/%s%s", savedir, timestr, autosave_string);
+    sprintf(autosave_filename, "%s/%s%s", savedir, timestr, autosave_string);
       
   } else
     sprintf(autosave_filename, "%s%s", Imod_filename, autosave_string);
      
-  remove(autosave_filename);
-  tfilep = fopen(autosave_filename, "wb");
+  // Then clean up with the new name
+  imod_cleanup_autosave();
+  convname = strdup
+    ((QDir::convertSeparators(QString(autosave_filename))).latin1());
+
+  tfilep = fopen(convname, "wb");
   if (tfilep == NULL){
-    wprint("Error: Can't open autosave file %s\n", autosave_filename);
+    wprint("Error: Can't open autosave file %s\n", convname);
     autosave_filename[0] = 0x00;
+    free(convname);
     return(-1);
   }
 
 
   if (imodWrite(Model, tfilep))
     wprint("Error: Autosave model file not saved. %s\n", 
-           autosave_filename);
+           convname);
   else {
     timestr = datetime();
     wprint("Saved autosave file %s\n", timestr);
@@ -288,6 +239,7 @@ int imod_autosave(struct Mod_Model *mod)
   last_checksum = new_checksum;
   imod_draw_window();
   fclose(tfilep);
+  free(convname);
   return(IMOD_IO_SUCCESS);
 }
 
@@ -308,12 +260,18 @@ int SaveModel(struct Mod_Model *mod)
   if (!ImodvClosed)
     imodvAutoStoreView(Imodv);
 
+  /* DNM 2/23/03: fopen crashes with empty filename in Windows, so just test for that */
+  if (Imod_filename[0] == 0x00) {
+    retval = SaveasModel(mod);
+    return(retval);
+  }
+
   imod_make_backup(Imod_filename);
 
-  fout = fopen(Imod_filename, "wb+");
+  fout = fopen((QDir::convertSeparators(QString(Imod_filename))).latin1(),
+    "wb+");
 
   if (fout == NULL){
-    
     imod_undo_backup();
     retval = SaveasModel(mod);
     return(retval);
@@ -325,7 +283,8 @@ int SaveModel(struct Mod_Model *mod)
 
   if (!imodWrite(mod, fout)){
     timestr = datetime();
-    wprint("Done saving Model %s\n%s\n", timestr, Imod_filename);
+    wprint("Done saving Model %s\n%s\n", timestr, (QDir::convertSeparators
+        (QString(Imod_filename))).latin1());
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
     imod_cleanup_autosave();
@@ -367,7 +326,7 @@ int SaveasModel(struct Mod_Model *mod)
     imodvAutoStoreView(Imodv);
 
   imod_make_backup((char *)qname.latin1());
-  fout = fopen(qname.latin1(), "wb");
+  fout = fopen((QDir::convertSeparators(qname)).latin1(), "wb");
   if (fout == NULL){
     wprint("\aError: Couldn't open %s .  Model not saved.\n", qname.latin1());
     imod_undo_backup();
@@ -385,7 +344,8 @@ int SaveasModel(struct Mod_Model *mod)
   strcpy(Imod_filename, qname.latin1());
      
   if (!retval) {
-    wprint("Done saving Model\n%s\n", Imod_filename);
+    wprint("Done saving Model\n%s\n", 
+      (QDir::convertSeparators(qname)).latin1());
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
     imod_cleanup_autosave();
@@ -459,6 +419,7 @@ Imod *LoadModelFile(char *filename) {
   
   lastError = IMOD_IO_SUCCESS;
 
+  /* DNM 2/24/03: change to not destroy existing Imod_filename */
   if (filename == NULL) {
     qname = diaOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
   
@@ -467,25 +428,32 @@ Imod *LoadModelFile(char *filename) {
       /*  show_status("File not selected. Model not loaded."); */
       return((Imod *)NULL);
     }
-    strcpy(Imod_filename, qname.latin1());
 
   } else {
-    strcpy(Imod_filename, filename);
+    qname = filename;
   }
 
-  fin = fopen(Imod_filename, "rb");
+  fin = fopen((QDir::convertSeparators(qname)).latin1(), "rb");
 
   if (fin == NULL) {
     lastError = mapErrno(errno);
-    Imod_filename[0] = '\0';
     return((Imod *)NULL);
   }
 
   wprint("Loading... ");
   imod = LoadModel(fin);
-
   fclose(fin);
-  imod->csum = imodChecksum(imod);
+
+  /* DNM 2/24/03: catch error at this point, and translate it to a read 
+    error if unidentified */
+  if (imod) {
+    imod->csum = imodChecksum(imod);
+    strcpy(Imod_filename, qname.latin1());
+  } else {
+    lastError = mapErrno(errno);
+    if (lastError = IMOD_IO_UNIMPLEMENTED_ERROR)
+      lastError = IMOD_IO_READ_ERROR;
+  }
   return(imod);
 }
 
@@ -531,7 +499,7 @@ int openModel(char *modelFilename) {
 //  model information and frees the old model data structures
 //
 //  FIXME this should really return a resut code, some of the functions called
-//  appear that they can fail.
+//    appear that they can fail.
 static void initModelData(Imod *newModel) {
 	      
   /* DNM 1/23/03: no longer free or allocate object colors */
@@ -859,3 +827,66 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
   return(error);
 }
 #endif
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.9  2003/01/27 03:22:17  mast
+Stripped model filename of directories when appending to an autosave dir
+
+Revision 1.1.2.8  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.7  2003/01/23 20:07:45  mast
+rely on imod_infor_setocp updating dialogs
+
+Revision 1.1.2.6  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 1.1.2.5  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 18:41:49  mast
+Changes to get imodv to set file name correctly in window title
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 4.1.2.2  2002/12/09 17:42:32  mast
+remove include of zap
+
+Revision 4.1.2.1  2002/12/05 16:30:00  mast
+Add include of imod_object_edit.h
+
+Revision 4.2  2002/12/03 16:08:28  mast
+Switched SavasModel to using dia_filename so that there would be no callback
+returns from file dialogs (thus preventing multiple file dialogs).  Refined
+the error return protocols and minimized error messages if user cancelled;
+also let user cancel as well as yes/no when asked whether to save current
+model upon new model or model load.
+
+Revision 4.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 4.0  2002/09/27 20:15:24  rickg
+Significant restructuring of the model io code
+- io funtionality moved imod_menu_cb to this module
+- added error reporting methods imodIOGetError*
+- reverted LoadModel to orignally calling structure and added LoadModelFile
+  to allow for cleaner handling of different cases especially w.r.t. freeing
+  allocated variables and arguments
+- still plenty left todo
+
+Revision 3.1  2002/09/13 21:07:07  mast
+Added argument to LoadModel so it can work from a filename passed in, and
+removed old version of imod_io_image_reload
+
+*/
