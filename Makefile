@@ -307,7 +307,7 @@ csrc : ALWAYS
 	machines \
 	lib*/*.[ch] lib*/*.cpp libi*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
-	USFFTlib/*/*.a \
+	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
 	imod/*.bits imod/*.png imod/*.xpm imod/README imod/3dmod.dsp \
 	imod/3dmod.dsw imod/Makefile.dummy \
@@ -318,7 +318,7 @@ csrc : ALWAYS
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
-	html/*.* html/Makefile html/3dmodimages \
+	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
@@ -350,6 +350,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.25  2003/10/24 04:17:18  mast
+#  Changes for Windows/Intel compilation
+#
 #  Revision 3.24  2003/10/16 20:51:35  mast
 #  Added packMacApps to make src
 #
