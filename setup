@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/07/30 05:37:26  mast
+#  Made new variables for glw install directories so that GLw could be
+#  included in a standard build
+#
 #  Revision 3.2  2002/07/28 21:51:13  mast
 #  Set year correctly in copyright
 #
@@ -457,8 +461,6 @@ echo " "                           >> $hconfigure
 #
 # Make needed links in include
 #
-if (! -e include/stat_source:statsize.inc) ln -s statsize.inc include/stat_source:statsize.inc
-if (! -e include/nimp_source:model.inc) ln -s model.inc include/nimp_source:model.inc
 if (! -e include/imod.h) ln -s ../imod/imod.h include/imod.h
 
 #
