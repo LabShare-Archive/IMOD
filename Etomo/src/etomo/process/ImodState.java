@@ -55,7 +55,12 @@ import etomo.type.AxisID;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2003/12/02 23:20:29  sueh
+ * <p> $bug242 Was ImodAssistant.  Same as ImodAssistant
+ * <p> $without configuration functions.  State is changed by all
+ * <p> $functions.  Added reset() to reset state
+ * <p> $$ </p>
  */
 
 public class ImodState {
@@ -186,7 +191,7 @@ public class ImodState {
 
   
   public void reset() {
-     openWithModel = false;
+     openWithModel = true;
      modelName = "";
      useMode = false;
      mode = MOVIE; 
