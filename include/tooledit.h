@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:57:02  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:36:56  mast
 includes for library
 
@@ -33,7 +36,7 @@ class ToolEdit : public QLineEdit
   void setColumnWidth(int columns = 0);
 
  signals:
-  void lostFocus();
+  void focusLost();
 
  protected:
   void focusOutEvent(QFocusEvent *event);
