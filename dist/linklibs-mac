@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2003/08/29 20:39:23  mast
+#  Addition to archive
+#
 
 if (! $?IMOD_DIR) then
     echo 'The environment variable IMOD_DIR must be defined before running this command'
@@ -32,7 +35,7 @@ if ("$argv[1]" != '-i' && "$argv[1]" != '-u') then
 endif
 
 set exist = 0
-set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib)
+set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib libtrack.dylib)
 
 # Look for imod libs in /usr/lib
 #
