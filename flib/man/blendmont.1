@@ -6,7 +6,7 @@ NNAAMMEE
 	blendmont - aligns and blends overlapping edges of montaged images
 
 SSYYNNOOPPSSIISS
-	blendmont
+	blendmont  [options]
 
 DDEESSCCRRIIPPTTIIOONN
 
@@ -104,7 +104,114 @@ DDEESSCCRRIIPPTTIIOONN
   of 2 and has no prime factor greater than 19 (so that fourier
   transforms can be run on the resulting pieces).
 
-  Entries are as follows:
+  Blendmont uses the PIP package for input (see the manual page for pip(1))
+  and can still take sequential input interactively, to maintain compatibility
+  with old command files.  The following options can be specified either as
+  command line arguments (with the -) or one per line in a command file or
+  parameter file (without the -):
+
+  -imin OR -ImageInputFile   File name
+     Montaged image input file to be blended.
+
+  -plin OR -PieceListInput   File name
+     File with list of piece coordinates for image input file.
+
+  -imout OR -ImageOutputFile   File name
+     Output file for blended images.
+
+  -plout OR -PieceListOutput   File name
+     File for list of coordinates of pieces in output image file.  This entry
+     may be omitted if the output images are not being cut into pieces.
+
+  -rootname OR -RootNameForEdges   Text string
+     Root name for edge function and .ecd files.  Two files will be created or
+     sought for, with the extensions .xef and .yef attached to this root name.
+
+  -mode OR -ModeToOutput   Integer
+     Mode for output file: 0 for bytes, 1 for integers, 2 for reals.  The
+     default is the same mode as the input file.
+
+  -float OR -FloatToRange   (Boolean entry, no value expected)
+     Stretch intensities of each output section to fill range of data mode.
+
+  -xform OR -TransformFile   File name
+     File with g transformations to apply to align the images.
+
+  -center OR -TransformCenterXandY   Two floats
+     X and Y coordinates of center of transformations.  The default is the
+     center of the input image.
+
+  -sloppy OR -SloppyMontage   (Boolean entry, no value expected)
+     Do initial cross-correlations for finding edge functions and shift pieces
+     to minimize displacements in the overlap zones
+
+  -shift OR -ShiftPieces   (Boolean entry, no value expected)
+     Shift pieces to minimize displacements in the overlap zones.  The default
+     is to use information from edge functions and from cross-correlations for
+     each section and pick the one that gives lowest error.
+
+  -edge OR -ShiftFromEdges   (Boolean entry, no value expected)
+     Use only edge functions for shifting pieces.
+
+  -xcorr OR -ShiftFromXcorrs   (Boolean entry, no value expected)
+     Use only cross-correlations of overlap zones for shifting pieces (legacy
+     behavior).
+
+  -readxcorr OR -ReadInXcorrs   (Boolean entry, no value expected)
+     Read displacements in the overlap zones from an existing .ecd file
+     instead of computing correlations.
+
+  -sections OR -SectionsToDo   List of integer ranges
+     List of sections to blend into output file; comma-separated ranges are
+     allowed.
+
+  -xminmax OR -StartingAndEndingX   Two integers
+     Minimum and maximum X index coordinates to output (numbered from 0).  The
+     default is to output the entire image.
+
+  -yminmax OR -StartingAndEndingY   Two integers
+     Minimum and maximum Y index coordinates to output.
+
+  -maxsize OR -MaximumNewSizeXandY   Two integers
+     Maximum size in X and Y of pieces in output file.  The default is to make
+     output be a single piece, unless it exceeds the limits of the program.
+
+  -minoverlap OR -MinimumOverlapXandY   Two integers
+     Minimum overlap between pieces in X and Y in output file.  The default is
+     an overlap of 2.
+
+  -oldedge OR -OldEdgeFunctions   (Boolean entry, no value expected)
+     Use existing edge functions, if they exist, rather than computing new
+     ones.
+
+  -perneg OR -FramesPerNegativeXandY   Two integers
+     Number of frames in X and Y per negative for a multi-negative montage.
+     This option could be used instead of having negative numbers in the piece
+     list file.
+
+  -missing OR -MissingFromFirstNegativeXandY   Two integers
+     Number of pieces missing from the first negative in X and Y.  For
+     example, if there are 3 negatives across, with 2, 4, and 1 pieces in X
+     from each, then the number missing is 2.
+
+  -width OR -BlendingWidthXandY   Two integers
+     Width in X and Y across which to blend overlaps.  The default is:
+     80% of the overlap zone width for overlap width less than 63,
+     50 pixels for overlap width between 63 and 100, or
+     50% of the overlap width for overlap width greater than 100.
+
+  -param OR -ParameterFile   Parameter file
+     Read parameter entries from file.
+
+  -help OR -usage   (Boolean entry, no value expected)
+     Print help output.
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+
+  If there are no command-line arguments, Blendmont takes sequential input
+  the old way, with the following entries:
 
   Input image file
 
@@ -157,7 +264,9 @@ DDEESSCCRRIIPPTTIIOONN
    	# of frames (pieces) per negative in the Y direction, and the
    	    # of frames missing from the bottom-most negative.
 
-  Name of new file for list of coordinates of pieces in the output file
+  Name of new file for list of coordinates of pieces in the output file, or
+  Return to skip making this file, which is not needed when the output image
+  is a single piece.
 
   IF you have g transforms, enter on the next line:
      X and Y center coordinates of the transforms, or / to accept the
@@ -187,13 +296,9 @@ DDEESSCCRRIIPPTTIIOONN
   0 to build new files of edge functions, 1 to use old files that were
    	generated on a previous run of the program
 
-  Root filename for edge function files.  Two files will be created or
-   	sought for, with the extensions .XEF and .YEF attached to this
-   	root name 
+  Root filename for edge function files. 
 
-  Widths over which to blend positions at an edge, in the X and Y
-   	directions.  For overlaps in the input image of 64 or more,
-   	blending widths of 50 are recommended.
+  Widths over which to blend positions at an edge, in the X and Y directions.
 
 
 HHIISSTTOORRYY
@@ -202,3 +307,4 @@ HHIISSTTOORRYY
   shifts to correct for sloppy montages
   6/1/01: implemented ability to write and read in edge correlation
   displacements; added a search step to improve on cross-correlations  
+  8/9/03: converted to PIP input.
