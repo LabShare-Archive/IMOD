@@ -240,6 +240,7 @@ while ($i < 3)
     if ($compiler == intel) then
         (cd $qdir[$i] ; qmake -o makefile.tmp $qpro[$i])
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
+        -e '/DEL_FILE.*=.*del/s/del/rm -f/' -e '/makefile.tmp/s//Makefile/g' \
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
         -e '/.SUFFIXES/d'  \
         -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
